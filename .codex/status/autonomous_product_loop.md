@@ -5,92 +5,84 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Expose operational-timeline duplicate dependency and exclusivity rollups in the
-exported schema.
+Preserve actual-throughput ID routing in storage/downlink replay summaries.
 
 Status:
-Published locally in product commit `1054d07`; handoff commit pending.
+Completed; handoff recorded for product commit `211d7fd`.
 
 Slice-selection note:
-- Selected slice: make the checked-in `operational_timeline_report.v1` top-level
-  duplicate dependency/exclusivity rollup fields schema-visible, so fixture
-  compatibility checks agree with the public artifact surface.
-- Why this slice: the previous fixture-hardening verification surfaced a
-  focused compatibility failure in
-  `test/orbital_dynamics/schema_test.exs:31680`: the checked-in operational
-  timeline fixture emits duplicate dependency/exclusivity fields that the
-  exported report schema does not expose.
-- Level 6 pillar: typed operational activity semantics and durable
-  schema-versioned artifacts with compatibility checks.
-- Current evidence gap: operational timeline duplicate dependency/exclusivity
-  evidence is emitted in a checked-in fixture but is not present in the exported
-  JSON Schema properties, so downstream contract consumers cannot rely on it.
+- Selected slice: carry link-capacity actual-throughput contact, source-window,
+  station-calendar entry, and provider-entry ID lists through
+  `CandidateRefresh.storage_downlink_pressure_replay_summary/1`, and let
+  list-only actual-throughput evidence set the branch-local actual-throughput
+  pressure flag.
+- Why this slice: the guide prioritizes resource/contact allocation semantics
+  and branch-local candidate-refresh depth. The link-capacity source summary
+  already derives actual-throughput ID lists, but the composed
+  storage/downlink replay summary currently exposes only row counts and contact
+  ID count maps.
+- Level 6 pillar: refreshed candidates from current mission state and realized
+  feedback; fleet-level resource/contact/downlink evidence; Cadence-facing
+  artifact-only handoff surfaces.
+- Current evidence gap: docs say actual-throughput row or contact evidence
+  contributes to storage/downlink pressure, but list-only contact/source/station
+  evidence is dropped from the composed replay summary and does not affect the
+  actual-throughput pressure flag.
 - Docs to read:
   `docs/autonomous_work_guide.md`,
   `.codex/prompts/long_running_context_efficient_product_loop.md`,
   `.codex/status/autonomous_product_loop.md`,
-  `docs/feature_set/capability_map/08_mission_activities_and_timelines.md`,
-  `docs/artifacts/field_families/mission_activities.md`,
-  `docs/feature_set/capability_map/18_validation_and_verification.md`,
-  `docs/artifacts/compatibility_checks.md`.
-- Likely files: `lib/orbital_dynamics/schema.ex`,
-  `schemas/operational_timeline_report.v1.schema.json`,
-  `test/orbital_dynamics/schema_test.exs`,
-  `docs/feature_set/capability_map/08_mission_activities_and_timelines.md`,
+  `docs/feature_set/capability_map/06_spacecraft_and_payload_modeling.md`,
+  `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`,
+  `docs/artifacts/field_families/candidate_refresh_artifact.md`.
+- Likely files: `lib/orbital_dynamics/candidate_refresh.ex`,
+  `test/orbital_dynamics/candidate_refresh_test.exs`,
+  `docs/artifacts/field_families/candidate_refresh_artifact.md`,
   `.codex/status/autonomous_product_loop.md`.
-- Likely tests: `mix test test/orbital_dynamics/schema_test.exs:31680`,
-  `mix orbital_dynamics.schema.export --contract operational_timeline_report.v1 --output schemas/operational_timeline_report.v1.schema.json`,
-  `mix orbital_dynamics.schema.lint --input study_results/operational_timeline_report_v1.json --contract operational_timeline_report.v1`,
+- Likely tests:
+  `mix test test/orbital_dynamics/candidate_refresh_test.exs:<storage_downlink_selectors>`,
+  `mix compile --warnings-as-errors`,
   `git diff --check`.
-- Definition of done: exported schema properties cover the emitted top-level
-  duplicate dependency/exclusivity rollups; the failing schema-visibility
-  selector passes; the checked-in fixture still lints.
+- Definition of done: storage/downlink replay summaries expose actual-throughput
+  contact/source-window/station/provider-entry ID lists from link-capacity
+  provenance; list-only evidence drives `branch_local_actual_throughput_pressure`
+  and composed downlink/storage-downlink pressure; focused candidate-refresh
+  tests pass.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
-- `lib/orbital_dynamics/schema.ex`
-- `schemas/operational_timeline_report.v1.schema.json`
-- `schemas/orbital_dynamics.schema_bundle.v1.json`
-- `schemas/campaign_plan.v1.schema.json`
-- `schemas/campaign_repair.v2.schema.json`
-- `schemas/command_window_report.v1.schema.json`
-- `schemas/timeline_diff_report.v1.schema.json`
-- `schemas/timeline_integrity_report.v1.schema.json`
-- `docs/feature_set/capability_map/18_validation_and_verification.md`
+- `lib/orbital_dynamics/candidate_refresh.ex`
+- `test/orbital_dynamics/candidate_refresh_test.exs`
+- `docs/artifacts/field_families/candidate_refresh_artifact.md`
 
 Tests run:
-- `mix orbital_dynamics.schema.export --contract operational_timeline_report.v1 --output schemas/operational_timeline_report.v1.schema.json`
-- `mix format lib/orbital_dynamics/schema.ex`
-- `mix test test/orbital_dynamics/schema_test.exs:31680`
-- `mix orbital_dynamics.schema.lint --input study_results/operational_timeline_report_v1.json --contract operational_timeline_report.v1`
-- `MIX_OS_CONCURRENCY_LOCK=0 mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
-- `mix orbital_dynamics.schema.lint --all`
-- `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:11257 test/orbital_dynamics/candidate_refresh_test.exs:11513 test/orbital_dynamics/candidate_refresh_test.exs:14240 test/orbital_dynamics/candidate_refresh_test.exs:14272 test/orbital_dynamics/candidate_refresh_test.exs:14320`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs`
 
 Docs/artifacts changed:
-- Exported `operational_timeline_report.v1` and the full schema bundle.
-- Nested exported schemas that embed operational timeline surfaces were
-  refreshed by the full export.
-- Documented report-level duplicate dependency/exclusivity rollup schema
-  visibility.
+- `docs/artifacts/field_families/candidate_refresh_artifact.md` now says the
+  composed storage/downlink replay summary preserves actual-throughput contact
+  count maps plus contact/source-window/station-calendar entry/provider-entry
+  ID lists, and that row/count/list evidence drives composed pressure without
+  implying shortfall.
 
 Local review:
-- The exported `operational_timeline_report.v1` schema now exposes
-  `duplicate_dependency_activity_ids`, `duplicate_dependency_timeline_ids`,
-  `duplicate_exclusivity_activity_ids`, and
-  `duplicate_exclusivity_timeline_ids` as optional stable-ID arrays at the
-  report level. The previously failing schema-visibility selector passes, the
-  checked-in fixture lints, and full schema lint passes across 154 artifacts.
-- Read-only reviewer `Hubble` found no blocking issues. The reviewer confirmed
-  the fields are optional stable-ID arrays, generated schema propagation is
-  justified by embedded operational timeline definitions, and the original
-  failure is covered by the schema-visibility selector.
+- Read-only reviewer `Linnaeus` found no blockers. The reviewer confirmed the
+  storage/downlink helper preserves the four actual-throughput ID-list fields,
+  emits them in the replay output, and lets list-only evidence drive
+  actual-throughput/downlink/storage-downlink pressure without setting storage,
+  capacity-adjusted-throughput, or shortfall pressure. The initial per-field
+  granularity gap was closed with a looped regression that tests each ID-list
+  field as the sole evidence source.
 
 Level 6 pillar advanced:
-Operational timeline report compatibility and schema visibility for typed
-timeline integrity evidence.
+Candidate-refresh replay fidelity for realized downlink evidence: composed
+storage/downlink summaries now preserve actual-throughput ID routing evidence
+from link-capacity provenance and treat list-only evidence as branch-local
+actual-throughput/downlink/storage-downlink pressure without mutating allocation
+or projection state.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -99,19 +91,22 @@ discipline, provider-write/notification workflows owned outside this library,
 and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
-Last commit:
-`1054d07` Expose operational timeline duplicate rollups in schema.
+Last product commit:
+`211d7fd` Preserve actual-throughput ID replay pressure.
 
 Next candidate:
-After this schema-visibility fix, return to planner-visible use of
-resource/contact/readiness evidence during candidate selection and V2/V3 branch
-scoring.
+After this storage/downlink replay slice, continue with planner-visible
+resource/contact/readiness evidence that affects V2/V3 branch scoring or
+candidate-refresh provenance.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
   not part of this slice.
 
 Previous published slices:
+- `211d7fd` preserved actual-throughput ID replay pressure in composed
+  storage/downlink summaries.
+- `1054d07` exposed operational timeline duplicate rollups in schema.
 - `aec452f` refreshed the V3 score-term compatibility fixture.
 - `a74eae0` split timeline pressure into an explicit V3 score term.
 - `c896321` split readiness/quality pressure into an explicit V3 score term.
