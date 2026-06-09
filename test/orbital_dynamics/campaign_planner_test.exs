@@ -18948,6 +18948,40 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                 trust_boundary: "mission_state_contact_intent_review"
               },
               %{
+                type: "downlink_completion_gap",
+                scenario_id: "leo_1",
+                spacecraft_id: "leo_1",
+                ground_station_id: "goldstone",
+                required_contacts: 1,
+                planned_contacts: 0,
+                required_downlink_mb: 38.0,
+                planned_downlink_mb: 0.0,
+                starts_at_s: 1_165.0,
+                ends_at_s: 1_225.0,
+                contact_id: "dl_contact_filter_suppressed",
+                source_activity_id: "dl_contact_filter_suppressed",
+                source_activity_ids: ["dl_contact_filter_suppressed"],
+                source_window_id: "window_contact_filter_suppressed",
+                suppressed_reason: "station_reserved",
+                review_status: "operator_review_required",
+                station_reservation_id: "reservation_contact_filter",
+                station_reserved_by: "partner_calendar",
+                station_reservation_status: "confirmed",
+                station_reservation_match_status: "overlap",
+                station_calendar_entry_id: "calendar_contact_filter_suppressed",
+                station_calendar_entry_status: "reserved",
+                downlink_demand_sources: ["contact_filter:dl_contact_filter_suppressed"],
+                downlink_completion_sources: ["contact_filter_report:suppressed_candidates"],
+                derivation_reasons: [
+                  "contact_filter_suppressed",
+                  "station_reserved"
+                ],
+                feedback_source:
+                  "mission_state.source_contact_filter_report.suppressed_candidates",
+                feedback_scope: "contact_filter",
+                trust_boundary: "mission_state_contact_filter_report"
+              },
+              %{
                 type: "ground_station_reserved",
                 ground_station_id: "canberra",
                 starts_at_s: 1_170.0,
@@ -22317,6 +22351,46 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
       ],
       "contact_allocation_pressure_derivation_reasons" => [
         "contact_allocation_reservation_conflict"
+      ],
+      "contact_filter_pressure_risk_types" => ["downlink_completion_gap"],
+      "contact_filter_pressure_contact_ids" => ["dl_contact_filter_suppressed"],
+      "contact_filter_pressure_scenario_ids" => ["leo_1"],
+      "contact_filter_pressure_spacecraft_ids" => ["leo_1"],
+      "contact_filter_pressure_ground_station_ids" => ["goldstone"],
+      "contact_filter_pressure_source_activity_ids" => ["dl_contact_filter_suppressed"],
+      "contact_filter_pressure_source_window_ids" => ["window_contact_filter_suppressed"],
+      "contact_filter_pressure_required_contact_values" => [1],
+      "contact_filter_pressure_planned_contact_values" => [0],
+      "contact_filter_pressure_required_downlink_values_mb" => [38.0],
+      "contact_filter_pressure_planned_downlink_values_mb" => [0.0],
+      "contact_filter_pressure_start_values_s" => [1_165.0],
+      "contact_filter_pressure_end_values_s" => [1_225.0],
+      "contact_filter_pressure_suppressed_reasons" => ["station_reserved"],
+      "contact_filter_pressure_review_statuses" => ["operator_review_required"],
+      "contact_filter_pressure_station_reservation_ids" => ["reservation_contact_filter"],
+      "contact_filter_pressure_station_reserved_by" => ["partner_calendar"],
+      "contact_filter_pressure_station_reservation_statuses" => ["confirmed"],
+      "contact_filter_pressure_station_reservation_match_statuses" => ["overlap"],
+      "contact_filter_pressure_station_calendar_entry_ids" => [
+        "calendar_contact_filter_suppressed"
+      ],
+      "contact_filter_pressure_station_calendar_entry_statuses" => ["reserved"],
+      "contact_filter_pressure_downlink_demand_sources" => [
+        "contact_filter:dl_contact_filter_suppressed"
+      ],
+      "contact_filter_pressure_downlink_completion_sources" => [
+        "contact_filter_report:suppressed_candidates"
+      ],
+      "contact_filter_pressure_feedback_sources" => [
+        "mission_state.source_contact_filter_report.suppressed_candidates"
+      ],
+      "contact_filter_pressure_feedback_scopes" => ["contact_filter"],
+      "contact_filter_pressure_trust_boundaries" => [
+        "mission_state_contact_filter_report"
+      ],
+      "contact_filter_pressure_derivation_reasons" => [
+        "contact_filter_suppressed",
+        "station_reserved"
       ],
       "station_reservation_conflict_contact_ids" => ["dl_reservation_conflict"],
       "station_reservation_conflict_source_activity_ids" => ["dl_reservation_conflict"],
