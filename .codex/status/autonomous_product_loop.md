@@ -44,39 +44,6 @@ Slice-selection note:
   reports expose the new key; docs mention the split; focused tests/compile
   pass.
 
-Previous slice-selection note:
-- Selected slice: V3 strategy scoring should classify station-calendar pressure
-  into a dedicated score term instead of leaving it inside generic
-  `risk_penalty`.
-- Why this slice: branch derivation already emits station-calendar pressure for
-  reserved, unavailable, reduced-capacity, and provider-contention station
-  calendar evidence, but score terms only split contact-allocation,
-  approval-boundary, timeline, and storage/downlink pressure. Operators should
-  see station-calendar pressure as its own scoring dimension while keeping the
-  same one-risk-weight total penalty.
-- Level 6 pillar: reproducible V1/V2/V3 branch trees with explainable score
-  terms and deltas.
-- Current evidence gap: `strategic_score_terms/7` counts station-calendar
-  pressure as generic risk even though branch events carry
-  `feedback_scope: station_calendar` and station-calendar event types.
-- Docs to read:
-  `docs/autonomous_work_guide.md`,
-  `.codex/prompts/long_running_context_efficient_product_loop.md`,
-  `.codex/status/autonomous_product_loop.md`,
-  `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`,
-  `test/orbital_dynamics/campaign_planner_test.exs`.
-- Likely files: `lib/orbital_dynamics/campaign_planner.ex`,
-  `test/orbital_dynamics/campaign_planner_test.exs`,
-  `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`,
-  `.codex/status/autonomous_product_loop.md`.
-- Likely tests:
-  `mix test test/orbital_dynamics/campaign_planner_test.exs:<station-calendar-pressure-selector>`,
-  `mix compile --warnings-as-errors`, `git diff --check`.
-- Definition of done: V3 score terms include
-  `station_calendar_pressure_penalty`, generic `risk_penalty` excludes those
-  station-calendar risks, branch score-term reports expose the new key, docs
-  mention the split, and focused tests/compile pass.
-
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
 - `lib/orbital_dynamics/campaign_planner.ex`
@@ -131,20 +98,10 @@ Previous published slices:
 - `7b80988` preserved suppressed reservation ID/status/owner routing in
   station-calendar precedence summaries.
 - `630bb44` split storage/downlink pressure into an explicit V3 score term.
-- `211d7fd` preserved actual-throughput ID replay pressure in composed
-  storage/downlink summaries.
-- `1054d07` exposed operational timeline duplicate rollups in schema.
-- `aec452f` refreshed the V3 score-term compatibility fixture.
-- `a74eae0` split timeline pressure into an explicit V3 score term.
-- `c896321` split readiness/quality pressure into an explicit V3 score term.
-- `7dd93f5` split contact-allocation pressure into an explicit V3 score term.
-- `ae950a5` exposed reservation-conflict identities in branch comparison rows.
-- `eae9483` derived operational-readiness gate pressure classification from
-  row-local status.
-- Earlier published slices covered schema-validation, operator-training,
-  unavailable-resource, provider-counteroffer/reservation, lifecycle,
-  publication/dependency/integrity, contact-allocation, and direction-routing
-  pressure paths.
+- Earlier published slices covered actual-throughput storage/downlink replay,
+  operational timeline duplicate rollups, V3 compatibility fixtures, timeline,
+  readiness/quality, contact-allocation, reservation-conflict, and
+  operational-readiness gate scoring/routing paths.
 
 Blocked:
 No.
