@@ -76,7 +76,7 @@ Scored validation-safety-case replay pressure with a dedicated score term.
 
 Last commit:
 - Product: `155c050` Score validation safety-case replay pressure
-- Ledger: pending
+- Ledger: `9fbe02c` Update autonomous loop status
 
 Remaining maturity gaps:
 - Continue making existing review evidence planner-visible through candidate
