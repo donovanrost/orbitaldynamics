@@ -5,24 +5,25 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Route operational-readiness import-readiness pressure into import score terms.
+Route operational-readiness schema-validation pressure into validation score terms.
 
 Status:
 Completed and pushed.
 
 Slice selection note:
-Operational-readiness pressure events can identify `cadence_import` or import
-readiness gates, but their freshness/import/Cadence status fields are not
-preserved in the readiness risk context and the score remains under broad
-readiness. Quality-gate import-readiness pressure already uses
-`import_readiness_pressure_penalty`. This slice preserves import-readiness
-context for operational-readiness gates and routes those indicators into the
-dedicated import-readiness score family while leaving ordinary readiness gates
-on `operational_readiness_pressure_penalty`. Likely files are
+Operational-readiness pressure events can carry schema-validation fail/error/
+warning/remediation context, but those fields are not preserved in the readiness
+risk context and the score remains under broad readiness. Quality-gate
+schema-validation pressure already uses `validation_refresh_pressure_penalty`.
+This slice preserves schema-validation context for operational-readiness gates
+and routes those indicators into the dedicated validation-refresh score family
+while leaving ordinary readiness gates on `operational_readiness_pressure_penalty`.
+Likely files are
 `lib/orbital_dynamics/campaign_planner.ex`, `test/orbital_dynamics/campaign_planner_test.exs`,
 `docs/artifacts/compatibility_checks.md`, and this ledger. Definition of done:
-focused operational-readiness import-readiness tests prove the split, adjacent
-quality-gate import-readiness regressions still pass, compile/diff checks pass,
+focused operational-readiness schema-validation tests prove the split, adjacent
+quality-gate schema-validation and ordinary readiness regressions still pass,
+compile/diff checks pass,
 and product plus handoff commits are pushed while leaving unrelated `.gitignore`
 unstaged.
 
@@ -33,35 +34,29 @@ Files changed:
 - `test/orbital_dynamics/campaign_planner_test.exs`
 
 Tests run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:45177`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:44500`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:44700`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:45272`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:45092`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:43141`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:45268`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:43061 test/orbital_dynamics/campaign_planner_test.exs:44177 test/orbital_dynamics/campaign_planner_test.exs:45092 test/orbital_dynamics/campaign_planner_test.exs:45177 test/orbital_dynamics/campaign_planner_test.exs:45362 test/orbital_dynamics/campaign_planner_test.exs:43141`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 - `git diff --cached --check`
 
 Docs/artifacts changed:
-Compatibility docs now record that operational-readiness import gates preserve
-freshness/import/Cadence status evidence and route score pressure into
-`import_readiness_pressure_penalty`.
+Compatibility docs now record that operational-readiness schema-validation gates
+preserve fail/error/warning/remediation evidence and route score pressure into
+`validation_refresh_pressure_penalty`.
 
 Local review:
-Parent review confirmed operational-readiness import-readiness fields are
-preserved into branch events/risk indicators, explicit false import flags
-survive the row/evidence fallback, the dedicated import-readiness score term
-carries the penalty, and broad operational-readiness scoring stays zero for
-that case. Adjacent quality-gate import-readiness, ordinary readiness
-classification, operator-training readiness, and resource-availability
-readiness regressions pass. `.gitignore` remains unrelated and unstaged.
+Parent review confirmed operational-readiness schema-validation fields are
+preserved into branch events/risk indicators, the dedicated validation-refresh
+score term carries the penalty, broad operational-readiness scoring stays zero
+for that case, and adjacent schema-validation, operator-training,
+import-readiness, resource-availability, and ordinary readiness regressions
+pass. `.gitignore` remains unrelated and unstaged.
 
 Level 6 pillar advanced:
-Import-readiness evidence from operational-readiness gates is now
-planner-visible in the same dedicated V3 score-term family as quality-gate
-import-readiness pressure, improving reproducible Cadence-facing import review
-explanations.
+Validation evidence from operational-readiness gates is now planner-visible in
+the same dedicated V3 score-term family as quality-gate schema-validation
+pressure, improving reproducible Cadence-facing import-block explanations.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -71,7 +66,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`754dfc3` Route readiness import score pressure.
+`bc99918` Route readiness validation score pressure.
 
 Next candidate:
 Reassess the next planner-visible communications, resource, or
@@ -84,6 +79,8 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `bc99918` routed operational-readiness schema-validation pressure into the
+  dedicated V3 validation-refresh score term.
 - `754dfc3` routed operational-readiness import-readiness pressure into the
   dedicated V3 import-readiness score term.
 - `4f1a388` routed operational-readiness operator-training pressure into the
@@ -101,40 +98,3 @@ Previous published slices:
   validation-refresh pressure score term.
 - `78da141` split operator-training quality-gate pressure into a dedicated V3
   strategy score term.
-- `47c8261` pinned operator-training role/training/certification/qualification
-  routing keys in validation-reference coverage.
-- `50f59e3` pinned checked-in unavailable-resource quality-gate row routing in
-  validation-reference coverage.
-- `5caf920` pinned objective-satisfaction status count and objective-routing
-  challenge guards in validation-reference coverage.
-- `4f0d9e4` pinned ranking-comparison status count and scenario-routing
-  challenge guards in validation-reference coverage.
-- `cd369ee` pinned the standalone score-term fixture to the checked-in V1
-  campaign artifact's embedded score-term report.
-- `833630c` pinned row-derived score-term key counts in validation-reference
-  coverage for checked-in score-term reports.
-- `ddac705` pinned lifecycle-summary operator-action reason aggregate challenge
-  guards in schema and validation-reference coverage.
-- `fa7e5e1` pinned checked-in timeline activity-state fixtures to public facade
-  regeneration in validation-reference coverage and refreshed lifecycle-summary
-  operator-action reason aggregates.
-- `fc6e743` pinned the checked-in timeline activity precondition fixture to
-  exact public facade regeneration from deterministic activity input.
-- `066888d` pinned the checked-in timeline integrity fixture to exact public
-  facade regeneration from deterministic dependency/exclusivity inputs.
-- `a60bb39` refreshed the checked-in V1 campaign artifact from the
-  deterministic study-run path and cascaded V2/V3 fixture-chain updates.
-- `5a7cdb2` refreshed the checked-in V2 repair artifact from the public repair
-  facade and added an exact golden regeneration guard.
-- `6f2d914` refreshed the checked-in V3 strategy artifact from the public
-  strategy facade and pinned its current dedicated pressure score-term surface.
-- `85e38dd` routed contact, observation, and station operational-feedback risks
-  into the dedicated V3 execution-feedback score term while preserving
-  feedback-adjustment scoring and generic risk scoring for unrelated risks.
-- `4127152` routed resource-projection degraded-payload and activity-type
-  availability pressure into the dedicated V3 resource-availability score term
-  while preserving generic risk scoring for unrelated risks.
-- `a188da9` split explicit approval-boundary pressure into a dedicated V3 score
-  term while preserving generic risk scoring for unrelated risks.
-- `777a1dc` rejected stale publication source-review evidence in Cadence import
-  handoffs.
