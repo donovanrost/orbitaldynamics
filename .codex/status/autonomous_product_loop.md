@@ -11,26 +11,28 @@ Status:
 Recommended next; not yet selected.
 
 Last completed slice:
-Preserved selected score-term pressure context on V3 recommendation
+Preserved selected objective-satisfaction pressure context on V3 recommendation
 review/import rows.
 
 What changed:
 - `OrbitalDynamics.RecommendationRiskContext` now owns a scoped
-  `score_term_pressure_*` selected-context contract for score-term feedback
-  risks.
+  `objective_satisfaction_pressure_*` selected-context contract for
+  objective-satisfaction feedback risks.
 - Strategy recommendation review rows, selected Cadence import rows, and
-  review-package Cadence import conversion retain score-term objective,
-  routing, downlink/contact/latency requirement, score-term key/value/map,
-  feedback provenance, and derivation details.
+  review-package Cadence import conversion retain objective id/type/status,
+  target/scenario/spacecraft identity, observation-quality metrics, source
+  activity identity, feedback provenance, trust boundary, and derivation
+  details.
 - The selected-pressure strategy recommendation fixture now includes a
-  score-term pressure event and asserts identical handoff context across all
-  selected review/import surfaces.
-- Existing score-term branch-local pressure derivation and scoring behavior
-  remain unchanged.
+  scoped objective-satisfaction observation-quality event and asserts identical
+  handoff context across all selected review/import surfaces.
+- Existing prior-plan, mission-state, review/import replay, observation-quality,
+  and collection-latency objective-satisfaction pressure derivation remain
+  unchanged.
 
 Verification:
 - `mix test test/orbital_dynamics/campaign_planner_test.exs:18418`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:73939 test/orbital_dynamics/campaign_planner_test.exs:74015 test/orbital_dynamics/campaign_planner_test.exs:74344 test/orbital_dynamics/campaign_planner_test.exs:74447`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:53297 test/orbital_dynamics/campaign_planner_test.exs:53384 test/orbital_dynamics/campaign_planner_test.exs:60373 test/orbital_dynamics/campaign_planner_test.exs:64314 test/orbital_dynamics/campaign_planner_test.exs:65722`
 - `mix compile --warnings-as-errors`
 - `mix format lib/orbital_dynamics/recommendation_risk_context.ex lib/orbital_dynamics/operator_review.ex lib/orbital_dynamics/cadence_import.ex test/orbital_dynamics/campaign_planner_test.exs --check-formatted`
 - `git diff --check`
@@ -96,10 +98,15 @@ Published commits:
 - `0db1f7d` Preserve station calendar recommendation context
 - `92cd55f` Update autonomous loop handoff
 - `55d5d5c` Preserve score term recommendation context
+- `ef09e53` Update autonomous loop handoff
+- `233c741` Preserve objective satisfaction recommendation context
 
 Next suggested slice:
-Re-audit active strategy surfaces for the next pressure family whose selected
-recommendation review/import handoff is weaker than the branch explanation.
+Objective-tradeoff pressure carries selected-branch objective deltas and
+score-term evidence, but selected recommendation review/import rows still rely
+on generic risk fields. Re-audit that family next and preserve a scoped
+`objective_tradeoff_pressure_*` handoff if the current branch explanation is
+richer than the selected-row contract.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
