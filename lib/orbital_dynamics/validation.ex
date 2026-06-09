@@ -1891,7 +1891,8 @@ defmodule OrbitalDynamics.Validation do
     "fixture.artifact.candidate_refresh.quality_gate_replay" => %{
       "id" => "fixture.artifact.candidate_refresh.quality_gate_replay",
       "model_id" => "artifact.candidate_refresh.v1",
-      "reference_case" => "generated candidate refresh replay of quality-gate import evidence",
+      "reference_case" =>
+        "generated candidate refresh replay of quality-gate resource pressure evidence",
       "validation_level" => "artifact_contract",
       "fixture_type" => "curated_internal_artifact_regression",
       "inputs" => %{
@@ -1908,23 +1909,34 @@ defmodule OrbitalDynamics.Validation do
         "target_visibility_window_count" => 0,
         "eclipse_interval_count" => 0,
         "source_report_family_count" => 1,
-        "source_report_row_count" => 5,
+        "source_report_row_count" => 6,
         "source_quality_gate_report_count" => 1,
-        "source_quality_gate_row_count" => 5,
-        "source_quality_gate_gate_count" => 5,
-        "source_quality_gate_passed_gate_count" => 5,
-        "source_quality_gate_review_gate_count" => 0,
+        "source_quality_gate_row_count" => 6,
+        "source_quality_gate_gate_count" => 6,
+        "source_quality_gate_passed_gate_count" => 3,
+        "source_quality_gate_review_gate_count" => 3,
         "source_quality_gate_analysis_gate_count" => 0,
         "source_quality_gate_blocked_gate_count" => 0,
-        "source_quality_gate_readiness_level_counts" => %{"import_eligible" => 1},
-        "source_quality_gate_import_classification_counts" => %{"importable" => 1},
-        "source_quality_gate_status_counts" => %{"passed" => 1},
-        "source_quality_gate_gate_status_counts" => %{"passed" => 5},
-        "source_quality_gate_gate_classification_counts" => %{"importable" => 5},
-        "source_quality_gate_ready_for_import_count" => 1,
-        "source_quality_gate_import_status_counts" => %{"ready_for_import" => 1},
-        "source_quality_gate_cadence_import_status_counts" => %{"present" => 1},
-        "source_quality_gate_trust_boundary_status" => "declared"
+        "source_quality_gate_readiness_level_counts" => %{"operator_review" => 1},
+        "source_quality_gate_import_classification_counts" => %{"review_only" => 1},
+        "source_quality_gate_status_counts" => %{"review_required" => 1},
+        "source_quality_gate_gate_status_counts" => %{"passed" => 3, "review_required" => 3},
+        "source_quality_gate_gate_classification_counts" => %{
+          "importable" => 3,
+          "review_only" => 3
+        },
+        "source_quality_gate_ready_for_import_count" => 0,
+        "source_quality_gate_trust_boundary_status" => "declared",
+        "source_quality_gate_resource_availability_pressure_count" => 2,
+        "source_quality_gate_resource_availability_reason_counts" => %{
+          "antenna_unavailable" => 1,
+          "payload_unavailable" => 1
+        },
+        "source_quality_gate_resource_availability_reason_ids" =>
+          "antenna_unavailable|payload_unavailable",
+        "source_quality_gate_branch_local_review_pressure" => true,
+        "source_quality_gate_branch_local_import_pressure" => false,
+        "source_quality_gate_branch_local_resource_pressure" => true
       },
       "tolerances" => %{
         "schema_version" => 0,
@@ -1942,7 +1954,8 @@ defmodule OrbitalDynamics.Validation do
         "source_quality_gate_review_gate_count" => 0,
         "source_quality_gate_analysis_gate_count" => 0,
         "source_quality_gate_blocked_gate_count" => 0,
-        "source_quality_gate_ready_for_import_count" => 0
+        "source_quality_gate_ready_for_import_count" => 0,
+        "source_quality_gate_resource_availability_pressure_count" => 0
       },
       "evidence" => [
         "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
@@ -1950,7 +1963,7 @@ defmodule OrbitalDynamics.Validation do
       ],
       "known_limits" => [
         "internal generated artifact regression, not external readiness validation",
-        "checks candidate-refresh replay of quality-gate import-readiness provenance without granting operator authority, candidate selection, import approval, or Cadence writes"
+        "checks candidate-refresh replay of quality-gate resource-pressure provenance without granting operator authority, candidate selection, import approval, or Cadence writes"
       ]
     },
     "fixture.artifact.candidate_refresh.operational_readiness_replay" => %{
@@ -14501,6 +14514,20 @@ defmodule OrbitalDynamics.Validation do
         Map.get(quality_gate_summary, "cadence_import_status_counts") || %{},
       "source_quality_gate_trust_boundary_status" =>
         Map.get(quality_gate_summary, "trust_boundary_status"),
+      "source_quality_gate_resource_availability_pressure_count" =>
+        Map.get(quality_gate_summary, "resource_availability_pressure_count"),
+      "source_quality_gate_resource_availability_reason_counts" =>
+        Map.get(quality_gate_summary, "resource_availability_reason_counts") || %{},
+      "source_quality_gate_resource_availability_reason_ids" =>
+        quality_gate_summary
+        |> list_values("resource_availability_reason_ids")
+        |> stable_id_keys(),
+      "source_quality_gate_branch_local_review_pressure" =>
+        quality_gate_branch_local_review_pressure?(quality_gate_summary),
+      "source_quality_gate_branch_local_import_pressure" =>
+        quality_gate_branch_local_import_pressure?(quality_gate_summary),
+      "source_quality_gate_branch_local_resource_pressure" =>
+        quality_gate_branch_local_resource_pressure?(quality_gate_summary),
       "source_operational_readiness_report_count" =>
         Map.get(operational_readiness_summary, "count"),
       "source_operational_readiness_row_count" =>
@@ -21092,6 +21119,39 @@ defmodule OrbitalDynamics.Validation do
   defp operational_readiness_branch_local_resource_pressure?(%{} = summary) do
     positive_integer_observation?(summary, "resource_availability_pressure_count") or
       map_size(Map.get(summary, "resource_availability_reason_counts") || %{}) > 0
+  end
+
+  defp quality_gate_branch_local_review_pressure?(%{} = summary) do
+    positive_integer_observation?(summary, "review_gate_count") or
+      positive_integer_observation?(summary, "blocked_gate_count") or
+      map_size(Map.get(summary, "readiness_level_counts") || %{}) > 0 or
+      map_size(Map.get(summary, "import_classification_counts") || %{}) > 0 or
+      map_size(Map.get(summary, "status_counts") || %{}) > 0 or
+      map_size(Map.get(summary, "analysis_mode_counts") || %{}) > 0 or
+      map_size(Map.get(summary, "gate_status_counts") || %{}) > 0 or
+      map_size(Map.get(summary, "gate_classification_counts") || %{}) > 0
+  end
+
+  defp quality_gate_branch_local_import_pressure?(%{} = summary) do
+    positive_integer_observation?(summary, "manifest_review_required_count") or
+      positive_integer_observation?(summary, "missing_import_count") or
+      positive_integer_observation?(summary, "blocked_import_count") or
+      positive_integer_observation?(summary, "invalid_cadence_import_count") or
+      map_size(Map.get(summary, "import_status_counts") || %{}) > 0 or
+      map_size(Map.get(summary, "cadence_import_status_counts") || %{}) > 0
+  end
+
+  defp quality_gate_branch_local_resource_pressure?(%{} = summary) do
+    positive_integer_observation?(summary, "resource_availability_pressure_count") or
+      map_size(Map.get(summary, "resource_availability_reason_counts") || %{}) > 0 or
+      list_values(summary, "resource_availability_reason_ids") != [] or
+      list_values(summary, "station_availability_reason_ids") != [] or
+      map_size(Map.get(summary, "station_availability_reason_counts") || %{}) > 0 or
+      list_values(summary, "unavailable_resource_reason_ids") != [] or
+      map_size(Map.get(summary, "resource_blocking_dimension_counts") || %{}) > 0 or
+      map_size(Map.get(summary, "blocked_contact_ids_by_blocking_dimension") || %{}) > 0 or
+      map_size(Map.get(summary, "blocked_contact_ids_by_spacecraft_id") || %{}) > 0 or
+      map_size(Map.get(summary, "blocked_contact_ids_by_status") || %{}) > 0
   end
 
   defp positive_integer_observation?(%{} = summary, key) do

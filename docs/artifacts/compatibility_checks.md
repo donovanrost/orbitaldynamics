@@ -611,8 +611,9 @@ status without resource mutation, candidate selection, import approval, or
 Cadence writes.
 The registry also includes a generated CandidateRefresh quality-gate replay
 fixture. It checks gate counts, readiness/import/status/classification maps,
-ready-for-import evidence, Cadence-import status routing, and trust-boundary
-status without granting operator authority, candidate selection, import
+trust-boundary status, branch-local review/import/resource pressure booleans,
+and resource-availability count/reason evidence from quality-gate resource
+pressure without granting operator authority, candidate selection, import
 approval, or Cadence writes.
 The registry also includes a generated CandidateRefresh operational-readiness
 replay fixture. It checks readiness/import/status maps, gate counts, and

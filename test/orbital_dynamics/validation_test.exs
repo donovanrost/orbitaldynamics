@@ -4919,37 +4919,51 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert %{
              "source_report_family_count" => 1,
-             "source_report_row_count" => 5,
+             "source_report_row_count" => 6,
              "source_quality_gate_report_count" => 1,
-             "source_quality_gate_row_count" => 5,
-             "source_quality_gate_gate_count" => 5,
-             "source_quality_gate_passed_gate_count" => 5,
-             "source_quality_gate_review_gate_count" => 0,
+             "source_quality_gate_row_count" => 6,
+             "source_quality_gate_gate_count" => 6,
+             "source_quality_gate_passed_gate_count" => 3,
+             "source_quality_gate_review_gate_count" => 3,
              "source_quality_gate_analysis_gate_count" => 0,
              "source_quality_gate_blocked_gate_count" => 0,
-             "source_quality_gate_readiness_level_counts" => %{"import_eligible" => 1},
-             "source_quality_gate_import_classification_counts" => %{"importable" => 1},
-             "source_quality_gate_status_counts" => %{"passed" => 1},
-             "source_quality_gate_gate_status_counts" => %{"passed" => 5},
-             "source_quality_gate_gate_classification_counts" => %{"importable" => 5},
-             "source_quality_gate_ready_for_import_count" => 1,
-             "source_quality_gate_import_status_counts" => %{"ready_for_import" => 1},
-             "source_quality_gate_cadence_import_status_counts" => %{"present" => 1},
-             "source_quality_gate_trust_boundary_status" => "declared"
+             "source_quality_gate_readiness_level_counts" => %{"operator_review" => 1},
+             "source_quality_gate_import_classification_counts" => %{"review_only" => 1},
+             "source_quality_gate_status_counts" => %{"review_required" => 1},
+             "source_quality_gate_gate_status_counts" => %{
+               "passed" => 3,
+               "review_required" => 3
+             },
+             "source_quality_gate_gate_classification_counts" => %{
+               "importable" => 3,
+               "review_only" => 3
+             },
+             "source_quality_gate_ready_for_import_count" => 0,
+             "source_quality_gate_trust_boundary_status" => "declared",
+             "source_quality_gate_resource_availability_pressure_count" => 2,
+             "source_quality_gate_resource_availability_reason_counts" => %{
+               "antenna_unavailable" => 1,
+               "payload_unavailable" => 1
+             },
+             "source_quality_gate_resource_availability_reason_ids" =>
+               "antenna_unavailable|payload_unavailable",
+             "source_quality_gate_branch_local_review_pressure" => true,
+             "source_quality_gate_branch_local_import_pressure" => false,
+             "source_quality_gate_branch_local_resource_pressure" => true
            } = observations
 
-    stale_import_observations =
+    stale_resource_pressure_observations =
       observations
-      |> put_in(["source_quality_gate_import_status_counts", "ready_for_import"], 0)
+      |> Map.put("source_quality_gate_branch_local_resource_pressure", false)
 
-    assert {:ok, stale_import_verification} =
-             Validation.verify_reference_fixture(fixture_id, stale_import_observations)
+    assert {:ok, stale_resource_pressure_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_resource_pressure_observations)
 
-    assert stale_import_verification["status"] == "fail"
+    assert stale_resource_pressure_verification["status"] == "fail"
 
     assert Enum.any?(
-             stale_import_verification["checks"],
-             &(&1["field"] == "source_quality_gate_import_status_counts" and
+             stale_resource_pressure_verification["checks"],
+             &(&1["field"] == "source_quality_gate_branch_local_resource_pressure" and
                  &1["status"] == "fail")
            )
 
@@ -15358,7 +15372,7 @@ defmodule OrbitalDynamics.ValidationTest do
   end
 
   defp candidate_refresh_quality_gate_report do
-    quality_gate_report_fixture()
+    quality_gate_resource_pressure_fixture()
     |> Map.put("provenance", %{"trust_boundary" => "generated_quality_gate_fixture"})
   end
 
