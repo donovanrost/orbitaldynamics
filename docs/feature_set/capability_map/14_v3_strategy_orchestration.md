@@ -1655,7 +1655,9 @@ Selected recommendations also include:
 - **Timeline-precondition pressure score terms** — split activity-precondition
   review risks into `timeline_precondition_pressure_penalty`, leaving
   preservation pressure for its dedicated timeline term while preserving total
-  branch score compatibility.
+  branch score compatibility. Focused activity-precondition pressure fixtures
+  now assert split branch math, legacy compatibility term behavior, and
+  score-term report rows through a shared helper.
 - **Timeline-preservation pressure score terms** — split lock/approval/executed
   preservation review risks into `timeline_preservation_pressure_penalty`,
   leaving the legacy `timeline_pressure_penalty` present as an empty

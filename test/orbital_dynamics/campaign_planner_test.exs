@@ -30128,36 +30128,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                    "mission_state.source_timeline_activity_precondition_summary")
            )
 
-    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
-
-    timeline_precondition_pressure_count =
-      Enum.count(
-        direct_branch["risk_indicators"],
-        &(&1["type"] == "timeline_activity_precondition_review")
-      )
-
-    assert timeline_precondition_pressure_count == 1
-
-    assert direct_branch["score_terms"]["timeline_precondition_pressure_penalty"] ==
-             -timeline_precondition_pressure_count * risk_weight
-
-    assert direct_branch["score_terms"]["timeline_pressure_penalty"] == 0.0
-
-    assert direct_branch["score_terms"]["risk_penalty"] ==
-             -(length(direct_branch["risk_indicators"]) - timeline_precondition_pressure_count) *
-               risk_weight
-
-    assert "timeline_precondition_pressure_penalty" in artifact["score_term_report"][
-             "score_term_keys"
-           ]
-
-    assert Enum.any?(
-             artifact["score_term_report"]["rows"],
-             &(&1["branch_id"] ==
-                 "derived_timeline_activity_precondition_pressure_direct_precondition_cmd_precondition" and
-                 &1["term_key"] == "timeline_precondition_pressure_penalty" and
-                 &1["value"] < 0.0)
-           )
+    assert_timeline_precondition_pressure_score_terms(direct_branch, artifact)
 
     direct_row =
       artifact["branch_comparison_report"]["rows"]
@@ -72588,6 +72559,38 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              artifact["score_term_report"]["rows"],
              &(&1["branch_id"] == branch["branch_id"] and
                  &1["term_key"] == "timeline_lifecycle_pressure_penalty" and
+                 &1["value"] < 0.0)
+           )
+  end
+
+  defp assert_timeline_precondition_pressure_score_terms(branch, artifact) do
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    timeline_precondition_pressure_count =
+      Enum.count(
+        branch["risk_indicators"],
+        &(&1["type"] == "timeline_activity_precondition_review")
+      )
+
+    assert timeline_precondition_pressure_count == 1
+
+    assert branch["score_terms"]["timeline_precondition_pressure_penalty"] ==
+             -timeline_precondition_pressure_count * risk_weight
+
+    assert branch["score_terms"]["timeline_pressure_penalty"] == 0.0
+
+    assert branch["score_terms"]["risk_penalty"] ==
+             -(length(branch["risk_indicators"]) - timeline_precondition_pressure_count) *
+               risk_weight
+
+    assert "timeline_precondition_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] == branch["branch_id"] and
+                 &1["term_key"] == "timeline_precondition_pressure_penalty" and
                  &1["value"] < 0.0)
            )
   end
