@@ -2876,6 +2876,13 @@ defmodule OrbitalDynamics.ValidationTest do
              "antenna_unavailable|payload_unavailable"
 
     assert observations["blocked_contact_ids_by_blocking_dimension"] == %{}
+
+    assert observations["quality_gate_row_ids_by_status"] == %{
+             "review_required" => [
+               "quality_gate:resource_projection_report.v1:resource_summaries:resource_availability:4"
+             ]
+           }
+
     assert observations["execution_boundary"] == "artifact_only_no_cadence_write"
     assert observations["operator_authority"] == "not_granted_by_unavailable_resource_summary"
 
@@ -2907,6 +2914,23 @@ defmodule OrbitalDynamics.ValidationTest do
              stale_reason_verification["checks"],
              &(&1["field"] == "unavailable_resource_reason_counts" and
                  &1["status"] == "fail")
+           )
+
+    stale_quality_gate_routing_observations =
+      observations
+      |> put_in(["quality_gate_row_ids_by_status", "review_required"], [])
+
+    assert {:ok, stale_quality_gate_routing_verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               stale_quality_gate_routing_observations
+             )
+
+    assert stale_quality_gate_routing_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_quality_gate_routing_verification["checks"],
+             &(&1["field"] == "quality_gate_row_ids_by_status" and &1["status"] == "fail")
            )
 
     stale_boundary_observations =

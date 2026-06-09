@@ -427,15 +427,18 @@ fixture now include a generated
 summary family. The fixture observes unavailable-resource reason maps,
 blocking-dimension counts, blocked-contact routing, quality-gate row/status
 routing maps, and no-Cadence-write/no-authority assumptions, and executable
-verification rejects stale reason maps, blocked-contact maps, and row-status
-counts before adapter queues can trust the compact summary.
+verification rejects stale reason maps, blocked-contact maps,
+quality-gate-row routing maps, and row-status counts before adapter queues can
+trust the compact summary.
 Focused schema-reference coverage also regenerates the checked-in fixture
 exactly through
 `OrbitalDynamics.operational_quality_gate_unavailable_resource_summary/2` from
 the checked-in `quality_gate_resource_pressure_v1.json` source report before
 schema validation, pinning source identity, unavailable-resource pressure
 counts, resource-availability row IDs, status routing, model limits, and the
-no-Cadence-write/no-command-execution boundary.
+no-Cadence-write/no-command-execution boundary; validation-reference checks now
+reject stale checked-in quality-gate row routing before downstream
+resource-pressure replays consume it.
 CandidateRefresh replay also derives reconstructed generic quality-gate row
 counts from `quality_gate_row_ids_by_status` when present, while preserving the
 resource-specific pressure counts and blocked-contact routing maps from the
