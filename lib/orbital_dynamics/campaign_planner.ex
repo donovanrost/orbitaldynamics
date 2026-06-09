@@ -3697,6 +3697,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     lifecycle_replay =
       CandidateRefresh.timeline_lifecycle_state_replay_summary(candidate_source)
 
+    dependency_impact_replay =
+      CandidateRefresh.timeline_dependency_impact_replay_summary(candidate_source)
+
     activity_state_replay =
       CandidateRefresh.timeline_activity_state_replay_summary(candidate_source)
 
@@ -3715,6 +3718,10 @@ defmodule OrbitalDynamics.CampaignPlanner do
     |> maybe_add_candidate_source_quality_gate_risks(quality_gate_replay, event_risks)
     |> maybe_add_candidate_source_timeline_activity_state_risks(
       activity_state_replay,
+      event_risks
+    )
+    |> maybe_add_candidate_source_timeline_dependency_impact_risks(
+      dependency_impact_replay,
       event_risks
     )
     |> maybe_add_candidate_source_timeline_lifecycle_risks(lifecycle_replay, event_risks)
@@ -3774,6 +3781,18 @@ defmodule OrbitalDynamics.CampaignPlanner do
       risks
     else
       risks ++ timeline_activity_state_replay_review_risks(replay_summary)
+    end
+  end
+
+  defp maybe_add_candidate_source_timeline_dependency_impact_risks(
+         risks,
+         replay_summary,
+         event_risks
+       ) do
+    if Enum.any?(event_risks, &timeline_dependency_impact_pressure_risk?/1) do
+      risks
+    else
+      risks ++ timeline_dependency_impact_replay_pressure_risks(replay_summary)
     end
   end
 
@@ -4173,6 +4192,82 @@ defmodule OrbitalDynamics.CampaignPlanner do
     |> Enum.uniq()
     |> Enum.sort()
   end
+
+  defp timeline_dependency_impact_replay_pressure_risks(
+         %{"branch_local_timeline_dependency_impact_pressure" => true} = replay_summary
+       ) do
+    required_operator_actions =
+      replay_summary
+      |> Map.get("required_operator_action_counts", %{})
+      |> map_keys()
+
+    impacted_source_activity_ids =
+      replay_summary
+      |> Map.get("impacted_source_activity_id_counts", %{})
+      |> map_keys()
+
+    impacted_source_timeline_ids =
+      replay_summary
+      |> Map.get("impacted_source_timeline_id_counts", %{})
+      |> map_keys()
+
+    dependent_activity_ids =
+      replay_summary
+      |> Map.get("dependent_activity_id_counts", %{})
+      |> map_keys()
+
+    dependent_timeline_ids =
+      replay_summary
+      |> Map.get("dependent_timeline_id_counts", %{})
+      |> map_keys()
+
+    [
+      %{
+        "type" => "timeline_dependency_impact",
+        "severity" => "high",
+        "reason" =>
+          "candidate source timeline dependency-impact replay reports changed-source, dependency, exclusivity, or operator-review pressure",
+        "source_report_row_count" => Map.get(replay_summary, "source_report_row_count"),
+        "changed_source_activity_count" =>
+          Map.get(replay_summary, "changed_source_activity_count"),
+        "changed_source_timeline_count" =>
+          Map.get(replay_summary, "changed_source_timeline_count"),
+        "dependency_impact_status_counts" =>
+          Map.get(replay_summary, "dependency_impact_status_counts"),
+        "dependency_impact_scope_counts" =>
+          Map.get(replay_summary, "dependency_impact_scope_counts"),
+        "required_operator_action_counts" =>
+          Map.get(replay_summary, "required_operator_action_counts"),
+        "required_operator_actions" => required_operator_actions,
+        "impacted_source_activity_ids" => impacted_source_activity_ids,
+        "impacted_source_timeline_ids" => impacted_source_timeline_ids,
+        "impacted_dependency_activity_ids" =>
+          replay_summary
+          |> Map.get("impacted_dependency_activity_id_counts", %{})
+          |> map_keys(),
+        "impacted_dependency_timeline_ids" =>
+          replay_summary
+          |> Map.get("impacted_dependency_timeline_id_counts", %{})
+          |> map_keys(),
+        "impacted_exclusive_with_activity_ids" =>
+          replay_summary
+          |> Map.get("impacted_exclusive_activity_id_counts", %{})
+          |> map_keys(),
+        "impacted_exclusive_with_timeline_ids" =>
+          replay_summary
+          |> Map.get("impacted_exclusive_timeline_id_counts", %{})
+          |> map_keys(),
+        "dependent_activity_ids" => dependent_activity_ids,
+        "dependent_timeline_ids" => dependent_timeline_ids,
+        "feedback_source" => "candidate_source.timeline_dependency_impact_replay_summary",
+        "feedback_scope" => "timeline_dependency_impact",
+        "trust_boundaries" => Map.get(replay_summary, "trust_boundaries")
+      }
+      |> compact_map()
+    ]
+  end
+
+  defp timeline_dependency_impact_replay_pressure_risks(_replay_summary), do: []
 
   defp timeline_publication_replay_pressure_risks(
          %{"branch_local_timeline_publication_pressure" => true} = replay_summary

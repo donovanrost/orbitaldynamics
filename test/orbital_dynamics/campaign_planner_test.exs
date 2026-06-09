@@ -33137,6 +33137,45 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
       assert source_path in dependency_source_paths
     end
 
+    timeline_dependency_impact_pressure_count =
+      Enum.count(
+        urgent["risk_indicators"],
+        &(&1["type"] == "timeline_dependency_impact" and
+            &1["feedback_source"] ==
+              "candidate_source.timeline_dependency_impact_replay_summary")
+      )
+
+    assert timeline_dependency_impact_pressure_count == 1
+
+    assert Enum.any?(
+             urgent["risk_indicators"],
+             &(&1["type"] == "timeline_dependency_impact" and
+                 &1["impacted_source_activity_ids"] == ["health_gate"] and
+                 &1["impacted_source_timeline_ids"] == ["timeline:health_check:0.0"] and
+                 &1["impacted_dependency_timeline_ids"] == [
+                   "timeline:health_check:0.0"
+                 ] and
+                 &1["impacted_exclusive_with_activity_ids"] == ["health_gate"] and
+                 &1["dependent_activity_ids"] == ["cmd_combo"] and
+                 &1["feedback_scope"] == "timeline_dependency_impact")
+           )
+
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    assert urgent["score_terms"]["timeline_dependency_impact_pressure_penalty"] ==
+             -timeline_dependency_impact_pressure_count * risk_weight
+
+    assert "timeline_dependency_impact_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] == urgent["branch_id"] and
+                 &1["term_key"] == "timeline_dependency_impact_pressure_penalty" and
+                 &1["value"] < 0.0)
+           )
+
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
   end
