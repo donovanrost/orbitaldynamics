@@ -748,6 +748,10 @@ Relay data-path pressure risks contribute to
 `relay_data_path_pressure_penalty`, keeping custody, latency, and route-risk
 pressure visible as its own score dimension without scheduling relays, mutating
 contacts, or writing provider reservations.
+Command-success, maneuver-success, and maneuver execution-uncertainty risks
+contribute to `execution_feedback_pressure_penalty`, keeping execution-feedback
+pressure visible as its own score dimension while preserving the existing
+feedback adjustment score and without approving timeline changes.
 
 ### Constraint, objective, tradeoff, and score-term replay
 
@@ -1594,6 +1598,10 @@ Selected recommendations also include:
   latency, and route-risk indicators into `relay_data_path_pressure_penalty`,
   leaving `risk_penalty` for unrelated risks while preserving total branch score
   compatibility.
+- **Execution-feedback pressure score terms** — split command-success,
+  maneuver-success, and maneuver execution-uncertainty risks into
+  `execution_feedback_pressure_penalty`, leaving `risk_penalty` for unrelated
+  risks while preserving total branch score compatibility.
 - **`operational_readiness_pressure` explanation rows** — preserve the selected
   branch's readiness report, source artifact, readiness/import/status counts,
   gate ID/status/classification/reason, required operator action, feedback

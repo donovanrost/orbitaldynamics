@@ -2855,13 +2855,16 @@ defmodule OrbitalDynamics.CampaignPlanner do
     relay_data_path_pressure_count =
       relay_data_path_pressure_risk_count(risk_indicators)
 
+    execution_feedback_pressure_count =
+      execution_feedback_pressure_risk_count(risk_indicators)
+
     generic_risk_count =
       max(
         risk_count - contact_allocation_pressure_count - approval_boundary_pressure_count -
           timeline_pressure_count - storage_downlink_pressure_count -
           station_calendar_pressure_count - candidate_rejection_pressure_count -
           provider_counteroffer_pressure_count - validation_refresh_pressure_count -
-          relay_data_path_pressure_count,
+          relay_data_path_pressure_count - execution_feedback_pressure_count,
         0
       )
 
@@ -2922,6 +2925,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     relay_data_path_pressure_penalty =
       -relay_data_path_pressure_count * policy.risk_weight
 
+    execution_feedback_pressure_penalty =
+      -execution_feedback_pressure_count * policy.risk_weight
+
     risk_penalty = -generic_risk_count * policy.risk_weight
     approval_load_penalty = -approval_count * policy.approval_load_weight
 
@@ -2934,7 +2940,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         storage_downlink_pressure_penalty + station_calendar_pressure_penalty +
         candidate_rejection_pressure_penalty + provider_counteroffer_pressure_penalty +
         validation_refresh_pressure_penalty + relay_data_path_pressure_penalty +
-        risk_penalty + approval_load_penalty
+        execution_feedback_pressure_penalty + risk_penalty + approval_load_penalty
 
     probability = Map.get(branch, "probability", 1.0)
     expected_score = raw_score * probability * policy.probability_weight
@@ -2960,6 +2966,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "provider_counteroffer_pressure_penalty" => provider_counteroffer_pressure_penalty,
       "validation_refresh_pressure_penalty" => validation_refresh_pressure_penalty,
       "relay_data_path_pressure_penalty" => relay_data_path_pressure_penalty,
+      "execution_feedback_pressure_penalty" => execution_feedback_pressure_penalty,
       "risk_penalty" => risk_penalty,
       "approval_load_penalty" => approval_load_penalty,
       "raw_score" => raw_score,
@@ -3102,6 +3109,21 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp relay_data_path_pressure_risk?(%{"type" => "relay_data_path_pressure"}), do: true
   defp relay_data_path_pressure_risk?(_risk), do: false
+
+  defp execution_feedback_pressure_risk_count(risk_indicators) do
+    Enum.count(risk_indicators, &execution_feedback_pressure_risk?/1)
+  end
+
+  defp execution_feedback_pressure_risk?(%{"type" => type})
+       when type in [
+              "command_success_rate_low",
+              "maneuver_success_rate_low",
+              "maneuver_execution_uncertainty_high",
+              "maneuver_execution_uncertainty_missing"
+            ],
+       do: true
+
+  defp execution_feedback_pressure_risk?(_risk), do: false
 
   defp branch_risk_indicators(
          branch,
@@ -4769,7 +4791,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
         {"candidate_rejection_pressure", "candidate_rejection_pressure_penalty"},
         {"provider_counteroffer_pressure", "provider_counteroffer_pressure_penalty"},
         {"validation_refresh_pressure", "validation_refresh_pressure_penalty"},
-        {"relay_data_path_pressure", "relay_data_path_pressure_penalty"}
+        {"relay_data_path_pressure", "relay_data_path_pressure_penalty"},
+        {"execution_feedback_pressure", "execution_feedback_pressure_penalty"}
       ]) ++
       [
         %{

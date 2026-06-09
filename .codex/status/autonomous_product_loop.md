@@ -5,24 +5,25 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Split relay data-path pressure into an explicit V3 score term.
+Split execution-feedback pressure into an explicit V3 score term.
 
 Status:
-Completed and pushed in product commit `c0110a9`.
+Completed locally; ready to commit and push.
 
 Slice-selection note:
-- Selected slice: make V3 relay data-path branch risks score-visible through a
-  dedicated `relay_data_path_pressure_penalty` term instead of blending them
-  into generic `risk_penalty`.
-- Why this slice: relay data-path summaries already generate branch-local
-  link-capacity pressure, typed risk indicators, CandidateRefresh replay
-  metadata, and branch-comparison rows, but the existing focused test still
-  asserts only generic `risk_penalty` for that pressure.
+- Selected slice: make V3 command-success, maneuver-success, and maneuver
+  execution-uncertainty branch risks score-visible through a dedicated
+  `execution_feedback_pressure_penalty` term instead of blending them into
+  generic `risk_penalty`.
+- Why this slice: operational execution feedback already generates derived
+  branches, feedback adjustments, typed risk indicators, and branch-comparison
+  metadata, but the risk portion of command/maneuver execution pressure remains
+  hidden inside generic risk.
 - Level 6 pillar: reproducible V1/V2/V3 branch trees with explainable score
-  terms and deltas; fleet-level contact, relay, and downlink behavior.
-- Current evidence gap: V3 can derive relay data-path pressure branches and
-  replay their source reports, but score attribution is less explainable than
-  recently split contact, station-calendar, validation/refresh, and provider
+  terms and deltas; refreshed candidates from realized feedback.
+- Current evidence gap: V3 can derive command/maneuver feedback and maneuver
+  uncertainty branches, but score attribution is less explainable than recently
+  split timeline, relay, contact, station-calendar, and validation/refresh
   pressure.
 - Docs to read:
   `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`.
@@ -32,14 +33,15 @@ Slice-selection note:
   `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`,
   `.codex/status/autonomous_product_loop.md`.
 - Likely tests:
-  focused campaign-planner relay data-path branch derivation test;
+  focused campaign-planner tests for mission-state timeline feedback and
+  timeline-diff maneuver success/uncertainty branch derivation;
   `mix compile --warnings-as-errors`; `git diff --check`.
-- Definition of done: relay data-path pressure risks are counted in
-  `relay_data_path_pressure_penalty`, removed from generic `risk_penalty`,
+- Definition of done: command-success, maneuver-success, and maneuver
+  execution-uncertainty risks are counted in
+  `execution_feedback_pressure_penalty`, removed from generic `risk_penalty`,
   surfaced in strategy score-term reports and recommendation tradeoffs, covered
-  by the existing focused relay data-path test, documented in the V3 score-term
-  section, locally reviewed, committed, and pushed without touching unrelated
-  `.gitignore`.
+  by focused tests, documented in the V3 score-term section, locally reviewed,
+  committed, and pushed without touching unrelated `.gitignore`.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
@@ -48,25 +50,25 @@ Files changed:
 - `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:27111`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:54961 test/orbital_dynamics/campaign_planner_test.exs:55056 test/orbital_dynamics/campaign_planner_test.exs:55182 test/orbital_dynamics/campaign_planner_test.exs:62937`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
-- `rg -n "relay_data_path_pressure_(penalty|risk)|Relay data-path pressure score terms|relay data-path pressure risks contribute" lib/orbital_dynamics/campaign_planner.ex test/orbital_dynamics/campaign_planner_test.exs docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
+- `rg -n "execution_feedback_pressure_(penalty|risk)|Execution-feedback pressure score terms|execution-feedback pressure" lib/orbital_dynamics/campaign_planner.ex test/orbital_dynamics/campaign_planner_test.exs docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
 
 Docs/artifacts changed:
 The V3 strategy-orchestration score-term sections now document
-`relay_data_path_pressure_penalty`.
+`execution_feedback_pressure_penalty`.
 
 Local review:
 Parent local review confirmed the diff is limited to planner score accounting,
-the existing relay data-path branch test, the V3 score-term doc, and this
+focused execution-feedback branch assertions, the V3 score-term doc, and this
 ledger. `.gitignore` remains unrelated and unstaged.
 
 Level 6 pillar advanced:
-V3 branch scoring now exposes relay data-path custody, latency, and route-risk
-pressure as an explicit score term and recommendation tradeoff dimension while
-preserving total score compatibility by removing those risks from generic
-`risk_penalty`.
+V3 branch scoring now exposes command-success, maneuver-success, and maneuver
+execution-uncertainty pressure as an explicit score term and recommendation
+tradeoff dimension while preserving total score compatibility by removing those
+risks from generic `risk_penalty`.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
