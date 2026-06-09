@@ -4956,12 +4956,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       |> sorted_encoded_values()
 
     candidate_limit_status =
-      cond do
-        summary_positive?(replay_summary, "invalid_candidate_limit_policy_count") -> "invalid"
-        summary_positive?(replay_summary, "dropped_candidate_count") -> "dropped"
-        Map.get(replay_summary, "branch_local_candidate_limit_applied") == true -> "limited"
-        true -> nil
-      end
+      refresh_budget_replay_candidate_limit_status(replay_summary, dropped_candidate_ids)
 
     [
       %{
@@ -5003,6 +4998,28 @@ defmodule OrbitalDynamics.CampaignPlanner do
       }
       |> compact_map()
     ]
+  end
+
+  defp refresh_budget_replay_candidate_limit_status(replay_summary, dropped_candidate_ids) do
+    invalid_reason_counts =
+      replay_summary
+      |> Map.get("invalid_candidate_limit_policy_reason_counts", %{})
+      |> map_keys()
+
+    cond do
+      summary_positive?(replay_summary, "invalid_candidate_limit_policy_count") or
+          invalid_reason_counts != [] ->
+        "invalid"
+
+      summary_positive?(replay_summary, "dropped_candidate_count") or dropped_candidate_ids != [] ->
+        "dropped"
+
+      Map.get(replay_summary, "branch_local_candidate_limit_applied") == true ->
+        "limited"
+
+      true ->
+        nil
+    end
   end
 
   defp freshness_replay_pressure_risk(replay_summary) do

@@ -28502,6 +28502,80 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "strategy challenge scores refresh-budget replay from dropped IDs when counts are stale" do
+    stale_report = %{
+      "schema_contract" => "refresh_budget_report.v1",
+      "model" => "deterministic_candidate_limit_after_filters",
+      "input_candidate_count" => 2,
+      "kept_candidate_count" => 2,
+      "dropped_candidate_count" => 0,
+      "max_candidate_activities" => 2,
+      "selection_order" => "score_descending_then_start_then_id",
+      "kept_candidate_ids" => ["kept_a", "kept_b"],
+      "dropped_candidate_ids" => ["stale_dropped_candidate"],
+      "assumptions" => %{
+        "budget_stage" => "after_contact_resource_and_allocation_filters",
+        "optimizer_search_performed" => false,
+        "stale_count_challenge" => true
+      },
+      "provenance" => %{"trust_boundary" => "stale_refresh_budget_boundary"}
+    }
+
+    artifact =
+      strategy(base_plan(%{}),
+        mission_state:
+          mission_state_with_refresh_inputs()
+          |> Map.put(:source_refresh_budget_report, stale_report),
+        branches: [
+          %{id: "baseline"},
+          %{
+            id: "urgent",
+            events: [%{type: "urgent_target", target_id: "target_a", priority: 12.0}]
+          }
+        ],
+        current_epoch_s: 0.0
+      )
+
+    urgent = branch(artifact, "urgent")
+
+    assert %{"type" => "candidate_refresh.v1", "scope" => "branch_generated"} =
+             candidate_source = urgent["assumptions"]["candidate_source"]
+
+    assert %{
+             "input_candidate_count" => 2,
+             "kept_candidate_count" => 2,
+             "dropped_candidate_count" => 0,
+             "kept_candidate_ids" => ["kept_a", "kept_b"],
+             "dropped_candidate_ids" => ["stale_dropped_candidate"],
+             "branch_local_budget_pressure" => true,
+             "branch_local_dropped_candidate_pressure" => true,
+             "branch_local_invalid_limit_pressure" => false,
+             "branch_local_candidate_limit_applied" => true
+           } = CandidateRefresh.refresh_budget_replay_summary(candidate_source)
+
+    assert Enum.any?(
+             urgent["risk_indicators"],
+             &(&1["type"] == "refresh_budget_pressure" and
+                 &1["feedback_source"] == "candidate_source.refresh_budget_replay_summary" and
+                 &1["severity"] == "medium" and
+                 &1["candidate_limit_status"] == "dropped" and
+                 &1["refresh_budget_status"] == "dropped" and
+                 &1["input_candidate_count"] == 2 and
+                 &1["kept_candidate_count"] == 2 and
+                 &1["dropped_candidate_count"] == 0 and
+                 &1["kept_candidate_ids"] == ["kept_a", "kept_b"] and
+                 &1["dropped_candidate_ids"] == ["stale_dropped_candidate"] and
+                 &1["branch_local_budget_pressure"] == true and
+                 &1["branch_local_dropped_candidate_pressure"] == true and
+                 &1["branch_local_candidate_limit_applied"] == true)
+           )
+
+    assert_validation_refresh_pressure_score_terms(urgent, artifact, "refresh_budget")
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "strategy carries mission-state schema-validation reports into branch refresh requests" do
     schema_validation_report = fn prefix,
                                   status,
