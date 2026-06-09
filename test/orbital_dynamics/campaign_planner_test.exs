@@ -43665,7 +43665,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                  &1["source_artifact_id"] == "direct_resource_projection")
            )
 
-    assert_quality_gate_pressure_score_terms(direct_branch, artifact)
+    assert_resource_availability_pressure_score_terms(direct_branch, artifact)
 
     comparison_row =
       artifact["branch_comparison_report"]["rows"]
@@ -43888,7 +43888,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                  &1["unavailable_resource_reason_counts"] == %{"antenna_unavailable" => 1})
            )
 
-    assert_quality_gate_pressure_score_terms(direct_branch, artifact)
+    assert_resource_availability_pressure_score_terms(direct_branch, artifact)
 
     comparison_row =
       artifact["branch_comparison_report"]["rows"]
@@ -72847,13 +72847,20 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
             "activity_type_suppressed_by_resource_summary",
             "activity_type_incompatible_with_resource_summary",
             "antenna_unavailable"
-          ])
+          ] or
+            (&1["type"] == "quality_gate_pressure" and
+               (&1["gate_id"] == "resource_availability" or
+                  is_map(&1["resource_availability_reason_counts"]) or
+                  is_map(&1["unavailable_resource_reason_counts"]) or
+                  is_map(&1["blocked_contact_ids_by_blocking_dimension"]))))
       )
 
     assert resource_availability_pressure_count > 0
 
     assert branch["score_terms"]["resource_availability_pressure_penalty"] ==
              -resource_availability_pressure_count * risk_weight
+
+    assert branch["score_terms"]["quality_gate_pressure_penalty"] == 0.0
 
     assert branch["score_terms"]["risk_penalty"] ==
              -(length(branch["risk_indicators"]) - resource_availability_pressure_count) *

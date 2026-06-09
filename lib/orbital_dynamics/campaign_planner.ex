@@ -3187,7 +3187,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
   defp quality_gate_pressure_risk?(%{"type" => "quality_gate_pressure"} = risk) do
     not operator_training_pressure_risk?(risk) and
       not schema_validation_quality_gate_pressure_risk?(risk) and
-      not import_readiness_pressure_risk?(risk)
+      not import_readiness_pressure_risk?(risk) and
+      not resource_availability_quality_gate_pressure_risk?(risk)
   end
 
   defp quality_gate_pressure_risk?(_risk), do: false
@@ -3312,11 +3313,29 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp resource_availability_pressure_risk?(%{"type" => "resource_unavailable"}), do: true
 
+  defp resource_availability_pressure_risk?(%{"type" => "quality_gate_pressure"} = risk) do
+    resource_availability_quality_gate_pressure_risk?(risk)
+  end
+
   defp resource_availability_pressure_risk?(%{"type" => type}) do
     type in resource_projection_availability_pressure_types()
   end
 
   defp resource_availability_pressure_risk?(_risk), do: false
+
+  defp resource_availability_quality_gate_pressure_risk?(
+         %{"type" => "quality_gate_pressure"} = risk
+       ) do
+    risk["gate_id"] == "resource_availability" or
+      numeric_or_nil(risk["resource_availability_pressure_count"]) not in [nil, 0.0] or
+      is_map(risk["resource_availability_reason_counts"]) or
+      is_map(risk["unavailable_resource_reason_counts"]) or
+      is_map(risk["blocked_contact_ids_by_blocking_dimension"]) or
+      get_in(risk, ["source_quality_gate_report", "schema_contract"]) ==
+        "operational_quality_gate_unavailable_resource_summary.v1"
+  end
+
+  defp resource_availability_quality_gate_pressure_risk?(_risk), do: false
 
   defp resource_margin_pressure_risk_count(risk_indicators) do
     Enum.count(risk_indicators, &resource_margin_pressure_risk?/1)

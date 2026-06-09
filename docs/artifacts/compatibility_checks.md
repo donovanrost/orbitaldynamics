@@ -442,7 +442,11 @@ resource-pressure replays consume it.
 CandidateRefresh replay also derives reconstructed generic quality-gate row
 counts from `quality_gate_row_ids_by_status` when present, while preserving the
 resource-specific pressure counts and blocked-contact routing maps from the
-compact unavailable-resource summary.
+compact unavailable-resource summary. V3 strategy scoring routes those
+unavailable-resource quality-gate risks into
+`resource_availability_pressure_penalty` instead of the broader
+`quality_gate_pressure_penalty`, so antenna/payload/station availability
+pressure remains planner-visible as resource pressure.
 The public quality-gate schema-validation summary publishes
 `operational_quality_gate_schema_validation_summary.v1` for Cadence-import
 quality-gate rows carrying schema-validation evidence, preserving pass/fail and
