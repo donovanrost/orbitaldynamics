@@ -5,7 +5,7 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Feed branch-local provider-counteroffer replay pressure into V3 branch risk and
+Feed branch-local candidate-rejection replay pressure into V3 branch risk and
 score terms.
 
 Status:
@@ -17,8 +17,8 @@ Files changed:
 - Ledger: `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:25930`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:25930 test/orbital_dynamics/campaign_planner_test.exs:26042 test/orbital_dynamics/campaign_planner_test.exs:26360 test/orbital_dynamics/campaign_planner_test.exs:25279 test/orbital_dynamics/campaign_planner_test.exs:26466`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:37380`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:30370 test/orbital_dynamics/campaign_planner_test.exs:37380 test/orbital_dynamics/campaign_planner_test.exs:48145 test/orbital_dynamics/campaign_planner_test.exs:25930 test/orbital_dynamics/campaign_planner_test.exs:28590`
 - `mix format lib/orbital_dynamics/campaign_planner.ex test/orbital_dynamics/campaign_planner_test.exs --check-formatted`
 - `git diff --check`
 - `mix compile --warnings-as-errors`
@@ -30,27 +30,28 @@ Level 6 pillar advanced:
 Reproducible V1/V2/V3 branch trees with explainable score terms and deltas.
 
 Last completed slice:
-Fed branch-local provider-counteroffer replay pressure into V3 branch risk and
+Fed branch-local candidate-rejection replay pressure into V3 branch risk and
 score terms.
 
 What changed:
-- Branch-generated candidate-source provider-counteroffer replay pressure now
-  emits a `provider_counteroffer_review` risk with
-  `candidate_source.provider_counteroffer_replay_summary` provenance.
-- The synthetic branch-local provider-counteroffer risk is limited to review,
-  cost, timing, lock, import-readiness, or plan-impact pressure, and direct
-  provider-counteroffer risks still take precedence.
-- Branches affected by replayed provider-counteroffer pressure now expose
-  `provider_counteroffer_pressure_penalty` in score terms and the score-term
+- Branch-generated candidate-source candidate-rejection replay pressure now
+  emits a `candidate_rejection_pressure` risk with
+  `candidate_source.candidate_rejection_replay_summary` provenance.
+- The synthetic branch-local candidate-rejection risk is limited to rejected,
+  reviewable, or invalid-input pressure, and direct candidate-rejection risks
+  still take precedence.
+- Branches affected by replayed candidate-rejection pressure now expose
+  `candidate_rejection_pressure_penalty` in score terms and the score-term
   report.
-- Added focused assertions to the mission-state provider-counteroffer replay
-  strategy test, including reviewable count, cost/timing/lock counts,
-  status/action maps, score-term value, and score-term report rows.
+- Added focused assertions to the mission-state candidate-rejection replay
+  strategy test, including rejected/reviewable/invalid counts, reason/action
+  maps, candidate IDs, station IDs, score-term value, and score-term report
+  rows.
 - Parent performed bounded local review and mechanical publish because no
   suitable subagent tool is available in this runtime.
 
 Last commit:
-- Product: `c95c1ca` Feed provider counteroffer replay into branch scoring
+- Product: `e9293e0` Feed candidate rejection replay into branch scoring
 - Ledger: latest `Update autonomous loop handoff` commit on `main`
 
 Remaining maturity gaps:
