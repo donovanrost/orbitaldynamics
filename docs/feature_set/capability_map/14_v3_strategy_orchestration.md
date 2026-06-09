@@ -1622,7 +1622,9 @@ Selected recommendations also include:
 - **Execution-feedback pressure score terms** — split command-success,
   maneuver-success, and maneuver execution-uncertainty risks into
   `execution_feedback_pressure_penalty`, leaving `risk_penalty` for unrelated
-  risks while preserving total branch score compatibility.
+  risks while preserving total branch score compatibility. Focused
+  execution-feedback pressure fixtures now assert split branch math and
+  score-term report rows through a shared helper.
 - **Timeline-integrity pressure score terms** — split dependency/exclusivity
   integrity risks into `timeline_integrity_pressure_penalty`, leaving
   publication, lifecycle, precondition, and preservation pressure for their

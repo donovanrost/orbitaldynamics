@@ -15518,22 +15518,11 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "feedback_source" => "operational_feedback.command_success_rate"
            } = List.first(command_branch["events"])
 
-    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
-
-    command_execution_pressure_count =
-      Enum.count(
-        command_branch["risk_indicators"],
-        &(&1["type"] == "command_success_rate_low")
-      )
-
-    assert command_execution_pressure_count > 0
-
-    assert command_branch["score_terms"]["execution_feedback_pressure_penalty"] ==
-             -command_execution_pressure_count * risk_weight
-
-    assert command_branch["score_terms"]["risk_penalty"] ==
-             -(length(command_branch["risk_indicators"]) - command_execution_pressure_count) *
-               risk_weight
+    assert_execution_feedback_pressure_score_terms(
+      command_branch,
+      artifact,
+      "command_success_rate_low"
+    )
 
     maneuver_branch = branch(artifact, "derived_maneuver_success_feedback")
 
@@ -15544,20 +15533,11 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "feedback_source" => "operational_feedback.maneuver_success_rate"
            } = List.first(maneuver_branch["events"])
 
-    maneuver_execution_pressure_count =
-      Enum.count(
-        maneuver_branch["risk_indicators"],
-        &(&1["type"] == "maneuver_success_rate_low")
-      )
-
-    assert maneuver_execution_pressure_count > 0
-
-    assert maneuver_branch["score_terms"]["execution_feedback_pressure_penalty"] ==
-             -maneuver_execution_pressure_count * risk_weight
-
-    assert maneuver_branch["score_terms"]["risk_penalty"] ==
-             -(length(maneuver_branch["risk_indicators"]) - maneuver_execution_pressure_count) *
-               risk_weight
+    assert_execution_feedback_pressure_score_terms(
+      maneuver_branch,
+      artifact,
+      "maneuver_success_rate_low"
+    )
 
     uncertainty_branch = branch(artifact, "derived_maneuver_execution_uncertainty_feedback")
 
@@ -15569,30 +15549,11 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "feedback_source" => "operational_feedback.maneuver_execution_uncertainty"
            } = List.first(uncertainty_branch["events"])
 
-    uncertainty_execution_pressure_count =
-      Enum.count(
-        uncertainty_branch["risk_indicators"],
-        &(&1["type"] == "maneuver_execution_uncertainty_high")
-      )
-
-    assert uncertainty_execution_pressure_count > 0
-
-    assert uncertainty_branch["score_terms"]["execution_feedback_pressure_penalty"] ==
-             -uncertainty_execution_pressure_count * risk_weight
-
-    assert uncertainty_branch["score_terms"]["risk_penalty"] ==
-             -(length(uncertainty_branch["risk_indicators"]) -
-                 uncertainty_execution_pressure_count) *
-               risk_weight
-
-    assert "execution_feedback_pressure_penalty" in artifact["score_term_report"][
-             "score_term_keys"
-           ]
-
-    assert Enum.any?(
-             artifact["score_term_report"]["rows"],
-             &(&1["term_key"] == "execution_feedback_pressure_penalty" and &1["value"] < 0.0)
-           )
+    assert_execution_feedback_pressure_score_terms(
+      uncertainty_branch,
+      artifact,
+      "maneuver_execution_uncertainty_high"
+    )
 
     row_contact_branch = branch(artifact, "derived_operational_timeline_feedback_dl_reviewed")
 
@@ -54906,19 +54867,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                  &1["source_activity_ids"] == ["burn_changed", "burn_source"])
            )
 
-    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
-
-    execution_feedback_pressure_count =
-      Enum.count(branch["risk_indicators"], &(&1["type"] == "maneuver_success_rate_low"))
-
-    assert execution_feedback_pressure_count > 0
-
-    assert branch["score_terms"]["execution_feedback_pressure_penalty"] ==
-             -execution_feedback_pressure_count * risk_weight
-
-    assert branch["score_terms"]["risk_penalty"] ==
-             -(length(branch["risk_indicators"]) - execution_feedback_pressure_count) *
-               risk_weight
+    assert_execution_feedback_pressure_score_terms(branch, artifact, "maneuver_success_rate_low")
 
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
@@ -55015,22 +54964,11 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                  &1["trust_boundary"] == "ops_timeline_review")
            )
 
-    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
-
-    execution_feedback_pressure_count =
-      Enum.count(
-        branch["risk_indicators"],
-        &(&1["type"] == "maneuver_execution_uncertainty_high")
-      )
-
-    assert execution_feedback_pressure_count > 0
-
-    assert branch["score_terms"]["execution_feedback_pressure_penalty"] ==
-             -execution_feedback_pressure_count * risk_weight
-
-    assert branch["score_terms"]["risk_penalty"] ==
-             -(length(branch["risk_indicators"]) - execution_feedback_pressure_count) *
-               risk_weight
+    assert_execution_feedback_pressure_score_terms(
+      branch,
+      artifact,
+      "maneuver_execution_uncertainty_high"
+    )
 
     assert %{
              "branch_maneuver_execution_uncertainty_activity_ids" => ["burn_uncertain_source"],
@@ -55122,22 +55060,11 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                  &1["feedback_source"] == "prior_plan.source_timeline_diff_report")
            )
 
-    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
-
-    execution_feedback_pressure_count =
-      Enum.count(
-        branch["risk_indicators"],
-        &(&1["type"] == "maneuver_execution_uncertainty_missing")
-      )
-
-    assert execution_feedback_pressure_count > 0
-
-    assert branch["score_terms"]["execution_feedback_pressure_penalty"] ==
-             -execution_feedback_pressure_count * risk_weight
-
-    assert branch["score_terms"]["risk_penalty"] ==
-             -(length(branch["risk_indicators"]) - execution_feedback_pressure_count) *
-               risk_weight
+    assert_execution_feedback_pressure_score_terms(
+      branch,
+      artifact,
+      "maneuver_execution_uncertainty_missing"
+    )
 
     assert %{
              "branch_maneuver_execution_uncertainty_activity_ids" => ["burn_missing_source"],
@@ -72640,6 +72567,36 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              artifact["score_term_report"]["rows"],
              &(&1["branch_id"] == branch["branch_id"] and
                  &1["term_key"] == "relay_data_path_pressure_penalty" and
+                 &1["value"] < 0.0)
+           )
+  end
+
+  defp assert_execution_feedback_pressure_score_terms(branch, artifact, risk_type) do
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    execution_feedback_pressure_count =
+      Enum.count(
+        branch["risk_indicators"],
+        &(&1["type"] == risk_type)
+      )
+
+    assert execution_feedback_pressure_count > 0
+
+    assert branch["score_terms"]["execution_feedback_pressure_penalty"] ==
+             -execution_feedback_pressure_count * risk_weight
+
+    assert branch["score_terms"]["risk_penalty"] ==
+             -(length(branch["risk_indicators"]) - execution_feedback_pressure_count) *
+               risk_weight
+
+    assert "execution_feedback_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] == branch["branch_id"] and
+                 &1["term_key"] == "execution_feedback_pressure_penalty" and
                  &1["value"] < 0.0)
            )
   end
