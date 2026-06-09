@@ -5,39 +5,42 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Completed: Pin CandidateRefresh station-calendar replay pressure fixture.
+Completed: Add row-derived station-calendar status and direction maps to
+`station_calendar_report.v1`.
 
 Status:
 Product slice complete and pushed. Continue the long-running loop from the
-guide and active prompt; choose the next narrow Level 6 evidence gap before
-editing.
+guide and active prompt; re-anchor before selecting the next narrow Level 6
+evidence gap.
 
 Completed product commit:
-`d89638d` Pin station calendar replay pressure fixture.
+`1077b06` Pin station calendar report status maps.
 
 What changed:
-- Added a generated CandidateRefresh station-calendar replay reference fixture
-  that checks `source_station_calendar_*` affected-contact, provider-contention,
-  direction/status, trust-boundary, and branch-local pressure observations.
-- Extended `candidate_refresh.v1` validation observations with station-calendar
-  source-report replay fields and branch-local station/provider pressure
-  booleans.
-- Added focused validation/schema coverage, refreshed
-  `study_results/validation_reference_fixtures.json` to 194 passing fixtures,
-  and documented the fixture boundary in compatibility checks.
+- `station_calendar_report.v1` now publishes row-derived
+  `affected_contact_ground_station_counts`,
+  `affected_contact_availability_counts`, `direction_counts`, and
+  `station_calendar_status_counts`.
+- Affected station-calendar rows now carry normalized `direction` and explicit
+  `station_calendar_status` values for deterministic map derivation.
+- Schema validation rejects stale top-level station-calendar maps, and
+  validation fixtures pin both top-level and row-derived observations.
+- Refreshed checked-in station-calendar report JSON, validation-reference
+  rollup, schema exports, and compatibility docs.
 
 Verification:
-- `mix test test/orbital_dynamics/validation_test.exs:6069 test/orbital_dynamics/schema_test.exs:16166`
-- `mix test test/orbital_dynamics/validation_test.exs:6069 test/orbital_dynamics/schema_test.exs:16166 test/orbital_dynamics/validation_test.exs:14995`
+- `mix test test/orbital_dynamics/communications/station_calendar_test.exs:270 test/orbital_dynamics/schema_test.exs:4066 test/orbital_dynamics/validation_test.exs:3285 test/orbital_dynamics/validation_test.exs:15009`
+- `mix test test/orbital_dynamics/schema_test.exs:31476 test/orbital_dynamics/schema_test.exs:4066 test/orbital_dynamics/communications/station_calendar_test.exs:270 test/orbital_dynamics/validation_test.exs:3285 test/orbital_dynamics/validation_test.exs:15009`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 
 Next slice candidates:
-- Pin another CandidateRefresh replay gap only if it advances station/resource
-  allocation evidence, not generic fixture count.
-- Inspect station-calendar/provider report surfaces for missing stale-summary
-  drift guards outside CandidateRefresh.
-- Re-anchor on the guide, active prompt, and this handoff before selecting.
+- Reassess the guide queue before editing; avoid another compatibility-only
+  fixture unless it closes a station/resource allocation behavior gap.
+- Inspect contact-allocation reduced-capacity packing or reservation-conflict
+  reports for a narrow stale-summary or operator-review handoff gap.
+- Consider moving back to typed timeline/activity semantics if resource
+  allocation surfaces are now sufficiently pinned for this pass.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
