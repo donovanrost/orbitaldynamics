@@ -5,7 +5,7 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Pin ranking-comparison status-map challenge guards.
+Pin objective-satisfaction status-map challenge guards.
 
 Status:
 Completed and pushed.
@@ -16,26 +16,26 @@ Files changed:
 - `test/orbital_dynamics/validation_test.exs`
 
 Tests run:
-- `mix test test/orbital_dynamics/validation_test.exs:13672`
+- `mix test test/orbital_dynamics/validation_test.exs:13398`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 - `git diff --cached --check`
 
 Docs/artifacts changed:
-The curated `ranking_comparison_report.v1` validation-reference test now
-asserts row-derived status counts and scenario routing by status, and rejects
-stale observations for both maps. Compatibility docs record the status-routing
-challenge guard.
+The curated `objective_satisfaction_report.v1` validation-reference test now
+asserts status counts and objective routing by status, and rejects stale
+observations for both maps. Compatibility docs record the stale status-routing
+guard.
 
 Local review:
-Parent review confirmed staged scope, status-map assertions, stale-observation
-checks, docs, and focused verification. `.gitignore` remains unrelated and
-unstaged.
+Parent review confirmed staged scope, status-map assertions,
+stale-observation checks, docs, and focused verification. `.gitignore` remains
+unrelated and unstaged.
 
 Level 6 pillar advanced:
-Ranking-comparison compatibility evidence now pins pairwise status routing in
-validation-reference coverage, reducing stale explanation drift for ranking
-delta artifacts.
+Objective-satisfaction compatibility evidence now pins objective status
+routing in validation-reference coverage, reducing stale plan-objective
+explanation drift.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -45,7 +45,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`4f0d9e4` Pin ranking comparison status guards.
+`5caf920` Pin objective satisfaction status guards.
 
 Next candidate:
 Reassess the next planner-visible communications, resource, or
@@ -58,6 +58,8 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `5caf920` pinned objective-satisfaction status count and objective-routing
+  challenge guards in validation-reference coverage.
 - `4f0d9e4` pinned ranking-comparison status count and scenario-routing
   challenge guards in validation-reference coverage.
 - `cd369ee` pinned the standalone score-term fixture to the checked-in V1
