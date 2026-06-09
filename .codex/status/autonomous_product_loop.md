@@ -5,7 +5,7 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Split operator-training strategy pressure score terms.
+Route schema-validation summary pressure into validation score terms.
 
 Status:
 Completed and pushed.
@@ -17,28 +17,28 @@ Files changed:
 - `test/orbital_dynamics/campaign_planner_test.exs`
 
 Tests run:
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:44159`
 - `mix test test/orbital_dynamics/campaign_planner_test.exs:43940`
 - `mix test test/orbital_dynamics/campaign_planner_test.exs:43668`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:43891`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 - `git diff --cached --check`
 
 Docs/artifacts changed:
-V3 strategy scoring now emits `operator_training_pressure_penalty` for
-operator-training quality-gate risks and keeps those risks out of the broad
-`quality_gate_pressure_penalty`. Compatibility docs record the score-term
-split.
+V3 strategy scoring now routes schema-validation quality-gate summary risks
+into `validation_refresh_pressure_penalty` and keeps those risks out of broad
+`quality_gate_pressure_penalty`. Compatibility docs record the validation
+score-term route.
 
 Local review:
 Parent review confirmed staged scope, score-term classification, score-term
-report rows, focused quality-gate regressions, docs, and verification.
-`.gitignore` remains unrelated and unstaged.
+report rows, focused schema/operator/generic quality-gate regressions, docs,
+and verification. `.gitignore` remains unrelated and unstaged.
 
 Level 6 pillar advanced:
-Operator-training readiness pressure is now planner-visible in reproducible V3
-branch score explanations instead of being hidden in a generic quality-gate
-bucket.
+Schema-validation readiness evidence is now planner-visible in reproducible V3
+branch score explanations under the validation score-term family instead of a
+generic quality-gate bucket.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -48,7 +48,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`78da141` Split operator training score pressure.
+`a2e5c9c` Route schema validation score pressure.
 
 Next candidate:
 Reassess the next planner-visible communications, resource, or
@@ -61,6 +61,8 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `a2e5c9c` routed schema-validation quality-gate summary risks into the V3
+  validation-refresh pressure score term.
 - `78da141` split operator-training quality-gate pressure into a dedicated V3
   strategy score term.
 - `47c8261` pinned operator-training role/training/certification/qualification
