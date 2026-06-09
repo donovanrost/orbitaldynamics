@@ -9,7 +9,7 @@ Feed branch-local timeline-integrity replay pressure into V3 branch risk and
 score terms.
 
 Status:
-Product committed; ledger update in progress.
+Completed and pushed.
 
 Files changed:
 - Product: `lib/orbital_dynamics/campaign_planner.ex`
@@ -50,7 +50,7 @@ What changed:
 
 Last commit:
 - Product: `fa4db23` Feed timeline integrity replay into branch scoring
-- Ledger: pending
+- Ledger: latest `Update autonomous loop handoff` commit on `main`
 
 Remaining maturity gaps:
 - Continue making existing review evidence planner-visible through candidate
