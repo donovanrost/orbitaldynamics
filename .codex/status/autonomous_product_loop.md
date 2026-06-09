@@ -5,7 +5,7 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Add a planner challenge for stale freshness replay pressure.
+Add a planner challenge for stale refresh-budget replay pressure.
 
 Status:
 Completed and pushed.
@@ -16,8 +16,8 @@ Files changed:
 - Ledger: `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:28236`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:28236 test/orbital_dynamics/campaign_planner_test.exs:28071 test/orbital_dynamics/campaign_planner_test.exs:28786`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:28505`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:28505 test/orbital_dynamics/campaign_planner_test.exs:28311 test/orbital_dynamics/campaign_planner_test.exs:28236`
 - `mix format lib/orbital_dynamics/campaign_planner.ex test/orbital_dynamics/campaign_planner_test.exs --check-formatted`
 - `git diff --check`
 - `mix compile --warnings-as-errors`
@@ -31,26 +31,27 @@ reproducible V1/V2/V3 branch trees with explainable score terms and deltas;
 approval-aware automation boundaries and import readiness.
 
 Last completed slice:
-Added a planner challenge for stale freshness replay pressure.
+Added a planner challenge for stale refresh-budget replay pressure.
 
 What changed:
-- Added a strategy challenge where a `freshness_report.v1` has stale top-level
-  current status while stale and unknown reason evidence indicates
-  branch-local freshness pressure.
-- Candidate-source freshness replay is asserted to preserve stale top-level
-  `status_counts` for auditability while preserving stale/unknown reason
-  fields and pressure booleans.
-- Branch risk construction now derives replay freshness status from stale and
-  unknown reason counts/maps as well as top-level status counts, so stale
-  current rollups cannot hide stale state-quality pressure.
-- The challenge asserts the resulting `refresh_freshness_pressure` risk,
+- Added a strategy challenge where a `refresh_budget_report.v1` has stale zero
+  dropped-candidate count while dropped candidate IDs indicate branch-local
+  refresh-budget pressure.
+- Candidate-source refresh-budget replay is asserted to preserve stale scalar
+  counts for auditability while preserving dropped-candidate IDs and pressure
+  booleans.
+- Branch risk construction now derives candidate-limit status from dropped IDs
+  and invalid-limit reason maps as well as scalar counts, so stale scalar
+  rollups cannot downgrade dropped or invalid refresh-budget pressure to a
+  generic limited status.
+- The challenge asserts the resulting `refresh_budget_pressure` risk,
   `validation_refresh_pressure_penalty`, score-term report row, and schema
   validity.
 - Parent performed bounded local review and mechanical publish because no
   suitable subagent tool is available in this runtime.
 
 Last commit:
-- Product: `8b9b832` Challenge stale freshness replay scoring
+- Product: `462d2cb` Challenge stale refresh budget replay scoring
 - Ledger: this handoff commit on `main`
 
 Remaining maturity gaps:
@@ -58,13 +59,14 @@ Remaining maturity gaps:
   selection, branch scoring, compatibility checks, and challenge fixtures.
 - Prefer checked-in compatibility or challenge fixtures where live coverage is
   weaker than the Level 6 maturity map.
-- Reassess refresh-budget replay scoring for stale-top-level challenge
-  coverage, or move to checked-in compatibility fixture coverage.
+- After this replay-family challenge pass, reassess whether checked-in
+  compatibility fixtures or another guide queue item is the highest-value next
+  Level 6 slice.
 
 Next candidate:
-Reassess refresh-budget replay scoring for stale-top-level challenge coverage,
-or switch to checked-in compatibility fixtures if live tests already cover the
-risk.
+Reassess checked-in compatibility/challenge fixture coverage for replay
+families now covered by live strategy challenges, then choose either a fixture
+pinning slice or the next highest-value guide queue item.
 
 Blocked:
 Not blocked.
