@@ -1661,7 +1661,10 @@ Selected recommendations also include:
 - **Timeline-preservation pressure score terms** — split lock/approval/executed
   preservation review risks into `timeline_preservation_pressure_penalty`,
   leaving the legacy `timeline_pressure_penalty` present as an empty
-  compatibility term while preserving total branch score compatibility.
+  compatibility term while preserving total branch score compatibility. Focused
+  preservation pressure fixtures now assert split branch math, legacy
+  compatibility term behavior, and score-term report rows through a shared
+  helper.
 - **Operational-readiness pressure score terms** — split readiness review,
   blocked, and analysis-only risks into
   `operational_readiness_pressure_penalty`, leaving broader approval-boundary
