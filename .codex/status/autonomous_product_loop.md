@@ -8,7 +8,7 @@ Current slice:
 Harden storage/downlink pressure score helper evidence.
 
 Status:
-Implemented and verified locally; ready for mechanical commit/push handoff.
+Completed and pushed in product commit `799450e`.
 
 Slice-selection note:
 - Selected slice: add a shared storage/downlink pressure score helper and use
@@ -75,8 +75,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-Pending mechanical publish for this slice; previous product commit was
-`ba914f0` Harden station calendar pressure helper.
+`799450e` Harden storage downlink pressure helper.
 
 Next candidate:
 After this storage/downlink helper hardening, continue with the next
@@ -88,6 +87,8 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `799450e` hardened shared storage/downlink pressure helper coverage for split
+  branch math and score-term report rows.
 - `ba914f0` hardened shared station-calendar pressure helper coverage for split
   branch math and score-term report rows.
 - `7aa4ac2` hardened shared contact-allocation pressure helper coverage for
