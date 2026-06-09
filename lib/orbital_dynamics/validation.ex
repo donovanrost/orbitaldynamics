@@ -2599,6 +2599,94 @@ defmodule OrbitalDynamics.Validation do
         "checks candidate-refresh replay of constraint provenance without objective generation, resource mutation, candidate selection, import approval, or Cadence writes"
       ]
     },
+    "fixture.artifact.candidate_refresh.contact_filter_replay" => %{
+      "id" => "fixture.artifact.candidate_refresh.contact_filter_replay",
+      "model_id" => "artifact.candidate_refresh.v1",
+      "reference_case" =>
+        "generated candidate refresh replay of contact-filter source-report provenance",
+      "validation_level" => "artifact_contract",
+      "fixture_type" => "curated_internal_artifact_regression",
+      "inputs" => %{
+        "source" => "generated_candidate_refresh_contact_filter_fixture",
+        "contract" => "candidate_refresh.v1"
+      },
+      "expected" => %{
+        "schema_contract" => "candidate_refresh.v1",
+        "schema_version" => 1,
+        "planner" => "OrbitalDynamics.CandidateRefresh.V1",
+        "candidate_count" => 0,
+        "contact_intent_count" => 0,
+        "access_window_count" => 0,
+        "target_visibility_window_count" => 0,
+        "eclipse_interval_count" => 0,
+        "source_report_family_count" => 1,
+        "source_report_row_count" => 4,
+        "source_contact_filter_report_count" => 1,
+        "source_contact_filter_row_count" => 4,
+        "source_contact_filter_suppressed_candidate_count" => 4,
+        "source_contact_filter_invalid_contact_input_count" => 1,
+        "source_contact_filter_suppressed_reason_counts" => %{
+          "ground_station_capacity_zero" => 1,
+          "ground_station_reserved" => 1,
+          "ground_station_unavailable" => 1,
+          "invalid_contact_input" => 1
+        },
+        "source_contact_filter_contact_ids_by_suppressed_reason" => %{
+          "ground_station_capacity_zero" => ["dl_station_capacity_zero"],
+          "ground_station_reserved" => ["dl_station_reserved"],
+          "ground_station_unavailable" => ["dl_station_unavailable"],
+          "invalid_contact_input" => ["invalid_contact"]
+        },
+        "source_contact_filter_direction_counts" => %{
+          "command" => 1,
+          "downlink" => 1,
+          "health_check" => 1,
+          "tracking" => 1
+        },
+        "source_contact_filter_station_suppression_count" => 3,
+        "source_contact_filter_station_suppression_ground_station_counts" => %{
+          "dss_43" => 2,
+          "equator_prime" => 1
+        },
+        "source_contact_filter_station_suppression_availability_counts" => %{
+          "reduced_capacity" => 1,
+          "reserved" => 1,
+          "unavailable" => 1
+        },
+        "source_contact_filter_station_suppression_status_counts" => %{
+          "reserved" => 1,
+          "unavailable" => 1
+        },
+        "source_contact_filter_trust_boundary_status" => "declared",
+        "source_contact_filter_branch_local_contact_filter_pressure" => true,
+        "source_contact_filter_branch_local_candidate_suppression_pressure" => true,
+        "source_contact_filter_branch_local_invalid_contact_input_pressure" => true,
+        "source_contact_filter_branch_local_station_suppression_pressure" => true
+      },
+      "tolerances" => %{
+        "schema_version" => 0,
+        "candidate_count" => 0,
+        "contact_intent_count" => 0,
+        "access_window_count" => 0,
+        "target_visibility_window_count" => 0,
+        "eclipse_interval_count" => 0,
+        "source_report_family_count" => 0,
+        "source_report_row_count" => 0,
+        "source_contact_filter_report_count" => 0,
+        "source_contact_filter_row_count" => 0,
+        "source_contact_filter_suppressed_candidate_count" => 0,
+        "source_contact_filter_invalid_contact_input_count" => 0,
+        "source_contact_filter_station_suppression_count" => 0
+      },
+      "evidence" => [
+        "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
+        "schema-linted by mix orbital_dynamics.schema.lint"
+      ],
+      "known_limits" => [
+        "internal generated artifact regression, not contact filtering validation",
+        "checks candidate-refresh replay of contact-filter provenance without contact allocation, candidate selection, import approval, or Cadence writes"
+      ]
+    },
     "fixture.artifact.candidate_refresh.link_capacity_replay" => %{
       "id" => "fixture.artifact.candidate_refresh.link_capacity_replay",
       "model_id" => "artifact.candidate_refresh.v1",
@@ -14634,6 +14722,7 @@ defmodule OrbitalDynamics.Validation do
     artifact = stringify_keys(artifact)
     source_reports = get_in(artifact, ["provenance", "source_reports"]) || %{}
     contact_contention_summary = Map.get(source_reports, "contact_contention_report") || %{}
+    contact_filter_summary = Map.get(source_reports, "contact_filter_report") || %{}
     contact_intent_summary = Map.get(source_reports, "contact_intent") || %{}
     constraint_summary = Map.get(source_reports, "constraint_report") || %{}
     link_capacity_summary = Map.get(source_reports, "link_capacity_report") || %{}
@@ -14693,6 +14782,96 @@ defmodule OrbitalDynamics.Validation do
         Map.get(contact_contention_summary, "required_operator_action_counts") || %{},
       "source_contact_contention_trust_boundary_status" =>
         Map.get(contact_contention_summary, "trust_boundary_status"),
+      "source_contact_filter_report_count" => Map.get(contact_filter_summary, "count"),
+      "source_contact_filter_row_count" => Map.get(contact_filter_summary, "row_count"),
+      "source_contact_filter_suppressed_candidate_count" =>
+        Map.get(contact_filter_summary, "suppressed_candidate_count"),
+      "source_contact_filter_invalid_contact_input_count" =>
+        Map.get(contact_filter_summary, "invalid_contact_input_count"),
+      "source_contact_filter_invalid_contact_input_ids" =>
+        Map.get(contact_filter_summary, "invalid_contact_input_ids") || [],
+      "source_contact_filter_suppressed_reason_counts" =>
+        Map.get(contact_filter_summary, "suppressed_reason_counts") || %{},
+      "source_contact_filter_contact_ids_by_suppressed_reason" =>
+        Map.get(contact_filter_summary, "contact_ids_by_suppressed_reason") || %{},
+      "source_contact_filter_direction_counts" =>
+        Map.get(contact_filter_summary, "direction_counts") || %{},
+      "source_contact_filter_directions" => Map.get(contact_filter_summary, "directions") || [],
+      "source_contact_filter_contact_ids_by_direction" =>
+        Map.get(contact_filter_summary, "contact_ids_by_direction") || %{},
+      "source_contact_filter_direction_routing" =>
+        Map.get(contact_filter_summary, "direction_routing") || %{},
+      "source_contact_filter_station_suppression_count" =>
+        Map.get(contact_filter_summary, "station_suppression_count"),
+      "source_contact_filter_station_suppression_ground_station_counts" =>
+        Map.get(contact_filter_summary, "station_suppression_ground_station_counts") || %{},
+      "source_contact_filter_station_suppression_availability_counts" =>
+        Map.get(contact_filter_summary, "station_suppression_availability_counts") || %{},
+      "source_contact_filter_station_suppression_status_counts" =>
+        Map.get(contact_filter_summary, "station_suppression_status_counts") || %{},
+      "source_contact_filter_station_suppression_contact_ids_by_ground_station" =>
+        Map.get(contact_filter_summary, "station_suppression_contact_ids_by_ground_station") ||
+          %{},
+      "source_contact_filter_station_suppression_contact_ids_by_availability" =>
+        Map.get(contact_filter_summary, "station_suppression_contact_ids_by_availability") ||
+          %{},
+      "source_contact_filter_station_suppression_contact_ids_by_status" =>
+        Map.get(contact_filter_summary, "station_suppression_contact_ids_by_status") || %{},
+      "source_contact_filter_station_suppression_station_calendar_entry_ids_by_ground_station" =>
+        Map.get(
+          contact_filter_summary,
+          "station_suppression_station_calendar_entry_ids_by_ground_station"
+        ) || %{},
+      "source_contact_filter_station_suppression_station_calendar_entry_ids_by_availability" =>
+        Map.get(
+          contact_filter_summary,
+          "station_suppression_station_calendar_entry_ids_by_availability"
+        ) || %{},
+      "source_contact_filter_station_suppression_station_calendar_entry_ids_by_status" =>
+        Map.get(
+          contact_filter_summary,
+          "station_suppression_station_calendar_entry_ids_by_status"
+        ) || %{},
+      "source_contact_filter_station_suppression_station_calendar_provider_entry_ids_by_ground_station" =>
+        Map.get(
+          contact_filter_summary,
+          "station_suppression_station_calendar_provider_entry_ids_by_ground_station"
+        ) || %{},
+      "source_contact_filter_station_suppression_station_calendar_provider_entry_ids_by_availability" =>
+        Map.get(
+          contact_filter_summary,
+          "station_suppression_station_calendar_provider_entry_ids_by_availability"
+        ) || %{},
+      "source_contact_filter_station_suppression_station_calendar_provider_entry_ids_by_status" =>
+        Map.get(
+          contact_filter_summary,
+          "station_suppression_station_calendar_provider_entry_ids_by_status"
+        ) || %{},
+      "source_contact_filter_station_suppression_station_reservation_ids_by_ground_station" =>
+        Map.get(
+          contact_filter_summary,
+          "station_suppression_station_reservation_ids_by_ground_station"
+        ) || %{},
+      "source_contact_filter_station_suppression_station_reservation_ids_by_availability" =>
+        Map.get(
+          contact_filter_summary,
+          "station_suppression_station_reservation_ids_by_availability"
+        ) || %{},
+      "source_contact_filter_station_suppression_station_reservation_ids_by_status" =>
+        Map.get(
+          contact_filter_summary,
+          "station_suppression_station_reservation_ids_by_status"
+        ) || %{},
+      "source_contact_filter_trust_boundary_status" =>
+        Map.get(contact_filter_summary, "trust_boundary_status"),
+      "source_contact_filter_branch_local_contact_filter_pressure" =>
+        contact_filter_branch_local_contact_filter_pressure?(contact_filter_summary),
+      "source_contact_filter_branch_local_candidate_suppression_pressure" =>
+        contact_filter_branch_local_candidate_suppression_pressure?(contact_filter_summary),
+      "source_contact_filter_branch_local_invalid_contact_input_pressure" =>
+        contact_filter_branch_local_invalid_contact_input_pressure?(contact_filter_summary),
+      "source_contact_filter_branch_local_station_suppression_pressure" =>
+        contact_filter_branch_local_station_suppression_pressure?(contact_filter_summary),
       "source_contact_intent_report_count" => Map.get(contact_intent_summary, "count"),
       "source_contact_intent_row_count" => Map.get(contact_intent_summary, "row_count"),
       "source_contact_intent_station_feedback_count" =>
@@ -21688,6 +21867,51 @@ defmodule OrbitalDynamics.Validation do
       map_size(Map.get(summary, "source_activity_id_counts") || %{}) > 0 or
       map_size(Map.get(summary, "constraint_resource_counts") || %{}) > 0 or
       map_size(Map.get(summary, "constraint_spacecraft_counts") || %{}) > 0
+  end
+
+  defp contact_filter_branch_local_contact_filter_pressure?(%{} = summary) do
+    contact_filter_branch_local_candidate_suppression_pressure?(summary) or
+      contact_filter_branch_local_invalid_contact_input_pressure?(summary) or
+      contact_filter_branch_local_station_suppression_pressure?(summary)
+  end
+
+  defp contact_filter_branch_local_candidate_suppression_pressure?(%{} = summary) do
+    positive_integer_observation?(summary, "suppressed_candidate_count") or
+      map_size(Map.get(summary, "suppressed_reason_counts") || %{}) > 0 or
+      map_size(Map.get(summary, "contact_ids_by_suppressed_reason") || %{}) > 0 or
+      map_size(Map.get(summary, "direction_counts") || %{}) > 0 or
+      list_values(summary, "directions") != [] or
+      map_size(Map.get(summary, "contact_ids_by_direction") || %{}) > 0 or
+      map_size(Map.get(summary, "direction_routing") || %{}) > 0
+  end
+
+  defp contact_filter_branch_local_invalid_contact_input_pressure?(%{} = summary) do
+    positive_integer_observation?(summary, "invalid_contact_input_count") or
+      list_values(summary, "invalid_contact_input_ids") != []
+  end
+
+  defp contact_filter_branch_local_station_suppression_pressure?(%{} = summary) do
+    positive_integer_observation?(summary, "station_suppression_count") or
+      Enum.any?(
+        [
+          "station_suppression_ground_station_counts",
+          "station_suppression_availability_counts",
+          "station_suppression_status_counts",
+          "station_suppression_contact_ids_by_ground_station",
+          "station_suppression_contact_ids_by_availability",
+          "station_suppression_contact_ids_by_status",
+          "station_suppression_station_calendar_entry_ids_by_ground_station",
+          "station_suppression_station_calendar_entry_ids_by_availability",
+          "station_suppression_station_calendar_entry_ids_by_status",
+          "station_suppression_station_calendar_provider_entry_ids_by_ground_station",
+          "station_suppression_station_calendar_provider_entry_ids_by_availability",
+          "station_suppression_station_calendar_provider_entry_ids_by_status",
+          "station_suppression_station_reservation_ids_by_ground_station",
+          "station_suppression_station_reservation_ids_by_availability",
+          "station_suppression_station_reservation_ids_by_status"
+        ],
+        &(map_size(Map.get(summary, &1) || %{}) > 0)
+      )
   end
 
   defp link_capacity_branch_local_link_capacity_pressure?(%{} = summary) do

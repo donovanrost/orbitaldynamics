@@ -5773,6 +5773,101 @@ defmodule OrbitalDynamics.ValidationTest do
              Schema.validate_artifact(artifact, schema_contract: "candidate_refresh.v1")
   end
 
+  test "verifies candidate refresh contact filter replay fixtures" do
+    fixture_id = "fixture.artifact.candidate_refresh.contact_filter_replay"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.candidate_refresh.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    artifact = candidate_refresh_contact_filter_fixture()
+    observations = candidate_refresh_contact_filter_fixture_observations()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(fixture_id, observations)
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert %{
+             "source_report_family_count" => 1,
+             "source_report_row_count" => 4,
+             "source_contact_filter_report_count" => 1,
+             "source_contact_filter_row_count" => 4,
+             "source_contact_filter_suppressed_candidate_count" => 4,
+             "source_contact_filter_invalid_contact_input_count" => 1,
+             "source_contact_filter_invalid_contact_input_ids" => ["invalid_contact"],
+             "source_contact_filter_suppressed_reason_counts" => %{
+               "ground_station_capacity_zero" => 1,
+               "ground_station_reserved" => 1,
+               "ground_station_unavailable" => 1,
+               "invalid_contact_input" => 1
+             },
+             "source_contact_filter_contact_ids_by_suppressed_reason" => %{
+               "ground_station_capacity_zero" => ["dl_station_capacity_zero"],
+               "ground_station_reserved" => ["dl_station_reserved"],
+               "ground_station_unavailable" => ["dl_station_unavailable"],
+               "invalid_contact_input" => ["invalid_contact"]
+             },
+             "source_contact_filter_direction_counts" => %{
+               "command" => 1,
+               "downlink" => 1,
+               "health_check" => 1,
+               "tracking" => 1
+             },
+             "source_contact_filter_contact_ids_by_direction" => %{
+               "command" => ["dl_station_reserved"],
+               "downlink" => ["dl_station_unavailable"],
+               "health_check" => ["invalid_contact"],
+               "tracking" => ["dl_station_capacity_zero"]
+             },
+             "source_contact_filter_station_suppression_count" => 3,
+             "source_contact_filter_station_suppression_ground_station_counts" => %{
+               "dss_43" => 2,
+               "equator_prime" => 1
+             },
+             "source_contact_filter_station_suppression_availability_counts" => %{
+               "reduced_capacity" => 1,
+               "reserved" => 1,
+               "unavailable" => 1
+             },
+             "source_contact_filter_station_suppression_status_counts" => %{
+               "reserved" => 1,
+               "unavailable" => 1
+             },
+             "source_contact_filter_station_suppression_station_reservation_ids_by_status" => %{
+               "reserved" => ["reservation_dss_43"]
+             },
+             "source_contact_filter_trust_boundary_status" => "declared",
+             "source_contact_filter_branch_local_contact_filter_pressure" => true,
+             "source_contact_filter_branch_local_candidate_suppression_pressure" => true,
+             "source_contact_filter_branch_local_invalid_contact_input_pressure" => true,
+             "source_contact_filter_branch_local_station_suppression_pressure" => true
+           } = observations
+
+    stale_contact_filter_pressure_observations =
+      observations
+      |> Map.put("source_contact_filter_branch_local_contact_filter_pressure", false)
+
+    assert {:ok, stale_contact_filter_pressure_verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               stale_contact_filter_pressure_observations
+             )
+
+    assert stale_contact_filter_pressure_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_contact_filter_pressure_verification["checks"],
+             &(&1["field"] == "source_contact_filter_branch_local_contact_filter_pressure" and
+                 &1["status"] == "fail")
+           )
+
+    assert {:ok, _validated_artifact} =
+             Schema.validate_artifact(artifact, schema_contract: "candidate_refresh.v1")
+  end
+
   test "verifies curated candidate rejection report reference fixtures" do
     fixture_id = "fixture.artifact.candidate_rejection_report.v1"
 
@@ -14650,6 +14745,8 @@ defmodule OrbitalDynamics.ValidationTest do
         "fixture.artifact.candidate_refresh.v1" => candidate_refresh_fixture_observations(),
         "fixture.artifact.candidate_refresh.contact_contention_cross_station_replay" =>
           candidate_refresh_contact_contention_challenge_fixture_observations(),
+        "fixture.artifact.candidate_refresh.contact_filter_replay" =>
+          candidate_refresh_contact_filter_fixture_observations(),
         "fixture.artifact.candidate_refresh.contact_intent_direction_replay" =>
           candidate_refresh_contact_intent_direction_fixture_observations(),
         "fixture.artifact.candidate_refresh.constraint_replay" =>
@@ -14959,8 +15056,8 @@ defmodule OrbitalDynamics.ValidationTest do
     assert %{
              "schema_contract" => "validation_reference_fixture_report.v1",
              "status" => "pass",
-             "fixture_count" => 189,
-             "status_counts" => %{"pass" => 189},
+             "fixture_count" => 190,
+             "status_counts" => %{"pass" => 190},
              "reports" => reports
            } = report
 
@@ -14994,6 +15091,7 @@ defmodule OrbitalDynamics.ValidationTest do
              "fixture.artifact.candidate_diff_row.v1",
              "fixture.artifact.candidate_refresh.constraint_replay",
              "fixture.artifact.candidate_refresh.contact_contention_cross_station_replay",
+             "fixture.artifact.candidate_refresh.contact_filter_replay",
              "fixture.artifact.candidate_refresh.contact_intent_direction_replay",
              "fixture.artifact.candidate_refresh.link_capacity_replay",
              "fixture.artifact.candidate_refresh.objective_gap_replay",
@@ -15176,7 +15274,7 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert %{
              "status" => "fail",
-             "status_counts" => %{"fail" => 189},
+             "status_counts" => %{"fail" => 190},
              "reports" => invalid_observation_reports
            } = invalid_observation_report
 
@@ -16333,6 +16431,94 @@ defmodule OrbitalDynamics.ValidationTest do
         "candidate_ids_by_direction" => %{"stale_direction" => ["stale_candidate"]},
         "candidate_ids_by_suppressed_reason" => %{"stale_reason" => ["stale_candidate"]},
         "provenance" => %{"trust_boundary" => "resource_filter_replay_report"}
+      }
+    }
+  end
+
+  defp candidate_refresh_contact_filter_fixture_observations do
+    "candidate_refresh.v1"
+    |> Validation.artifact_observations(candidate_refresh_contact_filter_fixture())
+  end
+
+  defp candidate_refresh_contact_filter_fixture do
+    result_set(%{})
+    |> CandidateRefresh.build(
+      candidate_refresh: candidate_refresh_contact_filter_request(),
+      generated_at: ~U[2026-05-14 00:00:00Z]
+    )
+  end
+
+  defp candidate_refresh_contact_filter_request do
+    %{
+      "accepted_planning_state" => %{
+        "snapshot_id" => "ops-state-contact-filter-replay-challenge",
+        "accepted_at" => "2026-05-14T00:00:00Z",
+        "spacecraft_states" => [],
+        "source" => %{"system" => "validation_challenge"},
+        "quality" => %{"level" => "accepted"},
+        "provenance" => %{"created_by" => "validation_fixture"}
+      },
+      "current_epoch_s" => 0.0,
+      "remaining_horizon" => %{
+        "starts_at_s" => 0.0,
+        "ends_at_s" => 600.0,
+        "output_step_s" => 60.0
+      },
+      "targets" => [],
+      "constraints" => %{},
+      "scoring_policy" => %{},
+      "model_assumptions" => %{"refresh_level" => "sampled_v1"},
+      "source_contact_filter_report" => %{
+        "schema_contract" => "contact_filter_report.v1",
+        "suppressed_candidates" => [
+          %{
+            "id" => "dl_station_unavailable",
+            "direction" => "Down Link",
+            "ground_station_id" => "equator_prime",
+            "station_calendar_entry_id" => "entry_unavailable",
+            "station_calendar_provider_entry_id" => "provider_entry_unavailable",
+            "suppressed_reason" => "ground_station_unavailable"
+          },
+          %{
+            "id" => "dl_station_reserved",
+            "direction" => "s-band command",
+            "ground_station_id" => "dss_43",
+            "station_calendar_entry_id" => "entry_reserved",
+            "station_calendar_provider_entry_id" => "provider_entry_reserved",
+            "station_reservation_id" => "reservation_dss_43",
+            "suppressed_reason" => "ground_station_reserved"
+          },
+          %{
+            "id" => "dl_station_capacity_zero",
+            "direction" => "tracking_pass",
+            "ground_station_id" => "dss_43",
+            "station_calendar_entry_id" => "entry_capacity_zero",
+            "station_calendar_provider_entry_id" => "provider_entry_capacity_zero",
+            "suppressed_reason" => "ground_station_capacity_zero"
+          },
+          %{
+            "id" => "invalid_contact",
+            "direction" => "health-check",
+            "suppressed_reason" => "invalid_contact_input",
+            "required_operator_action" => "review_invalid_contact_filter_input"
+          }
+        ],
+        "suppressed_reason_counts" => %{"stale_reason" => 99},
+        "direction_counts" => %{"stale_direction" => 99},
+        "contact_ids_by_direction" => %{"stale_direction" => ["stale_contact"]},
+        "station_suppression_ground_station_counts" => %{"stale_station" => 99},
+        "station_suppression_availability_counts" => %{"stale_availability" => 99},
+        "station_suppression_status_counts" => %{"stale_status" => 99},
+        "station_suppression_station_calendar_provider_entry_ids_by_ground_station" => %{
+          "stale_station" => ["stale_provider_entry"]
+        },
+        "station_suppression_station_calendar_provider_entry_ids_by_availability" => %{
+          "stale_availability" => ["stale_provider_entry"]
+        },
+        "station_suppression_station_calendar_provider_entry_ids_by_status" => %{
+          "stale_status" => ["stale_provider_entry"]
+        },
+        "provenance" => %{"trust_boundary" => "contact_filter_replay_report"}
       }
     }
   end
