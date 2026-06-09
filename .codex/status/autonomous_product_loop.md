@@ -8,7 +8,7 @@ Current slice:
 Refresh strategy validation-reference score-term expectations.
 
 Status:
-Completed and ready to publish ledger.
+Completed and pushed.
 
 Files changed:
 - Runtime/reference catalog: `lib/orbital_dynamics/validation.ex`
@@ -76,7 +76,7 @@ Refreshed strategy validation-reference score-term expectations.
 
 Last commit:
 - Product: `c9fd00b` Refresh strategy validation fixture counts
-- Ledger: pending
+- Ledger: this handoff commit on `main`
 
 Remaining maturity gaps:
 - Continue making existing review evidence planner-visible through candidate
