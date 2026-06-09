@@ -51386,6 +51386,127 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
            )
   end
 
+  test "strategy challenge scores model-acceptance replay from rows when top-level fields are stale" do
+    stale_report =
+      %{
+        "schema_contract" => "model_acceptance_report.v1",
+        "schema_version" => 1,
+        "report_id" => "model_acceptance:operational_import:stale_top_level",
+        "model" => "registry_model_acceptance_classifier",
+        "intended_use" => "operational_import",
+        "status" => "accepted",
+        "model_count" => 1,
+        "accepted_count" => 1,
+        "review_required_count" => 0,
+        "blocked_count" => 0,
+        "unknown_model_count" => 0,
+        "status_counts" => %{"accepted" => 1},
+        "validation_level_counts" => %{"artifact_contract" => 1},
+        "model_ids_by_status" => %{"accepted" => ["stale.accepted"]},
+        "model_ids_by_validation_level" => %{
+          "artifact_contract" => ["stale.accepted"]
+        },
+        "model_ids_by_intended_use" => %{
+          "operational_import" => ["stale.accepted"]
+        },
+        "records" => [],
+        "rows" => [
+          %{
+            "id" => "model_acceptance:row.blocked",
+            "rank" => 1,
+            "model_id" => "row.blocked",
+            "validation_level" => "educational",
+            "status" => "blocked",
+            "reason" => "educational model evidence cannot support operational import"
+          },
+          %{
+            "id" => "model_acceptance:row.review",
+            "rank" => 2,
+            "model_id" => "row.review",
+            "validation_level" => "analysis",
+            "status" => "review_required",
+            "reason" => "analysis model evidence requires operator review"
+          }
+        ],
+        "assumptions" => %{"stale_top_level_challenge" => true},
+        "model_limits" => ["artifact_only"],
+        "provenance" => %{"trust_boundary" => "stale_model_acceptance_boundary"}
+      }
+
+    artifact =
+      strategy(base_plan(%{}),
+        mission_state:
+          mission_state_with_refresh_inputs()
+          |> Map.put(:source_model_acceptance_report, stale_report),
+        branches: [
+          %{id: "baseline"},
+          %{
+            id: "urgent",
+            events: [%{type: "urgent_target", target_id: "target_a", priority: 12.0}]
+          }
+        ],
+        current_epoch_s: 0.0
+      )
+
+    urgent = branch(artifact, "urgent")
+
+    assert %{"type" => "candidate_refresh.v1", "scope" => "branch_generated"} =
+             candidate_source = urgent["assumptions"]["candidate_source"]
+
+    assert %{
+             "status_counts" => %{"accepted" => 1},
+             "model_count" => 2,
+             "accepted_count" => 0,
+             "review_required_count" => 1,
+             "blocked_count" => 1,
+             "unknown_model_count" => 0,
+             "validation_level_counts" => %{"analysis" => 1, "educational" => 1},
+             "model_ids_by_status" => %{
+               "blocked" => ["row.blocked"],
+               "review_required" => ["row.review"]
+             },
+             "model_ids_by_validation_level" => %{
+               "analysis" => ["row.review"],
+               "educational" => ["row.blocked"]
+             },
+             "model_ids_by_intended_use" => %{
+               "operational_import" => ["row.blocked", "row.review"]
+             },
+             "branch_local_review_pressure" => true,
+             "branch_local_blocking_pressure" => true
+           } = CandidateRefresh.model_acceptance_replay_summary(candidate_source)
+
+    assert Enum.any?(
+             urgent["risk_indicators"],
+             &(&1["type"] == "model_acceptance_pressure" and
+                 &1["feedback_source"] ==
+                   "candidate_source.model_acceptance_replay_summary" and
+                 &1["severity"] == "high" and
+                 &1["model_acceptance_status"] == "blocked" and
+                 &1["model_status"] == "blocked" and
+                 &1["model_acceptance_statuses"] == [
+                   "accepted",
+                   "blocked",
+                   "review_required"
+                 ] and
+                 &1["status_counts"] == %{"accepted" => 1} and
+                 &1["model_ids_by_status"] == %{
+                   "blocked" => ["row.blocked"],
+                   "review_required" => ["row.review"]
+                 } and
+                 &1["review_required_count"] == 1 and
+                 &1["blocked_count"] == 1 and
+                 &1["model_ids"] == ["row.blocked", "row.review"] and
+                 &1["branch_local_review_pressure"] == true and
+                 &1["branch_local_blocking_pressure"] == true)
+           )
+
+    assert_validation_refresh_pressure_score_terms(urgent, artifact, "model_acceptance")
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "strategy derives branch refresh from mission-state validation safety-case summaries" do
     safety_case_summary =
       %{
