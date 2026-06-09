@@ -5,27 +5,24 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve selected candidate-rejection pressure context on V3 recommendation
+Preserve selected model-acceptance pressure context on V3 recommendation
 review/import rows.
 
 Status:
 Completed and ready to publish.
 
 What changed:
-- `CampaignPlanner` now keeps candidate-rejection source context when branch
-  events become selected recommendation risks, including candidate/activity
-  identity, source window, rejection status/reasons, margin evidence, feedback
-  routing, trust boundary, and source rejection row.
+- `CampaignPlanner` now includes model-acceptance status maps, model routing
+  maps, counts, and model reason in selected validation-refresh risk context.
 - `OperatorReview` and `CadenceImport` now aggregate selected
-  candidate-rejection risks into strategy recommendation handoff fields using
-  family-specific keys.
-- The selected pressure recommendation test now asserts candidate-rejection
+  model-acceptance risks into strategy recommendation handoff fields.
+- The selected pressure recommendation test now asserts model-acceptance
   explanation, operator-review row, embedded Cadence import row, regenerated
   Cadence import row, source review row, and schema validation.
 
 Verification:
 - `mix test test/orbital_dynamics/campaign_planner_test.exs:18418`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:43355`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:46203`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 
@@ -35,11 +32,13 @@ Published commits:
 - `474eed2` Preserve provider counteroffer recommendation context
 - `0181bf2` Update autonomous loop handoff
 - `5fd942e` Preserve candidate rejection recommendation context
+- `26efb85` Update autonomous loop handoff
+- `d8c94af` Preserve model acceptance recommendation context
 
 Next suggested slice:
-Continue the same narrow source-report pressure pattern for validation-refresh
-families that already affect scoring, such as selected model-acceptance or
-schema-validation pressure recommendation handoff context.
+Continue the same narrow validation-refresh pattern for selected
+schema-validation pressure recommendation handoff context, reusing the existing
+validation-refresh risk field set and focused branch-refresh test.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
