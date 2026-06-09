@@ -1193,6 +1193,7 @@ defmodule OrbitalDynamics.Communications.ContactIntentTest do
 
     assert OrbitalDynamics.contact_intent_summary(stale_rows) == summary
     assert OrbitalDynamics.contact_intent_summary(activities, opts) == summary
+    assert read_json!("study_results/contact_intent_summary_v1.json") == summary
 
     assert {:ok, %{"schema_contract" => "contact_intent_summary.v1"}} =
              Schema.validate_artifact(summary)
@@ -2504,5 +2505,11 @@ defmodule OrbitalDynamics.Communications.ContactIntentTest do
     Enum.map(paths, fn %{unit: unit, path: path} ->
       %{"unit" => Atom.to_string(unit), "path" => path}
     end)
+  end
+
+  defp read_json!(path) do
+    path
+    |> File.read!()
+    |> :json.decode()
   end
 end
