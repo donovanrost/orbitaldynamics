@@ -3208,6 +3208,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp quality_gate_pressure_risk?(_risk), do: false
 
+  defp quality_gate_pressure_event_risk?(%{"type" => "quality_gate_pressure"}), do: true
+  defp quality_gate_pressure_event_risk?(_risk), do: false
+
   defp operator_training_pressure_risk_count(risk_indicators) do
     Enum.count(risk_indicators, &operator_training_pressure_risk?/1)
   end
@@ -3640,6 +3643,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     operational_readiness_replay =
       CandidateRefresh.operational_readiness_replay_summary(candidate_source)
 
+    quality_gate_replay =
+      CandidateRefresh.quality_gate_replay_summary(candidate_source)
+
     lifecycle_replay =
       CandidateRefresh.timeline_lifecycle_state_replay_summary(candidate_source)
 
@@ -3655,6 +3661,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       operational_readiness_replay,
       event_risks
     )
+    |> maybe_add_candidate_source_quality_gate_risks(quality_gate_replay, event_risks)
     |> maybe_add_candidate_source_timeline_activity_state_risks(
       activity_state_replay,
       event_risks
@@ -3684,6 +3691,14 @@ defmodule OrbitalDynamics.CampaignPlanner do
       risks
     else
       risks ++ operational_readiness_replay_pressure_risks(replay_summary)
+    end
+  end
+
+  defp maybe_add_candidate_source_quality_gate_risks(risks, replay_summary, event_risks) do
+    if Enum.any?(event_risks, &quality_gate_pressure_event_risk?/1) do
+      risks
+    else
+      risks ++ quality_gate_replay_pressure_risks(replay_summary)
     end
   end
 
@@ -3870,6 +3885,85 @@ defmodule OrbitalDynamics.CampaignPlanner do
       value when is_number(value) -> value > 0
       _value -> false
     end
+  end
+
+  defp quality_gate_replay_pressure_risks(%{} = replay_summary) do
+    if quality_gate_replay_scoring_pressure?(replay_summary) do
+      quality_gate_replay_pressure_risk(replay_summary)
+    else
+      []
+    end
+  end
+
+  defp quality_gate_replay_pressure_risks(_replay_summary), do: []
+
+  defp quality_gate_replay_scoring_pressure?(replay_summary) do
+    Map.get(replay_summary, "branch_local_review_pressure") == true or
+      Map.get(replay_summary, "branch_local_import_pressure") == true or
+      summary_positive?(replay_summary, "review_gate_count") or
+      summary_positive?(replay_summary, "blocked_gate_count") or
+      summary_positive?(replay_summary, "non_passed_gate_count")
+  end
+
+  defp quality_gate_replay_pressure_risk(replay_summary) do
+    readiness_levels = replay_summary |> Map.get("readiness_level_counts", %{}) |> map_keys()
+
+    import_classifications =
+      replay_summary |> Map.get("import_classification_counts", %{}) |> map_keys()
+
+    gate_statuses = replay_summary |> Map.get("gate_status_counts", %{}) |> map_keys()
+
+    gate_classifications =
+      replay_summary |> Map.get("gate_classification_counts", %{}) |> map_keys()
+
+    [
+      %{
+        "type" => "quality_gate_pressure",
+        "severity" =>
+          readiness_pressure_risk_severity(%{
+            "readiness_level" => pressure_priority_value(readiness_levels),
+            "import_classification" => pressure_priority_value(import_classifications),
+            "gate_status" => pressure_priority_value(gate_statuses),
+            "gate_classification" => pressure_priority_value(gate_classifications)
+          }),
+        "reason" =>
+          "candidate source quality-gate replay reports review, blocked, analysis-only, or import-boundary pressure",
+        "readiness_level" => pressure_priority_value(readiness_levels),
+        "import_classification" => pressure_priority_value(import_classifications),
+        "quality_gate_status" => pressure_priority_value(gate_statuses),
+        "gate_classification" => pressure_priority_value(gate_classifications),
+        "readiness_levels" => readiness_levels,
+        "import_classifications" => import_classifications,
+        "quality_gate_statuses" => gate_statuses,
+        "gate_classifications" => gate_classifications,
+        "source_report_paths" => Map.get(replay_summary, "source_report_paths"),
+        "gate_count" => Map.get(replay_summary, "gate_count"),
+        "passed_gate_count" => Map.get(replay_summary, "passed_gate_count"),
+        "review_gate_count" => Map.get(replay_summary, "review_gate_count"),
+        "analysis_gate_count" => Map.get(replay_summary, "analysis_gate_count"),
+        "blocked_gate_count" => Map.get(replay_summary, "blocked_gate_count"),
+        "non_passed_gate_count" => Map.get(replay_summary, "non_passed_gate_count"),
+        "gate_status_counts" => Map.get(replay_summary, "gate_status_counts"),
+        "gate_classification_counts" => Map.get(replay_summary, "gate_classification_counts"),
+        "review_required_gate_ids" => Map.get(replay_summary, "review_required_gate_ids"),
+        "analysis_only_gate_ids" => Map.get(replay_summary, "analysis_only_gate_ids"),
+        "blocked_gate_ids" => Map.get(replay_summary, "blocked_gate_ids"),
+        "non_passed_gate_ids" => Map.get(replay_summary, "non_passed_gate_ids"),
+        "review_required_quality_gate_row_ids" =>
+          Map.get(replay_summary, "review_required_quality_gate_row_ids"),
+        "analysis_only_quality_gate_row_ids" =>
+          Map.get(replay_summary, "analysis_only_quality_gate_row_ids"),
+        "blocked_quality_gate_row_ids" => Map.get(replay_summary, "blocked_quality_gate_row_ids"),
+        "non_passed_quality_gate_row_ids" =>
+          Map.get(replay_summary, "non_passed_quality_gate_row_ids"),
+        "branch_local_review_pressure" => Map.get(replay_summary, "branch_local_review_pressure"),
+        "branch_local_import_pressure" => Map.get(replay_summary, "branch_local_import_pressure"),
+        "feedback_source" => "candidate_source.quality_gate_replay_summary",
+        "feedback_scope" => "quality_gate",
+        "trust_boundaries" => Map.get(replay_summary, "trust_boundaries")
+      }
+      |> compact_map()
+    ]
   end
 
   defp timeline_lifecycle_replay_review_risks(
@@ -45219,6 +45313,11 @@ defmodule OrbitalDynamics.CampaignPlanner do
         risk["type"] == "operational_readiness_pressure"
       end)
 
+    quality_gate_risks =
+      Enum.filter(risk_indicators, fn risk ->
+        risk["type"] == "quality_gate_pressure"
+      end)
+
     timeline_lifecycle_state_risks =
       Enum.filter(risk_indicators, fn risk ->
         risk["type"] == "timeline_lifecycle_state_review"
@@ -45286,6 +45385,44 @@ defmodule OrbitalDynamics.CampaignPlanner do
         branch_event_unique_values(operational_readiness_risks, "blocked_gate_ids"),
       "branch_operational_readiness_non_passed_gate_ids" =>
         branch_event_unique_values(operational_readiness_risks, "non_passed_gate_ids"),
+      "branch_quality_gate_readiness_levels" =>
+        branch_event_unique_values(quality_gate_risks, [
+          "readiness_level",
+          "readiness_levels"
+        ]),
+      "branch_quality_gate_import_classifications" =>
+        branch_event_unique_values(quality_gate_risks, [
+          "import_classification",
+          "import_classifications"
+        ]),
+      "branch_quality_gate_statuses" =>
+        branch_event_unique_values(quality_gate_risks, [
+          "quality_gate_status",
+          "quality_gate_statuses"
+        ]),
+      "branch_quality_gate_source_report_paths" =>
+        branch_event_unique_values(quality_gate_risks, "source_report_paths"),
+      "branch_quality_gate_gate_classifications" =>
+        branch_event_unique_values(quality_gate_risks, [
+          "gate_classification",
+          "gate_classifications"
+        ]),
+      "branch_quality_gate_review_required_gate_ids" =>
+        branch_event_unique_values(quality_gate_risks, "review_required_gate_ids"),
+      "branch_quality_gate_analysis_only_gate_ids" =>
+        branch_event_unique_values(quality_gate_risks, "analysis_only_gate_ids"),
+      "branch_quality_gate_blocked_gate_ids" =>
+        branch_event_unique_values(quality_gate_risks, "blocked_gate_ids"),
+      "branch_quality_gate_non_passed_gate_ids" =>
+        branch_event_unique_values(quality_gate_risks, "non_passed_gate_ids"),
+      "branch_quality_gate_review_required_row_ids" =>
+        branch_event_unique_values(quality_gate_risks, "review_required_quality_gate_row_ids"),
+      "branch_quality_gate_analysis_only_row_ids" =>
+        branch_event_unique_values(quality_gate_risks, "analysis_only_quality_gate_row_ids"),
+      "branch_quality_gate_blocked_row_ids" =>
+        branch_event_unique_values(quality_gate_risks, "blocked_quality_gate_row_ids"),
+      "branch_quality_gate_non_passed_row_ids" =>
+        branch_event_unique_values(quality_gate_risks, "non_passed_quality_gate_row_ids"),
       "branch_timeline_lifecycle_state_review_timeline_ids" =>
         branch_event_unique_values(timeline_lifecycle_state_risks, "review_timeline_ids"),
       "branch_timeline_lifecycle_state_review_activity_ids" =>
@@ -45371,6 +45508,19 @@ defmodule OrbitalDynamics.CampaignPlanner do
     |> maybe_put_nonempty("branch_operational_readiness_analysis_only_gate_ids")
     |> maybe_put_nonempty("branch_operational_readiness_blocked_gate_ids")
     |> maybe_put_nonempty("branch_operational_readiness_non_passed_gate_ids")
+    |> maybe_put_nonempty("branch_quality_gate_readiness_levels")
+    |> maybe_put_nonempty("branch_quality_gate_import_classifications")
+    |> maybe_put_nonempty("branch_quality_gate_statuses")
+    |> maybe_put_nonempty("branch_quality_gate_source_report_paths")
+    |> maybe_put_nonempty("branch_quality_gate_gate_classifications")
+    |> maybe_put_nonempty("branch_quality_gate_review_required_gate_ids")
+    |> maybe_put_nonempty("branch_quality_gate_analysis_only_gate_ids")
+    |> maybe_put_nonempty("branch_quality_gate_blocked_gate_ids")
+    |> maybe_put_nonempty("branch_quality_gate_non_passed_gate_ids")
+    |> maybe_put_nonempty("branch_quality_gate_review_required_row_ids")
+    |> maybe_put_nonempty("branch_quality_gate_analysis_only_row_ids")
+    |> maybe_put_nonempty("branch_quality_gate_blocked_row_ids")
+    |> maybe_put_nonempty("branch_quality_gate_non_passed_row_ids")
     |> maybe_put_nonempty("branch_timeline_lifecycle_state_review_timeline_ids")
     |> maybe_put_nonempty("branch_timeline_lifecycle_state_review_activity_ids")
     |> maybe_put_nonempty("branch_timeline_lifecycle_state_invalid_activity_input_ids")

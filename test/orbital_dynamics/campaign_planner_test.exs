@@ -23266,6 +23266,45 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "mission_state.source_result_artifact.quality_gate_report"
            ]
 
+    assert_quality_gate_pressure_score_terms(urgent, artifact)
+
+    urgent_row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(&(&1["branch_id"] == "urgent"))
+
+    assert "quality_gate_pressure" in urgent_row["risk_types"]
+
+    assert urgent_row["branch_quality_gate_readiness_levels"] == [
+             "analysis_only",
+             "blocked",
+             "operator_review"
+           ]
+
+    assert urgent_row["branch_quality_gate_import_classifications"] == [
+             "analysis_only",
+             "blocked",
+             "review_only"
+           ]
+
+    assert urgent_row["branch_quality_gate_statuses"] == [
+             "analysis_only",
+             "blocked",
+             "review_required"
+           ]
+
+    assert urgent_row["branch_quality_gate_gate_classifications"] == [
+             "analysis_only",
+             "blocked",
+             "review_only"
+           ]
+
+    assert urgent_row["branch_quality_gate_source_report_paths"] == [
+             "mission_state.quality_gate_report",
+             "mission_state.result_artifact.source_quality_gate_report",
+             "mission_state.source_quality_gate_report",
+             "mission_state.source_result_artifact.quality_gate_report"
+           ]
+
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
   end
