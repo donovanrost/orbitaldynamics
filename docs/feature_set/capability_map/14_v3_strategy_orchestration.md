@@ -1646,7 +1646,8 @@ Selected recommendations also include:
   blocked, and analysis-only risks into
   `operational_readiness_pressure_penalty`, leaving broader approval-boundary
   and generic risk terms for unrelated risks while preserving total branch score
-  compatibility.
+  compatibility. Focused operational-readiness pressure fixtures now assert the
+  split branch math and score-term report rows through a shared helper.
 - **Quality-gate pressure score terms** — split quality-gate review, blocked,
   analysis-only, unavailable-resource, schema-validation, and import-readiness
   risks into `quality_gate_pressure_penalty`, leaving broader

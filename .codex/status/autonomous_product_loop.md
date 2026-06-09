@@ -5,24 +5,24 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Harden quality-gate pressure score helper evidence.
+Harden operational-readiness pressure score helper evidence.
 
 Status:
-Completed and pushed in product commit `e4e303f`.
+Implemented and verified locally; ready for mechanical commit/push handoff.
 
 Slice-selection note:
-- Selected slice: strengthen the shared quality-gate pressure score helper so
-  every focused quality-gate pressure fixture proves
-  `quality_gate_pressure_penalty` appears in score-term reports and is split
-  out of `approval_boundary_pressure_penalty`.
-- Why this slice: quality-gate pressure tests already use a shared score helper,
-  but that helper only checks branch-local score math; it does not prove the
-  report row that downstream review/import adapters inspect.
+- Selected slice: add a shared operational-readiness pressure score helper and
+  route focused readiness-pressure fixtures through it so
+  `operational_readiness_pressure_penalty` is proven in branch math and
+  score-term report rows.
+- Why this slice: readiness-pressure tests have the right score evidence, but
+  it is duplicated in individual tests rather than guarded by the same reusable
+  helper pattern as quality-gate pressure.
 - Level 6 pillar: validation, compatibility, and challenge fixtures for unsafe
   but plausible inputs; reproducible V3 branch score explanations.
-- Current evidence gap: quality-gate pressure challenge fixtures have weaker
-  score-term report evidence than the newly hardened readiness and preservation
-  fixtures.
+- Current evidence gap: operational-readiness pressure fixtures can drift apart
+  because branch score math, approval-boundary split, and score-term report row
+  checks are not centralized.
 - Docs to read:
   `docs/feature_set/capability_map/17_reproducibility_artifacts_and_audit.md`,
   `docs/feature_set/capability_map/20_cadence_boundary_and_integration_artifacts.md`,
@@ -32,12 +32,13 @@ Slice-selection note:
   `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`,
   `.codex/status/autonomous_product_loop.md`.
 - Likely tests:
-  focused campaign-planner quality-gate pressure tests using the helper;
+  focused campaign-planner operational-readiness pressure tests using the
+  helper;
   `mix compile --warnings-as-errors`; `git diff --check`.
-- Definition of done: shared quality-gate pressure assertions prove branch score
-  math, approval-boundary split, score-term key, and score-term report row for
-  quality-gate pressure fixtures, docs note the stronger report evidence,
-  locally reviewed, committed, and pushed without touching unrelated
+- Definition of done: shared operational-readiness pressure assertions prove
+  branch score math, approval-boundary split, score-term key, and score-term
+  report row for readiness-pressure fixtures, docs note the shared helper
+  evidence, locally reviewed, committed, and pushed without touching unrelated
   `.gitignore`.
 
 Files changed:
@@ -46,25 +47,26 @@ Files changed:
 - `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:43767 test/orbital_dynamics/campaign_planner_test.exs:43990 test/orbital_dynamics/campaign_planner_test.exs:44202 test/orbital_dynamics/campaign_planner_test.exs:44426 test/orbital_dynamics/campaign_planner_test.exs:44696 test/orbital_dynamics/campaign_planner_test.exs:44892`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:18657 test/orbital_dynamics/campaign_planner_test.exs:44884 test/orbital_dynamics/campaign_planner_test.exs:45265`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
-- `rg -n "quality_gate_pressure_penalty|score-term report rows|assert_quality_gate_pressure_score_terms|approval_boundary_pressure_penalty" test/orbital_dynamics/campaign_planner_test.exs docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
+- `rg -n "assert_operational_readiness_pressure_score_terms|operational-readiness pressure fixtures now assert|operational_readiness_pressure_penalty|approval_boundary_pressure_penalty" test/orbital_dynamics/campaign_planner_test.exs docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
 
 Docs/artifacts changed:
-The V3 strategy-orchestration docs now note that focused quality-gate pressure
-fixtures assert split branch math and score-term report rows through the shared
-helper.
+The V3 strategy-orchestration docs now note that focused
+operational-readiness pressure fixtures assert split branch math and score-term
+report rows through the shared helper.
 
 Local review:
-Parent local review confirmed the diff is limited to the shared quality-gate
-pressure score helper, the V3 score-term doc note, and this ledger.
-`.gitignore` remains unrelated and unstaged.
+Parent local review confirmed the diff is limited to the shared
+operational-readiness pressure score helper, focused readiness-pressure helper
+call sites, the V3 score-term doc note, and this ledger. `.gitignore` remains
+unrelated and unstaged.
 
 Level 6 pillar advanced:
-Quality-gate pressure challenge fixtures now prove the branch score,
-approval-boundary split, score-term key, and score-term report row expected by
-downstream V3 review/import score explanations.
+Operational-readiness pressure challenge fixtures now prove branch score math,
+approval-boundary split, score-term key, and score-term report rows through a
+shared helper for direct, wrapped, mixed, and stale readiness-pressure branches.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -74,12 +76,12 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
+Pending mechanical publish for this slice; previous product commit was
 `e4e303f` Harden quality gate pressure score helper.
 
 Next candidate:
-After this score-term split, continue with the next planner-visible
-timeline/resource/contact/readiness or candidate-refresh provenance gap from
-the guide.
+After this helper hardening, continue with the next planner-visible
+resource/contact/readiness or candidate-refresh provenance gap from the guide.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
