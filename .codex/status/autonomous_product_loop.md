@@ -10,7 +10,10 @@ Made branch-local quality-gate replay evidence planner-visible in V3 branch
 scoring.
 
 Status:
-Product slice complete; ready for mechanical publish.
+Product slice complete and pushed.
+
+Published commits:
+- `def7008` Score replayed quality gate pressure
 
 Files changed:
 - `lib/orbital_dynamics/campaign_planner.ex`
