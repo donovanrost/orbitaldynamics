@@ -20913,6 +20913,132 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              replay
   end
 
+  test "timeline lifecycle state source summaries derive stale aggregate pressure from rows" do
+    planned = [
+      %{
+        id: :stale_lifecycle_cmd_pending,
+        type: :command,
+        status: :planned,
+        approval_status: :pending,
+        starts_at_s: 10.0,
+        ends_at_s: 20.0,
+        metadata: %{timeline_id: :"timeline:stale_lifecycle:cmd_pending"}
+      },
+      %{
+        id: :stale_lifecycle_dup_a,
+        type: :observe,
+        status: :planned,
+        metadata: %{timeline_id: :"timeline:stale_lifecycle:dup"}
+      },
+      %{
+        id: :stale_lifecycle_dup_b,
+        type: :observe,
+        status: :planned,
+        metadata: %{timeline_id: :"timeline:stale_lifecycle:dup"}
+      },
+      %{id: :stale_lifecycle_bad_missing_type, status: :planned}
+    ]
+
+    realized = [
+      %{
+        id: :stale_lifecycle_cmd_pending,
+        type: :command,
+        status: :executed,
+        approval_status: :approved,
+        starts_at_s: 10.0,
+        ends_at_s: 20.0,
+        metadata: %{timeline_id: :"timeline:stale_lifecycle:cmd_pending"}
+      }
+    ]
+
+    stale_summary =
+      planned
+      |> Timeline.lifecycle_state_summary(realized)
+      |> Map.put("provenance", %{"trust_boundary" => "stale_lifecycle_source_summary"})
+      |> update_in(["rows"], fn rows ->
+        Enum.map(rows, &Map.put(&1, "review_required_count", 0))
+      end)
+      |> Map.merge(%{
+        "row_count" => 0,
+        "recordable_count" => 0,
+        "preserved_count" => 0,
+        "review_required_count" => 0,
+        "duplicate_timeline_identity_count" => 0,
+        "invalid_activity_input_count" => 0,
+        "invalid_activity_input_ids" => [],
+        "transition_decision_counts" => %{},
+        "required_operator_action_counts" => %{},
+        "import_action_counts" => %{},
+        "planned_status_category_counts" => %{},
+        "realized_status_category_counts" => %{},
+        "planned_approval_category_counts" => %{},
+        "realized_approval_category_counts" => %{},
+        "status_transition_category_counts" => %{},
+        "approval_transition_category_counts" => %{},
+        "recordable_timeline_ids" => [],
+        "preserved_timeline_ids" => [],
+        "review_timeline_ids" => [],
+        "review_activity_ids" => [],
+        "review_timeline_ids_by_required_operator_action" => %{},
+        "review_timeline_ids_by_status_transition_category" => %{},
+        "review_timeline_ids_by_approval_transition_category" => %{},
+        "review_routing" => %{}
+      })
+
+    refresh = %{"source_timeline_lifecycle_state_summary" => stale_summary}
+
+    assert %{
+             "source_report_timeline_lifecycle_state_count" => 1,
+             "source_report_timeline_lifecycle_state_row_count" => 3,
+             "source_report_timeline_lifecycle_state_review_required_count" => 3,
+             "source_report_timeline_lifecycle_state_duplicate_timeline_identity_count" => 1,
+             "source_report_timeline_lifecycle_state_invalid_activity_input_count" => 1,
+             "source_report_timeline_lifecycle_state_invalid_activity_input_ids" => [
+               "timeline_row:4:stale_lifecycle_bad_missing_type"
+             ],
+             "source_report_timeline_lifecycle_state_transition_decision_counts" => %{
+               "review" => 3
+             },
+             "source_report_timeline_lifecycle_state_required_operator_action_counts" => %{
+               "review_activity_approval" => 1,
+               "review_duplicate_timeline_identity" => 1,
+               "review_invalid_activity_input" => 1
+             },
+             "source_report_timeline_lifecycle_state_import_action_counts" => %{
+               "review_timeline_diff" => 3
+             },
+             "source_report_timeline_lifecycle_state_review_timeline_ids" => [
+               "timeline:invalid_activity_input:stale_lifecycle_bad_missing_type",
+               "timeline:stale_lifecycle:cmd_pending",
+               "timeline:stale_lifecycle:dup"
+             ],
+             "source_report_timeline_lifecycle_state_review_activity_ids" => [
+               "stale_lifecycle_cmd_pending",
+               "stale_lifecycle_dup_a",
+               "stale_lifecycle_dup_b",
+               "timeline_row:4:stale_lifecycle_bad_missing_type"
+             ],
+             "source_report_timeline_lifecycle_state_branch_local_timeline_lifecycle_state_pressure" =>
+               true,
+             "source_report_timeline_lifecycle_state_branch_local_lifecycle_review_pressure" =>
+               true
+           } = CandidateRefresh.source_report_summary(refresh)
+
+    assert %{
+             "source_report_row_count" => 3,
+             "review_required_count" => 3,
+             "duplicate_timeline_identity_count" => 1,
+             "invalid_activity_input_count" => 1,
+             "required_operator_action_counts" => %{
+               "review_activity_approval" => 1,
+               "review_duplicate_timeline_identity" => 1,
+               "review_invalid_activity_input" => 1
+             },
+             "branch_local_timeline_lifecycle_state_pressure" => true,
+             "branch_local_lifecycle_review_pressure" => true
+           } = CandidateRefresh.timeline_lifecycle_state_replay_summary(refresh)
+  end
+
   test "timeline lifecycle state replay summary omits contract when source report is absent" do
     artifact = %{
       "schema_contract" => "candidate_refresh.v1",

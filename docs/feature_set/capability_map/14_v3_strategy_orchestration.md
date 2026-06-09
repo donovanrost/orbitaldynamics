@@ -906,6 +906,9 @@ Timeline activity-precondition source summaries derive status, blocked/review
 counts, and blocked/review type maps from precondition rows when row evidence
 is present, so stale top-level aggregate fields cannot suppress branch-local
 CandidateRefresh replay pressure.
+Timeline lifecycle-state source summaries similarly derive review,
+duplicate-identity, invalid-input, action, transition-category, and routing
+pressure from lifecycle rows when row evidence is present.
 
 CandidateRefresh now also preserves operational-timeline
 dependency/exclusivity integrity issue counts in source-report and

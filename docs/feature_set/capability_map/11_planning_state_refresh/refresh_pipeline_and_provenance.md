@@ -150,6 +150,9 @@ routing semantics advertised through the public capability catalog. Timeline
 activity-precondition source summaries derive status, blocked/review counts,
 and type maps from precondition rows when row evidence is present, so stale
 top-level aggregate fields cannot hide branch-local replay pressure.
+Timeline lifecycle-state source summaries likewise derive review,
+duplicate-identity, invalid-input, action, transition-category, and routing
+pressure from lifecycle rows when row evidence is present.
 
 ## Repair- and strategy-generated candidate-source metadata
 

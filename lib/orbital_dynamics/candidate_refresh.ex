@@ -23303,7 +23303,10 @@ defmodule OrbitalDynamics.CandidateRefresh do
   defp source_timeline_lifecycle_state_summary_input_summary([]), do: nil
 
   defp source_timeline_lifecycle_state_summary_input_summary(sources) do
-    summaries = Enum.map(sources, fn {_path, summary} -> summary end)
+    summaries =
+      Enum.map(sources, fn {_path, summary} ->
+        put_row_derived_timeline_lifecycle_state_summary_pressure(summary)
+      end)
 
     %{
       "paths" => Enum.map(sources, fn {path, _summary} -> path end),
@@ -23442,6 +23445,150 @@ defmodule OrbitalDynamics.CandidateRefresh do
     |> compact_map()
   end
 
+  defp put_row_derived_timeline_lifecycle_state_summary_pressure(%{} = summary) do
+    rows = timeline_lifecycle_state_summary_rows_for_provenance(summary)
+
+    if rows == [] do
+      summary
+    else
+      review_rows = Enum.filter(rows, &(&1["review_required"] == true))
+      invalid_rows = Enum.filter(rows, &(&1["invalid_activity_input"] == true))
+
+      summary
+      |> Map.put("row_count", length(rows))
+      |> Map.put("recordable_count", timeline_lifecycle_state_row_decision_count(rows, "record"))
+      |> Map.put("preserved_count", timeline_lifecycle_state_row_decision_count(rows, "none"))
+      |> Map.put("review_required_count", length(review_rows))
+      |> Map.put(
+        "duplicate_timeline_identity_count",
+        Enum.count(rows, &(&1["timeline_identity_collision"] == true))
+      )
+      |> Map.put("invalid_activity_input_count", length(invalid_rows))
+      |> Map.put(
+        "invalid_activity_input_ids",
+        invalid_rows
+        |> Enum.flat_map(&timeline_lifecycle_state_row_activity_ids/1)
+        |> sorted_string_values()
+      )
+      |> Map.put(
+        "transition_decision_counts",
+        timeline_lifecycle_state_row_field_counts(rows, "transition_decision")
+      )
+      |> Map.put(
+        "required_operator_action_counts",
+        timeline_lifecycle_state_row_field_counts(rows, "required_operator_action")
+      )
+      |> Map.put(
+        "import_action_counts",
+        timeline_lifecycle_state_row_field_counts(rows, "import_action")
+      )
+      |> Map.put(
+        "planned_status_category_counts",
+        timeline_lifecycle_state_row_field_counts(rows, "planned_status_category")
+      )
+      |> Map.put(
+        "realized_status_category_counts",
+        timeline_lifecycle_state_row_field_counts(rows, "realized_status_category")
+      )
+      |> Map.put(
+        "planned_approval_category_counts",
+        timeline_lifecycle_state_row_field_counts(rows, "planned_approval_category")
+      )
+      |> Map.put(
+        "realized_approval_category_counts",
+        timeline_lifecycle_state_row_field_counts(rows, "realized_approval_category")
+      )
+      |> Map.put(
+        "status_transition_category_counts",
+        timeline_lifecycle_state_row_nested_counts(
+          rows,
+          ["status_transition", "transition_category"]
+        )
+      )
+      |> Map.put(
+        "approval_transition_category_counts",
+        timeline_lifecycle_state_row_nested_counts(
+          rows,
+          ["approval_transition", "transition_category"]
+        )
+      )
+      |> Map.put(
+        "recordable_timeline_ids",
+        timeline_lifecycle_state_timeline_ids(rows, &(&1["transition_decision"] == "record"))
+      )
+      |> Map.put(
+        "preserved_timeline_ids",
+        timeline_lifecycle_state_timeline_ids(rows, &(&1["transition_decision"] == "none"))
+      )
+      |> Map.put(
+        "review_timeline_ids",
+        timeline_lifecycle_state_timeline_ids(review_rows, fn _row -> true end)
+      )
+      |> Map.put(
+        "review_activity_ids",
+        review_rows
+        |> Enum.flat_map(&timeline_lifecycle_state_row_activity_ids/1)
+        |> sorted_string_values()
+      )
+      |> Map.put(
+        "review_timeline_ids_by_required_operator_action",
+        timeline_lifecycle_state_review_timeline_ids_by(
+          review_rows,
+          &Map.get(&1, "required_operator_action")
+        )
+      )
+      |> Map.put(
+        "review_timeline_ids_by_status_transition_category",
+        timeline_lifecycle_state_review_timeline_ids_by(
+          review_rows,
+          &get_in(&1, ["status_transition", "transition_category"])
+        )
+      )
+      |> Map.put(
+        "review_timeline_ids_by_approval_transition_category",
+        timeline_lifecycle_state_review_timeline_ids_by(
+          review_rows,
+          &get_in(&1, ["approval_transition", "transition_category"])
+        )
+      )
+    end
+  end
+
+  defp put_row_derived_timeline_lifecycle_state_summary_pressure(summary), do: summary
+
+  defp timeline_lifecycle_state_row_decision_count(rows, decision) do
+    Enum.count(rows, &(&1["transition_decision"] == decision))
+  end
+
+  defp timeline_lifecycle_state_row_field_counts(rows, field) do
+    rows
+    |> Enum.map(&Map.get(&1, field))
+    |> count_source_report_values()
+  end
+
+  defp timeline_lifecycle_state_row_nested_counts(rows, path) do
+    rows
+    |> Enum.map(&get_in(&1, path))
+    |> count_source_report_values()
+  end
+
+  defp timeline_lifecycle_state_timeline_ids(rows, predicate) do
+    rows
+    |> Enum.filter(predicate)
+    |> Enum.map(&Map.get(&1, "timeline_id"))
+    |> sorted_string_values()
+  end
+
+  defp timeline_lifecycle_state_review_timeline_ids_by(rows, classifier) do
+    rows
+    |> Enum.group_by(classifier)
+    |> Enum.reject(fn {key, _rows} -> key in [nil, ""] end)
+    |> Map.new(fn {key, grouped_rows} ->
+      {to_string(key), timeline_lifecycle_state_timeline_ids(grouped_rows, fn _row -> true end)}
+    end)
+    |> non_empty_map()
+  end
+
   defp timeline_lifecycle_state_summary_transition_application_provenance_count(%{} = summary) do
     summary
     |> timeline_lifecycle_state_summary_rows_for_provenance()
@@ -23481,6 +23628,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
       rows ->
         rows
     end
+    |> Enum.map(&stringify_keys/1)
   end
 
   defp timeline_lifecycle_state_row_transition_application_provenances(%{} = row) do
