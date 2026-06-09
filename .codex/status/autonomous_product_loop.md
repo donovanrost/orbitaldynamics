@@ -5,68 +5,64 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Reject stale publication source-review evidence in Cadence import
-handoffs.
+Split explicit approval-boundary pressure into planner-visible V3 score terms.
 
 Status:
-Completed and pushed in product commit `777a1dc`.
+Completed and pushed in product commit `a188da9`.
 
 Slice-selection note:
-- Selected slice: make Cadence import schema validation reject stale nested
-  `source_review_row` publication summary evidence when it no longer matches
-  the import row's `source_timeline_publication_summary`.
-- Why this slice: live coverage now guards stale timeline protection,
-  lifecycle-state, preservation, and activity-precondition source-review
-  handoffs. Publication import rows validate publication handoff fields against
-  their own source summary, but a self-consistent nested `source_review_row`
-  summary can still drift from the import row summary it is supposed to justify.
-- Level 6 pillar: Cadence-facing operational handoff integrity; review/import
-  artifacts should be reproducible, challengeable, and resistant to stale
-  nested evidence.
-- Current evidence gap: publication import fixtures should fail when
-  `source_review_row.source_timeline_publication_summary` drifts from the
-  Cadence import row's corresponding source field, even if the nested summary
-  is internally self-consistent.
+- Selected slice: make explicit branch-local `approval_boundary_pressure`
+  events contribute to the existing `approval_boundary_pressure_penalty` score
+  term instead of remaining generic risk pressure.
+- Why this slice: V3 already exposes `approval_boundary_pressure_penalty` in
+  score terms and tradeoffs, but the live classifier never counts any risk as
+  approval-boundary pressure. Approval-aware automation boundaries are a Level 6
+  pillar, so explicit no-execution/no-import pressure should be planner-visible.
+- Level 6 pillar: approval-aware automation boundaries and reproducible V3
+  branch trees with explainable score terms and deltas.
+- Current evidence gap: an explicit approval-boundary pressure event should
+  produce a risk indicator, reduce generic `risk_penalty`, and populate
+  `approval_boundary_pressure_penalty` plus score-term report rows.
 - Docs read:
-  `docs/feature_set/capability_map/08_mission_activities_and_timelines.md`,
   `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`,
-  `docs/mission_planning/high_fidelity/04_plan_structure_and_lifecycle.md`.
-- Likely files/tests: `lib/orbital_dynamics/schema.ex` and
-  `test/orbital_dynamics/cadence_import_test.exs`.
-- Definition of done: a focused import test demonstrates stale nested
-  publication evidence is rejected with a source-review mismatch error; schema
-  validation performs the equality check; focused tests and schema compile/checks
-  pass; product and handoff are committed and pushed without touching unrelated
-  `.gitignore`.
+  `docs/feature_set/recommended_roadmap.md`.
+- Likely files/tests: `lib/orbital_dynamics/campaign_planner.ex`,
+  `test/orbital_dynamics/campaign_planner_test.exs`, and the V3 orchestration
+  doc.
+- Definition of done: explicit approval-boundary events emit risk indicators;
+  score math moves those risks into `approval_boundary_pressure_penalty`;
+  focused strategy tests and docs cover the split; product and handoff are
+  committed and pushed without touching unrelated `.gitignore`.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
-- `lib/orbital_dynamics/schema.ex`
-- `test/orbital_dynamics/cadence_import_test.exs`
+- `lib/orbital_dynamics/campaign_planner.ex`
+- `test/orbital_dynamics/campaign_planner_test.exs`
+- `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/cadence_import_test.exs:13851`
-- `mix test test/orbital_dynamics/cadence_import_test.exs`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:18789`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:18667 test/orbital_dynamics/campaign_planner_test.exs:18789`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:6989 test/orbital_dynamics/campaign_planner_test.exs:18617 test/orbital_dynamics/campaign_planner_test.exs:18789`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 - `git diff --cached --check`
 
 Docs/artifacts changed:
-No docs changed. This was a schema/test challenge fixture slice for Cadence
-import handoff integrity.
+V3 orchestration docs now state that explicit approval-boundary pressure
+contributes to `approval_boundary_pressure_penalty`, leaving `risk_penalty` for
+unrelated risks.
 
 Local review:
 Sidecar review could not start because the agent thread limit was reached.
-Parent fallback review checked validator scope, stale-vs-shape fixture design,
-existing protection/lifecycle/preservation/precondition/dependency parity,
-self-consistent stale publication fixture design, focused and full import
-tests, compile, and staged scope; no must-fix issues remained. `.gitignore`
-remains unrelated and unstaged.
+Parent fallback review checked event-to-risk mapping, score-term classification,
+generic-risk subtraction, approval-load separation, focused tests, docs, and
+staged scope; no must-fix issues remained. `.gitignore` remains unrelated and
+unstaged.
 
 Level 6 pillar advanced:
-Cadence import schema validation now rejects stale nested source-review
-publication evidence instead of accepting source rows that disagree with the
-import row they are supposed to justify.
+Approval-boundary automation constraints are now score-visible in V3 branch
+trees through a dedicated score term and report rows.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -76,10 +72,10 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`777a1dc` Reject stale publication import source reviews.
+`a188da9` Split approval boundary pressure score term.
 
 Next candidate:
-Reassess the next planner-visible timeline/readiness or communications scoring
+Reassess the next planner-visible communications/resource or readiness scoring
 gap from current Level 6 evidence.
 
 Unrelated local changes:
@@ -87,6 +83,8 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `a188da9` split explicit approval-boundary pressure into a dedicated V3 score
+  term while preserving generic risk scoring for unrelated risks.
 - `777a1dc` rejected stale publication source-review evidence in Cadence import
   handoffs.
 - `0bdc8df` rejected stale dependency-impact source-review evidence in Cadence
@@ -115,7 +113,3 @@ Previous published slices:
   summaries against stale top-level aggregate maps.
 - `7efd232` hardened compact contact-intent CandidateRefresh source/replay
   routing against stale top-level aggregate maps.
-- `13d5acc` hardened stale lifecycle-state CandidateRefresh source-report
-  summaries against stale top-level aggregates.
-- `1af9828` hardened stale activity-precondition CandidateRefresh
-  source-report summaries against stale top-level aggregates.
