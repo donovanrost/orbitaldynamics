@@ -25160,6 +25160,88 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "source_wrapped_maneuver_review_row_boundary"
            ]
 
+    maneuver_review_pressure_count =
+      Enum.count(
+        urgent["risk_indicators"],
+        &(&1["type"] == "maneuver_review_pressure" and
+            &1["feedback_source"] == "candidate_source.maneuver_review_replay_summary")
+      )
+
+    assert maneuver_review_pressure_count == 1
+
+    assert Enum.any?(
+             urgent["risk_indicators"],
+             &(&1["type"] == "maneuver_review_pressure" and
+                 &1["source_report_count"] == 4 and
+                 &1["source_report_row_count"] == 4 and
+                 &1["maneuver_success_feedback_count"] == 4 and
+                 &1["execution_uncertainty_declared_count"] == 2 and
+                 &1["execution_uncertainty_missing_count"] == 2 and
+                 &1["input_keys"] == [
+                   "maneuver_execution_uncertainty",
+                   "maneuver_success_rate"
+                 ] and
+                 &1["maneuver_id_counts"] == %{
+                   "canonical_burn" => 1,
+                   "direct_burn" => 1,
+                   "result_wrapped_burn" => 1,
+                   "source_wrapped_burn" => 1
+                 } and
+                 &1["required_operator_action_counts"] == %{
+                   "none" => 1,
+                   "review_maneuver_execution" => 2,
+                   "review_maneuver_uncertainty" => 1
+                 } and
+                 &1["trust_boundaries"] == replay_trust_boundaries and
+                 &1["assumptions"]["maneuver_execution"] == "not_performed_by_summary")
+           )
+
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    assert urgent["score_terms"]["maneuver_review_pressure_penalty"] ==
+             -maneuver_review_pressure_count * risk_weight
+
+    assert "maneuver_review_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] == "urgent" and
+                 &1["term_key"] == "maneuver_review_pressure_penalty" and &1["value"] < 0.0)
+           )
+
+    urgent_row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(&(&1["branch_id"] == "urgent"))
+
+    assert "maneuver_review_pressure" in urgent_row["risk_types"]
+
+    assert urgent_row["branch_maneuver_review_source_report_paths"] == [
+             "mission_state.maneuver_review_report",
+             "mission_state.result_artifact.source_maneuver_review_report",
+             "mission_state.source_maneuver_review_report",
+             "mission_state.source_result_artifact.maneuver_review_report"
+           ]
+
+    assert urgent_row["branch_maneuver_review_input_keys"] == [
+             "maneuver_execution_uncertainty",
+             "maneuver_success_rate"
+           ]
+
+    assert urgent_row["branch_maneuver_review_maneuver_ids"] == [
+             "canonical_burn",
+             "direct_burn",
+             "result_wrapped_burn",
+             "source_wrapped_burn"
+           ]
+
+    assert urgent_row["branch_maneuver_review_required_operator_actions"] == [
+             "none",
+             "review_maneuver_execution",
+             "review_maneuver_uncertainty"
+           ]
+
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
   end
