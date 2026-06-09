@@ -2441,6 +2441,13 @@ defmodule OrbitalDynamics.Validation do
           "target_gap_activity" => 1
         },
         "source_objective_satisfaction_trust_boundary_status" => "declared",
+        "source_objective_gap_branch_local_objective_gap_pressure" => true,
+        "source_objective_gap_branch_local_downlink_gap_pressure" => true,
+        "source_objective_gap_branch_local_target_gap_pressure" => true,
+        "source_objective_gap_branch_local_collection_latency_gap_pressure" => true,
+        "source_objective_gap_branch_local_objective_status_pressure" => true,
+        "source_objective_gap_branch_local_score_term_pressure" => true,
+        "source_objective_gap_branch_local_routing_pressure" => true,
         "source_objective_tradeoff_report_count" => 1,
         "source_objective_tradeoff_row_count" => 3,
         "source_objective_tradeoff_downlink_gap_row_count" => 1,
@@ -14787,6 +14794,49 @@ defmodule OrbitalDynamics.Validation do
         positive_integer_observation?(score_term_summary, "collection_latency_gap_row_count"),
       "source_score_term_branch_local_routing_pressure" =>
         score_term_routing_pressure?(score_term_summary),
+      "source_objective_gap_branch_local_objective_gap_pressure" =>
+        objective_gap_branch_local_objective_gap_pressure?(
+          objective_satisfaction_summary,
+          objective_tradeoff_summary,
+          score_term_summary
+        ),
+      "source_objective_gap_branch_local_downlink_gap_pressure" =>
+        objective_gap_branch_local_gap_pressure?(
+          [
+            objective_satisfaction_summary,
+            objective_tradeoff_summary,
+            score_term_summary
+          ],
+          "downlink_gap_row_count"
+        ),
+      "source_objective_gap_branch_local_target_gap_pressure" =>
+        objective_gap_branch_local_gap_pressure?(
+          [
+            objective_satisfaction_summary,
+            objective_tradeoff_summary,
+            score_term_summary
+          ],
+          "target_gap_row_count"
+        ),
+      "source_objective_gap_branch_local_collection_latency_gap_pressure" =>
+        objective_gap_branch_local_gap_pressure?(
+          [
+            objective_satisfaction_summary,
+            objective_tradeoff_summary,
+            score_term_summary
+          ],
+          "collection_latency_gap_row_count"
+        ),
+      "source_objective_gap_branch_local_objective_status_pressure" =>
+        objective_gap_branch_local_objective_status_pressure?(objective_satisfaction_summary),
+      "source_objective_gap_branch_local_score_term_pressure" =>
+        objective_gap_branch_local_score_term_pressure?(score_term_summary),
+      "source_objective_gap_branch_local_routing_pressure" =>
+        objective_gap_branch_local_routing_pressure?([
+          objective_satisfaction_summary,
+          objective_tradeoff_summary,
+          score_term_summary
+        ]),
       "source_timeline_transition_application_report_count" =>
         Map.get(timeline_transition_summary, "count"),
       "source_timeline_transition_application_row_count" =>
@@ -21174,6 +21224,55 @@ defmodule OrbitalDynamics.Validation do
       map_size(Map.get(summary, "target_counts") || %{}) > 0 or
       map_size(Map.get(summary, "collection_counts") || %{}) > 0 or
       map_size(Map.get(summary, "source_activity_id_counts") || %{}) > 0
+  end
+
+  defp objective_gap_branch_local_objective_gap_pressure?(
+         %{} = satisfaction_summary,
+         %{} = tradeoff_summary,
+         %{} = score_term_summary
+       ) do
+    objective_gap_branch_local_gap_pressure?([satisfaction_summary], "gap_row_count") or
+      objective_gap_branch_local_gap_pressure?(
+        [tradeoff_summary, score_term_summary],
+        "downlink_gap_row_count"
+      ) or
+      objective_gap_branch_local_gap_pressure?(
+        [tradeoff_summary, score_term_summary],
+        "target_gap_row_count"
+      ) or
+      objective_gap_branch_local_gap_pressure?(
+        [tradeoff_summary, score_term_summary],
+        "collection_latency_gap_row_count"
+      ) or
+      objective_gap_branch_local_objective_status_pressure?(satisfaction_summary) or
+      objective_gap_branch_local_score_term_pressure?(score_term_summary) or
+      objective_gap_branch_local_routing_pressure?([
+        satisfaction_summary,
+        tradeoff_summary,
+        score_term_summary
+      ])
+  end
+
+  defp objective_gap_branch_local_gap_pressure?(summaries, key) when is_list(summaries) do
+    Enum.any?(summaries, &positive_integer_observation?(&1, key))
+  end
+
+  defp objective_gap_branch_local_objective_status_pressure?(%{} = summary) do
+    map_size(Map.get(summary, "status_counts") || %{}) > 0 or
+      map_size(Map.get(summary, "objective_type_counts") || %{}) > 0
+  end
+
+  defp objective_gap_branch_local_score_term_pressure?(%{} = summary) do
+    map_size(Map.get(summary, "term_key_counts") || %{}) > 0
+  end
+
+  defp objective_gap_branch_local_routing_pressure?(summaries) when is_list(summaries) do
+    Enum.any?(summaries, fn summary ->
+      map_size(Map.get(summary, "ground_station_counts") || %{}) > 0 or
+        map_size(Map.get(summary, "target_counts") || %{}) > 0 or
+        map_size(Map.get(summary, "collection_counts") || %{}) > 0 or
+        map_size(Map.get(summary, "source_activity_id_counts") || %{}) > 0
+    end)
   end
 
   defp positive_integer_observation?(%{} = summary, key) do
