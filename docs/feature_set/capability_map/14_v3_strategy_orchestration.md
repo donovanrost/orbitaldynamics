@@ -729,6 +729,10 @@ activity-precondition, and preservation risk rows contribute to
 unrelated risks while preserving the same one-`risk_weight` total penalty per
 risk indicator. Score-term reports and tradeoffs therefore expose timeline
 pressure directly without changing branch ranking for fixed inputs.
+Storage/downlink resource-pressure risks, including storage/downlink margin
+pressure and projected storage overflow/downlink shortfall, similarly contribute
+to `storage_downlink_pressure_penalty` so score-term reports can distinguish
+fleet resource pressure from unrelated risk while preserving total score math.
 
 ### Constraint, objective, tradeoff, and score-term replay
 
@@ -1550,6 +1554,10 @@ Selected recommendations also include:
   pressure risks into `contact_allocation_pressure_penalty`, leaving
   `risk_penalty` for non-contact-allocation risks so total branch score remains
   compatible while score-term reports expose contact pressure directly.
+- **Storage/downlink pressure score terms** — split storage/downlink
+  resource-margin and projection risks into `storage_downlink_pressure_penalty`,
+  leaving `risk_penalty` for unrelated risks while preserving total branch score
+  compatibility.
 - **`operational_readiness_pressure` explanation rows** — preserve the selected
   branch's readiness report, source artifact, readiness/import/status counts,
   gate ID/status/classification/reason, required operator action, feedback

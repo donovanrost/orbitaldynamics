@@ -348,7 +348,7 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "schema_version" => 3,
              "planner" => "OrbitalDynamics.CampaignPlanner.V3",
              "source_plan_id" => "campaign_plan:leo_constellation_campaign:2026-05-14T00:00:00Z",
-             "strategy_id" => "d4334490eaa7a97d23dfa8ef429e5847c7c207dbc93fcb7f0ce72dc8e4d72d74",
+             "strategy_id" => "92b719deac9f9a1b82b42ba441022584be9fdccd12a8592dfd52f366dee07192",
              "recommended_branch_id" => "derived_urgent_target_target_hot",
              "approval_status" => "operator_review_required",
              "recommendation_status" => "pass"
@@ -423,7 +423,7 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "pressure_row_count",
              "selected_pressure_row_count"
            ]) == %{
-             "row_count" => 418,
+             "row_count" => 440,
              "score_term_keys" => [
                "approval_boundary_pressure_penalty",
                "approval_load_penalty",
@@ -443,10 +443,11 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
                "revisit_score",
                "risk_penalty",
                "schedule_stability_penalty",
+               "storage_downlink_pressure_penalty",
                "timeline_pressure_penalty"
              ],
-             "pressure_row_count" => 66,
-             "selected_pressure_row_count" => 3
+             "pressure_row_count" => 88,
+             "selected_pressure_row_count" => 4
            }
 
     assert surface["objective_tradeoff_report"]["ranking_count"] == 22
@@ -458,9 +459,9 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "score_term_review_count",
              "objective_tradeoff_review_count"
            ]) == %{
-             "review_count" => 905,
+             "review_count" => 928,
              "contact_allocation_review_count" => 20,
-             "score_term_review_count" => 484,
+             "score_term_review_count" => 506,
              "objective_tradeoff_review_count" => 44
            }
 
@@ -470,8 +471,8 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "review_required_count",
              "contact_allocation_import_count"
            ]) == %{
-             "row_count" => 926,
-             "review_required_count" => 905,
+             "row_count" => 949,
+             "review_required_count" => 928,
              "contact_allocation_import_count" => 20
            }
   end
