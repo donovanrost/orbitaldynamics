@@ -5,49 +5,71 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Refresh stale checked-in link/contact allocation fixture outputs.
+Expose capacity-pack direction pressure in strategy branch explanations.
 
 Status:
 Completed and pushed.
 
 Files changed:
-- Fixture: `study_results/link_capacity_summary_v1.json`
-- Fixture: `study_results/contact_allocation_report_v1.json`
-- Fixture: `study_results/contact_allocation_capacity_pack_report_v1.json`
+- Runtime: `lib/orbital_dynamics/campaign_planner.ex`
+- Tests: `test/orbital_dynamics/campaign_planner_test.exs`
 - Ledger: `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/schema_test.exs:1262`
-- `mix test test/orbital_dynamics/schema_test.exs:23866`
-- `mix test test/orbital_dynamics/schema_test.exs:24178`
-- `mix test test/orbital_dynamics/schema_test.exs:1262 test/orbital_dynamics/schema_test.exs:23866 test/orbital_dynamics/schema_test.exs:24178`
-- `mix test test/orbital_dynamics/schema_test.exs`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:17969 test/orbital_dynamics/campaign_planner_test.exs:47280`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:47530`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:17969 test/orbital_dynamics/campaign_planner_test.exs:47342 test/orbital_dynamics/campaign_planner_test.exs:47530`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 
 Docs/artifacts changed:
-Regenerated three checked-in JSON fixtures through public facades. No docs
-changed.
+No docs or checked-in artifacts changed.
 
 Level 6 pillar advanced:
-Durable schema-versioned artifacts and compatibility checks; resource/contact
-allocation fixture integrity.
+Planner-visible operational evidence and branch explanation quality for
+resource/contact allocation pressure.
+
+Slice selection note:
+The previous capacity-pack slice preserved selected/deferred direction maps and
+required-capacity fractions through review/import handoffs. Current strategy
+branches already score capacity-pack pressure through
+`contact_contention_resolution_pressure_penalty`, but the risk-driver context
+still exposes only scalar capacity-pack fields. This slice will make the
+preserved direction/fraction evidence visible in branch explanations and
+comparison summaries without changing schedule authority.
+
+Likely files/tests:
+- `lib/orbital_dynamics/campaign_planner.ex`
+- `test/orbital_dynamics/campaign_planner_test.exs`
+- Focused campaign-planner tests around capacity-pack explanation/comparison
+  behavior, plus compile and diff checks.
+
+Definition of done:
+- Capacity-pack pressure events and risk-driver contexts carry direction-level
+  selected/deferred contact IDs and required-capacity fraction maps when present.
+- Existing branch explanation/comparison tests assert the fields on a concrete
+  capacity-pack pressure branch.
+- Focused test(s), `mix compile --warnings-as-errors`, and `git diff --check`
+  pass.
 
 Last completed slice:
-Refreshed stale checked-in link/contact allocation fixture outputs.
+Exposed capacity-pack direction pressure in strategy branch explanations.
 
 What changed:
-- `link_capacity_summary_v1.json` now matches the public facade source value
-  used by its exact-regeneration test.
-- `contact_allocation_report_v1.json` and
-  `contact_allocation_capacity_pack_report_v1.json` now include current
-  station-calendar report count/status fields emitted by public regeneration.
-- Full `test/orbital_dynamics/schema_test.exs` now passes.
+- Capacity-pack summary-level direction maps are inherited into derived
+  contact-allocation pressure rows.
+- Contact-allocation and contact-contention-resolution pressure events now
+  carry selected/deferred contact IDs by direction and required-capacity
+  fraction maps by direction.
+- Risk-driver explanations and branch comparison rows expose the same
+  capacity-pack direction evidence instead of only scalar capacity-pack fields.
+- The recommendation tradeoff dimension expectation now reflects the current
+  split-pressure score-term surface.
 - Parent performed bounded local review and mechanical publish because no
   suitable subagent tool is available in this runtime.
 
 Last commit:
-- Product: `22f50ad` Refresh link and allocation fixtures
+- Product: `ae51ca0` Expose capacity pack direction pressure
 - Ledger: this handoff commit on `main`
 
 Remaining maturity gaps:
@@ -62,10 +84,10 @@ Remaining maturity gaps:
 
 Next candidate:
 Reassess the guide queue from current checkout and choose the next narrow Level
-6 slice, likely in queue-1 activity/timeline handoff completeness or queue-2
-remaining resource/contact allocation semantics. Candidate follow-up: choose
-the next product behavior slice now that focused Cadence import and schema
-fixture suites are green.
+6 slice. Good candidates remain planner-visible review evidence: one more
+resource/contact pressure explanation gap, a readiness/quality-gate selection
+effect, or an activity/timeline handoff completeness gap if current checkout
+shows one.
 
 Blocked:
 Not blocked.
