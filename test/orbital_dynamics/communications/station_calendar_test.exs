@@ -2838,6 +2838,19 @@ defmodule OrbitalDynamics.Communications.StationCalendarTest do
              "reserved_under_higher_precedence_contact_ids_by_applied_availability" => %{
                "unavailable" => ["dl_1"]
              },
+             "reserved_under_higher_precedence_reservation_ids" => ["reservation_42"],
+             "reserved_under_higher_precedence_reservation_ids_by_status" => %{
+               "confirmed" => ["reservation_42"]
+             },
+             "reserved_under_higher_precedence_reservation_ids_by_reserved_by" => %{
+               "ops_team_b" => ["reservation_42"]
+             },
+             "reserved_under_higher_precedence_contact_ids_by_reservation_status" => %{
+               "confirmed" => ["dl_1"]
+             },
+             "reserved_under_higher_precedence_contact_ids_by_reserved_by" => %{
+               "ops_team_b" => ["dl_1"]
+             },
              "unavailable_contact_ids" => ["dl_1"],
              "reserved_overlap_contact_ids" => ["dl_1"],
              "reduced_capacity_contact_ids" => ["dl_1"],
@@ -2886,6 +2899,19 @@ defmodule OrbitalDynamics.Communications.StationCalendarTest do
              precedence_model_limits
 
     assert get_in(precedence_schema, ["properties", "source"]) == %{"type" => "string"}
+
+    assert get_in(precedence_schema, [
+             "properties",
+             "reserved_under_higher_precedence_reservation_ids",
+             "items",
+             "type"
+           ]) == "string"
+
+    assert get_in(precedence_schema, [
+             "properties",
+             "reserved_under_higher_precedence_reservation_ids_by_status",
+             "type"
+           ]) == "object"
 
     stale_precedence_source = Map.put(precedence_summary, "source", %{"id" => "ops_calendar"})
 
@@ -2942,6 +2968,23 @@ defmodule OrbitalDynamics.Communications.StationCalendarTest do
              stale_status_count_report["errors"],
              &(&1["path"] == "$.applied_status_counts" and
                  &1["message"] == "must equal contact IDs by applied status")
+           )
+
+    stale_reserved_status_routing =
+      put_in(
+        precedence_summary,
+        ["reserved_under_higher_precedence_reservation_ids_by_status", "confirmed"],
+        []
+      )
+
+    assert {:error, stale_reserved_status_routing_report} =
+             Schema.validate_artifact(stale_reserved_status_routing)
+
+    assert Enum.any?(
+             stale_reserved_status_routing_report["errors"],
+             &(&1["path"] == "$.reserved_under_higher_precedence_reservation_ids" and
+                 &1["message"] ==
+                   "must equal reserved-under-higher-precedence reservation IDs by reservation status")
            )
 
     assert_summary_handoff(

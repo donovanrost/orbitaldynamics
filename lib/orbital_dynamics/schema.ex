@@ -5010,7 +5010,12 @@ defmodule OrbitalDynamics.Schema do
         "model_limits",
         "applied_status_counts",
         "affected_contact_ids_by_applied_status",
-        "reserved_under_higher_precedence_contact_ids_by_applied_status"
+        "reserved_under_higher_precedence_contact_ids_by_applied_status",
+        "reserved_under_higher_precedence_reservation_ids",
+        "reserved_under_higher_precedence_reservation_ids_by_status",
+        "reserved_under_higher_precedence_reservation_ids_by_reserved_by",
+        "reserved_under_higher_precedence_contact_ids_by_reservation_status",
+        "reserved_under_higher_precedence_contact_ids_by_reserved_by"
       ],
       "nested_contracts" => ["station_calendar_report.v1"]
     },
@@ -13622,7 +13627,11 @@ defmodule OrbitalDynamics.Schema do
               "affected_contact_ids_by_applied_status",
               "affected_contact_ids_by_overlap_availability",
               "reserved_under_higher_precedence_contact_ids_by_applied_availability",
-              "reserved_under_higher_precedence_contact_ids_by_applied_status"
+              "reserved_under_higher_precedence_contact_ids_by_applied_status",
+              "reserved_under_higher_precedence_reservation_ids_by_status",
+              "reserved_under_higher_precedence_reservation_ids_by_reserved_by",
+              "reserved_under_higher_precedence_contact_ids_by_reservation_status",
+              "reserved_under_higher_precedence_contact_ids_by_reserved_by"
             ] do
     stable_id_array_map_schema()
   end
@@ -13630,6 +13639,7 @@ defmodule OrbitalDynamics.Schema do
   defp json_schema_property(field, @station_calendar_precedence_summary, _contract)
        when field in [
               "reserved_under_higher_precedence_contact_ids",
+              "reserved_under_higher_precedence_reservation_ids",
               "unavailable_contact_ids",
               "reserved_overlap_contact_ids",
               "reduced_capacity_contact_ids"
@@ -37714,6 +37724,56 @@ defmodule OrbitalDynamics.Schema do
       path <> ".reserved_under_higher_precedence_contact_ids_by_applied_status",
       Map.get(summary, "reserved_under_higher_precedence_contact_ids_by_applied_status")
     )
+    |> expect_optional_type(
+      path,
+      summary,
+      "reserved_under_higher_precedence_reservation_ids",
+      :list
+    )
+    |> validate_stable_id_list(
+      path <> ".reserved_under_higher_precedence_reservation_ids",
+      Map.get(summary, "reserved_under_higher_precedence_reservation_ids")
+    )
+    |> expect_optional_type(
+      path,
+      summary,
+      "reserved_under_higher_precedence_reservation_ids_by_status",
+      :map
+    )
+    |> validate_stable_id_array_map(
+      path <> ".reserved_under_higher_precedence_reservation_ids_by_status",
+      Map.get(summary, "reserved_under_higher_precedence_reservation_ids_by_status")
+    )
+    |> expect_optional_type(
+      path,
+      summary,
+      "reserved_under_higher_precedence_reservation_ids_by_reserved_by",
+      :map
+    )
+    |> validate_stable_id_array_map(
+      path <> ".reserved_under_higher_precedence_reservation_ids_by_reserved_by",
+      Map.get(summary, "reserved_under_higher_precedence_reservation_ids_by_reserved_by")
+    )
+    |> expect_optional_type(
+      path,
+      summary,
+      "reserved_under_higher_precedence_contact_ids_by_reservation_status",
+      :map
+    )
+    |> validate_stable_id_array_map(
+      path <> ".reserved_under_higher_precedence_contact_ids_by_reservation_status",
+      Map.get(summary, "reserved_under_higher_precedence_contact_ids_by_reservation_status")
+    )
+    |> expect_optional_type(
+      path,
+      summary,
+      "reserved_under_higher_precedence_contact_ids_by_reserved_by",
+      :map
+    )
+    |> validate_stable_id_array_map(
+      path <> ".reserved_under_higher_precedence_contact_ids_by_reserved_by",
+      Map.get(summary, "reserved_under_higher_precedence_contact_ids_by_reserved_by")
+    )
     |> expect_type(path, summary, "unavailable_contact_ids", :list)
     |> validate_stable_id_list(
       path <> ".unavailable_contact_ids",
@@ -37773,6 +37833,12 @@ defmodule OrbitalDynamics.Schema do
     reserved_under_higher_precedence_status_id_map =
       Map.get(summary, "reserved_under_higher_precedence_contact_ids_by_applied_status")
 
+    reserved_under_higher_precedence_reservation_ids_by_status =
+      Map.get(summary, "reserved_under_higher_precedence_reservation_ids_by_status")
+
+    reserved_under_higher_precedence_contact_ids_by_reservation_status =
+      Map.get(summary, "reserved_under_higher_precedence_contact_ids_by_reservation_status")
+
     affected_contact_count = stable_id_array_map_value_count(applied_id_map)
 
     issues
@@ -37830,6 +37896,20 @@ defmodule OrbitalDynamics.Schema do
       "reserved_under_higher_precedence_contact_ids",
       stable_id_array_map_ids(reserved_under_higher_precedence_status_id_map),
       "must equal reserved-under-higher-precedence IDs by applied status"
+    )
+    |> expect_optional_field_equals(
+      path,
+      summary,
+      "reserved_under_higher_precedence_reservation_ids",
+      stable_id_array_map_ids(reserved_under_higher_precedence_reservation_ids_by_status),
+      "must equal reserved-under-higher-precedence reservation IDs by reservation status"
+    )
+    |> expect_optional_field_equals(
+      path,
+      summary,
+      "reserved_under_higher_precedence_contact_ids",
+      stable_id_array_map_ids(reserved_under_higher_precedence_contact_ids_by_reservation_status),
+      "must equal reserved-under-higher-precedence contact IDs by reservation status"
     )
     |> expect_field_equals(
       path,

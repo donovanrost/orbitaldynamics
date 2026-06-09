@@ -860,6 +860,31 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
         ),
       "reserved_under_higher_precedence_contact_ids_by_applied_status" =>
         affected_contact_ids_by_field(reserved_under_higher_precedence_rows, "status"),
+      "reserved_under_higher_precedence_reservation_ids" =>
+        row_list_values(
+          reserved_under_higher_precedence_rows,
+          "station_calendar_reservation_ids"
+        ),
+      "reserved_under_higher_precedence_reservation_ids_by_status" =>
+        reservation_ids_by_row_list_field(
+          reserved_under_higher_precedence_rows,
+          "station_calendar_reservation_statuses"
+        ),
+      "reserved_under_higher_precedence_reservation_ids_by_reserved_by" =>
+        reservation_ids_by_row_list_field(
+          reserved_under_higher_precedence_rows,
+          "station_calendar_reserved_by"
+        ),
+      "reserved_under_higher_precedence_contact_ids_by_reservation_status" =>
+        contact_ids_by_row_list_field(
+          reserved_under_higher_precedence_rows,
+          "station_calendar_reservation_statuses"
+        ),
+      "reserved_under_higher_precedence_contact_ids_by_reserved_by" =>
+        contact_ids_by_row_list_field(
+          reserved_under_higher_precedence_rows,
+          "station_calendar_reserved_by"
+        ),
       "unavailable_contact_ids" =>
         affected_contact_ids_by_applied_availability(rows, ["unavailable", "maintenance"]),
       "reserved_overlap_contact_ids" => affected_contact_ids_by_overlap_value(rows, "reserved"),
@@ -3446,6 +3471,43 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
       contact_id
     end)
     |> Map.new(fn {availability, contact_ids} -> {availability, sorted_values(contact_ids)} end)
+  end
+
+  defp row_list_values(rows, field) do
+    rows
+    |> Enum.flat_map(&List.wrap(&1[field]))
+    |> sorted_values()
+  end
+
+  defp contact_ids_by_row_list_field(rows, field) do
+    rows
+    |> Enum.flat_map(fn row ->
+      row
+      |> Map.get(field, [])
+      |> List.wrap()
+      |> Enum.map(&{&1, row["contact_id"]})
+    end)
+    |> Enum.reject(fn {group, contact_id} -> is_nil(group) or is_nil(contact_id) end)
+    |> Enum.group_by(fn {group, _contact_id} -> encode_value(group) end, fn {_group, contact_id} ->
+      contact_id
+    end)
+    |> sorted_id_map()
+  end
+
+  defp reservation_ids_by_row_list_field(rows, field) do
+    rows
+    |> Enum.flat_map(fn row ->
+      reservation_ids = List.wrap(row["station_calendar_reservation_ids"])
+      group_values = List.wrap(row[field])
+
+      Enum.zip(group_values, reservation_ids)
+    end)
+    |> Enum.reject(fn {group, reservation_id} -> is_nil(group) or is_nil(reservation_id) end)
+    |> Enum.group_by(fn {group, _reservation_id} -> encode_value(group) end, fn {_group,
+                                                                                 reservation_id} ->
+      reservation_id
+    end)
+    |> sorted_id_map()
   end
 
   defp overlap_availability_counts(rows) do

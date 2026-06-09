@@ -138,7 +138,10 @@ reserved and reduced-capacity overlap routing from declared calendar evidence
 without making provider reservations or mutating schedules. Their exported
 schema pins the artifact-only precedence-summary model, applied-status routing
 for maintenance/outage triage, and exact `model_limits`, matching runtime
-validation for schema-only handoff checks.
+validation for schema-only handoff checks. The same compact summary preserves
+row-derived suppressed reservation IDs, reservation-status routing, and
+reserved-by owner routing for reserved-under-higher-precedence contacts without
+granting provider-write authority.
 Station-calendar report schema export also pins the artifact-only overlay model,
 matching runtime validation before provider-reservation or contention rows are
 trusted.

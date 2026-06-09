@@ -5,82 +5,96 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Split storage/downlink pressure into an explicit V3 score term.
+Preserve suppressed reservation routing in station-calendar precedence
+summaries.
 
 Status:
-Completed; handoff recorded for product commit `630bb44`.
+Completed locally; pending commit/push.
 
 Slice-selection note:
-- Selected slice: classify storage/downlink `resource_margin_pressure` risks
-  into a dedicated `storage_downlink_pressure_penalty` score term for V3
-  strategy branches, subtracting those risks from the generic `risk_penalty`
-  while preserving total branch score compatibility.
-- Why this slice: the previous slices made resource/contact/downlink evidence
-  richer, but V3 scoring still exposes low storage/downlink resource-margin
-  pressure only through generic risk. The loop handoff calls out deeper
-  planner-visible use of resource/contact/readiness evidence during branch
-  scoring as the next gap.
-- Level 6 pillar: reproducible V1/V2/V3 branch trees with explainable score
-  terms and deltas; fleet-level resource/contact/downlink behavior.
-- Current evidence gap: contact-allocation, approval-boundary, and timeline
-  pressure have split V3 score terms; storage/downlink pressure remains mixed
-  into `risk_penalty`, making downlink/storage tradeoffs harder to audit in
-  score-term reports and branch comparison tradeoffs.
+- Selected slice: extend `station_calendar_precedence_summary.v1` so
+  reserved-under-outage or reserved-under-maintenance rows expose suppressed
+  reservation IDs, reservation statuses, and owner routing directly in the
+  compact precedence handoff.
+- Why this slice: the precedence report already applies outage/maintenance
+  above reservations and preserves reservation overlap evidence on affected
+  rows, but the compact summary only routes affected contact IDs. Review,
+  replay, and import queues should not need to reopen every row to triage which
+  provider reservation was suppressed by higher-precedence station downtime.
+- Level 6 pillar: Cadence-facing operational handoffs with explainable
+  provider-calendar evidence and no provider-write authority.
+- Current evidence gap: `station_calendar_precedence_summary.v1` exposes
+  reserved-under-higher-precedence contact routing, applied availability/status
+  maps, and overlap availability maps, but not the suppressed reservation ID,
+  reservation-status, or owner sets that already exist on affected-contact rows.
 - Docs to read:
   `docs/autonomous_work_guide.md`,
   `.codex/prompts/long_running_context_efficient_product_loop.md`,
   `.codex/status/autonomous_product_loop.md`,
   `docs/feature_set/capability_map/07_ground_network_and_communications_planning.md`,
-  `docs/feature_set/capability_map/06_spacecraft_and_payload_modeling.md`,
-  `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`.
-- Likely files: `lib/orbital_dynamics/campaign_planner.ex`,
-  `test/orbital_dynamics/campaign_planner_test.exs`,
-  `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`,
+  `docs/feature_set/capability_map/07_ground_network/04_station_calendar.md`,
+  `docs/mission_planning/high_fidelity/06_operational_concerns.md`.
+- Likely files: `lib/orbital_dynamics/communications/station_calendar.ex`,
+  `lib/orbital_dynamics/schema.ex`,
+  `test/orbital_dynamics/communications/station_calendar_test.exs`,
+  `test/orbital_dynamics/schema_test.exs`,
+  `test/mix/tasks/orbital_dynamics.schema.export_test.exs`,
+  `docs/feature_set/capability_map/07_ground_network/04_station_calendar.md`,
+  `docs/mission_planning/high_fidelity/06_operational_concerns.md`,
   `.codex/status/autonomous_product_loop.md`.
 - Likely tests:
-  `mix test test/orbital_dynamics/campaign_planner_test.exs:<resource_margin_selectors>`,
+  `mix test test/orbital_dynamics/communications/station_calendar_test.exs`,
+  `mix test test/orbital_dynamics/schema_test.exs:<precedence-fixture-selector>`,
+  `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs:<precedence-schema-selector>`,
   `mix compile --warnings-as-errors`,
   `git diff --check`.
-- Definition of done: V3 branches with storage/downlink resource-margin
-  pressure expose `storage_downlink_pressure_penalty`; generic `risk_penalty`
-  excludes those risks; branch tradeoffs and score-term reports include the new
-  term; focused campaign-planner tests pass.
+- Definition of done: precedence summaries include row-derived suppressed
+  reservation ID/status/owner maps for reserved-under-higher-precedence rows;
+  runtime validation and JSON Schema export pin the fields; the checked-in
+  precedence fixture regenerates exactly; focused tests pass.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
-- `lib/orbital_dynamics/campaign_planner.ex`
-- `test/orbital_dynamics/campaign_planner_test.exs`
-- `test/orbital_dynamics/golden_artifact_test.exs`
-- `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
-- `study_results/leo_constellation_campaign_strategy_v3.json`
+- `lib/orbital_dynamics/communications/station_calendar.ex`
+- `lib/orbital_dynamics/schema.ex`
+- `test/orbital_dynamics/communications/station_calendar_test.exs`
+- `test/mix/tasks/orbital_dynamics.schema.export_test.exs`
+- `docs/feature_set/capability_map/07_ground_network/04_station_calendar.md`
+- `docs/mission_planning/high_fidelity/06_operational_concerns.md`
+- `schemas/station_calendar_precedence_summary.v1.schema.json`
+- `schemas/orbital_dynamics.schema_bundle.v1.json`
+- `study_results/station_calendar_precedence_summary_v1.json`
 
 Tests run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:17852 test/orbital_dynamics/campaign_planner_test.exs:19105 test/orbital_dynamics/campaign_planner_test.exs:34268 test/orbital_dynamics/campaign_planner_test.exs:34365 test/orbital_dynamics/campaign_planner_test.exs:17910`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs`
-- `mix test test/orbital_dynamics/golden_artifact_test.exs`
+- `mix test test/orbital_dynamics/communications/station_calendar_test.exs`
+- `mix test test/orbital_dynamics/schema_test.exs:2596`
+- `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs:2765`
+- `mix orbital_dynamics.schema.lint --input study_results/station_calendar_precedence_summary_v1.json --contract station_calendar_precedence_summary.v1`
 - `mix compile --warnings-as-errors`
-- `mix orbital_dynamics.schema.lint --input study_results/leo_constellation_campaign_strategy_v3.json --contract campaign_strategy.v3`
 - `git diff --check`
 
 Docs/artifacts changed:
-- `docs/feature_set/capability_map/14_v3_strategy_orchestration.md` documents
-  `storage_downlink_pressure_penalty` and its total-score compatibility rule.
-- `study_results/leo_constellation_campaign_strategy_v3.json` was regenerated
-  with the new score-term key; golden surface expectations now pin 20 V3 score
-  terms, 440 score-term rows, and updated review/import counts.
+- `docs/feature_set/capability_map/07_ground_network/04_station_calendar.md`
+  documents suppressed reservation ID/status/owner routing in precedence
+  summaries.
+- `docs/mission_planning/high_fidelity/06_operational_concerns.md` records the
+  compact triage evidence and no-provider-write boundary.
+- `schemas/station_calendar_precedence_summary.v1.schema.json` and
+  `schemas/orbital_dynamics.schema_bundle.v1.json` were regenerated.
+- `study_results/station_calendar_precedence_summary_v1.json` was updated to
+  exact public-facade output.
 
 Local review:
-- Read-only reviewer `Euler` found no code blockers. The reviewer confirmed the
-  new term is subtracted from generic risk, included in raw score, emitted in
-  score terms/tradeoffs, and documented. The reviewer noted projection
-  `storage_overflow` / `downlink_shortfall` lacked direct coverage; this was
-  closed with focused assertions in the existing storage-overflow and
-  downlink-shortfall projection fixtures.
+- Parent local review found the slice scoped to precedence-summary generation,
+  runtime/schema validation, export assertions, docs, and the checked-in
+  precedence fixture. No multi-agent reviewer was used because the available
+  delegation tool requires an explicit user request for subagents in this turn.
 
 Level 6 pillar advanced:
-V3 branch scoring explainability for fleet storage/downlink pressure:
-resource-margin and projection storage/downlink risks now have a dedicated
-score term while preserving the same one-`risk_weight` total penalty per risk.
+Cadence-facing provider-calendar handoffs: reserved-under-outage and
+reserved-under-maintenance compact summaries now carry suppressed reservation
+ID/status/owner routing while preserving artifact-only, no-provider-write
+authority.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -93,9 +107,9 @@ Last product commit:
 `630bb44` Split storage downlink pressure score term.
 
 Next candidate:
-Continue with planner-visible resource/contact/readiness evidence that affects
-V2/V3 branch scoring or candidate-refresh provenance, or move to the next
-highest guide item after a fresh status check.
+After this slice, continue with planner-visible resource/contact/readiness
+evidence that affects V2/V3 branch scoring or candidate-refresh provenance, or
+move to the next highest guide item after a fresh status check.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is

@@ -2780,6 +2780,28 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
     assert get_in(schemas, [
              "station_calendar_precedence_summary.v1",
              "properties",
+             "reserved_under_higher_precedence_reservation_ids",
+             "items",
+             "type"
+           ]) == "string"
+
+    assert get_in(schemas, [
+             "station_calendar_precedence_summary.v1",
+             "properties",
+             "reserved_under_higher_precedence_reservation_ids_by_status",
+             "type"
+           ]) == "object"
+
+    assert get_in(schemas, [
+             "station_calendar_precedence_summary.v1",
+             "properties",
+             "reserved_under_higher_precedence_contact_ids_by_reservation_status",
+             "type"
+           ]) == "object"
+
+    assert get_in(schemas, [
+             "station_calendar_precedence_summary.v1",
+             "properties",
              "model_limits",
              "const"
            ]) ==
