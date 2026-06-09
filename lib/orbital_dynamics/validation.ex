@@ -2599,6 +2599,93 @@ defmodule OrbitalDynamics.Validation do
         "checks candidate-refresh replay of constraint provenance without objective generation, resource mutation, candidate selection, import approval, or Cadence writes"
       ]
     },
+    "fixture.artifact.candidate_refresh.link_capacity_replay" => %{
+      "id" => "fixture.artifact.candidate_refresh.link_capacity_replay",
+      "model_id" => "artifact.candidate_refresh.v1",
+      "reference_case" =>
+        "generated candidate refresh replay of link-capacity source-report provenance",
+      "validation_level" => "artifact_contract",
+      "fixture_type" => "curated_internal_artifact_regression",
+      "inputs" => %{
+        "source" => "generated_candidate_refresh_link_capacity_fixture",
+        "contract" => "candidate_refresh.v1"
+      },
+      "expected" => %{
+        "schema_contract" => "candidate_refresh.v1",
+        "schema_version" => 1,
+        "planner" => "OrbitalDynamics.CandidateRefresh.V1",
+        "candidate_count" => 0,
+        "contact_intent_count" => 0,
+        "access_window_count" => 0,
+        "target_visibility_window_count" => 0,
+        "eclipse_interval_count" => 0,
+        "source_report_family_count" => 1,
+        "source_report_row_count" => 2,
+        "source_link_capacity_report_count" => 1,
+        "source_link_capacity_row_count" => 2,
+        "source_link_capacity_selected_shortfall_row_count" => 1,
+        "source_link_capacity_actual_shortfall_row_count" => 1,
+        "source_link_capacity_actual_throughput_row_count" => 2,
+        "source_link_capacity_capacity_adjusted_throughput_row_count" => 2,
+        "source_link_capacity_capacity_adjusted_throughput_mb_total" => 85.0,
+        "source_link_capacity_selected_capacity_adjusted_throughput_mb_total" => 40.0,
+        "source_link_capacity_unused_capacity_adjusted_throughput_mb_total" => 45.0,
+        "source_link_capacity_ground_station_counts" => %{
+          "dss_43" => 1,
+          "equator_prime" => 1
+        },
+        "source_link_capacity_spacecraft_counts" => %{"leo_1" => 1, "leo_2" => 1},
+        "source_link_capacity_direction_counts" => %{
+          "command" => 1,
+          "downlink" => 1,
+          "tracking" => 1
+        },
+        "source_link_capacity_downlink_requirement_status_counts" => %{
+          "actual_met" => 1,
+          "actual_shortfall" => 1,
+          "selected_met" => 1,
+          "selected_shortfall" => 1
+        },
+        "source_link_capacity_contact_ids_by_requirement_status" => %{
+          "actual_met" => ["contact_alpha"],
+          "actual_shortfall" => ["contact_gamma"],
+          "selected_met" => ["contact_gamma"],
+          "selected_shortfall" => ["contact_alpha", "contact_beta"]
+        },
+        "source_link_capacity_trust_boundary_status" => "declared",
+        "source_link_capacity_branch_local_link_capacity_pressure" => true,
+        "source_link_capacity_branch_local_capacity_adjusted_throughput_pressure" => true,
+        "source_link_capacity_branch_local_downlink_shortfall_pressure" => true,
+        "source_link_capacity_branch_local_actual_throughput_pressure" => true
+      },
+      "tolerances" => %{
+        "schema_version" => 0,
+        "candidate_count" => 0,
+        "contact_intent_count" => 0,
+        "access_window_count" => 0,
+        "target_visibility_window_count" => 0,
+        "eclipse_interval_count" => 0,
+        "source_report_family_count" => 0,
+        "source_report_row_count" => 0,
+        "source_link_capacity_report_count" => 0,
+        "source_link_capacity_row_count" => 0,
+        "source_link_capacity_selected_shortfall_row_count" => 0,
+        "source_link_capacity_actual_shortfall_row_count" => 0,
+        "source_link_capacity_actual_throughput_row_count" => 0,
+        "source_link_capacity_capacity_adjusted_throughput_row_count" => 0,
+        "source_link_capacity_capacity_adjusted_throughput_mb_total" => 0.0,
+        "source_link_capacity_selected_capacity_adjusted_throughput_mb_total" => 0.0,
+        "source_link_capacity_unused_capacity_adjusted_throughput_mb_total" => 0.0
+      },
+      "evidence" => [
+        "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
+        "schema-linted by mix orbital_dynamics.schema.lint"
+      ],
+      "known_limits" => [
+        "internal generated artifact regression, not link-budget or provider-capacity validation",
+        "checks candidate-refresh replay of link-capacity provenance without contact allocation, candidate selection, import approval, or Cadence writes"
+      ]
+    },
     "fixture.artifact.candidate_refresh.resource_provenance_v1" => %{
       "id" => "fixture.artifact.candidate_refresh.resource_provenance_v1",
       "model_id" => "artifact.candidate_refresh.v1",
@@ -14455,6 +14542,7 @@ defmodule OrbitalDynamics.Validation do
     contact_contention_summary = Map.get(source_reports, "contact_contention_report") || %{}
     contact_intent_summary = Map.get(source_reports, "contact_intent") || %{}
     constraint_summary = Map.get(source_reports, "constraint_report") || %{}
+    link_capacity_summary = Map.get(source_reports, "link_capacity_report") || %{}
 
     objective_satisfaction_summary =
       Map.get(source_reports, "objective_satisfaction_report") || %{}
@@ -14577,6 +14665,128 @@ defmodule OrbitalDynamics.Validation do
         constraint_branch_local_resource_margin_pressure?(constraint_summary),
       "source_constraint_branch_local_constraint_routing_pressure" =>
         constraint_branch_local_routing_pressure?(constraint_summary),
+      "source_link_capacity_report_count" => Map.get(link_capacity_summary, "count"),
+      "source_link_capacity_row_count" => Map.get(link_capacity_summary, "row_count"),
+      "source_link_capacity_selected_shortfall_row_count" =>
+        Map.get(link_capacity_summary, "selected_shortfall_row_count"),
+      "source_link_capacity_actual_shortfall_row_count" =>
+        Map.get(link_capacity_summary, "actual_shortfall_row_count"),
+      "source_link_capacity_actual_throughput_row_count" =>
+        Map.get(link_capacity_summary, "actual_throughput_row_count"),
+      "source_link_capacity_capacity_adjusted_throughput_row_count" =>
+        Map.get(link_capacity_summary, "capacity_adjusted_throughput_row_count"),
+      "source_link_capacity_capacity_adjusted_throughput_mb_total" =>
+        Map.get(link_capacity_summary, "capacity_adjusted_throughput_mb_total"),
+      "source_link_capacity_selected_capacity_adjusted_throughput_mb_total" =>
+        Map.get(link_capacity_summary, "selected_capacity_adjusted_throughput_mb_total"),
+      "source_link_capacity_unused_capacity_adjusted_throughput_mb_total" =>
+        Map.get(link_capacity_summary, "unused_capacity_adjusted_throughput_mb_total"),
+      "source_link_capacity_ground_station_counts" =>
+        Map.get(link_capacity_summary, "ground_station_counts") || %{},
+      "source_link_capacity_spacecraft_counts" =>
+        Map.get(link_capacity_summary, "spacecraft_counts") || %{},
+      "source_link_capacity_capacity_adjusted_throughput_mb_by_ground_station" =>
+        Map.get(link_capacity_summary, "capacity_adjusted_throughput_mb_by_ground_station") ||
+          %{},
+      "source_link_capacity_selected_capacity_adjusted_throughput_mb_by_ground_station" =>
+        Map.get(
+          link_capacity_summary,
+          "selected_capacity_adjusted_throughput_mb_by_ground_station"
+        ) || %{},
+      "source_link_capacity_unused_capacity_adjusted_throughput_mb_by_ground_station" =>
+        Map.get(
+          link_capacity_summary,
+          "unused_capacity_adjusted_throughput_mb_by_ground_station"
+        ) || %{},
+      "source_link_capacity_capacity_adjusted_throughput_mb_by_direction" =>
+        Map.get(link_capacity_summary, "capacity_adjusted_throughput_mb_by_direction") || %{},
+      "source_link_capacity_selected_capacity_adjusted_throughput_mb_by_direction" =>
+        Map.get(
+          link_capacity_summary,
+          "selected_capacity_adjusted_throughput_mb_by_direction"
+        ) || %{},
+      "source_link_capacity_unused_capacity_adjusted_throughput_mb_by_direction" =>
+        Map.get(
+          link_capacity_summary,
+          "unused_capacity_adjusted_throughput_mb_by_direction"
+        ) || %{},
+      "source_link_capacity_direction_counts" =>
+        Map.get(link_capacity_summary, "direction_counts") || %{},
+      "source_link_capacity_directions" => Map.get(link_capacity_summary, "directions") || [],
+      "source_link_capacity_contact_ids_by_direction" =>
+        Map.get(link_capacity_summary, "contact_ids_by_direction") || %{},
+      "source_link_capacity_source_window_ids_by_direction" =>
+        Map.get(link_capacity_summary, "source_window_ids_by_direction") || %{},
+      "source_link_capacity_station_calendar_entry_ids_by_direction" =>
+        Map.get(link_capacity_summary, "station_calendar_entry_ids_by_direction") || %{},
+      "source_link_capacity_station_calendar_provider_entry_ids_by_direction" =>
+        Map.get(link_capacity_summary, "station_calendar_provider_entry_ids_by_direction") ||
+          %{},
+      "source_link_capacity_direction_routing" =>
+        Map.get(link_capacity_summary, "direction_routing") || %{},
+      "source_link_capacity_contact_ids_by_ground_station" =>
+        Map.get(link_capacity_summary, "contact_ids_by_ground_station") || %{},
+      "source_link_capacity_source_window_ids_by_ground_station" =>
+        Map.get(link_capacity_summary, "source_window_ids_by_ground_station") || %{},
+      "source_link_capacity_station_calendar_entry_ids_by_ground_station" =>
+        Map.get(link_capacity_summary, "station_calendar_entry_ids_by_ground_station") || %{},
+      "source_link_capacity_station_calendar_provider_entry_ids_by_ground_station" =>
+        Map.get(link_capacity_summary, "station_calendar_provider_entry_ids_by_ground_station") ||
+          %{},
+      "source_link_capacity_contact_ids_by_spacecraft" =>
+        Map.get(link_capacity_summary, "contact_ids_by_spacecraft") || %{},
+      "source_link_capacity_source_window_ids_by_spacecraft" =>
+        Map.get(link_capacity_summary, "source_window_ids_by_spacecraft") || %{},
+      "source_link_capacity_station_calendar_entry_ids_by_spacecraft" =>
+        Map.get(link_capacity_summary, "station_calendar_entry_ids_by_spacecraft") || %{},
+      "source_link_capacity_station_calendar_provider_entry_ids_by_spacecraft" =>
+        Map.get(link_capacity_summary, "station_calendar_provider_entry_ids_by_spacecraft") ||
+          %{},
+      "source_link_capacity_selected_contact_id_counts" =>
+        Map.get(link_capacity_summary, "selected_contact_id_counts") || %{},
+      "source_link_capacity_selected_contact_ids" =>
+        Map.get(link_capacity_summary, "selected_contact_ids") || [],
+      "source_link_capacity_selected_source_window_ids" =>
+        Map.get(link_capacity_summary, "selected_source_window_ids") || [],
+      "source_link_capacity_selected_station_calendar_entry_ids" =>
+        Map.get(link_capacity_summary, "selected_station_calendar_entry_ids") || [],
+      "source_link_capacity_selected_station_calendar_provider_entry_ids" =>
+        Map.get(link_capacity_summary, "selected_station_calendar_provider_entry_ids") || [],
+      "source_link_capacity_actual_throughput_contact_id_counts" =>
+        Map.get(link_capacity_summary, "actual_throughput_contact_id_counts") || %{},
+      "source_link_capacity_actual_throughput_contact_ids" =>
+        Map.get(link_capacity_summary, "actual_throughput_contact_ids") || [],
+      "source_link_capacity_actual_throughput_source_window_ids" =>
+        Map.get(link_capacity_summary, "actual_throughput_source_window_ids") || [],
+      "source_link_capacity_actual_throughput_station_calendar_entry_ids" =>
+        Map.get(link_capacity_summary, "actual_throughput_station_calendar_entry_ids") || [],
+      "source_link_capacity_actual_throughput_station_calendar_provider_entry_ids" =>
+        Map.get(link_capacity_summary, "actual_throughput_station_calendar_provider_entry_ids") ||
+          [],
+      "source_link_capacity_downlink_requirement_status_counts" =>
+        Map.get(link_capacity_summary, "downlink_requirement_status_counts") || %{},
+      "source_link_capacity_contact_ids_by_requirement_status" =>
+        Map.get(link_capacity_summary, "contact_ids_by_requirement_status") || %{},
+      "source_link_capacity_source_window_ids_by_requirement_status" =>
+        Map.get(link_capacity_summary, "source_window_ids_by_requirement_status") || %{},
+      "source_link_capacity_station_calendar_entry_ids_by_requirement_status" =>
+        Map.get(link_capacity_summary, "station_calendar_entry_ids_by_requirement_status") ||
+          %{},
+      "source_link_capacity_station_calendar_provider_entry_ids_by_requirement_status" =>
+        Map.get(
+          link_capacity_summary,
+          "station_calendar_provider_entry_ids_by_requirement_status"
+        ) || %{},
+      "source_link_capacity_trust_boundary_status" =>
+        Map.get(link_capacity_summary, "trust_boundary_status"),
+      "source_link_capacity_branch_local_link_capacity_pressure" =>
+        link_capacity_branch_local_link_capacity_pressure?(link_capacity_summary),
+      "source_link_capacity_branch_local_capacity_adjusted_throughput_pressure" =>
+        link_capacity_branch_local_capacity_adjusted_throughput_pressure?(link_capacity_summary),
+      "source_link_capacity_branch_local_downlink_shortfall_pressure" =>
+        link_capacity_branch_local_downlink_shortfall_pressure?(link_capacity_summary),
+      "source_link_capacity_branch_local_actual_throughput_pressure" =>
+        link_capacity_branch_local_actual_throughput_pressure?(link_capacity_summary),
       "source_resource_projection_report_count" => Map.get(resource_projection_summary, "count"),
       "source_resource_projection_row_count" => Map.get(resource_projection_summary, "row_count"),
       "source_resource_projection_projected_resource_count" =>
@@ -21342,6 +21552,103 @@ defmodule OrbitalDynamics.Validation do
       map_size(Map.get(summary, "source_activity_id_counts") || %{}) > 0 or
       map_size(Map.get(summary, "constraint_resource_counts") || %{}) > 0 or
       map_size(Map.get(summary, "constraint_spacecraft_counts") || %{}) > 0
+  end
+
+  defp link_capacity_branch_local_link_capacity_pressure?(%{} = summary) do
+    link_capacity_branch_local_capacity_adjusted_throughput_pressure?(summary) or
+      link_capacity_branch_local_downlink_shortfall_pressure?(summary) or
+      link_capacity_branch_local_actual_throughput_pressure?(summary) or
+      map_size(Map.get(summary, "ground_station_counts") || %{}) > 0 or
+      map_size(Map.get(summary, "direction_counts") || %{}) > 0 or
+      list_values(summary, "directions") != [] or
+      map_size(Map.get(summary, "spacecraft_counts") || %{}) > 0 or
+      map_size(Map.get(summary, "contact_ids_by_direction") || %{}) > 0 or
+      map_size(Map.get(summary, "source_window_ids_by_direction") || %{}) > 0 or
+      map_size(Map.get(summary, "station_calendar_entry_ids_by_direction") || %{}) > 0 or
+      map_size(Map.get(summary, "station_calendar_provider_entry_ids_by_direction") || %{}) >
+        0 or
+      map_size(Map.get(summary, "direction_routing") || %{}) > 0 or
+      map_size(Map.get(summary, "contact_ids_by_ground_station") || %{}) > 0 or
+      map_size(Map.get(summary, "source_window_ids_by_ground_station") || %{}) > 0 or
+      map_size(Map.get(summary, "station_calendar_entry_ids_by_ground_station") || %{}) > 0 or
+      map_size(Map.get(summary, "station_calendar_provider_entry_ids_by_ground_station") || %{}) >
+        0 or
+      map_size(Map.get(summary, "contact_ids_by_spacecraft") || %{}) > 0 or
+      map_size(Map.get(summary, "source_window_ids_by_spacecraft") || %{}) > 0 or
+      map_size(Map.get(summary, "station_calendar_entry_ids_by_spacecraft") || %{}) > 0 or
+      map_size(Map.get(summary, "station_calendar_provider_entry_ids_by_spacecraft") || %{}) >
+        0 or
+      map_size(Map.get(summary, "selected_contact_id_counts") || %{}) > 0 or
+      list_values(summary, "selected_contact_ids") != [] or
+      list_values(summary, "selected_source_window_ids") != [] or
+      list_values(summary, "selected_station_calendar_entry_ids") != [] or
+      list_values(summary, "selected_station_calendar_provider_entry_ids") != []
+  end
+
+  defp link_capacity_branch_local_capacity_adjusted_throughput_pressure?(%{} = summary) do
+    positive_integer_observation?(summary, "capacity_adjusted_throughput_row_count") or
+      positive_number?(Map.get(summary, "capacity_adjusted_throughput_mb_total")) or
+      positive_number?(Map.get(summary, "selected_capacity_adjusted_throughput_mb_total")) or
+      positive_number?(Map.get(summary, "unused_capacity_adjusted_throughput_mb_total")) or
+      map_size(Map.get(summary, "capacity_adjusted_throughput_mb_by_ground_station") || %{}) >
+        0 or
+      map_size(
+        Map.get(summary, "selected_capacity_adjusted_throughput_mb_by_ground_station") || %{}
+      ) > 0 or
+      map_size(
+        Map.get(summary, "unused_capacity_adjusted_throughput_mb_by_ground_station") || %{}
+      ) > 0 or
+      map_size(Map.get(summary, "capacity_adjusted_throughput_mb_by_direction") || %{}) > 0 or
+      map_size(Map.get(summary, "selected_capacity_adjusted_throughput_mb_by_direction") || %{}) >
+        0 or
+      map_size(Map.get(summary, "unused_capacity_adjusted_throughput_mb_by_direction") || %{}) >
+        0
+  end
+
+  defp link_capacity_branch_local_downlink_shortfall_pressure?(%{} = summary) do
+    positive_integer_observation?(summary, "selected_shortfall_row_count") or
+      positive_integer_observation?(summary, "actual_shortfall_row_count") or
+      map_size(Map.get(summary, "downlink_requirement_status_counts") || %{}) > 0 or
+      map_size(Map.get(summary, "contact_ids_by_requirement_status") || %{}) > 0 or
+      map_size(Map.get(summary, "source_window_ids_by_requirement_status") || %{}) > 0 or
+      map_size(Map.get(summary, "station_calendar_entry_ids_by_requirement_status") || %{}) >
+        0 or
+      map_size(
+        Map.get(summary, "station_calendar_provider_entry_ids_by_requirement_status") || %{}
+      ) > 0
+  end
+
+  defp link_capacity_branch_local_actual_throughput_pressure?(%{} = summary) do
+    positive_integer_observation?(summary, "actual_throughput_row_count") or
+      map_size(Map.get(summary, "actual_throughput_contact_id_counts") || %{}) > 0 or
+      list_values(summary, "actual_throughput_contact_ids") != [] or
+      list_values(summary, "actual_throughput_source_window_ids") != [] or
+      list_values(summary, "actual_throughput_station_calendar_entry_ids") != [] or
+      list_values(summary, "actual_throughput_station_calendar_provider_entry_ids") != [] or
+      link_capacity_actual_requirement_status_pressure?(
+        summary,
+        "contact_ids_by_requirement_status"
+      ) or
+      link_capacity_actual_requirement_status_pressure?(
+        summary,
+        "source_window_ids_by_requirement_status"
+      ) or
+      link_capacity_actual_requirement_status_pressure?(
+        summary,
+        "station_calendar_entry_ids_by_requirement_status"
+      ) or
+      link_capacity_actual_requirement_status_pressure?(
+        summary,
+        "station_calendar_provider_entry_ids_by_requirement_status"
+      )
+  end
+
+  defp link_capacity_actual_requirement_status_pressure?(%{} = summary, key) do
+    summary
+    |> Map.get(key, %{})
+    |> Enum.any?(fn {status, values} ->
+      String.starts_with?(to_string(status), "actual_") and List.wrap(values) != []
+    end)
   end
 
   defp score_term_routing_pressure?(%{} = summary) do

@@ -612,6 +612,12 @@ downlink/resource-margin/status/metric/resource/spacecraft maps, branch-local
 constraint pressure booleans, and trust-boundary status without objective
 generation, resource mutation, candidate selection, import approval, or Cadence
 writes.
+The registry also includes a generated CandidateRefresh link-capacity replay
+fixture. It checks link-capacity source-report provenance counts, row-derived
+throughput totals, station/spacecraft/direction/contact routing maps,
+downlink-requirement shortfall routing, branch-local link-capacity pressure
+booleans, and trust-boundary status without contact allocation, candidate
+selection, import approval, or Cadence writes.
 The registry also includes a generated CandidateRefresh resource-projection
 replay fixture. It checks projected-resource and invalid-input counts, resource
 pressure status/type/direction maps, activity routing, and trust-boundary

@@ -5572,6 +5572,99 @@ defmodule OrbitalDynamics.ValidationTest do
              Schema.validate_artifact(artifact, schema_contract: "candidate_refresh.v1")
   end
 
+  test "verifies candidate refresh link capacity replay fixtures" do
+    fixture_id = "fixture.artifact.candidate_refresh.link_capacity_replay"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+
+    assert fixture["model_id"] == "artifact.candidate_refresh.v1"
+    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
+
+    artifact = candidate_refresh_link_capacity_fixture()
+    observations = candidate_refresh_link_capacity_fixture_observations()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(fixture_id, observations)
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert %{
+             "source_report_family_count" => 1,
+             "source_report_row_count" => 2,
+             "source_link_capacity_report_count" => 1,
+             "source_link_capacity_row_count" => 2,
+             "source_link_capacity_selected_shortfall_row_count" => 1,
+             "source_link_capacity_actual_shortfall_row_count" => 1,
+             "source_link_capacity_actual_throughput_row_count" => 2,
+             "source_link_capacity_capacity_adjusted_throughput_row_count" => 2,
+             "source_link_capacity_capacity_adjusted_throughput_mb_total" => 85.0,
+             "source_link_capacity_selected_capacity_adjusted_throughput_mb_total" => 40.0,
+             "source_link_capacity_unused_capacity_adjusted_throughput_mb_total" => 45.0,
+             "source_link_capacity_ground_station_counts" => %{
+               "dss_43" => 1,
+               "equator_prime" => 1
+             },
+             "source_link_capacity_spacecraft_counts" => %{"leo_1" => 1, "leo_2" => 1},
+             "source_link_capacity_direction_counts" => %{
+               "command" => 1,
+               "downlink" => 1,
+               "tracking" => 1
+             },
+             "source_link_capacity_contact_ids_by_ground_station" => %{
+               "dss_43" => ["contact_gamma"],
+               "equator_prime" => ["contact_alpha", "contact_beta"]
+             },
+             "source_link_capacity_selected_contact_ids" => [
+               "contact_alpha",
+               "contact_beta",
+               "contact_gamma"
+             ],
+             "source_link_capacity_actual_throughput_contact_ids" => [
+               "contact_alpha",
+               "contact_gamma"
+             ],
+             "source_link_capacity_downlink_requirement_status_counts" => %{
+               "actual_met" => 1,
+               "actual_shortfall" => 1,
+               "selected_met" => 1,
+               "selected_shortfall" => 1
+             },
+             "source_link_capacity_contact_ids_by_requirement_status" => %{
+               "actual_met" => ["contact_alpha"],
+               "actual_shortfall" => ["contact_gamma"],
+               "selected_met" => ["contact_gamma"],
+               "selected_shortfall" => ["contact_alpha", "contact_beta"]
+             },
+             "source_link_capacity_trust_boundary_status" => "declared",
+             "source_link_capacity_branch_local_link_capacity_pressure" => true,
+             "source_link_capacity_branch_local_capacity_adjusted_throughput_pressure" => true,
+             "source_link_capacity_branch_local_downlink_shortfall_pressure" => true,
+             "source_link_capacity_branch_local_actual_throughput_pressure" => true
+           } = observations
+
+    stale_link_capacity_pressure_observations =
+      observations
+      |> Map.put("source_link_capacity_branch_local_link_capacity_pressure", false)
+
+    assert {:ok, stale_link_capacity_pressure_verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               stale_link_capacity_pressure_observations
+             )
+
+    assert stale_link_capacity_pressure_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_link_capacity_pressure_verification["checks"],
+             &(&1["field"] == "source_link_capacity_branch_local_link_capacity_pressure" and
+                 &1["status"] == "fail")
+           )
+
+    assert {:ok, _validated_artifact} =
+             Schema.validate_artifact(artifact, schema_contract: "candidate_refresh.v1")
+  end
+
   test "verifies curated candidate rejection report reference fixtures" do
     fixture_id = "fixture.artifact.candidate_rejection_report.v1"
 
@@ -14453,6 +14546,8 @@ defmodule OrbitalDynamics.ValidationTest do
           candidate_refresh_contact_intent_direction_fixture_observations(),
         "fixture.artifact.candidate_refresh.constraint_replay" =>
           candidate_refresh_constraint_fixture_observations(),
+        "fixture.artifact.candidate_refresh.link_capacity_replay" =>
+          candidate_refresh_link_capacity_fixture_observations(),
         "fixture.artifact.candidate_refresh.operational_readiness_replay" =>
           candidate_refresh_operational_readiness_fixture_observations(),
         "fixture.artifact.candidate_refresh.timeline_activity_precondition_replay" =>
@@ -14754,8 +14849,8 @@ defmodule OrbitalDynamics.ValidationTest do
     assert %{
              "schema_contract" => "validation_reference_fixture_report.v1",
              "status" => "pass",
-             "fixture_count" => 187,
-             "status_counts" => %{"pass" => 187},
+             "fixture_count" => 188,
+             "status_counts" => %{"pass" => 188},
              "reports" => reports
            } = report
 
@@ -14790,6 +14885,7 @@ defmodule OrbitalDynamics.ValidationTest do
              "fixture.artifact.candidate_refresh.constraint_replay",
              "fixture.artifact.candidate_refresh.contact_contention_cross_station_replay",
              "fixture.artifact.candidate_refresh.contact_intent_direction_replay",
+             "fixture.artifact.candidate_refresh.link_capacity_replay",
              "fixture.artifact.candidate_refresh.objective_gap_replay",
              "fixture.artifact.candidate_refresh.operational_readiness_replay",
              "fixture.artifact.candidate_refresh.quality_gate_replay",
@@ -14969,7 +15065,7 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert %{
              "status" => "fail",
-             "status_counts" => %{"fail" => 187},
+             "status_counts" => %{"fail" => 188},
              "reports" => invalid_observation_reports
            } = invalid_observation_report
 
@@ -15935,6 +16031,121 @@ defmodule OrbitalDynamics.ValidationTest do
           }
         ],
         "provenance" => %{"trust_boundary" => "constraint_replay_report"}
+      }
+    }
+  end
+
+  defp candidate_refresh_link_capacity_fixture_observations do
+    "candidate_refresh.v1"
+    |> Validation.artifact_observations(candidate_refresh_link_capacity_fixture())
+  end
+
+  defp candidate_refresh_link_capacity_fixture do
+    result_set(%{})
+    |> CandidateRefresh.build(
+      candidate_refresh: candidate_refresh_link_capacity_request(),
+      generated_at: ~U[2026-05-14 00:00:00Z]
+    )
+  end
+
+  defp candidate_refresh_link_capacity_request do
+    %{
+      "accepted_planning_state" => %{
+        "snapshot_id" => "ops-state-link-capacity-replay-challenge",
+        "accepted_at" => "2026-05-14T00:00:00Z",
+        "spacecraft_states" => [],
+        "source" => %{"system" => "validation_challenge"},
+        "quality" => %{"level" => "accepted"},
+        "provenance" => %{"created_by" => "validation_fixture"}
+      },
+      "current_epoch_s" => 0.0,
+      "remaining_horizon" => %{
+        "starts_at_s" => 0.0,
+        "ends_at_s" => 600.0,
+        "output_step_s" => 60.0
+      },
+      "targets" => [],
+      "constraints" => %{},
+      "scoring_policy" => %{},
+      "model_assumptions" => %{"refresh_level" => "sampled_v1"},
+      "source_link_capacity_report" => %{
+        "schema_contract" => "link_capacity_report.v1",
+        "rows" => [
+          %{
+            "spacecraft_id" => "leo_1",
+            "ground_station_id" => "equator_prime",
+            "direction" => "Down Link",
+            "capacity_adjusted_throughput_mb" => 65.0,
+            "selected_capacity_adjusted_throughput_mb" => 25.0,
+            "unused_capacity_adjusted_throughput_mb" => 40.0,
+            "selected_downlink_shortfall_mb" => 12.0,
+            "actual_throughput_mb" => 21.0,
+            "source_window_id" => "window_alpha",
+            "station_calendar_entry_ids" => ["station_entry_alpha", "station_entry_beta"],
+            "station_calendar_provider_entry_ids" => [
+              "provider_entry_alpha",
+              "provider_entry_beta"
+            ],
+            "selected_contacts" => [
+              %{
+                "id" => "contact_alpha",
+                "direction" => "Down Link",
+                "source_window_id" => "window_alpha",
+                "station_calendar_entry_id" => "station_entry_alpha",
+                "station_calendar_provider_entry_id" => "provider_entry_alpha"
+              },
+              %{
+                "id" => "contact_beta",
+                "direction" => "tracking_pass",
+                "source_window_id" => "window_beta",
+                "station_calendar_entry_id" => "station_entry_beta",
+                "station_calendar_provider_entry_id" => "provider_entry_beta"
+              }
+            ],
+            "actual_throughput_contact" => %{
+              "id" => "contact_alpha",
+              "source_window_id" => "window_alpha",
+              "station_calendar_entry_id" => "station_entry_alpha",
+              "station_calendar_provider_entry_id" => "provider_entry_alpha"
+            },
+            "downlink_requirement_status" => "selected_shortfall",
+            "actual_downlink_requirement_status" => "actual_met"
+          },
+          %{
+            "spacecraft_id" => "leo_2",
+            "ground_station_id" => "dss_43",
+            "direction" => "s-band command",
+            "capacity_adjusted_throughput_mb" => 20.0,
+            "selected_capacity_adjusted_throughput_mb" => 15.0,
+            "unused_capacity_adjusted_throughput_mb" => 5.0,
+            "actual_throughput_mb" => 18.0,
+            "actual_downlink_shortfall_mb" => 7.0,
+            "source_window_ids" => ["window_gamma"],
+            "station_calendar_entry_id" => "station_entry_gamma",
+            "station_calendar_provider_entry_id" => "provider_entry_gamma",
+            "selected_contact" => %{
+              "id" => "contact_gamma",
+              "source_window_id" => "window_gamma",
+              "station_calendar_entry_id" => "station_entry_gamma",
+              "station_calendar_provider_entry_id" => "provider_entry_gamma"
+            },
+            "actual_throughput_contact" => %{
+              "id" => "contact_gamma",
+              "source_window_id" => "window_gamma",
+              "station_calendar_entry_id" => "station_entry_gamma",
+              "station_calendar_provider_entry_id" => "provider_entry_gamma"
+            },
+            "downlink_requirement_status" => "selected_met",
+            "actual_downlink_requirement_status" => "actual_shortfall"
+          }
+        ],
+        "capacity_adjusted_throughput_mb_total" => 999.0,
+        "selected_capacity_adjusted_throughput_mb_total" => 999.0,
+        "unused_capacity_adjusted_throughput_mb_total" => 999.0,
+        "contact_ids_by_requirement_status" => %{"stale_status" => ["stale_contact"]},
+        "selected_contact_ids" => ["stale_selected_contact"],
+        "actual_throughput_contact_ids" => ["stale_actual_contact"],
+        "provenance" => %{"trust_boundary" => "link_capacity_replay_report"}
       }
     }
   end
