@@ -18709,6 +18709,77 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                 }
               },
               %{
+                type: "timeline_activity_lifecycle_state_pressure",
+                activity_id: "activity_lifecycle_cmd_pending",
+                timeline_id: "timeline:activity_lifecycle:cmd_pending",
+                planned_activity_id: "activity_lifecycle_cmd_pending",
+                realized_activity_id: "activity_lifecycle_cmd_pending",
+                planned_timeline_id: "timeline:activity_lifecycle:cmd_pending",
+                realized_timeline_id: "timeline:activity_lifecycle:cmd_pending",
+                transition_decision: "review",
+                status_transition_decision: "record",
+                approval_transition_decision: "review",
+                review_required: true,
+                requires_operator_review: true,
+                required_operator_action: "review_activity_approval",
+                required_operator_actions: [
+                  "record_timeline_change",
+                  "review_activity_approval"
+                ],
+                operator_action_reasons: [
+                  "activity_execution_recorded",
+                  "approval_grant_requires_operator_authority"
+                ],
+                import_action: "review_timeline_diff",
+                invalid_activity_input: false,
+                invalid_activity_input_count: 0,
+                invalid_activity_input_reasons: [],
+                planned_status: "planned",
+                realized_status: "executed",
+                planned_status_category: "planned",
+                realized_status_category: "executed",
+                planned_approval_status: "pending",
+                realized_approval_status: "approved",
+                planned_approval_category: "pending",
+                realized_approval_category: "approval_granted",
+                planned_locked: false,
+                realized_locked: false,
+                planned_executed: false,
+                realized_executed: true,
+                status_transition: %{
+                  "field" => "status",
+                  "from" => "planned",
+                  "to" => "executed",
+                  "transition_type" => "status_changed",
+                  "transition_category" => "planned_to_executed",
+                  "transition_reason" => "activity execution recorded",
+                  "requires_operator_review" => false
+                },
+                approval_transition: %{
+                  "field" => "approval_status",
+                  "from" => "pending",
+                  "to" => "approved",
+                  "transition_type" => "approval_state_changed",
+                  "transition_category" => "pending_to_approved",
+                  "transition_reason" => "approval grant requires operator authority",
+                  "requires_operator_review" => true
+                },
+                planned_protection_decision: "record",
+                realized_protection_decision: "review",
+                feedback_source: "mission_state.source_timeline_activity_lifecycle_state",
+                feedback_scope: "timeline_activity_lifecycle_state",
+                feedback_key: "activity_lifecycle_cmd_pending",
+                trust_boundary: "mission_state_timeline_activity_lifecycle_state",
+                derivation_reasons: ["timeline_activity_lifecycle_state_pressure"],
+                assumptions: %{
+                  "timeline_lifecycle_application" => "not_performed_by_strategy_branch",
+                  "timeline_mutation" => "not_performed_by_strategy_branch",
+                  "operator_authority" => "not_granted_by_strategy_branch",
+                  "cadence_import" => "not_performed_by_strategy_branch",
+                  "command_execution" => "not_performed_by_strategy_branch"
+                }
+              },
+              %{
                 type: "timeline_preservation_pressure",
                 activity_id: "contact_locked_review",
                 timeline_id: "timeline:contact_locked_review",
@@ -19326,6 +19397,50 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                explanation,
                &(&1["type"] == "risk_driver" and
                    &1["risk_type"] == "timeline_lifecycle_state_review")
+             )
+
+    assert %{
+             "type" => "risk_driver",
+             "risk_type" => "timeline_activity_lifecycle_state_review",
+             "severity" => "high",
+             "activity_id" => "activity_lifecycle_cmd_pending",
+             "timeline_id" => "timeline:activity_lifecycle:cmd_pending",
+             "planned_activity_id" => "activity_lifecycle_cmd_pending",
+             "realized_activity_id" => "activity_lifecycle_cmd_pending",
+             "planned_timeline_id" => "timeline:activity_lifecycle:cmd_pending",
+             "realized_timeline_id" => "timeline:activity_lifecycle:cmd_pending",
+             "transition_decision" => "review",
+             "status_transition_decision" => "record",
+             "approval_transition_decision" => "review",
+             "review_required" => true,
+             "requires_operator_review" => true,
+             "required_operator_action" => "review_activity_approval",
+             "required_operator_actions" => [
+               "record_timeline_change",
+               "review_activity_approval"
+             ],
+             "operator_action_reasons" => [
+               "activity_execution_recorded",
+               "approval_grant_requires_operator_authority"
+             ],
+             "import_action" => "review_timeline_diff",
+             "invalid_activity_input" => false,
+             "planned_status" => "planned",
+             "realized_status" => "executed",
+             "planned_approval_status" => "pending",
+             "realized_approval_status" => "approved",
+             "planned_protection_decision" => "record",
+             "realized_protection_decision" => "review",
+             "feedback_source" => "mission_state.source_timeline_activity_lifecycle_state",
+             "feedback_scope" => "timeline_activity_lifecycle_state",
+             "feedback_key" => "activity_lifecycle_cmd_pending",
+             "trust_boundary" => "mission_state_timeline_activity_lifecycle_state",
+             "derivation_reasons" => ["timeline_activity_lifecycle_state_pressure"]
+           } =
+             Enum.find(
+               explanation,
+               &(&1["type"] == "risk_driver" and
+                   &1["risk_type"] == "timeline_activity_lifecycle_state_review")
              )
 
     assert %{
@@ -20099,6 +20214,102 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
         "timeline_lifecycle_state_summary_pressure"
       ],
       "timeline_lifecycle_state_assumption_maps" => [
+        %{
+          "timeline_lifecycle_application" => "not_performed_by_strategy_branch",
+          "timeline_mutation" => "not_performed_by_strategy_branch",
+          "operator_authority" => "not_granted_by_strategy_branch",
+          "cadence_import" => "not_performed_by_strategy_branch",
+          "command_execution" => "not_performed_by_strategy_branch"
+        }
+      ],
+      "timeline_activity_lifecycle_state_activity_ids" => [
+        "activity_lifecycle_cmd_pending"
+      ],
+      "timeline_activity_lifecycle_state_timeline_ids" => [
+        "timeline:activity_lifecycle:cmd_pending"
+      ],
+      "timeline_activity_lifecycle_state_planned_activity_ids" => [
+        "activity_lifecycle_cmd_pending"
+      ],
+      "timeline_activity_lifecycle_state_realized_activity_ids" => [
+        "activity_lifecycle_cmd_pending"
+      ],
+      "timeline_activity_lifecycle_state_planned_timeline_ids" => [
+        "timeline:activity_lifecycle:cmd_pending"
+      ],
+      "timeline_activity_lifecycle_state_realized_timeline_ids" => [
+        "timeline:activity_lifecycle:cmd_pending"
+      ],
+      "timeline_activity_lifecycle_state_transition_decisions" => ["review"],
+      "timeline_activity_lifecycle_state_status_transition_decisions" => ["record"],
+      "timeline_activity_lifecycle_state_approval_transition_decisions" => ["review"],
+      "timeline_activity_lifecycle_state_review_required_values" => [true],
+      "timeline_activity_lifecycle_state_requires_operator_review_values" => [true],
+      "timeline_activity_lifecycle_state_required_operator_actions" => [
+        "review_activity_approval",
+        "record_timeline_change"
+      ],
+      "timeline_activity_lifecycle_state_operator_action_reasons" => [
+        "activity_execution_recorded",
+        "approval_grant_requires_operator_authority"
+      ],
+      "timeline_activity_lifecycle_state_import_actions" => ["review_timeline_diff"],
+      "timeline_activity_lifecycle_state_invalid_activity_input_values" => [false],
+      "timeline_activity_lifecycle_state_invalid_activity_input_count_values" => [0],
+      "timeline_activity_lifecycle_state_planned_statuses" => ["planned"],
+      "timeline_activity_lifecycle_state_realized_statuses" => ["executed"],
+      "timeline_activity_lifecycle_state_planned_status_categories" => ["planned"],
+      "timeline_activity_lifecycle_state_realized_status_categories" => ["executed"],
+      "timeline_activity_lifecycle_state_planned_approval_statuses" => ["pending"],
+      "timeline_activity_lifecycle_state_realized_approval_statuses" => ["approved"],
+      "timeline_activity_lifecycle_state_planned_approval_categories" => ["pending"],
+      "timeline_activity_lifecycle_state_realized_approval_categories" => [
+        "approval_granted"
+      ],
+      "timeline_activity_lifecycle_state_planned_locked_values" => [false],
+      "timeline_activity_lifecycle_state_realized_locked_values" => [false],
+      "timeline_activity_lifecycle_state_planned_executed_values" => [false],
+      "timeline_activity_lifecycle_state_realized_executed_values" => [true],
+      "timeline_activity_lifecycle_state_status_transitions" => [
+        %{
+          "field" => "status",
+          "from" => "planned",
+          "to" => "executed",
+          "transition_type" => "status_changed",
+          "transition_category" => "planned_to_executed",
+          "transition_reason" => "activity execution recorded",
+          "requires_operator_review" => false
+        }
+      ],
+      "timeline_activity_lifecycle_state_approval_transitions" => [
+        %{
+          "field" => "approval_status",
+          "from" => "pending",
+          "to" => "approved",
+          "transition_type" => "approval_state_changed",
+          "transition_category" => "pending_to_approved",
+          "transition_reason" => "approval grant requires operator authority",
+          "requires_operator_review" => true
+        }
+      ],
+      "timeline_activity_lifecycle_state_planned_protection_decisions" => ["record"],
+      "timeline_activity_lifecycle_state_realized_protection_decisions" => ["review"],
+      "timeline_activity_lifecycle_state_feedback_sources" => [
+        "mission_state.source_timeline_activity_lifecycle_state"
+      ],
+      "timeline_activity_lifecycle_state_feedback_scopes" => [
+        "timeline_activity_lifecycle_state"
+      ],
+      "timeline_activity_lifecycle_state_feedback_keys" => [
+        "activity_lifecycle_cmd_pending"
+      ],
+      "timeline_activity_lifecycle_state_trust_boundaries" => [
+        "mission_state_timeline_activity_lifecycle_state"
+      ],
+      "timeline_activity_lifecycle_state_derivation_reasons" => [
+        "timeline_activity_lifecycle_state_pressure"
+      ],
+      "timeline_activity_lifecycle_state_assumption_maps" => [
         %{
           "timeline_lifecycle_application" => "not_performed_by_strategy_branch",
           "timeline_mutation" => "not_performed_by_strategy_branch",

@@ -4890,18 +4890,44 @@ defmodule OrbitalDynamics.CampaignPlanner do
           "activity #{event["activity_id"] || event["timeline_id"]} carries lifecycle-state review or import pressure",
         "activity_id" => event["activity_id"],
         "timeline_id" => event["timeline_id"],
+        "planned_activity_id" => event["planned_activity_id"],
+        "realized_activity_id" => event["realized_activity_id"],
+        "planned_timeline_id" => event["planned_timeline_id"],
+        "realized_timeline_id" => event["realized_timeline_id"],
         "transition_decision" => event["transition_decision"],
         "status_transition_decision" => event["status_transition_decision"],
         "approval_transition_decision" => event["approval_transition_decision"],
+        "review_required" => event["review_required"],
+        "requires_operator_review" => event["requires_operator_review"],
         "required_operator_action" => event["required_operator_action"],
         "required_operator_actions" => event["required_operator_actions"],
         "operator_action_reasons" => event["operator_action_reasons"],
         "import_action" => event["import_action"],
         "invalid_activity_input" => event["invalid_activity_input"],
+        "invalid_activity_input_count" => event["invalid_activity_input_count"],
         "invalid_activity_input_reasons" => event["invalid_activity_input_reasons"],
+        "planned_status" => event["planned_status"],
+        "realized_status" => event["realized_status"],
+        "planned_status_category" => event["planned_status_category"],
+        "realized_status_category" => event["realized_status_category"],
+        "planned_approval_status" => event["planned_approval_status"],
+        "realized_approval_status" => event["realized_approval_status"],
+        "planned_approval_category" => event["planned_approval_category"],
+        "realized_approval_category" => event["realized_approval_category"],
+        "planned_locked" => event["planned_locked"],
+        "realized_locked" => event["realized_locked"],
+        "planned_executed" => event["planned_executed"],
+        "realized_executed" => event["realized_executed"],
+        "status_transition" => event["status_transition"],
+        "approval_transition" => event["approval_transition"],
+        "planned_protection_decision" => event["planned_protection_decision"],
+        "realized_protection_decision" => event["realized_protection_decision"],
         "feedback_source" => event["feedback_source"],
         "feedback_scope" => event["feedback_scope"],
-        "trust_boundary" => event["trust_boundary"]
+        "feedback_key" => event["feedback_key"],
+        "trust_boundary" => event["trust_boundary"],
+        "derivation_reasons" => event["derivation_reasons"],
+        "assumptions" => event["assumptions"]
       }
       |> compact_map()
     ]
@@ -5500,6 +5526,51 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "invalid_activity_input_reason",
       "requires_operator_review",
       "required_operator_action",
+      "feedback_source",
+      "feedback_scope",
+      "feedback_key",
+      "trust_boundary",
+      "derivation_reasons",
+      "assumptions"
+    ]
+  end
+
+  defp timeline_activity_lifecycle_state_pressure_risk_fields do
+    [
+      "activity_id",
+      "timeline_id",
+      "planned_activity_id",
+      "realized_activity_id",
+      "planned_timeline_id",
+      "realized_timeline_id",
+      "transition_decision",
+      "status_transition_decision",
+      "approval_transition_decision",
+      "review_required",
+      "requires_operator_review",
+      "required_operator_action",
+      "required_operator_actions",
+      "operator_action_reasons",
+      "import_action",
+      "invalid_activity_input",
+      "invalid_activity_input_count",
+      "invalid_activity_input_reasons",
+      "planned_status",
+      "realized_status",
+      "planned_status_category",
+      "realized_status_category",
+      "planned_approval_status",
+      "realized_approval_status",
+      "planned_approval_category",
+      "realized_approval_category",
+      "planned_locked",
+      "realized_locked",
+      "planned_executed",
+      "realized_executed",
+      "status_transition",
+      "approval_transition",
+      "planned_protection_decision",
+      "realized_protection_decision",
       "feedback_source",
       "feedback_scope",
       "feedback_key",
@@ -7143,6 +7214,18 @@ defmodule OrbitalDynamics.CampaignPlanner do
          %{"feedback_scope" => "timeline_activity_precondition"} = risk
        ) do
     Map.take(risk, timeline_activity_precondition_pressure_risk_fields())
+  end
+
+  defp recommendation_pressure_risk_context(
+         %{"type" => "timeline_activity_lifecycle_state_review"} = risk
+       ) do
+    Map.take(risk, timeline_activity_lifecycle_state_pressure_risk_fields())
+  end
+
+  defp recommendation_pressure_risk_context(
+         %{"feedback_scope" => "timeline_activity_lifecycle_state"} = risk
+       ) do
+    Map.take(risk, timeline_activity_lifecycle_state_pressure_risk_fields())
   end
 
   defp recommendation_pressure_risk_context(%{"type" => "timeline_publication_pressure"} = risk) do
