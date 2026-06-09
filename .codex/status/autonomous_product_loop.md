@@ -5,38 +5,37 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Split contact-allocation pressure out of generic V3 risk scoring.
+Split readiness/quality pressure out of generic V3 risk scoring.
 
 Status:
-Published locally in product commit `7dd93f5`; handoff commit pending.
+Published locally in product commit `c896321`; handoff commit pending.
 
 Slice-selection note:
-- Selected slice: split contact-allocation pressure risk out of the generic V3
-  `risk_penalty` score term into an explicit score term while preserving the
-  same total score for fixed inputs.
-- Why this slice: the roadmap prioritizes converting existing resource/contact
-  review evidence into planner-visible branch score explanations; live code
-  already routes contact-allocation risks, but their score effect is hidden in
-  generic risk count.
-- Level 6 pillar: fleet-level resource/contact behavior and reproducible V3
+- Selected slice: split operational-readiness and quality-gate pressure risks
+  out of generic V3 `risk_penalty` into an explicit approval-boundary score
+  term while preserving total score for fixed inputs.
+- Why this slice: the roadmap prioritizes making readiness and quality blocks
+  affect branch recommendations before review/import handoff; live code already
+  turns those pressure events into branch risks, but their score effect is
+  hidden in generic risk count.
+- Level 6 pillar: approval-aware automation boundaries and reproducible V3
   branch trees with explainable score terms and deltas.
-- Current evidence gap: `downlink_completion_gap` and provider-reservation
-  review risks affect branch score only through `risk_penalty`; score-term
-  reports and tradeoffs do not isolate contact-allocation pressure.
+- Current evidence gap: operational-readiness and quality-gate pressure rows
+  expose rich routing context, but score-term reports/tradeoffs do not isolate
+  their approval-boundary penalty from unrelated risk pressure.
 - Docs read:
   `docs/autonomous_work_guide.md`,
   `.codex/prompts/long_running_context_efficient_product_loop.md`,
-  `docs/feature_set/completeness_levels/06_mature_operational_platform.md`,
-  `docs/feature_set/definition_of_feature_complete.md`,
-  `docs/feature_set/current_capability_snapshot.md`,
-  `docs/feature_set/recommended_roadmap.md`,
-  `docs/feature_set/capability_map/07_ground_network_and_communications_planning.md`,
-  `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`.
+  `.codex/status/autonomous_product_loop.md`,
+  `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`,
+  `docs/feature_set/capability_map/17_reproducibility_artifacts_and_audit.md`,
+  `docs/feature_set/capability_map/20_cadence_boundary_and_integration_artifacts.md`,
+  `docs/mission_planning/high_fidelity/12_operational_readiness.md`.
 - Likely files: `lib/orbital_dynamics/campaign_planner.ex`,
   `test/orbital_dynamics/campaign_planner_test.exs`,
   `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`,
   `.codex/status/autonomous_product_loop.md`.
-- Definition of done: contact-allocation pressure contributes an explicit V3
+- Definition of done: readiness/quality pressure contributes an explicit V3
   score term and score-term report key; generic risk penalty excludes those
   same risks so total score remains compatible; focused planner tests, compile,
   and whitespace checks pass.
@@ -48,28 +47,31 @@ Files changed:
 - `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:17852 test/orbital_dynamics/campaign_planner_test.exs:40872 test/orbital_dynamics/campaign_planner_test.exs:41000 test/orbital_dynamics/campaign_planner_test.exs:41247`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:18284 test/orbital_dynamics/campaign_planner_test.exs:18581 test/orbital_dynamics/campaign_planner_test.exs:44325`
 - `mix test test/orbital_dynamics/campaign_planner_test.exs`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:18284 test/orbital_dynamics/campaign_planner_test.exs:18581 test/orbital_dynamics/campaign_planner_test.exs:44325` after reviewer coverage fix
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 
 Docs/artifacts changed:
-- Documented `contact_allocation_pressure_penalty` in the V3 strategy
+- Documented `approval_boundary_pressure_penalty` in the V3 strategy
   orchestration capability notes.
 
 Local review:
-- V3 strategy score terms now split contact-allocation pressure into
-  `contact_allocation_pressure_penalty`, while `risk_penalty` retains
-  non-contact-allocation risks. Raw score still applies one `risk_weight`
-  penalty per risk indicator, preserving total branch-score compatibility for
-  fixed inputs. Focused tests assert exact contact risk counts, exact split
-  penalties, score-term report rows/keys, non-contact branches with zero
-  contact pressure, and the new recommendation tradeoff dimension. Read-only
-  reviewer `Darwin` found that compatibility-sum assertions alone would not
-  catch over-broad contact classification; tests were tightened accordingly.
+- V3 strategy score terms now split operational-readiness and quality-gate
+  pressure into `approval_boundary_pressure_penalty`, while generic
+  `risk_penalty` retains unrelated risks and
+  `contact_allocation_pressure_penalty` remains separate. Raw score still
+  applies one `risk_weight` penalty per risk indicator, preserving total
+  branch-score compatibility for fixed inputs. Focused tests assert exact
+  readiness/quality risk counts, exact split penalties, zero approval-boundary
+  pressure on non-readiness branches, score-term report rows/keys, and the new
+  recommendation tradeoff dimension. Read-only reviewer `Peirce` found the
+  score-term report coverage was weaker than the previous contact-allocation
+  slice; tests were tightened accordingly.
 
 Level 6 pillar advanced:
-Planner-visible resource/contact score explanations without ranking drift.
+Planner-visible approval-boundary score explanations without ranking drift.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -79,18 +81,18 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last commit:
-`7dd93f5` Split contact allocation pressure score term.
+`c896321` Split approval boundary pressure score term.
 
 Next candidate:
-After this slice, inspect whether the same score-term split is useful for
-readiness/quality-gate pressure or whether a compatibility fixture is
-higher-value.
+After this slice, inspect whether a compatibility fixture or a higher-priority
+timeline lifecycle challenge is higher-value.
 
 Unrelated local changes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
   not part of this slice.
 
 Previous published slices:
+- `7dd93f5` split contact-allocation pressure into an explicit V3 score term.
 - `ae950a5` exposed reservation-conflict identities in branch comparison rows.
 - `eae9483` derived operational-readiness gate pressure classification from
   row-local status.
