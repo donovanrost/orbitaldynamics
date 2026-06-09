@@ -16030,8 +16030,11 @@ defmodule OrbitalDynamics.OperatorReview do
 
   defp strategy_recommendation_readiness_quality_gate_context(_recommendation), do: %{}
 
-  defp strategy_recommendation_risk_context(%{"risks_remaining" => risks}) when is_list(risks) do
+  defp strategy_recommendation_risk_context(%{"risks_remaining" => risks} = recommendation)
+       when is_list(risks) do
     risks = Enum.map(risks, &stringify_keys/1)
+    resource_margin_rows = strategy_recommendation_resource_margin_rows(recommendation)
+    resource_margin_context_rows = risks ++ resource_margin_rows
 
     candidate_rejection_risks =
       Enum.filter(
@@ -16233,6 +16236,11 @@ defmodule OrbitalDynamics.OperatorReview do
       )
     )
     |> Map.merge(
+      OrbitalDynamics.RecommendationRiskContext.resource_margin_context(
+        resource_margin_context_rows
+      )
+    )
+    |> Map.merge(
       OrbitalDynamics.RecommendationRiskContext.timeline_activity_precondition_context(risks)
     )
     |> Map.merge(
@@ -16251,6 +16259,15 @@ defmodule OrbitalDynamics.OperatorReview do
   end
 
   defp strategy_recommendation_risk_context(_recommendation), do: %{}
+
+  defp strategy_recommendation_resource_margin_rows(%{"explanation" => explanation})
+       when is_list(explanation) do
+    explanation
+    |> Enum.map(&stringify_keys/1)
+    |> Enum.filter(&(&1["type"] == "resource_margin_pressure"))
+  end
+
+  defp strategy_recommendation_resource_margin_rows(_recommendation), do: []
 
   defp merge_strategy_recommendation_context(row, context) when is_map(context) do
     Enum.reduce(context, row, fn

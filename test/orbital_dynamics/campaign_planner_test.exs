@@ -18595,6 +18595,30 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                 derivation_reasons: ["timeline_dependency_impact_summary_pressure"]
               },
               %{
+                type: "resource_margin_pressure",
+                spacecraft_id: "leo_1",
+                scenario_id: "leo_1",
+                timeline_id: "timeline:resource_margin:power",
+                source_activity_id: "obs_power_pressure",
+                replacement_activity_id: "obs_power_pressure_replanned",
+                source_activity_ids: ["obs_power_pressure"],
+                resource_field: "power_margin",
+                power_margin: 0.08,
+                power_margin_threshold: 0.2,
+                source_quality: "declared",
+                starts_at_s: 500.0,
+                ends_at_s: 560.0,
+                diff_status: "changed",
+                changed_fields: ["power_margin"],
+                required_operator_action: "review_resource_margin",
+                requires_operator_review: true,
+                feedback_source: "mission_state.source_resource_projection_report.rows",
+                feedback_scope: "resource_margin",
+                feedback_key: "leo_1.power_margin",
+                trust_boundary: "mission_state_resource_projection_report",
+                derivation_reasons: ["resource_projection_power_margin_low"]
+              },
+              %{
                 type: "timeline_publication_pressure",
                 publication_id:
                   "timeline_publication:9:timeline:selected_plan:v2:timeline:selected_plan:v1",
@@ -19344,6 +19368,43 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                explanation,
                &(&1["type"] == "risk_driver" and
                    &1["risk_type"] == "timeline_dependency_impact")
+             )
+
+    assert %{
+             "type" => "resource_margin_pressure",
+             "risk_type" => "power_margin_low",
+             "severity" => "medium",
+             "spacecraft_id" => "leo_1",
+             "scenario_id" => "leo_1",
+             "timeline_id" => "timeline:resource_margin:power",
+             "source_activity_id" => "obs_power_pressure",
+             "replacement_activity_id" => "obs_power_pressure_replanned",
+             "source_activity_ids" => ["obs_power_pressure"],
+             "resource_field" => "power_margin",
+             "resource_margin_value" => 0.08,
+             "resource_margin_threshold" => 0.2,
+             "resource_margin_field_value" => %{
+               "field" => "power_margin",
+               "value" => 0.08,
+               "threshold" => 0.2
+             },
+             "source_quality" => "declared",
+             "starts_at_s" => 500.0,
+             "ends_at_s" => 560.0,
+             "diff_status" => "changed",
+             "changed_fields" => ["power_margin"],
+             "required_operator_action" => "review_resource_margin",
+             "requires_operator_review" => true,
+             "feedback_source" => "mission_state.source_resource_projection_report.rows",
+             "feedback_scope" => "resource_margin",
+             "feedback_key" => "leo_1.power_margin",
+             "trust_boundary" => "mission_state_resource_projection_report",
+             "derivation_reasons" => ["resource_projection_power_margin_low"]
+           } =
+             Enum.find(
+               explanation,
+               &(&1["type"] == "resource_margin_pressure" and
+                   &1["risk_type"] == "power_margin_low")
              )
 
     assert %{
@@ -20128,6 +20189,38 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
       ],
       "timeline_dependency_impact_derivation_reasons" => [
         "timeline_dependency_impact_summary_pressure"
+      ],
+      "resource_margin_risk_types" => ["power_margin_low"],
+      "resource_margin_spacecraft_ids" => ["leo_1"],
+      "resource_margin_scenario_ids" => ["leo_1"],
+      "resource_margin_timeline_ids" => ["timeline:resource_margin:power"],
+      "resource_margin_source_activity_ids" => ["obs_power_pressure"],
+      "resource_margin_replacement_activity_ids" => ["obs_power_pressure_replanned"],
+      "resource_margin_fields" => ["power_margin"],
+      "resource_margin_values" => [0.08],
+      "resource_margin_threshold_values" => [0.2],
+      "resource_margin_field_value_maps" => [
+        %{
+          "field" => "power_margin",
+          "value" => 0.08,
+          "threshold" => 0.2
+        }
+      ],
+      "resource_margin_source_quality_values" => ["declared"],
+      "resource_margin_start_values_s" => [500.0],
+      "resource_margin_end_values_s" => [560.0],
+      "resource_margin_diff_statuses" => ["changed"],
+      "resource_margin_changed_fields" => ["power_margin"],
+      "resource_margin_required_operator_actions" => ["review_resource_margin"],
+      "resource_margin_requires_operator_review_values" => [true],
+      "resource_margin_feedback_sources" => [
+        "mission_state.source_resource_projection_report.rows"
+      ],
+      "resource_margin_feedback_scopes" => ["resource_margin"],
+      "resource_margin_feedback_keys" => ["leo_1.power_margin"],
+      "resource_margin_trust_boundaries" => ["mission_state_resource_projection_report"],
+      "resource_margin_derivation_reasons" => [
+        "resource_projection_power_margin_low"
       ],
       "timeline_publication_ids" => [
         "timeline_publication:9:timeline:selected_plan:v2:timeline:selected_plan:v1"

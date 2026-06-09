@@ -375,6 +375,31 @@ defmodule OrbitalDynamics.RecommendationRiskContext do
     "timeline_dependency_impact_derivation_reasons"
   ]
 
+  @resource_margin_context_keys [
+    "resource_margin_risk_types",
+    "resource_margin_spacecraft_ids",
+    "resource_margin_scenario_ids",
+    "resource_margin_timeline_ids",
+    "resource_margin_source_activity_ids",
+    "resource_margin_replacement_activity_ids",
+    "resource_margin_fields",
+    "resource_margin_values",
+    "resource_margin_threshold_values",
+    "resource_margin_field_value_maps",
+    "resource_margin_source_quality_values",
+    "resource_margin_start_values_s",
+    "resource_margin_end_values_s",
+    "resource_margin_diff_statuses",
+    "resource_margin_changed_fields",
+    "resource_margin_required_operator_actions",
+    "resource_margin_requires_operator_review_values",
+    "resource_margin_feedback_sources",
+    "resource_margin_feedback_scopes",
+    "resource_margin_feedback_keys",
+    "resource_margin_trust_boundaries",
+    "resource_margin_derivation_reasons"
+  ]
+
   def validation_refresh_context_keys, do: @validation_refresh_context_keys
 
   def approval_boundary_context_keys, do: @approval_boundary_context_keys
@@ -401,6 +426,8 @@ defmodule OrbitalDynamics.RecommendationRiskContext do
     do: @timeline_activity_lifecycle_state_context_keys
 
   def timeline_dependency_impact_context_keys, do: @timeline_dependency_impact_context_keys
+
+  def resource_margin_context_keys, do: @resource_margin_context_keys
 
   def validation_refresh_context(risks) when is_list(risks) do
     risks = Enum.map(risks, &stringify_keys/1)
@@ -1521,6 +1548,85 @@ defmodule OrbitalDynamics.RecommendationRiskContext do
   end
 
   def timeline_dependency_impact_context(_risks), do: %{}
+
+  def resource_margin_context(risks) when is_list(risks) do
+    risks = Enum.map(risks, &stringify_keys/1)
+
+    resource_margin_risks =
+      Enum.filter(risks, &resource_margin_risk?/1)
+
+    %{
+      "resource_margin_risk_types" =>
+        risk_context_values(resource_margin_risks, "resource_margin_risk_type"),
+      "resource_margin_spacecraft_ids" =>
+        risk_context_values(resource_margin_risks, "spacecraft_id"),
+      "resource_margin_scenario_ids" => risk_context_values(resource_margin_risks, "scenario_id"),
+      "resource_margin_timeline_ids" => risk_context_values(resource_margin_risks, "timeline_id"),
+      "resource_margin_source_activity_ids" =>
+        risk_context_values(resource_margin_risks, [
+          "source_activity_id",
+          "source_activity_ids"
+        ]),
+      "resource_margin_replacement_activity_ids" =>
+        risk_context_values(resource_margin_risks, "replacement_activity_id"),
+      "resource_margin_fields" => risk_context_values(resource_margin_risks, "resource_field"),
+      "resource_margin_values" =>
+        risk_context_values(resource_margin_risks, "resource_margin_value"),
+      "resource_margin_threshold_values" =>
+        risk_context_values(resource_margin_risks, "resource_margin_threshold"),
+      "resource_margin_field_value_maps" =>
+        risk_context_values(resource_margin_risks, "resource_margin_field_value"),
+      "resource_margin_source_quality_values" =>
+        risk_context_values(resource_margin_risks, "source_quality"),
+      "resource_margin_start_values_s" =>
+        risk_context_values(resource_margin_risks, "starts_at_s"),
+      "resource_margin_end_values_s" => risk_context_values(resource_margin_risks, "ends_at_s"),
+      "resource_margin_diff_statuses" =>
+        risk_context_values(resource_margin_risks, "diff_status"),
+      "resource_margin_changed_fields" =>
+        risk_context_values(resource_margin_risks, ["changed_fields"]),
+      "resource_margin_required_operator_actions" =>
+        risk_context_values(resource_margin_risks, "required_operator_action"),
+      "resource_margin_requires_operator_review_values" =>
+        risk_context_values(resource_margin_risks, "requires_operator_review"),
+      "resource_margin_feedback_sources" =>
+        risk_context_values(resource_margin_risks, "feedback_source"),
+      "resource_margin_feedback_scopes" =>
+        risk_context_values(resource_margin_risks, "feedback_scope"),
+      "resource_margin_feedback_keys" =>
+        risk_context_values(resource_margin_risks, "feedback_key"),
+      "resource_margin_trust_boundaries" =>
+        risk_context_values(resource_margin_risks, "trust_boundary"),
+      "resource_margin_derivation_reasons" =>
+        risk_context_values(resource_margin_risks, ["derivation_reasons"])
+    }
+    |> Enum.reject(fn {_key, values} -> values == [] end)
+    |> Map.new()
+  end
+
+  def resource_margin_context(_risks), do: %{}
+
+  defp resource_margin_risk?(%{"resource_field" => field}) when is_binary(field) do
+    field in [
+      "fuel_margin",
+      "power_margin",
+      "storage_margin",
+      "downlink_margin",
+      "thermal_margin_c"
+    ]
+  end
+
+  defp resource_margin_risk?(%{"type" => type}) when is_binary(type) do
+    type in [
+      "fuel_margin_low",
+      "power_margin_low",
+      "storage_margin_low",
+      "downlink_margin_low",
+      "thermal_margin_c_low"
+    ]
+  end
+
+  defp resource_margin_risk?(_risk), do: false
 
   defp risk_context_values(risks, keys) when is_list(keys) do
     risks

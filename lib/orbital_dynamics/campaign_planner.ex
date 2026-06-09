@@ -5194,7 +5194,30 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "severity" => "medium",
         "reason" => "spacecraft #{spacecraft_id} #{field} #{value} below threshold #{threshold}",
         "value" => value,
-        "spacecraft_id" => spacecraft_id
+        "spacecraft_id" => spacecraft_id,
+        "scenario_id" => event["scenario_id"],
+        "timeline_id" => event["timeline_id"],
+        "source_activity_id" => event["source_activity_id"],
+        "replacement_activity_id" => event["replacement_activity_id"],
+        "source_activity_ids" => event["source_activity_ids"],
+        "resource_margin_risk_type" => field <> "_low",
+        "resource_field" => field,
+        "resource_margin_value" => value,
+        "resource_margin_threshold" => threshold,
+        "resource_margin_field_value" =>
+          resource_margin_field_value_context(field, value, threshold),
+        "source_quality" => event["source_quality"],
+        "starts_at_s" => event["starts_at_s"],
+        "ends_at_s" => event["ends_at_s"],
+        "diff_status" => event["diff_status"],
+        "changed_fields" => event["changed_fields"],
+        "required_operator_action" => event["required_operator_action"],
+        "requires_operator_review" => event["requires_operator_review"],
+        "feedback_source" => event["feedback_source"],
+        "feedback_scope" => event["feedback_scope"],
+        "feedback_key" => event["feedback_key"],
+        "trust_boundary" => event["trust_boundary"],
+        "derivation_reasons" => event["derivation_reasons"]
       }
       |> compact_map()
     ]
@@ -5437,6 +5460,47 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "assumptions"
     ]
   end
+
+  defp resource_margin_pressure_risk_fields do
+    [
+      "type",
+      "spacecraft_id",
+      "scenario_id",
+      "timeline_id",
+      "source_activity_id",
+      "replacement_activity_id",
+      "source_activity_ids",
+      "resource_margin_risk_type",
+      "resource_field",
+      "resource_margin_value",
+      "resource_margin_threshold",
+      "resource_margin_field_value",
+      "source_quality",
+      "starts_at_s",
+      "ends_at_s",
+      "diff_status",
+      "changed_fields",
+      "required_operator_action",
+      "requires_operator_review",
+      "feedback_source",
+      "feedback_scope",
+      "feedback_key",
+      "trust_boundary",
+      "derivation_reasons"
+    ]
+  end
+
+  defp resource_margin_field_value_context(field, value, threshold)
+       when is_binary(field) and is_number(value) do
+    %{
+      "field" => field,
+      "value" => value,
+      "threshold" => threshold
+    }
+    |> compact_map()
+  end
+
+  defp resource_margin_field_value_context(_field, _value, _threshold), do: nil
 
   defp timeline_dependency_impact_pressure_risk_fields do
     [
@@ -6540,6 +6604,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       end)
 
     objective_rows = recommendation_objective_rows(recommended)
+    resource_margin_rows = recommendation_resource_margin_rows(recommended)
 
     risk_rows =
       Enum.map(recommended.risk_indicators, fn risk ->
@@ -6665,6 +6730,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       objective_rows ++
       risk_rows ++
       repair_link_rows ++
+      resource_margin_rows ++
       resource_pressure_rows ++
       readiness_pressure_rows ++
       quality_gate_pressure_rows ++
@@ -6720,6 +6786,52 @@ defmodule OrbitalDynamics.CampaignPlanner do
     else
       []
     end
+  end
+
+  defp recommendation_resource_margin_rows(%PlanBranch{id: branch_id, events: events}) do
+    events
+    |> Enum.map(&stringify_keys/1)
+    |> Enum.filter(&(&1["type"] == "resource_margin_pressure"))
+    |> Enum.map(fn event ->
+      field = event["resource_field"] || "resource_margin"
+      value = Map.get(event, field)
+      threshold = Map.get(event, "#{field}_threshold")
+      spacecraft_id = branch_event_spacecraft_id(event)
+
+      %{
+        "type" => "resource_margin_pressure",
+        "recommended_branch_id" => branch_id,
+        "risk_type" => field <> "_low",
+        "resource_margin_risk_type" => field <> "_low",
+        "severity" => "medium",
+        "reason" => "spacecraft #{spacecraft_id} #{field} #{value} below threshold #{threshold}",
+        "value" => value,
+        "spacecraft_id" => spacecraft_id,
+        "scenario_id" => event["scenario_id"],
+        "timeline_id" => event["timeline_id"],
+        "source_activity_id" => event["source_activity_id"],
+        "replacement_activity_id" => event["replacement_activity_id"],
+        "source_activity_ids" => event["source_activity_ids"],
+        "resource_field" => field,
+        "resource_margin_value" => value,
+        "resource_margin_threshold" => threshold,
+        "resource_margin_field_value" =>
+          resource_margin_field_value_context(field, value, threshold),
+        "source_quality" => event["source_quality"],
+        "starts_at_s" => event["starts_at_s"],
+        "ends_at_s" => event["ends_at_s"],
+        "diff_status" => event["diff_status"],
+        "changed_fields" => event["changed_fields"],
+        "required_operator_action" => event["required_operator_action"],
+        "requires_operator_review" => event["requires_operator_review"],
+        "feedback_source" => event["feedback_source"],
+        "feedback_scope" => event["feedback_scope"],
+        "feedback_key" => event["feedback_key"],
+        "trust_boundary" => event["trust_boundary"],
+        "derivation_reasons" => event["derivation_reasons"]
+      }
+      |> compact_map()
+    end)
   end
 
   defp recommendation_objective_rows(%PlanBranch{
@@ -7268,6 +7380,28 @@ defmodule OrbitalDynamics.CampaignPlanner do
          %{"feedback_scope" => "timeline_dependency_impact"} = risk
        ) do
     Map.take(risk, timeline_dependency_impact_pressure_risk_fields())
+  end
+
+  defp recommendation_pressure_risk_context(%{"resource_field" => field} = risk)
+       when field in [
+              "fuel_margin",
+              "power_margin",
+              "storage_margin",
+              "downlink_margin",
+              "thermal_margin_c"
+            ] do
+    Map.take(risk, resource_margin_pressure_risk_fields())
+  end
+
+  defp recommendation_pressure_risk_context(%{"type" => type} = risk)
+       when type in [
+              "fuel_margin_low",
+              "power_margin_low",
+              "storage_margin_low",
+              "downlink_margin_low",
+              "thermal_margin_c_low"
+            ] do
+    Map.take(risk, resource_margin_pressure_risk_fields())
   end
 
   defp recommendation_pressure_risk_context(%{"type" => "timeline_publication_pressure"} = risk) do
