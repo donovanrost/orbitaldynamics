@@ -5,7 +5,7 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Pin objective-satisfaction status-map challenge guards.
+Pin checked-in unavailable-resource quality-gate routing guards.
 
 Status:
 Completed and pushed.
@@ -16,26 +16,27 @@ Files changed:
 - `test/orbital_dynamics/validation_test.exs`
 
 Tests run:
-- `mix test test/orbital_dynamics/validation_test.exs:13398`
+- `mix test test/orbital_dynamics/validation_test.exs:2843`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 - `git diff --cached --check`
 
 Docs/artifacts changed:
-The curated `objective_satisfaction_report.v1` validation-reference test now
-asserts status counts and objective routing by status, and rejects stale
-observations for both maps. Compatibility docs record the stale status-routing
-guard.
+The checked-in
+`operational_quality_gate_unavailable_resource_summary.v1` validation-reference
+test now asserts quality-gate row routing by status and rejects stale routing
+observations. Compatibility docs record the checked-in quality-gate routing
+guard before resource-pressure replay consumers trust the summary.
 
 Local review:
-Parent review confirmed staged scope, status-map assertions,
-stale-observation checks, docs, and focused verification. `.gitignore` remains
+Parent review confirmed staged scope, checked-in fixture routing assertion,
+stale-observation check, docs, and focused verification. `.gitignore` remains
 unrelated and unstaged.
 
 Level 6 pillar advanced:
-Objective-satisfaction compatibility evidence now pins objective status
-routing in validation-reference coverage, reducing stale plan-objective
-explanation drift.
+Unavailable-resource compatibility evidence now pins checked-in quality-gate
+row routing for resource/contact pressure summaries consumed by downstream
+review, import, and CandidateRefresh replay flows.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -45,7 +46,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`5caf920` Pin objective satisfaction status guards.
+`50f59e3` Pin unavailable resource row routing.
 
 Next candidate:
 Reassess the next planner-visible communications, resource, or
@@ -58,6 +59,8 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `50f59e3` pinned checked-in unavailable-resource quality-gate row routing in
+  validation-reference coverage.
 - `5caf920` pinned objective-satisfaction status count and objective-routing
   challenge guards in validation-reference coverage.
 - `4f0d9e4` pinned ranking-comparison status count and scenario-routing
