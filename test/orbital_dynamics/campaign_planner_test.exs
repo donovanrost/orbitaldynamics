@@ -34396,6 +34396,58 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
       assert source_path in integrity_source_paths
     end
 
+    timeline_integrity_pressure_count =
+      Enum.count(
+        urgent["risk_indicators"],
+        &(&1["type"] == "timeline_integrity_issue" and
+            &1["feedback_source"] == "candidate_source.timeline_integrity_replay_summary")
+      )
+
+    assert timeline_integrity_pressure_count == 1
+
+    assert Enum.any?(
+             urgent["risk_indicators"],
+             &(&1["type"] == "timeline_integrity_issue" and
+                 &1["timeline_integrity_issue_count"] == 28 and
+                 &1["timeline_integrity_review_count"] == 8 and
+                 &1["dependency_issue_count"] == 16 and
+                 &1["exclusivity_issue_count"] == 12 and
+                 &1["timeline_integrity_issue_types"] == [
+                   "duplicate_dependency_timeline",
+                   "duplicate_exclusivity_timeline",
+                   "exclusivity_overlap",
+                   "missing_dependency_activity",
+                   "missing_dependency_timeline"
+                 ] and
+                 &1["review_activity_ids"] == ["cmd_main", "dl_conflict"] and
+                 &1["missing_dependency_activity_ids"] == ["missing_gate"] and
+                 &1["missing_dependency_timeline_ids"] == [
+                   "timeline:health_gate",
+                   "timeline:missing_gate"
+                 ] and
+                 &1["exclusivity_violation_activity_ids"] == ["cmd_main"] and
+                 &1["exclusivity_violation_timeline_ids"] == [
+                   "timeline:command:dss_14:10.0"
+                 ] and
+                 &1["feedback_scope"] == "timeline_integrity")
+           )
+
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    assert urgent["score_terms"]["timeline_integrity_pressure_penalty"] ==
+             -timeline_integrity_pressure_count * risk_weight
+
+    assert "timeline_integrity_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] == urgent["branch_id"] and
+                 &1["term_key"] == "timeline_integrity_pressure_penalty" and
+                 &1["value"] < 0.0)
+           )
+
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
   end

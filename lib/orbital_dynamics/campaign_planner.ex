@@ -3700,6 +3700,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     dependency_impact_replay =
       CandidateRefresh.timeline_dependency_impact_replay_summary(candidate_source)
 
+    integrity_replay =
+      CandidateRefresh.timeline_integrity_replay_summary(candidate_source)
+
     activity_state_replay =
       CandidateRefresh.timeline_activity_state_replay_summary(candidate_source)
 
@@ -3724,6 +3727,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       dependency_impact_replay,
       event_risks
     )
+    |> maybe_add_candidate_source_timeline_integrity_risks(integrity_replay, event_risks)
     |> maybe_add_candidate_source_timeline_lifecycle_risks(lifecycle_replay, event_risks)
     |> maybe_add_candidate_source_timeline_publication_risks(publication_replay, event_risks)
     |> maybe_add_candidate_source_timeline_transition_application_risks(
@@ -3793,6 +3797,18 @@ defmodule OrbitalDynamics.CampaignPlanner do
       risks
     else
       risks ++ timeline_dependency_impact_replay_pressure_risks(replay_summary)
+    end
+  end
+
+  defp maybe_add_candidate_source_timeline_integrity_risks(
+         risks,
+         replay_summary,
+         event_risks
+       ) do
+    if Enum.any?(event_risks, &timeline_integrity_pressure_risk?/1) do
+      risks
+    else
+      risks ++ timeline_integrity_replay_pressure_risks(replay_summary)
     end
   end
 
@@ -4268,6 +4284,112 @@ defmodule OrbitalDynamics.CampaignPlanner do
   end
 
   defp timeline_dependency_impact_replay_pressure_risks(_replay_summary), do: []
+
+  defp timeline_integrity_replay_pressure_risks(
+         %{"branch_local_timeline_integrity_pressure" => true} = replay_summary
+       ) do
+    timeline_integrity_issue_types =
+      replay_summary
+      |> Map.get("timeline_integrity_issue_type_counts", %{})
+      |> map_keys()
+
+    required_operator_actions =
+      replay_summary
+      |> Map.get("required_operator_action_counts", %{})
+      |> map_keys()
+
+    [
+      %{
+        "type" => "timeline_integrity_issue",
+        "severity" => "high",
+        "reason" =>
+          "candidate source timeline-integrity replay reports dependency, exclusivity, or operator-review pressure",
+        "source_report_count" => Map.get(replay_summary, "source_report_count"),
+        "source_report_row_count" => Map.get(replay_summary, "source_report_row_count"),
+        "source_report_paths" => Map.get(replay_summary, "source_report_paths"),
+        "timeline_integrity_issue_count" =>
+          Map.get(replay_summary, "timeline_integrity_issue_count"),
+        "timeline_integrity_review_count" =>
+          Map.get(replay_summary, "timeline_integrity_review_count"),
+        "dependency_issue_count" => Map.get(replay_summary, "dependency_issue_count"),
+        "exclusivity_issue_count" => Map.get(replay_summary, "exclusivity_issue_count"),
+        "timeline_integrity_status_counts" =>
+          Map.get(replay_summary, "timeline_integrity_status_counts"),
+        "timeline_integrity_issue_type_counts" =>
+          Map.get(replay_summary, "timeline_integrity_issue_type_counts"),
+        "timeline_integrity_issue_types" => timeline_integrity_issue_types,
+        "required_operator_action_counts" =>
+          Map.get(replay_summary, "required_operator_action_counts"),
+        "required_operator_actions" => required_operator_actions,
+        "operator_action_reason_counts" =>
+          Map.get(replay_summary, "operator_action_reason_counts"),
+        "review_activity_ids" =>
+          replay_summary
+          |> Map.get("review_activity_id_counts", %{})
+          |> map_keys(),
+        "review_timeline_ids" =>
+          replay_summary
+          |> Map.get("review_timeline_id_counts", %{})
+          |> map_keys(),
+        "missing_dependency_activity_ids" =>
+          replay_summary
+          |> Map.get("missing_dependency_activity_id_counts", %{})
+          |> map_keys(),
+        "missing_dependency_timeline_ids" =>
+          replay_summary
+          |> Map.get("missing_dependency_timeline_id_counts", %{})
+          |> map_keys(),
+        "self_dependency_activity_ids" =>
+          replay_summary
+          |> Map.get("self_dependency_activity_id_counts", %{})
+          |> map_keys(),
+        "self_dependency_timeline_ids" =>
+          replay_summary
+          |> Map.get("self_dependency_timeline_id_counts", %{})
+          |> map_keys(),
+        "dependency_cycle_activity_ids" =>
+          replay_summary
+          |> Map.get("dependency_cycle_activity_id_counts", %{})
+          |> map_keys(),
+        "dependency_cycle_timeline_ids" =>
+          replay_summary
+          |> Map.get("dependency_cycle_timeline_id_counts", %{})
+          |> map_keys(),
+        "dependency_order_violation_activity_ids" =>
+          replay_summary
+          |> Map.get("dependency_order_violation_activity_id_counts", %{})
+          |> map_keys(),
+        "dependency_order_violation_timeline_ids" =>
+          replay_summary
+          |> Map.get("dependency_order_violation_timeline_id_counts", %{})
+          |> map_keys(),
+        "exclusivity_violation_activity_ids" =>
+          replay_summary
+          |> Map.get("exclusivity_violation_activity_id_counts", %{})
+          |> map_keys(),
+        "exclusivity_violation_timeline_ids" =>
+          replay_summary
+          |> Map.get("exclusivity_violation_timeline_id_counts", %{})
+          |> map_keys(),
+        "exclusivity_violation_groups" =>
+          replay_summary
+          |> Map.get("exclusivity_violation_group_counts", %{})
+          |> map_keys(),
+        "branch_local_timeline_integrity_review_pressure" =>
+          Map.get(replay_summary, "branch_local_timeline_integrity_review_pressure"),
+        "branch_local_dependency_integrity_pressure" =>
+          Map.get(replay_summary, "branch_local_dependency_integrity_pressure"),
+        "branch_local_exclusivity_integrity_pressure" =>
+          Map.get(replay_summary, "branch_local_exclusivity_integrity_pressure"),
+        "feedback_source" => "candidate_source.timeline_integrity_replay_summary",
+        "feedback_scope" => "timeline_integrity",
+        "trust_boundaries" => Map.get(replay_summary, "trust_boundaries")
+      }
+      |> compact_map()
+    ]
+  end
+
+  defp timeline_integrity_replay_pressure_risks(_replay_summary), do: []
 
   defp timeline_publication_replay_pressure_risks(
          %{"branch_local_timeline_publication_pressure" => true} = replay_summary
