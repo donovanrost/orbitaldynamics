@@ -5,7 +5,7 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Pin score-term fixture-chain guard.
+Pin ranking-comparison status-map challenge guards.
 
 Status:
 Completed and pushed.
@@ -16,25 +16,26 @@ Files changed:
 - `test/orbital_dynamics/validation_test.exs`
 
 Tests run:
-- `mix test test/orbital_dynamics/validation_test.exs:13584`
+- `mix test test/orbital_dynamics/validation_test.exs:13672`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 - `git diff --cached --check`
 
 Docs/artifacts changed:
-The standalone `score_term_report.v1` fixture is now asserted to match the
-checked-in V1 campaign artifact's embedded `campaign_plan.score_term_report`
-before validation-reference checks run. Compatibility docs record this
-fixture-chain guard.
+The curated `ranking_comparison_report.v1` validation-reference test now
+asserts row-derived status counts and scenario routing by status, and rejects
+stale observations for both maps. Compatibility docs record the status-routing
+challenge guard.
 
 Local review:
-Parent review confirmed staged scope, exact fixture-chain assertion, docs, and
-focused verification. `.gitignore` remains unrelated and unstaged.
+Parent review confirmed staged scope, status-map assertions, stale-observation
+checks, docs, and focused verification. `.gitignore` remains unrelated and
+unstaged.
 
 Level 6 pillar advanced:
-Score-term compatibility evidence now pins the standalone score-term fixture to
-the emitted V1 campaign score explanation surface, reducing fixture-chain drift
-risk for reproducible plan scoring evidence.
+Ranking-comparison compatibility evidence now pins pairwise status routing in
+validation-reference coverage, reducing stale explanation drift for ranking
+delta artifacts.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -44,7 +45,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`cd369ee` Pin score term fixture chain.
+`4f0d9e4` Pin ranking comparison status guards.
 
 Next candidate:
 Reassess the next planner-visible communications, resource, or
@@ -57,6 +58,8 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `4f0d9e4` pinned ranking-comparison status count and scenario-routing
+  challenge guards in validation-reference coverage.
 - `cd369ee` pinned the standalone score-term fixture to the checked-in V1
   campaign artifact's embedded score-term report.
 - `833630c` pinned row-derived score-term key counts in validation-reference
