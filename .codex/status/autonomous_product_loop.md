@@ -9,7 +9,10 @@ Completed slice:
 Used mission-state candidate-rejection evidence during V2 replacement selection.
 
 Status:
-Product slice complete; ready for mechanical publish.
+Product slice complete and pushed.
+
+Published commits:
+- `755e55e` Use candidate rejection evidence in repair selection
 
 Files changed:
 - `lib/orbital_dynamics/campaign_planner.ex`
