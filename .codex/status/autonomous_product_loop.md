@@ -5,63 +5,45 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Pin checked-in timeline precondition fixture to the public facade.
+Pin checked-in timeline activity-state fixtures to public facades.
 
 Status:
-Completed and published.
-
-Slice-selection note:
-- Selected slice: add an exact checked-in fixture guard for
-  `study_results/timeline_activity_precondition_summary_v1.json` using
-  `OrbitalDynamics.timeline_activity_precondition_summary/1`.
-- Why this slice: schema-reference coverage exact-regenerates this fixture, but
-  the validation-reference fixture test only checks observations and schema
-  validity. The validation suite should catch public-facade drift directly.
-- Level 6 pillar: durable schema-versioned artifacts and compatibility checks
-  for timeline activity precondition review/import evidence.
-- Current evidence gap: schema-valid precondition fixture drift can survive in
-  validation-reference coverage unless the checked-in JSON is compared to the
-  public timeline facade that generated it.
-- Docs read:
-  `docs/feature_set/recommended_roadmap.md`,
-  `docs/artifacts/field_families/mission_activities.md`,
-  `docs/artifacts/compatibility_checks.md`.
-- Likely files/tests: `test/orbital_dynamics/validation_test.exs` and
-  `docs/artifacts/compatibility_checks.md`.
-- Definition of done: validation tests exact-regenerate the checked-in
-  precondition fixture through the public facade, focused validation/schema
-  checks pass, docs record the guard, and product plus handoff are committed and
-  pushed without touching unrelated `.gitignore`.
+Completed and pushed.
 
 Files changed:
 - `.codex/status/autonomous_product_loop.md`
 - `docs/artifacts/compatibility_checks.md`
+- `study_results/timeline_lifecycle_state_summary_v1.json`
 - `test/orbital_dynamics/validation_test.exs`
 
 Tests run:
-- `mix test test/orbital_dynamics/validation_test.exs:8980 test/orbital_dynamics/schema_test.exs:12969`
+- `mix test test/orbital_dynamics/validation_test.exs:9043 test/orbital_dynamics/validation_test.exs:9102 test/orbital_dynamics/validation_test.exs:9171 test/orbital_dynamics/validation_test.exs:9243 test/orbital_dynamics/validation_test.exs:9311 test/orbital_dynamics/schema_test.exs:10235 test/orbital_dynamics/schema_test.exs:10501 test/orbital_dynamics/schema_test.exs:10634 test/orbital_dynamics/schema_test.exs:10782 test/orbital_dynamics/schema_test.exs:11190`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 - `git diff --cached --check`
 
 Docs/artifacts changed:
-The checked-in `timeline_activity_precondition_summary_v1.json` fixture now has
-a focused validation assertion that exact-regenerates it through
-`OrbitalDynamics.timeline_activity_precondition_summary/1` from deterministic
-payload, resource-block, and degraded-mode activity input. Compatibility docs
-now state that both validation and schema-reference coverage pin that
-public-facade generation path.
+Validation-reference tests now exact-regenerate the checked-in
+timeline-activity state, approval-state, status-state, lifecycle-state, and
+lifecycle-state summary fixtures through the public
+`OrbitalDynamics.timeline_activity_*` and
+`OrbitalDynamics.timeline_lifecycle_state_summary/3` facades before checking
+curated observations. The checked-in lifecycle-state summary fixture was
+refreshed with current facade-derived operator-action reason counts and
+review-timeline routing by operator-action reason. Compatibility docs now state
+that validation-reference and schema-reference coverage pin the same public
+facade generation paths.
 
 Local review:
-Sidecar review was not started because the available multi-agent tool requires
-explicit user-requested delegation. Parent review checked the generated fixture
-helper, focused validation/schema coverage, docs, and staged scope; no must-fix
-issues remained. `.gitignore` remains unrelated and unstaged.
+Parent review confirmed staged scope, public-facade helper inputs, focused
+validation/schema coverage, regenerated fixture drift, and docs. `.gitignore`
+remains unrelated and unstaged.
 
 Level 6 pillar advanced:
-Checked-in timeline activity precondition review/import evidence is now pinned
-to the public timeline facade, reducing schema-valid fixture drift risk for
-Cadence-facing timeline handoffs.
+Checked-in timeline activity-state review/import evidence is now pinned to
+public facade generation at both validation-reference and schema-reference
+levels, reducing schema-valid fixture drift risk for Cadence-facing activity
+handoffs.
 
 Remaining maturity gaps:
 High-fidelity dynamics, frame/time transformations, external validation
@@ -71,7 +53,7 @@ and deeper planner-visible use of resource/contact/readiness evidence during
 candidate selection and V2/V3 branch scoring.
 
 Last product commit:
-`fc6e743` Pin timeline precondition fixture.
+`fa7e5e1` Pin timeline activity-state fixtures.
 
 Next candidate:
 Reassess the next planner-visible communications, resource, or
@@ -84,6 +66,9 @@ Unrelated local changes:
   not part of this slice.
 
 Previous published slices:
+- `fa7e5e1` pinned checked-in timeline activity-state fixtures to public facade
+  regeneration in validation-reference coverage and refreshed lifecycle-summary
+  operator-action reason aggregates.
 - `fc6e743` pinned the checked-in timeline activity precondition fixture to
   exact public facade regeneration from deterministic activity input.
 - `066888d` pinned the checked-in timeline integrity fixture to exact public
@@ -104,7 +89,3 @@ Previous published slices:
   term while preserving generic risk scoring for unrelated risks.
 - `777a1dc` rejected stale publication source-review evidence in Cadence import
   handoffs.
-- `0bdc8df` rejected stale dependency-impact source-review evidence in Cadence
-  import handoffs.
-- `f8e4afa` rejected stale activity-precondition source-review evidence in
-  Cadence import handoffs.
