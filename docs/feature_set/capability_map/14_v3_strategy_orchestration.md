@@ -1602,6 +1602,16 @@ Selected recommendations also include:
   maneuver-success, and maneuver execution-uncertainty risks into
   `execution_feedback_pressure_penalty`, leaving `risk_penalty` for unrelated
   risks while preserving total branch score compatibility.
+- **Operational-readiness pressure score terms** — split readiness review,
+  blocked, and analysis-only risks into
+  `operational_readiness_pressure_penalty`, leaving broader approval-boundary
+  and generic risk terms for unrelated risks while preserving total branch score
+  compatibility.
+- **Quality-gate pressure score terms** — split quality-gate review, blocked,
+  analysis-only, unavailable-resource, schema-validation, and import-readiness
+  risks into `quality_gate_pressure_penalty`, leaving broader
+  approval-boundary and generic risk terms for unrelated risks while preserving
+  total branch score compatibility.
 - **`operational_readiness_pressure` explanation rows** — preserve the selected
   branch's readiness report, source artifact, readiness/import/status counts,
   gate ID/status/classification/reason, required operator action, feedback
@@ -1616,12 +1626,14 @@ Selected recommendations also include:
 Operational-readiness and quality-gate pressure events also emit branch risk
 indicators with the same report, source-artifact, gate, required-action,
 feedback, trust-boundary, operator-training, and resource-availability routing
-context. Those risk rows contribute to `approval_boundary_pressure_penalty`,
-leaving the standard strategy `risk_penalty` for unrelated risks, so otherwise
-equal branches with readiness or quality-gate review pressure rank below
-pressure-free alternatives when `risk_weight` applies while score-term reports
-isolate the approval-boundary effect. Branch comparison rows expose the
-corresponding risk types.
+context. Operational-readiness rows contribute to
+`operational_readiness_pressure_penalty`, and quality-gate rows contribute to
+`quality_gate_pressure_penalty`, leaving the broader
+`approval_boundary_pressure_penalty` and standard strategy `risk_penalty` for
+unrelated risks. Otherwise equal branches with readiness or quality-gate review
+pressure rank below pressure-free alternatives when `risk_weight` applies while
+score-term reports isolate readiness pressure from quality-gate pressure. Branch
+comparison rows expose the corresponding risk types.
 
 The corresponding strategy-recommendation operator-review row and Cadence import
 gate flatten those same risk type and stable-ID arrays, plus resource-pressure

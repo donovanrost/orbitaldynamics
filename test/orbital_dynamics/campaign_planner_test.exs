@@ -18753,29 +18753,55 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     assert clean_branch["score_terms"]["risk_penalty"] == -5.0
     assert pressure_branch["score_terms"]["contact_allocation_pressure_penalty"] == 0.0
 
-    approval_boundary_pressure_count =
+    readiness_pressure_count =
       Enum.count(
         pressure_branch["risk_indicators"],
-        &(&1["type"] in ["operational_readiness_pressure", "quality_gate_pressure"])
+        &(&1["type"] == "operational_readiness_pressure")
       )
 
-    assert approval_boundary_pressure_count == 2
+    quality_gate_pressure_count =
+      Enum.count(
+        pressure_branch["risk_indicators"],
+        &(&1["type"] == "quality_gate_pressure")
+      )
+
+    split_boundary_pressure_count = readiness_pressure_count + quality_gate_pressure_count
+
+    assert readiness_pressure_count == 1
+    assert quality_gate_pressure_count == 1
 
     assert pressure_branch["score_terms"]["approval_boundary_pressure_penalty"] ==
-             -approval_boundary_pressure_count * 5.0
+             0.0
 
-    assert "approval_boundary_pressure_penalty" in artifact["score_term_report"][
+    assert pressure_branch["score_terms"]["operational_readiness_pressure_penalty"] ==
+             -readiness_pressure_count * 5.0
+
+    assert pressure_branch["score_terms"]["quality_gate_pressure_penalty"] ==
+             -quality_gate_pressure_count * 5.0
+
+    assert "operational_readiness_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert "quality_gate_pressure_penalty" in artifact["score_term_report"][
              "score_term_keys"
            ]
 
     assert Enum.any?(
              artifact["score_term_report"]["rows"],
              &(&1["branch_id"] == "urgent_pressure" and
-                 &1["term_key"] == "approval_boundary_pressure_penalty" and &1["value"] < 0.0)
+                 &1["term_key"] == "operational_readiness_pressure_penalty" and
+                 &1["value"] < 0.0)
+           )
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] == "urgent_pressure" and
+                 &1["term_key"] == "quality_gate_pressure_penalty" and &1["value"] < 0.0)
            )
 
     assert pressure_branch["score_terms"]["risk_penalty"] ==
-             -(length(pressure_branch["risk_indicators"]) - approval_boundary_pressure_count) *
+             -(length(pressure_branch["risk_indicators"]) - split_boundary_pressure_count) *
                5.0
 
     assert pressure_branch["score"] < clean_branch["score"]
@@ -20917,7 +20943,22 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                &(&1["type"] == "ground_station_reserved")
              )
 
-    assert direct_branch["score_terms"]["risk_penalty"] < 0.0
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    station_calendar_pressure_count =
+      Enum.count(
+        direct_branch["risk_indicators"],
+        &(&1["feedback_scope"] == "station_calendar")
+      )
+
+    assert station_calendar_pressure_count > 0
+
+    assert direct_branch["score_terms"]["station_calendar_pressure_penalty"] ==
+             -station_calendar_pressure_count * risk_weight
+
+    assert direct_branch["score_terms"]["risk_penalty"] ==
+             -(length(direct_branch["risk_indicators"]) - station_calendar_pressure_count) *
+               risk_weight
 
     assert List.first(canonical_branch["events"])["feedback_source"] ==
              "mission_state.station_reservation_review_summary"
@@ -21742,7 +21783,23 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                  &1["plan_impact_status"] == "review_required")
            )
 
-    assert direct_branch["score_terms"]["risk_penalty"] < 0.0
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    provider_counteroffer_pressure_count =
+      Enum.count(
+        direct_branch["risk_indicators"],
+        &(&1["feedback_scope"] == "provider_counteroffer")
+      )
+
+    assert provider_counteroffer_pressure_count > 0
+
+    assert direct_branch["score_terms"]["provider_counteroffer_pressure_penalty"] ==
+             -provider_counteroffer_pressure_count * risk_weight
+
+    assert direct_branch["score_terms"]["risk_penalty"] ==
+             -(length(direct_branch["risk_indicators"]) -
+                 provider_counteroffer_pressure_count) *
+               risk_weight
 
     comparison_row =
       artifact["branch_comparison_report"]["rows"]
@@ -43562,7 +43619,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                  &1["source_artifact_id"] == "direct_resource_projection")
            )
 
-    assert direct_branch["score_terms"]["risk_penalty"] < 0.0
+    assert_quality_gate_pressure_score_terms(direct_branch, artifact)
 
     comparison_row =
       artifact["branch_comparison_report"]["rows"]
@@ -43785,7 +43842,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                  &1["unavailable_resource_reason_counts"] == %{"antenna_unavailable" => 1})
            )
 
-    assert direct_branch["score_terms"]["risk_penalty"] < 0.0
+    assert_quality_gate_pressure_score_terms(direct_branch, artifact)
 
     comparison_row =
       artifact["branch_comparison_report"]["rows"]
@@ -43997,7 +44054,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                  &1["required_qualification_ids"] == ["sat_ops_current"])
            )
 
-    assert direct_branch["score_terms"]["risk_penalty"] < 0.0
+    assert_quality_gate_pressure_score_terms(direct_branch, artifact)
 
     comparison_row =
       artifact["branch_comparison_report"]["rows"]
@@ -44221,7 +44278,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                  ])
            )
 
-    assert direct_branch["score_terms"]["risk_penalty"] < 0.0
+    assert_quality_gate_pressure_score_terms(direct_branch, artifact)
 
     comparison_row =
       artifact["branch_comparison_report"]["rows"]
@@ -44491,7 +44548,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                  ])
            )
 
-    assert direct_branch["score_terms"]["risk_penalty"] < 0.0
+    assert_quality_gate_pressure_score_terms(direct_branch, artifact)
 
     comparison_row =
       artifact["branch_comparison_report"]["rows"]
@@ -44687,7 +44744,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                  &1["freshness_review_required"] == true)
            )
 
-    assert stale_branch["score_terms"]["risk_penalty"] < 0.0
+    assert_quality_gate_pressure_score_terms(stale_branch, artifact)
 
     comparison_row =
       artifact["branch_comparison_report"]["rows"]
@@ -44934,10 +44991,13 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     assert readiness_pressure_count == 1
     assert quality_pressure_count == 1
 
-    assert direct_readiness_branch["score_terms"]["approval_boundary_pressure_penalty"] ==
+    assert direct_readiness_branch["score_terms"]["approval_boundary_pressure_penalty"] == 0.0
+    assert direct_quality_branch["score_terms"]["approval_boundary_pressure_penalty"] == 0.0
+
+    assert direct_readiness_branch["score_terms"]["operational_readiness_pressure_penalty"] ==
              -readiness_pressure_count * readiness_risk_weight
 
-    assert direct_quality_branch["score_terms"]["approval_boundary_pressure_penalty"] ==
+    assert direct_quality_branch["score_terms"]["quality_gate_pressure_penalty"] ==
              -quality_pressure_count * readiness_risk_weight
 
     assert direct_readiness_branch["score_terms"]["risk_penalty"] ==
@@ -72521,6 +72581,21 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
       },
       "provenance" => %{"trust_boundary" => "#{prefix}_provider_reservation_request_fixture"}
     }
+  end
+
+  defp assert_quality_gate_pressure_score_terms(branch, artifact) do
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    quality_gate_pressure_count =
+      Enum.count(branch["risk_indicators"], &(&1["type"] == "quality_gate_pressure"))
+
+    assert quality_gate_pressure_count > 0
+
+    assert branch["score_terms"]["quality_gate_pressure_penalty"] ==
+             -quality_gate_pressure_count * risk_weight
+
+    assert branch["score_terms"]["risk_penalty"] ==
+             -(length(branch["risk_indicators"]) - quality_gate_pressure_count) * risk_weight
   end
 
   defp observe(id, scenario_id, target_id, starts_at_s, ends_at_s, score) do
