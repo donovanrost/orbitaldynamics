@@ -18901,6 +18901,53 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                 trust_boundary: "mission_state_link_capacity_report"
               },
               %{
+                type: "downlink_completion_gap",
+                scenario_id: "leo_1",
+                spacecraft_id: "leo_1",
+                ground_station_id: "deep_space_net",
+                required_contacts: 1,
+                planned_contacts: 0,
+                required_downlink_mb: 42.0,
+                planned_downlink_mb: 0.0,
+                starts_at_s: 1_100.0,
+                ends_at_s: 1_160.0,
+                contact_id: "contact_intent:selected_blocked",
+                source_activity_id: "dl_contact_intent_selected",
+                source_activity_ids: ["dl_contact_intent_selected"],
+                source_window_id: "window_contact_intent_selected",
+                timeline_id: "timeline:contact_intent:selected_blocked",
+                approval_status: "blocked_by_policy",
+                required_operator_action: "review_contact_intent",
+                cadence_import_status: "missing",
+                invalid_cadence_import: true,
+                invalid_cadence_import_reason: "missing_cadence_import_row",
+                invalid_activity_input: false,
+                contact_intent_gate_status: "blocked_by_policy",
+                policy_classification: "blocked_by_policy",
+                policy_bundle_id: "contact_command_review_v1",
+                station_availability: "reserved",
+                station_contention_status: "operator_review_required",
+                station_calendar_entry_id: "intent_selected_calendar_entry",
+                station_calendar_provider_id: "partner_calendar",
+                station_calendar_provider_entry_id: "partner_entry_selected",
+                station_calendar_directions: ["downlink"],
+                station_calendar_status: "reserved",
+                station_calendar_trust_boundary_status: "declared",
+                station_reservation_id: "reservation_intent_selected",
+                station_reserved_by: "partner_team",
+                station_reservation_status: "confirmed",
+                station_reservation_match_status: "unmatched_overlap",
+                derivation_reasons: [
+                  "contact_intent_blocked_by_policy",
+                  "review_contact_intent",
+                  "reserved",
+                  "unmatched_overlap"
+                ],
+                feedback_source: "mission_state.source_contact_intent.rows",
+                feedback_scope: "contact_intent",
+                trust_boundary: "mission_state_contact_intent_review"
+              },
+              %{
                 type: "relay_data_path_pressure",
                 ground_station_id: "dss_14",
                 route_id: "relay_route_review",
@@ -21105,6 +21152,64 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
       "link_capacity_pressure_trust_boundaries" => ["mission_state_link_capacity_report"],
       "link_capacity_pressure_derivation_reasons" => [
         "link_capacity_selected_downlink_shortfall"
+      ],
+      "contact_intent_pressure_risk_types" => ["downlink_completion_gap"],
+      "contact_intent_pressure_contact_ids" => ["contact_intent:selected_blocked"],
+      "contact_intent_pressure_source_activity_ids" => ["dl_contact_intent_selected"],
+      "contact_intent_pressure_ground_station_ids" => ["deep_space_net"],
+      "contact_intent_pressure_required_contact_values" => [1],
+      "contact_intent_pressure_planned_contact_values" => [0],
+      "contact_intent_pressure_required_downlink_values_mb" => [42.0],
+      "contact_intent_pressure_planned_downlink_values_mb" => [0.0],
+      "contact_intent_pressure_start_values_s" => [1_100.0],
+      "contact_intent_pressure_end_values_s" => [1_160.0],
+      "contact_intent_pressure_source_window_ids" => ["window_contact_intent_selected"],
+      "contact_intent_pressure_timeline_ids" => [
+        "timeline:contact_intent:selected_blocked"
+      ],
+      "contact_intent_pressure_approval_statuses" => ["blocked_by_policy"],
+      "contact_intent_pressure_required_operator_actions" => ["review_contact_intent"],
+      "contact_intent_pressure_cadence_import_statuses" => ["missing"],
+      "contact_intent_pressure_invalid_cadence_import_values" => [true],
+      "contact_intent_pressure_invalid_cadence_import_reasons" => [
+        "missing_cadence_import_row"
+      ],
+      "contact_intent_pressure_invalid_activity_input_values" => [false],
+      "contact_intent_pressure_gate_statuses" => ["blocked_by_policy"],
+      "contact_intent_pressure_policy_classifications" => ["blocked_by_policy"],
+      "contact_intent_pressure_policy_bundle_ids" => ["contact_command_review_v1"],
+      "contact_intent_pressure_station_availabilities" => ["reserved"],
+      "contact_intent_pressure_station_contention_statuses" => [
+        "operator_review_required"
+      ],
+      "contact_intent_pressure_station_calendar_entry_ids" => [
+        "intent_selected_calendar_entry"
+      ],
+      "contact_intent_pressure_station_calendar_provider_ids" => ["partner_calendar"],
+      "contact_intent_pressure_station_calendar_provider_entry_ids" => [
+        "partner_entry_selected"
+      ],
+      "contact_intent_pressure_station_calendar_directions" => ["downlink"],
+      "contact_intent_pressure_station_calendar_statuses" => ["reserved"],
+      "contact_intent_pressure_station_calendar_trust_boundary_statuses" => ["declared"],
+      "contact_intent_pressure_station_reservation_ids" => ["reservation_intent_selected"],
+      "contact_intent_pressure_station_reserved_by" => ["partner_team"],
+      "contact_intent_pressure_station_reservation_statuses" => ["confirmed"],
+      "contact_intent_pressure_station_reservation_match_statuses" => [
+        "unmatched_overlap"
+      ],
+      "contact_intent_pressure_feedback_sources" => [
+        "mission_state.source_contact_intent.rows"
+      ],
+      "contact_intent_pressure_feedback_scopes" => ["contact_intent"],
+      "contact_intent_pressure_trust_boundaries" => [
+        "mission_state_contact_intent_review"
+      ],
+      "contact_intent_pressure_derivation_reasons" => [
+        "contact_intent_blocked_by_policy",
+        "review_contact_intent",
+        "reserved",
+        "unmatched_overlap"
       ],
       "relay_data_path_risk_types" => ["relay_data_path_pressure"],
       "relay_data_path_ground_station_ids" => ["dss_14"],
