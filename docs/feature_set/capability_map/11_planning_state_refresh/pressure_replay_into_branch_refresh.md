@@ -48,6 +48,10 @@
   - `resource_filter_report.v1` rows embedded in mission-state `source_result_artifact` / `result_artifact` wrappers.
 - Replays without losing independent rows for the same candidate/contact and suppression reason.
 - Uses deterministic source-report, source-window, timing, and report or wrapper trust-boundary evidence to disambiguate duplicate filter-pressure branch IDs.
+- Resource-availability risks from resource-filter or operational-feedback
+  replay contribute to `resource_availability_pressure_penalty` in V3 score
+  terms, while resource-margin storage/downlink risks stay in the
+  storage/downlink pressure term.
 - Contact-filter `downlink_completion_gap` risks contribute to
   `contact_filter_pressure_penalty` in V3 score terms, keeping suppressed
   contact-window pressure visible separately from unrelated generic risks while

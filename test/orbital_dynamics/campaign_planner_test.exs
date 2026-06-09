@@ -47327,6 +47327,8 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              &(&1["type"] == "payload_unavailable" and &1["spacecraft_id"] == "leo_1")
            )
 
+    assert_resource_availability_pressure_score_terms(pressure_branch, artifact)
+
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
   end
@@ -61827,6 +61829,8 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "warnings"
            ]
 
+    assert_resource_availability_pressure_score_terms(availability_branch, artifact)
+
     assert Enum.any?(
              artifact["operator_review_package"]["rows"],
              &(&1["review_type"] == "resource_suppression" and
@@ -72632,6 +72636,41 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              artifact["score_term_report"]["rows"],
              &(&1["branch_id"] == branch["branch_id"] and
                  &1["term_key"] == "storage_downlink_pressure_penalty" and
+                 &1["value"] < 0.0)
+           )
+  end
+
+  defp assert_resource_availability_pressure_score_terms(branch, artifact) do
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    resource_availability_pressure_count =
+      Enum.count(
+        branch["risk_indicators"],
+        &(&1["type"] in [
+            "resource_unavailable",
+            "spacecraft_unavailable",
+            "payload_unavailable",
+            "antenna_unavailable"
+          ])
+      )
+
+    assert resource_availability_pressure_count > 0
+
+    assert branch["score_terms"]["resource_availability_pressure_penalty"] ==
+             -resource_availability_pressure_count * risk_weight
+
+    assert branch["score_terms"]["risk_penalty"] ==
+             -(length(branch["risk_indicators"]) - resource_availability_pressure_count) *
+               risk_weight
+
+    assert "resource_availability_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] == branch["branch_id"] and
+                 &1["term_key"] == "resource_availability_pressure_penalty" and
                  &1["value"] < 0.0)
            )
   end

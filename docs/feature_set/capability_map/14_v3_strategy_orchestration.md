@@ -764,6 +764,10 @@ unrelated risks while preserving total branch score compatibility.
 Contact-filter downlink suppression risks contribute to
 `contact_filter_pressure_penalty`, leaving generic `risk_penalty` for unrelated
 risks while preserving total branch score compatibility.
+Resource-availability risks contribute to
+`resource_availability_pressure_penalty`, leaving generic `risk_penalty` for
+unrelated risks while resource-margin storage/downlink pressure remains in
+`storage_downlink_pressure_penalty`.
 Station-calendar pressure risks, including reserved, unavailable, and
 reduced-capacity station feedback, contribute to
 `station_calendar_pressure_penalty`, leaving generic `risk_penalty` for
@@ -1640,6 +1644,12 @@ Selected recommendations also include:
   `risk_penalty` for unrelated risks while preserving total branch score
   compatibility. Focused contact-filter pressure fixtures now assert split
   branch math and score-term report rows.
+- **Resource-availability pressure score terms** — split payload, antenna,
+  spacecraft, and generic resource unavailability risks into
+  `resource_availability_pressure_penalty`, leaving `risk_penalty` for
+  unrelated risks while preserving total branch score compatibility. Focused
+  resource-filter and operational-feedback fixtures now assert split branch
+  math and score-term report rows.
 - **Storage/downlink pressure score terms** — split storage/downlink
   resource-margin and projection risks into `storage_downlink_pressure_penalty`,
   leaving `risk_penalty` for unrelated risks while preserving total branch score

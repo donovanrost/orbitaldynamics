@@ -372,6 +372,10 @@ Contact-filter downlink suppression pressure contributes to
 `contact_filter_pressure_penalty`, keeping filtered contact-window pressure
 separate from unrelated generic risk while preserving the same total branch
 penalty weight.
+Resource-availability pressure contributes to
+`resource_availability_pressure_penalty`, keeping payload, antenna, spacecraft,
+and generic resource unavailability separate from both generic risk and
+storage/downlink margin pressure.
 
 `policy_decision.v1` rule-match evidence preserves those source confidence
 factors with the same bounds. Communication rule-match counters for concurrent
