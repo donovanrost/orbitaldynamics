@@ -16,8 +16,8 @@ Files changed:
 - Ledger only: `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:34039`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:6764`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:33812`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:34075`
 - `mix format lib/orbital_dynamics/campaign_planner.ex test/orbital_dynamics/campaign_planner_test.exs --check-formatted`
 - `git diff --check`
 - `mix compile --warnings-as-errors`
@@ -29,23 +29,23 @@ Level 6 pillar advanced:
 Reproducible V1/V2/V3 branch trees with explainable score terms and deltas.
 
 Last completed slice:
-Split timeline transition-application pressure into a named V3 branch score
-term.
+Fed branch-local transition-application replay pressure into V3 branch risk and
+score terms.
 
 What changed:
-- Derived transition-application rows with review, withhold, or duplicate
-  identity pressure now emit `timeline_transition_application_pressure` risks.
-- Strategic branch scoring now exposes
-  `timeline_transition_application_pressure_penalty` instead of leaving that
-  artifact-family pressure as generic risk.
-- Score-term tradeoffs and score-term reports include the new named penalty.
-- Added a focused strategy regression that proves the risk, score term, generic
-  risk split, score-term report row, and schema-valid strategy artifact.
+- Branch-generated candidate-source transition-application replay pressure now
+  emits a `timeline_transition_application_pressure` risk.
+- Branches affected by that replay now expose
+  `timeline_transition_application_pressure_penalty` in score terms and the
+  score-term report.
+- Existing direct transition-application pressure branch scoring still passes.
+- Added focused assertions to the mission-state transition-application replay
+  strategy test.
 - Parent performed bounded local review and mechanical publish because no
   suitable subagent tool is available in this runtime.
 
 Last commit:
-- Product: `cae1ddf` Score timeline transition application pressure
+- Product: `8018844` Feed transition application replay into branch scoring
 - Ledger: pending
 
 Remaining maturity gaps:
