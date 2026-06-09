@@ -5403,9 +5403,20 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "remediation_action",
       "intended_use",
       "model_acceptance_status",
+      "model_count",
+      "accepted_count",
+      "review_required_count",
+      "blocked_count",
+      "unknown_model_count",
+      "status_counts",
+      "validation_level_counts",
+      "model_ids_by_status",
+      "model_ids_by_validation_level",
+      "model_ids_by_intended_use",
       "model_id",
       "model_status",
       "validation_level",
+      "model_reason",
       "validation_safety_case_status",
       "evidence_status",
       "input_contract",
@@ -6652,6 +6663,14 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp recommendation_pressure_risk_context(%{"type" => "candidate_rejection_pressure"} = risk) do
     Map.take(risk, candidate_rejection_pressure_risk_fields())
+  end
+
+  defp recommendation_pressure_risk_context(%{"feedback_scope" => "model_acceptance"} = risk) do
+    Map.take(risk, validation_refresh_pressure_risk_fields())
+  end
+
+  defp recommendation_pressure_risk_context(%{"type" => "model_acceptance_pressure"} = risk) do
+    Map.take(risk, validation_refresh_pressure_risk_fields())
   end
 
   defp recommendation_pressure_risk_context(%{"feedback_scope" => "provider_counteroffer"} = risk) do

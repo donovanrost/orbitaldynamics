@@ -3054,6 +3054,13 @@ defmodule OrbitalDynamics.CadenceImport do
             Map.get(&1, "type") == "candidate_rejection_pressure")
       )
 
+    model_acceptance_risks =
+      Enum.filter(
+        risks,
+        &(Map.get(&1, "feedback_scope") == "model_acceptance" or
+            Map.get(&1, "type") == "model_acceptance_pressure")
+      )
+
     provider_counteroffer_risks =
       Enum.filter(
         risks,
@@ -3188,6 +3195,38 @@ defmodule OrbitalDynamics.CadenceImport do
         risk_context_values(candidate_rejection_risks, "feedback_key"),
       "candidate_rejection_trust_boundaries" =>
         risk_context_values(candidate_rejection_risks, "trust_boundary"),
+      "model_acceptance_report_ids" => risk_context_values(model_acceptance_risks, "report_id"),
+      "model_acceptance_intended_uses" =>
+        risk_context_values(model_acceptance_risks, "intended_use"),
+      "model_acceptance_statuses" =>
+        risk_context_values(model_acceptance_risks, "model_acceptance_status"),
+      "model_acceptance_model_ids" => risk_context_values(model_acceptance_risks, "model_id"),
+      "model_acceptance_model_statuses" =>
+        risk_context_values(model_acceptance_risks, "model_status"),
+      "model_acceptance_validation_levels" =>
+        risk_context_values(model_acceptance_risks, "validation_level"),
+      "model_acceptance_model_reasons" =>
+        risk_context_values(model_acceptance_risks, "model_reason"),
+      "model_acceptance_status_count_maps" =>
+        risk_context_values(model_acceptance_risks, "status_counts"),
+      "model_acceptance_validation_level_count_maps" =>
+        risk_context_values(model_acceptance_risks, "validation_level_counts"),
+      "model_acceptance_model_ids_by_status" =>
+        risk_context_values(model_acceptance_risks, "model_ids_by_status"),
+      "model_acceptance_model_ids_by_validation_level" =>
+        risk_context_values(model_acceptance_risks, "model_ids_by_validation_level"),
+      "model_acceptance_model_ids_by_intended_use" =>
+        risk_context_values(model_acceptance_risks, "model_ids_by_intended_use"),
+      "model_acceptance_required_operator_actions" =>
+        risk_context_values(model_acceptance_risks, "required_operator_action"),
+      "model_acceptance_feedback_sources" =>
+        risk_context_values(model_acceptance_risks, "feedback_source"),
+      "model_acceptance_feedback_scopes" =>
+        risk_context_values(model_acceptance_risks, "feedback_scope"),
+      "model_acceptance_feedback_keys" =>
+        risk_context_values(model_acceptance_risks, "feedback_key"),
+      "model_acceptance_trust_boundaries" =>
+        risk_context_values(model_acceptance_risks, "trust_boundary"),
       "provider_counteroffer_ids" =>
         risk_context_values(provider_counteroffer_risks, "provider_counteroffer_id"),
       "provider_counteroffer_statuses" =>
@@ -6363,6 +6402,27 @@ defmodule OrbitalDynamics.CadenceImport do
       "candidate_rejection_feedback_scopes" => row["candidate_rejection_feedback_scopes"],
       "candidate_rejection_feedback_keys" => row["candidate_rejection_feedback_keys"],
       "candidate_rejection_trust_boundaries" => row["candidate_rejection_trust_boundaries"],
+      "model_acceptance_report_ids" => row["model_acceptance_report_ids"],
+      "model_acceptance_intended_uses" => row["model_acceptance_intended_uses"],
+      "model_acceptance_statuses" => row["model_acceptance_statuses"],
+      "model_acceptance_model_ids" => row["model_acceptance_model_ids"],
+      "model_acceptance_model_statuses" => row["model_acceptance_model_statuses"],
+      "model_acceptance_validation_levels" => row["model_acceptance_validation_levels"],
+      "model_acceptance_model_reasons" => row["model_acceptance_model_reasons"],
+      "model_acceptance_status_count_maps" => row["model_acceptance_status_count_maps"],
+      "model_acceptance_validation_level_count_maps" =>
+        row["model_acceptance_validation_level_count_maps"],
+      "model_acceptance_model_ids_by_status" => row["model_acceptance_model_ids_by_status"],
+      "model_acceptance_model_ids_by_validation_level" =>
+        row["model_acceptance_model_ids_by_validation_level"],
+      "model_acceptance_model_ids_by_intended_use" =>
+        row["model_acceptance_model_ids_by_intended_use"],
+      "model_acceptance_required_operator_actions" =>
+        row["model_acceptance_required_operator_actions"],
+      "model_acceptance_feedback_sources" => row["model_acceptance_feedback_sources"],
+      "model_acceptance_feedback_scopes" => row["model_acceptance_feedback_scopes"],
+      "model_acceptance_feedback_keys" => row["model_acceptance_feedback_keys"],
+      "model_acceptance_trust_boundaries" => row["model_acceptance_trust_boundaries"],
       "provider_counteroffer_ids" => row["provider_counteroffer_ids"],
       "provider_counteroffer_statuses" => row["provider_counteroffer_statuses"],
       "provider_counteroffer_negotiation_states" =>

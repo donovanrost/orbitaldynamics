@@ -18578,6 +18578,31 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                   "candidate_id" => "dl_rejected_hot",
                   "required_operator_action" => "review_candidate_rejection"
                 }
+              },
+              %{
+                type: "model_acceptance_pressure",
+                report_id: "model_acceptance:operational_import:live_ops",
+                intended_use: "operational_import",
+                model_acceptance_status: "review_required",
+                model_count: 1,
+                accepted_count: 0,
+                review_required_count: 1,
+                blocked_count: 0,
+                unknown_model_count: 0,
+                status_counts: %{"review_required" => 1},
+                validation_level_counts: %{"analysis" => 1},
+                model_ids_by_status: %{"review_required" => ["live_analysis_model"]},
+                model_ids_by_validation_level: %{"analysis" => ["live_analysis_model"]},
+                model_ids_by_intended_use: %{"operational_import" => ["live_analysis_model"]},
+                model_id: "live_analysis_model",
+                validation_level: "analysis",
+                model_status: "review_required",
+                model_reason: "analysis evidence requires operator review for operational_import",
+                required_operator_action: "review_model_acceptance",
+                feedback_source: "mission_state.source_model_acceptance_report.rows",
+                feedback_scope: "model_acceptance",
+                feedback_key: "live_analysis_model",
+                trust_boundary: "mission_state_model_acceptance_report"
               }
             ]
           }
@@ -18721,6 +18746,35 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                explanation,
                &(&1["type"] == "risk_driver" and
                    &1["risk_type"] == "candidate_rejection_pressure")
+             )
+
+    assert %{
+             "type" => "risk_driver",
+             "risk_type" => "model_acceptance_pressure",
+             "severity" => "medium",
+             "report_id" => "model_acceptance:operational_import:live_ops",
+             "intended_use" => "operational_import",
+             "model_acceptance_status" => "review_required",
+             "model_id" => "live_analysis_model",
+             "validation_level" => "analysis",
+             "model_status" => "review_required",
+             "model_reason" =>
+               "analysis evidence requires operator review for operational_import",
+             "required_operator_action" => "review_model_acceptance",
+             "feedback_source" => "mission_state.source_model_acceptance_report.rows",
+             "feedback_scope" => "model_acceptance",
+             "feedback_key" => "live_analysis_model",
+             "trust_boundary" => "mission_state_model_acceptance_report",
+             "model_ids_by_status" => %{"review_required" => ["live_analysis_model"]},
+             "model_ids_by_validation_level" => %{"analysis" => ["live_analysis_model"]},
+             "model_ids_by_intended_use" => %{
+               "operational_import" => ["live_analysis_model"]
+             }
+           } =
+             Enum.find(
+               explanation,
+               &(&1["type"] == "risk_driver" and
+                   &1["risk_type"] == "model_acceptance_pressure")
              )
 
     assert %{
@@ -18868,6 +18922,35 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
       "candidate_rejection_feedback_keys" => ["dl_rejected_hot"],
       "candidate_rejection_trust_boundaries" => [
         "mission_state_candidate_rejection_report"
+      ],
+      "model_acceptance_report_ids" => ["model_acceptance:operational_import:live_ops"],
+      "model_acceptance_intended_uses" => ["operational_import"],
+      "model_acceptance_statuses" => ["review_required"],
+      "model_acceptance_model_ids" => ["live_analysis_model"],
+      "model_acceptance_model_statuses" => ["review_required"],
+      "model_acceptance_validation_levels" => ["analysis"],
+      "model_acceptance_model_reasons" => [
+        "analysis evidence requires operator review for operational_import"
+      ],
+      "model_acceptance_status_count_maps" => [%{"review_required" => 1}],
+      "model_acceptance_validation_level_count_maps" => [%{"analysis" => 1}],
+      "model_acceptance_model_ids_by_status" => [
+        %{"review_required" => ["live_analysis_model"]}
+      ],
+      "model_acceptance_model_ids_by_validation_level" => [
+        %{"analysis" => ["live_analysis_model"]}
+      ],
+      "model_acceptance_model_ids_by_intended_use" => [
+        %{"operational_import" => ["live_analysis_model"]}
+      ],
+      "model_acceptance_required_operator_actions" => ["review_model_acceptance"],
+      "model_acceptance_feedback_sources" => [
+        "mission_state.source_model_acceptance_report.rows"
+      ],
+      "model_acceptance_feedback_scopes" => ["model_acceptance"],
+      "model_acceptance_feedback_keys" => ["live_analysis_model"],
+      "model_acceptance_trust_boundaries" => [
+        "mission_state_model_acceptance_report"
       ]
     }
 
