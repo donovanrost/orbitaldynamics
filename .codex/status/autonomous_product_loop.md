@@ -80,7 +80,7 @@ Scored timeline-activity-state replay pressure with a dedicated score term.
 
 Last commit:
 - Product: `ed16282` Score timeline activity-state replay pressure
-- Ledger: pending
+- Ledger: `89c9f37` Update autonomous loop status
 
 Remaining maturity gaps:
 - Continue making existing review evidence planner-visible through candidate
