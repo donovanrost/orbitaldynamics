@@ -5445,21 +5445,29 @@ defmodule OrbitalDynamics.ValidationTest do
              },
              "source_objective_satisfaction_trust_boundary_status" => "declared",
              "source_objective_tradeoff_trust_boundary_status" => "declared",
-             "source_score_term_trust_boundary_status" => "declared"
+             "source_score_term_trust_boundary_status" => "declared",
+             "source_score_term_branch_local_score_term_pressure" => true,
+             "source_score_term_branch_local_downlink_gap_pressure" => true,
+             "source_score_term_branch_local_target_gap_pressure" => true,
+             "source_score_term_branch_local_collection_latency_gap_pressure" => true,
+             "source_score_term_branch_local_routing_pressure" => true
            } = observations
 
-    stale_status_observations =
+    stale_score_term_pressure_observations =
       observations
-      |> put_in(["source_objective_satisfaction_status_counts", "unmet"], 2)
+      |> Map.put("source_score_term_branch_local_score_term_pressure", false)
 
-    assert {:ok, stale_status_verification} =
-             Validation.verify_reference_fixture(fixture_id, stale_status_observations)
+    assert {:ok, stale_score_term_pressure_verification} =
+             Validation.verify_reference_fixture(
+               fixture_id,
+               stale_score_term_pressure_observations
+             )
 
-    assert stale_status_verification["status"] == "fail"
+    assert stale_score_term_pressure_verification["status"] == "fail"
 
     assert Enum.any?(
-             stale_status_verification["checks"],
-             &(&1["field"] == "source_objective_satisfaction_status_counts" and
+             stale_score_term_pressure_verification["checks"],
+             &(&1["field"] == "source_score_term_branch_local_score_term_pressure" and
                  &1["status"] == "fail")
            )
 

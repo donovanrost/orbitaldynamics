@@ -2477,7 +2477,12 @@ defmodule OrbitalDynamics.Validation do
           "score_downlink_activity" => 1,
           "score_target_activity" => 1
         },
-        "source_score_term_trust_boundary_status" => "declared"
+        "source_score_term_trust_boundary_status" => "declared",
+        "source_score_term_branch_local_score_term_pressure" => true,
+        "source_score_term_branch_local_downlink_gap_pressure" => true,
+        "source_score_term_branch_local_target_gap_pressure" => true,
+        "source_score_term_branch_local_collection_latency_gap_pressure" => true,
+        "source_score_term_branch_local_routing_pressure" => true
       },
       "tolerances" => %{
         "schema_version" => 0,
@@ -14772,6 +14777,16 @@ defmodule OrbitalDynamics.Validation do
         Map.get(score_term_summary, "source_activity_id_counts") || %{},
       "source_score_term_trust_boundary_status" =>
         Map.get(score_term_summary, "trust_boundary_status"),
+      "source_score_term_branch_local_score_term_pressure" =>
+        map_size(Map.get(score_term_summary, "term_key_counts") || %{}) > 0,
+      "source_score_term_branch_local_downlink_gap_pressure" =>
+        positive_integer_observation?(score_term_summary, "downlink_gap_row_count"),
+      "source_score_term_branch_local_target_gap_pressure" =>
+        positive_integer_observation?(score_term_summary, "target_gap_row_count"),
+      "source_score_term_branch_local_collection_latency_gap_pressure" =>
+        positive_integer_observation?(score_term_summary, "collection_latency_gap_row_count"),
+      "source_score_term_branch_local_routing_pressure" =>
+        score_term_routing_pressure?(score_term_summary),
       "source_timeline_transition_application_report_count" =>
         Map.get(timeline_transition_summary, "count"),
       "source_timeline_transition_application_row_count" =>
@@ -21152,6 +21167,13 @@ defmodule OrbitalDynamics.Validation do
       map_size(Map.get(summary, "blocked_contact_ids_by_blocking_dimension") || %{}) > 0 or
       map_size(Map.get(summary, "blocked_contact_ids_by_spacecraft_id") || %{}) > 0 or
       map_size(Map.get(summary, "blocked_contact_ids_by_status") || %{}) > 0
+  end
+
+  defp score_term_routing_pressure?(%{} = summary) do
+    map_size(Map.get(summary, "ground_station_counts") || %{}) > 0 or
+      map_size(Map.get(summary, "target_counts") || %{}) > 0 or
+      map_size(Map.get(summary, "collection_counts") || %{}) > 0 or
+      map_size(Map.get(summary, "source_activity_id_counts") || %{}) > 0
   end
 
   defp positive_integer_observation?(%{} = summary, key) do
