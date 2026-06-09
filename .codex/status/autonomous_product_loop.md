@@ -5,72 +5,69 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Expose capacity-pack direction pressure in strategy branch explanations.
+Preserve capacity-pack direction pressure through review/import handoffs.
 
 Status:
-Completed and pushed.
+Completed; product commit created and ledger publish in progress.
 
 Files changed:
-- Runtime: `lib/orbital_dynamics/campaign_planner.ex`
+- Runtime: `lib/orbital_dynamics/operator_review.ex`
+- Runtime: `lib/orbital_dynamics/cadence_import.ex`
+- Tests: `test/orbital_dynamics/operator_review_test.exs`
+- Tests: `test/orbital_dynamics/cadence_import_test.exs`
 - Tests: `test/orbital_dynamics/campaign_planner_test.exs`
 - Ledger: `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:17969 test/orbital_dynamics/campaign_planner_test.exs:47280`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:47530`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:17969 test/orbital_dynamics/campaign_planner_test.exs:47342 test/orbital_dynamics/campaign_planner_test.exs:47530`
+- `mix test test/orbital_dynamics/operator_review_test.exs:13408 test/orbital_dynamics/cadence_import_test.exs:6119 test/orbital_dynamics/campaign_planner_test.exs:47342`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 
 Docs/artifacts changed:
-No docs or checked-in artifacts changed.
+No docs or checked-in generated artifacts changed.
 
 Level 6 pillar advanced:
-Planner-visible operational evidence and branch explanation quality for
-resource/contact allocation pressure.
+Clear Cadence integration artifacts with explainable branch score terms and
+deltas, without Cadence DB/API coupling.
 
 Slice selection note:
-The previous capacity-pack slice preserved selected/deferred direction maps and
-required-capacity fractions through review/import handoffs. Current strategy
-branches already score capacity-pack pressure through
-`contact_contention_resolution_pressure_penalty`, but the risk-driver context
-still exposes only scalar capacity-pack fields. This slice will make the
-preserved direction/fraction evidence visible in branch explanations and
-comparison summaries without changing schedule authority.
+Selected slice: Preserve capacity-pack direction pressure through
+branch-comparison operator review rows and Cadence import rows.
 
-Likely files/tests:
-- `lib/orbital_dynamics/campaign_planner.ex`
-- `test/orbital_dynamics/campaign_planner_test.exs`
-- Focused campaign-planner tests around capacity-pack explanation/comparison
-  behavior, plus compile and diff checks.
+Why this slice: The previous slice exposed selected/deferred capacity-pack
+direction maps and required-capacity fraction maps on strategy branch-comparison
+rows. Downstream review/import row builders still carried only the older scalar
+capacity-pack fields, so Cadence-facing handoffs could drop the specific
+selected/deferred contact and fraction evidence operators need to audit a branch
+choice.
 
 Definition of done:
-- Capacity-pack pressure events and risk-driver contexts carry direction-level
-  selected/deferred contact IDs and required-capacity fraction maps when present.
-- Existing branch explanation/comparison tests assert the fields on a concrete
-  capacity-pack pressure branch.
-- Focused test(s), `mix compile --warnings-as-errors`, and `git diff --check`
-  pass.
-
-Last completed slice:
-Exposed capacity-pack direction pressure in strategy branch explanations.
+- Branch-comparison operator-review rows preserve all capacity-pack direction
+  contact-id and required-capacity-fraction maps.
+- Cadence import rows preserve the same fields both when derived from a
+  standalone branch-comparison report and when emitted directly from a strategy
+  artifact.
+- Focused tests, compile with warnings-as-errors, and diff checks pass.
 
 What changed:
-- Capacity-pack summary-level direction maps are inherited into derived
-  contact-allocation pressure rows.
-- Contact-allocation and contact-contention-resolution pressure events now
-  carry selected/deferred contact IDs by direction and required-capacity
-  fraction maps by direction.
-- Risk-driver explanations and branch comparison rows expose the same
-  capacity-pack direction evidence instead of only scalar capacity-pack fields.
-- The recommendation tradeoff dimension expectation now reflects the current
-  split-pressure score-term surface.
+- `OperatorReview.from_branch_comparison_report/1` strategy tradeoff rows now
+  preserve selected/deferred capacity-pack contact IDs and required-capacity
+  fractions by direction.
+- `CadenceImport` preserves the same fields for standalone
+  branch-comparison-derived tradeoff rows and direct campaign-strategy branch
+  comparison import rows.
+- Focused tests now assert top-level row fields and embedded
+  `source_branch_comparison` evidence for operator review, Cadence import, and
+  the full strategy artifact path.
 - Parent performed bounded local review and mechanical publish because no
   suitable subagent tool is available in this runtime.
 
+Last completed slice:
+Preserved capacity-pack direction pressure through review/import handoffs.
+
 Last commit:
-- Product: `ae51ca0` Expose capacity pack direction pressure
-- Ledger: this handoff commit on `main`
+- Product: `513fb36` Preserve capacity pack handoff fields
+- Ledger: pending
 
 Remaining maturity gaps:
 - Continue making existing review evidence planner-visible through candidate
@@ -78,16 +75,12 @@ Remaining maturity gaps:
 - Continue closing queue-1 activity/timeline semantics where selected handoffs,
   operator review, import manifests, and schema exports do not preserve the same
   conflict evidence emitted by operational timeline integrity rows.
-- Reassess whether the next highest-value gap is another activity/timeline
-  handoff, resource/contact allocation semantics, or checked-in compatibility
-  fixture coverage.
 
 Next candidate:
 Reassess the guide queue from current checkout and choose the next narrow Level
-6 slice. Good candidates remain planner-visible review evidence: one more
-resource/contact pressure explanation gap, a readiness/quality-gate selection
-effect, or an activity/timeline handoff completeness gap if current checkout
-shows one.
+6 slice. Good candidates remain activity/timeline handoff completeness,
+resource/contact allocation semantics, readiness/quality-gate selection effects,
+or checked-in compatibility fixture coverage if current checkout shows one.
 
 Blocked:
 Not blocked.
@@ -95,5 +88,8 @@ Not blocked.
 Notes:
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
   not part of this slice.
+- Focused tests emitted the existing unrelated `0.0` pattern warning from the
+  selected readiness/quality-gate campaign-planner test module; the selected
+  tests passed.
 - Sidecar delegation is unavailable in this runtime; parent uses the same
   bounded review and mechanical publish scope.
