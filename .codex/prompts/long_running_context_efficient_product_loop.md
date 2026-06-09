@@ -40,7 +40,10 @@ stop merely because one slice is complete, tests passed, context feels
 moderate, or the next slice requires normal code exploration. After each
 completed slice, update the ledger, complete the mechanical commit/push
 handoff, pick the next highest-value slice, and keep going. Between slices,
-delegate that handoff to a weaker subagent when one is available.
+delegate that handoff to a weaker subagent when one is available. If sidecar
+delegation is unavailable in the current runtime or tool policy, the parent
+orchestrator should complete the same local review and mechanical publish
+checks itself, record that fallback in the ledger, and continue.
 
 Stop only when:
 - the same blocker prevents progress on three consecutive attempted slices,
@@ -139,10 +142,13 @@ Working loop:
     to justify it.
 12. Update the status ledger with the maturity pillar advanced and the next
     remaining gap.
-13. Delegate `slice_reviewer` for read-only review of the completed slice.
+13. Delegate `slice_reviewer` for read-only review of the completed slice when
+    available; if delegation is unavailable, perform a parent local review with
+    the same read-only scope and record that fallback.
 14. Fix must-fix review findings, rerun focused verification, and update the
     ledger if needed.
-15. Delegate the post-slice commit/push handoff.
+15. Delegate the post-slice commit/push handoff when available; if delegation is
+    unavailable, the parent performs the exact mechanical publish scope below.
 16. After the commit/push handoff reports success or a recorded blocker,
     immediately select the next slice and repeat.
 
@@ -171,7 +177,10 @@ commit/push handoffs. Prefer these project-scoped custom agents when available:
 If a custom agent is unavailable, use the closest built-in subagent with the
 same sandbox and model intent. Do not let model selection block the handoff, and
 do not use weaker subagents for product decisions, slice selection, or broad code
-changes. Require compact output:
+changes. If no suitable subagent tool is available, do not treat that as a
+product blocker: complete the bounded review or publish step in the parent,
+preserve the same constraints, and note the fallback in the ledger. Require
+compact output:
 
 ```text
 Findings:
@@ -183,7 +192,9 @@ Tests:
 
 Post-slice commit/push handoff:
 After the main agent has implemented the slice, run verification, and updated
-the ledger, delegate `git_slice_publisher` with this exact scope:
+the ledger, delegate `git_slice_publisher` with this exact scope when
+available. If publisher delegation is unavailable, the parent must perform this
+same mechanical scope itself:
 
 - inspect `git status --short` and the diff for the intended slice files
 - run `git diff --check`
@@ -253,10 +264,11 @@ Definition of done for each slice:
 - existing V1/V2/V3 behavior remains compatible unless changed deliberately
 - the slice closes or measurably reduces a named Level 6 maturity gap
 - status ledger is updated
-- `slice_reviewer` found no must-fix publish blockers, or the parent fixed them
-  and reran focused verification
-- slice changes are committed and pushed, or a local commit/push blocker is
-  recorded in the ledger
+- `slice_reviewer` found no must-fix publish blockers, or sidecar review was
+  unavailable and the parent completed a local review; any must-fix findings
+  were fixed and focused verification rerun
+- slice changes are committed and pushed by the publisher or parent, or a local
+  commit/push blocker is recorded in the ledger
 
 Definition of done for the overall maturity goal:
 
