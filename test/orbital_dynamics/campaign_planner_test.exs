@@ -18583,6 +18583,27 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                 trust_boundary: "mission_state_capacity_pack_summary"
               },
               %{
+                type: "downlink_completion_gap",
+                contact_id: "dl_reservation_conflict",
+                source_activity_id: "dl_reservation_conflict",
+                source_activity_ids: ["dl_reservation_conflict"],
+                ground_station_id: "equator_prime",
+                required_contacts: 1,
+                planned_contacts: 0,
+                required_downlink_mb: 43.0,
+                planned_downlink_mb: 0.0,
+                station_reservation_id: "reservation_conflict_1",
+                station_reserved_by: "ops_team_b",
+                station_reservation_status: "confirmed",
+                station_reservation_match_status: "overlap",
+                station_reservation_expires_at_s: 360.0,
+                derivation_reasons: ["contact_allocation_reservation_conflict"],
+                feedback_source:
+                  "mission_state.source_contact_allocation_reservation_conflict_summary",
+                feedback_scope: "contact_allocation",
+                trust_boundary: "mission_state_reservation_conflict_summary"
+              },
+              %{
                 type: "provider_counteroffer_pressure",
                 provider_counteroffer_id: "provider_offer_urgent",
                 provider_counteroffer_status: "proposed",
@@ -18913,6 +18934,36 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
 
     assert planned_downlink_mb == 0.0
     assert capacity_pack_unused_fraction == 0.0
+
+    assert %{
+             "type" => "risk_driver",
+             "risk_type" => "downlink_completion_gap",
+             "severity" => "medium",
+             "contact_id" => "dl_reservation_conflict",
+             "source_activity_id" => "dl_reservation_conflict",
+             "source_activity_ids" => ["dl_reservation_conflict"],
+             "ground_station_id" => "equator_prime",
+             "required_contacts" => 1,
+             "planned_contacts" => 0,
+             "required_downlink_mb" => 43.0,
+             "planned_downlink_mb" => reservation_planned_downlink_mb,
+             "station_reservation_id" => "reservation_conflict_1",
+             "station_reserved_by" => "ops_team_b",
+             "station_reservation_status" => "confirmed",
+             "station_reservation_match_status" => "overlap",
+             "station_reservation_expires_at_s" => 360.0,
+             "derivation_reasons" => ["contact_allocation_reservation_conflict"],
+             "feedback_source" =>
+               "mission_state.source_contact_allocation_reservation_conflict_summary",
+             "feedback_scope" => "contact_allocation",
+             "trust_boundary" => "mission_state_reservation_conflict_summary"
+           } =
+             Enum.find(
+               explanation,
+               &(&1["type"] == "risk_driver" and &1["contact_id"] == "dl_reservation_conflict")
+             )
+
+    assert reservation_planned_downlink_mb == 0.0
 
     assert %{
              "type" => "risk_driver",
@@ -19307,6 +19358,24 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
       ],
       "capacity_pack_risk_feedback_scopes" => ["contact_contention_resolution"],
       "capacity_pack_risk_trust_boundaries" => ["mission_state_capacity_pack_summary"],
+      "station_reservation_conflict_contact_ids" => ["dl_reservation_conflict"],
+      "station_reservation_conflict_source_activity_ids" => ["dl_reservation_conflict"],
+      "station_reservation_conflict_ground_station_ids" => ["equator_prime"],
+      "station_reservation_conflict_reservation_ids" => ["reservation_conflict_1"],
+      "station_reservation_conflict_reserved_by" => ["ops_team_b"],
+      "station_reservation_conflict_statuses" => ["confirmed"],
+      "station_reservation_conflict_match_statuses" => ["overlap"],
+      "station_reservation_conflict_expires_at_values_s" => [360.0],
+      "station_reservation_conflict_derivation_reasons" => [
+        "contact_allocation_reservation_conflict"
+      ],
+      "station_reservation_conflict_feedback_sources" => [
+        "mission_state.source_contact_allocation_reservation_conflict_summary"
+      ],
+      "station_reservation_conflict_feedback_scopes" => ["contact_allocation"],
+      "station_reservation_conflict_trust_boundaries" => [
+        "mission_state_reservation_conflict_summary"
+      ],
       "provider_counteroffer_ids" => ["provider_offer_urgent"],
       "provider_counteroffer_statuses" => ["proposed"],
       "provider_counteroffer_negotiation_states" => ["proposed"],

@@ -5164,6 +5164,11 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "missed_downlink_activity_ids" => event["missed_downlink_activity_ids"],
         "source_window_id" => event["source_window_id"],
         "source_window_ids" => event["source_window_ids"],
+        "station_reservation_id" => event["station_reservation_id"],
+        "station_reserved_by" => event["station_reserved_by"],
+        "station_reservation_status" => event["station_reservation_status"],
+        "station_reservation_match_status" => event["station_reservation_match_status"],
+        "station_reservation_expires_at_s" => event["station_reservation_expires_at_s"],
         "feedback_source" => event["feedback_source"],
         "feedback_scope" => event["feedback_scope"],
         "trust_boundary" => event["trust_boundary"],
@@ -5731,6 +5736,24 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "capacity_pack_unused_fraction",
       "required_capacity_fraction",
       "required_capacity_fraction_source",
+      "derivation_reasons",
+      "feedback_source",
+      "feedback_scope",
+      "trust_boundary"
+    ]
+  end
+
+  defp station_reservation_conflict_pressure_risk_fields do
+    [
+      "contact_id",
+      "source_activity_id",
+      "source_activity_ids",
+      "ground_station_id",
+      "station_reservation_id",
+      "station_reserved_by",
+      "station_reservation_status",
+      "station_reservation_match_status",
+      "station_reservation_expires_at_s",
       "derivation_reasons",
       "feedback_source",
       "feedback_scope",
@@ -6740,6 +6763,13 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp recommendation_pressure_risk_context(%{"capacity_pack_group_id" => _group_id} = risk) do
     Map.take(risk, capacity_pack_pressure_risk_fields())
+  end
+
+  defp recommendation_pressure_risk_context(
+         %{"feedback_scope" => "contact_allocation", "station_reservation_match_status" => _} =
+           risk
+       ) do
+    Map.take(risk, station_reservation_conflict_pressure_risk_fields())
   end
 
   defp recommendation_pressure_risk_context(%{"feedback_scope" => "candidate_rejection"} = risk) do
