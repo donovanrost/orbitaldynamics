@@ -1739,6 +1739,41 @@ defmodule OrbitalDynamics.ValidationTest do
     assert report["status"] == "pass"
     assert Enum.all?(report["checks"], &(&1["status"] == "pass"))
 
+    observations = campaign_strategy_fixture_observations()
+
+    assert observations["score_term_report_row_count"] == 1107
+    assert observations["score_term_report_key_count"] == 41
+
+    assert observations["score_term_report_row_derived_key_counts"][
+             "resource_availability_pressure_penalty"
+           ] == 27
+
+    stale_score_term_key_observations =
+      observations
+      |> put_in(
+        ["score_term_report_row_derived_key_counts", "resource_availability_pressure_penalty"],
+        0
+      )
+
+    assert {:ok, stale_score_term_key_report} =
+             Validation.verify_reference_fixture(
+               "fixture.artifact.campaign_strategy.leo_constellation_v3",
+               stale_score_term_key_observations
+             )
+
+    assert stale_score_term_key_report["status"] == "fail"
+
+    assert Enum.any?(
+             stale_score_term_key_report["checks"],
+             &(&1["field"] == "score_term_report_row_derived_key_counts" and
+                 &1["status"] == "fail")
+           )
+
+    assert OrbitalDynamics.validation_artifact_observations(
+             "campaign_strategy.v3",
+             artifact
+           ) == Validation.artifact_observations("campaign_strategy.v3", artifact)
+
     assert {:ok, _valid_report} =
              Schema.validate_artifact(artifact, schema_contract: "campaign_strategy.v3")
 

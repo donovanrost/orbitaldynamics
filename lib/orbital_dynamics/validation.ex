@@ -749,7 +749,7 @@ defmodule OrbitalDynamics.Validation do
       ],
       "known_limits" => [
         "internal checked-in artifact regression, not external mission validation",
-        "checks contract shape and stable product counts only"
+        "checks contract shape, stable product counts, and embedded strategy score-term routing only"
       ]
     },
     "fixture.artifact.result_artifact.leo_constellation_campaign" => %{
@@ -1406,13 +1406,112 @@ defmodule OrbitalDynamics.Validation do
         "recommended_branch_id" => "derived_urgent_target_target_hot",
         "ranked_branch_count" => 7,
         "approval_status" => "operator_review_required",
-        "warning_count" => 0
+        "warning_count" => 0,
+        "score_term_report_model" => "strategy_branch_score_terms",
+        "score_term_report_source" => "campaign_strategy.branches.score_terms",
+        "score_term_report_row_count" => 1107,
+        "score_term_report_derived_row_count" => 1107,
+        "score_term_report_selected_row_count" => 41,
+        "score_term_report_key_count" => 41,
+        "score_term_report_key_counts" => %{
+          "approval_boundary_pressure_penalty" => 1,
+          "approval_load_penalty" => 1,
+          "asset_balance_score" => 1,
+          "battery_depletion_pressure_penalty" => 1,
+          "branch_probability" => 1,
+          "candidate_rejection_pressure_penalty" => 1,
+          "contact_allocation_pressure_penalty" => 1,
+          "contact_contention_pressure_penalty" => 1,
+          "contact_filter_pressure_penalty" => 1,
+          "contact_intent_pressure_penalty" => 1,
+          "coverage_score" => 1,
+          "downlink_completion_score" => 1,
+          "execution_feedback_pressure_penalty" => 1,
+          "expected_score" => 1,
+          "feedback_adjustment_score" => 1,
+          "fuel_preservation_score" => 1,
+          "latency_penalty" => 1,
+          "link_capacity_pressure_penalty" => 1,
+          "mission_value_score" => 1,
+          "operational_readiness_pressure_penalty" => 1,
+          "priority_commitment_score" => 1,
+          "provider_counteroffer_pressure_penalty" => 1,
+          "quality_gate_pressure_penalty" => 1,
+          "raw_score" => 1,
+          "relay_data_path_pressure_penalty" => 1,
+          "resource_availability_pressure_penalty" => 1,
+          "resource_margin_pressure_penalty" => 1,
+          "resource_score" => 1,
+          "revisit_score" => 1,
+          "risk_penalty" => 1,
+          "schedule_stability_penalty" => 1,
+          "station_calendar_pressure_penalty" => 1,
+          "storage_downlink_pressure_penalty" => 1,
+          "timeline_dependency_impact_pressure_penalty" => 1,
+          "timeline_integrity_pressure_penalty" => 1,
+          "timeline_lifecycle_pressure_penalty" => 1,
+          "timeline_precondition_pressure_penalty" => 1,
+          "timeline_preservation_pressure_penalty" => 1,
+          "timeline_pressure_penalty" => 1,
+          "timeline_publication_pressure_penalty" => 1,
+          "validation_refresh_pressure_penalty" => 1
+        },
+        "score_term_report_row_derived_key_counts" => %{
+          "approval_boundary_pressure_penalty" => 27,
+          "approval_load_penalty" => 27,
+          "asset_balance_score" => 27,
+          "battery_depletion_pressure_penalty" => 27,
+          "branch_probability" => 27,
+          "candidate_rejection_pressure_penalty" => 27,
+          "contact_allocation_pressure_penalty" => 27,
+          "contact_contention_pressure_penalty" => 27,
+          "contact_filter_pressure_penalty" => 27,
+          "contact_intent_pressure_penalty" => 27,
+          "coverage_score" => 27,
+          "downlink_completion_score" => 27,
+          "execution_feedback_pressure_penalty" => 27,
+          "expected_score" => 27,
+          "feedback_adjustment_score" => 27,
+          "fuel_preservation_score" => 27,
+          "latency_penalty" => 27,
+          "link_capacity_pressure_penalty" => 27,
+          "mission_value_score" => 27,
+          "operational_readiness_pressure_penalty" => 27,
+          "priority_commitment_score" => 27,
+          "provider_counteroffer_pressure_penalty" => 27,
+          "quality_gate_pressure_penalty" => 27,
+          "raw_score" => 27,
+          "relay_data_path_pressure_penalty" => 27,
+          "resource_availability_pressure_penalty" => 27,
+          "resource_margin_pressure_penalty" => 27,
+          "resource_score" => 27,
+          "revisit_score" => 27,
+          "risk_penalty" => 27,
+          "schedule_stability_penalty" => 27,
+          "station_calendar_pressure_penalty" => 27,
+          "storage_downlink_pressure_penalty" => 27,
+          "timeline_dependency_impact_pressure_penalty" => 27,
+          "timeline_integrity_pressure_penalty" => 27,
+          "timeline_lifecycle_pressure_penalty" => 27,
+          "timeline_precondition_pressure_penalty" => 27,
+          "timeline_preservation_pressure_penalty" => 27,
+          "timeline_pressure_penalty" => 27,
+          "timeline_publication_pressure_penalty" => 27,
+          "validation_refresh_pressure_penalty" => 27
+        },
+        "score_term_report_score_term_source" => "campaign_strategy.branches.score_terms",
+        "score_term_report_model_limit_count" => 4
       },
       "tolerances" => %{
         "schema_version" => 0,
         "branch_count" => 0,
         "ranked_branch_count" => 0,
-        "warning_count" => 0
+        "warning_count" => 0,
+        "score_term_report_row_count" => 0,
+        "score_term_report_derived_row_count" => 0,
+        "score_term_report_selected_row_count" => 0,
+        "score_term_report_key_count" => 0,
+        "score_term_report_model_limit_count" => 0
       },
       "evidence" => [
         "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
@@ -14160,8 +14259,9 @@ defmodule OrbitalDynamics.Validation do
 
   def artifact_observations("campaign_strategy.v3", artifact) when is_map(artifact) do
     artifact = stringify_keys(artifact)
+    score_term_observations = embedded_score_term_report_observations(artifact)
 
-    %{
+    base_observations = %{
       "schema_version" => Map.get(artifact, "schema_version"),
       "planner" => Map.get(artifact, "planner"),
       "branch_count" => count(artifact, "branches"),
@@ -14171,6 +14271,26 @@ defmodule OrbitalDynamics.Validation do
       "approval_status" => get_in(artifact, ["recommendation", "approval_status"]),
       "warning_count" => count(artifact, "warnings")
     }
+
+    Map.merge(base_observations, %{
+      "score_term_report_model" => Map.get(score_term_observations, "model"),
+      "score_term_report_source" => Map.get(score_term_observations, "source"),
+      "score_term_report_row_count" => Map.get(score_term_observations, "row_count"),
+      "score_term_report_derived_row_count" =>
+        Map.get(score_term_observations, "derived_row_count"),
+      "score_term_report_selected_row_count" =>
+        Map.get(score_term_observations, "selected_row_count"),
+      "score_term_report_key_count" =>
+        Map.get(score_term_observations, "score_term_key_count"),
+      "score_term_report_key_counts" =>
+        Map.get(score_term_observations, "score_term_key_counts") || %{},
+      "score_term_report_row_derived_key_counts" =>
+        Map.get(score_term_observations, "row_derived_score_term_key_counts") || %{},
+      "score_term_report_score_term_source" =>
+        Map.get(score_term_observations, "score_term_source"),
+      "score_term_report_model_limit_count" =>
+        Map.get(score_term_observations, "model_limit_count")
+    })
   end
 
   def artifact_observations("capability_catalog.v1", artifact) when is_map(artifact) do
@@ -20318,6 +20438,12 @@ defmodule OrbitalDynamics.Validation do
 
   def artifact_observations(contract, _artifact),
     do: raise(ArgumentError, "unsupported artifact observation contract: #{inspect(contract)}")
+
+  defp embedded_score_term_report_observations(%{"score_term_report" => %{} = report}) do
+    artifact_observations("score_term_report.v1", report)
+  end
+
+  defp embedded_score_term_report_observations(_artifact), do: %{}
 
   defp safety_case_evidence_by_contract(artifact, contract) do
     artifact
