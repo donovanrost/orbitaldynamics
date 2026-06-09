@@ -28687,6 +28687,62 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "mission_state.source_result_artifact.contact_filter_report"
            ]
 
+    contact_filter_pressure_count =
+      Enum.count(
+        urgent["risk_indicators"],
+        &(&1["type"] == "downlink_completion_gap" and
+            &1["feedback_source"] == "candidate_source.contact_filter_replay_summary")
+      )
+
+    assert contact_filter_pressure_count == 1
+
+    assert Enum.any?(
+             urgent["risk_indicators"],
+             &(&1["type"] == "downlink_completion_gap" and
+                 &1["feedback_scope"] == "contact_filter" and
+                 &1["suppressed_candidate_count"] == 5 and
+                 &1["invalid_contact_input_count"] == 1 and
+                 &1["invalid_contact_input_ids"] == ["direct_invalid"] and
+                 &1["station_suppression_count"] == 4 and
+                 &1["suppressed_reason_counts"] == %{
+                   "ground_station_capacity_zero" => 2,
+                   "ground_station_reserved" => 1,
+                   "ground_station_unavailable" => 1,
+                   "invalid_contact_input" => 1
+                 } and
+                 &1["directions"] == [
+                   "command",
+                   "downlink",
+                   "health_check",
+                   "imaging",
+                   "tracking"
+                 ] and
+                 &1["ground_station_ids"] == [
+                   "dss_14",
+                   "dss_43",
+                   "equator_prime",
+                   "polar_prime"
+                 ] and
+                 &1["station_availabilities"] == [
+                   "reduced_capacity",
+                   "reserved",
+                   "unavailable"
+                 ])
+           )
+
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    assert urgent["score_terms"]["contact_filter_pressure_penalty"] ==
+             -contact_filter_pressure_count * risk_weight
+
+    assert "contact_filter_pressure_penalty" in artifact["score_term_report"]["score_term_keys"]
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] == urgent["branch_id"] and
+                 &1["term_key"] == "contact_filter_pressure_penalty" and &1["value"] < 0.0)
+           )
+
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
   end

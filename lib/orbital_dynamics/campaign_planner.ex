@@ -3688,6 +3688,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     contact_allocation_replay =
       CandidateRefresh.contact_allocation_replay_summary(candidate_source)
 
+    contact_filter_replay =
+      CandidateRefresh.contact_filter_replay_summary(candidate_source)
+
     link_capacity_replay =
       CandidateRefresh.link_capacity_replay_summary(candidate_source)
 
@@ -3723,6 +3726,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
     []
     |> maybe_add_candidate_source_contact_allocation_risks(contact_allocation_replay, event_risks)
+    |> maybe_add_candidate_source_contact_filter_risks(contact_filter_replay, event_risks)
     |> maybe_add_candidate_source_link_capacity_risks(link_capacity_replay, event_risks)
     |> maybe_add_candidate_source_station_calendar_risks(station_calendar_replay, event_risks)
     |> maybe_add_candidate_source_operational_readiness_risks(
@@ -3760,6 +3764,14 @@ defmodule OrbitalDynamics.CampaignPlanner do
       risks ++
         contact_allocation_replay_reservation_conflict_risks(replay_summary) ++
         contact_allocation_replay_provider_reservation_risks(replay_summary)
+    end
+  end
+
+  defp maybe_add_candidate_source_contact_filter_risks(risks, replay_summary, event_risks) do
+    if Enum.any?(event_risks, &contact_filter_pressure_risk?/1) do
+      risks
+    else
+      risks ++ contact_filter_replay_pressure_risks(replay_summary)
     end
   end
 
@@ -3933,6 +3945,123 @@ defmodule OrbitalDynamics.CampaignPlanner do
         |> compact_map()
       end)
     end)
+  end
+
+  defp contact_filter_replay_pressure_risks(
+         %{"branch_local_contact_filter_pressure" => true} = replay_summary
+       ) do
+    if contact_filter_replay_scoring_pressure?(replay_summary) do
+      contact_filter_replay_pressure_risk(replay_summary)
+    else
+      []
+    end
+  end
+
+  defp contact_filter_replay_pressure_risks(_replay_summary), do: []
+
+  defp contact_filter_replay_scoring_pressure?(replay_summary) do
+    Map.get(replay_summary, "branch_local_candidate_suppression_pressure") == true or
+      Map.get(replay_summary, "branch_local_invalid_contact_input_pressure") == true or
+      Map.get(replay_summary, "branch_local_station_suppression_pressure") == true
+  end
+
+  defp contact_filter_replay_pressure_risk(replay_summary) do
+    directions =
+      replay_summary
+      |> Map.get("direction_counts", %{})
+      |> map_keys()
+      |> Kernel.++(List.wrap(Map.get(replay_summary, "directions", [])))
+      |> sorted_encoded_values()
+
+    ground_station_ids =
+      replay_summary
+      |> Map.get("station_suppression_ground_station_counts", %{})
+      |> map_keys()
+
+    station_availabilities =
+      replay_summary
+      |> Map.get("station_suppression_availability_counts", %{})
+      |> map_keys()
+
+    [
+      %{
+        "type" => "downlink_completion_gap",
+        "severity" => "medium",
+        "reason" =>
+          "candidate source contact-filter replay reports suppressed candidates, invalid contact inputs, or station suppression",
+        "source_report_count" => Map.get(replay_summary, "source_report_count"),
+        "source_report_row_count" => Map.get(replay_summary, "source_report_row_count"),
+        "source_report_paths" => Map.get(replay_summary, "source_report_paths"),
+        "suppressed_candidate_count" => Map.get(replay_summary, "suppressed_candidate_count"),
+        "invalid_contact_input_count" => Map.get(replay_summary, "invalid_contact_input_count"),
+        "invalid_contact_input_ids" => Map.get(replay_summary, "invalid_contact_input_ids"),
+        "suppressed_reason_counts" => Map.get(replay_summary, "suppressed_reason_counts"),
+        "contact_ids_by_suppressed_reason" =>
+          Map.get(replay_summary, "contact_ids_by_suppressed_reason"),
+        "directions" => directions,
+        "direction_counts" => Map.get(replay_summary, "direction_counts"),
+        "contact_ids_by_direction" => Map.get(replay_summary, "contact_ids_by_direction"),
+        "direction_routing" => Map.get(replay_summary, "direction_routing"),
+        "station_suppression_count" => Map.get(replay_summary, "station_suppression_count"),
+        "station_suppression_ground_station_counts" =>
+          Map.get(replay_summary, "station_suppression_ground_station_counts"),
+        "station_suppression_availability_counts" =>
+          Map.get(replay_summary, "station_suppression_availability_counts"),
+        "station_suppression_status_counts" =>
+          Map.get(replay_summary, "station_suppression_status_counts"),
+        "station_suppression_contact_ids_by_ground_station" =>
+          Map.get(replay_summary, "station_suppression_contact_ids_by_ground_station"),
+        "station_suppression_contact_ids_by_availability" =>
+          Map.get(replay_summary, "station_suppression_contact_ids_by_availability"),
+        "station_suppression_contact_ids_by_status" =>
+          Map.get(replay_summary, "station_suppression_contact_ids_by_status"),
+        "station_suppression_station_calendar_entry_ids_by_ground_station" =>
+          Map.get(
+            replay_summary,
+            "station_suppression_station_calendar_entry_ids_by_ground_station"
+          ),
+        "station_suppression_station_calendar_entry_ids_by_availability" =>
+          Map.get(
+            replay_summary,
+            "station_suppression_station_calendar_entry_ids_by_availability"
+          ),
+        "station_suppression_station_calendar_entry_ids_by_status" =>
+          Map.get(replay_summary, "station_suppression_station_calendar_entry_ids_by_status"),
+        "station_suppression_station_calendar_provider_entry_ids_by_ground_station" =>
+          Map.get(
+            replay_summary,
+            "station_suppression_station_calendar_provider_entry_ids_by_ground_station"
+          ),
+        "station_suppression_station_calendar_provider_entry_ids_by_availability" =>
+          Map.get(
+            replay_summary,
+            "station_suppression_station_calendar_provider_entry_ids_by_availability"
+          ),
+        "station_suppression_station_calendar_provider_entry_ids_by_status" =>
+          Map.get(
+            replay_summary,
+            "station_suppression_station_calendar_provider_entry_ids_by_status"
+          ),
+        "station_suppression_station_reservation_ids_by_ground_station" =>
+          Map.get(replay_summary, "station_suppression_station_reservation_ids_by_ground_station"),
+        "station_suppression_station_reservation_ids_by_availability" =>
+          Map.get(replay_summary, "station_suppression_station_reservation_ids_by_availability"),
+        "station_suppression_station_reservation_ids_by_status" =>
+          Map.get(replay_summary, "station_suppression_station_reservation_ids_by_status"),
+        "ground_station_ids" => ground_station_ids,
+        "station_availabilities" => station_availabilities,
+        "branch_local_candidate_suppression_pressure" =>
+          Map.get(replay_summary, "branch_local_candidate_suppression_pressure"),
+        "branch_local_invalid_contact_input_pressure" =>
+          Map.get(replay_summary, "branch_local_invalid_contact_input_pressure"),
+        "branch_local_station_suppression_pressure" =>
+          Map.get(replay_summary, "branch_local_station_suppression_pressure"),
+        "feedback_source" => "candidate_source.contact_filter_replay_summary",
+        "feedback_scope" => "contact_filter",
+        "trust_boundaries" => Map.get(replay_summary, "trust_boundaries")
+      }
+      |> compact_map()
+    ]
   end
 
   defp link_capacity_replay_pressure_risks(
