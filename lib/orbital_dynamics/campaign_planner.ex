@@ -341,7 +341,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
                 "storage_overflow",
                 "downlink_shortfall",
                 "operational_readiness_blocked",
-                "quality_gate_blocked"
+                "quality_gate_blocked",
+                "contact_intent_blocked"
               ],
               action_rules: []
   end
@@ -8032,6 +8033,12 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "contact_id" => event["contact_id"],
         "contact_result" => event["contact_result"],
         "realized_status" => event["realized_status"],
+        "approval_status" => event["approval_status"],
+        "required_operator_action" => event["required_operator_action"],
+        "cadence_import_status" => event["cadence_import_status"],
+        "contact_intent_gate_status" => event["contact_intent_gate_status"],
+        "policy_classification" => event["policy_classification"],
+        "policy_bundle_id" => event["policy_bundle_id"],
         "source_activity_id" => event["source_activity_id"],
         "source_activity_ids" => event["source_activity_ids"],
         "missed_downlink_activity_id" => event["missed_downlink_activity_id"],
