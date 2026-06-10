@@ -80,7 +80,7 @@ Scored refresh-budget replay pressure with a dedicated score term.
 
 Last commit:
 - Product: `632bd18` Score refresh budget replay pressure
-- Ledger: pending
+- Ledger: `98aea2e` Update autonomous loop status
 
 Remaining maturity gaps:
 - Continue making existing review evidence planner-visible through candidate
