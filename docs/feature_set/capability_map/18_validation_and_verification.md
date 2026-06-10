@@ -320,6 +320,28 @@ Status: **implemented**.
   and accepted/review/blocked evidence counts from present evidence-status and
   evidence-reference maps before falling back to duplicated scalar counters.
 
+## Operational-readiness report fixture
+
+Status: **implemented**.
+
+The validation-reference fixture set includes a curated
+`operational_readiness_report.v1` artifact-contract case, with observation
+support for:
+
+- Source artifact identity and top-level readiness/import/status
+  classification.
+- Row-derived gate counts, status/classification maps, and gate-ID routing.
+- Import-readiness row counts, import-status maps, and Cadence-import status
+  maps.
+- Evidence maps for freshness, schema-validation, resource availability, and
+  unavailable-resource reason routing.
+- Source model, model-limit, adapter-context, and missing trust-boundary counts.
+
+Fixture verification rejects stale row-derived gate maps, stale import-status
+counts, stale top-level readiness/import classifications, stale gate/evidence
+counts, stale model limits, and stale no-authority assumptions before
+operational-readiness reports can steer review or import queues.
+
 ## Quality-gate report fixture
 
 Status: **implemented**.
