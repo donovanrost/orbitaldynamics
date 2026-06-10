@@ -135,7 +135,10 @@
 - **Downlink-completion rows** — convert contact-count or data-volume gaps into `downlink_completion_gap` events.
 - **Target-coverage and target-commitment rows** — convert missing target evidence into `urgent_target` events.
 - Provider contact lists/objects such as `required_downlink_contacts`, `selected_contacts`, `satisfied_contact`, `source_contact`, and `missed_contact` can infer contact counts and source activity IDs when explicit count fields are absent, including provider `source_activity_id` and `downlink_activity_id` contact-object identifiers.
-- Provider/review aliases such as `uncovered_target_ids`, `unsatisfied_target_ids`, `missing_target_ids`, and `target_gap_ids` are treated as the same target-gap evidence instead of being dropped.
+- Provider/review aliases such as `uncovered_target_ids`,
+  `unsatisfied_target_ids`, `missing_target_ids`,
+  `missed_observation_target_ids`, and `target_gap_ids` are treated as the same
+  target-gap evidence instead of being dropped.
 - Objective-satisfaction rows can infer contact, downlink-volume, and target observation gaps from deterministic `score_terms` when provider rows do not promote those gaps to top-level fields, with nested score-term map keys normalized for case/whitespace/hyphen variants.
 - Nested or flattened operator-review and Cadence-import objective-satisfaction rows can replay the same downlink, target, and collection-latency branch-local refresh pressure without resubmitting the source report.
 - Objective-tradeoff pressure rows normalize JSON-style `selected` booleans so unselected branch rationale is preserved for adapter-shaped inputs, and accept adapter-facing `rows` as a read-only alias for canonical `tradeoffs`.
@@ -145,7 +148,11 @@
 
 ### Inline target spec objects
 
-- Provider rows can also express target gaps as inline target spec objects such as `targets`, `target_specs`, `required_targets`, `committed_targets`, `priority_targets`, `uncovered_targets`, `unsatisfied_targets`, `missing_targets`, `missed_target`, `missed_targets`, or `target_gap_targets`.
+- Provider rows can also express target gaps as inline target spec objects such
+  as `targets`, `target_specs`, `required_targets`, `committed_targets`,
+  `priority_targets`, `uncovered_targets`, `unsatisfied_targets`,
+  `missing_targets`, `missed_target`, `missed_targets`,
+  `missed_observation_targets`, or `target_gap_targets`.
 - Target identity, priority, geometry, and minimum elevation are lifted into the derived refresh branch even when the mission-state target catalog does not repeat the target.
 - Mission-state target objectives use the same inline target-spec selector aliases for target coverage, target observation, target revisit, and priority commitments, including `target_specs`, `required_targets`, `committed_targets`, and `priority_targets`.
 - Objective-satisfaction branch derivation can infer required/planned observation counts from provider target lists/objects such as `candidate_targets`, `required_targets`, and `selected_targets` when explicit observation counts are absent.

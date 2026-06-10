@@ -68155,6 +68155,87 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "strategy derives target refresh from objective satisfaction missed-observation target aliases" do
+    prior_plan =
+      base_plan(%{
+        "candidate_activities" => [
+          observe(
+            "obs_missed_observation_recovery",
+            "leo_1",
+            "target_missed_obs",
+            360.0,
+            420.0,
+            12.0
+          )
+        ],
+        "source_objective_satisfaction_report" => %{
+          "schema_contract" => "objective_satisfaction_report.v1",
+          "model" => "provider_missed_observation_summary",
+          "source" => "provider.objective_summary",
+          "objective_count" => 1,
+          "provenance" => %{"trust_boundary" => "provider_missed_observation_review"},
+          "rows" => [
+            %{
+              "id" => "objective:missed_observation_aliases",
+              "objective" => "target_coverage",
+              "status" => "partial",
+              "selected_observation_count" => 0,
+              "missed_observation_target_ids" => ["target_missed_obs"],
+              "missed_observation_targets" => [
+                %{
+                  "id" => "target_missed_obs",
+                  "priority" => "7.0",
+                  "latitude_deg" => 19.5,
+                  "longitude_deg" => -41.25,
+                  "minimum_elevation_deg" => 12.0
+                }
+              ]
+            }
+          ]
+        }
+      })
+
+    artifact =
+      strategy(prior_plan,
+        mission_state: mission_state_with_refresh_inputs() |> Map.put(:targets, []),
+        derive_branches?: true,
+        branches: [%{id: "baseline"}],
+        current_epoch_s: 0.0
+      )
+
+    branch =
+      branch(
+        artifact,
+        "derived_objective_satisfaction_objective:missed_observation_aliases:target_missed_obs"
+      )
+
+    assert %{
+             "type" => "urgent_target",
+             "objective_id" => "objective:missed_observation_aliases",
+             "objective_type" => "target_coverage",
+             "target_id" => "target_missed_obs",
+             "priority" => 7.0,
+             "latitude_deg" => 19.5,
+             "longitude_deg" => -41.25,
+             "minimum_elevation_deg" => 12.0,
+             "planned_observations" => 0,
+             "required_observations" => 1,
+             "feedback_source" => "prior_plan.source_objective_satisfaction_report",
+             "feedback_scope" => "objective_satisfaction",
+             "objective_status" => "partial",
+             "trust_boundary" => "provider_missed_observation_review"
+           } = List.first(branch["events"])
+
+    candidate_source = get_in(branch, ["assumptions", "candidate_source"])
+
+    assert "prior_plan.source_objective_satisfaction_report" in candidate_source[
+             "source_report_input_paths"
+           ]
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "strategy derives downlink refresh from objective satisfaction station object aliases" do
     prior_plan =
       base_plan(%{
