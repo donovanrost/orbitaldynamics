@@ -5,48 +5,30 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Blocked readiness/quality gates affect V3 recommendation selection.
+Operational-readiness fixture coverage documentation.
 
 Status:
 Implemented, parent-reviewed, verified, and published locally.
-Behavior commit: `dbcd244`.
+Docs commit: `a4b6dca`.
 
 Files changed:
-- V3 campaign strategy default approval policy:
-  `lib/orbital_dynamics/campaign_planner.ex`
-- Shared approval fallback matching:
-  `lib/orbital_dynamics/policy.ex`
-- Focused V3 recommendation regression:
-  `test/orbital_dynamics/campaign_planner_test.exs`
-- Regenerated checked-in repair fixture:
-  `study_results/campaign_repair_readiness_source_handoff_v2.json`
+- Validation and verification capability map:
+  `docs/feature_set/capability_map/18_validation_and_verification.md`
 - Ledger:
   `.codex/status/autonomous_product_loop.md`
 
 Tests/checks run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:8317`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs`
-- `mix test test/orbital_dynamics/policy_test.exs`
-- Initial `mix test`: `3331/3332 passed`; only stale checked-in fixture drift.
-- `mix test test/orbital_dynamics/schema_test.exs:16173`
-- Final `mix test`: `3332 passed`
-- `mix orbital_dynamics.schema.lint --input study_results/campaign_repair_readiness_source_handoff_v2.json --contract campaign_repair.v2`
 - `git diff --check`
 
 Behavior changed:
-V3 default approval policy now includes semantic blocked-risk aliases for
-`operational_readiness_blocked` and `quality_gate_blocked`. The shared fallback
-policy matcher maps those aliases only when readiness or quality-gate pressure
-evidence is actually blocked by status, classification, blocked gate count, or
-blocked-readiness operator action. Review-only readiness/quality pressure stays
-reviewable unless callers explicitly configure otherwise. A high-value branch
-with blocked readiness or quality-gate pressure is now classified
-`blocked_by_policy` by default and skipped when a selectable baseline exists.
+Documentation alignment only. The validation capability map now documents the
+existing curated `operational_readiness_report.v1` validation-reference fixture,
+including row-derived gate/import observations and stale-reference checks.
 
 Level 6 pillar advanced:
-Planner-visible readiness gating. Readiness and quality-gate blocks now affect
-branch recommendation selection before operator-review and Cadence-import
-handoff, rather than remaining only review-visible pressure.
+Autonomous-loop calibration quality. Roadmap and capability docs now better
+reflect existing exact fixture evidence so future slices can focus on real
+missing behavior.
 
 Remaining maturity gaps:
 - Use selected contact/readiness pressure in additional planner-visible
@@ -58,6 +40,9 @@ Remaining maturity gaps:
 Last behavior commit:
 `dbcd244` Block readiness gate recommendations by default.
 
+Last docs commit:
+`a4b6dca` Document operational readiness fixture coverage.
+
 Next candidate:
 After this slice, reassess from current code and roadmap. Good next areas are a
 planner-visible contact/readiness gap not already covered by score terms or a
@@ -67,18 +52,15 @@ Blocked:
 Not blocked.
 
 Notes:
-- Selection note: live roadmap line
-  `docs/feature_set/recommended_roadmap.md:107` called for making one existing
-  readiness or quality-gate block affect candidate selection before
-  review/import handoff. Live code already generated readiness/quality risks and
-  score terms, but default blocked-risk matching only recognized resource and
-  downlink risk types. This slice tightened the default policy without making
-  all readiness or quality-gate pressure blocked.
-- Parent review notes: the implementation keeps the semantic block detection in
-  `OrbitalDynamics.Policy` so caller-provided `blocked_risk_types` still control
-  blocking behavior, while V3's default policy opts into the two semantic
-  readiness/quality blocked aliases. The regression test proves both blocked
-  source families lose recommendation selection despite higher mission value.
-  The only fixture drift was the generated default fallback policy list in the
-  repair readiness source handoff fixture, which was regenerated through
-  `OrbitalDynamics.campaign_repair/1` and schema-linted.
+- Selection note: live search found `test/orbital_dynamics/validation_test.exs`
+  already verifies `fixture.artifact.operational_readiness_report.v1`,
+  row-derived gate/import observations, and stale observation/schema failures.
+  `lib/orbital_dynamics/validation.ex` exports matching
+  `operational_readiness_report.v1` observations. The capability map documented
+  several quality-gate validation-reference fixture families but did not give
+  the operational-readiness report fixture comparable coverage notes.
+- Parent review notes: docs-only calibration following the readiness-gate
+  selection behavior slice. The new section is placed next to the existing
+  quality-gate fixture sections and names only evidence already present in the
+  live fixture tests and `Validation.artifact_observations/2`; no runtime,
+  schema, or fixture behavior changed in this slice.
