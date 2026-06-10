@@ -5,7 +5,7 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Score refresh-freshness replay pressure with a dedicated score term.
+Score direct schema-validation replay pressure with a dedicated score term.
 
 Status:
 Completed and pushed.
@@ -18,7 +18,9 @@ Files changed:
 - Ledger: `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:28600 test/orbital_dynamics/campaign_planner_test.exs:28690 test/orbital_dynamics/campaign_planner_test.exs:53664`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:29014 test/orbital_dynamics/campaign_planner_test.exs:29295 test/orbital_dynamics/campaign_planner_test.exs:50085`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:51201 test/orbital_dynamics/campaign_planner_test.exs:52294`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:29014 test/orbital_dynamics/campaign_planner_test.exs:29295 test/orbital_dynamics/campaign_planner_test.exs:50085 test/orbital_dynamics/campaign_planner_test.exs:51201 test/orbital_dynamics/campaign_planner_test.exs:52294`
 - `mix test test/orbital_dynamics/golden_artifact_test.exs`
 - `mix compile --warnings-as-errors`
 - Decoded equality check between checked-in
@@ -31,25 +33,26 @@ Docs/artifacts changed:
   through `OrbitalDynamics.campaign_strategy_from_file!/1`.
 
 Level 6 pillar advanced:
-Refreshed candidates from current mission state and realized feedback, with
-reproducible V1/V2/V3 branch trees and explainable score terms.
+Durable schema-versioned artifacts, compatibility checks, and explainable
+strategy score terms.
 
 Slice selection note:
-Selected slice: Give candidate-source refresh-freshness replay its own
+Selected slice: Give direct candidate-source schema-validation replay its own
 dedicated planner score term.
 
-Why this slice: refresh-freshness replay is already preserved as
-`refresh_freshness_pressure` risk and review/import evidence, but scoring still
-folds it into the broader `validation_refresh_pressure_penalty`.
+Why this slice: direct schema-validation replay is already preserved as
+`schema_validation_pressure` risk and review/import evidence, but scoring still
+folded it into the broader `validation_refresh_pressure_penalty`.
 
-Level 6 pillar: Refreshed candidates from current mission state and realized
-feedback with explainable score terms and durable compatibility evidence.
+Level 6 pillar: Durable schema-versioned artifacts and compatibility checks
+with explainable V1/V2/V3 score terms.
 
-Current evidence gap: Refresh-freshness replay evidence was risk-visible, but
-score reports did not distinguish stale/unknown freshness pressure from general
-validation-refresh pressure.
+Current evidence gap: Direct schema-validation replay evidence was risk-visible,
+but score reports did not distinguish failing/warning/remediation pressure from
+broader validation-refresh rollups.
 
-Docs read: `docs/artifacts/field_families/candidate_refresh_artifact.md`.
+Docs read: `docs/artifacts/field_families/candidate_refresh_artifact.md`;
+`docs/artifacts/compatibility_checks.md`.
 
 Likely files: `lib/orbital_dynamics/campaign_planner.ex`;
 `test/orbital_dynamics/campaign_planner_test.exs`;
@@ -57,27 +60,29 @@ Likely files: `lib/orbital_dynamics/campaign_planner.ex`;
 `study_results/leo_constellation_campaign_strategy_v3.json`;
 `.codex/status/autonomous_product_loop.md`.
 
-Likely tests: focused refresh-freshness replay planner tests;
+Likely tests: focused schema-validation replay planner tests;
 `test/orbital_dynamics/golden_artifact_test.exs`;
 `mix compile --warnings-as-errors`; fixture decoded equality; `git diff --check`.
 
 Slice result:
-- Existing `refresh_freshness_pressure` risks now produce a dedicated
-  `refresh_freshness_pressure_penalty` score term.
-- Refresh-freshness replay pressure is no longer double-counted by
+- Direct `schema_validation_pressure` risks now produce a dedicated
+  `schema_validation_pressure_penalty` score term.
+- Direct schema-validation replay pressure is no longer double-counted by
   `validation_refresh_pressure_penalty` or generic risk scoring.
-- The shared validation-refresh score helper now routes freshness assertions to
-  the freshness score term while keeping schema-validation evidence on
-  validation refresh.
+- Quality-gate/readiness schema-validation rollups remain on
+  `validation_refresh_pressure_penalty`.
+- The shared validation-refresh score helper routes direct schema-validation
+  assertions to the schema-validation score term while preserving rollup
+  assertions on validation refresh.
 - The checked-in strategy fixture includes the new score term across all
   branches and updated review/import counts.
 
 Last completed slice:
-Scored refresh-freshness replay pressure with a dedicated score term.
+Scored direct schema-validation replay pressure with a dedicated score term.
 
 Last commit:
-- Product: `7ffc3b5` Score refresh freshness replay pressure
-- Ledger: `dde9e21` Update autonomous loop status
+- Product: `a448361` Score schema validation replay pressure
+- Ledger: pending
 
 Remaining maturity gaps:
 - Continue making existing review evidence planner-visible through candidate
@@ -86,8 +91,8 @@ Remaining maturity gaps:
   families not present in checked-in strategy artifacts.
 
 Next candidate:
-Reassess schema-validation replay pressure or move to the next branch-evidence
-family with blended score/report treatment.
+Reassess quality-gate/readiness schema-validation rollups or move to another
+branch-evidence family with blended score/report treatment.
 
 Blocked:
 Not blocked.
