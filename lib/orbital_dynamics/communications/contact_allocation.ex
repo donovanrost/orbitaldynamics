@@ -2492,25 +2492,44 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
   end
 
   defp provider_counteroffer_value(row, field) do
+    provider_counteroffer_source_value(row, field)
+  end
+
+  defp provider_counteroffer_source_value(source, field),
+    do: provider_counteroffer_source_value(source, field, 0)
+
+  defp provider_counteroffer_source_value(source, field, depth)
+       when is_map(source) and depth < 4 do
     [
-      row[field],
-      get_in(row, ["source_station_calendar_entry", field])
-      | source_station_calendar_overlap_values(row, field)
+      source[field],
+      provider_counteroffer_source_value(
+        source["source_station_calendar_entry"],
+        field,
+        depth + 1
+      )
+      | source_station_calendar_overlap_values(source, field, depth + 1)
     ]
     |> Enum.find(&provider_counteroffer_value_present?/1)
   end
 
-  defp source_station_calendar_overlap_values(%{"source_station_calendar_overlaps" => overlaps}, field)
+  defp provider_counteroffer_source_value(_source, _field, _depth), do: nil
+
+  defp source_station_calendar_overlap_values(
+         %{"source_station_calendar_overlaps" => overlaps},
+         field,
+         depth
+       )
        when is_list(overlaps),
-       do: Enum.map(overlaps, &source_station_calendar_overlap_value(&1, field))
+       do: Enum.map(overlaps, &provider_counteroffer_source_value(&1, field, depth))
 
-  defp source_station_calendar_overlap_values(%{"source_station_calendar_overlaps" => overlap}, field),
-    do: [source_station_calendar_overlap_value(overlap, field)]
+  defp source_station_calendar_overlap_values(
+         %{"source_station_calendar_overlaps" => overlap},
+         field,
+         depth
+       ),
+       do: [provider_counteroffer_source_value(overlap, field, depth)]
 
-  defp source_station_calendar_overlap_values(_row, _field), do: []
-
-  defp source_station_calendar_overlap_value(%{} = overlap, field), do: overlap[field]
-  defp source_station_calendar_overlap_value(_overlap, _field), do: nil
+  defp source_station_calendar_overlap_values(_row, _field, _depth), do: []
 
   defp provider_counteroffer_start_delta(row) do
     provider_counteroffer_value(row, "provider_counteroffer_start_delta_s") ||

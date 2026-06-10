@@ -163,9 +163,10 @@ Allocation rows normalize direct reservation aliases into canonical station-rese
 - Provider-normalized station-calendar rows preserve top-level `station_calendar_provider_id` and `station_calendar_provider_entry_id` through allocation, approval requirements, operator review, and Cadence import rows.
 - Provider-counteroffer suppression rows from ContactFilter preserve offer ID / status / negotiation / reason / cost / lock-deadline / offered-timing evidence plus start/end/duration timing deltas before ContactAllocation carries them through blocked allocation rows, approval context, operator review, and Cadence import — **without accepting counteroffers or mutating schedules**. Unknown-only negotiation-state metadata is kept nested instead of flattened into review/import counteroffer fields.
 - Allocation also flattens provider-counteroffer handoff fields from
-  `source_station_calendar_overlaps`, so overlap-only provider calendar
-  evidence reaches allocation review/import rows without reopening nested
-  station-calendar payloads.
+  `source_station_calendar_overlaps`, including wrapped overlap rows emitted by
+  contact filtering, so overlap-only provider calendar evidence reaches
+  allocation review/import rows without reopening nested station-calendar
+  payloads.
 - Nested provider source-window maps preserve canonical source-window identity and payload evidence through allocation approval context plus review/import rows.
 
 ## Contention priority evidence handoff
