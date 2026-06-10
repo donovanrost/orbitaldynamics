@@ -5,15 +5,15 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-V3 resource-filter pressure orchestration documentation.
+Resource-filter replay score-term documentation.
 
 Status:
 Implemented, parent-reviewed, locally verified, and published locally.
-Behavior commit: `c41c48e`.
+Behavior commit: `a9e44bc`.
 
 Files changed:
-- V3 strategy orchestration capability map:
-  `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
+- Branch-refresh pressure replay capability map:
+  `docs/feature_set/capability_map/11_planning_state_refresh/pressure_replay_into_branch_refresh.md`
 - Ledger:
   `.codex/status/autonomous_product_loop.md`
 
@@ -21,11 +21,11 @@ Tests/checks run:
 - `git diff --check`
 
 Behavior changed:
-Documentation alignment only: the V3 strategy orchestration capability map now
-describes dedicated resource-filter pressure scoring through
-`resource_filter_pressure_penalty` in both the score-term narrative and the
-selected-recommendation score-term list, rather than folding resource-filter
-suppression into broader resource-availability wording.
+Documentation alignment only: the branch-refresh pressure replay docs now say
+resource-filter suppression replay contributes to
+`resource_filter_pressure_penalty`, while operational-feedback availability
+replay remains under `resource_availability_pressure_penalty` and
+storage/downlink pressure remains in its dedicated term.
 
 Level 6 pillar advanced:
 Autonomous-loop calibration quality: artifact documentation should describe the
@@ -40,7 +40,7 @@ Remaining maturity gaps:
 - Continue reassessing from live code and Level 6 docs between slices.
 
 Last behavior commit:
-`c41c48e` Document V3 resource filter pressure scoring.
+`a9e44bc` Document resource filter replay score term.
 
 Next candidate:
 After this slice, reassess from current code and roadmap. Good next areas are
@@ -51,18 +51,20 @@ Blocked:
 Not blocked.
 
 Notes:
-- Selection note: after refreshing the validation fixture docs, live search
-  shows `docs/feature_set/capability_map/14_v3_strategy_orchestration.md` still
-  describes resource-filter pressure under broader resource-availability
-  wording and lacks the new dedicated `resource_filter_pressure_penalty`.
-  Current code and tests now split resource-filter replay pressure into that
-  term. This slice updates only the V3 orchestration docs. Likely files:
-  `docs/feature_set/capability_map/14_v3_strategy_orchestration.md` and this
-  ledger. Definition of done: the narrative and selected-recommendation
-  score-term bullets mention dedicated resource-filter pressure scoring,
-  markdown diff checks pass, parent review is recorded, and docs plus ledger
-  commits are pushed.
-- Parent review notes: docs-only calibration following `725fa56` and the
-  validation fixture docs refresh. The changed V3 orchestration paragraphs now
-  match the current resource-filter score-term behavior and focused planner
-  tests. No runtime, schema, or fixture behavior changed in this slice.
+- Selection note: live search shows the branch-refresh pressure replay docs
+  still say resource-filter replay contributes availability risks to
+  `resource_availability_pressure_penalty`. Current code and tests now route
+  replayed resource-filter suppression risks to the dedicated
+  `resource_filter_pressure_penalty`. This slice updates only the pressure
+  replay docs. Likely files:
+  `docs/feature_set/capability_map/11_planning_state_refresh/pressure_replay_into_branch_refresh.md`
+  and this ledger. Definition of done: the replay docs name the dedicated
+  resource-filter score term while preserving the separate operational-feedback,
+  resource-margin, battery, storage/downlink, and contact-filter score-term
+  statements, markdown diff checks pass, parent review is recorded, and docs
+  plus ledger commits are pushed.
+- Parent review notes: docs-only calibration following `725fa56`. The changed
+  branch-refresh pressure replay bullets now match the current V3
+  resource-filter score-term routing while preserving the existing
+  operational-feedback availability and storage/downlink notes. No runtime,
+  schema, or fixture behavior changed in this slice.
