@@ -2112,6 +2112,87 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "campaign downlink completion weight affects greedy activity selection" do
+    result_set =
+      ResultSet.new!(%{
+        study_id: :campaign,
+        trajectory_results: [],
+        event_results: [
+          target_visibility_result(:leo_1, :priority_target, 0.0, 100.0, 1.0),
+          access_result(:leo_1, :equator_prime, 0.0, 100.0)
+        ],
+        errors: [],
+        assumptions: %{},
+        metadata: %{}
+      })
+
+    default_artifact =
+      CampaignPlanner.build(result_set,
+        generated_at: ~U[2026-05-14 00:00:00Z],
+        campaign: %{
+          "targets" => [%{"id" => "priority_target", "priority" => 1.0}],
+          "objectives" => [
+            %{"type" => "downlink_completion", "required_downlink_mb" => 100.0}
+          ],
+          "constraints" => %{"max_timeline_activities" => 1},
+          "scoring_policy" => %{
+            "target_value_weight" => 1.0,
+            "contact_value_weight" => 0.0,
+            "downlink_rate_mb_s" => 1.0
+          }
+        }
+      )
+
+    assert [%{"type" => "observe"}] = default_artifact["activities"]
+
+    refute Map.has_key?(
+             List.first(default_artifact["ranked_timelines"])["score_terms"],
+             "downlink_completion_score"
+           )
+
+    weighted_artifact =
+      CampaignPlanner.build(result_set,
+        generated_at: ~U[2026-05-14 00:00:00Z],
+        campaign: %{
+          "targets" => [%{"id" => "priority_target", "priority" => 1.0}],
+          "objectives" => [
+            %{"type" => "downlink_completion", "required_downlink_mb" => 100.0}
+          ],
+          "constraints" => %{"max_timeline_activities" => 1},
+          "scoring_policy" => %{
+            "target_value_weight" => 1.0,
+            "contact_value_weight" => 0.0,
+            "downlink_completion_weight" => 120.0,
+            "downlink_rate_mb_s" => 1.0
+          }
+        }
+      )
+
+    assert [
+             %{
+               "type" => "downlink",
+               "estimated_throughput_mb" => 100.0
+             }
+           ] = weighted_artifact["activities"]
+
+    assert [
+             %{
+               "score" => 120.0,
+               "score_terms" => %{
+                 "activity_score" => weighted_activity_score,
+                 "downlink_completion_score" => 120.0,
+                 "downlink_completion_ratio" => 1.0,
+                 "selected_downlink_mb" => 100.0
+               }
+             }
+           ] = weighted_artifact["ranked_timelines"]
+
+    assert weighted_activity_score == 0.0
+
+    assert {:ok, %{"schema_contract" => "campaign_plan.v1"}} =
+             Schema.validate_artifact(weighted_artifact)
+  end
+
   test "campaign objective satisfaction requires both downlink count and data volume when declared" do
     result_set =
       ResultSet.new!(%{

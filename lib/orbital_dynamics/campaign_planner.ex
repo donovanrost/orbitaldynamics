@@ -56541,7 +56541,13 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
     activities =
       candidates
-      |> Enum.sort_by(&{-candidate_score(&1), activity_start(&1), &1["id"]})
+      |> Enum.sort_by(
+        &{
+          -candidate_selection_score(&1, downlink_completion_context),
+          activity_start(&1),
+          &1["id"]
+        }
+      )
       |> Enum.reduce([], fn candidate, selected ->
         cond do
           length(selected) >= max_activities -> selected
@@ -56572,6 +56578,15 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "activity_count" => length(activities),
       "activities" => activities
     }
+  end
+
+  defp candidate_selection_score(candidate, downlink_completion_context) do
+    candidate_score(candidate) +
+      Map.get(
+        downlink_completion_score_terms([candidate], downlink_completion_context),
+        "downlink_completion_score",
+        0.0
+      )
   end
 
   defp downlink_completion_score_context(campaign, policy) do

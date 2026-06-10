@@ -27,8 +27,8 @@ It answers:
 - `campaign.scoring_policy`: deterministic weights, rank limit, and optional
   `contact_activity_types` for deriving downlink, command, tracking, and
   health-check candidates from ground-station access windows; optional
-  `downlink_completion_weight` for ranking selected downlink throughput against
-  declared downlink-completion demand.
+  `downlink_completion_weight` for selecting and ranking downlink throughput
+  against declared downlink-completion demand.
 - Seeds for reproducible search or Monte Carlo studies.
 
 ## Core Capabilities
