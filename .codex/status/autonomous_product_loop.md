@@ -8,8 +8,8 @@ Current slice:
 V2 repair refresh-budget pressure score term.
 
 Status:
-Implemented, parent-reviewed, and locally verified. Publish handoff is in
-progress.
+Implemented, parent-reviewed, locally verified, and published to `origin/main`.
+Behavior commit: `e04eb73`.
 
 Files changed:
 - Repair scoring:
@@ -42,7 +42,7 @@ Remaining maturity gaps:
   editing; do not rely on stale ledger candidates.
 
 Last behavior commit:
-Pending.
+`e04eb73` Score repair refresh budget pressure.
 
 Next candidate:
 Recalibrate from live code. Candidate-rejection or readiness/quality evidence
