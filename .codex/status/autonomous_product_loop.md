@@ -5,84 +5,85 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve provider-counteroffer handoff fields from contact-filter
+Preserve provider-counteroffer handoff fields from wrapped contact-allocation
 station-calendar overlaps.
 
 Status:
 Completed and pushed.
 
 Files changed:
-- Contact filter: `lib/orbital_dynamics/communications/contact_filter.ex`
-- Contact filter tests:
-  `test/orbital_dynamics/communications/contact_filter_test.exs`
+- Contact allocation: `lib/orbital_dynamics/communications/contact_allocation.ex`
+- Contact allocation tests:
+  `test/orbital_dynamics/communications/contact_allocation_test.exs`
 - Ground-network docs:
-  `docs/feature_set/capability_map/07_ground_network/01_overview_filter_and_contention.md`
+  `docs/feature_set/capability_map/07_ground_network/03_contact_allocation.md`
 - Ledger: `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/communications/contact_filter_test.exs:281`
-- `mix test test/orbital_dynamics/communications/contact_filter_test.exs:153`
+- `mix test test/orbital_dynamics/communications/contact_allocation_test.exs:6128`
+- `mix test test/orbital_dynamics/communications/contact_allocation_test.exs:6188`
+- `mix test test/orbital_dynamics/communications/contact_allocation_test.exs:6001`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 
 Docs/artifacts changed:
-- Documented that contact filtering classifies and flattens
-  provider-counteroffer evidence from `source_station_calendar_overlaps`.
+- Documented that allocation flattens provider-counteroffer evidence from
+  wrapped `source_station_calendar_overlaps` rows emitted by contact filtering.
 
 Level 6 pillar advanced:
-Fleet-level station-calendar/contact filtering behavior with Cadence-facing
+Fleet-level station-calendar/contact allocation behavior with Cadence-facing
 review/import handoffs.
 
 Slice selection note:
-Selected slice: provider-counteroffer overlap handoff in contact filtering.
+Selected slice: recursive provider-counteroffer overlap lookup in contact
+allocation.
 
-Why this slice: The previous allocation slice preserved overlap-only
-counteroffer metadata downstream, but ContactFilter is the upstream suppression
-boundary and still missed provider-counteroffer evidence when it lived only
-under `source_station_calendar_overlaps`.
+Why this slice: ContactFilter now preserves overlap-only provider counteroffers
+in wrapped station-overlap rows, but ContactAllocation only extracted
+counteroffer fields from direct overlap maps.
 
-Level 6 pillar: Fleet-level station-calendar/contact behavior and Cadence-facing
-review/import handoffs.
+Level 6 pillar: Fleet-level station-calendar/contact allocation behavior and
+Cadence-facing review/import handoffs.
 
-Current evidence gap: Overlap-only provider counteroffer windows could avoid
-provider-counteroffer review classification or fail to flatten offer fields into
-contact suppression, operator-review, and Cadence-import rows.
+Current evidence gap: Allocation rows could carry `review_provider_counteroffer`
+while leaving offer ID, timing, and cost hidden in nested overlap evidence,
+weakening operator-review and Cadence-import routing.
 
 Docs read:
-`docs/feature_set/capability_map/07_ground_network/01_overview_filter_and_contention.md`;
 `docs/feature_set/capability_map/07_ground_network/03_contact_allocation.md`;
-focused ContactFilter code/tests.
+focused ContactAllocation code/tests.
 
-Likely files: `lib/orbital_dynamics/communications/contact_filter.ex`;
-`test/orbital_dynamics/communications/contact_filter_test.exs`;
-`docs/feature_set/capability_map/07_ground_network/01_overview_filter_and_contention.md`;
+Likely files: `lib/orbital_dynamics/communications/contact_allocation.ex`;
+`test/orbital_dynamics/communications/contact_allocation_test.exs`;
+`docs/feature_set/capability_map/07_ground_network/03_contact_allocation.md`;
 `.codex/status/autonomous_product_loop.md`.
 
-Likely tests: focused provider-counteroffer overlap filter test; existing
-provider-counteroffer filter test; `mix compile --warnings-as-errors`;
-`git diff --check`.
+Likely tests: wrapped-overlap allocation regression; existing overlap allocation
+regression; existing provider-counteroffer allocation regression;
+`mix compile --warnings-as-errors`; `git diff --check`.
 
-Definition of done: ContactFilter classifies overlap-only counteroffer evidence
-for review, flattens offer/timing/cost fields through suppression,
-operator-review, and Cadence-import rows, validates artifacts, and documents the
-provider-overlap handoff.
+Definition of done: Allocation extracts counteroffer fields and derived timing
+deltas from direct, singular-source, direct-overlap, and recursively wrapped
+overlap evidence, preserves them through review/import rows with schema
+validation, and documents the handoff.
 
 Slice result:
-- Provider-counteroffer review classification now uses the shared
-  counteroffer-source lookup instead of a direct/singular-source special case.
-- Provider-counteroffer field extraction now searches direct row fields,
-  nested `source_station_calendar_entry`, and recursively wrapped
-  `source_station_calendar_overlaps`.
-- Added a focused regression covering contact suppression, operator review,
-  Cadence import, and schema validation for overlap-only counteroffer evidence.
+- Provider-counteroffer field extraction now uses bounded recursive lookup
+  through direct rows, nested source entries, and wrapped station-calendar
+  overlaps.
+- Updated the direct-overlap allocation regression to assert the current
+  ContactFilter boundary: counteroffer downlinks are blocked before allocation
+  while preserving offer evidence.
+- Added a wrapped-overlap uplink allocation regression proving allocation rows,
+  operator review, and Cadence import flatten nested counteroffer fields.
 
 Last completed slice:
-Preserved provider-counteroffer handoff fields from contact-filter
+Preserved provider-counteroffer handoff fields from wrapped contact-allocation
 station-calendar overlaps.
 
 Last commit:
-- Product: `ffc53be` Preserve filter counteroffer overlap handoffs
-- Ledger: `46b3a6f` Update autonomous loop status
+- Product: `67d430b` Preserve wrapped counteroffer overlap handoffs
+- Ledger: pending
 
 Remaining maturity gaps:
 - Continue reassessing queue-2 resource/contact allocation gaps for real
@@ -101,8 +102,8 @@ Blocked:
 Not blocked.
 
 Notes:
-- Previous published slice: Product `a2ff3c8`, Ledger `4f60b8d`, final status
-  `7bbed87`.
+- Previous published slice: Product `ffc53be`, Ledger `46b3a6f`, final status
+  `43a081e`.
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
   not part of this slice.
 - Sidecar delegation is unavailable in this runtime; parent performed the same
