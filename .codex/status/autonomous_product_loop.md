@@ -5,50 +5,53 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Link-capacity strategy replay stays row-led under stale aggregates.
+V2 repair honors supplied candidate-refresh resource suppressions during
+replacement selection.
 
 Status:
-Implemented, reviewer-cleared, locally verified, committed, and pushed.
+Implemented, reviewer-cleared, and locally verified; publish pending.
 
 Files changed:
-- Focused strategy regression:
+- V2 repair candidate filtering:
+  `lib/orbital_dynamics/campaign_planner.ex`
+- Focused repair regression:
   `test/orbital_dynamics/campaign_planner_test.exs`
 - Ledger:
   `.codex/status/autonomous_product_loop.md`
 
 Tests/checks run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:33746`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:33333 test/orbital_dynamics/campaign_planner_test.exs:33584 test/orbital_dynamics/campaign_planner_test.exs:33746`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:4424`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:4424 test/orbital_dynamics/campaign_planner_test.exs:5602`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:4122 test/orbital_dynamics/campaign_planner_test.exs:4424 test/orbital_dynamics/campaign_planner_test.exs:5602`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 
 Level 6 pillar advanced:
-Fleet-level contact/resource behavior and reproducible V3 branch trees with
-explainable score terms, by proving link-capacity replay remains row-led when
-compact throughput/contact aggregates are stale.
+Refreshed candidates from current mission state and fleet-level resource/contact
+behavior, by making V2 repair exclude candidates suppressed by the same supplied
+candidate-refresh resource filter report.
 
 Slice selection note:
-Selected slice: add a V3 strategy challenge proving link-capacity replay stays
-row-led when top-level throughput/contact aggregates are stale.
+Selected slice: make V2 repair honor supplied `candidate_refresh.v1`
+`resource_filter_report.suppressed_candidates` during replacement selection.
 
-Why this slice: CandidateRefresh already proves link-capacity summaries derive
-stale aggregate pressure from rows, and strategy already scores link-capacity
-replay. The missing evidence is the V3 handoff between those surfaces: risk
-indicators, link-capacity score terms, and schema-valid strategy output under
-contradictory top-level summary fields.
+Why this slice: branch-generated refreshes already filter resource-blocked
+candidates, but supplied refresh artifacts can carry suppression evidence beside
+still-listed candidates. Repair should not select a candidate that the same
+refresh artifact declares unavailable.
 
 Current evidence gap:
-Campaign strategy lacks a stale-top-level link-capacity challenge showing
-selected contact IDs, station routing, throughput totals, and shortfall
-pressure come from rows rather than summary aggregates.
+Resource suppression can be preserved for review while an externally supplied
+refresh candidate remains selectable in V2 repair.
 
 Slice result:
-- Added a stale-top-level link-capacity summary strategy challenge proving row
-  evidence drives replay summaries, risk indicators, link-capacity score terms,
-  branch risk types, and schema validation.
-- No production changes were needed; the existing strategy replay path was
-  already row-led for this link-capacity summary family.
-- Neighboring link-capacity report/summary strategy replay tests remain green.
+- V2 repair now removes candidates listed in a supplied candidate refresh's
+  `resource_filter_report.suppressed_candidates` before replacement selection.
+- Added a regression proving a higher-score suppressed contact keyed by
+  `contact_id` is not selected, while the suppression report still feeds
+  operator review and Cadence import rows.
+- Neighboring supplied-refresh and generated-refresh resource-suppression tests
+  remain green.
 
 Last completed slice:
 Link-capacity strategy replay stays row-led under stale aggregates.
@@ -83,11 +86,9 @@ Blocked:
 Not blocked.
 
 Notes:
-- Validation safety-case, timeline lifecycle, readiness, resource quality-gate,
-  contact-allocation, and provider-counteroffer stale strategy guards already
-  exist in current tests; this slice targets the adjacent link-capacity summary
-  strategy gap.
+- Reviewer cleared the planner change and flagged ledger-only fixes plus a
+  tighter row-shape regression; those fixes were applied.
 - Focused CampaignPlanner tests still emit existing unrelated `0.0`
   pattern-match warnings from another test; selected tests exit green.
-- Reviewer sidecar: `019eb062-21ca-7081-817a-d4d26d62f9b4`.
-- Publisher sidecar: `019eb064-b61d-72c1-a4a7-2d652ba72ed0`.
+- Reviewer sidecar: `019eb06d-0aa4-7a91-b3d7-cf66229741f0`.
+- Publisher sidecar: pending.

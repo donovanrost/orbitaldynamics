@@ -57830,11 +57830,30 @@ defmodule OrbitalDynamics.CampaignPlanner do
   end
 
   defp repair_candidates(_prior_plan, %{} = candidate_refresh) do
+    suppressed_candidate_ids = repair_resource_suppressed_candidate_ids(candidate_refresh)
+
     candidate_refresh
     |> Map.get("candidate_activities", [])
     |> Enum.map(&stringify_keys/1)
     |> Enum.map(&normalize_downlink_activity/1)
+    |> Enum.reject(&MapSet.member?(suppressed_candidate_ids, activity_id(&1)))
     |> sort_candidate_activities()
+  end
+
+  defp repair_resource_suppressed_candidate_ids(candidate_refresh) do
+    candidate_refresh
+    |> repair_resource_filter_report()
+    |> case do
+      %{"suppressed_candidates" => rows} when is_list(rows) ->
+        rows
+        |> Enum.map(&stringify_keys/1)
+        |> Enum.map(&resource_filter_candidate_id/1)
+        |> Enum.reject(&(&1 in [nil, ""]))
+        |> MapSet.new()
+
+      _report ->
+        MapSet.new()
+    end
   end
 
   defp sort_candidate_activities(activities) do
