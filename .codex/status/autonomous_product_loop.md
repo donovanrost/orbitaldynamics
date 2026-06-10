@@ -8,8 +8,8 @@ Current slice:
 V2 repair candidate-rejection pressure score term.
 
 Status:
-Implemented, parent-reviewed, and locally verified. Publish handoff is in
-progress.
+Implemented, parent-reviewed, locally verified, and published to `origin/main`.
+Behavior commit: `0e0e760`.
 
 Files changed:
 - Repair scoring:
@@ -41,7 +41,7 @@ Remaining maturity gaps:
   editing; do not rely on stale ledger candidates.
 
 Last behavior commit:
-Pending.
+`0e0e760` Score repair candidate rejection pressure.
 
 Next candidate:
 Recalibrate from live code. Readiness/quality evidence may have similar V2
