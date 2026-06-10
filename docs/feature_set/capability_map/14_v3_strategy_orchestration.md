@@ -770,6 +770,10 @@ pressure is visible separately from broader contact-allocation review pressure.
 Contact-filter downlink suppression risks contribute to
 `contact_filter_pressure_penalty`, leaving generic `risk_penalty` for unrelated
 risks while preserving total branch score compatibility.
+Resource-filter suppression risks contribute to
+`resource_filter_pressure_penalty`, leaving broader resource-availability and
+resource-margin pressure terms for non-filtered resource evidence while
+preserving total branch score compatibility.
 Resource-availability risks, including resource-projection payload/antenna
 unavailability, degraded-payload, and activity-type suppression/incompatibility
 pressure, contribute to `resource_availability_pressure_penalty`, leaving
@@ -1677,13 +1681,19 @@ Selected recommendations also include:
   `risk_penalty` for unrelated risks while preserving total branch score
   compatibility. Focused contact-filter pressure fixtures now assert split
   branch math and score-term report rows.
+- **Resource-filter pressure score terms** — split resource-filter availability
+  and margin suppression risks into `resource_filter_pressure_penalty`, leaving
+  broader resource-availability and resource-margin pressure terms for
+  non-filtered resource evidence while preserving total branch score
+  compatibility. Focused resource-filter pressure fixtures now assert split
+  branch math and score-term report rows.
 - **Resource-availability pressure score terms** — split payload, antenna,
   spacecraft, degraded-payload, activity-type suppression/incompatibility, and
   generic resource unavailability risks into
   `resource_availability_pressure_penalty`, leaving `risk_penalty` for
   unrelated risks while preserving total branch score compatibility. Focused
-  resource-filter, operational-feedback, and resource-projection fixtures now
-  assert split branch math and score-term report rows.
+  operational-feedback and resource-projection fixtures now assert split branch
+  math and score-term report rows.
 - **Resource-margin pressure score terms** — split fuel, power, and thermal
   margin risks into `resource_margin_pressure_penalty`, leaving `risk_penalty`
   for unrelated risks while preserving total branch score compatibility. Focused
