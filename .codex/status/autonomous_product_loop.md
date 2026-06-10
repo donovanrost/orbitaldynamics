@@ -5,94 +5,104 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Pin planner-visible scoring for thermal resource-projection replay pressure.
+Preserve contact-allocation reservation expiration status into V3 branch risk
+scoring.
 
 Status:
 Completed and pushed.
 
 Files changed:
+- Planner runtime: `lib/orbital_dynamics/campaign_planner.ex`
 - Strategy tests: `test/orbital_dynamics/campaign_planner_test.exs`
 - Ledger: `.codex/status/autonomous_product_loop.md`
 
 Tests/checks run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:45737`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:30278`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 
 Docs/artifacts changed:
-- No docs changed; the capability map already says resource-projection pressure
-  replays into branch-local refresh and score terms. This slice pins that
-  existing behavior with a focused scoring assertion.
+- No docs changed. This slice tightened the runtime and focused strategy
+  fixture for an already-present combined provider-calendar/reservation/contact
+  allocation challenge.
 
 Level 6 pillar advanced:
-Planner-visible scoring evidence for replayed resource/contact pressure.
+Resource/communications allocation semantics and branch-local candidate refresh
+scoring depth.
 
 Slice selection note:
-Selected slice: pin planner-visible score terms for thermal
-resource-projection replay pressure.
+Selected slice: preserve contact-allocation reservation expiration status into
+V3 branch risk scoring.
 
-Why this slice: The prior resource-projection pressure test already verified
-flattened thermal projection replay events and branch-comparison risk rows, but
-it only asserted scoring for storage/downlink and availability/activity-type
-branches. The thermal branch emitted `thermal_margin_c_low`; the test now also
-proves it contributes to `resource_margin_pressure_penalty`.
+Why this slice: The combined provider-calendar/reservation/allocation challenge
+already existed, but expired reservation evidence from contact-allocation replay
+was not planner-visible as
+`station_reservation_expiration_pressure_penalty`.
 
-Level 6 pillar: planner-visible score explanations for replayed
-resource/contact pressure.
+Level 6 pillar: resource/communications allocation semantics and branch-local
+candidate refresh depth.
 
-Current evidence gap: Replayed thermal resource-projection pressure was visible
-as branch event and risk evidence, but its score-term split was not explicitly
-pinned in the focused branch-refresh fixture.
+Current evidence gap: `CandidateRefresh.contact_allocation_replay_summary/1`
+carried `station_reservation_contact_ids_by_expiration_status`, but
+`CampaignPlanner.contact_allocation_replay_reservation_conflict_risks/1` dropped
+that status before V3 branch scoring and comparison-row aggregation.
 
 Docs read:
+`docs/autonomous_work_guide.md`;
+`.codex/prompts/long_running_context_efficient_product_loop.md`;
+`docs/feature_set/current_level6_snapshot.md`;
 `docs/feature_set/recommended_roadmap.md`;
-`docs/feature_set/capability_map/20_cadence_boundary_and_integration_artifacts.md`;
-focused CampaignPlanner branch scoring code/tests.
+focused CampaignPlanner replay/scoring code and tests.
 
-Likely files: `test/orbital_dynamics/campaign_planner_test.exs`;
+Likely files: `lib/orbital_dynamics/campaign_planner.ex`;
+`test/orbital_dynamics/campaign_planner_test.exs`;
 `.codex/status/autonomous_product_loop.md`.
 
-Likely tests: prior resource-projection branch-refresh strategy test,
-`mix compile --warnings-as-errors`, `git diff --check`.
+Likely tests: combined provider-calendar/reservation/contact-allocation
+strategy test, `mix compile --warnings-as-errors`, `git diff --check`.
 
-Definition of done: The prior resource-projection pressure fixture asserts the
-thermal projection branch's `resource_margin_pressure_penalty` and score-term
-report row, while the focused strategy test and compile/diff checks pass.
+Definition of done: The challenge branch exposes expired reservation status in
+synthesized contact-allocation risks, scores it through
+`station_reservation_expiration_pressure_penalty`, surfaces it in branch
+comparison rows, and the focused strategy test plus compile/diff checks pass.
 
 Slice result:
-- Added `assert_resource_margin_pressure_score_terms/2` coverage for the
-  `derived_projected_resource_pressure_leo_thermal_pressure` branch.
-- Verified the existing score split already routes thermal projection pressure
-  into `resource_margin_pressure_penalty`.
+- Preserved contact-allocation replay reservation expiration status on
+  synthesized `downlink_completion_gap` risk indicators.
+- Added branch-comparison aggregation for
+  `branch_station_reservation_expiration_statuses`.
+- Strengthened the combined challenge fixture to assert expired reservation
+  contact evidence, risk status, score-term math, comparison-row exposure, and
+  schema validation.
 
 Last completed slice:
-Pin planner-visible scoring for thermal resource-projection replay pressure.
+Preserve contact-allocation reservation expiration status into V3 branch risk
+scoring.
 
 Last commit:
-- Product: `8c30a7c` Assert thermal resource pressure scoring
-- Ledger: `a236e96` Update autonomous loop status
+- Product: `f0d1410` Score contact allocation reservation expiration
+- Ledger: this handoff commit
 
 Remaining maturity gaps:
-- Continue converting existing replayed resource/contact/readiness pressure
-  into planner-visible branch scoring or candidate-selection effects where live
-  code still routes evidence only to review/import.
+- Continue converting replayed resource/contact/readiness pressure into
+  planner-visible branch scoring or candidate-selection effects where live code
+  still routes evidence only to review/import.
 - Continue closing queue-4 branch-local handoff completeness and queue-3
   quality/readiness gaps for artifact families not present in checked-in
   strategy artifacts.
 
 Next candidate:
-Reassess from live evidence. Good candidates remain a contradictory
-provider-calendar/reservation/contact-allocation challenge fixture, a missing
-resource/contact compatibility fixture, or another score assertion only if the
-current checkout shows replayed pressure without branch-score evidence.
+Reassess from live evidence. Good candidates remain a missing resource/contact
+compatibility fixture, a readiness/quality replay path without branch-score
+evidence, or another branch-comparison field only if the current checkout shows
+runtime evidence that is not planner-visible.
 
 Blocked:
 Not blocked.
 
 Notes:
-- Previous published slice: Product `0620808`, Ledger `ef4d80e`, final status
-  `e4f21ce`.
+- Previous published slice: Product `8c30a7c`, Ledger `a236e96`.
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
   not part of this slice.
-- Sidecar delegation is unavailable in this runtime; parent performed the same
+- Sidecar delegation is unavailable in this runtime; parent performed the
   bounded local review and mechanical publish scope.
