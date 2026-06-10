@@ -1976,6 +1976,117 @@ defmodule OrbitalDynamics.Validation do
         "checks candidate-refresh replay of station-calendar provenance without schedule mutation, candidate selection, import approval, or Cadence writes"
       ]
     },
+    "fixture.artifact.candidate_refresh.contact_allocation_contradiction_replay" => %{
+      "id" => "fixture.artifact.candidate_refresh.contact_allocation_contradiction_replay",
+      "model_id" => "artifact.candidate_refresh.v1",
+      "reference_case" =>
+        "generated candidate refresh replay of contradictory provider-calendar, reservation, and contact-allocation evidence",
+      "validation_level" => "artifact_contract",
+      "fixture_type" => "curated_internal_artifact_regression",
+      "inputs" => %{
+        "source" => "generated_candidate_refresh_contact_allocation_contradiction_fixture",
+        "contract" => "candidate_refresh.v1"
+      },
+      "expected" => %{
+        "schema_contract" => "candidate_refresh.v1",
+        "schema_version" => 1,
+        "planner" => "OrbitalDynamics.CandidateRefresh.V1",
+        "candidate_count" => 0,
+        "contact_intent_count" => 0,
+        "access_window_count" => 0,
+        "target_visibility_window_count" => 0,
+        "eclipse_interval_count" => 0,
+        "source_report_family_count" => 2,
+        "source_report_row_count" => 9,
+        "source_station_calendar_report_count" => 1,
+        "source_station_calendar_row_count" => 3,
+        "source_station_calendar_affected_contact_count" => 2,
+        "source_station_calendar_provider_calendar_contention_group_count" => 1,
+        "source_station_calendar_provider_calendar_contention_group_id_keys" =>
+          "station_calendar_provider_contention:equator_prime:1",
+        "source_station_calendar_provider_calendar_contention_source_entry_id_keys" =>
+          "equator_capacity|equator_reserved",
+        "source_station_calendar_provider_calendar_contention_provider_entry_id_keys" =>
+          "equator_capacity|equator_reserved",
+        "source_station_calendar_provider_calendar_contention_provider_counts" => %{
+          "ops_calendar" => 1
+        },
+        "source_station_calendar_provider_calendar_contention_ground_station_counts" => %{
+          "equator_prime" => 1
+        },
+        "source_station_calendar_provider_calendar_contention_minimum_capacity_fraction" => 0.5,
+        "source_station_calendar_status_counts" => %{"available" => 1, "reserved" => 1},
+        "source_station_calendar_branch_local_station_calendar_pressure" => true,
+        "source_station_calendar_branch_local_provider_contention_pressure" => true,
+        "source_contact_allocation_report_count" => 2,
+        "source_contact_allocation_row_count" => 6,
+        "source_contact_allocation_path_keys" =>
+          "source_contact_allocation_reservation_conflict_summary|source_contact_allocation_provider_reservation_request_summary",
+        "source_contact_allocation_source_summary_schema_contract_counts" => %{
+          "contact_allocation_provider_reservation_request_summary.v1" => 1,
+          "contact_allocation_reservation_conflict_summary.v1" => 1
+        },
+        "source_contact_allocation_reservation_conflict_contact_count" => 3,
+        "source_contact_allocation_reservation_conflict_match_status_counts" => %{
+          "overlap" => 3
+        },
+        "source_contact_allocation_reservation_conflict_contact_ids_by_direction_and_ground_station" =>
+          %{
+            "command" => %{"equator_prime" => ["dl_review_overlap"]},
+            "downlink" => %{"equator_prime" => ["dl_reserved_intruder"]},
+            "tracking" => %{"equator_prime" => ["dl_reserved_intruder"]}
+          },
+        "source_contact_allocation_station_reservation_expiration_status_counts" => %{
+          "declared" => 2,
+          "expired" => 2,
+          "missing" => 1
+        },
+        "source_contact_allocation_provider_reservation_request_contact_count" => 2,
+        "source_contact_allocation_provider_reservation_review_contact_count" => 1,
+        "source_contact_allocation_provider_reservation_no_request_contact_count" => 3,
+        "source_contact_allocation_provider_reservation_request_status_counts" => %{
+          "request_ready" => 1,
+          "review_required" => 1
+        },
+        "source_contact_allocation_provider_reservation_request_contact_ids_by_direction_and_ground_station" =>
+          %{
+            "downlink" => %{"equator_prime" => ["dl_reserved_owner"]}
+          },
+        "source_contact_allocation_provider_reservation_review_contact_ids_by_direction_and_ground_station" =>
+          %{
+            "command" => %{"equator_prime" => ["dl_review_overlap"]}
+          },
+        "source_contact_allocation_branch_local_reservation_conflict_pressure" => true,
+        "source_contact_allocation_branch_local_provider_reservation_request_pressure" => true
+      },
+      "tolerances" => %{
+        "schema_version" => 0,
+        "candidate_count" => 0,
+        "contact_intent_count" => 0,
+        "access_window_count" => 0,
+        "target_visibility_window_count" => 0,
+        "eclipse_interval_count" => 0,
+        "source_report_family_count" => 0,
+        "source_report_row_count" => 0,
+        "source_station_calendar_report_count" => 0,
+        "source_station_calendar_row_count" => 0,
+        "source_station_calendar_provider_calendar_contention_group_count" => 0,
+        "source_station_calendar_provider_calendar_contention_minimum_capacity_fraction" => 0.0,
+        "source_contact_allocation_report_count" => 0,
+        "source_contact_allocation_row_count" => 0,
+        "source_contact_allocation_reservation_conflict_contact_count" => 0,
+        "source_contact_allocation_provider_reservation_request_contact_count" => 0,
+        "source_contact_allocation_provider_reservation_review_contact_count" => 0
+      },
+      "evidence" => [
+        "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
+        "schema-linted by mix orbital_dynamics.schema.lint"
+      ],
+      "known_limits" => [
+        "internal generated artifact regression, not provider-reservation execution validation",
+        "checks branch-local replay of contradictory provider-calendar, reservation, and contact-allocation evidence without schedule mutation, candidate selection, import approval, provider reservation, or Cadence writes"
+      ]
+    },
     "fixture.artifact.candidate_refresh.contact_contention_cross_station_replay" => %{
       "id" => "fixture.artifact.candidate_refresh.contact_contention_cross_station_replay",
       "model_id" => "artifact.candidate_refresh.v1",
@@ -15124,6 +15235,7 @@ defmodule OrbitalDynamics.Validation do
     source_reports = get_in(artifact, ["provenance", "source_reports"]) || %{}
     candidate_rejection_summary = Map.get(source_reports, "candidate_rejection_report") || %{}
     contact_contention_summary = Map.get(source_reports, "contact_contention_report") || %{}
+    contact_allocation_summary = Map.get(source_reports, "contact_allocation_report") || %{}
     contact_filter_summary = Map.get(source_reports, "contact_filter_report") || %{}
     contact_intent_summary = Map.get(source_reports, "contact_intent") || %{}
     constraint_summary = Map.get(source_reports, "constraint_report") || %{}
@@ -15187,6 +15299,59 @@ defmodule OrbitalDynamics.Validation do
         Map.get(contact_contention_summary, "required_operator_action_counts") || %{},
       "source_contact_contention_trust_boundary_status" =>
         Map.get(contact_contention_summary, "trust_boundary_status"),
+      "source_contact_allocation_report_count" => Map.get(contact_allocation_summary, "count"),
+      "source_contact_allocation_row_count" => Map.get(contact_allocation_summary, "row_count"),
+      "source_contact_allocation_path_keys" =>
+        contact_allocation_summary
+        |> list_values("paths")
+        |> Enum.join("|")
+        |> normalize_optional_string(),
+      "source_contact_allocation_source_summary_schema_contract_counts" =>
+        Map.get(contact_allocation_summary, "source_summary_schema_contract_counts") || %{},
+      "source_contact_allocation_reservation_conflict_contact_count" =>
+        Map.get(contact_allocation_summary, "reservation_conflict_contact_count"),
+      "source_contact_allocation_reservation_conflict_match_status_counts" =>
+        Map.get(contact_allocation_summary, "reservation_conflict_match_status_counts") || %{},
+      "source_contact_allocation_reservation_conflict_contact_ids_by_direction_and_ground_station" =>
+        Map.get(
+          contact_allocation_summary,
+          "reservation_conflict_contact_ids_by_direction_and_ground_station"
+        ) || %{},
+      "source_contact_allocation_station_reservation_expiration_status_counts" =>
+        Map.get(contact_allocation_summary, "station_reservation_expiration_status_counts") ||
+          %{},
+      "source_contact_allocation_provider_reservation_request_contact_count" =>
+        Map.get(contact_allocation_summary, "provider_reservation_request_contact_count"),
+      "source_contact_allocation_provider_reservation_review_contact_count" =>
+        Map.get(contact_allocation_summary, "provider_reservation_review_contact_count"),
+      "source_contact_allocation_provider_reservation_no_request_contact_count" =>
+        Map.get(contact_allocation_summary, "provider_reservation_no_request_contact_count"),
+      "source_contact_allocation_provider_reservation_request_status_counts" =>
+        Map.get(contact_allocation_summary, "provider_reservation_request_status_counts") || %{},
+      "source_contact_allocation_provider_reservation_request_contact_ids_by_direction_and_ground_station" =>
+        Map.get(
+          contact_allocation_summary,
+          "provider_reservation_request_contact_ids_by_direction_and_ground_station"
+        ) || %{},
+      "source_contact_allocation_provider_reservation_review_contact_ids_by_direction_and_ground_station" =>
+        Map.get(
+          contact_allocation_summary,
+          "provider_reservation_review_contact_ids_by_direction_and_ground_station"
+        ) || %{},
+      "source_contact_allocation_branch_local_reservation_conflict_pressure" =>
+        positive_integer_observation?(
+          contact_allocation_summary,
+          "reservation_conflict_contact_count"
+        ),
+      "source_contact_allocation_branch_local_provider_reservation_request_pressure" =>
+        positive_integer_observation?(
+          contact_allocation_summary,
+          "provider_reservation_request_contact_count"
+        ) or
+          positive_integer_observation?(
+            contact_allocation_summary,
+            "provider_reservation_review_contact_count"
+          ),
       "source_contact_filter_report_count" => Map.get(contact_filter_summary, "count"),
       "source_contact_filter_row_count" => Map.get(contact_filter_summary, "row_count"),
       "source_contact_filter_suppressed_candidate_count" =>

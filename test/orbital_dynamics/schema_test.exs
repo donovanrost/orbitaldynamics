@@ -16440,6 +16440,9 @@ defmodule OrbitalDynamics.SchemaTest do
                "source_contact_filter_branch_local_contact_filter_pressure" => false,
                "source_contact_filter_branch_local_invalid_contact_input_pressure" => false,
                "source_contact_filter_branch_local_station_suppression_pressure" => false,
+               "source_contact_allocation_branch_local_provider_reservation_request_pressure" =>
+                 false,
+               "source_contact_allocation_branch_local_reservation_conflict_pressure" => false,
                "source_freshness_branch_local_freshness_pressure" => false,
                "source_freshness_branch_local_stale_pressure" => false,
                "source_freshness_branch_local_unknown_pressure" => false,
