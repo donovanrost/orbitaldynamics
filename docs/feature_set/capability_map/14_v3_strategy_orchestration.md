@@ -781,6 +781,10 @@ Station-calendar pressure risks, including reserved, unavailable, and
 reduced-capacity station feedback, contribute to
 `station_calendar_pressure_penalty`, leaving generic `risk_penalty` for
 unrelated risks while preserving the same total penalty per risk indicator.
+Expired or missing station-reservation deadlines are split into
+`station_reservation_expiration_pressure_penalty`, so hold-expiration pressure
+from station-reservation review/import-readiness summaries is visible without
+double-counting it as generic station-calendar score pressure.
 Candidate-rejection pressure risks similarly contribute to
 `candidate_rejection_pressure_penalty`, so rejected-candidate review evidence
 from typed activity reports remains visible in score terms instead of blending
@@ -1682,6 +1686,11 @@ Selected recommendations also include:
   risks while preserving total branch score compatibility. Focused
   station-calendar pressure fixtures now assert split branch math and
   score-term report rows through a shared helper.
+- **Station-reservation expiration pressure score terms** — split expired or
+  missing station-reservation deadline risks into
+  `station_reservation_expiration_pressure_penalty`, leaving ordinary
+  station-calendar pressure on `station_calendar_pressure_penalty` and
+  preserving one risk-weight penalty per risk indicator.
 - **Candidate-rejection pressure score terms** — split review-required
   candidate-rejection risks into `candidate_rejection_pressure_penalty`, leaving
   `risk_penalty` for unrelated risks while preserving total branch score

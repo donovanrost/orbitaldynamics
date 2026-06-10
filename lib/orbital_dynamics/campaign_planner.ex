@@ -2912,6 +2912,10 @@ defmodule OrbitalDynamics.CampaignPlanner do
     battery_depletion_pressure_count = battery_depletion_pressure_risk_count(risk_indicators)
 
     station_calendar_pressure_count = station_calendar_pressure_risk_count(risk_indicators)
+
+    station_reservation_expiration_pressure_count =
+      station_reservation_expiration_pressure_risk_count(risk_indicators)
+
     candidate_rejection_pressure_count = candidate_rejection_pressure_risk_count(risk_indicators)
 
     provider_counteroffer_pressure_count =
@@ -2963,7 +2967,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
           resource_projection_pressure_count -
           resource_availability_pressure_count - resource_margin_pressure_count -
           battery_depletion_pressure_count - station_calendar_pressure_count -
-          candidate_rejection_pressure_count - provider_counteroffer_pressure_count -
+          station_reservation_expiration_pressure_count - candidate_rejection_pressure_count -
+          provider_counteroffer_pressure_count -
           model_acceptance_pressure_count -
           validation_safety_case_pressure_count -
           schema_validation_pressure_count -
@@ -3100,6 +3105,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     station_calendar_pressure_penalty =
       -station_calendar_pressure_count * policy.risk_weight
 
+    station_reservation_expiration_pressure_penalty =
+      -station_reservation_expiration_pressure_count * policy.risk_weight
+
     candidate_rejection_pressure_penalty =
       -candidate_rejection_pressure_count * policy.risk_weight
 
@@ -3159,6 +3167,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         resource_projection_pressure_penalty +
         resource_availability_pressure_penalty + resource_margin_pressure_penalty +
         battery_depletion_pressure_penalty + station_calendar_pressure_penalty +
+        station_reservation_expiration_pressure_penalty +
         candidate_rejection_pressure_penalty + provider_counteroffer_pressure_penalty +
         model_acceptance_pressure_penalty + validation_safety_case_pressure_penalty +
         schema_validation_pressure_penalty +
@@ -3217,6 +3226,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "resource_margin_pressure_penalty" => resource_margin_pressure_penalty,
       "battery_depletion_pressure_penalty" => battery_depletion_pressure_penalty,
       "station_calendar_pressure_penalty" => station_calendar_pressure_penalty,
+      "station_reservation_expiration_pressure_penalty" =>
+        station_reservation_expiration_pressure_penalty,
       "candidate_rejection_pressure_penalty" => candidate_rejection_pressure_penalty,
       "provider_counteroffer_pressure_penalty" => provider_counteroffer_pressure_penalty,
       "model_acceptance_pressure_penalty" => model_acceptance_pressure_penalty,
@@ -3704,17 +3715,33 @@ defmodule OrbitalDynamics.CampaignPlanner do
     Enum.count(risk_indicators, &station_calendar_pressure_risk?/1)
   end
 
-  defp station_calendar_pressure_risk?(%{"feedback_scope" => "station_calendar"}), do: true
+  defp station_calendar_pressure_risk?(%{"feedback_scope" => "station_calendar"} = risk) do
+    not station_reservation_expiration_pressure_risk?(risk)
+  end
 
-  defp station_calendar_pressure_risk?(%{"type" => type})
+  defp station_calendar_pressure_risk?(%{"type" => type} = risk)
        when type in [
               "ground_station_reserved",
               "ground_station_outage",
               "reduced_downlink_capacity"
             ],
-       do: true
+       do: not station_reservation_expiration_pressure_risk?(risk)
 
   defp station_calendar_pressure_risk?(_risk), do: false
+
+  defp station_reservation_expiration_pressure_risk_count(risk_indicators) do
+    Enum.count(risk_indicators, &station_reservation_expiration_pressure_risk?/1)
+  end
+
+  defp station_reservation_expiration_pressure_risk?(risk) do
+    station_reservation_expiration_pressure_status?(risk["station_reservation_expiration_status"])
+  end
+
+  defp station_reservation_expiration_pressure_status?(status)
+       when status in ["expired", "missing"],
+       do: true
+
+  defp station_reservation_expiration_pressure_status?(_status), do: false
 
   defp candidate_rejection_pressure_risk_count(risk_indicators) do
     Enum.count(risk_indicators, &candidate_rejection_pressure_risk?/1)

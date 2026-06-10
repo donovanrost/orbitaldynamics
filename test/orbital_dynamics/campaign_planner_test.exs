@@ -25616,9 +25616,9 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                &(&1["type"] == "ground_station_reserved")
              )
 
-    assert_station_calendar_pressure_score_terms(direct_branch, artifact)
-    assert_station_calendar_pressure_score_terms(canonical_branch, artifact)
-    assert_station_calendar_pressure_score_terms(wrapped_branch, artifact)
+    assert_station_reservation_expiration_pressure_score_terms(direct_branch, artifact)
+    assert_station_reservation_expiration_pressure_score_terms(canonical_branch, artifact)
+    assert_station_reservation_expiration_pressure_score_terms(wrapped_branch, artifact)
 
     assert List.first(canonical_branch["events"])["feedback_source"] ==
              "mission_state.station_reservation_review_summary"
@@ -27313,8 +27313,15 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
 
     assert station_calendar_pressure_count == 1
 
-    assert direct_hold_branch["score_terms"]["station_calendar_pressure_penalty"] ==
-             -station_calendar_pressure_count * risk_weight
+    assert direct_hold_branch["score_terms"]["station_calendar_pressure_penalty"] == 0.0
+
+    assert direct_hold_branch["score_terms"][
+             "station_reservation_expiration_pressure_penalty"
+           ] == -station_calendar_pressure_count * risk_weight
+
+    assert "station_reservation_expiration_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
 
     comparison_row =
       artifact["branch_comparison_report"]["rows"]
@@ -27596,8 +27603,15 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
 
     assert station_calendar_pressure_count == 1
 
-    assert direct_hold_import_branch["score_terms"]["station_calendar_pressure_penalty"] ==
-             -station_calendar_pressure_count * risk_weight
+    assert direct_hold_import_branch["score_terms"]["station_calendar_pressure_penalty"] == 0.0
+
+    assert direct_hold_import_branch["score_terms"][
+             "station_reservation_expiration_pressure_penalty"
+           ] == -station_calendar_pressure_count * risk_weight
+
+    assert "station_reservation_expiration_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
 
     comparison_row =
       artifact["branch_comparison_report"]["rows"]
@@ -80669,7 +80683,8 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     station_calendar_pressure_count =
       Enum.count(
         branch["risk_indicators"],
-        &(&1["feedback_scope"] == "station_calendar")
+        &(&1["feedback_scope"] == "station_calendar" and
+            &1["station_reservation_expiration_status"] not in ["expired", "missing"])
       )
 
     assert station_calendar_pressure_count > 0
@@ -80688,6 +80703,38 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              artifact["score_term_report"]["rows"],
              &(&1["branch_id"] == branch["branch_id"] and
                  &1["term_key"] == "station_calendar_pressure_penalty" and
+                 &1["value"] < 0.0)
+           )
+  end
+
+  defp assert_station_reservation_expiration_pressure_score_terms(branch, artifact) do
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    station_reservation_expiration_pressure_count =
+      Enum.count(
+        branch["risk_indicators"],
+        &(&1["station_reservation_expiration_status"] in ["expired", "missing"])
+      )
+
+    assert station_reservation_expiration_pressure_count > 0
+
+    assert branch["score_terms"]["station_calendar_pressure_penalty"] == 0.0
+
+    assert branch["score_terms"]["station_reservation_expiration_pressure_penalty"] ==
+             -station_reservation_expiration_pressure_count * risk_weight
+
+    assert branch["score_terms"]["risk_penalty"] ==
+             -(length(branch["risk_indicators"]) -
+                 station_reservation_expiration_pressure_count) * risk_weight
+
+    assert "station_reservation_expiration_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] == branch["branch_id"] and
+                 &1["term_key"] == "station_reservation_expiration_pressure_penalty" and
                  &1["value"] < 0.0)
            )
   end
