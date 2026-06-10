@@ -83,7 +83,7 @@ intents.
 
 Last commit:
 - Product: `715ed05` Preserve wrapped reservation expirations in contact intents
-- Ledger: pending
+- Ledger: `5f0e1f9` Update autonomous loop status
 
 Remaining maturity gaps:
 - Continue reassessing queue-2 resource/contact allocation gaps for real
