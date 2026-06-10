@@ -48,10 +48,11 @@
   - `resource_filter_report.v1` rows embedded in mission-state `source_result_artifact` / `result_artifact` wrappers.
 - Replays without losing independent rows for the same candidate/contact and suppression reason.
 - Uses deterministic source-report, source-window, timing, and report or wrapper trust-boundary evidence to disambiguate duplicate filter-pressure branch IDs.
-- Resource-availability risks from resource-filter or operational-feedback
-  replay contribute to `resource_availability_pressure_penalty` in V3 score
-  terms, while resource-margin storage/downlink risks stay in the
-  storage/downlink pressure term.
+- Resource-filter suppression risks contribute to
+  `resource_filter_pressure_penalty` in V3 score terms, while resource-margin
+  storage/downlink risks stay in the storage/downlink pressure term.
+- Resource-availability risks from operational-feedback replay contribute to
+  `resource_availability_pressure_penalty` in V3 score terms.
 - Fuel, power, and thermal margin risks from replayed resource pressure
   contribute to `resource_margin_pressure_penalty` in V3 score terms.
 - Resource-projection battery-depletion risks contribute to
