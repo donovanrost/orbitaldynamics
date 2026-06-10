@@ -9,8 +9,7 @@ Checked-in `campaign_repair.v2` fixture proves readiness/quality source-report
 handoff through repair, operator review, and Cadence import.
 
 Status:
-Implemented locally; reviewer blocker fixed; focused checks pass; awaiting
-publish.
+Implemented, reviewer-cleared, locally verified, committed, and pushed.
 
 Files changed:
 - Repair handoff compatibility fixture test:
@@ -46,7 +45,7 @@ Remaining maturity gaps:
   schema behavior changes public artifact shape.
 
 Last commit:
-`0828597` Update autonomous loop ledger after readiness publish.
+`8e345e6` Add repair readiness source handoff fixture.
 
 Next candidate:
 Convert the next replayed pressure family from review/import evidence into
@@ -70,3 +69,5 @@ Notes:
 - Focused CampaignPlanner tests still emit existing unrelated `0.0`
   pattern-match warnings from another test; selected tests exit green.
 - Reviewer sidecar: `019eb0ab-cc6a-7601-b8e2-5c24112548c2`.
+- Publisher sidecar pushed `8e345e6` to `origin/main`.
+- Publisher sidecar: `019eb0af-cfb1-70e1-9657-6635c6e87133`.
