@@ -46175,6 +46175,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
 
     assert_resource_availability_pressure_score_terms(availability_pressure_branch, artifact)
     assert_resource_availability_pressure_score_terms(activity_type_pressure_branch, artifact)
+    assert_resource_margin_pressure_score_terms(thermal_pressure_branch, artifact)
     assert_resource_projection_pressure_score_terms(pressure_branch, artifact)
 
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
