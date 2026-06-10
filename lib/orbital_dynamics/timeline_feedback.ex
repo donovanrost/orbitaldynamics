@@ -1131,6 +1131,10 @@ defmodule OrbitalDynamics.TimelineFeedback do
         first_number(activity, ["target_priority", ["metadata", "target_priority"]]),
       "timeline_identity" =>
         realized_timeline_identity(id, planned_activity_id, timeline_id, activity),
+      "approval_status" => first_string(activity, ["approval_status", "approval_state"]),
+      "locked" => realized_activity_locked(activity),
+      "executed" => realized_activity_executed(activity),
+      "execution_status" => first_string(activity, ["execution_status", "execution_state"]),
       "source_window_id" =>
         Map.get(activity, "source_window_id") || get_in(activity, ["source_window", "id"]),
       "actual_throughput_mb" => actual_throughput_mb(activity),
@@ -1578,6 +1582,10 @@ defmodule OrbitalDynamics.TimelineFeedback do
         first_number(activity, ["target_priority", ["metadata", "target_priority"]]),
       "timeline_identity" =>
         realized_timeline_identity(id, planned_activity_id, timeline_id, activity),
+      "approval_status" => first_string(activity, ["approval_status", "approval_state"]),
+      "locked" => realized_activity_locked(activity),
+      "executed" => realized_activity_executed(activity),
+      "execution_status" => first_string(activity, ["execution_status", "execution_state"]),
       "source_window_id" =>
         Map.get(activity, "source_window_id") || get_in(activity, ["source_window", "id"]),
       "actual_starts_at_s" => first_number(activity, ["actual_starts_at_s", "actual_start_s"]),
@@ -1625,6 +1633,20 @@ defmodule OrbitalDynamics.TimelineFeedback do
     |> Map.merge(realized_product_context(activity))
     |> Map.merge(realized_provider_context(activity))
     |> compact_map()
+  end
+
+  defp realized_activity_locked(activity) do
+    first_boolean(activity, [
+      "locked",
+      ["metadata", "locked"]
+    ])
+  end
+
+  defp realized_activity_executed(activity) do
+    first_boolean(activity, [
+      "executed",
+      ["metadata", "executed"]
+    ])
   end
 
   defp resource_context(activity) do

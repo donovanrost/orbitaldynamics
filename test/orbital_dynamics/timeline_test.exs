@@ -674,6 +674,8 @@ defmodule OrbitalDynamics.TimelineTest do
       id: :downlink_equator,
       type: :downlink,
       status: :planned,
+      approval_status: :approved,
+      locked: true,
       metadata: %{timeline_id: :"timeline:downlink_equator"}
     }
 
@@ -681,6 +683,10 @@ defmodule OrbitalDynamics.TimelineTest do
       id: :downlink_equator,
       type: :downlink,
       status: :completed,
+      approval_status: :approved,
+      locked: true,
+      executed: true,
+      execution_status: :completed,
       actual_throughput_mb: 72.0,
       metadata: %{timeline_id: :"timeline:downlink_equator"}
     }
@@ -700,6 +706,16 @@ defmodule OrbitalDynamics.TimelineTest do
                "transition_type" => "changed",
                "from" => "planned",
                "to" => "completed"
+             },
+             "source_activity_context" => %{
+               "approval_status" => "approved",
+               "locked" => true
+             },
+             "realized_activity_context" => %{
+               "approval_status" => "approved",
+               "locked" => true,
+               "executed" => true,
+               "execution_status" => "completed"
              }
            } = OrbitalDynamics.timeline_activity_state(planned, realized)
 
