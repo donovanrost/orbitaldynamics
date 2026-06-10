@@ -8,8 +8,8 @@ Current slice:
 V2 repair resource-filter pressure score term.
 
 Status:
-Implemented, parent-reviewed, locally verified, and committed in `8eb2c85`.
-Push/publish handoff is being completed with this ledger update.
+Implemented, parent-reviewed, locally verified, and published to `origin/main`.
+Behavior commit: `8eb2c85`.
 
 Files changed:
 - Repair scoring:
