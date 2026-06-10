@@ -4811,6 +4811,22 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "suppressed_reason" => "ground_station_reserved"
            } = Enum.find(suppressed_candidates, &(&1["id"] == "dl_contact_bare_id_blocked"))
 
+    assert artifact["score_terms"]["contact_filter_pressure_penalty"] == -2.0
+
+    assert "contact_filter_pressure_penalty" in artifact["score_term_report"]["score_term_keys"]
+
+    assert [
+             %{
+               "term_key" => "contact_filter_pressure_penalty",
+               "value" => -2.0,
+               "selected" => true
+             }
+           ] =
+             Enum.filter(
+               artifact["score_term_report"]["rows"],
+               &(&1["term_key"] == "contact_filter_pressure_penalty")
+             )
+
     assert Enum.any?(
              artifact["operator_review_package"]["rows"],
              &(&1["review_type"] == "contact_suppression" and
@@ -4963,6 +4979,24 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "allocation_status" => "allocated",
              "effective_allocation_status" => "policy_blocked"
            } = Enum.find(allocation_rows, &(&1["contact_id"] == "dl_policy_blocked"))
+
+    assert artifact["score_terms"]["contact_allocation_pressure_penalty"] == -3.0
+
+    assert "contact_allocation_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert [
+             %{
+               "term_key" => "contact_allocation_pressure_penalty",
+               "value" => -3.0,
+               "selected" => true
+             }
+           ] =
+             Enum.filter(
+               artifact["score_term_report"]["rows"],
+               &(&1["term_key"] == "contact_allocation_pressure_penalty")
+             )
 
     assert Enum.any?(
              artifact["operator_review_package"]["rows"],
@@ -5614,7 +5648,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
 
     assert %{
              "objective" =>
-               "maximize repaired activity value while minimizing churn, schedule movement, and resource-projection pressure",
+               "maximize repaired activity value while minimizing churn, schedule movement, resource-projection pressure, and contact pressure",
              "score_term_keys" => score_term_keys,
              "tradeoffs" => [
                %{

@@ -1147,6 +1147,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
         activities,
         deltas,
         source_resource_projection_report,
+        repair_contact_filter_report(request.candidate_refresh),
+        repair_contact_allocation_report(request.candidate_refresh),
         request.scoring_policy
       )
 
@@ -56647,7 +56649,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "schema_contract" => "objective_tradeoff_report.v1",
       "model" => "repair_score_term_tradeoffs",
       "objective" =>
-        "maximize repaired activity value while minimizing churn, schedule movement, and resource-projection pressure",
+        "maximize repaired activity value while minimizing churn, schedule movement, resource-projection pressure, and contact pressure",
       "ranking_count" => 1,
       "score_term_keys" => objective_score_term_keys([timeline]),
       "policy" => policy,
@@ -57300,7 +57302,14 @@ defmodule OrbitalDynamics.CampaignPlanner do
     }
   end
 
-  defp repair_score_terms(activities, deltas, resource_projection_report, scoring_policy) do
+  defp repair_score_terms(
+         activities,
+         deltas,
+         resource_projection_report,
+         contact_filter_report,
+         contact_allocation_report,
+         scoring_policy
+       ) do
     activity_score = activities |> Enum.map(&candidate_score/1) |> Enum.sum()
 
     churn_count =
@@ -57320,8 +57329,21 @@ defmodule OrbitalDynamics.CampaignPlanner do
     resource_projection_pressure_count =
       repair_resource_projection_pressure_count(resource_projection_report)
 
+    contact_filter_pressure_count = repair_contact_filter_pressure_count(contact_filter_report)
+
+    contact_allocation_pressure_count =
+      repair_contact_allocation_pressure_count(contact_allocation_report)
+
     resource_projection_pressure_penalty =
       -resource_projection_pressure_count *
+        numeric_policy_value(scoring_policy, "risk_weight", 1.0)
+
+    contact_filter_pressure_penalty =
+      -contact_filter_pressure_count *
+        numeric_policy_value(scoring_policy, "risk_weight", 1.0)
+
+    contact_allocation_pressure_penalty =
+      -contact_allocation_pressure_count *
         numeric_policy_value(scoring_policy, "risk_weight", 1.0)
 
     score_terms = %{
@@ -57330,16 +57352,62 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "schedule_move_penalty" => -move_penalty
     }
 
-    if resource_projection_pressure_count > 0 do
-      Map.put(
-        score_terms,
-        "resource_projection_pressure_penalty",
-        resource_projection_pressure_penalty
-      )
-    else
-      score_terms
-    end
+    score_terms
+    |> maybe_put_positive_pressure_term(
+      resource_projection_pressure_count,
+      "resource_projection_pressure_penalty",
+      resource_projection_pressure_penalty
+    )
+    |> maybe_put_positive_pressure_term(
+      contact_filter_pressure_count,
+      "contact_filter_pressure_penalty",
+      contact_filter_pressure_penalty
+    )
+    |> maybe_put_positive_pressure_term(
+      contact_allocation_pressure_count,
+      "contact_allocation_pressure_penalty",
+      contact_allocation_pressure_penalty
+    )
   end
+
+  defp maybe_put_positive_pressure_term(score_terms, count, term_key, penalty) when count > 0 do
+    Map.put(score_terms, term_key, penalty)
+  end
+
+  defp maybe_put_positive_pressure_term(score_terms, _count, _term_key, _penalty),
+    do: score_terms
+
+  defp repair_contact_filter_pressure_count(%{"suppressed_candidates" => rows})
+       when is_list(rows),
+       do: length(rows)
+
+  defp repair_contact_filter_pressure_count(%{"suppressed_candidate_count" => count})
+       when is_number(count),
+       do: trunc(count)
+
+  defp repair_contact_filter_pressure_count(_report), do: 0
+
+  defp repair_contact_allocation_pressure_count(%{"rows" => rows}) when is_list(rows) do
+    rows
+    |> Enum.map(&stringify_keys/1)
+    |> Enum.map(&normalize_contact_allocation_row/1)
+    |> Enum.count(&contact_allocation_unusable_candidate?/1)
+  end
+
+  defp repair_contact_allocation_pressure_count(%{
+         "effective_allocation_status_counts" => %{} = counts
+       }) do
+    Enum.sum([
+      numeric_count(Map.get(counts, "blocked")),
+      numeric_count(Map.get(counts, "deferred")),
+      numeric_count(Map.get(counts, "policy_blocked"))
+    ])
+  end
+
+  defp repair_contact_allocation_pressure_count(_report), do: 0
+
+  defp numeric_count(count) when is_number(count), do: trunc(count)
+  defp numeric_count(_count), do: 0
 
   defp repair_resource_projection_pressure_count(resource_projection_report) do
     resource_projection_report
