@@ -5,77 +5,82 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Expose priority-commitment score in V3 recommendation tradeoffs.
+Harden compact operational-readiness gate-summary row-local routing.
 
 Status:
 Completed and pushed.
 
 Files changed:
-- Strategy recommendation tradeoffs: `lib/orbital_dynamics/campaign_planner.ex`
+- V3 branch pressure routing: `lib/orbital_dynamics/campaign_planner.ex`
 - Strategy tests: `test/orbital_dynamics/campaign_planner_test.exs`
-- V3 docs: `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
+- Cadence boundary docs:
+  `docs/feature_set/capability_map/20_cadence_boundary_and_integration_artifacts.md`
 - Ledger: `.codex/status/autonomous_product_loop.md`
 
 Tests/checks run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:17969`
-- Mechanical score-term/tradeoff parity check:
-  `missing=[]`, `extra=[]`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:52404`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:50366`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 
 Docs/artifacts changed:
-- Documented that recommendation tradeoffs now expose `priority_commitment`,
-  matching the existing branch score term `priority_commitment_score`.
+- Documented that V3 branch events prefer row-local `non_passed_gates` status
+  for review/analysis/blocked/non-passed gate ID routing when compact
+  operational-readiness gate-summary fields disagree.
 
 Level 6 pillar advanced:
-Explainable objective-driven recommendation scoring.
+Approval-aware automation boundaries, quality gates, and import readiness with
+stale-input challenge coverage.
 
 Slice selection note:
-Selected slice: expose priority-commitment score in V3 recommendation
-tradeoffs.
+Selected slice: harden compact operational-readiness gate-summary row-local ID
+routing.
 
-Why this slice: `priority_commitment_score` contributed to raw branch score and
-was stored in branch score terms, but recommendation tradeoffs omitted it even
-when mission objectives included priority commitments.
+Why this slice: V3 branch events already derived gate status/classification
+from `non_passed_gates` rows, but still copied summary-level gate ID arrays
+into each row event. A stale compact handoff could route the correct
+blocked/review status with wrong gate-ID lists.
 
-Level 6 pillar: explainable objective-driven recommendation scoring.
+Level 6 pillar: approval-aware automation boundaries, quality gates, and import
+readiness with stale-input challenge coverage.
 
-Current evidence gap: Priority-commitment satisfaction was visible in
-recommendation objective explanations, but the score contribution was not
-visible as a recommendation tradeoff dimension.
+Current evidence gap: Existing challenge tests proved row status won over stale
+top-level status/classification, but did not prove row-local status also drove
+the routed `*_gate_ids` arrays on branch events and branch-comparison rows.
 
 Docs read:
-`docs/feature_set/capability_map/14_v3_strategy_orchestration.md`; focused
-recommendation explanation/tradeoff test.
+`docs/feature_set/capability_map/20_cadence_boundary_and_integration_artifacts.md`;
+`docs/mission_planning/high_fidelity/12_operational_readiness.md`;
+focused campaign planner readiness tests.
 
 Likely files: `lib/orbital_dynamics/campaign_planner.ex`;
 `test/orbital_dynamics/campaign_planner_test.exs`;
-`docs/feature_set/capability_map/14_v3_strategy_orchestration.md`;
+`docs/feature_set/capability_map/20_cadence_boundary_and_integration_artifacts.md`;
 `.codex/status/autonomous_product_loop.md`.
 
-Likely tests: recommendation explanation/tradeoff dimension test, mechanical
-score-term/tradeoff parity check, `mix compile --warnings-as-errors`,
-`git diff --check`.
+Likely tests: stale operational-readiness gate summary challenge test,
+mission-state operational-readiness gate summary test,
+`mix compile --warnings-as-errors`, `git diff --check`.
 
-Definition of done: Recommendation tradeoffs include `priority_commitment`,
-focused recommendation tests assert the canonical dimension list, docs mention
-the recommendation surface, and mechanical parity shows no substantive branch
-score terms missing from score-term tradeoffs.
+Definition of done: For compact `operational_readiness_gate_summary.v1` rows,
+row-local `non_passed_gates` status determines review/analysis/blocked/non-
+passed gate ID lists in emitted branch events and comparison rows, stale
+summary-level ID arrays do not leak into those row events, and docs record the
+precedence.
 
 Slice result:
-- Added `priority_commitment` to recommendation tradeoff dimensions.
-- Updated the canonical recommendation dimension assertion.
-- Ran a mechanical parity check showing no remaining substantive score-term
-  omissions from recommendation tradeoffs. Remaining non-score-term aggregate
-  keys are represented by `risk_count`, `approval_count`, and
-  `schedule_stability`.
+- Added row-local routing for compact operational-readiness gate-summary
+  non-passed rows.
+- Updated the stale readiness challenge fixture with contradictory summary
+  gate-ID arrays and assertions on event and branch-comparison routing.
+- Preserved fallback behavior for compact summaries without row details.
 
 Last completed slice:
-Expose priority-commitment score in V3 recommendation tradeoffs.
+Harden compact operational-readiness gate-summary row-local routing.
 
 Last commit:
-- Product: `a94af77` Expose priority commitment score tradeoffs
-- Ledger: `e9b60bc` Update autonomous loop status
+- Product: `c1c3f1f` Harden readiness gate summary row routing
+- Ledger: pending
 
 Remaining maturity gaps:
 - Continue converting existing replayed resource/contact/readiness pressure
@@ -86,15 +91,16 @@ Remaining maturity gaps:
   strategy artifacts.
 
 Next candidate:
-Reassess the queue after publishing; likely a queue-3 quality/readiness
-challenge fixture or another compact branch-local handoff completeness gap.
+Reassess the queue after publishing; likely another stale-input readiness or
+resource/contact challenge fixture, or a compact branch-local handoff
+completeness gap.
 
 Blocked:
 Not blocked.
 
 Notes:
-- Previous published slice: Product `1e06bc3`, Ledger `f1621af`, final status
-  `fb9d333`.
+- Previous published slice: Product `a94af77`, Ledger `e9b60bc`, final status
+  `1d02eb3`.
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
   not part of this slice.
 - Sidecar delegation is unavailable in this runtime; parent performed the same
