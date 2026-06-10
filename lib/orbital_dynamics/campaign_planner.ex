@@ -2923,6 +2923,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     validation_safety_case_pressure_count =
       validation_safety_case_pressure_risk_count(risk_indicators)
 
+    schema_validation_pressure_count =
+      schema_validation_pressure_risk_count(risk_indicators)
+
     refresh_budget_pressure_count =
       refresh_budget_pressure_risk_count(risk_indicators)
 
@@ -2963,6 +2966,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
           candidate_rejection_pressure_count - provider_counteroffer_pressure_count -
           model_acceptance_pressure_count -
           validation_safety_case_pressure_count -
+          schema_validation_pressure_count -
           refresh_budget_pressure_count -
           refresh_freshness_pressure_count -
           validation_refresh_pressure_count -
@@ -3108,6 +3112,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     validation_safety_case_pressure_penalty =
       -validation_safety_case_pressure_count * policy.risk_weight
 
+    schema_validation_pressure_penalty =
+      -schema_validation_pressure_count * policy.risk_weight
+
     refresh_budget_pressure_penalty =
       -refresh_budget_pressure_count * policy.risk_weight
 
@@ -3154,6 +3161,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         battery_depletion_pressure_penalty + station_calendar_pressure_penalty +
         candidate_rejection_pressure_penalty + provider_counteroffer_pressure_penalty +
         model_acceptance_pressure_penalty + validation_safety_case_pressure_penalty +
+        schema_validation_pressure_penalty +
         refresh_budget_pressure_penalty +
         refresh_freshness_pressure_penalty +
         validation_refresh_pressure_penalty +
@@ -3213,6 +3221,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "provider_counteroffer_pressure_penalty" => provider_counteroffer_pressure_penalty,
       "model_acceptance_pressure_penalty" => model_acceptance_pressure_penalty,
       "validation_safety_case_pressure_penalty" => validation_safety_case_pressure_penalty,
+      "schema_validation_pressure_penalty" => schema_validation_pressure_penalty,
       "refresh_budget_pressure_penalty" => refresh_budget_pressure_penalty,
       "refresh_freshness_pressure_penalty" => refresh_freshness_pressure_penalty,
       "validation_refresh_pressure_penalty" => validation_refresh_pressure_penalty,
@@ -3751,6 +3760,10 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp schema_validation_pressure_risk?(_risk), do: false
 
+  defp schema_validation_pressure_risk_count(risk_indicators) do
+    Enum.count(risk_indicators, &schema_validation_pressure_risk?/1)
+  end
+
   defp refresh_freshness_pressure_risk?(%{"feedback_scope" => "refresh_freshness"}),
     do: true
 
@@ -3790,18 +3803,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
   defp validation_refresh_pressure_risk_count(risk_indicators) do
     Enum.count(risk_indicators, &validation_refresh_pressure_risk?/1)
   end
-
-  defp validation_refresh_pressure_risk?(%{"feedback_scope" => scope})
-       when scope in [
-              "schema_validation"
-            ],
-       do: true
-
-  defp validation_refresh_pressure_risk?(%{"type" => type})
-       when type in [
-              "schema_validation_pressure"
-            ],
-       do: true
 
   defp validation_refresh_pressure_risk?(%{"type" => "quality_gate_pressure"} = risk) do
     schema_validation_quality_gate_pressure_risk?(risk)
@@ -9407,6 +9408,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         {"provider_counteroffer_pressure", "provider_counteroffer_pressure_penalty"},
         {"model_acceptance_pressure", "model_acceptance_pressure_penalty"},
         {"validation_safety_case_pressure", "validation_safety_case_pressure_penalty"},
+        {"schema_validation_pressure", "schema_validation_pressure_penalty"},
         {"refresh_budget_pressure", "refresh_budget_pressure_penalty"},
         {"refresh_freshness_pressure", "refresh_freshness_pressure_penalty"},
         {"validation_refresh_pressure", "validation_refresh_pressure_penalty"},
