@@ -80782,21 +80782,23 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
         &validation_refresh_scored_pressure?(&1, feedback_scope)
       )
 
+    blended_validation_refresh_pressure_count =
+      Enum.count(branch["risk_indicators"], &validation_refresh_pressure?/1)
+
+    validation_refresh_family_pressure_count =
+      Enum.count(branch["risk_indicators"], &validation_refresh_family_pressure?/1)
+
     assert requested_validation_refresh_pressure_count > 0
     assert validation_refresh_pressure_count > 0
 
     assert branch["score_terms"][pressure_term] ==
              -validation_refresh_pressure_count * risk_weight
 
-    if pressure_term in [
-         "model_acceptance_pressure_penalty",
-         "validation_safety_case_pressure_penalty"
-       ] do
-      assert branch["score_terms"]["validation_refresh_pressure_penalty"] == 0.0
-    end
+    assert branch["score_terms"]["validation_refresh_pressure_penalty"] ==
+             -blended_validation_refresh_pressure_count * risk_weight
 
     assert branch["score_terms"]["risk_penalty"] ==
-             -(length(branch["risk_indicators"]) - validation_refresh_pressure_count) *
+             -(length(branch["risk_indicators"]) - validation_refresh_family_pressure_count) *
                risk_weight
 
     assert pressure_term in artifact["score_term_report"]["score_term_keys"]
@@ -80815,6 +80817,9 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
   defp validation_refresh_pressure_term("validation_safety_case"),
     do: "validation_safety_case_pressure_penalty"
 
+  defp validation_refresh_pressure_term("refresh_budget"),
+    do: "refresh_budget_pressure_penalty"
+
   defp validation_refresh_pressure_term(_feedback_scope),
     do: "validation_refresh_pressure_penalty"
 
@@ -80827,19 +80832,27 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
       risk["feedback_scope"] == "validation_safety_case" or
         risk["type"] == "validation_safety_case_pressure"
 
+  defp validation_refresh_scored_pressure?(risk, "refresh_budget"),
+    do: risk["feedback_scope"] == "refresh_budget" or risk["type"] == "refresh_budget_pressure"
+
   defp validation_refresh_scored_pressure?(risk, _feedback_scope),
     do: validation_refresh_pressure?(risk)
+
+  defp validation_refresh_family_pressure?(risk) do
+    validation_refresh_pressure?(risk) or
+      validation_refresh_scored_pressure?(risk, "model_acceptance") or
+      validation_refresh_scored_pressure?(risk, "validation_safety_case") or
+      validation_refresh_scored_pressure?(risk, "refresh_budget")
+  end
 
   defp validation_refresh_pressure?(risk) do
     validation_refresh_source_report_pressure?(risk, "schema_validation") or
       risk["feedback_scope"] in [
         "schema_validation",
-        "refresh_budget",
         "refresh_freshness"
       ] or
       risk["type"] in [
         "schema_validation_pressure",
-        "refresh_budget_pressure",
         "refresh_freshness_pressure"
       ]
   end
