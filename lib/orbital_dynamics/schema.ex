@@ -16164,7 +16164,7 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property("source_artifact_type", @resource_filter_summary, _contract) do
-    %{"type" => "string", "enum" => [@resource_filter_report]}
+    %{"type" => "string", "const" => @resource_filter_report}
   end
 
   defp json_schema_property("model_limits", @resource_filter_summary, _contract) do

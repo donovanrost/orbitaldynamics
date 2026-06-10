@@ -109,6 +109,13 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
     assert get_in(schemas, ["resource_filter_summary.v1", "properties", "model", "const"]) ==
              "artifact_only_resource_filter_summary"
 
+    assert get_in(schemas, [
+             "resource_filter_summary.v1",
+             "properties",
+             "source_artifact_type",
+             "const"
+           ]) == "resource_filter_report.v1"
+
     resource_filter_model_limits =
       OrbitalDynamics.ResourceFilter.capabilities().known_limits
       |> Enum.map(&Atom.to_string/1)
