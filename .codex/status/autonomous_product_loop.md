@@ -77,7 +77,7 @@ Scored refresh-freshness replay pressure with a dedicated score term.
 
 Last commit:
 - Product: `7ffc3b5` Score refresh freshness replay pressure
-- Ledger: pending
+- Ledger: `dde9e21` Update autonomous loop status
 
 Remaining maturity gaps:
 - Continue making existing review evidence planner-visible through candidate
