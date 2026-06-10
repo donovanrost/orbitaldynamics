@@ -1,6 +1,8 @@
 defmodule OrbitalDynamics.ScenarioRunnerTest do
   use ExUnit.Case, async: true
 
+  import ExUnit.CaptureLog
+
   alias OrbitalDynamics.ScenarioRunner
 
   test "evaluates scenarios concurrently while preserving input order" do
@@ -64,14 +66,19 @@ defmodule OrbitalDynamics.ScenarioRunnerTest do
     scenarios = [%{id: :exiting}]
     propagator = fn _scenario -> exit(:propagator_exit) end
 
-    assert [
-             %ScenarioRunner.Result{
-               scenario_id: :exiting,
-               scenario_index: 0,
-               status: :error,
-               error: {:task_exit, :propagator_exit}
-             }
-           ] = ScenarioRunner.run(scenarios, propagator: propagator)
+    log =
+      capture_log(fn ->
+        assert [
+                 %ScenarioRunner.Result{
+                   scenario_id: :exiting,
+                   scenario_index: 0,
+                   status: :error,
+                   error: {:task_exit, :propagator_exit}
+                 }
+               ] = ScenarioRunner.run(scenarios, propagator: propagator)
+      end)
+
+    assert log =~ ":propagator_exit"
   end
 
   test "preserves scenario id when a default task times out" do

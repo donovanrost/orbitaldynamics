@@ -1581,11 +1581,23 @@ defmodule OrbitalDynamics.Communications.ContactFilter do
   defp provider_counteroffer_context_present?(source) when is_map(source) do
     source["required_operator_action"] == "review_provider_counteroffer" or
       Enum.any?(@provider_counteroffer_fields, fn field ->
-        present_station_evidence?(provider_counteroffer_source_value(source, field))
+        provider_counteroffer_context_value_present?(
+          field,
+          provider_counteroffer_source_value(source, field)
+        )
       end)
   end
 
   defp provider_counteroffer_context_present?(_source), do: false
+
+  defp provider_counteroffer_context_value_present?(
+         "provider_counteroffer_negotiation_state",
+         value
+       ),
+       do: present_station_evidence?(value) and stringify_keys(value) != "unknown"
+
+  defp provider_counteroffer_context_value_present?(_field, value),
+    do: present_station_evidence?(value)
 
   defp provider_counteroffer_value(field, candidate, station_state) do
     [

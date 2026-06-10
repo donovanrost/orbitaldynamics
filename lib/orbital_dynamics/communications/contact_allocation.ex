@@ -2487,7 +2487,10 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
   defp provider_counteroffer_context_present?(row) do
     row["required_operator_action"] == "review_provider_counteroffer" or
       Enum.any?(@provider_counteroffer_fields, fn field ->
-        provider_counteroffer_value_present?(provider_counteroffer_value(row, field))
+        provider_counteroffer_context_value_present?(
+          field,
+          provider_counteroffer_value(row, field)
+        )
       end)
   end
 
@@ -2580,6 +2583,15 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
   defp put_provider_counteroffer_value(context, field, value), do: Map.put(context, field, value)
 
   defp provider_counteroffer_value_present?(value), do: value not in [nil, "", [], %{}]
+
+  defp provider_counteroffer_context_value_present?(
+         "provider_counteroffer_negotiation_state",
+         value
+       ),
+       do: provider_counteroffer_value_present?(value) and stringify_keys(value) != "unknown"
+
+  defp provider_counteroffer_context_value_present?(_field, value),
+    do: provider_counteroffer_value_present?(value)
 
   defp resource_suppression_context(row) do
     Map.take(row, [

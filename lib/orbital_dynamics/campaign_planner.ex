@@ -26958,29 +26958,64 @@ defmodule OrbitalDynamics.CampaignPlanner do
   defp disambiguate_timeline_diff_pressure_branch_ids(branches) do
     id_counts = Enum.frequencies_by(branches, & &1["id"])
 
+    keep_first_branch_ids =
+      branches
+      |> Enum.group_by(& &1["id"])
+      |> Enum.filter(fn {branch_id, duplicate_branches} ->
+        timeline_diff_pressure_branch_id?(branch_id) and length(duplicate_branches) > 1 and
+          Enum.any?(duplicate_branches, &timeline_transition_application_pressure_branch?/1)
+      end)
+      |> Enum.map(fn {branch_id, _branches} -> branch_id end)
+      |> MapSet.new()
+
     branches
     |> Enum.with_index(1)
-    |> Enum.map(fn {branch, index} ->
+    |> Enum.map_reduce(%{}, fn {branch, index}, seen_ids ->
       branch_id = branch["id"]
 
-      if timeline_diff_pressure_branch_id?(branch_id) and Map.get(id_counts, branch_id, 0) > 1 do
-        suffix =
-          branch
-          |> timeline_diff_pressure_branch_identity(index)
-          |> branch_id_fragment()
+      duplicate_timeline_diff? =
+        timeline_diff_pressure_branch_id?(branch_id) and Map.get(id_counts, branch_id, 0) > 1
 
-        branch
-        |> Map.put("id", "#{branch_id}_#{suffix}")
-        |> Map.update("metadata", %{}, fn metadata ->
-          metadata
-          |> Map.put("timeline_diff_branch_base_id", branch_id)
-          |> Map.put("timeline_diff_branch_identity", suffix)
-        end)
+      should_disambiguate? =
+        duplicate_timeline_diff? and
+          (not MapSet.member?(keep_first_branch_ids, branch_id) or
+             Map.has_key?(seen_ids, branch_id))
+
+      if should_disambiguate? do
+        seen_ids = Map.update(seen_ids, branch_id, 1, &(&1 + 1))
+
+        {
+          disambiguate_timeline_diff_pressure_branch(branch, branch_id, index),
+          seen_ids
+        }
       else
-        branch
+        {branch, Map.put_new(seen_ids, branch_id, 1)}
       end
     end)
+    |> elem(0)
     |> disambiguate_duplicate_timeline_diff_suffixes()
+  end
+
+  defp timeline_transition_application_pressure_branch?(branch) do
+    branch
+    |> Map.get("events", [])
+    |> List.wrap()
+    |> Enum.any?(&(&1["type"] == "timeline_transition_application_pressure"))
+  end
+
+  defp disambiguate_timeline_diff_pressure_branch(branch, branch_id, index) do
+    suffix =
+      branch
+      |> timeline_diff_pressure_branch_identity(index)
+      |> branch_id_fragment()
+
+    branch
+    |> Map.put("id", "#{branch_id}_#{suffix}")
+    |> Map.update("metadata", %{}, fn metadata ->
+      metadata
+      |> Map.put("timeline_diff_branch_base_id", branch_id)
+      |> Map.put("timeline_diff_branch_identity", suffix)
+    end)
   end
 
   defp timeline_diff_pressure_branch_id?(id) when is_binary(id),
@@ -46369,7 +46404,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "source" => source,
       "input_keys" => ["invalid_operational_feedback_input"],
       "invalid_operational_feedback_input" => true,
-      "invalid_operational_feedback_input_reason" => "operational_feedback_must_be_object",
+      "invalid_operational_feedback_input_reason" =>
+        "strategy_operational_feedback_must_be_object",
       "source_operational_feedback" => %{"invalid_feedback_shape" => stringify_keys(feedback)}
     })
     |> compact_map()
@@ -46444,7 +46480,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         [
           %{
             "field" => "source_operational_feedback",
-            "reason" => "operational_feedback_must_be_object",
+            "reason" => "strategy_operational_feedback_must_be_object",
             "invalid_feedback_shape" => stringify_keys(feedback)
           }
           |> Map.merge(context)
@@ -46471,7 +46507,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
           [
             %{
               "field" => "source_operational_feedback",
-              "reason" => "operational_feedback_must_be_object",
+              "reason" => "strategy_operational_feedback_must_be_object",
               "invalid_feedback_shape" => stringify_keys(invalid_feedback_shape)
             }
           ]
@@ -53409,18 +53445,34 @@ defmodule OrbitalDynamics.CampaignPlanner do
   end
 
   defp strategy_id(request, branch_maps) do
-    :crypto.hash(
-      :sha256,
-      :erlang.term_to_binary({
+    stable_input =
+      {
         source_plan_id(request.prior_plan),
         strip_realized_snapshot_model_limits(request.mission_state),
         request.strategy_policy,
         request.approval_policy,
         strip_realized_snapshot_model_limits(branch_maps)
-      })
+      }
+      |> encode_value()
+      |> canonical_hash_term()
+
+    :crypto.hash(
+      :sha256,
+      :erlang.term_to_binary(stable_input)
     )
     |> Base.encode16(case: :lower)
   end
+
+  defp canonical_hash_term(%{} = map) do
+    map
+    |> Enum.map(fn {key, value} -> {to_string(key), canonical_hash_term(value)} end)
+    |> Enum.sort_by(fn {key, _value} -> key end)
+  end
+
+  defp canonical_hash_term(values) when is_list(values),
+    do: Enum.map(values, &canonical_hash_term/1)
+
+  defp canonical_hash_term(value), do: value
 
   defp strip_realized_snapshot_model_limits(
          %{"schema_contract" => "realized_state_snapshot.v1"} = snapshot
@@ -58791,6 +58843,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp stable_id_string?(value),
     do: non_empty_string?(value) and Regex.match?(@stable_id_regex, value)
+
+  defp encode_value(%_{} = struct), do: struct |> Map.from_struct() |> encode_value()
 
   defp encode_value(%{} = map) do
     Map.new(map, fn {key, value} -> {encode_value(key), encode_value(value)} end)

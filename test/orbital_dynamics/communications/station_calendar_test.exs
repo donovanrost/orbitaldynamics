@@ -1843,7 +1843,7 @@ defmodule OrbitalDynamics.Communications.StationCalendarTest do
     refute Map.has_key?(downlink, "station_availability")
 
     assert Enum.map(report["affected_contacts"], &{&1["contact_id"], &1["direction"]}) == [
-             {"typed_command", nil},
+             {"typed_command", "command"},
              {"explicit_uplink", "uplink"}
            ]
 
@@ -1928,8 +1928,10 @@ defmodule OrbitalDynamics.Communications.StationCalendarTest do
              &{&1["contact_id"], &1["contact_type"], &1["direction"],
               &1["station_calendar_directions"], &1["required_operator_action"]}
            ) == [
-             {"tracking_1", "tracking", nil, ["tracking"], "review_station_reservation_overlap"},
-             {"health_1", "health_check", nil, ["health_check"], "review_station_availability"}
+             {"tracking_1", "tracking", "tracking", ["tracking"],
+              "review_station_reservation_overlap"},
+             {"health_1", "health_check", "health_check", ["health_check"],
+              "review_station_availability"}
            ]
 
     assert {:ok, %{"schema_contract" => "station_calendar_report.v1"}} =

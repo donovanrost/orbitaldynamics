@@ -29453,6 +29453,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   defp operational_readiness_normalized_string_list_map(report, field) do
     [operational_readiness_string_list_map(report, field)]
     |> merge_string_list_maps()
+    |> Kernel.||(%{})
   end
 
   defp sorted_string_list_map(list_map) when is_map(list_map) do

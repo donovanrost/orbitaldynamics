@@ -492,7 +492,7 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "schema_version" => 3,
              "planner" => "OrbitalDynamics.CampaignPlanner.V3",
              "source_plan_id" => "campaign_plan:leo_constellation_campaign:2026-05-14T00:00:00Z",
-             "strategy_id" => "b3535af8c8b303fc1a1837e5ee8074f3920806e766ed5802b77f63741d085459",
+             "strategy_id" => "86c142c2e2e619ef2b8459636b229327717b906703610012826996c6cde53b25",
              "recommended_branch_id" => "derived_urgent_target_target_hot",
              "approval_status" => "operator_review_required",
              "recommendation_status" => "pass"
@@ -652,7 +652,7 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
       |> File.read!()
       |> :json.decode()
 
-    assert strategy == generated_strategy
+    assert_artifacts_equal(strategy, generated_strategy)
   end
 
   test "checked-in strategy artifact exposes current dedicated pressure score terms" do
@@ -1525,5 +1525,55 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
     path
     |> File.read!()
     |> :json.decode()
+  end
+
+  defp assert_artifacts_equal(expected, actual) do
+    diffs = artifact_diffs(expected, actual)
+
+    assert diffs == []
+  end
+
+  defp artifact_diffs(left, right, path \\ "$")
+
+  defp artifact_diffs(left, right, path) when is_map(left) and is_map(right) do
+    left
+    |> Map.keys()
+    |> Kernel.++(Map.keys(right))
+    |> Enum.uniq()
+    |> Enum.sort()
+    |> Enum.flat_map(fn key ->
+      artifact_diffs(Map.get(left, key, :__missing__), Map.get(right, key, :__missing__), [
+        path,
+        ".",
+        to_string(key)
+      ])
+    end)
+  end
+
+  defp artifact_diffs(left, right, path) when is_list(left) and is_list(right) do
+    left_count = length(left)
+    right_count = length(right)
+
+    0..(max(left_count, right_count) - 1)//1
+    |> Enum.flat_map(fn index ->
+      artifact_diffs(Enum.at(left, index, :__missing__), Enum.at(right, index, :__missing__), [
+        path,
+        "[",
+        to_string(index),
+        "]"
+      ])
+    end)
+  end
+
+  defp artifact_diffs(left, right, _path) when left == right, do: []
+
+  defp artifact_diffs(left, right, path) do
+    [
+      %{
+        path: IO.iodata_to_binary(path),
+        expected: left,
+        actual: right
+      }
+    ]
   end
 end

@@ -1286,7 +1286,7 @@ defmodule OrbitalDynamics.SchemaTest do
         contacts,
         selected_contacts,
         policy: %{required_downlink_mb_by_ground_station: %{equator_prime: 100.0}},
-        source: "validation.link_capacity_summary"
+        source: "timeline_feedback"
       )
 
     assert generated_summary == summary
@@ -1296,7 +1296,7 @@ defmodule OrbitalDynamics.SchemaTest do
 
     assert %{
              "source_artifact_type" => "link_capacity_report.v1",
-             "source" => "validation.link_capacity_summary",
+             "source" => "timeline_feedback",
              "station_count" => 1,
              "contact_count" => 1,
              "effective_contact_count" => 1,
