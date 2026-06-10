@@ -348,7 +348,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
                 "contact_filter_blocked",
                 "contact_contention_blocked",
                 "resource_filter_availability_blocked",
-                "model_acceptance_blocked"
+                "model_acceptance_blocked",
+                "validation_safety_case_blocked"
               ],
               action_rules: []
   end
