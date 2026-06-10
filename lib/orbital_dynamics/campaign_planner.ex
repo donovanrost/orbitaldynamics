@@ -1152,6 +1152,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         repair_resource_filter_report(request.candidate_refresh),
         repair_refresh_budget_report(request.candidate_refresh),
         repair_candidate_rejection_report(request),
+        repair_operational_readiness_report(request.candidate_refresh),
         request.scoring_policy
       )
 
@@ -56652,7 +56653,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "schema_contract" => "objective_tradeoff_report.v1",
       "model" => "repair_score_term_tradeoffs",
       "objective" =>
-        "maximize repaired activity value while minimizing churn, schedule movement, resource-projection pressure, contact pressure, resource-filter pressure, refresh-budget pressure, and candidate-rejection pressure",
+        "maximize repaired activity value while minimizing churn, schedule movement, resource-projection pressure, contact pressure, resource-filter pressure, refresh-budget pressure, candidate-rejection pressure, and operational-readiness pressure",
       "ranking_count" => 1,
       "score_term_keys" => objective_score_term_keys([timeline]),
       "policy" => policy,
@@ -57314,6 +57315,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
          resource_filter_report,
          refresh_budget_report,
          candidate_rejection_report,
+         operational_readiness_report,
          scoring_policy
        ) do
     activity_score = activities |> Enum.map(&candidate_score/1) |> Enum.sum()
@@ -57347,6 +57349,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     candidate_rejection_pressure_count =
       repair_candidate_rejection_pressure_count(candidate_rejection_report)
 
+    operational_readiness_pressure_count =
+      repair_operational_readiness_pressure_count(operational_readiness_report)
+
     resource_projection_pressure_penalty =
       -resource_projection_pressure_count *
         numeric_policy_value(scoring_policy, "risk_weight", 1.0)
@@ -57369,6 +57374,10 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
     candidate_rejection_pressure_penalty =
       -candidate_rejection_pressure_count *
+        numeric_policy_value(scoring_policy, "risk_weight", 1.0)
+
+    operational_readiness_pressure_penalty =
+      -operational_readiness_pressure_count *
         numeric_policy_value(scoring_policy, "risk_weight", 1.0)
 
     score_terms = %{
@@ -57407,6 +57416,11 @@ defmodule OrbitalDynamics.CampaignPlanner do
       candidate_rejection_pressure_count,
       "candidate_rejection_pressure_penalty",
       candidate_rejection_pressure_penalty
+    )
+    |> maybe_put_positive_pressure_term(
+      operational_readiness_pressure_count,
+      "operational_readiness_pressure_penalty",
+      operational_readiness_pressure_penalty
     )
   end
 
@@ -57489,6 +57503,14 @@ defmodule OrbitalDynamics.CampaignPlanner do
        do: trunc(count)
 
   defp repair_candidate_rejection_pressure_count(_report), do: 0
+
+  defp repair_operational_readiness_pressure_count(%{} = report) do
+    report
+    |> operational_readiness_pressure_rows()
+    |> Enum.count(&operational_readiness_reviewable?/1)
+  end
+
+  defp repair_operational_readiness_pressure_count(_report), do: 0
 
   defp numeric_count(count) when is_number(count), do: trunc(count)
   defp numeric_count(_count), do: 0

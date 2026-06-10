@@ -4632,6 +4632,24 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     assert artifact["source_quality_gate_report"]["schema_contract"] ==
              "quality_gate_report.v1"
 
+    assert artifact["score_terms"]["operational_readiness_pressure_penalty"] == -1.0
+
+    assert "operational_readiness_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert [
+             %{
+               "term_key" => "operational_readiness_pressure_penalty",
+               "value" => -1.0,
+               "selected" => true
+             }
+           ] =
+             Enum.filter(
+               artifact["score_term_report"]["rows"],
+               &(&1["term_key"] == "operational_readiness_pressure_penalty")
+             )
+
     assert %{
              "review_type" => "operational_readiness_review",
              "source" => "campaign_repair.source_operational_readiness_report",
@@ -5698,7 +5716,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
 
     assert %{
              "objective" =>
-               "maximize repaired activity value while minimizing churn, schedule movement, resource-projection pressure, contact pressure, resource-filter pressure, refresh-budget pressure, and candidate-rejection pressure",
+               "maximize repaired activity value while minimizing churn, schedule movement, resource-projection pressure, contact pressure, resource-filter pressure, refresh-budget pressure, candidate-rejection pressure, and operational-readiness pressure",
              "score_term_keys" => score_term_keys,
              "tradeoffs" => [
                %{
