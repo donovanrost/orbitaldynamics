@@ -5290,7 +5290,29 @@ defmodule OrbitalDynamics.Policy do
          risk["resource_availability_value"] == false)
   end
 
+  defp risk_matches_blocked_type?(
+         %{"type" => "model_acceptance_pressure"} = risk,
+         "model_acceptance_blocked"
+       ) do
+    blocked_model_acceptance_pressure?(risk)
+  end
+
+  defp risk_matches_blocked_type?(
+         %{"feedback_scope" => "model_acceptance"} = risk,
+         "model_acceptance_blocked"
+       ) do
+    blocked_model_acceptance_pressure?(risk)
+  end
+
   defp risk_matches_blocked_type?(_risk, _blocked_type), do: false
+
+  defp blocked_model_acceptance_pressure?(risk) do
+    blocked_value?(risk["model_acceptance_status"]) or
+      blocked_value?(risk["model_status"]) or
+      positive_count?(risk["blocked_count"]) or
+      risk["branch_local_blocking_pressure"] == true or
+      risk["required_operator_action"] == "review_blocked_model_acceptance"
+  end
 
   defp resource_availability_blocked?(risk) do
     is_binary(risk["resource_field"]) and

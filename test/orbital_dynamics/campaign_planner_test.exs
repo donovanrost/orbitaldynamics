@@ -9332,6 +9332,146 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(review_artifact)
   end
 
+  test "strategy recommendation skips branches blocked by model acceptance by default" do
+    prior_plan =
+      base_plan(%{
+        "planning_horizon" => %{"duration_s" => 2_000.0},
+        "activities" => [],
+        "candidate_activities" => []
+      })
+
+    urgent_target_event = %{
+      type: "urgent_target",
+      target_id: "target_hot",
+      starts_at_s: 500.0,
+      ends_at_s: 560.0,
+      priority: 20.0,
+      candidate_windows: [
+        %{
+          id: "candidate_obs_hot",
+          type: "observe",
+          target_id: "target_hot",
+          scenario_id: "leo_1",
+          starts_at_s: 500.0,
+          ends_at_s: 560.0,
+          duration_s: 60.0,
+          score: 10.0
+        }
+      ]
+    }
+
+    blocked_model_acceptance_event = %{
+      type: "model_acceptance_pressure",
+      feedback_scope: "model_acceptance",
+      feedback_source: "mission_state.source_model_acceptance_report.rows",
+      report_id: "model_acceptance_report_v1",
+      intended_use: "operational_import",
+      model_id: "live_analysis_model",
+      validation_level: "operational_import",
+      model_status: "blocked",
+      model_reason: "model evidence rejected for operational import",
+      blocked_count: 1,
+      required_operator_action: "review_blocked_model_acceptance",
+      derivation_reasons: ["model_acceptance_review"]
+    }
+
+    review_model_acceptance_event = %{
+      type: "model_acceptance_pressure",
+      feedback_scope: "model_acceptance",
+      feedback_source: "mission_state.source_model_acceptance_report.rows",
+      report_id: "model_acceptance_report_v1",
+      intended_use: "operational_import",
+      model_id: "analysis_model_review",
+      validation_level: "operational_import",
+      model_status: "review_required",
+      model_reason: "operator review required before promotion",
+      review_required_count: 1,
+      required_operator_action: "review_model_acceptance",
+      derivation_reasons: ["model_acceptance_review"]
+    }
+
+    blocked_artifact =
+      strategy(prior_plan,
+        mission_state:
+          mission_state([%{"type" => "priority_commitment", "target_id" => "target_hot"}]),
+        strategy_policy: %{
+          "mission_value_weight" => 10.0,
+          "risk_weight" => 0.0,
+          "approval_load_weight" => 0.0
+        },
+        branches: [
+          %{id: "baseline"},
+          %{
+            id: "model_acceptance_blocked",
+            events: [urgent_target_event, blocked_model_acceptance_event]
+          }
+        ],
+        current_epoch_s: 0.0
+      )
+
+    blocked_branch = branch(blocked_artifact, "model_acceptance_blocked")
+
+    assert blocked_branch["score_terms"]["mission_value_score"] >
+             branch(blocked_artifact, "baseline")["score_terms"]["mission_value_score"]
+
+    assert blocked_artifact["recommendation"]["recommended_branch_id"] == "baseline"
+    assert blocked_branch["approval_status"] == "blocked_by_policy"
+
+    assert "model_acceptance_blocked" in blocked_artifact["approval_policy"][
+             "blocked_risk_types"
+           ]
+
+    assert Enum.any?(
+             blocked_branch["risk_indicators"],
+             &(&1["type"] == "model_acceptance_pressure" and
+                 &1["feedback_scope"] == "model_acceptance" and
+                 &1["model_status"] == "blocked" and
+                 &1["required_operator_action"] == "review_blocked_model_acceptance")
+           )
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(blocked_artifact)
+
+    review_artifact =
+      strategy(prior_plan,
+        mission_state:
+          mission_state([%{"type" => "priority_commitment", "target_id" => "target_hot"}]),
+        strategy_policy: %{
+          "mission_value_weight" => 10.0,
+          "risk_weight" => 0.0,
+          "approval_load_weight" => 0.0
+        },
+        branches: [
+          %{id: "baseline"},
+          %{
+            id: "model_acceptance_review",
+            events: [urgent_target_event, review_model_acceptance_event]
+          }
+        ],
+        current_epoch_s: 0.0
+      )
+
+    review_branch = branch(review_artifact, "model_acceptance_review")
+
+    assert review_artifact["recommendation"]["recommended_branch_id"] ==
+             "model_acceptance_review"
+
+    assert review_branch["approval_status"] == "operator_review_required"
+
+    assert review_artifact["recommendation"]["approval_status"] ==
+             "operator_review_required"
+
+    assert Enum.any?(
+             review_branch["risk_indicators"],
+             &(&1["type"] == "model_acceptance_pressure" and
+                 &1["feedback_scope"] == "model_acceptance" and
+                 &1["model_status"] == "review_required")
+           )
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(review_artifact)
+  end
+
   test "strategy branch scoring normalizes numeric-string selected activity scores" do
     prior_plan =
       base_plan(%{
