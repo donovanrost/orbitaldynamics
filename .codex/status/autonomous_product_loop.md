@@ -70,7 +70,7 @@ Pin planner-visible scoring for thermal resource-projection replay pressure.
 
 Last commit:
 - Product: `8c30a7c` Assert thermal resource pressure scoring
-- Ledger: pending
+- Ledger: `a236e96` Update autonomous loop status
 
 Remaining maturity gaps:
 - Continue converting existing replayed resource/contact/readiness pressure
