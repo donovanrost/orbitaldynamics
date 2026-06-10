@@ -5178,12 +5178,11 @@ defmodule OrbitalDynamics.Policy do
   defp non_empty_list(values), do: values
 
   defp fallback_status(approval_requirements, risk_indicators, policy) do
-    risk_types = Enum.map(risk_indicators, & &1["type"])
     risk_count = length(risk_indicators)
     approval_count = length(approval_requirements)
 
     cond do
-      Enum.any?(policy["blocked_risk_types"], &(&1 in risk_types)) ->
+      Enum.any?(risk_indicators, &blocked_risk_indicator?(&1, policy["blocked_risk_types"])) ->
         "blocked_by_policy"
 
       risk_count <= policy["auto_approvable_risk_limit"] and
@@ -5197,6 +5196,48 @@ defmodule OrbitalDynamics.Policy do
         "blocked_by_policy"
     end
   end
+
+  defp blocked_risk_indicator?(risk, blocked_risk_types) do
+    Enum.any?(blocked_risk_types, &risk_matches_blocked_type?(risk, &1))
+  end
+
+  defp risk_matches_blocked_type?(%{"type" => type}, blocked_type) when type == blocked_type,
+    do: true
+
+  defp risk_matches_blocked_type?(
+         %{"type" => "operational_readiness_pressure"} = risk,
+         "operational_readiness_blocked"
+       ) do
+    blocked_value?(risk["operational_readiness_status"]) or
+      blocked_value?(risk["readiness_gate_status"]) or
+      blocked_value?(risk["import_classification"]) or
+      blocked_value?(risk["readiness_gate_classification"]) or
+      positive_count?(risk["blocked_gate_count"]) or
+      risk["required_operator_action"] == "review_blocked_operational_readiness"
+  end
+
+  defp risk_matches_blocked_type?(
+         %{"type" => "quality_gate_pressure"} = risk,
+         "quality_gate_blocked"
+       ) do
+    blocked_value?(risk["quality_gate_status"]) or
+      blocked_value?(risk["gate_status"]) or
+      blocked_value?(risk["import_classification"]) or
+      blocked_value?(risk["gate_classification"]) or
+      positive_count?(risk["blocked_gate_count"]) or
+      risk["required_operator_action"] == "review_blocked_operational_readiness"
+  end
+
+  defp risk_matches_blocked_type?(_risk, _blocked_type), do: false
+
+  defp blocked_value?(value) when is_binary(value),
+    do: value in ["blocked", "blocked_by_policy"]
+
+  defp blocked_value?(_value), do: false
+
+  defp positive_count?(value) when is_integer(value), do: value > 0
+  defp positive_count?(value) when is_float(value), do: value > 0.0
+  defp positive_count?(_value), do: false
 
   defp maybe_put(map, _key, nil), do: map
   defp maybe_put(map, key, value), do: Map.put(map, key, value)

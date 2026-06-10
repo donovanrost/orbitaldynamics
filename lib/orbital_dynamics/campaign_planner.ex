@@ -339,7 +339,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
                 "spacecraft_degraded_unprotected",
                 "no_viable_downlink",
                 "storage_overflow",
-                "downlink_shortfall"
+                "downlink_shortfall",
+                "operational_readiness_blocked",
+                "quality_gate_blocked"
               ],
               action_rules: []
   end
