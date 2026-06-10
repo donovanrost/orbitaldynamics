@@ -8,8 +8,8 @@ Current slice:
 Row-local station-reservation review-summary stale aggregate challenge fixture.
 
 Status:
-Implemented, reviewer must-fixes resolved, locally verified, and ready for
-mechanical commit/push handoff.
+Implemented, reviewer must-fixes resolved, locally verified, committed, and
+pushed.
 
 Files changed:
 - Focused strategy regression:
@@ -62,7 +62,7 @@ Slice result:
   path.
 
 Last completed slice:
-Row-local station-calendar stale aggregate challenge fixture.
+Row-local station-reservation review-summary stale aggregate challenge fixture.
 
 Last pushed commits:
 - Product/ledger: `39eca42` Guard import readiness rows against stale
@@ -78,11 +78,12 @@ Last pushed commits:
 - Product/ledger: `eb924e1` Guard station calendar summary row evidence
 - Ledger correction: `2802303` Update autonomous loop ledger after station
   calendar publish
+- Product/ledger: `2f01a4d` Guard station reservation review row evidence
 
 Review/publish queue:
 - Reviewer sidecar found two must-fix issues; parent resolved them and reviewer
   re-check cleared the findings.
-- Ready to publish only the test file and ledger.
+- Published to `origin/main` as `2f01a4d`.
 
 Remaining maturity gaps:
 - Continue converting replayed resource/contact/readiness pressure into
@@ -95,9 +96,8 @@ Remaining maturity gaps:
   planner pressure families change public artifact shape.
 
 Next candidate:
-After this slice is reviewed and published, reassess provider-calendar,
-station-reservation hold, or readiness stale-aggregate strategy guards from live
-evidence.
+Reassess provider-calendar, station-reservation hold, or readiness
+stale-aggregate strategy guards from live evidence.
 
 Blocked:
 Not blocked.
@@ -106,3 +106,4 @@ Notes:
 - The focused tests still emit the existing `0.0` pattern-match warnings from a
   separate CampaignPlanner test; selected tests exit green.
 - Reviewer sidecar: `019eb01a-02ab-75f0-b740-31136b0726a5`.
+- Publisher sidecar: `019eb01f-bff7-70a2-b974-1f0b112ffd77`.
