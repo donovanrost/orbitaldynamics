@@ -782,7 +782,7 @@ defmodule OrbitalDynamics.Validation do
         "payload_metrics_contract" => "result_payload_metrics.v1",
         "payload_metrics_top_level_key_count" => 15,
         "payload_metrics_section_count" => 15,
-        "payload_metrics_artifact_body_bytes" => 323_493,
+        "payload_metrics_artifact_body_bytes" => 323_398,
         "run_status" => "completed",
         "run_study_id" => "leo_constellation_campaign"
       },

@@ -352,18 +352,20 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
                "schema_contract" => "score_term_report.v1",
                "model" => "repair_score_terms",
                "source" => "campaign_repair.score_terms",
-               "row_count" => 3,
+               "row_count" => 4,
                "score_term_keys" => [
                  "activity_score",
+                 "candidate_rejection_pressure_penalty",
                  "schedule_churn_penalty",
                  "schedule_move_penalty"
                ],
                "row_term_keys" => [
                  "activity_score",
+                 "candidate_rejection_pressure_penalty",
                  "schedule_churn_penalty",
                  "schedule_move_penalty"
                ],
-               "row_selected" => [true, true, true]
+               "row_selected" => [true, true, true, true]
              },
              "objective_tradeoff_report" => %{
                "schema_contract" => "objective_tradeoff_report.v1",
@@ -372,7 +374,7 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
                "scenario_ids" => [
                  "campaign_plan:leo_constellation_campaign:2026-05-14T00:00:00Z"
                ],
-               "scores" => [-100.0],
+               "scores" => [-101.0],
                "score_deltas" => [0.0],
                "activity_counts" => [0],
                "activity_ids" => [[]]
@@ -421,7 +423,7 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "operator_review_package" => %{
                "schema_contract" => "operator_review_package.v1",
                "source_artifact_type" => "campaign_repair.v2",
-               "review_count" => 14,
+               "review_count" => 15,
                "approval_requirement_count" => 1,
                "contention_recommendation_count" => 0,
                "candidate_rejection_review_count" => 1,
@@ -436,7 +438,7 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
                "ranking_comparison_count" => 0,
                "pareto_frontier_count" => 0,
                "tradeoff_count" => 0,
-               "score_term_review_count" => 3,
+               "score_term_review_count" => 4,
                "objective_tradeoff_review_count" => 1,
                "row_review_types" => [
                  "approval_requirement",
@@ -452,8 +454,8 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "cadence_import_manifest" => %{
                "schema_contract" => "cadence_import_manifest.v1",
                "source_artifact_type" => "campaign_repair.v2",
-               "row_count" => 14,
-               "review_required_count" => 14,
+               "row_count" => 15,
+               "review_required_count" => 15,
                "candidate_rejection_import_count" => 1,
                "candidate_rejection_row_actions" => ["review_candidate_rejection"],
                "candidate_rejection_row_activity_ids" => ["leo_1_observe_target_a_1"]
@@ -492,7 +494,7 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "schema_version" => 3,
              "planner" => "OrbitalDynamics.CampaignPlanner.V3",
              "source_plan_id" => "campaign_plan:leo_constellation_campaign:2026-05-14T00:00:00Z",
-             "strategy_id" => "86c142c2e2e619ef2b8459636b229327717b906703610012826996c6cde53b25",
+             "strategy_id" => "0ac68cb392d222d77bce273554e73f8fb8696370ef0e513ed32cb7e8a0712e3f",
              "recommended_branch_id" => "derived_urgent_target_target_hot",
              "approval_status" => "operator_review_required",
              "recommendation_status" => "pass"
@@ -614,9 +616,9 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "score_term_review_count",
              "objective_tradeoff_review_count"
            ]) == %{
-             "review_count" => 2282,
+             "review_count" => 2307,
              "contact_allocation_review_count" => 25,
-             "score_term_review_count" => 1728,
+             "score_term_review_count" => 1753,
              "objective_tradeoff_review_count" => 54
            }
 
@@ -626,8 +628,8 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "review_required_count",
              "contact_allocation_import_count"
            ]) == %{
-             "row_count" => 2308,
-             "review_required_count" => 2282,
+             "row_count" => 2333,
+             "review_required_count" => 2307,
              "contact_allocation_import_count" => 25
            }
   end

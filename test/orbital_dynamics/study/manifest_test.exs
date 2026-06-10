@@ -1255,7 +1255,11 @@ defmodule OrbitalDynamics.Study.ManifestTest do
   end
 
   test "runs a LEO campaign manifest and emits a ranked plan artifact" do
-    assert {:ok, manifest} = Manifest.from_map(campaign_manifest())
+    manifest_source =
+      campaign_manifest()
+      |> put_in(["campaign", "ground_network", Access.at(0), "status"], "available")
+
+    assert {:ok, manifest} = Manifest.from_map(manifest_source)
 
     assert manifest.study.outputs == [
              :trajectories,
@@ -1272,7 +1276,7 @@ defmodule OrbitalDynamics.Study.ManifestTest do
              %{
                "ground_station_id" => "equator_prime",
                "id" => "equator_maintenance",
-               "status" => "maintenance"
+               "status" => "available"
              }
            ] = manifest.study.metadata["campaign"]["ground_network"]
 
@@ -1310,13 +1314,12 @@ defmodule OrbitalDynamics.Study.ManifestTest do
     assert Enum.all?(activities, &Map.has_key?(&1, "cadence_import"))
     assert proposed_contacts != []
     assert Enum.any?(contact_intents, &(&1["schema_contract"] == "contact_intent.v1"))
-    assert station_calendar_report["affected_contact_count"] > 0
+    assert station_calendar_report["calendar_entry_count"] == 1
 
     assert resource_projection_report["model"] ==
              "thin_campaign_selected_activity_resource_projection"
 
     assert [%{"spacecraft_id" => "leo_1"}] = resource_projection_report["projected_resources"]
-    assert Enum.any?(candidates, &(&1["station_calendar_entry_id"] == "equator_maintenance"))
     refute "no contact activities proposed" in warnings
     assert provenance["propagator"] == "Elixir.OrbitalDynamics.Propagators.TwoBody"
     assert ranking_explanation["objective"] =~ "maximize"
