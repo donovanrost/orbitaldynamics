@@ -5,89 +5,83 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Split provider-reservation request review pressure into its own V3 branch score
-term.
+Expose station-reservation expiration pressure in V3 recommendation tradeoffs.
 
 Status:
 Completed and pushed.
 
 Files changed:
-- Strategy scoring: `lib/orbital_dynamics/campaign_planner.ex`
+- Strategy recommendation tradeoffs: `lib/orbital_dynamics/campaign_planner.ex`
 - Strategy tests: `test/orbital_dynamics/campaign_planner_test.exs`
 - V3 docs: `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
 - Ledger: `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:39138`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:30532`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:48769`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:48347`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:17969`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:25619`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:27319`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 
 Docs/artifacts changed:
-- Documented that provider-reservation request review risks now score as
-  `provider_reservation_request_pressure_penalty` while generic
-  contact-allocation pressure and station-reservation conflicts remain on their
-  own score terms.
+- Documented that recommendation tradeoffs now expose
+  `station_reservation_expiration_pressure`, matching the existing branch score
+  report term `station_reservation_expiration_pressure_penalty`.
 
 Level 6 pillar advanced:
-Fleet-level contact/station-calendar allocation behavior with reproducible V3
-branch score explanations and no provider-write authority.
+Explainable branch recommendation scoring for station-reservation readiness and
+handoff evidence.
 
 Slice selection note:
-Selected slice: split provider-reservation request review pressure into its own
-V3 branch score term.
+Selected slice: expose existing station-reservation expiration pressure in V3
+recommendation tradeoffs.
 
-Why this slice: Provider-reservation request summaries already replayed into
-strategy branches and branch-comparison rows, but
-`provider_reservation_request_review` risks still contributed only to broad
-`contact_allocation_pressure_penalty`.
+Why this slice: The scorer already created
+`station_reservation_expiration_pressure_penalty`, and focused branch tests
+asserted it, but recommendation tradeoff rows skipped that dimension. That made
+selected recommendation explanations less complete than branch score reports.
 
-Level 6 pillar: fleet-level contact/station-calendar allocation behavior with
-explainable V3 branch score terms and no provider-write authority.
+Level 6 pillar: explainable branch recommendation scoring for
+station-reservation readiness handoff evidence.
 
-Current evidence gap: Provider-reservation request review pressure was distinct
-from generic contact-allocation pressure and station-reservation conflicts in
-branch evidence, but not in score terms.
+Current evidence gap: Station-reservation hold expiration pressure was
+score-visible on branches and score-term reports, but not in recommendation
+tradeoff dimensions.
 
 Docs read:
 `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`; focused
-campaign planner provider-reservation and contact-allocation summary tests.
+recommendation and station-reservation expiration tests.
 
 Likely files: `lib/orbital_dynamics/campaign_planner.ex`;
 `test/orbital_dynamics/campaign_planner_test.exs`;
 `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`;
 `.codex/status/autonomous_product_loop.md`.
 
-Likely tests: provider-reservation summary replay, mixed rich mission-state
-pressure replay, mission/prior contact-allocation summary pressure tests,
-`mix compile --warnings-as-errors`, `git diff --check`.
+Likely tests: recommendation explanation/tradeoff dimension test,
+station-reservation review summary pressure test, station-reservation hold
+import-readiness pressure test, `mix compile --warnings-as-errors`,
+`git diff --check`.
 
-Definition of done: V3 branches with
-`provider_reservation_request_review` risks emit a negative
-`provider_reservation_request_pressure_penalty`, include it in
-`score_term_report`, keep non-provider contact-allocation pressure on
-`contact_allocation_pressure_penalty`, and preserve existing
-branch-comparison/provider review fields.
+Definition of done: Recommendation tradeoffs include a
+`station_reservation_expiration_pressure` dimension, focused tests assert the
+canonical recommendation dimension list, docs note the recommendation surface,
+and existing station-reservation expiration score-term behavior stays
+unchanged.
 
 Slice result:
-- Added a provider-reservation request pressure count and score term.
-- Split `provider_reservation_request_review` risks out of the broad
-  contact-allocation score bucket while preserving total per-risk branch score
-  pressure.
-- Added focused provider-reservation request score-term assertions for the
-  mixed challenge and mission-state provider summary branches.
-- Updated V3 orchestration docs to describe the dedicated provider request
-  score term and its no-write authority boundary.
+- Added `station_reservation_expiration_pressure` to recommendation tradeoff
+  dimensions.
+- Updated the recommendation explanation test's fixed dimension list to match
+  the current canonical score-term tradeoff table, including recent split terms.
+- Preserved existing branch score-term behavior for station-reservation
+  expiration pressure.
 
 Last completed slice:
-Split provider-reservation request review pressure into its own V3 branch score
-term.
+Expose station-reservation expiration pressure in V3 recommendation tradeoffs.
 
 Last commit:
-- Product: `c495982` Split provider reservation request score pressure
-- Ledger: `5af4000` Update autonomous loop status
+- Product: `1e06bc3` Expose reservation expiration score tradeoffs
+- Ledger: pending
 
 Remaining maturity gaps:
 - Continue converting existing replayed resource/contact/readiness pressure
@@ -98,15 +92,15 @@ Remaining maturity gaps:
   strategy artifacts.
 
 Next candidate:
-Reassess the queue after publishing; likely another compact branch-local
-pressure-to-score slice or a queue-3 quality/readiness challenge fixture.
+Reassess the queue after publishing; likely another compact recommendation
+tradeoff/score-term parity gap or a queue-3 quality/readiness challenge fixture.
 
 Blocked:
 Not blocked.
 
 Notes:
-- Previous published slice: Product `7bfc592`, Ledger `7a4a77a`, final status
-  `71d93f9`.
+- Previous published slice: Product `c495982`, Ledger `5af4000`, final status
+  `0a1f7c7`.
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
   not part of this slice.
 - Sidecar delegation is unavailable in this runtime; parent performed the same
