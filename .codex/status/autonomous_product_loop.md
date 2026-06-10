@@ -5,11 +5,11 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Row-local station-calendar stale aggregate challenge fixture.
+Row-local station-reservation review-summary stale aggregate challenge fixture.
 
 Status:
-Implemented, reviewer must-fix resolved, locally verified, committed, and
-pushed.
+Implemented, reviewer must-fixes resolved, locally verified, and ready for
+mechanical commit/push handoff.
 
 Files changed:
 - Focused strategy regression:
@@ -18,44 +18,46 @@ Files changed:
   `.codex/status/autonomous_product_loop.md`
 
 Tests/checks run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:48188`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:48039 test/orbital_dynamics/campaign_planner_test.exs:48188`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:25787`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:25581 test/orbital_dynamics/campaign_planner_test.exs:25787`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 
 Level 6 pillar advanced:
-Fleet-level station-calendar pressure and reproducible V3 branch trees with
-explainable score terms, by pinning row-local station-calendar evidence against
-stale source-report aggregates before candidate-source replay and branch
-scoring.
+Fleet-level station-reservation pressure and reproducible V3 branch trees with
+explainable score terms, by pinning row-local reservation-review evidence
+against stale compact-summary aggregates before candidate-source replay and
+branch scoring.
 
 Slice selection note:
-Selected slice: add a stale-top-level station-calendar report challenge fixture
-for strategy replay and scoring.
+Selected slice: add a stale-top-level `station_reservation_review_summary.v1`
+challenge fixture for strategy replay and scoring.
 
-Why this slice: `station_calendar_report.v1` already feeds branch-local refresh
-and score terms, and CandidateRefresh has row-derived stale-aggregate guards.
-The strategy surface needed an exact end-to-end fixture proving contradictory
-top-level count maps cannot steer planner-visible branch pressure.
+Why this slice: station-reservation review summaries already create branch
+pressure and expiration score terms, but the existing strategy test only proved
+happy-path summary replay. A contradictory compact summary should prove row
+evidence wins for candidate-source replay, branch events, branch comparison
+rows, and score terms.
 
 Current evidence gap closed:
-A mission-state `source_station_calendar_report` whose top-level aggregates say
-the affected contact is available now proves the row-local reserved contact
-drives candidate-source replay, the generated station-calendar branch event,
-branch comparison reservation fields, `station_calendar_pressure_penalty`, and
-schema validation.
+A mission-state `source_station_reservation_review_summary` whose top-level
+aggregates claim unrelated stale counts now proves the row-local expired
+reservation overlap drives candidate-source replay, the generated reserved
+station branch event, branch comparison reservation fields,
+`station_reservation_expiration_pressure_penalty`, and schema validation.
 
 Slice result:
 - Added a focused CampaignPlanner strategy challenge test for stale
-  station-calendar aggregates.
-- The fixture verifies row-derived status/station/availability/direction maps in
-  `candidate_refresh_request_source_report_summary` and
-  `CandidateRefresh.station_calendar_replay_summary/1`.
-- Reviewer required exact map equality for stale-sensitive aggregate and routing
-  maps; parent tightened the assertions and reran focused verification.
+  station-reservation review-summary aggregates.
+- The fixture verifies exact row-derived match/status/direction/owner/expiration
+  maps in `candidate_refresh_request_source_report_summary` and
+  `CandidateRefresh.station_reservation_replay_summary/1`.
+- Reviewer required exact match-status and provider-contention assertions plus a
+  complete recent commit list; parent tightened both and reran focused
+  verification.
 - The same fixture verifies the generated reserved-station branch event,
-  row-level trust boundary, branch comparison reservation fields, score-term
-  reporting, and `campaign_strategy.v3` schema validation.
+  row-level trust boundary, branch comparison reservation fields, expiration
+  score-term reporting, and `campaign_strategy.v3` schema validation.
 - No production code changes were needed; live code was already row-led for this
   path.
 
@@ -74,11 +76,13 @@ Last pushed commits:
 - Ledger correction: `4020200` Update autonomous loop ledger after contact
   allocation publish
 - Product/ledger: `eb924e1` Guard station calendar summary row evidence
+- Ledger correction: `2802303` Update autonomous loop ledger after station
+  calendar publish
 
 Review/publish queue:
-- Reviewer sidecar found one must-fix test-strength issue; parent resolved it
-  and reviewer re-check cleared the finding.
-- Published to `origin/main` as `eb924e1`.
+- Reviewer sidecar found two must-fix issues; parent resolved them and reviewer
+  re-check cleared the findings.
+- Ready to publish only the test file and ledger.
 
 Remaining maturity gaps:
 - Continue converting replayed resource/contact/readiness pressure into
@@ -91,8 +95,9 @@ Remaining maturity gaps:
   planner pressure families change public artifact shape.
 
 Next candidate:
-Reassess station-reservation or provider-calendar stale-aggregate strategy
-guards from live evidence.
+After this slice is reviewed and published, reassess provider-calendar,
+station-reservation hold, or readiness stale-aggregate strategy guards from live
+evidence.
 
 Blocked:
 Not blocked.
@@ -100,5 +105,4 @@ Not blocked.
 Notes:
 - The focused tests still emit the existing `0.0` pattern-match warnings from a
   separate CampaignPlanner test; selected tests exit green.
-- Reviewer sidecar: `019eb00f-bfde-7803-bf6f-412cd4ae7aaf`.
-- Publisher sidecar: `019eb014-c521-7c12-9c19-db3887e9d839`.
+- Reviewer sidecar: `019eb01a-02ab-75f0-b740-31136b0726a5`.
