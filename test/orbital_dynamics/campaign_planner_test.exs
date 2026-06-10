@@ -4641,6 +4641,171 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "repair excludes supplied candidate refresh contacts unusable by allocation report" do
+    deferred_candidate =
+      "dl_deferred"
+      |> refreshed_downlink(520.0, 580.0)
+      |> Map.put("score", 100.0)
+      |> put_in(["score_terms", "contact_value"], 100.0)
+
+    blocked_candidate =
+      "dl_blocked"
+      |> refreshed_downlink(620.0, 680.0)
+      |> Map.put("score", 90.0)
+      |> put_in(["score_terms", "contact_value"], 90.0)
+
+    policy_blocked_candidate =
+      "dl_policy_blocked"
+      |> refreshed_downlink(720.0, 780.0)
+      |> Map.put("score", 80.0)
+      |> put_in(["score_terms", "contact_value"], 80.0)
+
+    allocated_candidate = refreshed_downlink("dl_refreshed", 500.0, 560.0)
+
+    allocation_report =
+      contact_allocation_report()
+      |> Map.merge(%{
+        "input_contact_count" => 4,
+        "allocated_contact_count" => 2,
+        "effective_allocated_contact_count" => 1,
+        "effective_policy_blocked_contact_count" => 1,
+        "deferred_contact_count" => 1,
+        "blocked_contact_count" => 1,
+        "effective_allocation_status_counts" => %{
+          "allocated" => 1,
+          "blocked" => 1,
+          "deferred" => 1,
+          "policy_blocked" => 1
+        }
+      })
+      |> update_in(["rows"], fn rows ->
+        rows ++
+          [
+            %{
+              "id" => "contact_allocation:dl_blocked",
+              "contact_id" => "dl_blocked",
+              "allocation_status" => "blocked",
+              "effective_allocation_status" => "blocked",
+              "allocation_reason" => "ground_station_unavailable",
+              "ground_station_id" => "equator_prime",
+              "starts_at_s" => 620.0,
+              "ends_at_s" => 680.0,
+              "selected" => false
+            },
+            %{
+              "id" => "contact_allocation:dl_policy_blocked",
+              "contact_id" => "dl_policy_blocked",
+              "allocation_status" => "allocated",
+              "effective_allocation_status" => "policy_blocked",
+              "allocation_reason" => "available",
+              "ground_station_id" => "equator_prime",
+              "starts_at_s" => 720.0,
+              "ends_at_s" => 780.0,
+              "selected" => true,
+              "policy_decision" => %{
+                "schema_contract" => "policy_decision.v1",
+                "classification" => "blocked_by_policy",
+                "policy_bundle_id" => "contact_allocation_policy_v1"
+              }
+            }
+          ]
+      end)
+
+    artifact =
+      repair(
+        %{
+          "activities" => [downlink("dl_1", 100.0, 160.0)],
+          "candidate_activities" => [downlink("dl_stale", 700.0, 760.0)]
+        },
+        realized_state: %{activities: [%{id: "dl_1", status: "missed"}]},
+        current_epoch_s: 165.0,
+        candidate_refresh:
+          [deferred_candidate, blocked_candidate, policy_blocked_candidate, allocated_candidate]
+          |> candidate_refresh_artifact(contact_allocation_report: allocation_report)
+      )
+
+    assert [%{"id" => "dl_refreshed", "repair" => %{"action" => "moved"}}] =
+             artifact["activities"]
+
+    assert Enum.map(artifact["source_candidate_activities"], & &1["id"]) == ["dl_refreshed"]
+
+    assert %{
+             "schema_contract" => "contact_allocation_report.v1",
+             "deferred_contact_count" => 1,
+             "blocked_contact_count" => 1,
+             "rows" => allocation_rows
+           } = artifact["source_contact_allocation_report"]
+
+    assert %{
+             "contact_id" => "dl_deferred",
+             "allocation_status" => "deferred",
+             "effective_allocation_status" => "deferred"
+           } = Enum.find(allocation_rows, &(&1["contact_id"] == "dl_deferred"))
+
+    assert %{
+             "contact_id" => "dl_blocked",
+             "allocation_status" => "blocked",
+             "effective_allocation_status" => "blocked"
+           } = Enum.find(allocation_rows, &(&1["contact_id"] == "dl_blocked"))
+
+    assert %{
+             "contact_id" => "dl_policy_blocked",
+             "allocation_status" => "allocated",
+             "effective_allocation_status" => "policy_blocked"
+           } = Enum.find(allocation_rows, &(&1["contact_id"] == "dl_policy_blocked"))
+
+    assert Enum.any?(
+             artifact["operator_review_package"]["rows"],
+             &(&1["review_type"] == "contact_allocation_review" and
+                 &1["source"] == "campaign_repair.source_contact_allocation_report.rows" and
+                 &1["contact_id"] == "dl_deferred" and
+                 &1["allocation_status"] == "deferred")
+           )
+
+    assert Enum.any?(
+             artifact["operator_review_package"]["rows"],
+             &(&1["review_type"] == "contact_allocation_review" and
+                 &1["source"] == "campaign_repair.source_contact_allocation_report.rows" and
+                 &1["contact_id"] == "dl_blocked" and
+                 &1["allocation_status"] == "blocked")
+           )
+
+    assert Enum.any?(
+             artifact["operator_review_package"]["rows"],
+             &(&1["review_type"] == "contact_allocation_review" and
+                 &1["source"] == "campaign_repair.source_contact_allocation_report.rows" and
+                 &1["contact_id"] == "dl_policy_blocked" and
+                 &1["effective_allocation_status"] == "policy_blocked")
+           )
+
+    assert Enum.any?(
+             artifact["cadence_import_manifest"]["rows"],
+             &(&1["import_action"] == "review_contact_allocation" and
+                 &1["source_review_type"] == "contact_allocation_review" and
+                 &1["contact_id"] == "dl_deferred" and
+                 &1["allocation_status"] == "deferred")
+           )
+
+    assert Enum.any?(
+             artifact["cadence_import_manifest"]["rows"],
+             &(&1["import_action"] == "review_contact_allocation" and
+                 &1["source_review_type"] == "contact_allocation_review" and
+                 &1["contact_id"] == "dl_blocked" and
+                 &1["allocation_status"] == "blocked")
+           )
+
+    assert Enum.any?(
+             artifact["cadence_import_manifest"]["rows"],
+             &(&1["import_action"] == "review_contact_allocation" and
+                 &1["source_review_type"] == "contact_allocation_review" and
+                 &1["contact_id"] == "dl_policy_blocked" and
+                 &1["effective_allocation_status"] == "policy_blocked")
+           )
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "repair prefers semantic candidate-diff replacement links" do
     semantic_replacement =
       "dl_semantic"
