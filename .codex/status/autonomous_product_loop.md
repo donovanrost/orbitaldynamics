@@ -10,7 +10,7 @@ count maps.
 
 Status:
 Implemented, parent-reviewed, locally verified, and published locally.
-Behavior commit: `22c3b08`.
+Behavior commit: `6954014`.
 
 Files changed:
 - Readiness schema validation:
@@ -64,7 +64,7 @@ Remaining maturity gaps:
   editing; do not rely on stale ledger candidates.
 
 Last behavior commit:
-`22c3b08` Validate readiness evidence count scalars.
+`6954014` Validate readiness evidence count scalars.
 
 Next candidate:
 Recalibrate from live code. Current residual full-suite failures point at
