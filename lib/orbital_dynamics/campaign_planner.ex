@@ -34872,10 +34872,54 @@ defmodule OrbitalDynamics.CampaignPlanner do
   defp provider_counteroffer_pressure_rows(_report, source_path), do: {[], source_path}
 
   defp provider_counteroffer_import_readiness_pressure_row(row, report) do
+    row = stringify_keys(row)
+
     row
-    |> stringify_keys()
-    |> put_new_present("import_readiness_status", report["import_readiness_status"])
-    |> put_new_present("import_classification", report["import_classification"])
+    |> put_new_present(
+      "import_readiness_status",
+      provider_counteroffer_import_readiness_pressure_status(row, report)
+    )
+    |> put_new_present(
+      "import_classification",
+      provider_counteroffer_import_readiness_pressure_classification(row, report)
+    )
+  end
+
+  defp provider_counteroffer_import_readiness_pressure_status(row, report) do
+    cond do
+      provider_counteroffer_pressure_row_review_required?(row) -> "review_required"
+      provider_counteroffer_pressure_row_import_ready?(row) -> "import_ready"
+      true -> report["import_readiness_status"]
+    end
+  end
+
+  defp provider_counteroffer_import_readiness_pressure_classification(row, report) do
+    cond do
+      provider_counteroffer_pressure_row_review_required?(row) -> "review_only"
+      provider_counteroffer_pressure_row_import_ready?(row) -> "ready"
+      true -> report["import_classification"]
+    end
+  end
+
+  defp provider_counteroffer_pressure_row_review_required?(row) do
+    normalized_status_token(row["provider_counteroffer_import_status"]) ==
+      "review_required_before_import" or
+      normalized_status_token(row["required_operator_action"]) in [
+        "review_provider_counteroffer",
+        "review_required",
+        "review_required_before_import"
+      ] or row["reviewable"] == true
+  end
+
+  defp provider_counteroffer_pressure_row_import_ready?(row) do
+    normalized_status_token(row["provider_counteroffer_import_status"]) in [
+      "import_ready",
+      "no_import_required"
+    ] or
+      normalized_status_token(row["required_operator_action"]) in [
+        "none",
+        "no_import_required"
+      ]
   end
 
   defp put_new_present(map, _key, value) when value in [nil, "", [], %{}], do: map

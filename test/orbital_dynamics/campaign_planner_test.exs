@@ -26888,6 +26888,148 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "strategy challenge scores provider-counteroffer import-readiness rows when top-level fields are stale" do
+    stale_summary = %{
+      "schema_contract" => "provider_counteroffer_import_readiness_summary.v1",
+      "model" => "artifact_only_provider_counteroffer_import_readiness_summary",
+      "source_artifact_type" => "provider_counteroffer_report.v1",
+      "import_readiness_status" => "import_ready",
+      "import_classification" => "ready",
+      "counteroffer_count" => 1,
+      "reviewable_count" => 0,
+      "counteroffer_cost_delta_count" => 0,
+      "counteroffer_cost_delta_total" => 0.0,
+      "counteroffer_lock_deadline_count" => 0,
+      "provider_counteroffer_import_status_counts" => %{"import_ready" => 99},
+      "counteroffer_lock_deadline_status_counts" => %{"missing" => 99},
+      "counteroffer_ids_by_import_status" => %{"import_ready" => ["stale_counteroffer"]},
+      "counteroffer_ids_by_required_import_action" => %{"none" => ["stale_counteroffer"]},
+      "counteroffer_ids_by_lock_deadline_status" => %{"missing" => ["stale_counteroffer"]},
+      "review_counteroffer_ids" => [],
+      "no_import_required_counteroffer_ids" => ["stale_counteroffer"],
+      "import_readiness_rows" => [
+        %{
+          "provider_counteroffer_id" => "row_counteroffer",
+          "provider_counteroffer_status" => "proposed",
+          "provider_counteroffer_cost_delta" => 125.0,
+          "provider_counteroffer_lock_deadline_s" => 420.0,
+          "provider_counteroffer_lock_deadline_status" => "active",
+          "provider_counteroffer_import_status" => "review_required_before_import",
+          "import_readiness_status" => "",
+          "import_classification" => "",
+          "required_operator_action" => "review_provider_counteroffer",
+          "reviewable" => true,
+          "trust_boundary" => "row_counteroffer_import_readiness_boundary"
+        }
+      ],
+      "provenance" => %{"trust_boundary" => "stale_counteroffer_import_readiness_boundary"}
+    }
+
+    artifact =
+      strategy(base_plan(%{}),
+        mission_state:
+          mission_state_with_refresh_inputs()
+          |> Map.put("source_provider_counteroffer_import_readiness_summary", stale_summary),
+        derive_branches?: true,
+        branches: [
+          %{id: "baseline"},
+          %{
+            id: "urgent",
+            events: [%{type: "urgent_target", target_id: "target_a", priority: 12.0}]
+          }
+        ],
+        current_epoch_s: 0.0
+      )
+
+    urgent = branch(artifact, "urgent")
+    candidate_source = urgent["assumptions"]["candidate_source"]
+
+    assert %{
+             "source_report_provider_counteroffer_reviewable_count" => 1,
+             "source_report_provider_counteroffer_cost_delta_count" => 1,
+             "source_report_provider_counteroffer_cost_delta_total" => 125.0,
+             "source_report_provider_counteroffer_import_status_counts" => %{
+               "review_required_before_import" => 1
+             },
+             "source_report_provider_counteroffer_import_readiness_status_counts" => %{
+               "review_required" => 1
+             },
+             "source_report_provider_counteroffer_import_classification_counts" => %{
+               "review_only" => 1
+             },
+             "source_report_provider_counteroffer_counteroffer_ids_by_import_status" => %{
+               "review_required_before_import" => ["row_counteroffer"]
+             },
+             "source_report_provider_counteroffer_counteroffer_ids_by_required_import_action" => %{
+               "review_provider_counteroffer" => ["row_counteroffer"]
+             },
+             "source_report_provider_counteroffer_review_counteroffer_ids" => [
+               "row_counteroffer"
+             ]
+           } = candidate_source["candidate_refresh_request_source_report_summary"]
+
+    assert Map.get(
+             candidate_source["candidate_refresh_request_source_report_summary"],
+             "source_report_provider_counteroffer_no_import_required_counteroffer_ids"
+           ) in [nil, []]
+
+    assert %{
+             "reviewable_count" => 1,
+             "counteroffer_cost_delta_count" => 1,
+             "counteroffer_cost_delta_total" => 125.0,
+             "import_readiness_status_counts" => %{"review_required" => 1},
+             "import_classification_counts" => %{"review_only" => 1},
+             "provider_counteroffer_import_status_counts" => %{
+               "review_required_before_import" => 1
+             },
+             "counteroffer_ids_by_import_status" => %{
+               "review_required_before_import" => ["row_counteroffer"]
+             },
+             "counteroffer_ids_by_required_import_action" => %{
+               "review_provider_counteroffer" => ["row_counteroffer"]
+             },
+             "counteroffer_ids_by_lock_deadline_status" => %{"active" => ["row_counteroffer"]},
+             "review_counteroffer_ids" => ["row_counteroffer"],
+             "branch_local_counteroffer_import_readiness_pressure" => true
+           } = CandidateRefresh.provider_counteroffer_replay_summary(candidate_source)
+
+    assert Map.get(
+             CandidateRefresh.provider_counteroffer_replay_summary(candidate_source),
+             "no_import_required_counteroffer_ids"
+           ) in [nil, []]
+
+    scored_branch = branch(artifact, "derived_provider_counteroffer_pressure_row_counteroffer")
+
+    assert %{
+             "type" => "provider_counteroffer_pressure",
+             "provider_counteroffer_id" => "row_counteroffer",
+             "provider_counteroffer_cost_delta" => 125.0,
+             "provider_counteroffer_lock_deadline_s" => 420.0,
+             "provider_counteroffer_lock_deadline_status" => "active",
+             "provider_counteroffer_import_status" => "review_required_before_import",
+             "import_readiness_status" => "review_required",
+             "import_classification" => "review_only",
+             "required_operator_action" => "review_provider_counteroffer",
+             "feedback_source" =>
+               "mission_state.source_provider_counteroffer_import_readiness_summary.import_readiness_rows",
+             "trust_boundary" => "row_counteroffer_import_readiness_boundary"
+           } = List.first(scored_branch["events"])
+
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    assert scored_branch["score_terms"]["provider_counteroffer_pressure_penalty"] ==
+             -risk_weight
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] == "derived_provider_counteroffer_pressure_row_counteroffer" and
+                 &1["term_key"] == "provider_counteroffer_pressure_penalty" and &1["value"] < 0.0)
+           )
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "strategy carries mission-state contact-contention resolution summaries into branch refresh requests" do
     resolution_summary = fn prefix, required_fraction ->
       group_id = "#{prefix}_contention_group"

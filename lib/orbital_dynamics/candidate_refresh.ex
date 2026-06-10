@@ -28720,6 +28720,11 @@ defmodule OrbitalDynamics.CandidateRefresh do
   defp provider_counteroffer_report_ids_by_row_field(report, row_field) do
     report
     |> provider_counteroffer_report_rows()
+    |> provider_counteroffer_row_ids_by_field(row_field)
+  end
+
+  defp provider_counteroffer_row_ids_by_field(rows, row_field) do
+    rows
     |> Enum.flat_map(fn row ->
       status = normalized_timeline_diff_token(Map.get(row, row_field))
       counteroffer_id = stable_id_or_nil(Map.get(row, "provider_counteroffer_id"))
@@ -28731,6 +28736,92 @@ defmodule OrbitalDynamics.CandidateRefresh do
       end
     end)
     |> grouped_source_report_ids()
+  end
+
+  defp provider_counteroffer_review_ids_from_rows(rows) do
+    rows
+    |> Enum.filter(fn row ->
+      provider_counteroffer_row_review_required?(row)
+    end)
+    |> Enum.map(&Map.get(&1, "provider_counteroffer_id"))
+    |> sorted_string_values()
+  end
+
+  defp provider_counteroffer_no_import_required_ids_from_rows(rows) do
+    rows
+    |> Enum.filter(fn row ->
+      normalized_timeline_diff_token(Map.get(row, "provider_counteroffer_import_status")) in [
+        "import_ready",
+        "no_import_required"
+      ] or
+        normalized_timeline_diff_token(Map.get(row, "required_operator_action")) in [
+          "none",
+          "no_import_required"
+        ]
+    end)
+    |> Enum.map(&Map.get(&1, "provider_counteroffer_id"))
+    |> sorted_string_values()
+  end
+
+  defp provider_counteroffer_import_readiness_status_counts_from_rows(rows) do
+    rows
+    |> Enum.map(&provider_counteroffer_row_import_readiness_status/1)
+    |> count_values()
+  end
+
+  defp provider_counteroffer_import_classification_counts_from_rows(rows) do
+    rows
+    |> Enum.map(&provider_counteroffer_row_import_classification/1)
+    |> count_values()
+  end
+
+  defp provider_counteroffer_row_import_readiness_status(row) do
+    case normalized_timeline_diff_token(Map.get(row, "import_readiness_status")) do
+      status when status not in [nil, ""] ->
+        status
+
+      _blank ->
+        cond do
+          provider_counteroffer_row_review_required?(row) -> "review_required"
+          provider_counteroffer_row_import_ready?(row) -> "import_ready"
+          true -> nil
+        end
+    end
+  end
+
+  defp provider_counteroffer_row_import_classification(row) do
+    case normalized_timeline_diff_token(Map.get(row, "import_classification")) do
+      classification when classification not in [nil, ""] ->
+        classification
+
+      _blank ->
+        cond do
+          provider_counteroffer_row_review_required?(row) -> "review_only"
+          provider_counteroffer_row_import_ready?(row) -> "ready"
+          true -> nil
+        end
+    end
+  end
+
+  defp provider_counteroffer_row_review_required?(row) do
+    normalized_timeline_diff_token(Map.get(row, "provider_counteroffer_import_status")) ==
+      "review_required_before_import" or
+      normalized_timeline_diff_token(Map.get(row, "required_operator_action")) in [
+        "review_provider_counteroffer",
+        "review_required",
+        "review_required_before_import"
+      ] or Map.get(row, "reviewable") == true
+  end
+
+  defp provider_counteroffer_row_import_ready?(row) do
+    normalized_timeline_diff_token(Map.get(row, "provider_counteroffer_import_status")) in [
+      "import_ready",
+      "no_import_required"
+    ] or
+      normalized_timeline_diff_token(Map.get(row, "required_operator_action")) in [
+        "none",
+        "no_import_required"
+      ]
   end
 
   defp provider_counteroffer_report_rows(report) do
@@ -28847,12 +28938,18 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "import_readiness_summary_count" => length(summaries),
       "import_readiness_status_counts" =>
         summaries
-        |> Enum.map(&Map.get(&1, "import_readiness_status"))
-        |> count_values(),
+        |> Enum.map(fn report ->
+          Map.get(report, "import_readiness_status_counts") ||
+            count_values([Map.get(report, "import_readiness_status")])
+        end)
+        |> merge_count_maps(),
       "import_classification_counts" =>
         summaries
-        |> Enum.map(&Map.get(&1, "import_classification"))
-        |> count_values(),
+        |> Enum.map(fn report ->
+          Map.get(report, "import_classification_counts") ||
+            count_values([Map.get(report, "import_classification")])
+        end)
+        |> merge_count_maps(),
       "provider_counteroffer_import_status_counts" =>
         summaries
         |> Enum.map(&Map.get(&1, "provider_counteroffer_import_status_counts", %{}))
@@ -51009,20 +51106,23 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "counteroffer_count" =>
         provider_counteroffer_summary_count(summary, "counteroffer_count", rows),
       "reviewable_count" =>
-        provider_counteroffer_summary_count(
-          summary,
-          "reviewable_count",
+        if rows == [] do
+          numeric_report_count(summary, "reviewable_count")
+        else
           Enum.count(rows, &(&1["reviewable"] == true))
-        ),
+        end,
       "counteroffer_cost_delta_count" =>
-        provider_counteroffer_summary_count(
-          summary,
-          "counteroffer_cost_delta_count",
+        if rows == [] do
+          numeric_report_count(summary, "counteroffer_cost_delta_count")
+        else
           provider_counteroffer_numeric_value_count(rows, "provider_counteroffer_cost_delta")
-        ),
+        end,
       "counteroffer_cost_delta_total" =>
-        numeric_value(Map.get(summary, "counteroffer_cost_delta_total")) ||
-          provider_counteroffer_numeric_value_sum(rows, "provider_counteroffer_cost_delta"),
+        if rows == [] do
+          numeric_value(Map.get(summary, "counteroffer_cost_delta_total")) || 0.0
+        else
+          provider_counteroffer_numeric_value_sum(rows, "provider_counteroffer_cost_delta")
+        end,
       "timing_shift_counteroffer_count" =>
         provider_counteroffer_summary_count(
           summary,
@@ -51040,25 +51140,63 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "import_readiness_summary_count" => 1,
       "import_readiness_status" => Map.get(summary, "import_readiness_status"),
       "import_readiness_status_counts" =>
-        count_values([Map.get(summary, "import_readiness_status")]),
+        if rows == [] do
+          count_values([Map.get(summary, "import_readiness_status")])
+        else
+          provider_counteroffer_import_readiness_status_counts_from_rows(rows)
+        end,
       "import_classification" => Map.get(summary, "import_classification"),
-      "import_classification_counts" => count_values([Map.get(summary, "import_classification")]),
+      "import_classification_counts" =>
+        if rows == [] do
+          count_values([Map.get(summary, "import_classification")])
+        else
+          provider_counteroffer_import_classification_counts_from_rows(rows)
+        end,
       "provider_counteroffer_import_status_counts" =>
-        Map.get(summary, "provider_counteroffer_import_status_counts") ||
-          count_provider_counteroffer_rows(rows, "provider_counteroffer_import_status"),
+        if rows == [] do
+          Map.get(summary, "provider_counteroffer_import_status_counts")
+        else
+          count_provider_counteroffer_rows(rows, "provider_counteroffer_import_status")
+        end,
       "counteroffer_lock_deadline_status_counts" =>
-        Map.get(summary, "counteroffer_lock_deadline_status_counts") ||
-          count_provider_counteroffer_rows(rows, "provider_counteroffer_lock_deadline_status"),
+        if rows == [] do
+          Map.get(summary, "counteroffer_lock_deadline_status_counts")
+        else
+          count_provider_counteroffer_rows(rows, "provider_counteroffer_lock_deadline_status")
+        end,
       "counteroffer_ids_by_import_status" =>
-        summary_string_list_map(summary, "counteroffer_ids_by_import_status"),
+        if rows == [] do
+          summary_string_list_map(summary, "counteroffer_ids_by_import_status")
+        else
+          provider_counteroffer_row_ids_by_field(rows, "provider_counteroffer_import_status")
+        end,
       "counteroffer_ids_by_required_import_action" =>
-        summary_string_list_map(summary, "counteroffer_ids_by_required_import_action"),
+        if rows == [] do
+          summary_string_list_map(summary, "counteroffer_ids_by_required_import_action")
+        else
+          provider_counteroffer_row_ids_by_field(rows, "required_operator_action")
+        end,
       "counteroffer_ids_by_lock_deadline_status" =>
-        summary_string_list_map(summary, "counteroffer_ids_by_lock_deadline_status"),
+        if rows == [] do
+          summary_string_list_map(summary, "counteroffer_ids_by_lock_deadline_status")
+        else
+          provider_counteroffer_row_ids_by_field(
+            rows,
+            "provider_counteroffer_lock_deadline_status"
+          )
+        end,
       "review_counteroffer_ids" =>
-        sorted_string_values(Map.get(summary, "review_counteroffer_ids", [])),
+        if rows == [] do
+          sorted_string_values(Map.get(summary, "review_counteroffer_ids", []))
+        else
+          provider_counteroffer_review_ids_from_rows(rows)
+        end,
       "no_import_required_counteroffer_ids" =>
-        sorted_string_values(Map.get(summary, "no_import_required_counteroffer_ids", [])),
+        if rows == [] do
+          sorted_string_values(Map.get(summary, "no_import_required_counteroffer_ids", []))
+        else
+          provider_counteroffer_no_import_required_ids_from_rows(rows)
+        end,
       "assumptions" => Map.get(summary, "assumptions")
     }
     |> maybe_put("provenance", Map.get(summary, "provenance"))

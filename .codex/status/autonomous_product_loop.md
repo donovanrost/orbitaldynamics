@@ -5,82 +5,79 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Provider-counteroffer import-readiness pressure scoring.
+Provider-counteroffer import-readiness stale-aggregate challenge fixture.
 
 Status:
-Completed, reviewed, committed, and pushed.
+Implemented, reviewed, reviewer feedback resolved, and locally verified;
+publish pending.
 
 Files changed:
-- Strategy scoring/runtime:
+- Candidate-refresh source report aggregation:
+  `lib/orbital_dynamics/candidate_refresh.ex`
+- Strategy pressure row enrichment:
   `lib/orbital_dynamics/campaign_planner.ex`
-- Focused strategy regression:
+- Focused strategy challenge regression:
   `test/orbital_dynamics/campaign_planner_test.exs`
-- Candidate-refresh artifact docs:
-  `docs/artifacts/field_families/candidate_refresh_artifact.md`
 - Ledger:
   `.codex/status/autonomous_product_loop.md`
 
 Tests/checks run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:26620`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:26388 test/orbital_dynamics/campaign_planner_test.exs:26620`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:26891`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:26388 test/orbital_dynamics/campaign_planner_test.exs:26620 test/orbital_dynamics/campaign_planner_test.exs:26891`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 
-Docs/artifacts changed:
-- Documented that review-required provider-counteroffer import-readiness rows
-  can become V3 provider-counteroffer pressure branches and score-term
-  penalties, while import-ready/no-action rows remain replay provenance only.
-
 Level 6 pillar advanced:
-Fleet-level resource/contact allocation behavior and reproducible branch trees
-with explainable score terms, by turning an existing provider-counteroffer
-import-readiness replay family into planner-visible branch pressure without
-granting provider-write, schedule-mutation, import-approval, or Cadence-write
-authority.
+Durable artifact compatibility checks and reproducible branch trees with
+explainable score terms, by proving row-level provider-counteroffer import
+readiness evidence overrides stale top-level summary aggregates before replay,
+derived branch pressure, and score-term reporting.
 
 Slice selection note:
-Selected slice: make provider-counteroffer import-readiness summaries produce
-branch-local strategy pressure and score terms.
+Selected slice: add a stale-top-level provider-counteroffer import-readiness
+challenge fixture for replay and scoring.
 
-Why this slice: live code already replayed these summaries as source-report
-evidence, but only plan-impact summaries fed derived provider-counteroffer
-pressure branches. This closed a resource/contact allocation maturity gap by
-making existing review/no-import provider evidence planner-visible.
+Why this slice: the previous slice added import-readiness branch pressure, but
+coverage only exercised direct/canonical/wrapped happy-path summaries. The
+artifact contract claims row evidence prevents stale aggregates from steering
+replay, so the scored branch path needed an explicit contradiction fixture.
 
-Current evidence gap closed: `provider_counteroffer_import_readiness_summary.v1`
-rows that are reviewable and require `review_provider_counteroffer` now derive
-provider-counteroffer pressure branches, preserve import status,
-readiness/classification, lock-deadline status, trust boundary, and source
-path, and score via `provider_counteroffer_pressure_penalty`.
-
-Docs read:
-`docs/autonomous_work_guide.md`;
-`.codex/prompts/long_running_context_efficient_product_loop.md`;
-`.codex/status/autonomous_product_loop.md`;
-`docs/feature_set/completeness_levels/06_mature_operational_platform.md`;
-`docs/feature_set/current_capability_snapshot.md`;
-`docs/feature_set/recommended_roadmap.md`;
-`docs/feature_set/capability_map/07_ground_network_and_communications_planning.md`;
-`docs/artifacts/field_families/candidate_refresh_artifact.md`.
+Current evidence gap closed: a summary whose top-level fields claim
+`import_ready`/no-review but whose `import_readiness_rows` require
+`review_provider_counteroffer` now proves candidate-source summaries, replay
+summaries, derived pressure events, and score terms all follow the row evidence.
 
 Slice result:
-- Included direct and result-artifact-wrapped provider-counteroffer
-  import-readiness summaries in the mission-state pressure source list.
-- Extracted `import_readiness_rows` into derived pressure rows and enriched them
-  with summary-level readiness status/classification when row values are absent.
-- Preserved import status/classification/lock-deadline context through branch
-  events, risk indicators, recommendation contexts, and score-term reports.
-- Added regression coverage proving review-required rows become scored pressure
-  and import-ready/no-action rows remain provenance only.
-- Resolved reviewer feedback by backfilling summary readiness/classification
-  over blank row values and covering that edge in the focused regression.
+- Import-readiness source-summary status/classification counts merge
+  row-derived report counts instead of summary-level stale status values, and
+  infer blank row readiness/classification from row import/action signals before
+  using top-level summary fallback.
+- Row-bearing import-readiness summaries derive reviewable counts, cost-delta
+  counts/totals, import status maps, required-action maps, lock-deadline maps,
+  review IDs, and no-import-required IDs from rows.
+- Strategy pressure events use the same precedence, so blank row
+  readiness/classification values do not inherit contradictory top-level
+  summary metadata when row import/action fields already identify review
+  pressure.
+- Rowless import-readiness summaries retain the prior top-level fallback path.
+- Added a focused strategy challenge test with contradictory stale aggregate
+  fields, blank row readiness/classification fields, and a review-required row
+  that becomes a scored pressure branch.
 
 Last completed slice:
 Provider-counteroffer import-readiness pressure scoring.
 
-Last commit:
+Last pushed commits:
 - Product/docs/ledger: `b9babb7` Score provider counteroffer import readiness
   pressure
+- Ledger correction: `af9c511` Update autonomous loop publish status
+
+Review/publish queue:
+- Reviewer sidecar found no blocker and flagged two coverage gaps; parent fixed
+  both by covering blank-row derived readiness/classification and
+  candidate-source required-action/review/no-import precedence.
+- Commit and push:
+  candidate-refresh import-readiness row aggregation challenge.
 
 Remaining maturity gaps:
 - Continue converting replayed resource/contact/readiness pressure into
@@ -101,9 +98,6 @@ Blocked:
 Not blocked.
 
 Notes:
-- Sidecar reviewer found one edge around blank import-readiness row values; the
-  parent fixed it and reran focused verification.
-- Publisher sidecar committed and pushed the slice to `origin/main` as
-  `b9babb7`.
-- `.gitignore` was clean in this worktree at slice start and is not part of this
-  slice.
+- The focused test still emits the existing `0.0` pattern-match warnings from a
+  separate CampaignPlanner test; the selected tests exit green.
+- Reviewer sidecar: `019eafd6-b1f0-7da1-ae8e-270057d24e4d`.
