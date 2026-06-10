@@ -5,8 +5,8 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Split contact-allocation station-reservation conflict pressure into its own V3
-branch score term.
+Split provider-reservation request review pressure into its own V3 branch score
+term.
 
 Status:
 Completed and pushed.
@@ -18,72 +18,76 @@ Files changed:
 - Ledger: `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:30261`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:48346`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:48773`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:39138`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:30532`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:48769`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:48347`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 
 Docs/artifacts changed:
-- Documented that contact-allocation station-reservation conflicts now score as
-  `station_reservation_conflict_pressure_penalty` while non-conflict allocation
-  and provider-reservation pressure remain on `contact_allocation_pressure`.
+- Documented that provider-reservation request review risks now score as
+  `provider_reservation_request_pressure_penalty` while generic
+  contact-allocation pressure and station-reservation conflicts remain on their
+  own score terms.
 
 Level 6 pillar advanced:
 Fleet-level contact/station-calendar allocation behavior with reproducible V3
-branch score explanations.
+branch score explanations and no provider-write authority.
 
 Slice selection note:
-Selected slice: split contact-allocation station-reservation conflict pressure
-into its own V3 branch score term.
+Selected slice: split provider-reservation request review pressure into its own
+V3 branch score term.
 
-Why this slice: Contact-allocation reservation-conflict summaries already
-replay into strategy branches and branch-comparison rows with reservation IDs,
-match statuses, and contact IDs, but scoring exposed them only through broad
+Why this slice: Provider-reservation request summaries already replayed into
+strategy branches and branch-comparison rows, but
+`provider_reservation_request_review` risks still contributed only to broad
 `contact_allocation_pressure_penalty`.
 
-Level 6 pillar: fleet-level contact/station-calendar allocation behavior plus
-reproducible V3 branch score explanations.
+Level 6 pillar: fleet-level contact/station-calendar allocation behavior with
+explainable V3 branch score terms and no provider-write authority.
 
-Current evidence gap: Station-reservation conflicts and generic
-contact-allocation/provider-reservation pressure looked the same in score terms
-even though branch-comparison artifacts preserved distinct conflict evidence.
+Current evidence gap: Provider-reservation request review pressure was distinct
+from generic contact-allocation pressure and station-reservation conflicts in
+branch evidence, but not in score terms.
 
 Docs read:
 `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`; focused
-strategy reservation-conflict tests.
+campaign planner provider-reservation and contact-allocation summary tests.
 
 Likely files: `lib/orbital_dynamics/campaign_planner.ex`;
 `test/orbital_dynamics/campaign_planner_test.exs`;
 `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`;
 `.codex/status/autonomous_product_loop.md`.
 
-Likely tests: reservation-conflict branch replay and branch-comparison tests,
+Likely tests: provider-reservation summary replay, mixed rich mission-state
+pressure replay, mission/prior contact-allocation summary pressure tests,
 `mix compile --warnings-as-errors`, `git diff --check`.
 
-Definition of done: V3 branches with contact-allocation station-reservation
-conflict evidence emit a negative
-`station_reservation_conflict_pressure_penalty`, include it in
-`score_term_report`, keep non-conflict contact-allocation pressure on
-`contact_allocation_pressure_penalty`, and preserve branch-comparison
-reservation-conflict fields.
+Definition of done: V3 branches with
+`provider_reservation_request_review` risks emit a negative
+`provider_reservation_request_pressure_penalty`, include it in
+`score_term_report`, keep non-provider contact-allocation pressure on
+`contact_allocation_pressure_penalty`, and preserve existing
+branch-comparison/provider review fields.
 
 Slice result:
-- Added a station-reservation conflict pressure count and score term.
-- Split contact-allocation reservation-conflict risks out of the broad
-  contact-allocation score bucket while keeping provider-reservation and
-  non-conflict allocation pressure on the existing term.
-- Updated contradictory reservation evidence and summary-pressure regressions
-  to assert the dedicated score term while allowing mixed branches to preserve
-  provider overlap evidence in branch-comparison source rows.
+- Added a provider-reservation request pressure count and score term.
+- Split `provider_reservation_request_review` risks out of the broad
+  contact-allocation score bucket while preserving total per-risk branch score
+  pressure.
+- Added focused provider-reservation request score-term assertions for the
+  mixed challenge and mission-state provider summary branches.
+- Updated V3 orchestration docs to describe the dedicated provider request
+  score term and its no-write authority boundary.
 
 Last completed slice:
-Split contact-allocation station-reservation conflict pressure into its own V3
-branch score term.
+Split provider-reservation request review pressure into its own V3 branch score
+term.
 
 Last commit:
-- Product: `7bfc592` Split reservation conflict branch score pressure
-- Ledger: `7a4a77a` Update autonomous loop status
+- Product: `c495982` Split provider reservation request score pressure
+- Ledger: pending
 
 Remaining maturity gaps:
 - Continue converting existing replayed resource/contact/readiness pressure
@@ -101,8 +105,8 @@ Blocked:
 Not blocked.
 
 Notes:
-- Previous published slice: Product `324d349`, Ledger `a8006f1`, final status
-  `4818b29`.
+- Previous published slice: Product `7bfc592`, Ledger `7a4a77a`, final status
+  `71d93f9`.
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
   not part of this slice.
 - Sidecar delegation is unavailable in this runtime; parent performed the same
