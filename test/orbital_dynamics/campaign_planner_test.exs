@@ -34426,6 +34426,185 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "strategy challenge scores timeline lifecycle replay from rows when top-level fields are stale" do
+    planned = [
+      %{
+        id: :stale_strategy_cmd_pending,
+        type: :command,
+        status: :planned,
+        approval_status: :pending,
+        starts_at_s: 10.0,
+        ends_at_s: 20.0,
+        metadata: %{timeline_id: :"timeline:stale_strategy:cmd_pending"}
+      },
+      %{
+        id: :stale_strategy_dup_a,
+        type: :observe,
+        status: :planned,
+        starts_at_s: 30.0,
+        ends_at_s: 40.0,
+        metadata: %{timeline_id: :"timeline:stale_strategy:dup"}
+      },
+      %{
+        id: :stale_strategy_dup_b,
+        type: :observe,
+        status: :planned,
+        starts_at_s: 35.0,
+        ends_at_s: 45.0,
+        metadata: %{timeline_id: :"timeline:stale_strategy:dup"}
+      },
+      %{id: :stale_strategy_bad_missing_type, status: :planned}
+    ]
+
+    realized = [
+      %{
+        id: :stale_strategy_cmd_pending,
+        type: :command,
+        status: :executed,
+        approval_status: :approved,
+        starts_at_s: 10.0,
+        ends_at_s: 20.0,
+        metadata: %{timeline_id: :"timeline:stale_strategy:cmd_pending"}
+      }
+    ]
+
+    stale_summary =
+      planned
+      |> Timeline.lifecycle_state_summary(realized)
+      |> Map.put("provenance", %{"trust_boundary" => "stale_strategy_lifecycle_summary"})
+      |> Map.merge(%{
+        "row_count" => 0,
+        "recordable_count" => 0,
+        "preserved_count" => 0,
+        "review_required_count" => 0,
+        "duplicate_timeline_identity_count" => 0,
+        "invalid_activity_input_count" => 0,
+        "invalid_activity_input_ids" => [],
+        "transition_decision_counts" => %{},
+        "required_operator_action_counts" => %{},
+        "import_action_counts" => %{},
+        "planned_status_category_counts" => %{},
+        "realized_status_category_counts" => %{},
+        "planned_approval_category_counts" => %{},
+        "realized_approval_category_counts" => %{},
+        "status_transition_category_counts" => %{},
+        "approval_transition_category_counts" => %{},
+        "recordable_timeline_ids" => [],
+        "preserved_timeline_ids" => [],
+        "review_timeline_ids" => [],
+        "review_activity_ids" => [],
+        "review_timeline_ids_by_required_operator_action" => %{},
+        "review_timeline_ids_by_status_transition_category" => %{},
+        "review_timeline_ids_by_approval_transition_category" => %{},
+        "review_routing" => %{}
+      })
+
+    artifact =
+      strategy(base_plan(%{}),
+        mission_state:
+          mission_state_with_refresh_inputs()
+          |> Map.put(:source_timeline_lifecycle_state_summary, stale_summary),
+        branches: [
+          %{id: "baseline"},
+          %{
+            id: "urgent",
+            events: [%{type: "urgent_target", target_id: "target_a", priority: 12.0}]
+          }
+        ],
+        current_epoch_s: 0.0
+      )
+
+    urgent = branch(artifact, "urgent")
+
+    assert %{"type" => "candidate_refresh.v1", "scope" => "branch_generated"} =
+             candidate_source = urgent["assumptions"]["candidate_source"]
+
+    assert %{
+             "source_report_row_count" => 3,
+             "review_required_count" => 3,
+             "duplicate_timeline_identity_count" => 1,
+             "invalid_activity_input_count" => 1,
+             "transition_decision_counts" => %{"review" => 3},
+             "required_operator_action_counts" => %{
+               "review_activity_approval" => 1,
+               "review_duplicate_timeline_identity" => 1,
+               "review_invalid_activity_input" => 1
+             },
+             "import_action_counts" => %{"review_timeline_diff" => 3},
+             "review_timeline_ids" => [
+               "timeline:invalid_activity_input:stale_strategy_bad_missing_type",
+               "timeline:stale_strategy:cmd_pending",
+               "timeline:stale_strategy:dup"
+             ],
+             "review_activity_ids" => [
+               "stale_strategy_cmd_pending",
+               "stale_strategy_dup_a",
+               "stale_strategy_dup_b",
+               "timeline_row:4:stale_strategy_bad_missing_type"
+             ],
+             "branch_local_timeline_lifecycle_state_pressure" => true,
+             "branch_local_lifecycle_review_pressure" => true
+           } = CandidateRefresh.timeline_lifecycle_state_replay_summary(candidate_source)
+
+    assert Enum.any?(
+             urgent["risk_indicators"],
+             &(&1["type"] == "timeline_lifecycle_state_review" and
+                 &1["feedback_source"] ==
+                   "candidate_source.timeline_lifecycle_state_replay_summary" and
+                 &1["source_report_count"] == 1 and
+                 &1["source_report_row_count"] == 3 and
+                 &1["source_report_paths"] == [
+                   "mission_state.source_timeline_lifecycle_state_summary"
+                 ] and
+                 &1["review_required_count"] == 3 and
+                 &1["duplicate_timeline_identity_count"] == 1 and
+                 &1["invalid_activity_input_count"] == 1 and
+                 &1["review_timeline_ids"] == [
+                   "timeline:invalid_activity_input:stale_strategy_bad_missing_type",
+                   "timeline:stale_strategy:cmd_pending",
+                   "timeline:stale_strategy:dup"
+                 ] and
+                 &1["review_activity_ids"] == [
+                   "stale_strategy_cmd_pending",
+                   "stale_strategy_dup_a",
+                   "stale_strategy_dup_b",
+                   "timeline_row:4:stale_strategy_bad_missing_type"
+                 ])
+           )
+
+    assert_timeline_lifecycle_pressure_score_terms(
+      urgent,
+      artifact,
+      "timeline_lifecycle_state_review"
+    )
+
+    urgent_row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(&(&1["branch_id"] == "urgent"))
+
+    assert "timeline_lifecycle_state_review" in urgent_row["risk_types"]
+
+    assert urgent_row["branch_timeline_lifecycle_state_review_timeline_ids"] == [
+             "timeline:invalid_activity_input:stale_strategy_bad_missing_type",
+             "timeline:stale_strategy:cmd_pending",
+             "timeline:stale_strategy:dup"
+           ]
+
+    assert urgent_row["branch_timeline_lifecycle_state_review_activity_ids"] == [
+             "stale_strategy_cmd_pending",
+             "stale_strategy_dup_a",
+             "stale_strategy_dup_b",
+             "timeline_row:4:stale_strategy_bad_missing_type"
+           ]
+
+    assert urgent_row["branch_timeline_lifecycle_state_invalid_activity_input_ids"] == [
+             "timeline_row:4:stale_strategy_bad_missing_type"
+           ]
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "strategy carries mission-state timeline activity states into branch refresh requests" do
     activity_state = fn prefix ->
       planned = %{

@@ -5,55 +5,52 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Timeline-publication handoff rows outrank stale embedded summaries.
+Timeline lifecycle strategy replay stays row-led under stale aggregates.
 
 Status:
-Implemented, reviewer-cleared, locally verified, committed, and pushed.
+Implemented, reviewer-cleared, and locally verified; publish pending.
 
 Files changed:
-- Timeline-publication handoff replay precedence:
-  `lib/orbital_dynamics/candidate_refresh.ex`
-- Focused replay regression:
-  `test/orbital_dynamics/candidate_refresh_test.exs`
+- Timeline lifecycle replay risk context:
+  `lib/orbital_dynamics/campaign_planner.ex`
+- Focused strategy regression:
+  `test/orbital_dynamics/campaign_planner_test.exs`
 - Ledger:
   `.codex/status/autonomous_product_loop.md`
 
 Tests/checks run:
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:27650 test/orbital_dynamics/candidate_refresh_test.exs:27859`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:34429`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:34177 test/orbital_dynamics/campaign_planner_test.exs:34429`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 
 Level 6 pillar advanced:
-Durable schema-versioned artifacts and reproducible branch-local replay
-explanations for timeline-publication downstream invalidation pressure, by
-making review/import handoff rows row-led when embedded publication summaries
-are stale.
+Reproducible V3 branch trees with explainable score terms and approval-aware
+timeline lifecycle boundaries, by proving strategy replay remains row-led when
+timeline lifecycle summary aggregates are stale.
 
 Slice selection note:
-Selected slice: make timeline-publication handoff-row replay row-led when
-embedded summaries are stale.
+Selected slice: add a V3 strategy challenge proving timeline lifecycle replay
+stays row-led when lifecycle summary top-level aggregates are stale.
 
-Why this slice: timeline-publication replay lifts summaries from
-operator-review and Cadence-import handoff rows. Existing tests covered exact
-embedded summaries and fallback after removing them, but not contradictory
-embedded summaries. Handoff row fields should drive replay when present.
+Why this slice: CandidateRefresh already has row-derived stale lifecycle
+coverage, but the campaign-strategy surface is where that evidence becomes
+branch risk, score terms, and branch-comparison rows. The live strategy test
+covers normal lifecycle summaries, not contradictory top-level fields.
 
-Current evidence gap closed:
-Operator-review and Cadence-import handoff rows now carry deliberately stale
-embedded `source_timeline_publication_summary` maps while their row fields
-contain the live publication/downstream invalidation evidence. Replay summary
-publication IDs, source artifact IDs, invalidated downstream products, row
-counts, review timeline IDs, and pressure flags now prove row evidence wins.
+Current evidence gap:
+V3 strategy has no stale-top-level lifecycle challenge proving branch risk and
+branch-comparison output come from row-derived replay evidence.
 
 Slice result:
-- Changed timeline-publication handoff extraction to derive a summary from the
-  handoff row first, falling back to embedded summaries only for sparse legacy
-  rows.
-- Extended the existing handoff-row replay test with stale embedded summaries
-  for both operator-review packages and Cadence-import manifests.
-- Added sparse legacy handoff coverage proving an embedded summary still wins
-  when a row carries only identity-level publication fields.
-- Neighboring timeline-publication replay tests remain green.
+- Added source-report count, row-count, and path context to timeline lifecycle
+  replay risk indicators.
+- Added a stale-top-level lifecycle summary strategy challenge proving row
+  evidence drives replay summaries, risk indicators, score terms,
+  branch-comparison timeline/activity IDs, and schema validation.
+- Tightened the regression after review to assert all newly surfaced lifecycle
+  replay source-report context fields on the risk indicator.
+- Neighboring lifecycle strategy replay coverage remains green.
 
 Last completed slice:
 Timeline-publication handoff rows outrank stale embedded summaries.
@@ -67,11 +64,12 @@ Last pushed commits:
 - Ledger correction: `c96eaa9` Update autonomous loop ledger after resource
   gate publish
 - Product/ledger: `80f44b0` Prefer timeline publication handoff row evidence
+- Ledger correction: `da1524b` Update autonomous loop ledger after timeline
+  publish
 
 Review/publish queue:
-- Reviewer sidecar cleared the timeline-publication handoff stale embedded
-  summary slice after sparse legacy fallback coverage was added.
-- Published to `origin/main` as `80f44b0`.
+- Reviewer sidecar cleared the timeline lifecycle stale aggregate strategy
+  guard; publish pending.
 
 Remaining maturity gaps:
 - Continue converting replayed resource/contact/readiness pressure into
@@ -84,13 +82,16 @@ Remaining maturity gaps:
   planner pressure families change public artifact shape.
 
 Next candidate:
-Reassess model acceptance, validation safety-case, or timeline lifecycle stale
-aggregate strategy guards from live evidence.
+After this lifecycle strategy guard, reassess remaining readiness/resource/
+contact candidate-selection gaps from live evidence.
 
 Blocked:
 Not blocked.
 
 Notes:
-- CandidateRefresh focused tests were quiet for this slice.
-- Reviewer sidecar: `019eb04a-034b-76b3-b716-3c381de5a9b1`.
-- Publisher sidecar: `019eb051-c3d5-76b0-b5d1-20cb6b417395`.
+- Validation safety-case stale top-level strategy coverage already exists in
+  current CampaignPlanner tests; this slice targets the adjacent timeline
+  lifecycle strategy gap.
+- Focused CampaignPlanner tests still emit existing unrelated `0.0`
+  pattern-match warnings from another test; selected tests exit green.
+- Reviewer sidecar: `019eb058-ca47-7431-aa74-6141e525fedc`.

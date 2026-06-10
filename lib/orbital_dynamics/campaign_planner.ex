@@ -6131,6 +6131,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "severity" => "high",
         "reason" =>
           "candidate source timeline lifecycle replay reports review, duplicate identity, or invalid activity pressure",
+        "source_report_count" => Map.get(replay_summary, "source_report_count"),
+        "source_report_row_count" => Map.get(replay_summary, "source_report_row_count"),
+        "source_report_paths" => Map.get(replay_summary, "source_report_paths"),
         "review_required_count" => Map.get(replay_summary, "review_required_count"),
         "duplicate_timeline_identity_count" =>
           Map.get(replay_summary, "duplicate_timeline_identity_count"),
