@@ -26810,7 +26810,10 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
 
     direct_branch = branch(artifact, "derived_provider_counteroffer_pressure_direct_counteroffer")
 
-    assert is_nil(branch(artifact, "derived_provider_counteroffer_pressure_canonical_counteroffer"))
+    assert is_nil(
+             branch(artifact, "derived_provider_counteroffer_pressure_canonical_counteroffer")
+           )
+
     assert is_nil(branch(artifact, "derived_provider_counteroffer_pressure_wrapped_counteroffer"))
 
     assert %{
@@ -26960,9 +26963,10 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "source_report_provider_counteroffer_counteroffer_ids_by_import_status" => %{
                "review_required_before_import" => ["row_counteroffer"]
              },
-             "source_report_provider_counteroffer_counteroffer_ids_by_required_import_action" => %{
-               "review_provider_counteroffer" => ["row_counteroffer"]
-             },
+             "source_report_provider_counteroffer_counteroffer_ids_by_required_import_action" =>
+               %{
+                 "review_provider_counteroffer" => ["row_counteroffer"]
+               },
              "source_report_provider_counteroffer_review_counteroffer_ids" => [
                "row_counteroffer"
              ]
@@ -40277,6 +40281,271 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
         ] do
       assert source_path in replay_source_paths
     end
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
+  test "strategy scores row-bearing contact intent summaries from row evidence" do
+    row = fn id, activity_id, overrides ->
+      Map.merge(
+        %{
+          "schema_contract" => "contact_intent.v1",
+          "id" => id,
+          "activity_id" => activity_id,
+          "activity_type" => "downlink",
+          "scenario_id" => "leo_1",
+          "spacecraft_id" => "leo_1",
+          "ground_station_id" => "equator_prime",
+          "direction" => "downlink",
+          "starts_at_s" => 700.0,
+          "ends_at_s" => 760.0,
+          "estimated_throughput_mb" => 36.0,
+          "approval_status" => "blocked_by_policy",
+          "required_operator_action" => "review_contact_intent",
+          "policy_decision" => %{
+            "classification" => "blocked_by_policy",
+            "policy_bundle_id" => "contact_command_review_v1"
+          },
+          "station_availability" => "reserved",
+          "station_calendar_entry_id" => "#{id}_partner_reservation",
+          "station_calendar_provider_id" => "partner_calendar",
+          "station_calendar_provider_entry_id" => "#{id}_partner_entry",
+          "station_calendar_status" => "reserved",
+          "station_calendar_trust_boundary_status" => "declared",
+          "station_reservation_id" => "reservation_#{id}",
+          "station_reserved_by" => "partner_team",
+          "station_reservation_status" => "confirmed",
+          "station_reservation_match_status" => "unmatched_overlap",
+          "source_window_id" => "window:leo_1:ground_station_access:equator_prime:#{id}"
+        },
+        overrides
+      )
+    end
+
+    summary_with_stale_top_level = fn rows, source, trust_boundary ->
+      rows
+      |> ContactIntent.summary()
+      |> Map.put("rows", rows)
+      |> Map.put("source", source)
+      |> Map.put("provenance", %{"trust_boundary" => trust_boundary})
+      |> Map.merge(%{
+        "contact_intent_count" => 99,
+        "capacity_pack_required_contact_count" => 0,
+        "directions" => ["uplink"],
+        "direction_counts" => %{"uplink" => 99},
+        "contact_ids_by_direction" => %{"uplink" => ["stale_contact"]},
+        "direction_routing" => %{
+          "uplink" => %{"contact_count" => 99, "contact_ids" => ["stale_contact"]}
+        }
+      })
+    end
+
+    mission_summary_row =
+      row.("summary_intent_blocked", "dl_summary_intent_blocked", %{
+        "station_calendar_provider_entry_id" => "partner_entry_45"
+      })
+
+    prior_summary_row =
+      row.("prior_summary_intent_blocked", "dl_prior_summary_intent_blocked", %{
+        "ground_station_id" => "deep_space_net",
+        "starts_at_s" => 800.0,
+        "ends_at_s" => 860.0,
+        "estimated_throughput_mb" => 41.0
+      })
+
+    result_summary_row =
+      row.("result_summary_intent_invalid", "dl_result_summary_intent_invalid", %{
+        "approval_status" => "approved",
+        "invalid_activity_input" => true,
+        "invalid_activity_input_reason" => "missing_external_activity_id",
+        "starts_at_s" => 870.0,
+        "ends_at_s" => 890.0,
+        "estimated_throughput_mb" => 5.0
+      })
+
+    mirrored_direct_row =
+      row.("mirrored_intent_blocked", "dl_mirrored_intent_blocked", %{
+        "starts_at_s" => 900.0,
+        "ends_at_s" => 960.0,
+        "estimated_throughput_mb" => 12.0,
+        "trust_boundary" => "direct_mirrored_contact_intent_boundary"
+      })
+
+    mirrored_summary_row =
+      Map.delete(mirrored_direct_row, "trust_boundary")
+
+    mission_summary =
+      summary_with_stale_top_level.(
+        [mission_summary_row, mirrored_summary_row],
+        "campaign_planner_test.stale_contact_intent_summary",
+        "summary_contact_intent_boundary"
+      )
+
+    prior_summary =
+      summary_with_stale_top_level.(
+        [prior_summary_row, mirrored_summary_row],
+        "campaign_planner_test.prior_contact_intent_summary",
+        "prior_summary_contact_intent_boundary"
+      )
+
+    result_summary =
+      summary_with_stale_top_level.(
+        [result_summary_row],
+        "campaign_planner_test.result_contact_intent_summary",
+        "result_summary_contact_intent_boundary"
+      )
+
+    prior_plan =
+      base_plan(%{
+        "source_contact_intent" => mirrored_direct_row,
+        "source_contact_intent_summary" => prior_summary,
+        "source_result_artifact" => %{
+          "schema_contract" => "result_artifact.v1",
+          "artifact_type" => "campaign_strategy_result_artifact",
+          "contact_intent_summary" => Map.delete(result_summary, "provenance"),
+          "provenance" => %{
+            "trust_boundary" => "result_artifact_contact_intent_summary_boundary"
+          }
+        }
+      })
+
+    artifact =
+      strategy(prior_plan,
+        mission_state:
+          mission_state_with_refresh_inputs()
+          |> Map.put("source_contact_intent_summary", mission_summary),
+        derive_branches?: true,
+        branches: [
+          %{id: "baseline"},
+          %{
+            id: "urgent",
+            events: [%{type: "urgent_target", target_id: "target_a", priority: 12.0}]
+          }
+        ],
+        current_epoch_s: 0.0
+      )
+
+    urgent = branch(artifact, "urgent")
+    candidate_source = urgent["assumptions"]["candidate_source"]
+
+    assert %{
+             "source_report_contact_intent_directions" => ["downlink"],
+             "source_report_contact_intent_direction_counts" => %{"downlink" => 2},
+             "source_report_contact_intent_contact_ids_by_direction" => %{
+               "downlink" => ["mirrored_intent_blocked", "summary_intent_blocked"]
+             },
+             "source_report_contact_intent_direction_routing" => %{
+               "downlink" => %{
+                 "contact_count" => 2,
+                 "contact_ids" => ["mirrored_intent_blocked", "summary_intent_blocked"]
+               }
+             }
+           } = candidate_source["candidate_refresh_request_source_report_summary"]
+
+    refute Map.has_key?(
+             candidate_source["candidate_refresh_request_source_report_summary"][
+               "source_report_contact_intent_direction_counts"
+             ],
+             "uplink"
+           )
+
+    assert %{
+             "directions" => ["downlink"],
+             "direction_counts" => %{"downlink" => 2},
+             "contact_ids_by_direction" => %{
+               "downlink" => ["mirrored_intent_blocked", "summary_intent_blocked"]
+             },
+             "branch_local_contact_intent_pressure" => true
+           } = CandidateRefresh.contact_intent_replay_summary(candidate_source)
+
+    blocked_branch =
+      branch(
+        artifact,
+        "derived_contact_intent_pressure_blocked_by_policy_dl_summary_intent_blocked"
+      )
+
+    assert %{
+             "type" => "downlink_completion_gap",
+             "ground_station_id" => "equator_prime",
+             "source_activity_id" => "dl_summary_intent_blocked",
+             "required_downlink_mb" => 36.0,
+             "source_window_id" =>
+               "window:leo_1:ground_station_access:equator_prime:summary_intent_blocked",
+             "approval_status" => "blocked_by_policy",
+             "required_operator_action" => "review_contact_intent",
+             "contact_intent_gate_status" => "blocked_by_policy",
+             "policy_classification" => "blocked_by_policy",
+             "policy_bundle_id" => "contact_command_review_v1",
+             "station_availability" => "reserved",
+             "station_calendar_entry_id" => "summary_intent_blocked_partner_reservation",
+             "station_calendar_provider_id" => "partner_calendar",
+             "station_calendar_provider_entry_id" => "partner_entry_45",
+             "station_calendar_status" => "reserved",
+             "station_calendar_trust_boundary_status" => "declared",
+             "station_reservation_id" => "reservation_summary_intent_blocked",
+             "station_reserved_by" => "partner_team",
+             "station_reservation_status" => "confirmed",
+             "station_reservation_match_status" => "unmatched_overlap",
+             "feedback_source" => "mission_state.source_contact_intent_summary",
+             "feedback_scope" => "contact_intent",
+             "trust_boundary" => "summary_contact_intent_boundary"
+           } = List.first(blocked_branch["events"])
+
+    prior_branch =
+      branch(
+        artifact,
+        "derived_contact_intent_pressure_blocked_by_policy_dl_prior_summary_intent_blocked"
+      )
+
+    assert %{
+             "ground_station_id" => "deep_space_net",
+             "source_activity_id" => "dl_prior_summary_intent_blocked",
+             "feedback_source" => "prior_plan.source_contact_intent_summary",
+             "trust_boundary" => "prior_summary_contact_intent_boundary"
+           } = List.first(prior_branch["events"])
+
+    result_branch =
+      branch(
+        artifact,
+        "derived_contact_intent_pressure_invalid_activity_input_dl_result_summary_intent_invalid"
+      )
+
+    assert %{
+             "source_activity_id" => "dl_result_summary_intent_invalid",
+             "invalid_activity_input" => true,
+             "invalid_activity_input_reason" => "missing_external_activity_id",
+             "contact_intent_gate_status" => "invalid_activity_input",
+             "feedback_source" => "prior_plan.source_result_artifact.contact_intent_summary",
+             "trust_boundary" => "result_artifact_contact_intent_summary_boundary"
+           } = List.first(result_branch["events"])
+
+    mirrored_branches =
+      artifact["branches"]
+      |> Enum.filter(
+        &String.starts_with?(
+          &1["branch_id"],
+          "derived_contact_intent_pressure_blocked_by_policy_dl_mirrored_intent_blocked"
+        )
+      )
+
+    assert [
+             %{
+               "branch_id" =>
+                 "derived_contact_intent_pressure_blocked_by_policy_dl_mirrored_intent_blocked"
+             } = mirrored_branch
+           ] =
+             mirrored_branches
+
+    assert %{
+             "feedback_source" => "prior_plan.source_contact_intent",
+             "trust_boundary" => "direct_mirrored_contact_intent_boundary"
+           } = List.first(mirrored_branch["events"])
+
+    assert_contact_intent_pressure_score_terms(blocked_branch, artifact)
+    assert_contact_intent_pressure_score_terms(prior_branch, artifact)
+    assert_contact_intent_pressure_score_terms(result_branch, artifact)
+    assert_contact_intent_pressure_score_terms(mirrored_branch, artifact)
 
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)

@@ -11158,7 +11158,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
       |> Kernel.++(derived_proposed_contact_pressure_branches(prior_plan))
       |> Kernel.++(derived_mission_state_proposed_contact_pressure_branches(mission_state))
       |> Kernel.++(derived_contact_intent_pressure_branches(prior_plan))
+      |> Kernel.++(derived_contact_intent_summary_pressure_branches(prior_plan))
       |> Kernel.++(derived_mission_state_contact_intent_pressure_branches(mission_state))
+      |> Kernel.++(derived_mission_state_contact_intent_summary_pressure_branches(mission_state))
       |> Kernel.++(derived_realized_activity_pressure_branches(prior_plan))
       |> Kernel.++(
         derived_mission_state_realized_activity_pressure_branches(mission_state, prior_plan)
@@ -11173,6 +11175,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       |> Kernel.++(derived_urgent_target_branches(mission_state, prior_plan, policy))
       |> Kernel.++(derived_collection_latency_branches(mission_state, prior_plan))
       |> Kernel.++(derived_downlink_constrained_branches(mission_state, prior_plan, policy))
+      |> dedupe_contact_intent_pressure_branches()
 
     derived =
       [baseline_branch()]
@@ -11224,6 +11227,45 @@ defmodule OrbitalDynamics.CampaignPlanner do
     |> elem(1)
     |> Enum.reverse()
   end
+
+  defp dedupe_contact_intent_pressure_branches(branches) do
+    branches
+    |> Enum.reduce({MapSet.new(), []}, fn branch, {seen, kept} ->
+      identity = contact_intent_pressure_branch_identity(branch)
+
+      cond do
+        is_nil(identity) ->
+          {seen, [branch | kept]}
+
+        MapSet.member?(seen, identity) ->
+          {seen, kept}
+
+        true ->
+          {MapSet.put(seen, identity), [branch | kept]}
+      end
+    end)
+    |> elem(1)
+    |> Enum.reverse()
+  end
+
+  defp contact_intent_pressure_branch_identity(%{"events" => [event | _events]}) do
+    if event["feedback_scope"] == "contact_intent" do
+      contact_id =
+        event["source_activity_id"] ||
+          event["contact_id"] ||
+          event["source_activity_ids"] |> List.wrap() |> List.first()
+
+      gate_status = event["contact_intent_gate_status"]
+
+      if contact_id in [nil, ""] or gate_status in [nil, ""] do
+        nil
+      else
+        {gate_status, contact_id}
+      end
+    end
+  end
+
+  defp contact_intent_pressure_branch_identity(_branch), do: nil
 
   defp baseline_branch do
     %{
@@ -32866,6 +32908,17 @@ defmodule OrbitalDynamics.CampaignPlanner do
     end)
   end
 
+  defp derived_contact_intent_summary_pressure_branches(prior_plan) do
+    direct_identities =
+      prior_plan
+      |> prior_plan_contact_intent_rows_with_source()
+      |> contact_intent_pressure_identity_set()
+
+    prior_plan
+    |> prior_plan_contact_intent_summaries_with_source()
+    |> contact_intent_summary_pressure_branches(direct_identities)
+  end
+
   defp derived_mission_state_contact_intent_pressure_branches(mission_state) do
     mission_state
     |> mission_state_contact_intent_rows_with_source()
@@ -32874,6 +32927,90 @@ defmodule OrbitalDynamics.CampaignPlanner do
       |> direct_contact_intent_pressure_row()
       |> contact_intent_pressure_branch(source_path)
     end)
+  end
+
+  defp derived_mission_state_contact_intent_summary_pressure_branches(mission_state) do
+    direct_identities =
+      mission_state
+      |> mission_state_contact_intent_rows_with_source()
+      |> contact_intent_pressure_identity_set()
+
+    mission_state
+    |> mission_state_contact_intent_summaries_with_source()
+    |> contact_intent_summary_pressure_branches(direct_identities)
+  end
+
+  defp contact_intent_pressure_identity_set(rows_with_source) do
+    rows_with_source
+    |> Enum.map(fn {row, _source_path} ->
+      row
+      |> direct_contact_intent_pressure_row()
+      |> contact_intent_pressure_identity()
+    end)
+    |> Enum.reject(&is_nil/1)
+    |> MapSet.new()
+  end
+
+  defp contact_intent_summary_pressure_branches(summaries_with_source, excluded_identities) do
+    summaries_with_source
+    |> Enum.reduce({excluded_identities, []}, fn summary_with_source, {seen, branches} ->
+      {seen, summary_branches} =
+        summary_with_source
+        |> contact_intent_summary_pressure_rows()
+        |> Enum.reduce({seen, []}, fn {row, source_path}, {seen, kept} ->
+          identity = contact_intent_pressure_identity(row)
+
+          cond do
+            is_nil(identity) ->
+              {seen, kept}
+
+            MapSet.member?(seen, identity) ->
+              {seen, kept}
+
+            true ->
+              {MapSet.put(seen, identity),
+               kept ++ contact_intent_pressure_branch(row, source_path)}
+          end
+        end)
+
+      {seen, branches ++ summary_branches}
+    end)
+    |> elem(1)
+  end
+
+  defp contact_intent_summary_pressure_rows({summary, source_path}) do
+    summary = stringify_keys(summary)
+
+    trust_boundary =
+      Map.get(summary, "trust_boundary") || get_in(summary, ["provenance", "trust_boundary"])
+
+    summary
+    |> Map.get("rows", [])
+    |> List.wrap()
+    |> Enum.filter(&is_map/1)
+    |> Enum.map(fn row ->
+      row
+      |> stringify_keys()
+      |> put_default_if_present("_source_report_trust_boundary", trust_boundary)
+    end)
+    |> Enum.map(fn row ->
+      row
+      |> direct_contact_intent_pressure_row()
+      |> then(&{&1, source_path})
+    end)
+  end
+
+  defp contact_intent_pressure_identity(row) do
+    row = stringify_keys(row)
+    contact_id = contact_intent_contact_id(row)
+    pressure_status = contact_intent_pressure_status(row)
+
+    cond do
+      contact_id in [nil, ""] -> nil
+      pressure_status in [nil, ""] -> nil
+      not downlink_activity?(row) -> nil
+      true -> {pressure_status, contact_id}
+    end
   end
 
   defp derived_realized_activity_pressure_branches(prior_plan) do
@@ -42029,6 +42166,38 @@ defmodule OrbitalDynamics.CampaignPlanner do
       |> Map.get(field)
       |> mission_state_source_report_entries(source_path)
     end)
+  end
+
+  defp prior_plan_contact_intent_summaries_with_source(prior_plan) do
+    prior_plan_contact_intent_summaries(prior_plan, [
+      {"source_contact_intent_summary", "prior_plan.source_contact_intent_summary"},
+      {"contact_intent_summary", "prior_plan.contact_intent_summary"}
+    ]) ++
+      prior_plan_result_artifact_embedded_reports(prior_plan, [
+        "source_contact_intent_summary",
+        "contact_intent_summary"
+      ])
+  end
+
+  defp prior_plan_contact_intent_summaries(prior_plan, fields) do
+    prior_plan = stringify_keys(prior_plan || %{})
+
+    fields
+    |> Enum.flat_map(fn {field, source_path} ->
+      prior_plan
+      |> Map.get(field)
+      |> mission_state_source_report_entries(source_path)
+    end)
+  end
+
+  defp mission_state_contact_intent_summaries_with_source(mission_state) do
+    mission_state_source_contact_intent_summaries(mission_state) ++
+      mission_state_canonical_contact_intent_summaries(mission_state) ++
+      mission_state_result_artifact_embedded_reports(
+        mission_state,
+        "source_contact_intent_summary"
+      ) ++
+      mission_state_result_artifact_embedded_reports(mission_state, "contact_intent_summary")
   end
 
   defp contact_intent_container_rows_with_source(container, source_prefix) do
