@@ -3668,6 +3668,56 @@ defmodule OrbitalDynamics.PolicyTest do
     assert limited_decision["classification"] == "operator_review_required"
   end
 
+  test "fallback policy blocks stale refresh-freshness pressure but leaves unknown reviewable" do
+    policy = %{blocked_risk_types: ["refresh_freshness_blocked"]}
+
+    {blocked_status, _requirements, _matches, blocked_decision} =
+      Policy.decide(
+        [],
+        [
+          %{
+            "type" => "refresh_freshness_pressure",
+            "feedback_scope" => "refresh_freshness",
+            "freshness_status" => "stale",
+            "state_quality_status" => "stale",
+            "freshness_statuses" => ["stale"],
+            "stale_reason_count" => 1,
+            "unknown_reason_count" => 0,
+            "branch_local_stale_pressure" => true
+          }
+        ],
+        %{"id" => "stale_refresh_freshness", "events" => []},
+        %{},
+        policy
+      )
+
+    assert blocked_status == "blocked_by_policy"
+    assert blocked_decision["classification"] == "blocked_by_policy"
+
+    {review_status, _requirements, _matches, review_decision} =
+      Policy.decide(
+        [],
+        [
+          %{
+            "type" => "refresh_freshness_pressure",
+            "feedback_scope" => "refresh_freshness",
+            "freshness_status" => "unknown",
+            "state_quality_status" => "unknown",
+            "freshness_statuses" => ["unknown"],
+            "stale_reason_count" => 0,
+            "unknown_reason_count" => 1,
+            "branch_local_unknown_pressure" => true
+          }
+        ],
+        %{"id" => "unknown_refresh_freshness", "events" => []},
+        %{},
+        policy
+      )
+
+    assert review_status == "operator_review_required"
+    assert review_decision["classification"] == "operator_review_required"
+  end
+
   test "matches requirement types grouped risk types and grouped event types" do
     policy = %{
       action_rules: [

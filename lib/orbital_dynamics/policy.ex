@@ -5346,6 +5346,20 @@ defmodule OrbitalDynamics.Policy do
     blocked_refresh_budget_pressure?(risk)
   end
 
+  defp risk_matches_blocked_type?(
+         %{"type" => "refresh_freshness_pressure"} = risk,
+         "refresh_freshness_blocked"
+       ) do
+    blocked_refresh_freshness_pressure?(risk)
+  end
+
+  defp risk_matches_blocked_type?(
+         %{"feedback_scope" => "refresh_freshness"} = risk,
+         "refresh_freshness_blocked"
+       ) do
+    blocked_refresh_freshness_pressure?(risk)
+  end
+
   defp risk_matches_blocked_type?(_risk, _blocked_type), do: false
 
   defp blocked_model_acceptance_pressure?(risk) do
@@ -5382,6 +5396,15 @@ defmodule OrbitalDynamics.Policy do
       risk["invalid_candidate_limit_policy"] == true or
       positive_count?(risk["invalid_candidate_limit_policy_count"]) or
       risk["branch_local_invalid_limit_pressure"] == true
+  end
+
+  defp blocked_refresh_freshness_pressure?(risk) do
+    blocked_value?(risk["freshness_status"]) or
+      risk["freshness_status"] == "stale" or
+      risk["state_quality_status"] == "stale" or
+      "stale" in List.wrap(risk["freshness_statuses"]) or
+      positive_count?(risk["stale_reason_count"]) or
+      risk["branch_local_stale_pressure"] == true
   end
 
   defp resource_availability_blocked?(risk) do
