@@ -345,7 +345,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
                 "contact_intent_blocked",
                 "link_capacity_blocked",
                 "resource_projection_blocked",
-                "contact_filter_blocked"
+                "contact_filter_blocked",
+                "contact_contention_blocked"
               ],
               action_rules: []
   end
@@ -17094,6 +17095,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "contention_duplicate_contact_id_count" => group["duplicate_contact_id_count"],
         "required_operator_action" => group["required_operator_action"],
         "approval_status" => group["approval_status"],
+        "policy_classification" => group["policy_classification"],
         "review_status" => group["review_status"] || group["approval_status"],
         "operator_action_reason" => group["operator_action_reason"],
         "station_calendar_entry_ids" => group["station_calendar_entry_ids"],
@@ -17321,6 +17323,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
           recommendation["capacity_pack_deferred_required_capacity_fraction_by_direction"],
         "review_status" => recommendation["review_status"],
         "approval_status" => recommendation["approval_status"],
+        "policy_classification" => recommendation["policy_classification"],
+        "required_operator_action" => recommendation["required_operator_action"],
         "downlink_completion_sources" =>
           contact_contention_downlink_completion_sources(source_contact),
         "downlink_demand_sources" => contact_contention_downlink_demand_sources(source_contact),
