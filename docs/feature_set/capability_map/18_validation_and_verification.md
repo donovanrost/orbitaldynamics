@@ -793,9 +793,11 @@ The validation-reference fixture set now includes checked-in `score_term_report.
 - Model-limit boundaries.
 
 The checked-in V3 strategy golden artifact also pins split strategy score-term
-keys and per-branch rows for contact-allocation, approval-boundary, and
-timeline pressure penalties. Focused planner tests cover non-zero split
-penalty behavior for those pressure families.
+keys and per-branch rows across contact, resource, station, readiness, quality,
+validation, execution-feedback, approval-boundary, and timeline pressure
+penalties. Focused planner tests cover non-zero split penalty behavior for
+those pressure families, including branch-local replay pressure such as
+resource-filter suppressions.
 
 ## Maneuver-review and Pareto-frontier fixtures
 
