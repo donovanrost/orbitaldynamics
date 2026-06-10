@@ -5,49 +5,35 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Candidate-refresh challenge fixture for contradictory provider-calendar,
-reservation, and contact-allocation evidence.
+Roadmap refresh for completed timeline-scoring and contact-allocation fixture
+slices.
 
 Status:
 Implemented, parent-reviewed, locally verified, and published locally.
-Behavior commit: `6ef2bb2`.
+Behavior commit: `6827f51`.
 
 Files changed:
-- Validation fixture registry and observations:
-  `lib/orbital_dynamics/validation.ex`
-- Focused validation/schema coverage:
-  `test/orbital_dynamics/validation_test.exs`
-  `test/orbital_dynamics/schema_test.exs`
-- Checked-in validation fixture report:
-  `study_results/validation_reference_fixtures.json`
+- Recommended roadmap:
+  `docs/feature_set/recommended_roadmap.md`
+- Current capability snapshot:
+  `docs/feature_set/current_capability_snapshot.md`
 - Ledger:
   `.codex/status/autonomous_product_loop.md`
 
 Tests/checks run:
-- `mix test test/orbital_dynamics/validation_test.exs:6202`
-- `mix test test/orbital_dynamics/validation_test.exs` (181 passed)
-- `mix orbital_dynamics.schema.lint --input study_results/validation_reference_fixtures.json --contract validation_reference_fixture_report.v1`
-- `mix test test/orbital_dynamics/schema_test.exs:16244`
-- `mix test` (3331 passed)
-- `mix format lib/orbital_dynamics/validation.ex test/orbital_dynamics/validation_test.exs test/orbital_dynamics/schema_test.exs`
 - `git diff --check`
 
 Behavior changed:
-Validation/reference-fixture hardening only: `candidate_refresh.v1`
-observations now expose contact-allocation replay summary counts, routing maps,
-and branch-local reservation-conflict/provider-reservation pressure booleans.
-A generated artifact-contract fixture proves provider-calendar contention,
-station-reservation conflict, and provider-reservation request evidence can
-coexist in one branch-local CandidateRefresh replay without granting mutation,
-import approval, candidate selection, provider-reservation authority, or Cadence
-writes.
+Documentation alignment only: the recommended roadmap no longer presents
+already-completed timeline integrity/publication scoring and the
+contact-allocation contradiction fixture as next slices, and the current
+capability snapshot notes the combined CandidateRefresh contradiction replay
+fixture.
 
 Level 6 pillar advanced:
-Validation/compatibility challenge depth: the roadmap explicitly calls for a
-challenge fixture for contradictory provider calendar, reservation, and
-contact-allocation evidence. Live tests already cover separate station-calendar,
-reservation-conflict, and provider-reservation request references, but not their
-combined branch-local replay as one candidate-refresh artifact.
+Autonomous-loop calibration quality: keeping the roadmap in sync with shipped
+capabilities prevents repeated selection of completed slices and keeps future
+work focused on remaining Level 6 gaps.
 
 Remaining maturity gaps:
 - Use selected resource/contact/readiness pressure in additional planner-visible
@@ -58,7 +44,7 @@ Remaining maturity gaps:
   rely on stale ledger candidates.
 
 Last behavior commit:
-`6ef2bb2` Add contact allocation contradiction fixture.
+`6827f51` Refresh roadmap completed fixture items.
 
 Next candidate:
 After this slice, reassess from current code and roadmap. Good next areas are
@@ -69,23 +55,15 @@ Blocked:
 Not blocked.
 
 Notes:
-- Selection note: roadmap queue item 2 asks for a contradictory provider
-  calendar, reservation, and contact-allocation challenge fixture. Live search
-  shows separate curated fixtures for station-calendar replay,
-  `contact_allocation_reservation_conflict_summary.v1`, and
-  `contact_allocation_provider_reservation_request_summary.v1`, plus broad
-  CandidateRefresh routing tests, but no validation reference fixture that
-  combines those contradictions in one candidate-refresh replay. This slice
-  added that focused fixture, observation expectations, stale-observation
-  failure checks, checked-in fixture report refresh, schema validation, focused
-  validation/schema tests, full suite, format/diff checks, parent review, and
-  pending commit/push.
-- Parent review notes: observed contact-allocation fields are read from the
-  existing `contact_allocation_report` source summary and default to nil/empty
-  maps or false pressure flags when absent, preserving existing
-  candidate-refresh observations. The new fixture reuses checked-in
-  station-calendar and contact-allocation summary artifacts and does not add
-  provider-write, schedule-mutation, import-approval, or candidate-selection
-  behavior.
-- Full-suite pass still emits the existing campaign-planner `0.0` pattern-match
-  warnings; no test failures remain in this slice.
+- Selection note: live search shows the roadmap still lists “feed one existing
+  timeline integrity or publication pressure signal into V2/V3 branch scoring”
+  even though campaign planner now emits timeline-integrity and
+  timeline-publication pressure penalties and branch/recommendation context.
+  The roadmap also still lists the provider-calendar/reservation/contact-
+  allocation contradiction challenge fixture even though behavior commit
+  `6ef2bb2` added it. This slice updated only the roadmap/snapshot wording
+  needed to make future slice selection accurate, then ran markdown-safe diff
+  checks, parent review, and pending commit/push.
+- Parent review notes: this is a docs-only calibration update. It does not
+  change runtime behavior, schemas, fixtures, or tests; it keeps the Level 6
+  queue aligned with code that is already covered by recent full-suite passes.
