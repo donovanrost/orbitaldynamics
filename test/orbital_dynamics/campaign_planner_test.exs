@@ -5594,6 +5594,39 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     assert "projected storage exceeds declared capacity by 20.0 MB" in warnings
     assert "projected downlink demand exceeds declared capacity by 10.0 MB" in warnings
 
+    assert artifact["score_terms"]["resource_projection_pressure_penalty"] == -2.0
+
+    assert "resource_projection_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert [
+             %{
+               "term_key" => "resource_projection_pressure_penalty",
+               "value" => -2.0,
+               "selected" => true
+             }
+           ] =
+             Enum.filter(
+               artifact["score_term_report"]["rows"],
+               &(&1["term_key"] == "resource_projection_pressure_penalty")
+             )
+
+    assert %{
+             "objective" =>
+               "maximize repaired activity value while minimizing churn, schedule movement, and resource-projection pressure",
+             "score_term_keys" => score_term_keys,
+             "tradeoffs" => [
+               %{
+                 "score_terms" => %{
+                   "resource_projection_pressure_penalty" => -2.0
+                 }
+               }
+             ]
+           } = artifact["objective_tradeoff_report"]
+
+    assert "resource_projection_pressure_penalty" in score_term_keys
+
     assert {:ok, %{"schema_contract" => "resource_projection_report.v1"}} =
              Schema.validate_artifact(report)
 
@@ -5645,6 +5678,70 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
 
     assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
              Schema.validate_artifact(review_package)
+  end
+
+  test "repair scores resource projection battery depletion pressure" do
+    replacement_downlink =
+      "dl_battery"
+      |> refreshed_downlink(700.0, 760.0)
+      |> Map.put("estimated_energy_used_wh", 80.0)
+
+    artifact =
+      repair(
+        %{
+          "activities" => [downlink("dl_1", 180.0, 240.0)],
+          "candidate_activities" => []
+        },
+        realized_state: %{activities: [%{id: "dl_1", status: "missed"}]},
+        current_epoch_s: 250.0,
+        candidate_refresh:
+          candidate_refresh_artifact([replacement_downlink],
+            resource_summaries: [
+              %{
+                "schema_contract" => "resource_summary.v1",
+                "spacecraft_id" => "leo_1",
+                "storage_capacity_mb" => 1000.0,
+                "storage_used_mb" => 250.0,
+                "downlink_capacity_mb" => 500.0,
+                "battery_capacity_wh" => 100.0,
+                "battery_energy_used_wh" => 50.0,
+                "payload_available" => true,
+                "antenna_available" => true
+              }
+            ]
+          )
+      )
+
+    assert %{
+             "projected_resources" => [
+               %{
+                 "projected_battery_overuse_wh" => 30.0,
+                 "activity_resource_flow" => [
+                   %{
+                     "activity_id" => "dl_battery",
+                     "battery_overuse_wh" => 30.0
+                   }
+                 ]
+               }
+             ]
+           } = artifact["source_resource_projection_report"]
+
+    assert artifact["score_terms"]["resource_projection_pressure_penalty"] == -1.0
+
+    assert [
+             %{
+               "term_key" => "resource_projection_pressure_penalty",
+               "value" => -1.0,
+               "selected" => true
+             }
+           ] =
+             Enum.filter(
+               artifact["score_term_report"]["rows"],
+               &(&1["term_key"] == "resource_projection_pressure_penalty")
+             )
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(artifact)
   end
 
   test "repair can execute a candidate_refresh_request before selecting replacements" do

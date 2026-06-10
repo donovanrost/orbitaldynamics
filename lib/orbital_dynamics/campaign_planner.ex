@@ -1133,9 +1133,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
       |> Enum.uniq()
       |> Enum.sort()
 
-    score_terms = repair_score_terms(activities, deltas, request.scoring_policy)
-    score = score(score_terms)
-    repair_score_timeline = repair_score_timeline(prior_plan, activities, score_terms, score)
     source_resource_summaries = repair_resource_summaries(request.candidate_refresh)
 
     source_resource_projection_report =
@@ -1144,6 +1141,17 @@ defmodule OrbitalDynamics.CampaignPlanner do
         source_resource_summaries,
         approval_policy_to_map(request.approval_policy)
       )
+
+    score_terms =
+      repair_score_terms(
+        activities,
+        deltas,
+        source_resource_projection_report,
+        request.scoring_policy
+      )
+
+    score = score(score_terms)
+    repair_score_timeline = repair_score_timeline(prior_plan, activities, score_terms, score)
 
     source_timeline_feedback_report =
       repair_timeline_feedback_report(planned_activities, request.realized_state)
@@ -56884,7 +56892,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "schema_contract" => "objective_tradeoff_report.v1",
       "model" => "repair_score_term_tradeoffs",
       "objective" =>
-        "maximize repaired activity value while minimizing churn and schedule movement",
+        "maximize repaired activity value while minimizing churn, schedule movement, and resource-projection pressure",
       "ranking_count" => 1,
       "score_term_keys" => objective_score_term_keys([timeline]),
       "policy" => policy,
@@ -57537,7 +57545,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
     }
   end
 
-  defp repair_score_terms(activities, deltas, scoring_policy) do
+  defp repair_score_terms(activities, deltas, resource_projection_report, scoring_policy) do
     activity_score = activities |> Enum.map(&candidate_score/1) |> Enum.sum()
 
     churn_count =
@@ -57554,12 +57562,41 @@ defmodule OrbitalDynamics.CampaignPlanner do
     move_penalty =
       moved_seconds * numeric_policy_value(scoring_policy, "schedule_move_cost_weight", 0.01)
 
-    %{
+    resource_projection_pressure_count =
+      repair_resource_projection_pressure_count(resource_projection_report)
+
+    resource_projection_pressure_penalty =
+      -resource_projection_pressure_count *
+        numeric_policy_value(scoring_policy, "risk_weight", 1.0)
+
+    score_terms = %{
       "activity_score" => activity_score,
       "schedule_churn_penalty" => -churn_penalty,
       "schedule_move_penalty" => -move_penalty
     }
+
+    if resource_projection_pressure_count > 0 do
+      Map.put(
+        score_terms,
+        "resource_projection_pressure_penalty",
+        resource_projection_pressure_penalty
+      )
+    else
+      score_terms
+    end
   end
+
+  defp repair_resource_projection_pressure_count(resource_projection_report) do
+    resource_projection_report
+    |> resource_projection_risk_indicators()
+    |> Enum.count(&repair_resource_projection_pressure_risk?/1)
+  end
+
+  defp repair_resource_projection_pressure_risk?(%{"type" => type})
+       when type in ["storage_overflow", "downlink_shortfall", "battery_depletion"],
+       do: true
+
+  defp repair_resource_projection_pressure_risk?(_risk), do: false
 
   defp normalize_candidate_refresh(nil), do: nil
 

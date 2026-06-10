@@ -230,8 +230,9 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   storage-limited data relief and warn when a scheduled downlink has more
   capacity than stored data available in the roll-forward.
 - `score_term_report.v1` and `objective_tradeoff_report.v1` over repaired
-  activity value, churn, and schedule-move score terms, preserving the same
-  scored-objective explanation shape used by V1 ranked timeline artifacts.
+  activity value, churn, schedule-move, and resource-projection pressure score
+  terms, preserving the same scored-objective explanation shape used by V1
+  ranked timeline artifacts.
 - `link_capacity_report.v1` over repaired downlink activities, preserving the
   same fixed-rate throughput summary shape used by V1 campaign artifacts.
 - `source_contact_filter_report`, `source_contact_allocation_report`, and
