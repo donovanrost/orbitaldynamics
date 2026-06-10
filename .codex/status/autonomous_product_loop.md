@@ -5,11 +5,11 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Opt-in V1 timeline scoring accounts for activity precondition pressure.
+Opt-in V1 timeline scoring accounts for resource projection pressure.
 
 Status:
 Implemented, parent-reviewed, locally verified, and published locally.
-Behavior commit: `67e6e3e`.
+Behavior commit: `78fe28f`.
 
 Files changed:
 - V1 campaign planner:
@@ -22,25 +22,26 @@ Files changed:
   `.codex/status/autonomous_product_loop.md`
 
 Tests/checks run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:2196`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs` (717 passed)
-- `mix test` (3329 passed)
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:2283`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs` (718 passed)
+- `mix test` (3330 passed)
 - `mix format lib/orbital_dynamics/campaign_planner.ex test/orbital_dynamics/campaign_planner_test.exs`
 - `git diff --check`
 
 Behavior changed:
-When `campaign.scoring_policy.timeline_precondition_weight` is positive, V1
-candidate metadata can carry explicit timeline activity precondition evidence
-into generated observe/contact candidates, and ranked timeline scoring subtracts
-deterministic pressure for selected activities with blocked or review-required
-timeline preconditions. The pressure appears as score-term evidence in ranked
-timelines, score-term reports, and objective tradeoffs. Default behavior remains
-unchanged when the weight is omitted or zero.
+When `campaign.scoring_policy.resource_projection_weight` is positive and
+campaign resource summaries are supplied, generated observe/contact candidates
+carry declared resource-projection estimate metadata and V1 greedy selection and
+ranked timeline scoring subtract deterministic pressure for projected storage
+overflow, downlink shortfall, battery depletion, or selected activity resource
+availability pressure. The pressure appears as numeric score-term evidence in
+ranked timelines, score-term reports, and objective tradeoffs. Default behavior
+remains unchanged when the weight is omitted or zero.
 
 Level 6 pillar advanced:
-Planner-visible operational readiness pressure: activity preconditions are
-already summarized after selection, and this slice makes the same candidate
-pressure visible to V1 selection/ranking when operators opt in.
+Planner-visible fleet resource behavior: V1 already emits selected-activity
+resource projection and flow artifacts after selection; this slice reuses that
+existing projection evidence to affect selection/ranking when operators opt in.
 
 Remaining maturity gaps:
 - Use selected resource/contact/readiness pressure in additional planner-visible
@@ -52,7 +53,7 @@ Remaining maturity gaps:
   rely on stale ledger candidates.
 
 Last behavior commit:
-`67e6e3e` Score V1 timeline precondition pressure.
+`78fe28f` Score V1 resource projection pressure.
 
 Next candidate:
 After this slice, reassess from current code. Good next areas are another
@@ -63,14 +64,16 @@ Blocked:
 Not blocked.
 
 Notes:
-- Selection note: resource and station availability already filter before V1
-  ranking, and V3 branch scoring already penalizes readiness/precondition risk.
-  The verified V1 gap is candidate-level timeline precondition pressure:
-  selected activities receive artifact-only summaries after selection, but that
-  pressure was not a score term. This slice adds opt-in precondition scoring
-  with focused ranking regression, report evidence, schema-valid artifacts, full
-  planner test, full suite, review, commit, and push.
+- Selection note: the current roadmap asks for existing artifact surfaces to
+  become more planner-visible. Resource summaries already filter unavailable
+  candidates, and V3 already scores replayed resource-projection pressure, but
+  V1 selected storage/downlink/battery pressure is still generated after
+  selection. This slice adds opt-in V1 resource-projection scoring using
+  existing `ResourceProjection.report/3` evidence, with focused ranking
+  regression, report evidence, schema validation, V1 docs, full planner test,
+  full suite, review, commit, and push.
 - `slice_reviewer` sidecar was not used; the parent completed a bounded local
-  review of the selector path, emitted score terms, diff, and full-suite result.
+  review of metadata propagation, score-term numeric shape, default behavior,
+  docs, and verification output.
 - Full-suite pass still emits the existing campaign-planner `0.0` pattern-match
   warnings; no test failures remain in this slice.
