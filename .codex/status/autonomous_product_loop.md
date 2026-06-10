@@ -5,84 +5,91 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve realized activity state context in the public activity-state facade.
+Normalize missed-observation target aliases for objective-satisfaction refresh
+pressure.
 
 Status:
 Completed and pushed.
 
 Files changed:
-- Timeline feedback: `lib/orbital_dynamics/timeline_feedback.ex`
-- Timeline tests: `test/orbital_dynamics/timeline_test.exs`
+- Campaign planner: `lib/orbital_dynamics/campaign_planner.ex`
+- Campaign planner tests: `test/orbital_dynamics/campaign_planner_test.exs`
+- Capability doc:
+  `docs/feature_set/capability_map/11_planning_state_refresh/pressure_replay_into_branch_refresh.md`
 - Ledger: `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/timeline_test.exs:672`
-- `mix test test/orbital_dynamics/timeline_test.exs`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:68158`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:67737`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 
 Docs/artifacts changed:
-- None.
+- Documented `missed_observation_target_ids` and
+  `missed_observation_targets` as target-gap provider aliases.
 
 Level 6 pillar advanced:
-Typed operational activity and timeline semantics for safer planning,
-review, and Cadence-facing handoffs.
+Refreshed candidates from current mission state and reproducible branch trees
+with explainable source-report pressure.
 
 Slice selection note:
-Selected slice: Harden the public planned/realized activity-state facade so
-realized activity context preserves approval, lock, and execution evidence.
+Selected slice: add missed-observation target aliases to objective-gap branch
+replay.
 
-Why this slice: the public activity-state API and schema already existed, but
-the realized activity context dropped supplied approval/lock/execution fields
-even though the top-level lifecycle state could derive them. Preserving those
-fields makes the compact facade more useful to adapters and review queues.
+Why this slice: Queue-3 quality/readiness and most queue-4 replay helpers are
+already implemented. The remaining locally actionable gap was narrower target
+alias normalization for provider objective-satisfaction rows that describe
+missed observations.
 
-Level 6 pillar: Approval-aware automation boundaries and reproducible branch
-artifacts with typed operational activity semantics.
+Level 6 pillar: Refreshed candidates from current mission state and
+reproducible branch trees with explainable score terms and deltas.
 
-Current evidence gap: Planned context preserved approval/lock state, but
-realized context did not expose the same state evidence for callers inspecting
-the normalized planned/realized contexts directly.
+Current evidence gap: Objective-satisfaction target aliases handled missing,
+missed, uncovered, unsatisfied, revisit, coverage, and target-gap names, but
+did not accept `missed_observation_target_ids` or inline
+`missed_observation_targets`.
 
 Docs read:
-`docs/feature_set/capability_map/08_mission_activities_and_timelines.md`;
-`docs/mission_planning/high_fidelity/02_state_activities_and_resources.md`;
-`docs/mission_planning/high_fidelity/04_plan_structure_and_lifecycle.md`;
-`docs/artifacts/field_families/mission_activities.md`;
-`docs/feature_set/capability_map/08_mission_activities/integrity-rejection-and-preservation-reports.md`.
+`docs/feature_set/capability_map/11_planning_state_refresh/pressure_replay_into_branch_refresh.md`;
+`docs/feature_set/capability_map/11_planning_state_refresh/lifecycle_and_roadmap.md`;
+`docs/feature_set/capability_map/14_v3_strategy_orchestration.md`.
 
-Likely files: `lib/orbital_dynamics/timeline_feedback.ex`;
-`test/orbital_dynamics/timeline_test.exs`;
-`.codex/status/autonomous_product_loop.md`.
+Likely files: `lib/orbital_dynamics/campaign_planner.ex`;
+`test/orbital_dynamics/campaign_planner_test.exs`;
+`docs/feature_set/capability_map/11_planning_state_refresh/pressure_replay_into_branch_refresh.md`.
 
-Likely tests: focused timeline activity-state facade test; full timeline test
-file; `mix compile --warnings-as-errors`; `git diff --check`.
+Likely tests: focused objective-satisfaction target-alias tests;
+`mix compile --warnings-as-errors`; `git diff --check`.
+
+Definition of done: Missed-observation target fields generate a scoped
+urgent-target branch, preserve inline target priority/geometry, keep
+candidate-source path evidence, and remain schema-valid.
 
 Slice result:
-- Realized activity rows and nested realized activity contexts now preserve
-  supplied `approval_status`, `locked`, `executed`, and `execution_status`
+- Objective-satisfaction target count, target-ID, and target-spec
+  normalization now accept `missed_observation_target_ids`,
+  `missed_observation_target`, and `missed_observation_targets`.
+- Added a strategy regression proving those aliases generate a scoped
+  urgent-target branch with inline target geometry and provider trust-boundary
   evidence.
-- The public `OrbitalDynamics.timeline_activity_state/3` facade has a focused
-  regression assertion for planned approval/lock and realized
-  approval/lock/execution context.
-- Existing timeline tests continue to pass.
+- Updated the focused capability doc with the new provider aliases.
 
 Last completed slice:
-Preserved realized activity state context in the public activity-state facade.
+Normalized missed-observation target aliases for objective-satisfaction refresh
+pressure.
 
 Last commit:
-- Product: `78cc346` Preserve realized activity state context
-- Ledger: `1ddd3df` Update autonomous loop status
+- Product: `f98343a` Normalize missed observation target aliases
+- Ledger: pending
 
 Remaining maturity gaps:
-- Promote additional activity lifecycle/status/approval transitions into typed
-  helpers instead of ad hoc map conventions.
+- Broaden branch-specific refresh derivation across richer objective semantics.
 - Continue closing queue-2/queue-3 handoff completeness gaps for branch evidence
   families not present in checked-in strategy artifacts.
 
 Next candidate:
-Reassess queue-1 activity transition or queue-2 contact allocation gaps from
-the current docs before selecting the next slice.
+Reassess current guide queue after publishing; likely continue with a compact
+objective-gap or branch-local replay hardening slice.
 
 Blocked:
 Not blocked.
