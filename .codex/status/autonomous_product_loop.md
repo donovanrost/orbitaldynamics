@@ -5,105 +5,107 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Pin `relay_data_path_summary.v1` in the golden Cadence-facing compatibility
-surface.
+Regenerate checked-in V1/V2/V3 campaign golden fixtures from public facades.
 
 Status:
-Completed and pushed.
+Completed locally. Product commit is created; ledger commit and push pending.
 
 Files changed:
-- Golden compatibility tests: `test/orbital_dynamics/golden_artifact_test.exs`
-- Ledger: `.codex/status/autonomous_product_loop.md`
+- V1 campaign fixture:
+  `study_results/leo_constellation_campaign.json`
+- V2 repair fixture:
+  `study_results/leo_constellation_campaign_repair_v2.json`
+- V3 strategy fixture:
+  `study_results/leo_constellation_campaign_strategy_v3.json`
+- Golden compatibility tests:
+  `test/orbital_dynamics/golden_artifact_test.exs`
+- Ledger:
+  `.codex/status/autonomous_product_loop.md`
 
 Tests/checks run:
-- `mix test test/orbital_dynamics/golden_artifact_test.exs:215`
-- `elixir -e ...` static relay fixture surface check
+- `mix test test/orbital_dynamics/golden_artifact_test.exs:217 test/orbital_dynamics/golden_artifact_test.exs:632 --max-failures 2`
+- `mix orbital_dynamics.study.run --manifest studies/leo_constellation_campaign.json --output study_results/leo_constellation_campaign.json --run-id leo_constellation_campaign-1778976392512956 --generated-at 2026-05-14T00:00:00Z`
+- `mix orbital_dynamics.campaign.run --type repair --request studies/leo_constellation_campaign_repair_v2.json --output study_results/leo_constellation_campaign_repair_v2.json`
+- `mix orbital_dynamics.campaign.run --type strategy --request studies/leo_constellation_campaign_strategy_v3.json --output study_results/leo_constellation_campaign_strategy_v3.json`
+- `mix test test/orbital_dynamics/golden_artifact_test.exs:275 test/orbital_dynamics/golden_artifact_test.exs:464 test/orbital_dynamics/golden_artifact_test.exs:632`
+- `mix orbital_dynamics.schema.lint --input study_results/leo_constellation_campaign.json`
+- `mix orbital_dynamics.schema.lint --input study_results/leo_constellation_campaign_repair_v2.json --contract campaign_repair.v2`
+- `mix orbital_dynamics.schema.lint --input study_results/leo_constellation_campaign_strategy_v3.json --contract campaign_strategy.v3`
+- `mix test test/orbital_dynamics/golden_artifact_test.exs`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
-- `mix test test/orbital_dynamics/golden_artifact_test.exs` ran, with the new
-  relay test passing; existing full-file strategy/campaign exact-regeneration
-  checks still fail outside this slice (`10/12 passed`).
 
 Docs/artifacts changed:
-- No docs or JSON artifacts changed. The checked-in
-  `study_results/relay_data_path_summary_v1.json` fixture is now pinned in the
-  golden surface test.
+- Regenerated V1 campaign, V2 repair, and V3 strategy JSON artifacts through
+  documented public commands.
+- Updated the V3 golden surface assertion for the regenerated strategy hash,
+  score-term row counts, review/import counts, and provider/station reservation
+  pressure score terms.
 
 Level 6 pillar advanced:
-Durable schema-versioned artifacts, Cadence integration artifacts, and
-fleet-level contact/link behavior.
+Reproducible branch-tree artifacts with exact public-facade regeneration,
+schema-validated compatibility fixtures, and explainable reservation pressure
+score terms.
 
 Slice selection note:
-Selected slice: add `relay_data_path_summary.v1` to the golden Cadence-facing
-artifact compatibility surface.
+Selected slice: regenerate the checked-in V3 strategy golden artifact from the
+public facade, then follow its deterministic dependency chain to the stale V1
+campaign and V2 repair fixtures.
 
-Why this slice: relay data path evidence is schema-validated and
-strategy-visible, but the golden artifact test did not pin its public
-import/review surface alongside link capacity and contact allocation.
+Why this slice: exact-match golden tests proved the checked-in strategy artifact
+was stale after recent planner slices added dedicated station-reservation and
+provider-reservation score terms. Full golden verification then showed the V1
+campaign and V2 repair fixtures also needed public-facade regeneration.
 
-Level 6 pillar: durable schema-versioned artifacts, Cadence integration
-artifacts, and fleet-level contact/link behavior.
-
-Current evidence gap: compatibility coverage existed at schema level, but the
-golden surface omitted relay route identity, custody/latency risk routing, and
-no-scheduling/no-provider-write assumptions.
+Current evidence gap closed: checked-in campaign, repair, and strategy fixtures
+now exactly match the documented public generation paths, and the full golden
+artifact test file is green.
 
 Docs read:
 `docs/autonomous_work_guide.md`;
 `.codex/prompts/long_running_context_efficient_product_loop.md`;
-`docs/feature_set/completeness_levels/06_mature_operational_platform.md`;
-`docs/feature_set/definition_of_feature_complete.md`;
-`docs/feature_set/current_capability_snapshot.md`;
-`docs/feature_set/recommended_roadmap.md`;
-`docs/feature_set/capability_map/07_ground_network_and_communications_planning.md`;
-`docs/feature_set/capability_map/20_cadence_boundary_and_integration_artifacts.md`.
-
-Likely files: `test/orbital_dynamics/golden_artifact_test.exs`;
-`.codex/status/autonomous_product_loop.md`.
-
-Likely tests: focused golden relay selector, `mix compile --warnings-as-errors`,
-`git diff --check`.
-
-Definition of done: the golden artifact surface includes a compact relay data
-path summary with stable route identity, custody/latency/risk maps, model
-limits, and artifact-only assumptions, and the focused golden selector plus
-compile/diff checks pass.
+`.codex/status/autonomous_product_loop.md`;
+`docs/feature_set/capability_map/18_validation_and_verification.md`;
+`docs/mission_planning/high_fidelity/11_verification_and_validation.md`;
+`docs/artifacts/compatibility_checks.md`.
 
 Slice result:
-- Added a standalone relay data path golden test that schema-validates
-  `study_results/relay_data_path_summary_v1.json`.
-- Pinned route counts, route IDs, custody/latency/risk status maps, row risk
-  reasons, model limits, and no-authority/no-scheduling assumptions.
+- Regenerated V1 campaign with fixed `run-id` and `generated-at` values.
+- Regenerated V2 repair and V3 strategy through `mix orbital_dynamics.campaign.run`.
+- Reconciled V3 golden surface counts for the new reservation pressure terms:
+  `provider_reservation_request_pressure_penalty`,
+  `station_reservation_conflict_pressure_penalty`, and
+  `station_reservation_expiration_pressure_penalty`.
+- Full `test/orbital_dynamics/golden_artifact_test.exs` now passes.
 
 Last completed slice:
-Pin `relay_data_path_summary.v1` in the golden Cadence-facing compatibility
-surface.
+Regenerate checked-in V1/V2/V3 campaign golden fixtures from public facades.
 
 Last commit:
-- Product/test: `b8fee15` Pin relay data path golden surface
+- Product/artifacts: `fa03788` Regenerate campaign golden fixtures
 - Ledger: this handoff commit
 
 Remaining maturity gaps:
-- Existing full golden file exact-regeneration checks for checked-in strategy
-  and campaign artifacts need a separate fixture drift/regeneration audit.
 - Continue converting replayed resource/contact/readiness pressure into
   planner-visible branch scoring or candidate-selection effects where live code
   still routes evidence only to review/import.
 - Continue closing queue-4 branch-local handoff completeness and queue-3
   quality/readiness gaps for artifact families not present in checked-in
   strategy artifacts.
+- Keep golden fixtures exact-regenerable whenever planner pressure families
+  change public artifact shape.
 
 Next candidate:
-Reassess from live evidence. Good candidates are a focused fixture-regeneration
-slice for the full golden exact-match failures, a readiness/quality replay path
-without branch-score evidence, or another compatibility fixture only if the
-current checkout shows an unpinned public artifact family.
+Reassess from live evidence. Good candidates are readiness/quality replay paths
+without branch-score evidence, another unpinned compatibility artifact family,
+or branch-local completeness gaps surfaced by current campaign artifacts.
 
 Blocked:
 Not blocked.
 
 Notes:
-- Previous published slice: Product `f0d1410`, Ledger `64d5900`.
+- Previous published slice: Product `b8fee15`; ledger handoff followed in the
+  prior slice.
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
   not part of this slice.
 - Sidecar delegation is unavailable in this runtime; parent performed the
