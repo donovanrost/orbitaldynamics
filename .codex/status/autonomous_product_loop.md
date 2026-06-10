@@ -5,47 +5,55 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Prefer blocking contact-allocation overlap evidence during resource projection.
+Reject stale operational-readiness evidence scalars that contradict their own
+count maps.
 
 Status:
 Implemented, parent-reviewed, locally verified, and published locally.
-Behavior commit: `53a4e3a`.
+Behavior commit: `22c3b08`.
 
 Files changed:
-- Resource roll-forward behavior:
-  `lib/orbital_dynamics/resource_projection.ex`
-- Focused regression:
-  `test/orbital_dynamics/resource_projection_test.exs`
-- Ground-network capability docs:
-  `docs/feature_set/capability_map/07_ground_network/03_contact_allocation.md`
+- Readiness schema validation:
+  `lib/orbital_dynamics/schema.ex`
+- Validation fixture registry:
+  `lib/orbital_dynamics/validation.ex`
+- Focused regressions:
+  `test/orbital_dynamics/operational_readiness_test.exs`
+- Regenerated validation artifacts:
+  `study_results/schema_validation_batch_report_v1.json`
+  `study_results/validation_reference_fixtures.json`
 - Ledger:
   `.codex/status/autonomous_product_loop.md`
 
 Tests/checks run:
-- `mix test test/orbital_dynamics/resource_projection_test.exs:3931`
-- `mix test test/orbital_dynamics/resource_projection_test.exs`
-- `mix format --check-formatted lib/orbital_dynamics/resource_projection.ex test/orbital_dynamics/resource_projection_test.exs`
+- `mix test test/orbital_dynamics/operational_readiness_test.exs`
+- `mix test test/orbital_dynamics/schema_test.exs`
+- `mix test test/mix/tasks/orbital_dynamics.schema.lint_test.exs`
+- `mix test test/orbital_dynamics/validation_test.exs:14771 test/orbital_dynamics/validation_test.exs:15036 test/orbital_dynamics/schema_test.exs:15639`
+- `mix test test/orbital_dynamics/operational_readiness_test.exs test/orbital_dynamics/schema_test.exs test/mix/tasks/orbital_dynamics.schema.lint_test.exs test/orbital_dynamics/validation_test.exs:14771 test/orbital_dynamics/validation_test.exs:15036`
+- `mix test` (3318/3325 passed before fixture refresh; residual failures were unrelated manifest/golden drift)
+- `mix test --failed` after fixture refresh (0/4 passed; residual failures remain unrelated manifest/golden drift)
+- `mix format lib/orbital_dynamics/schema.ex test/orbital_dynamics/operational_readiness_test.exs lib/orbital_dynamics/validation.ex`
 - `git diff --check`
 
 Behavior changed:
-Resource projection now selects blocking contact-allocation evidence from
-multiple station-calendar overlaps before allocated evidence. A contact with an
-allocated overlap plus a later deferred or policy-blocked overlap is ignored for
-storage/downlink roll-forward instead of relieving pressure based on provider
-overlap ordering. The regression pins both the full
-`resource_projection_report.v1` flow rows and the compact
-`resource_projection_flow_summary.v1` ignored-reason counts.
+`operational_readiness_report.v1` executable validation now rejects stale
+evidence scalars that disagree with backing count maps. The guard covers
+approval/import/freshness/schema/policy/adapter/operator-training/resource
+count families, so policy decision totals, keyed policy review counts, and
+adapter trust-boundary scalars cannot silently drift from evidence maps.
 
 Docs/artifacts changed:
-Contact-allocation capability docs now state that resource projection chooses
-blocking overlap allocation evidence before allocated evidence when multiple
-station-calendar overlaps carry embedded allocation state. No schema exports
-changed.
+The checked-in schema-validation batch report was refreshed to include the
+tracked `study_results/campaign_repair_readiness_source_handoff_v2.json`
+artifact, and the validation fixture registry/reference fixture report were
+updated from 154 to 155 passing schema-validation artifacts.
 
 Level 6 pillar advanced:
-Fleet-level resource/contact allocation behavior: branch-local and
-Cadence-facing storage/downlink pressure cannot be hidden by order-dependent
-provider overlap evidence.
+Approval/readiness automation boundaries and stale-input challenge coverage:
+planner-facing and Cadence-facing readiness artifacts now fail executable
+validation when summarized readiness evidence contradicts its own machine
+readable counts.
 
 Remaining maturity gaps:
 - Continue converting artifact evidence into planner-visible selection,
@@ -56,21 +64,24 @@ Remaining maturity gaps:
   editing; do not rely on stale ledger candidates.
 
 Last behavior commit:
-`53a4e3a` Prefer blocking allocation overlap evidence.
+`22c3b08` Validate readiness evidence count scalars.
 
 Next candidate:
-Recalibrate from live code. Resource/communications challenge fixtures remain
-likely high value, but many resource-filter, allocation-summary, reservation,
-and projection surfaces already have row-derived guards.
+Recalibrate from live code. Current residual full-suite failures point at
+manifest/golden artifact drift around LEO downlink candidates and V2/V3
+resource-filter score-term artifacts; treat those as candidates only after
+confirming the active prompt and live diffs.
 
 Blocked:
 Not blocked.
 
 Notes:
-- Selection note: resource-filter and provider-reservation request summaries
-  already had row-derived stale-summary checks, and resource projection already
-  handled direct/nested/one-overlap allocation status. The remaining narrow gap
-  was conflicting multi-overlap allocation evidence.
-- Existing full-suite formatting drift remains isolated to distant regions of
-  `test/orbital_dynamics/campaign_planner_test.exs`; this slice did not touch
-  that file.
+- Selection note: `CampaignPlanner` already scores readiness, quality-gate,
+  schema-validation, import-readiness, and operator-training pressure broadly,
+  so this slice targeted stale-but-plausible readiness evidence that executable
+  validation still accepted.
+- Residual `mix test --failed` failures after this slice are:
+  `test/orbital_dynamics/study/manifest_test.exs:1257`,
+  `test/orbital_dynamics/golden_artifact_test.exs:275`,
+  `test/orbital_dynamics/golden_artifact_test.exs:464`, and
+  `test/orbital_dynamics/golden_artifact_test.exs:635`.

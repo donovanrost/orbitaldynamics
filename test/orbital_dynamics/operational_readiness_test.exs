@@ -1772,6 +1772,12 @@ defmodule OrbitalDynamics.OperationalReadinessTest do
         -1
       )
 
+    stale_policy_decision_count =
+      put_in(review_report, ["evidence", "policy_decision_count"], 99)
+
+    stale_policy_review_required_count =
+      put_in(review_report, ["evidence", "policy_review_required_count"], 0)
+
     assert {:ok, %{"schema_contract" => "operational_readiness_report.v1"}} =
              Schema.validate_artifact(review_report)
 
@@ -1785,6 +1791,25 @@ defmodule OrbitalDynamics.OperationalReadinessTest do
              invalid_policy_count_report["errors"],
              &(&1["path"] ==
                  "$.evidence.policy_classification_counts.operator_review_required")
+           )
+
+    assert {:error, stale_policy_decision_count_report} =
+             Schema.validate_artifact(stale_policy_decision_count)
+
+    assert Enum.any?(
+             stale_policy_decision_count_report["errors"],
+             &(&1["path"] == "$.evidence.policy_decision_count" and
+                 &1["message"] == "must equal policy_classification_counts total")
+           )
+
+    assert {:error, stale_policy_review_required_count_report} =
+             Schema.validate_artifact(stale_policy_review_required_count)
+
+    assert Enum.any?(
+             stale_policy_review_required_count_report["errors"],
+             &(&1["path"] == "$.evidence.policy_review_required_count" and
+                 &1["message"] ==
+                   "must equal policy_classification_counts count for operator_review_required")
            )
   end
 
@@ -2072,7 +2097,7 @@ defmodule OrbitalDynamics.OperationalReadinessTest do
              "reason" => "adapter import context is missing a declared trust boundary"
            } = Enum.find(missing_boundary_report["gates"], &(&1["id"] == "adapter_boundary"))
 
-    declared_boundary_report =
+    stale_declared_boundary_report =
       missing_boundary_report
       |> put_in(["evidence", "adapter_boundary_status_counts"], %{"declared" => 1})
 
@@ -2086,8 +2111,15 @@ defmodule OrbitalDynamics.OperationalReadinessTest do
     assert {:ok, %{"schema_contract" => "operational_readiness_report.v1"}} =
              Schema.validate_artifact(missing_boundary_report)
 
-    assert {:ok, %{"schema_contract" => "operational_readiness_report.v1"}} =
-             Schema.validate_artifact(declared_boundary_report)
+    assert {:error, stale_declared_boundary_report_errors} =
+             Schema.validate_artifact(stale_declared_boundary_report)
+
+    assert Enum.any?(
+             stale_declared_boundary_report_errors["errors"],
+             &(&1["path"] == "$.evidence.adapter_trust_boundary_declared_count" and
+                 &1["message"] ==
+                   "must equal adapter_boundary_status_counts count for declared")
+           )
 
     assert {:error, invalid_boundary_count_report} =
              Schema.validate_artifact(invalid_boundary_count)

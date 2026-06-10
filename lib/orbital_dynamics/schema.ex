@@ -59563,6 +59563,7 @@ defmodule OrbitalDynamics.Schema do
     |> expect_optional_type(path, evidence, "resource_trust_boundary_status_counts", :map)
     |> validate_timeline_publication_context(path, evidence)
     |> validate_operational_readiness_evidence_count_maps(path, evidence)
+    |> validate_operational_readiness_evidence_scalar_count_maps(path, evidence)
   end
 
   defp validate_operational_readiness_evidence(issues, path, _evidence) do
@@ -59605,6 +59606,91 @@ defmodule OrbitalDynamics.Schema do
       )
     end)
   end
+
+  defp validate_operational_readiness_evidence_scalar_count_maps(issues, path, evidence) do
+    keyed_count_checks = [
+      {"review_required_count", "approval_status_counts",
+       [
+         "operator_review_required",
+         "pending"
+       ]},
+      {"blocked_review_count", "approval_status_counts", ["blocked_by_policy"]},
+      {"ready_for_import_count", "import_status_counts", ["ready_for_import"]},
+      {"manifest_review_required_count", "import_status_counts",
+       [
+         "review_required_before_import"
+       ]},
+      {"blocked_import_count", "import_status_counts",
+       [
+         "blocked_missing_cadence_import"
+       ]},
+      {"missing_import_count", "cadence_import_status_counts", ["missing"]},
+      {"invalid_cadence_import_count", "cadence_import_status_counts", ["invalid"]},
+      {"current_freshness_count", "freshness_status_counts", ["current"]},
+      {"stale_freshness_count", "freshness_status_counts", ["stale"]},
+      {"unknown_freshness_count", "freshness_status_counts", ["unknown"]},
+      {"schema_validation_pass_count", "schema_validation_status_counts", ["pass"]},
+      {"schema_validation_fail_count", "schema_validation_status_counts", ["fail"]},
+      {"policy_auto_approvable_count", "policy_classification_counts", ["auto_approvable"]},
+      {"policy_review_required_count", "policy_classification_counts",
+       [
+         "operator_review_required"
+       ]},
+      {"policy_blocked_count", "policy_classification_counts", ["blocked_by_policy"]},
+      {"adapter_trust_boundary_declared_count", "adapter_boundary_status_counts",
+       [
+         "declared"
+       ]},
+      {"adapter_trust_boundary_missing_count", "adapter_boundary_status_counts", ["missing"]},
+      {"adapter_trust_boundary_untrusted_count", "adapter_boundary_status_counts",
+       [
+         "untrusted"
+       ]}
+    ]
+
+    total_count_checks = [
+      {"source_model_count", "source_model_counts"},
+      {"source_model_limit_count", "source_model_limit_counts"},
+      {"policy_decision_count", "policy_classification_counts"},
+      {"adapter_context_count", "adapter_boundary_status_counts"},
+      {"operator_training_requirement_count", "operator_training_requirement_counts"},
+      {"resource_availability_pressure_count", "resource_availability_reason_counts"},
+      {"resource_blocking_dimension_count", "resource_blocking_dimension_counts"}
+    ]
+
+    issues =
+      Enum.reduce(keyed_count_checks, issues, fn {field, count_map_field, keys}, acc ->
+        expect_field_equals(
+          acc,
+          path,
+          evidence,
+          field,
+          count_map_value_sum(Map.get(evidence, count_map_field), keys),
+          "must equal #{count_map_field} count for #{Enum.join(keys, ",")}"
+        )
+      end)
+
+    Enum.reduce(total_count_checks, issues, fn {field, count_map_field}, acc ->
+      expect_field_equals(
+        acc,
+        path,
+        evidence,
+        field,
+        non_negative_integer_map_sum(Map.get(evidence, count_map_field)),
+        "must equal #{count_map_field} total"
+      )
+    end)
+  end
+
+  defp count_map_value_sum(counts, keys) when is_map(counts) do
+    values = Enum.map(keys, &Map.get(counts, &1, 0))
+
+    if Enum.all?(values, &(is_integer(&1) and &1 >= 0)),
+      do: Enum.sum(values),
+      else: nil
+  end
+
+  defp count_map_value_sum(_counts, _keys), do: nil
 
   defp gate_status_count(gates, status) when is_list(gates) do
     gates
