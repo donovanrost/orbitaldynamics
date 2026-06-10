@@ -8963,6 +8963,10 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "provider_counteroffer_reason_code",
       "provider_counteroffer_cost_delta",
       "provider_counteroffer_lock_deadline_s",
+      "provider_counteroffer_lock_deadline_status",
+      "provider_counteroffer_import_status",
+      "import_readiness_status",
+      "import_classification",
       "provider_counteroffer_starts_at_s",
       "provider_counteroffer_ends_at_s",
       "provider_counteroffer_start_delta_s",
@@ -34689,6 +34693,11 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "provider_counteroffer_reason_code" => row["provider_counteroffer_reason_code"],
         "provider_counteroffer_cost_delta" => row["provider_counteroffer_cost_delta"],
         "provider_counteroffer_lock_deadline_s" => row["provider_counteroffer_lock_deadline_s"],
+        "provider_counteroffer_lock_deadline_status" =>
+          row["provider_counteroffer_lock_deadline_status"],
+        "provider_counteroffer_import_status" => row["provider_counteroffer_import_status"],
+        "import_readiness_status" => row["import_readiness_status"],
+        "import_classification" => row["import_classification"],
         "provider_counteroffer_starts_at_s" => row["provider_counteroffer_starts_at_s"],
         "provider_counteroffer_ends_at_s" => row["provider_counteroffer_ends_at_s"],
         "provider_counteroffer_start_delta_s" => row["provider_counteroffer_start_delta_s"],
@@ -34726,6 +34735,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     [
       "provider_counteroffer_review",
       row["plan_impact_status"] && "provider_counteroffer_plan_impact",
+      row["provider_counteroffer_import_status"] &&
+        "provider_counteroffer_import_readiness",
+      row["import_readiness_status"] && "provider_counteroffer_import_readiness",
       numeric_or_nil(row["provider_counteroffer_cost_delta"]) &&
         "provider_counteroffer_cost_delta",
       provider_counteroffer_timing_shift?(row) && "provider_counteroffer_timing_shift",
@@ -34797,7 +34809,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp mission_state_provider_counteroffer_pressure_sources(mission_state) do
     mission_state_provider_counteroffer_reports(mission_state) ++
-      mission_state_provider_counteroffer_plan_impact_pressure_summaries(mission_state)
+      mission_state_provider_counteroffer_plan_impact_pressure_summaries(mission_state) ++
+      mission_state_provider_counteroffer_import_readiness_pressure_summaries(mission_state)
   end
 
   defp mission_state_provider_counteroffer_plan_impact_pressure_summaries(mission_state) do
@@ -34819,13 +34832,60 @@ defmodule OrbitalDynamics.CampaignPlanner do
       )
   end
 
+  defp mission_state_provider_counteroffer_import_readiness_pressure_summaries(mission_state) do
+    mission_state = stringify_keys(mission_state || %{})
+
+    mission_state_provider_counteroffer_import_readiness_summaries(mission_state, [
+      {"source_provider_counteroffer_import_readiness_summary",
+       "mission_state.source_provider_counteroffer_import_readiness_summary"},
+      {"provider_counteroffer_import_readiness_summary",
+       "mission_state.provider_counteroffer_import_readiness_summary"}
+    ]) ++
+      mission_state_result_artifact_embedded_reports(
+        mission_state,
+        "source_provider_counteroffer_import_readiness_summary"
+      ) ++
+      mission_state_result_artifact_embedded_reports(
+        mission_state,
+        "provider_counteroffer_import_readiness_summary"
+      )
+  end
+
   defp provider_counteroffer_pressure_rows(%{"impact_rows" => rows}, source_path),
     do: {rows, "#{source_path}.impact_rows"}
+
+  defp provider_counteroffer_pressure_rows(
+         %{"import_readiness_rows" => rows} = report,
+         source_path
+       ) do
+    rows =
+      rows
+      |> List.wrap()
+      |> Enum.map(&provider_counteroffer_import_readiness_pressure_row(&1, report))
+
+    {rows, "#{source_path}.import_readiness_rows"}
+  end
 
   defp provider_counteroffer_pressure_rows(%{"rows" => rows}, source_path),
     do: {rows, "#{source_path}.rows"}
 
   defp provider_counteroffer_pressure_rows(_report, source_path), do: {[], source_path}
+
+  defp provider_counteroffer_import_readiness_pressure_row(row, report) do
+    row
+    |> stringify_keys()
+    |> put_new_present("import_readiness_status", report["import_readiness_status"])
+    |> put_new_present("import_classification", report["import_classification"])
+  end
+
+  defp put_new_present(map, _key, value) when value in [nil, "", [], %{}], do: map
+
+  defp put_new_present(map, key, value) do
+    case Map.get(map, key) do
+      blank when blank in [nil, "", [], %{}] -> Map.put(map, key, value)
+      _present -> map
+    end
+  end
 
   defp refresh_budget_review_source(%{"source_refresh_budget_report" => %{} = source} = row)
        when map_size(source) > 0,

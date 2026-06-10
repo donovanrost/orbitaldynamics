@@ -179,6 +179,9 @@ Direct `source_provider_counteroffer_import_readiness_summary` /
 counteroffer IDs, import status/action/lock-deadline maps, and
 import-readiness status/classification evidence without accepting offers,
 mutating schedules, approving imports, or writing to Cadence.
+Review-required import-readiness rows can also become V3 provider-counteroffer
+pressure branches and score-term penalties, while import-ready/no-action rows
+remain replay provenance only.
 Provider-counteroffer reports, import-readiness summaries, and plan-impact
 summaries preserved as exact `source_result_artifact` / `result_artifact` maps
 or nested inside direct/list-valued result-artifact containers are lifted into
@@ -355,6 +358,12 @@ without taking the disallowed action noted.
   start/end/duration timing deltas, lock-deadline, provider/station identity,
   trust boundary, and source-report path. Done **without accepting the offer or
   reserving provider time**.
+- **Provider counteroffer import-readiness rows** — from mission-state
+  `provider_counteroffer_import_readiness_summary.v1` rows that are reviewable
+  and require `review_provider_counteroffer`. Preserves import status,
+  import-readiness status/classification, lock-deadline status, trust boundary,
+  and source-report path. Done **without accepting the offer, approving import,
+  writing to Cadence, or reserving provider time**.
 - **Schema validation rows** — from mission-state `schema_validation_report.v1`
   error or warning rows. Preserves validation mode/status, validated contract,
   issue path/message, remediation, trust boundary, and source-report path. Done
