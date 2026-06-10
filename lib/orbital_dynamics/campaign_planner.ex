@@ -1153,6 +1153,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         repair_refresh_budget_report(request.candidate_refresh),
         repair_candidate_rejection_report(request),
         repair_operational_readiness_report(request.candidate_refresh),
+        repair_quality_gate_report(request.candidate_refresh),
         request.scoring_policy
       )
 
@@ -56653,7 +56654,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "schema_contract" => "objective_tradeoff_report.v1",
       "model" => "repair_score_term_tradeoffs",
       "objective" =>
-        "maximize repaired activity value while minimizing churn, schedule movement, resource-projection pressure, contact pressure, resource-filter pressure, refresh-budget pressure, candidate-rejection pressure, and operational-readiness pressure",
+        "maximize repaired activity value while minimizing churn, schedule movement, resource-projection pressure, contact pressure, resource-filter pressure, refresh-budget pressure, candidate-rejection pressure, operational-readiness pressure, and quality-gate pressure",
       "ranking_count" => 1,
       "score_term_keys" => objective_score_term_keys([timeline]),
       "policy" => policy,
@@ -57316,6 +57317,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
          refresh_budget_report,
          candidate_rejection_report,
          operational_readiness_report,
+         quality_gate_report,
          scoring_policy
        ) do
     activity_score = activities |> Enum.map(&candidate_score/1) |> Enum.sum()
@@ -57352,6 +57354,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
     operational_readiness_pressure_count =
       repair_operational_readiness_pressure_count(operational_readiness_report)
 
+    quality_gate_pressure_count = repair_quality_gate_pressure_count(quality_gate_report)
+
     resource_projection_pressure_penalty =
       -resource_projection_pressure_count *
         numeric_policy_value(scoring_policy, "risk_weight", 1.0)
@@ -57378,6 +57382,10 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
     operational_readiness_pressure_penalty =
       -operational_readiness_pressure_count *
+        numeric_policy_value(scoring_policy, "risk_weight", 1.0)
+
+    quality_gate_pressure_penalty =
+      -quality_gate_pressure_count *
         numeric_policy_value(scoring_policy, "risk_weight", 1.0)
 
     score_terms = %{
@@ -57421,6 +57429,11 @@ defmodule OrbitalDynamics.CampaignPlanner do
       operational_readiness_pressure_count,
       "operational_readiness_pressure_penalty",
       operational_readiness_pressure_penalty
+    )
+    |> maybe_put_positive_pressure_term(
+      quality_gate_pressure_count,
+      "quality_gate_pressure_penalty",
+      quality_gate_pressure_penalty
     )
   end
 
@@ -57511,6 +57524,14 @@ defmodule OrbitalDynamics.CampaignPlanner do
   end
 
   defp repair_operational_readiness_pressure_count(_report), do: 0
+
+  defp repair_quality_gate_pressure_count(%{} = report) do
+    report
+    |> quality_gate_pressure_rows()
+    |> Enum.count(&quality_gate_reviewable?/1)
+  end
+
+  defp repair_quality_gate_pressure_count(_report), do: 0
 
   defp numeric_count(count) when is_number(count), do: trunc(count)
   defp numeric_count(_count), do: 0
