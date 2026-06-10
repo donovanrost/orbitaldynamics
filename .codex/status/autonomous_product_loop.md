@@ -8,7 +8,7 @@ Current slice:
 Resource-availability quality-gate stale aggregate challenge fixture.
 
 Status:
-Implemented, locally verified, and reviewer-cleared; publish pending.
+Implemented, reviewer-cleared, locally verified, committed, and pushed.
 
 Files changed:
 - Focused strategy regression:
@@ -56,8 +56,7 @@ Slice result:
   path.
 
 Last completed slice:
-Provider-calendar station-reservation hold-summary stale aggregate challenge
-fixture.
+Resource-availability quality-gate stale aggregate challenge fixture.
 
 Last pushed commits:
 - Product/ledger: `2f01a4d` Guard station reservation review row evidence
@@ -69,11 +68,13 @@ Last pushed commits:
 - Product/ledger: `5e11842` Preserve provider hold expiration pressure
 - Ledger correction: `23ff2f6` Update autonomous loop ledger after provider
   hold publish
+- Product/ledger: `0b4fdcd` Guard resource quality gate rows against stale
+  aggregates
 
 Review/publish queue:
 - Reviewer sidecar found selector and schema-assertion fixes; parent resolved
   both.
-- Publish pending after reviewer clearance.
+- Published to `origin/main` as `0b4fdcd`.
 
 Remaining maturity gaps:
 - Continue converting replayed resource/contact/readiness pressure into
