@@ -83,7 +83,7 @@ branch score term.
 
 Last commit:
 - Product: `7bfc592` Split reservation conflict branch score pressure
-- Ledger: pending
+- Ledger: `7a4a77a` Update autonomous loop status
 
 Remaining maturity gaps:
 - Continue converting existing replayed resource/contact/readiness pressure
