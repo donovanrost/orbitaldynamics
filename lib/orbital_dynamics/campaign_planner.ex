@@ -23022,6 +23022,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "missing_targets",
       "missed_target",
       "missed_targets",
+      "missed_observation_target",
+      "missed_observation_targets",
       "revisit_target",
       "revisit_targets",
       "required_revisit_target",
@@ -23037,6 +23039,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "target_gap_target",
       "target_gap_targets",
       "missed_target_ids",
+      "missed_observation_target_ids",
       "required_target_ids",
       "candidate_target_ids",
       "uncovered_target_ids",
@@ -23061,7 +23064,10 @@ defmodule OrbitalDynamics.CampaignPlanner do
     |> objective_tradeoff_target_id_values([
       "missed_target",
       "missed_targets",
-      "missed_target_ids"
+      "missed_observation_target",
+      "missed_observation_targets",
+      "missed_target_ids",
+      "missed_observation_target_ids"
     ])
     |> Enum.any?()
   end
@@ -23085,6 +23091,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "missing_targets",
       "missed_target",
       "missed_targets",
+      "missed_observation_target",
+      "missed_observation_targets",
       "revisit_target",
       "revisit_targets",
       "required_revisit_target",
@@ -23100,6 +23108,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "target_gap_target",
       "target_gap_targets",
       "missed_target_ids",
+      "missed_observation_target_ids",
       "required_target_ids",
       "candidate_target_ids",
       "uncovered_target_ids",
@@ -23202,6 +23211,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
       row["missing_targets"],
       row["missed_target"],
       row["missed_targets"],
+      row["missed_observation_target"],
+      row["missed_observation_targets"],
       row["revisit_target"],
       row["revisit_targets"],
       row["required_revisit_target"],

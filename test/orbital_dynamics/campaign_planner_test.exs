@@ -66160,7 +66160,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
         "source_objective_tradeoff_report" => %{
           "schema_contract" => "objective_tradeoff_report.v1",
           "model" => "provider_inline_target_tradeoffs",
-          "ranking_count" => 1,
+          "ranking_count" => 2,
           "provenance" => %{"trust_boundary" => "provider_tradeoff_review"},
           "tradeoffs" => [
             %{
@@ -66183,6 +66183,27 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
               ],
               "selected_targets" => [%{"id" => "target_a"}],
               "score_terms" => %{"target_gap_count" => 1}
+            },
+            %{
+              "rank" => 3,
+              "scenario_id" => "leo_1",
+              "branch_id" => "missed_observation_tradeoff_target",
+              "objective" => "target_coverage",
+              "selected" => false,
+              "score" => 59.0,
+              "score_delta_from_selected" => -12.0,
+              "selected_observation_count" => 0,
+              "observation_shortfall_count" => "2",
+              "missed_observation_target_ids" => ["target_tradeoff_missed_obs"],
+              "missed_observation_targets" => [
+                %{
+                  "id" => "target_tradeoff_missed_obs",
+                  "priority" => "8.0",
+                  "latitude_deg" => 11.0,
+                  "longitude_deg" => -22.0,
+                  "minimum_elevation_deg" => 14.0
+                }
+              ]
             }
           ]
         }
@@ -66203,6 +66224,12 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     target_branch =
       branch(artifact, "derived_objective_tradeoff_pressure_inline_tradeoff_target_gap")
 
+    missed_observation_branch =
+      branch(
+        artifact,
+        "derived_objective_tradeoff_pressure_missed_observation_tradeoff_target"
+      )
+
     event = List.first(target_branch["events"])
 
     assert %{
@@ -66220,6 +66247,28 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     assert event["latitude_deg"] == 0.0
     assert event["longitude_deg"] == 0.0
 
+    assert %{
+             "type" => "urgent_target",
+             "objective_type" => "target_coverage",
+             "target_id" => "target_tradeoff_missed_obs",
+             "priority" => 8.0,
+             "latitude_deg" => 11.0,
+             "longitude_deg" => -22.0,
+             "minimum_elevation_deg" => 14.0,
+             "required_observations" => 2.0,
+             "planned_observations" => 0,
+             "score" => 59.0,
+             "score_delta_from_selected" => -12.0,
+             "feedback_source" => "prior_plan.source_objective_tradeoff_report",
+             "feedback_scope" => "objective_tradeoff",
+             "trust_boundary" => "provider_tradeoff_review",
+             "derivation_reasons" => [
+               "objective_tradeoff_target_gap",
+               "objective_tradeoff_missed_targets",
+               "objective_tradeoff_unselected"
+             ]
+           } = List.first(missed_observation_branch["events"])
+
     assert Enum.any?(
              target_branch["repair_result"]["source_candidate_activities"],
              &(&1["type"] == "observe" and &1["target_id"] == "target_tradeoff_provider")
@@ -66230,6 +66279,12 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              &(&1["target_id"] == "target_tradeoff_provider" and
                  get_in(&1, ["feasibility", "feedback_scope"]) == "objective_tradeoff")
            )
+
+    assert Enum.count(
+             missed_observation_branch["candidate_plan"]["strategic_additions"],
+             &(&1["target_id"] == "target_tradeoff_missed_obs" and
+                 get_in(&1, ["feasibility", "feedback_scope"]) == "objective_tradeoff")
+           ) == 1
 
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
