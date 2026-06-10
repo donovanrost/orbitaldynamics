@@ -18189,6 +18189,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "downlink_completion",
              "fuel_preservation",
              "asset_balance",
+             "priority_commitment",
              "resource_score",
              "feedback_adjustment",
              "contact_allocation_pressure",

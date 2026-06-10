@@ -741,6 +741,9 @@ tradeoffs therefore expose
 dependency/exclusivity integrity, dependency-impact, publication, lifecycle, and
 precondition/preservation pressure separately without changing branch ranking
 for fixed inputs.
+Recommendation tradeoffs also expose `priority_commitment` so selected-branch
+objective explanations retain the priority-commitment score contribution that
+already affects branch ranking.
 V3 branch pressure derives activity-precondition status, blocked/review counts,
 and blocked/review type lists from precondition rows when row evidence is
 present, so stale top-level aggregate status/count/type fields cannot hide

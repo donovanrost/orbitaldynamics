@@ -9451,6 +9451,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         {"downlink_completion", "downlink_completion_score"},
         {"fuel_preservation", "fuel_preservation_score"},
         {"asset_balance", "asset_balance_score"},
+        {"priority_commitment", "priority_commitment_score"},
         {"resource_score", "resource_score"},
         {"feedback_adjustment", "feedback_adjustment_score"},
         {"contact_allocation_pressure", "contact_allocation_pressure_penalty"},
