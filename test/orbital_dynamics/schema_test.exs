@@ -28958,6 +28958,13 @@ defmodule OrbitalDynamics.SchemaTest do
     assert get_in(row_schema, ["properties", "delta", "type"]) == "number"
     assert get_in(row_schema, ["properties", "repair_score", "type"]) == "number"
 
+    assert get_in(row_schema, ["properties", "station_reservation_expires_at_s"]) == %{
+             "anyOf" => [
+               %{"type" => "number"},
+               %{"type" => "array", "items" => %{"type" => "number"}}
+             ]
+           }
+
     assert get_in(row_schema, [
              "properties",
              "first_resource_pressure_station_calendar_provider_id",
@@ -30611,6 +30618,13 @@ defmodule OrbitalDynamics.SchemaTest do
     assert {:ok, schema} = Schema.json_schema("cadence_import_manifest.v1")
 
     row_properties = get_in(schema, ["properties", "rows", "items", "properties"])
+
+    assert row_properties["station_reservation_expires_at_s"] == %{
+             "anyOf" => [
+               %{"type" => "number"},
+               %{"type" => "array", "items" => %{"type" => "number"}}
+             ]
+           }
 
     source_review_row_properties =
       get_in(row_properties, ["source_review_row", "properties"])

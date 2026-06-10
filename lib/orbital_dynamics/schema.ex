@@ -19752,6 +19752,10 @@ defmodule OrbitalDynamics.Schema do
     %{"type" => "array", "items" => %{"type" => "number"}}
   end
 
+  defp number_or_number_array_schema do
+    %{"anyOf" => [%{"type" => "number"}, number_array_schema()]}
+  end
+
   defp number_array_map_schema do
     %{"type" => "object", "additionalProperties" => number_array_schema()}
   end
@@ -28096,6 +28100,7 @@ defmodule OrbitalDynamics.Schema do
           "station_calendar_reservation_statuses" => string_array_schema(),
           "station_calendar_reservation_expires_at_s" => number_array_schema(),
           "station_calendar_trust_boundary_status" => %{"type" => "string"},
+          "station_reservation_expires_at_s" => number_or_number_array_schema(),
           "trust_boundary" => %{"type" => "string"},
           "capacity_fraction" => %{"type" => "number", "minimum" => 0.0, "maximum" => 1.0},
           "capacity_fraction_min" => probability_json_schema(),
@@ -29258,7 +29263,7 @@ defmodule OrbitalDynamics.Schema do
           "warnings" => string_array_schema(),
           "station_contention_status" => %{"type" => "string"},
           "station_reservation_id" => %{"type" => "string"},
-          "station_reservation_expires_at_s" => %{"type" => "number"},
+          "station_reservation_expires_at_s" => number_or_number_array_schema(),
           "station_reserved_by" => %{"type" => "string"},
           "station_reservation_status" => %{"type" => "string"},
           "cadence_import_status" => %{"type" => "string"},
@@ -66672,7 +66677,7 @@ defmodule OrbitalDynamics.Schema do
     |> expect_optional_type(path, row, "warnings", :list)
     |> expect_optional_type(path, row, "station_contention_status", :binary)
     |> expect_optional_type(path, row, "station_reservation_id", :binary)
-    |> expect_optional_number(path, row, "station_reservation_expires_at_s")
+    |> expect_optional_number_or_number_list(path, row, "station_reservation_expires_at_s")
     |> expect_optional_type(path, row, "station_reserved_by", :binary)
     |> expect_optional_type(path, row, "station_reservation_status", :binary)
     |> expect_optional_type(path, row, "cadence_import_status", :binary)
@@ -69834,6 +69839,25 @@ defmodule OrbitalDynamics.Schema do
       :null -> issues
       value when is_number(value) -> issues
       _value -> [error("#{path}.#{field}", "must be a number") | issues]
+    end
+  end
+
+  defp expect_optional_number_or_number_list(issues, path, map, field) do
+    case Map.get(map, field) do
+      nil ->
+        issues
+
+      :null ->
+        issues
+
+      value when is_number(value) ->
+        issues
+
+      values when is_list(values) ->
+        validate_number_list_items(issues, path, map, field)
+
+      _value ->
+        [error("#{path}.#{field}", "must be a number or list of numbers") | issues]
     end
   end
 

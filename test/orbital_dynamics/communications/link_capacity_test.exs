@@ -3244,6 +3244,12 @@ defmodule OrbitalDynamics.Communications.LinkCapacityTest do
 
     assert {:ok, %{"schema_contract" => "link_capacity_report.v1"}} =
              Schema.validate_artifact(report)
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(review)
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(manifest)
   end
 
   test "applies direct station-calendar outage evidence to capacity summaries" do
