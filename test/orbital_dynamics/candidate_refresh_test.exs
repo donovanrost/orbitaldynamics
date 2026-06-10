@@ -30825,7 +30825,47 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
   end
 
   test "source report summary replays compact operational readiness gate summaries" do
-    summary = operational_readiness_gate_summary_fixture()
+    summary =
+      operational_readiness_gate_summary_fixture()
+      |> Map.merge(%{
+        "gate_ids_by_status" => %{
+          "analysis_only" => ["stale_operational_mode"],
+          "blocked" => ["stale_cadence_import"],
+          "passed" => ["adapter_boundary", "source_contract"],
+          "review_required" => ["stale_operator_review"]
+        },
+        "gate_ids_by_classification" => %{
+          "analysis_only" => ["stale_operational_mode"],
+          "blocked_by_policy" => ["stale_cadence_import"],
+          "importable" => ["adapter_boundary", "source_contract"],
+          "operator_review_required" => ["stale_operator_review"]
+        },
+        "review_required_gate_ids" => ["stale_operator_review"],
+        "analysis_only_gate_ids" => ["stale_operational_mode"],
+        "blocked_gate_ids" => ["stale_cadence_import"],
+        "non_passed_gate_ids" => [
+          "stale_cadence_import",
+          "stale_operational_mode",
+          "stale_operator_review"
+        ],
+        "non_passed_gates" => [
+          %{
+            "id" => "operational_mode",
+            "status" => "analysis_only",
+            "classification" => "analysis_only"
+          },
+          %{
+            "id" => "operator_review",
+            "status" => "review_required",
+            "classification" => "operator_review_required"
+          },
+          %{
+            "id" => "cadence_import",
+            "status" => "blocked",
+            "classification" => "blocked_by_policy"
+          }
+        ]
+      })
 
     refresh = %{
       "accepted_planning_state" => %{"operational_readiness_gate_summary" => summary},
@@ -30957,6 +30997,7 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
            }
 
     assert replay_summary["review_required_gate_ids"] == ["operator_review"]
+    assert replay_summary["analysis_only_gate_ids"] == ["operational_mode"]
     assert replay_summary["blocked_gate_ids"] == ["cadence_import"]
 
     assert replay_summary["non_passed_gate_ids"] == [
@@ -30964,6 +31005,22 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              "operational_mode",
              "operator_review"
            ]
+
+    assert replay_summary["gate_ids_by_classification"] == %{
+             "analysis_only" => ["operational_mode"],
+             "blocked_by_policy" => ["cadence_import"],
+             "importable" => ["adapter_boundary", "source_contract"],
+             "operator_review_required" => ["operator_review"]
+           }
+
+    replay_routed_gate_ids =
+      replay_summary["gate_ids_by_status"]
+      |> Map.values()
+      |> List.flatten()
+
+    refute "stale_cadence_import" in replay_routed_gate_ids
+    refute "stale_operational_mode" in replay_routed_gate_ids
+    refute "stale_operator_review" in replay_routed_gate_ids
 
     assert replay_summary["trust_boundary_status"] == "declared"
     assert replay_summary["trust_boundaries"] == ["ops_readiness_gate_summary"]

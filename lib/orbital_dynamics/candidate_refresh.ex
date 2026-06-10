@@ -24293,11 +24293,11 @@ defmodule OrbitalDynamics.CandidateRefresh do
         |> merge_count_maps(),
       "gate_ids_by_status" =>
         reports
-        |> Enum.map(&operational_readiness_string_list_map(&1, "gate_ids_by_status"))
+        |> Enum.map(&operational_readiness_gate_ids_by_status/1)
         |> merge_string_list_maps(),
       "gate_ids_by_classification" =>
         reports
-        |> Enum.map(&operational_readiness_string_list_map(&1, "gate_ids_by_classification"))
+        |> Enum.map(&operational_readiness_gate_ids_by_classification/1)
         |> merge_string_list_maps(),
       "passed_gate_ids" =>
         reports
@@ -24305,15 +24305,29 @@ defmodule OrbitalDynamics.CandidateRefresh do
         |> sorted_string_values(),
       "review_required_gate_ids" =>
         reports
-        |> Enum.flat_map(&operational_readiness_string_list(&1, "review_required_gate_ids"))
+        |> Enum.flat_map(
+          &operational_readiness_gate_ids_for_status(
+            &1,
+            "review_required",
+            "review_required_gate_ids"
+          )
+        )
         |> sorted_string_values(),
       "analysis_only_gate_ids" =>
         reports
-        |> Enum.flat_map(&operational_readiness_string_list(&1, "analysis_only_gate_ids"))
+        |> Enum.flat_map(
+          &operational_readiness_gate_ids_for_status(
+            &1,
+            "analysis_only",
+            "analysis_only_gate_ids"
+          )
+        )
         |> sorted_string_values(),
       "blocked_gate_ids" =>
         reports
-        |> Enum.flat_map(&operational_readiness_string_list(&1, "blocked_gate_ids"))
+        |> Enum.flat_map(
+          &operational_readiness_gate_ids_for_status(&1, "blocked", "blocked_gate_ids")
+        )
         |> sorted_string_values(),
       "non_passed_gate_ids" =>
         reports
@@ -29325,19 +29339,129 @@ defmodule OrbitalDynamics.CandidateRefresh do
     end
   end
 
-  defp operational_readiness_non_passed_gate_ids(report) do
-    case operational_readiness_string_list(report, "non_passed_gate_ids") do
-      [] ->
+  defp operational_readiness_gate_ids_by_status(report) do
+    case operational_readiness_non_passed_gate_ids_by_status(report) do
+      %{} = row_ids_by_status when map_size(row_ids_by_status) > 0 ->
         report
-        |> Map.get("non_passed_gates", [])
-        |> List.wrap()
-        |> Enum.filter(&is_map/1)
-        |> Enum.map(&Map.get(&1, "id"))
+        |> operational_readiness_normalized_string_list_map("gate_ids_by_status")
+        |> Map.drop(["analysis_only", "blocked", "review_required"])
+        |> then(&merge_string_list_maps([&1, row_ids_by_status]))
 
-      ids ->
-        ids
+      _row_ids_by_status ->
+        operational_readiness_string_list_map(report, "gate_ids_by_status")
     end
   end
+
+  defp operational_readiness_gate_ids_by_classification(report) do
+    case operational_readiness_non_passed_gate_ids_by_classification(report) do
+      %{} = row_ids_by_classification when map_size(row_ids_by_classification) > 0 ->
+        report
+        |> operational_readiness_normalized_string_list_map("gate_ids_by_classification")
+        |> Map.drop(["analysis_only", "blocked_by_policy", "operator_review_required"])
+        |> then(&merge_string_list_maps([&1, row_ids_by_classification]))
+
+      _row_ids_by_classification ->
+        operational_readiness_string_list_map(report, "gate_ids_by_classification")
+    end
+  end
+
+  defp operational_readiness_gate_ids_for_status(report, status, fallback_field) do
+    case operational_readiness_non_passed_gate_ids_by_status(report) do
+      %{} = row_ids_by_status when map_size(row_ids_by_status) > 0 ->
+        Map.get(row_ids_by_status, status, [])
+
+      _row_ids_by_status ->
+        operational_readiness_string_list(report, fallback_field)
+    end
+  end
+
+  defp operational_readiness_non_passed_gate_ids(report) do
+    case operational_readiness_non_passed_gate_rows_with_status(report) do
+      [_row | _rows] = rows ->
+        rows
+        |> Enum.map(& &1["id"])
+        |> sorted_string_values()
+
+      [] ->
+        case operational_readiness_string_list(report, "non_passed_gate_ids") do
+          [] ->
+            report
+            |> Map.get("non_passed_gates", [])
+            |> List.wrap()
+            |> Enum.filter(&is_map/1)
+            |> Enum.map(&Map.get(&1, "id"))
+
+          ids ->
+            ids
+        end
+    end
+  end
+
+  defp operational_readiness_non_passed_gate_ids_by_status(report) do
+    report
+    |> operational_readiness_non_passed_gate_rows_with_status()
+    |> Enum.group_by(& &1["status"], & &1["id"])
+    |> sorted_string_list_map()
+  end
+
+  defp operational_readiness_non_passed_gate_ids_by_classification(report) do
+    report
+    |> operational_readiness_non_passed_gate_rows_with_status()
+    |> Enum.group_by(& &1["classification"], & &1["id"])
+    |> sorted_string_list_map()
+  end
+
+  defp operational_readiness_non_passed_gate_rows_with_status(report) do
+    report
+    |> Map.get("non_passed_gates", [])
+    |> List.wrap()
+    |> Enum.filter(&is_map/1)
+    |> Enum.flat_map(fn gate ->
+      id = gate |> Map.get("id") |> encode_value()
+      status = gate |> Map.get("status") |> encode_value()
+
+      if id in [nil, ""] or status in [nil, ""] do
+        []
+      else
+        [
+          %{
+            "id" => id,
+            "status" => status,
+            "classification" =>
+              gate
+              |> Map.get("classification")
+              |> encode_value()
+              |> operational_readiness_gate_classification_for_status(status)
+          }
+        ]
+      end
+    end)
+  end
+
+  defp operational_readiness_gate_classification_for_status(nil, "analysis_only"),
+    do: "analysis_only"
+
+  defp operational_readiness_gate_classification_for_status(nil, "blocked"),
+    do: "blocked_by_policy"
+
+  defp operational_readiness_gate_classification_for_status(nil, "review_required"),
+    do: "operator_review_required"
+
+  defp operational_readiness_gate_classification_for_status(classification, _status),
+    do: classification
+
+  defp operational_readiness_normalized_string_list_map(report, field) do
+    [operational_readiness_string_list_map(report, field)]
+    |> merge_string_list_maps()
+  end
+
+  defp sorted_string_list_map(list_map) when is_map(list_map) do
+    list_map
+    |> Enum.map(fn {key, values} -> {key, sorted_string_values(values)} end)
+    |> Map.new()
+  end
+
+  defp sorted_string_list_map(_list_map), do: %{}
 
   defp operational_readiness_evidence_count(report, field) do
     report
