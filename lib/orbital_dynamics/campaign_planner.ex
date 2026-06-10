@@ -387,7 +387,10 @@ defmodule OrbitalDynamics.CampaignPlanner do
     {resource_candidates, resource_filter_report} =
       apply_campaign_resource_filters(calendar_candidates, campaign)
 
-    {candidates, contact_contention_report} = annotate_contact_contention(resource_candidates)
+    {contact_candidates, contact_filter_report} =
+      apply_campaign_contact_filters(resource_candidates, campaign)
+
+    {candidates, contact_contention_report} = annotate_contact_contention(contact_candidates)
     contact_allocation_report = contact_allocation_report(candidates, campaign)
 
     timelines =
@@ -443,7 +446,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "activities" => selected_activities,
       "proposed_contacts" => proposed_contacts(candidates),
       "contact_intents" => contact_intents,
-      "contact_filter_report" => contact_filter_report(candidates),
+      "contact_filter_report" => contact_filter_report,
       "resource_filter_report" => resource_filter_report,
       "station_calendar_report" => station_calendar_report,
       "contact_contention_report" => contact_contention_report,
@@ -478,7 +481,15 @@ defmodule OrbitalDynamics.CampaignPlanner do
         ),
       "objective_tradeoff_report" => objective_tradeoff_report(timelines, policy),
       "score_term_report" => score_term_report(timelines, policy),
-      "warnings" => warnings(campaign, candidates, timelines, result_set, resource_filter_report),
+      "warnings" =>
+        warnings(
+          campaign,
+          candidates,
+          timelines,
+          result_set,
+          resource_filter_report,
+          contact_filter_report
+        ),
       "assumptions" => assumptions(campaign),
       "provenance" => provenance(result_set),
       "ranking_explanation" => ranking_explanation(policy)
@@ -55913,16 +55924,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp map_sort_key(value), do: encode_value(value)
 
-  defp contact_filter_report(candidates) do
-    ContactFilter.report(candidates, [],
-      policy: %{
-        "ground_network_source" => "study_access_windows",
-        "station_availability" => "available_from_detected_access_window",
-        "schedule_conflict_status" => "not_evaluated"
-      }
-    )
-  end
-
   defp apply_station_calendar(candidates, campaign),
     do: apply_station_calendar(candidates, campaign, "campaign.ground_network")
 
@@ -55971,6 +55972,12 @@ defmodule OrbitalDynamics.CampaignPlanner do
     campaign
     |> Map.get("resource_filter_policy", %{})
     |> ResourceFilter.resource_filter_policy()
+  end
+
+  defp apply_campaign_contact_filters(candidates, campaign) do
+    ContactFilter.filter_candidates(candidates, Map.get(campaign, "ground_network", []),
+      approval_policy: Map.get(campaign, "approval_policy") || Map.get(campaign, :approval_policy)
+    )
   end
 
   defp annotate_contact_contention(candidates) do
@@ -56845,7 +56852,14 @@ defmodule OrbitalDynamics.CampaignPlanner do
     |> Enum.join(":")
   end
 
-  defp warnings(campaign, candidates, timelines, result_set, resource_filter_report) do
+  defp warnings(
+         campaign,
+         candidates,
+         timelines,
+         result_set,
+         resource_filter_report,
+         contact_filter_report
+       ) do
     []
     |> maybe_warn(campaign_targets(campaign) == [], "campaign has no targets")
     |> maybe_warn(candidates == [], "no candidate activities were generated")
@@ -56858,6 +56872,10 @@ defmodule OrbitalDynamics.CampaignPlanner do
       Map.get(resource_filter_report || %{}, "suppressed_candidate_count", 0) > 0,
       "resource summary filters suppressed campaign candidates"
     )
+    |> maybe_warn(
+      Map.get(contact_filter_report || %{}, "suppressed_candidate_count", 0) > 0,
+      "contact filters suppressed campaign contacts"
+    )
     |> maybe_warn(result_set.errors != [], "study completed with propagation or event errors")
     |> Enum.reverse()
   end
@@ -56867,6 +56885,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "activity_builder" => "windows_to_observe_and_downlink_candidates",
       "timeline_selector" => "per_spacecraft_greedy_non_overlapping",
       "resource_filter" => "resource_summary_availability_and_margin_filter",
+      "contact_filter" => "ground_network_availability_filter_before_ranking",
       "cadence_integration" => "artifact_only_no_api_or_database_writes",
       "constraints" => Map.get(campaign, "constraints", %{}),
       "scoring_policy" => Map.get(campaign, "scoring_policy", %{})

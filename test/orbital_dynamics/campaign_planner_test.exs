@@ -2270,7 +2270,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact["resource_filter_report"])
   end
 
-  test "campaign overlays station calendar availability without suppressing contacts" do
+  test "campaign filters unavailable station contacts before ranking" do
     result_set =
       ResultSet.new!(%{
         study_id: :campaign,
@@ -2369,12 +2369,10 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                  &1["station_calendar_trust_boundary_status"] == "missing")
            )
 
-    maintenance =
-      Enum.find(artifact["candidate_activities"], &(&1["ground_station_id"] == "equator_prime"))
-
-    assert maintenance["station_availability"] == "unavailable"
-    assert maintenance["station_calendar_status"] == "maintenance"
-    assert maintenance["station_calendar_entry_id"] == "equator_maintenance"
+    refute Enum.any?(
+             artifact["candidate_activities"],
+             &(&1["ground_station_id"] == "equator_prime")
+           )
 
     reduced =
       Enum.find(artifact["candidate_activities"], &(&1["ground_station_id"] == "deep_space_net"))
@@ -2402,8 +2400,25 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
            )
 
     assert %{
-             "link_capacity_review_count" => 2
+             "link_capacity_review_count" => 1
            } = artifact["operator_review_package"]
+
+    assert %{
+             "input_candidate_count" => 2,
+             "kept_candidate_count" => 1,
+             "suppressed_candidate_count" => 1,
+             "suppressed_candidates" => [
+               %{
+                 "id" => "leo_1_downlink_equator_prime_1",
+                 "ground_station_id" => "equator_prime",
+                 "suppressed_reason" => "ground_station_unavailable",
+                 "station_calendar_entry_id" => "equator_maintenance",
+                 "approval_status" => "blocked_by_policy"
+               }
+             ]
+           } = artifact["contact_filter_report"]
+
+    assert "contact filters suppressed campaign contacts" in artifact["warnings"]
 
     assert %{
              "review_type" => "link_capacity_review",
@@ -2462,7 +2477,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
 
     assert_in_delta link_report["capacity_adjusted_throughput_mb"], adjusted_row_total, 1.0e-9
 
-    assert length(artifact["candidate_activities"]) == 2
+    assert length(artifact["candidate_activities"]) == 1
   end
 
   test "campaign does not apply uplink-only station outage to downlink contacts" do
@@ -2530,11 +2545,6 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
 
     assert [
              %{
-               "id" => "leo_2_downlink_deep_space_net_1",
-               "station_calendar_entry_id" => "dsn_downlink_outage",
-               "station_availability" => "unavailable"
-             },
-             %{
                "id" => "leo_1_downlink_equator_prime_1",
                "type" => "downlink",
                "direction" => "downlink",
@@ -2568,15 +2578,10 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                &(&1["contact_id"] == "leo_1_downlink_equator_prime_1")
              )
 
-    assert %{
-             "contact_id" => "leo_2_downlink_deep_space_net_1",
-             "allocation_reason" => "ground_station_unavailable",
-             "station_calendar_entry_id" => "dsn_downlink_outage"
-           } =
-             Enum.find(
-               artifact["contact_allocation_report"]["rows"],
-               &(&1["contact_id"] == "leo_2_downlink_deep_space_net_1")
-             )
+    refute Enum.any?(
+             artifact["contact_allocation_report"]["rows"],
+             &(&1["contact_id"] == "leo_2_downlink_deep_space_net_1")
+           )
 
     assert [
              %{
@@ -2742,13 +2747,27 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     refute Map.has_key?(affected, "station_reserved_by")
     refute Map.has_key?(affected, "station_reservation_status")
 
-    assert [candidate] = artifact["candidate_activities"]
-    assert candidate["station_availability"] == "reserved"
-    assert candidate["station_contention_status"] == "reserved_overlap"
+    assert [] = artifact["candidate_activities"]
 
-    refute Map.has_key?(candidate, "station_reservation_id")
-    refute Map.has_key?(candidate, "station_reserved_by")
-    refute Map.has_key?(candidate, "station_reservation_status")
+    assert %{
+             "input_candidate_count" => 1,
+             "kept_candidate_count" => 0,
+             "suppressed_candidate_count" => 1,
+             "suppressed_candidates" => [
+               %{
+                 "id" => "leo_1_downlink_equator_prime_1",
+                 "station_availability" => "reserved",
+                 "station_contention_status" => "reserved_overlap",
+                 "suppressed_reason" => "ground_station_reserved",
+                 "station_calendar_entry_id" =>
+                   "ambiguous_station_calendar:equator_reserved_a:equator_reserved_b"
+               } = suppressed
+             ]
+           } = artifact["contact_filter_report"]
+
+    refute Map.has_key?(suppressed, "station_reservation_id")
+    refute Map.has_key?(suppressed, "station_reserved_by")
+    refute Map.has_key?(suppressed, "station_reservation_status")
   end
 
   test "campaign overlays reserved station calendar entries with reservation metadata" do
@@ -2853,28 +2872,33 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                &(&1["import_action"] == "review_station_calendar")
              )
 
-    [candidate] = artifact["candidate_activities"]
-
-    assert candidate["station_availability"] == "reserved"
-    assert candidate["station_calendar_entry_id"] == "equator_reserved"
-    assert candidate["station_contention_status"] == "reserved_overlap"
-    assert candidate["station_reservation_id"] == "reservation_42"
-    assert candidate["station_reserved_by"] == "ops_team_b"
-    assert candidate["station_reservation_status"] == "reserved"
-
     assert %{
-             "allocation_status" => "blocked",
-             "station_contention_status" => "reserved_overlap",
-             "approval_status" => "operator_review_required",
-             "policy_decision" => %{
-               "schema_contract" => "policy_decision.v1",
-               "policy_bundle_id" => "ground_network_allocation_v1",
-               "classification" => "operator_review_required"
-             },
-             "approval_rule_matches" => rule_matches
-           } =
-             artifact["contact_allocation_report"]["rows"]
-             |> Enum.find(&(&1["contact_id"] == "leo_1_downlink_equator_prime_1"))
+             "input_candidate_count" => 1,
+             "kept_candidate_count" => 0,
+             "suppressed_candidate_count" => 1,
+             "suppressed_candidates" => [
+               %{
+                 "id" => "leo_1_downlink_equator_prime_1",
+                 "station_availability" => "reserved",
+                 "station_calendar_entry_id" => "equator_reserved",
+                 "station_contention_status" => "reserved_overlap",
+                 "station_reservation_id" => "reservation_42",
+                 "station_reserved_by" => "ops_team_b",
+                 "station_reservation_status" => "reserved",
+                 "suppressed_reason" => "ground_station_reserved",
+                 "approval_status" => "operator_review_required",
+                 "policy_decision" => %{
+                   "schema_contract" => "policy_decision.v1",
+                   "policy_bundle_id" => "ground_network_allocation_v1",
+                   "classification" => "operator_review_required"
+                 },
+                 "approval_rule_matches" => rule_matches
+               }
+             ]
+           } = artifact["contact_filter_report"]
+
+    assert [] = artifact["candidate_activities"]
+    assert [] = artifact["contact_allocation_report"]["rows"]
 
     assert Enum.any?(
              rule_matches,
@@ -2884,10 +2908,18 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
 
     assert Enum.any?(
              artifact["operator_review_package"]["rows"],
-             &(&1["review_type"] == "contact_allocation_review" and
-                 &1["contact_id"] == "leo_1_downlink_equator_prime_1" and
+             &(&1["review_type"] == "contact_suppression" and
+                 &1["activity_id"] == "leo_1_downlink_equator_prime_1" and
+                 get_in(&1, ["source_contact_suppression", "station_reservation_id"]) ==
+                   "reservation_42" and
                  get_in(&1, ["source_policy_decision", "policy_bundle_id"]) ==
                    "ground_network_allocation_v1")
+           )
+
+    refute Enum.any?(
+             artifact["operator_review_package"]["rows"],
+             &(&1["review_type"] == "contact_allocation_review" and
+                 &1["contact_id"] == "leo_1_downlink_equator_prime_1")
            )
   end
 
