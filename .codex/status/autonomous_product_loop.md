@@ -82,7 +82,7 @@ term.
 
 Last commit:
 - Product: `324d349` Split reservation expiration branch score pressure
-- Ledger: pending
+- Ledger: `a8006f1` Update autonomous loop status
 
 Remaining maturity gaps:
 - Continue converting existing replayed resource/contact/readiness pressure
