@@ -5,62 +5,55 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Row-bearing contact-intent summaries as scored branch pressure.
+Row-local contact-allocation stale aggregate challenge fixture.
 
 Status:
-Implemented, reviewed, reviewer recheck clear, locally verified, committed, and
-pushed.
+Implemented, reviewed, reviewer nits resolved, and locally verified; publish
+pending.
 
 Files changed:
-- Strategy branch derivation:
-  `lib/orbital_dynamics/campaign_planner.ex`
 - Focused strategy regression:
   `test/orbital_dynamics/campaign_planner_test.exs`
 - Ledger:
   `.codex/status/autonomous_product_loop.md`
 
 Tests/checks run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:40289`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:40087 test/orbital_dynamics/campaign_planner_test.exs:40289 test/orbital_dynamics/campaign_planner_test.exs:54330 test/orbital_dynamics/campaign_planner_test.exs:54527`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:40087 test/orbital_dynamics/campaign_planner_test.exs:40289 test/orbital_dynamics/campaign_planner_test.exs:54330 test/orbital_dynamics/campaign_planner_test.exs:54527 test/orbital_dynamics/campaign_planner_test.exs:77879`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:37663`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:37572 test/orbital_dynamics/campaign_planner_test.exs:37663`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 
 Level 6 pillar advanced:
 Fleet-level resource/contact pressure and reproducible branch trees with
-explainable score terms, by converting row-bearing contact-intent summaries
-from replay-only provenance into planner-visible, scored branch pressure.
+explainable score terms, by pinning row-local contact-allocation evidence
+against stale summary aggregates before candidate-source replay and branch
+scoring.
 
 Slice selection note:
-Selected slice: make row-bearing contact-intent summaries produce derived
-contact-intent pressure branches.
+Selected slice: add a stale-top-level contact-allocation summary challenge
+fixture for replay and scoring.
 
-Why this slice: `contact_intent_summary.v1` already participates in
-candidate-source and replay summaries, and existing CandidateRefresh coverage
-proves stale top-level summary aggregates are derived from rows. Strategy branch
-derivation still read only standalone `contact_intent.v1` rows, leaving
-summary-carried blocked/missing/invalid downlink intents visible to replay but
-not scored.
+Why this slice: `contact_allocation_summary.v1` is replayed and already can
+produce planner-visible branch pressure, but the exact stale-aggregate safety
+case was only implicit. A contradictory summary should prove row evidence wins
+for replay summaries, branch events, branch comparison rows, and score terms.
 
-Current evidence gap closed: a row-bearing source contact-intent summary whose
-top-level direction/count maps are stale now proves row evidence drives
-candidate-source summaries, contact-intent replay summaries, derived
-contact-intent pressure events, and `contact_intent_pressure_penalty` score
-terms.
+Current evidence gap closed: a source contact-allocation summary whose top-level
+aggregate fields claim all contacts are allocated now proves the deferred row
+drives candidate-source replay, derived downlink-completion pressure, branch
+comparison identity, and `contact_allocation_pressure_penalty`.
 
 Slice result:
-- Added prior-plan and mission-state contact-intent summary branch derivation.
-- Embedded result-artifact contact-intent summaries are included with inherited
-  trust-boundary provenance.
-- Rowless contact-intent summaries remain replay provenance only; branch
-  derivation uses only row-bearing summaries.
-- Contact-intent pressure branches are deduped globally by gate status plus
-  contact identity before combined-branch construction, so mirrored direct,
-  summary, operator-review, or import evidence cannot double-score the same
-  contact intent.
-- Added a focused strategy challenge test with stale top-level summary routing
-  plus mission-state, prior-plan, embedded result-artifact, and mirrored
-  direct-plus-summary rows.
+- Added a focused strategy challenge test for stale contact-allocation summary
+  aggregates.
+- The fixture verifies row-derived allocated/deferred counts and IDs in
+  `CandidateRefresh.contact_allocation_replay_summary/1`.
+- The same fixture verifies the generated downlink-completion branch, branch
+  comparison row, schema validation, and score-term reporting follow the row.
+- Reviewer nits were resolved by asserting exactly one matching branch/event,
+  using the matched event directly, and pinning the non-indexed source path.
+- No production code changes were needed; live code was already row-led for this
+  path once the row contains downlink contact evidence.
 
 Last completed slice:
 Row-bearing contact-intent summaries as scored branch pressure.
@@ -74,13 +67,13 @@ Last pushed commits:
 - Ledger correction: `8d92d05` Update autonomous loop ledger after import
   readiness publish
 - Product/ledger: `3df98cb` Score contact intent summary pressure
+- Ledger correction: `c467c05` Update autonomous loop ledger after contact
+  intent publish
 
 Review/publish queue:
-- Reviewer sidecar found duplicate scoring blockers and a coverage gap for
-  prior-plan/result-artifact summaries; parent fixed them with global
-  contact-intent pressure dedupe and broader source coverage.
-- Reviewer recheck found no new blockers and approved publish.
-- Published to `origin/main` as `3df98cb`.
+- Reviewer sidecar found no blockers and only test-strength nits; parent fixed
+  the nits and reran focused verification.
+- Publish pending: commit and push the test/ledger slice.
 
 Remaining maturity gaps:
 - Continue converting replayed resource/contact/readiness pressure into

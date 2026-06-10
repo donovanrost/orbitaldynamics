@@ -37660,6 +37660,131 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     end
   end
 
+  test "strategy scores contact-allocation summaries from row-local stale aggregate evidence" do
+    stale_summary =
+      "stale"
+      |> contact_allocation_summary_fixture()
+      |> Map.update!("rows", fn rows ->
+        Enum.map(rows, fn row ->
+          row
+          |> Map.put("type", "contact")
+          |> Map.put("starts_at_s", 640.0)
+          |> Map.put("ends_at_s", 700.0)
+          |> Map.put("required_downlink_mb", 60.0)
+        end)
+      end)
+      |> Map.update!("review_rows", fn rows ->
+        Enum.map(rows, fn row ->
+          row
+          |> Map.put("type", "contact")
+          |> Map.put("starts_at_s", 640.0)
+          |> Map.put("ends_at_s", 700.0)
+          |> Map.put("required_downlink_mb", 60.0)
+        end)
+      end)
+      |> Map.merge(%{
+        "allocated_contact_count" => 2,
+        "returned_allocated_contact_count" => 2,
+        "deferred_contact_count" => 0,
+        "allocation_status_counts" => %{"allocated" => 2},
+        "effective_allocation_status_counts" => %{"allocated" => 2},
+        "allocation_reason_counts" => %{"selected_by_contention_resolution" => 2},
+        "allocated_contact_ids" => ["stale_dl_allocated", "stale_top_level_allocated"],
+        "returned_allocated_contact_ids" => [
+          "stale_dl_allocated",
+          "stale_top_level_allocated"
+        ],
+        "deferred_contact_ids" => ["stale_top_level_deferred"],
+        "review_contact_ids" => ["stale_top_level_deferred"],
+        "contact_ids_by_allocation_reason" => %{
+          "selected_by_contention_resolution" => [
+            "stale_dl_allocated",
+            "stale_top_level_allocated"
+          ]
+        }
+      })
+
+    mission_state =
+      mission_state_with_refresh_inputs()
+      |> Map.put("source_contact_allocation_summary", stale_summary)
+
+    artifact =
+      strategy(base_plan(%{}),
+        mission_state: mission_state,
+        derive_branches?: true,
+        branches: [%{id: "baseline"}],
+        current_epoch_s: 0.0
+      )
+
+    matching_branches =
+      artifact["branches"]
+      |> Enum.filter(fn branch ->
+        branch
+        |> Map.get("events", [])
+        |> Enum.any?(
+          &(&1["feedback_scope"] == "contact_allocation" and
+              &1["contact_id"] == "stale_dl_deferred")
+        )
+      end)
+
+    assert [pressure_branch] = matching_branches
+
+    assert [pressure_event] =
+             pressure_branch["events"]
+             |> Enum.filter(
+               &(&1["feedback_scope"] == "contact_allocation" and
+                   &1["contact_id"] == "stale_dl_deferred")
+             )
+
+    assert %{
+             "type" => "downlink_completion_gap",
+             "contact_id" => "stale_dl_deferred",
+             "allocation_status" => "deferred",
+             "effective_allocation_status" => "deferred",
+             "allocation_reason" => "same_station_contention",
+             "feedback_source" => "mission_state.source_contact_allocation_summary",
+             "feedback_scope" => "contact_allocation",
+             "trust_boundary" => "stale_contact_allocation_summary_fixture"
+           } = pressure_event
+
+    candidate_source = get_in(pressure_branch, ["assumptions", "candidate_source"])
+    replay_summary = CandidateRefresh.contact_allocation_replay_summary(candidate_source)
+
+    assert replay_summary["allocated_contact_count"] == 1
+    assert replay_summary["returned_allocated_contact_count"] == 1
+    assert replay_summary["deferred_contact_count"] == 1
+    assert replay_summary["allocated_contact_ids"] == ["stale_dl_allocated"]
+    assert replay_summary["returned_allocated_contact_ids"] == ["stale_dl_allocated"]
+    assert replay_summary["deferred_contact_ids"] == ["stale_dl_deferred"]
+    assert replay_summary["review_contact_ids"] == ["stale_dl_deferred"]
+    assert replay_summary["allocation_status_counts"] == %{"allocated" => 1, "deferred" => 1}
+    assert replay_summary["effective_allocation_status_counts"] == %{
+             "allocated" => 1,
+             "deferred" => 1
+           }
+
+    refute "stale_top_level_allocated" in replay_summary["allocated_contact_ids"]
+    refute "stale_top_level_deferred" in replay_summary["deferred_contact_ids"]
+    refute "stale_top_level_deferred" in replay_summary["review_contact_ids"]
+
+    assert_contact_allocation_pressure_score_terms(
+      pressure_branch,
+      artifact,
+      "downlink_completion_gap",
+      "contact_allocation"
+    )
+
+    comparison_row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(&(&1["branch_id"] == pressure_branch["branch_id"]))
+
+    assert comparison_row["branch_source_activity_ids"] == ["stale_dl_deferred"]
+    assert "downlink_completion_gap" in comparison_row["risk_types"]
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "strategy carries mission-state contact-allocation reports into branch refresh requests" do
     direct_report = %{
       "schema_contract" => "contact_allocation_report.v1",
