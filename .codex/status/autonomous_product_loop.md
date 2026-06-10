@@ -9,7 +9,7 @@ Provider-calendar station-reservation hold-summary stale aggregate challenge
 fixture.
 
 Status:
-Implemented, locally verified, and reviewer-cleared; publish pending.
+Implemented, reviewer-cleared, locally verified, committed, and pushed.
 
 Files changed:
 - Provider contention hold expiration propagation:
@@ -60,7 +60,8 @@ Slice result:
 - Neighboring hold-summary strategy coverage remains green.
 
 Last completed slice:
-Row-local station-reservation hold-summary stale aggregate challenge fixture.
+Provider-calendar station-reservation hold-summary stale aggregate challenge
+fixture.
 
 Last pushed commits:
 - Product/ledger: `eb924e1` Guard station calendar summary row evidence
@@ -72,11 +73,12 @@ Last pushed commits:
 - Product/ledger: `f35dee1` Guard station reservation hold rows against stale
   aggregates
 - Ledger correction: `8f7fba4` Update autonomous loop ledger after hold publish
+- Product/ledger: `5e11842` Preserve provider hold expiration pressure
 
 Review/publish queue:
 - Reviewer sidecar found no must-fix issues; parent resolved the recommended
   provider comparison-row expiration-status assertion.
-- Publish pending after reviewer clearance.
+- Published to `origin/main` as `5e11842`.
 
 Remaining maturity gaps:
 - Continue converting replayed resource/contact/readiness pressure into
