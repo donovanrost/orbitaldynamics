@@ -343,7 +343,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
                 "operational_readiness_blocked",
                 "quality_gate_blocked",
                 "contact_intent_blocked",
-                "link_capacity_blocked"
+                "link_capacity_blocked",
+                "resource_projection_blocked"
               ],
               action_rules: []
   end
@@ -8034,6 +8035,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "link_capacity_status" => event["link_capacity_status"],
         "downlink_requirement_status" => event["downlink_requirement_status"],
         "actual_downlink_requirement_status" => event["actual_downlink_requirement_status"],
+        "resource_projection_status" => event["resource_projection_status"],
+        "projected_resource_status" => event["projected_resource_status"],
         "contact_id" => event["contact_id"],
         "contact_result" => event["contact_result"],
         "realized_status" => event["realized_status"],
