@@ -75,7 +75,7 @@ Expose priority-commitment score in V3 recommendation tradeoffs.
 
 Last commit:
 - Product: `a94af77` Expose priority commitment score tradeoffs
-- Ledger: pending
+- Ledger: `e9b60bc` Update autonomous loop status
 
 Remaining maturity gaps:
 - Continue converting existing replayed resource/contact/readiness pressure
