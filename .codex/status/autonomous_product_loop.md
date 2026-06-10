@@ -8,7 +8,8 @@ Current slice:
 Resource-filter summary schema-export source contract pin.
 
 Status:
-Implemented, parent-reviewed, locally verified, pending publish.
+Implemented, parent-reviewed, locally verified, and published in commit
+`7450e7e`.
 
 Files changed:
 - Schema export:
@@ -40,7 +41,7 @@ Remaining maturity gaps:
   editing; do not rely on stale ledger candidates.
 
 Last commit:
-Pending for this slice.
+`7450e7e` Pin resource filter summary source schema.
 
 Next candidate:
 Recalibrate from live code. Likely areas remain V2/V3 planner-visible use of
