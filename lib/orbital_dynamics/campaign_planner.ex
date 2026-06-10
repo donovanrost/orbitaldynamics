@@ -2850,6 +2850,10 @@ defmodule OrbitalDynamics.CampaignPlanner do
     approval_count = length(branch_approval_requirements(repair_result, candidate_plan))
     risk_count = length(risk_indicators)
     contact_allocation_pressure_count = contact_allocation_pressure_risk_count(risk_indicators)
+
+    station_reservation_conflict_pressure_count =
+      station_reservation_conflict_pressure_risk_count(risk_indicators)
+
     candidate_diff_pressure_count = candidate_diff_pressure_risk_count(risk_indicators)
     timeline_diff_pressure_count = timeline_diff_pressure_risk_count(risk_indicators)
     link_capacity_pressure_count = link_capacity_pressure_risk_count(risk_indicators)
@@ -2948,6 +2952,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
     generic_risk_count =
       max(
         risk_count - contact_allocation_pressure_count - approval_boundary_pressure_count -
+          station_reservation_conflict_pressure_count -
           candidate_diff_pressure_count -
           timeline_diff_pressure_count -
           link_capacity_pressure_count - contact_intent_pressure_count -
@@ -3011,6 +3016,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
     contact_allocation_pressure_penalty =
       -contact_allocation_pressure_count * policy.risk_weight
+
+    station_reservation_conflict_pressure_penalty =
+      -station_reservation_conflict_pressure_count * policy.risk_weight
 
     candidate_diff_pressure_penalty =
       -candidate_diff_pressure_count * policy.risk_weight
@@ -3146,6 +3154,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         downlink_completion_score + fuel_preservation_score + schedule_stability_penalty +
         asset_balance_score + priority_commitment_score + resource_score +
         feedback_adjustment_score + contact_allocation_pressure_penalty +
+        station_reservation_conflict_pressure_penalty +
         candidate_diff_pressure_penalty +
         timeline_diff_pressure_penalty +
         link_capacity_pressure_penalty + contact_intent_pressure_penalty +
@@ -3193,6 +3202,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "resource_score" => resource_score,
       "feedback_adjustment_score" => feedback_adjustment_score,
       "contact_allocation_pressure_penalty" => contact_allocation_pressure_penalty,
+      "station_reservation_conflict_pressure_penalty" =>
+        station_reservation_conflict_pressure_penalty,
       "candidate_diff_pressure_penalty" => candidate_diff_pressure_penalty,
       "timeline_diff_pressure_penalty" => timeline_diff_pressure_penalty,
       "link_capacity_pressure_penalty" => link_capacity_pressure_penalty,
@@ -3250,20 +3261,49 @@ defmodule OrbitalDynamics.CampaignPlanner do
     Enum.count(risk_indicators, &contact_allocation_pressure_risk?/1)
   end
 
-  defp contact_allocation_pressure_risk?(%{"type" => "provider_reservation_request_review"}),
-    do: true
+  defp contact_allocation_pressure_risk?(
+         %{"type" => "provider_reservation_request_review"} = risk
+       ) do
+    not station_reservation_conflict_pressure_risk?(risk)
+  end
 
   defp contact_allocation_pressure_risk?(%{"type" => "downlink_completion_gap"} = risk) do
-    risk["feedback_scope"] == "contact_allocation" or
-      risk["feedback_scope"] == "contact_allocation_provider_reservation_request" or
-      Enum.any?(List.wrap(risk["derivation_reasons"]), fn reason ->
-        reason
-        |> to_string()
-        |> String.starts_with?("contact_allocation")
-      end)
+    not station_reservation_conflict_pressure_risk?(risk) and
+      (risk["feedback_scope"] == "contact_allocation" or
+         risk["feedback_scope"] == "contact_allocation_provider_reservation_request" or
+         Enum.any?(List.wrap(risk["derivation_reasons"]), fn reason ->
+           reason
+           |> to_string()
+           |> String.starts_with?("contact_allocation")
+         end))
   end
 
   defp contact_allocation_pressure_risk?(_risk), do: false
+
+  defp station_reservation_conflict_pressure_risk_count(risk_indicators) do
+    Enum.count(risk_indicators, &station_reservation_conflict_pressure_risk?/1)
+  end
+
+  defp station_reservation_conflict_pressure_risk?(%{"type" => "downlink_completion_gap"} = risk) do
+    risk["feedback_scope"] == "contact_allocation" and
+      station_reservation_conflict_evidence?(risk)
+  end
+
+  defp station_reservation_conflict_pressure_risk?(_risk), do: false
+
+  defp station_reservation_conflict_evidence?(risk) do
+    station_reservation_conflict_match_status?(risk["station_reservation_match_status"]) or
+      Enum.any?(List.wrap(risk["derivation_reasons"]), fn reason ->
+        reason == "contact_allocation_reservation_conflict"
+      end) or
+      reservation_conflict_source?(risk["feedback_source"])
+  end
+
+  defp reservation_conflict_source?(source) when is_binary(source) do
+    String.contains?(source, "reservation_conflict_summary")
+  end
+
+  defp reservation_conflict_source?(_source), do: false
 
   defp candidate_diff_pressure_risk_count(risk_indicators) do
     Enum.count(risk_indicators, &candidate_diff_pressure_risk?/1)
@@ -9399,6 +9439,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
         {"resource_score", "resource_score"},
         {"feedback_adjustment", "feedback_adjustment_score"},
         {"contact_allocation_pressure", "contact_allocation_pressure_penalty"},
+        {"station_reservation_conflict_pressure",
+         "station_reservation_conflict_pressure_penalty"},
         {"candidate_diff_pressure", "candidate_diff_pressure_penalty"},
         {"timeline_diff_pressure", "timeline_diff_pressure_penalty"},
         {"link_capacity_pressure", "link_capacity_pressure_penalty"},

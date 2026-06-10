@@ -761,6 +761,9 @@ risks while preserving total branch score compatibility.
 Contact-contention and contention-resolution risks contribute to
 `contact_contention_pressure_penalty`, leaving generic `risk_penalty` for
 unrelated risks while preserving total branch score compatibility.
+Contact-allocation station-reservation conflicts contribute to
+`station_reservation_conflict_pressure_penalty`, so overlapping reservation
+pressure is visible separately from broader contact-allocation review pressure.
 Contact-filter downlink suppression risks contribute to
 `contact_filter_pressure_penalty`, leaving generic `risk_penalty` for unrelated
 risks while preserving total branch score compatibility.
@@ -1638,6 +1641,10 @@ Selected recommendations also include:
   compatible while score-term reports expose contact pressure directly. Focused
   contact-allocation pressure fixtures now assert split branch math and
   score-term report rows through a shared helper.
+- **Station-reservation conflict pressure score terms** — split
+  contact-allocation reservation-conflict risks into
+  `station_reservation_conflict_pressure_penalty`, leaving provider-reservation
+  and non-conflict allocation pressure on `contact_allocation_pressure_penalty`.
 - **Link-capacity pressure score terms** — split link-capacity shortfall risks
   into `link_capacity_pressure_penalty`, leaving `risk_penalty` for unrelated
   risks while preserving total branch score compatibility. Focused

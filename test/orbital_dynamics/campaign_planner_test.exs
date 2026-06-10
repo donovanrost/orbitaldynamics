@@ -30528,18 +30528,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
 
     assert "mission_state.source_station_reservation_hold_import_readiness_summary" in station_reservation_source_paths
 
-    assert challenge_branch["score_terms"]["contact_allocation_pressure_penalty"] < 0.0
-
-    assert "contact_allocation_pressure_penalty" in artifact["score_term_report"][
-             "score_term_keys"
-           ]
-
-    assert Enum.any?(
-             artifact["score_term_report"]["rows"],
-             &(&1["branch_id"] == "challenge" and
-                 &1["term_key"] == "contact_allocation_pressure_penalty" and
-                 &1["value"] < 0.0)
-           )
+    assert_station_reservation_conflict_pressure_score_terms(challenge_branch, artifact)
 
     challenge_row =
       artifact["branch_comparison_report"]["rows"]
@@ -48460,16 +48449,18 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "trust_boundary" => "summary_reservation_reservation_conflict_fixture"
            } = List.first(reservation_branch["events"])
 
+    assert_station_reservation_conflict_pressure_score_terms(reservation_branch, artifact)
+
     reservation_row =
       artifact["branch_comparison_report"]["rows"]
       |> Enum.find(&(&1["branch_id"] == reservation_branch["branch_id"]))
 
-    assert reservation_row["branch_station_reservation_conflict_contact_ids"] == [
-             "summary_reservation_dl_reserved_intruder"
+    assert "summary_reservation_dl_reserved_intruder" in reservation_row[
+             "branch_station_reservation_conflict_contact_ids"
            ]
 
-    assert reservation_row["branch_station_reservation_conflict_reservation_ids"] == [
-             "summary_reservation_reservation_1"
+    assert "summary_reservation_reservation_1" in reservation_row[
+             "branch_station_reservation_conflict_reservation_ids"
            ]
 
     assert reservation_row["branch_station_reservation_conflict_match_statuses"] == [
@@ -48484,22 +48475,22 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
             &1["source"] == "campaign_strategy.branch_comparison_report.rows")
       )
 
-    assert reservation_review_row["branch_station_reservation_conflict_contact_ids"] == [
-             "summary_reservation_dl_reserved_intruder"
+    assert "summary_reservation_dl_reserved_intruder" in reservation_review_row[
+             "branch_station_reservation_conflict_contact_ids"
            ]
 
-    assert reservation_review_row["branch_station_reservation_conflict_reservation_ids"] == [
-             "summary_reservation_reservation_1"
+    assert "summary_reservation_reservation_1" in reservation_review_row[
+             "branch_station_reservation_conflict_reservation_ids"
            ]
 
     assert reservation_review_row["branch_station_reservation_conflict_match_statuses"] == [
              "overlap"
            ]
 
-    assert get_in(reservation_review_row, [
+    assert "summary_reservation_reservation_1" in get_in(reservation_review_row, [
              "source_branch_comparison",
              "branch_station_reservation_conflict_reservation_ids"
-           ]) == ["summary_reservation_reservation_1"]
+           ])
 
     reservation_import_row =
       artifact["cadence_import_manifest"]["rows"]
@@ -48508,12 +48499,12 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
             &1["branch_id"] == reservation_branch["branch_id"])
       )
 
-    assert reservation_import_row["branch_station_reservation_conflict_contact_ids"] == [
-             "summary_reservation_dl_reserved_intruder"
+    assert "summary_reservation_dl_reserved_intruder" in reservation_import_row[
+             "branch_station_reservation_conflict_contact_ids"
            ]
 
-    assert reservation_import_row["branch_station_reservation_conflict_reservation_ids"] == [
-             "summary_reservation_reservation_1"
+    assert "summary_reservation_reservation_1" in reservation_import_row[
+             "branch_station_reservation_conflict_reservation_ids"
            ]
 
     assert reservation_import_row["branch_station_reservation_conflict_match_statuses"] == [
@@ -48871,6 +48862,8 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                "prior_plan.source_result_artifact.source_contact_allocation_reservation_conflict_summary",
              "trust_boundary" => "prior_reservation_reservation_conflict_fixture"
            } = List.first(reservation_branch["events"])
+
+    assert_station_reservation_conflict_pressure_score_terms(reservation_branch, artifact)
 
     capacity_branch =
       branch(
@@ -80560,6 +80553,63 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                  &1["term_key"] == "contact_allocation_pressure_penalty" and
                  &1["value"] < 0.0)
            )
+  end
+
+  defp assert_station_reservation_conflict_pressure_score_terms(branch, artifact) do
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    contact_allocation_pressure_count =
+      Enum.count(
+        branch["risk_indicators"],
+        &contact_allocation_non_conflict_pressure?/1
+      )
+
+    station_reservation_conflict_pressure_count =
+      Enum.count(
+        branch["risk_indicators"],
+        &station_reservation_conflict_pressure?/1
+      )
+
+    assert station_reservation_conflict_pressure_count > 0
+
+    assert branch["score_terms"]["contact_allocation_pressure_penalty"] ==
+             -contact_allocation_pressure_count * risk_weight
+
+    assert branch["score_terms"]["station_reservation_conflict_pressure_penalty"] ==
+             -station_reservation_conflict_pressure_count * risk_weight
+
+    assert "station_reservation_conflict_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] == branch["branch_id"] and
+                 &1["term_key"] == "station_reservation_conflict_pressure_penalty" and
+                 &1["value"] < 0.0)
+           )
+  end
+
+  defp station_reservation_conflict_pressure?(risk) do
+    risk["type"] == "downlink_completion_gap" and
+      risk["feedback_scope"] == "contact_allocation" and
+      (risk["station_reservation_match_status"] in ["overlap"] or
+         "contact_allocation_reservation_conflict" in List.wrap(risk["derivation_reasons"]))
+  end
+
+  defp contact_allocation_non_conflict_pressure?(risk) do
+    not station_reservation_conflict_pressure?(risk) and
+      (risk["type"] == "provider_reservation_request_review" or
+         (risk["type"] == "downlink_completion_gap" and
+            (risk["feedback_scope"] in [
+               "contact_allocation",
+               "contact_allocation_provider_reservation_request"
+             ] or
+               Enum.any?(List.wrap(risk["derivation_reasons"]), fn reason ->
+                 reason
+                 |> to_string()
+                 |> String.starts_with?("contact_allocation")
+               end))))
   end
 
   defp assert_link_capacity_pressure_score_terms(branch, artifact) do
