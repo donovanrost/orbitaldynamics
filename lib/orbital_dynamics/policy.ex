@@ -5278,7 +5278,24 @@ defmodule OrbitalDynamics.Policy do
       blocked_value?(risk["approval_status"])
   end
 
+  defp risk_matches_blocked_type?(
+         %{"feedback_scope" => "resource_filter"} = risk,
+         "resource_filter_availability_blocked"
+       ) do
+    resource_availability_blocked?(risk) and
+      (blocked_value?(risk["resource_filter_status"]) or
+         blocked_value?(risk["suppression_status"]) or
+         blocked_value?(risk["policy_classification"]) or
+         blocked_value?(risk["approval_status"]) or
+         risk["resource_availability_value"] == false)
+  end
+
   defp risk_matches_blocked_type?(_risk, _blocked_type), do: false
+
+  defp resource_availability_blocked?(risk) do
+    is_binary(risk["resource_field"]) and
+      Map.has_key?(risk, "resource_availability_value")
+  end
 
   defp blocked_value?(value) when is_binary(value),
     do: value in ["blocked", "blocked_by_policy"]

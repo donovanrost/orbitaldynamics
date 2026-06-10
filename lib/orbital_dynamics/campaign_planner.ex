@@ -346,7 +346,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
                 "link_capacity_blocked",
                 "resource_projection_blocked",
                 "contact_filter_blocked",
-                "contact_contention_blocked"
+                "contact_contention_blocked",
+                "resource_filter_availability_blocked"
               ],
               action_rules: []
   end
@@ -7980,6 +7981,11 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "resource_field" => field,
         "resource_availability_value" => value,
         field => value,
+        "suppressed_reason" => event["suppressed_reason"],
+        "approval_status" => event["approval_status"],
+        "policy_classification" => event["policy_classification"],
+        "resource_filter_status" => event["resource_filter_status"],
+        "suppression_status" => event["suppression_status"],
         "resource_id" => event["resource_id"],
         "planned_resource_id" => event["planned_resource_id"],
         "realized_resource_id" => event["realized_resource_id"],
@@ -15941,6 +15947,11 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "source_activity_id" => resource_filter_candidate_id(row),
       "source_activity_ids" => List.wrap(resource_filter_candidate_id(row)),
       "suppressed_reason" => row["suppressed_reason"],
+      "approval_status" => row["approval_status"],
+      "policy_classification" => row["policy_classification"],
+      "resource_filter_status" => row["resource_filter_status"],
+      "suppression_status" => row["suppression_status"],
+      "required_operator_action" => row["required_operator_action"],
       "source_quality" => row["resource_source_quality"],
       "resource_trust_boundary_status" => row["resource_trust_boundary_status"],
       "derivation_reasons" => resource_filter_pressure_reasons(row),
