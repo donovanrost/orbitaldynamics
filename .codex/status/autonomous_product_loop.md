@@ -8,8 +8,8 @@ Current slice:
 V2 repair quality-gate pressure score term.
 
 Status:
-Implemented, parent-reviewed, and locally verified. Publish handoff is in
-progress.
+Implemented, parent-reviewed, locally verified, and published to `origin/main`.
+Behavior commit: `46bb1d6`.
 
 Files changed:
 - Repair scoring:
@@ -42,7 +42,7 @@ Remaining maturity gaps:
   editing; do not rely on stale ledger candidates.
 
 Last behavior commit:
-Pending.
+`46bb1d6` Score repair quality gate pressure.
 
 Next candidate:
 Recalibrate from live code. Candidate-selection effects and compatibility
