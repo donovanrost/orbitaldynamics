@@ -39,10 +39,12 @@ Already implemented or heavily covered:
   and summaries, publication summaries, and their review/import handoffs
 - V2/V3 branch scoring and recommendation explanations for replayed
   timeline-integrity and timeline-publication pressure
+- curated lifecycle/protection compatibility and challenge coverage, including
+  timeline lifecycle-state fixtures, preservation fixtures, CandidateRefresh
+  lifecycle replay, and stale derived lifecycle/protection schema guards
 
 Good next slices:
 
-- add a challenge fixture for malformed or stale lifecycle/protection evidence
 - harden one remaining downstream review/import path only when live code shows
   the artifact is not already routed
 
@@ -97,11 +99,13 @@ Already implemented or heavily covered:
 - not-for-execution, analysis-only, review-only, import-eligibility, and
   execution-boundary summaries
 - quality-gate and readiness rows in operator-review and Cadence-import packages
+- V3 branch score terms and recommendation evidence for replayed
+  operational-readiness, quality-gate, and import-readiness pressure
 
 Good next slices:
 
 - make one existing readiness or quality-gate block affect candidate selection
-  or branch recommendations before review/import handoff
+  before review/import handoff
 - add stale-but-plausible readiness/input challenge fixtures
 - harden schema-validation or compatibility checks for one readiness/quality
   family that lacks exact reference evidence
@@ -125,8 +129,8 @@ Good next slices:
   live code
 - preserve one more candidate-diff reason through V2/V3 when the current
   operator-review/import path drops it
-- convert an existing replayed resource/contact/readiness pressure signal into
-  planner-visible branch scoring
+- convert one replayed resource/contact/readiness pressure signal that is still
+  missing from score terms into planner-visible branch scoring
 - consolidate repeated branch-refresh helper logic after a focused duplication
   map identifies a small safe extraction
 

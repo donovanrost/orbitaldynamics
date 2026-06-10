@@ -67,13 +67,13 @@ Implemented or partially implemented modules and artifacts include:
   station-reservation, and contact-allocation contradiction replay for
   CandidateRefresh.
 - Candidate refresh replays a broad set of mission-state, realized-feedback,
-  source-report, timeline-diff, transition-application, integrity, publication,
-  readiness, quality, contact-allocation, link-capacity, station-calendar,
-  resource, policy, and validation evidence as branch-local provenance for V2/V3
-  repair and strategy paths, with replay-derived pressure feeding explainable
-  V3 score terms for branch-local contact, resource, station-calendar,
-  timeline, readiness, quality-gate, import-readiness, validation, and
-  storage/downlink tradeoffs.
+  source-report, timeline-diff, transition-application, timeline
+  lifecycle-state, integrity, publication, readiness, quality,
+  contact-allocation, link-capacity, station-calendar, resource, policy, and
+  validation evidence as branch-local provenance for V2/V3 repair and strategy
+  paths, with replay-derived pressure feeding explainable V3 score terms for
+  branch-local contact, resource, station-calendar, timeline, readiness,
+  quality-gate, import-readiness, validation, and storage/downlink tradeoffs.
 - Example manifests and outputs in `studies/`, `study_results/`, and
   `benchmark_results/`.
 
