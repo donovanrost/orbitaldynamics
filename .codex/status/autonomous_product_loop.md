@@ -82,7 +82,7 @@ Scored direct schema-validation replay pressure with a dedicated score term.
 
 Last commit:
 - Product: `a448361` Score schema validation replay pressure
-- Ledger: pending
+- Ledger: `bf2b16f` Update autonomous loop status
 
 Remaining maturity gaps:
 - Continue making existing review evidence planner-visible through candidate
