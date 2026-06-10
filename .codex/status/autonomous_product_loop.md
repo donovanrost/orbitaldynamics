@@ -8,7 +8,7 @@ Current slice:
 Timeline lifecycle strategy replay stays row-led under stale aggregates.
 
 Status:
-Implemented, reviewer-cleared, and locally verified; publish pending.
+Implemented, reviewer-cleared, locally verified, committed, and pushed.
 
 Files changed:
 - Timeline lifecycle replay risk context:
@@ -53,12 +53,9 @@ Slice result:
 - Neighboring lifecycle strategy replay coverage remains green.
 
 Last completed slice:
-Timeline-publication handoff rows outrank stale embedded summaries.
+Timeline lifecycle strategy replay stays row-led under stale aggregates.
 
 Last pushed commits:
-- Product/ledger: `5e11842` Preserve provider hold expiration pressure
-- Ledger correction: `23ff2f6` Update autonomous loop ledger after provider
-  hold publish
 - Product/ledger: `0b4fdcd` Guard resource quality gate rows against stale
   aggregates
 - Ledger correction: `c96eaa9` Update autonomous loop ledger after resource
@@ -66,10 +63,12 @@ Last pushed commits:
 - Product/ledger: `80f44b0` Prefer timeline publication handoff row evidence
 - Ledger correction: `da1524b` Update autonomous loop ledger after timeline
   publish
+- Product/ledger: `1173176` Preserve lifecycle replay source context
 
 Review/publish queue:
 - Reviewer sidecar cleared the timeline lifecycle stale aggregate strategy
-  guard; publish pending.
+  guard.
+- Published to `origin/main` as `1173176`.
 
 Remaining maturity gaps:
 - Continue converting replayed resource/contact/readiness pressure into
@@ -82,8 +81,8 @@ Remaining maturity gaps:
   planner pressure families change public artifact shape.
 
 Next candidate:
-After this lifecycle strategy guard, reassess remaining readiness/resource/
-contact candidate-selection gaps from live evidence.
+Reassess remaining readiness/resource/contact candidate-selection gaps from live
+evidence.
 
 Blocked:
 Not blocked.
@@ -95,3 +94,4 @@ Notes:
 - Focused CampaignPlanner tests still emit existing unrelated `0.0`
   pattern-match warnings from another test; selected tests exit green.
 - Reviewer sidecar: `019eb058-ca47-7431-aa74-6141e525fedc`.
+- Publisher sidecar: `019eb05d-382e-7863-b476-66ffbe6750cb`.
