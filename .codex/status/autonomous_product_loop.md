@@ -5,55 +5,52 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Reject stale operational-readiness evidence scalars that contradict their own
-count maps.
+Refresh LEO campaign V1/V2/V3 golden artifacts and downstream validation
+evidence after current planner scoring/contact-filter behavior.
 
 Status:
 Implemented, parent-reviewed, locally verified, and published locally.
-Behavior commit: `6954014`.
+Behavior commit: `94dbd07`.
 
 Files changed:
-- Readiness schema validation:
-  `lib/orbital_dynamics/schema.ex`
-- Validation fixture registry:
+- Manifest integration coverage:
+  `test/orbital_dynamics/study/manifest_test.exs`
+- Golden surface and validation fixture expectations:
+  `test/orbital_dynamics/golden_artifact_test.exs`
   `lib/orbital_dynamics/validation.ex`
-- Focused regressions:
-  `test/orbital_dynamics/operational_readiness_test.exs`
-- Regenerated validation artifacts:
-  `study_results/schema_validation_batch_report_v1.json`
+- Regenerated checked-in artifacts:
+  `study_results/leo_constellation_campaign.json`
+  `study_results/leo_constellation_campaign_repair_v2.json`
+  `study_results/leo_constellation_campaign_strategy_v3.json`
+  `study_results/campaign_request_lint_v1.json`
   `study_results/validation_reference_fixtures.json`
 - Ledger:
   `.codex/status/autonomous_product_loop.md`
 
 Tests/checks run:
-- `mix test test/orbital_dynamics/operational_readiness_test.exs`
-- `mix test test/orbital_dynamics/schema_test.exs`
+- `mix test test/orbital_dynamics/study/manifest_test.exs:1257`
+- `mix test test/orbital_dynamics/study/manifest_test.exs:1257 test/orbital_dynamics/golden_artifact_test.exs:275 test/orbital_dynamics/golden_artifact_test.exs:464 test/orbital_dynamics/golden_artifact_test.exs:635`
+- `mix test --failed`
+- `mix test test/orbital_dynamics/validation_test.exs:1531 test/orbital_dynamics/validation_test.exs:15036 test/mix/tasks/orbital_dynamics.campaign.lint_test.exs:108 test/orbital_dynamics/golden_artifact_test.exs:312 test/orbital_dynamics/golden_artifact_test.exs:487`
 - `mix test test/mix/tasks/orbital_dynamics.schema.lint_test.exs`
-- `mix test test/orbital_dynamics/validation_test.exs:14771 test/orbital_dynamics/validation_test.exs:15036 test/orbital_dynamics/schema_test.exs:15639`
-- `mix test test/orbital_dynamics/operational_readiness_test.exs test/orbital_dynamics/schema_test.exs test/mix/tasks/orbital_dynamics.schema.lint_test.exs test/orbital_dynamics/validation_test.exs:14771 test/orbital_dynamics/validation_test.exs:15036`
-- `mix test` (3318/3325 passed before fixture refresh; residual failures were unrelated manifest/golden drift)
-- `mix test --failed` after fixture refresh (0/4 passed; residual failures remain unrelated manifest/golden drift)
-- `mix format lib/orbital_dynamics/schema.ex test/orbital_dynamics/operational_readiness_test.exs lib/orbital_dynamics/validation.ex`
+- `mix test` (3325 passed)
+- `mix format lib/orbital_dynamics/validation.ex test/orbital_dynamics/golden_artifact_test.exs test/orbital_dynamics/study/manifest_test.exs`
 - `git diff --check`
 
 Behavior changed:
-`operational_readiness_report.v1` executable validation now rejects stale
-evidence scalars that disagree with backing count maps. The guard covers
-approval/import/freshness/schema/policy/adapter/operator-training/resource
-count families, so policy decision totals, keyed policy review counts, and
-adapter trust-boundary scalars cannot silently drift from evidence maps.
-
-Docs/artifacts changed:
-The checked-in schema-validation batch report was refreshed to include the
-tracked `study_results/campaign_repair_readiness_source_handoff_v2.json`
-artifact, and the validation fixture registry/reference fixture report were
-updated from 154 to 155 passing schema-validation artifacts.
+The manifest ranked-plan integration now uses an available ground-network row
+when it asserts a downlink candidate survives contact filtering. Maintenance
+and blocking station-calendar behavior remains covered in dedicated campaign
+planner tests. The checked-in V1 campaign, V2 repair, and V3 strategy artifacts
+were regenerated through their public facades so resource/contact pressure score
+terms, request lint SHA evidence, validation reference fixtures, and golden
+surface assertions agree with current deterministic planner output.
 
 Level 6 pillar advanced:
-Approval/readiness automation boundaries and stale-input challenge coverage:
-planner-facing and Cadence-facing readiness artifacts now fail executable
-validation when summarized readiness evidence contradicts its own machine
-readable counts.
+Reproducible V1/V2/V3 branch trees and durable checked-in artifacts: the
+canonical campaign artifacts, request lint evidence, validation fixture report,
+and golden tests now agree with executable public facades and pass the full
+suite.
 
 Remaining maturity gaps:
 - Continue converting artifact evidence into planner-visible selection,
@@ -64,24 +61,19 @@ Remaining maturity gaps:
   editing; do not rely on stale ledger candidates.
 
 Last behavior commit:
-`6954014` Validate readiness evidence count scalars.
+`94dbd07` Refresh campaign golden artifacts.
 
 Next candidate:
-Recalibrate from live code. Current residual full-suite failures point at
-manifest/golden artifact drift around LEO downlink candidates and V2/V3
-resource-filter score-term artifacts; treat those as candidates only after
-confirming the active prompt and live diffs.
+Recalibrate from live code and Level 6 docs. The previous residual full-suite
+manifest/golden failures are resolved; choose the next slice from current code,
+not from stale residual-failure notes.
 
 Blocked:
 Not blocked.
 
 Notes:
-- Selection note: `CampaignPlanner` already scores readiness, quality-gate,
-  schema-validation, import-readiness, and operator-training pressure broadly,
-  so this slice targeted stale-but-plausible readiness evidence that executable
-  validation still accepted.
-- Residual `mix test --failed` failures after this slice are:
-  `test/orbital_dynamics/study/manifest_test.exs:1257`,
-  `test/orbital_dynamics/golden_artifact_test.exs:275`,
-  `test/orbital_dynamics/golden_artifact_test.exs:464`, and
-  `test/orbital_dynamics/golden_artifact_test.exs:635`.
+- Selection note: the residual failures directly undermined Level 6 artifact
+  reproducibility for the LEO campaign V1/V2/V3 public facades, so this slice
+  prioritized executable agreement before pursuing a new feature family.
+- Full-suite pass still emits the existing campaign-planner `0.0` pattern-match
+  warnings; no test failures remain in this slice.
