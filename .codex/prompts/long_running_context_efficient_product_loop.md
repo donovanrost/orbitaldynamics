@@ -57,13 +57,15 @@ Context-budget rule:
 The main agent is the orchestrator. Keep context small by reading narrowly,
 summarizing exploration, using the status ledger, and avoiding broad doc/code
 dumps. Context efficiency is a way to continue longer, not a reason to stop
-early.
+early. If using subagents, require compact structured findings only.
 
 First read:
 Read only:
 
 - `docs/autonomous_work_guide.md`
 - `.codex/status/autonomous_product_loop.md` if it exists
+- `.codex/prompts/long_running_context_efficient_product_loop.md` if needed to
+  refresh this goal's operating rules
 
 Do not read all of `docs/`. Do not read every file under `docs/feature_set/`,
 `docs/mission_planning/`, or `docs/artifacts/`. Use the guide to choose the
@@ -87,7 +89,9 @@ Create it if missing. Update it after every completed slice and before any
 pause.
 
 Keep the ledger concise. Replace stale details instead of appending endlessly.
-It should stay under roughly 120 lines.
+It should stay under roughly 120 lines. Do not paste command output into it.
+The next session should be able to resume from it plus
+`docs/autonomous_work_guide.md`.
 
 Ledger shape:
 
@@ -179,8 +183,8 @@ same sandbox and model intent. Do not let model selection block the handoff, and
 do not use weaker subagents for product decisions, slice selection, or broad code
 changes. If no suitable subagent tool is available, do not treat that as a
 product blocker: complete the bounded review or publish step in the parent,
-preserve the same constraints, and note the fallback in the ledger. Require
-compact output:
+preserve the same constraints, and note the fallback in the ledger. Each
+subagent request must name a narrow target and require compact output:
 
 ```text
 Findings:
