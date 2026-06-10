@@ -8,7 +8,7 @@ Current slice:
 Provider-counteroffer import-readiness pressure scoring.
 
 Status:
-Implemented, reviewed, and verified locally; publish handoff pending.
+Completed, reviewed, committed, and pushed.
 
 Files changed:
 - Strategy scoring/runtime:
@@ -79,8 +79,8 @@ Last completed slice:
 Provider-counteroffer import-readiness pressure scoring.
 
 Last commit:
-Pending local commit/push for this slice. Previous HEAD before this slice:
-`fe70764`.
+- Product/docs/ledger: `b9babb7` Score provider counteroffer import readiness
+  pressure
 
 Remaining maturity gaps:
 - Continue converting replayed resource/contact/readiness pressure into
@@ -103,5 +103,7 @@ Not blocked.
 Notes:
 - Sidecar reviewer found one edge around blank import-readiness row values; the
   parent fixed it and reran focused verification.
+- Publisher sidecar committed and pushed the slice to `origin/main` as
+  `b9babb7`.
 - `.gitignore` was clean in this worktree at slice start and is not part of this
   slice.
