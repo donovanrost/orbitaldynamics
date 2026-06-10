@@ -9,7 +9,7 @@ V2 repair honors supplied candidate-refresh contact suppressions during
 replacement selection.
 
 Status:
-Implemented and locally verified; review pending.
+Implemented, reviewer-cleared, locally verified, committed, and pushed.
 
 Files changed:
 - V2 repair candidate filtering:
@@ -53,19 +53,19 @@ Slice result:
   suppression tests remain green.
 
 Last completed slice:
-V2 repair honors supplied candidate-refresh resource suppressions during
+V2 repair honors supplied candidate-refresh contact suppressions during
 replacement selection.
 
 Last pushed commits:
-- Product/ledger: `021224b` Guard link capacity strategy replay rows
-- Ledger correction: `8981e76` Update autonomous loop ledger after link capacity
-  publish
 - Product/ledger: `b07fbec` Honor refresh resource suppressions in repair
+- Ledger correction: `2c88d1e` Update autonomous loop ledger after repair
+  publish
+- Product/ledger: `5fba8f0` Honor refresh contact suppressions in repair
 
 Review/publish queue:
-- Reviewer sidecar cleared the supplied refresh resource-suppression repair
-  slice after ledger/test-line fixes.
-- Publisher sidecar pushed `b07fbec` to `origin/main`.
+- Reviewer sidecar cleared the supplied refresh contact-suppression repair
+  slice after the bare-`id` regression was added.
+- Publisher sidecar pushed `5fba8f0` to `origin/main`.
 
 Remaining maturity gaps:
 - Continue converting replayed resource/contact/readiness pressure into
@@ -86,9 +86,7 @@ Not blocked.
 Notes:
 - Reviewer found no publish blocker and asked to pin bare-`id` contact-filter
   rows; the focused regression now covers both `contact_id` and bare `id`.
-- Reviewer cleared the planner change and flagged ledger-only fixes plus a
-  tighter row-shape regression; those fixes were applied.
 - Focused CampaignPlanner tests still emit existing unrelated `0.0`
   pattern-match warnings from another test; selected tests exit green.
-- Reviewer sidecar: `019eb06d-0aa4-7a91-b3d7-cf66229741f0`.
-- Publisher sidecar: `019eb075-34f1-71b3-9f9d-b1af2535fe66`.
+- Reviewer sidecar: `019eb079-994b-73c3-8784-8dfe0c8dd26d`.
+- Publisher sidecar: `019eb07e-495e-7d33-a4cd-5496372b22d4`.
