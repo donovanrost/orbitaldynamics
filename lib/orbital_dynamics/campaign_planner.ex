@@ -12516,6 +12516,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "station_reservation_id" => entry["reservation_id"],
       "station_reserved_by" => entry["reserved_by"],
       "station_reservation_status" => entry["reservation_status"],
+      "station_reservation_expiration_status" => group["station_reservation_expiration_status"],
       "required_operator_action" => group["required_operator_action"],
       "station_reservation_hold_summary_model" => group["station_reservation_hold_summary_model"],
       "station_reservation_hold_summary_source" =>

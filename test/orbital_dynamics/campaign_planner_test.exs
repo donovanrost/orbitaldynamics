@@ -27917,6 +27917,18 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
           "reservation_expires_at_s" => [180.0],
           "station_reservation_expiration_status" => "expired",
           "trust_boundary" => "stale_hold_row_boundary"
+        },
+        %{
+          "reservation_review_row_type" => "provider_calendar_contention_group",
+          "id" => "row_provider_group",
+          "ground_station_id" => "dss_43",
+          "directions" => ["uplink"],
+          "provider_calendar_contention_status" => "contention",
+          "reservation_ids" => ["row_provider_hold_id"],
+          "reservation_statuses" => ["held"],
+          "reserved_by" => ["provider_hold_owner"],
+          "station_reservation_expiration_status" => "missing",
+          "trust_boundary" => "stale_hold_provider_row_boundary"
         }
       ],
       "assumptions" => %{
@@ -27939,6 +27951,9 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
 
     hold_branch = branch(artifact, "derived_station_calendar_pressure_reserved_row_hold_contact")
 
+    provider_branch =
+      branch(artifact, "derived_station_calendar_provider_contention_row_provider_group")
+
     candidate_source =
       assert_candidate_source_report_path(
         hold_branch,
@@ -27947,12 +27962,12 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
 
     source_summary = candidate_source["candidate_refresh_request_source_report_summary"]
 
-    assert source_summary["source_report_station_reservation_hold_count"] == 1
+    assert source_summary["source_report_station_reservation_hold_count"] == 2
     assert source_summary["source_report_station_reservation_affected_contact_hold_count"] == 1
 
     assert source_summary[
              "source_report_station_reservation_provider_calendar_contention_hold_count"
-           ] == 0
+           ] == 1
 
     assert source_summary["source_report_station_reservation_hold_review_status_counts"] == %{
              "review_required" => 1
@@ -27962,32 +27977,42 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     assert source_summary["source_report_station_reservation_earliest_hold_expires_at_s"] == 180.0
 
     assert source_summary["source_report_station_reservation_hold_expiration_status_counts"] == %{
-             "expired" => 1
+             "expired" => 1,
+             "missing" => 1
            }
 
     assert source_summary["source_report_station_reservation_hold_status_counts"] == %{
-             "held" => 1
+             "held" => 2
            }
 
-    assert source_summary["source_report_station_reservation_hold_ids"] == ["row_hold_id"]
+    assert source_summary["source_report_station_reservation_hold_ids"] == [
+             "row_hold_id",
+             "row_provider_hold_id"
+           ]
 
     assert source_summary["source_report_station_reservation_hold_ids_by_expiration_status"] ==
-             %{"expired" => ["row_hold_id"]}
+             %{
+               "expired" => ["row_hold_id"],
+               "missing" => ["row_provider_hold_id"]
+             }
 
     assert source_summary["source_report_station_reservation_hold_ids_by_status"] == %{
-             "held" => ["row_hold_id"]
+             "held" => ["row_hold_id", "row_provider_hold_id"]
            }
 
     assert source_summary["source_report_station_reservation_hold_ids_by_reserved_by"] == %{
-             "ops_hold_owner" => ["row_hold_id"]
+             "ops_hold_owner" => ["row_hold_id"],
+             "provider_hold_owner" => ["row_provider_hold_id"]
            }
 
     assert source_summary["source_report_station_reservation_hold_ids_by_row_type"] == %{
-             "affected_contact" => ["row_hold_id"]
+             "affected_contact" => ["row_hold_id"],
+             "provider_calendar_contention_group" => ["row_provider_hold_id"]
            }
 
     assert source_summary["source_report_station_reservation_hold_ids_by_direction"] == %{
-             "downlink" => ["row_hold_id"]
+             "downlink" => ["row_hold_id"],
+             "uplink" => ["row_provider_hold_id"]
            }
 
     assert source_summary["source_report_station_reservation_hold_contact_ids_by_direction"] == %{
@@ -28004,32 +28029,47 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
 
     replay_summary = CandidateRefresh.station_reservation_replay_summary(candidate_source)
 
-    assert replay_summary["reservation_hold_count"] == 1
+    assert replay_summary["reservation_hold_count"] == 2
     assert replay_summary["affected_contact_reservation_hold_count"] == 1
-    assert replay_summary["provider_calendar_contention_hold_count"] == 0
+    assert replay_summary["provider_calendar_contention_hold_count"] == 1
     assert replay_summary["reservation_hold_review_status_counts"] == %{"review_required" => 1}
     assert replay_summary["reservation_hold_expiration_count"] == 1
     assert replay_summary["earliest_reservation_hold_expires_at_s"] == 180.0
-    assert replay_summary["reservation_hold_expiration_status_counts"] == %{"expired" => 1}
-    assert replay_summary["reservation_hold_status_counts"] == %{"held" => 1}
-    assert replay_summary["reservation_hold_ids"] == ["row_hold_id"]
 
-    assert replay_summary["reservation_hold_ids_by_expiration_status"] == %{
-             "expired" => ["row_hold_id"]
+    assert replay_summary["reservation_hold_expiration_status_counts"] == %{
+             "expired" => 1,
+             "missing" => 1
            }
 
-    assert replay_summary["reservation_hold_ids_by_status"] == %{"held" => ["row_hold_id"]}
+    assert replay_summary["reservation_hold_status_counts"] == %{"held" => 2}
+
+    assert replay_summary["reservation_hold_ids"] == [
+             "row_hold_id",
+             "row_provider_hold_id"
+           ]
+
+    assert replay_summary["reservation_hold_ids_by_expiration_status"] == %{
+             "expired" => ["row_hold_id"],
+             "missing" => ["row_provider_hold_id"]
+           }
+
+    assert replay_summary["reservation_hold_ids_by_status"] == %{
+             "held" => ["row_hold_id", "row_provider_hold_id"]
+           }
 
     assert replay_summary["reservation_hold_ids_by_reserved_by"] == %{
-             "ops_hold_owner" => ["row_hold_id"]
+             "ops_hold_owner" => ["row_hold_id"],
+             "provider_hold_owner" => ["row_provider_hold_id"]
            }
 
     assert replay_summary["reservation_hold_ids_by_row_type"] == %{
-             "affected_contact" => ["row_hold_id"]
+             "affected_contact" => ["row_hold_id"],
+             "provider_calendar_contention_group" => ["row_provider_hold_id"]
            }
 
     assert replay_summary["reservation_hold_ids_by_direction"] == %{
-             "downlink" => ["row_hold_id"]
+             "downlink" => ["row_hold_id"],
+             "uplink" => ["row_provider_hold_id"]
            }
 
     assert replay_summary["reservation_hold_contact_ids_by_direction"] == %{
@@ -28077,6 +28117,39 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              }
            ] = hold_branch["events"]
 
+    assert [
+             %{
+               "type" => "ground_station_reserved",
+               "ground_station_id" => "dss_43",
+               "station_reservation_id" => "row_provider_hold_id",
+               "station_reserved_by" => "provider_hold_owner",
+               "station_reservation_status" => "held",
+               "station_reservation_expiration_status" => "missing",
+               "required_operator_action" => "review_station_reservation_hold",
+               "station_reservation_hold_summary_model" =>
+                 "artifact_only_station_reservation_hold_summary",
+               "station_reservation_hold_summary_source" =>
+                 "station_calendar_report.reservation_evidence",
+               "station_reservation_hold_summary_source_artifact_type" =>
+                 "station_reservation_report.v1",
+               "station_reservation_hold_review_status" => "review_required",
+               "station_reservation_hold_count" => 1,
+               "station_reservation_hold_ids" => ["row_provider_hold_id"],
+               "station_reservation_hold_ids_by_direction" => %{
+                 "uplink" => ["row_provider_hold_id"]
+               },
+               "provider_calendar_contention_group_id" => "row_provider_group",
+               "provider_calendar_contention_status" => "contention",
+               "provider_calendar_contention_reservation_ids" => ["row_provider_hold_id"],
+               "provider_calendar_contention_reserved_by" => ["provider_hold_owner"],
+               "provider_calendar_contention_reservation_statuses" => ["held"],
+               "feedback_source" =>
+                 "mission_state.source_station_reservation_hold_summary.review_rows",
+               "feedback_scope" => "station_calendar",
+               "trust_boundary" => "stale_hold_provider_row_boundary"
+             }
+           ] = provider_branch["events"]
+
     comparison_row =
       artifact["branch_comparison_report"]["rows"]
       |> Enum.find(
@@ -28087,7 +28160,19 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     assert comparison_row["branch_station_reserved_by"] == ["ops_hold_owner"]
     assert comparison_row["branch_station_reservation_statuses"] == ["held"]
 
+    provider_comparison_row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(
+        &(&1["branch_id"] == "derived_station_calendar_provider_contention_row_provider_group")
+      )
+
+    assert provider_comparison_row["branch_station_reservation_ids"] == ["row_provider_hold_id"]
+    assert provider_comparison_row["branch_station_reserved_by"] == ["provider_hold_owner"]
+    assert provider_comparison_row["branch_station_reservation_statuses"] == ["held"]
+    assert provider_comparison_row["branch_station_reservation_expiration_statuses"] == ["missing"]
+
     assert_station_reservation_expiration_pressure_score_terms(hold_branch, artifact)
+    assert_station_reservation_expiration_pressure_score_terms(provider_branch, artifact)
 
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
