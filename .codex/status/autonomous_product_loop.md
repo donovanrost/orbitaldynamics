@@ -8,7 +8,7 @@ Current slice:
 Row-local station-reservation hold-summary stale aggregate challenge fixture.
 
 Status:
-Implemented, locally verified, and reviewer-cleared; publish pending.
+Implemented, reviewer-cleared, locally verified, committed, and pushed.
 
 Files changed:
 - Hold-summary row evidence normalization:
@@ -64,7 +64,7 @@ Slice result:
   replay coverage remain green.
 
 Last completed slice:
-Row-local station-reservation review-summary stale aggregate challenge fixture.
+Row-local station-reservation hold-summary stale aggregate challenge fixture.
 
 Last pushed commits:
 - Product/ledger: `3df98cb` Score contact intent summary pressure
@@ -79,11 +79,13 @@ Last pushed commits:
 - Product/ledger: `2f01a4d` Guard station reservation review row evidence
 - Ledger correction: `c2a70df` Update autonomous loop ledger after reservation
   review publish
+- Product/ledger: `f35dee1` Guard station reservation hold rows against stale
+  aggregates
 
 Review/publish queue:
 - Reviewer sidecar found no must-fix issues; parent tightened stale-path source
   metadata assertions after review.
-- Publish pending after reviewer clearance.
+- Published to `origin/main` as `f35dee1`.
 
 Remaining maturity gaps:
 - Continue converting replayed resource/contact/readiness pressure into
