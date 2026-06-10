@@ -8,8 +8,8 @@ Current slice:
 Row-local contact-allocation stale aggregate challenge fixture.
 
 Status:
-Implemented, reviewed, reviewer nits resolved, and locally verified; publish
-pending.
+Implemented, reviewed, reviewer nits resolved, locally verified, committed, and
+pushed.
 
 Files changed:
 - Focused strategy regression:
@@ -56,7 +56,7 @@ Slice result:
   path once the row contains downlink contact evidence.
 
 Last completed slice:
-Row-bearing contact-intent summaries as scored branch pressure.
+Row-local contact-allocation stale aggregate challenge fixture.
 
 Last pushed commits:
 - Product/docs/ledger: `b9babb7` Score provider counteroffer import readiness
@@ -69,11 +69,12 @@ Last pushed commits:
 - Product/ledger: `3df98cb` Score contact intent summary pressure
 - Ledger correction: `c467c05` Update autonomous loop ledger after contact
   intent publish
+- Product/ledger: `7e63442` Guard contact allocation summary row evidence
 
 Review/publish queue:
 - Reviewer sidecar found no blockers and only test-strength nits; parent fixed
   the nits and reran focused verification.
-- Publish pending: commit and push the test/ledger slice.
+- Published to `origin/main` as `7e63442`.
 
 Remaining maturity gaps:
 - Continue converting replayed resource/contact/readiness pressure into
@@ -96,4 +97,4 @@ Not blocked.
 Notes:
 - The focused tests still emit the existing `0.0` pattern-match warnings from a
   separate CampaignPlanner test; the selected tests exit green.
-- Reviewer sidecar: `019eafe6-ed07-7991-9701-87bef579a9f5`.
+- Reviewer sidecar: `019eb002-5ba8-7492-bafa-c57c48b1a38f`.
