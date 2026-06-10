@@ -30478,6 +30478,9 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "allocated_contact_ids" => allocated_contact_ids,
              "deferred_contact_ids" => deferred_contact_ids,
              "reservation_conflict_contact_ids" => reservation_conflict_contact_ids,
+             "station_reservation_contact_ids_by_expiration_status" => %{
+               "expired" => expired_reservation_contact_ids
+             },
              "provider_reservation_review_contact_ids" => provider_reservation_review_contact_ids,
              "source_report_paths" => contact_allocation_source_paths
            } = contact_allocation_replay_summary
@@ -30485,6 +30488,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     assert "challenge_dl_allocated" in allocated_contact_ids
     assert "challenge_dl_deferred" in deferred_contact_ids
     assert challenge_contact in reservation_conflict_contact_ids
+    assert challenge_contact in expired_reservation_contact_ids
     assert "challenge_dl_review_overlap" in provider_reservation_review_contact_ids
 
     for source_path <- [
@@ -30548,6 +30552,26 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     assert_station_reservation_conflict_pressure_score_terms(challenge_branch, artifact)
     assert_provider_reservation_request_pressure_score_terms(challenge_branch, artifact)
 
+    assert Enum.any?(
+             challenge_branch["risk_indicators"],
+             &(&1["feedback_scope"] == "contact_allocation" and
+                 &1["contact_id"] == challenge_contact and
+                 &1["station_reservation_expiration_status"] == "expired")
+           )
+
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    station_reservation_expiration_pressure_count =
+      Enum.count(
+        challenge_branch["risk_indicators"],
+        &(&1["station_reservation_expiration_status"] in ["expired", "missing"])
+      )
+
+    assert station_reservation_expiration_pressure_count > 0
+
+    assert challenge_branch["score_terms"]["station_reservation_expiration_pressure_penalty"] ==
+             -station_reservation_expiration_pressure_count * risk_weight
+
     challenge_row =
       artifact["branch_comparison_report"]["rows"]
       |> Enum.find(&(&1["branch_id"] == "challenge"))
@@ -30564,6 +30588,8 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "challenge_reservation_1",
              "challenge_reservation_review"
            ]
+
+    assert "expired" in challenge_row["branch_station_reservation_expiration_statuses"]
 
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)

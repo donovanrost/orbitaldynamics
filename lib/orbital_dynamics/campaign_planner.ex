@@ -4428,6 +4428,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
       |> Enum.map(fn {contact_id, index} ->
         reservation_id = Enum.at(reservation_ids, index) || List.first(reservation_ids)
 
+        expiration_status =
+          contact_allocation_replay_reservation_expiration_status(replay_summary, contact_id)
+
         %{
           "type" => "downlink_completion_gap",
           "severity" => "medium",
@@ -4438,12 +4441,21 @@ defmodule OrbitalDynamics.CampaignPlanner do
           "source_activity_ids" => List.wrap(contact_id),
           "station_reservation_id" => reservation_id,
           "station_reservation_match_status" => match_status,
+          "station_reservation_expiration_status" => expiration_status,
           "feedback_source" => "candidate_source.contact_allocation_replay_summary",
           "feedback_scope" => "contact_allocation",
           "derivation_reasons" => ["contact_allocation_reservation_conflict"]
         }
         |> compact_map()
       end)
+    end)
+  end
+
+  defp contact_allocation_replay_reservation_expiration_status(replay_summary, contact_id) do
+    replay_summary
+    |> Map.get("station_reservation_contact_ids_by_expiration_status", %{})
+    |> Enum.find_value(fn {status, contact_ids} ->
+      if contact_id in List.wrap(contact_ids), do: status
     end)
   end
 
@@ -49498,6 +49510,11 @@ defmodule OrbitalDynamics.CampaignPlanner do
           "station_reservation_match_status",
           "reservation_match_status"
         ]),
+      "branch_station_reservation_expiration_statuses" =>
+        branch_event_unique_values(events, [
+          "station_reservation_expiration_status",
+          "station_reservation_expiration_statuses"
+        ]),
       "branch_station_reservation_conflict_contact_ids" =>
         branch_station_reservation_conflict_unique_values(events, [
           "contact_id",
@@ -49711,6 +49728,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
     |> maybe_put_nonempty("branch_station_reserved_by")
     |> maybe_put_nonempty("branch_station_reservation_statuses")
     |> maybe_put_nonempty("branch_station_reservation_match_statuses")
+    |> maybe_put_nonempty("branch_station_reservation_expiration_statuses")
     |> maybe_put_nonempty("branch_station_reservation_conflict_contact_ids")
     |> maybe_put_nonempty("branch_station_reservation_conflict_reservation_ids")
     |> maybe_put_nonempty("branch_station_reservation_conflict_match_statuses")
@@ -49841,6 +49859,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
           not is_nil(risk["station_reservation_match_status"])
       end)
 
+    station_reservation_expiration_risks =
+      Enum.filter(risk_indicators, &station_reservation_expiration_pressure_risk?/1)
+
     operational_readiness_risks =
       Enum.filter(risk_indicators, fn risk ->
         risk["type"] == "operational_readiness_pressure"
@@ -49917,6 +49938,11 @@ defmodule OrbitalDynamics.CampaignPlanner do
         branch_event_unique_values(station_reservation_conflict_risks, [
           "station_reservation_match_status",
           "reservation_match_status"
+        ]),
+      "branch_station_reservation_expiration_statuses" =>
+        branch_event_unique_values(station_reservation_expiration_risks, [
+          "station_reservation_expiration_status",
+          "station_reservation_expiration_statuses"
         ]),
       "branch_operational_readiness_levels" =>
         branch_event_unique_values(operational_readiness_risks, [
@@ -50179,6 +50205,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
     |> maybe_put_nonempty("branch_station_reservation_conflict_contact_ids")
     |> maybe_put_nonempty("branch_station_reservation_conflict_reservation_ids")
     |> maybe_put_nonempty("branch_station_reservation_conflict_match_statuses")
+    |> maybe_put_nonempty("branch_station_reservation_expiration_statuses")
     |> maybe_put_nonempty("branch_operational_readiness_levels")
     |> maybe_put_nonempty("branch_operational_readiness_import_classifications")
     |> maybe_put_nonempty("branch_operational_readiness_statuses")
