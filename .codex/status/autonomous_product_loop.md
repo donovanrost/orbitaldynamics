@@ -80,7 +80,7 @@ pressure.
 
 Last commit:
 - Product: `f98343a` Normalize missed observation target aliases
-- Ledger: pending
+- Ledger: `e96274f` Update autonomous loop status
 
 Remaining maturity gaps:
 - Broaden branch-specific refresh derivation across richer objective semantics.
