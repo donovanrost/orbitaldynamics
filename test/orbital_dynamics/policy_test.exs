@@ -3552,6 +3552,51 @@ defmodule OrbitalDynamics.PolicyTest do
     assert decision["risk_count"] == 1
   end
 
+  test "fallback policy blocks schema-validation errors but leaves warnings reviewable" do
+    policy = %{blocked_risk_types: ["schema_validation_blocked"]}
+
+    {blocked_status, _requirements, _matches, blocked_decision} =
+      Policy.decide(
+        [],
+        [
+          %{
+            "type" => "schema_validation_pressure",
+            "feedback_scope" => "schema_validation",
+            "validation_status" => "fail",
+            "issue_severity" => "error",
+            "error_count" => 1
+          }
+        ],
+        %{"id" => "schema_error", "events" => []},
+        %{},
+        policy
+      )
+
+    assert blocked_status == "blocked_by_policy"
+    assert blocked_decision["classification"] == "blocked_by_policy"
+
+    {review_status, _requirements, _matches, review_decision} =
+      Policy.decide(
+        [],
+        [
+          %{
+            "type" => "schema_validation_pressure",
+            "feedback_scope" => "schema_validation",
+            "validation_status" => "warning",
+            "issue_severity" => "warning",
+            "error_count" => 0,
+            "warning_count" => 1
+          }
+        ],
+        %{"id" => "schema_warning", "events" => []},
+        %{},
+        policy
+      )
+
+    assert review_status == "operator_review_required"
+    assert review_decision["classification"] == "operator_review_required"
+  end
+
   test "matches requirement types grouped risk types and grouped event types" do
     policy = %{
       action_rules: [

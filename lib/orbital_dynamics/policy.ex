@@ -5318,6 +5318,20 @@ defmodule OrbitalDynamics.Policy do
     blocked_validation_safety_case_pressure?(risk)
   end
 
+  defp risk_matches_blocked_type?(
+         %{"type" => "schema_validation_pressure"} = risk,
+         "schema_validation_blocked"
+       ) do
+    blocked_schema_validation_pressure?(risk)
+  end
+
+  defp risk_matches_blocked_type?(
+         %{"feedback_scope" => "schema_validation"} = risk,
+         "schema_validation_blocked"
+       ) do
+    blocked_schema_validation_pressure?(risk)
+  end
+
   defp risk_matches_blocked_type?(_risk, _blocked_type), do: false
 
   defp blocked_model_acceptance_pressure?(risk) do
@@ -5337,6 +5351,14 @@ defmodule OrbitalDynamics.Policy do
       positive_count?(risk["quality_gate_blocked_count"]) or
       risk["branch_local_blocking_pressure"] == true or
       risk["required_operator_action"] == "review_blocked_validation_safety_case"
+  end
+
+  defp blocked_schema_validation_pressure?(risk) do
+    blocked_value?(risk["validation_status"]) or
+      risk["validation_status"] == "fail" or
+      risk["issue_severity"] == "error" or
+      positive_count?(risk["error_count"]) or
+      risk["branch_local_schema_error_pressure"] == true
   end
 
   defp resource_availability_blocked?(risk) do
