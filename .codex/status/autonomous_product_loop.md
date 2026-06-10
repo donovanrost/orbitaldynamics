@@ -85,7 +85,7 @@ routing.
 
 Last commit:
 - Product: `0620808` Harden readiness replay gate routing
-- Ledger: pending
+- Ledger: `ef4d80e` Update autonomous loop status
 
 Remaining maturity gaps:
 - Continue converting existing replayed resource/contact/readiness pressure
