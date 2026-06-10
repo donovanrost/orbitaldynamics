@@ -52452,6 +52452,12 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
       "review_gate_count" => 1,
       "analysis_gate_count" => 0,
       "blocked_gate_count" => 0,
+      "gate_status_counts" => %{"review_required" => 1},
+      "gate_classification_counts" => %{"review_only" => 1},
+      "review_required_gate_ids" => ["stale_summary_review_gate"],
+      "analysis_only_gate_ids" => ["stale_summary_analysis_gate"],
+      "blocked_gate_ids" => [],
+      "non_passed_gate_ids" => ["stale_summary_review_gate"],
       "non_passed_gates" => [
         %{
           "id" => "summary_blocked_without_classification",
@@ -52514,6 +52520,12 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "operational_readiness_status" => "blocked",
              "readiness_gate_status" => "blocked",
              "readiness_gate_classification" => "blocked",
+             "gate_status_counts" => %{"blocked" => 1},
+             "gate_classification_counts" => %{"blocked" => 1},
+             "review_required_gate_ids" => [],
+             "analysis_only_gate_ids" => [],
+             "blocked_gate_ids" => ["summary_blocked_without_classification"],
+             "non_passed_gate_ids" => ["summary_blocked_without_classification"],
              "required_operator_action" => "review_blocked_operational_readiness",
              "feedback_source" =>
                "mission_state.source_operational_readiness_gate_summary.non_passed_gates"
@@ -52522,6 +52534,21 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     assert_operational_readiness_pressure_score_terms(blocked_branch, artifact)
     assert_operational_readiness_pressure_score_terms(analysis_branch, artifact)
     assert_operational_readiness_pressure_score_terms(summary_branch, artifact)
+
+    summary_row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(&(&1["branch_id"] == summary_branch["branch_id"]))
+
+    assert summary_row["branch_operational_readiness_review_required_gate_ids"] in [nil, []]
+    assert summary_row["branch_operational_readiness_analysis_only_gate_ids"] in [nil, []]
+
+    assert summary_row["branch_operational_readiness_blocked_gate_ids"] == [
+             "summary_blocked_without_classification"
+           ]
+
+    assert summary_row["branch_operational_readiness_non_passed_gate_ids"] == [
+             "summary_blocked_without_classification"
+           ]
 
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)

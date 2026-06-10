@@ -35342,6 +35342,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
   defp operational_readiness_gate_summary_pressure_rows(summary) do
     summary = stringify_keys(summary || %{})
     classification = summary["import_classification"] || "review_only"
+    non_passed_gates = operational_readiness_gate_summary_non_passed_gates(summary)
+    gate_routing = operational_readiness_gate_summary_row_routing(summary, non_passed_gates)
 
     summary_row =
       %{
@@ -35372,10 +35374,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       |> compact_map()
 
     gate_rows =
-      summary
-      |> Map.get("non_passed_gates", [])
-      |> List.wrap()
-      |> Enum.map(&stringify_keys/1)
+      non_passed_gates
       |> Enum.map(fn gate ->
         classification = operational_readiness_gate_pressure_classification(gate)
         gate_status = gate["status"] || "review_required"
@@ -35393,13 +35392,13 @@ defmodule OrbitalDynamics.CampaignPlanner do
           "readiness_gate_reason" => gate["reason"],
           "analysis_mode" => gate["analysis_mode"],
           "analysis_mode_source" => gate["analysis_mode_source"],
-          "gate_status_counts" => summary["gate_status_counts"],
-          "gate_classification_counts" => summary["gate_classification_counts"],
+          "gate_status_counts" => gate_routing["gate_status_counts"],
+          "gate_classification_counts" => gate_routing["gate_classification_counts"],
           "passed_gate_ids" => summary["passed_gate_ids"],
-          "review_required_gate_ids" => summary["review_required_gate_ids"],
-          "analysis_only_gate_ids" => summary["analysis_only_gate_ids"],
-          "blocked_gate_ids" => summary["blocked_gate_ids"],
-          "non_passed_gate_ids" => summary["non_passed_gate_ids"],
+          "review_required_gate_ids" => gate_routing["review_required_gate_ids"],
+          "analysis_only_gate_ids" => gate_routing["analysis_only_gate_ids"],
+          "blocked_gate_ids" => gate_routing["blocked_gate_ids"],
+          "non_passed_gate_ids" => gate_routing["non_passed_gate_ids"],
           "assumptions" => summary["assumptions"],
           "required_operator_action" => operational_readiness_pressure_action(classification),
           "source_operational_readiness_gate" => gate
@@ -35413,6 +35412,64 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
     [summary_row | gate_rows]
   end
+
+  defp operational_readiness_gate_summary_non_passed_gates(summary) do
+    summary
+    |> Map.get("non_passed_gates", [])
+    |> List.wrap()
+    |> Enum.filter(&is_map/1)
+    |> Enum.map(&stringify_keys/1)
+  end
+
+  defp operational_readiness_gate_summary_row_routing(summary, []),
+    do: %{
+      "gate_status_counts" => summary["gate_status_counts"],
+      "gate_classification_counts" => summary["gate_classification_counts"],
+      "review_required_gate_ids" => summary["review_required_gate_ids"],
+      "analysis_only_gate_ids" => summary["analysis_only_gate_ids"],
+      "blocked_gate_ids" => summary["blocked_gate_ids"],
+      "non_passed_gate_ids" => summary["non_passed_gate_ids"]
+    }
+
+  defp operational_readiness_gate_summary_row_routing(_summary, gates) do
+    Enum.reduce(
+      gates,
+      %{
+        "gate_status_counts" => %{},
+        "gate_classification_counts" => %{},
+        "review_required_gate_ids" => [],
+        "analysis_only_gate_ids" => [],
+        "blocked_gate_ids" => [],
+        "non_passed_gate_ids" => []
+      },
+      fn gate, routing ->
+        gate_id = gate["id"] || "operational_gate"
+        status = gate["status"] || "review_required"
+        classification = operational_readiness_gate_pressure_classification(gate)
+
+        routing
+        |> update_in(["gate_status_counts", status], &((&1 || 0) + 1))
+        |> update_in(["gate_classification_counts", classification], &((&1 || 0) + 1))
+        |> update_in(["non_passed_gate_ids"], &(&1 ++ [gate_id]))
+        |> operational_readiness_gate_summary_put_status_gate_id(status, gate_id)
+      end
+    )
+  end
+
+  defp operational_readiness_gate_summary_put_status_gate_id(routing, "review_required", gate_id) do
+    update_in(routing, ["review_required_gate_ids"], &(&1 ++ [gate_id]))
+  end
+
+  defp operational_readiness_gate_summary_put_status_gate_id(routing, "analysis_only", gate_id) do
+    update_in(routing, ["analysis_only_gate_ids"], &(&1 ++ [gate_id]))
+  end
+
+  defp operational_readiness_gate_summary_put_status_gate_id(routing, "blocked", gate_id) do
+    update_in(routing, ["blocked_gate_ids"], &(&1 ++ [gate_id]))
+  end
+
+  defp operational_readiness_gate_summary_put_status_gate_id(routing, _status, _gate_id),
+    do: routing
 
   defp operational_readiness_gate_pressure_classification(%{"status" => "blocked"}),
     do: "blocked"
