@@ -5,52 +5,50 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Timeline lifecycle strategy replay stays row-led under stale aggregates.
+Link-capacity strategy replay stays row-led under stale aggregates.
 
 Status:
-Implemented, reviewer-cleared, locally verified, committed, and pushed.
+Implemented, reviewer-cleared, and locally verified; publish pending.
 
 Files changed:
-- Timeline lifecycle replay risk context:
-  `lib/orbital_dynamics/campaign_planner.ex`
 - Focused strategy regression:
   `test/orbital_dynamics/campaign_planner_test.exs`
 - Ledger:
   `.codex/status/autonomous_product_loop.md`
 
 Tests/checks run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:34429`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:34177 test/orbital_dynamics/campaign_planner_test.exs:34429`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:33746`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:33333 test/orbital_dynamics/campaign_planner_test.exs:33584 test/orbital_dynamics/campaign_planner_test.exs:33746`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 
 Level 6 pillar advanced:
-Reproducible V3 branch trees with explainable score terms and approval-aware
-timeline lifecycle boundaries, by proving strategy replay remains row-led when
-timeline lifecycle summary aggregates are stale.
+Fleet-level contact/resource behavior and reproducible V3 branch trees with
+explainable score terms, by proving link-capacity replay remains row-led when
+compact throughput/contact aggregates are stale.
 
 Slice selection note:
-Selected slice: add a V3 strategy challenge proving timeline lifecycle replay
-stays row-led when lifecycle summary top-level aggregates are stale.
+Selected slice: add a V3 strategy challenge proving link-capacity replay stays
+row-led when top-level throughput/contact aggregates are stale.
 
-Why this slice: CandidateRefresh already has row-derived stale lifecycle
-coverage, but the campaign-strategy surface is where that evidence becomes
-branch risk, score terms, and branch-comparison rows. The live strategy test
-covers normal lifecycle summaries, not contradictory top-level fields.
+Why this slice: CandidateRefresh already proves link-capacity summaries derive
+stale aggregate pressure from rows, and strategy already scores link-capacity
+replay. The missing evidence is the V3 handoff between those surfaces: risk
+indicators, link-capacity score terms, and schema-valid strategy output under
+contradictory top-level summary fields.
 
 Current evidence gap:
-V3 strategy has no stale-top-level lifecycle challenge proving branch risk and
-branch-comparison output come from row-derived replay evidence.
+Campaign strategy lacks a stale-top-level link-capacity challenge showing
+selected contact IDs, station routing, throughput totals, and shortfall
+pressure come from rows rather than summary aggregates.
 
 Slice result:
-- Added source-report count, row-count, and path context to timeline lifecycle
-  replay risk indicators.
-- Added a stale-top-level lifecycle summary strategy challenge proving row
-  evidence drives replay summaries, risk indicators, score terms,
-  branch-comparison timeline/activity IDs, and schema validation.
-- Tightened the regression after review to assert all newly surfaced lifecycle
-  replay source-report context fields on the risk indicator.
-- Neighboring lifecycle strategy replay coverage remains green.
+- Added a stale-top-level link-capacity summary strategy challenge proving row
+  evidence drives replay summaries, risk indicators, link-capacity score terms,
+  branch risk types, and schema validation.
+- No production changes were needed; the existing strategy replay path was
+  already row-led for this link-capacity summary family.
+- Neighboring link-capacity report/summary strategy replay tests remain green.
 
 Last completed slice:
 Timeline lifecycle strategy replay stays row-led under stale aggregates.
@@ -64,11 +62,12 @@ Last pushed commits:
 - Ledger correction: `da1524b` Update autonomous loop ledger after timeline
   publish
 - Product/ledger: `1173176` Preserve lifecycle replay source context
+- Ledger correction: `f369621` Update autonomous loop ledger after lifecycle
+  publish
 
 Review/publish queue:
-- Reviewer sidecar cleared the timeline lifecycle stale aggregate strategy
-  guard.
-- Published to `origin/main` as `1173176`.
+- Reviewer sidecar cleared the link-capacity stale aggregate strategy guard;
+  publish pending.
 
 Remaining maturity gaps:
 - Continue converting replayed resource/contact/readiness pressure into
@@ -81,17 +80,17 @@ Remaining maturity gaps:
   planner pressure families change public artifact shape.
 
 Next candidate:
-Reassess remaining readiness/resource/contact candidate-selection gaps from live
-evidence.
+After this link-capacity strategy guard, reassess remaining candidate-selection
+or compatibility gaps from live evidence.
 
 Blocked:
 Not blocked.
 
 Notes:
-- Validation safety-case stale top-level strategy coverage already exists in
-  current CampaignPlanner tests; this slice targets the adjacent timeline
-  lifecycle strategy gap.
+- Validation safety-case, timeline lifecycle, readiness, resource quality-gate,
+  contact-allocation, and provider-counteroffer stale strategy guards already
+  exist in current tests; this slice targets the adjacent link-capacity summary
+  strategy gap.
 - Focused CampaignPlanner tests still emit existing unrelated `0.0`
   pattern-match warnings from another test; selected tests exit green.
-- Reviewer sidecar: `019eb058-ca47-7431-aa74-6141e525fedc`.
-- Publisher sidecar: `019eb05d-382e-7863-b476-66ffbe6750cb`.
+- Reviewer sidecar: `019eb062-21ca-7081-817a-d4d26d62f9b4`.

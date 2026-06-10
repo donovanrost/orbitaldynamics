@@ -33743,6 +33743,161 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "strategy challenge scores link-capacity replay from rows when top-level fields are stale" do
+    rows = [
+      %{
+        "ground_station_id" => "equator_prime",
+        "spacecraft_id" => "leo_1",
+        "direction" => "Down Link",
+        "contact_count" => 1,
+        "effective_contact_count" => 1,
+        "selected_contact_count" => 1,
+        "selected_downlink_shortfall_mb" => 12.0,
+        "actual_downlink_shortfall_mb" => 3.0,
+        "capacity_adjusted_throughput_mb" => 70.0,
+        "selected_capacity_adjusted_throughput_mb" => 45.0,
+        "unused_capacity_adjusted_throughput_mb" => 25.0,
+        "downlink_requirement_status" => "shortfall",
+        "actual_downlink_requirement_status" => "shortfall",
+        "contact_ids" => ["row_capacity_contact"],
+        "selected_contact_ids" => ["row_capacity_contact"],
+        "actual_throughput_contact_ids" => ["row_capacity_contact"],
+        "source_window_ids" => ["row_window"],
+        "station_calendar_entry_ids" => ["row_station_entry"],
+        "station_calendar_provider_entry_ids" => ["row_provider_entry"]
+      }
+    ]
+
+    stale_summary =
+      %{"schema_contract" => "link_capacity_report.v1", "rows" => rows}
+      |> OrbitalDynamics.Communications.LinkCapacity.summary()
+      |> Map.put("rows", rows)
+      |> Map.put("provenance", %{"trust_boundary" => "stale_strategy_link_capacity_summary"})
+      |> Map.merge(%{
+        "station_count" => 99,
+        "selected_downlink_shortfall_mb" => 999.0,
+        "actual_downlink_shortfall_mb" => 999.0,
+        "capacity_adjusted_throughput_mb" => 999.0,
+        "selected_capacity_adjusted_throughput_mb" => 999.0,
+        "unused_capacity_adjusted_throughput_mb" => 999.0,
+        "ground_station_ids" => ["stale_station"],
+        "capacity_adjusted_throughput_mb_by_ground_station_id" => %{
+          "stale_station" => 999.0
+        },
+        "selected_capacity_adjusted_throughput_mb_by_ground_station_id" => %{
+          "stale_station" => 999.0
+        },
+        "unused_capacity_adjusted_throughput_mb_by_ground_station_id" => %{
+          "stale_station" => 999.0
+        },
+        "selected_contact_ids" => ["stale_selected_contact"],
+        "actual_throughput_contact_ids" => ["stale_actual_contact"],
+        "selected_contact_ids_by_ground_station_id" => %{
+          "stale_station" => ["stale_selected_contact"]
+        },
+        "actual_throughput_contact_ids_by_ground_station_id" => %{
+          "stale_station" => ["stale_actual_contact"]
+        },
+        "contact_ids_by_direction" => %{"uplink" => ["stale_contact"]},
+        "source_window_ids_by_direction" => %{"uplink" => ["stale_window"]},
+        "direction_routing" => %{
+          "uplink" => %{
+            "contact_count" => 99,
+            "contact_ids" => ["stale_contact"]
+          }
+        }
+      })
+
+    artifact =
+      strategy(base_plan(%{}),
+        mission_state:
+          mission_state_with_refresh_inputs()
+          |> Map.put(:source_link_capacity_summary, stale_summary),
+        branches: [
+          %{id: "baseline"},
+          %{
+            id: "urgent",
+            events: [%{type: "urgent_target", target_id: "target_a", priority: 12.0}]
+          }
+        ],
+        current_epoch_s: 0.0
+      )
+
+    urgent = branch(artifact, "urgent")
+
+    assert %{"type" => "candidate_refresh.v1", "scope" => "branch_generated"} =
+             candidate_source = urgent["assumptions"]["candidate_source"]
+
+    expected_direction_routing = %{
+      "downlink" => %{
+        "contact_count" => 1,
+        "contact_ids" => ["row_capacity_contact"],
+        "source_window_ids" => ["row_window"],
+        "station_calendar_entry_ids" => ["row_station_entry"],
+        "station_calendar_provider_entry_ids" => ["row_provider_entry"],
+        "capacity_adjusted_throughput_mb" => 70.0,
+        "selected_capacity_adjusted_throughput_mb" => 45.0,
+        "unused_capacity_adjusted_throughput_mb" => 25.0
+      }
+    }
+
+    assert %{
+             "source_report_count" => 1,
+             "source_report_row_count" => 1,
+             "source_report_paths" => ["mission_state.source_link_capacity_summary"],
+             "selected_shortfall_row_count" => 1,
+             "actual_shortfall_row_count" => 1,
+             "actual_throughput_row_count" => 1,
+             "capacity_adjusted_throughput_row_count" => 1,
+             "capacity_adjusted_throughput_mb_total" => 70.0,
+             "selected_capacity_adjusted_throughput_mb_total" => 45.0,
+             "unused_capacity_adjusted_throughput_mb_total" => 25.0,
+             "ground_station_counts" => %{"equator_prime" => 1},
+             "contact_ids_by_direction" => %{"downlink" => ["row_capacity_contact"]},
+             "source_window_ids_by_direction" => %{"downlink" => ["row_window"]},
+             "direction_routing" => ^expected_direction_routing,
+             "selected_contact_ids" => ["row_capacity_contact"],
+             "actual_throughput_contact_ids" => ["row_capacity_contact"],
+             "branch_local_link_capacity_pressure" => true,
+             "branch_local_capacity_adjusted_throughput_pressure" => true,
+             "branch_local_downlink_shortfall_pressure" => true,
+             "branch_local_actual_throughput_pressure" => true
+           } = CandidateRefresh.link_capacity_replay_summary(candidate_source)
+
+    assert Enum.any?(
+             urgent["risk_indicators"],
+             &(&1["type"] == "downlink_completion_gap" and
+                 &1["feedback_source"] == "candidate_source.link_capacity_replay_summary" and
+                 &1["feedback_scope"] == "link_capacity" and
+                 &1["source_report_count"] == 1 and
+                 &1["source_report_row_count"] == 1 and
+                 &1["source_report_paths"] == ["mission_state.source_link_capacity_summary"] and
+                 &1["selected_shortfall_row_count"] == 1 and
+                 &1["actual_shortfall_row_count"] == 1 and
+                 &1["actual_throughput_row_count"] == 1 and
+                 &1["capacity_adjusted_throughput_row_count"] == 1 and
+                 &1["capacity_adjusted_throughput_mb_total"] == 70.0 and
+                 &1["selected_capacity_adjusted_throughput_mb_total"] == 45.0 and
+                 &1["unused_capacity_adjusted_throughput_mb_total"] == 25.0 and
+                 &1["ground_station_ids"] == ["equator_prime"] and
+                 &1["directions"] == ["downlink"] and
+                 &1["selected_contact_ids"] == ["row_capacity_contact"] and
+                 &1["actual_throughput_contact_ids"] == ["row_capacity_contact"] and
+                 &1["direction_routing"] == expected_direction_routing)
+           )
+
+    assert_link_capacity_pressure_score_terms(urgent, artifact)
+
+    urgent_row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(&(&1["branch_id"] == "urgent"))
+
+    assert "downlink_completion_gap" in urgent_row["risk_types"]
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "strategy derives relay data-path summaries as branch-local link-capacity pressure" do
     relay_summary = fn prefix, station_id, route_id, contact_id ->
       %{
