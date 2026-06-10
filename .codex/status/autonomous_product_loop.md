@@ -5,85 +5,83 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Regenerate checked-in V1/V2/V3 campaign golden fixtures from public facades.
+Refresh validation-reference expectations for regenerated campaign artifacts.
 
 Status:
 Completed and pushed.
 
 Files changed:
-- V1 campaign fixture:
-  `study_results/leo_constellation_campaign.json`
-- V2 repair fixture:
-  `study_results/leo_constellation_campaign_repair_v2.json`
-- V3 strategy fixture:
-  `study_results/leo_constellation_campaign_strategy_v3.json`
-- Golden compatibility tests:
-  `test/orbital_dynamics/golden_artifact_test.exs`
+- Validation reference registry:
+  `lib/orbital_dynamics/validation.ex`
+- Validation focused assertions:
+  `test/orbital_dynamics/validation_test.exs`
+- Checked-in aggregate validation-reference report:
+  `study_results/validation_reference_fixtures.json`
 - Ledger:
   `.codex/status/autonomous_product_loop.md`
 
 Tests/checks run:
-- `mix test test/orbital_dynamics/golden_artifact_test.exs:217 test/orbital_dynamics/golden_artifact_test.exs:632 --max-failures 2`
-- `mix orbital_dynamics.study.run --manifest studies/leo_constellation_campaign.json --output study_results/leo_constellation_campaign.json --run-id leo_constellation_campaign-1778976392512956 --generated-at 2026-05-14T00:00:00Z`
-- `mix orbital_dynamics.campaign.run --type repair --request studies/leo_constellation_campaign_repair_v2.json --output study_results/leo_constellation_campaign_repair_v2.json`
-- `mix orbital_dynamics.campaign.run --type strategy --request studies/leo_constellation_campaign_strategy_v3.json --output study_results/leo_constellation_campaign_strategy_v3.json`
-- `mix test test/orbital_dynamics/golden_artifact_test.exs:275 test/orbital_dynamics/golden_artifact_test.exs:464 test/orbital_dynamics/golden_artifact_test.exs:632`
-- `mix orbital_dynamics.schema.lint --input study_results/leo_constellation_campaign.json`
-- `mix orbital_dynamics.schema.lint --input study_results/leo_constellation_campaign_repair_v2.json --contract campaign_repair.v2`
-- `mix orbital_dynamics.schema.lint --input study_results/leo_constellation_campaign_strategy_v3.json --contract campaign_strategy.v3`
-- `mix test test/orbital_dynamics/golden_artifact_test.exs`
+- `mix test test/orbital_dynamics/validation_test.exs:1531`
+- `mix test test/orbital_dynamics/validation_test.exs:1720`
+- `mix test test/orbital_dynamics/validation_test.exs:15036`
+- `mix test test/orbital_dynamics/validation_test.exs:1531 test/orbital_dynamics/validation_test.exs:1720`
+- `mix test test/orbital_dynamics/validation_test.exs --max-failures 1`
+- `mix orbital_dynamics.schema.lint --input study_results/validation_reference_fixtures.json --contract validation_reference_fixture_report.v1`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 
 Docs/artifacts changed:
-- Regenerated V1 campaign, V2 repair, and V3 strategy JSON artifacts through
-  documented public commands.
-- Updated the V3 golden surface assertion for the regenerated strategy hash,
-  score-term row counts, review/import counts, and provider/station reservation
-  pressure score terms.
+- Updated the result-artifact validation reference for the regenerated
+  `study_results/leo_constellation_campaign.json` payload metric size.
+- Updated the V3 strategy validation reference for the expanded 61-key
+  score-term pressure surface and 1,647 derived score-term rows.
+- Refreshed the checked-in `validation_reference_fixture_report.v1` aggregate
+  rows through `OrbitalDynamics.Validation.verify_reference_fixture/2`.
 
 Level 6 pillar advanced:
-Reproducible branch-tree artifacts with exact public-facade regeneration,
-schema-validated compatibility fixtures, and explainable reservation pressure
-score terms.
+Durable schema-versioned artifacts and compatibility checks, with
+validation-reference fixtures that detect stale wrapper metrics and expanded
+strategy pressure evidence after public campaign artifact regeneration.
 
 Slice selection note:
-Selected slice: regenerate the checked-in V3 strategy golden artifact from the
-public facade, then follow its deterministic dependency chain to the stale V1
-campaign and V2 repair fixtures.
+Selected slice: refresh validation-reference expectations for checked-in
+result-artifact wrappers after public campaign fixture regeneration.
 
-Why this slice: exact-match golden tests proved the checked-in strategy artifact
-was stale after recent planner slices added dedicated station-reservation and
-provider-reservation score terms. Full golden verification then showed the V1
-campaign and V2 repair fixtures also needed public-facade regeneration.
+Why this slice: `mix test test/orbital_dynamics/validation_test.exs --max-failures 1`
+failed because the regenerated campaign artifact had a stale
+`payload_metrics_artifact_body_bytes` validation reference. The aggregate
+validation report then exposed stale V3 strategy score-term expectations from
+the same regenerated campaign artifact chain.
 
-Current evidence gap closed: checked-in campaign, repair, and strategy fixtures
-now exactly match the documented public generation paths, and the full golden
-artifact test file is green.
+Current evidence gap closed: the full validation reference suite now passes,
+and the checked-in aggregate report is schema-valid with all 194 fixture
+reports passing.
 
 Docs read:
 `docs/autonomous_work_guide.md`;
 `.codex/prompts/long_running_context_efficient_product_loop.md`;
 `.codex/status/autonomous_product_loop.md`;
+`docs/feature_set/completeness_levels/06_mature_operational_platform.md`;
+`docs/feature_set/definition_of_feature_complete.md`;
+`docs/feature_set/current_capability_snapshot.md`;
+`docs/feature_set/recommended_roadmap.md`;
 `docs/feature_set/capability_map/18_validation_and_verification.md`;
-`docs/mission_planning/high_fidelity/11_verification_and_validation.md`;
 `docs/artifacts/compatibility_checks.md`.
 
 Slice result:
-- Regenerated V1 campaign with fixed `run-id` and `generated-at` values.
-- Regenerated V2 repair and V3 strategy through `mix orbital_dynamics.campaign.run`.
-- Reconciled V3 golden surface counts for the new reservation pressure terms:
-  `provider_reservation_request_pressure_penalty`,
-  `station_reservation_conflict_pressure_penalty`, and
-  `station_reservation_expiration_pressure_penalty`.
-- Full `test/orbital_dynamics/golden_artifact_test.exs` now passes.
+- Reconciled the regenerated LEO campaign result-artifact payload metric from
+  `323_493` to `323_857` bytes.
+- Reconciled the regenerated V3 strategy score-term reference from 45 keys and
+  1,215 rows to 61 keys and 1,647 rows.
+- Regenerated the affected aggregate validation-reference rows from the public
+  validation verification facade.
 
 Last completed slice:
-Regenerate checked-in V1/V2/V3 campaign golden fixtures from public facades.
+Refresh validation-reference expectations for regenerated campaign artifacts.
 
 Last commit:
-- Product/artifacts: `fa03788` Regenerate campaign golden fixtures
-- Ledger: `d242c96` Update autonomous loop status
+- Product/artifacts: `16088a2` Refresh validation reference fixtures
+- Ledger: this handoff update
 
 Remaining maturity gaps:
 - Continue converting replayed resource/contact/readiness pressure into
@@ -92,8 +90,8 @@ Remaining maturity gaps:
 - Continue closing queue-4 branch-local handoff completeness and queue-3
   quality/readiness gaps for artifact families not present in checked-in
   strategy artifacts.
-- Keep golden fixtures exact-regenerable whenever planner pressure families
-  change public artifact shape.
+- Keep golden and validation-reference fixtures exact-regenerable whenever
+  planner pressure families change public artifact shape.
 
 Next candidate:
 Reassess from live evidence. Good candidates are readiness/quality replay paths
@@ -104,9 +102,10 @@ Blocked:
 Not blocked.
 
 Notes:
-- Previous published slice: Product `b8fee15`; ledger handoff followed in the
-  prior slice.
+- Previous published slice: Product `fa03788`; ledger handoff `d242c96`; handoff
+  correction `06d37de`.
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
   not part of this slice.
-- Sidecar delegation is unavailable in this runtime; parent performed the
-  bounded local review and mechanical publish scope.
+- Sidecar delegation was attempted but unavailable because the agent thread
+  limit was reached; parent performed the bounded local review and mechanical
+  update scope.
