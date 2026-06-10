@@ -79,7 +79,7 @@ Normalized missed-observation target aliases for score-term refresh pressure.
 
 Last commit:
 - Product: `d4ec597` Normalize score term missed observation aliases
-- Ledger: pending
+- Ledger: `72e5eb3` Update autonomous loop status
 
 Remaining maturity gaps:
 - Bring the same missed-observation alias consistency to objective-tradeoff
