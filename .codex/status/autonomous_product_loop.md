@@ -8,8 +8,8 @@ Current slice:
 Row-bearing contact-intent summaries as scored branch pressure.
 
 Status:
-Implemented, reviewed, reviewer recheck clear, and locally verified; publish
-pending.
+Implemented, reviewed, reviewer recheck clear, locally verified, committed, and
+pushed.
 
 Files changed:
 - Strategy branch derivation:
@@ -63,7 +63,7 @@ Slice result:
   direct-plus-summary rows.
 
 Last completed slice:
-Provider-counteroffer import-readiness stale-aggregate challenge fixture.
+Row-bearing contact-intent summaries as scored branch pressure.
 
 Last pushed commits:
 - Product/docs/ledger: `b9babb7` Score provider counteroffer import readiness
@@ -73,13 +73,14 @@ Last pushed commits:
   aggregates
 - Ledger correction: `8d92d05` Update autonomous loop ledger after import
   readiness publish
+- Product/ledger: `3df98cb` Score contact intent summary pressure
 
 Review/publish queue:
 - Reviewer sidecar found duplicate scoring blockers and a coverage gap for
   prior-plan/result-artifact summaries; parent fixed them with global
   contact-intent pressure dedupe and broader source coverage.
 - Reviewer recheck found no new blockers and approved publish.
-- Publish pending: commit and push contact-intent summary branch pressure.
+- Published to `origin/main` as `3df98cb`.
 
 Remaining maturity gaps:
 - Continue converting replayed resource/contact/readiness pressure into
