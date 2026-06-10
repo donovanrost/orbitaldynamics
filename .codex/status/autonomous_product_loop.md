@@ -8,8 +8,7 @@ Current slice:
 V2 repair resource-projection pressure contributes to repair score terms.
 
 Status:
-Implemented locally; reviewer blocker fixed; focused checks pass; awaiting
-publish.
+Implemented, reviewer-cleared, locally verified, committed, and pushed.
 
 Files changed:
 - V2 repair scoring:
@@ -46,7 +45,7 @@ Remaining maturity gaps:
   schema behavior changes public artifact shape.
 
 Last commit:
-`54a37f7` Update autonomous loop ledger after fixture publish.
+`eea110f` Score repair resource projection pressure.
 
 Next candidate:
 Reassess the remaining replayed pressure families after this repair scoring
@@ -70,3 +69,5 @@ Notes:
 - Focused CampaignPlanner tests still emit existing unrelated `0.0`
   pattern-match warnings from another test; selected tests exit green.
 - Reviewer sidecar: `019eb0b6-7fc1-7552-a40c-7f54a2ae1d3d`.
+- Publisher sidecar pushed `eea110f` to `origin/main`.
+- Publisher sidecar: `019eb0be-fef6-78e3-8892-e77bc19a2352`.
