@@ -5,37 +5,33 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-V1 contact-filter suppression before candidate ranking.
+Document V1 pre-ranking contact-filter suppression.
 
 Status:
 Implemented, parent-reviewed, locally verified, and published to `origin/main`.
-Behavior commit: `f2c9756`.
+Behavior commit: `50f0656`.
 
 Files changed:
-- V1 planning pipeline:
-  `lib/orbital_dynamics/campaign_planner.ex`
-- Campaign planner coverage:
-  `test/orbital_dynamics/campaign_planner_test.exs`
+- Ground-network capability docs:
+  `docs/feature_set/capability_map/07_ground_network/01_overview_filter_and_contention.md`
+- Compatibility docs:
+  `docs/artifacts/compatibility_checks.md`
 - Ledger:
   `.codex/status/autonomous_product_loop.md`
 
 Tests/checks run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:2270 test/orbital_dynamics/campaign_planner_test.exs:2480`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:2685`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:2773`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs`
 - `git diff --check`
-- `mix format --check-formatted lib/orbital_dynamics/campaign_planner.ex`
 
 Docs/artifacts changed:
-No public docs or checked-in generated artifacts changed. This is a runtime
-selection contract for `campaign_plan.v1` output.
+Documented the `campaign_plan.v1` behavior from behavior commit `f2c9756`:
+contact filtering now suppresses unavailable/reserved contacts before V1
+contention, allocation, link-capacity, ranking, contact intents, and selected
+activities are derived.
 
 Level 6 pillar advanced:
-Fleet-level contact allocation behavior and Cadence-facing artifact consistency:
-unavailable or reserved contact evidence is now visible before V1 ranking,
-while station-calendar and contact-suppression review/import evidence remains
-artifact-only.
+Durable Cadence-facing artifact expectations: station-calendar and
+contact-suppression handoff evidence remains review/import-visible even when
+the suppressed contacts are removed from ordinary V1 candidate/ranking surfaces.
 
 Remaining maturity gaps:
 - Continue converting artifact evidence into planner-visible selection,
@@ -46,7 +42,7 @@ Remaining maturity gaps:
   editing; do not rely on stale ledger candidates.
 
 Last behavior commit:
-`f2c9756` Filter campaign contacts before ranking.
+`50f0656` Document campaign contact filter ranking.
 
 Next candidate:
 Recalibrate from live code. Candidate-selection effects and compatibility
@@ -56,11 +52,11 @@ Blocked:
 Not blocked.
 
 Notes:
-- Selection note: V1 already produced `contact_filter_report.v1`, while V2/V3
-  preserved and scored contact-filter pressure. The gap was that V1 ranked and
-  allocated contacts before using that suppression evidence.
-- Slice result: station-calendar overlay still records affected contacts, but
-  contact filters now remove unavailable/reserved contacts before contention,
-  allocation, link-capacity, ranking, contact intents, and selected activities.
+- Selection note: the prior V1 contact-filter behavior change altered public
+  artifact semantics, while the focused docs still described standalone
+  contact-filter rows without naming the pre-ranking campaign behavior.
+- Slice result: ground-network capability and compatibility docs now state the
+  V1 contact-filter boundary and the review/import evidence preservation path.
 - `mix format --check-formatted test/orbital_dynamics/campaign_planner_test.exs`
-  still reports pre-existing distant formatting drift outside this slice.
+  still reports pre-existing distant formatting drift outside the prior code
+  slice.
