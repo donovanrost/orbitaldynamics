@@ -5267,6 +5267,24 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              ]
            } = artifact["source_candidate_rejection_report"]
 
+    assert artifact["score_terms"]["candidate_rejection_pressure_penalty"] == -1.0
+
+    assert "candidate_rejection_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert [
+             %{
+               "term_key" => "candidate_rejection_pressure_penalty",
+               "value" => -1.0,
+               "selected" => true
+             }
+           ] =
+             Enum.filter(
+               artifact["score_term_report"]["rows"],
+               &(&1["term_key"] == "candidate_rejection_pressure_penalty")
+             )
+
     assert %{
              "candidate_rejection_review_count" => 1
            } = artifact["operator_review_package"]
@@ -5680,7 +5698,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
 
     assert %{
              "objective" =>
-               "maximize repaired activity value while minimizing churn, schedule movement, resource-projection pressure, contact pressure, resource-filter pressure, and refresh-budget pressure",
+               "maximize repaired activity value while minimizing churn, schedule movement, resource-projection pressure, contact pressure, resource-filter pressure, refresh-budget pressure, and candidate-rejection pressure",
              "score_term_keys" => score_term_keys,
              "tradeoffs" => [
                %{
