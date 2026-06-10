@@ -32816,6 +32816,7 @@ defmodule OrbitalDynamics.Schema do
       "repair_id",
       "source_plan_id"
     ])
+    |> validate_repair_timeline_protection_metadata(artifact)
   end
 
   defp validate_contract(@campaign_strategy, contract, artifact) do
@@ -32848,6 +32849,153 @@ defmodule OrbitalDynamics.Schema do
   defp validate_contract(_name, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
+  end
+
+  defp validate_repair_timeline_protection_metadata(issues, artifact) do
+    repair_metadata = Map.get(artifact, "repair_metadata")
+
+    timeline_protection =
+      if is_map(repair_metadata), do: Map.get(repair_metadata, "timeline_protection")
+
+    if is_map(repair_metadata) and is_map(timeline_protection) do
+      expected =
+        repair_timeline_protection_summary(
+          Map.get(artifact, "activities", []),
+          Map.get(artifact, "deltas", [])
+        )
+
+      issues
+      |> validate_optional_timeline_protection_summary(
+        "$.repair_metadata",
+        repair_metadata,
+        "timeline_protection"
+      )
+      |> validate_repair_timeline_protection_field(
+        timeline_protection,
+        expected,
+        "preserved_locked_or_approved_count"
+      )
+      |> validate_repair_timeline_protection_field(
+        timeline_protection,
+        expected,
+        "preserved_executed_count"
+      )
+      |> validate_repair_timeline_protection_field(
+        timeline_protection,
+        expected,
+        "changed_locked_or_approved_count"
+      )
+      |> validate_repair_timeline_protection_field(
+        timeline_protection,
+        expected,
+        "changed_executed_count"
+      )
+      |> validate_repair_timeline_protection_field(
+        timeline_protection,
+        expected,
+        "preserved_locked_or_approved_activity_ids"
+      )
+      |> validate_repair_timeline_protection_field(
+        timeline_protection,
+        expected,
+        "preserved_executed_activity_ids"
+      )
+      |> validate_repair_timeline_protection_field(
+        timeline_protection,
+        expected,
+        "changed_locked_or_approved_activity_ids"
+      )
+      |> validate_repair_timeline_protection_field(
+        timeline_protection,
+        expected,
+        "changed_executed_activity_ids"
+      )
+    else
+      issues
+    end
+  end
+
+  defp validate_repair_timeline_protection_field(issues, protection, expected, field) do
+    expect_field_equals(
+      issues,
+      "$.repair_metadata.timeline_protection",
+      protection,
+      field,
+      Map.get(expected, field),
+      "must equal row-derived repair timeline protection #{field}"
+    )
+  end
+
+  defp repair_timeline_protection_summary(activities, deltas) do
+    activities = list_or_empty(activities)
+    deltas = list_or_empty(deltas)
+
+    preserved_locked_ids =
+      activities
+      |> Enum.filter(&(get_in(&1, ["repair", "reason"]) == "activity_locked_or_approved"))
+      |> Enum.map(&Map.get(&1, "id"))
+      |> stable_sorted_values()
+
+    preserved_executed_ids =
+      activities
+      |> Enum.filter(&(get_in(&1, ["repair", "action"]) == "preserved_executed"))
+      |> Enum.map(&Map.get(&1, "id"))
+      |> stable_sorted_values()
+
+    changed_locked_ids =
+      deltas
+      |> Enum.reject(&(&1["repair_action"] in ["preserved", "preserved_executed"]))
+      |> Enum.filter(&repair_timeline_protection_locked_or_approved?(&1["planned"] || %{}))
+      |> Enum.map(&Map.get(&1, "activity_id"))
+      |> stable_sorted_values()
+
+    changed_executed_ids =
+      deltas
+      |> Enum.reject(&(&1["repair_action"] in ["preserved", "preserved_executed"]))
+      |> Enum.filter(&(&1["status"] in ["completed", "executed", "partial"]))
+      |> Enum.map(&Map.get(&1, "activity_id"))
+      |> stable_sorted_values()
+
+    %{
+      "preserved_locked_or_approved_count" => length(preserved_locked_ids),
+      "preserved_executed_count" => length(preserved_executed_ids),
+      "changed_locked_or_approved_count" => length(changed_locked_ids),
+      "changed_executed_count" => length(changed_executed_ids),
+      "preserved_locked_or_approved_activity_ids" => preserved_locked_ids,
+      "preserved_executed_activity_ids" => preserved_executed_ids,
+      "changed_locked_or_approved_activity_ids" => changed_locked_ids,
+      "changed_executed_activity_ids" => changed_executed_ids
+    }
+  end
+
+  defp repair_timeline_protection_locked_or_approved?(activity) when is_map(activity) do
+    metadata = Map.get(activity, "metadata", %{})
+
+    repair_timeline_protection_truthy?(Map.get(activity, "locked")) or
+      repair_timeline_protection_truthy?(Map.get(activity, "approved")) or
+      repair_timeline_protection_truthy?(Map.get(metadata, "locked")) or
+      repair_timeline_protection_truthy?(Map.get(metadata, "approved")) or
+      Map.get(activity, "approval_status") in ["approved", "locked"] or
+      Map.get(metadata, "approval_status") in ["approved", "locked"]
+  end
+
+  defp repair_timeline_protection_locked_or_approved?(_activity), do: false
+
+  defp repair_timeline_protection_truthy?(value) when is_boolean(value), do: value
+
+  defp repair_timeline_protection_truthy?(value) when is_number(value), do: value == 1
+
+  defp repair_timeline_protection_truthy?(value) when is_binary(value) do
+    String.downcase(String.trim(value)) in ["true", "1"]
+  end
+
+  defp repair_timeline_protection_truthy?(_value), do: false
+
+  defp stable_sorted_values(values) do
+    values
+    |> Enum.filter(&is_binary/1)
+    |> Enum.uniq()
+    |> Enum.sort()
   end
 
   defp validate_candidate_refresh_publication_lineage_fields(issues, artifact) do

@@ -3695,6 +3695,27 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
 
     assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
              Schema.validate_artifact(artifact["cadence_import_manifest"])
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(artifact)
+
+    stale_timeline_protection =
+      put_in(
+        artifact,
+        ["repair_metadata", "timeline_protection", "changed_locked_or_approved_count"],
+        0
+      )
+
+    assert {:error, stale_timeline_protection_report} =
+             Schema.validate_artifact(stale_timeline_protection)
+
+    assert Enum.any?(
+             stale_timeline_protection_report["errors"],
+             &(&1["path"] ==
+                 "$.repair_metadata.timeline_protection.changed_locked_or_approved_count" and
+                 &1["message"] ==
+                   "must equal row-derived repair timeline protection changed_locked_or_approved_count")
+           )
   end
 
   test "repair allocation detects same-spacecraft cross-station contention in repaired activities" do

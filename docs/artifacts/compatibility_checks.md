@@ -1574,6 +1574,10 @@ The V2 repair fixture also carries a preserved
 validation-reference checks pin the source report counts plus the derived
 operator-review and Cadence-import candidate-rejection rows, so source-report
 handoff drift is visible in the public fixture surface.
+Executable `campaign_repair.v2` validation also derives
+`repair_metadata.timeline_protection` counts and activity IDs from repair
+activities and deltas, so stale timeline-protection summaries cannot remain
+schema-valid when locked, approved, or executed timeline evidence changes.
 
 For repeatable file-to-file generation, use the campaign run task:
 

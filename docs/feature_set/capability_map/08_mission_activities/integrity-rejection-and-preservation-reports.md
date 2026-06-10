@@ -162,4 +162,8 @@ Operational timeline and realized-activity contracts now type planned fixed-rate
 
 - V2 plan-delta rows now expose explicit source/replacement activity-context maps and timeline links, and V2 plan-delta operator-review rows lift those timeline identities for Cadence-facing import/review products.
 - Reusable activity context now flattens station-calendar entry and provider-calendar provider/entry identity from nested provider source evidence, while preserving the full source entry and overlap audit trail.
-- V2 repair metadata summarizes preserved and changed locked, approved, and executed timeline items under `timeline_protection`.
+- V2 repair metadata summarizes preserved and changed locked, approved, and
+  executed timeline items under `timeline_protection`. Executable
+  `campaign_repair.v2` validation cross-checks those count and activity-ID
+  fields against the row-derived repair activities and deltas, so stale
+  protection metadata cannot pass as schema-valid repair evidence.
