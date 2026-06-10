@@ -795,6 +795,10 @@ into generic risk.
 Provider-counteroffer review risks contribute to
 `provider_counteroffer_pressure_penalty`, keeping provider negotiation pressure
 visible as its own score dimension without granting provider-write authority.
+Provider-reservation request review risks contribute to
+`provider_reservation_request_pressure_penalty`, keeping provider request
+pressure visible as its own score dimension without allocating contacts or
+writing provider reservations.
 Relay data-path pressure risks contribute to
 `relay_data_path_pressure_penalty`, keeping custody, latency, and route-risk
 pressure visible as its own score dimension without scheduling relays, mutating
@@ -1643,8 +1647,13 @@ Selected recommendations also include:
   score-term report rows through a shared helper.
 - **Station-reservation conflict pressure score terms** — split
   contact-allocation reservation-conflict risks into
-  `station_reservation_conflict_pressure_penalty`, leaving provider-reservation
-  and non-conflict allocation pressure on `contact_allocation_pressure_penalty`.
+  `station_reservation_conflict_pressure_penalty`, leaving non-conflict
+  allocation pressure on `contact_allocation_pressure_penalty`.
+- **Provider-reservation request pressure score terms** — split
+  provider-reservation request review risks into
+  `provider_reservation_request_pressure_penalty`, leaving generic
+  contact-allocation pressure and station-reservation conflicts on their own
+  score terms.
 - **Link-capacity pressure score terms** — split link-capacity shortfall risks
   into `link_capacity_pressure_penalty`, leaving `risk_penalty` for unrelated
   risks while preserving total branch score compatibility. Focused

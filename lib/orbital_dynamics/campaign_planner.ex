@@ -2851,6 +2851,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     risk_count = length(risk_indicators)
     contact_allocation_pressure_count = contact_allocation_pressure_risk_count(risk_indicators)
 
+    provider_reservation_request_pressure_count =
+      provider_reservation_request_pressure_risk_count(risk_indicators)
+
     station_reservation_conflict_pressure_count =
       station_reservation_conflict_pressure_risk_count(risk_indicators)
 
@@ -2951,7 +2954,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
     generic_risk_count =
       max(
-        risk_count - contact_allocation_pressure_count - approval_boundary_pressure_count -
+        risk_count - contact_allocation_pressure_count -
+          provider_reservation_request_pressure_count - approval_boundary_pressure_count -
           station_reservation_conflict_pressure_count -
           candidate_diff_pressure_count -
           timeline_diff_pressure_count -
@@ -3016,6 +3020,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
     contact_allocation_pressure_penalty =
       -contact_allocation_pressure_count * policy.risk_weight
+
+    provider_reservation_request_pressure_penalty =
+      -provider_reservation_request_pressure_count * policy.risk_weight
 
     station_reservation_conflict_pressure_penalty =
       -station_reservation_conflict_pressure_count * policy.risk_weight
@@ -3154,6 +3161,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         downlink_completion_score + fuel_preservation_score + schedule_stability_penalty +
         asset_balance_score + priority_commitment_score + resource_score +
         feedback_adjustment_score + contact_allocation_pressure_penalty +
+        provider_reservation_request_pressure_penalty +
         station_reservation_conflict_pressure_penalty +
         candidate_diff_pressure_penalty +
         timeline_diff_pressure_penalty +
@@ -3202,6 +3210,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "resource_score" => resource_score,
       "feedback_adjustment_score" => feedback_adjustment_score,
       "contact_allocation_pressure_penalty" => contact_allocation_pressure_penalty,
+      "provider_reservation_request_pressure_penalty" =>
+        provider_reservation_request_pressure_penalty,
       "station_reservation_conflict_pressure_penalty" =>
         station_reservation_conflict_pressure_penalty,
       "candidate_diff_pressure_penalty" => candidate_diff_pressure_penalty,
@@ -3261,12 +3271,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
     Enum.count(risk_indicators, &contact_allocation_pressure_risk?/1)
   end
 
-  defp contact_allocation_pressure_risk?(
-         %{"type" => "provider_reservation_request_review"} = risk
-       ) do
-    not station_reservation_conflict_pressure_risk?(risk)
-  end
-
   defp contact_allocation_pressure_risk?(%{"type" => "downlink_completion_gap"} = risk) do
     not station_reservation_conflict_pressure_risk?(risk) and
       (risk["feedback_scope"] == "contact_allocation" or
@@ -3279,6 +3283,17 @@ defmodule OrbitalDynamics.CampaignPlanner do
   end
 
   defp contact_allocation_pressure_risk?(_risk), do: false
+
+  defp provider_reservation_request_pressure_risk_count(risk_indicators) do
+    Enum.count(risk_indicators, &provider_reservation_request_pressure_risk?/1)
+  end
+
+  defp provider_reservation_request_pressure_risk?(%{
+         "type" => "provider_reservation_request_review"
+       }),
+       do: true
+
+  defp provider_reservation_request_pressure_risk?(_risk), do: false
 
   defp station_reservation_conflict_pressure_risk_count(risk_indicators) do
     Enum.count(risk_indicators, &station_reservation_conflict_pressure_risk?/1)
@@ -9439,6 +9454,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
         {"resource_score", "resource_score"},
         {"feedback_adjustment", "feedback_adjustment_score"},
         {"contact_allocation_pressure", "contact_allocation_pressure_penalty"},
+        {"provider_reservation_request_pressure",
+         "provider_reservation_request_pressure_penalty"},
         {"station_reservation_conflict_pressure",
          "station_reservation_conflict_pressure_penalty"},
         {"candidate_diff_pressure", "candidate_diff_pressure_penalty"},
