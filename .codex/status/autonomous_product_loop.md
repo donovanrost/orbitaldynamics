@@ -5,70 +5,68 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Row-local station-reservation review-summary stale aggregate challenge fixture.
+Row-local station-reservation hold-summary stale aggregate challenge fixture.
 
 Status:
-Implemented, reviewer must-fixes resolved, locally verified, committed, and
-pushed.
+Implemented, locally verified, and reviewer-cleared; publish pending.
 
 Files changed:
+- Hold-summary row evidence normalization:
+  `lib/orbital_dynamics/candidate_refresh.ex`
+- Strategy branch-event hold-summary context:
+  `lib/orbital_dynamics/campaign_planner.ex`
 - Focused strategy regression:
   `test/orbital_dynamics/campaign_planner_test.exs`
 - Ledger:
   `.codex/status/autonomous_product_loop.md`
 
 Tests/checks run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:25787`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:25581 test/orbital_dynamics/campaign_planner_test.exs:25787`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:27885`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:27580 test/orbital_dynamics/campaign_planner_test.exs:27885`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:36102`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 
 Level 6 pillar advanced:
-Fleet-level station-reservation pressure and reproducible V3 branch trees with
-explainable score terms, by pinning row-local reservation-review evidence
-against stale compact-summary aggregates before candidate-source replay and
-branch scoring.
+Fleet-level station-reservation hold pressure and reproducible V3 branch trees
+with explainable score terms, by proving row evidence outranks stale compact
+hold-summary aggregates for candidate-source replay, branch events, comparison
+rows, and expiration scoring.
 
 Slice selection note:
-Selected slice: add a stale-top-level `station_reservation_review_summary.v1`
+Selected slice: add a stale-top-level `station_reservation_hold_summary.v1`
 challenge fixture for strategy replay and scoring.
 
-Why this slice: station-reservation review summaries already create branch
-pressure and expiration score terms, but the existing strategy test only proved
-happy-path summary replay. A contradictory compact summary should prove row
-evidence wins for candidate-source replay, branch events, branch comparison
-rows, and score terms.
+Why this slice: station-reservation hold summaries create branch-local reserved
+station pressure and expiration penalties. A contradictory compact summary must
+not steer candidate-source replay, branch event context, or score terms when
+row-level hold evidence is present.
 
 Current evidence gap closed:
-A mission-state `source_station_reservation_review_summary` whose top-level
-aggregates claim unrelated stale counts now proves the row-local expired
-reservation overlap drives candidate-source replay, the generated reserved
-station branch event, branch comparison reservation fields,
-`station_reservation_expiration_pressure_penalty`, and schema validation.
+A mission-state `source_station_reservation_hold_summary` whose top-level
+aggregates claim unrelated stale counts/status/IDs now proves the row-local
+expired hold drives candidate-source summary maps, replay summary maps,
+required operator action, generated reserved-station event, branch comparison
+reservation fields, `station_reservation_expiration_pressure_penalty`, and
+`campaign_strategy.v3` schema validation.
 
 Slice result:
 - Added a focused CampaignPlanner strategy challenge test for stale
-  station-reservation review-summary aggregates.
-- The fixture verifies exact row-derived match/status/direction/owner/expiration
-  maps in `candidate_refresh_request_source_report_summary` and
-  `CandidateRefresh.station_reservation_replay_summary/1`.
-- Reviewer required exact match-status and provider-contention assertions plus a
-  complete recent commit list; parent tightened both and reran focused
-  verification.
-- The same fixture verifies the generated reserved-station branch event,
-  row-level trust boundary, branch comparison reservation fields, expiration
-  score-term reporting, and `campaign_strategy.v3` schema validation.
-- No production code changes were needed; live code was already row-led for this
-  path.
+  station-reservation hold-summary aggregates.
+- Normalized preserved hold-summary source reports from `review_rows` in
+  `CandidateRefresh` instead of trusting top-level compact aggregates.
+- Made CampaignPlanner hold-summary branch-event context row-derived for hold
+  count, hold IDs, direction/contact maps, review status, and required operator
+  action while preserving summary provenance/model/source fields.
+- Tightened the stale-path branch-event assertion to pin preserved summary
+  model/source/artifact metadata alongside row-derived hold context.
+- Neighboring hold-summary strategy coverage and CandidateRefresh hold-summary
+  replay coverage remain green.
 
 Last completed slice:
 Row-local station-reservation review-summary stale aggregate challenge fixture.
 
 Last pushed commits:
-- Product/ledger: `39eca42` Guard import readiness rows against stale
-  aggregates
-- Ledger correction: `8d92d05` Update autonomous loop ledger after import
-  readiness publish
 - Product/ledger: `3df98cb` Score contact intent summary pressure
 - Ledger correction: `c467c05` Update autonomous loop ledger after contact
   intent publish
@@ -79,11 +77,13 @@ Last pushed commits:
 - Ledger correction: `2802303` Update autonomous loop ledger after station
   calendar publish
 - Product/ledger: `2f01a4d` Guard station reservation review row evidence
+- Ledger correction: `c2a70df` Update autonomous loop ledger after reservation
+  review publish
 
 Review/publish queue:
-- Reviewer sidecar found two must-fix issues; parent resolved them and reviewer
-  re-check cleared the findings.
-- Published to `origin/main` as `2f01a4d`.
+- Reviewer sidecar found no must-fix issues; parent tightened stale-path source
+  metadata assertions after review.
+- Publish pending after reviewer clearance.
 
 Remaining maturity gaps:
 - Continue converting replayed resource/contact/readiness pressure into
@@ -96,14 +96,14 @@ Remaining maturity gaps:
   planner pressure families change public artifact shape.
 
 Next candidate:
-Reassess provider-calendar, station-reservation hold, or readiness
+After publishing this hold-summary guard, add the complementary provider
+calendar contention group stale hold-summary challenge or reassess readiness
 stale-aggregate strategy guards from live evidence.
 
 Blocked:
 Not blocked.
 
 Notes:
-- The focused tests still emit the existing `0.0` pattern-match warnings from a
-  separate CampaignPlanner test; selected tests exit green.
-- Reviewer sidecar: `019eb01a-02ab-75f0-b740-31136b0726a5`.
-- Publisher sidecar: `019eb01f-bff7-70a2-b974-1f0b112ffd77`.
+- The focused CampaignPlanner tests still emit the existing `0.0`
+  pattern-match warnings from a separate test; selected tests exit green.
+- Reviewer sidecar: `019eb02c-2b94-7d20-91b3-71f22cd5d68e`.

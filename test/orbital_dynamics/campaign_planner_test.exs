@@ -27882,6 +27882,217 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "strategy ignores stale station-reservation hold summary aggregates when deriving pressure" do
+    summary = %{
+      "schema_contract" => "station_reservation_hold_summary.v1",
+      "model" => "artifact_only_station_reservation_hold_summary",
+      "source_artifact_type" => "station_reservation_report.v1",
+      "source" => "station_calendar_report.reservation_evidence",
+      "reservation_hold_count" => 99,
+      "affected_contact_reservation_hold_count" => 99,
+      "provider_calendar_contention_hold_count" => 99,
+      "reservation_hold_review_status" => "ready",
+      "reservation_hold_expiration_count" => 99,
+      "earliest_reservation_hold_expires_at_s" => 99_999.0,
+      "reservation_hold_expiration_status_counts" => %{"stale_expiration" => 99},
+      "reservation_hold_status_counts" => %{"stale_status" => 99},
+      "reservation_hold_ids" => ["stale_hold"],
+      "reservation_hold_ids_by_expiration_status" => %{"stale_expiration" => ["stale_hold"]},
+      "reservation_hold_ids_by_status" => %{"stale_status" => ["stale_hold"]},
+      "reservation_hold_ids_by_reserved_by" => %{"stale_owner" => ["stale_hold"]},
+      "reservation_hold_ids_by_row_type" => %{"stale_row" => ["stale_hold"]},
+      "reservation_hold_contact_ids_by_expiration_status" => %{
+        "stale_expiration" => ["stale_contact"]
+      },
+      "review_contact_ids" => ["stale_contact"],
+      "review_rows" => [
+        %{
+          "reservation_review_row_type" => "affected_contact",
+          "contact_id" => "row_hold_contact",
+          "ground_station_id" => "dss_14",
+          "direction" => "downlink",
+          "reservation_ids" => ["row_hold_id"],
+          "reservation_statuses" => ["held"],
+          "reserved_by" => ["ops_hold_owner"],
+          "reservation_expires_at_s" => [180.0],
+          "station_reservation_expiration_status" => "expired",
+          "trust_boundary" => "stale_hold_row_boundary"
+        }
+      ],
+      "assumptions" => %{
+        "execution_boundary" => "artifact_only_no_provider_reservation",
+        "source" => "station_reservation_report.v1",
+        "operator_authority" => "not_granted_by_summary"
+      },
+      "provenance" => %{"trust_boundary" => "stale_hold_summary_boundary"}
+    }
+
+    artifact =
+      strategy(base_plan(%{}),
+        mission_state:
+          mission_state_with_refresh_inputs()
+          |> Map.put("source_station_reservation_hold_summary", summary),
+        derive_branches?: true,
+        branches: [%{id: "baseline"}],
+        current_epoch_s: 0.0
+      )
+
+    hold_branch = branch(artifact, "derived_station_calendar_pressure_reserved_row_hold_contact")
+
+    candidate_source =
+      assert_candidate_source_report_path(
+        hold_branch,
+        "mission_state.source_station_reservation_hold_summary"
+      )
+
+    source_summary = candidate_source["candidate_refresh_request_source_report_summary"]
+
+    assert source_summary["source_report_station_reservation_hold_count"] == 1
+    assert source_summary["source_report_station_reservation_affected_contact_hold_count"] == 1
+
+    assert source_summary[
+             "source_report_station_reservation_provider_calendar_contention_hold_count"
+           ] == 0
+
+    assert source_summary["source_report_station_reservation_hold_review_status_counts"] == %{
+             "review_required" => 1
+           }
+
+    assert source_summary["source_report_station_reservation_hold_expiration_count"] == 1
+    assert source_summary["source_report_station_reservation_earliest_hold_expires_at_s"] == 180.0
+
+    assert source_summary["source_report_station_reservation_hold_expiration_status_counts"] == %{
+             "expired" => 1
+           }
+
+    assert source_summary["source_report_station_reservation_hold_status_counts"] == %{
+             "held" => 1
+           }
+
+    assert source_summary["source_report_station_reservation_hold_ids"] == ["row_hold_id"]
+
+    assert source_summary["source_report_station_reservation_hold_ids_by_expiration_status"] ==
+             %{"expired" => ["row_hold_id"]}
+
+    assert source_summary["source_report_station_reservation_hold_ids_by_status"] == %{
+             "held" => ["row_hold_id"]
+           }
+
+    assert source_summary["source_report_station_reservation_hold_ids_by_reserved_by"] == %{
+             "ops_hold_owner" => ["row_hold_id"]
+           }
+
+    assert source_summary["source_report_station_reservation_hold_ids_by_row_type"] == %{
+             "affected_contact" => ["row_hold_id"]
+           }
+
+    assert source_summary["source_report_station_reservation_hold_ids_by_direction"] == %{
+             "downlink" => ["row_hold_id"]
+           }
+
+    assert source_summary["source_report_station_reservation_hold_contact_ids_by_direction"] == %{
+             "downlink" => ["row_hold_contact"]
+           }
+
+    assert source_summary[
+             "source_report_station_reservation_hold_contact_ids_by_expiration_status"
+           ] == %{"expired" => ["row_hold_contact"]}
+
+    assert source_summary["source_report_station_reservation_hold_review_contact_ids"] == [
+             "row_hold_contact"
+           ]
+
+    replay_summary = CandidateRefresh.station_reservation_replay_summary(candidate_source)
+
+    assert replay_summary["reservation_hold_count"] == 1
+    assert replay_summary["affected_contact_reservation_hold_count"] == 1
+    assert replay_summary["provider_calendar_contention_hold_count"] == 0
+    assert replay_summary["reservation_hold_review_status_counts"] == %{"review_required" => 1}
+    assert replay_summary["reservation_hold_expiration_count"] == 1
+    assert replay_summary["earliest_reservation_hold_expires_at_s"] == 180.0
+    assert replay_summary["reservation_hold_expiration_status_counts"] == %{"expired" => 1}
+    assert replay_summary["reservation_hold_status_counts"] == %{"held" => 1}
+    assert replay_summary["reservation_hold_ids"] == ["row_hold_id"]
+
+    assert replay_summary["reservation_hold_ids_by_expiration_status"] == %{
+             "expired" => ["row_hold_id"]
+           }
+
+    assert replay_summary["reservation_hold_ids_by_status"] == %{"held" => ["row_hold_id"]}
+
+    assert replay_summary["reservation_hold_ids_by_reserved_by"] == %{
+             "ops_hold_owner" => ["row_hold_id"]
+           }
+
+    assert replay_summary["reservation_hold_ids_by_row_type"] == %{
+             "affected_contact" => ["row_hold_id"]
+           }
+
+    assert replay_summary["reservation_hold_ids_by_direction"] == %{
+             "downlink" => ["row_hold_id"]
+           }
+
+    assert replay_summary["reservation_hold_contact_ids_by_direction"] == %{
+             "downlink" => ["row_hold_contact"]
+           }
+
+    assert replay_summary["reservation_hold_contact_ids_by_expiration_status"] == %{
+             "expired" => ["row_hold_contact"]
+           }
+
+    assert replay_summary["reservation_hold_review_contact_ids"] == ["row_hold_contact"]
+    assert replay_summary["branch_local_station_reservation_pressure"] == true
+    assert replay_summary["branch_local_reservation_hold_pressure"] == true
+
+    assert [
+             %{
+               "type" => "ground_station_reserved",
+               "ground_station_id" => "dss_14",
+               "station_reservation_id" => "row_hold_id",
+               "station_reserved_by" => "ops_hold_owner",
+               "station_reservation_status" => "held",
+               "station_reservation_expiration_status" => "expired",
+               "required_operator_action" => "review_station_reservation_hold",
+               "station_reservation_hold_summary_model" =>
+                 "artifact_only_station_reservation_hold_summary",
+               "station_reservation_hold_summary_source" =>
+                 "station_calendar_report.reservation_evidence",
+               "station_reservation_hold_summary_source_artifact_type" =>
+                 "station_reservation_report.v1",
+               "station_reservation_hold_review_status" => "review_required",
+               "station_reservation_hold_count" => 1,
+               "station_reservation_hold_ids" => ["row_hold_id"],
+               "station_reservation_hold_ids_by_direction" => %{
+                 "downlink" => ["row_hold_id"]
+               },
+               "station_reservation_hold_contact_ids_by_expiration_status" => %{
+                 "expired" => ["row_hold_contact"]
+               },
+               "station_reservation_hold_contact_ids_by_direction" => %{
+                 "downlink" => ["row_hold_contact"]
+               },
+               "feedback_source" => "mission_state.source_station_reservation_hold_summary",
+               "feedback_scope" => "station_calendar",
+               "trust_boundary" => "stale_hold_row_boundary"
+             }
+           ] = hold_branch["events"]
+
+    comparison_row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(
+        &(&1["branch_id"] == "derived_station_calendar_pressure_reserved_row_hold_contact")
+      )
+
+    assert comparison_row["branch_station_reservation_ids"] == ["row_hold_id"]
+    assert comparison_row["branch_station_reserved_by"] == ["ops_hold_owner"]
+    assert comparison_row["branch_station_reservation_statuses"] == ["held"]
+
+    assert_station_reservation_expiration_pressure_score_terms(hold_branch, artifact)
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "strategy carries mission-state station-reservation hold import-readiness summaries into branch refresh requests" do
     hold_import_readiness_summary = fn prefix, affected_direction, provider_direction ->
       expired_hold_id = "#{prefix}_reservation_expired"

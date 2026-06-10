@@ -48483,6 +48483,14 @@ defmodule OrbitalDynamics.CandidateRefresh do
         row["reservation_review_row_type"] != "provider_calendar_contention_group"
       end)
 
+    row_report = %{
+      "affected_contacts" => affected_rows,
+      "provider_calendar_contention_groups" => provider_rows
+    }
+
+    row_report_rows = station_reservation_report_rows(row_report)
+    reservation_hold_ids = station_reservation_report_ids([row_report]) || []
+
     %{
       "schema_contract" => "station_reservation_report.v1",
       "model" => "preserved_station_reservation_hold_summary",
@@ -48493,27 +48501,38 @@ defmodule OrbitalDynamics.CandidateRefresh do
       "trust_boundary" => Map.get(summary, "trust_boundary"),
       "affected_contacts" => affected_rows,
       "provider_calendar_contention_groups" => provider_rows,
-      "reservation_hold_count" => summary["reservation_hold_count"],
+      "reservation_hold_count" => length(reservation_hold_ids),
       "affected_contact_reservation_hold_count" =>
-        summary["affected_contact_reservation_hold_count"],
+        station_reservation_report_affected_contact_hold_count(affected_rows),
       "provider_calendar_contention_hold_count" =>
-        summary["provider_calendar_contention_hold_count"],
-      "reservation_hold_review_status" => summary["reservation_hold_review_status"],
-      "reservation_hold_expiration_count" => summary["reservation_hold_expiration_count"],
+        station_reservation_report_provider_contention_hold_count(provider_rows),
+      "reservation_hold_review_status" =>
+        station_reservation_report_hold_review_status(affected_rows, provider_rows),
+      "reservation_hold_expiration_count" =>
+        station_reservation_report_expiration_evidence_count(row_report),
       "earliest_reservation_hold_expires_at_s" =>
-        summary["earliest_reservation_hold_expires_at_s"],
+        [row_report]
+        |> station_reservation_report_expires_at_s()
+        |> List.wrap()
+        |> Enum.min(fn -> nil end),
       "reservation_hold_expiration_status_counts" =>
-        summary["reservation_hold_expiration_status_counts"],
-      "reservation_hold_status_counts" => summary["reservation_hold_status_counts"],
-      "reservation_hold_ids" => summary["reservation_hold_ids"],
+        count_source_report_rows(row_report_rows, "station_reservation_expiration_status"),
+      "reservation_hold_status_counts" => station_reservation_report_status_counts(row_report),
+      "reservation_hold_ids" => reservation_hold_ids,
       "reservation_hold_ids_by_expiration_status" =>
-        summary["reservation_hold_ids_by_expiration_status"],
-      "reservation_hold_ids_by_status" => summary["reservation_hold_ids_by_status"],
-      "reservation_hold_ids_by_reserved_by" => summary["reservation_hold_ids_by_reserved_by"],
-      "reservation_hold_ids_by_row_type" => summary["reservation_hold_ids_by_row_type"],
+        station_reservation_report_ids_by_values(row_report_rows, [
+          "station_reservation_expiration_status"
+        ]),
+      "reservation_hold_ids_by_status" => station_reservation_report_ids_by_status(row_report),
+      "reservation_hold_ids_by_reserved_by" =>
+        station_reservation_report_ids_by_reserved_by(row_report),
+      "reservation_hold_ids_by_row_type" =>
+        station_reservation_report_ids_by_values(row_report_rows, ["reservation_review_row_type"]),
       "reservation_hold_contact_ids_by_expiration_status" =>
-        summary["reservation_hold_contact_ids_by_expiration_status"],
-      "review_contact_ids" => summary["review_contact_ids"],
+        station_reservation_report_contact_ids_by_values(affected_rows, [
+          "station_reservation_expiration_status"
+        ]),
+      "review_contact_ids" => station_reservation_report_affected_contact_ids([row_report]),
       "assumptions" => summary["assumptions"]
     }
     |> maybe_put("provenance", summary["provenance"])
@@ -48526,6 +48545,33 @@ defmodule OrbitalDynamics.CandidateRefresh do
     summary["model"] == "artifact_only_station_reservation_hold_summary" and
       is_list(summary["review_rows"])
   end
+
+  defp station_reservation_report_affected_contact_hold_count(rows) do
+    rows
+    |> Enum.filter(fn row ->
+      row
+      |> stringify_keys()
+      |> station_reservation_report_row_reservation_ids()
+      |> Enum.any?()
+    end)
+    |> length()
+  end
+
+  defp station_reservation_report_provider_contention_hold_count(rows) do
+    rows
+    |> Enum.filter(fn row ->
+      row
+      |> stringify_keys()
+      |> station_reservation_report_row_reservation_ids()
+      |> Enum.any?()
+    end)
+    |> length()
+  end
+
+  defp station_reservation_report_hold_review_status([], []), do: nil
+
+  defp station_reservation_report_hold_review_status(_affected_rows, _provider_rows),
+    do: "review_required"
 
   defp station_reservation_report_from_hold_import_readiness_summary(%{} = summary) do
     summary = stringify_keys(summary)

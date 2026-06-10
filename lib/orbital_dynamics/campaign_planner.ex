@@ -12097,10 +12097,10 @@ defmodule OrbitalDynamics.CampaignPlanner do
     )
     |> put_if_absent(
       "station_reservation_hold_review_status",
-      summary["reservation_hold_review_status"]
+      station_reservation_hold_pressure_row_review_status(row, summary)
     )
     |> put_if_absent("source_station_reservation_hold_summary", row)
-    |> Map.merge(station_reservation_hold_summary_context(summary))
+    |> Map.merge(station_reservation_hold_summary_context(row, summary))
   end
 
   defp station_reservation_hold_summary_provider_pressure_group(row, summary) do
@@ -12223,26 +12223,70 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp station_reservation_hold_required_operator_action(row, summary) do
     row["required_operator_action"] ||
-      if(summary["reservation_hold_review_status"] == "review_required",
+      if(station_reservation_hold_pressure_row_review_status(row, summary) == "review_required",
         do: "review_station_reservation_hold"
       )
   end
 
-  defp station_reservation_hold_summary_context(summary) do
+  defp station_reservation_hold_pressure_row_review_status(row, summary) do
+    row["station_reservation_hold_review_status"] ||
+      row["reservation_hold_review_status"] ||
+      if(station_reservation_hold_pressure_row_reservation_ids(row) != [],
+        do: "review_required",
+        else: summary["reservation_hold_review_status"]
+      )
+  end
+
+  defp station_reservation_hold_summary_context(row, summary) do
+    reservation_ids = station_reservation_hold_pressure_row_reservation_ids(row)
+    directions = station_reservation_hold_pressure_row_strings(row, ["direction", "directions"])
+
+    contact_ids =
+      station_reservation_hold_pressure_row_strings(row, ["contact_id", "contact_ids"])
+
+    expiration_statuses =
+      station_reservation_hold_pressure_row_strings(row, [
+        "station_reservation_expiration_status"
+      ])
+
     %{
-      "station_reservation_hold_count" => summary["reservation_hold_count"],
-      "station_reservation_hold_ids" => summary["reservation_hold_ids"],
-      "station_reservation_hold_ids_by_direction" => summary["reservation_hold_ids_by_direction"],
+      "station_reservation_hold_count" =>
+        if(reservation_ids == [], do: nil, else: length(reservation_ids)),
+      "station_reservation_hold_ids" => if(reservation_ids == [], do: nil, else: reservation_ids),
+      "station_reservation_hold_ids_by_direction" =>
+        station_reservation_hold_pressure_row_values_by(reservation_ids, directions),
       "station_reservation_hold_contact_ids_by_expiration_status" =>
-        summary["reservation_hold_contact_ids_by_expiration_status"],
+        station_reservation_hold_pressure_row_values_by(contact_ids, expiration_statuses),
       "station_reservation_hold_contact_ids_by_direction" =>
-        summary["reservation_hold_contact_ids_by_direction"],
+        station_reservation_hold_pressure_row_values_by(contact_ids, directions),
       "station_reservation_hold_provider_write" =>
         get_in(summary, ["assumptions", "provider_write"]),
       "station_reservation_hold_reservation_acceptance" =>
         get_in(summary, ["assumptions", "reservation_acceptance"])
     }
     |> compact_map()
+  end
+
+  defp station_reservation_hold_pressure_row_reservation_ids(row) do
+    station_reservation_hold_pressure_row_strings(row, [
+      "station_reservation_id",
+      "reservation_ids"
+    ])
+  end
+
+  defp station_reservation_hold_pressure_row_strings(row, keys) do
+    keys
+    |> Enum.flat_map(fn key -> List.wrap(row[key]) end)
+    |> List.flatten()
+    |> Enum.filter(&(is_binary(&1) and &1 != ""))
+    |> Enum.uniq()
+  end
+
+  defp station_reservation_hold_pressure_row_values_by([], _keys), do: nil
+  defp station_reservation_hold_pressure_row_values_by(_values, []), do: nil
+
+  defp station_reservation_hold_pressure_row_values_by(values, keys) do
+    Map.new(keys, &{&1, values})
   end
 
   defp station_reservation_hold_import_readiness_context(summary) do
