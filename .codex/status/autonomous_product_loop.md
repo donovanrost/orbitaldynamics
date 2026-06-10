@@ -84,7 +84,7 @@ schemas.
 
 Last commit:
 - Product: `62ec57f` Accept list reservation expirations in handoff schemas
-- Ledger: pending
+- Ledger: `cc0ad99` Update autonomous loop status
 
 Remaining maturity gaps:
 - Continue reassessing queue-4 branch-local handoff completeness and queue-3
