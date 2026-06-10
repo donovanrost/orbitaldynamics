@@ -57844,6 +57844,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
     candidate_refresh
     |> repair_contact_suppressed_candidate_ids()
     |> MapSet.union(repair_contact_allocation_unusable_candidate_ids(candidate_refresh))
+    |> MapSet.union(repair_refresh_budget_dropped_candidate_ids(candidate_refresh))
     |> MapSet.union(repair_resource_suppressed_candidate_ids(candidate_refresh))
   end
 
@@ -57899,6 +57900,22 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp contact_allocation_unusable_candidate?(row) do
     contact_allocation_effective_status(row) in ["deferred", "blocked", "policy_blocked"]
+  end
+
+  defp repair_refresh_budget_dropped_candidate_ids(candidate_refresh) do
+    candidate_refresh
+    |> repair_refresh_budget_report()
+    |> case do
+      %{} = report ->
+        report
+        |> Map.get("dropped_candidate_ids", [])
+        |> List.wrap()
+        |> Enum.reject(&(&1 in [nil, ""]))
+        |> MapSet.new()
+
+      _report ->
+        MapSet.new()
+    end
   end
 
   defp sort_candidate_activities(activities) do

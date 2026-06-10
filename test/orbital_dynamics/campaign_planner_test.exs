@@ -4516,6 +4516,76 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "repair excludes supplied candidate refresh candidates dropped by refresh budget" do
+    dropped_candidate =
+      "dl_budget_dropped"
+      |> refreshed_downlink(200.0, 260.0)
+      |> Map.put("score", 100.0)
+      |> put_in(["score_terms", "contact_value"], 100.0)
+
+    kept_candidate = refreshed_downlink("dl_budget_kept", 500.0, 560.0)
+
+    refresh_budget_report =
+      refresh_budget_report()
+      |> Map.merge(%{
+        "input_candidate_count" => 2,
+        "kept_candidate_count" => 1,
+        "dropped_candidate_count" => 1,
+        "kept_candidate_ids" => ["dl_budget_kept"],
+        "dropped_candidate_ids" => ["dl_budget_dropped"]
+      })
+
+    artifact =
+      repair(
+        %{
+          "activities" => [downlink("dl_1", 100.0, 160.0)],
+          "candidate_activities" => [downlink("dl_stale", 700.0, 760.0)]
+        },
+        realized_state: %{activities: [%{id: "dl_1", status: "missed"}]},
+        current_epoch_s: 165.0,
+        candidate_refresh:
+          [dropped_candidate, kept_candidate]
+          |> candidate_refresh_artifact(refresh_budget_report: refresh_budget_report)
+      )
+
+    assert [%{"id" => "dl_budget_kept", "repair" => %{"action" => "moved"}}] =
+             artifact["activities"]
+
+    assert Enum.map(artifact["source_candidate_activities"], & &1["id"]) == ["dl_budget_kept"]
+
+    assert %{
+             "schema_contract" => "refresh_budget_report.v1",
+             "dropped_candidate_count" => 1,
+             "dropped_candidate_ids" => ["dl_budget_dropped"],
+             "kept_candidate_ids" => ["dl_budget_kept"]
+           } = artifact["source_refresh_budget_report"]
+
+    assert %{
+             "review_type" => "refresh_budget_review",
+             "source" => "campaign_repair.source_refresh_budget_report",
+             "required_operator_action" => "review_refresh_budget",
+             "dropped_candidate_ids" => ["dl_budget_dropped"]
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["review_type"] == "refresh_budget_review")
+             )
+
+    assert %{
+             "import_action" => "review_refresh_budget",
+             "source_review_type" => "refresh_budget_review",
+             "dropped_candidate_ids" => ["dl_budget_dropped"],
+             "import_status" => "review_required_before_import"
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(&1["import_action"] == "review_refresh_budget")
+             )
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "repair excludes supplied candidate refresh candidates suppressed by contact filters" do
     blocked_candidate =
       "dl_contact_blocked"
