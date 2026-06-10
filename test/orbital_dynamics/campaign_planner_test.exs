@@ -9762,6 +9762,215 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(review_artifact)
   end
 
+  test "strategy recommendation skips branches blocked by invalid refresh budget by default" do
+    prior_plan =
+      base_plan(%{
+        "planning_horizon" => %{"duration_s" => 2_000.0},
+        "activities" => [],
+        "candidate_activities" => []
+      })
+
+    urgent_target_event = %{
+      type: "urgent_target",
+      target_id: "target_hot",
+      starts_at_s: 500.0,
+      ends_at_s: 560.0,
+      priority: 20.0,
+      candidate_windows: [
+        %{
+          id: "candidate_obs_hot",
+          type: "observe",
+          target_id: "target_hot",
+          scenario_id: "leo_1",
+          starts_at_s: 500.0,
+          ends_at_s: 560.0,
+          duration_s: 60.0,
+          score: 10.0
+        }
+      ]
+    }
+
+    invalid_refresh_budget_event = %{
+      type: "refresh_budget_pressure",
+      feedback_scope: "refresh_budget",
+      feedback_source: "mission_state.source_refresh_budget_report",
+      input_candidate_count: 4,
+      kept_candidate_count: 2,
+      dropped_candidate_count: 2,
+      current_max_candidate_activities: 2,
+      relaxed_max_candidate_activities: 4,
+      refresh_budget_status: "invalid",
+      candidate_limit_status: "invalid",
+      invalid_candidate_limit_policy: true,
+      invalid_candidate_limit_policy_count: 1,
+      invalid_candidate_limit_policy_reason: "max_candidate_activities_must_be_integer",
+      branch_local_budget_pressure: true,
+      branch_local_dropped_candidate_pressure: true,
+      branch_local_invalid_limit_pressure: true,
+      branch_local_candidate_limit_applied: true,
+      required_operator_action: "review_refresh_budget",
+      derivation_reasons: ["refresh_budget_candidate_limit_pressure"]
+    }
+
+    dropped_refresh_budget_event = %{
+      type: "refresh_budget_pressure",
+      feedback_scope: "refresh_budget",
+      feedback_source: "mission_state.source_refresh_budget_report",
+      input_candidate_count: 4,
+      kept_candidate_count: 2,
+      dropped_candidate_count: 2,
+      current_max_candidate_activities: 2,
+      relaxed_max_candidate_activities: 4,
+      refresh_budget_status: "dropped",
+      candidate_limit_status: "dropped",
+      invalid_candidate_limit_policy: false,
+      invalid_candidate_limit_policy_count: 0,
+      branch_local_budget_pressure: true,
+      branch_local_dropped_candidate_pressure: true,
+      branch_local_candidate_limit_applied: true,
+      required_operator_action: "review_refresh_budget",
+      derivation_reasons: ["refresh_budget_candidate_limit_pressure"]
+    }
+
+    limited_refresh_budget_event = %{
+      type: "refresh_budget_pressure",
+      feedback_scope: "refresh_budget",
+      feedback_source: "mission_state.source_refresh_budget_report",
+      input_candidate_count: 2,
+      kept_candidate_count: 2,
+      dropped_candidate_count: 0,
+      current_max_candidate_activities: 2,
+      relaxed_max_candidate_activities: 2,
+      refresh_budget_status: "limited",
+      candidate_limit_status: "limited",
+      invalid_candidate_limit_policy: false,
+      invalid_candidate_limit_policy_count: 0,
+      branch_local_budget_pressure: true,
+      branch_local_candidate_limit_applied: true,
+      required_operator_action: "review_refresh_budget",
+      derivation_reasons: ["refresh_budget_candidate_limit_pressure"]
+    }
+
+    blocked_artifact =
+      strategy(prior_plan,
+        mission_state:
+          mission_state([%{"type" => "priority_commitment", "target_id" => "target_hot"}]),
+        strategy_policy: %{
+          "mission_value_weight" => 10.0,
+          "risk_weight" => 0.0,
+          "approval_load_weight" => 0.0
+        },
+        branches: [
+          %{id: "baseline"},
+          %{
+            id: "invalid_refresh_budget",
+            events: [urgent_target_event, invalid_refresh_budget_event]
+          }
+        ],
+        current_epoch_s: 0.0
+      )
+
+    blocked_branch = branch(blocked_artifact, "invalid_refresh_budget")
+
+    assert blocked_branch["score_terms"]["mission_value_score"] >
+             branch(blocked_artifact, "baseline")["score_terms"]["mission_value_score"]
+
+    assert blocked_artifact["recommendation"]["recommended_branch_id"] == "baseline"
+    assert blocked_branch["approval_status"] == "blocked_by_policy"
+
+    assert "refresh_budget_blocked" in blocked_artifact["approval_policy"][
+             "blocked_risk_types"
+           ]
+
+    assert Enum.any?(
+             blocked_branch["risk_indicators"],
+             &(&1["type"] == "refresh_budget_pressure" and
+                 &1["feedback_scope"] == "refresh_budget" and
+                 &1["refresh_budget_status"] == "invalid" and
+                 &1["candidate_limit_status"] == "invalid")
+           )
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(blocked_artifact)
+
+    review_artifact =
+      strategy(prior_plan,
+        mission_state:
+          mission_state([%{"type" => "priority_commitment", "target_id" => "target_hot"}]),
+        strategy_policy: %{
+          "mission_value_weight" => 10.0,
+          "risk_weight" => 0.0,
+          "approval_load_weight" => 0.0
+        },
+        branches: [
+          %{id: "baseline"},
+          %{
+            id: "dropped_refresh_budget",
+            events: [urgent_target_event, dropped_refresh_budget_event]
+          }
+        ],
+        current_epoch_s: 0.0
+      )
+
+    review_branch = branch(review_artifact, "dropped_refresh_budget")
+
+    assert review_artifact["recommendation"]["recommended_branch_id"] ==
+             "dropped_refresh_budget"
+
+    assert review_branch["approval_status"] == "operator_review_required"
+
+    assert review_artifact["recommendation"]["approval_status"] ==
+             "operator_review_required"
+
+    assert Enum.any?(
+             review_branch["risk_indicators"],
+             &(&1["type"] == "refresh_budget_pressure" and
+                 &1["feedback_scope"] == "refresh_budget" and
+                 &1["refresh_budget_status"] == "dropped" and
+                 &1["candidate_limit_status"] == "dropped")
+           )
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(review_artifact)
+
+    limited_artifact =
+      strategy(prior_plan,
+        mission_state:
+          mission_state([%{"type" => "priority_commitment", "target_id" => "target_hot"}]),
+        strategy_policy: %{
+          "mission_value_weight" => 10.0,
+          "risk_weight" => 0.0,
+          "approval_load_weight" => 0.0
+        },
+        branches: [
+          %{id: "baseline"},
+          %{
+            id: "limited_refresh_budget",
+            events: [urgent_target_event, limited_refresh_budget_event]
+          }
+        ],
+        current_epoch_s: 0.0
+      )
+
+    limited_branch = branch(limited_artifact, "limited_refresh_budget")
+
+    assert limited_artifact["recommendation"]["recommended_branch_id"] ==
+             "limited_refresh_budget"
+
+    assert limited_branch["approval_status"] == "operator_review_required"
+
+    assert Enum.any?(
+             limited_branch["risk_indicators"],
+             &(&1["type"] == "refresh_budget_pressure" and
+                 &1["feedback_scope"] == "refresh_budget" and
+                 &1["refresh_budget_status"] == "limited" and
+                 &1["candidate_limit_status"] == "limited")
+           )
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(limited_artifact)
+  end
+
   test "strategy branch scoring normalizes numeric-string selected activity scores" do
     prior_plan =
       base_plan(%{

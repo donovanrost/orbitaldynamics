@@ -3597,6 +3597,77 @@ defmodule OrbitalDynamics.PolicyTest do
     assert review_decision["classification"] == "operator_review_required"
   end
 
+  test "fallback policy blocks invalid refresh-budget pressure but leaves drops and limits reviewable" do
+    policy = %{blocked_risk_types: ["refresh_budget_blocked"]}
+
+    {blocked_status, _requirements, _matches, blocked_decision} =
+      Policy.decide(
+        [],
+        [
+          %{
+            "type" => "refresh_budget_pressure",
+            "feedback_scope" => "refresh_budget",
+            "refresh_budget_status" => "invalid",
+            "candidate_limit_status" => "invalid",
+            "invalid_candidate_limit_policy" => true,
+            "invalid_candidate_limit_policy_count" => 1,
+            "dropped_candidate_count" => 2
+          }
+        ],
+        %{"id" => "invalid_refresh_budget", "events" => []},
+        %{},
+        policy
+      )
+
+    assert blocked_status == "blocked_by_policy"
+    assert blocked_decision["classification"] == "blocked_by_policy"
+
+    {review_status, _requirements, _matches, review_decision} =
+      Policy.decide(
+        [],
+        [
+          %{
+            "type" => "refresh_budget_pressure",
+            "feedback_scope" => "refresh_budget",
+            "refresh_budget_status" => "dropped",
+            "candidate_limit_status" => "dropped",
+            "invalid_candidate_limit_policy" => false,
+            "invalid_candidate_limit_policy_count" => 0,
+            "dropped_candidate_count" => 2
+          }
+        ],
+        %{"id" => "dropped_refresh_budget", "events" => []},
+        %{},
+        policy
+      )
+
+    assert review_status == "operator_review_required"
+    assert review_decision["classification"] == "operator_review_required"
+
+    {limited_status, _requirements, _matches, limited_decision} =
+      Policy.decide(
+        [],
+        [
+          %{
+            "type" => "refresh_budget_pressure",
+            "feedback_scope" => "refresh_budget",
+            "refresh_budget_status" => "limited",
+            "candidate_limit_status" => "limited",
+            "invalid_candidate_limit_policy" => false,
+            "invalid_candidate_limit_policy_count" => 0,
+            "dropped_candidate_count" => 0,
+            "branch_local_candidate_limit_applied" => true
+          }
+        ],
+        %{"id" => "limited_refresh_budget", "events" => []},
+        %{},
+        policy
+      )
+
+    assert limited_status == "operator_review_required"
+    assert limited_decision["classification"] == "operator_review_required"
+  end
+
   test "matches requirement types grouped risk types and grouped event types" do
     policy = %{
       action_rules: [

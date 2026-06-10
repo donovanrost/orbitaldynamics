@@ -350,7 +350,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
                 "resource_filter_availability_blocked",
                 "model_acceptance_blocked",
                 "validation_safety_case_blocked",
-                "schema_validation_blocked"
+                "schema_validation_blocked",
+                "refresh_budget_blocked"
               ],
               action_rules: []
   end
