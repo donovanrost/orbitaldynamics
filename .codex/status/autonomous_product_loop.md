@@ -81,7 +81,7 @@ Expose station-reservation expiration pressure in V3 recommendation tradeoffs.
 
 Last commit:
 - Product: `1e06bc3` Expose reservation expiration score tradeoffs
-- Ledger: pending
+- Ledger: `f1621af` Update autonomous loop status
 
 Remaining maturity gaps:
 - Continue converting existing replayed resource/contact/readiness pressure
