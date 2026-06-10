@@ -5,105 +5,105 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve provider-counteroffer handoff fields from wrapped contact-allocation
-station-calendar overlaps.
+Preserve wrapped station-calendar reservation expiration evidence in contact
+intents.
 
 Status:
 Completed and pushed.
 
 Files changed:
-- Contact allocation: `lib/orbital_dynamics/communications/contact_allocation.ex`
-- Contact allocation tests:
-  `test/orbital_dynamics/communications/contact_allocation_test.exs`
+- Contact intent: `lib/orbital_dynamics/communications/contact_intent.ex`
+- Contact intent tests:
+  `test/orbital_dynamics/communications/contact_intent_test.exs`
 - Ground-network docs:
-  `docs/feature_set/capability_map/07_ground_network/03_contact_allocation.md`
+  `docs/feature_set/capability_map/07_ground_network/05_contact_intent_refresh_and_allocation_policy.md`
 - Ledger: `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/communications/contact_allocation_test.exs:6128`
-- `mix test test/orbital_dynamics/communications/contact_allocation_test.exs:6188`
-- `mix test test/orbital_dynamics/communications/contact_allocation_test.exs:6001`
+- `mix test test/orbital_dynamics/communications/contact_intent_test.exs:877`
+- `mix test test/orbital_dynamics/communications/contact_intent_test.exs:735`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 
 Docs/artifacts changed:
-- Documented that allocation flattens provider-counteroffer evidence from
-  wrapped `source_station_calendar_overlaps` rows emitted by contact filtering.
+- Documented that contact intents read reservation-expiration aliases from
+  wrapped `source_station_calendar_overlaps` rows emitted by
+  filtering/allocation handoffs.
 
 Level 6 pillar advanced:
-Fleet-level station-calendar/contact allocation behavior with Cadence-facing
-review/import handoffs.
+Fleet-level station-calendar/contact behavior with Cadence-facing review/import
+handoffs.
 
 Slice selection note:
-Selected slice: recursive provider-counteroffer overlap lookup in contact
-allocation.
+Selected slice: wrapped station-calendar reservation expiration in contact
+intents.
 
-Why this slice: ContactFilter now preserves overlap-only provider counteroffers
-in wrapped station-overlap rows, but ContactAllocation only extracted
-counteroffer fields from direct overlap maps.
+Why this slice: Contact intents preserve reservation hold/deadline evidence, but
+the source-calendar number extractor only read immediate source maps. Wrapped
+overlap rows emitted by filtering/allocation could hide `expires_at` and related
+reservation-expiration aliases.
 
-Level 6 pillar: Fleet-level station-calendar/contact allocation behavior and
-Cadence-facing review/import handoffs.
+Level 6 pillar: Fleet-level station-calendar/contact behavior and Cadence-facing
+review/import handoffs.
 
-Current evidence gap: Allocation rows could carry `review_provider_counteroffer`
-while leaving offer ID, timing, and cost hidden in nested overlap evidence,
-weakening operator-review and Cadence-import routing.
+Current evidence gap: Contact-intent, operator-review, and Cadence-import rows
+could lose plural reservation expiration context when provider deadlines lived
+under wrapped `source_station_calendar_overlaps`.
 
 Docs read:
-`docs/feature_set/capability_map/07_ground_network/03_contact_allocation.md`;
-focused ContactAllocation code/tests.
+`docs/feature_set/capability_map/07_ground_network/05_contact_intent_refresh_and_allocation_policy.md`;
+focused ContactIntent code/tests.
 
-Likely files: `lib/orbital_dynamics/communications/contact_allocation.ex`;
-`test/orbital_dynamics/communications/contact_allocation_test.exs`;
-`docs/feature_set/capability_map/07_ground_network/03_contact_allocation.md`;
+Likely files: `lib/orbital_dynamics/communications/contact_intent.ex`;
+`test/orbital_dynamics/communications/contact_intent_test.exs`;
+`docs/feature_set/capability_map/07_ground_network/05_contact_intent_refresh_and_allocation_policy.md`;
 `.codex/status/autonomous_product_loop.md`.
 
-Likely tests: wrapped-overlap allocation regression; existing overlap allocation
-regression; existing provider-counteroffer allocation regression;
+Likely tests: wrapped-overlap reservation-expiration intent regression;
+existing station-calendar trust/reservation-expiration intent test;
 `mix compile --warnings-as-errors`; `git diff --check`.
 
-Definition of done: Allocation extracts counteroffer fields and derived timing
-deltas from direct, singular-source, direct-overlap, and recursively wrapped
-overlap evidence, preserves them through review/import rows with schema
-validation, and documents the handoff.
+Definition of done: ContactIntent extracts reservation expiration seconds from
+direct, source-entry, direct-overlap, and wrapped-overlap evidence, and those
+values survive intent, approval context, operator-review, and Cadence-import
+schema validation.
 
 Slice result:
-- Provider-counteroffer field extraction now uses bounded recursive lookup
+- Source station-calendar number extraction now uses bounded recursive lookup
   through direct rows, nested source entries, and wrapped station-calendar
   overlaps.
-- Updated the direct-overlap allocation regression to assert the current
-  ContactFilter boundary: counteroffer downlinks are blocked before allocation
-  while preserving offer evidence.
-- Added a wrapped-overlap uplink allocation regression proving allocation rows,
-  operator review, and Cadence import flatten nested counteroffer fields.
+- Added a focused regression proving wrapped overlap expiration seconds preserve
+  plural `station_calendar_reservation_expires_at_s` through intent approval
+  context, operator review, and Cadence import.
+- Existing station-calendar trust/reservation-expiration behavior remains green.
 
 Last completed slice:
-Preserved provider-counteroffer handoff fields from wrapped contact-allocation
-station-calendar overlaps.
+Preserved wrapped station-calendar reservation expiration evidence in contact
+intents.
 
 Last commit:
-- Product: `67d430b` Preserve wrapped counteroffer overlap handoffs
-- Ledger: `04c0e63` Update autonomous loop status
+- Product: `715ed05` Preserve wrapped reservation expirations in contact intents
+- Ledger: pending
 
 Remaining maturity gaps:
 - Continue reassessing queue-2 resource/contact allocation gaps for real
-  provider-shaped edge cases now that major filtering/allocation artifacts are
-  present.
+  provider-shaped edge cases now that major filtering/allocation/intent
+  artifacts are present.
 - Continue closing queue-3 quality/readiness and queue-4 branch-local handoff
   completeness gaps for artifact families not present in checked-in strategy
   artifacts.
 
 Next candidate:
 Reassess the queue after publishing; likely another compact queue-2
-provider-shaped contact/allocation/replay hardening gap, unless docs/code show
-queue-3 quality-gate import-readiness is now weaker.
+provider-shaped contact/link-capacity/replay hardening gap, unless docs/code
+show queue-3 quality-gate import-readiness is now weaker.
 
 Blocked:
 Not blocked.
 
 Notes:
-- Previous published slice: Product `ffc53be`, Ledger `46b3a6f`, final status
-  `43a081e`.
+- Previous published slice: Product `67d430b`, Ledger `04c0e63`, final status
+  `52a9b68`.
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
   not part of this slice.
 - Sidecar delegation is unavailable in this runtime; parent performed the same
