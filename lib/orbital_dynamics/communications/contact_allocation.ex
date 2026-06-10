@@ -2486,19 +2486,31 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
 
   defp provider_counteroffer_context_present?(row) do
     row["required_operator_action"] == "review_provider_counteroffer" or
-      provider_counteroffer_value_present?(row["provider_counteroffer_id"]) or
-      provider_counteroffer_value_present?(row["provider_counteroffer_status"]) or
-      provider_counteroffer_value_present?(
-        get_in(row, ["source_station_calendar_entry", "provider_counteroffer_id"])
-      ) or
-      provider_counteroffer_value_present?(
-        get_in(row, ["source_station_calendar_entry", "provider_counteroffer_status"])
-      )
+      Enum.any?(@provider_counteroffer_fields, fn field ->
+        provider_counteroffer_value_present?(provider_counteroffer_value(row, field))
+      end)
   end
 
   defp provider_counteroffer_value(row, field) do
-    row[field] || get_in(row, ["source_station_calendar_entry", field])
+    [
+      row[field],
+      get_in(row, ["source_station_calendar_entry", field])
+      | source_station_calendar_overlap_values(row, field)
+    ]
+    |> Enum.find(&provider_counteroffer_value_present?/1)
   end
+
+  defp source_station_calendar_overlap_values(%{"source_station_calendar_overlaps" => overlaps}, field)
+       when is_list(overlaps),
+       do: Enum.map(overlaps, &source_station_calendar_overlap_value(&1, field))
+
+  defp source_station_calendar_overlap_values(%{"source_station_calendar_overlaps" => overlap}, field),
+    do: [source_station_calendar_overlap_value(overlap, field)]
+
+  defp source_station_calendar_overlap_values(_row, _field), do: []
+
+  defp source_station_calendar_overlap_value(%{} = overlap, field), do: overlap[field]
+  defp source_station_calendar_overlap_value(_overlap, _field), do: nil
 
   defp provider_counteroffer_start_delta(row) do
     provider_counteroffer_value(row, "provider_counteroffer_start_delta_s") ||

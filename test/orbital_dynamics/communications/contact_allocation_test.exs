@@ -6125,6 +6125,81 @@ defmodule OrbitalDynamics.Communications.ContactAllocationTest do
              Schema.validate_artifact(manifest)
   end
 
+  test "preserves provider counteroffer evidence from source station-calendar overlaps" do
+    contacts = [
+      contact(:dl_overlap_counteroffer,
+        direction: :downlink,
+        required_operator_action: "review_provider_counteroffer",
+        source_station_calendar_overlaps: [
+          %{
+            id: :provider_counteroffer_overlap,
+            provider_counteroffer_id: :provider_offer_overlap,
+            provider_counteroffer_status: :proposed,
+            provider_counteroffer_negotiation_state: :proposed,
+            provider_counteroffer_reason_code: :provider_shifted_window,
+            provider_counteroffer_cost_delta: 80.5,
+            provider_counteroffer_lock_deadline_s: 150.0,
+            provider_counteroffer_starts_at_s: 130.0,
+            provider_counteroffer_ends_at_s: 170.0
+          }
+        ]
+      )
+    ]
+
+    {[_allocated], report} = ContactAllocation.allocate_contacts(contacts, [])
+    row = Enum.find(report["rows"], &(&1["contact_id"] == "dl_overlap_counteroffer"))
+
+    assert %{
+             "provider_counteroffer_id" => "provider_offer_overlap",
+             "provider_counteroffer_status" => "proposed",
+             "provider_counteroffer_negotiation_state" => "proposed",
+             "provider_counteroffer_reason_code" => "provider_shifted_window",
+             "provider_counteroffer_cost_delta" => 80.5,
+             "provider_counteroffer_lock_deadline_s" => 150.0,
+             "provider_counteroffer_starts_at_s" => 130.0,
+             "provider_counteroffer_ends_at_s" => 170.0,
+             "provider_counteroffer_start_delta_s" => 30.0,
+             "provider_counteroffer_end_delta_s" => 10.0,
+             "provider_counteroffer_duration_delta_s" => -20.0,
+             "source_station_calendar_overlaps" => [
+               %{"id" => "provider_counteroffer_overlap"}
+             ]
+           } = row
+
+    review = OperatorReview.from_contact_allocation_report(report)
+    review_row = Enum.find(review["rows"], &(&1["contact_id"] == "dl_overlap_counteroffer"))
+
+    assert %{
+             "provider_counteroffer_id" => "provider_offer_overlap",
+             "provider_counteroffer_duration_delta_s" => -20.0,
+             "source_contact_allocation" => %{
+               "provider_counteroffer_id" => "provider_offer_overlap",
+               "provider_counteroffer_duration_delta_s" => -20.0
+             }
+           } = review_row
+
+    manifest = CadenceImport.from_contact_allocation_report(report)
+    import_row = Enum.find(manifest["rows"], &(&1["contact_id"] == "dl_overlap_counteroffer"))
+
+    assert %{
+             "provider_counteroffer_id" => "provider_offer_overlap",
+             "provider_counteroffer_duration_delta_s" => -20.0,
+             "source_review_row" => %{
+               "provider_counteroffer_id" => "provider_offer_overlap",
+               "provider_counteroffer_duration_delta_s" => -20.0
+             }
+           } = import_row
+
+    assert {:ok, %{"schema_contract" => "contact_allocation_report.v1"}} =
+             Schema.validate_artifact(report)
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(review)
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(manifest)
+  end
+
   test "lifts nested provider source windows into allocation rows" do
     contacts = [
       %{
