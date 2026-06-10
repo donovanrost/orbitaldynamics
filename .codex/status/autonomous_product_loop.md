@@ -9,7 +9,7 @@ Long-running autonomous-loop prompt maintenance for
 `.codex/prompts/long_running_context_efficient_product_loop.md`.
 
 Status:
-Implemented locally; parent local review passed; publish pending.
+Implemented, parent-reviewed, locally verified, committed, and pushed.
 
 Files changed:
 - Long-running loop prompt:
@@ -38,7 +38,7 @@ Remaining maturity gaps:
   schema behavior changes public artifact shape.
 
 Last commit:
-`3e874c5` Update autonomous loop ledger after scoring publish.
+`367e812` Tighten long-running loop prompt guardrails.
 
 Next candidate:
 After prompt maintenance publishes, reassess the remaining replayed pressure
@@ -60,3 +60,4 @@ Notes:
   and mechanical publish.
 - Parent local review found no prompt blocker; the change is scoped to the named
   long-running prompt and ledger.
+- Parent publisher pushed `367e812` to `origin/main`.
