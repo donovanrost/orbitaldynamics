@@ -2946,6 +2946,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     resource_projection_pressure_count =
       resource_projection_pressure_risk_count(risk_indicators)
 
+    resource_filter_pressure_count =
+      resource_filter_pressure_risk_count(risk_indicators)
+
     resource_availability_pressure_count =
       resource_availability_pressure_risk_count(risk_indicators)
 
@@ -3008,6 +3011,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
           timeline_precondition_pressure_count - timeline_preservation_pressure_count -
           timeline_pressure_count - storage_downlink_pressure_count -
           resource_projection_pressure_count -
+          resource_filter_pressure_count -
           resource_availability_pressure_count - resource_margin_pressure_count -
           battery_depletion_pressure_count - station_calendar_pressure_count -
           station_reservation_expiration_pressure_count - candidate_rejection_pressure_count -
@@ -3142,6 +3146,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     resource_projection_pressure_penalty =
       -resource_projection_pressure_count * policy.risk_weight
 
+    resource_filter_pressure_penalty =
+      -resource_filter_pressure_count * policy.risk_weight
+
     resource_availability_pressure_penalty =
       -resource_availability_pressure_count * policy.risk_weight
 
@@ -3216,6 +3223,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         timeline_precondition_pressure_penalty + timeline_preservation_pressure_penalty +
         timeline_pressure_penalty + storage_downlink_pressure_penalty +
         resource_projection_pressure_penalty +
+        resource_filter_pressure_penalty +
         resource_availability_pressure_penalty + resource_margin_pressure_penalty +
         battery_depletion_pressure_penalty + station_calendar_pressure_penalty +
         station_reservation_expiration_pressure_penalty +
@@ -3277,6 +3285,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "timeline_pressure_penalty" => timeline_pressure_penalty,
       "storage_downlink_pressure_penalty" => storage_downlink_pressure_penalty,
       "resource_projection_pressure_penalty" => resource_projection_pressure_penalty,
+      "resource_filter_pressure_penalty" => resource_filter_pressure_penalty,
       "resource_availability_pressure_penalty" => resource_availability_pressure_penalty,
       "resource_margin_pressure_penalty" => resource_margin_pressure_penalty,
       "battery_depletion_pressure_penalty" => battery_depletion_pressure_penalty,
@@ -3733,9 +3742,19 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp resource_projection_pressure_risk?(_risk), do: false
 
+  defp resource_filter_pressure_risk_count(risk_indicators) do
+    Enum.count(risk_indicators, &resource_filter_pressure_risk?/1)
+  end
+
+  defp resource_filter_pressure_risk?(%{"feedback_scope" => "resource_filter"}), do: true
+  defp resource_filter_pressure_risk?(_risk), do: false
+
   defp resource_availability_pressure_risk_count(risk_indicators) do
     Enum.count(risk_indicators, &resource_availability_pressure_risk?/1)
   end
+
+  defp resource_availability_pressure_risk?(%{"feedback_scope" => "resource_filter"}),
+    do: false
 
   defp resource_availability_pressure_risk?(%{"type" => "resource_unavailable"}), do: true
 
@@ -3782,6 +3801,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
   defp resource_margin_pressure_risk_count(risk_indicators) do
     Enum.count(risk_indicators, &resource_margin_pressure_risk?/1)
   end
+
+  defp resource_margin_pressure_risk?(%{"feedback_scope" => "resource_filter"}), do: false
 
   defp resource_margin_pressure_risk?(%{"type" => type})
        when type in [
@@ -7934,19 +7955,42 @@ defmodule OrbitalDynamics.CampaignPlanner do
     field = event["resource_field"] || "resource_available"
     risk_type = resource_availability_constraint_risk_type(event, field)
     spacecraft_id = branch_event_spacecraft_id(event)
+    value = Map.get(event, field, Map.get(event, "available", false))
 
     [
       %{
         "type" => risk_type,
         "severity" => "medium",
         "reason" => "spacecraft #{spacecraft_id} #{field} false constrains generated candidates",
-        "value" => false,
+        "value" => value,
         "spacecraft_id" => spacecraft_id,
+        "scenario_id" => event["scenario_id"],
+        "timeline_id" => event["timeline_id"],
+        "source_activity_id" => event["source_activity_id"],
+        "replacement_activity_id" => event["replacement_activity_id"],
+        "source_activity_ids" => event["source_activity_ids"],
+        "resource_availability_risk_type" => risk_type,
+        "resource_field" => field,
+        "resource_availability_value" => value,
+        field => value,
         "resource_id" => event["resource_id"],
         "planned_resource_id" => event["planned_resource_id"],
         "realized_resource_id" => event["realized_resource_id"],
         "resource_match_status" => event["resource_match_status"],
-        "resource_identity_mismatch_fields" => event["resource_identity_mismatch_fields"]
+        "resource_identity_mismatch_fields" => event["resource_identity_mismatch_fields"],
+        "resource_trust_boundary_status" => event["resource_trust_boundary_status"],
+        "source_quality" => event["source_quality"],
+        "starts_at_s" => event["starts_at_s"],
+        "ends_at_s" => event["ends_at_s"],
+        "diff_status" => event["diff_status"],
+        "changed_fields" => event["changed_fields"],
+        "required_operator_action" => event["required_operator_action"],
+        "requires_operator_review" => event["requires_operator_review"],
+        "feedback_source" => event["feedback_source"],
+        "feedback_scope" => event["feedback_scope"],
+        "feedback_key" => event["feedback_key"],
+        "trust_boundary" => event["trust_boundary"],
+        "derivation_reasons" => event["derivation_reasons"]
       }
       |> compact_map()
     ]

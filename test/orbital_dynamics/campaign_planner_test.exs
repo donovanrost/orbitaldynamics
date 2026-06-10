@@ -24008,7 +24008,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
           "contact_filter_suppressed",
           "station_reserved"
         ],
-        "resource_filter_pressure_risk_types" => ["resource_availability_constraint"],
+        "resource_filter_pressure_risk_types" => ["payload_unavailable"],
         "resource_filter_pressure_scenario_ids" => ["leo_1"],
         "resource_filter_pressure_spacecraft_ids" => ["leo_1"],
         "resource_filter_pressure_resource_fields" => ["payload_available"],
@@ -58318,7 +58318,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              &(&1["type"] == "payload_unavailable" and &1["spacecraft_id"] == "leo_1")
            )
 
-    assert_resource_availability_pressure_score_terms(pressure_branch, artifact)
+    assert_resource_filter_pressure_score_terms(pressure_branch, artifact)
 
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
@@ -58692,7 +58692,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     assert pressure_row["thermal_margin_c"] == 1.5
     assert "thermal_margin_low" in pressure_row["resource_risk_types"]
 
-    assert_resource_margin_pressure_score_terms(pressure_branch, artifact)
+    assert_resource_filter_pressure_score_terms(pressure_branch, artifact)
 
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
@@ -84039,6 +84039,34 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
     assert Enum.any?(
              artifact["recommendation"]["tradeoffs"],
              &(&1["dimension"] == "resource_projection_pressure")
+           )
+  end
+
+  defp assert_resource_filter_pressure_score_terms(branch, artifact) do
+    risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
+
+    resource_filter_pressure_count =
+      Enum.count(branch["risk_indicators"], &(&1["feedback_scope"] == "resource_filter"))
+
+    assert resource_filter_pressure_count > 0
+
+    assert branch["score_terms"]["resource_filter_pressure_penalty"] ==
+             -resource_filter_pressure_count * risk_weight
+
+    assert branch["score_terms"]["resource_availability_pressure_penalty"] == 0.0
+    assert branch["score_terms"]["resource_margin_pressure_penalty"] == 0.0
+
+    assert branch["score_terms"]["risk_penalty"] ==
+             -(length(branch["risk_indicators"]) - resource_filter_pressure_count) * risk_weight
+
+    assert "resource_filter_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert Enum.any?(
+             artifact["score_term_report"]["rows"],
+             &(&1["branch_id"] == branch["branch_id"] and
+                 &1["term_key"] == "resource_filter_pressure_penalty" and &1["value"] < 0.0)
            )
   end
 
