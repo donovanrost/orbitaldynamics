@@ -5,59 +5,71 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Long-running autonomous-loop prompt maintenance for
-`.codex/prompts/long_running_context_efficient_product_loop.md`.
+CandidateRefresh branch source-report wrapper key preservation.
 
 Status:
-Implemented, parent-reviewed, locally verified, committed, and pushed.
+Implemented, parent-reviewed, locally verified, and published in implementation
+commit `7faef79`.
 
 Files changed:
-- Long-running loop prompt:
-  `.codex/prompts/long_running_context_efficient_product_loop.md`
+- Planner:
+  `lib/orbital_dynamics/campaign_planner.ex`
+- Regression coverage:
+  `test/orbital_dynamics/campaign_planner_test.exs`
 - Ledger:
   `.codex/status/autonomous_product_loop.md`
 
 Tests/checks run:
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:32219`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:26272 test/orbital_dynamics/campaign_planner_test.exs:34609`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs`
 - `git diff --check`
-- Parent local prompt consistency review
 
 Docs/artifacts changed:
-Prompt-only loop-control update; no product behavior, schema, or checked-in
-generated artifact changed.
+No public docs, schema export, or checked-in generated artifact changed. This is
+an internal preservation-path fix for branch-generated CandidateRefresh request
+wrappers.
 
 Level 6 pillar advanced:
-Autonomous-loop control quality for sustained Level 6 product progress.
+Refreshed candidates from mission state with durable Cadence-facing artifact
+provenance.
 
 Remaining maturity gaps:
-- Generated candidate-refresh requests currently preserve readiness/quality
-  source-report provenance summaries, not full source report payloads.
+- The legacy branch-refresh result-artifact wrapper still has a long explicit
+  source-report key list and presence guard. This slice added the accepted
+  CandidateRefresh source-report registry as the preservation backstop; a future
+  mechanical cleanup can collapse the duplicate legacy list once the surrounding
+  families are rechecked.
 - Continue converting replayed resource/contact/readiness pressure into
   planner-visible branch scoring or candidate-selection effects where live code
   still routes evidence only to review/import.
-- Add exact compatibility fixtures for other readiness/quality families where
+- Add exact compatibility fixtures for source-report families where future
   schema behavior changes public artifact shape.
 
 Last commit:
-`367e812` Tighten long-running loop prompt guardrails.
+`7faef79` Preserve branch refresh source-report keys.
 
 Next candidate:
-After prompt maintenance publishes, reassess the remaining replayed pressure
-families from the guide and current ledger.
+Mechanically consolidate the remaining legacy branch-refresh source-report
+wrapper key list, or choose the next verified Level 6 gap from the guide after
+checking the live code first.
 
 Blocked:
 Not blocked.
 
 Notes:
-- Selection note: the active objective names
-  `.codex/prompts/long_running_context_efficient_product_loop.md` directly, so
-  prompt-only maintenance is the narrow slice.
-- Slice result: the long-running prompt now preserves its stronger hours-long
-  continuation behavior while adding the sibling prompt/guide guardrails for
-  optional prompt self-read, compact structured subagent findings, command-free
-  ledger handoffs, and narrow subagent requests.
-- Review/publish fallback: no explicit user request for subagent delegation in
-  this prompt-maintenance turn, so the parent will perform bounded local review
-  and mechanical publish.
-- Parent local review found no prompt blocker; the change is scoped to the named
-  long-running prompt and ledger.
-- Parent publisher pushed `367e812` to `origin/main`.
+- Selection note: consolidate branch-generated CandidateRefresh source-report
+  key preservation because the current accepted source-report registry already
+  knew about families that the wrapper extraction path could miss.
+- Slice result: branch-generated CandidateRefresh wrappers now merge payload
+  keys from `candidate_refresh_source_report_input_fields/0` and use the same
+  accepted registry as an inclusion guard. The regression test covers
+  `operational_import_eligibility_summary`, which was already an accepted input
+  field but was absent from the wrapper's older static preservation list.
+- Full-file verification also confirmed the same registry-backed preservation
+  now carries accepted result-artifact payloads for station-reservation review
+  summaries and relay data-path summaries into replay summaries.
+- Current-state correction: the previous ledger gap claiming readiness/quality
+  source reports lacked full payload preservation was stale. Current tests/docs
+  already preserve readiness/quality reports; this slice closes a registry-drift
+  case for newer accepted source-report families.
