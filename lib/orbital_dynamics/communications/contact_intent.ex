@@ -1419,15 +1419,31 @@ defmodule OrbitalDynamics.Communications.ContactIntent do
     |> normalized_number_values()
   end
 
-  defp source_station_calendar_number_values(sources, fields) when is_list(sources),
-    do: Enum.flat_map(sources, &source_station_calendar_number_values(&1, fields))
+  defp source_station_calendar_number_values(sources, fields),
+    do: source_station_calendar_number_values(sources, fields, 0)
 
-  defp source_station_calendar_number_values(%{} = source, fields) do
-    fields
-    |> Enum.flat_map(fn field -> List.wrap(Map.get(source, field)) end)
+  defp source_station_calendar_number_values(sources, fields, depth) when is_list(sources),
+    do: Enum.flat_map(sources, &source_station_calendar_number_values(&1, fields, depth))
+
+  defp source_station_calendar_number_values(%{} = source, fields, depth) when depth < 4 do
+    direct_values =
+      fields
+      |> Enum.flat_map(fn field -> List.wrap(Map.get(source, field)) end)
+
+    direct_values ++
+      source_station_calendar_number_values(
+        source["source_station_calendar_entry"],
+        fields,
+        depth + 1
+      ) ++
+      source_station_calendar_number_values(
+        source["source_station_calendar_overlaps"],
+        fields,
+        depth + 1
+      )
   end
 
-  defp source_station_calendar_number_values(_source, _fields), do: []
+  defp source_station_calendar_number_values(_source, _fields, _depth), do: []
 
   defp normalized_number_values(values) do
     values

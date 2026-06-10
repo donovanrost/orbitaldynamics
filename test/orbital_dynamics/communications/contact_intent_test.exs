@@ -874,6 +874,81 @@ defmodule OrbitalDynamics.Communications.ContactIntentTest do
              Schema.validate_artifact(import_manifest)
   end
 
+  test "preserves wrapped station-calendar reservation expiration evidence" do
+    reservation_expiration_context = %{
+      "station_reservation_expires_at_s" => 420.0,
+      "station_calendar_reservation_expires_at_s" => [420.0, 540.0]
+    }
+
+    [intent] =
+      ContactIntent.from_activities(
+        [
+          %{
+            id: :wrapped_reservation_expiration_contact,
+            type: :planned_contact,
+            direction: :downlink,
+            scenario_id: :leo_1,
+            ground_station_id: :equator_prime,
+            starts_at_s: 10.0,
+            ends_at_s: 70.0,
+            station_availability: :reserved,
+            source_station_calendar_entry: %{
+              id: :station_reserved_entry,
+              reservation_expires_at_s: "420.0"
+            },
+            source_station_calendar_overlaps: [
+              %{
+                id: :wrapped_station_overlap,
+                source_station_calendar_overlaps: [
+                  %{
+                    id: :station_reserved_overlap,
+                    expires_at: "540.0"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        approval_policy: %{policy_bundle_id: "ground_network_allocation_v1"}
+      )
+
+    assert Map.take(intent, Map.keys(reservation_expiration_context)) ==
+             reservation_expiration_context
+
+    assert [
+             %{
+               "activity_context" => activity_context
+             }
+           ] = intent["approval_requirements"]
+
+    assert Map.take(activity_context, Map.keys(reservation_expiration_context)) ==
+             reservation_expiration_context
+
+    review_package = OperatorReview.from_contact_intent(intent)
+    [review_row] = review_package["rows"]
+
+    assert Map.take(review_row, Map.keys(reservation_expiration_context)) ==
+             reservation_expiration_context
+
+    import_manifest = CadenceImport.from_contact_intent(intent)
+    [import_row] = import_manifest["rows"]
+
+    assert Map.take(
+             import_row["import_activity_context"],
+             Map.keys(reservation_expiration_context)
+           ) ==
+             reservation_expiration_context
+
+    assert {:ok, %{"schema_contract" => "contact_intent.v1"}} =
+             Schema.validate_artifact(intent)
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(review_package)
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(import_manifest)
+  end
+
   test "derives station capacity context from numeric availability and source capacity-pack evidence" do
     [intent] =
       ContactIntent.from_activities(
