@@ -5,11 +5,11 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Opt-in V1 ranked-timeline scoring for downlink-completion progress.
+Opt-in V1 greedy activity selection uses downlink-completion progress.
 
 Status:
 Implemented, parent-reviewed, locally verified, and published locally.
-Behavior commit: `be7ffdd`.
+Behavior commit: `63b4c9a`.
 
 Files changed:
 - V1 campaign planner:
@@ -22,26 +22,25 @@ Files changed:
   `.codex/status/autonomous_product_loop.md`
 
 Tests/checks run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:2048`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs` (715 passed)
-- `mix test` (3327 passed)
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:2115`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs` (716 passed)
+- `mix test` (3328 passed)
 - `mix format lib/orbital_dynamics/campaign_planner.ex test/orbital_dynamics/campaign_planner_test.exs`
 - `git diff --check`
 
 Behavior changed:
-V1 campaign ranking can now opt into downlink-completion objective progress via
-`campaign.scoring_policy.downlink_completion_weight`. When a required downlink
-MB value comes from campaign objectives or `scoring_policy.required_downlink_mb`,
-ranked timelines add deterministic `downlink_completion_score`,
-`downlink_completion_ratio`, `selected_downlink_mb`, and `required_downlink_mb`
-score-term evidence. The score is capped at full satisfaction and uses the
-existing planned-downlink MB helper, including capacity-adjusted throughput when
-present. Default behavior is unchanged when the weight is omitted or zero.
+When `campaign.scoring_policy.downlink_completion_weight` is positive and a
+required downlink MB value is declared, V1 greedy timeline selection now boosts
+downlink candidates by their capped downlink-completion progress before applying
+overlap and max-activity constraints. Emitted candidate scores stay unchanged;
+the selected ranked timeline still carries the deterministic
+`downlink_completion_score`, ratio, selected MB, and required MB score-term
+evidence. Default behavior remains unchanged when the weight is omitted or zero.
 
 Level 6 pillar advanced:
-Fleet-level resource/contact behavior and reproducible V1 score explanations:
-declared downlink demand can now influence ranked-timeline ordering before the
-post-hoc objective, link-capacity, and constraint reports.
+Fleet-level resource/contact selection behavior and reproducible V1 score
+explanations: declared downlink demand can now influence both selection and
+ranking before post-hoc review reports.
 
 Remaining maturity gaps:
 - Use selected resource/contact/readiness pressure in additional planner-visible
@@ -53,22 +52,22 @@ Remaining maturity gaps:
   rely on stale ledger candidates.
 
 Last behavior commit:
-`be7ffdd` Score V1 downlink completion progress.
+`63b4c9a` Use downlink progress in V1 selection.
 
 Next candidate:
-Recalibrate from the guide and current code. Good next areas are one missing
-challenge fixture for stale-but-plausible operational evidence or another
-verified planner-visible scoring/selection gap.
+Recalibrate from the guide and current code. Good next areas are one verified
+planner-visible readiness/resource gap or a missing challenge fixture that
+current tests do not already cover.
 
 Blocked:
 Not blocked.
 
 Notes:
-- Selection note: V1 already emitted objective, link-capacity, and constraint
-  reports for downlink completion, but ranked-timeline scoring had no
-  downlink-demand progress term. This slice added an explicit opt-in score term
-  rather than changing default campaign artifacts.
+- Selection note: after the previous slice, downlink demand affected ranked
+  timeline scores but not the greedy selection order. This slice applies the
+  same opt-in progress signal during candidate ordering while keeping default
+  artifacts stable.
 - `slice_reviewer` sidecar was not used; the parent completed a bounded local
-  review of the ranking path, throughput helper, diff, and full-suite result.
+  review of the selector path, emitted score terms, diff, and full-suite result.
 - Full-suite pass still emits the existing campaign-planner `0.0` pattern-match
   warnings; no test failures remain in this slice.
