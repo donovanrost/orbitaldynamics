@@ -37,11 +37,11 @@ Already implemented or heavily covered:
 - lock/approved/executed preservation helpers
 - candidate rejection reports, timeline diffs, transition-application reports
   and summaries, publication summaries, and their review/import handoffs
+- V2/V3 branch scoring and recommendation explanations for replayed
+  timeline-integrity and timeline-publication pressure
 
 Good next slices:
 
-- feed one existing timeline integrity or publication pressure signal into V2/V3
-  branch scoring or candidate selection
 - add a challenge fixture for malformed or stale lifecycle/protection evidence
 - harden one remaining downstream review/import path only when live code shows
   the artifact is not already routed
@@ -68,13 +68,13 @@ Already implemented or heavily covered:
   and review/import handoff artifacts
 - contact-intent and capacity-pack direction routing in allocation and
   CandidateRefresh replay
+- candidate-refresh challenge fixture coverage for contradictory
+  provider-calendar, station-reservation, and contact-allocation evidence
 
 Good next slices:
 
 - use selected resource/contact pressure directly in candidate ranking or branch
   score explanations
-- add a challenge fixture for contradictory provider calendar, reservation, and
-  contact-allocation evidence
 - add one compatibility fixture for a resource/contact artifact family that does
   not already have a curated reference check
 

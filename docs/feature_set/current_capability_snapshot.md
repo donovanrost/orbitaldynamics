@@ -62,7 +62,10 @@ Implemented or partially implemented modules and artifacts include:
   execution-boundary, quality-gate, safety-case, model-acceptance,
   schema-validation, validation-fixture, operator-training, and unavailable
   resource summaries classify review-only, analysis-only, importable, and
-  blocked handoffs with explicit no-Cadence-execution boundaries.
+  blocked handoffs with explicit no-Cadence-execution boundaries. Curated
+  validation fixtures now include a combined provider-calendar,
+  station-reservation, and contact-allocation contradiction replay for
+  CandidateRefresh.
 - Candidate refresh replays a broad set of mission-state, realized-feedback,
   source-report, timeline-diff, transition-application, integrity, publication,
   readiness, quality, contact-allocation, link-capacity, station-calendar,
