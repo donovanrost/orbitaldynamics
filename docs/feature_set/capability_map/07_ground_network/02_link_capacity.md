@@ -345,11 +345,13 @@ evidence. Capability metadata names the accepted direct aliases
 (`station_reservation_expires_at_s`, `reservation_expires_at_s`,
 `reservation_hold_expires_at_s`, `hold_expires_at_s`, `expires_at_s`,
 `expires_at`) and plural `station_calendar_reservation_expires_at_s` overlap
-context. Command-window rows preserve singular and plural reservation
-expiration seconds through approval context, operator-review rows, and
-Cadence-import rows. `capacity_pack_capacity_fraction` evidence feeds the same
-direct, source-activity, and source station-calendar capacity path metadata as
-canonical `capacity_fraction`.
+context. Link-capacity summaries preserve the same expiration aliases from
+wrapped `source_station_calendar_overlaps` rows emitted by upstream filtering,
+intent, or allocation handoffs. Command-window rows preserve singular and plural
+reservation expiration seconds through approval context, operator-review rows,
+and Cadence-import rows. `capacity_pack_capacity_fraction` evidence feeds the
+same direct, source-activity, and source station-calendar capacity path metadata
+as canonical `capacity_fraction`.
 
 ## Unit-interval and integrity enforcement
 

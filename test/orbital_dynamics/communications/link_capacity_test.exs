@@ -3179,6 +3179,73 @@ defmodule OrbitalDynamics.Communications.LinkCapacityTest do
            ] = manifest["rows"]
   end
 
+  test "preserves wrapped station-calendar reservation expiration evidence" do
+    report =
+      LinkCapacity.report(
+        [
+          %{
+            id: :dl_wrapped_reserved,
+            type: :downlink,
+            ground_station_id: :equator_prime,
+            estimated_throughput_mb: 100.0,
+            source_station_calendar_entry: %{
+              id: :calendar_reserved_entry,
+              expires_at: "420.0"
+            },
+            source_station_calendar_overlaps: [
+              %{
+                id: :wrapped_station_overlap,
+                source_station_calendar_overlaps: [
+                  %{
+                    id: :calendar_reserved_overlap,
+                    reservation_expires_at_s: "540.0"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        []
+      )
+
+    assert [
+             %{
+               "ground_station_id" => "equator_prime",
+               "station_reservation_expires_at_s" => [420.0, 540.0]
+             }
+           ] = report["rows"]
+
+    assert %{"station_reservation_expires_at_s" => [420.0, 540.0]} = report
+
+    assert %{"station_reservation_expires_at_s" => [420.0, 540.0]} =
+             LinkCapacity.summary(report)
+
+    review = OperatorReview.from_link_capacity_report(report)
+
+    assert [
+             %{
+               "station_reservation_expires_at_s" => [420.0, 540.0],
+               "source_link_capacity" => %{
+                 "station_reservation_expires_at_s" => [420.0, 540.0]
+               }
+             }
+           ] = review["rows"]
+
+    manifest = CadenceImport.from_link_capacity_report(report)
+
+    assert [
+             %{
+               "station_reservation_expires_at_s" => [420.0, 540.0],
+               "source_link_capacity" => %{
+                 "station_reservation_expires_at_s" => [420.0, 540.0]
+               }
+             }
+           ] = manifest["rows"]
+
+    assert {:ok, %{"schema_contract" => "link_capacity_report.v1"}} =
+             Schema.validate_artifact(report)
+  end
+
   test "applies direct station-calendar outage evidence to capacity summaries" do
     report =
       LinkCapacity.report(
