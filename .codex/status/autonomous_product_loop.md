@@ -5,15 +5,15 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-V3 split pressure score-term fixture documentation.
+V3 resource-filter pressure orchestration documentation.
 
 Status:
 Implemented, parent-reviewed, locally verified, and published locally.
-Behavior commit: `c787304`.
+Behavior commit: `c41c48e`.
 
 Files changed:
-- Validation capability map:
-  `docs/feature_set/capability_map/18_validation_and_verification.md`
+- V3 strategy orchestration capability map:
+  `docs/feature_set/capability_map/14_v3_strategy_orchestration.md`
 - Ledger:
   `.codex/status/autonomous_product_loop.md`
 
@@ -21,11 +21,11 @@ Tests/checks run:
 - `git diff --check`
 
 Behavior changed:
-Documentation alignment only: the validation capability map now describes the
-checked-in V3 strategy golden artifact as pinning split score-term rows across
-the broader contact, resource, station, readiness, quality, validation,
-execution-feedback, approval-boundary, and timeline pressure families, including
-resource-filter replay pressure.
+Documentation alignment only: the V3 strategy orchestration capability map now
+describes dedicated resource-filter pressure scoring through
+`resource_filter_pressure_penalty` in both the score-term narrative and the
+selected-recommendation score-term list, rather than folding resource-filter
+suppression into broader resource-availability wording.
 
 Level 6 pillar advanced:
 Autonomous-loop calibration quality: artifact documentation should describe the
@@ -40,7 +40,7 @@ Remaining maturity gaps:
 - Continue reassessing from live code and Level 6 docs between slices.
 
 Last behavior commit:
-`c787304` Refresh V3 score-term fixture coverage docs.
+`c41c48e` Document V3 resource filter pressure scoring.
 
 Next candidate:
 After this slice, reassess from current code and roadmap. Good next areas are
@@ -51,19 +51,18 @@ Blocked:
 Not blocked.
 
 Notes:
-- Selection note: after publishing `725fa56`, live docs still say the checked-in
-  V3 strategy golden artifact pins split strategy score-term rows only for
-  contact-allocation, approval-boundary, and timeline pressure. Current code and
-  tests now pin a broader set, including resource-filter pressure via
-  `resource_filter_pressure_penalty`, readiness/quality/import-readiness,
-  station, validation, execution feedback, and other branch-local pressure
-  families. This slice updates the validation capability-map wording only.
-  Likely files: `docs/feature_set/capability_map/18_validation_and_verification.md`
-  and this ledger. Definition of done: the fixture documentation describes the
-  broader current split-pressure score-term coverage without over-enumerating
-  unstable key lists, markdown diff checks pass, parent review is recorded, and
-  docs plus ledger commits are pushed.
-- Parent review notes: docs-only calibration following `725fa56`. The changed
-  paragraph now matches the current golden artifact and focused planner tests
-  without listing every score-term key. No runtime, schema, or fixture behavior
-  changed in this slice.
+- Selection note: after refreshing the validation fixture docs, live search
+  shows `docs/feature_set/capability_map/14_v3_strategy_orchestration.md` still
+  describes resource-filter pressure under broader resource-availability
+  wording and lacks the new dedicated `resource_filter_pressure_penalty`.
+  Current code and tests now split resource-filter replay pressure into that
+  term. This slice updates only the V3 orchestration docs. Likely files:
+  `docs/feature_set/capability_map/14_v3_strategy_orchestration.md` and this
+  ledger. Definition of done: the narrative and selected-recommendation
+  score-term bullets mention dedicated resource-filter pressure scoring,
+  markdown diff checks pass, parent review is recorded, and docs plus ledger
+  commits are pushed.
+- Parent review notes: docs-only calibration following `725fa56` and the
+  validation fixture docs refresh. The changed V3 orchestration paragraphs now
+  match the current resource-filter score-term behavior and focused planner
+  tests. No runtime, schema, or fixture behavior changed in this slice.
