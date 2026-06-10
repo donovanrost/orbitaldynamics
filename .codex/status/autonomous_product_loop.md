@@ -9,7 +9,7 @@ V2 repair honors supplied candidate-refresh resource suppressions during
 replacement selection.
 
 Status:
-Implemented, reviewer-cleared, and locally verified; publish pending.
+Implemented, reviewer-cleared, locally verified, committed, and pushed.
 
 Files changed:
 - V2 repair candidate filtering:
@@ -54,20 +54,19 @@ Slice result:
   remain green.
 
 Last completed slice:
-Link-capacity strategy replay stays row-led under stale aggregates.
+V2 repair honors supplied candidate-refresh resource suppressions during
+replacement selection.
 
 Last pushed commits:
-- Product/ledger: `80f44b0` Prefer timeline publication handoff row evidence
-- Ledger correction: `da1524b` Update autonomous loop ledger after timeline
-  publish
-- Product/ledger: `1173176` Preserve lifecycle replay source context
-- Ledger correction: `f369621` Update autonomous loop ledger after lifecycle
-  publish
 - Product/ledger: `021224b` Guard link capacity strategy replay rows
+- Ledger correction: `8981e76` Update autonomous loop ledger after link capacity
+  publish
+- Product/ledger: `b07fbec` Honor refresh resource suppressions in repair
 
 Review/publish queue:
-- Reviewer sidecar cleared the link-capacity stale aggregate strategy guard;
-  published to `origin/main` as `021224b`.
+- Reviewer sidecar cleared the supplied refresh resource-suppression repair
+  slice after ledger/test-line fixes.
+- Publisher sidecar pushed `b07fbec` to `origin/main`.
 
 Remaining maturity gaps:
 - Continue converting replayed resource/contact/readiness pressure into
@@ -91,4 +90,4 @@ Notes:
 - Focused CampaignPlanner tests still emit existing unrelated `0.0`
   pattern-match warnings from another test; selected tests exit green.
 - Reviewer sidecar: `019eb06d-0aa4-7a91-b3d7-cf66229741f0`.
-- Publisher sidecar: pending.
+- Publisher sidecar: `019eb075-34f1-71b3-9f9d-b1af2535fe66`.
