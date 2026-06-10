@@ -1254,6 +1254,14 @@ defmodule OrbitalDynamics.CampaignPlanner do
         repair_freshness_report(request.candidate_refresh)
       )
       |> maybe_put_source_report(
+        "source_operational_readiness_report",
+        repair_operational_readiness_report(request.candidate_refresh)
+      )
+      |> maybe_put_source_report(
+        "source_quality_gate_report",
+        repair_quality_gate_report(request.candidate_refresh)
+      )
+      |> maybe_put_source_report(
         "source_refresh_budget_report",
         repair_refresh_budget_report(request.candidate_refresh)
       )
@@ -58202,6 +58210,34 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp repair_freshness_report(%{} = candidate_refresh) do
     case Map.get(candidate_refresh, "freshness_report") do
+      %{} = report -> stringify_keys(report)
+      _report -> nil
+    end
+  end
+
+  defp repair_operational_readiness_report(candidate_refresh) do
+    repair_source_report(
+      candidate_refresh,
+      "source_operational_readiness_report",
+      "operational_readiness_report"
+    )
+  end
+
+  defp repair_quality_gate_report(candidate_refresh) do
+    repair_source_report(candidate_refresh, "source_quality_gate_report", "quality_gate_report")
+  end
+
+  defp repair_source_report(nil, _source_key, _canonical_key), do: nil
+
+  defp repair_source_report(%{} = candidate_refresh, source_key, canonical_key) do
+    candidate_refresh = stringify_keys(candidate_refresh)
+
+    [
+      Map.get(candidate_refresh, source_key),
+      Map.get(candidate_refresh, canonical_key)
+    ]
+    |> Enum.find(&is_map/1)
+    |> case do
       %{} = report -> stringify_keys(report)
       _report -> nil
     end

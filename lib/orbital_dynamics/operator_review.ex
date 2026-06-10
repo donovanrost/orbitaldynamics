@@ -1577,6 +1577,14 @@ defmodule OrbitalDynamics.OperatorReview do
           Map.get(artifact, "source_freshness_report"),
           "campaign_repair.source_freshness_report"
         ) ++
+        source_operational_readiness_report_rows(
+          Map.get(artifact, "source_operational_readiness_report"),
+          "campaign_repair.source_operational_readiness_report"
+        ) ++
+        source_quality_gate_report_rows(
+          Map.get(artifact, "source_quality_gate_report"),
+          "campaign_repair.source_quality_gate_report"
+        ) ++
         refresh_budget_rows(
           Map.get(artifact, "source_refresh_budget_report"),
           "campaign_repair.source_refresh_budget_report"

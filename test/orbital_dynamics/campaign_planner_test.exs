@@ -4121,6 +4121,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
 
   test "repair can use candidate_refresh.v1 candidates instead of stale prior candidates" do
     refreshed_candidate = refreshed_downlink("dl_refreshed", 500.0, 560.0)
+    source_reports = passive_candidate_refresh_source_reports()
 
     candidate_diff_report =
       candidate_diff_report()
@@ -4176,6 +4177,11 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
             resource_filter_report: resource_filter_report(),
             refresh_budget_report: refresh_budget_report()
           )
+          |> Map.put(
+            "source_operational_readiness_report",
+            source_reports["source_operational_readiness_report"]
+          )
+          |> Map.put("source_quality_gate_report", passive_quality_gate_report())
           |> Map.put("operational_feedback", %{
             "station_throughput_factor" => %{"equator_prime" => 0.5}
           })
@@ -4264,6 +4270,12 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "status" => "stale"
            } = artifact["source_freshness_report"]
 
+    assert artifact["source_operational_readiness_report"]["schema_contract"] ==
+             "operational_readiness_report.v1"
+
+    assert artifact["source_quality_gate_report"]["schema_contract"] ==
+             "quality_gate_report.v1"
+
     assert %{
              "freshness_review_count" => 1
            } = artifact["operator_review_package"]
@@ -4289,6 +4301,64 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Enum.find(
                artifact["cadence_import_manifest"]["rows"],
                &(&1["import_action"] == "review_refresh_freshness")
+             )
+
+    assert %{
+             "operational_readiness_review_count" => 1,
+             "quality_gate_review_count" => 1
+           } = artifact["operator_review_package"]
+
+    assert %{
+             "review_type" => "operational_readiness_review",
+             "source" => "campaign_repair.source_operational_readiness_report",
+             "required_operator_action" => "review_operational_readiness",
+             "source_operational_readiness_report" => %{
+               "schema_contract" => "operational_readiness_report.v1",
+               "report_id" => "operational_readiness:planned_activity.v1:passive_source"
+             }
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["review_type"] == "operational_readiness_review")
+             )
+
+    assert %{
+             "review_type" => "quality_gate_review",
+             "source" => "campaign_repair.source_quality_gate_report.rows",
+             "required_operator_action" => "review_quality_gate",
+             "quality_gate_id" => "operator_review",
+             "source_quality_gate_report" => %{
+               "schema_contract" => "quality_gate_report.v1",
+               "report_id" => "quality_gate:planned_activity.v1:passive_source"
+             }
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["review_type"] == "quality_gate_review")
+             )
+
+    assert %{
+             "import_action" => "review_operational_readiness",
+             "source_review_type" => "operational_readiness_review",
+             "source" => "campaign_repair.source_operational_readiness_report",
+             "source_operational_readiness_report" => %{
+               "schema_contract" => "operational_readiness_report.v1"
+             }
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(&1["import_action"] == "review_operational_readiness")
+             )
+
+    assert %{
+             "import_action" => "review_quality_gate",
+             "source_review_type" => "quality_gate_review",
+             "source" => "campaign_repair.source_quality_gate_report.rows",
+             "source_quality_gate_report" => %{"schema_contract" => "quality_gate_report.v1"}
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(&1["import_action"] == "review_quality_gate")
              )
 
     assert %{
@@ -4510,6 +4580,76 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                  &1["activity_id"] == "resource_filter:dl_resource_blocked" and
                  get_in(&1, ["source_resource_suppression", "contact_id"]) ==
                    "dl_resource_blocked")
+           )
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(artifact)
+  end
+
+  test "repair preserves canonical candidate refresh readiness and quality source reports" do
+    source_reports = passive_candidate_refresh_source_reports()
+
+    artifact =
+      repair(
+        %{
+          "activities" => [downlink("dl_1", 100.0, 160.0)],
+          "candidate_activities" => [downlink("dl_stale", 700.0, 760.0)]
+        },
+        realized_state: %{activities: [%{id: "dl_1", status: "missed"}]},
+        current_epoch_s: 165.0,
+        candidate_refresh:
+          [refreshed_downlink("dl_ready", 500.0, 560.0)]
+          |> candidate_refresh_artifact(freshness_report: freshness_report("current"))
+          |> Map.put(
+            "operational_readiness_report",
+            source_reports["source_operational_readiness_report"]
+          )
+          |> Map.put("quality_gate_report", passive_quality_gate_report())
+      )
+
+    assert [%{"id" => "dl_ready", "repair" => %{"action" => "moved"}}] =
+             artifact["activities"]
+
+    assert artifact["source_operational_readiness_report"]["schema_contract"] ==
+             "operational_readiness_report.v1"
+
+    assert artifact["source_quality_gate_report"]["schema_contract"] ==
+             "quality_gate_report.v1"
+
+    assert %{
+             "review_type" => "operational_readiness_review",
+             "source" => "campaign_repair.source_operational_readiness_report",
+             "source_operational_readiness_report" => %{
+               "report_id" => "operational_readiness:planned_activity.v1:passive_source"
+             }
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["review_type"] == "operational_readiness_review")
+             )
+
+    assert %{
+             "review_type" => "quality_gate_review",
+             "source" => "campaign_repair.source_quality_gate_report.rows",
+             "source_quality_gate_report" => %{
+               "report_id" => "quality_gate:planned_activity.v1:passive_source"
+             }
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["review_type"] == "quality_gate_review")
+             )
+
+    assert Enum.any?(
+             artifact["cadence_import_manifest"]["rows"],
+             &(&1["import_action"] == "review_operational_readiness" and
+                 &1["source"] == "campaign_repair.source_operational_readiness_report")
+           )
+
+    assert Enum.any?(
+             artifact["cadence_import_manifest"]["rows"],
+             &(&1["import_action"] == "review_quality_gate" and
+                 &1["source"] == "campaign_repair.source_quality_gate_report.rows")
            )
 
     assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
