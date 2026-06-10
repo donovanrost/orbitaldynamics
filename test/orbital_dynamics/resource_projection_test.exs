@@ -3979,6 +3979,36 @@ defmodule OrbitalDynamics.ResourceProjectionTest do
                 }
               }
             ]
+          },
+          %{
+            id: :"contact_allocation:dl_overlap_conflict",
+            type: :downlink,
+            direction: :downlink,
+            scenario_id: :leo_1,
+            ground_station_id: :equator_prime,
+            starts_at_s: 40.0,
+            estimated_throughput_mb: 40.0,
+            source_station_calendar_overlaps: [
+              %{
+                id: :overlap_conflict_allocated,
+                source_contact_allocation: %{
+                  allocation_status: :allocated,
+                  effective_allocation_status: :allocated,
+                  allocation_reason: :selected_by_contention_resolution,
+                  capacity_pack_status: :selected_by_contention_resolution,
+                  capacity_pack_capacity_fraction: 0.5
+                }
+              },
+              %{
+                id: :overlap_conflict_policy_blocked,
+                source_contact_allocation: %{
+                  allocation_status: :allocated,
+                  effective_allocation_status: :policy_blocked,
+                  allocation_reason: :blocked_by_policy,
+                  capacity_pack_status: :selected_by_contention_resolution
+                }
+              }
+            ]
           }
         ],
         [
@@ -3995,8 +4025,11 @@ defmodule OrbitalDynamics.ResourceProjectionTest do
              "projected_resources" => [
                %{
                  "effective_activity_count" => 2,
-                 "ignored_activity_count" => 1,
-                 "ignored_activity_ids" => ["contact_allocation:dl_overlap_deferred"],
+                 "ignored_activity_count" => 2,
+                 "ignored_activity_ids" => [
+                   "contact_allocation:dl_overlap_deferred",
+                   "contact_allocation:dl_overlap_conflict"
+                 ],
                  "estimated_downlink_mb" => 20.0,
                  "storage_limited_downlinked_mb" => 20.0,
                  "projected_storage_used_mb" => 100.0,
@@ -4023,6 +4056,17 @@ defmodule OrbitalDynamics.ResourceProjectionTest do
                      "capacity_pack_status" => "deferred_by_reduced_station_capacity_pack",
                      "planned_downlink_mb" => +0.0,
                      "downlinked_mb" => +0.0
+                   },
+                   %{
+                     "activity_id" => "contact_allocation:dl_overlap_conflict",
+                     "resource_effect_status" => "ignored",
+                     "resource_effect_reason" => "contact_allocation_policy_blocked",
+                     "allocation_status" => "allocated",
+                     "effective_allocation_status" => "policy_blocked",
+                     "allocation_reason" => "blocked_by_policy",
+                     "capacity_pack_status" => "selected_by_contention_resolution",
+                     "planned_downlink_mb" => +0.0,
+                     "downlinked_mb" => +0.0
                    }
                  ]
                }
@@ -4036,11 +4080,15 @@ defmodule OrbitalDynamics.ResourceProjectionTest do
 
     assert %{
              "total_planned_downlink_mb" => 20.0,
-             "ignored_activity_reason_counts" => %{"contact_allocation_deferred" => 1},
+             "ignored_activity_reason_counts" => %{
+               "contact_allocation_deferred" => 1,
+               "contact_allocation_policy_blocked" => 1
+             },
              "activity_resource_flow" => [
                _observation,
                %{"allocation_status" => "allocated", "capacity_fraction" => 0.5},
-               %{"resource_effect_reason" => "contact_allocation_deferred"}
+               %{"resource_effect_reason" => "contact_allocation_deferred"},
+               %{"resource_effect_reason" => "contact_allocation_policy_blocked"}
              ]
            } = flow_summary
 

@@ -3398,10 +3398,34 @@ defmodule OrbitalDynamics.ResourceProjection do
     activity
     |> Map.get("source_station_calendar_overlaps")
     |> List.wrap()
-    |> Enum.find_value(fn
-      %{} = overlap -> get_in(overlap, ["source_contact_allocation", field])
-      _overlap -> nil
-    end)
+    |> contact_allocation_source_from_overlaps()
+    |> case do
+      %{} = source -> Map.get(source, field)
+      _source -> nil
+    end
+  end
+
+  defp contact_allocation_source_from_overlaps(overlaps) do
+    sources =
+      overlaps
+      |> Enum.map(fn
+        %{} = overlap -> Map.get(overlap, "source_contact_allocation")
+        _overlap -> nil
+      end)
+      |> Enum.filter(&is_map/1)
+
+    Enum.find(sources, &contact_allocation_blocking_source?/1) || List.first(sources)
+  end
+
+  defp contact_allocation_blocking_source?(source) do
+    effective_status = source |> Map.get("effective_allocation_status") |> status_token()
+    allocation_status = source |> Map.get("allocation_status") |> status_token()
+
+    cond do
+      effective_status not in [nil, "", "allocated"] -> true
+      allocation_status not in [nil, "", "allocated"] -> true
+      true -> false
+    end
   end
 
   defp status_token(value) when value in [nil, ""], do: nil

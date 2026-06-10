@@ -207,6 +207,11 @@ Contact-allocation `capacity_pack_capacity_fraction` evidence feeds the same
 typed station-capacity path as canonical `capacity_fraction`, including
 source station-calendar entry/overlap evidence used before reduced-capacity
 blocking or packing.
+When selected activities later carry multiple station-calendar overlaps with
+embedded contact-allocation evidence, resource projection now chooses blocking
+allocation evidence before allocated evidence, so deferred or policy-blocked
+overlaps cannot accidentally relieve storage or downlink pressure because of
+provider overlap ordering.
 
 **Percent aliases** — provider percent aliases are normalized into the same fractions before reduced-capacity blocking and packing:
 
