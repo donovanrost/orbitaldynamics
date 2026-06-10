@@ -56450,6 +56450,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "external_id" => id
       }
     }
+    |> Map.merge(activity_precondition_context(event.metadata))
     |> Map.merge(lighting_summary)
   end
 
@@ -56508,7 +56509,34 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "schema_contract" => "proposed_contact.v1"
       }
     }
+    |> Map.merge(activity_precondition_context(event.metadata))
     |> maybe_add_downlink_throughput(type, duration_s, downlink_rate_mb_s)
+  end
+
+  defp activity_precondition_context(metadata) do
+    metadata
+    |> encode_value()
+    |> Map.take([
+      "spacecraft_available",
+      "payload_available",
+      "antenna_available",
+      "degraded",
+      "resource_blocking_dimension",
+      "incompatible_activity_types",
+      "suppressed_activity_types",
+      "command_authorized",
+      "command_authority_status",
+      "authority_status",
+      "required_authority",
+      "required_escalation_authority",
+      "command_safety_status",
+      "safety_status",
+      "command_safety_checked",
+      "safety_checked",
+      "activity_template",
+      "activity_context"
+    ])
+    |> compact_map()
   end
 
   defp contact_candidate_direction(type) when type in ["command", "tracking", "health_check"],
@@ -56538,12 +56566,17 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
     activity_count_penalty = numeric_policy_value(policy, "activity_count_penalty", 0.0)
     downlink_completion_context = downlink_completion_score_context(campaign, policy)
+    timeline_precondition_context = timeline_precondition_score_context(policy)
 
     activities =
       candidates
       |> Enum.sort_by(
         &{
-          -candidate_selection_score(&1, downlink_completion_context),
+          -candidate_selection_score(
+            &1,
+            downlink_completion_context,
+            timeline_precondition_context
+          ),
           activity_start(&1),
           &1["id"]
         }
@@ -56561,7 +56594,13 @@ defmodule OrbitalDynamics.CampaignPlanner do
     penalty = length(activities) * activity_count_penalty
     component_terms = timeline_component_score_terms(activities)
     objective_terms = downlink_completion_score_terms(activities, downlink_completion_context)
-    score = gross_score - penalty + Map.get(objective_terms, "downlink_completion_score", 0.0)
+
+    precondition_terms =
+      timeline_precondition_score_terms(activities, timeline_precondition_context)
+
+    score =
+      gross_score - penalty + Map.get(objective_terms, "downlink_completion_score", 0.0) +
+        Map.get(precondition_terms, "timeline_precondition_pressure_penalty", 0.0)
 
     %{
       "scenario_id" => encode_value(scenario_id),
@@ -56569,6 +56608,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "score_terms" =>
         component_terms
         |> Map.merge(objective_terms)
+        |> Map.merge(precondition_terms)
         |> Map.merge(%{
           "activity_score" => gross_score,
           "activity_count_penalty" => -penalty,
@@ -56580,11 +56620,20 @@ defmodule OrbitalDynamics.CampaignPlanner do
     }
   end
 
-  defp candidate_selection_score(candidate, downlink_completion_context) do
+  defp candidate_selection_score(
+         candidate,
+         downlink_completion_context,
+         timeline_precondition_context
+       ) do
     candidate_score(candidate) +
       Map.get(
         downlink_completion_score_terms([candidate], downlink_completion_context),
         "downlink_completion_score",
+        0.0
+      ) +
+      Map.get(
+        timeline_precondition_score_terms([candidate], timeline_precondition_context),
+        "timeline_precondition_pressure_penalty",
         0.0
       )
   end
@@ -56619,6 +56668,35 @@ defmodule OrbitalDynamics.CampaignPlanner do
   end
 
   defp downlink_completion_score_terms(_activities, _terms), do: %{}
+
+  defp timeline_precondition_score_context(policy) do
+    weight = numeric_policy_value(policy, "timeline_precondition_weight", 0.0)
+
+    if weight > 0.0 do
+      %{weight: weight}
+    end
+  end
+
+  defp timeline_precondition_score_terms(activities, %{weight: weight}) do
+    summaries = Enum.map(activities, &Timeline.activity_precondition_summary/1)
+    blocked_count = sum_number_field(summaries, "blocked_precondition_count")
+    review_count = sum_number_field(summaries, "review_precondition_count")
+    pressure_count = blocked_count + review_count
+    penalty = -pressure_count * weight
+
+    if pressure_count > 0.0 do
+      %{
+        "timeline_precondition_pressure_penalty" => penalty,
+        "timeline_precondition_pressure_count" => pressure_count,
+        "blocked_precondition_count" => blocked_count,
+        "review_precondition_count" => review_count
+      }
+    else
+      %{}
+    end
+  end
+
+  defp timeline_precondition_score_terms(_activities, _context), do: %{}
 
   defp timeline_component_score_terms(activities) do
     Enum.reduce(

@@ -2193,6 +2193,93 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(weighted_artifact)
   end
 
+  test "campaign timeline precondition weight affects ranked timeline selection" do
+    blocked_observation =
+      :blocked
+      |> target_visibility_result(:high_value_target, 0.0, 100.0, 2.0)
+      |> put_in([:events, Access.at(0), :metadata, :payload_available], false)
+
+    result_set =
+      ResultSet.new!(%{
+        study_id: :campaign,
+        trajectory_results: [],
+        event_results: [
+          blocked_observation,
+          target_visibility_result(:clear, :standard_target, 0.0, 100.0, 1.0)
+        ],
+        errors: [],
+        assumptions: %{},
+        metadata: %{}
+      })
+
+    default_artifact =
+      CampaignPlanner.build(result_set,
+        generated_at: ~U[2026-05-14 00:00:00Z],
+        campaign: %{
+          "targets" => [
+            %{"id" => "high_value_target", "priority" => 2.0},
+            %{"id" => "standard_target", "priority" => 1.0}
+          ],
+          "constraints" => %{"max_timeline_activities" => 1},
+          "scoring_policy" => %{"target_value_weight" => 1.0}
+        }
+      )
+
+    assert [%{"scenario_id" => "blocked", "target_id" => "high_value_target"}] =
+             default_artifact["activities"]
+
+    refute "timeline_precondition_pressure_penalty" in default_artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    weighted_artifact =
+      CampaignPlanner.build(result_set,
+        generated_at: ~U[2026-05-14 00:00:00Z],
+        campaign: %{
+          "targets" => [
+            %{"id" => "high_value_target", "priority" => 2.0},
+            %{"id" => "standard_target", "priority" => 1.0}
+          ],
+          "constraints" => %{"max_timeline_activities" => 1},
+          "scoring_policy" => %{
+            "target_value_weight" => 1.0,
+            "timeline_precondition_weight" => 150.0
+          }
+        }
+      )
+
+    assert [%{"scenario_id" => "clear", "target_id" => "standard_target"}] =
+             weighted_artifact["activities"]
+
+    blocked_timeline =
+      Enum.find(weighted_artifact["ranked_timelines"], &(&1["scenario_id"] == "blocked"))
+
+    assert %{
+             "score" => 50.0,
+             "score_terms" => %{
+               "activity_score" => 200.0,
+               "timeline_precondition_pressure_penalty" => -150.0,
+               "timeline_precondition_pressure_count" => 1,
+               "blocked_precondition_count" => 1,
+               "review_precondition_count" => 0
+             }
+           } = blocked_timeline
+
+    assert "timeline_precondition_pressure_penalty" in weighted_artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert Enum.any?(
+             weighted_artifact["score_term_report"]["rows"],
+             &(&1["scenario_id"] == "blocked" and
+                 &1["term_key"] == "timeline_precondition_pressure_penalty" and
+                 &1["value"] == -150.0)
+           )
+
+    assert {:ok, %{"schema_contract" => "campaign_plan.v1"}} =
+             Schema.validate_artifact(weighted_artifact)
+  end
+
   test "campaign objective satisfaction requires both downlink count and data volume when declared" do
     result_set =
       ResultSet.new!(%{
