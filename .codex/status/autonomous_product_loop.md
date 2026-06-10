@@ -82,7 +82,7 @@ link-capacity summaries.
 
 Last commit:
 - Product: `9ad938e` Preserve wrapped reservation expirations in link capacity
-- Ledger: pending
+- Ledger: `3eb5f9d` Update autonomous loop status
 
 Remaining maturity gaps:
 - Existing operator-review/Cadence-import schema validation still treats
