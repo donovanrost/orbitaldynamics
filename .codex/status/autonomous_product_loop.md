@@ -8,7 +8,7 @@ Current slice:
 Link-capacity strategy replay stays row-led under stale aggregates.
 
 Status:
-Implemented, reviewer-cleared, and locally verified; publish pending.
+Implemented, reviewer-cleared, locally verified, committed, and pushed.
 
 Files changed:
 - Focused strategy regression:
@@ -51,23 +51,20 @@ Slice result:
 - Neighboring link-capacity report/summary strategy replay tests remain green.
 
 Last completed slice:
-Timeline lifecycle strategy replay stays row-led under stale aggregates.
+Link-capacity strategy replay stays row-led under stale aggregates.
 
 Last pushed commits:
-- Product/ledger: `0b4fdcd` Guard resource quality gate rows against stale
-  aggregates
-- Ledger correction: `c96eaa9` Update autonomous loop ledger after resource
-  gate publish
 - Product/ledger: `80f44b0` Prefer timeline publication handoff row evidence
 - Ledger correction: `da1524b` Update autonomous loop ledger after timeline
   publish
 - Product/ledger: `1173176` Preserve lifecycle replay source context
 - Ledger correction: `f369621` Update autonomous loop ledger after lifecycle
   publish
+- Product/ledger: `021224b` Guard link capacity strategy replay rows
 
 Review/publish queue:
 - Reviewer sidecar cleared the link-capacity stale aggregate strategy guard;
-  publish pending.
+  published to `origin/main` as `021224b`.
 
 Remaining maturity gaps:
 - Continue converting replayed resource/contact/readiness pressure into
@@ -80,8 +77,7 @@ Remaining maturity gaps:
   planner pressure families change public artifact shape.
 
 Next candidate:
-After this link-capacity strategy guard, reassess remaining candidate-selection
-or compatibility gaps from live evidence.
+Reassess remaining candidate-selection or compatibility gaps from live evidence.
 
 Blocked:
 Not blocked.
@@ -94,3 +90,4 @@ Notes:
 - Focused CampaignPlanner tests still emit existing unrelated `0.0`
   pattern-match warnings from another test; selected tests exit green.
 - Reviewer sidecar: `019eb062-21ca-7081-817a-d4d26d62f9b4`.
+- Publisher sidecar: `019eb064-b61d-72c1-a4a7-2d652ba72ed0`.
