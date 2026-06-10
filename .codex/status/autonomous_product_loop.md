@@ -5,107 +5,103 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Preserve wrapped station-calendar reservation expiration evidence in
-link-capacity summaries.
+Accept list-valued link-capacity reservation expirations in review/import
+schemas.
 
 Status:
 Completed and pushed.
 
 Files changed:
-- Link capacity: `lib/orbital_dynamics/communications/link_capacity.ex`
+- Schema contracts and validators: `lib/orbital_dynamics/schema.ex`
+- Schema tests: `test/orbital_dynamics/schema_test.exs`
 - Link capacity tests:
   `test/orbital_dynamics/communications/link_capacity_test.exs`
-- Ground-network docs:
-  `docs/feature_set/capability_map/07_ground_network/02_link_capacity.md`
 - Ledger: `.codex/status/autonomous_product_loop.md`
 
 Tests run:
 - `mix test test/orbital_dynamics/communications/link_capacity_test.exs:3182`
-- `mix test test/orbital_dynamics/communications/link_capacity_test.exs:2948`
+- `mix test test/orbital_dynamics/schema_test.exs:28919`
+- `mix test test/orbital_dynamics/schema_test.exs:30610`
+- `mix test test/orbital_dynamics/schema_test.exs:28294`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 
 Docs/artifacts changed:
-- Documented that link-capacity summaries read reservation-expiration aliases
-  from wrapped `source_station_calendar_overlaps` rows emitted by upstream
-  filtering, intent, or allocation handoffs.
+- Exported `operator_review_package.v1` and `cadence_import_manifest.v1`
+  schemas now accept scalar or list-valued
+  `station_reservation_expires_at_s` handoff rows where existing
+  link-capacity review/import behavior emits reservation-expiration lists.
 
 Level 6 pillar advanced:
-Fleet-level station-calendar/contact capacity behavior with Cadence-facing
-review/import handoffs.
+Durable schema-versioned artifacts and Cadence-facing review/import readiness.
 
 Slice selection note:
-Selected slice: wrapped station-calendar reservation expiration in link-capacity
-summaries.
+Selected slice: accept list-valued link-capacity reservation expirations in
+review/import schemas.
 
-Why this slice: LinkCapacity aggregates reservation-expiration seconds for
-review/import capacity rows, but its source-calendar number helper only read
-immediate source maps. Wrapped overlap rows could hide `expires_at` and related
-hold-expiration aliases.
+Why this slice: LinkCapacity report rows already use list-valued
+`station_reservation_expires_at_s`, and operator-review/Cadence-import handoffs
+preserve that list, but the shared review/import schemas still described the
+field as scalar-only.
 
-Level 6 pillar: Fleet-level station-calendar/contact capacity behavior and
-Cadence-facing review/import handoffs.
+Level 6 pillar: durable schema-versioned artifacts and Cadence-facing
+review/import readiness.
 
-Current evidence gap: Link-capacity report, operator-review, and Cadence-import
-rows could lose reservation deadline evidence when provider calendar expiration
-fields lived under wrapped `source_station_calendar_overlaps`.
+Current evidence gap: Valid link-capacity review/import rows with multiple
+reservation deadlines could not pass schema validation, so adapter handoff
+validation disagreed with established row behavior.
 
 Docs read:
-`docs/feature_set/capability_map/07_ground_network/02_link_capacity.md`;
-focused LinkCapacity code/tests.
+Focused schema/operator-review/import tests around link-capacity handoff.
 
-Likely files: `lib/orbital_dynamics/communications/link_capacity.ex`;
+Likely files: `lib/orbital_dynamics/schema.ex`;
+`test/orbital_dynamics/schema_test.exs`;
 `test/orbital_dynamics/communications/link_capacity_test.exs`;
-`docs/feature_set/capability_map/07_ground_network/02_link_capacity.md`;
 `.codex/status/autonomous_product_loop.md`.
 
-Likely tests: wrapped-overlap reservation-expiration link-capacity regression;
-existing reservation evidence capacity test; `mix compile --warnings-as-errors`;
-`git diff --check`.
+Likely tests: schema export/property tests, wrapped link-capacity review/import
+validation test, `mix compile --warnings-as-errors`, `git diff --check`.
 
-Definition of done: LinkCapacity extracts reservation expiration seconds from
-direct, source-entry, direct-overlap, and wrapped-overlap evidence, and those
-values survive capacity report, operator-review, and Cadence-import rows.
+Definition of done: `operator_review_package.v1` and
+`cadence_import_manifest.v1` accept either scalar or list-valued
+`station_reservation_expires_at_s` where existing handoff rows emit lists, while
+scalar station-reservation fields remain valid for existing contact,
+allocation, and intent rows.
 
 Slice result:
-- Source station-calendar number extraction now uses bounded recursive lookup
-  through direct rows, nested source entries, and wrapped station-calendar
-  overlaps.
-- Added a focused regression proving wrapped overlap expiration seconds preserve
-  plural `station_reservation_expires_at_s` through link-capacity report,
-  summary, operator review, and Cadence import rows.
-- Existing station-reservation link-capacity evidence behavior remains green.
+- Added `number_or_number_array_schema/0` for schema-export fields that may
+  carry either a single reservation deadline or plural deadline evidence.
+- Widened operator-review and Cadence-import row schema contracts for
+  `station_reservation_expires_at_s`.
+- Added runtime operator-review validation for scalar-or-list reservation
+  expiration values while preserving number-only list item checks.
+- Restored review/import schema validation assertions in the wrapped
+  link-capacity reservation-expiration regression.
 
 Last completed slice:
-Preserved wrapped station-calendar reservation expiration evidence in
-link-capacity summaries.
+Accepted list-valued link-capacity reservation expirations in review/import
+schemas.
 
 Last commit:
-- Product: `9ad938e` Preserve wrapped reservation expirations in link capacity
-- Ledger: `3eb5f9d` Update autonomous loop status
+- Product: `62ec57f` Accept list reservation expirations in handoff schemas
+- Ledger: pending
 
 Remaining maturity gaps:
-- Existing operator-review/Cadence-import schema validation still treats
-  link-capacity `station_reservation_expires_at_s` review rows as scalar even
-  though established link-capacity review/import rows carry lists; this slice
-  preserved behavior and did not widen that schema contract.
-- Continue reassessing queue-2 provider-shaped contact/replay hardening gaps now
-  that major filtering/allocation/intent/capacity artifacts are present.
-- Continue closing queue-3 quality/readiness and queue-4 branch-local handoff
-  completeness gaps for artifact families not present in checked-in strategy
-  artifacts.
+- Continue reassessing queue-4 branch-local handoff completeness and queue-3
+  quality/readiness gaps for artifact families not present in checked-in
+  strategy artifacts.
 
 Next candidate:
-Reassess the queue after publishing; likely either the link-capacity
-review/import reservation-expiration schema mismatch or a compact queue-4 replay
-handoff gap if schema widening looks broader than one slice.
+Reassess the queue after publishing; likely a compact queue-4 replay handoff
+or queue-3 quality/readiness gap now that the link-capacity schema mismatch is
+closed.
 
 Blocked:
 Not blocked.
 
 Notes:
-- Previous published slice: Product `715ed05`, Ledger `5f0e1f9`, final status
-  `838e5d5`.
+- Previous published slice: Product `9ad938e`, Ledger `3eb5f9d`, final status
+  `fb584c4`.
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
   not part of this slice.
 - Sidecar delegation is unavailable in this runtime; parent performed the same
