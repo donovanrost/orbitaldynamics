@@ -5,94 +5,84 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Score direct schema-validation replay pressure with a dedicated score term.
+Preserve realized activity state context in the public activity-state facade.
 
 Status:
 Completed and pushed.
 
 Files changed:
-- Planner: `lib/orbital_dynamics/campaign_planner.ex`
-- Focused planner test: `test/orbital_dynamics/campaign_planner_test.exs`
-- Golden artifact test: `test/orbital_dynamics/golden_artifact_test.exs`
-- Golden fixture: `study_results/leo_constellation_campaign_strategy_v3.json`
+- Timeline feedback: `lib/orbital_dynamics/timeline_feedback.ex`
+- Timeline tests: `test/orbital_dynamics/timeline_test.exs`
 - Ledger: `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:29014 test/orbital_dynamics/campaign_planner_test.exs:29295 test/orbital_dynamics/campaign_planner_test.exs:50085`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:51201 test/orbital_dynamics/campaign_planner_test.exs:52294`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:29014 test/orbital_dynamics/campaign_planner_test.exs:29295 test/orbital_dynamics/campaign_planner_test.exs:50085 test/orbital_dynamics/campaign_planner_test.exs:51201 test/orbital_dynamics/campaign_planner_test.exs:52294`
-- `mix test test/orbital_dynamics/golden_artifact_test.exs`
+- `mix test test/orbital_dynamics/timeline_test.exs:672`
+- `mix test test/orbital_dynamics/timeline_test.exs`
 - `mix compile --warnings-as-errors`
-- Decoded equality check between checked-in
-  `study_results/leo_constellation_campaign_strategy_v3.json` and a fresh
-  public-facade regeneration.
 - `git diff --check`
 
 Docs/artifacts changed:
-- Regenerated `study_results/leo_constellation_campaign_strategy_v3.json`
-  through `OrbitalDynamics.campaign_strategy_from_file!/1`.
+- None.
 
 Level 6 pillar advanced:
-Durable schema-versioned artifacts, compatibility checks, and explainable
-strategy score terms.
+Typed operational activity and timeline semantics for safer planning,
+review, and Cadence-facing handoffs.
 
 Slice selection note:
-Selected slice: Give direct candidate-source schema-validation replay its own
-dedicated planner score term.
+Selected slice: Harden the public planned/realized activity-state facade so
+realized activity context preserves approval, lock, and execution evidence.
 
-Why this slice: direct schema-validation replay is already preserved as
-`schema_validation_pressure` risk and review/import evidence, but scoring still
-folded it into the broader `validation_refresh_pressure_penalty`.
+Why this slice: the public activity-state API and schema already existed, but
+the realized activity context dropped supplied approval/lock/execution fields
+even though the top-level lifecycle state could derive them. Preserving those
+fields makes the compact facade more useful to adapters and review queues.
 
-Level 6 pillar: Durable schema-versioned artifacts and compatibility checks
-with explainable V1/V2/V3 score terms.
+Level 6 pillar: Approval-aware automation boundaries and reproducible branch
+artifacts with typed operational activity semantics.
 
-Current evidence gap: Direct schema-validation replay evidence was risk-visible,
-but score reports did not distinguish failing/warning/remediation pressure from
-broader validation-refresh rollups.
+Current evidence gap: Planned context preserved approval/lock state, but
+realized context did not expose the same state evidence for callers inspecting
+the normalized planned/realized contexts directly.
 
-Docs read: `docs/artifacts/field_families/candidate_refresh_artifact.md`;
-`docs/artifacts/compatibility_checks.md`.
+Docs read:
+`docs/feature_set/capability_map/08_mission_activities_and_timelines.md`;
+`docs/mission_planning/high_fidelity/02_state_activities_and_resources.md`;
+`docs/mission_planning/high_fidelity/04_plan_structure_and_lifecycle.md`;
+`docs/artifacts/field_families/mission_activities.md`;
+`docs/feature_set/capability_map/08_mission_activities/integrity-rejection-and-preservation-reports.md`.
 
-Likely files: `lib/orbital_dynamics/campaign_planner.ex`;
-`test/orbital_dynamics/campaign_planner_test.exs`;
-`test/orbital_dynamics/golden_artifact_test.exs`;
-`study_results/leo_constellation_campaign_strategy_v3.json`;
+Likely files: `lib/orbital_dynamics/timeline_feedback.ex`;
+`test/orbital_dynamics/timeline_test.exs`;
 `.codex/status/autonomous_product_loop.md`.
 
-Likely tests: focused schema-validation replay planner tests;
-`test/orbital_dynamics/golden_artifact_test.exs`;
-`mix compile --warnings-as-errors`; fixture decoded equality; `git diff --check`.
+Likely tests: focused timeline activity-state facade test; full timeline test
+file; `mix compile --warnings-as-errors`; `git diff --check`.
 
 Slice result:
-- Direct `schema_validation_pressure` risks now produce a dedicated
-  `schema_validation_pressure_penalty` score term.
-- Direct schema-validation replay pressure is no longer double-counted by
-  `validation_refresh_pressure_penalty` or generic risk scoring.
-- Quality-gate/readiness schema-validation rollups remain on
-  `validation_refresh_pressure_penalty`.
-- The shared validation-refresh score helper routes direct schema-validation
-  assertions to the schema-validation score term while preserving rollup
-  assertions on validation refresh.
-- The checked-in strategy fixture includes the new score term across all
-  branches and updated review/import counts.
+- Realized activity rows and nested realized activity contexts now preserve
+  supplied `approval_status`, `locked`, `executed`, and `execution_status`
+  evidence.
+- The public `OrbitalDynamics.timeline_activity_state/3` facade has a focused
+  regression assertion for planned approval/lock and realized
+  approval/lock/execution context.
+- Existing timeline tests continue to pass.
 
 Last completed slice:
-Scored direct schema-validation replay pressure with a dedicated score term.
+Preserved realized activity state context in the public activity-state facade.
 
 Last commit:
-- Product: `a448361` Score schema validation replay pressure
-- Ledger: `bf2b16f` Update autonomous loop status
+- Product: `78cc346` Preserve realized activity state context
+- Ledger: pending
 
 Remaining maturity gaps:
-- Continue making existing review evidence planner-visible through candidate
-  selection, branch scoring, compatibility checks, and challenge fixtures.
+- Promote additional activity lifecycle/status/approval transitions into typed
+  helpers instead of ad hoc map conventions.
 - Continue closing queue-2/queue-3 handoff completeness gaps for branch evidence
   families not present in checked-in strategy artifacts.
 
 Next candidate:
-Reassess quality-gate/readiness schema-validation rollups or move to another
-branch-evidence family with blended score/report treatment.
+Reassess queue-1 activity transition or queue-2 contact allocation gaps from
+the current docs before selecting the next slice.
 
 Blocked:
 Not blocked.
