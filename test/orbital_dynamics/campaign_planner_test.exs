@@ -4516,6 +4516,131 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "repair excludes supplied candidate refresh candidates suppressed by contact filters" do
+    blocked_candidate =
+      "dl_contact_blocked"
+      |> refreshed_downlink(200.0, 260.0)
+      |> Map.put("score", 100.0)
+      |> put_in(["score_terms", "contact_value"], 100.0)
+
+    bare_id_blocked_candidate =
+      "dl_contact_bare_id_blocked"
+      |> refreshed_downlink(320.0, 380.0)
+      |> Map.put("score", 80.0)
+      |> put_in(["score_terms", "contact_value"], 80.0)
+
+    available_candidate = refreshed_downlink("dl_contact_available", 500.0, 560.0)
+
+    contact_filter_report =
+      contact_filter_report()
+      |> Map.merge(%{
+        "input_candidate_count" => 3,
+        "kept_candidate_count" => 1,
+        "suppressed_candidate_count" => 2,
+        "suppressed_candidates" => [
+          %{
+            "id" => "contact_filter:dl_contact_blocked",
+            "contact_id" => "dl_contact_blocked",
+            "type" => "downlink",
+            "direction" => "downlink",
+            "scenario_id" => "leo_1",
+            "ground_station_id" => "equator_prime",
+            "starts_at_s" => 200.0,
+            "ends_at_s" => 260.0,
+            "suppressed_reason" => "ground_station_unavailable",
+            "station_availability" => "unavailable"
+          },
+          %{
+            "id" => "dl_contact_bare_id_blocked",
+            "type" => "downlink",
+            "direction" => "downlink",
+            "scenario_id" => "leo_1",
+            "ground_station_id" => "equator_prime",
+            "starts_at_s" => 320.0,
+            "ends_at_s" => 380.0,
+            "suppressed_reason" => "ground_station_reserved",
+            "station_availability" => "reserved"
+          }
+        ]
+      })
+
+    artifact =
+      repair(
+        %{
+          "activities" => [downlink("dl_1", 100.0, 160.0)],
+          "candidate_activities" => [downlink("dl_stale", 700.0, 760.0)]
+        },
+        realized_state: %{activities: [%{id: "dl_1", status: "missed"}]},
+        current_epoch_s: 165.0,
+        candidate_refresh:
+          [blocked_candidate, bare_id_blocked_candidate, available_candidate]
+          |> candidate_refresh_artifact(contact_filter_report: contact_filter_report)
+      )
+
+    assert [%{"id" => "dl_contact_available", "repair" => %{"action" => "moved"}}] =
+             artifact["activities"]
+
+    assert Enum.map(artifact["source_candidate_activities"], & &1["id"]) == [
+             "dl_contact_available"
+           ]
+
+    assert %{
+             "schema_contract" => "contact_filter_report.v1",
+             "suppressed_candidate_count" => 2,
+             "suppressed_candidates" => suppressed_candidates
+           } = artifact["source_contact_filter_report"]
+
+    assert %{
+             "id" => "contact_filter:dl_contact_blocked",
+             "contact_id" => "dl_contact_blocked",
+             "suppressed_reason" => "ground_station_unavailable"
+           } = Enum.find(suppressed_candidates, &(&1["contact_id"] == "dl_contact_blocked"))
+
+    assert %{
+             "id" => "dl_contact_bare_id_blocked",
+             "suppressed_reason" => "ground_station_reserved"
+           } = Enum.find(suppressed_candidates, &(&1["id"] == "dl_contact_bare_id_blocked"))
+
+    assert Enum.any?(
+             artifact["operator_review_package"]["rows"],
+             &(&1["review_type"] == "contact_suppression" and
+                 &1["source"] ==
+                   "campaign_repair.source_contact_filter_report.suppressed_candidates" and
+                 &1["activity_id"] == "contact_filter:dl_contact_blocked" and
+                 &1["required_operator_action"] == "review_suppressed_contact" and
+                 get_in(&1, ["source_contact_suppression", "contact_id"]) ==
+                   "dl_contact_blocked")
+           )
+
+    assert Enum.any?(
+             artifact["operator_review_package"]["rows"],
+             &(&1["review_type"] == "contact_suppression" and
+                 &1["source"] ==
+                   "campaign_repair.source_contact_filter_report.suppressed_candidates" and
+                 &1["activity_id"] == "dl_contact_bare_id_blocked" and
+                 &1["required_operator_action"] == "review_suppressed_contact")
+           )
+
+    assert Enum.any?(
+             artifact["cadence_import_manifest"]["rows"],
+             &(&1["import_action"] == "review_contact_suppression" and
+                 &1["source_review_type"] == "contact_suppression" and
+                 &1["activity_id"] == "contact_filter:dl_contact_blocked" and
+                 get_in(&1, ["source_contact_suppression", "contact_id"]) ==
+                   "dl_contact_blocked")
+           )
+
+    assert Enum.any?(
+             artifact["cadence_import_manifest"]["rows"],
+             &(&1["import_action"] == "review_contact_suppression" and
+                 &1["source_review_type"] == "contact_suppression" and
+                 &1["activity_id"] == "dl_contact_bare_id_blocked")
+           )
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "repair prefers semantic candidate-diff replacement links" do
     semantic_replacement =
       "dl_semantic"
