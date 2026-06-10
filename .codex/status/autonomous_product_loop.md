@@ -5,32 +5,48 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Resource-filter replay score-term documentation.
+Blocked readiness/quality gates affect V3 recommendation selection.
 
 Status:
-Implemented, parent-reviewed, locally verified, and published locally.
-Behavior commit: `a9e44bc`.
+Implemented, parent-reviewed, verified, and published locally.
+Behavior commit: `dbcd244`.
 
 Files changed:
-- Branch-refresh pressure replay capability map:
-  `docs/feature_set/capability_map/11_planning_state_refresh/pressure_replay_into_branch_refresh.md`
+- V3 campaign strategy default approval policy:
+  `lib/orbital_dynamics/campaign_planner.ex`
+- Shared approval fallback matching:
+  `lib/orbital_dynamics/policy.ex`
+- Focused V3 recommendation regression:
+  `test/orbital_dynamics/campaign_planner_test.exs`
+- Regenerated checked-in repair fixture:
+  `study_results/campaign_repair_readiness_source_handoff_v2.json`
 - Ledger:
   `.codex/status/autonomous_product_loop.md`
 
 Tests/checks run:
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:8317`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs`
+- `mix test test/orbital_dynamics/policy_test.exs`
+- Initial `mix test`: `3331/3332 passed`; only stale checked-in fixture drift.
+- `mix test test/orbital_dynamics/schema_test.exs:16173`
+- Final `mix test`: `3332 passed`
+- `mix orbital_dynamics.schema.lint --input study_results/campaign_repair_readiness_source_handoff_v2.json --contract campaign_repair.v2`
 - `git diff --check`
 
 Behavior changed:
-Documentation alignment only: the branch-refresh pressure replay docs now say
-resource-filter suppression replay contributes to
-`resource_filter_pressure_penalty`, while operational-feedback availability
-replay remains under `resource_availability_pressure_penalty` and
-storage/downlink pressure remains in its dedicated term.
+V3 default approval policy now includes semantic blocked-risk aliases for
+`operational_readiness_blocked` and `quality_gate_blocked`. The shared fallback
+policy matcher maps those aliases only when readiness or quality-gate pressure
+evidence is actually blocked by status, classification, blocked gate count, or
+blocked-readiness operator action. Review-only readiness/quality pressure stays
+reviewable unless callers explicitly configure otherwise. A high-value branch
+with blocked readiness or quality-gate pressure is now classified
+`blocked_by_policy` by default and skipped when a selectable baseline exists.
 
 Level 6 pillar advanced:
-Autonomous-loop calibration quality: artifact documentation should describe the
-current checked-in fixture and test coverage accurately so future slices do not
-reselect already-covered split pressure score-term work.
+Planner-visible readiness gating. Readiness and quality-gate blocks now affect
+branch recommendation selection before operator-review and Cadence-import
+handoff, rather than remaining only review-visible pressure.
 
 Remaining maturity gaps:
 - Use selected contact/readiness pressure in additional planner-visible
@@ -40,31 +56,29 @@ Remaining maturity gaps:
 - Continue reassessing from live code and Level 6 docs between slices.
 
 Last behavior commit:
-`a9e44bc` Document resource filter replay score term.
+`dbcd244` Block readiness gate recommendations by default.
 
 Next candidate:
-After this slice, reassess from current code and roadmap. Good next areas are
-another verified planner-visible readiness/contact gap or a missing challenge
-fixture that current tests do not already cover.
+After this slice, reassess from current code and roadmap. Good next areas are a
+planner-visible contact/readiness gap not already covered by score terms or a
+missing challenge fixture with exact regeneration evidence.
 
 Blocked:
 Not blocked.
 
 Notes:
-- Selection note: live search shows the branch-refresh pressure replay docs
-  still say resource-filter replay contributes availability risks to
-  `resource_availability_pressure_penalty`. Current code and tests now route
-  replayed resource-filter suppression risks to the dedicated
-  `resource_filter_pressure_penalty`. This slice updates only the pressure
-  replay docs. Likely files:
-  `docs/feature_set/capability_map/11_planning_state_refresh/pressure_replay_into_branch_refresh.md`
-  and this ledger. Definition of done: the replay docs name the dedicated
-  resource-filter score term while preserving the separate operational-feedback,
-  resource-margin, battery, storage/downlink, and contact-filter score-term
-  statements, markdown diff checks pass, parent review is recorded, and docs
-  plus ledger commits are pushed.
-- Parent review notes: docs-only calibration following `725fa56`. The changed
-  branch-refresh pressure replay bullets now match the current V3
-  resource-filter score-term routing while preserving the existing
-  operational-feedback availability and storage/downlink notes. No runtime,
-  schema, or fixture behavior changed in this slice.
+- Selection note: live roadmap line
+  `docs/feature_set/recommended_roadmap.md:107` called for making one existing
+  readiness or quality-gate block affect candidate selection before
+  review/import handoff. Live code already generated readiness/quality risks and
+  score terms, but default blocked-risk matching only recognized resource and
+  downlink risk types. This slice tightened the default policy without making
+  all readiness or quality-gate pressure blocked.
+- Parent review notes: the implementation keeps the semantic block detection in
+  `OrbitalDynamics.Policy` so caller-provided `blocked_risk_types` still control
+  blocking behavior, while V3's default policy opts into the two semantic
+  readiness/quality blocked aliases. The regression test proves both blocked
+  source families lose recommendation selection despite higher mission value.
+  The only fixture drift was the generated default fallback policy list in the
+  repair readiness source handoff fixture, which was regenerated through
+  `OrbitalDynamics.campaign_repair/1` and schema-linted.
