@@ -344,7 +344,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
                 "quality_gate_blocked",
                 "contact_intent_blocked",
                 "link_capacity_blocked",
-                "resource_projection_blocked"
+                "resource_projection_blocked",
+                "contact_filter_blocked"
               ],
               action_rules: []
   end
@@ -8037,6 +8038,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "actual_downlink_requirement_status" => event["actual_downlink_requirement_status"],
         "resource_projection_status" => event["resource_projection_status"],
         "projected_resource_status" => event["projected_resource_status"],
+        "contact_filter_status" => event["contact_filter_status"],
+        "suppression_status" => event["suppression_status"],
         "contact_id" => event["contact_id"],
         "contact_result" => event["contact_result"],
         "realized_status" => event["realized_status"],
@@ -16697,6 +16700,11 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "source_window_id" => row["source_window_id"] || get_in(row, ["source_window", "id"]),
         "suppressed_reason" => row["suppressed_reason"],
         "review_status" => row["review_status"],
+        "approval_status" => row["approval_status"],
+        "policy_classification" => row["policy_classification"],
+        "contact_filter_status" => row["contact_filter_status"],
+        "suppression_status" => row["suppression_status"],
+        "required_operator_action" => row["required_operator_action"],
         "station_reservation_id" => row["station_reservation_id"],
         "station_reserved_by" => row["station_reserved_by"],
         "station_reservation_status" => row["station_reservation_status"],
