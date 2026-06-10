@@ -9490,6 +9490,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
         {"resource_margin_pressure", "resource_margin_pressure_penalty"},
         {"battery_depletion_pressure", "battery_depletion_pressure_penalty"},
         {"station_calendar_pressure", "station_calendar_pressure_penalty"},
+        {"station_reservation_expiration_pressure",
+         "station_reservation_expiration_pressure_penalty"},
         {"candidate_rejection_pressure", "candidate_rejection_pressure_penalty"},
         {"provider_counteroffer_pressure", "provider_counteroffer_pressure_penalty"},
         {"model_acceptance_pressure", "model_acceptance_pressure_penalty"},

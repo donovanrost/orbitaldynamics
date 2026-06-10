@@ -1706,7 +1706,9 @@ Selected recommendations also include:
   missing station-reservation deadline risks into
   `station_reservation_expiration_pressure_penalty`, leaving ordinary
   station-calendar pressure on `station_calendar_pressure_penalty` and
-  preserving one risk-weight penalty per risk indicator.
+  preserving one risk-weight penalty per risk indicator. Recommendation
+  tradeoffs now expose the same `station_reservation_expiration_pressure`
+  dimension as branch score reports.
 - **Candidate-rejection pressure score terms** — split review-required
   candidate-rejection risks into `candidate_rejection_pressure_penalty`, leaving
   `risk_penalty` for unrelated risks while preserving total branch score
