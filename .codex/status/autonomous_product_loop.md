@@ -5,87 +5,72 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Harden CandidateRefresh compact operational-readiness gate-summary row-local
-routing.
+Pin planner-visible scoring for thermal resource-projection replay pressure.
 
 Status:
 Completed and pushed.
 
 Files changed:
-- CandidateRefresh replay/source summary:
-  `lib/orbital_dynamics/candidate_refresh.ex`
-- CandidateRefresh tests: `test/orbital_dynamics/candidate_refresh_test.exs`
-- Cadence boundary docs:
-  `docs/feature_set/capability_map/20_cadence_boundary_and_integration_artifacts.md`
+- Strategy tests: `test/orbital_dynamics/campaign_planner_test.exs`
 - Ledger: `.codex/status/autonomous_product_loop.md`
 
 Tests/checks run:
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:30828`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:31040`
-- `mix test test/orbital_dynamics/candidate_refresh_test.exs:30828 test/orbital_dynamics/candidate_refresh_test.exs:31040`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:45737`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 
 Docs/artifacts changed:
-- Documented that CandidateRefresh derives review/analysis/blocked/non-passed
-  gate ID routing from compact `non_passed_gates` rows when those rows include
-  statuses, rather than trusting stale summary-level ID lists.
+- No docs changed; the capability map already says resource-projection pressure
+  replays into branch-local refresh and score terms. This slice pins that
+  existing behavior with a focused scoring assertion.
 
 Level 6 pillar advanced:
-Branch-local candidate-refresh depth plus approval-aware quality/readiness
-handoff integrity.
+Planner-visible scoring evidence for replayed resource/contact pressure.
 
 Slice selection note:
-Selected slice: harden CandidateRefresh compact operational-readiness
-gate-summary row-local routing.
+Selected slice: pin planner-visible score terms for thermal
+resource-projection replay pressure.
 
-Why this slice: V3 branch events now prefer row-local `non_passed_gates`
-status, but CandidateRefresh source-summary/replay still preferred stale
-compact summary-level gate ID fields before row-local evidence.
+Why this slice: The prior resource-projection pressure test already verified
+flattened thermal projection replay events and branch-comparison risk rows, but
+it only asserted scoring for storage/downlink and availability/activity-type
+branches. The thermal branch emitted `thermal_margin_c_low`; the test now also
+proves it contributes to `resource_margin_pressure_penalty`.
 
-Level 6 pillar: branch-local candidate refresh depth plus approval-aware
-quality/readiness handoff integrity.
+Level 6 pillar: planner-visible score explanations for replayed
+resource/contact pressure.
 
-Current evidence gap: A stale compact `operational_readiness_gate_summary.v1`
-could pollute CandidateRefresh readiness replay ID maps even when
-`non_passed_gates` rows carried stronger status evidence.
+Current evidence gap: Replayed thermal resource-projection pressure was visible
+as branch event and risk evidence, but its score-term split was not explicitly
+pinned in the focused branch-refresh fixture.
 
 Docs read:
+`docs/feature_set/recommended_roadmap.md`;
 `docs/feature_set/capability_map/20_cadence_boundary_and_integration_artifacts.md`;
-focused CandidateRefresh replay code/tests.
+focused CampaignPlanner branch scoring code/tests.
 
-Likely files: `lib/orbital_dynamics/candidate_refresh.ex`;
-`test/orbital_dynamics/candidate_refresh_test.exs`;
-`docs/feature_set/capability_map/20_cadence_boundary_and_integration_artifacts.md`;
+Likely files: `test/orbital_dynamics/campaign_planner_test.exs`;
 `.codex/status/autonomous_product_loop.md`.
 
-Likely tests: compact operational-readiness gate-summary replay test, wrapped
-operational-readiness gate-summary replay test, `mix compile
---warnings-as-errors`, `git diff --check`.
+Likely tests: prior resource-projection branch-refresh strategy test,
+`mix compile --warnings-as-errors`, `git diff --check`.
 
-Definition of done: CandidateRefresh source-report and replay summaries derive
-review/analysis/blocked/non-passed gate ID routing from row-local
-`non_passed_gates` when statuses are present; stale top-level gate ID lists do
-not leak into replay summaries; legacy compact summaries without row statuses
-retain fallback behavior; docs record the precedence.
+Definition of done: The prior resource-projection pressure fixture asserts the
+thermal projection branch's `resource_margin_pressure_penalty` and score-term
+report row, while the focused strategy test and compile/diff checks pass.
 
 Slice result:
-- Added row-aware CandidateRefresh reducers for compact readiness gate status
-  and classification ID maps.
-- Made review/analysis/blocked/non-passed gate ID arrays prefer
-  status-bearing `non_passed_gates` rows, while preserving top-level passed
-  gate IDs and fallback behavior for older compact rows without statuses.
-- Strengthened the compact replay test with stale top-level gate ID maps and
-  direct ID arrays, plus replay assertions that stale IDs do not route.
-- Verified the adjacent wrapped compact-summary test still passes.
+- Added `assert_resource_margin_pressure_score_terms/2` coverage for the
+  `derived_projected_resource_pressure_leo_thermal_pressure` branch.
+- Verified the existing score split already routes thermal projection pressure
+  into `resource_margin_pressure_penalty`.
 
 Last completed slice:
-Harden CandidateRefresh compact operational-readiness gate-summary row-local
-routing.
+Pin planner-visible scoring for thermal resource-projection replay pressure.
 
 Last commit:
-- Product: `0620808` Harden readiness replay gate routing
-- Ledger: `ef4d80e` Update autonomous loop status
+- Product: `8c30a7c` Assert thermal resource pressure scoring
+- Ledger: pending
 
 Remaining maturity gaps:
 - Continue converting existing replayed resource/contact/readiness pressure
@@ -96,16 +81,17 @@ Remaining maturity gaps:
   strategy artifacts.
 
 Next candidate:
-Reassess the queue from live evidence. Likely another stale-input readiness,
-resource/contact replay challenge, or compact branch-local handoff completeness
-gap adjacent to CandidateRefresh/source-summary routing.
+Reassess from live evidence. Good candidates remain a contradictory
+provider-calendar/reservation/contact-allocation challenge fixture, a missing
+resource/contact compatibility fixture, or another score assertion only if the
+current checkout shows replayed pressure without branch-score evidence.
 
 Blocked:
 Not blocked.
 
 Notes:
-- Previous published slice: Product `c1c3f1f`, Ledger `3dbdc1e`, final status
-  `c963625`.
+- Previous published slice: Product `0620808`, Ledger `ef4d80e`, final status
+  `e4f21ce`.
 - `.gitignore` has an unrelated pre-existing local scratch-ignore change and is
   not part of this slice.
 - Sidecar delegation is unavailable in this runtime; parent performed the same
