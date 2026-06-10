@@ -213,6 +213,65 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
            } == campaign_report_golden_surface(campaign)
   end
 
+  test "checked-in relay data path summary preserves the Cadence-facing link handoff surface" do
+    summary = read_json!("study_results/relay_data_path_summary_v1.json")
+
+    assert {:ok, %{"schema_contract" => "relay_data_path_summary.v1", "status" => "pass"}} =
+             OrbitalDynamics.Schema.validate_artifact(summary)
+
+    assert %{
+             "schema_contract" => "relay_data_path_summary.v1",
+             "model" => "artifact_only_relay_data_path_summary",
+             "source" => "relay_ops",
+             "route_count" => 2,
+             "relay_route_count" => 1,
+             "direct_downlink_route_count" => 1,
+             "source_spacecraft_ids" => ["sat_a", "sat_b"],
+             "ground_station_ids" => ["dss_14", "dss_35"],
+             "ground_downlink_contact_ids" => ["downlink_1", "downlink_2"],
+             "relay_spacecraft_ids" => ["relay_1", "relay_2"],
+             "custody_status_counts" => %{"confirmed" => 1, "missing_ack" => 1},
+             "latency_status_counts" => %{"exceeds_limit" => 1, "within_limit" => 1},
+             "risk_status_counts" => %{"high" => 1, "nominal" => 1},
+             "maximum_latency_s" => 500.0,
+             "maximum_latency_limit_s" => 300.0,
+             "route_ids" => [
+               "relay_data_path:sat_a:downlink_1:54b7e7ff594c",
+               "route_direct"
+             ],
+             "route_ids_by_risk_status" => %{
+               "high" => ["route_direct"],
+               "nominal" => ["relay_data_path:sat_a:downlink_1:54b7e7ff594c"]
+             },
+             "row_route_ids" => [
+               "relay_data_path:sat_a:downlink_1:54b7e7ff594c",
+               "route_direct"
+             ],
+             "row_custody_statuses" => ["confirmed", "missing_ack"],
+             "row_latency_statuses" => ["within_limit", "exceeds_limit"],
+             "row_risk_statuses" => ["nominal", "high"],
+             "row_risk_reasons" => [
+               [],
+               ["custody_missing_ack", "latency_exceeds_limit", "operator review queued"]
+             ],
+             "model_limits" => [
+               "artifact_level_relay_data_path_summary",
+               "no_crosslink_visibility_model",
+               "no_relay_scheduling",
+               "no_custody_acknowledgement_delivery",
+               "no_provider_reservation",
+               "no_schedule_mutation"
+             ],
+             "assumptions" => %{
+               "execution_boundary" => "artifact_only_no_relay_scheduling_or_schedule_mutation",
+               "operator_authority" => "not_granted_by_summary",
+               "provider_reservation" => "not_performed",
+               "custody_acknowledgement_delivery" => "not_performed",
+               "crosslink_visibility_model" => "not_evaluated"
+             }
+           } == relay_data_path_summary_surface(summary)
+  end
+
   test "checked-in campaign plan matches the deterministic study run path" do
     campaign = read_json!("study_results/leo_constellation_campaign.json")
 
@@ -1024,6 +1083,44 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
       "estimated_throughput_mb" => report["estimated_throughput_mb"],
       "selected_estimated_throughput_mb" => report["selected_estimated_throughput_mb"],
       "rows" => report["rows"]
+    }
+  end
+
+  defp relay_data_path_summary_surface(summary) do
+    rows = summary["rows"] || []
+
+    %{
+      "schema_contract" => summary["schema_contract"],
+      "model" => summary["model"],
+      "source" => summary["source"],
+      "route_count" => summary["route_count"],
+      "relay_route_count" => summary["relay_route_count"],
+      "direct_downlink_route_count" => summary["direct_downlink_route_count"],
+      "source_spacecraft_ids" => summary["source_spacecraft_ids"],
+      "ground_station_ids" => summary["ground_station_ids"],
+      "ground_downlink_contact_ids" => summary["ground_downlink_contact_ids"],
+      "relay_spacecraft_ids" => summary["relay_spacecraft_ids"],
+      "custody_status_counts" => summary["custody_status_counts"],
+      "latency_status_counts" => summary["latency_status_counts"],
+      "risk_status_counts" => summary["risk_status_counts"],
+      "maximum_latency_s" => summary["maximum_latency_s"],
+      "maximum_latency_limit_s" => summary["maximum_latency_limit_s"],
+      "route_ids" => summary["route_ids"],
+      "route_ids_by_risk_status" => summary["route_ids_by_risk_status"],
+      "row_route_ids" => values(rows, "route_id"),
+      "row_custody_statuses" => values(rows, "custody_status"),
+      "row_latency_statuses" => values(rows, "latency_status"),
+      "row_risk_statuses" => values(rows, "risk_status"),
+      "row_risk_reasons" => values(rows, "risk_reasons"),
+      "model_limits" => summary["model_limits"],
+      "assumptions" =>
+        Map.take(summary["assumptions"] || %{}, [
+          "execution_boundary",
+          "operator_authority",
+          "provider_reservation",
+          "custody_acknowledgement_delivery",
+          "crosslink_visibility_model"
+        ])
     }
   end
 
