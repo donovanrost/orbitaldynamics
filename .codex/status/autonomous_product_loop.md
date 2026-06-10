@@ -8,7 +8,7 @@ Current slice:
 Regenerate checked-in V1/V2/V3 campaign golden fixtures from public facades.
 
 Status:
-Completed locally. Product commit is created; ledger commit and push pending.
+Completed and pushed.
 
 Files changed:
 - V1 campaign fixture:
@@ -83,7 +83,7 @@ Regenerate checked-in V1/V2/V3 campaign golden fixtures from public facades.
 
 Last commit:
 - Product/artifacts: `fa03788` Regenerate campaign golden fixtures
-- Ledger: this handoff commit
+- Ledger: `d242c96` Update autonomous loop status
 
 Remaining maturity gaps:
 - Continue converting replayed resource/contact/readiness pressure into
