@@ -5,63 +5,60 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Resource-availability quality-gate stale aggregate challenge fixture.
+Timeline-publication handoff rows outrank stale embedded summaries.
 
 Status:
-Implemented, reviewer-cleared, locally verified, committed, and pushed.
+Implemented, reviewer-cleared, and locally verified; publish pending.
 
 Files changed:
-- Focused strategy regression:
-  `test/orbital_dynamics/campaign_planner_test.exs`
+- Timeline-publication handoff replay precedence:
+  `lib/orbital_dynamics/candidate_refresh.ex`
+- Focused replay regression:
+  `test/orbital_dynamics/candidate_refresh_test.exs`
 - Ledger:
   `.codex/status/autonomous_product_loop.md`
 
 Tests/checks run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:54133`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:53997 test/orbital_dynamics/campaign_planner_test.exs:54133`
+- `mix test test/orbital_dynamics/candidate_refresh_test.exs:27650 test/orbital_dynamics/candidate_refresh_test.exs:27859`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 
 Level 6 pillar advanced:
-Approval-aware quality gates and fleet/resource pressure with explainable V3
-branch scoring, by proving resource-availability quality-gate row evidence
-drives branch risk even when report-level resource aggregates are stale.
+Durable schema-versioned artifacts and reproducible branch-local replay
+explanations for timeline-publication downstream invalidation pressure, by
+making review/import handoff rows row-led when embedded publication summaries
+are stale.
 
 Slice selection note:
-Selected slice: add a stale-top-level resource-availability quality-gate
-challenge.
+Selected slice: make timeline-publication handoff-row replay row-led when
+embedded summaries are stale.
 
-Why this slice: the quality-gate resource path already preserved row context,
-but the existing test did not make report-level resource maps contradictory. A
-stale compact report should not steer generated quality-gate pressure when row
-resource evidence is present.
+Why this slice: timeline-publication replay lifts summaries from
+operator-review and Cadence-import handoff rows. Existing tests covered exact
+embedded summaries and fallback after removing them, but not contradictory
+embedded summaries. Handoff row fields should drive replay when present.
 
 Current evidence gap closed:
-The resource-availability quality-gate strategy fixture now carries stale
-report-level resource pressure counts/reasons while its row carries the live
-antenna/payload resource evidence. It proves the generated event, risk
-indicator, branch feedback source, resource-availability score terms, and
-`campaign_strategy.v3` schema validation stay row-led.
+Operator-review and Cadence-import handoff rows now carry deliberately stale
+embedded `source_timeline_publication_summary` maps while their row fields
+contain the live publication/downstream invalidation evidence. Replay summary
+publication IDs, source artifact IDs, invalidated downstream products, row
+counts, review timeline IDs, and pressure flags now prove row evidence wins.
 
 Slice result:
-- Extended the existing resource-availability quality-gate row-context test
-  with contradictory report-level resource availability fields.
-- Added assertions that stale report reason IDs do not enter the generated
-  quality-gate event.
-- Added risk-indicator, branch-comparison feedback source, and
-  resource-availability score-term assertions.
-- Reviewer caught an initial selector miss; parent reran the correct focused
-  selector and added branch-comparison schema validation.
-- No production changes were needed; live code was already row-led for this
-  path.
+- Changed timeline-publication handoff extraction to derive a summary from the
+  handoff row first, falling back to embedded summaries only for sparse legacy
+  rows.
+- Extended the existing handoff-row replay test with stale embedded summaries
+  for both operator-review packages and Cadence-import manifests.
+- Added sparse legacy handoff coverage proving an embedded summary still wins
+  when a row carries only identity-level publication fields.
+- Neighboring timeline-publication replay tests remain green.
 
 Last completed slice:
 Resource-availability quality-gate stale aggregate challenge fixture.
 
 Last pushed commits:
-- Product/ledger: `2f01a4d` Guard station reservation review row evidence
-- Ledger correction: `c2a70df` Update autonomous loop ledger after reservation
-  review publish
 - Product/ledger: `f35dee1` Guard station reservation hold rows against stale
   aggregates
 - Ledger correction: `8f7fba4` Update autonomous loop ledger after hold publish
@@ -70,11 +67,13 @@ Last pushed commits:
   hold publish
 - Product/ledger: `0b4fdcd` Guard resource quality gate rows against stale
   aggregates
+- Ledger correction: `c96eaa9` Update autonomous loop ledger after resource
+  gate publish
 
 Review/publish queue:
-- Reviewer sidecar found selector and schema-assertion fixes; parent resolved
-  both.
-- Published to `origin/main` as `0b4fdcd`.
+- Reviewer sidecar cleared the timeline-publication handoff stale embedded
+  summary slice after sparse legacy fallback coverage was added.
+- Publish pending after reviewer clearance.
 
 Remaining maturity gaps:
 - Continue converting replayed resource/contact/readiness pressure into
@@ -87,13 +86,13 @@ Remaining maturity gaps:
   planner pressure families change public artifact shape.
 
 Next candidate:
-After publishing this resource quality-gate guard, reassess model-acceptance or
-timeline-publication stale aggregate strategy guards from live evidence.
+After publishing this timeline-publication handoff guard, reassess model
+acceptance, validation safety-case, or timeline lifecycle stale aggregate
+strategy guards from live evidence.
 
 Blocked:
 Not blocked.
 
 Notes:
-- The focused CampaignPlanner tests still emit the existing `0.0`
-  pattern-match warnings from a separate test; selected tests exit green.
-- Reviewer sidecar: `019eb041-1e1e-7733-b254-c8e8b199d8f7`.
+- CandidateRefresh focused tests were quiet for this slice.
+- Reviewer sidecar: `019eb04a-034b-76b3-b716-3c381de5a9b1`.

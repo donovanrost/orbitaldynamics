@@ -27690,6 +27690,44 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
     package = OperatorReview.from_timeline_publication_summary(summary)
     manifest = CadenceImport.from_timeline_publication_summary(summary)
 
+    stale_embedded_summary = %{
+      "schema_contract" => "timeline_publication_summary.v1",
+      "model" => "artifact_only_timeline_publication_summary",
+      "publication_id" => "timeline_publication:stale_embedded",
+      "publication_status" => "review_required",
+      "source_artifact_id" => "timeline:stale_embedded",
+      "invalidated_downstream_product_ids" => ["stale_import:handoff_plan:v0"],
+      "dependency_impact_row_count" => 99,
+      "timeline_diff_row_count" => 99,
+      "timeline_diff_review_required_count" => 99,
+      "review_timeline_ids" => ["timeline:stale_embedded_review"],
+      "provenance" => %{"trust_boundary" => "stale_embedded_publication_boundary"}
+    }
+
+    stale_embedded_handoff = fn artifact ->
+      Map.update!(artifact, "rows", fn rows ->
+        Enum.map(
+          rows,
+          &Map.put(&1, "source_timeline_publication_summary", stale_embedded_summary)
+        )
+      end)
+    end
+
+    sparse_embedded_handoff = fn artifact ->
+      Map.update!(artifact, "rows", fn rows ->
+        Enum.map(rows, fn row ->
+          row
+          |> Map.take(["id", "review_type", "import_type", "row_type", "action", "import_action"])
+          |> Map.merge(%{
+            "publication_id" => "timeline_publication:sparse_row",
+            "source_artifact_id" => "timeline:sparse_row",
+            "source_artifact_type" => "operational_timeline_report.v1",
+            "source_timeline_publication_summary" => summary
+          })
+        end)
+      end)
+    end
+
     assert %{
              "source_report_count" => 1,
              "source_report_row_count" => 1,
@@ -27745,6 +27783,77 @@ defmodule OrbitalDynamics.CandidateRefreshTest do
              CandidateRefresh.timeline_publication_replay_summary(%{
                "source_cadence_import_manifest" => manifest
              })
+
+    for {source_key, artifact, source_path} <- [
+          {
+            "source_operator_review_package",
+            stale_embedded_handoff.(package),
+            "source_operator_review_package.rows.source_timeline_publication_summary"
+          },
+          {
+            "source_cadence_import_manifest",
+            stale_embedded_handoff.(manifest),
+            "source_cadence_import_manifest.rows.source_timeline_publication_summary"
+          }
+        ] do
+      assert %{
+               "source_report_count" => 1,
+               "source_report_row_count" => 1,
+               "source_report_paths" => [^source_path],
+               "publication_ids" => [^publication_id],
+               "source_artifact_ids" => ["timeline:handoff_plan:v1"],
+               "invalidated_downstream_product_ids" => [
+                 "cadence_import:handoff_plan:v1",
+                 "operator_review:handoff_plan:v1"
+               ],
+               "dependency_impact_row_count" => 2,
+               "timeline_diff_row_count" => 3,
+               "timeline_diff_review_required_count" => 2,
+               "review_timeline_ids" => [
+                 "timeline:health_check:0.0",
+                 "timeline:health_check:5.0"
+               ],
+               "branch_local_timeline_publication_dependency_pressure" => true,
+               "branch_local_timeline_publication_changed_field_pressure" => true,
+               "branch_local_timeline_publication_invalidation_pressure" => true
+             } =
+               CandidateRefresh.timeline_publication_replay_summary(%{
+                 source_key => artifact
+               })
+    end
+
+    for {source_key, artifact, source_path} <- [
+          {
+            "source_operator_review_package",
+            sparse_embedded_handoff.(package),
+            "source_operator_review_package.rows.source_timeline_publication_summary"
+          },
+          {
+            "source_cadence_import_manifest",
+            sparse_embedded_handoff.(manifest),
+            "source_cadence_import_manifest.rows.source_timeline_publication_summary"
+          }
+        ] do
+      assert %{
+               "source_report_paths" => [^source_path],
+               "publication_ids" => [^publication_id],
+               "source_artifact_ids" => ["timeline:handoff_plan:v1"],
+               "invalidated_downstream_product_ids" => [
+                 "cadence_import:handoff_plan:v1",
+                 "operator_review:handoff_plan:v1"
+               ],
+               "dependency_impact_row_count" => 2,
+               "timeline_diff_row_count" => 3,
+               "timeline_diff_review_required_count" => 2,
+               "review_timeline_ids" => [
+                 "timeline:health_check:0.0",
+                 "timeline:health_check:5.0"
+               ]
+             } =
+               CandidateRefresh.timeline_publication_replay_summary(%{
+                 source_key => artifact
+               })
+    end
   end
 
   test "operator review and import lift exact timeline dependency-impact summaries from candidate refresh result artifacts" do

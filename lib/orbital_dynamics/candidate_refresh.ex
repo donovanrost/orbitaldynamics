@@ -48853,21 +48853,68 @@ defmodule OrbitalDynamics.CandidateRefresh do
     |> Enum.map(&stringify_keys/1)
     |> Enum.find_value(fn row ->
       if timeline_publication_handoff_row?(row, row_type) do
-        case Map.get(row, "source_timeline_publication_summary") do
+        row
+        |> timeline_publication_summary_from_review_or_import_row()
+        |> case do
           %{} = summary ->
-            {path, inherit_result_artifact_trust_boundary(summary, artifact)}
+            if timeline_publication_replay_detail_summary?(summary) do
+              {path, inherit_result_artifact_trust_boundary(summary, artifact)}
+            else
+              embedded_timeline_publication_handoff_summary(path, row, artifact)
+            end
 
           _summary ->
-            row
-            |> timeline_publication_summary_from_review_or_import_row()
-            |> case do
-              %{} = summary -> {path, inherit_result_artifact_trust_boundary(summary, artifact)}
-              _summary -> nil
-            end
+            embedded_timeline_publication_handoff_summary(path, row, artifact)
         end
       end
     end)
   end
+
+  defp embedded_timeline_publication_handoff_summary(path, row, artifact) do
+    case Map.get(row, "source_timeline_publication_summary") do
+      %{} = summary ->
+        {path, inherit_result_artifact_trust_boundary(summary, artifact)}
+
+      _summary ->
+        nil
+    end
+  end
+
+  defp timeline_publication_replay_detail_summary?(%{} = summary) do
+    [
+      "invalidated_downstream_product_ids",
+      "downstream_invalidation_reason_counts",
+      "invalidated_downstream_product_ids_by_reason",
+      "dependency_impact_row_count",
+      "impacted_source_activity_ids",
+      "impacted_source_timeline_ids",
+      "dependent_activity_ids",
+      "dependent_timeline_ids",
+      "source_dependent_activity_ids",
+      "source_dependent_timeline_ids",
+      "replacement_dependent_activity_ids",
+      "replacement_dependent_timeline_ids",
+      "impacted_dependency_activity_ids",
+      "impacted_dependency_timeline_ids",
+      "impacted_exclusive_with_activity_ids",
+      "impacted_exclusive_with_timeline_ids",
+      "timeline_diff_row_count",
+      "timeline_diff_changed_count",
+      "timeline_diff_review_required_count",
+      "changed_field_counts",
+      "changed_timeline_ids",
+      "review_timeline_ids",
+      "timeline_ids_by_changed_field"
+    ]
+    |> Enum.any?(fn key -> present_timeline_publication_replay_detail?(summary[key]) end)
+  end
+
+  defp present_timeline_publication_replay_detail?(nil), do: false
+  defp present_timeline_publication_replay_detail?(""), do: false
+  defp present_timeline_publication_replay_detail?([]), do: false
+  defp present_timeline_publication_replay_detail?(%{} = value), do: map_size(value) > 0
+  defp present_timeline_publication_replay_detail?(value) when is_number(value), do: value != 0
+  defp present_timeline_publication_replay_detail?(_value), do: true
 
   defp timeline_publication_summary_from_review_or_import_row(%{} = row) do
     source_row =
