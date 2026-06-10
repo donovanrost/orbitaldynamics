@@ -9,7 +9,7 @@ V2 repair honors supplied candidate-refresh contact-allocation outcomes during
 replacement selection.
 
 Status:
-Implemented, reviewer-cleared, and locally verified; publish pending.
+Implemented, reviewer-cleared, locally verified, committed, and pushed.
 
 Files changed:
 - V2 repair candidate filtering:
@@ -54,19 +54,19 @@ Slice result:
   remain green.
 
 Last completed slice:
-V2 repair honors supplied candidate-refresh contact suppressions during
+V2 repair honors supplied candidate-refresh contact-allocation outcomes during
 replacement selection.
 
 Last pushed commits:
-- Product/ledger: `b07fbec` Honor refresh resource suppressions in repair
-- Ledger correction: `2c88d1e` Update autonomous loop ledger after repair
-  publish
 - Product/ledger: `5fba8f0` Honor refresh contact suppressions in repair
+- Ledger correction: `d158792` Update autonomous loop ledger after contact
+  publish
+- Product/ledger: `4e8d278` Honor refresh allocation outcomes in repair
 
 Review/publish queue:
 - Reviewer sidecar cleared the supplied refresh contact-allocation repair slice
   after blocked and policy-blocked regression coverage was added.
-- Publisher sidecar pending.
+- Publisher sidecar pushed `4e8d278` to `origin/main`.
 
 Remaining maturity gaps:
 - Continue converting replayed resource/contact/readiness pressure into
@@ -93,4 +93,4 @@ Notes:
 - Focused CampaignPlanner tests still emit existing unrelated `0.0`
   pattern-match warnings from another test; selected tests exit green.
 - Reviewer sidecar: `019eb084-5d80-7d00-b3b5-3c2e5a1cba9c`.
-- Publisher sidecar: pending.
+- Publisher sidecar: `019eb08a-debe-7fa2-bbe5-7af64af5f6b4`.
