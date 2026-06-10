@@ -54,6 +54,12 @@ pressure remains visible without reopening full command-window rows.
 
 V1 campaign artifacts and refreshed-candidate artifacts include `contact_filter_report.v1` rows that:
 
+- Apply V1 station-calendar/contact-filter suppression before contact contention,
+  contact allocation, link-capacity accounting, ranked timelines, contact
+  intents, and selected activities are derived. Suppressed unavailable or
+  reserved contacts remain visible in the station-calendar report and
+  contact-suppression review/import rows, but they are not kept as ordinary V1
+  candidate activities.
 - Suppress malformed downlink/tracking-like filter inputs missing identity, station, or timing fields, or carrying malformed stable-ID contact/station/source-window/scenario identity, into invalid-input review handoffs instead of keeping them as ordinary candidates.
 - Publish non-negative scalar candidate counters in executable validation and JSON Schema exports.
 - Preserve suppressed contact direction routing in CandidateRefresh source/replay summaries as deterministic direction counts and contact IDs by direction.

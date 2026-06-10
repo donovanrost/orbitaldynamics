@@ -1453,8 +1453,13 @@ exact-regenerates the checked-in full report through
 `OrbitalDynamics.contact_filter_report/2` from deterministic contact candidates
 and declared ground-network rows before schema validation, pinning current
 direction, trust-boundary, reservation-match, and suppression-reason routing.
-The full report fixture remains an artifact-only no-provider-reservation/no-
-schedule-mutation/no-Cadence-write handoff.
+V1 campaign planning now applies that same contact-filter suppression before
+contact contention, allocation, link-capacity accounting, ranking, contact
+intents, and selected activities are derived, while station-calendar and
+contact-suppression handoff rows preserve the suppressed contact evidence for
+operator review and Cadence import queues. The full report fixture remains an
+artifact-only no-provider-reservation/no-schedule-mutation/no-Cadence-write
+handoff.
 `study_results/contact_contention_report_v1.json` and
 `study_results/contact_contention_resolution_report_v1.json` are observed for
 conflict/recommendation counts, row-derived scalar
