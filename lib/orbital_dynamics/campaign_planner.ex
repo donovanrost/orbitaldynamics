@@ -14966,9 +14966,11 @@ defmodule OrbitalDynamics.CampaignPlanner do
           "provenance",
           "trust_boundary"
         ])
+        |> Map.merge(Map.take(artifact, candidate_refresh_source_report_payload_keys()))
         |> compact_map()
 
-      if Map.has_key?(flow_summary_artifact, "source_contact_allocation_report") or
+      if candidate_refresh_source_report_payload?(flow_summary_artifact) or
+           Map.has_key?(flow_summary_artifact, "source_contact_allocation_report") or
            Map.has_key?(flow_summary_artifact, "contact_allocation_report") or
            Map.has_key?(flow_summary_artifact, "source_contact_allocation_summary") or
            Map.has_key?(flow_summary_artifact, "contact_allocation_summary") or
@@ -15122,6 +15124,16 @@ defmodule OrbitalDynamics.CampaignPlanner do
       [artifact] -> artifact
       artifacts -> artifacts
     end
+  end
+
+  defp candidate_refresh_source_report_payload?(artifact) do
+    Enum.any?(candidate_refresh_source_report_payload_keys(), &Map.has_key?(artifact, &1))
+  end
+
+  defp candidate_refresh_source_report_payload_keys do
+    candidate_refresh_source_report_input_fields()
+    |> Enum.flat_map(fn {source_key, canonical_key} -> [source_key, canonical_key] end)
+    |> Enum.uniq()
   end
 
   defp mission_state_result_artifact_resource_projection_reports(mission_state, report_key) do

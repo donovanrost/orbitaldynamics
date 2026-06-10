@@ -26436,15 +26436,16 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
 
     assert %{
              "contract" => "station_reservation_report.v1",
-             "source_report_count" => 2,
-             "source_report_row_count" => 4,
+             "source_report_count" => 3,
+             "source_report_row_count" => 6,
              "source_report_paths" => replay_source_paths,
-             "reservation_review_count" => 4,
-             "station_reservation_evidence_row_count" => 4,
-             "station_reservation_expiration_evidence_row_count" => 2,
+             "reservation_review_count" => 6,
+             "station_reservation_evidence_row_count" => 6,
+             "station_reservation_expiration_evidence_row_count" => 3,
              "affected_contact_ids" => [
                "canonical_contact",
-               "direct_contact"
+               "direct_contact",
+               "wrapped_contact"
              ],
              "branch_local_station_reservation_pressure" => true,
              "branch_local_reservation_review_pressure" => true,
@@ -26454,7 +26455,8 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
 
     for source_path <- [
           "mission_state.source_station_reservation_review_summary",
-          "mission_state.station_reservation_review_summary"
+          "mission_state.station_reservation_review_summary",
+          "mission_state.source_result_artifact.source_station_reservation_review_summary"
         ] do
       assert source_path in replay_source_paths
     end
@@ -32268,6 +32270,21 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
         ],
         "trust_boundary" => "branch_candidate_rejection_report"
       })
+      |> Map.put("operational_import_eligibility_summary", %{
+        "schema_contract" => "operational_import_eligibility_summary.v1",
+        "import_status" => "review_required_before_import",
+        "ready_for_import_count" => 0,
+        "review_required_count" => 1,
+        "blocked_count" => 0,
+        "rows" => [
+          %{
+            "id" => "branch_import_eligibility_review",
+            "import_status" => "review_required_before_import",
+            "required_operator_action" => "review_operational_readiness"
+          }
+        ],
+        "trust_boundary" => "branch_import_eligibility_summary"
+      })
       |> Map.put("timeline_diff_report", %{
         "schema_contract" => "timeline_diff_report.v1",
         "rows" => [
@@ -32841,6 +32858,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
           "mission_state.source_result_artifact.resource_projection_report",
           "mission_state.source_result_artifact.resource_filter_report",
           "mission_state.source_result_artifact.operational_readiness_report",
+          "mission_state.source_result_artifact.operational_import_eligibility_summary",
           "mission_state.source_result_artifact.provider_counteroffer_report",
           "mission_state.source_result_artifact.candidate_diff_report",
           "mission_state.source_result_artifact.candidate_rejection_report",
@@ -34762,13 +34780,15 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
 
     assert %{
              "contract" => "relay_data_path_summary.v1",
-             "source_report_count" => 2,
-             "source_report_row_count" => 2,
+             "source_report_count" => 4,
+             "source_report_row_count" => 4,
              "source_report_paths" => replay_source_paths,
-             "relay_route_count" => 2,
+             "relay_route_count" => 4,
              "ground_downlink_contact_ids" => [
                "downlink_canonical",
-               "downlink_direct"
+               "downlink_direct",
+               "downlink_result_wrapped",
+               "downlink_wrapped"
              ],
              "trust_boundary_status" => "declared",
              "branch_local_link_capacity_pressure" => true
@@ -34778,7 +34798,9 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
 
     for source_path <- [
           "mission_state.source_relay_data_path_summary",
-          "mission_state.relay_data_path_summary"
+          "mission_state.relay_data_path_summary",
+          "mission_state.source_result_artifact.relay_data_path_summary",
+          "mission_state.result_artifact.source_relay_data_path_summary"
         ] do
       assert source_path in replay_source_paths
     end
