@@ -5,11 +5,11 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Opt-in V1 greedy activity selection uses downlink-completion progress.
+Opt-in V1 timeline scoring accounts for activity precondition pressure.
 
 Status:
 Implemented, parent-reviewed, locally verified, and published locally.
-Behavior commit: `63b4c9a`.
+Behavior commit: `67e6e3e`.
 
 Files changed:
 - V1 campaign planner:
@@ -22,25 +22,25 @@ Files changed:
   `.codex/status/autonomous_product_loop.md`
 
 Tests/checks run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:2115`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs` (716 passed)
-- `mix test` (3328 passed)
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:2196`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs` (717 passed)
+- `mix test` (3329 passed)
 - `mix format lib/orbital_dynamics/campaign_planner.ex test/orbital_dynamics/campaign_planner_test.exs`
 - `git diff --check`
 
 Behavior changed:
-When `campaign.scoring_policy.downlink_completion_weight` is positive and a
-required downlink MB value is declared, V1 greedy timeline selection now boosts
-downlink candidates by their capped downlink-completion progress before applying
-overlap and max-activity constraints. Emitted candidate scores stay unchanged;
-the selected ranked timeline still carries the deterministic
-`downlink_completion_score`, ratio, selected MB, and required MB score-term
-evidence. Default behavior remains unchanged when the weight is omitted or zero.
+When `campaign.scoring_policy.timeline_precondition_weight` is positive, V1
+candidate metadata can carry explicit timeline activity precondition evidence
+into generated observe/contact candidates, and ranked timeline scoring subtracts
+deterministic pressure for selected activities with blocked or review-required
+timeline preconditions. The pressure appears as score-term evidence in ranked
+timelines, score-term reports, and objective tradeoffs. Default behavior remains
+unchanged when the weight is omitted or zero.
 
 Level 6 pillar advanced:
-Fleet-level resource/contact selection behavior and reproducible V1 score
-explanations: declared downlink demand can now influence both selection and
-ranking before post-hoc review reports.
+Planner-visible operational readiness pressure: activity preconditions are
+already summarized after selection, and this slice makes the same candidate
+pressure visible to V1 selection/ranking when operators opt in.
 
 Remaining maturity gaps:
 - Use selected resource/contact/readiness pressure in additional planner-visible
@@ -52,21 +52,24 @@ Remaining maturity gaps:
   rely on stale ledger candidates.
 
 Last behavior commit:
-`63b4c9a` Use downlink progress in V1 selection.
+`67e6e3e` Score V1 timeline precondition pressure.
 
 Next candidate:
-Recalibrate from the guide and current code. Good next areas are one verified
-planner-visible readiness/resource gap or a missing challenge fixture that
-current tests do not already cover.
+After this slice, reassess from current code. Good next areas are another
+verified planner-visible readiness/resource gap or a missing challenge fixture
+that current tests do not already cover.
 
 Blocked:
 Not blocked.
 
 Notes:
-- Selection note: after the previous slice, downlink demand affected ranked
-  timeline scores but not the greedy selection order. This slice applies the
-  same opt-in progress signal during candidate ordering while keeping default
-  artifacts stable.
+- Selection note: resource and station availability already filter before V1
+  ranking, and V3 branch scoring already penalizes readiness/precondition risk.
+  The verified V1 gap is candidate-level timeline precondition pressure:
+  selected activities receive artifact-only summaries after selection, but that
+  pressure was not a score term. This slice adds opt-in precondition scoring
+  with focused ranking regression, report evidence, schema-valid artifacts, full
+  planner test, full suite, review, commit, and push.
 - `slice_reviewer` sidecar was not used; the parent completed a bounded local
   review of the selector path, emitted score terms, diff, and full-suite result.
 - Full-suite pass still emits the existing campaign-planner `0.0` pattern-match
