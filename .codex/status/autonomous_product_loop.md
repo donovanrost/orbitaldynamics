@@ -9,7 +9,7 @@ V2 repair honors supplied candidate-refresh budget drops during replacement
 selection.
 
 Status:
-Implemented, reviewer-cleared, and locally verified; publish pending.
+Implemented, reviewer-cleared, locally verified, committed, and pushed.
 
 Files changed:
 - V2 repair candidate filtering:
@@ -46,11 +46,10 @@ Remaining maturity gaps:
   planner pressure families change public artifact shape.
 
 Last commit:
-`5c2dc8d` Update autonomous loop ledger after allocation publish.
+`3b2014b` Honor refresh budget drops in repair.
 
 Next candidate:
-After review/publish, reassess remaining candidate-selection or compatibility
-gaps from live evidence.
+Reassess remaining candidate-selection or compatibility gaps from live evidence.
 
 Blocked:
 Not blocked.
@@ -66,6 +65,8 @@ Notes:
 - Reviewer sidecar found no publish blocker. The defensive
   `budget_dropped_candidate_ids` alias fallback was removed so the implementation
   matches the tested `dropped_candidate_ids` contract.
+- Publisher sidecar pushed `3b2014b` to `origin/main`.
 - Focused CampaignPlanner tests still emit existing unrelated `0.0`
   pattern-match warnings from another test; selected tests exit green.
 - Reviewer sidecar: `019eb091-2527-7793-a60d-5aa1729b4c23`.
+- Publisher sidecar: `019eb094-4e2a-71c1-9db7-ed4317b9f310`.
