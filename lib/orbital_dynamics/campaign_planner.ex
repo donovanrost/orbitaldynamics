@@ -342,7 +342,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
                 "downlink_shortfall",
                 "operational_readiness_blocked",
                 "quality_gate_blocked",
-                "contact_intent_blocked"
+                "contact_intent_blocked",
+                "link_capacity_blocked"
               ],
               action_rules: []
   end
@@ -8030,6 +8031,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "planned_contacts" => event["planned_contacts"],
         "required_downlink_mb" => event["required_downlink_mb"],
         "planned_downlink_mb" => event["planned_downlink_mb"],
+        "link_capacity_status" => event["link_capacity_status"],
+        "downlink_requirement_status" => event["downlink_requirement_status"],
+        "actual_downlink_requirement_status" => event["actual_downlink_requirement_status"],
         "contact_id" => event["contact_id"],
         "contact_result" => event["contact_result"],
         "realized_status" => event["realized_status"],

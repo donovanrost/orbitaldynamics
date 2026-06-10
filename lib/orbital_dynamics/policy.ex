@@ -5237,6 +5237,17 @@ defmodule OrbitalDynamics.Policy do
       blocked_value?(risk["approval_status"])
   end
 
+  defp risk_matches_blocked_type?(
+         %{"type" => "downlink_completion_gap", "feedback_scope" => "link_capacity"} = risk,
+         "link_capacity_blocked"
+       ) do
+    blocked_value?(risk["link_capacity_status"]) or
+      blocked_value?(risk["downlink_requirement_status"]) or
+      blocked_value?(risk["actual_downlink_requirement_status"]) or
+      blocked_value?(risk["policy_classification"]) or
+      blocked_value?(risk["approval_status"])
+  end
+
   defp risk_matches_blocked_type?(_risk, _blocked_type), do: false
 
   defp blocked_value?(value) when is_binary(value),
