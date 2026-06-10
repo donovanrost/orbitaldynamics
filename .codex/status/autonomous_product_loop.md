@@ -5,11 +5,11 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-V2 repair resource-filter pressure score term.
+V2 repair refresh-budget pressure score term.
 
 Status:
-Implemented, parent-reviewed, locally verified, and published to `origin/main`.
-Behavior commit: `8eb2c85`.
+Implemented, parent-reviewed, and locally verified. Publish handoff is in
+progress.
 
 Files changed:
 - Repair scoring:
@@ -20,7 +20,7 @@ Files changed:
   `.codex/status/autonomous_product_loop.md`
 
 Tests/checks run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:4494`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:4674`
 - `mix test test/orbital_dynamics/campaign_planner_test.exs:5545`
 - `git diff --check`
 
@@ -29,7 +29,8 @@ No public docs or checked-in generated artifacts changed. This is a runtime
 artifact scoring contract for `campaign_repair.v2` output.
 
 Level 6 pillar advanced:
-Planner-visible operational pressure evidence in branch-local repair artifacts.
+Refreshed candidates from current mission state with explainable repair score
+terms.
 
 Remaining maturity gaps:
 - Continue converting replayed resource/contact/readiness pressure into
@@ -41,22 +42,20 @@ Remaining maturity gaps:
   editing; do not rely on stale ledger candidates.
 
 Last behavior commit:
-`8eb2c85` Score repair resource filter pressure.
+Pending.
 
 Next candidate:
-Recalibrate from live code. Likely areas remain verified V2/V3 pressure gaps or
-a missing schema/fixture pin, but do not assume the gap before inspecting the
-current implementation.
+Recalibrate from live code. Candidate-rejection or readiness/quality evidence
+may have similar V2 visibility gaps, but verify before editing.
 
 Blocked:
 Not blocked.
 
 Notes:
 - Selection note: V2 repair already preserved candidate-refresh
-  `source_resource_filter_report` into review/import and used it to exclude
-  unusable candidates, but `repair_score_terms` did not expose the source
-  resource suppression pressure.
-- Slice result: repair score terms now add `resource_filter_pressure_penalty`
-  for suppressed source resource-filter candidates. Existing score reports and
-  tradeoff reports surface the new key automatically beside resource,
-  contact-filter, and contact-allocation pressure terms.
+  `source_refresh_budget_report` into review/import and used dropped candidate
+  IDs to exclude unusable candidates, while only V3 branch scoring exposed
+  `refresh_budget_pressure_penalty`.
+- Slice result: repair score terms now add `refresh_budget_pressure_penalty`
+  from dropped refresh-budget candidate IDs, with fallback handling for dropped
+  counts or invalid candidate-limit policy.

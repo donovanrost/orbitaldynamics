@@ -4716,6 +4716,22 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "kept_candidate_ids" => ["dl_budget_kept"]
            } = artifact["source_refresh_budget_report"]
 
+    assert artifact["score_terms"]["refresh_budget_pressure_penalty"] == -1.0
+
+    assert "refresh_budget_pressure_penalty" in artifact["score_term_report"]["score_term_keys"]
+
+    assert [
+             %{
+               "term_key" => "refresh_budget_pressure_penalty",
+               "value" => -1.0,
+               "selected" => true
+             }
+           ] =
+             Enum.filter(
+               artifact["score_term_report"]["rows"],
+               &(&1["term_key"] == "refresh_budget_pressure_penalty")
+             )
+
     assert %{
              "review_type" => "refresh_budget_review",
              "source" => "campaign_repair.source_refresh_budget_report",
@@ -5664,7 +5680,7 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
 
     assert %{
              "objective" =>
-               "maximize repaired activity value while minimizing churn, schedule movement, resource-projection pressure, contact pressure, and resource-filter pressure",
+               "maximize repaired activity value while minimizing churn, schedule movement, resource-projection pressure, contact pressure, resource-filter pressure, and refresh-budget pressure",
              "score_term_keys" => score_term_keys,
              "tradeoffs" => [
                %{
