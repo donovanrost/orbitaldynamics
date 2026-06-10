@@ -9,7 +9,7 @@ Provider-counteroffer import-readiness stale-aggregate challenge fixture.
 
 Status:
 Implemented, reviewed, reviewer feedback resolved, and locally verified;
-publish pending.
+committed and pushed.
 
 Files changed:
 - Candidate-refresh source report aggregation:
@@ -65,19 +65,20 @@ Slice result:
   that becomes a scored pressure branch.
 
 Last completed slice:
-Provider-counteroffer import-readiness pressure scoring.
+Provider-counteroffer import-readiness stale-aggregate challenge fixture.
 
 Last pushed commits:
 - Product/docs/ledger: `b9babb7` Score provider counteroffer import readiness
   pressure
 - Ledger correction: `af9c511` Update autonomous loop publish status
+- Product/ledger: `39eca42` Guard import readiness rows against stale
+  aggregates
 
 Review/publish queue:
 - Reviewer sidecar found no blocker and flagged two coverage gaps; parent fixed
   both by covering blank-row derived readiness/classification and
   candidate-source required-action/review/no-import precedence.
-- Commit and push:
-  candidate-refresh import-readiness row aggregation challenge.
+- Published to `origin/main` as `39eca42`.
 
 Remaining maturity gaps:
 - Continue converting replayed resource/contact/readiness pressure into
