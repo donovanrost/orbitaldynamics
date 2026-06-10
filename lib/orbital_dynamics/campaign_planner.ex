@@ -397,7 +397,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       candidates
       |> Enum.group_by(& &1["scenario_id"])
       |> Enum.map(fn {scenario_id, scenario_candidates} ->
-        ranked_timeline(scenario_id, scenario_candidates, constraints, policy)
+        ranked_timeline(scenario_id, scenario_candidates, constraints, policy, campaign)
       end)
       |> Enum.sort_by(&{-candidate_score(&1), &1["scenario_id"]})
       |> Enum.take(policy_count_value(policy, "rank_limit", 10))
@@ -56532,11 +56532,12 @@ defmodule OrbitalDynamics.CampaignPlanner do
     activity
   end
 
-  defp ranked_timeline(scenario_id, candidates, constraints, policy) do
+  defp ranked_timeline(scenario_id, candidates, constraints, policy, campaign) do
     max_activities =
       policy_count_value(constraints, "max_timeline_activities", length(candidates))
 
     activity_count_penalty = numeric_policy_value(policy, "activity_count_penalty", 0.0)
+    downlink_completion_context = downlink_completion_score_context(campaign, policy)
 
     activities =
       candidates
@@ -56552,14 +56553,17 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
     gross_score = activities |> Enum.map(&candidate_score/1) |> Enum.sum()
     penalty = length(activities) * activity_count_penalty
-    score = gross_score - penalty
     component_terms = timeline_component_score_terms(activities)
+    objective_terms = downlink_completion_score_terms(activities, downlink_completion_context)
+    score = gross_score - penalty + Map.get(objective_terms, "downlink_completion_score", 0.0)
 
     %{
       "scenario_id" => encode_value(scenario_id),
       "score" => score,
       "score_terms" =>
-        Map.merge(component_terms, %{
+        component_terms
+        |> Map.merge(objective_terms)
+        |> Map.merge(%{
           "activity_score" => gross_score,
           "activity_count_penalty" => -penalty,
           "selected_observation_count" => Enum.count(activities, &(&1["type"] == "observe")),
@@ -56569,6 +56573,37 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "activities" => activities
     }
   end
+
+  defp downlink_completion_score_context(campaign, policy) do
+    required_downlink_mb =
+      numeric_or_nil(Map.get(policy, "required_downlink_mb")) ||
+        campaign_required_downlink_mb(campaign)
+
+    weight = numeric_policy_value(policy, "downlink_completion_weight", 0.0)
+
+    if is_number(required_downlink_mb) and required_downlink_mb > 0.0 and weight > 0.0 do
+      %{required_downlink_mb: required_downlink_mb, weight: weight}
+    else
+      nil
+    end
+  end
+
+  defp downlink_completion_score_terms(activities, %{
+         required_downlink_mb: required_downlink_mb,
+         weight: weight
+       }) do
+    selected_downlink_mb = planned_downlink_mb(activities, %{})
+    ratio = min(selected_downlink_mb / required_downlink_mb, 1.0)
+
+    %{
+      "downlink_completion_score" => ratio * weight,
+      "downlink_completion_ratio" => ratio,
+      "selected_downlink_mb" => selected_downlink_mb,
+      "required_downlink_mb" => required_downlink_mb
+    }
+  end
+
+  defp downlink_completion_score_terms(_activities, _terms), do: %{}
 
   defp timeline_component_score_terms(activities) do
     Enum.reduce(

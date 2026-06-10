@@ -2045,6 +2045,73 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact["link_capacity_report"])
   end
 
+  test "campaign ranked timelines can score downlink completion progress" do
+    result_set =
+      ResultSet.new!(%{
+        study_id: :campaign,
+        trajectory_results: [],
+        event_results: [
+          access_result(:shortfall, :equator_prime, 0.0, 60.0),
+          access_result(:satisfied, :equator_prime, 0.0, 100.0)
+        ],
+        errors: [],
+        assumptions: %{},
+        metadata: %{}
+      })
+
+    artifact =
+      CampaignPlanner.build(result_set,
+        generated_at: ~U[2026-05-14 00:00:00Z],
+        campaign: %{
+          "objectives" => [
+            %{
+              "type" => "downlink_completion",
+              "required_downlink_mb" => 100.0
+            }
+          ],
+          "constraints" => %{},
+          "scoring_policy" => %{
+            "contact_value_weight" => 0.0,
+            "downlink_completion_weight" => 40.0,
+            "downlink_rate_mb_s" => 1.0
+          }
+        }
+      )
+
+    assert [
+             %{
+               "scenario_id" => "satisfied",
+               "score" => 40.0,
+               "score_terms" => %{
+                 "activity_score" => satisfied_activity_score,
+                 "downlink_completion_score" => 40.0,
+                 "downlink_completion_ratio" => 1.0,
+                 "selected_downlink_mb" => 100.0,
+                 "required_downlink_mb" => 100.0
+               }
+             },
+             %{
+               "scenario_id" => "shortfall",
+               "score" => 24.0,
+               "score_terms" => %{
+                 "activity_score" => shortfall_activity_score,
+                 "downlink_completion_score" => 24.0,
+                 "downlink_completion_ratio" => 0.6,
+                 "selected_downlink_mb" => 60.0,
+                 "required_downlink_mb" => 100.0
+               }
+             }
+           ] = artifact["ranked_timelines"]
+
+    assert satisfied_activity_score == 0.0
+    assert shortfall_activity_score == 0.0
+    assert "downlink_completion_score" in artifact["score_term_report"]["score_term_keys"]
+    assert "selected_downlink_mb" in artifact["objective_tradeoff_report"]["score_term_keys"]
+
+    assert {:ok, %{"schema_contract" => "campaign_plan.v1"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "campaign objective satisfaction requires both downlink count and data volume when declared" do
     result_set =
       ResultSet.new!(%{

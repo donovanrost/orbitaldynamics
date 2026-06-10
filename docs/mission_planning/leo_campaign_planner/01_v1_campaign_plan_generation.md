@@ -26,7 +26,9 @@ It answers:
   avoidance, and maximum timeline activity count.
 - `campaign.scoring_policy`: deterministic weights, rank limit, and optional
   `contact_activity_types` for deriving downlink, command, tracking, and
-  health-check candidates from ground-station access windows.
+  health-check candidates from ground-station access windows; optional
+  `downlink_completion_weight` for ranking selected downlink throughput against
+  declared downlink-completion demand.
 - Seeds for reproducible search or Monte Carlo studies.
 
 ## Core Capabilities
