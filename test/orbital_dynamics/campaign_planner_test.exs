@@ -2280,6 +2280,112 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(weighted_artifact)
   end
 
+  test "campaign resource projection weight affects ranked timeline selection" do
+    overflowing_observation =
+      :overflowing
+      |> target_visibility_result(:high_value_target, 0.0, 100.0, 2.0)
+      |> put_in([:events, Access.at(0), :metadata, :estimated_storage_mb], 100.0)
+
+    clear_observation =
+      :clear
+      |> target_visibility_result(:standard_target, 0.0, 100.0, 1.0)
+      |> put_in([:events, Access.at(0), :metadata, :estimated_storage_mb], 10.0)
+
+    result_set =
+      ResultSet.new!(%{
+        study_id: :campaign,
+        trajectory_results: [],
+        event_results: [
+          overflowing_observation,
+          clear_observation
+        ],
+        errors: [],
+        assumptions: %{},
+        metadata: %{}
+      })
+
+    campaign =
+      %{
+        "targets" => [
+          %{"id" => "high_value_target", "priority" => 2.0},
+          %{"id" => "standard_target", "priority" => 1.0}
+        ],
+        "constraints" => %{"max_timeline_activities" => 1},
+        "resource_summaries" => [
+          %{
+            "schema_contract" => "resource_summary.v1",
+            "spacecraft_id" => "overflowing",
+            "storage_capacity_mb" => 50.0,
+            "storage_used_mb" => 0.0
+          },
+          %{
+            "schema_contract" => "resource_summary.v1",
+            "spacecraft_id" => "clear",
+            "storage_capacity_mb" => 200.0,
+            "storage_used_mb" => 0.0
+          }
+        ],
+        "scoring_policy" => %{"target_value_weight" => 1.0}
+      }
+
+    default_artifact =
+      CampaignPlanner.build(result_set,
+        generated_at: ~U[2026-05-14 00:00:00Z],
+        campaign: campaign
+      )
+
+    assert [%{"scenario_id" => "overflowing", "target_id" => "high_value_target"}] =
+             default_artifact["activities"]
+
+    refute "resource_projection_pressure_penalty" in default_artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    weighted_artifact =
+      CampaignPlanner.build(result_set,
+        generated_at: ~U[2026-05-14 00:00:00Z],
+        campaign: put_in(campaign, ["scoring_policy", "resource_projection_weight"], 150.0)
+      )
+
+    assert [%{"scenario_id" => "clear", "target_id" => "standard_target"}] =
+             weighted_artifact["activities"]
+
+    overflowing_timeline =
+      Enum.find(weighted_artifact["ranked_timelines"], &(&1["scenario_id"] == "overflowing"))
+
+    assert overflowing_timeline["score"] == 50.0
+    score_terms = overflowing_timeline["score_terms"]
+    assert score_terms["activity_score"] == 200.0
+    assert score_terms["resource_projection_pressure_penalty"] == -150.0
+    assert score_terms["resource_projection_pressure_count"] == 1
+    assert score_terms["projected_storage_overflow_mb"] == 50.0
+    assert score_terms["projected_downlink_shortfall_mb"] == 0.0
+    assert score_terms["projected_battery_overuse_wh"] == 0.0
+
+    assert "resource_projection_pressure_penalty" in weighted_artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert Enum.any?(
+             weighted_artifact["score_term_report"]["rows"],
+             &(&1["scenario_id"] == "overflowing" and
+                 &1["term_key"] == "resource_projection_pressure_penalty" and
+                 &1["value"] == -150.0)
+           )
+
+    clear_projection =
+      Enum.find(
+        weighted_artifact["resource_projection_report"]["projected_resources"],
+        &(&1["spacecraft_id"] == "clear")
+      )
+
+    assert clear_projection["projected_storage_overflow_mb"] == 0.0
+    assert clear_projection["resource_pressure_status"] == "nominal"
+
+    assert {:ok, %{"schema_contract" => "campaign_plan.v1"}} =
+             Schema.validate_artifact(weighted_artifact)
+  end
+
   test "campaign objective satisfaction requires both downlink count and data volume when declared" do
     result_set =
       ResultSet.new!(%{

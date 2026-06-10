@@ -31,7 +31,10 @@ It answers:
   against declared downlink-completion demand; optional
   `timeline_precondition_weight` for ranking selected activities with blocked or
   review-required timeline activity preconditions below otherwise comparable
-  clear activities.
+  clear activities; optional `resource_projection_weight` for ranking selected
+  activities with projected storage overflow, downlink shortfall, battery
+  depletion, or resource availability pressure below otherwise comparable clear
+  activities.
 - Seeds for reproducible search or Monte Carlo studies.
 
 ## Core Capabilities

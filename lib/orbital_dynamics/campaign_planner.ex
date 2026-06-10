@@ -56451,6 +56451,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       }
     }
     |> Map.merge(activity_precondition_context(event.metadata))
+    |> Map.merge(activity_resource_projection_context(event.metadata))
     |> Map.merge(lighting_summary)
   end
 
@@ -56510,6 +56511,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       }
     }
     |> Map.merge(activity_precondition_context(event.metadata))
+    |> Map.merge(activity_resource_projection_context(event.metadata))
     |> maybe_add_downlink_throughput(type, duration_s, downlink_rate_mb_s)
   end
 
@@ -56535,6 +56537,21 @@ defmodule OrbitalDynamics.CampaignPlanner do
       "safety_checked",
       "activity_template",
       "activity_context"
+    ])
+    |> compact_map()
+  end
+
+  defp activity_resource_projection_context(metadata) do
+    metadata
+    |> encode_value()
+    |> Map.take([
+      "estimated_storage_mb",
+      "planned_data_volume_mb",
+      "data_volume_mb",
+      "estimated_data_volume_mb",
+      "estimated_energy_used_wh",
+      "battery_energy_consumed_wh",
+      "battery_energy_generated_wh"
     ])
     |> compact_map()
   end
@@ -56567,6 +56584,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
     activity_count_penalty = numeric_policy_value(policy, "activity_count_penalty", 0.0)
     downlink_completion_context = downlink_completion_score_context(campaign, policy)
     timeline_precondition_context = timeline_precondition_score_context(policy)
+    resource_projection_context = resource_projection_score_context(campaign, policy)
 
     activities =
       candidates
@@ -56575,7 +56593,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
           -candidate_selection_score(
             &1,
             downlink_completion_context,
-            timeline_precondition_context
+            timeline_precondition_context,
+            resource_projection_context
           ),
           activity_start(&1),
           &1["id"]
@@ -56598,9 +56617,13 @@ defmodule OrbitalDynamics.CampaignPlanner do
     precondition_terms =
       timeline_precondition_score_terms(activities, timeline_precondition_context)
 
+    resource_projection_terms =
+      resource_projection_score_terms(activities, resource_projection_context)
+
     score =
       gross_score - penalty + Map.get(objective_terms, "downlink_completion_score", 0.0) +
-        Map.get(precondition_terms, "timeline_precondition_pressure_penalty", 0.0)
+        Map.get(precondition_terms, "timeline_precondition_pressure_penalty", 0.0) +
+        Map.get(resource_projection_terms, "resource_projection_pressure_penalty", 0.0)
 
     %{
       "scenario_id" => encode_value(scenario_id),
@@ -56609,6 +56632,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         component_terms
         |> Map.merge(objective_terms)
         |> Map.merge(precondition_terms)
+        |> Map.merge(resource_projection_terms)
         |> Map.merge(%{
           "activity_score" => gross_score,
           "activity_count_penalty" => -penalty,
@@ -56623,7 +56647,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
   defp candidate_selection_score(
          candidate,
          downlink_completion_context,
-         timeline_precondition_context
+         timeline_precondition_context,
+         resource_projection_context
        ) do
     candidate_score(candidate) +
       Map.get(
@@ -56634,6 +56659,11 @@ defmodule OrbitalDynamics.CampaignPlanner do
       Map.get(
         timeline_precondition_score_terms([candidate], timeline_precondition_context),
         "timeline_precondition_pressure_penalty",
+        0.0
+      ) +
+      Map.get(
+        resource_projection_score_terms([candidate], resource_projection_context),
+        "resource_projection_pressure_penalty",
         0.0
       )
   end
@@ -56697,6 +56727,62 @@ defmodule OrbitalDynamics.CampaignPlanner do
   end
 
   defp timeline_precondition_score_terms(_activities, _context), do: %{}
+
+  defp resource_projection_score_context(campaign, policy) do
+    summaries =
+      campaign
+      |> Map.get("resource_summaries", [])
+      |> List.wrap()
+      |> Enum.map(&stringify_keys/1)
+
+    weight = numeric_policy_value(policy, "resource_projection_weight", 0.0)
+
+    if weight > 0.0 and summaries != [] do
+      %{
+        weight: weight,
+        summaries: summaries,
+        approval_policy:
+          Map.get(campaign, "approval_policy") || Map.get(campaign, :approval_policy)
+      }
+    end
+  end
+
+  defp resource_projection_score_terms(activities, %{
+         weight: weight,
+         summaries: summaries,
+         approval_policy: approval_policy
+       }) do
+    report =
+      resource_projection_report(
+        activities,
+        summaries,
+        "thin_campaign_resource_projection_score",
+        "campaign.resource_summaries",
+        approval_policy
+      )
+
+    risks = resource_projection_risk_indicators(report)
+    pressure_count = length(risks)
+
+    if pressure_count > 0 do
+      rows = Map.get(report, "projected_resources", [])
+
+      %{
+        "resource_projection_pressure_penalty" => -pressure_count * weight,
+        "resource_projection_pressure_count" => pressure_count,
+        "projected_storage_overflow_mb" =>
+          maximum_present(rows, "projected_storage_overflow_mb") || 0.0,
+        "projected_downlink_shortfall_mb" =>
+          maximum_present(rows, "projected_downlink_shortfall_mb") || 0.0,
+        "projected_battery_overuse_wh" =>
+          maximum_present(rows, "projected_battery_overuse_wh") || 0.0
+      }
+    else
+      %{}
+    end
+  end
+
+  defp resource_projection_score_terms(_activities, _context), do: %{}
 
   defp timeline_component_score_terms(activities) do
     Enum.reduce(
