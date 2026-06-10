@@ -5,31 +5,32 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Resource-filter summary schema-export source contract pin.
+V2 repair contact source pressure score terms.
 
 Status:
-Implemented, parent-reviewed, locally verified, and published in commit
-`7450e7e`.
+Implemented, parent-reviewed, locally verified, and committed in `7510a0a`.
+Push/publish handoff is being completed with this ledger update.
 
 Files changed:
-- Schema export:
-  `lib/orbital_dynamics/schema.ex`
-- Export coverage:
-  `test/mix/tasks/orbital_dynamics.schema.export_test.exs`
+- Repair scoring:
+  `lib/orbital_dynamics/campaign_planner.ex`
+- Repair coverage:
+  `test/orbital_dynamics/campaign_planner_test.exs`
 - Ledger:
   `.codex/status/autonomous_product_loop.md`
 
 Tests/checks run:
-- `mix test test/mix/tasks/orbital_dynamics.schema.export_test.exs`
-- `mix test test/orbital_dynamics/schema_test.exs:1509`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:4664`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:4859`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:5545`
+- `git diff --check`
 
 Docs/artifacts changed:
-No public docs or checked-in generated artifacts changed. This pins an existing
-schema-only compatibility contract for `resource_filter_summary.v1`.
+No public docs or checked-in generated artifacts changed. This is a runtime
+artifact scoring contract for `campaign_repair.v2` output.
 
 Level 6 pillar advanced:
-Durable schema-versioned artifacts and compatibility checks for resource/filter
-handoffs.
+Planner-visible operational pressure evidence in branch-local repair artifacts.
 
 Remaining maturity gaps:
 - Continue converting replayed resource/contact/readiness pressure into
@@ -40,22 +41,23 @@ Remaining maturity gaps:
 - Reassess the guide and current code for the next verified Level 6 gap before
   editing; do not rely on stale ledger candidates.
 
-Last commit:
-`7450e7e` Pin resource filter summary source schema.
+Last behavior commit:
+`7510a0a` Score repair contact source pressure.
 
 Next candidate:
-Recalibrate from live code. Likely areas remain V2/V3 planner-visible use of
-existing pressure evidence or a verified missing schema/fixture pin.
+Recalibrate from live code. Likely areas remain verified V2/V3 pressure gaps or
+a missing schema/fixture pin, but do not assume the gap before inspecting the
+current implementation.
 
 Blocked:
 Not blocked.
 
 Notes:
-- Selection note: runtime and checked-in fixture coverage already validated
-  `resource_filter_summary.v1`, but schema export did not pin
-  `source_artifact_type` as the constant `resource_filter_report.v1`.
-- Slice result: `resource_filter_summary.v1` now exports
-  `source_artifact_type` with a `const`, and the schema export test asserts
-  that contract beside the existing model/model-limit pins.
-- Sidecar: `slice_mapper` was used for bounded read-only fixture-gap mapping;
-  the parent verified the finding against the live checkout before editing.
+- Selection note: V2 repair already preserved candidate-refresh
+  `source_contact_filter_report` and `source_contact_allocation_report` into
+  review/import and used them to exclude unusable candidates, but
+  `repair_score_terms` only exposed resource-projection pressure.
+- Slice result: repair score terms now add `contact_filter_pressure_penalty`
+  for suppressed source contacts and `contact_allocation_pressure_penalty` for
+  deferred, blocked, or policy-blocked source allocation rows. Existing score
+  reports and tradeoff reports surface the new keys automatically.
