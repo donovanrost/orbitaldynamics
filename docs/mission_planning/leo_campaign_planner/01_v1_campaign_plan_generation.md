@@ -24,7 +24,9 @@ It answers:
 - `propagator` and `propagator_opts`: backend and model options.
 - `campaign.constraints`: V1 activity filters such as minimum duration, eclipse
   avoidance, and maximum timeline activity count.
-- `campaign.scoring_policy`: deterministic weights and rank limit.
+- `campaign.scoring_policy`: deterministic weights, rank limit, and optional
+  `contact_activity_types` for deriving downlink, command, tracking, and
+  health-check candidates from ground-station access windows.
 - Seeds for reproducible search or Monte Carlo studies.
 
 ## Core Capabilities
@@ -94,4 +96,3 @@ state. A useful import boundary is:
 
 Cadence should keep approval in the loop. A generated plan should be reviewable
 before it becomes an operational schedule.
-

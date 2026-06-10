@@ -55870,9 +55870,13 @@ defmodule OrbitalDynamics.CampaignPlanner do
         end)
 
       %{event_type: :ground_station_access} = result ->
+        contact_activity_types = ground_station_contact_activity_types(policy)
+
         result.events
         |> Enum.with_index(1)
-        |> Enum.map(&downlink_candidate(result, &1, policy))
+        |> Enum.flat_map(fn event_index ->
+          Enum.map(contact_activity_types, &contact_candidate(result, event_index, policy, &1))
+        end)
         |> Enum.reject(&(&1["duration_s"] < min_duration_s))
 
       _result ->
@@ -56449,13 +56453,25 @@ defmodule OrbitalDynamics.CampaignPlanner do
     |> Map.merge(lighting_summary)
   end
 
-  defp downlink_candidate(result, {event, index}, policy) do
+  defp ground_station_contact_activity_types(policy) do
+    policy
+    |> Map.get("contact_activity_types", ["downlink"])
+    |> List.wrap()
+    |> Enum.map(&normalized_status_token/1)
+    |> Enum.filter(&(&1 in ["downlink", "command", "tracking", "health_check"]))
+    |> case do
+      [] -> ["downlink"]
+      activity_types -> Enum.uniq(activity_types)
+    end
+  end
+
+  defp contact_candidate(result, {event, index}, policy, type) do
     starts_at_s = event.starts_at.seconds_since_j2000
     ends_at_s = event.ends_at.seconds_since_j2000
     ground_station_id = result.source.ground_station_id
     duration_s = ends_at_s - starts_at_s
     downlink_rate_mb_s = numeric_policy_value(policy, "downlink_rate_mb_s", 1.0)
-    id = activity_id(result.scenario_id, "downlink", ground_station_id, index)
+    id = activity_id(result.scenario_id, type, ground_station_id, index)
 
     source_window_id =
       window_id(result.scenario_id, "ground_station_access", ground_station_id, index)
@@ -56466,18 +56482,13 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
     %{
       "id" => id,
-      "type" => "downlink",
-      "direction" => "downlink",
+      "type" => type,
+      "direction" => contact_candidate_direction(type),
       "scenario_id" => encode_value(result.scenario_id),
       "ground_station_id" => encode_value(ground_station_id),
       "starts_at_s" => starts_at_s,
       "ends_at_s" => ends_at_s,
       "duration_s" => duration_s,
-      "estimated_throughput_mb" => duration_s * downlink_rate_mb_s,
-      "throughput_model" => %{
-        "model" => "fixed_rate_from_campaign_policy",
-        "downlink_rate_mb_s" => downlink_rate_mb_s
-      },
       "station_availability" => "available",
       "schedule_conflict_status" => "not_evaluated",
       "score" => score(score_terms),
@@ -56492,11 +56503,33 @@ defmodule OrbitalDynamics.CampaignPlanner do
         }
         |> Map.merge(event_timing_metadata(event.metadata)),
       "cadence_import" => %{
-        "activity_type" => "contact",
+        "activity_type" => contact_candidate_cadence_import_type(type),
         "external_id" => id,
         "schema_contract" => "proposed_contact.v1"
       }
     }
+    |> maybe_add_downlink_throughput(type, duration_s, downlink_rate_mb_s)
+  end
+
+  defp contact_candidate_direction(type) when type in ["command", "tracking", "health_check"],
+    do: type
+
+  defp contact_candidate_direction(_type), do: "downlink"
+
+  defp contact_candidate_cadence_import_type("command"), do: "command"
+  defp contact_candidate_cadence_import_type(_type), do: "contact"
+
+  defp maybe_add_downlink_throughput(activity, "downlink", duration_s, downlink_rate_mb_s) do
+    activity
+    |> Map.put("estimated_throughput_mb", duration_s * downlink_rate_mb_s)
+    |> Map.put("throughput_model", %{
+      "model" => "fixed_rate_from_campaign_policy",
+      "downlink_rate_mb_s" => downlink_rate_mb_s
+    })
+  end
+
+  defp maybe_add_downlink_throughput(activity, _type, _duration_s, _downlink_rate_mb_s) do
+    activity
   end
 
   defp ranked_timeline(scenario_id, candidates, constraints, policy) do

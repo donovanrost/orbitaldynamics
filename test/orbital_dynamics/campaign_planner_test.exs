@@ -1890,6 +1890,91 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "campaign access windows can opt into command tracking and health-check candidates" do
+    result_set =
+      campaign_result_set([
+        access_result(:leo_1, :equator_prime, 100.0, 170.0)
+      ])
+
+    artifact =
+      CampaignPlanner.build(result_set,
+        campaign: %{
+          "scoring_policy" => %{
+            "contact_value_weight" => 0.2,
+            "downlink_rate_mb_s" => 2.0,
+            "contact_activity_types" => [
+              "downlink",
+              "command",
+              "tracking",
+              "health_check"
+            ]
+          }
+        },
+        generated_at: ~U[2026-05-14 00:00:00Z]
+      )
+
+    assert {:ok, %{"status" => "pass"}} = Schema.validate_artifact(artifact)
+
+    assert Enum.map(artifact["candidate_activities"], & &1["id"]) == [
+             "leo_1_command_equator_prime_1",
+             "leo_1_downlink_equator_prime_1",
+             "leo_1_health_check_equator_prime_1",
+             "leo_1_tracking_equator_prime_1"
+           ]
+
+    assert Enum.map(artifact["candidate_activities"], & &1["type"]) == [
+             "command",
+             "downlink",
+             "health_check",
+             "tracking"
+           ]
+
+    assert %{
+             "direction" => "command",
+             "cadence_import" => %{
+               "activity_type" => "command",
+               "external_id" => "leo_1_command_equator_prime_1"
+             },
+             "score_terms" => %{"contact_value" => 14.0},
+             "source_window_id" => "window:leo_1:ground_station_access:equator_prime:1"
+           } =
+             Enum.find(
+               artifact["candidate_activities"],
+               &(&1["id"] == "leo_1_command_equator_prime_1")
+             )
+
+    refute Map.has_key?(
+             Enum.find(
+               artifact["candidate_activities"],
+               &(&1["id"] == "leo_1_tracking_equator_prime_1")
+             ),
+             "estimated_throughput_mb"
+           )
+
+    assert [
+             %{
+               "id" => "leo_1_downlink_equator_prime_1",
+               "type" => "downlink",
+               "direction" => "downlink",
+               "estimated_throughput_mb" => 140.0
+             }
+           ] = artifact["proposed_contacts"]
+
+    assert Enum.map(artifact["contact_intents"], &{&1["direction"], &1["activity_id"]}) == [
+             {"command", "leo_1_command_equator_prime_1"},
+             {"downlink", "leo_1_downlink_equator_prime_1"},
+             {"health_check", "leo_1_health_check_equator_prime_1"},
+             {"tracking", "leo_1_tracking_equator_prime_1"}
+           ]
+
+    assert %{
+             "schema_contract" => "contact_filter_report.v1",
+             "input_candidate_count" => 4,
+             "kept_candidate_count" => 4,
+             "suppressed_candidate_count" => 0
+           } = artifact["contact_filter_report"]
+  end
+
   test "campaign objective satisfaction reports required downlink data volume" do
     result_set =
       ResultSet.new!(%{
