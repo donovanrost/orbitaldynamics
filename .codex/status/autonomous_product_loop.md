@@ -8,7 +8,7 @@ Current slice:
 Timeline-publication handoff rows outrank stale embedded summaries.
 
 Status:
-Implemented, reviewer-cleared, and locally verified; publish pending.
+Implemented, reviewer-cleared, locally verified, committed, and pushed.
 
 Files changed:
 - Timeline-publication handoff replay precedence:
@@ -56,12 +56,9 @@ Slice result:
 - Neighboring timeline-publication replay tests remain green.
 
 Last completed slice:
-Resource-availability quality-gate stale aggregate challenge fixture.
+Timeline-publication handoff rows outrank stale embedded summaries.
 
 Last pushed commits:
-- Product/ledger: `f35dee1` Guard station reservation hold rows against stale
-  aggregates
-- Ledger correction: `8f7fba4` Update autonomous loop ledger after hold publish
 - Product/ledger: `5e11842` Preserve provider hold expiration pressure
 - Ledger correction: `23ff2f6` Update autonomous loop ledger after provider
   hold publish
@@ -69,11 +66,12 @@ Last pushed commits:
   aggregates
 - Ledger correction: `c96eaa9` Update autonomous loop ledger after resource
   gate publish
+- Product/ledger: `80f44b0` Prefer timeline publication handoff row evidence
 
 Review/publish queue:
 - Reviewer sidecar cleared the timeline-publication handoff stale embedded
   summary slice after sparse legacy fallback coverage was added.
-- Publish pending after reviewer clearance.
+- Published to `origin/main` as `80f44b0`.
 
 Remaining maturity gaps:
 - Continue converting replayed resource/contact/readiness pressure into
@@ -86,9 +84,8 @@ Remaining maturity gaps:
   planner pressure families change public artifact shape.
 
 Next candidate:
-After publishing this timeline-publication handoff guard, reassess model
-acceptance, validation safety-case, or timeline lifecycle stale aggregate
-strategy guards from live evidence.
+Reassess model acceptance, validation safety-case, or timeline lifecycle stale
+aggregate strategy guards from live evidence.
 
 Blocked:
 Not blocked.
@@ -96,3 +93,4 @@ Not blocked.
 Notes:
 - CandidateRefresh focused tests were quiet for this slice.
 - Reviewer sidecar: `019eb04a-034b-76b3-b716-3c381de5a9b1`.
+- Publisher sidecar: `019eb051-c3d5-76b0-b5d1-20cb6b417395`.
