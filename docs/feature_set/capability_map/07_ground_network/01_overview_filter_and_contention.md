@@ -97,6 +97,10 @@ Provider-counteroffer review handoff semantics apply for `review_provider_counte
 - Lock deadline.
 - Offered timing and start/end/duration timing deltas.
 
+Contact filtering also classifies and flattens provider-counteroffer evidence
+from `source_station_calendar_overlaps`, so overlap-only provider calendar
+evidence cannot bypass review or stay hidden in nested station-calendar payloads.
+
 ### Downlink inference
 
 Standalone filter reports also infer downlink filtering for provider-shaped station/time rows without explicit type or direction, so those rows do not bypass declared station rules.

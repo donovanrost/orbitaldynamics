@@ -278,6 +278,102 @@ defmodule OrbitalDynamics.Communications.ContactFilterTest do
              Schema.validate_artifact(import)
   end
 
+  test "suppresses provider counteroffer contacts from source station-calendar overlaps" do
+    ground_network = [
+      %{
+        ground_station_id: :equator_prime,
+        availability: :available,
+        starts_at_s: 90.0,
+        ends_at_s: 180.0,
+        source_station_calendar_overlaps: [
+          %{
+            id: :provider_counteroffer_overlap,
+            provider_counteroffer_id: :provider_offer_overlap,
+            provider_counteroffer_status: :proposed,
+            provider_counteroffer_negotiation_state: :proposed,
+            provider_counteroffer_reason_code: :provider_shifted_window,
+            provider_counteroffer_cost_delta: 80.5,
+            provider_counteroffer_lock_deadline_s: 150.0,
+            provider_counteroffer_starts_at_s: 130.0,
+            provider_counteroffer_ends_at_s: 170.0
+          }
+        ]
+      }
+    ]
+
+    {kept, report} =
+      ContactFilter.filter_candidates(
+        [contact(:dl_overlap_counteroffer, direction: :downlink)],
+        ground_network
+      )
+
+    assert kept == []
+
+    assert %{
+             "suppression_reason_counts" => %{"provider_counteroffer_review" => 1},
+             "suppressed_candidates" => [
+               %{
+                 "id" => "dl_overlap_counteroffer",
+                 "suppressed_reason" => "provider_counteroffer_review",
+                 "required_operator_action" => "review_provider_counteroffer",
+                 "provider_counteroffer_id" => "provider_offer_overlap",
+                 "provider_counteroffer_status" => "proposed",
+                 "provider_counteroffer_negotiation_state" => "proposed",
+                 "provider_counteroffer_reason_code" => "provider_shifted_window",
+                 "provider_counteroffer_cost_delta" => 80.5,
+                 "provider_counteroffer_lock_deadline_s" => 150.0,
+                 "provider_counteroffer_starts_at_s" => 130.0,
+                 "provider_counteroffer_ends_at_s" => 170.0,
+                 "provider_counteroffer_start_delta_s" => 30.0,
+                 "provider_counteroffer_end_delta_s" => 10.0,
+                 "provider_counteroffer_duration_delta_s" => -20.0,
+                 "source_station_calendar_overlaps" => [
+                   %{
+                     "source_station_calendar_overlaps" => [
+                       %{"id" => "provider_counteroffer_overlap"}
+                     ]
+                   }
+                 ]
+               }
+             ]
+           } = report
+
+    review = OperatorReview.from_contact_filter_report(report)
+    [review_row] = review["rows"]
+
+    assert %{
+             "review_type" => "contact_suppression",
+             "provider_counteroffer_id" => "provider_offer_overlap",
+             "provider_counteroffer_duration_delta_s" => -20.0,
+             "source_contact_suppression" => %{
+               "provider_counteroffer_id" => "provider_offer_overlap",
+               "provider_counteroffer_duration_delta_s" => -20.0
+             }
+           } = review_row
+
+    import = CadenceImport.from_contact_filter_report(report)
+    [import_row] = import["rows"]
+
+    assert %{
+             "import_action" => "review_contact_suppression",
+             "provider_counteroffer_id" => "provider_offer_overlap",
+             "provider_counteroffer_duration_delta_s" => -20.0,
+             "source_review_row" => %{
+               "provider_counteroffer_id" => "provider_offer_overlap",
+               "provider_counteroffer_duration_delta_s" => -20.0
+             }
+           } = import_row
+
+    assert {:ok, %{"schema_contract" => "contact_filter_report.v1"}} =
+             Schema.validate_artifact(report)
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(review)
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(import)
+  end
+
   test "suppresses invalid contact-like inputs for review instead of keeping them" do
     candidates = [
       contact(:valid_suppressed, starts_at_s: 100.0, ends_at_s: 160.0),

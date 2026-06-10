@@ -1078,17 +1078,13 @@ defmodule OrbitalDynamics.Communications.ContactFilter do
   end
 
   defp provider_counteroffer_review?(station) do
-    provider_counteroffer_id =
-      station["provider_counteroffer_id"] ||
-        get_in(station, ["source_station_calendar_entry", "provider_counteroffer_id"])
-
-    provider_counteroffer_status =
-      station["provider_counteroffer_status"] ||
-        get_in(station, ["source_station_calendar_entry", "provider_counteroffer_status"])
-
     station["required_operator_action"] == "review_provider_counteroffer" or
-      present_station_evidence?(provider_counteroffer_id) or
-      present_station_evidence?(provider_counteroffer_status)
+      present_station_evidence?(
+        provider_counteroffer_source_value(station, "provider_counteroffer_id")
+      ) or
+      present_station_evidence?(
+        provider_counteroffer_source_value(station, "provider_counteroffer_status")
+      )
   end
 
   defp station_reservation_matched?(
@@ -1582,24 +1578,58 @@ defmodule OrbitalDynamics.Communications.ContactFilter do
     end
   end
 
-  defp provider_counteroffer_context_present?(source) do
+  defp provider_counteroffer_context_present?(source) when is_map(source) do
     source["required_operator_action"] == "review_provider_counteroffer" or
-      present_station_evidence?(source["provider_counteroffer_id"]) or
-      present_station_evidence?(source["provider_counteroffer_status"]) or
-      present_station_evidence?(
-        get_in(source, ["source_station_calendar_entry", "provider_counteroffer_id"])
-      ) or
-      present_station_evidence?(
-        get_in(source, ["source_station_calendar_entry", "provider_counteroffer_status"])
-      )
+      Enum.any?(@provider_counteroffer_fields, fn field ->
+        present_station_evidence?(provider_counteroffer_source_value(source, field))
+      end)
   end
 
+  defp provider_counteroffer_context_present?(_source), do: false
+
   defp provider_counteroffer_value(field, candidate, station_state) do
-    candidate[field] ||
-      station_state[field] ||
-      get_in(candidate, ["source_station_calendar_entry", field]) ||
-      get_in(station_state, ["source_station_calendar_entry", field])
+    [
+      provider_counteroffer_source_value(candidate, field),
+      provider_counteroffer_source_value(station_state, field)
+    ]
+    |> Enum.find(&present_station_evidence?/1)
   end
+
+  defp provider_counteroffer_source_value(source, field),
+    do: provider_counteroffer_source_value(source, field, 0)
+
+  defp provider_counteroffer_source_value(source, field, depth)
+       when is_map(source) and depth < 4 do
+    [
+      source[field],
+      provider_counteroffer_source_value(
+        source["source_station_calendar_entry"],
+        field,
+        depth + 1
+      )
+      | source_station_calendar_overlap_values(source, field, depth + 1)
+    ]
+    |> Enum.find(&present_station_evidence?/1)
+  end
+
+  defp provider_counteroffer_source_value(_source, _field, _depth), do: nil
+
+  defp source_station_calendar_overlap_values(
+         %{"source_station_calendar_overlaps" => overlaps},
+         field,
+         depth
+       )
+       when is_list(overlaps),
+       do: Enum.map(overlaps, &provider_counteroffer_source_value(&1, field, depth))
+
+  defp source_station_calendar_overlap_values(
+         %{"source_station_calendar_overlaps" => overlap},
+         field,
+         depth
+       ),
+       do: [provider_counteroffer_source_value(overlap, field, depth)]
+
+  defp source_station_calendar_overlap_values(_source, _field, _depth), do: []
 
   defp provider_counteroffer_start_delta(candidate, station_state) do
     provider_counteroffer_value("provider_counteroffer_start_delta_s", candidate, station_state) ||
