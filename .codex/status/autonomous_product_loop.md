@@ -8,8 +8,8 @@ Current slice:
 V2 repair operational-readiness pressure score term.
 
 Status:
-Implemented, parent-reviewed, and locally verified. Publish handoff is in
-progress.
+Implemented, parent-reviewed, locally verified, and published to `origin/main`.
+Behavior commit: `c92dc76`.
 
 Files changed:
 - Repair scoring:
@@ -42,7 +42,7 @@ Remaining maturity gaps:
   editing; do not rely on stale ledger candidates.
 
 Last behavior commit:
-Pending.
+`c92dc76` Score repair readiness pressure.
 
 Next candidate:
 Recalibrate from live code. Quality-gate evidence appears to have a similar V2
