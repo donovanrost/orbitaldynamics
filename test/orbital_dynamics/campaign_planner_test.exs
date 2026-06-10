@@ -54136,6 +54136,11 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
         "source_artifact_id" => "live_ops",
         "source_readiness_report_id" =>
           "operational_readiness:resource_projection_report.v1:live_ops",
+        "resource_availability_pressure_count" => 99,
+        "resource_availability_reason_counts" => %{"stale_resource_reason" => 99},
+        "resource_availability_reason_ids" => ["stale_resource_reason"],
+        "unavailable_resource_reason_ids" => ["stale_resource_reason"],
+        "resource_blocking_dimension_counts" => %{"stale_dimension" => 99},
         "provenance" => %{"trust_boundary" => "mission_state_quality_gate_report"},
         "rows" => [
           %{
@@ -54200,8 +54205,38 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              }
            } = List.first(quality_gate_branch["events"])
 
+    refute "stale_resource_reason" in List.first(quality_gate_branch["events"])[
+             "resource_availability_reason_ids"
+           ]
+
+    assert Enum.any?(
+             quality_gate_branch["risk_indicators"],
+             &(&1["type"] == "quality_gate_pressure" and
+                 &1["resource_availability_pressure_count"] == 2 and
+                 &1["resource_availability_reason_counts"] == %{
+                   "antenna_unavailable" => 1,
+                   "payload_unavailable" => 1
+                 } and
+                 &1["resource_blocking_dimension_counts"] == %{"communications" => 1})
+           )
+
+    quality_gate_row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(&(&1["branch_id"] == quality_gate_branch["branch_id"]))
+
+    assert "quality_gate_pressure" in quality_gate_row["risk_types"]
+
+    assert quality_gate_row["branch_feedback_sources"] == [
+             "mission_state.source_quality_gate_report.rows"
+           ]
+
+    assert_resource_availability_pressure_score_terms(quality_gate_branch, artifact)
+
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
+
+    assert {:ok, %{"schema_contract" => "branch_comparison_report.v1", "status" => "pass"}} =
+             Schema.validate_artifact(artifact["branch_comparison_report"])
   end
 
   test "strategy preserves operator-training quality-gate row context in branch events" do

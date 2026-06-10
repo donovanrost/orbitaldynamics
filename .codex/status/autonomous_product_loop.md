@@ -5,68 +5,61 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Provider-calendar station-reservation hold-summary stale aggregate challenge
-fixture.
+Resource-availability quality-gate stale aggregate challenge fixture.
 
 Status:
-Implemented, reviewer-cleared, locally verified, committed, and pushed.
+Implemented, locally verified, and reviewer-cleared; publish pending.
 
 Files changed:
-- Provider contention hold expiration propagation:
-  `lib/orbital_dynamics/campaign_planner.ex`
 - Focused strategy regression:
   `test/orbital_dynamics/campaign_planner_test.exs`
 - Ledger:
   `.codex/status/autonomous_product_loop.md`
 
 Tests/checks run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:27885`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:27580 test/orbital_dynamics/campaign_planner_test.exs:27885`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:54133`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:53997 test/orbital_dynamics/campaign_planner_test.exs:54133`
 - `mix compile --warnings-as-errors`
 - `git diff --check`
 
 Level 6 pillar advanced:
-Fleet-level station-reservation hold pressure and reproducible V3 branch trees
-with explainable score terms, by proving provider-calendar contention hold rows
-preserve row-derived expiration status into generated branch events and
-expiration scoring.
+Approval-aware quality gates and fleet/resource pressure with explainable V3
+branch scoring, by proving resource-availability quality-gate row evidence
+drives branch risk even when report-level resource aggregates are stale.
 
 Slice selection note:
-Selected slice: add provider-calendar contention group coverage to the stale
-`station_reservation_hold_summary.v1` strategy challenge.
+Selected slice: add a stale-top-level resource-availability quality-gate
+challenge.
 
-Why this slice: the previous guard proved affected-contact hold rows are
-row-led, but provider contention groups flow through a separate branch-event
-adapter. That path must carry the same row-local hold and expiration evidence
-instead of dropping or replacing it with stale compact-summary fields.
+Why this slice: the quality-gate resource path already preserved row context,
+but the existing test did not make report-level resource maps contradictory. A
+stale compact report should not steer generated quality-gate pressure when row
+resource evidence is present.
 
 Current evidence gap closed:
-The stale hold-summary fixture now includes both an affected-contact expired
-hold and a provider-calendar missing hold. It proves source-summary maps,
-CandidateRefresh replay maps, the generated provider-contention branch event,
-branch comparison fields, expiration score terms, and `campaign_strategy.v3`
-schema validation are driven by row evidence.
+The resource-availability quality-gate strategy fixture now carries stale
+report-level resource pressure counts/reasons while its row carries the live
+antenna/payload resource evidence. It proves the generated event, risk
+indicator, branch feedback source, resource-availability score terms, and
+`campaign_strategy.v3` schema validation stay row-led.
 
 Slice result:
-- Extended the stale hold-summary challenge fixture with a
-  `provider_calendar_contention_group` row.
-- Found and fixed the provider contention event adapter dropping
-  `station_reservation_expiration_status` from generated events.
-- The fixture now pins row-derived provider hold count, hold IDs, direction
-  maps, provider reservation fields, trust boundary, comparison row fields, and
-  expiration score-term reporting.
-- Reviewer requested a direct provider comparison-row expiration-status
-  assertion; parent added it and reran the focused test.
-- Neighboring hold-summary strategy coverage remains green.
+- Extended the existing resource-availability quality-gate row-context test
+  with contradictory report-level resource availability fields.
+- Added assertions that stale report reason IDs do not enter the generated
+  quality-gate event.
+- Added risk-indicator, branch-comparison feedback source, and
+  resource-availability score-term assertions.
+- Reviewer caught an initial selector miss; parent reran the correct focused
+  selector and added branch-comparison schema validation.
+- No production changes were needed; live code was already row-led for this
+  path.
 
 Last completed slice:
 Provider-calendar station-reservation hold-summary stale aggregate challenge
 fixture.
 
 Last pushed commits:
-- Product/ledger: `eb924e1` Guard station calendar summary row evidence
-- Ledger correction: `2802303` Update autonomous loop ledger after station
-  calendar publish
 - Product/ledger: `2f01a4d` Guard station reservation review row evidence
 - Ledger correction: `c2a70df` Update autonomous loop ledger after reservation
   review publish
@@ -74,11 +67,13 @@ Last pushed commits:
   aggregates
 - Ledger correction: `8f7fba4` Update autonomous loop ledger after hold publish
 - Product/ledger: `5e11842` Preserve provider hold expiration pressure
+- Ledger correction: `23ff2f6` Update autonomous loop ledger after provider
+  hold publish
 
 Review/publish queue:
-- Reviewer sidecar found no must-fix issues; parent resolved the recommended
-  provider comparison-row expiration-status assertion.
-- Published to `origin/main` as `5e11842`.
+- Reviewer sidecar found selector and schema-assertion fixes; parent resolved
+  both.
+- Publish pending after reviewer clearance.
 
 Remaining maturity gaps:
 - Continue converting replayed resource/contact/readiness pressure into
@@ -91,8 +86,8 @@ Remaining maturity gaps:
   planner pressure families change public artifact shape.
 
 Next candidate:
-After publishing this provider-contention guard, reassess readiness or resource
-stale-aggregate strategy guards from live evidence.
+After publishing this resource quality-gate guard, reassess model-acceptance or
+timeline-publication stale aggregate strategy guards from live evidence.
 
 Blocked:
 Not blocked.
@@ -100,4 +95,4 @@ Not blocked.
 Notes:
 - The focused CampaignPlanner tests still emit the existing `0.0`
   pattern-match warnings from a separate test; selected tests exit green.
-- Reviewer sidecar: `019eb038-64d1-7ab0-b529-be5feb9400ad`.
+- Reviewer sidecar: `019eb041-1e1e-7733-b254-c8e8b199d8f7`.
