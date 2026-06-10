@@ -5,10 +5,10 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-V2 repair contact source pressure score terms.
+V2 repair resource-filter pressure score term.
 
 Status:
-Implemented, parent-reviewed, locally verified, and committed in `7510a0a`.
+Implemented, parent-reviewed, locally verified, and committed in `8eb2c85`.
 Push/publish handoff is being completed with this ledger update.
 
 Files changed:
@@ -20,8 +20,7 @@ Files changed:
   `.codex/status/autonomous_product_loop.md`
 
 Tests/checks run:
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:4664`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:4859`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:4494`
 - `mix test test/orbital_dynamics/campaign_planner_test.exs:5545`
 - `git diff --check`
 
@@ -42,7 +41,7 @@ Remaining maturity gaps:
   editing; do not rely on stale ledger candidates.
 
 Last behavior commit:
-`7510a0a` Score repair contact source pressure.
+`8eb2c85` Score repair resource filter pressure.
 
 Next candidate:
 Recalibrate from live code. Likely areas remain verified V2/V3 pressure gaps or
@@ -54,10 +53,10 @@ Not blocked.
 
 Notes:
 - Selection note: V2 repair already preserved candidate-refresh
-  `source_contact_filter_report` and `source_contact_allocation_report` into
-  review/import and used them to exclude unusable candidates, but
-  `repair_score_terms` only exposed resource-projection pressure.
-- Slice result: repair score terms now add `contact_filter_pressure_penalty`
-  for suppressed source contacts and `contact_allocation_pressure_penalty` for
-  deferred, blocked, or policy-blocked source allocation rows. Existing score
-  reports and tradeoff reports surface the new keys automatically.
+  `source_resource_filter_report` into review/import and used it to exclude
+  unusable candidates, but `repair_score_terms` did not expose the source
+  resource suppression pressure.
+- Slice result: repair score terms now add `resource_filter_pressure_penalty`
+  for suppressed source resource-filter candidates. Existing score reports and
+  tradeoff reports surface the new key automatically beside resource,
+  contact-filter, and contact-allocation pressure terms.
