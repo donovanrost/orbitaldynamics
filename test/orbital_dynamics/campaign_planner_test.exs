@@ -48185,6 +48185,203 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "strategy ignores stale station-calendar aggregates when deriving branch pressure" do
+    station_calendar_report = %{
+      "schema_contract" => "station_calendar_report.v1",
+      "model" => "campaign_ground_network_interval_overlay",
+      "source" => "campaign_planner_test.stale.station_calendar_report",
+      "provenance" => %{"trust_boundary" => "stale_station_calendar_report_boundary"},
+      "affected_contacts" => [
+        %{
+          "id" => "station_calendar:dl_stale_reserved:reserved",
+          "contact_id" => "dl_stale_reserved",
+          "scenario_id" => "leo_1",
+          "ground_station_id" => "dss_43",
+          "direction" => "Down Link",
+          "starts_at_s" => 420.0,
+          "ends_at_s" => 480.0,
+          "station_calendar_entry_id" => "row_station_reserved",
+          "station_calendar_status" => "reserved",
+          "station_availability" => "reserved",
+          "station_contention_status" => "reserved_overlap",
+          "station_reservation_id" => "row_reservation_43",
+          "station_reserved_by" => "ops_row_owner",
+          "station_reservation_status" => "confirmed",
+          "station_reservation_expires_at_s" => 1_800.0,
+          "station_calendar_trust_boundary_status" => "declared",
+          "trust_boundary" => "stale_station_calendar_row_boundary"
+        }
+      ],
+      "station_calendar_status_counts" => %{"available" => 99},
+      "affected_contact_ground_station_counts" => %{"stale_station" => 99},
+      "affected_contact_availability_counts" => %{"available" => 99},
+      "contact_ids_by_status" => %{"available" => ["stale_contact"]},
+      "station_calendar_entry_ids_by_status" => %{"available" => ["stale_entry"]},
+      "station_reservation_ids_by_status" => %{"available" => ["stale_reservation"]},
+      "direction_counts" => %{"tracking" => 99},
+      "contact_ids_by_direction" => %{"tracking" => ["stale_contact"]}
+    }
+
+    artifact =
+      strategy(base_plan(%{}),
+        mission_state:
+          mission_state_with_refresh_inputs()
+          |> Map.put(:source_station_calendar_report, station_calendar_report),
+        derive_branches?: true,
+        branches: [%{id: "baseline"}],
+        current_epoch_s: 0.0
+      )
+
+    reserved_branch =
+      branch(artifact, "derived_station_calendar_pressure_reserved_dl_stale_reserved")
+
+    candidate_source =
+      assert_candidate_source_report_path(
+        reserved_branch,
+        "mission_state.source_station_calendar_report"
+      )
+
+    source_summary = candidate_source["candidate_refresh_request_source_report_summary"]
+
+    assert source_summary["source_report_station_calendar_status_counts"] == %{"reserved" => 1}
+
+    assert source_summary["source_report_station_calendar_affected_contact_ground_station_counts"] ==
+             %{"dss_43" => 1}
+
+    assert source_summary["source_report_station_calendar_affected_contact_availability_counts"] ==
+             %{"reserved" => 1}
+
+    assert source_summary["source_report_station_calendar_direction_counts"] == %{
+             "downlink" => 1
+           }
+
+    assert source_summary["source_report_station_calendar_contact_ids_by_status"] == %{
+             "reserved" => ["dl_stale_reserved"]
+           }
+
+    assert source_summary["source_report_station_calendar_entry_ids_by_status"] == %{
+             "reserved" => ["row_station_reserved"]
+           }
+
+    assert source_summary["source_report_station_calendar_reservation_ids_by_status"] == %{
+             "reserved" => ["row_reservation_43"]
+           }
+
+    assert source_summary["source_report_station_calendar_contact_ids_by_direction"] == %{
+             "downlink" => ["dl_stale_reserved"]
+           }
+
+    assert source_summary["source_report_station_calendar_entry_ids_by_direction"] == %{
+             "downlink" => ["row_station_reserved"]
+           }
+
+    assert source_summary["source_report_station_calendar_reservation_ids_by_direction"] == %{
+             "downlink" => ["row_reservation_43"]
+           }
+
+    assert source_summary["source_report_station_calendar_direction_routing"] == %{
+             "downlink" => %{
+               "contact_count" => 1,
+               "contact_ids" => ["dl_stale_reserved"],
+               "station_calendar_entry_ids" => ["row_station_reserved"],
+               "station_reservation_ids" => ["row_reservation_43"],
+               "station_capacity_fractions" => [],
+               "provider_contention_group_ids" => [],
+               "provider_contention_source_entry_ids" => [],
+               "provider_contention_provider_ids" => [],
+               "provider_contention_provider_entry_ids" => [],
+               "provider_contention_capacity_fractions" => []
+             }
+           }
+
+    replay_summary = CandidateRefresh.station_calendar_replay_summary(candidate_source)
+
+    assert replay_summary["source_report_count"] == 1
+    assert replay_summary["source_report_row_count"] == 1
+    assert replay_summary["source_report_paths"] == ["mission_state.source_station_calendar_report"]
+    assert replay_summary["affected_contact_count"] == 1
+    assert replay_summary["affected_contact_ids"] == ["dl_stale_reserved"]
+    assert replay_summary["affected_station_calendar_entry_ids"] == ["row_station_reserved"]
+    assert replay_summary["affected_station_reservation_ids"] == ["row_reservation_43"]
+    assert replay_summary["direction_counts"] == %{"downlink" => 1}
+    assert replay_summary["contact_ids_by_direction"] == %{"downlink" => ["dl_stale_reserved"]}
+
+    assert replay_summary["station_calendar_entry_ids_by_direction"] == %{
+             "downlink" => ["row_station_reserved"]
+           }
+
+    assert replay_summary["station_reservation_ids_by_direction"] == %{
+             "downlink" => ["row_reservation_43"]
+           }
+
+    assert replay_summary["direction_routing"] == %{
+             "downlink" => %{
+               "contact_count" => 1,
+               "contact_ids" => ["dl_stale_reserved"],
+               "station_calendar_entry_ids" => ["row_station_reserved"],
+               "station_reservation_ids" => ["row_reservation_43"],
+               "station_capacity_fractions" => [],
+               "provider_contention_group_ids" => [],
+               "provider_contention_source_entry_ids" => [],
+               "provider_contention_provider_ids" => [],
+               "provider_contention_provider_entry_ids" => [],
+               "provider_contention_capacity_fractions" => []
+             }
+           }
+
+    assert replay_summary["station_calendar_status_counts"] == %{"reserved" => 1}
+    assert replay_summary["affected_contact_ground_station_counts"] == %{"dss_43" => 1}
+    assert replay_summary["affected_contact_availability_counts"] == %{"reserved" => 1}
+    assert replay_summary["contact_ids_by_status"] == %{"reserved" => ["dl_stale_reserved"]}
+
+    assert replay_summary["station_calendar_entry_ids_by_status"] == %{
+             "reserved" => ["row_station_reserved"]
+           }
+
+    assert replay_summary["station_reservation_ids_by_status"] == %{
+             "reserved" => ["row_reservation_43"]
+           }
+
+    assert replay_summary["branch_local_station_calendar_pressure"] == true
+    assert replay_summary["branch_local_affected_contact_pressure"] == true
+    assert replay_summary["branch_local_station_availability_pressure"] == true
+
+    assert [
+             %{
+               "type" => "ground_station_reserved",
+               "ground_station_id" => "dss_43",
+               "starts_at_s" => 420.0,
+               "ends_at_s" => 480.0,
+               "station_calendar_entry_id" => "row_station_reserved",
+               "station_calendar_status" => "reserved",
+               "station_availability" => "reserved",
+               "station_contention_status" => "reserved_overlap",
+               "station_reservation_id" => "row_reservation_43",
+               "station_reserved_by" => "ops_row_owner",
+               "station_reservation_status" => "confirmed",
+               "feedback_source" => "mission_state.source_station_calendar_report",
+               "feedback_scope" => "station_calendar",
+               "trust_boundary" => "stale_station_calendar_row_boundary"
+             }
+           ] = reserved_branch["events"]
+
+    reserved_row =
+      artifact["branch_comparison_report"]["rows"]
+      |> Enum.find(
+        &(&1["branch_id"] == "derived_station_calendar_pressure_reserved_dl_stale_reserved")
+      )
+
+    assert reserved_row["branch_station_availabilities"] == ["reserved"]
+    assert reserved_row["branch_station_reservation_ids"] == ["row_reservation_43"]
+    assert reserved_row["branch_station_reserved_by"] == ["ops_row_owner"]
+    assert reserved_row["branch_station_reservation_statuses"] == ["confirmed"]
+
+    assert_station_calendar_pressure_score_terms(reserved_branch, artifact)
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "strategy derives station calendar pressure from result artifact reports" do
     prior_plan =
       base_plan(%{
