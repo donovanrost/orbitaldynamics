@@ -78309,8 +78309,8 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
           "schema_contract" => "score_term_report.v1",
           "model" => "score_term_pressure_fixture",
           "source" => "fixture.score_terms",
-          "row_count" => 1,
-          "score_term_keys" => ["target_gap_count"],
+          "row_count" => 2,
+          "score_term_keys" => ["missing_observation_count", "target_gap_count"],
           "assumptions" => %{"score_term_source" => "fixture"},
           "rows" => [
             %{
@@ -78330,6 +78330,26 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
                   "minimum_elevation_deg" => 15.0
                 }
               ]
+            },
+            %{
+              "id" => "score_gap:missed_observation_target",
+              "rank" => 2,
+              "scenario_id" => "leo_1",
+              "term_key" => "missing observation count",
+              "value" => 2.0,
+              "timeline_score" => 9.0,
+              "selected" => false,
+              "planned_observations" => 0,
+              "missed_observation_target_ids" => ["target_score_missed_obs"],
+              "missed_observation_targets" => [
+                %{
+                  "id" => "target_score_missed_obs",
+                  "priority" => "9.0",
+                  "latitude_deg" => 15.0,
+                  "longitude_deg" => -25.0,
+                  "minimum_elevation_deg" => 11.0
+                }
+              ]
             }
           ]
         }
@@ -78345,6 +78365,9 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
 
     score_branch = branch(artifact, "derived_score_term_pressure_score_gap:inline_target")
 
+    missed_observation_branch =
+      branch(artifact, "derived_score_term_pressure_score_gap:missed_observation_target")
+
     assert %{
              "type" => "urgent_target",
              "target_id" => "target_inline",
@@ -78356,10 +78379,34 @@ defmodule OrbitalDynamics.CampaignPlannerTest do
              "feedback_source" => "prior_plan.source_score_term_report"
            } = List.first(score_branch["events"])
 
+    assert %{
+             "type" => "urgent_target",
+             "target_id" => "target_score_missed_obs",
+             "priority" => 9.0,
+             "latitude_deg" => 15.0,
+             "longitude_deg" => -25.0,
+             "minimum_elevation_deg" => 11.0,
+             "required_observations" => 2,
+             "planned_observations" => 0,
+             "score_term_key" => "missing_observation_count",
+             "score_term_value" => 2.0,
+             "feedback_source" => "prior_plan.source_score_term_report",
+             "feedback_scope" => "score_term",
+             "derivation_reasons" => [
+               "score_term_target_gap",
+               "score_term_missing_observation_count"
+             ]
+           } = List.first(missed_observation_branch["events"])
+
     assert Enum.any?(
              score_branch["candidate_plan"]["strategic_additions"],
              &(&1["type"] == "observe" and &1["target_id"] == "target_inline")
            )
+
+    assert Enum.count(
+             missed_observation_branch["candidate_plan"]["strategic_additions"],
+             &(&1["type"] == "observe" and &1["target_id"] == "target_score_missed_obs")
+           ) == 1
 
     assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
              Schema.validate_artifact(artifact)

@@ -80,7 +80,10 @@ Status: **`partial`**.
 ### Revisit/coverage aliases
 
 - Objective-satisfaction, objective-tradeoff, and score-term target refresh now understand revisit and coverage count aliases such as `required_revisits`, `planned_revisits`, `missing_revisit_count`, and `coverage_shortfall_count`.
-- Plus revisit/coverage target identity aliases such as `missing_revisit_targets`, `required_revisit_target_ids`, `missing_coverage_targets`, and `selected_coverage_target_ids`.
+- Plus revisit/coverage and missed-observation target identity aliases such as
+  `missing_revisit_targets`, `required_revisit_target_ids`,
+  `missing_coverage_targets`, `missed_observation_target_ids`, and
+  `selected_coverage_target_ids`.
 - So branch-local urgent-target staging preserves the requested revisit/coverage target and quantity instead of degrading those rows to a one-observation placeholder or dropping the target identity.
 
 ### Scoped standalone objectives
