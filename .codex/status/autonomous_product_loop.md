@@ -9,7 +9,7 @@ V2 repair preserves supplied candidate-refresh readiness and quality source
 reports for review/import handoff.
 
 Status:
-Implemented locally and verified; review/publish pending.
+Implemented, reviewer-cleared, locally verified, committed, and pushed.
 
 Files changed:
 - V2 repair source-report attachment:
@@ -50,11 +50,11 @@ Remaining maturity gaps:
   behavior changes public artifact shape.
 
 Last commit:
-`87022a1` Update autonomous loop ledger after budget publish.
+`12a1516` Preserve repair readiness source reports.
 
 Next candidate:
-After review/publish, reassess whether generated candidate-refresh source
-payload preservation or a compatibility fixture is the highest-value next step.
+Reassess whether generated candidate-refresh source payload preservation or a
+compatibility fixture is the highest-value next step.
 
 Blocked:
 Not blocked.
@@ -78,3 +78,5 @@ Notes:
 - Focused CampaignPlanner tests still emit existing unrelated `0.0`
   pattern-match warnings from another test; selected tests exit green.
 - Reviewer sidecar: `019eb09d-746b-7952-a14f-f85ecdc8d51e`.
+- Publisher sidecar pushed `12a1516` to `origin/main`.
+- Publisher sidecar: `019eb0a2-dcc6-7b52-bf46-3e29fcb94a53`.
