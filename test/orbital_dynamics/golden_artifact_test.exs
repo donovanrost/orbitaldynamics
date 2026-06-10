@@ -492,7 +492,7 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "schema_version" => 3,
              "planner" => "OrbitalDynamics.CampaignPlanner.V3",
              "source_plan_id" => "campaign_plan:leo_constellation_campaign:2026-05-14T00:00:00Z",
-             "strategy_id" => "75bf160d3d94a6ef46e8cbedcce8f8511bac46a9e91694f9385976e036ed891a",
+             "strategy_id" => "b3535af8c8b303fc1a1837e5ee8074f3920806e766ed5802b77f63741d085459",
              "recommended_branch_id" => "derived_urgent_target_target_hot",
              "approval_status" => "operator_review_required",
              "recommendation_status" => "pass"
@@ -537,7 +537,7 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "pressure_row_count",
              "selected_pressure_row_count"
            ]) == %{
-             "row_count" => 1566,
+             "row_count" => 1647,
              "score_term_keys" => [
                "approval_boundary_pressure_penalty",
                "approval_load_penalty",
@@ -569,6 +569,7 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
                "operator_training_pressure_penalty",
                "priority_commitment_score",
                "provider_counteroffer_pressure_penalty",
+               "provider_reservation_request_pressure_penalty",
                "quality_gate_pressure_penalty",
                "raw_score",
                "refresh_budget_pressure_penalty",
@@ -583,6 +584,8 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
                "schedule_stability_penalty",
                "schema_validation_pressure_penalty",
                "station_calendar_pressure_penalty",
+               "station_reservation_conflict_pressure_penalty",
+               "station_reservation_expiration_pressure_penalty",
                "storage_downlink_pressure_penalty",
                "timeline_activity_state_pressure_penalty",
                "timeline_dependency_impact_pressure_penalty",
@@ -598,8 +601,8 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
                "validation_refresh_pressure_penalty",
                "validation_safety_case_pressure_penalty"
              ],
-             "pressure_row_count" => 1134,
-             "selected_pressure_row_count" => 42
+             "pressure_row_count" => 1215,
+             "selected_pressure_row_count" => 45
            }
 
     assert surface["objective_tradeoff_report"]["ranking_count"] == 27
@@ -611,9 +614,9 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "score_term_review_count",
              "objective_tradeoff_review_count"
            ]) == %{
-             "review_count" => 2197,
+             "review_count" => 2282,
              "contact_allocation_review_count" => 25,
-             "score_term_review_count" => 1647,
+             "score_term_review_count" => 1728,
              "objective_tradeoff_review_count" => 54
            }
 
@@ -623,8 +626,8 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "review_required_count",
              "contact_allocation_import_count"
            ]) == %{
-             "row_count" => 2223,
-             "review_required_count" => 2197,
+             "row_count" => 2308,
+             "review_required_count" => 2282,
              "contact_allocation_import_count" => 25
            }
   end
@@ -666,12 +669,15 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "model_acceptance_pressure_penalty",
              "objective_gap_pressure_penalty",
              "operational_timeline_pressure_penalty",
+             "provider_reservation_request_pressure_penalty",
              "refresh_budget_pressure_penalty",
              "refresh_freshness_pressure_penalty",
              "resource_availability_pressure_penalty",
              "resource_margin_pressure_penalty",
              "schema_validation_pressure_penalty",
              "station_calendar_pressure_penalty",
+             "station_reservation_conflict_pressure_penalty",
+             "station_reservation_expiration_pressure_penalty",
              "timeline_activity_state_pressure_penalty",
              "timeline_diff_pressure_penalty",
              "timeline_feedback_pressure_penalty",
