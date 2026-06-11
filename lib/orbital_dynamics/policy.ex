@@ -5360,6 +5360,10 @@ defmodule OrbitalDynamics.Policy do
     blocked_refresh_freshness_pressure?(risk)
   end
 
+  defp risk_matches_blocked_type?(risk, "station_reservation_expiration_blocked") do
+    blocked_station_reservation_expiration_pressure?(risk)
+  end
+
   defp risk_matches_blocked_type?(_risk, _blocked_type), do: false
 
   defp blocked_model_acceptance_pressure?(risk) do
@@ -5405,6 +5409,15 @@ defmodule OrbitalDynamics.Policy do
       "stale" in List.wrap(risk["freshness_statuses"]) or
       positive_count?(risk["stale_reason_count"]) or
       risk["branch_local_stale_pressure"] == true
+  end
+
+  defp blocked_station_reservation_expiration_pressure?(risk) do
+    risk["station_reservation_expiration_status"] in ["expired", "missing"] or
+      risk["station_reservation_hold_expiration_status"] in ["expired", "missing"] or
+      "expired" in List.wrap(risk["station_reservation_expiration_statuses"]) or
+      "missing" in List.wrap(risk["station_reservation_expiration_statuses"]) or
+      "expired" in List.wrap(risk["station_reservation_hold_expiration_statuses"]) or
+      "missing" in List.wrap(risk["station_reservation_hold_expiration_statuses"])
   end
 
   defp resource_availability_blocked?(risk) do

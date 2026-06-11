@@ -352,7 +352,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
                 "validation_safety_case_blocked",
                 "schema_validation_blocked",
                 "refresh_budget_blocked",
-                "refresh_freshness_blocked"
+                "refresh_freshness_blocked",
+                "station_reservation_expiration_blocked"
               ],
               action_rules: []
   end
@@ -8072,6 +8073,13 @@ defmodule OrbitalDynamics.CampaignPlanner do
         "station_reservation_status" => event["station_reservation_status"],
         "station_reservation_match_status" => event["station_reservation_match_status"],
         "station_reservation_expires_at_s" => event["station_reservation_expires_at_s"],
+        "station_reservation_expiration_status" => event["station_reservation_expiration_status"],
+        "station_reservation_expiration_statuses" =>
+          event["station_reservation_expiration_statuses"],
+        "station_reservation_hold_expiration_status" =>
+          event["station_reservation_hold_expiration_status"],
+        "station_reservation_hold_expiration_statuses" =>
+          event["station_reservation_hold_expiration_statuses"],
         "station_reservation_hold_import_status" =>
           event["station_reservation_hold_import_status"],
         "station_reservation_hold_import_readiness_summary_model" =>

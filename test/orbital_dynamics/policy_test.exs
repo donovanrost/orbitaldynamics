@@ -3718,6 +3718,61 @@ defmodule OrbitalDynamics.PolicyTest do
     assert review_decision["classification"] == "operator_review_required"
   end
 
+  test "fallback policy blocks expired station-reservation pressure but leaves active reviewable" do
+    policy = %{blocked_risk_types: ["station_reservation_expiration_blocked"]}
+
+    for {branch_id, expiration_status} <- [
+          {"expired_station_reservation", "expired"},
+          {"missing_station_reservation", "missing"}
+        ] do
+      {blocked_status, _requirements, _matches, blocked_decision} =
+        Policy.decide(
+          [],
+          [
+            %{
+              "type" => "downlink_completion_gap",
+              "feedback_scope" => "station_reservation_hold_import_readiness",
+              "station_reservation_id" => "#{expiration_status}_reservation",
+              "station_reservation_expiration_status" => expiration_status,
+              "station_reservation_expiration_statuses" => [expiration_status],
+              "station_reservation_hold_expiration_status" => expiration_status,
+              "station_reservation_hold_expiration_statuses" => [expiration_status],
+              "required_operator_action" => "review_station_reservation_overlap"
+            }
+          ],
+          %{"id" => branch_id, "events" => []},
+          %{},
+          policy
+        )
+
+      assert blocked_status == "blocked_by_policy"
+      assert blocked_decision["classification"] == "blocked_by_policy"
+    end
+
+    {review_status, _requirements, _matches, review_decision} =
+      Policy.decide(
+        [],
+        [
+          %{
+            "type" => "downlink_completion_gap",
+            "feedback_scope" => "station_reservation_hold_import_readiness",
+            "station_reservation_id" => "active_reservation",
+            "station_reservation_expiration_status" => "active",
+            "station_reservation_expiration_statuses" => ["active"],
+            "station_reservation_hold_expiration_status" => "active",
+            "station_reservation_hold_expiration_statuses" => ["active"],
+            "required_operator_action" => "review_station_reservation_overlap"
+          }
+        ],
+        %{"id" => "active_station_reservation", "events" => []},
+        %{},
+        policy
+      )
+
+    assert review_status == "operator_review_required"
+    assert review_decision["classification"] == "operator_review_required"
+  end
+
   test "matches requirement types grouped risk types and grouped event types" do
     policy = %{
       action_rules: [
