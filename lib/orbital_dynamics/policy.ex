@@ -5385,6 +5385,20 @@ defmodule OrbitalDynamics.Policy do
     blocked_provider_counteroffer_pressure?(risk)
   end
 
+  defp risk_matches_blocked_type?(
+         %{"type" => "provider_reservation_request_review"} = risk,
+         "provider_reservation_request_blocked"
+       ) do
+    blocked_provider_reservation_request_pressure?(risk)
+  end
+
+  defp risk_matches_blocked_type?(
+         %{"feedback_scope" => "contact_allocation_provider_reservation_request"} = risk,
+         "provider_reservation_request_blocked"
+       ) do
+    blocked_provider_reservation_request_pressure?(risk)
+  end
+
   defp risk_matches_blocked_type?(_risk, _blocked_type), do: false
 
   defp blocked_model_acceptance_pressure?(risk) do
@@ -5453,6 +5467,21 @@ defmodule OrbitalDynamics.Policy do
       positive_count_for_key?(risk["provider_counteroffer_import_status_counts"], "blocked") or
       positive_count_for_key?(risk["import_readiness_status_counts"], "blocked") or
       positive_count_for_key?(risk["import_classification_counts"], "blocked")
+  end
+
+  defp blocked_provider_reservation_request_pressure?(risk) do
+    blocked_value?(risk["provider_reservation_request_status"]) or
+      risk["provider_reservation_request_status"] == "review_required" or
+      risk["provider_reservation_row_scope"] == "review" or
+      risk["station_reservation_match_status"] in [
+        "overlap",
+        "conflict",
+        "unmatched",
+        "owner_mismatch"
+      ] or
+      Enum.any?(List.wrap(risk["station_reservation_match_statuses"]), fn status ->
+        status in ["overlap", "conflict", "unmatched", "owner_mismatch"]
+      end)
   end
 
   defp positive_count_for_key?(%{} = counts, key), do: positive_count?(Map.get(counts, key))

@@ -354,7 +354,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
                 "refresh_budget_blocked",
                 "refresh_freshness_blocked",
                 "station_reservation_expiration_blocked",
-                "provider_counteroffer_blocked"
+                "provider_counteroffer_blocked",
+                "provider_reservation_request_blocked"
               ],
               action_rules: []
   end

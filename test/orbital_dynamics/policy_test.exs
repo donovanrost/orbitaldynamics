@@ -3840,6 +3840,70 @@ defmodule OrbitalDynamics.PolicyTest do
     assert review_decision["classification"] == "operator_review_required"
   end
 
+  test "fallback policy blocks provider reservation review pressure but leaves request-ready reviewable" do
+    policy = %{blocked_risk_types: ["provider_reservation_request_blocked"]}
+
+    for {branch_id, risk} <- [
+          {"provider_reservation_review_required",
+           %{
+             "type" => "provider_reservation_request_review",
+             "feedback_scope" => "contact_allocation_provider_reservation_request",
+             "contact_id" => "dl_provider_review",
+             "station_reservation_id" => "reservation_review",
+             "station_reservation_match_status" => "overlap",
+             "provider_reservation_request_status" => "review_required",
+             "provider_reservation_row_scope" => "review",
+             "required_operator_action" => "review_provider_reservation_request"
+           }},
+          {"provider_reservation_unmatched_request",
+           %{
+             "type" => "provider_reservation_request_review",
+             "feedback_scope" => "contact_allocation_provider_reservation_request",
+             "contact_id" => "dl_provider_unmatched",
+             "station_reservation_id" => "reservation_unmatched",
+             "station_reservation_match_status" => "unmatched",
+             "provider_reservation_request_status" => "request_ready",
+             "provider_reservation_row_scope" => "request",
+             "required_operator_action" => "review_provider_reservation_request"
+           }}
+        ] do
+      {blocked_status, _requirements, _matches, blocked_decision} =
+        Policy.decide(
+          [],
+          [risk],
+          %{"id" => branch_id, "events" => []},
+          %{},
+          policy
+        )
+
+      assert blocked_status == "blocked_by_policy"
+      assert blocked_decision["classification"] == "blocked_by_policy"
+    end
+
+    {review_status, _requirements, _matches, review_decision} =
+      Policy.decide(
+        [],
+        [
+          %{
+            "type" => "provider_reservation_request_review",
+            "feedback_scope" => "contact_allocation_provider_reservation_request",
+            "contact_id" => "dl_provider_request_ready",
+            "station_reservation_id" => "reservation_request_ready",
+            "station_reservation_match_status" => "matched",
+            "provider_reservation_request_status" => "request_ready",
+            "provider_reservation_row_scope" => "request",
+            "required_operator_action" => "review_provider_reservation_request"
+          }
+        ],
+        %{"id" => "request_ready_provider_reservation", "events" => []},
+        %{},
+        policy
+      )
+
+    assert review_status == "operator_review_required"
+    assert review_decision["classification"] == "operator_review_required"
+  end
+
   test "matches requirement types grouped risk types and grouped event types" do
     policy = %{
       action_rules: [
