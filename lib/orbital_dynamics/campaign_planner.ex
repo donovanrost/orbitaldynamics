@@ -342,6 +342,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
                 "downlink_shortfall",
                 "operational_readiness_blocked",
                 "quality_gate_blocked",
+                "import_readiness_blocked",
                 "contact_intent_blocked",
                 "link_capacity_blocked",
                 "resource_projection_blocked",

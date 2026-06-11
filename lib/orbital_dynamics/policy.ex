@@ -5229,6 +5229,20 @@ defmodule OrbitalDynamics.Policy do
   end
 
   defp risk_matches_blocked_type?(
+         %{"type" => "operational_readiness_pressure"} = risk,
+         "import_readiness_blocked"
+       ) do
+    blocked_import_readiness_pressure?(risk)
+  end
+
+  defp risk_matches_blocked_type?(
+         %{"type" => "quality_gate_pressure"} = risk,
+         "import_readiness_blocked"
+       ) do
+    blocked_import_readiness_pressure?(risk)
+  end
+
+  defp risk_matches_blocked_type?(
          %{"type" => "downlink_completion_gap", "feedback_scope" => "contact_intent"} = risk,
          "contact_intent_blocked"
        ) do
@@ -5428,6 +5442,14 @@ defmodule OrbitalDynamics.Policy do
       risk["branch_local_schema_error_pressure"] == true
   end
 
+  defp blocked_import_readiness_pressure?(risk) do
+    risk["import_blocked"] == true or
+      positive_count?(risk["blocked_import_count"]) or
+      nonempty_list?(risk["blocked_import_quality_gate_row_ids"]) or
+      positive_count_for_key?(risk["import_status_counts"], "blocked") or
+      positive_count_for_key?(risk["import_status_counts"], "blocked_missing_cadence_import")
+  end
+
   defp blocked_refresh_budget_pressure?(risk) do
     blocked_value?(risk["refresh_budget_status"]) or
       risk["refresh_budget_status"] == "invalid" or
@@ -5483,6 +5505,8 @@ defmodule OrbitalDynamics.Policy do
         status in ["overlap", "conflict", "unmatched", "owner_mismatch"]
       end)
   end
+
+  defp nonempty_list?(value), do: is_list(value) and value != []
 
   defp positive_count_for_key?(%{} = counts, key), do: positive_count?(Map.get(counts, key))
   defp positive_count_for_key?(_counts, _key), do: false

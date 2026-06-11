@@ -3597,6 +3597,97 @@ defmodule OrbitalDynamics.PolicyTest do
     assert review_decision["classification"] == "operator_review_required"
   end
 
+  test "fallback policy blocks import-readiness blockers but leaves review-only import readiness reviewable" do
+    policy = %{blocked_risk_types: ["import_readiness_blocked"]}
+
+    for {branch_id, risk} <- [
+          {"operational_readiness_import_blocked",
+           %{
+             "type" => "operational_readiness_pressure",
+             "feedback_scope" => "operational_readiness",
+             "readiness_gate_id" => "cadence_import",
+             "operational_readiness_status" => "review_required",
+             "import_classification" => "review_only",
+             "import_blocked" => true,
+             "blocked_import_count" => 1,
+             "invalid_cadence_import_count" => 0,
+             "import_status_counts" => %{"blocked_missing_cadence_import" => 1},
+             "cadence_import_status_counts" => %{"missing" => 1},
+             "required_operator_action" => "review_operational_readiness"
+           }},
+          {"quality_gate_import_invalid",
+           %{
+             "type" => "quality_gate_pressure",
+             "feedback_scope" => "quality_gate",
+             "gate_id" => "cadence_import",
+             "quality_gate_status" => "review_required",
+             "import_classification" => "review_only",
+             "import_blocked" => true,
+             "blocked_import_count" => 0,
+             "invalid_cadence_import_count" => 1,
+             "cadence_import_status_counts" => %{"invalid" => 1},
+             "blocked_import_quality_gate_row_ids" => ["quality_gate:cadence_import:blocked"],
+             "required_operator_action" => "review_operational_readiness"
+           }}
+        ] do
+      {blocked_status, _requirements, _matches, blocked_decision} =
+        Policy.decide(
+          [],
+          [risk],
+          %{"id" => branch_id, "events" => []},
+          %{},
+          policy
+        )
+
+      assert blocked_status == "blocked_by_policy"
+      assert blocked_decision["classification"] == "blocked_by_policy"
+    end
+
+    for {branch_id, risk} <- [
+          {"review_only_readiness_import_invalid",
+           %{
+             "type" => "operational_readiness_pressure",
+             "feedback_scope" => "operational_readiness",
+             "readiness_gate_id" => "cadence_import",
+             "operational_readiness_status" => "review_required",
+             "import_classification" => "review_only",
+             "import_blocked" => false,
+             "blocked_import_count" => 0,
+             "invalid_cadence_import_count" => 1,
+             "import_status_counts" => %{"review_required_before_import" => 1},
+             "cadence_import_status_counts" => %{"invalid" => 1},
+             "required_operator_action" => "review_operational_readiness"
+           }},
+          {"review_only_quality_gate_import_invalid",
+           %{
+             "type" => "quality_gate_pressure",
+             "feedback_scope" => "quality_gate",
+             "gate_id" => "cadence_import",
+             "quality_gate_status" => "review_required",
+             "import_classification" => "review_only",
+             "import_blocked" => false,
+             "blocked_import_count" => 0,
+             "invalid_cadence_import_count" => 1,
+             "import_status_counts" => %{"review_required_before_import" => 1},
+             "cadence_import_status_counts" => %{"invalid" => 1},
+             "blocked_import_quality_gate_row_ids" => [],
+             "required_operator_action" => "review_operational_readiness"
+           }}
+        ] do
+      {review_status, _requirements, _matches, review_decision} =
+        Policy.decide(
+          [],
+          [risk],
+          %{"id" => branch_id, "events" => []},
+          %{},
+          policy
+        )
+
+      assert review_status == "operator_review_required"
+      assert review_decision["classification"] == "operator_review_required"
+    end
+  end
+
   test "fallback policy blocks invalid refresh-budget pressure but leaves drops and limits reviewable" do
     policy = %{blocked_risk_types: ["refresh_budget_blocked"]}
 
