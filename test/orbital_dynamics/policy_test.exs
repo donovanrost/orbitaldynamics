@@ -3773,6 +3773,73 @@ defmodule OrbitalDynamics.PolicyTest do
     assert review_decision["classification"] == "operator_review_required"
   end
 
+  test "fallback policy blocks blocked provider counteroffer pressure but leaves active reviewable" do
+    policy = %{blocked_risk_types: ["provider_counteroffer_blocked"]}
+
+    for {branch_id, risk} <- [
+          {"blocked_provider_counteroffer_import",
+           %{
+             "type" => "provider_counteroffer_pressure",
+             "feedback_scope" => "provider_counteroffer",
+             "provider_counteroffer_id" => "counteroffer_blocked_import",
+             "provider_counteroffer_import_status" => "blocked",
+             "import_readiness_status" => "blocked",
+             "import_classification" => "blocked",
+             "provider_counteroffer_lock_deadline_status" => "active",
+             "counteroffer_lock_deadline_status_counts" => %{"active" => 1},
+             "required_operator_action" => "review_provider_counteroffer"
+           }},
+          {"expired_provider_counteroffer_lock",
+           %{
+             "type" => "provider_counteroffer_review",
+             "feedback_scope" => "provider_counteroffer",
+             "provider_counteroffer_id" => "counteroffer_expired_lock",
+             "provider_counteroffer_import_status" => "review_required_before_import",
+             "import_readiness_status" => "review_required",
+             "import_classification" => "review_only",
+             "provider_counteroffer_lock_deadline_status" => "expired",
+             "counteroffer_lock_deadline_status_counts" => %{"expired" => 1},
+             "required_operator_action" => "review_provider_counteroffer"
+           }}
+        ] do
+      {blocked_status, _requirements, _matches, blocked_decision} =
+        Policy.decide(
+          [],
+          [risk],
+          %{"id" => branch_id, "events" => []},
+          %{},
+          policy
+        )
+
+      assert blocked_status == "blocked_by_policy"
+      assert blocked_decision["classification"] == "blocked_by_policy"
+    end
+
+    {review_status, _requirements, _matches, review_decision} =
+      Policy.decide(
+        [],
+        [
+          %{
+            "type" => "provider_counteroffer_pressure",
+            "feedback_scope" => "provider_counteroffer",
+            "provider_counteroffer_id" => "counteroffer_active_review",
+            "provider_counteroffer_import_status" => "review_required_before_import",
+            "import_readiness_status" => "review_required",
+            "import_classification" => "review_only",
+            "provider_counteroffer_lock_deadline_status" => "active",
+            "counteroffer_lock_deadline_status_counts" => %{"active" => 1},
+            "required_operator_action" => "review_provider_counteroffer"
+          }
+        ],
+        %{"id" => "active_provider_counteroffer", "events" => []},
+        %{},
+        policy
+      )
+
+    assert review_status == "operator_review_required"
+    assert review_decision["classification"] == "operator_review_required"
+  end
+
   test "matches requirement types grouped risk types and grouped event types" do
     policy = %{
       action_rules: [

@@ -5364,6 +5364,27 @@ defmodule OrbitalDynamics.Policy do
     blocked_station_reservation_expiration_pressure?(risk)
   end
 
+  defp risk_matches_blocked_type?(
+         %{"type" => "provider_counteroffer_pressure"} = risk,
+         "provider_counteroffer_blocked"
+       ) do
+    blocked_provider_counteroffer_pressure?(risk)
+  end
+
+  defp risk_matches_blocked_type?(
+         %{"type" => "provider_counteroffer_review"} = risk,
+         "provider_counteroffer_blocked"
+       ) do
+    blocked_provider_counteroffer_pressure?(risk)
+  end
+
+  defp risk_matches_blocked_type?(
+         %{"feedback_scope" => "provider_counteroffer"} = risk,
+         "provider_counteroffer_blocked"
+       ) do
+    blocked_provider_counteroffer_pressure?(risk)
+  end
+
   defp risk_matches_blocked_type?(_risk, _blocked_type), do: false
 
   defp blocked_model_acceptance_pressure?(risk) do
@@ -5419,6 +5440,23 @@ defmodule OrbitalDynamics.Policy do
       "expired" in List.wrap(risk["station_reservation_hold_expiration_statuses"]) or
       "missing" in List.wrap(risk["station_reservation_hold_expiration_statuses"])
   end
+
+  defp blocked_provider_counteroffer_pressure?(risk) do
+    blocked_value?(risk["provider_counteroffer_import_status"]) or
+      blocked_value?(risk["import_readiness_status"]) or
+      blocked_value?(risk["import_classification"]) or
+      risk["provider_counteroffer_lock_deadline_status"] in ["expired", "missing"] or
+      "expired" in List.wrap(risk["provider_counteroffer_lock_deadline_statuses"]) or
+      "missing" in List.wrap(risk["provider_counteroffer_lock_deadline_statuses"]) or
+      positive_count_for_key?(risk["counteroffer_lock_deadline_status_counts"], "expired") or
+      positive_count_for_key?(risk["counteroffer_lock_deadline_status_counts"], "missing") or
+      positive_count_for_key?(risk["provider_counteroffer_import_status_counts"], "blocked") or
+      positive_count_for_key?(risk["import_readiness_status_counts"], "blocked") or
+      positive_count_for_key?(risk["import_classification_counts"], "blocked")
+  end
+
+  defp positive_count_for_key?(%{} = counts, key), do: positive_count?(Map.get(counts, key))
+  defp positive_count_for_key?(_counts, _key), do: false
 
   defp resource_availability_blocked?(risk) do
     is_binary(risk["resource_field"]) and

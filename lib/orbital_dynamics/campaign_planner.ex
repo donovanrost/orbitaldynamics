@@ -353,7 +353,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
                 "schema_validation_blocked",
                 "refresh_budget_blocked",
                 "refresh_freshness_blocked",
-                "station_reservation_expiration_blocked"
+                "station_reservation_expiration_blocked",
+                "provider_counteroffer_blocked"
               ],
               action_rules: []
   end
