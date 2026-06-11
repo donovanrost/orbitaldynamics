@@ -5,14 +5,16 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Stale refresh-freshness pressure affects V3 recommendation selection.
+Expired station-reservation pressure affects V3 recommendation selection.
 
 Status:
-Implemented, reviewed, verified, and published locally.
-Behavior commit: `8cb54fd` Block stale refresh freshness recommendations by default.
+Implemented, parent-reviewed, verified, and published locally.
+Behavior commit: `0c82fc1` Block expired station reservation recommendations by default.
 
 Files changed:
 - V3 campaign strategy default approval policy:
+  `lib/orbital_dynamics/campaign_planner.ex`
+- V3 downlink-gap risk preservation for reservation expiration fields:
   `lib/orbital_dynamics/campaign_planner.ex`
 - Shared approval fallback matching: `lib/orbital_dynamics/policy.ex`
 - Focused V3 recommendation regression:
@@ -24,61 +26,64 @@ Files changed:
 - Ledger: `.codex/status/autonomous_product_loop.md`
 
 Tests/checks run:
-- `mix test test/orbital_dynamics/policy_test.exs:3670`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:9974`
-- `mix test test/orbital_dynamics/policy_test.exs`: `85 passed`.
-- `mix test test/orbital_dynamics/campaign_planner_test.exs`: `730 passed`.
+- `mix test test/orbital_dynamics/policy_test.exs:3719`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:10119`
+- `mix test test/orbital_dynamics/policy_test.exs`: `86 passed`.
+- Initial `mix test test/orbital_dynamics/campaign_planner_test.exs` exposed
+  missing branch-risk preservation for reservation expiration status.
+- `mix test test/orbital_dynamics/campaign_planner_test.exs:10119`
+- `mix test test/orbital_dynamics/campaign_planner_test.exs`: `731 passed`.
 - Initial `mix test` confirmed one expected checked-in fixture drift:
-  `3345/3346` passed.
+  `3347/3348` passed.
 - Regenerated `study_results/campaign_repair_readiness_source_handoff_v2.json`
   through `OrbitalDynamics.campaign_repair/1`.
 - `mix test test/orbital_dynamics/schema_test.exs:16173`
 - `mix orbital_dynamics.schema.lint --input study_results/campaign_repair_readiness_source_handoff_v2.json --contract campaign_repair.v2`
-- Final `mix test`: `3346 passed`.
+- Final `mix test`: `3348 passed`.
 - `git diff --check`
-- `slice_reviewer` read-only review: no findings before publish.
+- Parent read-only review: no must-fix findings.
 
 Behavior changed:
-Stale refresh-freshness pressure now affects V3 branch recommendation selection
-by default before review/import handoff. The V3 default approval policy includes
-the semantic `refresh_freshness_blocked` alias, and the shared fallback matcher
-treats stale freshness status, stale state-quality status, stale freshness
-status sets, positive stale-reason counts, or branch-local stale pressure as
-`blocked_by_policy`. Unknown refresh-freshness pressure remains selectable with
-operator review.
+Expired or missing station-reservation evidence now affects V3 branch
+recommendation selection by default before review/import handoff. The V3
+default approval policy includes the semantic
+`station_reservation_expiration_blocked` alias, the shared fallback matcher
+blocks expired/missing reservation or hold-expiration status evidence, and V3
+downlink-gap branch risks preserve reservation expiration fields so the policy
+can evaluate direct branch events. Active reservation pressure remains
+selectable with operator review.
 
 Level 6 pillar advanced:
-Refreshed candidates from current mission state and realized feedback.
+Fleet-level resource, contact, station-calendar, and allocation behavior with
+approval-aware automation boundaries.
 
 Remaining maturity gaps:
-- Use selected contact/readiness pressure in additional planner-visible
-  selection or scoring paths where live code still leaves it only review-visible.
+- Continue converting existing selected contact/resource/readiness pressure
+  families from review-visible evidence into explicit selection or policy
+  behavior where live code still leaves a gap.
 - Add stale-but-plausible resource/contact fixtures only after verifying the
   target family is not already covered.
 - Continue reassessing from live code and Level 6 docs between slices.
 
 Last behavior commit:
-`8cb54fd` Block stale refresh freshness recommendations by default.
+`0c82fc1` Block expired station reservation recommendations by default.
 
 Last docs commit:
 `a4b6dca` Document operational readiness fixture coverage.
 
 Next candidate:
-After this slice, reassess from current code and roadmap. Good next areas are a
-selected contact/readiness pressure path or a missing challenge fixture with
-exact regeneration evidence.
+After publish, reassess from current code and roadmap. Good next areas are a
+provider-reservation request/counteroffer selection boundary, a selected
+readiness subfamily still only review-visible, or a missing challenge fixture
+with exact regeneration evidence.
 
 Blocked:
 Not blocked.
 
 Notes:
-- Selection note: live search found freshness replay creates
-  `refresh_freshness_pressure` risk indicators and score-term penalties for
-  stale and unknown planning-state freshness, but the V3 default approval
-  policy had no semantic blocked alias for stale freshness evidence. This slice
-  makes stale refresh-freshness pressure approval-boundary visible while leaving
-  unknown freshness reviewable.
-- Reviewer notes: `slice_reviewer` found no must-fix issues, confirmed the
-  stale-block/unknown-review behavior and tests, and verified the checked-in
-  fixture drift is limited to adding `refresh_freshness_blocked` to the
-  serialized default fallback policy list.
+- Selection note: live search found `station_reservation_expiration_pressure`
+  already had V3 score terms and branch-comparison fields, but no default
+  semantic blocked alias. This slice makes expired/missing reservation evidence
+  approval-boundary visible while leaving active reservation pressure reviewable.
+- Reviewer notes: subagent delegation was not used in this turn; the parent
+  performed the bounded read-only review and found no publish blockers.
