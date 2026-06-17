@@ -1,0 +1,137 @@
+defmodule OrbitalDynamics.CampaignPlanner.PressureRiskFields.SourceReports do
+  @moduledoc false
+
+  def candidate_rejection do
+    [
+      "candidate_id",
+      "activity_id",
+      "activity_type",
+      "scenario_id",
+      "target_id",
+      "ground_station_id",
+      "source_window_id",
+      "source_window_type",
+      "rejection_status",
+      "primary_rejection_reason",
+      "rejection_reasons",
+      "violated_constraint",
+      "required_margin",
+      "actual_margin",
+      "required_operator_action",
+      "feedback_source",
+      "feedback_scope",
+      "feedback_key",
+      "trust_boundary",
+      "source_candidate_rejection"
+    ]
+  end
+
+  def command_window do
+    [
+      "source_report_count",
+      "source_report_row_count",
+      "source_report_paths",
+      "command_feedback_count",
+      "input_keys",
+      "direction_counts",
+      "activity_ids_by_direction",
+      "window_ids_by_direction",
+      "direction_routing",
+      "required_operator_action_counts",
+      "trust_boundary_status",
+      "trust_boundaries",
+      "branch_local_command_feedback_pressure",
+      "branch_local_command_window_action_pressure",
+      "feedback_source",
+      "feedback_scope",
+      "assumptions"
+    ]
+  end
+
+  def objective_gap do
+    [
+      "contracts",
+      "source_report_count",
+      "source_report_row_count",
+      "source_report_paths",
+      "routed_gap_signal_count",
+      "downlink_gap_row_count",
+      "target_gap_row_count",
+      "collection_latency_gap_row_count",
+      "objective_satisfaction_gap_row_count",
+      "objective_satisfaction_status_counts",
+      "objective_satisfaction_objective_type_counts",
+      "objective_tradeoff_downlink_gap_row_count",
+      "objective_tradeoff_target_gap_row_count",
+      "objective_tradeoff_collection_latency_gap_row_count",
+      "score_term_downlink_gap_row_count",
+      "score_term_target_gap_row_count",
+      "score_term_collection_latency_gap_row_count",
+      "score_term_key_counts",
+      "ground_station_counts",
+      "target_counts",
+      "collection_counts",
+      "source_activity_id_counts",
+      "trust_boundary_status_counts",
+      "trust_boundaries",
+      "branch_local_downlink_gap_pressure",
+      "branch_local_target_gap_pressure",
+      "branch_local_collection_latency_gap_pressure",
+      "branch_local_objective_status_pressure",
+      "branch_local_score_term_pressure",
+      "branch_local_routing_pressure",
+      "feedback_source",
+      "feedback_scope",
+      "assumptions"
+    ]
+  end
+
+  def maneuver_review do
+    [
+      "source_report_count",
+      "source_report_row_count",
+      "source_report_paths",
+      "maneuver_success_feedback_count",
+      "execution_uncertainty_declared_count",
+      "execution_uncertainty_missing_count",
+      "input_keys",
+      "maneuver_id_counts",
+      "required_operator_action_counts",
+      "trust_boundary_status",
+      "trust_boundaries",
+      "branch_local_maneuver_feedback_pressure",
+      "branch_local_maneuver_routing_pressure",
+      "branch_local_maneuver_action_pressure",
+      "branch_local_execution_uncertainty_pressure",
+      "feedback_source",
+      "feedback_scope",
+      "assumptions"
+    ]
+  end
+
+  def candidate_diff do
+    [
+      "contract",
+      "source_report_count",
+      "source_report_row_count",
+      "source_report_paths",
+      "retained_candidate_count",
+      "new_candidate_count",
+      "invalidated_candidate_count",
+      "diff_reason_counts",
+      "invalidated_reason_counts",
+      "semantic_change_reason_counts",
+      "candidate_diff_changed_field_counts",
+      "candidate_diff_candidate_id_counts",
+      "candidate_diff_ground_station_counts",
+      "trust_boundary_status",
+      "trust_boundaries",
+      "branch_local_new_candidate_pressure",
+      "branch_local_invalidated_candidate_pressure",
+      "branch_local_semantic_change_pressure",
+      "feedback_source",
+      "feedback_scope",
+      "assumptions"
+    ]
+  end
+end

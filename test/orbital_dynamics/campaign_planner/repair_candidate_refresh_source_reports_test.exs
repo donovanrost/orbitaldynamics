@@ -1,0 +1,986 @@
+Code.require_file("support.exs", __DIR__)
+
+defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTest do
+  use ExUnit.Case, async: true
+
+  import OrbitalDynamics.CampaignPlanner.TestSupport
+
+  alias OrbitalDynamics.Schema
+
+  test "repair can use candidate_refresh.v1 candidates instead of stale prior candidates" do
+    refreshed_candidate = refreshed_downlink("dl_refreshed", 500.0, 560.0)
+    source_reports = passive_candidate_refresh_source_reports()
+
+    candidate_diff_report =
+      candidate_diff_report()
+      |> update_in(["invalidated_candidates", Access.at(0)], fn candidate ->
+        candidate
+        |> Map.put("semantic_change_reasons", ["contact_window_shifted"])
+        |> Map.put("candidate_diff_changed_fields", ["starts_at_s", "ends_at_s"])
+        |> Map.put("semantic_change_details", [
+          %{
+            "field" => "starts_at_s",
+            "reason" => "contact_window_shifted",
+            "prior_value" => 700.0,
+            "refreshed_value" => 500.0
+          }
+        ])
+      end)
+
+    artifact =
+      repair(
+        %{
+          "activities" => [downlink("dl_1", 100.0, 160.0)],
+          "candidate_activities" => [downlink("dl_stale", 700.0, 760.0)]
+        },
+        realized_state: %{activities: [%{id: "dl_1", status: "missed"}]},
+        current_epoch_s: 165.0,
+        candidate_refresh:
+          [refreshed_candidate]
+          |> candidate_refresh_artifact(
+            contact_intents: [
+              %{
+                "schema_contract" => "contact_intent.v1",
+                "id" => "contact_intent:dl_refreshed",
+                "activity_id" => "dl_refreshed",
+                "scenario_id" => "leo_1",
+                "ground_station_id" => "equator_prime",
+                "direction" => "downlink",
+                "starts_at_s" => 500.0,
+                "ends_at_s" => 560.0
+              }
+            ],
+            resource_summaries: [
+              %{
+                "schema_contract" => "resource_summary.v1",
+                "spacecraft_id" => "leo_1",
+                "antenna_available" => true,
+                "payload_available" => true
+              }
+            ],
+            candidate_diff_report: candidate_diff_report,
+            freshness_report: freshness_report("stale"),
+            contact_filter_report: contact_filter_report(),
+            contact_allocation_report: contact_allocation_report(),
+            resource_filter_report: resource_filter_report(),
+            refresh_budget_report: refresh_budget_report()
+          )
+          |> Map.put(
+            "source_operational_readiness_report",
+            source_reports["source_operational_readiness_report"]
+          )
+          |> Map.put("source_quality_gate_report", passive_quality_gate_report())
+          |> Map.put("operational_feedback", %{
+            "station_throughput_factor" => %{"equator_prime" => 0.5}
+          })
+          |> put_in(["provenance", "operational_feedback"], %{
+            "trust_boundary_status" => "declared",
+            "trust_boundary" => "candidate_refresh_feedback",
+            "input_keys" => ["station_throughput_factor"],
+            "source_path" => "operational_feedback"
+          })
+      )
+
+    assert [%{"id" => "dl_refreshed", "repair" => repair}] = artifact["activities"]
+    assert repair["action"] == "moved"
+    assert artifact["source_candidate_activities"] == [refreshed_candidate]
+
+    assert %{
+             "type" => "candidate_refresh.v1",
+             "refresh_id" => "candidate_refresh:test:abc",
+             "snapshot_id" => "ops-state-1",
+             "operational_feedback_input_keys" => ["station_throughput_factor"],
+             "operational_feedback_trust_boundary_status" => "declared",
+             "operational_feedback_trust_boundary" => "candidate_refresh_feedback"
+           } = artifact["assumptions"]["candidate_source"]
+
+    assert artifact["provenance"]["candidate_source"]["type"] == "candidate_refresh.v1"
+    assert artifact["repair_metadata"]["candidate_source"]["candidate_count"] == 1
+
+    assert [%{"activity_id" => "dl_refreshed", "direction" => "downlink"}] =
+             artifact["source_contact_intents"]
+
+    assert [%{"spacecraft_id" => "leo_1", "antenna_available" => true}] =
+             artifact["source_resource_summaries"]
+
+    assert %{
+             "schema_contract" => "candidate_diff_report.v1",
+             "new_candidate_count" => 1
+           } = artifact["source_candidate_diff_report"]
+
+    assert %{
+             "candidate_diff_review_count" => 1
+           } = artifact["operator_review_package"]
+
+    assert %{
+             "review_type" => "candidate_diff_review",
+             "source" => "campaign_repair.source_candidate_diff_report.invalidated_candidates",
+             "required_operator_action" => "review_candidate_diff",
+             "invalidated_candidate_id" => "dl_stale",
+             "invalidated_reason" => "not_present_in_refreshed_candidate_set",
+             "semantic_change_reasons" => ["contact_window_shifted"],
+             "candidate_diff_changed_fields" => ["ends_at_s", "starts_at_s"],
+             "candidate_diff_changed_field_count" => 2,
+             "source_candidate_diff" => %{
+               "id" => "dl_stale",
+               "invalidated_reason" => "not_present_in_refreshed_candidate_set",
+               "semantic_change_reasons" => ["contact_window_shifted"],
+               "candidate_diff_changed_fields" => ["starts_at_s", "ends_at_s"]
+             }
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["review_type"] == "candidate_diff_review")
+             )
+
+    assert %{
+             "import_action" => "review_candidate_diff",
+             "source_review_type" => "candidate_diff_review",
+             "invalidated_candidate_id" => "dl_stale",
+             "invalidated_reason" => "not_present_in_refreshed_candidate_set",
+             "semantic_change_reasons" => ["contact_window_shifted"],
+             "candidate_diff_changed_fields" => ["ends_at_s", "starts_at_s"],
+             "candidate_diff_changed_field_count" => 2,
+             "refresh_gate" => "candidate_diff",
+             "import_status" => "review_required_before_import",
+             "source_candidate_diff" => %{
+               "id" => "dl_stale",
+               "semantic_change_reasons" => ["contact_window_shifted"]
+             }
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(&1["import_action"] == "review_candidate_diff")
+             )
+
+    assert %{
+             "schema_contract" => "freshness_report.v1",
+             "status" => "stale"
+           } = artifact["source_freshness_report"]
+
+    assert artifact["source_operational_readiness_report"]["schema_contract"] ==
+             "operational_readiness_report.v1"
+
+    assert artifact["source_quality_gate_report"]["schema_contract"] ==
+             "quality_gate_report.v1"
+
+    assert %{
+             "freshness_review_count" => 1
+           } = artifact["operator_review_package"]
+
+    assert %{
+             "review_type" => "freshness_review",
+             "source" => "campaign_repair.source_freshness_report",
+             "required_operator_action" => "review_refresh_freshness",
+             "freshness_status" => "stale",
+             "source_freshness_report" => %{"schema_contract" => "freshness_report.v1"}
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["review_type"] == "freshness_review")
+             )
+
+    assert %{
+             "import_action" => "review_refresh_freshness",
+             "source_review_type" => "freshness_review",
+             "freshness_status" => "stale",
+             "import_status" => "review_required_before_import"
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(&1["import_action"] == "review_refresh_freshness")
+             )
+
+    assert %{
+             "operational_readiness_review_count" => 1,
+             "quality_gate_review_count" => 1
+           } = artifact["operator_review_package"]
+
+    assert %{
+             "review_type" => "operational_readiness_review",
+             "source" => "campaign_repair.source_operational_readiness_report",
+             "required_operator_action" => "review_operational_readiness",
+             "source_operational_readiness_report" => %{
+               "schema_contract" => "operational_readiness_report.v1",
+               "report_id" => "operational_readiness:planned_activity.v1:passive_source"
+             }
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["review_type"] == "operational_readiness_review")
+             )
+
+    assert %{
+             "review_type" => "quality_gate_review",
+             "source" => "campaign_repair.source_quality_gate_report.rows",
+             "required_operator_action" => "review_quality_gate",
+             "quality_gate_id" => "operator_review",
+             "source_quality_gate_report" => %{
+               "schema_contract" => "quality_gate_report.v1",
+               "report_id" => "quality_gate:planned_activity.v1:passive_source"
+             }
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["review_type"] == "quality_gate_review")
+             )
+
+    assert %{
+             "import_action" => "review_operational_readiness",
+             "source_review_type" => "operational_readiness_review",
+             "source" => "campaign_repair.source_operational_readiness_report",
+             "source_operational_readiness_report" => %{
+               "schema_contract" => "operational_readiness_report.v1"
+             }
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(&1["import_action"] == "review_operational_readiness")
+             )
+
+    assert %{
+             "import_action" => "review_quality_gate",
+             "source_review_type" => "quality_gate_review",
+             "source" => "campaign_repair.source_quality_gate_report.rows",
+             "source_quality_gate_report" => %{"schema_contract" => "quality_gate_report.v1"}
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(&1["import_action"] == "review_quality_gate")
+             )
+
+    assert %{
+             "schema_contract" => "contact_filter_report.v1",
+             "suppressed_candidate_count" => 1
+           } = artifact["source_contact_filter_report"]
+
+    assert %{
+             "schema_contract" => "contact_allocation_report.v1",
+             "allocated_contact_count" => 1,
+             "deferred_contact_count" => 1
+           } = artifact["source_contact_allocation_report"]
+
+    assert %{
+             "schema_contract" => "contact_allocation_report.v1",
+             "source" => "campaign_repair.activities",
+             "allocated_contact_count" => 1,
+             "rows" => [
+               %{
+                 "contact_id" => "dl_refreshed",
+                 "allocation_status" => "allocated",
+                 "allocation_reason" => "available"
+               }
+             ]
+           } = artifact["contact_allocation_report"]
+
+    assert %{
+             "contact_allocation_review_count" => 3
+           } = artifact["operator_review_package"]
+
+    assert Enum.any?(
+             artifact["operator_review_package"]["rows"],
+             &(&1["review_type"] == "contact_allocation_review" and
+                 &1["source"] == "campaign_repair.source_contact_allocation_report.rows" and
+                 &1["required_operator_action"] == "review_contact_allocation")
+           )
+
+    assert Enum.any?(
+             artifact["operator_review_package"]["rows"],
+             &(&1["review_type"] == "contact_allocation_review" and
+                 &1["source"] == "campaign_repair.contact_allocation_report.rows" and
+                 &1["contact_id"] == "dl_refreshed")
+           )
+
+    assert %{
+             "import_action" => "review_contact_allocation",
+             "source_review_type" => "contact_allocation_review",
+             "allocation_status" => "deferred",
+             "contact_id" => "dl_deferred",
+             "import_status" => "review_required_before_import"
+           } =
+             artifact["cadence_import_manifest"]["rows"]
+             |> Enum.find(&(&1["contact_id"] == "dl_deferred"))
+
+    assert artifact["cadence_import_manifest"]["assumptions"]["row_source"] ==
+             "operator_review_package.rows"
+
+    assert %{
+             "schema_contract" => "resource_filter_report.v1",
+             "suppressed_candidate_count" => 1
+           } = artifact["source_resource_filter_report"]
+
+    assert %{
+             "schema_contract" => "refresh_budget_report.v1",
+             "input_candidate_count" => 2,
+             "kept_candidate_count" => 1,
+             "dropped_candidate_count" => 1,
+             "kept_candidate_ids" => ["dl_refreshed"],
+             "dropped_candidate_ids" => ["dl_deferred"]
+           } = artifact["source_refresh_budget_report"]
+
+    assert %{
+             "refresh_budget_review_count" => 1
+           } = artifact["operator_review_package"]
+
+    assert %{
+             "review_type" => "refresh_budget_review",
+             "source" => "campaign_repair.source_refresh_budget_report",
+             "required_operator_action" => "review_refresh_budget",
+             "dropped_candidate_count" => 1,
+             "dropped_candidate_ids" => ["dl_deferred"],
+             "source_refresh_budget_report" => %{"schema_contract" => "refresh_budget_report.v1"}
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["review_type"] == "refresh_budget_review")
+             )
+
+    assert %{
+             "import_action" => "review_refresh_budget",
+             "source_review_type" => "refresh_budget_review",
+             "dropped_candidate_count" => 1,
+             "dropped_candidate_ids" => ["dl_deferred"],
+             "import_status" => "review_required_before_import"
+           } =
+             Enum.find(
+               artifact["cadence_import_manifest"]["rows"],
+               &(&1["import_action"] == "review_refresh_budget")
+             )
+
+    assert %{
+             "schema_contract" => "operational_timeline_report.v1",
+             "source" => "campaign_repair.activities",
+             "activity_count" => 1,
+             "row_count" => 1,
+             "contact_count" => 1,
+             "command_count" => 0,
+             "rows" => [
+               %{
+                 "activity_id" => "dl_refreshed",
+                 "activity_type" => "downlink",
+                 "approval_status" => "not_evaluated",
+                 "ground_station_id" => "equator_prime",
+                 "timeline_identity" => %{
+                   "activity_id" => "dl_refreshed",
+                   "activity_type" => "downlink"
+                 }
+               }
+             ]
+           } = artifact["operational_timeline_report"]
+
+    assert {:ok, %{"schema_contract" => "operational_timeline_report.v1"}} =
+             Schema.validate_artifact(artifact["operational_timeline_report"])
+
+    assert "candidate refresh freshness policy marked the snapshot, horizon, or state quality stale" in artifact[
+             "warnings"
+           ]
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(artifact)
+  end
+
+  test "repair preserves canonical candidate refresh readiness and quality source reports" do
+    source_reports = passive_candidate_refresh_source_reports()
+
+    artifact =
+      repair(
+        %{
+          "activities" => [downlink("dl_1", 100.0, 160.0)],
+          "candidate_activities" => [downlink("dl_stale", 700.0, 760.0)]
+        },
+        realized_state: %{activities: [%{id: "dl_1", status: "missed"}]},
+        current_epoch_s: 165.0,
+        candidate_refresh:
+          [refreshed_downlink("dl_ready", 500.0, 560.0)]
+          |> candidate_refresh_artifact(freshness_report: freshness_report("current"))
+          |> Map.put(
+            "operational_readiness_report",
+            source_reports["source_operational_readiness_report"]
+          )
+          |> Map.put("quality_gate_report", passive_quality_gate_report())
+      )
+
+    assert [%{"id" => "dl_ready", "repair" => %{"action" => "moved"}}] =
+             artifact["activities"]
+
+    assert artifact["source_operational_readiness_report"]["schema_contract"] ==
+             "operational_readiness_report.v1"
+
+    assert artifact["source_quality_gate_report"]["schema_contract"] ==
+             "quality_gate_report.v1"
+
+    assert artifact["score_terms"]["operational_readiness_pressure_penalty"] == -1.0
+
+    assert "operational_readiness_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert [
+             %{
+               "term_key" => "operational_readiness_pressure_penalty",
+               "value" => -1.0,
+               "selected" => true
+             }
+           ] =
+             Enum.filter(
+               artifact["score_term_report"]["rows"],
+               &(&1["term_key"] == "operational_readiness_pressure_penalty")
+             )
+
+    assert artifact["score_terms"]["quality_gate_pressure_penalty"] == -1.0
+
+    assert "quality_gate_pressure_penalty" in artifact["score_term_report"]["score_term_keys"]
+
+    assert [
+             %{
+               "term_key" => "quality_gate_pressure_penalty",
+               "value" => -1.0,
+               "selected" => true
+             }
+           ] =
+             Enum.filter(
+               artifact["score_term_report"]["rows"],
+               &(&1["term_key"] == "quality_gate_pressure_penalty")
+             )
+
+    assert %{
+             "review_type" => "operational_readiness_review",
+             "source" => "campaign_repair.source_operational_readiness_report",
+             "source_operational_readiness_report" => %{
+               "report_id" => "operational_readiness:planned_activity.v1:passive_source"
+             }
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["review_type"] == "operational_readiness_review")
+             )
+
+    assert %{
+             "review_type" => "quality_gate_review",
+             "source" => "campaign_repair.source_quality_gate_report.rows",
+             "source_quality_gate_report" => %{
+               "report_id" => "quality_gate:planned_activity.v1:passive_source"
+             }
+           } =
+             Enum.find(
+               artifact["operator_review_package"]["rows"],
+               &(&1["review_type"] == "quality_gate_review")
+             )
+
+    assert Enum.any?(
+             artifact["cadence_import_manifest"]["rows"],
+             &(&1["import_action"] == "review_operational_readiness" and
+                 &1["source"] == "campaign_repair.source_operational_readiness_report")
+           )
+
+    assert Enum.any?(
+             artifact["cadence_import_manifest"]["rows"],
+             &(&1["import_action"] == "review_quality_gate" and
+                 &1["source"] == "campaign_repair.source_quality_gate_report.rows")
+           )
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(artifact)
+  end
+
+  defp candidate_refresh_artifact(candidates, opts) do
+    %{
+      "schema_version" => 1,
+      "schema_contract" => "candidate_refresh.v1",
+      "artifact_type" => "candidate_refresh",
+      "generated_at" => "2026-05-14T00:00:00Z",
+      "planner" => "OrbitalDynamics.CandidateRefresh.V1",
+      "refresh_id" => Keyword.get(opts, :refresh_id, "candidate_refresh:test:abc"),
+      "study_id" => "candidate_refresh_test",
+      "snapshot_id" => "ops-state-1",
+      "current_epoch_s" => 0.0,
+      "remaining_horizon" => %{
+        "starts_at_s" => 0.0,
+        "ends_at_s" => 1_000.0,
+        "output_step_s" => 60.0
+      },
+      "accepted_planning_state" => %{
+        "snapshot_id" => "ops-state-1",
+        "spacecraft_state_count" => 1
+      },
+      "refreshed_windows" => %{
+        "access_windows" => [],
+        "target_visibility_windows" => [],
+        "eclipse_intervals" => []
+      },
+      "candidate_activities" => candidates,
+      "contact_intents" => Keyword.get(opts, :contact_intents, []),
+      "resource_summaries" => Keyword.get(opts, :resource_summaries, []),
+      "contact_filter_report" => Keyword.get(opts, :contact_filter_report),
+      "contact_allocation_report" => Keyword.get(opts, :contact_allocation_report),
+      "resource_filter_report" => Keyword.get(opts, :resource_filter_report),
+      "refresh_budget_report" => Keyword.get(opts, :refresh_budget_report),
+      "candidate_diff_report" => Keyword.get(opts, :candidate_diff_report),
+      "freshness_report" => Keyword.get(opts, :freshness_report),
+      "invalidated_candidates" => [],
+      "validation_records" => [],
+      "warnings" => [],
+      "assumptions" => %{},
+      "provenance" => %{},
+      "source_window_lineage" =>
+        Enum.map(candidates, fn candidate ->
+          %{
+            "candidate_activity_id" => candidate["id"],
+            "source_window_id" => candidate["source_window_id"],
+            "source_window_type" => get_in(candidate, ["source_window", "type"]),
+            "scenario_id" => candidate["scenario_id"]
+          }
+        end)
+    }
+  end
+
+  defp candidate_diff_report do
+    %{
+      "schema_contract" => "candidate_diff_report.v1",
+      "model" => "candidate_id_set_diff_with_semantic_change_reasons",
+      "prior_candidate_count" => 1,
+      "refreshed_candidate_count" => 1,
+      "retained_candidate_count" => 0,
+      "new_candidate_count" => 1,
+      "invalidated_candidate_count" => 1,
+      "retained_candidates" => [],
+      "new_candidates" => [
+        %{
+          "id" => "dl_refreshed",
+          "type" => "downlink",
+          "scenario_id" => "leo_1",
+          "starts_at_s" => 500.0,
+          "ends_at_s" => 560.0,
+          "diff_reason" => "not_present_in_prior_candidate_set"
+        }
+      ],
+      "invalidated_candidates" => [
+        %{
+          "id" => "dl_stale",
+          "invalidated_reason" => "not_present_in_refreshed_candidate_set"
+        }
+      ]
+    }
+  end
+
+  defp contact_filter_report do
+    %{
+      "schema_contract" => "contact_filter_report.v1",
+      "model" => "thin_ground_network_availability_filter",
+      "input_candidate_count" => 2,
+      "kept_candidate_count" => 1,
+      "suppressed_candidate_count" => 1,
+      "suppressed_candidates" => [
+        %{
+          "id" => "dl_suppressed_contact",
+          "type" => "downlink",
+          "scenario_id" => "leo_1",
+          "starts_at_s" => 400.0,
+          "ends_at_s" => 460.0,
+          "suppressed_reason" => "ground_station_unavailable"
+        }
+      ]
+    }
+  end
+
+  defp contact_allocation_report do
+    %{
+      "schema_contract" => "contact_allocation_report.v1",
+      "model" => "deterministic_station_contact_allocation",
+      "source" => "candidate_refresh.candidate_activities",
+      "input_contact_count" => 2,
+      "allocated_contact_count" => 1,
+      "deferred_contact_count" => 1,
+      "blocked_contact_count" => 0,
+      "effective_allocation_status_counts" => %{"allocated" => 1, "deferred" => 1},
+      "rows" => [
+        %{
+          "id" => "contact_allocation:dl_refreshed",
+          "contact_id" => "dl_refreshed",
+          "allocation_status" => "allocated",
+          "effective_allocation_status" => "allocated",
+          "allocation_reason" => "selected_by_contention_resolution",
+          "ground_station_id" => "equator_prime",
+          "starts_at_s" => 500.0,
+          "ends_at_s" => 560.0,
+          "selected" => true,
+          "contention_group_id" => "station:equator_prime:contention:1",
+          "deferred_contact_ids" => ["dl_deferred"]
+        },
+        %{
+          "id" => "contact_allocation:dl_deferred",
+          "contact_id" => "dl_deferred",
+          "allocation_status" => "deferred",
+          "effective_allocation_status" => "deferred",
+          "allocation_reason" => "same_station_contention",
+          "ground_station_id" => "equator_prime",
+          "starts_at_s" => 520.0,
+          "ends_at_s" => 580.0,
+          "selected" => false,
+          "contention_group_id" => "station:equator_prime:contention:1",
+          "selected_contact_id" => "dl_refreshed"
+        }
+      ],
+      "contact_filter_report" => %{
+        "schema_contract" => "contact_filter_report.v1",
+        "model" => "thin_ground_network_availability_filter",
+        "input_candidate_count" => 2,
+        "kept_candidate_count" => 2,
+        "suppressed_candidate_count" => 0,
+        "suppressed_candidates" => []
+      },
+      "contact_contention_report" => %{
+        "schema_contract" => "contact_contention_report.v1",
+        "model" => "single_station_interval_overlap",
+        "input_contact_count" => 2,
+        "conflicted_contact_count" => 2,
+        "conflict_group_count" => 1,
+        "conflict_groups" => [
+          %{
+            "id" => "station:equator_prime:contention:1",
+            "ground_station_id" => "equator_prime",
+            "contact_count" => 2,
+            "starts_at_s" => 500.0,
+            "ends_at_s" => 580.0,
+            "direction" => "downlink",
+            "required_operator_action" => "review_contact_contention",
+            "approval_status" => "operator_review_required",
+            "contact_ids" => ["dl_refreshed", "dl_deferred"],
+            "source_window_ids" => [],
+            "scenario_ids" => ["leo_1"]
+          }
+        ]
+      },
+      "contact_contention_resolution_report" => %{
+        "schema_contract" => "contact_contention_resolution_report.v1",
+        "model" => "deterministic_contact_contention_recommendation",
+        "policy" => %{
+          "selection_rule" => "highest_score_earliest_start",
+          "tie_breakers" => ["starts_at_s", "id"],
+          "action" => "recommend_preferred_contact_for_operator_review"
+        },
+        "conflict_group_count" => 1,
+        "recommendation_count" => 1,
+        "recommendations" => [
+          %{
+            "group_id" => "station:equator_prime:contention:1",
+            "ground_station_id" => "equator_prime",
+            "starts_at_s" => 500.0,
+            "ends_at_s" => 580.0,
+            "selected_contact_id" => "dl_refreshed",
+            "selected_scenario_id" => "leo_1",
+            "deferred_contact_ids" => ["dl_deferred"],
+            "candidate_count" => 2,
+            "selection_reason" => "highest_score_earliest_start",
+            "action" => "recommend_preferred_contact_for_operator_review",
+            "review_status" => "operator_review_required"
+          }
+        ]
+      },
+      "assumptions" => %{
+        "execution_boundary" => "artifact_only_no_provider_reservation_or_schedule_mutation"
+      }
+    }
+  end
+
+  defp resource_filter_report do
+    %{
+      "schema_contract" => "resource_filter_report.v1",
+      "model" => "resource_summary_availability_and_margin_filter",
+      "input_candidate_count" => 2,
+      "kept_candidate_count" => 1,
+      "suppressed_candidate_count" => 1,
+      "suppressed_candidates" => [
+        %{
+          "id" => "obs_suppressed_resource",
+          "type" => "observe",
+          "scenario_id" => "leo_1",
+          "starts_at_s" => 300.0,
+          "ends_at_s" => 360.0,
+          "suppressed_reason" => "payload_unavailable"
+        }
+      ]
+    }
+  end
+
+  defp refresh_budget_report do
+    %{
+      "schema_contract" => "refresh_budget_report.v1",
+      "model" => "deterministic_candidate_limit_after_filters",
+      "input_candidate_count" => 2,
+      "kept_candidate_count" => 1,
+      "dropped_candidate_count" => 1,
+      "max_candidate_activities" => 1,
+      "selection_order" => "score_descending_then_start_then_id",
+      "kept_candidate_ids" => ["dl_refreshed"],
+      "dropped_candidate_ids" => ["dl_deferred"],
+      "assumptions" => %{
+        "budget_stage" => "after_contact_resource_and_allocation_filters",
+        "optimizer_search_performed" => false
+      }
+    }
+  end
+
+  defp freshness_report(status) do
+    stale_reasons =
+      if status == "stale",
+        do: ["accepted_snapshot_older_than_policy"],
+        else: []
+
+    %{
+      "schema_contract" => "freshness_report.v1",
+      "model" => "accepted_snapshot_horizon_and_quality_freshness",
+      "generated_at" => "2026-05-14T00:00:00Z",
+      "accepted_at" => "2026-05-13T23:00:00Z",
+      "current_epoch_s" => 165.0,
+      "horizon_starts_at_s" => 165.0,
+      "accepted_snapshot_age_s" => 3600.0,
+      "horizon_start_offset_s" => 0.0,
+      "max_snapshot_age_s" => 60.0,
+      "max_horizon_start_offset_s" => 1.0,
+      "status" => status,
+      "stale_reasons" => stale_reasons,
+      "unknown_reasons" => []
+    }
+  end
+
+  defp passive_candidate_refresh_source_reports do
+    %{
+      "source_candidate_diff_report" => %{
+        "schema_contract" => "candidate_diff_report.v1",
+        "retained_candidates" => [],
+        "new_candidates" => [],
+        "invalidated_candidates" => []
+      },
+      "source_candidate_rejection_report" => %{
+        "schema_contract" => "candidate_rejection_report.v1",
+        "rows" => []
+      },
+      "source_schema_validation_report" => %{
+        "schema_contract" => "schema_validation_report.v1",
+        "validation_mode" => "artifact",
+        "validated_contract" => "candidate_refresh.v1",
+        "status" => "pass",
+        "error_count" => 0,
+        "warning_count" => 0,
+        "remediation_count" => 0,
+        "errors" => [],
+        "warnings" => [],
+        "remediation" => []
+      },
+      "source_freshness_report" => %{
+        "schema_contract" => "freshness_report.v1",
+        "status" => "fresh",
+        "stale_reasons" => [],
+        "unknown_reasons" => []
+      },
+      "source_refresh_budget_report" => %{
+        "schema_contract" => "refresh_budget_report.v1",
+        "input_candidate_count" => 1,
+        "kept_candidate_count" => 1,
+        "dropped_candidate_count" => 0
+      },
+      "source_operational_readiness_report" => %{
+        "schema_contract" => "operational_readiness_report.v1",
+        "schema_version" => 1,
+        "model" => "OrbitalDynamics.OperationalReadiness.V1",
+        "report_id" => "operational_readiness:planned_activity.v1:passive_source",
+        "source_artifact_type" => "planned_activity.v1",
+        "source_artifact_id" => "passive_source",
+        "readiness_level" => "operator_review",
+        "import_classification" => "review_only",
+        "status" => "review_required",
+        "gate_count" => 4,
+        "passed_gate_count" => 2,
+        "review_gate_count" => 2,
+        "analysis_gate_count" => 0,
+        "blocked_gate_count" => 0,
+        "gates" => [],
+        "evidence" => %{},
+        "assumptions" => %{},
+        "model_limits" => ["artifact_only"]
+      },
+      "source_provider_counteroffer_report" => %{
+        "schema_contract" => "provider_counteroffer_report.v1",
+        "source" => "station_calendar_report.affected_contacts",
+        "source_artifact_type" => "station_calendar_report.v1",
+        "source_artifact_id" => "station_calendar_report",
+        "counteroffer_count" => 1,
+        "reviewable_count" => 1,
+        "counteroffer_status_counts" => %{"proposed" => 1},
+        "required_operator_action_counts" => %{"review_provider_counteroffer" => 1},
+        "rows" => [
+          %{
+            "id" => "provider_counteroffer:1:provider_offer_1",
+            "provider_counteroffer_id" => "provider_offer_1",
+            "provider_counteroffer_status" => "proposed",
+            "reviewable" => true,
+            "required_operator_action" => "review_provider_counteroffer"
+          }
+        ],
+        "assumptions" => %{},
+        "model_limits" => ["artifact_only"]
+      },
+      "source_station_calendar_report" => %{
+        "schema_contract" => "station_calendar_report.v1",
+        "affected_contacts" => [],
+        "provider_calendar_contention_groups" => []
+      },
+      "source_station_reservation_report" => %{
+        "schema_contract" => "station_reservation_report.v1",
+        "source" => "station_calendar_report.reservation_evidence",
+        "affected_contacts" => [
+          %{
+            "contact_id" => "dl_reserved_intruder",
+            "station_reservation_match_status" => "overlap",
+            "station_calendar_reservation_ids" => ["reservation_partner"],
+            "station_calendar_reservation_statuses" => ["confirmed"],
+            "station_calendar_reservation_expires_at_s" => [360.0],
+            "required_operator_action" => "review_station_reservation_overlap",
+            "trust_boundary" => "reservation_report_rows"
+          }
+        ],
+        "provider_calendar_contention_groups" => [],
+        "trust_boundary" => "reservation_report"
+      },
+      "source_station_reservation_hold_import_readiness_summary" => %{
+        "model" => "artifact_only_station_reservation_hold_import_readiness_summary",
+        "source_artifact_type" => "station_reservation_report.v1",
+        "source" => "station_calendar_report.reservation_evidence",
+        "reservation_hold_count" => 2,
+        "import_readiness_status" => "review_required",
+        "import_classification" => "review_only",
+        "ready_for_import_count" => 0,
+        "review_required_before_import_count" => 2,
+        "no_import_required_count" => 0,
+        "reservation_hold_import_status_counts" => %{
+          "review_required_before_import" => 2
+        },
+        "required_import_action_counts" => %{
+          "review_station_provider_contention" => 1,
+          "review_station_reservation_overlap" => 1
+        },
+        "reservation_hold_ids" => ["reservation_expired", "reservation_missing"],
+        "reservation_hold_ids_by_import_status" => %{
+          "review_required_before_import" => ["reservation_expired", "reservation_missing"]
+        },
+        "reservation_hold_ids_by_required_import_action" => %{
+          "review_station_provider_contention" => ["reservation_missing"],
+          "review_station_reservation_overlap" => ["reservation_expired"]
+        },
+        "reservation_hold_contact_ids_by_import_status" => %{
+          "review_required_before_import" => ["dl_reserved_intruder"]
+        },
+        "import_readiness_rows" => [
+          %{
+            "reservation_review_row_type" => "affected_contact",
+            "contact_id" => "dl_reserved_intruder",
+            "reservation_ids" => ["reservation_expired"],
+            "reservation_statuses" => ["held"],
+            "reserved_by" => ["ops_calendar"],
+            "station_reservation_hold_import_status" => "review_required_before_import",
+            "required_operator_action" => "review_station_reservation_overlap"
+          },
+          %{
+            "reservation_review_row_type" => "provider_calendar_contention_group",
+            "reservation_ids" => ["reservation_missing"],
+            "reservation_statuses" => ["held"],
+            "reserved_by" => ["partner_calendar"],
+            "station_reservation_hold_import_status" => "review_required_before_import",
+            "required_operator_action" => "review_station_provider_contention"
+          }
+        ],
+        "assumptions" => %{
+          "execution_boundary" => "artifact_only_no_provider_or_cadence_writes",
+          "provider_write" => "not_performed_by_summary",
+          "cadence_write" => "not_performed_by_summary",
+          "reservation_acceptance" => "not_performed_by_summary"
+        }
+      },
+      "source_contact_filter_report" => %{
+        "schema_contract" => "contact_filter_report.v1",
+        "suppressed_candidates" => [],
+        "invalid_contact_inputs" => []
+      },
+      "source_contact_allocation_report" => %{
+        "schema_contract" => "contact_allocation_report.v1",
+        "rows" => []
+      },
+      "source_contact_contention_report" => %{
+        "schema_contract" => "contact_contention_report.v1",
+        "conflict_groups" => [],
+        "invalid_contact_inputs" => []
+      },
+      "source_contact_contention_resolution_report" => %{
+        "schema_contract" => "contact_contention_resolution_report.v1",
+        "recommendations" => []
+      },
+      "source_link_capacity_report" => %{
+        "schema_contract" => "link_capacity_report.v1",
+        "rows" => []
+      },
+      "source_resource_projection_report" => %{
+        "schema_contract" => "resource_projection_report.v1",
+        "projected_resources" => []
+      },
+      "source_resource_filter_report" => %{
+        "schema_contract" => "resource_filter_report.v1",
+        "suppressed_candidates" => [],
+        "invalid_resource_summary_inputs" => []
+      },
+      "source_timeline_diff_report" => %{
+        "schema_contract" => "timeline_diff_report.v1",
+        "rows" => []
+      },
+      "source_constraint_report" => %{
+        "schema_contract" => "constraint_report.v1",
+        "rows" => []
+      },
+      "source_objective_satisfaction_report" => %{
+        "schema_contract" => "objective_satisfaction_report.v1",
+        "rows" => []
+      },
+      "source_objective_tradeoff_report" => %{
+        "schema_contract" => "objective_tradeoff_report.v1",
+        "tradeoffs" => []
+      },
+      "source_score_term_report" => %{
+        "schema_contract" => "score_term_report.v1",
+        "rows" => []
+      }
+    }
+  end
+
+  defp passive_quality_gate_report do
+    %{
+      "schema_contract" => "quality_gate_report.v1",
+      "model" => "artifact_only_operational_quality_gate_report",
+      "report_id" => "quality_gate:planned_activity.v1:passive_source",
+      "source_artifact_type" => "planned_activity.v1",
+      "source_artifact_id" => "passive_source",
+      "source_readiness_report_id" => "operational_readiness:planned_activity.v1:passive_source",
+      "readiness_level" => "operator_review",
+      "import_classification" => "review_only",
+      "status" => "review_required",
+      "gate_count" => 1,
+      "passed_gate_count" => 0,
+      "review_gate_count" => 1,
+      "analysis_gate_count" => 0,
+      "blocked_gate_count" => 0,
+      "gate_status_counts" => %{"review_required" => 1},
+      "gate_classification_counts" => %{"review_only" => 1},
+      "rows" => [
+        %{
+          "id" => "quality_gate:passive_source:operator_review:1",
+          "rank" => 1,
+          "gate_id" => "operator_review",
+          "status" => "review_required",
+          "classification" => "review_only",
+          "reason" => "operator review required"
+        }
+      ],
+      "assumptions" => %{"source" => "test.quality_gate_report"},
+      "model_limits" => ["artifact_only"]
+    }
+  end
+end

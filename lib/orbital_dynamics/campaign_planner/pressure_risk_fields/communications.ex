@@ -1,0 +1,110 @@
+defmodule OrbitalDynamics.CampaignPlanner.PressureRiskFields.Communications do
+  @moduledoc false
+
+  def provider_reservation_request do
+    [
+      "contact_id",
+      "source_activity_id",
+      "source_activity_ids",
+      "ground_station_id",
+      "direction",
+      "station_reservation_id",
+      "station_reserved_by",
+      "station_reservation_status",
+      "station_reservation_match_status",
+      "provider_reservation_request_status",
+      "provider_reservation_row_scope",
+      "required_operator_action",
+      "feedback_source",
+      "feedback_scope",
+      "trust_boundary",
+      "assumptions"
+    ]
+  end
+
+  def capacity_pack do
+    [
+      "contact_id",
+      "source_activity_id",
+      "source_activity_ids",
+      "ground_station_id",
+      "capacity_pack_group_id",
+      "capacity_pack_status",
+      "capacity_pack_capacity_fraction",
+      "capacity_pack_used_fraction",
+      "capacity_pack_unused_fraction",
+      "required_capacity_fraction",
+      "required_capacity_fraction_source",
+      "capacity_pack_contact_ids_by_direction",
+      "capacity_pack_selected_contact_ids_by_direction",
+      "capacity_pack_deferred_contact_ids_by_direction",
+      "capacity_pack_required_capacity_fraction_by_direction",
+      "capacity_pack_selected_required_capacity_fraction_by_direction",
+      "capacity_pack_deferred_required_capacity_fraction_by_direction",
+      "derivation_reasons",
+      "feedback_source",
+      "feedback_scope",
+      "trust_boundary"
+    ]
+  end
+
+  def station_reservation_conflict do
+    [
+      "contact_id",
+      "source_activity_id",
+      "source_activity_ids",
+      "ground_station_id",
+      "station_reservation_id",
+      "station_reserved_by",
+      "station_reservation_status",
+      "station_reservation_match_status",
+      "station_reservation_expires_at_s",
+      "derivation_reasons",
+      "feedback_source",
+      "feedback_scope",
+      "trust_boundary"
+    ]
+  end
+
+  def station_reservation_hold_import_readiness do
+    [
+      "contact_id",
+      "source_activity_id",
+      "source_activity_ids",
+      "ground_station_id",
+      "direction",
+      "station_reservation_id",
+      "station_reserved_by",
+      "station_reservation_status",
+      "station_reservation_match_status",
+      "station_reservation_expires_at_s",
+      "station_reservation_hold_import_status",
+      "station_reservation_hold_import_readiness_summary_model",
+      "station_reservation_hold_import_readiness_source",
+      "station_reservation_hold_import_readiness_source_artifact_type",
+      "station_reservation_hold_import_readiness_status",
+      "station_reservation_hold_import_classification",
+      "station_reservation_hold_count",
+      "station_reservation_hold_ids",
+      "station_reservation_hold_ids_by_import_status",
+      "station_reservation_hold_ids_by_required_import_action",
+      "station_reservation_hold_ids_by_direction",
+      "station_reservation_hold_ids_by_direction_and_ground_station_id",
+      "station_reservation_hold_contact_ids_by_import_status",
+      "station_reservation_hold_contact_ids_by_expiration_status",
+      "station_reservation_hold_contact_ids_by_direction",
+      "station_reservation_hold_contact_ids_by_direction_and_ground_station_id",
+      "station_reservation_hold_import_status_counts",
+      "station_reservation_hold_required_import_action_counts",
+      "station_reservation_hold_import_execution_boundary",
+      "station_reservation_hold_provider_write",
+      "station_reservation_hold_cadence_write",
+      "station_reservation_hold_reservation_acceptance",
+      "source_station_reservation_hold_import_readiness_summary",
+      "derivation_reasons",
+      "feedback_source",
+      "feedback_scope",
+      "trust_boundary"
+    ]
+  end
+end

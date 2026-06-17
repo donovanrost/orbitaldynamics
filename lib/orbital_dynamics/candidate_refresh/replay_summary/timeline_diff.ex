@@ -1,0 +1,54 @@
+defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelineDiff do
+  @moduledoc false
+
+  alias __MODULE__.SourceReportFields
+  alias __MODULE__.Summary
+
+  def replay(refresh_or_artifact, callbacks) do
+    source_report_summary = Keyword.fetch!(callbacks, :source_report_summary)
+
+    source_report_summary_branch_family =
+      Keyword.fetch!(callbacks, :source_report_summary_branch_family)
+
+    branch_diff_summary =
+      source_report_summary_branch_family.(refresh_or_artifact, "timeline_diff_report")
+
+    diff_summary =
+      branch_diff_summary ||
+        refresh_or_artifact
+        |> source_report_summary.()
+        |> get_in(["source_reports", "timeline_diff_report"]) ||
+        %{}
+
+    {summary_source, replay_scope} =
+      if branch_diff_summary do
+        {
+          "candidate_refresh.candidate_source.candidate_refresh_request_source_report_summary.timeline_diff_report",
+          "timeline_diff_candidate_source_report_summary_only"
+        }
+      else
+        {
+          "candidate_refresh.source_report_provenance.timeline_diff_report",
+          "timeline_diff_source_report_provenance_only"
+        }
+      end
+
+    summary(diff_summary, summary_source, replay_scope)
+  end
+
+  def source_report_fields(source_reports) do
+    summary =
+      source_reports
+      |> Map.get("timeline_diff_report", %{})
+      |> summary(
+        "candidate_refresh.source_report_provenance.timeline_diff_report",
+        "timeline_diff_source_report_provenance_only"
+      )
+
+    SourceReportFields.source_report_fields(source_reports, summary)
+  end
+
+  def summary(diff_summary, summary_source, replay_scope) do
+    Summary.summary(diff_summary, summary_source, replay_scope)
+  end
+end

@@ -1,0 +1,276 @@
+# Large Module Refactor Status
+
+Overall objective:
+Reduce maintenance risk in the largest OrbitalDynamics modules and tests through facade-preserving internal extraction.
+
+Current slice:
+Completed: Candidate-refresh source-report provenance dispatcher, candidate-refresh window/horizon family, candidate-diff family, refresh-budget report, freshness report, resource-projection report, resource-projection assumptions, resource-projection flow-summary projected-resource row, resource-projection report projected-resource row, realized spacecraft-state row, resource-projection flow-row, shared activity/contact, operational-feedback, realized-activity, resource-filter, maneuver-review, contact-filter, suppression handoff source matching, candidate-rejection report, contact-contention report/resolution/handoff-source matching, link-capacity report, contact-review handoff source matching, contact-allocation row/capacity-pack/report-count/handoff-summary/row-handoff/provider-calendar-contention handoff, station-calendar report executable validator extraction, station-calendar handoff source/count extraction, station-reservation report executable validator extraction, and station-reservation summary helper tightening.
+
+Status:
+Completed and verified locally.
+
+Files changed in the active schema extraction set:
+- `lib/orbital_dynamics/schema.ex`
+- `lib/orbital_dynamics/schema/activity_contracts.ex`
+- `lib/orbital_dynamics/schema/candidate_diff_contracts.ex`
+- `lib/orbital_dynamics/schema/candidate_refresh_report_contracts.ex`
+- `lib/orbital_dynamics/schema/candidate_refresh_window_contracts.ex`
+- `lib/orbital_dynamics/schema/candidate_rejection_report_contracts.ex`
+- `lib/orbital_dynamics/schema/contact_allocation_handoff_contracts.ex`
+- `lib/orbital_dynamics/schema/contact_allocation_report_contracts.ex`
+- `lib/orbital_dynamics/schema/contact_filter_report_contracts.ex`
+- `lib/orbital_dynamics/schema/contact_contention_handoff_contracts.ex`
+- `lib/orbital_dynamics/schema/contact_contention_report_contracts.ex`
+- `lib/orbital_dynamics/schema/contact_review_handoff_contracts.ex`
+- `lib/orbital_dynamics/schema/freshness_report_contracts.ex`
+- `lib/orbital_dynamics/schema/link_capacity_report_contracts.ex`
+- `lib/orbital_dynamics/schema/maneuver_review_report_contracts.ex`
+- `lib/orbital_dynamics/schema/operational_feedback_contracts.ex`
+- `lib/orbital_dynamics/schema/realized_activity_contracts.ex`
+- `lib/orbital_dynamics/schema/realized_spacecraft_state_contracts.ex`
+- `lib/orbital_dynamics/schema/realized_state_snapshot_contracts.ex`
+- `lib/orbital_dynamics/schema/refresh_budget_report_contracts.ex`
+- `lib/orbital_dynamics/schema/resource_projection_assumptions_contracts.ex`
+- `lib/orbital_dynamics/schema/resource_projection_flow_projected_resource_contracts.ex`
+- `lib/orbital_dynamics/schema/resource_projection_report_contracts.ex`
+- `lib/orbital_dynamics/schema/resource_projection_row_contracts.ex`
+- `lib/orbital_dynamics/schema/resource_projection_flow_row_contracts.ex`
+- `lib/orbital_dynamics/schema/resource_filter_report_contracts.ex`
+- `lib/orbital_dynamics/schema/station_calendar_report_contracts.ex`
+- `lib/orbital_dynamics/schema/station_calendar_handoff_contracts.ex`
+- `lib/orbital_dynamics/schema/station_reservation_report_contracts.ex`
+- `lib/orbital_dynamics/schema/station_reservation_summary_contracts.ex`
+- `lib/orbital_dynamics/schema/suppression_handoff_contracts.ex`
+- `.codex/status/large_module_refactor.md`
+
+Public APIs preserved:
+- `OrbitalDynamics.Schema.validate_artifact/2`
+- `OrbitalDynamics.Schema.validation_report/2`
+- Shared candidate/planned/proposed activity contact-field validation paths, including downlink direction checks, source-window/cadence-import object checks, station reservation IDs, and cadence import external ID validation
+- `candidate_rejection_report.v1` validation paths, row validation, row-derived count/ID/action reconciliation, and embedded candidate-refresh/campaign-repair optional report validation paths
+- `contact_filter_report.v1` validation paths, assumptions/model-limit checks, suppressed-candidate row validation, report count reconciliation, and embedded candidate-refresh/campaign-repair optional report validation paths
+- `maneuver_review_report.v1` validation paths, row validation, model-limit checks, total delta-v reconciliation, row-derived count/status/action reconciliation, and embedded source maneuver-review row validation paths
+- Operational feedback validation paths under candidate-refresh, campaign-strategy, and timeline-feedback artifacts, including probability/number/string/object feedback maps and nested `realized_activities` row validation
+- `realized_activity.v1` validation paths, identity-object checks, optional execution feedback field validation, metadata identity reconciliation, provider trust-boundary checks, and nested realized activity validation through realized snapshots and plan deltas
+- `realized_state_snapshot.v1` spacecraft-state row validation paths, including required scenario IDs, stable spacecraft/scenario IDs, optional state booleans/maps/lists, incompatible activity-type list items, and string/map source checks
+- `candidate_diff_report.v1`, `candidate_diff_row.v1`, `invalidated_candidate.v1`, and `source_window_lineage.v1` validation paths, including report count/model-limit checks, source-window lineage reconciliation, semantic-change detail validation, changed-field alias/count/reason reconciliation, source-target identity checks, and shared source-window lineage validation used by later review/import validators
+- `remaining_horizon.v1`, `refreshed_window.v1`, and embedded candidate-refresh `refreshed_windows` validation paths, including interval validation, output-step/duration reconciliation, refreshed-window assumptions, and sample coverage checks
+- `candidate_refresh.v1` provenance source-report summary validation paths, including generic source-report path/count/trust-boundary checks and dispatch into the family-specific source-report contexts for resource, contact, timeline, quality-gate, freshness, refresh-budget, and validation-safety-case summaries
+- `freshness_report.v1` validation paths, including required report fields, status enum checks, derived stale/unknown reason reconciliation, derived status/state-quality checks, and candidate-refresh model-limit reconciliation
+- `refresh_budget_report.v1` validation paths, including required report fields, non-negative count checks, stable kept/dropped candidate ID checks, kept/dropped count reconciliation, model-limit reconciliation, duplicate candidate ID rejection, and kept/dropped overlap rejection
+- `resource_projection_report.v1` report-level validation paths, including required report fields, model/model-limit checks, optional invalid input IDs and row validation, stable-ID maps, subsystem-model assumptions, projected-resource row validation, and report count reconciliation through existing shared callbacks
+- `resource_projection_report.v1` projected-resource row validation paths, including required resource projection counts, storage/downlink/battery numeric checks, resource provenance/status/list checks, approval requirement/rule match rows, source-window identity reconciliation, nested activity-resource-flow row validation, and row-derived count reconciliation
+- Resource projection report/flow-summary subsystem-model assumption validation and JSON Schema export constants, including `subsystem_model_capability_contract`, `subsystem_model_capability_ids`, and `subsystem_model_capability_ids_by_resource`
+- `resource_projection_flow_summary.v1` projected-resource row validation paths, including required spacecraft IDs, pressure evidence IDs, optional activity count fields, ignored activity IDs, resource pressure type list items, projected remaining storage/downlink numbers, and resource pressure status checks
+- `resource_projection_flow_summary.v1` `activity_resource_flow` row validation paths, including nested projected-resource flow rows, source-window identity checks, latency/resource-effect status checks, and storage/downlink/battery numeric checks
+- `resource_filter_report.v1` validation paths, assumptions/model-limit checks, invalid resource summary input validation, suppressed-candidate row validation, report count reconciliation, and embedded candidate-refresh/campaign-repair optional report validation paths
+- Suppression handoff validation paths reused by operator-review and Cadence import rows, including contact/resource suppression source row matches and Cadence source-review row matches
+- `contact_contention_report.v1` and `contact_contention_resolution_report.v1` validation paths, including model-limit checks, ContactContention capability assumption checks, conflict-group/recommendation row validation, count reconciliation, duplicate evidence checks, resolution-policy validation, embedded contact-allocation optional report paths, and contact-contention handoff source/source-review matching
+- `link_capacity_report.v1` validation paths, including report/row field validation, model-limit checks, LinkCapacity assumption checks, row-derived count/list reconciliation, station-reservation evidence maps, actual throughput/completion IDs, and embedded candidate-refresh/campaign-repair optional report paths
+- Contact-review handoff validation paths reused by operator-review and Cadence import rows, including provider-counteroffer and contact-intent source row matches plus Cadence source-review row matches
+- `contact_allocation_report.v1` row, reduced-capacity-pack group, report-level count reconciliation, and shared contact-allocation helper validation paths, including row status/effective status checks, provider counteroffer fields, station calendar/reservation fields, contention priority evidence, duplicate-contact evidence, capacity requirement rows, capacity-pack derived selected/packed/deferred contact IDs, station-pressure/reservation/resource-blocked derived counts, and shared summary row callback paths
+- Contact-allocation handoff summary validation paths reused by operator-review packages and Cadence import manifests, including station-pressure, reduced-capacity, provider-reservation, reservation-expiration, and nested direction/ground-station stable-ID maps
+- Contact-allocation row source-match handoff validation paths reused by operator-review and Cadence import rows, including allocation row duplicate/priority guard fields, source contact-allocation row matches, source capacity-pack matches, provider-calendar-contention source matches, and Cadence source-review row matches
+- Station-calendar handoff validation paths reused by operator-review and Cadence import rows, including source station-calendar/reservation row matches, Cadence source-review row matches, and station-calendar/provider-contention count-list reconciliation
+- `station_calendar_report.v1` executable validation orchestration, including required report fields, model/model-limit checks, affected-contact row validation, source station-calendar entry validation, provider contention group validation, provider-contention overlap/source-entry validation, report-count reconciliation, duplicate-count reconciliation, affected-duration reconciliation, and nested station-calendar report consumers
+- `station_reservation_report.v1` executable validation paths, including report/model checks, affected-contact row validation, provider contention group validation, reservation review status/count reconciliation, reservation status count reconciliation, and row-derived reservation ID maps
+- Station-reservation summary validation paths, including review/hold/import-readiness row-derived expiration counts, status counts, reservation ID maps, direction maps, and contact ID maps
+
+Behavior/schema changes:
+None intended. This was a behavior-preserving extraction. JSON Schema exports were not intentionally changed by this slice.
+
+Implementation notes:
+- `ResourceProjectionFlowRowContracts` now owns `activity_resource_flow` executable row validation and keeps source-window/nested-ID validation delegated through the Schema facade callback.
+- `ActivityContracts` now owns the shared base activity and contact-field executable validation used by candidate activity, planned activity, and proposed contact validators.
+- `OperationalFeedbackContracts` now owns operational-feedback executable validation and delegates nested `realized_activities` through the Schema facade callback.
+- `RealizedActivityContracts` now owns report-specific executable validation for `realized_activity.v1`.
+- `RealizedSpacecraftStateContracts` now owns `realized_state_snapshot.v1` spacecraft-state executable row validation and is invoked directly by `RealizedStateSnapshotContracts` with the existing callback bag.
+- `CandidateDiffContracts` now owns candidate-diff report, row, invalidated-candidate, semantic-change, and source-window lineage executable validation while the Schema facade preserves the existing private helper entry points used by later validators.
+- `CandidateRefreshWindowContracts` now owns `remaining_horizon.v1`, `refreshed_window.v1`, and embedded candidate-refresh `refreshed_windows` executable validation while the Schema facade preserves the existing private helper entry points.
+- `CandidateRefreshReportContracts` now owns the candidate-refresh source-report provenance dispatcher and generic source-report summary validation; the Schema facade retains only the top-level candidate-refresh provenance delegate plus generic timeline/contact-intent helper delegates used outside the dispatcher.
+- `ResourceProjectionAssumptionsContracts` now owns resource-projection subsystem-model assumption validation and capability-derived assumption constants shared by executable validation and JSON Schema export.
+- `FreshnessReportContracts` now owns `freshness_report.v1` executable report validation and derived freshness-policy reconciliation while the Schema facade preserves the existing private entry point.
+- `RefreshBudgetReportContracts` now owns `refresh_budget_report.v1` executable report validation and candidate ID set reconciliation while the Schema facade preserves the existing private standalone and optional entry points.
+- `ResourceProjectionFlowProjectedResourceContracts` now owns `resource_projection_flow_summary.v1` projected-resource executable row validation with a narrow callback bag.
+- `ResourceProjectionReportContracts` now owns `resource_projection_report.v1` executable report validation while delegating shared row/count/assumption helpers through the Schema facade callback.
+- `ResourceProjectionRowContracts` now owns `resource_projection_report.v1` projected-resource executable row validation and row-derived count reconciliation while delegating nested `activity_resource_flow` rows back through the Schema facade callback.
+- `ResourceFilterReportContracts` now owns report-specific executable validation for `resource_filter_report.v1`.
+- `ContactContentionReportContracts` now owns executable validation for `contact_contention_report.v1` and `contact_contention_resolution_report.v1`; `schema.ex` keeps private delegates for the embedded optional report paths and the reused resolution-policy/deferred-priority callbacks.
+- `ContactContentionHandoffContracts` now owns contact-contention group/recommendation/invalid-input handoff source matching and Cadence source-review matching used by operator-review and Cadence import rows; `schema.ex` keeps the top-level private delegates at the existing row validation call sites.
+- `LinkCapacityReportContracts` now owns executable validation for `link_capacity_report.v1`; `schema.ex` keeps the public/private facade entry points plus a summary-assumption delegate used by `LinkCapacitySummaryContracts`.
+- `SuppressionHandoffContracts` now owns contact/resource suppression handoff source matching and Cadence source-review matching used by operator-review and Cadence import rows; `schema.ex` keeps the duplicate row evidence/grouping validation in place and delegates only the source-match helpers.
+- `ContactReviewHandoffContracts` now owns provider-counteroffer and contact-intent handoff source/source-review matching used by operator-review and Cadence import rows; `schema.ex` keeps private delegates at the existing row validation call sites.
+- `ContactAllocationReportContracts` now owns the shared contact-allocation row, capacity-pack group, capacity-requirement row, and duplicate-contact evidence executable validation; `schema.ex` keeps private delegates so report validation and existing contact-allocation summary modules keep the same callback surface.
+- `ContactAllocationReportContracts` also owns `contact_allocation_report.v1` report-level count reconciliation and the contact-allocation helper implementations reused by summary callback modules; `schema.ex` keeps delegates for existing summary callback surfaces.
+- `ContactAllocationHandoffContracts` owns the optional contact-allocation expiration/provider-reservation handoff summary validator used by operator-review and Cadence import artifacts.
+- `ContactAllocationHandoffContracts` now also owns contact-allocation row handoff source-match constants and validators; `schema.ex` keeps private delegates at the existing row validation call sites.
+- `ContactAllocationHandoffContracts` now also owns provider-calendar-contention handoff source/source-review matching used by station-calendar and station-reservation operator-review and Cadence import rows; `schema.ex` keeps private delegates at the existing row validation call sites.
+- `StationCalendarHandoffContracts` now owns station-calendar handoff source/source-review matching and count-list reconciliation used by operator-review and Cadence import rows; `schema.ex` keeps private delegates at the existing row validation call sites.
+- `StationCalendarReportContracts` now owns `station_calendar_report.v1` executable validation orchestration, affected-contact row validation, source station-calendar entry validation, duplicate-row evidence validation, count-map validation, model-limit validation, affected-duration reconciliation, provider-counteroffer count reconciliation, affected-contact duplicate count reconciliation, duplicate-row-index reconciliation, provider-contention group validation, provider-contention overlap/source-entry validation, and provider-contention group-count reconciliation. `schema.ex` supplies only generic validator callbacks, canonical station-calendar report constants, and a shared provider-contention entry-count helper still used by station-reservation validation.
+- `StationReservationReportContracts` now owns `station_reservation_report.v1` executable report validation, row validation, provider-contention row validation, and derived reservation count/status/ID reconciliation.
+- `StationReservationSummaryContracts` now owns its station-reservation summary derivation helpers for expiration counts, earliest expiration, status counts, reservation ID maps, direction/ground-station maps, and contact ID maps. `schema.ex` no longer passes station-reservation-specific summary derivation callbacks, while generic row-id helpers remain available for other contract modules.
+- Shared suppressed-candidate row validation and shared filter-report count reconciliation remain in `schema.ex` because contact/resource filter paths share them.
+- `ResourceFilterReportContracts` reads ResourceFilter capability metadata directly for assumption/model-limit constants, matching the source of truth already used by `schema.ex`.
+- Static field-coverage comparison against the original `validate_resource_projection_flow_row/3` chain found no missing or extra optional field validators after extraction.
+- Static field-coverage comparison against the original `validate_operational_feedback/3` chain found no missing or extra feedback map validators after extraction.
+- Static field-coverage comparison against the original `validate_realized_activity/3` chain found no missing or extra optional field validators after extraction.
+
+Verification run for this slice:
+- `mix format lib/orbital_dynamics/schema/contact_contention_report_contracts.ex lib/orbital_dynamics/schema.ex`
+- `mix compile --warnings-as-errors`
+- `mix test test/orbital_dynamics/schema/communications_contracts_test.exs test/orbital_dynamics/schema/candidate_refresh_resource_provenance_contracts_test.exs test/orbital_dynamics/schema/json_schema_export_contracts_test.exs`
+- `mix test test/orbital_dynamics/schema`
+- `git diff --check`
+- `mix format lib/orbital_dynamics/schema/link_capacity_report_contracts.ex lib/orbital_dynamics/schema.ex`
+- `mix compile --warnings-as-errors`
+- `mix test test/orbital_dynamics/schema/communications_report_fixtures_test.exs test/orbital_dynamics/schema/campaign_repair_strategy_contracts_test.exs test/orbital_dynamics/schema/candidate_refresh_resource_provenance_contracts_test.exs test/orbital_dynamics/schema/json_schema_export_contracts_test.exs`
+- `mix test test/orbital_dynamics/schema`
+- `git diff --check`
+- `mix format lib/orbital_dynamics/schema/contact_allocation_report_contracts.ex lib/orbital_dynamics/schema.ex`
+- `mix compile --warnings-as-errors`
+- `mix test test/orbital_dynamics/schema/contact_allocation_contracts_test.exs test/orbital_dynamics/schema/contact_allocation_provider_reservation_contracts_test.exs test/orbital_dynamics/schema/candidate_refresh_resource_provenance_contracts_test.exs test/orbital_dynamics/schema/json_schema_export_contracts_test.exs`
+- `mix test test/orbital_dynamics/schema`
+- `git diff --check`
+- `mix format lib/orbital_dynamics/schema/candidate_refresh_report_contracts.ex lib/orbital_dynamics/schema.ex`
+- `mix compile --warnings-as-errors`
+- `mix test test/orbital_dynamics/schema/candidate_refresh_contracts_test.exs test/orbital_dynamics/schema/candidate_refresh_resource_provenance_contracts_test.exs test/orbital_dynamics/schema/json_schema_export_contracts_test.exs`
+- `mix test test/orbital_dynamics/schema`
+- `git diff --check`
+- `mix format lib/orbital_dynamics/schema/candidate_diff_contracts.ex lib/orbital_dynamics/schema.ex`
+- `mix compile --warnings-as-errors`
+- `mix test test/orbital_dynamics/schema/candidate_refresh_contracts_test.exs test/orbital_dynamics/schema/candidate_refresh_resource_provenance_contracts_test.exs test/orbital_dynamics/schema/operational_contracts_test.exs test/orbital_dynamics/schema/operator_review_contracts_test.exs test/orbital_dynamics/schema/json_schema_export_contracts_test.exs`
+- `mix test test/orbital_dynamics/schema`
+- `git diff --check`
+- `mix format lib/orbital_dynamics/schema/candidate_refresh_window_contracts.ex lib/orbital_dynamics/schema.ex`
+- `mix compile --warnings-as-errors`
+- `mix test test/orbital_dynamics/schema/candidate_refresh_contracts_test.exs test/orbital_dynamics/schema/json_schema_export_contracts_test.exs`
+- `mix test test/orbital_dynamics/schema`
+- `git diff --check`
+- `mix format lib/orbital_dynamics/schema/freshness_report_contracts.ex lib/orbital_dynamics/schema.ex`
+- `mix compile --warnings-as-errors`
+- `mix test test/orbital_dynamics/schema/candidate_refresh_contracts_test.exs test/orbital_dynamics/schema/json_schema_export_contracts_test.exs`
+- `mix test test/orbital_dynamics/schema`
+- `git diff --check`
+- `mix format lib/orbital_dynamics/schema/refresh_budget_report_contracts.ex lib/orbital_dynamics/schema.ex`
+- `mix compile --warnings-as-errors`
+- `mix test test/orbital_dynamics/schema/candidate_refresh_contracts_test.exs test/orbital_dynamics/schema/json_schema_export_contracts_test.exs`
+- `mix test test/orbital_dynamics/schema`
+- `git diff --check`
+- `mix format lib/orbital_dynamics/schema/resource_projection_report_contracts.ex lib/orbital_dynamics/schema.ex`
+- `mix compile --warnings-as-errors`
+- `mix test test/orbital_dynamics/schema/resource_contracts_test.exs test/orbital_dynamics/schema/cadence_row_contracts_test.exs test/orbital_dynamics/schema/communications_report_fixtures_test.exs test/orbital_dynamics/schema/json_schema_export_contracts_test.exs`
+- `mix test test/orbital_dynamics/schema`
+- `mix format lib/orbital_dynamics/schema/resource_projection_assumptions_contracts.ex lib/orbital_dynamics/schema.ex`
+- `mix compile --warnings-as-errors`
+- `mix test test/orbital_dynamics/schema/resource_contracts_test.exs test/orbital_dynamics/schema/communications_report_fixtures_test.exs test/orbital_dynamics/schema/json_schema_export_contracts_test.exs`
+- `mix test test/orbital_dynamics/schema`
+- `mix format lib/orbital_dynamics/schema/resource_projection_flow_projected_resource_contracts.ex lib/orbital_dynamics/schema.ex`
+- `mix compile --warnings-as-errors`
+- `mix test test/orbital_dynamics/schema/resource_contracts_test.exs test/orbital_dynamics/schema/cadence_row_contracts_test.exs test/orbital_dynamics/schema/communications_report_fixtures_test.exs test/orbital_dynamics/schema/json_schema_export_contracts_test.exs`
+- `mix test test/orbital_dynamics/schema`
+- `mix format lib/orbital_dynamics/schema/resource_projection_row_contracts.ex lib/orbital_dynamics/schema.ex`
+- `mix compile --warnings-as-errors`
+- `mix test test/orbital_dynamics/schema/resource_contracts_test.exs test/orbital_dynamics/schema/cadence_row_contracts_test.exs test/orbital_dynamics/schema/communications_report_fixtures_test.exs test/orbital_dynamics/schema/json_schema_export_contracts_test.exs`
+- `mix test test/orbital_dynamics/schema`
+- `mix format lib/orbital_dynamics/schema/realized_spacecraft_state_contracts.ex lib/orbital_dynamics/schema/realized_state_snapshot_contracts.ex lib/orbital_dynamics/schema.ex`
+- `mix compile --warnings-as-errors`
+- `mix test test/orbital_dynamics/schema/contact_feedback_contracts_test.exs test/orbital_dynamics/schema/json_schema_export_contracts_test.exs`
+- `mix test test/orbital_dynamics/schema`
+- `mix format lib/orbital_dynamics/schema/resource_projection_flow_row_contracts.ex lib/orbital_dynamics/schema.ex`
+- `mix compile --warnings-as-errors`
+- `mix test test/orbital_dynamics/schema/resource_contracts_test.exs test/orbital_dynamics/schema/cadence_row_contracts_test.exs test/orbital_dynamics/schema/communications_report_fixtures_test.exs test/orbital_dynamics/schema/json_schema_export_contracts_test.exs`
+- `mix test test/orbital_dynamics/schema`
+- `mix format lib/orbital_dynamics/schema/activity_contracts.ex lib/orbital_dynamics/schema.ex`
+- `mix compile --warnings-as-errors`
+- `mix test test/orbital_dynamics/schema/candidate_refresh_contracts_test.exs test/orbital_dynamics/schema/cadence_row_contracts_test.exs test/orbital_dynamics/schema/contact_feedback_contracts_test.exs test/orbital_dynamics/schema/json_schema_export_contracts_test.exs`
+- `mix test test/orbital_dynamics/schema`
+- `mix format lib/orbital_dynamics/schema/operational_feedback_contracts.ex lib/orbital_dynamics/schema.ex`
+- `mix compile --warnings-as-errors`
+- `mix test test/orbital_dynamics/schema/contact_feedback_contracts_test.exs test/orbital_dynamics/schema/candidate_refresh_contracts_test.exs test/orbital_dynamics/schema/candidate_refresh_resource_provenance_contracts_test.exs test/orbital_dynamics/schema/json_schema_export_contracts_test.exs`
+- `mix test test/orbital_dynamics/schema`
+- `mix format lib/orbital_dynamics/schema/realized_activity_contracts.ex lib/orbital_dynamics/schema.ex`
+- `mix compile --warnings-as-errors`
+- `mix test test/orbital_dynamics/schema/contact_feedback_contracts_test.exs test/orbital_dynamics/schema/accepted_state_contracts_test.exs test/orbital_dynamics/schema/campaign_repair_strategy_contracts_test.exs test/orbital_dynamics/schema/json_schema_export_contracts_test.exs`
+- `mix test test/orbital_dynamics/schema`
+- `mix format lib/orbital_dynamics/schema/resource_filter_report_contracts.ex lib/orbital_dynamics/schema.ex`
+- `mix compile --warnings-as-errors`
+- `mix test test/orbital_dynamics/schema/filter_report_contracts_test.exs test/orbital_dynamics/schema/resource_contracts_test.exs test/orbital_dynamics/schema/candidate_refresh_contracts_test.exs test/orbital_dynamics/schema/candidate_refresh_resource_provenance_contracts_test.exs test/orbital_dynamics/schema/json_schema_export_contracts_test.exs`
+- `mix test test/orbital_dynamics/schema`
+- `git diff --check`
+- `mix format lib/orbital_dynamics/schema/contact_allocation_report_contracts.ex lib/orbital_dynamics/schema.ex`
+- `mix compile --warnings-as-errors`
+- `mix test test/orbital_dynamics/schema/contact_allocation_contracts_test.exs test/orbital_dynamics/schema/contact_allocation_provider_reservation_contracts_test.exs test/orbital_dynamics/schema/communications_report_fixtures_test.exs test/orbital_dynamics/schema/candidate_refresh_resource_provenance_contracts_test.exs test/orbital_dynamics/schema/json_schema_export_contracts_test.exs`
+- `mix test test/orbital_dynamics/schema`
+- `git diff --check`
+- `mix format lib/orbital_dynamics/schema/contact_allocation_handoff_contracts.ex lib/orbital_dynamics/schema.ex`
+- `mix compile --warnings-as-errors`
+- `mix test test/orbital_dynamics/schema/operator_review_contracts_test.exs test/orbital_dynamics/schema/cadence_import_contracts_test.exs test/orbital_dynamics/schema/contact_allocation_contracts_test.exs test/orbital_dynamics/schema/contact_allocation_provider_reservation_contracts_test.exs test/orbital_dynamics/schema/json_schema_export_contracts_test.exs`
+- `mix test test/orbital_dynamics/schema`
+- `git diff --check`
+- `mix format lib/orbital_dynamics/schema/contact_allocation_handoff_contracts.ex lib/orbital_dynamics/schema.ex`
+- `mix compile --warnings-as-errors`
+- `mix test test/orbital_dynamics/schema/operator_review_contracts_test.exs test/orbital_dynamics/schema/cadence_import_contracts_test.exs test/orbital_dynamics/schema/contact_allocation_contracts_test.exs test/orbital_dynamics/schema/contact_allocation_provider_reservation_contracts_test.exs test/orbital_dynamics/schema/json_schema_export_contracts_test.exs`
+- `mix test test/orbital_dynamics/schema`
+- `git diff --check`
+- `mix format lib/orbital_dynamics/schema/station_calendar_report_contracts.ex lib/orbital_dynamics/schema.ex`
+- `mix compile --warnings-as-errors`
+- `mix test test/orbital_dynamics/schema/communications_report_fixtures_test.exs test/orbital_dynamics/schema/station_provider_contracts_test.exs test/orbital_dynamics/schema/cadence_row_contracts_test.exs test/orbital_dynamics/schema/campaign_repair_strategy_contracts_test.exs test/orbital_dynamics/schema/candidate_refresh_resource_provenance_contracts_test.exs test/orbital_dynamics/schema/json_schema_export_contracts_test.exs`
+- `mix test test/orbital_dynamics/schema`
+- `git diff --check`
+- `mix format lib/orbital_dynamics/schema/station_reservation_report_contracts.ex lib/orbital_dynamics/schema.ex`
+- `mix compile --warnings-as-errors`
+- `mix test test/orbital_dynamics/schema/station_provider_contracts_test.exs test/orbital_dynamics/schema/communications_report_fixtures_test.exs test/orbital_dynamics/schema/candidate_refresh_resource_provenance_contracts_test.exs test/orbital_dynamics/schema/json_schema_export_contracts_test.exs`
+- `mix test test/orbital_dynamics/schema`
+- `git diff --check`
+- `mix format lib/orbital_dynamics/schema/station_reservation_summary_contracts.ex lib/orbital_dynamics/schema.ex`
+- `mix compile --warnings-as-errors`
+- `mix test test/orbital_dynamics/schema/station_provider_contracts_test.exs test/orbital_dynamics/schema/contact_allocation_provider_reservation_contracts_test.exs test/orbital_dynamics/schema/contact_allocation_contracts_test.exs test/orbital_dynamics/schema/json_schema_export_contracts_test.exs`
+- `mix test test/orbital_dynamics/schema`
+- `git diff --check`
+- `mix format lib/orbital_dynamics/schema/station_calendar_report_contracts.ex lib/orbital_dynamics/schema.ex`
+- `mix compile --warnings-as-errors`
+- `mix test test/orbital_dynamics/schema/communications_report_fixtures_test.exs test/orbital_dynamics/schema/station_provider_contracts_test.exs test/orbital_dynamics/schema/cadence_row_contracts_test.exs test/orbital_dynamics/schema/campaign_repair_strategy_contracts_test.exs test/orbital_dynamics/schema/candidate_refresh_resource_provenance_contracts_test.exs test/orbital_dynamics/schema/json_schema_export_contracts_test.exs`
+- `mix test test/orbital_dynamics/schema`
+- `git diff --check`
+- `mix format lib/orbital_dynamics/schema/station_calendar_report_contracts.ex lib/orbital_dynamics/schema.ex`
+- `mix compile --warnings-as-errors`
+- `mix test test/orbital_dynamics/schema/communications_report_fixtures_test.exs test/orbital_dynamics/schema/station_provider_contracts_test.exs test/orbital_dynamics/schema/cadence_row_contracts_test.exs test/orbital_dynamics/schema/campaign_repair_strategy_contracts_test.exs test/orbital_dynamics/schema/candidate_refresh_resource_provenance_contracts_test.exs test/orbital_dynamics/schema/json_schema_export_contracts_test.exs`
+- `mix test test/orbital_dynamics/schema`
+- `git diff --check`
+- `mix format lib/orbital_dynamics/schema/station_calendar_report_contracts.ex lib/orbital_dynamics/schema.ex`
+- `mix compile --warnings-as-errors`
+- `mix test test/orbital_dynamics/schema/communications_report_fixtures_test.exs test/orbital_dynamics/schema/station_provider_contracts_test.exs test/orbital_dynamics/schema/cadence_row_contracts_test.exs test/orbital_dynamics/schema/campaign_repair_strategy_contracts_test.exs test/orbital_dynamics/schema/candidate_refresh_resource_provenance_contracts_test.exs test/orbital_dynamics/schema/json_schema_export_contracts_test.exs`
+- `mix test test/orbital_dynamics/schema`
+- `git diff --check`
+- `mix format lib/orbital_dynamics/schema/contact_allocation_handoff_contracts.ex lib/orbital_dynamics/schema.ex`
+- `mix compile --warnings-as-errors`
+- `mix test test/orbital_dynamics/schema/operator_review_contracts_test.exs test/orbital_dynamics/schema/cadence_import_contracts_test.exs test/orbital_dynamics/schema/contact_allocation_contracts_test.exs test/orbital_dynamics/schema/contact_allocation_provider_reservation_contracts_test.exs test/orbital_dynamics/schema/json_schema_export_contracts_test.exs`
+- `mix test test/orbital_dynamics/schema`
+- `git diff --check`
+- `mix format lib/orbital_dynamics/schema/station_calendar_handoff_contracts.ex lib/orbital_dynamics/schema.ex`
+- `mix compile --warnings-as-errors`
+- `mix test test/orbital_dynamics/schema/operator_review_contracts_test.exs test/orbital_dynamics/schema/cadence_import_contracts_test.exs test/orbital_dynamics/schema/station_provider_contracts_test.exs test/orbital_dynamics/schema/communications_report_fixtures_test.exs test/orbital_dynamics/schema/json_schema_export_contracts_test.exs`
+- `mix test test/orbital_dynamics/schema`
+- `git diff --check`
+- `mix format lib/orbital_dynamics/schema/contact_review_handoff_contracts.ex lib/orbital_dynamics/schema.ex`
+- `mix compile --warnings-as-errors`
+- `mix test test/orbital_dynamics/schema/operator_review_contracts_test.exs test/orbital_dynamics/schema/cadence_import_contracts_test.exs test/orbital_dynamics/schema/cadence_row_contracts_test.exs test/orbital_dynamics/schema/communications_report_fixtures_test.exs test/orbital_dynamics/schema/candidate_refresh_resource_provenance_contracts_test.exs test/orbital_dynamics/schema/json_schema_export_contracts_test.exs`
+- `mix test test/orbital_dynamics/schema`
+- `git diff --check`
+- `mix format lib/orbital_dynamics/schema/contact_contention_handoff_contracts.ex lib/orbital_dynamics/schema.ex`
+- `mix compile --warnings-as-errors`
+- `mix test test/orbital_dynamics/schema/operator_review_contracts_test.exs test/orbital_dynamics/schema/cadence_import_contracts_test.exs test/orbital_dynamics/schema/contact_allocation_contracts_test.exs test/orbital_dynamics/schema/communications_report_fixtures_test.exs test/orbital_dynamics/schema/json_schema_export_contracts_test.exs`
+- `mix test test/orbital_dynamics/schema`
+- `git diff --check`
+- `mix format lib/orbital_dynamics/schema/suppression_handoff_contracts.ex lib/orbital_dynamics/schema.ex`
+- `mix compile --warnings-as-errors`
+- `mix test test/orbital_dynamics/schema/operator_review_contracts_test.exs test/orbital_dynamics/schema/cadence_import_contracts_test.exs test/orbital_dynamics/schema/contact_allocation_contracts_test.exs test/orbital_dynamics/schema/json_schema_export_contracts_test.exs`
+- `mix test test/orbital_dynamics/schema`
+- `git diff --check`
+
+Verification gaps:
+- Full `mix test` was not run in this slice.
+- Existing broad worktree changes remain from earlier refactor slices.
+
+Next candidate:
+Reassess remaining large `schema.ex` executable-validation clusters and pick the next facade-preserving family extraction; likely candidates are another operator-review/Cadence import handoff family, link-capacity handoff helper extraction, or a schema-test family split with focused coverage.
