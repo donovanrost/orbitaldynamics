@@ -6,23 +6,23 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Completed: study/result registry extraction.
+Completed: optimization registry extraction.
 
 Status:
-Published.
+Ready to publish.
 
 Selected slice:
-Moved `study_benchmark.v1`, `manifest_field_reference.v1`, and
-`result_artifact.v1` definitions into `Schema.StudyResultRegistryContracts`.
+Moved `branch_comparison_report.v1` and `optimizer_contract.v1` definitions into
+`Schema.OptimizationRegistryContracts`.
 
 Why this slice:
-The three definitions form the study-facing benchmark, manifest tooling, and
-top-level result artifact family with explicit nested contracts.
+The two definitions form the branch-comparison and optimizer selection family
+and share one focused contract test surface.
 
 Files changed:
 - `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/study_result_registry_contracts.ex`
+- `lib/orbital_dynamics/schema/optimization_registry_contracts.ex`
 
 Public APIs preserved:
 - `OrbitalDynamics.Schema.contracts/0`
@@ -32,17 +32,17 @@ Public APIs preserved:
 - `OrbitalDynamics.Schema.validate_artifact/2`
 
 Behavior/schema changes:
-None. Registry contents, study/result validation, linting, and generated schemas
-retain the baseline fingerprint.
+None. Registry contents, optimizer/branch-comparison validation, and generated
+schemas retain the baseline fingerprint.
 
 Tests run:
 - `mix compile --warnings-as-errors` passed.
-- Result-artifact contracts, registry capability, schema export, schema lint,
-  and manifest reference tests passed: 31 tests.
+- Optimizer/objective contracts, fixture visibility, registry capability, and
+  schema export tests passed: 12 tests.
 - SHA-256 over `{Schema.contracts(), Schema.json_schema_bundle()}` remained
   `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`.
-- `mix xref callers OrbitalDynamics.Schema.StudyResultRegistryContracts` passed
-  with the expected schema-facade caller.
+- `mix xref callers OrbitalDynamics.Schema.OptimizationRegistryContracts`
+  passed with the expected schema-facade caller.
 - Compile-connected xref, full touched-file formatting, whitespace, new-file
   no-index, conflict-marker, and checked-in-schema cleanliness checks passed.
 
@@ -50,17 +50,17 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`ce1ad366` (`Extract study result registry contracts`).
+`a35ad01d` (`Update study result schema handoff`); current slice is not yet
+committed.
 
 Next candidate:
-Assess the adjacent `branch_comparison_report.v1` and `optimizer_contract.v1`
-definitions as a possible optimization registry family before editing.
+Assess the adjacent timeline-transition application report and summary registry
+definitions as the next bounded family.
 
 Blocked:
 No.
 
 Notes:
-- `schema.ex` decreased from 18,621 to 18,549 lines.
-- `StudyResultRegistryContracts` is 81 lines.
-- The inline `@base_contracts` registry remains substantial; this is not a
-  milestone-completion claim.
+- `schema.ex` decreased from 18,549 to 18,506 lines.
+- `OptimizationRegistryContracts` is 52 lines.
+- The inline registry remains substantial; this is not a completion claim.

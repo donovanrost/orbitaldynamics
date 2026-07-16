@@ -4730,50 +4730,6 @@ defmodule OrbitalDynamics.Schema do
       ],
       "optional_fields" => [],
       "nested_contracts" => ["timeline_transition_application_report.v1"]
-    },
-    @branch_comparison_report => %{
-      "schema_contract" => @branch_comparison_report,
-      "artifact_family" => "branch_comparison_report",
-      "schema_version" => 1,
-      "required_fields" => [
-        "schema_contract",
-        "model",
-        "source",
-        "branch_count",
-        "recommended_branch_id",
-        "rows",
-        "assumptions"
-      ],
-      "optional_fields" => ["model_limits"],
-      "nested_contracts" => []
-    },
-    @optimizer_contract => %{
-      "schema_contract" => @optimizer_contract,
-      "artifact_family" => "optimizer_contract",
-      "schema_version" => 1,
-      "required_fields" => [
-        "schema_contract",
-        "id",
-        "optimizer",
-        "objective",
-        "selection_policy",
-        "candidate_count",
-        "ranked_timeline_count",
-        "selected_activity_count",
-        "selected_activity_ids",
-        "assumptions"
-      ],
-      "optional_fields" => [
-        "candidate_activity_ids",
-        "ranked_scenario_ids",
-        "score_term_keys",
-        "deterministic_ordering",
-        "preserved_lineage_fields",
-        "constraints",
-        "scoring_policy",
-        "known_limits"
-      ],
-      "nested_contracts" => []
     }
   }
 
@@ -4788,6 +4744,7 @@ defmodule OrbitalDynamics.Schema do
              |> Map.merge(OrbitalDynamics.Schema.ValidationPolicyRegistryContracts.contracts())
              |> Map.merge(OrbitalDynamics.Schema.LintRegistryContracts.contracts())
              |> Map.merge(OrbitalDynamics.Schema.StudyResultRegistryContracts.contracts())
+             |> Map.merge(OrbitalDynamics.Schema.OptimizationRegistryContracts.contracts())
 
   @doc """
   Returns the known executable artifact contracts.
