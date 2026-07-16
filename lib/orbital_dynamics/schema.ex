@@ -13581,18 +13581,8 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.PolicyEscalationContracts.validate(
       issues,
       path,
-      escalation,
-      policy_escalation_contract_callbacks()
+      escalation
     )
-  end
-
-  defp policy_escalation_contract_callbacks do
-    [
-      validate_stable_ids: &validate_stable_ids/4,
-      expect_optional_type: &expect_optional_type/5,
-      expect_optional_one_of: &expect_optional_one_of/5,
-      expect_optional_number: &expect_optional_number/4
-    ]
   end
 
   defp validate_policy_bundle(issues, path, bundle) do
