@@ -26,6 +26,26 @@ defmodule OrbitalDynamics.Schema.PrimitiveValidation do
     end
   end
 
+  def validate_optional_exact_model_limits(issues, path, artifact, expected, message) do
+    case Map.get(artifact, "model_limits") do
+      nil ->
+        issues
+
+      :null ->
+        issues
+
+      limits when is_list(limits) ->
+        if limits == expected do
+          issues
+        else
+          [error("#{path}.model_limits", message) | issues]
+        end
+
+      _value ->
+        issues
+    end
+  end
+
   def expect_optional_list(issues, path, map, field) do
     case Map.get(map, field) do
       nil -> issues

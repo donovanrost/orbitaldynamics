@@ -53,6 +53,7 @@ defmodule OrbitalDynamics.Schema do
       validate_number_list_items: 4,
       validate_optional_boolean_fields: 4,
       validate_optional_integer_fields: 4,
+      validate_optional_exact_model_limits: 5,
       validate_optional_number_fields: 4,
       validate_optional_string_fields: 4,
       validate_optional_string_lists: 4,
@@ -9741,26 +9742,6 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validate_optional_exact_model_limits(issues, path, artifact, expected, message) do
-    case Map.get(artifact, "model_limits") do
-      nil ->
-        issues
-
-      :null ->
-        issues
-
-      limits when is_list(limits) ->
-        if limits == expected do
-          issues
-        else
-          [error("#{path}.model_limits", message) | issues]
-        end
-
-      _value ->
-        issues
-    end
-  end
-
   defp validate_optional_objective_tradeoff_report(issues, nil), do: issues
 
   defp validate_optional_objective_tradeoff_report(issues, %{} = report) do
@@ -13491,21 +13472,8 @@ defmodule OrbitalDynamics.Schema do
       path,
       bundle,
       policy_model_limits(),
-      policy_bundle_contract_callbacks()
+      policy_action_rule_field_groups()
     )
-  end
-
-  defp policy_bundle_contract_callbacks do
-    [
-      validate_stable_ids: &validate_stable_ids/4,
-      expect_equal: &expect_equal/5,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_optional_exact_model_limits: &validate_optional_exact_model_limits/5,
-      validate_approval_policy: &validate_approval_policy/3,
-      error: &error/2
-    ]
   end
 
   defp validate_operator_review_package(issues, path, package) do
@@ -13729,26 +13697,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp validate_approval_policy(issues, path, policy) when is_map(policy) do
-    OrbitalDynamics.Schema.PolicyActionRuleContracts.validate_approval_policy(
-      issues,
-      path,
-      policy,
-      policy_action_rule_field_groups(),
-      policy_action_rule_contract_callbacks()
-    )
-  end
-
-  defp validate_approval_policy(issues, path, _policy),
-    do:
-      OrbitalDynamics.Schema.PolicyActionRuleContracts.validate_approval_policy(
-        issues,
-        path,
-        nil,
-        policy_action_rule_field_groups(),
-        policy_action_rule_contract_callbacks()
-      )
-
   defp policy_action_rule_field_groups do
     [
       string_fields: @policy_context_string_fields,
@@ -13757,29 +13705,6 @@ defmodule OrbitalDynamics.Schema do
       number_fields: @policy_action_rule_number_fields,
       integer_fields: @policy_action_rule_integer_fields,
       boolean_fields: @policy_context_boolean_fields
-    ]
-  end
-
-  defp policy_action_rule_contract_callbacks do
-    [
-      require_fields: &require_fields/4,
-      validate_stable_ids: &validate_stable_ids/4,
-      validate_optional_string_fields: &validate_optional_string_fields/4,
-      validate_optional_string_lists: &validate_optional_string_lists/4,
-      validate_optional_string_or_array_fields: &validate_optional_string_or_array_fields/4,
-      validate_optional_number_fields: &validate_optional_number_fields/4,
-      validate_optional_integer_fields: &validate_optional_integer_fields/4,
-      validate_optional_boolean_fields: &validate_optional_boolean_fields/4,
-      expect_optional_one_of: &expect_optional_one_of/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_optional_number: &expect_optional_number/4,
-      expect_optional_list: &expect_optional_list/4,
-      validate_optional_rows: &validate_optional_rows/4,
-      expect_optional_probability: &expect_optional_probability/4,
-      expect_optional_integer: &expect_optional_integer/4,
-      expect_field_at_least: &expect_field_at_least/5,
-      validate_string_list_items: &validate_string_list_items/4,
-      error: &error/2
     ]
   end
 

@@ -1,6 +1,30 @@
 defmodule OrbitalDynamics.Schema.PolicyActionRuleContracts do
   @moduledoc false
 
+  import OrbitalDynamics.Schema.CollectionValidation, only: [validate_optional_rows: 4]
+
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [
+      error: 2,
+      expect_field_at_least: 5,
+      expect_optional_integer: 4,
+      expect_optional_list: 4,
+      expect_optional_number: 4,
+      expect_optional_one_of: 5,
+      expect_optional_probability: 4,
+      expect_optional_type: 5,
+      require_fields: 4,
+      validate_optional_boolean_fields: 4,
+      validate_optional_integer_fields: 4,
+      validate_optional_number_fields: 4,
+      validate_optional_string_fields: 4,
+      validate_optional_string_lists: 4,
+      validate_optional_string_or_array_fields: 4,
+      validate_string_list_items: 4
+    ]
+
+  import OrbitalDynamics.Schema.StableIdValidation, only: [validate_stable_ids: 4]
+
   @selector_binary_fields [
     "action",
     "activity_type",
@@ -92,8 +116,7 @@ defmodule OrbitalDynamics.Schema.PolicyActionRuleContracts do
     "required_authority"
   ]
 
-  def validate_unique_ids(issues, path, rules, callbacks)
-      when is_list(rules) and is_list(callbacks) do
+  def validate_unique_ids(issues, path, rules) when is_list(rules) do
     {_seen_ids, issues} =
       rules
       |> Enum.with_index()
@@ -104,7 +127,7 @@ defmodule OrbitalDynamics.Schema.PolicyActionRuleContracts do
               if MapSet.member?(seen_ids, id) do
                 {seen_ids,
                  [
-                   error("#{path}[#{index}].id", "must be unique within action_rules", callbacks)
+                   error("#{path}[#{index}].id", "must be unique within action_rules")
                    | acc
                  ]}
               else
@@ -122,81 +145,72 @@ defmodule OrbitalDynamics.Schema.PolicyActionRuleContracts do
     issues
   end
 
-  def validate_unique_ids(issues, _path, _rules, _callbacks), do: issues
+  def validate_unique_ids(issues, _path, _rules), do: issues
 
-  def validate_approval_policy(issues, path, policy, field_groups, callbacks)
-      when is_map(policy) and is_list(field_groups) and is_list(callbacks) do
+  def validate_approval_policy(issues, path, policy, field_groups)
+      when is_map(policy) and is_list(field_groups) do
     issues
-    |> expect_optional_number(path, policy, "auto_approvable_risk_limit", callbacks)
-    |> expect_optional_number(path, policy, "auto_approvable_approval_count_limit", callbacks)
-    |> expect_optional_number(path, policy, "operator_review_risk_limit", callbacks)
-    |> expect_optional_list(path, policy, "blocked_risk_types", callbacks)
-    |> expect_optional_list(path, policy, "action_rules", callbacks)
+    |> expect_optional_number(path, policy, "auto_approvable_risk_limit")
+    |> expect_optional_number(path, policy, "auto_approvable_approval_count_limit")
+    |> expect_optional_number(path, policy, "operator_review_risk_limit")
+    |> expect_optional_list(path, policy, "blocked_risk_types")
+    |> expect_optional_list(path, policy, "action_rules")
     |> validate_optional_rows(
       path <> ".action_rules",
       Map.get(policy, "action_rules"),
       fn acc, row_path, rule ->
-        validate_action_rule(acc, row_path, rule, field_groups, callbacks)
-      end,
-      callbacks
+        validate_action_rule(acc, row_path, rule, field_groups)
+      end
     )
-    |> validate_unique_ids(path <> ".action_rules", Map.get(policy, "action_rules"), callbacks)
+    |> validate_unique_ids(path <> ".action_rules", Map.get(policy, "action_rules"))
   end
 
-  def validate_approval_policy(issues, path, _policy, _field_groups, callbacks),
-    do: [error(path, "must be an object", callbacks) | issues]
+  def validate_approval_policy(issues, path, _policy, _field_groups),
+    do: [error(path, "must be an object") | issues]
 
-  def validate_action_rule(issues, path, rule, field_groups, callbacks)
-      when is_list(field_groups) and is_list(callbacks) do
+  def validate_action_rule(issues, path, rule, field_groups) when is_list(field_groups) do
     issues
-    |> validate_context_fields(path, rule, field_groups, callbacks)
-    |> validate_selector_fields(path, rule, callbacks)
-    |> validate_result_fields(path, rule, callbacks)
-    |> validate_threshold_fields(path, rule, callbacks)
-    |> validate_escalation_fields(path, rule, callbacks)
-    |> validate_escalation_authority(path, rule, callbacks)
+    |> validate_context_fields(path, rule, field_groups)
+    |> validate_selector_fields(path, rule)
+    |> validate_result_fields(path, rule)
+    |> validate_threshold_fields(path, rule)
+    |> validate_escalation_fields(path, rule)
+    |> validate_escalation_authority(path, rule)
   end
 
-  def validate_context_fields(issues, path, rule, field_groups, callbacks)
-      when is_list(field_groups) and is_list(callbacks) do
+  def validate_context_fields(issues, path, rule, field_groups) when is_list(field_groups) do
     issues
-    |> require_fields(path, rule, ["id", "classification", "reason"], callbacks)
-    |> validate_stable_ids(path, rule, ["id"], callbacks)
+    |> require_fields(path, rule, ["id", "classification", "reason"])
+    |> validate_stable_ids(path, rule, ["id"])
     |> validate_optional_string_fields(
       path,
       rule,
-      Keyword.fetch!(field_groups, :string_fields),
-      callbacks
+      Keyword.fetch!(field_groups, :string_fields)
     )
     |> validate_optional_string_lists(
       path,
       rule,
-      Keyword.fetch!(field_groups, :string_array_fields),
-      callbacks
+      Keyword.fetch!(field_groups, :string_array_fields)
     )
     |> validate_optional_string_or_array_fields(
       path,
       rule,
-      Keyword.fetch!(field_groups, :string_or_array_fields),
-      callbacks
+      Keyword.fetch!(field_groups, :string_or_array_fields)
     )
     |> validate_optional_number_fields(
       path,
       rule,
-      Keyword.fetch!(field_groups, :number_fields),
-      callbacks
+      Keyword.fetch!(field_groups, :number_fields)
     )
     |> validate_optional_integer_fields(
       path,
       rule,
-      Keyword.fetch!(field_groups, :integer_fields),
-      callbacks
+      Keyword.fetch!(field_groups, :integer_fields)
     )
     |> validate_optional_boolean_fields(
       path,
       rule,
-      Keyword.fetch!(field_groups, :boolean_fields),
-      callbacks
+      Keyword.fetch!(field_groups, :boolean_fields)
     )
     |> expect_optional_one_of(
       path,
@@ -206,70 +220,64 @@ defmodule OrbitalDynamics.Schema.PolicyActionRuleContracts do
         "auto_approvable",
         "operator_review_required",
         "blocked_by_policy"
-      ],
-      callbacks
+      ]
     )
   end
 
-  def validate_selector_fields(issues, path, rule, callbacks) when is_list(callbacks) do
+  def validate_selector_fields(issues, path, rule) do
     issues
-    |> validate_binary_fields(path, rule, @selector_binary_fields, callbacks)
-    |> validate_list_only_fields(path, rule, @selector_list_only_fields, callbacks)
-    |> validate_string_list_fields(path, rule, @selector_string_list_fields, callbacks)
+    |> validate_binary_fields(path, rule, @selector_binary_fields)
+    |> validate_list_only_fields(path, rule, @selector_list_only_fields)
+    |> validate_string_list_fields(path, rule, @selector_string_list_fields)
   end
 
-  def validate_result_fields(issues, path, rule, callbacks) when is_list(callbacks) do
+  def validate_result_fields(issues, path, rule) do
     issues
-    |> validate_boolean_fields(path, rule, @result_boolean_fields, callbacks)
-    |> validate_binary_fields(path, rule, @result_binary_fields, callbacks)
-    |> validate_string_list_fields(path, rule, @result_string_list_fields, callbacks)
+    |> validate_boolean_fields(path, rule, @result_boolean_fields)
+    |> validate_binary_fields(path, rule, @result_binary_fields)
+    |> validate_string_list_fields(path, rule, @result_string_list_fields)
   end
 
-  def validate_threshold_fields(issues, path, rule, callbacks) when is_list(callbacks) do
+  def validate_threshold_fields(issues, path, rule) do
     issues
-    |> validate_number_fields(path, rule, @threshold_number_fields, callbacks)
-    |> validate_probability_fields(path, rule, @threshold_probability_fields, callbacks)
+    |> validate_number_fields(path, rule, @threshold_number_fields)
+    |> validate_probability_fields(path, rule, @threshold_probability_fields)
     |> validate_non_negative_number_fields(
       path,
       rule,
-      @threshold_non_negative_number_fields,
-      callbacks
+      @threshold_non_negative_number_fields
     )
     |> validate_non_negative_integer_fields(
       path,
       rule,
-      @threshold_non_negative_integer_fields,
-      callbacks
+      @threshold_non_negative_integer_fields
     )
     |> expect_optional_type(
       path,
       rule,
       "priority_field_without_numeric_evidence",
-      :binary,
-      callbacks
+      :binary
     )
     |> expect_optional_type(
       path,
       rule,
       "priority_fields_without_numeric_evidence",
-      :list,
-      callbacks
+      :list
     )
     |> validate_string_list_items(
       path,
       rule,
-      "priority_fields_without_numeric_evidence",
-      callbacks
+      "priority_fields_without_numeric_evidence"
     )
   end
 
-  def validate_escalation_fields(issues, path, rule, callbacks) when is_list(callbacks) do
+  def validate_escalation_fields(issues, path, rule) do
     issues
-    |> validate_binary_fields(path, rule, @escalation_binary_fields, callbacks)
-    |> expect_optional_number(path, rule, "sla_s", callbacks)
+    |> validate_binary_fields(path, rule, @escalation_binary_fields)
+    |> expect_optional_number(path, rule, "sla_s")
   end
 
-  def validate_escalation_authority(issues, path, rule, callbacks) when is_list(callbacks) do
+  def validate_escalation_authority(issues, path, rule) do
     escalation_fields = [
       "escalation_level",
       "escalation_queue",
@@ -283,8 +291,7 @@ defmodule OrbitalDynamics.Schema.PolicyActionRuleContracts do
       [
         error(
           path <> ".required_authority",
-          "is required when escalation metadata is present",
-          callbacks
+          "is required when escalation metadata is present"
         )
         | issues
       ]
@@ -293,185 +300,57 @@ defmodule OrbitalDynamics.Schema.PolicyActionRuleContracts do
     end
   end
 
-  defp validate_binary_fields(issues, path, rule, fields, callbacks) do
+  defp validate_binary_fields(issues, path, rule, fields) do
     Enum.reduce(fields, issues, fn field, acc ->
-      expect_optional_type(acc, path, rule, field, :binary, callbacks)
+      expect_optional_type(acc, path, rule, field, :binary)
     end)
   end
 
-  defp validate_list_only_fields(issues, path, rule, fields, callbacks) do
+  defp validate_list_only_fields(issues, path, rule, fields) do
     Enum.reduce(fields, issues, fn field, acc ->
-      expect_optional_type(acc, path, rule, field, :list, callbacks)
+      expect_optional_type(acc, path, rule, field, :list)
     end)
   end
 
-  defp validate_boolean_fields(issues, path, rule, fields, callbacks) do
+  defp validate_boolean_fields(issues, path, rule, fields) do
     Enum.reduce(fields, issues, fn field, acc ->
-      expect_optional_type(acc, path, rule, field, :boolean, callbacks)
+      expect_optional_type(acc, path, rule, field, :boolean)
     end)
   end
 
-  defp validate_string_list_fields(issues, path, rule, fields, callbacks) do
-    Enum.reduce(fields, issues, fn field, acc ->
-      acc
-      |> expect_optional_type(path, rule, field, :list, callbacks)
-      |> validate_string_list_items(path, rule, field, callbacks)
-    end)
-  end
-
-  defp validate_number_fields(issues, path, rule, fields, callbacks) do
-    Enum.reduce(fields, issues, fn field, acc ->
-      expect_optional_number(acc, path, rule, field, callbacks)
-    end)
-  end
-
-  defp validate_probability_fields(issues, path, rule, fields, callbacks) do
-    Enum.reduce(fields, issues, fn field, acc ->
-      expect_optional_probability(acc, path, rule, field, callbacks)
-    end)
-  end
-
-  defp validate_non_negative_number_fields(issues, path, rule, fields, callbacks) do
+  defp validate_string_list_fields(issues, path, rule, fields) do
     Enum.reduce(fields, issues, fn field, acc ->
       acc
-      |> expect_optional_number(path, rule, field, callbacks)
-      |> expect_field_at_least(path, rule, field, 0, callbacks)
+      |> expect_optional_type(path, rule, field, :list)
+      |> validate_string_list_items(path, rule, field)
     end)
   end
 
-  defp validate_non_negative_integer_fields(issues, path, rule, fields, callbacks) do
+  defp validate_number_fields(issues, path, rule, fields) do
+    Enum.reduce(fields, issues, fn field, acc ->
+      expect_optional_number(acc, path, rule, field)
+    end)
+  end
+
+  defp validate_probability_fields(issues, path, rule, fields) do
+    Enum.reduce(fields, issues, fn field, acc ->
+      expect_optional_probability(acc, path, rule, field)
+    end)
+  end
+
+  defp validate_non_negative_number_fields(issues, path, rule, fields) do
     Enum.reduce(fields, issues, fn field, acc ->
       acc
-      |> expect_optional_integer(path, rule, field, callbacks)
-      |> expect_field_at_least(path, rule, field, 0, callbacks)
+      |> expect_optional_number(path, rule, field)
+      |> expect_field_at_least(path, rule, field, 0)
     end)
   end
 
-  defp require_fields(issues, path, map, fields, callbacks),
-    do: apply(require_callback(callbacks, :require_fields), [issues, path, map, fields])
-
-  defp validate_stable_ids(issues, path, map, fields, callbacks),
-    do: apply(require_callback(callbacks, :validate_stable_ids), [issues, path, map, fields])
-
-  defp validate_optional_string_fields(issues, path, map, fields, callbacks),
-    do:
-      apply(require_callback(callbacks, :validate_optional_string_fields), [
-        issues,
-        path,
-        map,
-        fields
-      ])
-
-  defp validate_optional_string_lists(issues, path, map, fields, callbacks),
-    do:
-      apply(require_callback(callbacks, :validate_optional_string_lists), [
-        issues,
-        path,
-        map,
-        fields
-      ])
-
-  defp validate_optional_string_or_array_fields(issues, path, map, fields, callbacks),
-    do:
-      apply(require_callback(callbacks, :validate_optional_string_or_array_fields), [
-        issues,
-        path,
-        map,
-        fields
-      ])
-
-  defp validate_optional_number_fields(issues, path, map, fields, callbacks),
-    do:
-      apply(require_callback(callbacks, :validate_optional_number_fields), [
-        issues,
-        path,
-        map,
-        fields
-      ])
-
-  defp validate_optional_integer_fields(issues, path, map, fields, callbacks),
-    do:
-      apply(require_callback(callbacks, :validate_optional_integer_fields), [
-        issues,
-        path,
-        map,
-        fields
-      ])
-
-  defp validate_optional_boolean_fields(issues, path, map, fields, callbacks),
-    do:
-      apply(require_callback(callbacks, :validate_optional_boolean_fields), [
-        issues,
-        path,
-        map,
-        fields
-      ])
-
-  defp expect_optional_one_of(issues, path, map, field, allowed, callbacks),
-    do:
-      apply(require_callback(callbacks, :expect_optional_one_of), [
-        issues,
-        path,
-        map,
-        field,
-        allowed
-      ])
-
-  defp expect_optional_type(issues, path, map, field, type, callbacks),
-    do:
-      apply(require_callback(callbacks, :expect_optional_type), [
-        issues,
-        path,
-        map,
-        field,
-        type
-      ])
-
-  defp expect_optional_number(issues, path, map, field, callbacks),
-    do: apply(require_callback(callbacks, :expect_optional_number), [issues, path, map, field])
-
-  defp expect_optional_list(issues, path, map, field, callbacks),
-    do: apply(require_callback(callbacks, :expect_optional_list), [issues, path, map, field])
-
-  defp validate_optional_rows(issues, path, rows, callback, callbacks),
-    do:
-      apply(require_callback(callbacks, :validate_optional_rows), [issues, path, rows, callback])
-
-  defp expect_optional_probability(issues, path, map, field, callbacks),
-    do:
-      apply(require_callback(callbacks, :expect_optional_probability), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp expect_optional_integer(issues, path, map, field, callbacks),
-    do: apply(require_callback(callbacks, :expect_optional_integer), [issues, path, map, field])
-
-  defp expect_field_at_least(issues, path, map, field, minimum, callbacks),
-    do:
-      apply(require_callback(callbacks, :expect_field_at_least), [
-        issues,
-        path,
-        map,
-        field,
-        minimum
-      ])
-
-  defp validate_string_list_items(issues, path, map, field, callbacks),
-    do:
-      apply(require_callback(callbacks, :validate_string_list_items), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp error(path, message, callbacks),
-    do: apply(require_callback(callbacks, :error), [path, message])
-
-  defp require_callback(callbacks, name) do
-    Keyword.fetch!(callbacks, name)
+  defp validate_non_negative_integer_fields(issues, path, rule, fields) do
+    Enum.reduce(fields, issues, fn field, acc ->
+      acc
+      |> expect_optional_integer(path, rule, field)
+      |> expect_field_at_least(path, rule, field, 0)
+    end)
   end
 end
