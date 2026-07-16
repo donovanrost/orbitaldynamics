@@ -55,9 +55,11 @@ Last commit:
 `0a1b0e6c` (`Extract Cadence import pressure routing`).
 
 Next candidate:
-Inspect the 252-line `do_repair/1` orchestration cluster in
-`lib/orbital_dynamics/campaign_planner.ex` for extraction behind a focused V2
-repair module while preserving `CampaignPlanner.repair/1`.
+Extract the final repair-artifact assembly portion of the 252-line `do_repair/1`
+cluster behind `CampaignPlanner.RepairArtifact`, passing already-computed repair
+values while preserving `CampaignPlanner.repair/1`. Do not move the whole
+function: live mapping found roughly 40 private dependencies, which would
+recreate a callback bag instead of improving the boundary.
 
 Blocked:
 No.
