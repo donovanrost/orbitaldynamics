@@ -6,44 +6,42 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Activity-context callback ownership cleanup.
+Plan-delta callback ownership cleanup.
 
 Status:
 Complete and published.
 
 Result:
-- Removed the 17-function activity-context facade bag and all callback
-  arguments/wrappers from `ActivityContextContracts`.
-- The family now directly uses primitive, collection, stable-ID,
-  execution-metric, candidate-refresh, candidate-diff, and
-  timeline-integrity-evidence modules.
-- Removed the facade's now-unused candidate-refresh scoped-context relay.
+- Removed the 13-function plan-delta facade bag and all callback
+  arguments/wrappers from `PlanDeltaContracts`.
+- The family now directly uses schema-contract, timeline-identity,
+  activity-context, execution-metric, realized-activity, primitive, and stable-ID
+  modules.
+- Removed the facade's now-unused optional number-vector import.
 - Preserved `OrbitalDynamics.Schema.validate_artifact/2` and
   `OrbitalDynamics.Schema.validation_report/2`.
-- Reduced `schema.ex` from 13,460 to 13,427 lines and activity-context contracts
-  from 422 to 314 lines.
-- Published implementation commit `7aa7802c`.
+- Reduced `schema.ex` from 13,427 to 13,407 lines and plan-delta contracts from
+  214 to 164 lines.
+- Published implementation commit `c6d38652`.
 
 Tests run:
 - `mix compile --warnings-as-errors` passed.
-- Campaign repair/strategy, timeline report, candidate rejection, curated plan
-  delta, and schema-export coverage: 15 passed, 180 excluded.
-- Runtime probes preserved exact stable-ID list, non-negative count, numeric
-  map, provenance, source-window, candidate-change, and timeline-evidence
-  diagnostics.
+- Campaign repair/strategy, contact-feedback, curated plan-delta, and
+  schema-export coverage: 11 passed, 180 excluded.
+- Runtime probes preserved exact schema-contract, stable-ID, source-identity,
+  planned interval, realized status, uncertainty, and timeline-link diagnostics.
 - Full schema export left `schemas/` unchanged; contract fingerprint remained
   `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`.
 - Xref, formatting, callback-residue checks, bounded diff review, and
   `git diff --check` passed.
 
 Verification gaps:
-- Full suite not run; focused shared-context/export coverage was used for this
+- Full suite not run; focused plan-delta/export coverage was used for this
   behavior-preserving boundary cleanup.
 
 Next candidate:
-Plan-delta callback ownership cleanup. Its formerly blocking activity-context,
-candidate-diff, timeline-integrity, and realized-activity dependencies are now
-direct, while all remaining helpers already have cohesive owners.
+Audit the callback-family queue for the next family whose contextual/nested
+dependencies are now all cohesive direct modules.
 
 Blocked:
 No.
