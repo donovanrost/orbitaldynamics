@@ -2,6 +2,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
   @moduledoc false
 
   alias OrbitalDynamics.Schema.CandidateRefreshCandidateSelectionContracts
+  alias OrbitalDynamics.Schema.CandidateRefreshCommunicationPressureContracts
   alias OrbitalDynamics.Schema.CandidateRefreshContactIntentContracts
   alias OrbitalDynamics.Schema.CandidateRefreshContactIntentRoutingContracts
   alias OrbitalDynamics.Schema.CandidateRefreshObjectiveGapContracts
@@ -24,12 +25,6 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
       expect_type: 5,
       validate_non_negative_integer_count_map: 3,
       validate_string_list_items: 4
-    ]
-
-  import OrbitalDynamics.Schema.StableIdValidation,
-    only: [
-      validate_nested_stable_id_array_map: 3,
-      validate_stable_id_list: 3
     ]
 
   def validate_source_report_provenance(issues, %{"provenance" => %{} = provenance}, callbacks)
@@ -249,24 +244,19 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
 
   def validate_contact_contention_context(issues, path, summary, callbacks)
       when is_list(callbacks) do
-    validate_count_maps(issues, path, summary, [
-      "contact_contention_ground_station_counts",
-      "contact_contention_contact_id_counts"
-    ])
+    CandidateRefreshCommunicationPressureContracts.validate_contact_contention(
+      issues,
+      path,
+      summary
+    )
   end
 
   def validate_contact_allocation_context(issues, path, summary, callbacks)
       when is_list(callbacks) do
-    Enum.reduce(
-      [
-        "provider_reservation_no_request_contact_ids_by_direction_and_ground_station",
-        "provider_reservation_request_contact_ids_by_direction_and_ground_station",
-        "provider_reservation_review_contact_ids_by_direction_and_ground_station"
-      ],
+    CandidateRefreshCommunicationPressureContracts.validate_contact_allocation(
       issues,
-      fn field, acc ->
-        validate_nested_stable_id_array_map(acc, path <> ".#{field}", Map.get(summary, field))
-      end
+      path,
+      summary
     )
   end
 
@@ -280,18 +270,11 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
 
   def validate_station_pressure_context(issues, path, summary, callbacks)
       when is_list(callbacks) do
-    issues
-    |> expect_optional_non_negative_integer(
+    CandidateRefreshCommunicationPressureContracts.validate_station_pressure(
+      issues,
       path,
-      summary,
-      "station_pressure_contact_count"
+      summary
     )
-    |> validate_count_maps(path, summary, [
-      "station_pressure_ground_station_counts",
-      "station_pressure_availability_counts",
-      "station_pressure_precedence_availability_counts",
-      "station_pressure_precedence_rank_counts"
-    ])
   end
 
   def validate_contact_intent_context(issues, path, summary, callbacks)
@@ -301,17 +284,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
 
   def validate_contact_filter_context(issues, path, summary, callbacks)
       when is_list(callbacks) do
-    issues
-    |> validate_stable_id_list(
-      path <> ".invalid_contact_input_ids",
-      Map.get(summary, "invalid_contact_input_ids")
-    )
-    |> expect_optional_non_negative_integer(path, summary, "station_suppression_count")
-    |> validate_count_maps(path, summary, [
-      "station_suppression_ground_station_counts",
-      "station_suppression_availability_counts",
-      "station_suppression_status_counts"
-    ])
+    CandidateRefreshCommunicationPressureContracts.validate_contact_filter(issues, path, summary)
   end
 
   def validate_station_calendar_context(issues, path, summary, callbacks)
