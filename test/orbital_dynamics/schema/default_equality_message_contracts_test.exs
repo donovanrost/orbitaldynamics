@@ -66,6 +66,15 @@ defmodule OrbitalDynamics.Schema.DefaultEqualityMessageContractsTest do
     )
   end
 
+  test "preserves station-calendar-report default equality messages" do
+    assert_default_message(
+      "study_results/station_calendar_report_v1.json",
+      "affected_contact_count",
+      99,
+      "must equal 2"
+    )
+  end
+
   defp assert_default_message(path, field, stale_value, expected_message) do
     artifact =
       path

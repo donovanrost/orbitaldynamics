@@ -7683,44 +7683,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp station_calendar_report_contract_callbacks do
-    [
-      require_fields: &require_fields/4,
-      validate_stable_ids: &validate_stable_ids/4,
-      expect_equal: &expect_equal/5,
-      expect_one_of: &expect_one_of/5,
-      expect_optional_one_of: &expect_optional_one_of/5,
-      expect_number: &expect_number/4,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_non_negative_integer: &expect_non_negative_integer/4,
-      expect_optional_non_negative_integer: &expect_optional_non_negative_integer/4,
-      expect_optional_number: &expect_optional_number/4,
-      expect_optional_integer: &expect_optional_integer/4,
-      expect_optional_probability: &expect_optional_probability/4,
-      expect_field_at_least: &expect_field_at_least/5,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
-      validate_optional_string_lists: &validate_optional_string_lists/4,
-      validate_number_list_items: &validate_number_list_items/4,
-      validate_string_list_allowed: &validate_string_list_allowed/5,
-      validate_optional_stable_id_array_map: &validate_optional_stable_id_array_map/4,
-      validate_rows: &validate_rows/4,
-      validate_optional_rows: &validate_optional_rows/4,
-      station_calendar_report_model: &station_calendar_report_model/0,
-      station_calendar_report_model_limits: &station_calendar_report_model_limits/0,
-      validate_branch_event_trust_boundary_status_count_map:
-        &validate_branch_event_trust_boundary_status_count_map/3,
-      validate_non_negative_integer_count_map: &validate_non_negative_integer_count_map/3,
-      expect_field_equals: &expect_field_equals/5,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      frequency_map: &frequency_map/2,
-      row_ids_by_field: &row_ids_by_field/3,
-      list_count: &list_count/2,
-      error: &error/2
-    ]
-  end
-
   defp station_calendar_provider_contract_callbacks do
     [
       expect_equal: &expect_equal/5,
@@ -8809,14 +8771,6 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validate_branch_event_trust_boundary_status_count_map(issues, path, counts) do
-    OrbitalDynamics.Schema.BranchEventContracts.validate_trust_boundary_status_count_map(
-      issues,
-      path,
-      counts
-    )
-  end
-
   defp validate_invalid_contact_input(issues, path, row) do
     issues
     |> expect_optional_one_of(path, row, "review_status", [
@@ -8835,7 +8789,8 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       report,
-      station_calendar_report_contract_callbacks()
+      station_calendar_report_model(),
+      station_calendar_report_model_limits()
     )
   end
 
