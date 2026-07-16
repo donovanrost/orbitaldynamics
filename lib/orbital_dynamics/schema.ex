@@ -10285,17 +10285,8 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.TimelineIdentityCollisionContracts.validate_fields(
       issues,
       path,
-      row,
-      timeline_identity_collision_contract_callbacks()
+      row
     )
-  end
-
-  defp timeline_identity_collision_contract_callbacks do
-    [
-      expect_optional_type: &expect_optional_type/5,
-      expect_optional_non_negative_integer: &expect_optional_non_negative_integer/4,
-      validate_optional_stable_id_list: &validate_optional_stable_id_list/4
-    ]
   end
 
   defp validate_selected_timeline_integrity_fields(issues, path, row) do
