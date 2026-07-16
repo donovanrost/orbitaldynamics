@@ -9,7 +9,7 @@ Current slice:
 Completed: station-calendar registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Move the station-calendar provider, report, and precedence summary into
@@ -80,7 +80,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`1f491725` (`Update station reservation handoff`).
+`5a0df861` (`Extract station calendar registry contracts`).
 
 Next candidate:
 Assess the adjacent contact-contention resolution report and summary contracts
