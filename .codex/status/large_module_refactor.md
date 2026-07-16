@@ -6,51 +6,41 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Freshness-report exact-message restoration.
+Campaign-strategy callback-bag collapse.
 
 Status:
-Complete and ready to publish.
+Selected; implementation pending.
 
 Selected slice:
-Restore the two implicit `"must equal #{expected}"` messages lost when
-`FreshnessReportContracts` began calling the shared five-argument equality
-helper directly.
+Replace the 12-entry `CampaignStrategyContracts` lookup bag with direct shared
+validation calls and six explicit Schema-owned domain validators.
 
 Why this slice:
-The full validation-file probe exposed nil messages for `$.status` and
-`$.state_quality_status`. Commit `54bc2e8b` removed the callback bag but also
-bypassed Schema's message-supplying five-argument wrapper; exactly two owner
-calls retain that affected arity.
+Live inventory leaves `schema.ex` at 11,496 lines. This 57-line orchestration
+owner and its sole caller still route six shared operations and six genuine
+domain hooks through generic lookup/apply despite having no dynamic dispatch.
 
 Public facade to preserve:
-`OrbitalDynamics.Schema.validate_artifact/2`, freshness validation paths,
-expected-value wording, issue order, consumers, and schema exports.
+`OrbitalDynamics.Schema.validate_artifact/2`, campaign-strategy required fields,
+branch/recommendation and optional-report validation, exact paths/messages/order,
+consumers, deterministic artifacts, and schema exports.
 
 Likely files:
-- `lib/orbital_dynamics/schema/freshness_report_contracts.ex`
+- `lib/orbital_dynamics/schema.ex`
+- `lib/orbital_dynamics/schema/campaign_strategy_contracts.ex`
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
 - compile with warnings as errors
-- focused freshness validation test and exact-message assertions
+- focused campaign repair/strategy, validation-fixture, and artifact tests
 - broader candidate-refresh/operator-review regression
 - schema export trio and checked-in export regeneration
 - compile-connected xref, format, diff hygiene, and bounded review
 
 Definition of done:
-Both affected comparisons again emit exact expected-value messages without
-changing equality semantics or issue order; focused, broader, and export checks
-pass; and bounded review finds no blocker.
-
-Outcome:
-A local five-argument wrapper again delegates with `"must equal #{expected}"`,
-while explicit-message calls continue through the shared six-argument helper.
-The existing status assertion passes and state-quality wording now has its own
-exact regression assertion. The full validation file passes 181/181, alongside
-1,167 broader and 22 export tests; compile, xref, checked-in regeneration,
-format, and diff hygiene are clean. Bounded review confirmed exact legacy
-wording, unchanged ordering and nil semantics, unambiguous arity resolution,
-and the strengthened assertion.
+No campaign-strategy callback bag or lookup/apply trampolines remain; shared
+owners are direct and only Schema-owned domain composition is explicit; focused,
+broader, and export checks pass; and bounded review finds no blocker.
 
 Verification gaps:
 - Full repository suite not run.
@@ -61,11 +51,11 @@ Verification gaps:
   validation-only slice. The attributable batch is 102/102.
 
 Last completed slice:
-Freshness-report exact-message restoration, ready to publish: the two implicit
-equality checks again emit their legacy expected-value messages, and both paths
-are assertion-covered. The full validation file passed 181/181, with 1,167
-broader and 22 export tests; compile, xref, regeneration, format, diff hygiene,
-and bounded review were clean.
+Freshness-report exact-message restoration published as `daf8f13f`: the two
+implicit equality checks again emit their legacy expected-value messages, and
+both paths are assertion-covered. The full validation file passed 181/181, with
+1,167 broader and 22 export tests; compile, xref, regeneration, format, diff
+hygiene, and bounded review were clean.
 
 Blocked:
 No.
