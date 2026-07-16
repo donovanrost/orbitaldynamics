@@ -2001,46 +2001,6 @@ defmodule OrbitalDynamics.Schema do
         "model_limits"
       ],
       "nested_contracts" => ["contact_allocation_report.v1"]
-    },
-    @contact_allocation_provider_reservation_request_summary => %{
-      "schema_contract" => @contact_allocation_provider_reservation_request_summary,
-      "artifact_family" => "contact_allocation_provider_reservation_request_summary",
-      "schema_version" => 1,
-      "required_fields" => [
-        "schema_contract",
-        "model",
-        "source_artifact_type",
-        "input_contact_count",
-        "provider_reservation_candidate_contact_count",
-        "provider_reservation_request_contact_count",
-        "provider_reservation_review_contact_count",
-        "provider_reservation_no_request_contact_count",
-        "provider_reservation_request_status",
-        "provider_reservation_request_contact_ids",
-        "provider_reservation_review_contact_ids",
-        "provider_reservation_no_request_contact_ids",
-        "provider_reservation_request_contact_ids_by_ground_station_id",
-        "provider_reservation_review_contact_ids_by_ground_station_id",
-        "provider_reservation_request_contact_ids_by_match_status",
-        "provider_reservation_review_contact_ids_by_match_status",
-        "provider_reservation_request_ids_by_match_status",
-        "provider_reservation_review_ids_by_match_status",
-        "rows",
-        "provider_reservation_request_rows",
-        "provider_reservation_review_rows",
-        "assumptions"
-      ],
-      "optional_fields" => [
-        "source",
-        "provider_reservation_no_request_contact_ids_by_direction",
-        "provider_reservation_request_contact_ids_by_direction",
-        "provider_reservation_review_contact_ids_by_direction",
-        "provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id",
-        "provider_reservation_request_contact_ids_by_direction_and_ground_station_id",
-        "provider_reservation_review_contact_ids_by_direction_and_ground_station_id",
-        "model_limits"
-      ],
-      "nested_contracts" => ["contact_allocation_report.v1"]
     }
   }
 
@@ -2101,6 +2061,9 @@ defmodule OrbitalDynamics.Schema do
              |> Map.merge(OrbitalDynamics.Schema.StationReservationRegistryContracts.contracts())
              |> Map.merge(OrbitalDynamics.Schema.StationCalendarRegistryContracts.contracts())
              |> Map.merge(OrbitalDynamics.Schema.ContactContentionRegistryContracts.contracts())
+             |> Map.merge(
+               OrbitalDynamics.Schema.ContactAllocationProviderReservationRegistryContracts.contracts()
+             )
 
   @doc """
   Returns the known executable artifact contracts.
