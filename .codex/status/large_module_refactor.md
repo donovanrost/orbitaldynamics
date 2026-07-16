@@ -6,59 +6,53 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Candidate-refresh review-feedback context extraction.
+Candidate-refresh timeline-activity context extraction.
 
 Status:
-Complete; publication pending.
+Selected; implementation pending.
 
 Selected slice:
-Extract the timeline-feedback and maneuver-review source-report validators with
-their shared optional count-map helper behind the existing public contexts.
+Move the generic timeline-activity input validator into the existing timeline-
+validation owner behind its public context function.
 
 Why this slice:
-Both flows validate review input keys followed by explicitly typed feedback/
-action count maps. `validate_optional_count_maps/4` is now exclusive to these
-two contexts, which have six focused replay/build suites plus direct provenance
-error-path coverage.
+The invalid-activity counter, reason map, and reason list are timeline structural
+validation concerns. `CandidateRefreshTimelineValidationContracts` already owns
+the related activity-precondition, integrity, and dependency-impact flows and
+imports the exact primitives needed, so no new module or helper is required.
 
 Public facade to preserve:
-`validate_timeline_feedback_context/4` and
-`validate_maneuver_review_context/4`, including callback-list guards, argument
-order, validation order, paths, messages, and all other public signatures.
+`validate_timeline_activity_context/4`, including its callback-list guard,
+argument order, validation order, paths, messages, and all other public
+signatures.
 
-Extraction target:
-`CandidateRefreshReviewFeedbackContracts`, with timeline-feedback and
-maneuver-review entry points plus the private optional count-map helper.
+Likely extraction target:
+`CandidateRefreshTimelineValidationContracts.validate_activity/3`.
 
-Files:
+Likely files:
 - `lib/orbital_dynamics/schema/candidate_refresh_report_contracts.ex`
-- `lib/orbital_dynamics/schema/candidate_refresh_review_feedback_contracts.ex`
+- `lib/orbital_dynamics/schema/candidate_refresh_timeline_validation_contracts.ex`
 - `.codex/status/large_module_refactor.md`
 
-Result:
-Both public `/4` facades delegate to a 60-line review-feedback owner. The two
-complete flows and exclusive typed optional-count-map helper moved, and the
-report-contract facade fell from 436 to 396 lines without schema-export changes.
+Likely tests:
+- compile with warnings as errors
+- focused timeline-activity state/precondition replay tests
+- candidate-refresh schema/provenance contracts
+- broader candidate-refresh, deterministic export/fingerprint, xref, and format
 
-Verification:
-- compile with warnings as errors passed
-- six focused timeline-feedback/maneuver-review files plus candidate-refresh
-  schema and resource-provenance contracts: 41 passed
-- broader candidate-refresh suite: 755 passed
-- schema export trio: 22 passed
-- full schema export reproduced checked-in artifacts with no diff
-- deterministic contract/bundle fingerprint remained
-  `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`
-- compile-connected xref roots stayed narrow; format and diff hygiene passed
-- bounded read-only review found no issues and independently passed compile,
-  the 41 focused tests, facade/API comparison, xref, format, and diff checks
+Definition of done:
+The public `/4` context is a thin delegate with its guard unchanged, the complete
+three-field timeline-activity flow moves without duplication, validation order/
+paths/errors remain exact, and focused/broader checks pass.
 
 Verification gaps:
 - Full repository suite not run.
 
-Last commit:
-Published objective-gap extraction `b2bb447b`; selected this slice in
-`f188fe58`.
+Last completed slice:
+Review-feedback context extraction published as `ed0fbe29`: a 60-line owner
+reduced the report-contract facade from 436 to 396 lines; 41 focused, 755
+candidate-refresh, and 22 export tests passed; checked-in schemas and fingerprint
+were unchanged; bounded review found no issues.
 
 Blocked:
 No.
