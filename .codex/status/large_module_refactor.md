@@ -9,7 +9,7 @@ Current slice:
 Completed: provider-counteroffer registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Move the provider-counteroffer report, review summary, import-readiness summary,
@@ -80,7 +80,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`03a804b3` (`Update approval policy handoff`).
+`396c7f19` (`Extract provider counteroffer registry contracts`).
 
 Next candidate:
 Assess the adjacent station-reservation hold summary and import-readiness summary
