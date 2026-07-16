@@ -100,6 +100,32 @@ defmodule OrbitalDynamics.Schema.PrimitiveValidation do
     end
   end
 
+  def expect_non_negative_integer(issues, path, map, field) do
+    case Map.get(map, field) do
+      value when is_integer(value) and value >= 0 ->
+        issues
+
+      _value ->
+        [error("#{path}.#{field}", "must be a non-negative integer") | issues]
+    end
+  end
+
+  def expect_optional_non_negative_integer(issues, path, map, field) do
+    case Map.get(map, field) do
+      nil ->
+        issues
+
+      :null ->
+        issues
+
+      value when is_integer(value) and value >= 0 ->
+        issues
+
+      _value ->
+        [error("#{path}.#{field}", "must be a non-negative integer") | issues]
+    end
+  end
+
   def expect_probability_range(issues, path, map, field) do
     case Map.get(map, field) do
       value when is_number(value) and value >= 0.0 and value <= 1.0 ->

@@ -1,30 +1,68 @@
 defmodule OrbitalDynamics.Schema.ConstraintReportContracts do
   @moduledoc false
 
-  def validate(issues, path, report, callbacks) when is_list(callbacks) do
-    issues
-    |> expect_equal(callbacks, path, report, "schema_contract", "constraint_report.v1")
-    |> expect_type(callbacks, path, report, "model", :binary)
-    |> expect_one_of(callbacks, path, report, "model", constraint_report_models(callbacks))
-    |> expect_non_negative_integer(callbacks, path, report, "constraint_count")
-    |> expect_non_negative_integer(callbacks, path, report, "row_count")
-    |> expect_one_of(callbacks, path, report, "status", ["pass", "fail", "warning"])
-    |> expect_type(callbacks, path, report, "status_counts", :map)
-    |> expect_optional_type(callbacks, path, report, "model_limits", :list)
-    |> validate_string_list_items(callbacks, path, report, "model_limits")
-    |> validate_model_limits(callbacks, path, report)
-    |> expect_type(callbacks, path, report, "rows", :list)
-    |> expect_type(callbacks, path, report, "assumptions", :map)
-    |> validate_rows(
-      callbacks,
-      path <> ".rows",
-      Map.get(report, "rows", []),
-      fn acc, row_path, row -> validate_row(acc, row_path, row, callbacks) end
-    )
-    |> validate_counts(callbacks, path, report)
+  import OrbitalDynamics.Schema.CollectionValidation, only: [validate_rows: 4]
+
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [
+      error: 2,
+      expect_equal: 5,
+      expect_field_equals: 6,
+      expect_non_negative_integer: 4,
+      expect_number: 4,
+      expect_one_of: 5,
+      expect_optional_number: 4,
+      expect_optional_type: 5,
+      expect_type: 5,
+      require_fields: 4,
+      validate_string_list_items: 4
+    ]
+
+  import OrbitalDynamics.Schema.StableIdValidation, only: [validate_stable_ids: 4]
+
+  alias OrbitalDynamics.Schema.CollectionAggregation
+
+  def models do
+    model_limits_by_model()
+    |> Map.keys()
+    |> Enum.sort()
   end
 
-  defp validate_model_limits(issues, callbacks, path, report) do
+  def model_limits_by_model do
+    %{
+      "artifact_metric_threshold" => artifact_metric_model_limits(),
+      "campaign_planner_local_constraint_summary" => campaign_local_model_limits(),
+      "campaign_repair_local_constraint_summary" => campaign_local_model_limits()
+    }
+  end
+
+  def model_limit_values do
+    model_limits_by_model()
+    |> Map.values()
+    |> List.flatten()
+    |> Enum.uniq()
+    |> Enum.sort()
+  end
+
+  def validate(issues, path, report) do
+    issues
+    |> expect_equal(path, report, "schema_contract", "constraint_report.v1")
+    |> expect_type(path, report, "model", :binary)
+    |> expect_one_of(path, report, "model", models())
+    |> expect_non_negative_integer(path, report, "constraint_count")
+    |> expect_non_negative_integer(path, report, "row_count")
+    |> expect_one_of(path, report, "status", ["pass", "fail", "warning"])
+    |> expect_type(path, report, "status_counts", :map)
+    |> expect_optional_type(path, report, "model_limits", :list)
+    |> validate_string_list_items(path, report, "model_limits")
+    |> validate_model_limits(path, report)
+    |> expect_type(path, report, "rows", :list)
+    |> expect_type(path, report, "assumptions", :map)
+    |> validate_rows(path <> ".rows", Map.get(report, "rows", []), &validate_row/3)
+    |> validate_counts(path, report)
+  end
+
+  defp validate_model_limits(issues, path, report) do
     case Map.get(report, "model_limits") do
       nil ->
         issues
@@ -33,16 +71,12 @@ defmodule OrbitalDynamics.Schema.ConstraintReportContracts do
         issues
 
       limits when is_list(limits) ->
-        expected_limits =
-          Map.get(constraint_report_model_limits_by_model(callbacks), report["model"])
+        expected_limits = Map.get(model_limits_by_model(), report["model"])
 
         if is_nil(expected_limits) or limits == expected_limits do
           issues
         else
-          [
-            error(callbacks, "#{path}.model_limits", "must match constraint report model limits")
-            | issues
-          ]
+          [error("#{path}.model_limits", "must match constraint report model limits") | issues]
         end
 
       _value ->
@@ -50,22 +84,31 @@ defmodule OrbitalDynamics.Schema.ConstraintReportContracts do
     end
   end
 
-  defp validate_counts(issues, callbacks, path, report) do
+  defp validate_counts(issues, path, report) do
     rows =
       report
       |> Map.get("rows", [])
       |> Enum.filter(&is_map/1)
 
+    constraint_count = constraint_id_count(rows)
+    row_count = length(rows)
+    status = report_status(rows)
+
     issues
-    |> expect_field_equals(callbacks, path, report, "constraint_count", constraint_id_count(rows))
-    |> expect_field_equals(callbacks, path, report, "row_count", length(rows))
-    |> expect_field_equals(callbacks, path, report, "status", report_status(rows))
     |> expect_field_equals(
-      callbacks,
+      path,
+      report,
+      "constraint_count",
+      constraint_count,
+      "must equal #{constraint_count}"
+    )
+    |> expect_field_equals(path, report, "row_count", row_count, "must equal #{row_count}")
+    |> expect_field_equals(path, report, "status", status, "must equal #{status}")
+    |> expect_field_equals(
       path,
       report,
       "status_counts",
-      status_counts(callbacks, rows),
+      status_counts(rows),
       "must equal row-derived status_counts"
     )
   end
@@ -88,17 +131,17 @@ defmodule OrbitalDynamics.Schema.ConstraintReportContracts do
     end
   end
 
-  defp status_counts(callbacks, rows) do
-    callbacks
-    |> frequency_map(rows, "status")
+  defp status_counts(rows) do
+    rows
+    |> CollectionAggregation.frequency_map("status")
     |> Map.put_new("pass", 0)
     |> Map.put_new("fail", 0)
     |> Map.put_new("warning", 0)
   end
 
-  defp validate_row(issues, path, row, callbacks) do
+  defp validate_row(issues, path, row) do
     issues
-    |> require_fields(callbacks, path, row, [
+    |> require_fields(path, row, [
       "constraint_id",
       "scenario_id",
       "metric",
@@ -106,77 +149,23 @@ defmodule OrbitalDynamics.Schema.ConstraintReportContracts do
       "threshold",
       "status"
     ])
-    |> validate_stable_ids(callbacks, path, row, ["constraint_id", "scenario_id"])
-    |> expect_one_of(callbacks, path, row, "operator", ["<", "<=", "==", ">=", ">"])
-    |> expect_number(callbacks, path, row, "threshold")
-    |> expect_optional_number(callbacks, path, row, "value")
-    |> expect_optional_number(callbacks, path, row, "score")
-    |> expect_one_of(callbacks, path, row, "status", ["pass", "fail", "warning"])
+    |> validate_stable_ids(path, row, ["constraint_id", "scenario_id"])
+    |> expect_one_of(path, row, "operator", ["<", "<=", "==", ">=", ">"])
+    |> expect_number(path, row, "threshold")
+    |> expect_optional_number(path, row, "value")
+    |> expect_optional_number(path, row, "score")
+    |> expect_one_of(path, row, "status", ["pass", "fail", "warning"])
   end
 
-  defp constraint_report_models(callbacks),
-    do: apply(Keyword.fetch!(callbacks, :constraint_report_models), [])
+  defp artifact_metric_model_limits do
+    OrbitalDynamics.Constraints.ArtifactMetric.capabilities()
+    |> Map.fetch!(:known_limits)
+    |> Enum.map(&Atom.to_string/1)
+  end
 
-  defp constraint_report_model_limits_by_model(callbacks),
-    do: apply(Keyword.fetch!(callbacks, :constraint_report_model_limits_by_model), [])
-
-  defp frequency_map(callbacks, rows, field),
-    do: apply(Keyword.fetch!(callbacks, :frequency_map), [rows, field])
-
-  defp require_fields(issues, callbacks, path, map, fields),
-    do: apply(Keyword.fetch!(callbacks, :require_fields), [issues, path, map, fields])
-
-  defp expect_equal(issues, callbacks, path, map, field, expected),
-    do: apply(Keyword.fetch!(callbacks, :expect_equal), [issues, path, map, field, expected])
-
-  defp expect_one_of(issues, callbacks, path, map, field, allowed),
-    do: apply(Keyword.fetch!(callbacks, :expect_one_of), [issues, path, map, field, allowed])
-
-  defp expect_type(issues, callbacks, path, map, field, type),
-    do: apply(Keyword.fetch!(callbacks, :expect_type), [issues, path, map, field, type])
-
-  defp expect_optional_type(issues, callbacks, path, map, field, type),
-    do: apply(Keyword.fetch!(callbacks, :expect_optional_type), [issues, path, map, field, type])
-
-  defp expect_number(issues, callbacks, path, map, field),
-    do: apply(Keyword.fetch!(callbacks, :expect_number), [issues, path, map, field])
-
-  defp expect_optional_number(issues, callbacks, path, map, field),
-    do: apply(Keyword.fetch!(callbacks, :expect_optional_number), [issues, path, map, field])
-
-  defp expect_non_negative_integer(issues, callbacks, path, map, field),
-    do:
-      apply(Keyword.fetch!(callbacks, :expect_non_negative_integer), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp expect_field_equals(issues, callbacks, path, map, field, expected),
-    do:
-      apply(Keyword.fetch!(callbacks, :expect_field_equals), [issues, path, map, field, expected])
-
-  defp expect_field_equals(issues, callbacks, path, map, field, expected, message),
-    do:
-      apply(Keyword.fetch!(callbacks, :expect_field_equals_with_message), [
-        issues,
-        path,
-        map,
-        field,
-        expected,
-        message
-      ])
-
-  defp validate_rows(issues, callbacks, path, rows, validator),
-    do: apply(Keyword.fetch!(callbacks, :validate_rows), [issues, path, rows, validator])
-
-  defp validate_string_list_items(issues, callbacks, path, map, field),
-    do: apply(Keyword.fetch!(callbacks, :validate_string_list_items), [issues, path, map, field])
-
-  defp validate_stable_ids(issues, callbacks, path, map, fields),
-    do: apply(Keyword.fetch!(callbacks, :validate_stable_ids), [issues, path, map, fields])
-
-  defp error(callbacks, path, message),
-    do: apply(Keyword.fetch!(callbacks, :error), [path, message])
+  defp campaign_local_model_limits do
+    OrbitalDynamics.Constraints.CampaignLocal.capabilities()
+    |> Map.fetch!(:known_limits)
+    |> Enum.map(&Atom.to_string/1)
+  end
 end

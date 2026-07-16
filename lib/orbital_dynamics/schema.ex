@@ -27,11 +27,13 @@ defmodule OrbitalDynamics.Schema do
       expect_field_equals: 6,
       expect_field_matches_list_count: 6,
       expect_number: 4,
+      expect_non_negative_integer: 4,
       expect_number_vector: 3,
       expect_one_of: 5,
       expect_optional_integer: 4,
       expect_optional_field_equals: 6,
       expect_optional_list: 4,
+      expect_optional_non_negative_integer: 4,
       expect_optional_non_negative_number: 4,
       expect_optional_number: 4,
       expect_optional_number_or_number_list: 4,
@@ -1558,7 +1560,8 @@ defmodule OrbitalDynamics.Schema do
       contract_fun: &contract/1,
       property_fun: &json_schema_property/3,
       stable_id_pattern: @stable_id_pattern,
-      constraint_report_model_limits_by_model_fun: &constraint_report_model_limits_by_model/0,
+      constraint_report_model_limits_by_model_fun:
+        &OrbitalDynamics.Schema.ConstraintReportContracts.model_limits_by_model/0,
       validation_record_registry_conditions_fun: &validation_record_registry_conditions/0,
       accepted_planning_state: @accepted_planning_state,
       constraint_report: @constraint_report,
@@ -3114,8 +3117,8 @@ defmodule OrbitalDynamics.Schema do
       contract,
       &OrbitalDynamics.Schema.ConstraintReportJsonSchema.property_field?/1,
       OrbitalDynamics.Schema.ConstraintReportJsonSchema.property_fun_from_context(
-        models: constraint_report_models(),
-        model_limits: constraint_report_model_limit_values(),
+        models: OrbitalDynamics.Schema.ConstraintReportContracts.models(),
+        model_limits: OrbitalDynamics.Schema.ConstraintReportContracts.model_limit_values(),
         row_schema: constraint_row_json_schema()
       )
     )
@@ -4561,40 +4564,6 @@ defmodule OrbitalDynamics.Schema do
       "preserved_provider_counteroffer_plan_impact_summary",
       "preserved_provider_counteroffer_import_readiness_summary"
     ]
-  end
-
-  defp constraint_report_model_limits_by_model do
-    %{
-      "artifact_metric_threshold" => artifact_metric_constraint_model_limits(),
-      "campaign_planner_local_constraint_summary" => campaign_local_constraint_model_limits(),
-      "campaign_repair_local_constraint_summary" => campaign_local_constraint_model_limits()
-    }
-  end
-
-  defp constraint_report_models do
-    constraint_report_model_limits_by_model()
-    |> Map.keys()
-    |> Enum.sort()
-  end
-
-  defp constraint_report_model_limit_values do
-    constraint_report_model_limits_by_model()
-    |> Map.values()
-    |> List.flatten()
-    |> Enum.uniq()
-    |> Enum.sort()
-  end
-
-  defp artifact_metric_constraint_model_limits do
-    OrbitalDynamics.Constraints.ArtifactMetric.capabilities()
-    |> Map.fetch!(:known_limits)
-    |> Enum.map(&Atom.to_string/1)
-  end
-
-  defp campaign_local_constraint_model_limits do
-    OrbitalDynamics.Constraints.CampaignLocal.capabilities()
-    |> Map.fetch!(:known_limits)
-    |> Enum.map(&Atom.to_string/1)
   end
 
   defp activity_template_activity_types do
@@ -6884,8 +6853,7 @@ defmodule OrbitalDynamics.Schema do
     |> require_fields("$", artifact, contract["required_fields"])
     |> OrbitalDynamics.Schema.ConstraintReportContracts.validate(
       "$",
-      artifact,
-      constraint_report_contract_callbacks()
+      artifact
     )
   end
 
@@ -8703,28 +8671,6 @@ defmodule OrbitalDynamics.Schema do
       validate_stable_ids: &validate_stable_ids/4,
       validate_stable_id_list: &validate_stable_id_list/3,
       validate_numeric_map: &validate_numeric_map/3
-    ]
-  end
-
-  defp constraint_report_contract_callbacks do
-    [
-      constraint_report_models: &constraint_report_models/0,
-      constraint_report_model_limits_by_model: &constraint_report_model_limits_by_model/0,
-      frequency_map: &frequency_map/2,
-      require_fields: &require_fields/4,
-      expect_equal: &expect_equal/5,
-      expect_one_of: &expect_one_of/5,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_number: &expect_number/4,
-      expect_optional_number: &expect_optional_number/4,
-      expect_non_negative_integer: &expect_non_negative_integer/4,
-      expect_field_equals: &expect_field_equals/5,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      validate_rows: &validate_rows/4,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_stable_ids: &validate_stable_ids/4,
-      error: &error/2
     ]
   end
 
@@ -10933,32 +10879,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp stable_id_array_map_value_count(values),
     do: OrbitalDynamics.Schema.CollectionAggregation.stable_id_array_map_value_count(values)
-
-  defp expect_non_negative_integer(issues, path, map, field) do
-    case Map.get(map, field) do
-      value when is_integer(value) and value >= 0 ->
-        issues
-
-      _value ->
-        [error("#{path}.#{field}", "must be a non-negative integer") | issues]
-    end
-  end
-
-  defp expect_optional_non_negative_integer(issues, path, map, field) do
-    case Map.get(map, field) do
-      nil ->
-        issues
-
-      :null ->
-        issues
-
-      value when is_integer(value) and value >= 0 ->
-        issues
-
-      _value ->
-        [error("#{path}.#{field}", "must be a non-negative integer") | issues]
-    end
-  end
 
   defp validate_duplicate_suppressed_candidate_evidence(issues, path, candidate) do
     OrbitalDynamics.Schema.SuppressedCandidateContracts.validate_duplicate_evidence(
