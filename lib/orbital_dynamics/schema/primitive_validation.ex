@@ -168,6 +168,16 @@ defmodule OrbitalDynamics.Schema.PrimitiveValidation do
     end
   end
 
+  def expect_field_matches_list_count(issues, path, map, count_field, list_field, message) do
+    case Map.get(map, list_field) do
+      values when is_list(values) ->
+        expect_optional_field_equals(issues, path, map, count_field, length(values), message)
+
+      _value ->
+        issues
+    end
+  end
+
   def expect_optional_number_or_number_list(issues, path, map, field) do
     case Map.get(map, field) do
       nil -> issues

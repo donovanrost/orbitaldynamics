@@ -1,6 +1,8 @@
 defmodule OrbitalDynamics.Schema.LinkCapacityHandoffContracts do
   @moduledoc false
 
+  alias OrbitalDynamics.Schema.PrimitiveValidation
+
   @count_list_pairs [
     {"contact_count", "contact_ids"},
     {"selected_contact_count", "selected_contact_ids"},
@@ -80,12 +82,11 @@ defmodule OrbitalDynamics.Schema.LinkCapacityHandoffContracts do
   ]
   @source_review_fields @source_fields ++ @context_source_review_fields
 
-  def validate_count_lists(issues, path, row, callbacks) when is_list(callbacks) do
+  def validate_count_lists(issues, path, row) do
     if handoff_row?(row) do
       Enum.reduce(@count_list_pairs, issues, fn {count_field, list_field}, acc ->
-        expect_field_matches_list_count(
+        PrimitiveValidation.expect_field_matches_list_count(
           acc,
-          callbacks,
           path,
           row,
           count_field,
@@ -155,27 +156,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacityHandoffContracts do
       Map.get(row, "source_review_type") == "link_capacity_review" or
       Map.get(row, "import_action") == "review_link_capacity"
   end
-
-  defp expect_field_matches_list_count(
-         issues,
-         callbacks,
-         path,
-         row,
-         count_field,
-         list_field,
-         message
-       ) do
-    apply(require_callback(callbacks, :expect_field_matches_list_count), [
-      issues,
-      path,
-      row,
-      count_field,
-      list_field,
-      message
-    ])
-  end
-
-  defp require_callback(callbacks, name), do: Keyword.fetch!(callbacks, name)
 
   defp error(path, message) do
     %{"severity" => "error", "path" => path, "message" => message}

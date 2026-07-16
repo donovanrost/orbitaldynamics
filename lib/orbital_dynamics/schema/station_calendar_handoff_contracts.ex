@@ -1,6 +1,8 @@
 defmodule OrbitalDynamics.Schema.StationCalendarHandoffContracts do
   @moduledoc false
 
+  alias OrbitalDynamics.Schema.PrimitiveValidation
+
   @source_field_pairs [
     {"contact_id", "contact_id"},
     {"scenario_id", "scenario_id"},
@@ -143,35 +145,31 @@ defmodule OrbitalDynamics.Schema.StationCalendarHandoffContracts do
 
   def validate_cadence_source_review_matches(issues, _path, _row), do: issues
 
-  def validate_count_lists(issues, path, row, callbacks) when is_list(callbacks) do
+  def validate_count_lists(issues, path, row) do
     if source_handoff_row?(row) do
       issues
-      |> expect_field_matches_list_count(
-        callbacks,
+      |> PrimitiveValidation.expect_field_matches_list_count(
         path,
         row,
         "station_calendar_overlap_count",
         "station_calendar_overlap_entry_ids",
         "must equal length of station_calendar_overlap_entry_ids"
       )
-      |> expect_field_matches_list_count(
-        callbacks,
+      |> PrimitiveValidation.expect_field_matches_list_count(
         path,
         row,
         "station_calendar_ambiguous_entry_count",
         "station_calendar_ambiguous_entry_ids",
         "must equal length of station_calendar_ambiguous_entry_ids"
       )
-      |> expect_field_matches_list_count(
-        callbacks,
+      |> PrimitiveValidation.expect_field_matches_list_count(
         path,
         row,
         "station_calendar_reservation_overlap_count",
         "station_calendar_reservation_ids",
         "must equal length of station_calendar_reservation_ids"
       )
-      |> expect_field_matches_list_count(
-        callbacks,
+      |> PrimitiveValidation.expect_field_matches_list_count(
         path,
         row,
         "provider_calendar_contention_entry_count",
@@ -191,27 +189,6 @@ defmodule OrbitalDynamics.Schema.StationCalendarHandoffContracts do
       ] or
       Map.get(row, "import_action") in ["review_station_calendar", "review_station_reservation"]
   end
-
-  defp expect_field_matches_list_count(
-         issues,
-         callbacks,
-         path,
-         row,
-         count_field,
-         list_field,
-         message
-       ) do
-    apply(require_callback(callbacks, :expect_field_matches_list_count), [
-      issues,
-      path,
-      row,
-      count_field,
-      list_field,
-      message
-    ])
-  end
-
-  defp require_callback(callbacks, name), do: Keyword.fetch!(callbacks, name)
 
   defp error(path, message) do
     %{"severity" => "error", "path" => path, "message" => message}

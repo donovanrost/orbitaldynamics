@@ -23,6 +23,7 @@ defmodule OrbitalDynamics.Schema do
       error: 2,
       expect_equal: 5,
       expect_field_at_least: 5,
+      expect_field_matches_list_count: 6,
       expect_number: 4,
       expect_number_vector: 3,
       expect_one_of: 5,
@@ -7445,18 +7446,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp station_calendar_handoff_contract_callbacks do
-    [
-      expect_field_matches_list_count: &expect_field_matches_list_count/6
-    ]
-  end
-
-  defp link_capacity_handoff_contract_callbacks do
-    [
-      expect_field_matches_list_count: &expect_field_matches_list_count/6
-    ]
-  end
-
   defp contact_allocation_station_pressure_summary_contract_callbacks do
     [
       expect_equal: &expect_equal/5,
@@ -12572,16 +12561,6 @@ defmodule OrbitalDynamics.Schema do
     end
   end
 
-  defp expect_field_matches_list_count(issues, path, map, count_field, list_field, message) do
-    expected = list_count(map, list_field)
-
-    if is_integer(expected) do
-      expect_field_equals(issues, path, map, count_field, expected, message)
-    else
-      issues
-    end
-  end
-
   defp expect_optional_list_field_equals(issues, path, map, field, expected, message) do
     value = Map.get(map, field)
 
@@ -12863,8 +12842,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.LinkCapacityHandoffContracts.validate_count_lists(
       issues,
       path,
-      row,
-      link_capacity_handoff_contract_callbacks()
+      row
     )
   end
 
@@ -13789,8 +13767,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.StationCalendarHandoffContracts.validate_count_lists(
       issues,
       path,
-      row,
-      station_calendar_handoff_contract_callbacks()
+      row
     )
   end
 
