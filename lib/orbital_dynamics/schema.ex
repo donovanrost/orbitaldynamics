@@ -10716,19 +10716,8 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.TimelineIntegrityEvidenceContracts.validate(
       issues,
       path,
-      row,
-      timeline_integrity_evidence_contract_callbacks()
+      row
     )
-  end
-
-  defp timeline_integrity_evidence_contract_callbacks do
-    [
-      require_fields: &require_fields/4,
-      expect_field_equals: &expect_field_equals/6,
-      validate_stable_id: &validate_stable_id/3,
-      validate_string_list_allowed: &validate_string_list_allowed/5,
-      error: &error/2
-    ]
   end
 
   defp validate_cadence_import_manifest(issues, path, manifest) do

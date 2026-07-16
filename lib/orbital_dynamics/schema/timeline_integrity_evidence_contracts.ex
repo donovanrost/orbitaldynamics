@@ -1,6 +1,16 @@
 defmodule OrbitalDynamics.Schema.TimelineIntegrityEvidenceContracts do
   @moduledoc false
 
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [
+      error: 2,
+      expect_field_equals: 6,
+      require_fields: 4,
+      validate_string_list_allowed: 5
+    ]
+
+  import OrbitalDynamics.Schema.StableIdValidation, only: [validate_stable_id: 3]
+
   @evidence_id_fields [
     "missing_dependency_activity_id",
     "missing_dependency_timeline_id",
@@ -18,7 +28,7 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityEvidenceContracts do
     "exclusivity_violation_timeline_id"
   ]
 
-  def validate(issues, path, row, callbacks) when is_list(callbacks) do
+  def validate(issues, path, row) do
     issues =
       case Map.get(row, "timeline_integrity_issues") do
         issues_list when is_list(issues_list) ->
@@ -28,7 +38,6 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityEvidenceContracts do
             acc =
               if is_map(issue) do
                 require_fields(
-                  callbacks,
                   acc,
                   "#{path}.timeline_integrity_issues[#{index}]",
                   issue,
@@ -39,7 +48,6 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityEvidenceContracts do
               else
                 [
                   error(
-                    callbacks,
                     "#{path}.timeline_integrity_issues[#{index}]",
                     "must be an object"
                   )
@@ -52,7 +60,6 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityEvidenceContracts do
             if is_binary(issue_type) and issue_type not in timeline_integrity_issue_types() do
               [
                 error(
-                  callbacks,
                   "#{path}.timeline_integrity_issues[#{index}].type",
                   "must be one of #{inspect(timeline_integrity_issue_types())}"
                 )
@@ -61,7 +68,6 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityEvidenceContracts do
             else
               validate_issue_evidence(
                 acc,
-                callbacks,
                 "#{path}.timeline_integrity_issues[#{index}]",
                 issue
               )
@@ -77,7 +83,6 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityEvidenceContracts do
 
     issues
     |> expect_field_equals(
-      callbacks,
       path,
       row,
       "timeline_integrity_issue_count",
@@ -85,7 +90,6 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityEvidenceContracts do
       "must match timeline_integrity_issues length"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       row,
       "timeline_integrity_issue_types",
@@ -102,7 +106,6 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityEvidenceContracts do
       "must match timeline_integrity_issues types"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       row,
       "missing_dependency_activity_ids",
@@ -110,7 +113,6 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityEvidenceContracts do
       "must match timeline_integrity_issues missing_dependency_activity_id values"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       row,
       "missing_dependency_timeline_ids",
@@ -118,7 +120,6 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityEvidenceContracts do
       "must match timeline_integrity_issues missing_dependency_timeline_id values"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       row,
       "self_dependency_activity_ids",
@@ -126,7 +127,6 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityEvidenceContracts do
       "must match timeline_integrity_issues self_dependency_activity_id values"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       row,
       "self_dependency_timeline_ids",
@@ -134,7 +134,6 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityEvidenceContracts do
       "must match timeline_integrity_issues self_dependency_timeline_id values"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       row,
       "duplicate_dependency_activity_ids",
@@ -142,7 +141,6 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityEvidenceContracts do
       "must match timeline_integrity_issues duplicate_dependency_activity_id values"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       row,
       "duplicate_dependency_timeline_ids",
@@ -150,7 +148,6 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityEvidenceContracts do
       "must match timeline_integrity_issues duplicate_dependency_timeline_id values"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       row,
       "duplicate_exclusivity_activity_ids",
@@ -158,7 +155,6 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityEvidenceContracts do
       "must match timeline_integrity_issues duplicate_exclusivity_activity_id values"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       row,
       "duplicate_exclusivity_timeline_ids",
@@ -166,7 +162,6 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityEvidenceContracts do
       "must match timeline_integrity_issues duplicate_exclusivity_timeline_id values"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       row,
       "dependency_cycle_activity_ids",
@@ -174,7 +169,6 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityEvidenceContracts do
       "must match timeline_integrity_issues dependency_cycle_activity_id values"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       row,
       "dependency_cycle_timeline_ids",
@@ -182,7 +176,6 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityEvidenceContracts do
       "must match timeline_integrity_issues dependency_cycle_timeline_id values"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       row,
       "dependency_order_violation_activity_ids",
@@ -190,7 +183,6 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityEvidenceContracts do
       "must match timeline_integrity_issues dependency_order_violation_activity_id values"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       row,
       "dependency_order_violation_timeline_ids",
@@ -198,7 +190,6 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityEvidenceContracts do
       "must match timeline_integrity_issues dependency_order_violation_timeline_id values"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       row,
       "exclusivity_violation_activity_ids",
@@ -206,7 +197,6 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityEvidenceContracts do
       "must match timeline_integrity_issues exclusivity_violation_activity_id values"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       row,
       "exclusivity_violation_timeline_ids",
@@ -216,7 +206,6 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityEvidenceContracts do
     |> then(fn acc ->
       if is_list(issue_types) do
         validate_string_list_allowed(
-          callbacks,
           acc,
           path,
           row,
@@ -229,18 +218,18 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityEvidenceContracts do
     end)
   end
 
-  defp validate_issue_evidence(issues, callbacks, path, issue) when is_map(issue) do
+  defp validate_issue_evidence(issues, path, issue) when is_map(issue) do
     issues =
       issue
       |> Map.take(@evidence_id_fields)
       |> Enum.reduce(issues, fn {field, value}, acc ->
-        validate_stable_id(callbacks, acc, "#{path}.#{field}", value)
+        validate_stable_id(acc, "#{path}.#{field}", value)
       end)
 
     cond do
       Map.get(issue, "type") == "exclusivity_group_overlap" and
           not Map.has_key?(issue, "exclusivity_violation_group") ->
-        [error(callbacks, path <> ".exclusivity_violation_group", "is required") | issues]
+        [error(path <> ".exclusivity_violation_group", "is required") | issues]
 
       issue
       |> Map.keys()
@@ -253,7 +242,6 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityEvidenceContracts do
       Map.get(issue, "type") == "dependency_cycle" ->
         [
           error(
-            callbacks,
             path,
             "must include one of the timeline integrity evidence identifiers"
           )
@@ -265,7 +253,7 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityEvidenceContracts do
     end
   end
 
-  defp validate_issue_evidence(issues, _callbacks, _path, _issue), do: issues
+  defp validate_issue_evidence(issues, _path, _issue), do: issues
 
   defp issue_ids(issues_list, field) when is_list(issues_list) do
     issues_list
@@ -281,26 +269,4 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityEvidenceContracts do
   defp timeline_integrity_issue_types do
     OrbitalDynamics.Timeline.capabilities().timeline_integrity_issue_types
   end
-
-  defp expect_field_equals(issues, callbacks, path, row, field, expected, message) do
-    callback!(callbacks, :expect_field_equals).(issues, path, row, field, expected, message)
-  end
-
-  defp require_fields(callbacks, issues, path, row, fields) do
-    callback!(callbacks, :require_fields).(issues, path, row, fields)
-  end
-
-  defp validate_stable_id(callbacks, issues, path, value) do
-    callback!(callbacks, :validate_stable_id).(issues, path, value)
-  end
-
-  defp validate_string_list_allowed(callbacks, issues, path, row, field, values) do
-    callback!(callbacks, :validate_string_list_allowed).(issues, path, row, field, values)
-  end
-
-  defp error(callbacks, path, message) do
-    callback!(callbacks, :error).(path, message)
-  end
-
-  defp callback!(callbacks, name), do: Keyword.fetch!(callbacks, name)
 end
