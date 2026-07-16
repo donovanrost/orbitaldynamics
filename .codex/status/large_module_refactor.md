@@ -9,7 +9,7 @@ Current slice:
 Operational-quality-gate-import-readiness-summary callback-bag collapse.
 
 Status:
-Selected; implementation pending.
+Completed and ready to publish.
 
 Selected slice:
 Replace the 20-entry callback bag in
@@ -48,6 +48,23 @@ No import-readiness-summary callback bag or shared-helper trampolines remain;
 direct shared owners, explicit model data, the context-validator boundary, and
 cohesive local rules preserve exact validation/error order and messages;
 focused/broader/export checks pass; and bounded review finds no blocker.
+
+Completed result:
+Removed the 20-entry import-readiness-summary callback bag and all owner
+trampolines. Primitive, stable-ID, and collection aggregation behavior now
+calls exact owners directly; model limits and the final facade-owned timeline
+publication context validator are explicit inputs; local routing/subset rules
+remain unchanged. Four now-dead aggregation facade wrappers were removed.
+`schema.ex` fell from 12,049 to 11,996 lines and the owner from 512 to 413.
+
+Verification:
+- compile with warnings as errors passed
+- 49 focused readiness/schema/import-readiness replay/review tests passed
+- 1,051 broader candidate-refresh/operator-review tests passed
+- 22 schema-export tests passed
+- compile-connected xref, format, diff hygiene, and checked-in schema
+  regeneration were clean
+- bounded read-only review found no issues
 
 Verification gaps:
 - Full repository suite not run.

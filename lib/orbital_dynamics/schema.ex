@@ -7374,32 +7374,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp operational_quality_gate_import_readiness_summary_contract_callbacks do
-    [
-      expect_equal: &expect_equal/5,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_non_negative_integer: &expect_non_negative_integer/4,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      expect_optional_field_equals: &expect_optional_field_equals/6,
-      validate_stable_ids: &validate_stable_ids/4,
-      validate_non_negative_integer_count_map: &validate_non_negative_integer_count_map/3,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_stable_id_array_map: &validate_stable_id_array_map/3,
-      validate_stable_id_list: &validate_stable_id_list/3,
-      validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
-      validate_optional_exact_model_limits: &validate_optional_exact_model_limits/5,
-      validate_timeline_publication_context: &validate_timeline_publication_context/3,
-      quality_gate_import_readiness_summary_model_limits:
-        &quality_gate_import_readiness_summary_model_limits/0,
-      stable_id_array_map_value_count: &stable_id_array_map_value_count/1,
-      stable_id_array_map_ids: &stable_id_array_map_ids/1,
-      positive_count_map_keys: &positive_count_map_keys/1,
-      non_negative_integer_map_value: &non_negative_integer_map_value/2,
-      error: &error/2
-    ]
-  end
-
   defp provider_counteroffer_report_contract_callbacks do
     [
       require_fields: &require_fields/4,
@@ -8213,13 +8187,6 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp stable_id_array_map_ids(values) when is_map(values) do
-    OrbitalDynamics.Schema.CollectionAggregation.stable_id_array_map_ids(values)
-  end
-
-  defp stable_id_array_map_ids(values),
-    do: OrbitalDynamics.Schema.CollectionAggregation.stable_id_array_map_ids(values)
-
   defp validate_station_reservation_review_summary(issues, path, summary) do
     OrbitalDynamics.Schema.StationReservationSummaryContracts.validate_review(
       issues,
@@ -9026,13 +8993,6 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp non_negative_integer_map_sum(_counts), do: nil
-
-  defp stable_id_array_map_value_count(values) when is_map(values) do
-    OrbitalDynamics.Schema.CollectionAggregation.stable_id_array_map_value_count(values)
-  end
-
-  defp stable_id_array_map_value_count(values),
-    do: OrbitalDynamics.Schema.CollectionAggregation.stable_id_array_map_value_count(values)
 
   defp validate_duplicate_suppressed_candidate_evidence(issues, path, candidate) do
     OrbitalDynamics.Schema.SuppressedCandidateContracts.validate_duplicate_evidence(
@@ -9913,28 +9873,15 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp non_negative_integer_map_value(counts, key) when is_map(counts) do
-    OrbitalDynamics.Schema.CollectionAggregation.non_negative_integer_map_value(counts, key)
-  end
-
-  defp non_negative_integer_map_value(counts, key),
-    do: OrbitalDynamics.Schema.CollectionAggregation.non_negative_integer_map_value(counts, key)
-
   defp validate_operational_quality_gate_import_readiness_summary(issues, path, summary) do
     OrbitalDynamics.Schema.OperationalQualityGateImportReadinessSummaryContracts.validate_summary(
       issues,
       path,
       summary,
-      operational_quality_gate_import_readiness_summary_contract_callbacks()
+      quality_gate_import_readiness_summary_model_limits(),
+      &validate_timeline_publication_context/3
     )
   end
-
-  defp positive_count_map_keys(counts) when is_map(counts) do
-    OrbitalDynamics.Schema.CollectionAggregation.positive_count_map_keys(counts)
-  end
-
-  defp positive_count_map_keys(counts),
-    do: OrbitalDynamics.Schema.CollectionAggregation.positive_count_map_keys(counts)
 
   defp validate_quality_gate_report(issues, path, report) do
     OrbitalDynamics.Schema.QualityGateReportContracts.validate_report(

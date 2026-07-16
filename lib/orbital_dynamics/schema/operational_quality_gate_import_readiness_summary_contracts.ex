@@ -1,7 +1,32 @@
 defmodule OrbitalDynamics.Schema.OperationalQualityGateImportReadinessSummaryContracts do
   @moduledoc false
 
-  def validate_summary(issues, path, summary, callbacks) when is_list(callbacks) do
+  alias OrbitalDynamics.Schema.CollectionAggregation
+
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [
+      error: 2,
+      expect_equal: 5,
+      expect_field_equals: 6,
+      expect_non_negative_integer: 4,
+      expect_optional_field_equals: 6,
+      expect_optional_type: 5,
+      expect_type: 5,
+      validate_non_negative_integer_count_map: 3,
+      validate_optional_exact_model_limits: 5,
+      validate_string_list_items: 4
+    ]
+
+  import OrbitalDynamics.Schema.StableIdValidation,
+    only: [
+      validate_optional_stable_id_list: 4,
+      validate_stable_id_array_map: 3,
+      validate_stable_id_list: 3,
+      validate_stable_ids: 4
+    ]
+
+  def validate_summary(issues, path, summary, model_limits, context_validator)
+      when is_list(model_limits) and is_function(context_validator, 3) do
     freshness_counts = Map.get(summary, "freshness_status_counts")
     import_counts = Map.get(summary, "import_status_counts")
     cadence_import_counts = Map.get(summary, "cadence_import_status_counts")
@@ -10,99 +35,90 @@ defmodule OrbitalDynamics.Schema.OperationalQualityGateImportReadinessSummaryCon
 
     issues
     |> expect_equal(
-      callbacks,
       path,
       summary,
       "schema_contract",
       "operational_quality_gate_import_readiness_summary.v1"
     )
     |> expect_equal(
-      callbacks,
       path,
       summary,
       "model",
       "artifact_only_quality_gate_import_readiness_summary"
     )
-    |> expect_equal(callbacks, path, summary, "source", "quality_gate_report.v1")
-    |> expect_type(callbacks, path, summary, "source_artifact_type", :binary)
-    |> validate_stable_ids(callbacks, path, summary, [
+    |> expect_equal(path, summary, "source", "quality_gate_report.v1")
+    |> expect_type(path, summary, "source_artifact_type", :binary)
+    |> validate_stable_ids(path, summary, [
       "source_artifact_id",
       "source_quality_gate_report_id",
       "source_readiness_report_id"
     ])
-    |> expect_non_negative_integer(callbacks, path, summary, "import_readiness_row_count")
-    |> expect_non_negative_integer(callbacks, path, summary, "ready_for_import_count")
-    |> expect_non_negative_integer(callbacks, path, summary, "manifest_review_required_count")
-    |> expect_non_negative_integer(callbacks, path, summary, "blocked_import_count")
-    |> expect_non_negative_integer(callbacks, path, summary, "missing_import_count")
-    |> expect_non_negative_integer(callbacks, path, summary, "invalid_cadence_import_count")
-    |> expect_non_negative_integer(callbacks, path, summary, "current_freshness_count")
-    |> expect_non_negative_integer(callbacks, path, summary, "stale_freshness_count")
-    |> expect_non_negative_integer(callbacks, path, summary, "unknown_freshness_count")
-    |> expect_type(callbacks, path, summary, "freshness_status_counts", :map)
+    |> expect_non_negative_integer(path, summary, "import_readiness_row_count")
+    |> expect_non_negative_integer(path, summary, "ready_for_import_count")
+    |> expect_non_negative_integer(path, summary, "manifest_review_required_count")
+    |> expect_non_negative_integer(path, summary, "blocked_import_count")
+    |> expect_non_negative_integer(path, summary, "missing_import_count")
+    |> expect_non_negative_integer(path, summary, "invalid_cadence_import_count")
+    |> expect_non_negative_integer(path, summary, "current_freshness_count")
+    |> expect_non_negative_integer(path, summary, "stale_freshness_count")
+    |> expect_non_negative_integer(path, summary, "unknown_freshness_count")
+    |> expect_type(path, summary, "freshness_status_counts", :map)
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".freshness_status_counts",
       freshness_counts
     )
-    |> expect_type(callbacks, path, summary, "freshness_status_ids", :list)
-    |> validate_string_list_items(callbacks, path, summary, "freshness_status_ids")
-    |> expect_type(callbacks, path, summary, "import_status_counts", :map)
+    |> expect_type(path, summary, "freshness_status_ids", :list)
+    |> validate_string_list_items(path, summary, "freshness_status_ids")
+    |> expect_type(path, summary, "import_status_counts", :map)
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".import_status_counts",
       import_counts
     )
-    |> expect_type(callbacks, path, summary, "import_status_ids", :list)
-    |> validate_string_list_items(callbacks, path, summary, "import_status_ids")
-    |> expect_type(callbacks, path, summary, "cadence_import_status_counts", :map)
+    |> expect_type(path, summary, "import_status_ids", :list)
+    |> validate_string_list_items(path, summary, "import_status_ids")
+    |> expect_type(path, summary, "cadence_import_status_counts", :map)
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".cadence_import_status_counts",
       cadence_import_counts
     )
-    |> expect_type(callbacks, path, summary, "cadence_import_status_ids", :list)
-    |> validate_string_list_items(callbacks, path, summary, "cadence_import_status_ids")
-    |> expect_type(callbacks, path, summary, "freshness_review_required", :boolean)
-    |> expect_type(callbacks, path, summary, "import_preparation_required", :boolean)
-    |> expect_type(callbacks, path, summary, "import_blocked", :boolean)
-    |> expect_type(callbacks, path, summary, "quality_gate_row_ids_by_status", :map)
+    |> expect_type(path, summary, "cadence_import_status_ids", :list)
+    |> validate_string_list_items(path, summary, "cadence_import_status_ids")
+    |> expect_type(path, summary, "freshness_review_required", :boolean)
+    |> expect_type(path, summary, "import_preparation_required", :boolean)
+    |> expect_type(path, summary, "import_blocked", :boolean)
+    |> expect_type(path, summary, "quality_gate_row_ids_by_status", :map)
     |> validate_stable_id_array_map(
-      callbacks,
       path <> ".quality_gate_row_ids_by_status",
       quality_gate_row_ids_by_status
     )
-    |> expect_type(callbacks, path, summary, "quality_gate_ids_by_status", :map)
+    |> expect_type(path, summary, "quality_gate_ids_by_status", :map)
     |> validate_stable_id_array_map(
-      callbacks,
       path <> ".quality_gate_ids_by_status",
       quality_gate_ids_by_status
     )
-    |> validate_id_list_types(callbacks, path, summary)
-    |> expect_optional_type(callbacks, path, summary, "analysis_only_quality_gate_row_ids", :list)
+    |> validate_id_list_types(path, summary)
+    |> expect_optional_type(path, summary, "analysis_only_quality_gate_row_ids", :list)
     |> validate_optional_stable_id_list(
-      callbacks,
       path,
       summary,
       "analysis_only_quality_gate_row_ids"
     )
-    |> expect_type(callbacks, path, summary, "assumptions", :map)
-    |> expect_type(callbacks, path, summary, "model_limits", :list)
-    |> validate_string_list_items(callbacks, path, summary, "model_limits")
+    |> expect_type(path, summary, "assumptions", :map)
+    |> expect_type(path, summary, "model_limits", :list)
+    |> validate_string_list_items(path, summary, "model_limits")
     |> validate_optional_exact_model_limits(
-      callbacks,
       path,
       summary,
-      quality_gate_import_readiness_summary_model_limits(callbacks),
+      model_limits,
       "must match quality gate import-readiness summary model limits"
     )
-    |> validate_assumptions(callbacks, path, summary)
-    |> validate_counts(callbacks, path, summary)
-    |> validate_id_sets(callbacks, path, summary)
-    |> validate_timeline_publication_context(callbacks, path, summary)
+    |> validate_assumptions(path, summary)
+    |> validate_counts(path, summary)
+    |> validate_id_sets(path, summary)
+    |> context_validator.(path, summary)
   end
 
-  defp validate_id_list_types(issues, callbacks, path, summary) do
+  defp validate_id_list_types(issues, path, summary) do
     [
       "review_required_quality_gate_row_ids",
       "blocked_quality_gate_row_ids",
@@ -114,12 +130,12 @@ defmodule OrbitalDynamics.Schema.OperationalQualityGateImportReadinessSummaryCon
     ]
     |> Enum.reduce(issues, fn field, acc ->
       acc
-      |> expect_type(callbacks, path, summary, field, :list)
-      |> validate_stable_id_list(callbacks, path <> ".#{field}", Map.get(summary, field))
+      |> expect_type(path, summary, field, :list)
+      |> validate_stable_id_list(path <> ".#{field}", Map.get(summary, field))
     end)
   end
 
-  defp validate_assumptions(issues, callbacks, path, summary) do
+  defp validate_assumptions(issues, path, summary) do
     case Map.get(summary, "assumptions") do
       %{} = assumptions ->
         [
@@ -130,7 +146,7 @@ defmodule OrbitalDynamics.Schema.OperationalQualityGateImportReadinessSummaryCon
           {"command_execution", "not_performed_by_summary"}
         ]
         |> Enum.reduce(issues, fn {field, expected}, acc ->
-          expect_equal(acc, callbacks, path <> ".assumptions", assumptions, field, expected)
+          expect_equal(acc, path <> ".assumptions", assumptions, field, expected)
         end)
 
       _assumptions ->
@@ -138,113 +154,105 @@ defmodule OrbitalDynamics.Schema.OperationalQualityGateImportReadinessSummaryCon
     end
   end
 
-  defp validate_counts(issues, callbacks, path, summary) do
+  defp validate_counts(issues, path, summary) do
     freshness_counts = Map.get(summary, "freshness_status_counts")
     import_counts = Map.get(summary, "import_status_counts")
     cadence_import_counts = Map.get(summary, "cadence_import_status_counts")
 
     issues
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "import_readiness_row_count",
-      stable_id_array_map_value_count(
-        callbacks,
+      CollectionAggregation.stable_id_array_map_value_count(
         Map.get(summary, "quality_gate_row_ids_by_status")
       ),
       "must equal quality-gate row IDs by status count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "ready_for_import_count",
-      non_negative_integer_map_value(callbacks, import_counts, "ready_for_import"),
+      CollectionAggregation.non_negative_integer_map_value(import_counts, "ready_for_import"),
       "must equal import_status_counts ready_for_import count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "manifest_review_required_count",
-      non_negative_integer_map_value(callbacks, import_counts, "review_required_before_import"),
+      CollectionAggregation.non_negative_integer_map_value(
+        import_counts,
+        "review_required_before_import"
+      ),
       "must equal import_status_counts review_required_before_import count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "blocked_import_count",
-      non_negative_integer_map_value(callbacks, import_counts, "blocked_missing_cadence_import"),
+      CollectionAggregation.non_negative_integer_map_value(
+        import_counts,
+        "blocked_missing_cadence_import"
+      ),
       "must equal import_status_counts blocked_missing_cadence_import count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "missing_import_count",
-      non_negative_integer_map_value(callbacks, cadence_import_counts, "missing"),
+      CollectionAggregation.non_negative_integer_map_value(cadence_import_counts, "missing"),
       "must equal cadence_import_status_counts missing count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "invalid_cadence_import_count",
-      non_negative_integer_map_value(callbacks, cadence_import_counts, "invalid"),
+      CollectionAggregation.non_negative_integer_map_value(cadence_import_counts, "invalid"),
       "must equal cadence_import_status_counts invalid count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "current_freshness_count",
-      non_negative_integer_map_value(callbacks, freshness_counts, "current"),
+      CollectionAggregation.non_negative_integer_map_value(freshness_counts, "current"),
       "must equal freshness_status_counts current count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "stale_freshness_count",
-      non_negative_integer_map_value(callbacks, freshness_counts, "stale"),
+      CollectionAggregation.non_negative_integer_map_value(freshness_counts, "stale"),
       "must equal freshness_status_counts stale count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "unknown_freshness_count",
-      non_negative_integer_map_value(callbacks, freshness_counts, "unknown"),
+      CollectionAggregation.non_negative_integer_map_value(freshness_counts, "unknown"),
       "must equal freshness_status_counts unknown count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "freshness_status_ids",
-      positive_count_map_keys(callbacks, freshness_counts),
+      CollectionAggregation.positive_count_map_keys(freshness_counts),
       "must equal freshness_status_counts keys with positive counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "import_status_ids",
-      positive_count_map_keys(callbacks, import_counts),
+      CollectionAggregation.positive_count_map_keys(import_counts),
       "must equal import_status_counts keys with positive counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "cadence_import_status_ids",
-      positive_count_map_keys(callbacks, cadence_import_counts),
+      CollectionAggregation.positive_count_map_keys(cadence_import_counts),
       "must equal cadence_import_status_counts keys with positive counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "freshness_review_required",
@@ -252,7 +260,6 @@ defmodule OrbitalDynamics.Schema.OperationalQualityGateImportReadinessSummaryCon
       "must match stale or unknown freshness evidence"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "import_preparation_required",
@@ -260,7 +267,6 @@ defmodule OrbitalDynamics.Schema.OperationalQualityGateImportReadinessSummaryCon
       "must match review-required or missing import evidence"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "import_blocked",
@@ -269,12 +275,11 @@ defmodule OrbitalDynamics.Schema.OperationalQualityGateImportReadinessSummaryCon
     )
   end
 
-  defp validate_id_sets(issues, callbacks, path, summary) do
+  defp validate_id_sets(issues, path, summary) do
     quality_gate_row_ids_by_status = Map.get(summary, "quality_gate_row_ids_by_status")
 
     issues
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "review_required_quality_gate_row_ids",
@@ -284,7 +289,6 @@ defmodule OrbitalDynamics.Schema.OperationalQualityGateImportReadinessSummaryCon
       "must equal review-required quality-gate row IDs by status"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "blocked_quality_gate_row_ids",
@@ -294,7 +298,6 @@ defmodule OrbitalDynamics.Schema.OperationalQualityGateImportReadinessSummaryCon
       "must equal blocked quality-gate row IDs by status"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "ready_quality_gate_row_ids",
@@ -304,7 +307,6 @@ defmodule OrbitalDynamics.Schema.OperationalQualityGateImportReadinessSummaryCon
       "must equal passed quality-gate row IDs by status"
     )
     |> expect_optional_field_equals(
-      callbacks,
       path,
       summary,
       "analysis_only_quality_gate_row_ids",
@@ -314,15 +316,15 @@ defmodule OrbitalDynamics.Schema.OperationalQualityGateImportReadinessSummaryCon
       "must equal analysis-only quality-gate row IDs by status"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "import_readiness_gate_ids",
-      stable_id_array_map_ids(callbacks, Map.get(summary, "quality_gate_ids_by_status")),
+      CollectionAggregation.stable_id_array_map_ids(
+        Map.get(summary, "quality_gate_ids_by_status")
+      ),
       "must equal quality-gate IDs by status"
     )
     |> validate_routing_ids(
-      callbacks,
       path,
       summary,
       "stale_or_unknown_freshness_quality_gate_row_ids",
@@ -330,7 +332,6 @@ defmodule OrbitalDynamics.Schema.OperationalQualityGateImportReadinessSummaryCon
       "must match stale or unknown freshness routing"
     )
     |> validate_routing_ids(
-      callbacks,
       path,
       summary,
       "import_preparation_quality_gate_row_ids",
@@ -338,7 +339,6 @@ defmodule OrbitalDynamics.Schema.OperationalQualityGateImportReadinessSummaryCon
       "must match review-required or missing import routing"
     )
     |> validate_routing_ids(
-      callbacks,
       path,
       summary,
       "blocked_import_quality_gate_row_ids",
@@ -347,11 +347,13 @@ defmodule OrbitalDynamics.Schema.OperationalQualityGateImportReadinessSummaryCon
     )
   end
 
-  defp validate_routing_ids(issues, callbacks, path, summary, field, expected?, message) do
+  defp validate_routing_ids(issues, path, summary, field, expected?, message) do
     routing_ids = Map.get(summary, field)
 
     row_ids =
-      stable_id_array_map_ids(callbacks, Map.get(summary, "quality_gate_row_ids_by_status"))
+      CollectionAggregation.stable_id_array_map_ids(
+        Map.get(summary, "quality_gate_row_ids_by_status")
+      )
 
     cond do
       expected? == nil or not is_list(routing_ids) or not is_list(row_ids) ->
@@ -360,7 +362,6 @@ defmodule OrbitalDynamics.Schema.OperationalQualityGateImportReadinessSummaryCon
       not subset?(routing_ids, row_ids) ->
         [
           error(
-            callbacks,
             path <> ".#{field}",
             "must be present in quality-gate row IDs by status"
           )
@@ -368,10 +369,10 @@ defmodule OrbitalDynamics.Schema.OperationalQualityGateImportReadinessSummaryCon
         ]
 
       expected? and routing_ids == [] ->
-        [error(callbacks, path <> ".#{field}", message) | issues]
+        [error(path <> ".#{field}", message) | issues]
 
       not expected? and routing_ids != [] ->
-        [error(callbacks, path <> ".#{field}", message) | issues]
+        [error(path <> ".#{field}", message) | issues]
 
       true ->
         issues
@@ -409,104 +410,4 @@ defmodule OrbitalDynamics.Schema.OperationalQualityGateImportReadinessSummaryCon
     row_id_set = MapSet.new(row_ids)
     Enum.all?(ids, &MapSet.member?(row_id_set, &1))
   end
-
-  defp expect_equal(issues, callbacks, path, map, field, expected),
-    do: apply(Keyword.fetch!(callbacks, :expect_equal), [issues, path, map, field, expected])
-
-  defp expect_type(issues, callbacks, path, map, field, type),
-    do: apply(Keyword.fetch!(callbacks, :expect_type), [issues, path, map, field, type])
-
-  defp expect_optional_type(issues, callbacks, path, map, field, type),
-    do: apply(Keyword.fetch!(callbacks, :expect_optional_type), [issues, path, map, field, type])
-
-  defp expect_non_negative_integer(issues, callbacks, path, map, field),
-    do: apply(Keyword.fetch!(callbacks, :expect_non_negative_integer), [issues, path, map, field])
-
-  defp expect_field_equals(issues, callbacks, path, map, field, expected, message) do
-    apply(Keyword.fetch!(callbacks, :expect_field_equals_with_message), [
-      issues,
-      path,
-      map,
-      field,
-      expected,
-      message
-    ])
-  end
-
-  defp expect_optional_field_equals(issues, callbacks, path, map, field, expected, message) do
-    apply(Keyword.fetch!(callbacks, :expect_optional_field_equals), [
-      issues,
-      path,
-      map,
-      field,
-      expected,
-      message
-    ])
-  end
-
-  defp validate_stable_ids(issues, callbacks, path, map, fields),
-    do: apply(Keyword.fetch!(callbacks, :validate_stable_ids), [issues, path, map, fields])
-
-  defp validate_non_negative_integer_count_map(issues, callbacks, path, counts) do
-    apply(Keyword.fetch!(callbacks, :validate_non_negative_integer_count_map), [
-      issues,
-      path,
-      counts
-    ])
-  end
-
-  defp validate_string_list_items(issues, callbacks, path, map, field),
-    do: apply(Keyword.fetch!(callbacks, :validate_string_list_items), [issues, path, map, field])
-
-  defp validate_stable_id_array_map(issues, callbacks, path, values),
-    do: apply(Keyword.fetch!(callbacks, :validate_stable_id_array_map), [issues, path, values])
-
-  defp validate_stable_id_list(issues, callbacks, path, values),
-    do: apply(Keyword.fetch!(callbacks, :validate_stable_id_list), [issues, path, values])
-
-  defp validate_optional_stable_id_list(issues, callbacks, path, map, field) do
-    apply(Keyword.fetch!(callbacks, :validate_optional_stable_id_list), [
-      issues,
-      path,
-      map,
-      field
-    ])
-  end
-
-  defp validate_optional_exact_model_limits(issues, callbacks, path, artifact, expected, message) do
-    apply(Keyword.fetch!(callbacks, :validate_optional_exact_model_limits), [
-      issues,
-      path,
-      artifact,
-      expected,
-      message
-    ])
-  end
-
-  defp validate_timeline_publication_context(issues, callbacks, path, summary) do
-    apply(Keyword.fetch!(callbacks, :validate_timeline_publication_context), [
-      issues,
-      path,
-      summary
-    ])
-  end
-
-  defp quality_gate_import_readiness_summary_model_limits(callbacks) do
-    apply(Keyword.fetch!(callbacks, :quality_gate_import_readiness_summary_model_limits), [])
-  end
-
-  defp stable_id_array_map_value_count(callbacks, values),
-    do: apply(Keyword.fetch!(callbacks, :stable_id_array_map_value_count), [values])
-
-  defp stable_id_array_map_ids(callbacks, values),
-    do: apply(Keyword.fetch!(callbacks, :stable_id_array_map_ids), [values])
-
-  defp positive_count_map_keys(callbacks, values),
-    do: apply(Keyword.fetch!(callbacks, :positive_count_map_keys), [values])
-
-  defp non_negative_integer_map_value(callbacks, values, key),
-    do: apply(Keyword.fetch!(callbacks, :non_negative_integer_map_value), [values, key])
-
-  defp error(callbacks, path, message),
-    do: apply(Keyword.fetch!(callbacks, :error), [path, message])
 end
