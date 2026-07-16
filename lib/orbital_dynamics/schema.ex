@@ -19,7 +19,18 @@ defmodule OrbitalDynamics.Schema do
     ]
 
   import OrbitalDynamics.Schema.PrimitiveValidation,
-    only: [expect_optional_list: 4, expect_optional_type: 5, expect_type: 5]
+    only: [
+      expect_number: 4,
+      expect_optional_integer: 4,
+      expect_optional_list: 4,
+      expect_optional_non_negative_number: 4,
+      expect_optional_number: 4,
+      expect_optional_number_or_string: 4,
+      expect_optional_probability: 4,
+      expect_optional_type: 5,
+      expect_probability_range: 4,
+      expect_type: 5
+    ]
 
   @campaign_plan "campaign_plan.v1"
   @campaign_repair "campaign_repair.v2"
@@ -14738,23 +14749,6 @@ defmodule OrbitalDynamics.Schema do
     end
   end
 
-  defp expect_number(issues, path, map, field) do
-    if is_number(Map.get(map, field)) do
-      issues
-    else
-      [error("#{path}.#{field}", "must be a number") | issues]
-    end
-  end
-
-  defp expect_optional_number(issues, path, map, field) do
-    case Map.get(map, field) do
-      nil -> issues
-      :null -> issues
-      value when is_number(value) -> issues
-      _value -> [error("#{path}.#{field}", "must be a number") | issues]
-    end
-  end
-
   defp expect_optional_number_or_number_list(issues, path, map, field) do
     case Map.get(map, field) do
       nil ->
@@ -14771,75 +14765,6 @@ defmodule OrbitalDynamics.Schema do
 
       _value ->
         [error("#{path}.#{field}", "must be a number or list of numbers") | issues]
-    end
-  end
-
-  defp expect_optional_number_or_string(issues, path, map, field) do
-    case Map.get(map, field) do
-      nil -> issues
-      :null -> issues
-      value when is_number(value) or is_binary(value) -> issues
-      _value -> [error("#{path}.#{field}", "must be a number or string") | issues]
-    end
-  end
-
-  defp expect_optional_non_negative_number(issues, path, map, field) do
-    case Map.get(map, field) do
-      nil ->
-        issues
-
-      :null ->
-        issues
-
-      value when is_number(value) and value >= 0.0 ->
-        issues
-
-      value when is_number(value) ->
-        [error("#{path}.#{field}", "must be non-negative") | issues]
-
-      _value ->
-        [error("#{path}.#{field}", "must be a number") | issues]
-    end
-  end
-
-  defp expect_optional_integer(issues, path, map, field) do
-    case Map.get(map, field) do
-      nil -> issues
-      :null -> issues
-      value when is_integer(value) -> issues
-      _value -> [error("#{path}.#{field}", "must be an integer") | issues]
-    end
-  end
-
-  defp expect_probability_range(issues, path, map, field) do
-    case Map.get(map, field) do
-      value when is_number(value) and value >= 0.0 and value <= 1.0 ->
-        issues
-
-      value when is_number(value) ->
-        [error("#{path}.#{field}", "must be between 0.0 and 1.0") | issues]
-
-      _value ->
-        issues
-    end
-  end
-
-  defp expect_optional_probability(issues, path, map, field) do
-    case Map.get(map, field) do
-      nil ->
-        issues
-
-      :null ->
-        issues
-
-      value when is_number(value) and value >= 0.0 and value <= 1.0 ->
-        issues
-
-      value when is_number(value) ->
-        [error("#{path}.#{field}", "must be between 0.0 and 1.0") | issues]
-
-      _value ->
-        [error("#{path}.#{field}", "must be a number") | issues]
     end
   end
 
