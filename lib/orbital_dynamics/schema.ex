@@ -6762,7 +6762,7 @@ defmodule OrbitalDynamics.Schema do
     |> OrbitalDynamics.Schema.TimelineLifecycleStateSummaryContracts.validate(
       "$",
       artifact,
-      timeline_lifecycle_state_summary_contract_callbacks()
+      timeline_report_model_limits()
     )
   end
 
@@ -7667,35 +7667,6 @@ defmodule OrbitalDynamics.Schema do
       validate_optional_timeline_preconditions: &validate_optional_timeline_preconditions/4,
       validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
       validate_optional_timeline_identity: &validate_optional_timeline_identity/4,
-      timeline_report_model_limits: &timeline_report_model_limits/0
-    ]
-  end
-
-  defp timeline_lifecycle_state_summary_contract_callbacks do
-    [
-      require_fields: &require_fields/4,
-      expect_equal: &expect_equal/5,
-      expect_one_of: &expect_one_of/5,
-      expect_optional_one_of: &expect_optional_one_of/5,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_number: &expect_number/4,
-      expect_non_negative_integer: &expect_non_negative_integer/4,
-      expect_optional_non_negative_integer: &expect_optional_non_negative_integer/4,
-      expect_field_equals: &expect_field_equals/5,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      validate_non_negative_integer_count_map: &validate_non_negative_integer_count_map/3,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_optional_exact_model_limits: &validate_optional_exact_model_limits/5,
-      validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
-      validate_stable_id_array_map: &validate_stable_id_array_map/3,
-      validate_rows: &validate_rows/4,
-      validate_stable_ids: &validate_stable_ids/4,
-      validate_optional_string_list: &validate_optional_string_list/4,
-      validate_optional_lifecycle_transition: &validate_optional_lifecycle_transition/4,
-      validate_optional_activity_context: &validate_optional_activity_context/4,
-      validate_optional_lifecycle_state_source_protection_decision:
-        &validate_optional_lifecycle_state_source_protection_decision/4,
       timeline_report_model_limits: &timeline_report_model_limits/0
     ]
   end
