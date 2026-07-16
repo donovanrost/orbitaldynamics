@@ -6,21 +6,21 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Completed: operator review package registry extraction.
+Completed: plan change registry extraction.
 
 Status:
-Published.
+Ready to publish.
 
 Selected slice:
-Moved `operator_review_package.v1` into
-`Schema.OperatorReviewRegistryContracts`.
+Moved `candidate_rejection_report.v1` and `plan_delta.v1` into
+`Schema.PlanChangeRegistryContracts`.
 
 Why this slice:
-The large package definition is a single cohesive review-handoff contract with
-dedicated operator-review and review/import schema coverage.
+The adjacent definitions describe candidate rejection and concrete plan change,
+with shared planned/realized activity dependencies and focused contract tests.
 
 Current coupling/problem:
-Declarative operator-review contract data remains embedded in the large
+Declarative plan-change contract data remains embedded in the large
 public `Schema` facade even though the facade only needs the merged registry.
 
 Public facade to preserve:
@@ -31,16 +31,17 @@ Public facade to preserve:
 - `OrbitalDynamics.Schema.validate_artifact/2`
 
 Likely extraction target:
-`OrbitalDynamics.Schema.OperatorReviewRegistryContracts.contracts/0`.
+`OrbitalDynamics.Schema.PlanChangeRegistryContracts.contracts/0`.
 
 Likely files:
 - `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/operator_review_registry_contracts.ex`
+- `lib/orbital_dynamics/schema/plan_change_registry_contracts.ex`
 
 Likely tests:
-- `test/orbital_dynamics/schema/operator_review_contracts_test.exs`
-- `test/orbital_dynamics/schema/review_import_handoff_contracts_test.exs`
+- `test/orbital_dynamics/schema/candidate_rejection_contracts_test.exs`
+- `test/orbital_dynamics/schema/campaign_plan_contracts_test.exs`
+- `test/orbital_dynamics/schema/campaign_repair_strategy_contracts_test.exs`
 - `test/orbital_dynamics/schema/registry_capability_test.exs`
 - `test/mix/tasks/orbital_dynamics.schema.export_test.exs`
 
@@ -52,7 +53,7 @@ fingerprint remains unchanged.
 Files changed:
 - `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/operator_review_registry_contracts.ex`
+- `lib/orbital_dynamics/schema/plan_change_registry_contracts.ex`
 
 Public APIs preserved:
 - `OrbitalDynamics.Schema.contracts/0`
@@ -62,14 +63,13 @@ Public APIs preserved:
 - `OrbitalDynamics.Schema.validate_artifact/2`
 
 Behavior/schema changes:
-None. Registry contents, operator-review validation, and generated schemas retain
-the baseline fingerprint.
+None. Registry contents, plan-change validation, and generated schemas retain the
+baseline fingerprint.
 
 Tests run:
-- `mix compile --warnings-as-errors` passed after correcting the mechanically
-  generated registry key from the old module attribute to the literal contract.
-- Operator review, review/import handoff, fixture visibility, registry
-  capability, and schema export tests passed on rerun: 16 tests.
+- `mix compile --warnings-as-errors` passed.
+- Candidate rejection, campaign plan, campaign repair/strategy, fixture
+  visibility, registry capability, and schema export tests passed: 15 tests.
 - SHA-256 over `{Schema.contracts(), Schema.json_schema_bundle()}` remained
   `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`.
 - Xref caller and compile-connected checks passed with the expected facade edge.
@@ -80,18 +80,18 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`faf1c72a` (`Extract operator review registry contracts`).
+`7075d86d` (`Update operator review handoff`).
 
 Next candidate:
-Assess candidate rejection report and plan delta as the next bounded plan-change
-registry family.
+Assess timeline feedback report, timeline activity state, and precondition
+summary as the next bounded registry family.
 
 Blocked:
 No.
 
 Notes:
-- `schema.ex` decreased from 17,683 to 17,528 lines.
-- `OperatorReviewRegistryContracts` is 164 lines.
+- `schema.ex` decreased from 17,528 to 17,474 lines.
+- `PlanChangeRegistryContracts` is 63 lines.
 - Parent review found no must-fix findings; parent publishing is the active-mode
   fallback because subagent delegation is unavailable.
 - The inline registry remains substantial; this is not a completion claim.
