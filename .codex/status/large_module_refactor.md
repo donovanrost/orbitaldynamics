@@ -9,7 +9,7 @@ Current slice:
 Completed: validation-acceptance registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Moved `validation_record.v1`, `model_acceptance_report.v1`, and
@@ -51,8 +51,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`15795c3b` (`Update accepted state schema handoff`); current slice is not yet
-committed.
+`02e019ad` (`Extract validation acceptance registry contracts`).
 
 Next candidate:
 Extract the contiguous validation policy/catalog tail
