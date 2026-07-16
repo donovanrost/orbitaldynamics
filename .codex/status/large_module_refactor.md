@@ -6,22 +6,22 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Completed: model capability registry extraction.
+Completed: optimizer report registry consolidation.
 
 Status:
-Published.
+Ready to publish.
 
 Selected slice:
-Move `environment_model_capability.v1`, `environment_provider_capability.v1`,
-and `subsystem_model_capability.v1` into `Schema.ModelCapabilityRegistryContracts`.
+Move `constraint_report.v1` and `score_term_report.v1` into the existing
+`Schema.OptimizationRegistryContracts`.
 
 Why this slice:
-The three remaining adjacent model/provider capability definitions form one
-cohesive registry family with direct schema, validation, and export coverage.
+Both adjacent definitions are optimizer output reports, and the existing
+optimization registry already owns optimizer and branch-comparison contracts.
 
 Current coupling/problem:
-Declarative model-capability contract data remains embedded in the large
-public `Schema` facade even though the facade only needs the merged registry.
+Declarative optimizer-report contract data remains embedded in the large public
+`Schema` facade instead of its already-merged family registry.
 
 Public facade to preserve:
 - `OrbitalDynamics.Schema.contracts/0`
@@ -31,17 +31,17 @@ Public facade to preserve:
 - `OrbitalDynamics.Schema.validate_artifact/2`
 
 Likely extraction target:
-`OrbitalDynamics.Schema.ModelCapabilityRegistryContracts.contracts/0`.
+`OrbitalDynamics.Schema.OptimizationRegistryContracts.contracts/0`.
 
 Likely files:
 - `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/model_capability_registry_contracts.ex`
+- `lib/orbital_dynamics/schema/optimization_registry_contracts.ex`
 
 Likely tests:
 - `test/orbital_dynamics/schema/optimizer_objective_contracts_test.exs`
-- `test/orbital_dynamics/schema/resource_contracts_test.exs`
-- `test/orbital_dynamics/schema/registry_capability_test.exs`
+- `test/orbital_dynamics/schema/validation_scoring_contracts_test.exs`
+- `test/orbital_dynamics/schema/json_schema_export_contracts_test.exs`
 - `test/mix/tasks/orbital_dynamics.schema.export_test.exs`
 
 Definition of done:
@@ -52,7 +52,7 @@ fingerprint remains unchanged.
 Files changed:
 - `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/model_capability_registry_contracts.ex`
+- `lib/orbital_dynamics/schema/optimization_registry_contracts.ex`
 
 Public APIs preserved:
 - `OrbitalDynamics.Schema.contracts/0`
@@ -62,35 +62,35 @@ Public APIs preserved:
 - `OrbitalDynamics.Schema.validate_artifact/2`
 
 Behavior/schema changes:
-None. Registry contents, capability validation, and generated schemas retain the
-baseline fingerprint.
+None. Registry contents, optimizer-report validation, and generated schemas
+retain the baseline fingerprint.
 
 Tests run:
 - `mix compile --warnings-as-errors` passed.
-- Optimizer-objective contracts, resource contracts, registry capability, and
-  schema export tests passed: 17 tests.
+- Optimizer-objective, validation-scoring, JSON-schema export-contract, and
+  schema export tests passed: 27 tests.
 - SHA-256 over `{Schema.contracts(), Schema.json_schema_bundle()}` remained
   `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`.
 - Xref caller and compile-connected checks passed with the expected facade edge.
-- Formatting, whitespace, new-file no-index, and checked-in-schema cleanliness
-  checks passed.
+- Formatting, whitespace, and checked-in-schema cleanliness checks passed.
 
 Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`3db8df0e` (`Extract model capability registry contracts`).
+`751b7164` (`Update model capability handoff`).
 
 Next candidate:
-Assess `constraint_report.v1` and `score_term_report.v1` as one cohesive
-optimizer-report registry extraction.
+Assess `quality_gate_report.v1` as the next bounded registry extraction before
+expanding into the larger operational-readiness summary family.
 
 Blocked:
 No.
 
 Notes:
-- `schema.ex` decreased from 16,906 to 16,836 lines.
-- `ModelCapabilityRegistryContracts` is 79 lines.
+- `schema.ex` decreased from 16,836 to 16,803 lines.
+- `OptimizationRegistryContracts` increased from 52 to 85 lines while absorbing
+  the two reports.
 - Parent review found no must-fix findings; parent publishing is the active-mode
   fallback because subagent delegation is unavailable.
 - The inline registry remains substantial; this is not a completion claim.

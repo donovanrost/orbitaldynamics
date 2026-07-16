@@ -2999,39 +2999,6 @@ defmodule OrbitalDynamics.Schema do
         "blocked_gate_ids"
       ],
       "nested_contracts" => ["operational_readiness_report.v1"]
-    },
-    @constraint_report => %{
-      "schema_contract" => @constraint_report,
-      "artifact_family" => "constraint_report",
-      "schema_version" => 1,
-      "required_fields" => [
-        "schema_contract",
-        "model",
-        "constraint_count",
-        "row_count",
-        "status",
-        "status_counts",
-        "rows",
-        "assumptions"
-      ],
-      "optional_fields" => ["model_limits"],
-      "nested_contracts" => []
-    },
-    @score_term_report => %{
-      "schema_contract" => @score_term_report,
-      "artifact_family" => "score_term_report",
-      "schema_version" => 1,
-      "required_fields" => [
-        "schema_contract",
-        "model",
-        "source",
-        "row_count",
-        "score_term_keys",
-        "rows",
-        "assumptions"
-      ],
-      "optional_fields" => ["model_limits"],
-      "nested_contracts" => []
     }
   }
 

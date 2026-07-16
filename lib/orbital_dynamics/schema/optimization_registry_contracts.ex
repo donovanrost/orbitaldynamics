@@ -46,6 +46,39 @@ defmodule OrbitalDynamics.Schema.OptimizationRegistryContracts do
           "known_limits"
         ],
         "nested_contracts" => []
+      },
+      "constraint_report.v1" => %{
+        "schema_contract" => "constraint_report.v1",
+        "artifact_family" => "constraint_report",
+        "schema_version" => 1,
+        "required_fields" => [
+          "schema_contract",
+          "model",
+          "constraint_count",
+          "row_count",
+          "status",
+          "status_counts",
+          "rows",
+          "assumptions"
+        ],
+        "optional_fields" => ["model_limits"],
+        "nested_contracts" => []
+      },
+      "score_term_report.v1" => %{
+        "schema_contract" => "score_term_report.v1",
+        "artifact_family" => "score_term_report",
+        "schema_version" => 1,
+        "required_fields" => [
+          "schema_contract",
+          "model",
+          "source",
+          "row_count",
+          "score_term_keys",
+          "rows",
+          "assumptions"
+        ],
+        "optional_fields" => ["model_limits"],
+        "nested_contracts" => []
       }
     }
   end
