@@ -9,7 +9,7 @@ Current slice:
 Completed: timeline feedback state registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Moved `timeline_feedback_report.v1`, `timeline_activity_state.v1`, and
@@ -81,7 +81,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`585bdd33` (`Update plan change handoff`).
+`e6938394` (`Extract timeline feedback state registry contracts`).
 
 Next candidate:
 Assess realized activity and realized state snapshot as the next bounded registry
