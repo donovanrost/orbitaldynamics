@@ -6,22 +6,21 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Completed: operational-readiness registry extraction.
+Completed: Cadence import-manifest registry extraction.
 
 Status:
-Published.
+Ready to publish.
 
 Selected slice:
-Move the operational-readiness report, import-eligibility summary, gate summary,
-and execution-boundary summary into `Schema.OperationalReadinessRegistryContracts`.
+Move `cadence_import_manifest.v1` into `Schema.CadenceImportRegistryContracts`.
 
 Why this slice:
-The four adjacent contracts form the core readiness report/summary family with
-dedicated validator modules and shared operational/readiness/export coverage.
+The manifest already has focused validation/JSON-schema modules and extensive
+Cadence-import/export coverage while its registry definition remains inline.
 
 Current coupling/problem:
-Declarative operational-readiness contract data remains embedded in the large
-public `Schema` facade even though it can be merged as one focused registry.
+Declarative Cadence import-manifest contract data remains embedded in the large
+public `Schema` facade even though it can be merged as a focused registry.
 
 Public facade to preserve:
 - `OrbitalDynamics.Schema.contracts/0`
@@ -31,17 +30,17 @@ Public facade to preserve:
 - `OrbitalDynamics.Schema.validate_artifact/2`
 
 Likely extraction target:
-`OrbitalDynamics.Schema.OperationalReadinessRegistryContracts.contracts/0`.
+`OrbitalDynamics.Schema.CadenceImportRegistryContracts.contracts/0`.
 
 Likely files:
 - `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/operational_readiness_registry_contracts.ex`
+- `lib/orbital_dynamics/schema/cadence_import_registry_contracts.ex`
 
 Likely tests:
-- `test/orbital_dynamics/schema/operational_contracts_test.exs`
+- `test/orbital_dynamics/schema/cadence_import_contracts_test.exs`
 - `test/orbital_dynamics/schema/readiness_contracts_test.exs`
-- `test/orbital_dynamics/schema/validation_evidence_contracts_test.exs`
+- `test/orbital_dynamics/schema/json_schema_export_contracts_test.exs`
 - `test/orbital_dynamics/schema/registry_capability_test.exs`
 - `test/mix/tasks/orbital_dynamics.schema.export_test.exs`
 
@@ -53,7 +52,7 @@ fingerprint remains unchanged.
 Files changed:
 - `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/operational_readiness_registry_contracts.ex`
+- `lib/orbital_dynamics/schema/cadence_import_registry_contracts.ex`
 
 Public APIs preserved:
 - `OrbitalDynamics.Schema.contracts/0`
@@ -63,13 +62,13 @@ Public APIs preserved:
 - `OrbitalDynamics.Schema.validate_artifact/2`
 
 Behavior/schema changes:
-None. Registry contents, operational-readiness validation, and generated schemas
+None. Registry contents, Cadence import-manifest validation, and generated schemas
 retain the baseline fingerprint.
 
 Tests run:
 - `mix compile --warnings-as-errors` passed.
-- Operational contracts, readiness contracts, validation evidence, registry
-  capability, and schema export tests passed: 23 tests.
+- Cadence-import contracts, readiness contracts, JSON-schema export contracts,
+  registry capability, and schema export tests passed: 31 tests.
 - SHA-256 over `{Schema.contracts(), Schema.json_schema_bundle()}` remained
   `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`.
 - Xref caller and compile-connected checks passed with the expected facade edge.
@@ -80,17 +79,18 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`b18b5a56` (`Extract operational readiness registry contracts`).
+`aee7d838` (`Update operational readiness handoff`).
 
 Next candidate:
-Assess `cadence_import_manifest.v1` as the next bounded registry extraction.
+Assess moving `policy_bundle.v1` into the existing
+`Schema.ApprovalPolicyRegistryContracts` family.
 
 Blocked:
 No.
 
 Notes:
-- `schema.ex` decreased from 16,544 to 16,420 lines.
-- `OperationalReadinessRegistryContracts` is 135 lines.
+- `schema.ex` decreased from 16,420 to 16,298 lines.
+- `CadenceImportRegistryContracts` is 131 lines.
 - Parent review found no must-fix findings; parent publishing is the active-mode
   fallback because subagent delegation is unavailable.
 - The inline registry remains substantial; this is not a completion claim.
