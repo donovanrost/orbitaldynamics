@@ -9,7 +9,7 @@ Current slice:
 Operational-quality-gate-operator-training-summary callback-bag collapse.
 
 Status:
-Selected; implementation pending.
+Completed and ready to publish.
 
 Selected slice:
 Replace the 16-entry callback bag in
@@ -48,6 +48,22 @@ No operator-training-summary callback bag or shared-helper trampolines remain;
 direct shared owners, explicit model data, and cohesive pure derivations preserve
 exact validation order/messages; focused/broader/export checks pass; and bounded
 review finds no blocker.
+
+Completed result:
+Removed the 16-entry operator-training-summary callback bag and all owner
+trampolines. Primitive, stable-ID, and collection aggregation behavior now
+calls exact owners directly; model limits are explicit data; map-sum and
+list-fallback rules remain cohesive and exact. `schema.ex` fell from 12,135 to
+12,110 lines and the owner from 303 to 241.
+
+Verification:
+- compile with warnings as errors passed
+- 53 focused readiness/schema/quality-gate replay/review tests passed
+- 1,051 broader candidate-refresh/operator-review tests passed
+- 22 schema-export tests passed
+- compile-connected xref, format, diff hygiene, and checked-in schema
+  regeneration were clean
+- bounded read-only review found no issues
 
 Verification gaps:
 - Full repository suite not run.
