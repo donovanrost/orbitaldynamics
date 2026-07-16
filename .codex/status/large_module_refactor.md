@@ -9,7 +9,7 @@ Current slice:
 Completed: approval-policy registry consolidation.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Move `policy_bundle.v1` into the existing `Schema.ApprovalPolicyRegistryContracts`.
@@ -77,7 +77,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`7581958f` (`Update Cadence import handoff`).
+`52a2dc73` (`Consolidate approval policy registry contracts`).
 
 Next candidate:
 Assess the four adjacent provider-counteroffer report and summary contracts as
