@@ -9,7 +9,7 @@ Current slice:
 Completed: relay-data-path registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Move the relay-data-path summary contract into
@@ -79,7 +79,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`94f70571` (`Extract contact allocation report registry contract`).
+`8ec1efc2` (`Extract relay data path registry contract`).
 
 Next candidate:
 Extract the adjacent link-capacity report and summary contracts as one cohesive
