@@ -9,7 +9,7 @@ Current slice:
 Operational-readiness-gate-summary callback-bag collapse.
 
 Status:
-Selected; implementation pending.
+Completed and ready to publish.
 
 Selected slice:
 Replace the 20-entry callback bag in
@@ -53,6 +53,23 @@ No readiness-gate-summary callback bag or shared-helper trampolines remain; dire
 owners, explicit model data, and the gate-validator boundary preserve exact
 validation order/messages; focused/broader/export checks pass; and bounded
 review finds no blocker.
+
+Completed result:
+Removed the 20-entry readiness-gate-summary callback bag and all owner
+trampolines. Shared primitive, stable-ID, collection, classification, and
+gate-count behavior now calls its exact owner directly; model limits and the
+facade gate validator are explicit inputs; the facade's nil/default equality
+message clauses remain local and exact. `schema.ex` fell from 12,194 to 12,163
+lines and the cohesive owner from 424 to 339.
+
+Verification:
+- compile with warnings as errors passed
+- 44 focused readiness/schema/replay/review tests passed
+- 1,051 broader candidate-refresh/operator-review tests passed
+- 22 schema-export tests passed
+- compile-connected xref, format, diff hygiene, and checked-in schema
+  regeneration were clean
+- bounded read-only review found no issues
 
 Verification gaps:
 - Full repository suite not run.

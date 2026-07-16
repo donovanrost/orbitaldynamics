@@ -7315,32 +7315,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp operational_readiness_gate_summary_contract_callbacks do
-    [
-      expect_equal: &expect_equal/5,
-      expect_one_of: &expect_one_of/5,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_non_negative_integer: &expect_non_negative_integer/4,
-      expect_field_equals: &expect_field_equals/5,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      validate_stable_ids: &validate_stable_ids/4,
-      validate_rows: &validate_rows/4,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_optional_exact_model_limits: &validate_optional_exact_model_limits/5,
-      validate_non_negative_integer_count_map: &validate_non_negative_integer_count_map/3,
-      validate_stable_id_list: &validate_stable_id_list/3,
-      validate_stable_id_array_map: &validate_stable_id_array_map/3,
-      validate_operational_readiness_gate: &validate_operational_readiness_gate/3,
-      operational_readiness_gate_summary_model_limits:
-        &operational_readiness_gate_summary_model_limits/0,
-      operational_readiness_import_classification: &operational_readiness_import_classification/1,
-      operational_readiness_level: &operational_readiness_level/1,
-      operational_readiness_report_status: &operational_readiness_report_status/1,
-      gate_status_count: &gate_status_count/2
-    ]
-  end
-
   defp operational_execution_boundary_summary_contract_callbacks do
     [
       expect_equal: &expect_equal/5,
@@ -9906,7 +9880,8 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       summary,
-      operational_readiness_gate_summary_contract_callbacks()
+      operational_readiness_gate_summary_model_limits(),
+      &validate_operational_readiness_gate/3
     )
   end
 
@@ -9999,12 +9974,6 @@ defmodule OrbitalDynamics.Schema do
       operational_readiness_evidence_contract_callbacks()
     )
   end
-
-  defp gate_status_count(gates, status) when is_list(gates) do
-    OrbitalDynamics.Schema.OperationalReadinessReportContracts.gate_status_count(gates, status)
-  end
-
-  defp gate_status_count(_gates, _status), do: nil
 
   defp validate_operational_quality_gate_summary(issues, path, summary) do
     OrbitalDynamics.Schema.OperationalQualityGateSummaryContracts.validate_summary(
