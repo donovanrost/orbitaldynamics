@@ -6670,7 +6670,7 @@ defmodule OrbitalDynamics.Schema do
       "$",
       artifact,
       timeline_feedback_report_model_limits(),
-      timeline_feedback_row_contract_callbacks()
+      handoff_field_contract_callbacks()
     )
   end
 
@@ -7796,34 +7796,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp timeline_feedback_row_contract_callbacks do
-    [
-      require_fields: &require_fields/4,
-      validate_stable_ids: &validate_stable_ids/4,
-      expect_one_of: &expect_one_of/5,
-      expect_optional_one_of: &expect_optional_one_of/5,
-      expect_optional_type: &expect_optional_type/5,
-      validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
-      validate_string_list_items: &validate_string_list_items/4,
-      expect_optional_probability: &expect_optional_probability/4,
-      expect_optional_integer: &expect_optional_integer/4,
-      expect_field_at_least: &expect_field_at_least/5,
-      validate_number_list_items: &validate_number_list_items/4,
-      expect_optional_number: &expect_optional_number/4,
-      validate_optional_activity_context: &validate_optional_activity_context/4,
-      validate_optional_execution_uncertainty: &validate_optional_execution_uncertainty/4,
-      validate_optional_protection_decision: &validate_optional_protection_decision/4,
-      validate_optional_lifecycle_transition: &validate_optional_lifecycle_transition/4,
-      validate_optional_actual_data_rate_throughput_derivation:
-        &validate_optional_actual_data_rate_throughput_derivation/4,
-      validate_resource_availability_variance_fields:
-        &validate_resource_availability_variance_fields/3,
-      validate_eclipse_lighting_handoff_fields: &validate_eclipse_lighting_handoff_fields/3,
-      validate_link_handoff_fields: &validate_link_handoff_fields/3,
-      validate_image_quality_score_fields: &validate_image_quality_score_fields/3
-    ]
-  end
-
   defp contact_filter_report_contract_callbacks do
     [
       contact_filter_report_model_limits: &contact_filter_report_model_limits/0,
@@ -8498,15 +8470,6 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validate_image_quality_score_fields(issues, path, row) do
-    OrbitalDynamics.Schema.HandoffFieldContracts.validate_image_quality_score_fields(
-      issues,
-      path,
-      row,
-      handoff_field_contract_callbacks()
-    )
-  end
-
   defp validate_observation_quality_handoff_fields(issues, path, row) do
     OrbitalDynamics.Schema.HandoffFieldContracts.validate_observation_quality_handoff_fields(
       issues,
@@ -8756,7 +8719,7 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       row,
-      timeline_feedback_row_contract_callbacks()
+      handoff_field_contract_callbacks()
     )
   end
 
@@ -9057,7 +9020,7 @@ defmodule OrbitalDynamics.Schema do
       path,
       state,
       timeline_feedback_report_model_limits(),
-      timeline_feedback_row_contract_callbacks()
+      handoff_field_contract_callbacks()
     )
   end
 
@@ -12536,15 +12499,6 @@ defmodule OrbitalDynamics.Schema do
   defp validate_optional_actual_data_rate_throughput_derivation(issues, path, map, field)
        when is_map(map) do
     OrbitalDynamics.Schema.ExecutionMetricContracts.validate_optional_actual_data_rate_throughput_derivation(
-      issues,
-      path,
-      map,
-      field
-    )
-  end
-
-  defp validate_optional_execution_uncertainty(issues, path, map, field) when is_map(map) do
-    OrbitalDynamics.Schema.ExecutionMetricContracts.validate_optional_execution_uncertainty(
       issues,
       path,
       map,

@@ -9,7 +9,7 @@ Current slice:
 Timeline-feedback-row validator callback cleanup.
 
 Status:
-Selected; implementation pending.
+Complete; publication pending.
 
 Selected slice:
 Remove the 21-entry callback bag from `TimelineFeedbackRowContracts`. Call
@@ -52,6 +52,23 @@ Definition of done:
 No row-level callback bag or unpacking remains, all callers supply the same
 nested handoff callbacks, direct owners preserve exact behavior, focused/
 broader/export checks pass, and bounded review finds no blocker.
+
+Result:
+Removed the 21-entry row callback factory and eager callback unpacking. The row
+owner now calls extracted validators directly and receives only the unchanged
+six-entry handoff-field callback list. The state owner forwards that same list.
+`schema.ex` fell from 12,620 to 12,574 lines; the row owner is 299 lines versus
+301, with its long validation pipeline and public facade behavior unchanged.
+
+Verification:
+- compile with warnings as errors passed
+- focused feedback-row/state/workflow matrix: 84 passed, 306 excluded
+- reviewer-focused timeline feedback/state matrix: 19 passed
+- broader timeline, timeline-feedback, and candidate-refresh suites: 955 passed
+- schema export trio: 22 passed
+- checked-in schema export reproduced with no diff, preserving its fingerprint
+- format, diff hygiene, residue, public-definition, and xref checks passed
+- bounded read-only review found no must-fix issue
 
 Verification gaps:
 - Full repository suite not run.
