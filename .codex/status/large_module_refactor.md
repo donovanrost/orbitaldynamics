@@ -9,7 +9,7 @@ Current slice:
 Completed: objective analysis registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Moved `objective_tradeoff_report.v1`, `objective_satisfaction_report.v1`,
@@ -82,7 +82,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`c46fa43b` (`Update operational timeline handoff`).
+`089e3faa` (`Extract objective analysis registry contracts`).
 
 Next candidate:
 Assess strategy recommendation, maneuver recommendation/review, and execution
