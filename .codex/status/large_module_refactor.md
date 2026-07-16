@@ -9,7 +9,7 @@ Current slice:
 Completed: contact-allocation station-pressure registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Move the contact-allocation station-pressure summary contract into
@@ -78,7 +78,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`fc68a67b` (`Extract capacity pack registry contract`).
+`c0e47796` (`Extract station pressure registry contract`).
 
 Next candidate:
 Assess the adjacent contact-allocation reservation-conflict summary as the next
