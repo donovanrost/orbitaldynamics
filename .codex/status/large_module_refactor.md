@@ -6,21 +6,21 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Completed: approval policy registry extraction.
+Completed: operator review package registry extraction.
 
 Status:
-Published.
+Ready to publish.
 
 Selected slice:
-Moved `approval_requirement.v1` and `policy_decision.v1` into
-`Schema.ApprovalPolicyRegistryContracts`.
+Moved `operator_review_package.v1` into
+`Schema.OperatorReviewRegistryContracts`.
 
 Why this slice:
-`policy_decision.v1` directly nests `approval_requirement.v1`; the much larger
-operator review package has a separate focused suite and remains its own slice.
+The large package definition is a single cohesive review-handoff contract with
+dedicated operator-review and review/import schema coverage.
 
 Current coupling/problem:
-Declarative approval/policy contract data remains embedded in the large
+Declarative operator-review contract data remains embedded in the large
 public `Schema` facade even though the facade only needs the merged registry.
 
 Public facade to preserve:
@@ -31,16 +31,16 @@ Public facade to preserve:
 - `OrbitalDynamics.Schema.validate_artifact/2`
 
 Likely extraction target:
-`OrbitalDynamics.Schema.ApprovalPolicyRegistryContracts.contracts/0`.
+`OrbitalDynamics.Schema.OperatorReviewRegistryContracts.contracts/0`.
 
 Likely files:
 - `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/approval_policy_registry_contracts.ex`
+- `lib/orbital_dynamics/schema/operator_review_registry_contracts.ex`
 
 Likely tests:
-- `test/orbital_dynamics/schema/policy_contracts_test.exs`
-- `test/orbital_dynamics/schema/campaign_repair_strategy_contracts_test.exs`
+- `test/orbital_dynamics/schema/operator_review_contracts_test.exs`
+- `test/orbital_dynamics/schema/review_import_handoff_contracts_test.exs`
 - `test/orbital_dynamics/schema/registry_capability_test.exs`
 - `test/mix/tasks/orbital_dynamics.schema.export_test.exs`
 
@@ -52,7 +52,7 @@ fingerprint remains unchanged.
 Files changed:
 - `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/approval_policy_registry_contracts.ex`
+- `lib/orbital_dynamics/schema/operator_review_registry_contracts.ex`
 
 Public APIs preserved:
 - `OrbitalDynamics.Schema.contracts/0`
@@ -62,13 +62,14 @@ Public APIs preserved:
 - `OrbitalDynamics.Schema.validate_artifact/2`
 
 Behavior/schema changes:
-None. Registry contents, approval/policy validation, and generated schemas retain
+None. Registry contents, operator-review validation, and generated schemas retain
 the baseline fingerprint.
 
 Tests run:
-- `mix compile --warnings-as-errors` passed.
-- Policy, campaign repair/strategy, registry capability, schema lint, and schema
-  export tests passed: 24 tests.
+- `mix compile --warnings-as-errors` passed after correcting the mechanically
+  generated registry key from the old module attribute to the literal contract.
+- Operator review, review/import handoff, fixture visibility, registry
+  capability, and schema export tests passed on rerun: 16 tests.
 - SHA-256 over `{Schema.contracts(), Schema.json_schema_bundle()}` remained
   `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`.
 - Xref caller and compile-connected checks passed with the expected facade edge.
@@ -79,17 +80,18 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`3f383f71` (`Extract approval policy registry contracts`).
+`f8d4011c` (`Update approval policy handoff`).
 
 Next candidate:
-Assess `operator_review_package.v1` as the next standalone registry extraction.
+Assess candidate rejection report and plan delta as the next bounded plan-change
+registry family.
 
 Blocked:
 No.
 
 Notes:
-- `schema.ex` decreased from 17,725 to 17,683 lines.
-- `ApprovalPolicyRegistryContracts` is 48 lines.
+- `schema.ex` decreased from 17,683 to 17,528 lines.
+- `OperatorReviewRegistryContracts` is 164 lines.
 - Parent review found no must-fix findings; parent publishing is the active-mode
   fallback because subagent delegation is unavailable.
 - The inline registry remains substantial; this is not a completion claim.
