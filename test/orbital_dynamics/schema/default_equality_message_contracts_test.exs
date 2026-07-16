@@ -39,6 +39,33 @@ defmodule OrbitalDynamics.Schema.DefaultEqualityMessageContractsTest do
     )
   end
 
+  test "preserves station-reservation-review default equality messages" do
+    assert_default_message(
+      "study_results/station_reservation_review_summary_v1.json",
+      "reservation_count",
+      99,
+      "must equal 3"
+    )
+  end
+
+  test "preserves station-reservation-hold default equality messages" do
+    assert_default_message(
+      "study_results/station_reservation_hold_summary_v1.json",
+      "reservation_hold_count",
+      99,
+      "must equal 2"
+    )
+  end
+
+  test "preserves station-reservation-import-readiness default equality messages" do
+    assert_default_message(
+      "study_results/station_reservation_hold_import_readiness_summary_v1.json",
+      "reservation_hold_count",
+      99,
+      "must equal 2"
+    )
+  end
+
   defp assert_default_message(path, field, stale_value, expected_message) do
     artifact =
       path

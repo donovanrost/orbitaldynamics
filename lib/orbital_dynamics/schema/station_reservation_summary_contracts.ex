@@ -1,120 +1,143 @@
 defmodule OrbitalDynamics.Schema.StationReservationSummaryContracts do
   @moduledoc false
 
-  def validate_review(issues, path, summary, callbacks) when is_list(callbacks) do
+  import OrbitalDynamics.Schema.CollectionAggregation,
+    only: [frequency_map: 2, id_array_count_map: 1]
+
+  import OrbitalDynamics.Schema.CollectionValidation, only: [validate_rows: 4]
+
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [
+      error: 2,
+      expect_equal: 5,
+      expect_field_equals: 6,
+      expect_non_negative_integer: 4,
+      expect_one_of: 5,
+      expect_optional_field_equals: 6,
+      expect_optional_number: 4,
+      expect_optional_one_of: 5,
+      expect_optional_type: 5,
+      expect_type: 5,
+      validate_non_negative_integer_count_map: 3,
+      validate_number_list_items: 4,
+      validate_optional_exact_model_limits: 5,
+      validate_string_list_items: 4
+    ]
+
+  import OrbitalDynamics.Schema.StableIdValidation,
+    only: [
+      validate_nested_stable_id_array_map: 3,
+      validate_optional_stable_id_list: 4,
+      validate_stable_id_array_map: 3,
+      validate_stable_id_list: 3,
+      validate_stable_ids: 4
+    ]
+
+  def validate_review(issues, path, summary, model_limits) do
     issues
     |> expect_equal(
-      callbacks,
       path,
       summary,
       "schema_contract",
       "station_reservation_review_summary.v1"
     )
     |> expect_equal(
-      callbacks,
       path,
       summary,
       "model",
       "artifact_only_station_reservation_review_summary"
     )
-    |> expect_optional_type(callbacks, path, summary, "model_limits", :list)
-    |> validate_string_list_items(callbacks, path, summary, "model_limits")
+    |> expect_optional_type(path, summary, "model_limits", :list)
+    |> validate_string_list_items(path, summary, "model_limits")
     |> validate_optional_exact_model_limits(
-      callbacks,
       path,
       summary,
-      station_calendar_report_model_limits(callbacks),
+      model_limits,
       "must match station calendar report model limits"
     )
-    |> expect_one_of(callbacks, path, summary, "source_artifact_type", [
+    |> expect_one_of(path, summary, "source_artifact_type", [
       "station_reservation_report.v1"
     ])
-    |> expect_type(callbacks, path, summary, "source", :binary)
-    |> expect_non_negative_integer(callbacks, path, summary, "reservation_count")
-    |> expect_non_negative_integer(callbacks, path, summary, "affected_contact_reservation_count")
+    |> expect_type(path, summary, "source", :binary)
+    |> expect_non_negative_integer(path, summary, "reservation_count")
+    |> expect_non_negative_integer(path, summary, "affected_contact_reservation_count")
     |> expect_non_negative_integer(
-      callbacks,
       path,
       summary,
       "provider_calendar_contention_group_count"
     )
-    |> expect_one_of(callbacks, path, summary, "reservation_review_status", [
+    |> expect_one_of(path, summary, "reservation_review_status", [
       "clear",
       "review_required"
     ])
-    |> expect_non_negative_integer(callbacks, path, summary, "reservation_expiration_count")
-    |> expect_optional_number(callbacks, path, summary, "earliest_reservation_expires_at_s")
-    |> expect_type(callbacks, path, summary, "reservation_expiration_status_counts", :map)
+    |> expect_non_negative_integer(path, summary, "reservation_expiration_count")
+    |> expect_optional_number(path, summary, "earliest_reservation_expires_at_s")
+    |> expect_type(path, summary, "reservation_expiration_status_counts", :map)
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".reservation_expiration_status_counts",
       Map.get(summary, "reservation_expiration_status_counts")
     )
-    |> expect_type(callbacks, path, summary, "reservation_ids_by_expiration_status", :map)
+    |> expect_type(path, summary, "reservation_ids_by_expiration_status", :map)
     |> validate_stable_id_array_map(
-      callbacks,
       path <> ".reservation_ids_by_expiration_status",
       Map.get(summary, "reservation_ids_by_expiration_status")
     )
-    |> expect_non_negative_integer(callbacks, path, summary, "expired_reservation_count")
-    |> expect_non_negative_integer(callbacks, path, summary, "active_reservation_count")
+    |> expect_non_negative_integer(path, summary, "expired_reservation_count")
+    |> expect_non_negative_integer(path, summary, "active_reservation_count")
     |> expect_non_negative_integer(
-      callbacks,
       path,
       summary,
       "missing_reservation_expiration_count"
     )
-    |> expect_type(callbacks, path, summary, "review_reservation_ids", :list)
+    |> expect_type(path, summary, "review_reservation_ids", :list)
     |> validate_stable_id_list(
-      callbacks,
       path <> ".review_reservation_ids",
       Map.get(summary, "review_reservation_ids")
     )
-    |> expect_type(callbacks, path, summary, "review_rows", :list)
+    |> expect_type(path, summary, "review_rows", :list)
     |> validate_rows(
-      callbacks,
       path <> ".review_rows",
       Map.get(summary, "review_rows", []),
-      row_validator(callbacks)
+      &validate_review_row/3
     )
-    |> expect_type(callbacks, path, summary, "assumptions", :map)
-    |> validate_review_counts(callbacks, path, summary)
+    |> expect_type(path, summary, "assumptions", :map)
+    |> validate_review_counts(path, summary)
   end
 
-  def validate_review_row(issues, path, row, callbacks) when is_list(callbacks) do
+  def validate_review_row(issues, path, row) do
     issues
-    |> expect_one_of(callbacks, path, row, "reservation_review_row_type", [
+    |> expect_one_of(path, row, "reservation_review_row_type", [
       "affected_contact",
       "provider_calendar_contention_group"
     ])
-    |> validate_stable_ids(callbacks, path, row, [
+    |> validate_stable_ids(path, row, [
       "contact_id",
       "ground_station_id",
       "station_calendar_entry_id",
       "station_calendar_provider_id",
       "station_calendar_provider_entry_id"
     ])
-    |> expect_optional_type(callbacks, path, row, "station_contention_status", :binary)
-    |> expect_optional_type(callbacks, path, row, "provider_calendar_contention_status", :binary)
-    |> expect_optional_type(callbacks, path, row, "station_reservation_match_status", :binary)
-    |> expect_type(callbacks, path, row, "reservation_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, row, "reservation_ids")
-    |> expect_optional_type(callbacks, path, row, "reservation_statuses", :list)
-    |> validate_string_list_items(callbacks, path, row, "reservation_statuses")
-    |> expect_optional_type(callbacks, path, row, "reserved_by", :list)
-    |> validate_string_list_items(callbacks, path, row, "reserved_by")
-    |> expect_optional_type(callbacks, path, row, "reservation_expires_at_s", :list)
-    |> validate_number_list_items(callbacks, path, row, "reservation_expires_at_s")
-    |> expect_optional_one_of(callbacks, path, row, "station_reservation_expiration_status", [
+    |> expect_optional_type(path, row, "station_contention_status", :binary)
+    |> expect_optional_type(path, row, "provider_calendar_contention_status", :binary)
+    |> expect_optional_type(path, row, "station_reservation_match_status", :binary)
+    |> expect_type(path, row, "reservation_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "reservation_ids")
+    |> expect_optional_type(path, row, "reservation_statuses", :list)
+    |> validate_string_list_items(path, row, "reservation_statuses")
+    |> expect_optional_type(path, row, "reserved_by", :list)
+    |> validate_string_list_items(path, row, "reserved_by")
+    |> expect_optional_type(path, row, "reservation_expires_at_s", :list)
+    |> validate_number_list_items(path, row, "reservation_expires_at_s")
+    |> expect_optional_one_of(path, row, "station_reservation_expiration_status", [
       "missing",
       "expired",
       "active",
       "declared"
     ])
-    |> expect_optional_type(callbacks, path, row, "required_operator_action", :binary)
+    |> expect_optional_type(path, row, "required_operator_action", :binary)
   end
 
-  defp validate_review_counts(issues, callbacks, path, summary) do
+  defp validate_review_counts(issues, path, summary) do
     rows =
       summary
       |> Map.get("review_rows", [])
@@ -129,9 +152,8 @@ defmodule OrbitalDynamics.Schema.StationReservationSummaryContracts do
       )
 
     issues
-    |> expect_field_equals(callbacks, path, summary, "reservation_count", length(rows))
+    |> expect_field_equals(path, summary, "reservation_count", length(rows))
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "affected_contact_reservation_count",
@@ -139,7 +161,6 @@ defmodule OrbitalDynamics.Schema.StationReservationSummaryContracts do
       "must equal row-derived affected_contact_reservation_count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "provider_calendar_contention_group_count",
@@ -147,208 +168,183 @@ defmodule OrbitalDynamics.Schema.StationReservationSummaryContracts do
       "must equal row-derived provider_calendar_contention_group_count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "reservation_review_status",
       if(rows == [], do: "clear", else: "review_required")
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "reservation_expiration_count",
-      summary_expiration_count(callbacks, rows),
+      summary_expiration_count(rows),
       "must equal row-derived reservation_expiration_count"
     )
     |> expect_optional_field_equals(
-      callbacks,
       path,
       summary,
       "earliest_reservation_expires_at_s",
-      summary_earliest_expiration(callbacks, rows),
+      summary_earliest_expiration(rows),
       "must equal row-derived earliest_reservation_expires_at_s"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "reservation_expiration_status_counts",
-      frequency_map(callbacks, rows, "station_reservation_expiration_status"),
+      frequency_map(rows, "station_reservation_expiration_status"),
       "must equal row-derived reservation_expiration_status_counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "reservation_ids_by_expiration_status",
-      summary_ids_by(callbacks, rows, "station_reservation_expiration_status"),
+      summary_ids_by(rows, "station_reservation_expiration_status"),
       "must equal row-derived reservation_ids_by_expiration_status"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "expired_reservation_count",
-      summary_status_count(callbacks, rows, "expired")
+      summary_status_count(rows, "expired")
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "active_reservation_count",
-      summary_status_count(callbacks, rows, "active")
+      summary_status_count(rows, "active")
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "missing_reservation_expiration_count",
-      summary_status_count(callbacks, rows, "missing")
+      summary_status_count(rows, "missing")
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "review_reservation_ids",
-      summary_ids(callbacks, rows),
+      summary_ids(rows),
       "must equal row-derived review_reservation_ids"
     )
   end
 
-  def validate_hold(issues, path, summary, callbacks) when is_list(callbacks) do
+  def validate_hold(issues, path, summary, model_limits) do
     issues
     |> expect_equal(
-      callbacks,
       path,
       summary,
       "schema_contract",
       "station_reservation_hold_summary.v1"
     )
     |> expect_equal(
-      callbacks,
       path,
       summary,
       "model",
       "artifact_only_station_reservation_hold_summary"
     )
-    |> expect_optional_type(callbacks, path, summary, "model_limits", :list)
-    |> validate_string_list_items(callbacks, path, summary, "model_limits")
+    |> expect_optional_type(path, summary, "model_limits", :list)
+    |> validate_string_list_items(path, summary, "model_limits")
     |> validate_optional_exact_model_limits(
-      callbacks,
       path,
       summary,
-      station_calendar_report_model_limits(callbacks),
+      model_limits,
       "must match station calendar report model limits"
     )
-    |> expect_one_of(callbacks, path, summary, "source_artifact_type", [
+    |> expect_one_of(path, summary, "source_artifact_type", [
       "station_reservation_report.v1"
     ])
-    |> expect_type(callbacks, path, summary, "source", :binary)
-    |> expect_non_negative_integer(callbacks, path, summary, "reservation_hold_count")
+    |> expect_type(path, summary, "source", :binary)
+    |> expect_non_negative_integer(path, summary, "reservation_hold_count")
     |> expect_non_negative_integer(
-      callbacks,
       path,
       summary,
       "affected_contact_reservation_hold_count"
     )
     |> expect_non_negative_integer(
-      callbacks,
       path,
       summary,
       "provider_calendar_contention_hold_count"
     )
-    |> expect_one_of(callbacks, path, summary, "reservation_hold_review_status", [
+    |> expect_one_of(path, summary, "reservation_hold_review_status", [
       "clear",
       "review_required"
     ])
-    |> expect_non_negative_integer(callbacks, path, summary, "reservation_hold_expiration_count")
-    |> expect_optional_number(callbacks, path, summary, "earliest_reservation_hold_expires_at_s")
-    |> expect_type(callbacks, path, summary, "reservation_hold_expiration_status_counts", :map)
+    |> expect_non_negative_integer(path, summary, "reservation_hold_expiration_count")
+    |> expect_optional_number(path, summary, "earliest_reservation_hold_expires_at_s")
+    |> expect_type(path, summary, "reservation_hold_expiration_status_counts", :map)
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".reservation_hold_expiration_status_counts",
       Map.get(summary, "reservation_hold_expiration_status_counts")
     )
-    |> expect_type(callbacks, path, summary, "reservation_hold_status_counts", :map)
+    |> expect_type(path, summary, "reservation_hold_status_counts", :map)
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".reservation_hold_status_counts",
       Map.get(summary, "reservation_hold_status_counts")
     )
-    |> expect_type(callbacks, path, summary, "reservation_hold_ids", :list)
+    |> expect_type(path, summary, "reservation_hold_ids", :list)
     |> validate_stable_id_list(
-      callbacks,
       path <> ".reservation_hold_ids",
       Map.get(summary, "reservation_hold_ids")
     )
-    |> expect_type(callbacks, path, summary, "reservation_hold_ids_by_expiration_status", :map)
+    |> expect_type(path, summary, "reservation_hold_ids_by_expiration_status", :map)
     |> validate_stable_id_array_map(
-      callbacks,
       path <> ".reservation_hold_ids_by_expiration_status",
       Map.get(summary, "reservation_hold_ids_by_expiration_status")
     )
-    |> expect_type(callbacks, path, summary, "reservation_hold_ids_by_status", :map)
+    |> expect_type(path, summary, "reservation_hold_ids_by_status", :map)
     |> validate_stable_id_array_map(
-      callbacks,
       path <> ".reservation_hold_ids_by_status",
       Map.get(summary, "reservation_hold_ids_by_status")
     )
-    |> expect_type(callbacks, path, summary, "reservation_hold_ids_by_reserved_by", :map)
+    |> expect_type(path, summary, "reservation_hold_ids_by_reserved_by", :map)
     |> validate_stable_id_array_map(
-      callbacks,
       path <> ".reservation_hold_ids_by_reserved_by",
       Map.get(summary, "reservation_hold_ids_by_reserved_by")
     )
-    |> expect_type(callbacks, path, summary, "reservation_hold_ids_by_row_type", :map)
+    |> expect_type(path, summary, "reservation_hold_ids_by_row_type", :map)
     |> validate_stable_id_array_map(
-      callbacks,
       path <> ".reservation_hold_ids_by_row_type",
       Map.get(summary, "reservation_hold_ids_by_row_type")
     )
     |> expect_type(
-      callbacks,
       path,
       summary,
       "reservation_hold_contact_ids_by_expiration_status",
       :map
     )
     |> validate_stable_id_array_map(
-      callbacks,
       path <> ".reservation_hold_contact_ids_by_expiration_status",
       Map.get(summary, "reservation_hold_contact_ids_by_expiration_status")
     )
-    |> expect_type(callbacks, path, summary, "review_contact_ids", :list)
+    |> expect_type(path, summary, "review_contact_ids", :list)
     |> validate_stable_id_list(
-      callbacks,
       path <> ".review_contact_ids",
       Map.get(summary, "review_contact_ids")
     )
-    |> expect_type(callbacks, path, summary, "review_rows", :list)
+    |> expect_type(path, summary, "review_rows", :list)
     |> validate_rows(
-      callbacks,
       path <> ".review_rows",
       Map.get(summary, "review_rows", []),
-      hold_row_validator(callbacks)
+      &validate_hold_row/3
     )
-    |> expect_type(callbacks, path, summary, "assumptions", :map)
-    |> validate_hold_counts(callbacks, path, summary)
+    |> expect_type(path, summary, "assumptions", :map)
+    |> validate_hold_counts(path, summary)
   end
 
-  defp validate_hold_row(issues, path, row, callbacks) do
+  defp validate_hold_row(issues, path, row) do
     issues
-    |> validate_review_row(path, row, callbacks)
-    |> validate_hold_row_status(callbacks, path, row)
+    |> validate_review_row(path, row)
+    |> validate_hold_row_status(path, row)
   end
 
-  defp validate_hold_row_status(issues, callbacks, path, row) do
-    statuses = list_or_empty(callbacks, Map.get(row, "reservation_statuses"))
+  defp validate_hold_row_status(issues, path, row) do
+    statuses = list_or_empty(Map.get(row, "reservation_statuses"))
 
     if Enum.any?(statuses, &hold_status?/1) do
       issues
     else
       [
-        error(callbacks, "#{path}.reservation_statuses", "must include a hold reservation status")
+        error("#{path}.reservation_statuses", "must include a hold reservation status")
         | issues
       ]
     end
@@ -366,7 +362,7 @@ defmodule OrbitalDynamics.Schema.StationReservationSummaryContracts do
 
   defp hold_status?(_status), do: false
 
-  defp validate_hold_counts(issues, callbacks, path, summary) do
+  defp validate_hold_counts(issues, path, summary) do
     rows =
       summary
       |> Map.get("review_rows", [])
@@ -381,9 +377,8 @@ defmodule OrbitalDynamics.Schema.StationReservationSummaryContracts do
       )
 
     issues
-    |> expect_field_equals(callbacks, path, summary, "reservation_hold_count", length(rows))
+    |> expect_field_equals(path, summary, "reservation_hold_count", length(rows))
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "affected_contact_reservation_hold_count",
@@ -391,7 +386,6 @@ defmodule OrbitalDynamics.Schema.StationReservationSummaryContracts do
       "must equal row-derived affected_contact_reservation_hold_count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "provider_calendar_contention_hold_count",
@@ -399,340 +393,298 @@ defmodule OrbitalDynamics.Schema.StationReservationSummaryContracts do
       "must equal row-derived provider_calendar_contention_hold_count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "reservation_hold_review_status",
       if(rows == [], do: "clear", else: "review_required")
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "reservation_hold_expiration_count",
-      summary_expiration_count(callbacks, rows),
+      summary_expiration_count(rows),
       "must equal row-derived reservation_hold_expiration_count"
     )
     |> expect_optional_field_equals(
-      callbacks,
       path,
       summary,
       "earliest_reservation_hold_expires_at_s",
-      summary_earliest_expiration(callbacks, rows),
+      summary_earliest_expiration(rows),
       "must equal row-derived earliest_reservation_hold_expires_at_s"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "reservation_hold_expiration_status_counts",
-      frequency_map(callbacks, rows, "station_reservation_expiration_status"),
+      frequency_map(rows, "station_reservation_expiration_status"),
       "must equal row-derived reservation_hold_expiration_status_counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "reservation_hold_status_counts",
-      summary_ids_by_row_values(callbacks, rows, "reservation_statuses")
-      |> id_array_count_map(callbacks),
+      summary_ids_by_row_values(rows, "reservation_statuses")
+      |> id_array_count_map(),
       "must equal row-derived reservation_hold_status_counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "reservation_hold_ids",
-      summary_ids(callbacks, rows),
+      summary_ids(rows),
       "must equal row-derived reservation_hold_ids"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "reservation_hold_ids_by_expiration_status",
-      summary_ids_by(callbacks, rows, "station_reservation_expiration_status"),
+      summary_ids_by(rows, "station_reservation_expiration_status"),
       "must equal row-derived reservation_hold_ids_by_expiration_status"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "reservation_hold_ids_by_status",
-      summary_ids_by_row_values(callbacks, rows, "reservation_statuses"),
+      summary_ids_by_row_values(rows, "reservation_statuses"),
       "must equal row-derived reservation_hold_ids_by_status"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "reservation_hold_ids_by_reserved_by",
-      summary_ids_by_row_values(callbacks, rows, "reserved_by"),
+      summary_ids_by_row_values(rows, "reserved_by"),
       "must equal row-derived reservation_hold_ids_by_reserved_by"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "reservation_hold_ids_by_row_type",
-      summary_ids_by(callbacks, rows, "reservation_review_row_type"),
+      summary_ids_by(rows, "reservation_review_row_type"),
       "must equal row-derived reservation_hold_ids_by_row_type"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "reservation_hold_contact_ids_by_expiration_status",
-      summary_contact_ids_by(callbacks, rows, "station_reservation_expiration_status"),
+      summary_contact_ids_by(rows, "station_reservation_expiration_status"),
       "must equal row-derived reservation_hold_contact_ids_by_expiration_status"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "review_contact_ids",
-      summary_contact_ids(callbacks, rows),
+      summary_contact_ids(rows),
       "must equal row-derived review_contact_ids"
     )
   end
 
-  def validate_hold_import_readiness(issues, path, summary, callbacks)
-      when is_list(callbacks) do
+  def validate_hold_import_readiness(issues, path, summary, model_limits) do
     issues
     |> expect_equal(
-      callbacks,
       path,
       summary,
       "schema_contract",
       "station_reservation_hold_import_readiness_summary.v1"
     )
     |> expect_equal(
-      callbacks,
       path,
       summary,
       "model",
       "artifact_only_station_reservation_hold_import_readiness_summary"
     )
-    |> expect_optional_type(callbacks, path, summary, "model_limits", :list)
-    |> validate_string_list_items(callbacks, path, summary, "model_limits")
+    |> expect_optional_type(path, summary, "model_limits", :list)
+    |> validate_string_list_items(path, summary, "model_limits")
     |> validate_optional_exact_model_limits(
-      callbacks,
       path,
       summary,
-      station_calendar_report_model_limits(callbacks),
+      model_limits,
       "must match station calendar report model limits"
     )
-    |> expect_one_of(callbacks, path, summary, "source_artifact_type", [
+    |> expect_one_of(path, summary, "source_artifact_type", [
       "station_reservation_report.v1"
     ])
-    |> expect_optional_type(callbacks, path, summary, "source", :binary)
-    |> expect_non_negative_integer(callbacks, path, summary, "reservation_hold_count")
-    |> expect_one_of(callbacks, path, summary, "import_readiness_status", [
+    |> expect_optional_type(path, summary, "source", :binary)
+    |> expect_non_negative_integer(path, summary, "reservation_hold_count")
+    |> expect_one_of(path, summary, "import_readiness_status", [
       "clear",
       "review_required"
     ])
-    |> expect_one_of(callbacks, path, summary, "import_classification", [
+    |> expect_one_of(path, summary, "import_classification", [
       "not_applicable",
       "review_only"
     ])
-    |> expect_non_negative_integer(callbacks, path, summary, "ready_for_import_count")
+    |> expect_non_negative_integer(path, summary, "ready_for_import_count")
     |> expect_non_negative_integer(
-      callbacks,
       path,
       summary,
       "review_required_before_import_count"
     )
-    |> expect_non_negative_integer(callbacks, path, summary, "no_import_required_count")
-    |> expect_type(callbacks, path, summary, "reservation_hold_import_status_counts", :map)
+    |> expect_non_negative_integer(path, summary, "no_import_required_count")
+    |> expect_type(path, summary, "reservation_hold_import_status_counts", :map)
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".reservation_hold_import_status_counts",
       Map.get(summary, "reservation_hold_import_status_counts")
     )
-    |> expect_type(callbacks, path, summary, "reservation_hold_status_counts", :map)
+    |> expect_type(path, summary, "reservation_hold_status_counts", :map)
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".reservation_hold_status_counts",
       Map.get(summary, "reservation_hold_status_counts")
     )
-    |> expect_type(callbacks, path, summary, "reservation_hold_expiration_status_counts", :map)
+    |> expect_type(path, summary, "reservation_hold_expiration_status_counts", :map)
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".reservation_hold_expiration_status_counts",
       Map.get(summary, "reservation_hold_expiration_status_counts")
     )
-    |> expect_type(callbacks, path, summary, "required_import_action_counts", :map)
+    |> expect_type(path, summary, "required_import_action_counts", :map)
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".required_import_action_counts",
       Map.get(summary, "required_import_action_counts")
     )
-    |> expect_type(callbacks, path, summary, "reservation_hold_ids", :list)
+    |> expect_type(path, summary, "reservation_hold_ids", :list)
     |> validate_stable_id_list(
-      callbacks,
       path <> ".reservation_hold_ids",
       Map.get(summary, "reservation_hold_ids")
     )
-    |> expect_type(callbacks, path, summary, "reservation_hold_ids_by_import_status", :map)
+    |> expect_type(path, summary, "reservation_hold_ids_by_import_status", :map)
     |> validate_stable_id_array_map(
-      callbacks,
       path <> ".reservation_hold_ids_by_import_status",
       Map.get(summary, "reservation_hold_ids_by_import_status")
     )
-    |> expect_type(callbacks, path, summary, "reservation_hold_ids_by_expiration_status", :map)
+    |> expect_type(path, summary, "reservation_hold_ids_by_expiration_status", :map)
     |> validate_stable_id_array_map(
-      callbacks,
       path <> ".reservation_hold_ids_by_expiration_status",
       Map.get(summary, "reservation_hold_ids_by_expiration_status")
     )
-    |> expect_type(callbacks, path, summary, "reservation_hold_ids_by_status", :map)
+    |> expect_type(path, summary, "reservation_hold_ids_by_status", :map)
     |> validate_stable_id_array_map(
-      callbacks,
       path <> ".reservation_hold_ids_by_status",
       Map.get(summary, "reservation_hold_ids_by_status")
     )
-    |> expect_type(callbacks, path, summary, "reservation_hold_ids_by_reserved_by", :map)
+    |> expect_type(path, summary, "reservation_hold_ids_by_reserved_by", :map)
     |> validate_stable_id_array_map(
-      callbacks,
       path <> ".reservation_hold_ids_by_reserved_by",
       Map.get(summary, "reservation_hold_ids_by_reserved_by")
     )
     |> expect_type(
-      callbacks,
       path,
       summary,
       "reservation_hold_ids_by_required_import_action",
       :map
     )
     |> validate_stable_id_array_map(
-      callbacks,
       path <> ".reservation_hold_ids_by_required_import_action",
       Map.get(summary, "reservation_hold_ids_by_required_import_action")
     )
-    |> expect_optional_type(callbacks, path, summary, "reservation_hold_ids_by_direction", :map)
+    |> expect_optional_type(path, summary, "reservation_hold_ids_by_direction", :map)
     |> validate_stable_id_array_map(
-      callbacks,
       path <> ".reservation_hold_ids_by_direction",
       Map.get(summary, "reservation_hold_ids_by_direction")
     )
     |> expect_optional_type(
-      callbacks,
       path,
       summary,
       "reservation_hold_ids_by_direction_and_ground_station_id",
       :map
     )
     |> validate_nested_stable_id_array_map(
-      callbacks,
       path <> ".reservation_hold_ids_by_direction_and_ground_station_id",
       Map.get(summary, "reservation_hold_ids_by_direction_and_ground_station_id")
     )
     |> expect_type(
-      callbacks,
       path,
       summary,
       "reservation_hold_contact_ids_by_import_status",
       :map
     )
     |> validate_stable_id_array_map(
-      callbacks,
       path <> ".reservation_hold_contact_ids_by_import_status",
       Map.get(summary, "reservation_hold_contact_ids_by_import_status")
     )
     |> expect_type(
-      callbacks,
       path,
       summary,
       "reservation_hold_contact_ids_by_expiration_status",
       :map
     )
     |> validate_stable_id_array_map(
-      callbacks,
       path <> ".reservation_hold_contact_ids_by_expiration_status",
       Map.get(summary, "reservation_hold_contact_ids_by_expiration_status")
     )
     |> expect_optional_type(
-      callbacks,
       path,
       summary,
       "reservation_hold_contact_ids_by_direction",
       :map
     )
     |> validate_stable_id_array_map(
-      callbacks,
       path <> ".reservation_hold_contact_ids_by_direction",
       Map.get(summary, "reservation_hold_contact_ids_by_direction")
     )
     |> expect_optional_type(
-      callbacks,
       path,
       summary,
       "reservation_hold_contact_ids_by_direction_and_ground_station_id",
       :map
     )
     |> validate_nested_stable_id_array_map(
-      callbacks,
       path <> ".reservation_hold_contact_ids_by_direction_and_ground_station_id",
       Map.get(summary, "reservation_hold_contact_ids_by_direction_and_ground_station_id")
     )
-    |> expect_type(callbacks, path, summary, "review_contact_ids", :list)
+    |> expect_type(path, summary, "review_contact_ids", :list)
     |> validate_stable_id_list(
-      callbacks,
       path <> ".review_contact_ids",
       Map.get(summary, "review_contact_ids")
     )
-    |> expect_type(callbacks, path, summary, "import_readiness_rows", :list)
+    |> expect_type(path, summary, "import_readiness_rows", :list)
     |> validate_rows(
-      callbacks,
       path <> ".import_readiness_rows",
       Map.get(summary, "import_readiness_rows", []),
-      hold_import_readiness_row_validator(callbacks)
+      &validate_hold_import_readiness_row/3
     )
-    |> expect_type(callbacks, path, summary, "assumptions", :map)
-    |> validate_hold_import_readiness_counts(callbacks, path, summary)
+    |> expect_type(path, summary, "assumptions", :map)
+    |> validate_hold_import_readiness_counts(path, summary)
   end
 
-  defp validate_hold_import_readiness_row(issues, path, row, callbacks) do
+  defp validate_hold_import_readiness_row(issues, path, row) do
     issues
-    |> expect_one_of(callbacks, path, row, "reservation_review_row_type", [
+    |> expect_one_of(path, row, "reservation_review_row_type", [
       "affected_contact",
       "provider_calendar_contention_group"
     ])
-    |> validate_stable_ids(callbacks, path, row, [
+    |> validate_stable_ids(path, row, [
       "contact_id",
       "ground_station_id",
       "station_calendar_entry_id",
       "station_calendar_provider_id",
       "station_calendar_provider_entry_id"
     ])
-    |> expect_optional_type(callbacks, path, row, "station_contention_status", :binary)
-    |> expect_optional_type(callbacks, path, row, "provider_calendar_contention_status", :binary)
-    |> expect_optional_type(callbacks, path, row, "station_reservation_match_status", :binary)
-    |> expect_type(callbacks, path, row, "reservation_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, row, "reservation_ids")
-    |> expect_type(callbacks, path, row, "reservation_statuses", :list)
-    |> validate_string_list_items(callbacks, path, row, "reservation_statuses")
-    |> expect_optional_type(callbacks, path, row, "reserved_by", :list)
-    |> validate_string_list_items(callbacks, path, row, "reserved_by")
-    |> expect_optional_type(callbacks, path, row, "reservation_expires_at_s", :list)
-    |> validate_number_list_items(callbacks, path, row, "reservation_expires_at_s")
-    |> expect_optional_one_of(callbacks, path, row, "station_reservation_expiration_status", [
+    |> expect_optional_type(path, row, "station_contention_status", :binary)
+    |> expect_optional_type(path, row, "provider_calendar_contention_status", :binary)
+    |> expect_optional_type(path, row, "station_reservation_match_status", :binary)
+    |> expect_type(path, row, "reservation_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "reservation_ids")
+    |> expect_type(path, row, "reservation_statuses", :list)
+    |> validate_string_list_items(path, row, "reservation_statuses")
+    |> expect_optional_type(path, row, "reserved_by", :list)
+    |> validate_string_list_items(path, row, "reserved_by")
+    |> expect_optional_type(path, row, "reservation_expires_at_s", :list)
+    |> validate_number_list_items(path, row, "reservation_expires_at_s")
+    |> expect_optional_one_of(path, row, "station_reservation_expiration_status", [
       "missing",
       "expired",
       "active",
       "declared"
     ])
     |> expect_equal(
-      callbacks,
       path,
       row,
       "station_reservation_hold_import_status",
       "review_required_before_import"
     )
-    |> expect_type(callbacks, path, row, "required_operator_action", :binary)
+    |> expect_type(path, row, "required_operator_action", :binary)
   end
 
-  defp validate_hold_import_readiness_counts(issues, callbacks, path, summary) do
+  defp validate_hold_import_readiness_counts(issues, path, summary) do
     rows =
       summary
       |> Map.get("import_readiness_rows", [])
@@ -751,24 +703,21 @@ defmodule OrbitalDynamics.Schema.StationReservationSummaryContracts do
       )
 
     issues
-    |> expect_field_equals(callbacks, path, summary, "reservation_hold_count", length(rows))
+    |> expect_field_equals(path, summary, "reservation_hold_count", length(rows))
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "import_readiness_status",
       if(rows == [], do: "clear", else: "review_required")
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "import_classification",
       if(rows == [], do: "not_applicable", else: "review_only")
     )
-    |> expect_field_equals(callbacks, path, summary, "ready_for_import_count", 0)
+    |> expect_field_equals(path, summary, "ready_for_import_count", 0)
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "review_required_before_import_count",
@@ -776,7 +725,6 @@ defmodule OrbitalDynamics.Schema.StationReservationSummaryContracts do
       "must equal row-derived review_required_before_import_count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "no_import_required_count",
@@ -784,296 +732,138 @@ defmodule OrbitalDynamics.Schema.StationReservationSummaryContracts do
       "must equal row-derived no_import_required_count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "reservation_hold_import_status_counts",
-      frequency_map(callbacks, rows, "station_reservation_hold_import_status"),
+      frequency_map(rows, "station_reservation_hold_import_status"),
       "must equal row-derived reservation_hold_import_status_counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "reservation_hold_status_counts",
-      summary_ids_by_row_values(callbacks, rows, "reservation_statuses")
-      |> id_array_count_map(callbacks),
+      summary_ids_by_row_values(rows, "reservation_statuses")
+      |> id_array_count_map(),
       "must equal row-derived reservation_hold_status_counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "reservation_hold_expiration_status_counts",
-      frequency_map(callbacks, rows, "station_reservation_expiration_status"),
+      frequency_map(rows, "station_reservation_expiration_status"),
       "must equal row-derived reservation_hold_expiration_status_counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "required_import_action_counts",
-      frequency_map(callbacks, rows, "required_operator_action"),
+      frequency_map(rows, "required_operator_action"),
       "must equal row-derived required_import_action_counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "reservation_hold_ids",
-      summary_ids(callbacks, rows),
+      summary_ids(rows),
       "must equal row-derived reservation_hold_ids"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "reservation_hold_ids_by_import_status",
-      summary_ids_by(callbacks, rows, "station_reservation_hold_import_status"),
+      summary_ids_by(rows, "station_reservation_hold_import_status"),
       "must equal row-derived reservation_hold_ids_by_import_status"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "reservation_hold_ids_by_expiration_status",
-      summary_ids_by(callbacks, rows, "station_reservation_expiration_status"),
+      summary_ids_by(rows, "station_reservation_expiration_status"),
       "must equal row-derived reservation_hold_ids_by_expiration_status"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "reservation_hold_ids_by_status",
-      summary_ids_by_row_values(callbacks, rows, "reservation_statuses"),
+      summary_ids_by_row_values(rows, "reservation_statuses"),
       "must equal row-derived reservation_hold_ids_by_status"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "reservation_hold_ids_by_reserved_by",
-      summary_ids_by_row_values(callbacks, rows, "reserved_by"),
+      summary_ids_by_row_values(rows, "reserved_by"),
       "must equal row-derived reservation_hold_ids_by_reserved_by"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "reservation_hold_ids_by_required_import_action",
-      summary_ids_by(callbacks, rows, "required_operator_action"),
+      summary_ids_by(rows, "required_operator_action"),
       "must equal row-derived reservation_hold_ids_by_required_import_action"
     )
     |> expect_optional_field_equals(
-      callbacks,
       path,
       summary,
       "reservation_hold_ids_by_direction",
-      summary_ids_by_direction(callbacks, rows),
+      summary_ids_by_direction(rows),
       "must equal row-derived reservation_hold_ids_by_direction"
     )
     |> expect_optional_field_equals(
-      callbacks,
       path,
       summary,
       "reservation_hold_ids_by_direction_and_ground_station_id",
-      summary_ids_by_direction_and_ground_station(callbacks, rows),
+      summary_ids_by_direction_and_ground_station(rows),
       "must equal row-derived reservation_hold_ids_by_direction_and_ground_station_id"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "reservation_hold_contact_ids_by_import_status",
-      summary_contact_ids_by(callbacks, rows, "station_reservation_hold_import_status"),
+      summary_contact_ids_by(rows, "station_reservation_hold_import_status"),
       "must equal row-derived reservation_hold_contact_ids_by_import_status"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "reservation_hold_contact_ids_by_expiration_status",
-      summary_contact_ids_by(callbacks, rows, "station_reservation_expiration_status"),
+      summary_contact_ids_by(rows, "station_reservation_expiration_status"),
       "must equal row-derived reservation_hold_contact_ids_by_expiration_status"
     )
     |> expect_optional_field_equals(
-      callbacks,
       path,
       summary,
       "reservation_hold_contact_ids_by_direction",
-      row_ids_by_direction(callbacks, rows, "contact_id"),
+      row_ids_by_direction(rows, "contact_id"),
       "must equal row-derived reservation_hold_contact_ids_by_direction"
     )
     |> expect_optional_field_equals(
-      callbacks,
       path,
       summary,
       "reservation_hold_contact_ids_by_direction_and_ground_station_id",
-      row_ids_by_direction_and_ground_station(callbacks, rows, "contact_id"),
+      row_ids_by_direction_and_ground_station(rows, "contact_id"),
       "must equal row-derived reservation_hold_contact_ids_by_direction_and_ground_station_id"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "review_contact_ids",
-      summary_contact_ids(callbacks, rows),
+      summary_contact_ids(rows),
       "must equal row-derived review_contact_ids"
     )
   end
 
-  defp require_callback(callbacks, name), do: Keyword.fetch!(callbacks, name)
-
-  defp row_validator(callbacks),
-    do: fn issues, path, row -> validate_review_row(issues, path, row, callbacks) end
-
-  defp hold_row_validator(callbacks),
-    do: fn issues, path, row -> validate_hold_row(issues, path, row, callbacks) end
-
-  defp hold_import_readiness_row_validator(callbacks),
-    do: fn issues, path, row ->
-      validate_hold_import_readiness_row(issues, path, row, callbacks)
-    end
-
-  defp error(callbacks, path, message),
-    do: apply(require_callback(callbacks, :error), [path, message])
-
-  defp station_calendar_report_model_limits(callbacks),
-    do: apply(require_callback(callbacks, :station_calendar_report_model_limits), [])
-
-  defp expect_equal(issues, callbacks, path, map, field, expected),
-    do: apply(require_callback(callbacks, :expect_equal), [issues, path, map, field, expected])
-
-  defp expect_one_of(issues, callbacks, path, map, field, allowed),
-    do: apply(require_callback(callbacks, :expect_one_of), [issues, path, map, field, allowed])
-
-  defp expect_optional_one_of(issues, callbacks, path, map, field, allowed),
-    do:
-      apply(require_callback(callbacks, :expect_optional_one_of), [
-        issues,
-        path,
-        map,
-        field,
-        allowed
-      ])
-
-  defp expect_type(issues, callbacks, path, map, field, type),
-    do: apply(require_callback(callbacks, :expect_type), [issues, path, map, field, type])
-
-  defp expect_optional_type(issues, callbacks, path, map, field, type),
-    do:
-      apply(require_callback(callbacks, :expect_optional_type), [issues, path, map, field, type])
-
-  defp expect_non_negative_integer(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :expect_non_negative_integer), [issues, path, map, field])
-
-  defp expect_optional_number(issues, callbacks, path, map, field),
-    do: apply(require_callback(callbacks, :expect_optional_number), [issues, path, map, field])
-
-  defp expect_field_equals(issues, callbacks, path, map, field, expected),
-    do:
-      apply(require_callback(callbacks, :expect_field_equals), [
-        issues,
-        path,
-        map,
-        field,
-        expected
-      ])
-
-  defp expect_field_equals(issues, callbacks, path, map, field, expected, message),
-    do:
-      apply(require_callback(callbacks, :expect_field_equals_with_message), [
-        issues,
-        path,
-        map,
-        field,
-        expected,
-        message
-      ])
-
-  defp expect_optional_field_equals(issues, callbacks, path, map, field, expected, message),
-    do:
-      apply(require_callback(callbacks, :expect_optional_field_equals), [
-        issues,
-        path,
-        map,
-        field,
-        expected,
-        message
-      ])
-
-  defp validate_stable_ids(issues, callbacks, path, map, fields),
-    do: apply(require_callback(callbacks, :validate_stable_ids), [issues, path, map, fields])
-
-  defp validate_stable_id_list(issues, callbacks, path, values),
-    do: apply(require_callback(callbacks, :validate_stable_id_list), [issues, path, values])
-
-  defp validate_optional_stable_id_list(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :validate_optional_stable_id_list), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp validate_stable_id_array_map(issues, callbacks, path, values),
-    do: apply(require_callback(callbacks, :validate_stable_id_array_map), [issues, path, values])
-
-  defp validate_nested_stable_id_array_map(issues, callbacks, path, values),
-    do:
-      apply(require_callback(callbacks, :validate_nested_stable_id_array_map), [
-        issues,
-        path,
-        values
-      ])
-
-  defp validate_non_negative_integer_count_map(issues, callbacks, path, values),
-    do:
-      apply(require_callback(callbacks, :validate_non_negative_integer_count_map), [
-        issues,
-        path,
-        values
-      ])
-
-  defp validate_rows(issues, callbacks, path, rows, validator),
-    do: apply(require_callback(callbacks, :validate_rows), [issues, path, rows, validator])
-
-  defp validate_string_list_items(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :validate_string_list_items), [issues, path, map, field])
-
-  defp validate_number_list_items(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :validate_number_list_items), [issues, path, map, field])
-
-  defp validate_optional_exact_model_limits(issues, callbacks, path, map, expected, message),
-    do:
-      apply(require_callback(callbacks, :validate_optional_exact_model_limits), [
-        issues,
-        path,
-        map,
-        expected,
-        message
-      ])
-
-  defp frequency_map(callbacks, rows, field),
-    do: apply(require_callback(callbacks, :frequency_map), [rows, field])
-
-  defp id_array_count_map(id_arrays, callbacks),
-    do: apply(require_callback(callbacks, :id_array_count_map), [id_arrays])
-
-  defp list_or_empty(_callbacks, values), do: list_or_empty(values)
-
   defp list_or_empty(values) when is_list(values), do: values
   defp list_or_empty(_values), do: []
 
-  defp summary_expiration_count(_callbacks, rows) do
+  defp expect_field_equals(issues, path, map, field, expected),
+    do: expect_field_equals(issues, path, map, field, expected, "must equal #{expected}")
+
+  defp summary_expiration_count(rows) do
     Enum.count(rows, &(list_or_empty(Map.get(&1, "reservation_expires_at_s")) != []))
   end
 
-  defp summary_earliest_expiration(_callbacks, rows) do
+  defp summary_earliest_expiration(rows) do
     rows
     |> Enum.flat_map(&list_or_empty(Map.get(&1, "reservation_expires_at_s")))
     |> Enum.filter(&is_number/1)
@@ -1083,18 +873,18 @@ defmodule OrbitalDynamics.Schema.StationReservationSummaryContracts do
     end
   end
 
-  defp summary_status_count(_callbacks, rows, status) do
+  defp summary_status_count(rows, status) do
     Enum.count(rows, &(&1["station_reservation_expiration_status"] == status))
   end
 
-  defp summary_ids(_callbacks, rows) do
+  defp summary_ids(rows) do
     rows
     |> Enum.flat_map(&list_or_empty(Map.get(&1, "reservation_ids")))
     |> Enum.uniq()
     |> Enum.sort()
   end
 
-  defp summary_ids_by(_callbacks, rows, field) do
+  defp summary_ids_by(rows, field) do
     rows
     |> Enum.flat_map(fn row ->
       reservation_id_value_pairs(Map.get(row, "reservation_ids"), List.wrap(Map.get(row, field)))
@@ -1102,7 +892,7 @@ defmodule OrbitalDynamics.Schema.StationReservationSummaryContracts do
     |> reservation_id_pairs_to_map()
   end
 
-  defp summary_ids_by_row_values(_callbacks, rows, field) do
+  defp summary_ids_by_row_values(rows, field) do
     rows
     |> Enum.flat_map(fn row ->
       reservation_id_value_pairs(Map.get(row, "reservation_ids"), Map.get(row, field))
@@ -1110,7 +900,7 @@ defmodule OrbitalDynamics.Schema.StationReservationSummaryContracts do
     |> reservation_id_pairs_to_map()
   end
 
-  defp summary_ids_by_direction(_callbacks, rows) do
+  defp summary_ids_by_direction(rows) do
     rows
     |> Enum.flat_map(fn row ->
       reservation_id_value_pairs(
@@ -1121,7 +911,7 @@ defmodule OrbitalDynamics.Schema.StationReservationSummaryContracts do
     |> reservation_id_pairs_to_map()
   end
 
-  defp summary_ids_by_direction_and_ground_station(_callbacks, rows) do
+  defp summary_ids_by_direction_and_ground_station(rows) do
     rows
     |> Enum.reduce(%{}, fn row, acc ->
       put_nested_stable_ids(
@@ -1133,7 +923,7 @@ defmodule OrbitalDynamics.Schema.StationReservationSummaryContracts do
     end)
   end
 
-  defp summary_contact_ids(_callbacks, rows) do
+  defp summary_contact_ids(rows) do
     rows
     |> Enum.map(&Map.get(&1, "contact_id"))
     |> Enum.reject(&is_nil/1)
@@ -1141,7 +931,7 @@ defmodule OrbitalDynamics.Schema.StationReservationSummaryContracts do
     |> Enum.sort()
   end
 
-  defp summary_contact_ids_by(_callbacks, rows, field) do
+  defp summary_contact_ids_by(rows, field) do
     rows
     |> Enum.flat_map(fn row ->
       reservation_id_value_pairs(
@@ -1214,7 +1004,7 @@ defmodule OrbitalDynamics.Schema.StationReservationSummaryContracts do
     end)
   end
 
-  defp row_ids_by_direction(_callbacks, rows, id_field) do
+  defp row_ids_by_direction(rows, id_field) do
     rows
     |> Enum.filter(&is_map/1)
     |> Enum.reduce(%{}, fn row, acc ->
@@ -1230,7 +1020,7 @@ defmodule OrbitalDynamics.Schema.StationReservationSummaryContracts do
     |> Map.new(fn {direction, ids} -> {direction, ids |> Enum.uniq() |> Enum.sort()} end)
   end
 
-  defp row_ids_by_direction_and_ground_station(_callbacks, rows, id_field) do
+  defp row_ids_by_direction_and_ground_station(rows, id_field) do
     rows
     |> Enum.filter(&is_map/1)
     |> Enum.reduce(%{}, fn row, acc ->
