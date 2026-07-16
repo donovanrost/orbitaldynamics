@@ -6,41 +6,44 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Recent callback-cleanup default-message compatibility audit.
+Station-reservation-summary callback ownership cleanup.
 
 Status:
 Complete and published.
 
 Result:
-- Audited 24 no-message equality call sites across command-window,
-  station-calendar-precedence, timeline-lifecycle-summary, and validation
-  acceptance contracts.
-- Restored the former schema facade default message locally in all four family
-  modules without changing their direct arity-6 owner dependency.
-- Added a focused four-family regression module that asserts exact public
-  validation paths and messages.
-- Published implementation commit `31ff8557`.
+- Removed the shared 24-function callback bag, callback arguments, and adapter
+  wrappers from review, hold, and hold-import-readiness validation.
+- All three schema delegates now pass station-calendar model limits explicitly;
+  nested rows and local aggregation helpers use their direct owners.
+- Preserved schema facade behavior and added exact default-message coverage for
+  all three summary contracts.
+- Reduced `schema.ex` from 13,110 to 13,081 lines and station-reservation summary
+  contracts from 1,256 to 1,046 lines.
+- Published implementation commit `a343bf6c`.
 
 Tests run:
 - `mix compile --warnings-as-errors` passed.
-- New exact-message regressions plus existing command-window, precedence,
-  lifecycle-summary, validation-acceptance, deterministic-bundle, and checked-in
-  export coverage: 11 passed, 193 excluded.
+- Parent-focused runtime, provider fixture, curated validation, exact-message,
+  export-task, deterministic-bundle, and checked-in export coverage: 16 passed,
+  227 excluded.
+- The read-only reviewer ran a broader 55-test focused set successfully and
+  found no issues.
 - Full schema export left `schemas/` unchanged; the SHA-256 over
   `{Schema.contracts(), Schema.json_schema_bundle()}` remained
   `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`.
-- Formatting, new-file no-index, bounded diff review, and `git diff --check`
-  passed.
-- The read-only slice reviewer found no remaining issues.
+- Xref, formatting, callback-residue checks, bounded diff review, and
+  `git diff --check` passed.
 
 Verification gaps:
-- Full suite not run; focused four-family/export coverage was used for this
-  compatibility correction.
+- Full suite not run; focused three-family/export coverage was used for this
+  behavior-preserving boundary cleanup.
 
 Next candidate:
-- Station-reservation-summary callback ownership cleanup. Three schema facade
-  delegates share one 24-function bag with a 1,256-line family module; its
-  primitive, collection, stable-ID, aggregation, and error owners are direct.
+- Branch-event callback ownership cleanup. Three schema callers share a
+  20-function bag with a 708-line module; direct candidate-diff and primitive
+  owners are available, and this unlocks the 1,077-line station-calendar report
+  cleanup that currently depends on branch-event count validation.
 
 Blocked:
 No.
