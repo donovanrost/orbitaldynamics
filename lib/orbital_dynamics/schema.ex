@@ -6609,7 +6609,8 @@ defmodule OrbitalDynamics.Schema do
     |> OrbitalDynamics.Schema.OperationalTimelineReportContracts.validate(
       "$",
       artifact,
-      operational_timeline_report_contract_callbacks()
+      timeline_report_model_limits(),
+      &validate_operational_timeline_row/3
     )
   end
 
@@ -7779,26 +7780,6 @@ defmodule OrbitalDynamics.Schema do
       validate_suppressed_candidate: &validate_suppressed_candidate/3,
       validate_filter_report_counts: &validate_filter_report_counts/4,
       expect_optional_field_equals: &expect_optional_field_equals/6
-    ]
-  end
-
-  defp operational_timeline_report_contract_callbacks do
-    [
-      timeline_report_model_limits: &timeline_report_model_limits/0,
-      frequency_map: &frequency_map/2,
-      sum_row_numbers: &sum_row_numbers/2,
-      expect_equal: &expect_equal/5,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_non_negative_integer: &expect_non_negative_integer/4,
-      expect_optional_non_negative_integer: &expect_optional_non_negative_integer/4,
-      expect_field_equals: &expect_field_equals/5,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      validate_optional_exact_model_limits: &validate_optional_exact_model_limits/5,
-      validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
-      validate_rows: &validate_rows/4,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_operational_timeline_row: &validate_operational_timeline_row/3
     ]
   end
 
@@ -10607,10 +10588,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp row_count_difference(report, field, subtract) do
     OrbitalDynamics.Schema.CollectionAggregation.row_count_difference(report, field, subtract)
-  end
-
-  defp sum_row_numbers(rows, field) do
-    OrbitalDynamics.Schema.CollectionAggregation.sum_row_numbers(rows, field)
   end
 
   defp row_ids_by_field(rows, group_field, id_field) do

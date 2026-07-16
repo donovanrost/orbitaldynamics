@@ -9,7 +9,7 @@ Current slice:
 Operational-timeline-report callback-bag collapse.
 
 Status:
-Selected; implementation pending.
+Completed; ready to publish.
 
 Selected slice:
 Replace the 15-entry callback bag in `OperationalTimelineReportContracts` with
@@ -58,15 +58,15 @@ Verification gaps:
 - Full repository suite not run.
 
 Last completed slice:
-Contact-contention-resolution-summary callback collapse published as
-`79e3e39a`:
-`schema.ex` fell from 12,357 to 12,307 lines and its owner from 509 to 421. The
-18-entry bag became direct shared owners, explicit model-limit data, and one
-policy-validator boundary; four newly dead facade wrappers were removed. 62
-focused, 761 broader, and 22 export tests passed; compile, xref, format, diff
-hygiene, and checked-in schema regeneration were clean. Bounded review found no
-issues; malformed-input ordering was reviewed structurally rather than through
-exhaustive differential generation.
+Operational-timeline-report callback collapse ready to publish: `schema.ex`
+fell from 12,307 to 12,284 lines and its owner from 471 to 382. The 15-entry bag
+became direct shared owners, explicit timeline model-limit data, one row-validator
+boundary, and a local exact copy of the facade's default equality-message
+behavior; the newly dead facade sum wrapper was removed. 21 focused, 919
+broader, and 22 export tests passed; compile, xref, format, diff hygiene, and
+checked-in schema regeneration were clean. Bounded review found no issues;
+malformed-input ordering was reviewed structurally rather than through exhaustive
+differential generation.
 
 Blocked:
 No.
