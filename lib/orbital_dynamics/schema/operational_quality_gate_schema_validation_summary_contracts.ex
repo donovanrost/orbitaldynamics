@@ -1,111 +1,120 @@
 defmodule OrbitalDynamics.Schema.OperationalQualityGateSchemaValidationSummaryContracts do
   @moduledoc false
 
-  def validate_summary(issues, path, summary, callbacks) when is_list(callbacks) do
+  alias OrbitalDynamics.Schema.CollectionAggregation
+
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [
+      error: 2,
+      expect_equal: 5,
+      expect_field_equals: 6,
+      expect_non_negative_integer: 4,
+      expect_type: 5,
+      validate_non_negative_integer_count_map: 3,
+      validate_optional_exact_model_limits: 5,
+      validate_string_list_items: 4
+    ]
+
+  import OrbitalDynamics.Schema.StableIdValidation,
+    only: [
+      validate_stable_id_array_map: 3,
+      validate_stable_id_list: 3,
+      validate_stable_ids: 4
+    ]
+
+  def validate_summary(issues, path, summary, model_limits) when is_list(model_limits) do
     status_counts = Map.get(summary, "schema_validation_status_counts")
     quality_gate_row_ids_by_status = Map.get(summary, "quality_gate_row_ids_by_status")
     quality_gate_ids_by_status = Map.get(summary, "quality_gate_ids_by_status")
 
     issues
     |> expect_equal(
-      callbacks,
       path,
       summary,
       "schema_contract",
       "operational_quality_gate_schema_validation_summary.v1"
     )
     |> expect_equal(
-      callbacks,
       path,
       summary,
       "model",
       "artifact_only_quality_gate_schema_validation_summary"
     )
-    |> expect_equal(callbacks, path, summary, "source", "quality_gate_report.v1")
-    |> expect_type(callbacks, path, summary, "source_artifact_type", :binary)
-    |> validate_stable_ids(callbacks, path, summary, [
+    |> expect_equal(path, summary, "source", "quality_gate_report.v1")
+    |> expect_type(path, summary, "source_artifact_type", :binary)
+    |> validate_stable_ids(path, summary, [
       "source_artifact_id",
       "source_quality_gate_report_id",
       "source_readiness_report_id"
     ])
-    |> expect_non_negative_integer(callbacks, path, summary, "schema_validation_row_count")
-    |> expect_non_negative_integer(callbacks, path, summary, "schema_validation_pass_count")
-    |> expect_non_negative_integer(callbacks, path, summary, "schema_validation_fail_count")
-    |> expect_non_negative_integer(callbacks, path, summary, "schema_validation_error_count")
-    |> expect_non_negative_integer(callbacks, path, summary, "schema_validation_warning_count")
+    |> expect_non_negative_integer(path, summary, "schema_validation_row_count")
+    |> expect_non_negative_integer(path, summary, "schema_validation_pass_count")
+    |> expect_non_negative_integer(path, summary, "schema_validation_fail_count")
+    |> expect_non_negative_integer(path, summary, "schema_validation_error_count")
+    |> expect_non_negative_integer(path, summary, "schema_validation_warning_count")
     |> expect_non_negative_integer(
-      callbacks,
       path,
       summary,
       "schema_validation_remediation_count"
     )
-    |> expect_type(callbacks, path, summary, "schema_validation_status_counts", :map)
+    |> expect_type(path, summary, "schema_validation_status_counts", :map)
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".schema_validation_status_counts",
       status_counts
     )
-    |> expect_type(callbacks, path, summary, "schema_validation_status_ids", :list)
-    |> validate_string_list_items(callbacks, path, summary, "schema_validation_status_ids")
-    |> expect_type(callbacks, path, summary, "schema_validation_import_blocked", :boolean)
-    |> expect_type(callbacks, path, summary, "quality_gate_row_ids_by_status", :map)
+    |> expect_type(path, summary, "schema_validation_status_ids", :list)
+    |> validate_string_list_items(path, summary, "schema_validation_status_ids")
+    |> expect_type(path, summary, "schema_validation_import_blocked", :boolean)
+    |> expect_type(path, summary, "quality_gate_row_ids_by_status", :map)
     |> validate_stable_id_array_map(
-      callbacks,
       path <> ".quality_gate_row_ids_by_status",
       quality_gate_row_ids_by_status
     )
-    |> expect_type(callbacks, path, summary, "quality_gate_ids_by_status", :map)
+    |> expect_type(path, summary, "quality_gate_ids_by_status", :map)
     |> validate_stable_id_array_map(
-      callbacks,
       path <> ".quality_gate_ids_by_status",
       quality_gate_ids_by_status
     )
-    |> expect_type(callbacks, path, summary, "blocked_quality_gate_row_ids", :list)
+    |> expect_type(path, summary, "blocked_quality_gate_row_ids", :list)
     |> validate_stable_id_list(
-      callbacks,
       path <> ".blocked_quality_gate_row_ids",
       Map.get(summary, "blocked_quality_gate_row_ids")
     )
-    |> expect_type(callbacks, path, summary, "review_required_quality_gate_row_ids", :list)
+    |> expect_type(path, summary, "review_required_quality_gate_row_ids", :list)
     |> validate_stable_id_list(
-      callbacks,
       path <> ".review_required_quality_gate_row_ids",
       Map.get(summary, "review_required_quality_gate_row_ids")
     )
     |> expect_type(
-      callbacks,
       path,
       summary,
       "failed_schema_validation_quality_gate_row_ids",
       :list
     )
     |> validate_stable_id_list(
-      callbacks,
       path <> ".failed_schema_validation_quality_gate_row_ids",
       Map.get(summary, "failed_schema_validation_quality_gate_row_ids")
     )
-    |> expect_type(callbacks, path, summary, "schema_validation_gate_ids", :list)
+    |> expect_type(path, summary, "schema_validation_gate_ids", :list)
     |> validate_stable_id_list(
-      callbacks,
       path <> ".schema_validation_gate_ids",
       Map.get(summary, "schema_validation_gate_ids")
     )
-    |> expect_type(callbacks, path, summary, "assumptions", :map)
-    |> expect_type(callbacks, path, summary, "model_limits", :list)
-    |> validate_string_list_items(callbacks, path, summary, "model_limits")
+    |> expect_type(path, summary, "assumptions", :map)
+    |> expect_type(path, summary, "model_limits", :list)
+    |> validate_string_list_items(path, summary, "model_limits")
     |> validate_optional_exact_model_limits(
-      callbacks,
       path,
       summary,
-      quality_gate_schema_validation_summary_model_limits(callbacks),
+      model_limits,
       "must match quality gate schema-validation summary model limits"
     )
-    |> validate_assumptions(callbacks, path, summary)
-    |> validate_counts(callbacks, path, summary)
-    |> validate_id_sets(callbacks, path, summary)
+    |> validate_assumptions(path, summary)
+    |> validate_counts(path, summary)
+    |> validate_id_sets(path, summary)
   end
 
-  defp validate_assumptions(issues, callbacks, path, summary) do
+  defp validate_assumptions(issues, path, summary) do
     case Map.get(summary, "assumptions") do
       %{} = assumptions ->
         [
@@ -116,7 +125,7 @@ defmodule OrbitalDynamics.Schema.OperationalQualityGateSchemaValidationSummaryCo
           {"command_execution", "not_performed_by_summary"}
         ]
         |> Enum.reduce(issues, fn {field, expected}, acc ->
-          expect_equal(acc, callbacks, path <> ".assumptions", assumptions, field, expected)
+          expect_equal(acc, path <> ".assumptions", assumptions, field, expected)
         end)
 
       _assumptions ->
@@ -124,47 +133,41 @@ defmodule OrbitalDynamics.Schema.OperationalQualityGateSchemaValidationSummaryCo
     end
   end
 
-  defp validate_counts(issues, callbacks, path, summary) do
+  defp validate_counts(issues, path, summary) do
     status_counts = Map.get(summary, "schema_validation_status_counts")
 
     issues
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "schema_validation_row_count",
-      stable_id_array_map_value_count(
-        callbacks,
+      CollectionAggregation.stable_id_array_map_value_count(
         Map.get(summary, "quality_gate_row_ids_by_status")
       ),
       "must equal quality-gate row IDs by status count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "schema_validation_pass_count",
-      non_negative_integer_map_value(callbacks, status_counts, "pass"),
+      CollectionAggregation.non_negative_integer_map_value(status_counts, "pass"),
       "must equal schema_validation_status_counts pass count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "schema_validation_fail_count",
-      non_negative_integer_map_value(callbacks, status_counts, "fail"),
+      CollectionAggregation.non_negative_integer_map_value(status_counts, "fail"),
       "must equal schema_validation_status_counts fail count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "schema_validation_status_ids",
-      positive_count_map_keys(callbacks, status_counts),
+      CollectionAggregation.positive_count_map_keys(status_counts),
       "must equal schema_validation_status_counts keys with positive counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "schema_validation_import_blocked",
@@ -173,12 +176,11 @@ defmodule OrbitalDynamics.Schema.OperationalQualityGateSchemaValidationSummaryCo
     )
   end
 
-  defp validate_id_sets(issues, callbacks, path, summary) do
+  defp validate_id_sets(issues, path, summary) do
     quality_gate_row_ids_by_status = Map.get(summary, "quality_gate_row_ids_by_status")
 
     issues
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "blocked_quality_gate_row_ids",
@@ -188,7 +190,6 @@ defmodule OrbitalDynamics.Schema.OperationalQualityGateSchemaValidationSummaryCo
       "must equal blocked quality-gate row IDs by status"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "review_required_quality_gate_row_ids",
@@ -198,21 +199,24 @@ defmodule OrbitalDynamics.Schema.OperationalQualityGateSchemaValidationSummaryCo
       "must equal review-required quality-gate row IDs by status"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "schema_validation_gate_ids",
-      stable_id_array_map_ids(callbacks, Map.get(summary, "quality_gate_ids_by_status")),
+      CollectionAggregation.stable_id_array_map_ids(
+        Map.get(summary, "quality_gate_ids_by_status")
+      ),
       "must equal quality-gate IDs by status"
     )
-    |> validate_failed_row_ids(callbacks, path, summary)
+    |> validate_failed_row_ids(path, summary)
   end
 
-  defp validate_failed_row_ids(issues, callbacks, path, summary) do
+  defp validate_failed_row_ids(issues, path, summary) do
     failed_ids = Map.get(summary, "failed_schema_validation_quality_gate_row_ids")
 
     row_ids =
-      stable_id_array_map_ids(callbacks, Map.get(summary, "quality_gate_row_ids_by_status"))
+      CollectionAggregation.stable_id_array_map_ids(
+        Map.get(summary, "quality_gate_row_ids_by_status")
+      )
 
     cond do
       not is_list(failed_ids) or not is_list(row_ids) ->
@@ -221,7 +225,6 @@ defmodule OrbitalDynamics.Schema.OperationalQualityGateSchemaValidationSummaryCo
       not subset?(failed_ids, row_ids) ->
         [
           error(
-            callbacks,
             path <> ".failed_schema_validation_quality_gate_row_ids",
             "must be present in quality-gate row IDs by status"
           )
@@ -231,7 +234,6 @@ defmodule OrbitalDynamics.Schema.OperationalQualityGateSchemaValidationSummaryCo
       schema_validation_summary_blocked?(summary) and failed_ids == [] ->
         [
           error(
-            callbacks,
             path <> ".failed_schema_validation_quality_gate_row_ids",
             "must include failed schema-validation row IDs when schema validation blocks import"
           )
@@ -260,73 +262,4 @@ defmodule OrbitalDynamics.Schema.OperationalQualityGateSchemaValidationSummaryCo
     row_id_set = MapSet.new(row_ids)
     Enum.all?(ids, &MapSet.member?(row_id_set, &1))
   end
-
-  defp expect_equal(issues, callbacks, path, map, field, expected),
-    do: apply(Keyword.fetch!(callbacks, :expect_equal), [issues, path, map, field, expected])
-
-  defp expect_type(issues, callbacks, path, map, field, type),
-    do: apply(Keyword.fetch!(callbacks, :expect_type), [issues, path, map, field, type])
-
-  defp expect_non_negative_integer(issues, callbacks, path, map, field),
-    do: apply(Keyword.fetch!(callbacks, :expect_non_negative_integer), [issues, path, map, field])
-
-  defp expect_field_equals(issues, callbacks, path, map, field, expected, message) do
-    apply(Keyword.fetch!(callbacks, :expect_field_equals_with_message), [
-      issues,
-      path,
-      map,
-      field,
-      expected,
-      message
-    ])
-  end
-
-  defp validate_stable_ids(issues, callbacks, path, map, fields),
-    do: apply(Keyword.fetch!(callbacks, :validate_stable_ids), [issues, path, map, fields])
-
-  defp validate_non_negative_integer_count_map(issues, callbacks, path, counts) do
-    apply(Keyword.fetch!(callbacks, :validate_non_negative_integer_count_map), [
-      issues,
-      path,
-      counts
-    ])
-  end
-
-  defp validate_string_list_items(issues, callbacks, path, map, field),
-    do: apply(Keyword.fetch!(callbacks, :validate_string_list_items), [issues, path, map, field])
-
-  defp validate_stable_id_array_map(issues, callbacks, path, values),
-    do: apply(Keyword.fetch!(callbacks, :validate_stable_id_array_map), [issues, path, values])
-
-  defp validate_stable_id_list(issues, callbacks, path, values),
-    do: apply(Keyword.fetch!(callbacks, :validate_stable_id_list), [issues, path, values])
-
-  defp validate_optional_exact_model_limits(issues, callbacks, path, artifact, expected, message) do
-    apply(Keyword.fetch!(callbacks, :validate_optional_exact_model_limits), [
-      issues,
-      path,
-      artifact,
-      expected,
-      message
-    ])
-  end
-
-  defp quality_gate_schema_validation_summary_model_limits(callbacks) do
-    apply(Keyword.fetch!(callbacks, :quality_gate_schema_validation_summary_model_limits), [])
-  end
-
-  defp stable_id_array_map_value_count(callbacks, values),
-    do: apply(Keyword.fetch!(callbacks, :stable_id_array_map_value_count), [values])
-
-  defp stable_id_array_map_ids(callbacks, values),
-    do: apply(Keyword.fetch!(callbacks, :stable_id_array_map_ids), [values])
-
-  defp positive_count_map_keys(callbacks, values),
-    do: apply(Keyword.fetch!(callbacks, :positive_count_map_keys), [values])
-
-  defp non_negative_integer_map_value(callbacks, values, key),
-    do: apply(Keyword.fetch!(callbacks, :non_negative_integer_map_value), [values, key])
-
-  defp error(callbacks, path, message),
-    do: apply(Keyword.fetch!(callbacks, :error), [path, message])
 end

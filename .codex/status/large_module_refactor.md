@@ -9,7 +9,7 @@ Current slice:
 Operational-quality-gate-schema-validation-summary callback-bag collapse.
 
 Status:
-Selected; implementation pending.
+Completed and ready to publish.
 
 Selected slice:
 Replace the 16-entry callback bag in
@@ -48,6 +48,22 @@ No schema-validation-summary callback bag or shared-helper trampolines remain;
 direct shared owners, explicit model data, and cohesive local rules preserve
 exact validation and error order/messages; focused/broader/export checks pass;
 and bounded review finds no blocker.
+
+Completed result:
+Removed the 16-entry schema-validation-summary callback bag and all owner
+trampolines. Primitive, stable-ID, and collection aggregation behavior now
+calls exact owners directly; model limits are explicit data; blocked/subset
+rules and errors remain cohesive and unchanged. `schema.ex` fell from 12,110
+to 12,088 lines and the owner from 332 to 265.
+
+Verification:
+- compile with warnings as errors passed
+- 53 focused readiness/schema/quality-gate replay/review tests passed
+- 1,051 broader candidate-refresh/operator-review tests passed
+- 22 schema-export tests passed
+- compile-connected xref, format, diff hygiene, and checked-in schema
+  regeneration were clean
+- bounded read-only review found no issues
 
 Verification gaps:
 - Full repository suite not run.
