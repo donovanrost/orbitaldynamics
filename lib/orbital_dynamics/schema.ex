@@ -6763,7 +6763,7 @@ defmodule OrbitalDynamics.Schema do
     |> OrbitalDynamics.Schema.CommandWindowReportContracts.validate(
       "$",
       artifact,
-      command_window_report_contract_callbacks()
+      command_window_report_model_limits()
     )
   end
 
@@ -7680,30 +7680,6 @@ defmodule OrbitalDynamics.Schema do
       provider_counteroffer_status_count: &provider_counteroffer_status_count/3,
       validate_provider_counteroffer_row: &validate_provider_counteroffer_row/3,
       frequency_map: &frequency_map/2
-    ]
-  end
-
-  defp command_window_report_contract_callbacks do
-    [
-      require_fields: &require_fields/4,
-      expect_equal: &expect_equal/5,
-      expect_one_of: &expect_one_of/5,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_number: &expect_number/4,
-      expect_non_negative_integer: &expect_non_negative_integer/4,
-      expect_field_equals: &expect_field_equals/5,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      validate_stable_ids: &validate_stable_ids/4,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_optional_stable_id_array_map: &validate_optional_stable_id_array_map/4,
-      validate_rows: &validate_rows/4,
-      validate_optional_activity_context: &validate_optional_activity_context/4,
-      validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
-      validate_interval: &validate_interval/3,
-      row_ids_by_field: &row_ids_by_field/3,
-      command_window_report_model_limits: &command_window_report_model_limits/0,
-      error: &error/2
     ]
   end
 
