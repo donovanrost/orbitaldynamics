@@ -20,8 +20,10 @@ defmodule OrbitalDynamics.Schema do
 
   import OrbitalDynamics.Schema.PrimitiveValidation,
     only: [
+      error: 2,
       expect_equal: 5,
       expect_number: 4,
+      expect_number_vector: 3,
       expect_one_of: 5,
       expect_optional_integer: 4,
       expect_optional_list: 4,
@@ -29,11 +31,15 @@ defmodule OrbitalDynamics.Schema do
       expect_optional_number: 4,
       expect_optional_number_or_number_list: 4,
       expect_optional_number_or_string: 4,
+      expect_optional_number_vector: 4,
       expect_optional_one_of: 5,
       expect_optional_probability: 4,
       expect_optional_type: 5,
       expect_probability_range: 4,
       expect_type: 5,
+      require_fields: 4,
+      require_nested: 4,
+      validate_interval: 3,
       validate_non_negative_integer_list_items: 4,
       validate_number_list_items: 4,
       validate_optional_boolean_fields: 4,
@@ -14721,48 +14727,5 @@ defmodule OrbitalDynamics.Schema do
       validate_stable_id: &validate_stable_id/3,
       error: &error/2
     ]
-  end
-
-  defp require_fields(issues, path, map, fields) when is_map(map) do
-    Enum.reduce(fields, issues, fn field, acc ->
-      if Map.has_key?(map, field), do: acc, else: [error("#{path}.#{field}", "is required") | acc]
-    end)
-  end
-
-  defp require_nested(issues, path, map, fields) when is_map(map),
-    do: require_fields(issues, path, map, fields)
-
-  defp require_nested(issues, path, _value, _fields),
-    do: [error(path, "must be an object") | issues]
-
-  defp expect_number_vector(issues, path, value) do
-    if is_list(value) and length(value) == 3 and Enum.all?(value, &is_number/1) do
-      issues
-    else
-      [error(path, "must be a three-element number array") | issues]
-    end
-  end
-
-  defp expect_optional_number_vector(issues, path, map, field) do
-    case Map.get(map, field) do
-      nil -> issues
-      :null -> issues
-      value -> expect_number_vector(issues, "#{path}.#{field}", value)
-    end
-  end
-
-  defp validate_interval(issues, path, %{"starts_at_s" => start_s, "ends_at_s" => end_s})
-       when is_number(start_s) and is_number(end_s) do
-    if end_s >= start_s do
-      issues
-    else
-      [error(path, "ends_at_s must be greater than or equal to starts_at_s") | issues]
-    end
-  end
-
-  defp validate_interval(issues, _path, _activity), do: issues
-
-  defp error(path, message) do
-    %{"severity" => "error", "path" => path, "message" => message}
   end
 end

@@ -256,13 +256,52 @@ defmodule OrbitalDynamics.Schema.PrimitiveValidation do
     end
   end
 
+  def require_fields(issues, path, map, fields) when is_map(map) do
+    Enum.reduce(fields, issues, fn field, acc ->
+      if Map.has_key?(map, field), do: acc, else: [error("#{path}.#{field}", "is required") | acc]
+    end)
+  end
+
+  def require_nested(issues, path, map, fields) when is_map(map),
+    do: require_fields(issues, path, map, fields)
+
+  def require_nested(issues, path, _value, _fields),
+    do: [error(path, "must be an object") | issues]
+
+  def expect_number_vector(issues, path, value) do
+    if is_list(value) and length(value) == 3 and Enum.all?(value, &is_number/1) do
+      issues
+    else
+      [error(path, "must be a three-element number array") | issues]
+    end
+  end
+
+  def expect_optional_number_vector(issues, path, map, field) do
+    case Map.get(map, field) do
+      nil -> issues
+      :null -> issues
+      value -> expect_number_vector(issues, "#{path}.#{field}", value)
+    end
+  end
+
+  def validate_interval(issues, path, %{"starts_at_s" => start_s, "ends_at_s" => end_s})
+      when is_number(start_s) and is_number(end_s) do
+    if end_s >= start_s do
+      issues
+    else
+      [error(path, "ends_at_s must be greater than or equal to starts_at_s") | issues]
+    end
+  end
+
+  def validate_interval(issues, _path, _activity), do: issues
+
+  def error(path, message) do
+    %{"severity" => "error", "path" => path, "message" => message}
+  end
+
   defp matches_type?(value, :map), do: is_map(value)
   defp matches_type?(value, :list), do: is_list(value)
   defp matches_type?(value, :binary), do: is_binary(value)
   defp matches_type?(value, :boolean), do: is_boolean(value)
   defp matches_type?(value, :integer), do: is_integer(value)
-
-  defp error(path, message) do
-    %{"severity" => "error", "path" => path, "message" => message}
-  end
 end
