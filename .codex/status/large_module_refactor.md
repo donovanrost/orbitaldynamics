@@ -9,7 +9,7 @@ Current slice:
 Timeline-activity-precondition validator callback cleanup.
 
 Status:
-Selected; implementation pending.
+Complete; publication pending.
 
 Selected slice:
 Remove the callback bag from `TimelineActivityPreconditionSummaryContracts` by
@@ -48,6 +48,24 @@ Definition of done:
 No callback bag or callback trampolines remain for this validator, all three
 schema call sites pass the same model-limit list, direct owners preserve exact
 behavior, focused/broader/export checks pass, and review finds no blocker.
+
+Result:
+Removed the 14-entry schema callback factory and the owner callback trampolines.
+All three schema call sites now pass the same facade-derived model-limit list as
+data. `schema.ex` fell from 12,673 to 12,654 lines, and the focused owner fell
+from 301 to 219 lines without changing the public facade or export output.
+
+Verification:
+- compile with warnings as errors passed
+- focused timeline-precondition matrix: 38 passed, 306 excluded by locations
+- broader timeline and candidate-refresh suites: 882 passed
+- schema export trio: 22 passed
+- checked-in schema export reproduced with no diff
+- schema fingerprint remained
+  `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`
+- format, diff hygiene, and scoped xref checks passed
+- bounded read-only review found no must-fix issue; eager model-limit evaluation
+  is unobservable because the helper is private, deterministic, and pure
 
 Verification gaps:
 - Full repository suite not run.

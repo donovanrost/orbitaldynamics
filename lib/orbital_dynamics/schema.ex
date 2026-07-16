@@ -6679,7 +6679,7 @@ defmodule OrbitalDynamics.Schema do
     |> OrbitalDynamics.Schema.TimelineActivityPreconditionSummaryContracts.validate(
       "$",
       artifact,
-      timeline_activity_precondition_summary_contract_callbacks()
+      timeline_report_model_limits()
     )
   end
 
@@ -7537,25 +7537,6 @@ defmodule OrbitalDynamics.Schema do
       positive_count_map_keys: &positive_count_map_keys/1,
       non_negative_integer_map_value: &non_negative_integer_map_value/2,
       error: &error/2
-    ]
-  end
-
-  defp timeline_activity_precondition_summary_contract_callbacks do
-    [
-      expect_equal: &expect_equal/5,
-      expect_one_of: &expect_one_of/5,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_optional_non_negative_integer: &expect_optional_non_negative_integer/4,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_optional_exact_model_limits: &validate_optional_exact_model_limits/5,
-      validate_stable_ids: &validate_stable_ids/4,
-      validate_optional_string_list: &validate_optional_string_list/4,
-      validate_optional_timeline_preconditions: &validate_optional_timeline_preconditions/4,
-      validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
-      validate_optional_timeline_identity: &validate_optional_timeline_identity/4,
-      timeline_report_model_limits: &timeline_report_model_limits/0
     ]
   end
 
@@ -9020,7 +9001,7 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       summary,
-      timeline_activity_precondition_summary_contract_callbacks()
+      timeline_report_model_limits()
     )
   end
 
@@ -9040,7 +9021,7 @@ defmodule OrbitalDynamics.Schema do
           acc,
           "#{path}[#{index}]",
           summary,
-          timeline_activity_precondition_summary_contract_callbacks()
+          timeline_report_model_limits()
         )
 
       {_summary, index}, acc ->
