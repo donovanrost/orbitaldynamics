@@ -8810,29 +8810,10 @@ defmodule OrbitalDynamics.Schema do
       path,
       report,
       timeline_report_model_limits(),
-      timeline_transition_application_report_contract_callbacks()
+      &validate_timeline_transition_application_report_counts/3,
+      &validate_timeline_transition_selected_activity/3,
+      &validate_timeline_transition_application_row/3
     )
-  end
-
-  defp timeline_transition_application_report_contract_callbacks do
-    [
-      expect_equal: &expect_equal/5,
-      expect_type: &expect_type/5,
-      expect_non_negative_integer: &expect_non_negative_integer/4,
-      expect_optional_non_negative_integer: &expect_optional_non_negative_integer/4,
-      expect_optional_type: &expect_optional_type/5,
-      validate_string_list_allowed: &validate_string_list_allowed/5,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_optional_exact_model_limits: &validate_optional_exact_model_limits/5,
-      validate_timeline_transition_application_report_counts:
-        &validate_timeline_transition_application_report_counts/3,
-      validate_optional_rows: &validate_optional_rows/4,
-      validate_rows: &validate_rows/4,
-      validate_timeline_transition_selected_activity:
-        &validate_timeline_transition_selected_activity/3,
-      validate_timeline_transition_application_row:
-        &validate_timeline_transition_application_row/3
-    ]
   end
 
   defp validate_timeline_transition_application_report_counts(issues, path, report) do
