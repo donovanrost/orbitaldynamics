@@ -6,38 +6,39 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Operational-import-eligibility-summary callback-bag collapse.
+Operational-readiness-gate-summary callback-bag collapse.
 
 Status:
-Completed; ready to publish.
+Selected; implementation pending.
 
 Selected slice:
-Replace the 17-entry callback bag in
-`OperationalImportEligibilitySummaryContracts` with direct primitive, stable-ID,
-collection, and readiness-classification owners, explicit model-limit data, and
-one facade-owned gate validator.
+Replace the 20-entry callback bag in
+`OperationalReadinessGateSummaryContracts` with direct primitive, stable-ID,
+collection, and readiness-classification owners, explicit model-limit data, one
+facade-owned gate validator, and exact local default equality-message behavior.
 
 Why this slice:
 Live inventory shows `schema.ex` remains the dominant production hotspot at
-12,216 lines. The 259-line import-eligibility owner has 17 callback trampolines;
-most target shared validators or readiness-classification/count owners, one is
-model-limit data, and only nested readiness-gate validation remains a facade
-boundary. Focused readiness, replay, review, and export coverage is available.
+12,194 lines. The 424-line readiness-gate-summary owner has 20 callback
+trampolines; most target shared validators or readiness-classification/count
+owners, one is model-limit data, and only nested readiness-gate validation
+remains a facade boundary. Focused readiness, replay, review, and export
+coverage is available.
 
 Public facade to preserve:
-`OrbitalDynamics.Schema.validate_artifact/2` and all import-eligibility summary
-behavior, including classification/status derivation, gate totals, non-passed
-rows, assumptions, exact messages, model limits, deterministic errors, replay
-consumers, and exports.
+`OrbitalDynamics.Schema.validate_artifact/2` and all readiness-gate summary
+behavior, including classification/status derivation, gate totals and maps,
+passed/non-passed IDs, assumptions, exact messages, model limits, deterministic
+errors, replay consumers, and exports.
 
 Likely extraction target:
 Replace the opaque bag with explicit model-limit data plus the gate validator;
-remove shared-helper trampolines and call exact primitive, stable-ID,
-collection-validation, and readiness-classification owners directly.
+remove shared-helper trampolines, call exact shared/readiness owners directly,
+and locally preserve the facade's nil/default equality-message clauses.
 
 Likely files:
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/operational_import_eligibility_summary_contracts.ex`
+- `lib/orbital_dynamics/schema/operational_readiness_gate_summary_contracts.ex`
 - `.codex/status/large_module_refactor.md`
 
 Likely tests:
@@ -48,7 +49,7 @@ Likely tests:
 - broader communications/candidate-refresh checks, xref, format, and diff hygiene
 
 Definition of done:
-No import-eligibility callback bag or shared-helper trampolines remain; direct
+No readiness-gate-summary callback bag or shared-helper trampolines remain; direct
 owners, explicit model data, and the gate-validator boundary preserve exact
 validation order/messages; focused/broader/export checks pass; and bounded
 review finds no blocker.
@@ -60,7 +61,8 @@ Verification gaps:
   filter-count slice.
 
 Last completed slice:
-Operational-import-eligibility-summary callback collapse ready to publish:
+Operational-import-eligibility-summary callback collapse published as
+`cd54b505`:
 `schema.ex` fell from 12,216 to 12,194 lines and its owner from 259 to 202. The
 17-entry bag became direct primitive/stable/collection/readiness owners,
 explicit model-limit data, and one gate-validator boundary; all callback
