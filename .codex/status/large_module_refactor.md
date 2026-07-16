@@ -6,21 +6,21 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Completed: contact-allocation reservation-conflict registry extraction.
+Completed: contact-allocation summary registry extraction.
 
 Status:
-Published.
+Ready to publish.
 
 Selected slice:
-Move the contact-allocation reservation-conflict summary contract into
-`Schema.ContactAllocationReservationConflictRegistryContracts`.
+Move the contact-allocation summary contract into
+`Schema.ContactAllocationSummaryRegistryContracts`.
 
 Why this slice:
-The adjacent definition is a bounded artifact-family boundary with direct
+The ledger-named definition is a cohesive artifact-family boundary with direct
 fixture, executable validation, JSON-schema, registry, and export coverage.
 
 Current coupling/problem:
-Declarative reservation-conflict summary contract data remains embedded in the
+Declarative contact-allocation summary contract data remains embedded in the
 large public `Schema` facade even though it can be merged as a focused registry.
 
 Public facade to preserve:
@@ -31,12 +31,12 @@ Public facade to preserve:
 - `OrbitalDynamics.Schema.validate_artifact/2`
 
 Likely extraction target:
-`OrbitalDynamics.Schema.ContactAllocationReservationConflictRegistryContracts.contracts/0`.
+`OrbitalDynamics.Schema.ContactAllocationSummaryRegistryContracts.contracts/0`.
 
 Likely files:
 - `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/contact_allocation_reservation_conflict_registry_contracts.ex`
+- `lib/orbital_dynamics/schema/contact_allocation_summary_registry_contracts.ex`
 
 Likely tests:
 - `test/orbital_dynamics/schema/contact_allocation_contracts_test.exs`
@@ -51,7 +51,7 @@ contracts/bundle fingerprint remains unchanged.
 Files changed:
 - `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/contact_allocation_reservation_conflict_registry_contracts.ex`
+- `lib/orbital_dynamics/schema/contact_allocation_summary_registry_contracts.ex`
 
 Public APIs preserved:
 - `OrbitalDynamics.Schema.contracts/0`
@@ -61,7 +61,7 @@ Public APIs preserved:
 - `OrbitalDynamics.Schema.validate_artifact/2`
 
 Behavior/schema changes:
-None. Registry contents, reservation-conflict summary validation, and generated
+None. Registry contents, contact-allocation summary validation, and generated
 schemas retain the baseline fingerprint.
 
 Tests run:
@@ -81,15 +81,15 @@ Last commit:
 `04aff5f4` (`Extract reservation conflict registry contract`).
 
 Next candidate:
-Assess the adjacent contact-allocation summary contract as the next cohesive
-registry extraction before moving the underlying allocation report.
+Extract the adjacent contact-allocation report contract to finish the inline
+contact-allocation registry family.
 
 Blocked:
 No.
 
 Notes:
-- `schema.ex` decreased from 15,749 to 15,706 lines.
-- `ContactAllocationReservationConflictRegistryContracts` is 54 lines.
+- `schema.ex` decreased from 15,706 to 15,607 lines.
+- `ContactAllocationSummaryRegistryContracts` is 110 lines.
 - Parent review found no must-fix findings; parent publishing is the active-mode
   fallback because subagent delegation is unavailable.
 - The inline registry remains substantial; this is not a completion claim.
