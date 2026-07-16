@@ -9603,44 +9603,9 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       report,
-      operational_readiness_report_contract_callbacks()
-    )
-  end
-
-  defp operational_readiness_report_contract_callbacks do
-    [
-      expect_equal: &expect_equal/5,
-      validate_stable_ids: &validate_stable_ids/4,
-      expect_one_of: &expect_one_of/5,
-      expect_non_negative_integer: &expect_non_negative_integer/4,
-      expect_type: &expect_type/5,
-      validate_rows: &validate_rows/4,
-      validate_gate: &validate_operational_readiness_gate/3,
-      validate_evidence: &validate_operational_readiness_evidence/3,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_optional_exact_model_limits: &validate_optional_exact_model_limits/5,
-      operational_readiness_model_limits: &operational_readiness_model_limits/0,
-      validate_assumptions: &validate_operational_readiness_assumptions/3,
-      validate_classification: &validate_operational_readiness_classification/4,
-      validate_evidence_gate_counts: &validate_operational_readiness_evidence_gate_counts/4,
-      expect_field_equals: &expect_field_equals/5
-    ]
-  end
-
-  defp validate_operational_readiness_assumptions(issues, path, report) do
-    OrbitalDynamics.Schema.OperationalReadinessClassificationContracts.validate_assumptions(
-      issues,
-      path,
-      report
-    )
-  end
-
-  defp validate_operational_readiness_classification(issues, path, report, gates) do
-    OrbitalDynamics.Schema.OperationalReadinessClassificationContracts.validate_classification(
-      issues,
-      path,
-      report,
-      gates
+      operational_readiness_model_limits(),
+      &validate_operational_readiness_gate/3,
+      &validate_operational_readiness_evidence/3
     )
   end
 
@@ -9673,19 +9638,6 @@ defmodule OrbitalDynamics.Schema do
       &validate_operational_readiness_gate/3
     )
   end
-
-  defp validate_operational_readiness_evidence_gate_counts(issues, path, evidence, gates)
-       when is_map(evidence) and is_list(gates) do
-    OrbitalDynamics.Schema.OperationalReadinessEvidenceContracts.validate_gate_counts(
-      issues,
-      path,
-      evidence,
-      gates
-    )
-  end
-
-  defp validate_operational_readiness_evidence_gate_counts(issues, _path, _evidence, _gates),
-    do: issues
 
   defp operational_readiness_gate_contract_callbacks do
     [

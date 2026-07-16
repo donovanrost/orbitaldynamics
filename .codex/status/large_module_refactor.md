@@ -9,7 +9,7 @@ Current slice:
 Operational-readiness-report callback-bag collapse.
 
 Status:
-Selected; implementation pending.
+Completed and ready to publish.
 
 Selected slice:
 Replace the 15-entry callback bag in `OperationalReadinessReportContracts` with
@@ -48,18 +48,31 @@ shared owners and explicit model data preserve report composition while only
 gate/evidence validators remain injected; focused, broader, and export checks
 pass; and bounded review finds no blocker.
 
+Outcome:
+Removed the 15-entry report callback bag and all owner trampolines. Primitive,
+collection, stable-ID, classification, and evidence-count validation now use
+their direct owners; model limits are explicit data; only gate/evidence row
+validators remain injected. The exact Schema-derived count equality message is
+preserved locally. Three now-dead Schema wrappers were removed. `schema.ex`
+fell from 11,827 to 11,779 lines and the report owner from 171 to 115.
+
+Verification:
+- compile with warnings as errors passed
+- 61 focused readiness/schema/replay/operator-review tests passed
+- 1,054 broader candidate-refresh/operator-review tests passed
+- 22 schema export tests passed
+- compile-connected xref passed
+- checked-in schema regeneration produced no diff
+- format and diff hygiene passed
+- bounded review found no findings
+
 Verification gaps:
 - Full repository suite not run.
 - Known baseline: full contact-filter file remains 87/88 due nil-message
   behavior in `SuppressedCandidateContracts`; unrelated to these slices.
 
 Last completed slice:
-Operational-readiness-evidence callback collapse published as `10eb4132`:
-`schema.ex` fell from 11,860 to 11,827 lines and its owner from 531 to 470. The
-11-entry bag became direct primitives, exact local aggregation helpers, and two
-explicit domain validator boundaries. 61 focused, 1,054 broader, and 22 export
-tests passed; compile, xref, format, diff hygiene, checked-in regeneration, and
-bounded review were clean.
+Operational-readiness-report callback-bag collapse; publication commit pending.
 
 Blocked:
 No.
