@@ -8214,18 +8214,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp resource_projection_flow_projected_resource_contract_callbacks do
-    [
-      require_fields: &require_fields/4,
-      validate_stable_ids: &validate_stable_ids/4,
-      expect_optional_non_negative_integer: &expect_optional_non_negative_integer/4,
-      expect_optional_type: &expect_optional_type/5,
-      validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
-      validate_string_list_items: &validate_string_list_items/4,
-      expect_optional_number: &expect_optional_number/4
-    ]
-  end
-
   defp resource_projection_flow_summary_contract_callbacks do
     [
       require_fields: &require_fields/4,
@@ -9683,8 +9671,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.ResourceProjectionFlowProjectedResourceContracts.validate(
       issues,
       path,
-      row,
-      resource_projection_flow_projected_resource_contract_callbacks()
+      row
     )
   end
 
