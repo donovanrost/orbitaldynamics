@@ -9,7 +9,7 @@ Current slice:
 Candidate-refresh-report generic callback ownership phase.
 
 Status:
-Complete; ready to publish.
+Complete and published.
 
 Result:
 - Removed 19 generic primitive, stable-ID, and collection entries from the
@@ -42,7 +42,7 @@ Verification gaps:
 - Full repository suite not run.
 
 Last commit:
-Pending publication; prior operator-review-row handoff `031dcbaf`.
+Published implementation `293bcf4b`.
 
 Next candidate:
 - Candidate-refresh-report contact-intent direction-routing extraction. Its
