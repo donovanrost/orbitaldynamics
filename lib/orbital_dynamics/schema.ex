@@ -51,13 +51,8 @@ defmodule OrbitalDynamics.Schema do
       validate_non_negative_integer_count_map: 3,
       validate_non_negative_integer_list_items: 4,
       validate_number_list_items: 4,
-      validate_optional_boolean_fields: 4,
-      validate_optional_integer_fields: 4,
       validate_optional_exact_model_limits: 5,
-      validate_optional_number_fields: 4,
-      validate_optional_string_fields: 4,
       validate_optional_string_lists: 4,
-      validate_optional_string_or_array_fields: 4,
       validate_string_list_allowed: 5,
       validate_string_list_items: 4
     ]
@@ -13389,33 +13384,7 @@ defmodule OrbitalDynamics.Schema do
       path,
       decision,
       policy_model_limits(),
-      policy_decision_contract_callbacks()
-    )
-  end
-
-  defp policy_decision_contract_callbacks do
-    [
-      require_fields: &require_fields/4,
-      validate_stable_ids: &validate_stable_ids/4,
-      expect_equal: &expect_equal/5,
-      expect_one_of: &expect_one_of/5,
-      expect_optional_list: &expect_optional_list/4,
-      validate_optional_rows: &validate_optional_rows/4,
-      validate_policy_rule_match: &validate_policy_rule_match/3,
-      validate_policy_escalation: &validate_policy_escalation/3,
-      expect_optional_non_negative_integer: &expect_optional_non_negative_integer/4,
-      expect_optional_type: &expect_optional_type/5,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_optional_exact_model_limits: &validate_optional_exact_model_limits/5,
-      validate_policy_decision_counts: &validate_policy_decision_counts/3
-    ]
-  end
-
-  defp validate_policy_decision_counts(issues, path, decision) do
-    OrbitalDynamics.Schema.PolicyDecisionCountContracts.validate(
-      issues,
-      path,
-      decision
+      policy_rule_match_field_groups()
     )
   end
 
@@ -13424,8 +13393,7 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       match,
-      policy_rule_match_field_groups(),
-      policy_rule_match_contract_callbacks()
+      policy_rule_match_field_groups()
     )
   end
 
@@ -13437,24 +13405,6 @@ defmodule OrbitalDynamics.Schema do
       number_fields: @policy_context_number_fields,
       integer_fields: @policy_context_integer_fields,
       boolean_fields: @policy_context_boolean_fields
-    ]
-  end
-
-  defp policy_rule_match_contract_callbacks do
-    [
-      validate_stable_ids: &validate_stable_ids/4,
-      validate_optional_string_fields: &validate_optional_string_fields/4,
-      validate_optional_string_lists: &validate_optional_string_lists/4,
-      validate_optional_string_or_array_fields: &validate_optional_string_or_array_fields/4,
-      validate_optional_number_fields: &validate_optional_number_fields/4,
-      validate_optional_integer_fields: &validate_optional_integer_fields/4,
-      validate_optional_boolean_fields: &validate_optional_boolean_fields/4,
-      expect_optional_type: &expect_optional_type/5,
-      validate_number_list_items: &validate_number_list_items/4,
-      expect_optional_one_of: &expect_optional_one_of/5,
-      expect_optional_number: &expect_optional_number/4,
-      expect_optional_non_negative_integer: &expect_optional_non_negative_integer/4,
-      validate_policy_escalation: &validate_policy_escalation/3
     ]
   end
 
