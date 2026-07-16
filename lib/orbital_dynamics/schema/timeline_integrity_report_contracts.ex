@@ -1,54 +1,76 @@
 defmodule OrbitalDynamics.Schema.TimelineIntegrityReportContracts do
   @moduledoc false
 
-  def validate(issues, path, report, callbacks) when is_list(callbacks) do
+  import OrbitalDynamics.Schema.CollectionValidation, only: [validate_rows: 4]
+
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [
+      expect_equal: 5,
+      expect_field_equals: 6,
+      expect_non_negative_integer: 4,
+      expect_one_of: 5,
+      expect_optional_type: 5,
+      expect_type: 5,
+      require_fields: 4,
+      validate_non_negative_integer_count_map: 3,
+      validate_optional_exact_model_limits: 5,
+      validate_string_list_allowed: 5,
+      validate_string_list_items: 4
+    ]
+
+  import OrbitalDynamics.Schema.StableIdValidation,
+    only: [
+      validate_optional_stable_id_list: 4,
+      validate_stable_id_array_map: 3,
+      validate_stable_ids: 4
+    ]
+
+  def validate(issues, path, report, timeline_report_model_limits)
+      when is_list(timeline_report_model_limits) do
     rows =
       report
       |> Map.get("rows", [])
       |> Enum.filter(&is_map/1)
 
     issues
-    |> expect_equal(callbacks, path, report, "schema_contract", "timeline_integrity_report.v1")
-    |> expect_equal(callbacks, path, report, "model", "artifact_only_timeline_integrity_summary")
-    |> expect_equal(callbacks, path, report, "validation_level", "artifact_contract")
-    |> expect_type(callbacks, path, report, "source", :binary)
-    |> expect_one_of(callbacks, path, report, "timeline_integrity_status", [
+    |> expect_equal(path, report, "schema_contract", "timeline_integrity_report.v1")
+    |> expect_equal(path, report, "model", "artifact_only_timeline_integrity_summary")
+    |> expect_equal(path, report, "validation_level", "artifact_contract")
+    |> expect_type(path, report, "source", :binary)
+    |> expect_one_of(path, report, "timeline_integrity_status", [
       "clear",
       "review_required"
     ])
-    |> validate_count_fields(callbacks, path, report)
-    |> validate_id_fields(callbacks, path, report)
-    |> expect_type(callbacks, path, report, "timeline_integrity_issue_types", :list)
+    |> validate_count_fields(path, report)
+    |> validate_id_fields(path, report)
+    |> expect_type(path, report, "timeline_integrity_issue_types", :list)
     |> validate_string_list_allowed(
-      callbacks,
       path,
       report,
       "timeline_integrity_issue_types",
       OrbitalDynamics.Timeline.capabilities().timeline_integrity_issue_types
     )
-    |> expect_type(callbacks, path, report, "rows", :list)
-    |> expect_type(callbacks, path, report, "assumptions", :map)
-    |> expect_type(callbacks, path, report, "model_limits", :list)
-    |> validate_string_list_items(callbacks, path, report, "model_limits")
+    |> expect_type(path, report, "rows", :list)
+    |> expect_type(path, report, "assumptions", :map)
+    |> expect_type(path, report, "model_limits", :list)
+    |> validate_string_list_items(path, report, "model_limits")
     |> validate_optional_exact_model_limits(
-      callbacks,
       path,
       report,
-      timeline_report_model_limits(callbacks),
+      timeline_report_model_limits,
       "must match timeline report model limits"
     )
-    |> validate_row_derived_fields(callbacks, path, report, rows)
+    |> validate_row_derived_fields(path, report, rows)
     |> validate_rows(
-      callbacks,
       path <> ".rows",
       Map.get(report, "rows", []),
-      fn acc, row_path, row -> validate_row(acc, row_path, row, callbacks) end
+      &validate_row/3
     )
   end
 
-  def validate_row(issues, path, row, callbacks) when is_list(callbacks) do
+  def validate_row(issues, path, row) do
     issues
-    |> require_fields(callbacks, path, row, [
+    |> require_fields(path, row, [
       "activity_id",
       "timeline_id",
       "required_operator_action",
@@ -57,29 +79,26 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityReportContracts do
       "timeline_integrity_issue_count",
       "timeline_integrity_issue_types"
     ])
-    |> validate_stable_ids(callbacks, path, row, ["activity_id", "timeline_id"])
-    |> expect_equal(callbacks, path, row, "timeline_integrity_status", "review_required")
+    |> validate_stable_ids(path, row, ["activity_id", "timeline_id"])
+    |> expect_equal(path, row, "timeline_integrity_status", "review_required")
     |> expect_one_of(
-      callbacks,
       path,
       row,
       "required_operator_action",
       OrbitalDynamics.Timeline.capabilities().required_operator_actions
     )
-    |> expect_non_negative_integer(callbacks, path, row, "timeline_integrity_issue_count")
-    |> expect_type(callbacks, path, row, "timeline_integrity_issue_types", :list)
+    |> expect_non_negative_integer(path, row, "timeline_integrity_issue_count")
+    |> expect_type(path, row, "timeline_integrity_issue_types", :list)
     |> validate_string_list_allowed(
-      callbacks,
       path,
       row,
       "timeline_integrity_issue_types",
       OrbitalDynamics.Timeline.capabilities().timeline_integrity_issue_types
     )
-    |> expect_optional_type(callbacks, path, row, "timeline_integrity_issues", :list)
-    |> validate_row_issues(callbacks, path, row)
-    |> validate_row_id_lists(callbacks, path, row)
+    |> expect_optional_type(path, row, "timeline_integrity_issues", :list)
+    |> validate_row_issues(path, row)
+    |> validate_row_id_lists(path, row)
     |> expect_field_equals(
-      callbacks,
       path,
       row,
       "timeline_integrity_issue_count",
@@ -87,7 +106,6 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityReportContracts do
       "must equal row-derived timeline_integrity_issue_count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       row,
       "timeline_integrity_issue_types",
@@ -96,33 +114,30 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityReportContracts do
     )
   end
 
-  defp validate_count_fields(issues, callbacks, path, report) do
+  defp validate_count_fields(issues, path, report) do
     issues
-    |> expect_non_negative_integer(callbacks, path, report, "activity_count")
-    |> expect_non_negative_integer(callbacks, path, report, "valid_activity_count")
-    |> expect_non_negative_integer(callbacks, path, report, "invalid_activity_input_count")
-    |> expect_non_negative_integer(callbacks, path, report, "timeline_integrity_review_count")
-    |> expect_non_negative_integer(callbacks, path, report, "timeline_integrity_issue_count")
-    |> expect_non_negative_integer(callbacks, path, report, "dependency_issue_count")
-    |> expect_non_negative_integer(callbacks, path, report, "exclusivity_issue_count")
+    |> expect_non_negative_integer(path, report, "activity_count")
+    |> expect_non_negative_integer(path, report, "valid_activity_count")
+    |> expect_non_negative_integer(path, report, "invalid_activity_input_count")
+    |> expect_non_negative_integer(path, report, "timeline_integrity_review_count")
+    |> expect_non_negative_integer(path, report, "timeline_integrity_issue_count")
+    |> expect_non_negative_integer(path, report, "dependency_issue_count")
+    |> expect_non_negative_integer(path, report, "exclusivity_issue_count")
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".timeline_integrity_issue_type_counts",
       Map.get(report, "timeline_integrity_issue_type_counts")
     )
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".required_operator_action_counts",
       Map.get(report, "required_operator_action_counts")
     )
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".operator_action_reason_counts",
       Map.get(report, "operator_action_reason_counts")
     )
   end
 
-  defp validate_id_fields(issues, callbacks, path, report) do
+  defp validate_id_fields(issues, path, report) do
     id_fields = [
       "review_activity_ids",
       "review_timeline_ids",
@@ -159,19 +174,18 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityReportContracts do
     issues =
       Enum.reduce(id_fields, issues, fn field, acc ->
         acc
-        |> expect_type(callbacks, path, report, field, :list)
-        |> validate_optional_stable_id_list(callbacks, path, report, field)
+        |> expect_type(path, report, field, :list)
+        |> validate_optional_stable_id_list(path, report, field)
       end)
 
     Enum.reduce(map_fields, issues, fn field, acc ->
-      validate_optional_stable_id_array_map(acc, callbacks, path, report, field)
+      validate_optional_stable_id_array_map(acc, path, report, field)
     end)
   end
 
-  defp validate_row_derived_fields(issues, callbacks, path, report, rows) do
+  defp validate_row_derived_fields(issues, path, report, rows) do
     issues
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "timeline_integrity_review_count",
@@ -179,7 +193,6 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityReportContracts do
       "must equal row-derived timeline_integrity_review_count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "timeline_integrity_status",
@@ -187,7 +200,6 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityReportContracts do
       "must equal row-derived timeline_integrity_status"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "timeline_integrity_issue_count",
@@ -195,7 +207,6 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityReportContracts do
       "must equal row-derived timeline_integrity_issue_count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "timeline_integrity_issue_types",
@@ -203,7 +214,6 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityReportContracts do
       "must equal row-derived timeline_integrity_issue_types"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "timeline_integrity_issue_type_counts",
@@ -211,7 +221,6 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityReportContracts do
       "must equal row-derived timeline_integrity_issue_type_counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "required_operator_action_counts",
@@ -219,7 +228,6 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityReportContracts do
       "must equal row-derived required_operator_action_counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "operator_action_reason_counts",
@@ -227,7 +235,6 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityReportContracts do
       "must equal row-derived operator_action_reason_counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "dependency_issue_count",
@@ -235,20 +242,18 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityReportContracts do
       "must equal row-derived dependency_issue_count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "exclusivity_issue_count",
       timeline_integrity_report_exclusivity_issue_count(rows),
       "must equal row-derived exclusivity_issue_count"
     )
-    |> validate_row_derived_ids(callbacks, path, report, rows)
+    |> validate_row_derived_ids(path, report, rows)
   end
 
-  defp validate_row_derived_ids(issues, callbacks, path, report, rows) do
+  defp validate_row_derived_ids(issues, path, report, rows) do
     issues
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "review_activity_ids",
@@ -256,7 +261,6 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityReportContracts do
       "must equal row-derived review_activity_ids"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "review_timeline_ids",
@@ -264,7 +268,6 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityReportContracts do
       "must equal row-derived review_timeline_ids"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "review_activity_ids_by_issue_type",
@@ -272,7 +275,6 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityReportContracts do
       "must equal row-derived review_activity_ids_by_issue_type"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "review_timeline_ids_by_issue_type",
@@ -280,7 +282,6 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityReportContracts do
       "must equal row-derived review_timeline_ids_by_issue_type"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "review_activity_ids_by_required_operator_action",
@@ -288,7 +289,6 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityReportContracts do
       "must equal row-derived review_activity_ids_by_required_operator_action"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "review_timeline_ids_by_required_operator_action",
@@ -296,7 +296,6 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityReportContracts do
       "must equal row-derived review_timeline_ids_by_required_operator_action"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "review_activity_ids_by_operator_action_reason",
@@ -304,7 +303,6 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityReportContracts do
       "must equal row-derived review_activity_ids_by_operator_action_reason"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "review_timeline_ids_by_operator_action_reason",
@@ -312,7 +310,6 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityReportContracts do
       "must equal row-derived review_timeline_ids_by_operator_action_reason"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "dependency_review_activity_ids",
@@ -320,7 +317,6 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityReportContracts do
       "must equal row-derived dependency_review_activity_ids"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "dependency_review_timeline_ids",
@@ -328,7 +324,6 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityReportContracts do
       "must equal row-derived dependency_review_timeline_ids"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "exclusivity_review_activity_ids",
@@ -336,7 +331,6 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityReportContracts do
       "must equal row-derived exclusivity_review_activity_ids"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "exclusivity_review_timeline_ids",
@@ -344,17 +338,16 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityReportContracts do
       "must equal row-derived exclusivity_review_timeline_ids"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "invalid_activity_input_ids",
       timeline_integrity_report_scope_ids(rows, "invalid_activity_input", "activity_id"),
       "must equal row-derived invalid_activity_input_ids"
     )
-    |> validate_flat_id_fields(callbacks, path, report, rows)
+    |> validate_flat_id_fields(path, report, rows)
   end
 
-  defp validate_flat_id_fields(issues, callbacks, path, report, rows) do
+  defp validate_flat_id_fields(issues, path, report, rows) do
     [
       "missing_dependency_activity_ids",
       "missing_dependency_timeline_ids",
@@ -374,7 +367,6 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityReportContracts do
     |> Enum.reduce(issues, fn field, acc ->
       expect_field_equals(
         acc,
-        callbacks,
         path,
         report,
         field,
@@ -384,7 +376,7 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityReportContracts do
     end)
   end
 
-  defp validate_row_issues(issues, callbacks, path, row) do
+  defp validate_row_issues(issues, path, row) do
     row
     |> timeline_integrity_report_row_issues()
     |> Enum.with_index()
@@ -392,17 +384,17 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityReportContracts do
       issue_path = "#{path}.timeline_integrity_issues[#{index}]"
 
       acc
-      |> expect_type(callbacks, issue_path, issue, "type", :binary)
-      |> expect_optional_type(callbacks, issue_path, issue, "reason", :binary)
-      |> expect_optional_type(callbacks, issue_path, issue, "group", :binary)
-      |> expect_optional_type(callbacks, issue_path, issue, "activity_ids", :list)
-      |> validate_optional_stable_id_list(callbacks, issue_path, issue, "activity_ids")
-      |> expect_optional_type(callbacks, issue_path, issue, "timeline_ids", :list)
-      |> validate_optional_stable_id_list(callbacks, issue_path, issue, "timeline_ids")
+      |> expect_type(issue_path, issue, "type", :binary)
+      |> expect_optional_type(issue_path, issue, "reason", :binary)
+      |> expect_optional_type(issue_path, issue, "group", :binary)
+      |> expect_optional_type(issue_path, issue, "activity_ids", :list)
+      |> validate_optional_stable_id_list(issue_path, issue, "activity_ids")
+      |> expect_optional_type(issue_path, issue, "timeline_ids", :list)
+      |> validate_optional_stable_id_list(issue_path, issue, "timeline_ids")
     end)
   end
 
-  defp validate_row_id_lists(issues, callbacks, path, row) do
+  defp validate_row_id_lists(issues, path, row) do
     [
       "dependency_activity_ids",
       "dependency_timeline_ids",
@@ -425,8 +417,8 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityReportContracts do
     ]
     |> Enum.reduce(issues, fn field, acc ->
       acc
-      |> expect_optional_type(callbacks, path, row, field, :list)
-      |> validate_optional_stable_id_list(callbacks, path, row, field)
+      |> expect_optional_type(path, row, field, :list)
+      |> validate_optional_stable_id_list(path, row, field)
     end)
   end
 
@@ -555,96 +547,9 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityReportContracts do
     |> Enum.sort()
   end
 
-  defp timeline_report_model_limits(callbacks),
-    do: apply(Keyword.fetch!(callbacks, :timeline_report_model_limits), [])
-
-  defp require_fields(issues, callbacks, path, map, fields),
-    do: apply(Keyword.fetch!(callbacks, :require_fields), [issues, path, map, fields])
-
-  defp expect_equal(issues, callbacks, path, map, field, expected),
-    do: apply(Keyword.fetch!(callbacks, :expect_equal), [issues, path, map, field, expected])
-
-  defp expect_one_of(issues, callbacks, path, map, field, allowed),
-    do: apply(Keyword.fetch!(callbacks, :expect_one_of), [issues, path, map, field, allowed])
-
-  defp expect_type(issues, callbacks, path, map, field, type),
-    do: apply(Keyword.fetch!(callbacks, :expect_type), [issues, path, map, field, type])
-
-  defp expect_optional_type(issues, callbacks, path, map, field, type),
-    do: apply(Keyword.fetch!(callbacks, :expect_optional_type), [issues, path, map, field, type])
-
-  defp expect_non_negative_integer(issues, callbacks, path, map, field),
-    do:
-      apply(Keyword.fetch!(callbacks, :expect_non_negative_integer), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp expect_field_equals(issues, callbacks, path, map, field, expected, message),
-    do:
-      apply(Keyword.fetch!(callbacks, :expect_field_equals_with_message), [
-        issues,
-        path,
-        map,
-        field,
-        expected,
-        message
-      ])
-
-  defp validate_stable_ids(issues, callbacks, path, map, fields),
-    do: apply(Keyword.fetch!(callbacks, :validate_stable_ids), [issues, path, map, fields])
-
-  defp validate_non_negative_integer_count_map(issues, callbacks, path, counts),
-    do:
-      apply(Keyword.fetch!(callbacks, :validate_non_negative_integer_count_map), [
-        issues,
-        path,
-        counts
-      ])
-
-  defp validate_optional_exact_model_limits(issues, callbacks, path, report, expected, message),
-    do:
-      apply(Keyword.fetch!(callbacks, :validate_optional_exact_model_limits), [
-        issues,
-        path,
-        report,
-        expected,
-        message
-      ])
-
-  defp validate_optional_stable_id_list(issues, callbacks, path, report, field),
-    do:
-      apply(Keyword.fetch!(callbacks, :validate_optional_stable_id_list), [
-        issues,
-        path,
-        report,
-        field
-      ])
-
-  defp validate_optional_stable_id_array_map(issues, callbacks, path, report, field),
-    do:
-      apply(Keyword.fetch!(callbacks, :validate_optional_stable_id_array_map), [
-        issues,
-        path,
-        report,
-        field
-      ])
-
-  defp validate_rows(issues, callbacks, path, rows, validator),
-    do: apply(Keyword.fetch!(callbacks, :validate_rows), [issues, path, rows, validator])
-
-  defp validate_string_list_allowed(issues, callbacks, path, map, field, allowed),
-    do:
-      apply(Keyword.fetch!(callbacks, :validate_string_list_allowed), [
-        issues,
-        path,
-        map,
-        field,
-        allowed
-      ])
-
-  defp validate_string_list_items(issues, callbacks, path, map, field),
-    do: apply(Keyword.fetch!(callbacks, :validate_string_list_items), [issues, path, map, field])
+  defp validate_optional_stable_id_array_map(issues, path, report, field) do
+    issues
+    |> expect_optional_type(path, report, field, :map)
+    |> validate_stable_id_array_map(path <> ".#{field}", Map.get(report, field))
+  end
 end

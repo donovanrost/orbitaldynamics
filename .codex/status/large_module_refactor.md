@@ -9,7 +9,7 @@ Current slice:
 Timeline-integrity-report callback-bag collapse.
 
 Status:
-Selected; implementation pending.
+Completed; ready to publish.
 
 Selected slice:
 Remove the 16-entry callback bag from `TimelineIntegrityReportContracts`. Call
@@ -40,6 +40,7 @@ model-limit data through both report paths, and call the row owner directly.
 Likely files:
 - `lib/orbital_dynamics/schema.ex`
 - `lib/orbital_dynamics/schema/timeline_integrity_report_contracts.ex`
+- `test/orbital_dynamics/schema/timeline_summary_contracts_test.exs`
 - `.codex/status/large_module_refactor.md`
 
 Likely tests:
@@ -55,14 +56,32 @@ paths use direct owners with identical model-limit data where applicable; exact
 behavior is preserved; focused/broader/export checks pass; and bounded review
 finds no blocker.
 
+Result:
+Removed the 16-entry callback factory and all owner-local trampolines. Both
+report paths now pass exact `timeline_report_model_limits()` data, nested row
+validation uses `validate_row/3`, and the owner calls primitive, collection,
+and stable-ID modules directly. Review caught and the implementation restored
+the former optional-map type check before stable-ID array-map validation, with
+a focused wrong-type regression assertion. `schema.ex` fell from 12,442 to
+12,420 lines and the owner from 650 to 555 lines.
+
+Verification:
+- compile with warnings as errors passed
+- 28 focused integrity, provenance, and transition-handoff tests passed
+- 882 broader timeline/candidate-refresh tests passed after the review fix
+- 22 schema-export tests passed
+- checked-in schema export reproduction produced no diff
+- format, diff hygiene, scoped callback residue, and compile-connected xref passed
+- bounded review's must-fix was resolved; re-review found no remaining issues
+
 Verification gaps:
 - Full repository suite not run.
 
 Last completed slice:
-Timeline-dependency-impact-summary callback collapse published as `5a2ca158`:
-`schema.ex` fell from 12,461 to 12,442 lines and its owner from 379 to 310; 21
-focused, 2 reviewer-focused, 882 broader, and 22 export tests passed; checked-in
-schemas were unchanged; bounded review found no issues.
+Timeline-integrity-report callback collapse: `schema.ex` fell from 12,442 to
+12,420 lines and its owner from 650 to 555; 28 focused, 882 broader, and 22
+export tests passed; checked-in schemas were unchanged; bounded review's
+must-fix was resolved and re-review found no remaining issues.
 
 Blocked:
 No.

@@ -794,6 +794,17 @@ defmodule OrbitalDynamics.Schema.TimelineSummaryContractsTest do
                    "must equal row-derived review_timeline_ids_by_required_operator_action")
            )
 
+    invalid_action_map_shape =
+      Map.put(report, "review_timeline_ids_by_required_operator_action", "wrong-type")
+
+    assert {:error, validation_report} = Schema.validate_artifact(invalid_action_map_shape)
+
+    assert Enum.any?(
+             validation_report["errors"],
+             &(&1["path"] == "$.review_timeline_ids_by_required_operator_action" and
+                 &1["message"] == "must be a map")
+           )
+
     invalid_action_map_id =
       put_in(
         report,
