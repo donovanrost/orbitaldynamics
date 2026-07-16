@@ -52,7 +52,7 @@ Verification gaps:
   this was a mechanical internal extraction with no schema or artifact change.
 
 Last commit:
-`a447a044` before this slice; publish pending.
+`0a1b0e6c` (`Extract Cadence import pressure routing`).
 
 Next candidate:
 Inspect the 252-line `do_repair/1` orchestration cluster in
