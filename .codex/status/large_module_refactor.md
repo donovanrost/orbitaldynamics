@@ -9,7 +9,7 @@ Current slice:
 Operational-import-eligibility-summary callback-bag collapse.
 
 Status:
-Selected; implementation pending.
+Completed; ready to publish.
 
 Selected slice:
 Replace the 17-entry callback bag in
@@ -60,12 +60,13 @@ Verification gaps:
   filter-count slice.
 
 Last completed slice:
-Filter-report-count callback collapse published as `6ebc1694`: `schema.ex` fell from
-12,226 to 12,216 lines and its owner from 365 to 317. The four-entry bag became
-direct primitive owners plus exact local nil/default equality-message clauses;
-all callback trampolines were removed. 71 focused, 798 broader, and 22 export
-tests passed; compile, xref, format, diff hygiene, and checked-in schema
-regeneration were clean. Bounded review found no issues.
+Operational-import-eligibility-summary callback collapse ready to publish:
+`schema.ex` fell from 12,216 to 12,194 lines and its owner from 259 to 202. The
+17-entry bag became direct primitive/stable/collection/readiness owners,
+explicit model-limit data, and one gate-validator boundary; all callback
+trampolines were removed. 44 focused, 789 broader, and 22 export tests passed;
+compile, xref, format, diff hygiene, and checked-in schema regeneration were
+clean. Bounded review found no issues.
 
 Blocked:
 No.
