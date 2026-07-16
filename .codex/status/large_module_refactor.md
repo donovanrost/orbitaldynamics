@@ -6,44 +6,50 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Candidate-refresh provider-counteroffer context extraction.
+Candidate-refresh quality-gate context extraction.
 
 Status:
-Complete; ready to publish.
+Selected; implementation pending.
 
-Result:
-- Extracted seven integer fields, two number fields, seven count maps, three
-  stable-ID array maps, two stable-ID lists, and five string-list validations
-  into the new 116-line `CandidateRefreshProviderCounterofferContracts` owner.
-- Preserved `validate_provider_counteroffer_context/4` as a thin delegate with
-  its callback-list guard unchanged.
-- Preserved the exact distinction between explicitly typed and direct count-map
-  validations and the complete validation order.
-- Reduced `CandidateRefreshReportContracts` from 839 to 746 lines.
+Selected slice:
+Extract the complete quality-gate source-report validator—gate counts, typed
+count maps, stable-ID routing maps/lists, status ID lists—and its sole optional
+stable-ID array-map helper behind the existing public context function.
 
-Tests run:
-- `mix compile --warnings-as-errors` passed.
-- Focused provider replay/source-provenance/standalone/provenance/schema coverage
-  passed 21/21.
-- The full `test/orbital_dynamics/candidate_refresh` directory passed 755/755.
-- Schema export coverage passed 22/22.
-- Full export left `schemas/` unchanged; the bundle fingerprint remained
-  `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`.
-- Parent/new-module compile-connected xref, formatting, new-file whitespace,
-  and `git diff --check` passed.
-- The read-only reviewer found no must-fix issues, independently passed compile
-  and 11 focused tests, and verified exact pipeline/type-check order, paths,
-  edge behavior, imports, public definitions, and dependency shape.
+Why this slice:
+The 80-line context is the only caller of the composite private helper and has
+eight focused replay suites covering routing, pressure, unavailable-resource,
+operational-summary, and import-readiness variants.
+
+Public facade to preserve:
+`CandidateRefreshReportContracts.validate_quality_gate_context/4`, including
+its callback-list guard, plus all other public signatures.
+
+Likely extraction target:
+`CandidateRefreshQualityGateContracts.validate/3`, owning the complete flow and
+optional stable-ID array-map helper.
+
+Likely files:
+- `lib/orbital_dynamics/schema/candidate_refresh_report_contracts.ex`
+- `lib/orbital_dynamics/schema/candidate_refresh_quality_gate_contracts.ex`
+- `.codex/status/large_module_refactor.md`
+
+Likely tests:
+- compile with warnings as errors
+- all quality-gate replay suites
+- candidate-refresh resource-provenance and schema contract coverage
+- broader candidate-refresh, deterministic export/fingerprint, xref, and format
+
+Definition of done:
+The public `/4` function is a thin delegate, its sole helper moves with it, all
+field/order/path behavior is unchanged, stale imports are removed only when
+unused, and focused/broader checks pass.
 
 Verification gaps:
 - Full repository suite not run.
 
 Last commit:
-Pending publication; prior handoff `a7299505`.
-
-Next candidate:
-- Extract the quality-gate context together with its sole optional stable-ID
-  array-map helper behind the existing public `/4` facade.
+Published provider-counteroffer extraction `89fbc974`.
 
 Blocked:
 No.
