@@ -109,7 +109,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
     OperationalReadinessSourceReports,
     OperatorReviewSourceReports,
     PlanBranch,
-    PlanDelta,
     PlanMetadata,
     PriorActivityContext,
     PriorityCommitmentSatisfaction,
@@ -128,6 +127,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
     ResourceProjectionSourceReports,
     RefreshSourceReports,
     RepairAccumulator,
+    RepairArtifact,
     RepairCandidateDiff,
     RepairCandidateInputs,
     RepairMetadata,
@@ -189,7 +189,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
   }
 
   @schema_version 1
-  @repair_schema_version 2
   @strategy_schema_version 3
   @realized_preserved_executed_statuses ~w(completed executed partial)
   @realized_failure_statuses ~w(missed failed canceled cancelled rejected)
@@ -701,146 +700,38 @@ defmodule OrbitalDynamics.CampaignPlanner do
     timeline_transition_application_report =
       repair_timeline_transition_application_report(planned_activities, activities)
 
-    artifact =
-      %{
-        "schema_version" => @repair_schema_version,
-        "generated_at" => DateTime.to_iso8601(request.generated_at),
-        "planner" => "OrbitalDynamics.CampaignPlanner.V2",
-        "source_plan_id" => source_plan_id(prior_plan),
-        "source_planner" => Map.get(prior_plan, "planner"),
-        "study_id" => Map.get(prior_plan, "study_id"),
-        "current_epoch_s" => request.current_epoch_s,
-        "remaining_horizon" => request.remaining_horizon,
-        "activities" => activities,
-        "operational_timeline_report" =>
-          Timeline.operational_report(activities,
-            source: "campaign_repair.activities",
-            source_assumption: "repaired campaign_repair.activities"
-          ),
-        "timeline_transition_application_report" => timeline_transition_application_report,
-        "command_window_report" =>
-          CommandWindow.report(activities,
-            source: "campaign_repair.activities",
-            source_assumption: "repaired campaign_repair.activities",
-            approval_policy: request.approval_policy
-          ),
-        "source_candidate_activities" => candidates,
-        "source_contact_intents" => repair_contact_intents(request.candidate_refresh),
-        "source_resource_summaries" => source_resource_summaries,
-        "preserved_activities" => preserved_activities(activities),
-        "deltas" => Enum.map(deltas, &plan_delta_to_map/1),
-        "change_summary" => change_summary(deltas),
-        "approval_requirements" => approval_requirements,
-        "approval_status" => approval_status,
-        "approval_policy" => StrategyPolicyNormalization.approval_to_map(request.approval_policy),
-        "approval_rule_matches" => approval_rule_matches,
-        "policy_decision" => policy_decision,
-        "warnings" => warnings,
-        "realized_state_snapshot" => request.realized_state,
-        "repair_policy" => RepairPolicySemantics.to_map(request.repair_policy),
-        "scoring_policy" => request.scoring_policy,
-        "score" => score,
-        "score_terms" => score_terms,
-        "score_term_report" =>
-          repair_score_term_report(repair_score_timeline, request.scoring_policy),
-        "objective_tradeoff_report" =>
-          repair_objective_tradeoff_report(repair_score_timeline, request.scoring_policy),
-        "constraint_report" =>
-          repair_constraint_report(
-            activities,
-            repair_score_timeline,
-            request,
-            source_resource_projection_report,
-            link_capacity_report
-          ),
-        "link_capacity_report" => link_capacity_report,
-        "contact_allocation_report" => repair_contact_allocation_report(activities, request),
-        "assumptions" => repair_assumptions(prior_plan, request),
-        "provenance" => repair_provenance(prior_plan, request.candidate_source),
-        "repair_metadata" => %{
-          "repair_id" =>
-            repair_id(
-              prior_plan,
-              request.realized_state,
-              request.current_epoch_s,
-              request.candidate_source
-            ),
-          "source_plan_id" => source_plan_id(prior_plan),
-          "delta_count" => length(deltas),
-          "approval_required_count" => length(approval_requirements),
-          "candidate_window_count" => length(candidates),
-          "candidate_source" => request.candidate_source,
-          "repaired_activity_count" => length(activities),
-          "transition_selected_activity_count" =>
-            length(
-              Timeline.transition_selected_activities(timeline_transition_application_report)
-            ),
-          "transition_application_review_required_count" =>
-            timeline_transition_application_report["review_required_count"],
-          "timeline_protection" => timeline_protection
-        }
-      }
-      |> maybe_put_source_report(
-        "source_candidate_diff_report",
-        repair_candidate_diff_report(request.candidate_refresh)
-      )
-      |> maybe_put_source_report(
-        "source_candidate_rejection_report",
-        repair_candidate_rejection_report(request)
-      )
-      |> maybe_put_source_report(
-        "source_freshness_report",
-        repair_freshness_report(request.candidate_refresh)
-      )
-      |> maybe_put_source_report(
-        "source_operational_readiness_report",
-        repair_operational_readiness_report(request.candidate_refresh)
-      )
-      |> maybe_put_source_report(
-        "source_quality_gate_report",
-        repair_quality_gate_report(request.candidate_refresh)
-      )
-      |> maybe_put_source_report(
-        "source_refresh_budget_report",
-        repair_refresh_budget_report(request.candidate_refresh)
-      )
-      |> maybe_put_source_report(
-        "source_contact_filter_report",
-        repair_contact_filter_report(request.candidate_refresh)
-      )
-      |> maybe_put_source_report(
-        "source_contact_allocation_report",
-        repair_contact_allocation_report(request.candidate_refresh)
-      )
-      |> maybe_put_source_report(
-        "source_resource_filter_report",
-        repair_resource_filter_report(request.candidate_refresh)
-      )
-      |> maybe_put_source_report(
-        "source_resource_projection_report",
-        source_resource_projection_report
-      )
-      |> maybe_put_source_report(
-        "source_timeline_feedback_report",
-        source_timeline_feedback_report
-      )
-      |> maybe_put_source_report("source_station_calendar_report", station_calendar_report)
-      |> then(fn artifact ->
-        Map.put(
-          artifact,
-          "operator_review_package",
-          OperatorReview.from_repair_artifact(artifact)
-        )
-      end)
-      |> then(fn artifact ->
-        Map.put(
-          artifact,
-          "cadence_import_manifest",
-          CadenceImport.from_repair_artifact(artifact)
-        )
-      end)
-
-    artifact
+    RepairArtifact.build(request, %{
+      prior_plan: prior_plan,
+      activities: activities,
+      candidates: candidates,
+      deltas: deltas,
+      approval_requirements: approval_requirements,
+      approval_status: approval_status,
+      approval_rule_matches: approval_rule_matches,
+      policy_decision: policy_decision,
+      warnings: warnings,
+      source_resource_summaries: source_resource_summaries,
+      score: score,
+      score_terms: score_terms,
+      score_term_report: repair_score_term_report(repair_score_timeline, request.scoring_policy),
+      objective_tradeoff_report:
+        repair_objective_tradeoff_report(repair_score_timeline, request.scoring_policy),
+      constraint_report:
+        repair_constraint_report(
+          activities,
+          repair_score_timeline,
+          request,
+          source_resource_projection_report,
+          link_capacity_report
+        ),
+      link_capacity_report: link_capacity_report,
+      contact_allocation_report: repair_contact_allocation_report(activities, request),
+      source_resource_projection_report: source_resource_projection_report,
+      source_timeline_feedback_report: source_timeline_feedback_report,
+      station_calendar_report: station_calendar_report,
+      timeline_protection: timeline_protection,
+      timeline_transition_application_report: timeline_transition_application_report
+    })
   end
 
   defp normalize_strategy_request(request) do
@@ -5244,18 +5135,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
       get_in(activity, ["metadata", "source_window_id"])
   end
 
-  defp plan_delta_to_map(%PlanDelta{} = delta) do
-    RepairTimelineSummary.delta_to_map(delta)
-  end
-
-  defp preserved_activities(activities) do
-    RepairTimelineSummary.preserved_activities(activities)
-  end
-
-  defp change_summary(deltas) do
-    RepairTimelineSummary.change_summary(deltas)
-  end
-
   defp timeline_protection_summary(activities, deltas) do
     RepairTimelineSummary.protection_summary(activities, deltas)
   end
@@ -5438,12 +5317,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
     RepairCandidateInputs.candidates(nil, candidate_refresh)
   end
 
-  defp repair_contact_intents(nil), do: []
-
-  defp repair_contact_intents(%{} = candidate_refresh) do
-    RepairCandidateInputs.contact_intents(candidate_refresh)
-  end
-
   defp repair_resource_summaries(nil), do: []
 
   defp repair_resource_summaries(%{} = candidate_refresh) do
@@ -5540,12 +5413,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
     )
   end
 
-  defp repair_candidate_diff_report(nil), do: nil
-
-  defp repair_candidate_diff_report(%{} = candidate_refresh) do
-    RepairCandidateDiff.report(candidate_refresh)
-  end
-
   defp repair_candidate_diff_replacements(nil), do: %{}
 
   defp repair_candidate_diff_replacements(%{} = candidate_refresh) do
@@ -5579,12 +5446,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
     RepairCandidateDiff.match(rows, scope)
   end
 
-  defp repair_freshness_report(nil), do: nil
-
-  defp repair_freshness_report(%{} = candidate_refresh) do
-    RepairSourceReports.freshness(candidate_refresh)
-  end
-
   defp repair_operational_readiness_report(candidate_refresh) do
     RepairSourceReports.operational_readiness(candidate_refresh)
   end
@@ -5597,12 +5458,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp repair_refresh_budget_report(%{} = candidate_refresh) do
     RepairSourceReports.refresh_budget(candidate_refresh)
-  end
-
-  defp maybe_put_source_report(artifact, _key, nil), do: artifact
-
-  defp maybe_put_source_report(artifact, key, %{} = report) do
-    Map.put(artifact, key, report)
   end
 
   defp repair_refresh_warnings(nil), do: []
@@ -5625,28 +5480,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
     )
   end
 
-  defp repair_assumptions(prior_plan, request) do
-    RepairMetadata.assumptions(prior_plan, request)
-  end
-
-  defp repair_provenance(prior_plan, candidate_source) do
-    RepairMetadata.provenance(prior_plan, candidate_source)
-  end
-
-  defp repair_id(prior_plan, realized_state, current_epoch_s, candidate_source) do
-    RepairMetadata.id(
-      prior_plan,
-      realized_state,
-      current_epoch_s,
-      candidate_source
-    )
-  end
-
   defp source_plan_id(prior_plan) do
-    Map.get(prior_plan, "plan_id") ||
-      [Map.get(prior_plan, "study_id"), Map.get(prior_plan, "generated_at")]
-      |> Enum.reject(&is_nil/1)
-      |> Enum.join(":")
+    RepairMetadata.source_plan_id(prior_plan)
   end
 
   defp plan_id(study_id, generated_at) do

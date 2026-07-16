@@ -1,0 +1,165 @@
+defmodule OrbitalDynamics.CampaignPlanner.RepairArtifact do
+  @moduledoc false
+
+  alias OrbitalDynamics.Communications.CommandWindow
+
+  alias OrbitalDynamics.CampaignPlanner.{
+    RepairCandidateDiff,
+    RepairCandidateInputs,
+    RepairMetadata,
+    RepairPolicySemantics,
+    RepairSourceReports,
+    RepairTimelineSummary,
+    StrategyPolicyNormalization
+  }
+
+  alias OrbitalDynamics.{CadenceImport, OperatorReview, Timeline}
+
+  @schema_version 2
+
+  def build(request, attrs) when is_map(request) and is_map(attrs) do
+    prior_plan = Map.fetch!(attrs, :prior_plan)
+    activities = Map.fetch!(attrs, :activities)
+    candidates = Map.fetch!(attrs, :candidates)
+    deltas = Map.fetch!(attrs, :deltas)
+    approval_requirements = Map.fetch!(attrs, :approval_requirements)
+
+    timeline_transition_application_report =
+      Map.fetch!(attrs, :timeline_transition_application_report)
+
+    %{
+      "schema_version" => @schema_version,
+      "generated_at" => DateTime.to_iso8601(request.generated_at),
+      "planner" => "OrbitalDynamics.CampaignPlanner.V2",
+      "source_plan_id" => RepairMetadata.source_plan_id(prior_plan),
+      "source_planner" => Map.get(prior_plan, "planner"),
+      "study_id" => Map.get(prior_plan, "study_id"),
+      "current_epoch_s" => request.current_epoch_s,
+      "remaining_horizon" => request.remaining_horizon,
+      "activities" => activities,
+      "operational_timeline_report" =>
+        Timeline.operational_report(activities,
+          source: "campaign_repair.activities",
+          source_assumption: "repaired campaign_repair.activities"
+        ),
+      "timeline_transition_application_report" => timeline_transition_application_report,
+      "command_window_report" =>
+        CommandWindow.report(activities,
+          source: "campaign_repair.activities",
+          source_assumption: "repaired campaign_repair.activities",
+          approval_policy: request.approval_policy
+        ),
+      "source_candidate_activities" => candidates,
+      "source_contact_intents" =>
+        RepairCandidateInputs.contact_intents(request.candidate_refresh),
+      "source_resource_summaries" => Map.fetch!(attrs, :source_resource_summaries),
+      "preserved_activities" => RepairTimelineSummary.preserved_activities(activities),
+      "deltas" => Enum.map(deltas, &RepairTimelineSummary.delta_to_map/1),
+      "change_summary" => RepairTimelineSummary.change_summary(deltas),
+      "approval_requirements" => approval_requirements,
+      "approval_status" => Map.fetch!(attrs, :approval_status),
+      "approval_policy" => StrategyPolicyNormalization.approval_to_map(request.approval_policy),
+      "approval_rule_matches" => Map.fetch!(attrs, :approval_rule_matches),
+      "policy_decision" => Map.fetch!(attrs, :policy_decision),
+      "warnings" => Map.fetch!(attrs, :warnings),
+      "realized_state_snapshot" => request.realized_state,
+      "repair_policy" => RepairPolicySemantics.to_map(request.repair_policy),
+      "scoring_policy" => request.scoring_policy,
+      "score" => Map.fetch!(attrs, :score),
+      "score_terms" => Map.fetch!(attrs, :score_terms),
+      "score_term_report" => Map.fetch!(attrs, :score_term_report),
+      "objective_tradeoff_report" => Map.fetch!(attrs, :objective_tradeoff_report),
+      "constraint_report" => Map.fetch!(attrs, :constraint_report),
+      "link_capacity_report" => Map.fetch!(attrs, :link_capacity_report),
+      "contact_allocation_report" => Map.fetch!(attrs, :contact_allocation_report),
+      "assumptions" => RepairMetadata.assumptions(prior_plan, request),
+      "provenance" => RepairMetadata.provenance(prior_plan, request.candidate_source),
+      "repair_metadata" => %{
+        "repair_id" =>
+          RepairMetadata.id(
+            prior_plan,
+            request.realized_state,
+            request.current_epoch_s,
+            request.candidate_source
+          ),
+        "source_plan_id" => RepairMetadata.source_plan_id(prior_plan),
+        "delta_count" => length(deltas),
+        "approval_required_count" => length(approval_requirements),
+        "candidate_window_count" => length(candidates),
+        "candidate_source" => request.candidate_source,
+        "repaired_activity_count" => length(activities),
+        "transition_selected_activity_count" =>
+          length(Timeline.transition_selected_activities(timeline_transition_application_report)),
+        "transition_application_review_required_count" =>
+          timeline_transition_application_report["review_required_count"],
+        "timeline_protection" => Map.fetch!(attrs, :timeline_protection)
+      }
+    }
+    |> put_source_report(
+      "source_candidate_diff_report",
+      candidate_diff_report(request.candidate_refresh)
+    )
+    |> put_source_report(
+      "source_candidate_rejection_report",
+      RepairSourceReports.candidate_rejection_report(request)
+    )
+    |> put_source_report(
+      "source_freshness_report",
+      RepairSourceReports.freshness(request.candidate_refresh)
+    )
+    |> put_source_report(
+      "source_operational_readiness_report",
+      RepairSourceReports.operational_readiness(request.candidate_refresh)
+    )
+    |> put_source_report(
+      "source_quality_gate_report",
+      RepairSourceReports.quality_gate(request.candidate_refresh)
+    )
+    |> put_source_report(
+      "source_refresh_budget_report",
+      RepairSourceReports.refresh_budget(request.candidate_refresh)
+    )
+    |> put_source_report(
+      "source_contact_filter_report",
+      RepairSourceReports.contact_filter(request.candidate_refresh)
+    )
+    |> put_source_report(
+      "source_contact_allocation_report",
+      RepairSourceReports.contact_allocation(request.candidate_refresh)
+    )
+    |> put_source_report(
+      "source_resource_filter_report",
+      RepairSourceReports.resource_filter(request.candidate_refresh)
+    )
+    |> put_source_report(
+      "source_resource_projection_report",
+      Map.fetch!(attrs, :source_resource_projection_report)
+    )
+    |> put_source_report(
+      "source_timeline_feedback_report",
+      Map.fetch!(attrs, :source_timeline_feedback_report)
+    )
+    |> put_source_report(
+      "source_station_calendar_report",
+      Map.fetch!(attrs, :station_calendar_report)
+    )
+    |> attach_operator_review()
+    |> attach_cadence_import()
+  end
+
+  defp candidate_diff_report(nil), do: nil
+
+  defp candidate_diff_report(%{} = candidate_refresh),
+    do: RepairCandidateDiff.report(candidate_refresh)
+
+  defp put_source_report(artifact, _key, nil), do: artifact
+  defp put_source_report(artifact, key, %{} = report), do: Map.put(artifact, key, report)
+
+  defp attach_operator_review(artifact) do
+    Map.put(artifact, "operator_review_package", OperatorReview.from_repair_artifact(artifact))
+  end
+
+  defp attach_cadence_import(artifact) do
+    Map.put(artifact, "cadence_import_manifest", CadenceImport.from_repair_artifact(artifact))
+  end
+end

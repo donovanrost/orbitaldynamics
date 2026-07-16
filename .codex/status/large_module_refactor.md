@@ -6,69 +6,66 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Completed: Cadence import direct-pressure routing extraction.
+Completed: V2 repair artifact assembly extraction.
 
 Status:
-The 481-line Cadence import source-family dispatcher and its capacity-pack
-normalization now live in a focused internal module. `CampaignPlanner` remains
-the public facade and is 584 lines smaller than at slice selection.
+`CampaignPlanner.do_repair/1` now retains repair orchestration and delegates the
+final V2 artifact contract, optional source-report attachment, operator-review
+package, and Cadence import manifest to `CampaignPlanner.RepairArtifact`.
 
 Files changed:
 - `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/campaign_planner.ex`
-- `lib/orbital_dynamics/campaign_planner/cadence_import_direct_pressure_branches.ex`
+- `lib/orbital_dynamics/campaign_planner/repair_artifact.ex`
+- `lib/orbital_dynamics/campaign_planner/repair_metadata.ex`
 
 Public APIs preserved:
-- `OrbitalDynamics.CampaignPlanner.build/2`
 - `OrbitalDynamics.CampaignPlanner.repair/1`
-- `OrbitalDynamics.CampaignPlanner.strategy/1`
+- `OrbitalDynamics.CampaignPlanner.repair!/1`
+- `OrbitalDynamics.CampaignPlanner.repair_from_file!/2`
 
 Behavior/schema changes:
 - No intended public behavior or schema changes.
-- Direct Cadence import rows retain the same ordered source-family dispatch,
-  approval/trust-boundary enrichment, source paths, and pressure adapters.
-- Capacity-pack recommendation normalization moved with the dispatcher and is
-  shared by both Cadence import and operator-review routing.
+- The V2 artifact retains the same fields, ordering inputs, optional source
+  reports, repair identity, operator-review package, and Cadence import manifest.
+- Source-plan identity is centralized through `RepairMetadata.source_plan_id/1`
+  instead of adding another private copy.
+- Ten facade-only private wrappers made obsolete by the extraction were removed.
 
 Tests run:
 - `mix compile --warnings-as-errors` - passed.
-- Focused campaign-planner strategy shard covering Cadence import feedback,
-  capacity packs, review/import source reports, communications filters,
-  objective/constraint routing, score-term routing, and timeline-diff routing -
-  passed, 28 tests.
-- `mix xref callers OrbitalDynamics.CampaignPlanner.CadenceImportDirectPressureBranches`
-  - passed; runtime caller is `CampaignPlanner`.
+- All split `repair*_test.exs` files plus file-backed facade and strategy
+  baseline-source-candidate coverage - passed, 62 tests.
+- `mix xref callers OrbitalDynamics.CampaignPlanner.RepairArtifact` - passed;
+  runtime caller is `CampaignPlanner`.
 - `mix xref graph --label compile-connected --source lib/orbital_dynamics/campaign_planner.ex`
-  - passed; the new internal module is a compile-connected dependency.
+  - passed; the new module is a compile-connected dependency.
 - `mix format --check-formatted` on the ledger and touched source files - passed.
 - `git diff --check` - passed.
 - `git diff --no-index --check -- /dev/null` on the new module - passed with no
   whitespace diagnostics.
-- Bounded local review - passed; reviewer sidecar was unavailable by runtime
-  policy, and no must-fix behavior, dependency, or duplication issue remained.
+- Conflict-marker scan - passed.
+- Bounded local review - passed; no behavior, dependency, ordering, or
+  duplication issue remained.
 
 Verification gaps:
-- Full `mix test` was not run; the focused 28-test routing shard was used because
-  this was a mechanical internal extraction with no schema or artifact change.
+- Full `mix test` was not run. The complete split V2 repair family and its
+  adjacent public-facade/strategy baseline coverage passed.
 
 Last commit:
-`0a1b0e6c` (`Extract Cadence import pressure routing`).
+`c6aaecf0` before this slice; publish pending.
 
 Next candidate:
-Extract the final repair-artifact assembly portion of the 252-line `do_repair/1`
-cluster behind `CampaignPlanner.RepairArtifact`, passing already-computed repair
-values while preserving `CampaignPlanner.repair/1`. Do not move the whole
-function: live mapping found roughly 40 private dependencies, which would
-recreate a callback bag instead of improving the boundary.
+Extract the cohesive branch feedback factor/score cluster from
+`CampaignPlanner.branch_feedback_adjustments/4` through its private averaging
+helpers into `CampaignPlanner.StrategyFeedbackAdjustments`. Compute branch
+operational feedback in the parent so the new module does not need callback
+plumbing for event identity.
 
 Blocked:
 No.
 
 Notes:
-- `campaign_planner.ex` decreased from 6,276 to 5,692 lines.
-- The new internal dispatcher is 634 lines and owns one explicit routing-table
-  responsibility; it should be split further only along real source-family
-  boundaries, not into one-function micro-modules.
-- The prior `Common.ValueCounts` proposal was rejected because extracting a
-  five-line helper from a 27-line module would increase fragmentation without
-  reducing maintenance risk.
+- `campaign_planner.ex` decreased from 5,692 to 5,527 lines.
+- `do_repair/1` decreased from 252 to 144 lines.
+- `RepairArtifact` is 165 lines and owns one explicit output-assembly contract.

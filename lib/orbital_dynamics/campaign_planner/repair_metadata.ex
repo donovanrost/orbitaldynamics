@@ -118,7 +118,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairMetadata do
       operational_feedback_data_keys: &operational_feedback_data_keys/1
     ]
 
-  defp source_plan_id(prior_plan) do
+  def source_plan_id(prior_plan) do
     Map.get(prior_plan, "plan_id") ||
       [Map.get(prior_plan, "study_id"), Map.get(prior_plan, "generated_at")]
       |> Enum.reject(&is_nil/1)
