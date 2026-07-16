@@ -8095,20 +8095,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp model_capability_contract_callbacks do
-    [
-      validate_stable_ids: &validate_stable_ids/4,
-      expect_equal: &expect_equal/5,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_one_of: &expect_one_of/5,
-      expect_optional_number: &expect_optional_number/4,
-      validate_string_list_items: &validate_string_list_items/4,
-      validation_tolerance_policy_level_names: &validation_tolerance_policy_level_names/0,
-      error: &error/2
-    ]
-  end
-
   defp provider_counteroffer_report_contract_callbacks do
     [
       require_fields: &require_fields/4,
@@ -9397,13 +9383,7 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp validation_tolerance_policy_level_names do
-    [
-      "analysis",
-      "artifact_contract",
-      "assumption_declared",
-      "educational",
-      "validated"
-    ]
+    OrbitalDynamics.Schema.ValidationPolicyContracts.level_names()
   end
 
   defp validation_level_json_schema do
@@ -14223,8 +14203,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.ModelCapabilityContracts.validate_environment_model(
       issues,
       path,
-      record,
-      model_capability_contract_callbacks()
+      record
     )
   end
 
@@ -14232,8 +14211,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.ModelCapabilityContracts.validate_environment_provider(
       issues,
       path,
-      record,
-      model_capability_contract_callbacks()
+      record
     )
   end
 
@@ -14241,8 +14219,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.ModelCapabilityContracts.validate_subsystem_model(
       issues,
       path,
-      record,
-      model_capability_contract_callbacks()
+      record
     )
   end
 

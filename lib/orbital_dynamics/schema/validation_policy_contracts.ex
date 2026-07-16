@@ -1,6 +1,16 @@
 defmodule OrbitalDynamics.Schema.ValidationPolicyContracts do
   @moduledoc false
 
+  def level_names do
+    [
+      "analysis",
+      "artifact_contract",
+      "assumption_declared",
+      "educational",
+      "validated"
+    ]
+  end
+
   def validate_tolerance_policy(issues, path, artifact, callbacks) when is_list(callbacks) do
     issues
     |> expect_equal(
