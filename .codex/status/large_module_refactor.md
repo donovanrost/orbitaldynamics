@@ -9,7 +9,7 @@ Current slice:
 Completed: quality-gate report registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Move `quality_gate_report.v1` into `Schema.QualityGateRegistryContracts`.
@@ -79,7 +79,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`b5c371e2` (`Update optimizer report handoff`).
+`e395cf45` (`Extract quality gate registry contracts`).
 
 Next candidate:
 Assess the five adjacent operational quality-gate summary contracts as one
