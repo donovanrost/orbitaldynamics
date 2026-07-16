@@ -14570,16 +14570,8 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       map,
-      field,
-      lifecycle_transition_contract_callbacks()
+      field
     )
-  end
-
-  defp lifecycle_transition_contract_callbacks do
-    [
-      expect_optional_type: &expect_optional_type/5,
-      expect_optional_one_of: &expect_optional_one_of/5
-    ]
   end
 
   defp validate_optional_timeline_identity(issues, path, map, field) when is_map(map) do
