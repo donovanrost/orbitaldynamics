@@ -9,7 +9,7 @@ Current slice:
 Completed: proposed-contact registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Move the proposed-contact contract into
@@ -81,7 +81,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`82867816` (`Extract contact intent registry contracts`).
+`27324018` (`Extract proposed contact registry contract`).
 
 Next candidate:
 Assess the adjacent activity-template contract as the next bounded registry
