@@ -1,53 +1,72 @@
 defmodule OrbitalDynamics.Schema.PlanDeltaContracts do
   @moduledoc false
 
-  def validate(issues, path, delta, callbacks) when is_list(callbacks) do
+  import OrbitalDynamics.Schema.StableIdValidation, only: [validate_stable_ids: 4]
+
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [
+      expect_field_equals: 6,
+      expect_number: 4,
+      expect_optional_number: 4,
+      expect_optional_number_vector: 4,
+      expect_optional_type: 5,
+      require_fields: 4,
+      validate_interval: 3
+    ]
+
+  alias OrbitalDynamics.Schema.{
+    ActivityContextContracts,
+    ExecutionMetricContracts,
+    RealizedActivityContracts,
+    SchemaContractField,
+    TimelineIdentityContracts
+  }
+
+  def validate(issues, path, delta) do
     issues
-    |> require_fields(callbacks, path, delta, [
+    |> require_fields(path, delta, [
       "activity_id",
       "activity_type",
       "status",
       "repair_action"
     ])
-    |> validate_stable_ids(callbacks, path, delta, [
+    |> validate_stable_ids(path, delta, [
       "activity_id",
       "replacement_activity_id",
       "source_timeline_id",
       "replacement_timeline_id"
     ])
-    |> validate_optional_schema_contract(callbacks, path, delta, "plan_delta.v1")
-    |> expect_optional_type(callbacks, path, delta, "timeline_link", :map)
-    |> validate_optional_timeline_link(callbacks, path, delta, "timeline_link")
-    |> expect_optional_type(callbacks, path, delta, "reason", :binary)
-    |> expect_optional_type(callbacks, path, delta, "requires_approval", :boolean)
-    |> expect_optional_type(callbacks, path, delta, "planned", :map)
-    |> expect_optional_type(callbacks, path, delta, "realized", :map)
-    |> expect_optional_type(callbacks, path, delta, "source_activity_context", :map)
-    |> expect_optional_type(callbacks, path, delta, "replacement_activity_context", :map)
-    |> validate_optional_activity_context(callbacks, path, delta, "source_activity_context")
-    |> validate_optional_activity_context(callbacks, path, delta, "replacement_activity_context")
-    |> expect_optional_type(callbacks, path, delta, "execution_uncertainty", :map)
-    |> expect_optional_type(callbacks, path, delta, "maneuver_execution_uncertainty", :map)
-    |> validate_optional_execution_uncertainty(callbacks, path, delta, "execution_uncertainty")
+    |> validate_optional_schema_contract(path, delta, "plan_delta.v1")
+    |> expect_optional_type(path, delta, "timeline_link", :map)
+    |> validate_optional_timeline_link(path, delta, "timeline_link")
+    |> expect_optional_type(path, delta, "reason", :binary)
+    |> expect_optional_type(path, delta, "requires_approval", :boolean)
+    |> expect_optional_type(path, delta, "planned", :map)
+    |> expect_optional_type(path, delta, "realized", :map)
+    |> expect_optional_type(path, delta, "source_activity_context", :map)
+    |> expect_optional_type(path, delta, "replacement_activity_context", :map)
+    |> validate_optional_activity_context(path, delta, "source_activity_context")
+    |> validate_optional_activity_context(path, delta, "replacement_activity_context")
+    |> expect_optional_type(path, delta, "execution_uncertainty", :map)
+    |> expect_optional_type(path, delta, "maneuver_execution_uncertainty", :map)
+    |> validate_optional_execution_uncertainty(path, delta, "execution_uncertainty")
     |> validate_optional_execution_uncertainty(
-      callbacks,
       path,
       delta,
       "maneuver_execution_uncertainty"
     )
-    |> expect_optional_type(callbacks, path, delta, "execution_uncertainty_status", :binary)
-    |> expect_optional_number(callbacks, path, delta, "timing_3sigma_s")
-    |> expect_optional_number_vector(callbacks, path, delta, "delta_v_3sigma_km_s")
-    |> expect_optional_number(callbacks, path, delta, "delta_v_3sigma_magnitude_km_s")
-    |> expect_optional_type(callbacks, path, delta, "execution_uncertainty_source", :binary)
-    |> validate_optional_planned_delta_activity(callbacks, path, delta)
-    |> validate_optional_realized_delta_activity(callbacks, path, delta)
-    |> validate_source_identity(callbacks, path, delta)
+    |> expect_optional_type(path, delta, "execution_uncertainty_status", :binary)
+    |> expect_optional_number(path, delta, "timing_3sigma_s")
+    |> expect_optional_number_vector(path, delta, "delta_v_3sigma_km_s")
+    |> expect_optional_number(path, delta, "delta_v_3sigma_magnitude_km_s")
+    |> expect_optional_type(path, delta, "execution_uncertainty_source", :binary)
+    |> validate_optional_planned_delta_activity(path, delta)
+    |> validate_optional_realized_delta_activity(path, delta)
+    |> validate_source_identity(path, delta)
   end
 
   defp validate_source_identity(
          issues,
-         callbacks,
          path,
          %{
            "source_activity_context" => %{"timeline_identity" => %{} = identity}
@@ -55,7 +74,6 @@ defmodule OrbitalDynamics.Schema.PlanDeltaContracts do
        ) do
     issues
     |> expect_field_equals(
-      callbacks,
       path <> ".source_activity_context.timeline_identity",
       identity,
       "activity_id",
@@ -63,7 +81,6 @@ defmodule OrbitalDynamics.Schema.PlanDeltaContracts do
       "must match top-level activity_id"
     )
     |> expect_field_equals(
-      callbacks,
       path <> ".source_activity_context.timeline_identity",
       identity,
       "activity_type",
@@ -71,7 +88,6 @@ defmodule OrbitalDynamics.Schema.PlanDeltaContracts do
       "must match top-level activity_type"
     )
     |> expect_field_equals(
-      callbacks,
       path <> ".source_activity_context.timeline_identity",
       identity,
       "timeline_id",
@@ -79,7 +95,6 @@ defmodule OrbitalDynamics.Schema.PlanDeltaContracts do
       "must match source_timeline_id"
     )
     |> expect_field_equals(
-      callbacks,
       path <> ".source_activity_context",
       Map.get(delta, "source_activity_context", %{}),
       "source_window_id",
@@ -88,25 +103,25 @@ defmodule OrbitalDynamics.Schema.PlanDeltaContracts do
     )
   end
 
-  defp validate_source_identity(issues, _callbacks, _path, _delta), do: issues
+  defp validate_source_identity(issues, _path, _delta), do: issues
 
-  defp validate_optional_planned_delta_activity(issues, callbacks, path, %{"planned" => planned})
+  defp validate_optional_planned_delta_activity(issues, path, %{"planned" => planned})
        when is_map(planned) do
-    validate_planned_snapshot(issues, callbacks, path <> ".planned", planned)
+    validate_planned_snapshot(issues, path <> ".planned", planned)
   end
 
-  defp validate_optional_planned_delta_activity(issues, _callbacks, _path, _delta), do: issues
+  defp validate_optional_planned_delta_activity(issues, _path, _delta), do: issues
 
-  defp validate_planned_snapshot(issues, callbacks, path, planned) do
+  defp validate_planned_snapshot(issues, path, planned) do
     issues
-    |> require_fields(callbacks, path, planned, [
+    |> require_fields(path, planned, [
       "id",
       "type",
       "scenario_id",
       "starts_at_s",
       "ends_at_s"
     ])
-    |> validate_stable_ids(callbacks, path, planned, [
+    |> validate_stable_ids(path, planned, [
       "id",
       "scenario_id",
       "target_id",
@@ -116,99 +131,34 @@ defmodule OrbitalDynamics.Schema.PlanDeltaContracts do
       "spacecraft_id",
       "resource_id"
     ])
-    |> expect_number(callbacks, path, planned, "starts_at_s")
-    |> expect_number(callbacks, path, planned, "ends_at_s")
-    |> validate_interval(callbacks, path, planned)
-    |> expect_optional_type(callbacks, path, planned, "timeline_identity", :map)
-    |> expect_optional_type(callbacks, path, planned, "cadence_import", :map)
+    |> expect_number(path, planned, "starts_at_s")
+    |> expect_number(path, planned, "ends_at_s")
+    |> validate_interval(path, planned)
+    |> expect_optional_type(path, planned, "timeline_identity", :map)
+    |> expect_optional_type(path, planned, "cadence_import", :map)
   end
 
-  defp validate_optional_realized_delta_activity(issues, callbacks, path, %{
+  defp validate_optional_realized_delta_activity(issues, path, %{
          "realized" => realized
        })
        when is_map(realized) do
-    validate_realized_activity(callbacks, issues, path <> ".realized", realized)
+    validate_realized_activity(issues, path <> ".realized", realized)
   end
 
-  defp validate_optional_realized_delta_activity(issues, _callbacks, _path, _delta), do: issues
+  defp validate_optional_realized_delta_activity(issues, _path, _delta), do: issues
 
-  defp require_callback(callbacks, name), do: Keyword.fetch!(callbacks, name)
+  defp validate_optional_schema_contract(issues, path, map, contract),
+    do: SchemaContractField.validate_optional(issues, path, map, contract)
 
-  defp require_fields(issues, callbacks, path, map, fields),
-    do: apply(require_callback(callbacks, :require_fields), [issues, path, map, fields])
+  defp validate_optional_timeline_link(issues, path, map, field),
+    do: TimelineIdentityContracts.validate_optional_link(issues, path, map, field)
 
-  defp validate_stable_ids(issues, callbacks, path, map, fields),
-    do: apply(require_callback(callbacks, :validate_stable_ids), [issues, path, map, fields])
+  defp validate_optional_activity_context(issues, path, map, field),
+    do: ActivityContextContracts.validate_optional(issues, path, map, field)
 
-  defp validate_optional_schema_contract(issues, callbacks, path, map, contract),
-    do:
-      apply(require_callback(callbacks, :validate_optional_schema_contract), [
-        issues,
-        path,
-        map,
-        contract
-      ])
+  defp validate_optional_execution_uncertainty(issues, path, map, field),
+    do: ExecutionMetricContracts.validate_optional_execution_uncertainty(issues, path, map, field)
 
-  defp expect_optional_type(issues, callbacks, path, map, field, type),
-    do:
-      apply(require_callback(callbacks, :expect_optional_type), [issues, path, map, field, type])
-
-  defp validate_optional_timeline_link(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :validate_optional_timeline_link), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp validate_optional_activity_context(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :validate_optional_activity_context), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp validate_optional_execution_uncertainty(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :validate_optional_execution_uncertainty), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp expect_optional_number(issues, callbacks, path, map, field),
-    do: apply(require_callback(callbacks, :expect_optional_number), [issues, path, map, field])
-
-  defp expect_optional_number_vector(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :expect_optional_number_vector), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp expect_field_equals(issues, callbacks, path, map, field, expected, message),
-    do:
-      apply(require_callback(callbacks, :expect_field_equals_with_message), [
-        issues,
-        path,
-        map,
-        field,
-        expected,
-        message
-      ])
-
-  defp expect_number(issues, callbacks, path, map, field),
-    do: apply(require_callback(callbacks, :expect_number), [issues, path, map, field])
-
-  defp validate_interval(issues, callbacks, path, map),
-    do: apply(require_callback(callbacks, :validate_interval), [issues, path, map])
-
-  defp validate_realized_activity(callbacks, issues, path, activity),
-    do: apply(require_callback(callbacks, :validate_realized_activity), [issues, path, activity])
+  defp validate_realized_activity(issues, path, activity),
+    do: RealizedActivityContracts.validate(issues, path, activity)
 end

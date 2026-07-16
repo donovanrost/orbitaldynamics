@@ -37,7 +37,6 @@ defmodule OrbitalDynamics.Schema do
       expect_optional_number: 4,
       expect_optional_number_or_number_list: 4,
       expect_optional_number_or_string: 4,
-      expect_optional_number_vector: 4,
       expect_optional_one_of: 5,
       expect_optional_probability: 4,
       expect_optional_type: 5,
@@ -8272,24 +8271,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp plan_delta_contract_callbacks do
-    [
-      require_fields: &require_fields/4,
-      validate_stable_ids: &validate_stable_ids/4,
-      validate_optional_schema_contract: &validate_optional_schema_contract/4,
-      expect_optional_type: &expect_optional_type/5,
-      validate_optional_timeline_link: &validate_optional_timeline_link/4,
-      validate_optional_activity_context: &validate_optional_activity_context/4,
-      validate_optional_execution_uncertainty: &validate_optional_execution_uncertainty/4,
-      expect_optional_number: &expect_optional_number/4,
-      expect_optional_number_vector: &expect_optional_number_vector/4,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      expect_number: &expect_number/4,
-      validate_interval: &validate_interval/3,
-      validate_realized_activity: &validate_realized_activity/3
-    ]
-  end
-
   defp candidate_rejection_report_contract_callbacks do
     [
       candidate_rejection_report_model_limits: &candidate_rejection_report_model_limits/0,
@@ -11672,8 +11653,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.PlanDeltaContracts.validate(
       issues,
       path,
-      delta,
-      plan_delta_contract_callbacks()
+      delta
     )
   end
 
