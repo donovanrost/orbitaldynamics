@@ -262,10 +262,11 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
 
   def validate_candidate_rejection_context(issues, path, summary, callbacks)
       when is_list(callbacks) do
-    validate_count_maps(issues, path, summary, [
-      "candidate_rejection_candidate_id_counts",
-      "candidate_rejection_ground_station_counts"
-    ])
+    CandidateRefreshCandidateSelectionContracts.validate_candidate_rejection(
+      issues,
+      path,
+      summary
+    )
   end
 
   def validate_station_pressure_context(issues, path, summary, callbacks)
@@ -295,12 +296,6 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
   def validate_contact_intent_direction_routing(issues, path, value, summary, callbacks)
       when is_list(callbacks) do
     CandidateRefreshContactIntentRoutingContracts.validate(issues, path, value, summary)
-  end
-
-  defp validate_count_maps(issues, path, summary, fields) do
-    Enum.reduce(fields, issues, fn field, acc ->
-      validate_non_negative_integer_count_map(acc, path <> ".#{field}", Map.get(summary, field))
-    end)
   end
 
   defp validate_operational_readiness_resource_context(issues, callbacks, path, summary) do

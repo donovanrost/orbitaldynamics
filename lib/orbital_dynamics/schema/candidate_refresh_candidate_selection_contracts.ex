@@ -60,4 +60,16 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshCandidateSelectionContracts do
       Map.get(summary, "dropped_candidate_ids")
     )
   end
+
+  def validate_candidate_rejection(issues, path, summary) do
+    issues
+    |> validate_non_negative_integer_count_map(
+      path <> ".candidate_rejection_candidate_id_counts",
+      Map.get(summary, "candidate_rejection_candidate_id_counts")
+    )
+    |> validate_non_negative_integer_count_map(
+      path <> ".candidate_rejection_ground_station_counts",
+      Map.get(summary, "candidate_rejection_ground_station_counts")
+    )
+  end
 end

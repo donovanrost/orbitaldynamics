@@ -9,7 +9,7 @@ Current slice:
 Candidate-refresh candidate-rejection context extraction.
 
 Status:
-Selected; implementation pending.
+Complete; publication pending.
 
 Selected slice:
 Move the candidate-rejection source-report validator into the existing
@@ -25,33 +25,39 @@ Public facade to preserve:
 `validate_candidate_rejection_context/4`, including its callback-list guard,
 argument order, validation order, paths, messages, and all other public APIs.
 
-Likely extraction target:
+Extraction target:
 `CandidateRefreshCandidateSelectionContracts.validate_candidate_rejection/3`.
 
-Likely files:
+Files:
 - `lib/orbital_dynamics/schema/candidate_refresh_report_contracts.ex`
 - `lib/orbital_dynamics/schema/candidate_refresh_candidate_selection_contracts.ex`
 - `.codex/status/large_module_refactor.md`
 
-Likely tests:
-- compile with warnings as errors
-- two candidate-rejection replay summary files
-- candidate-refresh schema/provenance contracts
-- broader candidate-refresh, deterministic export/fingerprint, xref, and format
+Result:
+The public `/4` facade delegates to a 12-line entry point in the existing
+candidate-selection owner. Both maps moved and the facade's final family-
+specific private reducer was removed; the facade fell from 337 to 332 lines
+without schema-export changes.
 
-Definition of done:
-The public `/4` context is a thin delegate with its guard unchanged, both map
-validations move without duplication, the facade's private count-map helper is
-removed, validation order/paths/errors remain exact, and all checks pass.
+Verification:
+- compile with warnings as errors passed
+- two candidate-rejection files plus candidate-refresh schema and resource-
+  provenance contracts: 24 passed
+- broader candidate-refresh suite: 755 passed
+- schema export trio: 22 passed
+- full schema export reproduced checked-in artifacts with no diff
+- deterministic contract/bundle fingerprint remained
+  `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`
+- compile-connected xref roots stayed narrow; format and diff hygiene passed
+- bounded read-only review found no issues and independently passed compile,
+  the 24 focused tests, facade/API comparison, xref, format, and diff checks
 
 Verification gaps:
 - Full repository suite not run.
 
-Last completed slice:
-Communications-pressure extraction published as `923f946e`: a 71-line owner
-reduced the report-contract facade from 364 to 337 lines and removed both stable-
-ID imports; 116 focused, 755 candidate-refresh, and 22 export tests passed;
-schemas/fingerprint were unchanged; bounded review found no issues.
+Last commit:
+Published communications-pressure extraction `923f946e`; selected this slice in
+`dea80373`.
 
 Blocked:
 No.
