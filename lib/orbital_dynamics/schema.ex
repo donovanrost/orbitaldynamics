@@ -7838,27 +7838,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp candidate_activity_contract_callbacks do
-    [
-      validate_activity: &validate_activity/3,
-      validate_optional_schema_contract: &validate_optional_schema_contract/4,
-      validate_stable_ids: &validate_stable_ids/4,
-      validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
-      require_fields: &require_fields/4,
-      expect_number: &expect_number/4,
-      expect_type: &expect_type/5,
-      expect_optional_number: &expect_optional_number/4,
-      expect_optional_type: &expect_optional_type/5,
-      expect_optional_integer: &expect_optional_integer/4,
-      expect_optional_probability: &expect_optional_probability/4,
-      expect_optional_number_or_string: &expect_optional_number_or_string/4,
-      expect_field_at_least: &expect_field_at_least/5,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      validate_string_list_items: &validate_string_list_items/4,
-      error: &error/2
-    ]
-  end
-
   defp accepted_state_contract_callbacks do
     [
       require_fields: &require_fields/4,
@@ -9079,8 +9058,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.CandidateActivityContracts.validate(
       issues,
       path,
-      activity,
-      candidate_activity_contract_callbacks()
+      activity
     )
   end
 
