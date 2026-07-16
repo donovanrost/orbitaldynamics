@@ -6,22 +6,22 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Completed: validation-reference callback ownership cleanup.
+Completed: validation-policy callback ownership cleanup.
 
 Status:
 Completed and published.
 
 Selected slice:
-Move generic count-map validation into primitive support and let validation
-reference fixture/report/check validation call support directly.
+Let validation tolerance and backend acceptance policy validation call primitive
+support directly, and remove the facade callback bag and level-name round trip.
 
 Why this slice:
-All twelve callbacks map to support responsibilities once the generic count-map
-helper moves; exact fixture/report/check regressions are focused and strong.
+All six callbacks map to existing primitive support or back to the same policy
+contract module; focused policy fixtures cover both valid and invalid paths.
 
 Current coupling/problem:
-Resolved. Primitive support owns count-map validation, reference contracts call
-support directly, and the facade only delegates inputs.
+Resolved. The policy contract module calls primitive support directly and owns
+its level-name comparison; the facade delegates artifacts without callbacks.
 
 Public facade preserved:
 - `OrbitalDynamics.Schema.validate_artifact/2`
@@ -32,41 +32,42 @@ Public facade preserved:
 Files changed:
 - `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/primitive_validation.ex`
-- `lib/orbital_dynamics/schema/validation_reference_contracts.ex`
+- `lib/orbital_dynamics/schema/validation_policy_contracts.ex`
 
 Definition of done:
-The count-map helper is support-owned, callback plumbing is gone, tests and
-fingerprint pass, and xref shows support dependencies.
+Policy callback plumbing and the facade level-name helper are gone, policy and
+export tests pass, the fingerprint is unchanged, and xref shows direct support.
 
 Behavior/schema changes:
-None. Fixture/report/check order, derived status/counts, comparisons, levels,
-paths, messages, and deterministic schema output remain unchanged.
+None. Policy fields, tier/reference checks, validation levels, paths, messages,
+and deterministic schema output remain unchanged.
 
 Tests run:
 - `mix compile --warnings-as-errors` passed.
-- Eight validation-evidence, validation-policy, and export tests passed.
+- Four validation-policy fixture and schema-export tests passed.
+- Full checked-in schema export produced no diffs.
 - Exact schema fingerprint remained
   `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`.
 - Xref shows the facade caller and direct primitive support edge.
-- Formatting, `git diff --check`, and checked-in schema cleanliness passed.
+- Formatting and `git diff --check` passed.
 
 Verification gaps:
-- Full suite not run; the focused eight-test evidence/export gate and
-  deterministic fingerprint are the verification boundary for this slice.
+- Full suite not run; the focused four-test policy/export gate and deterministic
+  fingerprint are the verification boundary for this slice.
 
 Last commit:
-`7dac3ee2` (`Collapse validation reference callbacks`).
+`391f33db` (`Collapse validation policy callbacks`).
 
 Next candidate:
-Reassess validation-policy ownership; keep mixed activity-context deferred.
+Audit constraint-report callback ownership; model metadata remains facade-local
+and must be assigned deliberately before removing its primitive callback bag.
 
 Blocked:
 No.
 
 Notes:
-- `schema.ex` is 14,437 lines after this slice (down from 14,468).
-- `ValidationReferenceContracts` is 232 lines and callback-free.
+- `schema.ex` is 14,423 lines after this slice (down from 14,437).
+- `ValidationPolicyContracts` is 240 lines and callback-free.
 - Activity-context cleanup was audited and deferred because its 17 callbacks
   include facade-owned validators; this slice is the bounded alternative.
 - Parent review/publishing is the active-mode fallback because subagent
