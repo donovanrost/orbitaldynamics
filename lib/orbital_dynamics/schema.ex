@@ -1644,40 +1644,6 @@ defmodule OrbitalDynamics.Schema do
         "station_calendar_provider_entry_ids"
       ],
       "nested_contracts" => ["link_capacity_report.v1"]
-    },
-    @relay_data_path_summary => %{
-      "schema_contract" => @relay_data_path_summary,
-      "artifact_family" => "relay_data_path_summary",
-      "schema_version" => 1,
-      "required_fields" => [
-        "schema_contract",
-        "schema_version",
-        "model",
-        "source",
-        "route_count",
-        "relay_route_count",
-        "direct_downlink_route_count",
-        "custody_status_counts",
-        "latency_status_counts",
-        "risk_status_counts",
-        "route_ids",
-        "source_spacecraft_ids",
-        "relay_spacecraft_ids",
-        "ground_station_ids",
-        "ground_downlink_contact_ids",
-        "route_ids_by_custody_status",
-        "route_ids_by_latency_status",
-        "route_ids_by_risk_status",
-        "route_ids_by_ground_station_id",
-        "model_limits",
-        "assumptions",
-        "rows"
-      ],
-      "optional_fields" => [
-        "maximum_latency_s",
-        "maximum_latency_limit_s"
-      ],
-      "nested_contracts" => []
     }
   }
 
@@ -1738,6 +1704,7 @@ defmodule OrbitalDynamics.Schema do
              |> Map.merge(OrbitalDynamics.Schema.StationReservationRegistryContracts.contracts())
              |> Map.merge(OrbitalDynamics.Schema.StationCalendarRegistryContracts.contracts())
              |> Map.merge(OrbitalDynamics.Schema.ContactContentionRegistryContracts.contracts())
+             |> Map.merge(OrbitalDynamics.Schema.RelayDataPathRegistryContracts.contracts())
              |> Map.merge(
                OrbitalDynamics.Schema.ContactAllocationReportRegistryContracts.contracts()
              )
