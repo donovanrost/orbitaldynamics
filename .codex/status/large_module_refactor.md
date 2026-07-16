@@ -9,7 +9,7 @@ Current slice:
 Resource-projection-handoff callback-bag collapse.
 
 Status:
-Selected; implementation pending.
+Completed and ready to publish.
 
 Selected slice:
 Replace the 3-entry callback bag in `ResourceProjectionHandoffContracts` with
@@ -47,17 +47,31 @@ direct primitive owners preserve number/equality validation while only the
 downlink predicate remains injected; focused, broader, and export checks pass;
 and bounded review finds no blocker.
 
+Outcome:
+Removed the 3-entry handoff callback bag and all lookup/apply trampolines.
+Battery/remaining optional numbers and count equality checks use direct
+`PrimitiveValidation`; the downlink-flow-row predicate remains the sole explicit
+domain boundary. Other source/own-flow/Cadence matchers and public accessors are
+unchanged. `schema.ex` fell from 11,684 to 11,674 lines and the handoff owner
+from 371 to 355.
+
+Verification:
+- compile with warnings as errors passed
+- 142 focused source-provenance/Cadence/schema tests passed
+- 1,168 broader candidate-refresh/operator-review/Cadence tests passed
+- 22 schema export tests passed
+- compile-connected xref passed
+- checked-in schema regeneration produced no diff
+- format and diff hygiene passed
+- bounded review found no findings
+
 Verification gaps:
 - Full repository suite not run.
 - Known baseline: full contact-filter file remains 87/88 due nil-message
   behavior in `SuppressedCandidateContracts`; unrelated to these slices.
 
 Last completed slice:
-Source-evidence callback collapse published as `b67722fa`: `schema.ex` fell
-from 11,696 to 11,684 lines and its owner from 206 to 176. The 6-entry bag
-became direct primitive/stable-ID owners and two battery validator boundaries.
-142 focused, 1,168 broader, and 22 export tests passed; compile, xref, format,
-diff hygiene, checked-in regeneration, and bounded review were clean.
+Resource-projection-handoff callback-bag collapse; publication commit pending.
 
 Blocked:
 No.

@@ -1,6 +1,9 @@
 defmodule OrbitalDynamics.Schema.ResourceProjectionHandoffContracts do
   @moduledoc false
 
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [expect_field_equals: 6, expect_optional_number: 4]
+
   @battery_handoff_number_fields [
     "total_battery_energy_consumed_wh",
     "total_battery_energy_generated_wh",
@@ -94,17 +97,17 @@ defmodule OrbitalDynamics.Schema.ResourceProjectionHandoffContracts do
 
   def battery_handoff_number_fields, do: @battery_handoff_number_fields
 
-  def validate_battery_handoff_fields(issues, path, row, callbacks) when is_list(callbacks) do
+  def validate_battery_handoff_fields(issues, path, row) do
     Enum.reduce(@battery_handoff_number_fields, issues, fn field, acc ->
-      expect_optional_number(acc, callbacks, path, row, field)
+      expect_optional_number(acc, path, row, field)
     end)
   end
 
-  def validate_remaining_handoff_fields(issues, path, row, callbacks) when is_list(callbacks) do
+  def validate_remaining_handoff_fields(issues, path, row) do
     Enum.reduce(
       ["projected_storage_remaining_mb", "projected_downlink_remaining_mb"],
       issues,
-      fn field, acc -> expect_optional_number(acc, callbacks, path, row, field) end
+      fn field, acc -> expect_optional_number(acc, path, row, field) end
     )
   end
 
@@ -139,17 +142,17 @@ defmodule OrbitalDynamics.Schema.ResourceProjectionHandoffContracts do
         issues,
         path,
         %{"source_resource_projection" => %{"activity_resource_flow" => flow_rows}} = row,
-        callbacks
+        downlink_flow_row?
       )
-      when is_list(flow_rows) and is_list(callbacks) do
-    expected = handoff_count_values(flow_rows, callbacks)
+      when is_list(flow_rows) and is_function(downlink_flow_row?, 1) do
+    expected = handoff_count_values(flow_rows, downlink_flow_row?)
 
     Enum.reduce(expected, issues, fn {field, {expected_value, message}}, acc ->
-      expect_field_equals(acc, callbacks, path, row, field, expected_value, message)
+      expect_field_equals(acc, path, row, field, expected_value, message)
     end)
   end
 
-  def validate_count_handoff_matches_source(issues, _path, _row, _callbacks), do: issues
+  def validate_count_handoff_matches_source(issues, _path, _row, _downlink_flow_row?), do: issues
 
   def validate_flow_summary_context_matches_source(
         issues,
@@ -286,7 +289,7 @@ defmodule OrbitalDynamics.Schema.ResourceProjectionHandoffContracts do
 
   def validate_cadence_source_review_context_handoff_matches(issues, _path, _row), do: issues
 
-  defp handoff_count_values(flow_rows, callbacks) do
+  defp handoff_count_values(flow_rows, downlink_flow_row?) do
     flow_rows = Enum.filter(flow_rows, &is_map/1)
 
     ignored_ids =
@@ -306,7 +309,7 @@ defmodule OrbitalDynamics.Schema.ResourceProjectionHandoffContracts do
         {Enum.count(projected_rows, &(Map.get(&1, "activity_type") == "observe")),
          "must equal source_resource_projection projected observe flow row count"},
       "downlink_count" =>
-        {Enum.count(projected_rows, &resource_projection_downlink_flow_row?(callbacks, &1)),
+        {Enum.count(projected_rows, downlink_flow_row?),
          "must equal source_resource_projection projected downlink flow row count"},
       "ignored_activity_count" =>
         {length(ignored_ids), "must equal source_resource_projection ignored flow row count"},
@@ -345,25 +348,6 @@ defmodule OrbitalDynamics.Schema.ResourceProjectionHandoffContracts do
       Map.get(row, "source_review_type") == "resource_projection_review" or
       Map.get(row, "import_action") == "review_resource_projection"
   end
-
-  defp expect_optional_number(issues, callbacks, path, map, field),
-    do: apply(require_callback(callbacks, :expect_optional_number), [issues, path, map, field])
-
-  defp expect_field_equals(issues, callbacks, path, row, field, expected_value, message) do
-    apply(require_callback(callbacks, :expect_field_equals), [
-      issues,
-      path,
-      row,
-      field,
-      expected_value,
-      message
-    ])
-  end
-
-  defp resource_projection_downlink_flow_row?(callbacks, row),
-    do: apply(require_callback(callbacks, :resource_projection_downlink_flow_row?), [row])
-
-  defp require_callback(callbacks, name), do: Keyword.fetch!(callbacks, name)
 
   defp error(path, message) do
     %{"severity" => "error", "path" => path, "message" => message}

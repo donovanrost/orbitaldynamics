@@ -9172,14 +9172,6 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp resource_projection_handoff_contract_callbacks do
-    [
-      expect_field_equals: &expect_field_equals/6,
-      expect_optional_number: &expect_optional_number/4,
-      resource_projection_downlink_flow_row?: &resource_projection_downlink_flow_row?/1
-    ]
-  end
-
   defp resource_projection_report_model_limits do
     OrbitalDynamics.ResourceProjection.capabilities()
     |> Map.fetch!(:known_limits)
@@ -10106,8 +10098,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.ResourceProjectionHandoffContracts.validate_battery_handoff_fields(
       issues,
       path,
-      row,
-      resource_projection_handoff_contract_callbacks()
+      row
     )
   end
 
@@ -10115,8 +10106,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.ResourceProjectionHandoffContracts.validate_remaining_handoff_fields(
       issues,
       path,
-      row,
-      resource_projection_handoff_contract_callbacks()
+      row
     )
   end
 
@@ -10141,7 +10131,7 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       row,
-      resource_projection_handoff_contract_callbacks()
+      &resource_projection_downlink_flow_row?/1
     )
   end
 
