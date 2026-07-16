@@ -9,7 +9,7 @@ Current slice:
 Completed: realized state registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Moved `realized_activity.v1` and `realized_state_snapshot.v1` into
@@ -79,7 +79,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`e80c43f6` (`Update timeline feedback state handoff`).
+`0bca9090` (`Extract realized state registry contracts`).
 
 Next candidate:
 Assess resource projection report and flow summary as the next bounded registry
