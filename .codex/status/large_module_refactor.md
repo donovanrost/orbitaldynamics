@@ -9,17 +9,17 @@ Current slice:
 Operational-quality-gate-unavailable-resource-summary callback-bag collapse.
 
 Status:
-Selected; implementation pending.
+Completed and ready to publish.
 
 Selected slice:
-Replace the 15-entry callback bag in
+Replace the 17-entry callback bag in
 `OperationalQualityGateUnavailableResourceSummaryContracts` with direct
 primitive, stable-ID, and collection-aggregation owners, explicit model-limit
 data, and cohesive local reason/count derivations.
 
 Why this slice:
 Live inventory leaves `schema.ex` as the dominant production hotspot at 12,088
-lines. The adjacent 296-line unavailable-resource summary owner has 15 callback
+lines. The adjacent 296-line unavailable-resource summary owner has 17 callback
 trampolines: shared validators and aggregation functions have exact owners,
 model limits are data, and the remaining unavailable/station reason rules are
 small cohesive summary logic. Focused unavailable-resource replay, readiness,
@@ -48,6 +48,23 @@ No unavailable-resource-summary callback bag or shared-helper trampolines remain
 direct shared owners, explicit model data, and cohesive local rules preserve
 exact validation and error order/messages; focused/broader/export checks pass;
 and bounded review finds no blocker.
+
+Completed result:
+Removed the live 17-entry unavailable-resource-summary callback bag and all
+owner trampolines. Primitive, stable-ID, collection aggregation, and readiness
+reason behavior now calls exact owners directly; model limits are explicit
+data; the count-map sum remains local and exact. The earlier selection note's
+15-entry count was corrected from live inventory. `schema.ex` fell from 12,088
+to 12,049 lines and the owner from 296 to 230.
+
+Verification:
+- compile with warnings as errors passed
+- 53 focused readiness/schema/unavailable-resource replay/review tests passed
+- 1,054 broader candidate-refresh/operator-review/readiness tests passed
+- 22 schema-export tests passed
+- compile-connected xref, format, diff hygiene, and checked-in schema
+  regeneration were clean
+- bounded read-only review found no issues
 
 Verification gaps:
 - Full repository suite not run.
