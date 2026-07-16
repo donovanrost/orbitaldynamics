@@ -9,7 +9,7 @@ Current slice:
 Timeline-transition-application-summary callback-bag collapse.
 
 Status:
-Selected; implementation pending.
+Completed; ready to publish.
 
 Selected slice:
 Replace the 13-entry callback bag in
@@ -53,14 +53,30 @@ No summary callback bag or shared-helper trampolines remain; explicit model-limi
 data and the one row-validator boundary preserve exact behavior;
 focused/broader/export checks pass; and bounded review finds no blocker.
 
+Result:
+Removed the 13-entry callback factory and all shared-helper trampolines. The
+facade now passes exact timeline model-limit data and its one intentional nested
+row validator; the summary owner calls primitive, collection, and stable-ID
+owners directly. `schema.ex` fell from 12,375 to 12,357 lines and the summary
+owner from 311 to 237 lines.
+
+Verification:
+- compile with warnings as errors passed
+- 30 focused report, summary, provenance, workflow, and handoff tests passed
+- 882 broader timeline/candidate-refresh tests passed
+- 22 schema-export tests passed
+- checked-in schema export reproduction produced no diff
+- format, diff hygiene, scoped callback residue, and compile-connected xref passed
+- bounded read-only review found no issues
+
 Verification gaps:
 - Full repository suite not run.
 
 Last completed slice:
-Timeline-transition-application report-count callback collapse published as
-`ee6c958d`: `schema.ex` fell from 12,396 to 12,375 lines and its owner from 219
-to 176; 30 focused, 882 broader, and 22 export tests passed; checked-in schemas
-were unchanged; bounded review found no issues.
+Timeline-transition-application-summary callback collapse: `schema.ex` fell
+from 12,375 to 12,357 lines and its owner from 311 to 237; 30 focused, 882
+broader, and 22 export tests passed; checked-in schemas were unchanged; bounded
+review found no issues.
 
 Blocked:
 No.

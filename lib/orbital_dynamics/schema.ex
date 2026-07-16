@@ -7705,25 +7705,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp timeline_transition_application_summary_contract_callbacks do
-    [
-      expect_equal: &expect_equal/5,
-      expect_type: &expect_type/5,
-      expect_non_negative_integer: &expect_non_negative_integer/4,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      validate_non_negative_integer_count_map: &validate_non_negative_integer_count_map/3,
-      validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
-      validate_stable_id_array_map: &validate_stable_id_array_map/3,
-      validate_string_list_allowed: &validate_string_list_allowed/5,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_optional_exact_model_limits: &validate_optional_exact_model_limits/5,
-      validate_rows: &validate_rows/4,
-      validate_timeline_transition_application_row:
-        &validate_timeline_transition_application_row/3,
-      timeline_report_model_limits: &timeline_report_model_limits/0
-    ]
-  end
-
   defp contact_contention_resolution_summary_contract_callbacks do
     [
       expect_equal: &expect_equal/5,
@@ -8909,7 +8890,8 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       summary,
-      timeline_transition_application_summary_contract_callbacks()
+      timeline_report_model_limits(),
+      &validate_timeline_transition_application_row/3
     )
   end
 
