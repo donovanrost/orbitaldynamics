@@ -2,24 +2,13 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategySourceReportRegistryTest do
   use ExUnit.Case, async: true
 
   alias OrbitalDynamics.CandidateRefresh
-  alias OrbitalDynamics.CampaignPlanner.StrategyCandidateSource
+
+  alias OrbitalDynamics.CampaignPlanner.{
+    MissionStateCandidateRefreshSourceReports,
+    StrategyCandidateSource
+  }
 
   test "branch refresh source report registry matches the mission-state request builder" do
-    source_path =
-      __DIR__
-      |> Path.join("../../../lib/orbital_dynamics/campaign_planner.ex")
-      |> Path.expand()
-
-    source = File.read!(source_path)
-
-    builder_body =
-      Regex.run(
-        ~r/defp mission_state_candidate_refresh_source_reports\(mission_state\) do(?<body>.*?)\n  end\n\n  defp mission_state_source_reports_or_reports/s,
-        source,
-        capture: ["body"]
-      )
-      |> List.first()
-
     duplicate_keys = fn keys ->
       keys
       |> Enum.frequencies()
@@ -28,10 +17,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategySourceReportRegistryTest do
       |> Enum.sort()
     end
 
-    builder_keys =
-      ~r/^      "([^"]+)" =>/m
-      |> Regex.scan(builder_body, capture: :all_but_first)
-      |> List.flatten()
+    builder_keys = MissionStateCandidateRefreshSourceReports.candidate_refresh_source_input_keys()
 
     registry_keys =
       StrategyCandidateSource.source_report_input_fields()

@@ -1,6 +1,12 @@
 defmodule OrbitalDynamics.CampaignPlanner.TimelineSourceReports.PressureRows do
   @moduledoc false
 
+  def pressure_entries(entries) do
+    entries
+    |> Enum.with_index(1)
+    |> Enum.map(fn {{entry, source_path}, index} -> {entry, source_path, index} end)
+  end
+
   def timeline_preservation_report_pressure_rows(reports, opts) do
     callbacks = callbacks!(opts)
 

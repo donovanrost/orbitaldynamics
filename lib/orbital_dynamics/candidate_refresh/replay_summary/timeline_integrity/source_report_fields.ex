@@ -1,7 +1,8 @@
 defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelineIntegrity.SourceReportFields do
   @moduledoc false
 
-  alias OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelineIntegrity
+  alias OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelineIntegrity.Summary
+  alias __MODULE__.Pressure
 
   import __MODULE__.Aggregation
 
@@ -9,21 +10,13 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelineIntegrity.Sourc
     summary =
       source_reports
       |> Map.get("timeline_integrity_report", %{})
-      |> TimelineIntegrity.summary(
+      |> Summary.summary(
         "candidate_refresh.source_report_provenance.timeline_integrity_report",
         "timeline_integrity_source_report_provenance_only"
       )
 
-    %{
-      "source_report_timeline_integrity_branch_local_timeline_integrity_pressure" =>
-        Map.get(summary, "branch_local_timeline_integrity_pressure"),
-      "source_report_timeline_integrity_branch_local_timeline_integrity_review_pressure" =>
-        Map.get(summary, "branch_local_timeline_integrity_review_pressure"),
-      "source_report_timeline_integrity_branch_local_dependency_integrity_pressure" =>
-        Map.get(summary, "branch_local_dependency_integrity_pressure"),
-      "source_report_timeline_integrity_branch_local_exclusivity_integrity_pressure" =>
-        Map.get(summary, "branch_local_exclusivity_integrity_pressure")
-    }
+    summary
+    |> Pressure.source_report_fields()
     |> Map.merge(flattened_source_report_fields(source_reports))
   end
 

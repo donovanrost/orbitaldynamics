@@ -1,11 +1,29 @@
 defmodule OrbitalDynamics.CampaignPlanner.CommandWindowOperationalFeedback do
   @moduledoc false
 
+  alias OrbitalDynamics.CampaignPlanner.{
+    ActivityTiming,
+    CommandActivityClassification,
+    FeedbackNumericValues,
+    ProviderResultValues,
+    RealizedActivitySuccessValues,
+    RealizedFeedbackAggregation,
+    RealizedFeedbackContext,
+    RealizedFeedbackTrustBoundaries,
+    ValueEncoding
+  }
+
+  def from_reports(reports_with_sources),
+    do: from_reports(reports_with_sources, default_operational_feedback_callbacks())
+
   def from_reports(reports_with_sources, opts) when is_list(opts) do
     reports_with_sources
     |> rows(opts)
     |> from_rows(opts)
   end
+
+  def rows(reports_with_sources),
+    do: rows(reports_with_sources, default_operational_feedback_callbacks())
 
   def rows(reports_with_sources, opts) when is_list(opts) do
     stringify_keys = Keyword.fetch!(opts, :stringify_keys)
@@ -24,11 +42,12 @@ defmodule OrbitalDynamics.CampaignPlanner.CommandWindowOperationalFeedback do
     |> Enum.filter(feedback_row?)
   end
 
+  def from_rows(rows), do: from_rows(rows, default_operational_feedback_callbacks())
+
   def from_rows(rows, opts) when is_list(opts) do
     row_success_value = Keyword.fetch!(opts, :row_success_value)
-    activity_feedback_average = Keyword.fetch!(opts, :activity_feedback_average)
 
-    rates = activity_feedback_average.(rows, row_success_value)
+    rates = RealizedFeedbackAggregation.activity_average(rows, row_success_value)
 
     case rates do
       rates when map_size(rates) > 0 -> %{"command_success_rate" => rates}
@@ -43,12 +62,25 @@ defmodule OrbitalDynamics.CampaignPlanner.CommandWindowOperationalFeedback do
 
   def source(row, opts) when is_list(opts), do: {row(row, row, opts), "command_window_review"}
 
+  def source(row), do: source(row, default_row_shaping_callbacks())
+
+  def operator_review_rows(rows), do: operator_review_rows(rows, default_row_shaping_callbacks())
+
   def operator_review_rows(rows, opts) when is_list(opts) do
     rows
     |> Enum.filter(&(&1["review_type"] == "command_window_review"))
     |> Enum.map(fn row ->
       row(Map.get(row, "source_command_window", row), row, opts)
     end)
+  end
+
+  def review_row?(row), do: review_row?(row, default_pressure_callbacks())
+
+  def review_row?(row, opts) when is_list(opts) do
+    (row["source_review_type"] == "command_window_review" or
+       row["review_type"] == "command_window_review" or
+       row["import_action"] == "review_command_window") and
+      pressure_event(row, "candidate", opts) != nil
   end
 
   def row(source, row, opts) when is_list(opts) do
@@ -102,7 +134,52 @@ defmodule OrbitalDynamics.CampaignPlanner.CommandWindowOperationalFeedback do
     |> put_feedback_weight_fields.(row)
   end
 
+  defp default_row_shaping_callbacks do
+    [
+      stringify_keys: &ValueEncoding.stringify_keys/1,
+      put_default_if_present: &put_default_if_present/3,
+      put_feedback_weight_fields: &put_feedback_weight_fields/2
+    ]
+  end
+
+  defp default_operational_feedback_callbacks do
+    [
+      stringify_keys: &ValueEncoding.stringify_keys/1,
+      feedback_row?: &feedback_row?/1,
+      row_success_value: &success_value/1
+    ]
+  end
+
+  defp put_default_if_present(map, _field, value) when value in [nil, "", [], %{}], do: map
+
+  defp put_default_if_present(map, field, value) do
+    case Map.get(map, field) do
+      existing when existing in [nil, ""] -> Map.put(map, field, value)
+      _existing -> map
+    end
+  end
+
+  defp put_feedback_weight_fields(event, source) do
+    [
+      "feedback_weight",
+      "feedback_weight_source",
+      "feedback_sample_weight",
+      "feedback_sample_weight_source",
+      "sample_weight",
+      "sample_weight_source",
+      "confidence_weight",
+      "confidence_weight_source"
+    ]
+    |> Enum.reduce(event, fn field, acc -> put_if_present(acc, field, source[field]) end)
+  end
+
+  defp put_if_present(map, _key, value) when value in [nil, ""], do: map
+  defp put_if_present(map, key, value), do: Map.put(map, key, value)
+
+  def feedback_row?(row), do: feedback_row?(row, feedback_callbacks())
+
   def feedback_row?(row, opts) when is_list(opts) do
+    opts = feedback_callbacks(opts)
     command_activity? = Keyword.fetch!(opts, :command_activity?)
     realized_feedback_activity_id = Keyword.fetch!(opts, :realized_feedback_activity_id)
 
@@ -110,7 +187,10 @@ defmodule OrbitalDynamics.CampaignPlanner.CommandWindowOperationalFeedback do
       not is_nil(success_value(row, opts))
   end
 
+  def success_value(row), do: success_value(row, feedback_callbacks())
+
   def success_value(row, opts) when is_list(opts) do
+    opts = feedback_callbacks(opts)
     unit_interval_number_or_nil = Keyword.fetch!(opts, :unit_interval_number_or_nil)
     command_success_value = Keyword.fetch!(opts, :command_success_value)
 
@@ -119,6 +199,9 @@ defmodule OrbitalDynamics.CampaignPlanner.CommandWindowOperationalFeedback do
       _value -> command_success_value.(row)
     end
   end
+
+  def pressure_branch(row, source_path, index),
+    do: pressure_branch(row, source_path, index, default_pressure_callbacks())
 
   def pressure_branch(row, source_path, index, opts) when is_list(opts) do
     case pressure_event(row, source_path, opts) do
@@ -136,6 +219,9 @@ defmodule OrbitalDynamics.CampaignPlanner.CommandWindowOperationalFeedback do
         ]
     end
   end
+
+  def pressure_event(row, source_path),
+    do: pressure_event(row, source_path, default_pressure_callbacks())
 
   def pressure_event(row, source_path, opts) when is_list(opts) do
     realized_feedback_activity_id = Keyword.fetch!(opts, :realized_feedback_activity_id)
@@ -190,7 +276,10 @@ defmodule OrbitalDynamics.CampaignPlanner.CommandWindowOperationalFeedback do
     end
   end
 
+  def feedback_trust_boundaries(rows), do: feedback_trust_boundaries(rows, feedback_callbacks())
+
   def feedback_trust_boundaries(rows, opts) when is_list(opts) do
+    opts = feedback_callbacks(opts)
     realized_feedback_activity_id = Keyword.fetch!(opts, :realized_feedback_activity_id)
     put_feedback_trust_boundary = Keyword.fetch!(opts, :put_feedback_trust_boundary)
 
@@ -217,6 +306,43 @@ defmodule OrbitalDynamics.CampaignPlanner.CommandWindowOperationalFeedback do
       %{} = boundaries -> %{"command_success_rate" => boundaries}
       _boundaries -> nil
     end
+  end
+
+  defp feedback_callbacks(opts \\ []) do
+    [
+      command_activity?: &CommandActivityClassification.command?/1,
+      realized_feedback_activity_id: &RealizedFeedbackContext.activity_id/1,
+      unit_interval_number_or_nil: &FeedbackNumericValues.unit_interval_number_or_nil/1,
+      command_success_value: &RealizedActivitySuccessValues.command/1,
+      put_feedback_trust_boundary: &put_feedback_trust_boundary/4
+    ]
+    |> Keyword.merge(opts)
+  end
+
+  defp put_feedback_trust_boundary(boundaries, field, key, trust_boundaries) do
+    RealizedFeedbackTrustBoundaries.put_boundary(boundaries, field, key, trust_boundaries, [])
+  end
+
+  defp default_pressure_callbacks do
+    [
+      realized_feedback_activity_id: &RealizedFeedbackContext.activity_id/1,
+      activity_raw_start: &ActivityTiming.activity_raw_start/1,
+      activity_raw_end: &ActivityTiming.activity_raw_end/1,
+      clamp_unit_interval: &FeedbackNumericValues.clamp_unit_interval/1,
+      provider_result_artifact_value: &ProviderResultValues.artifact_value/1,
+      explicit_timeline_id: &RealizedFeedbackContext.explicit_timeline_id/1,
+      operator_review_trust_boundary: &operator_review_trust_boundary/1,
+      put_feedback_weight_fields: &put_feedback_weight_fields/2,
+      compact_map: &ValueEncoding.compact_map/1,
+      provider_result_values: &ProviderResultValues.values/1,
+      branch_id_fragment: &ValueEncoding.branch_id_fragment/1
+    ]
+  end
+
+  defp operator_review_trust_boundary(row) do
+    Map.get(row, "trust_boundary") ||
+      get_in(row, ["provenance", "trust_boundary"]) ||
+      row["_source_report_trust_boundary"]
   end
 
   defp feedback_trust_boundary(row) do

@@ -212,6 +212,54 @@ defmodule OrbitalDynamics.Schema.TimelinePreservationContracts do
     )
   end
 
+  def validate_optional_source_row(issues, _path, nil, _callbacks), do: issues
+
+  def validate_optional_source_row(issues, path, %{} = row, callbacks) when is_list(callbacks) do
+    issues
+    |> validate_stable_ids(callbacks, path, row, ["activity_id", "timeline_id"])
+    |> expect_optional_one_of(
+      callbacks,
+      path,
+      row,
+      "timeline_preservation_status",
+      ["clear", "preservation_required", "review_required"]
+    )
+    |> expect_optional_type(callbacks, path, row, "schema_contract", :binary)
+    |> expect_optional_type(callbacks, path, row, "model", :binary)
+    |> expect_optional_type(callbacks, path, row, "validation_level", :binary)
+    |> expect_optional_type(callbacks, path, row, "source", :binary)
+    |> expect_optional_type(callbacks, path, row, "activity_type", :binary)
+    |> expect_optional_type(callbacks, path, row, "status", :binary)
+    |> expect_optional_type(callbacks, path, row, "approval_status", :binary)
+    |> expect_optional_type(callbacks, path, row, "requires_preservation", :boolean)
+    |> expect_optional_type(callbacks, path, row, "requires_operator_review", :boolean)
+    |> expect_optional_type(callbacks, path, row, "protection_decision", :binary)
+    |> expect_optional_type(callbacks, path, row, "protection_category", :binary)
+    |> expect_optional_type(callbacks, path, row, "protection_reason", :binary)
+    |> expect_optional_type(callbacks, path, row, "reason", :binary)
+    |> expect_optional_type(callbacks, path, row, "locked", :boolean)
+    |> expect_optional_type(callbacks, path, row, "approved", :boolean)
+    |> expect_optional_type(callbacks, path, row, "executed", :boolean)
+    |> expect_optional_type(callbacks, path, row, "invalid_activity_input", :boolean)
+    |> expect_optional_type(callbacks, path, row, "invalid_activity_input_reason", :binary)
+    |> expect_optional_non_negative_integer(callbacks, path, row, "activity_count")
+    |> expect_optional_non_negative_integer(callbacks, path, row, "mutable_activity_count")
+    |> expect_optional_non_negative_integer(callbacks, path, row, "preserve_activity_count")
+    |> expect_optional_non_negative_integer(callbacks, path, row, "review_change_activity_count")
+    |> expect_optional_non_negative_integer(
+      callbacks,
+      path,
+      row,
+      "preservation_sensitive_activity_count"
+    )
+    |> validate_optional_timeline_identity(callbacks, path, row, "timeline_identity")
+    |> validate_optional_preservation_stable_id_lists(callbacks, path, row)
+  end
+
+  def validate_optional_source_row(issues, path, _row, callbacks) when is_list(callbacks) do
+    [error(callbacks, path, "must be an object") | issues]
+  end
+
   defp validate_report_id_sets(issues, callbacks, path, report) do
     issues
     |> expect_type(callbacks, path, report, "preserve_activity_ids", :list)
@@ -428,6 +476,26 @@ defmodule OrbitalDynamics.Schema.TimelinePreservationContracts do
     end
   end
 
+  defp validate_optional_preservation_stable_id_lists(issues, callbacks, path, row) do
+    Enum.reduce(timeline_preservation_source_stable_id_list_fields(), issues, fn field, acc ->
+      acc
+      |> expect_optional_type(callbacks, path, row, field, :list)
+      |> validate_optional_stable_id_list(callbacks, path, row, field)
+    end)
+  end
+
+  defp timeline_preservation_source_stable_id_list_fields do
+    [
+      "preserve_activity_ids",
+      "preserve_timeline_ids",
+      "review_change_activity_ids",
+      "review_change_timeline_ids",
+      "mutable_activity_ids",
+      "preservation_sensitive_activity_ids",
+      "preservation_sensitive_timeline_ids"
+    ]
+  end
+
   defp preservation_status_from_counts(_preserve_count, review_count) when review_count > 0,
     do: "review_required"
 
@@ -462,6 +530,16 @@ defmodule OrbitalDynamics.Schema.TimelinePreservationContracts do
   defp expect_one_of(issues, callbacks, path, map, field, values),
     do: apply(Keyword.fetch!(callbacks, :expect_one_of), [issues, path, map, field, values])
 
+  defp expect_optional_one_of(issues, callbacks, path, map, field, values) do
+    apply(Keyword.fetch!(callbacks, :expect_optional_one_of), [
+      issues,
+      path,
+      map,
+      field,
+      values
+    ])
+  end
+
   defp expect_type(issues, callbacks, path, map, field, type),
     do: apply(Keyword.fetch!(callbacks, :expect_type), [issues, path, map, field, type])
 
@@ -470,6 +548,15 @@ defmodule OrbitalDynamics.Schema.TimelinePreservationContracts do
 
   defp expect_non_negative_integer(issues, callbacks, path, map, field) do
     apply(Keyword.fetch!(callbacks, :expect_non_negative_integer), [issues, path, map, field])
+  end
+
+  defp expect_optional_non_negative_integer(issues, callbacks, path, map, field) do
+    apply(Keyword.fetch!(callbacks, :expect_optional_non_negative_integer), [
+      issues,
+      path,
+      map,
+      field
+    ])
   end
 
   defp expect_field_equals(issues, callbacks, path, map, field, expected, message) do
@@ -536,4 +623,7 @@ defmodule OrbitalDynamics.Schema.TimelinePreservationContracts do
 
   defp non_negative_integer_map_sum(callbacks, counts),
     do: apply(Keyword.fetch!(callbacks, :non_negative_integer_map_sum), [counts])
+
+  defp error(callbacks, path, message),
+    do: apply(Keyword.fetch!(callbacks, :error), [path, message])
 end

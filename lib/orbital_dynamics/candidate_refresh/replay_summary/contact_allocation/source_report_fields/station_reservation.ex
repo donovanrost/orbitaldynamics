@@ -1,100 +1,84 @@
 defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.SourceReportFields.StationReservation do
   @moduledoc false
 
-  alias OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.SourceReportFields.Aggregation
+  alias __MODULE__.Summary
 
-  import Aggregation
+  def match_status_counts(report) do
+    Summary.match_status_counts(report)
+  end
 
-  def source_report_station_reservation_fields(source_reports) do
-    %{
-      "source_report_contact_allocation_station_reservation_match_status_counts" =>
-        source_report_family_merge_count_maps(
-          source_reports,
-          "station_reservation_match_status_counts"
-        ),
-      "source_report_contact_allocation_station_reservation_contact_ids_by_match_status" =>
-        source_report_family_merge_string_list_maps(
-          source_reports,
-          "station_reservation_contact_ids_by_match_status"
-        ),
-      "source_report_contact_allocation_station_reservation_ids_by_match_status" =>
-        source_report_family_merge_string_list_maps(
-          source_reports,
-          "station_reservation_ids_by_match_status"
-        ),
-      "source_report_contact_allocation_station_reservation_status_counts" =>
-        source_report_family_merge_count_maps(
-          source_reports,
-          "station_reservation_status_counts"
-        ),
-      "source_report_contact_allocation_station_reserved_by_counts" =>
-        source_report_family_merge_count_maps(source_reports, "station_reserved_by_counts"),
-      "source_report_contact_allocation_station_reservation_ids" =>
-        source_report_family_merge_string_lists(source_reports, "station_reservation_ids"),
-      "source_report_contact_allocation_station_reservation_contact_ids_by_status" =>
-        source_report_family_merge_string_list_maps(
-          source_reports,
-          "station_reservation_contact_ids_by_status"
-        ),
-      "source_report_contact_allocation_station_reservation_contact_ids_by_reserved_by" =>
-        source_report_family_merge_string_list_maps(
-          source_reports,
-          "station_reservation_contact_ids_by_reserved_by"
-        ),
-      "source_report_contact_allocation_station_reservation_ids_by_status" =>
-        source_report_family_merge_string_list_maps(
-          source_reports,
-          "station_reservation_ids_by_status"
-        ),
-      "source_report_contact_allocation_station_reservation_ids_by_reserved_by" =>
-        source_report_family_merge_string_list_maps(
-          source_reports,
-          "station_reservation_ids_by_reserved_by"
-        ),
-      "source_report_contact_allocation_station_reservation_expires_at_s" =>
-        source_report_family_merge_numeric_lists(
-          source_reports,
-          "station_reservation_expires_at_s"
-        ),
-      "source_report_contact_allocation_station_reservation_expiration_now_s" =>
-        source_report_family_numeric_min(
-          source_reports,
-          "station_reservation_expiration_now_s"
-        ),
-      "source_report_contact_allocation_station_reservation_expiration_status_counts" =>
-        source_report_family_merge_count_maps(
-          source_reports,
-          "station_reservation_expiration_status_counts"
-        ),
-      "source_report_contact_allocation_station_reservation_active_contact_count" =>
-        source_report_family_count(source_reports, "station_reservation_active_contact_count"),
-      "source_report_contact_allocation_station_reservation_expired_contact_count" =>
-        source_report_family_count(source_reports, "station_reservation_expired_contact_count"),
-      "source_report_contact_allocation_station_reservation_declared_expiration_contact_count" =>
-        source_report_family_count(
-          source_reports,
-          "station_reservation_declared_expiration_contact_count"
-        ),
-      "source_report_contact_allocation_station_reservation_missing_expiration_contact_count" =>
-        source_report_family_count(
-          source_reports,
-          "station_reservation_missing_expiration_contact_count"
-        ),
-      "source_report_contact_allocation_earliest_station_reservation_expires_at_s" =>
-        source_report_family_numeric_min(
-          source_reports,
-          "earliest_station_reservation_expires_at_s"
-        ),
-      "source_report_contact_allocation_station_reservation_contact_ids_by_expiration_status" =>
-        source_report_family_merge_string_list_maps(
-          source_reports,
-          "station_reservation_contact_ids_by_expiration_status"
-        ),
-      "source_report_contact_allocation_station_reservation_ids_by_expiration_status" =>
-        source_report_family_merge_string_list_maps(
-          source_reports,
-          "station_reservation_ids_by_expiration_status"
-        )
-    }
+  def contact_ids_by_match_status(report) do
+    Summary.contact_ids_by_match_status(report)
+  end
+
+  def ids_by_match_status(report) do
+    Summary.ids_by_match_status(report)
+  end
+
+  def status_counts(report) do
+    Summary.status_counts(report)
+  end
+
+  def reserved_by_counts(report) do
+    Summary.reserved_by_counts(report)
+  end
+
+  def ids(report) do
+    Summary.ids(report)
+  end
+
+  def contact_ids_by_status(report) do
+    Summary.contact_ids_by_status(report)
+  end
+
+  def contact_ids_by_reserved_by(report) do
+    Summary.contact_ids_by_reserved_by(report)
+  end
+
+  def ids_by_status(report) do
+    Summary.ids_by_status(report)
+  end
+
+  def ids_by_reserved_by(report) do
+    Summary.ids_by_reserved_by(report)
+  end
+
+  def expires_at_s(report) do
+    Summary.expires_at_s(report)
+  end
+
+  def expiration_now_s(report),
+    do: Summary.expiration_now_s(report)
+
+  def expiration_status_counts(report) do
+    Summary.expiration_status_counts(report)
+  end
+
+  def active_contact_count(report) do
+    Summary.active_contact_count(report)
+  end
+
+  def expired_contact_count(report) do
+    Summary.expired_contact_count(report)
+  end
+
+  def declared_expiration_contact_count(report) do
+    Summary.declared_expiration_contact_count(report)
+  end
+
+  def missing_expiration_contact_count(report) do
+    Summary.missing_expiration_contact_count(report)
+  end
+
+  def earliest_expires_at_s(report) do
+    Summary.earliest_expires_at_s(report)
+  end
+
+  def contact_ids_by_expiration_status(report) do
+    Summary.contact_ids_by_expiration_status(report)
+  end
+
+  def ids_by_expiration_status(report) do
+    Summary.ids_by_expiration_status(report)
   end
 end

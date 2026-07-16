@@ -1,6 +1,47 @@
 defmodule OrbitalDynamics.Schema.ValidationJsonSchema do
   @moduledoc false
 
+  @reference_fixture_report_fields [
+    "reports",
+    "schema_contract",
+    "status",
+    "fixture_count",
+    "status_counts"
+  ]
+
+  @reference_report_fields [
+    "checks",
+    "schema_contract",
+    "fixture_id",
+    "model_id",
+    "status_counts",
+    "status",
+    "validation_level"
+  ]
+
+  @record_fields [
+    "validation_level",
+    "schema_contract",
+    "id",
+    "model",
+    "implementation",
+    "covered_regime",
+    "evidence",
+    "known_limits",
+    "tolerances"
+  ]
+
+  @check_fields [
+    "schema_contract",
+    "expected",
+    "observed",
+    "field",
+    "tolerance",
+    "error",
+    "max_abs_error",
+    "status"
+  ]
+
   def execution_failure(stable_id_pattern) do
     %{
       "type" => "object",
@@ -261,6 +302,57 @@ defmodule OrbitalDynamics.Schema.ValidationJsonSchema do
     }
   end
 
+  def reference_fixture_report_property_field?(field)
+      when field in @reference_fixture_report_fields,
+      do: true
+
+  def reference_fixture_report_property_field?(_field), do: false
+
+  def reference_report_property_field?(field) when field in @reference_report_fields, do: true
+  def reference_report_property_field?(_field), do: false
+
+  def record_property_field?(field) when field in @record_fields, do: true
+  def record_property_field?(_field), do: false
+
+  def check_property_field?(field) when field in @check_fields, do: true
+  def check_property_field?(_field), do: false
+
+  def reference_fixture_report_property_fun_from_context(deps) when is_list(deps) do
+    fn field ->
+      reference_fixture_report_property(field,
+        schema_contract: fetch_dep!(deps, :schema_contract),
+        reference_report_schema: fetch_dep!(deps, :reference_report_schema)
+      )
+    end
+  end
+
+  def reference_report_property_fun_from_context(deps) when is_list(deps) do
+    fn field ->
+      reference_report_property(field,
+        schema_contract: fetch_dep!(deps, :schema_contract),
+        stable_id_pattern: fetch_dep!(deps, :stable_id_pattern),
+        validation_check_schema: fetch_dep!(deps, :validation_check_schema),
+        validation_level_schema: fetch_dep!(deps, :validation_level_schema)
+      )
+    end
+  end
+
+  def record_property_fun_from_context(deps) when is_list(deps) do
+    fn field ->
+      record_property(field,
+        schema_contract: fetch_dep!(deps, :schema_contract),
+        stable_id_pattern: fetch_dep!(deps, :stable_id_pattern),
+        validation_level_schema: fetch_dep!(deps, :validation_level_schema)
+      )
+    end
+  end
+
+  def check_property_fun_from_context(deps) when is_list(deps) do
+    fn field ->
+      check_property(field, schema_contract: fetch_dep!(deps, :schema_contract))
+    end
+  end
+
   def reference_fixture_report_property("reports", opts) do
     %{
       "type" => "array",
@@ -418,5 +510,12 @@ defmodule OrbitalDynamics.Schema.ValidationJsonSchema do
 
   defp string_array_schema do
     %{"type" => "array", "items" => %{"type" => "string"}}
+  end
+
+  defp fetch_dep!(deps, key) do
+    case Keyword.fetch!(deps, key) do
+      fun when is_function(fun, 0) -> fun.()
+      value -> value
+    end
   end
 end

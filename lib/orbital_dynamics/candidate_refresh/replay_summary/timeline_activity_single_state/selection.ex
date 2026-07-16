@@ -1,13 +1,40 @@
 defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelineActivitySingleState.Selection do
   @moduledoc false
 
-  def summary_for_replay(refresh_or_artifact, family, contract, source_model, callbacks) do
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.InputProvenance
+
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.TimelineActivityState,
+    as: SourceTimelineActivityState
+
+  alias OrbitalDynamics.CandidateRefresh.{
+    ResultArtifactTrustBoundary,
+    SourceReports
+  }
+
+  def summary_for_replay(
+        refresh_or_artifact,
+        family,
+        contract,
+        source_model,
+        source_report_summary
+      ) do
     {state_summary, branch_summary?} =
       refresh_or_artifact
-      |> direct_state_summary(contract, source_model, callbacks)
+      |> direct_state_summary(
+        contract,
+        source_model
+      )
       |> case do
-        nil -> summary_from_source_reports(refresh_or_artifact, contract, callbacks)
-        summary -> {summary, false}
+        nil ->
+          summary_from_source_reports(
+            refresh_or_artifact,
+            contract,
+            source_report_summary
+          )
+
+        summary ->
+          {summary, false}
       end
       |> case do
         nil -> {%{}, false}
@@ -23,11 +50,13 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelineActivitySingleS
         refresh_or_artifact,
         source_reports,
         contract,
-        source_model,
-        callbacks
+        source_model
       ) do
     refresh_or_artifact
-    |> direct_state_summary(contract, source_model, callbacks)
+    |> direct_state_summary(
+      contract,
+      source_model
+    )
     |> case do
       nil ->
         source_reports
@@ -53,15 +82,14 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelineActivitySingleS
     }
   end
 
-  defp summary_from_source_reports(refresh_or_artifact, contract, callbacks) do
-    source_report_summary_branch_family =
-      Keyword.fetch!(callbacks, :source_report_summary_branch_family)
-
-    source_report_summary = Keyword.fetch!(callbacks, :source_report_summary)
-
+  defp summary_from_source_reports(
+         refresh_or_artifact,
+         contract,
+         source_report_summary
+       ) do
     branch_state_summary =
       refresh_or_artifact
-      |> source_report_summary_branch_family.("timeline_activity_state")
+      |> source_report_summary_branch_family()
       |> summary_matching_contract(contract)
 
     if branch_state_summary do
@@ -81,18 +109,25 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelineActivitySingleS
     end
   end
 
-  defp direct_state_summary(refresh_or_artifact, contract, source_model, callbacks) do
-    source_timeline_activity_states = Keyword.fetch!(callbacks, :source_timeline_activity_states)
-
-    source_timeline_activity_state_input_summary =
-      Keyword.fetch!(callbacks, :source_timeline_activity_state_input_summary)
-
+  defp direct_state_summary(
+         refresh_or_artifact,
+         contract,
+         source_model
+       ) do
     refresh_or_artifact
-    |> source_timeline_activity_states.()
+    |> source_timeline_activity_states()
     |> Enum.filter(fn {_path, state} ->
       Map.get(state, "schema_contract") == contract or Map.get(state, "model") == source_model
     end)
-    |> source_timeline_activity_state_input_summary.()
+    |> SourceTimelineActivityState.report_input_summary()
+  end
+
+  defp source_timeline_activity_states(refresh) do
+    SourceReports.TimelineActivityStateCollection.reports(
+      refresh,
+      &SourceReports.ResultArtifactCollection.reports/1,
+      &ResultArtifactTrustBoundary.inherit/2
+    )
   end
 
   defp summary_matching_contract(state_summary, contract) do
@@ -108,5 +143,13 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelineActivitySingleS
       true ->
         nil
     end
+  end
+
+  defp source_report_summary_branch_family(refresh_or_artifact) do
+    SourceReportSummary.branch_family(
+      refresh_or_artifact,
+      "timeline_activity_state",
+      &InputProvenance.build/1
+    )
   end
 end

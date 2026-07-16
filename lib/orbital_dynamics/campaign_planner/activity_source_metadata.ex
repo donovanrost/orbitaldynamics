@@ -1,7 +1,13 @@
 defmodule OrbitalDynamics.CampaignPlanner.ActivitySourceMetadata do
   @moduledoc false
 
-  def metadata(rows_with_sources, source_report_contract, opts) do
+  alias OrbitalDynamics.CampaignPlanner.{
+    OperationalTimelineFeedbackTrustBoundaries,
+    RealizedFeedbackTrustBoundaries,
+    RealizedFeedbackWeights
+  }
+
+  def metadata(rows_with_sources, source_report_contract, opts \\ default_callbacks()) do
     callbacks = callbacks!(opts)
     {rows, source_paths} = rows_and_source_paths(rows_with_sources)
 
@@ -32,7 +38,7 @@ defmodule OrbitalDynamics.CampaignPlanner.ActivitySourceMetadata do
     |> compact_map()
   end
 
-  def realized_metadata(rows_with_sources, opts) do
+  def realized_metadata(rows_with_sources, opts \\ realized_default_callbacks()) do
     callbacks = realized_callbacks!(opts)
     {rows, source_paths} = rows_and_source_paths(rows_with_sources)
 
@@ -88,6 +94,30 @@ defmodule OrbitalDynamics.CampaignPlanner.ActivitySourceMetadata do
       trust_boundaries: Keyword.fetch!(opts, :trust_boundaries),
       feedback_trust_boundaries: Keyword.fetch!(opts, :feedback_trust_boundaries)
     }
+  end
+
+  defp realized_default_callbacks do
+    [
+      weighted_feedback_row_count: &RealizedFeedbackWeights.weighted_row_count/1,
+      feedback_weight_sources: &RealizedFeedbackWeights.sources/1,
+      trust_boundaries: &realized_activity_source_trust_boundaries/1,
+      feedback_trust_boundaries: &RealizedFeedbackTrustBoundaries.feedback_boundaries/1
+    ]
+  end
+
+  defp default_callbacks do
+    [
+      weighted_feedback_row_count: &RealizedFeedbackWeights.weighted_row_count/1,
+      feedback_weight_sources: &RealizedFeedbackWeights.sources/1,
+      feedback_trust_boundaries: &OperationalTimelineFeedbackTrustBoundaries.feedback_boundaries/1
+    ]
+  end
+
+  defp realized_activity_source_trust_boundaries(rows) do
+    rows
+    |> Enum.flat_map(&RealizedFeedbackTrustBoundaries.activity_boundaries/1)
+    |> Enum.uniq()
+    |> Enum.sort()
   end
 
   defp count_present_values(rows, fields) when is_list(fields) do

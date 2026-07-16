@@ -1,6 +1,8 @@
 defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelineTransitionApplication.Summary.SourceRows do
   @moduledoc false
 
+  alias OrbitalDynamics.CandidateRefresh.ValueEncoding
+
   def source_row_count(report) do
     cond do
       summary_source?(report) ->
@@ -49,14 +51,5 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelineTransitionAppli
     end
   end
 
-  defp numeric_value(value) when is_number(value), do: value * 1.0
-
-  defp numeric_value(value) when is_binary(value) do
-    case Float.parse(String.trim(value)) do
-      {number, ""} -> number
-      _parse -> nil
-    end
-  end
-
-  defp numeric_value(_value), do: nil
+  defp numeric_value(value), do: ValueEncoding.numeric_value(value)
 end

@@ -35,6 +35,61 @@ defmodule OrbitalDynamics.Schema.ResourceFilterSummaryJsonSchema do
     "suppressed_candidate_ids_by_resource_trust_boundary_status"
   ]
 
+  def property_field?(field)
+      when field in [
+             "schema_contract",
+             "model",
+             "source_artifact_type",
+             "model_limits",
+             "suppression_review_status",
+             "assumptions",
+             "review_rows",
+             "invalid_resource_summary_inputs"
+           ],
+      do: true
+
+  def property_field?(field)
+      when field in @count_fields or field in @count_map_fields or
+             field in @stable_id_array_fields or field in @stable_id_array_map_fields,
+      do: true
+
+  def property_field?(_field), do: false
+
+  def property_opts("schema_contract", deps) do
+    [schema_contract: fetch_dep!(deps, :schema_contract)]
+  end
+
+  def property_opts("source_artifact_type", deps) do
+    [source_artifact_type: fetch_dep!(deps, :source_artifact_type)]
+  end
+
+  def property_opts("model_limits", deps) do
+    [model_limits: fetch_dep!(deps, :model_limits)]
+  end
+
+  def property_opts("assumptions", deps) do
+    [assumptions_schema: fetch_dep!(deps, :assumptions_schema)]
+  end
+
+  def property_opts("review_rows", deps) do
+    [suppressed_candidate_schema: fetch_dep!(deps, :suppressed_candidate_schema)]
+  end
+
+  def property_opts(field, deps)
+      when field in @stable_id_array_fields or field in @stable_id_array_map_fields do
+    [stable_id_pattern: fetch_dep!(deps, :stable_id_pattern)]
+  end
+
+  def property_opts(_field, _deps), do: []
+
+  def property_from_context(field, deps) when is_list(deps) do
+    property(field, property_opts(field, deps))
+  end
+
+  def property_fun_from_context(deps) when is_list(deps) do
+    fn field -> property_from_context(field, deps) end
+  end
+
   def property("schema_contract", opts) do
     %{"type" => "string", "const" => Keyword.fetch!(opts, :schema_contract)}
   end
@@ -94,5 +149,12 @@ defmodule OrbitalDynamics.Schema.ResourceFilterSummaryJsonSchema do
     opts
     |> Keyword.fetch!(:stable_id_pattern)
     |> CommonJsonSchema.stable_id_array_map()
+  end
+
+  defp fetch_dep!(deps, key) do
+    case Keyword.fetch!(deps, key) do
+      fun when is_function(fun, 0) -> fun.()
+      value -> value
+    end
   end
 end

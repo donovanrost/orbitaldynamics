@@ -1,7 +1,9 @@
 defmodule OrbitalDynamics.CampaignPlanner.ContactAllocationReportPressureBranches do
   @moduledoc false
 
-  def build(reports, callbacks) do
+  alias OrbitalDynamics.CampaignPlanner.{ContactAllocationPressureFanout, ValueEncoding}
+
+  def build(reports, callbacks \\ default_callbacks()) do
     stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
     pressure_branch = Keyword.fetch!(callbacks, :pressure_branch)
 
@@ -18,5 +20,12 @@ defmodule OrbitalDynamics.CampaignPlanner.ContactAllocationReportPressureBranche
         |> pressure_branch.(source_path)
       end)
     end)
+  end
+
+  defp default_callbacks do
+    [
+      pressure_branch: &ContactAllocationPressureFanout.branches/2,
+      stringify_keys: &ValueEncoding.stringify_keys/1
+    ]
   end
 end

@@ -1,6 +1,8 @@
 defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelineLifecycleState.SourceReportFields.Flattened.Aggregates do
   @moduledoc false
 
+  alias OrbitalDynamics.CandidateRefresh.ValueEncoding
+
   def family_count(source_reports, field) do
     if Map.has_key?(source_reports, "timeline_lifecycle_state_summary") do
       source_reports
@@ -109,16 +111,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelineLifecycleState.
     end
   end
 
-  defp numeric_value(value) when is_number(value), do: value * 1.0
-
-  defp numeric_value(value) when is_binary(value) do
-    case Float.parse(String.trim(value)) do
-      {number, ""} -> number
-      _parse -> nil
-    end
-  end
-
-  defp numeric_value(_value), do: nil
+  defp numeric_value(value), do: ValueEncoding.numeric_value(value)
 
   defp sorted_non_empty_values(values) do
     values

@@ -1,6 +1,11 @@
 defmodule OrbitalDynamics.CampaignPlanner.RefreshSourceReports do
   @moduledoc false
 
+  alias __MODULE__.PressureRows
+  alias OrbitalDynamics.CampaignPlanner.{BranchRefreshSourceInputs, SourceReportArtifacts}
+
+  def freshness_reports(mission_state), do: freshness_reports(mission_state, default_callbacks())
+
   def freshness_reports(mission_state, opts) do
     source_reports(
       mission_state,
@@ -14,6 +19,9 @@ defmodule OrbitalDynamics.CampaignPlanner.RefreshSourceReports do
       result_artifact_embedded_reports(mission_state, "freshness_report", opts)
   end
 
+  def source_freshness_reports(mission_state),
+    do: source_freshness_reports(mission_state, default_callbacks())
+
   def source_freshness_reports(mission_state, opts) do
     source_reports(
       mission_state,
@@ -24,6 +32,9 @@ defmodule OrbitalDynamics.CampaignPlanner.RefreshSourceReports do
     )
   end
 
+  def canonical_freshness_reports(mission_state),
+    do: canonical_freshness_reports(mission_state, default_callbacks())
+
   def canonical_freshness_reports(mission_state, opts) do
     source_reports(
       mission_state,
@@ -33,6 +44,9 @@ defmodule OrbitalDynamics.CampaignPlanner.RefreshSourceReports do
       opts
     )
   end
+
+  def refresh_budget_reports(mission_state),
+    do: refresh_budget_reports(mission_state, default_callbacks())
 
   def refresh_budget_reports(mission_state, opts) do
     source_reports(
@@ -47,6 +61,9 @@ defmodule OrbitalDynamics.CampaignPlanner.RefreshSourceReports do
       result_artifact_embedded_reports(mission_state, "refresh_budget_report", opts)
   end
 
+  def source_refresh_budget_reports(mission_state),
+    do: source_refresh_budget_reports(mission_state, default_callbacks())
+
   def source_refresh_budget_reports(mission_state, opts) do
     source_reports(
       mission_state,
@@ -57,6 +74,9 @@ defmodule OrbitalDynamics.CampaignPlanner.RefreshSourceReports do
     )
   end
 
+  def canonical_refresh_budget_reports(mission_state),
+    do: canonical_refresh_budget_reports(mission_state, default_callbacks())
+
   def canonical_refresh_budget_reports(mission_state, opts) do
     source_reports(
       mission_state,
@@ -65,6 +85,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RefreshSourceReports do
       ],
       opts
     )
+  end
+
+  def refresh_reports(mission_state, report_key) do
+    refresh_reports(mission_state, report_key, default_callbacks())
   end
 
   def refresh_reports(mission_state, "source_freshness_report", opts) do
@@ -83,37 +107,45 @@ defmodule OrbitalDynamics.CampaignPlanner.RefreshSourceReports do
     canonical_refresh_budget_reports(mission_state, opts)
   end
 
-  def pressure_rows(reports) do
-    reports
-    |> Enum.with_index(1)
-    |> Enum.map(fn {{report, source_path}, index} ->
-      trust_boundary =
-        Map.get(report, "trust_boundary") || get_in(report, ["provenance", "trust_boundary"])
-
-      {Map.put(report, "_source_report_trust_boundary", trust_boundary), source_path, index}
+  def candidate_refresh_source_inputs(mission_state) do
+    Map.new(candidate_refresh_source_input_collectors(), fn {key, collector} ->
+      {key, BranchRefreshSourceInputs.source_reports_or_reports(mission_state, collector)}
     end)
   end
 
-  defp source_reports(mission_state, fields, opts) do
-    callbacks = callbacks!(opts)
-    mission_state = stringify_keys(mission_state || %{})
+  def pressure_rows(reports) do
+    PressureRows.pressure_rows(reports)
+  end
 
-    fields
-    |> Enum.flat_map(fn {field, source_path} ->
-      callbacks.source_report_entries.(Map.get(mission_state, field), source_path)
-    end)
+  defp candidate_refresh_source_input_collectors,
+    do: [
+      {"source_freshness_report", &refresh_reports(&1, "source_freshness_report")},
+      {"freshness_report", &refresh_reports(&1, "freshness_report")},
+      {"source_refresh_budget_report", &refresh_reports(&1, "source_refresh_budget_report")},
+      {"refresh_budget_report", &refresh_reports(&1, "refresh_budget_report")}
+    ]
+
+  defp source_reports(mission_state, fields, opts) do
+    SourceReportArtifacts.source_reports(mission_state, fields, opts, &stringify_keys/1)
   end
 
   defp result_artifact_embedded_reports(mission_state, report_key, opts) do
-    callbacks = callbacks!(opts)
-    callbacks.result_artifact_embedded_reports.(mission_state, report_key)
+    SourceReportArtifacts.embedded_reports(mission_state, report_key, opts)
   end
 
-  defp callbacks!(opts) do
-    %{
-      source_report_entries: Keyword.fetch!(opts, :source_report_entries),
-      result_artifact_embedded_reports: Keyword.fetch!(opts, :result_artifact_embedded_reports)
-    }
+  defp default_callbacks do
+    [
+      source_report_entries: &BranchRefreshSourceInputs.source_report_entries/2,
+      result_artifact_embedded_reports: &mission_state_result_artifact_embedded_reports/2
+    ]
+  end
+
+  defp mission_state_result_artifact_embedded_reports(mission_state, report_keys) do
+    BranchRefreshSourceInputs.result_artifact_embedded_reports(
+      mission_state,
+      "mission_state",
+      report_keys
+    )
   end
 
   defp stringify_keys(%_struct{} = struct), do: struct |> Map.from_struct() |> stringify_keys()

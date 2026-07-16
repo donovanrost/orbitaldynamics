@@ -1,12 +1,10 @@
 defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.Constraint do
   @moduledoc false
 
-  alias __MODULE__.SourceReportFields
   alias __MODULE__.Summary
 
-  def replay(refresh_or_artifact, callbacks) do
-    source_report_summary = Keyword.fetch!(callbacks, :source_report_summary)
-
+  def replay(refresh_or_artifact, source_report_summary)
+      when is_function(source_report_summary, 1) do
     constraint_summary =
       refresh_or_artifact
       |> source_report_summary.()
@@ -22,17 +20,5 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.Constraint do
 
   def summary(constraint_summary, summary_source, replay_scope) do
     Summary.summary(constraint_summary, summary_source, replay_scope)
-  end
-
-  def source_report_fields(source_reports) do
-    summary =
-      source_reports
-      |> Map.get("constraint_report", %{})
-      |> summary(
-        "candidate_refresh.source_report_provenance.constraint_report",
-        "constraint_source_report_provenance_only"
-      )
-
-    SourceReportFields.source_report_fields(source_reports, summary)
   end
 end

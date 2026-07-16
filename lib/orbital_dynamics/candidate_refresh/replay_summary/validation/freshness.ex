@@ -1,17 +1,19 @@
 defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.Validation.Freshness do
   @moduledoc false
 
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.InputProvenance
   alias OrbitalDynamics.CandidateRefresh.ReplaySummary.Validation.Common
-  alias OrbitalDynamics.CandidateRefresh.ReplaySummary.Validation.SourceReportFields
 
-  def from_refresh(refresh_or_artifact, callbacks) do
-    source_report_summary = Keyword.fetch!(callbacks, :source_report_summary)
+  alias OrbitalDynamics.CandidateRefresh.ReplaySummary.Validation.SourceReportFields.Freshness,
+    as: SourceReportFields
 
-    source_report_summary_branch_family =
-      Keyword.fetch!(callbacks, :source_report_summary_branch_family)
-
-    branch_freshness_summary =
-      source_report_summary_branch_family.(refresh_or_artifact, "freshness_report")
+  def from_refresh(
+        refresh_or_artifact,
+        source_report_summary
+      )
+      when is_function(source_report_summary, 1) do
+    branch_freshness_summary = source_report_summary_branch_family(refresh_or_artifact)
 
     freshness_summary =
       branch_freshness_summary ||
@@ -25,12 +27,11 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.Validation.Freshness do
     summary(freshness_summary, summary_source, replay_scope)
   end
 
-  def source_report_fields(refresh_or_artifact, source_reports, callbacks) do
-    source_report_summary_branch_family =
-      Keyword.fetch!(callbacks, :source_report_summary_branch_family)
-
-    branch_freshness_summary =
-      source_report_summary_branch_family.(refresh_or_artifact, "freshness_report")
+  def source_report_fields(
+        refresh_or_artifact,
+        source_reports
+      ) do
+    branch_freshness_summary = source_report_summary_branch_family(refresh_or_artifact)
 
     freshness_summary =
       branch_freshness_summary || Map.get(source_reports, "freshness_report", %{})
@@ -47,7 +48,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.Validation.Freshness do
       "source_report_freshness_branch_local_freshness_pressure" =>
         Map.get(summary, "branch_local_freshness_pressure")
     }
-    |> Map.merge(SourceReportFields.freshness_fields(source_reports))
+    |> Map.merge(SourceReportFields.fields(source_reports))
   end
 
   def summary(freshness_summary, summary_source, replay_scope) do
@@ -114,5 +115,13 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.Validation.Freshness do
         "freshness_source_report_provenance_only"
       }
     end
+  end
+
+  defp source_report_summary_branch_family(refresh_or_artifact) do
+    SourceReportSummary.branch_family(
+      refresh_or_artifact,
+      "freshness_report",
+      &InputProvenance.build/1
+    )
   end
 end

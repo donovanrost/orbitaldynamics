@@ -72,7 +72,11 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactIntent.Summary d
     directions = Map.get(intent_summary, "directions", [])
     direction_counts = Map.get(intent_summary, "direction_counts", %{})
     contact_ids_by_direction = Map.get(intent_summary, "contact_ids_by_direction", %{})
-    direction_routing = Map.get(intent_summary, "direction_routing", %{})
+
+    direction_routing =
+      intent_summary
+      |> Map.get("direction_routing", %{})
+      |> normalize_direction_routing()
 
     pressure_fields =
       Pressure.fields(%{
@@ -144,5 +148,32 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactIntent.Summary d
     }
     |> Map.merge(pressure_fields)
     |> compact_map()
+  end
+
+  defp normalize_direction_routing(%{} = direction_routing) do
+    Map.new(direction_routing, fn {direction, route} ->
+      {direction, normalize_direction_route(route)}
+    end)
+  end
+
+  defp normalize_direction_routing(_direction_routing), do: %{}
+
+  defp normalize_direction_route(%{} = route) do
+    route
+    |> normalize_list_field("contact_ids")
+    |> normalize_list_field("capacity_pack_contact_ids")
+    |> normalize_list_field("ground_station_ids")
+  end
+
+  defp normalize_direction_route(route), do: route
+
+  defp normalize_list_field(route, field) when not is_map_key(route, field), do: route
+
+  defp normalize_list_field(route, field) do
+    Map.update!(route, field, fn
+      %{} = empty_map when map_size(empty_map) == 0 -> []
+      values when is_list(values) -> values
+      value -> value
+    end)
   end
 end

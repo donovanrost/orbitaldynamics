@@ -52,6 +52,106 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityReportJsonSchema do
     "review_timeline_ids_by_operator_action_reason"
   ]
 
+  @property_fields [
+    "schema_contract",
+    "model",
+    "validation_level",
+    "source",
+    "timeline_integrity_status",
+    "timeline_integrity_issue_types",
+    "rows",
+    "assumptions",
+    "model_limits",
+    "id",
+    "provenance"
+    | @count_fields ++ @count_map_fields ++ @stable_id_array_fields ++ @stable_id_array_map_fields
+  ]
+
+  def property_field?(field) when field in @property_fields, do: true
+  def property_field?(_field), do: false
+
+  def property_from_context(
+        field,
+        row_schema,
+        schema_contract,
+        stable_id_pattern,
+        timeline_integrity_issue_types,
+        stable_id_array_schema,
+        stable_id_array_map_schema,
+        model_limits
+      ) do
+    deps = [
+      row_schema: row_schema,
+      schema_contract: schema_contract,
+      stable_id_pattern: stable_id_pattern,
+      timeline_integrity_issue_types: timeline_integrity_issue_types,
+      stable_id_array_schema: stable_id_array_schema,
+      stable_id_array_map_schema: stable_id_array_map_schema,
+      model_limits: model_limits
+    ]
+
+    property(field, property_opts(field, deps))
+  end
+
+  def property_fun_from_context(
+        row_schema,
+        schema_contract,
+        stable_id_pattern,
+        timeline_integrity_issue_types,
+        stable_id_array_schema,
+        stable_id_array_map_schema,
+        model_limits
+      ) do
+    fn field ->
+      property_from_context(
+        field,
+        row_schema,
+        schema_contract,
+        stable_id_pattern,
+        timeline_integrity_issue_types,
+        stable_id_array_schema,
+        stable_id_array_map_schema,
+        model_limits
+      )
+    end
+  end
+
+  def property_fun_from_context(deps) when is_list(deps) do
+    fn field ->
+      property(field, property_opts(field, deps))
+    end
+  end
+
+  def property_opts("rows", deps) do
+    [row_schema: fetch_dep!(deps, :row_schema)]
+  end
+
+  def property_opts("id", deps) do
+    [stable_id_pattern: fetch_dep!(deps, :stable_id_pattern)]
+  end
+
+  def property_opts("schema_contract", deps) do
+    [schema_contract: fetch_dep!(deps, :schema_contract)]
+  end
+
+  def property_opts("timeline_integrity_issue_types", deps) do
+    [timeline_integrity_issue_types: fetch_dep!(deps, :timeline_integrity_issue_types)]
+  end
+
+  def property_opts(field, deps) when field in @stable_id_array_fields do
+    [stable_id_array_schema: fetch_dep!(deps, :stable_id_array_schema)]
+  end
+
+  def property_opts(field, deps) when field in @stable_id_array_map_fields do
+    [stable_id_array_map_schema: fetch_dep!(deps, :stable_id_array_map_schema)]
+  end
+
+  def property_opts("model_limits", deps) do
+    [model_limits: fetch_dep!(deps, :model_limits)]
+  end
+
+  def property_opts(_field, _deps), do: []
+
   def property("rows", opts) do
     %{
       "type" => "array",
@@ -125,5 +225,12 @@ defmodule OrbitalDynamics.Schema.TimelineIntegrityReportJsonSchema do
       "const" => model_limits,
       "items" => %{"type" => "string", "enum" => model_limits}
     }
+  end
+
+  defp fetch_dep!(deps, key) do
+    case Keyword.fetch!(deps, key) do
+      fun when is_function(fun, 0) -> fun.()
+      value -> value
+    end
   end
 end

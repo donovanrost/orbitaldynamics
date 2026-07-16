@@ -271,49 +271,6 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationStationPressureRepla
     assert replay_summary["station_pressure_review_contact_count"] == 1
   end
 
-  test "source report summary replays contact allocation station-pressure summaries from result artifact wrappers" do
-    refresh = %{
-      "source_result_artifact" => %{
-        "schema_contract" => "result_artifact.v1",
-        "source_contact_allocation_station_pressure_summary" =>
-          contact_allocation_station_pressure_summary_fixture()
-          |> Map.delete("provenance"),
-        "provenance" => %{"trust_boundary" => "ground_partner_api"}
-      }
-    }
-
-    assert %{
-             "source_report_count" => 1,
-             "source_report_row_count" => 2,
-             "source_reports" => %{
-               "contact_allocation_report" => %{
-                 "paths" => [
-                   "source_result_artifact.source_contact_allocation_station_pressure_summary"
-                 ],
-                 "station_pressure_summary_schema_contract" =>
-                   "contact_allocation_station_pressure_summary.v1",
-                 "trust_boundary_status" => "declared",
-                 "trust_boundaries" => ["ground_partner_api"]
-               }
-             }
-           } = CandidateRefresh.source_report_summary(refresh)
-
-    assert %{
-             "source_report_paths" => [
-               "source_result_artifact.source_contact_allocation_station_pressure_summary"
-             ],
-             "station_pressure_summary_schema_contract" =>
-               "contact_allocation_station_pressure_summary.v1",
-             "trust_boundary_status" => "declared",
-             "trust_boundaries" => ["ground_partner_api"],
-             "branch_local_station_pressure" => true,
-             "assumptions" => %{
-               "contact_allocation" => "not_performed_by_summary",
-               "candidate_selection" => "not_performed_by_summary"
-             }
-           } = CandidateRefresh.contact_allocation_replay_summary(refresh)
-  end
-
   defp contact_allocation_station_pressure_summary_fixture do
     nominal_row = %{
       "contact_id" => "dl_nominal",

@@ -18,6 +18,53 @@ defmodule OrbitalDynamics.Schema.ProviderCounterofferPlanImpactSummaryJsonSchema
     "cost_delta_counteroffer_ids"
   ]
 
+  def property_opts(field, deps) when field in ["rows", "impact_rows"] do
+    [row_schema: fetch_dep!(deps, :row_schema)]
+  end
+
+  def property_opts("plan_impact_status", deps) do
+    [plan_impact_statuses: fetch_dep!(deps, :plan_impact_statuses)]
+  end
+
+  def property_opts("counteroffer_lock_deadline_status_counts", deps) do
+    [lock_deadline_statuses: fetch_dep!(deps, :lock_deadline_statuses)]
+  end
+
+  def property_opts(field, deps)
+      when field in @stable_id_array_fields or
+             field == "counteroffer_ids_by_lock_deadline_status" do
+    [stable_id_pattern: fetch_dep!(deps, :stable_id_pattern)]
+  end
+
+  def property_opts(_field, _deps), do: []
+
+  def property_field?(field)
+      when field in @count_fields or field in @stable_id_array_fields or
+             field in [
+               "rows",
+               "impact_rows",
+               "model",
+               "source_artifact_type",
+               "source_counteroffer_artifact_type",
+               "counteroffer_cost_delta_total",
+               "plan_impact_status",
+               "counteroffer_lock_deadline_status_counts",
+               "counteroffer_ids_by_lock_deadline_status"
+             ],
+      do: true
+
+  def property_field?(_field), do: false
+
+  def property_from_context(field, deps) when is_list(deps) do
+    property(field, property_opts(field, deps))
+  end
+
+  def property_fun_from_context(deps) when is_list(deps) do
+    fn field ->
+      property_from_context(field, deps)
+    end
+  end
+
   def property(field, opts) when field in ["rows", "impact_rows"] do
     %{"type" => "array", "items" => Keyword.fetch!(opts, :row_schema)}
   end
@@ -65,5 +112,12 @@ defmodule OrbitalDynamics.Schema.ProviderCounterofferPlanImpactSummaryJsonSchema
     opts
     |> Keyword.fetch!(:stable_id_pattern)
     |> CommonJsonSchema.stable_id_array_map()
+  end
+
+  defp fetch_dep!(deps, key) do
+    case Keyword.fetch!(deps, key) do
+      fun when is_function(fun, 0) -> fun.()
+      value -> value
+    end
   end
 end

@@ -1,6 +1,8 @@
 defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.StationReservation.Summary.ReservationHold do
   @moduledoc false
 
+  alias OrbitalDynamics.CandidateRefresh.ValueEncoding
+
   def fields(reservation_summary) do
     %{
       "reservation_hold_count" =>
@@ -129,14 +131,5 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.StationReservation.Summ
     end
   end
 
-  defp numeric_value(value) when is_number(value), do: value * 1.0
-
-  defp numeric_value(value) when is_binary(value) do
-    case Float.parse(String.trim(value)) do
-      {number, ""} -> number
-      _error -> nil
-    end
-  end
-
-  defp numeric_value(_value), do: nil
+  defp numeric_value(value), do: ValueEncoding.numeric_value(value)
 end

@@ -1,103 +1,85 @@
 defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.SourceReportFields.ProviderReservation do
   @moduledoc false
 
-  alias OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.SourceReportFields.Aggregation
+  alias __MODULE__.RequestSummary
 
-  import Aggregation
+  def candidate_contact_count(report) do
+    RequestSummary.candidate_contact_count(report)
+  end
 
-  def source_report_provider_reservation_fields(source_reports) do
-    %{
-      "source_report_contact_allocation_provider_reservation_candidate_contact_count" =>
-        source_report_family_count(source_reports, "provider_reservation_candidate_contact_count"),
-      "source_report_contact_allocation_provider_reservation_request_contact_count" =>
-        source_report_family_count(source_reports, "provider_reservation_request_contact_count"),
-      "source_report_contact_allocation_provider_reservation_review_contact_count" =>
-        source_report_family_count(source_reports, "provider_reservation_review_contact_count"),
-      "source_report_contact_allocation_provider_reservation_no_request_contact_count" =>
-        source_report_family_count(
-          source_reports,
-          "provider_reservation_no_request_contact_count"
-        ),
-      "source_report_contact_allocation_provider_reservation_request_status_counts" =>
-        source_report_family_merge_count_maps(
-          source_reports,
-          "provider_reservation_request_status_counts"
-        ),
-      "source_report_contact_allocation_provider_reservation_request_contact_ids" =>
-        source_report_family_merge_string_lists(
-          source_reports,
-          "provider_reservation_request_contact_ids"
-        ),
-      "source_report_contact_allocation_provider_reservation_review_contact_ids" =>
-        source_report_family_merge_string_lists(
-          source_reports,
-          "provider_reservation_review_contact_ids"
-        ),
-      "source_report_contact_allocation_provider_reservation_no_request_contact_ids" =>
-        source_report_family_merge_string_lists(
-          source_reports,
-          "provider_reservation_no_request_contact_ids"
-        ),
-      "source_report_contact_allocation_provider_reservation_request_contact_ids_by_ground_station" =>
-        source_report_family_merge_string_list_maps(
-          source_reports,
-          "provider_reservation_request_contact_ids_by_ground_station"
-        ),
-      "source_report_contact_allocation_provider_reservation_review_contact_ids_by_ground_station" =>
-        source_report_family_merge_string_list_maps(
-          source_reports,
-          "provider_reservation_review_contact_ids_by_ground_station"
-        ),
-      "source_report_contact_allocation_provider_reservation_no_request_contact_ids_by_direction" =>
-        source_report_family_merge_string_list_maps(
-          source_reports,
-          "provider_reservation_no_request_contact_ids_by_direction"
-        ),
-      "source_report_contact_allocation_provider_reservation_request_contact_ids_by_direction" =>
-        source_report_family_merge_string_list_maps(
-          source_reports,
-          "provider_reservation_request_contact_ids_by_direction"
-        ),
-      "source_report_contact_allocation_provider_reservation_review_contact_ids_by_direction" =>
-        source_report_family_merge_string_list_maps(
-          source_reports,
-          "provider_reservation_review_contact_ids_by_direction"
-        ),
-      "source_report_contact_allocation_provider_reservation_no_request_contact_ids_by_direction_and_ground_station" =>
-        source_report_family_merge_nested_string_list_maps(
-          source_reports,
-          "provider_reservation_no_request_contact_ids_by_direction_and_ground_station"
-        ),
-      "source_report_contact_allocation_provider_reservation_request_contact_ids_by_direction_and_ground_station" =>
-        source_report_family_merge_nested_string_list_maps(
-          source_reports,
-          "provider_reservation_request_contact_ids_by_direction_and_ground_station"
-        ),
-      "source_report_contact_allocation_provider_reservation_review_contact_ids_by_direction_and_ground_station" =>
-        source_report_family_merge_nested_string_list_maps(
-          source_reports,
-          "provider_reservation_review_contact_ids_by_direction_and_ground_station"
-        ),
-      "source_report_contact_allocation_provider_reservation_request_contact_ids_by_match_status" =>
-        source_report_family_merge_string_list_maps(
-          source_reports,
-          "provider_reservation_request_contact_ids_by_match_status"
-        ),
-      "source_report_contact_allocation_provider_reservation_review_contact_ids_by_match_status" =>
-        source_report_family_merge_string_list_maps(
-          source_reports,
-          "provider_reservation_review_contact_ids_by_match_status"
-        ),
-      "source_report_contact_allocation_provider_reservation_request_ids_by_match_status" =>
-        source_report_family_merge_string_list_maps(
-          source_reports,
-          "provider_reservation_request_ids_by_match_status"
-        ),
-      "source_report_contact_allocation_provider_reservation_review_ids_by_match_status" =>
-        source_report_family_merge_string_list_maps(
-          source_reports,
-          "provider_reservation_review_ids_by_match_status"
-        )
-    }
+  def request_contact_count(report) do
+    RequestSummary.request_contact_count(report)
+  end
+
+  def review_contact_count(report) do
+    RequestSummary.review_contact_count(report)
+  end
+
+  def no_request_contact_count(report) do
+    RequestSummary.no_request_contact_count(report)
+  end
+
+  def request_status_counts(report) do
+    RequestSummary.request_status_counts(report)
+  end
+
+  def request_contact_ids(report) do
+    RequestSummary.request_contact_ids(report)
+  end
+
+  def review_contact_ids(report) do
+    RequestSummary.review_contact_ids(report)
+  end
+
+  def no_request_contact_ids(report) do
+    RequestSummary.no_request_contact_ids(report)
+  end
+
+  def request_contact_ids_by_station(report) do
+    RequestSummary.request_contact_ids_by_station(report)
+  end
+
+  def review_contact_ids_by_station(report) do
+    RequestSummary.review_contact_ids_by_station(report)
+  end
+
+  def no_request_contact_ids_by_direction(report) do
+    RequestSummary.no_request_contact_ids_by_direction(report)
+  end
+
+  def request_contact_ids_by_direction(report) do
+    RequestSummary.request_contact_ids_by_direction(report)
+  end
+
+  def review_contact_ids_by_direction(report) do
+    RequestSummary.review_contact_ids_by_direction(report)
+  end
+
+  def no_request_contact_ids_by_direction_and_station(report) do
+    RequestSummary.no_request_contact_ids_by_direction_and_station(report)
+  end
+
+  def request_contact_ids_by_direction_and_station(report) do
+    RequestSummary.request_contact_ids_by_direction_and_station(report)
+  end
+
+  def review_contact_ids_by_direction_and_station(report) do
+    RequestSummary.review_contact_ids_by_direction_and_station(report)
+  end
+
+  def request_contact_ids_by_match_status(report) do
+    RequestSummary.request_contact_ids_by_match_status(report)
+  end
+
+  def review_contact_ids_by_match_status(report) do
+    RequestSummary.review_contact_ids_by_match_status(report)
+  end
+
+  def request_ids_by_match_status(report) do
+    RequestSummary.request_ids_by_match_status(report)
+  end
+
+  def review_ids_by_match_status(report) do
+    RequestSummary.review_ids_by_match_status(report)
   end
 end

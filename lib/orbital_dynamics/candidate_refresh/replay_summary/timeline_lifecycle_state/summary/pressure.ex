@@ -62,11 +62,11 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelineLifecycleState.
         map_size(review_routing) > 0
 
     recordable_pressure =
-      counts.recordable_count > 0 or recordable_timeline_ids != [] or
+      counts.recordable_count > 0 or nonempty_pressure_value?(recordable_timeline_ids) or
         summary_integer(transition_decision_counts, "record") > 0
 
     preservation_pressure =
-      counts.preserved_count > 0 or preserved_timeline_ids != [] or
+      counts.preserved_count > 0 or nonempty_pressure_value?(preserved_timeline_ids) or
         summary_integer(transition_decision_counts, "none") > 0
 
     %{
@@ -99,4 +99,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelineLifecycleState.
   end
 
   defp summary_integer(_summary, _field), do: 0
+
+  defp nonempty_pressure_value?(value) when value in [nil, [], %{}], do: false
+  defp nonempty_pressure_value?(_value), do: true
 end

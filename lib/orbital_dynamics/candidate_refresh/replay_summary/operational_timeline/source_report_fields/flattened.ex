@@ -1,6 +1,8 @@
 defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.OperationalTimeline.SourceReportFields.Flattened do
   @moduledoc false
 
+  alias OrbitalDynamics.CandidateRefresh.ValueEncoding
+
   def fields(source_reports) do
     %{
       "source_report_operational_timeline_contract" =>
@@ -100,16 +102,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.OperationalTimeline.Sou
     end
   end
 
-  defp numeric_value(value) when is_number(value), do: value * 1.0
-
-  defp numeric_value(value) when is_binary(value) do
-    case Float.parse(String.trim(value)) do
-      {number, ""} -> number
-      _parse -> nil
-    end
-  end
-
-  defp numeric_value(_value), do: nil
+  defp numeric_value(value), do: ValueEncoding.numeric_value(value)
 
   defp non_empty_map(map) when map_size(map) == 0, do: nil
   defp non_empty_map(map), do: map

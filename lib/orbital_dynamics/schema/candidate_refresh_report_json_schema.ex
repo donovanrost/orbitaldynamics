@@ -78,6 +78,137 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportJsonSchema do
     "resource_filter_report" => "resource_filter_report.v1"
   }
 
+  @candidate_refresh_publication_lineage_id_array_fields [
+    "source_report_timeline_publication_ids",
+    "source_report_timeline_publication_source_artifact_ids",
+    "source_report_timeline_publication_supersedes_artifact_ids",
+    "source_report_timeline_publication_downstream_product_ids",
+    "source_report_timeline_publication_invalidated_downstream_product_ids",
+    "source_report_timeline_publication_impacted_source_activity_ids",
+    "source_report_timeline_publication_impacted_source_timeline_ids",
+    "source_report_timeline_publication_dependent_activity_ids",
+    "source_report_timeline_publication_dependent_timeline_ids",
+    "source_report_timeline_publication_source_dependent_activity_ids",
+    "source_report_timeline_publication_source_dependent_timeline_ids",
+    "source_report_timeline_publication_replacement_dependent_activity_ids",
+    "source_report_timeline_publication_replacement_dependent_timeline_ids",
+    "source_report_operational_readiness_publication_ids",
+    "source_report_operational_readiness_source_artifact_ids",
+    "source_report_operational_readiness_supersedes_artifact_ids",
+    "source_report_operational_readiness_downstream_product_ids",
+    "source_report_operational_readiness_invalidated_downstream_product_ids",
+    "source_report_quality_gate_publication_ids",
+    "source_report_quality_gate_source_artifact_ids",
+    "source_report_quality_gate_supersedes_artifact_ids",
+    "source_report_quality_gate_downstream_product_ids",
+    "source_report_quality_gate_invalidated_downstream_product_ids"
+  ]
+
+  @candidate_refresh_publication_lineage_count_map_fields [
+    "source_report_timeline_publication_downstream_invalidation_reason_counts",
+    "source_report_timeline_publication_source_artifact_type_counts",
+    "source_report_operational_readiness_timeline_publication_source_artifact_type_counts",
+    "source_report_quality_gate_timeline_publication_source_artifact_type_counts"
+  ]
+
+  @candidate_refresh_publication_lineage_stable_id_array_map_fields [
+    "source_report_timeline_publication_invalidated_downstream_product_ids_by_reason"
+  ]
+
+  @candidate_refresh_resource_availability_count_fields [
+    "source_report_operational_readiness_resource_availability_pressure_count",
+    "source_report_quality_gate_resource_availability_pressure_count"
+  ]
+
+  @candidate_refresh_resource_availability_count_map_fields [
+    "source_report_operational_readiness_resource_availability_reason_counts",
+    "source_report_operational_readiness_station_availability_reason_counts",
+    "source_report_operational_readiness_resource_blocking_dimension_counts",
+    "source_report_quality_gate_resource_availability_reason_counts",
+    "source_report_quality_gate_station_availability_reason_counts",
+    "source_report_quality_gate_resource_blocking_dimension_counts"
+  ]
+
+  @candidate_refresh_resource_availability_string_array_fields [
+    "source_report_operational_readiness_resource_availability_reason_ids",
+    "source_report_operational_readiness_station_availability_reason_ids",
+    "source_report_operational_readiness_unavailable_resource_reason_ids",
+    "source_report_quality_gate_resource_availability_reason_ids",
+    "source_report_quality_gate_station_availability_reason_ids",
+    "source_report_quality_gate_unavailable_resource_reason_ids"
+  ]
+
+  def candidate_refresh_property_field?(field) do
+    field in @candidate_refresh_array_item_fields or
+      field in @candidate_refresh_embedded_report_fields or
+      field == "model_limits" or
+      field == "warnings" or
+      field in ["operational_feedback", "provenance"] or
+      field in @candidate_refresh_publication_lineage_id_array_fields or
+      field in @candidate_refresh_publication_lineage_count_map_fields or
+      field in @candidate_refresh_publication_lineage_stable_id_array_map_fields or
+      field in @candidate_refresh_resource_availability_count_fields or
+      field in @candidate_refresh_resource_availability_count_map_fields or
+      field in @candidate_refresh_resource_availability_string_array_fields
+  end
+
+  def candidate_refresh_property_from_context(field, deps) when is_list(deps) do
+    candidate_refresh_property(field, candidate_refresh_property_opts(field, deps))
+  end
+
+  def candidate_refresh_property_fun_from_context(deps) when is_list(deps) do
+    fn field ->
+      candidate_refresh_property_from_context(field, deps)
+    end
+  end
+
+  def auxiliary_report_property_from_context(field, contract_name, deps) when is_list(deps) do
+    auxiliary_report_property(
+      field,
+      contract_name,
+      auxiliary_report_property_opts(field, contract_name, deps)
+    )
+  end
+
+  def auxiliary_report_property_fun_from_context(deps) when is_list(deps) do
+    contract_name = fetch_dep!(deps, :contract_name)
+
+    fn field ->
+      auxiliary_report_property_from_context(field, contract_name, deps)
+    end
+  end
+
+  def auxiliary_report_property_field?(field, @freshness_report) do
+    field in ["schema_contract", "model", "status", "model_limits"] or
+      field in @freshness_string_array_fields or
+      field in @freshness_number_fields or
+      field in @freshness_string_fields or
+      field in @freshness_object_fields
+  end
+
+  def auxiliary_report_property_field?(field, @refresh_budget_report) do
+    field in [
+      "schema_contract",
+      "model",
+      "model_limits",
+      "selection_order",
+      "invalid_candidate_limit_policy",
+      "assumptions",
+      "kept_candidate_ids",
+      "dropped_candidate_ids"
+    ] or field in @refresh_budget_count_fields
+  end
+
+  def auxiliary_report_property_field?(field, @refreshed_window) do
+    field in ["schema_contract", "sample_count", "type", "assumptions"] or
+      field in @refreshed_window_id_fields or
+      field in @refreshed_window_number_fields
+  end
+
+  def auxiliary_report_property_field?(field, @remaining_horizon) do
+    field in ["schema_contract", "starts_at_s", "ends_at_s", "output_step_s"]
+  end
+
   def auxiliary_report_property(field, @freshness_report, opts) do
     freshness_property(field, opts)
   end
@@ -93,6 +224,58 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportJsonSchema do
   def auxiliary_report_property(field, @remaining_horizon, opts) do
     remaining_horizon_property(field, opts)
   end
+
+  def auxiliary_report_property_opts("model_limits", contract_name, deps)
+      when contract_name in [@freshness_report, @refresh_budget_report] do
+    [model_limits: fetch_dep!(deps, :model_limits)]
+  end
+
+  def auxiliary_report_property_opts(field, @refresh_budget_report, deps)
+      when field in ["kept_candidate_ids", "dropped_candidate_ids"] do
+    [stable_id_pattern: fetch_dep!(deps, :stable_id_pattern)]
+  end
+
+  def auxiliary_report_property_opts(field, @refreshed_window, deps)
+      when field in @refreshed_window_id_fields do
+    [stable_id_pattern: fetch_dep!(deps, :stable_id_pattern)]
+  end
+
+  def auxiliary_report_property_opts(_field, _contract_name, _deps), do: []
+
+  def candidate_refresh_property_opts(field, deps)
+      when field in @candidate_refresh_array_item_fields do
+    item_schema_option = Map.fetch!(@candidate_refresh_array_item_schema_options, field)
+    [{item_schema_option, fetch_dep!(deps, item_schema_option)}]
+  end
+
+  def candidate_refresh_property_opts("model_limits", deps) do
+    [model_limits: fetch_dep!(deps, :model_limits)]
+  end
+
+  def candidate_refresh_property_opts("operational_feedback", deps) do
+    [operational_feedback_schema: fetch_dep!(deps, :operational_feedback_schema)]
+  end
+
+  def candidate_refresh_property_opts("provenance", deps) do
+    [
+      stable_id_pattern: fetch_dep!(deps, :stable_id_pattern),
+      provider_counteroffer_actions: fetch_dep!(deps, :provider_counteroffer_actions),
+      safety_case_count_fields: fetch_dep!(deps, :safety_case_count_fields)
+    ]
+  end
+
+  def candidate_refresh_property_opts(field, deps)
+      when field in @candidate_refresh_embedded_report_fields do
+    [embedded_contract_schema: fetch_dep!(deps, :embedded_contract_schema)]
+  end
+
+  def candidate_refresh_property_opts(field, deps)
+      when field in @candidate_refresh_publication_lineage_id_array_fields or
+             field in @candidate_refresh_publication_lineage_stable_id_array_map_fields do
+    [stable_id_pattern: fetch_dep!(deps, :stable_id_pattern)]
+  end
+
+  def candidate_refresh_property_opts(_field, _deps), do: []
 
   def freshness_property("schema_contract", _opts) do
     %{"type" => "string", "const" => "freshness_report.v1"}
@@ -220,12 +403,73 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportJsonSchema do
     }
   end
 
+  def candidate_refresh_property("warnings", _opts) do
+    CommonJsonSchema.string_array()
+  end
+
+  def candidate_refresh_property("operational_feedback", opts) do
+    Keyword.fetch!(opts, :operational_feedback_schema)
+  end
+
+  def candidate_refresh_property("provenance", opts) do
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "properties" => %{
+        "source_reports" =>
+          source_reports(
+            stable_id_pattern: Keyword.fetch!(opts, :stable_id_pattern),
+            provider_counteroffer_actions: Keyword.fetch!(opts, :provider_counteroffer_actions),
+            safety_case_count_fields: Keyword.fetch!(opts, :safety_case_count_fields)
+          ),
+        "run_input_sources" => %{
+          "type" => "object",
+          "additionalProperties" => CommonJsonSchema.string_array()
+        }
+      }
+    }
+  end
+
   def candidate_refresh_property(field, opts)
       when field in @candidate_refresh_embedded_report_fields do
     embedded_contract_schema = Keyword.fetch!(opts, :embedded_contract_schema)
     contract_name = Map.fetch!(@candidate_refresh_embedded_report_contracts, field)
 
     embedded_contract_schema.(contract_name)
+  end
+
+  def candidate_refresh_property(field, opts)
+      when field in @candidate_refresh_publication_lineage_id_array_fields do
+    opts
+    |> Keyword.fetch!(:stable_id_pattern)
+    |> CommonJsonSchema.stable_id_array()
+  end
+
+  def candidate_refresh_property(field, _opts)
+      when field in @candidate_refresh_publication_lineage_count_map_fields do
+    CommonJsonSchema.non_negative_integer_count_map()
+  end
+
+  def candidate_refresh_property(field, opts)
+      when field in @candidate_refresh_publication_lineage_stable_id_array_map_fields do
+    opts
+    |> Keyword.fetch!(:stable_id_pattern)
+    |> CommonJsonSchema.stable_id_array_map()
+  end
+
+  def candidate_refresh_property(field, _opts)
+      when field in @candidate_refresh_resource_availability_count_fields do
+    %{"type" => "integer", "minimum" => 0}
+  end
+
+  def candidate_refresh_property(field, _opts)
+      when field in @candidate_refresh_resource_availability_count_map_fields do
+    CommonJsonSchema.non_negative_integer_count_map()
+  end
+
+  def candidate_refresh_property(field, _opts)
+      when field in @candidate_refresh_resource_availability_string_array_fields do
+    CommonJsonSchema.string_array()
   end
 
   def source_report_summary(opts) do
@@ -1989,5 +2233,12 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportJsonSchema do
 
   defp string_array_schema do
     %{"type" => "array", "items" => %{"type" => "string"}}
+  end
+
+  defp fetch_dep!(deps, key) do
+    case Keyword.fetch!(deps, key) do
+      fun when is_function(fun, 0) -> fun.()
+      value -> value
+    end
   end
 end

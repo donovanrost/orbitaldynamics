@@ -1,6 +1,14 @@
 defmodule OrbitalDynamics.CampaignPlanner.ContactAllocationSuppressionPressureBranches do
   @moduledoc false
 
+  alias OrbitalDynamics.CampaignPlanner.{
+    ContactFilterPressureBranches,
+    ResourceFilterPressureBranches,
+    ValueEncoding
+  }
+
+  def resource(row, source_path, callbacks \\ default_callbacks())
+
   def resource(%{"source_resource_suppression" => %{} = source} = row, source_path, callbacks)
       when map_size(source) > 0 do
     stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
@@ -16,6 +24,8 @@ defmodule OrbitalDynamics.CampaignPlanner.ContactAllocationSuppressionPressureBr
   end
 
   def resource(_row, _source_path, _callbacks), do: []
+
+  def contact(row, source_path, callbacks \\ default_callbacks())
 
   def contact(%{"source_contact_suppression" => %{} = source} = row, source_path, callbacks)
       when map_size(source) > 0 do
@@ -100,5 +110,23 @@ defmodule OrbitalDynamics.CampaignPlanner.ContactAllocationSuppressionPressureBr
       existing when existing in [nil, "", [], %{}] -> Map.put(map, key, value)
       _existing -> map
     end
+  end
+
+  defp default_callbacks do
+    [
+      contact_filter_pressure_branch: &ContactFilterPressureBranches.build/2,
+      resource_filter_pressure_branch: &ResourceFilterPressureBranches.build/2,
+      stringify_keys: &ValueEncoding.stringify_keys/1,
+      trust_boundary: &trust_boundary/1
+    ]
+  end
+
+  defp trust_boundary(row) do
+    Map.get(row, "trust_boundary") ||
+      Map.get(row, "resource_trust_boundary") ||
+      get_in(row, ["provenance", "trust_boundary"]) ||
+      get_in(row, ["source_resource_suppression", "resource_trust_boundary"]) ||
+      get_in(row, ["source_resource_suppression", "resource_provenance", "trust_boundary"]) ||
+      row["_source_report_trust_boundary"]
   end
 end

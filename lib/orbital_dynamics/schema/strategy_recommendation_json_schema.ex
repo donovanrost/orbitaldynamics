@@ -9,6 +9,102 @@ defmodule OrbitalDynamics.Schema.StrategyRecommendationJsonSchema do
     "blocked_by_policy"
   ]
 
+  @property_fields [
+    "schema_contract",
+    "recommended_branch_id",
+    "ranked_branch_ids",
+    "approval_status",
+    "status",
+    "reason",
+    "tradeoffs",
+    "explanation",
+    "risks_remaining",
+    "requires_approval"
+  ]
+
+  def property_field?(field) when field in @property_fields, do: true
+  def property_field?(_field), do: false
+
+  def property_from_context(field, deps) when is_list(deps) do
+    property(field, property_opts(field, deps))
+  end
+
+  def property_from_context(
+        field,
+        schema_contract,
+        stable_id_pattern,
+        tradeoff_schema,
+        explanation_schema,
+        risk_schema,
+        approval_requirement_schema
+      ) do
+    deps = [
+      schema_contract: schema_contract,
+      stable_id_pattern: stable_id_pattern,
+      tradeoff_schema: tradeoff_schema,
+      explanation_schema: explanation_schema,
+      risk_schema: risk_schema,
+      approval_requirement_schema: approval_requirement_schema
+    ]
+
+    property_from_context(field, deps)
+  end
+
+  def property_fun_from_context(deps) when is_list(deps) do
+    fn field ->
+      property_from_context(field, deps)
+    end
+  end
+
+  def property_fun_from_context(
+        schema_contract,
+        stable_id_pattern,
+        tradeoff_schema,
+        explanation_schema,
+        risk_schema,
+        approval_requirement_schema
+      ) do
+    deps = [
+      schema_contract: schema_contract,
+      stable_id_pattern: stable_id_pattern,
+      tradeoff_schema: tradeoff_schema,
+      explanation_schema: explanation_schema,
+      risk_schema: risk_schema,
+      approval_requirement_schema: approval_requirement_schema
+    ]
+
+    fn field ->
+      property_from_context(field, deps)
+    end
+  end
+
+  def property_opts(field, deps) do
+    [schema_contract: fetch_dep!(deps, :schema_contract)] ++ property_field_opts(field, deps)
+  end
+
+  def property_field_opts(field, deps)
+      when field in ["ranked_branch_ids", "recommended_branch_id"] do
+    [stable_id_pattern: fetch_dep!(deps, :stable_id_pattern)]
+  end
+
+  def property_field_opts("tradeoffs", deps) do
+    [tradeoff_schema: fetch_dep!(deps, :tradeoff_schema)]
+  end
+
+  def property_field_opts("explanation", deps) do
+    [explanation_schema: fetch_dep!(deps, :explanation_schema)]
+  end
+
+  def property_field_opts("risks_remaining", deps) do
+    [risk_schema: fetch_dep!(deps, :risk_schema)]
+  end
+
+  def property_field_opts("requires_approval", deps) do
+    [approval_requirement_schema: fetch_dep!(deps, :approval_requirement_schema)]
+  end
+
+  def property_field_opts(_field, _deps), do: []
+
   def property("schema_contract", opts) do
     schema_contract = Keyword.fetch!(opts, :schema_contract)
 
@@ -155,5 +251,12 @@ defmodule OrbitalDynamics.Schema.StrategyRecommendationJsonSchema do
 
   defp array(item_schema) do
     %{"type" => "array", "items" => item_schema}
+  end
+
+  defp fetch_dep!(deps, key) do
+    case Keyword.fetch!(deps, key) do
+      fun when is_function(fun, 0) -> fun.()
+      value -> value
+    end
   end
 end

@@ -206,7 +206,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyTimelineDiffSourceReportTest d
              "canonical_timeline_diff_row_boundary",
              "direct_timeline_diff_report_boundary",
              "direct_timeline_diff_row_boundary",
+             "result_wrapped_timeline_diff_boundary",
              "result_wrapped_timeline_diff_row_boundary",
+             "source_wrapped_timeline_diff_boundary",
              "source_wrapped_timeline_diff_row_boundary"
            ]
 

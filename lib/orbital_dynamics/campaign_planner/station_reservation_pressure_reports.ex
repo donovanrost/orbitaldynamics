@@ -1,6 +1,78 @@
 defmodule OrbitalDynamics.CampaignPlanner.StationReservationPressureReports do
   @moduledoc false
 
+  alias OrbitalDynamics.CampaignPlanner.{
+    BranchRefreshSourceInputs,
+    ScalarValues,
+    StationSourceReports,
+    ValueEncoding
+  }
+
+  def review_summary_reports(mission_state) do
+    mission_state = ValueEncoding.stringify_keys(mission_state || %{})
+
+    [
+      {"source_station_reservation_review_summary",
+       "mission_state.source_station_reservation_review_summary"},
+      {"station_reservation_review_summary", "mission_state.station_reservation_review_summary"}
+    ]
+    |> Enum.flat_map(fn {field, source_path} ->
+      mission_state
+      |> Map.get(field)
+      |> BranchRefreshSourceInputs.source_report_entries(source_path)
+    end)
+    |> Kernel.++(
+      BranchRefreshSourceInputs.result_artifact_embedded_reports(
+        mission_state,
+        "mission_state",
+        "source_station_reservation_review_summary"
+      )
+    )
+    |> Kernel.++(
+      BranchRefreshSourceInputs.result_artifact_embedded_reports(
+        mission_state,
+        "mission_state",
+        "station_reservation_review_summary"
+      )
+    )
+    |> Enum.map(fn {summary, source_path} ->
+      {review_summary(summary), source_path}
+    end)
+  end
+
+  def hold_pressure_reports(mission_state) do
+    StationSourceReports.station_reservation_hold_summaries(
+      mission_state,
+      "source_station_reservation_hold_summary"
+    )
+    |> Kernel.++(
+      StationSourceReports.station_reservation_hold_summaries(
+        mission_state,
+        "station_reservation_hold_summary"
+      )
+    )
+    |> Enum.map(fn {summary, source_path} ->
+      {hold_summary(summary), source_path}
+    end)
+    |> Kernel.++(
+      StationSourceReports.station_reservation_hold_import_readiness_summaries(
+        mission_state,
+        "source_station_reservation_hold_import_readiness_summary"
+      )
+      |> Kernel.++(
+        StationSourceReports.station_reservation_hold_import_readiness_summaries(
+          mission_state,
+          "station_reservation_hold_import_readiness_summary"
+        )
+      )
+      |> Enum.map(fn {summary, source_path} ->
+        {hold_import_readiness_summary(summary), source_path}
+      end)
+    )
+  end
+
+  def hold_summary(%{} = summary), do: hold_summary(summary, callbacks())
+
   def hold_summary(%{} = summary, callbacks) do
     compact_map = Keyword.fetch!(callbacks, :compact_map)
     stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
@@ -29,6 +101,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StationReservationPressureReports do
     }
     |> compact_map.()
   end
+
+  def hold_import_readiness_summary(%{} = summary),
+    do: hold_import_readiness_summary(summary, callbacks())
 
   def hold_import_readiness_summary(%{} = summary, callbacks) do
     compact_map = Keyword.fetch!(callbacks, :compact_map)
@@ -66,6 +141,8 @@ defmodule OrbitalDynamics.CampaignPlanner.StationReservationPressureReports do
     }
     |> compact_map.()
   end
+
+  def review_summary(%{} = summary), do: review_summary(summary, callbacks())
 
   def review_summary(%{} = summary, callbacks) do
     compact_map = Keyword.fetch!(callbacks, :compact_map)
@@ -476,5 +553,13 @@ defmodule OrbitalDynamics.CampaignPlanner.StationReservationPressureReports do
       existing when existing in [nil, "", [], %{}] -> Map.put(map, key, value)
       _existing -> map
     end
+  end
+
+  defp callbacks do
+    [
+      compact_map: &ValueEncoding.compact_map/1,
+      numeric_or_nil: &ScalarValues.numeric_or_nil/1,
+      stringify_keys: &ValueEncoding.stringify_keys/1
+    ]
   end
 end

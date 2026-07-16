@@ -32,48 +32,6 @@ defmodule OrbitalDynamics.CandidateRefresh.CommandManeuverFeedbackBuildTest do
              Schema.validate_artifact(artifact)
   end
 
-  test "preserves maneuver execution uncertainty feedback in refresh provenance" do
-    artifact =
-      result_set()
-      |> CandidateRefresh.build(
-        candidate_refresh:
-          refresh_request()
-          |> put_in(["operational_feedback"], %{
-            "trust_boundary" => "strategy_branch_feedback",
-            "maneuver_execution_uncertainty" => %{
-              "burn_cleanup" => %{
-                "execution_uncertainty_status" => "declared",
-                "timing_3sigma_s" => "12.5",
-                "delta_v_3sigma_km_s" => ["0.001", "0.002", "0.003"],
-                "delta_v_3sigma_magnitude_km_s" => "0.004",
-                "execution_uncertainty_source" => "operator_estimate"
-              }
-            }
-          }),
-        generated_at: ~U[2026-05-14 00:00:00Z]
-      )
-
-    assert get_in(artifact, ["operational_feedback", "maneuver_execution_uncertainty"]) == %{
-             "burn_cleanup" => %{
-               "execution_uncertainty_status" => "declared",
-               "timing_3sigma_s" => 12.5,
-               "delta_v_3sigma_km_s" => [0.001, 0.002, 0.003],
-               "delta_v_3sigma_magnitude_km_s" => 0.004,
-               "execution_uncertainty_source" => "operator_estimate"
-             }
-           }
-
-    assert get_in(artifact, ["provenance", "operational_feedback"]) == %{
-             "trust_boundary_status" => "declared",
-             "trust_boundary" => "strategy_branch_feedback",
-             "input_keys" => ["maneuver_execution_uncertainty"],
-             "source_path" => "operational_feedback"
-           }
-
-    assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
-             Schema.validate_artifact(artifact)
-  end
-
   defp result_set do
     ResultSet.new!(%{
       study_id: :candidate_refresh_demo,

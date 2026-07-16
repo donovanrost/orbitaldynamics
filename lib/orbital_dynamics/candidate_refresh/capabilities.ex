@@ -1,6 +1,123 @@
 defmodule OrbitalDynamics.CandidateRefresh.Capabilities do
   @moduledoc false
 
+  alias OrbitalDynamics.CandidateRefresh.CandidateActivityFields
+  alias OrbitalDynamics.CandidateRefresh.CandidateDiffReport
+  alias OrbitalDynamics.CandidateRefresh.ModelLimits
+
+  @unavailable_availability_aliases ["outage", "down", "offline"]
+  @unavailable_station_tokens ["unavailable", "maintenance" | @unavailable_availability_aliases]
+  @station_availability_precedence %{
+    "unavailable" => 5,
+    "maintenance" => 5,
+    "reserved" => 4,
+    "reduced_capacity" => 3,
+    "available" => 1
+  }
+  @station_capacity_fraction_paths [
+    ["availability"],
+    ["capacity_fraction"],
+    ["station_capacity_fraction"],
+    ["capacity_pack_capacity_fraction"],
+    ["throughput_model", "availability"],
+    ["throughput_model", "station_capacity_fraction"],
+    ["throughput_model", "capacity_fraction"],
+    ["capacity_model", "availability"],
+    ["capacity_model", "station_capacity_fraction"],
+    ["capacity_model", "capacity_fraction"],
+    ["activity_context", "availability"],
+    ["activity_context", "station_capacity_fraction"],
+    ["activity_context", "capacity_fraction"]
+  ]
+  @station_capacity_percent_paths [
+    ["capacity_percent"],
+    ["station_capacity_percent"],
+    ["throughput_model", "capacity_percent"],
+    ["throughput_model", "station_capacity_percent"],
+    ["capacity_model", "capacity_percent"],
+    ["capacity_model", "station_capacity_percent"],
+    ["activity_context", "capacity_percent"],
+    ["activity_context", "station_capacity_percent"]
+  ]
+  @station_capacity_value_paths for(
+                                  path <- @station_capacity_fraction_paths,
+                                  do: {:fraction, path}
+                                ) ++
+                                  for(
+                                    path <- @station_capacity_percent_paths,
+                                    do: {:percent, path}
+                                  )
+  @resource_availability_value_aliases %{
+    "payload_available" => ["payload_available?"],
+    "antenna_available" => ["antenna_available?"],
+    "spacecraft_available" => ["spacecraft_available?"]
+  }
+  @resource_availability_boolean_aliases %{
+    "spacecraft_available" => ["spacecraft_availability"]
+  }
+  @resource_availability_status_aliases %{
+    "payload_available" => ["payload_status"],
+    "antenna_available" => ["antenna_status"],
+    "spacecraft_available" => ["spacecraft_status"]
+  }
+  @resource_availability_aliases Map.new(@resource_availability_value_aliases, fn {field, aliases} ->
+                                   {field,
+                                    aliases ++
+                                      Map.get(@resource_availability_boolean_aliases, field, []) ++
+                                      Map.fetch!(@resource_availability_status_aliases, field)}
+                                 end)
+  @resource_margin_aliases %{
+    "storage_margin" => ["storage_capacity_margin"],
+    "downlink_margin" => ["downlink_capacity_margin"],
+    "battery_state_of_charge" => ["battery_soc"]
+  }
+  @resource_power_margin_source_aliases ["battery_state_of_charge", "battery_soc"]
+  @resource_availability_true_tokens ~w(true yes y available nominal operational enabled 1)
+  @resource_availability_false_tokens ~w(false no n unavailable offline down outage maintenance disabled 0)
+  @provider_direction_aliases %{
+    "cmd" => "command",
+    "commanding" => "command",
+    "commands" => "command",
+    "sband_command" => "command",
+    "s_band_command" => "command",
+    "uplink" => "uplink",
+    "up" => "uplink",
+    "up_link" => "uplink",
+    "dl" => "downlink",
+    "down" => "downlink",
+    "downlinking" => "downlink",
+    "downlink" => "downlink",
+    "down_link" => "downlink",
+    "tracking" => "tracking",
+    "track" => "tracking",
+    "track_ing" => "tracking",
+    "tracking_pass" => "tracking",
+    "health" => "health_check",
+    "health_check" => "health_check",
+    "healthcheck" => "health_check",
+    "health_check_window" => "health_check",
+    "contact" => "contact"
+  }
+  @operational_timeline_dependency_integrity_issue_fields ~w(
+    missing_dependency_activity_ids
+    missing_dependency_timeline_ids
+    dependency_cycle_activity_ids
+    dependency_cycle_timeline_ids
+    dependency_order_violation_activity_ids
+    dependency_order_violation_timeline_ids
+  )
+  @operational_timeline_exclusivity_integrity_issue_fields ~w(
+    exclusivity_violation_activity_ids
+    exclusivity_violation_timeline_ids
+    exclusivity_violation_group
+  )
+  @operational_timeline_integrity_issue_fields @operational_timeline_dependency_integrity_issue_fields ++
+                                                 @operational_timeline_exclusivity_integrity_issue_fields
+
+  def capabilities do
+    capabilities(default_metadata())
+  end
+
   def capabilities(metadata) when is_map(metadata) do
     %{
       artifact_contract: "candidate_refresh.v1",
@@ -503,14 +620,35 @@ defmodule OrbitalDynamics.CandidateRefresh.Capabilities do
         :station_calendar_provider_precedence,
         :run_input_source_provenance
       ],
-      known_limits: [
-        :requires_precomputed_refreshed_event_results,
-        :sampled_window_boundaries,
-        :thin_resource_filter,
-        :thin_ground_network_filter,
-        :candidate_budget_is_deterministic_post_filter_selection,
-        :artifact_only_no_schedule_mutation
-      ]
+      known_limits: ModelLimits.atoms()
+    }
+  end
+
+  defp default_metadata do
+    %{
+      resource_availability_aliases: @resource_availability_aliases,
+      resource_margin_aliases: @resource_margin_aliases,
+      resource_power_margin_source_aliases: @resource_power_margin_source_aliases,
+      resource_availability_true_tokens: @resource_availability_true_tokens,
+      resource_availability_false_tokens: @resource_availability_false_tokens,
+      provider_direction_aliases: @provider_direction_aliases,
+      station_unavailable_aliases: @unavailable_availability_aliases,
+      station_unavailable_tokens: @unavailable_station_tokens,
+      station_availability_precedence: @station_availability_precedence,
+      station_capacity_fraction_paths: @station_capacity_fraction_paths,
+      station_capacity_percent_paths: @station_capacity_percent_paths,
+      station_capacity_value_paths: @station_capacity_value_paths,
+      prior_candidate_optional_stable_identity_fields:
+        CandidateDiffReport.prior_candidate_optional_stable_identity_fields(),
+      station_calendar_id_list_fields: CandidateDiffReport.station_calendar_id_list_fields(),
+      station_calendar_number_list_fields:
+        CandidateDiffReport.station_calendar_number_list_fields(),
+      event_timing_keys: CandidateActivityFields.event_timing_keys(),
+      operational_timeline_integrity_issue_fields: @operational_timeline_integrity_issue_fields,
+      operational_timeline_dependency_integrity_issue_fields:
+        @operational_timeline_dependency_integrity_issue_fields,
+      operational_timeline_exclusivity_integrity_issue_fields:
+        @operational_timeline_exclusivity_integrity_issue_fields
     }
   end
 

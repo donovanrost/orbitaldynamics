@@ -496,13 +496,13 @@ defmodule OrbitalDynamics.Schema.StationReservationReportContracts do
         field
       ])
 
-  defp validate_provider_calendar_contention_entry_count(issues, callbacks, path, group),
+  defp validate_provider_calendar_contention_entry_count(issues, _callbacks, path, group),
     do:
-      apply(require_callback(callbacks, :validate_provider_calendar_contention_entry_count), [
+      OrbitalDynamics.Schema.StationCalendarProviderContentionContracts.validate_entry_count(
         issues,
         path,
         group
-      ])
+      )
 
   defp frequency_map(callbacks, rows, field),
     do: apply(require_callback(callbacks, :frequency_map), [rows, field])

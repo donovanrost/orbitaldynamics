@@ -1,19 +1,15 @@
 defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.OperationalReadiness do
   @moduledoc false
 
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.InputProvenance
   alias OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelinePublicationContext
 
-  alias __MODULE__.SourceReportFields
   alias __MODULE__.Summary
 
-  def replay(refresh_or_artifact, callbacks) do
-    source_report_summary = Keyword.fetch!(callbacks, :source_report_summary)
-
-    source_report_summary_branch_family =
-      Keyword.fetch!(callbacks, :source_report_summary_branch_family)
-
-    branch_readiness_summary =
-      source_report_summary_branch_family.(refresh_or_artifact, "operational_readiness_report")
+  def replay(refresh_or_artifact, source_report_summary)
+      when is_function(source_report_summary, 1) do
+    branch_readiness_summary = source_report_summary_branch_family(refresh_or_artifact)
 
     readiness_summary =
       branch_readiness_summary ||
@@ -45,15 +41,19 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.OperationalReadiness do
     )
   end
 
-  def source_report_fields(refresh_or_artifact, source_reports, callbacks) do
-    SourceReportFields.source_report_fields(refresh_or_artifact, source_reports, callbacks)
-  end
-
   def pressure_fields(readiness_summary) do
     Summary.pressure_fields(readiness_summary)
   end
 
   def summary(readiness_summary, summary_source, replay_scope, timeline_publication_context) do
     Summary.summary(readiness_summary, summary_source, replay_scope, timeline_publication_context)
+  end
+
+  defp source_report_summary_branch_family(refresh_or_artifact) do
+    SourceReportSummary.branch_family(
+      refresh_or_artifact,
+      "operational_readiness_report",
+      &InputProvenance.build/1
+    )
   end
 end

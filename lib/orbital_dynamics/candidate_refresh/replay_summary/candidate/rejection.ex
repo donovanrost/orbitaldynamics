@@ -1,16 +1,12 @@
 defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.Candidate.Rejection do
   @moduledoc false
 
-  alias __MODULE__.SourceReportFields
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.InputProvenance
 
-  def replay(refresh_or_artifact, callbacks) do
-    source_report_summary = Keyword.fetch!(callbacks, :source_report_summary)
-
-    source_report_summary_branch_family =
-      Keyword.fetch!(callbacks, :source_report_summary_branch_family)
-
-    branch_rejection_summary =
-      source_report_summary_branch_family.(refresh_or_artifact, "candidate_rejection_report")
+  def replay(refresh_or_artifact, source_report_summary)
+      when is_function(source_report_summary, 1) do
+    branch_rejection_summary = source_report_summary_branch_family(refresh_or_artifact)
 
     rejection_summary =
       branch_rejection_summary ||
@@ -95,16 +91,12 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.Candidate.Rejection do
     |> compact_map()
   end
 
-  def source_report_fields(source_reports) do
-    SourceReportFields.source_report_fields(source_reports)
-  end
-
-  def source_report_summary_fields(source_reports) do
-    SourceReportFields.source_report_summary_fields(source_reports)
-  end
-
-  def source_report_detail_fields(source_reports) do
-    SourceReportFields.source_report_detail_fields(source_reports)
+  defp source_report_summary_branch_family(refresh_or_artifact) do
+    SourceReportSummary.branch_family(
+      refresh_or_artifact,
+      "candidate_rejection_report",
+      &InputProvenance.build/1
+    )
   end
 
   defp source_report_summary_contract(summary, default_contract) when map_size(summary) > 0 do

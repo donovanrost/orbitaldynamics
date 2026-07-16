@@ -19,6 +19,85 @@ defmodule OrbitalDynamics.Schema.SchemaValidationReportJsonSchema do
     "remediation_count"
   ]
 
+  @report_fields [
+    "schema_contract",
+    "model",
+    "validation_mode",
+    "validated_contract",
+    "status",
+    "error_count",
+    "warning_count",
+    "errors",
+    "warnings",
+    "assumptions",
+    "artifact_path",
+    "validated_artifact_family",
+    "validated_schema_version",
+    "model_limits",
+    "remediation_count",
+    "remediation"
+  ]
+
+  @batch_fields [
+    "schema_contract",
+    "validation_mode",
+    "input_dir",
+    "file_count",
+    "artifact_count",
+    "skipped_count",
+    "skipped_artifacts",
+    "status",
+    "error_count",
+    "warning_count",
+    "reports",
+    "model",
+    "model_limits",
+    "status_counts",
+    "remediation_count"
+  ]
+
+  def property_field?(field, :report) when field in @report_fields, do: true
+  def property_field?(field, :batch) when field in @batch_fields, do: true
+  def property_field?(_field, _kind), do: false
+
+  def property_from_context(field, kind, deps) when kind in [:report, :batch] and is_list(deps) do
+    property(field, kind, property_opts(field, kind, deps))
+  end
+
+  def property_fun_from_context(kind, deps) when kind in [:report, :batch] and is_list(deps) do
+    fn field ->
+      property_from_context(field, kind, deps)
+    end
+  end
+
+  def property_opts(field, kind, deps) when kind in [:report, :batch] do
+    [
+      schema_contract: schema_contract(kind, deps)
+    ] ++ property_opts(field, deps)
+  end
+
+  def property_opts(field, deps) when field in ["errors", "warnings"] do
+    [issue_schema: fetch_dep!(deps, :issue_schema)]
+  end
+
+  def property_opts("remediation", deps) do
+    [remediation_schema: fetch_dep!(deps, :remediation_schema)]
+  end
+
+  def property_opts("model_limits", deps) do
+    [model_limits: fetch_dep!(deps, :model_limits)]
+  end
+
+  def property_opts("reports", deps) do
+    [batch_entry_schema: fetch_dep!(deps, :batch_entry_schema)]
+  end
+
+  def property_opts("skipped_artifacts", deps) do
+    [skipped_artifact_schema: fetch_dep!(deps, :skipped_artifact_schema)]
+  end
+
+  def property_opts(_field, _deps), do: []
+
   def property("schema_contract", kind, opts) when kind in [:report, :batch] do
     schema_contract = Keyword.fetch!(opts, :schema_contract)
 
@@ -130,5 +209,21 @@ defmodule OrbitalDynamics.Schema.SchemaValidationReportJsonSchema do
       "type" => "array",
       "items" => issue_schema
     }
+  end
+
+  defp schema_contract(kind, deps) do
+    deps
+    |> Keyword.fetch!(:schema_contract)
+    |> case do
+      fun when is_function(fun, 1) -> fun.(kind)
+      value -> value
+    end
+  end
+
+  defp fetch_dep!(deps, key) do
+    case Keyword.fetch!(deps, key) do
+      fun when is_function(fun, 0) -> fun.()
+      value -> value
+    end
   end
 end

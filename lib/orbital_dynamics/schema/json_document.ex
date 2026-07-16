@@ -17,6 +17,10 @@ defmodule OrbitalDynamics.Schema.JsonDocument do
     ]
   end
 
+  def build_from_attrs(name, contract, attrs) do
+    build(name, contract, options(attrs))
+  end
+
   def candidate_activity(schema, contract_name, opts)
       when is_map(schema) and is_binary(contract_name) do
     schema

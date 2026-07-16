@@ -1,6 +1,14 @@
 defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.StationReservation.Summary.ReservationFields do
   @moduledoc false
 
+  alias OrbitalDynamics.CandidateRefresh.ValueEncoding
+
+  @list_route_fields [
+    "contact_ids",
+    "reservation_hold_ids",
+    "reservation_hold_contact_ids"
+  ]
+
   def fields(reservation_summary) do
     %{
       "affected_contact_ids" => Map.get(reservation_summary, "affected_contact_ids", []),
@@ -9,7 +17,10 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.StationReservation.Summ
       "contact_ids_by_status" => Map.get(reservation_summary, "contact_ids_by_status", %{}),
       "direction_counts" => Map.get(reservation_summary, "direction_counts", %{}),
       "contact_ids_by_direction" => Map.get(reservation_summary, "contact_ids_by_direction", %{}),
-      "direction_routing" => Map.get(reservation_summary, "direction_routing", %{}),
+      "direction_routing" =>
+        reservation_summary
+        |> Map.get("direction_routing", %{})
+        |> normalize_direction_routing(),
       "source_summary_model_counts" =>
         reservation_summary
         |> Map.get("source_summary_model_counts", %{})
@@ -42,17 +53,29 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.StationReservation.Summ
     }
   end
 
-  defp numeric_value(value) when is_number(value), do: value * 1.0
-
-  defp numeric_value(value) when is_binary(value) do
-    case Float.parse(String.trim(value)) do
-      {number, ""} -> number
-      _error -> nil
-    end
-  end
-
-  defp numeric_value(_value), do: nil
+  defp numeric_value(value), do: ValueEncoding.numeric_value(value)
 
   defp non_empty_map(map) when map_size(map) == 0, do: nil
   defp non_empty_map(map), do: map
+
+  defp normalize_direction_routing(%{} = direction_routing) do
+    Map.new(direction_routing, fn {direction, route} ->
+      {direction, normalize_route(route)}
+    end)
+  end
+
+  defp normalize_direction_routing(_direction_routing), do: %{}
+
+  defp normalize_route(%{} = route) do
+    Enum.reduce(@list_route_fields, route, fn field, acc ->
+      Map.update(acc, field, [], &normalize_route_list/1)
+    end)
+  end
+
+  defp normalize_route(_route), do: %{}
+
+  defp normalize_route_list(%{}), do: []
+  defp normalize_route_list(values) when is_list(values), do: values
+  defp normalize_route_list(nil), do: []
+  defp normalize_route_list(value), do: [value]
 end

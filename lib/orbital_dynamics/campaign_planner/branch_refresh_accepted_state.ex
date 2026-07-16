@@ -1,27 +1,22 @@
 defmodule OrbitalDynamics.CampaignPlanner.BranchRefreshAcceptedState do
   @moduledoc false
 
-  alias OrbitalDynamics.CampaignPlanner.CandidateRefreshRequest
+  alias OrbitalDynamics.CampaignPlanner.{CandidateRefreshRequest, PriorActivityContext}
 
   @realized_failure_statuses ~w(missed failed canceled cancelled rejected)
 
-  def from_mission_state(mission_state, prior_plan, opts)
+  def from_mission_state(mission_state, prior_plan)
 
   def from_mission_state(
         %{"accepted_planning_state" => %{} = state} = mission_state,
-        prior_plan,
-        opts
+        prior_plan
       ) do
-    callbacks = callbacks!(opts)
-
     state
     |> CandidateRefreshRequest.ensure_accepted_planning_state_estimate_trust_boundaries()
-    |> append_realized_maneuver_execution_deltas(mission_state, prior_plan, callbacks)
+    |> append_realized_maneuver_execution_deltas(mission_state, prior_plan)
   end
 
-  def from_mission_state(mission_state, prior_plan, opts) do
-    callbacks = callbacks!(opts)
-
+  def from_mission_state(mission_state, prior_plan) do
     spacecraft_states =
       mission_state
       |> Map.get("spacecraft_states", [])
@@ -40,7 +35,7 @@ defmodule OrbitalDynamics.CampaignPlanner.BranchRefreshAcceptedState do
           Map.get(mission_state, "captured_at") || DateTime.to_iso8601(DateTime.utc_now()),
         "spacecraft_states" => spacecraft_states,
         "maneuver_execution_deltas" =>
-          maneuver_execution_deltas_from_mission_state(mission_state, %{}, prior_plan, callbacks),
+          maneuver_execution_deltas_from_mission_state(mission_state, %{}, prior_plan),
         "source" => %{"system" => "mission_state"},
         "quality" => %{"level" => "planning_accepted"},
         "provenance" => %{
@@ -52,8 +47,8 @@ defmodule OrbitalDynamics.CampaignPlanner.BranchRefreshAcceptedState do
     end
   end
 
-  def for_branch(branch, mission_state, prior_plan, opts) do
-    case from_mission_state(mission_state, prior_plan, opts) do
+  def for_branch(branch, mission_state, prior_plan) do
+    case from_mission_state(mission_state, prior_plan) do
       %{} = accepted_state ->
         branch_deltas = branch_maneuver_execution_deltas(branch)
 
@@ -74,18 +69,10 @@ defmodule OrbitalDynamics.CampaignPlanner.BranchRefreshAcceptedState do
     end
   end
 
-  defp callbacks!(opts) do
-    %{
-      enrich_realized_activities_with_planned_context:
-        Keyword.fetch!(opts, :enrich_realized_activities_with_planned_context)
-    }
-  end
-
   defp append_realized_maneuver_execution_deltas(
          accepted_state,
          mission_state,
-         prior_plan,
-         callbacks
+         prior_plan
        ) do
     Map.put(
       accepted_state,
@@ -93,8 +80,7 @@ defmodule OrbitalDynamics.CampaignPlanner.BranchRefreshAcceptedState do
       maneuver_execution_deltas_from_mission_state(
         mission_state,
         accepted_state,
-        prior_plan,
-        callbacks
+        prior_plan
       )
     )
   end
@@ -102,24 +88,23 @@ defmodule OrbitalDynamics.CampaignPlanner.BranchRefreshAcceptedState do
   defp maneuver_execution_deltas_from_mission_state(
          mission_state,
          accepted_state,
-         prior_plan,
-         callbacks
+         prior_plan
        ) do
     existing =
       Map.get(accepted_state, "maneuver_execution_deltas") ||
         Map.get(mission_state, "maneuver_execution_deltas", [])
 
-    (existing ++ realized_maneuver_execution_deltas(mission_state, prior_plan, callbacks))
+    (existing ++ realized_maneuver_execution_deltas(mission_state, prior_plan))
     |> Enum.map(&stringify_keys/1)
     |> Enum.map(&ensure_maneuver_execution_delta_trust_boundary(&1, accepted_state))
     |> unique_maneuver_execution_deltas()
   end
 
-  defp realized_maneuver_execution_deltas(mission_state, prior_plan, callbacks) do
+  defp realized_maneuver_execution_deltas(mission_state, prior_plan) do
     mission_state
     |> Map.get("realized_activities", [])
     |> Enum.map(&stringify_keys/1)
-    |> callbacks.enrich_realized_activities_with_planned_context.(prior_plan)
+    |> PriorActivityContext.enrich(prior_plan)
     |> Enum.flat_map(&realized_maneuver_execution_delta/1)
   end
 

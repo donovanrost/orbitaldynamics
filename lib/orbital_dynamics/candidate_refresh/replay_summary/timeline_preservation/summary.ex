@@ -2,6 +2,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelinePreservation.Su
   @moduledoc false
 
   alias OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelinePreservation.ReplayInput
+  alias __MODULE__.Counts
   alias __MODULE__.RowValues
 
   def summary(refresh_or_artifact) do
@@ -21,60 +22,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelinePreservation.Su
         }
       end
 
-    source_paths =
-      rows
-      |> Enum.map(&Map.get(&1, "source"))
-      |> RowValues.sorted_string_values()
-
-    required_action_counts =
-      rows
-      |> Enum.map(&Map.get(&1, "required_operator_action"))
-      |> RowValues.count_values()
-      |> empty_map_if_nil()
-
-    preservation_status_counts =
-      rows
-      |> Enum.map(&Map.get(&1, "timeline_preservation_status"))
-      |> RowValues.count_values()
-      |> empty_map_if_nil()
-
-    protection_decision_counts =
-      rows
-      |> Enum.map(&Map.get(&1, "timeline_preservation_protection_decision"))
-      |> RowValues.count_values()
-      |> empty_map_if_nil()
-
-    protection_category_counts =
-      rows
-      |> Enum.map(&Map.get(&1, "timeline_preservation_protection_category"))
-      |> RowValues.count_values()
-      |> empty_map_if_nil()
-
-    protection_reason_counts =
-      rows
-      |> Enum.map(&Map.get(&1, "timeline_preservation_protection_reason"))
-      |> RowValues.count_values()
-      |> empty_map_if_nil()
-
-    source_contract_counts =
-      rows
-      |> Enum.map(&RowValues.source_contract/1)
-      |> RowValues.count_values()
-      |> empty_map_if_nil()
-
-    source_model_counts =
-      rows
-      |> Enum.map(&RowValues.source_model/1)
-      |> RowValues.count_values()
-      |> empty_map_if_nil()
-
-    activity_id_counts =
-      RowValues.count_ids(rows, "activity_id")
-      |> empty_map_if_nil()
-
-    timeline_id_counts =
-      RowValues.count_ids(rows, "timeline_id")
-      |> empty_map_if_nil()
+    counts = Counts.counts(rows)
 
     preservation_required_rows =
       Enum.filter(rows, &(&1["timeline_preservation_status"] == "preservation_required"))
@@ -96,25 +44,28 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelinePreservation.Su
 
     review_pressure = review_required_rows != []
     preservation_pressure = preservation_required_rows != [] or preserve_rows != []
-    routing_pressure = map_size(activity_id_counts) > 0 or map_size(timeline_id_counts) > 0
+
+    routing_pressure =
+      map_size(counts.activity_id_counts) > 0 or map_size(counts.timeline_id_counts) > 0
+
     action_pressure = map_size(action_routing) > 0
 
     %{
       "model" => "artifact_only_candidate_refresh_timeline_preservation_replay_summary",
       "source" => summary_source,
       "contract" => source_report_summary_contract(%{"contract" => nil}, nil),
-      "source_artifact_count" => length(source_paths),
+      "source_artifact_count" => length(counts.source_paths),
       "source_report_row_count" => length(rows),
-      "source_report_paths" => source_paths,
-      "source_summary_schema_contract_counts" => source_contract_counts,
-      "source_summary_model_counts" => source_model_counts,
-      "timeline_preservation_status_counts" => preservation_status_counts,
-      "required_operator_action_counts" => required_action_counts,
-      "protection_decision_counts" => protection_decision_counts,
-      "protection_category_counts" => protection_category_counts,
-      "protection_reason_counts" => protection_reason_counts,
-      "activity_id_counts" => activity_id_counts,
-      "timeline_id_counts" => timeline_id_counts,
+      "source_report_paths" => counts.source_paths,
+      "source_summary_schema_contract_counts" => counts.source_contract_counts,
+      "source_summary_model_counts" => counts.source_model_counts,
+      "timeline_preservation_status_counts" => counts.preservation_status_counts,
+      "required_operator_action_counts" => counts.required_action_counts,
+      "protection_decision_counts" => counts.protection_decision_counts,
+      "protection_category_counts" => counts.protection_category_counts,
+      "protection_reason_counts" => counts.protection_reason_counts,
+      "activity_id_counts" => counts.activity_id_counts,
+      "timeline_id_counts" => counts.timeline_id_counts,
       "preservation_required_activity_ids" =>
         RowValues.ids(preservation_required_rows, "activity_id"),
       "preservation_required_timeline_ids" =>

@@ -136,15 +136,145 @@ defmodule OrbitalDynamics.CandidateRefresh.BuildIdentityTest do
         generated_at: ~U[2026-05-14 00:00:00Z]
       )
 
+    with_spacecraft_state =
+      result_set()
+      |> CandidateRefresh.build(
+        candidate_refresh:
+          refresh_request()
+          |> Map.put("mission_state", %{
+            "spacecraft_states" => [
+              %{"scenario_id" => :leo_1, "spacecraft_id" => :sat_2}
+            ]
+          }),
+        generated_at: ~U[2026-05-14 00:00:00Z]
+      )
+
     refresh_ids =
-      [base, with_feedback, with_ground_network, with_resource_policy, with_candidate_limit]
+      [
+        base,
+        with_feedback,
+        with_ground_network,
+        with_resource_policy,
+        with_candidate_limit,
+        with_spacecraft_state
+      ]
       |> Enum.map(& &1["refresh_id"])
 
-    assert Enum.all?(refresh_ids, &String.starts_with?(&1, "candidate_refresh:"))
-    assert length(Enum.uniq(refresh_ids)) == 5
+    assert Enum.all?(
+             refresh_ids,
+             &String.starts_with?(&1, "candidate_refresh:candidate_refresh_demo:")
+           )
+
+    assert length(Enum.uniq(refresh_ids)) == 6
 
     assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
              Schema.validate_artifact(with_feedback)
+  end
+
+  test "refresh id normalizes current epoch and horizon numeric strings" do
+    numeric_refresh =
+      refresh_request()
+      |> Map.put("current_epoch_s", 42.5)
+      |> put_in(["remaining_horizon", "starts_at_s"], 42.5)
+      |> put_in(["remaining_horizon", "ends_at_s"], 642.5)
+      |> put_in(["remaining_horizon", "output_step_s"], 30.0)
+
+    string_refresh =
+      refresh_request()
+      |> Map.put("current_epoch_s", "42.5")
+      |> put_in(["remaining_horizon", "starts_at_s"], "42.5")
+      |> put_in(["remaining_horizon", "ends_at_s"], "642.5")
+      |> put_in(["remaining_horizon", "output_step_s"], "30.0")
+
+    numeric =
+      result_set()
+      |> CandidateRefresh.build(
+        candidate_refresh: numeric_refresh,
+        generated_at: ~U[2026-05-14 00:00:00Z]
+      )
+
+    string =
+      result_set()
+      |> CandidateRefresh.build(
+        candidate_refresh: string_refresh,
+        generated_at: ~U[2026-05-14 00:00:00Z]
+      )
+
+    assert numeric["refresh_id"] == string["refresh_id"]
+    assert numeric["current_epoch_s"] == 42.5
+    assert string["current_epoch_s"] == 42.5
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
+             Schema.validate_artifact(string)
+  end
+
+  test "encodes result-set assumption atoms and keyword options" do
+    result_set = result_set()
+
+    result_set = %{
+      result_set
+      | assumptions:
+          Map.merge(result_set.assumptions, %{
+            propagator_opts: [frame: :j2000, nested: [mode: :scalar_elixir]],
+            outputs: [:access_windows, :eclipses]
+          })
+    }
+
+    artifact =
+      result_set
+      |> CandidateRefresh.build(
+        candidate_refresh: refresh_request(),
+        generated_at: ~U[2026-05-14 00:00:00Z]
+      )
+
+    assert artifact["assumptions"]["propagator"] ==
+             "Elixir.OrbitalDynamics.Propagators.TwoBody"
+
+    assert artifact["assumptions"]["propagator_opts"] == %{
+             "frame" => "j2000",
+             "nested" => %{"mode" => "scalar_elixir"}
+           }
+
+    assert artifact["assumptions"]["outputs"] == ["access_windows", "eclipses"]
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
+  test "encodes result-set run metadata atoms and keyword manifest in provenance" do
+    result_set = result_set()
+
+    result_set = %{
+      result_set
+      | metadata: %{
+          run: %{
+            id: :run_alpha,
+            metadata: %{
+              manifest: [contract: :mission_manifest, nested: [mode: :flight]],
+              git_revision: :abc123
+            }
+          }
+        }
+    }
+
+    artifact =
+      result_set
+      |> CandidateRefresh.build(
+        candidate_refresh: refresh_request(),
+        generated_at: ~U[2026-05-14 00:00:00Z]
+      )
+
+    assert artifact["provenance"]["run_id"] == "run_alpha"
+
+    assert artifact["provenance"]["manifest"] == %{
+             "contract" => "mission_manifest",
+             "nested" => %{"mode" => "flight"}
+           }
+
+    assert artifact["provenance"]["git_revision"] == "abc123"
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
   end
 
   defp result_set do

@@ -1,7 +1,8 @@
 defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelineTransitionApplication.SourceReportFields do
   @moduledoc false
 
-  alias OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelineTransitionApplication
+  alias OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelineTransitionApplication.Summary
+  alias __MODULE__.Pressure
 
   import __MODULE__.Aggregation
 
@@ -9,25 +10,13 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelineTransitionAppli
     summary =
       source_reports
       |> Map.get("timeline_transition_application_report", %{})
-      |> TimelineTransitionApplication.summary(
+      |> Summary.summary(
         "candidate_refresh.source_report_provenance.timeline_transition_application_report",
         "timeline_transition_application_source_report_provenance_only"
       )
 
-    %{
-      "source_report_timeline_transition_application_branch_local_timeline_transition_application_pressure" =>
-        Map.get(summary, "branch_local_timeline_transition_application_pressure"),
-      "source_report_timeline_transition_application_branch_local_selected_activity_pressure" =>
-        Map.get(summary, "branch_local_selected_activity_pressure"),
-      "source_report_timeline_transition_application_branch_local_review_required_pressure" =>
-        Map.get(summary, "branch_local_review_required_pressure"),
-      "source_report_timeline_transition_application_branch_local_preserved_transition_pressure" =>
-        Map.get(summary, "branch_local_preserved_transition_pressure"),
-      "source_report_timeline_transition_application_branch_local_duplicate_identity_pressure" =>
-        Map.get(summary, "branch_local_duplicate_identity_pressure"),
-      "source_report_timeline_transition_application_branch_local_operator_review_pressure" =>
-        Map.get(summary, "branch_local_operator_review_pressure")
-    }
+    summary
+    |> Pressure.source_report_fields()
     |> Map.merge(flattened_source_report_fields(source_reports))
   end
 

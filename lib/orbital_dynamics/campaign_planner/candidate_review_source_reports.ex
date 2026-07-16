@@ -1,7 +1,10 @@
 defmodule OrbitalDynamics.CampaignPlanner.CandidateReviewSourceReports do
   @moduledoc false
 
-  def candidate_diff_reports(mission_state, opts) do
+  alias __MODULE__.PressureRows
+  alias OrbitalDynamics.CampaignPlanner.{BranchRefreshSourceInputs, SourceReportArtifacts}
+
+  def candidate_diff_reports(mission_state, opts \\ default_callbacks()) do
     source_reports(
       mission_state,
       [
@@ -14,7 +17,7 @@ defmodule OrbitalDynamics.CampaignPlanner.CandidateReviewSourceReports do
       result_artifact_embedded_reports(mission_state, "candidate_diff_report", opts)
   end
 
-  def source_candidate_diff_reports(mission_state, opts) do
+  def source_candidate_diff_reports(mission_state, opts \\ default_callbacks()) do
     source_reports(
       mission_state,
       [
@@ -24,7 +27,19 @@ defmodule OrbitalDynamics.CampaignPlanner.CandidateReviewSourceReports do
     )
   end
 
-  def canonical_candidate_diff_reports(mission_state, opts) do
+  def source_candidate_diff_reports_with_result_artifact_fallback(
+        mission_state,
+        opts \\ default_callbacks()
+      ) do
+    source_reports_with_result_artifact_fallback(
+      mission_state,
+      &source_candidate_diff_reports(&1, opts),
+      ["source_candidate_diff_report", "candidate_diff_report"],
+      opts
+    )
+  end
+
+  def canonical_candidate_diff_reports(mission_state, opts \\ default_callbacks()) do
     source_reports(
       mission_state,
       [
@@ -34,7 +49,7 @@ defmodule OrbitalDynamics.CampaignPlanner.CandidateReviewSourceReports do
     )
   end
 
-  def candidate_rejection_reports(mission_state, opts) do
+  def candidate_rejection_reports(mission_state, opts \\ default_callbacks()) do
     source_reports(
       mission_state,
       [
@@ -47,7 +62,7 @@ defmodule OrbitalDynamics.CampaignPlanner.CandidateReviewSourceReports do
       result_artifact_embedded_reports(mission_state, "candidate_rejection_report", opts)
   end
 
-  def source_candidate_rejection_reports(mission_state, opts) do
+  def source_candidate_rejection_reports(mission_state, opts \\ default_callbacks()) do
     source_reports(
       mission_state,
       [
@@ -57,7 +72,19 @@ defmodule OrbitalDynamics.CampaignPlanner.CandidateReviewSourceReports do
     )
   end
 
-  def canonical_candidate_rejection_reports(mission_state, opts) do
+  def source_candidate_rejection_reports_with_result_artifact_fallback(
+        mission_state,
+        opts \\ default_callbacks()
+      ) do
+    source_reports_with_result_artifact_fallback(
+      mission_state,
+      &source_candidate_rejection_reports(&1, opts),
+      ["source_candidate_rejection_report", "candidate_rejection_report"],
+      opts
+    )
+  end
+
+  def canonical_candidate_rejection_reports(mission_state, opts \\ default_callbacks()) do
     source_reports(
       mission_state,
       [
@@ -68,72 +95,69 @@ defmodule OrbitalDynamics.CampaignPlanner.CandidateReviewSourceReports do
   end
 
   def candidate_diff_pressure_rows(reports) do
-    report_pressure_rows(
-      reports,
-      &candidate_diff_replacement_rows/1,
-      fn source_path -> "#{source_path}.invalidated_candidates" end
-    )
+    PressureRows.candidate_diff_pressure_rows(reports)
   end
 
   def candidate_rejection_pressure_rows(reports) do
-    report_pressure_rows(
-      reports,
-      fn report ->
-        report
-        |> Map.get("rows", [])
-        |> List.wrap()
-      end,
-      fn source_path -> "#{source_path}.rows" end
-    )
+    PressureRows.candidate_rejection_pressure_rows(reports)
   end
 
   def candidate_diff_replacement_rows(report) do
-    report
-    |> Map.get("invalidated_candidates", [])
-    |> Enum.map(&stringify_keys/1)
-    |> Enum.filter(&is_binary(Map.get(&1, "replacement_candidate_id")))
+    PressureRows.candidate_diff_replacement_rows(report)
   end
 
-  defp source_reports(mission_state, fields, opts) do
-    callbacks = callbacks!(opts)
-    mission_state = stringify_keys(mission_state || %{})
-
-    fields
-    |> Enum.flat_map(fn {field, source_path} ->
-      callbacks.source_report_entries.(Map.get(mission_state, field), source_path)
+  def candidate_refresh_source_inputs(mission_state) do
+    Map.new(candidate_refresh_source_input_collectors(), fn {key, collector} ->
+      {key, BranchRefreshSourceInputs.source_reports_or_reports(mission_state, collector)}
     end)
+  end
+
+  defp candidate_refresh_source_input_collectors,
+    do: [
+      {"source_candidate_diff_report",
+       &source_candidate_diff_reports_with_result_artifact_fallback/1},
+      {"candidate_diff_report", &canonical_candidate_diff_reports/1},
+      {"source_candidate_rejection_report",
+       &source_candidate_rejection_reports_with_result_artifact_fallback/1},
+      {"candidate_rejection_report", &canonical_candidate_rejection_reports/1}
+    ]
+
+  defp source_reports(mission_state, fields, opts) do
+    SourceReportArtifacts.source_reports(mission_state, fields, opts, &stringify_keys/1)
   end
 
   defp result_artifact_embedded_reports(mission_state, report_key, opts) do
-    callbacks = callbacks!(opts)
-    callbacks.result_artifact_embedded_reports.(mission_state, report_key)
+    SourceReportArtifacts.embedded_reports(mission_state, report_key, opts)
   end
 
-  defp report_pressure_rows(reports, rows_fun, source_path_fun) do
-    reports
-    |> Enum.flat_map(fn {report, source_path} ->
-      trust_boundary =
-        Map.get(report, "trust_boundary") || get_in(report, ["provenance", "trust_boundary"])
-
-      report
-      |> rows_fun.()
-      |> Enum.map(&stringify_keys/1)
-      |> Enum.with_index(1)
-      |> Enum.map(fn {row, index} ->
-        {
-          Map.put(row, "_source_report_trust_boundary", trust_boundary),
-          source_path_fun.(source_path),
-          index
-        }
-      end)
-    end)
+  defp source_reports_with_result_artifact_fallback(
+         mission_state,
+         direct_source_fun,
+         result_artifact_keys,
+         opts
+       ) do
+    SourceReportArtifacts.source_reports_with_embedded_fallback(
+      mission_state,
+      direct_source_fun,
+      result_artifact_keys,
+      opts,
+      &stringify_keys/1
+    )
   end
 
-  defp callbacks!(opts) do
-    %{
-      source_report_entries: Keyword.fetch!(opts, :source_report_entries),
-      result_artifact_embedded_reports: Keyword.fetch!(opts, :result_artifact_embedded_reports)
-    }
+  defp default_callbacks do
+    [
+      source_report_entries: &BranchRefreshSourceInputs.source_report_entries/2,
+      result_artifact_embedded_reports: &mission_state_result_artifact_embedded_reports/2
+    ]
+  end
+
+  defp mission_state_result_artifact_embedded_reports(mission_state, report_keys) do
+    BranchRefreshSourceInputs.result_artifact_embedded_reports(
+      mission_state,
+      "mission_state",
+      report_keys
+    )
   end
 
   defp stringify_keys(%_struct{} = struct), do: struct |> Map.from_struct() |> stringify_keys()

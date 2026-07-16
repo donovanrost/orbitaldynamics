@@ -1,6 +1,8 @@
 defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelinePublicationContext.SourceReportFields.Aggregates do
   @moduledoc false
 
+  alias OrbitalDynamics.CandidateRefresh.ValueEncoding
+
   def count(source_reports, family, field) do
     if Map.has_key?(source_reports, family) do
       source_reports
@@ -51,16 +53,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelinePublicationCont
     end
   end
 
-  defp numeric_value(value) when is_number(value), do: value * 1.0
-
-  defp numeric_value(value) when is_binary(value) do
-    case Float.parse(String.trim(value)) do
-      {number, ""} -> number
-      _parse -> nil
-    end
-  end
-
-  defp numeric_value(_value), do: nil
+  defp numeric_value(value), do: ValueEncoding.numeric_value(value)
 
   defp merge_count_maps(count_maps) do
     count_maps

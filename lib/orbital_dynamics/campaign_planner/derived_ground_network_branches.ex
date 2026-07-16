@@ -1,7 +1,16 @@
 defmodule OrbitalDynamics.CampaignPlanner.DerivedGroundNetworkBranches do
   @moduledoc false
 
-  def build(mission_state, prior_plan, callbacks) do
+  alias OrbitalDynamics.CampaignPlanner.{
+    BranchRefreshGroundNetwork,
+    MissionStateNormalization,
+    ScalarValues,
+    ValueEncoding
+  }
+
+  @unavailable_station_tokens ~w(unavailable maintenance outage offline down)
+
+  def build(mission_state, prior_plan, callbacks \\ default_callbacks()) do
     unavailable_station_tokens = Keyword.fetch!(callbacks, :unavailable_station_tokens)
     stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
     station_id = Keyword.fetch!(callbacks, :station_id)
@@ -111,7 +120,7 @@ defmodule OrbitalDynamics.CampaignPlanner.DerivedGroundNetworkBranches do
     end)
   end
 
-  def disambiguate(branches, callbacks) do
+  def disambiguate(branches, callbacks \\ default_callbacks()) do
     branch_id_fragment = Keyword.fetch!(callbacks, :branch_id_fragment)
     encode_value = Keyword.fetch!(callbacks, :encode_value)
     id_counts = Enum.frequencies_by(branches, & &1["id"])
@@ -297,4 +306,31 @@ defmodule OrbitalDynamics.CampaignPlanner.DerivedGroundNetworkBranches do
 
   defp put_if_present(map, _key, value) when value in [nil, "", [], %{}], do: map
   defp put_if_present(map, key, value), do: Map.put(map, key, value)
+
+  defp default_callbacks do
+    [
+      unavailable_station_tokens: @unavailable_station_tokens,
+      stringify_keys: &ValueEncoding.stringify_keys/1,
+      station_id: &BranchRefreshGroundNetwork.ground_network_station_id/1,
+      normalize_availability_token: &MissionStateNormalization.availability_token/1,
+      capacity_fraction: &BranchRefreshGroundNetwork.ground_network_capacity_fraction/2,
+      time: &ground_network_time/3,
+      compact_map: &ValueEncoding.compact_map/1,
+      encode_value: &ValueEncoding.encode_value/1,
+      branch_id_fragment: &ValueEncoding.branch_id_fragment/1
+    ]
+  end
+
+  defp ground_network_time(entry, field, default) do
+    alias_field =
+      case field do
+        "starts_at_s" -> "start_s"
+        "ends_at_s" -> "end_s"
+        _field -> nil
+      end
+
+    ScalarValues.numeric_or_nil(Map.get(entry, field)) ||
+      (alias_field && ScalarValues.numeric_or_nil(Map.get(entry, alias_field))) ||
+      default
+  end
 end

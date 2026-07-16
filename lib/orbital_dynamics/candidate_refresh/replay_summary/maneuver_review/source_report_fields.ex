@@ -1,21 +1,23 @@
 defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ManeuverReview.SourceReportFields do
   @moduledoc false
 
+  alias OrbitalDynamics.CandidateRefresh.ReplaySummary.ManeuverReview.Summary
   alias __MODULE__.Flattened
+  alias __MODULE__.Pressure
+
+  def source_report_fields(source_reports) do
+    source_reports
+    |> Map.get("maneuver_review_report", %{})
+    |> Summary.summary(
+      "candidate_refresh.source_report_provenance.maneuver_review_report",
+      "maneuver_review_source_report_provenance_only"
+    )
+    |> then(&source_report_fields(source_reports, &1))
+  end
 
   def source_report_fields(source_reports, summary) do
-    %{
-      "source_report_maneuver_review_branch_local_maneuver_review_pressure" =>
-        Map.get(summary, "branch_local_maneuver_review_pressure"),
-      "source_report_maneuver_review_branch_local_maneuver_feedback_pressure" =>
-        Map.get(summary, "branch_local_maneuver_feedback_pressure"),
-      "source_report_maneuver_review_branch_local_maneuver_routing_pressure" =>
-        Map.get(summary, "branch_local_maneuver_routing_pressure"),
-      "source_report_maneuver_review_branch_local_maneuver_action_pressure" =>
-        Map.get(summary, "branch_local_maneuver_action_pressure"),
-      "source_report_maneuver_review_branch_local_execution_uncertainty_pressure" =>
-        Map.get(summary, "branch_local_execution_uncertainty_pressure")
-    }
+    summary
+    |> Pressure.source_report_fields()
     |> Map.merge(Flattened.source_report_fields(source_reports))
   end
 end

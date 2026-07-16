@@ -1,0 +1,244 @@
+defmodule OrbitalDynamics.CampaignPlanner.RepairSourceReports do
+  @moduledoc false
+
+  alias OrbitalDynamics.CampaignPlanner.{
+    BranchRefreshSourceInputs,
+    CandidateRejectionPressureEvents,
+    CandidateReviewSourceReports,
+    ValueEncoding
+  }
+
+  def contact_filter(candidate_refresh),
+    do: contact_filter(candidate_refresh, default_callbacks())
+
+  def contact_filter(nil, _callbacks), do: nil
+
+  def contact_filter(%{} = candidate_refresh, callbacks),
+    do: direct_report(candidate_refresh, "contact_filter_report", callbacks)
+
+  def contact_allocation(candidate_refresh),
+    do: contact_allocation(candidate_refresh, default_callbacks())
+
+  def contact_allocation(nil, _callbacks), do: nil
+
+  def contact_allocation(%{} = candidate_refresh, callbacks),
+    do: direct_report(candidate_refresh, "contact_allocation_report", callbacks)
+
+  def resource_filter(candidate_refresh),
+    do: resource_filter(candidate_refresh, default_callbacks())
+
+  def resource_filter(nil, _callbacks), do: nil
+
+  def resource_filter(%{} = candidate_refresh, callbacks),
+    do: direct_report(candidate_refresh, "resource_filter_report", callbacks)
+
+  def freshness(candidate_refresh), do: freshness(candidate_refresh, default_callbacks())
+
+  def freshness(nil, _callbacks), do: nil
+
+  def freshness(%{} = candidate_refresh, callbacks),
+    do: direct_report(candidate_refresh, "freshness_report", callbacks)
+
+  def operational_readiness(candidate_refresh),
+    do: operational_readiness(candidate_refresh, default_callbacks())
+
+  def operational_readiness(candidate_refresh, callbacks) do
+    source_report(
+      candidate_refresh,
+      "source_operational_readiness_report",
+      "operational_readiness_report",
+      callbacks
+    )
+  end
+
+  def quality_gate(candidate_refresh), do: quality_gate(candidate_refresh, default_callbacks())
+
+  def quality_gate(candidate_refresh, callbacks) do
+    source_report(
+      candidate_refresh,
+      "source_quality_gate_report",
+      "quality_gate_report",
+      callbacks
+    )
+  end
+
+  def refresh_budget(candidate_refresh),
+    do: refresh_budget(candidate_refresh, default_callbacks())
+
+  def refresh_budget(nil, _callbacks), do: nil
+
+  def refresh_budget(%{} = candidate_refresh, callbacks),
+    do: direct_report(candidate_refresh, "refresh_budget_report", callbacks)
+
+  def candidate_rejection_report(request),
+    do: candidate_rejection_report(request, default_callbacks())
+
+  def candidate_rejection_report(%{} = request, callbacks) do
+    request
+    |> candidate_rejection_reports(callbacks)
+    |> List.first()
+  end
+
+  def candidate_rejection_reports(request),
+    do: candidate_rejection_reports(request, default_callbacks())
+
+  def candidate_rejection_reports(%{} = request, callbacks) do
+    source_report_family_callbacks = Keyword.fetch!(callbacks, :source_report_family_callbacks)
+
+    mission_state_reports =
+      request
+      |> Map.get(:mission_state)
+      |> CandidateReviewSourceReports.candidate_rejection_reports(
+        source_report_family_callbacks.()
+      )
+      |> Enum.map(fn {report, _source_path} -> report end)
+
+    mission_state_reports ++
+      candidate_refresh_rejection_reports(Map.get(request, :candidate_refresh), callbacks)
+  end
+
+  def candidate_refresh_rejection_reports(candidate_refresh),
+    do: candidate_refresh_rejection_reports(candidate_refresh, default_callbacks())
+
+  def candidate_refresh_rejection_reports(nil, _callbacks), do: []
+
+  def candidate_refresh_rejection_reports(%{} = candidate_refresh, callbacks) do
+    stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
+
+    ["source_candidate_rejection_report", "candidate_rejection_report"]
+    |> Enum.flat_map(fn field ->
+      candidate_refresh
+      |> Map.get(field)
+      |> List.wrap()
+    end)
+    |> Enum.filter(&is_map/1)
+    |> Enum.map(stringify_keys)
+  end
+
+  def rejected_candidate_ids(request), do: rejected_candidate_ids(request, default_callbacks())
+
+  def rejected_candidate_ids(%{} = request, callbacks) do
+    request
+    |> candidate_rejection_reports(callbacks)
+    |> candidate_rejection_rejected_candidate_ids(callbacks)
+    |> MapSet.new()
+  end
+
+  def candidate_rejection_rejected_candidate_ids(reports),
+    do: candidate_rejection_rejected_candidate_ids(reports, default_callbacks())
+
+  def candidate_rejection_rejected_candidate_ids(reports, callbacks) do
+    stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
+
+    candidate_rejection_candidate_id =
+      Keyword.fetch!(callbacks, :candidate_rejection_candidate_id)
+
+    reports
+    |> List.wrap()
+    |> Enum.flat_map(fn report ->
+      report
+      |> stringify_keys.()
+      |> Map.get("rows", [])
+      |> List.wrap()
+    end)
+    |> Enum.map(stringify_keys)
+    |> Enum.filter(&(Map.get(&1, "rejection_status", "rejected") == "rejected"))
+    |> Enum.map(candidate_rejection_candidate_id)
+    |> Enum.reject(&(&1 in [nil, ""]))
+    |> Enum.uniq()
+  end
+
+  def source_report(candidate_refresh, source_key, canonical_key),
+    do: source_report(candidate_refresh, source_key, canonical_key, default_callbacks())
+
+  def source_report(nil, _source_key, _canonical_key, _callbacks), do: nil
+
+  def source_report(%{} = candidate_refresh, source_key, canonical_key, callbacks) do
+    stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
+    candidate_refresh = stringify_keys.(candidate_refresh)
+
+    [
+      Map.get(candidate_refresh, source_key),
+      Map.get(candidate_refresh, canonical_key)
+    ]
+    |> Enum.find(&is_map/1)
+    |> case do
+      %{} = report -> stringify_keys.(report)
+      _report -> nil
+    end
+  end
+
+  def refresh_warnings(candidate_refresh),
+    do: refresh_warnings(candidate_refresh, default_callbacks())
+
+  def refresh_warnings(nil, _callbacks), do: []
+
+  def refresh_warnings(%{} = candidate_refresh, callbacks) do
+    freshness_warnings =
+      candidate_refresh
+      |> freshness(callbacks)
+      |> case do
+        %{"status" => "stale"} ->
+          [
+            "candidate refresh freshness policy marked the snapshot, horizon, or state quality stale"
+          ]
+
+        %{"status" => "unknown"} ->
+          ["candidate refresh freshness could not be fully evaluated"]
+
+        _report ->
+          []
+      end
+
+    source_warnings =
+      candidate_refresh
+      |> Map.get("warnings", [])
+      |> List.wrap()
+      |> Enum.filter(&is_binary/1)
+
+    (freshness_warnings ++ source_warnings)
+    |> Enum.uniq()
+  end
+
+  defp direct_report(%{} = candidate_refresh, field, callbacks) do
+    stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
+
+    case Map.get(candidate_refresh, field) do
+      %{} = report -> stringify_keys.(report)
+      _report -> nil
+    end
+  end
+
+  defp default_callbacks do
+    [
+      stringify_keys: &ValueEncoding.stringify_keys/1,
+      source_report_family_callbacks: &source_report_family_callbacks/0,
+      candidate_rejection_candidate_id: &CandidateRejectionPressureEvents.candidate_id/1
+    ]
+  end
+
+  defp source_report_family_callbacks do
+    [
+      source_report_entries: &BranchRefreshSourceInputs.source_report_entries/2,
+      source_artifact_entries: &BranchRefreshSourceInputs.source_artifact_entries/2,
+      result_artifact_embedded_reports: &mission_state_result_artifact_embedded_reports/2,
+      result_artifact_operational_readiness_gate_summaries:
+        &mission_state_result_artifact_operational_readiness_gate_summaries/1
+    ]
+  end
+
+  defp mission_state_result_artifact_embedded_reports(mission_state, report_key) do
+    BranchRefreshSourceInputs.result_artifact_embedded_reports(
+      mission_state,
+      "mission_state",
+      report_key
+    )
+  end
+
+  defp mission_state_result_artifact_operational_readiness_gate_summaries(mission_state) do
+    BranchRefreshSourceInputs.operational_readiness_gate_summaries_from_result_artifacts(
+      mission_state,
+      "mission_state"
+    )
+  end
+end

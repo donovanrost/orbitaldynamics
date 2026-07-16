@@ -1,45 +1,43 @@
 defmodule OrbitalDynamics.CampaignPlanner.ResourceFilterPressureBranches do
   @moduledoc false
 
-  def from_reports(reports, callbacks) do
-    stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
+  alias OrbitalDynamics.CampaignPlanner.OperationalReadinessSourceReports
 
+  @stable_id_regex ~r/^[A-Za-z0-9][A-Za-z0-9._:@-]*$/
+
+  def from_reports(reports) do
     Enum.flat_map(reports, fn {report, source_path} ->
       trust_boundary =
         Map.get(report, "trust_boundary") || get_in(report, ["provenance", "trust_boundary"])
 
       report
       |> Map.get("suppressed_candidates", [])
-      |> Enum.map(&stringify_keys.(&1))
+      |> Enum.map(&stringify_keys/1)
       |> Enum.flat_map(fn row ->
         row
         |> Map.put("_source_report_trust_boundary", trust_boundary)
         |> Map.put("_source_report_policy", Map.get(report, "policy") || %{})
-        |> build(source_path, callbacks)
+        |> build(source_path)
       end)
     end)
   end
 
-  def build(row, source_path, callbacks) do
-    branch_id_fragment = Keyword.fetch!(callbacks, :branch_id_fragment)
-    compact_map = Keyword.fetch!(callbacks, :compact_map)
-    stable_id_string? = Keyword.fetch!(callbacks, :stable_id_string?)
-
-    event = pressure_event(row, source_path, callbacks)
+  def build(row, source_path) do
+    event = pressure_event(row, source_path)
     candidate_id = candidate_id(row)
 
-    if is_nil(event) or not stable_id_string?.(candidate_id) do
+    if is_nil(event) or not stable_id_string?(candidate_id) do
       []
     else
       reason =
         row
         |> Map.get("suppressed_reason", "suppressed")
-        |> branch_id_fragment.()
+        |> branch_id_fragment()
 
       [
         %{
           "id" =>
-            "derived_resource_filter_pressure_#{reason}_#{branch_id_fragment.(candidate_id)}",
+            "derived_resource_filter_pressure_#{reason}_#{branch_id_fragment(candidate_id)}",
           "label" => "Derived resource filter pressure #{candidate_id}",
           "events" => [event],
           "metadata" =>
@@ -49,14 +47,13 @@ defmodule OrbitalDynamics.CampaignPlanner.ResourceFilterPressureBranches do
               "resource_source_quality" => row["resource_source_quality"],
               "resource_trust_boundary_status" => row["resource_trust_boundary_status"]
             }
-            |> compact_map.()
+            |> compact_map()
         }
       ]
     end
   end
 
-  def disambiguate(branches, callbacks) do
-    branch_id_fragment = Keyword.fetch!(callbacks, :branch_id_fragment)
+  def disambiguate(branches) do
     id_counts = Enum.frequencies_by(branches, & &1["id"])
 
     branches
@@ -67,8 +64,8 @@ defmodule OrbitalDynamics.CampaignPlanner.ResourceFilterPressureBranches do
       if branch_id?(branch_id) and Map.get(id_counts, branch_id, 0) > 1 do
         suffix =
           branch
-          |> branch_identity(index, callbacks)
-          |> branch_id_fragment.()
+          |> branch_identity(index)
+          |> branch_id_fragment()
 
         branch
         |> Map.put("id", "#{branch_id}_#{suffix}")
@@ -110,9 +107,7 @@ defmodule OrbitalDynamics.CampaignPlanner.ResourceFilterPressureBranches do
     end)
   end
 
-  defp branch_identity(branch, index, callbacks) do
-    encode_value = Keyword.fetch!(callbacks, :encode_value)
-
+  defp branch_identity(branch, index) do
     branch
     |> Map.get("events", [])
     |> List.wrap()
@@ -128,7 +123,7 @@ defmodule OrbitalDynamics.CampaignPlanner.ResourceFilterPressureBranches do
       ]
     end)
     |> List.flatten()
-    |> Enum.map(fn value -> encode_value.(value) end)
+    |> Enum.map(&encode_value/1)
     |> Enum.reject(&(&1 in [nil, ""]))
     |> Enum.uniq()
     |> case do
@@ -137,10 +132,10 @@ defmodule OrbitalDynamics.CampaignPlanner.ResourceFilterPressureBranches do
     end
   end
 
-  defp pressure_event(row, source_path, callbacks) do
+  defp pressure_event(row, source_path) do
     case pressure(row) do
-      {:availability, field} -> availability_event(row, source_path, field, callbacks)
-      {:margin, field} -> margin_event(row, source_path, field, callbacks)
+      {:availability, field} -> availability_event(row, source_path, field)
+      {:margin, field} -> margin_event(row, source_path, field)
       nil -> nil
     end
   end
@@ -177,18 +172,15 @@ defmodule OrbitalDynamics.CampaignPlanner.ResourceFilterPressureBranches do
 
   defp pressure(_row), do: nil
 
-  defp availability_event(row, source_path, field, callbacks) do
-    compact_map = Keyword.fetch!(callbacks, :compact_map)
-    numeric_or_nil = Keyword.fetch!(callbacks, :numeric_or_nil)
-
+  defp availability_event(row, source_path, field) do
     %{
       "type" => "resource_availability_constraint",
       "scenario_id" => row["scenario_id"] || row["spacecraft_id"],
       "spacecraft_id" => row["spacecraft_id"] || row["scenario_id"],
       "resource_field" => field,
       "available" => false,
-      "starts_at_s" => numeric_or_nil.(row["starts_at_s"] || row["start_s"]),
-      "ends_at_s" => numeric_or_nil.(row["ends_at_s"] || row["end_s"]),
+      "starts_at_s" => numeric_or_nil(row["starts_at_s"] || row["start_s"]),
+      "ends_at_s" => numeric_or_nil(row["ends_at_s"] || row["end_s"]),
       "source_activity_id" => candidate_id(row),
       "source_activity_ids" => List.wrap(candidate_id(row)),
       "suppressed_reason" => row["suppressed_reason"],
@@ -204,14 +196,11 @@ defmodule OrbitalDynamics.CampaignPlanner.ResourceFilterPressureBranches do
       "feedback_scope" => "resource_filter",
       "trust_boundary" => trust_boundary(row)
     }
-    |> compact_map.()
+    |> compact_map()
   end
 
-  defp margin_event(row, source_path, field, callbacks) do
-    compact_map = Keyword.fetch!(callbacks, :compact_map)
-    numeric_or_nil = Keyword.fetch!(callbacks, :numeric_or_nil)
-    operator_training_context = Keyword.fetch!(callbacks, :operator_training_context)
-    value = margin_value(row, field, callbacks)
+  defp margin_event(row, source_path, field) do
+    value = margin_value(row, field)
 
     if is_nil(value) do
       nil
@@ -222,9 +211,9 @@ defmodule OrbitalDynamics.CampaignPlanner.ResourceFilterPressureBranches do
         "spacecraft_id" => row["spacecraft_id"] || row["scenario_id"],
         "resource_field" => field,
         field => value,
-        "#{field}_threshold" => margin_threshold(row, field, callbacks),
-        "starts_at_s" => numeric_or_nil.(row["starts_at_s"] || row["start_s"]),
-        "ends_at_s" => numeric_or_nil.(row["ends_at_s"] || row["end_s"]),
+        "#{field}_threshold" => margin_threshold(row, field),
+        "starts_at_s" => numeric_or_nil(row["starts_at_s"] || row["start_s"]),
+        "ends_at_s" => numeric_or_nil(row["ends_at_s"] || row["end_s"]),
         "source_activity_id" => candidate_id(row),
         "source_activity_ids" => List.wrap(candidate_id(row)),
         "suppressed_reason" => row["suppressed_reason"],
@@ -235,8 +224,8 @@ defmodule OrbitalDynamics.CampaignPlanner.ResourceFilterPressureBranches do
         "feedback_scope" => "resource_filter",
         "trust_boundary" => trust_boundary(row)
       }
-      |> Map.merge(operator_training_context.(row))
-      |> compact_map.()
+      |> Map.merge(OperationalReadinessSourceReports.operator_training_context(row))
+      |> compact_map()
     end
   end
 
@@ -244,32 +233,26 @@ defmodule OrbitalDynamics.CampaignPlanner.ResourceFilterPressureBranches do
     row["activity_id"] || row["contact_id"] || row["id"]
   end
 
-  defp margin_value(row, field, callbacks) do
-    numeric_or_nil = Keyword.fetch!(callbacks, :numeric_or_nil)
-
+  defp margin_value(row, field) do
     [
       row[field],
       get_in(row, ["source_resource_summary", field]),
       get_in(row, ["resource_summary", field])
     ]
-    |> Enum.map(fn value -> numeric_or_nil.(value) end)
+    |> Enum.map(&numeric_or_nil/1)
     |> Enum.find(&is_number/1)
   end
 
-  defp margin_threshold(row, "fuel_margin", callbacks) do
-    numeric_or_nil = Keyword.fetch!(callbacks, :numeric_or_nil)
-
-    numeric_or_nil.(
+  defp margin_threshold(row, "fuel_margin") do
+    numeric_or_nil(
       row["min_activity_fuel_margin"] ||
         get_in(row, ["_source_report_policy", "min_activity_fuel_margin"]) ||
         row["fuel_margin_threshold"]
     )
   end
 
-  defp margin_threshold(row, "power_margin", callbacks) do
-    numeric_or_nil = Keyword.fetch!(callbacks, :numeric_or_nil)
-
-    numeric_or_nil.(
+  defp margin_threshold(row, "power_margin") do
+    numeric_or_nil(
       row["min_observe_power_margin"] || row["min_downlink_power_margin"] ||
         get_in(row, ["_source_report_policy", "min_observe_power_margin"]) ||
         get_in(row, ["_source_report_policy", "min_downlink_power_margin"]) ||
@@ -277,30 +260,24 @@ defmodule OrbitalDynamics.CampaignPlanner.ResourceFilterPressureBranches do
     )
   end
 
-  defp margin_threshold(row, "storage_margin", callbacks) do
-    numeric_or_nil = Keyword.fetch!(callbacks, :numeric_or_nil)
-
-    numeric_or_nil.(
+  defp margin_threshold(row, "storage_margin") do
+    numeric_or_nil(
       row["min_observe_storage_margin"] ||
         get_in(row, ["_source_report_policy", "min_observe_storage_margin"]) ||
         row["storage_margin_threshold"]
     )
   end
 
-  defp margin_threshold(row, "downlink_margin", callbacks) do
-    numeric_or_nil = Keyword.fetch!(callbacks, :numeric_or_nil)
-
-    numeric_or_nil.(
+  defp margin_threshold(row, "downlink_margin") do
+    numeric_or_nil(
       row["min_downlink_margin"] ||
         get_in(row, ["_source_report_policy", "min_downlink_margin"]) ||
         row["downlink_margin_threshold"]
     )
   end
 
-  defp margin_threshold(row, "thermal_margin_c", callbacks) do
-    numeric_or_nil = Keyword.fetch!(callbacks, :numeric_or_nil)
-
-    numeric_or_nil.(
+  defp margin_threshold(row, "thermal_margin_c") do
+    numeric_or_nil(
       row["min_activity_thermal_margin_c"] ||
         get_in(row, ["_source_report_policy", "min_activity_thermal_margin_c"]) ||
         row["thermal_margin_c_threshold"]
@@ -325,4 +302,66 @@ defmodule OrbitalDynamics.CampaignPlanner.ResourceFilterPressureBranches do
       get_in(row, ["source_resource_summary", "provenance", "trust_boundary"]) ||
       row["_source_report_trust_boundary"]
   end
+
+  defp numeric_or_nil(nil), do: nil
+  defp numeric_or_nil(value) when is_integer(value) or is_float(value), do: value
+
+  defp numeric_or_nil(value) when is_binary(value) do
+    case Float.parse(value) do
+      {number, ""} -> number
+      _error -> nil
+    end
+  end
+
+  defp numeric_or_nil(_value), do: nil
+
+  defp stable_id_string?(value),
+    do: is_binary(value) and value != "" and Regex.match?(@stable_id_regex, value)
+
+  defp compact_map(map) do
+    map
+    |> Enum.reject(fn {_key, value} -> is_nil(value) end)
+    |> Map.new()
+  end
+
+  defp branch_id_fragment(value) do
+    value
+    |> encode_value()
+    |> to_string()
+    |> String.replace(~r/[^A-Za-z0-9._:@-]+/, "_")
+    |> String.trim("_")
+    |> case do
+      "" -> "unnamed"
+      fragment -> fragment
+    end
+  end
+
+  defp stringify_keys(%_struct{} = struct), do: struct |> Map.from_struct() |> stringify_keys()
+
+  defp stringify_keys(%{} = map) do
+    Map.new(map, fn {key, value} -> {encode_value(key), stringify_keys(value)} end)
+  end
+
+  defp stringify_keys(values) when is_list(values), do: Enum.map(values, &stringify_keys/1)
+  defp stringify_keys(value), do: encode_value(value)
+
+  defp encode_value(%_struct{} = struct), do: struct |> Map.from_struct() |> encode_value()
+
+  defp encode_value(%{} = map) do
+    Map.new(map, fn {key, value} -> {encode_value(key), encode_value(value)} end)
+  end
+
+  defp encode_value(values) when is_list(values) do
+    if Keyword.keyword?(values) do
+      Map.new(values, fn {key, value} -> {encode_value(key), encode_value(value)} end)
+    else
+      Enum.map(values, &encode_value/1)
+    end
+  end
+
+  defp encode_value(value) when is_tuple(value), do: value |> Tuple.to_list() |> encode_value()
+  defp encode_value(nil), do: nil
+  defp encode_value(value) when is_boolean(value), do: value
+  defp encode_value(value) when is_atom(value), do: Atom.to_string(value)
+  defp encode_value(value), do: value
 end

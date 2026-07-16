@@ -1,7 +1,18 @@
 defmodule OrbitalDynamics.CampaignPlanner.CadenceImportSourceReports do
   @moduledoc false
 
-  alias OrbitalDynamics.CampaignPlanner.CadenceImportFeedbackRows
+  alias OrbitalDynamics.CampaignPlanner.{
+    BranchRefreshSourceInputs,
+    CadenceImportFeedbackRows,
+    OperationalFeedbackNormalization,
+    OperationalFeedbackSourceMetadata,
+    SourceReportArtifacts
+  }
+
+  alias __MODULE__.Rows
+
+  def cadence_import_manifests(mission_state),
+    do: cadence_import_manifests(mission_state, default_callbacks())
 
   def cadence_import_manifests(mission_state, opts) do
     source_cadence_import_manifests(mission_state, opts) ++
@@ -29,6 +40,10 @@ defmodule OrbitalDynamics.CampaignPlanner.CadenceImportSourceReports do
     )
   end
 
+  def cadence_import_manifest_reports(mission_state, manifest_key) do
+    cadence_import_manifest_reports(mission_state, manifest_key, default_callbacks())
+  end
+
   def cadence_import_manifest_reports(mission_state, "source_cadence_import_manifest", opts) do
     source_cadence_import_manifests(mission_state, opts)
   end
@@ -37,7 +52,14 @@ defmodule OrbitalDynamics.CampaignPlanner.CadenceImportSourceReports do
     canonical_cadence_import_manifests(mission_state, opts)
   end
 
-  def prior_plan_cadence_import_manifests(prior_plan, opts) when is_list(opts) do
+  def candidate_refresh_source_inputs(mission_state) do
+    Map.new(candidate_refresh_source_input_collectors(), fn {key, collector} ->
+      {key, BranchRefreshSourceInputs.source_reports_or_reports(mission_state, collector)}
+    end)
+  end
+
+  def prior_plan_cadence_import_manifests(prior_plan, opts \\ default_prior_plan_callbacks())
+      when is_list(opts) do
     prior_plan = stringify_keys(prior_plan || %{})
     callbacks = prior_plan_callbacks!(opts)
 
@@ -52,53 +74,35 @@ defmodule OrbitalDynamics.CampaignPlanner.CadenceImportSourceReports do
   end
 
   def direct_cadence_import_manifests(artifacts, source_path, opts) when is_list(opts) do
-    source_artifact_entries = Keyword.fetch!(opts, :source_artifact_entries)
-
-    source_artifact_entries.(artifacts, source_path)
+    SourceReportArtifacts.direct_entries(artifacts, source_path, opts)
   end
 
   def result_artifact_embedded_cadence_import_manifests(artifacts_with_sources, opts)
       when is_list(opts) do
-    result_artifact_embedded_report_entries =
-      Keyword.fetch!(opts, :result_artifact_embedded_report_entries)
-
-    artifacts_with_sources
-    |> Enum.flat_map(fn {artifact, source_path} ->
-      cadence_import_manifest_keys()
-      |> Enum.flat_map(fn manifest_key ->
-        result_artifact_embedded_report_entries.(
-          Map.get(artifact, manifest_key),
-          artifact,
-          "#{source_path}.#{manifest_key}"
-        )
-      end)
-    end)
+    SourceReportArtifacts.result_artifact_embedded_entries(
+      artifacts_with_sources,
+      cadence_import_manifest_keys(),
+      opts
+    )
   end
 
+  def rows_with_source(manifests_with_sources), do: Rows.rows_with_source(manifests_with_sources)
+
   def rows_with_source(manifests_with_sources, opts) when is_list(opts) do
-    stringify_keys = Keyword.fetch!(opts, :stringify_keys)
-    cadence_import_trust_boundary = Keyword.fetch!(opts, :cadence_import_trust_boundary)
+    Rows.rows_with_source(manifests_with_sources, opts)
+  end
 
+  def pressure_rows_with_source(manifests_with_sources),
+    do: Rows.pressure_rows_with_source(manifests_with_sources)
+
+  def pressure_rows_with_source(manifests_with_sources, opts) when is_list(opts) do
+    Rows.pressure_rows_with_source(manifests_with_sources, opts)
+  end
+
+  def source_review_rows(manifests_with_sources) do
     manifests_with_sources
-    |> Enum.flat_map(fn {manifest, source_path} ->
-      manifest_trust_boundary =
-        Map.get(manifest, "trust_boundary") || get_in(manifest, ["provenance", "trust_boundary"])
-
-      manifest
-      |> Map.get("rows", [])
-      |> Enum.map(stringify_keys)
-      |> Enum.map(fn row ->
-        row =
-          row
-          |> Map.put(
-            "_source_report_trust_boundary",
-            cadence_import_trust_boundary.(row, manifest_trust_boundary)
-          )
-          |> Map.put("_source_path", "#{source_path}.rows")
-
-        {row, source_path}
-      end)
-    end)
+    |> rows()
+    |> CadenceImportFeedbackRows.source_review_rows()
   end
 
   def source_review_rows(manifests_with_sources, opts) when is_list(opts) do
@@ -107,10 +111,27 @@ defmodule OrbitalDynamics.CampaignPlanner.CadenceImportSourceReports do
     |> CadenceImportFeedbackRows.source_review_rows()
   end
 
+  def all_operational_feedback_rows(manifests_with_sources) do
+    manifests_with_sources
+    |> rows()
+    |> CadenceImportFeedbackRows.all_operational_feedback_rows()
+  end
+
   def all_operational_feedback_rows(manifests_with_sources, opts) when is_list(opts) do
     manifests_with_sources
     |> rows(opts)
     |> CadenceImportFeedbackRows.all_operational_feedback_rows()
+  end
+
+  def operational_feedback_rows(manifests_with_sources) do
+    manifests_with_sources
+    |> all_operational_feedback_rows()
+    |> Enum.filter(fn row ->
+      case Map.get(row, "source_operational_feedback") do
+        %{} = feedback -> operational_feedback_data_keys(feedback) != []
+        _feedback -> false
+      end
+    end)
   end
 
   def operational_feedback_rows(manifests_with_sources, opts) when is_list(opts) do
@@ -126,10 +147,22 @@ defmodule OrbitalDynamics.CampaignPlanner.CadenceImportSourceReports do
     end)
   end
 
+  def source_review_metadata(manifests_with_sources) do
+    manifests_with_sources
+    |> source_review_rows()
+    |> CadenceImportFeedbackRows.source_review_metadata()
+  end
+
   def source_review_metadata(manifests_with_sources, opts) when is_list(opts) do
     manifests_with_sources
     |> source_review_rows(opts)
     |> CadenceImportFeedbackRows.source_review_metadata()
+  end
+
+  def source_operational_feedback_metadata(manifests_with_sources) do
+    manifests_with_sources
+    |> all_operational_feedback_rows()
+    |> CadenceImportFeedbackRows.source_operational_feedback_metadata()
   end
 
   def source_operational_feedback_metadata(manifests_with_sources, opts) when is_list(opts) do
@@ -139,38 +172,66 @@ defmodule OrbitalDynamics.CampaignPlanner.CadenceImportSourceReports do
   end
 
   defp source_artifacts(mission_state, fields, opts) do
-    mission_state = stringify_keys(mission_state || %{})
-
-    fields
-    |> Enum.flat_map(fn {field, source_path} ->
-      direct_cadence_import_manifests(Map.get(mission_state, field), source_path, opts)
-    end)
+    SourceReportArtifacts.source_artifacts(mission_state, fields, opts, &stringify_keys/1)
   end
 
   defp result_artifact_embedded_manifests(mission_state, opts) do
-    callbacks = callbacks!(opts)
-
     cadence_import_manifest_keys()
     |> Enum.flat_map(fn manifest_key ->
-      callbacks.result_artifact_embedded_reports.(mission_state, manifest_key)
+      SourceReportArtifacts.embedded_reports(mission_state, manifest_key, opts)
     end)
+  end
+
+  defp default_callbacks do
+    [
+      source_artifact_entries: &BranchRefreshSourceInputs.source_artifact_entries/2,
+      result_artifact_embedded_reports: &mission_state_result_artifact_embedded_reports/2
+    ]
+  end
+
+  defp mission_state_result_artifact_embedded_reports(mission_state, manifest_keys) do
+    BranchRefreshSourceInputs.result_artifact_embedded_reports(
+      mission_state,
+      "mission_state",
+      manifest_keys
+    )
+  end
+
+  defp default_prior_plan_callbacks do
+    [
+      source_artifact_entries: &BranchRefreshSourceInputs.source_artifact_entries/2,
+      result_artifacts_with_source: &prior_plan_result_artifacts_with_source/1,
+      result_artifact_embedded_report_entries:
+        &BranchRefreshSourceInputs.result_artifact_embedded_report_entries/3
+    ]
+  end
+
+  defp prior_plan_result_artifacts_with_source(prior_plan) do
+    BranchRefreshSourceInputs.result_artifacts_with_source(prior_plan, "prior_plan")
   end
 
   defp cadence_import_manifest_keys do
     ["source_cadence_import_manifest", "cadence_import_manifest"]
   end
 
+  defp candidate_refresh_source_input_collectors,
+    do: [
+      {"source_cadence_import_manifest",
+       &cadence_import_manifest_reports(&1, "source_cadence_import_manifest")},
+      {"cadence_import_manifest", &cadence_import_manifest_reports(&1, "cadence_import_manifest")}
+    ]
+
   defp rows(manifests_with_sources, opts) do
-    manifests_with_sources
-    |> rows_with_source(opts)
-    |> Enum.map(fn {row, _source_path} -> row end)
+    Rows.rows(manifests_with_sources, opts)
   end
 
-  defp callbacks!(opts) do
-    %{
-      source_artifact_entries: Keyword.fetch!(opts, :source_artifact_entries),
-      result_artifact_embedded_reports: Keyword.fetch!(opts, :result_artifact_embedded_reports)
-    }
+  defp rows(manifests_with_sources), do: Rows.rows(manifests_with_sources)
+
+  defp operational_feedback_data_keys(feedback) do
+    OperationalFeedbackSourceMetadata.data_keys(
+      feedback,
+      normalize_operational_feedback: &OperationalFeedbackNormalization.normalize/1
+    )
   end
 
   defp prior_plan_callbacks!(opts) do

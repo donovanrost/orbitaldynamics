@@ -1,20 +1,14 @@
 defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelineActivityState do
   @moduledoc false
 
-  alias __MODULE__.SourceReportFields
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.InputProvenance
+
   alias __MODULE__.Summary
 
-  def replay(refresh_or_artifact, callbacks) do
-    source_report_summary = Keyword.fetch!(callbacks, :source_report_summary)
-
-    source_report_summary_branch_family =
-      Keyword.fetch!(callbacks, :source_report_summary_branch_family)
-
-    branch_state_summary =
-      source_report_summary_branch_family.(
-        refresh_or_artifact,
-        "timeline_activity_state"
-      )
+  def replay(refresh_or_artifact, source_report_summary)
+      when is_function(source_report_summary, 1) do
+    branch_state_summary = source_report_summary_branch_family(refresh_or_artifact)
 
     state_summary =
       branch_state_summary ||
@@ -39,19 +33,15 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelineActivityState d
     summary(state_summary, summary_source, replay_scope)
   end
 
-  def source_report_fields(source_reports) do
-    summary =
-      source_reports
-      |> Map.get("timeline_activity_state", %{})
-      |> summary(
-        "candidate_refresh.source_report_provenance.timeline_activity_state",
-        "timeline_activity_state_source_report_provenance_only"
-      )
-
-    SourceReportFields.source_report_fields(source_reports, summary)
-  end
-
   def summary(state_summary, summary_source, replay_scope) do
     Summary.summary(state_summary, summary_source, replay_scope)
+  end
+
+  defp source_report_summary_branch_family(refresh_or_artifact) do
+    SourceReportSummary.branch_family(
+      refresh_or_artifact,
+      "timeline_activity_state",
+      &InputProvenance.build/1
+    )
   end
 end

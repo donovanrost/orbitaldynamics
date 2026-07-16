@@ -1,7 +1,19 @@
 defmodule OrbitalDynamics.CampaignPlanner.TimelineDiffLinkQualityEvents do
   @moduledoc false
 
-  alias OrbitalDynamics.CampaignPlanner.TimelineDiffLinkQualityFields
+  alias OrbitalDynamics.CampaignPlanner.{
+    TimelineDiffActivityFields,
+    TimelineDiffContactFeedbackEvents,
+    TimelineDiffDownlinkFeedbackEvents,
+    TimelineDiffFieldValues,
+    TimelineDiffLinkQualityFields,
+    TimelineDiffLinkQualityTelemetryFields,
+    TimelineDiffStatusTransitionFields,
+    ValueEncoding
+  }
+
+  def timeline_diff_changed_link_quality_pressure_row?(row),
+    do: timeline_diff_changed_link_quality_pressure_row?(row, default_callbacks())
 
   def timeline_diff_changed_link_quality_pressure_row?(row, callbacks) do
     row["diff_status"] == "changed" and
@@ -11,6 +23,9 @@ defmodule OrbitalDynamics.CampaignPlanner.TimelineDiffLinkQualityEvents do
       not callback!(callbacks, :timeline_diff_changed_contact_gap?).(row)
   end
 
+  def timeline_diff_changed_link_quality_events(row, source_path),
+    do: timeline_diff_changed_link_quality_events(row, source_path, default_callbacks())
+
   def timeline_diff_changed_link_quality_events(row, source_path, callbacks) do
     if timeline_diff_changed_link_quality_gap?(row, callbacks) and
          not callback!(callbacks, :timeline_diff_changed_contact_gap?).(row) do
@@ -19,6 +34,9 @@ defmodule OrbitalDynamics.CampaignPlanner.TimelineDiffLinkQualityEvents do
       []
     end
   end
+
+  def timeline_diff_changed_link_quality_gap?(row),
+    do: timeline_diff_changed_link_quality_gap?(row, default_callbacks())
 
   def timeline_diff_changed_link_quality_gap?(row, callbacks) do
     TimelineDiffLinkQualityFields.link_quality_gap?(row, callbacks)
@@ -129,4 +147,46 @@ defmodule OrbitalDynamics.CampaignPlanner.TimelineDiffLinkQualityEvents do
   end
 
   defp callback!(callbacks, key), do: Keyword.fetch!(callbacks, key)
+
+  defp default_callbacks do
+    [
+      timeline_diff_changed_downlink?: &TimelineDiffDownlinkFeedbackEvents.downlink?/1,
+      timeline_diff_changed_contact?: &TimelineDiffContactFeedbackEvents.contact?/1,
+      timeline_diff_changed_contact_gap?: &TimelineDiffContactFeedbackEvents.gap?/1,
+      timeline_diff_changed_scenario_id: &TimelineDiffActivityFields.scenario_id/1,
+      timeline_diff_changed_ground_station_id: &TimelineDiffActivityFields.ground_station_id/1,
+      timeline_diff_changed_window_start_s: &TimelineDiffActivityFields.window_start_s/1,
+      timeline_diff_changed_window_end_s: &TimelineDiffActivityFields.window_end_s/1,
+      timeline_diff_changed_contact_result: &TimelineDiffContactFeedbackEvents.result/1,
+      timeline_diff_changed_realized_status:
+        &TimelineDiffStatusTransitionFields.realized_status/1,
+      timeline_diff_changed_link_margin_db:
+        &TimelineDiffLinkQualityTelemetryFields.link_margin_db/1,
+      timeline_diff_changed_snr_db: &TimelineDiffLinkQualityTelemetryFields.snr_db/1,
+      timeline_diff_changed_eb_no_db: &TimelineDiffLinkQualityTelemetryFields.eb_no_db/1,
+      timeline_diff_changed_bit_error_rate:
+        &TimelineDiffLinkQualityTelemetryFields.bit_error_rate/1,
+      timeline_diff_changed_packet_loss_rate:
+        &TimelineDiffLinkQualityTelemetryFields.packet_loss_rate/1,
+      timeline_diff_changed_frame_loss_rate:
+        &TimelineDiffLinkQualityTelemetryFields.frame_loss_rate/1,
+      timeline_diff_changed_carrier_lock: &TimelineDiffLinkQualityTelemetryFields.carrier_lock/1,
+      timeline_diff_changed_symbol_lock: &TimelineDiffLinkQualityTelemetryFields.symbol_lock/1,
+      timeline_diff_changed_link_quality_status:
+        &TimelineDiffLinkQualityTelemetryFields.link_quality_status/1,
+      timeline_diff_changed_source_activity_ids:
+        &TimelineDiffActivityFields.changed_source_activity_ids/1,
+      timeline_diff_changed_status_transition:
+        &TimelineDiffStatusTransitionFields.status_transition/1,
+      timeline_diff_changed_transition_field:
+        &TimelineDiffStatusTransitionFields.transition_field/2,
+      timeline_diff_changed_transition_reason:
+        &TimelineDiffStatusTransitionFields.transition_reason/1,
+      timeline_diff_trust_boundary: &TimelineDiffActivityFields.trust_boundary/1,
+      compact_map: &ValueEncoding.compact_map/1,
+      timeline_diff_first_string: &TimelineDiffFieldValues.first_string/2,
+      timeline_diff_match_status: &TimelineDiffFieldValues.match_status/2,
+      timeline_diff_first_number: &TimelineDiffFieldValues.first_number/2
+    ]
+  end
 end

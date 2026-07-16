@@ -1,0 +1,35 @@
+defmodule OrbitalDynamics.CandidateRefresh.SourceReports.ManeuverReviewValues do
+  @moduledoc false
+
+  def report?(%{} = report) do
+    rows = Map.get(report, "rows") || Map.get(report, :rows)
+    schema_contract = Map.get(report, "schema_contract") || Map.get(report, :schema_contract)
+
+    is_list(rows) and schema_contract in [nil, "maneuver_review_report.v1"]
+  end
+
+  def report?(_report), do: false
+
+  def stringify_keys(%_struct{} = struct), do: struct |> Map.from_struct() |> stringify_keys()
+
+  def stringify_keys(%{} = map) do
+    Map.new(map, fn {key, value} -> {encode_value(key), stringify_keys(value)} end)
+  end
+
+  def stringify_keys(values) when is_list(values), do: Enum.map(values, &stringify_keys/1)
+  def stringify_keys(value), do: encode_value(value)
+
+  defp encode_value(%{} = map) do
+    Map.new(map, fn {key, value} -> {encode_value(key), encode_value(value)} end)
+  end
+
+  defp encode_value(values) when is_list(values) do
+    Enum.map(values, &encode_value/1)
+  end
+
+  defp encode_value(value) when is_tuple(value), do: value |> Tuple.to_list() |> encode_value()
+  defp encode_value(nil), do: nil
+  defp encode_value(value) when is_boolean(value), do: value
+  defp encode_value(value) when is_atom(value), do: Atom.to_string(value)
+  defp encode_value(value), do: value
+end

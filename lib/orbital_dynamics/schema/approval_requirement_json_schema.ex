@@ -35,6 +35,9 @@ defmodule OrbitalDynamics.Schema.ApprovalRequirementJsonSchema do
     "rule_id"
   ]
 
+  def property_field?(field) when field in @property_fields, do: true
+  def property_field?(_field), do: false
+
   def property("schema_contract", _opts) do
     %{
       "type" => "string",
@@ -46,6 +49,30 @@ defmodule OrbitalDynamics.Schema.ApprovalRequirementJsonSchema do
   def property(field, opts) when field in @property_fields do
     schema(opts)
     |> get_in(["properties", field])
+  end
+
+  def property_from_deps(field, deps) do
+    property(field, opts(deps))
+  end
+
+  def property_from_context(field, deps) when is_list(deps) do
+    property_from_deps(field, deps)
+  end
+
+  def property_fun_from_context(deps) when is_list(deps) do
+    fn field ->
+      property_from_context(field, deps)
+    end
+  end
+
+  def schema_from_deps(deps) do
+    deps
+    |> opts()
+    |> schema()
+  end
+
+  def schema_from_context(deps) when is_list(deps) do
+    schema_from_deps(deps)
   end
 
   def schema(opts) do
@@ -92,4 +119,16 @@ defmodule OrbitalDynamics.Schema.ApprovalRequirementJsonSchema do
       }
     }
   end
+
+  defp opts(deps) do
+    [
+      stable_id_pattern: Keyword.fetch!(deps, :stable_id_pattern),
+      rule_match_schema: deps |> Keyword.fetch!(:rule_match_schema) |> call_dep(),
+      activity_context_schema: deps |> Keyword.fetch!(:activity_context_schema) |> call_dep(),
+      policy_escalation_schema: deps |> Keyword.fetch!(:policy_escalation_schema) |> call_dep()
+    ]
+  end
+
+  defp call_dep(dep) when is_function(dep, 0), do: dep.()
+  defp call_dep(dep), do: dep
 end

@@ -1,7 +1,9 @@
 defmodule OrbitalDynamics.CampaignPlanner.ProviderReservationPressureBranches do
   @moduledoc false
 
-  def build(row, source_path, callbacks) do
+  alias OrbitalDynamics.CampaignPlanner.{ScalarValues, ValueEncoding}
+
+  def build(row, source_path, callbacks \\ default_callbacks()) do
     event = pressure_event(row, source_path, callbacks)
     contact_id = Map.get(row, "contact_id")
 
@@ -101,5 +103,23 @@ defmodule OrbitalDynamics.CampaignPlanner.ProviderReservationPressureBranches do
     ]
     |> Enum.reject(&(&1 in [nil, ""]))
     |> Enum.uniq()
+  end
+
+  defp default_callbacks do
+    [
+      branch_id_fragment: &ValueEncoding.branch_id_fragment/1,
+      compact_map: &ValueEncoding.compact_map/1,
+      normalized_status_token: &ScalarValues.normalized_status_token/1,
+      trust_boundary: &trust_boundary/1
+    ]
+  end
+
+  defp trust_boundary(row) do
+    Map.get(row, "trust_boundary") ||
+      Map.get(row, "resource_trust_boundary") ||
+      get_in(row, ["provenance", "trust_boundary"]) ||
+      get_in(row, ["source_resource_suppression", "resource_trust_boundary"]) ||
+      get_in(row, ["source_resource_suppression", "resource_provenance", "trust_boundary"]) ||
+      row["_source_report_trust_boundary"]
   end
 end

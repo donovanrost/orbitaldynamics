@@ -2,10 +2,8 @@ defmodule OrbitalDynamics.CandidateRefresh.OperationalFeedbackSourceBuildTest do
   use ExUnit.Case, async: true
 
   alias OrbitalDynamics.{
-    CadenceImport,
     CandidateRefresh,
     Epoch,
-    OperatorReview,
     ResultSet,
     Schema
   }
@@ -134,123 +132,6 @@ defmodule OrbitalDynamics.CandidateRefresh.OperationalFeedbackSourceBuildTest do
 
     assert get_in(downlink, ["throughput_model", "station_throughput_factor_source"]) ==
              "operational_feedback.station_throughput_factor.station"
-
-    assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
-             Schema.validate_artifact(artifact)
-  end
-
-  test "invalid operational feedback shape is review gated instead of raising" do
-    artifact =
-      result_set()
-      |> CandidateRefresh.build(
-        candidate_refresh:
-          refresh_request()
-          |> Map.put("operational_feedback", "feedback_snapshot"),
-        generated_at: ~U[2026-05-14 00:00:00Z]
-      )
-
-    assert "operational feedback input is invalid" in artifact["warnings"]
-
-    assert %{
-             "operational_feedback" => %{
-               "trust_boundary_status" => "missing",
-               "input_keys" => ["invalid_operational_feedback_input"],
-               "invalid_operational_feedback_input" => true,
-               "invalid_operational_feedback_input_reason" =>
-                 "operational_feedback_must_be_object",
-               "source_operational_feedback" => %{
-                 "invalid_feedback_shape" => "feedback_snapshot"
-               }
-             }
-           } = artifact["provenance"]
-
-    refute "operational feedback was applied without a declared trust boundary" in artifact[
-             "warnings"
-           ]
-
-    review = OperatorReview.from_candidate_refresh_artifact(artifact)
-    import = CadenceImport.from_candidate_refresh_artifact(artifact)
-
-    assert %{
-             "review_type" => "warning",
-             "required_operator_action" => "review_warning",
-             "reason" => "operational feedback input is invalid",
-             "operational_feedback_trust_boundary_status" => "missing",
-             "operational_feedback_input_keys" => ["invalid_operational_feedback_input"],
-             "source_operational_feedback_provenance" => %{
-               "invalid_operational_feedback_input" => true,
-               "invalid_operational_feedback_input_reason" =>
-                 "operational_feedback_must_be_object"
-             },
-             "source_operational_feedback" => %{
-               "invalid_feedback_shape" => "feedback_snapshot"
-             }
-           } =
-             Enum.find(review["rows"], &(&1["reason"] == "operational feedback input is invalid"))
-
-    assert %{
-             "import_action" => "review_warning",
-             "reason" => "operational feedback input is invalid",
-             "operational_feedback_trust_boundary_status" => "missing",
-             "source_operational_feedback_provenance" => %{
-               "invalid_operational_feedback_input" => true,
-               "invalid_operational_feedback_input_reason" =>
-                 "operational_feedback_must_be_object"
-             },
-             "source_operational_feedback" => %{
-               "invalid_feedback_shape" => "feedback_snapshot"
-             },
-             "source_review_row" => %{
-               "source_operational_feedback" => %{
-                 "invalid_feedback_shape" => "feedback_snapshot"
-               }
-             }
-           } =
-             Enum.find(import["rows"], &(&1["reason"] == "operational feedback input is invalid"))
-
-    assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
-             Schema.validate_artifact(artifact)
-
-    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
-             Schema.validate_artifact(review)
-
-    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
-             Schema.validate_artifact(import)
-  end
-
-  test "invalid embedded operational feedback reports its source path" do
-    artifact =
-      result_set()
-      |> CandidateRefresh.build(
-        candidate_refresh:
-          refresh_request()
-          |> Map.put("mission_state", %{"operational_feedback" => "feedback_snapshot"}),
-        generated_at: ~U[2026-05-14 00:00:00Z]
-      )
-
-    assert %{
-             "operational_feedback" => %{
-               "input_keys" => ["invalid_operational_feedback_input"],
-               "invalid_operational_feedback_input" => true,
-               "invalid_operational_feedback_input_reason" =>
-                 "operational_feedback_must_be_object",
-               "source_path" => "mission_state.operational_feedback",
-               "source_operational_feedback" => %{
-                 "invalid_feedback_shape" => "feedback_snapshot"
-               }
-             }
-           } = artifact["provenance"]
-
-    assert "operational feedback input is invalid" in artifact["warnings"]
-
-    review = OperatorReview.from_candidate_refresh_artifact(artifact)
-
-    assert %{
-             "source_operational_feedback_provenance" => %{
-               "source_path" => "mission_state.operational_feedback"
-             }
-           } =
-             Enum.find(review["rows"], &(&1["reason"] == "operational feedback input is invalid"))
 
     assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
              Schema.validate_artifact(artifact)

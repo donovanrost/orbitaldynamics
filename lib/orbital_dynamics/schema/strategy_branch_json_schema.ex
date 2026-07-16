@@ -18,6 +18,108 @@ defmodule OrbitalDynamics.Schema.StrategyBranchJsonSchema do
     "blocked_by_policy"
   ]
 
+  @property_fields [
+    "schema_contract",
+    "branch_id",
+    "probability",
+    "score",
+    "events",
+    "warnings",
+    "risk_indicators",
+    "approval_requirements",
+    "tradeoffs",
+    "score_terms",
+    "policy_decision",
+    "approval_status"
+    | @object_fields
+  ]
+
+  def property_field?(field) when field in @property_fields, do: true
+  def property_field?(_field), do: false
+
+  def property_from_context(field, deps) when is_list(deps) do
+    property(field, property_opts(field, deps))
+  end
+
+  def property_from_context(
+        field,
+        stable_id_pattern,
+        event_schema,
+        risk_schema,
+        approval_requirement_schema,
+        numeric_map_schema,
+        policy_decision_schema
+      ) do
+    deps = [
+      stable_id_pattern: stable_id_pattern,
+      event_schema: event_schema,
+      risk_schema: risk_schema,
+      approval_requirement_schema: approval_requirement_schema,
+      numeric_map_schema: numeric_map_schema,
+      policy_decision_schema: policy_decision_schema
+    ]
+
+    property_from_context(field, deps)
+  end
+
+  def property_fun_from_context(deps) when is_list(deps) do
+    fn field ->
+      property_from_context(field, deps)
+    end
+  end
+
+  def property_fun_from_context(
+        stable_id_pattern,
+        event_schema,
+        risk_schema,
+        approval_requirement_schema,
+        numeric_map_schema,
+        policy_decision_schema
+      ) do
+    deps = [
+      stable_id_pattern: stable_id_pattern,
+      event_schema: event_schema,
+      risk_schema: risk_schema,
+      approval_requirement_schema: approval_requirement_schema,
+      numeric_map_schema: numeric_map_schema,
+      policy_decision_schema: policy_decision_schema
+    ]
+
+    fn field ->
+      property_from_context(field, deps)
+    end
+  end
+
+  def property_opts("branch_id", deps) do
+    [stable_id_pattern: fetch_dep!(deps, :stable_id_pattern)]
+  end
+
+  def property_opts("events", deps) do
+    [event_schema: fetch_dep!(deps, :event_schema)]
+  end
+
+  def property_opts("risk_indicators", deps) do
+    [risk_schema: fetch_dep!(deps, :risk_schema)]
+  end
+
+  def property_opts("approval_requirements", deps) do
+    [approval_requirement_schema: fetch_dep!(deps, :approval_requirement_schema)]
+  end
+
+  def property_opts("tradeoffs", _deps) do
+    [tradeoff_schema: tradeoff()]
+  end
+
+  def property_opts("score_terms", deps) do
+    [numeric_map_schema: fetch_dep!(deps, :numeric_map_schema)]
+  end
+
+  def property_opts("policy_decision", deps) do
+    [policy_decision_schema: fetch_dep!(deps, :policy_decision_schema)]
+  end
+
+  def property_opts(_field, _deps), do: []
+
   def property("schema_contract", _opts) do
     %{"type" => "string", "const" => "strategy_branch.v1"}
   end
@@ -68,6 +170,131 @@ defmodule OrbitalDynamics.Schema.StrategyBranchJsonSchema do
 
   def property("approval_status", _opts) do
     %{"type" => "string", "enum" => @approval_status_values}
+  end
+
+  def branch(opts) do
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "required" => [
+        "branch_id",
+        "probability",
+        "events",
+        "candidate_plan",
+        "repair_result",
+        "score",
+        "score_terms",
+        "warnings",
+        "risk_indicators",
+        "approval_status",
+        "approval_requirements",
+        "policy_decision"
+      ],
+      "properties" => %{
+        "branch_id" => %{
+          "type" => "string",
+          "pattern" => Keyword.fetch!(opts, :stable_id_pattern)
+        },
+        "label" => %{"type" => "string"},
+        "rank" => %{"type" => "integer"},
+        "selected" => %{"type" => "boolean"},
+        "probability" => %{"type" => "number", "minimum" => 0.0, "maximum" => 1.0},
+        "score" => %{"type" => "number"},
+        "score_terms" => Keyword.fetch!(opts, :numeric_map_schema),
+        "warnings" => Keyword.fetch!(opts, :string_array_schema),
+        "events" => array(Keyword.fetch!(opts, :event_schema)),
+        "candidate_plan" => %{"type" => "object", "additionalProperties" => true},
+        "repair_result" => %{"type" => "object", "additionalProperties" => true},
+        "resource_impacts" => %{"type" => "object", "additionalProperties" => true},
+        "resource_projection_report" => %{"type" => "object", "additionalProperties" => true},
+        "risk_indicators" => array(Keyword.fetch!(opts, :risk_schema)),
+        "approval_requirements" => array(Keyword.fetch!(opts, :approval_requirement_schema)),
+        "approval_rule_matches" =>
+          array(Keyword.fetch!(opts, :policy_decision_rule_match_schema)),
+        "tradeoffs" => array(Keyword.fetch!(opts, :tradeoff_schema)),
+        "approval_status" => %{"type" => "string", "enum" => @approval_status_values},
+        "policy_decision" => Keyword.fetch!(opts, :policy_decision_schema),
+        "derived_source" => %{"type" => "string"},
+        "feasibility_summary" => %{"type" => "object", "additionalProperties" => true},
+        "feedback_adjustments" => %{"type" => "object", "additionalProperties" => true},
+        "objective_satisfaction" => %{"type" => "object", "additionalProperties" => true},
+        "assumptions" => Keyword.fetch!(opts, :assumptions_schema),
+        "provenance" => Keyword.fetch!(opts, :provenance_schema)
+      }
+    }
+  end
+
+  def assumptions(opts) do
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "properties" => %{
+        "branch_id" => %{
+          "type" => "string",
+          "pattern" => Keyword.fetch!(opts, :stable_id_pattern)
+        },
+        "candidate_source" => candidate_source(opts),
+        "what_if_events" => %{"type" => "array", "items" => Keyword.fetch!(opts, :event_schema)},
+        "model_limits" => Keyword.fetch!(opts, :string_array_schema),
+        "repair_policy" => %{"type" => "object", "additionalProperties" => true},
+        "repair_scoring_policy" => %{"type" => "object", "additionalProperties" => true},
+        "strategy_policy" => %{"type" => "object", "additionalProperties" => true}
+      }
+    }
+  end
+
+  def provenance(opts) do
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "properties" => %{
+        "source_plan_id" => %{
+          "type" => "string",
+          "pattern" => Keyword.fetch!(opts, :stable_id_pattern)
+        },
+        "branch_id" => %{
+          "type" => "string",
+          "pattern" => Keyword.fetch!(opts, :stable_id_pattern)
+        },
+        "branch_metadata" => %{"type" => "object", "additionalProperties" => true},
+        "candidate_source" => candidate_source(opts)
+      }
+    }
+  end
+
+  def candidate_source(opts) do
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "properties" => %{
+        "type" => %{"type" => "string"},
+        "scope" => %{"type" => "string"},
+        "refresh_id" => %{
+          "type" => "string",
+          "pattern" => Keyword.fetch!(opts, :stable_id_pattern)
+        },
+        "snapshot_id" => %{
+          "type" => "string",
+          "pattern" => Keyword.fetch!(opts, :stable_id_pattern)
+        },
+        "generated_at" => %{"type" => "string", "format" => "date-time"},
+        "candidate_count" => %{"type" => "integer", "minimum" => 0},
+        "invalidated_candidate_count" => %{"type" => "integer", "minimum" => 0},
+        "maneuver_execution_delta_count" => %{"type" => "integer", "minimum" => 0},
+        "operational_feedback_input_keys" => Keyword.fetch!(opts, :string_array_schema),
+        "operational_feedback_trust_boundary_status" => %{"type" => "string"},
+        "source_report_input_paths" => Keyword.fetch!(opts, :string_array_schema),
+        "source_operational_feedback_provenance" => %{
+          "type" => "object",
+          "additionalProperties" => true,
+          "properties" => %{
+            "source_path" => %{"type" => "string"},
+            "input_keys" => Keyword.fetch!(opts, :string_array_schema),
+            "trust_boundary_status" => %{"type" => "string"}
+          }
+        }
+      }
+    }
   end
 
   def tradeoff do
@@ -341,5 +568,12 @@ defmodule OrbitalDynamics.Schema.StrategyBranchJsonSchema do
 
   defp object_property(_field) do
     %{"type" => "object", "additionalProperties" => true}
+  end
+
+  defp fetch_dep!(deps, key) do
+    case Keyword.fetch!(deps, key) do
+      fun when is_function(fun, 0) -> fun.()
+      value -> value
+    end
   end
 end

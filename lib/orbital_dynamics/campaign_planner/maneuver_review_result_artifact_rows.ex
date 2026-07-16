@@ -1,6 +1,15 @@
 defmodule OrbitalDynamics.CampaignPlanner.ManeuverReviewResultArtifactRows do
   @moduledoc false
 
+  alias OrbitalDynamics.CampaignPlanner.{
+    BranchRefreshSourceInputs,
+    SourceRowTuples,
+    ValueEncoding
+  }
+
+  def rows_with_source(artifact, source_path),
+    do: rows_with_source(artifact, source_path, default_callbacks())
+
   def rows_with_source(artifact, source_path, opts) when is_list(opts) do
     stringify_keys = Keyword.fetch!(opts, :stringify_keys)
 
@@ -44,6 +53,14 @@ defmodule OrbitalDynamics.CampaignPlanner.ManeuverReviewResultArtifactRows do
       Enum.reject(recommendation_rows, fn {row, _row_source_path} ->
         MapSet.member?(review_keys, replay_identity(row, opts))
       end)
+  end
+
+  def rows(artifact, source_path), do: rows(artifact, source_path, default_callbacks())
+
+  def rows(artifact, source_path, opts) when is_list(opts) do
+    artifact
+    |> rows_with_source(source_path, opts)
+    |> SourceRowTuples.rows()
   end
 
   def replay_identity(row, opts) when is_list(opts) do
@@ -118,5 +135,14 @@ defmodule OrbitalDynamics.CampaignPlanner.ManeuverReviewResultArtifactRows do
     opts
     |> Keyword.fetch!(:put_inherited_result_artifact_trust_boundary)
     |> then(& &1.(report, artifact))
+  end
+
+  defp default_callbacks do
+    [
+      stringify_keys: &ValueEncoding.stringify_keys/1,
+      encode_value: &ValueEncoding.encode_value/1,
+      put_inherited_result_artifact_trust_boundary:
+        &BranchRefreshSourceInputs.put_inherited_result_artifact_trust_boundary/2
+    ]
   end
 end

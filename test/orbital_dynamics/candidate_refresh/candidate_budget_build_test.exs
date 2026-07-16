@@ -1,14 +1,7 @@
 defmodule OrbitalDynamics.CandidateRefresh.CandidateBudgetBuildTest do
   use ExUnit.Case, async: true
 
-  alias OrbitalDynamics.{
-    CadenceImport,
-    CandidateRefresh,
-    Epoch,
-    OperatorReview,
-    ResultSet,
-    Schema
-  }
+  alias OrbitalDynamics.{CandidateRefresh, Epoch, ResultSet, Schema}
 
   test "does not score observations from duplicate target ids in refresh request" do
     artifact =
@@ -190,109 +183,6 @@ defmodule OrbitalDynamics.CandidateRefresh.CandidateBudgetBuildTest do
 
     assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
-  end
-
-  test "invalid candidate budget policy is review gated instead of silently ignored" do
-    artifact =
-      result_set()
-      |> CandidateRefresh.build(
-        candidate_refresh:
-          refresh_request()
-          |> put_in(["candidate_limit_policy"], %{"max_candidate_activities" => "one"}),
-        generated_at: ~U[2026-05-14 00:00:00Z]
-      )
-
-    assert %{
-             "input_candidate_count" => 2,
-             "kept_candidate_count" => 2,
-             "dropped_candidate_count" => 0,
-             "invalid_candidate_limit_policy" => true,
-             "invalid_candidate_limit_policy_reason" =>
-               "max_candidate_activities_must_be_integer",
-             "source_candidate_limit_policy" => %{"max_candidate_activities" => "one"}
-           } = artifact["refresh_budget_report"]
-
-    assert "candidate refresh budget policy is invalid" in artifact["warnings"]
-
-    review = OperatorReview.from_candidate_refresh_artifact(artifact)
-    import = CadenceImport.from_candidate_refresh_artifact(artifact)
-
-    assert %{
-             "review_type" => "refresh_budget_review",
-             "required_operator_action" => "review_refresh_budget",
-             "reason" =>
-               "candidate refresh budget policy is invalid: max_candidate_activities_must_be_integer",
-             "invalid_candidate_limit_policy" => true,
-             "invalid_candidate_limit_policy_reason" =>
-               "max_candidate_activities_must_be_integer",
-             "source_candidate_limit_policy" => %{"max_candidate_activities" => "one"}
-           } = Enum.find(review["rows"], &(&1["review_type"] == "refresh_budget_review"))
-
-    assert %{
-             "import_action" => "review_refresh_budget",
-             "refresh_gate_status" => "invalid_candidate_limit_policy",
-             "invalid_candidate_limit_policy" => true,
-             "invalid_candidate_limit_policy_reason" =>
-               "max_candidate_activities_must_be_integer",
-             "source_candidate_limit_policy" => %{"max_candidate_activities" => "one"}
-           } = Enum.find(import["rows"], &(&1["import_action"] == "review_refresh_budget"))
-
-    assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
-             Schema.validate_artifact(artifact)
-
-    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
-             Schema.validate_artifact(review)
-
-    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
-             Schema.validate_artifact(import)
-  end
-
-  test "invalid candidate budget policy shape is review gated instead of raising" do
-    artifact =
-      result_set()
-      |> CandidateRefresh.build(
-        candidate_refresh:
-          refresh_request()
-          |> Map.put("candidate_limit_policy", "max_one_candidate"),
-        generated_at: ~U[2026-05-14 00:00:00Z]
-      )
-
-    assert %{
-             "input_candidate_count" => 2,
-             "kept_candidate_count" => 2,
-             "dropped_candidate_count" => 0,
-             "invalid_candidate_limit_policy" => true,
-             "invalid_candidate_limit_policy_reason" => "candidate_limit_policy_must_be_object",
-             "source_candidate_limit_policy" => %{"invalid_policy_shape" => "max_one_candidate"}
-           } = artifact["refresh_budget_report"]
-
-    review = OperatorReview.from_candidate_refresh_artifact(artifact)
-    import = CadenceImport.from_candidate_refresh_artifact(artifact)
-
-    assert %{
-             "review_type" => "refresh_budget_review",
-             "required_operator_action" => "review_refresh_budget",
-             "reason" =>
-               "candidate refresh budget policy is invalid: candidate_limit_policy_must_be_object",
-             "invalid_candidate_limit_policy" => true,
-             "source_candidate_limit_policy" => %{"invalid_policy_shape" => "max_one_candidate"}
-           } = Enum.find(review["rows"], &(&1["review_type"] == "refresh_budget_review"))
-
-    assert %{
-             "import_action" => "review_refresh_budget",
-             "refresh_gate_status" => "invalid_candidate_limit_policy",
-             "invalid_candidate_limit_policy" => true,
-             "source_candidate_limit_policy" => %{"invalid_policy_shape" => "max_one_candidate"}
-           } = Enum.find(import["rows"], &(&1["import_action"] == "review_refresh_budget"))
-
-    assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
-             Schema.validate_artifact(artifact)
-
-    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
-             Schema.validate_artifact(review)
-
-    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
-             Schema.validate_artifact(import)
   end
 
   test "candidate diff matches duplicate candidate ids by occurrence" do

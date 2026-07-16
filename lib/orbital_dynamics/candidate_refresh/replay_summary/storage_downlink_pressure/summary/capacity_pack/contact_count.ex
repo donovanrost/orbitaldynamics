@@ -1,6 +1,8 @@
 defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.StorageDownlinkPressure.Summary.CapacityPack.ContactCount do
   @moduledoc false
 
+  alias OrbitalDynamics.CandidateRefresh.ValueEncoding
+
   @contact_count_fields [
     "capacity_pack_contact_ids_by_ground_station_id",
     "capacity_pack_contact_ids_by_ground_station",
@@ -67,14 +69,5 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.StorageDownlinkPressure
 
   defp numeric_report_count(report, field), do: numeric_value(Map.get(report, field)) || 0
 
-  defp numeric_value(value) when is_number(value), do: value * 1.0
-
-  defp numeric_value(value) when is_binary(value) do
-    case Float.parse(String.trim(value)) do
-      {number, ""} -> number
-      _parse -> nil
-    end
-  end
-
-  defp numeric_value(_value), do: nil
+  defp numeric_value(value), do: ValueEncoding.numeric_value(value)
 end

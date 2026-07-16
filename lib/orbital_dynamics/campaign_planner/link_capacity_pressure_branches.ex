@@ -1,7 +1,15 @@
 defmodule OrbitalDynamics.CampaignPlanner.LinkCapacityPressureBranches do
   @moduledoc false
 
-  def from_reports(reports, callbacks) do
+  alias OrbitalDynamics.CampaignPlanner.{
+    ActivityTiming,
+    ContactAllocationPressureBranches,
+    DownlinkActivityNormalization,
+    ScalarValues,
+    ValueEncoding
+  }
+
+  def from_reports(reports, callbacks \\ default_callbacks()) do
     Enum.flat_map(reports, fn {report, source_path} ->
       trust_boundary =
         Map.get(report, "trust_boundary") || get_in(report, ["provenance", "trust_boundary"])
@@ -12,6 +20,8 @@ defmodule OrbitalDynamics.CampaignPlanner.LinkCapacityPressureBranches do
       |> Enum.flat_map(&build(&1, source_path, callbacks))
     end)
   end
+
+  def rows(report, callbacks \\ default_callbacks())
 
   def rows(%{"rows" => rows} = report, callbacks) when is_list(rows) do
     if relay_data_path_summary_source?(report) do
@@ -38,7 +48,7 @@ defmodule OrbitalDynamics.CampaignPlanner.LinkCapacityPressureBranches do
     end
   end
 
-  def build(row, source_path, callbacks) do
+  def build(row, source_path, callbacks \\ default_callbacks()) do
     event = pressure_event(row, source_path, callbacks)
 
     if is_nil(event) do
@@ -67,7 +77,7 @@ defmodule OrbitalDynamics.CampaignPlanner.LinkCapacityPressureBranches do
     end
   end
 
-  def disambiguate(branches, callbacks) do
+  def disambiguate(branches, callbacks \\ default_callbacks()) do
     branch_id_fragment = Keyword.fetch!(callbacks, :branch_id_fragment)
     id_counts = Enum.frequencies_by(branches, & &1["id"])
 
@@ -94,6 +104,8 @@ defmodule OrbitalDynamics.CampaignPlanner.LinkCapacityPressureBranches do
       end
     end)
   end
+
+  def pressure_row?(row), do: pressure_row?(row, pressure_row_callbacks())
 
   def pressure_row?(row, callbacks) do
     row
@@ -641,5 +653,35 @@ defmodule OrbitalDynamics.CampaignPlanner.LinkCapacityPressureBranches do
     positive_number? = Keyword.fetch!(callbacks, :positive_number?)
 
     positive_number?.(value)
+  end
+
+  defp default_callbacks do
+    [
+      activity_raw_end: &ActivityTiming.activity_raw_end/1,
+      activity_raw_start: &ActivityTiming.activity_raw_start/1,
+      activity_source_window_id: &activity_source_window_id/1,
+      branch_id_fragment: &ValueEncoding.branch_id_fragment/1,
+      compact_map: &ValueEncoding.compact_map/1,
+      contact_identity: &ContactAllocationPressureBranches.contact_identity/1,
+      encode_value: &ValueEncoding.encode_value/1,
+      nested_ground_station_id: &DownlinkActivityNormalization.nested_ground_station_id/1,
+      numeric_or_nil: &ScalarValues.numeric_or_nil/1,
+      positive_number?: &ScalarValues.positive_number?/1,
+      stable_id_string?: &ScalarValues.stable_id_string?/1,
+      stringify_keys: &ValueEncoding.stringify_keys/1
+    ]
+  end
+
+  defp activity_source_window_id(activity) do
+    activity["source_window_id"] ||
+      get_in(activity, ["source_window", "id"]) ||
+      get_in(activity, ["metadata", "source_window_id"])
+  end
+
+  defp pressure_row_callbacks do
+    [
+      numeric_or_nil: &ScalarValues.numeric_or_nil/1,
+      positive_number?: &ScalarValues.positive_number?/1
+    ]
   end
 end

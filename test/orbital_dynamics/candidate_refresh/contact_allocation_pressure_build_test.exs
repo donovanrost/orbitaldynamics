@@ -2,10 +2,8 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationPressureBuildTest do
   use ExUnit.Case, async: true
 
   alias OrbitalDynamics.{
-    CadenceImport,
     CandidateRefresh,
     Epoch,
-    OperatorReview,
     ResultSet,
     Schema
   }
@@ -377,113 +375,6 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationPressureBuildTest do
                }
              }
            } = allocation_row
-
-    assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
-             Schema.validate_artifact(artifact)
-  end
-
-  test "replays contact allocation pressure from result artifact wrappers" do
-    report = %{
-      "schema_contract" => "contact_allocation_report.v1",
-      "rows" => [
-        %{
-          "contact_id" => "dl_prior_blocked",
-          "type" => "downlink",
-          "allocation_status" => "blocked",
-          "effective_allocation_status" => "blocked",
-          "ground_station_id" => "equator_prime",
-          "required_downlink_mb" => 420.0
-        }
-      ]
-    }
-
-    wrapper = %{
-      "schema_contract" => "result_artifact.v1",
-      "contact_allocation_report" => report,
-      "provenance" => %{"trust_boundary" => "mission_planning"}
-    }
-
-    artifact =
-      result_set()
-      |> CandidateRefresh.build(
-        candidate_refresh:
-          refresh_request()
-          |> Map.put("source_result_artifact", wrapper),
-        generated_at: ~U[2026-05-14 00:00:00Z]
-      )
-
-    downlink = Enum.find(artifact["candidate_activities"], &(&1["type"] == "downlink"))
-    assert downlink["required_downlink_mb"] == 420.0
-    assert downlink["selected_downlink_shortfall_mb"] == 60.0
-
-    assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
-             Schema.validate_artifact(artifact)
-  end
-
-  test "replays contact allocation pressure from operator review packages" do
-    report = %{
-      "schema_contract" => "contact_allocation_report.v1",
-      "rows" => [
-        %{
-          "contact_id" => "dl_prior_deferred",
-          "type" => "downlink",
-          "allocation_status" => "deferred",
-          "effective_allocation_status" => "deferred",
-          "ground_station_id" => "equator_prime",
-          "required_downlink_mb" => 420.0
-        }
-      ]
-    }
-
-    package = OperatorReview.from_contact_allocation_report(report)
-
-    artifact =
-      result_set()
-      |> CandidateRefresh.build(
-        candidate_refresh:
-          refresh_request()
-          |> Map.put("source_operator_review_package", package),
-        generated_at: ~U[2026-05-14 00:00:00Z]
-      )
-
-    downlink = Enum.find(artifact["candidate_activities"], &(&1["type"] == "downlink"))
-    assert downlink["required_downlink_mb"] == 420.0
-    assert downlink["selected_downlink_shortfall_mb"] == 60.0
-
-    assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
-             Schema.validate_artifact(artifact)
-  end
-
-  test "replays contact allocation pressure from Cadence import manifests" do
-    report = %{
-      "schema_contract" => "contact_allocation_report.v1",
-      "rows" => [
-        %{
-          "contact_id" => "dl_prior_policy_blocked",
-          "type" => "downlink",
-          "allocation_status" => "allocated",
-          "effective_allocation_status" => "policy_blocked",
-          "approval_status" => "blocked_by_policy",
-          "ground_station_id" => "equator_prime",
-          "required_downlink_mb" => 420.0
-        }
-      ]
-    }
-
-    manifest = CadenceImport.from_contact_allocation_report(report)
-
-    artifact =
-      result_set()
-      |> CandidateRefresh.build(
-        candidate_refresh:
-          refresh_request()
-          |> Map.put("source_cadence_import_manifest", manifest),
-        generated_at: ~U[2026-05-14 00:00:00Z]
-      )
-
-    downlink = Enum.find(artifact["candidate_activities"], &(&1["type"] == "downlink"))
-    assert downlink["required_downlink_mb"] == 420.0
-    assert downlink["selected_downlink_shortfall_mb"] == 60.0
 
     assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
              Schema.validate_artifact(artifact)

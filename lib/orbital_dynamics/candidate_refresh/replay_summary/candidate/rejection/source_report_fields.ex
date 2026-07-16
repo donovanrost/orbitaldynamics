@@ -26,10 +26,6 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.Candidate.Rejection.Sou
   def source_report_summary_fields(source_reports) do
     source_reports
     |> source_report_fields()
-    |> Map.merge(source_report_detail_fields(source_reports))
-  end
-
-  def source_report_detail_fields(source_reports) do
-    Detail.fields(source_reports)
+    |> Map.merge(Detail.fields(source_reports))
   end
 end

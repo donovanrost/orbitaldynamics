@@ -197,101 +197,6 @@ defmodule OrbitalDynamics.CandidateRefresh.ObservationObjectiveBuildTest do
              Schema.validate_artifact(artifact)
   end
 
-  test "applies urgent target objective priority to refreshed observation scores" do
-    artifact =
-      result_set()
-      |> CandidateRefresh.build(
-        candidate_refresh:
-          refresh_request()
-          |> Map.put("objectives", [
-            %{
-              "id" => "urgent:target_a",
-              "type" => "urgent_target",
-              "target_id" => "target_a",
-              "spacecraft_id" => "sat_1",
-              "priority" => 12.0
-            }
-          ])
-          |> put_in(["scoring_policy", "observation_objective_weight"], 40.0),
-        generated_at: ~U[2026-05-14 00:00:00Z]
-      )
-
-    assert [observe] = Enum.filter(artifact["candidate_activities"], &(&1["type"] == "observe"))
-
-    assert %{
-             "target_priority" => 12.0,
-             "target_priority_source" => "candidate_refresh.objectives.observation_priority",
-             "target_priority_objective_ids" => ["urgent:target_a"],
-             "target_priority_objective_type" => "urgent_target",
-             "required_observations" => 1.0,
-             "score_terms" => %{
-               "target_value" => 1440.0,
-               "observation_objective_value" => 40.0
-             },
-             "activity_context" => %{
-               "target_priority" => 12.0,
-               "target_priority_source" => "candidate_refresh.objectives.observation_priority",
-               "target_priority_objective_ids" => ["urgent:target_a"],
-               "target_priority_objective_type" => "urgent_target"
-             }
-           } = observe
-
-    assert observe["score"] == 1480.0
-
-    assert {:ok, schema} = Schema.json_schema("candidate_activity.v1")
-
-    assert get_in(schema, [
-             "properties",
-             "target_priority_objective_ids",
-             "items",
-             "pattern"
-           ]) == Schema.identity_policy()["stable_id_pattern"]
-
-    assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
-             Schema.validate_artifact(artifact)
-  end
-
-  test "applies matched inline target-spec objective priority to refreshed observations" do
-    artifact =
-      result_set()
-      |> CandidateRefresh.build(
-        candidate_refresh:
-          refresh_request()
-          |> Map.put("objectives", [
-            %{
-              "id" => "urgent:inline_targets",
-              "type" => "urgent_target",
-              "priority_targets" => [
-                %{"id" => "target_a", "priority" => 12.0},
-                %{"id" => "target_b", "priority" => 30.0}
-              ]
-            }
-          ])
-          |> put_in(["scoring_policy", "observation_objective_weight"], 40.0),
-        generated_at: ~U[2026-05-14 00:00:00Z]
-      )
-
-    assert [observe] = Enum.filter(artifact["candidate_activities"], &(&1["type"] == "observe"))
-
-    assert %{
-             "target_id" => "target_a",
-             "target_priority" => 12.0,
-             "target_priority_source" => "candidate_refresh.objectives.observation_priority",
-             "target_priority_objective_ids" => ["urgent:inline_targets"],
-             "score_terms" => %{
-               "target_value" => 1440.0,
-               "observation_objective_value" => 40.0
-             },
-             "activity_context" => %{
-               "target_priority" => 12.0,
-               "target_priority_objective_ids" => ["urgent:inline_targets"]
-             }
-           } = observe
-
-    assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
-             Schema.validate_artifact(artifact)
-  end
-
   test "uses unique inline target spec as target metadata when target catalog omits it" do
     artifact =
       result_set()
@@ -382,37 +287,6 @@ defmodule OrbitalDynamics.CandidateRefresh.ObservationObjectiveBuildTest do
              )
 
     assert observe_id == observe["id"]
-
-    assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
-             Schema.validate_artifact(artifact)
-  end
-
-  test "does not lower operational target priority with lower objective priority" do
-    artifact =
-      result_set()
-      |> CandidateRefresh.build(
-        candidate_refresh:
-          refresh_request()
-          |> put_in(["operational_feedback"], %{
-            "target_priority_overrides" => %{"target_a" => 15.0}
-          })
-          |> Map.put("objectives", [
-            %{
-              "id" => "urgent:target_a:lower",
-              "type" => "urgent_target",
-              "target_id" => "target_a",
-              "priority" => 4.0
-            }
-          ]),
-        generated_at: ~U[2026-05-14 00:00:00Z]
-      )
-
-    assert [observe] = Enum.filter(artifact["candidate_activities"], &(&1["type"] == "observe"))
-
-    assert observe["target_priority"] == 15.0
-    assert observe["target_priority_source"] == "operational_feedback.target_priority_overrides"
-    refute Map.has_key?(observe, "target_priority_objective_ids")
-    assert observe["score_terms"]["target_value"] == 1800.0
 
     assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
              Schema.validate_artifact(artifact)

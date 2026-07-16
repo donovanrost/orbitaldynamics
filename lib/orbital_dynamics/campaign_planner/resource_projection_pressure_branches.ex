@@ -1,9 +1,14 @@
 defmodule OrbitalDynamics.CampaignPlanner.ResourceProjectionPressureBranches do
   @moduledoc false
 
-  alias OrbitalDynamics.CampaignPlanner.ResourceProjectionRisk
+  alias OrbitalDynamics.CampaignPlanner.{
+    ResourceProjectionRisk,
+    ScalarValues,
+    ScoreTermIdentifiers,
+    ValueEncoding
+  }
 
-  def from_reports(reports, policy, callbacks) do
+  def from_reports(reports, policy, callbacks \\ default_callbacks()) do
     stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
 
     Enum.flat_map(reports, fn {report, source_path} ->
@@ -18,7 +23,7 @@ defmodule OrbitalDynamics.CampaignPlanner.ResourceProjectionPressureBranches do
     end)
   end
 
-  def build(row, source_path, policy, callbacks) do
+  def build(row, source_path, policy, callbacks \\ default_callbacks()) do
     branch_id_fragment = Keyword.fetch!(callbacks, :branch_id_fragment)
     compact_map = Keyword.fetch!(callbacks, :compact_map)
 
@@ -45,7 +50,7 @@ defmodule OrbitalDynamics.CampaignPlanner.ResourceProjectionPressureBranches do
     end
   end
 
-  def disambiguate(branches, callbacks) do
+  def disambiguate(branches, callbacks \\ default_callbacks()) do
     branch_id_fragment = Keyword.fetch!(callbacks, :branch_id_fragment)
     id_counts = Enum.frequencies_by(branches, & &1["id"])
 
@@ -636,4 +641,17 @@ defmodule OrbitalDynamics.CampaignPlanner.ResourceProjectionPressureBranches do
   end
 
   defp stable_source_activity_id(_pressure, _callbacks), do: nil
+
+  defp default_callbacks do
+    [
+      branch_id_fragment: &ValueEncoding.branch_id_fragment/1,
+      compact_map: &ValueEncoding.compact_map/1,
+      encode_value: &ValueEncoding.encode_value/1,
+      numeric_or_nil: &ScalarValues.numeric_or_nil/1,
+      positive_number?: &ScalarValues.positive_number?/1,
+      score_term_entity_id: &ScoreTermIdentifiers.entity_id/2,
+      stable_id_string?: &ScalarValues.stable_id_string?/1,
+      stringify_keys: &ValueEncoding.stringify_keys/1
+    ]
+  end
 end

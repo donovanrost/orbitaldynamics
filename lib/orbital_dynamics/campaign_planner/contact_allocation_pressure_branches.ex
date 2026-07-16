@@ -1,7 +1,14 @@
 defmodule OrbitalDynamics.CampaignPlanner.ContactAllocationPressureBranches do
   @moduledoc false
 
-  def build(row, source_path, callbacks) do
+  alias OrbitalDynamics.CampaignPlanner.{
+    ActivityTiming,
+    DownlinkActivityNormalization,
+    ScalarValues,
+    ValueEncoding
+  }
+
+  def build(row, source_path, callbacks \\ default_callbacks()) do
     event = pressure_event(row, source_path, callbacks)
     contact_id = Map.get(row, "contact_id")
 
@@ -43,7 +50,7 @@ defmodule OrbitalDynamics.CampaignPlanner.ContactAllocationPressureBranches do
     end
   end
 
-  def disambiguate(branches, callbacks) do
+  def disambiguate(branches, callbacks \\ default_callbacks()) do
     id_counts = Enum.frequencies_by(branches, & &1["id"])
 
     branches
@@ -413,5 +420,40 @@ defmodule OrbitalDynamics.CampaignPlanner.ContactAllocationPressureBranches do
     ]
     |> Enum.reject(&(&1 in [nil, ""]))
     |> Enum.uniq()
+  end
+
+  defp default_callbacks do
+    [
+      activity_raw_end: &ActivityTiming.activity_raw_end/1,
+      activity_raw_start: &ActivityTiming.activity_raw_start/1,
+      branch_id_fragment: &ValueEncoding.branch_id_fragment/1,
+      compact_map: &ValueEncoding.compact_map/1,
+      downlink_activity?: &DownlinkActivityNormalization.downlink?/1,
+      encode_value: &ValueEncoding.encode_value/1,
+      nested_ground_station_id: &DownlinkActivityNormalization.nested_ground_station_id/1,
+      normalize_downlink_source_list: &normalize_downlink_source_values/1,
+      numeric_or_nil: &ScalarValues.numeric_or_nil/1,
+      stable_id_string?: &ScalarValues.stable_id_string?/1,
+      stringify_keys: &ValueEncoding.stringify_keys/1,
+      trust_boundary: &trust_boundary/1
+    ]
+  end
+
+  defp trust_boundary(row) do
+    Map.get(row, "trust_boundary") ||
+      Map.get(row, "resource_trust_boundary") ||
+      get_in(row, ["provenance", "trust_boundary"]) ||
+      get_in(row, ["source_resource_suppression", "resource_trust_boundary"]) ||
+      get_in(row, ["source_resource_suppression", "resource_provenance", "trust_boundary"]) ||
+      row["_source_report_trust_boundary"]
+  end
+
+  defp normalize_downlink_source_values(values) do
+    values
+    |> List.flatten()
+    |> Enum.map(&ValueEncoding.encode_value/1)
+    |> Enum.reject(&(&1 in [nil, ""]))
+    |> Enum.uniq()
+    |> Enum.sort()
   end
 end

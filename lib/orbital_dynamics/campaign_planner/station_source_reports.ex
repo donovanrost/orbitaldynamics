@@ -1,6 +1,11 @@
 defmodule OrbitalDynamics.CampaignPlanner.StationSourceReports do
   @moduledoc false
 
+  alias OrbitalDynamics.CampaignPlanner.{
+    BranchRefreshSourceInputs,
+    SourceReportArtifacts
+  }
+
   @station_calendar_report_fields [
     {"source_station_calendar_report", "mission_state.source_station_calendar_report"},
     {"station_calendar_report", "mission_state.station_calendar_report"}
@@ -11,7 +16,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StationSourceReports do
     {"station_calendar_report", "prior_plan.station_calendar_report"}
   ]
 
-  def station_calendar_reports(mission_state, opts) do
+  def station_calendar_reports(mission_state, opts \\ default_callbacks()) do
     mission_state = stringify_keys(mission_state || %{})
 
     source_reports(mission_state, @station_calendar_report_fields, opts) ++
@@ -19,19 +24,17 @@ defmodule OrbitalDynamics.CampaignPlanner.StationSourceReports do
       result_artifact_embedded_reports(mission_state, "station_calendar_report", opts)
   end
 
+  def prior_plan_station_calendar_reports(prior_plan),
+    do: prior_plan_station_calendar_reports(prior_plan, prior_plan_callbacks())
+
   def prior_plan_station_calendar_reports(prior_plan, opts) do
     prior_plan = stringify_keys(prior_plan || %{})
 
-    direct_reports =
-      @prior_station_calendar_report_fields
-      |> Enum.flat_map(fn {field, source_path} ->
-        case Map.get(prior_plan, field) do
-          %{} = report -> [{stringify_keys(report), source_path}]
-          _report -> []
-        end
-      end)
-
-    direct_reports ++ prior_plan_result_artifact_station_calendar_reports(prior_plan, opts)
+    SourceReportArtifacts.direct_reports(
+      prior_plan,
+      @prior_station_calendar_report_fields,
+      &stringify_keys/1
+    ) ++ prior_plan_result_artifact_station_calendar_reports(prior_plan, opts)
   end
 
   def station_calendar_reports(mission_state, "source_station_calendar_report", opts) do
@@ -49,6 +52,18 @@ defmodule OrbitalDynamics.CampaignPlanner.StationSourceReports do
   def station_reservation_reports(mission_state, "station_reservation_report", opts) do
     canonical_station_reservation_reports(mission_state, opts)
   end
+
+  def candidate_refresh_source_inputs(mission_state) do
+    Map.new(candidate_refresh_source_input_collectors(), fn {key, collector} ->
+      {key, BranchRefreshSourceInputs.source_reports_or_reports(mission_state, collector)}
+    end)
+  end
+
+  def station_calendar_precedence_summaries(
+        mission_state,
+        report_key,
+        opts \\ default_callbacks()
+      )
 
   def station_calendar_precedence_summaries(
         mission_state,
@@ -79,6 +94,47 @@ defmodule OrbitalDynamics.CampaignPlanner.StationSourceReports do
     )
   end
 
+  def station_reservation_review_summaries(
+        mission_state,
+        report_key,
+        opts \\ default_callbacks()
+      )
+
+  def station_reservation_review_summaries(
+        mission_state,
+        "source_station_reservation_review_summary",
+        opts
+      ) do
+    source_reports(
+      mission_state,
+      [
+        {"source_station_reservation_review_summary",
+         "mission_state.source_station_reservation_review_summary"}
+      ],
+      opts
+    )
+  end
+
+  def station_reservation_review_summaries(
+        mission_state,
+        "station_reservation_review_summary",
+        opts
+      ) do
+    source_reports(
+      mission_state,
+      [
+        {"station_reservation_review_summary", "mission_state.station_reservation_review_summary"}
+      ],
+      opts
+    )
+  end
+
+  def station_reservation_hold_summaries(
+        mission_state,
+        report_key,
+        opts \\ default_callbacks()
+      )
+
   def station_reservation_hold_summaries(
         mission_state,
         "source_station_reservation_hold_summary",
@@ -106,6 +162,12 @@ defmodule OrbitalDynamics.CampaignPlanner.StationSourceReports do
       opts
     )
   end
+
+  def station_reservation_hold_import_readiness_summaries(
+        mission_state,
+        report_key,
+        opts \\ default_callbacks()
+      )
 
   def station_reservation_hold_import_readiness_summaries(
         mission_state,
@@ -139,7 +201,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StationSourceReports do
     )
   end
 
-  def source_station_calendar_reports(mission_state, opts) do
+  def source_station_calendar_reports(mission_state, opts \\ default_callbacks()) do
     source_reports(
       mission_state,
       [
@@ -149,7 +211,10 @@ defmodule OrbitalDynamics.CampaignPlanner.StationSourceReports do
     )
   end
 
-  def source_station_calendar_reports_with_result_artifact_fallback(mission_state, opts) do
+  def source_station_calendar_reports_with_result_artifact_fallback(
+        mission_state,
+        opts \\ default_callbacks()
+      ) do
     source_reports_with_result_artifact_fallback(
       mission_state,
       &source_station_calendar_reports(&1, opts),
@@ -158,7 +223,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StationSourceReports do
     )
   end
 
-  def canonical_station_calendar_reports(mission_state, opts) do
+  def canonical_station_calendar_reports(mission_state, opts \\ default_callbacks()) do
     source_reports(
       mission_state,
       [
@@ -168,7 +233,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StationSourceReports do
     )
   end
 
-  def source_station_reservation_reports(mission_state, opts) do
+  def source_station_reservation_reports(mission_state, opts \\ default_callbacks()) do
     source_reports(
       mission_state,
       [
@@ -178,7 +243,10 @@ defmodule OrbitalDynamics.CampaignPlanner.StationSourceReports do
     )
   end
 
-  def source_station_reservation_reports_with_result_artifact_fallback(mission_state, opts) do
+  def source_station_reservation_reports_with_result_artifact_fallback(
+        mission_state,
+        opts \\ default_callbacks()
+      ) do
     source_reports_with_result_artifact_fallback(
       mission_state,
       &source_station_reservation_reports(&1, opts),
@@ -187,7 +255,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StationSourceReports do
     )
   end
 
-  def canonical_station_reservation_reports(mission_state, opts) do
+  def canonical_station_reservation_reports(mission_state, opts \\ default_callbacks()) do
     source_reports(
       mission_state,
       [
@@ -197,14 +265,47 @@ defmodule OrbitalDynamics.CampaignPlanner.StationSourceReports do
     )
   end
 
-  defp source_reports(mission_state, fields, opts) do
-    callbacks = callbacks!(opts)
-    mission_state = stringify_keys(mission_state || %{})
+  defp candidate_refresh_source_input_collectors do
+    [
+      {"source_station_calendar_report",
+       &source_station_calendar_reports_with_result_artifact_fallback/1},
+      {"station_calendar_report", &canonical_station_calendar_reports/1},
+      {"source_station_calendar_precedence_summary",
+       &station_calendar_precedence_summaries(
+         &1,
+         "source_station_calendar_precedence_summary"
+       )},
+      {"station_calendar_precedence_summary",
+       &station_calendar_precedence_summaries(&1, "station_calendar_precedence_summary")},
+      {"source_station_reservation_report",
+       &source_station_reservation_reports_with_result_artifact_fallback/1},
+      {"station_reservation_report", &canonical_station_reservation_reports/1},
+      {"source_station_reservation_review_summary",
+       &station_reservation_review_summaries(
+         &1,
+         "source_station_reservation_review_summary"
+       )},
+      {"station_reservation_review_summary",
+       &station_reservation_review_summaries(&1, "station_reservation_review_summary")},
+      {"source_station_reservation_hold_summary",
+       &station_reservation_hold_summaries(&1, "source_station_reservation_hold_summary")},
+      {"station_reservation_hold_summary",
+       &station_reservation_hold_summaries(&1, "station_reservation_hold_summary")},
+      {"source_station_reservation_hold_import_readiness_summary",
+       &station_reservation_hold_import_readiness_summaries(
+         &1,
+         "source_station_reservation_hold_import_readiness_summary"
+       )},
+      {"station_reservation_hold_import_readiness_summary",
+       &station_reservation_hold_import_readiness_summaries(
+         &1,
+         "station_reservation_hold_import_readiness_summary"
+       )}
+    ]
+  end
 
-    fields
-    |> Enum.flat_map(fn {field, source_path} ->
-      callbacks.source_report_entries.(Map.get(mission_state, field), source_path)
-    end)
+  defp source_reports(mission_state, fields, opts) do
+    SourceReportArtifacts.source_reports(mission_state, fields, opts, &stringify_keys/1)
   end
 
   defp source_reports_with_result_artifact_fallback(
@@ -213,15 +314,13 @@ defmodule OrbitalDynamics.CampaignPlanner.StationSourceReports do
          result_artifact_keys,
          opts
        ) do
-    case direct_source_fun.(mission_state) do
-      [] ->
-        mission_state
-        |> stringify_keys()
-        |> result_artifact_embedded_reports(result_artifact_keys, opts)
-
-      reports ->
-        reports
-    end
+    SourceReportArtifacts.source_reports_with_embedded_fallback(
+      mission_state,
+      direct_source_fun,
+      result_artifact_keys,
+      opts,
+      &stringify_keys/1
+    )
   end
 
   defp source_reports_with_result_artifact_reports(
@@ -230,41 +329,51 @@ defmodule OrbitalDynamics.CampaignPlanner.StationSourceReports do
          result_artifact_keys,
          opts
        ) do
-    mission_state = stringify_keys(mission_state || %{})
-
-    source_reports(mission_state, [{field, source_path}], opts) ++
-      Enum.flat_map(result_artifact_keys, fn key ->
-        result_artifact_embedded_reports(mission_state, key, opts)
-      end)
+    SourceReportArtifacts.source_reports_with_embedded_reports(
+      mission_state,
+      {field, source_path},
+      result_artifact_keys,
+      opts,
+      &stringify_keys/1
+    )
   end
 
-  defp result_artifact_embedded_reports(mission_state, report_keys, opts)
-       when is_list(report_keys) do
-    Enum.flat_map(report_keys, &result_artifact_embedded_reports(mission_state, &1, opts))
-  end
-
-  defp result_artifact_embedded_reports(mission_state, report_key, opts) do
-    callbacks = callbacks!(opts)
-    callbacks.result_artifact_embedded_reports.(mission_state, report_key)
+  defp result_artifact_embedded_reports(mission_state, report_keys, opts) do
+    SourceReportArtifacts.embedded_reports(mission_state, report_keys, opts)
   end
 
   defp prior_plan_result_artifact_station_calendar_reports(prior_plan, opts) do
-    callbacks = prior_plan_callbacks!(opts)
     report_keys = Enum.map(@station_calendar_report_fields, &elem(&1, 0))
-    callbacks.result_artifact_embedded_reports.(prior_plan, report_keys)
+    SourceReportArtifacts.embedded_reports(prior_plan, report_keys, opts)
   end
 
-  defp callbacks!(opts) do
-    %{
-      source_report_entries: Keyword.fetch!(opts, :source_report_entries),
-      result_artifact_embedded_reports: Keyword.fetch!(opts, :result_artifact_embedded_reports)
-    }
+  defp prior_plan_callbacks do
+    [
+      result_artifact_embedded_reports: &prior_plan_result_artifact_embedded_reports/2
+    ]
   end
 
-  defp prior_plan_callbacks!(opts) do
-    %{
-      result_artifact_embedded_reports: Keyword.fetch!(opts, :result_artifact_embedded_reports)
-    }
+  defp default_callbacks do
+    [
+      source_report_entries: &BranchRefreshSourceInputs.source_report_entries/2,
+      result_artifact_embedded_reports: &mission_state_result_artifact_embedded_reports/2
+    ]
+  end
+
+  defp mission_state_result_artifact_embedded_reports(mission_state, report_keys) do
+    BranchRefreshSourceInputs.result_artifact_embedded_reports(
+      mission_state,
+      "mission_state",
+      report_keys
+    )
+  end
+
+  defp prior_plan_result_artifact_embedded_reports(prior_plan, report_keys) do
+    BranchRefreshSourceInputs.result_artifact_embedded_reports(
+      prior_plan,
+      "prior_plan",
+      report_keys
+    )
   end
 
   defp stringify_keys(%_struct{} = struct), do: struct |> Map.from_struct() |> stringify_keys()

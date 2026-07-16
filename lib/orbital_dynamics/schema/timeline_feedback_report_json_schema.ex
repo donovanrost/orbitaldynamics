@@ -30,6 +30,88 @@ defmodule OrbitalDynamics.Schema.TimelineFeedbackReportJsonSchema do
     "operator_review_package"
   ]
 
+  @property_fields [
+    "schema_contract",
+    "rows",
+    "model",
+    "model_limits",
+    "operational_feedback",
+    "operational_feedback_provenance"
+    | @count_fields ++ @enum_count_fields ++ @object_fields
+  ]
+
+  def property_field?(field) when field in @property_fields, do: true
+  def property_field?(_field), do: false
+
+  def property_from_context(
+        field,
+        row_schema,
+        model_limits,
+        capability,
+        operational_feedback_schema,
+        operational_feedback_provenance_schema
+      ) do
+    deps = [
+      row_schema: row_schema,
+      model_limits: model_limits,
+      capability: capability,
+      operational_feedback_schema: operational_feedback_schema,
+      operational_feedback_provenance_schema: operational_feedback_provenance_schema
+    ]
+
+    property(field, property_opts(field, deps))
+  end
+
+  def property_fun_from_context(
+        row_schema,
+        model_limits,
+        capability,
+        operational_feedback_schema,
+        operational_feedback_provenance_schema
+      ) do
+    fn field ->
+      property_from_context(
+        field,
+        row_schema,
+        model_limits,
+        capability,
+        operational_feedback_schema,
+        operational_feedback_provenance_schema
+      )
+    end
+  end
+
+  def property_fun_from_context(deps) when is_list(deps) do
+    fn field ->
+      property(field, property_opts(field, deps))
+    end
+  end
+
+  def property_opts("rows", deps) do
+    [row_schema: fetch_dep!(deps, :row_schema)]
+  end
+
+  def property_opts("model_limits", deps) do
+    [model_limits: fetch_dep!(deps, :model_limits)]
+  end
+
+  def property_opts(field, deps) when field in @enum_count_fields do
+    [capability: fetch_dep!(deps, :capability)]
+  end
+
+  def property_opts("operational_feedback", deps) do
+    [operational_feedback_schema: fetch_dep!(deps, :operational_feedback_schema)]
+  end
+
+  def property_opts("operational_feedback_provenance", deps) do
+    [
+      operational_feedback_provenance_schema:
+        fetch_dep!(deps, :operational_feedback_provenance_schema)
+    ]
+  end
+
+  def property_opts(_field, _deps), do: []
+
   def property("schema_contract", _opts) do
     %{
       "type" => "string",
@@ -95,4 +177,11 @@ defmodule OrbitalDynamics.Schema.TimelineFeedbackReportJsonSchema do
 
   defp enum_count_values("planned_protection_decision_counts", capability),
     do: capability.planned_protection_decisions
+
+  defp fetch_dep!(deps, key) do
+    case Keyword.fetch!(deps, key) do
+      fun when is_function(fun, 0) -> fun.()
+      value -> value
+    end
+  end
 end

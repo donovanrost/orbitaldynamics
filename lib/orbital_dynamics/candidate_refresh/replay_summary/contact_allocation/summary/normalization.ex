@@ -1,6 +1,8 @@
 defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Summary.Normalization do
   @moduledoc false
 
+  alias OrbitalDynamics.CandidateRefresh.ValueEncoding
+
   def source_report_summary_contract(summary, default_contract) when map_size(summary) > 0 do
     case Map.get(summary, "contract", default_contract) do
       contract when is_binary(contract) and contract != "" -> contract
@@ -31,16 +33,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Summa
 
   def summary_integer(_summary, _field), do: 0
 
-  def numeric_value(value) when is_number(value), do: value * 1.0
-
-  def numeric_value(value) when is_binary(value) do
-    case Float.parse(String.trim(value)) do
-      {number, ""} -> number
-      _parse -> nil
-    end
-  end
-
-  def numeric_value(_value), do: nil
+  def numeric_value(value), do: ValueEncoding.numeric_value(value)
 
   def compact_map(map) when is_map(map) do
     map

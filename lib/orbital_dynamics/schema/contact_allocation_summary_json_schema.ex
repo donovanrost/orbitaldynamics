@@ -102,6 +102,69 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryJsonSchema do
     "required_capacity_fraction_contact_ids_by_source"
   ]
 
+  def property_field?(field)
+      when field in [
+             "schema_contract",
+             "source_artifact_type",
+             "model",
+             "source",
+             "assumptions",
+             "model_limits",
+             "rows",
+             "review_rows",
+             "reduced_capacity_pack_groups",
+             "station_pressure_contact_ids_by_direction_and_ground_station_id",
+             "station_reservation_expires_at_s"
+           ],
+      do: true
+
+  def property_field?(field)
+      when field in @count_fields or field in @count_map_fields or field in @number_fields or
+             field in @number_map_fields or field in @stable_id_array_fields or
+             field in @stable_id_array_map_fields,
+      do: true
+
+  def property_field?(_field), do: false
+
+  def property_fun_from_context(deps) when is_list(deps) do
+    fn field -> property_from_context(field, deps) end
+  end
+
+  def property_from_context(field, deps) when is_list(deps) do
+    property(field, property_opts(field, deps))
+  end
+
+  def property_opts("schema_contract", deps) do
+    [schema_contract: fetch_dep!(deps, :schema_contract)]
+  end
+
+  def property_opts("model_limits", deps) do
+    [model_limits: fetch_dep!(deps, :model_limits)]
+  end
+
+  def property_opts("assumptions", deps) do
+    [assumptions_schema: fetch_dep!(deps, :assumptions_schema)]
+  end
+
+  def property_opts(field, deps) when field in ["rows", "review_rows"] do
+    [row_schema: fetch_dep!(deps, :row_schema)]
+  end
+
+  def property_opts("reduced_capacity_pack_groups", deps) do
+    [capacity_pack_group_schema: fetch_dep!(deps, :capacity_pack_group_schema)]
+  end
+
+  def property_opts("station_pressure_contact_ids_by_direction_and_ground_station_id", deps) do
+    [stable_id_pattern: fetch_dep!(deps, :stable_id_pattern)]
+  end
+
+  def property_opts(field, deps)
+      when field in @stable_id_array_fields or field in @stable_id_array_map_fields do
+    [stable_id_pattern: fetch_dep!(deps, :stable_id_pattern)]
+  end
+
+  def property_opts(_field, _deps), do: []
+
   def property("schema_contract", opts) do
     %{"type" => "string", "const" => Keyword.fetch!(opts, :schema_contract)}
   end
@@ -180,5 +243,12 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryJsonSchema do
     opts
     |> Keyword.fetch!(:stable_id_pattern)
     |> CommonJsonSchema.stable_id_array()
+  end
+
+  defp fetch_dep!(deps, key) do
+    case Keyword.fetch!(deps, key) do
+      fun when is_function(fun, 0) -> fun.()
+      value -> value
+    end
   end
 end

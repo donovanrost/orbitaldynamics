@@ -31,6 +31,57 @@ defmodule OrbitalDynamics.Schema.StationCalendarReportJsonSchema do
     "provider_counteroffer_count"
   ]
 
+  def property_field?(field)
+      when field in [
+             "affected_contacts",
+             "model",
+             "affected_duration_s",
+             "provider_calendar_contention_groups",
+             "model_limits"
+           ],
+      do: true
+
+  def property_field?(field)
+      when field in @trust_boundary_count_fields or field in @count_map_fields or
+             field in @string_list_map_fields or field in @count_fields,
+      do: true
+
+  def property_field?(_field), do: false
+
+  def property_opts("affected_contacts", deps) do
+    [contact_schema: fetch_dep!(deps, :contact_schema)]
+  end
+
+  def property_opts("model", deps) do
+    [model: fetch_dep!(deps, :model)]
+  end
+
+  def property_opts("provider_calendar_contention_groups", deps) do
+    [provider_contention_group_schema: fetch_dep!(deps, :provider_contention_group_schema)]
+  end
+
+  def property_opts("entries", deps) do
+    [entry_schema: fetch_dep!(deps, :entry_schema)]
+  end
+
+  def property_opts(field, deps) when field in @trust_boundary_count_fields do
+    [trust_boundary_status_count_schema: fetch_dep!(deps, :trust_boundary_status_count_schema)]
+  end
+
+  def property_opts("model_limits", deps) do
+    [model_limits: fetch_dep!(deps, :model_limits)]
+  end
+
+  def property_opts(_field, _deps), do: []
+
+  def property_from_context(field, deps) when is_list(deps) do
+    property(field, property_opts(field, deps))
+  end
+
+  def property_fun_from_context(deps) when is_list(deps) do
+    fn field -> property_from_context(field, deps) end
+  end
+
   def property("affected_contacts", opts) do
     %{"type" => "array", "items" => Keyword.fetch!(opts, :contact_schema)}
   end
@@ -453,6 +504,13 @@ defmodule OrbitalDynamics.Schema.StationCalendarReportJsonSchema do
 
   defp stable_id(stable_id_pattern) do
     %{"type" => "string", "pattern" => stable_id_pattern}
+  end
+
+  defp fetch_dep!(deps, key) do
+    case Keyword.fetch!(deps, key) do
+      fun when is_function(fun, 0) -> fun.()
+      value -> value
+    end
   end
 
   defp probability do

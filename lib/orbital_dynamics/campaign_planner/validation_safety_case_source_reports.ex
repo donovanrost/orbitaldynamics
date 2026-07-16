@@ -1,7 +1,12 @@
 defmodule OrbitalDynamics.CampaignPlanner.ValidationSafetyCaseSourceReports do
   @moduledoc false
 
-  def validation_safety_case_summaries(mission_state, opts) do
+  alias __MODULE__.PressureRows
+  alias OrbitalDynamics.CampaignPlanner.{BranchRefreshSourceInputs, SourceReportArtifacts}
+
+  def validation_safety_case_summaries(mission_state, opts \\ default_callbacks())
+
+  def validation_safety_case_summaries(mission_state, opts) when is_list(opts) do
     mission_state = stringify_keys(mission_state || %{})
 
     source_reports(
@@ -23,6 +28,17 @@ defmodule OrbitalDynamics.CampaignPlanner.ValidationSafetyCaseSourceReports do
 
   def validation_safety_case_summaries(
         mission_state,
+        "source_validation_safety_case_summary"
+      ) do
+    source_validation_safety_case_summaries(mission_state)
+  end
+
+  def validation_safety_case_summaries(mission_state, "validation_safety_case_summary") do
+    canonical_validation_safety_case_summaries(mission_state)
+  end
+
+  def validation_safety_case_summaries(
+        mission_state,
         "source_validation_safety_case_summary",
         opts
       ) do
@@ -33,7 +49,7 @@ defmodule OrbitalDynamics.CampaignPlanner.ValidationSafetyCaseSourceReports do
     canonical_validation_safety_case_summaries(mission_state, opts)
   end
 
-  def source_validation_safety_case_summaries(mission_state, opts) do
+  def source_validation_safety_case_summaries(mission_state, opts \\ default_callbacks()) do
     source_reports(
       mission_state,
       [
@@ -44,7 +60,7 @@ defmodule OrbitalDynamics.CampaignPlanner.ValidationSafetyCaseSourceReports do
     )
   end
 
-  def canonical_validation_safety_case_summaries(mission_state, opts) do
+  def canonical_validation_safety_case_summaries(mission_state, opts \\ default_callbacks()) do
     source_reports(
       mission_state,
       [
@@ -54,113 +70,45 @@ defmodule OrbitalDynamics.CampaignPlanner.ValidationSafetyCaseSourceReports do
     )
   end
 
-  def pressure_rows(reports) do
-    reports
-    |> Enum.flat_map(fn {report, source_path} ->
-      trust_boundary =
-        Map.get(report, "trust_boundary") || get_in(report, ["provenance", "trust_boundary"])
-
-      report
-      |> report_pressure_rows()
-      |> Enum.with_index(1)
-      |> Enum.map(fn {row, index} ->
-        row_source =
-          row
-          |> Map.get("source", "validation_safety_case_summary")
-          |> String.replace_prefix("validation_safety_case_summary", source_path)
-
-        row =
-          row
-          |> Map.put("_source_report_trust_boundary", trust_boundary)
-
-        {row, row_source, index}
-      end)
+  def candidate_refresh_source_inputs(mission_state) do
+    Map.new(candidate_refresh_source_input_collectors(), fn {key, collector} ->
+      {key, BranchRefreshSourceInputs.source_reports_or_reports(mission_state, collector)}
     end)
   end
 
-  defp report_pressure_rows(report) do
-    report = stringify_keys(report || %{})
-
-    evidence_rows =
-      report
-      |> Map.get("evidence", [])
-      |> List.wrap()
-      |> Enum.map(&stringify_keys/1)
-      |> Enum.map(fn evidence ->
-        %{
-          "source" => "validation_safety_case_summary.evidence",
-          "report_id" => report["report_id"],
-          "validation_safety_case_status" => report["status"],
-          "evidence_status" => evidence["status"],
-          "input_contract" => evidence["input_contract"] || evidence["contract"],
-          "input_contracts" => report["input_contracts"],
-          "evidence_ref" => evidence["ref"] || evidence["evidence_ref"] || evidence["id"],
-          "evidence_count" => report["evidence_count"] || length(List.wrap(report["evidence"])),
-          "accepted_evidence_count" => report["accepted_evidence_count"],
-          "review_required_evidence_count" => report["review_required_evidence_count"],
-          "blocked_evidence_count" => report["blocked_evidence_count"],
-          "schema_error_count" => report["schema_error_count"],
-          "schema_warning_count" => report["schema_warning_count"],
-          "model_blocked_count" => report["model_blocked_count"],
-          "quality_gate_review_count" => report["quality_gate_review_count"],
-          "quality_gate_blocked_count" => report["quality_gate_blocked_count"],
-          "evidence_status_counts" => report["evidence_status_counts"],
-          "evidence_refs_by_status" => report["evidence_refs_by_status"],
-          "evidence_refs_by_contract" => report["evidence_refs_by_contract"],
-          "source_validation_safety_case_evidence" => evidence,
-          "source_validation_safety_case_summary" => report
-        }
-        |> compact_map()
-      end)
-
-    if evidence_rows == [] do
-      [
-        %{
-          "source" => "validation_safety_case_summary",
-          "report_id" => report["report_id"],
-          "validation_safety_case_status" => report["status"],
-          "input_contracts" => report["input_contracts"],
-          "evidence_count" => report["evidence_count"],
-          "accepted_evidence_count" => report["accepted_evidence_count"],
-          "review_required_evidence_count" => report["review_required_evidence_count"],
-          "blocked_evidence_count" => report["blocked_evidence_count"],
-          "schema_error_count" => report["schema_error_count"],
-          "schema_warning_count" => report["schema_warning_count"],
-          "model_blocked_count" => report["model_blocked_count"],
-          "quality_gate_review_count" => report["quality_gate_review_count"],
-          "quality_gate_blocked_count" => report["quality_gate_blocked_count"],
-          "evidence_status_counts" => report["evidence_status_counts"],
-          "evidence_refs_by_status" => report["evidence_refs_by_status"],
-          "evidence_refs_by_contract" => report["evidence_refs_by_contract"],
-          "source_validation_safety_case_summary" => report
-        }
-        |> compact_map()
-      ]
-    else
-      evidence_rows
-    end
+  def pressure_rows(reports) do
+    PressureRows.pressure_rows(reports)
   end
+
+  defp candidate_refresh_source_input_collectors,
+    do: [
+      {"source_validation_safety_case_summary",
+       &validation_safety_case_summaries(&1, "source_validation_safety_case_summary")},
+      {"validation_safety_case_summary",
+       &validation_safety_case_summaries(&1, "validation_safety_case_summary")}
+    ]
 
   defp source_reports(mission_state, fields, opts) do
-    callbacks = callbacks!(opts)
-    mission_state = stringify_keys(mission_state || %{})
-
-    fields
-    |> Enum.flat_map(fn {field, source_path} ->
-      callbacks.source_report_entries.(Map.get(mission_state, field), source_path)
-    end)
+    SourceReportArtifacts.source_reports(mission_state, fields, opts, &stringify_keys/1)
   end
 
   defp result_artifact_embedded_reports(mission_state, report_key, opts) do
-    callbacks = callbacks!(opts)
-    callbacks.result_artifact_embedded_reports.(mission_state, report_key)
+    SourceReportArtifacts.embedded_reports(mission_state, report_key, opts)
   end
 
-  defp callbacks!(opts) do
-    %{
-      source_report_entries: Keyword.fetch!(opts, :source_report_entries),
-      result_artifact_embedded_reports: Keyword.fetch!(opts, :result_artifact_embedded_reports)
-    }
+  defp default_callbacks do
+    [
+      source_report_entries: &BranchRefreshSourceInputs.source_report_entries/2,
+      result_artifact_embedded_reports: &mission_state_result_artifact_embedded_reports/2
+    ]
+  end
+
+  defp mission_state_result_artifact_embedded_reports(mission_state, report_keys) do
+    BranchRefreshSourceInputs.result_artifact_embedded_reports(
+      mission_state,
+      "mission_state",
+      report_keys
+    )
   end
 
   defp stringify_keys(%_struct{} = struct), do: struct |> Map.from_struct() |> stringify_keys()
@@ -171,12 +119,6 @@ defmodule OrbitalDynamics.CampaignPlanner.ValidationSafetyCaseSourceReports do
 
   defp stringify_keys(values) when is_list(values), do: Enum.map(values, &stringify_keys/1)
   defp stringify_keys(value), do: encode_value(value)
-
-  defp compact_map(map) do
-    map
-    |> Enum.reject(fn {_key, value} -> value in [nil, [], %{}] end)
-    |> Map.new()
-  end
 
   defp encode_value(%_{} = struct), do: struct |> Map.from_struct() |> encode_value()
 

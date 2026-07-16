@@ -14,10 +14,55 @@ defmodule OrbitalDynamics.Schema.StationReservationReportJsonSchema do
     "reservation_ids_by_match_status"
   ]
 
+  @stable_id_fields ["reservation_ids" | @stable_id_array_map_fields]
+
   @count_map_fields [
     "station_reservation_match_status_counts",
     "reservation_status_counts"
   ]
+
+  def property_field?(field)
+      when field in [
+             "schema_contract",
+             "model",
+             "source",
+             "affected_contacts",
+             "provider_calendar_contention_groups",
+             "reservation_review_status"
+           ],
+      do: true
+
+  def property_field?(field)
+      when field in @count_fields or field in @stable_id_fields or field in @count_map_fields,
+      do: true
+
+  def property_field?(_field), do: false
+
+  def property_opts("model", deps) do
+    [models: fetch_dep!(deps, :models)]
+  end
+
+  def property_opts("affected_contacts", deps) do
+    [contact_schema: fetch_dep!(deps, :contact_schema)]
+  end
+
+  def property_opts("provider_calendar_contention_groups", deps) do
+    [provider_contention_group_schema: fetch_dep!(deps, :provider_contention_group_schema)]
+  end
+
+  def property_opts(field, deps) when field in @stable_id_fields do
+    [stable_id_pattern: fetch_dep!(deps, :stable_id_pattern)]
+  end
+
+  def property_opts(_field, _deps), do: []
+
+  def property_from_context(field, deps) when is_list(deps) do
+    property(field, property_opts(field, deps))
+  end
+
+  def property_fun_from_context(deps) when is_list(deps) do
+    fn field -> property_from_context(field, deps) end
+  end
 
   def property("schema_contract", _opts) do
     %{"type" => "string", "const" => "station_reservation_report.v1"}
@@ -132,5 +177,12 @@ defmodule OrbitalDynamics.Schema.StationReservationReportJsonSchema do
 
   defp stable_id(stable_id_pattern) do
     %{"type" => "string", "pattern" => stable_id_pattern}
+  end
+
+  defp fetch_dep!(deps, key) do
+    case Keyword.fetch!(deps, key) do
+      fun when is_function(fun, 0) -> fun.()
+      value -> value
+    end
   end
 end

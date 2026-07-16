@@ -15,6 +15,17 @@ defmodule OrbitalDynamics.Schema.CandidateDiffJsonSchema do
     "invalid_prior_candidate_input_count"
   ]
 
+  @report_property_fields [
+    "source_window_lineage",
+    "model",
+    "invalid_prior_candidate_input_ids",
+    "model_limits",
+    "invalidated_candidates",
+    "retained_candidates",
+    "new_candidates"
+    | @report_count_fields
+  ]
+
   @shared_stable_id_fields [
     "target_id",
     "collection_id",
@@ -125,6 +136,134 @@ defmodule OrbitalDynamics.Schema.CandidateDiffJsonSchema do
     }
   end
 
+  def report_property_field?(field) when field in @report_property_fields, do: true
+  def report_property_field?(_field), do: false
+
+  def report_property_opts("source_window_lineage", deps) do
+    [source_window_lineage_schema: fetch_dep!(deps, :source_window_lineage_schema)]
+  end
+
+  def report_property_opts("invalid_prior_candidate_input_ids", deps) do
+    [stable_id_pattern: fetch_dep!(deps, :stable_id_pattern)]
+  end
+
+  def report_property_opts("model_limits", deps) do
+    [model_limits: fetch_dep!(deps, :model_limits)]
+  end
+
+  def report_property_opts(field, deps) when field in ["retained_candidates", "new_candidates"] do
+    [candidate_diff_row_schema: fetch_dep!(deps, :candidate_diff_row_schema)]
+  end
+
+  def report_property_opts("invalidated_candidates", deps) do
+    [invalidated_candidate_schema: fetch_dep!(deps, :invalidated_candidate_schema)]
+  end
+
+  def report_property_opts(_field, _deps), do: []
+
+  def report_property_from_context(field, deps) when is_list(deps) do
+    report_property(field, report_property_opts(field, deps))
+  end
+
+  def report_property_from_context(
+        field,
+        source_window_lineage_schema,
+        stable_id_pattern,
+        model_limits,
+        candidate_diff_row_schema,
+        invalidated_candidate_schema
+      ) do
+    report_property_from_context(
+      field,
+      source_window_lineage_schema: source_window_lineage_schema,
+      stable_id_pattern: stable_id_pattern,
+      model_limits: model_limits,
+      candidate_diff_row_schema: candidate_diff_row_schema,
+      invalidated_candidate_schema: invalidated_candidate_schema
+    )
+  end
+
+  def report_property_fun_from_context(deps) when is_list(deps) do
+    fn field -> report_property_from_context(field, deps) end
+  end
+
+  def report_property_fun_from_context(
+        source_window_lineage_schema,
+        stable_id_pattern,
+        model_limits,
+        candidate_diff_row_schema,
+        invalidated_candidate_schema
+      ) do
+    fn field ->
+      report_property_from_context(
+        field,
+        source_window_lineage_schema: source_window_lineage_schema,
+        stable_id_pattern: stable_id_pattern,
+        model_limits: model_limits,
+        candidate_diff_row_schema: candidate_diff_row_schema,
+        invalidated_candidate_schema: invalidated_candidate_schema
+      )
+    end
+  end
+
+  def family_property_field?(field, @candidate_diff_row) do
+    row_property_field?(field)
+  end
+
+  def family_property_field?(field, @invalidated_candidate) do
+    invalidated_candidate_property_field?(field)
+  end
+
+  def family_property_field?(field, @source_window_lineage) do
+    source_window_lineage_property_field?(field)
+  end
+
+  def family_property_field?(_field, _contract_name), do: false
+
+  def family_property_opts(field, contract_name, deps) do
+    [
+      stable_id_pattern: fetch_dep!(deps, :stable_id_pattern)
+    ] ++ family_property_extra_opts(field, contract_name, deps)
+  end
+
+  def family_property_from_context(field, deps) when is_list(deps) do
+    contract_name = fetch_dep!(deps, :contract_name)
+    family_property(field, contract_name, family_property_opts(field, contract_name, deps))
+  end
+
+  def family_property_from_context(
+        field,
+        contract_name,
+        stable_id_pattern,
+        scoped_context_properties
+      ) do
+    family_property_from_context(
+      field,
+      contract_name: contract_name,
+      stable_id_pattern: stable_id_pattern,
+      scoped_context_properties: scoped_context_properties
+    )
+  end
+
+  def family_property_fun_from_context(deps) when is_list(deps) do
+    fn field -> family_property_from_context(field, deps) end
+  end
+
+  def family_property_fun_from_context(
+        contract_name,
+        stable_id_pattern,
+        scoped_context_properties
+      ) do
+    fn field ->
+      family_property_from_context(
+        field,
+        contract_name: contract_name,
+        stable_id_pattern: stable_id_pattern,
+        scoped_context_properties: scoped_context_properties
+      )
+    end
+  end
+
   def family_property(field, @candidate_diff_row, opts) do
     row_property(field, opts)
   end
@@ -135,6 +274,59 @@ defmodule OrbitalDynamics.Schema.CandidateDiffJsonSchema do
 
   def family_property(field, @source_window_lineage, opts) do
     source_window_lineage_property(field, opts)
+  end
+
+  defp family_property_extra_opts("source_window", @source_window_lineage, deps) do
+    [scoped_context_properties: fetch_dep!(deps, :scoped_context_properties)]
+  end
+
+  defp family_property_extra_opts(_field, _contract_name, _deps), do: []
+
+  defp row_property_field?(field) do
+    field in ["schema_contract", "source_target", "diff_reason"] or
+      shared_candidate_property_field?(field) or
+      field in @row_stable_id_fields or
+      field in @candidate_row_string_fields or
+      field in @candidate_row_number_fields or
+      field in candidate_change_fields()
+  end
+
+  defp invalidated_candidate_property_field?(field) do
+    field in ["schema_contract", "source_target", "invalidated_reason"] or
+      shared_candidate_property_field?(field) or
+      field in @invalidated_candidate_stable_id_fields or
+      field in @candidate_row_string_fields or
+      field in @candidate_row_number_fields or
+      field in candidate_change_fields()
+  end
+
+  defp source_window_lineage_property_field?(field) do
+    field in [
+      "schema_contract",
+      "source_window",
+      "candidate_activity_id",
+      "source_window_id",
+      "scenario_id"
+    ] or shared_candidate_property_field?(field)
+  end
+
+  defp shared_candidate_property_field?(field) do
+    field in @shared_stable_id_fields or
+      field in @shared_stable_id_array_fields or
+      field in @shared_string_fields or
+      field in @shared_string_array_fields or
+      field in @shared_non_negative_number_fields or
+      field in [
+        "target_priority_objective_ids",
+        "downlink_completion_ratio",
+        "collection_latency_objective_count",
+        "latency_objective"
+      ]
+  end
+
+  defp candidate_change_fields do
+    ["semantic_change_reasons", "changed_fields", "candidate_diff_changed_fields"] ++
+      ["semantic_change_details", "candidate_diff_changed_field_count"]
   end
 
   def row_property("schema_contract", _opts) do
@@ -392,6 +584,17 @@ defmodule OrbitalDynamics.Schema.CandidateDiffJsonSchema do
     }
   end
 
+  def source_window_lineage_from_context(stable_id_pattern, scoped_context_properties) do
+    source_window_lineage(stable_id_pattern, scoped_context_properties)
+  end
+
+  def source_window_lineage_from_context(deps) when is_list(deps) do
+    source_window_lineage(
+      fetch_dep!(deps, :stable_id_pattern),
+      fetch_dep!(deps, :scoped_context_properties)
+    )
+  end
+
   def source_window_lineage(stable_id_pattern, scoped_context_properties) do
     %{
       "type" => "object",
@@ -425,6 +628,17 @@ defmodule OrbitalDynamics.Schema.CandidateDiffJsonSchema do
         }
         |> Map.merge(scoped_context_properties)
     }
+  end
+
+  def invalidated_candidate_from_context(stable_id_pattern, scoped_context_properties) do
+    invalidated_candidate(stable_id_pattern, scoped_context_properties)
+  end
+
+  def invalidated_candidate_from_context(deps) when is_list(deps) do
+    invalidated_candidate(
+      fetch_dep!(deps, :stable_id_pattern),
+      fetch_dep!(deps, :scoped_context_properties)
+    )
   end
 
   def invalidated_candidate(stable_id_pattern, scoped_context_properties) do
@@ -462,6 +676,17 @@ defmodule OrbitalDynamics.Schema.CandidateDiffJsonSchema do
         }
         |> Map.merge(scoped_context_properties)
     }
+  end
+
+  def row_from_context(stable_id_pattern, scoped_context_properties) do
+    row(stable_id_pattern, scoped_context_properties)
+  end
+
+  def row_from_context(deps) when is_list(deps) do
+    row(
+      fetch_dep!(deps, :stable_id_pattern),
+      fetch_dep!(deps, :scoped_context_properties)
+    )
   end
 
   def row(stable_id_pattern, scoped_context_properties) do
@@ -541,6 +766,13 @@ defmodule OrbitalDynamics.Schema.CandidateDiffJsonSchema do
 
   defp stable_id_property(opts) do
     %{"type" => "string", "pattern" => Keyword.fetch!(opts, :stable_id_pattern)}
+  end
+
+  defp fetch_dep!(deps, key) do
+    case Keyword.fetch!(deps, key) do
+      fun when is_function(fun, 0) -> fun.()
+      value -> value
+    end
   end
 
   defp non_negative_integer_schema do

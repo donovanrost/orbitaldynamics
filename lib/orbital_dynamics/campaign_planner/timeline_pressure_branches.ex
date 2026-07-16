@@ -5,7 +5,14 @@ defmodule OrbitalDynamics.CampaignPlanner.TimelinePressureBranches do
   alias __MODULE__.LifecycleState
   alias __MODULE__.Preservation
 
-  def timeline_integrity_pressure_branch(row, source_path, index, opts) do
+  alias OrbitalDynamics.CampaignPlanner.{
+    OperationalTimelinePressureEvents,
+    RealizedFeedbackContext,
+    ScalarValues,
+    ValueEncoding
+  }
+
+  def timeline_integrity_pressure_branch(row, source_path, index, opts \\ default_callbacks()) do
     callbacks = callbacks!(opts)
 
     case timeline_integrity_pressure_event(row, source_path, callbacks) do
@@ -34,7 +41,12 @@ defmodule OrbitalDynamics.CampaignPlanner.TimelinePressureBranches do
     end
   end
 
-  def timeline_dependency_impact_pressure_branch(row, source_path, index, opts) do
+  def timeline_dependency_impact_pressure_branch(
+        row,
+        source_path,
+        index,
+        opts \\ default_callbacks()
+      ) do
     callbacks = callbacks!(opts)
 
     case timeline_dependency_impact_pressure_event(row, source_path, callbacks) do
@@ -63,7 +75,12 @@ defmodule OrbitalDynamics.CampaignPlanner.TimelinePressureBranches do
     end
   end
 
-  def timeline_publication_pressure_branch(summary, source_path, index, opts) do
+  def timeline_publication_pressure_branch(
+        summary,
+        source_path,
+        index,
+        opts \\ default_callbacks()
+      ) do
     callbacks = callbacks!(opts)
 
     case timeline_publication_pressure_event(summary, source_path, callbacks) do
@@ -95,11 +112,21 @@ defmodule OrbitalDynamics.CampaignPlanner.TimelinePressureBranches do
     end
   end
 
-  def timeline_lifecycle_state_pressure_branch(summary, source_path, index, opts) do
+  def timeline_lifecycle_state_pressure_branch(
+        summary,
+        source_path,
+        index,
+        opts \\ default_callbacks()
+      ) do
     LifecycleState.pressure_branch(summary, source_path, index, callbacks!(opts))
   end
 
-  def timeline_activity_lifecycle_state_pressure_branch(state, source_path, index, opts) do
+  def timeline_activity_lifecycle_state_pressure_branch(
+        state,
+        source_path,
+        index,
+        opts \\ default_callbacks()
+      ) do
     callbacks = callbacks!(opts)
 
     case timeline_activity_lifecycle_state_pressure_event(state, source_path, callbacks) do
@@ -129,11 +156,16 @@ defmodule OrbitalDynamics.CampaignPlanner.TimelinePressureBranches do
     end
   end
 
-  def timeline_activity_precondition_pressure_branch(summary, source_path, index, opts) do
+  def timeline_activity_precondition_pressure_branch(
+        summary,
+        source_path,
+        index,
+        opts \\ default_callbacks()
+      ) do
     ActivityPrecondition.pressure_branch(summary, source_path, index, callbacks!(opts))
   end
 
-  def timeline_preservation_pressure_branch(row, source_path, index, opts) do
+  def timeline_preservation_pressure_branch(row, source_path, index, opts \\ default_callbacks()) do
     Preservation.pressure_branch(row, source_path, index, callbacks!(opts))
   end
 
@@ -400,6 +432,30 @@ defmodule OrbitalDynamics.CampaignPlanner.TimelinePressureBranches do
   defp nonempty_pressure_value?(value) when is_list(value), do: value != []
   defp nonempty_pressure_value?(%{} = value), do: map_size(value) > 0
   defp nonempty_pressure_value?(_value), do: false
+
+  defp default_callbacks do
+    [
+      branch_id_fragment: &ValueEncoding.branch_id_fragment/1,
+      compact_map: &ValueEncoding.compact_map/1,
+      stringify_keys: &ValueEncoding.stringify_keys/1,
+      reject_empty_values: &ValueEncoding.reject_empty_values/1,
+      operational_timeline_integrity_issue_context:
+        &OperationalTimelinePressureEvents.integrity_issue_context/1,
+      operational_timeline_activity_integrity_context:
+        &OperationalTimelinePressureEvents.activity_integrity_context/1,
+      realized_feedback_activity_id: &RealizedFeedbackContext.activity_id/1,
+      explicit_timeline_id: &RealizedFeedbackContext.explicit_timeline_id/1,
+      operator_review_trust_boundary: &operator_review_trust_boundary/1,
+      numeric_or_nil: &ScalarValues.numeric_or_nil/1,
+      encode_value: &ValueEncoding.encode_value/1
+    ]
+  end
+
+  defp operator_review_trust_boundary(row) do
+    Map.get(row, "trust_boundary") ||
+      get_in(row, ["provenance", "trust_boundary"]) ||
+      row["_source_report_trust_boundary"]
+  end
 
   defp callbacks!(opts) do
     %{

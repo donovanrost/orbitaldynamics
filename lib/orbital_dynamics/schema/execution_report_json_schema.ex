@@ -34,6 +34,38 @@ defmodule OrbitalDynamics.Schema.ExecutionReportJsonSchema do
     "node_distribution"
   ]
 
+  @property_fields [
+    "schema_contract",
+    "model_limits",
+    "batch_propagation",
+    "assumptions",
+    "timeout",
+    "task_supervisor_nodes",
+    "failed_scenarios"
+    | @stable_id_fields ++
+        @string_fields ++ @count_fields ++ @integer_fields ++ @object_fields
+  ]
+
+  def property_field?(field) when field in @property_fields, do: true
+  def property_field?(_field), do: false
+
+  def property_from_context(field, deps) when is_list(deps) do
+    property(field, property_opts(field, deps))
+  end
+
+  def property_fun_from_context(deps) when is_list(deps) do
+    fn field ->
+      property_from_context(field, deps)
+    end
+  end
+
+  def property_opts(field, deps) do
+    [
+      schema_contract: fetch_dep!(deps, :schema_contract),
+      stable_id_pattern: fetch_dep!(deps, :stable_id_pattern)
+    ] ++ property_field_opts(field, deps)
+  end
+
   def property("schema_contract", opts) do
     %{
       "type" => "string",
@@ -105,4 +137,23 @@ defmodule OrbitalDynamics.Schema.ExecutionReportJsonSchema do
   def failure(stable_id_pattern) do
     ValidationJsonSchema.execution_failure(stable_id_pattern)
   end
+
+  defp property_field_opts("model_limits", deps) do
+    [model_limits: fetch_dep!(deps, :model_limits)]
+  end
+
+  defp property_field_opts("failed_scenarios", deps) do
+    [failure_schema: failure(fetch_dep!(deps, :stable_id_pattern))]
+  end
+
+  defp property_field_opts(_field, _deps), do: []
+
+  defp fetch_dep!(deps, key) do
+    deps
+    |> Keyword.fetch!(key)
+    |> call_dep()
+  end
+
+  defp call_dep(dep) when is_function(dep, 0), do: dep.()
+  defp call_dep(dep), do: dep
 end

@@ -104,6 +104,69 @@ defmodule OrbitalDynamics.Schema.LinkCapacitySummaryJsonSchema do
     "ground_station_ids_by_reserved_by"
   ]
 
+  def property_field?(field)
+      when field in [
+             "schema_contract",
+             "source_artifact_type",
+             "model",
+             "model_limits",
+             "source",
+             "assumptions"
+           ],
+      do: true
+
+  def property_field?(field)
+      when field in @status_string_fields or field in @integer_fields or
+             field in @number_fields or field in @count_map_fields or
+             field in @stable_id_array_fields or field in @string_array_fields or
+             field in @number_array_fields or field in @numeric_map_fields or
+             field in @stable_id_array_map_fields,
+      do: true
+
+  def property_field?(_field), do: false
+
+  def property_opts("model_limits", deps) do
+    [model_limits: fetch_dep!(deps, :model_limits)]
+  end
+
+  def property_opts("assumptions", deps) do
+    [assumptions_schema: fetch_dep!(deps, :assumptions_schema)]
+  end
+
+  def property_opts(field, deps) when field in @count_map_fields do
+    [count_map_schema: fetch_dep!(deps, :count_map_schema)]
+  end
+
+  def property_opts(field, deps) when field in @stable_id_array_fields do
+    [stable_id_array_schema: fetch_dep!(deps, :stable_id_array_schema)]
+  end
+
+  def property_opts(field, deps) when field in @string_array_fields do
+    [string_array_schema: fetch_dep!(deps, :string_array_schema)]
+  end
+
+  def property_opts(field, deps) when field in @number_array_fields do
+    [number_array_schema: fetch_dep!(deps, :number_array_schema)]
+  end
+
+  def property_opts(field, deps) when field in @numeric_map_fields do
+    [numeric_map_schema: fetch_dep!(deps, :numeric_map_schema)]
+  end
+
+  def property_opts(field, deps) when field in @stable_id_array_map_fields do
+    [stable_id_array_map_schema: fetch_dep!(deps, :stable_id_array_map_schema)]
+  end
+
+  def property_opts(_field, _deps), do: []
+
+  def property_from_context(field, deps) when is_list(deps) do
+    property(field, property_opts(field, deps))
+  end
+
+  def property_fun_from_context(deps) when is_list(deps) do
+    fn field -> property_from_context(field, deps) end
+  end
+
   def property("schema_contract", _opts) do
     %{"type" => "string", "const" => @summary}
   end
@@ -168,5 +231,12 @@ defmodule OrbitalDynamics.Schema.LinkCapacitySummaryJsonSchema do
 
   def property(field, opts) when field in @stable_id_array_map_fields do
     Keyword.fetch!(opts, :stable_id_array_map_schema)
+  end
+
+  defp fetch_dep!(deps, key) do
+    case Keyword.fetch!(deps, key) do
+      fun when is_function(fun, 0) -> fun.()
+      value -> value
+    end
   end
 end

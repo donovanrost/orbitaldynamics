@@ -1,7 +1,42 @@
 defmodule OrbitalDynamics.Schema.PolicyDecisionRuleMatchJsonSchema do
   @moduledoc false
 
+  alias OrbitalDynamics.Policy
+  alias OrbitalDynamics.Schema.CommonJsonSchema
+  alias OrbitalDynamics.Schema.PolicyContextJsonSchema
+
   @policy_classifications ["auto_approvable", "operator_review_required", "blocked_by_policy"]
+
+  def rule_match_from_context(opts) when is_list(opts) do
+    rule_match_from_context(
+      Keyword.fetch!(opts, :stable_id_pattern),
+      Keyword.fetch!(opts, :policy_context_fields)
+    )
+  end
+
+  def rule_match_from_context(stable_id_pattern, policy_context_fields) do
+    rule_match(%{
+      policy_context_properties:
+        policy_context_fields
+        |> PolicyContextJsonSchema.properties(),
+      stable_id_pattern: stable_id_pattern,
+      cadence_import_statuses: Policy.capabilities().cadence_import_statuses
+    })
+  end
+
+  def escalation_from_context(opts) when is_list(opts) do
+    opts
+    |> Keyword.fetch!(:stable_id_pattern)
+    |> escalation_for_stable_id()
+  end
+
+  def escalation_from_context(stable_id_pattern) when is_binary(stable_id_pattern) do
+    escalation_for_stable_id(stable_id_pattern)
+  end
+
+  def escalation_for_stable_id(stable_id_pattern) do
+    escalation(%{stable_id_pattern: stable_id_pattern})
+  end
 
   def rule_match(opts) do
     %{
@@ -49,8 +84,7 @@ defmodule OrbitalDynamics.Schema.PolicyDecisionRuleMatchJsonSchema do
       "ground_station_id" => %{"type" => "string"},
       "station_contention_status" => %{"type" => "string"},
       "station_reservation_status" => %{"type" => "string"},
-      "station_calendar_reservation_expires_at_s" =>
-        OrbitalDynamics.Schema.CommonJsonSchema.number_array(),
+      "station_calendar_reservation_expires_at_s" => CommonJsonSchema.number_array(),
       "contention_window_s" => %{"type" => "number"},
       "total_contact_duration_s" => %{"type" => "number"},
       "overlap_duration_s" => %{"type" => "number"},
@@ -77,29 +111,26 @@ defmodule OrbitalDynamics.Schema.PolicyDecisionRuleMatchJsonSchema do
       "planned_protection_decision" => %{"type" => "string"},
       "planned_protection_category" => %{"type" => "string"},
       "timeline_integrity_status" => %{"type" => "string"},
-      "timeline_integrity_issue_types" => OrbitalDynamics.Schema.CommonJsonSchema.string_array(),
+      "timeline_integrity_issue_types" => CommonJsonSchema.string_array(),
       "required_operator_action" => %{"type" => "string"},
       "operator_action_reason" => %{"type" => "string"},
       "contact_result" => %{"type" => "string"},
-      "contact_results" => OrbitalDynamics.Schema.CommonJsonSchema.string_array(),
+      "contact_results" => CommonJsonSchema.string_array(),
       "command_result" => %{"type" => "string"},
-      "command_results" => OrbitalDynamics.Schema.CommonJsonSchema.string_array(),
+      "command_results" => CommonJsonSchema.string_array(),
       "observation_result" => %{"type" => "string"},
-      "observation_results" => OrbitalDynamics.Schema.CommonJsonSchema.string_array(),
+      "observation_results" => CommonJsonSchema.string_array(),
       "maneuver_result" => %{"type" => "string"},
-      "maneuver_results" => OrbitalDynamics.Schema.CommonJsonSchema.string_array(),
+      "maneuver_results" => CommonJsonSchema.string_array(),
       "priority_fields_without_numeric_evidence_count" => %{
         "type" => "integer",
         "minimum" => 0
       },
-      "priority_fields_without_numeric_evidence" =>
-        OrbitalDynamics.Schema.CommonJsonSchema.string_array(),
+      "priority_fields_without_numeric_evidence" => CommonJsonSchema.string_array(),
       "source_timeline_integrity_status" => %{"type" => "string"},
-      "source_timeline_integrity_issue_types" =>
-        OrbitalDynamics.Schema.CommonJsonSchema.string_array(),
+      "source_timeline_integrity_issue_types" => CommonJsonSchema.string_array(),
       "replacement_timeline_integrity_status" => %{"type" => "string"},
-      "replacement_timeline_integrity_issue_types" =>
-        OrbitalDynamics.Schema.CommonJsonSchema.string_array(),
+      "replacement_timeline_integrity_issue_types" => CommonJsonSchema.string_array(),
       "source_protection_decision" => %{"type" => "string"},
       "replacement_protection_category" => %{"type" => "string"},
       "cadence_import_status" => %{

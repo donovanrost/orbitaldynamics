@@ -1,7 +1,13 @@
 defmodule OrbitalDynamics.CampaignPlanner.ContactFilterPressureBranches do
   @moduledoc false
 
-  def from_reports(reports, callbacks) do
+  alias OrbitalDynamics.CampaignPlanner.{
+    DownlinkActivityNormalization,
+    ScalarValues,
+    ValueEncoding
+  }
+
+  def from_reports(reports, callbacks \\ default_callbacks()) do
     stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
 
     Enum.flat_map(reports, fn {report, source_path} ->
@@ -19,7 +25,7 @@ defmodule OrbitalDynamics.CampaignPlanner.ContactFilterPressureBranches do
     end)
   end
 
-  def build(row, source_path, callbacks) do
+  def build(row, source_path, callbacks \\ default_callbacks()) do
     branch_id_fragment = Keyword.fetch!(callbacks, :branch_id_fragment)
     compact_map = Keyword.fetch!(callbacks, :compact_map)
     contact_id = Keyword.fetch!(callbacks, :contact_id)
@@ -54,7 +60,7 @@ defmodule OrbitalDynamics.CampaignPlanner.ContactFilterPressureBranches do
     end
   end
 
-  def disambiguate(branches, callbacks) do
+  def disambiguate(branches, callbacks \\ default_callbacks()) do
     branch_id_fragment = Keyword.fetch!(callbacks, :branch_id_fragment)
     id_counts = Enum.frequencies_by(branches, & &1["id"])
 
@@ -272,5 +278,33 @@ defmodule OrbitalDynamics.CampaignPlanner.ContactFilterPressureBranches do
       get_in(row, ["source_resource_suppression", "resource_trust_boundary"]) ||
       get_in(row, ["source_resource_suppression", "resource_provenance", "trust_boundary"]) ||
       row["_source_report_trust_boundary"]
+  end
+
+  defp default_callbacks do
+    [
+      branch_id_fragment: &ValueEncoding.branch_id_fragment/1,
+      compact_map: &ValueEncoding.compact_map/1,
+      contact_id: &contact_id/1,
+      downlink_activity?: &DownlinkActivityNormalization.downlink?/1,
+      encode_value: &ValueEncoding.encode_value/1,
+      nested_ground_station_id: &DownlinkActivityNormalization.nested_ground_station_id/1,
+      normalize_downlink_source_list: &normalize_downlink_source_values/1,
+      numeric_or_nil: &ScalarValues.numeric_or_nil/1,
+      stable_id_string?: &ScalarValues.stable_id_string?/1,
+      stringify_keys: &ValueEncoding.stringify_keys/1
+    ]
+  end
+
+  defp contact_id(row) do
+    row["contact_id"] || row["id"] || row["activity_id"]
+  end
+
+  defp normalize_downlink_source_values(values) do
+    values
+    |> List.flatten()
+    |> Enum.map(&ValueEncoding.encode_value/1)
+    |> Enum.reject(&(&1 in [nil, ""]))
+    |> Enum.uniq()
+    |> Enum.sort()
   end
 end

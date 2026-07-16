@@ -3,6 +3,339 @@ defmodule OrbitalDynamics.Schema.ContactAllocationReportContracts do
 
   @stable_id_regex ~r/^[A-Za-z0-9][A-Za-z0-9._:@-]*$/
 
+  def validate_report(issues, path, report, model_limits, callbacks) when is_list(callbacks) do
+    rows = Map.get(report, "rows", [])
+    reduced_capacity_pack_groups = Map.get(report, "reduced_capacity_pack_groups", [])
+
+    issues
+    |> expect_equal(callbacks, path, report, "schema_contract", "contact_allocation_report.v1")
+    |> expect_equal(
+      callbacks,
+      path,
+      report,
+      "model",
+      "deterministic_station_contact_allocation"
+    )
+    |> expect_type(callbacks, path, report, "source", :binary)
+    |> expect_optional_type(callbacks, path, report, "model_limits", :list)
+    |> validate_string_list_items(callbacks, path, report, "model_limits")
+    |> validate_optional_exact_model_limits(
+      callbacks,
+      path,
+      report,
+      model_limits,
+      "must match contact allocation model limits"
+    )
+    |> expect_non_negative_integer(callbacks, path, report, "input_contact_count")
+    |> expect_non_negative_integer(callbacks, path, report, "allocated_contact_count")
+    |> expect_non_negative_integer(callbacks, path, report, "deferred_contact_count")
+    |> expect_non_negative_integer(callbacks, path, report, "blocked_contact_count")
+    |> expect_optional_non_negative_integer(
+      callbacks,
+      path,
+      report,
+      "returned_allocated_contact_count"
+    )
+    |> expect_optional_non_negative_integer(
+      callbacks,
+      path,
+      report,
+      "policy_blocked_allocated_contact_count"
+    )
+    |> expect_optional_non_negative_integer(
+      callbacks,
+      path,
+      report,
+      "status_blocked_contact_count"
+    )
+    |> expect_optional_non_negative_integer(
+      callbacks,
+      path,
+      report,
+      "resource_blocked_contact_count"
+    )
+    |> expect_optional_non_negative_integer(
+      callbacks,
+      path,
+      report,
+      "duplicate_contact_candidate_count"
+    )
+    |> expect_optional_non_negative_integer(
+      callbacks,
+      path,
+      report,
+      "duplicate_contact_id_count"
+    )
+    |> expect_optional_non_negative_integer(
+      callbacks,
+      path,
+      report,
+      "invalid_contact_input_count"
+    )
+    |> expect_optional_non_negative_integer(
+      callbacks,
+      path,
+      report,
+      "reduced_capacity_pack_group_count"
+    )
+    |> expect_optional_type(callbacks, path, report, "reduced_capacity_pack_status_counts", :map)
+    |> expect_optional_type(callbacks, path, report, "capacity_pack_status_counts", :map)
+    |> expect_optional_non_negative_number(
+      callbacks,
+      path,
+      report,
+      "capacity_pack_required_capacity_fraction"
+    )
+    |> expect_optional_non_negative_number(
+      callbacks,
+      path,
+      report,
+      "capacity_pack_selected_required_capacity_fraction"
+    )
+    |> expect_optional_non_negative_number(
+      callbacks,
+      path,
+      report,
+      "capacity_pack_deferred_required_capacity_fraction"
+    )
+    |> expect_optional_type(
+      callbacks,
+      path,
+      report,
+      "capacity_pack_required_capacity_fraction_by_status",
+      :map
+    )
+    |> expect_optional_type(
+      callbacks,
+      path,
+      report,
+      "capacity_pack_required_capacity_fraction_by_ground_station_id",
+      :map
+    )
+    |> expect_optional_type(
+      callbacks,
+      path,
+      report,
+      "capacity_pack_selected_required_capacity_fraction_by_ground_station_id",
+      :map
+    )
+    |> expect_optional_type(
+      callbacks,
+      path,
+      report,
+      "capacity_pack_deferred_required_capacity_fraction_by_ground_station_id",
+      :map
+    )
+    |> expect_optional_type(callbacks, path, report, "capacity_pack_contact_ids_by_status", :map)
+    |> expect_optional_type(
+      callbacks,
+      path,
+      report,
+      "required_capacity_fraction_source_counts",
+      :map
+    )
+    |> expect_optional_type(
+      callbacks,
+      path,
+      report,
+      "required_capacity_fraction_contact_ids_by_source",
+      :map
+    )
+    |> validate_stable_id_array_map(
+      callbacks,
+      path <> ".capacity_pack_contact_ids_by_status",
+      Map.get(report, "capacity_pack_contact_ids_by_status")
+    )
+    |> validate_non_negative_number_map(
+      callbacks,
+      path <> ".capacity_pack_required_capacity_fraction_by_status",
+      Map.get(report, "capacity_pack_required_capacity_fraction_by_status")
+    )
+    |> validate_non_negative_number_map(
+      callbacks,
+      path <> ".capacity_pack_required_capacity_fraction_by_ground_station_id",
+      Map.get(report, "capacity_pack_required_capacity_fraction_by_ground_station_id")
+    )
+    |> validate_non_negative_number_map(
+      callbacks,
+      path <> ".capacity_pack_selected_required_capacity_fraction_by_ground_station_id",
+      Map.get(report, "capacity_pack_selected_required_capacity_fraction_by_ground_station_id")
+    )
+    |> validate_non_negative_number_map(
+      callbacks,
+      path <> ".capacity_pack_deferred_required_capacity_fraction_by_ground_station_id",
+      Map.get(report, "capacity_pack_deferred_required_capacity_fraction_by_ground_station_id")
+    )
+    |> validate_non_negative_integer_count_map(
+      callbacks,
+      path <> ".required_capacity_fraction_source_counts",
+      Map.get(report, "required_capacity_fraction_source_counts")
+    )
+    |> validate_stable_id_array_map(
+      callbacks,
+      path <> ".required_capacity_fraction_contact_ids_by_source",
+      Map.get(report, "required_capacity_fraction_contact_ids_by_source")
+    )
+    |> validate_optional_stable_id_array_map(
+      callbacks,
+      path,
+      report,
+      "station_pressure_contact_ids_by_ground_station_id"
+    )
+    |> validate_non_negative_integer_count_map(
+      callbacks,
+      path <> ".station_pressure_contact_counts_by_ground_station_id",
+      Map.get(report, "station_pressure_contact_counts_by_ground_station_id")
+    )
+    |> validate_optional_stable_id_array_map(
+      callbacks,
+      path,
+      report,
+      "station_pressure_contact_ids_by_availability"
+    )
+    |> validate_non_negative_integer_count_map(
+      callbacks,
+      path <> ".station_pressure_contact_counts_by_availability",
+      Map.get(report, "station_pressure_contact_counts_by_availability")
+    )
+    |> validate_optional_stable_id_array_map(
+      callbacks,
+      path,
+      report,
+      "station_pressure_contact_ids_by_precedence_availability"
+    )
+    |> validate_non_negative_integer_count_map(
+      callbacks,
+      path <> ".station_pressure_contact_counts_by_precedence_availability",
+      Map.get(report, "station_pressure_contact_counts_by_precedence_availability")
+    )
+    |> validate_optional_stable_id_array_map(
+      callbacks,
+      path,
+      report,
+      "station_pressure_contact_ids_by_precedence_rank"
+    )
+    |> validate_non_negative_integer_count_map(
+      callbacks,
+      path <> ".station_pressure_contact_counts_by_precedence_rank",
+      Map.get(report, "station_pressure_contact_counts_by_precedence_rank")
+    )
+    |> validate_optional_stable_id_array_map(
+      callbacks,
+      path,
+      report,
+      "station_pressure_contact_ids_by_status"
+    )
+    |> validate_non_negative_integer_count_map(
+      callbacks,
+      path <> ".station_pressure_contact_counts_by_status",
+      Map.get(report, "station_pressure_contact_counts_by_status")
+    )
+    |> validate_optional_stable_id_array_map(
+      callbacks,
+      path,
+      report,
+      "resource_blocked_contact_ids_by_blocking_dimension"
+    )
+    |> validate_optional_stable_id_array_map(
+      callbacks,
+      path,
+      report,
+      "resource_blocked_contact_ids_by_spacecraft_id"
+    )
+    |> expect_optional_type(callbacks, path, report, "reduced_capacity_packed_contact_ids", :list)
+    |> validate_optional_stable_id_list(
+      callbacks,
+      path,
+      report,
+      "reduced_capacity_packed_contact_ids"
+    )
+    |> expect_optional_type(
+      callbacks,
+      path,
+      report,
+      "reduced_capacity_deferred_contact_ids",
+      :list
+    )
+    |> validate_optional_stable_id_list(
+      callbacks,
+      path,
+      report,
+      "reduced_capacity_deferred_contact_ids"
+    )
+    |> expect_optional_type(callbacks, path, report, "station_reservation_ids", :list)
+    |> validate_optional_stable_id_list(callbacks, path, report, "station_reservation_ids")
+    |> validate_optional_stable_id_array_map(
+      callbacks,
+      path,
+      report,
+      "station_reservation_contact_ids_by_match_status"
+    )
+    |> validate_optional_stable_id_array_map(
+      callbacks,
+      path,
+      report,
+      "station_reservation_contact_ids_by_status"
+    )
+    |> validate_optional_stable_id_array_map(
+      callbacks,
+      path,
+      report,
+      "station_reservation_contact_ids_by_reserved_by"
+    )
+    |> validate_optional_stable_id_array_map(
+      callbacks,
+      path,
+      report,
+      "station_reservation_ids_by_match_status"
+    )
+    |> validate_optional_stable_id_array_map(
+      callbacks,
+      path,
+      report,
+      "station_reservation_ids_by_status"
+    )
+    |> validate_optional_stable_id_array_map(
+      callbacks,
+      path,
+      report,
+      "station_reservation_ids_by_reserved_by"
+    )
+    |> expect_optional_type(callbacks, path, report, "station_reserved_bys", :list)
+    |> validate_string_list_items(callbacks, path, report, "station_reserved_bys")
+    |> expect_optional_type(callbacks, path, report, "station_reservation_statuses", :list)
+    |> validate_string_list_items(callbacks, path, report, "station_reservation_statuses")
+    |> expect_type(callbacks, path, report, "rows", :list)
+    |> validate_rows(callbacks, path <> ".rows", rows, fn acc, row_path, row ->
+      validate_contact_allocation_row(callbacks, acc, row_path, row)
+    end)
+    |> validate_optional_rows(
+      callbacks,
+      path <> ".reduced_capacity_pack_groups",
+      reduced_capacity_pack_groups,
+      fn acc, group_path, group ->
+        validate_contact_allocation_capacity_pack_group(callbacks, acc, group_path, group)
+      end
+    )
+    |> validate_optional_station_calendar_report(
+      callbacks,
+      Map.get(report, "station_calendar_report")
+    )
+    |> validate_optional_contact_filter_report(
+      callbacks,
+      Map.get(report, "contact_filter_report")
+    )
+    |> validate_optional_contact_contention_report(
+      callbacks,
+      Map.get(report, "contact_contention_report")
+    )
+    |> validate_optional_contact_contention_resolution_report(
+      callbacks,
+      Map.get(report, "contact_contention_resolution_report")
+    )
+    |> validate_contact_allocation_report_counts(callbacks, path, report)
+  end
+
   def validate_row(issues, path, row, callbacks) when is_list(callbacks) do
     issues
     |> require_fields(callbacks, path, row, [
@@ -1346,6 +1679,9 @@ defmodule OrbitalDynamics.Schema.ContactAllocationReportContracts do
   defp require_fields(issues, callbacks, path, map, fields),
     do: apply(require_callback(callbacks, :require_fields), [issues, path, map, fields])
 
+  defp expect_equal(issues, callbacks, path, map, field, expected),
+    do: apply(require_callback(callbacks, :expect_equal), [issues, path, map, field, expected])
+
   defp expect_one_of(issues, callbacks, path, map, field, allowed),
     do: apply(require_callback(callbacks, :expect_one_of), [issues, path, map, field, allowed])
 
@@ -1364,6 +1700,24 @@ defmodule OrbitalDynamics.Schema.ContactAllocationReportContracts do
         map,
         field,
         allowed
+      ])
+
+  defp expect_non_negative_integer(issues, callbacks, path, map, field),
+    do:
+      apply(require_callback(callbacks, :expect_non_negative_integer), [
+        issues,
+        path,
+        map,
+        field
+      ])
+
+  defp expect_optional_non_negative_integer(issues, callbacks, path, map, field),
+    do:
+      apply(require_callback(callbacks, :expect_optional_non_negative_integer), [
+        issues,
+        path,
+        map,
+        field
       ])
 
   defp expect_optional_integer(issues, callbacks, path, map, field),
@@ -1451,6 +1805,15 @@ defmodule OrbitalDynamics.Schema.ContactAllocationReportContracts do
   defp validate_stable_id_array_map(issues, callbacks, path, values),
     do: apply(require_callback(callbacks, :validate_stable_id_array_map), [issues, path, values])
 
+  defp validate_optional_stable_id_array_map(issues, callbacks, path, map, field),
+    do:
+      apply(require_callback(callbacks, :validate_optional_stable_id_array_map), [
+        issues,
+        path,
+        map,
+        field
+      ])
+
   defp validate_string_list_items(issues, callbacks, path, map, field),
     do:
       apply(require_callback(callbacks, :validate_string_list_items), [issues, path, map, field])
@@ -1459,9 +1822,22 @@ defmodule OrbitalDynamics.Schema.ContactAllocationReportContracts do
     do:
       apply(require_callback(callbacks, :validate_number_list_items), [issues, path, map, field])
 
+  defp validate_rows(issues, callbacks, path, rows, validator),
+    do: apply(require_callback(callbacks, :validate_rows), [issues, path, rows, validator])
+
   defp validate_optional_rows(issues, callbacks, path, rows, validator),
     do:
       apply(require_callback(callbacks, :validate_optional_rows), [issues, path, rows, validator])
+
+  defp validate_optional_exact_model_limits(issues, callbacks, path, map, expected, message),
+    do:
+      apply(require_callback(callbacks, :validate_optional_exact_model_limits), [
+        issues,
+        path,
+        map,
+        expected,
+        message
+      ])
 
   defp validate_non_negative_number_map(issues, callbacks, path, values),
     do:
@@ -1477,6 +1853,58 @@ defmodule OrbitalDynamics.Schema.ContactAllocationReportContracts do
         issues,
         path,
         values
+      ])
+
+  defp validate_optional_station_calendar_report(issues, callbacks, report),
+    do:
+      apply(require_callback(callbacks, :validate_optional_station_calendar_report), [
+        issues,
+        report
+      ])
+
+  defp validate_optional_contact_filter_report(issues, callbacks, report),
+    do:
+      apply(require_callback(callbacks, :validate_optional_contact_filter_report), [
+        issues,
+        report
+      ])
+
+  defp validate_optional_contact_contention_report(issues, callbacks, report),
+    do:
+      apply(require_callback(callbacks, :validate_optional_contact_contention_report), [
+        issues,
+        report
+      ])
+
+  defp validate_optional_contact_contention_resolution_report(issues, callbacks, report),
+    do:
+      apply(
+        require_callback(callbacks, :validate_optional_contact_contention_resolution_report),
+        [issues, report]
+      )
+
+  defp validate_contact_allocation_report_counts(issues, callbacks, path, report),
+    do:
+      apply(require_callback(callbacks, :validate_contact_allocation_report_counts), [
+        issues,
+        path,
+        report
+      ])
+
+  defp validate_contact_allocation_row(callbacks, issues, path, row),
+    do:
+      apply(require_callback(callbacks, :validate_contact_allocation_row), [
+        issues,
+        path,
+        row
+      ])
+
+  defp validate_contact_allocation_capacity_pack_group(callbacks, issues, path, group),
+    do:
+      apply(require_callback(callbacks, :validate_contact_allocation_capacity_pack_group), [
+        issues,
+        path,
+        group
       ])
 
   defp expect_optional_field_equals(issues, callbacks, path, map, field, expected, message),

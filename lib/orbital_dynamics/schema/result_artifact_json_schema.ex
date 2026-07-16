@@ -12,6 +12,77 @@ defmodule OrbitalDynamics.Schema.ResultArtifactJsonSchema do
     "maneuver_review_report"
   ]
 
+  @property_fields [
+    "schema_version",
+    "generated_at",
+    "study_id",
+    "errors",
+    "maneuver_recommendations",
+    "trajectories",
+    "access_windows",
+    "eclipse_intervals",
+    "target_visibility_windows",
+    "ground_track_crossings",
+    "execution_report",
+    "payload_metrics"
+    | @object_fields
+  ]
+
+  def property_field?(field) when field in @property_fields, do: true
+  def property_field?(_field), do: false
+
+  def property_from_context(
+        field,
+        schema_version,
+        stable_id_pattern,
+        execution_report_contract,
+        embedded_contract_schema
+      ) do
+    deps = [
+      schema_version: schema_version,
+      stable_id_pattern: stable_id_pattern,
+      execution_report_contract: execution_report_contract,
+      embedded_contract_schema: embedded_contract_schema
+    ]
+
+    property(field, property_opts(field, deps))
+  end
+
+  def property_from_context(field, deps) when is_list(deps) do
+    property(field, property_opts(field, deps))
+  end
+
+  def property_fun_from_context(deps) when is_list(deps) do
+    fn field ->
+      property_from_context(field, deps)
+    end
+  end
+
+  def property_fun_from_context(
+        schema_version,
+        stable_id_pattern,
+        execution_report_contract,
+        embedded_contract_schema
+      ) do
+    deps = [
+      schema_version: schema_version,
+      stable_id_pattern: stable_id_pattern,
+      execution_report_contract: execution_report_contract,
+      embedded_contract_schema: embedded_contract_schema
+    ]
+
+    fn field ->
+      property_from_context(field, deps)
+    end
+  end
+
+  def property_opts(field, deps) do
+    [
+      schema_version: fetch_dep!(deps, :schema_version),
+      stable_id_pattern: fetch_dep!(deps, :stable_id_pattern)
+    ] ++ property_field_opts(field, deps)
+  end
+
   def property("schema_version", opts) do
     %{
       "type" => "integer",
@@ -219,4 +290,22 @@ defmodule OrbitalDynamics.Schema.ResultArtifactJsonSchema do
       "items" => %{"type" => "number"}
     }
   end
+
+  defp property_field_opts("execution_report", deps) do
+    embedded_contract_schema = Keyword.fetch!(deps, :embedded_contract_schema)
+    execution_report_contract = fetch_dep!(deps, :execution_report_contract)
+
+    [execution_report_schema: embedded_contract_schema.(execution_report_contract)]
+  end
+
+  defp property_field_opts(_field, _deps), do: []
+
+  defp fetch_dep!(deps, key) do
+    deps
+    |> Keyword.fetch!(key)
+    |> call_dep()
+  end
+
+  defp call_dep(dep) when is_function(dep, 0), do: dep.()
+  defp call_dep(dep), do: dep
 end

@@ -1,6 +1,8 @@
 defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ProviderCounteroffer.Summary.CounterofferFields do
   @moduledoc false
 
+  alias OrbitalDynamics.CandidateRefresh.ValueEncoding
+
   def fields(counteroffer_summary) do
     %{
       "counteroffer_cost_delta_total" =>
@@ -46,14 +48,5 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ProviderCounteroffer.Su
     }
   end
 
-  defp numeric_value(value) when is_number(value), do: value * 1.0
-
-  defp numeric_value(value) when is_binary(value) do
-    case Float.parse(String.trim(value)) do
-      {number, ""} -> number
-      _parse -> nil
-    end
-  end
-
-  defp numeric_value(_value), do: nil
+  defp numeric_value(value), do: ValueEncoding.numeric_value(value)
 end

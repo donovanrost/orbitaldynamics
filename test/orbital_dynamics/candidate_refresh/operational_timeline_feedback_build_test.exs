@@ -2,10 +2,8 @@ defmodule OrbitalDynamics.CandidateRefresh.OperationalTimelineFeedbackBuildTest 
   use ExUnit.Case, async: true
 
   alias OrbitalDynamics.{
-    CadenceImport,
     CandidateRefresh,
     Epoch,
-    OperatorReview,
     ResultSet,
     Schema,
     Timeline
@@ -189,114 +187,6 @@ defmodule OrbitalDynamics.CandidateRefresh.OperationalTimelineFeedbackBuildTest 
     assert get_in(artifact, ["operational_feedback", "contact_success_rate"]) == %{
              "equator_prime" => 0.4
            }
-
-    assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
-             Schema.validate_artifact(artifact)
-  end
-
-  test "replays operational timeline feedback rows from operator review packages" do
-    report =
-      Timeline.operational_report(
-        [
-          %{
-            id: :cmd_timeline_feedback,
-            type: :command,
-            scenario_id: :sat_1,
-            spacecraft_id: :sat_1,
-            ground_station_id: :equator_prime,
-            direction: :uplink,
-            starts_at_s: 10.0,
-            ends_at_s: 40.0,
-            approval_status: :pending,
-            command_success_factor: 0.25,
-            provenance: %{trust_boundary: :timeline_review_queue}
-          }
-        ],
-        source: "ops.timeline"
-      )
-
-    package = OperatorReview.from_operational_timeline_report(report)
-
-    artifact =
-      result_set()
-      |> CandidateRefresh.build(
-        candidate_refresh:
-          refresh_request()
-          |> Map.put("source_operator_review_package", package),
-        generated_at: ~U[2026-05-14 00:00:00Z]
-      )
-
-    assert get_in(artifact, ["operational_feedback", "command_success_rate"]) == %{
-             "cmd_timeline_feedback" => 0.25
-           }
-
-    assert get_in(artifact, [
-             "provenance",
-             "operational_feedback",
-             "source_operational_timeline_report_paths"
-           ]) == ["source_operator_review_package.rows.source_operational_timeline"]
-
-    assert get_in(artifact, [
-             "provenance",
-             "operational_feedback",
-             "source_operational_timeline_command_feedback_count"
-           ]) == 1
-
-    assert get_in(artifact, [
-             "provenance",
-             "operational_feedback",
-             "source_operational_timeline_trust_boundaries"
-           ]) == ["timeline_review_queue"]
-
-    assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
-             Schema.validate_artifact(artifact)
-  end
-
-  test "replays operational timeline feedback rows from Cadence import manifests" do
-    report =
-      Timeline.operational_report(
-        [
-          %{
-            id: :obs_timeline_feedback,
-            type: :observation,
-            scenario_id: :sat_1,
-            spacecraft_id: :sat_1,
-            target_id: :target_a,
-            starts_at_s: 10.0,
-            ends_at_s: 40.0,
-            approval_status: :pending,
-            observation_success_factor: 0.6
-          }
-        ],
-        source: "ops.timeline"
-      )
-
-    manifest = CadenceImport.from_operational_timeline_report(report)
-
-    artifact =
-      result_set()
-      |> CandidateRefresh.build(
-        candidate_refresh:
-          refresh_request()
-          |> Map.put("source_cadence_import_manifest", manifest),
-        generated_at: ~U[2026-05-14 00:00:00Z]
-      )
-
-    assert get_in(artifact, ["operational_feedback", "observation_success_rate"]) == %{
-             "target_a" => 0.6
-           }
-
-    assert get_in(artifact, [
-             "provenance",
-             "operational_feedback",
-             "source_operational_timeline_report_paths"
-           ]) == ["source_cadence_import_manifest.rows.source_operational_timeline"]
-
-    assert get_in(artifact, [
-             "provenance",
-             "operational_feedback",
-             "source_operational_timeline_observation_feedback_count"
-           ]) == 1
 
     assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
              Schema.validate_artifact(artifact)

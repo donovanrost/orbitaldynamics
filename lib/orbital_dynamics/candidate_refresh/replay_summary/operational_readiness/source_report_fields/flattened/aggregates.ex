@@ -1,6 +1,8 @@
 defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.OperationalReadiness.SourceReportFields.Flattened.Aggregates do
   @moduledoc false
 
+  alias OrbitalDynamics.CandidateRefresh.ValueEncoding
+
   def count(source_reports, field) do
     if Map.has_key?(source_reports, "operational_readiness_report") do
       source_reports
@@ -86,16 +88,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.OperationalReadiness.So
     |> non_empty_map()
   end
 
-  defp numeric_value(value) when is_number(value), do: value * 1.0
-
-  defp numeric_value(value) when is_binary(value) do
-    case Float.parse(String.trim(value)) do
-      {number, ""} -> number
-      _parse -> nil
-    end
-  end
-
-  defp numeric_value(_value), do: nil
+  defp numeric_value(value), do: ValueEncoding.numeric_value(value)
 
   defp sorted_string_values(values) do
     values

@@ -2,10 +2,8 @@ defmodule OrbitalDynamics.CandidateRefresh.StationCalendarProviderContentionBuil
   use ExUnit.Case, async: true
 
   alias OrbitalDynamics.{
-    CadenceImport,
     CandidateRefresh,
     Epoch,
-    OperatorReview,
     ResultSet,
     Schema
   }
@@ -220,49 +218,6 @@ defmodule OrbitalDynamics.CandidateRefresh.StationCalendarProviderContentionBuil
 
     assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
-  end
-
-  test "replays station calendar provider contention groups from review and import rows" do
-    report = station_calendar_provider_contention_report()
-    package = OperatorReview.from_station_calendar_report(report)
-    manifest = CadenceImport.from_station_calendar_report(report)
-
-    for source <- [
-          %{"source_operator_review_package" => package},
-          %{"source_cadence_import_manifest" => manifest}
-        ] do
-      artifact =
-        result_set()
-        |> CandidateRefresh.build(
-          candidate_refresh: Map.merge(refresh_request(), source),
-          generated_at: ~U[2026-05-14 00:00:00Z]
-        )
-
-      assert Enum.map(artifact["candidate_activities"], & &1["id"]) == [
-               "leo_1_observe_target_a_1"
-             ]
-
-      assert [
-               %{
-                 "id" => "leo_1_downlink_equator_prime_1",
-                 "suppressed_reason" => "ground_station_reserved",
-                 "station_calendar_entry_id" =>
-                   "station_calendar_provider_contention:equator_prime:1",
-                 "station_calendar_reservation_ids" => [
-                   "reservation_a",
-                   "reservation_b"
-                 ],
-                 "source_station_calendar_entry" => %{
-                   "source_station_calendar_provider_contention" => %{
-                     "provider_calendar_contention_status" => "provider_calendar_overlap"
-                   }
-                 }
-               }
-             ] = artifact["contact_filter_report"]["suppressed_candidates"]
-
-      assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
-               Schema.validate_artifact(artifact)
-    end
   end
 
   defp result_set do

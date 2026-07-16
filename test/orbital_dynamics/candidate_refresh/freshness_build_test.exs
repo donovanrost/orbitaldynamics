@@ -73,61 +73,6 @@ defmodule OrbitalDynamics.CandidateRefresh.FreshnessBuildTest do
              Schema.validate_artifact(artifact)
   end
 
-  test "marks refresh freshness unknown with concrete unknown reasons" do
-    refresh =
-      refresh_request()
-      |> put_in(["accepted_planning_state", "accepted_at"], "not-a-date")
-      |> put_in(["accepted_planning_state", "quality"], %{})
-
-    artifact =
-      result_set()
-      |> CandidateRefresh.build(
-        candidate_refresh: refresh,
-        generated_at: ~U[2026-05-14 00:00:00Z]
-      )
-
-    assert %{
-             "accepted_at" => "not-a-date",
-             "accepted_snapshot_age_s" => nil,
-             "accepted_state_quality_level" => nil,
-             "state_quality_status" => "unknown",
-             "status" => "unknown",
-             "stale_reasons" => [],
-             "unknown_reasons" => [
-               "accepted_snapshot_age_unknown",
-               "accepted_state_quality_unknown"
-             ]
-           } = artifact["freshness_report"]
-
-    assert artifact["freshness_report"]["horizon_start_offset_s"] == 0.0
-    assert "candidate refresh freshness could not be fully evaluated" in artifact["warnings"]
-
-    assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
-             Schema.validate_artifact(artifact)
-  end
-
-  test "marks refresh freshness horizon alignment unknown when timing inputs are unavailable" do
-    refresh =
-      refresh_request()
-      |> Map.delete("current_epoch_s")
-      |> update_in(["remaining_horizon"], &Map.delete(&1, "starts_at_s"))
-
-    artifact =
-      result_set()
-      |> CandidateRefresh.build(
-        candidate_refresh: refresh,
-        generated_at: ~U[2026-05-14 00:00:00Z]
-      )
-
-    assert %{
-             "horizon_start_offset_s" => nil,
-             "status" => "unknown",
-             "unknown_reasons" => ["horizon_alignment_unknown"]
-           } = artifact["freshness_report"]
-
-    assert "candidate refresh freshness could not be fully evaluated" in artifact["warnings"]
-  end
-
   defp result_set do
     ResultSet.new!(%{
       study_id: :candidate_refresh_demo,

@@ -1,21 +1,23 @@
 defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelineDiff.SourceReportFields do
   @moduledoc false
 
+  alias OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelineDiff.Summary
+  alias OrbitalDynamics.CandidateRefresh.ValueEncoding
+  alias __MODULE__.Pressure
+
+  def source_report_fields(source_reports) do
+    source_reports
+    |> Map.get("timeline_diff_report", %{})
+    |> Summary.summary(
+      "candidate_refresh.source_report_provenance.timeline_diff_report",
+      "timeline_diff_source_report_provenance_only"
+    )
+    |> then(&source_report_fields(source_reports, &1))
+  end
+
   def source_report_fields(source_reports, summary) do
-    %{
-      "source_report_timeline_diff_branch_local_timeline_diff_pressure" =>
-        Map.get(summary, "branch_local_timeline_diff_pressure"),
-      "source_report_timeline_diff_branch_local_duplicate_identity_pressure" =>
-        Map.get(summary, "branch_local_duplicate_identity_pressure"),
-      "source_report_timeline_diff_branch_local_removed_activity_pressure" =>
-        Map.get(summary, "branch_local_removed_activity_pressure"),
-      "source_report_timeline_diff_branch_local_changed_activity_pressure" =>
-        Map.get(summary, "branch_local_changed_activity_pressure"),
-      "source_report_timeline_diff_branch_local_activity_routing_pressure" =>
-        Map.get(summary, "branch_local_activity_routing_pressure"),
-      "source_report_timeline_diff_branch_local_operator_review_pressure" =>
-        Map.get(summary, "branch_local_operator_review_pressure")
-    }
+    summary
+    |> Pressure.source_report_fields()
     |> Map.merge(flattened_source_report_fields(source_reports))
   end
 
@@ -111,16 +113,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelineDiff.SourceRepo
     |> non_empty_map()
   end
 
-  defp numeric_value(value) when is_number(value), do: value * 1.0
-
-  defp numeric_value(value) when is_binary(value) do
-    case Float.parse(String.trim(value)) do
-      {number, ""} -> number
-      _parse -> nil
-    end
-  end
-
-  defp numeric_value(_value), do: nil
+  defp numeric_value(value), do: ValueEncoding.numeric_value(value)
 
   defp non_empty_map(map) when map_size(map) == 0, do: nil
   defp non_empty_map(map), do: map

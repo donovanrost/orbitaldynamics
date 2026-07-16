@@ -1,6 +1,8 @@
 defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactFilter.SourceReportFields.Aggregation do
   @moduledoc false
 
+  alias OrbitalDynamics.CandidateRefresh.ValueEncoding
+
   def source_report_family_count(source_reports, field) do
     if Map.has_key?(source_reports, "contact_filter_report") do
       source_reports
@@ -124,16 +126,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactFilter.SourceRep
     end
   end
 
-  defp numeric_value(value) when is_number(value), do: value * 1.0
-
-  defp numeric_value(value) when is_binary(value) do
-    case Float.parse(String.trim(value)) do
-      {number, ""} -> number
-      _parse -> nil
-    end
-  end
-
-  defp numeric_value(_value), do: nil
+  defp numeric_value(value), do: ValueEncoding.numeric_value(value)
 
   defp non_empty_map(map) when map_size(map) == 0, do: nil
   defp non_empty_map(map), do: map

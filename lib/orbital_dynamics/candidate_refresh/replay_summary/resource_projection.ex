@@ -1,17 +1,13 @@
 defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ResourceProjection do
   @moduledoc false
 
-  alias __MODULE__.SourceReportFields
   alias __MODULE__.Summary
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.InputProvenance
 
-  def replay(refresh_or_artifact, callbacks) do
-    source_report_summary = Keyword.fetch!(callbacks, :source_report_summary)
-
-    source_report_summary_branch_family =
-      Keyword.fetch!(callbacks, :source_report_summary_branch_family)
-
-    branch_projection_summary =
-      source_report_summary_branch_family.(refresh_or_artifact, "resource_projection_report")
+  def replay(refresh_or_artifact, source_report_summary)
+      when is_function(source_report_summary, 1) do
+    branch_projection_summary = source_report_summary_branch_family(refresh_or_artifact)
 
     projection_summary =
       branch_projection_summary ||
@@ -36,35 +32,15 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ResourceProjection do
     summary(projection_summary, summary_source, replay_scope)
   end
 
-  def source_report_fields(source_reports) do
-    SourceReportFields.source_report_fields(source_reports)
-  end
-
-  def source_report_summary_fields(source_reports) do
-    SourceReportFields.source_report_summary_fields(source_reports)
-  end
-
-  def source_report_identity_fields(source_reports) do
-    SourceReportFields.source_report_identity_fields(source_reports)
-  end
-
-  def source_report_source_metadata_fields(source_reports) do
-    SourceReportFields.source_report_source_metadata_fields(source_reports)
-  end
-
-  def source_report_invalid_input_fields(source_reports) do
-    SourceReportFields.source_report_invalid_input_fields(source_reports)
-  end
-
-  def source_report_pressure_routing_fields(source_reports) do
-    SourceReportFields.source_report_pressure_routing_fields(source_reports)
-  end
-
-  def source_report_pressure_evidence_fields(source_reports) do
-    SourceReportFields.source_report_pressure_evidence_fields(source_reports)
-  end
-
   def summary(projection_summary, summary_source, replay_scope) do
     Summary.summary(projection_summary, summary_source, replay_scope)
+  end
+
+  defp source_report_summary_branch_family(refresh_or_artifact) do
+    SourceReportSummary.branch_family(
+      refresh_or_artifact,
+      "resource_projection_report",
+      &InputProvenance.build/1
+    )
   end
 end

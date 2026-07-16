@@ -659,7 +659,9 @@ defmodule OrbitalDynamics.ResultSet.Artifact do
   end
 
   defp execution_status(_run, _completed_scenario_count, 0), do: "completed"
-  defp execution_status(_run, 0, failed_scenario_count) when failed_scenario_count > 0, do: "failed"
+
+  defp execution_status(_run, 0, failed_scenario_count) when failed_scenario_count > 0,
+    do: "failed"
 
   defp execution_status(%{"status" => status}, _completed_scenario_count, _failed_scenario_count)
        when is_binary(status) and status not in ["completed"],

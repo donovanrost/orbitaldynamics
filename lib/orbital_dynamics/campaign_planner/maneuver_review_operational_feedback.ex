@@ -1,16 +1,29 @@
 defmodule OrbitalDynamics.CampaignPlanner.ManeuverReviewOperationalFeedback do
   @moduledoc false
 
+  alias OrbitalDynamics.CampaignPlanner.{
+    ActivityTiming,
+    FeedbackNumericValues,
+    ManeuverReviewExecutionUncertainty,
+    ManeuverReviewFeedbackRows,
+    ProviderResultValues,
+    RealizedFeedbackAggregation,
+    RealizedFeedbackContext,
+    ScalarValues,
+    ValueEncoding
+  }
+
+  def from_rows(rows), do: from_rows(rows, default_operational_feedback_callbacks())
+
   def from_rows(rows, opts) when is_list(opts) do
     feedback_row? = Keyword.fetch!(opts, :feedback_row?)
     row_success_value = Keyword.fetch!(opts, :row_success_value)
-    activity_feedback_average = Keyword.fetch!(opts, :activity_feedback_average)
     execution_uncertainty_feedback = Keyword.fetch!(opts, :execution_uncertainty_feedback)
 
     rates =
       rows
       |> Enum.filter(feedback_row?)
-      |> activity_feedback_average.(row_success_value)
+      |> RealizedFeedbackAggregation.activity_average(row_success_value)
 
     uncertainties = execution_uncertainty_feedback.(rows)
 
@@ -19,10 +32,21 @@ defmodule OrbitalDynamics.CampaignPlanner.ManeuverReviewOperationalFeedback do
     |> put_feedback_map("maneuver_execution_uncertainty", uncertainties)
   end
 
+  def prior_plan_source_rows(report_rows, result_artifact_rows),
+    do:
+      prior_plan_source_rows(
+        report_rows,
+        result_artifact_rows,
+        default_operational_feedback_callbacks()
+      )
+
   def prior_plan_source_rows(report_rows, result_artifact_rows, opts) when is_list(opts) do
     (report_rows ++ result_artifact_rows)
     |> source_rows(opts)
   end
+
+  def mission_state_source_rows(reports_with_sources),
+    do: mission_state_source_rows(reports_with_sources, default_operational_feedback_callbacks())
 
   def mission_state_source_rows(reports_with_sources, opts) when is_list(opts) do
     reports_with_sources
@@ -36,6 +60,10 @@ defmodule OrbitalDynamics.CampaignPlanner.ManeuverReviewOperationalFeedback do
   end
 
   def source(row, opts) when is_list(opts), do: {row(row, row, opts), "maneuver_review"}
+
+  def source(row), do: source(row, default_row_shaping_callbacks())
+
+  def operator_review_rows(rows), do: operator_review_rows(rows, default_row_shaping_callbacks())
 
   def operator_review_rows(rows, opts) when is_list(opts) do
     normalize_row = Keyword.fetch!(opts, :normalize_row)
@@ -85,6 +113,70 @@ defmodule OrbitalDynamics.CampaignPlanner.ManeuverReviewOperationalFeedback do
     |> normalize_row.()
   end
 
+  defp default_row_shaping_callbacks do
+    [
+      stringify_keys: &ValueEncoding.stringify_keys/1,
+      put_default_if_present: &put_default_if_present/3,
+      put_feedback_weight_fields: &put_feedback_weight_fields/2,
+      normalize_row: &ManeuverReviewFeedbackRows.normalize/1
+    ]
+  end
+
+  defp default_operational_feedback_callbacks do
+    [
+      stringify_keys: &ValueEncoding.stringify_keys/1,
+      normalize_row: &ManeuverReviewFeedbackRows.normalize/1,
+      feedback_row?: &ManeuverReviewFeedbackRows.feedback_row?/1,
+      row_success_value: &ManeuverReviewFeedbackRows.success_value/1,
+      execution_uncertainty_feedback: &execution_uncertainty_feedback/1
+    ]
+  end
+
+  defp execution_uncertainty_feedback(rows) do
+    ManeuverReviewExecutionUncertainty.feedback(
+      rows,
+      realized_feedback_activity_id: &RealizedFeedbackContext.activity_id/1,
+      operational_feedback_key?: &ScalarValues.stable_id_string?/1
+    )
+  end
+
+  defp put_default_if_present(map, _field, value) when value in [nil, "", [], %{}], do: map
+
+  defp put_default_if_present(map, field, value) do
+    case Map.get(map, field) do
+      existing when existing in [nil, ""] -> Map.put(map, field, value)
+      _existing -> map
+    end
+  end
+
+  defp put_feedback_weight_fields(event, source) do
+    [
+      "feedback_weight",
+      "feedback_weight_source",
+      "feedback_sample_weight",
+      "feedback_sample_weight_source",
+      "sample_weight",
+      "sample_weight_source",
+      "confidence_weight",
+      "confidence_weight_source"
+    ]
+    |> Enum.reduce(event, fn field, acc -> put_if_present(acc, field, source[field]) end)
+  end
+
+  defp put_if_present(map, _key, value) when value in [nil, ""], do: map
+  defp put_if_present(map, key, value), do: Map.put(map, key, value)
+
+  def review_row?(row), do: review_row?(row, default_pressure_callbacks())
+
+  def review_row?(row, opts) when is_list(opts) do
+    (row["source_review_type"] == "maneuver_review" or row["review_type"] == "maneuver_review" or
+       row["import_action"] == "review_maneuver") and
+      pressure_events(row, "candidate", opts) != []
+  end
+
+  def pressure_branch(row, source_path, index),
+    do: pressure_branch(row, source_path, index, default_pressure_callbacks())
+
   def pressure_branch(row, source_path, index, opts) when is_list(opts) do
     case pressure_events(row, source_path, opts) do
       [] ->
@@ -102,6 +194,9 @@ defmodule OrbitalDynamics.CampaignPlanner.ManeuverReviewOperationalFeedback do
     end
   end
 
+  def pressure_events(row, source_path),
+    do: pressure_events(row, source_path, default_pressure_callbacks())
+
   def pressure_events(row, source_path, opts) when is_list(opts) do
     [
       pressure_event(row, source_path, opts),
@@ -109,6 +204,9 @@ defmodule OrbitalDynamics.CampaignPlanner.ManeuverReviewOperationalFeedback do
     ]
     |> Enum.reject(&is_nil/1)
   end
+
+  def pressure_event(row, source_path),
+    do: pressure_event(row, source_path, default_pressure_callbacks())
 
   def pressure_event(row, source_path, opts) when is_list(opts) do
     row_success_value = Keyword.fetch!(opts, :row_success_value)
@@ -203,6 +301,29 @@ defmodule OrbitalDynamics.CampaignPlanner.ManeuverReviewOperationalFeedback do
   defp put_feedback_map(feedback, _field, values) when values in [%{}, nil], do: feedback
 
   defp put_feedback_map(feedback, field, %{} = values), do: Map.put(feedback, field, values)
+
+  defp default_pressure_callbacks do
+    [
+      row_success_value: &ManeuverReviewFeedbackRows.success_value/1,
+      realized_feedback_activity_id: &RealizedFeedbackContext.activity_id/1,
+      execution_uncertainty_entry: &ManeuverReviewExecutionUncertainty.entry/1,
+      activity_raw_start: &ActivityTiming.activity_raw_start/1,
+      activity_raw_end: &ActivityTiming.activity_raw_end/1,
+      clamp_unit_interval: &FeedbackNumericValues.clamp_unit_interval/1,
+      provider_result_artifact_value: &ProviderResultValues.artifact_value/1,
+      explicit_timeline_id: &RealizedFeedbackContext.explicit_timeline_id/1,
+      operator_review_trust_boundary: &operator_review_trust_boundary/1,
+      put_feedback_weight_fields: &put_feedback_weight_fields/2,
+      compact_map: &ValueEncoding.compact_map/1,
+      branch_id_fragment: &ValueEncoding.branch_id_fragment/1
+    ]
+  end
+
+  defp operator_review_trust_boundary(row) do
+    Map.get(row, "trust_boundary") ||
+      get_in(row, ["provenance", "trust_boundary"]) ||
+      row["_source_report_trust_boundary"]
+  end
 
   defp pressure_branch_id(row, index, opts),
     do: "derived_maneuver_review_feedback_#{pressure_identity(row, index, opts)}"

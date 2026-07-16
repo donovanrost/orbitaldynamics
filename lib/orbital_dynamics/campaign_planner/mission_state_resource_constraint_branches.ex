@@ -1,13 +1,17 @@
 defmodule OrbitalDynamics.CampaignPlanner.MissionStateResourceConstraintBranches do
   @moduledoc false
 
-  def power(mission_state, policy, callbacks) do
-    resource_margin_sources = Keyword.fetch!(callbacks, :resource_margin_sources)
-    resource_source_path = Keyword.fetch!(callbacks, :resource_source_path)
-    compact_map = Keyword.fetch!(callbacks, :compact_map)
+  alias OrbitalDynamics.CampaignPlanner.{
+    MissionStateResourceSources,
+    OperationalFeedbackNormalization
+  }
 
+  @resource_availability_true_tokens ~w(true 1 yes y available nominal operational enabled)
+  @resource_availability_false_tokens ~w(false 0 no n unavailable offline down outage maintenance disabled)
+
+  def power(mission_state, policy) do
     mission_state
-    |> resource_margin_sources.("power_margin")
+    |> mission_state_resource_margin_sources("power_margin")
     |> Enum.filter(fn source ->
       is_number(source["power_margin"]) and
         source["power_margin"] <= policy["power_margin_threshold"]
@@ -28,23 +32,19 @@ defmodule OrbitalDynamics.CampaignPlanner.MissionStateResourceConstraintBranches
             "derivation_reasons" => ["power_margin_low"],
             "source_quality" => source["source_quality"]
           }
-          |> compact_map.()
+          |> compact_map()
         ],
         "metadata" => %{
-          "derived_source" => resource_source_path.(mission_state, "power_margin")
+          "derived_source" => mission_state_resource_source_path(mission_state, "power_margin")
         }
       }
     end)
   end
 
-  def thermal(mission_state, %{"thermal_margin_c_threshold" => threshold}, callbacks)
+  def thermal(mission_state, %{"thermal_margin_c_threshold" => threshold})
       when is_number(threshold) do
-    resource_metric_sources = Keyword.fetch!(callbacks, :resource_metric_sources)
-    resource_source_path = Keyword.fetch!(callbacks, :resource_source_path)
-    compact_map = Keyword.fetch!(callbacks, :compact_map)
-
     mission_state
-    |> resource_metric_sources.()
+    |> mission_state_resource_metric_sources()
     |> Enum.filter(fn source ->
       is_number(source["thermal_margin_c"]) and source["thermal_margin_c"] <= threshold and
         source["spacecraft_id"] not in [nil, ""]
@@ -66,42 +66,39 @@ defmodule OrbitalDynamics.CampaignPlanner.MissionStateResourceConstraintBranches
             "derivation_reasons" => ["thermal_margin_low"],
             "source_quality" => source["source_quality"]
           }
-          |> compact_map.()
+          |> compact_map()
         ],
         "metadata" => %{
-          "derived_source" => resource_source_path.(mission_state, "thermal_margin_c")
+          "derived_source" =>
+            mission_state_resource_source_path(mission_state, "thermal_margin_c")
         }
       }
     end)
   end
 
-  def thermal(_mission_state, _policy, _callbacks), do: []
+  def thermal(_mission_state, _policy), do: []
 
-  def payload(mission_state, callbacks) do
+  def payload(mission_state) do
     availability(
       mission_state,
       "payload_available",
       "payload_unavailable",
       "derived_payload_constrained",
-      "Derived payload constrained",
-      callbacks
+      "Derived payload constrained"
     )
   end
 
-  def antenna(mission_state, callbacks) do
+  def antenna(mission_state) do
     availability(
       mission_state,
       "antenna_available",
       "antenna_unavailable",
       "derived_antenna_constrained",
-      "Derived antenna constrained",
-      callbacks
+      "Derived antenna constrained"
     )
   end
 
-  def disambiguate(branches, callbacks) do
-    branch_id_fragment = Keyword.fetch!(callbacks, :branch_id_fragment)
-    encode_value = Keyword.fetch!(callbacks, :encode_value)
+  def disambiguate(branches) do
     id_counts = Enum.frequencies_by(branches, & &1["id"])
 
     branches
@@ -112,8 +109,8 @@ defmodule OrbitalDynamics.CampaignPlanner.MissionStateResourceConstraintBranches
       if resource_branch_id?(branch_id) and Map.get(id_counts, branch_id, 0) > 1 do
         suffix =
           branch
-          |> resource_branch_identity(index, encode_value)
-          |> branch_id_fragment.()
+          |> resource_branch_identity(index)
+          |> branch_id_fragment()
 
         branch
         |> Map.put("id", "#{branch_id}_#{suffix}")
@@ -129,12 +126,9 @@ defmodule OrbitalDynamics.CampaignPlanner.MissionStateResourceConstraintBranches
     |> disambiguate_duplicate_suffixes()
   end
 
-  defp availability(mission_state, field, reason, id_prefix, label_prefix, callbacks) do
-    resource_unavailable_sources = Keyword.fetch!(callbacks, :resource_unavailable_sources)
-    resource_source_path = Keyword.fetch!(callbacks, :resource_source_path)
-
+  defp availability(mission_state, field, reason, id_prefix, label_prefix) do
     mission_state
-    |> resource_unavailable_sources.(field)
+    |> mission_state_resource_unavailable_sources(field)
     |> Enum.map(fn source ->
       spacecraft_id = source["spacecraft_id"]
 
@@ -142,18 +136,16 @@ defmodule OrbitalDynamics.CampaignPlanner.MissionStateResourceConstraintBranches
         "id" => "#{id_prefix}_#{spacecraft_id}",
         "label" => "#{label_prefix} #{spacecraft_id}",
         "events" => [
-          resource_availability_constraint_event(spacecraft_id, field, reason, source, callbacks)
+          resource_availability_constraint_event(spacecraft_id, field, reason, source)
         ],
         "metadata" => %{
-          "derived_source" => resource_source_path.(mission_state, field)
+          "derived_source" => mission_state_resource_source_path(mission_state, field)
         }
       }
     end)
   end
 
-  defp resource_availability_constraint_event(spacecraft_id, field, reason, source, callbacks) do
-    compact_map = Keyword.fetch!(callbacks, :compact_map)
-
+  defp resource_availability_constraint_event(spacecraft_id, field, reason, source) do
     %{
       "type" => "resource_availability_constraint",
       "spacecraft_id" => spacecraft_id,
@@ -162,7 +154,7 @@ defmodule OrbitalDynamics.CampaignPlanner.MissionStateResourceConstraintBranches
       "derivation_reasons" => [reason],
       "source_quality" => source["source_quality"]
     }
-    |> compact_map.()
+    |> compact_map()
   end
 
   defp resource_branch_id?(id) when is_binary(id) do
@@ -204,7 +196,7 @@ defmodule OrbitalDynamics.CampaignPlanner.MissionStateResourceConstraintBranches
     end)
   end
 
-  defp resource_branch_identity(branch, index, encode_value) do
+  defp resource_branch_identity(branch, index) do
     metadata = Map.get(branch, "metadata", %{})
 
     branch
@@ -227,7 +219,7 @@ defmodule OrbitalDynamics.CampaignPlanner.MissionStateResourceConstraintBranches
       ]
     end)
     |> List.flatten()
-    |> Enum.map(fn value -> encode_value.(value) end)
+    |> Enum.map(&encode_value/1)
     |> Enum.reject(&(&1 in [nil, ""]))
     |> Enum.uniq()
     |> case do
@@ -235,4 +227,121 @@ defmodule OrbitalDynamics.CampaignPlanner.MissionStateResourceConstraintBranches
       identifiers -> Enum.join(identifiers, "_")
     end
   end
+
+  defp mission_state_resource_margin_sources(mission_state, field) do
+    MissionStateResourceSources.margin_sources(
+      mission_state,
+      field,
+      mission_state_resource_source_callbacks()
+    )
+  end
+
+  defp mission_state_resource_metric_sources(mission_state) do
+    MissionStateResourceSources.metric_sources(
+      mission_state,
+      mission_state_resource_source_callbacks()
+    )
+  end
+
+  defp mission_state_resource_unavailable_sources(mission_state, field) do
+    MissionStateResourceSources.unavailable_sources(
+      mission_state,
+      field,
+      mission_state_resource_source_callbacks()
+    )
+  end
+
+  defp mission_state_resource_source_path(mission_state, field) do
+    MissionStateResourceSources.source_path(mission_state, field)
+  end
+
+  defp mission_state_resource_source_callbacks,
+    do: [
+      stringify_keys: &stringify_keys/1,
+      normalize_resource_margin_aliases: &normalize_resource_margin_aliases/1,
+      normalize_resource_availability_aliases: &normalize_resource_availability_aliases/1,
+      numeric_or_nil: &numeric_or_nil/1
+    ]
+
+  defp normalize_resource_margin_aliases(value) do
+    OperationalFeedbackNormalization.normalize_resource_margin_aliases(
+      value,
+      resource_normalization_callbacks()
+    )
+  end
+
+  defp normalize_resource_availability_aliases(value) do
+    OperationalFeedbackNormalization.normalize_resource_availability_aliases(
+      value,
+      resource_normalization_callbacks()
+    )
+  end
+
+  defp resource_normalization_callbacks,
+    do: [
+      stringify_keys: &stringify_keys/1,
+      numeric_or_nil: &numeric_or_nil/1,
+      resource_availability_boolean_value: &resource_availability_boolean_value/1,
+      resource_availability_true_tokens: @resource_availability_true_tokens,
+      resource_availability_false_tokens: @resource_availability_false_tokens
+    ]
+
+  defp resource_availability_boolean_value(value) do
+    OperationalFeedbackNormalization.resource_availability_boolean_value(
+      value,
+      resource_normalization_callbacks()
+    )
+  end
+
+  defp numeric_or_nil(nil), do: nil
+  defp numeric_or_nil(value) when is_integer(value) or is_float(value), do: value
+
+  defp numeric_or_nil(value) when is_binary(value) do
+    case Float.parse(value) do
+      {number, ""} -> number
+      _error -> nil
+    end
+  end
+
+  defp numeric_or_nil(_value), do: nil
+
+  defp compact_map(map) do
+    map
+    |> Enum.reject(fn {_key, value} -> is_nil(value) end)
+    |> Map.new()
+  end
+
+  defp branch_id_fragment(value) do
+    value
+    |> encode_value()
+    |> to_string()
+    |> String.replace(~r/[^A-Za-z0-9._:@-]+/, "_")
+    |> String.trim("_")
+    |> case do
+      "" -> "unnamed"
+      fragment -> fragment
+    end
+  end
+
+  defp stringify_keys(%_struct{} = struct), do: struct |> Map.from_struct() |> stringify_keys()
+
+  defp stringify_keys(%{} = map) do
+    Map.new(map, fn {key, value} -> {encode_value(key), stringify_keys(value)} end)
+  end
+
+  defp stringify_keys(values) when is_list(values), do: Enum.map(values, &stringify_keys/1)
+  defp stringify_keys(value), do: encode_value(value)
+
+  defp encode_value(%_struct{} = struct), do: struct |> Map.from_struct() |> encode_value()
+
+  defp encode_value(%{} = map) do
+    Map.new(map, fn {key, value} -> {encode_value(key), encode_value(value)} end)
+  end
+
+  defp encode_value(values) when is_list(values), do: Enum.map(values, &encode_value/1)
+  defp encode_value(value) when is_tuple(value), do: value |> Tuple.to_list() |> encode_value()
+  defp encode_value(nil), do: nil
+  defp encode_value(value) when is_boolean(value), do: value
+  defp encode_value(value) when is_atom(value), do: Atom.to_string(value)
+  defp encode_value(value), do: value
 end

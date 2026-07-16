@@ -1,7 +1,16 @@
 defmodule OrbitalDynamics.CampaignPlanner.ContactIntentPressureBranches do
   @moduledoc false
 
-  def from_rows_with_source(rows_with_source, callbacks) do
+  alias OrbitalDynamics.CampaignPlanner.{
+    ActivityTiming,
+    DownlinkActivityNormalization,
+    RealizedFeedbackContext,
+    ReviewRowSources,
+    ScalarValues,
+    ValueEncoding
+  }
+
+  def from_rows_with_source(rows_with_source, callbacks \\ default_callbacks()) do
     normalize_pressure_row = Keyword.fetch!(callbacks, :normalize_pressure_row)
 
     Enum.flat_map(rows_with_source, fn {row, source_path} ->
@@ -11,7 +20,7 @@ defmodule OrbitalDynamics.CampaignPlanner.ContactIntentPressureBranches do
     end)
   end
 
-  def identity_set(rows_with_source, callbacks) do
+  def identity_set(rows_with_source, callbacks \\ default_callbacks()) do
     normalize_pressure_row = Keyword.fetch!(callbacks, :normalize_pressure_row)
 
     rows_with_source
@@ -24,7 +33,11 @@ defmodule OrbitalDynamics.CampaignPlanner.ContactIntentPressureBranches do
     |> MapSet.new()
   end
 
-  def summaries_from_sources(summaries_with_source, excluded_identities, callbacks) do
+  def summaries_from_sources(
+        summaries_with_source,
+        excluded_identities,
+        callbacks \\ default_callbacks()
+      ) do
     summaries_with_source
     |> Enum.reduce({excluded_identities, []}, fn summary_with_source, {seen, branches} ->
       {seen, summary_branches} =
@@ -75,7 +88,7 @@ defmodule OrbitalDynamics.CampaignPlanner.ContactIntentPressureBranches do
     end)
   end
 
-  def build(row, source_path, callbacks) do
+  def build(row, source_path, callbacks \\ default_callbacks()) do
     branch_id_fragment = Keyword.fetch!(callbacks, :branch_id_fragment)
     compact_map = Keyword.fetch!(callbacks, :compact_map)
 
@@ -104,7 +117,7 @@ defmodule OrbitalDynamics.CampaignPlanner.ContactIntentPressureBranches do
     end
   end
 
-  def status(row, callbacks) do
+  def status(row, callbacks \\ default_callbacks()) do
     normalized_optional_status = Keyword.fetch!(callbacks, :normalized_optional_status)
 
     approval_status = normalized_optional_status.(row["approval_status"])
@@ -125,11 +138,11 @@ defmodule OrbitalDynamics.CampaignPlanner.ContactIntentPressureBranches do
     end
   end
 
-  def event(row, source_path, callbacks) do
+  def event(row, source_path, callbacks \\ default_callbacks()) do
     pressure_event(row, source_path, callbacks)
   end
 
-  def identity(row, callbacks) do
+  def identity(row, callbacks \\ default_callbacks()) do
     stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
     downlink_activity? = Keyword.fetch!(callbacks, :downlink_activity?)
 
@@ -275,6 +288,45 @@ defmodule OrbitalDynamics.CampaignPlanner.ContactIntentPressureBranches do
     case Map.get(map, field) do
       existing when existing in [nil, "", [], %{}] -> Map.put(map, field, value)
       _existing -> map
+    end
+  end
+
+  defp default_callbacks do
+    [
+      activity_raw_end: &ActivityTiming.activity_raw_end/1,
+      activity_raw_start: &ActivityTiming.activity_raw_start/1,
+      branch_id_fragment: &ValueEncoding.branch_id_fragment/1,
+      compact_map: &ValueEncoding.compact_map/1,
+      downlink_activity?: &DownlinkActivityNormalization.downlink?/1,
+      explicit_timeline_id: &RealizedFeedbackContext.explicit_timeline_id/1,
+      nested_ground_station_id: &DownlinkActivityNormalization.nested_ground_station_id/1,
+      normalize_pressure_row: &normalize_pressure_row/1,
+      normalized_optional_status: &ScalarValues.normalized_optional_status/1,
+      numeric_or_nil: &ScalarValues.numeric_or_nil/1,
+      stable_id_string?: &ScalarValues.stable_id_string?/1,
+      stringify_keys: &ValueEncoding.stringify_keys/1
+    ]
+  end
+
+  defp normalize_pressure_row(row) do
+    row = ValueEncoding.stringify_keys(row)
+
+    row
+    |> ReviewRowSources.contact_intent_row(row)
+    |> put_default_if_present("source_policy_decision", row["policy_decision"])
+    |> put_default_if_present("cadence_import_status", nested_cadence_import_status(row))
+  end
+
+  defp nested_cadence_import_status(row) do
+    case Map.get(row, "cadence_import") do
+      %{} = cadence_import ->
+        cadence_import
+        |> ValueEncoding.stringify_keys()
+        |> Map.get("status")
+        |> ScalarValues.normalized_optional_status()
+
+      _cadence_import ->
+        nil
     end
   end
 end

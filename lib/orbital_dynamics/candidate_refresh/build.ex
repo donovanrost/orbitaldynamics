@@ -1,0 +1,191 @@
+defmodule OrbitalDynamics.CandidateRefresh.Build do
+  @moduledoc false
+
+  alias OrbitalDynamics.Communications.ContactIntent
+
+  alias OrbitalDynamics.CandidateRefresh.{
+    BuildAssumptions,
+    BuildContext,
+    BuildGroundNetwork,
+    BuildOperationalFeedback,
+    BuildProvenance,
+    BuildRefreshId,
+    BuildWarnings,
+    CandidateActivities,
+    CandidateActivityContext,
+    CandidateActivityFields,
+    CandidateBudget,
+    CandidateDiffReport,
+    ContactGate,
+    ObjectiveMatching,
+    RefreshedWindows,
+    ResourceFiltering,
+    SourceObjectives,
+    SourceReportSummary.InputProvenance,
+    SourceWindowLineage,
+    ValueEncoding
+  }
+
+  alias OrbitalDynamics.CandidateRefresh.OperationalFeedback.Assembly,
+    as: OperationalFeedbackAssembly
+
+  alias OrbitalDynamics.CandidateRefresh.OperationalFeedback.Provenance,
+    as: OperationalFeedbackProvenance
+
+  alias OrbitalDynamics.{ResultSet, Validation}
+
+  @schema_version 1
+
+  def build(%ResultSet{} = result_set, opts \\ []) do
+    refresh = ValueEncoding.stringify_keys(Keyword.fetch!(opts, :candidate_refresh))
+    generated_at = Keyword.get_lazy(opts, :generated_at, &DateTime.utc_now/0)
+    policy = Map.get(refresh, "scoring_policy", %{})
+    constraints = Map.get(refresh, "constraints", %{})
+
+    event_results = RefreshedWindows.canonical_event_results(result_set.event_results)
+
+    windows =
+      RefreshedWindows.refreshed_windows(
+        event_results,
+        CandidateActivityFields.event_timing_keys()
+      )
+
+    {resource_summaries, resource_filter_summaries} =
+      ResourceFiltering.summary_inputs(refresh, &OperationalFeedbackAssembly.build/1)
+
+    raw_candidates =
+      event_results
+      |> CandidateActivities.build(
+        refresh,
+        constraints,
+        policy,
+        &OperationalFeedbackAssembly.build/1,
+        &SourceObjectives.objectives/1,
+        &BuildGroundNetwork.build/1
+      )
+      |> Enum.sort_by(&{&1["scenario_id"], &1["starts_at_s"], &1["id"]})
+
+    {contact_candidates, contact_filter_report} =
+      ContactGate.filter_candidates(raw_candidates, refresh, &BuildGroundNetwork.build/1)
+
+    {candidates, resource_filter_report} =
+      ResourceFiltering.apply_filters(
+        contact_candidates,
+        refresh,
+        resource_summaries,
+        resource_filter_summaries,
+        &ObjectiveMatching.spacecraft_identity_by_scenario/1
+      )
+
+    contact_allocation_report =
+      ContactGate.allocation_report(
+        candidates,
+        refresh,
+        contact_filter_report,
+        &BuildGroundNetwork.build/1
+      )
+
+    {candidates, allocation_dropped_candidates} =
+      ContactGate.apply_allocation(candidates, contact_allocation_report)
+
+    {candidates, budget_dropped_candidates, refresh_budget_report} =
+      CandidateBudget.apply(candidates, refresh)
+
+    candidates = CandidateActivityContext.attach(candidates)
+
+    invalidated_candidates =
+      CandidateDiffReport.invalidated_candidates(
+        refresh,
+        candidates,
+        CandidateDiffReport.mark_dropped_candidates(
+          allocation_dropped_candidates,
+          "dropped_by_contact_allocation"
+        ) ++
+          CandidateDiffReport.mark_dropped_candidates(
+            budget_dropped_candidates,
+            "dropped_by_candidate_budget"
+          )
+      )
+
+    candidate_diff_report =
+      CandidateDiffReport.report(
+        refresh,
+        candidates,
+        invalidated_candidates
+      )
+
+    freshness_report =
+      BuildContext.freshness_report(
+        refresh,
+        generated_at,
+        &model_limits/0,
+        &ValueEncoding.numeric_value/1
+      )
+
+    %{
+      "schema_version" => @schema_version,
+      "schema_contract" => "candidate_refresh.v1",
+      "artifact_type" => "candidate_refresh",
+      "generated_at" => DateTime.to_iso8601(generated_at),
+      "planner" => "OrbitalDynamics.CandidateRefresh.V1",
+      "refresh_id" =>
+        BuildRefreshId.build(
+          refresh,
+          result_set.study_id,
+          &BuildGroundNetwork.build/1,
+          &SourceObjectives.objectives/1
+        ),
+      "study_id" => ValueEncoding.encode_value(result_set.study_id),
+      "snapshot_id" => BuildContext.snapshot_id(refresh),
+      "current_epoch_s" => BuildContext.current_epoch_s(refresh, &ValueEncoding.numeric_value/1),
+      "remaining_horizon" =>
+        BuildContext.remaining_horizon(refresh, &ValueEncoding.numeric_value/1),
+      "accepted_planning_state" => BuildContext.accepted_planning_state_ref(refresh),
+      "refreshed_windows" => windows,
+      "candidate_activities" => candidates,
+      "contact_intents" =>
+        ContactIntent.from_activities(candidates,
+          approval_policy: Map.get(refresh, "approval_policy")
+        ),
+      "contact_filter_report" => contact_filter_report,
+      "resource_summaries" => resource_summaries,
+      "resource_filter_report" => resource_filter_report,
+      "refresh_budget_report" => refresh_budget_report,
+      "candidate_diff_report" => candidate_diff_report,
+      "freshness_report" => freshness_report,
+      "invalidated_candidates" => invalidated_candidates,
+      "contact_allocation_report" => contact_allocation_report,
+      "validation_records" => Validation.records_for_result_set(result_set),
+      "warnings" =>
+        BuildWarnings.build(%{
+          refresh: refresh,
+          candidates: candidates,
+          result_errors: result_set.errors,
+          contact_filter_report: contact_filter_report,
+          allocation_dropped_candidates: allocation_dropped_candidates,
+          resource_filter_report: resource_filter_report,
+          refresh_budget_report: refresh_budget_report,
+          freshness_report: freshness_report
+        }),
+      "model_limits" => model_limits(),
+      "assumptions" =>
+        BuildAssumptions.build(
+          refresh,
+          result_set.assumptions
+        ),
+      "provenance" =>
+        BuildProvenance.build(
+          refresh,
+          result_set.metadata,
+          &OperationalFeedbackProvenance.build/1,
+          &InputProvenance.build/1
+        ),
+      "source_window_lineage" => SourceWindowLineage.build(candidates)
+    }
+    |> BuildOperationalFeedback.maybe_put(refresh, &OperationalFeedbackAssembly.build/1)
+  end
+
+  defp model_limits do
+    OrbitalDynamics.CandidateRefresh.ModelLimits.strings()
+  end
+end

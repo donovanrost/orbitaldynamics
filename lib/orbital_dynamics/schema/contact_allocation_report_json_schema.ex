@@ -87,6 +87,123 @@ defmodule OrbitalDynamics.Schema.ContactAllocationReportJsonSchema do
     "capacity_pack_deferred_required_capacity_fraction_by_ground_station_id"
   ]
 
+  def property_field?(field)
+      when field in [
+             "rows",
+             "reduced_capacity_pack_groups",
+             "model",
+             "source",
+             "model_limits",
+             "station_pressure_contact_ids_by_direction_and_ground_station_id",
+             "earliest_station_reservation_expires_at_s"
+           ],
+      do: true
+
+  def property_field?(field)
+      when field in @count_fields or field in @stable_id_array_fields or
+             field in @stable_id_array_map_fields or field in @string_array_fields or
+             field in @trust_boundary_count_map_fields or field in @enum_count_map_fields or
+             field in @count_map_fields or field in @non_negative_number_fields or
+             field in @non_negative_number_map_fields,
+      do: true
+
+  def property_field?(_field), do: false
+
+  def property_fun_from_context(deps) when is_list(deps) do
+    fn field -> property_from_context(field, deps) end
+  end
+
+  def property_from_context(field, deps) when is_list(deps) do
+    property(field, property_opts(field, deps))
+  end
+
+  def property_opts("rows", deps) do
+    [row_schema: fetch_dep!(deps, :row_schema)]
+  end
+
+  def property_opts("reduced_capacity_pack_groups", deps) do
+    [capacity_pack_group_schema: fetch_dep!(deps, :capacity_pack_group_schema)]
+  end
+
+  def property_opts("model_limits", deps) do
+    [model_limits: fetch_dep!(deps, :model_limits)]
+  end
+
+  def property_opts(field, deps)
+      when field in @stable_id_array_fields or field in @stable_id_array_map_fields do
+    [stable_id_array_schema: fetch_dep!(deps, :stable_id_array_schema)]
+  end
+
+  def property_opts("station_pressure_contact_ids_by_direction_and_ground_station_id", deps) do
+    [nested_stable_id_array_map_schema: fetch_dep!(deps, :nested_stable_id_array_map_schema)]
+  end
+
+  def property_opts(field, deps) when field in @string_array_fields do
+    [string_array_schema: fetch_dep!(deps, :string_array_schema)]
+  end
+
+  def property_opts(field, deps) when field in @trust_boundary_count_map_fields do
+    [trust_boundary_count_map_schema: fetch_dep!(deps, :trust_boundary_count_map_schema)]
+  end
+
+  def property_opts(field, deps) when field in @enum_count_map_fields do
+    [
+      contact_allocation_capability: fetch_dep!(deps, :contact_allocation_capability),
+      enum_count_map_schema: fetch_dep!(deps, :enum_count_map_schema)
+    ]
+  end
+
+  def property_opts(field, deps) when field in @count_map_fields do
+    [count_map_schema: fetch_dep!(deps, :count_map_schema)]
+  end
+
+  def property_opts(field, deps) when field in @non_negative_number_map_fields do
+    [non_negative_number_map_schema: fetch_dep!(deps, :non_negative_number_map_schema)]
+  end
+
+  def property_opts(_field, _deps), do: []
+
+  def row_from_deps(deps) do
+    deps
+    |> row_opts()
+    |> row()
+  end
+
+  def row_from_context(
+        stable_id_pattern,
+        stable_id_array_schema,
+        string_array_schema,
+        number_array_schema,
+        actual_data_rate_throughput_derivation_schema,
+        approval_requirement_schema,
+        policy_decision_rule_match_schema,
+        policy_decision_schema,
+        source_contention_recommendation_schema,
+        contact_allocation_capability,
+        station_calendar_capability,
+        deferred_priority_schema,
+        priority_field_evidence_counts_schema
+      ) do
+    [
+      stable_id_pattern: stable_id_pattern,
+      stable_id_array_schema: stable_id_array_schema,
+      string_array_schema: string_array_schema,
+      number_array_schema: number_array_schema,
+      actual_data_rate_throughput_derivation_schema:
+        actual_data_rate_throughput_derivation_schema,
+      approval_requirement_schema: approval_requirement_schema,
+      policy_decision_rule_match_schema: policy_decision_rule_match_schema,
+      policy_decision_schema: policy_decision_schema,
+      source_contention_recommendation_schema: source_contention_recommendation_schema,
+      contact_allocation_capability: contact_allocation_capability,
+      station_calendar_capability: station_calendar_capability,
+      deferred_priority_schema: deferred_priority_schema,
+      priority_field_evidence_counts_schema: priority_field_evidence_counts_schema
+    ]
+    |> row_opts()
+    |> row()
+  end
+
   def row(opts) do
     stable_id_pattern = Keyword.fetch!(opts, :stable_id_pattern)
     stable_id_array_schema = Keyword.fetch!(opts, :stable_id_array_schema)
@@ -263,6 +380,28 @@ defmodule OrbitalDynamics.Schema.ContactAllocationReportJsonSchema do
     }
   end
 
+  def capacity_pack_group_from_deps(deps) do
+    deps
+    |> capacity_pack_group_opts()
+    |> capacity_pack_group()
+  end
+
+  def capacity_pack_group_from_context(
+        stable_id_pattern,
+        stable_id_array_schema,
+        capacity_requirement_row_schema,
+        source_contention_recommendation_schema
+      ) do
+    [
+      stable_id_pattern: stable_id_pattern,
+      stable_id_array_schema: stable_id_array_schema,
+      capacity_requirement_row_schema: capacity_requirement_row_schema,
+      source_contention_recommendation_schema: source_contention_recommendation_schema
+    ]
+    |> capacity_pack_group_opts()
+    |> capacity_pack_group()
+  end
+
   def capacity_pack_group(opts) do
     stable_id_pattern = Keyword.fetch!(opts, :stable_id_pattern)
 
@@ -291,6 +430,18 @@ defmodule OrbitalDynamics.Schema.ContactAllocationReportJsonSchema do
     }
   end
 
+  def capacity_requirement_row_from_deps(deps) do
+    deps
+    |> capacity_requirement_row_opts()
+    |> capacity_requirement_row()
+  end
+
+  def capacity_requirement_row_from_context(stable_id_pattern) do
+    [stable_id_pattern: stable_id_pattern]
+    |> capacity_requirement_row_opts()
+    |> capacity_requirement_row()
+  end
+
   def capacity_requirement_row(opts) do
     stable_id_pattern = Keyword.fetch!(opts, :stable_id_pattern)
 
@@ -309,6 +460,111 @@ defmodule OrbitalDynamics.Schema.ContactAllocationReportJsonSchema do
         "capacity_pack_status" => %{"type" => "string"},
         "required_capacity_fraction" => probability_schema(),
         "required_capacity_fraction_source" => %{"type" => "string"}
+      }
+    }
+  end
+
+  def summary_assumptions_from_deps(deps) do
+    deps
+    |> summary_assumptions_opts()
+    |> summary_assumptions()
+  end
+
+  def summary_assumptions_from_context(
+        row_statuses,
+        effective_row_statuses,
+        station_unavailable_aliases,
+        station_blocking_availability,
+        station_availability_precedence,
+        capacity_pack_statuses,
+        reduced_capacity_pack_statuses,
+        station_reservation_match_statuses,
+        station_reservation_expiration_statuses,
+        required_capacity_fraction_source_values,
+        required_capacity_value_paths,
+        default_required_capacity_value_paths,
+        provider_direction_aliases
+      ) do
+    [
+      row_statuses: row_statuses,
+      effective_row_statuses: effective_row_statuses,
+      station_unavailable_aliases: station_unavailable_aliases,
+      station_blocking_availability: station_blocking_availability,
+      station_availability_precedence: station_availability_precedence,
+      capacity_pack_statuses: capacity_pack_statuses,
+      reduced_capacity_pack_statuses: reduced_capacity_pack_statuses,
+      station_reservation_match_statuses: station_reservation_match_statuses,
+      station_reservation_expiration_statuses: station_reservation_expiration_statuses,
+      required_capacity_fraction_source_values: required_capacity_fraction_source_values,
+      required_capacity_value_paths: required_capacity_value_paths,
+      default_required_capacity_value_paths: default_required_capacity_value_paths,
+      provider_direction_aliases: provider_direction_aliases
+    ]
+    |> summary_assumptions_opts()
+    |> summary_assumptions()
+  end
+
+  def summary_assumptions(opts) do
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "required" => ["execution_boundary", "source", "operator_authority"],
+      "properties" => %{
+        "execution_boundary" => %{
+          "type" => "string",
+          "const" => "artifact_only_no_provider_reservation_or_schedule_mutation"
+        },
+        "source" => %{"type" => "string", "const" => "contact_allocation_report.v1"},
+        "operator_authority" => %{"type" => "string", "const" => "not_granted_by_summary"},
+        "row_statuses" => enum_array_const(Keyword.fetch!(opts, :row_statuses)),
+        "effective_row_statuses" =>
+          enum_array_const(Keyword.fetch!(opts, :effective_row_statuses)),
+        "station_unavailable_aliases" =>
+          enum_array_const(Keyword.fetch!(opts, :station_unavailable_aliases)),
+        "station_blocking_availability" =>
+          enum_array_const(Keyword.fetch!(opts, :station_blocking_availability)),
+        "station_availability_precedence" => %{
+          "type" => "object",
+          "const" => Keyword.fetch!(opts, :station_availability_precedence),
+          "additionalProperties" => %{"type" => "integer", "minimum" => 0}
+        },
+        "capacity_pack_statuses" =>
+          enum_array_const(Keyword.fetch!(opts, :capacity_pack_statuses)),
+        "reduced_capacity_pack_statuses" =>
+          enum_array_const(Keyword.fetch!(opts, :reduced_capacity_pack_statuses)),
+        "station_reservation_match_statuses" =>
+          enum_array_const(Keyword.fetch!(opts, :station_reservation_match_statuses)),
+        "station_reservation_expiration_statuses" =>
+          enum_array_const(Keyword.fetch!(opts, :station_reservation_expiration_statuses)),
+        "required_capacity_fraction_source_values" =>
+          enum_array_const(Keyword.fetch!(opts, :required_capacity_fraction_source_values)),
+        "required_capacity_value_paths" => %{
+          "type" => "array",
+          "const" => Keyword.fetch!(opts, :required_capacity_value_paths),
+          "items" => capacity_value_path()
+        },
+        "default_required_capacity_value_paths" => %{
+          "type" => "array",
+          "const" => Keyword.fetch!(opts, :default_required_capacity_value_paths),
+          "items" => capacity_value_path()
+        },
+        "provider_direction_aliases" => %{
+          "type" => "object",
+          "const" => Keyword.fetch!(opts, :provider_direction_aliases),
+          "additionalProperties" => %{"type" => "string"}
+        }
+      }
+    }
+  end
+
+  def capacity_value_path do
+    %{
+      "type" => "object",
+      "additionalProperties" => false,
+      "required" => ["unit", "path"],
+      "properties" => %{
+        "unit" => %{"type" => "string", "enum" => ["fraction", "percent"]},
+        "path" => OrbitalDynamics.Schema.CommonJsonSchema.string_array()
       }
     }
   end
@@ -399,6 +655,14 @@ defmodule OrbitalDynamics.Schema.ContactAllocationReportJsonSchema do
     %{"type" => "number", "minimum" => 0.0, "maximum" => 1.0}
   end
 
+  defp enum_array_const(values) do
+    %{
+      "type" => "array",
+      "const" => values,
+      "items" => %{"type" => "string", "enum" => values}
+    }
+  end
+
   defp non_negative_number_schema do
     %{"type" => "number", "minimum" => 0.0}
   end
@@ -409,5 +673,77 @@ defmodule OrbitalDynamics.Schema.ContactAllocationReportJsonSchema do
 
   defp stable_id_schema(stable_id_pattern) do
     %{"type" => "string", "pattern" => stable_id_pattern}
+  end
+
+  defp row_opts(deps) do
+    [
+      stable_id_pattern: fetch_dep!(deps, :stable_id_pattern),
+      stable_id_array_schema: fetch_dep!(deps, :stable_id_array_schema),
+      string_array_schema: fetch_dep!(deps, :string_array_schema),
+      number_array_schema: fetch_dep!(deps, :number_array_schema),
+      actual_data_rate_throughput_derivation_schema:
+        fetch_dep!(deps, :actual_data_rate_throughput_derivation_schema),
+      approval_requirement_schema: fetch_dep!(deps, :approval_requirement_schema),
+      policy_decision_rule_match_schema: fetch_dep!(deps, :policy_decision_rule_match_schema),
+      policy_decision_schema: fetch_dep!(deps, :policy_decision_schema),
+      source_contention_recommendation_schema:
+        fetch_dep!(deps, :source_contention_recommendation_schema),
+      contact_allocation_capability: fetch_dep!(deps, :contact_allocation_capability),
+      station_calendar_capability: fetch_dep!(deps, :station_calendar_capability),
+      deferred_priority_schema: fetch_dep!(deps, :deferred_priority_schema),
+      priority_field_evidence_counts_schema:
+        fetch_dep!(deps, :priority_field_evidence_counts_schema)
+    ]
+  end
+
+  defp capacity_pack_group_opts(deps) do
+    [
+      stable_id_pattern: fetch_dep!(deps, :stable_id_pattern),
+      stable_id_array_schema: fetch_dep!(deps, :stable_id_array_schema),
+      capacity_requirement_row_schema: fetch_dep!(deps, :capacity_requirement_row_schema),
+      source_contention_recommendation_schema:
+        fetch_dep!(deps, :source_contention_recommendation_schema)
+    ]
+  end
+
+  defp capacity_requirement_row_opts(deps) do
+    [
+      stable_id_pattern: fetch_dep!(deps, :stable_id_pattern)
+    ]
+  end
+
+  defp summary_assumptions_opts(deps) do
+    [
+      row_statuses: fetch_dep!(deps, :row_statuses),
+      effective_row_statuses: fetch_dep!(deps, :effective_row_statuses),
+      station_unavailable_aliases: fetch_dep!(deps, :station_unavailable_aliases),
+      station_blocking_availability: fetch_dep!(deps, :station_blocking_availability),
+      station_availability_precedence: fetch_dep!(deps, :station_availability_precedence),
+      capacity_pack_statuses: fetch_dep!(deps, :capacity_pack_statuses),
+      reduced_capacity_pack_statuses: fetch_dep!(deps, :reduced_capacity_pack_statuses),
+      station_reservation_match_statuses: fetch_dep!(deps, :station_reservation_match_statuses),
+      station_reservation_expiration_statuses:
+        fetch_dep!(deps, :station_reservation_expiration_statuses),
+      required_capacity_fraction_source_values:
+        fetch_dep!(deps, :required_capacity_fraction_source_values),
+      required_capacity_value_paths:
+        capacity_value_path_assumptions(fetch_dep!(deps, :required_capacity_value_paths)),
+      default_required_capacity_value_paths:
+        capacity_value_path_assumptions(fetch_dep!(deps, :default_required_capacity_value_paths)),
+      provider_direction_aliases: fetch_dep!(deps, :provider_direction_aliases)
+    ]
+  end
+
+  defp capacity_value_path_assumptions(paths) do
+    Enum.map(paths, fn %{unit: unit, path: path} ->
+      %{"unit" => Atom.to_string(unit), "path" => path}
+    end)
+  end
+
+  defp fetch_dep!(deps, key) do
+    case Keyword.fetch!(deps, key) do
+      fun when is_function(fun, 0) -> fun.()
+      value -> value
+    end
   end
 end

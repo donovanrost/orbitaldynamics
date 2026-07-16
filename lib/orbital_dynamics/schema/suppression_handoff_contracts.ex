@@ -162,6 +162,99 @@ defmodule OrbitalDynamics.Schema.SuppressionHandoffContracts do
     end
   end
 
+  def validate_duplicate_row_fields(issues, path, row, callbacks) when is_list(callbacks) do
+    if handoff_row?(row) do
+      issues
+      |> call(callbacks, :expect_optional_type, [
+        path,
+        row,
+        "duplicate_suppressed_candidate_id_collision",
+        :boolean
+      ])
+      |> call(callbacks, :expect_optional_integer, [
+        path,
+        row,
+        "duplicate_suppressed_candidate_index"
+      ])
+      |> call(callbacks, :expect_field_at_least, [
+        path,
+        row,
+        "duplicate_suppressed_candidate_index",
+        0
+      ])
+      |> call(callbacks, :expect_optional_integer, [
+        path,
+        row,
+        "duplicate_suppressed_candidate_count"
+      ])
+      |> call(callbacks, :expect_field_at_least, [
+        path,
+        row,
+        "duplicate_suppressed_candidate_count",
+        0
+      ])
+      |> call(callbacks, :validate_duplicate_suppressed_candidate_evidence, [path, row])
+    else
+      issues
+    end
+  end
+
+  def validate_duplicate_groups(issues, path, rows, callbacks)
+      when is_list(rows) and is_list(callbacks) do
+    duplicate_rows =
+      rows
+      |> Enum.with_index()
+      |> Enum.filter(fn {row, _index} ->
+        is_map(row) and handoff_row?(row) and
+          Map.get(row, "duplicate_suppressed_candidate_id_collision") == true and
+          present_string?(Map.get(row, "base_candidate_id"))
+      end)
+
+    duplicate_rows
+    |> Enum.group_by(fn {row, _index} ->
+      {
+        Map.get(row, "source_review_type") || Map.get(row, "review_type"),
+        Map.get(row, "source") || get_in(row, ["source_review_row", "source"]),
+        Map.get(row, "base_candidate_id")
+      }
+    end)
+    |> Enum.reduce(issues, fn {_key, group}, acc ->
+      expected_count = length(group)
+
+      acc =
+        Enum.reduce(group, acc, fn {row, row_index}, row_acc ->
+          call(row_acc, callbacks, :expect_field_equals, [
+            "#{path}.rows[#{row_index}]",
+            row,
+            "duplicate_suppressed_candidate_count",
+            expected_count
+          ])
+        end)
+
+      indexes =
+        group
+        |> Enum.map(fn {row, _index} -> Map.get(row, "duplicate_suppressed_candidate_index") end)
+        |> Enum.sort()
+
+      expected_indexes = Enum.to_list(1..expected_count)
+
+      if indexes == expected_indexes do
+        acc
+      else
+        [
+          call(callbacks, :error, [
+            "#{path}.rows",
+            "duplicate_suppressed_candidate_index values must cover 1..#{expected_count}"
+          ])
+          | acc
+        ]
+      end
+    end)
+  end
+
+  def validate_duplicate_groups(issues, _path, _rows, callbacks) when is_list(callbacks),
+    do: issues
+
   def source(row) do
     if handoff_row?(row) do
       cond do
@@ -185,6 +278,14 @@ defmodule OrbitalDynamics.Schema.SuppressionHandoffContracts do
         "review_resource_suppression"
       ]
   end
+
+  defp present_string?(value), do: is_binary(value) and String.trim(value) != ""
+
+  defp call(issues, callbacks, name, args),
+    do: apply(Keyword.fetch!(callbacks, name), [issues | args])
+
+  defp call(callbacks, name, args),
+    do: apply(Keyword.fetch!(callbacks, name), args)
 
   defp error(path, message) do
     %{"severity" => "error", "path" => path, "message" => message}

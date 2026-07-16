@@ -1,6 +1,52 @@
 defmodule OrbitalDynamics.Schema.AcceptedStateJsonSchema do
   @moduledoc false
 
+  @property_fields ["spacecraft_states", "maneuver_execution_deltas"]
+
+  def property_field?(field) when field in @property_fields, do: true
+  def property_field?(_field), do: false
+
+  def property_fun_from_context(deps) when is_list(deps) do
+    fn field ->
+      property(field, property_opts(field, deps))
+    end
+  end
+
+  def property_opts("spacecraft_states", deps) do
+    [spacecraft_state_estimate_schema: fetch_dep!(deps, :spacecraft_state_estimate_schema)]
+  end
+
+  def property_opts("maneuver_execution_deltas", deps) do
+    [maneuver_execution_delta_schema: fetch_dep!(deps, :maneuver_execution_delta_schema)]
+  end
+
+  def property_opts(_field, _deps), do: []
+
+  def property("spacecraft_states", opts) do
+    %{
+      "type" => "array",
+      "items" => Keyword.fetch!(opts, :spacecraft_state_estimate_schema)
+    }
+  end
+
+  def property("maneuver_execution_deltas", opts) do
+    %{
+      "type" => "array",
+      "items" => Keyword.fetch!(opts, :maneuver_execution_delta_schema)
+    }
+  end
+
+  def spacecraft_state_estimate_from_context(deps) when is_list(deps) do
+    spacecraft_state_estimate(
+      fetch_dep!(deps, :stable_id_pattern),
+      fetch_dep!(deps, :numeric_triplet_schema)
+    )
+  end
+
+  def spacecraft_state_estimate_from_context(stable_id_pattern, numeric_triplet_schema) do
+    spacecraft_state_estimate(stable_id_pattern, numeric_triplet_schema)
+  end
+
   def spacecraft_state_estimate(stable_id_pattern, numeric_triplet_schema) do
     %{
       "type" => "object",
@@ -80,6 +126,17 @@ defmodule OrbitalDynamics.Schema.AcceptedStateJsonSchema do
     }
   end
 
+  def maneuver_execution_delta_from_context(deps) when is_list(deps) do
+    maneuver_execution_delta(
+      fetch_dep!(deps, :stable_id_pattern),
+      fetch_dep!(deps, :numeric_triplet_schema)
+    )
+  end
+
+  def maneuver_execution_delta_from_context(stable_id_pattern, numeric_triplet_schema) do
+    maneuver_execution_delta(stable_id_pattern, numeric_triplet_schema)
+  end
+
   def maneuver_execution_delta(stable_id_pattern, numeric_triplet_schema) do
     %{
       "type" => "object",
@@ -140,5 +197,12 @@ defmodule OrbitalDynamics.Schema.AcceptedStateJsonSchema do
         }
       }
     ]
+  end
+
+  defp fetch_dep!(deps, key) do
+    case Keyword.fetch!(deps, key) do
+      fun when is_function(fun, 0) -> fun.()
+      value -> value
+    end
   end
 end

@@ -4,43 +4,27 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.Candidate do
   alias __MODULE__.Diff
   alias __MODULE__.Rejection
 
-  def diff(refresh_or_artifact, callbacks) do
-    Diff.replay(refresh_or_artifact, callbacks)
+  def diff(refresh_or_artifact, source_report_summary)
+      when is_function(source_report_summary, 1) do
+    Diff.replay(
+      refresh_or_artifact,
+      source_report_summary
+    )
   end
 
   def diff(diff_summary, summary_source, replay_scope) do
     Diff.summary(diff_summary, summary_source, replay_scope)
   end
 
-  def rejection(refresh_or_artifact, callbacks) do
-    Rejection.replay(refresh_or_artifact, callbacks)
+  def rejection(refresh_or_artifact, source_report_summary)
+      when is_function(source_report_summary, 1) do
+    Rejection.replay(
+      refresh_or_artifact,
+      source_report_summary
+    )
   end
 
   def rejection(rejection_summary, summary_source, replay_scope) do
     Rejection.summary(rejection_summary, summary_source, replay_scope)
-  end
-
-  def diff_source_report_fields(source_reports) do
-    Diff.source_report_fields(source_reports)
-  end
-
-  def diff_source_report_summary_fields(source_reports) do
-    Diff.source_report_summary_fields(source_reports)
-  end
-
-  def diff_source_report_detail_fields(source_reports) do
-    Diff.source_report_detail_fields(source_reports)
-  end
-
-  def rejection_source_report_fields(source_reports) do
-    Rejection.source_report_fields(source_reports)
-  end
-
-  def rejection_source_report_summary_fields(source_reports) do
-    Rejection.source_report_summary_fields(source_reports)
-  end
-
-  def rejection_source_report_detail_fields(source_reports) do
-    Rejection.source_report_detail_fields(source_reports)
   end
 end

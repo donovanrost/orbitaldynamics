@@ -1,6 +1,8 @@
 defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.StorageDownlinkPressure.Summary.CapacityPack do
   @moduledoc false
 
+  alias OrbitalDynamics.CandidateRefresh.ValueEncoding
+
   alias __MODULE__.ContactCount
   alias __MODULE__.Pressure
 
@@ -122,14 +124,5 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.StorageDownlinkPressure
 
   defp summary_integer(_summary, _field), do: 0
 
-  defp numeric_value(value) when is_number(value), do: value * 1.0
-
-  defp numeric_value(value) when is_binary(value) do
-    case Float.parse(String.trim(value)) do
-      {number, ""} -> number
-      _parse -> nil
-    end
-  end
-
-  defp numeric_value(_value), do: nil
+  defp numeric_value(value), do: ValueEncoding.numeric_value(value)
 end

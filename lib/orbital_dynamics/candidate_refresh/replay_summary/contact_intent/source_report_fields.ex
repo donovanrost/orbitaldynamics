@@ -3,6 +3,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactIntent.SourceRep
 
   alias OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactIntent.Summary
   alias __MODULE__.Flattened
+  alias __MODULE__.Pressure
 
   def source_report_fields(source_reports) do
     summary =
@@ -15,14 +16,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactIntent.SourceRep
 
     source_reports
     |> Flattened.source_report_fields()
-    |> Map.merge(%{
-      "source_report_contact_intent_branch_local_contact_intent_pressure" =>
-        Map.get(summary, "branch_local_contact_intent_pressure"),
-      "source_report_contact_intent_branch_local_station_feedback_pressure" =>
-        Map.get(summary, "branch_local_station_feedback_pressure"),
-      "source_report_contact_intent_branch_local_capacity_pack_pressure" =>
-        Map.get(summary, "branch_local_capacity_pack_pressure")
-    })
+    |> Map.merge(Pressure.source_report_fields(summary))
     |> compact_map()
   end
 

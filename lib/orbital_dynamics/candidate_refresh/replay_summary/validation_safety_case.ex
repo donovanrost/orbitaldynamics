@@ -1,17 +1,14 @@
 defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ValidationSafetyCase do
   @moduledoc false
 
-  alias __MODULE__.SourceReportFields
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.InputProvenance
+
   alias __MODULE__.Summary
 
-  def replay(refresh_or_artifact, callbacks) do
-    source_report_summary = Keyword.fetch!(callbacks, :source_report_summary)
-
-    source_report_summary_branch_family =
-      Keyword.fetch!(callbacks, :source_report_summary_branch_family)
-
-    branch_safety_case_summary =
-      source_report_summary_branch_family.(refresh_or_artifact, "validation_safety_case_summary")
+  def replay(refresh_or_artifact, source_report_summary)
+      when is_function(source_report_summary, 1) do
+    branch_safety_case_summary = source_report_summary_branch_family(refresh_or_artifact)
 
     safety_case_summary =
       branch_safety_case_summary ||
@@ -36,15 +33,19 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ValidationSafetyCase do
     summary(safety_case_summary, summary_source, replay_scope)
   end
 
-  def source_report_fields(refresh_or_artifact, source_reports, callbacks) do
-    SourceReportFields.source_report_fields(refresh_or_artifact, source_reports, callbacks)
-  end
-
   def pressure_fields(safety_case_summary) do
     Summary.pressure_fields(safety_case_summary)
   end
 
   def summary(safety_case_summary, summary_source, replay_scope) do
     Summary.summary(safety_case_summary, summary_source, replay_scope)
+  end
+
+  defp source_report_summary_branch_family(refresh_or_artifact) do
+    SourceReportSummary.branch_family(
+      refresh_or_artifact,
+      "validation_safety_case_summary",
+      &InputProvenance.build/1
+    )
   end
 end

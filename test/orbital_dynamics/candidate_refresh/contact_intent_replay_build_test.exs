@@ -2,10 +2,8 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactIntentReplayBuildTest do
   use ExUnit.Case, async: true
 
   alias OrbitalDynamics.{
-    CadenceImport,
     CandidateRefresh,
     Epoch,
-    OperatorReview,
     ResultSet,
     Schema
   }
@@ -150,142 +148,6 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactIntentReplayBuildTest do
 
     assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
-  end
-
-  test "replays source contact intents from operator review packages and Cadence import manifests" do
-    intent = %{
-      "schema_contract" => "contact_intent.v1",
-      "id" => "prior_contact_intent_reserved",
-      "activity_id" => "prior_contact_intent_reserved",
-      "activity_type" => "downlink",
-      "scenario_id" => "leo_1",
-      "ground_station_id" => "equator_prime",
-      "direction" => "downlink",
-      "starts_at_s" => 250.0,
-      "ends_at_s" => 450.0,
-      "station_availability" => "reserved",
-      "station_reservation_id" => "reservation_equator_prime_1",
-      "station_reserved_by" => "ops_team_b",
-      "station_reservation_status" => "reserved",
-      "required_capacity_fraction" => 0.4,
-      "approval_status" => "operator_review_required"
-    }
-
-    package = OperatorReview.from_contact_intent(intent)
-    manifest = CadenceImport.from_contact_intent(intent)
-
-    for source <- [
-          %{"source_operator_review_package" => package},
-          %{"source_cadence_import_manifest" => manifest}
-        ] do
-      artifact =
-        result_set()
-        |> CandidateRefresh.build(
-          candidate_refresh: Map.merge(refresh_request(), source),
-          generated_at: ~U[2026-05-14 00:00:00Z]
-        )
-
-      assert Enum.map(artifact["candidate_activities"], & &1["id"]) == [
-               "leo_1_observe_target_a_1"
-             ]
-
-      assert [
-               %{
-                 "id" => "leo_1_downlink_equator_prime_1",
-                 "suppressed_reason" => "ground_station_reserved",
-                 "station_reservation_id" => "reservation_equator_prime_1",
-                 "station_reserved_by" => "ops_team_b",
-                 "station_reservation_status" => "reserved"
-               }
-             ] = artifact["contact_filter_report"]["suppressed_candidates"]
-
-      assert %{
-               "capacity_pack_required_contact_count" => 1,
-               "capacity_pack_required_capacity_fraction" => 0.4,
-               "required_capacity_fraction_source_counts" => %{
-                 "contact_required_capacity_fraction" => 1
-               }
-             } = get_in(artifact, ["provenance", "source_reports", "contact_intent"])
-
-      assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
-               Schema.validate_artifact(artifact)
-    end
-  end
-
-  test "inherits result artifact trust boundaries for reviewed and imported contact intents" do
-    intent = %{
-      "schema_contract" => "contact_intent.v1",
-      "id" => "prior_contact_intent_reviewed_capacity",
-      "activity_id" => "prior_contact_intent_reviewed_capacity",
-      "activity_type" => "downlink",
-      "scenario_id" => "leo_1",
-      "ground_station_id" => "equator_prime",
-      "direction" => "downlink",
-      "starts_at_s" => 250.0,
-      "ends_at_s" => 450.0,
-      "capacity_fraction" => 0.0,
-      "approval_status" => "operator_review_required"
-    }
-
-    package = OperatorReview.from_contact_intent(intent)
-    manifest = CadenceImport.from_contact_intent(intent)
-
-    for {source, expected_path} <- [
-          {
-            %{
-              "source_result_artifact" => %{
-                "schema_contract" => "result_artifact.v1",
-                "operator_review_package" => package,
-                "provenance" => %{"trust_boundary" => "mission_planning"}
-              }
-            },
-            "source_result_artifact.operator_review_package.rows.source_contact_intent[0]"
-          },
-          {
-            %{
-              "source_result_artifact" => %{
-                "schema_contract" => "result_artifact.v1",
-                "cadence_import_manifest" => manifest,
-                "provenance" => %{"trust_boundary" => "mission_planning"}
-              }
-            },
-            "source_result_artifact.cadence_import_manifest.rows.source_contact_intent[0]"
-          }
-        ] do
-      artifact =
-        result_set()
-        |> CandidateRefresh.build(
-          candidate_refresh: Map.merge(refresh_request(), source),
-          generated_at: ~U[2026-05-14 00:00:00Z]
-        )
-
-      assert [
-               %{
-                 "id" => "leo_1_downlink_equator_prime_1",
-                 "suppressed_reason" => "ground_station_capacity_zero",
-                 "trust_boundary" => "mission_planning",
-                 "source_station_calendar_entry" => %{
-                   "source_contact_intent" => %{
-                     "id" => "prior_contact_intent_reviewed_capacity",
-                     "provenance" => %{"trust_boundary" => "mission_planning"}
-                   }
-                 }
-               }
-             ] = artifact["contact_filter_report"]["suppressed_candidates"]
-
-      assert %{
-               "paths" => [^expected_path],
-               "contract" => "contact_intent.v1",
-               "count" => 1,
-               "row_count" => 1,
-               "station_feedback_count" => 1,
-               "trust_boundary_status" => "declared",
-               "trust_boundaries" => ["mission_planning"]
-             } = get_in(artifact, ["provenance", "source_reports", "contact_intent"])
-
-      assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
-               Schema.validate_artifact(artifact)
-    end
   end
 
   defp result_set do

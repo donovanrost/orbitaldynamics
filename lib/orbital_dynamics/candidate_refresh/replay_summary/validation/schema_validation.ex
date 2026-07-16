@@ -1,17 +1,19 @@
 defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.Validation.SchemaValidation do
   @moduledoc false
 
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.InputProvenance
   alias OrbitalDynamics.CandidateRefresh.ReplaySummary.Validation.Common
-  alias OrbitalDynamics.CandidateRefresh.ReplaySummary.Validation.SourceReportFields
 
-  def from_refresh(refresh_or_artifact, callbacks) do
-    source_report_summary = Keyword.fetch!(callbacks, :source_report_summary)
+  alias OrbitalDynamics.CandidateRefresh.ReplaySummary.Validation.SourceReportFields.SchemaValidation,
+    as: SourceReportFields
 
-    source_report_summary_branch_family =
-      Keyword.fetch!(callbacks, :source_report_summary_branch_family)
-
-    branch_validation_summary =
-      source_report_summary_branch_family.(refresh_or_artifact, "schema_validation_report")
+  def from_refresh(
+        refresh_or_artifact,
+        source_report_summary
+      )
+      when is_function(source_report_summary, 1) do
+    branch_validation_summary = source_report_summary_branch_family(refresh_or_artifact)
 
     validation_summary =
       branch_validation_summary ||
@@ -25,12 +27,11 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.Validation.SchemaValida
     summary(validation_summary, summary_source, replay_scope)
   end
 
-  def source_report_fields(refresh_or_artifact, source_reports, callbacks) do
-    source_report_summary_branch_family =
-      Keyword.fetch!(callbacks, :source_report_summary_branch_family)
-
-    branch_validation_summary =
-      source_report_summary_branch_family.(refresh_or_artifact, "schema_validation_report")
+  def source_report_fields(
+        refresh_or_artifact,
+        source_reports
+      ) do
+    branch_validation_summary = source_report_summary_branch_family(refresh_or_artifact)
 
     validation_summary =
       branch_validation_summary || Map.get(source_reports, "schema_validation_report", %{})
@@ -49,7 +50,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.Validation.SchemaValida
       "source_report_schema_validation_branch_local_remediation_pressure" =>
         Map.get(summary, "branch_local_remediation_pressure")
     }
-    |> Map.merge(SourceReportFields.schema_validation_fields(source_reports))
+    |> Map.merge(SourceReportFields.fields(source_reports))
   end
 
   def summary(validation_summary, summary_source, replay_scope) do
@@ -129,5 +130,13 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.Validation.SchemaValida
         "schema_validation_source_report_provenance_only"
       }
     end
+  end
+
+  defp source_report_summary_branch_family(refresh_or_artifact) do
+    SourceReportSummary.branch_family(
+      refresh_or_artifact,
+      "schema_validation_report",
+      &InputProvenance.build/1
+    )
   end
 end

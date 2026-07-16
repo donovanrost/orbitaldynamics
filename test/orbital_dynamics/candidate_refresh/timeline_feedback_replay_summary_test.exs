@@ -331,6 +331,33 @@ defmodule OrbitalDynamics.CandidateRefresh.TimelineFeedbackReplaySummaryTest do
     refute Map.has_key?(source_summary, "source_report_timeline_feedback_paths")
   end
 
+  test "timeline feedback direct parser remains map-only for source report slots" do
+    report = %{
+      "schema_contract" => "timeline_feedback_report.v1",
+      "rows" => [
+        %{
+          "id" => "timeline_feedback:list_ignored",
+          "activity_id" => "list_ignored_activity",
+          "feedback_kind" => "contact",
+          "status" => "matched"
+        }
+      ]
+    }
+
+    refresh = %{"source_timeline_feedback_report" => [report]}
+
+    source_summary = CandidateRefresh.source_report_summary(refresh)
+    replay_summary = CandidateRefresh.timeline_feedback_replay_summary(refresh)
+
+    refute Map.has_key?(source_summary, "source_report_timeline_feedback_contract")
+    refute Map.has_key?(source_summary, "source_report_timeline_feedback_count")
+    refute Map.has_key?(source_summary, "source_report_timeline_feedback_row_count")
+    refute Map.has_key?(source_summary, "source_report_timeline_feedback_paths")
+    assert replay_summary["source_report_count"] == 0
+    assert replay_summary["source_report_row_count"] == 0
+    assert replay_summary["source_report_paths"] == []
+  end
+
   test "timeline feedback source summary keeps declared contract without partial identity placeholders" do
     placeholder_fields = [
       %{"count" => 1},

@@ -1,6 +1,10 @@
 defmodule OrbitalDynamics.CampaignPlanner.StrategyPriorPlanCandidates do
   @moduledoc false
 
+  alias OrbitalDynamics.CampaignPlanner.BranchRefreshSourceInputs
+
+  def normalize(prior_plan), do: normalize(prior_plan, default_callbacks())
+
   def normalize(prior_plan, callbacks) when is_list(callbacks) do
     prior_plan = stringify_keys(prior_plan || %{})
 
@@ -18,6 +22,9 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyPriorPlanCandidates do
     end
   end
 
+  def source_candidate_activities(prior_plan),
+    do: source_candidate_activities(prior_plan, default_callbacks())
+
   def source_candidate_activities(prior_plan, callbacks) when is_list(callbacks) do
     candidate_activity_rows(
       prior_plan,
@@ -26,12 +33,25 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyPriorPlanCandidates do
     )
   end
 
+  def candidate_activities(prior_plan), do: candidate_activities(prior_plan, default_callbacks())
+
   def candidate_activities(prior_plan, callbacks) when is_list(callbacks) do
     candidate_activity_rows(
       prior_plan,
       ["candidate_activities", "source_candidate_activities"],
       callbacks
     )
+  end
+
+  defp default_callbacks,
+    do: [
+      result_artifacts_with_source: &result_artifacts_with_source/1,
+      put_inherited_trust_boundary:
+        &BranchRefreshSourceInputs.put_inherited_result_artifact_trust_boundary/2
+    ]
+
+  defp result_artifacts_with_source(prior_plan) do
+    BranchRefreshSourceInputs.result_artifacts_with_source(prior_plan, "prior_plan")
   end
 
   defp candidate_activity_rows(prior_plan, fields, callbacks) do

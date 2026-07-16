@@ -1,6 +1,8 @@
 defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ManeuverReview.SourceReportFields.Flattened do
   @moduledoc false
 
+  alias OrbitalDynamics.CandidateRefresh.ValueEncoding
+
   def source_report_fields(source_reports) do
     %{
       "source_report_maneuver_review_contract" =>
@@ -111,16 +113,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ManeuverReview.SourceRe
     |> non_empty_map()
   end
 
-  defp numeric_value(value) when is_number(value), do: value * 1.0
-
-  defp numeric_value(value) when is_binary(value) do
-    case Float.parse(String.trim(value)) do
-      {number, ""} -> number
-      _parse -> nil
-    end
-  end
-
-  defp numeric_value(_value), do: nil
+  defp numeric_value(value), do: ValueEncoding.numeric_value(value)
 
   defp sorted_string_values(values) do
     values

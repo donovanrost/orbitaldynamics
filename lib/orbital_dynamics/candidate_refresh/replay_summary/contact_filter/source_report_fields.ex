@@ -2,6 +2,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactFilter.SourceRep
   @moduledoc false
 
   alias OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactFilter
+  alias __MODULE__.Pressure
   alias __MODULE__.StationSuppression
 
   import __MODULE__.Aggregation
@@ -15,16 +16,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactFilter.SourceRep
         "contact_filter_source_report_provenance_only"
       )
 
-    %{
-      "source_report_contact_filter_branch_local_contact_filter_pressure" =>
-        Map.get(summary, "branch_local_contact_filter_pressure"),
-      "source_report_contact_filter_branch_local_candidate_suppression_pressure" =>
-        Map.get(summary, "branch_local_candidate_suppression_pressure"),
-      "source_report_contact_filter_branch_local_invalid_contact_input_pressure" =>
-        Map.get(summary, "branch_local_invalid_contact_input_pressure"),
-      "source_report_contact_filter_branch_local_station_suppression_pressure" =>
-        Map.get(summary, "branch_local_station_suppression_pressure")
-    }
+    Pressure.source_report_fields(summary)
   end
 
   def source_report_summary_fields(source_reports) do
@@ -33,7 +25,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactFilter.SourceRep
     |> Map.merge(source_report_identity_fields(source_reports))
     |> Map.merge(source_report_suppression_fields(source_reports))
     |> Map.merge(source_report_direction_fields(source_reports))
-    |> Map.merge(source_report_station_suppression_fields(source_reports))
+    |> Map.merge(StationSuppression.fields(source_reports))
   end
 
   def source_report_identity_fields(source_reports) do
@@ -78,9 +70,5 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactFilter.SourceRep
       "source_report_contact_filter_direction_routing" =>
         source_report_family_field(source_reports, "direction_routing")
     }
-  end
-
-  def source_report_station_suppression_fields(source_reports) do
-    StationSuppression.fields(source_reports)
   end
 end

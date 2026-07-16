@@ -1,17 +1,19 @@
 defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.Validation.RefreshBudget do
   @moduledoc false
 
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.InputProvenance
   alias OrbitalDynamics.CandidateRefresh.ReplaySummary.Validation.Common
-  alias OrbitalDynamics.CandidateRefresh.ReplaySummary.Validation.SourceReportFields
 
-  def from_refresh(refresh_or_artifact, callbacks) do
-    source_report_summary = Keyword.fetch!(callbacks, :source_report_summary)
+  alias OrbitalDynamics.CandidateRefresh.ReplaySummary.Validation.SourceReportFields.RefreshBudget,
+    as: SourceReportFields
 
-    source_report_summary_branch_family =
-      Keyword.fetch!(callbacks, :source_report_summary_branch_family)
-
-    branch_budget_summary =
-      source_report_summary_branch_family.(refresh_or_artifact, "refresh_budget_report")
+  def from_refresh(
+        refresh_or_artifact,
+        source_report_summary
+      )
+      when is_function(source_report_summary, 1) do
+    branch_budget_summary = source_report_summary_branch_family(refresh_or_artifact)
 
     budget_summary =
       branch_budget_summary ||
@@ -25,12 +27,11 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.Validation.RefreshBudge
     summary(budget_summary, summary_source, replay_scope)
   end
 
-  def source_report_fields(refresh_or_artifact, source_reports, callbacks) do
-    source_report_summary_branch_family =
-      Keyword.fetch!(callbacks, :source_report_summary_branch_family)
-
-    branch_budget_summary =
-      source_report_summary_branch_family.(refresh_or_artifact, "refresh_budget_report")
+  def source_report_fields(
+        refresh_or_artifact,
+        source_reports
+      ) do
+    branch_budget_summary = source_report_summary_branch_family(refresh_or_artifact)
 
     budget_summary =
       branch_budget_summary || Map.get(source_reports, "refresh_budget_report", %{})
@@ -49,7 +50,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.Validation.RefreshBudge
       "source_report_refresh_budget_branch_local_candidate_limit_applied" =>
         Map.get(summary, "branch_local_candidate_limit_applied")
     }
-    |> Map.merge(SourceReportFields.refresh_budget_fields(source_reports))
+    |> Map.merge(SourceReportFields.fields(source_reports))
   end
 
   def summary(budget_summary, summary_source, replay_scope) do
@@ -125,5 +126,13 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.Validation.RefreshBudge
         "refresh_budget_source_report_provenance_only"
       }
     end
+  end
+
+  defp source_report_summary_branch_family(refresh_or_artifact) do
+    SourceReportSummary.branch_family(
+      refresh_or_artifact,
+      "refresh_budget_report",
+      &InputProvenance.build/1
+    )
   end
 end

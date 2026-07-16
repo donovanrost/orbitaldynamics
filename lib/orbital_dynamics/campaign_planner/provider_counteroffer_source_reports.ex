@@ -1,6 +1,9 @@
 defmodule OrbitalDynamics.CampaignPlanner.ProviderCounterofferSourceReports do
   @moduledoc false
 
+  alias __MODULE__.PressureRows
+  alias OrbitalDynamics.CampaignPlanner.{BranchRefreshSourceInputs, SourceReportArtifacts}
+
   @report_fields [
     {"source_provider_counteroffer_report", "mission_state.source_provider_counteroffer_report"},
     {"provider_counteroffer_report", "mission_state.provider_counteroffer_report"}
@@ -26,10 +29,14 @@ defmodule OrbitalDynamics.CampaignPlanner.ProviderCounterofferSourceReports do
     "provider_counteroffer_review_summary" => "mission_state.provider_counteroffer_review_summary"
   }
 
-  def reports(mission_state, opts) do
+  def reports(mission_state), do: reports(mission_state, default_callbacks())
+
+  def reports(mission_state, opts) when is_list(opts) do
     source_reports(mission_state, @report_fields, opts) ++
       result_artifact_embedded_reports(mission_state, @report_fields, opts)
   end
+
+  def source_reports(mission_state), do: source_reports(mission_state, default_callbacks())
 
   def source_reports(mission_state, opts) do
     source_reports(
@@ -42,12 +49,20 @@ defmodule OrbitalDynamics.CampaignPlanner.ProviderCounterofferSourceReports do
     )
   end
 
+  def source_reports_with_result_artifact_fallback(mission_state),
+    do: source_reports_with_result_artifact_fallback(mission_state, default_callbacks())
+
   def source_reports_with_result_artifact_fallback(mission_state, opts) do
-    case source_reports(mission_state, opts) do
-      [] -> result_artifact_embedded_reports(mission_state, @report_fields, opts)
-      reports -> reports
-    end
+    SourceReportArtifacts.source_reports_with_embedded_fallback(
+      mission_state,
+      &source_reports(&1, opts),
+      Enum.map(@report_fields, &elem(&1, 0)),
+      opts,
+      fn value -> value end
+    )
   end
+
+  def canonical_reports(mission_state), do: canonical_reports(mission_state, default_callbacks())
 
   def canonical_reports(mission_state, opts) do
     source_reports(
@@ -59,10 +74,16 @@ defmodule OrbitalDynamics.CampaignPlanner.ProviderCounterofferSourceReports do
     )
   end
 
+  def plan_impact_summaries(mission_state),
+    do: plan_impact_summaries(mission_state, default_callbacks())
+
   def plan_impact_summaries(mission_state, opts) do
     source_reports(mission_state, @plan_impact_summary_fields, opts) ++
       result_artifact_embedded_reports(mission_state, @plan_impact_summary_fields, opts)
   end
+
+  def source_plan_impact_summaries(mission_state),
+    do: source_plan_impact_summaries(mission_state, default_callbacks())
 
   def source_plan_impact_summaries(mission_state, opts) do
     source_reports(
@@ -75,6 +96,9 @@ defmodule OrbitalDynamics.CampaignPlanner.ProviderCounterofferSourceReports do
     )
   end
 
+  def canonical_plan_impact_summaries(mission_state),
+    do: canonical_plan_impact_summaries(mission_state, default_callbacks())
+
   def canonical_plan_impact_summaries(mission_state, opts) do
     source_reports(
       mission_state,
@@ -86,10 +110,22 @@ defmodule OrbitalDynamics.CampaignPlanner.ProviderCounterofferSourceReports do
     )
   end
 
+  def import_readiness_summaries(mission_state),
+    do: import_readiness_summaries(mission_state, default_callbacks())
+
   def import_readiness_summaries(mission_state, opts) do
     source_reports(mission_state, @import_readiness_summary_fields, opts) ++
       result_artifact_embedded_reports(mission_state, @import_readiness_summary_fields, opts)
   end
+
+  def pressure_sources(mission_state) do
+    reports(mission_state) ++
+      plan_impact_summaries(mission_state) ++
+      import_readiness_summaries(mission_state)
+  end
+
+  def source_import_readiness_summaries(mission_state),
+    do: source_import_readiness_summaries(mission_state, default_callbacks())
 
   def source_import_readiness_summaries(mission_state, opts) do
     source_reports(
@@ -102,6 +138,9 @@ defmodule OrbitalDynamics.CampaignPlanner.ProviderCounterofferSourceReports do
     )
   end
 
+  def canonical_import_readiness_summaries(mission_state),
+    do: canonical_import_readiness_summaries(mission_state, default_callbacks())
+
   def canonical_import_readiness_summaries(mission_state, opts) do
     source_reports(
       mission_state,
@@ -113,6 +152,10 @@ defmodule OrbitalDynamics.CampaignPlanner.ProviderCounterofferSourceReports do
     )
   end
 
+  def review_summary(mission_state, summary_key) do
+    review_summary(mission_state, summary_key, default_callbacks())
+  end
+
   def review_summary(mission_state, summary_key, opts) do
     case Map.fetch(@review_summary_paths, summary_key) do
       {:ok, source_path} -> source_reports(mission_state, [{summary_key, source_path}], opts)
@@ -120,140 +163,54 @@ defmodule OrbitalDynamics.CampaignPlanner.ProviderCounterofferSourceReports do
     end
   end
 
-  def pressure_rows(reports) do
-    reports
-    |> Enum.flat_map(fn {report, source_path} ->
-      trust_boundary =
-        Map.get(report, "trust_boundary") || get_in(report, ["provenance", "trust_boundary"])
-
-      {rows, row_source_path} = pressure_row_collection(report, source_path)
-
-      rows
-      |> List.wrap()
-      |> Enum.map(&stringify_keys/1)
-      |> Enum.with_index(1)
-      |> Enum.map(fn {row, index} ->
-        {Map.put(row, "_source_report_trust_boundary", trust_boundary), row_source_path, index}
-      end)
+  def candidate_refresh_source_inputs(mission_state) do
+    Map.new(candidate_refresh_source_input_collectors(), fn {key, collector} ->
+      {key, BranchRefreshSourceInputs.source_reports_or_reports(mission_state, collector)}
     end)
   end
 
-  defp source_reports(mission_state, fields, opts) do
-    callbacks = callbacks!(opts)
-    mission_state = stringify_keys(mission_state || %{})
+  def pressure_rows(reports) do
+    PressureRows.pressure_rows(reports)
+  end
 
-    fields
-    |> Enum.flat_map(fn {field, source_path} ->
-      callbacks.source_report_entries.(Map.get(mission_state, field), source_path)
-    end)
+  defp candidate_refresh_source_input_collectors,
+    do: [
+      {"source_provider_counteroffer_report", &source_reports_with_result_artifact_fallback/1},
+      {"provider_counteroffer_report", &canonical_reports/1},
+      {"source_provider_counteroffer_review_summary",
+       &review_summary(&1, "source_provider_counteroffer_review_summary")},
+      {"provider_counteroffer_review_summary",
+       &review_summary(&1, "provider_counteroffer_review_summary")},
+      {"source_provider_counteroffer_import_readiness_summary",
+       &source_import_readiness_summaries/1},
+      {"provider_counteroffer_import_readiness_summary", &canonical_import_readiness_summaries/1},
+      {"source_provider_counteroffer_plan_impact_summary", &source_plan_impact_summaries/1},
+      {"provider_counteroffer_plan_impact_summary", &canonical_plan_impact_summaries/1}
+    ]
+
+  defp source_reports(mission_state, fields, opts) do
+    SourceReportArtifacts.source_reports(mission_state, fields, opts, &stringify_keys/1)
   end
 
   defp result_artifact_embedded_reports(mission_state, fields, opts) do
-    callbacks = callbacks!(opts)
-
     fields
-    |> Enum.flat_map(fn {report_key, _source_path} ->
-      callbacks.result_artifact_embedded_reports.(mission_state, report_key)
-    end)
+    |> Enum.map(&elem(&1, 0))
+    |> then(&SourceReportArtifacts.embedded_reports(mission_state, &1, opts))
   end
 
-  defp pressure_row_collection(%{"impact_rows" => rows}, source_path),
-    do: {rows, "#{source_path}.impact_rows"}
-
-  defp pressure_row_collection(%{"import_readiness_rows" => rows} = report, source_path) do
-    rows =
-      rows
-      |> List.wrap()
-      |> Enum.map(&import_readiness_pressure_row(&1, report))
-
-    {rows, "#{source_path}.import_readiness_rows"}
+  defp default_callbacks do
+    [
+      source_report_entries: &BranchRefreshSourceInputs.source_report_entries/2,
+      result_artifact_embedded_reports: &mission_state_result_artifact_embedded_reports/2
+    ]
   end
 
-  defp pressure_row_collection(%{"rows" => rows}, source_path), do: {rows, "#{source_path}.rows"}
-  defp pressure_row_collection(_report, source_path), do: {[], source_path}
-
-  defp import_readiness_pressure_row(row, report) do
-    row = stringify_keys(row)
-
-    row
-    |> put_new_present(
-      "import_readiness_status",
-      import_readiness_pressure_status(row, report)
+  defp mission_state_result_artifact_embedded_reports(mission_state, report_keys) do
+    BranchRefreshSourceInputs.result_artifact_embedded_reports(
+      mission_state,
+      "mission_state",
+      report_keys
     )
-    |> put_new_present(
-      "import_classification",
-      import_readiness_pressure_classification(row, report)
-    )
-  end
-
-  defp import_readiness_pressure_status(row, report) do
-    cond do
-      pressure_row_review_required?(row) -> "review_required"
-      pressure_row_import_ready?(row) -> "import_ready"
-      true -> report["import_readiness_status"]
-    end
-  end
-
-  defp import_readiness_pressure_classification(row, report) do
-    cond do
-      pressure_row_review_required?(row) -> "review_only"
-      pressure_row_import_ready?(row) -> "ready"
-      true -> report["import_classification"]
-    end
-  end
-
-  defp pressure_row_review_required?(row) do
-    normalized_status_token(row["provider_counteroffer_import_status"]) ==
-      "review_required_before_import" or
-      normalized_status_token(row["required_operator_action"]) in [
-        "review_provider_counteroffer",
-        "review_required",
-        "review_required_before_import"
-      ] or row["reviewable"] == true
-  end
-
-  defp pressure_row_import_ready?(row) do
-    normalized_status_token(row["provider_counteroffer_import_status"]) in [
-      "import_ready",
-      "no_import_required"
-    ] or
-      normalized_status_token(row["required_operator_action"]) in [
-        "none",
-        "no_import_required"
-      ]
-  end
-
-  defp put_new_present(map, _key, value) when value in [nil, "", [], %{}], do: map
-
-  defp put_new_present(map, key, value) do
-    case Map.get(map, key) do
-      blank when blank in [nil, "", [], %{}] -> Map.put(map, key, value)
-      _present -> map
-    end
-  end
-
-  defp normalized_status_token(nil), do: nil
-
-  defp normalized_status_token(status) when is_atom(status) do
-    status
-    |> Atom.to_string()
-    |> normalized_status_token()
-  end
-
-  defp normalized_status_token(status) when is_binary(status) do
-    status
-    |> String.trim()
-    |> String.downcase()
-    |> String.replace(~r/[\s-]+/, "_")
-  end
-
-  defp normalized_status_token(status), do: status
-
-  defp callbacks!(opts) do
-    %{
-      source_report_entries: Keyword.fetch!(opts, :source_report_entries),
-      result_artifact_embedded_reports: Keyword.fetch!(opts, :result_artifact_embedded_reports)
-    }
   end
 
   defp stringify_keys(%_struct{} = struct), do: struct |> Map.from_struct() |> stringify_keys()

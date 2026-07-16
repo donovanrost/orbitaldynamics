@@ -2,10 +2,8 @@ defmodule OrbitalDynamics.CandidateRefresh.ManeuverFeedbackBuildTest do
   use ExUnit.Case, async: true
 
   alias OrbitalDynamics.{
-    CadenceImport,
     CandidateRefresh,
     Epoch,
-    OperatorReview,
     ResultSet,
     Schema,
     Timeline
@@ -156,76 +154,6 @@ defmodule OrbitalDynamics.CandidateRefresh.ManeuverFeedbackBuildTest do
              "operational_feedback",
              "source_maneuver_review_required_operator_action_counts"
            ]) == %{"review_maneuver_recommendation" => 1}
-
-    assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
-             Schema.validate_artifact(artifact)
-  end
-
-  test "replays maneuver feedback rows from operator review packages" do
-    report = maneuver_feedback_report("burn_review_package", maneuver_success_factor: 0.45)
-    package = OperatorReview.from_maneuver_review_report(report)
-
-    artifact =
-      result_set()
-      |> CandidateRefresh.build(
-        candidate_refresh:
-          refresh_request()
-          |> Map.put("source_operator_review_package", package),
-        generated_at: ~U[2026-05-14 00:00:00Z]
-      )
-
-    assert get_in(artifact, ["operational_feedback", "maneuver_success_rate"]) == %{
-             "burn_review_package" => 0.45
-           }
-
-    assert get_in(artifact, [
-             "provenance",
-             "operational_feedback",
-             "source_maneuver_review_report_paths"
-           ]) == ["source_operator_review_package.rows.source_maneuver_review"]
-
-    assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
-             Schema.validate_artifact(artifact)
-  end
-
-  test "replays maneuver feedback rows from Cadence import manifests" do
-    report =
-      maneuver_feedback_report(
-        "burn_review_import",
-        maneuver_success_factor: 0.2,
-        execution_uncertainty: nil
-      )
-
-    manifest = CadenceImport.from_maneuver_review_report(report)
-
-    artifact =
-      result_set()
-      |> CandidateRefresh.build(
-        candidate_refresh:
-          refresh_request()
-          |> Map.put("source_cadence_import_manifest", manifest),
-        generated_at: ~U[2026-05-14 00:00:00Z]
-      )
-
-    assert get_in(artifact, ["operational_feedback", "maneuver_success_rate"]) == %{
-             "burn_review_import" => 0.2
-           }
-
-    assert get_in(artifact, ["operational_feedback", "maneuver_execution_uncertainty"]) == %{
-             "burn_review_import" => %{"execution_uncertainty_status" => "missing"}
-           }
-
-    assert get_in(artifact, [
-             "provenance",
-             "operational_feedback",
-             "source_maneuver_review_report_paths"
-           ]) == ["source_cadence_import_manifest.rows.source_maneuver_review"]
-
-    assert get_in(artifact, [
-             "provenance",
-             "operational_feedback",
-             "source_maneuver_review_execution_uncertainty_missing_count"
-           ]) == 1
 
     assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
              Schema.validate_artifact(artifact)

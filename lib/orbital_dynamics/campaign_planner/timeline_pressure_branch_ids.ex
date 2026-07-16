@@ -1,6 +1,8 @@
 defmodule OrbitalDynamics.CampaignPlanner.TimelinePressureBranchIds do
   @moduledoc false
 
+  alias OrbitalDynamics.CampaignPlanner.ValueEncoding
+
   @families %{
     integrity: %{
       prefix: "derived_timeline_integrity_pressure_",
@@ -309,39 +311,104 @@ defmodule OrbitalDynamics.CampaignPlanner.TimelinePressureBranchIds do
         "selected_activity_source",
         "trust_boundary"
       ]
+    },
+    review_replay: %{
+      prefixes: [
+        "derived_operational_timeline_feedback_",
+        "derived_candidate_diff_replacement_",
+        "derived_candidate_rejection_pressure_",
+        "derived_provider_counteroffer_pressure_",
+        "derived_schema_validation_pressure_",
+        "derived_operational_readiness_pressure_",
+        "derived_quality_gate_pressure_",
+        "derived_model_acceptance_pressure_",
+        "derived_validation_safety_case_pressure_",
+        "derived_refresh_budget_pressure_",
+        "derived_refresh_freshness_pressure_",
+        "derived_command_window_feedback_",
+        "derived_maneuver_review_feedback_",
+        "derived_realized_feedback_",
+        "derived_contact_intent_pressure_",
+        "derived_station_calendar_pressure_",
+        "derived_station_calendar_provider_contention_"
+      ],
+      base_key: "review_replay_branch_base_id",
+      identity_key: "review_replay_branch_identity",
+      metadata_fields: [
+        "derived_source"
+      ],
+      event_fields: [
+        "feedback_source",
+        "feedback_scope",
+        "feedback_key",
+        "derivation_reasons",
+        "trust_boundary",
+        "activity_id",
+        "maneuver_id",
+        "timeline_id",
+        "replacement_candidate_id",
+        "invalidated_candidate_id",
+        "freshness_status",
+        "relaxed_max_candidate_activities",
+        "station_calendar_entry_id",
+        "station_calendar_provider_id",
+        "station_calendar_provider_entry_id",
+        "station_calendar_status",
+        "station_availability",
+        "station_reservation_id",
+        "station_reserved_by",
+        "station_reservation_status",
+        "station_reservation_match_status",
+        "provider_calendar_contention_group_id",
+        "provider_calendar_contention_status",
+        "ground_station_id",
+        "target_id",
+        "direction",
+        "starts_at_s",
+        "ends_at_s",
+        "contact_success_factor",
+        "station_throughput_factor",
+        "observation_success_factor",
+        "command_success_factor",
+        "maneuver_success_factor",
+        "cadence_import_status",
+        "required_operator_action"
+      ]
     }
   }
 
-  def disambiguate_timeline_integrity_pressure_branch_ids(branches, opts),
-    do: disambiguate(branches, Map.fetch!(@families, :integrity), callbacks!(opts))
+  def disambiguate_timeline_integrity_pressure_branch_ids(branches),
+    do: disambiguate(branches, Map.fetch!(@families, :integrity))
 
-  def disambiguate_timeline_dependency_impact_pressure_branch_ids(branches, opts),
-    do: disambiguate(branches, Map.fetch!(@families, :dependency_impact), callbacks!(opts))
+  def disambiguate_timeline_dependency_impact_pressure_branch_ids(branches),
+    do: disambiguate(branches, Map.fetch!(@families, :dependency_impact))
 
-  def disambiguate_timeline_publication_pressure_branch_ids(branches, opts),
-    do: disambiguate(branches, Map.fetch!(@families, :publication), callbacks!(opts))
+  def disambiguate_timeline_publication_pressure_branch_ids(branches),
+    do: disambiguate(branches, Map.fetch!(@families, :publication))
 
-  def disambiguate_timeline_lifecycle_state_pressure_branch_ids(branches, opts),
-    do: disambiguate(branches, Map.fetch!(@families, :lifecycle_state), callbacks!(opts))
+  def disambiguate_timeline_lifecycle_state_pressure_branch_ids(branches),
+    do: disambiguate(branches, Map.fetch!(@families, :lifecycle_state))
 
-  def disambiguate_timeline_activity_lifecycle_state_pressure_branch_ids(branches, opts),
-    do: disambiguate(branches, Map.fetch!(@families, :activity_lifecycle_state), callbacks!(opts))
+  def disambiguate_timeline_activity_lifecycle_state_pressure_branch_ids(branches),
+    do: disambiguate(branches, Map.fetch!(@families, :activity_lifecycle_state))
 
-  def disambiguate_timeline_activity_precondition_pressure_branch_ids(branches, opts),
-    do: disambiguate(branches, Map.fetch!(@families, :activity_precondition), callbacks!(opts))
+  def disambiguate_timeline_activity_precondition_pressure_branch_ids(branches),
+    do: disambiguate(branches, Map.fetch!(@families, :activity_precondition))
 
-  def disambiguate_timeline_preservation_pressure_branch_ids(branches, opts),
-    do: disambiguate(branches, Map.fetch!(@families, :preservation), callbacks!(opts))
+  def disambiguate_timeline_preservation_pressure_branch_ids(branches),
+    do: disambiguate(branches, Map.fetch!(@families, :preservation))
 
-  def disambiguate_timeline_diff_pressure_branch_ids(branches, opts),
+  def disambiguate_timeline_diff_pressure_branch_ids(branches),
     do:
       disambiguate_timeline_diff(
         branches,
-        Map.fetch!(@families, :timeline_diff),
-        callbacks!(opts)
+        Map.fetch!(@families, :timeline_diff)
       )
 
-  defp disambiguate_timeline_diff(branches, family, callbacks) do
+  def disambiguate_review_replay_pressure_branch_ids(branches),
+    do: disambiguate(branches, Map.fetch!(@families, :review_replay))
+
+  defp disambiguate_timeline_diff(branches, family) do
     id_counts = Enum.frequencies_by(branches, & &1["id"])
 
     keep_first_branch_ids =
@@ -371,7 +438,7 @@ defmodule OrbitalDynamics.CampaignPlanner.TimelinePressureBranchIds do
         seen_ids = Map.update(seen_ids, branch_id, 1, &(&1 + 1))
 
         {
-          disambiguate_branch(branch, branch_id, index, family, callbacks),
+          disambiguate_branch(branch, branch_id, index, family),
           seen_ids
         }
       else
@@ -382,7 +449,7 @@ defmodule OrbitalDynamics.CampaignPlanner.TimelinePressureBranchIds do
     |> disambiguate_duplicate_suffixes(family)
   end
 
-  defp disambiguate(branches, family, callbacks) do
+  defp disambiguate(branches, family) do
     id_counts = Enum.frequencies_by(branches, & &1["id"])
 
     branches
@@ -391,7 +458,7 @@ defmodule OrbitalDynamics.CampaignPlanner.TimelinePressureBranchIds do
       branch_id = branch["id"]
 
       if branch_id?(branch_id, family) and Map.get(id_counts, branch_id, 0) > 1 do
-        disambiguate_branch(branch, branch_id, index, family, callbacks)
+        disambiguate_branch(branch, branch_id, index, family)
       else
         branch
       end
@@ -399,7 +466,12 @@ defmodule OrbitalDynamics.CampaignPlanner.TimelinePressureBranchIds do
     |> disambiguate_duplicate_suffixes(family)
   end
 
-  defp branch_id?(id, family) when is_binary(id), do: String.starts_with?(id, family.prefix)
+  defp branch_id?(id, %{prefix: prefix}) when is_binary(id),
+    do: String.starts_with?(id, prefix)
+
+  defp branch_id?(id, %{prefixes: prefixes}) when is_binary(id),
+    do: Enum.any?(prefixes, &String.starts_with?(id, &1))
+
   defp branch_id?(_id, _family), do: false
 
   defp transition_application_branch?(branch) do
@@ -409,11 +481,11 @@ defmodule OrbitalDynamics.CampaignPlanner.TimelinePressureBranchIds do
     |> Enum.any?(&(&1["type"] == "timeline_transition_application_pressure"))
   end
 
-  defp disambiguate_branch(branch, branch_id, index, family, callbacks) do
+  defp disambiguate_branch(branch, branch_id, index, family) do
     suffix =
       branch
-      |> branch_identity(index, family, callbacks)
-      |> callbacks.branch_id_fragment.()
+      |> branch_identity(index, family)
+      |> ValueEncoding.branch_id_fragment()
 
     branch
     |> Map.put("id", "#{branch_id}_#{suffix}")
@@ -444,27 +516,23 @@ defmodule OrbitalDynamics.CampaignPlanner.TimelinePressureBranchIds do
     end)
   end
 
-  defp branch_identity(branch, index, family, callbacks) do
+  defp branch_identity(branch, index, family) do
+    metadata = Map.get(branch, "metadata", %{})
+    metadata_fields = Map.get(family, :metadata_fields, [])
+
     branch
     |> Map.get("events", [])
     |> List.wrap()
     |> Enum.flat_map(fn event ->
-      Enum.map(family.event_fields, &event[&1])
+      Enum.map(metadata_fields, &metadata[&1]) ++ Enum.map(family.event_fields, &event[&1])
     end)
     |> List.flatten()
-    |> Enum.map(&callbacks.encode_value.(&1))
+    |> Enum.map(&ValueEncoding.encode_value/1)
     |> Enum.reject(&(&1 in [nil, ""]))
     |> Enum.uniq()
     |> case do
       [] -> index
       identifiers -> Enum.join(identifiers, "_")
     end
-  end
-
-  defp callbacks!(opts) do
-    %{
-      branch_id_fragment: Keyword.fetch!(opts, :branch_id_fragment),
-      encode_value: Keyword.fetch!(opts, :encode_value)
-    }
   end
 end

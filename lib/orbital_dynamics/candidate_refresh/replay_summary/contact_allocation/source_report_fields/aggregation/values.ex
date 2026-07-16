@@ -1,6 +1,8 @@
 defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.SourceReportFields.Aggregation.Values do
   @moduledoc false
 
+  alias OrbitalDynamics.CandidateRefresh.ValueEncoding
+
   def merge_count_maps(count_maps) do
     count_maps
     |> Enum.reject(&(&1 in [nil, %{}]))
@@ -107,16 +109,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactAllocation.Sourc
     end
   end
 
-  def numeric_value(value) when is_number(value), do: value * 1.0
-
-  def numeric_value(value) when is_binary(value) do
-    case Float.parse(String.trim(value)) do
-      {number, ""} -> number
-      _parse -> nil
-    end
-  end
-
-  def numeric_value(_value), do: nil
+  def numeric_value(value), do: ValueEncoding.numeric_value(value)
 
   defp list_value(values) when is_list(values), do: values
   defp list_value(_values), do: []

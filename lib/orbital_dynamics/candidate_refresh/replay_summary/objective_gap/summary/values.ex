@@ -1,44 +1,11 @@
 defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ObjectiveGap.Summary.Values do
   @moduledoc false
 
+  alias __MODULE__.GapCounts
   alias OrbitalDynamics.CandidateRefresh.ReplaySummary.ObjectiveGap.Summary.Helpers
 
   def values(satisfaction_summary, tradeoff_summary, score_term_summary) do
-    satisfaction_gap_count = Helpers.summary_integer(satisfaction_summary, "gap_row_count")
-
-    satisfaction_downlink_count =
-      Helpers.summary_integer(satisfaction_summary, "downlink_gap_row_count")
-
-    satisfaction_target_count =
-      Helpers.summary_integer(satisfaction_summary, "target_gap_row_count")
-
-    satisfaction_collection_count =
-      Helpers.summary_integer(satisfaction_summary, "collection_latency_gap_row_count")
-
-    tradeoff_downlink_count = Helpers.summary_integer(tradeoff_summary, "downlink_gap_row_count")
-    tradeoff_target_count = Helpers.summary_integer(tradeoff_summary, "target_gap_row_count")
-
-    tradeoff_collection_count =
-      Helpers.summary_integer(tradeoff_summary, "collection_latency_gap_row_count")
-
-    score_downlink_count = Helpers.summary_integer(score_term_summary, "downlink_gap_row_count")
-    score_target_count = Helpers.summary_integer(score_term_summary, "target_gap_row_count")
-
-    score_collection_count =
-      Helpers.summary_integer(score_term_summary, "collection_latency_gap_row_count")
-
-    downlink_gap_count =
-      satisfaction_downlink_count + tradeoff_downlink_count + score_downlink_count
-
-    target_gap_count = satisfaction_target_count + tradeoff_target_count + score_target_count
-
-    collection_latency_gap_count =
-      satisfaction_collection_count + tradeoff_collection_count + score_collection_count
-
-    routed_gap_signal_count =
-      satisfaction_gap_count + tradeoff_downlink_count + tradeoff_target_count +
-        tradeoff_collection_count + score_downlink_count + score_target_count +
-        score_collection_count
+    gap_counts = GapCounts.counts(satisfaction_summary, tradeoff_summary, score_term_summary)
 
     status_counts = Map.get(satisfaction_summary, "status_counts", %{})
     objective_type_counts = Map.get(satisfaction_summary, "objective_type_counts", %{})
@@ -85,19 +52,19 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ObjectiveGap.Summary.Va
         summary_total("row_count", satisfaction_summary, tradeoff_summary, score_term_summary),
       source_report_paths:
         source_report_paths(satisfaction_summary, tradeoff_summary, score_term_summary),
-      routed_gap_signal_count: routed_gap_signal_count,
-      downlink_gap_count: downlink_gap_count,
-      target_gap_count: target_gap_count,
-      collection_latency_gap_count: collection_latency_gap_count,
-      satisfaction_gap_count: satisfaction_gap_count,
+      routed_gap_signal_count: gap_counts.routed_gap_signal_count,
+      downlink_gap_count: gap_counts.downlink_gap_count,
+      target_gap_count: gap_counts.target_gap_count,
+      collection_latency_gap_count: gap_counts.collection_latency_gap_count,
+      satisfaction_gap_count: gap_counts.satisfaction_gap_count,
       status_counts: status_counts,
       objective_type_counts: objective_type_counts,
-      tradeoff_downlink_count: tradeoff_downlink_count,
-      tradeoff_target_count: tradeoff_target_count,
-      tradeoff_collection_count: tradeoff_collection_count,
-      score_downlink_count: score_downlink_count,
-      score_target_count: score_target_count,
-      score_collection_count: score_collection_count,
+      tradeoff_downlink_count: gap_counts.tradeoff_downlink_count,
+      tradeoff_target_count: gap_counts.tradeoff_target_count,
+      tradeoff_collection_count: gap_counts.tradeoff_collection_count,
+      score_downlink_count: gap_counts.score_downlink_count,
+      score_target_count: gap_counts.score_target_count,
+      score_collection_count: gap_counts.score_collection_count,
       term_key_counts: term_key_counts,
       ground_station_counts: ground_station_counts,
       target_counts: target_counts,
@@ -108,11 +75,11 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ObjectiveGap.Summary.Va
       trust_boundaries:
         trust_boundaries(satisfaction_summary, tradeoff_summary, score_term_summary),
       branch_local_objective_gap_pressure:
-        routed_gap_signal_count > 0 or objective_status_pressure or score_term_pressure or
-          routing_pressure,
-      branch_local_downlink_gap_pressure: downlink_gap_count > 0,
-      branch_local_target_gap_pressure: target_gap_count > 0,
-      branch_local_collection_latency_gap_pressure: collection_latency_gap_count > 0,
+        gap_counts.routed_gap_signal_count > 0 or objective_status_pressure or
+          score_term_pressure or routing_pressure,
+      branch_local_downlink_gap_pressure: gap_counts.downlink_gap_count > 0,
+      branch_local_target_gap_pressure: gap_counts.target_gap_count > 0,
+      branch_local_collection_latency_gap_pressure: gap_counts.collection_latency_gap_count > 0,
       objective_status_pressure: objective_status_pressure,
       score_term_pressure: score_term_pressure,
       routing_pressure: routing_pressure

@@ -1,6 +1,30 @@
 defmodule OrbitalDynamics.CampaignPlanner.OperatorReviewOperationalFeedback do
   @moduledoc false
 
+  alias OrbitalDynamics.CampaignPlanner.{
+    CommandWindowOperationalFeedback,
+    ContactThroughputFields,
+    FeedbackNumericValues,
+    ManeuverReviewOperationalFeedback,
+    ObservationQualityValues,
+    OperatorReviewFeedbackRows,
+    RealizedActivitySuccessValues,
+    RealizedDownlinkDemandFeedback,
+    RealizedFeedbackAggregation,
+    RealizedFeedbackRows
+  }
+
+  def from_rows(rows) do
+    operational_timeline_rows = OperatorReviewFeedbackRows.operational_timeline_rows(rows)
+    realized_feedback_rows = OperatorReviewFeedbackRows.realized_feedback_rows(rows)
+
+    from_rows(rows, operational_timeline_rows, realized_feedback_rows, default_callbacks())
+  end
+
+  def from_rows(rows, operational_timeline_rows, realized_feedback_rows) do
+    from_rows(rows, operational_timeline_rows, realized_feedback_rows, default_callbacks())
+  end
+
   def from_rows(rows, operational_timeline_rows, realized_feedback_rows, opts)
       when is_list(opts) do
     command_feedback = Keyword.fetch!(opts, :command_feedback)
@@ -11,6 +35,10 @@ defmodule OrbitalDynamics.CampaignPlanner.OperatorReviewOperationalFeedback do
     |> from_contact_observation_rows(row_sets.observation, opts)
     |> Map.merge(command_feedback.(row_sets.command))
     |> Map.merge(maneuver_feedback.(row_sets.maneuver))
+  end
+
+  def from_contact_observation_rows(contact_rows, observation_rows) do
+    from_contact_observation_rows(contact_rows, observation_rows, default_callbacks())
   end
 
   def from_contact_observation_rows(contact_rows, observation_rows, opts) when is_list(opts) do
@@ -70,5 +98,44 @@ defmodule OrbitalDynamics.CampaignPlanner.OperatorReviewOperationalFeedback do
         |> Kernel.++(Enum.filter(operational_timeline_rows, maneuver_feedback_row?))
         |> Kernel.++(Enum.filter(realized_feedback_rows, maneuver_feedback_row?))
     }
+  end
+
+  defp default_callbacks do
+    [
+      contact_feedback_row?: &RealizedFeedbackRows.operator_review_contact?/1,
+      observation_feedback_row?: &RealizedFeedbackRows.operator_review_observation?/1,
+      command_feedback_row?: &RealizedFeedbackRows.operator_review_command?/1,
+      maneuver_feedback_row?: &RealizedFeedbackRows.operator_review_maneuver?/1,
+      command_window_rows: &CommandWindowOperationalFeedback.operator_review_rows/1,
+      maneuver_review_rows: &ManeuverReviewOperationalFeedback.operator_review_rows/1,
+      command_feedback: &CommandWindowOperationalFeedback.from_rows/1,
+      maneuver_feedback: &ManeuverReviewOperationalFeedback.from_rows/1,
+      station_feedback_average: &RealizedFeedbackAggregation.station_average/2,
+      target_feedback_average: &RealizedFeedbackAggregation.target_average/2,
+      target_feedback_text: &RealizedFeedbackAggregation.target_text/2,
+      contact_success_value: &operational_timeline_contact_success_value/1,
+      observation_success_value: &operational_timeline_observation_success_value/1,
+      image_quality_score_value: &ObservationQualityValues.image_quality_score/1,
+      image_quality_status_value: &ObservationQualityValues.image_quality_status/1,
+      image_quality_source_value: &ObservationQualityValues.image_quality_source/1,
+      cloud_cover_fraction_value: &ObservationQualityValues.cloud_cover_fraction/1,
+      blur_score_value: &ObservationQualityValues.blur_score/1,
+      station_throughput_value: &ContactThroughputFields.station_throughput_value/1,
+      station_downlink_demand_feedback: &RealizedDownlinkDemandFeedback.station_feedback/1
+    ]
+  end
+
+  defp operational_timeline_contact_success_value(row) do
+    case FeedbackNumericValues.unit_interval_number_or_nil(row["contact_success_factor"]) do
+      value when is_number(value) -> value
+      _value -> RealizedActivitySuccessValues.contact(row)
+    end
+  end
+
+  defp operational_timeline_observation_success_value(row) do
+    case FeedbackNumericValues.unit_interval_number_or_nil(row["observation_success_factor"]) do
+      value when is_number(value) -> value
+      _value -> RealizedActivitySuccessValues.observation(row)
+    end
   end
 end

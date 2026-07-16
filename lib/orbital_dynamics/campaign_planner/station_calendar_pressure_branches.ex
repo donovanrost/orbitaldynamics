@@ -1,7 +1,27 @@
 defmodule OrbitalDynamics.CampaignPlanner.StationCalendarPressureBranches do
   @moduledoc false
 
-  def from_reports(reports, callbacks, opts \\ []) do
+  alias OrbitalDynamics.CampaignPlanner.{
+    ActivityTiming,
+    DownlinkActivityNormalization,
+    MissionStateNormalization,
+    ScalarValues,
+    ValueEncoding
+  }
+
+  @unavailable_station_tokens ~w(unavailable maintenance outage offline down)
+
+  def from_reports(reports), do: from_reports(reports, default_callbacks(), [])
+
+  def from_reports(reports, callbacks_or_opts) do
+    if callback_keywords?(callbacks_or_opts) do
+      from_reports(reports, callbacks_or_opts, [])
+    else
+      from_reports(reports, default_callbacks(), callbacks_or_opts)
+    end
+  end
+
+  def from_reports(reports, callbacks, opts) do
     stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
 
     Enum.flat_map(reports, fn {report, source_path} ->
@@ -41,7 +61,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StationCalendarPressureBranches do
     source_path_fun.(report, source_path)
   end
 
-  def branch(row, source_path, callbacks) do
+  def branch(row, source_path, callbacks \\ default_callbacks()) do
     branch_id_fragment = Keyword.fetch!(callbacks, :branch_id_fragment)
     compact_map = Keyword.fetch!(callbacks, :compact_map)
     event_ground_station_id = Keyword.fetch!(callbacks, :event_ground_station_id)
@@ -79,7 +99,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StationCalendarPressureBranches do
     end
   end
 
-  def provider_contention_branch(group, source_path, callbacks) do
+  def provider_contention_branch(group, source_path, callbacks \\ default_callbacks()) do
     branch_id_fragment = Keyword.fetch!(callbacks, :branch_id_fragment)
     compact_map = Keyword.fetch!(callbacks, :compact_map)
     event_ground_station_id = Keyword.fetch!(callbacks, :event_ground_station_id)
@@ -113,7 +133,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StationCalendarPressureBranches do
     end
   end
 
-  def event(row, source_path, callbacks) do
+  def event(row, source_path, callbacks \\ default_callbacks()) do
     compact_map = Keyword.fetch!(callbacks, :compact_map)
     activity_raw_start = Keyword.fetch!(callbacks, :activity_raw_start)
     activity_raw_end = Keyword.fetch!(callbacks, :activity_raw_end)
@@ -440,6 +460,39 @@ defmodule OrbitalDynamics.CampaignPlanner.StationCalendarPressureBranches do
     case values |> List.wrap() |> Enum.filter(&(is_binary(&1) and &1 != "")) |> Enum.uniq() do
       [value] -> value
       _values -> nil
+    end
+  end
+
+  defp callback_keywords?(callbacks_or_opts) when is_list(callbacks_or_opts) do
+    Keyword.has_key?(callbacks_or_opts, :stringify_keys) or
+      Keyword.has_key?(callbacks_or_opts, :branch_id_fragment) or
+      Keyword.has_key?(callbacks_or_opts, :event_ground_station_id)
+  end
+
+  defp callback_keywords?(_callbacks_or_opts), do: false
+
+  defp default_callbacks do
+    [
+      unavailable_station_tokens: @unavailable_station_tokens,
+      activity_raw_start: &ActivityTiming.activity_raw_start/1,
+      activity_raw_end: &ActivityTiming.activity_raw_end/1,
+      branch_id_fragment: &ValueEncoding.branch_id_fragment/1,
+      compact_map: &ValueEncoding.compact_map/1,
+      encode_value: &ValueEncoding.encode_value/1,
+      event_ground_station_id: &event_ground_station_id/1,
+      normalize_availability_token: &MissionStateNormalization.availability_token/1,
+      numeric_or_nil: &ScalarValues.numeric_or_nil/1,
+      stringify_keys: &ValueEncoding.stringify_keys/1
+    ]
+  end
+
+  defp event_ground_station_id(event) do
+    case ValueEncoding.encode_value(
+           Map.get(event, "ground_station_id") || Map.get(event, "station_id") ||
+             DownlinkActivityNormalization.nested_ground_station_id(event)
+         ) do
+      value when is_binary(value) and value != "" -> value
+      _value -> nil
     end
   end
 end

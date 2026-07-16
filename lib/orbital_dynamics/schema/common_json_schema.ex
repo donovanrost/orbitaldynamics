@@ -64,6 +64,32 @@ defmodule OrbitalDynamics.Schema.CommonJsonSchema do
     Map.new(fields, &{&1, %{"type" => "boolean"}})
   end
 
+  def boolean_const_assumptions(fields) do
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "required" => fields,
+      "properties" =>
+        Map.new(fields, fn field ->
+          {field, %{"type" => "boolean", "const" => true}}
+        end)
+    }
+  end
+
+  def string_const_assumptions(values) do
+    fields = Map.keys(values)
+
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "required" => fields,
+      "properties" =>
+        Map.new(values, fn {field, value} ->
+          {field, %{"type" => "string", "const" => value}}
+        end)
+    }
+  end
+
   def numeric_map do
     %{"type" => "object", "additionalProperties" => %{"type" => "number"}}
   end

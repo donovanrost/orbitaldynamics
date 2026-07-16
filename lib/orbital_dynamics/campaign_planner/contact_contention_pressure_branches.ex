@@ -1,7 +1,15 @@
 defmodule OrbitalDynamics.CampaignPlanner.ContactContentionPressureBranches do
   @moduledoc false
 
-  def resolutions_from_reports(reports, callbacks) do
+  alias OrbitalDynamics.CampaignPlanner.{
+    ActivityTiming,
+    ContactAllocationPressureBranches,
+    DownlinkActivityNormalization,
+    ScalarValues,
+    ValueEncoding
+  }
+
+  def resolutions_from_reports(reports, callbacks \\ default_callbacks()) do
     stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
 
     Enum.flat_map(reports, fn {report, source_path} ->
@@ -19,7 +27,7 @@ defmodule OrbitalDynamics.CampaignPlanner.ContactContentionPressureBranches do
     end)
   end
 
-  def conflicts_from_reports(reports, callbacks) do
+  def conflicts_from_reports(reports, callbacks \\ default_callbacks()) do
     stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
 
     Enum.flat_map(reports, fn {report, source_path} ->
@@ -38,7 +46,7 @@ defmodule OrbitalDynamics.CampaignPlanner.ContactContentionPressureBranches do
     end)
   end
 
-  def resolution(recommendation, source_path, callbacks) do
+  def resolution(recommendation, source_path, callbacks \\ default_callbacks()) do
     encode_value = Keyword.fetch!(callbacks, :encode_value)
 
     recommendation
@@ -77,7 +85,7 @@ defmodule OrbitalDynamics.CampaignPlanner.ContactContentionPressureBranches do
     end)
   end
 
-  def conflict(group, source_path, callbacks) do
+  def conflict(group, source_path, callbacks \\ default_callbacks()) do
     group
     |> conflict_contacts(callbacks)
     |> Enum.flat_map(fn source_contact ->
@@ -111,7 +119,7 @@ defmodule OrbitalDynamics.CampaignPlanner.ContactContentionPressureBranches do
     end)
   end
 
-  def disambiguate(branches, callbacks) do
+  def disambiguate(branches, callbacks \\ default_callbacks()) do
     branch_id_fragment = Keyword.fetch!(callbacks, :branch_id_fragment)
     id_counts = Enum.frequencies_by(branches, & &1["id"])
 
@@ -531,5 +539,31 @@ defmodule OrbitalDynamics.CampaignPlanner.ContactContentionPressureBranches do
     stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
 
     stringify_keys.(value)
+  end
+
+  defp default_callbacks do
+    [
+      activity_raw_end: &ActivityTiming.activity_raw_end/1,
+      activity_raw_start: &ActivityTiming.activity_raw_start/1,
+      branch_id_fragment: &ValueEncoding.branch_id_fragment/1,
+      compact_map: &ValueEncoding.compact_map/1,
+      contact_identity: &ContactAllocationPressureBranches.contact_identity/1,
+      downlink_activity?: &DownlinkActivityNormalization.downlink?/1,
+      encode_value: &ValueEncoding.encode_value/1,
+      nested_ground_station_id: &DownlinkActivityNormalization.nested_ground_station_id/1,
+      normalize_downlink_source_list: &normalize_downlink_source_values/1,
+      numeric_or_nil: &ScalarValues.numeric_or_nil/1,
+      stable_id_string?: &ScalarValues.stable_id_string?/1,
+      stringify_keys: &ValueEncoding.stringify_keys/1
+    ]
+  end
+
+  defp normalize_downlink_source_values(values) do
+    values
+    |> List.flatten()
+    |> Enum.map(&ValueEncoding.encode_value/1)
+    |> Enum.reject(&(&1 in [nil, ""]))
+    |> Enum.uniq()
+    |> Enum.sort()
   end
 end

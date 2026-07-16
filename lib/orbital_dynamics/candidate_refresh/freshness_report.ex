@@ -1,6 +1,8 @@
 defmodule OrbitalDynamics.CandidateRefresh.FreshnessReport do
   @moduledoc false
 
+  alias OrbitalDynamics.CandidateRefresh.ValueEncoding
+
   def build(context) when is_map(context) do
     refresh = Map.fetch!(context, :refresh)
     generated_at = Map.fetch!(context, :generated_at)
@@ -85,7 +87,7 @@ defmodule OrbitalDynamics.CandidateRefresh.FreshnessReport do
   end
 
   defp policy_number(policy, key, default) do
-    case numeric_value(Map.get(policy, key)) do
+    case ValueEncoding.numeric_value(Map.get(policy, key)) do
       value when is_number(value) -> value
       _value -> default
     end
@@ -150,15 +152,4 @@ defmodule OrbitalDynamics.CandidateRefresh.FreshnessReport do
 
   defp maybe_unknown_reason(reasons, true, reason), do: [reason | reasons]
   defp maybe_unknown_reason(reasons, false, _reason), do: reasons
-
-  defp numeric_value(value) when is_number(value), do: value * 1.0
-
-  defp numeric_value(value) when is_binary(value) do
-    case Float.parse(String.trim(value)) do
-      {number, ""} -> number
-      _error -> nil
-    end
-  end
-
-  defp numeric_value(_value), do: nil
 end

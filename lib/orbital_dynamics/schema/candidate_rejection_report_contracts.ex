@@ -83,6 +83,68 @@ defmodule OrbitalDynamics.Schema.CandidateRejectionReportContracts do
     |> validate_counts(callbacks, path, report)
   end
 
+  def validate_optional_source_row(issues, _path, nil, _callbacks), do: issues
+
+  def validate_optional_source_row(issues, path, %{} = row, callbacks) when is_list(callbacks) do
+    issues
+    |> validate_stable_ids(callbacks, path, row, [
+      "id",
+      "candidate_id",
+      "activity_id",
+      "timeline_id",
+      "source_window_id"
+    ])
+    |> expect_optional_one_of(callbacks, path, row, "rejection_status", [
+      "rejected",
+      "not_rejected"
+    ])
+    |> expect_optional_one_of(
+      callbacks,
+      path,
+      row,
+      "primary_rejection_reason",
+      candidate_rejection_reasons()
+    )
+    |> expect_optional_type(callbacks, path, row, "rejection_reasons", :list)
+    |> validate_string_list_allowed(
+      callbacks,
+      path,
+      row,
+      "rejection_reasons",
+      candidate_rejection_reasons()
+    )
+    |> expect_optional_non_negative_integer(callbacks, path, row, "reason_count")
+    |> validate_optional_reason_count(callbacks, path, row)
+    |> expect_optional_type(callbacks, path, row, "reviewable", :boolean)
+    |> expect_optional_one_of(
+      callbacks,
+      path,
+      row,
+      "required_operator_action",
+      candidate_rejection_actions()
+    )
+    |> expect_optional_type(callbacks, path, row, "activity_type", :binary)
+    |> expect_optional_one_of(callbacks, path, row, "operational_kind", operational_kinds())
+    |> expect_optional_type(callbacks, path, row, "source_window_type", :binary)
+    |> expect_optional_type(callbacks, path, row, "violated_constraint", :binary)
+    |> expect_optional_number(callbacks, path, row, "required_margin")
+    |> expect_optional_number(callbacks, path, row, "actual_margin")
+    |> expect_optional_type(callbacks, path, row, "declared_rejection_reasons", :list)
+    |> validate_string_list_allowed(
+      callbacks,
+      path,
+      row,
+      "declared_rejection_reasons",
+      candidate_rejection_reasons()
+    )
+    |> expect_optional_type(callbacks, path, row, "activity_context", :map)
+    |> validate_optional_activity_context(callbacks, path, row, "activity_context")
+  end
+
+  def validate_optional_source_row(issues, path, _row, callbacks) when is_list(callbacks) do
+    [error(callbacks, path, "must be an object") | issues]
+  end
+
   defp validate_row(issues, path, row, callbacks) do
     issues
     |> require_fields(callbacks, path, row, [
@@ -142,6 +204,16 @@ defmodule OrbitalDynamics.Schema.CandidateRejectionReportContracts do
     |> expect_optional_number(callbacks, path, row, "actual_margin")
     |> expect_optional_type(callbacks, path, row, "declared_rejection_reasons", :list)
     |> expect_type(callbacks, path, row, "activity_context", :map)
+  end
+
+  defp validate_optional_reason_count(issues, callbacks, path, row) do
+    case {Map.get(row, "reason_count"), Map.get(row, "rejection_reasons")} do
+      {count, reasons} when is_integer(count) and is_list(reasons) ->
+        expect_field_equals(issues, callbacks, path, row, "reason_count", length(reasons))
+
+      _values ->
+        issues
+    end
   end
 
   defp validate_counts(issues, callbacks, path, report) do
@@ -487,6 +559,15 @@ defmodule OrbitalDynamics.Schema.CandidateRejectionReportContracts do
 
   defp expect_optional_number(issues, callbacks, path, map, field),
     do: apply(require_callback(callbacks, :expect_optional_number), [issues, path, map, field])
+
+  defp validate_optional_activity_context(issues, callbacks, path, map, field),
+    do:
+      apply(require_callback(callbacks, :validate_optional_activity_context), [
+        issues,
+        path,
+        map,
+        field
+      ])
 
   defp validate_stable_id_list(callbacks, issues, path, ids),
     do: apply(require_callback(callbacks, :validate_stable_id_list), [issues, path, ids])

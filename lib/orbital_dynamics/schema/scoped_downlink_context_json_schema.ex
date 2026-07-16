@@ -3,6 +3,16 @@ defmodule OrbitalDynamics.Schema.ScopedDownlinkContextJsonSchema do
 
   alias OrbitalDynamics.Schema.CommonJsonSchema
 
+  def scoped_from_context(opts) when is_list(opts) do
+    opts
+    |> Keyword.fetch!(:stable_id_pattern)
+    |> scoped()
+  end
+
+  def scoped_from_context(stable_id_pattern) when is_binary(stable_id_pattern) do
+    scoped(stable_id_pattern)
+  end
+
   def scoped(stable_id_pattern) do
     %{
       "target_id" => stable_id(stable_id_pattern),
@@ -48,6 +58,16 @@ defmodule OrbitalDynamics.Schema.ScopedDownlinkContextJsonSchema do
     }
   end
 
+  def candidate_refresh_from_context(opts) when is_list(opts) do
+    opts
+    |> Keyword.fetch!(:stable_id_pattern)
+    |> candidate_refresh()
+  end
+
+  def candidate_refresh_from_context(stable_id_pattern) when is_binary(stable_id_pattern) do
+    candidate_refresh(stable_id_pattern)
+  end
+
   def candidate_refresh(stable_id_pattern) do
     stable_id_pattern
     |> scoped()
@@ -66,6 +86,16 @@ defmodule OrbitalDynamics.Schema.ScopedDownlinkContextJsonSchema do
       "downlink_completion_source" => %{"type" => "string"},
       "downlink_completion_sources" => CommonJsonSchema.string_array()
     })
+  end
+
+  def branch_from_context(opts) when is_list(opts) do
+    opts
+    |> Keyword.fetch!(:stable_id_pattern)
+    |> branch()
+  end
+
+  def branch_from_context(stable_id_pattern) when is_binary(stable_id_pattern) do
+    branch(stable_id_pattern)
   end
 
   def branch(stable_id_pattern) do

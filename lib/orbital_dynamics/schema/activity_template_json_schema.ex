@@ -1,68 +1,118 @@
 defmodule OrbitalDynamics.Schema.ActivityTemplateJsonSchema do
   @moduledoc false
 
-  def property("schema_contract", schema_contract, _stable_id_pattern) do
+  @property_fields [
+    "schema_contract",
+    "id",
+    "activity_type",
+    "template_version",
+    "validation_level",
+    "known_limits",
+    "display_name",
+    "description",
+    "required_fields",
+    "optional_fields",
+    "default_fields",
+    "field_count",
+    "required_field_count",
+    "optional_field_count",
+    "lifecycle_defaults",
+    "operational_hints",
+    "subsystem_state_hints",
+    "resource_hints",
+    "precondition_hints",
+    "assumptions"
+  ]
+
+  def property_field?(field) when field in @property_fields, do: true
+  def property_field?(_field), do: false
+
+  def property_opts("schema_contract", deps) do
+    [schema_contract: fetch_dep!(deps, :schema_contract)]
+  end
+
+  def property_opts("id", deps) do
+    [stable_id_pattern: fetch_dep!(deps, :stable_id_pattern)]
+  end
+
+  def property_opts(_field, _deps), do: []
+
+  def property_from_context(field, deps) when is_list(deps) do
+    property(field, property_opts(field, deps))
+  end
+
+  def property_fun_from_context(deps) when is_list(deps) do
+    fn field ->
+      property_from_context(field, deps)
+    end
+  end
+
+  def property("schema_contract", opts) do
+    schema_contract = Keyword.fetch!(opts, :schema_contract)
+
     %{"type" => "string", "const" => schema_contract}
   end
 
-  def property("id", _schema_contract, stable_id_pattern) do
+  def property("id", opts) do
+    stable_id_pattern = Keyword.fetch!(opts, :stable_id_pattern)
+
     %{"type" => "string", "pattern" => stable_id_pattern}
   end
 
-  def property("activity_type", _schema_contract, _stable_id_pattern) do
+  def property("activity_type", _opts) do
     %{"type" => "string", "enum" => activity_types()}
   end
 
-  def property("template_version", _schema_contract, _stable_id_pattern) do
+  def property("template_version", _opts) do
     %{"type" => "integer", "minimum" => 1}
   end
 
-  def property("validation_level", _schema_contract, _stable_id_pattern) do
+  def property("validation_level", _opts) do
     %{"type" => "string", "const" => "artifact_contract"}
   end
 
-  def property("known_limits", _schema_contract, _stable_id_pattern), do: string_array_schema()
+  def property("known_limits", _opts), do: string_array_schema()
 
-  def property(field, _schema_contract, _stable_id_pattern)
+  def property(field, _opts)
       when field in ["display_name", "description"] do
     %{"type" => "string"}
   end
 
-  def property(field, _schema_contract, _stable_id_pattern)
+  def property(field, _opts)
       when field in ["required_fields", "optional_fields"] do
     string_array_schema()
   end
 
-  def property("default_fields", _schema_contract, _stable_id_pattern) do
+  def property("default_fields", _opts) do
     %{"type" => "object", "additionalProperties" => true}
   end
 
-  def property(field, _schema_contract, _stable_id_pattern)
+  def property(field, _opts)
       when field in ["field_count", "required_field_count", "optional_field_count"] do
     %{"type" => "integer", "minimum" => 0}
   end
 
-  def property("lifecycle_defaults", _schema_contract, _stable_id_pattern) do
+  def property("lifecycle_defaults", _opts) do
     lifecycle_defaults()
   end
 
-  def property("operational_hints", _schema_contract, _stable_id_pattern) do
+  def property("operational_hints", _opts) do
     operational_hints()
   end
 
-  def property("subsystem_state_hints", _schema_contract, _stable_id_pattern) do
+  def property("subsystem_state_hints", _opts) do
     subsystem_state_hints()
   end
 
-  def property("resource_hints", _schema_contract, _stable_id_pattern) do
+  def property("resource_hints", _opts) do
     resource_hints()
   end
 
-  def property("precondition_hints", _schema_contract, _stable_id_pattern) do
+  def property("precondition_hints", _opts) do
     %{"type" => "array", "items" => precondition_hint()}
   end
 
-  def property("assumptions", _schema_contract, _stable_id_pattern) do
+  def property("assumptions", _opts) do
     %{"type" => "object", "additionalProperties" => true}
   end
 
@@ -228,5 +278,12 @@ defmodule OrbitalDynamics.Schema.ActivityTemplateJsonSchema do
 
   defp boolean_property_schemas(fields) do
     Map.new(fields, &{&1, %{"type" => "boolean"}})
+  end
+
+  defp fetch_dep!(deps, key) do
+    case Keyword.fetch!(deps, key) do
+      fun when is_function(fun, 0) -> fun.()
+      value -> value
+    end
   end
 end

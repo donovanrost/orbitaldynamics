@@ -4,6 +4,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyReport do
   alias OrbitalDynamics.CampaignPlanner.{
     PlanBranch,
     StrategyRecommendation,
+    StrategyPolicyNormalization,
     StrategicScoringPolicy
   }
 
@@ -133,9 +134,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyReport do
   end
 
   defp strategy_policy_to_map(%StrategicScoringPolicy{} = policy) do
-    policy
-    |> Map.from_struct()
-    |> Map.new(fn {key, value} -> {to_string(key), value} end)
+    StrategyPolicyNormalization.strategy_to_map(policy)
   end
 
   defp score_term_row_id(scenario_id, rank, term_key) do

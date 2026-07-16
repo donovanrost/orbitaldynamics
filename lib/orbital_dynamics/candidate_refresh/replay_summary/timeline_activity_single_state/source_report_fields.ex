@@ -1,7 +1,29 @@
 defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelineActivitySingleState.SourceReportFields do
   @moduledoc false
 
+  alias OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelineActivitySingleState.Selection
+  alias OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelineActivitySingleState.Summary
+
   alias OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelineActivitySingleState.Summary.StateFields
+  alias __MODULE__.Pressure
+
+  def source_report_fields(
+        refresh_or_artifact,
+        source_reports,
+        family,
+        contract,
+        source_model
+      ) do
+    summary =
+      selected_source_report_summary(
+        refresh_or_artifact,
+        source_reports,
+        contract,
+        source_model
+      )
+
+    source_report_fields(family, summary || %{})
+  end
 
   def source_report_fields(family, state_summary) do
     prefix = "source_report_#{family}"
@@ -24,6 +46,36 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelineActivitySingleS
         summary_integer(state_summary, "invalid_activity_input_count")
     }
     |> Map.merge(prefix_fields(prefix, state_fields))
+  end
+
+  def source_report_pressure_fields(
+        refresh_or_artifact,
+        source_reports,
+        family,
+        contract,
+        source_model,
+        application_boundary,
+        authority_boundary
+      ) do
+    selected_summary =
+      refresh_or_artifact
+      |> selected_source_report_summary(
+        source_reports,
+        contract,
+        source_model
+      )
+
+    summary =
+      (selected_summary || %{})
+      |> Summary.summary(
+        family,
+        "candidate_refresh.source_report_provenance.#{family}",
+        "#{family}_source_report_provenance_only",
+        application_boundary,
+        authority_boundary
+      )
+
+    Pressure.source_report_fields(family, summary)
   end
 
   defp prefix_fields(prefix, fields) do
@@ -58,5 +110,19 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelineActivitySingleS
       _value ->
         0
     end
+  end
+
+  defp selected_source_report_summary(
+         refresh_or_artifact,
+         source_reports,
+         contract,
+         source_model
+       ) do
+    Selection.selected_source_report_summary(
+      refresh_or_artifact,
+      source_reports,
+      contract,
+      source_model
+    )
   end
 end

@@ -522,27 +522,11 @@ defmodule OrbitalDynamics.Schema.StationCalendarReportContracts do
   end
 
   defp validate_station_calendar_contact_counts(issues, callbacks, path, contact) do
-    issues
-    |> expect_field_equals(
-      callbacks,
+    OrbitalDynamics.Schema.StationCalendarContactCountContracts.validate(
+      issues,
       path,
       contact,
-      "station_calendar_overlap_count",
-      list_count(callbacks, contact, "station_calendar_overlap_entry_ids")
-    )
-    |> expect_field_equals(
-      callbacks,
-      path,
-      contact,
-      "station_calendar_ambiguous_entry_count",
-      list_count(callbacks, contact, "station_calendar_ambiguous_entry_ids")
-    )
-    |> expect_field_equals(
-      callbacks,
-      path,
-      contact,
-      "station_calendar_reservation_overlap_count",
-      list_count(callbacks, contact, "station_calendar_reservation_ids")
+      callbacks
     )
   end
 
@@ -1077,13 +1061,13 @@ defmodule OrbitalDynamics.Schema.StationCalendarReportContracts do
   defp list_count(callbacks, map, field),
     do: apply(require_callback(callbacks, :list_count), [map, field])
 
-  defp validate_provider_calendar_contention_entry_count(issues, callbacks, path, group),
+  defp validate_provider_calendar_contention_entry_count(issues, _callbacks, path, group),
     do:
-      apply(require_callback(callbacks, :validate_provider_calendar_contention_entry_count), [
+      OrbitalDynamics.Schema.StationCalendarProviderContentionContracts.validate_entry_count(
         issues,
         path,
         group
-      ])
+      )
 
   defp provider_counteroffer_negotiation_states do
     OrbitalDynamics.Communications.StationCalendar.capabilities().provider_counteroffer_negotiation_states

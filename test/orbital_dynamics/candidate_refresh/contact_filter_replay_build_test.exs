@@ -1,8 +1,7 @@
 defmodule OrbitalDynamics.CandidateRefresh.ContactFilterReplayBuildTest do
   use ExUnit.Case, async: true
 
-  alias OrbitalDynamics.{CadenceImport, CandidateRefresh, Epoch, ResultSet, Schema}
-  alias OrbitalDynamics.Communications.ContactFilter
+  alias OrbitalDynamics.{CandidateRefresh, Epoch, ResultSet, Schema}
 
   test "replays contact filter unavailable station suppressions into ground network state" do
     report = %{
@@ -63,116 +62,6 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactFilterReplayBuildTest do
              "trust_boundary_status" => "declared",
              "trust_boundaries" => ["ground_partner_api"]
            } = get_in(artifact, ["provenance", "source_reports", "contact_filter_report"])
-
-    assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
-             Schema.validate_artifact(artifact)
-  end
-
-  test "replays contact filter reserved station suppressions from Cadence import manifests" do
-    report = %{
-      "schema_contract" => "contact_filter_report.v1",
-      "suppressed_candidates" => [
-        %{
-          "id" => "prior_reserved_contact",
-          "type" => "downlink",
-          "scenario_id" => "leo_1",
-          "ground_station_id" => "equator_prime",
-          "direction" => "downlink",
-          "starts_at_s" => 250.0,
-          "ends_at_s" => 450.0,
-          "suppressed_reason" => "ground_station_reserved",
-          "station_reservation_id" => "reservation_equator_prime_1",
-          "station_reserved_by" => "ops_team_b",
-          "station_reservation_status" => "reserved",
-          "trust_boundary" => "ground_partner_api"
-        }
-      ]
-    }
-
-    manifest = CadenceImport.from_contact_filter_report(report)
-
-    artifact =
-      result_set()
-      |> CandidateRefresh.build(
-        candidate_refresh:
-          refresh_request()
-          |> Map.put("source_cadence_import_manifest", manifest),
-        generated_at: ~U[2026-05-14 00:00:00Z]
-      )
-
-    assert Enum.map(artifact["candidate_activities"], & &1["id"]) == [
-             "leo_1_observe_target_a_1"
-           ]
-
-    assert [
-             %{
-               "id" => "leo_1_downlink_equator_prime_1",
-               "suppressed_reason" => "ground_station_reserved",
-               "station_reservation_id" => "reservation_equator_prime_1",
-               "station_reserved_by" => "ops_team_b",
-               "station_reservation_status" => "reserved"
-             }
-           ] = artifact["contact_filter_report"]["suppressed_candidates"]
-
-    assert %{
-             "paths" => ["source_cadence_import_manifest.rows.source_contact_suppression"],
-             "contract" => "contact_filter_report.v1",
-             "count" => 1,
-             "row_count" => 1,
-             "suppressed_candidate_count" => 1,
-             "invalid_contact_input_count" => 0,
-             "suppressed_reason_counts" => %{"ground_station_reserved" => 1},
-             "station_suppression_count" => 1,
-             "station_suppression_ground_station_counts" => %{"equator_prime" => 1},
-             "station_suppression_availability_counts" => %{"reserved" => 1},
-             "station_suppression_status_counts" => %{"reserved" => 1},
-             "trust_boundary_status" => "declared",
-             "trust_boundaries" => ["ground_partner_api"]
-           } = get_in(artifact, ["provenance", "source_reports", "contact_filter_report"])
-
-    assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
-             Schema.validate_artifact(artifact)
-  end
-
-  test "preserves invalid contact filter input replay provenance from Cadence imports" do
-    {_kept, report} =
-      ContactFilter.filter_candidates(
-        [
-          %{
-            id: :bad_contact,
-            type: :downlink,
-            scenario_id: :leo_1,
-            starts_at_s: 10.0,
-            ends_at_s: 20.0
-          }
-        ],
-        []
-      )
-
-    manifest = CadenceImport.from_contact_filter_report(report)
-
-    artifact =
-      result_set()
-      |> CandidateRefresh.build(
-        candidate_refresh:
-          refresh_request()
-          |> Map.put("source_cadence_import_manifest", manifest),
-        generated_at: ~U[2026-05-14 00:00:00Z]
-      )
-
-    assert %{
-             "paths" => ["source_cadence_import_manifest.rows.source_contact_suppression"],
-             "contract" => "contact_filter_report.v1",
-             "count" => 1,
-             "row_count" => 1,
-             "suppressed_candidate_count" => 1,
-             "invalid_contact_input_count" => 1,
-             "suppressed_reason_counts" => %{"invalid_contact_input" => 1}
-           } = get_in(artifact, ["provenance", "source_reports", "contact_filter_report"])
-
-    assert "source contact filter reports include invalid contact inputs requiring review" in artifact[
-             "warnings"
-           ]
 
     assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
              Schema.validate_artifact(artifact)

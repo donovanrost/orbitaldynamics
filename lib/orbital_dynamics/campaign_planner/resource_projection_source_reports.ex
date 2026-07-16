@@ -1,6 +1,11 @@
 defmodule OrbitalDynamics.CampaignPlanner.ResourceProjectionSourceReports do
   @moduledoc false
 
+  alias OrbitalDynamics.CampaignPlanner.{
+    BranchRefreshSourceInputs,
+    SourceReportArtifacts
+  }
+
   @report_fields [
     {"source_resource_projection_report", "mission_state.source_resource_projection_report"},
     {"resource_projection_report", "mission_state.resource_projection_report"}
@@ -11,6 +16,8 @@ defmodule OrbitalDynamics.CampaignPlanner.ResourceProjectionSourceReports do
     {"resource_projection_report", "prior_plan.resource_projection_report"}
   ]
 
+  def reports(mission_state), do: reports(mission_state, default_callbacks())
+
   def reports(mission_state, opts) do
     mission_state = stringify_keys(mission_state || %{})
 
@@ -18,6 +25,9 @@ defmodule OrbitalDynamics.CampaignPlanner.ResourceProjectionSourceReports do
       result_artifact_reports(mission_state, "source_resource_projection_report", opts) ++
       result_artifact_reports(mission_state, "resource_projection_report", opts)
   end
+
+  def source_reports(mission_state),
+    do: reports(mission_state, "source_resource_projection_report", default_callbacks())
 
   def reports(mission_state, "source_resource_projection_report", opts) do
     direct_reports(mission_state, opts, [
@@ -31,73 +41,111 @@ defmodule OrbitalDynamics.CampaignPlanner.ResourceProjectionSourceReports do
     ])
   end
 
+  def canonical_reports(mission_state),
+    do: reports(mission_state, "resource_projection_report", default_callbacks())
+
+  def flow_summaries(mission_state, "source_resource_projection_flow_summary") do
+    BranchRefreshSourceInputs.resource_projection_flow_summaries(mission_state, [
+      {"source_resource_projection_flow_summary",
+       "mission_state.source_resource_projection_flow_summary"}
+    ])
+  end
+
+  def flow_summaries(mission_state, "resource_projection_flow_summary") do
+    BranchRefreshSourceInputs.resource_projection_flow_summaries(mission_state, [
+      {"resource_projection_flow_summary", "mission_state.resource_projection_flow_summary"}
+    ])
+  end
+
+  def flow_summary_result_artifacts(mission_state, artifact_key)
+      when artifact_key in ["source_result_artifact", "result_artifact"] do
+    BranchRefreshSourceInputs.resource_projection_flow_summary_result_artifacts(
+      mission_state,
+      artifact_key
+    )
+  end
+
+  def candidate_refresh_source_inputs(mission_state) do
+    mission_state
+    |> source_report_candidate_refresh_inputs()
+    |> Map.merge(flow_summary_result_artifact_candidate_refresh_inputs(mission_state))
+  end
+
+  def prior_plan_reports(prior_plan), do: prior_plan_reports(prior_plan, prior_plan_callbacks())
+
   def prior_plan_reports(prior_plan, opts) do
     prior_plan = stringify_keys(prior_plan || %{})
 
-    direct_reports =
-      @prior_report_fields
-      |> Enum.flat_map(fn {field, source_path} ->
-        case Map.get(prior_plan, field) do
-          %{} = report -> [{stringify_keys(report), source_path}]
-          _report -> []
-        end
-      end)
+    SourceReportArtifacts.direct_reports(prior_plan, @prior_report_fields, &stringify_keys/1) ++
+      prior_plan_result_artifact_reports(prior_plan, opts)
+  end
 
-    direct_reports ++ prior_plan_result_artifact_reports(prior_plan, opts)
+  defp source_report_candidate_refresh_inputs(mission_state) do
+    Map.new(candidate_refresh_source_input_collectors(), fn {key, collector} ->
+      {key, BranchRefreshSourceInputs.source_reports_or_reports(mission_state, collector)}
+    end)
+  end
+
+  defp candidate_refresh_source_input_collectors do
+    [
+      {"source_resource_projection_report", &source_reports/1},
+      {"resource_projection_report", &canonical_reports/1},
+      {"source_resource_projection_flow_summary",
+       &flow_summaries(&1, "source_resource_projection_flow_summary")},
+      {"resource_projection_flow_summary",
+       &flow_summaries(&1, "resource_projection_flow_summary")}
+    ]
+  end
+
+  defp flow_summary_result_artifact_candidate_refresh_inputs(mission_state) do
+    Map.new(["source_result_artifact", "result_artifact"], fn artifact_key ->
+      {artifact_key, flow_summary_result_artifacts(mission_state, artifact_key)}
+    end)
   end
 
   defp direct_reports(mission_state, opts, fields) do
-    callbacks = callbacks!(opts)
-    mission_state = stringify_keys(mission_state || %{})
-
-    fields
-    |> Enum.flat_map(fn {field, source_path} ->
-      callbacks.source_report_entries.(Map.get(mission_state, field), source_path)
-    end)
+    SourceReportArtifacts.source_reports(mission_state, fields, opts, &stringify_keys/1)
   end
 
   defp result_artifact_reports(mission_state, report_key, opts) do
-    callbacks = callbacks!(opts)
-
-    mission_state
-    |> callbacks.result_artifacts_with_source.()
-    |> Enum.flat_map(fn {artifact, source_path} ->
-      artifact = stringify_keys(artifact || %{})
-
-      case Map.get(artifact, report_key) do
-        %{} = report ->
-          report =
-            report
-            |> stringify_keys()
-            |> callbacks.put_inherited_result_artifact_trust_boundary.(artifact)
-
-          [{report, "#{source_path}.#{report_key}"}]
-
-        _report ->
-          []
-      end
-    end)
+    SourceReportArtifacts.inherited_result_artifact_reports(
+      mission_state,
+      [report_key],
+      opts,
+      &stringify_keys/1
+    )
   end
 
   defp prior_plan_result_artifact_reports(prior_plan, opts) do
-    callbacks = prior_plan_callbacks!(opts)
     report_keys = Enum.map(@report_fields, &elem(&1, 0))
-    callbacks.result_artifact_embedded_reports.(prior_plan, report_keys)
+    SourceReportArtifacts.embedded_reports(prior_plan, report_keys, opts)
   end
 
-  defp callbacks!(opts) do
-    %{
-      source_report_entries: Keyword.fetch!(opts, :source_report_entries),
-      result_artifacts_with_source: Keyword.fetch!(opts, :result_artifacts_with_source),
+  defp prior_plan_callbacks do
+    [
+      result_artifact_embedded_reports: &prior_plan_result_artifact_embedded_reports/2
+    ]
+  end
+
+  defp prior_plan_result_artifact_embedded_reports(prior_plan, report_keys) do
+    BranchRefreshSourceInputs.result_artifact_embedded_reports(
+      prior_plan,
+      "prior_plan",
+      report_keys
+    )
+  end
+
+  defp default_callbacks do
+    [
+      source_report_entries: &BranchRefreshSourceInputs.source_report_entries/2,
+      result_artifacts_with_source: &mission_state_result_artifacts_with_source/1,
       put_inherited_result_artifact_trust_boundary:
-        Keyword.fetch!(opts, :put_inherited_result_artifact_trust_boundary)
-    }
+        &BranchRefreshSourceInputs.put_inherited_result_artifact_trust_boundary/2
+    ]
   end
 
-  defp prior_plan_callbacks!(opts) do
-    %{
-      result_artifact_embedded_reports: Keyword.fetch!(opts, :result_artifact_embedded_reports)
-    }
+  defp mission_state_result_artifacts_with_source(mission_state) do
+    BranchRefreshSourceInputs.result_artifacts_with_source(mission_state, "mission_state")
   end
 
   defp stringify_keys(%_struct{} = struct), do: struct |> Map.from_struct() |> stringify_keys()

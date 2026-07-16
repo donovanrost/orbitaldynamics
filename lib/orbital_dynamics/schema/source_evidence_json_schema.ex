@@ -1,7 +1,97 @@
 defmodule OrbitalDynamics.Schema.SourceEvidenceJsonSchema do
   @moduledoc false
 
+  alias OrbitalDynamics.OperationalReadiness
   alias OrbitalDynamics.Schema.CommonJsonSchema
+  alias OrbitalDynamics.Schema.SourceEvidenceContracts
+
+  def source_evidence(deps) do
+    deps
+    |> source_evidence_opts()
+    |> base()
+  end
+
+  def source_evidence_from_context(stable_id_pattern, battery_handoff_properties) do
+    stable_id_pattern
+    |> source_evidence_opts_from_context(battery_handoff_properties)
+    |> base()
+  end
+
+  def operational_readiness_source_report(deps) do
+    deps
+    |> readiness_report_opts()
+    |> operational_readiness_report()
+  end
+
+  def operational_readiness_source_report_from_context(
+        stable_id_pattern,
+        battery_handoff_properties
+      ) do
+    stable_id_pattern
+    |> readiness_report_opts_from_context(battery_handoff_properties)
+    |> operational_readiness_report()
+  end
+
+  def quality_gate_source_report(deps) do
+    deps
+    |> quality_gate_report_opts()
+    |> quality_gate_report()
+  end
+
+  def quality_gate_source_report_from_context(
+        stable_id_pattern,
+        battery_handoff_properties,
+        count_map_schema,
+        stable_id_array_map_schema
+      ) do
+    stable_id_pattern
+    |> quality_gate_report_opts_from_context(
+      battery_handoff_properties,
+      count_map_schema,
+      stable_id_array_map_schema
+    )
+    |> quality_gate_report()
+  end
+
+  def freshness_report(deps, statuses) do
+    deps
+    |> source_evidence_opts()
+    |> with_status(statuses)
+  end
+
+  def freshness_report_from_context(stable_id_pattern, battery_handoff_properties, statuses) do
+    stable_id_pattern
+    |> source_evidence_opts_from_context(battery_handoff_properties)
+    |> with_status(statuses)
+  end
+
+  def schema_validation_report(deps, statuses) do
+    deps
+    |> source_evidence_opts()
+    |> with_status(statuses)
+  end
+
+  def schema_validation_report_from_context(
+        stable_id_pattern,
+        battery_handoff_properties,
+        statuses
+      ) do
+    stable_id_pattern
+    |> source_evidence_opts_from_context(battery_handoff_properties)
+    |> with_status(statuses)
+  end
+
+  def execution_report(deps, statuses) do
+    deps
+    |> source_evidence_opts()
+    |> with_status(statuses)
+  end
+
+  def execution_report_from_context(stable_id_pattern, battery_handoff_properties, statuses) do
+    stable_id_pattern
+    |> source_evidence_opts_from_context(battery_handoff_properties)
+    |> with_status(statuses)
+  end
 
   def base(opts) do
     %{
@@ -75,6 +165,59 @@ defmodule OrbitalDynamics.Schema.SourceEvidenceJsonSchema do
 
   defp with_properties(schema, properties) do
     Map.update!(schema, "properties", &Map.merge(&1, properties))
+  end
+
+  defp source_evidence_opts(deps) do
+    source_evidence_opts_from_context(deps.stable_id_pattern, deps.battery_handoff_properties)
+  end
+
+  defp source_evidence_opts_from_context(stable_id_pattern, battery_handoff_properties) do
+    %{
+      stable_id_pattern: stable_id_pattern,
+      stable_id_fields: SourceEvidenceContracts.stable_id_fields(),
+      stable_id_list_fields: SourceEvidenceContracts.stable_id_list_fields(),
+      probability_fields: SourceEvidenceContracts.probability_fields(),
+      battery_handoff_properties: battery_handoff_properties
+    }
+  end
+
+  defp readiness_report_opts(deps) do
+    readiness_report_opts_from_context(deps.stable_id_pattern, deps.battery_handoff_properties)
+  end
+
+  defp readiness_report_opts_from_context(stable_id_pattern, battery_handoff_properties) do
+    readiness_capabilities = OperationalReadiness.capabilities()
+
+    stable_id_pattern
+    |> source_evidence_opts_from_context(battery_handoff_properties)
+    |> Map.merge(%{
+      readiness_levels: readiness_capabilities.readiness_levels,
+      import_classifications: readiness_capabilities.import_classifications,
+      gate_statuses: readiness_capabilities.gate_statuses
+    })
+  end
+
+  defp quality_gate_report_opts(deps) do
+    quality_gate_report_opts_from_context(
+      deps.stable_id_pattern,
+      deps.battery_handoff_properties,
+      deps.count_map_schema,
+      deps.stable_id_array_map_schema
+    )
+  end
+
+  defp quality_gate_report_opts_from_context(
+         stable_id_pattern,
+         battery_handoff_properties,
+         count_map_schema,
+         stable_id_array_map_schema
+       ) do
+    stable_id_pattern
+    |> readiness_report_opts_from_context(battery_handoff_properties)
+    |> Map.merge(%{
+      count_map_schema: count_map_schema,
+      stable_id_array_map_schema: stable_id_array_map_schema
+    })
   end
 
   defp stable_id_properties(fields, stable_id_pattern) do

@@ -1,6 +1,11 @@
 defmodule OrbitalDynamics.Schema.ManifestFieldReferenceJsonSchema do
   @moduledoc false
 
+  @property_fields ["fields", "supported", "field_count"]
+
+  def property_field?(field) when field in @property_fields, do: true
+  def property_field?(_field), do: false
+
   def property("fields") do
     %{
       "type" => "array",
