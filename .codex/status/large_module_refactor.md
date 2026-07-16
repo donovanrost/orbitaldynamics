@@ -9,7 +9,7 @@ Current slice:
 Completed: contact filter registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Move `contact_filter_report.v1` into `Schema.ContactFilterRegistryContracts`.
@@ -79,7 +79,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`67ccf1fe` (`Update resource filter handoff`).
+`8e55a242` (`Extract contact filter registry contracts`).
 
 Next candidate:
 Assess `resource_summary.v1` as the next bounded registry extraction.
