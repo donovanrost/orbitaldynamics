@@ -6401,7 +6401,8 @@ defmodule OrbitalDynamics.Schema do
     |> OrbitalDynamics.Schema.QualityGateReportContracts.validate_report(
       "$",
       artifact,
-      quality_gate_report_contract_callbacks()
+      quality_gate_report_model_limits(),
+      &validate_quality_gate_row/3
     )
   end
 
@@ -7312,36 +7313,6 @@ defmodule OrbitalDynamics.Schema do
       contact_allocation_reservation_ids_by_expiration_status:
         &contact_allocation_reservation_ids_by_expiration_status/1,
       contact_allocation_pressure_value?: &contact_allocation_pressure_value?/1
-    ]
-  end
-
-  defp quality_gate_report_contract_callbacks do
-    [
-      expect_equal: &expect_equal/5,
-      expect_one_of: &expect_one_of/5,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_non_negative_integer: &expect_non_negative_integer/4,
-      expect_field_equals: &expect_field_equals/5,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      validate_stable_ids: &validate_stable_ids/4,
-      validate_rows: &validate_rows/4,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_optional_exact_model_limits: &validate_optional_exact_model_limits/5,
-      validate_non_negative_integer_count_map: &validate_non_negative_integer_count_map/3,
-      validate_stable_id_array_map: &validate_stable_id_array_map/3,
-      validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
-      validate_quality_gate_row: &validate_quality_gate_row/3,
-      quality_gate_report_model_limits: &quality_gate_report_model_limits/0,
-      operational_readiness_import_classification: &operational_readiness_import_classification/1,
-      operational_readiness_level: &operational_readiness_level/1,
-      operational_readiness_report_status: &operational_readiness_report_status/1,
-      quality_gate_execution_boundary: &quality_gate_execution_boundary/1,
-      quality_gate_status_count: &quality_gate_status_count/2,
-      quality_gate_ids_by: &quality_gate_ids_by/2,
-      quality_gate_row_ids_by: &quality_gate_row_ids_by/2,
-      quality_gate_ids: &quality_gate_ids/2,
-      error: &error/2
     ]
   end
 
@@ -9683,24 +9654,6 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp operational_readiness_import_classification(gates) do
-    OrbitalDynamics.Schema.OperationalReadinessClassificationContracts.import_classification(
-      gates
-    )
-  end
-
-  defp operational_readiness_level(import_classification) do
-    OrbitalDynamics.Schema.OperationalReadinessClassificationContracts.readiness_level(
-      import_classification
-    )
-  end
-
-  defp operational_readiness_report_status(import_classification) do
-    OrbitalDynamics.Schema.OperationalReadinessClassificationContracts.report_status(
-      import_classification
-    )
-  end
-
   defp validate_operational_import_eligibility_summary(issues, path, summary) do
     OrbitalDynamics.Schema.OperationalImportEligibilitySummaryContracts.validate_summary(
       issues,
@@ -9860,18 +9813,10 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       report,
-      quality_gate_report_contract_callbacks()
+      quality_gate_report_model_limits(),
+      &validate_quality_gate_row/3
     )
   end
-
-  defp quality_gate_execution_boundary("importable"), do: "adapter_handoff_only"
-
-  defp quality_gate_execution_boundary("review_only"),
-    do: "operator_review_required_before_import"
-
-  defp quality_gate_execution_boundary("analysis_only"), do: "analysis_only_not_for_execution"
-
-  defp quality_gate_execution_boundary("blocked"), do: "blocked_not_for_import_or_execution"
 
   defp quality_gate_row_contract_callbacks do
     [
@@ -9940,30 +9885,6 @@ defmodule OrbitalDynamics.Schema do
       operational_readiness_context_contract_callbacks()
     )
   end
-
-  defp quality_gate_status_count(rows, status) when is_list(rows) do
-    OrbitalDynamics.Schema.QualityGateRowContracts.status_count(rows, status)
-  end
-
-  defp quality_gate_status_count(_rows, _status), do: nil
-
-  defp quality_gate_ids_by(rows, field) when is_list(rows) do
-    OrbitalDynamics.Schema.QualityGateRowContracts.ids_by(rows, field)
-  end
-
-  defp quality_gate_ids_by(_rows, _field), do: nil
-
-  defp quality_gate_row_ids_by(rows, field) when is_list(rows) do
-    OrbitalDynamics.Schema.QualityGateRowContracts.row_ids_by(rows, field)
-  end
-
-  defp quality_gate_row_ids_by(_rows, _field), do: nil
-
-  defp quality_gate_ids(rows, status) when is_list(rows) do
-    OrbitalDynamics.Schema.QualityGateRowContracts.ids(rows, status)
-  end
-
-  defp quality_gate_ids(_rows, _status), do: nil
 
   defp stable_sorted_ids(ids) do
     ids

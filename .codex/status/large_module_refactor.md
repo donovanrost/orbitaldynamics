@@ -9,7 +9,7 @@ Current slice:
 Quality-gate-report callback-bag collapse.
 
 Status:
-Selected; implementation pending.
+Completed and ready to publish.
 
 Selected slice:
 Replace the 25-entry callback bag in `QualityGateReportContracts` with direct
@@ -47,6 +47,23 @@ No quality-gate-report callback bag or shared-helper trampolines remain; direct
 shared owners, explicit model data, the row-validator boundary, and cohesive
 local rules preserve exact validation/error order and messages; focused/
 broader/export checks pass; and bounded review finds no blocker.
+
+Completed result:
+Removed the 25-entry quality-gate-report callback bag and all owner trampolines.
+Primitive, stable-ID, collection, quality-gate-row aggregation, and readiness-
+classification behavior now calls exact owners directly; model limits and the
+facade row validator are explicit inputs; boundary and assumptions-error rules
+remain exact. Eight now-dead facade wrappers were removed. `schema.ex` fell
+from 11,955 to 11,876 lines and the owner from 402 to 312.
+
+Verification:
+- compile with warnings as errors passed
+- 60 focused readiness/schema/quality-gate replay/review tests passed
+- 1,051 broader candidate-refresh/operator-review tests passed
+- 22 schema-export tests passed
+- compile-connected xref, format, diff hygiene, and checked-in schema
+  regeneration were clean
+- bounded read-only review found no issues
 
 Verification gaps:
 - Full repository suite not run.
