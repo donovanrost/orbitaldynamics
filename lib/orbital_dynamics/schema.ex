@@ -6070,8 +6070,7 @@ defmodule OrbitalDynamics.Schema do
       [],
       "$",
       artifact,
-      contract,
-      planned_activity_contract_callbacks()
+      contract
     )
   end
 
@@ -7814,26 +7813,6 @@ defmodule OrbitalDynamics.Schema do
       activity_template_approval_statuses: &activity_template_approval_statuses/0,
       activity_template_precondition_types: &activity_template_precondition_types/0,
       activity_template_precondition_statuses: &activity_template_precondition_statuses/0,
-      error: &error/2
-    ]
-  end
-
-  defp planned_activity_contract_callbacks do
-    [
-      require_fields: &require_fields/4,
-      validate_stable_ids: &validate_stable_ids/4,
-      validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
-      validate_optional_schema_contract: &validate_optional_schema_contract/4,
-      expect_number: &expect_number/4,
-      expect_optional_type: &expect_optional_type/5,
-      expect_optional_probability: &expect_optional_probability/4,
-      expect_optional_number: &expect_optional_number/4,
-      expect_optional_list: &expect_optional_list/4,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      validate_interval: &validate_interval/3,
-      validate_contact_fields: &validate_contact_fields/3,
-      validate_optional_execution_uncertainty: &validate_optional_execution_uncertainty/4,
-      validate_string_list_items: &validate_string_list_items/4,
       error: &error/2
     ]
   end
@@ -11998,14 +11977,6 @@ defmodule OrbitalDynamics.Schema do
       true ->
         [error("#{path}.#{field}", message) | issues]
     end
-  end
-
-  defp validate_contact_fields(issues, path, activity) do
-    OrbitalDynamics.Schema.ActivityContracts.validate_contact_fields(
-      issues,
-      path,
-      activity
-    )
   end
 
   defp validate_plan_delta(issues, path, delta) do
