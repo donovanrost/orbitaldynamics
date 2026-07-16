@@ -6,24 +6,25 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Study-benchmark callback ownership cleanup.
+Lint-contract callback ownership cleanup.
 
 Status:
 Complete and published.
 
 Selected slice:
-Replace the study-benchmark callback bag with direct schema-contract-field,
-primitive, and collection validation dependencies.
+Replace campaign-request/study-manifest lint callback plumbing with direct
+diagnostic, stable-ID, primitive, and collection validation dependencies.
 
 Why this slice:
-All twelve callbacks map to cohesive shared validation modules, and focused
-fixture coverage exercises eight benchmark families plus stale derived counts.
+The diagnostic callback already delegates to `ValidationDiagnosticContracts`;
+the list fallback is trivial and all remaining callbacks are shared support.
 
 Result:
-- Removed the twelve-function callback bag, call-site callback argument, and the
-  facade import that became unused.
-- The leaf now directly uses `SchemaContractField`, primitive validation, and
-  collection validation while preserving validation and traversal order.
+- Removed the thirteen-function facade bag and both callback arguments.
+- The leaf now directly uses diagnostic, stable-ID, primitive, and collection
+  validation and owns its two-clause list fallback.
+- Preserved both lint pipelines, issue traversal, status/count logic, SHA checks,
+  supported-code/output checks, and exact paths/messages.
 
 Public facade preserved:
 - `OrbitalDynamics.Schema.validate_artifact/2`
@@ -32,19 +33,19 @@ Public facade preserved:
 Files changed:
 - `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/study_benchmark_contracts.ex`
+- `lib/orbital_dynamics/schema/lint_contracts.ex`
 
 Verification:
 - `mix compile --warnings-as-errors` passed.
-- Curated benchmark fixture and schema-export tests passed: 4 tests, 0 failures,
-  180 excluded. The fixture test covers eight benchmark families.
-- Runtime probes preserved exact scenario-count, trajectory-count, and
-  repetitions mismatch paths/messages.
+- Focused campaign-request lint, study-manifest lint, lint/strategy boundary,
+  and schema-export tests passed: 6 tests, 0 failures, 179 excluded.
+- Runtime probes preserved exact lowercase-SHA, duplicate-output, and
+  unsupported-output paths/messages.
 - Full schema export passed; checked-in schemas remained unchanged.
 - SHA-256 over `{Schema.contracts(), Schema.json_schema_bundle()}` remained
   `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`.
-- Xref shows the facade as the only runtime caller and the leaf as an explicit
-  `SchemaContractField` consumer.
+- Xref shows the facade as the only lint caller and the leaf as a direct
+  `ValidationDiagnosticContracts` caller.
 - `mix format --check-formatted`, `git diff --check`, callback residue checks,
   and bounded diff review passed.
 
@@ -53,21 +54,23 @@ Verification gaps:
   boundary cleanup.
 
 Published implementation:
-`c7883e39` (`Collapse study benchmark callbacks`).
+`248bf6db` (`Collapse lint contract callbacks`).
 
 Size change:
-- `schema.ex`: 13,712 -> 13,693 lines.
-- `study_benchmark_contracts.ex`: 260 -> 202 lines.
+- `schema.ex`: 13,693 -> 13,673 lines.
+- `lint_contracts.ex`: 348 -> 308 lines.
 
 Next candidate:
-Lint-contract callback ownership cleanup. The diagnostic callback can route
-directly to `ValidationDiagnosticContracts.validate_issue/3`; `list_value/2` is
-a trivial local fallback; the remaining callbacks are shared validation.
+Validation-report callback ownership cleanup. Its issue/remediation callbacks
+already route to `ValidationDiagnosticContracts`; statuses are fixed and model
+limits come from `RegistryCapability`; all other callbacks are shared support.
 
 Blocked:
 No.
 
 Notes:
+- Validation-report focused fixtures cover both single and nested batch reports,
+  including counts, statuses, model limits, and remediation.
 - Approval-requirement validation was audited and deferred because it composes
   facade-owned activity-context, policy-rule-match, and escalation validators.
 - Realized-state-snapshot and timeline-transition application rows remain
