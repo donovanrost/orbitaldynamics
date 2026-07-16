@@ -9,7 +9,7 @@ Current slice:
 Station-calendar-provider callback-bag collapse.
 
 Status:
-Selected; implementation pending.
+Complete and published.
 
 Selected slice:
 Replace the 9-entry callback bag in `StationCalendarProviderContracts` with
@@ -42,17 +42,20 @@ No station-calendar-provider callback bag or lookup trampolines remain; direct
 shared owners and local error construction preserve validation; focused,
 broader, and export checks pass; and bounded review finds no blocker.
 
+Outcome:
+`schema.ex` fell from 11,627 to 11,612 lines and the provider owner from 250 to
+226. The 9-entry bag became direct primitive, stable-ID, and collection calls
+plus local error ownership. 179 focused, 1,167 broader, and 22 export tests
+passed; compile, compile-connected xref, checked-in regeneration, format, diff
+hygiene, and bounded review were clean.
+
 Verification gaps:
 - Full repository suite not run.
 - Known baseline: full contact-filter file remains 87/88 due nil-message
   behavior in `SuppressedCandidateContracts`; unrelated to these slices.
 
 Last completed slice:
-Suppression-handoff callback-bag collapse published as `01b36c08`:
-`schema.ex` fell from 11,641 to 11,627 lines and its owner from 293 to 273. The
-6-entry bag became direct primitives/local errors and one evidence boundary.
-125 focused, 1,167 broader, and 22 export tests passed; compile, xref, format,
-diff hygiene, checked-in regeneration, and bounded review were clean.
+Station-calendar-provider callback-bag collapse; publication commit pending.
 
 Blocked:
 No.

@@ -7347,20 +7347,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp station_calendar_provider_contract_callbacks do
-    [
-      expect_equal: &expect_equal/5,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_optional_one_of: &expect_optional_one_of/5,
-      expect_optional_number: &expect_optional_number/4,
-      validate_rows: &validate_rows/4,
-      validate_stable_ids: &validate_stable_ids/4,
-      validate_string_list_items: &validate_string_list_items/4,
-      error: &error/2
-    ]
-  end
-
   defp resource_filter_summary_contract_callbacks do
     [
       expect_equal: &expect_equal/5,
@@ -7879,8 +7865,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.StationCalendarProviderContracts.validate(
       issues,
       path,
-      provider,
-      station_calendar_provider_contract_callbacks()
+      provider
     )
   end
 

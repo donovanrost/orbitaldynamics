@@ -1,6 +1,20 @@
 defmodule OrbitalDynamics.Schema.StationCalendarProviderContracts do
   @moduledoc false
 
+  import OrbitalDynamics.Schema.CollectionValidation, only: [validate_rows: 4]
+
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [
+      expect_equal: 5,
+      expect_optional_number: 4,
+      expect_optional_one_of: 5,
+      expect_optional_type: 5,
+      expect_type: 5,
+      validate_string_list_items: 4
+    ]
+
+  import OrbitalDynamics.Schema.StableIdValidation, only: [validate_stable_ids: 4]
+
   @availability_values [
     "available",
     "unavailable",
@@ -19,99 +33,98 @@ defmodule OrbitalDynamics.Schema.StationCalendarProviderContracts do
     "reservation_hold"
   ]
 
-  def validate(issues, path, provider, callbacks) when is_list(callbacks) do
+  def validate(issues, path, provider) do
     issues
-    |> validate_stable_ids(callbacks, path, provider, ["id", "provider_id"])
-    |> expect_equal(callbacks, path, provider, "schema_contract", "station_calendar_provider.v1")
-    |> expect_type(callbacks, path, provider, "entries", :list)
-    |> expect_optional_type(callbacks, path, provider, "provenance", :map)
-    |> expect_optional_type(callbacks, path, provider, "assumptions", :map)
-    |> require_trust_boundary(callbacks, path, provider)
+    |> validate_stable_ids(path, provider, ["id", "provider_id"])
+    |> expect_equal(path, provider, "schema_contract", "station_calendar_provider.v1")
+    |> expect_type(path, provider, "entries", :list)
+    |> expect_optional_type(path, provider, "provenance", :map)
+    |> expect_optional_type(path, provider, "assumptions", :map)
+    |> require_trust_boundary(path, provider)
     |> validate_rows(
-      callbacks,
       path <> ".entries",
       Map.get(provider, "entries", []),
       fn acc, row_path, row ->
-        validate_entry(acc, row_path, row, callbacks)
+        validate_entry(acc, row_path, row)
       end
     )
-    |> validate_entry_id_uniqueness(callbacks, path, provider)
+    |> validate_entry_id_uniqueness(path, provider)
   end
 
-  def validate_entry(issues, path, entry, callbacks) when is_list(callbacks) do
+  def validate_entry(issues, path, entry) do
     issues
-    |> require_station(callbacks, path, entry)
-    |> require_availability(callbacks, path, entry)
-    |> validate_stable_ids(callbacks, path, entry, ["id", "ground_station_id", "station_id"])
-    |> expect_optional_one_of(callbacks, path, entry, "availability", @availability_values)
-    |> expect_optional_one_of(callbacks, path, entry, "status", @availability_values)
-    |> expect_optional_number(callbacks, path, entry, "capacity_fraction")
-    |> validate_stable_ids(callbacks, path, entry, [
+    |> require_station(path, entry)
+    |> require_availability(path, entry)
+    |> validate_stable_ids(path, entry, ["id", "ground_station_id", "station_id"])
+    |> expect_optional_one_of(path, entry, "availability", @availability_values)
+    |> expect_optional_one_of(path, entry, "status", @availability_values)
+    |> expect_optional_number(path, entry, "capacity_fraction")
+    |> validate_stable_ids(path, entry, [
       "reservation_id",
       "reservation_hold_id",
       "hold_id"
     ])
-    |> expect_optional_number(callbacks, path, entry, "reservation_expires_at_s")
-    |> expect_optional_number(callbacks, path, entry, "reservation_hold_expires_at_s")
-    |> expect_optional_number(callbacks, path, entry, "hold_expires_at_s")
-    |> expect_optional_number(callbacks, path, entry, "expires_at_s")
-    |> expect_optional_number(callbacks, path, entry, "expires_at")
-    |> expect_optional_number(callbacks, path, entry, "valid_until_s")
-    |> expect_optional_type(callbacks, path, entry, "reserved_by", :binary)
-    |> expect_optional_type(callbacks, path, entry, "held_by", :binary)
-    |> expect_optional_type(callbacks, path, entry, "hold_owner", :binary)
-    |> expect_optional_type(callbacks, path, entry, "reservation_status", :binary)
-    |> expect_optional_type(callbacks, path, entry, "hold_status", :binary)
-    |> validate_stable_ids(callbacks, path, entry, [
+    |> expect_optional_number(path, entry, "reservation_expires_at_s")
+    |> expect_optional_number(path, entry, "reservation_hold_expires_at_s")
+    |> expect_optional_number(path, entry, "hold_expires_at_s")
+    |> expect_optional_number(path, entry, "expires_at_s")
+    |> expect_optional_number(path, entry, "expires_at")
+    |> expect_optional_number(path, entry, "valid_until_s")
+    |> expect_optional_type(path, entry, "reserved_by", :binary)
+    |> expect_optional_type(path, entry, "held_by", :binary)
+    |> expect_optional_type(path, entry, "hold_owner", :binary)
+    |> expect_optional_type(path, entry, "reservation_status", :binary)
+    |> expect_optional_type(path, entry, "hold_status", :binary)
+    |> validate_stable_ids(path, entry, [
       "provider_counteroffer_id",
       "counteroffer_id",
       "offer_id"
     ])
-    |> expect_optional_type(callbacks, path, entry, "provider_counteroffer_status", :binary)
-    |> expect_optional_type(callbacks, path, entry, "counteroffer_status", :binary)
-    |> expect_optional_type(callbacks, path, entry, "offer_status", :binary)
-    |> expect_optional_type(callbacks, path, entry, "negotiation_status", :binary)
-    |> expect_optional_type(callbacks, path, entry, "provider_counteroffer_reason_code", :binary)
-    |> expect_optional_type(callbacks, path, entry, "counteroffer_reason_code", :binary)
-    |> expect_optional_type(callbacks, path, entry, "offer_reason_code", :binary)
-    |> expect_optional_type(callbacks, path, entry, "provider_reason_code", :binary)
-    |> expect_optional_type(callbacks, path, entry, "reason_code", :binary)
-    |> expect_optional_number(callbacks, path, entry, "provider_counteroffer_cost_delta")
-    |> expect_optional_number(callbacks, path, entry, "counteroffer_cost_delta")
-    |> expect_optional_number(callbacks, path, entry, "cost_delta")
-    |> expect_optional_number(callbacks, path, entry, "price_delta")
-    |> expect_optional_number(callbacks, path, entry, "provider_counteroffer_lock_deadline_s")
-    |> expect_optional_number(callbacks, path, entry, "counteroffer_lock_deadline_s")
-    |> expect_optional_number(callbacks, path, entry, "schedule_lock_deadline_s")
-    |> expect_optional_number(callbacks, path, entry, "lock_deadline_s")
-    |> expect_optional_number(callbacks, path, entry, "provider_counteroffer_starts_at_s")
-    |> expect_optional_number(callbacks, path, entry, "counteroffer_starts_at_s")
-    |> expect_optional_number(callbacks, path, entry, "counteroffer_start_s")
-    |> expect_optional_number(callbacks, path, entry, "offered_starts_at_s")
-    |> expect_optional_number(callbacks, path, entry, "offered_start_s")
-    |> expect_optional_number(callbacks, path, entry, "provider_counteroffer_ends_at_s")
-    |> expect_optional_number(callbacks, path, entry, "provider_counteroffer_start_delta_s")
-    |> expect_optional_number(callbacks, path, entry, "provider_counteroffer_end_delta_s")
-    |> expect_optional_number(callbacks, path, entry, "provider_counteroffer_duration_delta_s")
-    |> expect_optional_number(callbacks, path, entry, "counteroffer_ends_at_s")
-    |> expect_optional_number(callbacks, path, entry, "counteroffer_end_s")
-    |> expect_optional_number(callbacks, path, entry, "offered_ends_at_s")
-    |> expect_optional_number(callbacks, path, entry, "offered_end_s")
-    |> expect_optional_type(callbacks, path, entry, "direction", :binary)
-    |> expect_optional_type(callbacks, path, entry, "directions", :list)
-    |> validate_string_list_items(callbacks, path, entry, "directions")
-    |> expect_optional_type(callbacks, path, entry, "station_calendar_directions", :list)
-    |> validate_string_list_items(callbacks, path, entry, "station_calendar_directions")
-    |> expect_optional_type(callbacks, path, entry, "trust_boundary", :binary)
-    |> expect_optional_type(callbacks, path, entry, "provenance", :map)
-    |> expect_optional_number(callbacks, path, entry, "starts_at_s")
-    |> expect_optional_number(callbacks, path, entry, "ends_at_s")
-    |> expect_optional_number(callbacks, path, entry, "start_s")
-    |> expect_optional_number(callbacks, path, entry, "end_s")
-    |> validate_interval(callbacks, path, entry)
+    |> expect_optional_type(path, entry, "provider_counteroffer_status", :binary)
+    |> expect_optional_type(path, entry, "counteroffer_status", :binary)
+    |> expect_optional_type(path, entry, "offer_status", :binary)
+    |> expect_optional_type(path, entry, "negotiation_status", :binary)
+    |> expect_optional_type(path, entry, "provider_counteroffer_reason_code", :binary)
+    |> expect_optional_type(path, entry, "counteroffer_reason_code", :binary)
+    |> expect_optional_type(path, entry, "offer_reason_code", :binary)
+    |> expect_optional_type(path, entry, "provider_reason_code", :binary)
+    |> expect_optional_type(path, entry, "reason_code", :binary)
+    |> expect_optional_number(path, entry, "provider_counteroffer_cost_delta")
+    |> expect_optional_number(path, entry, "counteroffer_cost_delta")
+    |> expect_optional_number(path, entry, "cost_delta")
+    |> expect_optional_number(path, entry, "price_delta")
+    |> expect_optional_number(path, entry, "provider_counteroffer_lock_deadline_s")
+    |> expect_optional_number(path, entry, "counteroffer_lock_deadline_s")
+    |> expect_optional_number(path, entry, "schedule_lock_deadline_s")
+    |> expect_optional_number(path, entry, "lock_deadline_s")
+    |> expect_optional_number(path, entry, "provider_counteroffer_starts_at_s")
+    |> expect_optional_number(path, entry, "counteroffer_starts_at_s")
+    |> expect_optional_number(path, entry, "counteroffer_start_s")
+    |> expect_optional_number(path, entry, "offered_starts_at_s")
+    |> expect_optional_number(path, entry, "offered_start_s")
+    |> expect_optional_number(path, entry, "provider_counteroffer_ends_at_s")
+    |> expect_optional_number(path, entry, "provider_counteroffer_start_delta_s")
+    |> expect_optional_number(path, entry, "provider_counteroffer_end_delta_s")
+    |> expect_optional_number(path, entry, "provider_counteroffer_duration_delta_s")
+    |> expect_optional_number(path, entry, "counteroffer_ends_at_s")
+    |> expect_optional_number(path, entry, "counteroffer_end_s")
+    |> expect_optional_number(path, entry, "offered_ends_at_s")
+    |> expect_optional_number(path, entry, "offered_end_s")
+    |> expect_optional_type(path, entry, "direction", :binary)
+    |> expect_optional_type(path, entry, "directions", :list)
+    |> validate_string_list_items(path, entry, "directions")
+    |> expect_optional_type(path, entry, "station_calendar_directions", :list)
+    |> validate_string_list_items(path, entry, "station_calendar_directions")
+    |> expect_optional_type(path, entry, "trust_boundary", :binary)
+    |> expect_optional_type(path, entry, "provenance", :map)
+    |> expect_optional_number(path, entry, "starts_at_s")
+    |> expect_optional_number(path, entry, "ends_at_s")
+    |> expect_optional_number(path, entry, "start_s")
+    |> expect_optional_number(path, entry, "end_s")
+    |> validate_interval(path, entry)
   end
 
-  defp validate_entry_id_uniqueness(issues, callbacks, path, provider) do
+  defp validate_entry_id_uniqueness(issues, path, provider) do
     entry_ids =
       provider
       |> Map.get("entries", [])
@@ -123,10 +136,10 @@ defmodule OrbitalDynamics.Schema.StationCalendarProviderContracts do
       |> Enum.map(&Map.get(&1, "id"))
       |> Enum.reject(&(&1 in [nil, ""]))
 
-    reject_duplicate_ids(issues, callbacks, path <> ".entries", entry_ids)
+    reject_duplicate_ids(issues, path <> ".entries", entry_ids)
   end
 
-  defp require_trust_boundary(issues, callbacks, path, provider) do
+  defp require_trust_boundary(issues, path, provider) do
     trust_boundary = Map.get(provider, "trust_boundary")
     provenance_trust_boundary = get_in(provider, ["provenance", "trust_boundary"])
 
@@ -140,7 +153,6 @@ defmodule OrbitalDynamics.Schema.StationCalendarProviderContracts do
       true ->
         [
           error(
-            callbacks,
             path <> ".trust_boundary",
             "station_calendar_provider.v1 requires trust_boundary or provenance.trust_boundary"
           )
@@ -149,12 +161,11 @@ defmodule OrbitalDynamics.Schema.StationCalendarProviderContracts do
     end
   end
 
-  defp require_station(issues, callbacks, path, entry) do
+  defp require_station(issues, path, entry) do
     if Map.get(entry, "ground_station_id") in [nil, ""] and
          Map.get(entry, "station_id") in [nil, ""] do
       [
         error(
-          callbacks,
           path <> ".ground_station_id",
           "ground_station_id or station_id is required"
         )
@@ -165,15 +176,15 @@ defmodule OrbitalDynamics.Schema.StationCalendarProviderContracts do
     end
   end
 
-  defp require_availability(issues, callbacks, path, entry) do
+  defp require_availability(issues, path, entry) do
     if Map.get(entry, "availability") in [nil, ""] and Map.get(entry, "status") in [nil, ""] do
-      [error(callbacks, path <> ".availability", "availability or status is required") | issues]
+      [error(path <> ".availability", "availability or status is required") | issues]
     else
       issues
     end
   end
 
-  defp validate_interval(issues, callbacks, path, entry) do
+  defp validate_interval(issues, path, entry) do
     starts_at_s = Map.get(entry, "starts_at_s") || Map.get(entry, "start_s")
     ends_at_s = Map.get(entry, "ends_at_s") || Map.get(entry, "end_s")
 
@@ -185,14 +196,14 @@ defmodule OrbitalDynamics.Schema.StationCalendarProviderContracts do
         issues
 
       is_number(starts_at_s) and is_number(ends_at_s) ->
-        [error(callbacks, path <> ".ends_at_s", "must be greater than starts_at_s") | issues]
+        [error(path <> ".ends_at_s", "must be greater than starts_at_s") | issues]
 
       true ->
         issues
     end
   end
 
-  defp reject_duplicate_ids(issues, callbacks, path, ids) do
+  defp reject_duplicate_ids(issues, path, ids) do
     duplicate_ids =
       ids
       |> Enum.frequencies()
@@ -204,47 +215,12 @@ defmodule OrbitalDynamics.Schema.StationCalendarProviderContracts do
       issues
     else
       [
-        error(callbacks, path, "must not contain duplicate IDs: #{inspect(duplicate_ids)}")
+        error(path, "must not contain duplicate IDs: #{inspect(duplicate_ids)}")
         | issues
       ]
     end
   end
 
-  defp expect_equal(issues, callbacks, path, map, field, expected) do
-    callback!(callbacks, :expect_equal).(issues, path, map, field, expected)
-  end
-
-  defp expect_optional_number(issues, callbacks, path, map, field) do
-    callback!(callbacks, :expect_optional_number).(issues, path, map, field)
-  end
-
-  defp expect_optional_one_of(issues, callbacks, path, map, field, values) do
-    callback!(callbacks, :expect_optional_one_of).(issues, path, map, field, values)
-  end
-
-  defp expect_optional_type(issues, callbacks, path, map, field, type) do
-    callback!(callbacks, :expect_optional_type).(issues, path, map, field, type)
-  end
-
-  defp expect_type(issues, callbacks, path, map, field, type) do
-    callback!(callbacks, :expect_type).(issues, path, map, field, type)
-  end
-
-  defp validate_rows(issues, callbacks, path, rows, validator) do
-    callback!(callbacks, :validate_rows).(issues, path, rows, validator)
-  end
-
-  defp validate_stable_ids(issues, callbacks, path, map, fields) do
-    callback!(callbacks, :validate_stable_ids).(issues, path, map, fields)
-  end
-
-  defp validate_string_list_items(issues, callbacks, path, map, field) do
-    callback!(callbacks, :validate_string_list_items).(issues, path, map, field)
-  end
-
-  defp error(callbacks, path, message) do
-    callback!(callbacks, :error).(path, message)
-  end
-
-  defp callback!(callbacks, name), do: Keyword.fetch!(callbacks, name)
+  defp error(path, message),
+    do: %{"severity" => "error", "path" => path, "message" => message}
 end
