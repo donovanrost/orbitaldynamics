@@ -1,6 +1,31 @@
 defmodule OrbitalDynamics.Schema.ActivityContextContracts do
   @moduledoc false
 
+  import OrbitalDynamics.Schema.CollectionValidation, only: [validate_numeric_map: 3]
+
+  import OrbitalDynamics.Schema.StableIdValidation,
+    only: [validate_optional_stable_id_list: 4, validate_stable_ids: 4]
+
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [
+      expect_field_at_least: 5,
+      expect_optional_integer: 4,
+      expect_optional_non_negative_number: 4,
+      expect_optional_number: 4,
+      expect_optional_number_or_string: 4,
+      expect_optional_probability: 4,
+      expect_optional_type: 5,
+      validate_number_list_items: 4,
+      validate_string_list_items: 4
+    ]
+
+  alias OrbitalDynamics.Schema.{
+    CandidateDiffContracts,
+    CandidateRefreshScopedContextContracts,
+    ExecutionMetricContracts,
+    TimelineIntegrityEvidenceContracts
+  }
+
   @stable_id_fields [
     "activity_id",
     "planned_activity_id",
@@ -88,166 +113,152 @@ defmodule OrbitalDynamics.Schema.ActivityContextContracts do
     "capacity_pack_capacity_fraction"
   ]
 
-  def validate_optional(issues, path, map, field, callbacks)
-      when is_map(map) and is_list(callbacks) do
+  def validate_optional(issues, path, map, field) when is_map(map) do
     case Map.get(map, field) do
-      %{} = context -> validate(issues, "#{path}.#{field}", context, callbacks)
+      %{} = context -> validate(issues, "#{path}.#{field}", context)
       _value -> issues
     end
   end
 
-  def validate(issues, path, context, callbacks) when is_map(context) and is_list(callbacks) do
+  def validate(issues, path, context) when is_map(context) do
     issues
-    |> validate_stable_ids(callbacks, path, context, @stable_id_fields)
-    |> validate_stable_id_lists(callbacks, path, context)
-    |> validate_probability_fields(callbacks, path, context)
-    |> expect_optional_integer(callbacks, path, context, "observation_objective_count")
-    |> expect_field_at_least(callbacks, path, context, "observation_objective_count", 0)
-    |> expect_optional_type(callbacks, path, context, "observation_objective_types", :list)
-    |> validate_string_list_items(callbacks, path, context, "observation_objective_types")
-    |> expect_optional_integer(callbacks, path, context, "collection_latency_objective_count")
-    |> expect_field_at_least(callbacks, path, context, "collection_latency_objective_count", 0)
-    |> expect_optional_type(callbacks, path, context, "collection_latency_objective_types", :list)
-    |> validate_string_list_items(callbacks, path, context, "collection_latency_objective_types")
-    |> expect_optional_type(callbacks, path, context, "source_event_type", :binary)
-    |> expect_optional_type(callbacks, path, context, "source_event_provenance", :map)
-    |> validate_source_event_provenance(callbacks, path, context)
-    |> expect_optional_type(callbacks, path, context, "feedback_source", :binary)
-    |> expect_optional_type(callbacks, path, context, "feedback_scope", :binary)
-    |> expect_optional_type(callbacks, path, context, "trust_boundary", :binary)
-    |> expect_optional_type(callbacks, path, context, "derivation_reason", :binary)
-    |> expect_optional_type(callbacks, path, context, "derivation_reasons", :list)
-    |> validate_string_list_items(callbacks, path, context, "derivation_reasons")
-    |> expect_optional_type(callbacks, path, context, "allow_overlap", :boolean)
-    |> expect_optional_number(callbacks, path, context, "duration_s")
-    |> expect_optional_non_negative_number(callbacks, path, context, "setup_duration_s")
-    |> expect_optional_non_negative_number(callbacks, path, context, "cooldown_duration_s")
-    |> expect_optional_type(callbacks, path, context, "telemetry_confirmation_required", :boolean)
-    |> expect_optional_type(callbacks, path, context, "telemetry_confirmation_status", :binary)
-    |> expect_optional_number(callbacks, path, context, "score")
-    |> expect_optional_type(callbacks, path, context, "score_terms", :map)
-    |> validate_numeric_map(callbacks, path <> ".score_terms", Map.get(context, "score_terms"))
+    |> validate_stable_ids(path, context, @stable_id_fields)
+    |> validate_stable_id_lists(path, context)
+    |> validate_probability_fields(path, context)
+    |> expect_optional_integer(path, context, "observation_objective_count")
+    |> expect_field_at_least(path, context, "observation_objective_count", 0)
+    |> expect_optional_type(path, context, "observation_objective_types", :list)
+    |> validate_string_list_items(path, context, "observation_objective_types")
+    |> expect_optional_integer(path, context, "collection_latency_objective_count")
+    |> expect_field_at_least(path, context, "collection_latency_objective_count", 0)
+    |> expect_optional_type(path, context, "collection_latency_objective_types", :list)
+    |> validate_string_list_items(path, context, "collection_latency_objective_types")
+    |> expect_optional_type(path, context, "source_event_type", :binary)
+    |> expect_optional_type(path, context, "source_event_provenance", :map)
+    |> validate_source_event_provenance(path, context)
+    |> expect_optional_type(path, context, "feedback_source", :binary)
+    |> expect_optional_type(path, context, "feedback_scope", :binary)
+    |> expect_optional_type(path, context, "trust_boundary", :binary)
+    |> expect_optional_type(path, context, "derivation_reason", :binary)
+    |> expect_optional_type(path, context, "derivation_reasons", :list)
+    |> validate_string_list_items(path, context, "derivation_reasons")
+    |> expect_optional_type(path, context, "allow_overlap", :boolean)
+    |> expect_optional_number(path, context, "duration_s")
+    |> expect_optional_non_negative_number(path, context, "setup_duration_s")
+    |> expect_optional_non_negative_number(path, context, "cooldown_duration_s")
+    |> expect_optional_type(path, context, "telemetry_confirmation_required", :boolean)
+    |> expect_optional_type(path, context, "telemetry_confirmation_status", :binary)
+    |> expect_optional_number(path, context, "score")
+    |> expect_optional_type(path, context, "score_terms", :map)
+    |> validate_numeric_map(path <> ".score_terms", Map.get(context, "score_terms"))
     |> expect_optional_type(
-      callbacks,
       path,
       context,
       "actual_data_rate_throughput_derivation",
       :map
     )
     |> validate_optional_actual_data_rate_throughput_derivation(
-      callbacks,
       path,
       context,
       "actual_data_rate_throughput_derivation"
     )
-    |> expect_optional_type(callbacks, path, context, "execution_uncertainty", :map)
-    |> validate_optional_execution_uncertainty(callbacks, path, context, "execution_uncertainty")
-    |> expect_optional_type(callbacks, path, context, "source_window", :map)
-    |> validate_source_window(callbacks, path, context)
+    |> expect_optional_type(path, context, "execution_uncertainty", :map)
+    |> validate_optional_execution_uncertainty(path, context, "execution_uncertainty")
+    |> expect_optional_type(path, context, "source_window", :map)
+    |> validate_source_window(path, context)
     |> expect_optional_non_negative_number(
-      callbacks,
       path,
       context,
       "battery_energy_generated_wh"
     )
-    |> expect_optional_number_or_string(callbacks, path, context, "lighting_confidence")
-    |> expect_optional_type(callbacks, path, context, "feasibility_status", :binary)
-    |> expect_optional_type(callbacks, path, context, "repair_reason", :binary)
-    |> validate_candidate_diff_changed_fields(callbacks, path, context)
-    |> expect_optional_integer(callbacks, path, context, "station_calendar_overlap_count")
-    |> expect_field_at_least(callbacks, path, context, "station_calendar_overlap_count", 0)
-    |> expect_optional_integer(callbacks, path, context, "station_calendar_ambiguous_entry_count")
+    |> expect_optional_number_or_string(path, context, "lighting_confidence")
+    |> expect_optional_type(path, context, "feasibility_status", :binary)
+    |> expect_optional_type(path, context, "repair_reason", :binary)
+    |> validate_candidate_diff_changed_fields(path, context)
+    |> expect_optional_integer(path, context, "station_calendar_overlap_count")
+    |> expect_field_at_least(path, context, "station_calendar_overlap_count", 0)
+    |> expect_optional_integer(path, context, "station_calendar_ambiguous_entry_count")
     |> expect_field_at_least(
-      callbacks,
       path,
       context,
       "station_calendar_ambiguous_entry_count",
       0
     )
     |> expect_optional_integer(
-      callbacks,
       path,
       context,
       "station_calendar_reservation_overlap_count"
     )
     |> expect_field_at_least(
-      callbacks,
       path,
       context,
       "station_calendar_reservation_overlap_count",
       0
     )
     |> expect_optional_type(
-      callbacks,
       path,
       context,
       "station_calendar_reservation_expires_at_s",
       :list
     )
     |> validate_number_list_items(
-      callbacks,
       path,
       context,
       "station_calendar_reservation_expires_at_s"
     )
-    |> expect_optional_number(callbacks, path, context, "station_reservation_expires_at_s")
-    |> expect_optional_integer(callbacks, path, context, "timeline_integrity_issue_count")
-    |> expect_field_at_least(callbacks, path, context, "timeline_integrity_issue_count", 0)
-    |> expect_optional_type(callbacks, path, context, "timeline_integrity_issue_types", :list)
-    |> validate_string_list_items(callbacks, path, context, "timeline_integrity_issue_types")
-    |> expect_optional_type(callbacks, path, context, "timeline_integrity_issues", :list)
-    |> validate_timeline_integrity_evidence(callbacks, path, context)
+    |> expect_optional_number(path, context, "station_reservation_expires_at_s")
+    |> expect_optional_integer(path, context, "timeline_integrity_issue_count")
+    |> expect_field_at_least(path, context, "timeline_integrity_issue_count", 0)
+    |> expect_optional_type(path, context, "timeline_integrity_issue_types", :list)
+    |> validate_string_list_items(path, context, "timeline_integrity_issue_types")
+    |> expect_optional_type(path, context, "timeline_integrity_issues", :list)
+    |> validate_timeline_integrity_evidence(path, context)
   end
 
-  defp validate_source_window(issues, callbacks, path, %{"source_window" => %{} = window}) do
+  defp validate_source_window(issues, path, %{"source_window" => %{} = window}) do
     issues
-    |> validate_stable_ids(callbacks, path <> ".source_window", window, [
+    |> validate_stable_ids(path <> ".source_window", window, [
       "id",
       "scenario_id",
       "target_id",
       "ground_station_id"
     ])
-    |> expect_optional_number(callbacks, path <> ".source_window", window, "starts_at_s")
-    |> expect_optional_number(callbacks, path <> ".source_window", window, "ends_at_s")
-    |> expect_optional_number(callbacks, path <> ".source_window", window, "duration_s")
-    |> expect_optional_number(callbacks, path <> ".source_window", window, "max_elevation_deg")
+    |> expect_optional_number(path <> ".source_window", window, "starts_at_s")
+    |> expect_optional_number(path <> ".source_window", window, "ends_at_s")
+    |> expect_optional_number(path <> ".source_window", window, "duration_s")
+    |> expect_optional_number(path <> ".source_window", window, "max_elevation_deg")
     |> expect_optional_number(
-      callbacks,
       path <> ".source_window",
       window,
       "minimum_elevation_deg"
     )
     |> expect_optional_number(
-      callbacks,
       path <> ".source_window",
       window,
       "event_time_tolerance_s"
     )
-    |> expect_optional_number(callbacks, path <> ".source_window", window, "max_sample_step_s")
+    |> expect_optional_number(path <> ".source_window", window, "max_sample_step_s")
     |> validate_candidate_refresh_scoped_context_fields(
-      callbacks,
       path <> ".source_window",
       window
     )
   end
 
-  defp validate_source_window(issues, _callbacks, _path, _context), do: issues
+  defp validate_source_window(issues, _path, _context), do: issues
 
   defp validate_source_event_provenance(
          issues,
-         callbacks,
          path,
          %{"source_event_provenance" => %{} = provenance}
        ) do
     provenance_path = path <> ".source_event_provenance"
 
     issues
-    |> expect_optional_type(callbacks, provenance_path, provenance, "source", :binary)
-    |> expect_optional_type(callbacks, provenance_path, provenance, "adapter", :binary)
-    |> expect_optional_type(callbacks, provenance_path, provenance, "import_adapter", :binary)
-    |> expect_optional_type(callbacks, provenance_path, provenance, "trust_boundary", :binary)
+    |> expect_optional_type(provenance_path, provenance, "source", :binary)
+    |> expect_optional_type(provenance_path, provenance, "adapter", :binary)
+    |> expect_optional_type(provenance_path, provenance, "import_adapter", :binary)
+    |> expect_optional_type(provenance_path, provenance, "trust_boundary", :binary)
     |> expect_optional_type(
-      callbacks,
       provenance_path,
       provenance,
       "trust_boundary_status",
@@ -255,168 +266,49 @@ defmodule OrbitalDynamics.Schema.ActivityContextContracts do
     )
   end
 
-  defp validate_source_event_provenance(issues, _callbacks, _path, _context), do: issues
+  defp validate_source_event_provenance(issues, _path, _context), do: issues
 
-  defp validate_probability_fields(issues, callbacks, path, context) do
+  defp validate_probability_fields(issues, path, context) do
     Enum.reduce(@probability_fields, issues, fn field, acc ->
-      expect_optional_probability(acc, callbacks, path, context, field)
+      expect_optional_probability(acc, path, context, field)
     end)
   end
 
-  defp validate_stable_id_lists(issues, callbacks, path, context) do
+  defp validate_stable_id_lists(issues, path, context) do
     Enum.reduce(@stable_id_list_fields, issues, fn field, acc ->
-      validate_optional_stable_id_list(acc, callbacks, path, context, field)
+      validate_optional_stable_id_list(acc, path, context, field)
     end)
   end
-
-  defp validate_stable_ids(issues, callbacks, path, map, fields),
-    do: apply(require_callback(callbacks, :validate_stable_ids), [issues, path, map, fields])
-
-  defp validate_optional_stable_id_list(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :validate_optional_stable_id_list), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp expect_optional_probability(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :expect_optional_probability), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp expect_optional_integer(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :expect_optional_integer), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp expect_field_at_least(issues, callbacks, path, map, field, minimum),
-    do:
-      apply(require_callback(callbacks, :expect_field_at_least), [
-        issues,
-        path,
-        map,
-        field,
-        minimum
-      ])
-
-  defp expect_optional_type(issues, callbacks, path, map, field, type),
-    do:
-      apply(require_callback(callbacks, :expect_optional_type), [
-        issues,
-        path,
-        map,
-        field,
-        type
-      ])
-
-  defp validate_string_list_items(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :validate_string_list_items), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp expect_optional_number(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :expect_optional_number), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp expect_optional_non_negative_number(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :expect_optional_non_negative_number), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp validate_numeric_map(issues, callbacks, path, map),
-    do: apply(require_callback(callbacks, :validate_numeric_map), [issues, path, map])
 
   defp validate_optional_actual_data_rate_throughput_derivation(
          issues,
-         callbacks,
          path,
          map,
          field
-       ),
-       do:
-         apply(
-           require_callback(callbacks, :validate_optional_actual_data_rate_throughput_derivation),
-           [
-             issues,
-             path,
-             map,
-             field
-           ]
-         )
+       ) do
+    ExecutionMetricContracts.validate_optional_actual_data_rate_throughput_derivation(
+      issues,
+      path,
+      map,
+      field
+    )
+  end
 
-  defp validate_optional_execution_uncertainty(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :validate_optional_execution_uncertainty), [
-        issues,
-        path,
-        map,
-        field
-      ])
+  defp validate_optional_execution_uncertainty(issues, path, map, field) do
+    ExecutionMetricContracts.validate_optional_execution_uncertainty(
+      issues,
+      path,
+      map,
+      field
+    )
+  end
 
-  defp validate_candidate_refresh_scoped_context_fields(issues, callbacks, path, context),
-    do:
-      apply(require_callback(callbacks, :validate_candidate_refresh_scoped_context_fields), [
-        issues,
-        path,
-        context
-      ])
+  defp validate_candidate_refresh_scoped_context_fields(issues, path, context),
+    do: CandidateRefreshScopedContextContracts.validate(issues, path, context)
 
-  defp expect_optional_number_or_string(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :expect_optional_number_or_string), [
-        issues,
-        path,
-        map,
-        field
-      ])
+  defp validate_candidate_diff_changed_fields(issues, path, context),
+    do: CandidateDiffContracts.validate_changed_fields(issues, path, context)
 
-  defp validate_candidate_diff_changed_fields(issues, callbacks, path, context),
-    do:
-      apply(require_callback(callbacks, :validate_candidate_diff_changed_fields), [
-        issues,
-        path,
-        context
-      ])
-
-  defp validate_number_list_items(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :validate_number_list_items), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp validate_timeline_integrity_evidence(issues, callbacks, path, context),
-    do:
-      apply(require_callback(callbacks, :validate_timeline_integrity_evidence), [
-        issues,
-        path,
-        context
-      ])
-
-  defp require_callback(callbacks, name), do: Keyword.fetch!(callbacks, name)
+  defp validate_timeline_integrity_evidence(issues, path, context),
+    do: TimelineIntegrityEvidenceContracts.validate(issues, path, context)
 end

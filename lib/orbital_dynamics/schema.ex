@@ -9119,14 +9119,6 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validate_candidate_refresh_scoped_context_fields(issues, path, row) do
-    OrbitalDynamics.Schema.CandidateRefreshScopedContextContracts.validate(
-      issues,
-      path,
-      row
-    )
-  end
-
   defp validate_branch_event_trust_boundary_status_count_map(issues, path, counts) do
     OrbitalDynamics.Schema.BranchEventContracts.validate_trust_boundary_status_count_map(
       issues,
@@ -13306,33 +13298,8 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       map,
-      field,
-      activity_context_contract_callbacks()
+      field
     )
-  end
-
-  defp activity_context_contract_callbacks do
-    [
-      validate_stable_ids: &validate_stable_ids/4,
-      validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
-      expect_optional_probability: &expect_optional_probability/4,
-      expect_optional_integer: &expect_optional_integer/4,
-      expect_field_at_least: &expect_field_at_least/5,
-      expect_optional_type: &expect_optional_type/5,
-      validate_string_list_items: &validate_string_list_items/4,
-      expect_optional_number: &expect_optional_number/4,
-      expect_optional_non_negative_number: &expect_optional_non_negative_number/4,
-      validate_numeric_map: &validate_numeric_map/3,
-      validate_optional_actual_data_rate_throughput_derivation:
-        &validate_optional_actual_data_rate_throughput_derivation/4,
-      validate_optional_execution_uncertainty: &validate_optional_execution_uncertainty/4,
-      validate_candidate_refresh_scoped_context_fields:
-        &validate_candidate_refresh_scoped_context_fields/3,
-      expect_optional_number_or_string: &expect_optional_number_or_string/4,
-      validate_candidate_diff_changed_fields: &validate_candidate_diff_changed_fields/3,
-      validate_number_list_items: &validate_number_list_items/4,
-      validate_timeline_integrity_evidence: &validate_timeline_integrity_evidence/3
-    ]
   end
 
   defp validate_optional_actual_data_rate_throughput_derivation(issues, path, map, field)
