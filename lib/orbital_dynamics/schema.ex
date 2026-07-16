@@ -7370,32 +7370,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp resource_projection_report_contract_callbacks do
-    [
-      require_fields: &require_fields/4,
-      expect_equal: &expect_equal/5,
-      expect_one_of: &expect_one_of/5,
-      resource_projection_report_models: &resource_projection_report_models/0,
-      expect_optional_type: &expect_optional_type/5,
-      expect_non_negative_integer: &expect_non_negative_integer/4,
-      expect_optional_non_negative_integer: &expect_optional_non_negative_integer/4,
-      validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
-      validate_stable_id_array_map: &validate_stable_id_array_map/3,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_optional_exact_model_limits: &validate_optional_exact_model_limits/5,
-      resource_projection_report_model_limits: &resource_projection_report_model_limits/0,
-      expect_type: &expect_type/5,
-      validate_resource_projection_subsystem_model_assumptions:
-        &validate_resource_projection_subsystem_model_assumptions/3,
-      validate_optional_rows: &validate_optional_rows/4,
-      validate_invalid_resource_summary_input: &validate_invalid_resource_summary_input/3,
-      validate_invalid_activity_input: &validate_invalid_activity_input/3,
-      validate_rows: &validate_rows/4,
-      validate_resource_projection_row: &validate_resource_projection_row/3,
-      validate_resource_projection_report_counts: &validate_resource_projection_report_counts/3
-    ]
-  end
-
   defp result_artifact_contract_callbacks do
     [
       validate_execution_report: &validate_nested_execution_report/1,
@@ -8117,7 +8091,13 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       report,
-      resource_projection_report_contract_callbacks()
+      resource_projection_report_models(),
+      resource_projection_report_model_limits(),
+      &validate_resource_projection_subsystem_model_assumptions/3,
+      &validate_invalid_resource_summary_input/3,
+      &validate_invalid_activity_input/3,
+      &validate_resource_projection_row/3,
+      &validate_resource_projection_report_counts/3
     )
   end
 
