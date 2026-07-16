@@ -9,7 +9,7 @@ Current slice:
 Completed: timeline integrity registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Moved `timeline_integrity_report.v1` and
@@ -81,7 +81,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`90d1a063` (`Update timeline diff handoff`).
+`43428414` (`Extract timeline integrity registry contracts`).
 
 Next candidate:
 Assess `timeline_publication_summary.v1` as the next bounded registry extraction.
