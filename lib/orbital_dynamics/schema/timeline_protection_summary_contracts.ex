@@ -1,6 +1,9 @@
 defmodule OrbitalDynamics.Schema.TimelineProtectionSummaryContracts do
   @moduledoc false
 
+  alias OrbitalDynamics.Schema.PrimitiveValidation
+  alias OrbitalDynamics.Schema.StableIdValidation
+
   @count_fields [
     "preserved_locked_or_approved_count",
     "preserved_executed_count",
@@ -15,73 +18,32 @@ defmodule OrbitalDynamics.Schema.TimelineProtectionSummaryContracts do
     "changed_executed_activity_ids"
   ]
 
-  def validate_optional_summary(issues, path, map, field, callbacks)
-      when is_map(map) and is_list(callbacks) do
+  def validate_optional_summary(issues, path, map, field) when is_map(map) do
     case Map.get(map, field) do
-      %{} = protection -> validate_summary(issues, "#{path}.#{field}", protection, callbacks)
+      %{} = protection -> validate_summary(issues, "#{path}.#{field}", protection)
       _value -> issues
     end
   end
 
-  def validate_summary(issues, path, protection, callbacks) when is_list(callbacks) do
+  def validate_summary(issues, path, protection) do
     issues
-    |> validate_counts(path, protection, callbacks)
-    |> validate_activity_ids(path, protection, callbacks)
+    |> validate_counts(path, protection)
+    |> validate_activity_ids(path, protection)
   end
 
-  defp validate_counts(issues, path, protection, callbacks) do
+  defp validate_counts(issues, path, protection) do
     Enum.reduce(@count_fields, issues, fn field, acc ->
       acc
-      |> expect_optional_integer(callbacks, path, protection, field)
-      |> expect_field_at_least(callbacks, path, protection, field, 0)
+      |> PrimitiveValidation.expect_optional_integer(path, protection, field)
+      |> PrimitiveValidation.expect_field_at_least(path, protection, field, 0)
     end)
   end
 
-  defp validate_activity_ids(issues, path, protection, callbacks) do
+  defp validate_activity_ids(issues, path, protection) do
     Enum.reduce(@activity_id_fields, issues, fn field, acc ->
       acc
-      |> expect_optional_type(callbacks, path, protection, field, :list)
-      |> validate_optional_stable_id_list(callbacks, path, protection, field)
+      |> PrimitiveValidation.expect_optional_type(path, protection, field, :list)
+      |> StableIdValidation.validate_optional_stable_id_list(path, protection, field)
     end)
   end
-
-  defp expect_optional_integer(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :expect_optional_integer), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp expect_field_at_least(issues, callbacks, path, map, field, minimum),
-    do:
-      apply(require_callback(callbacks, :expect_field_at_least), [
-        issues,
-        path,
-        map,
-        field,
-        minimum
-      ])
-
-  defp expect_optional_type(issues, callbacks, path, map, field, type),
-    do:
-      apply(require_callback(callbacks, :expect_optional_type), [
-        issues,
-        path,
-        map,
-        field,
-        type
-      ])
-
-  defp validate_optional_stable_id_list(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :validate_optional_stable_id_list), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp require_callback(callbacks, name), do: Keyword.fetch!(callbacks, name)
 end

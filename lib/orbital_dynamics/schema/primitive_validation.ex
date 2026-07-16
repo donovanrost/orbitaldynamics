@@ -42,6 +42,18 @@ defmodule OrbitalDynamics.Schema.PrimitiveValidation do
     end
   end
 
+  def expect_field_at_least(issues, _path, _map, _field, nil), do: issues
+
+  def expect_field_at_least(issues, path, map, field, minimum) do
+    value = Map.get(map, field)
+
+    if Map.has_key?(map, field) and is_number(value) and value < minimum do
+      [error("#{path}.#{field}", "must be at least #{minimum}") | issues]
+    else
+      issues
+    end
+  end
+
   def expect_optional_number(issues, path, map, field) do
     case Map.get(map, field) do
       nil -> issues

@@ -22,6 +22,7 @@ defmodule OrbitalDynamics.Schema do
     only: [
       error: 2,
       expect_equal: 5,
+      expect_field_at_least: 5,
       expect_number: 4,
       expect_number_vector: 3,
       expect_one_of: 5,
@@ -12628,18 +12629,6 @@ defmodule OrbitalDynamics.Schema do
     end
   end
 
-  defp expect_field_at_least(issues, _path, _map, _field, nil), do: issues
-
-  defp expect_field_at_least(issues, path, map, field, minimum) do
-    value = Map.get(map, field)
-
-    if Map.has_key?(map, field) and is_number(value) and value < minimum do
-      [error("#{path}.#{field}", "must be at least #{minimum}") | issues]
-    else
-      issues
-    end
-  end
-
   defp expect_field_at_most(issues, path, map, field, maximum) do
     value = Map.get(map, field)
 
@@ -14607,18 +14596,8 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       map,
-      field,
-      timeline_protection_summary_contract_callbacks()
+      field
     )
-  end
-
-  defp timeline_protection_summary_contract_callbacks do
-    [
-      expect_optional_integer: &expect_optional_integer/4,
-      expect_field_at_least: &expect_field_at_least/5,
-      expect_optional_type: &expect_optional_type/5,
-      validate_optional_stable_id_list: &validate_optional_stable_id_list/4
-    ]
   end
 
   defp validate_priority_override_map(issues, path, overrides) when is_map(overrides) do
