@@ -1,7 +1,32 @@
 defmodule OrbitalDynamics.Schema.TimelineActivityStateContracts do
   @moduledoc false
 
-  def validate(issues, path, state, callbacks) when is_list(callbacks) do
+  alias OrbitalDynamics.Schema.{
+    ActivityContextContracts,
+    LifecycleTransitionContracts,
+    ProtectionDecisionContracts,
+    TimelineFeedbackRowContracts
+  }
+
+  import OrbitalDynamics.Schema.CollectionValidation, only: [validate_rows: 4]
+
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [
+      expect_equal: 5,
+      expect_field_equals: 6,
+      expect_one_of: 5,
+      expect_optional_type: 5,
+      expect_type: 5,
+      validate_non_negative_integer_count_map: 3,
+      validate_optional_exact_model_limits: 5,
+      validate_string_list_items: 4
+    ]
+
+  import OrbitalDynamics.Schema.StableIdValidation,
+    only: [validate_optional_stable_id_list: 4, validate_stable_ids: 4]
+
+  def validate(issues, path, state, timeline_feedback_report_model_limits, row_callbacks)
+      when is_list(timeline_feedback_report_model_limits) and is_list(row_callbacks) do
     rows =
       case Map.get(state, "rows") do
         rows when is_list(rows) -> Enum.filter(rows, &is_map/1)
@@ -9,81 +34,68 @@ defmodule OrbitalDynamics.Schema.TimelineActivityStateContracts do
       end
 
     issues
-    |> expect_equal(callbacks, path, state, "schema_contract", "timeline_activity_state.v1")
-    |> expect_equal(callbacks, path, state, "model", "artifact_only_timeline_activity_state")
-    |> expect_equal(callbacks, path, state, "validation_level", "artifact_contract")
-    |> expect_one_of(
-      callbacks,
-      path,
-      state,
-      "state_status",
-      [
-        "empty",
-        "review_required" | OrbitalDynamics.TimelineFeedback.capabilities().report_statuses
-      ]
-    )
-    |> validate_stable_ids(callbacks, path, state, [
+    |> expect_equal(path, state, "schema_contract", "timeline_activity_state.v1")
+    |> expect_equal(path, state, "model", "artifact_only_timeline_activity_state")
+    |> expect_equal(path, state, "validation_level", "artifact_contract")
+    |> expect_one_of(path, state, "state_status", [
+      "empty",
+      "review_required" | OrbitalDynamics.TimelineFeedback.capabilities().report_statuses
+    ])
+    |> validate_stable_ids(path, state, [
       "activity_id",
       "timeline_id",
       "planned_timeline_id",
       "realized_timeline_id"
     ])
-    |> expect_optional_type(callbacks, path, state, "activity_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, state, "activity_ids")
-    |> expect_type(callbacks, path, state, "review_required", :boolean)
-    |> expect_type(callbacks, path, state, "review_activity_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, state, "review_activity_ids")
-    |> expect_type(callbacks, path, state, "rows", :list)
-    |> expect_type(callbacks, path, state, "assumptions", :map)
-    |> expect_type(callbacks, path, state, "model_limits", :list)
-    |> validate_string_list_items(callbacks, path, state, "model_limits")
+    |> expect_optional_type(path, state, "activity_ids", :list)
+    |> validate_optional_stable_id_list(path, state, "activity_ids")
+    |> expect_type(path, state, "review_required", :boolean)
+    |> expect_type(path, state, "review_activity_ids", :list)
+    |> validate_optional_stable_id_list(path, state, "review_activity_ids")
+    |> expect_type(path, state, "rows", :list)
+    |> expect_type(path, state, "assumptions", :map)
+    |> expect_type(path, state, "model_limits", :list)
+    |> validate_string_list_items(path, state, "model_limits")
     |> validate_optional_exact_model_limits(
-      callbacks,
       path,
       state,
-      timeline_feedback_report_model_limits(callbacks),
+      timeline_feedback_report_model_limits,
       "must match timeline activity state model limits"
     )
-    |> validate_timeline_activity_state_assumptions(callbacks, path, state, [
+    |> validate_timeline_activity_state_assumptions(path, state, [
       "artifact_only",
       "no_schedule_mutation",
       "no_command_execution"
     ])
-    |> expect_optional_type(callbacks, path, state, "status_transition", :map)
-    |> expect_optional_type(callbacks, path, state, "approval_transition", :map)
-    |> validate_optional_lifecycle_transition(callbacks, path, state, "status_transition")
-    |> validate_optional_lifecycle_transition(callbacks, path, state, "approval_transition")
-    |> expect_optional_type(callbacks, path, state, "planned_status_category", :binary)
-    |> expect_optional_type(callbacks, path, state, "realized_status_category", :binary)
-    |> expect_optional_type(callbacks, path, state, "planned_approval_status", :binary)
-    |> expect_optional_type(callbacks, path, state, "realized_approval_status", :binary)
-    |> expect_optional_type(callbacks, path, state, "planned_approval_category", :binary)
-    |> expect_optional_type(callbacks, path, state, "realized_approval_category", :binary)
-    |> expect_optional_type(callbacks, path, state, "planned_locked", :boolean)
-    |> expect_optional_type(callbacks, path, state, "realized_locked", :boolean)
-    |> expect_optional_type(callbacks, path, state, "planned_executed", :boolean)
-    |> expect_optional_type(callbacks, path, state, "realized_executed", :boolean)
-    |> expect_optional_type(callbacks, path, state, "source_protection_decision", :map)
-    |> expect_optional_type(callbacks, path, state, "realized_protection_decision", :map)
-    |> expect_optional_type(callbacks, path, state, "realized_provider_counts", :map)
-    |> expect_optional_type(callbacks, path, state, "realized_source_quality_counts", :map)
-    |> expect_optional_type(callbacks, path, state, "realized_trust_boundary_status", :binary)
-    |> expect_optional_type(callbacks, path, state, "realized_trust_boundaries", :list)
-    |> validate_string_list_items(callbacks, path, state, "realized_trust_boundaries")
-    |> validate_optional_protection_decision(callbacks, path, state, "source_protection_decision")
-    |> validate_optional_protection_decision(
-      callbacks,
-      path,
-      state,
-      "realized_protection_decision"
-    )
-    |> expect_optional_type(callbacks, path, state, "source_activity_context", :map)
-    |> expect_optional_type(callbacks, path, state, "realized_activity_context", :map)
-    |> validate_optional_activity_context(callbacks, path, state, "source_activity_context")
-    |> validate_optional_activity_context(callbacks, path, state, "realized_activity_context")
-    |> validate_count_maps(callbacks, path, state, rows)
+    |> expect_optional_type(path, state, "status_transition", :map)
+    |> expect_optional_type(path, state, "approval_transition", :map)
+    |> LifecycleTransitionContracts.validate_optional(path, state, "status_transition")
+    |> LifecycleTransitionContracts.validate_optional(path, state, "approval_transition")
+    |> expect_optional_type(path, state, "planned_status_category", :binary)
+    |> expect_optional_type(path, state, "realized_status_category", :binary)
+    |> expect_optional_type(path, state, "planned_approval_status", :binary)
+    |> expect_optional_type(path, state, "realized_approval_status", :binary)
+    |> expect_optional_type(path, state, "planned_approval_category", :binary)
+    |> expect_optional_type(path, state, "realized_approval_category", :binary)
+    |> expect_optional_type(path, state, "planned_locked", :boolean)
+    |> expect_optional_type(path, state, "realized_locked", :boolean)
+    |> expect_optional_type(path, state, "planned_executed", :boolean)
+    |> expect_optional_type(path, state, "realized_executed", :boolean)
+    |> expect_optional_type(path, state, "source_protection_decision", :map)
+    |> expect_optional_type(path, state, "realized_protection_decision", :map)
+    |> expect_optional_type(path, state, "realized_provider_counts", :map)
+    |> expect_optional_type(path, state, "realized_source_quality_counts", :map)
+    |> expect_optional_type(path, state, "realized_trust_boundary_status", :binary)
+    |> expect_optional_type(path, state, "realized_trust_boundaries", :list)
+    |> validate_string_list_items(path, state, "realized_trust_boundaries")
+    |> ProtectionDecisionContracts.validate_optional(path, state, "source_protection_decision")
+    |> ProtectionDecisionContracts.validate_optional(path, state, "realized_protection_decision")
+    |> expect_optional_type(path, state, "source_activity_context", :map)
+    |> expect_optional_type(path, state, "realized_activity_context", :map)
+    |> ActivityContextContracts.validate_optional(path, state, "source_activity_context")
+    |> ActivityContextContracts.validate_optional(path, state, "realized_activity_context")
+    |> validate_count_maps(path, state, rows)
     |> expect_field_equals(
-      callbacks,
       path,
       state,
       "state_status",
@@ -91,7 +103,6 @@ defmodule OrbitalDynamics.Schema.TimelineActivityStateContracts do
       "must equal row-derived state_status"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       state,
       "activity_ids",
@@ -99,7 +110,6 @@ defmodule OrbitalDynamics.Schema.TimelineActivityStateContracts do
       "must equal row-derived activity_ids"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       state,
       "review_required",
@@ -107,61 +117,49 @@ defmodule OrbitalDynamics.Schema.TimelineActivityStateContracts do
       "must equal row-derived review_required"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       state,
       "review_activity_ids",
       timeline_activity_state_review_ids(rows),
       "must equal row-derived review_activity_ids"
     )
-    |> validate_rows(
-      callbacks,
-      path <> ".rows",
-      Map.get(state, "rows", []),
-      fn acc, row_path, row -> validate_timeline_feedback_row(callbacks, acc, row_path, row) end
-    )
+    |> validate_rows(path <> ".rows", Map.get(state, "rows", []), fn acc, row_path, row ->
+      TimelineFeedbackRowContracts.validate(acc, row_path, row, row_callbacks)
+    end)
   end
 
-  defp validate_count_maps(issues, callbacks, path, state, rows) do
+  defp validate_count_maps(issues, path, state, rows) do
     issues
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".status_counts",
       Map.get(state, "status_counts")
     )
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".feedback_kind_counts",
       Map.get(state, "feedback_kind_counts")
     )
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".match_strategy_counts",
       Map.get(state, "match_strategy_counts")
     )
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".cadence_import_status_counts",
       Map.get(state, "cadence_import_status_counts")
     )
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".planned_protection_decision_counts",
       Map.get(state, "planned_protection_decision_counts")
     )
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".realized_provider_counts",
       Map.get(state, "realized_provider_counts")
     )
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".realized_source_quality_counts",
       Map.get(state, "realized_source_quality_counts")
     )
-    |> expect_field_equals(callbacks, path, state, "row_count", length(rows))
+    |> expect_field_equals(path, state, "row_count", length(rows))
     |> expect_field_equals(
-      callbacks,
       path,
       state,
       "status_counts",
@@ -169,7 +167,6 @@ defmodule OrbitalDynamics.Schema.TimelineActivityStateContracts do
       "must equal row-derived status_counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       state,
       "feedback_kind_counts",
@@ -177,7 +174,6 @@ defmodule OrbitalDynamics.Schema.TimelineActivityStateContracts do
       "must equal row-derived feedback_kind_counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       state,
       "match_strategy_counts",
@@ -185,7 +181,6 @@ defmodule OrbitalDynamics.Schema.TimelineActivityStateContracts do
       "must equal row-derived match_strategy_counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       state,
       "cadence_import_status_counts",
@@ -193,7 +188,6 @@ defmodule OrbitalDynamics.Schema.TimelineActivityStateContracts do
       "must equal row-derived cadence_import_status_counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       state,
       "planned_protection_decision_counts",
@@ -201,7 +195,6 @@ defmodule OrbitalDynamics.Schema.TimelineActivityStateContracts do
       "must equal row-derived planned_protection_decision_counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       state,
       "realized_provider_counts",
@@ -209,7 +202,6 @@ defmodule OrbitalDynamics.Schema.TimelineActivityStateContracts do
       "must equal row-derived realized_provider_counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       state,
       "realized_source_quality_counts",
@@ -217,7 +209,6 @@ defmodule OrbitalDynamics.Schema.TimelineActivityStateContracts do
       "must equal row-derived realized_source_quality_counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       state,
       "realized_trust_boundary_status",
@@ -225,7 +216,6 @@ defmodule OrbitalDynamics.Schema.TimelineActivityStateContracts do
       "must equal row-derived realized_trust_boundary_status"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       state,
       "realized_trust_boundaries",
@@ -325,108 +315,18 @@ defmodule OrbitalDynamics.Schema.TimelineActivityStateContracts do
 
   defp present_string?(value), do: is_binary(value) and String.trim(value) != ""
 
-  defp timeline_feedback_report_model_limits(callbacks),
-    do: apply(Keyword.fetch!(callbacks, :timeline_feedback_report_model_limits), [])
+  defp expect_field_equals(issues, path, map, field, expected),
+    do: expect_field_equals(issues, path, map, field, expected, "must equal #{expected}")
 
-  defp expect_equal(issues, callbacks, path, map, field, expected),
-    do: apply(Keyword.fetch!(callbacks, :expect_equal), [issues, path, map, field, expected])
+  defp validate_timeline_activity_state_assumptions(issues, path, state, fields) do
+    case Map.get(state, "assumptions") do
+      assumptions when is_map(assumptions) ->
+        Enum.reduce(fields, issues, fn field, acc ->
+          expect_equal(acc, path <> ".assumptions", assumptions, field, true)
+        end)
 
-  defp expect_one_of(issues, callbacks, path, map, field, allowed),
-    do: apply(Keyword.fetch!(callbacks, :expect_one_of), [issues, path, map, field, allowed])
-
-  defp expect_type(issues, callbacks, path, map, field, type),
-    do: apply(Keyword.fetch!(callbacks, :expect_type), [issues, path, map, field, type])
-
-  defp expect_optional_type(issues, callbacks, path, map, field, type),
-    do: apply(Keyword.fetch!(callbacks, :expect_optional_type), [issues, path, map, field, type])
-
-  defp expect_field_equals(issues, callbacks, path, map, field, expected),
-    do:
-      apply(Keyword.fetch!(callbacks, :expect_field_equals), [issues, path, map, field, expected])
-
-  defp expect_field_equals(issues, callbacks, path, map, field, expected, message),
-    do:
-      apply(Keyword.fetch!(callbacks, :expect_field_equals_with_message), [
-        issues,
-        path,
-        map,
-        field,
-        expected,
-        message
-      ])
-
-  defp validate_stable_ids(issues, callbacks, path, map, fields),
-    do: apply(Keyword.fetch!(callbacks, :validate_stable_ids), [issues, path, map, fields])
-
-  defp validate_non_negative_integer_count_map(issues, callbacks, path, counts),
-    do:
-      apply(Keyword.fetch!(callbacks, :validate_non_negative_integer_count_map), [
-        issues,
-        path,
-        counts
-      ])
-
-  defp validate_optional_exact_model_limits(issues, callbacks, path, state, expected, message),
-    do:
-      apply(Keyword.fetch!(callbacks, :validate_optional_exact_model_limits), [
-        issues,
-        path,
-        state,
-        expected,
-        message
-      ])
-
-  defp validate_optional_stable_id_list(issues, callbacks, path, state, field),
-    do:
-      apply(Keyword.fetch!(callbacks, :validate_optional_stable_id_list), [
-        issues,
-        path,
-        state,
-        field
-      ])
-
-  defp validate_string_list_items(issues, callbacks, path, map, field),
-    do: apply(Keyword.fetch!(callbacks, :validate_string_list_items), [issues, path, map, field])
-
-  defp validate_timeline_activity_state_assumptions(issues, callbacks, path, state, fields),
-    do:
-      apply(Keyword.fetch!(callbacks, :validate_timeline_activity_state_assumptions), [
-        issues,
-        path,
-        state,
-        fields
-      ])
-
-  defp validate_optional_lifecycle_transition(issues, callbacks, path, state, field),
-    do:
-      apply(Keyword.fetch!(callbacks, :validate_optional_lifecycle_transition), [
-        issues,
-        path,
-        state,
-        field
-      ])
-
-  defp validate_optional_protection_decision(issues, callbacks, path, state, field),
-    do:
-      apply(Keyword.fetch!(callbacks, :validate_optional_protection_decision), [
-        issues,
-        path,
-        state,
-        field
-      ])
-
-  defp validate_optional_activity_context(issues, callbacks, path, state, field),
-    do:
-      apply(Keyword.fetch!(callbacks, :validate_optional_activity_context), [
-        issues,
-        path,
-        state,
-        field
-      ])
-
-  defp validate_rows(issues, callbacks, path, rows, validator),
-    do: apply(Keyword.fetch!(callbacks, :validate_rows), [issues, path, rows, validator])
-
-  defp validate_timeline_feedback_row(callbacks, issues, path, row),
-    do: apply(Keyword.fetch!(callbacks, :validate_timeline_feedback_row), [issues, path, row])
+      _assumptions ->
+        issues
+    end
+  end
 end

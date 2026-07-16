@@ -6669,7 +6669,8 @@ defmodule OrbitalDynamics.Schema do
     |> OrbitalDynamics.Schema.TimelineActivityStateContracts.validate(
       "$",
       artifact,
-      timeline_activity_state_contract_callbacks()
+      timeline_feedback_report_model_limits(),
+      timeline_feedback_row_contract_callbacks()
     )
   end
 
@@ -8030,30 +8031,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp timeline_activity_state_contract_callbacks do
-    [
-      timeline_feedback_report_model_limits: &timeline_feedback_report_model_limits/0,
-      expect_equal: &expect_equal/5,
-      expect_one_of: &expect_one_of/5,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_field_equals: &expect_field_equals/5,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      validate_stable_ids: &validate_stable_ids/4,
-      validate_non_negative_integer_count_map: &validate_non_negative_integer_count_map/3,
-      validate_optional_exact_model_limits: &validate_optional_exact_model_limits/5,
-      validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_timeline_activity_state_assumptions:
-        &validate_timeline_activity_state_assumptions/4,
-      validate_optional_lifecycle_transition: &validate_optional_lifecycle_transition/4,
-      validate_optional_protection_decision: &validate_optional_protection_decision/4,
-      validate_optional_activity_context: &validate_optional_activity_context/4,
-      validate_rows: &validate_rows/4,
-      validate_timeline_feedback_row: &validate_timeline_feedback_row/3
-    ]
-  end
-
   defp branch_comparison_report_contract_callbacks do
     [
       branch_comparison_model_limits:
@@ -9046,18 +9023,6 @@ defmodule OrbitalDynamics.Schema do
   defp validate_optional_timeline_integrity_report(issues, path, _report),
     do: [error(path, "must be an object") | issues]
 
-  defp validate_timeline_activity_state_assumptions(issues, path, state, fields) do
-    case Map.get(state, "assumptions") do
-      assumptions when is_map(assumptions) ->
-        Enum.reduce(fields, issues, fn field, acc ->
-          expect_equal(acc, path <> ".assumptions", assumptions, field, true)
-        end)
-
-      _assumptions ->
-        issues
-    end
-  end
-
   defp validate_optional_timeline_preservation_source_row(issues, _path, nil), do: issues
 
   defp validate_optional_timeline_preservation_source_row(issues, path, %{} = row) do
@@ -9091,7 +9056,8 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       state,
-      timeline_activity_state_contract_callbacks()
+      timeline_feedback_report_model_limits(),
+      timeline_feedback_row_contract_callbacks()
     )
   end
 

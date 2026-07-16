@@ -9,7 +9,7 @@ Current slice:
 Timeline-activity-state validator callback cleanup.
 
 Status:
-Selected; implementation pending.
+Complete; publication pending.
 
 Selected slice:
 Remove the 18-entry callback bag from `TimelineActivityStateContracts`. Call
@@ -51,6 +51,23 @@ Definition of done:
 No state-level callback bag or callback trampolines remain, both schema call
 sites pass the same limits and nested-row callbacks, direct owners preserve
 exact behavior, focused/broader/export checks pass, and review finds no blocker.
+
+Result:
+Removed the 18-entry state callback factory and all owner callback trampolines.
+The owner now calls extracted validators directly, owns its assumption check,
+and receives only feedback model-limit data plus the unchanged nested-row
+callback bag. `schema.ex` fell from 12,654 to 12,620 lines and the state owner
+from 432 to 330 lines; the public schema facade and export output are unchanged.
+
+Verification:
+- compile with warnings as errors passed
+- focused state contract/workflow matrix: 13 passed, 377 excluded by locations
+- reviewer-focused state and replay matrix: 20 passed
+- broader timeline, timeline-feedback, and candidate-refresh suites: 955 passed
+- schema export trio: 22 passed
+- checked-in schema export reproduced with no diff, preserving its fingerprint
+- format, diff hygiene, removed-caller, public-definition, and xref checks passed
+- bounded read-only review found no must-fix issue
 
 Verification gaps:
 - Full repository suite not run.
