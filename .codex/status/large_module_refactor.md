@@ -9,7 +9,7 @@ Current slice:
 Completed: campaign registry contract extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Moved the V1 campaign plan, V2 repair, and V3 strategy registry definitions into
@@ -51,7 +51,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`7dd47415` (`Update schema refactor handoff`); current slice is not yet committed.
+`5ee30c47` (`Extract campaign registry contracts`).
 
 Next candidate:
 Extract the contiguous candidate-refresh registry family (`candidate_refresh`,
