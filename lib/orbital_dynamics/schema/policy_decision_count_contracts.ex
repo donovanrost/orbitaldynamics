@@ -1,26 +1,21 @@
 defmodule OrbitalDynamics.Schema.PolicyDecisionCountContracts do
   @moduledoc false
 
-  def validate(issues, path, decision, callbacks) when is_list(callbacks) do
+  import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2, expect_field_equals: 5]
+
+  def validate(issues, path, decision) do
     rule_matches = Map.get(decision, "rule_matches")
 
     issues
-    |> expect_field_equals(
-      path,
-      decision,
-      "classification",
-      classification(rule_matches),
-      callbacks
-    )
+    |> expect_field_equals(path, decision, "classification", classification(rule_matches))
     |> expect_field_equals(
       path,
       decision,
       "approval_requirement_count",
-      approval_requirement_count(rule_matches),
-      callbacks
+      approval_requirement_count(rule_matches)
     )
-    |> expect_field_equals(path, decision, "risk_count", risk_count(rule_matches), callbacks)
-    |> validate_escalation_rule_ids(path, decision, callbacks)
+    |> expect_field_equals(path, decision, "risk_count", risk_count(rule_matches))
+    |> validate_escalation_rule_ids(path, decision)
   end
 
   defp classification(rule_matches) when is_list(rule_matches) do
@@ -60,7 +55,7 @@ defmodule OrbitalDynamics.Schema.PolicyDecisionCountContracts do
 
   defp rule_match_classification?(_match, _classification), do: false
 
-  defp validate_escalation_rule_ids(issues, path, decision, callbacks) do
+  defp validate_escalation_rule_ids(issues, path, decision) do
     rule_matches = Map.get(decision, "rule_matches")
     escalations = Map.get(decision, "escalations")
 
@@ -83,7 +78,7 @@ defmodule OrbitalDynamics.Schema.PolicyDecisionCountContracts do
 
       if stale_escalation? do
         [
-          error(path <> ".escalations", "must reference rule_matches rule_id values", callbacks)
+          error(path <> ".escalations", "must reference rule_matches rule_id values")
           | issues
         ]
       else
@@ -92,22 +87,5 @@ defmodule OrbitalDynamics.Schema.PolicyDecisionCountContracts do
     else
       issues
     end
-  end
-
-  defp expect_field_equals(issues, path, map, field, expected, callbacks),
-    do:
-      apply(require_callback(callbacks, :expect_field_equals), [
-        issues,
-        path,
-        map,
-        field,
-        expected
-      ])
-
-  defp error(path, message, callbacks),
-    do: apply(require_callback(callbacks, :error), [path, message])
-
-  defp require_callback(callbacks, name) do
-    Keyword.fetch!(callbacks, name)
   end
 end

@@ -13459,16 +13459,8 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.PolicyDecisionCountContracts.validate(
       issues,
       path,
-      decision,
-      policy_decision_count_contract_callbacks()
+      decision
     )
-  end
-
-  defp policy_decision_count_contract_callbacks do
-    [
-      expect_field_equals: &expect_field_equals/5,
-      error: &error/2
-    ]
   end
 
   defp validate_policy_rule_match(issues, path, match) do
