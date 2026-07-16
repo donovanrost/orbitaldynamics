@@ -6,31 +6,31 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Operational-readiness-gate callback-bag collapse.
+Quality-gate-row callback-bag collapse.
 
 Status:
-Completed and ready to publish.
+Selected; implementation pending.
 
 Selected slice:
-Replace the 10-entry callback bag in `OperationalReadinessGateContracts` with
-direct primitive and readiness-context owners while retaining the timeline-
-publication validator as the sole explicit orchestration boundary.
+Replace the 14-entry callback bag in `QualityGateRowContracts` with direct
+primitive, stable-ID, and readiness-context owners while retaining explicit
+source-gate handoff, source-report handoff, and timeline validator boundaries.
 
 Why this slice:
-Live inventory leaves `schema.ex` at 11,779 lines. The 114-line gate owner still
-receives five shared primitive callbacks and four callbacks that merely route
-to the now-direct readiness-context owner. Only timeline-publication validation
-remains a genuine Schema orchestration hook.
+Live inventory leaves `schema.ex` at 11,762 lines. The 148-line row owner still
+receives seven shared primitive/stable callbacks and four callbacks that merely
+route to the extracted readiness-context owner. Only the two source handoff
+checks and timeline validation remain genuine Schema orchestration hooks.
 
 Public facade to preserve:
-`OrbitalDynamics.Schema.validate_artifact/2` and every readiness gate/report
-validation path, including required fields, capability enums, reason typing,
-optional analysis fields, resource/operator/adapter/Cadence/timeline context,
-exact messages/error order, replay consumers, and exports.
+`OrbitalDynamics.Schema.validate_artifact/2` and every quality-gate row/report
+validation path, including stable row IDs, rank and capability enums, source
+handoff checks, resource/operator/adapter/Cadence/timeline context, exact
+messages/error order, aggregation consumers, replay consumers, and exports.
 
 Likely files:
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/operational_readiness_gate_contracts.ex`
+- `lib/orbital_dynamics/schema/quality_gate_row_contracts.ex`
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
@@ -41,28 +41,10 @@ Likely verification:
 - compile-connected xref, format, diff hygiene, and bounded review
 
 Definition of done:
-No readiness-gate callback bag or lookup/apply trampolines remain; direct
-primitive/context owners preserve validation composition and only the timeline
-validator remains injected; focused, broader, and export checks pass; and
-bounded review finds no blocker.
-
-Outcome:
-Removed the 10-entry gate callback bag and all owner trampolines. Required,
-enum, type, and optional-field validation now use `PrimitiveValidation`;
-resource, operator-training, adapter, and Cadence-import context validation call
-the extracted readiness-context owner directly; timeline publication is the
-sole injected validator. `schema.ex` fell from 11,779 to 11,762 lines and the
-gate owner from 114 to 32.
-
-Verification:
-- compile with warnings as errors passed
-- 61 focused readiness/schema/replay/operator-review tests passed
-- 1,054 broader candidate-refresh/operator-review tests passed
-- 22 schema export tests passed
-- compile-connected xref passed
-- checked-in schema regeneration produced no diff
-- format and diff hygiene passed
-- bounded review found no findings
+No quality-gate-row callback bag or lookup/apply trampolines remain; direct
+shared/context owners preserve validation and aggregation while only the two
+source handoff and timeline validators remain injected; focused, broader, and
+export checks pass; and bounded review finds no blocker.
 
 Verification gaps:
 - Full repository suite not run.
@@ -70,7 +52,11 @@ Verification gaps:
   behavior in `SuppressedCandidateContracts`; unrelated to these slices.
 
 Last completed slice:
-Operational-readiness-gate callback-bag collapse; publication commit pending.
+Operational-readiness-gate callback collapse published as `db7d887c`:
+`schema.ex` fell from 11,779 to 11,762 lines and its owner from 114 to 32. The
+10-entry bag became direct primitive/context owners and one timeline boundary.
+61 focused, 1,054 broader, and 22 export tests passed; compile, xref, format,
+diff hygiene, checked-in regeneration, and bounded review were clean.
 
 Blocked:
 No.
