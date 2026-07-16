@@ -7650,28 +7650,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp validation_acceptance_report_contract_callbacks do
-    [
-      require_fields: &require_fields/4,
-      expect_equal: &expect_equal/5,
-      validate_stable_ids: &validate_stable_ids/4,
-      expect_one_of: &expect_one_of/5,
-      expect_non_negative_integer: &expect_non_negative_integer/4,
-      expect_optional_type: &expect_optional_type/5,
-      validate_non_negative_integer_count_map: &validate_non_negative_integer_count_map/3,
-      expect_type: &expect_type/5,
-      expect_field_equals: &expect_field_equals/5,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      validate_rows: &validate_rows/4,
-      validate_validation_record: &validate_validation_record/3,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_optional_exact_model_limits: &validate_optional_exact_model_limits/5,
-      validate_stable_id_array_map: &validate_stable_id_array_map/3,
-      validate_optional_rows: &validate_optional_rows/4,
-      error: &error/2
-    ]
-  end
-
   defp provider_counteroffer_report_contract_callbacks do
     [
       require_fields: &require_fields/4,
@@ -13029,8 +13007,7 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       report,
-      model_acceptance_report_model_limits(),
-      validation_acceptance_report_contract_callbacks()
+      model_acceptance_report_model_limits()
     )
   end
 
@@ -13039,8 +13016,7 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       report,
-      model_acceptance_report_model_limits(),
-      validation_acceptance_report_contract_callbacks()
+      model_acceptance_report_model_limits()
     )
   end
 
