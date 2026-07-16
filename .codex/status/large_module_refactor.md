@@ -6,43 +6,51 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Candidate-refresh station-calendar context extraction.
+Candidate-refresh timeline lifecycle context extraction.
 
 Status:
-Complete; ready to publish.
+Selected; implementation pending.
 
-Result:
-- Extracted stable-ID lists, count/direction maps, direction routes, capacity
-  fractions, and provider contention into the new 191-line
-  `CandidateRefreshStationCalendarContracts` owner.
-- Preserved `CandidateRefreshReportContracts.validate_station_calendar_context/4`
-  as a thin public facade with its callback-list guard unchanged.
-- Removed all stale station-calendar helpers and imports from the multi-family
-  parent, reducing it from 1,464 to 1,297 lines.
+Selected slice:
+Extract both timeline activity-lifecycle and lifecycle-state source-report
+validators, including their shared action/review routing checks, behind the
+existing public context functions.
 
-Tests run:
-- `mix compile --warnings-as-errors` passed.
-- Focused station-calendar replay/provider/wrapper/provenance/schema coverage
-  passed 27/27.
-- The full `test/orbital_dynamics/candidate_refresh` directory passed 755/755.
-- Schema export coverage passed 22/22.
-- Full export left `schemas/` unchanged; the bundle fingerprint remained
-  `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`.
-- Parent/new-module compile-connected xref, formatting, new-file whitespace,
-  and `git diff --check` passed.
-- The read-only reviewer found no issues, independently passed compile and 14
-  focused tests, and verified ordering, paths/messages, routing edge cases,
-  provider contention, public signatures, imports, and dependency shape.
+Why this slice:
+The two adjacent lifecycle contexts share the same count-map and route shapes.
+Their only remaining private routing helpers sit at the bottom of the 1,297-line
+multi-family parent, so they form one cohesive owner boundary without callbacks.
+
+Public facade to preserve:
+All `CandidateRefreshReportContracts` public signatures, especially
+`validate_timeline_activity_lifecycle_context/4` and
+`validate_timeline_lifecycle_state_context/4`, including their list guards.
+
+Likely extraction target:
+`CandidateRefreshTimelineLifecycleContracts`, owning both context flows,
+action/review routing, route validation, and optional stable-ID array maps.
+
+Likely files:
+- `lib/orbital_dynamics/schema/candidate_refresh_report_contracts.ex`
+- `lib/orbital_dynamics/schema/candidate_refresh_timeline_lifecycle_contracts.ex`
+- `.codex/status/large_module_refactor.md`
+
+Likely tests:
+- compile with warnings as errors
+- timeline activity-lifecycle and lifecycle-state replay/candidate-source tests
+- candidate-refresh resource-provenance and schema contract coverage
+- broader candidate-refresh, deterministic export/fingerprint, xref, and format
+
+Definition of done:
+Both public functions are thin delegates to one focused lifecycle owner, shared
+routing helpers are not duplicated or stale, guards/order/errors are unchanged,
+and focused/broader checks pass.
 
 Verification gaps:
 - Full repository suite not run.
 
 Last commit:
-Pending publication; prior handoff `7872d52a`.
-
-Next candidate:
-- Inspect the remaining candidate-refresh report context clusters and select one
-  cohesive owner extraction behind an existing public facade.
+Published station-calendar extraction `15005095`.
 
 Blocked:
 No.
