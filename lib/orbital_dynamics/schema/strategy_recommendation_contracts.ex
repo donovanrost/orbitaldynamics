@@ -1,9 +1,33 @@
 defmodule OrbitalDynamics.Schema.StrategyRecommendationContracts do
   @moduledoc false
 
-  def validate(issues, path, recommendation, callbacks) when is_list(callbacks) do
+  alias OrbitalDynamics.Schema.SchemaContractField
+
+  import OrbitalDynamics.Schema.CollectionValidation, only: [validate_optional_rows: 4]
+
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [
+      error: 2,
+      expect_number: 4,
+      expect_optional_type: 5,
+      expect_type: 5,
+      require_fields: 4
+    ]
+
+  import OrbitalDynamics.Schema.StableIdValidation,
+    only: [validate_stable_id_list: 3, validate_stable_ids: 4]
+
+  def validate(
+        issues,
+        path,
+        recommendation,
+        branch_event_summary_validator,
+        scoped_downlink_context_validator
+      )
+      when is_function(branch_event_summary_validator, 3) and
+             is_function(scoped_downlink_context_validator, 3) do
     issues
-    |> require_fields(callbacks, path, recommendation, [
+    |> require_fields(path, recommendation, [
       "recommended_branch_id",
       "approval_status",
       "reason",
@@ -13,56 +37,54 @@ defmodule OrbitalDynamics.Schema.StrategyRecommendationContracts do
       "risks_remaining",
       "requires_approval"
     ])
-    |> validate_stable_ids(callbacks, path, recommendation, ["recommended_branch_id"])
+    |> validate_stable_ids(path, recommendation, ["recommended_branch_id"])
     |> validate_stable_id_list(
-      callbacks,
       path <> ".ranked_branch_ids",
       Map.get(recommendation, "ranked_branch_ids")
     )
-    |> validate_optional_schema_contract(
-      callbacks,
+    |> SchemaContractField.validate_optional(
       path,
       recommendation,
       "strategy_recommendation.v1"
     )
-    |> expect_optional_type(callbacks, path, recommendation, "status", :binary)
-    |> expect_type(callbacks, path, recommendation, "ranked_branch_ids", :list)
-    |> expect_type(callbacks, path, recommendation, "tradeoffs", :list)
-    |> expect_type(callbacks, path, recommendation, "requires_approval", :list)
-    |> expect_type(callbacks, path, recommendation, "explanation", :list)
-    |> validate_consistency(callbacks, path, recommendation)
+    |> expect_optional_type(path, recommendation, "status", :binary)
+    |> expect_type(path, recommendation, "ranked_branch_ids", :list)
+    |> expect_type(path, recommendation, "tradeoffs", :list)
+    |> expect_type(path, recommendation, "requires_approval", :list)
+    |> expect_type(path, recommendation, "explanation", :list)
+    |> validate_consistency(path, recommendation)
     |> validate_optional_rows(
-      callbacks,
       path <> ".tradeoffs",
       Map.get(recommendation, "tradeoffs"),
-      fn acc, row_path, row -> validate_tradeoff(acc, row_path, row, callbacks) end
+      &validate_tradeoff/3
     )
     |> validate_optional_rows(
-      callbacks,
       path <> ".explanation",
       Map.get(recommendation, "explanation"),
-      fn acc, row_path, row -> validate_explanation(acc, row_path, row, callbacks) end
+      fn acc, row_path, row ->
+        validate_explanation(acc, row_path, row, branch_event_summary_validator)
+      end
     )
     |> validate_optional_rows(
-      callbacks,
       path <> ".risks_remaining",
       Map.get(recommendation, "risks_remaining"),
-      fn acc, row_path, row -> validate_risk(acc, row_path, row, callbacks) end
+      fn acc, row_path, row ->
+        validate_risk(acc, row_path, row, scoped_downlink_context_validator)
+      end
     )
   end
 
-  defp validate_consistency(issues, callbacks, path, recommendation) do
+  defp validate_consistency(issues, path, recommendation) do
     recommended_branch_id = Map.get(recommendation, "recommended_branch_id")
 
     issues
-    |> validate_ranked_branch(callbacks, path, recommendation, recommended_branch_id)
-    |> validate_explanation_branch_ids(callbacks, path, recommendation, recommended_branch_id)
-    |> validate_approval_requirements(callbacks, path, recommendation)
+    |> validate_ranked_branch(path, recommendation, recommended_branch_id)
+    |> validate_explanation_branch_ids(path, recommendation, recommended_branch_id)
+    |> validate_approval_requirements(path, recommendation)
   end
 
   defp validate_ranked_branch(
          issues,
-         _callbacks,
          _path,
          %{"ranked_branch_ids" => [recommended_branch_id | _ids]},
          recommended_branch_id
@@ -72,21 +94,19 @@ defmodule OrbitalDynamics.Schema.StrategyRecommendationContracts do
 
   defp validate_ranked_branch(
          issues,
-         callbacks,
          path,
          %{"ranked_branch_ids" => ids},
          recommended_branch_id
        )
        when is_list(ids) and is_binary(recommended_branch_id) do
     [
-      error(callbacks, path <> ".recommended_branch_id", "must be first in ranked_branch_ids")
+      error(path <> ".recommended_branch_id", "must be first in ranked_branch_ids")
       | issues
     ]
   end
 
   defp validate_ranked_branch(
          issues,
-         _callbacks,
          _path,
          _recommendation,
          _recommended_branch_id
@@ -95,7 +115,6 @@ defmodule OrbitalDynamics.Schema.StrategyRecommendationContracts do
 
   defp validate_explanation_branch_ids(
          issues,
-         callbacks,
          path,
          %{"explanation" => explanation},
          recommended_branch_id
@@ -111,7 +130,6 @@ defmodule OrbitalDynamics.Schema.StrategyRecommendationContracts do
         %{"recommended_branch_id" => _other_branch_id} ->
           [
             error(
-              callbacks,
               "#{path}.explanation[#{index}].recommended_branch_id",
               "must match top-level recommended_branch_id"
             )
@@ -126,14 +144,13 @@ defmodule OrbitalDynamics.Schema.StrategyRecommendationContracts do
 
   defp validate_explanation_branch_ids(
          issues,
-         _callbacks,
          _path,
          _recommendation,
          _recommended_branch_id
        ),
        do: issues
 
-  defp validate_approval_requirements(issues, callbacks, path, %{
+  defp validate_approval_requirements(issues, path, %{
          "approval_status" => approval_status,
          "requires_approval" => rows
        })
@@ -148,7 +165,6 @@ defmodule OrbitalDynamics.Schema.StrategyRecommendationContracts do
         %{"policy_classification" => _other_classification} ->
           [
             error(
-              callbacks,
               "#{path}.requires_approval[#{index}].policy_classification",
               "must match recommendation approval_status"
             )
@@ -161,21 +177,20 @@ defmodule OrbitalDynamics.Schema.StrategyRecommendationContracts do
     end)
   end
 
-  defp validate_approval_requirements(issues, _callbacks, _path, _recommendation), do: issues
+  defp validate_approval_requirements(issues, _path, _recommendation), do: issues
 
-  defp validate_tradeoff(issues, path, row, callbacks) do
+  defp validate_tradeoff(issues, path, row) do
     issues
-    |> require_fields(callbacks, path, row, ["dimension", "baseline", "recommended", "delta"])
-    |> expect_type(callbacks, path, row, "dimension", :binary)
-    |> expect_number(callbacks, path, row, "baseline")
-    |> expect_number(callbacks, path, row, "recommended")
-    |> expect_number(callbacks, path, row, "delta")
-    |> validate_tradeoff_delta(callbacks, path, row)
+    |> require_fields(path, row, ["dimension", "baseline", "recommended", "delta"])
+    |> expect_type(path, row, "dimension", :binary)
+    |> expect_number(path, row, "baseline")
+    |> expect_number(path, row, "recommended")
+    |> expect_number(path, row, "delta")
+    |> validate_tradeoff_delta(path, row)
   end
 
   defp validate_tradeoff_delta(
          issues,
-         callbacks,
          path,
          %{"baseline" => baseline, "recommended" => recommended, "delta" => delta}
        )
@@ -183,82 +198,21 @@ defmodule OrbitalDynamics.Schema.StrategyRecommendationContracts do
     if abs(delta - (recommended - baseline)) <= 1.0e-9 do
       issues
     else
-      [error(callbacks, path <> ".delta", "must equal recommended minus baseline") | issues]
+      [error(path <> ".delta", "must equal recommended minus baseline") | issues]
     end
   end
 
-  defp validate_tradeoff_delta(issues, _callbacks, _path, _row), do: issues
+  defp validate_tradeoff_delta(issues, _path, _row), do: issues
 
-  defp validate_explanation(issues, path, row, callbacks) do
+  defp validate_explanation(issues, path, row, branch_event_summary_validator) do
     issues
-    |> require_fields(callbacks, path, row, ["type"])
-    |> validate_branch_event_summary_fields(callbacks, path, row)
+    |> require_fields(path, row, ["type"])
+    |> branch_event_summary_validator.(path, row)
   end
 
-  defp validate_risk(issues, path, risk, callbacks) do
+  defp validate_risk(issues, path, risk, scoped_downlink_context_validator) do
     issues
-    |> require_fields(callbacks, path, risk, ["type", "severity", "reason"])
-    |> validate_scoped_downlink_context_fields(callbacks, path, risk)
-  end
-
-  defp require_fields(issues, callbacks, path, map, fields),
-    do: apply(require_callback(callbacks, :require_fields), [issues, path, map, fields])
-
-  defp validate_stable_ids(issues, callbacks, path, map, fields),
-    do: apply(require_callback(callbacks, :validate_stable_ids), [issues, path, map, fields])
-
-  defp validate_stable_id_list(issues, callbacks, path, values),
-    do: apply(require_callback(callbacks, :validate_stable_id_list), [issues, path, values])
-
-  defp validate_optional_schema_contract(issues, callbacks, path, row, expected),
-    do:
-      apply(require_callback(callbacks, :validate_optional_schema_contract), [
-        issues,
-        path,
-        row,
-        expected
-      ])
-
-  defp expect_optional_type(issues, callbacks, path, map, field, type),
-    do:
-      apply(require_callback(callbacks, :expect_optional_type), [
-        issues,
-        path,
-        map,
-        field,
-        type
-      ])
-
-  defp expect_type(issues, callbacks, path, map, field, type),
-    do: apply(require_callback(callbacks, :expect_type), [issues, path, map, field, type])
-
-  defp validate_optional_rows(issues, callbacks, path, rows, validator),
-    do:
-      apply(require_callback(callbacks, :validate_optional_rows), [issues, path, rows, validator])
-
-  defp expect_number(issues, callbacks, path, map, field),
-    do: apply(require_callback(callbacks, :expect_number), [issues, path, map, field])
-
-  defp validate_branch_event_summary_fields(issues, callbacks, path, row),
-    do:
-      apply(require_callback(callbacks, :validate_branch_event_summary_fields), [
-        issues,
-        path,
-        row
-      ])
-
-  defp validate_scoped_downlink_context_fields(issues, callbacks, path, row),
-    do:
-      apply(require_callback(callbacks, :validate_scoped_downlink_context_fields), [
-        issues,
-        path,
-        row
-      ])
-
-  defp error(callbacks, path, message),
-    do: apply(require_callback(callbacks, :error), [path, message])
-
-  defp require_callback(callbacks, name) do
-    Keyword.fetch!(callbacks, name)
+    |> require_fields(path, risk, ["type", "severity", "reason"])
+    |> scoped_downlink_context_validator.(path, risk)
   end
 end

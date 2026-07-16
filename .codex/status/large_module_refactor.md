@@ -9,7 +9,7 @@ Current slice:
 Strategy-recommendation callback-bag collapse.
 
 Status:
-Selected; implementation pending.
+Complete and ready to publish.
 
 Selected slice:
 Replace the 11-entry `StrategyRecommendationContracts` lookup bag with direct
@@ -43,6 +43,16 @@ shared owners and local errors preserve behavior while the two domain hooks are
 explicit; focused, broader, and export checks pass; and bounded review finds no
 blocker.
 
+Outcome:
+Shared primitive, collection, stable-ID, and schema-contract validation is now
+direct; consistency and tradeoff errors are local; only branch-event summary
+and scoped-downlink context remain explicit guarded hooks. `schema.ex` fell from
+11,484 to 11,460 lines and the owner from 264 to 218. Eighteen focused, 1,167
+broader, and 22 export tests pass; compile, xref, checked-in regeneration,
+format, and diff hygiene are clean. Bounded review confirmed exact validation
+order, consistency errors, tradeoff arithmetic, optional-row semantics, hook
+ordering, sole-caller shape, and orphan-helper removal.
+
 Verification gaps:
 - Full repository suite not run.
 - Known baseline: full contact-filter file remains 87/88 due nil-message
@@ -52,11 +62,11 @@ Verification gaps:
   validation-only slice. The attributable batch is 102/102.
 
 Last completed slice:
-Campaign-strategy callback-bag collapse published as `bf070e5d`: `schema.ex`
-fell from 11,496 to 11,484 lines; six shared validators became direct calls and
-six domain hooks became explicit guarded arguments. Eighteen focused, 1,167
-broader, and 22 export tests passed; compile, xref, regeneration, format, diff
-hygiene, and bounded review were clean.
+Strategy-recommendation callback-bag collapse, ready to publish: `schema.ex`
+fell from 11,484 to 11,460 lines and the owner from 264 to 218. Nine shared or
+static dependencies became direct and two domain hooks explicit. Eighteen
+focused, 1,167 broader, and 22 export tests passed; compile, xref, regeneration,
+format, diff hygiene, and bounded review were clean.
 
 Blocked:
 No.

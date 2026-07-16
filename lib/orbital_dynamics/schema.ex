@@ -7494,22 +7494,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp strategy_recommendation_contract_callbacks do
-    [
-      require_fields: &require_fields/4,
-      validate_stable_ids: &validate_stable_ids/4,
-      validate_stable_id_list: &validate_stable_id_list/3,
-      validate_optional_schema_contract: &validate_optional_schema_contract/4,
-      expect_optional_type: &expect_optional_type/5,
-      expect_type: &expect_type/5,
-      validate_optional_rows: &validate_optional_rows/4,
-      expect_number: &expect_number/4,
-      validate_branch_event_summary_fields: &validate_branch_event_summary_fields/3,
-      validate_scoped_downlink_context_fields: &validate_scoped_downlink_context_fields/3,
-      error: &error/2
-    ]
-  end
-
   defp branch_comparison_row_count_fields, do: @branch_comparison_row_count_fields
 
   defp strategy_recommendation_pressure_handoff_string_list_fields,
@@ -11038,7 +11022,8 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       recommendation,
-      strategy_recommendation_contract_callbacks()
+      &validate_branch_event_summary_fields/3,
+      &validate_scoped_downlink_context_fields/3
     )
   end
 
@@ -11362,15 +11347,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp safety_case_count_fields,
     do: OrbitalDynamics.Schema.ValidationAcceptanceReportContracts.safety_case_count_fields()
-
-  defp validate_optional_schema_contract(issues, path, row, expected) do
-    OrbitalDynamics.Schema.SchemaContractField.validate_optional(
-      issues,
-      path,
-      row,
-      expected
-    )
-  end
 
   defp validate_validation_reference_report(issues, path, report) do
     OrbitalDynamics.Schema.ValidationReferenceContracts.validate_report(
