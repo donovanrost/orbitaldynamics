@@ -7168,39 +7168,8 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp contact_allocation_report_contract_callbacks do
+  defp contact_allocation_report_domain_callbacks do
     [
-      require_fields: &require_fields/4,
-      expect_equal: &expect_equal/5,
-      expect_one_of: &expect_one_of/5,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_optional_one_of: &expect_optional_one_of/5,
-      expect_non_negative_integer: &expect_non_negative_integer/4,
-      expect_optional_non_negative_integer: &expect_optional_non_negative_integer/4,
-      expect_optional_integer: &expect_optional_integer/4,
-      expect_optional_number: &expect_optional_number/4,
-      expect_number: &expect_number/4,
-      expect_optional_probability: &expect_optional_probability/4,
-      expect_optional_non_negative_number: &expect_optional_non_negative_number/4,
-      expect_field_at_least: &expect_field_at_least/5,
-      expect_field_equals: &expect_field_equals/5,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      expect_optional_field_equals: &expect_optional_field_equals/6,
-      expect_number_field_equals: &expect_number_field_equals/6,
-      expect_probability_range: &expect_probability_range/4,
-      validate_stable_ids: &validate_stable_ids/4,
-      validate_stable_id_list: &validate_stable_id_list/3,
-      validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
-      validate_stable_id_array_map: &validate_stable_id_array_map/3,
-      validate_optional_stable_id_array_map: &validate_optional_stable_id_array_map/4,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_number_list_items: &validate_number_list_items/4,
-      validate_rows: &validate_rows/4,
-      validate_optional_rows: &validate_optional_rows/4,
-      validate_optional_exact_model_limits: &validate_optional_exact_model_limits/5,
-      validate_non_negative_integer_count_map: &validate_non_negative_integer_count_map/3,
-      validate_non_negative_number_map: &validate_non_negative_number_map/3,
       validate_optional_station_calendar_report: &validate_optional_station_calendar_report/2,
       validate_optional_contact_filter_report: &validate_optional_contact_filter_report/2,
       validate_optional_contact_contention_report: &validate_optional_contact_contention_report/2,
@@ -7210,14 +7179,6 @@ defmodule OrbitalDynamics.Schema do
       validate_contact_allocation_row: &validate_contact_allocation_row/3,
       validate_contact_allocation_capacity_pack_group:
         &validate_contact_allocation_capacity_pack_group/3,
-      frequency_map: &frequency_map/2,
-      id_array_count_map: &id_array_count_map/1,
-      list_count: &list_count/2,
-      row_ids_by_direction_and_ground_station: &row_ids_by_direction_and_ground_station/2,
-      row_ids_by_field: &row_ids_by_field/3,
-      row_ids_by_field_value: &row_ids_by_field_value/4,
-      row_ids_by_string_field: &row_ids_by_string_field/3,
-      row_unique_values: &row_unique_values/2,
       validate_optional_actual_data_rate_throughput_derivation:
         &validate_optional_actual_data_rate_throughput_derivation/4,
       validate_contact_contention_deferred_priority:
@@ -8538,7 +8499,7 @@ defmodule OrbitalDynamics.Schema do
       path,
       report,
       contact_allocation_model_limits(),
-      contact_allocation_report_contract_callbacks()
+      contact_allocation_report_domain_callbacks()
     )
   end
 
@@ -8547,7 +8508,7 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       row,
-      contact_allocation_report_contract_callbacks()
+      contact_allocation_report_domain_callbacks()
     )
   end
 
@@ -8556,7 +8517,7 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       group,
-      contact_allocation_report_contract_callbacks()
+      contact_allocation_report_domain_callbacks()
     )
   end
 
@@ -9613,22 +9574,13 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp validate_non_negative_number_map(issues, path, values) when is_map(values) do
-    Enum.reduce(values, issues, fn {field, value}, acc ->
-      cond do
-        is_number(value) and value >= 0.0 ->
-          acc
-
-        is_number(value) ->
-          [error("#{path}.#{field}", "must be non-negative") | acc]
-
-        true ->
-          [error("#{path}.#{field}", "must be a number") | acc]
-      end
-    end)
-  end
-
-  defp validate_non_negative_number_map(issues, _path, _values), do: issues
+  defp validate_non_negative_number_map(issues, path, values),
+    do:
+      OrbitalDynamics.Schema.PrimitiveValidation.validate_non_negative_number_map(
+        issues,
+        path,
+        values
+      )
 
   defp validate_nested_non_negative_number_map(issues, _path, value)
        when value in [nil, :null],
@@ -9786,7 +9738,7 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       report,
-      contact_allocation_report_contract_callbacks()
+      contact_allocation_report_domain_callbacks()
     )
   end
 
@@ -9848,7 +9800,7 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       row,
-      contact_allocation_report_contract_callbacks()
+      contact_allocation_report_domain_callbacks()
     )
   end
 
@@ -11105,40 +11057,8 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.CollectionAggregation.sorted_unique_binary_values(values)
   end
 
-  defp row_unique_values(rows, field) do
-    OrbitalDynamics.Schema.CollectionAggregation.row_unique_values(rows, field)
-  end
-
   defp row_ids_by_field(rows, group_field, id_field) do
     OrbitalDynamics.Schema.CollectionAggregation.row_ids_by_field(rows, group_field, id_field)
-  end
-
-  defp row_ids_by_field_value(rows, field, value, id_field) do
-    OrbitalDynamics.Schema.CollectionAggregation.row_ids_by_field_value(
-      rows,
-      field,
-      value,
-      id_field
-    )
-  end
-
-  defp row_ids_by_string_field(rows, group_field, id_field) do
-    OrbitalDynamics.Schema.CollectionAggregation.row_ids_by_string_field(
-      rows,
-      group_field,
-      id_field
-    )
-  end
-
-  defp row_ids_by_direction_and_ground_station(rows, id_field) do
-    OrbitalDynamics.Schema.CollectionAggregation.row_ids_by_direction_and_ground_station(
-      rows,
-      id_field
-    )
-  end
-
-  defp id_array_count_map(id_arrays) when is_map(id_arrays) do
-    OrbitalDynamics.Schema.CollectionAggregation.id_array_count_map(id_arrays)
   end
 
   defp frequency_map(rows, field) do
@@ -11159,23 +11079,16 @@ defmodule OrbitalDynamics.Schema do
   defp expect_field_equals(issues, path, map, field, expected),
     do: expect_field_equals(issues, path, map, field, expected, "must equal #{expected}")
 
-  defp expect_number_field_equals(issues, _path, _map, _field, nil, _message), do: issues
-
-  defp expect_number_field_equals(issues, path, map, field, expected, message)
-       when is_number(expected) do
-    value = Map.get(map, field)
-
-    cond do
-      not Map.has_key?(map, field) ->
-        issues
-
-      is_number(value) and abs(value - expected) <= 1.0e-9 ->
-        issues
-
-      true ->
-        [error("#{path}.#{field}", message) | issues]
-    end
-  end
+  defp expect_number_field_equals(issues, path, map, field, expected, message),
+    do:
+      OrbitalDynamics.Schema.PrimitiveValidation.expect_number_field_equals(
+        issues,
+        path,
+        map,
+        field,
+        expected,
+        message
+      )
 
   defp validate_plan_delta(issues, path, delta) do
     OrbitalDynamics.Schema.PlanDeltaContracts.validate(

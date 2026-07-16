@@ -252,6 +252,24 @@ defmodule OrbitalDynamics.Schema.PrimitiveValidation do
     end
   end
 
+  def expect_number_field_equals(issues, _path, _map, _field, nil, _message), do: issues
+
+  def expect_number_field_equals(issues, path, map, field, expected, message)
+      when is_number(expected) do
+    value = Map.get(map, field)
+
+    cond do
+      not Map.has_key?(map, field) ->
+        issues
+
+      is_number(value) and abs(value - expected) <= 1.0e-9 ->
+        issues
+
+      true ->
+        [error("#{path}.#{field}", message) | issues]
+    end
+  end
+
   def expect_field_matches_list_count(issues, path, map, count_field, list_field, message) do
     case Map.get(map, list_field) do
       values when is_list(values) ->
@@ -331,6 +349,23 @@ defmodule OrbitalDynamics.Schema.PrimitiveValidation do
   end
 
   def validate_non_negative_integer_count_map(issues, _path, _counts), do: issues
+
+  def validate_non_negative_number_map(issues, path, values) when is_map(values) do
+    Enum.reduce(values, issues, fn {field, value}, acc ->
+      cond do
+        is_number(value) and value >= 0.0 ->
+          acc
+
+        is_number(value) ->
+          [error("#{path}.#{field}", "must be non-negative") | acc]
+
+        true ->
+          [error("#{path}.#{field}", "must be a number") | acc]
+      end
+    end)
+  end
+
+  def validate_non_negative_number_map(issues, _path, _values), do: issues
 
   def validate_optional_string_lists(issues, path, map, fields),
     do: Enum.reduce(fields, issues, &validate_string_list_items(&2, path, map, &1))
