@@ -6,26 +6,25 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Realized-activity callback ownership cleanup.
+Operational-feedback callback ownership cleanup.
 
 Status:
 Complete and published.
 
 Selected slice:
-Replace realized-activity callback plumbing with direct primitive, stable-ID,
-execution-metric, and shared validation dependencies.
+Replace the operational-feedback three-function callback adapter with direct
+collection, realized-activity, and primitive-error dependencies.
 
 Why this slice:
-Fourteen callbacks are shared validation support and execution uncertainty
-already has a cohesive `ExecutionMetricContracts` API; metadata identity and
-provider trust-boundary behavior are leaf-owned.
+Realized activity is now a cohesive direct leaf; the other two callbacks are
+already-extracted optional-row traversal and primitive error construction.
 
 Result:
-- Removed the sixteen-function facade bag and callback argument.
-- The leaf now directly uses primitive/stable-ID validation and the cohesive
-  execution-uncertainty API while retaining identity and provider-trust rules.
-- Preserved field order, status, metadata identity, uncertainty, provider trust,
-  stable IDs, probability/vector checks, and exact paths/messages.
+- Removed the three-function facade bag and callback argument.
+- Operational feedback now directly uses optional-row traversal, primitive
+  errors, and `RealizedActivityContracts` for nested activities.
+- Preserved optional/null behavior, map traversal/order, nested paths, map value
+  constraints, and exact diagnostics.
 
 Public facade preserved:
 - `OrbitalDynamics.Schema.validate_artifact/2`
@@ -34,19 +33,17 @@ Public facade preserved:
 Files changed:
 - `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/realized_activity_contracts.ex`
+- `lib/orbital_dynamics/schema/operational_feedback_contracts.ex`
 
 Verification:
 - `mix compile --warnings-as-errors` passed.
-- Full contact/operational-feedback contract coverage, curated realized-activity
-  fixture, and schema-export tests passed: 9 tests, 0 failures, 180 excluded.
-- Runtime probes preserved exact execution-uncertainty, missing external-ID,
-  and missing trust-boundary paths/messages.
+- Full contact/operational-feedback and schema-export suites passed: 8 tests.
+- Runtime probes preserved exact probability-range and string-list-map
+  paths/messages.
 - Full schema export passed; checked-in schemas remained unchanged.
 - SHA-256 over `{Schema.contracts(), Schema.json_schema_bundle()}` remained
   `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`.
-- Xref shows facade/planned-activity callers and the leaf's direct
-  `ExecutionMetricContracts` dependency.
+- Xref confirms the facade-only operational-feedback entry point.
 - `mix format --check-formatted`, `git diff --check`, callback residue checks,
   and bounded diff review passed.
 
@@ -55,23 +52,24 @@ Verification gaps:
   boundary cleanup.
 
 Published implementation:
-`1adf8d09` (`Collapse realized activity callbacks`).
+`1ddfd48c` (`Collapse operational feedback callbacks`).
 
 Size change:
-- `schema.ex`: 13,565 -> 13,543 lines.
-- `realized_activity_contracts.ex`: 505 -> 431 lines.
+- `schema.ex`: 13,543 -> 13,534 lines.
+- `operational_feedback_contracts.ex`: 159 -> 151 lines.
 
 Next candidate:
-Operational-feedback callback ownership cleanup. With realized activity now a
-direct cohesive leaf, its remaining three callbacks map directly to collection
-validation, `RealizedActivityContracts`, and primitive errors.
+Realized-state-snapshot callback ownership cleanup. The formerly blocking nested
+realized-activity validator is now a cohesive direct dependency; model limits
+come from a public planner API and all remaining callbacks are shared support or
+local frequency aggregation.
 
 Blocked:
 No.
 
 Notes:
-- Operational-feedback map-shape/probability/string-list checks and nested
-  realized activities are covered by the contact-feedback contract suite.
+- Realized-state-snapshot focused fixtures cover nested activity validation,
+  counts/statuses, IDs, assumptions, model limits, and checked-in exports.
 - Realized-activity focused fixtures cover identity objects, provider trust,
   uncertainty, vectors/probabilities, status, and derived metadata IDs.
 - Starting point: `schema.ex` is 13,620 lines; optimizer-objective contracts are
