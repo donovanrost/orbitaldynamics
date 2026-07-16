@@ -6567,7 +6567,7 @@ defmodule OrbitalDynamics.Schema do
     |> OrbitalDynamics.Schema.CapabilityCatalogContracts.validate(
       "$",
       artifact,
-      capability_catalog_contract_callbacks()
+      @contracts
     )
   end
 
@@ -8529,21 +8529,6 @@ defmodule OrbitalDynamics.Schema do
       validate_string_list_items: &validate_string_list_items/4,
       validate_non_negative_integer_list_items: &validate_non_negative_integer_list_items/4,
       validate_non_negative_integer_count_map: &validate_non_negative_integer_count_map/3
-    ]
-  end
-
-  defp capability_catalog_contract_callbacks do
-    [
-      require_fields: &require_fields/4,
-      expect_equal: &expect_equal/5,
-      expect_type: &expect_type/5,
-      expect_field_equals: &expect_field_equals/5,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      contract_names: fn -> OrbitalDynamics.Schema.Registry.names(@contracts) end,
-      known_contract?: fn contract ->
-        OrbitalDynamics.Schema.Registry.known?(@contracts, contract)
-      end,
-      error: &error/2
     ]
   end
 
