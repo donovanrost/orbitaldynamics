@@ -9,7 +9,7 @@ Current slice:
 Completed: execution reproducibility registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Moved `execution_report.v1` and `monte_carlo_reproducibility_report.v1` into
@@ -78,7 +78,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`edcada57` (`Update strategy maneuver handoff`).
+`b2f4d41d` (`Extract execution reproducibility registry contracts`).
 
 Next candidate:
 Assess approval requirement, policy decision, and operator review package as the
