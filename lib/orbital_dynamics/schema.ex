@@ -1358,32 +1358,6 @@ defmodule OrbitalDynamics.Schema do
         "assumptions"
       ],
       "nested_contracts" => []
-    },
-    @proposed_contact => %{
-      "schema_contract" => @proposed_contact,
-      "artifact_family" => "proposed_contact",
-      "schema_version" => 1,
-      "required_fields" => [
-        "id",
-        "type",
-        "scenario_id",
-        "ground_station_id",
-        "starts_at_s",
-        "ends_at_s",
-        "direction",
-        "estimated_throughput_mb",
-        "source_window",
-        "cadence_import"
-      ],
-      "optional_fields" => [
-        "model_limits",
-        "station_availability",
-        "schedule_conflict_status",
-        "source_window_id",
-        "timeline_id",
-        "timeline_identity"
-      ],
-      "nested_contracts" => []
     }
   }
 
@@ -1444,6 +1418,7 @@ defmodule OrbitalDynamics.Schema do
              |> Map.merge(OrbitalDynamics.Schema.StationReservationRegistryContracts.contracts())
              |> Map.merge(OrbitalDynamics.Schema.StationCalendarRegistryContracts.contracts())
              |> Map.merge(OrbitalDynamics.Schema.ContactContentionRegistryContracts.contracts())
+             |> Map.merge(OrbitalDynamics.Schema.ProposedContactRegistryContracts.contracts())
              |> Map.merge(OrbitalDynamics.Schema.ContactIntentRegistryContracts.contracts())
              |> Map.merge(OrbitalDynamics.Schema.CommandWindowRegistryContracts.contracts())
              |> Map.merge(OrbitalDynamics.Schema.LinkCapacityRegistryContracts.contracts())
