@@ -6,79 +6,62 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Maneuver-review-report callback-bag collapse.
+Timeline-transition-application report-count callback collapse.
 
 Status:
-Completed; ready to publish.
+Selected; implementation pending.
 
 Selected slice:
-Remove the 18-entry callback bag from `ManeuverReviewReportContracts`. Call
-primitive, collection, and stable-ID owners directly; pass maneuver-review
-model-limit data from the facade; and keep row validation and frequency
-derivation local to the report owner.
+Remove the eight-entry callback bag from
+`TimelineTransitionApplicationReportCountContracts`. Call primitive validation
+and collection aggregation owners directly while preserving the facade wrapper
+and report validator boundary.
 
 Why this slice:
 Live inventory shows `schema.ex` remains the dominant production hotspot at
-12,420 lines. The 266-line maneuver-review owner contains 18 callback
-trampolines even though it already owns report counts, rows, total delta-v, and
-frequency derivation. Focused maneuver-review, schema-contract, reference
-fixture, import, review, and provenance tests cover direct and nested behavior.
+12,396 lines. The 219-line count owner contains eight callback trampolines for
+count-map validation, derived equality checks, frequency/nested frequency,
+numeric sums, list extraction, and stable sorting. Focused transition-report
+contracts cover applications, selected activities, all count maps, invalid
+values, nested integrity evidence, fixtures, and handoffs.
 
 Public facade to preserve:
-`OrbitalDynamics.Schema.validate_artifact/2` and all maneuver-review report
-behavior, including source IDs, approval and uncertainty counts, model-limit
-comparison, row requirements/types, delta-v vectors/totals, deterministic
-errors, nested consumers, and exports.
+`OrbitalDynamics.Schema.validate_artifact/2` and all timeline transition
+application report behavior, including application/selection counts,
+frequency maps, transition categories, integrity issue sums/types, nil selected
+activities, validation order, exact paths/messages, deterministic errors, and
+exports.
 
 Likely extraction target:
-`ManeuverReviewReportContracts.validate/4` retains arity four but accepts the
-maneuver-review model-limit list. Remove the schema factory and owner
-trampolines, import direct validation owners, and replace the facade frequency
-callback with equivalent owner-local derivation.
+`TimelineTransitionApplicationReportCountContracts.validate/4` can become
+direct-owner `validate/3`. Remove the schema callback factory and owner
+trampolines, importing the exact primitive and collection aggregation helpers.
 
 Likely files:
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/maneuver_review_report_contracts.ex`
-- `test/orbital_dynamics/schema/maneuver_contracts_test.exs`
+- `lib/orbital_dynamics/schema/timeline_transition_application_report_count_contracts.ex`
 - `.codex/status/large_module_refactor.md`
 
 Likely tests:
 - compile with warnings as errors
-- maneuver-review and schema maneuver-contract tests
-- focused validation fixture and nested import/review/provenance tests
+- focused timeline report and summary contract tests
+- transition-application workflow and nested handoff checks
 - schema export trio and checked-in export/fingerprint verification
-- broader maneuver/schema checks, xref, format, and diff hygiene
+- broader timeline/candidate-refresh checks, xref, format, and diff hygiene
 
 Definition of done:
-No maneuver-review callback factory or trampolines remain; facade model-limit
-data and direct owners preserve exact report/row behavior; focused/broader/export
-checks pass; and bounded review finds no blocker.
-
-Result:
-Removed the 18-entry callback factory and all owner-local trampolines. The
-facade now passes exact maneuver-review model-limit data, while the owner calls
-primitive, collection, stable-ID, and aggregation modules directly. Review
-caught and the implementation restored the facade's exact default derived-count
-message wrapper, with a focused message regression assertion. `schema.ex` fell
-from 12,420 to 12,396 lines and the owner from 266 to 196 lines.
-
-Verification:
-- compile with warnings as errors passed
-- 13 focused maneuver, schema, provenance, and reference-fixture tests passed
-- 761 broader import, review, and candidate-refresh consumer tests passed
-- 22 schema-export tests passed
-- checked-in schema export reproduction produced no diff
-- format, diff hygiene, scoped callback residue, and compile-connected xref passed
-- bounded review's must-fix was resolved; re-review found no remaining issues
+No report-count callback factory or owner trampolines remain; the facade calls
+the direct owner; derived count/map/sum/type behavior stays exact;
+focused/broader/export checks pass; and bounded review finds no blocker.
 
 Verification gaps:
 - Full repository suite not run.
 
 Last completed slice:
-Maneuver-review-report callback collapse: `schema.ex` fell from 12,420 to
-12,396 lines and its owner from 266 to 196; 13 focused, 761 broader, and 22
-export tests passed; checked-in schemas were unchanged; bounded review's
-must-fix was resolved and re-review found no remaining issues.
+Maneuver-review-report callback collapse published as `1e825f31`: `schema.ex`
+fell from 12,420 to 12,396 lines and its owner from 266 to 196; 13 focused, 761
+broader, and 22 export tests passed; checked-in schemas were unchanged; bounded
+review's must-fix was resolved and re-review found no remaining issues.
 
 Blocked:
 No.
