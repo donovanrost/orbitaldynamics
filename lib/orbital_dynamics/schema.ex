@@ -24,7 +24,6 @@ defmodule OrbitalDynamics.Schema do
       expect_equal: 5,
       expect_field_at_least: 5,
       expect_field_equals: 6,
-      expect_field_matches_list_count: 6,
       expect_number: 4,
       expect_non_negative_integer: 4,
       expect_number_vector: 3,
@@ -7835,33 +7834,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp link_capacity_report_contract_callbacks do
-    [
-      require_fields: &require_fields/4,
-      expect_equal: &expect_equal/5,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_non_negative_integer: &expect_non_negative_integer/4,
-      expect_optional_non_negative_integer: &expect_optional_non_negative_integer/4,
-      expect_number: &expect_number/4,
-      expect_optional_number: &expect_optional_number/4,
-      expect_optional_probability: &expect_optional_probability/4,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      expect_optional_field_equals: &expect_optional_field_equals/6,
-      expect_field_matches_list_count: &expect_field_matches_list_count/6,
-      expect_optional_list_field_equals: &expect_optional_list_field_equals/6,
-      validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
-      validate_optional_stable_id_array_map: &validate_optional_stable_id_array_map/4,
-      validate_stable_ids: &validate_stable_ids/4,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_non_negative_integer_count_map: &validate_non_negative_integer_count_map/3,
-      validate_optional_exact_model_limits: &validate_optional_exact_model_limits/5,
-      validate_rows: &validate_rows/4,
-      validate_optional_actual_data_rate_throughput_derivations:
-        &validate_optional_actual_data_rate_throughput_derivations/4
-    ]
-  end
-
   defp contact_contention_resolution_summary_contract_callbacks do
     [
       expect_equal: &expect_equal/5,
@@ -8547,8 +8519,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.LinkCapacityReportContracts.validate(
       issues,
       path,
-      report,
-      link_capacity_report_contract_callbacks()
+      report
     )
   end
 
@@ -9776,8 +9747,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.LinkCapacityReportContracts.validate_assumptions(
       issues,
       path,
-      artifact,
-      link_capacity_report_contract_callbacks()
+      artifact
     )
   end
 
@@ -11188,21 +11158,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp expect_field_equals(issues, path, map, field, expected),
     do: expect_field_equals(issues, path, map, field, expected, "must equal #{expected}")
-
-  defp expect_optional_list_field_equals(issues, path, map, field, expected, message) do
-    value = Map.get(map, field)
-
-    cond do
-      (is_nil(value) or not Map.has_key?(map, field)) and expected == [] ->
-        issues
-
-      Map.has_key?(map, field) and value != expected ->
-        [error("#{path}.#{field}", message) | issues]
-
-      true ->
-        issues
-    end
-  end
 
   defp expect_number_field_equals(issues, _path, _map, _field, nil, _message), do: issues
 
@@ -12836,16 +12791,6 @@ defmodule OrbitalDynamics.Schema do
   defp validate_optional_actual_data_rate_throughput_derivation(issues, path, map, field)
        when is_map(map) do
     OrbitalDynamics.Schema.ExecutionMetricContracts.validate_optional_actual_data_rate_throughput_derivation(
-      issues,
-      path,
-      map,
-      field
-    )
-  end
-
-  defp validate_optional_actual_data_rate_throughput_derivations(issues, path, map, field)
-       when is_map(map) do
-    OrbitalDynamics.Schema.ExecutionMetricContracts.validate_optional_actual_data_rate_throughput_derivations(
       issues,
       path,
       map,

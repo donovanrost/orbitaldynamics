@@ -1,288 +1,283 @@
 defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
   @moduledoc false
 
-  def validate(issues, path, report, callbacks) when is_list(callbacks) do
+  alias OrbitalDynamics.Schema.ExecutionMetricContracts
+
+  import OrbitalDynamics.Schema.CollectionValidation, only: [validate_rows: 4]
+
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [
+      expect_equal: 5,
+      expect_field_equals: 6,
+      expect_field_matches_list_count: 6,
+      expect_non_negative_integer: 4,
+      expect_number: 4,
+      expect_optional_field_equals: 6,
+      expect_optional_list_field_equals: 6,
+      expect_optional_non_negative_integer: 4,
+      expect_optional_number: 4,
+      expect_optional_probability: 4,
+      expect_optional_type: 5,
+      expect_type: 5,
+      require_fields: 4,
+      validate_non_negative_integer_count_map: 3,
+      validate_optional_exact_model_limits: 5,
+      validate_string_list_items: 4
+    ]
+
+  import OrbitalDynamics.Schema.StableIdValidation,
+    only: [
+      validate_optional_stable_id_list: 4,
+      validate_stable_id_array_map: 3,
+      validate_stable_ids: 4
+    ]
+
+  def validate(issues, path, report) do
     issues
-    |> expect_equal(callbacks, path, report, "schema_contract", "link_capacity_report.v1")
-    |> expect_equal(callbacks, path, report, "model", "fixed_rate_downlink_capacity_summary")
-    |> expect_type(callbacks, path, report, "source", :binary)
-    |> expect_non_negative_integer(callbacks, path, report, "contact_count")
-    |> expect_non_negative_integer(callbacks, path, report, "selected_contact_count")
-    |> expect_number(callbacks, path, report, "estimated_throughput_mb")
-    |> expect_number(callbacks, path, report, "selected_estimated_throughput_mb")
-    |> expect_optional_number(callbacks, path, report, "capacity_adjusted_throughput_mb")
-    |> expect_optional_number(callbacks, path, report, "selected_capacity_adjusted_throughput_mb")
-    |> expect_optional_number(callbacks, path, report, "unused_capacity_adjusted_throughput_mb")
+    |> expect_equal(path, report, "schema_contract", "link_capacity_report.v1")
+    |> expect_equal(path, report, "model", "fixed_rate_downlink_capacity_summary")
+    |> expect_type(path, report, "source", :binary)
+    |> expect_non_negative_integer(path, report, "contact_count")
+    |> expect_non_negative_integer(path, report, "selected_contact_count")
+    |> expect_number(path, report, "estimated_throughput_mb")
+    |> expect_number(path, report, "selected_estimated_throughput_mb")
+    |> expect_optional_number(path, report, "capacity_adjusted_throughput_mb")
+    |> expect_optional_number(path, report, "selected_capacity_adjusted_throughput_mb")
+    |> expect_optional_number(path, report, "unused_capacity_adjusted_throughput_mb")
     |> expect_optional_probability(
-      callbacks,
       path,
       report,
       "selected_capacity_utilization_fraction"
     )
-    |> expect_optional_type(callbacks, path, report, "selection_utilization_status", :binary)
-    |> expect_optional_non_negative_integer(callbacks, path, report, "effective_contact_count")
-    |> expect_optional_non_negative_integer(callbacks, path, report, "ignored_contact_count")
-    |> expect_optional_type(callbacks, path, report, "ignored_contact_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, report, "ignored_contact_ids")
-    |> expect_optional_type(callbacks, path, report, "ignored_contact_reason_counts", :map)
+    |> expect_optional_type(path, report, "selection_utilization_status", :binary)
+    |> expect_optional_non_negative_integer(path, report, "effective_contact_count")
+    |> expect_optional_non_negative_integer(path, report, "ignored_contact_count")
+    |> expect_optional_type(path, report, "ignored_contact_ids", :list)
+    |> validate_optional_stable_id_list(path, report, "ignored_contact_ids")
+    |> expect_optional_type(path, report, "ignored_contact_reason_counts", :map)
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       report,
       "ignored_selected_contact_count"
     )
-    |> expect_optional_type(callbacks, path, report, "ignored_selected_contact_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, report, "ignored_selected_contact_ids")
+    |> expect_optional_type(path, report, "ignored_selected_contact_ids", :list)
+    |> validate_optional_stable_id_list(path, report, "ignored_selected_contact_ids")
     |> expect_optional_type(
-      callbacks,
       path,
       report,
       "ignored_selected_contact_reason_counts",
       :map
     )
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       report,
       "ambiguous_selected_contact_id_count"
     )
-    |> expect_optional_type(callbacks, path, report, "ambiguous_selected_contact_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, report, "ambiguous_selected_contact_ids")
+    |> expect_optional_type(path, report, "ambiguous_selected_contact_ids", :list)
+    |> validate_optional_stable_id_list(path, report, "ambiguous_selected_contact_ids")
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       report,
       "duplicate_contact_candidate_count"
     )
-    |> expect_optional_non_negative_integer(callbacks, path, report, "duplicate_contact_id_count")
+    |> expect_optional_non_negative_integer(path, report, "duplicate_contact_id_count")
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       report,
       "unmatched_selected_contact_count"
     )
-    |> expect_optional_type(callbacks, path, report, "unmatched_selected_contact_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, report, "unmatched_selected_contact_ids")
+    |> expect_optional_type(path, report, "unmatched_selected_contact_ids", :list)
+    |> validate_optional_stable_id_list(path, report, "unmatched_selected_contact_ids")
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       report,
       "invalid_policy_required_downlink_station_count"
     )
     |> expect_optional_type(
-      callbacks,
       path,
       report,
       "invalid_policy_required_downlink_station_ids",
       :list
     )
     |> validate_string_list_items(
-      callbacks,
       path,
       report,
       "invalid_policy_required_downlink_station_ids"
     )
-    |> expect_optional_number(callbacks, path, report, "required_downlink_mb")
+    |> expect_optional_number(path, report, "required_downlink_mb")
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       report,
       "required_downlink_contact_count"
     )
-    |> expect_optional_type(callbacks, path, report, "required_downlink_contact_ids", :list)
-    |> validate_string_list_items(callbacks, path, report, "required_downlink_contact_ids")
-    |> expect_optional_number(callbacks, path, report, "selected_downlink_shortfall_mb")
-    |> expect_optional_type(callbacks, path, report, "downlink_requirement_status", :binary)
-    |> expect_optional_number(callbacks, path, report, "actual_throughput_mb")
+    |> expect_optional_type(path, report, "required_downlink_contact_ids", :list)
+    |> validate_string_list_items(path, report, "required_downlink_contact_ids")
+    |> expect_optional_number(path, report, "selected_downlink_shortfall_mb")
+    |> expect_optional_type(path, report, "downlink_requirement_status", :binary)
+    |> expect_optional_number(path, report, "actual_throughput_mb")
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       report,
       "actual_throughput_contact_count"
     )
-    |> expect_optional_type(callbacks, path, report, "actual_throughput_contact_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, report, "actual_throughput_contact_ids")
+    |> expect_optional_type(path, report, "actual_throughput_contact_ids", :list)
+    |> validate_optional_stable_id_list(path, report, "actual_throughput_contact_ids")
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       report,
       "actual_completion_contact_count"
     )
-    |> expect_optional_type(callbacks, path, report, "actual_completion_contact_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, report, "actual_completion_contact_ids")
+    |> expect_optional_type(path, report, "actual_completion_contact_ids", :list)
+    |> validate_optional_stable_id_list(path, report, "actual_completion_contact_ids")
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       report,
       "unmatched_actual_throughput_contact_count"
     )
     |> expect_optional_type(
-      callbacks,
       path,
       report,
       "unmatched_actual_throughput_contact_ids",
       :list
     )
     |> validate_optional_stable_id_list(
-      callbacks,
       path,
       report,
       "unmatched_actual_throughput_contact_ids"
     )
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       report,
       "ambiguous_actual_throughput_contact_count"
     )
     |> expect_optional_type(
-      callbacks,
       path,
       report,
       "ambiguous_actual_throughput_contact_ids",
       :list
     )
     |> validate_optional_stable_id_list(
-      callbacks,
       path,
       report,
       "ambiguous_actual_throughput_contact_ids"
     )
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       report,
       "unmatched_actual_completion_contact_count"
     )
     |> expect_optional_type(
-      callbacks,
       path,
       report,
       "unmatched_actual_completion_contact_ids",
       :list
     )
     |> validate_optional_stable_id_list(
-      callbacks,
       path,
       report,
       "unmatched_actual_completion_contact_ids"
     )
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       report,
       "ambiguous_actual_completion_contact_count"
     )
     |> expect_optional_type(
-      callbacks,
       path,
       report,
       "ambiguous_actual_completion_contact_ids",
       :list
     )
     |> validate_optional_stable_id_list(
-      callbacks,
       path,
       report,
       "ambiguous_actual_completion_contact_ids"
     )
-    |> expect_optional_probability(callbacks, path, report, "actual_downlink_completion_ratio")
+    |> expect_optional_probability(path, report, "actual_downlink_completion_ratio")
     |> expect_optional_type(
-      callbacks,
       path,
       report,
       "actual_data_rate_throughput_derivations",
       :list
     )
-    |> validate_optional_actual_data_rate_throughput_derivations(
-      callbacks,
+    |> ExecutionMetricContracts.validate_optional_actual_data_rate_throughput_derivations(
       path,
       report,
       "actual_data_rate_throughput_derivations"
     )
-    |> expect_optional_type(callbacks, path, report, "station_reservation_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, report, "station_reservation_ids")
+    |> expect_optional_type(path, report, "station_reservation_ids", :list)
+    |> validate_optional_stable_id_list(path, report, "station_reservation_ids")
     |> expect_optional_type(
-      callbacks,
       path,
       report,
       "station_reservation_expiration_status_counts",
       :map
     )
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".station_reservation_expiration_status_counts",
       Map.get(report, "station_reservation_expiration_status_counts")
     )
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       report,
       "station_reservation_declared_expiration_contact_count"
     )
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       report,
       "station_reservation_missing_expiration_contact_count"
     )
     |> expect_optional_number(
-      callbacks,
       path,
       report,
       "earliest_station_reservation_expires_at_s"
     )
     |> validate_optional_stable_id_array_map(
-      callbacks,
       path,
       report,
       "station_reservation_contact_ids_by_expiration_status"
     )
     |> validate_optional_stable_id_array_map(
-      callbacks,
       path,
       report,
       "station_reservation_ids_by_expiration_status"
     )
-    |> expect_optional_type(callbacks, path, report, "station_reserved_bys", :list)
-    |> validate_string_list_items(callbacks, path, report, "station_reserved_bys")
-    |> expect_optional_type(callbacks, path, report, "station_reservation_statuses", :list)
-    |> validate_string_list_items(callbacks, path, report, "station_reservation_statuses")
+    |> expect_optional_type(path, report, "station_reserved_bys", :list)
+    |> validate_string_list_items(path, report, "station_reserved_bys")
+    |> expect_optional_type(path, report, "station_reservation_statuses", :list)
+    |> validate_string_list_items(path, report, "station_reservation_statuses")
     |> expect_optional_type(
-      callbacks,
       path,
       report,
       "station_reservation_match_status_counts",
       :map
     )
-    |> expect_optional_type(callbacks, path, report, "model_limits", :list)
-    |> validate_string_list_items(callbacks, path, report, "model_limits")
+    |> expect_optional_type(path, report, "model_limits", :list)
+    |> validate_string_list_items(path, report, "model_limits")
     |> validate_optional_exact_model_limits(
-      callbacks,
       path,
       report,
       model_limits(),
       "must match link capacity capability model limits"
     )
-    |> expect_type(callbacks, path, report, "rows", :list)
-    |> expect_type(callbacks, path, report, "assumptions", :map)
-    |> validate_report_assumptions(callbacks, path, report)
+    |> expect_type(path, report, "rows", :list)
+    |> expect_type(path, report, "assumptions", :map)
+    |> validate_report_assumptions(path, report)
     |> validate_rows(
-      callbacks,
       path <> ".rows",
       Map.get(report, "rows", []),
-      fn acc, row_path, row -> validate_row(acc, row_path, row, callbacks) end
+      fn acc, row_path, row -> validate_row(acc, row_path, row) end
     )
-    |> validate_report_counts(callbacks, path, report)
+    |> validate_report_counts(path, report)
   end
 
-  def validate_assumptions(issues, path, artifact, callbacks) when is_list(callbacks) do
-    validate_report_assumptions(issues, callbacks, path, artifact)
+  def validate_assumptions(issues, path, artifact) do
+    validate_report_assumptions(issues, path, artifact)
   end
 
-  defp validate_row(issues, path, row, callbacks) do
+  defp validate_row(issues, path, row) do
     issues
-    |> require_fields(callbacks, path, row, [
+    |> require_fields(path, row, [
       "ground_station_id",
       "contact_count",
       "selected_contact_count",
@@ -291,195 +286,172 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       "contact_ids",
       "selected_contact_ids"
     ])
-    |> validate_stable_ids(callbacks, path, row, ["ground_station_id"])
-    |> expect_non_negative_integer(callbacks, path, row, "contact_count")
-    |> expect_non_negative_integer(callbacks, path, row, "selected_contact_count")
-    |> expect_number(callbacks, path, row, "estimated_throughput_mb")
-    |> expect_number(callbacks, path, row, "selected_estimated_throughput_mb")
-    |> expect_optional_number(callbacks, path, row, "capacity_adjusted_throughput_mb")
-    |> expect_optional_number(callbacks, path, row, "selected_capacity_adjusted_throughput_mb")
-    |> expect_optional_number(callbacks, path, row, "unused_capacity_adjusted_throughput_mb")
-    |> expect_optional_probability(callbacks, path, row, "selected_capacity_utilization_fraction")
-    |> expect_optional_type(callbacks, path, row, "selection_utilization_status", :binary)
-    |> expect_optional_probability(callbacks, path, row, "capacity_fraction_min")
-    |> expect_optional_probability(callbacks, path, row, "capacity_fraction_max")
-    |> expect_type(callbacks, path, row, "contact_ids", :list)
-    |> expect_type(callbacks, path, row, "selected_contact_ids", :list)
-    |> expect_optional_non_negative_integer(callbacks, path, row, "effective_contact_count")
-    |> expect_optional_non_negative_integer(callbacks, path, row, "ignored_contact_count")
-    |> expect_optional_type(callbacks, path, row, "ignored_contact_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, row, "ignored_contact_ids")
-    |> expect_optional_type(callbacks, path, row, "ignored_contact_reason_counts", :map)
+    |> validate_stable_ids(path, row, ["ground_station_id"])
+    |> expect_non_negative_integer(path, row, "contact_count")
+    |> expect_non_negative_integer(path, row, "selected_contact_count")
+    |> expect_number(path, row, "estimated_throughput_mb")
+    |> expect_number(path, row, "selected_estimated_throughput_mb")
+    |> expect_optional_number(path, row, "capacity_adjusted_throughput_mb")
+    |> expect_optional_number(path, row, "selected_capacity_adjusted_throughput_mb")
+    |> expect_optional_number(path, row, "unused_capacity_adjusted_throughput_mb")
+    |> expect_optional_probability(path, row, "selected_capacity_utilization_fraction")
+    |> expect_optional_type(path, row, "selection_utilization_status", :binary)
+    |> expect_optional_probability(path, row, "capacity_fraction_min")
+    |> expect_optional_probability(path, row, "capacity_fraction_max")
+    |> expect_type(path, row, "contact_ids", :list)
+    |> expect_type(path, row, "selected_contact_ids", :list)
+    |> expect_optional_non_negative_integer(path, row, "effective_contact_count")
+    |> expect_optional_non_negative_integer(path, row, "ignored_contact_count")
+    |> expect_optional_type(path, row, "ignored_contact_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "ignored_contact_ids")
+    |> expect_optional_type(path, row, "ignored_contact_reason_counts", :map)
     |> validate_non_negative_integer_count_map(
-      callbacks,
       "#{path}.ignored_contact_reason_counts",
       Map.get(row, "ignored_contact_reason_counts")
     )
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       row,
       "ignored_selected_contact_count"
     )
-    |> expect_optional_type(callbacks, path, row, "ignored_selected_contact_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, row, "ignored_selected_contact_ids")
-    |> expect_optional_type(callbacks, path, row, "ignored_selected_contact_reason_counts", :map)
+    |> expect_optional_type(path, row, "ignored_selected_contact_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "ignored_selected_contact_ids")
+    |> expect_optional_type(path, row, "ignored_selected_contact_reason_counts", :map)
     |> validate_non_negative_integer_count_map(
-      callbacks,
       "#{path}.ignored_selected_contact_reason_counts",
       Map.get(row, "ignored_selected_contact_reason_counts")
     )
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       row,
       "ambiguous_selected_contact_id_count"
     )
-    |> expect_optional_type(callbacks, path, row, "ambiguous_selected_contact_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, row, "ambiguous_selected_contact_ids")
+    |> expect_optional_type(path, row, "ambiguous_selected_contact_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "ambiguous_selected_contact_ids")
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       row,
       "duplicate_contact_candidate_count"
     )
-    |> expect_optional_type(callbacks, path, row, "duplicate_contact_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, row, "duplicate_contact_ids")
-    |> expect_optional_type(callbacks, path, row, "station_calendar_entry_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, row, "station_calendar_entry_ids")
-    |> expect_optional_type(callbacks, path, row, "station_calendar_provider_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, row, "station_calendar_provider_ids")
-    |> expect_optional_type(callbacks, path, row, "station_calendar_provider_entry_ids", :list)
+    |> expect_optional_type(path, row, "duplicate_contact_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "duplicate_contact_ids")
+    |> expect_optional_type(path, row, "station_calendar_entry_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "station_calendar_entry_ids")
+    |> expect_optional_type(path, row, "station_calendar_provider_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "station_calendar_provider_ids")
+    |> expect_optional_type(path, row, "station_calendar_provider_entry_ids", :list)
     |> validate_optional_stable_id_list(
-      callbacks,
       path,
       row,
       "station_calendar_provider_entry_ids"
     )
-    |> expect_optional_type(callbacks, path, row, "station_calendar_directions", :list)
-    |> validate_string_list_items(callbacks, path, row, "station_calendar_directions")
-    |> expect_optional_type(callbacks, path, row, "station_reservation_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, row, "station_reservation_ids")
-    |> expect_optional_type(callbacks, path, row, "station_reserved_bys", :list)
-    |> validate_string_list_items(callbacks, path, row, "station_reserved_bys")
-    |> expect_optional_type(callbacks, path, row, "station_reservation_statuses", :list)
-    |> validate_string_list_items(callbacks, path, row, "station_reservation_statuses")
-    |> expect_optional_type(callbacks, path, row, "station_reservation_match_statuses", :list)
-    |> validate_string_list_items(callbacks, path, row, "station_reservation_match_statuses")
-    |> expect_optional_number(callbacks, path, row, "actual_throughput_mb")
+    |> expect_optional_type(path, row, "station_calendar_directions", :list)
+    |> validate_string_list_items(path, row, "station_calendar_directions")
+    |> expect_optional_type(path, row, "station_reservation_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "station_reservation_ids")
+    |> expect_optional_type(path, row, "station_reserved_bys", :list)
+    |> validate_string_list_items(path, row, "station_reserved_bys")
+    |> expect_optional_type(path, row, "station_reservation_statuses", :list)
+    |> validate_string_list_items(path, row, "station_reservation_statuses")
+    |> expect_optional_type(path, row, "station_reservation_match_statuses", :list)
+    |> validate_string_list_items(path, row, "station_reservation_match_statuses")
+    |> expect_optional_number(path, row, "actual_throughput_mb")
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       row,
       "actual_throughput_contact_count"
     )
-    |> expect_optional_type(callbacks, path, row, "actual_throughput_contact_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, row, "actual_throughput_contact_ids")
+    |> expect_optional_type(path, row, "actual_throughput_contact_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "actual_throughput_contact_ids")
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       row,
       "actual_completion_contact_count"
     )
-    |> expect_optional_type(callbacks, path, row, "actual_completion_contact_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, row, "actual_completion_contact_ids")
+    |> expect_optional_type(path, row, "actual_completion_contact_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "actual_completion_contact_ids")
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       row,
       "unmatched_actual_throughput_contact_count"
     )
     |> expect_optional_type(
-      callbacks,
       path,
       row,
       "unmatched_actual_throughput_contact_ids",
       :list
     )
     |> validate_optional_stable_id_list(
-      callbacks,
       path,
       row,
       "unmatched_actual_throughput_contact_ids"
     )
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       row,
       "ambiguous_actual_throughput_contact_count"
     )
     |> expect_optional_type(
-      callbacks,
       path,
       row,
       "ambiguous_actual_throughput_contact_ids",
       :list
     )
     |> validate_optional_stable_id_list(
-      callbacks,
       path,
       row,
       "ambiguous_actual_throughput_contact_ids"
     )
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       row,
       "unmatched_actual_completion_contact_count"
     )
     |> expect_optional_type(
-      callbacks,
       path,
       row,
       "unmatched_actual_completion_contact_ids",
       :list
     )
     |> validate_optional_stable_id_list(
-      callbacks,
       path,
       row,
       "unmatched_actual_completion_contact_ids"
     )
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       row,
       "ambiguous_actual_completion_contact_count"
     )
     |> expect_optional_type(
-      callbacks,
       path,
       row,
       "ambiguous_actual_completion_contact_ids",
       :list
     )
     |> validate_optional_stable_id_list(
-      callbacks,
       path,
       row,
       "ambiguous_actual_completion_contact_ids"
     )
-    |> expect_optional_probability(callbacks, path, row, "actual_downlink_completion_ratio")
+    |> expect_optional_probability(path, row, "actual_downlink_completion_ratio")
     |> expect_optional_type(
-      callbacks,
       path,
       row,
       "actual_data_rate_throughput_derivations",
       :list
     )
-    |> validate_optional_actual_data_rate_throughput_derivations(
-      callbacks,
+    |> ExecutionMetricContracts.validate_optional_actual_data_rate_throughput_derivations(
       path,
       row,
       "actual_data_rate_throughput_derivations"
     )
-    |> validate_row_counts(callbacks, path, row)
+    |> validate_row_counts(path, row)
   end
 
-  defp validate_row_counts(issues, callbacks, path, row) do
+  defp validate_row_counts(issues, path, row) do
     issues
     |> expect_field_matches_list_count(
-      callbacks,
       path,
       row,
       "contact_count",
@@ -487,7 +459,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       "must equal contact_ids count"
     )
     |> expect_field_matches_list_count(
-      callbacks,
       path,
       row,
       "selected_contact_count",
@@ -495,7 +466,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       "must equal selected_contact_ids count"
     )
     |> expect_field_matches_list_count(
-      callbacks,
       path,
       row,
       "ignored_contact_count",
@@ -503,7 +473,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       "must equal ignored_contact_ids count"
     )
     |> expect_field_matches_list_count(
-      callbacks,
       path,
       row,
       "ignored_selected_contact_count",
@@ -511,7 +480,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       "must equal ignored_selected_contact_ids count"
     )
     |> expect_field_matches_list_count(
-      callbacks,
       path,
       row,
       "ambiguous_selected_contact_id_count",
@@ -519,7 +487,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       "must equal ambiguous_selected_contact_ids count"
     )
     |> expect_field_matches_list_count(
-      callbacks,
       path,
       row,
       "required_downlink_contact_count",
@@ -527,7 +494,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       "must equal required_downlink_contact_ids count"
     )
     |> expect_field_matches_list_count(
-      callbacks,
       path,
       row,
       "actual_throughput_contact_count",
@@ -535,7 +501,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       "must equal actual_throughput_contact_ids count"
     )
     |> expect_field_matches_list_count(
-      callbacks,
       path,
       row,
       "actual_completion_contact_count",
@@ -543,7 +508,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       "must equal actual_completion_contact_ids count"
     )
     |> expect_field_matches_list_count(
-      callbacks,
       path,
       row,
       "unmatched_actual_throughput_contact_count",
@@ -551,7 +515,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       "must equal unmatched_actual_throughput_contact_ids count"
     )
     |> expect_field_matches_list_count(
-      callbacks,
       path,
       row,
       "ambiguous_actual_throughput_contact_count",
@@ -559,7 +522,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       "must equal ambiguous_actual_throughput_contact_ids count"
     )
     |> expect_field_matches_list_count(
-      callbacks,
       path,
       row,
       "unmatched_actual_completion_contact_count",
@@ -567,7 +529,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       "must equal unmatched_actual_completion_contact_ids count"
     )
     |> expect_field_matches_list_count(
-      callbacks,
       path,
       row,
       "ambiguous_actual_completion_contact_count",
@@ -576,7 +537,7 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
     )
   end
 
-  defp validate_report_counts(issues, callbacks, path, report) do
+  defp validate_report_counts(issues, path, report) do
     rows =
       report
       |> Map.get("rows", [])
@@ -584,7 +545,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
 
     issues
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "contact_count",
@@ -592,7 +552,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       "must equal row-derived contact_count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "selected_contact_count",
@@ -600,7 +559,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       "must equal row-derived selected_contact_count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "estimated_throughput_mb",
@@ -608,7 +566,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       "must equal row-derived estimated_throughput_mb"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "selected_estimated_throughput_mb",
@@ -616,7 +573,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       "must equal row-derived selected_estimated_throughput_mb"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "ignored_contact_ids",
@@ -624,17 +580,14 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       "must equal row-derived ignored_contact_ids"
     )
     |> validate_non_negative_integer_count_map(
-      callbacks,
       "#{path}.ignored_contact_reason_counts",
       Map.get(report, "ignored_contact_reason_counts")
     )
     |> validate_non_negative_integer_count_map(
-      callbacks,
       "#{path}.ignored_selected_contact_reason_counts",
       Map.get(report, "ignored_selected_contact_reason_counts")
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "ignored_contact_reason_counts",
@@ -642,7 +595,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       "must equal row-derived ignored_contact_reason_counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "invalid_contact_input_ids",
@@ -650,7 +602,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       "must equal row-derived invalid_contact_input_ids"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "required_downlink_contact_ids",
@@ -658,7 +609,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       "must equal row-derived required_downlink_contact_ids"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "required_downlink_contact_count",
@@ -666,7 +616,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       "must equal row-derived required_downlink_contact_count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "actual_throughput_contact_ids",
@@ -674,7 +623,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       "must equal row-derived actual_throughput_contact_ids"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "actual_throughput_contact_count",
@@ -682,7 +630,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       "must equal row-derived actual_throughput_contact_count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "actual_completion_contact_ids",
@@ -690,7 +637,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       "must equal row-derived actual_completion_contact_ids"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "actual_completion_contact_count",
@@ -698,7 +644,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       "must equal row-derived actual_completion_contact_count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "unmatched_actual_throughput_contact_ids",
@@ -706,7 +651,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       "must equal row-derived unmatched_actual_throughput_contact_ids"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "unmatched_actual_throughput_contact_count",
@@ -714,7 +658,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       "must equal row-derived unmatched_actual_throughput_contact_count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "ambiguous_actual_throughput_contact_ids",
@@ -722,7 +665,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       "must equal row-derived ambiguous_actual_throughput_contact_ids"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "ambiguous_actual_throughput_contact_count",
@@ -730,7 +672,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       "must equal row-derived ambiguous_actual_throughput_contact_count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "unmatched_actual_completion_contact_ids",
@@ -738,7 +679,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       "must equal row-derived unmatched_actual_completion_contact_ids"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "unmatched_actual_completion_contact_count",
@@ -746,7 +686,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       "must equal row-derived unmatched_actual_completion_contact_count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "ambiguous_actual_completion_contact_ids",
@@ -754,7 +693,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       "must equal row-derived ambiguous_actual_completion_contact_ids"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "ambiguous_actual_completion_contact_count",
@@ -762,7 +700,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       "must equal row-derived ambiguous_actual_completion_contact_count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "actual_data_rate_throughput_derivations",
@@ -770,7 +707,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       "must equal row-derived actual_data_rate_throughput_derivations"
     )
     |> expect_optional_list_field_equals(
-      callbacks,
       path,
       report,
       "station_reservation_ids",
@@ -778,7 +714,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       "must equal row-derived station_reservation_ids"
     )
     |> expect_optional_list_field_equals(
-      callbacks,
       path,
       report,
       "station_reserved_bys",
@@ -786,7 +721,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       "must equal row-derived station_reserved_bys"
     )
     |> expect_optional_list_field_equals(
-      callbacks,
       path,
       report,
       "station_reservation_statuses",
@@ -794,7 +728,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       "must equal row-derived station_reservation_statuses"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "ignored_selected_contact_reason_counts",
@@ -802,7 +735,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       "must equal row-derived ignored_selected_contact_reason_counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "unmatched_selected_contact_ids",
@@ -810,7 +742,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       "must equal deterministic unmatched_selected_contact_ids"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "unmatched_selected_contact_count",
@@ -818,7 +749,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       "must equal unmatched_selected_contact_ids count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "invalid_policy_required_downlink_station_ids",
@@ -826,7 +756,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
       "must equal deterministic invalid_policy_required_downlink_station_ids"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "invalid_policy_required_downlink_station_count",
@@ -835,12 +764,11 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
     )
   end
 
-  defp validate_report_assumptions(issues, callbacks, path, artifact) do
+  defp validate_report_assumptions(issues, path, artifact) do
     case Map.get(artifact, "assumptions") do
       %{} = assumptions ->
         issues
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "station_unavailable_aliases",
@@ -848,7 +776,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
           "must match LinkCapacity station unavailable aliases"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "station_availability_precedence",
@@ -856,7 +783,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
           "must match LinkCapacity station availability precedence"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "station_capacity_value_paths",
@@ -864,7 +790,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
           "must match LinkCapacity station capacity value paths"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "source_station_capacity_value_paths",
@@ -872,7 +797,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
           "must match LinkCapacity source station capacity value paths"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "provider_direction_aliases",
@@ -978,160 +902,9 @@ defmodule OrbitalDynamics.Schema.LinkCapacityReportContracts do
     end)
   end
 
-  defp require_callback(callbacks, name), do: Keyword.fetch!(callbacks, name)
-
-  defp require_fields(issues, callbacks, path, map, fields),
-    do: apply(require_callback(callbacks, :require_fields), [issues, path, map, fields])
-
-  defp expect_equal(issues, callbacks, path, map, field, expected),
-    do: apply(require_callback(callbacks, :expect_equal), [issues, path, map, field, expected])
-
-  defp expect_type(issues, callbacks, path, map, field, type),
-    do: apply(require_callback(callbacks, :expect_type), [issues, path, map, field, type])
-
-  defp expect_optional_type(issues, callbacks, path, map, field, type),
-    do:
-      apply(require_callback(callbacks, :expect_optional_type), [issues, path, map, field, type])
-
-  defp expect_non_negative_integer(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :expect_non_negative_integer), [issues, path, map, field])
-
-  defp expect_optional_non_negative_integer(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :expect_optional_non_negative_integer), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp expect_number(issues, callbacks, path, map, field),
-    do: apply(require_callback(callbacks, :expect_number), [issues, path, map, field])
-
-  defp expect_optional_number(issues, callbacks, path, map, field),
-    do: apply(require_callback(callbacks, :expect_optional_number), [issues, path, map, field])
-
-  defp expect_optional_probability(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :expect_optional_probability), [issues, path, map, field])
-
-  defp expect_field_equals(issues, callbacks, path, map, field, expected, message),
-    do:
-      apply(require_callback(callbacks, :expect_field_equals_with_message), [
-        issues,
-        path,
-        map,
-        field,
-        expected,
-        message
-      ])
-
-  defp expect_optional_field_equals(issues, callbacks, path, map, field, expected, message),
-    do:
-      apply(require_callback(callbacks, :expect_optional_field_equals), [
-        issues,
-        path,
-        map,
-        field,
-        expected,
-        message
-      ])
-
-  defp expect_field_matches_list_count(
-         issues,
-         callbacks,
-         path,
-         map,
-         count_field,
-         list_field,
-         message
-       ),
-       do:
-         apply(require_callback(callbacks, :expect_field_matches_list_count), [
-           issues,
-           path,
-           map,
-           count_field,
-           list_field,
-           message
-         ])
-
-  defp expect_optional_list_field_equals(issues, callbacks, path, map, field, expected, message),
-    do:
-      apply(require_callback(callbacks, :expect_optional_list_field_equals), [
-        issues,
-        path,
-        map,
-        field,
-        expected,
-        message
-      ])
-
-  defp validate_optional_stable_id_list(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :validate_optional_stable_id_list), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp validate_optional_stable_id_array_map(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :validate_optional_stable_id_array_map), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp validate_stable_ids(issues, callbacks, path, map, fields),
-    do: apply(require_callback(callbacks, :validate_stable_ids), [issues, path, map, fields])
-
-  defp validate_string_list_items(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :validate_string_list_items), [issues, path, map, field])
-
-  defp validate_non_negative_integer_count_map(issues, callbacks, path, counts),
-    do:
-      apply(require_callback(callbacks, :validate_non_negative_integer_count_map), [
-        issues,
-        path,
-        counts
-      ])
-
-  defp validate_optional_exact_model_limits(issues, callbacks, path, map, limits, message),
-    do:
-      apply(require_callback(callbacks, :validate_optional_exact_model_limits), [
-        issues,
-        path,
-        map,
-        limits,
-        message
-      ])
-
-  defp validate_rows(issues, callbacks, path, rows, validator),
-    do: apply(require_callback(callbacks, :validate_rows), [issues, path, rows, validator])
-
-  defp validate_optional_actual_data_rate_throughput_derivations(
-         issues,
-         callbacks,
-         path,
-         map,
-         field
-       ),
-       do:
-         apply(
-           require_callback(
-             callbacks,
-             :validate_optional_actual_data_rate_throughput_derivations
-           ),
-           [
-             issues,
-             path,
-             map,
-             field
-           ]
-         )
+  defp validate_optional_stable_id_array_map(issues, path, map, field) do
+    issues
+    |> expect_optional_type(path, map, field, :map)
+    |> validate_stable_id_array_map("#{path}.#{field}", Map.get(map, field))
+  end
 end
