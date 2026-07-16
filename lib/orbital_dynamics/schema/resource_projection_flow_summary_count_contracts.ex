@@ -3,6 +3,9 @@ defmodule OrbitalDynamics.Schema.ResourceProjectionFlowSummaryCountContracts do
 
   alias OrbitalDynamics.Schema.PrimitiveValidation
 
+  import OrbitalDynamics.Schema.CollectionAggregation,
+    only: [sorted_stable_values: 1, stable_values_by_key: 1]
+
   def validate(issues, path, summary) do
     projected_rows =
       summary
@@ -427,10 +430,7 @@ defmodule OrbitalDynamics.Schema.ResourceProjectionFlowSummaryCountContracts do
   end
 
   defp ignored_activity_ids(rows) do
-    OrbitalDynamics.Schema.ResourceProjectionFlowSummaryIgnoredContracts.activity_ids(
-      rows,
-      ignored_contract_callbacks()
-    )
+    OrbitalDynamics.Schema.ResourceProjectionFlowSummaryIgnoredContracts.activity_ids(rows)
   end
 
   defp ignored_activity_reason_counts(rows) do
@@ -439,16 +439,8 @@ defmodule OrbitalDynamics.Schema.ResourceProjectionFlowSummaryCountContracts do
 
   defp ignored_activity_ids_by_reason(rows) do
     OrbitalDynamics.Schema.ResourceProjectionFlowSummaryIgnoredContracts.activity_ids_by_reason(
-      rows,
-      ignored_contract_callbacks()
+      rows
     )
-  end
-
-  defp ignored_contract_callbacks do
-    [
-      sorted_stable_values: &sorted_stable_values/1,
-      stable_values_by_key: &stable_values_by_key/1
-    ]
   end
 
   defp actual_data_volume_evidence_count(flow_rows) do
@@ -460,15 +452,8 @@ defmodule OrbitalDynamics.Schema.ResourceProjectionFlowSummaryCountContracts do
   defp data_volume_variance_activity_ids(flow_rows, variance) do
     OrbitalDynamics.Schema.ResourceProjectionFlowSummaryDataVolumeContracts.variance_activity_ids(
       flow_rows,
-      variance,
-      data_volume_contract_callbacks()
+      variance
     )
-  end
-
-  defp data_volume_contract_callbacks do
-    [
-      sorted_stable_values: &sorted_stable_values/1
-    ]
   end
 
   defp latency_status(evidence_count, review_count) do
@@ -484,15 +469,8 @@ defmodule OrbitalDynamics.Schema.ResourceProjectionFlowSummaryCountContracts do
 
   defp latency_review_activity_ids(flow_rows) do
     OrbitalDynamics.Schema.ResourceProjectionFlowSummaryLatencyContracts.review_activity_ids(
-      flow_rows,
-      latency_contract_callbacks()
+      flow_rows
     )
-  end
-
-  defp latency_contract_callbacks do
-    [
-      sorted_stable_values: &sorted_stable_values/1
-    ]
   end
 
   defp spacecraft_ids_by_type(projected_rows, flow_rows) do
@@ -671,25 +649,10 @@ defmodule OrbitalDynamics.Schema.ResourceProjectionFlowSummaryCountContracts do
   defp list_or_empty(values) when is_list(values), do: values
   defp list_or_empty(_values), do: []
 
-  defp stable_values_by_key(pairs) do
-    pairs
-    |> Enum.reject(fn {key, value} -> key in [nil, ""] or value in [nil, ""] end)
-    |> Enum.group_by(fn {key, _value} -> key end, fn {_key, value} -> value end)
-    |> Map.new(fn {key, values} -> {key, sorted_stable_values(values)} end)
-  end
-
   defp number_values_by_key(pairs) do
     pairs
     |> Enum.reject(fn {key, value} -> key in [nil, ""] or not is_number(value) end)
     |> Enum.group_by(fn {key, _value} -> key end, fn {_key, value} -> value end)
     |> Map.new(fn {key, values} -> {key, values |> Enum.uniq() |> Enum.sort()} end)
-  end
-
-  defp sorted_stable_values(values) do
-    values
-    |> Enum.reject(&(&1 in [nil, ""]))
-    |> Enum.map(&to_string/1)
-    |> Enum.uniq()
-    |> Enum.sort()
   end
 end

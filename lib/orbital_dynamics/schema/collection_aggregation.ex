@@ -87,6 +87,21 @@ defmodule OrbitalDynamics.Schema.CollectionAggregation do
     |> Enum.sort()
   end
 
+  def sorted_stable_values(values) do
+    values
+    |> Enum.reject(&(&1 in [nil, ""]))
+    |> Enum.map(&to_string/1)
+    |> Enum.uniq()
+    |> Enum.sort()
+  end
+
+  def stable_values_by_key(pairs) do
+    pairs
+    |> Enum.reject(fn {key, value} -> key in [nil, ""] or value in [nil, ""] end)
+    |> Enum.group_by(fn {key, _value} -> key end, fn {_key, value} -> value end)
+    |> Map.new(fn {key, values} -> {key, sorted_stable_values(values)} end)
+  end
+
   def row_unique_values(rows, field) do
     rows
     |> Enum.map(&Map.get(&1, field))
