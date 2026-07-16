@@ -9,7 +9,7 @@ Current slice:
 Timeline-diff-summary callback-bag collapse.
 
 Status:
-Selected; implementation pending.
+Completed; ready to publish.
 
 Selected slice:
 Remove the 13-entry callback bag from `TimelineDiffSummaryContracts`. Call
@@ -51,14 +51,31 @@ No summary callback factory or trampolines remain; both callers pass identical
 model-limit data; direct owners preserve exact behavior; focused/broader/export
 checks pass; and bounded review finds no blocker.
 
+Result:
+Removed the 13-entry callback factory and all owner-local callback trampolines.
+Both facade paths now pass the exact `timeline_report_model_limits()` data, and
+the owner calls primitive, collection, stable-ID, and timeline-diff-row owners
+directly. `schema.ex` fell from 12,479 to 12,461 lines and the summary owner
+from 278 to 213 lines.
+
+Verification:
+- compile with warnings as errors passed
+- 27 focused timeline summary/report and workflow tests passed
+- reviewer reran 2 directly relevant focused cases; both passed
+- 882 broader timeline/candidate-refresh tests passed
+- 22 schema-export tests passed
+- checked-in schema export reproduction produced no diff
+- format, diff hygiene, scoped callback residue, and compile-connected xref passed
+- bounded read-only review found no issues
+
 Verification gaps:
 - Full repository suite not run.
 
 Last completed slice:
-Timeline-diff-report callback collapse published as `e5bd3cb4`: `schema.ex`
-fell from 12,504 to 12,479 lines and its owner from 292 to 209; 10 focused,
-8 reviewer-focused, 882 broader, and 22 export tests passed; checked-in schemas
-were unchanged; bounded review found no issues.
+Timeline-diff-summary callback collapse: `schema.ex` fell from 12,479 to 12,461
+lines and its owner from 278 to 213; 27 focused, 2 reviewer-focused, 882
+broader, and 22 export tests passed; checked-in schemas were unchanged; bounded
+review found no issues.
 
 Blocked:
 No.

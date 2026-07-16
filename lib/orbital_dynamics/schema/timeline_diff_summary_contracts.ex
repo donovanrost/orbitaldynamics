@@ -1,41 +1,59 @@
 defmodule OrbitalDynamics.Schema.TimelineDiffSummaryContracts do
   @moduledoc false
 
-  def validate(issues, path, summary, callbacks) when is_list(callbacks) do
+  alias OrbitalDynamics.Schema.TimelineDiffRowContracts
+
+  import OrbitalDynamics.Schema.CollectionValidation, only: [validate_rows: 4]
+
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [
+      expect_equal: 5,
+      expect_field_equals: 6,
+      expect_non_negative_integer: 4,
+      expect_optional_non_negative_integer: 4,
+      expect_type: 5,
+      validate_non_negative_integer_count_map: 3,
+      validate_optional_exact_model_limits: 5,
+      validate_string_list_items: 4
+    ]
+
+  import OrbitalDynamics.Schema.StableIdValidation,
+    only: [validate_optional_stable_id_list: 4, validate_stable_id_array_map: 3]
+
+  def validate(issues, path, summary, timeline_report_model_limits)
+      when is_list(timeline_report_model_limits) do
     review_rows =
       summary
       |> Map.get("review_rows", [])
       |> Enum.filter(&is_map/1)
 
     issues
-    |> expect_equal(callbacks, path, summary, "schema_contract", "timeline_diff_summary.v1")
-    |> expect_equal(callbacks, path, summary, "model", "artifact_only_timeline_diff_summary")
-    |> expect_equal(callbacks, path, summary, "validation_level", "artifact_contract")
-    |> expect_equal(callbacks, path, summary, "source_artifact_type", "timeline_diff_report.v1")
-    |> expect_type(callbacks, path, summary, "source", :binary)
-    |> validate_count_fields(callbacks, path, summary)
-    |> validate_id_fields(callbacks, path, summary)
-    |> expect_type(callbacks, path, summary, "review_rows", :list)
-    |> expect_type(callbacks, path, summary, "assumptions", :map)
-    |> expect_type(callbacks, path, summary, "model_limits", :list)
-    |> validate_string_list_items(callbacks, path, summary, "model_limits")
+    |> expect_equal(path, summary, "schema_contract", "timeline_diff_summary.v1")
+    |> expect_equal(path, summary, "model", "artifact_only_timeline_diff_summary")
+    |> expect_equal(path, summary, "validation_level", "artifact_contract")
+    |> expect_equal(path, summary, "source_artifact_type", "timeline_diff_report.v1")
+    |> expect_type(path, summary, "source", :binary)
+    |> validate_count_fields(path, summary)
+    |> validate_id_fields(path, summary)
+    |> expect_type(path, summary, "review_rows", :list)
+    |> expect_type(path, summary, "assumptions", :map)
+    |> expect_type(path, summary, "model_limits", :list)
+    |> validate_string_list_items(path, summary, "model_limits")
     |> validate_optional_exact_model_limits(
-      callbacks,
       path,
       summary,
-      timeline_report_model_limits(callbacks),
+      timeline_report_model_limits,
       "must match timeline report model limits"
     )
-    |> validate_row_derived_fields(callbacks, path, summary, review_rows)
+    |> validate_row_derived_fields(path, summary, review_rows)
     |> validate_rows(
-      callbacks,
       path <> ".review_rows",
       Map.get(summary, "review_rows", []),
-      fn acc, row_path, row -> validate_timeline_diff_row(callbacks, acc, row_path, row) end
+      fn acc, row_path, row -> TimelineDiffRowContracts.validate(acc, row_path, row) end
     )
   end
 
-  defp validate_count_fields(issues, callbacks, path, summary) do
+  defp validate_count_fields(issues, path, summary) do
     count_fields = [
       "source_activity_count",
       "replacement_activity_count",
@@ -64,26 +82,25 @@ defmodule OrbitalDynamics.Schema.TimelineDiffSummaryContracts do
 
     issues =
       Enum.reduce(count_fields, issues, fn field, acc ->
-        expect_non_negative_integer(acc, callbacks, path, summary, field)
+        expect_non_negative_integer(acc, path, summary, field)
       end)
 
     issues =
       Enum.reduce(optional_count_fields, issues, fn field, acc ->
-        expect_optional_non_negative_integer(acc, callbacks, path, summary, field)
+        expect_optional_non_negative_integer(acc, path, summary, field)
       end)
 
     Enum.reduce(count_map_fields, issues, fn field, acc ->
       acc
-      |> expect_type(callbacks, path, summary, field, :map)
+      |> expect_type(path, summary, field, :map)
       |> validate_non_negative_integer_count_map(
-        callbacks,
         path <> ".#{field}",
         Map.get(summary, field)
       )
     end)
   end
 
-  defp validate_id_fields(issues, callbacks, path, summary) do
+  defp validate_id_fields(issues, path, summary) do
     id_fields = [
       "added_timeline_ids",
       "removed_timeline_ids",
@@ -105,21 +122,20 @@ defmodule OrbitalDynamics.Schema.TimelineDiffSummaryContracts do
     issues =
       Enum.reduce(id_fields, issues, fn field, acc ->
         acc
-        |> expect_type(callbacks, path, summary, field, :list)
-        |> validate_optional_stable_id_list(callbacks, path, summary, field)
+        |> expect_type(path, summary, field, :list)
+        |> validate_optional_stable_id_list(path, summary, field)
       end)
 
     Enum.reduce(map_fields, issues, fn field, acc ->
       acc
-      |> expect_type(callbacks, path, summary, field, :map)
-      |> validate_stable_id_array_map(callbacks, path <> ".#{field}", Map.get(summary, field))
+      |> expect_type(path, summary, field, :map)
+      |> validate_stable_id_array_map(path <> ".#{field}", Map.get(summary, field))
     end)
   end
 
-  defp validate_row_derived_fields(issues, callbacks, path, summary, review_rows) do
+  defp validate_row_derived_fields(issues, path, summary, review_rows) do
     issues
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "review_required_count",
@@ -127,7 +143,6 @@ defmodule OrbitalDynamics.Schema.TimelineDiffSummaryContracts do
       "must equal row-derived review_required_count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "review_timeline_ids",
@@ -135,7 +150,6 @@ defmodule OrbitalDynamics.Schema.TimelineDiffSummaryContracts do
       "must equal row-derived review_timeline_ids"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "review_timeline_ids_by_required_operator_action",
@@ -143,7 +157,6 @@ defmodule OrbitalDynamics.Schema.TimelineDiffSummaryContracts do
       "must equal row-derived review_timeline_ids_by_required_operator_action"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "review_timeline_ids_by_status_transition_category",
@@ -155,7 +168,6 @@ defmodule OrbitalDynamics.Schema.TimelineDiffSummaryContracts do
       "must equal row-derived review_timeline_ids_by_status_transition_category"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "review_timeline_ids_by_approval_transition_category",
@@ -198,81 +210,4 @@ defmodule OrbitalDynamics.Schema.TimelineDiffSummaryContracts do
     |> Enum.uniq()
     |> Enum.sort()
   end
-
-  defp timeline_report_model_limits(callbacks),
-    do: apply(Keyword.fetch!(callbacks, :timeline_report_model_limits), [])
-
-  defp expect_equal(issues, callbacks, path, map, field, expected),
-    do: apply(Keyword.fetch!(callbacks, :expect_equal), [issues, path, map, field, expected])
-
-  defp expect_type(issues, callbacks, path, map, field, type),
-    do: apply(Keyword.fetch!(callbacks, :expect_type), [issues, path, map, field, type])
-
-  defp expect_non_negative_integer(issues, callbacks, path, map, field),
-    do:
-      apply(Keyword.fetch!(callbacks, :expect_non_negative_integer), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp expect_optional_non_negative_integer(issues, callbacks, path, map, field),
-    do:
-      apply(Keyword.fetch!(callbacks, :expect_optional_non_negative_integer), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp expect_field_equals(issues, callbacks, path, map, field, expected, message),
-    do:
-      apply(Keyword.fetch!(callbacks, :expect_field_equals_with_message), [
-        issues,
-        path,
-        map,
-        field,
-        expected,
-        message
-      ])
-
-  defp validate_non_negative_integer_count_map(issues, callbacks, path, counts),
-    do:
-      apply(Keyword.fetch!(callbacks, :validate_non_negative_integer_count_map), [
-        issues,
-        path,
-        counts
-      ])
-
-  defp validate_optional_exact_model_limits(issues, callbacks, path, summary, expected, message),
-    do:
-      apply(Keyword.fetch!(callbacks, :validate_optional_exact_model_limits), [
-        issues,
-        path,
-        summary,
-        expected,
-        message
-      ])
-
-  defp validate_optional_stable_id_list(issues, callbacks, path, summary, field),
-    do:
-      apply(Keyword.fetch!(callbacks, :validate_optional_stable_id_list), [
-        issues,
-        path,
-        summary,
-        field
-      ])
-
-  defp validate_stable_id_array_map(issues, callbacks, path, values),
-    do: apply(Keyword.fetch!(callbacks, :validate_stable_id_array_map), [issues, path, values])
-
-  defp validate_rows(issues, callbacks, path, rows, validator),
-    do: apply(Keyword.fetch!(callbacks, :validate_rows), [issues, path, rows, validator])
-
-  defp validate_string_list_items(issues, callbacks, path, map, field),
-    do: apply(Keyword.fetch!(callbacks, :validate_string_list_items), [issues, path, map, field])
-
-  defp validate_timeline_diff_row(callbacks, issues, path, row),
-    do: apply(Keyword.fetch!(callbacks, :validate_timeline_diff_row), [issues, path, row])
 end

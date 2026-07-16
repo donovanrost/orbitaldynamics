@@ -6629,7 +6629,7 @@ defmodule OrbitalDynamics.Schema do
     |> OrbitalDynamics.Schema.TimelineDiffSummaryContracts.validate(
       "$",
       artifact,
-      timeline_diff_summary_contract_callbacks()
+      timeline_report_model_limits()
     )
   end
 
@@ -7868,24 +7868,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp timeline_diff_summary_contract_callbacks do
-    [
-      timeline_report_model_limits: &timeline_report_model_limits/0,
-      expect_equal: &expect_equal/5,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      expect_type: &expect_type/5,
-      expect_non_negative_integer: &expect_non_negative_integer/4,
-      expect_optional_non_negative_integer: &expect_optional_non_negative_integer/4,
-      validate_non_negative_integer_count_map: &validate_non_negative_integer_count_map/3,
-      validate_optional_exact_model_limits: &validate_optional_exact_model_limits/5,
-      validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
-      validate_stable_id_array_map: &validate_stable_id_array_map/3,
-      validate_rows: &validate_rows/4,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_timeline_diff_row: &validate_timeline_diff_row/3
-    ]
-  end
-
   defp timeline_integrity_report_contract_callbacks do
     [
       timeline_report_model_limits: &timeline_report_model_limits/0,
@@ -8797,7 +8779,7 @@ defmodule OrbitalDynamics.Schema do
         issues,
         path,
         summary,
-        timeline_diff_summary_contract_callbacks()
+        timeline_report_model_limits()
       )
 
   defp validate_optional_timeline_diff_summary_source(issues, path, _summary),
