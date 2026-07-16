@@ -32,7 +32,6 @@ defmodule OrbitalDynamics.Schema do
       expect_one_of: 5,
       expect_optional_integer: 4,
       expect_optional_field_equals: 6,
-      expect_optional_list: 4,
       expect_optional_non_negative_integer: 4,
       expect_optional_non_negative_number: 4,
       expect_optional_number: 4,
@@ -7040,35 +7039,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp candidate_diff_contract_callbacks do
-    [
-      require_fields: &require_fields/4,
-      validate_stable_ids: &validate_stable_ids/4,
-      expect_equal: &expect_equal/5,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_non_negative_integer: &expect_non_negative_integer/4,
-      expect_optional_non_negative_integer: &expect_optional_non_negative_integer/4,
-      validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_rows: &validate_rows/4,
-      validate_optional_rows: &validate_optional_rows/4,
-      expect_field_equals: &expect_field_equals/5,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      list_count: &list_count/2,
-      row_count_sum: &row_count_sum/2,
-      expect_one_of: &expect_one_of/5,
-      expect_optional_number: &expect_optional_number/4,
-      expect_optional_list: &expect_optional_list/4,
-      validate_candidate_refresh_scoped_context_fields:
-        &validate_candidate_refresh_scoped_context_fields/3,
-      validate_interval: &validate_interval/3,
-      expect_optional_integer: &expect_optional_integer/4,
-      expect_field_at_least: &expect_field_at_least/5,
-      error: &error/2
-    ]
-  end
-
   defp contact_intent_summary_contract_callbacks do
     [
       error: &error/2,
@@ -10001,8 +9971,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.CandidateDiffContracts.validate_optional_report(
       issues,
       path,
-      report,
-      candidate_diff_contract_callbacks()
+      report
     )
   end
 
@@ -10010,8 +9979,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.CandidateDiffContracts.validate_row(
       issues,
       path,
-      candidate,
-      candidate_diff_contract_callbacks()
+      candidate
     )
   end
 
@@ -10051,8 +10019,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.CandidateDiffContracts.validate_invalidated_candidate(
       issues,
       path,
-      candidate,
-      candidate_diff_contract_callbacks()
+      candidate
     )
   end
 
@@ -10060,8 +10027,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.CandidateDiffContracts.validate_semantic_change_details(
       issues,
       path,
-      row,
-      candidate_diff_contract_callbacks()
+      row
     )
   end
 
@@ -10069,8 +10035,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.CandidateDiffContracts.validate_changed_fields(
       issues,
       path,
-      row,
-      candidate_diff_contract_callbacks()
+      row
     )
   end
 
@@ -10078,8 +10043,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.CandidateDiffContracts.validate_source_window_lineage(
       issues,
       path,
-      lineage,
-      candidate_diff_contract_callbacks()
+      lineage
     )
   end
 
@@ -10088,8 +10052,7 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       row,
-      field,
-      candidate_diff_contract_callbacks()
+      field
     )
   end
 
@@ -10098,8 +10061,7 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       row,
-      field,
-      candidate_diff_contract_callbacks()
+      field
     )
   end
 
@@ -11624,10 +11586,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp row_count_difference(report, field, subtract) do
     OrbitalDynamics.Schema.CollectionAggregation.row_count_difference(report, field, subtract)
-  end
-
-  defp row_count_sum(report, fields) do
-    OrbitalDynamics.Schema.CollectionAggregation.row_count_sum(report, fields)
   end
 
   defp list_count(map, field) do
