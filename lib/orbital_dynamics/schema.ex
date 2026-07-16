@@ -1678,99 +1678,6 @@ defmodule OrbitalDynamics.Schema do
         "maximum_latency_limit_s"
       ],
       "nested_contracts" => []
-    },
-    @contact_allocation_report => %{
-      "schema_contract" => @contact_allocation_report,
-      "artifact_family" => "contact_allocation_report",
-      "schema_version" => 1,
-      "required_fields" => [
-        "schema_contract",
-        "model",
-        "source",
-        "input_contact_count",
-        "allocated_contact_count",
-        "deferred_contact_count",
-        "blocked_contact_count",
-        "rows",
-        "station_calendar_report",
-        "contact_filter_report",
-        "contact_contention_report",
-        "contact_contention_resolution_report",
-        "assumptions"
-      ],
-      "optional_fields" => [
-        "returned_allocated_contact_count",
-        "policy_blocked_allocated_contact_count",
-        "status_blocked_contact_count",
-        "resource_blocked_contact_count",
-        "duplicate_contact_candidate_count",
-        "duplicate_contact_id_count",
-        "invalid_contact_input_count",
-        "invalid_contact_input_ids",
-        "resource_blocked_contact_ids",
-        "resource_blocking_dimension_counts",
-        "resource_blocked_contact_ids_by_blocking_dimension",
-        "resource_blocked_contact_ids_by_spacecraft_id",
-        "status_blocked_contact_ids",
-        "reduced_capacity_pack_group_count",
-        "reduced_capacity_pack_groups",
-        "reduced_capacity_pack_status_counts",
-        "capacity_pack_status_counts",
-        "capacity_pack_required_capacity_fraction",
-        "capacity_pack_selected_required_capacity_fraction",
-        "capacity_pack_deferred_required_capacity_fraction",
-        "capacity_pack_required_capacity_fraction_by_status",
-        "capacity_pack_required_capacity_fraction_by_ground_station_id",
-        "capacity_pack_selected_required_capacity_fraction_by_ground_station_id",
-        "capacity_pack_deferred_required_capacity_fraction_by_ground_station_id",
-        "capacity_pack_contact_ids_by_status",
-        "required_capacity_fraction_source_counts",
-        "required_capacity_fraction_contact_ids_by_source",
-        "reduced_capacity_packed_contact_ids",
-        "reduced_capacity_deferred_contact_ids",
-        "station_pressure_contact_ids_by_ground_station_id",
-        "station_pressure_contact_counts_by_ground_station_id",
-        "station_pressure_contact_ids_by_availability",
-        "station_pressure_contact_counts_by_availability",
-        "station_pressure_contact_ids_by_precedence_availability",
-        "station_pressure_contact_counts_by_precedence_availability",
-        "station_pressure_contact_ids_by_precedence_rank",
-        "station_pressure_contact_counts_by_precedence_rank",
-        "station_pressure_contact_ids_by_status",
-        "station_pressure_contact_counts_by_status",
-        "station_pressure_contact_ids_by_direction_and_ground_station_id",
-        "allocation_status_counts",
-        "effective_allocation_status_counts",
-        "allocation_reason_counts",
-        "station_reservation_match_status_counts",
-        "station_reservation_ids",
-        "station_reservation_expiration_status_counts",
-        "station_reservation_declared_expiration_contact_count",
-        "station_reservation_missing_expiration_contact_count",
-        "earliest_station_reservation_expires_at_s",
-        "station_reservation_contact_ids_by_expiration_status",
-        "station_reservation_ids_by_expiration_status",
-        "station_reservation_contact_ids_by_match_status",
-        "station_reservation_contact_ids_by_status",
-        "station_reservation_contact_ids_by_reserved_by",
-        "station_reservation_ids_by_match_status",
-        "station_reservation_ids_by_status",
-        "station_reservation_ids_by_reserved_by",
-        "station_reserved_bys",
-        "station_reservation_statuses",
-        "station_calendar_trust_boundary_status_counts",
-        "calendar_entry_trust_boundary_status_counts",
-        "resource_filter_report",
-        "model_limits"
-      ],
-      "nested_contracts" => [
-        "policy_decision.v1",
-        "approval_requirement.v1",
-        "station_calendar_report.v1",
-        "contact_filter_report.v1",
-        "contact_contention_report.v1",
-        "contact_contention_resolution_report.v1"
-      ]
     }
   }
 
@@ -1831,6 +1738,9 @@ defmodule OrbitalDynamics.Schema do
              |> Map.merge(OrbitalDynamics.Schema.StationReservationRegistryContracts.contracts())
              |> Map.merge(OrbitalDynamics.Schema.StationCalendarRegistryContracts.contracts())
              |> Map.merge(OrbitalDynamics.Schema.ContactContentionRegistryContracts.contracts())
+             |> Map.merge(
+               OrbitalDynamics.Schema.ContactAllocationReportRegistryContracts.contracts()
+             )
              |> Map.merge(
                OrbitalDynamics.Schema.ContactAllocationSummaryRegistryContracts.contracts()
              )
