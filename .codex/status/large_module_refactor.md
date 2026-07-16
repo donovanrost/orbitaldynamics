@@ -9,7 +9,7 @@ Current slice:
 Completed: contact-allocation summary registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Move the contact-allocation summary contract into
@@ -78,7 +78,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`04aff5f4` (`Extract reservation conflict registry contract`).
+`c70d4143` (`Extract contact allocation summary registry contract`).
 
 Next candidate:
 Extract the adjacent contact-allocation report contract to finish the inline
