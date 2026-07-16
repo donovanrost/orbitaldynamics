@@ -9,7 +9,7 @@ Current slice:
 Completed: resource summary registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Move `resource_summary.v1` into `Schema.ResourceSummaryRegistryContracts`.
@@ -79,7 +79,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`cffea105` (`Update contact filter handoff`).
+`6c59eef4` (`Extract resource summary registry contracts`).
 
 Next candidate:
 Assess the environment-model, environment-provider, and subsystem-model
