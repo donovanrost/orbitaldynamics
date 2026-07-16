@@ -1,29 +1,33 @@
 defmodule OrbitalDynamics.Schema.ResourceProjectionStationCalendarContextContracts do
   @moduledoc false
 
-  def entry_ids_by_type(flow_rows, callbacks) when is_list(callbacks) do
-    values_by_type(flow_rows, callbacks, fn row -> Map.get(row, "station_calendar_entry_id") end)
+  alias OrbitalDynamics.Schema.ResourceProjectionPressureContracts
+
+  import OrbitalDynamics.Schema.CollectionAggregation, only: [stable_values_by_key: 1]
+
+  def entry_ids_by_type(flow_rows) do
+    values_by_type(flow_rows, fn row -> Map.get(row, "station_calendar_entry_id") end)
   end
 
-  def provider_ids_by_type(flow_rows, callbacks) when is_list(callbacks) do
-    values_by_type(flow_rows, callbacks, fn row ->
+  def provider_ids_by_type(flow_rows) do
+    values_by_type(flow_rows, fn row ->
       Map.get(row, "station_calendar_provider_id")
     end)
   end
 
-  def provider_entry_ids_by_type(flow_rows, callbacks) when is_list(callbacks) do
-    values_by_type(flow_rows, callbacks, fn row ->
+  def provider_entry_ids_by_type(flow_rows) do
+    values_by_type(flow_rows, fn row ->
       Map.get(row, "station_calendar_provider_entry_id")
     end)
   end
 
-  def directions_by_type(flow_rows, callbacks) when is_list(callbacks) do
+  def directions_by_type(flow_rows) do
     flow_rows
     |> Enum.flat_map(fn
       %{} = row ->
         directions = row |> Map.get("station_calendar_directions", []) |> List.wrap()
 
-        for pressure_type <- pressure_kinds(callbacks, row),
+        for pressure_type <- ResourceProjectionPressureContracts.kinds(row),
             direction <- directions,
             direction not in [nil, ""],
             do: {pressure_type, direction}
@@ -31,30 +35,20 @@ defmodule OrbitalDynamics.Schema.ResourceProjectionStationCalendarContextContrac
       _row ->
         []
     end)
-    |> stable_values_by_key(callbacks)
+    |> stable_values_by_key()
   end
 
-  defp values_by_type(flow_rows, callbacks, value_fun) do
+  defp values_by_type(flow_rows, value_fun) do
     flow_rows
     |> Enum.flat_map(fn
       %{} = row ->
-        Enum.map(pressure_kinds(callbacks, row), fn pressure_type ->
+        Enum.map(ResourceProjectionPressureContracts.kinds(row), fn pressure_type ->
           {pressure_type, value_fun.(row)}
         end)
 
       _row ->
         []
     end)
-    |> stable_values_by_key(callbacks)
-  end
-
-  defp pressure_kinds(callbacks, row),
-    do: apply(require_callback(callbacks, :resource_projection_pressure_kinds), [row])
-
-  defp stable_values_by_key(pairs, callbacks),
-    do: apply(require_callback(callbacks, :stable_values_by_key), [pairs])
-
-  defp require_callback(callbacks, name) do
-    Keyword.fetch!(callbacks, name)
+    |> stable_values_by_key()
   end
 end

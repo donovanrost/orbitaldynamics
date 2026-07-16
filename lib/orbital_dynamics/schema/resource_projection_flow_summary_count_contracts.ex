@@ -2,6 +2,7 @@ defmodule OrbitalDynamics.Schema.ResourceProjectionFlowSummaryCountContracts do
   @moduledoc false
 
   alias OrbitalDynamics.Schema.PrimitiveValidation
+  alias OrbitalDynamics.Schema.ResourceProjectionPressureContracts
 
   import OrbitalDynamics.Schema.CollectionAggregation,
     only: [sorted_stable_values: 1, stable_values_by_key: 1]
@@ -25,8 +26,11 @@ defmodule OrbitalDynamics.Schema.ResourceProjectionFlowSummaryCountContracts do
 
     invalid_activity_ids = list_or_empty(Map.get(summary, "invalid_activity_input_ids"))
     invalid_summary_ids = list_or_empty(Map.get(summary, "invalid_resource_summary_input_ids"))
-    pressure_rows = Enum.filter(projected_rows, &pressure_row?/1)
-    pressure_types = pressure_types(projected_rows, flow_rows)
+
+    pressure_rows =
+      Enum.filter(projected_rows, &ResourceProjectionPressureContracts.pressure_row?/1)
+
+    pressure_types = ResourceProjectionPressureContracts.types(projected_rows, flow_rows)
     ignored_rows = ignored_rows(flow_rows)
     latency_review_ids = latency_review_activity_ids(flow_rows)
     latency_review_count = length(latency_review_ids)
@@ -397,34 +401,6 @@ defmodule OrbitalDynamics.Schema.ResourceProjectionFlowSummaryCountContracts do
     )
   end
 
-  defp pressure_row?(row) do
-    Map.get(row, "resource_pressure_types", []) != [] or
-      Map.get(row, "resource_pressure_status") in [
-        "review_required",
-        "storage_overflow",
-        "downlink_shortfall",
-        "battery_depletion"
-      ]
-  end
-
-  defp pressure_types(projected_rows, flow_rows) do
-    projected_types =
-      projected_rows
-      |> Enum.flat_map(fn
-        %{} = row -> Map.get(row, "resource_pressure_types", [])
-        _row -> []
-      end)
-
-    flow_types =
-      flow_rows
-      |> Enum.flat_map(&pressure_kinds/1)
-
-    (projected_types ++ flow_types)
-    |> Enum.reject(&is_nil/1)
-    |> Enum.uniq()
-    |> Enum.sort()
-  end
-
   defp ignored_rows(flow_rows) do
     OrbitalDynamics.Schema.ResourceProjectionFlowSummaryIgnoredContracts.rows(flow_rows)
   end
@@ -487,7 +463,10 @@ defmodule OrbitalDynamics.Schema.ResourceProjectionFlowSummaryCountContracts do
 
     flow_pairs =
       Enum.flat_map(flow_rows, fn row ->
-        Enum.map(pressure_kinds(row), &{&1, Map.get(row, "spacecraft_id")})
+        Enum.map(
+          ResourceProjectionPressureContracts.kinds(row),
+          &{&1, Map.get(row, "spacecraft_id")}
+        )
       end)
 
     stable_values_by_key(projected_pairs ++ flow_pairs)
@@ -496,7 +475,7 @@ defmodule OrbitalDynamics.Schema.ResourceProjectionFlowSummaryCountContracts do
   defp activity_ids_by_type(flow_rows) do
     flow_rows
     |> Enum.flat_map(fn row ->
-      Enum.map(pressure_kinds(row), &{&1, Map.get(row, "activity_id")})
+      Enum.map(ResourceProjectionPressureContracts.kinds(row), &{&1, Map.get(row, "activity_id")})
     end)
     |> stable_values_by_key()
   end
@@ -505,7 +484,7 @@ defmodule OrbitalDynamics.Schema.ResourceProjectionFlowSummaryCountContracts do
     flow_rows
     |> Enum.flat_map(fn
       %{} = row ->
-        Enum.map(pressure_kinds(row), fn pressure_type ->
+        Enum.map(ResourceProjectionPressureContracts.kinds(row), fn pressure_type ->
           {pressure_type, Map.get(row, "ground_station_id")}
         end)
 
@@ -519,7 +498,7 @@ defmodule OrbitalDynamics.Schema.ResourceProjectionFlowSummaryCountContracts do
     flow_rows
     |> Enum.flat_map(fn
       %{} = row ->
-        Enum.map(pressure_kinds(row), fn pressure_type ->
+        Enum.map(ResourceProjectionPressureContracts.kinds(row), fn pressure_type ->
           {pressure_type, Map.get(row, "source_window_id")}
         end)
 
@@ -531,37 +510,26 @@ defmodule OrbitalDynamics.Schema.ResourceProjectionFlowSummaryCountContracts do
 
   defp station_calendar_entry_ids_by_type(flow_rows) do
     OrbitalDynamics.Schema.ResourceProjectionStationCalendarContextContracts.entry_ids_by_type(
-      flow_rows,
-      station_calendar_context_callbacks()
+      flow_rows
     )
   end
 
   defp station_calendar_provider_ids_by_type(flow_rows) do
     OrbitalDynamics.Schema.ResourceProjectionStationCalendarContextContracts.provider_ids_by_type(
-      flow_rows,
-      station_calendar_context_callbacks()
+      flow_rows
     )
   end
 
   defp station_calendar_provider_entry_ids_by_type(flow_rows) do
     OrbitalDynamics.Schema.ResourceProjectionStationCalendarContextContracts.provider_entry_ids_by_type(
-      flow_rows,
-      station_calendar_context_callbacks()
+      flow_rows
     )
   end
 
   defp station_calendar_directions_by_type(flow_rows) do
     OrbitalDynamics.Schema.ResourceProjectionStationCalendarContextContracts.directions_by_type(
-      flow_rows,
-      station_calendar_context_callbacks()
+      flow_rows
     )
-  end
-
-  defp station_calendar_context_callbacks do
-    [
-      resource_projection_pressure_kinds: &pressure_kinds/1,
-      stable_values_by_key: &stable_values_by_key/1
-    ]
   end
 
   defp capacity_fractions_by_type(flow_rows) do
@@ -570,7 +538,7 @@ defmodule OrbitalDynamics.Schema.ResourceProjectionFlowSummaryCountContracts do
       %{} = row ->
         case Map.get(row, "capacity_fraction") do
           value when is_number(value) ->
-            Enum.map(pressure_kinds(row), &{&1, value})
+            Enum.map(ResourceProjectionPressureContracts.kinds(row), &{&1, value})
 
           _value ->
             []
@@ -581,36 +549,6 @@ defmodule OrbitalDynamics.Schema.ResourceProjectionFlowSummaryCountContracts do
     end)
     |> number_values_by_key()
   end
-
-  defp pressure_kinds(row) do
-    []
-    |> maybe_add_pressure_kind(row, "storage_overflow", "storage_overflow_mb")
-    |> maybe_add_pressure_kind(row, "downlink_shortfall", "downlink_shortfall_mb")
-    |> maybe_add_pressure_kind(row, "battery_depletion", "battery_overuse_wh")
-    |> maybe_add_availability_pressure_kind(row)
-    |> Enum.uniq()
-    |> Enum.sort()
-  end
-
-  defp maybe_add_pressure_kind(types, row, type, field) do
-    case Map.get(row, field) do
-      value when is_number(value) and value > 0.0 -> [type | types]
-      _value -> types
-    end
-  end
-
-  defp maybe_add_availability_pressure_kind(types, %{"resource_effect_reason" => reason})
-       when reason in [
-              "spacecraft_unavailable",
-              "payload_unavailable",
-              "spacecraft_degraded_payload_unavailable",
-              "activity_type_suppressed_by_resource_summary",
-              "activity_type_incompatible_with_resource_summary",
-              "antenna_unavailable"
-            ],
-       do: [reason | types]
-
-  defp maybe_add_availability_pressure_kind(types, _row), do: types
 
   defp sum_flow_number(flow_rows, field) do
     OrbitalDynamics.Schema.ResourceProjectionNumericContracts.sum_flow_number(flow_rows, field)
