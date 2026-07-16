@@ -7062,24 +7062,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp freshness_report_contract_callbacks do
-    [
-      require_fields: &require_fields/4,
-      expect_equal: &expect_equal/5,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_optional_number: &expect_optional_number/4,
-      expect_number: &expect_number/4,
-      expect_optional_list: &expect_optional_list/4,
-      expect_one_of: &expect_one_of/5,
-      validate_string_list_items: &validate_string_list_items/4,
-      expect_field_equals: &expect_field_equals/5,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      freshness_statuses: &freshness_statuses/0,
-      error: &error/2
-    ]
-  end
-
   defp candidate_diff_contract_callbacks do
     [
       require_fields: &require_fields/4,
@@ -10349,8 +10331,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.FreshnessReportContracts.validate_optional(
       issues,
       path,
-      report,
-      freshness_report_contract_callbacks()
+      report
     )
   end
 

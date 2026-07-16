@@ -1,11 +1,29 @@
 defmodule OrbitalDynamics.Schema.FreshnessReportContracts do
   @moduledoc false
 
-  def validate_optional(issues, _path, nil, _callbacks), do: issues
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [
+      error: 2,
+      expect_equal: 5,
+      expect_field_equals: 5,
+      expect_field_equals: 6,
+      expect_number: 4,
+      expect_one_of: 5,
+      expect_optional_list: 4,
+      expect_optional_number: 4,
+      expect_optional_type: 5,
+      expect_type: 5,
+      require_fields: 4,
+      validate_string_list_items: 4
+    ]
 
-  def validate_optional(issues, path, %{} = report, callbacks) when is_list(callbacks) do
+  @freshness_statuses ["current", "stale", "unknown"]
+
+  def validate_optional(issues, _path, nil), do: issues
+
+  def validate_optional(issues, path, %{} = report) do
     issues
-    |> require_fields(callbacks, path, report, [
+    |> require_fields(path, report, [
       "schema_contract",
       "model",
       "generated_at",
@@ -19,42 +37,40 @@ defmodule OrbitalDynamics.Schema.FreshnessReportContracts do
       "status",
       "stale_reasons"
     ])
-    |> expect_equal(callbacks, path, report, "schema_contract", "freshness_report.v1")
+    |> expect_equal(path, report, "schema_contract", "freshness_report.v1")
     |> expect_equal(
-      callbacks,
       path,
       report,
       "model",
       "accepted_snapshot_horizon_and_quality_freshness"
     )
-    |> expect_type(callbacks, path, report, "generated_at", :binary)
-    |> expect_optional_number(callbacks, path, report, "current_epoch_s")
-    |> expect_optional_number(callbacks, path, report, "horizon_starts_at_s")
-    |> expect_optional_number(callbacks, path, report, "accepted_snapshot_age_s")
-    |> expect_optional_number(callbacks, path, report, "horizon_start_offset_s")
-    |> expect_number(callbacks, path, report, "max_snapshot_age_s")
-    |> expect_number(callbacks, path, report, "max_horizon_start_offset_s")
-    |> expect_optional_type(callbacks, path, report, "accepted_state_quality_level", :binary)
-    |> expect_optional_type(callbacks, path, report, "state_quality_status", :binary)
-    |> expect_optional_list(callbacks, path, report, "allowed_state_quality_levels")
-    |> expect_one_of(callbacks, path, report, "status", freshness_statuses(callbacks))
-    |> expect_type(callbacks, path, report, "stale_reasons", :list)
-    |> expect_optional_type(callbacks, path, report, "unknown_reasons", :list)
-    |> expect_optional_type(callbacks, path, report, "model_limits", :list)
-    |> validate_string_list_items(callbacks, path, report, "model_limits")
-    |> validate_counts(callbacks, path, report)
+    |> expect_type(path, report, "generated_at", :binary)
+    |> expect_optional_number(path, report, "current_epoch_s")
+    |> expect_optional_number(path, report, "horizon_starts_at_s")
+    |> expect_optional_number(path, report, "accepted_snapshot_age_s")
+    |> expect_optional_number(path, report, "horizon_start_offset_s")
+    |> expect_number(path, report, "max_snapshot_age_s")
+    |> expect_number(path, report, "max_horizon_start_offset_s")
+    |> expect_optional_type(path, report, "accepted_state_quality_level", :binary)
+    |> expect_optional_type(path, report, "state_quality_status", :binary)
+    |> expect_optional_list(path, report, "allowed_state_quality_levels")
+    |> expect_one_of(path, report, "status", @freshness_statuses)
+    |> expect_type(path, report, "stale_reasons", :list)
+    |> expect_optional_type(path, report, "unknown_reasons", :list)
+    |> expect_optional_type(path, report, "model_limits", :list)
+    |> validate_string_list_items(path, report, "model_limits")
+    |> validate_counts(path, report)
   end
 
-  def validate_optional(issues, path, _report, callbacks) when is_list(callbacks),
-    do: [error(callbacks, path, "must be an object") | issues]
+  def validate_optional(issues, path, _report),
+    do: [error(path, "must be an object") | issues]
 
-  defp validate_counts(issues, callbacks, path, report) do
+  defp validate_counts(issues, path, report) do
     stale_reasons = stale_reasons(report)
     unknown_reasons = unknown_reasons(report)
 
     issues
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "stale_reasons",
@@ -62,7 +78,6 @@ defmodule OrbitalDynamics.Schema.FreshnessReportContracts do
       "must equal freshness-policy-derived stale_reasons"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "unknown_reasons",
@@ -70,21 +85,18 @@ defmodule OrbitalDynamics.Schema.FreshnessReportContracts do
       "must equal freshness-policy-derived unknown_reasons"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "status",
       status(stale_reasons, unknown_reasons)
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "state_quality_status",
       state_quality_status(report)
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "model_limits",
@@ -153,64 +165,4 @@ defmodule OrbitalDynamics.Schema.FreshnessReportContracts do
   defp maybe_append(values, _condition, _value), do: values
 
   defp list_value(map, key), do: Map.get(map, key) || []
-
-  defp require_fields(issues, callbacks, path, map, fields),
-    do: apply(require_callback(callbacks, :require_fields), [issues, path, map, fields])
-
-  defp expect_equal(issues, callbacks, path, map, field, expected),
-    do: apply(require_callback(callbacks, :expect_equal), [issues, path, map, field, expected])
-
-  defp expect_type(issues, callbacks, path, map, field, type),
-    do: apply(require_callback(callbacks, :expect_type), [issues, path, map, field, type])
-
-  defp expect_optional_type(issues, callbacks, path, map, field, type),
-    do:
-      apply(require_callback(callbacks, :expect_optional_type), [issues, path, map, field, type])
-
-  defp expect_optional_number(issues, callbacks, path, map, field),
-    do: apply(require_callback(callbacks, :expect_optional_number), [issues, path, map, field])
-
-  defp expect_number(issues, callbacks, path, map, field),
-    do: apply(require_callback(callbacks, :expect_number), [issues, path, map, field])
-
-  defp expect_optional_list(issues, callbacks, path, map, field),
-    do: apply(require_callback(callbacks, :expect_optional_list), [issues, path, map, field])
-
-  defp expect_one_of(issues, callbacks, path, map, field, allowed),
-    do: apply(require_callback(callbacks, :expect_one_of), [issues, path, map, field, allowed])
-
-  defp validate_string_list_items(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :validate_string_list_items), [issues, path, map, field])
-
-  defp expect_field_equals(issues, callbacks, path, map, field, expected),
-    do:
-      apply(require_callback(callbacks, :expect_field_equals), [
-        issues,
-        path,
-        map,
-        field,
-        expected
-      ])
-
-  defp expect_field_equals(issues, callbacks, path, map, field, expected, message),
-    do:
-      apply(require_callback(callbacks, :expect_field_equals_with_message), [
-        issues,
-        path,
-        map,
-        field,
-        expected,
-        message
-      ])
-
-  defp freshness_statuses(callbacks),
-    do: apply(require_callback(callbacks, :freshness_statuses), [])
-
-  defp error(callbacks, path, message),
-    do: apply(require_callback(callbacks, :error), [path, message])
-
-  defp require_callback(callbacks, key) do
-    Keyword.fetch!(callbacks, key)
-  end
 end
