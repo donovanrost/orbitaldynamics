@@ -9,47 +9,41 @@ Current slice:
 Candidate-refresh provider-counteroffer context extraction.
 
 Status:
-Selected; implementation pending.
+Complete; ready to publish.
 
-Selected slice:
-Extract the complete provider-counteroffer source-report validator—scalar
-counts/numbers, status maps, stable-ID routing maps/lists, and affected-ID
-lists—behind its existing public context function.
+Result:
+- Extracted seven integer fields, two number fields, seven count maps, three
+  stable-ID array maps, two stable-ID lists, and five string-list validations
+  into the new 116-line `CandidateRefreshProviderCounterofferContracts` owner.
+- Preserved `validate_provider_counteroffer_context/4` as a thin delegate with
+  its callback-list guard unchanged.
+- Preserved the exact distinction between explicitly typed and direct count-map
+  validations and the complete validation order.
+- Reduced `CandidateRefreshReportContracts` from 839 to 746 lines.
 
-Why this slice:
-This is the largest remaining independent parent body at 99 lines, with a fully
-ordered validation pipeline and dedicated replay, provenance, and standalone
-contract coverage.
-
-Public facade to preserve:
-`CandidateRefreshReportContracts.validate_provider_counteroffer_context/4`,
-including its callback-list guard, plus all other public signatures.
-
-Likely extraction target:
-`CandidateRefreshProviderCounterofferContracts.validate/3`, owning the complete
-validation pipeline.
-
-Likely files:
-- `lib/orbital_dynamics/schema/candidate_refresh_report_contracts.ex`
-- `lib/orbital_dynamics/schema/candidate_refresh_provider_counteroffer_contracts.ex`
-- `.codex/status/large_module_refactor.md`
-
-Likely tests:
-- compile with warnings as errors
-- provider-counteroffer replay/source-provenance/standalone contract tests
-- candidate-refresh resource-provenance and schema contract coverage
-- broader candidate-refresh, deterministic export/fingerprint, xref, and format
-
-Definition of done:
-The public `/4` function is a thin delegate, all validation order/paths/errors
-are unchanged, stale imports are removed only when unused, and focused/broader
-checks pass.
+Tests run:
+- `mix compile --warnings-as-errors` passed.
+- Focused provider replay/source-provenance/standalone/provenance/schema coverage
+  passed 21/21.
+- The full `test/orbital_dynamics/candidate_refresh` directory passed 755/755.
+- Schema export coverage passed 22/22.
+- Full export left `schemas/` unchanged; the bundle fingerprint remained
+  `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`.
+- Parent/new-module compile-connected xref, formatting, new-file whitespace,
+  and `git diff --check` passed.
+- The read-only reviewer found no must-fix issues, independently passed compile
+  and 11 focused tests, and verified exact pipeline/type-check order, paths,
+  edge behavior, imports, public definitions, and dependency shape.
 
 Verification gaps:
 - Full repository suite not run.
 
 Last commit:
-Published timeline change-application extraction `1fced6e0`.
+Pending publication; prior handoff `a7299505`.
+
+Next candidate:
+- Extract the quality-gate context together with its sole optional stable-ID
+  array-map helper behind the existing public `/4` facade.
 
 Blocked:
 No.
