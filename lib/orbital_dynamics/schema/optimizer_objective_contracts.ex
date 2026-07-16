@@ -1,152 +1,183 @@
 defmodule OrbitalDynamics.Schema.OptimizerObjectiveContracts do
   @moduledoc false
 
-  def validate_objective_tradeoff_report(issues, path, report, callbacks)
-      when is_list(callbacks) do
+  import OrbitalDynamics.Schema.CollectionValidation,
+    only: [validate_numeric_map: 3, validate_rows: 4]
+
+  import OrbitalDynamics.Schema.StableIdValidation,
+    only: [
+      validate_optional_stable_id_list: 4,
+      validate_optional_stable_ids: 4,
+      validate_stable_id_list: 3,
+      validate_stable_ids: 4
+    ]
+
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [
+      expect_equal: 5,
+      expect_field_equals: 5,
+      expect_field_equals: 6,
+      expect_non_negative_integer: 4,
+      expect_number: 4,
+      expect_one_of: 5,
+      expect_optional_integer: 4,
+      expect_optional_non_negative_integer: 4,
+      expect_optional_number: 4,
+      expect_optional_type: 5,
+      expect_type: 5,
+      require_fields: 4,
+      validate_optional_exact_model_limits: 5,
+      validate_string_list_items: 4
+    ]
+
+  alias OrbitalDynamics.Schema.CollectionAggregation
+
+  @objective_tradeoff_report_models [
+    "ranked_timeline_score_term_tradeoffs",
+    "repair_score_term_tradeoffs",
+    "strategy_branch_score_term_tradeoffs"
+  ]
+
+  @score_term_report_models [
+    "ranked_timeline_score_terms",
+    "repair_score_terms",
+    "strategy_branch_score_terms"
+  ]
+
+  def objective_tradeoff_report_models, do: @objective_tradeoff_report_models
+  def score_term_report_models, do: @score_term_report_models
+
+  def validate_objective_tradeoff_report(issues, path, report) do
     issues
-    |> expect_equal(callbacks, path, report, "schema_contract", "objective_tradeoff_report.v1")
+    |> expect_equal(path, report, "schema_contract", "objective_tradeoff_report.v1")
     |> expect_one_of(
-      callbacks,
       path,
       report,
       "model",
-      objective_tradeoff_report_models(callbacks)
+      objective_tradeoff_report_models()
     )
-    |> expect_type(callbacks, path, report, "objective", :binary)
-    |> expect_non_negative_integer(callbacks, path, report, "ranking_count")
-    |> expect_type(callbacks, path, report, "score_term_keys", :list)
-    |> expect_type(callbacks, path, report, "tradeoffs", :list)
-    |> expect_optional_type(callbacks, path, report, "policy", :map)
-    |> expect_optional_type(callbacks, path, report, "model_limits", :list)
-    |> validate_string_list_items(callbacks, path, report, "model_limits")
+    |> expect_type(path, report, "objective", :binary)
+    |> expect_non_negative_integer(path, report, "ranking_count")
+    |> expect_type(path, report, "score_term_keys", :list)
+    |> expect_type(path, report, "tradeoffs", :list)
+    |> expect_optional_type(path, report, "policy", :map)
+    |> expect_optional_type(path, report, "model_limits", :list)
+    |> validate_string_list_items(path, report, "model_limits")
     |> validate_optional_exact_model_limits(
-      callbacks,
       path,
       report,
-      score_report_model_limits(callbacks),
+      score_report_model_limits(),
       "must match score report model limits"
     )
-    |> expect_type(callbacks, path, report, "assumptions", :map)
+    |> expect_type(path, report, "assumptions", :map)
     |> validate_rows(
-      callbacks,
       "#{path}.tradeoffs",
       Map.get(report, "tradeoffs", []),
-      fn acc, row_path, row -> validate_objective_tradeoff(acc, row_path, row, callbacks) end
+      fn acc, row_path, row -> validate_objective_tradeoff(acc, row_path, row) end
     )
-    |> validate_objective_tradeoff_report_counts(callbacks, path, report)
+    |> validate_objective_tradeoff_report_counts(path, report)
   end
 
-  def validate_objective_satisfaction_report(issues, path, report, callbacks)
-      when is_list(callbacks) do
+  def validate_objective_satisfaction_report(issues, path, report) do
     issues
     |> expect_equal(
-      callbacks,
       path,
       report,
       "schema_contract",
       "objective_satisfaction_report.v1"
     )
     |> expect_equal(
-      callbacks,
       path,
       report,
       "model",
       "campaign_v1_selected_activity_objective_summary"
     )
-    |> expect_type(callbacks, path, report, "source", :binary)
-    |> expect_non_negative_integer(callbacks, path, report, "objective_count")
-    |> expect_optional_type(callbacks, path, report, "model_limits", :list)
-    |> validate_string_list_items(callbacks, path, report, "model_limits")
+    |> expect_type(path, report, "source", :binary)
+    |> expect_non_negative_integer(path, report, "objective_count")
+    |> expect_optional_type(path, report, "model_limits", :list)
+    |> validate_string_list_items(path, report, "model_limits")
     |> validate_optional_exact_model_limits(
-      callbacks,
       path,
       report,
-      objective_satisfaction_model_limits(callbacks),
+      objective_satisfaction_model_limits(),
       "must match objective satisfaction model limits"
     )
-    |> expect_type(callbacks, path, report, "rows", :list)
-    |> expect_type(callbacks, path, report, "assumptions", :map)
+    |> expect_type(path, report, "rows", :list)
+    |> expect_type(path, report, "assumptions", :map)
     |> validate_rows(
-      callbacks,
       "#{path}.rows",
       Map.get(report, "rows", []),
       fn acc, row_path, row ->
-        validate_objective_satisfaction_row(acc, row_path, row, callbacks)
+        validate_objective_satisfaction_row(acc, row_path, row)
       end
     )
-    |> validate_objective_satisfaction_report_counts(callbacks, path, report)
+    |> validate_objective_satisfaction_report_counts(path, report)
   end
 
-  def validate_ranking_comparison_report(issues, path, report, callbacks)
-      when is_list(callbacks) do
+  def validate_ranking_comparison_report(issues, path, report) do
     issues
-    |> expect_equal(callbacks, path, report, "schema_contract", "ranking_comparison_report.v1")
-    |> expect_equal(callbacks, path, report, "model", "scenario_ranking_pairwise_delta")
-    |> expect_type(callbacks, path, report, "source", :binary)
-    |> expect_type(callbacks, path, report, "objective", :binary)
-    |> expect_optional_type(callbacks, path, report, "objective_direction", :binary)
-    |> expect_type(callbacks, path, report, "left_label", :binary)
-    |> expect_type(callbacks, path, report, "right_label", :binary)
-    |> expect_non_negative_integer(callbacks, path, report, "left_count")
-    |> expect_non_negative_integer(callbacks, path, report, "right_count")
-    |> expect_non_negative_integer(callbacks, path, report, "matched_count")
-    |> expect_non_negative_integer(callbacks, path, report, "left_only_count")
-    |> expect_non_negative_integer(callbacks, path, report, "right_only_count")
-    |> expect_non_negative_integer(callbacks, path, report, "row_count")
-    |> expect_optional_type(callbacks, path, report, "model_limits", :list)
-    |> validate_string_list_items(callbacks, path, report, "model_limits")
+    |> expect_equal(path, report, "schema_contract", "ranking_comparison_report.v1")
+    |> expect_equal(path, report, "model", "scenario_ranking_pairwise_delta")
+    |> expect_type(path, report, "source", :binary)
+    |> expect_type(path, report, "objective", :binary)
+    |> expect_optional_type(path, report, "objective_direction", :binary)
+    |> expect_type(path, report, "left_label", :binary)
+    |> expect_type(path, report, "right_label", :binary)
+    |> expect_non_negative_integer(path, report, "left_count")
+    |> expect_non_negative_integer(path, report, "right_count")
+    |> expect_non_negative_integer(path, report, "matched_count")
+    |> expect_non_negative_integer(path, report, "left_only_count")
+    |> expect_non_negative_integer(path, report, "right_only_count")
+    |> expect_non_negative_integer(path, report, "row_count")
+    |> expect_optional_type(path, report, "model_limits", :list)
+    |> validate_string_list_items(path, report, "model_limits")
     |> validate_optional_exact_model_limits(
-      callbacks,
       path,
       report,
-      ranking_comparison_model_limits(callbacks),
+      ranking_comparison_model_limits(),
       "must match ranking comparison model limits"
     )
-    |> expect_type(callbacks, path, report, "winner", :map)
+    |> expect_type(path, report, "winner", :map)
     |> validate_ranking_comparison_winner(
-      callbacks,
       path <> ".winner",
       Map.get(report, "winner", %{})
     )
-    |> expect_type(callbacks, path, report, "rows", :list)
-    |> expect_type(callbacks, path, report, "assumptions", :map)
+    |> expect_type(path, report, "rows", :list)
+    |> expect_type(path, report, "assumptions", :map)
     |> validate_rows(
-      callbacks,
       "#{path}.rows",
       Map.get(report, "rows", []),
-      fn acc, row_path, row -> validate_ranking_comparison_row(acc, row_path, row, callbacks) end
+      fn acc, row_path, row -> validate_ranking_comparison_row(acc, row_path, row) end
     )
-    |> validate_ranking_comparison_report_counts(callbacks, path, report)
+    |> validate_ranking_comparison_report_counts(path, report)
   end
 
-  def validate_score_term_report(issues, path, report, callbacks) when is_list(callbacks) do
+  def validate_score_term_report(issues, path, report) do
     issues
-    |> expect_equal(callbacks, path, report, "schema_contract", "score_term_report.v1")
-    |> expect_one_of(callbacks, path, report, "model", score_term_report_models(callbacks))
-    |> expect_type(callbacks, path, report, "source", :binary)
-    |> expect_non_negative_integer(callbacks, path, report, "row_count")
-    |> expect_type(callbacks, path, report, "score_term_keys", :list)
-    |> expect_optional_type(callbacks, path, report, "model_limits", :list)
-    |> validate_string_list_items(callbacks, path, report, "model_limits")
+    |> expect_equal(path, report, "schema_contract", "score_term_report.v1")
+    |> expect_one_of(path, report, "model", score_term_report_models())
+    |> expect_type(path, report, "source", :binary)
+    |> expect_non_negative_integer(path, report, "row_count")
+    |> expect_type(path, report, "score_term_keys", :list)
+    |> expect_optional_type(path, report, "model_limits", :list)
+    |> validate_string_list_items(path, report, "model_limits")
     |> validate_optional_exact_model_limits(
-      callbacks,
       path,
       report,
-      score_report_model_limits(callbacks),
+      score_report_model_limits(),
       "must match score report model limits"
     )
-    |> expect_type(callbacks, path, report, "rows", :list)
-    |> expect_type(callbacks, path, report, "assumptions", :map)
+    |> expect_type(path, report, "rows", :list)
+    |> expect_type(path, report, "assumptions", :map)
     |> validate_rows(
-      callbacks,
       "#{path}.rows",
       Map.get(report, "rows", []),
-      fn acc, row_path, row -> validate_score_term_row(acc, row_path, row, callbacks) end
+      fn acc, row_path, row -> validate_score_term_row(acc, row_path, row) end
     )
-    |> validate_score_term_report_counts(callbacks, path, report)
+    |> validate_score_term_report_counts(path, report)
   end
 
-  defp validate_objective_tradeoff_report_counts(issues, callbacks, path, report) do
+  defp validate_objective_tradeoff_report_counts(issues, path, report) do
     tradeoffs =
       report
       |> Map.get("tradeoffs", [])
@@ -166,9 +197,8 @@ defmodule OrbitalDynamics.Schema.OptimizerObjectiveContracts do
       |> Enum.sort()
 
     issues
-    |> expect_field_equals(callbacks, path, report, "ranking_count", length(tradeoffs))
+    |> expect_field_equals(path, report, "ranking_count", length(tradeoffs))
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "score_term_keys",
@@ -177,53 +207,48 @@ defmodule OrbitalDynamics.Schema.OptimizerObjectiveContracts do
     )
   end
 
-  defp validate_objective_satisfaction_report_counts(issues, callbacks, path, report) do
+  defp validate_objective_satisfaction_report_counts(issues, path, report) do
     rows =
       report
       |> Map.get("rows", [])
       |> Enum.filter(&is_map/1)
 
-    expect_field_equals(issues, callbacks, path, report, "objective_count", length(rows))
+    expect_field_equals(issues, path, report, "objective_count", length(rows))
   end
 
-  defp validate_ranking_comparison_report_counts(issues, callbacks, path, report) do
+  defp validate_ranking_comparison_report_counts(issues, path, report) do
     rows =
       report
       |> Map.get("rows", [])
       |> Enum.filter(&is_map/1)
 
     issues
-    |> expect_field_equals(callbacks, path, report, "row_count", length(rows))
+    |> expect_field_equals(path, report, "row_count", length(rows))
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "matched_count",
       Enum.count(rows, &(&1["status"] == "matched"))
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "left_only_count",
       Enum.count(rows, &(&1["status"] == "left_only"))
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "right_only_count",
       Enum.count(rows, &(&1["status"] == "right_only"))
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "left_count",
       Enum.count(rows, &(&1["status"] in ["matched", "left_only"]))
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "right_count",
@@ -231,25 +256,25 @@ defmodule OrbitalDynamics.Schema.OptimizerObjectiveContracts do
     )
   end
 
-  defp validate_ranking_comparison_winner(issues, callbacks, path, winner) do
+  defp validate_ranking_comparison_winner(issues, path, winner) do
     issues
-    |> require_fields(callbacks, path, winner, [
+    |> require_fields(path, winner, [
       "left_scenario_id",
       "right_scenario_id",
       "changed"
     ])
-    |> validate_optional_stable_ids(callbacks, path, winner, [
+    |> validate_optional_stable_ids(path, winner, [
       "left_scenario_id",
       "right_scenario_id"
     ])
-    |> expect_optional_type(callbacks, path, winner, "left_scenario_id", :binary)
-    |> expect_optional_type(callbacks, path, winner, "right_scenario_id", :binary)
-    |> expect_type(callbacks, path, winner, "changed", :boolean)
+    |> expect_optional_type(path, winner, "left_scenario_id", :binary)
+    |> expect_optional_type(path, winner, "right_scenario_id", :binary)
+    |> expect_type(path, winner, "changed", :boolean)
   end
 
-  defp validate_ranking_comparison_row(issues, path, row, callbacks) do
+  defp validate_ranking_comparison_row(issues, path, row) do
     issues
-    |> require_fields(callbacks, path, row, [
+    |> require_fields(path, row, [
       "scenario_id",
       "status",
       "left_rank",
@@ -259,35 +284,33 @@ defmodule OrbitalDynamics.Schema.OptimizerObjectiveContracts do
       "right_value",
       "value_delta"
     ])
-    |> validate_stable_ids(callbacks, path, row, ["scenario_id"])
-    |> expect_one_of(callbacks, path, row, "status", ["matched", "left_only", "right_only"])
-    |> expect_optional_integer(callbacks, path, row, "left_rank")
-    |> expect_optional_integer(callbacks, path, row, "right_rank")
-    |> expect_optional_integer(callbacks, path, row, "rank_delta")
-    |> expect_optional_number(callbacks, path, row, "left_value")
-    |> expect_optional_number(callbacks, path, row, "right_value")
-    |> expect_optional_number(callbacks, path, row, "value_delta")
+    |> validate_stable_ids(path, row, ["scenario_id"])
+    |> expect_one_of(path, row, "status", ["matched", "left_only", "right_only"])
+    |> expect_optional_integer(path, row, "left_rank")
+    |> expect_optional_integer(path, row, "right_rank")
+    |> expect_optional_integer(path, row, "rank_delta")
+    |> expect_optional_number(path, row, "left_value")
+    |> expect_optional_number(path, row, "right_value")
+    |> expect_optional_number(path, row, "value_delta")
     |> expect_field_equals(
-      callbacks,
       path,
       row,
       "rank_delta",
-      numeric_delta(callbacks, Map.get(row, "left_rank"), Map.get(row, "right_rank")),
+      numeric_delta(Map.get(row, "left_rank"), Map.get(row, "right_rank")),
       "must equal left_rank minus right_rank"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       row,
       "value_delta",
-      numeric_delta(callbacks, Map.get(row, "right_value"), Map.get(row, "left_value")),
+      numeric_delta(Map.get(row, "right_value"), Map.get(row, "left_value")),
       "must equal right_value minus left_value"
     )
   end
 
-  defp validate_objective_satisfaction_row(issues, path, row, callbacks) do
+  defp validate_objective_satisfaction_row(issues, path, row) do
     issues
-    |> require_fields(callbacks, path, row, [
+    |> require_fields(path, row, [
       "id",
       "objective",
       "status",
@@ -295,9 +318,9 @@ defmodule OrbitalDynamics.Schema.OptimizerObjectiveContracts do
       "selected_count",
       "satisfied_count"
     ])
-    |> validate_stable_ids(callbacks, path, row, ["id", "target_id"])
-    |> expect_type(callbacks, path, row, "objective", :binary)
-    |> expect_one_of(callbacks, path, row, "status", [
+    |> validate_stable_ids(path, row, ["id", "target_id"])
+    |> expect_type(path, row, "objective", :binary)
+    |> expect_one_of(path, row, "status", [
       "met",
       "partial",
       "unmet",
@@ -306,26 +329,26 @@ defmodule OrbitalDynamics.Schema.OptimizerObjectiveContracts do
       "no_candidate_window",
       "no_requirement"
     ])
-    |> expect_optional_non_negative_integer(callbacks, path, row, "required_count")
-    |> expect_non_negative_integer(callbacks, path, row, "candidate_count")
-    |> expect_non_negative_integer(callbacks, path, row, "selected_count")
-    |> expect_non_negative_integer(callbacks, path, row, "satisfied_count")
-    |> expect_optional_number(callbacks, path, row, "candidate_downlink_mb")
-    |> expect_optional_number(callbacks, path, row, "required_downlink_mb")
-    |> expect_optional_number(callbacks, path, row, "satisfied_downlink_mb")
-    |> expect_optional_number(callbacks, path, row, "selected_downlink_mb")
-    |> expect_optional_type(callbacks, path, row, "candidate_target_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, row, "candidate_target_ids")
-    |> expect_optional_type(callbacks, path, row, "selected_target_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, row, "selected_target_ids")
-    |> expect_optional_type(callbacks, path, row, "selected_contact_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, row, "selected_contact_ids")
-    |> expect_optional_type(callbacks, path, row, "selected_activity_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, row, "selected_activity_ids")
-    |> validate_objective_satisfaction_row_counts(callbacks, path, row)
+    |> expect_optional_non_negative_integer(path, row, "required_count")
+    |> expect_non_negative_integer(path, row, "candidate_count")
+    |> expect_non_negative_integer(path, row, "selected_count")
+    |> expect_non_negative_integer(path, row, "satisfied_count")
+    |> expect_optional_number(path, row, "candidate_downlink_mb")
+    |> expect_optional_number(path, row, "required_downlink_mb")
+    |> expect_optional_number(path, row, "satisfied_downlink_mb")
+    |> expect_optional_number(path, row, "selected_downlink_mb")
+    |> expect_optional_type(path, row, "candidate_target_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "candidate_target_ids")
+    |> expect_optional_type(path, row, "selected_target_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "selected_target_ids")
+    |> expect_optional_type(path, row, "selected_contact_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "selected_contact_ids")
+    |> expect_optional_type(path, row, "selected_activity_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "selected_activity_ids")
+    |> validate_objective_satisfaction_row_counts(path, row)
   end
 
-  defp validate_objective_satisfaction_row_counts(issues, callbacks, path, row) do
+  defp validate_objective_satisfaction_row_counts(issues, path, row) do
     selected_count =
       cond do
         is_list(Map.get(row, "selected_target_ids")) ->
@@ -347,7 +370,6 @@ defmodule OrbitalDynamics.Schema.OptimizerObjectiveContracts do
 
     issues
     |> expect_field_equals(
-      callbacks,
       path,
       row,
       "candidate_count",
@@ -355,7 +377,6 @@ defmodule OrbitalDynamics.Schema.OptimizerObjectiveContracts do
       "must equal candidate target ID count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       row,
       "selected_count",
@@ -364,9 +385,9 @@ defmodule OrbitalDynamics.Schema.OptimizerObjectiveContracts do
     )
   end
 
-  defp validate_objective_tradeoff(issues, path, row, callbacks) do
+  defp validate_objective_tradeoff(issues, path, row) do
     issues
-    |> require_fields(callbacks, path, row, [
+    |> require_fields(path, row, [
       "rank",
       "scenario_id",
       "score",
@@ -375,23 +396,21 @@ defmodule OrbitalDynamics.Schema.OptimizerObjectiveContracts do
       "score_terms",
       "activity_ids"
     ])
-    |> validate_stable_ids(callbacks, path, row, ["scenario_id"])
-    |> expect_number(callbacks, path, row, "rank")
-    |> expect_number(callbacks, path, row, "score")
-    |> expect_number(callbacks, path, row, "score_delta_from_selected")
-    |> expect_non_negative_integer(callbacks, path, row, "activity_count")
-    |> expect_optional_non_negative_integer(callbacks, path, row, "selected_observation_count")
-    |> expect_optional_non_negative_integer(callbacks, path, row, "selected_contact_count")
-    |> expect_type(callbacks, path, row, "score_terms", :map)
-    |> validate_numeric_map(callbacks, path <> ".score_terms", Map.get(row, "score_terms"))
-    |> expect_type(callbacks, path, row, "activity_ids", :list)
+    |> validate_stable_ids(path, row, ["scenario_id"])
+    |> expect_number(path, row, "rank")
+    |> expect_number(path, row, "score")
+    |> expect_number(path, row, "score_delta_from_selected")
+    |> expect_non_negative_integer(path, row, "activity_count")
+    |> expect_optional_non_negative_integer(path, row, "selected_observation_count")
+    |> expect_optional_non_negative_integer(path, row, "selected_contact_count")
+    |> expect_type(path, row, "score_terms", :map)
+    |> validate_numeric_map(path <> ".score_terms", Map.get(row, "score_terms"))
+    |> expect_type(path, row, "activity_ids", :list)
     |> validate_stable_id_list(
-      callbacks,
       path <> ".activity_ids",
       Map.get(row, "activity_ids", [])
     )
     |> expect_field_equals(
-      callbacks,
       path,
       row,
       "activity_count",
@@ -400,7 +419,7 @@ defmodule OrbitalDynamics.Schema.OptimizerObjectiveContracts do
     )
   end
 
-  defp validate_score_term_report_counts(issues, callbacks, path, report) do
+  defp validate_score_term_report_counts(issues, path, report) do
     rows =
       report
       |> Map.get("rows", [])
@@ -414,9 +433,8 @@ defmodule OrbitalDynamics.Schema.OptimizerObjectiveContracts do
       |> Enum.sort()
 
     issues
-    |> expect_field_equals(callbacks, path, report, "row_count", length(rows))
+    |> expect_field_equals(path, report, "row_count", length(rows))
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "score_term_keys",
@@ -425,9 +443,9 @@ defmodule OrbitalDynamics.Schema.OptimizerObjectiveContracts do
     )
   end
 
-  defp validate_score_term_row(issues, path, row, callbacks) do
+  defp validate_score_term_row(issues, path, row) do
     issues
-    |> require_fields(callbacks, path, row, [
+    |> require_fields(path, row, [
       "id",
       "rank",
       "scenario_id",
@@ -436,124 +454,22 @@ defmodule OrbitalDynamics.Schema.OptimizerObjectiveContracts do
       "timeline_score",
       "selected"
     ])
-    |> validate_stable_ids(callbacks, path, row, ["id", "scenario_id"])
-    |> expect_number(callbacks, path, row, "rank")
-    |> expect_number(callbacks, path, row, "value")
-    |> expect_number(callbacks, path, row, "timeline_score")
-    |> expect_type(callbacks, path, row, "term_key", :binary)
-    |> expect_type(callbacks, path, row, "selected", :boolean)
+    |> validate_stable_ids(path, row, ["id", "scenario_id"])
+    |> expect_number(path, row, "rank")
+    |> expect_number(path, row, "value")
+    |> expect_number(path, row, "timeline_score")
+    |> expect_type(path, row, "term_key", :binary)
+    |> expect_type(path, row, "selected", :boolean)
   end
 
-  defp objective_tradeoff_report_models(callbacks),
-    do: apply(Keyword.fetch!(callbacks, :objective_tradeoff_report_models), [])
+  defp score_report_model_limits,
+    do: OrbitalDynamics.CampaignPlanner.score_report_model_limits()
 
-  defp score_term_report_models(callbacks),
-    do: apply(Keyword.fetch!(callbacks, :score_term_report_models), [])
+  defp objective_satisfaction_model_limits,
+    do: OrbitalDynamics.CampaignPlanner.objective_satisfaction_model_limits()
 
-  defp score_report_model_limits(callbacks),
-    do: apply(Keyword.fetch!(callbacks, :score_report_model_limits), [])
+  defp ranking_comparison_model_limits,
+    do: OrbitalDynamics.Optimizer.ranking_comparison_model_limits()
 
-  defp objective_satisfaction_model_limits(callbacks),
-    do: apply(Keyword.fetch!(callbacks, :objective_satisfaction_model_limits), [])
-
-  defp ranking_comparison_model_limits(callbacks),
-    do: apply(Keyword.fetch!(callbacks, :ranking_comparison_model_limits), [])
-
-  defp numeric_delta(callbacks, left, right),
-    do: apply(Keyword.fetch!(callbacks, :numeric_delta), [left, right])
-
-  defp require_fields(issues, callbacks, path, map, fields),
-    do: apply(Keyword.fetch!(callbacks, :require_fields), [issues, path, map, fields])
-
-  defp expect_equal(issues, callbacks, path, map, field, expected),
-    do: apply(Keyword.fetch!(callbacks, :expect_equal), [issues, path, map, field, expected])
-
-  defp expect_one_of(issues, callbacks, path, map, field, allowed),
-    do: apply(Keyword.fetch!(callbacks, :expect_one_of), [issues, path, map, field, allowed])
-
-  defp expect_type(issues, callbacks, path, map, field, type),
-    do: apply(Keyword.fetch!(callbacks, :expect_type), [issues, path, map, field, type])
-
-  defp expect_optional_type(issues, callbacks, path, map, field, type),
-    do: apply(Keyword.fetch!(callbacks, :expect_optional_type), [issues, path, map, field, type])
-
-  defp expect_number(issues, callbacks, path, map, field),
-    do: apply(Keyword.fetch!(callbacks, :expect_number), [issues, path, map, field])
-
-  defp expect_optional_number(issues, callbacks, path, map, field),
-    do: apply(Keyword.fetch!(callbacks, :expect_optional_number), [issues, path, map, field])
-
-  defp expect_optional_integer(issues, callbacks, path, map, field),
-    do: apply(Keyword.fetch!(callbacks, :expect_optional_integer), [issues, path, map, field])
-
-  defp expect_non_negative_integer(issues, callbacks, path, map, field),
-    do:
-      apply(Keyword.fetch!(callbacks, :expect_non_negative_integer), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp expect_optional_non_negative_integer(issues, callbacks, path, map, field),
-    do:
-      apply(Keyword.fetch!(callbacks, :expect_optional_non_negative_integer), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp expect_field_equals(issues, callbacks, path, map, field, expected),
-    do:
-      apply(Keyword.fetch!(callbacks, :expect_field_equals), [issues, path, map, field, expected])
-
-  defp expect_field_equals(issues, callbacks, path, map, field, expected, message),
-    do:
-      apply(Keyword.fetch!(callbacks, :expect_field_equals_with_message), [
-        issues,
-        path,
-        map,
-        field,
-        expected,
-        message
-      ])
-
-  defp validate_optional_exact_model_limits(issues, callbacks, path, artifact, expected, message),
-    do:
-      apply(Keyword.fetch!(callbacks, :validate_optional_exact_model_limits), [
-        issues,
-        path,
-        artifact,
-        expected,
-        message
-      ])
-
-  defp validate_rows(issues, callbacks, path, rows, validator),
-    do: apply(Keyword.fetch!(callbacks, :validate_rows), [issues, path, rows, validator])
-
-  defp validate_string_list_items(issues, callbacks, path, map, field),
-    do: apply(Keyword.fetch!(callbacks, :validate_string_list_items), [issues, path, map, field])
-
-  defp validate_stable_ids(issues, callbacks, path, map, fields),
-    do: apply(Keyword.fetch!(callbacks, :validate_stable_ids), [issues, path, map, fields])
-
-  defp validate_optional_stable_ids(issues, callbacks, path, map, fields),
-    do:
-      apply(Keyword.fetch!(callbacks, :validate_optional_stable_ids), [issues, path, map, fields])
-
-  defp validate_stable_id_list(issues, callbacks, path, values),
-    do: apply(Keyword.fetch!(callbacks, :validate_stable_id_list), [issues, path, values])
-
-  defp validate_optional_stable_id_list(issues, callbacks, path, map, field),
-    do:
-      apply(Keyword.fetch!(callbacks, :validate_optional_stable_id_list), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp validate_numeric_map(issues, callbacks, path, value),
-    do: apply(Keyword.fetch!(callbacks, :validate_numeric_map), [issues, path, value])
+  defp numeric_delta(left, right), do: CollectionAggregation.numeric_delta(left, right)
 end
