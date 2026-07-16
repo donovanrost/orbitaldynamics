@@ -915,6 +915,20 @@ defmodule OrbitalDynamics.ResourceFilterTest do
                    "must equal row-derived suppressed_candidate_ids_by_resource_source_quality")
            )
 
+    for field <- [
+          "suppressed_candidate_ids_by_resource_source_quality",
+          "suppressed_candidate_ids_by_resource_trust_boundary_status"
+        ] do
+      invalid_id_map = Map.put(report, field, [])
+
+      assert {:error, invalid_id_map_report} = Schema.validate_artifact(invalid_id_map)
+
+      assert Enum.count(
+               invalid_id_map_report["errors"],
+               &(&1["path"] == "$.#{field}" and &1["message"] == "must be a map")
+             ) == 2
+    end
+
     invalid_trust_counts =
       Map.put(report, "suppressed_resource_trust_boundary_status_counts", %{"missing" => 1})
 

@@ -9,7 +9,7 @@ Current slice:
 Resource-filter-report callback-bag collapse.
 
 Status:
-Selected; implementation pending.
+Complete and ready to publish.
 
 Selected slice:
 Replace the 16-entry `ResourceFilterReportContracts` lookup bag with direct
@@ -43,6 +43,16 @@ shared/count ownership is direct and only the two domain row validators stay
 explicit; focused, broader, and export checks pass; and bounded review finds no
 blocker.
 
+Outcome:
+Primitive, collection, stable-ID, and filter-count work is direct; only invalid
+resource-summary and suppressed-candidate row validators remain explicit and
+guarded. `schema.ex` fell from 11,415 to 11,395 lines and the owner from 434 to
+325. Fifty-six focused, 1,167 broader, and 22 export tests pass; compile, xref,
+checked-in regeneration, format, and diff hygiene are clean. Review found one
+lost duplicate type issue in grouped-ID validation; a local compatibility helper
+and assertions for both fields restored exact multiplicity. Re-review found no
+remaining blocker.
+
 Verification gaps:
 - Full repository suite not run.
 - The broader focused batch was 113/114 because the generated campaign did not
@@ -50,12 +60,11 @@ Verification gaps:
   validation-only slice. The attributable batch is 102/102.
 
 Last completed slice:
-Resource-filter-summary callback-bag collapse published as `5e614988`:
-`schema.ex` fell from 11,444 to 11,415 lines and its owner from 445 to 368.
-Fifteen shared or static dependencies became direct, with one value and two row
-hooks explicit. Seventy-nine filter, 19 summary/fixture/lint, 1,167 broader, and
-22 export tests passed; compile, xref, regeneration, format, diff hygiene, and
-bounded review were clean.
+Resource-filter-report callback-bag collapse, ready to publish: `schema.ex` fell
+from 11,415 to 11,395 lines and its owner from 434 to 325. Fourteen shared/count
+dependencies became direct and two row hooks explicit. Fifty-six focused, 1,167
+broader, and 22 export tests passed; compile, xref, regeneration, format, diff
+hygiene, blocker repair, and bounded re-review were clean.
 
 Blocked:
 No.
