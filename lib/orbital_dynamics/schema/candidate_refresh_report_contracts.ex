@@ -11,6 +11,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
   alias OrbitalDynamics.Schema.CandidateRefreshTimelineLifecycleContracts
   alias OrbitalDynamics.Schema.CandidateRefreshTimelinePublicationContracts
   alias OrbitalDynamics.Schema.CandidateRefreshTimelineValidationContracts
+  alias OrbitalDynamics.Schema.CandidateRefreshValidationReportContracts
 
   import OrbitalDynamics.Schema.CollectionValidation,
     only: [validate_string_list_map: 4]
@@ -121,56 +122,12 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
 
   def validate_schema_validation_context(issues, path, summary, callbacks)
       when is_list(callbacks) do
-    issues =
-      Enum.reduce(
-        [
-          "error_count",
-          "warning_count",
-          "remediation_count"
-        ],
-        issues,
-        fn field, acc ->
-          expect_optional_non_negative_integer(acc, path, summary, field)
-        end
-      )
-
-    Enum.reduce(
-      [
-        "status_counts",
-        "validated_contract_counts",
-        "validation_mode_counts",
-        "remediation_action_counts",
-        "remediation_category_counts",
-        "remediation_path_counts"
-      ],
-      issues,
-      fn field, acc ->
-        acc
-        |> expect_optional_type(path, summary, field, :map)
-        |> validate_non_negative_integer_count_map(
-          path <> ".#{field}",
-          Map.get(summary, field)
-        )
-      end
-    )
+    CandidateRefreshValidationReportContracts.validate_schema_validation(issues, path, summary)
   end
 
   def validate_model_acceptance_context(issues, path, summary, callbacks)
       when is_list(callbacks) do
-    issues
-    |> expect_optional_non_negative_integer(path, summary, "record_count")
-    |> expect_optional_non_negative_integer(path, summary, "model_count")
-    |> expect_optional_non_negative_integer(path, summary, "accepted_count")
-    |> expect_optional_non_negative_integer(path, summary, "review_required_count")
-    |> expect_optional_non_negative_integer(path, summary, "blocked_count")
-    |> expect_optional_non_negative_integer(path, summary, "unknown_model_count")
-    |> validate_model_acceptance_count_maps(path, summary)
-    |> expect_optional_type(path, summary, "model_ids_by_status", :map)
-    |> validate_string_list_map(path, summary, "model_ids_by_status")
-    |> expect_optional_type(path, summary, "model_ids_by_validation_level", :map)
-    |> validate_string_list_map(path, summary, "model_ids_by_validation_level")
-    |> expect_optional_type(path, summary, "model_ids_by_intended_use", :map)
-    |> validate_string_list_map(path, summary, "model_ids_by_intended_use")
+    CandidateRefreshValidationReportContracts.validate_model_acceptance(issues, path, summary)
   end
 
   def validate_freshness_context(issues, path, summary, callbacks) when is_list(callbacks) do
@@ -519,25 +476,6 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
   def validate_contact_intent_direction_routing(issues, path, value, summary, callbacks)
       when is_list(callbacks) do
     CandidateRefreshContactIntentRoutingContracts.validate(issues, path, value, summary)
-  end
-
-  defp validate_model_acceptance_count_maps(issues, path, summary) do
-    Enum.reduce(
-      [
-        "intended_use_counts",
-        "status_counts",
-        "validation_level_counts"
-      ],
-      issues,
-      fn field, acc ->
-        acc
-        |> expect_optional_type(path, summary, field, :map)
-        |> validate_non_negative_integer_count_map(
-          path <> ".#{field}",
-          Map.get(summary, field)
-        )
-      end
-    )
   end
 
   defp validate_optional_count_maps(issues, path, summary, fields) do

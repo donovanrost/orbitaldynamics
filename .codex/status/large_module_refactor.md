@@ -9,7 +9,7 @@ Current slice:
 Candidate-refresh validation-report context extraction.
 
 Status:
-Selected; implementation pending.
+Complete; publication pending.
 
 Selected slice:
 Extract the schema-validation and model-acceptance source-report validators,
@@ -28,34 +28,39 @@ Public facade to preserve:
 `validate_model_acceptance_context/4`, including callback-list guards, argument
 order, validation order, paths, messages, and all other public signatures.
 
-Likely extraction target:
+Extraction target:
 `CandidateRefreshValidationReportContracts`, with separate schema-validation
 and model-acceptance entry points and the private model-acceptance count-map
 helper.
 
-Likely files:
+Files:
 - `lib/orbital_dynamics/schema/candidate_refresh_report_contracts.ex`
 - `lib/orbital_dynamics/schema/candidate_refresh_validation_report_contracts.ex`
 - `.codex/status/large_module_refactor.md`
 
-Likely tests:
-- compile with warnings as errors
-- candidate-refresh resource-provenance and schema contract coverage
-- broader candidate-refresh, deterministic export/fingerprint, xref, and format
+Result:
+Both public `/4` facades now delegate to an 84-line validation-report owner.
+The exclusive model-acceptance count-map helper moved with its flow, and the
+report-contract facade fell from 601 to 535 lines without schema-export changes.
 
-Definition of done:
-Both public `/4` context functions are thin delegates, their callback guards are
-unchanged, the exclusive count-map helper moves without duplication, validation
-order/paths/errors remain exact, and focused/broader checks pass.
+Verification:
+- compile with warnings as errors passed
+- candidate-refresh resource-provenance and schema contracts: 11 passed
+- broader candidate-refresh suite: 755 passed
+- schema export trio: 22 passed
+- full schema export reproduced checked-in artifacts with no diff
+- deterministic contract/bundle fingerprint remained
+  `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`
+- compile-connected xref roots stayed narrow; format and diff hygiene passed
+- bounded read-only review found no issues and independently passed compile,
+  the 11 focused tests, facade/API comparison, xref, format, and diff checks
 
 Verification gaps:
 - Full repository suite not run.
 
-Last completed slice:
-Contact-intent context extraction published as `36d9f0b4`: a 96-line owner
-reduced the report-contract facade from 665 to 601 lines; 36 focused, 755
-candidate-refresh, and 22 export tests passed; checked-in schema artifacts and
-fingerprint were unchanged; bounded review found no issues.
+Last commit:
+Published contact-intent extraction `36d9f0b4`; selected this slice in
+`610d5b2b`.
 
 Blocked:
 No.
