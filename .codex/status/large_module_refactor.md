@@ -9,7 +9,7 @@ Current slice:
 Completed: plan change registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Moved `candidate_rejection_report.v1` and `plan_delta.v1` into
@@ -80,7 +80,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`7075d86d` (`Update operator review handoff`).
+`17b6cb19` (`Extract plan change registry contracts`).
 
 Next candidate:
 Assess timeline feedback report, timeline activity state, and precondition
