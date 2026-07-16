@@ -9,7 +9,7 @@ Current slice:
 Quality-gate-row callback-bag collapse.
 
 Status:
-Selected; implementation pending.
+Completed and ready to publish.
 
 Selected slice:
 Replace the 14-entry callback bag in `QualityGateRowContracts` with direct
@@ -46,17 +46,31 @@ shared/context owners preserve validation and aggregation while only the two
 source handoff and timeline validators remain injected; focused, broader, and
 export checks pass; and bounded review finds no blocker.
 
+Outcome:
+Removed the 14-entry row callback bag and all owner trampolines. Primitive and
+stable-ID validation now use direct shared owners; four readiness-context checks
+call their extracted owner directly; source-gate, source-report, and timeline
+validators remain explicit boundaries. The row aggregation helpers are
+unchanged. One now-dead Schema wrapper was removed. `schema.ex` fell from 11,762
+to 11,733 lines and the row owner from 148 to 96.
+
+Verification:
+- compile with warnings as errors passed
+- 61 focused readiness/schema/replay/operator-review tests passed
+- 1,054 broader candidate-refresh/operator-review tests passed
+- 22 schema export tests passed
+- compile-connected xref passed
+- checked-in schema regeneration produced no diff
+- format and diff hygiene passed
+- bounded review found no findings
+
 Verification gaps:
 - Full repository suite not run.
 - Known baseline: full contact-filter file remains 87/88 due nil-message
   behavior in `SuppressedCandidateContracts`; unrelated to these slices.
 
 Last completed slice:
-Operational-readiness-gate callback collapse published as `db7d887c`:
-`schema.ex` fell from 11,779 to 11,762 lines and its owner from 114 to 32. The
-10-entry bag became direct primitive/context owners and one timeline boundary.
-61 focused, 1,054 broader, and 22 export tests passed; compile, xref, format,
-diff hygiene, checked-in regeneration, and bounded review were clean.
+Quality-gate-row callback-bag collapse; publication commit pending.
 
 Blocked:
 No.

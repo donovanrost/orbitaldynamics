@@ -1,32 +1,52 @@
 defmodule OrbitalDynamics.Schema.QualityGateRowContracts do
   @moduledoc false
 
-  def validate(issues, path, row, callbacks) do
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [
+      expect_non_negative_integer: 4,
+      expect_one_of: 5,
+      expect_optional_one_of: 5,
+      expect_optional_type: 5,
+      expect_type: 5,
+      require_fields: 4
+    ]
+
+  import OrbitalDynamics.Schema.StableIdValidation, only: [validate_stable_ids: 4]
+
+  alias OrbitalDynamics.Schema.OperationalReadinessContextContracts
+
+  def validate(
+        issues,
+        path,
+        row,
+        source_gate_handoff_validator,
+        source_report_handoff_validator,
+        timeline_publication_validator
+      ) do
     capability = OrbitalDynamics.OperationalReadiness.capabilities()
 
     issues
     |> require_fields(
       path,
       row,
-      ["id", "rank", "gate_id", "status", "classification", "reason"],
-      callbacks
+      ["id", "rank", "gate_id", "status", "classification", "reason"]
     )
-    |> validate_stable_ids(path, row, ["id"], callbacks)
-    |> expect_non_negative_integer(path, row, "rank", callbacks)
-    |> expect_one_of(path, row, "gate_id", capability.gates, callbacks)
-    |> expect_one_of(path, row, "status", capability.gate_statuses, callbacks)
-    |> expect_one_of(path, row, "classification", capability.import_classifications, callbacks)
-    |> expect_type(path, row, "reason", :binary, callbacks)
-    |> expect_optional_one_of(path, row, "analysis_mode", capability.analysis_modes, callbacks)
-    |> expect_optional_type(path, row, "analysis_mode_source", :binary, callbacks)
-    |> expect_optional_type(path, row, "source_operational_readiness_gate", :map, callbacks)
-    |> validate_source_gate_handoff_matches(path, row, callbacks)
-    |> validate_source_report_handoff_matches(path, row, callbacks)
-    |> validate_resource_context(path, row, callbacks)
-    |> validate_operator_training_context(path, row, callbacks)
-    |> validate_adapter_boundary_context(path, row, callbacks)
-    |> validate_cadence_import_context(path, row, callbacks)
-    |> validate_timeline_publication_context(path, row, callbacks)
+    |> validate_stable_ids(path, row, ["id"])
+    |> expect_non_negative_integer(path, row, "rank")
+    |> expect_one_of(path, row, "gate_id", capability.gates)
+    |> expect_one_of(path, row, "status", capability.gate_statuses)
+    |> expect_one_of(path, row, "classification", capability.import_classifications)
+    |> expect_type(path, row, "reason", :binary)
+    |> expect_optional_one_of(path, row, "analysis_mode", capability.analysis_modes)
+    |> expect_optional_type(path, row, "analysis_mode_source", :binary)
+    |> expect_optional_type(path, row, "source_operational_readiness_gate", :map)
+    |> source_gate_handoff_validator.(path, row)
+    |> source_report_handoff_validator.(path, row)
+    |> OperationalReadinessContextContracts.validate_resource_context(path, row)
+    |> OperationalReadinessContextContracts.validate_operator_training_context(path, row)
+    |> OperationalReadinessContextContracts.validate_adapter_boundary_context(path, row)
+    |> OperationalReadinessContextContracts.validate_cadence_import_context(path, row)
+    |> timeline_publication_validator.(path, row)
   end
 
   def status_count(rows, status) when is_list(rows) do
@@ -67,82 +87,10 @@ defmodule OrbitalDynamics.Schema.QualityGateRowContracts do
 
   def ids(_rows, _status), do: nil
 
-  defp require_fields(issues, path, map, fields, callbacks),
-    do: apply(require_callback(callbacks, :require_fields), [issues, path, map, fields])
-
-  defp validate_stable_ids(issues, path, map, fields, callbacks),
-    do: apply(require_callback(callbacks, :validate_stable_ids), [issues, path, map, fields])
-
-  defp expect_non_negative_integer(issues, path, map, field, callbacks),
-    do:
-      apply(require_callback(callbacks, :expect_non_negative_integer), [issues, path, map, field])
-
-  defp expect_one_of(issues, path, map, field, allowed, callbacks),
-    do: apply(require_callback(callbacks, :expect_one_of), [issues, path, map, field, allowed])
-
-  defp expect_type(issues, path, map, field, type, callbacks),
-    do: apply(require_callback(callbacks, :expect_type), [issues, path, map, field, type])
-
-  defp expect_optional_one_of(issues, path, map, field, allowed, callbacks),
-    do:
-      apply(require_callback(callbacks, :expect_optional_one_of), [
-        issues,
-        path,
-        map,
-        field,
-        allowed
-      ])
-
-  defp expect_optional_type(issues, path, map, field, type, callbacks),
-    do:
-      apply(require_callback(callbacks, :expect_optional_type), [issues, path, map, field, type])
-
-  defp validate_source_gate_handoff_matches(issues, path, row, callbacks),
-    do:
-      apply(require_callback(callbacks, :validate_source_gate_handoff_matches), [
-        issues,
-        path,
-        row
-      ])
-
-  defp validate_source_report_handoff_matches(issues, path, row, callbacks),
-    do:
-      apply(require_callback(callbacks, :validate_source_report_handoff_matches), [
-        issues,
-        path,
-        row
-      ])
-
-  defp validate_resource_context(issues, path, row, callbacks),
-    do: apply(require_callback(callbacks, :validate_resource_context), [issues, path, row])
-
-  defp validate_operator_training_context(issues, path, row, callbacks),
-    do:
-      apply(require_callback(callbacks, :validate_operator_training_context), [issues, path, row])
-
-  defp validate_adapter_boundary_context(issues, path, row, callbacks),
-    do:
-      apply(require_callback(callbacks, :validate_adapter_boundary_context), [issues, path, row])
-
-  defp validate_cadence_import_context(issues, path, row, callbacks),
-    do: apply(require_callback(callbacks, :validate_cadence_import_context), [issues, path, row])
-
-  defp validate_timeline_publication_context(issues, path, row, callbacks),
-    do:
-      apply(require_callback(callbacks, :validate_timeline_publication_context), [
-        issues,
-        path,
-        row
-      ])
-
   defp stable_sorted_ids(ids) do
     ids
     |> Enum.reject(&is_nil/1)
     |> Enum.uniq()
     |> Enum.sort()
-  end
-
-  defp require_callback(callbacks, name) do
-    Keyword.fetch!(callbacks, name)
   end
 end

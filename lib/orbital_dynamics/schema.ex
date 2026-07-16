@@ -9715,43 +9715,14 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp quality_gate_row_contract_callbacks do
-    [
-      require_fields: &require_fields/4,
-      validate_stable_ids: &validate_stable_ids/4,
-      expect_non_negative_integer: &expect_non_negative_integer/4,
-      expect_one_of: &expect_one_of/5,
-      expect_type: &expect_type/5,
-      expect_optional_one_of: &expect_optional_one_of/5,
-      expect_optional_type: &expect_optional_type/5,
-      validate_source_gate_handoff_matches:
-        &validate_source_operational_readiness_gate_handoff_matches/3,
-      validate_source_report_handoff_matches:
-        &validate_source_operational_readiness_report_handoff_matches/3,
-      validate_resource_context: &validate_operational_readiness_resource_context/3,
-      validate_operator_training_context:
-        &validate_operational_readiness_operator_training_context/3,
-      validate_adapter_boundary_context:
-        &validate_operational_readiness_adapter_boundary_context/3,
-      validate_cadence_import_context: &validate_operational_readiness_cadence_import_context/3,
-      validate_timeline_publication_context: &validate_timeline_publication_context/3
-    ]
-  end
-
   defp validate_quality_gate_row(issues, path, row) do
     OrbitalDynamics.Schema.QualityGateRowContracts.validate(
       issues,
       path,
       row,
-      quality_gate_row_contract_callbacks()
-    )
-  end
-
-  defp validate_operational_readiness_operator_training_context(issues, path, row) do
-    OrbitalDynamics.Schema.OperationalReadinessContextContracts.validate_operator_training_context(
-      issues,
-      path,
-      row
+      &validate_source_operational_readiness_gate_handoff_matches/3,
+      &validate_source_operational_readiness_report_handoff_matches/3,
+      &validate_timeline_publication_context/3
     )
   end
 
