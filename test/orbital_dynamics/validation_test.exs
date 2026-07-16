@@ -7815,7 +7815,8 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert Enum.any?(
              stale_state_quality_status_report["errors"],
-             &(&1["path"] == "$.state_quality_status")
+             &(&1["path"] == "$.state_quality_status" and
+                 &1["message"] == "must equal accepted")
            )
 
     stale_model = Map.put(report, "model", "stale_freshness_model")

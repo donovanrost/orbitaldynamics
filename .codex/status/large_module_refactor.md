@@ -9,7 +9,7 @@ Current slice:
 Freshness-report exact-message restoration.
 
 Status:
-Selected; implementation pending.
+Complete and ready to publish.
 
 Selected slice:
 Restore the two implicit `"must equal #{expected}"` messages lost when
@@ -42,6 +42,16 @@ Both affected comparisons again emit exact expected-value messages without
 changing equality semantics or issue order; focused, broader, and export checks
 pass; and bounded review finds no blocker.
 
+Outcome:
+A local five-argument wrapper again delegates with `"must equal #{expected}"`,
+while explicit-message calls continue through the shared six-argument helper.
+The existing status assertion passes and state-quality wording now has its own
+exact regression assertion. The full validation file passes 181/181, alongside
+1,167 broader and 22 export tests; compile, xref, checked-in regeneration,
+format, and diff hygiene are clean. Bounded review confirmed exact legacy
+wording, unchanged ordering and nil semantics, unambiguous arity resolution,
+and the strengthened assertion.
+
 Verification gaps:
 - Full repository suite not run.
 - Known baseline: full contact-filter file remains 87/88 due nil-message
@@ -51,11 +61,11 @@ Verification gaps:
   validation-only slice. The attributable batch is 102/102.
 
 Last completed slice:
-Result-artifact callback-bag collapse published as `6d3d0f4e`: `schema.ex` fell
-from 11,513 to 11,496 lines and its owner from 231 to 187. The 12-entry bag
-became direct shared validation calls plus one execution-report boundary. 102
-focused, 1,167 broader, and 22 export tests passed; compile, xref, regeneration,
-format, diff hygiene, and bounded review were clean.
+Freshness-report exact-message restoration, ready to publish: the two implicit
+equality checks again emit their legacy expected-value messages, and both paths
+are assertion-covered. The full validation file passed 181/181, with 1,167
+broader and 22 export tests; compile, xref, regeneration, format, diff hygiene,
+and bounded review were clean.
 
 Blocked:
 No.

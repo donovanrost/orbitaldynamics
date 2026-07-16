@@ -5,7 +5,6 @@ defmodule OrbitalDynamics.Schema.FreshnessReportContracts do
     only: [
       error: 2,
       expect_equal: 5,
-      expect_field_equals: 5,
       expect_field_equals: 6,
       expect_number: 4,
       expect_one_of: 5,
@@ -104,6 +103,9 @@ defmodule OrbitalDynamics.Schema.FreshnessReportContracts do
       "must match candidate refresh model limits"
     )
   end
+
+  defp expect_field_equals(issues, path, report, field, expected),
+    do: expect_field_equals(issues, path, report, field, expected, "must equal #{expected}")
 
   defp stale_reasons(report) do
     []
