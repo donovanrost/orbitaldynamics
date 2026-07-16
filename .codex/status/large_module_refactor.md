@@ -9,7 +9,7 @@ Current slice:
 Contact-allocation-handoff generic callback ownership phase.
 
 Status:
-Complete; ready to publish.
+Complete and published.
 
 Result:
 - Removed 11 generic primitive and stable-ID entries from the 13-entry handoff
@@ -42,7 +42,7 @@ Verification gaps:
   baseline debt reproduced before these phases.
 
 Last commit:
-Pending publication; prior summary-phase handoff `9d431644`.
+Published implementation `5f42c4e3`.
 
 Next candidate:
 - Operator-review-row generic callback ownership phase. Its 1,189-line contract
