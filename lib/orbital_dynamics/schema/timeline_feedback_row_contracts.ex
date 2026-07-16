@@ -26,7 +26,7 @@ defmodule OrbitalDynamics.Schema.TimelineFeedbackRowContracts do
   import OrbitalDynamics.Schema.StableIdValidation,
     only: [validate_optional_stable_id_list: 4, validate_stable_ids: 4]
 
-  def validate(issues, path, row, handoff_callbacks) when is_list(handoff_callbacks) do
+  def validate(issues, path, row) do
     issues
     |> require_fields(path, row, ["activity_id", "status"])
     |> validate_stable_ids(path, row, ["activity_id"])
@@ -246,16 +246,14 @@ defmodule OrbitalDynamics.Schema.TimelineFeedbackRowContracts do
     |> expect_optional_type(path, row, "timeline_identity", :map)
     |> HandoffFieldContracts.validate_resource_availability_variance_fields(
       path,
-      row,
-      handoff_callbacks
+      row
     )
     |> HandoffFieldContracts.validate_eclipse_lighting_handoff_fields(
       path,
-      row,
-      handoff_callbacks
+      row
     )
-    |> HandoffFieldContracts.validate_link_handoff_fields(path, row, handoff_callbacks)
-    |> HandoffFieldContracts.validate_image_quality_score_fields(path, row, handoff_callbacks)
+    |> HandoffFieldContracts.validate_link_handoff_fields(path, row)
+    |> HandoffFieldContracts.validate_image_quality_score_fields(path, row)
     |> expect_optional_number(path, row, "image_quality_score_delta")
     |> expect_optional_type(path, row, "image_quality_status", :binary)
     |> expect_optional_type(path, row, "planned_image_quality_status", :binary)

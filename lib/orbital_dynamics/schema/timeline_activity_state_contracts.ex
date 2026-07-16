@@ -25,8 +25,8 @@ defmodule OrbitalDynamics.Schema.TimelineActivityStateContracts do
   import OrbitalDynamics.Schema.StableIdValidation,
     only: [validate_optional_stable_id_list: 4, validate_stable_ids: 4]
 
-  def validate(issues, path, state, timeline_feedback_report_model_limits, handoff_callbacks)
-      when is_list(timeline_feedback_report_model_limits) and is_list(handoff_callbacks) do
+  def validate(issues, path, state, timeline_feedback_report_model_limits)
+      when is_list(timeline_feedback_report_model_limits) do
     rows =
       case Map.get(state, "rows") do
         rows when is_list(rows) -> Enum.filter(rows, &is_map/1)
@@ -124,7 +124,7 @@ defmodule OrbitalDynamics.Schema.TimelineActivityStateContracts do
       "must equal row-derived review_activity_ids"
     )
     |> validate_rows(path <> ".rows", Map.get(state, "rows", []), fn acc, row_path, row ->
-      TimelineFeedbackRowContracts.validate(acc, row_path, row, handoff_callbacks)
+      TimelineFeedbackRowContracts.validate(acc, row_path, row)
     end)
   end
 

@@ -1,7 +1,18 @@
 defmodule OrbitalDynamics.Schema.HandoffFieldContracts do
   @moduledoc false
 
-  def validate_observation_quality_fraction_fields(issues, path, row, callbacks) do
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [
+      expect_field_at_least: 5,
+      expect_optional_number: 4,
+      expect_optional_number_or_string: 4,
+      expect_optional_probability: 4,
+      expect_optional_type: 5
+    ]
+
+  import OrbitalDynamics.Schema.StableIdValidation, only: [validate_stable_ids: 4]
+
+  def validate_observation_quality_fraction_fields(issues, path, row) do
     [
       "cloud_cover_fraction",
       "planned_cloud_cover_fraction",
@@ -11,47 +22,47 @@ defmodule OrbitalDynamics.Schema.HandoffFieldContracts do
       "realized_blur_score"
     ]
     |> Enum.reduce(issues, fn field, acc ->
-      expect_optional_probability(acc, callbacks, path, row, field)
+      expect_optional_probability(acc, path, row, field)
     end)
   end
 
-  def validate_image_quality_score_fields(issues, path, row, callbacks) do
+  def validate_image_quality_score_fields(issues, path, row) do
     [
       "image_quality_score",
       "planned_image_quality_score",
       "realized_image_quality_score"
     ]
     |> Enum.reduce(issues, fn field, acc ->
-      expect_optional_probability(acc, callbacks, path, row, field)
+      expect_optional_probability(acc, path, row, field)
     end)
   end
 
-  def validate_observation_quality_handoff_fields(issues, path, row, callbacks) do
+  def validate_observation_quality_handoff_fields(issues, path, row) do
     issues
-    |> validate_observation_quality_fraction_fields(path, row, callbacks)
-    |> validate_image_quality_score_fields(path, row, callbacks)
-    |> expect_optional_number(callbacks, path, row, "image_quality_score_delta")
-    |> expect_optional_number(callbacks, path, row, "cloud_cover_fraction_delta")
-    |> expect_optional_number(callbacks, path, row, "blur_score_delta")
-    |> expect_optional_type(callbacks, path, row, "image_quality_status", :binary)
-    |> expect_optional_type(callbacks, path, row, "planned_image_quality_status", :binary)
-    |> expect_optional_type(callbacks, path, row, "realized_image_quality_status", :binary)
-    |> expect_optional_type(callbacks, path, row, "image_quality_status_match_status", :binary)
-    |> expect_optional_type(callbacks, path, row, "image_quality_source", :binary)
+    |> validate_observation_quality_fraction_fields(path, row)
+    |> validate_image_quality_score_fields(path, row)
+    |> expect_optional_number(path, row, "image_quality_score_delta")
+    |> expect_optional_number(path, row, "cloud_cover_fraction_delta")
+    |> expect_optional_number(path, row, "blur_score_delta")
+    |> expect_optional_type(path, row, "image_quality_status", :binary)
+    |> expect_optional_type(path, row, "planned_image_quality_status", :binary)
+    |> expect_optional_type(path, row, "realized_image_quality_status", :binary)
+    |> expect_optional_type(path, row, "image_quality_status_match_status", :binary)
+    |> expect_optional_type(path, row, "image_quality_source", :binary)
   end
 
-  def validate_feedback_maneuver_handoff_fields(issues, path, row, callbacks) do
+  def validate_feedback_maneuver_handoff_fields(issues, path, row) do
     issues
-    |> expect_optional_number(callbacks, path, row, "feedback_weight")
-    |> expect_field_at_least(callbacks, path, row, "feedback_weight", 0.0)
-    |> expect_optional_type(callbacks, path, row, "feedback_weight_source", :binary)
-    |> expect_optional_type(callbacks, path, row, "maneuver_success", :boolean)
-    |> expect_optional_type(callbacks, path, row, "maneuver_result", :binary)
-    |> expect_optional_probability(callbacks, path, row, "maneuver_success_factor")
-    |> expect_optional_type(callbacks, path, row, "maneuver_success_factor_source", :binary)
+    |> expect_optional_number(path, row, "feedback_weight")
+    |> expect_field_at_least(path, row, "feedback_weight", 0.0)
+    |> expect_optional_type(path, row, "feedback_weight_source", :binary)
+    |> expect_optional_type(path, row, "maneuver_success", :boolean)
+    |> expect_optional_type(path, row, "maneuver_result", :binary)
+    |> expect_optional_probability(path, row, "maneuver_success_factor")
+    |> expect_optional_type(path, row, "maneuver_success_factor_source", :binary)
   end
 
-  def validate_link_error_rate_fields(issues, path, row, callbacks) do
+  def validate_link_error_rate_fields(issues, path, row) do
     [
       "bit_error_rate",
       "planned_bit_error_rate",
@@ -64,19 +75,19 @@ defmodule OrbitalDynamics.Schema.HandoffFieldContracts do
       "realized_frame_loss_rate"
     ]
     |> Enum.reduce(issues, fn field, acc ->
-      expect_optional_probability(acc, callbacks, path, row, field)
+      expect_optional_probability(acc, path, row, field)
     end)
   end
 
-  def validate_link_handoff_fields(issues, path, row, callbacks) do
+  def validate_link_handoff_fields(issues, path, row) do
     issues
-    |> validate_link_error_rate_fields(path, row, callbacks)
-    |> validate_link_handoff_string_fields(path, row, callbacks)
-    |> validate_link_handoff_number_fields(path, row, callbacks)
-    |> validate_link_handoff_boolean_fields(path, row, callbacks)
+    |> validate_link_error_rate_fields(path, row)
+    |> validate_link_handoff_string_fields(path, row)
+    |> validate_link_handoff_number_fields(path, row)
+    |> validate_link_handoff_boolean_fields(path, row)
   end
 
-  def validate_link_handoff_string_fields(issues, path, row, callbacks) do
+  def validate_link_handoff_string_fields(issues, path, row) do
     [
       "link_protocol",
       "planned_link_protocol",
@@ -103,11 +114,11 @@ defmodule OrbitalDynamics.Schema.HandoffFieldContracts do
       "realized_link_quality_status"
     ]
     |> Enum.reduce(issues, fn field, acc ->
-      expect_optional_type(acc, callbacks, path, row, field, :binary)
+      expect_optional_type(acc, path, row, field, :binary)
     end)
   end
 
-  def validate_link_handoff_number_fields(issues, path, row, callbacks) do
+  def validate_link_handoff_number_fields(issues, path, row) do
     [
       "data_rate_mbps",
       "downlink_rate_mbps",
@@ -141,11 +152,11 @@ defmodule OrbitalDynamics.Schema.HandoffFieldContracts do
       "eb_no_delta_db"
     ]
     |> Enum.reduce(issues, fn field, acc ->
-      expect_optional_number(acc, callbacks, path, row, field)
+      expect_optional_number(acc, path, row, field)
     end)
   end
 
-  def validate_link_handoff_boolean_fields(issues, path, row, callbacks) do
+  def validate_link_handoff_boolean_fields(issues, path, row) do
     [
       "carrier_lock",
       "planned_carrier_lock",
@@ -155,125 +166,88 @@ defmodule OrbitalDynamics.Schema.HandoffFieldContracts do
       "realized_symbol_lock"
     ]
     |> Enum.reduce(issues, fn field, acc ->
-      expect_optional_type(acc, callbacks, path, row, field, :boolean)
+      expect_optional_type(acc, path, row, field, :boolean)
     end)
   end
 
-  def validate_completion_fraction_fields(issues, path, row, callbacks) do
+  def validate_completion_fraction_fields(issues, path, row) do
     ["throughput_completion_fraction", "completed_fraction"]
     |> Enum.reduce(issues, fn field, acc ->
-      expect_optional_probability(acc, callbacks, path, row, field)
+      expect_optional_probability(acc, path, row, field)
     end)
   end
 
-  def validate_station_capacity_fraction_fields(issues, path, row, callbacks) do
+  def validate_station_capacity_fraction_fields(issues, path, row) do
     ["capacity_fraction", "capacity_fraction_min", "capacity_fraction_max"]
     |> Enum.reduce(issues, fn field, acc ->
-      expect_optional_probability(acc, callbacks, path, row, field)
+      expect_optional_probability(acc, path, row, field)
     end)
   end
 
-  def validate_eclipse_overlap_fraction_fields(issues, path, row, callbacks) do
+  def validate_eclipse_overlap_fraction_fields(issues, path, row) do
     [
       "eclipse_overlap_fraction",
       "planned_eclipse_overlap_fraction",
       "realized_eclipse_overlap_fraction"
     ]
     |> Enum.reduce(issues, fn field, acc ->
-      expect_optional_probability(acc, callbacks, path, row, field)
+      expect_optional_probability(acc, path, row, field)
     end)
   end
 
-  def validate_eclipse_lighting_handoff_fields(issues, path, row, callbacks) do
+  def validate_eclipse_lighting_handoff_fields(issues, path, row) do
     issues
-    |> validate_eclipse_overlap_fraction_fields(path, row, callbacks)
-    |> expect_optional_number(callbacks, path, row, "eclipse_overlap_s")
-    |> expect_optional_number(callbacks, path, row, "planned_eclipse_overlap_s")
-    |> expect_optional_number(callbacks, path, row, "realized_eclipse_overlap_s")
-    |> expect_optional_type(callbacks, path, row, "lighting_condition", :binary)
-    |> expect_optional_type(callbacks, path, row, "planned_lighting_condition", :binary)
-    |> expect_optional_type(callbacks, path, row, "realized_lighting_condition", :binary)
-    |> expect_optional_type(callbacks, path, row, "lighting_condition_match_status", :binary)
-    |> expect_optional_type(callbacks, path, row, "lighting_condition_detail", :binary)
-    |> expect_optional_type(callbacks, path, row, "lighting_condition_model", :binary)
-    |> expect_optional_type(callbacks, path, row, "lighting_detail_model", :binary)
-    |> expect_optional_number_or_string(callbacks, path, row, "lighting_confidence")
+    |> validate_eclipse_overlap_fraction_fields(path, row)
+    |> expect_optional_number(path, row, "eclipse_overlap_s")
+    |> expect_optional_number(path, row, "planned_eclipse_overlap_s")
+    |> expect_optional_number(path, row, "realized_eclipse_overlap_s")
+    |> expect_optional_type(path, row, "lighting_condition", :binary)
+    |> expect_optional_type(path, row, "planned_lighting_condition", :binary)
+    |> expect_optional_type(path, row, "realized_lighting_condition", :binary)
+    |> expect_optional_type(path, row, "lighting_condition_match_status", :binary)
+    |> expect_optional_type(path, row, "lighting_condition_detail", :binary)
+    |> expect_optional_type(path, row, "lighting_condition_model", :binary)
+    |> expect_optional_type(path, row, "lighting_detail_model", :binary)
+    |> expect_optional_number_or_string(path, row, "lighting_confidence")
   end
 
-  def validate_thermal_handoff_fields(issues, path, row, callbacks) do
+  def validate_thermal_handoff_fields(issues, path, row) do
     issues
-    |> validate_stable_ids(callbacks, path, row, ["thermal_zone_id"])
-    |> expect_optional_number(callbacks, path, row, "temperature_c")
-    |> expect_optional_number(callbacks, path, row, "planned_temperature_c")
-    |> expect_optional_number(callbacks, path, row, "actual_temperature_c")
-    |> expect_optional_number(callbacks, path, row, "temperature_delta_c")
-    |> expect_optional_number(callbacks, path, row, "min_operating_temperature_c")
-    |> expect_optional_number(callbacks, path, row, "max_operating_temperature_c")
-    |> expect_optional_number(callbacks, path, row, "thermal_margin_c")
-    |> expect_optional_type(callbacks, path, row, "thermal_status", :binary)
-    |> expect_optional_type(callbacks, path, row, "thermal_model", :binary)
-    |> expect_optional_type(callbacks, path, row, "thermal_source", :binary)
-    |> expect_optional_probability(callbacks, path, row, "thermal_confidence")
+    |> validate_stable_ids(path, row, ["thermal_zone_id"])
+    |> expect_optional_number(path, row, "temperature_c")
+    |> expect_optional_number(path, row, "planned_temperature_c")
+    |> expect_optional_number(path, row, "actual_temperature_c")
+    |> expect_optional_number(path, row, "temperature_delta_c")
+    |> expect_optional_number(path, row, "min_operating_temperature_c")
+    |> expect_optional_number(path, row, "max_operating_temperature_c")
+    |> expect_optional_number(path, row, "thermal_margin_c")
+    |> expect_optional_type(path, row, "thermal_status", :binary)
+    |> expect_optional_type(path, row, "thermal_model", :binary)
+    |> expect_optional_type(path, row, "thermal_source", :binary)
+    |> expect_optional_probability(path, row, "thermal_confidence")
   end
 
-  def validate_resource_availability_variance_fields(issues, path, row, callbacks) do
+  def validate_resource_availability_variance_fields(issues, path, row) do
     issues
-    |> expect_optional_type(callbacks, path, row, "spacecraft_available", :boolean)
-    |> expect_optional_type(callbacks, path, row, "planned_spacecraft_available", :boolean)
-    |> expect_optional_type(callbacks, path, row, "realized_spacecraft_available", :boolean)
-    |> expect_optional_type(callbacks, path, row, "spacecraft_available_match_status", :binary)
-    |> expect_optional_type(callbacks, path, row, "payload_available", :boolean)
-    |> expect_optional_type(callbacks, path, row, "planned_payload_available", :boolean)
-    |> expect_optional_type(callbacks, path, row, "realized_payload_available", :boolean)
-    |> expect_optional_type(callbacks, path, row, "payload_available_match_status", :binary)
-    |> expect_optional_type(callbacks, path, row, "antenna_available", :boolean)
-    |> expect_optional_type(callbacks, path, row, "planned_antenna_available", :boolean)
-    |> expect_optional_type(callbacks, path, row, "realized_antenna_available", :boolean)
-    |> expect_optional_type(callbacks, path, row, "antenna_available_match_status", :binary)
-    |> expect_optional_type(callbacks, path, row, "degraded", :boolean)
-    |> expect_optional_type(callbacks, path, row, "planned_degraded", :boolean)
-    |> expect_optional_type(callbacks, path, row, "realized_degraded", :boolean)
-    |> expect_optional_type(callbacks, path, row, "degraded_match_status", :binary)
-    |> expect_optional_type(callbacks, path, row, "mode", :binary)
-    |> expect_optional_type(callbacks, path, row, "planned_mode", :binary)
-    |> expect_optional_type(callbacks, path, row, "realized_mode", :binary)
-    |> expect_optional_type(callbacks, path, row, "mode_match_status", :binary)
+    |> expect_optional_type(path, row, "spacecraft_available", :boolean)
+    |> expect_optional_type(path, row, "planned_spacecraft_available", :boolean)
+    |> expect_optional_type(path, row, "realized_spacecraft_available", :boolean)
+    |> expect_optional_type(path, row, "spacecraft_available_match_status", :binary)
+    |> expect_optional_type(path, row, "payload_available", :boolean)
+    |> expect_optional_type(path, row, "planned_payload_available", :boolean)
+    |> expect_optional_type(path, row, "realized_payload_available", :boolean)
+    |> expect_optional_type(path, row, "payload_available_match_status", :binary)
+    |> expect_optional_type(path, row, "antenna_available", :boolean)
+    |> expect_optional_type(path, row, "planned_antenna_available", :boolean)
+    |> expect_optional_type(path, row, "realized_antenna_available", :boolean)
+    |> expect_optional_type(path, row, "antenna_available_match_status", :binary)
+    |> expect_optional_type(path, row, "degraded", :boolean)
+    |> expect_optional_type(path, row, "planned_degraded", :boolean)
+    |> expect_optional_type(path, row, "realized_degraded", :boolean)
+    |> expect_optional_type(path, row, "degraded_match_status", :binary)
+    |> expect_optional_type(path, row, "mode", :binary)
+    |> expect_optional_type(path, row, "planned_mode", :binary)
+    |> expect_optional_type(path, row, "realized_mode", :binary)
+    |> expect_optional_type(path, row, "mode_match_status", :binary)
   end
-
-  defp expect_optional_probability(issues, callbacks, path, row, field) do
-    apply(require_callback(callbacks, :expect_optional_probability), [issues, path, row, field])
-  end
-
-  defp expect_optional_number(issues, callbacks, path, row, field) do
-    apply(require_callback(callbacks, :expect_optional_number), [issues, path, row, field])
-  end
-
-  defp expect_optional_type(issues, callbacks, path, row, field, type) do
-    apply(require_callback(callbacks, :expect_optional_type), [issues, path, row, field, type])
-  end
-
-  defp expect_field_at_least(issues, callbacks, path, row, field, minimum) do
-    apply(require_callback(callbacks, :expect_field_at_least), [
-      issues,
-      path,
-      row,
-      field,
-      minimum
-    ])
-  end
-
-  defp expect_optional_number_or_string(issues, callbacks, path, row, field) do
-    apply(require_callback(callbacks, :expect_optional_number_or_string), [
-      issues,
-      path,
-      row,
-      field
-    ])
-  end
-
-  defp validate_stable_ids(issues, callbacks, path, row, fields) do
-    apply(require_callback(callbacks, :validate_stable_ids), [issues, path, row, fields])
-  end
-
-  defp require_callback(callbacks, name), do: Keyword.fetch!(callbacks, name)
 end

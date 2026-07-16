@@ -9,7 +9,7 @@ Current slice:
 Handoff-field validator callback cleanup.
 
 Status:
-Selected; implementation pending.
+Complete; publication pending.
 
 Selected slice:
 Remove the six-entry callback bag from `HandoffFieldContracts` by calling
@@ -53,6 +53,24 @@ Definition of done:
 No handoff callback factory or trampolines remain, all 12 invocations use direct
 owner arities, row/state owners no longer thread nested callbacks, focused/
 broader/export checks pass, and bounded review finds no blocker.
+
+Result:
+Removed the six-entry handoff callback factory and all owner trampolines. All 15
+handoff validators now call primitive/stable-ID owners directly, all 12 external
+invocations use the reduced arities, and the feedback row/state boundaries no
+longer thread nested callbacks. `schema.ex` fell from 12,574 to 12,551 lines and
+the handoff owner from 279 to 253; public facade behavior is unchanged.
+
+Verification:
+- compile with warnings as errors passed
+- focused handoff/timeline/schema matrix: 95 passed, 180 excluded
+- reviewer-focused handoff/timeline-state matrix: 24 passed
+- broader timeline, timeline-feedback, and candidate-refresh suites: 955 passed
+- schema export trio: 22 passed
+- checked-in schema export reproduced with no diff, preserving its fingerprint
+- format, diff hygiene, residue, arity-sensitive callsite, public-definition,
+  and xref checks passed
+- bounded read-only review found no must-fix issue
 
 Verification gaps:
 - Full repository suite not run.

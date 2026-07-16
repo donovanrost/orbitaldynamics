@@ -33,7 +33,6 @@ defmodule OrbitalDynamics.Schema do
       expect_optional_non_negative_integer: 4,
       expect_optional_non_negative_number: 4,
       expect_optional_number: 4,
-      expect_optional_number_or_string: 4,
       expect_optional_one_of: 5,
       expect_optional_probability: 4,
       expect_optional_type: 5,
@@ -6669,8 +6668,7 @@ defmodule OrbitalDynamics.Schema do
     |> OrbitalDynamics.Schema.TimelineActivityStateContracts.validate(
       "$",
       artifact,
-      timeline_feedback_report_model_limits(),
-      handoff_field_contract_callbacks()
+      timeline_feedback_report_model_limits()
     )
   end
 
@@ -8474,8 +8472,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.HandoffFieldContracts.validate_observation_quality_handoff_fields(
       issues,
       path,
-      row,
-      handoff_field_contract_callbacks()
+      row
     )
   end
 
@@ -8483,8 +8480,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.HandoffFieldContracts.validate_feedback_maneuver_handoff_fields(
       issues,
       path,
-      row,
-      handoff_field_contract_callbacks()
+      row
     )
   end
 
@@ -8492,8 +8488,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.HandoffFieldContracts.validate_link_handoff_fields(
       issues,
       path,
-      row,
-      handoff_field_contract_callbacks()
+      row
     )
   end
 
@@ -8501,8 +8496,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.HandoffFieldContracts.validate_completion_fraction_fields(
       issues,
       path,
-      row,
-      handoff_field_contract_callbacks()
+      row
     )
   end
 
@@ -8510,8 +8504,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.HandoffFieldContracts.validate_station_capacity_fraction_fields(
       issues,
       path,
-      row,
-      handoff_field_contract_callbacks()
+      row
     )
   end
 
@@ -8519,8 +8512,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.HandoffFieldContracts.validate_eclipse_lighting_handoff_fields(
       issues,
       path,
-      row,
-      handoff_field_contract_callbacks()
+      row
     )
   end
 
@@ -8528,8 +8520,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.HandoffFieldContracts.validate_thermal_handoff_fields(
       issues,
       path,
-      row,
-      handoff_field_contract_callbacks()
+      row
     )
   end
 
@@ -8718,8 +8709,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.TimelineFeedbackRowContracts.validate(
       issues,
       path,
-      row,
-      handoff_field_contract_callbacks()
+      row
     )
   end
 
@@ -8727,8 +8717,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.HandoffFieldContracts.validate_resource_availability_variance_fields(
       issues,
       path,
-      row,
-      handoff_field_contract_callbacks()
+      row
     )
   end
 
@@ -9019,8 +9008,7 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       state,
-      timeline_feedback_report_model_limits(),
-      handoff_field_contract_callbacks()
+      timeline_feedback_report_model_limits()
     )
   end
 
@@ -9779,17 +9767,6 @@ defmodule OrbitalDynamics.Schema do
         &validate_resource_projection_battery_handoff_fields/3,
       validate_resource_projection_battery_handoff_matches_own_flow:
         &validate_resource_projection_battery_handoff_matches_own_flow/3,
-      validate_stable_ids: &validate_stable_ids/4
-    ]
-  end
-
-  defp handoff_field_contract_callbacks do
-    [
-      expect_field_at_least: &expect_field_at_least/5,
-      expect_optional_number: &expect_optional_number/4,
-      expect_optional_number_or_string: &expect_optional_number_or_string/4,
-      expect_optional_probability: &expect_optional_probability/4,
-      expect_optional_type: &expect_optional_type/5,
       validate_stable_ids: &validate_stable_ids/4
     ]
   end
