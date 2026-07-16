@@ -11663,26 +11663,8 @@ defmodule OrbitalDynamics.Schema do
       path,
       requirement,
       policy_model_limits(),
-      approval_requirement_contract_callbacks()
+      policy_rule_match_field_groups()
     )
-  end
-
-  defp approval_requirement_contract_callbacks do
-    [
-      require_fields: &require_fields/4,
-      validate_stable_ids: &validate_stable_ids/4,
-      validate_optional_schema_contract: &validate_optional_schema_contract/4,
-      expect_optional_type: &expect_optional_type/5,
-      validate_optional_activity_context: &validate_optional_activity_context/4,
-      validate_optional_rows: &validate_optional_rows/4,
-      validate_policy_rule_match: &validate_policy_rule_match/3,
-      expect_optional_one_of: &expect_optional_one_of/5,
-      validate_policy_escalation: &validate_policy_escalation/3,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_optional_exact_model_limits: &validate_optional_exact_model_limits/5,
-      expect_field_equals: &expect_field_equals/5,
-      error: &error/2
-    ]
   end
 
   defp validate_optional_policy_decision_evidence(issues, path, decision) do
@@ -11690,8 +11672,7 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       decision,
-      policy_model_limits(),
-      approval_requirement_contract_callbacks()
+      policy_model_limits()
     )
   end
 
