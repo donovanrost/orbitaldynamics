@@ -6,21 +6,21 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Completed: timeline publication registry extraction.
+Completed: operational timeline registry extraction.
 
 Status:
-Published.
+Ready to publish.
 
 Selected slice:
-Moved `timeline_publication_summary.v1` into
-`Schema.TimelinePublicationRegistryContracts`.
+Moved `operational_timeline_report.v1` into
+`Schema.OperationalTimelineRegistryContracts`.
 
 Why this slice:
-The substantial publication summary is the remaining adjacent timeline registry
-definition and composes the already-extracted diff and dependency schemas.
+This substantial report is the final inline timeline registry definition and
+has direct focused schema and export coverage.
 
 Current coupling/problem:
-Declarative timeline publication contract data remains embedded in the large
+Declarative operational timeline contract data remains embedded in the large
 public `Schema` facade even though the facade only needs the merged registry.
 
 Public facade to preserve:
@@ -31,16 +31,16 @@ Public facade to preserve:
 - `OrbitalDynamics.Schema.validate_artifact/2`
 
 Likely extraction target:
-`OrbitalDynamics.Schema.TimelinePublicationRegistryContracts.contracts/0`.
+`OrbitalDynamics.Schema.OperationalTimelineRegistryContracts.contracts/0`.
 
 Likely files:
 - `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/timeline_publication_registry_contracts.ex`
+- `lib/orbital_dynamics/schema/operational_timeline_registry_contracts.ex`
 
 Likely tests:
-- `test/orbital_dynamics/schema/timeline_summary_contracts_test.exs`
-- `test/orbital_dynamics/schema/review_import_handoff_contracts_test.exs`
+- `test/orbital_dynamics/schema/operational_timeline_contracts_test.exs`
+- `test/orbital_dynamics/schema/fixture_visibility_contracts_test.exs`
 - `test/orbital_dynamics/schema/registry_capability_test.exs`
 - `test/mix/tasks/orbital_dynamics.schema.export_test.exs`
 
@@ -52,7 +52,7 @@ fingerprint remains unchanged.
 Files changed:
 - `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/timeline_publication_registry_contracts.ex`
+- `lib/orbital_dynamics/schema/operational_timeline_registry_contracts.ex`
 
 Public APIs preserved:
 - `OrbitalDynamics.Schema.contracts/0`
@@ -62,35 +62,36 @@ Public APIs preserved:
 - `OrbitalDynamics.Schema.validate_artifact/2`
 
 Behavior/schema changes:
-None. Registry contents, timeline publication validation, and generated schemas
+None. Registry contents, operational timeline validation, and generated schemas
 retain the baseline fingerprint.
 
 Tests run:
 - `mix compile --warnings-as-errors` passed.
-- Timeline summary, review/import handoff, registry capability, and schema
-  export tests passed: 30 tests.
+- Operational timeline contracts, fixture visibility, registry capability, and
+  schema export tests passed: 12 tests.
 - SHA-256 over `{Schema.contracts(), Schema.json_schema_bundle()}` remained
   `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`.
 - Xref caller and compile-connected checks passed with the expected facade edge.
-- Formatting, whitespace, new-file no-index, conflict-marker, and checked-in
-  schema cleanliness checks passed.
+- Formatting, whitespace, new-file no-index, and checked-in-schema cleanliness
+  checks passed.
 
 Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`031f258b` (`Extract timeline publication registry contracts`).
+`cbad6ead` (`Update timeline publication handoff`).
 
 Next candidate:
-Assess `operational_timeline_report.v1` as the next bounded timeline registry
-extraction.
+Assess the objective tradeoff, satisfaction, ranking comparison, and Pareto
+frontier reports as the next bounded registry family.
 
 Blocked:
 No.
 
 Notes:
-- `schema.ex` decreased from 18,026 to 17,973 lines.
-- `TimelinePublicationRegistryContracts` is 62 lines.
+- `schema.ex` decreased from 17,973 to 17,927 lines.
+- `OperationalTimelineRegistryContracts` is 55 lines.
 - Parent review found no must-fix findings; parent publishing is the active-mode
   fallback because subagent delegation is unavailable.
+- No timeline-family contract definitions remain inline in `@base_contracts`.
 - The inline registry remains substantial; this is not a completion claim.
