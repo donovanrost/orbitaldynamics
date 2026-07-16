@@ -6,59 +6,55 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Operational-timeline-report callback-bag collapse.
+Selected-timeline-integrity callback-bag collapse.
 
 Status:
-Completed; ready to publish.
+Selected; implementation pending.
 
 Selected slice:
-Replace the 15-entry callback bag in `OperationalTimelineReportContracts` with
-direct primitive, stable-ID, collection-validation, and collection-aggregation
-owners, explicit timeline model-limit data, and the one facade-owned row
-validator function.
+Replace the five-entry callback bag in `TimelineSelectedIntegrityContracts`
+with direct primitive and stable-ID owners.
 
 Why this slice:
 Live inventory shows `schema.ex` remains the dominant production hotspot at
-12,307 lines. The 471-line operational-timeline owner contains 15 callback
-trampolines; most target shared primitive/collection validators, while timeline
-row validation remains a facade boundary. Focused timeline report, replay,
-review, export, and broader candidate-refresh coverage is available.
+12,284 lines. The 260-line selected-integrity owner has five uniform callback
+trampolines, all targeting existing primitive or stable-ID validators. It is
+nested in transition-application rows, with focused transition, integrity,
+replay, review, and export coverage available.
 
 Public facade to preserve:
-`OrbitalDynamics.Schema.validate_artifact/2` and all operational-timeline report
-behavior, including validation order/messages, optional aggregates, row
-validation, timeline model limits, deterministic errors, replay consumers, and
-exports.
+`OrbitalDynamics.Schema.validate_artifact/2` and all selected-timeline-integrity
+behavior, including optional field validation, stable-ID lists, allowed issue
+types, selected-activity equality messages, deterministic errors, nested
+transition rows, replay consumers, and exports.
 
 Likely extraction target:
-Replace `validate/4` with an explicit signature accepting timeline model-limit
-data plus the row validator. Remove the schema bag and owner trampolines, call
-shared validators and collection aggregations directly, and preserve the
-five-argument field-equality default-message behavior exactly.
+Replace `validate/4` with `validate/3`, remove the schema bag and owner callback
+trampolines, and import the exact primitive and stable-ID arities directly.
 
 Likely files:
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/operational_timeline_report_contracts.ex`
+- `lib/orbital_dynamics/schema/timeline_selected_integrity_contracts.ex`
 - `.codex/status/large_module_refactor.md`
 
 Likely tests:
 - compile with warnings as errors
-- timeline-report schema contracts and validation fixtures
+- timeline transition-application and integrity schema contracts
 - focused candidate-refresh replay and operator-review consumers
 - schema export trio and checked-in export/fingerprint verification
 - broader communications/candidate-refresh checks, xref, format, and diff hygiene
 
 Definition of done:
-No operational-timeline report callback bag or shared-helper trampolines remain;
-explicit model data and the one row-validator boundary preserve exact behavior,
-including default equality messages; focused/broader/export checks pass; and
-bounded review finds no blocker.
+No selected-integrity callback bag or callback trampolines remain; direct owners
+preserve exact validation order/messages; focused/broader/export checks pass;
+and bounded review finds no blocker.
 
 Verification gaps:
 - Full repository suite not run.
 
 Last completed slice:
-Operational-timeline-report callback collapse ready to publish: `schema.ex`
+Operational-timeline-report callback collapse published as `d5a349f3`:
+`schema.ex`
 fell from 12,307 to 12,284 lines and its owner from 471 to 382. The 15-entry bag
 became direct shared owners, explicit timeline model-limit data, one row-validator
 boundary, and a local exact copy of the facade's default equality-message
