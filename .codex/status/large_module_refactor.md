@@ -9,7 +9,7 @@ Current slice:
 Timeline-transition-application-row callback-bag collapse.
 
 Status:
-Selected; implementation pending.
+Completed; ready to publish.
 
 Selected slice:
 Replace the 11-entry callback bag in
@@ -56,12 +56,13 @@ Verification gaps:
 - Full repository suite not run.
 
 Last completed slice:
-Timeline-transition-selected-activity callback collapse published as
-`4d6e44ee`: `schema.ex` fell from 12,273 to 12,257 lines and its owner from 144 to 125. The
-12-entry bag became direct primitive/stable-ID owners plus two explicit facade
-validators; all callback trampolines were removed. 48 focused, 890 broader, and
-22 export tests passed; compile, xref, format, diff hygiene, and checked-in
-schema regeneration were clean. Bounded review found no issues.
+Timeline-transition-application-row callback collapse ready to publish:
+`schema.ex` fell from 12,257 to 12,245 lines while its cohesive owner grew from
+125 to 139 to expose five typed facade boundaries. The 11-entry opaque bag and
+all callback trampolines were removed; six shared validators now use direct
+owners. 48 focused, 890 broader, and 22 export tests passed; compile, xref,
+format, diff hygiene, and checked-in schema regeneration were clean. Bounded
+review found no issues and judged the explicit dependency tradeoff acceptable.
 
 Blocked:
 No.

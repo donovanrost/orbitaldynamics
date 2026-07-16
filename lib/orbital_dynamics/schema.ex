@@ -8889,24 +8889,12 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       row,
-      timeline_transition_application_row_contract_callbacks()
+      &validate_optional_lifecycle_transition/4,
+      &validate_optional_protection_decision/4,
+      &validate_timeline_identity_collision_fields/3,
+      &validate_selected_timeline_integrity_fields/3,
+      &validate_timeline_diff_row/3
     )
-  end
-
-  defp timeline_transition_application_row_contract_callbacks do
-    [
-      require_fields: &require_fields/4,
-      validate_stable_ids: &validate_stable_ids/4,
-      expect_number: &expect_number/4,
-      expect_one_of: &expect_one_of/5,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      validate_optional_lifecycle_transition: &validate_optional_lifecycle_transition/4,
-      validate_optional_protection_decision: &validate_optional_protection_decision/4,
-      validate_timeline_identity_collision_fields: &validate_timeline_identity_collision_fields/3,
-      validate_selected_timeline_integrity_fields: &validate_selected_timeline_integrity_fields/3,
-      validate_timeline_diff_row: &validate_timeline_diff_row/3
-    ]
   end
 
   defp validate_timeline_identity_collision_fields(issues, path, row) do

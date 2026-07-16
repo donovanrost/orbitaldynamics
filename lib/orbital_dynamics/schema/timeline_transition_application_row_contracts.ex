@@ -1,9 +1,34 @@
 defmodule OrbitalDynamics.Schema.TimelineTransitionApplicationRowContracts do
   @moduledoc false
 
-  def validate(issues, path, row, callbacks) when is_list(callbacks) do
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [
+      expect_number: 4,
+      expect_one_of: 5,
+      expect_optional_type: 5,
+      expect_type: 5,
+      require_fields: 4
+    ]
+
+  import OrbitalDynamics.Schema.StableIdValidation, only: [validate_stable_ids: 4]
+
+  def validate(
+        issues,
+        path,
+        row,
+        lifecycle_transition_validator,
+        protection_decision_validator,
+        timeline_identity_collision_validator,
+        selected_timeline_integrity_validator,
+        timeline_diff_row_validator
+      )
+      when is_function(lifecycle_transition_validator, 4) and
+             is_function(protection_decision_validator, 4) and
+             is_function(timeline_identity_collision_validator, 3) and
+             is_function(selected_timeline_integrity_validator, 3) and
+             is_function(timeline_diff_row_validator, 3) do
     issues
-    |> require_fields(callbacks, path, row, [
+    |> require_fields(path, row, [
       "id",
       "rank",
       "timeline_id",
@@ -16,110 +41,99 @@ defmodule OrbitalDynamics.Schema.TimelineTransitionApplicationRowContracts do
       "application_status",
       "source_timeline_diff"
     ])
-    |> validate_stable_ids(callbacks, path, row, [
+    |> validate_stable_ids(path, row, [
       "id",
       "timeline_id",
       "source_activity_id",
       "replacement_activity_id"
     ])
-    |> expect_number(callbacks, path, row, "rank")
+    |> expect_number(path, row, "rank")
     |> expect_one_of(
-      callbacks,
       path,
       row,
       "diff_status",
       timeline_capability().timeline_diff_statuses
     )
-    |> expect_type(callbacks, path, row, "transition_decision", :binary)
+    |> expect_type(path, row, "transition_decision", :binary)
     |> expect_one_of(
-      callbacks,
       path,
       row,
       "transition_decision",
       timeline_capability().transition_decisions
     )
-    |> expect_type(callbacks, path, row, "requires_operator_review", :boolean)
+    |> expect_type(path, row, "requires_operator_review", :boolean)
     |> expect_one_of(
-      callbacks,
       path,
       row,
       "required_operator_action",
       timeline_capability().timeline_diff_required_operator_actions
     )
-    |> expect_type(callbacks, path, row, "reason", :binary)
-    |> expect_optional_type(callbacks, path, row, "operator_action_reason", :binary)
-    |> expect_type(callbacks, path, row, "changed_fields", :list)
-    |> expect_optional_type(callbacks, path, row, "status_transition", :map)
-    |> expect_optional_type(callbacks, path, row, "approval_transition", :map)
-    |> validate_optional_lifecycle_transition(callbacks, path, row, "status_transition")
-    |> validate_optional_lifecycle_transition(callbacks, path, row, "approval_transition")
-    |> expect_type(callbacks, path, row, "application_status", :binary)
-    |> expect_optional_type(callbacks, path, row, "source_activity_type", :binary)
-    |> expect_optional_type(callbacks, path, row, "replacement_activity_type", :binary)
-    |> expect_optional_type(callbacks, path, row, "source_protection_decision", :map)
-    |> expect_optional_type(callbacks, path, row, "replacement_protection_decision", :map)
-    |> validate_optional_protection_decision(callbacks, path, row, "source_protection_decision")
-    |> validate_optional_protection_decision(
-      callbacks,
+    |> expect_type(path, row, "reason", :binary)
+    |> expect_optional_type(path, row, "operator_action_reason", :binary)
+    |> expect_type(path, row, "changed_fields", :list)
+    |> expect_optional_type(path, row, "status_transition", :map)
+    |> expect_optional_type(path, row, "approval_transition", :map)
+    |> validate_optional_lifecycle_transition(
       path,
       row,
-      "replacement_protection_decision"
+      "status_transition",
+      lifecycle_transition_validator
     )
-    |> validate_timeline_identity_collision_fields(callbacks, path, row)
-    |> validate_selected_timeline_integrity_fields(callbacks, path, row)
-    |> expect_type(callbacks, path, row, "source_timeline_diff", :map)
+    |> validate_optional_lifecycle_transition(
+      path,
+      row,
+      "approval_transition",
+      lifecycle_transition_validator
+    )
+    |> expect_type(path, row, "application_status", :binary)
+    |> expect_optional_type(path, row, "source_activity_type", :binary)
+    |> expect_optional_type(path, row, "replacement_activity_type", :binary)
+    |> expect_optional_type(path, row, "source_protection_decision", :map)
+    |> expect_optional_type(path, row, "replacement_protection_decision", :map)
+    |> validate_optional_protection_decision(
+      path,
+      row,
+      "source_protection_decision",
+      protection_decision_validator
+    )
+    |> validate_optional_protection_decision(
+      path,
+      row,
+      "replacement_protection_decision",
+      protection_decision_validator
+    )
+    |> validate_timeline_identity_collision_fields(
+      path,
+      row,
+      timeline_identity_collision_validator
+    )
+    |> validate_selected_timeline_integrity_fields(
+      path,
+      row,
+      selected_timeline_integrity_validator
+    )
+    |> expect_type(path, row, "source_timeline_diff", :map)
     |> validate_timeline_diff_row(
-      callbacks,
       path <> ".source_timeline_diff",
-      Map.get(row, "source_timeline_diff", %{})
+      Map.get(row, "source_timeline_diff", %{}),
+      timeline_diff_row_validator
     )
   end
 
   defp timeline_capability, do: OrbitalDynamics.Timeline.capabilities()
 
-  defp expect_number(issues, callbacks, path, row, field) do
-    callback!(callbacks, :expect_number).(issues, path, row, field)
-  end
+  defp validate_optional_lifecycle_transition(issues, path, row, field, validator),
+    do: validator.(issues, path, row, field)
 
-  defp expect_one_of(issues, callbacks, path, row, field, values) do
-    callback!(callbacks, :expect_one_of).(issues, path, row, field, values)
-  end
+  defp validate_optional_protection_decision(issues, path, row, field, validator),
+    do: validator.(issues, path, row, field)
 
-  defp expect_optional_type(issues, callbacks, path, row, field, type) do
-    callback!(callbacks, :expect_optional_type).(issues, path, row, field, type)
-  end
+  defp validate_timeline_identity_collision_fields(issues, path, row, validator),
+    do: validator.(issues, path, row)
 
-  defp expect_type(issues, callbacks, path, row, field, type) do
-    callback!(callbacks, :expect_type).(issues, path, row, field, type)
-  end
+  defp validate_selected_timeline_integrity_fields(issues, path, row, validator),
+    do: validator.(issues, path, row)
 
-  defp require_fields(issues, callbacks, path, row, fields) do
-    callback!(callbacks, :require_fields).(issues, path, row, fields)
-  end
-
-  defp validate_optional_lifecycle_transition(issues, callbacks, path, row, field) do
-    callback!(callbacks, :validate_optional_lifecycle_transition).(issues, path, row, field)
-  end
-
-  defp validate_optional_protection_decision(issues, callbacks, path, row, field) do
-    callback!(callbacks, :validate_optional_protection_decision).(issues, path, row, field)
-  end
-
-  defp validate_selected_timeline_integrity_fields(issues, callbacks, path, row) do
-    callback!(callbacks, :validate_selected_timeline_integrity_fields).(issues, path, row)
-  end
-
-  defp validate_stable_ids(issues, callbacks, path, row, fields) do
-    callback!(callbacks, :validate_stable_ids).(issues, path, row, fields)
-  end
-
-  defp validate_timeline_diff_row(issues, callbacks, path, row) do
-    callback!(callbacks, :validate_timeline_diff_row).(issues, path, row)
-  end
-
-  defp validate_timeline_identity_collision_fields(issues, callbacks, path, row) do
-    callback!(callbacks, :validate_timeline_identity_collision_fields).(issues, path, row)
-  end
-
-  defp callback!(callbacks, name), do: Keyword.fetch!(callbacks, name)
+  defp validate_timeline_diff_row(issues, path, row, validator),
+    do: validator.(issues, path, row)
 end
