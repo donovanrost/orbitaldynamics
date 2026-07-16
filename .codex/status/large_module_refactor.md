@@ -9,7 +9,7 @@ Current slice:
 Timeline-diff-report callback-bag collapse.
 
 Status:
-Selected; implementation pending.
+Complete; publication pending.
 
 Selected slice:
 Remove the 16-entry callback bag from `TimelineDiffReportContracts`. Call
@@ -48,6 +48,24 @@ Definition of done:
 No report callback factory or trampolines remain; direct owners and model-limit
 data preserve exact behavior; focused/broader/export checks pass; and bounded
 review finds no blocker.
+
+Result:
+Removed the 16-entry report callback factory and all owner trampolines. The
+owner now receives only timeline model-limit data and calls extracted primitive,
+collection, aggregation, and row validators directly. The now-unused facade
+changed-field aggregation wrapper was also removed. `schema.ex` fell from
+12,504 to 12,479 lines and the report owner from 292 to 209; public behavior and
+exports are unchanged.
+
+Verification:
+- compile with warnings as errors passed
+- focused timeline-diff contract/fixture matrix: 10 passed, 306 excluded
+- reviewer-focused timeline report contracts: 8 passed
+- broader timeline and candidate-refresh suites: 882 passed
+- schema export trio: 22 passed
+- checked-in schema export reproduced with no diff, preserving its fingerprint
+- format, diff hygiene, residue, public-definition, and xref checks passed
+- bounded read-only review found no must-fix issue
 
 Verification gaps:
 - Full repository suite not run.
