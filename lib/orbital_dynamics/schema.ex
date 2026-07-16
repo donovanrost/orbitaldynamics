@@ -7129,29 +7129,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp scoped_downlink_context_contract_callbacks do
-    [
-      validate_stable_ids: &validate_stable_ids/4,
-      expect_optional_type: &expect_optional_type/5,
-      validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
-      validate_string_list_items: &validate_string_list_items/4,
-      expect_optional_number: &expect_optional_number/4
-    ]
-  end
-
-  defp candidate_refresh_scoped_context_contract_callbacks do
-    [
-      validate_scoped_downlink_context_fields: &validate_scoped_downlink_context_fields/3,
-      expect_optional_integer: &expect_optional_integer/4,
-      expect_field_at_least: &expect_field_at_least/5,
-      expect_optional_type: &expect_optional_type/5,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
-      expect_optional_number: &expect_optional_number/4,
-      expect_optional_probability: &expect_optional_probability/4
-    ]
-  end
-
   defp candidate_refresh_window_contract_callbacks do
     [
       expect_type: &expect_type/5,
@@ -9441,8 +9418,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.ScopedDownlinkContextContracts.validate(
       issues,
       path,
-      row,
-      scoped_downlink_context_contract_callbacks()
+      row
     )
   end
 
@@ -9522,8 +9498,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.CandidateRefreshScopedContextContracts.validate(
       issues,
       path,
-      row,
-      candidate_refresh_scoped_context_contract_callbacks()
+      row
     )
   end
 
