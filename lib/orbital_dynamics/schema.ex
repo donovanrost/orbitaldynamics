@@ -14604,8 +14604,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.PriorityOverrideContracts.validate_map(
       issues,
       path,
-      overrides,
-      priority_override_contract_callbacks()
+      overrides
     )
   end
 
@@ -14618,8 +14617,7 @@ defmodule OrbitalDynamics.Schema do
       path,
       map,
       count_field,
-      ids_field,
-      priority_override_contract_callbacks()
+      ids_field
     )
   end
 
@@ -14627,15 +14625,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.PriorityOverrideContracts.validate_ids_match_map(
       issues,
       path,
-      policy,
-      priority_override_contract_callbacks()
+      policy
     )
-  end
-
-  defp priority_override_contract_callbacks do
-    [
-      validate_stable_id: &validate_stable_id/3,
-      error: &error/2
-    ]
   end
 end
