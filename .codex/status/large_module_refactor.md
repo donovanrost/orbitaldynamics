@@ -9,7 +9,7 @@ Current slice:
 Timeline-dependency-impact-summary callback-bag collapse.
 
 Status:
-Selected; implementation pending.
+Completed; ready to publish.
 
 Selected slice:
 Remove the 13-entry callback bag from
@@ -55,12 +55,29 @@ call paths use direct owners with identical model-limit data where applicable;
 exact behavior is preserved; focused/broader/export checks pass; and bounded
 review finds no blocker.
 
+Result:
+Removed the 13-entry callback factory and all owner-local trampolines. Both
+summary paths now pass exact `timeline_report_model_limits()` data; nested row
+validation calls `validate_row/3`; and the owner calls primitive, collection,
+and stable-ID validation modules directly. `schema.ex` fell from 12,461 to
+12,442 lines and the owner from 379 to 310 lines.
+
+Verification:
+- compile with warnings as errors passed
+- 21 focused summary, provenance, and publication-handoff tests passed
+- reviewer reran 2 directly relevant focused cases; both passed
+- 882 broader timeline/candidate-refresh tests passed
+- 22 schema-export tests passed
+- checked-in schema export reproduction produced no diff
+- format, diff hygiene, scoped callback residue, and compile-connected xref passed
+- bounded read-only review found no issues
+
 Verification gaps:
 - Full repository suite not run.
 
 Last completed slice:
-Timeline-diff-summary callback collapse published as `3cffa770`: `schema.ex`
-fell from 12,479 to 12,461 lines and its owner from 278 to 213; 27 focused, 2
+Timeline-dependency-impact-summary callback collapse: `schema.ex` fell from
+12,461 to 12,442 lines and its owner from 379 to 310; 21 focused, 2
 reviewer-focused, 882 broader, and 22 export tests passed; checked-in schemas
 were unchanged; bounded review found no issues.
 
