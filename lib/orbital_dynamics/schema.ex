@@ -6451,8 +6451,7 @@ defmodule OrbitalDynamics.Schema do
     |> require_fields("$", artifact, contract["required_fields"])
     |> OrbitalDynamics.Schema.ValidationReportContracts.validate_report(
       "$",
-      artifact,
-      validation_report_contract_callbacks()
+      artifact
     )
   end
 
@@ -6461,8 +6460,7 @@ defmodule OrbitalDynamics.Schema do
     |> require_fields("$", artifact, contract["required_fields"])
     |> OrbitalDynamics.Schema.ValidationReportContracts.validate_batch(
       "$",
-      artifact,
-      validation_report_contract_callbacks()
+      artifact
     )
   end
 
@@ -8230,28 +8228,6 @@ defmodule OrbitalDynamics.Schema do
       non_negative_integer_map_sum: &non_negative_integer_map_sum/1,
       numeric_map_sum: &numeric_map_sum/1,
       list_count: &list_count/2
-    ]
-  end
-
-  defp validation_report_contract_callbacks do
-    [
-      require_fields: &require_fields/4,
-      expect_equal: &expect_equal/5,
-      expect_one_of: &expect_one_of/5,
-      expect_type: &expect_type/5,
-      expect_optional_integer: &expect_optional_integer/4,
-      expect_optional_type: &expect_optional_type/5,
-      expect_optional_list: &expect_optional_list/4,
-      expect_optional_field_equals: &expect_optional_field_equals/6,
-      expect_field_equals: &expect_field_equals/5,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      validate_non_negative_integer_count_map: &validate_non_negative_integer_count_map/3,
-      validate_rows: &validate_rows/4,
-      validate_validation_issue: &validate_validation_issue/3,
-      validate_validation_remediation: &validate_validation_remediation/3,
-      schema_validation_statuses: &schema_validation_statuses/0,
-      schema_validation_model_limits: &schema_validation_model_limits/0,
-      error: &error/2
     ]
   end
 
@@ -13423,22 +13399,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp numeric_delta(left, right) do
     OrbitalDynamics.Schema.CollectionAggregation.numeric_delta(left, right)
-  end
-
-  defp validate_validation_issue(issues, path, issue) do
-    OrbitalDynamics.Schema.ValidationDiagnosticContracts.validate_issue(
-      issues,
-      path,
-      issue
-    )
-  end
-
-  defp validate_validation_remediation(issues, path, remediation) do
-    OrbitalDynamics.Schema.ValidationDiagnosticContracts.validate_remediation(
-      issues,
-      path,
-      remediation
-    )
   end
 
   defp validate_validation_record(issues, path, record) do

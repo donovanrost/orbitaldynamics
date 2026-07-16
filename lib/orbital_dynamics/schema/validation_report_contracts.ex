@@ -1,137 +1,147 @@
 defmodule OrbitalDynamics.Schema.ValidationReportContracts do
   @moduledoc false
 
-  def validate_report(issues, path, report, callbacks) when is_list(callbacks) do
+  import OrbitalDynamics.Schema.CollectionValidation, only: [validate_rows: 4]
+
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [
+      error: 2,
+      expect_equal: 5,
+      expect_field_equals: 5,
+      expect_field_equals: 6,
+      expect_one_of: 5,
+      expect_optional_field_equals: 6,
+      expect_optional_integer: 4,
+      expect_optional_list: 4,
+      expect_optional_type: 5,
+      expect_type: 5,
+      require_fields: 4,
+      validate_non_negative_integer_count_map: 3
+    ]
+
+  alias OrbitalDynamics.Schema.{RegistryCapability, ValidationDiagnosticContracts}
+
+  def validate_report(issues, path, report) do
     issues
-    |> expect_equal(callbacks, path, report, "schema_contract", "schema_validation_report.v1")
+    |> expect_equal(path, report, "schema_contract", "schema_validation_report.v1")
     |> expect_equal(
-      callbacks,
       path,
       report,
       "model",
       "executable_artifact_contract_validation"
     )
-    |> expect_one_of(callbacks, path, report, "validation_mode", ["artifact_map", "artifact_file"])
-    |> expect_type(callbacks, path, report, "validated_contract", :binary)
-    |> expect_one_of(callbacks, path, report, "status", schema_validation_statuses(callbacks))
-    |> expect_type(callbacks, path, report, "error_count", :integer)
-    |> expect_type(callbacks, path, report, "warning_count", :integer)
-    |> expect_optional_integer(callbacks, path, report, "remediation_count")
-    |> expect_type(callbacks, path, report, "errors", :list)
-    |> expect_type(callbacks, path, report, "warnings", :list)
-    |> expect_optional_type(callbacks, path, report, "remediation", :list)
-    |> expect_optional_list(callbacks, path, report, "model_limits")
-    |> expect_type(callbacks, path, report, "assumptions", :map)
-    |> expect_optional_type(callbacks, path, report, "artifact_path", :binary)
-    |> expect_optional_type(callbacks, path, report, "validated_artifact_family", :binary)
-    |> expect_optional_integer(callbacks, path, report, "validated_schema_version")
-    |> validate_model_limits(callbacks, path, report)
+    |> expect_one_of(path, report, "validation_mode", ["artifact_map", "artifact_file"])
+    |> expect_type(path, report, "validated_contract", :binary)
+    |> expect_one_of(path, report, "status", schema_validation_statuses())
+    |> expect_type(path, report, "error_count", :integer)
+    |> expect_type(path, report, "warning_count", :integer)
+    |> expect_optional_integer(path, report, "remediation_count")
+    |> expect_type(path, report, "errors", :list)
+    |> expect_type(path, report, "warnings", :list)
+    |> expect_optional_type(path, report, "remediation", :list)
+    |> expect_optional_list(path, report, "model_limits")
+    |> expect_type(path, report, "assumptions", :map)
+    |> expect_optional_type(path, report, "artifact_path", :binary)
+    |> expect_optional_type(path, report, "validated_artifact_family", :binary)
+    |> expect_optional_integer(path, report, "validated_schema_version")
+    |> validate_model_limits(path, report)
     |> validate_rows(
-      callbacks,
       path <> ".errors",
       Map.get(report, "errors", []),
-      validation_issue_fun(callbacks)
+      &ValidationDiagnosticContracts.validate_issue/3
     )
     |> validate_rows(
-      callbacks,
       path <> ".warnings",
       Map.get(report, "warnings", []),
-      validation_issue_fun(callbacks)
+      &ValidationDiagnosticContracts.validate_issue/3
     )
     |> validate_rows(
-      callbacks,
       path <> ".remediation",
       Map.get(report, "remediation", []),
-      validation_remediation_fun(callbacks)
+      &ValidationDiagnosticContracts.validate_remediation/3
     )
-    |> validate_report_counts(callbacks, path, report)
+    |> validate_report_counts(path, report)
   end
 
-  def validate_batch(issues, path, report, callbacks) when is_list(callbacks) do
+  def validate_batch(issues, path, report) do
     issues
     |> expect_equal(
-      callbacks,
       path,
       report,
       "schema_contract",
       "schema_validation_batch_report.v1"
     )
-    |> expect_one_of(callbacks, path, report, "validation_mode", ["artifact_directory"])
-    |> expect_one_of(callbacks, path, report, "status", ["pass", "fail"])
-    |> expect_type(callbacks, path, report, "input_dir", :binary)
+    |> expect_one_of(path, report, "validation_mode", ["artifact_directory"])
+    |> expect_one_of(path, report, "status", ["pass", "fail"])
+    |> expect_type(path, report, "input_dir", :binary)
     |> expect_optional_field_equals(
-      callbacks,
       path,
       report,
       "model",
       "executable_artifact_contract_batch_validation",
       "must equal \"executable_artifact_contract_batch_validation\""
     )
-    |> expect_optional_list(callbacks, path, report, "model_limits")
-    |> validate_model_limits(callbacks, path, report)
-    |> expect_type(callbacks, path, report, "file_count", :integer)
-    |> expect_type(callbacks, path, report, "artifact_count", :integer)
-    |> expect_type(callbacks, path, report, "skipped_count", :integer)
-    |> expect_type(callbacks, path, report, "error_count", :integer)
-    |> expect_type(callbacks, path, report, "warning_count", :integer)
-    |> expect_optional_integer(callbacks, path, report, "remediation_count")
-    |> expect_optional_type(callbacks, path, report, "status_counts", :map)
-    |> expect_type(callbacks, path, report, "skipped_artifacts", :list)
-    |> expect_type(callbacks, path, report, "reports", :list)
+    |> expect_optional_list(path, report, "model_limits")
+    |> validate_model_limits(path, report)
+    |> expect_type(path, report, "file_count", :integer)
+    |> expect_type(path, report, "artifact_count", :integer)
+    |> expect_type(path, report, "skipped_count", :integer)
+    |> expect_type(path, report, "error_count", :integer)
+    |> expect_type(path, report, "warning_count", :integer)
+    |> expect_optional_integer(path, report, "remediation_count")
+    |> expect_optional_type(path, report, "status_counts", :map)
+    |> expect_type(path, report, "skipped_artifacts", :list)
+    |> expect_type(path, report, "reports", :list)
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".status_counts",
       Map.get(report, "status_counts", %{})
     )
     |> validate_rows(
-      callbacks,
       path <> ".skipped_artifacts",
       Map.get(report, "skipped_artifacts", []),
-      fn acc, row_path, entry -> validate_skipped_artifact(acc, row_path, entry, callbacks) end
+      fn acc, row_path, entry -> validate_skipped_artifact(acc, row_path, entry) end
     )
     |> validate_rows(
-      callbacks,
       path <> ".reports",
       Map.get(report, "reports", []),
-      fn acc, row_path, entry -> validate_batch_entry(acc, row_path, entry, callbacks) end
+      fn acc, row_path, entry -> validate_batch_entry(acc, row_path, entry) end
     )
-    |> validate_batch_counts(callbacks, path, report)
+    |> validate_batch_counts(path, report)
   end
 
-  defp validate_batch_entry(issues, path, entry, callbacks) do
+  defp validate_batch_entry(issues, path, entry) do
     issues
-    |> require_fields(callbacks, path, entry, ["path", "report"])
-    |> expect_type(callbacks, path, entry, "path", :binary)
-    |> validate_nested_report(callbacks, path <> ".report", Map.get(entry, "report"))
+    |> require_fields(path, entry, ["path", "report"])
+    |> expect_type(path, entry, "path", :binary)
+    |> validate_nested_report(path <> ".report", Map.get(entry, "report"))
   end
 
-  defp validate_nested_report(issues, callbacks, path, %{} = report) do
-    validate_report(issues, path, report, callbacks)
+  defp validate_nested_report(issues, path, %{} = report) do
+    validate_report(issues, path, report)
   end
 
-  defp validate_nested_report(issues, callbacks, path, _report) do
-    [error(callbacks, path, "must be an object") | issues]
+  defp validate_nested_report(issues, path, _report) do
+    [error(path, "must be an object") | issues]
   end
 
-  defp validate_skipped_artifact(issues, path, entry, callbacks) do
+  defp validate_skipped_artifact(issues, path, entry) do
     issues
-    |> require_fields(callbacks, path, entry, ["path", "reason"])
-    |> expect_type(callbacks, path, entry, "path", :binary)
-    |> expect_type(callbacks, path, entry, "reason", :binary)
+    |> require_fields(path, entry, ["path", "reason"])
+    |> expect_type(path, entry, "path", :binary)
+    |> expect_type(path, entry, "reason", :binary)
   end
 
-  defp validate_model_limits(issues, callbacks, path, report) do
+  defp validate_model_limits(issues, path, report) do
     case Map.get(report, "model_limits") do
       nil ->
         issues
 
       limits when is_list(limits) ->
-        if limits == model_limits(callbacks) do
+        if limits == model_limits() do
           issues
         else
           [
             error(
-              callbacks,
               path <> ".model_limits",
               "must match schema validation model limits"
             )
@@ -144,22 +154,20 @@ defmodule OrbitalDynamics.Schema.ValidationReportContracts do
     end
   end
 
-  defp validate_report_counts(issues, callbacks, path, report) do
+  defp validate_report_counts(issues, path, report) do
     error_count = length(Map.get(report, "errors", []))
     expected_status = if error_count == 0, do: "pass", else: "fail"
 
     issues
-    |> expect_field_equals(callbacks, path, report, "status", expected_status)
-    |> expect_field_equals(callbacks, path, report, "error_count", error_count)
+    |> expect_field_equals(path, report, "status", expected_status)
+    |> expect_field_equals(path, report, "error_count", error_count)
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "warning_count",
       length(Map.get(report, "warnings", []))
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "remediation_count",
@@ -167,7 +175,7 @@ defmodule OrbitalDynamics.Schema.ValidationReportContracts do
     )
   end
 
-  defp validate_batch_counts(issues, callbacks, path, report) do
+  defp validate_batch_counts(issues, path, report) do
     reports = Map.get(report, "reports", [])
     skipped_artifacts = Map.get(report, "skipped_artifacts", [])
 
@@ -191,111 +199,33 @@ defmodule OrbitalDynamics.Schema.ValidationReportContracts do
 
     issues
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "file_count",
       length(reports) + length(skipped_artifacts)
     )
-    |> expect_field_equals(callbacks, path, report, "artifact_count", length(reports))
-    |> expect_field_equals(callbacks, path, report, "skipped_count", length(skipped_artifacts))
+    |> expect_field_equals(path, report, "artifact_count", length(reports))
+    |> expect_field_equals(path, report, "skipped_count", length(skipped_artifacts))
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "status",
       if(error_count == 0, do: "pass", else: "fail")
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "status_counts",
       status_counts,
       "must equal nested schema-validation report status counts"
     )
-    |> expect_field_equals(callbacks, path, report, "error_count", error_count)
-    |> expect_field_equals(callbacks, path, report, "warning_count", warning_count)
-    |> expect_field_equals(callbacks, path, report, "remediation_count", remediation_count)
+    |> expect_field_equals(path, report, "error_count", error_count)
+    |> expect_field_equals(path, report, "warning_count", warning_count)
+    |> expect_field_equals(path, report, "remediation_count", remediation_count)
   end
 
-  defp validation_issue_fun(callbacks), do: Keyword.fetch!(callbacks, :validate_validation_issue)
-
-  defp validation_remediation_fun(callbacks),
-    do: Keyword.fetch!(callbacks, :validate_validation_remediation)
-
-  defp schema_validation_statuses(callbacks) do
-    callbacks
-    |> Keyword.fetch!(:schema_validation_statuses)
-    |> then(& &1.())
-  end
-
-  defp model_limits(callbacks) do
-    callbacks
-    |> Keyword.fetch!(:schema_validation_model_limits)
-    |> then(& &1.())
-  end
-
-  defp require_fields(issues, callbacks, path, map, fields),
-    do: apply(Keyword.fetch!(callbacks, :require_fields), [issues, path, map, fields])
-
-  defp expect_equal(issues, callbacks, path, map, field, expected),
-    do: apply(Keyword.fetch!(callbacks, :expect_equal), [issues, path, map, field, expected])
-
-  defp expect_one_of(issues, callbacks, path, map, field, allowed),
-    do: apply(Keyword.fetch!(callbacks, :expect_one_of), [issues, path, map, field, allowed])
-
-  defp expect_type(issues, callbacks, path, map, field, type),
-    do: apply(Keyword.fetch!(callbacks, :expect_type), [issues, path, map, field, type])
-
-  defp expect_optional_integer(issues, callbacks, path, map, field),
-    do: apply(Keyword.fetch!(callbacks, :expect_optional_integer), [issues, path, map, field])
-
-  defp expect_optional_type(issues, callbacks, path, map, field, type),
-    do: apply(Keyword.fetch!(callbacks, :expect_optional_type), [issues, path, map, field, type])
-
-  defp expect_optional_list(issues, callbacks, path, map, field),
-    do: apply(Keyword.fetch!(callbacks, :expect_optional_list), [issues, path, map, field])
-
-  defp expect_optional_field_equals(issues, callbacks, path, map, field, expected, message),
-    do:
-      apply(Keyword.fetch!(callbacks, :expect_optional_field_equals), [
-        issues,
-        path,
-        map,
-        field,
-        expected,
-        message
-      ])
-
-  defp expect_field_equals(issues, callbacks, path, map, field, expected),
-    do:
-      apply(Keyword.fetch!(callbacks, :expect_field_equals), [issues, path, map, field, expected])
-
-  defp expect_field_equals(issues, callbacks, path, map, field, expected, message),
-    do:
-      apply(Keyword.fetch!(callbacks, :expect_field_equals_with_message), [
-        issues,
-        path,
-        map,
-        field,
-        expected,
-        message
-      ])
-
-  defp validate_non_negative_integer_count_map(issues, callbacks, path, values),
-    do:
-      apply(Keyword.fetch!(callbacks, :validate_non_negative_integer_count_map), [
-        issues,
-        path,
-        values
-      ])
-
-  defp validate_rows(issues, callbacks, path, rows, validator),
-    do: apply(Keyword.fetch!(callbacks, :validate_rows), [issues, path, rows, validator])
-
-  defp error(callbacks, path, message),
-    do: apply(Keyword.fetch!(callbacks, :error), [path, message])
+  defp schema_validation_statuses, do: ["pass", "fail"]
+  defp model_limits, do: RegistryCapability.model_limits()
 
   defp integer_or_zero(value) when is_integer(value), do: value
   defp integer_or_zero(_value), do: 0
