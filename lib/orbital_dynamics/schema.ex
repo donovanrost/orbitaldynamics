@@ -11099,7 +11099,7 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       row,
-      suppression_handoff_contract_callbacks()
+      &validate_duplicate_suppressed_candidate_evidence/3
     )
   end
 
@@ -11115,8 +11115,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.SuppressionHandoffContracts.validate_duplicate_groups(
       issues,
       path,
-      rows,
-      suppression_handoff_contract_callbacks()
+      rows
     )
   end
 
@@ -11124,21 +11123,8 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.SuppressionHandoffContracts.validate_duplicate_groups(
       issues,
       path,
-      rows,
-      suppression_handoff_contract_callbacks()
+      rows
     )
-  end
-
-  defp suppression_handoff_contract_callbacks do
-    [
-      expect_optional_type: &expect_optional_type/5,
-      expect_optional_integer: &expect_optional_integer/4,
-      expect_field_at_least: &expect_field_at_least/5,
-      validate_duplicate_suppressed_candidate_evidence:
-        &validate_duplicate_suppressed_candidate_evidence/3,
-      expect_field_equals: &expect_field_equals/5,
-      error: &error/2
-    ]
   end
 
   defp validate_optional_policy_escalation(issues, path, row, field) do

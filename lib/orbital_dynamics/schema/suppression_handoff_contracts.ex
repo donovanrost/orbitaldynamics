@@ -1,6 +1,14 @@
 defmodule OrbitalDynamics.Schema.SuppressionHandoffContracts do
   @moduledoc false
 
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [
+      expect_field_at_least: 5,
+      expect_field_equals: 6,
+      expect_optional_integer: 4,
+      expect_optional_type: 5
+    ]
+
   @source_field_pairs [
     {"activity_type", "type"}
     | Enum.map(
@@ -162,45 +170,22 @@ defmodule OrbitalDynamics.Schema.SuppressionHandoffContracts do
     end
   end
 
-  def validate_duplicate_row_fields(issues, path, row, callbacks) when is_list(callbacks) do
+  def validate_duplicate_row_fields(issues, path, row, evidence_validator)
+      when is_function(evidence_validator, 3) do
     if handoff_row?(row) do
       issues
-      |> call(callbacks, :expect_optional_type, [
-        path,
-        row,
-        "duplicate_suppressed_candidate_id_collision",
-        :boolean
-      ])
-      |> call(callbacks, :expect_optional_integer, [
-        path,
-        row,
-        "duplicate_suppressed_candidate_index"
-      ])
-      |> call(callbacks, :expect_field_at_least, [
-        path,
-        row,
-        "duplicate_suppressed_candidate_index",
-        0
-      ])
-      |> call(callbacks, :expect_optional_integer, [
-        path,
-        row,
-        "duplicate_suppressed_candidate_count"
-      ])
-      |> call(callbacks, :expect_field_at_least, [
-        path,
-        row,
-        "duplicate_suppressed_candidate_count",
-        0
-      ])
-      |> call(callbacks, :validate_duplicate_suppressed_candidate_evidence, [path, row])
+      |> expect_optional_type(path, row, "duplicate_suppressed_candidate_id_collision", :boolean)
+      |> expect_optional_integer(path, row, "duplicate_suppressed_candidate_index")
+      |> expect_field_at_least(path, row, "duplicate_suppressed_candidate_index", 0)
+      |> expect_optional_integer(path, row, "duplicate_suppressed_candidate_count")
+      |> expect_field_at_least(path, row, "duplicate_suppressed_candidate_count", 0)
+      |> evidence_validator.(path, row)
     else
       issues
     end
   end
 
-  def validate_duplicate_groups(issues, path, rows, callbacks)
-      when is_list(rows) and is_list(callbacks) do
+  def validate_duplicate_groups(issues, path, rows) when is_list(rows) do
     duplicate_rows =
       rows
       |> Enum.with_index()
@@ -223,12 +208,14 @@ defmodule OrbitalDynamics.Schema.SuppressionHandoffContracts do
 
       acc =
         Enum.reduce(group, acc, fn {row, row_index}, row_acc ->
-          call(row_acc, callbacks, :expect_field_equals, [
+          expect_field_equals(
+            row_acc,
             "#{path}.rows[#{row_index}]",
             row,
             "duplicate_suppressed_candidate_count",
-            expected_count
-          ])
+            expected_count,
+            "must equal #{expected_count}"
+          )
         end)
 
       indexes =
@@ -242,18 +229,17 @@ defmodule OrbitalDynamics.Schema.SuppressionHandoffContracts do
         acc
       else
         [
-          call(callbacks, :error, [
+          error(
             "#{path}.rows",
             "duplicate_suppressed_candidate_index values must cover 1..#{expected_count}"
-          ])
+          )
           | acc
         ]
       end
     end)
   end
 
-  def validate_duplicate_groups(issues, _path, _rows, callbacks) when is_list(callbacks),
-    do: issues
+  def validate_duplicate_groups(issues, _path, _rows), do: issues
 
   def source(row) do
     if handoff_row?(row) do
@@ -280,12 +266,6 @@ defmodule OrbitalDynamics.Schema.SuppressionHandoffContracts do
   end
 
   defp present_string?(value), do: is_binary(value) and String.trim(value) != ""
-
-  defp call(issues, callbacks, name, args),
-    do: apply(Keyword.fetch!(callbacks, name), [issues | args])
-
-  defp call(callbacks, name, args),
-    do: apply(Keyword.fetch!(callbacks, name), args)
 
   defp error(path, message) do
     %{"severity" => "error", "path" => path, "message" => message}
