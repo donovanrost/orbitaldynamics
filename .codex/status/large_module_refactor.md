@@ -6,69 +6,74 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Completed: resource-projection assumption callback cleanup.
+Completed: station-calendar/link-capacity handoff count ownership cleanup.
 
 Status:
 Completed and published.
 
 Selected slice:
-Let `Schema.ResourceProjectionAssumptionsContracts` call optional-field equality
-validation directly.
+Move generic count/list equality into primitive support and let both handoff
+contracts call it directly.
 
 Why this slice:
-Its only callback now points to primitive support, and its three exact
-capability assertions form one cohesive boundary.
+Both one-entry callback bags route the same invariant; the existing link-capacity
+report callback remains compatible through the facade import.
 
 Current coupling/problem:
-Resolved. Assumption validation calls primitive equality directly, and the
-facade only delegates validation inputs.
+Resolved. Primitive support owns the generic invariant, both handoff contracts
+call it directly, and the facade retains only its separately shared count
+delegate.
 
 Public facade preserved:
 - `OrbitalDynamics.Schema.validate_artifact/2`
 - `OrbitalDynamics.Schema.validation_report/2`
-- Resource-projection subsystem capability assumption order and exact errors.
+- Handoff row gating, count/list validation order, paths, and exact errors.
 
 Files changed:
 - `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/resource_projection_assumptions_contracts.ex`
+- `lib/orbital_dynamics/schema/primitive_validation.ex`
+- `lib/orbital_dynamics/schema/station_calendar_handoff_contracts.ex`
+- `lib/orbital_dynamics/schema/link_capacity_handoff_contracts.ex`
 
 Definition of done:
-The callback bag and dynamic dispatch are gone, resource/broad export tests and
-the exact fingerprint pass, and xref shows primitive/resource dependencies.
+The generic helper is support-owned, both callback bags/dynamic wrappers are
+gone, focused/broad tests and exact fingerprint pass, and xref is clean.
 
 Behavior/schema changes:
-None. Capability assertion order, paths, messages, and deterministic schema
-output remain unchanged.
+None. Handoff gating, count/list order, paths, messages, and deterministic
+schema output remain unchanged.
 
 Tests run:
 - `mix compile --warnings-as-errors` passed.
-- 28 resource, candidate-refresh provenance, campaign repair/strategy, JSON
-  schema, and schema-export tests passed.
+- 34 operator-review, Cadence-import, communications, JSON-schema, export, and
+  exact link-capacity count-mismatch tests passed; 112 unrelated tests in the
+  selected Cadence-import file were excluded by the line selector.
 - Exact schema fingerprint remained
   `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`.
-- Xref shows facade/JSON-schema callers and direct dependencies on resource
-  projection plus primitive validation.
+- Xref shows the facade callers and each handoff contract's sole dependency on
+  primitive support.
 - Formatting, `git diff --check`, and checked-in schema cleanliness passed.
 
 Verification gaps:
-- Full suite not run; the resource/export gate and deterministic fingerprint
-  are the verification boundary for this slice.
+- Full suite not run; the focused handoff/export gate and deterministic
+  fingerprint are the verification boundary for this slice.
 
 Last commit:
-`631a9228` (`Collapse resource assumption callback`).
+`1c0fa889` (`Collapse handoff count callbacks`).
 
 Next candidate:
-Assess the two list-count handoff callback bags; keep mixed activity-context
+Reassess another one-entry support callback; keep mixed activity-context
 ownership deferred.
 
 Blocked:
 No.
 
 Notes:
-- `schema.ex` is 14,587 lines after this slice (down from 14,594).
-- `ResourceProjectionAssumptionsContracts` is 45 lines and no longer resolves
-  dynamic callbacks.
+- `schema.ex` is 14,564 lines after this slice (down from 14,587).
+- `list_count/2` remains on the facade because seven unrelated callback bags
+  still consume that delegate; the failed pre-test compile exposed this edge,
+  it was restored, and all verification was rerun.
 - Activity-context cleanup was audited and deferred because its 17 callbacks
   include facade-owned validators; this slice is the bounded alternative.
 - Parent review/publishing is the active-mode fallback because subagent
