@@ -14579,8 +14579,7 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       map,
-      field,
-      timeline_identity_contract_callbacks()
+      field
     )
   end
 
@@ -14588,8 +14587,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.TimelineIdentityContracts.validate_identity(
       issues,
       path,
-      identity,
-      timeline_identity_contract_callbacks()
+      identity
     )
   end
 
@@ -14600,16 +14598,8 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       map,
-      field,
-      timeline_identity_contract_callbacks()
+      field
     )
-  end
-
-  defp timeline_identity_contract_callbacks do
-    [
-      validate_stable_ids: &validate_stable_ids/4,
-      expect_optional_type: &expect_optional_type/5
-    ]
   end
 
   defp validate_optional_timeline_protection_summary(issues, path, map, field) when is_map(map) do
