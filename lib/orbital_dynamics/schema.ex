@@ -14404,15 +14404,8 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       row,
-      expected,
-      schema_contract_field_callbacks()
+      expected
     )
-  end
-
-  defp schema_contract_field_callbacks do
-    [
-      expect_equal: &expect_equal/5
-    ]
   end
 
   defp validate_validation_reference_report(issues, path, report) do
