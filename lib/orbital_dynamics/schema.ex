@@ -14456,17 +14456,8 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       map,
-      field,
-      timeline_precondition_contract_callbacks()
+      field
     )
-  end
-
-  defp timeline_precondition_contract_callbacks do
-    [
-      expect_one_of: &expect_one_of/5,
-      expect_type: &expect_type/5,
-      error: &error/2
-    ]
   end
 
   defp validate_optional_activity_context(issues, path, map, field) when is_map(map) do
