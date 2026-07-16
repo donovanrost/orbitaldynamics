@@ -6,70 +6,70 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema-migration callback ownership cleanup.
+Study-benchmark callback ownership cleanup.
 
 Status:
 Complete and published.
 
 Selected slice:
-Move schema-migration report model limits into the cohesive leaf and replace
-its callback bag with direct primitive and collection validation.
+Replace the study-benchmark callback bag with direct schema-contract-field,
+primitive, and collection validation dependencies.
 
 Why this slice:
-Thirteen callbacks mapped to shared support and the fixed model-limit list could
-be owned by the leaf while remaining the single executable/JSON Schema source.
+All twelve callbacks map to cohesive shared validation modules, and focused
+fixture coverage exercises eight benchmark families plus stale derived counts.
 
 Result:
-- Removed the fourteen-function facade callback bag and callback argument.
-- `SchemaMigrationContracts` now calls shared primitive/collection validation
-  directly and owns `model_limits/0` for executable and JSON Schema validation.
-- Preserved validation order, derived status/counts, row actions/statuses, exact
-  paths/messages, validation levels, and checked-in schema output.
+- Removed the twelve-function callback bag, call-site callback argument, and the
+  facade import that became unused.
+- The leaf now directly uses `SchemaContractField`, primitive validation, and
+  collection validation while preserving validation and traversal order.
 
 Public facade preserved:
 - `OrbitalDynamics.Schema.validate_artifact/2`
 - `OrbitalDynamics.Schema.validation_report/2`
 
 Files changed:
+- `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/schema_migration_contracts.ex`
+- `lib/orbital_dynamics/schema/study_benchmark_contracts.ex`
 
 Verification:
 - `mix compile --warnings-as-errors` passed.
-- Focused validation/policy/schema-export tests passed: 6 tests, 0 failures,
-  179 excluded.
-- Runtime mutation probes preserved exact model-limit, deprecated-row
-  replacement, and migration-action-count paths/messages.
-- `mix orbital_dynamics.schema.export --all --directory schemas --output
-  schemas/orbital_dynamics.schema_bundle.v1.json` passed.
-- Schema fingerprint remained
+- Curated benchmark fixture and schema-export tests passed: 4 tests, 0 failures,
+  180 excluded. The fixture test covers eight benchmark families.
+- Runtime probes preserved exact scenario-count, trajectory-count, and
+  repetitions mismatch paths/messages.
+- Full schema export passed; checked-in schemas remained unchanged.
+- SHA-256 over `{Schema.contracts(), Schema.json_schema_bundle()}` remained
   `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`.
-- Checked-in schema exports were unchanged.
-- `mix format --check-formatted`, `git diff --check`, and focused xref caller
-  checks passed; the leaf directly depends on primitive/collection support.
-- Final review found no remaining schema-migration callback adapter/helper.
+- Xref shows the facade as the only runtime caller and the leaf as an explicit
+  `SchemaContractField` consumer.
+- `mix format --check-formatted`, `git diff --check`, callback residue checks,
+  and bounded diff review passed.
 
 Verification gaps:
 - Full suite not run; focused coverage was used for this behavior-preserving
   boundary cleanup.
 
 Published implementation:
-`c0630eb5` (`Collapse schema migration callbacks`).
+`c7883e39` (`Collapse study benchmark callbacks`).
 
 Size change:
-- `schema.ex`: 13,741 -> 13,712 lines.
-- `schema_migration_contracts.ex`: 227 -> 173 lines.
+- `schema.ex`: 13,712 -> 13,693 lines.
+- `study_benchmark_contracts.ex`: 260 -> 202 lines.
 
 Next candidate:
-Study-benchmark callback ownership cleanup. Its twelve callbacks are shared
-primitive/collection validation or the cohesive `SchemaContractField` helper;
-the curated benchmark fixture test covers eight fixture families plus stale
-scenario-count behavior.
+Lint-contract callback ownership cleanup. The diagnostic callback can route
+directly to `ValidationDiagnosticContracts.validate_issue/3`; `list_value/2` is
+a trivial local fallback; the remaining callbacks are shared validation.
 
 Blocked:
 No.
 
 Notes:
+- Approval-requirement validation was audited and deferred because it composes
+  facade-owned activity-context, policy-rule-match, and escalation validators.
 - Realized-state-snapshot and timeline-transition application rows remain
   deferred because they compose callback-driven nested validators.
 - Quality/readiness gates, plan delta, campaign plan/strategy, activity context,
