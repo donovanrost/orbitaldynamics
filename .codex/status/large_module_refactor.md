@@ -9,7 +9,7 @@ Current slice:
 Completed: candidate-refresh registry contract extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Moved the candidate-refresh artifact registry family and its seven family-owned
@@ -52,7 +52,7 @@ Verification gaps:
 - The full suite was not run for this family extraction.
 
 Last commit:
-`c3e57b83` (`Update campaign schema handoff`); current slice is not yet committed.
+`104b0b34` (`Extract candidate refresh registry contracts`).
 
 Next candidate:
 Extract the adjacent accepted planning-state family (`accepted_planning_state`,
