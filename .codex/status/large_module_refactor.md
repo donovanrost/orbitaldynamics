@@ -9,7 +9,7 @@ Current slice:
 Completed: accepted planning-state registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Moved `accepted_planning_state.v1`, `spacecraft_state_estimate.v1`, and
@@ -51,8 +51,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`55723844` (`Update candidate refresh schema handoff`); current slice is not yet
-committed.
+`016060d3` (`Extract accepted state registry contracts`).
 
 Next candidate:
 Extract the adjacent `validation_record.v1`, `model_acceptance_report.v1`, and
