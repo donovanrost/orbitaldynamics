@@ -6,23 +6,22 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Completed: proposed-contact callback and model-limit ownership cleanup.
+Policy-escalation callback ownership cleanup.
 
 Status:
-Completed and published.
+Complete and published.
 
 Selected slice:
-Move proposed-contact model limits into the family module and replace its
-callback bag with direct activity, primitive, and stable-ID dependencies.
+Replace policy-escalation nested validation callbacks with direct primitive and
+stable-ID support.
 
 Why this slice:
-Activity/contact validation is now callback-free, the limits are static
-family metadata, and every remaining callback maps to existing support.
+All four callbacks map to existing support, with focused operator-review and
+Cadence-import tests covering nested invalid escalation IDs.
 
 Current coupling/problem:
-Resolved. Model limits are family-owned, shared contact validation is a direct
-activity dependency, primitive/stable-ID support is direct, and the facade only
-delegates contacts.
+The policy-escalation validator receives optional field/enum/number checks and
+stable-ID validation through a facade-assembled keyword bag.
 
 Public facade preserved:
 - `OrbitalDynamics.Schema.validate_artifact/2`
@@ -33,45 +32,45 @@ Public facade preserved:
 Files changed:
 - `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/proposed_contact_contracts.ex`
+- `lib/orbital_dynamics/schema/policy_escalation_contracts.ex`
 
 Definition of done:
-Proposed-contact metadata is family-owned, callback plumbing is gone, focused
-contact/export tests and fingerprint pass, and xref shows direct activity,
-primitive, and stable-ID dependencies.
+Policy-escalation callback plumbing is gone, focused nested/export tests and
+fingerprint pass, and xref shows direct primitive/stable-ID dependencies.
 
 Behavior/schema changes:
 None. Contact identity, intervals, timeline/source-window matching, model limits,
 reservation metadata, paths/messages, and schema output remain unchanged.
 
 Tests run:
-- `mix compile --warnings-as-errors` passed.
-- Six proposed-contact, fixture, Cadence-row, and export tests passed.
-- Full checked-in schema export produced no diffs.
-- Exact schema fingerprint remained
-  `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`.
-- Xref shows the facade caller and direct activity, primitive, and stable-ID
-  dependencies.
-- Formatting and `git diff --check` passed.
+- `mix compile --warnings-as-errors`
+- `mix test test/orbital_dynamics/schema/operator_review_contracts_test.exs:959 test/orbital_dynamics/schema/cadence_import_contracts_test.exs:1095 test/orbital_dynamics/schema/cadence_import_contracts_test.exs:1750 test/orbital_dynamics/schema_export_test.exs`
+  (5 passed, 4 excluded)
+- `mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
+- Contract fingerprint:
+  `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`
+- `mix xref callers OrbitalDynamics.Schema.PolicyEscalationContracts`
+- `mix xref graph --source lib/orbital_dynamics/schema/policy_escalation_contracts.ex --format plain`
+- `mix format --check-formatted`
+- `git diff --check`
 
 Verification gaps:
-- Full suite not run; the focused six-test contact/export gate and deterministic
-  fingerprint are the verification boundary for this slice.
+- Full suite not run.
 
 Last commit:
-`30ee2f3f` (`Collapse proposed contact callbacks`).
+`ba2f2748` (`Collapse policy escalation callbacks`).
 
 Next candidate:
-Collapse policy-escalation callback ownership; its nested validator uses only
-four primitive/stable-ID support operations.
+Audit timeline-identity-collision callback ownership; keep mixed
+activity-context deferred.
 
 Blocked:
 No.
 
 Notes:
-- `schema.ex` is 14,172 lines after this slice (down from 14,193).
-- `ProposedContactContracts` is 129 lines and callback-free.
+- Starting point: `schema.ex` is 14,172 lines.
+- Ending point: `schema.ex` is 14,162 lines; the extracted validator is 29
+  lines.
+- The generated schema export was byte-for-byte unchanged.
 - Activity-context cleanup was audited and deferred because its 17 callbacks
   include facade-owned validators; this slice is the bounded alternative.
-- Parent review/publishing is the active-mode fallback because subagent
-  delegation is unavailable.
