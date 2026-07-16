@@ -8271,34 +8271,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp candidate_rejection_report_contract_callbacks do
-    [
-      candidate_rejection_report_model_limits: &candidate_rejection_report_model_limits/0,
-      frequency_map: &frequency_map/2,
-      require_fields: &require_fields/4,
-      validate_stable_ids: &validate_stable_ids/4,
-      expect_equal: &expect_equal/5,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_non_negative_integer: &expect_non_negative_integer/4,
-      expect_optional_non_negative_integer: &expect_optional_non_negative_integer/4,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_optional_exact_model_limits: &validate_optional_exact_model_limits/5,
-      validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
-      validate_non_negative_integer_count_map: &validate_non_negative_integer_count_map/3,
-      validate_rows: &validate_rows/4,
-      expect_one_of: &expect_one_of/5,
-      expect_optional_one_of: &expect_optional_one_of/5,
-      validate_string_list_allowed: &validate_string_list_allowed/5,
-      expect_field_equals: &expect_field_equals/5,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      expect_optional_number: &expect_optional_number/4,
-      validate_optional_activity_context: &validate_optional_activity_context/4,
-      validate_stable_id_list: &validate_stable_id_list/3,
-      error: &error/2
-    ]
-  end
-
   defp contact_filter_report_contract_callbacks do
     [
       contact_filter_report_model_limits: &contact_filter_report_model_limits/0,
@@ -10533,7 +10505,7 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       report,
-      candidate_rejection_report_contract_callbacks()
+      candidate_rejection_report_model_limits()
     )
   end
 
@@ -10543,8 +10515,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.CandidateRejectionReportContracts.validate_optional_source_row(
       issues,
       path,
-      row,
-      candidate_rejection_report_contract_callbacks()
+      row
     )
   end
 
@@ -10553,8 +10524,7 @@ defmodule OrbitalDynamics.Schema do
       OrbitalDynamics.Schema.CandidateRejectionReportContracts.validate_optional_source_row(
         issues,
         path,
-        row,
-        candidate_rejection_report_contract_callbacks()
+        row
       )
 
   defp validate_provider_counteroffer_report(issues, path, report) do
