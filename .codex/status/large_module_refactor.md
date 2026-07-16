@@ -6,22 +6,22 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Policy-escalation callback ownership cleanup.
+Timeline-identity-collision callback ownership cleanup.
 
 Status:
 Complete and published.
 
 Selected slice:
-Replace policy-escalation nested validation callbacks with direct primitive and
+Replace timeline-identity-collision field callbacks with direct primitive and
 stable-ID support.
 
 Why this slice:
-All four callbacks map to existing support, with focused operator-review and
-Cadence-import tests covering nested invalid escalation IDs.
+All three callbacks map to existing support, with focused timeline-report tests
+covering collision fields and invalid stable-ID lists.
 
 Current coupling/problem:
-The policy-escalation validator receives optional field/enum/number checks and
-stable-ID validation through a facade-assembled keyword bag.
+The timeline-identity-collision validator receives optional type/count checks
+and stable-ID-list validation through a facade-assembled keyword bag.
 
 Public facade preserved:
 - `OrbitalDynamics.Schema.validate_artifact/2`
@@ -44,13 +44,13 @@ reservation metadata, paths/messages, and schema output remain unchanged.
 
 Tests run:
 - `mix compile --warnings-as-errors`
-- `mix test test/orbital_dynamics/schema/operator_review_contracts_test.exs:959 test/orbital_dynamics/schema/cadence_import_contracts_test.exs:1095 test/orbital_dynamics/schema/cadence_import_contracts_test.exs:1750 test/orbital_dynamics/schema_export_test.exs`
-  (5 passed, 4 excluded)
+- `mix test test/orbital_dynamics/schema/timeline_report_contracts_test.exs:501 test/orbital_dynamics/schema/timeline_report_contracts_test.exs:1091 test/orbital_dynamics/schema_export_test.exs`
+  (5 passed, 6 excluded)
 - `mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
 - Contract fingerprint:
   `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`
-- `mix xref callers OrbitalDynamics.Schema.PolicyEscalationContracts`
-- `mix xref graph --source lib/orbital_dynamics/schema/policy_escalation_contracts.ex --format plain`
+- `mix xref callers OrbitalDynamics.Schema.TimelineIdentityCollisionContracts`
+- `mix xref graph --source lib/orbital_dynamics/schema/timeline_identity_collision_contracts.ex --format plain`
 - `mix format --check-formatted`
 - `git diff --check`
 
@@ -58,18 +58,18 @@ Verification gaps:
 - Full suite not run.
 
 Last commit:
-`ba2f2748` (`Collapse policy escalation callbacks`).
+`0ba7ec63` (`Collapse timeline collision callbacks`).
 
 Next candidate:
-Audit timeline-identity-collision callback ownership; keep mixed
-activity-context deferred.
+Station-calendar contact-count callback ownership; keep mixed activity-context
+deferred.
 
 Blocked:
 No.
 
 Notes:
-- Starting point: `schema.ex` is 14,172 lines.
-- Ending point: `schema.ex` is 14,162 lines; the extracted validator is 29
+- Starting point: `schema.ex` is 14,162 lines.
+- Ending point: `schema.ex` is 14,153 lines; the extracted validator is 35
   lines.
 - The generated schema export was byte-for-byte unchanged.
 - Activity-context cleanup was audited and deferred because its 17 callbacks
