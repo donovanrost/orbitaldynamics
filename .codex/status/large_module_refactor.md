@@ -9,7 +9,7 @@ Current slice:
 Completed: optimizer report registry consolidation.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Move `constraint_report.v1` and `score_term_report.v1` into the existing
@@ -78,7 +78,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`751b7164` (`Update model capability handoff`).
+`53e593b3` (`Consolidate optimizer report registry contracts`).
 
 Next candidate:
 Assess `quality_gate_report.v1` as the next bounded registry extraction before
