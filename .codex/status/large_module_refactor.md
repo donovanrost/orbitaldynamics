@@ -9,7 +9,7 @@ Current slice:
 Completed: timeline activity-state registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Moved `timeline_activity_status_state.v1`,
@@ -82,7 +82,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`95aa4b4d` (`Update timeline preservation handoff`).
+`45975821` (`Extract timeline activity state registry contracts`).
 
 Next candidate:
 Assess `timeline_diff_report.v1` and `timeline_diff_summary.v1` as the next
