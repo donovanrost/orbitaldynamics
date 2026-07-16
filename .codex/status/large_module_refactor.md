@@ -9,7 +9,7 @@ Current slice:
 Source-evidence callback-bag collapse.
 
 Status:
-Selected; implementation pending.
+Completed and ready to publish.
 
 Selected slice:
 Replace the 6-entry callback bag in `SourceEvidenceContracts` with direct
@@ -46,17 +46,30 @@ owners preserve nested validation while only the two battery-handoff validators
 remain injected; focused, broader, and export checks pass; and bounded review
 finds no blocker.
 
+Outcome:
+Removed the 6-entry source-evidence callback bag and all owner trampolines.
+Stable-ID/list, probability, and diff-status validation use direct shared
+owners; battery handoff field and own-flow match validators remain explicit.
+Nested map/list traversal and public field accessors are unchanged. `schema.ex`
+fell from 11,696 to 11,684 lines and the source-evidence owner from 206 to 176.
+
+Verification:
+- compile with warnings as errors passed
+- 142 focused source-provenance/Cadence/schema tests passed
+- 1,168 broader candidate-refresh/operator-review/Cadence tests passed
+- 22 schema export tests passed
+- compile-connected xref passed
+- checked-in schema regeneration produced no diff
+- format and diff hygiene passed
+- bounded review found no findings
+
 Verification gaps:
 - Full repository suite not run.
 - Known baseline: full contact-filter file remains 87/88 due nil-message
   behavior in `SuppressedCandidateContracts`; unrelated to these slices.
 
 Last completed slice:
-Cadence-import-manifest callback collapse published as `df6d3d0a`: `schema.ex`
-fell from 11,719 to 11,696 lines and its owner from 328 to 225. The 18-entry bag
-became direct shared/handoff owners and three explicit validator boundaries.
-183 focused, 1,167 broader, and 22 export tests passed; compile, xref, format,
-diff hygiene, checked-in regeneration, and bounded review were clean.
+Source-evidence callback-bag collapse; publication commit pending.
 
 Blocked:
 No.

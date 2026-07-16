@@ -1,6 +1,12 @@
 defmodule OrbitalDynamics.Schema.SourceEvidenceContracts do
   @moduledoc false
 
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [expect_optional_one_of: 5, expect_optional_probability: 4]
+
+  import OrbitalDynamics.Schema.StableIdValidation,
+    only: [validate_optional_stable_id_list: 4, validate_stable_ids: 4]
+
   @fields [
     "source_requirement",
     "source_candidate_diff",
@@ -90,12 +96,23 @@ defmodule OrbitalDynamics.Schema.SourceEvidenceContracts do
   def stable_id_list_fields, do: @stable_id_list_fields
   def probability_fields, do: @probability_fields
 
-  def validate_fields(issues, path, row, callbacks) when is_list(callbacks) do
+  def validate_fields(issues, path, row, battery_fields_validator, battery_own_flow_validator)
+      when is_function(battery_fields_validator, 3) and
+             is_function(battery_own_flow_validator, 3) do
     issues =
       Enum.reduce(@fields, issues, fn field, acc ->
         case Map.get(row, field) do
-          %{} = source -> validate_map(acc, "#{path}.#{field}", source, callbacks)
-          _source -> acc
+          %{} = source ->
+            validate_map(
+              acc,
+              "#{path}.#{field}",
+              source,
+              battery_fields_validator,
+              battery_own_flow_validator
+            )
+
+          _source ->
+            acc
         end
       end)
 
@@ -106,7 +123,13 @@ defmodule OrbitalDynamics.Schema.SourceEvidenceContracts do
           |> Enum.with_index()
           |> Enum.reduce(acc, fn
             {%{} = source, index}, source_acc ->
-              validate_map(source_acc, "#{path}.#{field}[#{index}]", source, callbacks)
+              validate_map(
+                source_acc,
+                "#{path}.#{field}[#{index}]",
+                source,
+                battery_fields_validator,
+                battery_own_flow_validator
+              )
 
             {_source, _index}, source_acc ->
               source_acc
@@ -118,89 +141,36 @@ defmodule OrbitalDynamics.Schema.SourceEvidenceContracts do
     end)
   end
 
-  defp validate_map(issues, path, source, callbacks) do
+  defp validate_map(
+         issues,
+         path,
+         source,
+         battery_fields_validator,
+         battery_own_flow_validator
+       ) do
     issues
-    |> validate_stable_ids(callbacks, path, source)
-    |> validate_stable_id_lists(callbacks, path, source)
-    |> validate_probabilities(callbacks, path, source)
-    |> expect_optional_one_of(callbacks, path, source, "diff_status", [
+    |> validate_stable_ids(path, source, @stable_id_fields)
+    |> validate_stable_id_lists(path, source)
+    |> validate_probabilities(path, source)
+    |> expect_optional_one_of(path, source, "diff_status", [
       "added",
       "removed",
       "changed",
       "unchanged"
     ])
-    |> validate_resource_projection_battery_handoff_fields(callbacks, path, source)
-    |> validate_resource_projection_battery_handoff_matches_own_flow(callbacks, path, source)
+    |> battery_fields_validator.(path, source)
+    |> battery_own_flow_validator.(path, source)
   end
 
-  defp validate_probabilities(issues, callbacks, path, source) do
+  defp validate_probabilities(issues, path, source) do
     Enum.reduce(@probability_fields, issues, fn field, acc ->
-      expect_optional_probability(acc, callbacks, path, source, field)
+      expect_optional_probability(acc, path, source, field)
     end)
   end
 
-  defp validate_stable_id_lists(issues, callbacks, path, source) do
+  defp validate_stable_id_lists(issues, path, source) do
     Enum.reduce(@stable_id_list_fields, issues, fn field, acc ->
-      validate_optional_stable_id_list(acc, callbacks, path, source, field)
+      validate_optional_stable_id_list(acc, path, source, field)
     end)
   end
-
-  defp validate_stable_ids(issues, callbacks, path, source),
-    do:
-      apply(require_callback(callbacks, :validate_stable_ids), [
-        issues,
-        path,
-        source,
-        @stable_id_fields
-      ])
-
-  defp validate_optional_stable_id_list(issues, callbacks, path, source, field) do
-    apply(require_callback(callbacks, :validate_optional_stable_id_list), [
-      issues,
-      path,
-      source,
-      field
-    ])
-  end
-
-  defp expect_optional_probability(issues, callbacks, path, source, field) do
-    apply(require_callback(callbacks, :expect_optional_probability), [
-      issues,
-      path,
-      source,
-      field
-    ])
-  end
-
-  defp expect_optional_one_of(issues, callbacks, path, source, field, values) do
-    apply(require_callback(callbacks, :expect_optional_one_of), [
-      issues,
-      path,
-      source,
-      field,
-      values
-    ])
-  end
-
-  defp validate_resource_projection_battery_handoff_fields(issues, callbacks, path, source) do
-    apply(require_callback(callbacks, :validate_resource_projection_battery_handoff_fields), [
-      issues,
-      path,
-      source
-    ])
-  end
-
-  defp validate_resource_projection_battery_handoff_matches_own_flow(
-         issues,
-         callbacks,
-         path,
-         source
-       ) do
-    apply(
-      require_callback(callbacks, :validate_resource_projection_battery_handoff_matches_own_flow),
-      [issues, path, source]
-    )
-  end
-
-  defp require_callback(callbacks, name), do: Keyword.fetch!(callbacks, name)
 end

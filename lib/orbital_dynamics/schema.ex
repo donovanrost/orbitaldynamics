@@ -9180,19 +9180,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp source_evidence_contract_callbacks do
-    [
-      expect_optional_one_of: &expect_optional_one_of/5,
-      expect_optional_probability: &expect_optional_probability/4,
-      validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
-      validate_resource_projection_battery_handoff_fields:
-        &validate_resource_projection_battery_handoff_fields/3,
-      validate_resource_projection_battery_handoff_matches_own_flow:
-        &validate_resource_projection_battery_handoff_matches_own_flow/3,
-      validate_stable_ids: &validate_stable_ids/4
-    ]
-  end
-
   defp resource_projection_report_model_limits do
     OrbitalDynamics.ResourceProjection.capabilities()
     |> Map.fetch!(:known_limits)
@@ -10059,7 +10046,8 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       row,
-      source_evidence_contract_callbacks()
+      &validate_resource_projection_battery_handoff_fields/3,
+      &validate_resource_projection_battery_handoff_matches_own_flow/3
     )
   end
 
