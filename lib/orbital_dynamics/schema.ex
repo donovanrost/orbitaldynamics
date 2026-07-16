@@ -2153,7 +2153,7 @@ defmodule OrbitalDynamics.Schema do
           OrbitalDynamics.Validation.capabilities().schema_migration_row_statuses
         end,
         row_schema: &schema_migration_row_json_schema/0,
-        model_limits: &schema_migration_report_model_limits/0
+        model_limits: &OrbitalDynamics.Schema.SchemaMigrationContracts.model_limits/0
       )
     )
   end
@@ -4015,15 +4015,6 @@ defmodule OrbitalDynamics.Schema do
   defp model_acceptance_report_model_limits do
     OrbitalDynamics.Validation.capabilities()
     |> Map.fetch!(:known_limits)
-  end
-
-  defp schema_migration_report_model_limits do
-    [
-      "artifact_only_schema_registry_snapshot",
-      "deprecation_hints_are_caller_declared",
-      "no_automatic_artifact_migration",
-      "no_backward_compatibility_certification"
-    ]
   end
 
   defp contact_intent_model_limits do
@@ -6481,8 +6472,7 @@ defmodule OrbitalDynamics.Schema do
     |> require_fields("$", artifact, contract["required_fields"])
     |> OrbitalDynamics.Schema.SchemaMigrationContracts.validate(
       "$",
-      artifact,
-      schema_migration_contract_callbacks()
+      artifact
     )
   end
 
@@ -8265,25 +8255,6 @@ defmodule OrbitalDynamics.Schema do
       validate_validation_remediation: &validate_validation_remediation/3,
       schema_validation_statuses: &schema_validation_statuses/0,
       schema_validation_model_limits: &schema_validation_model_limits/0,
-      error: &error/2
-    ]
-  end
-
-  defp schema_migration_contract_callbacks do
-    [
-      require_fields: &require_fields/4,
-      expect_equal: &expect_equal/5,
-      expect_one_of: &expect_one_of/5,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_non_negative_integer: &expect_non_negative_integer/4,
-      expect_field_equals: &expect_field_equals/5,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_optional_exact_model_limits: &validate_optional_exact_model_limits/5,
-      validate_non_negative_integer_count_map: &validate_non_negative_integer_count_map/3,
-      validate_rows: &validate_rows/4,
-      schema_migration_report_model_limits: &schema_migration_report_model_limits/0,
       error: &error/2
     ]
   end
