@@ -4775,60 +4775,6 @@ defmodule OrbitalDynamics.Schema do
       ],
       "nested_contracts" => []
     },
-    @accepted_planning_state => %{
-      "schema_contract" => @accepted_planning_state,
-      "artifact_family" => "accepted_planning_state",
-      "schema_version" => 1,
-      "required_fields" => [
-        "schema_version",
-        "artifact_type",
-        "snapshot_id",
-        "accepted_at",
-        "spacecraft_states",
-        "source",
-        "quality",
-        "provenance"
-      ],
-      "optional_fields" => ["maneuver_execution_deltas"],
-      "nested_contracts" => ["spacecraft_state_estimate.v1", "maneuver_execution_delta.v1"]
-    },
-    @spacecraft_state_estimate => %{
-      "schema_contract" => @spacecraft_state_estimate,
-      "artifact_family" => "spacecraft_state_estimate",
-      "schema_version" => 1,
-      "required_fields" => [
-        "schema_contract",
-        "spacecraft_id",
-        "scenario_id",
-        "epoch",
-        "frame",
-        "state_vector",
-        "source",
-        "quality"
-      ],
-      "optional_fields" => ["trust_boundary", "provenance", "metadata"],
-      "nested_contracts" => []
-    },
-    @maneuver_execution_delta => %{
-      "schema_contract" => @maneuver_execution_delta,
-      "artifact_family" => "maneuver_execution_delta",
-      "schema_version" => 1,
-      "required_fields" => [
-        "schema_contract",
-        "activity_id",
-        "status",
-        "source",
-        "quality"
-      ],
-      "optional_fields" => [
-        "epoch_s",
-        "delta_v_km_s",
-        "trust_boundary",
-        "provenance",
-        "metadata"
-      ],
-      "nested_contracts" => []
-    },
     @validation_record => %{
       "schema_contract" => @validation_record,
       "artifact_family" => "validation_record",
@@ -5122,6 +5068,7 @@ defmodule OrbitalDynamics.Schema do
              |> Map.merge(OrbitalDynamics.Schema.ValidationRegistryContracts.contracts())
              |> Map.merge(OrbitalDynamics.Schema.CampaignRegistryContracts.contracts())
              |> Map.merge(OrbitalDynamics.Schema.CandidateRefreshRegistryContracts.contracts())
+             |> Map.merge(OrbitalDynamics.Schema.AcceptedStateRegistryContracts.contracts())
 
   @doc """
   Returns the known executable artifact contracts.
