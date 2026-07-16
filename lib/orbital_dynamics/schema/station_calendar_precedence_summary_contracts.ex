@@ -7,7 +7,6 @@ defmodule OrbitalDynamics.Schema.StationCalendarPrecedenceSummaryContracts do
   import OrbitalDynamics.Schema.PrimitiveValidation,
     only: [
       expect_equal: 5,
-      expect_field_equals: 5,
       expect_field_equals: 6,
       expect_non_negative_integer: 4,
       expect_one_of: 5,
@@ -384,4 +383,7 @@ defmodule OrbitalDynamics.Schema.StationCalendarPrecedenceSummaryContracts do
 
   defp list_or_empty(values) when is_list(values), do: values
   defp list_or_empty(_values), do: []
+
+  defp expect_field_equals(issues, path, map, field, expected),
+    do: expect_field_equals(issues, path, map, field, expected, "must equal #{expected}")
 end

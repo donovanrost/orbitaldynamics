@@ -5,7 +5,6 @@ defmodule OrbitalDynamics.Schema.CommandWindowReportContracts do
     only: [
       error: 2,
       expect_equal: 5,
-      expect_field_equals: 5,
       expect_field_equals: 6,
       expect_non_negative_integer: 4,
       expect_number: 4,
@@ -271,4 +270,7 @@ defmodule OrbitalDynamics.Schema.CommandWindowReportContracts do
     |> expect_optional_type(path, map, field, :map)
     |> validate_stable_id_array_map("#{path}.#{field}", Map.get(map, field))
   end
+
+  defp expect_field_equals(issues, path, map, field, expected),
+    do: expect_field_equals(issues, path, map, field, expected, "must equal #{expected}")
 end

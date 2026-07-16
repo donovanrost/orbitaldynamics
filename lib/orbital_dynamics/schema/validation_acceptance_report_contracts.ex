@@ -5,7 +5,6 @@ defmodule OrbitalDynamics.Schema.ValidationAcceptanceReportContracts do
     only: [
       error: 2,
       expect_equal: 5,
-      expect_field_equals: 5,
       expect_field_equals: 6,
       expect_non_negative_integer: 4,
       expect_one_of: 5,
@@ -770,4 +769,7 @@ defmodule OrbitalDynamics.Schema.ValidationAcceptanceReportContracts do
     |> Enum.reject(&is_nil/1)
     |> Enum.frequencies()
   end
+
+  defp expect_field_equals(issues, path, map, field, expected),
+    do: expect_field_equals(issues, path, map, field, expected, "must equal #{expected}")
 end
