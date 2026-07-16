@@ -8397,12 +8397,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp resource_projection_assumptions_contract_callbacks do
-    [
-      expect_optional_field_equals: &expect_optional_field_equals/6
-    ]
-  end
-
   defp resource_projection_report_contract_callbacks do
     [
       require_fields: &require_fields/4,
@@ -11424,8 +11418,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.ResourceProjectionAssumptionsContracts.validate_subsystem_model_assumptions(
       issues,
       path,
-      artifact,
-      resource_projection_assumptions_contract_callbacks()
+      artifact
     )
   end
 

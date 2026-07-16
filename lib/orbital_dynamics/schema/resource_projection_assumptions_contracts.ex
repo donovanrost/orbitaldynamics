@@ -1,32 +1,26 @@
 defmodule OrbitalDynamics.Schema.ResourceProjectionAssumptionsContracts do
   @moduledoc false
 
-  def validate_subsystem_model_assumptions(
-        issues,
-        path,
-        %{"assumptions" => assumptions},
-        callbacks
-      )
-      when is_map(assumptions) and is_list(callbacks) do
+  alias OrbitalDynamics.Schema.PrimitiveValidation
+
+  def validate_subsystem_model_assumptions(issues, path, %{"assumptions" => assumptions})
+      when is_map(assumptions) do
     issues
-    |> expect_optional_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_optional_field_equals(
       path <> ".assumptions",
       assumptions,
       "subsystem_model_capability_contract",
       "subsystem_model_capability.v1",
       "must equal \"subsystem_model_capability.v1\""
     )
-    |> expect_optional_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_optional_field_equals(
       path <> ".assumptions",
       assumptions,
       "subsystem_model_capability_ids",
       subsystem_model_capability_ids(),
       "must match ResourceProjection subsystem model capability IDs"
     )
-    |> expect_optional_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_optional_field_equals(
       path <> ".assumptions",
       assumptions,
       "subsystem_model_capability_ids_by_resource",
@@ -35,7 +29,7 @@ defmodule OrbitalDynamics.Schema.ResourceProjectionAssumptionsContracts do
     )
   end
 
-  def validate_subsystem_model_assumptions(issues, _path, _artifact, _callbacks),
+  def validate_subsystem_model_assumptions(issues, _path, _artifact),
     do: issues
 
   def subsystem_model_capability_ids do
@@ -48,17 +42,4 @@ defmodule OrbitalDynamics.Schema.ResourceProjectionAssumptionsContracts do
     |> Map.fetch!(:subsystem_model_capability_ids_by_resource)
     |> Map.new(fn {resource, id} -> {Atom.to_string(resource), id} end)
   end
-
-  defp require_callback(callbacks, name), do: Keyword.fetch!(callbacks, name)
-
-  defp expect_optional_field_equals(issues, callbacks, path, map, field, expected, message),
-    do:
-      apply(require_callback(callbacks, :expect_optional_field_equals), [
-        issues,
-        path,
-        map,
-        field,
-        expected,
-        message
-      ])
 end
