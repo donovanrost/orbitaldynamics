@@ -6852,8 +6852,7 @@ defmodule OrbitalDynamics.Schema do
       [],
       "$",
       artifact,
-      contract["required_fields"],
-      accepted_state_contract_callbacks()
+      contract["required_fields"]
     )
   end
 
@@ -7813,25 +7812,6 @@ defmodule OrbitalDynamics.Schema do
       activity_template_approval_statuses: &activity_template_approval_statuses/0,
       activity_template_precondition_types: &activity_template_precondition_types/0,
       activity_template_precondition_statuses: &activity_template_precondition_statuses/0,
-      error: &error/2
-    ]
-  end
-
-  defp accepted_state_contract_callbacks do
-    [
-      require_fields: &require_fields/4,
-      validate_stable_ids: &validate_stable_ids/4,
-      expect_equal: &expect_equal/5,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_number: &expect_number/4,
-      expect_optional_number: &expect_optional_number/4,
-      expect_number_vector: &expect_number_vector/3,
-      expect_optional_number_vector: &expect_optional_number_vector/4,
-      require_nested: &require_nested/4,
-      validate_rows: &validate_rows/4,
-      validate_optional_rows: &validate_optional_rows/4,
-      expect_field_equals_with_message: &expect_field_equals/6,
       error: &error/2
     ]
   end
@@ -9045,8 +9025,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.AcceptedStateContracts.validate_spacecraft_state_estimate(
       issues,
       path,
-      state,
-      accepted_state_contract_callbacks()
+      state
     )
   end
 
@@ -9054,8 +9033,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.AcceptedStateContracts.validate_maneuver_execution_delta(
       issues,
       path,
-      delta,
-      accepted_state_contract_callbacks()
+      delta
     )
   end
 
