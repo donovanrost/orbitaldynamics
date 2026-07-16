@@ -31,8 +31,7 @@ defmodule OrbitalDynamics.Schema.RealizedStateSnapshotContracts do
         OrbitalDynamics.Schema.RealizedSpacecraftStateContracts.validate(
           acc,
           row_path,
-          row,
-          callbacks
+          row
         )
       end
     )
