@@ -6,49 +6,50 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Contact-allocation-handoff generic callback ownership phase.
+Operator-review-row generic callback ownership phase.
 
 Status:
-Complete and published.
+Complete; ready to publish.
 
 Result:
-- Removed 11 generic primitive and stable-ID entries from the 13-entry handoff
-  callback bag; only duplicate-evidence and override-count domain checks remain.
-- Renamed the remaining two-entry bag to describe its handoff-domain role.
-- Kept optional stable-ID map and nested-map composites local with the same
-  type-check-then-content-validation order.
-- Preserved `validate_expiration_summary/4`, `validate_allocation_fields/4`, and
-  the public `OrbitalDynamics.Schema` facade.
-- Reduced `schema.ex` from 12,768 to 12,757 lines and the handoff contracts
-  module from 1,081 to 936 lines.
+- Removed 20 generic primitive, stable-ID, and collection entries from the
+  106-entry operator-review-row callback bag.
+- Renamed the remaining 86-entry bag to describe its review/handoff-domain role;
+  85 entries use `call/4` and the deferred-priority validator remains the direct
+  `validate_optional_rows/4` callback exactly as before.
+- Replaced dynamic generic calls with direct focused-owner calls and removed one
+  schema primitive import that became unused.
+- Preserved `OperatorReviewRowContracts.validate/6`, all public
+  responsibility-specific helpers, and the public `OrbitalDynamics.Schema`
+  facade.
+- Reduced `schema.ex` from 12,757 to 12,736 lines. Explicit imports grew the row
+  contracts module from 1,189 to 1,218 lines while making its dynamic boundary
+  domain-only; line count was not treated as the success criterion.
 
 Tests run:
 - `mix compile --warnings-as-errors` passed.
-- Candidate-refresh handoff, shared contact-allocation contract, and default
-  equality-message coverage passed 18/18.
-- Full contact-allocation coverage passed 69/70; the only failure was the
-  previously reproduced line-1247 overlap-count baseline.
+- Focused row-contract and representative handoff coverage passed 21/21.
+- The full `test/orbital_dynamics/operator_review` directory passed 257/257.
 - Schema export coverage passed 22/22.
 - Full export left `schemas/` unchanged; the bundle fingerprint remained
   `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`.
 - Xref, formatting, callback-residue, and `git diff --check` passed.
 - The read-only reviewer found no issues, independently passed compile and 3
-  focused handoff tests, and confirmed the 13-to-2 AST callback count.
+  focused tests, and confirmed the 106-to-86 AST callback count and domain use.
 
 Verification gaps:
 - Full repository suite not run.
-- `test/orbital_dynamics/communications/contact_allocation_test.exs:1247`
-  still expects `must equal 2` but receives a nil message; this is unrelated
-  baseline debt reproduced before these phases.
+- The unrelated contact-allocation line-1247 nil equality-message baseline was
+  not exercised by this operator-review-row slice.
 
 Last commit:
-Published implementation `5f42c4e3`.
+Pending publication; prior handoff-phase handoff `3dc78d4d`.
 
 Next candidate:
-- Operator-review-row generic callback ownership phase. Its 1,189-line contract
-  module is now the next large schema family below the already-audited contact
-  allocation reports. Map its broad schema callback bag and remove only generic
-  entries with established direct owners while preserving review-domain calls.
+- Candidate-refresh-report generic callback ownership phase. At 1,910 lines it
+  is now the largest extracted schema contract module. Map its facade callback
+  bag and remove only generic entries with established focused owners while
+  retaining candidate-refresh domain callbacks.
 
 Blocked:
 No.

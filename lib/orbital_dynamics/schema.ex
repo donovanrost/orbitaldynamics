@@ -33,7 +33,6 @@ defmodule OrbitalDynamics.Schema do
       expect_optional_non_negative_integer: 4,
       expect_optional_non_negative_number: 4,
       expect_optional_number: 4,
-      expect_optional_number_or_number_list: 4,
       expect_optional_number_or_string: 4,
       expect_optional_one_of: 5,
       expect_optional_probability: 4,
@@ -12386,25 +12385,12 @@ defmodule OrbitalDynamics.Schema do
       row,
       OrbitalDynamics.OperatorReview.capabilities().review_types,
       OrbitalDynamics.Communications.StationCalendar.capabilities().provider_counteroffer_negotiation_states,
-      operator_review_row_contract_callbacks()
+      operator_review_row_domain_callbacks()
     )
   end
 
-  defp operator_review_row_contract_callbacks do
+  defp operator_review_row_domain_callbacks do
     [
-      require_fields: &require_fields/4,
-      validate_stable_ids: &validate_stable_ids/4,
-      expect_number: &expect_number/4,
-      expect_one_of: &expect_one_of/5,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_optional_one_of: &expect_optional_one_of/5,
-      validate_string_list_items: &validate_string_list_items/4,
-      expect_optional_non_negative_integer: &expect_optional_non_negative_integer/4,
-      expect_optional_integer: &expect_optional_integer/4,
-      expect_optional_number: &expect_optional_number/4,
-      expect_field_at_least: &expect_field_at_least/5,
-      validate_number_list_items: &validate_number_list_items/4,
       validate_optional_activity_context: &validate_optional_activity_context/4,
       validate_optional_protection_decision: &validate_optional_protection_decision/4,
       validate_scoped_downlink_context_fields: &validate_scoped_downlink_context_fields/3,
@@ -12414,12 +12400,9 @@ defmodule OrbitalDynamics.Schema do
       validate_completion_fraction_fields: &validate_completion_fraction_fields/3,
       validate_eclipse_lighting_handoff_fields: &validate_eclipse_lighting_handoff_fields/3,
       validate_thermal_handoff_fields: &validate_thermal_handoff_fields/3,
-      expect_optional_probability: &expect_optional_probability/4,
-      validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
       validate_semantic_change_details: &validate_semantic_change_details/3,
       validate_candidate_diff_changed_fields: &validate_candidate_diff_changed_fields/3,
       validate_optional_source_window: &validate_optional_source_window/4,
-      validate_nested_id_match: &validate_nested_id_match/7,
       validate_optional_source_window_lineage: &validate_optional_source_window_lineage/4,
       validate_contact_allocation_capacity_pack_group:
         &validate_contact_allocation_capacity_pack_group/3,
@@ -12428,13 +12411,9 @@ defmodule OrbitalDynamics.Schema do
       validate_station_capacity_fraction_fields: &validate_station_capacity_fraction_fields/3,
       validate_resource_availability_variance_fields:
         &validate_resource_availability_variance_fields/3,
-      expect_optional_number_or_number_list: &expect_optional_number_or_number_list/4,
       validate_optional_actual_data_rate_throughput_derivation:
         &validate_optional_actual_data_rate_throughput_derivation/4,
       validate_optional_lifecycle_transition: &validate_optional_lifecycle_transition/4,
-      validate_stable_id_array_map: &validate_stable_id_array_map/3,
-      validate_non_negative_number_map: &validate_non_negative_number_map/3,
-      validate_optional_rows: &validate_optional_rows/4,
       validate_contact_contention_deferred_priority:
         &validate_contact_contention_deferred_priority/3,
       validate_priority_field_evidence_counts: &validate_priority_field_evidence_counts/3,
