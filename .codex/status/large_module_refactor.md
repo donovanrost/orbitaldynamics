@@ -9,18 +9,18 @@ Current slice:
 Timeline-transition-selected-activity callback-bag collapse.
 
 Status:
-Selected; implementation pending.
+Completed; ready to publish.
 
 Selected slice:
 Replace the 12-entry callback bag in
 `TimelineTransitionSelectedActivityContracts` with direct primitive and
-stable-ID owners plus explicit facade-owned validators for activity context,
-timeline-integrity evidence, interval consistency, and required fields.
+stable-ID owners plus explicit facade-owned validators for activity context and
+timeline-integrity evidence.
 
 Why this slice:
 Live inventory shows `schema.ex` remains the dominant production hotspot at
 12,273 lines. The 144-line selected-activity owner has 12 callback trampolines:
-most target shared primitive/stable-ID validators, while four retain meaningful
+most target shared primitive/stable-ID validators, while two retain meaningful
 facade-owned validation boundaries. Focused transition-application, replay,
 review, timeline, and export coverage is available.
 
@@ -31,7 +31,7 @@ context, timeline-integrity evidence, interval checks, deterministic errors,
 replay consumers, and exports.
 
 Likely extraction target:
-Replace the opaque bag with an explicit signature carrying the four facade-owned
+Replace the opaque bag with an explicit signature carrying the two facade-owned
 validators, remove shared-helper trampolines, and import the exact primitive and
 stable-ID arities directly without changing validator timing.
 
@@ -56,14 +56,12 @@ Verification gaps:
 - Full repository suite not run.
 
 Last completed slice:
-Selected-timeline-integrity callback collapse published as `28307a2f`:
-`schema.ex` fell
-from 12,284 to 12,273 lines and its owner from 260 to 220. The five-entry bag
-and all callback trampolines became direct primitive and stable-ID owners. 48
-focused, 890 broader, and 22 export tests passed; compile, xref, format, diff
-hygiene, and checked-in schema regeneration were clean. Bounded review found no
-issues; malformed-input ordering was reviewed structurally rather than through
-exhaustive differential generation.
+Timeline-transition-selected-activity callback collapse ready to publish:
+`schema.ex` fell from 12,273 to 12,257 lines and its owner from 144 to 125. The
+12-entry bag became direct primitive/stable-ID owners plus two explicit facade
+validators; all callback trampolines were removed. 48 focused, 890 broader, and
+22 export tests passed; compile, xref, format, diff hygiene, and checked-in
+schema regeneration were clean. Bounded review found no issues.
 
 Blocked:
 No.
