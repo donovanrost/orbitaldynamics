@@ -9,7 +9,7 @@ Current slice:
 Candidate-refresh objective-gap context extraction.
 
 Status:
-Selected; implementation pending.
+Complete; publication pending.
 
 Selected slice:
 Extract the complete objective-gap source-report validator behind its existing
@@ -25,33 +25,38 @@ Public facade to preserve:
 `validate_objective_gap_context/4`, including its callback-list guard, argument
 order, validation order, paths, messages, and all other public signatures.
 
-Likely extraction target:
+Extraction target:
 `CandidateRefreshObjectiveGapContracts.validate/3`.
 
-Likely files:
+Files:
 - `lib/orbital_dynamics/schema/candidate_refresh_report_contracts.ex`
 - `lib/orbital_dynamics/schema/candidate_refresh_objective_gap_contracts.ex`
 - `.codex/status/large_module_refactor.md`
 
-Likely tests:
-- compile with warnings as errors
-- objective-gap replay summary tests
-- candidate-refresh schema/provenance contracts
-- broader candidate-refresh, deterministic export/fingerprint, xref, and format
+Result:
+The public `/4` facade delegates to a 41-line objective-gap owner. The complete
+counter/map flow moved, and the report-contract facade fell from 463 to 436
+lines without schema-export changes.
 
-Definition of done:
-The public `/4` context is a thin delegate with its guard unchanged, the complete
-objective-gap flow moves without duplication, validation order/paths/errors
-remain exact, and focused/broader checks pass.
+Verification:
+- compile with warnings as errors passed
+- objective-gap replay plus candidate-refresh schema/provenance contracts:
+  22 passed
+- broader candidate-refresh suite: 755 passed
+- schema export trio: 22 passed
+- full schema export reproduced checked-in artifacts with no diff
+- deterministic contract/bundle fingerprint remained
+  `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`
+- compile-connected xref roots stayed narrow; format and diff hygiene passed
+- bounded read-only review found no issues and independently passed compile,
+  the 22 focused tests, facade/API comparison, xref, format, and diff checks
 
 Verification gaps:
 - Full repository suite not run.
 
-Last completed slice:
-Candidate-selection context extraction published as `3270171b`: a 63-line
-owner reduced the report-contract facade from 504 to 463 lines; 42 focused, 755
-candidate-refresh, and 22 export tests passed; checked-in schemas and fingerprint
-were unchanged; bounded review found no issues.
+Last commit:
+Published candidate-selection extraction `3270171b`; selected this slice in
+`d869971b`.
 
 Blocked:
 No.

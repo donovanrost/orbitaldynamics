@@ -4,6 +4,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
   alias OrbitalDynamics.Schema.CandidateRefreshCandidateSelectionContracts
   alias OrbitalDynamics.Schema.CandidateRefreshContactIntentContracts
   alias OrbitalDynamics.Schema.CandidateRefreshContactIntentRoutingContracts
+  alias OrbitalDynamics.Schema.CandidateRefreshObjectiveGapContracts
   alias OrbitalDynamics.Schema.CandidateRefreshOperationalTimelineContracts
   alias OrbitalDynamics.Schema.CandidateRefreshProviderCounterofferContracts
   alias OrbitalDynamics.Schema.CandidateRefreshQualityGateContracts
@@ -133,35 +134,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
   end
 
   def validate_objective_gap_context(issues, path, summary, callbacks) when is_list(callbacks) do
-    issues =
-      Enum.reduce(
-        [
-          "gap_row_count",
-          "downlink_gap_row_count",
-          "target_gap_row_count",
-          "collection_latency_gap_row_count"
-        ],
-        issues,
-        fn field, acc ->
-          expect_optional_non_negative_integer(acc, path, summary, field)
-        end
-      )
-
-    Enum.reduce(
-      [
-        "status_counts",
-        "objective_type_counts",
-        "term_key_counts",
-        "ground_station_counts",
-        "target_counts",
-        "collection_counts",
-        "source_activity_id_counts"
-      ],
-      issues,
-      fn field, acc ->
-        validate_non_negative_integer_count_map(acc, path <> ".#{field}", Map.get(summary, field))
-      end
-    )
+    CandidateRefreshObjectiveGapContracts.validate(issues, path, summary)
   end
 
   def validate_refresh_budget_context(issues, path, summary, callbacks) when is_list(callbacks) do
