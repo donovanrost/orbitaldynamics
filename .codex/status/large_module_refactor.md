@@ -6,58 +6,58 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Completed: readiness/quality-gate handoff error ownership cleanup.
+Completed: review-row nested-ID ownership cleanup.
 
 Status:
 Completed and published.
 
 Selected slice:
-Let operational-readiness and quality-gate handoff matchers construct standard
-schema errors through primitive support directly.
+Move generic nested-ID matching into stable-ID support and let review-row link
+validation call it directly.
 
 Why this slice:
-Both one-entry callback bags route only `error/2`; exact source-match path and
-message regressions already cover both handoff families.
+The one-entry callback routes a stable-identity invariant; four unrelated
+callback consumers remain compatible through the facade import.
 
 Current coupling/problem:
-Resolved. Both handoff matchers construct the standard schema error directly;
-the facade only delegates their validation inputs.
+Resolved. Stable-ID support owns nested matching, review-row links call it
+directly, and the facade only delegates validation inputs.
 
 Public facade preserved:
 - `OrbitalDynamics.Schema.validate_artifact/2`
 - `OrbitalDynamics.Schema.validation_report/2`
-- Readiness/quality-gate source-pair order, paths, and exact mismatch errors.
+- Review-row source/replacement link order, paths, and exact mismatch errors.
 
 Files changed:
 - `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/operational_readiness_handoff_contracts.ex`
-- `lib/orbital_dynamics/schema/quality_gate_handoff_contracts.ex`
+- `lib/orbital_dynamics/schema/stable_id_validation.ex`
+- `lib/orbital_dynamics/schema/review_row_link_contracts.ex`
 
 Definition of done:
-Both error-only callback bags and dynamic error wrappers are gone, exact/broad
-tests and the fingerprint pass, and xref shows primitive support directly.
+Nested-ID matching is support-owned, the review-row callback bag/wrapper is
+gone, exact/broad tests and fingerprint pass, and xref shows stable-ID support.
 
 Behavior/schema changes:
-None. Source-pair order, row gating, paths, messages, and deterministic schema
-output remain unchanged.
+None. Link order, gating, paths, messages, and deterministic schema output
+remain unchanged.
 
 Tests run:
 - `mix compile --warnings-as-errors` passed.
-- 22 Cadence-import, operational/readiness, export, and exact readiness/quality
-  stale-copy tests passed; 291 unrelated tests were excluded by line selectors.
+- 16 operator-review, Cadence-import, resource, export, and three exact nested
+  lineage mismatch regressions passed.
 - Exact schema fingerprint remained
   `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`.
-- Xref shows both handoff modules depend directly on primitive support; quality
-  gate also retains its existing operational-readiness capability dependency.
+- Xref shows the facade caller and review-row links' sole dependency on
+  stable-ID support.
 - Formatting, `git diff --check`, and checked-in schema cleanliness passed.
 
 Verification gaps:
-- Full suite not run; exact stale-copy regressions, family/export tests, and the
-  fingerprint are the verification boundary for this slice.
+- Full suite not run; exact lineage regressions, focused family/export tests,
+  and the fingerprint are the verification boundary for this slice.
 
 Last commit:
-`b414bf06` (`Collapse readiness handoff error callbacks`).
+`09dfca68` (`Collapse review row link callback`).
 
 Next candidate:
 Assess resource-projection flow-summary equality ownership; keep mixed
@@ -67,9 +67,9 @@ Blocked:
 No.
 
 Notes:
-- `schema.ex` is 14,548 lines after this slice (down from 14,564).
-- `QualityGateHandoffContracts.validate_summary/4` retains its unrelated
-  multi-operation callback interface.
+- `schema.ex` is 14,523 lines after this slice (down from 14,548).
+- Four unrelated nested-ID callback consumers remain compatible through the
+  facade import.
 - Activity-context cleanup was audited and deferred because its 17 callbacks
   include facade-owned validators; this slice is the bounded alternative.
 - Parent review/publishing is the active-mode fallback because subagent
