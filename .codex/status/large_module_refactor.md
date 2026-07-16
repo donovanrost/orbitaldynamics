@@ -9,7 +9,7 @@ Current slice:
 Operational-readiness-context callback-bag collapse.
 
 Status:
-Selected; implementation pending.
+Completed and ready to publish.
 
 Selected slice:
 Replace the 7-entry callback bag in `OperationalReadinessContextContracts` with
@@ -47,18 +47,31 @@ No readiness-context callback bag or helper trampolines remain; direct shared
 owners and the exact local sum preserve all validation/error order and messages;
 focused/broader/export checks pass; and bounded review finds no blocker.
 
+Outcome:
+Removed the 7-entry callback bag and owner callback trampolines. The four
+context validators now call `PrimitiveValidation` directly, stable-ID array-map
+validation is locally composed from its shared owners, and the exact nonnegative
+map sum remains local. `schema.ex` fell from 11,876 to 11,860 lines and the
+readiness-context owner from 355 to 293. The public Schema facade and validation
+composition remain unchanged.
+
+Verification:
+- compile with warnings as errors passed
+- 61 focused readiness/schema/replay/operator-review tests passed
+- 1,054 broader candidate-refresh/operator-review tests passed
+- 22 schema export tests passed
+- compile-connected xref showed only primitive/stable-ID dependencies
+- checked-in schema regeneration produced no diff
+- format and diff hygiene passed
+- bounded review found no findings
+
 Verification gaps:
 - Full repository suite not run.
 - Known baseline: full contact-filter file remains 87/88 due nil-message
   behavior in `SuppressedCandidateContracts`; unrelated to these slices.
 
 Last completed slice:
-Quality-gate-report callback collapse published as `33aa3c88`: `schema.ex` fell
-from 11,955 to 11,876 lines and its owner from 402 to 312. The 25-entry bag
-became direct primitive/stable/collection/row/classification owners, explicit
-model data, one row-validator boundary, and exact local boundary/error rules.
-60 focused, 1,051 broader, and 22 export tests passed; compile, xref, format,
-diff hygiene, checked-in schema regeneration, and bounded review were clean.
+Operational-readiness-context callback-bag collapse; publication commit pending.
 
 Blocked:
 No.

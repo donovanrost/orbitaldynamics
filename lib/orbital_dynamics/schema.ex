@@ -9714,18 +9714,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp operational_readiness_context_contract_callbacks do
-    [
-      expect_optional_non_negative_integer: &expect_optional_non_negative_integer/4,
-      expect_optional_type: &expect_optional_type/5,
-      validate_non_negative_integer_count_map: &validate_non_negative_integer_count_map/3,
-      expect_field_equals: &expect_field_equals/6,
-      non_negative_integer_map_sum: &non_negative_integer_map_sum/1,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_optional_stable_id_array_map: &validate_optional_stable_id_array_map/4
-    ]
-  end
-
   defp operational_readiness_gate_contract_callbacks do
     [
       require_fields: &require_fields/4,
@@ -9854,8 +9842,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.OperationalReadinessContextContracts.validate_operator_training_context(
       issues,
       path,
-      row,
-      operational_readiness_context_contract_callbacks()
+      row
     )
   end
 
@@ -9863,8 +9850,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.OperationalReadinessContextContracts.validate_resource_context(
       issues,
       path,
-      row,
-      operational_readiness_context_contract_callbacks()
+      row
     )
   end
 
@@ -9872,8 +9858,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.OperationalReadinessContextContracts.validate_adapter_boundary_context(
       issues,
       path,
-      row,
-      operational_readiness_context_contract_callbacks()
+      row
     )
   end
 
@@ -9881,8 +9866,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.OperationalReadinessContextContracts.validate_cadence_import_context(
       issues,
       path,
-      row,
-      operational_readiness_context_contract_callbacks()
+      row
     )
   end
 
