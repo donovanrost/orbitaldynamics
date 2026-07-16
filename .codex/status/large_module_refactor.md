@@ -6,58 +6,56 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Candidate-refresh timeline-activity context extraction.
+Candidate-refresh resource-signal context extraction.
 
 Status:
-Complete; publication pending.
+Selected; implementation pending.
 
 Selected slice:
-Move the generic timeline-activity input validator into the existing timeline-
-validation owner behind its public context function.
+Extract the link-capacity, constraint, resource-projection, and resource-filter
+source-report validators behind their existing public context functions.
 
 Why this slice:
-The invalid-activity counter, reason map, and reason list are timeline structural
-validation concerns. `CandidateRefreshTimelineValidationContracts` already owns
-the related activity-precondition, integrity, and dependency-impact flows and
-imports the exact primitives needed, so no new module or helper is required.
+These four flows validate the capacity, constraint, projected-pressure, and
+filter evidence that drives branch-local resource decisions. They share the
+same direct count-map pattern; resource filter adds its invalid input-ID list.
+Communications contention/allocation/pressure contexts remain out of scope.
 
 Public facade to preserve:
-`validate_timeline_activity_context/4`, including its callback-list guard,
-argument order, validation order, paths, messages, and all other public
-signatures.
+`validate_link_capacity_context/4`, `validate_constraint_context/4`,
+`validate_resource_projection_context/4`, and
+`validate_resource_filter_context/4`, including callback-list guards, argument
+order, validation order, paths, messages, and all other public signatures.
 
-Extraction target:
-`CandidateRefreshTimelineValidationContracts.validate_activity/3`.
+Likely extraction target:
+`CandidateRefreshResourceSignalContracts`, with four entry points and a private
+direct count-map helper.
 
-Files:
+Likely files:
 - `lib/orbital_dynamics/schema/candidate_refresh_report_contracts.ex`
-- `lib/orbital_dynamics/schema/candidate_refresh_timeline_validation_contracts.ex`
+- `lib/orbital_dynamics/schema/candidate_refresh_resource_signal_contracts.ex`
 - `.codex/status/large_module_refactor.md`
 
-Result:
-The public `/4` facade delegates to a new 14-line entry point in the existing
-timeline-validation owner. The report-contract facade fell from 396 to 386
-lines without schema-export changes.
+Likely tests:
+- compile with warnings as errors
+- focused link-capacity, constraint, resource-projection, and resource-filter
+  replay/build tests
+- candidate-refresh schema/provenance contracts
+- broader candidate-refresh, deterministic export/fingerprint, xref, and format
 
-Verification:
-- compile with warnings as errors passed
-- seven focused timeline-activity files plus candidate-refresh schema and
-  resource-provenance contracts: 47 passed
-- broader candidate-refresh suite: 755 passed
-- schema export trio: 22 passed
-- full schema export reproduced checked-in artifacts with no diff
-- deterministic contract/bundle fingerprint remained
-  `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`
-- compile-connected xref roots stayed narrow; format and diff hygiene passed
-- bounded read-only review found no issues and independently passed compile,
-  the 47 focused tests, facade/API comparison, xref, format, and diff checks
+Definition of done:
+All four public `/4` contexts are thin delegates with unchanged guards, their
+complete flows move without duplication, validation order/paths/errors remain
+exact, and focused/broader checks pass.
 
 Verification gaps:
 - Full repository suite not run.
 
-Last commit:
-Published review-feedback extraction `ed0fbe29`; selected this slice in
-`34f4ea79`.
+Last completed slice:
+Timeline-activity context extraction published as `f3e73b46`: the existing
+timeline-validation owner gained one 14-line entry point and the report-contract
+facade fell from 396 to 386 lines; 47 focused, 755 candidate-refresh, and 22
+export tests passed; schemas/fingerprint were unchanged; review found no issues.
 
 Blocked:
 No.
