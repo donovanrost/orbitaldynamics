@@ -9,7 +9,7 @@ Current slice:
 Candidate-refresh contact-intent context extraction.
 
 Status:
-Selected; implementation pending.
+Complete; publication pending.
 
 Selected slice:
 Extract the complete contact-intent source-report validator and its exclusive
@@ -26,26 +26,34 @@ Public facade to preserve:
 `validate_contact_intent_direction_routing/5`, including their callback-list
 guards, plus all other public signatures.
 
-Likely extraction target:
+Extraction target:
 `CandidateRefreshContactIntentContracts.validate/3`, owning the full context
 flow and stable-ID map helper while delegating routing to
 `CandidateRefreshContactIntentRoutingContracts`.
 
-Likely files:
+Files:
 - `lib/orbital_dynamics/schema/candidate_refresh_report_contracts.ex`
 - `lib/orbital_dynamics/schema/candidate_refresh_contact_intent_contracts.ex`
 - `.codex/status/large_module_refactor.md`
 
-Likely tests:
-- compile with warnings as errors
-- contact-intent replay/candidate-source/routing/review-import/build tests
-- candidate-refresh resource-provenance and schema contract coverage
-- broader candidate-refresh, deterministic export/fingerprint, xref, and format
+Result:
+The public context `/4` facade now delegates to a 96-line contact-intent owner;
+the public routing `/5` facade is unchanged. The exclusive stable-ID helper
+moved with the context, and the report-contract facade fell from 665 to 601
+lines without schema-export changes.
 
-Definition of done:
-The public context `/4` function is a thin delegate, the `/5` routing facade is
-unchanged, the exclusive stable-ID helper moves without duplication, all order/
-paths/errors remain unchanged, and focused/broader checks pass.
+Verification:
+- compile with warnings as errors passed
+- six focused contact-intent replay/build suites plus candidate-refresh schema
+  and resource-provenance contracts: 36 passed
+- broader candidate-refresh suite: 755 passed
+- schema export trio: 22 passed
+- full schema export reproduced checked-in artifacts with no diff
+- deterministic contract/bundle fingerprint remained
+  `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`
+- compile-connected xref roots stayed narrow; format and diff hygiene passed
+- bounded read-only review found no issues and independently passed compile,
+  the 36 focused tests, facade/API comparison, xref, format, and diff checks
 
 Verification gaps:
 - Full repository suite not run.
