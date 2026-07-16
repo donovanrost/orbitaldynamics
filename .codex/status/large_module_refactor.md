@@ -9,7 +9,7 @@ Current slice:
 Completed: lint registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Moved `campaign_request_lint.v1` and `study_manifest_lint.v1` definitions into
@@ -50,8 +50,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`8a2abc29` (`Update validation policy handoff`); current slice is not yet
-committed.
+`17ac8ed2` (`Extract lint registry contracts`).
 
 Next candidate:
 Move the remaining `strategy_branch.v1` registry definition into the existing
