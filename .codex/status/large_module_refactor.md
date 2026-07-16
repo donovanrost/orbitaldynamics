@@ -9,7 +9,7 @@ Current slice:
 Completed: model capability registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Move `environment_model_capability.v1`, `environment_provider_capability.v1`,
@@ -79,7 +79,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`efc81b39` (`Update resource summary handoff`).
+`3db8df0e` (`Extract model capability registry contracts`).
 
 Next candidate:
 Assess `constraint_report.v1` and `score_term_report.v1` as one cohesive
