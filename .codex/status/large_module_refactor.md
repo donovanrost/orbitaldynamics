@@ -9,46 +9,40 @@ Current slice:
 Candidate-refresh timeline-publication context extraction.
 
 Status:
-Selected; implementation pending.
+Complete; ready to publish.
 
-Selected slice:
-Extract the complete timeline-publication source-report validator—count maps,
-row counts, stable-ID lists, and stable-ID array maps—behind its existing public
-context function.
+Result:
+- Extracted publication count maps, row counts, 19 stable-ID lists, and two
+  stable-ID array maps into the new 86-line
+  `CandidateRefreshTimelinePublicationContracts` owner.
+- Preserved `validate_timeline_publication_context/4` as a thin delegate with
+  its callback-list guard unchanged.
+- Removed the publication-owned optional stable-ID-list import from the parent.
+- Reduced `CandidateRefreshReportContracts` from 1,002 to 933 lines.
 
-Why this slice:
-Timeline publication is a self-contained 75-line responsibility with dedicated
-replay coverage and no callback or private-helper coupling.
-
-Public facade to preserve:
-`CandidateRefreshReportContracts.validate_timeline_publication_context/4`,
-including its callback-list guard, plus all other public signatures.
-
-Likely extraction target:
-`CandidateRefreshTimelinePublicationContracts.validate/3`, owning the complete
-publication flow and local field reducers.
-
-Likely files:
-- `lib/orbital_dynamics/schema/candidate_refresh_report_contracts.ex`
-- `lib/orbital_dynamics/schema/candidate_refresh_timeline_publication_contracts.ex`
-- `.codex/status/large_module_refactor.md`
-
-Likely tests:
-- compile with warnings as errors
-- timeline-publication replay and candidate-source replay tests
-- candidate-refresh resource-provenance and schema contract coverage
-- broader candidate-refresh, deterministic export/fingerprint, xref, and format
-
-Definition of done:
-The public `/4` function is a thin delegate to one focused publication owner,
-all field/order/path behavior is unchanged, no stale imports remain, and
-focused/broader checks pass.
+Tests run:
+- `mix compile --warnings-as-errors` passed.
+- Focused publication replay/candidate-source/provenance/schema coverage passed
+  16/16.
+- The full `test/orbital_dynamics/candidate_refresh` directory passed 755/755.
+- Schema export coverage passed 22/22.
+- Full export left `schemas/` unchanged; the bundle fingerprint remained
+  `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`.
+- Parent/new-module compile-connected xref, formatting, new-file whitespace,
+  and `git diff --check` passed.
+- The read-only reviewer found no must-fix issues, independently passed compile
+  and six focused tests, and verified the signature/guard, field order,
+  paths/values, optional behavior, import ownership, and dependency shape.
 
 Verification gaps:
 - Full repository suite not run.
 
 Last commit:
-Published timeline structural-validation extraction `063e03fd`.
+Pending publication; prior handoff `9efbdfe5`.
+
+Next candidate:
+- Inspect the remaining operational timeline context cluster and select one
+  cohesive extraction behind existing public facades.
 
 Blocked:
 No.
