@@ -6101,7 +6101,8 @@ defmodule OrbitalDynamics.Schema do
     |> OrbitalDynamics.Schema.ContactContentionResolutionSummaryContracts.validate(
       "$",
       artifact,
-      contact_contention_resolution_summary_contract_callbacks()
+      contact_contention_report_model_limits(),
+      &validate_contact_contention_resolution_policy/3
     )
   end
 
@@ -7705,30 +7706,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp contact_contention_resolution_summary_contract_callbacks do
-    [
-      expect_equal: &expect_equal/5,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_non_negative_integer: &expect_non_negative_integer/4,
-      expect_optional_non_negative_number: &expect_optional_non_negative_number/4,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      validate_contact_contention_resolution_policy:
-        &validate_contact_contention_resolution_policy/3,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_optional_exact_model_limits: &validate_optional_exact_model_limits/5,
-      validate_non_negative_integer_count_map: &validate_non_negative_integer_count_map/3,
-      validate_stable_id_list: &validate_stable_id_list/3,
-      validate_stable_id_array_map: &validate_stable_id_array_map/3,
-      validate_non_negative_number_map: &validate_non_negative_number_map/3,
-      contact_contention_report_model_limits: &contact_contention_report_model_limits/0,
-      sorted_stable_id_array_map_values: &sorted_stable_id_array_map_values/1,
-      non_negative_integer_map_sum: &non_negative_integer_map_sum/1,
-      numeric_map_sum: &numeric_map_sum/1,
-      list_count: &list_count/2
-    ]
-  end
-
   defp result_artifact_contract_callbacks do
     [
       validate_execution_report: &validate_nested_execution_report/1,
@@ -9281,16 +9258,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp non_negative_integer_map_sum(_counts), do: nil
 
-  defp numeric_map_sum(values) when is_map(values) do
-    values = Map.values(values)
-
-    if Enum.all?(values, &is_number/1),
-      do: Enum.sum(values),
-      else: nil
-  end
-
-  defp numeric_map_sum(_values), do: nil
-
   defp stable_id_array_map_value_count(values) when is_map(values) do
     OrbitalDynamics.Schema.CollectionAggregation.stable_id_array_map_value_count(values)
   end
@@ -9335,15 +9302,6 @@ defmodule OrbitalDynamics.Schema do
   defp relay_custody_statuses, do: ~w(confirmed pending missing_ack failed unknown)
   defp relay_latency_statuses, do: ~w(within_limit exceeds_limit not_evaluated unknown)
   defp relay_risk_statuses, do: ~w(nominal review high unknown)
-
-  defp sorted_stable_id_array_map_values(values) when is_map(values) do
-    values
-    |> Map.values()
-    |> List.flatten()
-    |> sorted_unique_binary_values()
-  end
-
-  defp sorted_stable_id_array_map_values(_values), do: nil
 
   defp validate_operator_review_row_links(issues, path, row) do
     OrbitalDynamics.Schema.ReviewRowLinkContracts.validate(
@@ -10651,16 +10609,8 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.CollectionAggregation.row_count_difference(report, field, subtract)
   end
 
-  defp list_count(map, field) do
-    OrbitalDynamics.Schema.CollectionAggregation.list_count(map, field)
-  end
-
   defp sum_row_numbers(rows, field) do
     OrbitalDynamics.Schema.CollectionAggregation.sum_row_numbers(rows, field)
-  end
-
-  defp sorted_unique_binary_values(values) do
-    OrbitalDynamics.Schema.CollectionAggregation.sorted_unique_binary_values(values)
   end
 
   defp row_ids_by_field(rows, group_field, id_field) do
