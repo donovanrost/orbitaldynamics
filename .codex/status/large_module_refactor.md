@@ -6,43 +6,52 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Candidate-refresh quality-gate context extraction.
+Candidate-refresh contact-intent context extraction.
 
 Status:
-Complete; ready to publish.
+Selected; implementation pending.
 
-Result:
-- Extracted seven gate integers, five typed count maps, four optional typed
-  stable-ID array maps, fourteen stable-ID lists, and four trailing string-list
-  checks into the new 100-line `CandidateRefreshQualityGateContracts` owner.
-- Preserved `validate_quality_gate_context/4` as a thin delegate with its
-  callback-list guard unchanged.
-- Moved the sole optional stable-ID array-map helper intact and removed the
-  stale parent copy.
-- Reduced `CandidateRefreshReportContracts` from 746 to 665 lines.
+Selected slice:
+Extract the complete contact-intent source-report validator and its exclusive
+stable-ID map helper behind the existing public context function, while reusing
+the already extracted direction-routing owner.
 
-Tests run:
-- `mix compile --warnings-as-errors` passed.
-- Focused quality-gate replay/provenance/schema coverage passed 39/39.
-- The full `test/orbital_dynamics/candidate_refresh` directory passed 755/755.
-- Schema export coverage passed 22/22.
-- Full export left `schemas/` unchanged; the bundle fingerprint remained
-  `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`.
-- Parent/new-module compile-connected xref, formatting, new-file whitespace,
-  and `git diff --check` passed.
-- The read-only reviewer found no must-fix issues, independently passed compile
-  and 29 focused tests, and verified field order, helper behavior, paths/errors,
-  imports, public definitions, and dependency shape.
+Why this slice:
+The context and stable-ID helper form one cohesive capacity/routing validation
+responsibility with six focused replay/build suites. The routing module remains
+shared with the public `/5` routing facade.
+
+Public facade to preserve:
+`validate_contact_intent_context/4` and the existing
+`validate_contact_intent_direction_routing/5`, including their callback-list
+guards, plus all other public signatures.
+
+Likely extraction target:
+`CandidateRefreshContactIntentContracts.validate/3`, owning the full context
+flow and stable-ID map helper while delegating routing to
+`CandidateRefreshContactIntentRoutingContracts`.
+
+Likely files:
+- `lib/orbital_dynamics/schema/candidate_refresh_report_contracts.ex`
+- `lib/orbital_dynamics/schema/candidate_refresh_contact_intent_contracts.ex`
+- `.codex/status/large_module_refactor.md`
+
+Likely tests:
+- compile with warnings as errors
+- contact-intent replay/candidate-source/routing/review-import/build tests
+- candidate-refresh resource-provenance and schema contract coverage
+- broader candidate-refresh, deterministic export/fingerprint, xref, and format
+
+Definition of done:
+The public context `/4` function is a thin delegate, the `/5` routing facade is
+unchanged, the exclusive stable-ID helper moves without duplication, all order/
+paths/errors remain unchanged, and focused/broader checks pass.
 
 Verification gaps:
 - Full repository suite not run.
 
 Last commit:
-Pending publication; prior handoff `3b952b7e`.
-
-Next candidate:
-- Inspect the remaining contact-intent context and its stable-ID map helper as
-  one focused owner boundary.
+Published quality-gate extraction `b048b7bf`.
 
 Blocked:
 No.
