@@ -9,7 +9,7 @@ Current slice:
 Completed: Cadence import-manifest registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Move `cadence_import_manifest.v1` into `Schema.CadenceImportRegistryContracts`.
@@ -79,7 +79,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`aee7d838` (`Update operational readiness handoff`).
+`141bff90` (`Extract Cadence import registry contracts`).
 
 Next candidate:
 Assess moving `policy_bundle.v1` into the existing
