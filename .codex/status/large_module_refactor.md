@@ -9,7 +9,7 @@ Current slice:
 Completed: operator review package registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Moved `operator_review_package.v1` into
@@ -80,7 +80,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`f8d4011c` (`Update approval policy handoff`).
+`faf1c72a` (`Extract operator review registry contracts`).
 
 Next candidate:
 Assess candidate rejection report and plan delta as the next bounded plan-change
