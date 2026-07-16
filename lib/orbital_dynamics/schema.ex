@@ -13,7 +13,6 @@ defmodule OrbitalDynamics.Schema do
       validate_nested_id_match: 7,
       validate_optional_stable_id_list: 4,
       validate_optional_stable_ids: 4,
-      validate_stable_id: 3,
       validate_stable_id_array_map: 3,
       validate_stable_id_list: 3,
       validate_stable_ids: 4
@@ -4540,26 +4539,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp activity_template_activity_types do
-    timeline_capabilities().supported_activity_types
-  end
-
-  defp activity_template_activity_statuses do
-    timeline_capabilities().activity_statuses
-  end
-
-  defp activity_template_approval_statuses do
-    timeline_capabilities().approval_statuses
-  end
-
-  defp activity_template_precondition_types do
-    timeline_capabilities().activity_precondition_types
-  end
-
-  defp activity_template_precondition_statuses do
-    timeline_activity_precondition_statuses()
-  end
-
   defp planned_activity_json_schema do
     OrbitalDynamics.Schema.PlannedActivityJsonSchema.schema(
       stable_id_pattern: @stable_id_pattern,
@@ -6051,7 +6030,7 @@ defmodule OrbitalDynamics.Schema do
       "$",
       artifact,
       contract,
-      activity_template_contract_callbacks()
+      timeline_capabilities()
     )
   end
 
@@ -7668,25 +7647,6 @@ defmodule OrbitalDynamics.Schema do
       validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
       validate_optional_timeline_identity: &validate_optional_timeline_identity/4,
       timeline_report_model_limits: &timeline_report_model_limits/0
-    ]
-  end
-
-  defp activity_template_contract_callbacks do
-    [
-      require_fields: &require_fields/4,
-      expect_equal: &expect_equal/5,
-      expect_one_of: &expect_one_of/5,
-      expect_type: &expect_type/5,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      validate_stable_id: &validate_stable_id/3,
-      validate_string_list_items: &validate_string_list_items/4,
-      list_count: &list_count/2,
-      activity_template_activity_types: &activity_template_activity_types/0,
-      activity_template_activity_statuses: &activity_template_activity_statuses/0,
-      activity_template_approval_statuses: &activity_template_approval_statuses/0,
-      activity_template_precondition_types: &activity_template_precondition_types/0,
-      activity_template_precondition_statuses: &activity_template_precondition_statuses/0,
-      error: &error/2
     ]
   end
 
