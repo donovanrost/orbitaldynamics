@@ -1,6 +1,7 @@
 defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
   @moduledoc false
 
+  alias OrbitalDynamics.Schema.CandidateRefreshCandidateSelectionContracts
   alias OrbitalDynamics.Schema.CandidateRefreshContactIntentContracts
   alias OrbitalDynamics.Schema.CandidateRefreshContactIntentRoutingContracts
   alias OrbitalDynamics.Schema.CandidateRefreshOperationalTimelineContracts
@@ -128,23 +129,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
   end
 
   def validate_freshness_context(issues, path, summary, callbacks) when is_list(callbacks) do
-    issues
-    |> expect_optional_non_negative_integer(path, summary, "stale_reason_count")
-    |> expect_optional_non_negative_integer(path, summary, "unknown_reason_count")
-    |> validate_non_negative_integer_count_map(
-      path <> ".status_counts",
-      Map.get(summary, "status_counts")
-    )
-    |> validate_non_negative_integer_count_map(
-      path <> ".stale_reason_counts",
-      Map.get(summary, "stale_reason_counts")
-    )
-    |> validate_non_negative_integer_count_map(
-      path <> ".unknown_reason_counts",
-      Map.get(summary, "unknown_reason_counts")
-    )
-    |> validate_string_list_items(path, summary, "stale_reasons")
-    |> validate_string_list_items(path, summary, "unknown_reasons")
+    CandidateRefreshCandidateSelectionContracts.validate_freshness(issues, path, summary)
   end
 
   def validate_objective_gap_context(issues, path, summary, callbacks) when is_list(callbacks) do
@@ -180,33 +165,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
   end
 
   def validate_refresh_budget_context(issues, path, summary, callbacks) when is_list(callbacks) do
-    issues =
-      Enum.reduce(
-        [
-          "input_candidate_count",
-          "kept_candidate_count",
-          "dropped_candidate_count",
-          "invalid_candidate_limit_policy_count"
-        ],
-        issues,
-        fn field, acc ->
-          expect_optional_non_negative_integer(acc, path, summary, field)
-        end
-      )
-
-    issues
-    |> validate_non_negative_integer_count_map(
-      path <> ".invalid_candidate_limit_policy_reason_counts",
-      Map.get(summary, "invalid_candidate_limit_policy_reason_counts")
-    )
-    |> validate_stable_id_list(
-      path <> ".kept_candidate_ids",
-      Map.get(summary, "kept_candidate_ids")
-    )
-    |> validate_stable_id_list(
-      path <> ".dropped_candidate_ids",
-      Map.get(summary, "dropped_candidate_ids")
-    )
+    CandidateRefreshCandidateSelectionContracts.validate_refresh_budget(issues, path, summary)
   end
 
   def validate_validation_safety_case_context(issues, path, summary, callbacks)

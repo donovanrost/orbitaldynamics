@@ -9,7 +9,7 @@ Current slice:
 Candidate-refresh candidate-selection context extraction.
 
 Status:
-Selected; implementation pending.
+Complete; publication pending.
 
 Selected slice:
 Extract the freshness and refresh-budget source-report validators behind their
@@ -26,34 +26,39 @@ Public facade to preserve:
 their callback-list guards, validation order, paths, messages, and all other
 public signatures.
 
-Likely extraction target:
+Extraction target:
 `CandidateRefreshCandidateSelectionContracts`, with separate freshness and
 refresh-budget entry points.
 
-Likely files:
+Files:
 - `lib/orbital_dynamics/schema/candidate_refresh_report_contracts.ex`
 - `lib/orbital_dynamics/schema/candidate_refresh_candidate_selection_contracts.ex`
 - `.codex/status/large_module_refactor.md`
 
-Likely tests:
-- compile with warnings as errors
-- focused freshness and refresh-budget replay/build tests
-- candidate-refresh schema/provenance contracts
-- broader candidate-refresh, deterministic export/fingerprint, xref, and format
+Result:
+Both public `/4` facades delegate to a 63-line candidate-selection owner. The
+complete freshness and refresh-budget flows moved, and the report-contract
+facade fell from 504 to 463 lines without schema-export changes.
 
-Definition of done:
-Both public `/4` context functions are thin delegates with unchanged guards,
-the complete freshness and refresh-budget flows move without duplication,
-validation order/paths/errors remain exact, and focused/broader checks pass.
+Verification:
+- compile with warnings as errors passed
+- eight focused freshness/budget replay/build files plus candidate-refresh
+  schema and resource-provenance contracts: 42 passed
+- broader candidate-refresh suite: 755 passed
+- schema export trio: 22 passed
+- full schema export reproduced checked-in artifacts with no diff
+- deterministic contract/bundle fingerprint remained
+  `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`
+- compile-connected xref roots stayed narrow; format and diff hygiene passed
+- bounded read-only review found no issues and independently passed compile,
+  the 42 focused tests, facade/API comparison, xref, format, and diff checks
 
 Verification gaps:
 - Full repository suite not run.
 
-Last completed slice:
-Validation-safety-case extraction published as `f4789df9`: the facade fell from
-535 to 504 lines and the validation-report owner grew from 84 to 121 lines; 11
-focused, 755 candidate-refresh, and 22 export tests passed; checked-in schemas
-and fingerprint were unchanged; deferred-callback review found no code issues.
+Last commit:
+Published validation-safety-case extraction `f4789df9`; selected this slice in
+`a9cecd54`.
 
 Blocked:
 No.
