@@ -6526,7 +6526,7 @@ defmodule OrbitalDynamics.Schema do
     |> OrbitalDynamics.Schema.ResultArtifactContracts.validate(
       "$",
       artifact,
-      result_artifact_contract_callbacks()
+      &validate_nested_execution_report/1
     )
   end
 
@@ -7367,23 +7367,6 @@ defmodule OrbitalDynamics.Schema do
       row_count_difference: &row_count_difference/3,
       frequency_map: &frequency_map/2,
       row_ids_by_field: &row_ids_by_field/3
-    ]
-  end
-
-  defp result_artifact_contract_callbacks do
-    [
-      validate_execution_report: &validate_nested_execution_report/1,
-      require_fields: &require_fields/4,
-      expect_equal: &expect_equal/5,
-      expect_one_of: &expect_one_of/5,
-      expect_type: &expect_type/5,
-      expect_number: &expect_number/4,
-      expect_non_negative_integer: &expect_non_negative_integer/4,
-      expect_optional_non_negative_integer: &expect_optional_non_negative_integer/4,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      validate_rows: &validate_rows/4,
-      validate_stable_ids: &validate_stable_ids/4,
-      error: &error/2
     ]
   end
 

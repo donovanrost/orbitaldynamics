@@ -9,7 +9,7 @@ Current slice:
 Result-artifact callback-bag collapse.
 
 Status:
-Selected; implementation pending.
+Complete and ready to publish.
 
 Selected slice:
 Replace the 12-entry callback bag in `ResultArtifactContracts` with direct
@@ -45,18 +45,34 @@ shared owners and local errors preserve validation while execution-report
 validation remains an explicit boundary; focused, broader, and export checks
 pass; and bounded review finds no blocker.
 
+Outcome:
+The 12-entry callback bag and all lookup/apply trampolines are gone. Shared
+primitive, collection, and stable-ID validators are called directly, local
+payload-metrics errors retain their exact maps, and nested execution-report
+validation is the sole injected one-argument boundary. `schema.ex` fell from
+11,513 to 11,496 lines and the owner from 231 to 187. Compile warnings, xref,
+checked-in export regeneration, format, and diff hygiene are clean; 102 focused,
+1,167 broader, and 22 export tests pass. Bounded review found no blocker in
+validation order, messages, issue concatenation, payload sections, ground-track
+rows, caller shape, or callback residue.
+
 Verification gaps:
 - Full repository suite not run.
 - Known baseline: full contact-filter file remains 87/88 due nil-message
   behavior in `SuppressedCandidateContracts`; unrelated to these slices.
+- Full validation-file probing found existing nil messages for `$.status` and
+  `$.state_quality_status` in the curated freshness fixture; unrelated to the
+  result-artifact owner and a candidate for the next repair slice.
+- The broader focused batch was 113/114 because the generated campaign did not
+  exactly match its checked-in golden artifact; generation is outside this
+  validation-only slice. The attributable batch is 102/102.
 
 Last completed slice:
-Resource-projection-report callback-bag collapse published as `38df3c8a`:
-`schema.ex` fell from 11,533 to 11,513 lines and its owner from 259 to 172. The
-20-entry bag became direct shared owners, explicit model values, and five
-domain-validator arguments. 214 focused, 1,167 broader, and 22 export tests
-passed; compile, xref, regeneration, format, diff hygiene, and bounded review
-were clean.
+Result-artifact callback-bag collapse, ready to publish: `schema.ex` fell from
+11,513 to 11,496 lines and its owner from 231 to 187. The 12-entry bag became
+direct shared validation calls plus one execution-report boundary. 102 focused,
+1,167 broader, and 22 export tests passed; compile, xref, regeneration, format,
+diff hygiene, and bounded review were clean.
 
 Blocked:
 No.
