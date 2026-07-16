@@ -535,6 +535,22 @@ defmodule OrbitalDynamics.Communications.StationCalendarTest do
              &(&1["path"] == "$.station_reservation_match_status_counts")
            )
 
+    invalid_review_count = Map.put(reservation_report, "reservation_review_count", 99)
+
+    assert {:error, invalid_review_count_report} =
+             Schema.validate_artifact(invalid_review_count)
+
+    assert Enum.any?(
+             invalid_review_count_report["errors"],
+             &match?(
+               %{
+                 "path" => "$.reservation_review_count",
+                 "message" => "must equal 2"
+               },
+               &1
+             )
+           )
+
     invalid_status_counts =
       put_in(reservation_report, ["reservation_status_counts", "confirmed"], 99)
 
