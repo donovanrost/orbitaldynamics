@@ -6,33 +6,33 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Operational-readiness-context callback-bag collapse.
+Operational-readiness-evidence callback-bag collapse.
 
 Status:
-Completed and ready to publish.
+Selected; implementation pending.
 
 Selected slice:
-Replace the 7-entry callback bag in `OperationalReadinessContextContracts` with
-direct primitive and stable-ID owners plus an exact local non-negative map sum;
-update all facade context validators without changing their composition.
+Replace the 11-entry callback bag in `OperationalReadinessEvidenceContracts`
+with direct primitive owners, exact local stable sorting/sum/error behavior, and
+two explicit validator boundaries for resource and timeline-publication context.
 
 Why this slice:
-Live inventory leaves `schema.ex` at 11,876 lines. The 355-line readiness-
-context owner underlies quality-gate row resource, operator-training, adapter,
-and Cadence-import validation. Its bag contains no genuine facade/domain hook:
-all entries are shared validators or one pure sum. Removing it simplifies the
-remaining row-validator dependency surface without replacing seven genuine row
-domain validators with another opaque structure.
+Live inventory leaves `schema.ex` at 11,860 lines. The 531-line readiness-
+evidence owner has nine shared/pure bag entries and only two real orchestration
+hooks. Making those two functions explicit preserves dependency injection while
+removing lookup/apply trampolines and keeping evidence aggregation ownership in
+the extracted module.
 
 Public facade to preserve:
 `OrbitalDynamics.Schema.validate_artifact/2` and every readiness resource,
-operator-training, adapter-boundary, and Cadence-import context validation path,
-including optional fields, reason/count derivation, exact messages/error order,
-quality-gate row/report behavior, replay consumers, and exports.
+timeline-publication, evidence/count-map, and gate-derived validation path,
+including optional fields, exact messages/error order, stable ID ordering,
+numeric/count-map aggregation, quality-gate behavior, replay consumers, and
+exports.
 
 Likely files:
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/operational_readiness_context_contracts.ex`
+- `lib/orbital_dynamics/schema/operational_readiness_evidence_contracts.ex`
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
@@ -43,27 +43,10 @@ Likely verification:
 - compile-connected xref, format, diff hygiene, and bounded review
 
 Definition of done:
-No readiness-context callback bag or helper trampolines remain; direct shared
-owners and the exact local sum preserve all validation/error order and messages;
-focused/broader/export checks pass; and bounded review finds no blocker.
-
-Outcome:
-Removed the 7-entry callback bag and owner callback trampolines. The four
-context validators now call `PrimitiveValidation` directly, stable-ID array-map
-validation is locally composed from its shared owners, and the exact nonnegative
-map sum remains local. `schema.ex` fell from 11,876 to 11,860 lines and the
-readiness-context owner from 355 to 293. The public Schema facade and validation
-composition remain unchanged.
-
-Verification:
-- compile with warnings as errors passed
-- 61 focused readiness/schema/replay/operator-review tests passed
-- 1,054 broader candidate-refresh/operator-review tests passed
-- 22 schema export tests passed
-- compile-connected xref showed only primitive/stable-ID dependencies
-- checked-in schema regeneration produced no diff
-- format and diff hygiene passed
-- bounded review found no findings
+No readiness-evidence callback bag or lookup/apply trampolines remain; shared
+primitive and exact local helpers preserve gate/evidence aggregation behavior;
+the resource and timeline validators remain explicit boundaries; focused,
+broader, and export checks pass; and bounded review finds no blocker.
 
 Verification gaps:
 - Full repository suite not run.
@@ -71,7 +54,11 @@ Verification gaps:
   behavior in `SuppressedCandidateContracts`; unrelated to these slices.
 
 Last completed slice:
-Operational-readiness-context callback-bag collapse; publication commit pending.
+Operational-readiness-context callback collapse published as `fc0ddf20`:
+`schema.ex` fell from 11,876 to 11,860 lines and its owner from 355 to 293. The
+7-entry bag became direct primitive/stable-ID owners plus an exact local sum.
+61 focused, 1,054 broader, and 22 export tests passed; compile, xref, format,
+diff hygiene, checked-in schema regeneration, and bounded review were clean.
 
 Blocked:
 No.
