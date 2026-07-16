@@ -12,7 +12,6 @@ defmodule OrbitalDynamics.Schema do
       validate_nested_stable_id_array_map: 3,
       validate_nested_id_match: 7,
       validate_optional_stable_id_list: 4,
-      validate_optional_stable_ids: 4,
       validate_stable_id_array_map: 3,
       validate_stable_id_list: 3,
       validate_stable_ids: 4
@@ -9097,21 +9096,8 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.QualityGateHandoffContracts.validate_summary(
       issues,
       path,
-      artifact,
-      quality_gate_handoff_contract_callbacks()
+      artifact
     )
-  end
-
-  defp quality_gate_handoff_contract_callbacks do
-    [
-      validate_optional_stable_ids: &validate_optional_stable_ids/4,
-      expect_optional_one_of: &expect_optional_one_of/5,
-      expect_optional_non_negative_integer: &expect_optional_non_negative_integer/4,
-      expect_optional_type: &expect_optional_type/5,
-      validate_non_negative_integer_count_map: &validate_non_negative_integer_count_map/3,
-      validate_optional_stable_id_array_map: &validate_optional_stable_id_array_map/4,
-      validate_optional_stable_id_list: &validate_optional_stable_id_list/4
-    ]
   end
 
   defp contact_allocation_reservation_expiration_rows(rows, now_s) do

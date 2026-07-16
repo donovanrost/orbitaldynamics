@@ -9,7 +9,7 @@ Current slice:
 Quality-gate-handoff callback-bag collapse.
 
 Status:
-Selected; implementation pending.
+Completed and ready to publish.
 
 Selected slice:
 Replace the 7-entry callback bag in `QualityGateHandoffContracts` with direct
@@ -45,17 +45,32 @@ No quality-gate-handoff callback bag or lookup/apply trampolines remain; direct
 shared owners preserve summary validation and source-match behavior; focused,
 broader, and export checks pass; and bounded review finds no blocker.
 
+Outcome:
+Removed the 7-entry handoff callback bag and all owner trampolines. Optional
+enum/count/count-map validation now uses `PrimitiveValidation`; optional stable
+IDs and stable-ID lists use `StableIdValidation`; optional stable-ID array maps
+are composed locally from the same shared type and item validators. Source row
+and report matching are unchanged. One now-unused Schema import was removed.
+`schema.ex` fell from 11,733 to 11,719 lines and the handoff owner from 212 to
+174.
+
+Verification:
+- compile with warnings as errors passed
+- 183 focused readiness/Cadence/replay/operator-review tests passed
+- 1,167 broader candidate-refresh/operator-review/Cadence tests passed
+- 22 schema export tests passed
+- compile-connected xref passed
+- checked-in schema regeneration produced no diff
+- format and diff hygiene passed
+- bounded review found no findings
+
 Verification gaps:
 - Full repository suite not run.
 - Known baseline: full contact-filter file remains 87/88 due nil-message
   behavior in `SuppressedCandidateContracts`; unrelated to these slices.
 
 Last completed slice:
-Quality-gate-row callback collapse published as `3e6fc7d8`: `schema.ex` fell
-from 11,762 to 11,733 lines and its owner from 148 to 96. The 14-entry bag
-became direct shared/context owners and three explicit validator boundaries.
-61 focused, 1,054 broader, and 22 export tests passed; compile, xref, format,
-diff hygiene, checked-in regeneration, and bounded review were clean.
+Quality-gate-handoff callback-bag collapse; publication commit pending.
 
 Blocked:
 No.
