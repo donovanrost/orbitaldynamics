@@ -4918,52 +4918,6 @@ defmodule OrbitalDynamics.Schema do
         "monte_carlo_reproducibility_report.v1",
         "constraint_report.v1"
       ]
-    },
-    @validation_tolerance_policy => %{
-      "schema_contract" => @validation_tolerance_policy,
-      "artifact_family" => "validation_tolerance_policy",
-      "schema_version" => 1,
-      "required_fields" => [
-        "schema_contract",
-        "comparison_model",
-        "event_timing",
-        "artifact_regressions",
-        "validation_levels"
-      ],
-      "nested_contracts" => []
-    },
-    @backend_acceptance_policy => %{
-      "schema_contract" => @backend_acceptance_policy,
-      "artifact_family" => "backend_acceptance_policy",
-      "schema_version" => 1,
-      "required_fields" => [
-        "schema_contract",
-        "reference_backend",
-        "acceptance_tiers",
-        "implementation_tiers",
-        "comparison_requirements",
-        "benchmark_reference_cases",
-        "known_limits"
-      ],
-      "nested_contracts" => ["validation_tolerance_policy.v1"]
-    },
-    @capability_catalog => %{
-      "schema_contract" => @capability_catalog,
-      "artifact_family" => "capability_catalog",
-      "schema_version" => 1,
-      "required_fields" => [
-        "schema_contract",
-        "schema_version",
-        "model",
-        "analysis",
-        "planning",
-        "operations",
-        "environment",
-        "constraints",
-        "validation",
-        "reporting"
-      ],
-      "nested_contracts" => []
     }
   }
 
@@ -4975,6 +4929,7 @@ defmodule OrbitalDynamics.Schema do
              |> Map.merge(
                OrbitalDynamics.Schema.ValidationAcceptanceRegistryContracts.contracts()
              )
+             |> Map.merge(OrbitalDynamics.Schema.ValidationPolicyRegistryContracts.contracts())
 
   @doc """
   Returns the known executable artifact contracts.
