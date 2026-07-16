@@ -13,9 +13,6 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
   alias OrbitalDynamics.Schema.CandidateRefreshTimelineValidationContracts
   alias OrbitalDynamics.Schema.CandidateRefreshValidationReportContracts
 
-  import OrbitalDynamics.Schema.CollectionValidation,
-    only: [validate_string_list_map: 4]
-
   import OrbitalDynamics.Schema.PrimitiveValidation,
     only: [
       expect_optional_non_negative_integer: 4,
@@ -214,34 +211,12 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
 
   def validate_validation_safety_case_context(issues, path, summary, callbacks)
       when is_list(callbacks) do
-    issues
-    |> expect_optional_non_negative_integer(path, summary, "accepted_evidence_count")
-    |> expect_optional_non_negative_integer(
+    CandidateRefreshValidationReportContracts.validate_safety_case(
+      issues,
       path,
       summary,
-      "review_required_evidence_count"
+      fn -> safety_case_count_fields(callbacks) end
     )
-    |> expect_optional_non_negative_integer(path, summary, "blocked_evidence_count")
-    |> expect_optional_type(path, summary, "status_counts", :map)
-    |> validate_non_negative_integer_count_map(
-      path <> ".status_counts",
-      Map.get(summary, "status_counts")
-    )
-    |> expect_optional_type(path, summary, "evidence_status_counts", :map)
-    |> validate_non_negative_integer_count_map(
-      path <> ".evidence_status_counts",
-      Map.get(summary, "evidence_status_counts")
-    )
-    |> expect_optional_type(path, summary, "input_contract_counts", :map)
-    |> validate_non_negative_integer_count_map(
-      path <> ".input_contract_counts",
-      Map.get(summary, "input_contract_counts")
-    )
-    |> expect_optional_type(path, summary, "evidence_refs_by_status", :map)
-    |> validate_string_list_map(path, summary, "evidence_refs_by_status")
-    |> expect_optional_type(path, summary, "evidence_refs_by_contract", :map)
-    |> validate_string_list_map(path, summary, "evidence_refs_by_contract")
-    |> validate_validation_safety_case_counts(callbacks, path, summary)
   end
 
   def validate_timeline_activity_context(issues, path, summary, callbacks)
@@ -492,12 +467,6 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
   defp validate_count_maps(issues, path, summary, fields) do
     Enum.reduce(fields, issues, fn field, acc ->
       validate_non_negative_integer_count_map(acc, path <> ".#{field}", Map.get(summary, field))
-    end)
-  end
-
-  defp validate_validation_safety_case_counts(issues, callbacks, path, summary) do
-    Enum.reduce(safety_case_count_fields(callbacks), issues, fn field, acc ->
-      expect_optional_non_negative_integer(acc, path, summary, field)
     end)
   end
 

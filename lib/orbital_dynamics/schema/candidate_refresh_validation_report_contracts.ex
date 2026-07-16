@@ -63,6 +63,37 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshValidationReportContracts do
     |> validate_string_list_map(path, summary, "model_ids_by_intended_use")
   end
 
+  def validate_safety_case(issues, path, summary, count_fields) do
+    issues
+    |> expect_optional_non_negative_integer(path, summary, "accepted_evidence_count")
+    |> expect_optional_non_negative_integer(
+      path,
+      summary,
+      "review_required_evidence_count"
+    )
+    |> expect_optional_non_negative_integer(path, summary, "blocked_evidence_count")
+    |> expect_optional_type(path, summary, "status_counts", :map)
+    |> validate_non_negative_integer_count_map(
+      path <> ".status_counts",
+      Map.get(summary, "status_counts")
+    )
+    |> expect_optional_type(path, summary, "evidence_status_counts", :map)
+    |> validate_non_negative_integer_count_map(
+      path <> ".evidence_status_counts",
+      Map.get(summary, "evidence_status_counts")
+    )
+    |> expect_optional_type(path, summary, "input_contract_counts", :map)
+    |> validate_non_negative_integer_count_map(
+      path <> ".input_contract_counts",
+      Map.get(summary, "input_contract_counts")
+    )
+    |> expect_optional_type(path, summary, "evidence_refs_by_status", :map)
+    |> validate_string_list_map(path, summary, "evidence_refs_by_status")
+    |> expect_optional_type(path, summary, "evidence_refs_by_contract", :map)
+    |> validate_string_list_map(path, summary, "evidence_refs_by_contract")
+    |> validate_safety_case_counts(count_fields, path, summary)
+  end
+
   defp validate_model_acceptance_count_maps(issues, path, summary) do
     Enum.reduce(
       [
@@ -80,5 +111,11 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshValidationReportContracts do
         )
       end
     )
+  end
+
+  defp validate_safety_case_counts(issues, count_fields, path, summary) do
+    Enum.reduce(count_fields.(), issues, fn field, acc ->
+      expect_optional_non_negative_integer(acc, path, summary, field)
+    end)
   end
 end
