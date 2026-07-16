@@ -2469,23 +2469,6 @@ defmodule OrbitalDynamics.Schema do
         "model_limits"
       ],
       "nested_contracts" => ["provider_counteroffer_report.v1"]
-    },
-    @policy_bundle => %{
-      "schema_contract" => @policy_bundle,
-      "artifact_family" => "policy_bundle",
-      "schema_version" => 1,
-      "required_fields" => [
-        "schema_contract",
-        "id",
-        "approval_policy"
-      ],
-      "optional_fields" => [
-        "description",
-        "provenance",
-        "assumptions",
-        "model_limits"
-      ],
-      "nested_contracts" => ["policy_decision.v1", "approval_requirement.v1"]
     }
   }
 
