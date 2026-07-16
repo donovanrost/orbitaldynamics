@@ -6,75 +6,56 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline-diff-row validator callback cleanup.
+Timeline-diff-report callback-bag collapse.
 
 Status:
-Complete; publication pending.
+Selected; implementation pending.
 
 Selected slice:
-Remove the 13-entry callback bag from `TimelineDiffRowContracts`. Call primitive,
-stable-ID, activity-context, lifecycle-transition, protection-decision,
-timeline-identity, and identity-collision owners directly while preserving the
-Schema row wrapper used by report and summary validators.
+Remove the 16-entry callback bag from `TimelineDiffReportContracts`. Call
+primitive, collection, aggregation, and timeline-diff-row owners directly and
+pass only the facade-derived timeline model-limit list as data.
 
 Why this slice:
 Live inventory shows `schema.ex` remains the dominant production hotspot at
-12,523 lines. The 151-line row owner contains 13 callback trampolines whose
-targets all have extracted owners. One schema wrapper constructs the bag, and
-the timeline diff report/summary contract suite covers standalone and nested
-row behavior.
+12,504 lines. The 292-line report owner contains 16 callback trampolines, and
+the preceding row cleanup removed its last nested callback dependency. One
+schema call site supplies the bag, while focused timeline report tests cover
+counts, aggregation, rows, invalid values, and checked-in fixtures.
 
 Public facade to preserve:
-`OrbitalDynamics.Schema.validate_artifact/2` and all timeline diff report/
-summary behavior, including required fields, validation order, paths, messages,
-optional/wrong-type behavior, identity collision checks, and exports.
+`OrbitalDynamics.Schema.validate_artifact/2` and timeline diff report behavior,
+including validation order, default/explicit messages, count aggregation,
+model-limit comparison, row validation, deterministic errors, and exports.
 
 Likely extraction target:
-`TimelineDiffRowContracts.validate/3` with direct owner calls; remove the schema
-row callback factory while keeping `validate_timeline_diff_row/3` as the stable
-private routing boundary for existing report and summary callback bags.
+`TimelineDiffReportContracts.validate/4` retains arity four but accepts the
+timeline model-limit list instead of callbacks; remove the schema factory and
+owner trampolines, and validate rows through `TimelineDiffRowContracts`.
 
 Likely files:
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/timeline_diff_row_contracts.ex`
+- `lib/orbital_dynamics/schema/timeline_diff_report_contracts.ex`
 - `.codex/status/large_module_refactor.md`
 
 Likely tests:
 - compile with warnings as errors
-- timeline report contracts and focused timeline diff workflow tests
+- timeline report contracts and focused timeline diff fixture/workflow tests
 - schema export trio and checked-in export/fingerprint verification
 - broader timeline/candidate-refresh checks, xref, format, and diff hygiene
 
 Definition of done:
-No row callback factory, callback lookup, or trampolines remain; all direct owner
-calls preserve exact behavior; focused/broader/export checks pass; and bounded
+No report callback factory or trampolines remain; direct owners and model-limit
+data preserve exact behavior; focused/broader/export checks pass; and bounded
 review finds no blocker.
-
-Result:
-Removed the 13-entry row callback factory, lookup helper, and all owner
-trampolines. The Schema row wrapper remains the shared routing boundary for
-report, summary, and transition validators, while the owner calls extracted
-primitive, stable-ID, context, lifecycle, protection, identity, and collision
-validators directly. `schema.ex` fell from 12,523 to 12,504 lines and the row
-owner from 151 to 118; public facade behavior and exports are unchanged.
-
-Verification:
-- compile with warnings as errors passed
-- focused timeline-diff contract/fixture matrix: 10 passed, 306 excluded
-- reviewer-focused report/summary contracts: 25 passed
-- broader timeline and candidate-refresh suites: 882 passed
-- schema export trio: 22 passed
-- checked-in schema export reproduced with no diff, preserving its fingerprint
-- format, diff hygiene, residue, public-definition, and xref checks passed
-- bounded read-only review found no must-fix issue
 
 Verification gaps:
 - Full repository suite not run.
 
 Last completed slice:
-Timeline-feedback-report callback collapse published as `44a7bb61`: `schema.ex`
-fell from 12,551 to 12,523 lines and its owner from 322 to 234; 80 focused,
-73 reviewer-focused, 955 broader, and 22 export tests passed; checked-in schemas
+Timeline-diff-row callback cleanup published as `4a7ba164`: `schema.ex` fell
+from 12,523 to 12,504 lines and its owner from 151 to 118; 10 focused,
+25 reviewer-focused, 882 broader, and 22 export tests passed; checked-in schemas
 were unchanged; bounded review found no issues.
 
 Blocked:
