@@ -9,7 +9,7 @@ Current slice:
 Resource-filter-summary callback-bag collapse.
 
 Status:
-Selected; implementation pending.
+Complete and ready to publish.
 
 Selected slice:
 Replace the 18-entry `ResourceFilterSummaryContracts` lookup bag with direct
@@ -43,6 +43,17 @@ shared/static ownership is direct and only the two domain row validators stay
 explicit; focused, broader, and export checks pass; and bounded review finds no
 blocker.
 
+Outcome:
+Primitive, collection, stable-ID, and aggregation work is direct; model limits
+are an explicit value and the two row validators explicit guarded functions.
+`schema.ex` fell from 11,444 to 11,415 lines and the owner from 445 to 368; two
+orphan aggregation forwarders also disappeared. Seventy-nine filter and 19
+summary/fixture/lint tests pass, alongside 1,167 broader and 22 export tests;
+compile, xref, checked-in regeneration, format, and diff hygiene are clean.
+Bounded review confirmed exact pipeline and derived-count order, row paths,
+model limits, duplicate semantics, guards, direct-owner equivalence, and residue
+removal.
+
 Verification gaps:
 - Full repository suite not run.
 - The broader focused batch was 113/114 because the generated campaign did not
@@ -50,10 +61,11 @@ Verification gaps:
   validation-only slice. The attributable batch is 102/102.
 
 Last completed slice:
-Suppressed-candidate exact-message restoration published as `e72cefc0`: the
-ambiguous-entry count again emits its legacy expected-value message. Contact
-filter passed 42/42 and resource filter 37/37, with 1,167 broader and 22 export
-tests; compile, xref, regeneration, format, diff hygiene, and bounded review
+Resource-filter-summary callback-bag collapse, ready to publish: `schema.ex`
+fell from 11,444 to 11,415 lines and its owner from 445 to 368. Fifteen shared
+or static dependencies became direct, with one value and two row hooks explicit.
+Seventy-nine filter, 19 summary/fixture/lint, 1,167 broader, and 22 export tests
+passed; compile, xref, regeneration, format, diff hygiene, and bounded review
 were clean.
 
 Blocked:

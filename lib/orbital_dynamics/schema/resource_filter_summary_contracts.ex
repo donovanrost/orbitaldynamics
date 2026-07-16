@@ -1,52 +1,78 @@
 defmodule OrbitalDynamics.Schema.ResourceFilterSummaryContracts do
   @moduledoc false
 
-  def validate(issues, path, summary, callbacks) when is_list(callbacks) do
+  alias OrbitalDynamics.Schema.CollectionAggregation
+
+  import OrbitalDynamics.Schema.CollectionValidation, only: [validate_rows: 4]
+
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [
+      expect_equal: 5,
+      expect_field_equals: 6,
+      expect_non_negative_integer: 4,
+      expect_one_of: 5,
+      expect_optional_type: 5,
+      expect_type: 5,
+      validate_non_negative_integer_count_map: 3,
+      validate_optional_exact_model_limits: 5,
+      validate_string_list_items: 4
+    ]
+
+  import OrbitalDynamics.Schema.StableIdValidation,
+    only: [validate_stable_id_array_map: 3, validate_stable_id_list: 3]
+
+  def validate(
+        issues,
+        path,
+        summary,
+        resource_filter_report_model_limits,
+        suppressed_candidate_validator,
+        invalid_resource_summary_input_validator
+      )
+      when is_list(resource_filter_report_model_limits) and
+             is_function(suppressed_candidate_validator, 3) and
+             is_function(invalid_resource_summary_input_validator, 3) do
     issues
-    |> expect_equal(callbacks, path, summary, "schema_contract", "resource_filter_summary.v1")
-    |> expect_equal(callbacks, path, summary, "model", "artifact_only_resource_filter_summary")
-    |> expect_equal(callbacks, path, summary, "source_artifact_type", "resource_filter_report.v1")
-    |> expect_optional_type(callbacks, path, summary, "model_limits", :list)
-    |> validate_string_list_items(callbacks, path, summary, "model_limits")
+    |> expect_equal(path, summary, "schema_contract", "resource_filter_summary.v1")
+    |> expect_equal(path, summary, "model", "artifact_only_resource_filter_summary")
+    |> expect_equal(path, summary, "source_artifact_type", "resource_filter_report.v1")
+    |> expect_optional_type(path, summary, "model_limits", :list)
+    |> validate_string_list_items(path, summary, "model_limits")
     |> validate_optional_exact_model_limits(
-      callbacks,
       path,
       summary,
-      resource_filter_report_model_limits(callbacks),
+      resource_filter_report_model_limits,
       "must match resource filter report model limits"
     )
-    |> validate_field_types(callbacks, path, summary)
-    |> expect_type(callbacks, path, summary, "review_rows", :list)
+    |> validate_field_types(path, summary)
+    |> expect_type(path, summary, "review_rows", :list)
     |> validate_rows(
-      callbacks,
       path <> ".review_rows",
       Map.get(summary, "review_rows", []),
-      &validate_suppressed_candidate(&1, callbacks, &2, &3)
+      suppressed_candidate_validator
     )
-    |> expect_type(callbacks, path, summary, "invalid_resource_summary_inputs", :list)
+    |> expect_type(path, summary, "invalid_resource_summary_inputs", :list)
     |> validate_rows(
-      callbacks,
       path <> ".invalid_resource_summary_inputs",
       Map.get(summary, "invalid_resource_summary_inputs", []),
-      &validate_invalid_resource_summary_input(&1, callbacks, &2, &3)
+      invalid_resource_summary_input_validator
     )
-    |> expect_type(callbacks, path, summary, "assumptions", :map)
-    |> validate_assumptions(callbacks, path, summary)
-    |> validate_counts(callbacks, path, summary)
+    |> expect_type(path, summary, "assumptions", :map)
+    |> validate_assumptions(path, summary)
+    |> validate_counts(path, summary)
   end
 
-  defp validate_field_types(issues, callbacks, path, summary) do
+  defp validate_field_types(issues, path, summary) do
     issues =
       Enum.reduce(count_fields(), issues, fn field, acc ->
-        expect_non_negative_integer(acc, callbacks, path, summary, field)
+        expect_non_negative_integer(acc, path, summary, field)
       end)
 
     issues =
       Enum.reduce(count_map_fields(), issues, fn field, acc ->
         acc
-        |> expect_type(callbacks, path, summary, field, :map)
+        |> expect_type(path, summary, field, :map)
         |> validate_non_negative_integer_count_map(
-          callbacks,
           path <> ".#{field}",
           Map.get(summary, field)
         )
@@ -55,19 +81,19 @@ defmodule OrbitalDynamics.Schema.ResourceFilterSummaryContracts do
     issues =
       Enum.reduce(stable_id_list_fields(), issues, fn field, acc ->
         acc
-        |> expect_type(callbacks, path, summary, field, :list)
-        |> validate_stable_id_list(callbacks, path <> ".#{field}", Map.get(summary, field))
+        |> expect_type(path, summary, field, :list)
+        |> validate_stable_id_list(path <> ".#{field}", Map.get(summary, field))
       end)
 
     issues =
       Enum.reduce(stable_id_array_map_fields(), issues, fn field, acc ->
         acc
-        |> expect_type(callbacks, path, summary, field, :map)
-        |> validate_stable_id_array_map(callbacks, path <> ".#{field}", Map.get(summary, field))
+        |> expect_type(path, summary, field, :map)
+        |> validate_stable_id_array_map(path <> ".#{field}", Map.get(summary, field))
       end)
 
     issues
-    |> expect_one_of(callbacks, path, summary, "suppression_review_status", [
+    |> expect_one_of(path, summary, "suppression_review_status", [
       "clear",
       "review_required"
     ])
@@ -113,33 +139,29 @@ defmodule OrbitalDynamics.Schema.ResourceFilterSummaryContracts do
     ]
   end
 
-  defp validate_assumptions(issues, callbacks, path, summary) do
+  defp validate_assumptions(issues, path, summary) do
     case Map.get(summary, "assumptions") do
       %{} = assumptions ->
         issues
         |> expect_equal(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "execution_boundary",
           "artifact_only_no_schedule_mutation"
         )
         |> expect_equal(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "source",
           "resource_filter_report.v1"
         )
         |> expect_equal(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "operator_authority",
           "not_granted_by_resource_filter_summary"
         )
         |> expect_equal(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "resource_state_propagation",
@@ -151,7 +173,7 @@ defmodule OrbitalDynamics.Schema.ResourceFilterSummaryContracts do
     end
   end
 
-  defp validate_counts(issues, callbacks, path, summary) do
+  defp validate_counts(issues, path, summary) do
     rows =
       summary
       |> Map.get("review_rows", [])
@@ -173,7 +195,6 @@ defmodule OrbitalDynamics.Schema.ResourceFilterSummaryContracts do
 
     issues
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "suppressed_candidate_count",
@@ -181,15 +202,13 @@ defmodule OrbitalDynamics.Schema.ResourceFilterSummaryContracts do
       "must equal review_rows count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "kept_candidate_count",
-      row_count_difference(callbacks, summary, "input_candidate_count", length(rows)),
+      CollectionAggregation.row_count_difference(summary, "input_candidate_count", length(rows)),
       "must equal input_candidate_count minus suppressed_candidate_count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "suppression_review_status",
@@ -197,7 +216,6 @@ defmodule OrbitalDynamics.Schema.ResourceFilterSummaryContracts do
       "must equal row-derived suppression_review_status"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "suppressed_candidate_ids",
@@ -205,87 +223,76 @@ defmodule OrbitalDynamics.Schema.ResourceFilterSummaryContracts do
       "must equal review_rows ids"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "suppressed_reason_counts",
-      frequency_map(callbacks, rows, "suppressed_reason"),
+      CollectionAggregation.frequency_map(rows, "suppressed_reason"),
       "must equal review_rows suppressed_reason counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "suppressed_candidate_ids_by_reason",
-      row_ids_by_field(callbacks, rows, "suppressed_reason", "id"),
+      CollectionAggregation.row_ids_by_field(rows, "suppressed_reason", "id"),
       "must equal review_rows ids grouped by suppressed_reason"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "resource_blocking_dimension_counts",
-      frequency_map(callbacks, rows, "resource_blocking_dimension"),
+      CollectionAggregation.frequency_map(rows, "resource_blocking_dimension"),
       "must equal review_rows resource_blocking_dimension counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "suppressed_candidate_ids_by_resource_blocking_dimension",
-      row_ids_by_field(callbacks, rows, "resource_blocking_dimension", "id"),
+      CollectionAggregation.row_ids_by_field(rows, "resource_blocking_dimension", "id"),
       "must equal review_rows ids grouped by resource_blocking_dimension"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "suppressed_candidate_ids_by_spacecraft_id",
-      row_ids_by_field(callbacks, rows, "spacecraft_id", "id"),
+      CollectionAggregation.row_ids_by_field(rows, "spacecraft_id", "id"),
       "must equal review_rows ids grouped by spacecraft_id"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "suppressed_candidate_ids_by_scenario_id",
-      row_ids_by_field(callbacks, rows, "scenario_id", "id"),
+      CollectionAggregation.row_ids_by_field(rows, "scenario_id", "id"),
       "must equal review_rows ids grouped by scenario_id"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "suppressed_resource_source_quality_counts",
-      frequency_map(callbacks, rows, "resource_source_quality"),
+      CollectionAggregation.frequency_map(rows, "resource_source_quality"),
       "must equal review_rows resource_source_quality counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "suppressed_candidate_ids_by_resource_source_quality",
-      row_ids_by_field(callbacks, rows, "resource_source_quality", "id"),
+      CollectionAggregation.row_ids_by_field(rows, "resource_source_quality", "id"),
       "must equal review_rows ids grouped by resource_source_quality"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "suppressed_resource_trust_boundary_status_counts",
-      frequency_map(callbacks, rows, "resource_trust_boundary_status"),
+      CollectionAggregation.frequency_map(rows, "resource_trust_boundary_status"),
       "must equal review_rows resource_trust_boundary_status counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "suppressed_candidate_ids_by_resource_trust_boundary_status",
-      row_ids_by_field(callbacks, rows, "resource_trust_boundary_status", "id"),
+      CollectionAggregation.row_ids_by_field(rows, "resource_trust_boundary_status", "id"),
       "must equal review_rows ids grouped by resource_trust_boundary_status"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "invalid_candidate_input_count",
@@ -293,7 +300,6 @@ defmodule OrbitalDynamics.Schema.ResourceFilterSummaryContracts do
       "must equal review_rows invalid candidate input count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "invalid_candidate_input_ids",
@@ -301,7 +307,6 @@ defmodule OrbitalDynamics.Schema.ResourceFilterSummaryContracts do
       "must equal review_rows invalid candidate input ids"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "invalid_resource_summary_input_count",
@@ -309,7 +314,6 @@ defmodule OrbitalDynamics.Schema.ResourceFilterSummaryContracts do
       "must equal invalid_resource_summary_inputs count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "invalid_resource_summary_input_ids",
@@ -317,7 +321,6 @@ defmodule OrbitalDynamics.Schema.ResourceFilterSummaryContracts do
       "must equal invalid_resource_summary_inputs resource_summary_id values"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "duplicate_suppressed_candidate_id_count",
@@ -325,7 +328,6 @@ defmodule OrbitalDynamics.Schema.ResourceFilterSummaryContracts do
       "must equal review_rows duplicate suppressed candidate id count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "duplicate_suppressed_candidate_row_count",
@@ -355,85 +357,6 @@ defmodule OrbitalDynamics.Schema.ResourceFilterSummaryContracts do
     rows
     |> Enum.filter(&(Map.get(&1, "duplicate_suppressed_candidate_id") == true))
     |> length()
-  end
-
-  defp expect_equal(issues, callbacks, path, map, field, expected),
-    do: apply(Keyword.fetch!(callbacks, :expect_equal), [issues, path, map, field, expected])
-
-  defp expect_one_of(issues, callbacks, path, map, field, allowed),
-    do: apply(Keyword.fetch!(callbacks, :expect_one_of), [issues, path, map, field, allowed])
-
-  defp expect_type(issues, callbacks, path, map, field, type),
-    do: apply(Keyword.fetch!(callbacks, :expect_type), [issues, path, map, field, type])
-
-  defp expect_optional_type(issues, callbacks, path, map, field, type),
-    do: apply(Keyword.fetch!(callbacks, :expect_optional_type), [issues, path, map, field, type])
-
-  defp expect_non_negative_integer(issues, callbacks, path, map, field) do
-    apply(Keyword.fetch!(callbacks, :expect_non_negative_integer), [issues, path, map, field])
-  end
-
-  defp expect_field_equals(issues, callbacks, path, map, field, expected, message) do
-    apply(Keyword.fetch!(callbacks, :expect_field_equals_with_message), [
-      issues,
-      path,
-      map,
-      field,
-      expected,
-      message
-    ])
-  end
-
-  defp validate_string_list_items(issues, callbacks, path, map, field),
-    do: apply(Keyword.fetch!(callbacks, :validate_string_list_items), [issues, path, map, field])
-
-  defp validate_optional_exact_model_limits(issues, callbacks, path, artifact, expected, message) do
-    apply(Keyword.fetch!(callbacks, :validate_optional_exact_model_limits), [
-      issues,
-      path,
-      artifact,
-      expected,
-      message
-    ])
-  end
-
-  defp validate_non_negative_integer_count_map(issues, callbacks, path, counts) do
-    apply(Keyword.fetch!(callbacks, :validate_non_negative_integer_count_map), [
-      issues,
-      path,
-      counts
-    ])
-  end
-
-  defp validate_stable_id_list(issues, callbacks, path, values),
-    do: apply(Keyword.fetch!(callbacks, :validate_stable_id_list), [issues, path, values])
-
-  defp validate_stable_id_array_map(issues, callbacks, path, values),
-    do: apply(Keyword.fetch!(callbacks, :validate_stable_id_array_map), [issues, path, values])
-
-  defp validate_rows(issues, callbacks, path, rows, validator),
-    do: apply(Keyword.fetch!(callbacks, :validate_rows), [issues, path, rows, validator])
-
-  defp validate_suppressed_candidate(issues, callbacks, path, candidate) do
-    apply(Keyword.fetch!(callbacks, :validate_suppressed_candidate), [issues, path, candidate])
-  end
-
-  defp validate_invalid_resource_summary_input(issues, callbacks, path, row) do
-    apply(Keyword.fetch!(callbacks, :validate_invalid_resource_summary_input), [issues, path, row])
-  end
-
-  defp resource_filter_report_model_limits(callbacks),
-    do: apply(Keyword.fetch!(callbacks, :resource_filter_report_model_limits), [])
-
-  defp row_count_difference(callbacks, report, field, subtract) do
-    apply(Keyword.fetch!(callbacks, :row_count_difference), [report, field, subtract])
-  end
-
-  defp frequency_map(callbacks, rows, field),
-    do: apply(Keyword.fetch!(callbacks, :frequency_map), [rows, field])
-
-  defp row_ids_by_field(callbacks, rows, group_field, id_field) do
-    apply(Keyword.fetch!(callbacks, :row_ids_by_field), [rows, group_field, id_field])
   end
 
   defp sorted_unique_binary_values(values) do

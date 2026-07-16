@@ -6254,7 +6254,9 @@ defmodule OrbitalDynamics.Schema do
     |> OrbitalDynamics.Schema.ResourceFilterSummaryContracts.validate(
       "$",
       artifact,
-      resource_filter_summary_contract_callbacks()
+      resource_filter_report_model_limits(),
+      &validate_suppressed_candidate/3,
+      &validate_invalid_resource_summary_input/3
     )
   end
 
@@ -7349,29 +7351,6 @@ defmodule OrbitalDynamics.Schema do
       provider_counteroffer_status_count: &provider_counteroffer_status_count/3,
       validate_provider_counteroffer_row: &validate_provider_counteroffer_row/3,
       frequency_map: &frequency_map/2
-    ]
-  end
-
-  defp resource_filter_summary_contract_callbacks do
-    [
-      expect_equal: &expect_equal/5,
-      expect_one_of: &expect_one_of/5,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_non_negative_integer: &expect_non_negative_integer/4,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_optional_exact_model_limits: &validate_optional_exact_model_limits/5,
-      validate_non_negative_integer_count_map: &validate_non_negative_integer_count_map/3,
-      validate_stable_id_list: &validate_stable_id_list/3,
-      validate_stable_id_array_map: &validate_stable_id_array_map/3,
-      validate_rows: &validate_rows/4,
-      validate_suppressed_candidate: &validate_suppressed_candidate/3,
-      validate_invalid_resource_summary_input: &validate_invalid_resource_summary_input/3,
-      resource_filter_report_model_limits: &resource_filter_report_model_limits/0,
-      row_count_difference: &row_count_difference/3,
-      frequency_map: &frequency_map/2,
-      row_ids_by_field: &row_ids_by_field/3
     ]
   end
 
@@ -9783,14 +9762,6 @@ defmodule OrbitalDynamics.Schema do
       row,
       cadence_source_review_row_contract_callbacks()
     )
-  end
-
-  defp row_count_difference(report, field, subtract) do
-    OrbitalDynamics.Schema.CollectionAggregation.row_count_difference(report, field, subtract)
-  end
-
-  defp row_ids_by_field(rows, group_field, id_field) do
-    OrbitalDynamics.Schema.CollectionAggregation.row_ids_by_field(rows, group_field, id_field)
   end
 
   defp frequency_map(rows, field) do
