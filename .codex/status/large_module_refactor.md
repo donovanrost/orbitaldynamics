@@ -9,7 +9,7 @@ Current slice:
 Completed: station-reservation report registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Move the station-reservation report and review summary into
@@ -78,7 +78,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`772e714b` (`Update station reservation hold handoff`).
+`471c8094` (`Extract station reservation registry contracts`).
 
 Next candidate:
 Assess the adjacent station-calendar report and precedence-summary contracts as
