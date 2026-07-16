@@ -6,32 +6,31 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Cadence-import-manifest callback-bag collapse.
+Source-evidence callback-bag collapse.
 
 Status:
-Completed and ready to publish.
+Selected; implementation pending.
 
 Selected slice:
-Replace the 18-entry callback bag in `CadenceImportManifestContracts` with
-direct primitive, stable-ID, collection, and quality-gate-handoff owners while
-retaining explicit row, expiration-handoff, and suppression-group validators.
+Replace the 6-entry callback bag in `SourceEvidenceContracts` with direct
+primitive and stable-ID owners while retaining explicit resource-projection
+battery field and own-flow match validators.
 
 Why this slice:
-Live inventory leaves `schema.ex` at 11,719 lines. The 328-line manifest owner
-still receives 18 opaque entries even though most point to shared validators or
-the now-direct quality-gate-handoff owner. Keeping only its three genuine
-composition validators explicit removes the bag without flattening row or
-contact/suppression ownership into the manifest.
+Live inventory leaves `schema.ex` at 11,696 lines. The 206-line source-evidence
+owner receives four shared primitive/stable-ID callbacks and two real resource-
+projection validators. Expressing only those two boundaries directly removes
+lookup/apply indirection without broadening the source-evidence responsibility.
 
 Public facade to preserve:
-`OrbitalDynamics.Schema.validate_artifact/2` and every Cadence import manifest
-validation path, including contract/model/stable IDs, scalar/count maps,
-reservation and quality-gate handoffs, model limits/assumptions, import rows,
-suppression groups, derived counts, exact messages/error order, and exports.
+`OrbitalDynamics.Schema.validate_artifact/2` and every source-evidence path,
+including nested source maps/lists, stable IDs/lists, probability fields, diff
+status, resource-projection battery handoffs, exact messages/error order,
+Cadence/review consumers, and exports.
 
 Likely files:
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/cadence_import_manifest_contracts.ex`
+- `lib/orbital_dynamics/schema/source_evidence_contracts.ex`
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
@@ -42,28 +41,10 @@ Likely verification:
 - compile-connected xref, format, diff hygiene, and bounded review
 
 Definition of done:
-No Cadence-import-manifest callback bag or lookup/apply trampolines remain;
-direct shared/handoff owners preserve validation while row, expiration, and
-suppression validators remain explicit boundaries; focused, broader, and export
-checks pass; and bounded review finds no blocker.
-
-Outcome:
-Removed the 18-entry manifest callback bag and all owner trampolines. Primitive,
-stable-ID, collection, and quality-gate-handoff validation use direct owners;
-Cadence row, expiration-handoff, and suppression-group validators remain
-explicit. The exact derived-count equality messages are preserved locally.
-`schema.ex` fell from 11,719 to 11,696 lines and the manifest owner from 328 to
-225.
-
-Verification:
-- compile with warnings as errors passed
-- 183 focused readiness/Cadence/replay/operator-review tests passed
-- 1,167 broader candidate-refresh/operator-review/Cadence tests passed
-- 22 schema export tests passed
-- compile-connected xref passed
-- checked-in schema regeneration produced no diff
-- format and diff hygiene passed
-- bounded review found no findings
+No source-evidence callback bag or lookup/apply trampolines remain; direct shared
+owners preserve nested validation while only the two battery-handoff validators
+remain injected; focused, broader, and export checks pass; and bounded review
+finds no blocker.
 
 Verification gaps:
 - Full repository suite not run.
@@ -71,7 +52,11 @@ Verification gaps:
   behavior in `SuppressedCandidateContracts`; unrelated to these slices.
 
 Last completed slice:
-Cadence-import-manifest callback-bag collapse; publication commit pending.
+Cadence-import-manifest callback collapse published as `df6d3d0a`: `schema.ex`
+fell from 11,719 to 11,696 lines and its owner from 328 to 225. The 18-entry bag
+became direct shared/handoff owners and three explicit validator boundaries.
+183 focused, 1,167 broader, and 22 export tests passed; compile, xref, format,
+diff hygiene, checked-in regeneration, and bounded review were clean.
 
 Blocked:
 No.
