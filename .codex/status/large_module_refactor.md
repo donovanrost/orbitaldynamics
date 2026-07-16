@@ -9,7 +9,7 @@ Current slice:
 Completed: activity-template registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Move the activity-template contract into
@@ -78,7 +78,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`eb8ad0d0` (`Update proposed contact handoff`).
+`44dfcef4` (`Extract activity template registry contract`).
 
 Next candidate:
 Assess the adjacent planned-activity contract as the next cohesive registry
