@@ -55,7 +55,7 @@ Verification gaps:
   from either current extraction.
 
 Last commit:
-`207e7c71` (`Extract V2 repair artifact assembly`) before this slice; publish pending.
+`9354a88f` (`Extract strategy feedback adjustments`).
 
 Next candidate:
 Extract the cohesive `branch_resource_impacts/3` cluster and its margin,
