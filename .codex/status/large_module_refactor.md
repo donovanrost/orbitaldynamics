@@ -9,7 +9,7 @@ Current slice:
 Completed: derived-branch collection extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Moved baseline/combined branch addition, normalization, explicit-ID filtering,
@@ -51,8 +51,7 @@ Verification gaps:
   filter pressure, resource filter pressure, and readiness-row risk penalty.
 
 Last commit:
-`2ee7206e` (`Extract strategy resource impacts`); current slice is not yet
-committed.
+`ef91ec52` (`Extract derived branch collection`).
 
 Next candidate:
 Reassess `evaluate_branch/2` after publishing. Its final result assembly is
