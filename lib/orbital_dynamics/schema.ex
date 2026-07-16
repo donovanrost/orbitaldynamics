@@ -16,7 +16,6 @@ defmodule OrbitalDynamics.Schema do
       validate_stable_id: 3,
       validate_stable_id_array_map: 3,
       validate_stable_id_list: 3,
-      validate_stable_id_list: 4,
       validate_stable_ids: 4
     ]
 
@@ -7081,21 +7080,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp refresh_budget_report_contract_callbacks do
-    [
-      expect_equal: &expect_equal/5,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_optional_list: &expect_optional_list/4,
-      validate_stable_id_list: &validate_stable_id_list/4,
-      validate_string_list_items: &validate_string_list_items/4,
-      expect_field_at_least: &expect_field_at_least/5,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      row_count_sum: &row_count_sum/2,
-      error: &error/2
-    ]
-  end
-
   defp candidate_diff_contract_callbacks do
     [
       require_fields: &require_fields/4,
@@ -10374,8 +10358,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.RefreshBudgetReportContracts.validate_optional(
       issues,
       path,
-      report,
-      refresh_budget_report_contract_callbacks()
+      report
     )
   end
 
@@ -10383,8 +10366,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.RefreshBudgetReportContracts.validate(
       issues,
       path,
-      report,
-      refresh_budget_report_contract_callbacks()
+      report
     )
   end
 
