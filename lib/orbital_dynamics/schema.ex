@@ -6278,7 +6278,8 @@ defmodule OrbitalDynamics.Schema do
     |> OrbitalDynamics.Schema.TimelineFeedbackReportContracts.validate(
       "$",
       artifact,
-      timeline_feedback_report_contract_callbacks()
+      timeline_feedback_report_model_limits(),
+      &validate_optional_operator_review_package/2
     )
   end
 
@@ -7773,27 +7774,6 @@ defmodule OrbitalDynamics.Schema do
         execution_report
       )
 
-  defp timeline_feedback_report_contract_callbacks do
-    [
-      timeline_feedback_report_model_limits: &timeline_feedback_report_model_limits/0,
-      frequency_map: &frequency_map/2,
-      expect_equal: &expect_equal/5,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_non_negative_integer: &expect_non_negative_integer/4,
-      expect_optional_non_negative_integer: &expect_optional_non_negative_integer/4,
-      expect_field_equals: &expect_field_equals/5,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      validate_non_negative_integer_count_map: &validate_non_negative_integer_count_map/3,
-      validate_operational_feedback: &validate_operational_feedback/3,
-      validate_optional_exact_model_limits: &validate_optional_exact_model_limits/5,
-      validate_optional_operator_review_package: &validate_optional_operator_review_package/2,
-      validate_rows: &validate_rows/4,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_timeline_feedback_row: &validate_timeline_feedback_row/3
-    ]
-  end
-
   defp contact_filter_report_contract_callbacks do
     [
       contact_filter_report_model_limits: &contact_filter_report_model_limits/0,
@@ -8702,14 +8682,6 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       feedback
-    )
-  end
-
-  defp validate_timeline_feedback_row(issues, path, row) do
-    OrbitalDynamics.Schema.TimelineFeedbackRowContracts.validate(
-      issues,
-      path,
-      row
     )
   end
 

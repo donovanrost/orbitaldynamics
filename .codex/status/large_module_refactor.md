@@ -9,7 +9,7 @@ Current slice:
 Timeline-feedback-report callback-bag collapse.
 
 Status:
-Selected; implementation pending.
+Complete; publication pending.
 
 Selected slice:
 Remove the 16-entry callback bag from `TimelineFeedbackReportContracts`. Call
@@ -51,6 +51,24 @@ Definition of done:
 No report-level callback bag or trampolines remain, direct owners and explicit
 inputs preserve exact behavior, focused/broader/export checks pass, and bounded
 review finds no blocker.
+
+Result:
+Removed the 16-entry report callback factory and all owner trampolines. The
+owner now calls extracted validators, aggregation, operational-feedback, and
+feedback-row owners directly; it receives model-limit data plus the single
+facade routing function for optional operator-review validation. `schema.ex`
+fell from 12,551 to 12,523 lines and the report owner from 322 to 234; public
+facade behavior and export output are unchanged.
+
+Verification:
+- compile with warnings as errors passed
+- focused feedback/operator-review/validation matrix: 80 passed, 181 excluded
+- reviewer-focused timeline-feedback suite: 73 passed
+- broader timeline, timeline-feedback, and candidate-refresh suites: 955 passed
+- schema export trio: 22 passed
+- checked-in schema export reproduced with no diff, preserving its fingerprint
+- format, diff hygiene, residue, public-definition, and xref checks passed
+- bounded read-only review found no must-fix issue
 
 Verification gaps:
 - Full repository suite not run.
