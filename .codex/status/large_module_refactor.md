@@ -9,7 +9,7 @@ Current slice:
 Strategy-branch callback-bag collapse.
 
 Status:
-Selected; implementation pending.
+Complete and ready to publish.
 
 Selected slice:
 Replace the 13-entry `StrategyBranchContracts` lookup bag with direct shared
@@ -43,6 +43,16 @@ owners and local errors preserve behavior while the four domain hooks are
 explicit; focused, broader, and export checks pass; and bounded review finds no
 blocker.
 
+Outcome:
+Shared primitive, collection, and stable-ID validation is direct; score and
+policy consistency stay local; branch events, resource projections, policy
+decisions, and approval requirements are explicit guarded hooks. `schema.ex`
+fell from 11,460 to 11,444 lines and the owner from 178 to 138. Eighteen focused,
+1,167 broader, and 22 export tests pass; compile, xref, checked-in regeneration,
+format, and diff hygiene are clean. Bounded review confirmed exact pipeline
+order, score tolerance, policy consistency branches, row semantics, hook order,
+sole-caller shape, and residue removal.
+
 Verification gaps:
 - Full repository suite not run.
 - Known baseline: full contact-filter file remains 87/88 due nil-message
@@ -52,11 +62,11 @@ Verification gaps:
   validation-only slice. The attributable batch is 102/102.
 
 Last completed slice:
-Strategy-recommendation callback-bag collapse published as `5bc68724`:
-`schema.ex` fell from 11,484 to 11,460 lines and the owner from 264 to 218. Nine
-shared or static dependencies became direct and two domain hooks explicit.
-Eighteen focused, 1,167 broader, and 22 export tests passed; compile, xref,
-regeneration, format, diff hygiene, and bounded review were clean.
+Strategy-branch callback-bag collapse, ready to publish: `schema.ex` fell from
+11,460 to 11,444 lines and the owner from 178 to 138. Nine shared dependencies
+became direct and four domain hooks explicit. Eighteen focused, 1,167 broader,
+and 22 export tests passed; compile, xref, regeneration, format, diff hygiene,
+and bounded review were clean.
 
 Blocked:
 No.

@@ -10986,27 +10986,11 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       branch,
-      strategy_branch_contract_callbacks()
+      &validate_branch_event/3,
+      &validate_optional_resource_projection_report/3,
+      &validate_policy_decision/3,
+      &validate_approval_requirement/3
     )
-  end
-
-  defp strategy_branch_contract_callbacks do
-    [
-      require_fields: &require_fields/4,
-      validate_stable_ids: &validate_stable_ids/4,
-      expect_number: &expect_number/4,
-      expect_probability_range: &expect_probability_range/4,
-      expect_type: &expect_type/5,
-      validate_numeric_map: &validate_numeric_map/3,
-      validate_rows: &validate_rows/4,
-      validate_branch_event: &validate_branch_event/3,
-      validate_optional_resource_projection_report:
-        &validate_optional_resource_projection_report/3,
-      validate_policy_decision: &validate_policy_decision/3,
-      validate_approval_requirement: &validate_approval_requirement/3,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      error: &error/2
-    ]
   end
 
   defp validate_branch_event(issues, path, event) do

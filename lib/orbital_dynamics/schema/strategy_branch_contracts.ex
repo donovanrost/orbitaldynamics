@@ -1,6 +1,21 @@
 defmodule OrbitalDynamics.Schema.StrategyBranchContracts do
   @moduledoc false
 
+  import OrbitalDynamics.Schema.CollectionValidation,
+    only: [validate_numeric_map: 3, validate_rows: 4]
+
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [
+      error: 2,
+      expect_field_equals: 6,
+      expect_number: 4,
+      expect_probability_range: 4,
+      expect_type: 5,
+      require_fields: 4
+    ]
+
+  import OrbitalDynamics.Schema.StableIdValidation, only: [validate_stable_ids: 4]
+
   @required_fields [
     "branch_id",
     "probability",
@@ -16,55 +31,62 @@ defmodule OrbitalDynamics.Schema.StrategyBranchContracts do
     "policy_decision"
   ]
 
-  def validate(issues, path, branch, callbacks) when is_list(callbacks) do
+  def validate(
+        issues,
+        path,
+        branch,
+        branch_event_validator,
+        resource_projection_report_validator,
+        policy_decision_validator,
+        approval_requirement_validator
+      )
+      when is_function(branch_event_validator, 3) and
+             is_function(resource_projection_report_validator, 3) and
+             is_function(policy_decision_validator, 3) and
+             is_function(approval_requirement_validator, 3) do
     issues
-    |> require_fields(callbacks, path, branch, @required_fields)
-    |> validate_stable_ids(callbacks, path, branch, ["branch_id"])
-    |> expect_number(callbacks, path, branch, "probability")
-    |> expect_probability_range(callbacks, path, branch, "probability")
-    |> expect_number(callbacks, path, branch, "score")
-    |> expect_type(callbacks, path, branch, "events", :list)
-    |> expect_type(callbacks, path, branch, "candidate_plan", :map)
-    |> expect_type(callbacks, path, branch, "repair_result", :map)
-    |> expect_type(callbacks, path, branch, "score_terms", :map)
-    |> expect_type(callbacks, path, branch, "approval_requirements", :list)
-    |> expect_type(callbacks, path, branch, "policy_decision", :map)
-    |> validate_numeric_map(callbacks, path <> ".score_terms", Map.get(branch, "score_terms"))
+    |> require_fields(path, branch, @required_fields)
+    |> validate_stable_ids(path, branch, ["branch_id"])
+    |> expect_number(path, branch, "probability")
+    |> expect_probability_range(path, branch, "probability")
+    |> expect_number(path, branch, "score")
+    |> expect_type(path, branch, "events", :list)
+    |> expect_type(path, branch, "candidate_plan", :map)
+    |> expect_type(path, branch, "repair_result", :map)
+    |> expect_type(path, branch, "score_terms", :map)
+    |> expect_type(path, branch, "approval_requirements", :list)
+    |> expect_type(path, branch, "policy_decision", :map)
+    |> validate_numeric_map(path <> ".score_terms", Map.get(branch, "score_terms"))
     |> validate_rows(
-      callbacks,
       path <> ".events",
       Map.get(branch, "events", []),
-      &validate_branch_event(&1, callbacks, &2, &3)
+      branch_event_validator
     )
-    |> validate_optional_resource_projection_report(
-      callbacks,
+    |> resource_projection_report_validator.(
       path <> ".resource_projection_report",
       Map.get(branch, "resource_projection_report")
     )
-    |> validate_policy_decision(
-      callbacks,
+    |> policy_decision_validator.(
       path <> ".policy_decision",
       Map.get(branch, "policy_decision", %{})
     )
-    |> validate_summary_consistency(callbacks, path, branch)
+    |> validate_summary_consistency(path, branch)
     |> validate_rows(
-      callbacks,
       path <> ".approval_requirements",
       Map.get(branch, "approval_requirements", []),
-      &validate_approval_requirement(&1, callbacks, &2, &3)
+      approval_requirement_validator
     )
   end
 
-  defp validate_summary_consistency(issues, callbacks, path, branch) do
+  defp validate_summary_consistency(issues, path, branch) do
     policy_decision = Map.get(branch, "policy_decision", %{})
     approval_requirements = Map.get(branch, "approval_requirements", [])
     risk_indicators = Map.get(branch, "risk_indicators", [])
 
     issues =
       issues
-      |> validate_expected_score(callbacks, path, branch)
+      |> validate_expected_score(path, branch)
       |> expect_field_equals(
-        callbacks,
         path <> ".policy_decision",
         policy_decision,
         "classification",
@@ -77,7 +99,6 @@ defmodule OrbitalDynamics.Schema.StrategyBranchContracts do
     else
       issues
       |> expect_field_equals(
-        callbacks,
         path <> ".policy_decision",
         policy_decision,
         "approval_requirement_count",
@@ -85,7 +106,6 @@ defmodule OrbitalDynamics.Schema.StrategyBranchContracts do
         "must match branch approval_requirements count"
       )
       |> expect_field_equals(
-        callbacks,
         path <> ".policy_decision",
         policy_decision,
         "risk_count",
@@ -103,7 +123,6 @@ defmodule OrbitalDynamics.Schema.StrategyBranchContracts do
 
   defp validate_expected_score(
          issues,
-         callbacks,
          path,
          %{"score" => score, "score_terms" => %{"expected_score" => expected_score}}
        )
@@ -111,68 +130,9 @@ defmodule OrbitalDynamics.Schema.StrategyBranchContracts do
     if abs(score - expected_score) <= 1.0e-9 do
       issues
     else
-      [error(callbacks, path <> ".score", "must match score_terms.expected_score") | issues]
+      [error(path <> ".score", "must match score_terms.expected_score") | issues]
     end
   end
 
-  defp validate_expected_score(issues, _callbacks, _path, _branch), do: issues
-
-  defp error(callbacks, path, message), do: callback!(callbacks, :error).(path, message)
-
-  defp expect_field_equals(issues, callbacks, path, branch, field, expected, message) do
-    callback!(callbacks, :expect_field_equals_with_message).(
-      issues,
-      path,
-      branch,
-      field,
-      expected,
-      message
-    )
-  end
-
-  defp expect_number(issues, callbacks, path, branch, field) do
-    callback!(callbacks, :expect_number).(issues, path, branch, field)
-  end
-
-  defp expect_probability_range(issues, callbacks, path, branch, field) do
-    callback!(callbacks, :expect_probability_range).(issues, path, branch, field)
-  end
-
-  defp expect_type(issues, callbacks, path, branch, field, type) do
-    callback!(callbacks, :expect_type).(issues, path, branch, field, type)
-  end
-
-  defp require_fields(issues, callbacks, path, branch, fields) do
-    callback!(callbacks, :require_fields).(issues, path, branch, fields)
-  end
-
-  defp validate_approval_requirement(issues, callbacks, path, requirement) do
-    callback!(callbacks, :validate_approval_requirement).(issues, path, requirement)
-  end
-
-  defp validate_branch_event(issues, callbacks, path, event) do
-    callback!(callbacks, :validate_branch_event).(issues, path, event)
-  end
-
-  defp validate_numeric_map(issues, callbacks, path, values) do
-    callback!(callbacks, :validate_numeric_map).(issues, path, values)
-  end
-
-  defp validate_optional_resource_projection_report(issues, callbacks, path, report) do
-    callback!(callbacks, :validate_optional_resource_projection_report).(issues, path, report)
-  end
-
-  defp validate_policy_decision(issues, callbacks, path, decision) do
-    callback!(callbacks, :validate_policy_decision).(issues, path, decision)
-  end
-
-  defp validate_rows(issues, callbacks, path, rows, validator) do
-    callback!(callbacks, :validate_rows).(issues, path, rows, validator)
-  end
-
-  defp validate_stable_ids(issues, callbacks, path, branch, fields) do
-    callback!(callbacks, :validate_stable_ids).(issues, path, branch, fields)
-  end
-
-  defp callback!(callbacks, name), do: Keyword.fetch!(callbacks, name)
+  defp validate_expected_score(issues, _path, _branch), do: issues
 end
