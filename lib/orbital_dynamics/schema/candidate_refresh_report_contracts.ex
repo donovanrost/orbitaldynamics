@@ -4,6 +4,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
   alias OrbitalDynamics.Schema.CandidateRefreshContactIntentRoutingContracts
   alias OrbitalDynamics.Schema.CandidateRefreshOperationalTimelineContracts
   alias OrbitalDynamics.Schema.CandidateRefreshProviderCounterofferContracts
+  alias OrbitalDynamics.Schema.CandidateRefreshQualityGateContracts
   alias OrbitalDynamics.Schema.CandidateRefreshStationCalendarContracts
   alias OrbitalDynamics.Schema.CandidateRefreshTimelineChangeContracts
   alias OrbitalDynamics.Schema.CandidateRefreshTimelineLifecycleContracts
@@ -118,83 +119,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
   defp validate_source_report_summaries(issues, _callbacks, _source_reports), do: issues
 
   def validate_quality_gate_context(issues, path, summary, callbacks) when is_list(callbacks) do
-    issues =
-      Enum.reduce(
-        [
-          "gate_count",
-          "passed_gate_count",
-          "review_gate_count",
-          "analysis_gate_count",
-          "blocked_gate_count",
-          "non_passed_gate_count",
-          "source_readiness_report_count"
-        ],
-        issues,
-        fn field, acc ->
-          expect_optional_non_negative_integer(acc, path, summary, field)
-        end
-      )
-
-    issues =
-      Enum.reduce(
-        [
-          "readiness_level_counts",
-          "import_classification_counts",
-          "status_counts",
-          "gate_status_counts",
-          "gate_classification_counts"
-        ],
-        issues,
-        fn field, acc ->
-          acc
-          |> expect_optional_type(path, summary, field, :map)
-          |> validate_non_negative_integer_count_map(
-            path <> ".#{field}",
-            Map.get(summary, field)
-          )
-        end
-      )
-
-    issues =
-      Enum.reduce(
-        [
-          "quality_gate_row_ids_by_status",
-          "quality_gate_ids_by_status",
-          "quality_gate_row_ids_by_classification",
-          "quality_gate_ids_by_classification"
-        ],
-        issues,
-        fn field, acc ->
-          validate_optional_stable_id_array_map(acc, path, summary, field)
-        end
-      )
-
-    Enum.reduce(
-      [
-        "review_required_quality_gate_row_ids",
-        "blocked_quality_gate_row_ids",
-        "ready_quality_gate_row_ids",
-        "analysis_only_quality_gate_row_ids",
-        "passed_gate_ids",
-        "review_required_gate_ids",
-        "analysis_only_gate_ids",
-        "blocked_gate_ids",
-        "non_passed_gate_ids",
-        "non_passed_quality_gate_row_ids",
-        "stale_or_unknown_freshness_quality_gate_row_ids",
-        "import_preparation_quality_gate_row_ids",
-        "blocked_import_quality_gate_row_ids",
-        "import_readiness_gate_ids"
-      ],
-      issues,
-      fn field, acc ->
-        validate_stable_id_list(acc, path <> ".#{field}", Map.get(summary, field))
-      end
-    )
-    |> validate_string_list_items(path, summary, "schema_validation_status_ids")
-    |> validate_string_list_items(path, summary, "freshness_status_ids")
-    |> validate_string_list_items(path, summary, "import_status_ids")
-    |> validate_string_list_items(path, summary, "cadence_import_status_ids")
+    CandidateRefreshQualityGateContracts.validate(issues, path, summary)
   end
 
   def validate_schema_validation_context(issues, path, summary, callbacks)
@@ -704,12 +629,6 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
     Enum.reduce(safety_case_count_fields(callbacks), issues, fn field, acc ->
       expect_optional_non_negative_integer(acc, path, summary, field)
     end)
-  end
-
-  defp validate_optional_stable_id_array_map(issues, path, map, field) do
-    issues
-    |> expect_optional_type(path, map, field, :map)
-    |> validate_stable_id_array_map("#{path}.#{field}", Map.get(map, field))
   end
 
   defp validate_operational_readiness_resource_context(issues, callbacks, path, summary) do
