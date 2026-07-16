@@ -9,7 +9,7 @@ Current slice:
 Completed: timeline-transition registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Moved `timeline_transition_application_report.v1` and
@@ -51,8 +51,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`679b6050` (`Update optimization schema handoff`); current slice is not yet
-committed.
+`97d48028` (`Extract timeline transition registry contracts`).
 
 Next candidate:
 Assess the adjacent timeline preservation report/status and lifecycle summary
