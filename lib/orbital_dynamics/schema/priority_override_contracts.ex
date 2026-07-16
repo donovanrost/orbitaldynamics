@@ -40,6 +40,29 @@ defmodule OrbitalDynamics.Schema.PriorityOverrideContracts do
     |> validate_ids_match_map(path, contact_ids, overrides)
   end
 
+  def validate_field_evidence_counts(issues, path, counts) when is_map(counts) do
+    Enum.reduce(counts, issues, fn {field, count}, acc ->
+      cond do
+        not is_binary(field) or field == "" ->
+          [
+            PrimitiveValidation.error(
+              "#{path}.#{inspect(field)}",
+              "field name must be a non-empty string"
+            )
+            | acc
+          ]
+
+        not is_integer(count) or count < 0 ->
+          [PrimitiveValidation.error("#{path}.#{field}", "must be a non-negative integer") | acc]
+
+        true ->
+          acc
+      end
+    end)
+  end
+
+  def validate_field_evidence_counts(issues, _path, _counts), do: issues
+
   defp validate_value(issues, _path, value) when is_number(value), do: issues
 
   defp validate_value(issues, path, _value),

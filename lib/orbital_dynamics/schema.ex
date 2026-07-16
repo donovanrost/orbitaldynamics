@@ -7862,42 +7862,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp contact_contention_report_contract_callbacks do
-    [
-      require_fields: &require_fields/4,
-      expect_equal: &expect_equal/5,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_non_negative_integer: &expect_non_negative_integer/4,
-      expect_optional_non_negative_integer: &expect_optional_non_negative_integer/4,
-      expect_optional_integer: &expect_optional_integer/4,
-      expect_number: &expect_number/4,
-      expect_optional_number: &expect_optional_number/4,
-      expect_optional_probability: &expect_optional_probability/4,
-      expect_optional_one_of: &expect_optional_one_of/5,
-      expect_field_at_least: &expect_field_at_least/5,
-      expect_field_equals: &expect_field_equals/5,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      expect_optional_field_equals: &expect_optional_field_equals/6,
-      validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
-      validate_stable_id_list: &validate_stable_id_list/3,
-      validate_stable_ids: &validate_stable_ids/4,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_number_list_items: &validate_number_list_items/4,
-      validate_optional_rows: &validate_optional_rows/4,
-      validate_rows: &validate_rows/4,
-      validate_optional_actual_data_rate_throughput_derivations:
-        &validate_optional_actual_data_rate_throughput_derivations/4,
-      validate_invalid_contact_input: &validate_invalid_contact_input/3,
-      validate_priority_field_evidence_counts: &validate_priority_field_evidence_counts/3,
-      validate_priority_override_map: &validate_priority_override_map/3,
-      validate_priority_override_ids_match_map: &validate_priority_override_ids_match_map/3,
-      validate_override_count_matches_ids: &validate_override_count_matches_ids/5,
-      validate_ids_match_row_multiset: &validate_ids_match_row_multiset/6,
-      error: &error/2
-    ]
-  end
-
   defp contact_contention_resolution_summary_contract_callbacks do
     [
       expect_equal: &expect_equal/5,
@@ -8565,8 +8529,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.ContactContentionReportContracts.validate_report(
       issues,
       path,
-      report,
-      contact_contention_report_contract_callbacks()
+      report
     )
   end
 
@@ -8643,8 +8606,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.ContactContentionReportContracts.validate_resolution_report(
       issues,
       path,
-      report,
-      contact_contention_report_contract_callbacks()
+      report
     )
   end
 
@@ -8652,8 +8614,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.ContactContentionReportContracts.validate_resolution_policy(
       issues,
       path,
-      policy,
-      contact_contention_report_contract_callbacks()
+      policy
     )
   end
 
@@ -8661,8 +8622,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.ContactContentionReportContracts.validate_deferred_priority(
       issues,
       path,
-      row,
-      contact_contention_report_contract_callbacks()
+      row
     )
   end
 
@@ -8769,16 +8729,6 @@ defmodule OrbitalDynamics.Schema do
       row,
       handoff_field_contract_callbacks()
     )
-  end
-
-  defp validate_invalid_contact_input(issues, path, row) do
-    issues
-    |> expect_optional_one_of(path, row, "review_status", [
-      "operator_review_required",
-      "review_required",
-      "pending_operator_review",
-      "ready_for_review"
-    ])
   end
 
   defp validate_optional_station_calendar_report(issues, report),
@@ -9965,16 +9915,6 @@ defmodule OrbitalDynamics.Schema do
       rows,
       field
     )
-  end
-
-  defp validate_ids_match_row_multiset(issues, path, report, field, expected_ids, message) do
-    ids = Map.get(report, field)
-
-    if is_list(ids) and Enum.sort(ids) != Enum.sort(expected_ids) do
-      [error("#{path}.#{field}", message) | issues]
-    else
-      issues
-    end
   end
 
   defp validate_optional_stable_id_array_map(issues, path, report, field) do
@@ -12977,16 +12917,6 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validate_priority_override_map(issues, path, overrides) when is_map(overrides) do
-    OrbitalDynamics.Schema.PriorityOverrideContracts.validate_map(
-      issues,
-      path,
-      overrides
-    )
-  end
-
-  defp validate_priority_override_map(issues, _path, _overrides), do: issues
-
   defp validate_override_count_matches_ids(issues, path, map, count_field, ids_field)
        when is_map(map) do
     OrbitalDynamics.Schema.PriorityOverrideContracts.validate_count_matches_ids(
@@ -12995,14 +12925,6 @@ defmodule OrbitalDynamics.Schema do
       map,
       count_field,
       ids_field
-    )
-  end
-
-  defp validate_priority_override_ids_match_map(issues, path, policy) when is_map(policy) do
-    OrbitalDynamics.Schema.PriorityOverrideContracts.validate_ids_match_map(
-      issues,
-      path,
-      policy
     )
   end
 end

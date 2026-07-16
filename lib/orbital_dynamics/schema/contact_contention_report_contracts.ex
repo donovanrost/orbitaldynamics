@@ -1,9 +1,47 @@
 defmodule OrbitalDynamics.Schema.ContactContentionReportContracts do
   @moduledoc false
 
-  def validate_report(issues, path, report, callbacks) when is_list(callbacks) do
+  alias OrbitalDynamics.Schema.ExecutionMetricContracts
+  alias OrbitalDynamics.Schema.PriorityOverrideContracts
+
+  import OrbitalDynamics.Schema.CollectionValidation,
+    only: [
+      validate_ids_match_row_multiset: 6,
+      validate_optional_rows: 4,
+      validate_rows: 4
+    ]
+
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [
+      error: 2,
+      expect_equal: 5,
+      expect_field_at_least: 5,
+      expect_field_equals: 6,
+      expect_non_negative_integer: 4,
+      expect_number: 4,
+      expect_optional_field_equals: 6,
+      expect_optional_integer: 4,
+      expect_optional_non_negative_integer: 4,
+      expect_optional_number: 4,
+      expect_optional_one_of: 5,
+      expect_optional_probability: 4,
+      expect_optional_type: 5,
+      expect_type: 5,
+      require_fields: 4,
+      validate_number_list_items: 4,
+      validate_string_list_items: 4
+    ]
+
+  import OrbitalDynamics.Schema.StableIdValidation,
+    only: [
+      validate_optional_stable_id_list: 4,
+      validate_stable_id_list: 3,
+      validate_stable_ids: 4
+    ]
+
+  def validate_report(issues, path, report) do
     issues
-    |> require_fields(callbacks, path, report, [
+    |> require_fields(path, report, [
       "schema_contract",
       "model",
       "input_contact_count",
@@ -11,51 +49,47 @@ defmodule OrbitalDynamics.Schema.ContactContentionReportContracts do
       "conflict_group_count",
       "conflict_groups"
     ])
-    |> expect_equal(callbacks, path, report, "schema_contract", "contact_contention_report.v1")
-    |> expect_equal(callbacks, path, report, "model", "single_station_interval_overlap")
-    |> expect_non_negative_integer(callbacks, path, report, "input_contact_count")
-    |> expect_non_negative_integer(callbacks, path, report, "conflicted_contact_count")
-    |> expect_non_negative_integer(callbacks, path, report, "conflict_group_count")
-    |> expect_type(callbacks, path, report, "conflict_groups", :list)
-    |> expect_optional_type(callbacks, path, report, "assumptions", :map)
-    |> expect_optional_type(callbacks, path, report, "provenance", :map)
-    |> expect_optional_type(callbacks, path, report, "model_limits", :list)
+    |> expect_equal(path, report, "schema_contract", "contact_contention_report.v1")
+    |> expect_equal(path, report, "model", "single_station_interval_overlap")
+    |> expect_non_negative_integer(path, report, "input_contact_count")
+    |> expect_non_negative_integer(path, report, "conflicted_contact_count")
+    |> expect_non_negative_integer(path, report, "conflict_group_count")
+    |> expect_type(path, report, "conflict_groups", :list)
+    |> expect_optional_type(path, report, "assumptions", :map)
+    |> expect_optional_type(path, report, "provenance", :map)
+    |> expect_optional_type(path, report, "model_limits", :list)
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       report,
       "duplicate_contact_candidate_count"
     )
-    |> expect_optional_non_negative_integer(callbacks, path, report, "duplicate_contact_id_count")
+    |> expect_optional_non_negative_integer(path, report, "duplicate_contact_id_count")
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       report,
       "invalid_contact_input_count"
     )
-    |> expect_optional_type(callbacks, path, report, "invalid_contact_input_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, report, "invalid_contact_input_ids")
-    |> validate_string_list_items(callbacks, path, report, "model_limits")
-    |> validate_report_model_limits(callbacks, path, report)
-    |> validate_report_assumptions(callbacks, path, report)
+    |> expect_optional_type(path, report, "invalid_contact_input_ids", :list)
+    |> validate_optional_stable_id_list(path, report, "invalid_contact_input_ids")
+    |> validate_string_list_items(path, report, "model_limits")
+    |> validate_report_model_limits(path, report)
+    |> validate_report_assumptions(path, report)
     |> validate_optional_rows(
-      callbacks,
       path <> ".invalid_contact_inputs",
       Map.get(report, "invalid_contact_inputs"),
-      fn acc, row_path, row -> validate_invalid_contact_input(callbacks, acc, row_path, row) end
+      fn acc, row_path, row -> validate_invalid_contact_input(acc, row_path, row) end
     )
     |> validate_rows(
-      callbacks,
       path <> ".conflict_groups",
       Map.get(report, "conflict_groups", []),
-      fn acc, row_path, row -> validate_group(acc, row_path, row, callbacks) end
+      fn acc, row_path, row -> validate_group(acc, row_path, row) end
     )
-    |> validate_report_counts(callbacks, path, report)
+    |> validate_report_counts(path, report)
   end
 
-  def validate_group(issues, path, group, callbacks) when is_list(callbacks) do
+  def validate_group(issues, path, group) do
     issues
-    |> require_fields(callbacks, path, group, [
+    |> require_fields(path, group, [
       "id",
       "ground_station_id",
       "contact_count",
@@ -68,94 +102,86 @@ defmodule OrbitalDynamics.Schema.ContactContentionReportContracts do
       "source_window_ids",
       "scenario_ids"
     ])
-    |> validate_stable_ids(callbacks, path, group, ["id", "ground_station_id", "spacecraft_id"])
-    |> expect_optional_type(callbacks, path, group, "resource_scope", :binary)
-    |> expect_optional_type(callbacks, path, group, "directions", :list)
-    |> validate_string_list_items(callbacks, path, group, "directions")
-    |> expect_optional_type(callbacks, path, group, "ground_station_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, group, "ground_station_ids")
-    |> expect_optional_type(callbacks, path, group, "spacecraft_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, group, "spacecraft_ids")
-    |> expect_non_negative_integer(callbacks, path, group, "contact_count")
-    |> expect_number(callbacks, path, group, "starts_at_s")
-    |> expect_number(callbacks, path, group, "ends_at_s")
-    |> expect_optional_number(callbacks, path, group, "contention_window_s")
-    |> expect_optional_number(callbacks, path, group, "total_contact_duration_s")
-    |> expect_optional_number(callbacks, path, group, "overlap_duration_s")
-    |> expect_optional_non_negative_integer(callbacks, path, group, "max_concurrent_contacts")
-    |> expect_optional_non_negative_integer(callbacks, path, group, "overlap_contact_pair_count")
-    |> expect_type(callbacks, path, group, "direction", :binary)
-    |> expect_type(callbacks, path, group, "required_operator_action", :binary)
-    |> expect_type(callbacks, path, group, "approval_status", :binary)
-    |> expect_optional_one_of(callbacks, path, group, "review_status", [
+    |> validate_stable_ids(path, group, ["id", "ground_station_id", "spacecraft_id"])
+    |> expect_optional_type(path, group, "resource_scope", :binary)
+    |> expect_optional_type(path, group, "directions", :list)
+    |> validate_string_list_items(path, group, "directions")
+    |> expect_optional_type(path, group, "ground_station_ids", :list)
+    |> validate_optional_stable_id_list(path, group, "ground_station_ids")
+    |> expect_optional_type(path, group, "spacecraft_ids", :list)
+    |> validate_optional_stable_id_list(path, group, "spacecraft_ids")
+    |> expect_non_negative_integer(path, group, "contact_count")
+    |> expect_number(path, group, "starts_at_s")
+    |> expect_number(path, group, "ends_at_s")
+    |> expect_optional_number(path, group, "contention_window_s")
+    |> expect_optional_number(path, group, "total_contact_duration_s")
+    |> expect_optional_number(path, group, "overlap_duration_s")
+    |> expect_optional_non_negative_integer(path, group, "max_concurrent_contacts")
+    |> expect_optional_non_negative_integer(path, group, "overlap_contact_pair_count")
+    |> expect_type(path, group, "direction", :binary)
+    |> expect_type(path, group, "required_operator_action", :binary)
+    |> expect_type(path, group, "approval_status", :binary)
+    |> expect_optional_one_of(path, group, "review_status", [
       "operator_review_required",
       "review_required",
       "pending_operator_review",
       "ready_for_review"
     ])
-    |> expect_optional_type(callbacks, path, group, "operator_action_reason", :binary)
-    |> expect_optional_number(callbacks, path, group, "actual_throughput_mb")
+    |> expect_optional_type(path, group, "operator_action_reason", :binary)
+    |> expect_optional_number(path, group, "actual_throughput_mb")
     |> expect_optional_type(
-      callbacks,
       path,
       group,
       "actual_data_rate_throughput_derivations",
       :list
     )
-    |> validate_optional_actual_data_rate_throughput_derivations(
-      callbacks,
+    |> ExecutionMetricContracts.validate_optional_actual_data_rate_throughput_derivations(
       path,
       group,
       "actual_data_rate_throughput_derivations"
     )
-    |> expect_optional_type(callbacks, path, group, "station_availability", :binary)
-    |> expect_optional_type(callbacks, path, group, "station_calendar_status", :binary)
+    |> expect_optional_type(path, group, "station_availability", :binary)
+    |> expect_optional_type(path, group, "station_calendar_status", :binary)
     |> expect_optional_type(
-      callbacks,
       path,
       group,
       "station_calendar_reservation_expires_at_s",
       :list
     )
     |> validate_number_list_items(
-      callbacks,
       path,
       group,
       "station_calendar_reservation_expires_at_s"
     )
-    |> expect_optional_probability(callbacks, path, group, "capacity_fraction")
-    |> expect_optional_probability(callbacks, path, group, "capacity_fraction_min")
-    |> expect_optional_probability(callbacks, path, group, "capacity_fraction_max")
-    |> expect_type(callbacks, path, group, "contact_ids", :list)
-    |> expect_type(callbacks, path, group, "source_window_ids", :list)
-    |> expect_type(callbacks, path, group, "scenario_ids", :list)
+    |> expect_optional_probability(path, group, "capacity_fraction")
+    |> expect_optional_probability(path, group, "capacity_fraction_min")
+    |> expect_optional_probability(path, group, "capacity_fraction_max")
+    |> expect_type(path, group, "contact_ids", :list)
+    |> expect_type(path, group, "source_window_ids", :list)
+    |> expect_type(path, group, "scenario_ids", :list)
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       group,
       "duplicate_contact_candidate_count"
     )
-    |> expect_optional_non_negative_integer(callbacks, path, group, "duplicate_contact_id_count")
-    |> expect_optional_type(callbacks, path, group, "duplicate_contact_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, group, "duplicate_contact_ids")
-    |> expect_optional_type(callbacks, path, group, "source_contact_candidates", :list)
+    |> expect_optional_non_negative_integer(path, group, "duplicate_contact_id_count")
+    |> expect_optional_type(path, group, "duplicate_contact_ids", :list)
+    |> validate_optional_stable_id_list(path, group, "duplicate_contact_ids")
+    |> expect_optional_type(path, group, "source_contact_candidates", :list)
     |> validate_optional_rows(
-      callbacks,
       path <> ".source_contact_candidates",
       Map.get(group, "source_contact_candidates"),
       fn acc, row_path, row ->
-        validate_source_contact_candidate(acc, row_path, row, callbacks)
+        validate_source_contact_candidate(acc, row_path, row)
       end
     )
     |> expect_field_equals(
-      callbacks,
       path,
       group,
       "contact_count",
       list_count(group, "contact_ids")
     )
     |> expect_field_equals(
-      callbacks,
       path,
       group,
       "duplicate_contact_id_count",
@@ -163,9 +189,9 @@ defmodule OrbitalDynamics.Schema.ContactContentionReportContracts do
     )
   end
 
-  def validate_resolution_report(issues, path, report, callbacks) when is_list(callbacks) do
+  def validate_resolution_report(issues, path, report) do
     issues
-    |> require_fields(callbacks, path, report, [
+    |> require_fields(path, report, [
       "schema_contract",
       "model",
       "policy",
@@ -174,40 +200,37 @@ defmodule OrbitalDynamics.Schema.ContactContentionReportContracts do
       "recommendations"
     ])
     |> expect_equal(
-      callbacks,
       path,
       report,
       "schema_contract",
       "contact_contention_resolution_report.v1"
     )
     |> expect_equal(
-      callbacks,
       path,
       report,
       "model",
       "deterministic_contact_contention_recommendation"
     )
-    |> expect_type(callbacks, path, report, "policy", :map)
-    |> validate_resolution_policy(path <> ".policy", Map.get(report, "policy"), callbacks)
-    |> expect_non_negative_integer(callbacks, path, report, "conflict_group_count")
-    |> expect_non_negative_integer(callbacks, path, report, "recommendation_count")
-    |> expect_type(callbacks, path, report, "recommendations", :list)
-    |> expect_optional_type(callbacks, path, report, "assumptions", :map)
-    |> expect_optional_type(callbacks, path, report, "model_limits", :list)
-    |> validate_string_list_items(callbacks, path, report, "model_limits")
-    |> validate_resolution_report_model_limits(callbacks, path, report)
+    |> expect_type(path, report, "policy", :map)
+    |> validate_resolution_policy(path <> ".policy", Map.get(report, "policy"))
+    |> expect_non_negative_integer(path, report, "conflict_group_count")
+    |> expect_non_negative_integer(path, report, "recommendation_count")
+    |> expect_type(path, report, "recommendations", :list)
+    |> expect_optional_type(path, report, "assumptions", :map)
+    |> expect_optional_type(path, report, "model_limits", :list)
+    |> validate_string_list_items(path, report, "model_limits")
+    |> validate_resolution_report_model_limits(path, report)
     |> validate_rows(
-      callbacks,
       path <> ".recommendations",
       Map.get(report, "recommendations", []),
-      fn acc, row_path, row -> validate_recommendation(acc, row_path, row, callbacks) end
+      fn acc, row_path, row -> validate_recommendation(acc, row_path, row) end
     )
-    |> validate_resolution_report_counts(callbacks, path, report)
+    |> validate_resolution_report_counts(path, report)
   end
 
-  def validate_recommendation(issues, path, recommendation, callbacks) when is_list(callbacks) do
+  def validate_recommendation(issues, path, recommendation) do
     issues
-    |> require_fields(callbacks, path, recommendation, [
+    |> require_fields(path, recommendation, [
       "group_id",
       "ground_station_id",
       "starts_at_s",
@@ -218,330 +241,295 @@ defmodule OrbitalDynamics.Schema.ContactContentionReportContracts do
       "action",
       "review_status"
     ])
-    |> validate_stable_ids(callbacks, path, recommendation, [
+    |> validate_stable_ids(path, recommendation, [
       "group_id",
       "ground_station_id",
       "spacecraft_id",
       "selected_contact_id",
       "selected_scenario_id"
     ])
-    |> expect_optional_type(callbacks, path, recommendation, "resource_scope", :binary)
-    |> expect_optional_type(callbacks, path, recommendation, "direction", :binary)
-    |> expect_optional_type(callbacks, path, recommendation, "directions", :list)
-    |> validate_string_list_items(callbacks, path, recommendation, "directions")
-    |> expect_optional_type(callbacks, path, recommendation, "ground_station_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, recommendation, "ground_station_ids")
-    |> expect_optional_type(callbacks, path, recommendation, "spacecraft_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, recommendation, "spacecraft_ids")
-    |> expect_number(callbacks, path, recommendation, "starts_at_s")
-    |> expect_number(callbacks, path, recommendation, "ends_at_s")
-    |> expect_type(callbacks, path, recommendation, "deferred_contact_ids", :list)
-    |> expect_non_negative_integer(callbacks, path, recommendation, "candidate_count")
-    |> expect_optional_type(callbacks, path, recommendation, "source_contact_candidates", :list)
+    |> expect_optional_type(path, recommendation, "resource_scope", :binary)
+    |> expect_optional_type(path, recommendation, "direction", :binary)
+    |> expect_optional_type(path, recommendation, "directions", :list)
+    |> validate_string_list_items(path, recommendation, "directions")
+    |> expect_optional_type(path, recommendation, "ground_station_ids", :list)
+    |> validate_optional_stable_id_list(path, recommendation, "ground_station_ids")
+    |> expect_optional_type(path, recommendation, "spacecraft_ids", :list)
+    |> validate_optional_stable_id_list(path, recommendation, "spacecraft_ids")
+    |> expect_number(path, recommendation, "starts_at_s")
+    |> expect_number(path, recommendation, "ends_at_s")
+    |> expect_type(path, recommendation, "deferred_contact_ids", :list)
+    |> expect_non_negative_integer(path, recommendation, "candidate_count")
+    |> expect_optional_type(path, recommendation, "source_contact_candidates", :list)
     |> validate_optional_rows(
-      callbacks,
       path <> ".source_contact_candidates",
       Map.get(recommendation, "source_contact_candidates"),
       fn acc, row_path, row ->
-        validate_source_contact_candidate(acc, row_path, row, callbacks)
+        validate_source_contact_candidate(acc, row_path, row)
       end
     )
-    |> expect_optional_number(callbacks, path, recommendation, "contention_window_s")
-    |> expect_optional_number(callbacks, path, recommendation, "total_contact_duration_s")
-    |> expect_optional_number(callbacks, path, recommendation, "overlap_duration_s")
+    |> expect_optional_number(path, recommendation, "contention_window_s")
+    |> expect_optional_number(path, recommendation, "total_contact_duration_s")
+    |> expect_optional_number(path, recommendation, "overlap_duration_s")
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       recommendation,
       "max_concurrent_contacts"
     )
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       recommendation,
       "overlap_contact_pair_count"
     )
-    |> expect_optional_number(callbacks, path, recommendation, "selected_priority")
-    |> expect_optional_type(callbacks, path, recommendation, "selected_priority_source", :binary)
-    |> expect_optional_number(callbacks, path, recommendation, "actual_throughput_mb")
+    |> expect_optional_number(path, recommendation, "selected_priority")
+    |> expect_optional_type(path, recommendation, "selected_priority_source", :binary)
+    |> expect_optional_number(path, recommendation, "actual_throughput_mb")
     |> expect_optional_type(
-      callbacks,
       path,
       recommendation,
       "actual_data_rate_throughput_derivations",
       :list
     )
-    |> expect_optional_type(callbacks, path, recommendation, "station_availability", :binary)
-    |> expect_optional_type(callbacks, path, recommendation, "station_calendar_status", :binary)
+    |> expect_optional_type(path, recommendation, "station_availability", :binary)
+    |> expect_optional_type(path, recommendation, "station_calendar_status", :binary)
     |> expect_optional_type(
-      callbacks,
       path,
       recommendation,
       "station_calendar_reservation_expires_at_s",
       :list
     )
     |> validate_number_list_items(
-      callbacks,
       path,
       recommendation,
       "station_calendar_reservation_expires_at_s"
     )
-    |> expect_optional_probability(callbacks, path, recommendation, "capacity_fraction")
-    |> expect_optional_probability(callbacks, path, recommendation, "capacity_fraction_min")
-    |> expect_optional_probability(callbacks, path, recommendation, "capacity_fraction_max")
-    |> expect_optional_type(callbacks, path, recommendation, "deferred_contact_priorities", :list)
+    |> expect_optional_probability(path, recommendation, "capacity_fraction")
+    |> expect_optional_probability(path, recommendation, "capacity_fraction_min")
+    |> expect_optional_probability(path, recommendation, "capacity_fraction_max")
+    |> expect_optional_type(path, recommendation, "deferred_contact_priorities", :list)
     |> validate_optional_rows(
-      callbacks,
       path <> ".deferred_contact_priorities",
       Map.get(recommendation, "deferred_contact_priorities"),
-      fn acc, row_path, row -> validate_deferred_priority(acc, row_path, row, callbacks) end
+      fn acc, row_path, row -> validate_deferred_priority(acc, row_path, row) end
     )
-    |> expect_optional_type(callbacks, path, recommendation, "resolution_selection_rule", :binary)
-    |> expect_optional_type(callbacks, path, recommendation, "resolution_priority_fields", :list)
-    |> validate_string_list_items(callbacks, path, recommendation, "resolution_priority_fields")
-    |> expect_optional_type(callbacks, path, recommendation, "requested_priority_fields", :list)
-    |> validate_string_list_items(callbacks, path, recommendation, "requested_priority_fields")
+    |> expect_optional_type(path, recommendation, "resolution_selection_rule", :binary)
+    |> expect_optional_type(path, recommendation, "resolution_priority_fields", :list)
+    |> validate_string_list_items(path, recommendation, "resolution_priority_fields")
+    |> expect_optional_type(path, recommendation, "requested_priority_fields", :list)
+    |> validate_string_list_items(path, recommendation, "requested_priority_fields")
     |> expect_optional_type(
-      callbacks,
       path,
       recommendation,
       "priority_field_evidence_counts",
       :map
     )
-    |> validate_priority_field_evidence_counts(
-      callbacks,
+    |> PriorityOverrideContracts.validate_field_evidence_counts(
       path <> ".priority_field_evidence_counts",
       Map.get(recommendation, "priority_field_evidence_counts")
     )
     |> expect_optional_integer(
-      callbacks,
       path,
       recommendation,
       "priority_fields_without_numeric_evidence_count"
     )
     |> expect_field_at_least(
-      callbacks,
       path,
       recommendation,
       "priority_fields_without_numeric_evidence_count",
       0
     )
     |> expect_optional_type(
-      callbacks,
       path,
       recommendation,
       "priority_fields_without_numeric_evidence",
       :list
     )
     |> validate_string_list_items(
-      callbacks,
       path,
       recommendation,
       "priority_fields_without_numeric_evidence"
     )
-    |> expect_optional_type(callbacks, path, recommendation, "resolution_tie_breakers", :list)
-    |> validate_string_list_items(callbacks, path, recommendation, "resolution_tie_breakers")
+    |> expect_optional_type(path, recommendation, "resolution_tie_breakers", :list)
+    |> validate_string_list_items(path, recommendation, "resolution_tie_breakers")
     |> expect_optional_integer(
-      callbacks,
       path,
       recommendation,
       "resolution_priority_override_count"
     )
     |> expect_field_at_least(
-      callbacks,
       path,
       recommendation,
       "resolution_priority_override_count",
       0
     )
     |> expect_optional_type(
-      callbacks,
       path,
       recommendation,
       "resolution_priority_override_contact_ids",
       :list
     )
     |> validate_optional_stable_id_list(
-      callbacks,
       path,
       recommendation,
       "resolution_priority_override_contact_ids"
     )
-    |> validate_override_count_matches_ids(
-      callbacks,
+    |> PriorityOverrideContracts.validate_count_matches_ids(
       path,
       recommendation,
       "resolution_priority_override_count",
       "resolution_priority_override_contact_ids"
     )
-    |> expect_optional_integer(callbacks, path, recommendation, "ignored_priority_override_count")
+    |> expect_optional_integer(path, recommendation, "ignored_priority_override_count")
     |> expect_field_at_least(
-      callbacks,
       path,
       recommendation,
       "ignored_priority_override_count",
       0
     )
     |> expect_optional_type(
-      callbacks,
       path,
       recommendation,
       "ignored_priority_override_keys",
       :list
     )
     |> validate_string_list_items(
-      callbacks,
       path,
       recommendation,
       "ignored_priority_override_keys"
     )
     |> expect_optional_type(
-      callbacks,
       path,
       recommendation,
       "ignored_priority_override_contact_ids",
       :list
     )
     |> validate_optional_stable_id_list(
-      callbacks,
       path,
       recommendation,
       "ignored_priority_override_contact_ids"
     )
     |> expect_optional_type(
-      callbacks,
       path,
       recommendation,
       "ignored_priority_override_input",
       :binary
     )
-    |> validate_override_count_matches_ids(
-      callbacks,
+    |> PriorityOverrideContracts.validate_count_matches_ids(
       path,
       recommendation,
       "ignored_priority_override_count",
       "ignored_priority_override_keys"
     )
-    |> expect_optional_type(callbacks, path, recommendation, "requested_selection_rule", :binary)
-    |> expect_optional_type(callbacks, path, recommendation, "ignored_tie_breakers", :list)
-    |> validate_string_list_items(callbacks, path, recommendation, "ignored_tie_breakers")
-    |> expect_optional_type(callbacks, path, recommendation, "ignored_policy_input", :binary)
-    |> expect_optional_type(callbacks, path, recommendation, "policy_warnings", :list)
-    |> validate_string_list_items(callbacks, path, recommendation, "policy_warnings")
-    |> validate_recommendation_counts(callbacks, path, recommendation)
-    |> validate_recommendation_duplicate_evidence(path, recommendation, callbacks)
+    |> expect_optional_type(path, recommendation, "requested_selection_rule", :binary)
+    |> expect_optional_type(path, recommendation, "ignored_tie_breakers", :list)
+    |> validate_string_list_items(path, recommendation, "ignored_tie_breakers")
+    |> expect_optional_type(path, recommendation, "ignored_policy_input", :binary)
+    |> expect_optional_type(path, recommendation, "policy_warnings", :list)
+    |> validate_string_list_items(path, recommendation, "policy_warnings")
+    |> validate_recommendation_counts(path, recommendation)
+    |> validate_recommendation_duplicate_evidence(path, recommendation)
   end
 
-  def validate_source_contact_candidate(issues, path, candidate, callbacks)
-      when is_list(callbacks) do
+  def validate_source_contact_candidate(issues, path, candidate) do
     issues
-    |> validate_stable_ids(callbacks, path, candidate, [
+    |> validate_stable_ids(path, candidate, [
       "id",
       "scenario_id",
       "source_window_id",
       "ground_station_id",
       "spacecraft_id"
     ])
-    |> expect_optional_type(callbacks, path, candidate, "type", :binary)
-    |> expect_optional_type(callbacks, path, candidate, "direction", :binary)
-    |> expect_optional_number(callbacks, path, candidate, "starts_at_s")
-    |> expect_optional_number(callbacks, path, candidate, "ends_at_s")
-    |> expect_optional_number(callbacks, path, candidate, "score")
+    |> expect_optional_type(path, candidate, "type", :binary)
+    |> expect_optional_type(path, candidate, "direction", :binary)
+    |> expect_optional_number(path, candidate, "starts_at_s")
+    |> expect_optional_number(path, candidate, "ends_at_s")
+    |> expect_optional_number(path, candidate, "score")
   end
 
-  def validate_resolution_policy(issues, path, policy, callbacks)
-      when is_map(policy) and is_list(callbacks) do
+  def validate_resolution_policy(issues, path, policy) when is_map(policy) do
     issues
-    |> expect_optional_type(callbacks, path, policy, "selection_rule", :binary)
-    |> expect_optional_type(callbacks, path, policy, "priority_fields", :list)
-    |> validate_string_list_items(callbacks, path, policy, "priority_fields")
-    |> expect_optional_type(callbacks, path, policy, "requested_priority_fields", :list)
-    |> validate_string_list_items(callbacks, path, policy, "requested_priority_fields")
-    |> expect_optional_type(callbacks, path, policy, "tie_breakers", :list)
-    |> validate_string_list_items(callbacks, path, policy, "tie_breakers")
-    |> expect_optional_type(callbacks, path, policy, "action", :binary)
-    |> expect_optional_type(callbacks, path, policy, "requested_selection_rule", :binary)
-    |> expect_optional_type(callbacks, path, policy, "ignored_tie_breakers", :list)
-    |> validate_string_list_items(callbacks, path, policy, "ignored_tie_breakers")
-    |> expect_optional_type(callbacks, path, policy, "ignored_policy_input", :binary)
-    |> expect_optional_type(callbacks, path, policy, "policy_warnings", :list)
-    |> validate_string_list_items(callbacks, path, policy, "policy_warnings")
-    |> expect_optional_type(callbacks, path, policy, "priority_overrides", :map)
-    |> validate_priority_override_map(
-      callbacks,
+    |> expect_optional_type(path, policy, "selection_rule", :binary)
+    |> expect_optional_type(path, policy, "priority_fields", :list)
+    |> validate_string_list_items(path, policy, "priority_fields")
+    |> expect_optional_type(path, policy, "requested_priority_fields", :list)
+    |> validate_string_list_items(path, policy, "requested_priority_fields")
+    |> expect_optional_type(path, policy, "tie_breakers", :list)
+    |> validate_string_list_items(path, policy, "tie_breakers")
+    |> expect_optional_type(path, policy, "action", :binary)
+    |> expect_optional_type(path, policy, "requested_selection_rule", :binary)
+    |> expect_optional_type(path, policy, "ignored_tie_breakers", :list)
+    |> validate_string_list_items(path, policy, "ignored_tie_breakers")
+    |> expect_optional_type(path, policy, "ignored_policy_input", :binary)
+    |> expect_optional_type(path, policy, "policy_warnings", :list)
+    |> validate_string_list_items(path, policy, "policy_warnings")
+    |> expect_optional_type(path, policy, "priority_overrides", :map)
+    |> PriorityOverrideContracts.validate_map(
       path <> ".priority_overrides",
       Map.get(policy, "priority_overrides")
     )
-    |> expect_optional_integer(callbacks, path, policy, "priority_override_count")
-    |> expect_field_at_least(callbacks, path, policy, "priority_override_count", 0)
-    |> expect_optional_type(callbacks, path, policy, "priority_override_contact_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, policy, "priority_override_contact_ids")
-    |> validate_override_count_matches_ids(
-      callbacks,
+    |> expect_optional_integer(path, policy, "priority_override_count")
+    |> expect_field_at_least(path, policy, "priority_override_count", 0)
+    |> expect_optional_type(path, policy, "priority_override_contact_ids", :list)
+    |> validate_optional_stable_id_list(path, policy, "priority_override_contact_ids")
+    |> PriorityOverrideContracts.validate_count_matches_ids(
       path,
       policy,
       "priority_override_count",
       "priority_override_contact_ids"
     )
-    |> expect_optional_integer(callbacks, path, policy, "ignored_priority_override_count")
-    |> expect_field_at_least(callbacks, path, policy, "ignored_priority_override_count", 0)
-    |> expect_optional_type(callbacks, path, policy, "ignored_priority_override_keys", :list)
-    |> validate_string_list_items(callbacks, path, policy, "ignored_priority_override_keys")
+    |> expect_optional_integer(path, policy, "ignored_priority_override_count")
+    |> expect_field_at_least(path, policy, "ignored_priority_override_count", 0)
+    |> expect_optional_type(path, policy, "ignored_priority_override_keys", :list)
+    |> validate_string_list_items(path, policy, "ignored_priority_override_keys")
     |> expect_optional_type(
-      callbacks,
       path,
       policy,
       "ignored_priority_override_contact_ids",
       :list
     )
     |> validate_optional_stable_id_list(
-      callbacks,
       path,
       policy,
       "ignored_priority_override_contact_ids"
     )
-    |> expect_optional_type(callbacks, path, policy, "ignored_priority_override_input", :binary)
-    |> validate_override_count_matches_ids(
-      callbacks,
+    |> expect_optional_type(path, policy, "ignored_priority_override_input", :binary)
+    |> PriorityOverrideContracts.validate_count_matches_ids(
       path,
       policy,
       "ignored_priority_override_count",
       "ignored_priority_override_keys"
     )
-    |> validate_priority_override_ids_match_map(callbacks, path, policy)
+    |> PriorityOverrideContracts.validate_ids_match_map(path, policy)
   end
 
-  def validate_resolution_policy(issues, _path, _policy, callbacks) when is_list(callbacks),
+  def validate_resolution_policy(issues, _path, _policy),
     do: issues
 
-  def validate_deferred_priority(issues, path, row, callbacks) when is_list(callbacks) do
+  def validate_deferred_priority(issues, path, row) do
     issues
-    |> validate_stable_ids(callbacks, path, row, ["contact_id"])
-    |> expect_optional_number(callbacks, path, row, "priority")
-    |> expect_optional_type(callbacks, path, row, "priority_source", :binary)
+    |> validate_stable_ids(path, row, ["contact_id"])
+    |> expect_optional_number(path, row, "priority")
+    |> expect_optional_type(path, row, "priority_source", :binary)
   end
 
-  defp validate_recommendation_duplicate_evidence(issues, path, recommendation, callbacks) do
+  defp validate_recommendation_duplicate_evidence(issues, path, recommendation) do
     if Map.get(recommendation, "resolution_issue") == "duplicate_contact_id" or
          Map.has_key?(recommendation, "duplicate_contact_ids") do
       issues
-      |> require_fields(callbacks, path, recommendation, ["duplicate_contact_candidates"])
+      |> require_fields(path, recommendation, ["duplicate_contact_candidates"])
       |> expect_field_equals(
-        callbacks,
         path,
         recommendation,
         "duplicate_contact_id_count",
         list_count(recommendation, "duplicate_contact_ids")
       )
       |> expect_field_equals(
-        callbacks,
         path,
         recommendation,
         "duplicate_contact_candidate_count",
         list_count(recommendation, "duplicate_contact_candidates")
       )
       |> validate_stable_id_list(
-        callbacks,
         path <> ".duplicate_contact_ids",
         Map.get(recommendation, "duplicate_contact_ids")
       )
@@ -550,7 +538,7 @@ defmodule OrbitalDynamics.Schema.ContactContentionReportContracts do
     end
   end
 
-  defp validate_report_model_limits(issues, callbacks, path, report) do
+  defp validate_report_model_limits(issues, path, report) do
     case Map.get(report, "model_limits") do
       nil ->
         issues
@@ -564,7 +552,6 @@ defmodule OrbitalDynamics.Schema.ContactContentionReportContracts do
         else
           [
             error(
-              callbacks,
               "#{path}.model_limits",
               "must match contact contention report model limits"
             )
@@ -577,7 +564,7 @@ defmodule OrbitalDynamics.Schema.ContactContentionReportContracts do
     end
   end
 
-  defp validate_resolution_report_model_limits(issues, callbacks, path, report) do
+  defp validate_resolution_report_model_limits(issues, path, report) do
     case Map.get(report, "model_limits") do
       nil ->
         issues
@@ -591,7 +578,6 @@ defmodule OrbitalDynamics.Schema.ContactContentionReportContracts do
         else
           [
             error(
-              callbacks,
               "#{path}.model_limits",
               "must match contact contention resolution report model limits"
             )
@@ -604,7 +590,7 @@ defmodule OrbitalDynamics.Schema.ContactContentionReportContracts do
     end
   end
 
-  defp validate_report_assumptions(issues, callbacks, path, report) do
+  defp validate_report_assumptions(issues, path, report) do
     case Map.get(report, "assumptions") do
       nil ->
         issues
@@ -615,7 +601,6 @@ defmodule OrbitalDynamics.Schema.ContactContentionReportContracts do
       assumptions when is_map(assumptions) ->
         issues
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "contact_types",
@@ -623,7 +608,6 @@ defmodule OrbitalDynamics.Schema.ContactContentionReportContracts do
           "must match ContactContention contact types"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "contact_directions",
@@ -631,7 +615,6 @@ defmodule OrbitalDynamics.Schema.ContactContentionReportContracts do
           "must match ContactContention contact directions"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "row_review_statuses",
@@ -639,7 +622,6 @@ defmodule OrbitalDynamics.Schema.ContactContentionReportContracts do
           "must match ContactContention row review statuses"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "station_unavailable_aliases",
@@ -647,7 +629,6 @@ defmodule OrbitalDynamics.Schema.ContactContentionReportContracts do
           "must match ContactContention station unavailable aliases"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "station_availability_precedence",
@@ -655,7 +636,6 @@ defmodule OrbitalDynamics.Schema.ContactContentionReportContracts do
           "must match ContactContention station availability precedence"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "station_capacity_value_paths",
@@ -663,7 +643,6 @@ defmodule OrbitalDynamics.Schema.ContactContentionReportContracts do
           "must match ContactContention station capacity value paths"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "source_station_capacity_value_paths",
@@ -671,7 +650,6 @@ defmodule OrbitalDynamics.Schema.ContactContentionReportContracts do
           "must match ContactContention source station capacity value paths"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "required_capacity_value_paths",
@@ -679,7 +657,6 @@ defmodule OrbitalDynamics.Schema.ContactContentionReportContracts do
           "must match ContactContention required capacity value paths"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "required_capacity_fraction_source_values",
@@ -687,7 +664,6 @@ defmodule OrbitalDynamics.Schema.ContactContentionReportContracts do
           "must match ContactContention required capacity fraction source values"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "station_reservation_priority_match_statuses",
@@ -695,7 +671,6 @@ defmodule OrbitalDynamics.Schema.ContactContentionReportContracts do
           "must match ContactContention station reservation priority match statuses"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "station_reservation_priority_statuses",
@@ -703,7 +678,6 @@ defmodule OrbitalDynamics.Schema.ContactContentionReportContracts do
           "must match ContactContention station reservation priority statuses"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "resolution_selection_rules",
@@ -711,7 +685,6 @@ defmodule OrbitalDynamics.Schema.ContactContentionReportContracts do
           "must match ContactContention resolution selection rules"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "resolution_tie_breakers",
@@ -719,7 +692,6 @@ defmodule OrbitalDynamics.Schema.ContactContentionReportContracts do
           "must match ContactContention resolution tie breakers"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "default_resolution_priority_fields",
@@ -727,7 +699,6 @@ defmodule OrbitalDynamics.Schema.ContactContentionReportContracts do
           "must match ContactContention default resolution priority fields"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "resolution_priority_override_aliases",
@@ -735,7 +706,6 @@ defmodule OrbitalDynamics.Schema.ContactContentionReportContracts do
           "must match ContactContention resolution priority override aliases"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "provider_direction_aliases",
@@ -743,7 +713,6 @@ defmodule OrbitalDynamics.Schema.ContactContentionReportContracts do
           "must match ContactContention provider direction aliases"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "provider_result_map_value_keys",
@@ -751,7 +720,6 @@ defmodule OrbitalDynamics.Schema.ContactContentionReportContracts do
           "must match ContactContention provider result map value keys"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "contact_stable_identity_fields",
@@ -759,7 +727,6 @@ defmodule OrbitalDynamics.Schema.ContactContentionReportContracts do
           "must match ContactContention contact stable identity fields"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "command_contact_directions",
@@ -772,7 +739,7 @@ defmodule OrbitalDynamics.Schema.ContactContentionReportContracts do
     end
   end
 
-  defp validate_report_counts(issues, callbacks, path, report) do
+  defp validate_report_counts(issues, path, report) do
     groups =
       report
       |> Map.get("conflict_groups", [])
@@ -787,9 +754,8 @@ defmodule OrbitalDynamics.Schema.ContactContentionReportContracts do
       end
 
     issues
-    |> expect_field_equals(callbacks, path, report, "conflict_group_count", length(groups))
+    |> expect_field_equals(path, report, "conflict_group_count", length(groups))
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "conflicted_contact_count",
@@ -797,7 +763,6 @@ defmodule OrbitalDynamics.Schema.ContactContentionReportContracts do
       "must equal row-derived conflicted contact count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "duplicate_contact_id_count",
@@ -808,7 +773,6 @@ defmodule OrbitalDynamics.Schema.ContactContentionReportContracts do
       "must equal row-derived duplicate contact ID count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "duplicate_contact_candidate_count",
@@ -816,14 +780,12 @@ defmodule OrbitalDynamics.Schema.ContactContentionReportContracts do
       "must equal row-derived duplicate contact candidate count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "invalid_contact_input_count",
       length(invalid_rows)
     )
     |> validate_ids_match_row_multiset(
-      callbacks,
       path,
       report,
       "invalid_contact_input_ids",
@@ -832,7 +794,7 @@ defmodule OrbitalDynamics.Schema.ContactContentionReportContracts do
     )
   end
 
-  defp validate_resolution_report_counts(issues, callbacks, path, report) do
+  defp validate_resolution_report_counts(issues, path, report) do
     recommendations =
       report
       |> Map.get("recommendations", [])
@@ -840,14 +802,12 @@ defmodule OrbitalDynamics.Schema.ContactContentionReportContracts do
 
     issues
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "recommendation_count",
       length(recommendations)
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "conflict_group_count",
@@ -856,10 +816,9 @@ defmodule OrbitalDynamics.Schema.ContactContentionReportContracts do
     )
   end
 
-  defp validate_recommendation_counts(issues, callbacks, path, recommendation) do
+  defp validate_recommendation_counts(issues, path, recommendation) do
     issues
     |> expect_field_equals(
-      callbacks,
       path,
       recommendation,
       "candidate_count",
@@ -867,7 +826,6 @@ defmodule OrbitalDynamics.Schema.ContactContentionReportContracts do
       "must equal source_contact_candidates count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       recommendation,
       "candidate_count",
@@ -953,206 +911,18 @@ defmodule OrbitalDynamics.Schema.ContactContentionReportContracts do
   defp contact_stable_identity_fields, do: capability_value(:contact_stable_identity_fields)
   defp command_contact_directions, do: capability_value(:command_contact_directions)
 
-  defp require_callback(callbacks, name), do: Keyword.fetch!(callbacks, name)
+  defp expect_field_equals(issues, path, map, field, nil),
+    do: expect_field_equals(issues, path, map, field, nil, nil)
 
-  defp require_fields(issues, callbacks, path, map, fields),
-    do: apply(require_callback(callbacks, :require_fields), [issues, path, map, fields])
+  defp expect_field_equals(issues, path, map, field, expected),
+    do: expect_field_equals(issues, path, map, field, expected, "must equal #{expected}")
 
-  defp expect_equal(issues, callbacks, path, map, field, expected),
-    do: apply(require_callback(callbacks, :expect_equal), [issues, path, map, field, expected])
-
-  defp expect_type(issues, callbacks, path, map, field, type),
-    do: apply(require_callback(callbacks, :expect_type), [issues, path, map, field, type])
-
-  defp expect_optional_type(issues, callbacks, path, map, field, type),
-    do:
-      apply(require_callback(callbacks, :expect_optional_type), [issues, path, map, field, type])
-
-  defp expect_non_negative_integer(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :expect_non_negative_integer), [issues, path, map, field])
-
-  defp expect_optional_non_negative_integer(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :expect_optional_non_negative_integer), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp expect_optional_integer(issues, callbacks, path, map, field),
-    do: apply(require_callback(callbacks, :expect_optional_integer), [issues, path, map, field])
-
-  defp expect_number(issues, callbacks, path, map, field),
-    do: apply(require_callback(callbacks, :expect_number), [issues, path, map, field])
-
-  defp expect_optional_number(issues, callbacks, path, map, field),
-    do: apply(require_callback(callbacks, :expect_optional_number), [issues, path, map, field])
-
-  defp expect_optional_probability(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :expect_optional_probability), [issues, path, map, field])
-
-  defp expect_optional_one_of(issues, callbacks, path, map, field, allowed),
-    do:
-      apply(require_callback(callbacks, :expect_optional_one_of), [
-        issues,
-        path,
-        map,
-        field,
-        allowed
-      ])
-
-  defp expect_field_at_least(issues, callbacks, path, map, field, minimum),
-    do:
-      apply(require_callback(callbacks, :expect_field_at_least), [
-        issues,
-        path,
-        map,
-        field,
-        minimum
-      ])
-
-  defp expect_field_equals(issues, callbacks, path, map, field, expected),
-    do:
-      apply(require_callback(callbacks, :expect_field_equals), [
-        issues,
-        path,
-        map,
-        field,
-        expected
-      ])
-
-  defp expect_field_equals(issues, callbacks, path, map, field, expected, message),
-    do:
-      apply(require_callback(callbacks, :expect_field_equals_with_message), [
-        issues,
-        path,
-        map,
-        field,
-        expected,
-        message
-      ])
-
-  defp expect_optional_field_equals(issues, callbacks, path, map, field, expected, message),
-    do:
-      apply(require_callback(callbacks, :expect_optional_field_equals), [
-        issues,
-        path,
-        map,
-        field,
-        expected,
-        message
-      ])
-
-  defp validate_optional_stable_id_list(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :validate_optional_stable_id_list), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp validate_stable_id_list(issues, callbacks, path, rows),
-    do: apply(require_callback(callbacks, :validate_stable_id_list), [issues, path, rows])
-
-  defp validate_stable_ids(issues, callbacks, path, map, fields),
-    do: apply(require_callback(callbacks, :validate_stable_ids), [issues, path, map, fields])
-
-  defp validate_string_list_items(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :validate_string_list_items), [issues, path, map, field])
-
-  defp validate_number_list_items(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :validate_number_list_items), [issues, path, map, field])
-
-  defp validate_optional_rows(issues, callbacks, path, rows, validator),
-    do:
-      apply(require_callback(callbacks, :validate_optional_rows), [issues, path, rows, validator])
-
-  defp validate_rows(issues, callbacks, path, rows, validator),
-    do: apply(require_callback(callbacks, :validate_rows), [issues, path, rows, validator])
-
-  defp validate_optional_actual_data_rate_throughput_derivations(
-         issues,
-         callbacks,
-         path,
-         map,
-         field
-       ),
-       do:
-         apply(
-           require_callback(
-             callbacks,
-             :validate_optional_actual_data_rate_throughput_derivations
-           ),
-           [
-             issues,
-             path,
-             map,
-             field
-           ]
-         )
-
-  defp validate_invalid_contact_input(callbacks, issues, path, row),
-    do: apply(require_callback(callbacks, :validate_invalid_contact_input), [issues, path, row])
-
-  defp validate_priority_field_evidence_counts(issues, callbacks, path, counts),
-    do:
-      apply(require_callback(callbacks, :validate_priority_field_evidence_counts), [
-        issues,
-        path,
-        counts
-      ])
-
-  defp validate_priority_override_map(issues, callbacks, path, overrides),
-    do:
-      apply(require_callback(callbacks, :validate_priority_override_map), [
-        issues,
-        path,
-        overrides
-      ])
-
-  defp validate_priority_override_ids_match_map(issues, callbacks, path, policy),
-    do:
-      apply(require_callback(callbacks, :validate_priority_override_ids_match_map), [
-        issues,
-        path,
-        policy
-      ])
-
-  defp validate_override_count_matches_ids(issues, callbacks, path, map, count_field, ids_field),
-    do:
-      apply(require_callback(callbacks, :validate_override_count_matches_ids), [
-        issues,
-        path,
-        map,
-        count_field,
-        ids_field
-      ])
-
-  defp validate_ids_match_row_multiset(
-         issues,
-         callbacks,
-         path,
-         report,
-         field,
-         expected_ids,
-         message
-       ),
-       do:
-         apply(require_callback(callbacks, :validate_ids_match_row_multiset), [
-           issues,
-           path,
-           report,
-           field,
-           expected_ids,
-           message
-         ])
-
-  defp error(callbacks, path, message),
-    do: apply(require_callback(callbacks, :error), [path, message])
+  defp validate_invalid_contact_input(issues, path, row) do
+    expect_optional_one_of(issues, path, row, "review_status", [
+      "operator_review_required",
+      "review_required",
+      "pending_operator_review",
+      "ready_for_review"
+    ])
+  end
 end

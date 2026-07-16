@@ -71,4 +71,14 @@ defmodule OrbitalDynamics.Schema.CollectionValidation do
       issues
     end
   end
+
+  def validate_ids_match_row_multiset(issues, path, report, field, expected_ids, message) do
+    ids = Map.get(report, field)
+
+    if is_list(ids) and Enum.sort(ids) != Enum.sort(expected_ids) do
+      [PrimitiveValidation.error("#{path}.#{field}", message) | issues]
+    else
+      issues
+    end
+  end
 end

@@ -75,6 +75,15 @@ defmodule OrbitalDynamics.Schema.DefaultEqualityMessageContractsTest do
     )
   end
 
+  test "preserves contact-contention-report default equality messages" do
+    assert_default_message(
+      "study_results/contact_contention_report_v1.json",
+      "conflict_group_count",
+      99,
+      "must equal 2"
+    )
+  end
+
   defp assert_default_message(path, field, stale_value, expected_message) do
     artifact =
       path
