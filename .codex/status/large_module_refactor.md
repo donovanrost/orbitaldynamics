@@ -6,41 +6,39 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Completed: stable-ID validation support extraction.
+Completed: primitive type validation support extraction.
 
 Status:
 Published.
 
 Selected slice:
-Move the generic stable-ID validation family into
-`Schema.StableIdValidation` while retaining the facade's existing local call
-and callback shapes through an explicit import.
+Move required/optional type checks into `Schema.PrimitiveValidation` while
+retaining the facade's existing local call and callback shapes through an
+explicit import.
 
 Why this slice:
-The seven related helpers are self-contained around one identity policy and
-their own error construction, while serving many artifact-family validators.
+The three related type checks and private matcher form the smallest
+self-contained boundary inside the remaining generic primitive tail.
 
 Current coupling/problem:
-Resolved for stable IDs: collection, nested-map, optional-list, and scalar
-checks now live together with the canonical stable-ID pattern.
+Resolved for primitive types: map/list/string/boolean/integer checks now live
+together outside the large public facade.
 
 Public facade preserved:
-- `OrbitalDynamics.Schema.identity_policy/0`
 - `OrbitalDynamics.Schema.validate_artifact/2`
 - `OrbitalDynamics.Schema.validation_report/2`
-- All existing contract-specific validation behavior.
+- All existing contract-specific validation behavior and error shapes.
 
 Extraction target:
-`OrbitalDynamics.Schema.StableIdValidation`.
+`OrbitalDynamics.Schema.PrimitiveValidation`.
 
 Files changed:
 - `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/stable_id_validation.ex`
+- `lib/orbital_dynamics/schema/primitive_validation.ex`
 
 Behavior/schema changes:
-None. Identity policy, validation error maps/messages, registry contents, and
-generated schemas retain the baseline behavior.
+None. Validation branches and error maps/messages were moved mechanically.
 
 Tests run:
 - `mix compile --warnings-as-errors` passed.
@@ -48,7 +46,8 @@ Tests run:
   schema export coverage passed: 92 tests.
 - SHA-256 over `{Schema.contracts(), Schema.json_schema_bundle()}` remained
   `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`.
-- Xref showed the expected facade caller and an outbound-dependency-free helper.
+- Xref showed the expected facade export edge and an outbound-dependency-free
+  helper.
 - Formatting, whitespace, new-file review, and checked-in-schema cleanliness
   checks passed.
 
@@ -56,18 +55,18 @@ Verification gaps:
 - The full suite was not run for this internal extraction.
 
 Last commit:
-`4aadbce5` (`Extract stable ID validation support`).
+`538b3652` (`Extract primitive type validation support`).
 
 Next candidate:
-Assess the adjacent generic scalar/list/type validation primitives as the next
-cohesive internal support extraction.
+Extend the cohesive primitive support boundary with scalar number, integer, and
+probability checks that only depend on local error construction.
 
 Blocked:
 No.
 
 Notes:
-- `schema.ex` decreased from 15,096 to 15,034 lines.
-- `StableIdValidation` is 84 lines.
+- `schema.ex` decreased from 15,034 to 14,998 lines.
+- `PrimitiveValidation` is 46 lines.
 - Parent review found no must-fix findings; parent publishing is the active-mode
   fallback because subagent delegation is unavailable.
 - The facade remains substantial; this is not a completion claim.
