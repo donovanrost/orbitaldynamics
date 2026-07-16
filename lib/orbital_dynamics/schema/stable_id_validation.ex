@@ -97,6 +97,21 @@ defmodule OrbitalDynamics.Schema.StableIdValidation do
   def validate_stable_id(issues, path, _value),
     do: [error(path, "must be a stable ID string") | issues]
 
+  def reject_duplicate_ids(issues, path, ids) do
+    duplicate_ids =
+      ids
+      |> Enum.frequencies()
+      |> Enum.filter(fn {_id, count} -> count > 1 end)
+      |> Enum.map(fn {id, _count} -> id end)
+      |> Enum.sort()
+
+    if duplicate_ids == [] do
+      issues
+    else
+      [error(path, "must not contain duplicate IDs: #{inspect(duplicate_ids)}") | issues]
+    end
+  end
+
   defp error(path, message) do
     %{"severity" => "error", "path" => path, "message" => message}
   end

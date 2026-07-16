@@ -2278,7 +2278,7 @@ defmodule OrbitalDynamics.Schema do
       OrbitalDynamics.Schema.MonteCarloReproducibilityReportJsonSchema.property_fun_from_context(
         schema_contract: @monte_carlo_reproducibility_report,
         stable_id_pattern: @stable_id_pattern,
-        model_limits: &monte_carlo_reproducibility_model_limits/0,
+        model_limits: &OrbitalDynamics.Schema.MonteCarloReproducibilityContracts.model_limits/0,
         numeric_triplet_schema: &numeric_triplet_schema/0
       )
     )
@@ -4526,12 +4526,6 @@ defmodule OrbitalDynamics.Schema do
     |> Enum.map(&Atom.to_string/1)
   end
 
-  defp monte_carlo_reproducibility_model_limits do
-    OrbitalDynamics.Search.MonteCarlo.capabilities()
-    |> Map.fetch!(:known_limits)
-    |> Enum.map(&Atom.to_string/1)
-  end
-
   defp policy_model_limits do
     OrbitalDynamics.Policy.capabilities()
     |> Map.fetch!(:known_limits)
@@ -6617,8 +6611,7 @@ defmodule OrbitalDynamics.Schema do
     |> require_fields("$", artifact, contract["required_fields"])
     |> OrbitalDynamics.Schema.MonteCarloReproducibilityContracts.validate(
       "$",
-      artifact,
-      monte_carlo_reproducibility_contract_callbacks()
+      artifact
     )
   end
 
@@ -8577,24 +8570,6 @@ defmodule OrbitalDynamics.Schema do
         registry_contract!(@execution_report),
         execution_report
       )
-
-  defp monte_carlo_reproducibility_contract_callbacks do
-    [
-      monte_carlo_reproducibility_model_limits: &monte_carlo_reproducibility_model_limits/0,
-      expect_equal: &expect_equal/5,
-      expect_type: &expect_type/5,
-      expect_number: &expect_number/4,
-      expect_non_negative_integer: &expect_non_negative_integer/4,
-      expect_optional_type: &expect_optional_type/5,
-      expect_field_equals: &expect_field_equals/5,
-      expect_number_vector: &expect_number_vector/3,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_stable_id_list: &validate_stable_id_list/3,
-      list_value: &list_value/2,
-      reject_duplicate_ids: &reject_duplicate_ids/3,
-      error: &error/2
-    ]
-  end
 
   defp optimizer_objective_contract_callbacks do
     [
@@ -10704,21 +10679,6 @@ defmodule OrbitalDynamics.Schema do
 
       _value ->
         issues
-    end
-  end
-
-  defp reject_duplicate_ids(issues, path, ids) do
-    duplicate_ids =
-      ids
-      |> Enum.frequencies()
-      |> Enum.filter(fn {_id, count} -> count > 1 end)
-      |> Enum.map(fn {id, _count} -> id end)
-      |> Enum.sort()
-
-    if duplicate_ids == [] do
-      issues
-    else
-      [error(path, "must not contain duplicate IDs: #{inspect(duplicate_ids)}") | issues]
     end
   end
 
