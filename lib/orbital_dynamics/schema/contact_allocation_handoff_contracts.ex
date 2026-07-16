@@ -1,6 +1,25 @@
 defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
   @moduledoc false
 
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [
+      expect_field_at_least: 5,
+      expect_optional_integer: 4,
+      expect_optional_non_negative_integer: 4,
+      expect_optional_non_negative_number: 4,
+      expect_optional_number: 4,
+      expect_optional_type: 5,
+      validate_non_negative_integer_count_map: 3,
+      validate_non_negative_number_map: 3
+    ]
+
+  import OrbitalDynamics.Schema.StableIdValidation,
+    only: [
+      validate_nested_stable_id_array_map: 3,
+      validate_optional_stable_id_list: 4,
+      validate_stable_id_array_map: 3
+    ]
+
   @allocation_match_fields [
     "duplicate_contact_candidate_count",
     "duplicate_contact_candidate_ids",
@@ -185,525 +204,439 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
   def validate_expiration_summary(issues, path, artifact, callbacks) when is_list(callbacks) do
     issues
     |> expect_optional_type(
-      callbacks,
       path,
       artifact,
       "station_reservation_expiration_status_counts",
       :map
     )
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".station_reservation_expiration_status_counts",
       Map.get(artifact, "station_reservation_expiration_status_counts")
     )
-    |> expect_optional_type(callbacks, path, artifact, "resource_blocking_dimension_counts", :map)
+    |> expect_optional_type(path, artifact, "resource_blocking_dimension_counts", :map)
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".resource_blocking_dimension_counts",
       Map.get(artifact, "resource_blocking_dimension_counts")
     )
     |> validate_optional_stable_id_array_map(
-      callbacks,
       path,
       artifact,
       "resource_blocked_contact_ids_by_blocking_dimension"
     )
     |> validate_optional_stable_id_array_map(
-      callbacks,
       path,
       artifact,
       "resource_blocked_contact_ids_by_spacecraft_id"
     )
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       artifact,
       "station_pressure_contact_count"
     )
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       artifact,
       "station_pressure_review_contact_count"
     )
     |> expect_optional_type(
-      callbacks,
       path,
       artifact,
       "station_pressure_review_contact_ids",
       :list
     )
     |> validate_optional_stable_id_list(
-      callbacks,
       path,
       artifact,
       "station_pressure_review_contact_ids"
     )
     |> expect_optional_type(
-      callbacks,
       path,
       artifact,
       "station_pressure_contact_counts_by_ground_station_id",
       :map
     )
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".station_pressure_contact_counts_by_ground_station_id",
       Map.get(artifact, "station_pressure_contact_counts_by_ground_station_id")
     )
     |> validate_optional_stable_id_array_map(
-      callbacks,
       path,
       artifact,
       "station_pressure_contact_ids_by_ground_station_id"
     )
     |> expect_optional_type(
-      callbacks,
       path,
       artifact,
       "station_pressure_contact_counts_by_availability",
       :map
     )
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".station_pressure_contact_counts_by_availability",
       Map.get(artifact, "station_pressure_contact_counts_by_availability")
     )
     |> validate_optional_stable_id_array_map(
-      callbacks,
       path,
       artifact,
       "station_pressure_contact_ids_by_availability"
     )
     |> expect_optional_type(
-      callbacks,
       path,
       artifact,
       "station_pressure_contact_counts_by_precedence_availability",
       :map
     )
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".station_pressure_contact_counts_by_precedence_availability",
       Map.get(artifact, "station_pressure_contact_counts_by_precedence_availability")
     )
     |> validate_optional_stable_id_array_map(
-      callbacks,
       path,
       artifact,
       "station_pressure_contact_ids_by_precedence_availability"
     )
     |> expect_optional_type(
-      callbacks,
       path,
       artifact,
       "station_pressure_contact_counts_by_precedence_rank",
       :map
     )
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".station_pressure_contact_counts_by_precedence_rank",
       Map.get(artifact, "station_pressure_contact_counts_by_precedence_rank")
     )
     |> validate_optional_stable_id_array_map(
-      callbacks,
       path,
       artifact,
       "station_pressure_contact_ids_by_precedence_rank"
     )
     |> expect_optional_type(
-      callbacks,
       path,
       artifact,
       "station_pressure_contact_counts_by_status",
       :map
     )
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".station_pressure_contact_counts_by_status",
       Map.get(artifact, "station_pressure_contact_counts_by_status")
     )
     |> validate_optional_stable_id_array_map(
-      callbacks,
       path,
       artifact,
       "station_pressure_contact_ids_by_status"
     )
     |> validate_optional_nested_stable_id_array_map(
-      callbacks,
       path,
       artifact,
       "station_pressure_contact_ids_by_direction_and_ground_station_id"
     )
     |> expect_optional_non_negative_number(
-      callbacks,
       path,
       artifact,
       "capacity_pack_required_capacity_fraction"
     )
     |> expect_optional_non_negative_number(
-      callbacks,
       path,
       artifact,
       "capacity_pack_selected_required_capacity_fraction"
     )
     |> expect_optional_non_negative_number(
-      callbacks,
       path,
       artifact,
       "capacity_pack_deferred_required_capacity_fraction"
     )
     |> expect_optional_type(
-      callbacks,
       path,
       artifact,
       "capacity_pack_required_capacity_fraction_by_status",
       :map
     )
     |> validate_non_negative_number_map(
-      callbacks,
       path <> ".capacity_pack_required_capacity_fraction_by_status",
       Map.get(artifact, "capacity_pack_required_capacity_fraction_by_status")
     )
     |> expect_optional_type(
-      callbacks,
       path,
       artifact,
       "capacity_pack_required_capacity_fraction_by_ground_station_id",
       :map
     )
     |> validate_non_negative_number_map(
-      callbacks,
       path <> ".capacity_pack_required_capacity_fraction_by_ground_station_id",
       Map.get(artifact, "capacity_pack_required_capacity_fraction_by_ground_station_id")
     )
     |> expect_optional_type(
-      callbacks,
       path,
       artifact,
       "capacity_pack_selected_required_capacity_fraction_by_ground_station_id",
       :map
     )
     |> validate_non_negative_number_map(
-      callbacks,
       path <> ".capacity_pack_selected_required_capacity_fraction_by_ground_station_id",
       Map.get(artifact, "capacity_pack_selected_required_capacity_fraction_by_ground_station_id")
     )
     |> expect_optional_type(
-      callbacks,
       path,
       artifact,
       "capacity_pack_deferred_required_capacity_fraction_by_ground_station_id",
       :map
     )
     |> validate_non_negative_number_map(
-      callbacks,
       path <> ".capacity_pack_deferred_required_capacity_fraction_by_ground_station_id",
       Map.get(artifact, "capacity_pack_deferred_required_capacity_fraction_by_ground_station_id")
     )
     |> expect_optional_type(
-      callbacks,
       path,
       artifact,
       "required_capacity_fraction_source_counts",
       :map
     )
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".required_capacity_fraction_source_counts",
       Map.get(artifact, "required_capacity_fraction_source_counts")
     )
     |> validate_optional_stable_id_array_map(
-      callbacks,
       path,
       artifact,
       "required_capacity_fraction_contact_ids_by_source"
     )
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       artifact,
       "provider_reservation_candidate_contact_count"
     )
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       artifact,
       "provider_reservation_request_contact_count"
     )
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       artifact,
       "provider_reservation_review_contact_count"
     )
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       artifact,
       "provider_reservation_no_request_contact_count"
     )
     |> expect_optional_type(
-      callbacks,
       path,
       artifact,
       "provider_reservation_request_status_counts",
       :map
     )
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".provider_reservation_request_status_counts",
       Map.get(artifact, "provider_reservation_request_status_counts")
     )
     |> expect_optional_type(
-      callbacks,
       path,
       artifact,
       "provider_reservation_request_contact_ids",
       :list
     )
     |> validate_optional_stable_id_list(
-      callbacks,
       path,
       artifact,
       "provider_reservation_request_contact_ids"
     )
     |> expect_optional_type(
-      callbacks,
       path,
       artifact,
       "provider_reservation_review_contact_ids",
       :list
     )
     |> validate_optional_stable_id_list(
-      callbacks,
       path,
       artifact,
       "provider_reservation_review_contact_ids"
     )
     |> expect_optional_type(
-      callbacks,
       path,
       artifact,
       "provider_reservation_no_request_contact_ids",
       :list
     )
     |> validate_optional_stable_id_list(
-      callbacks,
       path,
       artifact,
       "provider_reservation_no_request_contact_ids"
     )
     |> validate_optional_stable_id_array_map(
-      callbacks,
       path,
       artifact,
       "provider_reservation_request_contact_ids_by_ground_station_id"
     )
     |> validate_optional_stable_id_array_map(
-      callbacks,
       path,
       artifact,
       "provider_reservation_review_contact_ids_by_ground_station_id"
     )
     |> validate_optional_stable_id_array_map(
-      callbacks,
       path,
       artifact,
       "provider_reservation_no_request_contact_ids_by_direction"
     )
     |> validate_optional_stable_id_array_map(
-      callbacks,
       path,
       artifact,
       "provider_reservation_request_contact_ids_by_direction"
     )
     |> validate_optional_stable_id_array_map(
-      callbacks,
       path,
       artifact,
       "provider_reservation_review_contact_ids_by_direction"
     )
     |> validate_optional_nested_stable_id_array_map(
-      callbacks,
       path,
       artifact,
       "provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id"
     )
     |> validate_optional_nested_stable_id_array_map(
-      callbacks,
       path,
       artifact,
       "provider_reservation_request_contact_ids_by_direction_and_ground_station_id"
     )
     |> validate_optional_nested_stable_id_array_map(
-      callbacks,
       path,
       artifact,
       "provider_reservation_review_contact_ids_by_direction_and_ground_station_id"
     )
     |> validate_optional_stable_id_array_map(
-      callbacks,
       path,
       artifact,
       "provider_reservation_request_contact_ids_by_match_status"
     )
     |> validate_optional_stable_id_array_map(
-      callbacks,
       path,
       artifact,
       "provider_reservation_review_contact_ids_by_match_status"
     )
     |> validate_optional_stable_id_array_map(
-      callbacks,
       path,
       artifact,
       "provider_reservation_request_ids_by_match_status"
     )
     |> validate_optional_stable_id_array_map(
-      callbacks,
       path,
       artifact,
       "provider_reservation_review_ids_by_match_status"
     )
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       artifact,
       "reduced_capacity_pack_group_count"
     )
     |> expect_optional_type(
-      callbacks,
       path,
       artifact,
       "reduced_capacity_pack_status_counts",
       :map
     )
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".reduced_capacity_pack_status_counts",
       Map.get(artifact, "reduced_capacity_pack_status_counts")
     )
-    |> expect_optional_type(callbacks, path, artifact, "capacity_pack_group_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, artifact, "capacity_pack_group_ids")
+    |> expect_optional_type(path, artifact, "capacity_pack_group_ids", :list)
+    |> validate_optional_stable_id_list(path, artifact, "capacity_pack_group_ids")
     |> validate_optional_stable_id_array_map(
-      callbacks,
       path,
       artifact,
       "capacity_pack_group_ids_by_status"
     )
     |> validate_optional_stable_id_array_map(
-      callbacks,
       path,
       artifact,
       "capacity_pack_contact_ids_by_status"
     )
     |> validate_optional_stable_id_array_map(
-      callbacks,
       path,
       artifact,
       "capacity_pack_contact_ids_by_ground_station_id"
     )
     |> validate_optional_stable_id_array_map(
-      callbacks,
       path,
       artifact,
       "capacity_pack_selected_contact_ids_by_ground_station_id"
     )
     |> validate_optional_stable_id_array_map(
-      callbacks,
       path,
       artifact,
       "capacity_pack_deferred_contact_ids_by_ground_station_id"
     )
     |> expect_optional_type(
-      callbacks,
       path,
       artifact,
       "reduced_capacity_packed_contact_ids",
       :list
     )
     |> validate_optional_stable_id_list(
-      callbacks,
       path,
       artifact,
       "reduced_capacity_packed_contact_ids"
     )
     |> expect_optional_type(
-      callbacks,
       path,
       artifact,
       "reduced_capacity_deferred_contact_ids",
       :list
     )
     |> validate_optional_stable_id_list(
-      callbacks,
       path,
       artifact,
       "reduced_capacity_deferred_contact_ids"
     )
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       artifact,
       "station_reservation_declared_expiration_contact_count"
     )
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       artifact,
       "station_reservation_missing_expiration_contact_count"
     )
     |> expect_optional_number(
-      callbacks,
       path,
       artifact,
       "earliest_station_reservation_expires_at_s"
     )
     |> validate_optional_stable_id_array_map(
-      callbacks,
       path,
       artifact,
       "station_reservation_contact_ids_by_expiration_status"
     )
     |> validate_optional_stable_id_array_map(
-      callbacks,
       path,
       artifact,
       "station_reservation_ids_by_expiration_status"
     )
     |> validate_optional_stable_id_array_map(
-      callbacks,
       path,
       artifact,
       "station_reservation_contact_ids_by_match_status"
     )
     |> validate_optional_stable_id_array_map(
-      callbacks,
       path,
       artifact,
       "station_reservation_contact_ids_by_status"
     )
     |> validate_optional_stable_id_array_map(
-      callbacks,
       path,
       artifact,
       "station_reservation_contact_ids_by_reserved_by"
     )
     |> validate_optional_stable_id_array_map(
-      callbacks,
       path,
       artifact,
       "station_reservation_ids_by_match_status"
     )
     |> validate_optional_stable_id_array_map(
-      callbacks,
       path,
       artifact,
       "station_reservation_ids_by_status"
     )
     |> validate_optional_stable_id_array_map(
-      callbacks,
       path,
       artifact,
       "station_reservation_ids_by_reserved_by"
@@ -713,27 +646,24 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
   def validate_allocation_fields(issues, path, row, callbacks) when is_list(callbacks) do
     if allocation_handoff_row?(row) do
       issues
-      |> expect_optional_integer(callbacks, path, row, "duplicate_contact_candidate_count")
-      |> expect_field_at_least(callbacks, path, row, "duplicate_contact_candidate_count", 0)
-      |> expect_optional_type(callbacks, path, row, "duplicate_contact_candidate_ids", :list)
+      |> expect_optional_integer(path, row, "duplicate_contact_candidate_count")
+      |> expect_field_at_least(path, row, "duplicate_contact_candidate_count", 0)
+      |> expect_optional_type(path, row, "duplicate_contact_candidate_ids", :list)
       |> validate_optional_stable_id_list(
-        callbacks,
         path,
         row,
         "duplicate_contact_candidate_ids"
       )
       |> validate_contact_allocation_duplicate_evidence(callbacks, path, row)
-      |> expect_optional_integer(callbacks, path, row, "resolution_priority_override_count")
-      |> expect_field_at_least(callbacks, path, row, "resolution_priority_override_count", 0)
+      |> expect_optional_integer(path, row, "resolution_priority_override_count")
+      |> expect_field_at_least(path, row, "resolution_priority_override_count", 0)
       |> expect_optional_type(
-        callbacks,
         path,
         row,
         "resolution_priority_override_contact_ids",
         :list
       )
       |> validate_optional_stable_id_list(
-        callbacks,
         path,
         row,
         "resolution_priority_override_contact_ids"
@@ -947,70 +877,22 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
       present_string?(Map.get(row, "provider_calendar_contention_group_id"))
   end
 
-  defp validate_optional_stable_id_array_map(issues, callbacks, path, artifact, field) do
+  defp validate_optional_stable_id_array_map(issues, path, artifact, field) do
     issues
-    |> expect_optional_type(callbacks, path, artifact, field, :map)
-    |> validate_stable_id_array_map(callbacks, path <> ".#{field}", Map.get(artifact, field))
+    |> expect_optional_type(path, artifact, field, :map)
+    |> validate_stable_id_array_map(path <> ".#{field}", Map.get(artifact, field))
   end
 
-  defp validate_optional_nested_stable_id_array_map(issues, callbacks, path, artifact, field) do
+  defp validate_optional_nested_stable_id_array_map(issues, path, artifact, field) do
     issues
-    |> expect_optional_type(callbacks, path, artifact, field, :map)
+    |> expect_optional_type(path, artifact, field, :map)
     |> validate_nested_stable_id_array_map(
-      callbacks,
       path <> ".#{field}",
       Map.get(artifact, field)
     )
   end
 
   defp require_callback(callbacks, name), do: Keyword.fetch!(callbacks, name)
-
-  defp expect_optional_type(issues, callbacks, path, map, field, type),
-    do:
-      apply(require_callback(callbacks, :expect_optional_type), [issues, path, map, field, type])
-
-  defp expect_optional_number(issues, callbacks, path, map, field),
-    do: apply(require_callback(callbacks, :expect_optional_number), [issues, path, map, field])
-
-  defp expect_optional_integer(issues, callbacks, path, map, field),
-    do: apply(require_callback(callbacks, :expect_optional_integer), [issues, path, map, field])
-
-  defp expect_optional_non_negative_integer(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :expect_optional_non_negative_integer), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp expect_optional_non_negative_number(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :expect_optional_non_negative_number), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp expect_field_at_least(issues, callbacks, path, map, field, minimum),
-    do:
-      apply(require_callback(callbacks, :expect_field_at_least), [
-        issues,
-        path,
-        map,
-        field,
-        minimum
-      ])
-
-  defp validate_optional_stable_id_list(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :validate_optional_stable_id_list), [
-        issues,
-        path,
-        map,
-        field
-      ])
 
   defp validate_contact_allocation_duplicate_evidence(issues, callbacks, path, row),
     do:
@@ -1036,33 +918,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
            count_field,
            ids_field
          ])
-
-  defp validate_stable_id_array_map(issues, callbacks, path, values),
-    do: apply(require_callback(callbacks, :validate_stable_id_array_map), [issues, path, values])
-
-  defp validate_nested_stable_id_array_map(issues, callbacks, path, values),
-    do:
-      apply(require_callback(callbacks, :validate_nested_stable_id_array_map), [
-        issues,
-        path,
-        values
-      ])
-
-  defp validate_non_negative_integer_count_map(issues, callbacks, path, values),
-    do:
-      apply(require_callback(callbacks, :validate_non_negative_integer_count_map), [
-        issues,
-        path,
-        values
-      ])
-
-  defp validate_non_negative_number_map(issues, callbacks, path, values),
-    do:
-      apply(require_callback(callbacks, :validate_non_negative_number_map), [
-        issues,
-        path,
-        values
-      ])
 
   defp station_calendar_source_handoff_row?(row) do
     Map.get(row, "review_type") in ["station_calendar_review", "station_reservation_review"] or

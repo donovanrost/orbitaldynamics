@@ -7169,22 +7169,11 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp contact_allocation_handoff_contract_callbacks do
+  defp contact_allocation_handoff_domain_callbacks do
     [
-      expect_optional_type: &expect_optional_type/5,
-      expect_optional_integer: &expect_optional_integer/4,
-      expect_optional_number: &expect_optional_number/4,
-      expect_optional_non_negative_integer: &expect_optional_non_negative_integer/4,
-      expect_optional_non_negative_number: &expect_optional_non_negative_number/4,
-      expect_field_at_least: &expect_field_at_least/5,
-      validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
       validate_contact_allocation_duplicate_evidence:
         &validate_contact_allocation_duplicate_evidence/3,
-      validate_override_count_matches_ids: &validate_override_count_matches_ids/5,
-      validate_stable_id_array_map: &validate_stable_id_array_map/3,
-      validate_nested_stable_id_array_map: &validate_nested_stable_id_array_map/3,
-      validate_non_negative_integer_count_map: &validate_non_negative_integer_count_map/3,
-      validate_non_negative_number_map: &validate_non_negative_number_map/3
+      validate_override_count_matches_ids: &validate_override_count_matches_ids/5
     ]
   end
 
@@ -9830,7 +9819,7 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       artifact,
-      contact_allocation_handoff_contract_callbacks()
+      contact_allocation_handoff_domain_callbacks()
     )
   end
 
@@ -11317,7 +11306,7 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       row,
-      contact_allocation_handoff_contract_callbacks()
+      contact_allocation_handoff_domain_callbacks()
     )
   end
 
