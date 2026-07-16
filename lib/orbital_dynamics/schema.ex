@@ -8806,27 +8806,8 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.TimelineDiffRowContracts.validate(
       issues,
       path,
-      row,
-      timeline_diff_row_contract_callbacks()
+      row
     )
-  end
-
-  defp timeline_diff_row_contract_callbacks do
-    [
-      require_fields: &require_fields/4,
-      validate_stable_ids: &validate_stable_ids/4,
-      expect_type: &expect_type/5,
-      expect_one_of: &expect_one_of/5,
-      expect_optional_one_of: &expect_optional_one_of/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_number: &expect_number/4,
-      expect_optional_number: &expect_optional_number/4,
-      validate_optional_lifecycle_transition: &validate_optional_lifecycle_transition/4,
-      validate_optional_timeline_identity: &validate_optional_timeline_identity/4,
-      validate_optional_activity_context: &validate_optional_activity_context/4,
-      validate_optional_protection_decision: &validate_optional_protection_decision/4,
-      validate_timeline_identity_collision_fields: &validate_timeline_identity_collision_fields/3
-    ]
   end
 
   defp validate_optional_timeline_diff_summary_source(issues, _path, nil), do: issues

@@ -9,7 +9,7 @@ Current slice:
 Timeline-diff-row validator callback cleanup.
 
 Status:
-Selected; implementation pending.
+Complete; publication pending.
 
 Selected slice:
 Remove the 13-entry callback bag from `TimelineDiffRowContracts`. Call primitive,
@@ -49,6 +49,24 @@ Definition of done:
 No row callback factory, callback lookup, or trampolines remain; all direct owner
 calls preserve exact behavior; focused/broader/export checks pass; and bounded
 review finds no blocker.
+
+Result:
+Removed the 13-entry row callback factory, lookup helper, and all owner
+trampolines. The Schema row wrapper remains the shared routing boundary for
+report, summary, and transition validators, while the owner calls extracted
+primitive, stable-ID, context, lifecycle, protection, identity, and collision
+validators directly. `schema.ex` fell from 12,523 to 12,504 lines and the row
+owner from 151 to 118; public facade behavior and exports are unchanged.
+
+Verification:
+- compile with warnings as errors passed
+- focused timeline-diff contract/fixture matrix: 10 passed, 306 excluded
+- reviewer-focused report/summary contracts: 25 passed
+- broader timeline and candidate-refresh suites: 882 passed
+- schema export trio: 22 passed
+- checked-in schema export reproduced with no diff, preserving its fingerprint
+- format, diff hygiene, residue, public-definition, and xref checks passed
+- bounded read-only review found no must-fix issue
 
 Verification gaps:
 - Full repository suite not run.
