@@ -9,7 +9,7 @@ Current slice:
 Completed: contact-allocation capacity-pack registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Move the contact-allocation capacity-pack summary contract into
@@ -78,7 +78,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`22aa269f` (`Update provider reservation handoff`).
+`fc68a67b` (`Extract capacity pack registry contract`).
 
 Next candidate:
 Assess the adjacent contact-allocation station-pressure summary as the next
