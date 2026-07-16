@@ -9,7 +9,7 @@ Current slice:
 Timeline-publication-handoff callback-bag collapse.
 
 Status:
-Selected; implementation pending.
+Complete and published.
 
 Selected slice:
 Replace the 3-entry callback bag used by
@@ -45,17 +45,20 @@ shared primitive calls are direct while publication-summary validation remains
 an explicit boundary; focused, broader, and export checks pass; and bounded
 review finds no blocker.
 
+Outcome:
+`schema.ex` fell from 11,650 to 11,641 lines and the timeline-handoff owner
+from 801 to 795. The 3-entry bag became two direct primitive calls and one
+explicit publication-summary validator. 173 focused, 1,167 broader, and 22
+export tests passed; compile, compile-connected xref, checked-in regeneration,
+format, diff hygiene, and bounded review were clean.
+
 Verification gaps:
 - Full repository suite not run.
 - Known baseline: full contact-filter file remains 87/88 due nil-message
   behavior in `SuppressedCandidateContracts`; unrelated to these slices.
 
 Last completed slice:
-Operational-timeline-row callback-bag collapse published as `3e1faaac`:
-`schema.ex` fell from 11,674 to 11,650 lines and its owner from 348 to 275. The
-21-entry bag became direct shared owners and four domain-validator arguments.
-189 focused, 1,167 broader, and 22 export tests passed; compile, xref, format,
-diff hygiene, checked-in regeneration, and bounded review were clean.
+Timeline-publication-handoff callback-bag collapse; publication commit pending.
 
 Blocked:
 No.

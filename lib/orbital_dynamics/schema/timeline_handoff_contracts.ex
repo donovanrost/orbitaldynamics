@@ -1,6 +1,9 @@
 defmodule OrbitalDynamics.Schema.TimelineHandoffContracts do
   @moduledoc false
 
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [expect_field_equals: 6, expect_optional_type: 5]
+
   @timeline_transition_application_source_field_pairs [
     {"subject_id", "timeline_id"},
     {"timeline_id", "timeline_id"},
@@ -544,18 +547,22 @@ defmodule OrbitalDynamics.Schema.TimelineHandoffContracts do
   def validate_optional_timeline_publication_summary_source(issues, path, _summary, _callbacks),
     do: [error(path, "must be an object") | issues]
 
-  def validate_timeline_publication_matches_source_summary(issues, path, row, callbacks) do
+  def validate_timeline_publication_matches_source_summary(
+        issues,
+        path,
+        row,
+        publication_summary_validator
+      )
+      when is_function(publication_summary_validator, 3) do
     source_summary = Map.get(row, "source_timeline_publication_summary")
 
     issues
-    |> expect_optional_type(callbacks, path, row, "source_timeline_publication_summary", :map)
-    |> validate_optional_timeline_publication_summary_source(
+    |> expect_optional_type(path, row, "source_timeline_publication_summary", :map)
+    |> publication_summary_validator.(
       path <> ".source_timeline_publication_summary",
-      source_summary,
-      callback!(callbacks, :timeline_publication_summary_contract_callbacks).()
+      source_summary
     )
     |> validate_timeline_publication_handoff_matches_source_summary(
-      callbacks,
       path,
       row,
       source_summary
@@ -732,7 +739,6 @@ defmodule OrbitalDynamics.Schema.TimelineHandoffContracts do
 
   defp validate_timeline_publication_handoff_matches_source_summary(
          issues,
-         callbacks,
          path,
          row,
          %{} = source_summary
@@ -741,7 +747,6 @@ defmodule OrbitalDynamics.Schema.TimelineHandoffContracts do
       acc
       |> require_timeline_publication_handoff_field(path, row, source_summary, field)
       |> expect_field_equals(
-        callbacks,
         path,
         row,
         field,
@@ -753,7 +758,6 @@ defmodule OrbitalDynamics.Schema.TimelineHandoffContracts do
 
   defp validate_timeline_publication_handoff_matches_source_summary(
          issues,
-         _callbacks,
          path,
          row,
          _source
@@ -784,16 +788,6 @@ defmodule OrbitalDynamics.Schema.TimelineHandoffContracts do
       issues
     end
   end
-
-  defp expect_field_equals(issues, callbacks, path, row, field, expected, message) do
-    callback!(callbacks, :expect_field_equals).(issues, path, row, field, expected, message)
-  end
-
-  defp expect_optional_type(issues, callbacks, path, row, field, type) do
-    callback!(callbacks, :expect_optional_type).(issues, path, row, field, type)
-  end
-
-  defp callback!(callbacks, name), do: Keyword.fetch!(callbacks, name)
 
   defp error(path, message) do
     %{"severity" => "error", "path" => path, "message" => message}

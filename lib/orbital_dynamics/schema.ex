@@ -7582,15 +7582,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp timeline_publication_handoff_contract_callbacks do
-    [
-      expect_field_equals: &expect_field_equals/6,
-      expect_optional_type: &expect_optional_type/5,
-      timeline_publication_summary_contract_callbacks:
-        &timeline_publication_summary_contract_callbacks/0
-    ]
-  end
-
   defp branch_comparison_report_contract_callbacks do
     [
       branch_comparison_model_limits:
@@ -8430,7 +8421,7 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       row,
-      timeline_publication_handoff_contract_callbacks()
+      &validate_optional_timeline_publication_summary_source/3
     )
   end
 
