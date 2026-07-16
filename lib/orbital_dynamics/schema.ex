@@ -8926,16 +8926,6 @@ defmodule OrbitalDynamics.Schema do
         field
       )
 
-  defp non_negative_integer_map_sum(counts) when is_map(counts) do
-    values = Map.values(counts)
-
-    if Enum.all?(values, &(is_integer(&1) and &1 >= 0)),
-      do: Enum.sum(values),
-      else: nil
-  end
-
-  defp non_negative_integer_map_sum(_counts), do: nil
-
   defp validate_duplicate_suppressed_candidate_evidence(issues, path, candidate) do
     OrbitalDynamics.Schema.SuppressedCandidateContracts.validate_duplicate_evidence(
       issues,
@@ -9690,29 +9680,12 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       evidence,
-      gates,
-      operational_readiness_evidence_contract_callbacks()
+      gates
     )
   end
 
   defp validate_operational_readiness_evidence_gate_counts(issues, _path, _evidence, _gates),
     do: issues
-
-  defp operational_readiness_evidence_contract_callbacks do
-    [
-      expect_field_equals: &expect_field_equals/6,
-      expect_optional_integer: &expect_optional_integer/4,
-      expect_field_at_least: &expect_field_at_least/5,
-      expect_optional_type: &expect_optional_type/5,
-      validate_string_list_items: &validate_string_list_items/4,
-      stable_sorted_ids: &stable_sorted_ids/1,
-      validate_resource_context: &validate_operational_readiness_resource_context/3,
-      validate_timeline_publication_context: &validate_timeline_publication_context/3,
-      validate_non_negative_integer_count_map: &validate_non_negative_integer_count_map/3,
-      non_negative_integer_map_sum: &non_negative_integer_map_sum/1,
-      error: &error/2
-    ]
-  end
 
   defp operational_readiness_gate_contract_callbacks do
     [
@@ -9745,7 +9718,8 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       evidence,
-      operational_readiness_evidence_contract_callbacks()
+      &validate_operational_readiness_resource_context/3,
+      &validate_timeline_publication_context/3
     )
   end
 
@@ -9868,13 +9842,6 @@ defmodule OrbitalDynamics.Schema do
       path,
       row
     )
-  end
-
-  defp stable_sorted_ids(ids) do
-    ids
-    |> Enum.reject(&is_nil/1)
-    |> Enum.uniq()
-    |> Enum.sort()
   end
 
   defp validate_cadence_import_row(issues, path, row) do

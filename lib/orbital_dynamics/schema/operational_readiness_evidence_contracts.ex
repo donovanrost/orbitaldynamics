@@ -1,6 +1,16 @@
 defmodule OrbitalDynamics.Schema.OperationalReadinessEvidenceContracts do
   @moduledoc false
 
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [
+      expect_field_at_least: 5,
+      expect_field_equals: 6,
+      expect_optional_integer: 4,
+      expect_optional_type: 5,
+      validate_non_negative_integer_count_map: 3,
+      validate_string_list_items: 4
+    ]
+
   @scalar_fields [
     "ready_for_import_count",
     "manifest_review_required_count",
@@ -191,77 +201,78 @@ defmodule OrbitalDynamics.Schema.OperationalReadinessEvidenceContracts do
     {"resource_blocking_dimension_count", "resource_blocking_dimension_counts"}
   ]
 
-  def validate(issues, path, evidence, callbacks)
-      when is_map(evidence) and is_list(callbacks) do
+  def validate(issues, path, evidence, resource_validator, timeline_publication_validator)
+      when is_map(evidence) and is_function(resource_validator, 3) and
+             is_function(timeline_publication_validator, 3) do
     issues
-    |> validate_optional_scalar_fields(path, evidence, callbacks)
-    |> validate_optional_count_map_type_fields(path, evidence, callbacks)
-    |> validate_operator_requirement_lists(path, evidence, callbacks)
-    |> validate_resource_context(path, evidence, callbacks)
-    |> validate_resource_count_map_type_fields(path, evidence, callbacks)
-    |> validate_timeline_publication_context(path, evidence, callbacks)
-    |> validate_evidence_count_maps(path, evidence, callbacks)
-    |> validate_scalar_count_maps_impl(path, evidence, callbacks)
+    |> validate_optional_scalar_fields(path, evidence)
+    |> validate_optional_count_map_type_fields(path, evidence)
+    |> validate_operator_requirement_lists(path, evidence)
+    |> resource_validator.(path, evidence)
+    |> validate_resource_count_map_type_fields(path, evidence)
+    |> timeline_publication_validator.(path, evidence)
+    |> validate_evidence_count_maps(path, evidence)
+    |> validate_scalar_count_maps_impl(path, evidence)
   end
 
-  def validate(issues, path, _evidence, callbacks) do
-    [error(path, "must be an object", callbacks) | issues]
+  def validate(issues, path, _evidence, _resource_validator, _timeline_publication_validator) do
+    [error(path, "must be an object") | issues]
   end
 
-  def validate_gate_counts(issues, path, evidence, gates, callbacks)
-      when is_map(evidence) and is_list(gates) and is_list(callbacks) do
+  def validate_gate_counts(issues, path, evidence, gates)
+      when is_map(evidence) and is_list(gates) do
     issues
-    |> validate_scalar_fields(path, evidence, gates, callbacks)
-    |> validate_count_map_fields(path, evidence, gates, callbacks)
-    |> validate_stable_id_array_map_fields(path, evidence, gates, callbacks)
-    |> validate_stable_id_array_fields(path, evidence, gates, callbacks)
+    |> validate_scalar_fields(path, evidence, gates)
+    |> validate_count_map_fields(path, evidence, gates)
+    |> validate_stable_id_array_map_fields(path, evidence, gates)
+    |> validate_stable_id_array_fields(path, evidence, gates)
   end
 
-  def validate_gate_counts(issues, _path, _evidence, _gates, _callbacks), do: issues
+  def validate_gate_counts(issues, _path, _evidence, _gates), do: issues
 
-  def validate_count_maps(issues, path, evidence, callbacks)
-      when is_map(evidence) and is_list(callbacks) do
-    validate_evidence_count_maps(issues, path, evidence, callbacks)
+  def validate_count_maps(issues, path, evidence)
+      when is_map(evidence) do
+    validate_evidence_count_maps(issues, path, evidence)
   end
 
-  def validate_count_maps(issues, _path, _evidence, _callbacks), do: issues
+  def validate_count_maps(issues, _path, _evidence), do: issues
 
-  def validate_scalar_count_maps(issues, path, evidence, callbacks)
-      when is_map(evidence) and is_list(callbacks) do
-    validate_scalar_count_maps_impl(issues, path, evidence, callbacks)
+  def validate_scalar_count_maps(issues, path, evidence)
+      when is_map(evidence) do
+    validate_scalar_count_maps_impl(issues, path, evidence)
   end
 
-  def validate_scalar_count_maps(issues, _path, _evidence, _callbacks), do: issues
+  def validate_scalar_count_maps(issues, _path, _evidence), do: issues
 
-  defp validate_optional_scalar_fields(issues, path, evidence, callbacks) do
+  defp validate_optional_scalar_fields(issues, path, evidence) do
     Enum.reduce(@optional_scalar_fields, issues, fn field, acc ->
       acc
-      |> expect_optional_integer(path, evidence, field, callbacks)
-      |> expect_field_at_least(path, evidence, field, 0, callbacks)
+      |> expect_optional_integer(path, evidence, field)
+      |> expect_field_at_least(path, evidence, field, 0)
     end)
   end
 
-  defp validate_optional_count_map_type_fields(issues, path, evidence, callbacks) do
+  defp validate_optional_count_map_type_fields(issues, path, evidence) do
     Enum.reduce(@optional_count_map_type_fields, issues, fn field, acc ->
-      expect_optional_type(acc, path, evidence, field, :map, callbacks)
+      expect_optional_type(acc, path, evidence, field, :map)
     end)
   end
 
-  defp validate_operator_requirement_lists(issues, path, evidence, callbacks) do
+  defp validate_operator_requirement_lists(issues, path, evidence) do
     Enum.reduce(@operator_requirement_list_fields, issues, fn field, acc ->
       acc
-      |> expect_optional_type(path, evidence, field, :list, callbacks)
-      |> validate_string_list_items(path, evidence, field, callbacks)
+      |> expect_optional_type(path, evidence, field, :list)
+      |> validate_string_list_items(path, evidence, field)
     end)
   end
 
-  defp validate_resource_count_map_type_fields(issues, path, evidence, callbacks) do
+  defp validate_resource_count_map_type_fields(issues, path, evidence) do
     Enum.reduce(@resource_count_map_type_fields, issues, fn field, acc ->
-      expect_optional_type(acc, path, evidence, field, :map, callbacks)
+      expect_optional_type(acc, path, evidence, field, :map)
     end)
   end
 
-  defp validate_scalar_fields(issues, path, evidence, gates, callbacks) do
+  defp validate_scalar_fields(issues, path, evidence, gates) do
     Enum.reduce(@scalar_fields, issues, fn field, acc ->
       expect_field_equals(
         acc,
@@ -269,13 +280,12 @@ defmodule OrbitalDynamics.Schema.OperationalReadinessEvidenceContracts do
         evidence,
         field,
         gate_numeric_sum(gates, field),
-        "must equal gate-derived #{field}",
-        callbacks
+        "must equal gate-derived #{field}"
       )
     end)
   end
 
-  defp validate_count_map_fields(issues, path, evidence, gates, callbacks) do
+  defp validate_count_map_fields(issues, path, evidence, gates) do
     Enum.reduce(@count_map_fields, issues, fn field, acc ->
       expect_field_equals(
         acc,
@@ -283,52 +293,48 @@ defmodule OrbitalDynamics.Schema.OperationalReadinessEvidenceContracts do
         evidence,
         field,
         gate_count_map(gates, field),
-        "must equal gate-derived #{field}",
-        callbacks
+        "must equal gate-derived #{field}"
       )
     end)
   end
 
-  defp validate_stable_id_array_map_fields(issues, path, evidence, gates, callbacks) do
+  defp validate_stable_id_array_map_fields(issues, path, evidence, gates) do
     Enum.reduce(@stable_id_array_map_fields, issues, fn field, acc ->
       expect_field_equals(
         acc,
         path,
         evidence,
         field,
-        gate_stable_id_array_map(gates, field, callbacks),
-        "must equal gate-derived #{field}",
-        callbacks
+        gate_stable_id_array_map(gates, field),
+        "must equal gate-derived #{field}"
       )
     end)
   end
 
-  defp validate_stable_id_array_fields(issues, path, evidence, gates, callbacks) do
+  defp validate_stable_id_array_fields(issues, path, evidence, gates) do
     Enum.reduce(@stable_id_array_fields, issues, fn field, acc ->
       expect_field_equals(
         acc,
         path,
         evidence,
         field,
-        gate_stable_id_array(gates, field, callbacks),
-        "must equal gate-derived #{field}",
-        callbacks
+        gate_stable_id_array(gates, field),
+        "must equal gate-derived #{field}"
       )
     end)
   end
 
-  defp validate_evidence_count_maps(issues, path, evidence, callbacks) do
+  defp validate_evidence_count_maps(issues, path, evidence) do
     Enum.reduce(@evidence_count_map_fields, issues, fn field, acc ->
       validate_non_negative_integer_count_map(
         acc,
         "#{path}.#{field}",
-        Map.get(evidence, field),
-        callbacks
+        Map.get(evidence, field)
       )
     end)
   end
 
-  defp validate_scalar_count_maps_impl(issues, path, evidence, callbacks) do
+  defp validate_scalar_count_maps_impl(issues, path, evidence) do
     issues =
       Enum.reduce(@keyed_count_checks, issues, fn {field, count_map_field, keys}, acc ->
         expect_field_equals(
@@ -337,8 +343,7 @@ defmodule OrbitalDynamics.Schema.OperationalReadinessEvidenceContracts do
           evidence,
           field,
           count_map_value_sum(Map.get(evidence, count_map_field), keys),
-          "must equal #{count_map_field} count for #{Enum.join(keys, ",")}",
-          callbacks
+          "must equal #{count_map_field} count for #{Enum.join(keys, ",")}"
         )
       end)
 
@@ -348,9 +353,8 @@ defmodule OrbitalDynamics.Schema.OperationalReadinessEvidenceContracts do
         path,
         evidence,
         field,
-        non_negative_integer_map_sum(Map.get(evidence, count_map_field), callbacks),
-        "must equal #{count_map_field} total",
-        callbacks
+        non_negative_integer_map_sum(Map.get(evidence, count_map_field)),
+        "must equal #{count_map_field} total"
       )
     end)
   end
@@ -385,7 +389,7 @@ defmodule OrbitalDynamics.Schema.OperationalReadinessEvidenceContracts do
     end
   end
 
-  defp gate_stable_id_array_map(gates, field, callbacks) do
+  defp gate_stable_id_array_map(gates, field) do
     maps =
       gates
       |> Enum.filter(&(is_map(&1) and Map.has_key?(&1, field)))
@@ -395,16 +399,16 @@ defmodule OrbitalDynamics.Schema.OperationalReadinessEvidenceContracts do
     if maps == [] do
       nil
     else
-      merge_stable_id_array_maps(maps, callbacks)
+      merge_stable_id_array_maps(maps)
     end
   end
 
-  defp gate_stable_id_array(gates, field, callbacks) do
+  defp gate_stable_id_array(gates, field) do
     ids =
       gates
       |> Enum.filter(&(is_map(&1) and Map.has_key?(&1, field)))
       |> Enum.flat_map(fn gate -> List.wrap(Map.get(gate, field)) end)
-      |> stable_sorted_ids(callbacks)
+      |> stable_sorted_ids()
 
     if ids == [], do: nil, else: ids
   end
@@ -417,16 +421,16 @@ defmodule OrbitalDynamics.Schema.OperationalReadinessEvidenceContracts do
     end)
   end
 
-  defp merge_stable_id_array_maps(maps, callbacks) do
+  defp merge_stable_id_array_maps(maps) do
     Enum.reduce(maps, %{}, fn map, acc ->
       Enum.reduce(map, acc, fn {key, values}, inner_acc ->
-        ids = stable_sorted_ids(List.wrap(values), callbacks)
+        ids = stable_sorted_ids(List.wrap(values))
 
         if ids == [] do
           inner_acc
         else
           Map.update(inner_acc, to_string(key), ids, fn current ->
-            stable_sorted_ids(current ++ ids, callbacks)
+            stable_sorted_ids(current ++ ids)
           end)
         end
       end)
@@ -443,89 +447,24 @@ defmodule OrbitalDynamics.Schema.OperationalReadinessEvidenceContracts do
 
   defp count_map_value_sum(_counts, _keys), do: nil
 
-  defp expect_optional_integer(issues, path, map, field, callbacks),
-    do:
-      apply(require_callback(callbacks, :expect_optional_integer), [
-        issues,
-        path,
-        map,
-        field
-      ])
+  defp non_negative_integer_map_sum(counts) when is_map(counts) do
+    values = Map.values(counts)
 
-  defp expect_field_at_least(issues, path, map, field, minimum, callbacks),
-    do:
-      apply(require_callback(callbacks, :expect_field_at_least), [
-        issues,
-        path,
-        map,
-        field,
-        minimum
-      ])
+    if Enum.all?(values, &(is_integer(&1) and &1 >= 0)) do
+      Enum.sum(values)
+    end
+  end
 
-  defp expect_optional_type(issues, path, map, field, type, callbacks),
-    do:
-      apply(require_callback(callbacks, :expect_optional_type), [
-        issues,
-        path,
-        map,
-        field,
-        type
-      ])
+  defp non_negative_integer_map_sum(_counts), do: nil
 
-  defp validate_string_list_items(issues, path, map, field, callbacks),
-    do:
-      apply(require_callback(callbacks, :validate_string_list_items), [
-        issues,
-        path,
-        map,
-        field
-      ])
+  defp stable_sorted_ids(ids) do
+    ids
+    |> Enum.reject(&is_nil/1)
+    |> Enum.uniq()
+    |> Enum.sort()
+  end
 
-  defp validate_resource_context(issues, path, evidence, callbacks),
-    do:
-      apply(require_callback(callbacks, :validate_resource_context), [
-        issues,
-        path,
-        evidence
-      ])
-
-  defp validate_timeline_publication_context(issues, path, evidence, callbacks),
-    do:
-      apply(require_callback(callbacks, :validate_timeline_publication_context), [
-        issues,
-        path,
-        evidence
-      ])
-
-  defp validate_non_negative_integer_count_map(issues, path, counts, callbacks),
-    do:
-      apply(require_callback(callbacks, :validate_non_negative_integer_count_map), [
-        issues,
-        path,
-        counts
-      ])
-
-  defp non_negative_integer_map_sum(counts, callbacks),
-    do: apply(require_callback(callbacks, :non_negative_integer_map_sum), [counts])
-
-  defp stable_sorted_ids(ids, callbacks),
-    do: apply(require_callback(callbacks, :stable_sorted_ids), [ids])
-
-  defp expect_field_equals(issues, path, map, field, expected, message, callbacks),
-    do:
-      apply(require_callback(callbacks, :expect_field_equals), [
-        issues,
-        path,
-        map,
-        field,
-        expected,
-        message
-      ])
-
-  defp error(path, message, callbacks),
-    do: apply(require_callback(callbacks, :error), [path, message])
-
-  defp require_callback(callbacks, name) do
-    Keyword.fetch!(callbacks, name)
+  defp error(path, message) do
+    %{"severity" => "error", "path" => path, "message" => message}
   end
 end
