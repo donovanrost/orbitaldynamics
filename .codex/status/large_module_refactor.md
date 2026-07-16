@@ -9,7 +9,7 @@ Current slice:
 Resource-projection-flow-summary callback-bag collapse.
 
 Status:
-Selected; implementation pending.
+Complete and published.
 
 Selected slice:
 Replace the 24-entry callback bag in `ResourceProjectionFlowSummaryContracts`
@@ -45,17 +45,22 @@ remain; direct shared owners preserve validation while four domain validators
 remain explicit boundaries; focused, broader, and export checks pass; and
 bounded review finds no blocker.
 
+Outcome:
+`schema.ex` fell from 11,578 to 11,533 lines and the flow-summary owner from
+470 to 329. The 24-entry bag became direct primitive, stable-ID, and collection
+calls plus four typed domain-validator arguments; two now-unused Schema wrappers
+also disappeared. 214 focused, 1,167 broader, and 22 export tests passed;
+compile, xref, checked-in regeneration, format, diff hygiene, and bounded
+review were clean.
+
 Verification gaps:
 - Full repository suite not run.
 - Known baseline: full contact-filter file remains 87/88 due nil-message
   behavior in `SuppressedCandidateContracts`; unrelated to these slices.
 
 Last completed slice:
-Resource-projection-row callback-bag collapse published as `8d012418`:
-`schema.ex` fell from 11,599 to 11,578 lines and its owner from 399 to 288. The
-20-entry bag became direct shared owners and five domain-validator arguments.
-214 focused, 1,167 broader, and 22 export tests passed; compile, xref,
-regeneration, format, diff hygiene, and bounded review were clean.
+Resource-projection-flow-summary callback-bag collapse; publication commit
+pending.
 
 Blocked:
 No.

@@ -1,9 +1,46 @@
 defmodule OrbitalDynamics.Schema.ResourceProjectionFlowSummaryContracts do
   @moduledoc false
 
-  def validate(issues, path, summary, model_limits, callbacks) when is_list(callbacks) do
+  import OrbitalDynamics.Schema.CollectionValidation,
+    only: [validate_rows: 4, validate_string_list_map: 4]
+
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [
+      expect_equal: 5,
+      expect_non_negative_integer: 4,
+      expect_number: 4,
+      expect_one_of: 5,
+      expect_optional_non_negative_integer: 4,
+      expect_optional_number: 4,
+      expect_optional_one_of: 5,
+      expect_optional_type: 5,
+      expect_type: 5,
+      require_fields: 4,
+      validate_non_negative_integer_count_map: 3,
+      validate_number_array_map: 3,
+      validate_optional_exact_model_limits: 5,
+      validate_string_list_items: 4
+    ]
+
+  import OrbitalDynamics.Schema.StableIdValidation,
+    only: [validate_optional_stable_id_list: 4, validate_stable_id_array_map: 3]
+
+  def validate(
+        issues,
+        path,
+        summary,
+        model_limits,
+        subsystem_assumptions_validator,
+        projected_resource_validator,
+        flow_row_validator,
+        counts_validator
+      )
+      when is_function(subsystem_assumptions_validator, 3) and
+             is_function(projected_resource_validator, 3) and
+             is_function(flow_row_validator, 3) and
+             is_function(counts_validator, 3) do
     issues
-    |> require_fields(callbacks, path, summary, [
+    |> require_fields(path, summary, [
       "schema_contract",
       "schema_version",
       "model",
@@ -46,425 +83,247 @@ defmodule OrbitalDynamics.Schema.ResourceProjectionFlowSummaryContracts do
       "assumptions"
     ])
     |> expect_equal(
-      callbacks,
       path,
       summary,
       "schema_contract",
       "resource_projection_flow_summary.v1"
     )
-    |> expect_equal(callbacks, path, summary, "schema_version", 1)
+    |> expect_equal(path, summary, "schema_version", 1)
     |> expect_equal(
-      callbacks,
       path,
       summary,
       "model",
       "artifact_only_selected_activity_resource_flow_summary"
     )
-    |> expect_optional_type(callbacks, path, summary, "source", :binary)
-    |> expect_non_negative_integer(callbacks, path, summary, "activity_count")
-    |> expect_non_negative_integer(callbacks, path, summary, "valid_activity_count")
-    |> expect_non_negative_integer(callbacks, path, summary, "invalid_activity_input_count")
-    |> expect_type(callbacks, path, summary, "invalid_activity_input_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, summary, "invalid_activity_input_ids")
-    |> expect_non_negative_integer(callbacks, path, summary, "input_resource_summary_count")
-    |> expect_non_negative_integer(callbacks, path, summary, "valid_resource_summary_count")
+    |> expect_optional_type(path, summary, "source", :binary)
+    |> expect_non_negative_integer(path, summary, "activity_count")
+    |> expect_non_negative_integer(path, summary, "valid_activity_count")
+    |> expect_non_negative_integer(path, summary, "invalid_activity_input_count")
+    |> expect_type(path, summary, "invalid_activity_input_ids", :list)
+    |> validate_optional_stable_id_list(path, summary, "invalid_activity_input_ids")
+    |> expect_non_negative_integer(path, summary, "input_resource_summary_count")
+    |> expect_non_negative_integer(path, summary, "valid_resource_summary_count")
     |> expect_non_negative_integer(
-      callbacks,
       path,
       summary,
       "invalid_resource_summary_input_count"
     )
-    |> expect_type(callbacks, path, summary, "invalid_resource_summary_input_ids", :list)
+    |> expect_type(path, summary, "invalid_resource_summary_input_ids", :list)
     |> validate_optional_stable_id_list(
-      callbacks,
       path,
       summary,
       "invalid_resource_summary_input_ids"
     )
-    |> expect_non_negative_integer(callbacks, path, summary, "projected_resource_count")
-    |> expect_non_negative_integer(callbacks, path, summary, "flow_row_count")
-    |> expect_optional_non_negative_integer(callbacks, path, summary, "ignored_activity_count")
-    |> expect_optional_type(callbacks, path, summary, "ignored_activity_reason_counts", :map)
+    |> expect_non_negative_integer(path, summary, "projected_resource_count")
+    |> expect_non_negative_integer(path, summary, "flow_row_count")
+    |> expect_optional_non_negative_integer(path, summary, "ignored_activity_count")
+    |> expect_optional_type(path, summary, "ignored_activity_reason_counts", :map)
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".ignored_activity_reason_counts",
       Map.get(summary, "ignored_activity_reason_counts")
     )
-    |> expect_optional_type(callbacks, path, summary, "ignored_activity_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, summary, "ignored_activity_ids")
-    |> expect_optional_type(callbacks, path, summary, "ignored_activity_ids_by_reason", :map)
+    |> expect_optional_type(path, summary, "ignored_activity_ids", :list)
+    |> validate_optional_stable_id_list(path, summary, "ignored_activity_ids")
+    |> expect_optional_type(path, summary, "ignored_activity_ids_by_reason", :map)
     |> validate_optional_stable_id_array_map(
-      callbacks,
       path,
       summary,
       "ignored_activity_ids_by_reason"
     )
-    |> expect_one_of(callbacks, path, summary, "resource_flow_status", [
+    |> expect_one_of(path, summary, "resource_flow_status", [
       "clear",
       "review_required"
     ])
-    |> expect_one_of(callbacks, path, summary, "resource_pressure_status", [
+    |> expect_one_of(path, summary, "resource_pressure_status", [
       "clear",
       "review_required"
     ])
-    |> expect_non_negative_integer(callbacks, path, summary, "resource_pressure_count")
-    |> expect_type(callbacks, path, summary, "resource_pressure_types", :list)
-    |> validate_string_list_items(callbacks, path, summary, "resource_pressure_types")
-    |> expect_type(callbacks, path, summary, "resource_pressure_spacecraft_ids", :list)
+    |> expect_non_negative_integer(path, summary, "resource_pressure_count")
+    |> expect_type(path, summary, "resource_pressure_types", :list)
+    |> validate_string_list_items(path, summary, "resource_pressure_types")
+    |> expect_type(path, summary, "resource_pressure_spacecraft_ids", :list)
     |> validate_optional_stable_id_list(
-      callbacks,
       path,
       summary,
       "resource_pressure_spacecraft_ids"
     )
-    |> expect_type(callbacks, path, summary, "resource_pressure_spacecraft_ids_by_type", :map)
+    |> expect_type(path, summary, "resource_pressure_spacecraft_ids_by_type", :map)
     |> validate_stable_id_array_map(
-      callbacks,
       path <> ".resource_pressure_spacecraft_ids_by_type",
       Map.get(summary, "resource_pressure_spacecraft_ids_by_type")
     )
-    |> expect_type(callbacks, path, summary, "resource_pressure_activity_ids_by_type", :map)
+    |> expect_type(path, summary, "resource_pressure_activity_ids_by_type", :map)
     |> validate_stable_id_array_map(
-      callbacks,
       path <> ".resource_pressure_activity_ids_by_type",
       Map.get(summary, "resource_pressure_activity_ids_by_type")
     )
     |> expect_optional_type(
-      callbacks,
       path,
       summary,
       "resource_pressure_ground_station_ids_by_type",
       :map
     )
     |> validate_optional_stable_id_array_map(
-      callbacks,
       path,
       summary,
       "resource_pressure_ground_station_ids_by_type"
     )
     |> expect_optional_type(
-      callbacks,
       path,
       summary,
       "resource_pressure_source_window_ids_by_type",
       :map
     )
     |> validate_optional_stable_id_array_map(
-      callbacks,
       path,
       summary,
       "resource_pressure_source_window_ids_by_type"
     )
     |> expect_optional_type(
-      callbacks,
       path,
       summary,
       "resource_pressure_station_calendar_entry_ids_by_type",
       :map
     )
     |> validate_optional_stable_id_array_map(
-      callbacks,
       path,
       summary,
       "resource_pressure_station_calendar_entry_ids_by_type"
     )
     |> expect_optional_type(
-      callbacks,
       path,
       summary,
       "resource_pressure_station_calendar_provider_ids_by_type",
       :map
     )
     |> validate_optional_stable_id_array_map(
-      callbacks,
       path,
       summary,
       "resource_pressure_station_calendar_provider_ids_by_type"
     )
     |> expect_optional_type(
-      callbacks,
       path,
       summary,
       "resource_pressure_station_calendar_provider_entry_ids_by_type",
       :map
     )
     |> validate_optional_stable_id_array_map(
-      callbacks,
       path,
       summary,
       "resource_pressure_station_calendar_provider_entry_ids_by_type"
     )
     |> expect_optional_type(
-      callbacks,
       path,
       summary,
       "resource_pressure_station_calendar_directions_by_type",
       :map
     )
     |> validate_string_list_map(
-      callbacks,
       path,
       summary,
       "resource_pressure_station_calendar_directions_by_type"
     )
     |> expect_optional_type(
-      callbacks,
       path,
       summary,
       "resource_pressure_capacity_fractions_by_type",
       :map
     )
     |> validate_number_array_map(
-      callbacks,
       path <> ".resource_pressure_capacity_fractions_by_type",
       Map.get(summary, "resource_pressure_capacity_fractions_by_type")
     )
-    |> expect_number(callbacks, path, summary, "total_storage_produced_mb")
-    |> expect_number(callbacks, path, summary, "total_planned_downlink_mb")
-    |> expect_number(callbacks, path, summary, "total_storage_limited_downlinked_mb")
-    |> expect_number(callbacks, path, summary, "total_unused_downlink_capacity_mb")
-    |> expect_number(callbacks, path, summary, "total_storage_overflow_mb")
-    |> expect_number(callbacks, path, summary, "total_downlink_shortfall_mb")
+    |> expect_number(path, summary, "total_storage_produced_mb")
+    |> expect_number(path, summary, "total_planned_downlink_mb")
+    |> expect_number(path, summary, "total_storage_limited_downlinked_mb")
+    |> expect_number(path, summary, "total_unused_downlink_capacity_mb")
+    |> expect_number(path, summary, "total_storage_overflow_mb")
+    |> expect_number(path, summary, "total_downlink_shortfall_mb")
     |> expect_non_negative_integer(
-      callbacks,
       path,
       summary,
       "actual_data_volume_evidence_count"
     )
-    |> expect_number(callbacks, path, summary, "total_actual_data_volume_mb")
-    |> expect_number(callbacks, path, summary, "total_data_volume_delta_mb")
+    |> expect_number(path, summary, "total_actual_data_volume_mb")
+    |> expect_number(path, summary, "total_data_volume_delta_mb")
     |> expect_type(
-      callbacks,
       path,
       summary,
       "actual_data_volume_under_delivered_activity_ids",
       :list
     )
     |> validate_optional_stable_id_list(
-      callbacks,
       path,
       summary,
       "actual_data_volume_under_delivered_activity_ids"
     )
     |> expect_type(
-      callbacks,
       path,
       summary,
       "actual_data_volume_over_delivered_activity_ids",
       :list
     )
     |> validate_optional_stable_id_list(
-      callbacks,
       path,
       summary,
       "actual_data_volume_over_delivered_activity_ids"
     )
-    |> expect_type(callbacks, path, summary, "actual_data_volume_exact_activity_ids", :list)
+    |> expect_type(path, summary, "actual_data_volume_exact_activity_ids", :list)
     |> validate_optional_stable_id_list(
-      callbacks,
       path,
       summary,
       "actual_data_volume_exact_activity_ids"
     )
-    |> expect_optional_one_of(callbacks, path, summary, "latency_status", [
+    |> expect_optional_one_of(path, summary, "latency_status", [
       "clear",
       "review_required"
     ])
-    |> expect_optional_non_negative_integer(callbacks, path, summary, "latency_evidence_count")
-    |> expect_optional_non_negative_integer(callbacks, path, summary, "latency_review_count")
-    |> expect_optional_type(callbacks, path, summary, "latency_review_activity_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, summary, "latency_review_activity_ids")
-    |> expect_optional_number(callbacks, path, summary, "max_planned_latency_s")
-    |> expect_optional_number(callbacks, path, summary, "max_actual_latency_s")
-    |> expect_optional_number(callbacks, path, summary, "total_projected_storage_remaining_mb")
-    |> expect_optional_number(callbacks, path, summary, "minimum_projected_storage_remaining_mb")
-    |> expect_optional_number(callbacks, path, summary, "total_projected_downlink_remaining_mb")
-    |> expect_optional_number(callbacks, path, summary, "minimum_projected_downlink_remaining_mb")
-    |> expect_number(callbacks, path, summary, "total_battery_energy_consumed_wh")
-    |> expect_number(callbacks, path, summary, "total_battery_energy_generated_wh")
-    |> expect_number(callbacks, path, summary, "net_battery_energy_delta_wh")
-    |> expect_number(callbacks, path, summary, "peak_battery_overuse_wh")
-    |> expect_type(callbacks, path, summary, "projected_resources", :list)
-    |> expect_type(callbacks, path, summary, "activity_resource_flow", :list)
-    |> expect_type(callbacks, path, summary, "model_limits", :list)
-    |> validate_string_list_items(callbacks, path, summary, "model_limits")
+    |> expect_optional_non_negative_integer(path, summary, "latency_evidence_count")
+    |> expect_optional_non_negative_integer(path, summary, "latency_review_count")
+    |> expect_optional_type(path, summary, "latency_review_activity_ids", :list)
+    |> validate_optional_stable_id_list(path, summary, "latency_review_activity_ids")
+    |> expect_optional_number(path, summary, "max_planned_latency_s")
+    |> expect_optional_number(path, summary, "max_actual_latency_s")
+    |> expect_optional_number(path, summary, "total_projected_storage_remaining_mb")
+    |> expect_optional_number(path, summary, "minimum_projected_storage_remaining_mb")
+    |> expect_optional_number(path, summary, "total_projected_downlink_remaining_mb")
+    |> expect_optional_number(path, summary, "minimum_projected_downlink_remaining_mb")
+    |> expect_number(path, summary, "total_battery_energy_consumed_wh")
+    |> expect_number(path, summary, "total_battery_energy_generated_wh")
+    |> expect_number(path, summary, "net_battery_energy_delta_wh")
+    |> expect_number(path, summary, "peak_battery_overuse_wh")
+    |> expect_type(path, summary, "projected_resources", :list)
+    |> expect_type(path, summary, "activity_resource_flow", :list)
+    |> expect_type(path, summary, "model_limits", :list)
+    |> validate_string_list_items(path, summary, "model_limits")
     |> validate_optional_exact_model_limits(
-      callbacks,
       path,
       summary,
       model_limits,
       "must match resource projection model limits"
     )
-    |> expect_type(callbacks, path, summary, "assumptions", :map)
-    |> validate_resource_projection_subsystem_model_assumptions(callbacks, path, summary)
+    |> expect_type(path, summary, "assumptions", :map)
+    |> subsystem_assumptions_validator.(path, summary)
     |> validate_rows(
-      callbacks,
       "#{path}.projected_resources",
       Map.get(summary, "projected_resources", []),
       fn acc, row_path, row ->
-        validate_resource_projection_flow_summary_projected_resource(
-          callbacks,
-          acc,
-          row_path,
-          row
-        )
+        projected_resource_validator.(acc, row_path, row)
       end
     )
     |> validate_rows(
-      callbacks,
       "#{path}.activity_resource_flow",
       Map.get(summary, "activity_resource_flow", []),
       fn acc, row_path, row ->
-        validate_resource_projection_flow_row(callbacks, acc, row_path, row)
+        flow_row_validator.(acc, row_path, row)
       end
     )
-    |> validate_resource_projection_flow_summary_counts(callbacks, path, summary)
+    |> counts_validator.(path, summary)
   end
 
-  defp require_callback(callbacks, name) do
-    case Keyword.fetch(callbacks, name) do
-      {:ok, callback} -> callback
-      :error -> raise ArgumentError, "missing callback #{inspect(name)}"
-    end
+  defp validate_optional_stable_id_array_map(issues, path, map, field) do
+    issues
+    |> expect_optional_type(path, map, field, :map)
+    |> validate_stable_id_array_map(path <> ".#{field}", Map.get(map, field))
   end
-
-  defp require_fields(issues, callbacks, path, map, fields),
-    do: apply(require_callback(callbacks, :require_fields), [issues, path, map, fields])
-
-  defp expect_equal(issues, callbacks, path, map, field, expected),
-    do: apply(require_callback(callbacks, :expect_equal), [issues, path, map, field, expected])
-
-  defp expect_optional_type(issues, callbacks, path, map, field, type),
-    do:
-      apply(require_callback(callbacks, :expect_optional_type), [issues, path, map, field, type])
-
-  defp expect_non_negative_integer(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :expect_non_negative_integer), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp expect_type(issues, callbacks, path, map, field, type),
-    do: apply(require_callback(callbacks, :expect_type), [issues, path, map, field, type])
-
-  defp validate_optional_stable_id_list(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :validate_optional_stable_id_list), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp expect_optional_non_negative_integer(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :expect_optional_non_negative_integer), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp validate_non_negative_integer_count_map(issues, callbacks, path, values),
-    do:
-      apply(require_callback(callbacks, :validate_non_negative_integer_count_map), [
-        issues,
-        path,
-        values
-      ])
-
-  defp validate_optional_stable_id_array_map(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :validate_optional_stable_id_array_map), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp expect_one_of(issues, callbacks, path, map, field, allowed),
-    do: apply(require_callback(callbacks, :expect_one_of), [issues, path, map, field, allowed])
-
-  defp validate_string_list_items(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :validate_string_list_items), [issues, path, map, field])
-
-  defp validate_stable_id_array_map(issues, callbacks, path, values),
-    do: apply(require_callback(callbacks, :validate_stable_id_array_map), [issues, path, values])
-
-  defp validate_string_list_map(issues, callbacks, path, map, field),
-    do: apply(require_callback(callbacks, :validate_string_list_map), [issues, path, map, field])
-
-  defp validate_number_array_map(issues, callbacks, path, values),
-    do: apply(require_callback(callbacks, :validate_number_array_map), [issues, path, values])
-
-  defp expect_number(issues, callbacks, path, map, field),
-    do: apply(require_callback(callbacks, :expect_number), [issues, path, map, field])
-
-  defp expect_optional_one_of(issues, callbacks, path, map, field, allowed),
-    do:
-      apply(require_callback(callbacks, :expect_optional_one_of), [
-        issues,
-        path,
-        map,
-        field,
-        allowed
-      ])
-
-  defp expect_optional_number(issues, callbacks, path, map, field),
-    do: apply(require_callback(callbacks, :expect_optional_number), [issues, path, map, field])
-
-  defp validate_optional_exact_model_limits(issues, callbacks, path, artifact, expected, message),
-    do:
-      apply(require_callback(callbacks, :validate_optional_exact_model_limits), [
-        issues,
-        path,
-        artifact,
-        expected,
-        message
-      ])
-
-  defp validate_resource_projection_subsystem_model_assumptions(
-         issues,
-         callbacks,
-         path,
-         artifact
-       ),
-       do:
-         apply(
-           require_callback(callbacks, :validate_resource_projection_subsystem_model_assumptions),
-           [issues, path, artifact]
-         )
-
-  defp validate_rows(issues, callbacks, path, rows, validator),
-    do: apply(require_callback(callbacks, :validate_rows), [issues, path, rows, validator])
-
-  defp validate_resource_projection_flow_summary_projected_resource(callbacks, issues, path, row),
-    do:
-      apply(
-        require_callback(
-          callbacks,
-          :validate_resource_projection_flow_summary_projected_resource
-        ),
-        [issues, path, row]
-      )
-
-  defp validate_resource_projection_flow_row(callbacks, issues, path, row),
-    do:
-      apply(require_callback(callbacks, :validate_resource_projection_flow_row), [
-        issues,
-        path,
-        row
-      ])
-
-  defp validate_resource_projection_flow_summary_counts(issues, callbacks, path, summary),
-    do:
-      apply(require_callback(callbacks, :validate_resource_projection_flow_summary_counts), [
-        issues,
-        path,
-        summary
-      ])
 end

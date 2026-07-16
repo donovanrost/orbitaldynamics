@@ -7370,37 +7370,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp resource_projection_flow_summary_contract_callbacks do
-    [
-      require_fields: &require_fields/4,
-      expect_equal: &expect_equal/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_non_negative_integer: &expect_non_negative_integer/4,
-      expect_type: &expect_type/5,
-      validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
-      expect_optional_non_negative_integer: &expect_optional_non_negative_integer/4,
-      validate_non_negative_integer_count_map: &validate_non_negative_integer_count_map/3,
-      validate_optional_stable_id_array_map: &validate_optional_stable_id_array_map/4,
-      expect_one_of: &expect_one_of/5,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_stable_id_array_map: &validate_stable_id_array_map/3,
-      validate_string_list_map: &validate_string_list_map/4,
-      validate_number_array_map: &validate_number_array_map/3,
-      expect_number: &expect_number/4,
-      expect_optional_one_of: &expect_optional_one_of/5,
-      expect_optional_number: &expect_optional_number/4,
-      validate_optional_exact_model_limits: &validate_optional_exact_model_limits/5,
-      validate_resource_projection_subsystem_model_assumptions:
-        &validate_resource_projection_subsystem_model_assumptions/3,
-      validate_rows: &validate_rows/4,
-      validate_resource_projection_flow_summary_projected_resource:
-        &validate_resource_projection_flow_summary_projected_resource/3,
-      validate_resource_projection_flow_row: &validate_resource_projection_flow_row/3,
-      validate_resource_projection_flow_summary_counts:
-        &validate_resource_projection_flow_summary_counts/3
-    ]
-  end
-
   defp resource_projection_report_contract_callbacks do
     [
       require_fields: &require_fields/4,
@@ -8158,7 +8127,10 @@ defmodule OrbitalDynamics.Schema do
       path,
       summary,
       resource_projection_report_model_limits(),
-      resource_projection_flow_summary_contract_callbacks()
+      &validate_resource_projection_subsystem_model_assumptions/3,
+      &validate_resource_projection_flow_summary_projected_resource/3,
+      &validate_resource_projection_flow_row/3,
+      &validate_resource_projection_flow_summary_counts/3
     )
   end
 
@@ -8824,23 +8796,6 @@ defmodule OrbitalDynamics.Schema do
         issues,
         path,
         values
-      )
-
-  defp validate_number_array_map(issues, path, values),
-    do:
-      OrbitalDynamics.Schema.PrimitiveValidation.validate_number_array_map(
-        issues,
-        path,
-        values
-      )
-
-  defp validate_string_list_map(issues, path, summary, field),
-    do:
-      OrbitalDynamics.Schema.CollectionValidation.validate_string_list_map(
-        issues,
-        path,
-        summary,
-        field
       )
 
   defp validate_duplicate_suppressed_candidate_evidence(issues, path, candidate) do
