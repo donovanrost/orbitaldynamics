@@ -9,7 +9,7 @@ Current slice:
 Completed: validation policy/catalog registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Moved `validation_tolerance_policy.v1`, `backend_acceptance_policy.v1`, and
@@ -51,8 +51,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`1cc19aaf` (`Update validation acceptance handoff`); current slice is not yet
-committed.
+`70ac8436` (`Extract validation policy registry contracts`).
 
 Next candidate:
 Extract the contiguous `campaign_request_lint.v1` and `study_manifest_lint.v1`
