@@ -8315,31 +8315,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp branch_event_contract_callbacks do
-    [
-      require_fields: &require_fields/4,
-      expect_equal: &expect_equal/5,
-      expect_field_at_least: &expect_field_at_least/5,
-      expect_optional_integer: &expect_optional_integer/4,
-      expect_optional_non_negative_integer: &expect_optional_non_negative_integer/4,
-      expect_optional_number: &expect_optional_number/4,
-      expect_optional_one_of: &expect_optional_one_of/5,
-      expect_optional_probability: &expect_optional_probability/4,
-      expect_optional_type: &expect_optional_type/5,
-      expect_type: &expect_type/5,
-      expect_probability_range: &expect_probability_range/4,
-      validate_candidate_diff_changed_fields: &validate_candidate_diff_changed_fields/3,
-      validate_non_negative_integer_count_map: &validate_non_negative_integer_count_map/3,
-      validate_numeric_map: &validate_numeric_map/3,
-      validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
-      validate_semantic_change_details: &validate_semantic_change_details/3,
-      validate_stable_ids: &validate_stable_ids/4,
-      validate_string_list_map: &validate_string_list_map/4,
-      validate_string_list_items: &validate_string_list_items/4,
-      error: &error/2
-    ]
-  end
-
   defp branch_comparison_row_count_fields, do: @branch_comparison_row_count_fields
 
   defp strategy_recommendation_pressure_handoff_string_list_fields,
@@ -8750,8 +8725,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.BranchEventContracts.validate_summary_fields(
       issues,
       path,
-      row,
-      branch_event_contract_callbacks()
+      row
     )
   end
 
@@ -8839,8 +8813,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.BranchEventContracts.validate_trust_boundary_status_count_map(
       issues,
       path,
-      counts,
-      branch_event_contract_callbacks()
+      counts
     )
   end
 
@@ -12568,8 +12541,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.BranchEventContracts.validate_event(
       issues,
       path,
-      event,
-      branch_event_contract_callbacks()
+      event
     )
   end
 

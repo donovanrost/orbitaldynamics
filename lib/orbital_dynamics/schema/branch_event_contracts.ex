@@ -1,11 +1,36 @@
 defmodule OrbitalDynamics.Schema.BranchEventContracts do
   @moduledoc false
 
-  def validate_event(issues, path, event, callbacks) when is_list(callbacks) do
+  alias OrbitalDynamics.Schema.CandidateDiffContracts
+
+  import OrbitalDynamics.Schema.CollectionValidation, only: [validate_numeric_map: 3]
+
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [
+      error: 2,
+      expect_equal: 5,
+      expect_field_at_least: 5,
+      expect_optional_integer: 4,
+      expect_optional_non_negative_integer: 4,
+      expect_optional_number: 4,
+      expect_optional_one_of: 5,
+      expect_optional_probability: 4,
+      expect_optional_type: 5,
+      expect_probability_range: 4,
+      expect_type: 5,
+      require_fields: 4,
+      validate_non_negative_integer_count_map: 3,
+      validate_string_list_items: 4
+    ]
+
+  import OrbitalDynamics.Schema.StableIdValidation,
+    only: [validate_optional_stable_id_list: 4, validate_stable_ids: 4]
+
+  def validate_event(issues, path, event) do
     issues
-    |> require_fields(callbacks, path, event, ["type"])
-    |> expect_type(callbacks, path, event, "type", :binary)
-    |> validate_stable_ids(callbacks, path, event, [
+    |> require_fields(path, event, ["type"])
+    |> expect_type(path, event, "type", :binary)
+    |> validate_stable_ids(path, event, [
       "objective_id",
       "scenario_id",
       "branch_id",
@@ -28,369 +53,341 @@ defmodule OrbitalDynamics.Schema.BranchEventContracts do
       "payload_id",
       "instrument_id"
     ])
-    |> validate_optional_stable_id_list(callbacks, path, event, "source_branch_ids")
-    |> validate_optional_stable_id_list(callbacks, path, event, "source_activity_ids")
-    |> validate_optional_stable_id_list(callbacks, path, event, "missed_downlink_activity_ids")
-    |> validate_optional_stable_id_list(callbacks, path, event, "source_window_ids")
-    |> validate_optional_stable_id_list(callbacks, path, event, "collection_ids")
-    |> validate_optional_stable_id_list(callbacks, path, event, "product_ids")
-    |> validate_optional_stable_id_list(callbacks, path, event, "payload_ids")
-    |> validate_optional_stable_id_list(callbacks, path, event, "instrument_ids")
+    |> validate_optional_stable_id_list(path, event, "source_branch_ids")
+    |> validate_optional_stable_id_list(path, event, "source_activity_ids")
+    |> validate_optional_stable_id_list(path, event, "missed_downlink_activity_ids")
+    |> validate_optional_stable_id_list(path, event, "source_window_ids")
+    |> validate_optional_stable_id_list(path, event, "collection_ids")
+    |> validate_optional_stable_id_list(path, event, "product_ids")
+    |> validate_optional_stable_id_list(path, event, "payload_ids")
+    |> validate_optional_stable_id_list(path, event, "instrument_ids")
     |> validate_optional_stable_id_list(
-      callbacks,
       path,
       event,
       "station_calendar_overlap_entry_ids"
     )
     |> validate_optional_stable_id_list(
-      callbacks,
       path,
       event,
       "station_calendar_ambiguous_entry_ids"
     )
     |> validate_optional_stable_id_list(
-      callbacks,
       path,
       event,
       "station_calendar_reservation_ids"
     )
-    |> expect_optional_number(callbacks, path, event, "starts_at_s")
-    |> expect_optional_number(callbacks, path, event, "ends_at_s")
-    |> expect_optional_number(callbacks, path, event, "actual_starts_at_s")
-    |> expect_optional_number(callbacks, path, event, "actual_ends_at_s")
-    |> expect_optional_number(callbacks, path, event, "priority")
-    |> expect_optional_number(callbacks, path, event, "target_priority")
-    |> expect_optional_type(callbacks, path, event, "target_priority_source", :binary)
-    |> expect_optional_type(callbacks, path, event, "target_priority_objective_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, event, "target_priority_objective_ids")
-    |> expect_optional_type(callbacks, path, event, "target_priority_objective_type", :binary)
-    |> validate_semantic_change_details(callbacks, path, event)
-    |> validate_candidate_diff_changed_fields(callbacks, path, event)
-    |> expect_optional_type(callbacks, path, event, "source_target", :map)
-    |> expect_optional_number(callbacks, path, event, "target_latitude_deg")
-    |> expect_optional_number(callbacks, path, event, "target_longitude_deg")
-    |> expect_optional_number(callbacks, path, event, "target_minimum_elevation_deg")
-    |> expect_optional_number(callbacks, path, event, "required_contacts")
-    |> expect_optional_number(callbacks, path, event, "planned_contacts")
-    |> expect_optional_number(callbacks, path, event, "required_downlink_mb")
-    |> expect_optional_number(callbacks, path, event, "planned_downlink_mb")
-    |> expect_optional_number(callbacks, path, event, "max_latency_s")
-    |> expect_optional_number(callbacks, path, event, "planned_latency_s")
-    |> expect_optional_number(callbacks, path, event, "required_observations")
-    |> expect_optional_number(callbacks, path, event, "planned_observations")
-    |> expect_optional_number(callbacks, path, event, "contact_success_factor")
-    |> expect_optional_number(callbacks, path, event, "command_success_factor")
-    |> expect_optional_number(callbacks, path, event, "capacity_fraction")
-    |> expect_optional_number(callbacks, path, event, "capacity_pack_capacity_fraction")
-    |> expect_optional_number(callbacks, path, event, "capacity_pack_used_fraction")
-    |> expect_optional_number(callbacks, path, event, "capacity_pack_unused_fraction")
-    |> expect_optional_number(callbacks, path, event, "required_capacity_fraction")
-    |> expect_optional_number(callbacks, path, event, "observation_success_factor")
-    |> expect_optional_number(callbacks, path, event, "image_quality_score")
-    |> expect_optional_number(callbacks, path, event, "cloud_cover_fraction")
-    |> expect_optional_number(callbacks, path, event, "blur_score")
-    |> expect_optional_number(callbacks, path, event, "maneuver_success_factor")
-    |> expect_optional_number(callbacks, path, event, "station_throughput_factor")
-    |> expect_optional_number(callbacks, path, event, "feedback_weight")
-    |> expect_optional_number(callbacks, path, event, "feedback_sample_weight")
-    |> expect_optional_number(callbacks, path, event, "sample_weight")
-    |> expect_optional_number(callbacks, path, event, "confidence_weight")
-    |> expect_optional_number(callbacks, path, event, "provider_counteroffer_start_delta_s")
-    |> expect_optional_number(callbacks, path, event, "provider_counteroffer_end_delta_s")
-    |> expect_optional_number(callbacks, path, event, "provider_counteroffer_duration_delta_s")
-    |> expect_optional_number(callbacks, path, event, "score_term_value")
-    |> expect_optional_number(callbacks, path, event, "timeline_score")
-    |> expect_optional_integer(callbacks, path, event, "evidence_count")
-    |> expect_optional_integer(callbacks, path, event, "accepted_evidence_count")
-    |> expect_optional_integer(callbacks, path, event, "review_required_evidence_count")
-    |> expect_optional_integer(callbacks, path, event, "blocked_evidence_count")
-    |> expect_optional_integer(callbacks, path, event, "schema_error_count")
-    |> expect_optional_integer(callbacks, path, event, "schema_warning_count")
-    |> expect_optional_integer(callbacks, path, event, "model_blocked_count")
-    |> expect_optional_integer(callbacks, path, event, "quality_gate_review_count")
-    |> expect_optional_integer(callbacks, path, event, "quality_gate_blocked_count")
-    |> expect_field_at_least(callbacks, path, event, "priority", 0.0)
-    |> expect_field_at_least(callbacks, path, event, "target_priority", 0.0)
-    |> expect_field_at_least(callbacks, path, event, "required_contacts", 0.0)
-    |> expect_field_at_least(callbacks, path, event, "planned_contacts", 0.0)
-    |> expect_field_at_least(callbacks, path, event, "required_downlink_mb", 0.0)
-    |> expect_field_at_least(callbacks, path, event, "planned_downlink_mb", 0.0)
-    |> expect_field_at_least(callbacks, path, event, "max_latency_s", 0.0)
-    |> expect_field_at_least(callbacks, path, event, "planned_latency_s", 0.0)
-    |> expect_field_at_least(callbacks, path, event, "required_observations", 0.0)
-    |> expect_field_at_least(callbacks, path, event, "planned_observations", 0.0)
-    |> expect_field_at_least(callbacks, path, event, "feedback_weight", 0.0)
-    |> expect_field_at_least(callbacks, path, event, "feedback_sample_weight", 0.0)
-    |> expect_field_at_least(callbacks, path, event, "sample_weight", 0.0)
-    |> expect_field_at_least(callbacks, path, event, "confidence_weight", 0.0)
-    |> expect_field_at_least(callbacks, path, event, "evidence_count", 0)
-    |> expect_field_at_least(callbacks, path, event, "accepted_evidence_count", 0)
-    |> expect_field_at_least(callbacks, path, event, "review_required_evidence_count", 0)
-    |> expect_field_at_least(callbacks, path, event, "blocked_evidence_count", 0)
-    |> expect_field_at_least(callbacks, path, event, "schema_error_count", 0)
-    |> expect_field_at_least(callbacks, path, event, "schema_warning_count", 0)
-    |> expect_field_at_least(callbacks, path, event, "model_blocked_count", 0)
-    |> expect_field_at_least(callbacks, path, event, "quality_gate_review_count", 0)
-    |> expect_field_at_least(callbacks, path, event, "quality_gate_blocked_count", 0)
-    |> expect_probability_range(callbacks, path, event, "contact_success_factor")
-    |> expect_probability_range(callbacks, path, event, "command_success_factor")
-    |> expect_probability_range(callbacks, path, event, "capacity_fraction")
-    |> expect_probability_range(callbacks, path, event, "capacity_pack_capacity_fraction")
-    |> expect_probability_range(callbacks, path, event, "capacity_pack_used_fraction")
-    |> expect_probability_range(callbacks, path, event, "capacity_pack_unused_fraction")
-    |> expect_probability_range(callbacks, path, event, "required_capacity_fraction")
-    |> expect_probability_range(callbacks, path, event, "observation_success_factor")
-    |> expect_probability_range(callbacks, path, event, "image_quality_score")
-    |> expect_probability_range(callbacks, path, event, "cloud_cover_fraction")
-    |> expect_probability_range(callbacks, path, event, "blur_score")
-    |> expect_probability_range(callbacks, path, event, "maneuver_success_factor")
-    |> expect_probability_range(callbacks, path, event, "station_throughput_factor")
-    |> expect_optional_type(callbacks, path, event, "latency_objective", :boolean)
-    |> expect_optional_type(callbacks, path, event, "station_calendar_entry_ambiguous", :boolean)
-    |> expect_optional_type(callbacks, path, event, "capacity_pack_status", :binary)
-    |> expect_optional_type(callbacks, path, event, "required_capacity_fraction_source", :binary)
-    |> expect_optional_type(callbacks, path, event, "feedback_weight_source", :binary)
-    |> expect_optional_type(callbacks, path, event, "feedback_sample_weight_source", :binary)
-    |> expect_optional_type(callbacks, path, event, "sample_weight_source", :binary)
-    |> expect_optional_type(callbacks, path, event, "confidence_weight_source", :binary)
-    |> expect_optional_type(callbacks, path, event, "feedback_source", :binary)
-    |> expect_optional_type(callbacks, path, event, "feedback_scope", :binary)
-    |> expect_optional_type(callbacks, path, event, "validation_safety_case_status", :binary)
-    |> expect_optional_type(callbacks, path, event, "evidence_status", :binary)
-    |> expect_optional_type(callbacks, path, event, "input_contract", :binary)
-    |> expect_optional_type(callbacks, path, event, "evidence_ref", :binary)
-    |> expect_optional_type(callbacks, path, event, "input_contracts", :list)
-    |> expect_optional_type(callbacks, path, event, "evidence_status_counts", :map)
-    |> expect_optional_type(callbacks, path, event, "evidence_refs_by_status", :map)
-    |> expect_optional_type(callbacks, path, event, "evidence_refs_by_contract", :map)
-    |> expect_optional_type(callbacks, path, event, "trust_boundary", :binary)
-    |> expect_optional_type(callbacks, path, event, "provenance", :map)
-    |> expect_optional_integer(callbacks, path, event, "station_calendar_overlap_count")
-    |> expect_optional_integer(callbacks, path, event, "station_calendar_ambiguous_entry_count")
+    |> expect_optional_number(path, event, "starts_at_s")
+    |> expect_optional_number(path, event, "ends_at_s")
+    |> expect_optional_number(path, event, "actual_starts_at_s")
+    |> expect_optional_number(path, event, "actual_ends_at_s")
+    |> expect_optional_number(path, event, "priority")
+    |> expect_optional_number(path, event, "target_priority")
+    |> expect_optional_type(path, event, "target_priority_source", :binary)
+    |> expect_optional_type(path, event, "target_priority_objective_ids", :list)
+    |> validate_optional_stable_id_list(path, event, "target_priority_objective_ids")
+    |> expect_optional_type(path, event, "target_priority_objective_type", :binary)
+    |> CandidateDiffContracts.validate_semantic_change_details(path, event)
+    |> CandidateDiffContracts.validate_changed_fields(path, event)
+    |> expect_optional_type(path, event, "source_target", :map)
+    |> expect_optional_number(path, event, "target_latitude_deg")
+    |> expect_optional_number(path, event, "target_longitude_deg")
+    |> expect_optional_number(path, event, "target_minimum_elevation_deg")
+    |> expect_optional_number(path, event, "required_contacts")
+    |> expect_optional_number(path, event, "planned_contacts")
+    |> expect_optional_number(path, event, "required_downlink_mb")
+    |> expect_optional_number(path, event, "planned_downlink_mb")
+    |> expect_optional_number(path, event, "max_latency_s")
+    |> expect_optional_number(path, event, "planned_latency_s")
+    |> expect_optional_number(path, event, "required_observations")
+    |> expect_optional_number(path, event, "planned_observations")
+    |> expect_optional_number(path, event, "contact_success_factor")
+    |> expect_optional_number(path, event, "command_success_factor")
+    |> expect_optional_number(path, event, "capacity_fraction")
+    |> expect_optional_number(path, event, "capacity_pack_capacity_fraction")
+    |> expect_optional_number(path, event, "capacity_pack_used_fraction")
+    |> expect_optional_number(path, event, "capacity_pack_unused_fraction")
+    |> expect_optional_number(path, event, "required_capacity_fraction")
+    |> expect_optional_number(path, event, "observation_success_factor")
+    |> expect_optional_number(path, event, "image_quality_score")
+    |> expect_optional_number(path, event, "cloud_cover_fraction")
+    |> expect_optional_number(path, event, "blur_score")
+    |> expect_optional_number(path, event, "maneuver_success_factor")
+    |> expect_optional_number(path, event, "station_throughput_factor")
+    |> expect_optional_number(path, event, "feedback_weight")
+    |> expect_optional_number(path, event, "feedback_sample_weight")
+    |> expect_optional_number(path, event, "sample_weight")
+    |> expect_optional_number(path, event, "confidence_weight")
+    |> expect_optional_number(path, event, "provider_counteroffer_start_delta_s")
+    |> expect_optional_number(path, event, "provider_counteroffer_end_delta_s")
+    |> expect_optional_number(path, event, "provider_counteroffer_duration_delta_s")
+    |> expect_optional_number(path, event, "score_term_value")
+    |> expect_optional_number(path, event, "timeline_score")
+    |> expect_optional_integer(path, event, "evidence_count")
+    |> expect_optional_integer(path, event, "accepted_evidence_count")
+    |> expect_optional_integer(path, event, "review_required_evidence_count")
+    |> expect_optional_integer(path, event, "blocked_evidence_count")
+    |> expect_optional_integer(path, event, "schema_error_count")
+    |> expect_optional_integer(path, event, "schema_warning_count")
+    |> expect_optional_integer(path, event, "model_blocked_count")
+    |> expect_optional_integer(path, event, "quality_gate_review_count")
+    |> expect_optional_integer(path, event, "quality_gate_blocked_count")
+    |> expect_field_at_least(path, event, "priority", 0.0)
+    |> expect_field_at_least(path, event, "target_priority", 0.0)
+    |> expect_field_at_least(path, event, "required_contacts", 0.0)
+    |> expect_field_at_least(path, event, "planned_contacts", 0.0)
+    |> expect_field_at_least(path, event, "required_downlink_mb", 0.0)
+    |> expect_field_at_least(path, event, "planned_downlink_mb", 0.0)
+    |> expect_field_at_least(path, event, "max_latency_s", 0.0)
+    |> expect_field_at_least(path, event, "planned_latency_s", 0.0)
+    |> expect_field_at_least(path, event, "required_observations", 0.0)
+    |> expect_field_at_least(path, event, "planned_observations", 0.0)
+    |> expect_field_at_least(path, event, "feedback_weight", 0.0)
+    |> expect_field_at_least(path, event, "feedback_sample_weight", 0.0)
+    |> expect_field_at_least(path, event, "sample_weight", 0.0)
+    |> expect_field_at_least(path, event, "confidence_weight", 0.0)
+    |> expect_field_at_least(path, event, "evidence_count", 0)
+    |> expect_field_at_least(path, event, "accepted_evidence_count", 0)
+    |> expect_field_at_least(path, event, "review_required_evidence_count", 0)
+    |> expect_field_at_least(path, event, "blocked_evidence_count", 0)
+    |> expect_field_at_least(path, event, "schema_error_count", 0)
+    |> expect_field_at_least(path, event, "schema_warning_count", 0)
+    |> expect_field_at_least(path, event, "model_blocked_count", 0)
+    |> expect_field_at_least(path, event, "quality_gate_review_count", 0)
+    |> expect_field_at_least(path, event, "quality_gate_blocked_count", 0)
+    |> expect_probability_range(path, event, "contact_success_factor")
+    |> expect_probability_range(path, event, "command_success_factor")
+    |> expect_probability_range(path, event, "capacity_fraction")
+    |> expect_probability_range(path, event, "capacity_pack_capacity_fraction")
+    |> expect_probability_range(path, event, "capacity_pack_used_fraction")
+    |> expect_probability_range(path, event, "capacity_pack_unused_fraction")
+    |> expect_probability_range(path, event, "required_capacity_fraction")
+    |> expect_probability_range(path, event, "observation_success_factor")
+    |> expect_probability_range(path, event, "image_quality_score")
+    |> expect_probability_range(path, event, "cloud_cover_fraction")
+    |> expect_probability_range(path, event, "blur_score")
+    |> expect_probability_range(path, event, "maneuver_success_factor")
+    |> expect_probability_range(path, event, "station_throughput_factor")
+    |> expect_optional_type(path, event, "latency_objective", :boolean)
+    |> expect_optional_type(path, event, "station_calendar_entry_ambiguous", :boolean)
+    |> expect_optional_type(path, event, "capacity_pack_status", :binary)
+    |> expect_optional_type(path, event, "required_capacity_fraction_source", :binary)
+    |> expect_optional_type(path, event, "feedback_weight_source", :binary)
+    |> expect_optional_type(path, event, "feedback_sample_weight_source", :binary)
+    |> expect_optional_type(path, event, "sample_weight_source", :binary)
+    |> expect_optional_type(path, event, "confidence_weight_source", :binary)
+    |> expect_optional_type(path, event, "feedback_source", :binary)
+    |> expect_optional_type(path, event, "feedback_scope", :binary)
+    |> expect_optional_type(path, event, "validation_safety_case_status", :binary)
+    |> expect_optional_type(path, event, "evidence_status", :binary)
+    |> expect_optional_type(path, event, "input_contract", :binary)
+    |> expect_optional_type(path, event, "evidence_ref", :binary)
+    |> expect_optional_type(path, event, "input_contracts", :list)
+    |> expect_optional_type(path, event, "evidence_status_counts", :map)
+    |> expect_optional_type(path, event, "evidence_refs_by_status", :map)
+    |> expect_optional_type(path, event, "evidence_refs_by_contract", :map)
+    |> expect_optional_type(path, event, "trust_boundary", :binary)
+    |> expect_optional_type(path, event, "provenance", :map)
+    |> expect_optional_integer(path, event, "station_calendar_overlap_count")
+    |> expect_optional_integer(path, event, "station_calendar_ambiguous_entry_count")
     |> expect_optional_integer(
-      callbacks,
       path,
       event,
       "station_calendar_reservation_overlap_count"
     )
-    |> expect_field_at_least(callbacks, path, event, "station_calendar_overlap_count", 0)
+    |> expect_field_at_least(path, event, "station_calendar_overlap_count", 0)
     |> expect_field_at_least(
-      callbacks,
       path,
       event,
       "station_calendar_ambiguous_entry_count",
       0
     )
     |> expect_field_at_least(
-      callbacks,
       path,
       event,
       "station_calendar_reservation_overlap_count",
       0
     )
     |> expect_optional_one_of(
-      callbacks,
       path,
       event,
       "station_calendar_trust_boundary_status",
       ["declared", "missing"]
     )
-    |> expect_optional_type(callbacks, path, event, "score_terms", :map)
-    |> validate_numeric_map(callbacks, path <> ".score_terms", Map.get(event, "score_terms"))
-    |> validate_string_list_items(callbacks, path, event, "station_calendar_directions")
+    |> expect_optional_type(path, event, "score_terms", :map)
+    |> validate_numeric_map(path <> ".score_terms", Map.get(event, "score_terms"))
+    |> validate_string_list_items(path, event, "station_calendar_directions")
     |> validate_string_list_items(
-      callbacks,
       path,
       event,
       "station_calendar_overlap_availabilities"
     )
-    |> validate_string_list_items(callbacks, path, event, "station_calendar_reserved_by")
-    |> validate_string_list_items(callbacks, path, event, "station_calendar_reservation_statuses")
-    |> validate_string_list_items(callbacks, path, event, "downlink_demand_sources")
-    |> validate_string_list_items(callbacks, path, event, "downlink_completion_sources")
-    |> validate_string_list_items(callbacks, path, event, "derivation_reasons")
-    |> validate_string_list_items(callbacks, path, event, "input_contracts")
-    |> validate_string_list_map(callbacks, path, event, "model_ids_by_status")
-    |> validate_string_list_map(callbacks, path, event, "model_ids_by_validation_level")
-    |> validate_string_list_map(callbacks, path, event, "model_ids_by_intended_use")
+    |> validate_string_list_items(path, event, "station_calendar_reserved_by")
+    |> validate_string_list_items(path, event, "station_calendar_reservation_statuses")
+    |> validate_string_list_items(path, event, "downlink_demand_sources")
+    |> validate_string_list_items(path, event, "downlink_completion_sources")
+    |> validate_string_list_items(path, event, "derivation_reasons")
+    |> validate_string_list_items(path, event, "input_contracts")
+    |> validate_string_list_map(path, event, "model_ids_by_status")
+    |> validate_string_list_map(path, event, "model_ids_by_validation_level")
+    |> validate_string_list_map(path, event, "model_ids_by_intended_use")
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".evidence_status_counts",
       event["evidence_status_counts"]
     )
-    |> validate_string_list_map(callbacks, path, event, "evidence_refs_by_status")
-    |> validate_string_list_map(callbacks, path, event, "evidence_refs_by_contract")
-    |> validate_validation_safety_case_status(path, event, callbacks)
-    |> validate_validation_safety_case_action(path, event, callbacks)
+    |> validate_string_list_map(path, event, "evidence_refs_by_status")
+    |> validate_string_list_map(path, event, "evidence_refs_by_contract")
+    |> validate_validation_safety_case_status(path, event)
+    |> validate_validation_safety_case_action(path, event)
   end
 
-  def validate_summary_fields(issues, path, row, callbacks) when is_list(callbacks) do
+  def validate_summary_fields(issues, path, row) do
     issues
-    |> expect_optional_non_negative_integer(callbacks, path, row, "branch_event_count")
-    |> expect_optional_type(callbacks, path, row, "branch_event_types", :list)
-    |> validate_string_list_items(callbacks, path, row, "branch_event_types")
+    |> expect_optional_non_negative_integer(path, row, "branch_event_count")
+    |> expect_optional_type(path, row, "branch_event_types", :list)
+    |> validate_string_list_items(path, row, "branch_event_types")
     |> expect_optional_type(
-      callbacks,
       path,
       row,
       "branch_event_trust_boundary_status_counts",
       :map
     )
-    |> validate_trust_boundary_status_counts(callbacks, path, row)
-    |> expect_optional_type(callbacks, path, row, "combined_source_branch_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, row, "combined_source_branch_ids")
-    |> expect_optional_type(callbacks, path, row, "branch_ground_station_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, row, "branch_ground_station_ids")
-    |> validate_branch_scoped_downlink_context_fields(callbacks, path, row)
-    |> expect_optional_type(callbacks, path, row, "branch_directions", :list)
-    |> validate_string_list_items(callbacks, path, row, "branch_directions")
-    |> expect_optional_type(callbacks, path, row, "branch_station_availabilities", :list)
-    |> validate_string_list_items(callbacks, path, row, "branch_station_availabilities")
-    |> expect_optional_type(callbacks, path, row, "branch_station_contention_statuses", :list)
-    |> validate_string_list_items(callbacks, path, row, "branch_station_contention_statuses")
-    |> expect_optional_type(callbacks, path, row, "branch_station_calendar_entry_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, row, "branch_station_calendar_entry_ids")
-    |> expect_optional_type(callbacks, path, row, "branch_station_calendar_provider_ids", :list)
+    |> validate_trust_boundary_status_counts(path, row)
+    |> expect_optional_type(path, row, "combined_source_branch_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "combined_source_branch_ids")
+    |> expect_optional_type(path, row, "branch_ground_station_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "branch_ground_station_ids")
+    |> validate_branch_scoped_downlink_context_fields(path, row)
+    |> expect_optional_type(path, row, "branch_directions", :list)
+    |> validate_string_list_items(path, row, "branch_directions")
+    |> expect_optional_type(path, row, "branch_station_availabilities", :list)
+    |> validate_string_list_items(path, row, "branch_station_availabilities")
+    |> expect_optional_type(path, row, "branch_station_contention_statuses", :list)
+    |> validate_string_list_items(path, row, "branch_station_contention_statuses")
+    |> expect_optional_type(path, row, "branch_station_calendar_entry_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "branch_station_calendar_entry_ids")
+    |> expect_optional_type(path, row, "branch_station_calendar_provider_ids", :list)
     |> validate_optional_stable_id_list(
-      callbacks,
       path,
       row,
       "branch_station_calendar_provider_ids"
     )
     |> expect_optional_type(
-      callbacks,
       path,
       row,
       "branch_station_calendar_provider_entry_ids",
       :list
     )
     |> validate_optional_stable_id_list(
-      callbacks,
       path,
       row,
       "branch_station_calendar_provider_entry_ids"
     )
-    |> expect_optional_type(callbacks, path, row, "branch_station_calendar_directions", :list)
-    |> validate_string_list_items(callbacks, path, row, "branch_station_calendar_directions")
-    |> expect_optional_type(callbacks, path, row, "branch_station_calendar_statuses", :list)
-    |> validate_string_list_items(callbacks, path, row, "branch_station_calendar_statuses")
+    |> expect_optional_type(path, row, "branch_station_calendar_directions", :list)
+    |> validate_string_list_items(path, row, "branch_station_calendar_directions")
+    |> expect_optional_type(path, row, "branch_station_calendar_statuses", :list)
+    |> validate_string_list_items(path, row, "branch_station_calendar_statuses")
     |> expect_optional_type(
-      callbacks,
       path,
       row,
       "branch_station_calendar_trust_boundary_statuses",
       :list
     )
     |> validate_string_list_items(
-      callbacks,
       path,
       row,
       "branch_station_calendar_trust_boundary_statuses"
     )
-    |> expect_optional_type(callbacks, path, row, "branch_station_reservation_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, row, "branch_station_reservation_ids")
-    |> expect_optional_type(callbacks, path, row, "branch_station_reserved_by", :list)
-    |> validate_string_list_items(callbacks, path, row, "branch_station_reserved_by")
-    |> expect_optional_type(callbacks, path, row, "branch_station_reservation_statuses", :list)
-    |> validate_string_list_items(callbacks, path, row, "branch_station_reservation_statuses")
+    |> expect_optional_type(path, row, "branch_station_reservation_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "branch_station_reservation_ids")
+    |> expect_optional_type(path, row, "branch_station_reserved_by", :list)
+    |> validate_string_list_items(path, row, "branch_station_reserved_by")
+    |> expect_optional_type(path, row, "branch_station_reservation_statuses", :list)
+    |> validate_string_list_items(path, row, "branch_station_reservation_statuses")
     |> expect_optional_type(
-      callbacks,
       path,
       row,
       "branch_station_reservation_match_statuses",
       :list
     )
     |> validate_string_list_items(
-      callbacks,
       path,
       row,
       "branch_station_reservation_match_statuses"
     )
     |> expect_optional_type(
-      callbacks,
       path,
       row,
       "branch_station_reservation_conflict_contact_ids",
       :list
     )
     |> validate_optional_stable_id_list(
-      callbacks,
       path,
       row,
       "branch_station_reservation_conflict_contact_ids"
     )
     |> expect_optional_type(
-      callbacks,
       path,
       row,
       "branch_station_reservation_conflict_reservation_ids",
       :list
     )
     |> validate_optional_stable_id_list(
-      callbacks,
       path,
       row,
       "branch_station_reservation_conflict_reservation_ids"
     )
     |> expect_optional_type(
-      callbacks,
       path,
       row,
       "branch_station_reservation_conflict_match_statuses",
       :list
     )
     |> validate_string_list_items(
-      callbacks,
       path,
       row,
       "branch_station_reservation_conflict_match_statuses"
     )
-    |> expect_optional_number(callbacks, path, row, "branch_image_quality_min_score")
-    |> expect_optional_type(callbacks, path, row, "branch_image_quality_statuses", :list)
-    |> validate_string_list_items(callbacks, path, row, "branch_image_quality_statuses")
-    |> expect_optional_type(callbacks, path, row, "branch_image_quality_sources", :list)
-    |> validate_string_list_items(callbacks, path, row, "branch_image_quality_sources")
-    |> expect_optional_number(callbacks, path, row, "branch_cloud_cover_max_fraction")
-    |> expect_optional_number(callbacks, path, row, "branch_blur_max_score")
-    |> expect_optional_type(callbacks, path, row, "capacity_pack_group_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, row, "capacity_pack_group_ids")
-    |> expect_optional_type(callbacks, path, row, "capacity_pack_statuses", :list)
-    |> validate_string_list_items(callbacks, path, row, "capacity_pack_statuses")
-    |> expect_optional_number(callbacks, path, row, "capacity_pack_min_capacity_fraction")
-    |> expect_optional_number(callbacks, path, row, "capacity_pack_max_used_fraction")
+    |> expect_optional_number(path, row, "branch_image_quality_min_score")
+    |> expect_optional_type(path, row, "branch_image_quality_statuses", :list)
+    |> validate_string_list_items(path, row, "branch_image_quality_statuses")
+    |> expect_optional_type(path, row, "branch_image_quality_sources", :list)
+    |> validate_string_list_items(path, row, "branch_image_quality_sources")
+    |> expect_optional_number(path, row, "branch_cloud_cover_max_fraction")
+    |> expect_optional_number(path, row, "branch_blur_max_score")
+    |> expect_optional_type(path, row, "capacity_pack_group_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "capacity_pack_group_ids")
+    |> expect_optional_type(path, row, "capacity_pack_statuses", :list)
+    |> validate_string_list_items(path, row, "capacity_pack_statuses")
+    |> expect_optional_number(path, row, "capacity_pack_min_capacity_fraction")
+    |> expect_optional_number(path, row, "capacity_pack_max_used_fraction")
     |> expect_optional_number(
-      callbacks,
       path,
       row,
       "capacity_pack_max_required_capacity_fraction"
     )
     |> expect_optional_number(
-      callbacks,
       path,
       row,
       "capacity_pack_total_required_capacity_fraction"
     )
     |> expect_optional_type(
-      callbacks,
       path,
       row,
       "capacity_pack_required_capacity_sources",
       :list
     )
-    |> validate_string_list_items(callbacks, path, row, "capacity_pack_required_capacity_sources")
-    |> expect_probability_range(callbacks, path, row, "branch_image_quality_min_score")
-    |> expect_probability_range(callbacks, path, row, "branch_cloud_cover_max_fraction")
-    |> expect_probability_range(callbacks, path, row, "branch_blur_max_score")
-    |> expect_probability_range(callbacks, path, row, "capacity_pack_min_capacity_fraction")
-    |> expect_probability_range(callbacks, path, row, "capacity_pack_max_used_fraction")
+    |> validate_string_list_items(path, row, "capacity_pack_required_capacity_sources")
+    |> expect_probability_range(path, row, "branch_image_quality_min_score")
+    |> expect_probability_range(path, row, "branch_cloud_cover_max_fraction")
+    |> expect_probability_range(path, row, "branch_blur_max_score")
+    |> expect_probability_range(path, row, "capacity_pack_min_capacity_fraction")
+    |> expect_probability_range(path, row, "capacity_pack_max_used_fraction")
     |> expect_probability_range(
-      callbacks,
       path,
       row,
       "capacity_pack_max_required_capacity_fraction"
     )
     |> expect_field_at_least(
-      callbacks,
       path,
       row,
       "capacity_pack_total_required_capacity_fraction",
@@ -398,14 +395,12 @@ defmodule OrbitalDynamics.Schema.BranchEventContracts do
     )
   end
 
-  def validate_trust_boundary_status_count_map(issues, path, counts, callbacks)
-      when is_map(counts) and is_list(callbacks) do
+  def validate_trust_boundary_status_count_map(issues, path, counts) when is_map(counts) do
     Enum.reduce(counts, issues, fn {field, count}, acc ->
       cond do
         field not in ["declared", "missing", "untrusted"] ->
           [
             error(
-              callbacks,
               "#{path}.#{inspect(field)}",
               "must be declared, missing, or untrusted"
             )
@@ -413,7 +408,7 @@ defmodule OrbitalDynamics.Schema.BranchEventContracts do
           ]
 
         not is_integer(count) or count < 0 ->
-          [error(callbacks, "#{path}.#{field}", "must be a non-negative integer") | acc]
+          [error("#{path}.#{field}", "must be a non-negative integer") | acc]
 
         true ->
           acc
@@ -421,36 +416,32 @@ defmodule OrbitalDynamics.Schema.BranchEventContracts do
     end)
   end
 
-  def validate_trust_boundary_status_count_map(issues, _path, _counts, _callbacks), do: issues
+  def validate_trust_boundary_status_count_map(issues, _path, _counts), do: issues
 
   def validate_validation_safety_case_status(
         issues,
         path,
-        %{"type" => "validation_safety_case_pressure"} = event,
-        callbacks
-      )
-      when is_list(callbacks) do
+        %{"type" => "validation_safety_case_pressure"} = event
+      ) do
     issues
-    |> require_fields(callbacks, path, event, ["evidence_status"])
-    |> expect_optional_one_of(callbacks, path, event, "validation_safety_case_status", [
+    |> require_fields(path, event, ["evidence_status"])
+    |> expect_optional_one_of(path, event, "validation_safety_case_status", [
       "review_required",
       "blocked"
     ])
-    |> expect_optional_one_of(callbacks, path, event, "evidence_status", [
+    |> expect_optional_one_of(path, event, "evidence_status", [
       "review_required",
       "blocked"
     ])
   end
 
-  def validate_validation_safety_case_status(issues, _path, _event, _callbacks), do: issues
+  def validate_validation_safety_case_status(issues, _path, _event), do: issues
 
   def validate_validation_safety_case_action(
         issues,
         path,
-        %{"type" => "validation_safety_case_pressure"} = event,
-        callbacks
-      )
-      when is_list(callbacks) do
+        %{"type" => "validation_safety_case_pressure"} = event
+      ) do
     expected_action =
       if event["evidence_status"] == "blocked" or
            event["validation_safety_case_status"] == "blocked" do
@@ -459,141 +450,130 @@ defmodule OrbitalDynamics.Schema.BranchEventContracts do
         "review_validation_safety_case"
       end
 
-    expect_equal(callbacks, issues, path, event, "required_operator_action", expected_action)
+    expect_equal(issues, path, event, "required_operator_action", expected_action)
   end
 
-  def validate_validation_safety_case_action(issues, _path, _event, _callbacks), do: issues
+  def validate_validation_safety_case_action(issues, _path, _event), do: issues
 
-  defp validate_branch_scoped_downlink_context_fields(issues, callbacks, path, row) do
+  defp validate_branch_scoped_downlink_context_fields(issues, path, row) do
     issues
-    |> expect_optional_type(callbacks, path, row, "branch_scenario_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, row, "branch_scenario_ids")
-    |> expect_optional_type(callbacks, path, row, "branch_target_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, row, "branch_target_ids")
-    |> expect_optional_type(callbacks, path, row, "branch_collection_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, row, "branch_collection_ids")
-    |> expect_optional_type(callbacks, path, row, "branch_product_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, row, "branch_product_ids")
-    |> expect_optional_type(callbacks, path, row, "branch_payload_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, row, "branch_payload_ids")
-    |> expect_optional_type(callbacks, path, row, "branch_instrument_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, row, "branch_instrument_ids")
-    |> expect_optional_type(callbacks, path, row, "branch_objective_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, row, "branch_objective_ids")
-    |> expect_optional_type(callbacks, path, row, "branch_objective_types", :list)
-    |> validate_string_list_items(callbacks, path, row, "branch_objective_types")
-    |> expect_optional_type(callbacks, path, row, "branch_objective_statuses", :list)
-    |> validate_string_list_items(callbacks, path, row, "branch_objective_statuses")
-    |> expect_optional_type(callbacks, path, row, "branch_source_objective_statuses", :list)
-    |> validate_string_list_items(callbacks, path, row, "branch_source_objective_statuses")
-    |> expect_optional_type(callbacks, path, row, "branch_feedback_sources", :list)
-    |> validate_string_list_items(callbacks, path, row, "branch_feedback_sources")
-    |> expect_optional_type(callbacks, path, row, "branch_feedback_scopes", :list)
-    |> validate_string_list_items(callbacks, path, row, "branch_feedback_scopes")
-    |> expect_optional_type(callbacks, path, row, "branch_contact_results", :list)
-    |> validate_string_list_items(callbacks, path, row, "branch_contact_results")
-    |> expect_optional_type(callbacks, path, row, "branch_contact_allocation_statuses", :list)
-    |> validate_string_list_items(callbacks, path, row, "branch_contact_allocation_statuses")
+    |> expect_optional_type(path, row, "branch_scenario_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "branch_scenario_ids")
+    |> expect_optional_type(path, row, "branch_target_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "branch_target_ids")
+    |> expect_optional_type(path, row, "branch_collection_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "branch_collection_ids")
+    |> expect_optional_type(path, row, "branch_product_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "branch_product_ids")
+    |> expect_optional_type(path, row, "branch_payload_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "branch_payload_ids")
+    |> expect_optional_type(path, row, "branch_instrument_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "branch_instrument_ids")
+    |> expect_optional_type(path, row, "branch_objective_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "branch_objective_ids")
+    |> expect_optional_type(path, row, "branch_objective_types", :list)
+    |> validate_string_list_items(path, row, "branch_objective_types")
+    |> expect_optional_type(path, row, "branch_objective_statuses", :list)
+    |> validate_string_list_items(path, row, "branch_objective_statuses")
+    |> expect_optional_type(path, row, "branch_source_objective_statuses", :list)
+    |> validate_string_list_items(path, row, "branch_source_objective_statuses")
+    |> expect_optional_type(path, row, "branch_feedback_sources", :list)
+    |> validate_string_list_items(path, row, "branch_feedback_sources")
+    |> expect_optional_type(path, row, "branch_feedback_scopes", :list)
+    |> validate_string_list_items(path, row, "branch_feedback_scopes")
+    |> expect_optional_type(path, row, "branch_contact_results", :list)
+    |> validate_string_list_items(path, row, "branch_contact_results")
+    |> expect_optional_type(path, row, "branch_contact_allocation_statuses", :list)
+    |> validate_string_list_items(path, row, "branch_contact_allocation_statuses")
     |> expect_optional_type(
-      callbacks,
       path,
       row,
       "branch_contact_allocation_effective_statuses",
       :list
     )
     |> validate_string_list_items(
-      callbacks,
       path,
       row,
       "branch_contact_allocation_effective_statuses"
     )
-    |> expect_optional_type(callbacks, path, row, "branch_contact_allocation_reasons", :list)
-    |> validate_string_list_items(callbacks, path, row, "branch_contact_allocation_reasons")
+    |> expect_optional_type(path, row, "branch_contact_allocation_reasons", :list)
+    |> validate_string_list_items(path, row, "branch_contact_allocation_reasons")
     |> expect_optional_type(
-      callbacks,
       path,
       row,
       "branch_contact_allocation_review_statuses",
       :list
     )
     |> validate_string_list_items(
-      callbacks,
       path,
       row,
       "branch_contact_allocation_review_statuses"
     )
     |> expect_optional_type(
-      callbacks,
       path,
       row,
       "branch_contact_allocation_approval_statuses",
       :list
     )
     |> validate_string_list_items(
-      callbacks,
       path,
       row,
       "branch_contact_allocation_approval_statuses"
     )
     |> expect_optional_type(
-      callbacks,
       path,
       row,
       "branch_contact_allocation_policy_classifications",
       :list
     )
     |> validate_string_list_items(
-      callbacks,
       path,
       row,
       "branch_contact_allocation_policy_classifications"
     )
-    |> expect_optional_type(callbacks, path, row, "branch_realized_statuses", :list)
-    |> validate_string_list_items(callbacks, path, row, "branch_realized_statuses")
-    |> expect_optional_type(callbacks, path, row, "branch_transition_types", :list)
-    |> validate_string_list_items(callbacks, path, row, "branch_transition_types")
-    |> expect_optional_type(callbacks, path, row, "branch_transition_categories", :list)
-    |> validate_string_list_items(callbacks, path, row, "branch_transition_categories")
-    |> expect_optional_type(callbacks, path, row, "branch_transition_reasons", :list)
-    |> validate_string_list_items(callbacks, path, row, "branch_transition_reasons")
-    |> expect_optional_type(callbacks, path, row, "branch_requires_operator_review", :boolean)
-    |> expect_optional_integer(callbacks, path, row, "branch_requires_operator_review_count")
-    |> expect_optional_type(callbacks, path, row, "branch_missed_downlink_activity_ids", :list)
+    |> expect_optional_type(path, row, "branch_realized_statuses", :list)
+    |> validate_string_list_items(path, row, "branch_realized_statuses")
+    |> expect_optional_type(path, row, "branch_transition_types", :list)
+    |> validate_string_list_items(path, row, "branch_transition_types")
+    |> expect_optional_type(path, row, "branch_transition_categories", :list)
+    |> validate_string_list_items(path, row, "branch_transition_categories")
+    |> expect_optional_type(path, row, "branch_transition_reasons", :list)
+    |> validate_string_list_items(path, row, "branch_transition_reasons")
+    |> expect_optional_type(path, row, "branch_requires_operator_review", :boolean)
+    |> expect_optional_integer(path, row, "branch_requires_operator_review_count")
+    |> expect_optional_type(path, row, "branch_missed_downlink_activity_ids", :list)
     |> validate_optional_stable_id_list(
-      callbacks,
       path,
       row,
       "branch_missed_downlink_activity_ids"
     )
-    |> expect_optional_type(callbacks, path, row, "branch_source_activity_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, row, "branch_source_activity_ids")
-    |> expect_optional_number(callbacks, path, row, "branch_max_latency_s")
-    |> expect_optional_number(callbacks, path, row, "branch_planned_latency_s")
-    |> expect_optional_number(callbacks, path, row, "branch_required_contacts")
-    |> expect_optional_number(callbacks, path, row, "branch_planned_contacts")
-    |> expect_optional_number(callbacks, path, row, "branch_required_downlink_mb")
-    |> expect_optional_number(callbacks, path, row, "branch_planned_downlink_mb")
+    |> expect_optional_type(path, row, "branch_source_activity_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "branch_source_activity_ids")
+    |> expect_optional_number(path, row, "branch_max_latency_s")
+    |> expect_optional_number(path, row, "branch_planned_latency_s")
+    |> expect_optional_number(path, row, "branch_required_contacts")
+    |> expect_optional_number(path, row, "branch_planned_contacts")
+    |> expect_optional_number(path, row, "branch_required_downlink_mb")
+    |> expect_optional_number(path, row, "branch_planned_downlink_mb")
     |> expect_optional_probability(
-      callbacks,
       path,
       row,
       "branch_actual_downlink_completion_ratio"
     )
   end
 
-  defp validate_trust_boundary_status_counts(issues, callbacks, path, row) do
+  defp validate_trust_boundary_status_counts(issues, path, row) do
     counts = Map.get(row, "branch_event_trust_boundary_status_counts")
 
     issues
     |> validate_trust_boundary_status_count_map(
       path <> ".branch_event_trust_boundary_status_counts",
-      counts,
-      callbacks
+      counts
     )
-    |> validate_trust_boundary_status_count_total(callbacks, path, row, counts)
+    |> validate_trust_boundary_status_count_total(path, row, counts)
   end
 
-  defp validate_trust_boundary_status_count_total(issues, callbacks, path, row, counts)
+  defp validate_trust_boundary_status_count_total(issues, path, row, counts)
        when is_map(counts) do
     case Map.get(row, "branch_event_count") do
       event_count when is_integer(event_count) ->
@@ -608,7 +588,6 @@ defmodule OrbitalDynamics.Schema.BranchEventContracts do
         else
           [
             error(
-              callbacks,
               path <> ".branch_event_trust_boundary_status_counts",
               "must add up to branch_event_count"
             )
@@ -621,88 +600,29 @@ defmodule OrbitalDynamics.Schema.BranchEventContracts do
     end
   end
 
-  defp validate_trust_boundary_status_count_total(issues, _callbacks, _path, _row, _counts),
+  defp validate_trust_boundary_status_count_total(issues, _path, _row, _counts),
     do: issues
 
-  defp expect_field_at_least(issues, callbacks, path, row, field, min) do
-    callback!(callbacks, :expect_field_at_least).(issues, path, row, field, min)
-  end
+  defp validate_string_list_map(issues, path, row, field) do
+    case Map.get(row, field) do
+      %{} = grouped_values ->
+        Enum.reduce(grouped_values, issues, fn {key, values}, acc ->
+          entry_path = "#{path}.#{field}.#{key}"
 
-  defp expect_equal(callbacks, issues, path, row, field, expected) do
-    callback!(callbacks, :expect_equal).(issues, path, row, field, expected)
-  end
+          cond do
+            not is_list(values) ->
+              [error(entry_path, "must be an array") | acc]
 
-  defp expect_optional_integer(issues, callbacks, path, row, field) do
-    callback!(callbacks, :expect_optional_integer).(issues, path, row, field)
-  end
+            Enum.all?(values, &is_binary/1) ->
+              acc
 
-  defp expect_optional_one_of(issues, callbacks, path, row, field, values) do
-    callback!(callbacks, :expect_optional_one_of).(issues, path, row, field, values)
-  end
+            true ->
+              [error(entry_path, "must contain only strings") | acc]
+          end
+        end)
 
-  defp expect_optional_non_negative_integer(issues, callbacks, path, row, field) do
-    callback!(callbacks, :expect_optional_non_negative_integer).(issues, path, row, field)
+      _grouped_values ->
+        issues
+    end
   end
-
-  defp expect_optional_number(issues, callbacks, path, row, field) do
-    callback!(callbacks, :expect_optional_number).(issues, path, row, field)
-  end
-
-  defp expect_optional_probability(issues, callbacks, path, row, field) do
-    callback!(callbacks, :expect_optional_probability).(issues, path, row, field)
-  end
-
-  defp expect_optional_type(issues, callbacks, path, row, field, type) do
-    callback!(callbacks, :expect_optional_type).(issues, path, row, field, type)
-  end
-
-  defp expect_type(issues, callbacks, path, row, field, type) do
-    callback!(callbacks, :expect_type).(issues, path, row, field, type)
-  end
-
-  defp expect_probability_range(issues, callbacks, path, row, field) do
-    callback!(callbacks, :expect_probability_range).(issues, path, row, field)
-  end
-
-  defp validate_candidate_diff_changed_fields(issues, callbacks, path, row) do
-    callback!(callbacks, :validate_candidate_diff_changed_fields).(issues, path, row)
-  end
-
-  defp validate_non_negative_integer_count_map(issues, callbacks, path, counts) do
-    callback!(callbacks, :validate_non_negative_integer_count_map).(issues, path, counts)
-  end
-
-  defp validate_numeric_map(issues, callbacks, path, values) do
-    callback!(callbacks, :validate_numeric_map).(issues, path, values)
-  end
-
-  defp validate_optional_stable_id_list(issues, callbacks, path, row, field) do
-    callback!(callbacks, :validate_optional_stable_id_list).(issues, path, row, field)
-  end
-
-  defp validate_semantic_change_details(issues, callbacks, path, row) do
-    callback!(callbacks, :validate_semantic_change_details).(issues, path, row)
-  end
-
-  defp validate_stable_ids(issues, callbacks, path, row, fields) do
-    callback!(callbacks, :validate_stable_ids).(issues, path, row, fields)
-  end
-
-  defp validate_string_list_map(issues, callbacks, path, row, field) do
-    callback!(callbacks, :validate_string_list_map).(issues, path, row, field)
-  end
-
-  defp validate_string_list_items(issues, callbacks, path, row, field) do
-    callback!(callbacks, :validate_string_list_items).(issues, path, row, field)
-  end
-
-  defp require_fields(issues, callbacks, path, row, fields) do
-    callback!(callbacks, :require_fields).(issues, path, row, fields)
-  end
-
-  defp error(callbacks, path, message) do
-    callback!(callbacks, :error).(path, message)
-  end
-
-  defp callback!(callbacks, name), do: Keyword.fetch!(callbacks, name)
 end
