@@ -9,7 +9,7 @@ Current slice:
 Completed: timeline publication registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Moved `timeline_publication_summary.v1` into
@@ -79,7 +79,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`c2bc94a0` (`Update timeline integrity handoff`).
+`031f258b` (`Extract timeline publication registry contracts`).
 
 Next candidate:
 Assess `operational_timeline_report.v1` as the next bounded timeline registry
