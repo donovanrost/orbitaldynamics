@@ -6480,8 +6480,7 @@ defmodule OrbitalDynamics.Schema do
     |> require_fields("$", artifact, contract["required_fields"])
     |> OrbitalDynamics.Schema.LintContracts.validate_campaign_request(
       "$",
-      artifact,
-      lint_contract_callbacks()
+      artifact
     )
   end
 
@@ -6490,8 +6489,7 @@ defmodule OrbitalDynamics.Schema do
     |> require_fields("$", artifact, contract["required_fields"])
     |> OrbitalDynamics.Schema.LintContracts.validate_study_manifest(
       "$",
-      artifact,
-      lint_contract_callbacks()
+      artifact
     )
   end
 
@@ -8253,24 +8251,6 @@ defmodule OrbitalDynamics.Schema do
       validate_validation_remediation: &validate_validation_remediation/3,
       schema_validation_statuses: &schema_validation_statuses/0,
       schema_validation_model_limits: &schema_validation_model_limits/0,
-      error: &error/2
-    ]
-  end
-
-  defp lint_contract_callbacks do
-    [
-      require_fields: &require_fields/4,
-      expect_equal: &expect_equal/5,
-      expect_one_of: &expect_one_of/5,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_field_equals: &expect_field_equals/5,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      validate_rows: &validate_rows/4,
-      validate_validation_issue: &validate_validation_issue/3,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_stable_ids: &validate_stable_ids/4,
-      list_value: &list_value/2,
       error: &error/2
     ]
   end
