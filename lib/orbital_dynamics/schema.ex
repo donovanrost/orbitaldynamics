@@ -7091,23 +7091,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp candidate_refresh_window_contract_callbacks do
-    [
-      expect_type: &expect_type/5,
-      validate_rows: &validate_rows/4,
-      require_fields: &require_fields/4,
-      validate_stable_ids: &validate_stable_ids/4,
-      expect_number: &expect_number/4,
-      expect_optional_non_negative_integer: &expect_optional_non_negative_integer/4,
-      expect_optional_type: &expect_optional_type/5,
-      expect_optional_number: &expect_optional_number/4,
-      validate_interval: &validate_interval/3,
-      expect_equal: &expect_equal/5,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      error: &error/2
-    ]
-  end
-
   defp contact_intent_summary_contract_callbacks do
     [
       error: &error/2,
@@ -9130,8 +9113,7 @@ defmodule OrbitalDynamics.Schema do
   defp validate_refreshed_windows(issues, refreshed_windows) when is_map(refreshed_windows) do
     OrbitalDynamics.Schema.CandidateRefreshWindowContracts.validate_refreshed_windows(
       issues,
-      refreshed_windows,
-      candidate_refresh_window_contract_callbacks()
+      refreshed_windows
     )
   end
 
@@ -9141,8 +9123,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.CandidateRefreshWindowContracts.validate_refreshed_window(
       issues,
       path,
-      window,
-      candidate_refresh_window_contract_callbacks()
+      window
     )
   end
 
@@ -10355,8 +10336,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.CandidateRefreshWindowContracts.validate_remaining_horizon(
       issues,
       path,
-      horizon,
-      candidate_refresh_window_contract_callbacks()
+      horizon
     )
   end
 
