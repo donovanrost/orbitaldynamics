@@ -9,12 +9,13 @@ Current slice:
 Operational-timeline-report callback-bag collapse.
 
 Status:
-Selection pending publication of the completed contention-summary slice.
+Selected; implementation pending.
 
 Selected slice:
-After publishing the completed contention-summary slice, confirm whether the
-15-entry callback bag in `OperationalTimelineReportContracts` is the next
-bounded direct-owner target.
+Replace the 15-entry callback bag in `OperationalTimelineReportContracts` with
+direct primitive, stable-ID, collection-validation, and collection-aggregation
+owners, explicit timeline model-limit data, and the one facade-owned row
+validator function.
 
 Why this slice:
 Live inventory shows `schema.ex` remains the dominant production hotspot at
@@ -30,9 +31,10 @@ validation, timeline model limits, deterministic errors, replay consumers, and
 exports.
 
 Likely extraction target:
-Confirm a signature accepting explicit timeline model-limit data plus the row
-validator. Remove the schema bag and owner trampolines, call shared validators
-and collection aggregations directly, and preserve default-message behavior.
+Replace `validate/4` with an explicit signature accepting timeline model-limit
+data plus the row validator. Remove the schema bag and owner trampolines, call
+shared validators and collection aggregations directly, and preserve the
+five-argument field-equality default-message behavior exactly.
 
 Likely files:
 - `lib/orbital_dynamics/schema.ex`
@@ -47,14 +49,17 @@ Likely tests:
 - broader communications/candidate-refresh checks, xref, format, and diff hygiene
 
 Definition of done:
-Selection is recorded with a verified public facade, bounded ownership change,
-focused proof set, and explicit default-message/row-validator review risks.
+No operational-timeline report callback bag or shared-helper trampolines remain;
+explicit model data and the one row-validator boundary preserve exact behavior,
+including default equality messages; focused/broader/export checks pass; and
+bounded review finds no blocker.
 
 Verification gaps:
 - Full repository suite not run.
 
 Last completed slice:
-Contact-contention-resolution-summary callback collapse ready to publish:
+Contact-contention-resolution-summary callback collapse published as
+`79e3e39a`:
 `schema.ex` fell from 12,357 to 12,307 lines and its owner from 509 to 421. The
 18-entry bag became direct shared owners, explicit model-limit data, and one
 policy-validator boundary; four newly dead facade wrappers were removed. 62
