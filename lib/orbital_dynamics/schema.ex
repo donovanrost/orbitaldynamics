@@ -8302,14 +8302,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp operational_feedback_contract_callbacks do
-    [
-      validate_optional_rows: &validate_optional_rows/4,
-      validate_realized_activity: &validate_realized_activity/3,
-      error: &error/2
-    ]
-  end
-
   defp realized_state_snapshot_contract_callbacks do
     [
       realized_state_snapshot_model_limits:
@@ -9381,8 +9373,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.OperationalFeedbackContracts.validate(
       issues,
       path,
-      feedback,
-      operational_feedback_contract_callbacks()
+      feedback
     )
   end
 

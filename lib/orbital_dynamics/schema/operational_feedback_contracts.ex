@@ -1,6 +1,11 @@
 defmodule OrbitalDynamics.Schema.OperationalFeedbackContracts do
   @moduledoc false
 
+  import OrbitalDynamics.Schema.CollectionValidation, only: [validate_optional_rows: 4]
+  import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2]
+
+  alias OrbitalDynamics.Schema.RealizedActivityContracts
+
   @probability_map_fields [
     "contact_success_rate",
     "observation_success_rate",
@@ -31,103 +36,102 @@ defmodule OrbitalDynamics.Schema.OperationalFeedbackContracts do
     "resource_availability_overrides"
   ]
 
-  def validate(issues, _path, nil, _callbacks), do: issues
-  def validate(issues, _path, :null, _callbacks), do: issues
+  def validate(issues, _path, nil), do: issues
+  def validate(issues, _path, :null), do: issues
 
-  def validate(issues, path, %{} = feedback, callbacks) when is_list(callbacks) do
+  def validate(issues, path, %{} = feedback) do
     issues
-    |> validate_probability_maps(callbacks, path, feedback, @probability_map_fields)
-    |> validate_number_maps(callbacks, path, feedback, @number_map_fields)
-    |> validate_string_maps(callbacks, path, feedback, @string_map_fields)
-    |> validate_string_list_maps(callbacks, path, feedback, @string_list_map_fields)
-    |> validate_object_maps(callbacks, path, feedback, @object_map_fields)
+    |> validate_probability_maps(path, feedback, @probability_map_fields)
+    |> validate_number_maps(path, feedback, @number_map_fields)
+    |> validate_string_maps(path, feedback, @string_map_fields)
+    |> validate_string_list_maps(path, feedback, @string_list_map_fields)
+    |> validate_object_maps(path, feedback, @object_map_fields)
     |> validate_optional_rows(
-      callbacks,
       "#{path}.operational_feedback.realized_activities",
       Map.get(feedback, "realized_activities"),
-      fn acc, row_path, row -> validate_realized_activity(callbacks, acc, row_path, row) end
+      &RealizedActivityContracts.validate/3
     )
   end
 
-  def validate(issues, path, _feedback, callbacks),
-    do: [error(callbacks, "#{path}.operational_feedback", "must be an object") | issues]
+  def validate(issues, path, _feedback),
+    do: [error("#{path}.operational_feedback", "must be an object") | issues]
 
-  defp validate_probability_maps(issues, callbacks, path, feedback, fields) do
+  defp validate_probability_maps(issues, path, feedback, fields) do
     Enum.reduce(fields, issues, fn field, acc ->
-      validate_feedback_map(acc, callbacks, path, feedback, field, fn entry_path, value, issues ->
+      validate_feedback_map(acc, path, feedback, field, fn entry_path, value, issues ->
         case value do
           value when is_number(value) and value >= 0.0 and value <= 1.0 ->
             issues
 
           value when is_number(value) ->
-            [error(callbacks, entry_path, "must be between 0.0 and 1.0") | issues]
+            [error(entry_path, "must be between 0.0 and 1.0") | issues]
 
           _value ->
-            [error(callbacks, entry_path, "must be a number") | issues]
+            [error(entry_path, "must be a number") | issues]
         end
       end)
     end)
   end
 
-  defp validate_number_maps(issues, callbacks, path, feedback, fields) do
+  defp validate_number_maps(issues, path, feedback, fields) do
     Enum.reduce(fields, issues, fn field, acc ->
-      validate_feedback_map(acc, callbacks, path, feedback, field, fn entry_path, value, issues ->
+      validate_feedback_map(acc, path, feedback, field, fn entry_path, value, issues ->
         case value do
           value when is_number(value) and value >= 0.0 ->
             issues
 
           value when is_number(value) ->
-            [error(callbacks, entry_path, "must be non-negative") | issues]
+            [error(entry_path, "must be non-negative") | issues]
 
           _value ->
-            [error(callbacks, entry_path, "must be a number") | issues]
+            [error(entry_path, "must be a number") | issues]
         end
       end)
     end)
   end
 
-  defp validate_string_maps(issues, callbacks, path, feedback, fields) do
+  defp validate_string_maps(issues, path, feedback, fields) do
     Enum.reduce(fields, issues, fn field, acc ->
-      validate_feedback_map(acc, callbacks, path, feedback, field, fn entry_path, value, issues ->
+      validate_feedback_map(acc, path, feedback, field, fn entry_path, value, issues ->
         if is_binary(value) do
           issues
         else
-          [error(callbacks, entry_path, "must be a string") | issues]
+          [error(entry_path, "must be a string") | issues]
         end
       end)
     end)
   end
 
-  defp validate_string_list_maps(issues, callbacks, path, feedback, fields) do
+  defp validate_string_list_maps(issues, path, feedback, fields) do
     Enum.reduce(fields, issues, fn field, acc ->
-      validate_feedback_map(acc, callbacks, path, feedback, field, fn entry_path, value, issues ->
+      validate_feedback_map(acc, path, feedback, field, fn entry_path, value, issues ->
         cond do
           not is_list(value) ->
-            [error(callbacks, entry_path, "must be an array") | issues]
+            [error(entry_path, "must be an array") | issues]
 
           Enum.all?(value, &is_binary/1) ->
             issues
 
           true ->
-            [error(callbacks, entry_path, "must contain only strings") | issues]
+            [error(entry_path, "must contain only strings") | issues]
         end
       end)
     end)
   end
 
-  defp validate_object_maps(issues, callbacks, path, feedback, fields) do
+  defp validate_object_maps(issues, path, feedback, fields) do
     Enum.reduce(fields, issues, fn field, acc ->
-      validate_feedback_map(acc, callbacks, path, feedback, field, fn entry_path, value, issues ->
+      validate_feedback_map(acc, path, feedback, field, fn entry_path, value, issues ->
         if is_map(value) do
           issues
         else
-          [error(callbacks, entry_path, "must be an object") | issues]
+          [error(entry_path, "must be an object") | issues]
         end
       end)
     end)
   end
 
-  defp validate_feedback_map(issues, callbacks, path, feedback, field, entry_validator) do
+  defp validate_feedback_map(issues, path, feedback, field, entry_validator) do
     case Map.get(feedback, field) do
       nil ->
         issues
@@ -141,19 +145,7 @@ defmodule OrbitalDynamics.Schema.OperationalFeedbackContracts do
         end)
 
       _value ->
-        [error(callbacks, "#{path}.operational_feedback.#{field}", "must be an object") | issues]
+        [error("#{path}.operational_feedback.#{field}", "must be an object") | issues]
     end
   end
-
-  defp require_callback(callbacks, name), do: Keyword.fetch!(callbacks, name)
-
-  defp validate_optional_rows(issues, callbacks, path, rows, validator),
-    do:
-      apply(require_callback(callbacks, :validate_optional_rows), [issues, path, rows, validator])
-
-  defp validate_realized_activity(callbacks, issues, path, activity),
-    do: apply(require_callback(callbacks, :validate_realized_activity), [issues, path, activity])
-
-  defp error(callbacks, path, message),
-    do: apply(require_callback(callbacks, :error), [path, message])
 end
