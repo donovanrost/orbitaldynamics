@@ -9611,16 +9611,8 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.StationCalendarContactCountContracts.validate(
       issues,
       path,
-      contact,
-      station_calendar_contact_count_contract_callbacks()
+      contact
     )
-  end
-
-  defp station_calendar_contact_count_contract_callbacks do
-    [
-      expect_field_equals: &expect_field_equals/5,
-      list_count: &list_count/2
-    ]
   end
 
   defp validate_resource_summary(issues, path, summary) do

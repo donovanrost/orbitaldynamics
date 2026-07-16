@@ -521,12 +521,11 @@ defmodule OrbitalDynamics.Schema.StationCalendarReportContracts do
     end
   end
 
-  defp validate_station_calendar_contact_counts(issues, callbacks, path, contact) do
+  defp validate_station_calendar_contact_counts(issues, _callbacks, path, contact) do
     OrbitalDynamics.Schema.StationCalendarContactCountContracts.validate(
       issues,
       path,
-      contact,
-      callbacks
+      contact
     )
   end
 
