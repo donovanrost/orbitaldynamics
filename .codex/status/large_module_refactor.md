@@ -9,7 +9,7 @@ Current slice:
 Completed: contact-allocation provider-reservation registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Move the contact-allocation provider-reservation request summary contract into
@@ -80,7 +80,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`864d7901` (`Extract contact contention registry contracts`).
+`c3f27788` (`Extract provider reservation registry contract`).
 
 Next candidate:
 Assess the adjacent contact-allocation capacity-pack summary as the next bounded
