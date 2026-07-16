@@ -7315,31 +7315,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp operational_execution_boundary_summary_contract_callbacks do
-    [
-      expect_equal: &expect_equal/5,
-      expect_one_of: &expect_one_of/5,
-      expect_optional_one_of: &expect_optional_one_of/5,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_non_negative_integer: &expect_non_negative_integer/4,
-      expect_field_equals: &expect_field_equals/5,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      validate_stable_ids: &validate_stable_ids/4,
-      validate_stable_id_list: &validate_stable_id_list/3,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_optional_exact_model_limits: &validate_optional_exact_model_limits/5,
-      validate_operational_readiness_gate: &validate_operational_readiness_gate/3,
-      operational_execution_boundary_summary_model_limits:
-        &operational_execution_boundary_summary_model_limits/0,
-      operational_readiness_level: &operational_readiness_level/1,
-      operational_readiness_report_status: &operational_readiness_report_status/1,
-      quality_gate_execution_boundary: &quality_gate_execution_boundary/1,
-      non_negative_integer_sum: &non_negative_integer_sum/1,
-      error: &error/2
-    ]
-  end
-
   defp operational_quality_gate_summary_contract_callbacks do
     [
       expect_equal: &expect_equal/5,
@@ -9890,12 +9865,9 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       summary,
-      operational_execution_boundary_summary_contract_callbacks()
+      operational_execution_boundary_summary_model_limits(),
+      &validate_operational_readiness_gate/3
     )
-  end
-
-  defp non_negative_integer_sum(values) do
-    if Enum.all?(values, &(is_integer(&1) and &1 >= 0)), do: Enum.sum(values)
   end
 
   defp validate_operational_readiness_evidence_gate_counts(issues, path, evidence, gates)

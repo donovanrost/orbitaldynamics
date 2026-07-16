@@ -9,7 +9,7 @@ Current slice:
 Operational-execution-boundary-summary callback-bag collapse.
 
 Status:
-Selected; implementation pending.
+Completed and ready to publish.
 
 Selected slice:
 Replace the 18-entry callback bag in
@@ -51,6 +51,23 @@ No execution-boundary-summary callback bag or shared-helper trampolines remain;
 direct owners, explicit model data, the gate-validator boundary, and local pure
 rules preserve exact validation order/messages; focused/broader/export checks
 pass; and bounded review finds no blocker.
+
+Completed result:
+Removed the 18-entry execution-boundary-summary callback bag and all owner
+trampolines. Shared primitive, stable-ID, and readiness-classification behavior
+now calls exact owners directly; model limits and the facade gate validator are
+explicit inputs; boundary mapping, count summation, and default equality
+messages remain exact local behavior. `schema.ex` fell from 12,163 to 12,135
+lines and the cohesive owner from 332 to 263.
+
+Verification:
+- compile with warnings as errors passed
+- 44 focused readiness/schema/replay/review tests passed
+- 1,051 broader candidate-refresh/operator-review tests passed
+- 22 schema-export tests passed
+- compile-connected xref, format, diff hygiene, and checked-in schema
+  regeneration were clean
+- bounded read-only review found no issues
 
 Verification gaps:
 - Full repository suite not run.

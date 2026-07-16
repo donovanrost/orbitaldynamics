@@ -1,90 +1,104 @@
 defmodule OrbitalDynamics.Schema.OperationalExecutionBoundarySummaryContracts do
   @moduledoc false
 
-  def validate_summary(issues, path, summary, callbacks) when is_list(callbacks) do
+  alias OrbitalDynamics.Schema.OperationalReadinessClassificationContracts,
+    as: ReadinessClassification
+
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [
+      error: 2,
+      expect_equal: 5,
+      expect_field_equals: 6,
+      expect_non_negative_integer: 4,
+      expect_one_of: 5,
+      expect_optional_one_of: 5,
+      expect_optional_type: 5,
+      expect_type: 5,
+      validate_optional_exact_model_limits: 5,
+      validate_string_list_items: 4
+    ]
+
+  import OrbitalDynamics.Schema.StableIdValidation,
+    only: [validate_stable_id_list: 3, validate_stable_ids: 4]
+
+  def validate_summary(issues, path, summary, model_limits, gate_validator)
+      when is_list(model_limits) and is_function(gate_validator, 3) do
     capability = OrbitalDynamics.OperationalReadiness.capabilities()
 
     issues
     |> expect_equal(
-      callbacks,
       path,
       summary,
       "schema_contract",
       "operational_execution_boundary_summary.v1"
     )
     |> expect_equal(
-      callbacks,
       path,
       summary,
       "model",
       "artifact_only_operational_execution_boundary_summary"
     )
-    |> expect_equal(callbacks, path, summary, "source", "operational_readiness_report.v1")
-    |> expect_type(callbacks, path, summary, "source_artifact_type", :binary)
-    |> validate_stable_ids(callbacks, path, summary, ["source_artifact_id"])
-    |> expect_one_of(callbacks, path, summary, "readiness_level", capability.readiness_levels)
+    |> expect_equal(path, summary, "source", "operational_readiness_report.v1")
+    |> expect_type(path, summary, "source_artifact_type", :binary)
+    |> validate_stable_ids(path, summary, ["source_artifact_id"])
+    |> expect_one_of(path, summary, "readiness_level", capability.readiness_levels)
     |> expect_one_of(
-      callbacks,
       path,
       summary,
       "import_classification",
       capability.import_classifications
     )
-    |> expect_one_of(callbacks, path, summary, "status", capability.gate_statuses)
-    |> expect_type(callbacks, path, summary, "import_eligible", :boolean)
-    |> expect_type(callbacks, path, summary, "handoff_only", :boolean)
-    |> expect_type(callbacks, path, summary, "execution_allowed", :boolean)
-    |> expect_type(callbacks, path, summary, "cadence_write_allowed", :boolean)
-    |> expect_type(callbacks, path, summary, "operator_authority_granted", :boolean)
-    |> expect_one_of(callbacks, path, summary, "execution_boundary", [
+    |> expect_one_of(path, summary, "status", capability.gate_statuses)
+    |> expect_type(path, summary, "import_eligible", :boolean)
+    |> expect_type(path, summary, "handoff_only", :boolean)
+    |> expect_type(path, summary, "execution_allowed", :boolean)
+    |> expect_type(path, summary, "cadence_write_allowed", :boolean)
+    |> expect_type(path, summary, "operator_authority_granted", :boolean)
+    |> expect_one_of(path, summary, "execution_boundary", [
       "adapter_handoff_only",
       "operator_review_required_before_import",
       "analysis_only_not_for_execution",
       "blocked_not_for_import_or_execution"
     ])
     |> expect_optional_one_of(
-      callbacks,
       path,
       summary,
       "analysis_mode",
       capability.analysis_modes
     )
-    |> expect_optional_type(callbacks, path, summary, "analysis_mode_source", :binary)
-    |> expect_type(callbacks, path, summary, "operational_mode_gate", :map)
-    |> validate_operational_readiness_gate(
-      callbacks,
+    |> expect_optional_type(path, summary, "analysis_mode_source", :binary)
+    |> expect_type(path, summary, "operational_mode_gate", :map)
+    |> gate_validator.(
       path <> ".operational_mode_gate",
       Map.get(summary, "operational_mode_gate")
     )
-    |> expect_non_negative_integer(callbacks, path, summary, "gate_count")
-    |> expect_non_negative_integer(callbacks, path, summary, "passed_gate_count")
-    |> expect_non_negative_integer(callbacks, path, summary, "review_gate_count")
-    |> expect_non_negative_integer(callbacks, path, summary, "analysis_gate_count")
-    |> expect_non_negative_integer(callbacks, path, summary, "blocked_gate_count")
-    |> expect_non_negative_integer(callbacks, path, summary, "non_passed_gate_count")
-    |> expect_type(callbacks, path, summary, "non_passed_gate_ids", :list)
+    |> expect_non_negative_integer(path, summary, "gate_count")
+    |> expect_non_negative_integer(path, summary, "passed_gate_count")
+    |> expect_non_negative_integer(path, summary, "review_gate_count")
+    |> expect_non_negative_integer(path, summary, "analysis_gate_count")
+    |> expect_non_negative_integer(path, summary, "blocked_gate_count")
+    |> expect_non_negative_integer(path, summary, "non_passed_gate_count")
+    |> expect_type(path, summary, "non_passed_gate_ids", :list)
     |> validate_stable_id_list(
-      callbacks,
       path <> ".non_passed_gate_ids",
       Map.get(summary, "non_passed_gate_ids")
     )
-    |> expect_type(callbacks, path, summary, "assumptions", :map)
-    |> expect_optional_type(callbacks, path, summary, "model_limits", :list)
-    |> validate_string_list_items(callbacks, path, summary, "model_limits")
+    |> expect_type(path, summary, "assumptions", :map)
+    |> expect_optional_type(path, summary, "model_limits", :list)
+    |> validate_string_list_items(path, summary, "model_limits")
     |> validate_optional_exact_model_limits(
-      callbacks,
       path,
       summary,
-      operational_execution_boundary_summary_model_limits(callbacks),
+      model_limits,
       "must match operational execution boundary summary model limits"
     )
-    |> validate_assumptions(callbacks, path, summary)
-    |> validate_classification(callbacks, path, summary)
-    |> validate_counts(callbacks, path, summary)
-    |> validate_mode(callbacks, path, summary)
+    |> validate_assumptions(path, summary)
+    |> validate_classification(path, summary)
+    |> validate_counts(path, summary)
+    |> validate_mode(path, summary)
   end
 
-  defp validate_assumptions(issues, callbacks, path, summary) do
+  defp validate_assumptions(issues, path, summary) do
     case Map.get(summary, "assumptions") do
       %{} = assumptions ->
         [
@@ -95,7 +109,7 @@ defmodule OrbitalDynamics.Schema.OperationalExecutionBoundarySummaryContracts do
           {"command_execution", "not_performed_by_summary"}
         ]
         |> Enum.reduce(issues, fn {field, expected}, acc ->
-          expect_equal(acc, callbacks, path <> ".assumptions", assumptions, field, expected)
+          expect_equal(acc, path <> ".assumptions", assumptions, field, expected)
         end)
 
       _assumptions ->
@@ -103,56 +117,52 @@ defmodule OrbitalDynamics.Schema.OperationalExecutionBoundarySummaryContracts do
     end
   end
 
-  defp validate_classification(issues, callbacks, path, summary) do
+  defp validate_classification(issues, path, summary) do
     import_classification = Map.get(summary, "import_classification")
 
     issues
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "readiness_level",
-      operational_readiness_level(callbacks, import_classification),
+      ReadinessClassification.readiness_level(import_classification),
       "must match import classification"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "status",
-      operational_readiness_report_status(callbacks, import_classification),
+      ReadinessClassification.report_status(import_classification),
       "must match import classification"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "execution_boundary",
-      quality_gate_execution_boundary(callbacks, import_classification),
+      quality_gate_execution_boundary(import_classification),
       "must match import classification"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "import_eligible",
       import_classification == "importable",
       "must match import classification"
     )
-    |> expect_field_equals(callbacks, path, summary, "handoff_only", true)
-    |> expect_field_equals(callbacks, path, summary, "execution_allowed", false)
-    |> expect_field_equals(callbacks, path, summary, "cadence_write_allowed", false)
-    |> expect_field_equals(callbacks, path, summary, "operator_authority_granted", false)
+    |> expect_field_equals(path, summary, "handoff_only", true)
+    |> expect_field_equals(path, summary, "execution_allowed", false)
+    |> expect_field_equals(path, summary, "cadence_write_allowed", false)
+    |> expect_field_equals(path, summary, "operator_authority_granted", false)
   end
 
-  defp validate_counts(issues, callbacks, path, summary) do
+  defp validate_counts(issues, path, summary) do
     passed_count = Map.get(summary, "passed_gate_count")
     review_count = Map.get(summary, "review_gate_count")
     analysis_count = Map.get(summary, "analysis_gate_count")
     blocked_count = Map.get(summary, "blocked_gate_count")
 
     total_count =
-      non_negative_integer_sum(callbacks, [
+      non_negative_integer_sum([
         passed_count,
         review_count,
         analysis_count,
@@ -160,11 +170,10 @@ defmodule OrbitalDynamics.Schema.OperationalExecutionBoundarySummaryContracts do
       ])
 
     non_passed_count =
-      non_negative_integer_sum(callbacks, [review_count, analysis_count, blocked_count])
+      non_negative_integer_sum([review_count, analysis_count, blocked_count])
 
     issues
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "gate_count",
@@ -172,7 +181,6 @@ defmodule OrbitalDynamics.Schema.OperationalExecutionBoundarySummaryContracts do
       "must equal gate status counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "non_passed_gate_count",
@@ -180,7 +188,6 @@ defmodule OrbitalDynamics.Schema.OperationalExecutionBoundarySummaryContracts do
       "must equal review, analysis, and blocked gate counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "non_passed_gate_count",
@@ -189,7 +196,7 @@ defmodule OrbitalDynamics.Schema.OperationalExecutionBoundarySummaryContracts do
     )
   end
 
-  defp validate_mode(issues, callbacks, path, summary) do
+  defp validate_mode(issues, path, summary) do
     operational_mode_gate = Map.get(summary, "operational_mode_gate")
 
     issues =
@@ -197,14 +204,12 @@ defmodule OrbitalDynamics.Schema.OperationalExecutionBoundarySummaryContracts do
         %{} = gate ->
           issues
           |> expect_equal(
-            callbacks,
             path <> ".operational_mode_gate",
             gate,
             "id",
             "operational_mode"
           )
           |> expect_field_equals(
-            callbacks,
             path,
             summary,
             "analysis_mode",
@@ -212,7 +217,6 @@ defmodule OrbitalDynamics.Schema.OperationalExecutionBoundarySummaryContracts do
             "must match operational_mode_gate.analysis_mode"
           )
           |> expect_field_equals(
-            callbacks,
             path,
             summary,
             "analysis_mode_source",
@@ -229,7 +233,6 @@ defmodule OrbitalDynamics.Schema.OperationalExecutionBoundarySummaryContracts do
          not Map.has_key?(summary, "analysis_mode") do
       [
         error(
-          callbacks,
           path <> ".analysis_mode",
           "must match operational_mode_gate.analysis_mode"
         )
@@ -243,90 +246,18 @@ defmodule OrbitalDynamics.Schema.OperationalExecutionBoundarySummaryContracts do
   defp list_or_empty(values) when is_list(values), do: values
   defp list_or_empty(_values), do: []
 
-  defp expect_equal(issues, callbacks, path, map, field, expected),
-    do: apply(Keyword.fetch!(callbacks, :expect_equal), [issues, path, map, field, expected])
+  defp expect_field_equals(issues, path, map, field, expected),
+    do: expect_field_equals(issues, path, map, field, expected, "must equal #{expected}")
 
-  defp expect_one_of(issues, callbacks, path, map, field, allowed),
-    do: apply(Keyword.fetch!(callbacks, :expect_one_of), [issues, path, map, field, allowed])
+  defp quality_gate_execution_boundary("importable"), do: "adapter_handoff_only"
 
-  defp expect_optional_one_of(issues, callbacks, path, map, field, allowed) do
-    apply(Keyword.fetch!(callbacks, :expect_optional_one_of), [
-      issues,
-      path,
-      map,
-      field,
-      allowed
-    ])
+  defp quality_gate_execution_boundary("review_only"),
+    do: "operator_review_required_before_import"
+
+  defp quality_gate_execution_boundary("analysis_only"), do: "analysis_only_not_for_execution"
+  defp quality_gate_execution_boundary("blocked"), do: "blocked_not_for_import_or_execution"
+
+  defp non_negative_integer_sum(values) do
+    if Enum.all?(values, &(is_integer(&1) and &1 >= 0)), do: Enum.sum(values)
   end
-
-  defp expect_type(issues, callbacks, path, map, field, type),
-    do: apply(Keyword.fetch!(callbacks, :expect_type), [issues, path, map, field, type])
-
-  defp expect_optional_type(issues, callbacks, path, map, field, type),
-    do: apply(Keyword.fetch!(callbacks, :expect_optional_type), [issues, path, map, field, type])
-
-  defp expect_non_negative_integer(issues, callbacks, path, map, field),
-    do: apply(Keyword.fetch!(callbacks, :expect_non_negative_integer), [issues, path, map, field])
-
-  defp expect_field_equals(issues, callbacks, path, map, field, expected) do
-    apply(Keyword.fetch!(callbacks, :expect_field_equals), [
-      issues,
-      path,
-      map,
-      field,
-      expected
-    ])
-  end
-
-  defp expect_field_equals(issues, callbacks, path, map, field, expected, message) do
-    apply(Keyword.fetch!(callbacks, :expect_field_equals_with_message), [
-      issues,
-      path,
-      map,
-      field,
-      expected,
-      message
-    ])
-  end
-
-  defp validate_stable_ids(issues, callbacks, path, map, fields),
-    do: apply(Keyword.fetch!(callbacks, :validate_stable_ids), [issues, path, map, fields])
-
-  defp validate_stable_id_list(issues, callbacks, path, values),
-    do: apply(Keyword.fetch!(callbacks, :validate_stable_id_list), [issues, path, values])
-
-  defp validate_string_list_items(issues, callbacks, path, map, field),
-    do: apply(Keyword.fetch!(callbacks, :validate_string_list_items), [issues, path, map, field])
-
-  defp validate_optional_exact_model_limits(issues, callbacks, path, artifact, expected, message) do
-    apply(Keyword.fetch!(callbacks, :validate_optional_exact_model_limits), [
-      issues,
-      path,
-      artifact,
-      expected,
-      message
-    ])
-  end
-
-  defp validate_operational_readiness_gate(issues, callbacks, path, gate) do
-    apply(Keyword.fetch!(callbacks, :validate_operational_readiness_gate), [issues, path, gate])
-  end
-
-  defp operational_execution_boundary_summary_model_limits(callbacks),
-    do: apply(Keyword.fetch!(callbacks, :operational_execution_boundary_summary_model_limits), [])
-
-  defp operational_readiness_level(callbacks, classification),
-    do: apply(Keyword.fetch!(callbacks, :operational_readiness_level), [classification])
-
-  defp operational_readiness_report_status(callbacks, classification),
-    do: apply(Keyword.fetch!(callbacks, :operational_readiness_report_status), [classification])
-
-  defp quality_gate_execution_boundary(callbacks, classification),
-    do: apply(Keyword.fetch!(callbacks, :quality_gate_execution_boundary), [classification])
-
-  defp non_negative_integer_sum(callbacks, values),
-    do: apply(Keyword.fetch!(callbacks, :non_negative_integer_sum), [values])
-
-  defp error(callbacks, path, message),
-    do: apply(Keyword.fetch!(callbacks, :error), [path, message])
 end
