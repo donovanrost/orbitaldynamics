@@ -1,7 +1,9 @@
 defmodule OrbitalDynamics.Schema.ResourceProjectionFlowSummaryCountContracts do
   @moduledoc false
 
-  def validate(issues, path, summary, callbacks) when is_list(callbacks) do
+  alias OrbitalDynamics.Schema.PrimitiveValidation
+
+  def validate(issues, path, summary) do
     projected_rows =
       summary
       |> Map.get("projected_resources", [])
@@ -37,32 +39,28 @@ defmodule OrbitalDynamics.Schema.ResourceProjectionFlowSummaryCountContracts do
       end
 
     issues
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "invalid_activity_input_count",
       length(invalid_activity_ids),
       "must equal invalid_activity_input_ids count"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "invalid_resource_summary_input_count",
       length(invalid_summary_ids),
       "must equal invalid_resource_summary_input_ids count"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "activity_count",
       integer_or_zero(Map.get(summary, "valid_activity_count")) + length(invalid_activity_ids),
       "must equal valid_activity_count plus invalid_activity_input_ids count"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "input_resource_summary_count",
@@ -70,365 +68,324 @@ defmodule OrbitalDynamics.Schema.ResourceProjectionFlowSummaryCountContracts do
         length(invalid_summary_ids),
       "must equal valid_resource_summary_count plus invalid_resource_summary_input_ids count"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "projected_resource_count",
       length(projected_rows),
       "must equal projected_resources count"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "valid_resource_summary_count",
       length(projected_rows),
       "must equal projected_resources count"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "flow_row_count",
       length(flow_rows),
       "must equal activity_resource_flow row count"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "ignored_activity_count",
       length(ignored_rows),
       "must equal ignored activity_resource_flow row count"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "ignored_activity_reason_counts",
       ignored_activity_reason_counts(ignored_rows),
       "must equal ignored activity_resource_flow reason counts"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "ignored_activity_ids",
       ignored_activity_ids(ignored_rows),
       "must equal ignored activity_resource_flow activity IDs"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "ignored_activity_ids_by_reason",
       ignored_activity_ids_by_reason(ignored_rows),
       "must equal ignored activity_resource_flow activity IDs by reason"
     )
-    |> expect_field_equals(callbacks, path, summary, "resource_flow_status", expected_flow_status)
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
+      path,
+      summary,
+      "resource_flow_status",
+      expected_flow_status
+    )
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "resource_pressure_status",
       if(pressure_rows == [], do: "clear", else: "review_required")
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "resource_pressure_count",
       length(pressure_rows),
       "must equal projected resource pressure row count"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "resource_pressure_types",
       pressure_types,
       "must equal row-derived resource_pressure_types"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "resource_pressure_spacecraft_ids",
       Enum.map(pressure_rows, &Map.get(&1, "spacecraft_id")) |> sorted_stable_values(),
       "must equal row-derived resource_pressure_spacecraft_ids"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "resource_pressure_spacecraft_ids_by_type",
       spacecraft_ids_by_type(projected_rows, flow_rows),
       "must equal row-derived resource_pressure_spacecraft_ids_by_type"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "resource_pressure_activity_ids_by_type",
       activity_ids_by_type(flow_rows),
       "must equal row-derived resource_pressure_activity_ids_by_type"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "resource_pressure_ground_station_ids_by_type",
       ground_station_ids_by_type(flow_rows),
       "must equal row-derived resource_pressure_ground_station_ids_by_type"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "resource_pressure_source_window_ids_by_type",
       source_window_ids_by_type(flow_rows),
       "must equal row-derived resource_pressure_source_window_ids_by_type"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "resource_pressure_station_calendar_entry_ids_by_type",
       station_calendar_entry_ids_by_type(flow_rows),
       "must equal row-derived resource_pressure_station_calendar_entry_ids_by_type"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "resource_pressure_station_calendar_provider_ids_by_type",
       station_calendar_provider_ids_by_type(flow_rows),
       "must equal row-derived resource_pressure_station_calendar_provider_ids_by_type"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "resource_pressure_station_calendar_provider_entry_ids_by_type",
       station_calendar_provider_entry_ids_by_type(flow_rows),
       "must equal row-derived resource_pressure_station_calendar_provider_entry_ids_by_type"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "resource_pressure_station_calendar_directions_by_type",
       station_calendar_directions_by_type(flow_rows),
       "must equal row-derived resource_pressure_station_calendar_directions_by_type"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "resource_pressure_capacity_fractions_by_type",
       capacity_fractions_by_type(flow_rows),
       "must equal row-derived resource_pressure_capacity_fractions_by_type"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "total_storage_produced_mb",
       sum_flow_number(flow_rows, "storage_produced_mb"),
       "must equal activity_resource_flow storage_produced_mb sum"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "total_planned_downlink_mb",
       sum_flow_number(flow_rows, "planned_downlink_mb"),
       "must equal activity_resource_flow planned_downlink_mb sum"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "total_storage_limited_downlinked_mb",
       sum_flow_number(flow_rows, "downlinked_mb"),
       "must equal activity_resource_flow downlinked_mb sum"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "total_unused_downlink_capacity_mb",
       sum_flow_number(flow_rows, "unused_downlink_capacity_mb"),
       "must equal activity_resource_flow unused_downlink_capacity_mb sum"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "total_storage_overflow_mb",
       sum_flow_number(flow_rows, "storage_overflow_mb"),
       "must equal activity_resource_flow storage_overflow_mb sum"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "total_downlink_shortfall_mb",
       sum_flow_number(flow_rows, "downlink_shortfall_mb"),
       "must equal activity_resource_flow downlink_shortfall_mb sum"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "actual_data_volume_evidence_count",
       actual_data_volume_evidence_count(flow_rows),
       "must equal activity_resource_flow actual_data_volume_mb evidence count"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "total_actual_data_volume_mb",
       sum_flow_number(flow_rows, "actual_data_volume_mb"),
       "must equal activity_resource_flow actual_data_volume_mb sum"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "total_data_volume_delta_mb",
       sum_flow_number(flow_rows, "data_volume_delta_mb"),
       "must equal activity_resource_flow data_volume_delta_mb sum"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "actual_data_volume_under_delivered_activity_ids",
       data_volume_variance_activity_ids(flow_rows, :under_delivered),
       "must equal activity_resource_flow under-delivered actual data-volume activity IDs"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "actual_data_volume_over_delivered_activity_ids",
       data_volume_variance_activity_ids(flow_rows, :over_delivered),
       "must equal activity_resource_flow over-delivered actual data-volume activity IDs"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "actual_data_volume_exact_activity_ids",
       data_volume_variance_activity_ids(flow_rows, :exact),
       "must equal activity_resource_flow exact actual data-volume activity IDs"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "total_projected_storage_remaining_mb",
       sum_remaining(projected_rows, "storage_capacity_mb", "projected_storage_used_mb"),
       "must equal projected_resources storage remaining sum"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "minimum_projected_storage_remaining_mb",
       min_remaining(projected_rows, "storage_capacity_mb", "projected_storage_used_mb"),
       "must equal projected_resources minimum storage remaining"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "total_projected_downlink_remaining_mb",
       sum_remaining(projected_rows, "downlink_capacity_mb", "estimated_downlink_mb"),
       "must equal projected_resources downlink remaining sum"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "minimum_projected_downlink_remaining_mb",
       min_remaining(projected_rows, "downlink_capacity_mb", "estimated_downlink_mb"),
       "must equal projected_resources minimum downlink remaining"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "latency_status",
       latency_status(latency_evidence_count, latency_review_count)
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "latency_evidence_count",
       latency_evidence_count,
       "must equal activity_resource_flow latency evidence count"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "latency_review_count",
       latency_review_count,
       "must equal activity_resource_flow late latency count"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "latency_review_activity_ids",
       latency_review_ids,
       "must equal activity_resource_flow late activity IDs"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "max_planned_latency_s",
       max_optional_flow_number(flow_rows, "planned_latency_s")
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "max_actual_latency_s",
       max_optional_flow_number(flow_rows, "actual_latency_s")
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "total_battery_energy_consumed_wh",
       sum_flow_number(flow_rows, "battery_energy_consumed_wh"),
       "must equal activity_resource_flow battery_energy_consumed_wh sum"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "total_battery_energy_generated_wh",
       sum_flow_number(flow_rows, "battery_energy_generated_wh"),
       "must equal activity_resource_flow battery_energy_generated_wh sum"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "net_battery_energy_delta_wh",
       sum_flow_number(flow_rows, "battery_energy_delta_wh"),
       "must equal activity_resource_flow battery_energy_delta_wh sum"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       summary,
       "peak_battery_overuse_wh",
@@ -735,28 +692,4 @@ defmodule OrbitalDynamics.Schema.ResourceProjectionFlowSummaryCountContracts do
     |> Enum.uniq()
     |> Enum.sort()
   end
-
-  defp expect_field_equals(issues, callbacks, path, map, field, expected) do
-    apply(require_callback(callbacks, :expect_field_equals), [
-      issues,
-      path,
-      map,
-      field,
-      expected,
-      nil
-    ])
-  end
-
-  defp expect_field_equals(issues, callbacks, path, map, field, expected, message) do
-    apply(require_callback(callbacks, :expect_field_equals), [
-      issues,
-      path,
-      map,
-      field,
-      expected,
-      message
-    ])
-  end
-
-  defp require_callback(callbacks, name), do: Keyword.fetch!(callbacks, name)
 end

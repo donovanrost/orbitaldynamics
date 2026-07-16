@@ -24,6 +24,7 @@ defmodule OrbitalDynamics.Schema do
       error: 2,
       expect_equal: 5,
       expect_field_at_least: 5,
+      expect_field_equals: 6,
       expect_field_matches_list_count: 6,
       expect_number: 4,
       expect_number_vector: 3,
@@ -11325,15 +11326,8 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.ResourceProjectionFlowSummaryCountContracts.validate(
       issues,
       path,
-      summary,
-      resource_projection_flow_summary_count_contract_callbacks()
+      summary
     )
-  end
-
-  defp resource_projection_flow_summary_count_contract_callbacks do
-    [
-      expect_field_equals: &expect_field_equals/6
-    ]
   end
 
   defp resource_projection_handoff_contract_callbacks do
@@ -12525,16 +12519,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp expect_field_equals(issues, path, map, field, expected),
     do: expect_field_equals(issues, path, map, field, expected, "must equal #{expected}")
-
-  defp expect_field_equals(issues, _path, _map, _field, nil, _message), do: issues
-
-  defp expect_field_equals(issues, path, map, field, expected, message) do
-    if Map.has_key?(map, field) and Map.get(map, field) != expected do
-      [error("#{path}.#{field}", message) | issues]
-    else
-      issues
-    end
-  end
 
   defp expect_optional_list_field_equals(issues, path, map, field, expected, message) do
     value = Map.get(map, field)

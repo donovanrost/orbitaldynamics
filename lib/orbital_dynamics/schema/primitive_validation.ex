@@ -168,6 +168,19 @@ defmodule OrbitalDynamics.Schema.PrimitiveValidation do
     end
   end
 
+  def expect_field_equals(issues, path, map, field, expected),
+    do: expect_field_equals(issues, path, map, field, expected, nil)
+
+  def expect_field_equals(issues, _path, _map, _field, nil, _message), do: issues
+
+  def expect_field_equals(issues, path, map, field, expected, message) do
+    if Map.has_key?(map, field) and Map.get(map, field) != expected do
+      [error("#{path}.#{field}", message) | issues]
+    else
+      issues
+    end
+  end
+
   def expect_field_matches_list_count(issues, path, map, count_field, list_field, message) do
     case Map.get(map, list_field) do
       values when is_list(values) ->
