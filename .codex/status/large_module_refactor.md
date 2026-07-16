@@ -6,22 +6,23 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Completed: activity contract callback ownership cleanup.
+Completed: proposed-contact callback and model-limit ownership cleanup.
 
 Status:
 Completed and published.
 
 Selected slice:
-Replace shared activity and contact-field callback plumbing with direct
-primitive and stable-ID support calls.
+Move proposed-contact model limits into the family module and replace its
+callback bag with direct activity, primitive, and stable-ID dependencies.
 
 Why this slice:
-All eight callbacks map to existing support modules; completing this boundary
-also makes proposed-contact ownership cleanup direct and bounded.
+Activity/contact validation is now callback-free, the limits are static
+family metadata, and every remaining callback maps to existing support.
 
 Current coupling/problem:
-Resolved. Shared activity/contact validation calls primitive and stable-ID
-support directly, and facade consumers delegate without a callback bag.
+Resolved. Model limits are family-owned, shared contact validation is a direct
+activity dependency, primitive/stable-ID support is direct, and the facade only
+delegates contacts.
 
 Public facade preserved:
 - `OrbitalDynamics.Schema.validate_artifact/2`
@@ -32,41 +33,44 @@ Public facade preserved:
 Files changed:
 - `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/activity_contracts.ex`
+- `lib/orbital_dynamics/schema/proposed_contact_contracts.ex`
 
 Definition of done:
-Activity callback plumbing is gone, focused planned/candidate/contact/export
-tests and fingerprint pass, and xref shows direct primitive/stable-ID support.
+Proposed-contact metadata is family-owned, callback plumbing is gone, focused
+contact/export tests and fingerprint pass, and xref shows direct activity,
+primitive, and stable-ID dependencies.
 
 Behavior/schema changes:
-None. Activity/contact required fields, intervals, directions, reservation
-metadata, paths/messages, and deterministic schema output remain unchanged.
+None. Contact identity, intervals, timeline/source-window matching, model limits,
+reservation metadata, paths/messages, and schema output remain unchanged.
 
 Tests run:
 - `mix compile --warnings-as-errors` passed.
-- Seven planned/candidate/contact/campaign/export tests passed.
+- Six proposed-contact, fixture, Cadence-row, and export tests passed.
 - Full checked-in schema export produced no diffs.
 - Exact schema fingerprint remained
   `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`.
-- Xref shows the facade caller and direct primitive/stable-ID dependencies.
+- Xref shows the facade caller and direct activity, primitive, and stable-ID
+  dependencies.
 - Formatting and `git diff --check` passed.
 
 Verification gaps:
-- Full suite not run; the focused seven-test activity/export gate and
-  deterministic fingerprint are the verification boundary for this slice.
+- Full suite not run; the focused six-test contact/export gate and deterministic
+  fingerprint are the verification boundary for this slice.
 
 Last commit:
-`2f4ffd0e` (`Collapse activity contract callbacks`).
+`30ee2f3f` (`Collapse proposed contact callbacks`).
 
 Next candidate:
-Collapse proposed-contact callback ownership after activity verification.
+Collapse policy-escalation callback ownership; its nested validator uses only
+four primitive/stable-ID support operations.
 
 Blocked:
 No.
 
 Notes:
-- `schema.ex` is 14,193 lines after this slice (down from 14,208).
-- `ActivityContracts` is 82 lines and callback-free.
+- `schema.ex` is 14,172 lines after this slice (down from 14,193).
+- `ProposedContactContracts` is 129 lines and callback-free.
 - Activity-context cleanup was audited and deferred because its 17 callbacks
   include facade-owned validators; this slice is the bounded alternative.
 - Parent review/publishing is the active-mode fallback because subagent
