@@ -1328,36 +1328,6 @@ defmodule OrbitalDynamics.Schema do
         "cadence_import"
       ],
       "nested_contracts" => []
-    },
-    @activity_template => %{
-      "schema_contract" => @activity_template,
-      "artifact_family" => "activity_template",
-      "schema_version" => 1,
-      "required_fields" => [
-        "schema_contract",
-        "id",
-        "activity_type",
-        "template_version",
-        "validation_level",
-        "known_limits"
-      ],
-      "optional_fields" => [
-        "display_name",
-        "description",
-        "required_fields",
-        "optional_fields",
-        "default_fields",
-        "field_count",
-        "required_field_count",
-        "optional_field_count",
-        "lifecycle_defaults",
-        "operational_hints",
-        "subsystem_state_hints",
-        "resource_hints",
-        "precondition_hints",
-        "assumptions"
-      ],
-      "nested_contracts" => []
     }
   }
 
@@ -1418,6 +1388,7 @@ defmodule OrbitalDynamics.Schema do
              |> Map.merge(OrbitalDynamics.Schema.StationReservationRegistryContracts.contracts())
              |> Map.merge(OrbitalDynamics.Schema.StationCalendarRegistryContracts.contracts())
              |> Map.merge(OrbitalDynamics.Schema.ContactContentionRegistryContracts.contracts())
+             |> Map.merge(OrbitalDynamics.Schema.ActivityTemplateRegistryContracts.contracts())
              |> Map.merge(OrbitalDynamics.Schema.ProposedContactRegistryContracts.contracts())
              |> Map.merge(OrbitalDynamics.Schema.ContactIntentRegistryContracts.contracts())
              |> Map.merge(OrbitalDynamics.Schema.CommandWindowRegistryContracts.contracts())
