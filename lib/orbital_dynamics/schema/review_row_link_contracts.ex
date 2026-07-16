@@ -1,10 +1,11 @@
 defmodule OrbitalDynamics.Schema.ReviewRowLinkContracts do
   @moduledoc false
 
-  def validate(issues, path, row, callbacks) when is_list(callbacks) do
+  alias OrbitalDynamics.Schema.StableIdValidation
+
+  def validate(issues, path, row) do
     issues
-    |> validate_nested_id_match(
-      callbacks,
+    |> StableIdValidation.validate_nested_id_match(
       path,
       row,
       "source_window",
@@ -12,8 +13,7 @@ defmodule OrbitalDynamics.Schema.ReviewRowLinkContracts do
       "source_window_id",
       "must match source_window_id"
     )
-    |> validate_nested_id_match(
-      callbacks,
+    |> StableIdValidation.validate_nested_id_match(
       path,
       row,
       "source_window_lineage",
@@ -21,8 +21,7 @@ defmodule OrbitalDynamics.Schema.ReviewRowLinkContracts do
       "activity_id",
       "must match activity_id"
     )
-    |> validate_nested_id_match(
-      callbacks,
+    |> StableIdValidation.validate_nested_id_match(
       path,
       row,
       "source_window_lineage",
@@ -30,8 +29,7 @@ defmodule OrbitalDynamics.Schema.ReviewRowLinkContracts do
       "source_window_id",
       "must match source_window_id"
     )
-    |> validate_nested_id_match(
-      callbacks,
+    |> StableIdValidation.validate_nested_id_match(
       path,
       row,
       "replacement_source_window",
@@ -39,8 +37,7 @@ defmodule OrbitalDynamics.Schema.ReviewRowLinkContracts do
       "replacement_source_window_id",
       "must match replacement_source_window_id"
     )
-    |> validate_nested_id_match(
-      callbacks,
+    |> StableIdValidation.validate_nested_id_match(
       path,
       row,
       "replacement_source_window_lineage",
@@ -48,8 +45,7 @@ defmodule OrbitalDynamics.Schema.ReviewRowLinkContracts do
       "replacement_candidate_id",
       "must match replacement_candidate_id"
     )
-    |> validate_nested_id_match(
-      callbacks,
+    |> StableIdValidation.validate_nested_id_match(
       path,
       row,
       "replacement_source_window_lineage",
@@ -58,27 +54,4 @@ defmodule OrbitalDynamics.Schema.ReviewRowLinkContracts do
       "must match replacement_source_window_id"
     )
   end
-
-  defp validate_nested_id_match(
-         issues,
-         callbacks,
-         path,
-         row,
-         nested_field,
-         nested_id_field,
-         expected_field,
-         message
-       ) do
-    apply(require_callback(callbacks, :validate_nested_id_match), [
-      issues,
-      path,
-      row,
-      nested_field,
-      nested_id_field,
-      expected_field,
-      message
-    ])
-  end
-
-  defp require_callback(callbacks, name), do: Keyword.fetch!(callbacks, name)
 end

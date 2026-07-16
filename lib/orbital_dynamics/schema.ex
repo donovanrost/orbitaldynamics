@@ -10,6 +10,7 @@ defmodule OrbitalDynamics.Schema do
   import OrbitalDynamics.Schema.StableIdValidation,
     only: [
       validate_nested_stable_id_array_map: 3,
+      validate_nested_id_match: 7,
       validate_optional_stable_id_list: 4,
       validate_optional_stable_ids: 4,
       validate_stable_id: 3,
@@ -11088,34 +11089,8 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.ReviewRowLinkContracts.validate(
       issues,
       path,
-      row,
-      review_row_link_contract_callbacks()
+      row
     )
-  end
-
-  defp review_row_link_contract_callbacks do
-    [
-      validate_nested_id_match: &validate_nested_id_match/7
-    ]
-  end
-
-  defp validate_nested_id_match(
-         issues,
-         path,
-         row,
-         nested_field,
-         nested_id_field,
-         expected_field,
-         message
-       ) do
-    nested = Map.get(row, nested_field)
-    expected = Map.get(row, expected_field)
-
-    if is_map(nested) and expected != nil and Map.get(nested, nested_id_field) != expected do
-      [error("#{path}.#{nested_field}.#{nested_id_field}", message) | issues]
-    else
-      issues
-    end
   end
 
   defp validate_contact_allocation_report_counts(issues, path, report) do

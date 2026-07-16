@@ -67,6 +67,25 @@ defmodule OrbitalDynamics.Schema.StableIdValidation do
     end
   end
 
+  def validate_nested_id_match(
+        issues,
+        path,
+        row,
+        nested_field,
+        nested_id_field,
+        expected_field,
+        message
+      ) do
+    nested = Map.get(row, nested_field)
+    expected = Map.get(row, expected_field)
+
+    if is_map(nested) and expected != nil and Map.get(nested, nested_id_field) != expected do
+      [error("#{path}.#{nested_field}.#{nested_id_field}", message) | issues]
+    else
+      issues
+    end
+  end
+
   def validate_stable_id(issues, path, value) when is_binary(value) do
     if Regex.match?(@stable_id_regex, value) do
       issues
