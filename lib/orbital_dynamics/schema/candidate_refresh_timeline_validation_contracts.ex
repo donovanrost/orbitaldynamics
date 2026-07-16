@@ -9,6 +9,20 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshTimelineValidationContracts do
       validate_string_list_items: 4
     ]
 
+  def validate_activity(issues, path, summary) do
+    issues
+    |> expect_optional_non_negative_integer(
+      path,
+      summary,
+      "invalid_activity_input_count"
+    )
+    |> validate_non_negative_integer_count_map(
+      path <> ".invalid_activity_input_reason_counts",
+      Map.get(summary, "invalid_activity_input_reason_counts")
+    )
+    |> validate_string_list_items(path, summary, "invalid_activity_input_reasons")
+  end
+
   def validate_activity_precondition(issues, path, summary) do
     issues =
       validate_integer_fields(issues, path, summary, [

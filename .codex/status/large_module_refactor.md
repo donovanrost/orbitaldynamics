@@ -9,7 +9,7 @@ Current slice:
 Candidate-refresh timeline-activity context extraction.
 
 Status:
-Selected; implementation pending.
+Complete; publication pending.
 
 Selected slice:
 Move the generic timeline-activity input validator into the existing timeline-
@@ -26,33 +26,38 @@ Public facade to preserve:
 argument order, validation order, paths, messages, and all other public
 signatures.
 
-Likely extraction target:
+Extraction target:
 `CandidateRefreshTimelineValidationContracts.validate_activity/3`.
 
-Likely files:
+Files:
 - `lib/orbital_dynamics/schema/candidate_refresh_report_contracts.ex`
 - `lib/orbital_dynamics/schema/candidate_refresh_timeline_validation_contracts.ex`
 - `.codex/status/large_module_refactor.md`
 
-Likely tests:
-- compile with warnings as errors
-- focused timeline-activity state/precondition replay tests
-- candidate-refresh schema/provenance contracts
-- broader candidate-refresh, deterministic export/fingerprint, xref, and format
+Result:
+The public `/4` facade delegates to a new 14-line entry point in the existing
+timeline-validation owner. The report-contract facade fell from 396 to 386
+lines without schema-export changes.
 
-Definition of done:
-The public `/4` context is a thin delegate with its guard unchanged, the complete
-three-field timeline-activity flow moves without duplication, validation order/
-paths/errors remain exact, and focused/broader checks pass.
+Verification:
+- compile with warnings as errors passed
+- seven focused timeline-activity files plus candidate-refresh schema and
+  resource-provenance contracts: 47 passed
+- broader candidate-refresh suite: 755 passed
+- schema export trio: 22 passed
+- full schema export reproduced checked-in artifacts with no diff
+- deterministic contract/bundle fingerprint remained
+  `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`
+- compile-connected xref roots stayed narrow; format and diff hygiene passed
+- bounded read-only review found no issues and independently passed compile,
+  the 47 focused tests, facade/API comparison, xref, format, and diff checks
 
 Verification gaps:
 - Full repository suite not run.
 
-Last completed slice:
-Review-feedback context extraction published as `ed0fbe29`: a 60-line owner
-reduced the report-contract facade from 436 to 396 lines; 41 focused, 755
-candidate-refresh, and 22 export tests passed; checked-in schemas and fingerprint
-were unchanged; bounded review found no issues.
+Last commit:
+Published review-feedback extraction `ed0fbe29`; selected this slice in
+`34f4ea79`.
 
 Blocked:
 No.

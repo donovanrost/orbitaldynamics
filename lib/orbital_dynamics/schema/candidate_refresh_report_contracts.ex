@@ -154,17 +154,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
 
   def validate_timeline_activity_context(issues, path, summary, callbacks)
       when is_list(callbacks) do
-    issues
-    |> expect_optional_non_negative_integer(
-      path,
-      summary,
-      "invalid_activity_input_count"
-    )
-    |> validate_non_negative_integer_count_map(
-      path <> ".invalid_activity_input_reason_counts",
-      Map.get(summary, "invalid_activity_input_reason_counts")
-    )
-    |> validate_string_list_items(path, summary, "invalid_activity_input_reasons")
+    CandidateRefreshTimelineValidationContracts.validate_activity(issues, path, summary)
   end
 
   def validate_timeline_activity_lifecycle_context(issues, path, summary, callbacks)
