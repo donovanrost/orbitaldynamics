@@ -6,35 +6,33 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Operational-quality-gate-summary callback-bag collapse.
+Quality-gate-row aggregation ownership cleanup.
 
 Status:
-Completed and ready to publish.
+Selected; implementation pending.
 
 Selected slice:
-Replace the 24-entry callback bag in
-`OperationalQualityGateSummaryContracts` with direct primitive, stable-ID,
-collection, aggregation, and readiness-classification owners, explicit
-model-limit data, one facade-owned quality-gate-row validator, and cohesive
-local grouping/boundary rules.
+Make `QualityGateRowContracts` own stable sorting for `ids_by`, `row_ids_by`,
+and `ids`; remove the aggregation-only callback parameter and the unused
+`stable_sorted_ids` row-validator callback entry; update facade wrappers and
+callers without changing results.
 
 Why this slice:
-Live inventory leaves `schema.ex` as the dominant production hotspot at 11,996
-lines. The 462-line core quality-gate summary owner is the natural consolidation
-point after its adjacent operator-training, schema-validation,
-unavailable-resource, and import-readiness owners were made direct-owner based.
-Its 24 callbacks have exact shared owners or bounded pure summary rules, with
-focused quality-gate replay/review/export coverage available.
+The completed core-summary review identified future drift risk because its
+grouping logic had to reproduce `QualityGateRowContracts` callback-driven
+aggregation. The 144-line row owner already owns these algorithms, while the
+stable-sort callback is not used by row validation. Consolidating this boundary
+before the 402-line quality-gate-report callback cleanup avoids a second copied
+implementation and makes the next slice smaller and safer.
 
 Public facade to preserve:
-`OrbitalDynamics.Schema.validate_artifact/2` and all operational quality-gate
-summary behavior, including classification/readiness/status/boundary derivation,
-gate and row counts/maps/ID sets, assumptions, exact messages, model limits,
-deterministic output/errors, replay consumers, and exports.
+`OrbitalDynamics.Schema.validate_artifact/2`, quality-gate row validation, and
+all report/summary gate-ID grouping, deduplication, sorting, status counts,
+error ordering, replay consumers, and exports.
 
 Likely files:
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/operational_quality_gate_summary_contracts.ex`
+- `lib/orbital_dynamics/schema/quality_gate_row_contracts.ex`
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
@@ -45,27 +43,9 @@ Likely verification:
 - compile-connected xref, format, diff hygiene, and bounded review
 
 Definition of done:
-No core quality-gate-summary callback bag or shared-helper trampolines remain;
-direct shared owners, explicit model data, the row-validator boundary, and
-cohesive local rules preserve exact validation/error order and messages;
-focused/broader/export checks pass; and bounded review finds no blocker.
-
-Completed result:
-Removed the 24-entry core quality-gate-summary callback bag and all owner
-trampolines. Primitive, stable-ID, collection, and readiness-classification
-behavior now calls exact owners directly; model limits and the facade row
-validator are explicit inputs; grouping, sorting, status-count, and boundary
-rules remain cohesive and behavior-identical. `schema.ex` fell from 11,996 to
-11,968 lines and the owner from 462 to 400.
-
-Verification:
-- compile with warnings as errors passed
-- 54 focused readiness/schema/quality-gate replay/review tests passed
-- 1,051 broader candidate-refresh/operator-review tests passed
-- 22 schema-export tests passed
-- compile-connected xref, format, diff hygiene, and checked-in schema
-  regeneration were clean
-- bounded read-only review found no issues
+Quality-gate row aggregation no longer requires a callback bag; stable sorting
+has one cohesive owner; row validation behavior is unchanged; focused/broader/
+export checks pass; and bounded review finds no blocker.
 
 Verification gaps:
 - Full repository suite not run.
@@ -73,13 +53,17 @@ Verification gaps:
   behavior in `SuppressedCandidateContracts`; unrelated to these slices.
 
 Last completed slice:
-Operational-quality-gate-import-readiness-summary callback collapse published
-as `c9af94db`: `schema.ex` fell from 12,049 to 11,996 lines and its owner from
-512 to 413. The 20-entry bag became direct primitive/stable/aggregation owners,
-explicit model data, one final timeline-context validator boundary, and
-unchanged local routing/subset rules. 49 focused, 1,051 broader, and 22 export
-tests passed; compile, xref, format, diff hygiene, checked-in schema
-regeneration, and bounded review were clean.
+Operational-quality-gate-summary callback collapse published as `8a32655d`:
+`schema.ex` fell from 11,996 to 11,968 lines and its owner from 462 to 400. The
+24-entry bag became direct primitive/stable/collection/classification owners,
+explicit model data, one row-validator boundary, and exact local grouping/
+boundary rules. 54 focused, 1,051 broader, and 22 export tests passed; compile,
+xref, format, diff hygiene, checked-in schema regeneration, and bounded review
+were clean.
+
+Next candidate:
+Collapse the 25-entry `QualityGateReportContracts` callback bag using the new
+direct row aggregation API.
 
 Blocked:
 No.
