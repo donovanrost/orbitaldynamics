@@ -6,21 +6,21 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Completed: station-reservation hold registry extraction.
+Completed: station-reservation report registry extraction.
 
 Status:
-Published.
+Ready to publish.
 
 Selected slice:
-Move the station-reservation hold summary and import-readiness summary into
-`Schema.StationReservationHoldRegistryContracts`.
+Move the station-reservation report and review summary into
+`Schema.StationReservationRegistryContracts`.
 
 Why this slice:
-The adjacent definitions form one reservation-hold review/import lifecycle with
+The adjacent definitions form the base reservation report/review lifecycle with
 dedicated validators and direct station-provider/export coverage.
 
 Current coupling/problem:
-Declarative station-reservation hold contract data remains embedded in the large
+Declarative station-reservation report contract data remains embedded in the large
 public `Schema` facade even though it can be merged as one focused registry.
 
 Public facade to preserve:
@@ -31,12 +31,12 @@ Public facade to preserve:
 - `OrbitalDynamics.Schema.validate_artifact/2`
 
 Likely extraction target:
-`OrbitalDynamics.Schema.StationReservationHoldRegistryContracts.contracts/0`.
+`OrbitalDynamics.Schema.StationReservationRegistryContracts.contracts/0`.
 
 Likely files:
 - `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/station_reservation_hold_registry_contracts.ex`
+- `lib/orbital_dynamics/schema/station_reservation_registry_contracts.ex`
 
 Likely tests:
 - `test/orbital_dynamics/schema/station_provider_contracts_test.exs`
@@ -51,7 +51,7 @@ fingerprint remains unchanged.
 Files changed:
 - `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/station_reservation_hold_registry_contracts.ex`
+- `lib/orbital_dynamics/schema/station_reservation_registry_contracts.ex`
 
 Public APIs preserved:
 - `OrbitalDynamics.Schema.contracts/0`
@@ -61,7 +61,7 @@ Public APIs preserved:
 - `OrbitalDynamics.Schema.validate_artifact/2`
 
 Behavior/schema changes:
-None. Registry contents, reservation-hold validation, and generated schemas
+None. Registry contents, station-reservation validation, and generated schemas
 retain the baseline fingerprint.
 
 Tests run:
@@ -78,18 +78,18 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`37807af8` (`Extract station reservation hold registry contracts`).
+`772e714b` (`Update station reservation hold handoff`).
 
 Next candidate:
-Assess the adjacent station-reservation report and review-summary contracts as
+Assess the adjacent station-calendar report and precedence-summary contracts as
 one cohesive registry extraction.
 
 Blocked:
 No.
 
 Notes:
-- `schema.ex` decreased from 16,155 to 16,086 lines.
-- `StationReservationHoldRegistryContracts` is 80 lines.
+- `schema.ex` decreased from 16,086 to 16,032 lines.
+- `StationReservationRegistryContracts` is 63 lines.
 - Parent review found no must-fix findings; parent publishing is the active-mode
   fallback because subagent delegation is unavailable.
 - The inline registry remains substantial; this is not a completion claim.
