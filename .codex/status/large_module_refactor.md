@@ -9,7 +9,7 @@ Current slice:
 Completed: approval policy registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Moved `approval_requirement.v1` and `policy_decision.v1` into
@@ -79,7 +79,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`73a2eba8` (`Update execution reproducibility handoff`).
+`3f383f71` (`Extract approval policy registry contracts`).
 
 Next candidate:
 Assess `operator_review_package.v1` as the next standalone registry extraction.
