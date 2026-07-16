@@ -9,7 +9,7 @@ Current slice:
 Completed: timeline diff registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Moved `timeline_diff_report.v1` and `timeline_diff_summary.v1` definitions into
@@ -79,7 +79,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`b2b2382f` (`Update timeline activity state handoff`).
+`7f50ce4e` (`Extract timeline diff registry contracts`).
 
 Next candidate:
 Assess the adjacent timeline integrity report and dependency impact summary as
