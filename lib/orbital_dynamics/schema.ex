@@ -4775,49 +4775,6 @@ defmodule OrbitalDynamics.Schema do
       ],
       "nested_contracts" => []
     },
-    @campaign_request_lint => %{
-      "schema_contract" => @campaign_request_lint,
-      "artifact_family" => "campaign_request_lint",
-      "schema_version" => 1,
-      "required_fields" => [
-        "schema_contract",
-        "validation_mode",
-        "semantic_validator",
-        "lint_task",
-        "type",
-        "status",
-        "error_count",
-        "errors",
-        "request"
-      ],
-      "optional_fields" => ["source_plan"],
-      "nested_contracts" => []
-    },
-    @study_manifest_lint => %{
-      "schema_contract" => @study_manifest_lint,
-      "artifact_family" => "study_manifest_lint",
-      "schema_version" => 1,
-      "required_fields" => [
-        "schema_contract",
-        "schema_version",
-        "schema_id",
-        "manifest_schema_contract",
-        "manifest_schema_id",
-        "validation_mode",
-        "semantic_validator",
-        "lint_task",
-        "schema_export_command",
-        "supported",
-        "manifest",
-        "status",
-        "error_count",
-        "warning_count",
-        "errors",
-        "warnings"
-      ],
-      "optional_fields" => ["study_id", "scenario_count", "outputs"],
-      "nested_contracts" => []
-    },
     @strategy_branch => %{
       "schema_contract" => @strategy_branch,
       "artifact_family" => "strategy_branch",
@@ -4930,6 +4887,7 @@ defmodule OrbitalDynamics.Schema do
                OrbitalDynamics.Schema.ValidationAcceptanceRegistryContracts.contracts()
              )
              |> Map.merge(OrbitalDynamics.Schema.ValidationPolicyRegistryContracts.contracts())
+             |> Map.merge(OrbitalDynamics.Schema.LintRegistryContracts.contracts())
 
   @doc """
   Returns the known executable artifact contracts.
