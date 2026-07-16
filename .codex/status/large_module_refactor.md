@@ -9,7 +9,7 @@ Current slice:
 Completed: timeline-preservation registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Moved `timeline_preservation_report.v1`, `timeline_preservation_status.v1`, and
@@ -82,7 +82,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`2eb614b7` (`Update timeline transition handoff`).
+`8b4b738d` (`Extract timeline preservation registry contracts`).
 
 Next candidate:
 Assess the adjacent timeline activity status, approval, and lifecycle state
