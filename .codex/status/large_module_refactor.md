@@ -9,7 +9,7 @@ Current slice:
 Completed: optimization registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Moved `branch_comparison_report.v1` and `optimizer_contract.v1` definitions into
@@ -50,8 +50,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`a35ad01d` (`Update study result schema handoff`); current slice is not yet
-committed.
+`4d270b02` (`Extract optimization registry contracts`).
 
 Next candidate:
 Assess the adjacent timeline-transition application report and summary registry
