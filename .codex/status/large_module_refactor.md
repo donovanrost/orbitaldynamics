@@ -9,7 +9,7 @@ Current slice:
 Filter-report-count callback-bag collapse.
 
 Status:
-Selected; implementation pending.
+Completed; ready to publish.
 
 Selected slice:
 Replace the four-entry callback bag in `FilterReportCountContracts` with direct
@@ -54,15 +54,17 @@ focused/broader/export checks pass; and bounded review finds no blocker.
 
 Verification gaps:
 - Full repository suite not run.
+- Full contact-filter file remains 87/88 due pre-existing nil-message behavior
+  in untouched `SuppressedCandidateContracts`; focused filter-count coverage is
+  green and bounded review confirmed the failure is unrelated.
 
 Last completed slice:
-Timeline-transition-application-report callback collapse published as
-`b08d924c`:
-`schema.ex` fell from 12,245 to 12,226 lines and its owner from 168 to 125. The
-13-entry bag became ten direct primitive/collection owners plus three explicit
-facade validators; all callback trampolines were removed. 48 focused, 890
-broader, and 22 export tests passed; compile, xref, format, diff hygiene, and
-checked-in schema regeneration were clean. Bounded review found no issues.
+Filter-report-count callback collapse ready to publish: `schema.ex` fell from
+12,226 to 12,216 lines and its owner from 365 to 317. The four-entry bag became
+direct primitive owners plus exact local nil/default equality-message clauses;
+all callback trampolines were removed. 71 focused, 798 broader, and 22 export
+tests passed; compile, xref, format, diff hygiene, and checked-in schema
+regeneration were clean. Bounded review found no issues.
 
 Blocked:
 No.

@@ -9124,18 +9124,8 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       report,
-      kind,
-      filter_report_count_contract_callbacks()
+      kind
     )
-  end
-
-  defp filter_report_count_contract_callbacks do
-    [
-      expect_field_equals: &expect_field_equals/5,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      validate_non_negative_integer_count_map: &validate_non_negative_integer_count_map/3,
-      error: &error/2
-    ]
   end
 
   defp validate_non_negative_number_map(issues, path, values),

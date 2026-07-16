@@ -3,27 +3,29 @@ defmodule OrbitalDynamics.Schema.FilterReportCountContracts do
 
   alias OrbitalDynamics.Schema.CollectionAggregation
 
-  def validate_counts(issues, path, report, kind, callbacks) when is_list(callbacks) do
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [error: 2, expect_field_equals: 6, validate_non_negative_integer_count_map: 3]
+
+  def validate_counts(issues, path, report, kind) do
     rows =
       report
       |> Map.get("suppressed_candidates", [])
       |> Enum.filter(&is_map/1)
 
     issues
-    |> expect_field_equals(callbacks, path, report, "suppressed_candidate_count", length(rows))
+    |> expect_field_equals(path, report, "suppressed_candidate_count", length(rows))
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "kept_candidate_count",
       row_count_difference(report, "input_candidate_count", length(rows))
     )
-    |> validate_invalid_inputs(callbacks, path, report, rows, kind)
-    |> validate_duplicate_rows(callbacks, path, report, rows)
-    |> validate_count_maps(callbacks, path, report, rows, kind)
+    |> validate_invalid_inputs(path, report, rows, kind)
+    |> validate_duplicate_rows(path, report, rows)
+    |> validate_count_maps(path, report, rows, kind)
   end
 
-  defp validate_invalid_inputs(issues, callbacks, path, report, rows, "contact") do
+  defp validate_invalid_inputs(issues, path, report, rows, "contact") do
     invalid_ids =
       rows
       |> Enum.filter(
@@ -34,14 +36,12 @@ defmodule OrbitalDynamics.Schema.FilterReportCountContracts do
 
     issues
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "invalid_contact_input_count",
       length(invalid_ids)
     )
     |> validate_ids_match_row_multiset(
-      callbacks,
       path,
       report,
       "invalid_contact_input_ids",
@@ -50,7 +50,7 @@ defmodule OrbitalDynamics.Schema.FilterReportCountContracts do
     )
   end
 
-  defp validate_invalid_inputs(issues, callbacks, path, report, rows, "resource") do
+  defp validate_invalid_inputs(issues, path, report, rows, "resource") do
     invalid_summary_rows =
       report
       |> Map.get("invalid_resource_summary_inputs", [])
@@ -70,14 +70,12 @@ defmodule OrbitalDynamics.Schema.FilterReportCountContracts do
 
     issues
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "invalid_candidate_input_count",
       length(invalid_candidate_ids)
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "invalid_candidate_input_ids",
@@ -85,14 +83,12 @@ defmodule OrbitalDynamics.Schema.FilterReportCountContracts do
       "must equal row-derived invalid_candidate_input_ids"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "invalid_resource_summary_input_count",
       length(invalid_summary_rows)
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "invalid_resource_summary_input_ids",
@@ -100,14 +96,12 @@ defmodule OrbitalDynamics.Schema.FilterReportCountContracts do
       "must equal row-derived invalid_resource_summary_input_ids"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "valid_resource_summary_count",
       row_count_difference(report, "input_resource_summary_count", length(invalid_summary_rows))
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "input_resource_summary_count",
@@ -122,25 +116,21 @@ defmodule OrbitalDynamics.Schema.FilterReportCountContracts do
     end
   end
 
-  defp validate_count_maps(issues, callbacks, path, report, rows, "contact") do
+  defp validate_count_maps(issues, path, report, rows, "contact") do
     issues
     |> validate_non_negative_integer_count_map(
-      callbacks,
       "#{path}.suppression_reason_counts",
       Map.get(report, "suppression_reason_counts")
     )
     |> validate_non_negative_integer_count_map(
-      callbacks,
       "#{path}.station_calendar_trust_boundary_status_counts",
       Map.get(report, "station_calendar_trust_boundary_status_counts")
     )
     |> validate_non_negative_integer_count_map(
-      callbacks,
       "#{path}.station_reservation_match_status_counts",
       Map.get(report, "station_reservation_match_status_counts")
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "station_calendar_trust_boundary_status_counts",
@@ -148,7 +138,6 @@ defmodule OrbitalDynamics.Schema.FilterReportCountContracts do
       "must equal row-derived station_calendar_trust_boundary_status_counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "suppression_reason_counts",
@@ -156,7 +145,6 @@ defmodule OrbitalDynamics.Schema.FilterReportCountContracts do
       "must equal row-derived suppression_reason_counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "suppressed_candidate_ids_by_reason",
@@ -164,7 +152,6 @@ defmodule OrbitalDynamics.Schema.FilterReportCountContracts do
       "must equal row-derived suppressed_candidate_ids_by_reason"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "suppressed_candidate_ids_by_station_calendar_trust_boundary_status",
@@ -172,7 +159,6 @@ defmodule OrbitalDynamics.Schema.FilterReportCountContracts do
       "must equal row-derived suppressed_candidate_ids_by_station_calendar_trust_boundary_status"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "station_reservation_match_status_counts",
@@ -180,7 +166,6 @@ defmodule OrbitalDynamics.Schema.FilterReportCountContracts do
       "must equal row-derived station_reservation_match_status_counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "suppressed_candidate_ids_by_reservation_match_status",
@@ -189,30 +174,25 @@ defmodule OrbitalDynamics.Schema.FilterReportCountContracts do
     )
   end
 
-  defp validate_count_maps(issues, callbacks, path, report, rows, "resource") do
+  defp validate_count_maps(issues, path, report, rows, "resource") do
     issues
     |> validate_non_negative_integer_count_map(
-      callbacks,
       "#{path}.resource_source_quality_counts",
       Map.get(report, "resource_source_quality_counts")
     )
     |> validate_non_negative_integer_count_map(
-      callbacks,
       "#{path}.resource_trust_boundary_status_counts",
       Map.get(report, "resource_trust_boundary_status_counts")
     )
     |> validate_non_negative_integer_count_map(
-      callbacks,
       "#{path}.suppressed_resource_source_quality_counts",
       Map.get(report, "suppressed_resource_source_quality_counts")
     )
     |> validate_non_negative_integer_count_map(
-      callbacks,
       "#{path}.suppressed_resource_trust_boundary_status_counts",
       Map.get(report, "suppressed_resource_trust_boundary_status_counts")
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "suppressed_resource_source_quality_counts",
@@ -220,7 +200,6 @@ defmodule OrbitalDynamics.Schema.FilterReportCountContracts do
       "must equal row-derived suppressed_resource_source_quality_counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "suppressed_candidate_ids_by_resource_source_quality",
@@ -228,7 +207,6 @@ defmodule OrbitalDynamics.Schema.FilterReportCountContracts do
       "must equal row-derived suppressed_candidate_ids_by_resource_source_quality"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "suppressed_resource_trust_boundary_status_counts",
@@ -236,7 +214,6 @@ defmodule OrbitalDynamics.Schema.FilterReportCountContracts do
       "must equal row-derived suppressed_resource_trust_boundary_status_counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "suppressed_candidate_ids_by_resource_trust_boundary_status",
@@ -245,21 +222,19 @@ defmodule OrbitalDynamics.Schema.FilterReportCountContracts do
     )
   end
 
-  defp validate_duplicate_rows(issues, callbacks, path, report, rows) do
+  defp validate_duplicate_rows(issues, path, report, rows) do
     duplicate_rows =
       Enum.filter(rows, &(Map.get(&1, "duplicate_suppressed_candidate_id_collision") == true))
 
     issues =
       issues
       |> expect_field_equals(
-        callbacks,
         path,
         report,
         "duplicate_suppressed_candidate_row_count",
         length(duplicate_rows)
       )
       |> expect_field_equals(
-        callbacks,
         path,
         report,
         "duplicate_suppressed_candidate_id_count",
@@ -287,7 +262,6 @@ defmodule OrbitalDynamics.Schema.FilterReportCountContracts do
 
           row_acc
           |> expect_field_equals(
-            callbacks,
             "#{path}.suppressed_candidates[#{row_index}]",
             row,
             "duplicate_suppressed_candidate_count",
@@ -300,7 +274,6 @@ defmodule OrbitalDynamics.Schema.FilterReportCountContracts do
       else
         [
           error(
-            callbacks,
             "#{path}.suppressed_candidates",
             "duplicate_suppressed_candidate_index values must cover 1..#{count}"
           )
@@ -312,7 +285,6 @@ defmodule OrbitalDynamics.Schema.FilterReportCountContracts do
 
   defp validate_ids_match_row_multiset(
          issues,
-         callbacks,
          path,
          report,
          field,
@@ -322,7 +294,7 @@ defmodule OrbitalDynamics.Schema.FilterReportCountContracts do
     ids = Map.get(report, field)
 
     if is_list(ids) and Enum.sort(ids) != Enum.sort(expected_ids) do
-      [error(callbacks, "#{path}.#{field}", message) | issues]
+      [error("#{path}.#{field}", message) | issues]
     else
       issues
     end
@@ -337,29 +309,9 @@ defmodule OrbitalDynamics.Schema.FilterReportCountContracts do
   defp frequency_map(rows, field),
     do: CollectionAggregation.frequency_map(rows, field)
 
-  defp expect_field_equals(issues, callbacks, path, map, field, expected) do
-    apply(Keyword.fetch!(callbacks, :expect_field_equals), [issues, path, map, field, expected])
-  end
+  defp expect_field_equals(issues, path, map, field, nil),
+    do: expect_field_equals(issues, path, map, field, nil, nil)
 
-  defp expect_field_equals(issues, callbacks, path, map, field, expected, message) do
-    apply(Keyword.fetch!(callbacks, :expect_field_equals_with_message), [
-      issues,
-      path,
-      map,
-      field,
-      expected,
-      message
-    ])
-  end
-
-  defp validate_non_negative_integer_count_map(issues, callbacks, path, counts) do
-    apply(Keyword.fetch!(callbacks, :validate_non_negative_integer_count_map), [
-      issues,
-      path,
-      counts
-    ])
-  end
-
-  defp error(callbacks, path, message),
-    do: apply(Keyword.fetch!(callbacks, :error), [path, message])
+  defp expect_field_equals(issues, path, map, field, expected),
+    do: expect_field_equals(issues, path, map, field, expected, "must equal #{expected}")
 end
