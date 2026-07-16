@@ -1,59 +1,81 @@
 defmodule OrbitalDynamics.Schema.ExecutionReportContracts do
   @moduledoc false
 
-  def validate(issues, path, artifact, callbacks) when is_list(callbacks) do
+  import OrbitalDynamics.Schema.CollectionValidation, only: [validate_rows: 4]
+
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [
+      error: 2,
+      expect_equal: 5,
+      expect_field_equals: 6,
+      expect_non_negative_integer: 4,
+      expect_one_of: 5,
+      expect_optional_integer: 4,
+      expect_optional_type: 5,
+      expect_type: 5,
+      require_fields: 4,
+      validate_string_list_items: 4
+    ]
+
+  import OrbitalDynamics.Schema.StableIdValidation, only: [validate_stable_ids: 4]
+
+  alias OrbitalDynamics.Schema.CollectionAggregation
+
+  def statuses,
+    do: ["completed", "completed_with_errors", "failed", "running", "created"]
+
+  def validate(issues, path, artifact) do
     issues
-    |> validate_stable_ids(callbacks, path, artifact, ["study_id", "run_id"])
-    |> expect_equal(callbacks, path, artifact, "schema_contract", "execution_report.v1")
-    |> expect_one_of(callbacks, path, artifact, "status", execution_statuses(callbacks))
-    |> expect_type(callbacks, path, artifact, "execution_mode", :binary)
-    |> expect_non_negative_integer(callbacks, path, artifact, "scenario_count")
-    |> expect_non_negative_integer(callbacks, path, artifact, "completed_scenario_count")
-    |> expect_non_negative_integer(callbacks, path, artifact, "failed_scenario_count")
-    |> expect_non_negative_integer(callbacks, path, artifact, "event_result_count")
-    |> expect_type(callbacks, path, artifact, "failed_scenarios", :list)
-    |> expect_type(callbacks, path, artifact, "assumptions", :map)
-    |> expect_optional_type(callbacks, path, artifact, "run_id", :binary)
-    |> expect_optional_type(callbacks, path, artifact, "backend", :binary)
-    |> expect_optional_type(callbacks, path, artifact, "node", :binary)
-    |> expect_optional_type(callbacks, path, artifact, "model_limits", :list)
-    |> validate_string_list_items(callbacks, path, artifact, "model_limits")
-    |> validate_model_limits(callbacks, path, artifact)
-    |> expect_optional_type(callbacks, path, artifact, "batch_propagation", :boolean)
-    |> expect_optional_integer(callbacks, path, artifact, "task_chunk_size")
-    |> validate_optional_timeout(callbacks, path, artifact)
-    |> expect_optional_integer(callbacks, path, artifact, "effective_task_concurrency")
-    |> expect_optional_type(callbacks, path, artifact, "task_supervisor_node", :binary)
-    |> expect_optional_type(callbacks, path, artifact, "task_supervisor_nodes", :list)
-    |> expect_optional_type(callbacks, path, artifact, "execution_plan", :map)
-    |> expect_optional_type(callbacks, path, artifact, "phase_timings_ms", :map)
-    |> expect_optional_type(callbacks, path, artifact, "node_distribution", :map)
+    |> validate_stable_ids(path, artifact, ["study_id", "run_id"])
+    |> expect_equal(path, artifact, "schema_contract", "execution_report.v1")
+    |> expect_one_of(path, artifact, "status", statuses())
+    |> expect_type(path, artifact, "execution_mode", :binary)
+    |> expect_non_negative_integer(path, artifact, "scenario_count")
+    |> expect_non_negative_integer(path, artifact, "completed_scenario_count")
+    |> expect_non_negative_integer(path, artifact, "failed_scenario_count")
+    |> expect_non_negative_integer(path, artifact, "event_result_count")
+    |> expect_type(path, artifact, "failed_scenarios", :list)
+    |> expect_type(path, artifact, "assumptions", :map)
+    |> expect_optional_type(path, artifact, "run_id", :binary)
+    |> expect_optional_type(path, artifact, "backend", :binary)
+    |> expect_optional_type(path, artifact, "node", :binary)
+    |> expect_optional_type(path, artifact, "model_limits", :list)
+    |> validate_string_list_items(path, artifact, "model_limits")
+    |> validate_model_limits(path, artifact)
+    |> expect_optional_type(path, artifact, "batch_propagation", :boolean)
+    |> expect_optional_integer(path, artifact, "task_chunk_size")
+    |> validate_optional_timeout(path, artifact)
+    |> expect_optional_integer(path, artifact, "effective_task_concurrency")
+    |> expect_optional_type(path, artifact, "task_supervisor_node", :binary)
+    |> expect_optional_type(path, artifact, "task_supervisor_nodes", :list)
+    |> expect_optional_type(path, artifact, "execution_plan", :map)
+    |> expect_optional_type(path, artifact, "phase_timings_ms", :map)
+    |> expect_optional_type(path, artifact, "node_distribution", :map)
     |> validate_rows(
-      callbacks,
       "#{path}.failed_scenarios",
       Map.get(artifact, "failed_scenarios", []),
-      fn acc, row_path, failure -> validate_failure(acc, row_path, failure, callbacks) end
+      &validate_failure/3
     )
-    |> validate_counts(callbacks, path, artifact)
+    |> validate_counts(path, artifact)
   end
 
-  defp validate_failure(issues, path, failure, callbacks) do
+  defp validate_failure(issues, path, failure) do
     issues
-    |> require_fields(callbacks, path, failure, ["scenario_id", "stage", "error"])
-    |> validate_stable_ids(callbacks, path, failure, ["scenario_id"])
-    |> expect_type(callbacks, path, failure, "stage", :binary)
+    |> require_fields(path, failure, ["scenario_id", "stage", "error"])
+    |> validate_stable_ids(path, failure, ["scenario_id"])
+    |> expect_type(path, failure, "stage", :binary)
   end
 
-  defp validate_optional_timeout(issues, callbacks, path, artifact) do
+  defp validate_optional_timeout(issues, path, artifact) do
     case Map.get(artifact, "timeout") do
       nil -> issues
       :null -> issues
       value when is_number(value) or is_binary(value) -> issues
-      _value -> [error(callbacks, "#{path}.timeout", "must be a number or string") | issues]
+      _value -> [error("#{path}.timeout", "must be a number or string") | issues]
     end
   end
 
-  defp validate_model_limits(issues, callbacks, path, artifact) do
+  defp validate_model_limits(issues, path, artifact) do
     case Map.get(artifact, "model_limits") do
       nil ->
         issues
@@ -62,13 +84,10 @@ defmodule OrbitalDynamics.Schema.ExecutionReportContracts do
         issues
 
       limits when is_list(limits) ->
-        if limits == execution_report_model_limits(callbacks) do
+        if limits == OrbitalDynamics.ResultSet.Artifact.execution_report_model_limits() do
           issues
         else
-          [
-            error(callbacks, "#{path}.model_limits", "must match execution report model limits")
-            | issues
-          ]
+          [error("#{path}.model_limits", "must match execution report model limits") | issues]
         end
 
       _value ->
@@ -76,36 +95,30 @@ defmodule OrbitalDynamics.Schema.ExecutionReportContracts do
     end
   end
 
-  defp validate_counts(issues, callbacks, path, artifact) do
+  defp validate_counts(issues, path, artifact) do
     issues
-    |> expect_field_equals(
-      callbacks,
+    |> expect_derived_field_equals(
       path,
       artifact,
       "scenario_count",
-      row_count_sum(callbacks, artifact, ["completed_scenario_count", "failed_scenario_count"])
+      CollectionAggregation.row_count_sum(artifact, [
+        "completed_scenario_count",
+        "failed_scenario_count"
+      ])
     )
-    |> expect_field_equals(
-      callbacks,
+    |> expect_derived_field_equals(
       path,
       artifact,
       "failed_scenario_count",
-      list_count(callbacks, artifact, "failed_scenarios")
+      CollectionAggregation.list_count(artifact, "failed_scenarios")
     )
-    |> validate_status(callbacks, path, artifact)
-    |> validate_execution_plan_counts(callbacks, path, artifact)
-    |> validate_node_distribution_counts(callbacks, path, artifact)
+    |> validate_status(path, artifact)
+    |> validate_execution_plan_counts(path, artifact)
+    |> validate_node_distribution_counts(path, artifact)
   end
 
-  defp validate_status(issues, callbacks, path, artifact) do
-    expect_field_equals(
-      issues,
-      callbacks,
-      path,
-      artifact,
-      "status",
-      expected_status(artifact)
-    )
+  defp validate_status(issues, path, artifact) do
+    expect_derived_field_equals(issues, path, artifact, "status", expected_status(artifact))
   end
 
   defp expected_status(artifact) do
@@ -137,12 +150,11 @@ defmodule OrbitalDynamics.Schema.ExecutionReportContracts do
     end
   end
 
-  defp validate_execution_plan_counts(issues, callbacks, path, artifact) do
+  defp validate_execution_plan_counts(issues, path, artifact) do
     case Map.get(artifact, "execution_plan") do
       %{} = execution_plan ->
-        expect_field_equals(
+        expect_derived_field_equals(
           issues,
-          callbacks,
           path <> ".execution_plan",
           execution_plan,
           "scenario_count",
@@ -154,7 +166,7 @@ defmodule OrbitalDynamics.Schema.ExecutionReportContracts do
     end
   end
 
-  defp validate_node_distribution_counts(issues, callbacks, path, artifact) do
+  defp validate_node_distribution_counts(issues, path, artifact) do
     scenario_count = Map.get(artifact, "scenario_count")
     node_distribution = Map.get(artifact, "node_distribution")
 
@@ -163,7 +175,7 @@ defmodule OrbitalDynamics.Schema.ExecutionReportContracts do
         values = Map.values(distribution)
 
         if Enum.all?(values, &is_number/1) and Enum.sum(values) != count do
-          [error(callbacks, path <> ".node_distribution", "must sum to scenario_count") | issues]
+          [error(path <> ".node_distribution", "must sum to scenario_count") | issues]
         else
           issues
         end
@@ -173,58 +185,9 @@ defmodule OrbitalDynamics.Schema.ExecutionReportContracts do
     end
   end
 
-  defp execution_statuses(callbacks),
-    do: apply(Keyword.fetch!(callbacks, :execution_statuses), [])
+  defp expect_derived_field_equals(issues, path, map, field, nil),
+    do: expect_field_equals(issues, path, map, field, nil, nil)
 
-  defp execution_report_model_limits(callbacks),
-    do: apply(Keyword.fetch!(callbacks, :execution_report_model_limits), [])
-
-  defp row_count_sum(callbacks, report, fields),
-    do: apply(Keyword.fetch!(callbacks, :row_count_sum), [report, fields])
-
-  defp list_count(callbacks, map, field),
-    do: apply(Keyword.fetch!(callbacks, :list_count), [map, field])
-
-  defp require_fields(issues, callbacks, path, map, fields),
-    do: apply(Keyword.fetch!(callbacks, :require_fields), [issues, path, map, fields])
-
-  defp expect_equal(issues, callbacks, path, map, field, expected),
-    do: apply(Keyword.fetch!(callbacks, :expect_equal), [issues, path, map, field, expected])
-
-  defp expect_one_of(issues, callbacks, path, map, field, allowed),
-    do: apply(Keyword.fetch!(callbacks, :expect_one_of), [issues, path, map, field, allowed])
-
-  defp expect_type(issues, callbacks, path, map, field, type),
-    do: apply(Keyword.fetch!(callbacks, :expect_type), [issues, path, map, field, type])
-
-  defp expect_optional_type(issues, callbacks, path, map, field, type),
-    do: apply(Keyword.fetch!(callbacks, :expect_optional_type), [issues, path, map, field, type])
-
-  defp expect_optional_integer(issues, callbacks, path, map, field),
-    do: apply(Keyword.fetch!(callbacks, :expect_optional_integer), [issues, path, map, field])
-
-  defp expect_non_negative_integer(issues, callbacks, path, map, field),
-    do:
-      apply(Keyword.fetch!(callbacks, :expect_non_negative_integer), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp expect_field_equals(issues, callbacks, path, map, field, expected),
-    do:
-      apply(Keyword.fetch!(callbacks, :expect_field_equals), [issues, path, map, field, expected])
-
-  defp validate_rows(issues, callbacks, path, rows, validator),
-    do: apply(Keyword.fetch!(callbacks, :validate_rows), [issues, path, rows, validator])
-
-  defp validate_stable_ids(issues, callbacks, path, map, fields),
-    do: apply(Keyword.fetch!(callbacks, :validate_stable_ids), [issues, path, map, fields])
-
-  defp validate_string_list_items(issues, callbacks, path, map, field),
-    do: apply(Keyword.fetch!(callbacks, :validate_string_list_items), [issues, path, map, field])
-
-  defp error(callbacks, path, message),
-    do: apply(Keyword.fetch!(callbacks, :error), [path, message])
+  defp expect_derived_field_equals(issues, path, map, field, expected),
+    do: expect_field_equals(issues, path, map, field, expected, "must equal #{expected}")
 end

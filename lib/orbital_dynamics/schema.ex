@@ -3538,7 +3538,7 @@ defmodule OrbitalDynamics.Schema do
   defp source_execution_report_evidence_json_schema do
     OrbitalDynamics.Schema.SourceEvidenceJsonSchema.execution_report(
       source_evidence_schema_deps(),
-      execution_statuses()
+      OrbitalDynamics.Schema.ExecutionReportContracts.statuses()
     )
   end
 
@@ -3560,9 +3560,6 @@ defmodule OrbitalDynamics.Schema do
   defp freshness_statuses, do: ["current", "stale", "unknown"]
 
   defp schema_validation_statuses, do: ["pass", "fail"]
-
-  defp execution_statuses,
-    do: ["completed", "completed_with_errors", "failed", "running", "created"]
 
   defp policy_action_rule_json_schema do
     OrbitalDynamics.Schema.PolicyActionRuleJsonSchema.action_rule(
@@ -6611,8 +6608,7 @@ defmodule OrbitalDynamics.Schema do
     |> require_fields("$", artifact, contract["required_fields"])
     |> OrbitalDynamics.Schema.ExecutionReportContracts.validate(
       "$",
-      artifact,
-      execution_report_contract_callbacks()
+      artifact
     )
   end
 
@@ -8581,28 +8577,6 @@ defmodule OrbitalDynamics.Schema do
         registry_contract!(@execution_report),
         execution_report
       )
-
-  defp execution_report_contract_callbacks do
-    [
-      execution_statuses: &execution_statuses/0,
-      execution_report_model_limits:
-        &OrbitalDynamics.ResultSet.Artifact.execution_report_model_limits/0,
-      row_count_sum: &row_count_sum/2,
-      list_count: &list_count/2,
-      require_fields: &require_fields/4,
-      expect_equal: &expect_equal/5,
-      expect_one_of: &expect_one_of/5,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_optional_integer: &expect_optional_integer/4,
-      expect_non_negative_integer: &expect_non_negative_integer/4,
-      expect_field_equals: &expect_field_equals/5,
-      validate_rows: &validate_rows/4,
-      validate_stable_ids: &validate_stable_ids/4,
-      validate_string_list_items: &validate_string_list_items/4,
-      error: &error/2
-    ]
-  end
 
   defp monte_carlo_reproducibility_contract_callbacks do
     [
@@ -12518,7 +12492,7 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       row,
-      execution_statuses()
+      OrbitalDynamics.Schema.ExecutionReportContracts.statuses()
     )
   end
 
