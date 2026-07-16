@@ -45,6 +45,7 @@ defmodule OrbitalDynamics.Schema do
       require_fields: 4,
       require_nested: 4,
       validate_interval: 3,
+      validate_non_negative_integer_count_map: 3,
       validate_non_negative_integer_list_items: 4,
       validate_number_list_items: 4,
       validate_optional_boolean_fields: 4,
@@ -6982,8 +6983,7 @@ defmodule OrbitalDynamics.Schema do
       [],
       "$",
       artifact,
-      contract,
-      validation_reference_contract_callbacks()
+      contract
     )
   end
 
@@ -8060,23 +8060,6 @@ defmodule OrbitalDynamics.Schema do
       validate_optional_exact_model_limits: &validate_optional_exact_model_limits/5,
       validate_stable_id_array_map: &validate_stable_id_array_map/3,
       validate_optional_rows: &validate_optional_rows/4,
-      error: &error/2
-    ]
-  end
-
-  defp validation_reference_contract_callbacks do
-    [
-      require_fields: &require_fields/4,
-      validate_stable_ids: &validate_stable_ids/4,
-      expect_equal: &expect_equal/5,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_one_of: &expect_one_of/5,
-      expect_optional_number: &expect_optional_number/4,
-      expect_field_at_least: &expect_field_at_least/5,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      validate_non_negative_integer_count_map: &validate_non_negative_integer_count_map/3,
-      validation_tolerance_policy_level_names: &validation_tolerance_policy_level_names/0,
       error: &error/2
     ]
   end
@@ -10851,18 +10834,6 @@ defmodule OrbitalDynamics.Schema do
       error: &error/2
     ]
   end
-
-  defp validate_non_negative_integer_count_map(issues, path, counts) when is_map(counts) do
-    Enum.reduce(counts, issues, fn {field, count}, acc ->
-      if is_integer(count) and count >= 0 do
-        acc
-      else
-        [error("#{path}.#{field}", "must be a non-negative integer") | acc]
-      end
-    end)
-  end
-
-  defp validate_non_negative_integer_count_map(issues, _path, _counts), do: issues
 
   defp validate_non_negative_number_map(issues, path, values) when is_map(values) do
     Enum.reduce(values, issues, fn {field, value}, acc ->
@@ -14286,8 +14257,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.ValidationReferenceContracts.validate_report(
       issues,
       path,
-      report,
-      validation_reference_contract_callbacks()
+      report
     )
   end
 
@@ -14295,8 +14265,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.ValidationReferenceContracts.validate_check(
       issues,
       path,
-      check,
-      validation_reference_contract_callbacks()
+      check
     )
   end
 

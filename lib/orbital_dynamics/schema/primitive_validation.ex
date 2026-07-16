@@ -249,6 +249,18 @@ defmodule OrbitalDynamics.Schema.PrimitiveValidation do
     end
   end
 
+  def validate_non_negative_integer_count_map(issues, path, counts) when is_map(counts) do
+    Enum.reduce(counts, issues, fn {field, count}, acc ->
+      if is_integer(count) and count >= 0 do
+        acc
+      else
+        [error("#{path}.#{field}", "must be a non-negative integer") | acc]
+      end
+    end)
+  end
+
+  def validate_non_negative_integer_count_map(issues, _path, _counts), do: issues
+
   def validate_optional_string_lists(issues, path, map, fields),
     do: Enum.reduce(fields, issues, &validate_string_list_items(&2, path, map, &1))
 

@@ -1,45 +1,43 @@
 defmodule OrbitalDynamics.Schema.ValidationReferenceContracts do
   @moduledoc false
 
-  def validate_fixture_report(issues, path, artifact, contract, callbacks)
-      when is_list(callbacks) do
+  alias OrbitalDynamics.Schema.PrimitiveValidation
+  alias OrbitalDynamics.Schema.StableIdValidation
+  alias OrbitalDynamics.Schema.ValidationPolicyContracts
+
+  def validate_fixture_report(issues, path, artifact, contract) do
     issues
-    |> require_fields(callbacks, path, artifact, contract["required_fields"])
-    |> expect_equal(
-      callbacks,
+    |> PrimitiveValidation.require_fields(path, artifact, contract["required_fields"])
+    |> PrimitiveValidation.expect_equal(
       path,
       artifact,
       "schema_contract",
       "validation_reference_fixture_report.v1"
     )
-    |> expect_one_of(callbacks, path, artifact, "status", ["pass", "fail"])
-    |> expect_type(callbacks, path, artifact, "reports", :list)
-    |> expect_type(callbacks, path, artifact, "fixture_count", :integer)
-    |> expect_field_at_least(callbacks, path, artifact, "fixture_count", 0)
-    |> expect_optional_type(callbacks, path, artifact, "status_counts", :map)
-    |> validate_non_negative_integer_count_map(
-      callbacks,
+    |> PrimitiveValidation.expect_one_of(path, artifact, "status", ["pass", "fail"])
+    |> PrimitiveValidation.expect_type(path, artifact, "reports", :list)
+    |> PrimitiveValidation.expect_type(path, artifact, "fixture_count", :integer)
+    |> PrimitiveValidation.expect_field_at_least(path, artifact, "fixture_count", 0)
+    |> PrimitiveValidation.expect_optional_type(path, artifact, "status_counts", :map)
+    |> PrimitiveValidation.validate_non_negative_integer_count_map(
       path <> ".status_counts",
       Map.get(artifact, "status_counts")
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       artifact,
       "fixture_count",
       length(Map.get(artifact, "reports", [])),
       "must equal reports count"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       artifact,
       "status",
       fixture_report_status(artifact),
       "must equal nested report statuses"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       artifact,
       "status_counts",
@@ -47,16 +45,15 @@ defmodule OrbitalDynamics.Schema.ValidationReferenceContracts do
       "must equal nested report status counts"
     )
     |> validate_rows(
-      callbacks,
       path <> ".reports",
       Map.get(artifact, "reports", []),
-      &validate_report/4
+      &validate_report/3
     )
   end
 
-  def validate_report(issues, path, report, callbacks) when is_list(callbacks) do
+  def validate_report(issues, path, report) do
     issues
-    |> require_fields(callbacks, path, report, [
+    |> PrimitiveValidation.require_fields(path, report, [
       "schema_contract",
       "fixture_id",
       "model_id",
@@ -64,35 +61,36 @@ defmodule OrbitalDynamics.Schema.ValidationReferenceContracts do
       "status",
       "checks"
     ])
-    |> expect_equal(callbacks, path, report, "schema_contract", "validation_reference_report.v1")
-    |> validate_stable_ids(callbacks, path, report, ["fixture_id"])
-    |> expect_type(callbacks, path, report, "model_id", :binary)
-    |> expect_type(callbacks, path, report, "validation_level", :binary)
-    |> expect_one_of(
-      callbacks,
+    |> PrimitiveValidation.expect_equal(
+      path,
+      report,
+      "schema_contract",
+      "validation_reference_report.v1"
+    )
+    |> StableIdValidation.validate_stable_ids(path, report, ["fixture_id"])
+    |> PrimitiveValidation.expect_type(path, report, "model_id", :binary)
+    |> PrimitiveValidation.expect_type(path, report, "validation_level", :binary)
+    |> PrimitiveValidation.expect_one_of(
       path,
       report,
       "validation_level",
-      validation_level_names(callbacks)
+      ValidationPolicyContracts.level_names()
     )
-    |> expect_one_of(callbacks, path, report, "status", ["pass", "fail"])
-    |> expect_type(callbacks, path, report, "checks", :list)
-    |> expect_optional_type(callbacks, path, report, "status_counts", :map)
-    |> validate_non_negative_integer_count_map(
-      callbacks,
+    |> PrimitiveValidation.expect_one_of(path, report, "status", ["pass", "fail"])
+    |> PrimitiveValidation.expect_type(path, report, "checks", :list)
+    |> PrimitiveValidation.expect_optional_type(path, report, "status_counts", :map)
+    |> PrimitiveValidation.validate_non_negative_integer_count_map(
       path <> ".status_counts",
       Map.get(report, "status_counts")
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       report,
       "status",
       report_status(report),
       "must equal nested check statuses"
     )
-    |> expect_field_equals(
-      callbacks,
+    |> PrimitiveValidation.expect_field_equals(
       path,
       report,
       "status_counts",
@@ -100,27 +98,26 @@ defmodule OrbitalDynamics.Schema.ValidationReferenceContracts do
       "must equal nested check status counts"
     )
     |> validate_rows(
-      callbacks,
       path <> ".checks",
       Map.get(report, "checks", []),
-      &validate_check/4
+      &validate_check/3
     )
   end
 
-  def validate_check(issues, path, check, callbacks) when is_list(callbacks) do
+  def validate_check(issues, path, check) do
     issues
-    |> require_fields(callbacks, path, check, [
+    |> PrimitiveValidation.require_fields(path, check, [
       "field",
       "status",
       "expected",
       "observed",
       "tolerance"
     ])
-    |> expect_type(callbacks, path, check, "field", :binary)
-    |> expect_one_of(callbacks, path, check, "status", ["pass", "fail"])
-    |> expect_optional_number(callbacks, path, check, "error")
-    |> expect_optional_number(callbacks, path, check, "max_abs_error")
-    |> validate_check_result(callbacks, path, check)
+    |> PrimitiveValidation.expect_type(path, check, "field", :binary)
+    |> PrimitiveValidation.expect_one_of(path, check, "status", ["pass", "fail"])
+    |> PrimitiveValidation.expect_optional_number(path, check, "error")
+    |> PrimitiveValidation.expect_optional_number(path, check, "max_abs_error")
+    |> validate_check_result(path, check)
   end
 
   defp fixture_report_status(%{"reports" => reports}) when is_list(reports) do
@@ -147,7 +144,7 @@ defmodule OrbitalDynamics.Schema.ValidationReferenceContracts do
 
   defp report_status_counts(_report), do: nil
 
-  defp validate_check_result(issues, callbacks, path, check) do
+  defp validate_check_result(issues, path, check) do
     expected = Map.get(check, "expected")
     observed = Map.get(check, "observed")
     tolerance = Map.get(check, "tolerance")
@@ -155,16 +152,14 @@ defmodule OrbitalDynamics.Schema.ValidationReferenceContracts do
     case check_result(expected, observed, tolerance) do
       {:ok, status, metric_field, metric_value} ->
         issues
-        |> expect_field_equals(
-          callbacks,
+        |> PrimitiveValidation.expect_field_equals(
           path,
           check,
           "status",
           status,
           "must match expected/observed/tolerance comparison"
         )
-        |> expect_field_equals(
-          callbacks,
+        |> PrimitiveValidation.expect_field_equals(
           path,
           check,
           metric_field,
@@ -173,9 +168,8 @@ defmodule OrbitalDynamics.Schema.ValidationReferenceContracts do
         )
 
       {:ok, status} ->
-        expect_field_equals(
+        PrimitiveValidation.expect_field_equals(
           issues,
-          callbacks,
           path,
           check,
           "status",
@@ -222,62 +216,17 @@ defmodule OrbitalDynamics.Schema.ValidationReferenceContracts do
     |> Enum.frequencies()
   end
 
-  defp validate_rows(issues, callbacks, path, rows, validator) when is_list(rows) do
+  defp validate_rows(issues, path, rows, validator) when is_list(rows) do
     rows
     |> Enum.with_index()
     |> Enum.reduce(issues, fn {row, index}, acc ->
       if is_map(row) do
-        validator.(acc, "#{path}[#{index}]", row, callbacks)
+        validator.(acc, "#{path}[#{index}]", row)
       else
-        [error(callbacks, "#{path}[#{index}]", "must be an object") | acc]
+        [PrimitiveValidation.error("#{path}[#{index}]", "must be an object") | acc]
       end
     end)
   end
 
-  defp validate_rows(issues, _callbacks, _path, _rows, _validator), do: issues
-
-  defp require_fields(issues, callbacks, path, map, fields),
-    do: apply(Keyword.fetch!(callbacks, :require_fields), [issues, path, map, fields])
-
-  defp validate_stable_ids(issues, callbacks, path, map, fields),
-    do: apply(Keyword.fetch!(callbacks, :validate_stable_ids), [issues, path, map, fields])
-
-  defp expect_equal(issues, callbacks, path, map, field, expected),
-    do: apply(Keyword.fetch!(callbacks, :expect_equal), [issues, path, map, field, expected])
-
-  defp expect_type(issues, callbacks, path, map, field, type),
-    do: apply(Keyword.fetch!(callbacks, :expect_type), [issues, path, map, field, type])
-
-  defp expect_optional_type(issues, callbacks, path, map, field, type),
-    do: apply(Keyword.fetch!(callbacks, :expect_optional_type), [issues, path, map, field, type])
-
-  defp expect_one_of(issues, callbacks, path, map, field, allowed),
-    do: apply(Keyword.fetch!(callbacks, :expect_one_of), [issues, path, map, field, allowed])
-
-  defp expect_optional_number(issues, callbacks, path, map, field),
-    do: apply(Keyword.fetch!(callbacks, :expect_optional_number), [issues, path, map, field])
-
-  defp expect_field_at_least(issues, callbacks, path, map, field, min),
-    do: apply(Keyword.fetch!(callbacks, :expect_field_at_least), [issues, path, map, field, min])
-
-  defp expect_field_equals(issues, callbacks, path, map, field, expected, message) do
-    apply(Keyword.fetch!(callbacks, :expect_field_equals_with_message), [
-      issues,
-      path,
-      map,
-      field,
-      expected,
-      message
-    ])
-  end
-
-  defp validate_non_negative_integer_count_map(issues, callbacks, path, map) do
-    apply(Keyword.fetch!(callbacks, :validate_non_negative_integer_count_map), [issues, path, map])
-  end
-
-  defp validation_level_names(callbacks),
-    do: apply(Keyword.fetch!(callbacks, :validation_tolerance_policy_level_names), [])
-
-  defp error(callbacks, path, message),
-    do: apply(Keyword.fetch!(callbacks, :error), [path, message])
+  defp validate_rows(issues, _path, _rows, _validator), do: issues
 end
