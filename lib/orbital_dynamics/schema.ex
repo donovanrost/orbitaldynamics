@@ -3103,41 +3103,6 @@ defmodule OrbitalDynamics.Schema do
         "provenance"
       ],
       "nested_contracts" => []
-    },
-    @resource_summary => %{
-      "schema_contract" => @resource_summary,
-      "artifact_family" => "resource_summary",
-      "schema_version" => 1,
-      "required_fields" => [
-        "schema_contract",
-        "spacecraft_id"
-      ],
-      "optional_fields" => [
-        "mode",
-        "fuel_margin",
-        "power_margin",
-        "battery_capacity_wh",
-        "battery_energy_used_wh",
-        "battery_energy_generated_wh",
-        "battery_state_of_charge",
-        "thermal_margin_c",
-        "storage_capacity_mb",
-        "storage_used_mb",
-        "storage_margin",
-        "downlink_capacity_mb",
-        "downlink_margin",
-        "spacecraft_available",
-        "source_quality",
-        "trust_boundary",
-        "suppressed_activity_types",
-        "incompatible_activity_types",
-        "payload_available",
-        "antenna_available",
-        "degraded",
-        "assumptions",
-        "provenance"
-      ],
-      "nested_contracts" => []
     }
   }
 
@@ -3179,6 +3144,7 @@ defmodule OrbitalDynamics.Schema do
              |> Map.merge(OrbitalDynamics.Schema.ResourceProjectionRegistryContracts.contracts())
              |> Map.merge(OrbitalDynamics.Schema.ResourceFilterRegistryContracts.contracts())
              |> Map.merge(OrbitalDynamics.Schema.ContactFilterRegistryContracts.contracts())
+             |> Map.merge(OrbitalDynamics.Schema.ResourceSummaryRegistryContracts.contracts())
 
   @doc """
   Returns the known executable artifact contracts.
