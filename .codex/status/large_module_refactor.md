@@ -9,7 +9,7 @@ Current slice:
 Completed: command-window registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Move the command-window report contract into
@@ -80,7 +80,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`b18b9b86` (`Extract link capacity registry contracts`).
+`4f1c2e4b` (`Extract command window registry contract`).
 
 Next candidate:
 Extract the adjacent contact-intent report and summary contracts as one cohesive
