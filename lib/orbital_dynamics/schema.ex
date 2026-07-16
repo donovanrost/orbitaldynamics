@@ -7315,35 +7315,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp operational_quality_gate_summary_contract_callbacks do
-    [
-      expect_equal: &expect_equal/5,
-      expect_one_of: &expect_one_of/5,
-      expect_type: &expect_type/5,
-      expect_non_negative_integer: &expect_non_negative_integer/4,
-      expect_field_equals: &expect_field_equals/5,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      validate_stable_ids: &validate_stable_ids/4,
-      validate_rows: &validate_rows/4,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_optional_exact_model_limits: &validate_optional_exact_model_limits/5,
-      validate_non_negative_integer_count_map: &validate_non_negative_integer_count_map/3,
-      validate_stable_id_list: &validate_stable_id_list/3,
-      validate_stable_id_array_map: &validate_stable_id_array_map/3,
-      validate_quality_gate_row: &validate_quality_gate_row/3,
-      quality_gate_summary_model_limits: &quality_gate_summary_model_limits/0,
-      operational_readiness_import_classification: &operational_readiness_import_classification/1,
-      operational_readiness_level: &operational_readiness_level/1,
-      operational_readiness_report_status: &operational_readiness_report_status/1,
-      quality_gate_execution_boundary: &quality_gate_execution_boundary/1,
-      quality_gate_status_count: &quality_gate_status_count/2,
-      quality_gate_ids_by: &quality_gate_ids_by/2,
-      quality_gate_row_ids_by: &quality_gate_row_ids_by/2,
-      quality_gate_ids: &quality_gate_ids/2,
-      stable_sorted_ids: &stable_sorted_ids/1
-    ]
-  end
-
   defp quality_gate_report_contract_callbacks do
     [
       expect_equal: &expect_equal/5,
@@ -9842,7 +9813,8 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       summary,
-      operational_quality_gate_summary_contract_callbacks()
+      quality_gate_summary_model_limits(),
+      &validate_quality_gate_row/3
     )
   end
 
