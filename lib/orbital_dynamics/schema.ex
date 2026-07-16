@@ -48,7 +48,6 @@ defmodule OrbitalDynamics.Schema do
       require_nested: 4,
       validate_interval: 3,
       validate_non_negative_integer_count_map: 3,
-      validate_non_negative_integer_list_items: 4,
       validate_number_list_items: 4,
       validate_optional_exact_model_limits: 5,
       validate_optional_string_lists: 4,
@@ -6508,8 +6507,7 @@ defmodule OrbitalDynamics.Schema do
     |> require_fields("$", artifact, contract["required_fields"])
     |> OrbitalDynamics.Schema.StudyBenchmarkContracts.validate(
       "$",
-      artifact,
-      study_benchmark_contract_callbacks()
+      artifact
     )
   end
 
@@ -8274,23 +8272,6 @@ defmodule OrbitalDynamics.Schema do
       validate_stable_ids: &validate_stable_ids/4,
       list_value: &list_value/2,
       error: &error/2
-    ]
-  end
-
-  defp study_benchmark_contract_callbacks do
-    [
-      validate_optional_schema_contract: &validate_optional_schema_contract/4,
-      expect_equal: &expect_equal/5,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_optional_non_negative_integer: &expect_optional_non_negative_integer/4,
-      expect_optional_non_negative_number: &expect_optional_non_negative_number/4,
-      expect_optional_one_of: &expect_optional_one_of/5,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      validate_rows: &validate_rows/4,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_non_negative_integer_list_items: &validate_non_negative_integer_list_items/4,
-      validate_non_negative_integer_count_map: &validate_non_negative_integer_count_map/3
     ]
   end
 
