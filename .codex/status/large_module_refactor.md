@@ -6,63 +6,63 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Completed: generic collection validation extraction.
+Completed: timeline-precondition callback ownership cleanup.
 
 Status:
 Published.
 
 Selected slice:
-Move row-list, optional-row, numeric-map, and optional-string-list validation
-into `Schema.CollectionValidation` behind explicit facade imports.
+Let `Schema.TimelinePreconditionContracts` call `PrimitiveValidation` directly
+and remove its facade-owned callback bag and dynamic callback dispatch.
 
 Why this slice:
-These generic container validators share one responsibility, carry no
-artifact-family state, and depend only on primitive error construction.
+All three callbacks pointed to primitive support, so the contract module can own
+its complete validation behavior without facade state.
 
 Current coupling/problem:
-Resolved for generic row/map containers. Widely reused iteration, type, and
-path/error behavior now lives outside the public facade.
+Resolved. Timeline-precondition validation owns its primitive dependencies and
+the facade only delegates validation inputs.
 
 Public facade preserved:
 - `OrbitalDynamics.Schema.validate_artifact/2`
 - `OrbitalDynamics.Schema.validation_report/2`
-- All callback arities, ordering, and error maps/messages.
+- Timeline-precondition validation order and exact errors.
 
 Files changed:
 - `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/collection_validation.ex`
+- `lib/orbital_dynamics/schema/timeline_precondition_contracts.ex`
 
 Behavior/schema changes:
-None. Container iteration, path construction, and error behavior moved exactly.
+None. The same enum/type/error operations execute in the same order.
 
 Tests run:
 - `mix compile --warnings-as-errors` passed.
-- Broad schema, resource-contract, invalid contact filter/contention ID, and
-  schema export coverage passed: 92 tests.
+- Broad schema/resource/contact/export coverage passed: 101 tests.
+- Direct timeline report/summary contract coverage passed: 25 tests, including
+  the invalid precondition field path/message assertion.
 - SHA-256 over `{Schema.contracts(), Schema.json_schema_bundle()}` remained
   `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`.
-- Xref showed the facade export edge and the sole runtime dependency on
-  `PrimitiveValidation`.
-- Formatting, whitespace, new-file review, and checked-in-schema cleanliness
-  checks passed.
+- Xref showed the expected facade runtime edge and dependencies only on
+  primitive support and timeline capabilities.
+- Formatting, whitespace, diff review, and checked-in-schema cleanliness passed.
 
 Verification gaps:
-- The full suite was not run for this internal extraction.
+- The full suite was not run for this internal cleanup.
 
 Last commit:
-`4b030cbb` (`Extract generic collection validation support`).
+`951df0c7` (`Collapse timeline precondition callbacks`).
 
 Next candidate:
-Assess the adjacent timeline/activity validation adapter cluster for a cohesive
-facade-preserving extraction.
+Collapse the lifecycle-transition primitive-only callback bag using the same
+contract-owned dependency pattern.
 
 Blocked:
 No.
 
 Notes:
-- `schema.ex` decreased from 14,731 to 14,689 lines.
-- `CollectionValidation` is 57 lines.
+- `schema.ex` decreased from 14,689 to 14,680 lines.
+- `TimelinePreconditionContracts` decreased from 63 to 41 lines.
 - Parent review found no must-fix findings; parent publishing is the active-mode
   fallback because subagent delegation is unavailable.
 - The facade remains substantial; this is not a completion claim.
