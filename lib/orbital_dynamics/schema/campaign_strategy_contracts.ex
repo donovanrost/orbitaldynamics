@@ -1,57 +1,69 @@
 defmodule OrbitalDynamics.Schema.CampaignStrategyContracts do
   @moduledoc false
 
-  def validate(issues, artifact, required_fields, callbacks) when is_list(callbacks) do
+  import OrbitalDynamics.Schema.CollectionValidation, only: [validate_rows: 4]
+
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [expect_equal: 5, expect_type: 5, require_fields: 4, require_nested: 4]
+
+  import OrbitalDynamics.Schema.StableIdValidation, only: [validate_stable_ids: 4]
+
+  def validate(
+        issues,
+        artifact,
+        required_fields,
+        operational_feedback_validator,
+        branch_validator,
+        recommendation_validator,
+        branch_comparison_validator,
+        ranking_comparison_validator,
+        operator_review_package_validator
+      )
+      when is_function(operational_feedback_validator, 3) and
+             is_function(branch_validator, 3) and
+             is_function(recommendation_validator, 3) and
+             is_function(branch_comparison_validator, 2) and
+             is_function(ranking_comparison_validator, 2) and
+             is_function(operator_review_package_validator, 2) do
     issues
-    |> call(callbacks, :require_fields, ["$", artifact, required_fields])
-    |> call(callbacks, :validate_stable_ids, ["$", artifact, ["source_plan_id"]])
-    |> call(callbacks, :expect_equal, ["$", artifact, "schema_version", 3])
-    |> call(callbacks, :expect_equal, [
+    |> require_fields("$", artifact, required_fields)
+    |> validate_stable_ids("$", artifact, ["source_plan_id"])
+    |> expect_equal("$", artifact, "schema_version", 3)
+    |> expect_equal(
       "$",
       artifact,
       "planner",
       "OrbitalDynamics.CampaignPlanner.V3"
-    ])
-    |> call(callbacks, :expect_type, ["$", artifact, "mission_state_snapshot", :map])
-    |> call(callbacks, :expect_type, ["$", artifact, "branches", :list])
-    |> call(callbacks, :expect_type, ["$", artifact, "recommendation", :map])
-    |> call(callbacks, :expect_type, ["$", artifact, "strategy_metadata", :map])
-    |> call(callbacks, :validate_operational_feedback, [
+    )
+    |> expect_type("$", artifact, "mission_state_snapshot", :map)
+    |> expect_type("$", artifact, "branches", :list)
+    |> expect_type("$", artifact, "recommendation", :map)
+    |> expect_type("$", artifact, "strategy_metadata", :map)
+    |> operational_feedback_validator.(
       "$",
       Map.get(artifact, "operational_feedback")
-    ])
-    |> call(callbacks, :validate_rows, [
+    )
+    |> validate_rows(
       "$.branches",
       Map.get(artifact, "branches", []),
-      callback(callbacks, :validate_branch)
-    ])
-    |> call(callbacks, :validate_recommendation, [
+      branch_validator
+    )
+    |> recommendation_validator.(
       "$.recommendation",
       Map.get(artifact, "recommendation", %{})
-    ])
-    |> call(callbacks, :validate_optional_branch_comparison_report, [
-      Map.get(artifact, "branch_comparison_report")
-    ])
-    |> call(callbacks, :validate_optional_ranking_comparison_report, [
-      Map.get(artifact, "ranking_comparison_report")
-    ])
-    |> call(callbacks, :validate_optional_operator_review_package, [
-      Map.get(artifact, "operator_review_package")
-    ])
-    |> call(callbacks, :require_nested, [
+    )
+    |> branch_comparison_validator.(Map.get(artifact, "branch_comparison_report"))
+    |> ranking_comparison_validator.(Map.get(artifact, "ranking_comparison_report"))
+    |> operator_review_package_validator.(Map.get(artifact, "operator_review_package"))
+    |> require_nested(
       "$.strategy_metadata",
       Map.get(artifact, "strategy_metadata", %{}),
       ["strategy_id", "branch_count", "baseline_branch_id", "cadence_integration"]
-    ])
-    |> call(callbacks, :validate_stable_ids, [
+    )
+    |> validate_stable_ids(
       "$.strategy_metadata",
       Map.get(artifact, "strategy_metadata", %{}),
       ["strategy_id", "baseline_branch_id"]
-    ])
+    )
   end
-
-  defp callback(callbacks, name), do: Keyword.fetch!(callbacks, name)
-
-  defp call(issues, callbacks, name, args),
-    do: apply(callback(callbacks, name), [issues | args])
 end

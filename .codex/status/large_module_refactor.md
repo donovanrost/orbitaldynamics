@@ -9,7 +9,7 @@ Current slice:
 Campaign-strategy callback-bag collapse.
 
 Status:
-Selected; implementation pending.
+Complete and ready to publish.
 
 Selected slice:
 Replace the 12-entry `CampaignStrategyContracts` lookup bag with direct shared
@@ -42,6 +42,15 @@ No campaign-strategy callback bag or lookup/apply trampolines remain; shared
 owners are direct and only Schema-owned domain composition is explicit; focused,
 broader, and export checks pass; and bounded review finds no blocker.
 
+Outcome:
+Six shared validations now call their owners directly; the six Schema-owned
+domain validators are explicit guarded arguments in their original positions.
+`schema.ex` fell from 11,496 to 11,484 lines while the orchestration owner grew
+from 57 to 69 to make the boundary visible. Eighteen focused, 1,167 broader,
+and 22 export tests pass; compile, xref, checked-in regeneration, format, and
+diff hygiene are clean. Bounded review confirmed exact pipeline order, capture
+arities, branch-row behavior, nested metadata validation, and residue removal.
+
 Verification gaps:
 - Full repository suite not run.
 - Known baseline: full contact-filter file remains 87/88 due nil-message
@@ -51,10 +60,10 @@ Verification gaps:
   validation-only slice. The attributable batch is 102/102.
 
 Last completed slice:
-Freshness-report exact-message restoration published as `daf8f13f`: the two
-implicit equality checks again emit their legacy expected-value messages, and
-both paths are assertion-covered. The full validation file passed 181/181, with
-1,167 broader and 22 export tests; compile, xref, regeneration, format, diff
+Campaign-strategy callback-bag collapse, ready to publish: `schema.ex` fell from
+11,496 to 11,484 lines; six shared validators became direct calls and six
+domain hooks became explicit guarded arguments. Eighteen focused, 1,167
+broader, and 22 export tests passed; compile, xref, regeneration, format, diff
 hygiene, and bounded review were clean.
 
 Blocked:

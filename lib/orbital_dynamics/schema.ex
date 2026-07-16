@@ -6940,7 +6940,12 @@ defmodule OrbitalDynamics.Schema do
       [],
       artifact,
       contract["required_fields"],
-      campaign_strategy_contract_callbacks()
+      &validate_operational_feedback/3,
+      &validate_branch/3,
+      &validate_recommendation/3,
+      &validate_optional_branch_comparison_report/2,
+      &validate_optional_ranking_comparison_report/2,
+      &validate_optional_operator_review_package/2
     )
   end
 
@@ -7586,23 +7591,6 @@ defmodule OrbitalDynamics.Schema do
       validate_optional_timeline_protection_summary:
         &validate_optional_timeline_protection_summary/4,
       expect_field_equals_with_message: &expect_field_equals/6
-    ]
-  end
-
-  defp campaign_strategy_contract_callbacks do
-    [
-      require_fields: &require_fields/4,
-      validate_stable_ids: &validate_stable_ids/4,
-      expect_equal: &expect_equal/5,
-      expect_type: &expect_type/5,
-      validate_operational_feedback: &validate_operational_feedback/3,
-      validate_rows: &validate_rows/4,
-      validate_branch: &validate_branch/3,
-      validate_recommendation: &validate_recommendation/3,
-      validate_optional_branch_comparison_report: &validate_optional_branch_comparison_report/2,
-      validate_optional_ranking_comparison_report: &validate_optional_ranking_comparison_report/2,
-      validate_optional_operator_review_package: &validate_optional_operator_review_package/2,
-      require_nested: &require_nested/4
     ]
   end
 
