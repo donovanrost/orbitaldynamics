@@ -4775,34 +4775,6 @@ defmodule OrbitalDynamics.Schema do
       ],
       "nested_contracts" => []
     },
-    @strategy_branch => %{
-      "schema_contract" => @strategy_branch,
-      "artifact_family" => "strategy_branch",
-      "schema_version" => 1,
-      "required_fields" => [
-        "schema_contract",
-        "branch_id",
-        "probability",
-        "events",
-        "candidate_plan",
-        "repair_result",
-        "score",
-        "score_terms",
-        "warnings",
-        "risk_indicators",
-        "approval_status",
-        "approval_requirements",
-        "policy_decision"
-      ],
-      "optional_fields" => [
-        "label",
-        "derived_source",
-        "resource_impacts",
-        "tradeoffs",
-        "resource_projection_report"
-      ],
-      "nested_contracts" => ["policy_decision.v1", "approval_requirement.v1"]
-    },
     @study_benchmark => %{
       "schema_contract" => @study_benchmark,
       "artifact_family" => "study_benchmark",

@@ -141,6 +141,34 @@ defmodule OrbitalDynamics.Schema.CampaignRegistryContracts do
           "approval_requirement.v1",
           "operator_review_package.v1"
         ]
+      },
+      "strategy_branch.v1" => %{
+        "schema_contract" => "strategy_branch.v1",
+        "artifact_family" => "strategy_branch",
+        "schema_version" => 1,
+        "required_fields" => [
+          "schema_contract",
+          "branch_id",
+          "probability",
+          "events",
+          "candidate_plan",
+          "repair_result",
+          "score",
+          "score_terms",
+          "warnings",
+          "risk_indicators",
+          "approval_status",
+          "approval_requirements",
+          "policy_decision"
+        ],
+        "optional_fields" => [
+          "label",
+          "derived_source",
+          "resource_impacts",
+          "tradeoffs",
+          "resource_projection_report"
+        ],
+        "nested_contracts" => ["policy_decision.v1", "approval_requirement.v1"]
       }
     }
   end
