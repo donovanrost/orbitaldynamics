@@ -1,6 +1,27 @@
 defmodule OrbitalDynamics.Schema.CadenceImportManifestContracts do
   @moduledoc false
 
+  import OrbitalDynamics.Schema.CollectionValidation, only: [validate_rows: 4]
+
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [
+      error: 2,
+      expect_equal: 5,
+      expect_field_equals: 6,
+      expect_non_negative_integer: 4,
+      expect_optional_one_of: 5,
+      expect_optional_type: 5,
+      expect_type: 5,
+      validate_non_negative_integer_count_map: 3,
+      validate_optional_exact_model_limits: 5,
+      validate_string_list_items: 4
+    ]
+
+  import OrbitalDynamics.Schema.StableIdValidation,
+    only: [validate_optional_stable_id_list: 4, validate_stable_ids: 4]
+
+  alias OrbitalDynamics.Schema.QualityGateHandoffContracts
+
   @optional_count_maps [
     "import_action_counts",
     "import_status_counts",
@@ -17,69 +38,78 @@ defmodule OrbitalDynamics.Schema.CadenceImportManifestContracts do
     {"authorization_boundary", "operator_review_or_cadence_adapter_must_authorize_import"}
   ]
 
-  def validate(issues, path, manifest, supported_sources, model_limits, scalar_fields, callbacks)
+  def validate(
+        issues,
+        path,
+        manifest,
+        supported_sources,
+        model_limits,
+        scalar_fields,
+        row_validator,
+        expiration_handoff_validator,
+        suppression_group_validator
+      )
       when is_list(supported_sources) and is_list(model_limits) and is_list(scalar_fields) and
-             is_list(callbacks) do
+             is_function(row_validator, 3) and is_function(expiration_handoff_validator, 3) and
+             is_function(suppression_group_validator, 3) do
     rows = Map.get(manifest, "rows", [])
 
     issues
-    |> expect_equal(path, manifest, "schema_contract", "cadence_import_manifest.v1", callbacks)
-    |> expect_equal(path, manifest, "model", "artifact_only_cadence_import_manifest", callbacks)
-    |> validate_stable_ids(path, manifest, ["manifest_id", "source_artifact_id"], callbacks)
-    |> validate_scalar_counts(path, manifest, scalar_fields, callbacks)
-    |> validate_optional_count_map_types(path, manifest, callbacks)
-    |> expect_optional_type(path, manifest, "station_reservation_ids", :list, callbacks)
-    |> validate_optional_stable_id_list(path, manifest, "station_reservation_ids", callbacks)
-    |> expect_optional_type(path, manifest, "station_reserved_bys", :list, callbacks)
-    |> validate_string_list_items(path, manifest, "station_reserved_bys", callbacks)
-    |> expect_optional_type(path, manifest, "station_reservation_statuses", :list, callbacks)
-    |> validate_string_list_items(path, manifest, "station_reservation_statuses", callbacks)
-    |> validate_contact_allocation_expiration_handoff_summary(path, manifest, callbacks)
-    |> validate_quality_gate_handoff_summary(path, manifest, callbacks)
-    |> expect_optional_type(path, manifest, "model_limits", :list, callbacks)
-    |> validate_string_list_items(path, manifest, "model_limits", callbacks)
+    |> expect_equal(path, manifest, "schema_contract", "cadence_import_manifest.v1")
+    |> expect_equal(path, manifest, "model", "artifact_only_cadence_import_manifest")
+    |> validate_stable_ids(path, manifest, ["manifest_id", "source_artifact_id"])
+    |> validate_scalar_counts(path, manifest, scalar_fields)
+    |> validate_optional_count_map_types(path, manifest)
+    |> expect_optional_type(path, manifest, "station_reservation_ids", :list)
+    |> validate_optional_stable_id_list(path, manifest, "station_reservation_ids")
+    |> expect_optional_type(path, manifest, "station_reserved_bys", :list)
+    |> validate_string_list_items(path, manifest, "station_reserved_bys")
+    |> expect_optional_type(path, manifest, "station_reservation_statuses", :list)
+    |> validate_string_list_items(path, manifest, "station_reservation_statuses")
+    |> expiration_handoff_validator.(path, manifest)
+    |> QualityGateHandoffContracts.validate_summary(path, manifest)
+    |> expect_optional_type(path, manifest, "model_limits", :list)
+    |> validate_string_list_items(path, manifest, "model_limits")
     |> validate_optional_exact_model_limits(
       path,
       manifest,
       model_limits,
-      "must match Cadence import manifest model limits",
-      callbacks
+      "must match Cadence import manifest model limits"
     )
-    |> validate_assumptions(path, manifest, callbacks)
-    |> expect_type(path, manifest, "rows", :list, callbacks)
-    |> validate_rows(path <> ".rows", rows, :validate_cadence_import_row, callbacks)
-    |> validate_suppression_duplicate_handoff_groups(path, rows, callbacks)
-    |> validate_count_maps(path, manifest, callbacks)
-    |> validate_contact_allocation_expiration_handoff_summary(path, manifest, callbacks)
-    |> validate_derived_counts(path, manifest, rows, callbacks)
+    |> validate_assumptions(path, manifest)
+    |> expect_type(path, manifest, "rows", :list)
+    |> validate_rows(path <> ".rows", rows, row_validator)
+    |> suppression_group_validator.(path, rows)
+    |> validate_count_maps(path, manifest)
+    |> expiration_handoff_validator.(path, manifest)
+    |> validate_derived_counts(path, manifest, rows)
     |> expect_optional_one_of(
       path,
       manifest,
       "source_artifact_type",
-      supported_sources,
-      callbacks
+      supported_sources
     )
   end
 
-  defp validate_scalar_counts(issues, path, manifest, scalar_fields, callbacks) do
+  defp validate_scalar_counts(issues, path, manifest, scalar_fields) do
     Enum.reduce(scalar_fields, issues, fn field, acc ->
-      expect_non_negative_integer(acc, path, manifest, field, callbacks)
+      expect_non_negative_integer(acc, path, manifest, field)
     end)
   end
 
-  defp validate_optional_count_map_types(issues, path, manifest, callbacks) do
+  defp validate_optional_count_map_types(issues, path, manifest) do
     Enum.reduce(@optional_count_maps, issues, fn field, acc ->
-      expect_optional_type(acc, path, manifest, field, :map, callbacks)
+      expect_optional_type(acc, path, manifest, field, :map)
     end)
   end
 
-  defp validate_assumptions(issues, path, manifest, callbacks) do
+  defp validate_assumptions(issues, path, manifest) do
     case Map.get(manifest, "assumptions") do
       %{} = assumptions ->
         Enum.reduce(@assumption_expectations, issues, fn {field, expected}, acc ->
           if Map.has_key?(assumptions, field) and Map.get(assumptions, field) != expected do
             [
-              error("#{path}.assumptions.#{field}", "must equal #{inspect(expected)}", callbacks)
+              error("#{path}.assumptions.#{field}", "must equal #{inspect(expected)}")
               | acc
             ]
           else
@@ -92,18 +122,17 @@ defmodule OrbitalDynamics.Schema.CadenceImportManifestContracts do
     end
   end
 
-  defp validate_count_maps(issues, path, manifest, callbacks) do
+  defp validate_count_maps(issues, path, manifest) do
     Enum.reduce(@optional_count_maps, issues, fn field, acc ->
       validate_non_negative_integer_count_map(
         acc,
         path <> ".#{field}",
-        Map.get(manifest, field),
-        callbacks
+        Map.get(manifest, field)
       )
     end)
   end
 
-  defp validate_derived_counts(issues, path, manifest, rows, callbacks) do
+  defp validate_derived_counts(issues, path, manifest, rows) do
     map_rows = Enum.filter(rows, &is_map/1)
 
     issues
@@ -111,84 +140,73 @@ defmodule OrbitalDynamics.Schema.CadenceImportManifestContracts do
       path,
       manifest,
       "row_count",
-      if(is_list(rows), do: length(rows), else: nil),
-      callbacks
+      if(is_list(rows), do: length(rows), else: nil)
     )
     |> expect_field_equals(
       path,
       manifest,
       "ready_count",
-      Enum.count(map_rows, &(Map.get(&1, "import_status") == "ready_for_import")),
-      callbacks
+      Enum.count(map_rows, &(Map.get(&1, "import_status") == "ready_for_import"))
     )
     |> expect_field_equals(
       path,
       manifest,
       "review_required_count",
-      Enum.count(map_rows, &(Map.get(&1, "import_status") == "review_required_before_import")),
-      callbacks
+      Enum.count(map_rows, &(Map.get(&1, "import_status") == "review_required_before_import"))
     )
     |> expect_field_equals(
       path,
       manifest,
       "blocked_count",
-      Enum.count(map_rows, &(Map.get(&1, "import_status") == "blocked_missing_cadence_import")),
-      callbacks
+      Enum.count(map_rows, &(Map.get(&1, "import_status") == "blocked_missing_cadence_import"))
     )
     |> expect_field_equals(
       path,
       manifest,
       "missing_import_count",
-      Enum.count(map_rows, &(Map.get(&1, "cadence_import_status") == "missing")),
-      callbacks
+      Enum.count(map_rows, &(Map.get(&1, "cadence_import_status") == "missing"))
     )
     |> expect_field_equals(
       path,
       manifest,
       "import_action_counts",
       frequency_map(map_rows, "import_action"),
-      "must equal row-derived import_action_counts",
-      callbacks
+      "must equal row-derived import_action_counts"
     )
     |> expect_field_equals(
       path,
       manifest,
       "import_status_counts",
       frequency_map(map_rows, "import_status"),
-      "must equal row-derived import_status_counts",
-      callbacks
+      "must equal row-derived import_status_counts"
     )
     |> expect_field_equals(
       path,
       manifest,
       "cadence_import_status_counts",
       frequency_map(map_rows, "cadence_import_status"),
-      "must equal row-derived cadence_import_status_counts",
-      callbacks
+      "must equal row-derived cadence_import_status_counts"
     )
     |> expect_field_equals(
       path,
       manifest,
       "source_review_type_counts",
       frequency_map(map_rows, "source_review_type"),
-      "must equal row-derived source_review_type_counts",
-      callbacks
+      "must equal row-derived source_review_type_counts"
     )
     |> expect_field_equals(
       path,
       manifest,
       "source_review_action_counts",
       frequency_map(map_rows, "source_review_action"),
-      "must equal row-derived source_review_action_counts",
-      callbacks
+      "must equal row-derived source_review_action_counts"
     )
     |> expect_field_equals(
       path,
       manifest,
       "source_review_queue_counts",
       frequency_map(map_rows, "source_review_queue_key"),
-      "must equal row-derived source_review_queue_counts",
-      callbacks
+      "must equal row-derived source_review_queue_counts"
     )
   end
 
@@ -199,130 +217,9 @@ defmodule OrbitalDynamics.Schema.CadenceImportManifestContracts do
     |> Enum.frequencies()
   end
 
-  defp expect_equal(issues, path, map, field, expected, callbacks),
-    do: apply(require_callback(callbacks, :expect_equal), [issues, path, map, field, expected])
+  defp expect_field_equals(issues, path, map, field, nil),
+    do: expect_field_equals(issues, path, map, field, nil, nil)
 
-  defp validate_stable_ids(issues, path, map, fields, callbacks),
-    do: apply(require_callback(callbacks, :validate_stable_ids), [issues, path, map, fields])
-
-  defp expect_non_negative_integer(issues, path, map, field, callbacks),
-    do:
-      apply(require_callback(callbacks, :expect_non_negative_integer), [issues, path, map, field])
-
-  defp expect_optional_type(issues, path, map, field, type, callbacks),
-    do:
-      apply(require_callback(callbacks, :expect_optional_type), [issues, path, map, field, type])
-
-  defp validate_optional_stable_id_list(issues, path, map, field, callbacks),
-    do:
-      apply(require_callback(callbacks, :validate_optional_stable_id_list), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp validate_string_list_items(issues, path, map, field, callbacks),
-    do:
-      apply(require_callback(callbacks, :validate_string_list_items), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp validate_contact_allocation_expiration_handoff_summary(issues, path, manifest, callbacks),
-    do:
-      apply(
-        require_callback(callbacks, :validate_contact_allocation_expiration_handoff_summary),
-        [
-          issues,
-          path,
-          manifest
-        ]
-      )
-
-  defp validate_quality_gate_handoff_summary(issues, path, manifest, callbacks),
-    do:
-      apply(require_callback(callbacks, :validate_quality_gate_handoff_summary), [
-        issues,
-        path,
-        manifest
-      ])
-
-  defp validate_optional_exact_model_limits(issues, path, map, expected, message, callbacks),
-    do:
-      apply(require_callback(callbacks, :validate_optional_exact_model_limits), [
-        issues,
-        path,
-        map,
-        expected,
-        message
-      ])
-
-  defp expect_type(issues, path, map, field, type, callbacks),
-    do: apply(require_callback(callbacks, :expect_type), [issues, path, map, field, type])
-
-  defp validate_rows(issues, path, rows, validator_name, callbacks),
-    do:
-      apply(require_callback(callbacks, :validate_rows), [
-        issues,
-        path,
-        rows,
-        require_callback(callbacks, validator_name)
-      ])
-
-  defp validate_suppression_duplicate_handoff_groups(issues, path, rows, callbacks),
-    do:
-      apply(require_callback(callbacks, :validate_suppression_duplicate_handoff_groups), [
-        issues,
-        path,
-        rows
-      ])
-
-  defp validate_non_negative_integer_count_map(issues, path, counts, callbacks),
-    do:
-      apply(require_callback(callbacks, :validate_non_negative_integer_count_map), [
-        issues,
-        path,
-        counts
-      ])
-
-  defp expect_field_equals(issues, path, map, field, expected, callbacks),
-    do:
-      apply(require_callback(callbacks, :expect_field_equals), [
-        issues,
-        path,
-        map,
-        field,
-        expected
-      ])
-
-  defp expect_field_equals(issues, path, map, field, expected, message, callbacks),
-    do:
-      apply(require_callback(callbacks, :expect_field_equals_with_message), [
-        issues,
-        path,
-        map,
-        field,
-        expected,
-        message
-      ])
-
-  defp expect_optional_one_of(issues, path, map, field, allowed, callbacks),
-    do:
-      apply(require_callback(callbacks, :expect_optional_one_of), [
-        issues,
-        path,
-        map,
-        field,
-        allowed
-      ])
-
-  defp error(path, message, callbacks),
-    do: apply(require_callback(callbacks, :error), [path, message])
-
-  defp require_callback(callbacks, name) do
-    Keyword.fetch!(callbacks, name)
-  end
+  defp expect_field_equals(issues, path, map, field, expected),
+    do: expect_field_equals(issues, path, map, field, expected, "must equal #{expected}")
 end

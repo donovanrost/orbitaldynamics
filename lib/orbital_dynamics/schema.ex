@@ -9407,33 +9407,10 @@ defmodule OrbitalDynamics.Schema do
       OrbitalDynamics.CadenceImport.capability().supported_sources,
       cadence_import_manifest_model_limits(),
       @cadence_import_manifest_scalar_count_fields,
-      cadence_import_manifest_contract_callbacks()
+      &validate_cadence_import_row/3,
+      &validate_contact_allocation_expiration_handoff_summary/3,
+      &validate_suppression_duplicate_handoff_groups/3
     )
-  end
-
-  defp cadence_import_manifest_contract_callbacks do
-    [
-      expect_equal: &expect_equal/5,
-      validate_stable_ids: &validate_stable_ids/4,
-      expect_non_negative_integer: &expect_non_negative_integer/4,
-      expect_optional_type: &expect_optional_type/5,
-      validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_contact_allocation_expiration_handoff_summary:
-        &validate_contact_allocation_expiration_handoff_summary/3,
-      validate_quality_gate_handoff_summary: &validate_quality_gate_handoff_summary/3,
-      validate_optional_exact_model_limits: &validate_optional_exact_model_limits/5,
-      expect_type: &expect_type/5,
-      validate_rows: &validate_rows/4,
-      validate_cadence_import_row: &validate_cadence_import_row/3,
-      validate_suppression_duplicate_handoff_groups:
-        &validate_suppression_duplicate_handoff_groups/3,
-      validate_non_negative_integer_count_map: &validate_non_negative_integer_count_map/3,
-      expect_field_equals: &expect_field_equals/5,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      expect_optional_one_of: &expect_optional_one_of/5,
-      error: &error/2
-    ]
   end
 
   defp cadence_source_review_row_contract_callbacks do

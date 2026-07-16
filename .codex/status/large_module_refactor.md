@@ -9,7 +9,7 @@ Current slice:
 Cadence-import-manifest callback-bag collapse.
 
 Status:
-Selected; implementation pending.
+Completed and ready to publish.
 
 Selected slice:
 Replace the 18-entry callback bag in `CadenceImportManifestContracts` with
@@ -47,18 +47,31 @@ direct shared/handoff owners preserve validation while row, expiration, and
 suppression validators remain explicit boundaries; focused, broader, and export
 checks pass; and bounded review finds no blocker.
 
+Outcome:
+Removed the 18-entry manifest callback bag and all owner trampolines. Primitive,
+stable-ID, collection, and quality-gate-handoff validation use direct owners;
+Cadence row, expiration-handoff, and suppression-group validators remain
+explicit. The exact derived-count equality messages are preserved locally.
+`schema.ex` fell from 11,719 to 11,696 lines and the manifest owner from 328 to
+225.
+
+Verification:
+- compile with warnings as errors passed
+- 183 focused readiness/Cadence/replay/operator-review tests passed
+- 1,167 broader candidate-refresh/operator-review/Cadence tests passed
+- 22 schema export tests passed
+- compile-connected xref passed
+- checked-in schema regeneration produced no diff
+- format and diff hygiene passed
+- bounded review found no findings
+
 Verification gaps:
 - Full repository suite not run.
 - Known baseline: full contact-filter file remains 87/88 due nil-message
   behavior in `SuppressedCandidateContracts`; unrelated to these slices.
 
 Last completed slice:
-Quality-gate-handoff callback collapse published as `d1094610`: `schema.ex`
-fell from 11,733 to 11,719 lines and its owner from 212 to 174. The 7-entry bag
-became direct primitive/stable-ID owners plus exact local optional array-map
-composition. 183 focused, 1,167 broader, and 22 export tests passed; compile,
-xref, format, diff hygiene, checked-in regeneration, and bounded review were
-clean.
+Cadence-import-manifest callback-bag collapse; publication commit pending.
 
 Blocked:
 No.
