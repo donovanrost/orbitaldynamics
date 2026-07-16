@@ -52,6 +52,14 @@ defmodule OrbitalDynamics.Schema do
       validate_string_list_items: 4
     ]
 
+  import OrbitalDynamics.Schema.CollectionValidation,
+    only: [
+      validate_numeric_map: 3,
+      validate_optional_rows: 4,
+      validate_optional_string_list: 4,
+      validate_rows: 4
+    ]
+
   @campaign_plan "campaign_plan.v1"
   @campaign_repair "campaign_repair.v2"
   @campaign_strategy "campaign_strategy.v3"
@@ -14441,56 +14449,6 @@ defmodule OrbitalDynamics.Schema do
       check,
       validation_reference_contract_callbacks()
     )
-  end
-
-  defp validate_rows(issues, path, rows, validator) when is_list(rows) do
-    rows
-    |> Enum.with_index()
-    |> Enum.reduce(issues, fn {row, index}, acc ->
-      if is_map(row) do
-        validator.(acc, "#{path}[#{index}]", row)
-      else
-        [error("#{path}[#{index}]", "must be an object") | acc]
-      end
-    end)
-  end
-
-  defp validate_rows(issues, _path, _rows, _validator), do: issues
-
-  defp validate_optional_rows(issues, _path, nil, _validator), do: issues
-
-  defp validate_optional_rows(issues, path, rows, validator) when is_list(rows),
-    do: validate_rows(issues, path, rows, validator)
-
-  defp validate_optional_rows(issues, path, _rows, _validator),
-    do: [error(path, "must be a list") | issues]
-
-  defp validate_numeric_map(issues, _path, value) when value in [nil, :null], do: issues
-
-  defp validate_numeric_map(issues, path, %{} = values) do
-    Enum.reduce(values, issues, fn {key, value}, acc ->
-      if is_number(value),
-        do: acc,
-        else: [error("#{path}.#{key}", "must be a number") | acc]
-    end)
-  end
-
-  defp validate_numeric_map(issues, _path, _value), do: issues
-
-  defp validate_optional_string_list(issues, path, map, field) when is_map(map) do
-    case Map.get(map, field) do
-      values when is_list(values) ->
-        values
-        |> Enum.with_index()
-        |> Enum.reduce(issues, fn {value, index}, acc ->
-          if is_binary(value),
-            do: acc,
-            else: [error("#{path}.#{field}[#{index}]", "must be a string") | acc]
-        end)
-
-      _value ->
-        issues
-    end
   end
 
   defp validate_optional_timeline_preconditions(issues, path, map, field) when is_map(map) do
