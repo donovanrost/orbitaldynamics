@@ -6167,7 +6167,7 @@ defmodule OrbitalDynamics.Schema do
     |> OrbitalDynamics.Schema.StationCalendarPrecedenceSummaryContracts.validate(
       "$",
       artifact,
-      station_calendar_precedence_summary_contract_callbacks()
+      station_calendar_report_model_limits()
     )
   end
 
@@ -7735,27 +7735,6 @@ defmodule OrbitalDynamics.Schema do
       validate_string_list_items: &validate_string_list_items/4,
       validate_number_list_items: &validate_number_list_items/4,
       frequency_map: &frequency_map/2
-    ]
-  end
-
-  defp station_calendar_precedence_summary_contract_callbacks do
-    [
-      expect_equal: &expect_equal/5,
-      expect_one_of: &expect_one_of/5,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_non_negative_integer: &expect_non_negative_integer/4,
-      expect_field_equals: &expect_field_equals/5,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      expect_optional_field_equals: &expect_optional_field_equals/6,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_optional_exact_model_limits: &validate_optional_exact_model_limits/5,
-      validate_non_negative_integer_count_map: &validate_non_negative_integer_count_map/3,
-      validate_stable_id_array_map: &validate_stable_id_array_map/3,
-      validate_stable_id_list: &validate_stable_id_list/3,
-      station_calendar_report_model_limits: &station_calendar_report_model_limits/0,
-      stable_id_array_map_value_count: &stable_id_array_map_value_count/1,
-      id_array_count_map: &id_array_count_map/1
     ]
   end
 
