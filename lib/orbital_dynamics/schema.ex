@@ -8033,20 +8033,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp validation_record_contract_callbacks do
-    [
-      validate_optional_schema_contract: &validate_optional_schema_contract/4,
-      validate_stable_ids: &validate_stable_ids/4,
-      expect_equal: &expect_equal/5,
-      expect_type: &expect_type/5,
-      expect_one_of: &expect_one_of/5,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      validate_string_list_items: &validate_string_list_items/4,
-      validation_tolerance_policy_level_names: &validation_tolerance_policy_level_names/0,
-      error: &error/2
-    ]
-  end
-
   defp validation_diagnostic_contract_callbacks do
     [
       require_fields: &require_fields/4,
@@ -14252,8 +14238,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.ValidationRecordContracts.validate(
       issues,
       path,
-      record,
-      validation_record_contract_callbacks()
+      record
     )
   end
 
@@ -14261,8 +14246,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.ValidationRecordContracts.validate_embedded(
       issues,
       path,
-      record,
-      validation_record_contract_callbacks()
+      record
     )
   end
 
