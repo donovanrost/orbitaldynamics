@@ -9,7 +9,7 @@ Current slice:
 Candidate-refresh contact-intent direction-routing extraction.
 
 Status:
-Complete; ready to publish.
+Complete and published.
 
 Result:
 - Extracted contact-intent route shape, stable-ID/fraction maps, and
@@ -40,7 +40,7 @@ Verification gaps:
 - Full repository suite not run.
 
 Last commit:
-Pending publication; prior callback-phase handoff `3f1fef8c`.
+Published implementation `e760af01`.
 
 Next candidate:
 - Candidate-refresh station-calendar routing extraction. The parent still owns
