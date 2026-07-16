@@ -6,17 +6,17 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Completed: V3 strategy feedback adjustment extraction.
+Completed: V3 strategy resource-impact extraction.
 
 Status:
-`CampaignPlanner.evaluate_branch/2` now computes normalized branch operational
-feedback and delegates factor calculation, source labeling, risk generation,
-and score adjustment to `CampaignPlanner.StrategyFeedbackAdjustments`.
+`CampaignPlanner.evaluate_branch/2` now delegates resource-source precedence,
+margin/capacity calculation, availability normalization, warning/risk creation,
+and resource score adjustment to `CampaignPlanner.StrategyResourceImpacts`.
 
 Files changed:
 - `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/campaign_planner.ex`
-- `lib/orbital_dynamics/campaign_planner/strategy_feedback_adjustments.ex`
+- `lib/orbital_dynamics/campaign_planner/strategy_resource_impacts.ex`
 
 Public APIs preserved:
 - `OrbitalDynamics.CampaignPlanner.strategy/1`
@@ -25,19 +25,17 @@ Public APIs preserved:
 
 Behavior/schema changes:
 - No intended public behavior or schema changes.
-- Contact, observation, image-quality, cloud-cover, blur, maneuver, command, and
-  station-throughput factors preserve the same defaults and averaging rules.
-- Risk thresholds, score adjustment, source labels, and feedback-weight source
-  ordering are unchanged.
-- The parent still owns normalized branch feedback derivation, avoiding callback
-  plumbing for event/station/spacecraft identity.
+- Fuel, power, storage, downlink, and thermal margin precedence is unchanged.
+- Spacecraft, payload, and antenna availability fallback/alias behavior is unchanged.
+- Risk thresholds, warnings, fuel-preservation flag, and score adjustments are unchanged.
+- Downlink requirements and completion call existing focused modules directly;
+  three now-redundant parent wrappers were removed.
 
 Tests run:
 - `mix compile --warnings-as-errors` - passed.
-- All `strategy*feedback*_test.exs` files plus strategy branch basics - passed,
-  168 tests.
-- `mix xref callers OrbitalDynamics.CampaignPlanner.StrategyFeedbackAdjustments`
-  - passed; runtime caller is `CampaignPlanner`.
+- All strategy resource/downlink test files plus branch basics - passed, 155 tests.
+- `mix xref callers OrbitalDynamics.CampaignPlanner.StrategyResourceImpacts` -
+  passed; runtime caller is `CampaignPlanner`.
 - `mix xref graph --label compile-connected --source lib/orbital_dynamics/campaign_planner.ex`
   - passed; the new module is a compile-connected dependency.
 - `mix format --check-formatted` on the ledger and touched source files - passed.
@@ -48,27 +46,26 @@ Tests run:
 
 Verification gaps:
 - Full `mix test` was not run.
-- Adjacent `strategy_branch_generated_candidate_refresh_test.exs` remains 3/4
-  with a refresh-budget replay assertion expecting no pressure while the runtime
-  reports pressure. The identical failure was reproduced at pre-refactor commit
-  `c6aaecf0`, so it is an existing unrelated mismatch rather than a regression
-  from either current extraction.
+- `strategy_branch_generated_candidate_refresh_test.exs` retains its known
+  refresh-budget replay expectation mismatch, previously reproduced unchanged
+  at pre-refactor commit `c6aaecf0`.
 
 Last commit:
-`9354a88f` (`Extract strategy feedback adjustments`).
+`27bca2a0` before this slice; publish pending.
 
 Next candidate:
-Extract the cohesive `branch_resource_impacts/3` cluster and its margin,
-availability, risk, and score helpers into
-`CampaignPlanner.StrategyResourceImpacts`. Call `DownlinkObjectiveRequirements`
-and `StrategyMetrics` directly so the boundary does not introduce callbacks.
+Extract the post-source derived-branch collection pipeline from
+`maybe_add_derived_branches/6` into `CampaignPlanner.DerivedBranchCollection`:
+baseline/combined branch addition, normalization, explicit-ID filtering,
+family disambiguation, deduplication, and stable sorting. Keep individual source
+derivation in the parent so the boundary does not require a callback bag.
 
 Blocked:
 No.
 
 Notes:
-- `campaign_planner.ex` decreased from 5,527 to 5,128 lines.
-- `StrategyFeedbackAdjustments` is 413 lines and owns one explicit V3 scoring
-  responsibility.
-- This run also completed and published V2 repair artifact assembly as
-  `207e7c71`; that slice passed 62 repair/facade/baseline tests.
+- `campaign_planner.ex` decreased from 5,128 to 4,645 lines.
+- `StrategyResourceImpacts` is 493 lines and owns one explicit V3 resource
+  scoring responsibility.
+- Earlier published slices in this run: V2 repair artifact assembly (`207e7c71`)
+  and V3 strategy feedback adjustments (`9354a88f`).
