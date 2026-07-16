@@ -9,7 +9,7 @@ Current slice:
 Completed: operational timeline registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Moved `operational_timeline_report.v1` into
@@ -79,7 +79,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`cbad6ead` (`Update timeline publication handoff`).
+`d4e9e893` (`Extract operational timeline registry contracts`).
 
 Next candidate:
 Assess the objective tradeoff, satisfaction, ranking comparison, and Pareto
