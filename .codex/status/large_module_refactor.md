@@ -6,58 +6,58 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline-transition-application-report callback-bag collapse.
+Filter-report-count callback-bag collapse.
 
 Status:
-Completed; ready to publish.
+Selected; implementation pending.
 
 Selected slice:
-Replace the 13-entry callback bag in
-`TimelineTransitionApplicationReportContracts` with direct primitive and
-collection owners plus three explicit facade-owned validators for counts,
-selected activities, and application rows.
+Replace the four-entry callback bag in `FilterReportCountContracts` with direct
+primitive owners plus a local exact copy of the facade's five-argument equality
+message behavior.
 
 Why this slice:
 Live inventory shows `schema.ex` remains the dominant production hotspot at
-12,245 lines. The 168-line application-report owner has 13 callback trampolines:
-ten target shared primitive/collection validators, while report counts,
-selected-activity rows, and application rows remain facade boundaries. Focused
-transition-application, replay, review, timeline, and export coverage is
-available.
+12,226 lines. The 365-line filter-count owner has four callback trampolines;
+error construction, explicit equality, and count-map validation already have
+shared primitive owners, while five-argument equality requires preserving the
+facade's generated `must equal <expected>` message. Focused contact/resource
+filter, replay, review, and export coverage is available.
 
 Public facade to preserve:
-`OrbitalDynamics.Schema.validate_artifact/2` and all transition application
-report behavior, including contract/model identity, counts and count maps,
-model limits, selected activities, application rows, deterministic errors,
-replay consumers, and exports.
+`OrbitalDynamics.Schema.validate_artifact/2` and all contact/resource filter
+count behavior, including invalid inputs, duplicate rows, multiset IDs,
+frequency maps, exact messages, deterministic errors, replay consumers, and
+exports.
 
 Likely extraction target:
-Replace the opaque bag with an explicit signature carrying the three
-facade-owned validators, remove shared-helper trampolines, and import exact
-primitive and collection-validation arities without changing validator timing.
+Replace `validate_counts/5` with `validate_counts/4`, remove the schema bag and
+owner trampolines, import exact primitive arities, and locally preserve the
+facade's nil/default equality-message clauses.
 
 Likely files:
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/timeline_transition_application_report_contracts.ex`
+- `lib/orbital_dynamics/schema/filter_report_count_contracts.ex`
 - `.codex/status/large_module_refactor.md`
 
 Likely tests:
 - compile with warnings as errors
-- timeline transition-application and integrity schema contracts
+- contact/resource filter schema contracts
 - focused candidate-refresh replay and operator-review consumers
 - schema export trio and checked-in export/fingerprint verification
 - broader communications/candidate-refresh checks, xref, format, and diff hygiene
 
 Definition of done:
-No opaque application-report callback bag or shared-helper trampolines remain;
-explicit facade boundaries and direct owners preserve exact validation order and
-messages; focused/broader/export checks pass; and bounded review finds no blocker.
+No filter-count callback bag or callback trampolines remain; direct owners and
+local default-message clauses preserve exact validation order/messages;
+focused/broader/export checks pass; and bounded review finds no blocker.
 
 Verification gaps:
 - Full repository suite not run.
 
 Last completed slice:
-Timeline-transition-application-report callback collapse ready to publish:
+Timeline-transition-application-report callback collapse published as
+`b08d924c`:
 `schema.ex` fell from 12,245 to 12,226 lines and its owner from 168 to 125. The
 13-entry bag became ten direct primitive/collection owners plus three explicit
 facade validators; all callback trampolines were removed. 48 focused, 890
