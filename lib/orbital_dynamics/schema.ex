@@ -6512,8 +6512,7 @@ defmodule OrbitalDynamics.Schema do
     |> require_fields("$", artifact, contract["required_fields"])
     |> OrbitalDynamics.Schema.ManifestFieldReferenceContracts.validate(
       "$",
-      artifact,
-      manifest_field_reference_contract_callbacks()
+      artifact
     )
   end
 
@@ -8743,18 +8742,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp strategy_recommendation_pressure_handoff_string_list_fields,
     do: @strategy_recommendation_pressure_handoff_string_list_fields
-
-  defp manifest_field_reference_contract_callbacks do
-    [
-      require_fields: &require_fields/4,
-      expect_equal: &expect_equal/5,
-      expect_type: &expect_type/5,
-      expect_non_negative_integer: &expect_non_negative_integer/4,
-      expect_field_equals: &expect_field_equals/5,
-      validate_string_list_items: &validate_string_list_items/4,
-      error: &error/2
-    ]
-  end
 
   defp campaign_plan_contract_callbacks do
     [
