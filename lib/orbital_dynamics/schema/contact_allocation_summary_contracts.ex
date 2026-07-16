@@ -1,64 +1,87 @@
 defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
   @moduledoc false
 
+  import OrbitalDynamics.Schema.CollectionValidation, only: [validate_rows: 4]
+
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [
+      expect_equal: 5,
+      expect_field_equals: 6,
+      expect_non_negative_integer: 4,
+      expect_number_field_equals: 6,
+      expect_one_of: 5,
+      expect_optional_field_equals: 6,
+      expect_optional_non_negative_number: 4,
+      expect_optional_number: 4,
+      expect_optional_type: 5,
+      expect_type: 5,
+      validate_non_negative_integer_count_map: 3,
+      validate_non_negative_number_map: 3,
+      validate_number_list_items: 4,
+      validate_optional_exact_model_limits: 5,
+      validate_string_list_items: 4
+    ]
+
+  import OrbitalDynamics.Schema.StableIdValidation,
+    only: [
+      validate_nested_stable_id_array_map: 3,
+      validate_stable_id_array_map: 3,
+      validate_stable_id_list: 3
+    ]
+
   def validate_summary(issues, path, summary, callbacks) when is_list(callbacks) do
     issues
-    |> expect_equal(callbacks, path, summary, "schema_contract", "contact_allocation_summary.v1")
-    |> expect_equal(callbacks, path, summary, "model", "artifact_only_contact_allocation_summary")
-    |> expect_one_of(callbacks, path, summary, "source_artifact_type", [
+    |> expect_equal(path, summary, "schema_contract", "contact_allocation_summary.v1")
+    |> expect_equal(path, summary, "model", "artifact_only_contact_allocation_summary")
+    |> expect_one_of(path, summary, "source_artifact_type", [
       "contact_allocation_report.v1"
     ])
-    |> expect_optional_type(callbacks, path, summary, "source", :binary)
-    |> expect_optional_type(callbacks, path, summary, "model_limits", :list)
-    |> validate_string_list_items(callbacks, path, summary, "model_limits")
+    |> expect_optional_type(path, summary, "source", :binary)
+    |> expect_optional_type(path, summary, "model_limits", :list)
+    |> validate_string_list_items(path, summary, "model_limits")
     |> validate_optional_exact_model_limits(
-      callbacks,
       path,
       summary,
       contact_allocation_model_limits(callbacks),
       "must match contact allocation model limits"
     )
-    |> validate_field_types(callbacks, path, summary)
-    |> expect_type(callbacks, path, summary, "rows", :list)
+    |> validate_field_types(path, summary)
+    |> expect_type(path, summary, "rows", :list)
     |> validate_rows(
-      callbacks,
       path <> ".rows",
       Map.get(summary, "rows", []),
       fn acc, row_path, row -> validate_contact_allocation_row(acc, callbacks, row_path, row) end
     )
-    |> expect_type(callbacks, path, summary, "review_rows", :list)
+    |> expect_type(path, summary, "review_rows", :list)
     |> validate_rows(
-      callbacks,
       path <> ".review_rows",
       Map.get(summary, "review_rows", []),
       fn acc, row_path, row -> validate_contact_allocation_row(acc, callbacks, row_path, row) end
     )
-    |> expect_type(callbacks, path, summary, "reduced_capacity_pack_groups", :list)
+    |> expect_type(path, summary, "reduced_capacity_pack_groups", :list)
     |> validate_rows(
-      callbacks,
       path <> ".reduced_capacity_pack_groups",
       Map.get(summary, "reduced_capacity_pack_groups", []),
       fn acc, row_path, row ->
         validate_contact_allocation_capacity_pack_group(acc, callbacks, row_path, row)
       end
     )
-    |> expect_type(callbacks, path, summary, "assumptions", :map)
+    |> expect_type(path, summary, "assumptions", :map)
     |> validate_assumptions(callbacks, path, summary)
     |> validate_counts(callbacks, path, summary)
   end
 
-  defp validate_field_types(issues, callbacks, path, summary) do
+  defp validate_field_types(issues, path, summary) do
     issues =
       Enum.reduce(count_fields(), issues, fn field, acc ->
-        expect_non_negative_integer(acc, callbacks, path, summary, field)
+        expect_non_negative_integer(acc, path, summary, field)
       end)
 
     issues =
       Enum.reduce(count_map_fields(), issues, fn field, acc ->
         acc
-        |> expect_type(callbacks, path, summary, field, :map)
+        |> expect_type(path, summary, field, :map)
         |> validate_non_negative_integer_count_map(
-          callbacks,
           path <> ".#{field}",
           Map.get(summary, field)
         )
@@ -66,15 +89,14 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
 
     issues =
       Enum.reduce(number_fields(), issues, fn field, acc ->
-        expect_optional_non_negative_number(acc, callbacks, path, summary, field)
+        expect_optional_non_negative_number(acc, path, summary, field)
       end)
 
     issues =
       Enum.reduce(number_map_fields(), issues, fn field, acc ->
         acc
-        |> expect_type(callbacks, path, summary, field, :map)
+        |> expect_type(path, summary, field, :map)
         |> validate_non_negative_number_map(
-          callbacks,
           path <> ".#{field}",
           Map.get(summary, field)
         )
@@ -83,59 +105,52 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
     issues =
       Enum.reduce(stable_id_list_fields(), issues, fn field, acc ->
         acc
-        |> expect_type(callbacks, path, summary, field, :list)
-        |> validate_stable_id_list(callbacks, path <> ".#{field}", Map.get(summary, field))
+        |> expect_type(path, summary, field, :list)
+        |> validate_stable_id_list(path <> ".#{field}", Map.get(summary, field))
       end)
 
     issues =
       Enum.reduce(stable_id_array_map_fields(), issues, fn field, acc ->
         acc
-        |> expect_type(callbacks, path, summary, field, :map)
-        |> validate_stable_id_array_map(callbacks, path <> ".#{field}", Map.get(summary, field))
+        |> expect_type(path, summary, field, :map)
+        |> validate_stable_id_array_map(path <> ".#{field}", Map.get(summary, field))
       end)
 
     issues
     |> expect_optional_type(
-      callbacks,
       path,
       summary,
       "station_pressure_contact_ids_by_direction_and_ground_station_id",
       :map
     )
     |> validate_nested_stable_id_array_map(
-      callbacks,
       path <> ".station_pressure_contact_ids_by_direction_and_ground_station_id",
       Map.get(summary, "station_pressure_contact_ids_by_direction_and_ground_station_id")
     )
     |> expect_optional_type(
-      callbacks,
       path,
       summary,
       "station_pressure_contact_ids_by_status",
       :map
     )
     |> validate_stable_id_array_map(
-      callbacks,
       path <> ".station_pressure_contact_ids_by_status",
       Map.get(summary, "station_pressure_contact_ids_by_status")
     )
     |> expect_optional_type(
-      callbacks,
       path,
       summary,
       "station_pressure_contact_counts_by_status",
       :map
     )
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".station_pressure_contact_counts_by_status",
       Map.get(summary, "station_pressure_contact_counts_by_status")
     )
-    |> expect_type(callbacks, path, summary, "station_reservation_expires_at_s", :list)
-    |> validate_number_list_items(callbacks, path, summary, "station_reservation_expires_at_s")
-    |> expect_optional_number(callbacks, path, summary, "station_reservation_expiration_now_s")
+    |> expect_type(path, summary, "station_reservation_expires_at_s", :list)
+    |> validate_number_list_items(path, summary, "station_reservation_expires_at_s")
+    |> expect_optional_number(path, summary, "station_reservation_expiration_now_s")
     |> expect_optional_number(
-      callbacks,
       path,
       summary,
       "earliest_station_reservation_expires_at_s"
@@ -254,28 +269,24 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       %{} = assumptions ->
         issues
         |> expect_equal(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "execution_boundary",
           "artifact_only_no_provider_reservation_or_schedule_mutation"
         )
         |> expect_equal(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "source",
           "contact_allocation_report.v1"
         )
         |> expect_equal(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "operator_authority",
           "not_granted_by_summary"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "row_statuses",
@@ -283,7 +294,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
           "must match ContactAllocation row statuses"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "effective_row_statuses",
@@ -291,7 +301,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
           "must match ContactAllocation effective row statuses"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "station_unavailable_aliases",
@@ -299,7 +308,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
           "must match ContactAllocation station unavailable aliases"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "station_blocking_availability",
@@ -307,7 +315,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
           "must match ContactAllocation station blocking availability"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "station_availability_precedence",
@@ -315,7 +322,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
           "must match ContactAllocation station availability precedence"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "capacity_pack_statuses",
@@ -323,7 +329,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
           "must match ContactAllocation capacity pack statuses"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "reduced_capacity_pack_statuses",
@@ -331,7 +336,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
           "must match ContactAllocation reduced capacity pack statuses"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "station_reservation_match_statuses",
@@ -339,7 +343,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
           "must match ContactAllocation station reservation match statuses"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "station_reservation_expiration_statuses",
@@ -347,7 +350,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
           "must match ContactAllocation station reservation expiration statuses"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "required_capacity_fraction_source_values",
@@ -355,7 +357,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
           "must match ContactAllocation required capacity fraction source values"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "required_capacity_value_paths",
@@ -363,7 +364,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
           "must match ContactAllocation required capacity value paths"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "default_required_capacity_value_paths",
@@ -371,7 +371,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
           "must match ContactAllocation default required capacity value paths"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "provider_direction_aliases",
@@ -411,44 +410,38 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       )
 
     issues
-    |> expect_field_equals(callbacks, path, summary, "input_contact_count", length(rows))
+    |> expect_field_equals(path, summary, "input_contact_count", length(rows))
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "allocated_contact_count",
       row_count_by(rows, "allocation_status", "allocated")
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "returned_allocated_contact_count",
       row_count_by(rows, "effective_allocation_status", "allocated")
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "policy_blocked_allocated_contact_count",
       row_count_by(rows, "effective_allocation_status", "policy_blocked")
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "deferred_contact_count",
       row_count_by(rows, "allocation_status", "deferred")
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "blocked_contact_count",
       row_count_by(rows, "allocation_status", "blocked")
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "invalid_contact_input_count",
@@ -456,7 +449,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived invalid_contact_input_count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "status_blocked_contact_count",
@@ -464,7 +456,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived status_blocked_contact_count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "resource_blocked_contact_count",
@@ -472,7 +463,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived resource_blocked_contact_count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "duplicate_contact_id_count",
@@ -480,7 +470,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived duplicate_contact_id_count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "reduced_capacity_pack_group_count",
@@ -488,7 +477,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal reduced-capacity-pack-group count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "reduced_capacity_pack_status_counts",
@@ -496,7 +484,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal reduced-capacity-pack-group-derived reduced_capacity_pack_status_counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "allocation_status_counts",
@@ -504,7 +491,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived allocation_status_counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "effective_allocation_status_counts",
@@ -512,7 +498,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived effective_allocation_status_counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "allocation_reason_counts",
@@ -520,7 +505,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived allocation_reason_counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "contact_ids_by_allocation_reason",
@@ -528,7 +512,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived contact_ids_by_allocation_reason"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "capacity_pack_status_counts",
@@ -536,7 +519,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived capacity_pack_status_counts"
     )
     |> expect_number_field_equals(
-      callbacks,
       path,
       summary,
       "capacity_pack_required_capacity_fraction",
@@ -544,7 +526,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived capacity_pack_required_capacity_fraction"
     )
     |> expect_number_field_equals(
-      callbacks,
       path,
       summary,
       "capacity_pack_selected_required_capacity_fraction",
@@ -552,7 +533,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived capacity_pack_selected_required_capacity_fraction"
     )
     |> expect_number_field_equals(
-      callbacks,
       path,
       summary,
       "capacity_pack_deferred_required_capacity_fraction",
@@ -560,7 +540,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived capacity_pack_deferred_required_capacity_fraction"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "capacity_pack_required_capacity_fraction_by_status",
@@ -572,7 +551,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived capacity_pack_required_capacity_fraction_by_status"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "required_capacity_fraction_source_counts",
@@ -580,7 +558,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived required_capacity_fraction_source_counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "station_reservation_match_status_counts",
@@ -588,7 +565,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived station_reservation_match_status_counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "station_reservation_status_counts",
@@ -596,7 +572,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived station_reservation_status_counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "station_reserved_by_counts",
@@ -604,7 +579,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived station_reserved_by_counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "station_reservation_ids",
@@ -612,7 +586,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived station_reservation_ids"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "station_reservation_expires_at_s",
@@ -620,7 +593,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived station_reservation_expires_at_s"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "station_reservation_expiration_status_counts",
@@ -628,7 +600,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived station_reservation_expiration_status_counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "station_reservation_active_contact_count",
@@ -640,7 +611,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived station_reservation_active_contact_count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "station_reservation_expired_contact_count",
@@ -652,7 +622,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived station_reservation_expired_contact_count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "station_reservation_missing_expiration_contact_count",
@@ -664,7 +633,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived station_reservation_missing_expiration_contact_count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "station_reservation_declared_expiration_contact_count",
@@ -676,7 +644,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived station_reservation_declared_expiration_contact_count"
     )
     |> expect_optional_field_equals(
-      callbacks,
       path,
       summary,
       "earliest_station_reservation_expires_at_s",
@@ -687,7 +654,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived earliest_station_reservation_expires_at_s"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "station_calendar_trust_boundary_status_counts",
@@ -695,7 +661,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived station_calendar_trust_boundary_status_counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "resource_blocking_dimension_counts",
@@ -741,7 +706,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
        ) do
     issues
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "allocated_contact_ids",
@@ -749,7 +713,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived allocated_contact_ids"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "allocated_contact_ids_by_ground_station_id",
@@ -761,7 +724,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived allocated_contact_ids_by_ground_station_id"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "returned_allocated_contact_ids",
@@ -769,7 +731,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived returned_allocated_contact_ids"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "returned_allocated_contact_ids_by_ground_station_id",
@@ -781,7 +742,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived returned_allocated_contact_ids_by_ground_station_id"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "deferred_contact_ids",
@@ -789,7 +749,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived deferred_contact_ids"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "deferred_contact_ids_by_ground_station_id",
@@ -801,7 +760,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived deferred_contact_ids_by_ground_station_id"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "blocked_contact_ids",
@@ -809,7 +767,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived blocked_contact_ids"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "blocked_contact_ids_by_ground_station_id",
@@ -821,7 +778,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived blocked_contact_ids_by_ground_station_id"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "policy_blocked_contact_ids",
@@ -829,7 +785,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived policy_blocked_contact_ids"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "policy_blocked_contact_ids_by_ground_station_id",
@@ -841,7 +796,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived policy_blocked_contact_ids_by_ground_station_id"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "invalid_contact_input_ids",
@@ -849,7 +803,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived invalid_contact_input_ids"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "status_blocked_contact_ids",
@@ -857,7 +810,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived status_blocked_contact_ids"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "resource_blocked_contact_ids",
@@ -865,7 +817,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived resource_blocked_contact_ids"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "resource_blocked_contact_ids_by_blocking_dimension",
@@ -873,7 +824,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived resource_blocked_contact_ids_by_blocking_dimension"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "resource_blocked_contact_ids_by_spacecraft_id",
@@ -881,7 +831,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived resource_blocked_contact_ids_by_spacecraft_id"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "station_pressure_contact_ids_by_ground_station_id",
@@ -889,7 +838,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived station_pressure_contact_ids_by_ground_station_id"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "station_pressure_contact_counts_by_ground_station_id",
@@ -899,7 +847,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived station_pressure_contact_counts_by_ground_station_id"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "station_pressure_contact_ids_by_availability",
@@ -907,7 +854,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived station_pressure_contact_ids_by_availability"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "station_pressure_contact_counts_by_availability",
@@ -917,7 +863,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived station_pressure_contact_counts_by_availability"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "station_pressure_contact_ids_by_precedence_availability",
@@ -929,7 +874,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived station_pressure_contact_ids_by_precedence_availability"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "station_pressure_contact_counts_by_precedence_availability",
@@ -939,7 +883,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived station_pressure_contact_counts_by_precedence_availability"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "station_pressure_contact_ids_by_precedence_rank",
@@ -951,7 +894,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived station_pressure_contact_ids_by_precedence_rank"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "station_pressure_contact_counts_by_precedence_rank",
@@ -961,7 +903,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived station_pressure_contact_counts_by_precedence_rank"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "station_pressure_contact_ids_by_status",
@@ -969,7 +910,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived station_pressure_contact_ids_by_status"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "station_pressure_contact_counts_by_status",
@@ -979,7 +919,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived station_pressure_contact_counts_by_status"
     )
     |> expect_optional_field_equals(
-      callbacks,
       path,
       summary,
       "station_pressure_contact_ids_by_direction_and_ground_station_id",
@@ -987,7 +926,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived station_pressure_contact_ids_by_direction_and_ground_station_id"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "station_reservation_contact_ids_by_match_status",
@@ -995,7 +933,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived station_reservation_contact_ids_by_match_status"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "station_reservation_contact_ids_by_status",
@@ -1003,7 +940,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived station_reservation_contact_ids_by_status"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "station_reservation_contact_ids_by_reserved_by",
@@ -1011,7 +947,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived station_reservation_contact_ids_by_reserved_by"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "station_reservation_ids_by_match_status",
@@ -1019,7 +954,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived station_reservation_ids_by_match_status"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "station_reservation_ids_by_status",
@@ -1027,7 +961,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived station_reservation_ids_by_status"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "station_reservation_ids_by_reserved_by",
@@ -1035,7 +968,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived station_reservation_ids_by_reserved_by"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "station_reservation_contact_ids_by_expiration_status",
@@ -1047,7 +979,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived station_reservation_contact_ids_by_expiration_status"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "station_reservation_ids_by_expiration_status",
@@ -1058,7 +989,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived station_reservation_ids_by_expiration_status"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "capacity_pack_contact_ids_by_status",
@@ -1066,7 +996,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived capacity_pack_contact_ids_by_status"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "capacity_pack_contact_ids_by_ground_station_id",
@@ -1074,7 +1003,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived capacity_pack_contact_ids_by_ground_station_id"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "capacity_pack_selected_contact_ids_by_ground_station_id",
@@ -1082,7 +1010,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived capacity_pack_selected_contact_ids_by_ground_station_id"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "capacity_pack_deferred_contact_ids_by_ground_station_id",
@@ -1090,7 +1017,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived capacity_pack_deferred_contact_ids_by_ground_station_id"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "capacity_pack_required_capacity_fraction_by_ground_station_id",
@@ -1102,7 +1028,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived capacity_pack_required_capacity_fraction_by_ground_station_id"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "capacity_pack_selected_required_capacity_fraction_by_ground_station_id",
@@ -1114,7 +1039,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived capacity_pack_selected_required_capacity_fraction_by_ground_station_id"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "capacity_pack_deferred_required_capacity_fraction_by_ground_station_id",
@@ -1126,7 +1050,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived capacity_pack_deferred_required_capacity_fraction_by_ground_station_id"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "required_capacity_fraction_contact_ids_by_source",
@@ -1134,7 +1057,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived required_capacity_fraction_contact_ids_by_source"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "reduced_capacity_packed_contact_ids",
@@ -1147,7 +1069,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived reduced_capacity_packed_contact_ids"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "reduced_capacity_deferred_contact_ids",
@@ -1160,7 +1081,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived reduced_capacity_deferred_contact_ids"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "review_contact_ids",
@@ -1168,7 +1088,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived review_contact_ids"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "review_row_count",
@@ -1176,7 +1095,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived review_row_count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "review_rows",
@@ -1256,114 +1174,11 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
     |> Map.new()
   end
 
-  defp expect_equal(issues, callbacks, path, map, field, expected),
-    do: apply(Keyword.fetch!(callbacks, :expect_equal), [issues, path, map, field, expected])
+  defp expect_field_equals(issues, path, map, field, nil),
+    do: expect_field_equals(issues, path, map, field, nil, nil)
 
-  defp expect_one_of(issues, callbacks, path, map, field, allowed),
-    do: apply(Keyword.fetch!(callbacks, :expect_one_of), [issues, path, map, field, allowed])
-
-  defp expect_type(issues, callbacks, path, map, field, type),
-    do: apply(Keyword.fetch!(callbacks, :expect_type), [issues, path, map, field, type])
-
-  defp expect_optional_type(issues, callbacks, path, map, field, type),
-    do: apply(Keyword.fetch!(callbacks, :expect_optional_type), [issues, path, map, field, type])
-
-  defp expect_non_negative_integer(issues, callbacks, path, map, field),
-    do: apply(Keyword.fetch!(callbacks, :expect_non_negative_integer), [issues, path, map, field])
-
-  defp expect_optional_non_negative_number(issues, callbacks, path, map, field) do
-    apply(Keyword.fetch!(callbacks, :expect_optional_non_negative_number), [
-      issues,
-      path,
-      map,
-      field
-    ])
-  end
-
-  defp expect_optional_number(issues, callbacks, path, map, field),
-    do: apply(Keyword.fetch!(callbacks, :expect_optional_number), [issues, path, map, field])
-
-  defp expect_field_equals(issues, callbacks, path, map, field, expected),
-    do:
-      apply(Keyword.fetch!(callbacks, :expect_field_equals), [issues, path, map, field, expected])
-
-  defp expect_field_equals(issues, callbacks, path, map, field, expected, message) do
-    apply(Keyword.fetch!(callbacks, :expect_field_equals_with_message), [
-      issues,
-      path,
-      map,
-      field,
-      expected,
-      message
-    ])
-  end
-
-  defp expect_optional_field_equals(issues, callbacks, path, map, field, expected, message) do
-    apply(Keyword.fetch!(callbacks, :expect_optional_field_equals), [
-      issues,
-      path,
-      map,
-      field,
-      expected,
-      message
-    ])
-  end
-
-  defp expect_number_field_equals(issues, callbacks, path, map, field, expected, message) do
-    apply(Keyword.fetch!(callbacks, :expect_number_field_equals), [
-      issues,
-      path,
-      map,
-      field,
-      expected,
-      message
-    ])
-  end
-
-  defp validate_rows(issues, callbacks, path, rows, validator),
-    do: apply(Keyword.fetch!(callbacks, :validate_rows), [issues, path, rows, validator])
-
-  defp validate_string_list_items(issues, callbacks, path, map, field),
-    do: apply(Keyword.fetch!(callbacks, :validate_string_list_items), [issues, path, map, field])
-
-  defp validate_optional_exact_model_limits(issues, callbacks, path, artifact, expected, message) do
-    apply(Keyword.fetch!(callbacks, :validate_optional_exact_model_limits), [
-      issues,
-      path,
-      artifact,
-      expected,
-      message
-    ])
-  end
-
-  defp validate_non_negative_integer_count_map(issues, callbacks, path, counts) do
-    apply(Keyword.fetch!(callbacks, :validate_non_negative_integer_count_map), [
-      issues,
-      path,
-      counts
-    ])
-  end
-
-  defp validate_non_negative_number_map(issues, callbacks, path, values),
-    do:
-      apply(Keyword.fetch!(callbacks, :validate_non_negative_number_map), [issues, path, values])
-
-  defp validate_stable_id_list(issues, callbacks, path, values),
-    do: apply(Keyword.fetch!(callbacks, :validate_stable_id_list), [issues, path, values])
-
-  defp validate_stable_id_array_map(issues, callbacks, path, values),
-    do: apply(Keyword.fetch!(callbacks, :validate_stable_id_array_map), [issues, path, values])
-
-  defp validate_nested_stable_id_array_map(issues, callbacks, path, values) do
-    apply(Keyword.fetch!(callbacks, :validate_nested_stable_id_array_map), [
-      issues,
-      path,
-      values
-    ])
-  end
-
-  defp validate_number_list_items(issues, callbacks, path, map, field),
-    do: apply(Keyword.fetch!(callbacks, :validate_number_list_items), [issues, path, map, field])
+  defp expect_field_equals(issues, path, map, field, expected),
+    do: expect_field_equals(issues, path, map, field, expected, "must equal #{expected}")
 
   defp contact_allocation_model_limits(callbacks),
     do: apply(Keyword.fetch!(callbacks, :contact_allocation_model_limits), [])
