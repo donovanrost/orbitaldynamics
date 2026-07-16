@@ -6,58 +6,57 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Candidate-refresh candidate-rejection context extraction.
+Timeline-activity-precondition validator callback cleanup.
 
 Status:
-Complete; publication pending.
+Selected; implementation pending.
 
 Selected slice:
-Move the candidate-rejection source-report validator into the existing
-candidate-selection owner behind its public context function.
+Remove the callback bag from `TimelineActivityPreconditionSummaryContracts` by
+calling shared primitive/collection/stable-ID and timeline owners directly,
+while passing the facade-derived timeline model-limit list as data.
 
 Why this slice:
-Candidate rejection is a candidate-selection outcome beside freshness and
-refresh budget. Its two count maps are the final family-specific body and sole
-remaining caller of the facade's private direct count-map helper, with two
-focused replay suites and direct provenance error-path coverage.
+Live inventory shows `schema.ex` remains the dominant production hotspot at
+12,673 lines with 1,077 private definitions. This 14-entry callback factory and
+the owner's callback trampolines duplicate already-extracted validation
+ownership. Three facade call sites share the same bag, and focused timeline-
+precondition contract/workflow tests cover the behavior.
 
 Public facade to preserve:
-`validate_candidate_rejection_context/4`, including its callback-list guard,
-argument order, validation order, paths, messages, and all other public APIs.
+`OrbitalDynamics.Schema.validate_artifact/2` and all timeline precondition
+artifact behavior, including validation order, paths, messages, model-limit
+comparison, and generated schema/export output.
 
-Extraction target:
-`CandidateRefreshCandidateSelectionContracts.validate_candidate_rejection/3`.
+Likely extraction target:
+`TimelineActivityPreconditionSummaryContracts.validate/4` retaining arity four
+but accepting `timeline_report_model_limits` data instead of callbacks; remove
+the schema callback factory and owner callback wrapper functions.
 
-Files:
-- `lib/orbital_dynamics/schema/candidate_refresh_report_contracts.ex`
-- `lib/orbital_dynamics/schema/candidate_refresh_candidate_selection_contracts.ex`
+Likely files:
+- `lib/orbital_dynamics/schema.ex`
+- `lib/orbital_dynamics/schema/timeline_activity_precondition_summary_contracts.ex`
 - `.codex/status/large_module_refactor.md`
 
-Result:
-The public `/4` facade delegates to a 12-line entry point in the existing
-candidate-selection owner. Both maps moved and the facade's final family-
-specific private reducer was removed; the facade fell from 337 to 332 lines
-without schema-export changes.
+Likely tests:
+- compile with warnings as errors
+- timeline precondition schema-contract and focused workflow tests
+- schema export trio and checked-in export/fingerprint verification
+- broader timeline/candidate-refresh checks, xref, format, and diff hygiene
 
-Verification:
-- compile with warnings as errors passed
-- two candidate-rejection files plus candidate-refresh schema and resource-
-  provenance contracts: 24 passed
-- broader candidate-refresh suite: 755 passed
-- schema export trio: 22 passed
-- full schema export reproduced checked-in artifacts with no diff
-- deterministic contract/bundle fingerprint remained
-  `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`
-- compile-connected xref roots stayed narrow; format and diff hygiene passed
-- bounded read-only review found no issues and independently passed compile,
-  the 24 focused tests, facade/API comparison, xref, format, and diff checks
+Definition of done:
+No callback bag or callback trampolines remain for this validator, all three
+schema call sites pass the same model-limit list, direct owners preserve exact
+behavior, focused/broader/export checks pass, and review finds no blocker.
 
 Verification gaps:
 - Full repository suite not run.
 
-Last commit:
-Published communications-pressure extraction `923f946e`; selected this slice in
-`dea80373`.
+Last completed slice:
+Candidate-rejection context extraction published as `af7de463`: the report-
+contract facade's final family-specific private reducer was removed; 24 focused,
+755 candidate-refresh, and 22 export tests passed; schemas/fingerprint were
+unchanged; bounded review found no issues.
 
 Blocked:
 No.
