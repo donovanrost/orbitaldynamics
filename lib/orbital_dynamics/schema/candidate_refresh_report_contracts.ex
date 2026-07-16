@@ -4,6 +4,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
   alias OrbitalDynamics.Schema.CandidateRefreshContactIntentRoutingContracts
   alias OrbitalDynamics.Schema.CandidateRefreshOperationalTimelineContracts
   alias OrbitalDynamics.Schema.CandidateRefreshStationCalendarContracts
+  alias OrbitalDynamics.Schema.CandidateRefreshTimelineChangeContracts
   alias OrbitalDynamics.Schema.CandidateRefreshTimelineLifecycleContracts
   alias OrbitalDynamics.Schema.CandidateRefreshTimelinePublicationContracts
   alias OrbitalDynamics.Schema.CandidateRefreshTimelineValidationContracts
@@ -530,34 +531,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
   end
 
   def validate_timeline_diff_context(issues, path, summary, callbacks) when is_list(callbacks) do
-    issues =
-      Enum.reduce(
-        [
-          "duplicate_timeline_identity_count",
-          "duplicate_source_timeline_identity_count",
-          "duplicate_replacement_timeline_identity_count",
-          "removed_downlink_count",
-          "removed_observation_count",
-          "changed_downlink_shortfall_count",
-          "changed_contact_feedback_count",
-          "changed_observation_count",
-          "changed_observation_quality_feedback_count",
-          "changed_command_feedback_count",
-          "changed_maneuver_feedback_count"
-        ],
-        issues,
-        fn field, acc ->
-          expect_optional_non_negative_integer(acc, path, summary, field)
-        end
-      )
-
-    validate_optional_count_maps(issues, path, summary, [
-      "diff_status_counts",
-      "required_operator_action_counts",
-      "duplicate_timeline_identity_scope_counts",
-      "source_activity_id_counts",
-      "replacement_activity_id_counts"
-    ])
+    CandidateRefreshTimelineChangeContracts.validate_diff(issues, path, summary)
   end
 
   def validate_operational_timeline_context(issues, path, summary, callbacks)
@@ -567,36 +541,11 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
 
   def validate_timeline_transition_application_context(issues, path, summary, callbacks)
       when is_list(callbacks) do
-    issues =
-      Enum.reduce(
-        [
-          "application_count",
-          "selected_activity_count",
-          "selected_timeline_integrity_review_count",
-          "selected_timeline_integrity_issue_count",
-          "review_required_count",
-          "preserved_source_count",
-          "recorded_replacement_count",
-          "withheld_review_count",
-          "duplicate_timeline_identity_count",
-          "duplicate_source_timeline_identity_count",
-          "duplicate_replacement_timeline_identity_count"
-        ],
-        issues,
-        fn field, acc ->
-          expect_optional_non_negative_integer(acc, path, summary, field)
-        end
-      )
-
-    validate_optional_count_maps(issues, path, summary, [
-      "selected_activity_id_counts",
-      "review_activity_id_counts",
-      "selected_timeline_integrity_issue_type_counts",
-      "application_status_counts",
-      "transition_decision_counts",
-      "required_operator_action_counts",
-      "duplicate_timeline_identity_scope_counts"
-    ])
+    CandidateRefreshTimelineChangeContracts.validate_transition_application(
+      issues,
+      path,
+      summary
+    )
   end
 
   def validate_maneuver_review_context(issues, path, summary, callbacks)

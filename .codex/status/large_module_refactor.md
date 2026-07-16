@@ -9,47 +9,41 @@ Current slice:
 Candidate-refresh timeline change-application context extraction.
 
 Status:
-Selected; implementation pending.
+Complete; ready to publish.
 
-Selected slice:
-Extract timeline-diff and timeline-transition-application source-report
-validators behind their existing public context functions.
+Result:
+- Extracted timeline-diff and transition-application integer and typed count-map
+  validation into the new 79-line `CandidateRefreshTimelineChangeContracts`
+  owner.
+- Preserved both public `/4` functions as thin delegates with callback-list
+  guards unchanged.
+- Kept the parent generic optional-count reducer for timeline feedback and
+  maneuver review while consolidating the selected family locally.
+- Reduced `CandidateRefreshReportContracts` from 890 to 839 lines.
 
-Why this slice:
-Both contexts validate change application through ordered non-negative counters,
-duplicate timeline identity evidence, and optional typed count maps. They form a
-cohesive owner while timeline feedback and maneuver review remain separate.
-
-Public facade to preserve:
-`validate_timeline_diff_context/4` and
-`validate_timeline_transition_application_context/4`, including their
-callback-list guards, plus all other public signatures.
-
-Likely extraction target:
-`CandidateRefreshTimelineChangeContracts`, owning both complete validation
-flows and local integer/count-map reducers.
-
-Likely files:
-- `lib/orbital_dynamics/schema/candidate_refresh_report_contracts.ex`
-- `lib/orbital_dynamics/schema/candidate_refresh_timeline_change_contracts.ex`
-- `.codex/status/large_module_refactor.md`
-
-Likely tests:
-- compile with warnings as errors
-- timeline-diff and transition-application replay/candidate-source/build tests
-- candidate-refresh resource-provenance and schema contract coverage
-- broader candidate-refresh, deterministic export/fingerprint, xref, and format
-
-Definition of done:
-Both public `/4` functions are thin delegates, ordered field/error behavior is
-unchanged, the parent retains its generic reducer for remaining families, and
-focused/broader checks pass.
+Tests run:
+- `mix compile --warnings-as-errors` passed.
+- Focused diff/transition replay/candidate-source/build/provenance/schema
+  coverage passed 46/46.
+- The full `test/orbital_dynamics/candidate_refresh` directory passed 755/755.
+- Schema export coverage passed 22/22.
+- Full export left `schemas/` unchanged; the bundle fingerprint remained
+  `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`.
+- Parent/new-module compile-connected xref, formatting, new-file whitespace,
+  and `git diff --check` passed.
+- The read-only reviewer found no must-fix issues, independently passed compile
+  and 36 focused tests, and verified signatures/guards, exact field order,
+  errors, shared-helper ownership, imports, public definitions, and xref shape.
 
 Verification gaps:
 - Full repository suite not run.
 
 Last commit:
-Published operational-timeline extraction `d6f1d30b`.
+Pending publication; prior handoff `f4543c33`.
+
+Next candidate:
+- Extract the self-contained provider-counteroffer context behind its existing
+  public `/4` facade.
 
 Blocked:
 No.
