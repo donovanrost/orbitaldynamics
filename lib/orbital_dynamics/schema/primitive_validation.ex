@@ -367,6 +367,52 @@ defmodule OrbitalDynamics.Schema.PrimitiveValidation do
 
   def validate_non_negative_number_map(issues, _path, _values), do: issues
 
+  def validate_nested_non_negative_number_map(issues, _path, value)
+      when value in [nil, :null],
+      do: issues
+
+  def validate_nested_non_negative_number_map(issues, path, %{} = values) do
+    Enum.reduce(values, issues, fn {key, nested_values}, acc ->
+      validate_non_negative_number_map(acc, "#{path}.#{key}", nested_values)
+    end)
+  end
+
+  def validate_nested_non_negative_number_map(issues, _path, _value), do: issues
+
+  def validate_non_negative_number_list(issues, _path, value) when value in [nil, :null],
+    do: issues
+
+  def validate_non_negative_number_list(issues, path, values) when is_list(values) do
+    values
+    |> Enum.with_index()
+    |> Enum.reduce(issues, fn {value, index}, acc ->
+      cond do
+        is_number(value) and value >= 0.0 ->
+          acc
+
+        is_number(value) ->
+          [error("#{path}[#{index}]", "must be non-negative") | acc]
+
+        true ->
+          [error("#{path}[#{index}]", "must be a number") | acc]
+      end
+    end)
+  end
+
+  def validate_non_negative_number_list(issues, path, _value),
+    do: [error(path, "must be an array") | issues]
+
+  def validate_number_array_map(issues, _path, value) when value in [nil, :null], do: issues
+
+  def validate_number_array_map(issues, path, %{} = values) do
+    Enum.reduce(values, issues, fn {key, refs}, acc ->
+      validate_non_negative_number_list(acc, "#{path}.#{key}", refs)
+    end)
+  end
+
+  def validate_number_array_map(issues, path, _value),
+    do: [error(path, "must be an object") | issues]
+
   def validate_optional_string_lists(issues, path, map, fields),
     do: Enum.reduce(fields, issues, &validate_string_list_items(&2, path, map, &1))
 

@@ -55,6 +55,29 @@ defmodule OrbitalDynamics.Schema.CollectionValidation do
     end
   end
 
+  def validate_string_list_map(issues, path, map, field) do
+    case Map.get(map, field) do
+      %{} = grouped_values ->
+        Enum.reduce(grouped_values, issues, fn {key, values}, acc ->
+          entry_path = "#{path}.#{field}.#{key}"
+
+          cond do
+            not is_list(values) ->
+              [PrimitiveValidation.error(entry_path, "must be an array") | acc]
+
+            Enum.all?(values, &is_binary/1) ->
+              acc
+
+            true ->
+              [PrimitiveValidation.error(entry_path, "must contain only strings") | acc]
+          end
+        end)
+
+      _grouped_values ->
+        issues
+    end
+  end
+
   def expect_list_count_equals(issues, path, row, count_field, list_field) do
     count = Map.get(row, count_field)
     values = Map.get(row, list_field)

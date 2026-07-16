@@ -1,10 +1,37 @@
 defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
   @moduledoc false
 
+  import OrbitalDynamics.Schema.CollectionValidation,
+    only: [validate_optional_string_list: 4, validate_string_list_map: 4]
+
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [
+      error: 2,
+      expect_optional_field_equals: 6,
+      expect_optional_non_negative_integer: 4,
+      expect_optional_number: 4,
+      expect_optional_type: 5,
+      expect_type: 5,
+      validate_nested_non_negative_number_map: 3,
+      validate_non_negative_integer_count_map: 3,
+      validate_non_negative_number_list: 3,
+      validate_non_negative_number_map: 3,
+      validate_number_array_map: 3,
+      validate_string_list_items: 4
+    ]
+
+  import OrbitalDynamics.Schema.StableIdValidation,
+    only: [
+      validate_nested_stable_id_array_map: 3,
+      validate_optional_stable_id_list: 4,
+      validate_stable_id_array_map: 3,
+      validate_stable_id_list: 3
+    ]
+
   def validate_source_report_provenance(issues, %{"provenance" => %{} = provenance}, callbacks)
       when is_list(callbacks) do
     issues
-    |> expect_optional_type(callbacks, "$.provenance", provenance, "source_reports", :map)
+    |> expect_optional_type("$.provenance", provenance, "source_reports", :map)
     |> validate_source_report_summaries(callbacks, Map.get(provenance, "source_reports"))
   end
 
@@ -18,38 +45,28 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
       path = "$.provenance.source_reports.#{family}"
 
       issues =
-        expect_type(
-          issues,
-          callbacks,
-          "$.provenance.source_reports",
-          source_reports,
-          family,
-          :map
-        )
+        expect_type(issues, "$.provenance.source_reports", source_reports, family, :map)
 
       if is_map(summary) do
         issues
-        |> expect_optional_type(callbacks, path, summary, "contract", :binary)
-        |> expect_optional_type(callbacks, path, summary, "paths", :list)
-        |> validate_string_list_items(callbacks, path, summary, "paths")
-        |> expect_optional_non_negative_integer(callbacks, path, summary, "count")
-        |> expect_optional_non_negative_integer(callbacks, path, summary, "row_count")
+        |> expect_optional_type(path, summary, "contract", :binary)
+        |> expect_optional_type(path, summary, "paths", :list)
+        |> validate_string_list_items(path, summary, "paths")
+        |> expect_optional_non_negative_integer(path, summary, "count")
+        |> expect_optional_non_negative_integer(path, summary, "row_count")
         |> validate_non_negative_integer_count_map(
-          callbacks,
           path <> ".analysis_mode_counts",
           Map.get(summary, "analysis_mode_counts")
         )
-        |> expect_optional_type(callbacks, path, summary, "trust_boundary_status", :binary)
-        |> expect_optional_type(callbacks, path, summary, "trust_boundaries", :list)
-        |> validate_string_list_items(callbacks, path, summary, "trust_boundaries")
+        |> expect_optional_type(path, summary, "trust_boundary_status", :binary)
+        |> expect_optional_type(path, summary, "trust_boundaries", :list)
+        |> validate_string_list_items(path, summary, "trust_boundaries")
         |> expect_optional_non_negative_integer(
-          callbacks,
           path,
           summary,
           "station_reservation_evidence_row_count"
         )
         |> expect_optional_non_negative_integer(
-          callbacks,
           path,
           summary,
           "station_reservation_expiration_evidence_row_count"
@@ -110,7 +127,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
         ],
         issues,
         fn field, acc ->
-          expect_optional_non_negative_integer(acc, callbacks, path, summary, field)
+          expect_optional_non_negative_integer(acc, path, summary, field)
         end
       )
 
@@ -126,9 +143,8 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
         issues,
         fn field, acc ->
           acc
-          |> expect_optional_type(callbacks, path, summary, field, :map)
+          |> expect_optional_type(path, summary, field, :map)
           |> validate_non_negative_integer_count_map(
-            callbacks,
             path <> ".#{field}",
             Map.get(summary, field)
           )
@@ -145,7 +161,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
         ],
         issues,
         fn field, acc ->
-          validate_optional_stable_id_array_map(acc, callbacks, path, summary, field)
+          validate_optional_stable_id_array_map(acc, path, summary, field)
         end
       )
 
@@ -168,13 +184,13 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
       ],
       issues,
       fn field, acc ->
-        validate_stable_id_list(acc, callbacks, path <> ".#{field}", Map.get(summary, field))
+        validate_stable_id_list(acc, path <> ".#{field}", Map.get(summary, field))
       end
     )
-    |> validate_string_list_items(callbacks, path, summary, "schema_validation_status_ids")
-    |> validate_string_list_items(callbacks, path, summary, "freshness_status_ids")
-    |> validate_string_list_items(callbacks, path, summary, "import_status_ids")
-    |> validate_string_list_items(callbacks, path, summary, "cadence_import_status_ids")
+    |> validate_string_list_items(path, summary, "schema_validation_status_ids")
+    |> validate_string_list_items(path, summary, "freshness_status_ids")
+    |> validate_string_list_items(path, summary, "import_status_ids")
+    |> validate_string_list_items(path, summary, "cadence_import_status_ids")
   end
 
   def validate_schema_validation_context(issues, path, summary, callbacks)
@@ -188,7 +204,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
         ],
         issues,
         fn field, acc ->
-          expect_optional_non_negative_integer(acc, callbacks, path, summary, field)
+          expect_optional_non_negative_integer(acc, path, summary, field)
         end
       )
 
@@ -204,9 +220,8 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
       issues,
       fn field, acc ->
         acc
-        |> expect_optional_type(callbacks, path, summary, field, :map)
+        |> expect_optional_type(path, summary, field, :map)
         |> validate_non_negative_integer_count_map(
-          callbacks,
           path <> ".#{field}",
           Map.get(summary, field)
         )
@@ -217,42 +232,39 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
   def validate_model_acceptance_context(issues, path, summary, callbacks)
       when is_list(callbacks) do
     issues
-    |> expect_optional_non_negative_integer(callbacks, path, summary, "record_count")
-    |> expect_optional_non_negative_integer(callbacks, path, summary, "model_count")
-    |> expect_optional_non_negative_integer(callbacks, path, summary, "accepted_count")
-    |> expect_optional_non_negative_integer(callbacks, path, summary, "review_required_count")
-    |> expect_optional_non_negative_integer(callbacks, path, summary, "blocked_count")
-    |> expect_optional_non_negative_integer(callbacks, path, summary, "unknown_model_count")
-    |> validate_model_acceptance_count_maps(callbacks, path, summary)
-    |> expect_optional_type(callbacks, path, summary, "model_ids_by_status", :map)
-    |> validate_string_list_map(callbacks, path, summary, "model_ids_by_status")
-    |> expect_optional_type(callbacks, path, summary, "model_ids_by_validation_level", :map)
-    |> validate_string_list_map(callbacks, path, summary, "model_ids_by_validation_level")
-    |> expect_optional_type(callbacks, path, summary, "model_ids_by_intended_use", :map)
-    |> validate_string_list_map(callbacks, path, summary, "model_ids_by_intended_use")
+    |> expect_optional_non_negative_integer(path, summary, "record_count")
+    |> expect_optional_non_negative_integer(path, summary, "model_count")
+    |> expect_optional_non_negative_integer(path, summary, "accepted_count")
+    |> expect_optional_non_negative_integer(path, summary, "review_required_count")
+    |> expect_optional_non_negative_integer(path, summary, "blocked_count")
+    |> expect_optional_non_negative_integer(path, summary, "unknown_model_count")
+    |> validate_model_acceptance_count_maps(path, summary)
+    |> expect_optional_type(path, summary, "model_ids_by_status", :map)
+    |> validate_string_list_map(path, summary, "model_ids_by_status")
+    |> expect_optional_type(path, summary, "model_ids_by_validation_level", :map)
+    |> validate_string_list_map(path, summary, "model_ids_by_validation_level")
+    |> expect_optional_type(path, summary, "model_ids_by_intended_use", :map)
+    |> validate_string_list_map(path, summary, "model_ids_by_intended_use")
   end
 
   def validate_freshness_context(issues, path, summary, callbacks) when is_list(callbacks) do
     issues
-    |> expect_optional_non_negative_integer(callbacks, path, summary, "stale_reason_count")
-    |> expect_optional_non_negative_integer(callbacks, path, summary, "unknown_reason_count")
+    |> expect_optional_non_negative_integer(path, summary, "stale_reason_count")
+    |> expect_optional_non_negative_integer(path, summary, "unknown_reason_count")
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".status_counts",
       Map.get(summary, "status_counts")
     )
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".stale_reason_counts",
       Map.get(summary, "stale_reason_counts")
     )
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".unknown_reason_counts",
       Map.get(summary, "unknown_reason_counts")
     )
-    |> validate_string_list_items(callbacks, path, summary, "stale_reasons")
-    |> validate_string_list_items(callbacks, path, summary, "unknown_reasons")
+    |> validate_string_list_items(path, summary, "stale_reasons")
+    |> validate_string_list_items(path, summary, "unknown_reasons")
   end
 
   def validate_objective_gap_context(issues, path, summary, callbacks) when is_list(callbacks) do
@@ -266,7 +278,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
         ],
         issues,
         fn field, acc ->
-          expect_optional_non_negative_integer(acc, callbacks, path, summary, field)
+          expect_optional_non_negative_integer(acc, path, summary, field)
         end
       )
 
@@ -282,12 +294,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
       ],
       issues,
       fn field, acc ->
-        validate_non_negative_integer_count_map(
-          acc,
-          callbacks,
-          path <> ".#{field}",
-          Map.get(summary, field)
-        )
+        validate_non_negative_integer_count_map(acc, path <> ".#{field}", Map.get(summary, field))
       end
     )
   end
@@ -303,23 +310,20 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
         ],
         issues,
         fn field, acc ->
-          expect_optional_non_negative_integer(acc, callbacks, path, summary, field)
+          expect_optional_non_negative_integer(acc, path, summary, field)
         end
       )
 
     issues
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".invalid_candidate_limit_policy_reason_counts",
       Map.get(summary, "invalid_candidate_limit_policy_reason_counts")
     )
     |> validate_stable_id_list(
-      callbacks,
       path <> ".kept_candidate_ids",
       Map.get(summary, "kept_candidate_ids")
     )
     |> validate_stable_id_list(
-      callbacks,
       path <> ".dropped_candidate_ids",
       Map.get(summary, "dropped_candidate_ids")
     )
@@ -328,36 +332,32 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
   def validate_validation_safety_case_context(issues, path, summary, callbacks)
       when is_list(callbacks) do
     issues
-    |> expect_optional_non_negative_integer(callbacks, path, summary, "accepted_evidence_count")
+    |> expect_optional_non_negative_integer(path, summary, "accepted_evidence_count")
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       summary,
       "review_required_evidence_count"
     )
-    |> expect_optional_non_negative_integer(callbacks, path, summary, "blocked_evidence_count")
-    |> expect_optional_type(callbacks, path, summary, "status_counts", :map)
+    |> expect_optional_non_negative_integer(path, summary, "blocked_evidence_count")
+    |> expect_optional_type(path, summary, "status_counts", :map)
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".status_counts",
       Map.get(summary, "status_counts")
     )
-    |> expect_optional_type(callbacks, path, summary, "evidence_status_counts", :map)
+    |> expect_optional_type(path, summary, "evidence_status_counts", :map)
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".evidence_status_counts",
       Map.get(summary, "evidence_status_counts")
     )
-    |> expect_optional_type(callbacks, path, summary, "input_contract_counts", :map)
+    |> expect_optional_type(path, summary, "input_contract_counts", :map)
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".input_contract_counts",
       Map.get(summary, "input_contract_counts")
     )
-    |> expect_optional_type(callbacks, path, summary, "evidence_refs_by_status", :map)
-    |> validate_string_list_map(callbacks, path, summary, "evidence_refs_by_status")
-    |> expect_optional_type(callbacks, path, summary, "evidence_refs_by_contract", :map)
-    |> validate_string_list_map(callbacks, path, summary, "evidence_refs_by_contract")
+    |> expect_optional_type(path, summary, "evidence_refs_by_status", :map)
+    |> validate_string_list_map(path, summary, "evidence_refs_by_status")
+    |> expect_optional_type(path, summary, "evidence_refs_by_contract", :map)
+    |> validate_string_list_map(path, summary, "evidence_refs_by_contract")
     |> validate_validation_safety_case_counts(callbacks, path, summary)
   end
 
@@ -365,17 +365,15 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
       when is_list(callbacks) do
     issues
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       summary,
       "invalid_activity_input_count"
     )
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".invalid_activity_input_reason_counts",
       Map.get(summary, "invalid_activity_input_reason_counts")
     )
-    |> validate_string_list_items(callbacks, path, summary, "invalid_activity_input_reasons")
+    |> validate_string_list_items(path, summary, "invalid_activity_input_reasons")
   end
 
   def validate_timeline_activity_lifecycle_context(issues, path, summary, callbacks)
@@ -388,7 +386,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
         ],
         issues,
         fn field, acc ->
-          expect_optional_non_negative_integer(acc, callbacks, path, summary, field)
+          expect_optional_non_negative_integer(acc, path, summary, field)
         end
       )
 
@@ -420,9 +418,8 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
         issues,
         fn field, acc ->
           acc
-          |> expect_optional_type(callbacks, path, summary, field, :map)
+          |> expect_optional_type(path, summary, field, :map)
           |> validate_non_negative_integer_count_map(
-            callbacks,
             path <> ".#{field}",
             Map.get(summary, field)
           )
@@ -430,9 +427,8 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
       )
 
     issues
-    |> expect_optional_type(callbacks, path, summary, "action_routing", :map)
+    |> expect_optional_type(path, summary, "action_routing", :map)
     |> validate_timeline_activity_state_action_routing(
-      callbacks,
       path,
       "action_routing",
       Map.get(summary, "action_routing")
@@ -455,7 +451,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
         ],
         issues,
         fn field, acc ->
-          expect_optional_non_negative_integer(acc, callbacks, path, summary, field)
+          expect_optional_non_negative_integer(acc, path, summary, field)
         end
       )
 
@@ -480,9 +476,8 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
         issues,
         fn field, acc ->
           acc
-          |> expect_optional_type(callbacks, path, summary, field, :map)
+          |> expect_optional_type(path, summary, field, :map)
           |> validate_non_negative_integer_count_map(
-            callbacks,
             path <> ".#{field}",
             Map.get(summary, field)
           )
@@ -501,8 +496,8 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
         issues,
         fn field, acc ->
           acc
-          |> expect_optional_type(callbacks, path, summary, field, :list)
-          |> validate_optional_stable_id_list(callbacks, path, summary, field)
+          |> expect_optional_type(path, summary, field, :list)
+          |> validate_optional_stable_id_list(path, summary, field)
         end
       )
 
@@ -516,15 +511,14 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
         issues,
         fn field, acc ->
           acc
-          |> expect_optional_type(callbacks, path, summary, field, :map)
-          |> validate_optional_stable_id_array_map(callbacks, path, summary, field)
+          |> expect_optional_type(path, summary, field, :map)
+          |> validate_optional_stable_id_array_map(path, summary, field)
         end
       )
 
     issues
-    |> expect_optional_type(callbacks, path, summary, "review_routing", :map)
+    |> expect_optional_type(path, summary, "review_routing", :map)
     |> validate_timeline_activity_state_action_routing(
-      callbacks,
       path,
       "review_routing",
       Map.get(summary, "review_routing")
@@ -542,7 +536,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
         ],
         issues,
         fn field, acc ->
-          expect_optional_non_negative_integer(acc, callbacks, path, summary, field)
+          expect_optional_non_negative_integer(acc, path, summary, field)
         end
       )
 
@@ -570,16 +564,15 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
         issues,
         fn field, acc ->
           acc
-          |> expect_optional_type(callbacks, path, summary, field, :map)
+          |> expect_optional_type(path, summary, field, :map)
           |> validate_non_negative_integer_count_map(
-            callbacks,
             path <> ".#{field}",
             Map.get(summary, field)
           )
         end
       )
 
-    validate_string_list_items(issues, callbacks, path, summary, "invalid_activity_input_reasons")
+    validate_string_list_items(issues, path, summary, "invalid_activity_input_reasons")
   end
 
   def validate_timeline_publication_context(issues, path, summary, callbacks)
@@ -599,7 +592,6 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
         fn field, acc ->
           validate_non_negative_integer_count_map(
             acc,
-            callbacks,
             path <> ".#{field}",
             Map.get(summary, field)
           )
@@ -616,7 +608,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
         ],
         issues,
         fn field, acc ->
-          expect_optional_non_negative_integer(acc, callbacks, path, summary, field)
+          expect_optional_non_negative_integer(acc, path, summary, field)
         end
       )
 
@@ -645,7 +637,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
         ],
         issues,
         fn field, acc ->
-          validate_optional_stable_id_list(acc, callbacks, path, summary, field)
+          validate_optional_stable_id_list(acc, path, summary, field)
         end
       )
 
@@ -654,7 +646,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
       "invalidated_downstream_product_ids_by_reason"
     ]
     |> Enum.reduce(issues, fn field, acc ->
-      validate_stable_id_array_map(acc, callbacks, path <> ".#{field}", Map.get(summary, field))
+      validate_stable_id_array_map(acc, path <> ".#{field}", Map.get(summary, field))
     end)
   end
 
@@ -670,7 +662,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
         ],
         issues,
         fn field, acc ->
-          expect_optional_non_negative_integer(acc, callbacks, path, summary, field)
+          expect_optional_non_negative_integer(acc, path, summary, field)
         end
       )
 
@@ -697,9 +689,8 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
       issues,
       fn field, acc ->
         acc
-        |> expect_optional_type(callbacks, path, summary, field, :map)
+        |> expect_optional_type(path, summary, field, :map)
         |> validate_non_negative_integer_count_map(
-          callbacks,
           path <> ".#{field}",
           Map.get(summary, field)
         )
@@ -722,7 +713,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
         ],
         issues,
         fn field, acc ->
-          expect_optional_non_negative_integer(acc, callbacks, path, summary, field)
+          expect_optional_non_negative_integer(acc, path, summary, field)
         end
       )
 
@@ -743,9 +734,8 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
       issues,
       fn field, acc ->
         acc
-        |> expect_optional_type(callbacks, path, summary, field, :map)
+        |> expect_optional_type(path, summary, field, :map)
         |> validate_non_negative_integer_count_map(
-          callbacks,
           path <> ".#{field}",
           Map.get(summary, field)
         )
@@ -756,127 +746,108 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
   def validate_provider_counteroffer_context(issues, path, summary, callbacks)
       when is_list(callbacks) do
     issues
-    |> expect_optional_non_negative_integer(callbacks, path, summary, "reviewable_count")
+    |> expect_optional_non_negative_integer(path, summary, "reviewable_count")
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       summary,
       "counteroffer_cost_delta_count"
     )
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       summary,
       "counteroffer_timing_shift_count"
     )
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       summary,
       "counteroffer_start_delta_count"
     )
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       summary,
       "counteroffer_end_delta_count"
     )
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       summary,
       "counteroffer_duration_delta_count"
     )
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       summary,
       "counteroffer_lock_deadline_count"
     )
-    |> expect_optional_number(callbacks, path, summary, "counteroffer_cost_delta_total")
-    |> expect_optional_number(callbacks, path, summary, "earliest_counteroffer_lock_deadline_s")
-    |> expect_optional_type(callbacks, path, summary, "counteroffer_status_counts", :map)
+    |> expect_optional_number(path, summary, "counteroffer_cost_delta_total")
+    |> expect_optional_number(path, summary, "earliest_counteroffer_lock_deadline_s")
+    |> expect_optional_type(path, summary, "counteroffer_status_counts", :map)
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".counteroffer_status_counts",
       Map.get(summary, "counteroffer_status_counts")
     )
-    |> expect_optional_type(callbacks, path, summary, "required_operator_action_counts", :map)
+    |> expect_optional_type(path, summary, "required_operator_action_counts", :map)
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".required_operator_action_counts",
       Map.get(summary, "required_operator_action_counts")
     )
-    |> expect_optional_non_negative_integer(callbacks, path, summary, "plan_impact_summary_count")
+    |> expect_optional_non_negative_integer(path, summary, "plan_impact_summary_count")
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       summary,
       "import_readiness_summary_count"
     )
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".plan_impact_status_counts",
       Map.get(summary, "plan_impact_status_counts")
     )
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".import_readiness_status_counts",
       Map.get(summary, "import_readiness_status_counts")
     )
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".import_classification_counts",
       Map.get(summary, "import_classification_counts")
     )
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".provider_counteroffer_import_status_counts",
       Map.get(summary, "provider_counteroffer_import_status_counts")
     )
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".counteroffer_lock_deadline_status_counts",
       Map.get(summary, "counteroffer_lock_deadline_status_counts")
     )
     |> validate_stable_id_array_map(
-      callbacks,
       path <> ".counteroffer_ids_by_import_status",
       Map.get(summary, "counteroffer_ids_by_import_status")
     )
     |> validate_stable_id_array_map(
-      callbacks,
       path <> ".counteroffer_ids_by_required_import_action",
       Map.get(summary, "counteroffer_ids_by_required_import_action")
     )
     |> validate_stable_id_array_map(
-      callbacks,
       path <> ".counteroffer_ids_by_lock_deadline_status",
       Map.get(summary, "counteroffer_ids_by_lock_deadline_status")
     )
     |> validate_stable_id_list(
-      callbacks,
       path <> ".review_counteroffer_ids",
       Map.get(summary, "review_counteroffer_ids")
     )
     |> validate_stable_id_list(
-      callbacks,
       path <> ".no_import_required_counteroffer_ids",
       Map.get(summary, "no_import_required_counteroffer_ids")
     )
-    |> validate_string_list_items(callbacks, path, summary, "affected_station_calendar_entry_ids")
-    |> validate_string_list_items(callbacks, path, summary, "affected_provider_entry_ids")
-    |> validate_string_list_items(callbacks, path, summary, "impact_counteroffer_ids")
-    |> validate_string_list_items(callbacks, path, summary, "timing_shift_counteroffer_ids")
-    |> validate_string_list_items(callbacks, path, summary, "cost_delta_counteroffer_ids")
+    |> validate_string_list_items(path, summary, "affected_station_calendar_entry_ids")
+    |> validate_string_list_items(path, summary, "affected_provider_entry_ids")
+    |> validate_string_list_items(path, summary, "impact_counteroffer_ids")
+    |> validate_string_list_items(path, summary, "timing_shift_counteroffer_ids")
+    |> validate_string_list_items(path, summary, "cost_delta_counteroffer_ids")
   end
 
   def validate_timeline_feedback_context(issues, path, summary, callbacks)
       when is_list(callbacks) do
     issues
-    |> expect_optional_type(callbacks, path, summary, "input_keys", :list)
-    |> validate_string_list_items(callbacks, path, summary, "input_keys")
-    |> validate_optional_count_maps(callbacks, path, summary, [
+    |> expect_optional_type(path, summary, "input_keys", :list)
+    |> validate_string_list_items(path, summary, "input_keys")
+    |> validate_optional_count_maps(path, summary, [
       "status_counts",
       "feedback_kind_counts",
       "match_strategy_counts",
@@ -903,11 +874,11 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
         ],
         issues,
         fn field, acc ->
-          expect_optional_non_negative_integer(acc, callbacks, path, summary, field)
+          expect_optional_non_negative_integer(acc, path, summary, field)
         end
       )
 
-    validate_optional_count_maps(issues, callbacks, path, summary, [
+    validate_optional_count_maps(issues, path, summary, [
       "diff_status_counts",
       "required_operator_action_counts",
       "duplicate_timeline_identity_scope_counts",
@@ -919,42 +890,37 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
   def validate_operational_timeline_context(issues, path, summary, callbacks)
       when is_list(callbacks) do
     issues
-    |> expect_optional_type(callbacks, path, summary, "input_keys", :list)
-    |> validate_string_list_items(callbacks, path, summary, "input_keys")
-    |> expect_optional_non_negative_integer(callbacks, path, summary, "contact_feedback_count")
-    |> expect_optional_non_negative_integer(callbacks, path, summary, "command_feedback_count")
-    |> expect_optional_non_negative_integer(callbacks, path, summary, "maneuver_feedback_count")
+    |> expect_optional_type(path, summary, "input_keys", :list)
+    |> validate_string_list_items(path, summary, "input_keys")
+    |> expect_optional_non_negative_integer(path, summary, "contact_feedback_count")
+    |> expect_optional_non_negative_integer(path, summary, "command_feedback_count")
+    |> expect_optional_non_negative_integer(path, summary, "maneuver_feedback_count")
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       summary,
       "observation_feedback_count"
     )
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       summary,
       "station_throughput_feedback_count"
     )
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       summary,
       "timeline_integrity_issue_count"
     )
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       summary,
       "dependency_integrity_issue_count"
     )
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       summary,
       "exclusivity_integrity_issue_count"
     )
-    |> validate_operational_timeline_count_maps(callbacks, path, summary)
+    |> validate_operational_timeline_count_maps(path, summary)
   end
 
   def validate_timeline_transition_application_context(issues, path, summary, callbacks)
@@ -976,11 +942,11 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
         ],
         issues,
         fn field, acc ->
-          expect_optional_non_negative_integer(acc, callbacks, path, summary, field)
+          expect_optional_non_negative_integer(acc, path, summary, field)
         end
       )
 
-    validate_optional_count_maps(issues, callbacks, path, summary, [
+    validate_optional_count_maps(issues, path, summary, [
       "selected_activity_id_counts",
       "review_activity_id_counts",
       "selected_timeline_integrity_issue_type_counts",
@@ -995,33 +961,30 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
       when is_list(callbacks) do
     issues
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       summary,
       "maneuver_success_feedback_count"
     )
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       summary,
       "execution_uncertainty_declared_count"
     )
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       summary,
       "execution_uncertainty_missing_count"
     )
-    |> expect_optional_type(callbacks, path, summary, "input_keys", :list)
-    |> validate_string_list_items(callbacks, path, summary, "input_keys")
-    |> validate_optional_count_maps(callbacks, path, summary, [
+    |> expect_optional_type(path, summary, "input_keys", :list)
+    |> validate_string_list_items(path, summary, "input_keys")
+    |> validate_optional_count_maps(path, summary, [
       "maneuver_id_counts",
       "required_operator_action_counts"
     ])
   end
 
   def validate_link_capacity_context(issues, path, summary, callbacks) when is_list(callbacks) do
-    validate_count_maps(issues, callbacks, path, summary, [
+    validate_count_maps(issues, path, summary, [
       "ground_station_counts",
       "target_counts",
       "collection_counts",
@@ -1031,7 +994,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
   end
 
   def validate_constraint_context(issues, path, summary, callbacks) when is_list(callbacks) do
-    validate_count_maps(issues, callbacks, path, summary, [
+    validate_count_maps(issues, path, summary, [
       "constraint_metric_counts",
       "constraint_resource_counts",
       "constraint_spacecraft_counts"
@@ -1040,7 +1003,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
 
   def validate_resource_projection_context(issues, path, summary, callbacks)
       when is_list(callbacks) do
-    validate_count_maps(issues, callbacks, path, summary, [
+    validate_count_maps(issues, path, summary, [
       "resource_projection_spacecraft_counts",
       "resource_pressure_type_counts",
       "resource_pressure_activity_id_counts"
@@ -1050,13 +1013,12 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
   def validate_resource_filter_context(issues, path, summary, callbacks)
       when is_list(callbacks) do
     issues
-    |> validate_count_maps(callbacks, path, summary, [
+    |> validate_count_maps(path, summary, [
       "resource_filter_spacecraft_counts",
       "resource_filter_resource_counts",
       "resource_filter_blocking_dimension_counts"
     ])
     |> validate_stable_id_list(
-      callbacks,
       path <> ".invalid_resource_summary_input_ids",
       Map.get(summary, "invalid_resource_summary_input_ids")
     )
@@ -1064,7 +1026,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
 
   def validate_contact_contention_context(issues, path, summary, callbacks)
       when is_list(callbacks) do
-    validate_count_maps(issues, callbacks, path, summary, [
+    validate_count_maps(issues, path, summary, [
       "contact_contention_ground_station_counts",
       "contact_contention_contact_id_counts"
     ])
@@ -1080,19 +1042,14 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
       ],
       issues,
       fn field, acc ->
-        validate_nested_stable_id_array_map(
-          acc,
-          callbacks,
-          path <> ".#{field}",
-          Map.get(summary, field)
-        )
+        validate_nested_stable_id_array_map(acc, path <> ".#{field}", Map.get(summary, field))
       end
     )
   end
 
   def validate_candidate_rejection_context(issues, path, summary, callbacks)
       when is_list(callbacks) do
-    validate_count_maps(issues, callbacks, path, summary, [
+    validate_count_maps(issues, path, summary, [
       "candidate_rejection_candidate_id_counts",
       "candidate_rejection_ground_station_counts"
     ])
@@ -1102,12 +1059,11 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
       when is_list(callbacks) do
     issues
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       summary,
       "station_pressure_contact_count"
     )
-    |> validate_count_maps(callbacks, path, summary, [
+    |> validate_count_maps(path, summary, [
       "station_pressure_ground_station_counts",
       "station_pressure_availability_counts",
       "station_pressure_precedence_availability_counts",
@@ -1118,20 +1074,18 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
   def validate_contact_intent_context(issues, path, summary, callbacks)
       when is_list(callbacks) do
     issues
-    |> expect_optional_non_negative_integer(callbacks, path, summary, "station_feedback_count")
+    |> expect_optional_non_negative_integer(path, summary, "station_feedback_count")
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       summary,
       "capacity_pack_required_contact_count"
     )
     |> expect_optional_number(
-      callbacks,
       path,
       summary,
       "capacity_pack_required_capacity_fraction"
     )
-    |> validate_count_maps(callbacks, path, summary, [
+    |> validate_count_maps(path, summary, [
       "station_calendar_status_counts",
       "cadence_import_status_counts",
       "policy_classification_counts",
@@ -1139,24 +1093,20 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
       "direction_counts"
     ])
     |> validate_non_negative_number_map(
-      callbacks,
       path <> ".capacity_pack_required_capacity_fraction_by_ground_station",
       Map.get(summary, "capacity_pack_required_capacity_fraction_by_ground_station")
     )
     |> validate_non_negative_number_map(
-      callbacks,
       path <> ".capacity_pack_required_capacity_fraction_by_direction",
       Map.get(summary, "capacity_pack_required_capacity_fraction_by_direction")
     )
     |> validate_nested_non_negative_number_map(
-      callbacks,
       path <> ".capacity_pack_required_capacity_fraction_by_direction_and_ground_station",
       Map.get(summary, "capacity_pack_required_capacity_fraction_by_direction_and_ground_station")
     )
-    |> validate_contact_intent_stable_id_maps(callbacks, path, summary)
-    |> validate_string_list_items(callbacks, path, summary, "directions")
+    |> validate_contact_intent_stable_id_maps(path, summary)
+    |> validate_string_list_items(path, summary, "directions")
     |> validate_contact_intent_direction_routing_with_callbacks(
-      callbacks,
       path,
       Map.get(summary, "direction_routing"),
       summary
@@ -1167,12 +1117,11 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
       when is_list(callbacks) do
     issues
     |> validate_stable_id_list(
-      callbacks,
       path <> ".invalid_contact_input_ids",
       Map.get(summary, "invalid_contact_input_ids")
     )
-    |> expect_optional_non_negative_integer(callbacks, path, summary, "station_suppression_count")
-    |> validate_count_maps(callbacks, path, summary, [
+    |> expect_optional_non_negative_integer(path, summary, "station_suppression_count")
+    |> validate_count_maps(path, summary, [
       "station_suppression_ground_station_counts",
       "station_suppression_availability_counts",
       "station_suppression_status_counts"
@@ -1182,40 +1131,32 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
   def validate_station_calendar_context(issues, path, summary, callbacks)
       when is_list(callbacks) do
     issues
-    |> expect_optional_non_negative_integer(callbacks, path, summary, "affected_contact_count")
-    |> validate_station_calendar_stable_id_lists(callbacks, path, summary)
-    |> validate_count_maps(callbacks, path, summary, [
+    |> expect_optional_non_negative_integer(path, summary, "affected_contact_count")
+    |> validate_station_calendar_stable_id_lists(path, summary)
+    |> validate_count_maps(path, summary, [
       "affected_contact_ground_station_counts",
       "affected_contact_availability_counts",
       "direction_counts"
     ])
-    |> validate_station_calendar_direction_maps(callbacks, path, summary)
+    |> validate_station_calendar_direction_maps(path, summary)
     |> validate_station_calendar_direction_routing(
-      callbacks,
       path,
       Map.get(summary, "direction_routing")
     )
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       summary,
       "provider_calendar_contention_group_count"
     )
-    |> validate_station_calendar_provider_contention(callbacks, path, summary)
+    |> validate_station_calendar_provider_contention(path, summary)
   end
 
   def validate_contact_intent_direction_routing(issues, path, value, summary, callbacks)
       when is_list(callbacks) do
-    validate_contact_intent_direction_routing_with_callbacks(
-      issues,
-      callbacks,
-      path,
-      value,
-      summary
-    )
+    validate_contact_intent_direction_routing_with_callbacks(issues, path, value, summary)
   end
 
-  defp validate_model_acceptance_count_maps(issues, callbacks, path, summary) do
+  defp validate_model_acceptance_count_maps(issues, path, summary) do
     Enum.reduce(
       [
         "intended_use_counts",
@@ -1225,9 +1166,8 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
       issues,
       fn field, acc ->
         acc
-        |> expect_optional_type(callbacks, path, summary, field, :map)
+        |> expect_optional_type(path, summary, field, :map)
         |> validate_non_negative_integer_count_map(
-          callbacks,
           path <> ".#{field}",
           Map.get(summary, field)
         )
@@ -1235,8 +1175,8 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
     )
   end
 
-  defp validate_operational_timeline_count_maps(issues, callbacks, path, summary) do
-    validate_optional_count_maps(issues, callbacks, path, summary, [
+  defp validate_operational_timeline_count_maps(issues, path, summary) do
+    validate_optional_count_maps(issues, path, summary, [
       "operational_kind_counts",
       "activity_id_counts",
       "activity_status_counts",
@@ -1247,30 +1187,24 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
     ])
   end
 
-  defp validate_optional_count_maps(issues, callbacks, path, summary, fields) do
+  defp validate_optional_count_maps(issues, path, summary, fields) do
     Enum.reduce(fields, issues, fn field, acc ->
       acc
-      |> expect_optional_type(callbacks, path, summary, field, :map)
+      |> expect_optional_type(path, summary, field, :map)
       |> validate_non_negative_integer_count_map(
-        callbacks,
         path <> ".#{field}",
         Map.get(summary, field)
       )
     end)
   end
 
-  defp validate_count_maps(issues, callbacks, path, summary, fields) do
+  defp validate_count_maps(issues, path, summary, fields) do
     Enum.reduce(fields, issues, fn field, acc ->
-      validate_non_negative_integer_count_map(
-        acc,
-        callbacks,
-        path <> ".#{field}",
-        Map.get(summary, field)
-      )
+      validate_non_negative_integer_count_map(acc, path <> ".#{field}", Map.get(summary, field))
     end)
   end
 
-  defp validate_contact_intent_stable_id_maps(issues, callbacks, path, summary) do
+  defp validate_contact_intent_stable_id_maps(issues, path, summary) do
     issues =
       Enum.reduce(
         [
@@ -1282,12 +1216,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
         ],
         issues,
         fn field, acc ->
-          validate_stable_id_array_map(
-            acc,
-            callbacks,
-            path <> ".#{field}",
-            Map.get(summary, field)
-          )
+          validate_stable_id_array_map(acc, path <> ".#{field}", Map.get(summary, field))
         end
       )
 
@@ -1298,29 +1227,17 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
       ],
       issues,
       fn field, acc ->
-        validate_nested_stable_id_array_map(
-          acc,
-          callbacks,
-          path <> ".#{field}",
-          Map.get(summary, field)
-        )
+        validate_nested_stable_id_array_map(acc, path <> ".#{field}", Map.get(summary, field))
       end
     )
   end
 
-  defp validate_contact_intent_direction_routing_with_callbacks(
-         issues,
-         _callbacks,
-         _path,
-         value,
-         _summary
-       )
+  defp validate_contact_intent_direction_routing_with_callbacks(issues, _path, value, _summary)
        when value in [nil, :null],
        do: issues
 
   defp validate_contact_intent_direction_routing_with_callbacks(
          issues,
-         callbacks,
          path,
          %{} = routing,
          summary
@@ -1331,27 +1248,23 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
       case route do
         %{} = route ->
           acc
-          |> expect_optional_non_negative_integer(callbacks, route_path, route, "contact_count")
+          |> expect_optional_non_negative_integer(route_path, route, "contact_count")
           |> validate_stable_id_list(
-            callbacks,
             route_path <> ".contact_ids",
             Map.get(route, "contact_ids")
           )
           |> expect_optional_number(
-            callbacks,
             route_path,
             route,
             "capacity_pack_required_capacity_fraction"
           )
           |> validate_non_negative_number_map(
-            callbacks,
             route_path,
             maybe_single_number_map(route, "capacity_pack_required_capacity_fraction")
           )
-          |> validate_contact_intent_route_stable_ids(callbacks, route_path, route)
-          |> validate_contact_intent_route_fraction_maps(callbacks, route_path, route)
+          |> validate_contact_intent_route_stable_ids(route_path, route)
+          |> validate_contact_intent_route_fraction_maps(route_path, route)
           |> validate_contact_intent_direction_route_consistency(
-            callbacks,
             route_path,
             route,
             direction,
@@ -1359,21 +1272,15 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
           )
 
         _route ->
-          [error(callbacks, route_path, "must be an object") | acc]
+          [error(route_path, "must be an object") | acc]
       end
     end)
   end
 
-  defp validate_contact_intent_direction_routing_with_callbacks(
-         issues,
-         callbacks,
-         path,
-         _value,
-         _summary
-       ),
-       do: [error(callbacks, path <> ".direction_routing", "must be an object") | issues]
+  defp validate_contact_intent_direction_routing_with_callbacks(issues, path, _value, _summary),
+    do: [error(path <> ".direction_routing", "must be an object") | issues]
 
-  defp validate_contact_intent_route_stable_ids(issues, callbacks, route_path, route) do
+  defp validate_contact_intent_route_stable_ids(issues, route_path, route) do
     issues =
       Enum.reduce(
         [
@@ -1382,12 +1289,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
         ],
         issues,
         fn field, acc ->
-          validate_stable_id_list(
-            acc,
-            callbacks,
-            route_path <> ".#{field}",
-            Map.get(route, field)
-          )
+          validate_stable_id_list(acc, route_path <> ".#{field}", Map.get(route, field))
         end
       )
 
@@ -1400,17 +1302,12 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
       ],
       issues,
       fn field, acc ->
-        validate_stable_id_array_map(
-          acc,
-          callbacks,
-          route_path <> ".#{field}",
-          Map.get(route, field)
-        )
+        validate_stable_id_array_map(acc, route_path <> ".#{field}", Map.get(route, field))
       end
     )
   end
 
-  defp validate_contact_intent_route_fraction_maps(issues, callbacks, route_path, route) do
+  defp validate_contact_intent_route_fraction_maps(issues, route_path, route) do
     Enum.reduce(
       [
         "capacity_pack_required_capacity_fraction_by_ground_station",
@@ -1418,19 +1315,13 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
       ],
       issues,
       fn field, acc ->
-        validate_non_negative_number_map(
-          acc,
-          callbacks,
-          route_path <> ".#{field}",
-          Map.get(route, field)
-        )
+        validate_non_negative_number_map(acc, route_path <> ".#{field}", Map.get(route, field))
       end
     )
   end
 
   defp validate_contact_intent_direction_route_consistency(
          issues,
-         callbacks,
          path,
          route,
          direction,
@@ -1462,7 +1353,6 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
 
     issues
     |> expect_optional_field_equals(
-      callbacks,
       path,
       route,
       "ground_station_ids",
@@ -1470,7 +1360,6 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
       "must equal contact_ids_by_direction_and_ground_station keys"
     )
     |> expect_optional_field_equals(
-      callbacks,
       path,
       route,
       "contact_ids_by_ground_station",
@@ -1478,7 +1367,6 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
       "must equal contact_ids_by_direction_and_ground_station for this direction"
     )
     |> expect_optional_field_equals(
-      callbacks,
       path,
       route,
       "contact_ids_by_ground_station_id",
@@ -1486,7 +1374,6 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
       "must equal contact_ids_by_direction_and_ground_station_id for this direction"
     )
     |> expect_optional_field_equals(
-      callbacks,
       path,
       route,
       "capacity_pack_contact_ids_by_ground_station",
@@ -1494,7 +1381,6 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
       "must equal capacity_pack_contact_ids_by_direction_and_ground_station for this direction"
     )
     |> expect_optional_field_equals(
-      callbacks,
       path,
       route,
       "capacity_pack_contact_ids_by_ground_station_id",
@@ -1502,7 +1388,6 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
       "must equal capacity_pack_contact_ids_by_direction_and_ground_station_id for this direction"
     )
     |> expect_optional_field_equals(
-      callbacks,
       path,
       route,
       "capacity_pack_required_capacity_fraction_by_ground_station",
@@ -1510,7 +1395,6 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
       "must equal capacity_pack_required_capacity_fraction_by_direction_and_ground_station for this direction"
     )
     |> expect_optional_field_equals(
-      callbacks,
       path,
       route,
       "capacity_pack_required_capacity_fraction_by_ground_station_id",
@@ -1535,7 +1419,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
     end
   end
 
-  defp validate_station_calendar_stable_id_lists(issues, callbacks, path, summary) do
+  defp validate_station_calendar_stable_id_lists(issues, path, summary) do
     Enum.reduce(
       [
         "affected_contact_ids",
@@ -1544,12 +1428,12 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
       ],
       issues,
       fn field, acc ->
-        validate_stable_id_list(acc, callbacks, path <> ".#{field}", Map.get(summary, field))
+        validate_stable_id_list(acc, path <> ".#{field}", Map.get(summary, field))
       end
     )
   end
 
-  defp validate_station_calendar_direction_maps(issues, callbacks, path, summary) do
+  defp validate_station_calendar_direction_maps(issues, path, summary) do
     issues =
       Enum.reduce(
         [
@@ -1559,47 +1443,41 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
         ],
         issues,
         fn field, acc ->
-          validate_stable_id_array_map(
-            acc,
-            callbacks,
-            path <> ".#{field}",
-            Map.get(summary, field)
-          )
+          validate_stable_id_array_map(acc, path <> ".#{field}", Map.get(summary, field))
         end
       )
 
     validate_number_array_map(
       issues,
-      callbacks,
       path <> ".station_capacity_fractions_by_direction",
       Map.get(summary, "station_capacity_fractions_by_direction")
     )
   end
 
-  defp validate_station_calendar_direction_routing(issues, _callbacks, _path, value)
+  defp validate_station_calendar_direction_routing(issues, _path, value)
        when value in [nil, :null],
        do: issues
 
-  defp validate_station_calendar_direction_routing(issues, callbacks, path, %{} = routing) do
+  defp validate_station_calendar_direction_routing(issues, path, %{} = routing) do
     Enum.reduce(routing, issues, fn {direction, route}, acc ->
       route_path = "#{path}.direction_routing.#{direction}"
 
       case route do
         %{} = route ->
           acc
-          |> expect_optional_non_negative_integer(callbacks, route_path, route, "contact_count")
-          |> validate_station_calendar_direction_route(callbacks, route_path, route)
+          |> expect_optional_non_negative_integer(route_path, route, "contact_count")
+          |> validate_station_calendar_direction_route(route_path, route)
 
         _route ->
-          [error(callbacks, route_path, "must be an object") | acc]
+          [error(route_path, "must be an object") | acc]
       end
     end)
   end
 
-  defp validate_station_calendar_direction_routing(issues, callbacks, path, _value),
-    do: [error(callbacks, path <> ".direction_routing", "must be an object") | issues]
+  defp validate_station_calendar_direction_routing(issues, path, _value),
+    do: [error(path <> ".direction_routing", "must be an object") | issues]
 
-  defp validate_station_calendar_direction_route(issues, callbacks, route_path, route) do
+  defp validate_station_calendar_direction_route(issues, route_path, route) do
     issues =
       Enum.reduce(
         [
@@ -1612,35 +1490,27 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
         ],
         issues,
         fn field, acc ->
-          validate_stable_id_list(
-            acc,
-            callbacks,
-            route_path <> ".#{field}",
-            Map.get(route, field)
-          )
+          validate_stable_id_list(acc, route_path <> ".#{field}", Map.get(route, field))
         end
       )
 
     issues
     |> validate_non_negative_number_list(
-      callbacks,
       route_path <> ".station_capacity_fractions",
       Map.get(route, "station_capacity_fractions")
     )
     |> expect_optional_non_negative_integer(
-      callbacks,
       route_path,
       route,
       "provider_contention_group_count"
     )
     |> validate_non_negative_number_list(
-      callbacks,
       route_path <> ".provider_contention_capacity_fractions",
       Map.get(route, "provider_contention_capacity_fractions")
     )
   end
 
-  defp validate_station_calendar_provider_contention(issues, callbacks, path, summary) do
+  defp validate_station_calendar_provider_contention(issues, path, summary) do
     issues =
       Enum.reduce(
         [
@@ -1650,29 +1520,26 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
         ],
         issues,
         fn field, acc ->
-          validate_stable_id_list(acc, callbacks, path <> ".#{field}", Map.get(summary, field))
+          validate_stable_id_list(acc, path <> ".#{field}", Map.get(summary, field))
         end
       )
 
     issues =
       issues
       |> validate_non_negative_number_list(
-        callbacks,
         path <> ".provider_calendar_contention_capacity_fractions",
         Map.get(summary, "provider_calendar_contention_capacity_fractions")
       )
       |> expect_optional_number(
-        callbacks,
         path,
         summary,
         "provider_calendar_contention_minimum_capacity_fraction"
       )
       |> validate_non_negative_number_map(
-        callbacks,
         path,
         maybe_single_number_map(summary, "provider_calendar_contention_minimum_capacity_fraction")
       )
-      |> validate_count_maps(callbacks, path, summary, [
+      |> validate_count_maps(path, summary, [
         "provider_calendar_contention_provider_counts",
         "provider_calendar_contention_ground_station_counts",
         "provider_calendar_contention_direction_counts"
@@ -1687,18 +1554,12 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
         ],
         issues,
         fn field, acc ->
-          validate_stable_id_array_map(
-            acc,
-            callbacks,
-            path <> ".#{field}",
-            Map.get(summary, field)
-          )
+          validate_stable_id_array_map(acc, path <> ".#{field}", Map.get(summary, field))
         end
       )
 
     validate_number_array_map(
       issues,
-      callbacks,
       path <> ".provider_calendar_contention_capacity_fractions_by_direction",
       Map.get(summary, "provider_calendar_contention_capacity_fractions_by_direction")
     )
@@ -1706,147 +1567,49 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
 
   defp validate_validation_safety_case_counts(issues, callbacks, path, summary) do
     Enum.reduce(safety_case_count_fields(callbacks), issues, fn field, acc ->
-      expect_optional_non_negative_integer(acc, callbacks, path, summary, field)
+      expect_optional_non_negative_integer(acc, path, summary, field)
     end)
   end
 
-  defp validate_timeline_activity_state_action_routing(issues, _callbacks, _path, _field, value)
+  defp validate_timeline_activity_state_action_routing(issues, _path, _field, value)
        when value in [nil, :null],
        do: issues
 
-  defp validate_timeline_activity_state_action_routing(
-         issues,
-         callbacks,
-         path,
-         field,
-         %{} = routes
-       ) do
+  defp validate_timeline_activity_state_action_routing(issues, path, field, %{} = routes) do
     Enum.reduce(routes, issues, fn {action, route}, acc ->
       route_path = path <> ".#{field}.#{action}"
 
       acc
-      |> expect_type(callbacks, path <> ".#{field}", routes, action, :map)
-      |> validate_timeline_activity_state_action_route(callbacks, route_path, route)
+      |> expect_type(path <> ".#{field}", routes, action, :map)
+      |> validate_timeline_activity_state_action_route(route_path, route)
     end)
   end
 
-  defp validate_timeline_activity_state_action_routing(
-         issues,
-         _callbacks,
-         _path,
-         _field,
-         _value
-       ),
-       do: issues
-
-  defp validate_timeline_activity_state_action_route(issues, callbacks, path, %{} = route) do
-    issues
-    |> expect_optional_non_negative_integer(callbacks, path, route, "review_count")
-    |> expect_optional_type(callbacks, path, route, "activity_ids", :list)
-    |> expect_optional_type(callbacks, path, route, "timeline_ids", :list)
-    |> expect_optional_type(callbacks, path, route, "status_transition_categories", :list)
-    |> expect_optional_type(callbacks, path, route, "approval_transition_categories", :list)
-    |> expect_optional_type(callbacks, path, route, "protection_categories", :list)
-    |> validate_optional_stable_id_list(callbacks, path, route, "activity_ids")
-    |> validate_optional_stable_id_list(callbacks, path, route, "timeline_ids")
-    |> validate_optional_string_list(callbacks, path, route, "status_transition_categories")
-    |> validate_optional_string_list(callbacks, path, route, "approval_transition_categories")
-    |> validate_optional_string_list(callbacks, path, route, "protection_categories")
-  end
-
-  defp validate_timeline_activity_state_action_route(issues, _callbacks, _path, _route),
+  defp validate_timeline_activity_state_action_routing(issues, _path, _field, _value),
     do: issues
 
-  defp expect_type(issues, callbacks, path, map, field, type),
-    do: apply(Keyword.fetch!(callbacks, :expect_type), [issues, path, map, field, type])
-
-  defp expect_optional_type(issues, callbacks, path, map, field, type),
-    do: apply(Keyword.fetch!(callbacks, :expect_optional_type), [issues, path, map, field, type])
-
-  defp expect_optional_non_negative_integer(issues, callbacks, path, map, field) do
-    apply(Keyword.fetch!(callbacks, :expect_optional_non_negative_integer), [
-      issues,
-      path,
-      map,
-      field
-    ])
+  defp validate_timeline_activity_state_action_route(issues, path, %{} = route) do
+    issues
+    |> expect_optional_non_negative_integer(path, route, "review_count")
+    |> expect_optional_type(path, route, "activity_ids", :list)
+    |> expect_optional_type(path, route, "timeline_ids", :list)
+    |> expect_optional_type(path, route, "status_transition_categories", :list)
+    |> expect_optional_type(path, route, "approval_transition_categories", :list)
+    |> expect_optional_type(path, route, "protection_categories", :list)
+    |> validate_optional_stable_id_list(path, route, "activity_ids")
+    |> validate_optional_stable_id_list(path, route, "timeline_ids")
+    |> validate_optional_string_list(path, route, "status_transition_categories")
+    |> validate_optional_string_list(path, route, "approval_transition_categories")
+    |> validate_optional_string_list(path, route, "protection_categories")
   end
 
-  defp expect_optional_number(issues, callbacks, path, map, field),
-    do: apply(Keyword.fetch!(callbacks, :expect_optional_number), [issues, path, map, field])
+  defp validate_timeline_activity_state_action_route(issues, _path, _route),
+    do: issues
 
-  defp validate_non_negative_integer_count_map(issues, callbacks, path, counts) do
-    apply(Keyword.fetch!(callbacks, :validate_non_negative_integer_count_map), [
-      issues,
-      path,
-      counts
-    ])
-  end
-
-  defp validate_optional_stable_id_array_map(issues, callbacks, path, map, field) do
-    apply(Keyword.fetch!(callbacks, :validate_optional_stable_id_array_map), [
-      issues,
-      path,
-      map,
-      field
-    ])
-  end
-
-  defp validate_stable_id_list(issues, callbacks, path, values),
-    do: apply(Keyword.fetch!(callbacks, :validate_stable_id_list), [issues, path, values])
-
-  defp validate_stable_id_array_map(issues, callbacks, path, values),
-    do: apply(Keyword.fetch!(callbacks, :validate_stable_id_array_map), [issues, path, values])
-
-  defp validate_nested_stable_id_array_map(issues, callbacks, path, values) do
-    apply(Keyword.fetch!(callbacks, :validate_nested_stable_id_array_map), [
-      issues,
-      path,
-      values
-    ])
-  end
-
-  defp validate_non_negative_number_map(issues, callbacks, path, values) do
-    apply(Keyword.fetch!(callbacks, :validate_non_negative_number_map), [
-      issues,
-      path,
-      values
-    ])
-  end
-
-  defp validate_nested_non_negative_number_map(issues, callbacks, path, values) do
-    apply(Keyword.fetch!(callbacks, :validate_nested_non_negative_number_map), [
-      issues,
-      path,
-      values
-    ])
-  end
-
-  defp validate_non_negative_number_list(issues, callbacks, path, values) do
-    apply(Keyword.fetch!(callbacks, :validate_non_negative_number_list), [
-      issues,
-      path,
-      values
-    ])
-  end
-
-  defp validate_number_array_map(issues, callbacks, path, values) do
-    apply(Keyword.fetch!(callbacks, :validate_number_array_map), [
-      issues,
-      path,
-      values
-    ])
-  end
-
-  defp expect_optional_field_equals(issues, callbacks, path, map, field, expected, message) do
-    apply(Keyword.fetch!(callbacks, :expect_optional_field_equals), [
-      issues,
-      path,
-      map,
-      field,
-      expected,
-      message
-    ])
+  defp validate_optional_stable_id_array_map(issues, path, map, field) do
+    issues
+    |> expect_optional_type(path, map, field, :map)
+    |> validate_stable_id_array_map("#{path}.#{field}", Map.get(map, field))
   end
 
   defp validate_operational_readiness_resource_context(issues, callbacks, path, summary) do
@@ -1877,33 +1640,6 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
       summary
     ])
   end
-
-  defp error(callbacks, path, message),
-    do: apply(Keyword.fetch!(callbacks, :error), [path, message])
-
-  defp validate_optional_stable_id_list(issues, callbacks, path, map, field) do
-    apply(Keyword.fetch!(callbacks, :validate_optional_stable_id_list), [
-      issues,
-      path,
-      map,
-      field
-    ])
-  end
-
-  defp validate_optional_string_list(issues, callbacks, path, map, field) do
-    apply(Keyword.fetch!(callbacks, :validate_optional_string_list), [
-      issues,
-      path,
-      map,
-      field
-    ])
-  end
-
-  defp validate_string_list_items(issues, callbacks, path, map, field),
-    do: apply(Keyword.fetch!(callbacks, :validate_string_list_items), [issues, path, map, field])
-
-  defp validate_string_list_map(issues, callbacks, path, map, field),
-    do: apply(Keyword.fetch!(callbacks, :validate_string_list_map), [issues, path, map, field])
 
   defp safety_case_count_fields(callbacks),
     do: apply(Keyword.fetch!(callbacks, :safety_case_count_fields), [])

@@ -5999,7 +5999,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.CandidateRefreshReportContracts.validate_source_report_provenance(
       issues,
       artifact,
-      candidate_refresh_report_contract_callbacks()
+      candidate_refresh_report_domain_callbacks()
     )
   end
 
@@ -6009,7 +6009,7 @@ defmodule OrbitalDynamics.Schema do
       path,
       value,
       summary,
-      candidate_refresh_report_contract_callbacks()
+      candidate_refresh_report_domain_callbacks()
     )
   end
 
@@ -6018,7 +6018,7 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       summary,
-      candidate_refresh_report_contract_callbacks()
+      candidate_refresh_report_domain_callbacks()
     )
   end
 
@@ -6984,34 +6984,15 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp candidate_refresh_report_contract_callbacks do
+  defp candidate_refresh_report_domain_callbacks do
     [
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_optional_number: &expect_optional_number/4,
-      expect_optional_non_negative_integer: &expect_optional_non_negative_integer/4,
-      validate_non_negative_integer_count_map: &validate_non_negative_integer_count_map/3,
-      validate_optional_stable_id_array_map: &validate_optional_stable_id_array_map/4,
-      validate_stable_id_list: &validate_stable_id_list/3,
-      validate_stable_id_array_map: &validate_stable_id_array_map/3,
-      validate_nested_stable_id_array_map: &validate_nested_stable_id_array_map/3,
-      validate_non_negative_number_map: &validate_non_negative_number_map/3,
-      validate_nested_non_negative_number_map: &validate_nested_non_negative_number_map/3,
-      validate_non_negative_number_list: &validate_non_negative_number_list/3,
-      validate_number_array_map: &validate_number_array_map/3,
-      expect_optional_field_equals: &expect_optional_field_equals/6,
-      validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
-      validate_optional_string_list: &validate_optional_string_list/4,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_string_list_map: &validate_string_list_map/4,
       validate_operational_readiness_resource_context:
         &validate_operational_readiness_resource_context/3,
       validate_operational_readiness_adapter_boundary_context:
         &validate_operational_readiness_adapter_boundary_context/3,
       validate_operational_readiness_cadence_import_context:
         &validate_operational_readiness_cadence_import_context/3,
-      safety_case_count_fields: &safety_case_count_fields/0,
-      error: &error/2
+      safety_case_count_fields: &safety_case_count_fields/0
     ]
   end
 
@@ -9550,74 +9531,30 @@ defmodule OrbitalDynamics.Schema do
         values
       )
 
-  defp validate_nested_non_negative_number_map(issues, _path, value)
-       when value in [nil, :null],
-       do: issues
+  defp validate_nested_non_negative_number_map(issues, path, values),
+    do:
+      OrbitalDynamics.Schema.PrimitiveValidation.validate_nested_non_negative_number_map(
+        issues,
+        path,
+        values
+      )
 
-  defp validate_nested_non_negative_number_map(issues, path, %{} = values) do
-    Enum.reduce(values, issues, fn {key, nested_values}, acc ->
-      validate_non_negative_number_map(acc, "#{path}.#{key}", nested_values)
-    end)
-  end
+  defp validate_number_array_map(issues, path, values),
+    do:
+      OrbitalDynamics.Schema.PrimitiveValidation.validate_number_array_map(
+        issues,
+        path,
+        values
+      )
 
-  defp validate_nested_non_negative_number_map(issues, _path, _value), do: issues
-
-  defp validate_non_negative_number_list(issues, _path, value) when value in [nil, :null],
-    do: issues
-
-  defp validate_non_negative_number_list(issues, path, values) when is_list(values) do
-    values
-    |> Enum.with_index()
-    |> Enum.reduce(issues, fn {value, index}, acc ->
-      cond do
-        is_number(value) and value >= 0.0 ->
-          acc
-
-        is_number(value) ->
-          [error("#{path}[#{index}]", "must be non-negative") | acc]
-
-        true ->
-          [error("#{path}[#{index}]", "must be a number") | acc]
-      end
-    end)
-  end
-
-  defp validate_non_negative_number_list(issues, path, _value),
-    do: [error(path, "must be an array") | issues]
-
-  defp validate_number_array_map(issues, _path, value) when value in [nil, :null], do: issues
-
-  defp validate_number_array_map(issues, path, %{} = values) do
-    Enum.reduce(values, issues, fn {key, refs}, acc ->
-      validate_non_negative_number_list(acc, "#{path}.#{key}", refs)
-    end)
-  end
-
-  defp validate_number_array_map(issues, path, _value),
-    do: [error(path, "must be an object") | issues]
-
-  defp validate_string_list_map(issues, path, summary, field) do
-    case Map.get(summary, field) do
-      %{} = grouped_values ->
-        Enum.reduce(grouped_values, issues, fn {key, values}, acc ->
-          entry_path = "#{path}.#{field}.#{key}"
-
-          cond do
-            not is_list(values) ->
-              [error(entry_path, "must be an array") | acc]
-
-            Enum.all?(values, &is_binary/1) ->
-              acc
-
-            true ->
-              [error(entry_path, "must contain only strings") | acc]
-          end
-        end)
-
-      _grouped_values ->
-        issues
-    end
-  end
+  defp validate_string_list_map(issues, path, summary, field),
+    do:
+      OrbitalDynamics.Schema.CollectionValidation.validate_string_list_map(
+        issues,
+        path,
+        summary,
+        field
+      )
 
   defp non_negative_integer_map_sum(counts) when is_map(counts) do
     values = Map.values(counts)
