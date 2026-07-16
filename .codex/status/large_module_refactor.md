@@ -6,60 +6,56 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Resource-projection-flow-row callback-bag collapse.
+Resource-projection report-count message restoration.
 
 Status:
-Complete and published.
+Selected; implementation pending.
 
 Selected slice:
-Replace the 9-entry callback bag in `ResourceProjectionFlowRowContracts` with
-direct primitive/stable-ID owners while retaining explicit source-window and
-nested-ID-match validators.
+Restore the five generic equality messages lost when
+`ResourceProjectionReportCountContracts` moved from Schema's `/5` equality
+facade to the primitive `/5` function.
 
 Why this slice:
-Live inventory leaves `schema.ex` at 11,612 lines. The 192-line flow-row owner
-and its sole Schema caller route seven shared operations through lookup; only
-source-window and nested-ID matching are genuine Schema composition hooks.
+The flow-row verification exposed three failures in the full resource-
+projection file. Git history identifies `7e015529` as the regression: Schema's
+`/5` facade emitted `must equal <expected>`, while the primitive `/5` default
+emits a nil message. Two additional unasserted call sites share the defect.
 
 Public facade to preserve:
-`OrbitalDynamics.Schema.validate_artifact/2`, resource-projection flow-row
-stable IDs, source-window identity, lists/probabilities/numbers, latency and
-resource-effect statuses, exact paths/order, report consumers, and exports.
+`OrbitalDynamics.Schema.validate_artifact/2`, resource-projection report count
+paths, expected values, exact `must equal <expected>` messages and issue order,
+report consumers, and exports.
 
 Likely files:
-- `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/resource_projection_flow_row_contracts.ex`
+- `lib/orbital_dynamics/schema/resource_projection_report_count_contracts.ex`
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
 - compile with warnings as errors
-- focused resource-projection flow/report, schema, replay, and operator-review tests
-- broader candidate-refresh/operator-review regression
+- full resource-projection and focused schema/report tests
+- broader candidate-refresh/operator-review regression if shared code changes
 - schema export trio and checked-in export regeneration
 - compile-connected xref, format, diff hygiene, and bounded review
 
 Definition of done:
-No resource-projection-flow-row callback bag or lookup/apply trampolines remain;
-direct shared owners preserve validation while the two Schema domain validators
-remain explicit boundaries; focused, broader, and export checks pass; and
-bounded review finds no blocker.
-
-Outcome:
-`schema.ex` fell from 11,612 to 11,599 lines and the flow-row owner from 192 to
-135. The 9-entry bag became direct primitive/stable-ID calls and two explicit
-domain-validator arguments. 174 targeted, 1,167 broader, and 22 export tests
-passed; compile, compile-connected xref, checked-in regeneration, format, diff
-hygiene, and bounded review were clean.
+All five former `/5` equality calls use the primitive `/6` form with the exact
+legacy generic message; the full resource-projection file and export checks
+pass; and bounded review finds no blocker.
 
 Verification gaps:
 - Full repository suite not run.
 - Known baseline: full contact-filter file remains 87/88 due nil-message
   behavior in `SuppressedCandidateContracts`; unrelated to these slices.
-- Full resource-projection file remains 211/214 due three summary-count
-  nil-message assertions outside the flow-row owner; targeted flow tests pass.
+- Full resource-projection file currently remains 211/214 due the selected
+  report-count message regression.
 
 Last completed slice:
-Resource-projection-flow-row callback-bag collapse; publication commit pending.
+Resource-projection-flow-row callback-bag collapse published as `f65244f9`:
+`schema.ex` fell from 11,612 to 11,599 lines and its owner from 192 to 135. The
+9-entry bag became direct shared validators and two domain boundaries. 174
+targeted, 1,167 broader, and 22 export tests passed; compile, xref, format,
+diff hygiene, checked-in regeneration, and bounded review were clean.
 
 Blocked:
 No.
