@@ -6,23 +6,23 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Policy-decision/rule-match callback ownership cleanup.
+Resource-summary callback ownership cleanup.
 
 Status:
 Complete and published.
 
 Selected slice:
-Replace the policy-decision and nested rule-match callback bags with direct
-shared validation and explicit nested module delegation.
+Replace resource-summary validation callbacks with direct primitive and
+stable-ID support while retaining module-owned derived-margin checks.
 
 Why this slice:
-Rule-match callbacks all map to shared support or the callback-free escalation
-module. Decision-level callbacks likewise map to shared support, rule-match,
-escalation, and the already extracted count validator.
+All nine callbacks map to shared support, and the focused resource-summary suite
+covers stable identity, numeric/type bounds, list items, and stale derived
+battery/storage margins through the public Schema facade.
 
 Current coupling/problem:
-The facade assembles a thirteen-function decision bag plus a thirteen-function
-rule-match bag for cohesive internal modules with no facade-owned behavior.
+The facade assembles a nine-function bag for a cohesive leaf whose custom
+behavior is already limited to its two derived-margin checks.
 
 Public facade preserved:
 - `OrbitalDynamics.Schema.validate_artifact/2`
@@ -33,56 +33,53 @@ Public facade preserved:
 Files changed:
 - `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/policy_decision_contracts.ex`
-- `lib/orbital_dynamics/schema/policy_rule_match_contracts.ex`
+- `lib/orbital_dynamics/schema/resource_summary_contracts.ex`
 
 Definition of done:
-Both facade bags and callback wrappers are gone; focused policy/schema/export
-tests, fingerprint, formatting, and export checks pass; xref shows the direct
-shared and nested validation dependencies.
+The facade bag and callback wrappers are gone; focused resource-summary/schema
+export tests, fingerprint, formatting, and export checks pass; xref shows direct
+primitive and stable-ID dependencies.
 
 Behavior/schema changes:
 None. Contact identity, intervals, timeline/source-window matching, model limits,
 reservation metadata, paths/messages, and schema output remain unchanged.
 
 Tests run:
-- `mix compile --warnings-as-errors` (passed after removing five facade imports
-  made obsolete by the callback-bag removal).
-- `mix test test/orbital_dynamics/policy_test.exs test/orbital_dynamics/schema/policy_contracts_test.exs test/orbital_dynamics/schema_export_test.exs`
-  (93 passed).
-- `mix test test/orbital_dynamics/validation_test.exs:8183`
-  (1 passed, 180 excluded).
+- `mix compile --warnings-as-errors` (passed).
+- `mix test test/orbital_dynamics/resource_summary_test.exs test/orbital_dynamics/schema/candidate_refresh_contracts_test.exs:752 test/orbital_dynamics/schema_export_test.exs`
+  (28 passed, 9 excluded).
+- `mix test test/orbital_dynamics/schema/cadence_row_contracts_test.exs:6`
+  (1 passed).
 - `mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
   (passed; checked-in export unchanged).
 - Contract fingerprint remained
   `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`.
-- Focused xref callers/graphs confirmed direct collection, primitive, stable-ID,
-  count, escalation, and rule-match dependencies.
+- Focused xref callers/graph confirmed direct primitive and stable-ID
+  dependencies.
 - `mix format --check-formatted` and `git diff --check` (passed).
-- Bounded local review found no validation-order, guard, path/message, or nested
-  delegation drift; review sidecar delegation was unavailable under runtime
-  policy.
+- Bounded local review confirmed unchanged validation order, derived-margin
+  tolerance, paths, and messages; review sidecar delegation was unavailable
+  under runtime policy.
 
 Verification gaps:
 - Full suite not run.
 
 Last commit:
-`b4db6998` (`Collapse policy decision callbacks`).
+`b21a6419` (`Collapse resource summary callbacks`).
 
 Next candidate:
-Remove the primitive/stable callback bag from resource-summary validation while
-retaining its module-owned derived battery/storage margin checks.
+Remove shared-validation callbacks from suppressed-candidate validation,
+including its separately reused duplicate-evidence entry point.
 
 Blocked:
 No.
 
 Notes:
-- Starting point: `schema.ex` is 13,984 lines; policy decision is 125 lines;
-  policy rule match is 237 lines.
-- Ending point: `schema.ex` is 13,934 lines; policy decision is 65 lines; policy
-  rule match is 145 lines.
-- Policy escalation and policy-decision count validators are already
-  callback-free and remain the explicit nested owners.
+- Starting point: `schema.ex` is 13,934 lines; resource summary is 132 lines.
+- Ending point: `schema.ex` is 13,919 lines; resource summary is 103 lines.
+- Published implementation commit: `b21a6419`; the parent performed the exact
+  mechanical commit/push because publisher delegation was unavailable under
+  runtime policy.
 - Campaign-plan validation was audited and deferred because its bag composes
   more than twenty facade-owned nested artifact validators.
 - Published implementation commit: `b4db6998`; the parent performed the exact
