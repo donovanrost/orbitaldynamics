@@ -9,7 +9,7 @@ Current slice:
 Completed: contact-allocation reservation-conflict registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Move the contact-allocation reservation-conflict summary contract into
@@ -78,7 +78,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`3a065a05` (`Update station pressure handoff`).
+`04aff5f4` (`Extract reservation conflict registry contract`).
 
 Next candidate:
 Assess the adjacent contact-allocation summary contract as the next cohesive
