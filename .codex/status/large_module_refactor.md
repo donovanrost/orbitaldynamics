@@ -9,7 +9,7 @@ Current slice:
 Operational-readiness-gate callback-bag collapse.
 
 Status:
-Selected; implementation pending.
+Completed and ready to publish.
 
 Selected slice:
 Replace the 10-entry callback bag in `OperationalReadinessGateContracts` with
@@ -46,18 +46,31 @@ primitive/context owners preserve validation composition and only the timeline
 validator remains injected; focused, broader, and export checks pass; and
 bounded review finds no blocker.
 
+Outcome:
+Removed the 10-entry gate callback bag and all owner trampolines. Required,
+enum, type, and optional-field validation now use `PrimitiveValidation`;
+resource, operator-training, adapter, and Cadence-import context validation call
+the extracted readiness-context owner directly; timeline publication is the
+sole injected validator. `schema.ex` fell from 11,779 to 11,762 lines and the
+gate owner from 114 to 32.
+
+Verification:
+- compile with warnings as errors passed
+- 61 focused readiness/schema/replay/operator-review tests passed
+- 1,054 broader candidate-refresh/operator-review tests passed
+- 22 schema export tests passed
+- compile-connected xref passed
+- checked-in schema regeneration produced no diff
+- format and diff hygiene passed
+- bounded review found no findings
+
 Verification gaps:
 - Full repository suite not run.
 - Known baseline: full contact-filter file remains 87/88 due nil-message
   behavior in `SuppressedCandidateContracts`; unrelated to these slices.
 
 Last completed slice:
-Operational-readiness-report callback collapse published as `9d6a8856`:
-`schema.ex` fell from 11,827 to 11,779 lines and its owner from 171 to 115. The
-15-entry bag became direct shared owners, explicit model data, and two row
-validator boundaries. 61 focused, 1,054 broader, and 22 export tests passed;
-compile, xref, format, diff hygiene, checked-in regeneration, and bounded review
-were clean.
+Operational-readiness-gate callback-bag collapse; publication commit pending.
 
 Blocked:
 No.

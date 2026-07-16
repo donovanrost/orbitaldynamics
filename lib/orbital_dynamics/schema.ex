@@ -9639,29 +9639,12 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp operational_readiness_gate_contract_callbacks do
-    [
-      require_fields: &require_fields/4,
-      expect_one_of: &expect_one_of/5,
-      expect_type: &expect_type/5,
-      expect_optional_one_of: &expect_optional_one_of/5,
-      expect_optional_type: &expect_optional_type/5,
-      validate_resource_context: &validate_operational_readiness_resource_context/3,
-      validate_operator_training_context:
-        &validate_operational_readiness_operator_training_context/3,
-      validate_adapter_boundary_context:
-        &validate_operational_readiness_adapter_boundary_context/3,
-      validate_cadence_import_context: &validate_operational_readiness_cadence_import_context/3,
-      validate_timeline_publication_context: &validate_timeline_publication_context/3
-    ]
-  end
-
   defp validate_operational_readiness_gate(issues, path, gate) do
     OrbitalDynamics.Schema.OperationalReadinessGateContracts.validate(
       issues,
       path,
       gate,
-      operational_readiness_gate_contract_callbacks()
+      &validate_timeline_publication_context/3
     )
   end
 
