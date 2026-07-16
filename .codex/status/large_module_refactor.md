@@ -9,7 +9,7 @@ Current slice:
 Selected-timeline-integrity callback-bag collapse.
 
 Status:
-Selected; implementation pending.
+Completed; ready to publish.
 
 Selected slice:
 Replace the five-entry callback bag in `TimelineSelectedIntegrityContracts`
@@ -53,16 +53,13 @@ Verification gaps:
 - Full repository suite not run.
 
 Last completed slice:
-Operational-timeline-report callback collapse published as `d5a349f3`:
-`schema.ex`
-fell from 12,307 to 12,284 lines and its owner from 471 to 382. The 15-entry bag
-became direct shared owners, explicit timeline model-limit data, one row-validator
-boundary, and a local exact copy of the facade's default equality-message
-behavior; the newly dead facade sum wrapper was removed. 21 focused, 919
-broader, and 22 export tests passed; compile, xref, format, diff hygiene, and
-checked-in schema regeneration were clean. Bounded review found no issues;
-malformed-input ordering was reviewed structurally rather than through exhaustive
-differential generation.
+Selected-timeline-integrity callback collapse ready to publish: `schema.ex` fell
+from 12,284 to 12,273 lines and its owner from 260 to 220. The five-entry bag
+and all callback trampolines became direct primitive and stable-ID owners. 48
+focused, 890 broader, and 22 export tests passed; compile, xref, format, diff
+hygiene, and checked-in schema regeneration were clean. Bounded review found no
+issues; malformed-input ordering was reviewed structurally rather than through
+exhaustive differential generation.
 
 Blocked:
 No.

@@ -8937,19 +8937,8 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.TimelineSelectedIntegrityContracts.validate(
       issues,
       path,
-      row,
-      timeline_selected_integrity_contract_callbacks()
+      row
     )
-  end
-
-  defp timeline_selected_integrity_contract_callbacks do
-    [
-      expect_optional_type: &expect_optional_type/5,
-      expect_optional_non_negative_integer: &expect_optional_non_negative_integer/4,
-      validate_string_list_allowed: &validate_string_list_allowed/5,
-      validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
-      expect_field_equals: &expect_field_equals/6
-    ]
   end
 
   defp validate_optional_timeline_transition_application_row(issues, _path, nil), do: issues
