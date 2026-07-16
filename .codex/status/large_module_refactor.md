@@ -6,43 +6,43 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Candidate-diff callback ownership cleanup.
+Timeline-integrity-evidence callback ownership cleanup.
 
 Status:
 Complete and published.
 
 Result:
-- Removed the 22-function `candidate_diff_contract_callbacks/0` facade bag and
-  all callback arguments/wrappers from `CandidateDiffContracts`.
-- The family now directly uses primitive, collection, stable-ID,
-  collection-aggregation, and candidate-refresh scoped-context modules.
+- Removed the five-function timeline-integrity-evidence callback bag and the
+  callback argument/wrappers from `TimelineIntegrityEvidenceContracts`.
+- The evidence family now directly uses primitive and stable-ID validation.
 - Preserved `OrbitalDynamics.Schema.validate_artifact/2` and
   `OrbitalDynamics.Schema.validation_report/2`.
-- Reduced `schema.ex` from 13,513 to 13,471 lines and candidate-diff contracts
-  from 715 to 600 lines.
-- Published implementation commit `7e264fb0`.
+- Reduced `schema.ex` from 13,471 to 13,460 lines and the evidence module from
+  306 to 272 lines.
+- Published implementation commit `0f8a6865`.
 
 Tests run:
 - `mix compile --warnings-as-errors` passed.
-- Candidate-refresh schema shard, candidate-diff row/report curated fixtures,
-  and schema-export tests: 15 passed, 179 excluded.
-- Runtime probes preserved exact derived-count, model-limit, changed-field alias,
-  lineage identity, and nested stable-ID diagnostics.
-- Full schema export left `schemas/` unchanged.
-- Contract fingerprint remained
+- Focused issue-type, malformed-evidence, derived-summary, and schema-export
+  tests: 6 passed, 124 excluded.
+- Runtime probes preserved exact issue count/type, malformed issue, stable-ID,
+  and missing dependency-cycle evidence diagnostics.
+- Full schema export left `schemas/` unchanged; contract fingerprint remained
   `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`.
-- Xref confirms the schema facade is the sole candidate-diff caller and the new
-  direct dependency edges are limited to the intended shared modules.
-- Formatting, callback-residue checks, and `git diff --check` passed.
+- Xref confirms the schema facade is the sole evidence-module caller and direct
+  dependencies are limited to primitive/stable-ID validation.
+- Formatting, callback-residue checks, bounded diff review, and
+  `git diff --check` passed.
 
 Verification gaps:
-- Full suite not run; focused contract/fixture/export coverage was used for this
+- Full suite not run; focused timeline/export coverage was used for this
   behavior-preserving boundary cleanup.
 
 Next candidate:
-Timeline-integrity-evidence callback ownership cleanup. Its five callbacks map
-directly to primitive and stable-ID validation, and removing the bag eliminates
-another dependency blocking direct activity-context and plan-delta validation.
+Activity-context callback ownership cleanup. Candidate-diff and
+timeline-integrity-evidence dependencies are now direct; all remaining callbacks
+map to cohesive primitive, collection, stable-ID, execution-metric, and scoped
+context modules.
 
 Blocked:
 No.
