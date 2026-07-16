@@ -7,6 +7,17 @@ defmodule OrbitalDynamics.Schema do
   the artifact shapes are still maturing.
   """
 
+  import OrbitalDynamics.Schema.StableIdValidation,
+    only: [
+      validate_nested_stable_id_array_map: 3,
+      validate_optional_stable_id_list: 4,
+      validate_optional_stable_ids: 4,
+      validate_stable_id: 3,
+      validate_stable_id_array_map: 3,
+      validate_stable_id_list: 3,
+      validate_stable_ids: 4
+    ]
+
   @campaign_plan "campaign_plan.v1"
   @campaign_repair "campaign_repair.v2"
   @campaign_strategy "campaign_strategy.v3"
@@ -241,8 +252,7 @@ defmodule OrbitalDynamics.Schema do
   @capability_catalog "capability_catalog.v1"
 
   @json_schema_draft "https://json-schema.org/draft/2020-12/schema"
-  @stable_id_pattern "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
-  @stable_id_regex ~r/^[A-Za-z0-9][A-Za-z0-9._:@-]*$/
+  @stable_id_pattern OrbitalDynamics.Schema.StableIdValidation.pattern()
   @sha256_pattern "^[0-9a-f]{64}$"
   @policy_context_string_fields [
     "action",
@@ -14421,60 +14431,6 @@ defmodule OrbitalDynamics.Schema do
   defp validate_optional_rows(issues, path, _rows, _validator),
     do: [error(path, "must be a list") | issues]
 
-  defp validate_stable_ids(issues, path, map, fields) when is_map(map) do
-    Enum.reduce(fields, issues, fn field, acc ->
-      if Map.has_key?(map, field) do
-        validate_stable_id(acc, "#{path}.#{field}", Map.get(map, field))
-      else
-        acc
-      end
-    end)
-  end
-
-  defp validate_stable_ids(issues, _path, _value, _fields), do: issues
-
-  defp validate_optional_stable_ids(issues, path, map, fields) when is_map(map) do
-    Enum.reduce(fields, issues, fn field, acc ->
-      case Map.get(map, field) do
-        nil -> acc
-        :null -> acc
-        value -> validate_stable_id(acc, "#{path}.#{field}", value)
-      end
-    end)
-  end
-
-  defp validate_stable_id_list(issues, path, values) when is_list(values) do
-    values
-    |> Enum.with_index()
-    |> Enum.reduce(issues, fn {value, index}, acc ->
-      validate_stable_id(acc, "#{path}[#{index}]", value)
-    end)
-  end
-
-  defp validate_stable_id_list(issues, _path, _values), do: issues
-
-  defp validate_stable_id_array_map(issues, _path, value) when value in [nil, :null],
-    do: issues
-
-  defp validate_stable_id_array_map(issues, path, %{} = values) do
-    Enum.reduce(values, issues, fn {key, refs}, acc ->
-      validate_stable_id_list(acc, "#{path}.#{key}", refs)
-    end)
-  end
-
-  defp validate_stable_id_array_map(issues, _path, _value), do: issues
-
-  defp validate_nested_stable_id_array_map(issues, _path, value) when value in [nil, :null],
-    do: issues
-
-  defp validate_nested_stable_id_array_map(issues, path, %{} = values) do
-    Enum.reduce(values, issues, fn {key, nested_values}, acc ->
-      validate_stable_id_array_map(acc, "#{path}.#{key}", nested_values)
-    end)
-  end
-
-  defp validate_nested_stable_id_array_map(issues, _path, _value), do: issues
-
   defp validate_numeric_map(issues, _path, value) when value in [nil, :null], do: issues
 
   defp validate_numeric_map(issues, path, %{} = values) do
@@ -14486,13 +14442,6 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp validate_numeric_map(issues, _path, _value), do: issues
-
-  defp validate_optional_stable_id_list(issues, path, map, field) when is_map(map) do
-    case Map.get(map, field) do
-      values when is_list(values) -> validate_stable_id_list(issues, "#{path}.#{field}", values)
-      _value -> issues
-    end
-  end
 
   defp validate_optional_string_list(issues, path, map, field) when is_map(map) do
     case Map.get(map, field) do
@@ -14745,17 +14694,6 @@ defmodule OrbitalDynamics.Schema do
       error: &error/2
     ]
   end
-
-  defp validate_stable_id(issues, path, value) when is_binary(value) do
-    if Regex.match?(@stable_id_regex, value) do
-      issues
-    else
-      [error(path, "must match stable ID pattern #{@stable_id_pattern}") | issues]
-    end
-  end
-
-  defp validate_stable_id(issues, path, _value),
-    do: [error(path, "must be a stable ID string") | issues]
 
   defp require_fields(issues, path, map, fields) when is_map(map) do
     Enum.reduce(fields, issues, fn field, acc ->
