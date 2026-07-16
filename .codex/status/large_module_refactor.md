@@ -9,7 +9,7 @@ Current slice:
 Completed: resource projection registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Moved `resource_projection_report.v1` and
@@ -80,7 +80,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`56c3eecf` (`Update realized state handoff`).
+`00cc1d28` (`Extract resource projection registry contracts`).
 
 Next candidate:
 Assess resource filter report and summary as the next bounded registry family.
