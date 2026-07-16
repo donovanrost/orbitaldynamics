@@ -8136,20 +8136,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp resource_summary_contract_callbacks do
-    [
-      require_fields: &require_fields/4,
-      validate_stable_ids: &validate_stable_ids/4,
-      expect_equal: &expect_equal/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_optional_probability: &expect_optional_probability/4,
-      expect_optional_non_negative_number: &expect_optional_non_negative_number/4,
-      expect_optional_number: &expect_optional_number/4,
-      validate_string_list_items: &validate_string_list_items/4,
-      error: &error/2
-    ]
-  end
-
   defp resource_filter_summary_contract_callbacks do
     [
       expect_equal: &expect_equal/5,
@@ -9578,8 +9564,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.ResourceSummaryContracts.validate(
       issues,
       path,
-      summary,
-      resource_summary_contract_callbacks()
+      summary
     )
   end
 
