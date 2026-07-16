@@ -6,52 +6,42 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Resource-filter-report callback-bag collapse.
+Contact-filter-report callback-bag collapse.
 
 Status:
-Complete and ready to publish.
+Selected; implementation pending.
 
 Selected slice:
-Replace the 16-entry `ResourceFilterReportContracts` lookup bag with direct
-shared/count owners and two explicit domain row validators.
+Replace the 22-entry `ContactFilterReportContracts` lookup bag with direct
+shared/count owners, local capability access, and one domain row validator.
 
 Why this slice:
-Live inventory leaves `schema.ex` at 11,415 lines. This 434-line owner and its
-sole caller route fourteen canonical shared/count operations and only two row
-validators through lookup/apply despite having no dynamic dispatch.
+Live inventory leaves `schema.ex` at 11,395 lines. This 327-line owner and its
+sole caller route shared/count validation plus eight static capability values
+and only one row validator through lookup/apply despite no dynamic dispatch.
 
 Public facade to preserve:
-`OrbitalDynamics.Schema.validate_artifact/2`, resource-filter-report fields,
-assumptions, invalid/suppressed rows, derived counts, exact paths/messages/order,
+`OrbitalDynamics.Schema.validate_artifact/2`, contact-filter-report fields,
+assumptions, suppressed rows, derived counts, exact paths/messages/order,
 consumers, deterministic artifacts, and schema exports.
 
 Likely files:
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/resource_filter_report_contracts.ex`
+- `lib/orbital_dynamics/schema/contact_filter_report_contracts.ex`
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
 - compile with warnings as errors
-- focused resource-filter report/summary and validation tests
+- focused contact-filter report and validation tests
 - broader candidate-refresh/operator-review regression
 - schema export trio and checked-in export regeneration
 - compile-connected xref, format, diff hygiene, and bounded review
 
 Definition of done:
-No resource-filter-report callback bag or lookup/apply trampolines remain;
-shared/count ownership is direct and only the two domain row validators stay
-explicit; focused, broader, and export checks pass; and bounded review finds no
-blocker.
-
-Outcome:
-Primitive, collection, stable-ID, and filter-count work is direct; only invalid
-resource-summary and suppressed-candidate row validators remain explicit and
-guarded. `schema.ex` fell from 11,415 to 11,395 lines and the owner from 434 to
-325. Fifty-six focused, 1,167 broader, and 22 export tests pass; compile, xref,
-checked-in regeneration, format, and diff hygiene are clean. Review found one
-lost duplicate type issue in grouped-ID validation; a local compatibility helper
-and assertions for both fields restored exact multiplicity. Re-review found no
-remaining blocker.
+No contact-filter-report callback bag or lookup/apply trampolines remain;
+shared/count/capability ownership is direct and only the suppressed-row
+validator stays explicit; focused, broader, and export checks pass; and bounded
+review finds no blocker.
 
 Verification gaps:
 - Full repository suite not run.
@@ -60,11 +50,12 @@ Verification gaps:
   validation-only slice. The attributable batch is 102/102.
 
 Last completed slice:
-Resource-filter-report callback-bag collapse, ready to publish: `schema.ex` fell
-from 11,415 to 11,395 lines and its owner from 434 to 325. Fourteen shared/count
-dependencies became direct and two row hooks explicit. Fifty-six focused, 1,167
-broader, and 22 export tests passed; compile, xref, regeneration, format, diff
-hygiene, blocker repair, and bounded re-review were clean.
+Resource-filter-report callback-bag collapse published as `504866de`:
+`schema.ex` fell from 11,415 to 11,395 lines and its owner from 434 to 325.
+Fourteen shared/count dependencies became direct and two row hooks explicit.
+Fifty-six focused, 1,167 broader, and 22 export tests passed; compile, xref,
+regeneration, format, diff hygiene, blocker repair, and bounded re-review were
+clean.
 
 Blocked:
 No.
