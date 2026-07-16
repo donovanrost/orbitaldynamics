@@ -6,21 +6,22 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Completed: realized state registry extraction.
+Completed: resource projection registry extraction.
 
 Status:
-Published.
+Ready to publish.
 
 Selected slice:
-Moved `realized_activity.v1` and `realized_state_snapshot.v1` into
-`Schema.RealizedStateRegistryContracts`.
+Moved `resource_projection_report.v1` and
+`resource_projection_flow_summary.v1` into
+`Schema.ResourceProjectionRegistryContracts`.
 
 Why this slice:
-The snapshot directly nests realized activity and operator review, forming one
-cohesive realized-state contract family with dedicated feedback coverage.
+The flow summary directly nests the projection report, forming one cohesive
+resource projection family with dedicated resource and export coverage.
 
 Current coupling/problem:
-Declarative realized-state contract data remains embedded in the large
+Declarative resource projection contract data remains embedded in the large
 public `Schema` facade even though the facade only needs the merged registry.
 
 Public facade to preserve:
@@ -31,15 +32,15 @@ Public facade to preserve:
 - `OrbitalDynamics.Schema.validate_artifact/2`
 
 Likely extraction target:
-`OrbitalDynamics.Schema.RealizedStateRegistryContracts.contracts/0`.
+`OrbitalDynamics.Schema.ResourceProjectionRegistryContracts.contracts/0`.
 
 Likely files:
 - `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/realized_state_registry_contracts.ex`
+- `lib/orbital_dynamics/schema/resource_projection_registry_contracts.ex`
 
 Likely tests:
-- `test/orbital_dynamics/schema/contact_feedback_contracts_test.exs`
+- `test/orbital_dynamics/schema/resource_contracts_test.exs`
 - `test/orbital_dynamics/schema/fixture_visibility_contracts_test.exs`
 - `test/orbital_dynamics/schema/registry_capability_test.exs`
 - `test/mix/tasks/orbital_dynamics.schema.export_test.exs`
@@ -52,7 +53,7 @@ fingerprint remains unchanged.
 Files changed:
 - `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/realized_state_registry_contracts.ex`
+- `lib/orbital_dynamics/schema/resource_projection_registry_contracts.ex`
 
 Public APIs preserved:
 - `OrbitalDynamics.Schema.contracts/0`
@@ -62,13 +63,13 @@ Public APIs preserved:
 - `OrbitalDynamics.Schema.validate_artifact/2`
 
 Behavior/schema changes:
-None. Registry contents, realized-state validation, and generated schemas retain
-the baseline fingerprint.
+None. Registry contents, resource projection validation, and generated schemas
+retain the baseline fingerprint.
 
 Tests run:
 - `mix compile --warnings-as-errors` passed.
-- Contact feedback, fixture visibility, registry capability, and schema export
-  tests passed: 15 tests.
+- Resource contracts, communications report fixtures, fixture visibility,
+  registry capability, and schema export tests passed: 20 tests.
 - SHA-256 over `{Schema.contracts(), Schema.json_schema_bundle()}` remained
   `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`.
 - Xref caller and compile-connected checks passed with the expected facade edge.
@@ -79,18 +80,17 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`0bca9090` (`Extract realized state registry contracts`).
+`56c3eecf` (`Update realized state handoff`).
 
 Next candidate:
-Assess resource projection report and flow summary as the next bounded registry
-family.
+Assess resource filter report and summary as the next bounded registry family.
 
 Blocked:
 No.
 
 Notes:
-- `schema.ex` decreased from 17,351 to 17,143 lines.
-- `RealizedStateRegistryContracts` is 217 lines.
+- `schema.ex` decreased from 17,143 to 17,037 lines.
+- `ResourceProjectionRegistryContracts` is 115 lines.
 - Parent review found no must-fix findings; parent publishing is the active-mode
   fallback because subagent delegation is unavailable.
 - The inline registry remains substantial; this is not a completion claim.
