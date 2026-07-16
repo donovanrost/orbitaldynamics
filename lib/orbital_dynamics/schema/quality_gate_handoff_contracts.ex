@@ -1,6 +1,8 @@
 defmodule OrbitalDynamics.Schema.QualityGateHandoffContracts do
   @moduledoc false
 
+  alias OrbitalDynamics.Schema.PrimitiveValidation
+
   @source_report_identity_field_pairs [
     {"quality_gate_report_id", "report_id"},
     {"source_artifact_type", "source_artifact_type"},
@@ -106,52 +108,45 @@ defmodule OrbitalDynamics.Schema.QualityGateHandoffContracts do
   def validate_row_matches_source(
         issues,
         path,
-        %{"source_quality_gate_row" => %{} = source_row} = row,
-        callbacks
-      )
-      when is_list(callbacks) do
+        %{"source_quality_gate_row" => %{} = source_row} = row
+      ) do
     validate_nested_source_pairs(
       issues,
       path,
       row,
       source_row,
       @row_handoff_source_field_pairs,
-      "source_quality_gate_row",
-      callbacks
+      "source_quality_gate_row"
     )
   end
 
-  def validate_row_matches_source(issues, _path, _row, _callbacks), do: issues
+  def validate_row_matches_source(issues, _path, _row), do: issues
 
   def validate_report_matches_source(
         issues,
         path,
-        %{"source_quality_gate_report" => %{} = source_report} = row,
-        callbacks
-      )
-      when is_list(callbacks) do
+        %{"source_quality_gate_report" => %{} = source_report} = row
+      ) do
     validate_nested_source_pairs(
       issues,
       path,
       row,
       source_report,
       @source_report_identity_field_pairs,
-      "source_quality_gate_report",
-      callbacks
+      "source_quality_gate_report"
     )
   end
 
-  def validate_report_matches_source(issues, _path, _row, _callbacks), do: issues
+  def validate_report_matches_source(issues, _path, _row), do: issues
 
-  defp validate_nested_source_pairs(issues, path, row, source_row, pairs, source_key, callbacks) do
+  defp validate_nested_source_pairs(issues, path, row, source_row, pairs, source_key) do
     Enum.reduce(pairs, issues, fn {row_field, source_field}, acc ->
       row_value = Map.get(row, row_field)
       source_value = Map.get(source_row, source_field)
 
       if not is_nil(row_value) and not is_nil(source_value) and row_value != source_value do
         [
-          error(
-            callbacks,
+          PrimitiveValidation.error(
             "#{path}.#{source_key}.#{source_field}",
             "must match #{row_field} on handoff row"
           )
@@ -214,7 +209,4 @@ defmodule OrbitalDynamics.Schema.QualityGateHandoffContracts do
         map,
         field
       ])
-
-  defp error(callbacks, path, message),
-    do: apply(Keyword.fetch!(callbacks, :error), [path, message])
 end

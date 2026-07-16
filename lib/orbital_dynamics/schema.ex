@@ -12951,8 +12951,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.OperationalReadinessHandoffContracts.validate_gate_matches_source(
       issues,
       path,
-      row,
-      operational_readiness_handoff_match_callbacks()
+      row
     )
   end
 
@@ -12964,15 +12963,8 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.OperationalReadinessHandoffContracts.validate_report_matches_source(
       issues,
       path,
-      row,
-      operational_readiness_handoff_match_callbacks()
+      row
     )
-  end
-
-  defp operational_readiness_handoff_match_callbacks do
-    [
-      error: &error/2
-    ]
   end
 
   defp validate_source_quality_gate_row_handoff_matches(
@@ -12983,8 +12975,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.QualityGateHandoffContracts.validate_row_matches_source(
       issues,
       path,
-      row,
-      quality_gate_handoff_match_callbacks()
+      row
     )
   end
 
@@ -12996,15 +12987,8 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.QualityGateHandoffContracts.validate_report_matches_source(
       issues,
       path,
-      row,
-      quality_gate_handoff_match_callbacks()
+      row
     )
-  end
-
-  defp quality_gate_handoff_match_callbacks do
-    [
-      error: &error/2
-    ]
   end
 
   defp validate_cadence_source_review_contact_allocation_handoff_matches(
