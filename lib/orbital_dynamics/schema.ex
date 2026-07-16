@@ -7989,15 +7989,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp validation_diagnostic_contract_callbacks do
-    [
-      require_fields: &require_fields/4,
-      expect_one_of: &expect_one_of/5,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5
-    ]
-  end
-
   defp validation_acceptance_report_contract_callbacks do
     [
       require_fields: &require_fields/4,
@@ -13973,8 +13964,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.ValidationDiagnosticContracts.validate_issue(
       issues,
       path,
-      issue,
-      validation_diagnostic_contract_callbacks()
+      issue
     )
   end
 
@@ -13982,8 +13972,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.ValidationDiagnosticContracts.validate_remediation(
       issues,
       path,
-      remediation,
-      validation_diagnostic_contract_callbacks()
+      remediation
     )
   end
 
