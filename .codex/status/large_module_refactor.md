@@ -6,23 +6,24 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Freshness-report callback ownership cleanup.
+Candidate-refresh window callback ownership cleanup.
 
 Status:
 Complete and published.
 
 Selected slice:
-Replace freshness-report callbacks with direct primitive validation and move
-its fixed `current`/`stale`/`unknown` status set into the cohesive leaf.
+Replace candidate-refresh window and remaining-horizon callbacks with direct
+primitive, stable-ID, and collection validation.
 
 Why this slice:
-All thirteen callbacks map to shared primitive support or the leaf's fixed
-status vocabulary. Focused candidate-refresh contract coverage exercises valid
-fixtures, derived counts/statuses, type errors, and JSON Schema export.
+All twelve callbacks map to shared support. Focused candidate-refresh contract
+coverage exercises window fixtures, sample coverage, horizon timing, required
+types, stable IDs, and JSON Schema export.
 
 Current coupling/problem:
-The facade assembles a thirteen-function bag for one optional freshness-report
-entry point even though the leaf owns freshness-policy-derived semantics.
+The facade assembles a twelve-function bag for refreshed-window collections,
+standalone windows, and remaining horizons even though the leaf owns their
+timing and sample-coverage semantics.
 
 Public facade preserved:
 - `OrbitalDynamics.Schema.validate_artifact/2`
@@ -33,53 +34,57 @@ Public facade preserved:
 Files changed:
 - `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/freshness_report_contracts.ex`
+- `lib/orbital_dynamics/schema/candidate_refresh_window_contracts.ex`
 
 Definition of done:
-The facade bag and call-site callback argument are gone; focused candidate
-refresh/schema export tests, fingerprint, formatting, and export checks pass;
-xref shows direct primitive and CandidateRefresh model-limit dependencies.
+The facade bag and all three call-site callback arguments are gone; focused
+candidate refresh/schema export tests, fingerprint, formatting, and export
+checks pass; xref shows direct primitive, stable-ID, and collection dependencies.
 
 Behavior/schema changes:
-None intended. Required fields, policy-derived reasons/statuses, state-quality
-classification, model limits, paths/messages, and schema output remain unchanged.
+None intended. Window IDs/types, intervals, assumptions, sample coverage,
+horizon duration/output-step checks, paths/messages, and schema output remain
+unchanged.
 
 Tests run:
 - `mix compile --warnings-as-errors` (passed).
-- `mix test test/orbital_dynamics/schema/candidate_refresh_contracts_test.exs:873 test/orbital_dynamics/schema/candidate_refresh_contracts_test.exs:999 test/orbital_dynamics/schema_export_test.exs`
-  (5 passed, 8 excluded).
-- Runtime fixture probes confirmed unchanged derived-status and stale-reason
-  paths/messages; a top-level scalar probe was discarded because the public
-  artifact validator intentionally accepts maps only.
+- `mix test test/orbital_dynamics/schema/candidate_refresh_contracts_test.exs:999 test/orbital_dynamics/validation_test.exs:9214 test/orbital_dynamics/validation_test.exs:9431 test/orbital_dynamics/schema_export_test.exs`
+  (6 passed, 188 excluded).
+- Runtime fixture probes confirmed exact sample-coverage, positive output-step,
+  and maximum output-step paths/messages.
 - `mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
   (passed; checked-in export unchanged).
 - Contract fingerprint remained
   `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`.
-- Focused xref callers confirmed direct primitive and CandidateRefresh
-  model-limit dependencies and the facade-only freshness leaf entry point.
+- Focused xref callers confirmed direct collection, primitive, and stable-ID
+  dependencies plus the facade-only window leaf entry point.
 - `mix format --check-formatted` and `git diff --check` (passed).
-- Bounded local review confirmed unchanged validation order, policy-derived
-  reasons/statuses, state-quality classification, paths, and messages; review
-  sidecar delegation was unavailable under runtime policy.
+- Bounded local review confirmed unchanged collection paths, fallback clauses,
+  validation order, interval/sample-coverage formulas, horizon timing, and exact
+  messages; review sidecar delegation was unavailable under runtime policy.
 
 Verification gaps:
 - Full suite not run.
 
 Last commit:
-`54bc2e8b` (`Collapse freshness report callbacks`).
+`b3a97150` (`Collapse candidate refresh window callbacks`).
 
 Next candidate:
-Remove the shared-validation callback bag from candidate-refresh window and
-remaining-horizon contracts; its twelve callbacks map to primitive,
-stable-ID, and collection-validation support.
+Remove candidate-activity callbacks by calling the already extracted activity
+validator plus direct primitive and stable-ID support.
 
 Blocked:
 No.
 
 Notes:
-- Starting point: `schema.ex` is 13,873 lines; freshness reports are 216 lines.
-- Ending point: `schema.ex` is 13,854 lines; freshness reports are 168 lines.
-- Published implementation commit: `54bc2e8b`.
+- Starting point: `schema.ex` is 13,854 lines; candidate-refresh window
+  contracts are 235 lines.
+- Ending point: `schema.ex` is 13,834 lines; candidate-refresh window contracts
+  are 184 lines.
+- Published implementation commit: `b3a97150`.
+- Candidate-activity validation was audited next: one callback maps to the
+  already extracted `ActivityContracts` leaf and the remainder map to shared
+  primitive and stable-ID support.
 - Quality-gate row and operational-readiness gate callbacks were audited and
   deferred because both compose facade-owned context and handoff validators.
 - Plan-delta validation was audited and deferred because it composes facade-owned
