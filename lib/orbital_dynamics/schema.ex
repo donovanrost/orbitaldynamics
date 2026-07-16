@@ -9502,25 +9502,8 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.TimelineLifecycleStateSourceContracts.validate_optional(
       issues,
       path,
-      row,
-      timeline_lifecycle_state_source_contract_callbacks()
+      row
     )
-  end
-
-  defp timeline_lifecycle_state_source_contract_callbacks do
-    [
-      validate_stable_ids: &validate_stable_ids/4,
-      expect_optional_one_of: &expect_optional_one_of/5,
-      expect_optional_type: &expect_optional_type/5,
-      validate_optional_string_list: &validate_optional_string_list/4,
-      validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
-      validate_optional_lifecycle_transition: &validate_optional_lifecycle_transition/4,
-      validate_optional_activity_context: &validate_optional_activity_context/4,
-      validate_optional_lifecycle_state_source_protection_decision:
-        &validate_optional_lifecycle_state_source_protection_decision/4,
-      expect_optional_non_negative_integer: &expect_optional_non_negative_integer/4,
-      error: &error/2
-    ]
   end
 
   defp validate_optional_timeline_activity_state_source(issues, _path, nil), do: issues
@@ -9536,15 +9519,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp validate_optional_timeline_activity_state_source(issues, path, _state),
     do: [error(path, "must be an object") | issues]
-
-  defp validate_optional_lifecycle_state_source_protection_decision(issues, path, row, field) do
-    case Map.get(row, field) do
-      nil -> issues
-      %{} -> validate_optional_protection_decision(issues, path, row, field)
-      value when is_binary(value) -> issues
-      _value -> [error("#{path}.#{field}", "must be a map or string") | issues]
-    end
-  end
 
   defp validate_timeline_transition_application_report(issues, path, report) do
     OrbitalDynamics.Schema.TimelineTransitionApplicationReportContracts.validate(
