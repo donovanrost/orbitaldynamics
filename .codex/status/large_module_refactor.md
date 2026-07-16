@@ -9,7 +9,7 @@ Current slice:
 Completed: study/result registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Moved `study_benchmark.v1`, `manifest_field_reference.v1`, and
@@ -50,7 +50,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`9275e54a` (`Update strategy schema handoff`); current slice is not yet committed.
+`ce1ad366` (`Extract study result registry contracts`).
 
 Next candidate:
 Assess the adjacent `branch_comparison_report.v1` and `optimizer_contract.v1`
