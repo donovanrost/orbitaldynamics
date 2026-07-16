@@ -6,70 +6,71 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Completed: review-row nested-ID ownership cleanup.
+Completed: resource-flow summary equality ownership cleanup.
 
 Status:
 Completed and published.
 
 Selected slice:
-Move generic nested-ID matching into stable-ID support and let review-row link
-validation call it directly.
+Move generic field equality into primitive support and let resource-projection
+flow-summary derived-count validation call it directly.
 
 Why this slice:
-The one-entry callback routes a stable-identity invariant; four unrelated
+Fifty cohesive derived-field checks route one callback; existing unrelated
 callback consumers remain compatible through the facade import.
 
 Current coupling/problem:
-Resolved. Stable-ID support owns nested matching, review-row links call it
-directly, and the facade only delegates validation inputs.
+Resolved. Primitive support owns equality, resource-flow consistency calls it
+directly, and the facade retains compatibility imports for other consumers.
 
 Public facade preserved:
 - `OrbitalDynamics.Schema.validate_artifact/2`
 - `OrbitalDynamics.Schema.validation_report/2`
-- Review-row source/replacement link order, paths, and exact mismatch errors.
+- Resource-flow derivation order, nil-expected skip semantics, paths, and exact
+  mismatch errors.
 
 Files changed:
 - `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/stable_id_validation.ex`
-- `lib/orbital_dynamics/schema/review_row_link_contracts.ex`
+- `lib/orbital_dynamics/schema/primitive_validation.ex`
+- `lib/orbital_dynamics/schema/resource_projection_flow_summary_count_contracts.ex`
 
 Definition of done:
-Nested-ID matching is support-owned, the review-row callback bag/wrapper is
-gone, exact/broad tests and fingerprint pass, and xref shows stable-ID support.
+Field equality is support-owned, the resource-flow callback bag/wrappers are
+gone, focused/broad tests and fingerprint pass, and xref shows primitive support.
 
 Behavior/schema changes:
-None. Link order, gating, paths, messages, and deterministic schema output
-remain unchanged.
+None. Derivation order, nil-expected skipping, paths, messages, and deterministic
+schema output remain unchanged.
 
 Tests run:
 - `mix compile --warnings-as-errors` passed.
-- 16 operator-review, Cadence-import, resource, export, and three exact nested
-  lineage mismatch regressions passed.
+- 26 broad resource, provenance, JSON-schema, and export tests passed.
+- Four exact ignored-row, count-consistency, overflow/shortfall, and row-derived
+  pressure tests passed; 45 unrelated resource-projection tests were excluded.
 - Exact schema fingerprint remained
   `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`.
-- Xref shows the facade caller and review-row links' sole dependency on
-  stable-ID support.
+- Xref shows the facade caller and a direct primitive-support edge.
 - Formatting, `git diff --check`, and checked-in schema cleanliness passed.
 
 Verification gaps:
-- Full suite not run; exact lineage regressions, focused family/export tests,
-  and the fingerprint are the verification boundary for this slice.
+- Full suite not run; the 30-test resource/export boundary and deterministic
+  fingerprint are the verification boundary for this slice.
 
 Last commit:
-`09dfca68` (`Collapse review row link callback`).
+`c76e9843` (`Collapse resource flow equality callback`).
 
 Next candidate:
-Assess resource-projection flow-summary equality ownership; keep mixed
+Reassess remaining multi-operation callback families; keep mixed
 activity-context ownership deferred.
 
 Blocked:
 No.
 
 Notes:
-- `schema.ex` is 14,523 lines after this slice (down from 14,548).
-- Four unrelated nested-ID callback consumers remain compatible through the
-  facade import.
+- `schema.ex` is 14,507 lines after this slice (down from 14,523).
+- `ResourceProjectionFlowSummaryCountContracts` is 695 lines (down from 765);
+  its unrelated helper-specific callback clusters remain intact.
 - Activity-context cleanup was audited and deferred because its 17 callbacks
   include facade-owned validators; this slice is the bounded alternative.
 - Parent review/publishing is the active-mode fallback because subagent
