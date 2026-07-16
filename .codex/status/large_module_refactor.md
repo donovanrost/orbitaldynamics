@@ -9,7 +9,7 @@ Current slice:
 Timeline-transition-application report-count callback collapse.
 
 Status:
-Selected; implementation pending.
+Completed; ready to publish.
 
 Selected slice:
 Remove the eight-entry callback bag from
@@ -54,14 +54,31 @@ No report-count callback factory or owner trampolines remain; the facade calls
 the direct owner; derived count/map/sum/type behavior stays exact;
 focused/broader/export checks pass; and bounded review finds no blocker.
 
+Result:
+Removed the eight-entry callback factory and all count-owner trampolines. The
+facade now calls `validate/3`; the owner calls primitive validation and
+collection aggregation directly and retains exact local facade-compatible
+equality-message and list-value behavior. Two now-unused facade aggregation
+wrappers were removed. `schema.ex` fell from 12,396 to 12,375 lines and the
+count owner from 219 to 176 lines.
+
+Verification:
+- compile with warnings as errors passed
+- 30 focused report, summary, provenance, workflow, and handoff tests passed
+- 882 broader timeline/candidate-refresh tests passed
+- 22 schema-export tests passed
+- checked-in schema export reproduction produced no diff
+- format, diff hygiene, scoped callback residue, and compile-connected xref passed
+- bounded read-only review found no issues
+
 Verification gaps:
 - Full repository suite not run.
 
 Last completed slice:
-Maneuver-review-report callback collapse published as `1e825f31`: `schema.ex`
-fell from 12,420 to 12,396 lines and its owner from 266 to 196; 13 focused, 761
+Timeline-transition-application report-count callback collapse: `schema.ex`
+fell from 12,396 to 12,375 lines and its owner from 219 to 176; 30 focused, 882
 broader, and 22 export tests passed; checked-in schemas were unchanged; bounded
-review's must-fix was resolved and re-review found no remaining issues.
+review found no issues.
 
 Blocked:
 No.

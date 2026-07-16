@@ -8900,22 +8900,8 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.TimelineTransitionApplicationReportCountContracts.validate(
       issues,
       path,
-      report,
-      timeline_transition_application_report_count_contract_callbacks()
+      report
     )
-  end
-
-  defp timeline_transition_application_report_count_contract_callbacks do
-    [
-      validate_non_negative_integer_count_map: &validate_non_negative_integer_count_map/3,
-      expect_field_equals: &expect_field_equals/5,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      frequency_map: &frequency_map/2,
-      nested_frequency_map: &nested_frequency_map/3,
-      sum_row_numbers: &sum_row_numbers/2,
-      list_value: &list_value/2,
-      sorted_unique_binary_values: &sorted_unique_binary_values/1
-    ]
   end
 
   defp validate_timeline_transition_application_summary(issues, path, summary) do
@@ -9818,9 +9804,6 @@ defmodule OrbitalDynamics.Schema do
   defp validate_optional_candidate_rejection_report(issues, path, _report),
     do: [error(path, "must be an object") | issues]
 
-  defp list_value(map, key) when is_map(map), do: Map.get(map, key) || []
-  defp list_value(_map, _key), do: []
-
   defp validate_timeline_integrity_evidence(issues, path, row) do
     OrbitalDynamics.Schema.TimelineIntegrityEvidenceContracts.validate(
       issues,
@@ -10704,10 +10687,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp frequency_map(rows, field) do
     OrbitalDynamics.Schema.CollectionAggregation.frequency_map(rows, field)
-  end
-
-  defp nested_frequency_map(rows, field, nested_field) do
-    OrbitalDynamics.Schema.CollectionAggregation.nested_frequency_map(rows, field, nested_field)
   end
 
   defp expect_field_equals(issues, path, map, field, nil),
