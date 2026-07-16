@@ -6,22 +6,21 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Completed: timeline feedback state registry extraction.
+Completed: realized state registry extraction.
 
 Status:
-Published.
+Ready to publish.
 
 Selected slice:
-Moved `timeline_feedback_report.v1`, `timeline_activity_state.v1`, and
-`timeline_activity_precondition_summary.v1` into
-`Schema.TimelineFeedbackStateRegistryContracts`.
+Moved `realized_activity.v1` and `realized_state_snapshot.v1` into
+`Schema.RealizedStateRegistryContracts`.
 
 Why this slice:
-The adjacent definitions form a feedback-to-state chain plus its precondition
-gate, with shared timeline state and export coverage.
+The snapshot directly nests realized activity and operator review, forming one
+cohesive realized-state contract family with dedicated feedback coverage.
 
 Current coupling/problem:
-Declarative timeline feedback/state contract data remains embedded in the large
+Declarative realized-state contract data remains embedded in the large
 public `Schema` facade even though the facade only needs the merged registry.
 
 Public facade to preserve:
@@ -32,17 +31,16 @@ Public facade to preserve:
 - `OrbitalDynamics.Schema.validate_artifact/2`
 
 Likely extraction target:
-`OrbitalDynamics.Schema.TimelineFeedbackStateRegistryContracts.contracts/0`.
+`OrbitalDynamics.Schema.RealizedStateRegistryContracts.contracts/0`.
 
 Likely files:
 - `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/timeline_feedback_state_registry_contracts.ex`
+- `lib/orbital_dynamics/schema/realized_state_registry_contracts.ex`
 
 Likely tests:
-- `test/orbital_dynamics/schema/timeline_activity_state_contracts_test.exs`
-- `test/orbital_dynamics/schema/timeline_summary_contracts_test.exs`
 - `test/orbital_dynamics/schema/contact_feedback_contracts_test.exs`
+- `test/orbital_dynamics/schema/fixture_visibility_contracts_test.exs`
 - `test/orbital_dynamics/schema/registry_capability_test.exs`
 - `test/mix/tasks/orbital_dynamics.schema.export_test.exs`
 
@@ -54,7 +52,7 @@ fingerprint remains unchanged.
 Files changed:
 - `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/timeline_feedback_state_registry_contracts.ex`
+- `lib/orbital_dynamics/schema/realized_state_registry_contracts.ex`
 
 Public APIs preserved:
 - `OrbitalDynamics.Schema.contracts/0`
@@ -64,13 +62,13 @@ Public APIs preserved:
 - `OrbitalDynamics.Schema.validate_artifact/2`
 
 Behavior/schema changes:
-None. Registry contents, timeline feedback/state validation, and generated
-schemas retain the baseline fingerprint.
+None. Registry contents, realized-state validation, and generated schemas retain
+the baseline fingerprint.
 
 Tests run:
 - `mix compile --warnings-as-errors` passed.
-- Timeline activity state, timeline summary, contact feedback, fixture
-  visibility, registry capability, and schema export tests passed: 41 tests.
+- Contact feedback, fixture visibility, registry capability, and schema export
+  tests passed: 15 tests.
 - SHA-256 over `{Schema.contracts(), Schema.json_schema_bundle()}` remained
   `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`.
 - Xref caller and compile-connected checks passed with the expected facade edge.
@@ -81,18 +79,18 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`e6938394` (`Extract timeline feedback state registry contracts`).
+`e80c43f6` (`Update timeline feedback state handoff`).
 
 Next candidate:
-Assess realized activity and realized state snapshot as the next bounded registry
+Assess resource projection report and flow summary as the next bounded registry
 family.
 
 Blocked:
 No.
 
 Notes:
-- `schema.ex` decreased from 17,474 to 17,351 lines.
-- `TimelineFeedbackStateRegistryContracts` is 134 lines.
+- `schema.ex` decreased from 17,351 to 17,143 lines.
+- `RealizedStateRegistryContracts` is 217 lines.
 - Parent review found no must-fix findings; parent publishing is the active-mode
   fallback because subagent delegation is unavailable.
 - The inline registry remains substantial; this is not a completion claim.
