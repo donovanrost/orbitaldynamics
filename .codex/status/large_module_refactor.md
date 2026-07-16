@@ -9,7 +9,7 @@ Current slice:
 Resource-projection-row callback-bag collapse.
 
 Status:
-Selected; implementation pending.
+Complete and published.
 
 Selected slice:
 Replace the 20-entry callback bag in `ResourceProjectionRowContracts` with
@@ -45,17 +45,21 @@ direct shared owners preserve validation and generic equality messages while
 five domain validators remain explicit boundaries; focused, broader, and
 export checks pass; and bounded review finds no blocker.
 
+Outcome:
+`schema.ex` fell from 11,599 to 11,578 lines and the row owner from 399 to 288.
+The 20-entry bag became direct primitive, stable-ID, and collection calls plus
+five typed domain-validator arguments; its generic equality wrapper preserves
+the legacy message policy. 214 focused, 1,167 broader, and 22 export tests
+passed; compile, xref, checked-in regeneration, format, diff hygiene, and
+bounded review were clean.
+
 Verification gaps:
 - Full repository suite not run.
 - Known baseline: full contact-filter file remains 87/88 due nil-message
   behavior in `SuppressedCandidateContracts`; unrelated to these slices.
 
 Last completed slice:
-Resource-projection report-count messages restored as `6fa085bf`: all five
-generic equality calls again emit the exact legacy message while 13 custom
-messages remain unchanged. The formerly red resource-projection file is 49/49,
-the focused aggregate is 214/214, and 22 export tests pass; compile, xref,
-regeneration, format, diff hygiene, and bounded review were clean.
+Resource-projection-row callback-bag collapse; publication commit pending.
 
 Blocked:
 No.

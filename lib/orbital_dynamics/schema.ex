@@ -7427,31 +7427,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp resource_projection_row_contract_callbacks do
-    [
-      require_fields: &require_fields/4,
-      validate_stable_ids: &validate_stable_ids/4,
-      expect_non_negative_integer: &expect_non_negative_integer/4,
-      expect_optional_non_negative_integer: &expect_optional_non_negative_integer/4,
-      expect_number: &expect_number/4,
-      expect_optional_number: &expect_optional_number/4,
-      expect_optional_non_negative_number: &expect_optional_non_negative_number/4,
-      expect_optional_type: &expect_optional_type/5,
-      validate_string_list_items: &validate_string_list_items/4,
-      expect_optional_probability: &expect_optional_probability/4,
-      validate_optional_rows: &validate_optional_rows/4,
-      validate_approval_requirement: &validate_approval_requirement/3,
-      validate_policy_rule_match: &validate_policy_rule_match/3,
-      validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
-      validate_optional_source_window: &validate_optional_source_window/4,
-      validate_nested_id_match: &validate_nested_id_match/7,
-      validate_rows: &validate_rows/4,
-      validate_resource_projection_flow_row: &validate_resource_projection_flow_row/3,
-      expect_field_equals: &expect_field_equals/5,
-      expect_field_equals_with_message: &expect_field_equals/6
-    ]
-  end
-
   defp result_artifact_contract_callbacks do
     [
       validate_execution_report: &validate_nested_execution_report/1,
@@ -8200,7 +8175,11 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       row,
-      resource_projection_row_contract_callbacks()
+      &validate_approval_requirement/3,
+      &validate_policy_rule_match/3,
+      &validate_optional_source_window/4,
+      &validate_nested_id_match/7,
+      &validate_resource_projection_flow_row/3
     )
   end
 
