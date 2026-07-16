@@ -9,7 +9,7 @@ Current slice:
 Completed: contact-intent registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Move the contact-intent and contact-intent summary contracts into
@@ -81,7 +81,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`bd21ea9c` (`Update command window handoff`).
+`82867816` (`Extract contact intent registry contracts`).
 
 Next candidate:
 Assess the adjacent proposed-contact contract as the next bounded registry
