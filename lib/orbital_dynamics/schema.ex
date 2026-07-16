@@ -9892,8 +9892,7 @@ defmodule OrbitalDynamics.Schema do
       validate_adapter_boundary_context:
         &validate_operational_readiness_adapter_boundary_context/3,
       validate_cadence_import_context: &validate_operational_readiness_cadence_import_context/3,
-      validate_timeline_publication_context: &validate_timeline_publication_context/3,
-      stable_sorted_ids: &stable_sorted_ids/1
+      validate_timeline_publication_context: &validate_timeline_publication_context/3
     ]
   end
 
@@ -9949,31 +9948,19 @@ defmodule OrbitalDynamics.Schema do
   defp quality_gate_status_count(_rows, _status), do: nil
 
   defp quality_gate_ids_by(rows, field) when is_list(rows) do
-    OrbitalDynamics.Schema.QualityGateRowContracts.ids_by(
-      rows,
-      field,
-      quality_gate_row_contract_callbacks()
-    )
+    OrbitalDynamics.Schema.QualityGateRowContracts.ids_by(rows, field)
   end
 
   defp quality_gate_ids_by(_rows, _field), do: nil
 
   defp quality_gate_row_ids_by(rows, field) when is_list(rows) do
-    OrbitalDynamics.Schema.QualityGateRowContracts.row_ids_by(
-      rows,
-      field,
-      quality_gate_row_contract_callbacks()
-    )
+    OrbitalDynamics.Schema.QualityGateRowContracts.row_ids_by(rows, field)
   end
 
   defp quality_gate_row_ids_by(_rows, _field), do: nil
 
   defp quality_gate_ids(rows, status) when is_list(rows) do
-    OrbitalDynamics.Schema.QualityGateRowContracts.ids(
-      rows,
-      status,
-      quality_gate_row_contract_callbacks()
-    )
+    OrbitalDynamics.Schema.QualityGateRowContracts.ids(rows, status)
   end
 
   defp quality_gate_ids(_rows, _status), do: nil

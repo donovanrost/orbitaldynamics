@@ -9,7 +9,7 @@ Current slice:
 Quality-gate-row aggregation ownership cleanup.
 
 Status:
-Selected; implementation pending.
+Completed and ready to publish.
 
 Selected slice:
 Make `QualityGateRowContracts` own stable sorting for `ids_by`, `row_ids_by`,
@@ -46,6 +46,22 @@ Definition of done:
 Quality-gate row aggregation no longer requires a callback bag; stable sorting
 has one cohesive owner; row validation behavior is unchanged; focused/broader/
 export checks pass; and bounded review finds no blocker.
+
+Completed result:
+Changed `QualityGateRowContracts.ids_by`, `row_ids_by`, and `ids` from callback-
+driven `/3` helpers to cohesive `/2` aggregation APIs with exact local stable
+sorting. Removed the aggregation-only callback from the row-validator bag and
+updated the guarded Schema wrappers. `schema.ex` fell from 11,968 to 11,955
+lines; the owner grew from 144 to 148 to own the pure sorting rule explicitly.
+
+Verification:
+- compile with warnings as errors passed
+- 54 focused readiness/schema/quality-gate replay/review tests passed
+- 1,051 broader candidate-refresh/operator-review tests passed
+- 22 schema-export tests passed
+- compile-connected xref, format, diff hygiene, and checked-in schema
+  regeneration were clean
+- bounded read-only review found no issues
 
 Verification gaps:
 - Full repository suite not run.

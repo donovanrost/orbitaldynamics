@@ -37,35 +37,35 @@ defmodule OrbitalDynamics.Schema.QualityGateRowContracts do
 
   def status_count(_rows, _status), do: nil
 
-  def ids_by(rows, field, callbacks) when is_list(rows) do
+  def ids_by(rows, field) when is_list(rows) do
     rows
     |> Enum.filter(&is_map/1)
     |> Enum.group_by(&Map.get(&1, field), &Map.get(&1, "gate_id"))
     |> Enum.reject(fn {key, ids} -> key in [nil, ""] or Enum.all?(ids, &is_nil/1) end)
-    |> Map.new(fn {key, ids} -> {to_string(key), stable_sorted_ids(ids, callbacks)} end)
+    |> Map.new(fn {key, ids} -> {to_string(key), stable_sorted_ids(ids)} end)
   end
 
-  def ids_by(_rows, _field, _callbacks), do: nil
+  def ids_by(_rows, _field), do: nil
 
-  def row_ids_by(rows, field, callbacks) when is_list(rows) do
+  def row_ids_by(rows, field) when is_list(rows) do
     rows
     |> Enum.filter(&is_map/1)
     |> Enum.group_by(&Map.get(&1, field), &Map.get(&1, "id"))
     |> Enum.reject(fn {key, ids} -> key in [nil, ""] or Enum.all?(ids, &is_nil/1) end)
-    |> Map.new(fn {key, ids} -> {to_string(key), stable_sorted_ids(ids, callbacks)} end)
+    |> Map.new(fn {key, ids} -> {to_string(key), stable_sorted_ids(ids)} end)
   end
 
-  def row_ids_by(_rows, _field, _callbacks), do: nil
+  def row_ids_by(_rows, _field), do: nil
 
-  def ids(rows, status, callbacks) when is_list(rows) do
+  def ids(rows, status) when is_list(rows) do
     rows
     |> Enum.filter(&is_map/1)
     |> Enum.filter(&(Map.get(&1, "status") == status))
     |> Enum.map(&Map.get(&1, "gate_id"))
-    |> stable_sorted_ids(callbacks)
+    |> stable_sorted_ids()
   end
 
-  def ids(_rows, _status, _callbacks), do: nil
+  def ids(_rows, _status), do: nil
 
   defp require_fields(issues, path, map, fields, callbacks),
     do: apply(require_callback(callbacks, :require_fields), [issues, path, map, fields])
@@ -135,8 +135,12 @@ defmodule OrbitalDynamics.Schema.QualityGateRowContracts do
         row
       ])
 
-  defp stable_sorted_ids(ids, callbacks),
-    do: apply(require_callback(callbacks, :stable_sorted_ids), [ids])
+  defp stable_sorted_ids(ids) do
+    ids
+    |> Enum.reject(&is_nil/1)
+    |> Enum.uniq()
+    |> Enum.sort()
+  end
 
   defp require_callback(callbacks, name) do
     Keyword.fetch!(callbacks, name)
