@@ -52,7 +52,6 @@ defmodule OrbitalDynamics.Schema do
       expect_list_count_equals: 5,
       validate_numeric_map: 3,
       validate_optional_rows: 4,
-      validate_optional_string_list: 4,
       validate_rows: 4
     ]
 
@@ -8373,34 +8372,11 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       row,
-      operational_timeline_row_contract_callbacks()
+      &validate_optional_timeline_preconditions/4,
+      &validate_optional_activity_context/4,
+      &validate_timeline_integrity_evidence/3,
+      &validate_timeline_identity/3
     )
-  end
-
-  defp operational_timeline_row_contract_callbacks do
-    [
-      require_fields: &require_fields/4,
-      validate_stable_ids: &validate_stable_ids/4,
-      expect_type: &expect_type/5,
-      expect_one_of: &expect_one_of/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_optional_one_of: &expect_optional_one_of/5,
-      expect_optional_non_negative_integer: &expect_optional_non_negative_integer/4,
-      expect_optional_non_negative_number: &expect_optional_non_negative_number/4,
-      expect_optional_integer: &expect_optional_integer/4,
-      expect_field_at_least: &expect_field_at_least/5,
-      expect_optional_number: &expect_optional_number/4,
-      expect_optional_probability: &expect_optional_probability/4,
-      validate_optional_string_list: &validate_optional_string_list/4,
-      validate_optional_timeline_preconditions: &validate_optional_timeline_preconditions/4,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
-      validate_number_list_items: &validate_number_list_items/4,
-      validate_optional_activity_context: &validate_optional_activity_context/4,
-      validate_string_list_allowed: &validate_string_list_allowed/5,
-      validate_timeline_integrity_evidence: &validate_timeline_integrity_evidence/3,
-      validate_timeline_identity: &validate_timeline_identity/3
-    ]
   end
 
   defp validate_timeline_diff_row(issues, path, row) do

@@ -9,7 +9,7 @@ Current slice:
 Operational-timeline-row callback-bag collapse.
 
 Status:
-Selected; implementation pending.
+Complete and published.
 
 Selected slice:
 Replace the 21-entry callback bag in `OperationalTimelineRowContracts` with
@@ -47,17 +47,21 @@ direct shared owners preserve row validation while the four domain validators
 remain explicit boundaries; focused, broader, and export checks pass; and
 bounded review finds no blocker.
 
+Outcome:
+`schema.ex` fell from 11,674 to 11,650 lines and the timeline-row owner from
+348 to 275. The 21-entry callback bag became direct primitive, stable-ID, and
+collection validation calls plus four explicit domain-validator arguments. 189
+focused, 1,167 broader, and 22 export tests passed; compile, compile-connected
+xref, checked-in schema regeneration, format, diff hygiene, and bounded review
+were clean.
+
 Verification gaps:
 - Full repository suite not run.
 - Known baseline: full contact-filter file remains 87/88 due nil-message
   behavior in `SuppressedCandidateContracts`; unrelated to these slices.
 
 Last completed slice:
-Resource-projection-handoff callback collapse published as `92518c6c`:
-`schema.ex` fell from 11,684 to 11,674 lines and its owner from 371 to 355. The
-3-entry bag became direct primitives and one downlink predicate boundary. 142
-focused, 1,168 broader, and 22 export tests passed; compile, xref, format, diff
-hygiene, checked-in regeneration, and bounded review were clean.
+Operational-timeline-row callback-bag collapse; publication commit pending.
 
 Blocked:
 No.

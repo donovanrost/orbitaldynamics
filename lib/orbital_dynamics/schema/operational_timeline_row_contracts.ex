@@ -1,9 +1,44 @@
 defmodule OrbitalDynamics.Schema.OperationalTimelineRowContracts do
   @moduledoc false
 
-  def validate(issues, path, row, callbacks) when is_list(callbacks) do
+  import OrbitalDynamics.Schema.CollectionValidation, only: [validate_optional_string_list: 4]
+
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [
+      expect_field_at_least: 5,
+      expect_one_of: 5,
+      expect_optional_integer: 4,
+      expect_optional_non_negative_integer: 4,
+      expect_optional_non_negative_number: 4,
+      expect_optional_number: 4,
+      expect_optional_one_of: 5,
+      expect_optional_probability: 4,
+      expect_optional_type: 5,
+      expect_type: 5,
+      require_fields: 4,
+      validate_number_list_items: 4,
+      validate_string_list_allowed: 5,
+      validate_string_list_items: 4
+    ]
+
+  import OrbitalDynamics.Schema.StableIdValidation,
+    only: [validate_optional_stable_id_list: 4, validate_stable_ids: 4]
+
+  def validate(
+        issues,
+        path,
+        row,
+        precondition_validator,
+        activity_context_validator,
+        integrity_evidence_validator,
+        timeline_identity_validator
+      )
+      when is_function(precondition_validator, 4) and
+             is_function(activity_context_validator, 4) and
+             is_function(integrity_evidence_validator, 3) and
+             is_function(timeline_identity_validator, 3) do
     issues
-    |> require_fields(callbacks, path, row, [
+    |> require_fields(path, row, [
       "id",
       "activity_id",
       "timeline_id",
@@ -15,7 +50,7 @@ defmodule OrbitalDynamics.Schema.OperationalTimelineRowContracts do
       "has_cadence_import",
       "timeline_identity"
     ])
-    |> validate_stable_ids(callbacks, path, row, [
+    |> validate_stable_ids(path, row, [
       "id",
       "activity_id",
       "timeline_id",
@@ -28,321 +63,213 @@ defmodule OrbitalDynamics.Schema.OperationalTimelineRowContracts do
       "station_calendar_provider_entry_id",
       "station_reservation_id"
     ])
-    |> expect_type(callbacks, path, row, "activity_type", :binary)
-    |> expect_one_of(callbacks, path, row, "status", timeline_capability().activity_statuses)
+    |> expect_type(path, row, "activity_type", :binary)
+    |> expect_one_of(path, row, "status", timeline_capability().activity_statuses)
     |> expect_one_of(
-      callbacks,
       path,
       row,
       "approval_status",
       timeline_capability().approval_statuses
     )
-    |> expect_type(callbacks, path, row, "locked", :boolean)
-    |> expect_optional_type(callbacks, path, row, "allow_overlap", :boolean)
+    |> expect_type(path, row, "locked", :boolean)
+    |> expect_optional_type(path, row, "allow_overlap", :boolean)
     |> expect_optional_one_of(
-      callbacks,
       path,
       row,
       "operational_kind",
       timeline_capability().operational_kinds
     )
     |> expect_optional_one_of(
-      callbacks,
       path,
       row,
       "required_operator_action",
       timeline_capability().required_operator_actions
     )
-    |> expect_optional_type(callbacks, path, row, "operator_action_reason", :binary)
+    |> expect_optional_type(path, row, "operator_action_reason", :binary)
     |> expect_optional_one_of(
-      callbacks,
       path,
       row,
       "precondition_status",
       timeline_capability().activity_precondition_statuses
     )
-    |> expect_optional_non_negative_integer(callbacks, path, row, "blocked_precondition_count")
-    |> expect_optional_non_negative_integer(callbacks, path, row, "review_precondition_count")
-    |> expect_optional_type(callbacks, path, row, "blocked_precondition_types", :list)
-    |> validate_optional_string_list(callbacks, path, row, "blocked_precondition_types")
-    |> expect_optional_type(callbacks, path, row, "review_precondition_types", :list)
-    |> validate_optional_string_list(callbacks, path, row, "review_precondition_types")
-    |> expect_optional_type(callbacks, path, row, "preconditions", :list)
-    |> validate_optional_timeline_preconditions(callbacks, path, row, "preconditions")
+    |> expect_optional_non_negative_integer(path, row, "blocked_precondition_count")
+    |> expect_optional_non_negative_integer(path, row, "review_precondition_count")
+    |> expect_optional_type(path, row, "blocked_precondition_types", :list)
+    |> validate_optional_string_list(path, row, "blocked_precondition_types")
+    |> expect_optional_type(path, row, "review_precondition_types", :list)
+    |> validate_optional_string_list(path, row, "review_precondition_types")
+    |> expect_optional_type(path, row, "preconditions", :list)
+    |> precondition_validator.(path, row, "preconditions")
     |> expect_optional_one_of(
-      callbacks,
       path,
       row,
       "execution_boundary",
       timeline_capability().execution_boundaries
     )
     |> expect_optional_one_of(
-      callbacks,
       path,
       row,
       "cadence_import_status",
       timeline_capability().cadence_import_statuses
     )
-    |> expect_optional_non_negative_number(callbacks, path, row, "setup_duration_s")
-    |> expect_optional_non_negative_number(callbacks, path, row, "cooldown_duration_s")
-    |> expect_optional_type(callbacks, path, row, "telemetry_confirmation_required", :boolean)
-    |> expect_optional_type(callbacks, path, row, "telemetry_confirmation_status", :binary)
-    |> expect_optional_type(callbacks, path, row, "station_availability", :binary)
-    |> expect_optional_type(callbacks, path, row, "source_station_calendar_entry", :map)
-    |> expect_optional_type(callbacks, path, row, "source_station_calendar_overlaps", :list)
-    |> expect_optional_type(callbacks, path, row, "station_calendar_directions", :list)
-    |> validate_string_list_items(callbacks, path, row, "station_calendar_directions")
-    |> expect_optional_type(callbacks, path, row, "station_calendar_status", :binary)
-    |> expect_optional_integer(callbacks, path, row, "station_calendar_overlap_count")
-    |> expect_field_at_least(callbacks, path, row, "station_calendar_overlap_count", 0)
-    |> expect_optional_type(callbacks, path, row, "station_calendar_overlap_entry_ids", :list)
+    |> expect_optional_non_negative_number(path, row, "setup_duration_s")
+    |> expect_optional_non_negative_number(path, row, "cooldown_duration_s")
+    |> expect_optional_type(path, row, "telemetry_confirmation_required", :boolean)
+    |> expect_optional_type(path, row, "telemetry_confirmation_status", :binary)
+    |> expect_optional_type(path, row, "station_availability", :binary)
+    |> expect_optional_type(path, row, "source_station_calendar_entry", :map)
+    |> expect_optional_type(path, row, "source_station_calendar_overlaps", :list)
+    |> expect_optional_type(path, row, "station_calendar_directions", :list)
+    |> validate_string_list_items(path, row, "station_calendar_directions")
+    |> expect_optional_type(path, row, "station_calendar_status", :binary)
+    |> expect_optional_integer(path, row, "station_calendar_overlap_count")
+    |> expect_field_at_least(path, row, "station_calendar_overlap_count", 0)
+    |> expect_optional_type(path, row, "station_calendar_overlap_entry_ids", :list)
     |> validate_optional_stable_id_list(
-      callbacks,
       path,
       row,
       "station_calendar_overlap_entry_ids"
     )
     |> expect_optional_type(
-      callbacks,
       path,
       row,
       "station_calendar_overlap_availabilities",
       :list
     )
-    |> validate_string_list_items(callbacks, path, row, "station_calendar_overlap_availabilities")
-    |> expect_optional_type(callbacks, path, row, "station_calendar_entry_ambiguous", :boolean)
-    |> expect_optional_integer(callbacks, path, row, "station_calendar_ambiguous_entry_count")
-    |> expect_field_at_least(callbacks, path, row, "station_calendar_ambiguous_entry_count", 0)
-    |> expect_optional_type(callbacks, path, row, "station_calendar_ambiguous_entry_ids", :list)
+    |> validate_string_list_items(path, row, "station_calendar_overlap_availabilities")
+    |> expect_optional_type(path, row, "station_calendar_entry_ambiguous", :boolean)
+    |> expect_optional_integer(path, row, "station_calendar_ambiguous_entry_count")
+    |> expect_field_at_least(path, row, "station_calendar_ambiguous_entry_count", 0)
+    |> expect_optional_type(path, row, "station_calendar_ambiguous_entry_ids", :list)
     |> validate_optional_stable_id_list(
-      callbacks,
       path,
       row,
       "station_calendar_ambiguous_entry_ids"
     )
-    |> expect_optional_integer(callbacks, path, row, "station_calendar_reservation_overlap_count")
+    |> expect_optional_integer(path, row, "station_calendar_reservation_overlap_count")
     |> expect_field_at_least(
-      callbacks,
       path,
       row,
       "station_calendar_reservation_overlap_count",
       0
     )
-    |> expect_optional_type(callbacks, path, row, "station_calendar_reservation_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, row, "station_calendar_reservation_ids")
-    |> expect_optional_type(callbacks, path, row, "station_calendar_reserved_by", :list)
-    |> validate_string_list_items(callbacks, path, row, "station_calendar_reserved_by")
-    |> expect_optional_type(callbacks, path, row, "station_calendar_reservation_statuses", :list)
-    |> validate_string_list_items(callbacks, path, row, "station_calendar_reservation_statuses")
+    |> expect_optional_type(path, row, "station_calendar_reservation_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "station_calendar_reservation_ids")
+    |> expect_optional_type(path, row, "station_calendar_reserved_by", :list)
+    |> validate_string_list_items(path, row, "station_calendar_reserved_by")
+    |> expect_optional_type(path, row, "station_calendar_reservation_statuses", :list)
+    |> validate_string_list_items(path, row, "station_calendar_reservation_statuses")
     |> expect_optional_type(
-      callbacks,
       path,
       row,
       "station_calendar_reservation_expires_at_s",
       :list
     )
     |> validate_number_list_items(
-      callbacks,
       path,
       row,
       "station_calendar_reservation_expires_at_s"
     )
     |> expect_optional_type(
-      callbacks,
       path,
       row,
       "station_calendar_trust_boundary_status",
       :binary
     )
-    |> expect_optional_type(callbacks, path, row, "station_contention_status", :binary)
-    |> expect_optional_type(callbacks, path, row, "station_reservation_match_status", :binary)
-    |> expect_optional_number(callbacks, path, row, "station_reservation_expires_at_s")
-    |> expect_optional_type(callbacks, path, row, "station_reserved_by", :binary)
-    |> expect_optional_type(callbacks, path, row, "station_reservation_status", :binary)
-    |> expect_optional_type(callbacks, path, row, "schedule_conflict_status", :binary)
-    |> expect_optional_type(callbacks, path, row, "activity_context", :map)
-    |> validate_optional_activity_context(callbacks, path, row, "activity_context")
-    |> expect_optional_type(callbacks, path, row, "dependency_activity_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, row, "dependency_activity_ids")
+    |> expect_optional_type(path, row, "station_contention_status", :binary)
+    |> expect_optional_type(path, row, "station_reservation_match_status", :binary)
+    |> expect_optional_number(path, row, "station_reservation_expires_at_s")
+    |> expect_optional_type(path, row, "station_reserved_by", :binary)
+    |> expect_optional_type(path, row, "station_reservation_status", :binary)
+    |> expect_optional_type(path, row, "schedule_conflict_status", :binary)
+    |> expect_optional_type(path, row, "activity_context", :map)
+    |> activity_context_validator.(path, row, "activity_context")
+    |> expect_optional_type(path, row, "dependency_activity_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "dependency_activity_ids")
     |> expect_optional_type(
-      callbacks,
       path,
       row,
       "dependency_order_violation_activity_ids",
       :list
     )
     |> validate_optional_stable_id_list(
-      callbacks,
       path,
       row,
       "dependency_order_violation_activity_ids"
     )
-    |> expect_optional_type(callbacks, path, row, "missing_dependency_activity_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, row, "missing_dependency_activity_ids")
-    |> expect_optional_type(callbacks, path, row, "self_dependency_activity_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, row, "self_dependency_activity_ids")
-    |> expect_optional_type(callbacks, path, row, "self_dependency_timeline_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, row, "self_dependency_timeline_ids")
-    |> expect_optional_type(callbacks, path, row, "duplicate_dependency_activity_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, row, "duplicate_dependency_activity_ids")
-    |> expect_optional_type(callbacks, path, row, "duplicate_dependency_timeline_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, row, "duplicate_dependency_timeline_ids")
-    |> expect_optional_type(callbacks, path, row, "duplicate_exclusivity_activity_ids", :list)
+    |> expect_optional_type(path, row, "missing_dependency_activity_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "missing_dependency_activity_ids")
+    |> expect_optional_type(path, row, "self_dependency_activity_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "self_dependency_activity_ids")
+    |> expect_optional_type(path, row, "self_dependency_timeline_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "self_dependency_timeline_ids")
+    |> expect_optional_type(path, row, "duplicate_dependency_activity_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "duplicate_dependency_activity_ids")
+    |> expect_optional_type(path, row, "duplicate_dependency_timeline_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "duplicate_dependency_timeline_ids")
+    |> expect_optional_type(path, row, "duplicate_exclusivity_activity_ids", :list)
     |> validate_optional_stable_id_list(
-      callbacks,
       path,
       row,
       "duplicate_exclusivity_activity_ids"
     )
-    |> expect_optional_type(callbacks, path, row, "duplicate_exclusivity_timeline_ids", :list)
+    |> expect_optional_type(path, row, "duplicate_exclusivity_timeline_ids", :list)
     |> validate_optional_stable_id_list(
-      callbacks,
       path,
       row,
       "duplicate_exclusivity_timeline_ids"
     )
-    |> expect_optional_type(callbacks, path, row, "exclusive_with_activity_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, row, "exclusive_with_activity_ids")
-    |> expect_optional_type(callbacks, path, row, "exclusivity_group", :binary)
-    |> expect_optional_type(callbacks, path, row, "exclusivity_violation_activity_ids", :list)
+    |> expect_optional_type(path, row, "exclusive_with_activity_ids", :list)
+    |> validate_optional_stable_id_list(path, row, "exclusive_with_activity_ids")
+    |> expect_optional_type(path, row, "exclusivity_group", :binary)
+    |> expect_optional_type(path, row, "exclusivity_violation_activity_ids", :list)
     |> validate_optional_stable_id_list(
-      callbacks,
       path,
       row,
       "exclusivity_violation_activity_ids"
     )
-    |> expect_optional_type(callbacks, path, row, "exclusivity_violation_group", :binary)
-    |> expect_optional_type(callbacks, path, row, "exclusivity_violation_timeline_ids", :list)
+    |> expect_optional_type(path, row, "exclusivity_violation_group", :binary)
+    |> expect_optional_type(path, row, "exclusivity_violation_timeline_ids", :list)
     |> validate_optional_stable_id_list(
-      callbacks,
       path,
       row,
       "exclusivity_violation_timeline_ids"
     )
-    |> expect_optional_type(callbacks, path, row, "superseded_required_operator_action", :binary)
-    |> expect_optional_type(callbacks, path, row, "superseded_operator_action_reason", :binary)
-    |> expect_optional_type(callbacks, path, row, "timeline_integrity_status", :binary)
-    |> expect_optional_type(callbacks, path, row, "attitude_mode", :binary)
-    |> validate_stable_ids(callbacks, path, row, ["attitude_target_id"])
-    |> expect_optional_number(callbacks, path, row, "roll_deg")
-    |> expect_optional_number(callbacks, path, row, "pitch_deg")
-    |> expect_optional_number(callbacks, path, row, "yaw_deg")
-    |> expect_optional_number(callbacks, path, row, "attitude_error_deg")
-    |> expect_optional_type(callbacks, path, row, "attitude_status", :binary)
-    |> expect_optional_type(callbacks, path, row, "attitude_model", :binary)
-    |> expect_optional_type(callbacks, path, row, "attitude_source", :binary)
-    |> expect_optional_probability(callbacks, path, row, "attitude_confidence")
+    |> expect_optional_type(path, row, "superseded_required_operator_action", :binary)
+    |> expect_optional_type(path, row, "superseded_operator_action_reason", :binary)
+    |> expect_optional_type(path, row, "timeline_integrity_status", :binary)
+    |> expect_optional_type(path, row, "attitude_mode", :binary)
+    |> validate_stable_ids(path, row, ["attitude_target_id"])
+    |> expect_optional_number(path, row, "roll_deg")
+    |> expect_optional_number(path, row, "pitch_deg")
+    |> expect_optional_number(path, row, "yaw_deg")
+    |> expect_optional_number(path, row, "attitude_error_deg")
+    |> expect_optional_type(path, row, "attitude_status", :binary)
+    |> expect_optional_type(path, row, "attitude_model", :binary)
+    |> expect_optional_type(path, row, "attitude_source", :binary)
+    |> expect_optional_probability(path, row, "attitude_confidence")
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       row,
       "timeline_integrity_issue_count"
     )
-    |> expect_optional_type(callbacks, path, row, "timeline_integrity_issue_types", :list)
+    |> expect_optional_type(path, row, "timeline_integrity_issue_types", :list)
     |> validate_string_list_allowed(
-      callbacks,
       path,
       row,
       "timeline_integrity_issue_types",
       timeline_capability().timeline_integrity_issue_types
     )
-    |> expect_optional_type(callbacks, path, row, "timeline_integrity_issues", :list)
-    |> validate_timeline_integrity_evidence(callbacks, path, row)
-    |> expect_type(callbacks, path, row, "has_source_window", :boolean)
-    |> expect_type(callbacks, path, row, "has_cadence_import", :boolean)
-    |> expect_type(callbacks, path, row, "timeline_identity", :map)
-    |> validate_timeline_identity(
-      callbacks,
+    |> expect_optional_type(path, row, "timeline_integrity_issues", :list)
+    |> integrity_evidence_validator.(path, row)
+    |> expect_type(path, row, "has_source_window", :boolean)
+    |> expect_type(path, row, "has_cadence_import", :boolean)
+    |> expect_type(path, row, "timeline_identity", :map)
+    |> timeline_identity_validator.(
       path <> ".timeline_identity",
       Map.get(row, "timeline_identity", %{})
     )
   end
 
   defp timeline_capability, do: OrbitalDynamics.Timeline.capabilities()
-
-  defp expect_field_at_least(issues, callbacks, path, row, field, min) do
-    callback!(callbacks, :expect_field_at_least).(issues, path, row, field, min)
-  end
-
-  defp expect_one_of(issues, callbacks, path, row, field, values) do
-    callback!(callbacks, :expect_one_of).(issues, path, row, field, values)
-  end
-
-  defp expect_optional_integer(issues, callbacks, path, row, field) do
-    callback!(callbacks, :expect_optional_integer).(issues, path, row, field)
-  end
-
-  defp expect_optional_non_negative_integer(issues, callbacks, path, row, field) do
-    callback!(callbacks, :expect_optional_non_negative_integer).(issues, path, row, field)
-  end
-
-  defp expect_optional_non_negative_number(issues, callbacks, path, row, field) do
-    callback!(callbacks, :expect_optional_non_negative_number).(issues, path, row, field)
-  end
-
-  defp expect_optional_number(issues, callbacks, path, row, field) do
-    callback!(callbacks, :expect_optional_number).(issues, path, row, field)
-  end
-
-  defp expect_optional_one_of(issues, callbacks, path, row, field, values) do
-    callback!(callbacks, :expect_optional_one_of).(issues, path, row, field, values)
-  end
-
-  defp expect_optional_probability(issues, callbacks, path, row, field) do
-    callback!(callbacks, :expect_optional_probability).(issues, path, row, field)
-  end
-
-  defp expect_optional_type(issues, callbacks, path, row, field, type) do
-    callback!(callbacks, :expect_optional_type).(issues, path, row, field, type)
-  end
-
-  defp expect_type(issues, callbacks, path, row, field, type) do
-    callback!(callbacks, :expect_type).(issues, path, row, field, type)
-  end
-
-  defp require_fields(issues, callbacks, path, row, fields) do
-    callback!(callbacks, :require_fields).(issues, path, row, fields)
-  end
-
-  defp validate_number_list_items(issues, callbacks, path, row, field) do
-    callback!(callbacks, :validate_number_list_items).(issues, path, row, field)
-  end
-
-  defp validate_optional_activity_context(issues, callbacks, path, row, field) do
-    callback!(callbacks, :validate_optional_activity_context).(issues, path, row, field)
-  end
-
-  defp validate_optional_stable_id_list(issues, callbacks, path, row, field) do
-    callback!(callbacks, :validate_optional_stable_id_list).(issues, path, row, field)
-  end
-
-  defp validate_optional_string_list(issues, callbacks, path, row, field) do
-    callback!(callbacks, :validate_optional_string_list).(issues, path, row, field)
-  end
-
-  defp validate_optional_timeline_preconditions(issues, callbacks, path, row, field) do
-    callback!(callbacks, :validate_optional_timeline_preconditions).(issues, path, row, field)
-  end
-
-  defp validate_stable_ids(issues, callbacks, path, row, fields) do
-    callback!(callbacks, :validate_stable_ids).(issues, path, row, fields)
-  end
-
-  defp validate_string_list_allowed(issues, callbacks, path, row, field, values) do
-    callback!(callbacks, :validate_string_list_allowed).(issues, path, row, field, values)
-  end
-
-  defp validate_string_list_items(issues, callbacks, path, row, field) do
-    callback!(callbacks, :validate_string_list_items).(issues, path, row, field)
-  end
-
-  defp validate_timeline_identity(issues, callbacks, path, identity) do
-    callback!(callbacks, :validate_timeline_identity).(issues, path, identity)
-  end
-
-  defp validate_timeline_integrity_evidence(issues, callbacks, path, row) do
-    callback!(callbacks, :validate_timeline_integrity_evidence).(issues, path, row)
-  end
-
-  defp callback!(callbacks, name), do: Keyword.fetch!(callbacks, name)
 end
