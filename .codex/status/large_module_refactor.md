@@ -6,21 +6,21 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Completed: station-calendar registry extraction.
+Completed: contact-contention registry extraction.
 
 Status:
-Published.
+Ready to publish.
 
 Selected slice:
-Move the station-calendar provider, report, and precedence summary into
-`Schema.StationCalendarRegistryContracts`.
+Move the contact-contention report, resolution report, and resolution summary
+into `Schema.ContactContentionRegistryContracts`.
 
 Why this slice:
-The adjacent provider/report/precedence definitions form one complete nested
-station-calendar family with direct station-provider/communications/export coverage.
+The three adjacent definitions form one complete contention detection/resolution
+family with direct communications, fixture, registry, and export coverage.
 
 Current coupling/problem:
-Declarative station-calendar contract data remains embedded in the large
+Declarative contact-contention contract data remains embedded in the large
 public `Schema` facade even though it can be merged as one focused registry.
 
 Public facade to preserve:
@@ -31,17 +31,16 @@ Public facade to preserve:
 - `OrbitalDynamics.Schema.validate_artifact/2`
 
 Likely extraction target:
-`OrbitalDynamics.Schema.StationCalendarRegistryContracts.contracts/0`.
+`OrbitalDynamics.Schema.ContactContentionRegistryContracts.contracts/0`.
 
 Likely files:
 - `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/station_calendar_registry_contracts.ex`
+- `lib/orbital_dynamics/schema/contact_contention_registry_contracts.ex`
 
 Likely tests:
-- `test/orbital_dynamics/schema/station_provider_contracts_test.exs`
 - `test/orbital_dynamics/schema/communications_contracts_test.exs`
-- `test/orbital_dynamics/schema/communications_report_fixtures_test.exs`
+- `test/orbital_dynamics/schema/fixture_visibility_contracts_test.exs`
 - `test/orbital_dynamics/schema/registry_capability_test.exs`
 - `test/mix/tasks/orbital_dynamics.schema.export_test.exs`
 
@@ -53,7 +52,7 @@ fingerprint remains unchanged.
 Files changed:
 - `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/station_calendar_registry_contracts.ex`
+- `lib/orbital_dynamics/schema/contact_contention_registry_contracts.ex`
 
 Public APIs preserved:
 - `OrbitalDynamics.Schema.contracts/0`
@@ -63,35 +62,36 @@ Public APIs preserved:
 - `OrbitalDynamics.Schema.validate_artifact/2`
 
 Behavior/schema changes:
-None. Registry contents, station-calendar validation, and generated schemas
+None. Registry contents, contact-contention validation, and generated schemas
 retain the baseline fingerprint.
 
 Tests run:
 - `mix compile --warnings-as-errors` passed.
-- Station-provider contracts, communications contracts/fixtures, registry
-  capability, and schema export tests passed: 27 tests.
+- Communications contracts, fixture visibility, registry capability, and schema
+  export tests passed: 18 tests.
 - SHA-256 over `{Schema.contracts(), Schema.json_schema_bundle()}` remained
   `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`.
 - Xref caller and compile-connected checks passed with the expected facade edge.
-- Formatting, whitespace, new-file no-index, and checked-in-schema cleanliness
+- Formatting, whitespace, new-file review, and checked-in-schema cleanliness
   checks passed.
 
 Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`5a0df861` (`Extract station calendar registry contracts`).
+`4a5f4f67` (`Update station calendar handoff`).
 
 Next candidate:
-Assess the adjacent contact-contention resolution report and summary contracts
-as one cohesive registry extraction.
+Assess the adjacent contact-allocation provider-reservation request summary as a
+bounded single-contract registry extraction before considering the broader
+contact-allocation summary family.
 
 Blocked:
 No.
 
 Notes:
-- `schema.ex` decreased from 16,032 to 15,947 lines.
-- `StationCalendarRegistryContracts` is 85 lines.
+- `schema.ex` decreased from 15,947 to 15,862 lines.
+- `ContactContentionRegistryContracts` is 94 lines.
 - Parent review found no must-fix findings; parent publishing is the active-mode
   fallback because subagent delegation is unavailable.
 - The inline registry remains substantial; this is not a completion claim.
