@@ -1456,31 +1456,6 @@ defmodule OrbitalDynamics.Schema do
         "model_limits"
       ],
       "nested_contracts" => ["contact_intent.v1"]
-    },
-    @command_window_report => %{
-      "schema_contract" => @command_window_report,
-      "artifact_family" => "command_window_report",
-      "schema_version" => 1,
-      "required_fields" => [
-        "schema_contract",
-        "model",
-        "source",
-        "window_count",
-        "command_count",
-        "tracking_count",
-        "uplink_count",
-        "health_check_count",
-        "review_required_count",
-        "source_window_lineage_count",
-        "rows",
-        "assumptions"
-      ],
-      "optional_fields" => [
-        "model_limits",
-        "activity_ids_by_window_type",
-        "review_activity_ids_by_required_operator_action"
-      ],
-      "nested_contracts" => ["operational_timeline_report.v1"]
     }
   }
 
@@ -1541,6 +1516,7 @@ defmodule OrbitalDynamics.Schema do
              |> Map.merge(OrbitalDynamics.Schema.StationReservationRegistryContracts.contracts())
              |> Map.merge(OrbitalDynamics.Schema.StationCalendarRegistryContracts.contracts())
              |> Map.merge(OrbitalDynamics.Schema.ContactContentionRegistryContracts.contracts())
+             |> Map.merge(OrbitalDynamics.Schema.CommandWindowRegistryContracts.contracts())
              |> Map.merge(OrbitalDynamics.Schema.LinkCapacityRegistryContracts.contracts())
              |> Map.merge(OrbitalDynamics.Schema.RelayDataPathRegistryContracts.contracts())
              |> Map.merge(

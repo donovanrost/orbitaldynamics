@@ -6,22 +6,22 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Completed: link-capacity registry extraction.
+Completed: command-window registry extraction.
 
 Status:
-Published.
+Ready to publish.
 
 Selected slice:
-Move the link-capacity report and summary contracts into
-`Schema.LinkCapacityRegistryContracts`.
+Move the command-window report contract into
+`Schema.CommandWindowRegistryContracts`.
 
 Why this slice:
-The adjacent definitions form one complete nested communications family with
-direct report/summary fixtures, schema visibility, row-schema, registry, and
+The ledger-named definition is a bounded operational communications artifact
+with dedicated validation/export, fixture visibility, registry, and task-level
 export coverage.
 
 Current coupling/problem:
-Declarative link-capacity report and summary data remain embedded in the
+Declarative command-window report data remains embedded in the
 large public `Schema` facade even though it can be merged as a focused registry.
 
 Public facade to preserve:
@@ -32,30 +32,28 @@ Public facade to preserve:
 - `OrbitalDynamics.Schema.validate_artifact/2`
 
 Likely extraction target:
-`OrbitalDynamics.Schema.LinkCapacityRegistryContracts.contracts/0`.
+`OrbitalDynamics.Schema.CommandWindowRegistryContracts.contracts/0`.
 
 Likely files:
 - `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/link_capacity_registry_contracts.ex`
+- `lib/orbital_dynamics/schema/command_window_registry_contracts.ex`
 
 Likely tests:
-- `test/orbital_dynamics/schema/communications_contracts_test.exs`
-- `test/orbital_dynamics/schema/communications_report_fixtures_test.exs`
-- `test/orbital_dynamics/schema/json_schema_export_contracts_test.exs`
+- `test/orbital_dynamics/schema/command_window_contracts_test.exs`
 - `test/orbital_dynamics/schema/fixture_visibility_contracts_test.exs`
 - `test/orbital_dynamics/schema/registry_capability_test.exs`
 - `test/mix/tasks/orbital_dynamics.schema.export_test.exs`
 
 Definition of done:
-The definitions live in the focused internal registry, the facade merges that
-registry, focused fixture/visibility/row-schema/export tests pass, and the exact
+The definition lives in the focused internal registry, the facade merges that
+registry, focused validation/visibility/export tests pass, and the exact
 contracts/bundle fingerprint remains unchanged.
 
 Files changed:
 - `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/link_capacity_registry_contracts.ex`
+- `lib/orbital_dynamics/schema/command_window_registry_contracts.ex`
 
 Public APIs preserved:
 - `OrbitalDynamics.Schema.contracts/0`
@@ -65,13 +63,13 @@ Public APIs preserved:
 - `OrbitalDynamics.Schema.validate_artifact/2`
 
 Behavior/schema changes:
-None. Registry contents, link-capacity validation, and generated schemas retain
+None. Registry contents, command-window validation, and generated schemas retain
 the baseline fingerprint.
 
 Tests run:
 - `mix compile --warnings-as-errors` passed.
-- Communications report/summary fixtures, schema visibility, JSON-schema rows,
-  registry capability, and schema export tests passed: 37 tests.
+- Command-window validation/export, fixture visibility, registry capability,
+  and schema export tests passed: 11 tests.
 - SHA-256 over `{Schema.contracts(), Schema.json_schema_bundle()}` remained
   `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`.
 - Xref caller and compile-connected checks passed with the expected facade edge.
@@ -85,15 +83,15 @@ Last commit:
 `b18b9b86` (`Extract link capacity registry contracts`).
 
 Next candidate:
-Assess the adjacent command-window report as the next bounded registry
-extraction.
+Extract the adjacent contact-intent report and summary contracts as one cohesive
+registry family.
 
 Blocked:
 No.
 
 Notes:
-- `schema.ex` decreased from 15,484 to 15,322 lines.
-- `LinkCapacityRegistryContracts` is 171 lines.
+- `schema.ex` decreased from 15,322 to 15,298 lines.
+- `CommandWindowRegistryContracts` is 33 lines.
 - Parent review found no must-fix findings; parent publishing is the active-mode
   fallback because subagent delegation is unavailable.
 - The inline registry remains substantial; this is not a completion claim.
