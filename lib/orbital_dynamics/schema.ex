@@ -4084,24 +4084,6 @@ defmodule OrbitalDynamics.Schema do
     |> Map.fetch!(:contact_capacity_value_paths)
   end
 
-  defp contact_filter_station_capacity_value_path_assumptions do
-    OrbitalDynamics.Communications.ContactFilter.capabilities()
-    |> Map.fetch!(:station_capacity_value_paths)
-    |> contact_filter_capacity_value_path_assumptions()
-  end
-
-  defp contact_filter_contact_capacity_value_path_assumptions do
-    OrbitalDynamics.Communications.ContactFilter.capabilities()
-    |> Map.fetch!(:contact_capacity_value_paths)
-    |> contact_filter_capacity_value_path_assumptions()
-  end
-
-  defp contact_filter_capacity_value_path_assumptions(paths) do
-    Enum.map(paths, fn %{unit: unit, path: path} ->
-      %{"unit" => Atom.to_string(unit), "path" => path}
-    end)
-  end
-
   defp contact_filter_provider_direction_aliases do
     OrbitalDynamics.Communications.ContactFilter.capabilities()
     |> Map.fetch!(:provider_direction_aliases)
@@ -7362,36 +7344,6 @@ defmodule OrbitalDynamics.Schema do
         execution_report
       )
 
-  defp contact_filter_report_contract_callbacks do
-    [
-      contact_filter_report_model_limits: &contact_filter_report_model_limits/0,
-      contact_filter_suppressed_directions: &contact_filter_suppressed_directions/0,
-      contact_filter_suppression_reasons: &contact_filter_suppression_reasons/0,
-      contact_filter_station_unavailable_aliases: &contact_filter_station_unavailable_aliases/0,
-      contact_filter_station_availability_precedence:
-        &contact_filter_station_availability_precedence/0,
-      contact_filter_station_capacity_value_path_assumptions:
-        &contact_filter_station_capacity_value_path_assumptions/0,
-      contact_filter_contact_capacity_value_path_assumptions:
-        &contact_filter_contact_capacity_value_path_assumptions/0,
-      contact_filter_provider_direction_aliases: &contact_filter_provider_direction_aliases/0,
-      require_fields: &require_fields/4,
-      expect_equal: &expect_equal/5,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_non_negative_integer: &expect_non_negative_integer/4,
-      expect_optional_non_negative_integer: &expect_optional_non_negative_integer/4,
-      validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
-      validate_optional_stable_id_array_map: &validate_optional_stable_id_array_map/4,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_rows: &validate_rows/4,
-      validate_suppressed_candidate: &validate_suppressed_candidate/3,
-      validate_filter_report_counts: &validate_filter_report_counts/4,
-      expect_optional_field_equals: &expect_optional_field_equals/6,
-      error: &error/2
-    ]
-  end
-
   defp timeline_publication_summary_contract_callbacks do
     [
       timeline_report_model_limits: &timeline_report_model_limits/0,
@@ -7704,7 +7656,7 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       report,
-      contact_filter_report_contract_callbacks()
+      &validate_suppressed_candidate/3
     )
   end
 
@@ -8667,15 +8619,6 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validate_filter_report_counts(issues, path, report, kind) do
-    OrbitalDynamics.Schema.FilterReportCountContracts.validate_counts(
-      issues,
-      path,
-      report,
-      kind
-    )
-  end
-
   defp validate_non_negative_number_map(issues, path, values),
     do:
       OrbitalDynamics.Schema.PrimitiveValidation.validate_non_negative_number_map(
@@ -8842,12 +8785,6 @@ defmodule OrbitalDynamics.Schema do
       rows,
       field
     )
-  end
-
-  defp validate_optional_stable_id_array_map(issues, path, report, field) do
-    issues
-    |> expect_optional_type(path, report, field, :map)
-    |> validate_stable_id_array_map(path <> ".#{field}", Map.get(report, field))
   end
 
   defp validate_contact_allocation_expiration_handoff_summary(issues, path, artifact) do

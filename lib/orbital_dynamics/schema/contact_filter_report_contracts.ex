@@ -1,9 +1,33 @@
 defmodule OrbitalDynamics.Schema.ContactFilterReportContracts do
   @moduledoc false
 
-  def validate(issues, path, report, callbacks) when is_list(callbacks) do
+  alias OrbitalDynamics.Schema.FilterReportCountContracts
+
+  import OrbitalDynamics.Schema.CollectionValidation, only: [validate_rows: 4]
+
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [
+      error: 2,
+      expect_equal: 5,
+      expect_non_negative_integer: 4,
+      expect_optional_field_equals: 6,
+      expect_optional_non_negative_integer: 4,
+      expect_optional_type: 5,
+      expect_type: 5,
+      require_fields: 4,
+      validate_string_list_items: 4
+    ]
+
+  import OrbitalDynamics.Schema.StableIdValidation,
+    only: [
+      validate_optional_stable_id_list: 4,
+      validate_stable_id_array_map: 3
+    ]
+
+  def validate(issues, path, report, suppressed_candidate_validator)
+      when is_function(suppressed_candidate_validator, 3) do
     issues
-    |> require_fields(callbacks, path, report, [
+    |> require_fields(path, report, [
       "schema_contract",
       "model",
       "input_candidate_count",
@@ -11,96 +35,85 @@ defmodule OrbitalDynamics.Schema.ContactFilterReportContracts do
       "suppressed_candidate_count",
       "suppressed_candidates"
     ])
-    |> expect_equal(callbacks, path, report, "schema_contract", "contact_filter_report.v1")
-    |> expect_equal(callbacks, path, report, "model", "thin_ground_network_availability_filter")
-    |> expect_non_negative_integer(callbacks, path, report, "input_candidate_count")
-    |> expect_non_negative_integer(callbacks, path, report, "kept_candidate_count")
-    |> expect_non_negative_integer(callbacks, path, report, "suppressed_candidate_count")
-    |> expect_optional_type(callbacks, path, report, "policy", :map)
-    |> expect_optional_type(callbacks, path, report, "model_limits", :list)
-    |> expect_optional_type(callbacks, path, report, "assumptions", :map)
+    |> expect_equal(path, report, "schema_contract", "contact_filter_report.v1")
+    |> expect_equal(path, report, "model", "thin_ground_network_availability_filter")
+    |> expect_non_negative_integer(path, report, "input_candidate_count")
+    |> expect_non_negative_integer(path, report, "kept_candidate_count")
+    |> expect_non_negative_integer(path, report, "suppressed_candidate_count")
+    |> expect_optional_type(path, report, "policy", :map)
+    |> expect_optional_type(path, report, "model_limits", :list)
+    |> expect_optional_type(path, report, "assumptions", :map)
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       report,
       "invalid_contact_input_count"
     )
-    |> expect_optional_type(callbacks, path, report, "invalid_contact_input_ids", :list)
-    |> expect_optional_type(callbacks, path, report, "suppression_reason_counts", :map)
-    |> expect_optional_type(callbacks, path, report, "suppressed_candidate_ids_by_reason", :map)
+    |> expect_optional_type(path, report, "invalid_contact_input_ids", :list)
+    |> expect_optional_type(path, report, "suppression_reason_counts", :map)
+    |> expect_optional_type(path, report, "suppressed_candidate_ids_by_reason", :map)
     |> expect_optional_type(
-      callbacks,
       path,
       report,
       "station_calendar_trust_boundary_status_counts",
       :map
     )
     |> expect_optional_type(
-      callbacks,
       path,
       report,
       "suppressed_candidate_ids_by_station_calendar_trust_boundary_status",
       :map
     )
     |> expect_optional_type(
-      callbacks,
       path,
       report,
       "station_reservation_match_status_counts",
       :map
     )
     |> expect_optional_type(
-      callbacks,
       path,
       report,
       "suppressed_candidate_ids_by_reservation_match_status",
       :map
     )
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       report,
       "duplicate_suppressed_candidate_row_count"
     )
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       report,
       "duplicate_suppressed_candidate_id_count"
     )
-    |> expect_type(callbacks, path, report, "suppressed_candidates", :list)
-    |> validate_optional_stable_id_list(callbacks, path, report, "invalid_contact_input_ids")
+    |> expect_type(path, report, "suppressed_candidates", :list)
+    |> validate_optional_stable_id_list(path, report, "invalid_contact_input_ids")
     |> validate_optional_stable_id_array_map(
-      callbacks,
       path,
       report,
       "suppressed_candidate_ids_by_reason"
     )
     |> validate_optional_stable_id_array_map(
-      callbacks,
       path,
       report,
       "suppressed_candidate_ids_by_station_calendar_trust_boundary_status"
     )
     |> validate_optional_stable_id_array_map(
-      callbacks,
       path,
       report,
       "suppressed_candidate_ids_by_reservation_match_status"
     )
-    |> validate_string_list_items(callbacks, path, report, "model_limits")
-    |> validate_model_limits(callbacks, path, report)
-    |> validate_assumptions(callbacks, path, report)
+    |> validate_string_list_items(path, report, "model_limits")
+    |> validate_model_limits(path, report)
+    |> validate_assumptions(path, report)
     |> validate_rows(
-      callbacks,
       path <> ".suppressed_candidates",
       Map.get(report, "suppressed_candidates", []),
-      fn acc, row_path, row -> validate_suppressed_candidate(callbacks, acc, row_path, row) end
+      suppressed_candidate_validator
     )
-    |> validate_filter_report_counts(callbacks, path, report, "contact")
+    |> FilterReportCountContracts.validate_counts(path, report, "contact")
   end
 
-  defp validate_model_limits(issues, callbacks, path, report) do
+  defp validate_model_limits(issues, path, report) do
     case Map.get(report, "model_limits") do
       nil ->
         issues
@@ -109,12 +122,11 @@ defmodule OrbitalDynamics.Schema.ContactFilterReportContracts do
         issues
 
       limits when is_list(limits) ->
-        if limits == contact_filter_report_model_limits(callbacks) do
+        if limits == contact_filter_report_model_limits() do
           issues
         else
           [
             error(
-              callbacks,
               "#{path}.model_limits",
               "must match contact filter report model limits"
             )
@@ -127,7 +139,7 @@ defmodule OrbitalDynamics.Schema.ContactFilterReportContracts do
     end
   end
 
-  defp validate_assumptions(issues, callbacks, path, report) do
+  defp validate_assumptions(issues, path, report) do
     case Map.get(report, "assumptions") do
       nil ->
         issues
@@ -138,73 +150,64 @@ defmodule OrbitalDynamics.Schema.ContactFilterReportContracts do
       assumptions when is_map(assumptions) ->
         issues
         |> expect_equal(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "execution_boundary",
           "artifact_only_no_provider_reservation_or_schedule_mutation"
         )
         |> expect_equal(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "operator_authority",
           "not_granted_by_filter"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "suppressed_directions",
-          contact_filter_suppressed_directions(callbacks),
+          contact_filter_suppressed_directions(),
           "must match ContactFilter suppressed directions"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "suppression_reasons",
-          contact_filter_suppression_reasons(callbacks),
+          contact_filter_suppression_reasons(),
           "must match ContactFilter suppression reasons"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "station_unavailable_aliases",
-          contact_filter_station_unavailable_aliases(callbacks),
+          contact_filter_station_unavailable_aliases(),
           "must match ContactFilter station unavailable aliases"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "station_availability_precedence",
-          contact_filter_station_availability_precedence(callbacks),
+          contact_filter_station_availability_precedence(),
           "must match ContactFilter station availability precedence"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "station_capacity_value_paths",
-          contact_filter_station_capacity_value_path_assumptions(callbacks),
+          contact_filter_station_capacity_value_path_assumptions(),
           "must match ContactFilter station capacity value paths"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "contact_capacity_value_paths",
-          contact_filter_contact_capacity_value_path_assumptions(callbacks),
+          contact_filter_contact_capacity_value_path_assumptions(),
           "must match ContactFilter contact capacity value paths"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "provider_direction_aliases",
-          contact_filter_provider_direction_aliases(callbacks),
+          contact_filter_provider_direction_aliases(),
           "must match ContactFilter provider direction aliases"
         )
 
@@ -213,115 +216,39 @@ defmodule OrbitalDynamics.Schema.ContactFilterReportContracts do
     end
   end
 
-  defp require_callback(callbacks, name), do: Keyword.fetch!(callbacks, name)
+  defp contact_filter_report_model_limits,
+    do: :known_limits |> capability_value() |> Enum.map(&Atom.to_string/1)
 
-  defp contact_filter_report_model_limits(callbacks),
-    do: apply(require_callback(callbacks, :contact_filter_report_model_limits), [])
+  defp contact_filter_suppressed_directions, do: capability_value(:suppressed_directions)
+  defp contact_filter_suppression_reasons, do: capability_value(:suppression_reasons)
 
-  defp contact_filter_suppressed_directions(callbacks),
-    do: apply(require_callback(callbacks, :contact_filter_suppressed_directions), [])
+  defp contact_filter_station_unavailable_aliases,
+    do: capability_value(:station_unavailable_aliases)
 
-  defp contact_filter_suppression_reasons(callbacks),
-    do: apply(require_callback(callbacks, :contact_filter_suppression_reasons), [])
+  defp contact_filter_station_availability_precedence,
+    do: capability_value(:station_availability_precedence)
 
-  defp contact_filter_station_unavailable_aliases(callbacks),
-    do: apply(require_callback(callbacks, :contact_filter_station_unavailable_aliases), [])
+  defp contact_filter_station_capacity_value_path_assumptions,
+    do: :station_capacity_value_paths |> capability_value() |> capacity_value_path_assumptions()
 
-  defp contact_filter_station_availability_precedence(callbacks),
-    do: apply(require_callback(callbacks, :contact_filter_station_availability_precedence), [])
+  defp contact_filter_contact_capacity_value_path_assumptions,
+    do: :contact_capacity_value_paths |> capability_value() |> capacity_value_path_assumptions()
 
-  defp contact_filter_station_capacity_value_path_assumptions(callbacks),
-    do:
-      apply(
-        require_callback(callbacks, :contact_filter_station_capacity_value_path_assumptions),
-        []
-      )
+  defp contact_filter_provider_direction_aliases,
+    do: capability_value(:provider_direction_aliases)
 
-  defp contact_filter_contact_capacity_value_path_assumptions(callbacks),
-    do:
-      apply(
-        require_callback(callbacks, :contact_filter_contact_capacity_value_path_assumptions),
-        []
-      )
+  defp capacity_value_path_assumptions(paths) do
+    Enum.map(paths, fn %{unit: unit, path: path} ->
+      %{"unit" => Atom.to_string(unit), "path" => path}
+    end)
+  end
 
-  defp contact_filter_provider_direction_aliases(callbacks),
-    do: apply(require_callback(callbacks, :contact_filter_provider_direction_aliases), [])
+  defp capability_value(key),
+    do: OrbitalDynamics.Communications.ContactFilter.capabilities() |> Map.fetch!(key)
 
-  defp require_fields(issues, callbacks, path, map, fields),
-    do: apply(require_callback(callbacks, :require_fields), [issues, path, map, fields])
-
-  defp expect_equal(issues, callbacks, path, map, field, expected),
-    do: apply(require_callback(callbacks, :expect_equal), [issues, path, map, field, expected])
-
-  defp expect_type(issues, callbacks, path, map, field, type),
-    do: apply(require_callback(callbacks, :expect_type), [issues, path, map, field, type])
-
-  defp expect_optional_type(issues, callbacks, path, map, field, type),
-    do:
-      apply(require_callback(callbacks, :expect_optional_type), [issues, path, map, field, type])
-
-  defp expect_non_negative_integer(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :expect_non_negative_integer), [issues, path, map, field])
-
-  defp expect_optional_non_negative_integer(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :expect_optional_non_negative_integer), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp validate_optional_stable_id_list(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :validate_optional_stable_id_list), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp validate_optional_stable_id_array_map(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :validate_optional_stable_id_array_map), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp validate_string_list_items(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :validate_string_list_items), [issues, path, map, field])
-
-  defp validate_rows(issues, callbacks, path, rows, validator),
-    do: apply(require_callback(callbacks, :validate_rows), [issues, path, rows, validator])
-
-  defp validate_suppressed_candidate(callbacks, issues, path, candidate),
-    do:
-      apply(require_callback(callbacks, :validate_suppressed_candidate), [issues, path, candidate])
-
-  defp validate_filter_report_counts(issues, callbacks, path, report, kind),
-    do:
-      apply(require_callback(callbacks, :validate_filter_report_counts), [
-        issues,
-        path,
-        report,
-        kind
-      ])
-
-  defp expect_optional_field_equals(issues, callbacks, path, map, field, expected, message),
-    do:
-      apply(require_callback(callbacks, :expect_optional_field_equals), [
-        issues,
-        path,
-        map,
-        field,
-        expected,
-        message
-      ])
-
-  defp error(callbacks, path, message),
-    do: apply(require_callback(callbacks, :error), [path, message])
+  defp validate_optional_stable_id_array_map(issues, path, report, field) do
+    issues
+    |> expect_optional_type(path, report, field, :map)
+    |> validate_stable_id_array_map(path <> ".#{field}", Map.get(report, field))
+  end
 end

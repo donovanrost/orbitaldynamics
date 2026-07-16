@@ -9,7 +9,7 @@ Current slice:
 Contact-filter-report callback-bag collapse.
 
 Status:
-Selected; implementation pending.
+Complete and ready to publish.
 
 Selected slice:
 Replace the 22-entry `ContactFilterReportContracts` lookup bag with direct
@@ -43,6 +43,18 @@ shared/count/capability ownership is direct and only the suppressed-row
 validator stays explicit; focused, broader, and export checks pass; and bounded
 review finds no blocker.
 
+Outcome:
+Primitive, collection, stable-ID, count, and capability work is direct; only the
+suppressed-candidate validator stays explicit and guarded. `schema.ex` fell from
+11,395 to 11,332 lines and the owner from 327 to 254; five orphan forwarders
+also disappeared. Fifty-four filter/lint and one fixture test pass, alongside
+1,167 broader and 22 export tests; compile, xref, checked-in regeneration,
+format, and diff hygiene are clean. All three grouped-ID fields assert preserved
+duplicate type-issue multiplicity. Bounded review found no blocker: all eight
+capability transformations, validation order/messages, grouped-ID duplicate
+type checks, row behavior, sole-caller wiring, helper cleanup, and callback
+removal preserve existing semantics.
+
 Verification gaps:
 - Full repository suite not run.
 - The broader focused batch was 113/114 because the generated campaign did not
@@ -50,12 +62,12 @@ Verification gaps:
   validation-only slice. The attributable batch is 102/102.
 
 Last completed slice:
-Resource-filter-report callback-bag collapse published as `504866de`:
-`schema.ex` fell from 11,415 to 11,395 lines and its owner from 434 to 325.
-Fourteen shared/count dependencies became direct and two row hooks explicit.
-Fifty-six focused, 1,167 broader, and 22 export tests passed; compile, xref,
-regeneration, format, diff hygiene, blocker repair, and bounded re-review were
-clean.
+Contact-filter-report callback-bag collapse ready to publish: `schema.ex` fell
+from 11,395 to 11,332 lines and its owner from 327 to 254. Primitive,
+collection, stable-ID, count, and capability work became direct; only the
+suppressed-candidate row validator stays explicit. Fifty-four filter/lint and
+one fixture test passed, alongside 1,167 broader and 22 export tests; compile,
+xref, regeneration, format, diff hygiene, and bounded review were clean.
 
 Blocked:
 No.

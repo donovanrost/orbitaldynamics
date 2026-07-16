@@ -894,6 +894,21 @@ defmodule OrbitalDynamics.Communications.ContactFilterTest do
     assert {:ok, %{"schema_contract" => "contact_filter_report.v1"}} =
              Schema.validate_artifact(report)
 
+    for field <- [
+          "suppressed_candidate_ids_by_reason",
+          "suppressed_candidate_ids_by_station_calendar_trust_boundary_status",
+          "suppressed_candidate_ids_by_reservation_match_status"
+        ] do
+      invalid_id_map = Map.put(report, field, [])
+
+      assert {:error, invalid_id_map_report} = Schema.validate_artifact(invalid_id_map)
+
+      assert Enum.count(
+               invalid_id_map_report["errors"],
+               &(&1["path"] == "$.#{field}" and &1["message"] == "must be a map")
+             ) == 2
+    end
+
     invalid_trust_ids =
       Map.put(
         report,
