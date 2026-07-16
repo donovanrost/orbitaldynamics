@@ -9,7 +9,7 @@ Current slice:
 Candidate-refresh resource-signal context extraction.
 
 Status:
-Selected; implementation pending.
+Complete; publication pending.
 
 Selected slice:
 Extract the link-capacity, constraint, resource-projection, and resource-filter
@@ -27,35 +27,39 @@ Public facade to preserve:
 `validate_resource_filter_context/4`, including callback-list guards, argument
 order, validation order, paths, messages, and all other public signatures.
 
-Likely extraction target:
+Extraction target:
 `CandidateRefreshResourceSignalContracts`, with four entry points and a private
 direct count-map helper.
 
-Likely files:
+Files:
 - `lib/orbital_dynamics/schema/candidate_refresh_report_contracts.ex`
 - `lib/orbital_dynamics/schema/candidate_refresh_resource_signal_contracts.ex`
 - `.codex/status/large_module_refactor.md`
 
-Likely tests:
-- compile with warnings as errors
-- focused link-capacity, constraint, resource-projection, and resource-filter
-  replay/build tests
-- candidate-refresh schema/provenance contracts
-- broader candidate-refresh, deterministic export/fingerprint, xref, and format
+Result:
+All four public `/4` facades delegate to a 54-line resource-signal owner. The
+complete capacity/constraint/projection/filter flows moved, and the report-
+contract facade fell from 386 to 364 lines without schema-export changes.
 
-Definition of done:
-All four public `/4` contexts are thin delegates with unchanged guards, their
-complete flows move without duplication, validation order/paths/errors remain
-exact, and focused/broader checks pass.
+Verification:
+- compile with warnings as errors passed
+- 19 focused resource-signal replay/build files plus candidate-refresh schema
+  and resource-provenance contracts: 100 passed
+- broader candidate-refresh suite: 755 passed
+- schema export trio: 22 passed
+- full schema export reproduced checked-in artifacts with no diff
+- deterministic contract/bundle fingerprint remained
+  `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`
+- compile-connected xref roots stayed narrow; format and diff hygiene passed
+- bounded read-only review found no issues and independently passed compile,
+  the 100 focused tests, facade/API comparison, xref, format, and diff checks
 
 Verification gaps:
 - Full repository suite not run.
 
-Last completed slice:
-Timeline-activity context extraction published as `f3e73b46`: the existing
-timeline-validation owner gained one 14-line entry point and the report-contract
-facade fell from 396 to 386 lines; 47 focused, 755 candidate-refresh, and 22
-export tests passed; schemas/fingerprint were unchanged; review found no issues.
+Last commit:
+Published timeline-activity extraction `f3e73b46`; selected this slice in
+`85054acd`.
 
 Blocked:
 No.

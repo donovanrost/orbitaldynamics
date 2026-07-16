@@ -9,6 +9,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
   alias OrbitalDynamics.Schema.CandidateRefreshProviderCounterofferContracts
   alias OrbitalDynamics.Schema.CandidateRefreshQualityGateContracts
   alias OrbitalDynamics.Schema.CandidateRefreshReviewFeedbackContracts
+  alias OrbitalDynamics.Schema.CandidateRefreshResourceSignalContracts
   alias OrbitalDynamics.Schema.CandidateRefreshStationCalendarContracts
   alias OrbitalDynamics.Schema.CandidateRefreshTimelineChangeContracts
   alias OrbitalDynamics.Schema.CandidateRefreshTimelineLifecycleContracts
@@ -229,44 +230,21 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
   end
 
   def validate_link_capacity_context(issues, path, summary, callbacks) when is_list(callbacks) do
-    validate_count_maps(issues, path, summary, [
-      "ground_station_counts",
-      "target_counts",
-      "collection_counts",
-      "selected_contact_id_counts",
-      "actual_throughput_contact_id_counts"
-    ])
+    CandidateRefreshResourceSignalContracts.validate_link_capacity(issues, path, summary)
   end
 
   def validate_constraint_context(issues, path, summary, callbacks) when is_list(callbacks) do
-    validate_count_maps(issues, path, summary, [
-      "constraint_metric_counts",
-      "constraint_resource_counts",
-      "constraint_spacecraft_counts"
-    ])
+    CandidateRefreshResourceSignalContracts.validate_constraint(issues, path, summary)
   end
 
   def validate_resource_projection_context(issues, path, summary, callbacks)
       when is_list(callbacks) do
-    validate_count_maps(issues, path, summary, [
-      "resource_projection_spacecraft_counts",
-      "resource_pressure_type_counts",
-      "resource_pressure_activity_id_counts"
-    ])
+    CandidateRefreshResourceSignalContracts.validate_resource_projection(issues, path, summary)
   end
 
   def validate_resource_filter_context(issues, path, summary, callbacks)
       when is_list(callbacks) do
-    issues
-    |> validate_count_maps(path, summary, [
-      "resource_filter_spacecraft_counts",
-      "resource_filter_resource_counts",
-      "resource_filter_blocking_dimension_counts"
-    ])
-    |> validate_stable_id_list(
-      path <> ".invalid_resource_summary_input_ids",
-      Map.get(summary, "invalid_resource_summary_input_ids")
-    )
+    CandidateRefreshResourceSignalContracts.validate_resource_filter(issues, path, summary)
   end
 
   def validate_contact_contention_context(issues, path, summary, callbacks)
