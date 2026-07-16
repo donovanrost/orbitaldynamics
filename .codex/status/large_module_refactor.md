@@ -9,7 +9,7 @@ Current slice:
 Completed: contact-allocation report registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Move the contact-allocation report contract into
@@ -79,7 +79,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`a221531c` (`Update contact allocation summary handoff`).
+`94f70571` (`Extract contact allocation report registry contract`).
 
 Next candidate:
 Assess the adjacent relay-data-path summary as the next bounded registry
