@@ -1,6 +1,29 @@
 defmodule OrbitalDynamics.Schema.RealizedActivityContracts do
   @moduledoc false
 
+  import OrbitalDynamics.Schema.ExecutionMetricContracts,
+    only: [validate_optional_execution_uncertainty: 4]
+
+  import OrbitalDynamics.Schema.StableIdValidation,
+    only: [validate_optional_stable_id_list: 4, validate_stable_ids: 4]
+
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [
+      error: 2,
+      expect_equal: 5,
+      expect_field_equals: 6,
+      expect_one_of: 5,
+      expect_optional_list: 4,
+      expect_optional_non_negative_number: 4,
+      expect_optional_number: 4,
+      expect_optional_number_or_string: 4,
+      expect_optional_number_vector: 4,
+      expect_optional_probability: 4,
+      expect_optional_type: 5,
+      require_fields: 4,
+      validate_string_list_items: 4
+    ]
+
   @stable_id_fields [
     "id",
     "planned_activity_id",
@@ -222,13 +245,13 @@ defmodule OrbitalDynamics.Schema.RealizedActivityContracts do
     "delta_v_3sigma_km_s"
   ]
 
-  def validate(issues, path, activity, callbacks) when is_list(callbacks) do
+  def validate(issues, path, activity) do
     issues
-    |> require_fields(callbacks, path, activity, ["schema_contract", "id", "status"])
-    |> validate_stable_ids(callbacks, path, activity, @stable_id_fields)
-    |> validate_identity_objects(callbacks, path, activity)
-    |> expect_equal(callbacks, path, activity, "schema_contract", "realized_activity.v1")
-    |> expect_one_of(callbacks, path, activity, "status", [
+    |> require_fields(path, activity, ["schema_contract", "id", "status"])
+    |> validate_stable_ids(path, activity, @stable_id_fields)
+    |> validate_identity_objects(path, activity)
+    |> expect_equal(path, activity, "schema_contract", "realized_activity.v1")
+    |> expect_one_of(path, activity, "status", [
       "completed",
       "executed",
       "partial",
@@ -239,89 +262,84 @@ defmodule OrbitalDynamics.Schema.RealizedActivityContracts do
       "cancelled",
       "rejected"
     ])
-    |> validate_optional_types(callbacks, path, activity, @binary_fields, :binary)
-    |> validate_optional_types(callbacks, path, activity, @boolean_fields, :boolean)
-    |> validate_optional_types(callbacks, path, activity, @map_fields, :map)
-    |> validate_optional_lists(callbacks, path, activity, @string_list_fields)
-    |> expect_optional_list(callbacks, path, activity, "product_ids")
-    |> validate_optional_stable_id_list(callbacks, path, activity, "product_ids")
-    |> validate_optional_probabilities(callbacks, path, activity, @probability_fields)
+    |> validate_optional_types(path, activity, @binary_fields, :binary)
+    |> validate_optional_types(path, activity, @boolean_fields, :boolean)
+    |> validate_optional_types(path, activity, @map_fields, :map)
+    |> validate_optional_lists(path, activity, @string_list_fields)
+    |> expect_optional_list(path, activity, "product_ids")
+    |> validate_optional_stable_id_list(path, activity, "product_ids")
+    |> validate_optional_probabilities(path, activity, @probability_fields)
     |> validate_optional_non_negative_numbers(
-      callbacks,
       path,
       activity,
       @non_negative_number_fields
     )
-    |> validate_optional_numbers(callbacks, path, activity, @number_fields)
-    |> validate_optional_number_vectors(callbacks, path, activity, @number_vector_fields)
-    |> validate_optional_execution_uncertainty(callbacks, path, activity, "execution_uncertainty")
+    |> validate_optional_numbers(path, activity, @number_fields)
+    |> validate_optional_number_vectors(path, activity, @number_vector_fields)
+    |> validate_optional_execution_uncertainty(path, activity, "execution_uncertainty")
     |> validate_optional_execution_uncertainty(
-      callbacks,
       path,
       activity,
       "maneuver_execution_uncertainty"
     )
-    |> expect_optional_number_or_string(callbacks, path, activity, "lighting_confidence")
-    |> validate_stable_ids(callbacks, path, activity, ["external_id"])
-    |> validate_metadata_identity(callbacks, path, activity)
-    |> require_provider_trust_boundary(callbacks, path, activity)
+    |> expect_optional_number_or_string(path, activity, "lighting_confidence")
+    |> validate_stable_ids(path, activity, ["external_id"])
+    |> validate_metadata_identity(path, activity)
+    |> require_provider_trust_boundary(path, activity)
   end
 
-  defp validate_optional_types(issues, callbacks, path, map, fields, type) do
+  defp validate_optional_types(issues, path, map, fields, type) do
     Enum.reduce(fields, issues, fn field, acc ->
-      expect_optional_type(acc, callbacks, path, map, field, type)
+      expect_optional_type(acc, path, map, field, type)
     end)
   end
 
-  defp validate_optional_lists(issues, callbacks, path, map, fields) do
+  defp validate_optional_lists(issues, path, map, fields) do
     Enum.reduce(fields, issues, fn field, acc ->
       acc
-      |> expect_optional_list(callbacks, path, map, field)
-      |> validate_string_list_items(callbacks, path, map, field)
+      |> expect_optional_list(path, map, field)
+      |> validate_string_list_items(path, map, field)
     end)
   end
 
-  defp validate_optional_probabilities(issues, callbacks, path, map, fields) do
+  defp validate_optional_probabilities(issues, path, map, fields) do
     Enum.reduce(fields, issues, fn field, acc ->
-      expect_optional_probability(acc, callbacks, path, map, field)
+      expect_optional_probability(acc, path, map, field)
     end)
   end
 
-  defp validate_optional_non_negative_numbers(issues, callbacks, path, map, fields) do
+  defp validate_optional_non_negative_numbers(issues, path, map, fields) do
     Enum.reduce(fields, issues, fn field, acc ->
-      expect_optional_non_negative_number(acc, callbacks, path, map, field)
+      expect_optional_non_negative_number(acc, path, map, field)
     end)
   end
 
-  defp validate_optional_numbers(issues, callbacks, path, map, fields) do
+  defp validate_optional_numbers(issues, path, map, fields) do
     Enum.reduce(fields, issues, fn field, acc ->
-      expect_optional_number(acc, callbacks, path, map, field)
+      expect_optional_number(acc, path, map, field)
     end)
   end
 
-  defp validate_optional_number_vectors(issues, callbacks, path, map, fields) do
+  defp validate_optional_number_vectors(issues, path, map, fields) do
     Enum.reduce(fields, issues, fn field, acc ->
-      expect_optional_number_vector(acc, callbacks, path, map, field)
+      expect_optional_number_vector(acc, path, map, field)
     end)
   end
 
   defp validate_metadata_identity(
          issues,
-         callbacks,
          path,
          %{"metadata" => %{} = metadata} = activity
        ) do
     issues
-    |> expect_field_equals_with_message(
-      callbacks,
+    |> expect_field_equals(
       path <> ".metadata",
       metadata,
       "planned_activity_id",
       Map.get(activity, "planned_activity_id"),
       "must match top-level planned_activity_id"
     )
-    |> expect_field_equals_with_message(
-      callbacks,
+    |> expect_field_equals(
       path <> ".metadata",
       metadata,
       "planned_timeline_id",
@@ -330,9 +348,9 @@ defmodule OrbitalDynamics.Schema.RealizedActivityContracts do
     )
   end
 
-  defp validate_metadata_identity(issues, _callbacks, _path, _activity), do: issues
+  defp validate_metadata_identity(issues, _path, _activity), do: issues
 
-  defp require_provider_trust_boundary(issues, callbacks, path, activity) do
+  defp require_provider_trust_boundary(issues, path, activity) do
     provider_context_fields = ["provider", "adapter", "adapter_version", "external_id"]
 
     provider_context? =
@@ -352,7 +370,7 @@ defmodule OrbitalDynamics.Schema.RealizedActivityContracts do
 
       Map.get(activity, "external_id") in [nil, ""] ->
         [
-          error(callbacks, path <> ".external_id", "is required for provider realized feedback")
+          error(path <> ".external_id", "is required for provider realized feedback")
           | issues
         ]
 
@@ -365,7 +383,6 @@ defmodule OrbitalDynamics.Schema.RealizedActivityContracts do
       true ->
         [
           error(
-            callbacks,
             path <> ".trust_boundary",
             "provider realized feedback requires trust_boundary or provenance.trust_boundary"
           )
@@ -374,132 +391,41 @@ defmodule OrbitalDynamics.Schema.RealizedActivityContracts do
     end
   end
 
-  defp validate_identity_objects(issues, callbacks, path, activity) do
+  defp validate_identity_objects(issues, path, activity) do
     issues
-    |> validate_identity_object(callbacks, path, activity, "target", ["id", "target_id"])
-    |> validate_identity_object(callbacks, path, activity, "station", [
+    |> validate_identity_object(path, activity, "target", ["id", "target_id"])
+    |> validate_identity_object(path, activity, "station", [
       "id",
       "station_id",
       "ground_station_id"
     ])
-    |> validate_identity_object(callbacks, path, activity, "ground_station", [
+    |> validate_identity_object(path, activity, "ground_station", [
       "id",
       "station_id",
       "ground_station_id"
     ])
-    |> validate_identity_object(callbacks, path, activity, "spacecraft", [
+    |> validate_identity_object(path, activity, "spacecraft", [
       "id",
       "spacecraft_id",
       "satellite_id"
     ])
-    |> validate_identity_object(callbacks, path, activity, "satellite", [
+    |> validate_identity_object(path, activity, "satellite", [
       "id",
       "spacecraft_id",
       "satellite_id"
     ])
   end
 
-  defp validate_identity_object(issues, callbacks, path, activity, field, identity_fields) do
+  defp validate_identity_object(issues, path, activity, field, identity_fields) do
     case Map.get(activity, field) do
       nil ->
         issues
 
       %{} = identity ->
-        validate_stable_ids(issues, callbacks, "#{path}.#{field}", identity, identity_fields)
+        validate_stable_ids(issues, "#{path}.#{field}", identity, identity_fields)
 
       _value ->
-        [error(callbacks, "#{path}.#{field}", "must be a map") | issues]
+        [error("#{path}.#{field}", "must be a map") | issues]
     end
   end
-
-  defp require_callback(callbacks, name), do: Keyword.fetch!(callbacks, name)
-
-  defp require_fields(issues, callbacks, path, map, fields),
-    do: apply(require_callback(callbacks, :require_fields), [issues, path, map, fields])
-
-  defp validate_stable_ids(issues, callbacks, path, map, fields),
-    do: apply(require_callback(callbacks, :validate_stable_ids), [issues, path, map, fields])
-
-  defp expect_equal(issues, callbacks, path, map, field, expected),
-    do: apply(require_callback(callbacks, :expect_equal), [issues, path, map, field, expected])
-
-  defp expect_one_of(issues, callbacks, path, map, field, allowed),
-    do: apply(require_callback(callbacks, :expect_one_of), [issues, path, map, field, allowed])
-
-  defp expect_optional_type(issues, callbacks, path, map, field, type),
-    do:
-      apply(require_callback(callbacks, :expect_optional_type), [issues, path, map, field, type])
-
-  defp expect_optional_list(issues, callbacks, path, map, field),
-    do: apply(require_callback(callbacks, :expect_optional_list), [issues, path, map, field])
-
-  defp validate_string_list_items(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :validate_string_list_items), [issues, path, map, field])
-
-  defp validate_optional_stable_id_list(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :validate_optional_stable_id_list), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp expect_optional_probability(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :expect_optional_probability), [issues, path, map, field])
-
-  defp expect_optional_non_negative_number(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :expect_optional_non_negative_number), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp expect_optional_number(issues, callbacks, path, map, field),
-    do: apply(require_callback(callbacks, :expect_optional_number), [issues, path, map, field])
-
-  defp expect_optional_number_vector(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :expect_optional_number_vector), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp validate_optional_execution_uncertainty(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :validate_optional_execution_uncertainty), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp expect_optional_number_or_string(issues, callbacks, path, map, field),
-    do:
-      apply(require_callback(callbacks, :expect_optional_number_or_string), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp expect_field_equals_with_message(issues, callbacks, path, map, field, expected, message),
-    do:
-      apply(require_callback(callbacks, :expect_field_equals_with_message), [
-        issues,
-        path,
-        map,
-        field,
-        expected,
-        message
-      ])
-
-  defp error(callbacks, path, message),
-    do: apply(require_callback(callbacks, :error), [path, message])
 end
