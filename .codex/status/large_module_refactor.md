@@ -9,7 +9,7 @@ Current slice:
 Completed: station-reservation hold registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Move the station-reservation hold summary and import-readiness summary into
@@ -78,7 +78,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`97898998` (`Update provider counteroffer handoff`).
+`37807af8` (`Extract station reservation hold registry contracts`).
 
 Next candidate:
 Assess the adjacent station-reservation report and review-summary contracts as
