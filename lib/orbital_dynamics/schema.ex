@@ -3735,49 +3735,6 @@ defmodule OrbitalDynamics.Schema do
       ],
       "nested_contracts" => ["planned_activity.v1", "realized_activity.v1"]
     },
-    @approval_requirement => %{
-      "schema_contract" => @approval_requirement,
-      "artifact_family" => "approval_requirement",
-      "schema_version" => 1,
-      "required_fields" => [
-        "schema_contract",
-        "activity_id",
-        "activity_type",
-        "action",
-        "reason"
-      ],
-      "optional_fields" => [
-        "activity_context",
-        "approval_rule_matches",
-        "policy_bundle_id",
-        "policy_classification",
-        "policy_decision",
-        "required_authority",
-        "requirement_type",
-        "rule_id"
-      ],
-      "nested_contracts" => []
-    },
-    @policy_decision => %{
-      "schema_contract" => @policy_decision,
-      "artifact_family" => "policy_decision",
-      "schema_version" => 1,
-      "required_fields" => [
-        "schema_contract",
-        "classification"
-      ],
-      "optional_fields" => [
-        "policy_bundle_id",
-        "rule_matches",
-        "escalations",
-        "approval_requirement_count",
-        "risk_count",
-        "fallback_policy",
-        "assumptions",
-        "model_limits"
-      ],
-      "nested_contracts" => ["approval_requirement.v1"]
-    },
     @operator_review_package => %{
       "schema_contract" => @operator_review_package,
       "artifact_family" => "operator_review_package",
@@ -3964,6 +3921,7 @@ defmodule OrbitalDynamics.Schema do
              |> Map.merge(
                OrbitalDynamics.Schema.ExecutionReproducibilityRegistryContracts.contracts()
              )
+             |> Map.merge(OrbitalDynamics.Schema.ApprovalPolicyRegistryContracts.contracts())
 
   @doc """
   Returns the known executable artifact contracts.
