@@ -6,21 +6,21 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Completed: strategy and maneuver registry extraction.
+Completed: execution reproducibility registry extraction.
 
 Status:
-Published.
+Ready to publish.
 
 Selected slice:
-Moved `strategy_recommendation.v1`, `maneuver_recommendation.v1`, and
-`maneuver_review_report.v1` into `Schema.StrategyManeuverRegistryContracts`.
+Moved `execution_report.v1` and `monte_carlo_reproducibility_report.v1` into
+`Schema.ExecutionReproducibilityRegistryContracts`.
 
 Why this slice:
-The three adjacent definitions form a recommendation/review family; execution
-stays with Monte Carlo reproducibility because those share a focused test file.
+The two adjacent definitions share the execution/reproducibility focused test
+file and form a bounded run-evidence registry family.
 
 Current coupling/problem:
-Declarative strategy/maneuver contract data remains embedded in the large
+Declarative execution/reproducibility contract data remains embedded in the large
 public `Schema` facade even though the facade only needs the merged registry.
 
 Public facade to preserve:
@@ -31,17 +31,15 @@ Public facade to preserve:
 - `OrbitalDynamics.Schema.validate_artifact/2`
 
 Likely extraction target:
-`OrbitalDynamics.Schema.StrategyManeuverRegistryContracts.contracts/0`.
+`OrbitalDynamics.Schema.ExecutionReproducibilityRegistryContracts.contracts/0`.
 
 Likely files:
 - `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/strategy_maneuver_registry_contracts.ex`
+- `lib/orbital_dynamics/schema/execution_reproducibility_registry_contracts.ex`
 
 Likely tests:
-- `test/orbital_dynamics/schema/strategy_recommendation_contracts_test.exs`
-- `test/orbital_dynamics/schema/maneuver_contracts_test.exs`
-- `test/orbital_dynamics/schema/fixture_visibility_contracts_test.exs`
+- `test/orbital_dynamics/schema/execution_reproducibility_contracts_test.exs`
 - `test/orbital_dynamics/schema/registry_capability_test.exs`
 - `test/mix/tasks/orbital_dynamics.schema.export_test.exs`
 
@@ -53,7 +51,7 @@ fingerprint remains unchanged.
 Files changed:
 - `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/strategy_maneuver_registry_contracts.ex`
+- `lib/orbital_dynamics/schema/execution_reproducibility_registry_contracts.ex`
 
 Public APIs preserved:
 - `OrbitalDynamics.Schema.contracts/0`
@@ -63,13 +61,13 @@ Public APIs preserved:
 - `OrbitalDynamics.Schema.validate_artifact/2`
 
 Behavior/schema changes:
-None. Registry contents, strategy/maneuver validation, and generated schemas
-retain the baseline fingerprint.
+None. Registry contents, execution/reproducibility validation, and generated
+schemas retain the baseline fingerprint.
 
 Tests run:
 - `mix compile --warnings-as-errors` passed.
-- Strategy recommendation, maneuver, fixture visibility, registry capability,
-  and schema export tests passed: 13 tests.
+- Execution/reproducibility, registry capability, schema lint, and schema export
+  tests passed: 26 tests.
 - SHA-256 over `{Schema.contracts(), Schema.json_schema_bundle()}` remained
   `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`.
 - Xref caller and compile-connected checks passed with the expected facade edge.
@@ -80,18 +78,18 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`f54a2a64` (`Extract strategy maneuver registry contracts`).
+`edcada57` (`Update strategy maneuver handoff`).
 
 Next candidate:
-Assess execution and Monte Carlo reproducibility reports as the next bounded
-registry family.
+Assess approval requirement, policy decision, and operator review package as the
+next bounded registry family.
 
 Blocked:
 No.
 
 Notes:
-- `schema.ex` decreased from 17,849 to 17,783 lines.
-- `StrategyManeuverRegistryContracts` is 75 lines.
+- `schema.ex` decreased from 17,783 to 17,725 lines.
+- `ExecutionReproducibilityRegistryContracts` is 66 lines.
 - Parent review found no must-fix findings; parent publishing is the active-mode
   fallback because subagent delegation is unavailable.
 - The inline registry remains substantial; this is not a completion claim.
