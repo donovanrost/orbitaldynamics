@@ -1,0 +1,82 @@
+defmodule OrbitalDynamics.Schema.PlannedActivityRegistryContracts do
+  @moduledoc false
+
+  def contracts do
+    %{
+      "planned_activity.v1" => %{
+        "schema_contract" => "planned_activity.v1",
+        "artifact_family" => "planned_activity",
+        "schema_version" => 1,
+        "required_fields" => [
+          "id",
+          "scenario_id",
+          "starts_at_s",
+          "ends_at_s"
+        ],
+        "optional_fields" => [
+          "schema_contract",
+          "type",
+          "activity_type",
+          "ground_station_id",
+          "direction",
+          "timeline_id",
+          "spacecraft_id",
+          "resource_id",
+          "resource_source_quality",
+          "resource_trust_boundary",
+          "resource_trust_boundary_status",
+          "resource_provenance",
+          "resource_blocking_dimension",
+          "fuel_margin",
+          "power_margin",
+          "storage_margin",
+          "downlink_margin",
+          "spacecraft_available",
+          "payload_available",
+          "degraded",
+          "mode",
+          "product_ids",
+          "data_volume_mb",
+          "link_protocol",
+          "frequency_band",
+          "modulation",
+          "coding_scheme",
+          "polarization",
+          "data_rate_mbps",
+          "downlink_rate_mbps",
+          "data_rate_mb_s",
+          "downlink_rate_mb_s",
+          "link_margin_db",
+          "snr_db",
+          "eb_no_db",
+          "bit_error_rate",
+          "packet_loss_rate",
+          "frame_loss_rate",
+          "carrier_lock",
+          "symbol_lock",
+          "link_quality_status",
+          "thermal_margin_c",
+          "dependency_activity_ids",
+          "exclusive_with_timeline_ids",
+          "suppressed_activity_types",
+          "source_window_id",
+          "source_window",
+          "timeline_identity",
+          "contact_success_factor",
+          "contact_success_factor_source",
+          "command_success_factor",
+          "command_success_factor_source",
+          "observation_success_factor",
+          "observation_success_factor_source",
+          "cloud_cover_fraction",
+          "blur_score",
+          "maneuver_success_factor",
+          "maneuver_success_factor_source",
+          "execution_uncertainty",
+          "cadence_import"
+        ],
+        "nested_contracts" => []
+      }
+    }
+  end
+end
