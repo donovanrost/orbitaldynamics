@@ -9,7 +9,7 @@ Current slice:
 Completed: validation registry contract extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Moved the six validation registry definitions for reference fixtures, reference
@@ -53,7 +53,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`bf49d9ea` (`Update refactor handoff`); current slice is not yet committed.
+`bcb5adf7` (`Extract validation registry contracts`).
 
 Next candidate:
 Extract the contiguous V1/V2/V3 campaign plan, repair, and strategy registry
