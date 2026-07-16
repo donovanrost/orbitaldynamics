@@ -119,7 +119,8 @@ defmodule OrbitalDynamics.Schema.ManeuverContractsTest do
 
     assert Enum.any?(
              count_report["errors"],
-             &(&1["path"] == "$.execution_uncertainty_missing_count")
+             &(&1["path"] == "$.execution_uncertainty_missing_count" and
+                 &1["message"] == "must equal 1")
            )
 
     invalid_count_shape = Map.put(review_report, "maneuver_count", 1.0)

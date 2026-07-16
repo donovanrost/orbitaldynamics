@@ -9,7 +9,7 @@ Current slice:
 Maneuver-review-report callback-bag collapse.
 
 Status:
-Selected; implementation pending.
+Completed; ready to publish.
 
 Selected slice:
 Remove the 18-entry callback bag from `ManeuverReviewReportContracts`. Call
@@ -39,6 +39,7 @@ callback with equivalent owner-local derivation.
 Likely files:
 - `lib/orbital_dynamics/schema.ex`
 - `lib/orbital_dynamics/schema/maneuver_review_report_contracts.ex`
+- `test/orbital_dynamics/schema/maneuver_contracts_test.exs`
 - `.codex/status/large_module_refactor.md`
 
 Likely tests:
@@ -53,14 +54,31 @@ No maneuver-review callback factory or trampolines remain; facade model-limit
 data and direct owners preserve exact report/row behavior; focused/broader/export
 checks pass; and bounded review finds no blocker.
 
+Result:
+Removed the 18-entry callback factory and all owner-local trampolines. The
+facade now passes exact maneuver-review model-limit data, while the owner calls
+primitive, collection, stable-ID, and aggregation modules directly. Review
+caught and the implementation restored the facade's exact default derived-count
+message wrapper, with a focused message regression assertion. `schema.ex` fell
+from 12,420 to 12,396 lines and the owner from 266 to 196 lines.
+
+Verification:
+- compile with warnings as errors passed
+- 13 focused maneuver, schema, provenance, and reference-fixture tests passed
+- 761 broader import, review, and candidate-refresh consumer tests passed
+- 22 schema-export tests passed
+- checked-in schema export reproduction produced no diff
+- format, diff hygiene, scoped callback residue, and compile-connected xref passed
+- bounded review's must-fix was resolved; re-review found no remaining issues
+
 Verification gaps:
 - Full repository suite not run.
 
 Last completed slice:
-Timeline-integrity-report callback collapse published as `46cd524b`:
-`schema.ex` fell from 12,442 to 12,420 lines and its owner from 650 to 555; 28
-focused, 882 broader, and 22 export tests passed; checked-in schemas were
-unchanged; bounded review's must-fix was resolved and re-review found no issues.
+Maneuver-review-report callback collapse: `schema.ex` fell from 12,420 to
+12,396 lines and its owner from 266 to 196; 13 focused, 761 broader, and 22
+export tests passed; checked-in schemas were unchanged; bounded review's
+must-fix was resolved and re-review found no remaining issues.
 
 Blocked:
 No.

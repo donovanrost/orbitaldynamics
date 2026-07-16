@@ -26,7 +26,6 @@ defmodule OrbitalDynamics.Schema do
       expect_field_equals: 6,
       expect_number: 4,
       expect_non_negative_integer: 4,
-      expect_number_vector: 3,
       expect_one_of: 5,
       expect_optional_integer: 4,
       expect_optional_field_equals: 6,
@@ -7825,29 +7824,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp maneuver_review_report_contract_callbacks do
-    [
-      maneuver_review_report_model_limits: &maneuver_review_report_model_limits/0,
-      frequency_map: &frequency_map/2,
-      require_fields: &require_fields/4,
-      validate_stable_ids: &validate_stable_ids/4,
-      expect_equal: &expect_equal/5,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_non_negative_integer: &expect_non_negative_integer/4,
-      expect_optional_non_negative_integer: &expect_optional_non_negative_integer/4,
-      expect_number: &expect_number/4,
-      validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_rows: &validate_rows/4,
-      expect_field_equals: &expect_field_equals/5,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      expect_number_vector: &expect_number_vector/3,
-      expect_optional_number: &expect_optional_number/4,
-      expect_one_of: &expect_one_of/5
-    ]
-  end
-
   defp operational_timeline_report_contract_callbacks do
     [
       timeline_report_model_limits: &timeline_report_model_limits/0,
@@ -8629,7 +8605,7 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       report,
-      maneuver_review_report_contract_callbacks()
+      maneuver_review_report_model_limits()
     )
   end
 
