@@ -18,6 +18,9 @@ defmodule OrbitalDynamics.Schema do
       validate_stable_ids: 4
     ]
 
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [expect_optional_list: 4, expect_optional_type: 5, expect_type: 5]
+
   @campaign_plan "campaign_plan.v1"
   @campaign_repair "campaign_repair.v2"
   @campaign_strategy "campaign_strategy.v3"
@@ -14735,14 +14738,6 @@ defmodule OrbitalDynamics.Schema do
     end
   end
 
-  defp expect_type(issues, path, map, field, type) do
-    if matches_type?(Map.get(map, field), type) do
-      issues
-    else
-      [error("#{path}.#{field}", "must be a #{type}") | issues]
-    end
-  end
-
   defp expect_number(issues, path, map, field) do
     if is_number(Map.get(map, field)) do
       issues
@@ -14845,31 +14840,6 @@ defmodule OrbitalDynamics.Schema do
 
       _value ->
         [error("#{path}.#{field}", "must be a number") | issues]
-    end
-  end
-
-  defp expect_optional_type(issues, path, map, field, type) do
-    case Map.get(map, field) do
-      nil ->
-        issues
-
-      :null ->
-        issues
-
-      value ->
-        if matches_type?(value, type) do
-          issues
-        else
-          [error("#{path}.#{field}", "must be a #{type}") | issues]
-        end
-    end
-  end
-
-  defp expect_optional_list(issues, path, map, field) do
-    case Map.get(map, field) do
-      nil -> issues
-      value when is_list(value) -> issues
-      _value -> [error("#{path}.#{field}", "must be a list") | issues]
     end
   end
 
@@ -15021,12 +14991,6 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp validate_interval(issues, _path, _activity), do: issues
-
-  defp matches_type?(value, :map), do: is_map(value)
-  defp matches_type?(value, :list), do: is_list(value)
-  defp matches_type?(value, :binary), do: is_binary(value)
-  defp matches_type?(value, :boolean), do: is_boolean(value)
-  defp matches_type?(value, :integer), do: is_integer(value)
 
   defp error(path, message) do
     %{"severity" => "error", "path" => path, "message" => message}
