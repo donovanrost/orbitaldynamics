@@ -9,7 +9,7 @@ Current slice:
 Completed: operational quality-gate summary registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Move the five `operational_quality_gate_*summary.v1` contracts into
@@ -79,7 +79,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`4c239972` (`Update quality gate handoff`).
+`3d8ae5a6` (`Extract operational quality gate registry contracts`).
 
 Next candidate:
 Assess the adjacent operational-readiness report, import-eligibility summary,
