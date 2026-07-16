@@ -3418,7 +3418,7 @@ defmodule OrbitalDynamics.Schema do
       &OrbitalDynamics.Schema.ProposedContactJsonSchema.property_field?/1,
       OrbitalDynamics.Schema.ProposedContactJsonSchema.property_fun_from_context(
         cadence_import_schema: fn -> cadence_import_json_schema("proposed_contact.v1") end,
-        model_limits: &proposed_contact_model_limits/0,
+        model_limits: &OrbitalDynamics.Schema.ProposedContactContracts.model_limits/0,
         source_window_schema: &candidate_activity_source_window_json_schema/0,
         timeline_identity_schema: &timeline_identity_json_schema/0
       )
@@ -3934,10 +3934,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp campaign_activity_json_schema do
     candidate_activity_json_schema()
-  end
-
-  defp proposed_contact_model_limits do
-    ["artifact_level_only", "no_provider_reservation", "no_schedule_mutation"]
   end
 
   defp operator_review_package_model_limits do
@@ -7941,22 +7937,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp proposed_contact_contract_callbacks do
-    [
-      require_fields: &require_fields/4,
-      validate_stable_ids: &validate_stable_ids/4,
-      expect_equal: &expect_equal/5,
-      expect_number: &expect_number/4,
-      expect_optional_type: &expect_optional_type/5,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_interval: &validate_interval/3,
-      validate_contact_fields: &validate_contact_fields/3,
-      proposed_contact_model_limits: &proposed_contact_model_limits/0,
-      error: &error/2
-    ]
-  end
-
   defp accepted_state_contract_callbacks do
     [
       require_fields: &require_fields/4,
@@ -9230,8 +9210,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.ProposedContactContracts.validate(
       issues,
       path,
-      contact,
-      proposed_contact_contract_callbacks()
+      contact
     )
   end
 
