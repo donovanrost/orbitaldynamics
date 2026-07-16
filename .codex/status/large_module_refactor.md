@@ -9,7 +9,7 @@ Current slice:
 Completed: link-capacity registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Move the link-capacity report and summary contracts into
@@ -82,7 +82,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`78c11f17` (`Update relay data path handoff`).
+`b18b9b86` (`Extract link capacity registry contracts`).
 
 Next candidate:
 Assess the adjacent command-window report as the next bounded registry
