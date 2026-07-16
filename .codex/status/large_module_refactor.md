@@ -6,65 +6,66 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Completed: derived-branch collection extraction.
+Completed: validation registry contract extraction.
 
 Status:
-Published.
+Ready to publish.
 
 Selected slice:
-Moved baseline/combined branch addition, normalization, explicit-ID filtering,
-family disambiguation, deduplication, and stable sorting behind
-`CampaignPlanner.DerivedBranchCollection`.
+Moved the six validation registry definitions for reference fixtures, reference
+reports, checks, validation reports, batch reports, and migration reports into
+`Schema.ValidationRegistryContracts`.
 
 Why this slice:
-The post-source pipeline owns one cohesive branch-collection invariant and moved
-without callback plumbing. Individual source derivation remains in the parent.
+The definitions form one declarative family inside the large inline registry and
+have no runtime validator coupling. `Schema` remains the public facade and merges
+the extracted maps into its private registry.
 
 Files changed:
 - `.codex/status/large_module_refactor.md`
-- `lib/orbital_dynamics/campaign_planner.ex`
-- `lib/orbital_dynamics/campaign_planner/derived_branch_collection.ex`
+- `lib/orbital_dynamics/schema.ex`
+- `lib/orbital_dynamics/schema/validation_registry_contracts.ex`
 
 Public APIs preserved:
-- `OrbitalDynamics.CampaignPlanner.strategy/1`
-- `OrbitalDynamics.CampaignPlanner.strategy!/1`
-- `OrbitalDynamics.CampaignPlanner.strategy_from_file!/2`
+- `OrbitalDynamics.Schema.contracts/0`
+- `OrbitalDynamics.Schema.contract/1`
+- `OrbitalDynamics.Schema.json_schema/1`
+- `OrbitalDynamics.Schema.json_schema_bundle/0`
+- validation and lint entry points
 
 Behavior/schema changes:
-None. The extraction preserves pipeline order and the final deterministic sort.
+None. Registry contents and the complete generated JSON Schema bundle match
+baseline commit `bf49d9ea` exactly.
 
 Tests run:
 - `mix compile --warnings-as-errors` passed.
-- Combined-derived, strategy pressure-family, and branch-basics tests: 152/156
-  passed. The four failures were isolated and reproduce unchanged at baseline
-  commit `2ee7206e` (22/26 in both worktrees).
-- `mix xref callers OrbitalDynamics.CampaignPlanner.DerivedBranchCollection`
-  passed with the expected single parent caller.
-- `mix xref graph --source lib/orbital_dynamics/campaign_planner/derived_branch_collection.ex`
-  passed.
-- `mix format`, `git diff --check`, no-index-artifact scan, and conflict-marker
-  scan passed.
+- Validation evidence, policy, scoring, registry capability, and schema export
+  tests passed: 18 tests.
+- A SHA-256 over `{Schema.contracts(), Schema.json_schema_bundle()}` matched
+  baseline `bf49d9ea` exactly:
+  `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`.
+- `mix xref callers OrbitalDynamics.Schema.ValidationRegistryContracts` passed
+  with the expected single compile-time caller.
+- Compile-connected xref, focused formatting, whitespace, new-file no-index,
+  conflict-marker, and checked-in-schema cleanliness checks passed.
 
 Verification gaps:
-- The full suite was not rerun for this behavior-preserving extraction.
-- Existing focused failures remain in source-report resource pressure, contact
-  filter pressure, resource filter pressure, and readiness-row risk penalty.
+- The full suite was not run for this declarative extraction.
 
 Last commit:
-`ef91ec52` (`Extract derived branch collection`).
+`bf49d9ea` (`Update refactor handoff`); current slice is not yet committed.
 
 Next candidate:
-Reassess `evaluate_branch/2` after publishing. Its final result assembly is
-cohesive, but the current input surface is broad enough that a direct extraction
-could become parameter plumbing rather than a clean responsibility boundary.
+Extract the contiguous V1/V2/V3 campaign plan, repair, and strategy registry
+definitions into `Schema.CampaignRegistryContracts` using the same private merge
+boundary and exact bundle-equivalence proof.
 
 Blocked:
 No.
 
 Notes:
-- `campaign_planner.ex` decreased from 4,645 to 4,602 lines in this slice.
-- `maybe_add_derived_branches/6` decreased from 165 to 125 lines.
-- `DerivedBranchCollection` is 58 lines.
-- Earlier published slices in this run: V2 repair artifact assembly (`207e7c71`),
-  V3 strategy feedback adjustments (`9354a88f`), and V3 strategy resource
-  impacts (`2ee7206e`).
+- `schema.ex` decreased from 19,474 to 19,377 lines.
+- `ValidationRegistryContracts` is 124 lines.
+- Local review caught and removed whole-registry formatter churn before publish.
+- `evaluate_branch/2` remains deferred because its current input surface is too
+  broad for a clean direct extraction.

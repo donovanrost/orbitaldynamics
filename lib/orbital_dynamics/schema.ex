@@ -1360,7 +1360,7 @@ defmodule OrbitalDynamics.Schema do
     "yaw_deg" => "number"
   }
 
-  @contracts %{
+  @base_contracts %{
     @planned_activity => %{
       "schema_contract" => @planned_activity,
       "artifact_family" => "planned_activity",
@@ -5416,122 +5416,6 @@ defmodule OrbitalDynamics.Schema do
         "operator_review_package.v1"
       ]
     },
-    @validation_reference_fixture_report => %{
-      "schema_contract" => @validation_reference_fixture_report,
-      "artifact_family" => "validation_reference_fixture_report",
-      "schema_version" => 1,
-      "required_fields" => [
-        "schema_contract",
-        "status",
-        "fixture_count",
-        "reports"
-      ],
-      "optional_fields" => ["status_counts"],
-      "nested_contracts" => ["validation_reference_report.v1", "validation_check.v1"]
-    },
-    @validation_reference_report => %{
-      "schema_contract" => @validation_reference_report,
-      "artifact_family" => "validation_reference_report",
-      "schema_version" => 1,
-      "required_fields" => [
-        "schema_contract",
-        "fixture_id",
-        "model_id",
-        "validation_level",
-        "status",
-        "checks"
-      ],
-      "optional_fields" => ["status_counts"],
-      "nested_contracts" => ["validation_check.v1"]
-    },
-    @validation_check => %{
-      "schema_contract" => @validation_check,
-      "artifact_family" => "validation_check",
-      "schema_version" => 1,
-      "required_fields" => [
-        "schema_contract",
-        "field",
-        "status",
-        "expected",
-        "observed",
-        "tolerance"
-      ],
-      "optional_fields" => ["error", "max_abs_error"],
-      "nested_contracts" => []
-    },
-    @schema_validation_report => %{
-      "schema_contract" => @schema_validation_report,
-      "artifact_family" => "schema_validation_report",
-      "schema_version" => 1,
-      "required_fields" => [
-        "schema_contract",
-        "model",
-        "validation_mode",
-        "validated_contract",
-        "status",
-        "error_count",
-        "warning_count",
-        "errors",
-        "warnings",
-        "assumptions"
-      ],
-      "optional_fields" => [
-        "artifact_path",
-        "validated_artifact_family",
-        "validated_schema_version",
-        "model_limits",
-        "remediation_count",
-        "remediation"
-      ],
-      "nested_contracts" => []
-    },
-    @schema_validation_batch_report => %{
-      "schema_contract" => @schema_validation_batch_report,
-      "artifact_family" => "schema_validation_batch_report",
-      "schema_version" => 1,
-      "required_fields" => [
-        "schema_contract",
-        "validation_mode",
-        "input_dir",
-        "file_count",
-        "artifact_count",
-        "skipped_count",
-        "skipped_artifacts",
-        "status",
-        "error_count",
-        "warning_count",
-        "reports"
-      ],
-      "optional_fields" => ["model", "model_limits", "status_counts", "remediation_count"],
-      "nested_contracts" => ["schema_validation_report.v1"]
-    },
-    @schema_migration_report => %{
-      "schema_contract" => @schema_migration_report,
-      "artifact_family" => "schema_migration_report",
-      "schema_version" => 1,
-      "required_fields" => [
-        "schema_contract",
-        "schema_version",
-        "model",
-        "source",
-        "status",
-        "compatibility_policy_version",
-        "compatible_change_rule_count",
-        "breaking_change_rule_count",
-        "contract_count",
-        "current_contract_count",
-        "deprecated_contract_count",
-        "future_contract_count",
-        "migration_row_count",
-        "deprecation_warning_count",
-        "status_counts",
-        "migration_action_counts",
-        "rows",
-        "assumptions",
-        "model_limits"
-      ],
-      "nested_contracts" => []
-    },
     @campaign_request_lint => %{
       "schema_contract" => @campaign_request_lint,
       "artifact_family" => "campaign_request_lint",
@@ -5723,6 +5607,11 @@ defmodule OrbitalDynamics.Schema do
       "nested_contracts" => []
     }
   }
+
+  @contracts Map.merge(
+               @base_contracts,
+               OrbitalDynamics.Schema.ValidationRegistryContracts.contracts()
+             )
 
   @doc """
   Returns the known executable artifact contracts.
