@@ -6,30 +6,30 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Contact-contention-report callback ownership cleanup.
+Link-capacity-report callback ownership cleanup.
 
 Status:
 Complete and published.
 
 Result:
-- Removed the shared 30-function callback bag and adapters from report, group,
-  resolution-report, recommendation, policy, and deferred-priority validation.
-- The family now directly uses primitive, stable-ID, row, execution-metric, and
-  priority-override owners; its invalid-contact review-status rule stays local.
-- Moved generic row-multiset validation to `CollectionValidation` and shared
-  priority-field evidence validation to `PriorityOverrideContracts` unchanged.
-- Preserved default equality messages with focused regression coverage.
-- Reduced `schema.ex` from 13,008 to 12,930 lines and contact-contention-report
-  contracts from 1,158 to 928 lines.
-- Published implementation commit `383cf4d7`.
+- Removed the 21-function callback bag and adapters from link-capacity report,
+  row, count, and assumptions validation.
+- The family now directly uses primitive, stable-ID, row, and execution-metric
+  owners; its optional stable-ID-array-map composite remains local.
+- Moved generic optional-list equality from `schema.ex` into
+  `PrimitiveValidation` unchanged.
+- Both schema delegates now call direct family arities.
+- Reduced `schema.ex` from 12,930 to 12,875 lines and link-capacity-report
+  contracts from 1,137 to 910 lines.
+- Published implementation commit `012a6458`.
 
 Tests run:
 - `mix compile --warnings-as-errors` passed.
-- Focused equality-message, contact-contention runtime, communications-contract,
-  and curated validation coverage passed: 59 tests, 179 excluded.
+- Focused link-capacity runtime, communications-fixture, curated validation, and
+  nested campaign coverage passed: 51 tests, 180 excluded.
 - Deterministic schema export coverage passed: 3 tests.
-- The read-only reviewer found no issues and independently passed 20 focused
-  equality, communications, and curated validation tests.
+- The read-only reviewer found no issues and independently passed focused count,
+  assumption, and optional-list validation coverage.
 - Full schema export left `schemas/` unchanged; the SHA-256 over
   `{Schema.contracts(), Schema.json_schema_bundle()}` remained
   `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`.
@@ -38,16 +38,15 @@ Tests run:
 
 Verification gaps:
 - Full suite not run.
-- Adjacent `contact_allocation_test.exs` remains 71/72: the existing
-  station-calendar overlap-count assertion receives a nil message instead of
-  `must equal 2`. The same failure reproduced at published `HEAD` in an isolated
-  worktree, so it is baseline debt rather than a regression from this slice.
+- The previously reproduced contact-allocation overlap-count nil-message failure
+  remains baseline debt and is unrelated to this slice.
 
 Next candidate:
-- Link-capacity-report callback ownership cleanup. Two schema delegates share a
-  21-function bag with a 1,137-line module; all entries have direct primitive,
-  stable-ID, collection, and execution-metric owners, with only the existing
-  optional stable-ID-array-map composite needing to remain local.
+- Contact-allocation-summary callback ownership audit. Its sole schema delegate
+  feeds a 57-function bag into a 1,515-line module. Generic validators already
+  have direct owners, and the domain half maps to ContactAllocation capabilities
+  plus public `ContactAllocationReportContracts` helpers; the next slice should
+  verify those mappings before choosing full or phased bag removal.
 
 Blocked:
 No.
