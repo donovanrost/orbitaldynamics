@@ -9,7 +9,7 @@ Current slice:
 Completed: contact-contention registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Move the contact-contention report, resolution report, and resolution summary
@@ -79,7 +79,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`4a5f4f67` (`Update station calendar handoff`).
+`864d7901` (`Extract contact contention registry contracts`).
 
 Next candidate:
 Assess the adjacent contact-allocation provider-reservation request summary as a
