@@ -9,7 +9,7 @@ Current slice:
 Completed: resource filter registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Moved `resource_filter_report.v1` and `resource_filter_summary.v1` into
@@ -80,7 +80,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`0a0b70e7` (`Update resource projection handoff`).
+`a1928996` (`Extract resource filter registry contracts`).
 
 Next candidate:
 Assess `contact_filter_report.v1` as the next bounded registry extraction.
