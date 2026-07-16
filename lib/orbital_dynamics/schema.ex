@@ -6586,8 +6586,7 @@ defmodule OrbitalDynamics.Schema do
     |> require_fields("$", artifact, contract["required_fields"])
     |> OrbitalDynamics.Schema.ValidationPolicyContracts.validate_tolerance_policy(
       "$",
-      artifact,
-      validation_policy_contract_callbacks()
+      artifact
     )
   end
 
@@ -6596,8 +6595,7 @@ defmodule OrbitalDynamics.Schema do
     |> require_fields("$", artifact, contract["required_fields"])
     |> OrbitalDynamics.Schema.ValidationPolicyContracts.validate_backend_acceptance_policy(
       "$",
-      artifact,
-      validation_policy_contract_callbacks()
+      artifact
     )
   end
 
@@ -8576,17 +8574,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp validation_policy_contract_callbacks do
-    [
-      require_nested: &require_nested/4,
-      expect_equal: &expect_equal/5,
-      expect_type: &expect_type/5,
-      validate_string_list_items: &validate_string_list_items/4,
-      validation_tolerance_policy_level_names: &validation_tolerance_policy_level_names/0,
-      error: &error/2
-    ]
-  end
-
   defp capability_catalog_contract_callbacks do
     [
       require_fields: &require_fields/4,
@@ -9351,12 +9338,11 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validation_tolerance_policy_level_names do
-    OrbitalDynamics.Schema.ValidationPolicyContracts.level_names()
-  end
-
   defp validation_level_json_schema do
-    %{"type" => "string", "enum" => validation_tolerance_policy_level_names()}
+    %{
+      "type" => "string",
+      "enum" => OrbitalDynamics.Schema.ValidationPolicyContracts.level_names()
+    }
   end
 
   defp validate_activity(issues, path, activity) do
