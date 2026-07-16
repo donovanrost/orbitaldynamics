@@ -6,21 +6,21 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Completed: contact-allocation capacity-pack registry extraction.
+Completed: contact-allocation station-pressure registry extraction.
 
 Status:
-Published.
+Ready to publish.
 
 Selected slice:
-Move the contact-allocation capacity-pack summary contract into
-`Schema.ContactAllocationCapacityPackRegistryContracts`.
+Move the contact-allocation station-pressure summary contract into
+`Schema.ContactAllocationStationPressureRegistryContracts`.
 
 Why this slice:
-The adjacent definition is a bounded artifact-family boundary with direct
+The ledger-named definition is a bounded artifact-family boundary with direct
 fixture, executable validation, JSON-schema, registry, and export coverage.
 
 Current coupling/problem:
-Declarative capacity-pack summary contract data remains embedded in the large
+Declarative station-pressure summary contract data remains embedded in the large
 public `Schema` facade even though it can be merged as a focused registry.
 
 Public facade to preserve:
@@ -31,12 +31,12 @@ Public facade to preserve:
 - `OrbitalDynamics.Schema.validate_artifact/2`
 
 Likely extraction target:
-`OrbitalDynamics.Schema.ContactAllocationCapacityPackRegistryContracts.contracts/0`.
+`OrbitalDynamics.Schema.ContactAllocationStationPressureRegistryContracts.contracts/0`.
 
 Likely files:
 - `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/contact_allocation_capacity_pack_registry_contracts.ex`
+- `lib/orbital_dynamics/schema/contact_allocation_station_pressure_registry_contracts.ex`
 
 Likely tests:
 - `test/orbital_dynamics/schema/contact_allocation_contracts_test.exs`
@@ -51,7 +51,7 @@ contracts/bundle fingerprint remains unchanged.
 Files changed:
 - `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/contact_allocation_capacity_pack_registry_contracts.ex`
+- `lib/orbital_dynamics/schema/contact_allocation_station_pressure_registry_contracts.ex`
 
 Public APIs preserved:
 - `OrbitalDynamics.Schema.contracts/0`
@@ -61,8 +61,8 @@ Public APIs preserved:
 - `OrbitalDynamics.Schema.validate_artifact/2`
 
 Behavior/schema changes:
-None. Registry contents, capacity-pack summary validation, and generated schemas
-retain the baseline fingerprint.
+None. Registry contents, station-pressure summary validation, and generated
+schemas retain the baseline fingerprint.
 
 Tests run:
 - `mix compile --warnings-as-errors` passed.
@@ -81,15 +81,15 @@ Last commit:
 `fc68a67b` (`Extract capacity pack registry contract`).
 
 Next candidate:
-Assess the adjacent contact-allocation station-pressure summary as the next
+Assess the adjacent contact-allocation reservation-conflict summary as the next
 bounded single-contract registry extraction.
 
 Blocked:
 No.
 
 Notes:
-- `schema.ex` decreased from 15,825 to 15,780 lines.
-- `ContactAllocationCapacityPackRegistryContracts` is 56 lines.
+- `schema.ex` decreased from 15,780 to 15,749 lines.
+- `ContactAllocationStationPressureRegistryContracts` is 42 lines.
 - Parent review found no must-fix findings; parent publishing is the active-mode
   fallback because subagent delegation is unavailable.
 - The inline registry remains substantial; this is not a completion claim.
