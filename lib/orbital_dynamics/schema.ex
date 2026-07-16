@@ -14489,8 +14489,7 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       map,
-      field,
-      execution_metric_contract_callbacks()
+      field
     )
   end
 
@@ -14500,8 +14499,7 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       map,
-      field,
-      execution_metric_contract_callbacks()
+      field
     )
   end
 
@@ -14510,18 +14508,8 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       map,
-      field,
-      execution_metric_contract_callbacks()
+      field
     )
-  end
-
-  defp execution_metric_contract_callbacks do
-    [
-      expect_optional_type: &expect_optional_type/5,
-      expect_optional_number: &expect_optional_number/4,
-      expect_optional_number_vector: &expect_optional_number_vector/4,
-      error: &error/2
-    ]
   end
 
   defp validate_optional_protection_decision(issues, path, map, field) when is_map(map) do
