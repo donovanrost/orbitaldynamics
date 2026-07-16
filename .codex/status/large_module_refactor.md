@@ -9,47 +9,39 @@ Current slice:
 Candidate-refresh timeline structural-validation context extraction.
 
 Status:
-Selected; implementation pending.
+Complete; ready to publish.
 
-Selected slice:
-Extract timeline activity-precondition, timeline-integrity, and
-timeline-dependency-impact source-report validators behind their existing
-public context functions.
+Result:
+- Extracted activity-precondition, timeline-integrity, and dependency-impact
+  integer/count-map validation into the new 114-line
+  `CandidateRefreshTimelineValidationContracts` owner.
+- Preserved all three public `/4` facades and their callback-list guards.
+- Consolidated repeated field reducers without changing field order, paths,
+  messages, optional-map checks, or precondition invalid-reason ordering.
+- Reduced `CandidateRefreshReportContracts` from 1,125 to 1,002 lines.
 
-Why this slice:
-These three contexts form the dependency/exclusivity validation family and use
-the same non-negative integer and typed count-map validation flow. Together they
-are a cohesive responsibility; timeline publication remains separate.
-
-Public facade to preserve:
-All `CandidateRefreshReportContracts` public signatures, especially the three
-selected `/4` functions and their callback-list guards.
-
-Likely extraction target:
-`CandidateRefreshTimelineValidationContracts`, owning the three complete
-context flows and their shared field/count-map reducers.
-
-Likely files:
-- `lib/orbital_dynamics/schema/candidate_refresh_report_contracts.ex`
-- `lib/orbital_dynamics/schema/candidate_refresh_timeline_validation_contracts.ex`
-- `.codex/status/large_module_refactor.md`
-
-Likely tests:
-- compile with warnings as errors
-- timeline precondition, integrity, and dependency-impact replay tests
-- candidate-refresh resource-provenance and schema contract coverage
-- broader candidate-refresh, deterministic export/fingerprint, xref, and format
-
-Definition of done:
-The three public functions are thin delegates to one focused structural-
-validation owner, no field/order/error behavior changes, no stale helpers or
-imports remain, and focused/broader checks pass.
+Tests run:
+- `mix compile --warnings-as-errors` passed.
+- Focused replay/candidate-source/provenance/schema coverage passed 46/46.
+- The full `test/orbital_dynamics/candidate_refresh` directory passed 755/755.
+- Schema export coverage passed 22/22.
+- Full export left `schemas/` unchanged; the bundle fingerprint remained
+  `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`.
+- Parent/new-module compile-connected xref, formatting, new-file whitespace,
+  and `git diff --check` passed.
+- The read-only reviewer found no issues, independently passed compile and 36
+  focused tests, and verified signatures/guards, ordering, paths/messages,
+  optional-map behavior, imports, and dependency shape.
 
 Verification gaps:
 - Full repository suite not run.
 
 Last commit:
-Published timeline lifecycle extraction `a681760b`.
+Pending publication; prior handoff `37b7cf92`.
+
+Next candidate:
+- Extract the self-contained timeline-publication context behind its existing
+  public `/4` facade.
 
 Blocked:
 No.

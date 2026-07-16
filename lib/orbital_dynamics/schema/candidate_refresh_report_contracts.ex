@@ -4,6 +4,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
   alias OrbitalDynamics.Schema.CandidateRefreshContactIntentRoutingContracts
   alias OrbitalDynamics.Schema.CandidateRefreshStationCalendarContracts
   alias OrbitalDynamics.Schema.CandidateRefreshTimelineLifecycleContracts
+  alias OrbitalDynamics.Schema.CandidateRefreshTimelineValidationContracts
 
   import OrbitalDynamics.Schema.CollectionValidation,
     only: [validate_string_list_map: 4]
@@ -392,52 +393,11 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
 
   def validate_timeline_activity_precondition_context(issues, path, summary, callbacks)
       when is_list(callbacks) do
-    issues =
-      Enum.reduce(
-        [
-          "blocked_precondition_count",
-          "review_precondition_count",
-          "invalid_activity_input_count"
-        ],
-        issues,
-        fn field, acc ->
-          expect_optional_non_negative_integer(acc, path, summary, field)
-        end
-      )
-
-    issues =
-      Enum.reduce(
-        [
-          "source_summary_model_counts",
-          "source_summary_schema_contract_counts",
-          "precondition_status_counts",
-          "blocked_precondition_type_counts",
-          "review_precondition_type_counts",
-          "invalid_activity_input_reason_counts",
-          "activity_id_counts",
-          "timeline_id_counts",
-          "dependency_activity_id_counts",
-          "dependency_timeline_id_counts",
-          "exclusive_with_activity_id_counts",
-          "exclusive_with_timeline_id_counts",
-          "duplicate_dependency_activity_id_counts",
-          "duplicate_dependency_timeline_id_counts",
-          "duplicate_exclusivity_activity_id_counts",
-          "duplicate_exclusivity_timeline_id_counts",
-          "allow_overlap_counts"
-        ],
-        issues,
-        fn field, acc ->
-          acc
-          |> expect_optional_type(path, summary, field, :map)
-          |> validate_non_negative_integer_count_map(
-            path <> ".#{field}",
-            Map.get(summary, field)
-          )
-        end
-      )
-
-    validate_string_list_items(issues, path, summary, "invalid_activity_input_reasons")
+    CandidateRefreshTimelineValidationContracts.validate_activity_precondition(
+      issues,
+      path,
+      summary
+    )
   end
 
   def validate_timeline_publication_context(issues, path, summary, callbacks)
@@ -517,95 +477,12 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
 
   def validate_timeline_integrity_context(issues, path, summary, callbacks)
       when is_list(callbacks) do
-    issues =
-      Enum.reduce(
-        [
-          "timeline_integrity_issue_count",
-          "timeline_integrity_review_count",
-          "dependency_issue_count",
-          "exclusivity_issue_count"
-        ],
-        issues,
-        fn field, acc ->
-          expect_optional_non_negative_integer(acc, path, summary, field)
-        end
-      )
-
-    Enum.reduce(
-      [
-        "timeline_integrity_status_counts",
-        "timeline_integrity_issue_type_counts",
-        "required_operator_action_counts",
-        "operator_action_reason_counts",
-        "review_activity_id_counts",
-        "review_timeline_id_counts",
-        "missing_dependency_activity_id_counts",
-        "missing_dependency_timeline_id_counts",
-        "self_dependency_activity_id_counts",
-        "self_dependency_timeline_id_counts",
-        "dependency_cycle_activity_id_counts",
-        "dependency_cycle_timeline_id_counts",
-        "dependency_order_violation_activity_id_counts",
-        "dependency_order_violation_timeline_id_counts",
-        "exclusivity_violation_activity_id_counts",
-        "exclusivity_violation_timeline_id_counts",
-        "exclusivity_violation_group_counts"
-      ],
-      issues,
-      fn field, acc ->
-        acc
-        |> expect_optional_type(path, summary, field, :map)
-        |> validate_non_negative_integer_count_map(
-          path <> ".#{field}",
-          Map.get(summary, field)
-        )
-      end
-    )
+    CandidateRefreshTimelineValidationContracts.validate_integrity(issues, path, summary)
   end
 
   def validate_timeline_dependency_impact_context(issues, path, summary, callbacks)
       when is_list(callbacks) do
-    issues =
-      Enum.reduce(
-        [
-          "source_activity_count",
-          "replacement_activity_count",
-          "changed_source_activity_count",
-          "changed_source_timeline_count",
-          "dependent_activity_count",
-          "source_dependent_activity_count",
-          "replacement_dependent_activity_count"
-        ],
-        issues,
-        fn field, acc ->
-          expect_optional_non_negative_integer(acc, path, summary, field)
-        end
-      )
-
-    Enum.reduce(
-      [
-        "dependency_impact_status_counts",
-        "dependency_impact_scope_counts",
-        "required_operator_action_counts",
-        "impacted_source_activity_id_counts",
-        "impacted_source_timeline_id_counts",
-        "impacted_dependency_activity_id_counts",
-        "impacted_dependency_timeline_id_counts",
-        "impacted_exclusive_activity_id_counts",
-        "impacted_exclusive_timeline_id_counts",
-        "dependent_activity_id_counts",
-        "dependent_timeline_id_counts"
-      ],
-      issues,
-      fn field, acc ->
-        acc
-        |> expect_optional_type(path, summary, field, :map)
-        |> validate_non_negative_integer_count_map(
-          path <> ".#{field}",
-          Map.get(summary, field)
-        )
-      end
-    )
+    CandidateRefreshTimelineValidationContracts.validate_dependency_impact(issues, path, summary)
   end
 
   def validate_provider_counteroffer_context(issues, path, summary, callbacks)
