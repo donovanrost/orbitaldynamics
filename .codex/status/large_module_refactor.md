@@ -9,7 +9,7 @@ Current slice:
 Completed: strategy and maneuver registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Moved `strategy_recommendation.v1`, `maneuver_recommendation.v1`, and
@@ -80,7 +80,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`8621acd6` (`Update objective analysis handoff`).
+`f54a2a64` (`Extract strategy maneuver registry contracts`).
 
 Next candidate:
 Assess execution and Monte Carlo reproducibility reports as the next bounded
