@@ -6,61 +6,70 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Completed: execution-metric callback ownership cleanup.
+Completed: protection-decision callback ownership cleanup.
 
 Status:
-Published.
+Completed and published.
 
 Selected slice:
-Let `Schema.ExecutionMetricContracts` call primitive validation directly for
-single/list throughput derivations and execution uncertainty.
+Move generic `expect_optional_field_equals/6` into primitive support, then let
+`Schema.ProtectionDecisionContracts` own stable-ID, type, equality, and error
+dependencies directly.
 
 Why this slice:
-All four callbacks pointed to primitive support, and the three entry points form
-one cohesive metric-validation family with no facade-specific state.
+The equality helper is the only callback not already support-owned; moving it
+completes the decision and lifecycle-consistency responsibility boundary.
 
 Current coupling/problem:
-Resolved. Execution metrics own type/number/vector/error dependencies, and the
-facade only delegates validation inputs.
+Resolved. Primitive support owns generic optional-field equality, protection
+validation calls its support dependencies directly, and the facade delegates.
 
 Public facade preserved:
 - `OrbitalDynamics.Schema.validate_artifact/2`
 - `OrbitalDynamics.Schema.validation_report/2`
-- Execution metric validation order and exact paths/messages.
+- Protection decision/lifecycle consistency order and exact errors.
 
 Files changed:
 - `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/execution_metric_contracts.ex`
+- `lib/orbital_dynamics/schema/primitive_validation.ex`
+- `lib/orbital_dynamics/schema/protection_decision_contracts.ex`
+
+Definition of done:
+The generic equality helper and decision dependencies are support-owned,
+callback plumbing is gone, direct/broad tests and exact fingerprint pass, and
+xref shows only primitive/stable-ID dependencies.
 
 Behavior/schema changes:
-None. Derivation/list/uncertainty checks execute in the same order.
+None. Validation order, paths, messages, and deterministic schema output remain
+unchanged.
 
 Tests run:
-- `mix compile --warnings-as-errors` passed.
-- Timeline report, campaign repair/strategy, cadence-row, and broad schema/
-  resource/contact/export coverage passed: 103 tests.
-- SHA-256 over `{Schema.contracts(), Schema.json_schema_bundle()}` remained
+- 127 selected schema, contract, resource, contact, export, and exact lifecycle
+  protection regression tests passed; 126 unrelated timeline tests were
+  excluded by the line selector.
+- Exact schema fingerprint remained
   `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`.
-- Xref showed the facade runtime edge and sole dependency on primitive support.
-- Formatting, whitespace, diff review, and checked-in-schema cleanliness passed.
+- `mix xref callers` and `mix xref graph` show the extracted contract depends
+  only on primitive and stable-ID support.
+- Formatting, `git diff --check`, and checked-in schema cleanliness passed.
 
 Verification gaps:
-- The full suite was not run for this internal cleanup.
+- Full suite not run; the focused broad gate and deterministic fingerprint are
+  the verification boundary for this slice.
 
 Last commit:
-`f6aeeacc` (`Collapse execution metric callbacks`).
+`4a597cbc` (`Collapse protection decision callbacks`).
 
 Next candidate:
-Assess protection-decision callback ownership and its remaining generic optional
-field-equality helper.
+Assess activity-context callback ownership after this cleanup.
 
 Blocked:
 No.
 
 Notes:
-- `schema.ex` decreased from 14,631 to 14,619 lines.
-- `ExecutionMetricContracts` decreased from 132 to 80 lines.
-- Parent review found no must-fix findings; parent publishing is the active-mode
-  fallback because subagent delegation is unavailable.
-- The facade remains substantial; this is not a completion claim.
+- `schema.ex` is 14,601 lines after this slice (down from 14,619).
+- `ProtectionDecisionContracts` is 166 lines and no longer resolves dynamic
+  callbacks; generic optional-field equality now lives in primitive support.
+- Parent review/publishing is the active-mode fallback because subagent
+  delegation is unavailable.
