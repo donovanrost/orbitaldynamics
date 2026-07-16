@@ -3032,77 +3032,6 @@ defmodule OrbitalDynamics.Schema do
       ],
       "optional_fields" => ["model_limits"],
       "nested_contracts" => []
-    },
-    @environment_model_capability => %{
-      "schema_contract" => @environment_model_capability,
-      "artifact_family" => "environment_model_capability",
-      "schema_version" => 1,
-      "required_fields" => [
-        "id",
-        "schema_contract",
-        "category",
-        "model",
-        "source",
-        "validation_level",
-        "time_span",
-        "supported_bodies",
-        "network_access",
-        "parameters",
-        "known_limits"
-      ],
-      "optional_fields" => [
-        "coordinate_frame",
-        "interpolation"
-      ],
-      "nested_contracts" => []
-    },
-    @environment_provider_capability => %{
-      "schema_contract" => @environment_provider_capability,
-      "artifact_family" => "environment_provider_capability",
-      "schema_version" => 1,
-      "required_fields" => [
-        "id",
-        "schema_contract",
-        "category",
-        "model",
-        "source",
-        "validation_level",
-        "coverage",
-        "interpolation",
-        "supported_bodies",
-        "network_access",
-        "known_limits"
-      ],
-      "optional_fields" => [
-        "outputs",
-        "parameters",
-        "trust_boundary",
-        "provenance"
-      ],
-      "nested_contracts" => []
-    },
-    @subsystem_model_capability => %{
-      "schema_contract" => @subsystem_model_capability,
-      "artifact_family" => "subsystem_model_capability",
-      "schema_version" => 1,
-      "required_fields" => [
-        "id",
-        "schema_contract",
-        "subsystem",
-        "model",
-        "source",
-        "fidelity_tier",
-        "validation_level",
-        "applicability",
-        "state_variables",
-        "activity_effects",
-        "parameters",
-        "known_limits"
-      ],
-      "optional_fields" => [
-        "provenance"
-      ],
-      "nested_contracts" => []
     }
   }
 
@@ -3145,6 +3074,7 @@ defmodule OrbitalDynamics.Schema do
              |> Map.merge(OrbitalDynamics.Schema.ResourceFilterRegistryContracts.contracts())
              |> Map.merge(OrbitalDynamics.Schema.ContactFilterRegistryContracts.contracts())
              |> Map.merge(OrbitalDynamics.Schema.ResourceSummaryRegistryContracts.contracts())
+             |> Map.merge(OrbitalDynamics.Schema.ModelCapabilityRegistryContracts.contracts())
 
   @doc """
   Returns the known executable artifact contracts.

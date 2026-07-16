@@ -6,20 +6,21 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Completed: resource summary registry extraction.
+Completed: model capability registry extraction.
 
 Status:
-Published.
+Ready to publish.
 
 Selected slice:
-Move `resource_summary.v1` into `Schema.ResourceSummaryRegistryContracts`.
+Move `environment_model_capability.v1`, `environment_provider_capability.v1`,
+and `subsystem_model_capability.v1` into `Schema.ModelCapabilityRegistryContracts`.
 
 Why this slice:
-The remaining adjacent resource definition is a standalone summary contract
-with dedicated cadence-row, resource-contract, and export coverage.
+The three remaining adjacent model/provider capability definitions form one
+cohesive registry family with direct schema, validation, and export coverage.
 
 Current coupling/problem:
-Declarative resource-summary contract data remains embedded in the large
+Declarative model-capability contract data remains embedded in the large
 public `Schema` facade even though the facade only needs the merged registry.
 
 Public facade to preserve:
@@ -30,17 +31,16 @@ Public facade to preserve:
 - `OrbitalDynamics.Schema.validate_artifact/2`
 
 Likely extraction target:
-`OrbitalDynamics.Schema.ResourceSummaryRegistryContracts.contracts/0`.
+`OrbitalDynamics.Schema.ModelCapabilityRegistryContracts.contracts/0`.
 
 Likely files:
 - `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/resource_summary_registry_contracts.ex`
+- `lib/orbital_dynamics/schema/model_capability_registry_contracts.ex`
 
 Likely tests:
-- `test/orbital_dynamics/schema/cadence_row_contracts_test.exs`
+- `test/orbital_dynamics/schema/optimizer_objective_contracts_test.exs`
 - `test/orbital_dynamics/schema/resource_contracts_test.exs`
-- `test/orbital_dynamics/schema/fixture_visibility_contracts_test.exs`
 - `test/orbital_dynamics/schema/registry_capability_test.exs`
 - `test/mix/tasks/orbital_dynamics.schema.export_test.exs`
 
@@ -52,7 +52,7 @@ fingerprint remains unchanged.
 Files changed:
 - `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/resource_summary_registry_contracts.ex`
+- `lib/orbital_dynamics/schema/model_capability_registry_contracts.ex`
 
 Public APIs preserved:
 - `OrbitalDynamics.Schema.contracts/0`
@@ -62,13 +62,13 @@ Public APIs preserved:
 - `OrbitalDynamics.Schema.validate_artifact/2`
 
 Behavior/schema changes:
-None. Registry contents, resource-summary validation, and generated schemas retain
-the baseline fingerprint.
+None. Registry contents, capability validation, and generated schemas retain the
+baseline fingerprint.
 
 Tests run:
 - `mix compile --warnings-as-errors` passed.
-- Cadence-row contracts, resource contracts, fixture visibility, registry
-  capability, and schema export tests passed: 17 tests.
+- Optimizer-objective contracts, resource contracts, registry capability, and
+  schema export tests passed: 17 tests.
 - SHA-256 over `{Schema.contracts(), Schema.json_schema_bundle()}` remained
   `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`.
 - Xref caller and compile-connected checks passed with the expected facade edge.
@@ -79,18 +79,18 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`6c59eef4` (`Extract resource summary registry contracts`).
+`efc81b39` (`Update resource summary handoff`).
 
 Next candidate:
-Assess the environment-model, environment-provider, and subsystem-model
-capability contracts as one cohesive registry extraction.
+Assess `constraint_report.v1` and `score_term_report.v1` as one cohesive
+optimizer-report registry extraction.
 
 Blocked:
 No.
 
 Notes:
-- `schema.ex` decreased from 16,940 to 16,906 lines.
-- `ResourceSummaryRegistryContracts` is 43 lines.
+- `schema.ex` decreased from 16,906 to 16,836 lines.
+- `ModelCapabilityRegistryContracts` is 79 lines.
 - Parent review found no must-fix findings; parent publishing is the active-mode
   fallback because subagent delegation is unavailable.
 - The inline registry remains substantial; this is not a completion claim.
