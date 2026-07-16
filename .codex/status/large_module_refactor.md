@@ -9,7 +9,7 @@ Current slice:
 Completed: strategy-branch registry relocation.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Moved `strategy_branch.v1` from the facade registry into the existing
@@ -50,7 +50,7 @@ Verification gaps:
 - The full suite was not run for this declarative relocation.
 
 Last commit:
-`515d43a8` (`Update lint schema handoff`); current slice is not yet committed.
+`c3e507bb` (`Move strategy branch registry contract`).
 
 Next candidate:
 Extract `study_benchmark.v1`, `manifest_field_reference.v1`, and
