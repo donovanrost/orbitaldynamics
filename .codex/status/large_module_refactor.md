@@ -9,7 +9,7 @@ Current slice:
 Contact-allocation-report generic callback ownership phase.
 
 Status:
-Complete; ready to publish.
+Complete and published.
 
 Result:
 - Removed 39 generic primitive, stable-ID, collection, and aggregation entries
@@ -43,7 +43,7 @@ Verification gaps:
   reproduced on published HEAD and is unrelated baseline debt.
 
 Last commit:
-Pending publication; prior handoff `697d2363`.
+Published implementation `fad9d73a`.
 
 Next candidate:
 - Contact-allocation-summary generic callback ownership phase. Its 1,515-line
