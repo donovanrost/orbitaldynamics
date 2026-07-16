@@ -2,6 +2,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
   @moduledoc false
 
   alias OrbitalDynamics.Schema.CandidateRefreshContactIntentRoutingContracts
+  alias OrbitalDynamics.Schema.CandidateRefreshOperationalTimelineContracts
   alias OrbitalDynamics.Schema.CandidateRefreshStationCalendarContracts
   alias OrbitalDynamics.Schema.CandidateRefreshTimelineLifecycleContracts
   alias OrbitalDynamics.Schema.CandidateRefreshTimelinePublicationContracts
@@ -561,38 +562,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
 
   def validate_operational_timeline_context(issues, path, summary, callbacks)
       when is_list(callbacks) do
-    issues
-    |> expect_optional_type(path, summary, "input_keys", :list)
-    |> validate_string_list_items(path, summary, "input_keys")
-    |> expect_optional_non_negative_integer(path, summary, "contact_feedback_count")
-    |> expect_optional_non_negative_integer(path, summary, "command_feedback_count")
-    |> expect_optional_non_negative_integer(path, summary, "maneuver_feedback_count")
-    |> expect_optional_non_negative_integer(
-      path,
-      summary,
-      "observation_feedback_count"
-    )
-    |> expect_optional_non_negative_integer(
-      path,
-      summary,
-      "station_throughput_feedback_count"
-    )
-    |> expect_optional_non_negative_integer(
-      path,
-      summary,
-      "timeline_integrity_issue_count"
-    )
-    |> expect_optional_non_negative_integer(
-      path,
-      summary,
-      "dependency_integrity_issue_count"
-    )
-    |> expect_optional_non_negative_integer(
-      path,
-      summary,
-      "exclusivity_integrity_issue_count"
-    )
-    |> validate_operational_timeline_count_maps(path, summary)
+    CandidateRefreshOperationalTimelineContracts.validate(issues, path, summary)
   end
 
   def validate_timeline_transition_application_context(issues, path, summary, callbacks)
@@ -827,18 +797,6 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
         )
       end
     )
-  end
-
-  defp validate_operational_timeline_count_maps(issues, path, summary) do
-    validate_optional_count_maps(issues, path, summary, [
-      "operational_kind_counts",
-      "activity_id_counts",
-      "activity_status_counts",
-      "approval_status_counts",
-      "required_operator_action_counts",
-      "cadence_import_status_counts",
-      "timeline_integrity_issue_type_counts"
-    ])
   end
 
   defp validate_optional_count_maps(issues, path, summary, fields) do
