@@ -63,8 +63,8 @@ Last commit:
 `7e015529` (`Collapse resource projection count callbacks`).
 
 Next candidate:
-Audit the remaining small primitive-only schema callback modules, starting with
-campaign strategy; keep mixed activity-context deferred.
+Remove primitive/stable callback plumbing from the projected-resource row
+validator; keep campaign strategy and mixed activity-context deferred.
 
 Blocked:
 No.
@@ -75,5 +75,7 @@ Notes:
 - Ending point: `schema.ex` is 14,130 lines and the report-count validator is
   262 lines; pressure first-kind priority remains explicit and unchanged.
 - The generated schema export was byte-for-byte unchanged.
+- Campaign strategy was audited and deferred because it composes nested
+  facade-owned validators rather than primitive-only support.
 - Activity-context cleanup was audited and deferred because its 17 callbacks
   include facade-owned validators; this slice is the bounded alternative.
