@@ -42,11 +42,12 @@ Verification gaps:
   remains baseline debt and is unrelated to this slice.
 
 Next candidate:
-- Contact-allocation-summary callback ownership audit. Its sole schema delegate
-  feeds a 57-function bag into a 1,515-line module. Generic validators already
-  have direct owners, and the domain half maps to ContactAllocation capabilities
-  plus public `ContactAllocationReportContracts` helpers; the next slice should
-  verify those mappings before choosing full or phased bag removal.
+- Contact-allocation-report generic callback ownership phase. Three schema
+  delegates feed a 52-function bag into a 2,001-line module. Remove the generic
+  primitive, stable-ID, collection, and aggregation entries first while keeping
+  the smaller nested-report/row/capacity domain callback boundary unchanged.
+  This is the prerequisite for the 1,515-line contact-allocation-summary module,
+  whose row and capacity-group validators currently re-enter that report bag.
 
 Blocked:
 No.
