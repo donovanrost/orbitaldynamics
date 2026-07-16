@@ -6,25 +6,24 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Completed: validation registry contract extraction.
+Completed: campaign registry contract extraction.
 
 Status:
-Published.
+Ready to publish.
 
 Selected slice:
-Moved the six validation registry definitions for reference fixtures, reference
-reports, checks, validation reports, batch reports, and migration reports into
-`Schema.ValidationRegistryContracts`.
+Moved the V1 campaign plan, V2 repair, and V3 strategy registry definitions into
+`Schema.CampaignRegistryContracts`.
 
 Why this slice:
-The definitions form one declarative family inside the large inline registry and
-have no runtime validator coupling. `Schema` remains the public facade and merges
-the extracted maps into its private registry.
+The definitions form one public artifact-generation family and are pure
+declarative data. `Schema` remains the facade and merges the family into its
+private registry.
 
 Files changed:
 - `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/validation_registry_contracts.ex`
+- `lib/orbital_dynamics/schema/campaign_registry_contracts.ex`
 
 Public APIs preserved:
 - `OrbitalDynamics.Schema.contracts/0`
@@ -34,17 +33,16 @@ Public APIs preserved:
 - validation and lint entry points
 
 Behavior/schema changes:
-None. Registry contents and the complete generated JSON Schema bundle match
-baseline commit `bf49d9ea` exactly.
+None. Registry contents and the complete generated JSON Schema bundle retain the
+previously proven baseline fingerprint.
 
 Tests run:
 - `mix compile --warnings-as-errors` passed.
-- Validation evidence, policy, scoring, registry capability, and schema export
-  tests passed: 18 tests.
-- A SHA-256 over `{Schema.contracts(), Schema.json_schema_bundle()}` matched
-  baseline `bf49d9ea` exactly:
+- Campaign plan, campaign repair/strategy, registry capability, and schema
+  export tests passed: 13 tests.
+- SHA-256 over `{Schema.contracts(), Schema.json_schema_bundle()}` remained
   `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`.
-- `mix xref callers OrbitalDynamics.Schema.ValidationRegistryContracts` passed
+- `mix xref callers OrbitalDynamics.Schema.CampaignRegistryContracts` passed
   with the expected single compile-time caller.
 - Compile-connected xref, focused formatting, whitespace, new-file no-index,
   conflict-marker, and checked-in-schema cleanliness checks passed.
@@ -53,19 +51,18 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`bcb5adf7` (`Extract validation registry contracts`).
+`7dd47415` (`Update schema refactor handoff`); current slice is not yet committed.
 
 Next candidate:
-Extract the contiguous V1/V2/V3 campaign plan, repair, and strategy registry
-definitions into `Schema.CampaignRegistryContracts` using the same private merge
-boundary and exact bundle-equivalence proof.
+Extract the contiguous candidate-refresh registry family (`candidate_refresh`,
+candidate activity/diff, freshness, invalidation, budget, refreshed window,
+remaining horizon, and source lineage) into
+`Schema.CandidateRefreshRegistryContracts`.
 
 Blocked:
 No.
 
 Notes:
-- `schema.ex` decreased from 19,474 to 19,377 lines.
-- `ValidationRegistryContracts` is 124 lines.
-- Local review caught and removed whole-registry formatter churn before publish.
-- `evaluate_branch/2` remains deferred because its current input surface is too
-  broad for a clean direct extraction.
+- `schema.ex` decreased from 19,377 to 19,223 lines.
+- `CampaignRegistryContracts` is 147 lines.
+- Published validation registry extraction: `bcb5adf7`.

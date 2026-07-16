@@ -5277,145 +5277,6 @@ defmodule OrbitalDynamics.Schema do
       "optional_fields" => ["source_window"] ++ @candidate_refresh_scoped_context_fields,
       "nested_contracts" => []
     },
-    @campaign_plan => %{
-      "schema_contract" => @campaign_plan,
-      "artifact_family" => "campaign_plan",
-      "schema_version" => 1,
-      "required_fields" => [
-        "schema_version",
-        "generated_at",
-        "planner",
-        "plan_id",
-        "study_id",
-        "planning_horizon",
-        "activities",
-        "proposed_contacts",
-        "contact_intents",
-        "candidate_activities",
-        "ranked_timelines",
-        "warnings",
-        "assumptions",
-        "provenance",
-        "ranking_explanation"
-      ],
-      "optional_fields" => [
-        "optimizer_contract",
-        "link_capacity_report",
-        "contact_contention_report",
-        "contact_contention_resolution_report",
-        "resource_filter_report",
-        "resource_projection_report",
-        "resource_projection_flow_summary",
-        "timeline_activity_precondition_summaries",
-        "timeline_integrity_report",
-        "objective_satisfaction_report",
-        "operational_timeline_report",
-        "operator_review_package",
-        "operational_readiness_report",
-        "quality_gate_report"
-      ],
-      "nested_contracts" => [
-        "planned_activity.v1",
-        "proposed_contact.v1",
-        "optimizer_contract.v1",
-        "link_capacity_report.v1",
-        "contact_contention_report.v1",
-        "contact_contention_resolution_report.v1",
-        "resource_filter_report.v1",
-        "resource_projection_report.v1",
-        "resource_projection_flow_summary.v1",
-        "timeline_activity_precondition_summary.v1",
-        "timeline_integrity_report.v1",
-        "objective_satisfaction_report.v1",
-        "operational_timeline_report.v1",
-        "operator_review_package.v1",
-        "operational_readiness_report.v1",
-        "quality_gate_report.v1"
-      ]
-    },
-    @campaign_repair => %{
-      "schema_contract" => @campaign_repair,
-      "artifact_family" => "campaign_repair",
-      "schema_version" => 2,
-      "required_fields" => [
-        "schema_version",
-        "generated_at",
-        "planner",
-        "source_plan_id",
-        "current_epoch_s",
-        "remaining_horizon",
-        "activities",
-        "source_candidate_activities",
-        "deltas",
-        "approval_requirements",
-        "approval_status",
-        "approval_policy",
-        "policy_decision",
-        "warnings",
-        "realized_state_snapshot",
-        "repair_policy",
-        "scoring_policy",
-        "score",
-        "score_terms",
-        "assumptions",
-        "provenance",
-        "repair_metadata"
-      ],
-      "optional_fields" => [
-        "operational_timeline_report",
-        "timeline_transition_application_report",
-        "operator_review_package",
-        "objective_tradeoff_report",
-        "score_term_report",
-        "link_capacity_report",
-        "source_candidate_rejection_report"
-      ],
-      "nested_contracts" => [
-        "planned_activity.v1",
-        "plan_delta.v1",
-        "approval_requirement.v1",
-        "operational_timeline_report.v1",
-        "timeline_transition_application_report.v1",
-        "operator_review_package.v1",
-        "objective_tradeoff_report.v1",
-        "score_term_report.v1",
-        "link_capacity_report.v1",
-        "candidate_rejection_report.v1"
-      ]
-    },
-    @campaign_strategy => %{
-      "schema_contract" => @campaign_strategy,
-      "artifact_family" => "campaign_strategy",
-      "schema_version" => 3,
-      "required_fields" => [
-        "schema_version",
-        "generated_at",
-        "planner",
-        "source_plan_id",
-        "mission_state_snapshot",
-        "branches",
-        "recommendation",
-        "strategy_policy",
-        "approval_policy",
-        "operational_feedback",
-        "assumptions",
-        "provenance",
-        "strategy_metadata"
-      ],
-      "optional_fields" => [
-        "branch_comparison_report",
-        "ranking_comparison_report",
-        "operator_review_package"
-      ],
-      "nested_contracts" => [
-        "strategy_branch.v1",
-        "strategy_recommendation.v1",
-        "branch_comparison_report.v1",
-        "ranking_comparison_report.v1",
-        "approval_requirement.v1",
-        "operator_review_package.v1"
-      ]
-    },
     @campaign_request_lint => %{
       "schema_contract" => @campaign_request_lint,
       "artifact_family" => "campaign_request_lint",
@@ -5608,10 +5469,9 @@ defmodule OrbitalDynamics.Schema do
     }
   }
 
-  @contracts Map.merge(
-               @base_contracts,
-               OrbitalDynamics.Schema.ValidationRegistryContracts.contracts()
-             )
+  @contracts @base_contracts
+             |> Map.merge(OrbitalDynamics.Schema.ValidationRegistryContracts.contracts())
+             |> Map.merge(OrbitalDynamics.Schema.CampaignRegistryContracts.contracts())
 
   @doc """
   Returns the known executable artifact contracts.
