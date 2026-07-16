@@ -11410,8 +11410,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.OperationalReadinessClassificationContracts.validate_assumptions(
       issues,
       path,
-      report,
-      operational_readiness_classification_contract_callbacks()
+      report
     )
   end
 
@@ -11420,16 +11419,8 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       report,
-      gates,
-      operational_readiness_classification_contract_callbacks()
+      gates
     )
-  end
-
-  defp operational_readiness_classification_contract_callbacks do
-    [
-      expect_field_equals: &expect_field_equals/6,
-      error: &error/2
-    ]
   end
 
   defp operational_readiness_import_classification(gates) do

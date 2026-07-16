@@ -1,12 +1,14 @@
 defmodule OrbitalDynamics.Schema.OperationalReadinessClassificationContracts do
   @moduledoc false
 
+  import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2, expect_field_equals: 6]
+
   @required_assumptions [
     "classification_uses_declared_operator_review_and_cadence_import_manifest_evidence",
     "cadence_import_manifest_rows_are_adapter_handoff_not_external_import_writes"
   ]
 
-  def validate_assumptions(issues, path, report, callbacks) do
+  def validate_assumptions(issues, path, report) do
     assumptions = Map.get(report, "assumptions")
 
     if is_list(assumptions) and Enum.all?(@required_assumptions, &(&1 in assumptions)) do
@@ -15,15 +17,14 @@ defmodule OrbitalDynamics.Schema.OperationalReadinessClassificationContracts do
       [
         error(
           path <> ".assumptions",
-          "must include operational readiness artifact-only assumptions",
-          callbacks
+          "must include operational readiness artifact-only assumptions"
         )
         | issues
       ]
     end
   end
 
-  def validate_classification(issues, path, report, gates, callbacks) when is_list(gates) do
+  def validate_classification(issues, path, report, gates) when is_list(gates) do
     import_classification = import_classification(gates)
     readiness_level = readiness_level(import_classification)
     status = report_status(import_classification)
@@ -34,28 +35,25 @@ defmodule OrbitalDynamics.Schema.OperationalReadinessClassificationContracts do
       report,
       "import_classification",
       import_classification,
-      "must match gate-derived import classification",
-      callbacks
+      "must match gate-derived import classification"
     )
     |> expect_field_equals(
       path,
       report,
       "readiness_level",
       readiness_level,
-      "must match gate-derived readiness level",
-      callbacks
+      "must match gate-derived readiness level"
     )
     |> expect_field_equals(
       path,
       report,
       "status",
       status,
-      "must match gate-derived report status",
-      callbacks
+      "must match gate-derived report status"
     )
   end
 
-  def validate_classification(issues, _path, _report, _gates, _callbacks), do: issues
+  def validate_classification(issues, _path, _report, _gates), do: issues
 
   def import_classification(gates) when is_list(gates) do
     statuses =
@@ -80,16 +78,4 @@ defmodule OrbitalDynamics.Schema.OperationalReadinessClassificationContracts do
   def report_status("review_only"), do: "review_required"
   def report_status("analysis_only"), do: "analysis_only"
   def report_status("blocked"), do: "blocked"
-
-  defp expect_field_equals(issues, path, data, field, expected, message, callbacks) do
-    callbacks
-    |> Keyword.fetch!(:expect_field_equals)
-    |> then(& &1.(issues, path, data, field, expected, message))
-  end
-
-  defp error(path, message, callbacks) do
-    callbacks
-    |> Keyword.fetch!(:error)
-    |> then(& &1.(path, message))
-  end
 end
