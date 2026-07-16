@@ -1,13 +1,15 @@
 defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
   @moduledoc false
 
+  alias OrbitalDynamics.Schema.CandidateRefreshContactIntentRoutingContracts
+  alias OrbitalDynamics.Schema.CollectionAggregation
+
   import OrbitalDynamics.Schema.CollectionValidation,
     only: [validate_optional_string_list: 4, validate_string_list_map: 4]
 
   import OrbitalDynamics.Schema.PrimitiveValidation,
     only: [
       error: 2,
-      expect_optional_field_equals: 6,
       expect_optional_non_negative_integer: 4,
       expect_optional_number: 4,
       expect_optional_type: 5,
@@ -1106,7 +1108,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
     )
     |> validate_contact_intent_stable_id_maps(path, summary)
     |> validate_string_list_items(path, summary, "directions")
-    |> validate_contact_intent_direction_routing_with_callbacks(
+    |> CandidateRefreshContactIntentRoutingContracts.validate(
       path,
       Map.get(summary, "direction_routing"),
       summary
@@ -1153,7 +1155,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
 
   def validate_contact_intent_direction_routing(issues, path, value, summary, callbacks)
       when is_list(callbacks) do
-    validate_contact_intent_direction_routing_with_callbacks(issues, path, value, summary)
+    CandidateRefreshContactIntentRoutingContracts.validate(issues, path, value, summary)
   end
 
   defp validate_model_acceptance_count_maps(issues, path, summary) do
@@ -1230,193 +1232,6 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
         validate_nested_stable_id_array_map(acc, path <> ".#{field}", Map.get(summary, field))
       end
     )
-  end
-
-  defp validate_contact_intent_direction_routing_with_callbacks(issues, _path, value, _summary)
-       when value in [nil, :null],
-       do: issues
-
-  defp validate_contact_intent_direction_routing_with_callbacks(
-         issues,
-         path,
-         %{} = routing,
-         summary
-       ) do
-    Enum.reduce(routing, issues, fn {direction, route}, acc ->
-      route_path = "#{path}.direction_routing.#{direction}"
-
-      case route do
-        %{} = route ->
-          acc
-          |> expect_optional_non_negative_integer(route_path, route, "contact_count")
-          |> validate_stable_id_list(
-            route_path <> ".contact_ids",
-            Map.get(route, "contact_ids")
-          )
-          |> expect_optional_number(
-            route_path,
-            route,
-            "capacity_pack_required_capacity_fraction"
-          )
-          |> validate_non_negative_number_map(
-            route_path,
-            maybe_single_number_map(route, "capacity_pack_required_capacity_fraction")
-          )
-          |> validate_contact_intent_route_stable_ids(route_path, route)
-          |> validate_contact_intent_route_fraction_maps(route_path, route)
-          |> validate_contact_intent_direction_route_consistency(
-            route_path,
-            route,
-            direction,
-            summary
-          )
-
-        _route ->
-          [error(route_path, "must be an object") | acc]
-      end
-    end)
-  end
-
-  defp validate_contact_intent_direction_routing_with_callbacks(issues, path, _value, _summary),
-    do: [error(path <> ".direction_routing", "must be an object") | issues]
-
-  defp validate_contact_intent_route_stable_ids(issues, route_path, route) do
-    issues =
-      Enum.reduce(
-        [
-          "capacity_pack_contact_ids",
-          "ground_station_ids"
-        ],
-        issues,
-        fn field, acc ->
-          validate_stable_id_list(acc, route_path <> ".#{field}", Map.get(route, field))
-        end
-      )
-
-    Enum.reduce(
-      [
-        "contact_ids_by_ground_station",
-        "contact_ids_by_ground_station_id",
-        "capacity_pack_contact_ids_by_ground_station",
-        "capacity_pack_contact_ids_by_ground_station_id"
-      ],
-      issues,
-      fn field, acc ->
-        validate_stable_id_array_map(acc, route_path <> ".#{field}", Map.get(route, field))
-      end
-    )
-  end
-
-  defp validate_contact_intent_route_fraction_maps(issues, route_path, route) do
-    Enum.reduce(
-      [
-        "capacity_pack_required_capacity_fraction_by_ground_station",
-        "capacity_pack_required_capacity_fraction_by_ground_station_id"
-      ],
-      issues,
-      fn field, acc ->
-        validate_non_negative_number_map(acc, route_path <> ".#{field}", Map.get(route, field))
-      end
-    )
-  end
-
-  defp validate_contact_intent_direction_route_consistency(
-         issues,
-         path,
-         route,
-         direction,
-         summary
-       ) do
-    contact_ids_by_station =
-      direction_route_nested_map(summary, direction, [
-        "contact_ids_by_direction_and_ground_station",
-        "contact_ids_by_direction_and_ground_station_id"
-      ])
-
-    capacity_contact_ids_by_station =
-      direction_route_nested_map(summary, direction, [
-        "capacity_pack_contact_ids_by_direction_and_ground_station",
-        "capacity_pack_contact_ids_by_direction_and_ground_station_id"
-      ])
-
-    required_by_station =
-      direction_route_nested_map(summary, direction, [
-        "capacity_pack_required_capacity_fraction_by_direction_and_ground_station",
-        "capacity_pack_required_capacity_fraction_by_direction_and_ground_station_id"
-      ])
-
-    station_ids =
-      case contact_ids_by_station do
-        %{} -> contact_ids_by_station |> Map.keys() |> Enum.sort()
-        _value -> nil
-      end
-
-    issues
-    |> expect_optional_field_equals(
-      path,
-      route,
-      "ground_station_ids",
-      station_ids,
-      "must equal contact_ids_by_direction_and_ground_station keys"
-    )
-    |> expect_optional_field_equals(
-      path,
-      route,
-      "contact_ids_by_ground_station",
-      contact_ids_by_station,
-      "must equal contact_ids_by_direction_and_ground_station for this direction"
-    )
-    |> expect_optional_field_equals(
-      path,
-      route,
-      "contact_ids_by_ground_station_id",
-      contact_ids_by_station,
-      "must equal contact_ids_by_direction_and_ground_station_id for this direction"
-    )
-    |> expect_optional_field_equals(
-      path,
-      route,
-      "capacity_pack_contact_ids_by_ground_station",
-      capacity_contact_ids_by_station,
-      "must equal capacity_pack_contact_ids_by_direction_and_ground_station for this direction"
-    )
-    |> expect_optional_field_equals(
-      path,
-      route,
-      "capacity_pack_contact_ids_by_ground_station_id",
-      capacity_contact_ids_by_station,
-      "must equal capacity_pack_contact_ids_by_direction_and_ground_station_id for this direction"
-    )
-    |> expect_optional_field_equals(
-      path,
-      route,
-      "capacity_pack_required_capacity_fraction_by_ground_station",
-      required_by_station,
-      "must equal capacity_pack_required_capacity_fraction_by_direction_and_ground_station for this direction"
-    )
-    |> expect_optional_field_equals(
-      path,
-      route,
-      "capacity_pack_required_capacity_fraction_by_ground_station_id",
-      required_by_station,
-      "must equal capacity_pack_required_capacity_fraction_by_direction_and_ground_station_id for this direction"
-    )
-  end
-
-  defp direction_route_nested_map(summary, direction, fields) do
-    Enum.find_value(fields, fn field ->
-      case get_in(summary, [field, direction]) do
-        %{} = values -> values
-        _value -> nil
-      end
-    end)
-  end
-
-  defp maybe_single_number_map(map, field) do
-    case Map.fetch(map, field) do
-      {:ok, value} -> %{field => value}
-      :error -> nil
-    end
   end
 
   defp validate_station_calendar_stable_id_lists(issues, path, summary) do
@@ -1537,7 +1352,10 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
       )
       |> validate_non_negative_number_map(
         path,
-        maybe_single_number_map(summary, "provider_calendar_contention_minimum_capacity_fraction")
+        CollectionAggregation.single_field_map(
+          summary,
+          "provider_calendar_contention_minimum_capacity_fraction"
+        )
       )
       |> validate_count_maps(path, summary, [
         "provider_calendar_contention_provider_counts",

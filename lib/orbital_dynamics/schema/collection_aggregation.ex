@@ -56,6 +56,13 @@ defmodule OrbitalDynamics.Schema.CollectionAggregation do
   def numeric_delta(left, right) when is_number(left) and is_number(right), do: left - right
   def numeric_delta(_left, _right), do: nil
 
+  def single_field_map(map, field) do
+    case Map.fetch(map, field) do
+      {:ok, value} -> %{field => value}
+      :error -> nil
+    end
+  end
+
   def row_count_sum(report, fields) do
     values = Enum.map(fields, &Map.get(report, &1))
 
