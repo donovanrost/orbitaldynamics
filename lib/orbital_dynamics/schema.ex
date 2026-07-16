@@ -16,6 +16,7 @@ defmodule OrbitalDynamics.Schema do
       validate_stable_id: 3,
       validate_stable_id_array_map: 3,
       validate_stable_id_list: 3,
+      validate_stable_id_list: 4,
       validate_stable_ids: 4
     ]
 
@@ -62,6 +63,7 @@ defmodule OrbitalDynamics.Schema do
 
   import OrbitalDynamics.Schema.CollectionValidation,
     only: [
+      expect_list_count_equals: 5,
       validate_numeric_map: 3,
       validate_optional_rows: 4,
       validate_optional_string_list: 4,
@@ -6832,8 +6834,7 @@ defmodule OrbitalDynamics.Schema do
     |> require_fields("$", artifact, contract["required_fields"])
     |> OrbitalDynamics.Schema.OptimizerContractContracts.validate(
       "$",
-      artifact,
-      optimizer_contract_contract_callbacks()
+      artifact
     )
   end
 
@@ -8998,19 +8999,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp optimizer_contract_contract_callbacks do
-    [
-      validate_stable_ids: &validate_stable_ids/4,
-      validate_stable_id_list: &validate_stable_id_list/4,
-      expect_equal: &expect_equal/5,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_non_negative_integer: &expect_non_negative_integer/4,
-      expect_list_count_equals: &expect_list_count_equals/5,
-      error: &error/2
-    ]
-  end
-
   defp branch_comparison_report_contract_callbacks do
     [
       branch_comparison_model_limits:
@@ -10438,23 +10426,6 @@ defmodule OrbitalDynamics.Schema do
   defp validate_optional_ranking_comparison_report(issues, _report),
     do: [error("$.ranking_comparison_report", "must be an object") | issues]
 
-  defp expect_list_count_equals(issues, path, row, count_field, list_field) do
-    count = Map.get(row, count_field)
-    values = Map.get(row, list_field)
-
-    if Map.has_key?(row, count_field) and is_list(values) and count != length(values) do
-      [
-        error(
-          "#{path}.#{count_field}",
-          "must equal row-derived #{list_field} count"
-        )
-        | issues
-      ]
-    else
-      issues
-    end
-  end
-
   defp validate_optional_branch_comparison_source_row(issues, _path, nil), do: issues
 
   defp validate_optional_branch_comparison_source_row(issues, path, %{} = row) do
@@ -10666,20 +10637,6 @@ defmodule OrbitalDynamics.Schema do
       field,
       candidate_diff_contract_callbacks()
     )
-  end
-
-  defp validate_stable_id_list(issues, path, map, field) do
-    case Map.get(map, field) do
-      values when is_list(values) ->
-        values
-        |> Enum.with_index()
-        |> Enum.reduce(issues, fn {value, index}, acc ->
-          validate_stable_id(acc, "#{path}.#{field}[#{index}]", value)
-        end)
-
-      _value ->
-        issues
-    end
   end
 
   defp validate_filter_report_counts(issues, path, report, kind) do

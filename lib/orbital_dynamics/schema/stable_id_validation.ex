@@ -38,6 +38,13 @@ defmodule OrbitalDynamics.Schema.StableIdValidation do
 
   def validate_stable_id_list(issues, _path, _values), do: issues
 
+  def validate_stable_id_list(issues, path, map, field) do
+    case Map.get(map, field) do
+      values when is_list(values) -> validate_stable_id_list(issues, "#{path}.#{field}", values)
+      _value -> issues
+    end
+  end
+
   def validate_stable_id_array_map(issues, _path, value) when value in [nil, :null],
     do: issues
 

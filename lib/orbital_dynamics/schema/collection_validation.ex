@@ -54,4 +54,21 @@ defmodule OrbitalDynamics.Schema.CollectionValidation do
         issues
     end
   end
+
+  def expect_list_count_equals(issues, path, row, count_field, list_field) do
+    count = Map.get(row, count_field)
+    values = Map.get(row, list_field)
+
+    if Map.has_key?(row, count_field) and is_list(values) and count != length(values) do
+      [
+        PrimitiveValidation.error(
+          "#{path}.#{count_field}",
+          "must equal row-derived #{list_field} count"
+        )
+        | issues
+      ]
+    else
+      issues
+    end
+  end
 end
