@@ -9,7 +9,7 @@ Current slice:
 Resource-projection-flow-row callback-bag collapse.
 
 Status:
-Selected; implementation pending.
+Complete and published.
 
 Selected slice:
 Replace the 9-entry callback bag in `ResourceProjectionFlowRowContracts` with
@@ -44,17 +44,22 @@ direct shared owners preserve validation while the two Schema domain validators
 remain explicit boundaries; focused, broader, and export checks pass; and
 bounded review finds no blocker.
 
+Outcome:
+`schema.ex` fell from 11,612 to 11,599 lines and the flow-row owner from 192 to
+135. The 9-entry bag became direct primitive/stable-ID calls and two explicit
+domain-validator arguments. 174 targeted, 1,167 broader, and 22 export tests
+passed; compile, compile-connected xref, checked-in regeneration, format, diff
+hygiene, and bounded review were clean.
+
 Verification gaps:
 - Full repository suite not run.
 - Known baseline: full contact-filter file remains 87/88 due nil-message
   behavior in `SuppressedCandidateContracts`; unrelated to these slices.
+- Full resource-projection file remains 211/214 due three summary-count
+  nil-message assertions outside the flow-row owner; targeted flow tests pass.
 
 Last completed slice:
-Station-calendar-provider callback-bag collapse published as `5f09992f`:
-`schema.ex` fell from 11,627 to 11,612 lines and its owner from 250 to 226. The
-9-entry bag became direct shared validators and local error ownership. 179
-focused, 1,167 broader, and 22 export tests passed; compile, xref, format, diff
-hygiene, checked-in regeneration, and bounded review were clean.
+Resource-projection-flow-row callback-bag collapse; publication commit pending.
 
 Blocked:
 No.

@@ -7370,20 +7370,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp resource_projection_flow_row_contract_callbacks do
-    [
-      validate_stable_ids: &validate_stable_ids/4,
-      expect_optional_type: &expect_optional_type/5,
-      validate_optional_source_window: &validate_optional_source_window/4,
-      validate_nested_id_match: &validate_nested_id_match/7,
-      validate_string_list_items: &validate_string_list_items/4,
-      expect_optional_probability: &expect_optional_probability/4,
-      expect_optional_non_negative_number: &expect_optional_non_negative_number/4,
-      expect_optional_number: &expect_optional_number/4,
-      expect_optional_one_of: &expect_optional_one_of/5
-    ]
-  end
-
   defp resource_projection_flow_summary_contract_callbacks do
     [
       require_fields: &require_fields/4,
@@ -8223,7 +8209,8 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       row,
-      resource_projection_flow_row_contract_callbacks()
+      &validate_optional_source_window/4,
+      &validate_nested_id_match/7
     )
   end
 
