@@ -8302,26 +8302,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp realized_state_snapshot_contract_callbacks do
-    [
-      realized_state_snapshot_model_limits:
-        &OrbitalDynamics.CampaignPlanner.realized_state_snapshot_model_limits/0,
-      frequency_map: &frequency_map/2,
-      require_fields: &require_fields/4,
-      expect_equal: &expect_equal/5,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_optional_list: &expect_optional_list/4,
-      expect_field_equals: &expect_field_equals/5,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      validate_rows: &validate_rows/4,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_stable_ids: &validate_stable_ids/4,
-      validate_realized_activity: &validate_realized_activity/3,
-      error: &error/2
-    ]
-  end
-
   defp plan_delta_contract_callbacks do
     [
       require_fields: &require_fields/4,
@@ -9356,8 +9336,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.RealizedStateSnapshotContracts.validate(
       issues,
       path,
-      snapshot,
-      realized_state_snapshot_contract_callbacks()
+      snapshot
     )
   end
 
