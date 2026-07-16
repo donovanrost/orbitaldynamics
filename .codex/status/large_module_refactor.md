@@ -6,23 +6,23 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Suppressed-candidate callback ownership cleanup.
+Refresh-budget callback ownership cleanup.
 
 Status:
 Complete and published.
 
 Selected slice:
-Replace suppressed-candidate callbacks with direct primitive and stable-ID
-support, including the separately reused duplicate-evidence entry point.
+Replace refresh-budget report callbacks with direct primitive, stable-ID, and
+collection-aggregation support.
 
 Why this slice:
-All eleven callbacks map to shared support. Focused resource-filter tests cover
-nested type/status validation, overlap counts, duplicate collision evidence,
-and exact count/index errors through the public Schema facade.
+All ten callbacks map to shared support, including `row_count_sum/2`. Focused
+candidate-refresh contract coverage exercises valid fixtures, count/model-limit
+errors, required types, and JSON Schema export.
 
 Current coupling/problem:
-The facade assembles and passes the same eleven-function bag to both the full
-row validator and a separately reused duplicate-evidence check.
+The facade assembles the same ten-function bag for both optional and required
+refresh-budget entry points even though the leaf owns its ID-set semantics.
 
 Public facade preserved:
 - `OrbitalDynamics.Schema.validate_artifact/2`
@@ -33,55 +33,55 @@ Public facade preserved:
 Files changed:
 - `.codex/status/large_module_refactor.md`
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/suppressed_candidate_contracts.ex`
-- `lib/orbital_dynamics/schema/primitive_validation.ex`
+- `lib/orbital_dynamics/schema/refresh_budget_report_contracts.ex`
 
 Definition of done:
-The facade bag and both call-site callback arguments are gone; focused resource
-filter/schema export tests, fingerprint, formatting, and export checks pass;
-xref shows direct primitive and stable-ID dependencies.
+The facade bag and both call-site callback arguments are gone; focused candidate
+refresh/schema export tests, fingerprint, formatting, and export checks pass;
+xref shows direct aggregation, primitive, and stable-ID dependencies.
 
 Behavior/schema changes:
 None. Contact identity, intervals, timeline/source-window matching, model limits,
 reservation metadata, paths/messages, and schema output remain unchanged.
 
 Tests run:
-- `mix compile --warnings-as-errors` (passed).
-- `mix test test/orbital_dynamics/resource_filter_test.exs:589 test/orbital_dynamics/resource_filter_test.exs:2745 test/orbital_dynamics/schema/resource_contracts_test.exs:444 test/orbital_dynamics/schema_export_test.exs`
-  (6 passed, 40 excluded).
+- `mix compile --warnings-as-errors` (passed after removing the facade's now
+  unused four-argument stable-ID-list import).
+- `mix test test/orbital_dynamics/schema/candidate_refresh_contracts_test.exs:873 test/orbital_dynamics/schema/candidate_refresh_contracts_test.exs:999 test/orbital_dynamics/schema_export_test.exs`
+  (5 passed, 8 excluded).
+- Runtime fixture probes confirmed exact duplicate-ID and kept/dropped overlap
+  paths/messages.
 - `mix orbital_dynamics.schema.export --all --directory schemas --output schemas/orbital_dynamics.schema_bundle.v1.json`
   (passed; checked-in export unchanged).
 - Contract fingerprint remained
   `831840C514054AEAA9C3B2275DBE55B442423DE771C7B41D4E3AF3AF83A7DDC0`.
-- Focused xref callers/graph confirmed direct aggregation, primitive, and
-  stable-ID dependencies.
+- Focused xref callers/graph confirmed direct aggregation, primitive, stable-ID,
+  and CandidateRefresh model-limit dependencies.
 - `mix format --check-formatted` and `git diff --check` (passed).
-- Bounded local review confirmed unchanged validation order, overlap-count
-  semantics, upper-bound helper behavior, paths, and messages; review sidecar
-  delegation was unavailable under runtime policy.
+- Bounded local review confirmed unchanged optional/required behavior,
+  validation order, count aggregation, duplicate sorting, overlap semantics,
+  paths, and messages; review sidecar delegation was unavailable under runtime
+  policy.
 
 Verification gaps:
 - Full suite not run.
 
 Last commit:
-`8ffb3e18` (`Collapse suppressed candidate callbacks`).
+`d1433798` (`Collapse refresh budget callbacks`).
 
 Next candidate:
-Remove shared-validation callbacks from refresh-budget reports, using direct
-collection aggregation for its row-count sum.
+Remove shared-validation callbacks from freshness reports and move the fixed
+`current`/`stale`/`unknown` status set into that cohesive leaf.
 
 Blocked:
 No.
 
 Notes:
-- Starting point: `schema.ex` is 13,919 lines; suppressed candidate is 149
+- Starting point: `schema.ex` is 13,891 lines; refresh-budget reports are 178
   lines.
-- Ending point: `schema.ex` is 13,891 lines; suppressed candidate is 116 lines.
-  Primitive validation is 418 lines after receiving the unchanged ten-line
-  upper-bound helper.
-- Operational-feedback validation was audited and deferred because its row
-  traversal still composes the facade-owned realized-activity validator.
-- Published implementation commit: `8ffb3e18`; the parent performed the exact
+- Ending point: `schema.ex` is 13,873 lines; refresh-budget reports are 138
+  lines.
+- Published implementation commit: `d1433798`; the parent performed the exact
   mechanical commit/push because publisher delegation was unavailable under
   runtime policy.
 - Campaign-plan validation was audited and deferred because its bag composes
