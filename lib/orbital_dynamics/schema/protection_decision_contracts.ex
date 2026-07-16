@@ -1,16 +1,17 @@
 defmodule OrbitalDynamics.Schema.ProtectionDecisionContracts do
   @moduledoc false
 
-  def validate_optional(issues, path, map, field, callbacks)
-      when is_map(map) and is_list(callbacks) do
+  alias OrbitalDynamics.Schema.PrimitiveValidation
+  alias OrbitalDynamics.Schema.StableIdValidation
+
+  def validate_optional(issues, path, map, field) when is_map(map) do
     case Map.get(map, field) do
-      %{} = decision -> validate_decision(issues, "#{path}.#{field}", decision, callbacks)
+      %{} = decision -> validate_decision(issues, "#{path}.#{field}", decision)
       _value -> issues
     end
   end
 
-  def validate_lifecycle_state_consistency(issues, path, state, prefix, callbacks)
-      when is_map(state) and is_list(callbacks) do
+  def validate_lifecycle_state_consistency(issues, path, state, prefix) when is_map(state) do
     field = "#{prefix}_protection_decision"
 
     case Map.get(state, field) do
@@ -18,54 +19,45 @@ defmodule OrbitalDynamics.Schema.ProtectionDecisionContracts do
         decision_path = "#{path}.#{field}"
 
         issues
-        |> expect_lifecycle_protection_locked_flag(
-          callbacks,
-          decision_path,
-          state,
-          decision,
-          prefix
-        )
-        |> expect_lifecycle_protection_approved_flag(
-          callbacks,
-          decision_path,
-          state,
-          decision,
-          prefix
-        )
-        |> expect_lifecycle_protection_category(
-          callbacks,
-          decision_path,
-          state,
-          decision,
-          prefix
-        )
+        |> expect_lifecycle_protection_locked_flag(decision_path, state, decision, prefix)
+        |> expect_lifecycle_protection_approved_flag(decision_path, state, decision, prefix)
+        |> expect_lifecycle_protection_category(decision_path, state, decision, prefix)
 
       _decision ->
         issues
     end
   end
 
-  defp validate_decision(issues, path, decision, callbacks) do
+  defp validate_decision(issues, path, decision) do
     issues
-    |> validate_stable_ids(callbacks, path, decision, ["activity_id", "timeline_id"])
-    |> expect_optional_type(callbacks, path, decision, "status", :binary)
-    |> expect_optional_type(callbacks, path, decision, "approval_status", :binary)
-    |> expect_optional_type(callbacks, path, decision, "locked", :boolean)
-    |> expect_optional_type(callbacks, path, decision, "approved", :boolean)
-    |> expect_optional_type(callbacks, path, decision, "timeline_identity", :map)
-    |> expect_optional_type(callbacks, path, decision, "invalid_activity_input", :boolean)
-    |> expect_optional_type(callbacks, path, decision, "invalid_activity_input_reason", :binary)
-    |> expect_optional_type(callbacks, path, decision, "protection_decision", :binary)
-    |> expect_optional_type(callbacks, path, decision, "protection_category", :binary)
-    |> expect_optional_type(callbacks, path, decision, "reason", :binary)
+    |> StableIdValidation.validate_stable_ids(path, decision, ["activity_id", "timeline_id"])
+    |> PrimitiveValidation.expect_optional_type(path, decision, "status", :binary)
+    |> PrimitiveValidation.expect_optional_type(path, decision, "approval_status", :binary)
+    |> PrimitiveValidation.expect_optional_type(path, decision, "locked", :boolean)
+    |> PrimitiveValidation.expect_optional_type(path, decision, "approved", :boolean)
+    |> PrimitiveValidation.expect_optional_type(path, decision, "timeline_identity", :map)
+    |> PrimitiveValidation.expect_optional_type(
+      path,
+      decision,
+      "invalid_activity_input",
+      :boolean
+    )
+    |> PrimitiveValidation.expect_optional_type(
+      path,
+      decision,
+      "invalid_activity_input_reason",
+      :binary
+    )
+    |> PrimitiveValidation.expect_optional_type(path, decision, "protection_decision", :binary)
+    |> PrimitiveValidation.expect_optional_type(path, decision, "protection_category", :binary)
+    |> PrimitiveValidation.expect_optional_type(path, decision, "reason", :binary)
   end
 
-  defp expect_lifecycle_protection_locked_flag(issues, callbacks, path, state, decision, prefix) do
+  defp expect_lifecycle_protection_locked_flag(issues, path, state, decision, prefix) do
     case Map.get(state, "#{prefix}_locked") do
       locked when is_boolean(locked) ->
-        expect_optional_field_equals(
+        PrimitiveValidation.expect_optional_field_equals(
           issues,
-          callbacks,
           path,
           decision,
           "locked",
@@ -78,14 +70,7 @@ defmodule OrbitalDynamics.Schema.ProtectionDecisionContracts do
     end
   end
 
-  defp expect_lifecycle_protection_approved_flag(
-         issues,
-         callbacks,
-         path,
-         state,
-         decision,
-         prefix
-       ) do
+  defp expect_lifecycle_protection_approved_flag(issues, path, state, decision, prefix) do
     expected =
       case Map.get(state, "#{prefix}_approval_category") do
         "protected" -> true
@@ -94,9 +79,8 @@ defmodule OrbitalDynamics.Schema.ProtectionDecisionContracts do
       end
 
     if is_boolean(expected) do
-      expect_optional_field_equals(
+      PrimitiveValidation.expect_optional_field_equals(
         issues,
-        callbacks,
         path,
         decision,
         "approved",
@@ -108,20 +92,18 @@ defmodule OrbitalDynamics.Schema.ProtectionDecisionContracts do
     end
   end
 
-  defp expect_lifecycle_protection_category(issues, callbacks, path, state, decision, prefix) do
+  defp expect_lifecycle_protection_category(issues, path, state, decision, prefix) do
     cond do
       Map.get(state, "#{prefix}_executed") == true ->
         issues
-        |> expect_optional_field_equals(
-          callbacks,
+        |> PrimitiveValidation.expect_optional_field_equals(
           path,
           decision,
           "protection_decision",
           "preserve",
           "must preserve executed lifecycle-state protection"
         )
-        |> expect_optional_field_equals(
-          callbacks,
+        |> PrimitiveValidation.expect_optional_field_equals(
           path,
           decision,
           "protection_category",
@@ -131,28 +113,25 @@ defmodule OrbitalDynamics.Schema.ProtectionDecisionContracts do
 
       lifecycle_state_locked_or_approved?(state, prefix) ->
         issues
-        |> expect_optional_field_equals(
-          callbacks,
+        |> PrimitiveValidation.expect_optional_field_equals(
           path,
           decision,
           "protection_category",
           "locked_or_approved",
           "must classify locked or approved lifecycle-state protection"
         )
-        |> expect_lifecycle_locked_or_approved_decision(callbacks, path, decision)
+        |> expect_lifecycle_locked_or_approved_decision(path, decision)
 
       decision["invalid_activity_input"] == true ->
         issues
-        |> expect_optional_field_equals(
-          callbacks,
+        |> PrimitiveValidation.expect_optional_field_equals(
           path,
           decision,
           "protection_decision",
           "review_change",
           "must review invalid lifecycle-state protection"
         )
-        |> expect_optional_field_equals(
-          callbacks,
+        |> PrimitiveValidation.expect_optional_field_equals(
           path,
           decision,
           "protection_category",
@@ -170,12 +149,11 @@ defmodule OrbitalDynamics.Schema.ProtectionDecisionContracts do
       Map.get(state, "#{prefix}_approval_category") == "protected"
   end
 
-  defp expect_lifecycle_locked_or_approved_decision(issues, callbacks, path, decision) do
+  defp expect_lifecycle_locked_or_approved_decision(issues, path, decision) do
     if Map.has_key?(decision, "protection_decision") and
          decision["protection_decision"] not in ["preserve", "review_change"] do
       [
-        error(
-          callbacks,
+        PrimitiveValidation.error(
           "#{path}.protection_decision",
           "must preserve or review locked or approved lifecycle-state protection"
         )
@@ -184,36 +162,5 @@ defmodule OrbitalDynamics.Schema.ProtectionDecisionContracts do
     else
       issues
     end
-  end
-
-  defp validate_stable_ids(issues, callbacks, path, map, fields),
-    do: apply(require_callback(callbacks, :validate_stable_ids), [issues, path, map, fields])
-
-  defp expect_optional_type(issues, callbacks, path, map, field, type),
-    do:
-      apply(require_callback(callbacks, :expect_optional_type), [
-        issues,
-        path,
-        map,
-        field,
-        type
-      ])
-
-  defp expect_optional_field_equals(issues, callbacks, path, map, field, expected, message),
-    do:
-      apply(require_callback(callbacks, :expect_optional_field_equals), [
-        issues,
-        path,
-        map,
-        field,
-        expected,
-        message
-      ])
-
-  defp error(callbacks, path, message),
-    do: apply(require_callback(callbacks, :error), [path, message])
-
-  defp require_callback(callbacks, name) do
-    Keyword.fetch!(callbacks, name)
   end
 end

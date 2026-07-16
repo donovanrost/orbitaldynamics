@@ -27,6 +27,7 @@ defmodule OrbitalDynamics.Schema do
       expect_number_vector: 3,
       expect_one_of: 5,
       expect_optional_integer: 4,
+      expect_optional_field_equals: 6,
       expect_optional_list: 4,
       expect_optional_non_negative_number: 4,
       expect_optional_number: 4,
@@ -12578,14 +12579,6 @@ defmodule OrbitalDynamics.Schema do
     end
   end
 
-  defp expect_optional_field_equals(issues, path, map, field, expected, message) do
-    if Map.has_key?(map, field) and Map.get(map, field) != expected do
-      [error("#{path}.#{field}", message) | issues]
-    else
-      issues
-    end
-  end
-
   defp expect_field_matches_list_count(issues, path, map, count_field, list_field, message) do
     expected = list_count(map, list_field)
 
@@ -14517,8 +14510,7 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       map,
-      field,
-      protection_decision_contract_callbacks()
+      field
     )
   end
 
@@ -14528,18 +14520,8 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       state,
-      prefix,
-      protection_decision_contract_callbacks()
+      prefix
     )
-  end
-
-  defp protection_decision_contract_callbacks do
-    [
-      validate_stable_ids: &validate_stable_ids/4,
-      expect_optional_type: &expect_optional_type/5,
-      expect_optional_field_equals: &expect_optional_field_equals/6,
-      error: &error/2
-    ]
   end
 
   defp validate_optional_lifecycle_transition(issues, path, map, field) when is_map(map) do
