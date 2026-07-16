@@ -10964,20 +10964,8 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.ResourceProjectionReportCountContracts.validate(
       issues,
       path,
-      report,
-      resource_projection_report_count_contract_callbacks()
+      report
     )
-  end
-
-  defp resource_projection_report_count_contract_callbacks do
-    [
-      expect_field_equals: &expect_field_equals/5,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      validate_non_negative_integer_count_map: &validate_non_negative_integer_count_map/3,
-      frequency_map: &frequency_map/2,
-      row_count_difference: &row_count_difference/3,
-      integer_or_zero: &integer_or_zero/1
-    ]
   end
 
   defp validate_resource_projection_flow_summary_counts(issues, path, summary) do
@@ -13889,9 +13877,6 @@ defmodule OrbitalDynamics.Schema do
       record
     )
   end
-
-  defp integer_or_zero(value),
-    do: OrbitalDynamics.Schema.CollectionAggregation.integer_or_zero(value)
 
   defp numeric_delta(left, right) do
     OrbitalDynamics.Schema.CollectionAggregation.numeric_delta(left, right)

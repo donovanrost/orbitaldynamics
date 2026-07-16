@@ -27,6 +27,28 @@ defmodule OrbitalDynamics.Schema.ResourceProjectionPressureContracts do
     |> Enum.sort()
   end
 
+  def first_kind(%{"storage_overflow_mb" => value}) when is_number(value) and value > 0.0,
+    do: "storage_overflow"
+
+  def first_kind(%{"downlink_shortfall_mb" => value}) when is_number(value) and value > 0.0,
+    do: "downlink_shortfall"
+
+  def first_kind(%{"battery_overuse_wh" => value}) when is_number(value) and value > 0.0,
+    do: "battery_depletion"
+
+  def first_kind(%{"resource_effect_reason" => reason})
+      when reason in [
+             "spacecraft_unavailable",
+             "payload_unavailable",
+             "spacecraft_degraded_payload_unavailable",
+             "activity_type_suppressed_by_resource_summary",
+             "activity_type_incompatible_with_resource_summary",
+             "antenna_unavailable"
+           ],
+      do: reason
+
+  def first_kind(_row), do: nil
+
   def kinds(row) do
     []
     |> maybe_add_kind(row, "storage_overflow", "storage_overflow_mb")
