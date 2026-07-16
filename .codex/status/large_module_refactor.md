@@ -9,7 +9,7 @@ Current slice:
 Operator-review-row generic callback ownership phase.
 
 Status:
-Complete; ready to publish.
+Complete and published.
 
 Result:
 - Removed 20 generic primitive, stable-ID, and collection entries from the
@@ -43,7 +43,7 @@ Verification gaps:
   not exercised by this operator-review-row slice.
 
 Last commit:
-Pending publication; prior handoff-phase handoff `3dc78d4d`.
+Published implementation `e8418b83`.
 
 Next candidate:
 - Candidate-refresh-report generic callback ownership phase. At 1,910 lines it
