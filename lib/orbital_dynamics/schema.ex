@@ -9728,8 +9728,7 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       maneuver,
-      maneuver_recommendation_model_limits(),
-      maneuver_recommendation_contract_callbacks()
+      maneuver_recommendation_model_limits()
     )
   end
 
@@ -9740,21 +9739,6 @@ defmodule OrbitalDynamics.Schema do
       report,
       maneuver_review_report_contract_callbacks()
     )
-  end
-
-  defp maneuver_recommendation_contract_callbacks do
-    [
-      require_fields: &require_fields/4,
-      validate_stable_ids: &validate_stable_ids/4,
-      expect_equal: &expect_equal/5,
-      expect_number: &expect_number/4,
-      expect_optional_type: &expect_optional_type/5,
-      expect_type: &expect_type/5,
-      expect_number_vector: &expect_number_vector/3,
-      expect_optional_number: &expect_optional_number/4,
-      validate_string_list_items: &validate_string_list_items/4,
-      error: &error/2
-    ]
   end
 
   defp validate_optional_exact_model_limits(issues, path, artifact, expected, message) do
