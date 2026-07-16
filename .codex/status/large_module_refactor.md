@@ -9,7 +9,7 @@ Current slice:
 Completed: operational-readiness registry extraction.
 
 Status:
-Ready to publish.
+Published.
 
 Selected slice:
 Move the operational-readiness report, import-eligibility summary, gate summary,
@@ -80,7 +80,7 @@ Verification gaps:
 - The full suite was not run for this declarative extraction.
 
 Last commit:
-`a18d8ffc` (`Update operational quality gate handoff`).
+`b18b5a56` (`Extract operational readiness registry contracts`).
 
 Next candidate:
 Assess `cadence_import_manifest.v1` as the next bounded registry extraction.
