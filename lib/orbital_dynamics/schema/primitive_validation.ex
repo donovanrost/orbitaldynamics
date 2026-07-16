@@ -74,6 +74,16 @@ defmodule OrbitalDynamics.Schema.PrimitiveValidation do
     end
   end
 
+  def expect_field_at_most(issues, path, map, field, maximum) do
+    value = Map.get(map, field)
+
+    if Map.has_key?(map, field) and is_number(value) and value > maximum do
+      [error("#{path}.#{field}", "must be at most #{maximum}") | issues]
+    else
+      issues
+    end
+  end
+
   def expect_optional_number(issues, path, map, field) do
     case Map.get(map, field) do
       nil -> issues

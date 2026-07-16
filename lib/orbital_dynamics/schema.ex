@@ -10329,25 +10329,8 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.SuppressedCandidateContracts.validate(
       issues,
       path,
-      candidate,
-      suppressed_candidate_contract_callbacks()
+      candidate
     )
-  end
-
-  defp suppressed_candidate_contract_callbacks do
-    [
-      require_fields: &require_fields/4,
-      validate_stable_ids: &validate_stable_ids/4,
-      expect_optional_number: &expect_optional_number/4,
-      expect_field_at_least: &expect_field_at_least/5,
-      expect_field_at_most: &expect_field_at_most/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_optional_integer: &expect_optional_integer/4,
-      validate_string_list_items: &validate_string_list_items/4,
-      expect_optional_one_of: &expect_optional_one_of/5,
-      expect_field_equals: &expect_field_equals/5,
-      error: &error/2
-    ]
   end
 
   defp validate_invalid_resource_summary_input(issues, path, row) do
@@ -10606,8 +10589,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.SuppressedCandidateContracts.validate_duplicate_evidence(
       issues,
       path,
-      candidate,
-      suppressed_candidate_contract_callbacks()
+      candidate
     )
   end
 
@@ -12094,16 +12076,6 @@ defmodule OrbitalDynamics.Schema do
 
       true ->
         [error("#{path}.#{field}", message) | issues]
-    end
-  end
-
-  defp expect_field_at_most(issues, path, map, field, maximum) do
-    value = Map.get(map, field)
-
-    if Map.has_key?(map, field) and is_number(value) and value > maximum do
-      [error("#{path}.#{field}", "must be at most #{maximum}") | issues]
-    else
-      issues
     end
   end
 
