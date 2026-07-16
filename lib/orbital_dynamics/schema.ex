@@ -7900,19 +7900,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp activity_contract_callbacks do
-    [
-      require_fields: &require_fields/4,
-      validate_stable_ids: &validate_stable_ids/4,
-      expect_number: &expect_number/4,
-      validate_interval: &validate_interval/3,
-      expect_one_of: &expect_one_of/5,
-      expect_type: &expect_type/5,
-      require_nested: &require_nested/4,
-      expect_optional_type: &expect_optional_type/5
-    ]
-  end
-
   defp planned_activity_contract_callbacks do
     [
       require_fields: &require_fields/4,
@@ -9208,8 +9195,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.ActivityContracts.validate(
       issues,
       path,
-      activity,
-      activity_contract_callbacks()
+      activity
     )
   end
 
@@ -12277,8 +12263,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.ActivityContracts.validate_contact_fields(
       issues,
       path,
-      activity,
-      activity_contract_callbacks()
+      activity
     )
   end
 
