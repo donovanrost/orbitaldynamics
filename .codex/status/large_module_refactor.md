@@ -9,7 +9,7 @@ Current slice:
 Suppressed-candidate exact-message restoration.
 
 Status:
-Selected; implementation pending.
+Complete and ready to publish.
 
 Selected slice:
 Restore the implicit `"must equal #{expected}"` message for the suppressed
@@ -40,20 +40,26 @@ The affected comparison again emits its exact expected-value message without
 changing equality semantics or issue order; focused, broader, and export checks
 pass; and bounded review finds no blocker.
 
+Outcome:
+A local five-argument wrapper again delegates with `"must equal #{expected}"`;
+all other primitive validation remains direct. Contact-filter passes 42/42 and
+resource-filter 37/37, alongside 1,167 broader and 22 export tests. Compile,
+xref, checked-in regeneration, format, and diff hygiene are clean. Bounded
+review confirmed exact legacy wording, nil no-op behavior, unchanged issue
+order, sole-call scope, and unambiguous arity resolution.
+
 Verification gaps:
 - Full repository suite not run.
-- Known baseline: current contact-filter file is 41/42 due nil-message behavior
-  in `SuppressedCandidateContracts`; this is the selected repair.
 - The broader focused batch was 113/114 because the generated campaign did not
   exactly match its checked-in golden artifact; generation is outside this
   validation-only slice. The attributable batch is 102/102.
 
 Last completed slice:
-Strategy-branch callback-bag collapse published as `557a5c4c`: `schema.ex` fell
-from 11,460 to 11,444 lines and the owner from 178 to 138. Nine shared
-dependencies became direct and four domain hooks explicit. Eighteen focused,
-1,167 broader, and 22 export tests passed; compile, xref, regeneration, format,
-diff hygiene, and bounded review were clean.
+Suppressed-candidate exact-message restoration, ready to publish: the
+ambiguous-entry count again emits its legacy expected-value message. Contact
+filter passed 42/42 and resource filter 37/37, with 1,167 broader and 22 export
+tests; compile, xref, regeneration, format, diff hygiene, and bounded review
+were clean.
 
 Blocked:
 No.

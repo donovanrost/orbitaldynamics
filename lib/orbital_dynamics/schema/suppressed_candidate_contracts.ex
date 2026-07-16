@@ -6,7 +6,7 @@ defmodule OrbitalDynamics.Schema.SuppressedCandidateContracts do
       error: 2,
       expect_field_at_least: 5,
       expect_field_at_most: 5,
-      expect_field_equals: 5,
+      expect_field_equals: 6,
       expect_optional_integer: 4,
       expect_optional_number: 4,
       expect_optional_one_of: 5,
@@ -109,6 +109,9 @@ defmodule OrbitalDynamics.Schema.SuppressedCandidateContracts do
       list_count(candidate, "station_calendar_reservation_overlap_entry_ids")
     )
   end
+
+  defp expect_field_equals(issues, path, candidate, field, expected),
+    do: expect_field_equals(issues, path, candidate, field, expected, "must equal #{expected}")
 
   defp list_count(map, field) do
     OrbitalDynamics.Schema.CollectionAggregation.list_count(map, field)
