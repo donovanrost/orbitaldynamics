@@ -1,13 +1,34 @@
 defmodule OrbitalDynamics.Schema.TimelineActivityLifecycleStateContracts do
   @moduledoc false
 
-  def validate_status_state(issues, path, state, callbacks) when is_list(callbacks) do
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [
+      expect_equal: 5,
+      expect_field_equals: 6,
+      expect_one_of: 5,
+      expect_optional_non_negative_integer: 4,
+      expect_optional_one_of: 5,
+      expect_optional_type: 5,
+      expect_type: 5,
+      validate_optional_exact_model_limits: 5,
+      validate_string_list_items: 4
+    ]
+
+  import OrbitalDynamics.Schema.StableIdValidation, only: [validate_stable_ids: 4]
+
+  alias OrbitalDynamics.Schema.{
+    ActivityContextContracts,
+    CollectionValidation,
+    LifecycleTransitionContracts,
+    ProtectionDecisionContracts
+  }
+
+  def validate_status_state(issues, path, state, model_limits) when is_list(model_limits) do
     transition = Map.get(state, "status_transition")
     transition_decision = transition_decision(transition)
 
     issues
     |> validate_common(
-      callbacks,
       path,
       state,
       "timeline_activity_status_state.v1",
@@ -19,21 +40,20 @@ defmodule OrbitalDynamics.Schema.TimelineActivityLifecycleStateContracts do
         "no_command_execution"
       ]
     )
-    |> validate_model_limits(callbacks, path, state)
-    |> expect_optional_type(callbacks, path, state, "status_transition", :map)
-    |> validate_optional_lifecycle_transition(callbacks, path, state, "status_transition")
-    |> expect_optional_type(callbacks, path, state, "planned_status", :binary)
-    |> expect_optional_type(callbacks, path, state, "realized_status", :binary)
-    |> expect_optional_type(callbacks, path, state, "planned_status_category", :binary)
-    |> expect_optional_type(callbacks, path, state, "realized_status_category", :binary)
-    |> expect_optional_type(callbacks, path, state, "planned_activity_context", :map)
-    |> expect_optional_type(callbacks, path, state, "realized_activity_context", :map)
-    |> validate_optional_activity_context(callbacks, path, state, "planned_activity_context")
-    |> validate_optional_activity_context(callbacks, path, state, "realized_activity_context")
-    |> validate_optional_invalid_input(callbacks, path, state)
-    |> expect_type(callbacks, path, state, "operator_action_reason", :binary)
+    |> validate_model_limits(path, state, model_limits)
+    |> expect_optional_type(path, state, "status_transition", :map)
+    |> LifecycleTransitionContracts.validate_optional(path, state, "status_transition")
+    |> expect_optional_type(path, state, "planned_status", :binary)
+    |> expect_optional_type(path, state, "realized_status", :binary)
+    |> expect_optional_type(path, state, "planned_status_category", :binary)
+    |> expect_optional_type(path, state, "realized_status_category", :binary)
+    |> expect_optional_type(path, state, "planned_activity_context", :map)
+    |> expect_optional_type(path, state, "realized_activity_context", :map)
+    |> ActivityContextContracts.validate_optional(path, state, "planned_activity_context")
+    |> ActivityContextContracts.validate_optional(path, state, "realized_activity_context")
+    |> validate_optional_invalid_input(path, state)
+    |> expect_type(path, state, "operator_action_reason", :binary)
     |> expect_field_equals(
-      callbacks,
       path,
       state,
       "transition_decision",
@@ -41,7 +61,6 @@ defmodule OrbitalDynamics.Schema.TimelineActivityLifecycleStateContracts do
       "must equal transition-derived transition_decision"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       state,
       "review_required",
@@ -49,7 +68,6 @@ defmodule OrbitalDynamics.Schema.TimelineActivityLifecycleStateContracts do
       "must equal transition-derived review_required"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       state,
       "required_operator_action",
@@ -57,7 +75,6 @@ defmodule OrbitalDynamics.Schema.TimelineActivityLifecycleStateContracts do
       "must equal transition-derived required_operator_action"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       state,
       "operator_action_reason",
@@ -65,7 +82,6 @@ defmodule OrbitalDynamics.Schema.TimelineActivityLifecycleStateContracts do
       "must equal transition-derived operator_action_reason"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       state,
       "import_action",
@@ -74,13 +90,12 @@ defmodule OrbitalDynamics.Schema.TimelineActivityLifecycleStateContracts do
     )
   end
 
-  def validate_approval_state(issues, path, state, callbacks) when is_list(callbacks) do
+  def validate_approval_state(issues, path, state, model_limits) when is_list(model_limits) do
     transition = Map.get(state, "approval_transition")
     transition_decision = transition_decision(transition)
 
     issues
     |> validate_common(
-      callbacks,
       path,
       state,
       "timeline_activity_approval_state.v1",
@@ -92,21 +107,20 @@ defmodule OrbitalDynamics.Schema.TimelineActivityLifecycleStateContracts do
         "no_command_execution"
       ]
     )
-    |> validate_model_limits(callbacks, path, state)
-    |> expect_optional_type(callbacks, path, state, "approval_transition", :map)
-    |> validate_optional_lifecycle_transition(callbacks, path, state, "approval_transition")
-    |> expect_optional_type(callbacks, path, state, "planned_approval_status", :binary)
-    |> expect_optional_type(callbacks, path, state, "realized_approval_status", :binary)
-    |> expect_optional_type(callbacks, path, state, "planned_approval_category", :binary)
-    |> expect_optional_type(callbacks, path, state, "realized_approval_category", :binary)
-    |> expect_optional_type(callbacks, path, state, "planned_activity_context", :map)
-    |> expect_optional_type(callbacks, path, state, "realized_activity_context", :map)
-    |> validate_optional_activity_context(callbacks, path, state, "planned_activity_context")
-    |> validate_optional_activity_context(callbacks, path, state, "realized_activity_context")
-    |> validate_optional_invalid_input(callbacks, path, state)
-    |> expect_type(callbacks, path, state, "operator_action_reason", :binary)
+    |> validate_model_limits(path, state, model_limits)
+    |> expect_optional_type(path, state, "approval_transition", :map)
+    |> LifecycleTransitionContracts.validate_optional(path, state, "approval_transition")
+    |> expect_optional_type(path, state, "planned_approval_status", :binary)
+    |> expect_optional_type(path, state, "realized_approval_status", :binary)
+    |> expect_optional_type(path, state, "planned_approval_category", :binary)
+    |> expect_optional_type(path, state, "realized_approval_category", :binary)
+    |> expect_optional_type(path, state, "planned_activity_context", :map)
+    |> expect_optional_type(path, state, "realized_activity_context", :map)
+    |> ActivityContextContracts.validate_optional(path, state, "planned_activity_context")
+    |> ActivityContextContracts.validate_optional(path, state, "realized_activity_context")
+    |> validate_optional_invalid_input(path, state)
+    |> expect_type(path, state, "operator_action_reason", :binary)
     |> expect_field_equals(
-      callbacks,
       path,
       state,
       "transition_decision",
@@ -114,7 +128,6 @@ defmodule OrbitalDynamics.Schema.TimelineActivityLifecycleStateContracts do
       "must equal transition-derived transition_decision"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       state,
       "review_required",
@@ -122,7 +135,6 @@ defmodule OrbitalDynamics.Schema.TimelineActivityLifecycleStateContracts do
       "must equal transition-derived review_required"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       state,
       "required_operator_action",
@@ -130,7 +142,6 @@ defmodule OrbitalDynamics.Schema.TimelineActivityLifecycleStateContracts do
       "must equal transition-derived required_operator_action"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       state,
       "operator_action_reason",
@@ -138,7 +149,6 @@ defmodule OrbitalDynamics.Schema.TimelineActivityLifecycleStateContracts do
       "must equal transition-derived operator_action_reason"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       state,
       "import_action",
@@ -147,7 +157,7 @@ defmodule OrbitalDynamics.Schema.TimelineActivityLifecycleStateContracts do
     )
   end
 
-  def validate_lifecycle_state(issues, path, state, callbacks) when is_list(callbacks) do
+  def validate_lifecycle_state(issues, path, state, model_limits) when is_list(model_limits) do
     status_decision = transition_decision(Map.get(state, "status_transition"))
     approval_decision = transition_decision(Map.get(state, "approval_transition"))
 
@@ -169,7 +179,6 @@ defmodule OrbitalDynamics.Schema.TimelineActivityLifecycleStateContracts do
 
     issues
     |> validate_common(
-      callbacks,
       path,
       state,
       "timeline_activity_lifecycle_state.v1",
@@ -182,64 +191,63 @@ defmodule OrbitalDynamics.Schema.TimelineActivityLifecycleStateContracts do
         "no_command_execution"
       ]
     )
-    |> validate_model_limits(callbacks, path, state)
+    |> validate_model_limits(path, state, model_limits)
     |> expect_optional_one_of(
-      callbacks,
       path,
       state,
       "status_transition_decision",
       OrbitalDynamics.Timeline.capabilities().transition_decisions
     )
     |> expect_optional_one_of(
-      callbacks,
       path,
       state,
       "approval_transition_decision",
       OrbitalDynamics.Timeline.capabilities().transition_decisions
     )
-    |> expect_optional_type(callbacks, path, state, "required_operator_actions", :list)
-    |> expect_optional_type(callbacks, path, state, "operator_action_reasons", :list)
-    |> validate_optional_string_list(callbacks, path, state, "required_operator_actions")
-    |> validate_optional_string_list(callbacks, path, state, "operator_action_reasons")
-    |> expect_optional_type(callbacks, path, state, "status_transition", :map)
-    |> expect_optional_type(callbacks, path, state, "approval_transition", :map)
-    |> validate_optional_lifecycle_transition(callbacks, path, state, "status_transition")
-    |> validate_optional_lifecycle_transition(callbacks, path, state, "approval_transition")
-    |> expect_optional_type(callbacks, path, state, "planned_status", :binary)
-    |> expect_optional_type(callbacks, path, state, "realized_status", :binary)
-    |> expect_optional_type(callbacks, path, state, "planned_status_category", :binary)
-    |> expect_optional_type(callbacks, path, state, "realized_status_category", :binary)
-    |> expect_optional_type(callbacks, path, state, "planned_approval_status", :binary)
-    |> expect_optional_type(callbacks, path, state, "realized_approval_status", :binary)
-    |> expect_optional_type(callbacks, path, state, "planned_approval_category", :binary)
-    |> expect_optional_type(callbacks, path, state, "realized_approval_category", :binary)
-    |> expect_optional_type(callbacks, path, state, "planned_activity_context", :map)
-    |> expect_optional_type(callbacks, path, state, "realized_activity_context", :map)
-    |> validate_optional_activity_context(callbacks, path, state, "planned_activity_context")
-    |> validate_optional_activity_context(callbacks, path, state, "realized_activity_context")
-    |> expect_optional_type(callbacks, path, state, "planned_protection_decision", :map)
-    |> expect_optional_type(callbacks, path, state, "realized_protection_decision", :map)
-    |> validate_optional_protection_decision(
-      callbacks,
+    |> expect_optional_type(path, state, "required_operator_actions", :list)
+    |> expect_optional_type(path, state, "operator_action_reasons", :list)
+    |> CollectionValidation.validate_optional_string_list(
+      path,
+      state,
+      "required_operator_actions"
+    )
+    |> CollectionValidation.validate_optional_string_list(path, state, "operator_action_reasons")
+    |> expect_optional_type(path, state, "status_transition", :map)
+    |> expect_optional_type(path, state, "approval_transition", :map)
+    |> LifecycleTransitionContracts.validate_optional(path, state, "status_transition")
+    |> LifecycleTransitionContracts.validate_optional(path, state, "approval_transition")
+    |> expect_optional_type(path, state, "planned_status", :binary)
+    |> expect_optional_type(path, state, "realized_status", :binary)
+    |> expect_optional_type(path, state, "planned_status_category", :binary)
+    |> expect_optional_type(path, state, "realized_status_category", :binary)
+    |> expect_optional_type(path, state, "planned_approval_status", :binary)
+    |> expect_optional_type(path, state, "realized_approval_status", :binary)
+    |> expect_optional_type(path, state, "planned_approval_category", :binary)
+    |> expect_optional_type(path, state, "realized_approval_category", :binary)
+    |> expect_optional_type(path, state, "planned_activity_context", :map)
+    |> expect_optional_type(path, state, "realized_activity_context", :map)
+    |> ActivityContextContracts.validate_optional(path, state, "planned_activity_context")
+    |> ActivityContextContracts.validate_optional(path, state, "realized_activity_context")
+    |> expect_optional_type(path, state, "planned_protection_decision", :map)
+    |> expect_optional_type(path, state, "realized_protection_decision", :map)
+    |> ProtectionDecisionContracts.validate_optional(
       path,
       state,
       "planned_protection_decision"
     )
-    |> validate_optional_protection_decision(
-      callbacks,
+    |> ProtectionDecisionContracts.validate_optional(
       path,
       state,
       "realized_protection_decision"
     )
-    |> validate_lifecycle_state_protection_consistency(callbacks, path, state, "planned")
-    |> validate_lifecycle_state_protection_consistency(callbacks, path, state, "realized")
-    |> expect_optional_type(callbacks, path, state, "planned_locked", :boolean)
-    |> expect_optional_type(callbacks, path, state, "realized_locked", :boolean)
-    |> expect_optional_type(callbacks, path, state, "planned_executed", :boolean)
-    |> expect_optional_type(callbacks, path, state, "realized_executed", :boolean)
-    |> validate_optional_invalid_input(callbacks, path, state)
+    |> ProtectionDecisionContracts.validate_lifecycle_state_consistency(path, state, "planned")
+    |> ProtectionDecisionContracts.validate_lifecycle_state_consistency(path, state, "realized")
+    |> expect_optional_type(path, state, "planned_locked", :boolean)
+    |> expect_optional_type(path, state, "realized_locked", :boolean)
+    |> expect_optional_type(path, state, "planned_executed", :boolean)
+    |> expect_optional_type(path, state, "realized_executed", :boolean)
+    |> validate_optional_invalid_input(path, state)
     |> expect_field_equals(
-      callbacks,
       path,
       state,
       "status_transition_decision",
@@ -247,7 +255,6 @@ defmodule OrbitalDynamics.Schema.TimelineActivityLifecycleStateContracts do
       "must equal status-transition-derived decision"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       state,
       "approval_transition_decision",
@@ -255,7 +262,6 @@ defmodule OrbitalDynamics.Schema.TimelineActivityLifecycleStateContracts do
       "must equal approval-transition-derived decision"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       state,
       "transition_decision",
@@ -263,7 +269,6 @@ defmodule OrbitalDynamics.Schema.TimelineActivityLifecycleStateContracts do
       "must equal lifecycle-derived transition_decision"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       state,
       "review_required",
@@ -271,7 +276,6 @@ defmodule OrbitalDynamics.Schema.TimelineActivityLifecycleStateContracts do
       "must equal lifecycle-derived review_required"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       state,
       "required_operator_actions",
@@ -279,7 +283,6 @@ defmodule OrbitalDynamics.Schema.TimelineActivityLifecycleStateContracts do
       "must equal lifecycle-derived required_operator_actions"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       state,
       "required_operator_action",
@@ -287,7 +290,6 @@ defmodule OrbitalDynamics.Schema.TimelineActivityLifecycleStateContracts do
       "must equal lifecycle-derived required_operator_action"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       state,
       "operator_action_reasons",
@@ -295,7 +297,6 @@ defmodule OrbitalDynamics.Schema.TimelineActivityLifecycleStateContracts do
       "must equal lifecycle-derived operator_action_reasons"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       state,
       "import_action",
@@ -304,12 +305,12 @@ defmodule OrbitalDynamics.Schema.TimelineActivityLifecycleStateContracts do
     )
   end
 
-  defp validate_common(issues, callbacks, path, state, schema_contract, model, assumption_fields) do
+  defp validate_common(issues, path, state, schema_contract, model, assumption_fields) do
     issues
-    |> expect_equal(callbacks, path, state, "schema_contract", schema_contract)
-    |> expect_equal(callbacks, path, state, "model", model)
-    |> expect_equal(callbacks, path, state, "validation_level", "artifact_contract")
-    |> validate_stable_ids(callbacks, path, state, [
+    |> expect_equal(path, state, "schema_contract", schema_contract)
+    |> expect_equal(path, state, "model", model)
+    |> expect_equal(path, state, "validation_level", "artifact_contract")
+    |> validate_stable_ids(path, state, [
       "activity_id",
       "planned_activity_id",
       "realized_activity_id",
@@ -318,24 +319,23 @@ defmodule OrbitalDynamics.Schema.TimelineActivityLifecycleStateContracts do
       "realized_timeline_id"
     ])
     |> expect_one_of(
-      callbacks,
       path,
       state,
       "transition_decision",
       OrbitalDynamics.Timeline.capabilities().transition_decisions
     )
-    |> expect_type(callbacks, path, state, "review_required", :boolean)
-    |> expect_type(callbacks, path, state, "required_operator_action", :binary)
-    |> expect_type(callbacks, path, state, "import_action", :binary)
-    |> expect_type(callbacks, path, state, "assumptions", :map)
-    |> validate_assumptions(callbacks, path, state, assumption_fields)
+    |> expect_type(path, state, "review_required", :boolean)
+    |> expect_type(path, state, "required_operator_action", :binary)
+    |> expect_type(path, state, "import_action", :binary)
+    |> expect_type(path, state, "assumptions", :map)
+    |> validate_assumptions(path, state, assumption_fields)
   end
 
-  defp validate_assumptions(issues, callbacks, path, state, fields) do
+  defp validate_assumptions(issues, path, state, fields) do
     case Map.get(state, "assumptions") do
       assumptions when is_map(assumptions) ->
         Enum.reduce(fields, issues, fn field, acc ->
-          expect_equal(acc, callbacks, path <> ".assumptions", assumptions, field, true)
+          expect_equal(acc, path <> ".assumptions", assumptions, field, true)
         end)
 
       _assumptions ->
@@ -343,30 +343,32 @@ defmodule OrbitalDynamics.Schema.TimelineActivityLifecycleStateContracts do
     end
   end
 
-  defp validate_model_limits(issues, callbacks, path, state) do
+  defp validate_model_limits(issues, path, state, model_limits) do
     issues
-    |> expect_optional_type(callbacks, path, state, "model_limits", :list)
-    |> validate_string_list_items(callbacks, path, state, "model_limits")
+    |> expect_optional_type(path, state, "model_limits", :list)
+    |> validate_string_list_items(path, state, "model_limits")
     |> validate_optional_exact_model_limits(
-      callbacks,
       path,
       state,
-      timeline_report_model_limits(callbacks),
+      model_limits,
       "must match timeline report model limits"
     )
   end
 
-  defp validate_optional_invalid_input(issues, callbacks, path, state) do
+  defp validate_optional_invalid_input(issues, path, state) do
     issues
-    |> expect_optional_type(callbacks, path, state, "invalid_activity_input", :boolean)
+    |> expect_optional_type(path, state, "invalid_activity_input", :boolean)
     |> expect_optional_non_negative_integer(
-      callbacks,
       path,
       state,
       "invalid_activity_input_count"
     )
-    |> expect_optional_type(callbacks, path, state, "invalid_activity_input_reasons", :list)
-    |> validate_optional_string_list(callbacks, path, state, "invalid_activity_input_reasons")
+    |> expect_optional_type(path, state, "invalid_activity_input_reasons", :list)
+    |> CollectionValidation.validate_optional_string_list(
+      path,
+      state,
+      "invalid_activity_input_reasons"
+    )
   end
 
   defp transition_decision(nil), do: "none"
@@ -480,110 +482,4 @@ defmodule OrbitalDynamics.Schema.TimelineActivityLifecycleStateContracts do
     |> Enum.uniq()
     |> Enum.sort()
   end
-
-  defp expect_equal(issues, callbacks, path, map, field, expected),
-    do: apply(Keyword.fetch!(callbacks, :expect_equal), [issues, path, map, field, expected])
-
-  defp expect_one_of(issues, callbacks, path, map, field, allowed),
-    do: apply(Keyword.fetch!(callbacks, :expect_one_of), [issues, path, map, field, allowed])
-
-  defp expect_optional_one_of(issues, callbacks, path, map, field, allowed) do
-    apply(Keyword.fetch!(callbacks, :expect_optional_one_of), [
-      issues,
-      path,
-      map,
-      field,
-      allowed
-    ])
-  end
-
-  defp expect_type(issues, callbacks, path, map, field, type),
-    do: apply(Keyword.fetch!(callbacks, :expect_type), [issues, path, map, field, type])
-
-  defp expect_optional_type(issues, callbacks, path, map, field, type),
-    do: apply(Keyword.fetch!(callbacks, :expect_optional_type), [issues, path, map, field, type])
-
-  defp expect_optional_non_negative_integer(issues, callbacks, path, map, field) do
-    apply(Keyword.fetch!(callbacks, :expect_optional_non_negative_integer), [
-      issues,
-      path,
-      map,
-      field
-    ])
-  end
-
-  defp expect_field_equals(issues, callbacks, path, map, field, expected, message) do
-    apply(Keyword.fetch!(callbacks, :expect_field_equals_with_message), [
-      issues,
-      path,
-      map,
-      field,
-      expected,
-      message
-    ])
-  end
-
-  defp validate_stable_ids(issues, callbacks, path, map, fields),
-    do: apply(Keyword.fetch!(callbacks, :validate_stable_ids), [issues, path, map, fields])
-
-  defp validate_string_list_items(issues, callbacks, path, map, field),
-    do: apply(Keyword.fetch!(callbacks, :validate_string_list_items), [issues, path, map, field])
-
-  defp validate_optional_exact_model_limits(issues, callbacks, path, artifact, expected, message) do
-    apply(Keyword.fetch!(callbacks, :validate_optional_exact_model_limits), [
-      issues,
-      path,
-      artifact,
-      expected,
-      message
-    ])
-  end
-
-  defp validate_optional_lifecycle_transition(issues, callbacks, path, map, field) do
-    apply(Keyword.fetch!(callbacks, :validate_optional_lifecycle_transition), [
-      issues,
-      path,
-      map,
-      field
-    ])
-  end
-
-  defp validate_optional_activity_context(issues, callbacks, path, map, field) do
-    apply(Keyword.fetch!(callbacks, :validate_optional_activity_context), [
-      issues,
-      path,
-      map,
-      field
-    ])
-  end
-
-  defp validate_optional_string_list(issues, callbacks, path, map, field) do
-    apply(Keyword.fetch!(callbacks, :validate_optional_string_list), [
-      issues,
-      path,
-      map,
-      field
-    ])
-  end
-
-  defp validate_optional_protection_decision(issues, callbacks, path, map, field) do
-    apply(Keyword.fetch!(callbacks, :validate_optional_protection_decision), [
-      issues,
-      path,
-      map,
-      field
-    ])
-  end
-
-  defp validate_lifecycle_state_protection_consistency(issues, callbacks, path, state, prefix) do
-    apply(Keyword.fetch!(callbacks, :validate_lifecycle_state_protection_consistency), [
-      issues,
-      path,
-      state,
-      prefix
-    ])
-  end
-
-  defp timeline_report_model_limits(callbacks),
-    do: apply(Keyword.fetch!(callbacks, :timeline_report_model_limits), [])
 end

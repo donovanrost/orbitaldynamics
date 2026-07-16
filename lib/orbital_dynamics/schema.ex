@@ -6712,7 +6712,7 @@ defmodule OrbitalDynamics.Schema do
     |> OrbitalDynamics.Schema.TimelineActivityLifecycleStateContracts.validate_status_state(
       "$",
       artifact,
-      timeline_activity_lifecycle_state_contract_callbacks()
+      timeline_report_model_limits()
     )
   end
 
@@ -6722,7 +6722,7 @@ defmodule OrbitalDynamics.Schema do
     |> OrbitalDynamics.Schema.TimelineActivityLifecycleStateContracts.validate_approval_state(
       "$",
       artifact,
-      timeline_activity_lifecycle_state_contract_callbacks()
+      timeline_report_model_limits()
     )
   end
 
@@ -6732,7 +6732,7 @@ defmodule OrbitalDynamics.Schema do
     |> OrbitalDynamics.Schema.TimelineActivityLifecycleStateContracts.validate_lifecycle_state(
       "$",
       artifact,
-      timeline_activity_lifecycle_state_contract_callbacks()
+      timeline_report_model_limits()
     )
   end
 
@@ -7667,28 +7667,6 @@ defmodule OrbitalDynamics.Schema do
       validate_optional_timeline_preconditions: &validate_optional_timeline_preconditions/4,
       validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
       validate_optional_timeline_identity: &validate_optional_timeline_identity/4,
-      timeline_report_model_limits: &timeline_report_model_limits/0
-    ]
-  end
-
-  defp timeline_activity_lifecycle_state_contract_callbacks do
-    [
-      expect_equal: &expect_equal/5,
-      expect_one_of: &expect_one_of/5,
-      expect_optional_one_of: &expect_optional_one_of/5,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_optional_non_negative_integer: &expect_optional_non_negative_integer/4,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      validate_stable_ids: &validate_stable_ids/4,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_optional_exact_model_limits: &validate_optional_exact_model_limits/5,
-      validate_optional_lifecycle_transition: &validate_optional_lifecycle_transition/4,
-      validate_optional_activity_context: &validate_optional_activity_context/4,
-      validate_optional_string_list: &validate_optional_string_list/4,
-      validate_optional_protection_decision: &validate_optional_protection_decision/4,
-      validate_lifecycle_state_protection_consistency:
-        &validate_lifecycle_state_protection_consistency/4,
       timeline_report_model_limits: &timeline_report_model_limits/0
     ]
   end
@@ -13268,16 +13246,6 @@ defmodule OrbitalDynamics.Schema do
       path,
       map,
       field
-    )
-  end
-
-  defp validate_lifecycle_state_protection_consistency(issues, path, state, prefix)
-       when is_map(state) do
-    OrbitalDynamics.Schema.ProtectionDecisionContracts.validate_lifecycle_state_consistency(
-      issues,
-      path,
-      state,
-      prefix
     )
   end
 
