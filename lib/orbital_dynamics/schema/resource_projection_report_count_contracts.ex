@@ -1,6 +1,7 @@
 defmodule OrbitalDynamics.Schema.ResourceProjectionReportCountContracts do
   @moduledoc false
 
+  alias OrbitalDynamics.Schema.PrimitiveValidation
   alias OrbitalDynamics.Schema.ResourceProjectionPressureContracts
 
   import OrbitalDynamics.Schema.CollectionAggregation,
@@ -14,7 +15,6 @@ defmodule OrbitalDynamics.Schema.ResourceProjectionReportCountContracts do
 
   import OrbitalDynamics.Schema.PrimitiveValidation,
     only: [
-      expect_field_equals: 5,
       expect_field_equals: 6,
       validate_non_negative_integer_count_map: 3
     ]
@@ -193,6 +193,17 @@ defmodule OrbitalDynamics.Schema.ResourceProjectionReportCountContracts do
         )
       ),
       "must equal row-derived resource_spacecraft_ids_by_trust_boundary_status"
+    )
+  end
+
+  defp expect_field_equals(issues, path, map, field, expected) do
+    PrimitiveValidation.expect_field_equals(
+      issues,
+      path,
+      map,
+      field,
+      expected,
+      "must equal #{expected}"
     )
   end
 

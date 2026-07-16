@@ -9,7 +9,7 @@ Current slice:
 Resource-projection report-count message restoration.
 
 Status:
-Selected; implementation pending.
+Complete and published.
 
 Selected slice:
 Restore the five generic equality messages lost when
@@ -43,19 +43,21 @@ All five former `/5` equality calls use the primitive `/6` form with the exact
 legacy generic message; the full resource-projection file and export checks
 pass; and bounded review finds no blocker.
 
+Outcome:
+A local `/5` equality wrapper now delegates to PrimitiveValidation `/6` with
+the exact legacy `must equal <expected>` message, while 13 custom `/6` calls
+remain unchanged. The formerly red resource-projection file is 49/49; the full
+focused aggregate is 214/214 and 22 export tests pass. Compile, xref, checked-in
+regeneration, format, diff hygiene, and bounded review were clean.
+
 Verification gaps:
 - Full repository suite not run.
 - Known baseline: full contact-filter file remains 87/88 due nil-message
   behavior in `SuppressedCandidateContracts`; unrelated to these slices.
-- Full resource-projection file currently remains 211/214 due the selected
-  report-count message regression.
 
 Last completed slice:
-Resource-projection-flow-row callback-bag collapse published as `f65244f9`:
-`schema.ex` fell from 11,612 to 11,599 lines and its owner from 192 to 135. The
-9-entry bag became direct shared validators and two domain boundaries. 174
-targeted, 1,167 broader, and 22 export tests passed; compile, xref, format,
-diff hygiene, checked-in regeneration, and bounded review were clean.
+Resource-projection report-count message restoration; publication commit
+pending.
 
 Blocked:
 No.
