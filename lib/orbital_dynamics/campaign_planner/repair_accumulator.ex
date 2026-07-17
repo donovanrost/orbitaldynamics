@@ -10,6 +10,9 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairAccumulator do
   def add_activity(acc, activity),
     do: Map.update!(acc, :activities, &[activity | &1])
 
+  def replace_activities(acc, activities),
+    do: Map.put(acc, :activities, activities)
+
   def use_replacement(acc, activity) do
     Map.update!(
       acc,
@@ -20,6 +23,12 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairAccumulator do
 
   def add_warning(acc, warning),
     do: Map.update!(acc, :warnings, &[warning | &1])
+
+  def track_delayed_maneuver(acc, activity, delay_s) do
+    Map.update!(acc, :delayed_maneuvers, fn maneuvers ->
+      [%{"activity" => activity, "delay_s" => delay_s} | maneuvers]
+    end)
+  end
 
   def add_delta(
         acc,

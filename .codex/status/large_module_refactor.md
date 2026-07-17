@@ -9,16 +9,17 @@ Current slice:
 RepairAccumulator delayed-maneuver tracking ownership.
 
 Status:
-Selected.
+Ready to publish.
 
 Selected slice:
-Move the final direct `:delayed_maneuvers` accumulator mutation behind
-`RepairAccumulator.track_delayed_maneuver/3`.
+Move the delayed-maneuver tracking and downstream activity-replacement
+mutations behind `RepairAccumulator`.
 
 Why this slice:
-All other repair accumulator mutation is owner-local. This exact prepend is the
-only remaining facade mutation and is the prerequisite for moving the complete
-delayed-maneuver/downstream-impact transition without split ownership.
+Delayed-maneuver tracking and downstream activity replacement were the two
+remaining facade mutations. Owning both is the prerequisite for moving the
+complete delayed-maneuver/downstream-impact transition without split
+ownership.
 
 Public facade to preserve:
 `OrbitalDynamics.CampaignPlanner.repair/1`, exact repaired activities, deltas,
@@ -41,10 +42,21 @@ maneuver entry shape and prepend order remain exact; focused tests pass; and
 bounded review finds no blocker.
 
 Outcome:
-Pending.
+Added `RepairAccumulator.track_delayed_maneuver/3` and
+`replace_activities/2`, then routed delayed tracking and downstream activity
+replacement through them. Entry shape, prepend order, and activity ordering
+are unchanged, and no direct repair-accumulator mutation remains in the
+facade. The facade fell from 4,140 to 4,138 lines and the owner grew from 206
+to 215; the bounded scope is net +7 lines for the explicit ownership boundary.
 
 Verification gaps:
-- Pending.
+- Strict compilation and diff hygiene pass.
+- Delayed-maneuver execution-policy, timeline-protection, and determinism
+  families pass 16/16.
+- Both mutation bodies and call sites were audited against selection commit
+  `8f4ad796`; entry shape, prepend order, and activity ordering are unchanged.
+- Independent review's ownership finding was corrected; re-review found no
+  blocker.
 
 Last completed slice:
 CampaignPlanner repair activity-state transition extraction published as

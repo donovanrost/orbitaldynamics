@@ -3409,9 +3409,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       moved
     )
     |> RepairAccumulator.add_approval_requirement(moved, "approve_delayed_maneuver", reason)
-    |> Map.update!(:delayed_maneuvers, fn maneuvers ->
-      [%{"activity" => activity, "delay_s" => delay_s} | maneuvers]
-    end)
+    |> RepairAccumulator.track_delayed_maneuver(activity, delay_s)
   end
 
   defp mark_downstream_maneuver_effects(%{delayed_maneuvers: []} = acc, _request), do: acc
@@ -3449,7 +3447,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         end)
 
       repaired
-      |> Map.put(:activities, activities)
+      |> RepairAccumulator.replace_activities(activities)
       |> RepairAccumulator.add_approval_requirement(activity, "review_downstream_window", reason)
       |> RepairAccumulator.add_warning(
         "#{ActivityIdentity.activity_id(activity)} affected by delayed maneuver"
