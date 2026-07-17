@@ -27,3 +27,8 @@ Code.require_file("support/validation/candidate_refresh_base_fixtures.ex", __DIR
 Code.require_file("support/validation/candidate_refresh_contact_replay_fixtures.ex", __DIR__)
 Code.require_file("support/validation/candidate_refresh_readiness_replay_fixtures.ex", __DIR__)
 Code.require_file("support/validation/candidate_refresh_timeline_replay_fixtures.ex", __DIR__)
+
+Code.require_file(
+  "support/validation/candidate_refresh_planning_feedback_replay_fixtures.ex",
+  __DIR__
+)

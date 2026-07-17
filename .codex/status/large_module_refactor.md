@@ -9,7 +9,7 @@ Current slice:
 Validation candidate-refresh objective/constraint replay test-family extraction.
 
 Status:
-Selected.
+Ready to publish.
 
 Selected slice:
 Move the two contiguous candidate-refresh objective-gap and constraint replay
@@ -45,10 +45,15 @@ shared builders have one exact owner, focused and parent files pass, names remai
 unique, and bounded review finds no blocker.
 
 Outcome:
-Pending.
+Two byte-identical candidate-refresh planning-feedback replay tests moved into
+a 183-line focused module. Their six helpers now have one 203-line shared
+support owner that reuses `result_set/1`; the parent imports only the two
+aggregate observation builders. The parent fell from 7,108 to 6,747 lines.
+Total test/support/loader LOC grew by 30 lines for explicit ownership without
+helper duplication. All 181 Validation test names remain unique.
 
 Verification gaps:
-- Pending.
+- Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
 Validation candidate-refresh timeline replay extraction published as
@@ -60,7 +65,8 @@ bounded review were clean.
 Next candidate:
 Map the candidate-refresh link-capacity and resource-filter replay families
 following the planning-feedback pair. Preserve source-report family boundaries
-and reuse the shared replay result-set builder; stop before contact-filter replay.
+and reuse the shared replay result-set builder. Their six helpers form a closed
+family; stop before contact-filter replay.
 
 Blocked:
 No.
