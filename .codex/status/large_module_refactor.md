@@ -9,7 +9,7 @@ Current slice:
 Schema-compatibility fixture mapping.
 
 Status:
-Ready for implementation.
+Publishing.
 
 Selected slice:
 Move
@@ -58,7 +58,7 @@ and the complete facade remainder stay exact, focused and full validation tests
 pass, and bounded review finds no blocker.
 
 Verification gaps:
-- Implementation and post-move verification pending.
+- None for this slice.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -72,13 +72,33 @@ Tests run:
 - Contiguous source boundary confirmed at facade lines 284-513, followed by
   `cadence_import_manifest.resource_pressure_v1`, with no facade
   helper-attribute dependency in the selected literals.
-- Focused schema-compatibility/facade selection baseline: 16 tests passed.
+- Normalized-AST proof against selection commit `78628f31`: all four moved
+  literals, the following resource-pressure manifest, and the complete 31-entry
+  facade remainder are exact; the new leaf owns only the intended four keys.
+- Post-move exact proof: the 195-entry map, sorted-key digest, selected
+  four-fixture digest, and exact 191-entry remainder digest all match their
+  selection baselines.
+- Source partition proof: 43 maps total 195 entries, the new leaf owns four, the
+  facade owns 31, all 903 pairwise intersections are empty, and the source key
+  union exactly matches the runtime map.
+- Facade proof: all 195 successful `fetch/1` results, missing-key `:error`, and
+  nonbinary `FunctionClauseError` behavior remain unchanged.
+- Focused schema-compatibility/facade validation: 16 tests passed.
+- Full validation family: 181 tests passed.
+- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
+  xref caller checks passed.
+- Independent bounded review against selection commit `78628f31` was clean:
+  the contiguous source range and complete facade remainder are normalized-AST
+  exact, all runtime and partition invariants reproduced, dependency direction
+  remains one-way, and focused/full tests and hygiene gates passed.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-No schema-compatibility implementation has started.
+The exact four-fixture schema-compatibility family now lives in a new cohesive
+leaf behind the unchanged facade. The facade shrank from 2,859 to 2,631 lines;
+the new leaf is 238 lines and owns exactly four fixtures.
 
 Last completed slice:
 Benchmark extraction published as `fd3042d3`: the exact eight-fixture family
