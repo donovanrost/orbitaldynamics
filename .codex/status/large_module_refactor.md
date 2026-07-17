@@ -9,7 +9,7 @@ Current slice:
 Schema filter-report JSON property-dispatch extraction.
 
 Status:
-Review complete; ready to publish.
+Published.
 
 Selected slice:
 Extract property dispatch for contact-filter and resource-filter reports from
@@ -50,7 +50,8 @@ The two facade clauses are now one guarded delegate to
 contract-to-module routing, focused-field selection, shared stable-identity and
 suppressed-candidate callbacks, distinct model-limit/assumptions callbacks,
 contact-only trust-boundary schema wiring, and the common fallback. The facade
-is 9,507 lines; the new dispatcher is 46 lines.
+is 9,507 lines; the new dispatcher is 46 lines. Implementation published as
+`6646d27e`.
 
 Verification gaps:
 - `mix compile --warnings-as-errors` passed.
@@ -61,17 +62,21 @@ Verification gaps:
 - Scoped format, diff hygiene, and xref checks passed; xref reports only the
   expected runtime caller from `OrbitalDynamics.Schema`.
 - Bounded read-only review found no blocker or follow-up finding.
+- None for this slice.
 
 Last completed slice:
-Schema contact-allocation-summary property dispatch published as `9f68e87c`:
-the five summary contracts now route through one cohesive internal dispatcher,
-31 focused/export tests passed, full regeneration was byte-identical, and
-bounded review found no blocker.
+Schema filter-report property dispatch published as `6646d27e`: contact and
+resource filter reports now route through one cohesive internal dispatcher, 23
+focused/export tests passed, full regeneration was byte-identical, and bounded
+review found no blocker.
 
 Next candidate:
-Audit one adjacent multi-contract report/property family after this slice is
-published. Leave single-contract neighbors in the facade unless a broader
-cohesive boundary emerges.
+Extract the adjacent resource-projection report and flow-summary property
+clauses into one internal projection dispatcher. Preserve shared stable
+identity/model-limit/assumptions callbacks, report-only models/projection-row
+callbacks, flow-summary-only activity-flow-row callback, common fallback,
+validators, and exact exports. Leave filter and contention clauses in the
+facade.
 
 Blocked:
 No.
