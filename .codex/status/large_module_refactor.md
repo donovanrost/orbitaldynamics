@@ -9,7 +9,7 @@ Current slice:
 Validation candidate-strategy artifact fixture test-family extraction.
 
 Status:
-Ready to publish.
+Published as `7c5aeacf`.
 
 Selected slice:
 Move the six contiguous proposed-contact, branch-comparison,
@@ -59,8 +59,8 @@ Verification gaps:
 - Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
-Validation planning-input capability extraction published as `3aa5fb12`: the
-focused module passed 3/3, the parent passed 37/37, and all thirty-seven
+Validation candidate-strategy artifact extraction published as `7c5aeacf`: the
+focused module passed 6/6, the parent passed 31/31, and all thirty-eight
 Validation modules preserved the 181-test aggregate with no duplicate names.
 Format, diff hygiene, exact-source and dependency-closure checks, and bounded
 review were clean.
