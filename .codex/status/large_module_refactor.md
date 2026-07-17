@@ -9,7 +9,7 @@ Current slice:
 Campaign planner branch event/state application extraction.
 
 Status:
-Selected.
+Completed and published.
 
 Selected slice:
 Extract branch plan-event and realized-event application, their station/capacity
@@ -48,16 +48,33 @@ math, degradation fields, and deterministic merge ordering remain exact;
 focused tests pass; and bounded review finds no blocker.
 
 Outcome:
-Pending.
+`CampaignPlanner` now delegates prior-plan and realized-state branch event
+application plus realized-state merges to
+`CampaignPlanner.BranchEventApplication`. Station identity is consolidated in
+`BranchEventNormalizer`; branch-refresh callbacks use the extracted module's
+spacecraft/degraded-mode readers. The facade fell from 3,316 to 3,025 lines.
 
 Verification gaps:
-- Pending.
+- None for this slice.
+
+Tests run:
+- `mix compile --warnings-as-errors`
+- 64 focused station, capacity, degradation, maneuver, realized-feedback,
+  branch, facade, and determinism tests
+- `mix format --check-formatted`
+- `git diff --check`
+- new-file diff hygiene
+- compile-connected xref check for `campaign_planner.ex`
+- bounded read-only review: clean, no findings
+
+Behavior/schema changes:
+None.
 
 Last completed slice:
-Campaign-planner branch candidate-plan staging published as `f071d63f`: all
-four staged event families, replacement helpers, warnings, and deterministic
-ordering now live in one cohesive internal module, 77 focused/regression tests
-passed, and bounded review found no finding.
+Campaign-planner branch event/state application published as `42abcf65`: plan
+and realized event pipelines, capacity/station matching, degradation, and state
+merge helpers now live in one cohesive internal module, 64 focused/regression
+tests passed, and bounded review found no finding.
 
 Next candidate:
 After this slice, refresh the live CampaignPlanner hotspot and select another
