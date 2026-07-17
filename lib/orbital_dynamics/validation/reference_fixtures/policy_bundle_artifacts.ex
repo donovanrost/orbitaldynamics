@@ -389,6 +389,113 @@ defmodule OrbitalDynamics.Validation.ReferenceFixtures.PolicyBundleArtifacts do
         "internal checked-in artifact regression, not external policy validation",
         "checks contact/command review rule IDs, review-only classification, and artifact-only boundary only"
       ]
+    },
+    "fixture.artifact.policy_bundle.degraded_payload_guard" => %{
+      "id" => "fixture.artifact.policy_bundle.degraded_payload_guard",
+      "model_id" => "artifact.policy_bundle.v1",
+      "reference_case" => "checked-in degraded payload guard policy bundle artifact",
+      "validation_level" => "artifact_contract",
+      "fixture_type" => "curated_internal_artifact_regression",
+      "inputs" => %{
+        "artifact_path" => "study_results/policy_bundle_degraded_payload_guard_v1.json",
+        "contract" => "policy_bundle.v1"
+      },
+      "expected" => %{
+        "schema_contract" => "policy_bundle.v1",
+        "id" => "degraded_payload_guard_v1",
+        "action_rule_count" => 6,
+        "blocked_risk_type_count" => 2,
+        "auto_approvable_approval_count_limit" => 2,
+        "auto_approvable_risk_limit" => 1,
+        "operator_review_risk_limit" => 3,
+        "classification_counts" => %{
+          "auto_approvable" => 1,
+          "blocked_by_policy" => 3,
+          "operator_review_required" => 2
+        },
+        "required_authority_counts" => %{"resource_model_authority" => 2, "unknown" => 4},
+        "escalation_queue_counts" => %{"resource_planning" => 2, "unknown" => 4},
+        "rule_ids_by_classification" => %{
+          "auto_approvable" => ["degraded_command_health_exemption"],
+          "blocked_by_policy" => [
+            "antenna_unavailable_contact_block",
+            "degraded_payload_observation_block",
+            "payload_unavailable_observation_block"
+          ],
+          "operator_review_required" => [
+            "invalid_resource_filter_candidate_input_review",
+            "invalid_resource_filter_summary_input_review"
+          ]
+        },
+        "boundary" => "artifact_only_no_authority_lookup",
+        "workflow_execution" => "none",
+        "provenance_source" => "OrbitalDynamics.Policy.bundle!",
+        "no_command_execution" => true,
+        "no_schedule_mutation" => true,
+        "model_limit_count" => 5
+      },
+      "tolerances" => %{
+        "action_rule_count" => 0,
+        "blocked_risk_type_count" => 0,
+        "auto_approvable_approval_count_limit" => 0,
+        "auto_approvable_risk_limit" => 0,
+        "operator_review_risk_limit" => 0,
+        "model_limit_count" => 0
+      },
+      "evidence" => [
+        "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
+        "schema-linted by mix orbital_dynamics.schema.lint"
+      ],
+      "known_limits" => [
+        "internal checked-in artifact regression, not external policy validation",
+        "checks degraded payload guard block/review/exemption routing and artifact-only boundary only"
+      ]
+    },
+    "fixture.artifact.policy_bundle.default" => %{
+      "id" => "fixture.artifact.policy_bundle.default",
+      "model_id" => "artifact.policy_bundle.v1",
+      "reference_case" => "checked-in default fallback policy bundle artifact",
+      "validation_level" => "artifact_contract",
+      "fixture_type" => "curated_internal_artifact_regression",
+      "inputs" => %{
+        "artifact_path" => "study_results/policy_bundle_default_v1.json",
+        "contract" => "policy_bundle.v1"
+      },
+      "expected" => %{
+        "schema_contract" => "policy_bundle.v1",
+        "id" => "default_v1",
+        "action_rule_count" => 0,
+        "blocked_risk_type_count" => 2,
+        "auto_approvable_approval_count_limit" => 0,
+        "auto_approvable_risk_limit" => 0,
+        "operator_review_risk_limit" => 3,
+        "classification_counts" => %{},
+        "required_authority_counts" => %{},
+        "escalation_queue_counts" => %{},
+        "rule_ids_by_classification" => %{},
+        "boundary" => "artifact_only_no_authority_lookup",
+        "workflow_execution" => "none",
+        "provenance_source" => "OrbitalDynamics.Policy.bundle!",
+        "no_command_execution" => true,
+        "no_schedule_mutation" => true,
+        "model_limit_count" => 5
+      },
+      "tolerances" => %{
+        "action_rule_count" => 0,
+        "blocked_risk_type_count" => 0,
+        "auto_approvable_approval_count_limit" => 0,
+        "auto_approvable_risk_limit" => 0,
+        "operator_review_risk_limit" => 0,
+        "model_limit_count" => 0
+      },
+      "evidence" => [
+        "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
+        "schema-linted by mix orbital_dynamics.schema.lint"
+      ],
+      "known_limits" => [
+        "internal checked-in artifact regression, not external policy validation",
+        "checks default fallback limits and artifact-only boundary only"
+      ]
     }
   }
 

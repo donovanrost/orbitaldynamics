@@ -9,7 +9,7 @@ Current slice:
 Policy-bundle degraded/default variant mapping.
 
 Status:
-Ready for implementation.
+Publishing.
 
 Selected slice:
 Move only
@@ -56,7 +56,7 @@ complete facade remainder stay exact, the prior six leaf fixtures remain exact,
 focused and full validation tests pass, and bounded review finds no blocker.
 
 Verification gaps:
-- Implementation, verification, and bounded review pending.
+- None for this bounded slice.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -72,13 +72,33 @@ Tests run:
 - Source boundary confirmed at facade lines 154-260, with
   `policy_bundle.maneuver_authority` beginning at line 261 and no facade
   helper-attribute dependency in the selected literals.
-- Selection only; implementation verification pending.
+- Post-move exact proof: the 195-entry map, sorted-key digest, selected
+  degraded/default digest, prior six-fixture leaf digest, and exact 193-entry
+  remainder digest all match their selection baselines. The resulting
+  eight-fixture leaf digest is
+  `52dd813392fb09ac5a16bdc6aa2cb13404f38add14481ac2852122ae380c3a00`.
+- Source partition proof: 21 maps total 195 entries, the policy leaf owns eight,
+  the facade owns 124, and all 210 pairwise intersections are empty.
+- Facade proof: all 195 successful `fetch/1` results, missing-key `:error`, and
+  nonbinary `FunctionClauseError` behavior remain unchanged.
+- Focused policy-bundle/facade validation: 18 tests passed.
+- Full validation family: 181 tests passed.
+- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
+  xref caller checks passed.
+- Independent bounded review: CLEAN. It confirmed the degraded/default pair
+  moved unchanged, the prior six leaf fixtures and complete facade remainder
+  are normalized-AST exact, the leaf owns only eight intended keys, all 21 maps
+  are unique and pairwise disjoint, all six digests and facade edge behaviors
+  are unchanged, dependencies remain one-way, and it reproduced 18 focused and
+  181 full validation tests.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-No degraded/default implementation has started.
+The exact degraded/default fixtures now live in the existing policy leaf behind
+the unchanged facade. The facade shrank from 8,967 to 8,860 lines; the leaf
+grew from six to eight fixtures and from 396 to 503 lines.
 
 Last completed slice:
 Policy-bundle operational extraction published as `f5227ca0`: the exact
