@@ -9,7 +9,7 @@ Current slice:
 Validation objective-scoring fixture test-family extraction.
 
 Status:
-Verified and reviewed; ready to publish.
+Published as `39fede23`.
 
 Selected slice:
 Move the four contiguous objective-satisfaction, objective-tradeoff,
@@ -58,8 +58,8 @@ Verification gaps:
 - Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
-Validation resource-summary fixture extraction published as `52815a6d`: the
-focused module passed 3/3, the parent passed 85/85, and all twenty-two
+Validation objective-scoring fixture extraction published as `39fede23`: the
+focused module passed 4/4, the parent passed 81/81, and all twenty-three
 Validation modules preserved the 181-test aggregate with no duplicate names.
 Format, diff hygiene, dependency-closure checks, and bounded review were clean.
 
