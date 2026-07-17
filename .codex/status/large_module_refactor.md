@@ -9,7 +9,7 @@ Current slice:
 CampaignPlanner repair activity-identity ownership extraction.
 
 Status:
-Ready to publish.
+Published as `6a51d53b`.
 
 Selected slice:
 Extract repair timeline ID, source-window ID, subject/station identity,
@@ -61,9 +61,10 @@ Verification gaps:
 - Independent bounded review found no blocker.
 
 Last completed slice:
-CampaignPlanner repair-accumulator mutation ownership cleanup published as
-`0f91bc40`: all 37 mutation points remained exact, repair-family tests passed
-67/67, and bounded review found no blocker.
+CampaignPlanner repair activity-identity ownership extraction published as
+`6a51d53b`: one owner now supplies repair timeline/context/station/window
+identity, the bounded scope is net -33 lines, 94 focused tests passed, and
+bounded review found no blocker.
 
 Next candidate:
 With identity and accumulator ownership unified, remap replacement selection.
