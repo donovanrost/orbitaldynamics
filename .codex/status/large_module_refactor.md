@@ -9,7 +9,7 @@ Current slice:
 Schema validation-report JSON property-dispatch extraction.
 
 Status:
-Review complete; ready to publish.
+Published as `6e25b831`.
 
 Selected slice:
 Extract property dispatch for schema-validation reports and batch reports from
@@ -64,14 +64,15 @@ Verification gaps:
 - bounded read-only review: clean, no findings
 
 Last completed slice:
-Schema validation-assessment property dispatch published as `4e361602`: two
-contracts now route through one cohesive internal dispatcher, 23 focused/export
-tests passed, full regeneration was byte-identical, and bounded review found no
-blocker.
+Schema validation-report property dispatch published as `6e25b831`: report and
+batch contracts now route through one cohesive internal dispatcher, 28
+focused/export tests passed, full regeneration was byte-identical, and bounded
+review found no blocker.
 
 Next candidate:
-Audit adjacent schema-migration property dispatch after this slice is
-published.
+Audit adjacent campaign-request/study-manifest lint property dispatch as the
+next cohesive export family; leave the single migration clause in the facade
+unless a broader lifecycle boundary emerges.
 
 Blocked:
 No.
