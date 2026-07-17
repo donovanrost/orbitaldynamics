@@ -9,7 +9,7 @@ Current slice:
 Validation candidate-refresh timeline replay test-family extraction.
 
 Status:
-Selected.
+Ready to publish.
 
 Selected slice:
 Move the four contiguous candidate-refresh timeline precondition,
@@ -47,10 +47,17 @@ shared builders have one exact owner, focused and parent files pass, names remai
 unique, and bounded review finds no blocker.
 
 Outcome:
-Pending.
+Four byte-identical candidate-refresh timeline replay tests moved into a
+367-line focused module. Their sixteen helpers now have one 226-line shared
+support owner that reuses `result_set/1` and the two existing timeline fixture
+owners. The parent imports only the four aggregate observation builders and no
+longer owns `Timeline` or raw timeline fixture dependencies. The parent fell
+from 7,667 to 7,108 lines. Total test/support/loader LOC grew by 35 lines for
+explicit ownership without helper duplication. All 181 Validation test names
+remain unique.
 
 Verification gaps:
-- Pending.
+- Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
 Validation candidate-refresh resource/readiness replay extraction published as
@@ -62,7 +69,8 @@ checks, and bounded review were clean.
 Next candidate:
 Map the candidate-refresh objective-gap and constraint replay families
 following the timeline sequence. Preserve their multi-report assertion depth
-and reuse the shared replay result-set builder; stop before link-capacity replay.
+and reuse the shared replay result-set builder. Their six helpers form a closed
+family; stop before link-capacity replay.
 
 Blocked:
 No.
