@@ -9,7 +9,7 @@ Current slice:
 Candidate-refresh-report domain callback-bag collapse.
 
 Status:
-Selected; implementation pending.
+Complete and ready to publish.
 
 Selected slice:
 Replace the four-entry `CandidateRefreshReportContracts` domain bag with direct
@@ -46,13 +46,22 @@ direct; focused, broader, and export checks pass; and bounded review finds no
 blocker.
 
 Outcome:
-Pending.
+The four-entry bag and every inert callback argument are gone. Operational
+readiness and safety-case count ownership is direct; one orphan adapter-boundary
+forwarder also disappeared. `schema.ex` fell from 11,332 to 11,309 lines and
+the report owner from 332 to 275. One hundred eighty-eight focused tests pass;
+the broader batch is 1,340/1,345 with all five failures reproduced unchanged
+on the pre-slice commit; and 24 export tests pass. Compile, checked-in export
+regeneration, compile-connected xref within its existing three-edge threshold,
+format, and diff hygiene are clean. Bounded review found no blocker and
+confirmed identical validation order, paths/messages, direct-owner behavior,
+call arities, orphan cleanup, and absence of callback residue.
 
 Verification gaps:
 - Full repository suite not run.
-- The broader focused batch was 113/114 because the generated campaign did not
-  exactly match its checked-in golden artifact; generation is outside this
-  validation-only slice. The attributable batch is 102/102.
+- The broader batch has five existing campaign-planner failures. The same five
+  fail in the same four files on pre-slice commit `6f1f0ac1`; the attributable
+  result is 1,340/1,340.
 
 Last completed slice:
 Contact-filter-report callback-bag collapse published as `a345ce83`: `schema.ex` fell

@@ -5976,8 +5976,7 @@ defmodule OrbitalDynamics.Schema do
        ) do
     OrbitalDynamics.Schema.CandidateRefreshReportContracts.validate_source_report_provenance(
       issues,
-      artifact,
-      candidate_refresh_report_domain_callbacks()
+      artifact
     )
   end
 
@@ -5986,8 +5985,7 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       value,
-      summary,
-      candidate_refresh_report_domain_callbacks()
+      summary
     )
   end
 
@@ -5995,8 +5993,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.CandidateRefreshReportContracts.validate_timeline_publication_context(
       issues,
       path,
-      summary,
-      candidate_refresh_report_domain_callbacks()
+      summary
     )
   end
 
@@ -6970,18 +6967,6 @@ defmodule OrbitalDynamics.Schema do
       validate_invalidated_candidate: &validate_invalidated_candidate/3,
       validate_embedded_validation_record: &validate_embedded_validation_record/3,
       validate_source_window_lineage: &validate_source_window_lineage/3
-    ]
-  end
-
-  defp candidate_refresh_report_domain_callbacks do
-    [
-      validate_operational_readiness_resource_context:
-        &validate_operational_readiness_resource_context/3,
-      validate_operational_readiness_adapter_boundary_context:
-        &validate_operational_readiness_adapter_boundary_context/3,
-      validate_operational_readiness_cadence_import_context:
-        &validate_operational_readiness_cadence_import_context/3,
-      safety_case_count_fields: &safety_case_count_fields/0
     ]
   end
 
@@ -9374,14 +9359,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp validate_operational_readiness_resource_context(issues, path, row) do
     OrbitalDynamics.Schema.OperationalReadinessContextContracts.validate_resource_context(
-      issues,
-      path,
-      row
-    )
-  end
-
-  defp validate_operational_readiness_adapter_boundary_context(issues, path, row) do
-    OrbitalDynamics.Schema.OperationalReadinessContextContracts.validate_adapter_boundary_context(
       issues,
       path,
       row

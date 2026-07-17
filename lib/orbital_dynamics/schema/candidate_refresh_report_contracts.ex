@@ -17,6 +17,8 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
   alias OrbitalDynamics.Schema.CandidateRefreshTimelinePublicationContracts
   alias OrbitalDynamics.Schema.CandidateRefreshTimelineValidationContracts
   alias OrbitalDynamics.Schema.CandidateRefreshValidationReportContracts
+  alias OrbitalDynamics.Schema.OperationalReadinessContextContracts
+  alias OrbitalDynamics.Schema.ValidationAcceptanceReportContracts
 
   import OrbitalDynamics.Schema.PrimitiveValidation,
     only: [
@@ -27,19 +29,17 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
       validate_string_list_items: 4
     ]
 
-  def validate_source_report_provenance(issues, %{"provenance" => %{} = provenance}, callbacks)
-      when is_list(callbacks) do
+  def validate_source_report_provenance(issues, %{"provenance" => %{} = provenance}) do
     issues
     |> expect_optional_type("$.provenance", provenance, "source_reports", :map)
-    |> validate_source_report_summaries(callbacks, Map.get(provenance, "source_reports"))
+    |> validate_source_report_summaries(Map.get(provenance, "source_reports"))
   end
 
-  def validate_source_report_provenance(issues, _artifact, _callbacks), do: issues
+  def validate_source_report_provenance(issues, _artifact), do: issues
 
-  defp validate_source_report_summaries(issues, _callbacks, nil), do: issues
+  defp validate_source_report_summaries(issues, nil), do: issues
 
-  defp validate_source_report_summaries(issues, callbacks, source_reports)
-       when is_map(source_reports) do
+  defp validate_source_report_summaries(issues, source_reports) when is_map(source_reports) do
     Enum.reduce(source_reports, issues, fn {family, summary}, issues ->
       path = "$.provenance.source_reports.#{family}"
 
@@ -70,91 +70,86 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
           summary,
           "station_reservation_expiration_evidence_row_count"
         )
-        |> validate_operational_readiness_resource_context(callbacks, path, summary)
-        |> validate_operational_readiness_adapter_boundary_context(callbacks, path, summary)
-        |> validate_operational_readiness_cadence_import_context(callbacks, path, summary)
-        |> validate_link_capacity_context(path, summary, callbacks)
-        |> validate_constraint_context(path, summary, callbacks)
-        |> validate_resource_projection_context(path, summary, callbacks)
-        |> validate_resource_filter_context(path, summary, callbacks)
-        |> validate_contact_allocation_context(path, summary, callbacks)
-        |> validate_contact_contention_context(path, summary, callbacks)
-        |> validate_candidate_rejection_context(path, summary, callbacks)
-        |> validate_provider_counteroffer_context(path, summary, callbacks)
-        |> validate_maneuver_review_context(path, summary, callbacks)
-        |> validate_station_pressure_context(path, summary, callbacks)
-        |> validate_contact_intent_context(path, summary, callbacks)
-        |> validate_contact_filter_context(path, summary, callbacks)
-        |> validate_station_calendar_context(path, summary, callbacks)
-        |> validate_timeline_activity_context(path, summary, callbacks)
-        |> validate_timeline_activity_lifecycle_context(path, summary, callbacks)
-        |> validate_timeline_lifecycle_state_context(path, summary, callbacks)
-        |> validate_timeline_activity_precondition_context(path, summary, callbacks)
-        |> validate_timeline_integrity_context(path, summary, callbacks)
-        |> validate_timeline_publication_context(path, summary, callbacks)
-        |> validate_timeline_dependency_impact_context(path, summary, callbacks)
-        |> validate_timeline_feedback_context(path, summary, callbacks)
-        |> validate_timeline_diff_context(path, summary, callbacks)
-        |> validate_timeline_transition_application_context(path, summary, callbacks)
-        |> validate_operational_timeline_context(path, summary, callbacks)
-        |> validate_quality_gate_context(path, summary, callbacks)
-        |> validate_schema_validation_context(path, summary, callbacks)
-        |> validate_model_acceptance_context(path, summary, callbacks)
-        |> validate_freshness_context(path, summary, callbacks)
-        |> validate_objective_gap_context(path, summary, callbacks)
-        |> validate_refresh_budget_context(path, summary, callbacks)
-        |> validate_validation_safety_case_context(path, summary, callbacks)
+        |> OperationalReadinessContextContracts.validate_resource_context(path, summary)
+        |> OperationalReadinessContextContracts.validate_adapter_boundary_context(path, summary)
+        |> OperationalReadinessContextContracts.validate_cadence_import_context(path, summary)
+        |> validate_link_capacity_context(path, summary)
+        |> validate_constraint_context(path, summary)
+        |> validate_resource_projection_context(path, summary)
+        |> validate_resource_filter_context(path, summary)
+        |> validate_contact_allocation_context(path, summary)
+        |> validate_contact_contention_context(path, summary)
+        |> validate_candidate_rejection_context(path, summary)
+        |> validate_provider_counteroffer_context(path, summary)
+        |> validate_maneuver_review_context(path, summary)
+        |> validate_station_pressure_context(path, summary)
+        |> validate_contact_intent_context(path, summary)
+        |> validate_contact_filter_context(path, summary)
+        |> validate_station_calendar_context(path, summary)
+        |> validate_timeline_activity_context(path, summary)
+        |> validate_timeline_activity_lifecycle_context(path, summary)
+        |> validate_timeline_lifecycle_state_context(path, summary)
+        |> validate_timeline_activity_precondition_context(path, summary)
+        |> validate_timeline_integrity_context(path, summary)
+        |> validate_timeline_publication_context(path, summary)
+        |> validate_timeline_dependency_impact_context(path, summary)
+        |> validate_timeline_feedback_context(path, summary)
+        |> validate_timeline_diff_context(path, summary)
+        |> validate_timeline_transition_application_context(path, summary)
+        |> validate_operational_timeline_context(path, summary)
+        |> validate_quality_gate_context(path, summary)
+        |> validate_schema_validation_context(path, summary)
+        |> validate_model_acceptance_context(path, summary)
+        |> validate_freshness_context(path, summary)
+        |> validate_objective_gap_context(path, summary)
+        |> validate_refresh_budget_context(path, summary)
+        |> validate_validation_safety_case_context(path, summary)
       else
         issues
       end
     end)
   end
 
-  defp validate_source_report_summaries(issues, _callbacks, _source_reports), do: issues
+  defp validate_source_report_summaries(issues, _source_reports), do: issues
 
-  def validate_quality_gate_context(issues, path, summary, callbacks) when is_list(callbacks) do
+  def validate_quality_gate_context(issues, path, summary) do
     CandidateRefreshQualityGateContracts.validate(issues, path, summary)
   end
 
-  def validate_schema_validation_context(issues, path, summary, callbacks)
-      when is_list(callbacks) do
+  def validate_schema_validation_context(issues, path, summary) do
     CandidateRefreshValidationReportContracts.validate_schema_validation(issues, path, summary)
   end
 
-  def validate_model_acceptance_context(issues, path, summary, callbacks)
-      when is_list(callbacks) do
+  def validate_model_acceptance_context(issues, path, summary) do
     CandidateRefreshValidationReportContracts.validate_model_acceptance(issues, path, summary)
   end
 
-  def validate_freshness_context(issues, path, summary, callbacks) when is_list(callbacks) do
+  def validate_freshness_context(issues, path, summary) do
     CandidateRefreshCandidateSelectionContracts.validate_freshness(issues, path, summary)
   end
 
-  def validate_objective_gap_context(issues, path, summary, callbacks) when is_list(callbacks) do
+  def validate_objective_gap_context(issues, path, summary) do
     CandidateRefreshObjectiveGapContracts.validate(issues, path, summary)
   end
 
-  def validate_refresh_budget_context(issues, path, summary, callbacks) when is_list(callbacks) do
+  def validate_refresh_budget_context(issues, path, summary) do
     CandidateRefreshCandidateSelectionContracts.validate_refresh_budget(issues, path, summary)
   end
 
-  def validate_validation_safety_case_context(issues, path, summary, callbacks)
-      when is_list(callbacks) do
+  def validate_validation_safety_case_context(issues, path, summary) do
     CandidateRefreshValidationReportContracts.validate_safety_case(
       issues,
       path,
       summary,
-      fn -> safety_case_count_fields(callbacks) end
+      &ValidationAcceptanceReportContracts.safety_case_count_fields/0
     )
   end
 
-  def validate_timeline_activity_context(issues, path, summary, callbacks)
-      when is_list(callbacks) do
+  def validate_timeline_activity_context(issues, path, summary) do
     CandidateRefreshTimelineValidationContracts.validate_activity(issues, path, summary)
   end
 
-  def validate_timeline_activity_lifecycle_context(issues, path, summary, callbacks)
-      when is_list(callbacks) do
+  def validate_timeline_activity_lifecycle_context(issues, path, summary) do
     CandidateRefreshTimelineLifecycleContracts.validate_activity_lifecycle(
       issues,
       path,
@@ -162,13 +157,11 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
     )
   end
 
-  def validate_timeline_lifecycle_state_context(issues, path, summary, callbacks)
-      when is_list(callbacks) do
+  def validate_timeline_lifecycle_state_context(issues, path, summary) do
     CandidateRefreshTimelineLifecycleContracts.validate_lifecycle_state(issues, path, summary)
   end
 
-  def validate_timeline_activity_precondition_context(issues, path, summary, callbacks)
-      when is_list(callbacks) do
+  def validate_timeline_activity_precondition_context(issues, path, summary) do
     CandidateRefreshTimelineValidationContracts.validate_activity_precondition(
       issues,
       path,
@@ -176,42 +169,35 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
     )
   end
 
-  def validate_timeline_publication_context(issues, path, summary, callbacks)
-      when is_list(callbacks) do
+  def validate_timeline_publication_context(issues, path, summary) do
     CandidateRefreshTimelinePublicationContracts.validate(issues, path, summary)
   end
 
-  def validate_timeline_integrity_context(issues, path, summary, callbacks)
-      when is_list(callbacks) do
+  def validate_timeline_integrity_context(issues, path, summary) do
     CandidateRefreshTimelineValidationContracts.validate_integrity(issues, path, summary)
   end
 
-  def validate_timeline_dependency_impact_context(issues, path, summary, callbacks)
-      when is_list(callbacks) do
+  def validate_timeline_dependency_impact_context(issues, path, summary) do
     CandidateRefreshTimelineValidationContracts.validate_dependency_impact(issues, path, summary)
   end
 
-  def validate_provider_counteroffer_context(issues, path, summary, callbacks)
-      when is_list(callbacks) do
+  def validate_provider_counteroffer_context(issues, path, summary) do
     CandidateRefreshProviderCounterofferContracts.validate(issues, path, summary)
   end
 
-  def validate_timeline_feedback_context(issues, path, summary, callbacks)
-      when is_list(callbacks) do
+  def validate_timeline_feedback_context(issues, path, summary) do
     CandidateRefreshReviewFeedbackContracts.validate_timeline_feedback(issues, path, summary)
   end
 
-  def validate_timeline_diff_context(issues, path, summary, callbacks) when is_list(callbacks) do
+  def validate_timeline_diff_context(issues, path, summary) do
     CandidateRefreshTimelineChangeContracts.validate_diff(issues, path, summary)
   end
 
-  def validate_operational_timeline_context(issues, path, summary, callbacks)
-      when is_list(callbacks) do
+  def validate_operational_timeline_context(issues, path, summary) do
     CandidateRefreshOperationalTimelineContracts.validate(issues, path, summary)
   end
 
-  def validate_timeline_transition_application_context(issues, path, summary, callbacks)
-      when is_list(callbacks) do
+  def validate_timeline_transition_application_context(issues, path, summary) do
     CandidateRefreshTimelineChangeContracts.validate_transition_application(
       issues,
       path,
@@ -219,31 +205,27 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
     )
   end
 
-  def validate_maneuver_review_context(issues, path, summary, callbacks)
-      when is_list(callbacks) do
+  def validate_maneuver_review_context(issues, path, summary) do
     CandidateRefreshReviewFeedbackContracts.validate_maneuver_review(issues, path, summary)
   end
 
-  def validate_link_capacity_context(issues, path, summary, callbacks) when is_list(callbacks) do
+  def validate_link_capacity_context(issues, path, summary) do
     CandidateRefreshResourceSignalContracts.validate_link_capacity(issues, path, summary)
   end
 
-  def validate_constraint_context(issues, path, summary, callbacks) when is_list(callbacks) do
+  def validate_constraint_context(issues, path, summary) do
     CandidateRefreshResourceSignalContracts.validate_constraint(issues, path, summary)
   end
 
-  def validate_resource_projection_context(issues, path, summary, callbacks)
-      when is_list(callbacks) do
+  def validate_resource_projection_context(issues, path, summary) do
     CandidateRefreshResourceSignalContracts.validate_resource_projection(issues, path, summary)
   end
 
-  def validate_resource_filter_context(issues, path, summary, callbacks)
-      when is_list(callbacks) do
+  def validate_resource_filter_context(issues, path, summary) do
     CandidateRefreshResourceSignalContracts.validate_resource_filter(issues, path, summary)
   end
 
-  def validate_contact_contention_context(issues, path, summary, callbacks)
-      when is_list(callbacks) do
+  def validate_contact_contention_context(issues, path, summary) do
     CandidateRefreshCommunicationPressureContracts.validate_contact_contention(
       issues,
       path,
@@ -251,8 +233,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
     )
   end
 
-  def validate_contact_allocation_context(issues, path, summary, callbacks)
-      when is_list(callbacks) do
+  def validate_contact_allocation_context(issues, path, summary) do
     CandidateRefreshCommunicationPressureContracts.validate_contact_allocation(
       issues,
       path,
@@ -260,8 +241,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
     )
   end
 
-  def validate_candidate_rejection_context(issues, path, summary, callbacks)
-      when is_list(callbacks) do
+  def validate_candidate_rejection_context(issues, path, summary) do
     CandidateRefreshCandidateSelectionContracts.validate_candidate_rejection(
       issues,
       path,
@@ -269,8 +249,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
     )
   end
 
-  def validate_station_pressure_context(issues, path, summary, callbacks)
-      when is_list(callbacks) do
+  def validate_station_pressure_context(issues, path, summary) do
     CandidateRefreshCommunicationPressureContracts.validate_station_pressure(
       issues,
       path,
@@ -278,55 +257,19 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshReportContracts do
     )
   end
 
-  def validate_contact_intent_context(issues, path, summary, callbacks)
-      when is_list(callbacks) do
+  def validate_contact_intent_context(issues, path, summary) do
     CandidateRefreshContactIntentContracts.validate(issues, path, summary)
   end
 
-  def validate_contact_filter_context(issues, path, summary, callbacks)
-      when is_list(callbacks) do
+  def validate_contact_filter_context(issues, path, summary) do
     CandidateRefreshCommunicationPressureContracts.validate_contact_filter(issues, path, summary)
   end
 
-  def validate_station_calendar_context(issues, path, summary, callbacks)
-      when is_list(callbacks) do
+  def validate_station_calendar_context(issues, path, summary) do
     CandidateRefreshStationCalendarContracts.validate(issues, path, summary)
   end
 
-  def validate_contact_intent_direction_routing(issues, path, value, summary, callbacks)
-      when is_list(callbacks) do
+  def validate_contact_intent_direction_routing(issues, path, value, summary) do
     CandidateRefreshContactIntentRoutingContracts.validate(issues, path, value, summary)
   end
-
-  defp validate_operational_readiness_resource_context(issues, callbacks, path, summary) do
-    apply(Keyword.fetch!(callbacks, :validate_operational_readiness_resource_context), [
-      issues,
-      path,
-      summary
-    ])
-  end
-
-  defp validate_operational_readiness_adapter_boundary_context(
-         issues,
-         callbacks,
-         path,
-         summary
-       ) do
-    apply(Keyword.fetch!(callbacks, :validate_operational_readiness_adapter_boundary_context), [
-      issues,
-      path,
-      summary
-    ])
-  end
-
-  defp validate_operational_readiness_cadence_import_context(issues, callbacks, path, summary) do
-    apply(Keyword.fetch!(callbacks, :validate_operational_readiness_cadence_import_context), [
-      issues,
-      path,
-      summary
-    ])
-  end
-
-  defp safety_case_count_fields(callbacks),
-    do: apply(Keyword.fetch!(callbacks, :safety_case_count_fields), [])
 end
