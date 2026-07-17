@@ -6288,7 +6288,7 @@ defmodule OrbitalDynamics.Schema do
       row,
       &validate_optional_timeline_preconditions/4,
       &validate_optional_activity_context/4,
-      &validate_timeline_integrity_evidence/3,
+      &OrbitalDynamics.Schema.TimelineIntegrityEvidenceContracts.validate/3,
       &validate_timeline_identity/3
     )
   end
@@ -6460,7 +6460,7 @@ defmodule OrbitalDynamics.Schema do
       path,
       activity,
       &validate_optional_activity_context/4,
-      &validate_timeline_integrity_evidence/3
+      &OrbitalDynamics.Schema.TimelineIntegrityEvidenceContracts.validate/3
     )
   end
 
@@ -6747,14 +6747,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp validate_optional_candidate_rejection_report(issues, path, _report),
     do: [error(path, "must be an object") | issues]
-
-  defp validate_timeline_integrity_evidence(issues, path, row) do
-    OrbitalDynamics.Schema.TimelineIntegrityEvidenceContracts.validate(
-      issues,
-      path,
-      row
-    )
-  end
 
   defp validate_cadence_import_manifest(issues, path, manifest) do
     OrbitalDynamics.Schema.CadenceImportManifestContracts.validate(
