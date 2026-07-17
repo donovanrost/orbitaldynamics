@@ -9,7 +9,7 @@ Current slice:
 Schema lint-report JSON property-dispatch extraction.
 
 Status:
-Review complete; ready to publish.
+Published.
 
 Selected slice:
 Extract property dispatch for campaign-request and study-manifest lint reports
@@ -47,7 +47,8 @@ The two facade clauses are now one guarded delegate to
 `OrbitalDynamics.Schema.LintReportPropertyDispatch`. The internal dispatcher
 preserves each contract's original field predicate, builder context, dependency
 schemas, study-manifest schema version, and common-property fallback. The
-facade is 9,718 lines; the new dispatcher is 53 lines.
+facade is 9,718 lines; the new dispatcher is 53 lines. Implementation published
+as `a64b4fde`.
 
 Verification gaps:
 - `mix compile --warnings-as-errors` passed.
@@ -57,17 +58,21 @@ Verification gaps:
 - Scoped format, diff hygiene, and xref checks passed; xref reports only the
   expected runtime caller from `OrbitalDynamics.Schema`.
 - Bounded read-only review found no blocker or follow-up finding.
+- None for this slice.
 
 Last completed slice:
-Schema validation-report property dispatch published as `6e25b831`: report and
-batch contracts now route through one cohesive internal dispatcher, 28
-focused/export tests passed, full regeneration was byte-identical, and bounded
-review found no blocker.
+Schema lint-report property dispatch published as `a64b4fde`: campaign-request
+and study-manifest lint contracts now route through one cohesive internal
+dispatcher, 23 focused/export tests passed, full regeneration was
+byte-identical, and bounded review found no blocker.
 
 Next candidate:
-Audit one adjacent capability/property family after this slice is published;
-leave the single migration clause in the facade unless a broader lifecycle
-boundary emerges.
+Extract the three adjacent environment-model, environment-provider, and
+subsystem-model capability property clauses into one internal capability
+dispatcher. Preserve each capability kind, schema contract, stable identity
+dependency, validation-level callback, common fallback, and exact checked-in
+exports. Leave the single optimizer, migration, and Monte Carlo clauses in the
+facade.
 
 Blocked:
 No.
