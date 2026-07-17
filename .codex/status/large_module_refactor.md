@@ -9,10 +9,10 @@ Current slice:
 Policy-evidence fixture mapping.
 
 Status:
-Ready for next slice selection.
+Ready for implementation.
 
 Selected slice:
-No implementation selected yet. The next bounded candidate is to move
+Move
 `backend_acceptance_policy.v1`, `validation_tolerance_policy.v1`,
 `validation_record.v1`, and `validation_check.v1` into a new
 `Validation.ReferenceFixtures.PolicyEvidenceArtifacts` leaf. Stop before
@@ -55,41 +55,21 @@ complete facade remainder stay exact, focused and full validation tests pass,
 and bounded review finds no blocker.
 
 Verification gaps:
-- Next candidate still requires a selection baseline before implementation.
+- Implementation, verification, and bounded review pending.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
   `a94507226596cd944ac21994c7889549ec58ecd1fcc0db5c65fa4e55b0f53ef2`,
   and sorted-key digest
   `b0007d04e4154fe879519a4f2b074fe3f9d0d649f3049d5d848264e105d00732`.
-- Selected validation-reference map: deterministic digest
-  `714d1b43e9fff5efe077a1ee3e801993e01c6dc1a3d1102aa62d0c344963f4c0`.
-- Exact 194-entry remainder: deterministic digest
-  `356261c8e7c41aba9283fb8a69c5962867c66423b8f203f58d0a80afb16a6e2b`.
-- Existing four-fixture core-run leaf: deterministic digest
-  `2cef307fc4eb09c6c54536f8a0a8cb78c7613ab5295572862a58931f3b5bca6a`.
-- Source boundary confirmed at facade lines 275-310, between
-  `validation_record.v1` and `validation_check.v1`, with no facade
-  helper-attribute dependency in the selected literal.
-- Post-move exact proof: the 195-entry map, sorted-key digest, selected report
-  digest, prior four-fixture leaf digest, and exact 194-entry remainder digest
-  all match their selection baselines. The resulting five-fixture leaf digest
-  is `493ba6c6b32d7a3fa8c1a43ec4dcb4d2202ef044033925208bb42918a4c48b88`.
-- Source partition proof: 27 maps total 195 entries, the core-run leaf owns
-  five, the facade owns 101, and all 351 pairwise intersections are empty.
-- Facade proof: all 195 successful `fetch/1` results, missing-key `:error`, and
-  nonbinary `FunctionClauseError` behavior remain unchanged.
-- Focused core-run/policy-evidence/facade validation: 21 tests passed.
-- Full validation family: 181 tests passed.
-- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
-  xref caller checks passed.
-- Independent bounded review: CLEAN. It confirmed the validation-reference
-  report moved unchanged, the prior four core-run fixtures, both neighboring
-  policy-evidence fixtures, and complete facade remainder are normalized-AST
-  exact, the leaf owns only its five intended keys, all 27 maps are unique and
-  pairwise disjoint, all six digests and facade edge behaviors are unchanged,
-  dependencies remain one-way, the policy-evidence range is now contiguous,
-  and it reproduced 21 focused and 181 full validation tests.
+- Selected four-fixture map: deterministic digest
+  `8790ec2500573e3e85950af1f3283e67662c16ffbc09c4aae47cf0033cf70a97`.
+- Exact 191-entry remainder: deterministic digest
+  `9450be157ec65f56cfdbca6f1c678e0b56074a28b0d61136bb31c3bffb4b53c6`.
+- Source boundary confirmed at facade lines 160-308, with
+  `timeline_diff_report.v1` beginning at line 309 and no facade
+  helper-attribute dependency in the selected literals.
+- Selection only; implementation verification pending.
 
 Behavior/schema changes:
 None.
