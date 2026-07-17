@@ -6,10 +6,10 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema contact-intent callback ownership mapping.
+Schema contact-intent callback ownership handoff.
 
 Status:
-Ready for publication.
+Published as `6ba7ee63`.
 
 Selected slice:
 Point all three facade uses of `validate_contact_intent/3` directly at
@@ -108,8 +108,11 @@ pipe now points directly at the established owner, `schema.ex` shrank from
 byte-matched, and bounded review was clean.
 
 Next candidate:
-After review and publication, map the next pure facade ownership callback by
-caller count, owner signature, and issue-order sensitivity.
+Map the single-use `validate_station_calendar_provider/3` facade delegate. Its
+only caller is the final stage of the standalone `station_calendar_provider.v1`
+pipe after `require_fields`, and the established owner exposes the exact
+`StationCalendarProviderContracts.validate/3` implementation. Capture the
+focused provider-contract and schema-byte baselines before replacing it.
 
 Blocked:
 No.
