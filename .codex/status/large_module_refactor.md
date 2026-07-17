@@ -9,7 +9,7 @@ Current slice:
 Validation core registry/policy test-family extraction.
 
 Status:
-Selected; implementation not started.
+Implemented, verified, reviewed, and ready to publish.
 
 Selected slice:
 Move the ten leading validation registry, public-facade, model-acceptance,
@@ -43,16 +43,22 @@ local `result_set/1` copy stays exact, focused and parent files pass, names rema
 unique, and bounded review finds no blocker.
 
 Outcome:
-Pending.
+Exactly ten contiguous core registry/policy tests moved byte-for-byte into
+`OrbitalDynamics.Validation.CorePolicyTest`; order, assertions, public-facade
+coverage, result-set selection, and policy semantics are unchanged. Its local
+`result_set/1` helper is an exact copy retained in the parent for later fixture
+consumers. The parent fell from 18,144 to 17,710 lines and lost four orphan
+aliases; the focused module is 449 lines, a 15-line total increase for explicit
+module/alias/helper boundaries. All 181 Validation test names remain unique.
 
 Verification gaps:
-- Not yet verified.
+- Full repository suite not run; this is a mechanical test-only extraction.
 
 Last completed slice:
-Validation safety-case evidence extraction published as `f2bce53a`: eight
-byte-identical tests moved into a 935-line focused module, shrinking the parent
-from 19,074 to 18,144 lines. The focused module passed 8/8, the parent 167/167,
-and all three Validation modules preserved the 181-test aggregate.
+Validation core registry/policy extraction, publication pending: the focused
+module passed 10/10, the parent passed 157/157, and all four Validation modules
+preserved the 181-test aggregate with no duplicate names. Format, diff hygiene,
+helper-copy verification, and bounded review were clean.
 
 Next candidate:
 After this slice, refresh the remaining validation fixture families and prefer
