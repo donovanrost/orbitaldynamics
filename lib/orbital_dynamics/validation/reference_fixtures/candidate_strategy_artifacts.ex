@@ -234,6 +234,50 @@ defmodule OrbitalDynamics.Validation.ReferenceFixtures.CandidateStrategyArtifact
         "internal checked-in artifact regression, not candidate refresh validation",
         "checks invalidation reason, replacement routing, target metadata, and semantic-change details only"
       ]
+    },
+    "fixture.artifact.proposed_contact.v1" => %{
+      "id" => "fixture.artifact.proposed_contact.v1",
+      "model_id" => "artifact.proposed_contact.v1",
+      "reference_case" => "checked-in proposed contact artifact",
+      "validation_level" => "artifact_contract",
+      "fixture_type" => "curated_internal_artifact_regression",
+      "inputs" => %{
+        "artifact_path" => "study_results/proposed_contact_v1.json",
+        "contract" => "proposed_contact.v1"
+      },
+      "expected" => %{
+        "id" => "leo_1_downlink_equator_prime_1",
+        "scenario_id" => "leo_1",
+        "type" => "downlink",
+        "direction" => "downlink",
+        "ground_station_id" => "equator_prime",
+        "source_window_id" => "window:leo_1:ground_station_access:equator_prime:1",
+        "source_window_type" => "ground_station_access",
+        "event_detector" => "access_windows",
+        "event_timing_policy" => "sampled_state_linear_boundary",
+        "event_time_tolerance_s" => 60,
+        "station_availability" => "available",
+        "schedule_conflict_status" => "not_evaluated",
+        "timeline_identity_activity_type" => "downlink",
+        "cadence_import_contract" => "proposed_contact.v1",
+        "model_limit_count" => 3,
+        "duration_s" => 345.1793094813298,
+        "estimated_throughput_mb" => 690.3586189626596
+      },
+      "tolerances" => %{
+        "event_time_tolerance_s" => 0,
+        "model_limit_count" => 0,
+        "duration_s" => 1.0e-9,
+        "estimated_throughput_mb" => 1.0e-9
+      },
+      "evidence" => [
+        "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
+        "schema-linted by mix orbital_dynamics.schema.lint"
+      ],
+      "known_limits" => [
+        "internal checked-in artifact regression, not station-provider validation",
+        "checks proposed contact identity, timing, source-window, and artifact-only boundary only"
+      ]
     }
   }
 
