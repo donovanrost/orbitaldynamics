@@ -57,16 +57,16 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary do
     ContactContentionResolution.replay(refresh_or_artifact, source_report_summary)
   end
 
-  def contact_allocation(refresh_or_artifact, source_report_summary) do
-    ContactAllocation.replay(refresh_or_artifact, source_report_summary)
+  def contact_allocation(refresh_or_artifact) do
+    ContactAllocation.replay(refresh_or_artifact)
   end
 
   def link_capacity(refresh_or_artifact, source_report_summary) do
     LinkCapacity.replay(refresh_or_artifact, source_report_summary)
   end
 
-  def contact_filter(refresh_or_artifact, source_report_summary) do
-    ContactFilter.replay(refresh_or_artifact, source_report_summary)
+  def contact_filter(refresh_or_artifact) do
+    ContactFilter.replay(refresh_or_artifact)
   end
 
   def resource_filter(refresh_or_artifact) do

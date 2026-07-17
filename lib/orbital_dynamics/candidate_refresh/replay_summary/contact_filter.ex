@@ -5,14 +5,13 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ContactFilter do
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.InputProvenance
 
-  def replay(refresh_or_artifact, source_report_summary)
-      when is_function(source_report_summary, 1) do
+  def replay(refresh_or_artifact) do
     branch_filter_summary = source_report_summary_branch_family(refresh_or_artifact)
 
     filter_summary =
       branch_filter_summary ||
         refresh_or_artifact
-        |> source_report_summary.()
+        |> SourceReportSummary.build()
         |> get_in(["source_reports", "contact_filter_report"]) ||
         %{}
 
