@@ -9,7 +9,7 @@ Current slice:
 Schema deferred-priority callback ownership cleanup.
 
 Status:
-Completed and verified; publishing.
+Completed and published.
 
 Selected slice:
 Point the contact-allocation domain callback and operator-review row callback
@@ -67,15 +67,15 @@ Behavior/schema changes:
 None.
 
 Last completed slice:
-Schema communications-report validation ownership cleanup published as
-`357bc8f0`: six positions now call their report owners directly, four pure
-facade delegates were removed, 182 schema/export tests passed, full export
-bytes stayed exact, and bounded review was clean.
+Schema deferred-priority callback ownership cleanup published as `b12eb661`:
+both callback bags now point directly to the contention owner, the pure facade
+delegate was removed, 182 schema/export tests passed, full export bytes stayed
+exact, and bounded review was clean.
 
 Next candidate:
-After this boundary, audit the single CandidateDiff source-window-lineage
-pipeline and the remaining priority evidence helpers before selecting another
-owner family.
+Extract priority-field evidence count validation from `Schema` into a dedicated
+internal contract module, point its two callback captures at the new owner, and
+preserve the exact guarded/fallback clauses and error ordering.
 
 Blocked:
 No.
