@@ -9,7 +9,7 @@ Current slice:
 Schema optional freshness-report callback ownership mapping.
 
 Status:
-Ready for implementation.
+Publishing.
 
 Selected slice:
 Point both facade uses of `validate_optional_freshness_report/3` directly at
@@ -56,7 +56,7 @@ messages stay exact, schema bytes do not change, tests pass, and bounded review
 finds no blocker.
 
 Verification gaps:
-- Implementation and post-change verification pending.
+None.
 
 Tests run:
 - Source baseline: `validate_optional_freshness_report/3` has one final
@@ -70,12 +70,34 @@ Tests run:
   across 15,506,740 bytes.
 - Checked-in `schemas/orbital_dynamics.schema_bundle.v1.json` digest:
   `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`.
+- Source proof against selection commit `2cedcbea`: the top-level freshness pipe
+  retains `require_fields` and now ends at
+  `FreshnessReportContracts.validate_optional/3`; the callback bag captures the
+  same owner `/3` under the unchanged key and between the same
+  candidate-rejection and station-calendar neighbors; the wrapper is absent.
+- Focused `candidate_refresh_contracts_test.exs`: 10 tests passed with warnings
+  as errors.
+- Complete schema-contract and schema-export suite: 182 tests passed with
+  warnings as errors.
+- Generated bundle remains exactly 121 schemas, 15,506,740 bytes, and digest
+  `543dbe11bc75f1397dd15dbd10cabd219ae2e46ac1e16d38b810a99befb8cec3`.
+- Full checked-in schema export regeneration completed with no schema diff;
+  aggregate bundle digest remains
+  `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`.
+- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
+  xref caller checks passed.
+- Independent bounded review against selection commit `2cedcbea` was clean:
+  exact pipeline arguments and callback position, unchanged freshness owner, 10
+  focused and 182 complete tests, generated and checked bundle digests, all 122
+  generated export files byte-matched, strict compile, xref, formatting, sizes,
+  ledger, and diff hygiene matched the recorded evidence.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-No optional freshness-report callback implementation has started.
+Both facade uses now reference the established freshness-report owner directly
+and the pure wrapper is gone. `schema.ex` decreased from 7,975 to 7,968 lines.
 
 Last completed slice:
 Refresh-budget callback cleanup published as `526979a2`: the standalone

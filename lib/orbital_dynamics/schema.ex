@@ -5711,7 +5711,7 @@ defmodule OrbitalDynamics.Schema do
   defp validate_contract(@freshness_report, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_optional_freshness_report("$", artifact)
+    |> OrbitalDynamics.Schema.FreshnessReportContracts.validate_optional("$", artifact)
   end
 
   defp validate_contract(@invalidated_candidate, contract, artifact) do
@@ -5942,7 +5942,8 @@ defmodule OrbitalDynamics.Schema do
         &OrbitalDynamics.Schema.CandidateDiffContracts.validate_optional_report/3,
       validate_optional_candidate_rejection_report:
         &validate_optional_candidate_rejection_report/3,
-      validate_optional_freshness_report: &validate_optional_freshness_report/3,
+      validate_optional_freshness_report:
+        &OrbitalDynamics.Schema.FreshnessReportContracts.validate_optional/3,
       validate_optional_station_calendar_report: &validate_optional_station_calendar_report/3,
       validate_plan_delta: &validate_plan_delta/3,
       validate_approval_requirement: &validate_approval_requirement/3,
@@ -6720,14 +6721,6 @@ defmodule OrbitalDynamics.Schema do
       "pending_operator_review",
       "ready_for_review"
     ])
-  end
-
-  defp validate_optional_freshness_report(issues, path, report) do
-    OrbitalDynamics.Schema.FreshnessReportContracts.validate_optional(
-      issues,
-      path,
-      report
-    )
   end
 
   defp relay_custody_statuses, do: ~w(confirmed pending missing_ack failed unknown)
