@@ -7,7 +7,6 @@ defmodule OrbitalDynamics.Schema.ValidationReportContracts do
     only: [
       error: 2,
       expect_equal: 5,
-      expect_field_equals: 5,
       expect_field_equals: 6,
       expect_one_of: 5,
       expect_optional_field_equals: 6,
@@ -229,4 +228,10 @@ defmodule OrbitalDynamics.Schema.ValidationReportContracts do
 
   defp integer_or_zero(value) when is_integer(value), do: value
   defp integer_or_zero(_value), do: 0
+
+  defp expect_field_equals(issues, path, map, field, nil),
+    do: expect_field_equals(issues, path, map, field, nil, nil)
+
+  defp expect_field_equals(issues, path, map, field, expected),
+    do: expect_field_equals(issues, path, map, field, expected, "must equal #{expected}")
 end

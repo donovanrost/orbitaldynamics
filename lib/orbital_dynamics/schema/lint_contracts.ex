@@ -8,7 +8,6 @@ defmodule OrbitalDynamics.Schema.LintContracts do
     only: [
       error: 2,
       expect_equal: 5,
-      expect_field_equals: 5,
       expect_field_equals: 6,
       expect_one_of: 5,
       expect_optional_type: 5,
@@ -305,4 +304,7 @@ defmodule OrbitalDynamics.Schema.LintContracts do
 
   defp list_value(map, key) when is_map(map), do: Map.get(map, key) || []
   defp list_value(_map, _key), do: []
+
+  defp expect_field_equals(issues, path, map, field, expected),
+    do: expect_field_equals(issues, path, map, field, expected, "must equal #{expected}")
 end

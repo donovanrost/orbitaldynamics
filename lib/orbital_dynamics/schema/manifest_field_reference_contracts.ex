@@ -5,7 +5,7 @@ defmodule OrbitalDynamics.Schema.ManifestFieldReferenceContracts do
     only: [
       error: 2,
       expect_equal: 5,
-      expect_field_equals: 5,
+      expect_field_equals: 6,
       expect_non_negative_integer: 4,
       expect_type: 5,
       require_fields: 4,
@@ -400,4 +400,7 @@ defmodule OrbitalDynamics.Schema.ManifestFieldReferenceContracts do
         issues
     end
   end
+
+  defp expect_field_equals(issues, path, map, field, expected),
+    do: expect_field_equals(issues, path, map, field, expected, "must equal #{expected}")
 end

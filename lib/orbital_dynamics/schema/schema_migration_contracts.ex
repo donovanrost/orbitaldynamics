@@ -7,7 +7,6 @@ defmodule OrbitalDynamics.Schema.SchemaMigrationContracts do
     only: [
       error: 2,
       expect_equal: 5,
-      expect_field_equals: 5,
       expect_field_equals: 6,
       expect_non_negative_integer: 4,
       expect_one_of: 5,
@@ -170,4 +169,10 @@ defmodule OrbitalDynamics.Schema.SchemaMigrationContracts do
     |> Enum.reject(&is_nil/1)
     |> Enum.frequencies()
   end
+
+  defp expect_field_equals(issues, path, map, field, nil),
+    do: expect_field_equals(issues, path, map, field, nil, nil)
+
+  defp expect_field_equals(issues, path, map, field, expected),
+    do: expect_field_equals(issues, path, map, field, expected, "must equal #{expected}")
 end

@@ -8,7 +8,6 @@ defmodule OrbitalDynamics.Schema.RealizedStateSnapshotContracts do
     only: [
       error: 2,
       expect_equal: 5,
-      expect_field_equals: 5,
       expect_field_equals: 6,
       expect_optional_list: 4,
       expect_optional_type: 5,
@@ -206,4 +205,7 @@ defmodule OrbitalDynamics.Schema.RealizedStateSnapshotContracts do
 
   defp realized_state_snapshot_model_limits,
     do: OrbitalDynamics.CampaignPlanner.realized_state_snapshot_model_limits()
+
+  defp expect_field_equals(issues, path, map, field, expected),
+    do: expect_field_equals(issues, path, map, field, expected, "must equal #{expected}")
 end

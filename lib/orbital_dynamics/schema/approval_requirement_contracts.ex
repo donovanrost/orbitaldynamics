@@ -7,7 +7,7 @@ defmodule OrbitalDynamics.Schema.ApprovalRequirementContracts do
   import OrbitalDynamics.Schema.PrimitiveValidation,
     only: [
       error: 2,
-      expect_field_equals: 5,
+      expect_field_equals: 6,
       expect_optional_one_of: 5,
       expect_optional_type: 5,
       require_fields: 4,
@@ -224,4 +224,10 @@ defmodule OrbitalDynamics.Schema.ApprovalRequirementContracts do
 
   defp validate_optional_activity_context(issues, path, map, field),
     do: ActivityContextContracts.validate_optional(issues, path, map, field)
+
+  defp expect_field_equals(issues, path, map, field, nil),
+    do: expect_field_equals(issues, path, map, field, nil, nil)
+
+  defp expect_field_equals(issues, path, map, field, expected),
+    do: expect_field_equals(issues, path, map, field, expected, "must equal #{expected}")
 end

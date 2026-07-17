@@ -9,7 +9,7 @@ Current slice:
 Direct-helper equality-message restoration.
 
 Status:
-Selected; implementation pending.
+Complete and ready to publish.
 
 Selected slice:
 Restore implicit `must equal value` messages in the eleven remaining owners
@@ -44,13 +44,20 @@ message while explicit-message calls remain unchanged; focused, broader, and
 export checks pass; and bounded review finds no blocker.
 
 Outcome:
-Pending.
+All eleven owners now import primitive `/6` and restore a private historical
+`/5` compatibility shim; the eight owners with reachable nil expectations also
+retain the historical nil no-op clause. Explicit custom-message calls are
+unchanged. Five hundred fifty-one focused, 1,340 attributable broader, and 24
+export tests pass; compile, checked-in regeneration, compile-connected xref
+within its existing three-edge threshold, format, and diff hygiene are clean.
+Bounded review found no blocker and confirmed every pre-collapse callback
+mapping, default/custom message, reachable nil case, path, and issue order.
 
 Verification gaps:
 - Full repository suite not run.
-- The full 1,345-test campaign/operator/schema batch was not rerun for this
-  message-only repair. Its prior run had five known campaign-planner baseline
-  failures, previously reproduced on pre-slice commit `6f1f0ac1`.
+- The 1,345-test broader batch has the same five known campaign-planner baseline
+  failures previously reproduced on pre-slice commit `6f1f0ac1`; the
+  attributable result is 1,340/1,340.
 
 Last completed slice:
 Station-calendar contact-count message restoration published as `7e6b3ae4`:

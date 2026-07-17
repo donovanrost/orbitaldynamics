@@ -12,7 +12,6 @@ defmodule OrbitalDynamics.Schema.CandidateDiffContracts do
       error: 2,
       expect_equal: 5,
       expect_field_at_least: 5,
-      expect_field_equals: 5,
       expect_field_equals: 6,
       expect_non_negative_integer: 4,
       expect_one_of: 5,
@@ -597,4 +596,10 @@ defmodule OrbitalDynamics.Schema.CandidateDiffContracts do
 
   defp validate_candidate_refresh_scoped_context_fields(issues, path, row),
     do: CandidateRefreshScopedContextContracts.validate(issues, path, row)
+
+  defp expect_field_equals(issues, path, map, field, nil),
+    do: expect_field_equals(issues, path, map, field, nil, nil)
+
+  defp expect_field_equals(issues, path, map, field, expected),
+    do: expect_field_equals(issues, path, map, field, expected, "must equal #{expected}")
 end

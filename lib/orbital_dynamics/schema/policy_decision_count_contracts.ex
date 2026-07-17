@@ -1,7 +1,7 @@
 defmodule OrbitalDynamics.Schema.PolicyDecisionCountContracts do
   @moduledoc false
 
-  import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2, expect_field_equals: 5]
+  import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2, expect_field_equals: 6]
 
   def validate(issues, path, decision) do
     rule_matches = Map.get(decision, "rule_matches")
@@ -88,4 +88,10 @@ defmodule OrbitalDynamics.Schema.PolicyDecisionCountContracts do
       issues
     end
   end
+
+  defp expect_field_equals(issues, path, map, field, nil),
+    do: expect_field_equals(issues, path, map, field, nil, nil)
+
+  defp expect_field_equals(issues, path, map, field, expected),
+    do: expect_field_equals(issues, path, map, field, expected, "must equal #{expected}")
 end
