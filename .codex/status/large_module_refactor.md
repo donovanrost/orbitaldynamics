@@ -6,27 +6,28 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Policy-evidence fixture mapping.
+Timeline-handoff fixture mapping.
 
 Status:
-Publishing.
+Ready for next slice selection.
 
 Selected slice:
-Move
-`backend_acceptance_policy.v1`, `validation_tolerance_policy.v1`,
-`validation_record.v1`, and `validation_check.v1` into a new
-`Validation.ReferenceFixtures.PolicyEvidenceArtifacts` leaf. Stop before
-`timeline_diff_report.v1`.
+No implementation selected yet. The next bounded candidate is to move
+`timeline_diff_report.v1`, `cadence_import_manifest.v1`, and
+`timeline_feedback_report.v1` from their two facade ranges into a new
+`Validation.ReferenceFixtures.TimelineHandoffArtifacts` leaf. Preserve the
+following resource-handoff manifest and contact-allocation report exactly.
 
 Why this slice:
-`ReferenceFixtures` remains the largest production module at 7,584 lines. The
-four contiguous fixtures form a 149-line policy-evidence family that exactly
-owns `policy_evidence_fixture_test.exs`.
+`ReferenceFixtures` remains the largest production module at 7,437 lines. The
+three fixtures total 317 lines and exactly own
+`timeline_handoff_fixture_test.exs`.
 
 Current coupling/problem:
-Policy acceptance, tolerance, record, and check expectations remain embedded in
-the general facade despite sharing one focused evidence-policy responsibility.
-The preceding cleanup removed the unrelated core-run report from their range.
+Timeline diff, feedback, and Cadence import handoff expectations are separated
+by unrelated facade families despite sharing one focused handoff workflow.
+Moving all three preserves the test-owned responsibility rather than creating
+partial or one-fixture leaves.
 
 Public facade to preserve:
 `OrbitalDynamics.Validation.ReferenceFixtures.all/0` and `fetch/1`, exact
@@ -34,28 +35,28 @@ fixture keys and values, map equality and deterministic term bytes, and all
 `OrbitalDynamics.Validation` reference-fixture behavior.
 
 Likely extraction target:
-`OrbitalDynamics.Validation.ReferenceFixtures.PolicyEvidenceArtifacts`.
+`OrbitalDynamics.Validation.ReferenceFixtures.TimelineHandoffArtifacts`.
 
 Likely files:
 - `lib/orbital_dynamics/validation/reference_fixtures.ex`
-- `lib/orbital_dynamics/validation/reference_fixtures/policy_evidence_artifacts.ex`
+- `lib/orbital_dynamics/validation/reference_fixtures/timeline_handoff_artifacts.ex`
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
 - exact before/after fixture count, keys, values, and deterministic term digest
-- focused policy-evidence and facade validation tests
+- focused timeline-handoff and facade validation tests
 - full validation test family
 - strict compile, format, xref, diff hygiene, and bounded review
 
 Definition of done:
-The four policy-evidence fixtures exist only in the new cohesive leaf, all 28
+The three timeline-handoff fixtures exist only in the new cohesive leaf, all 29
 fixture maps remain disjoint, `all/0` and `fetch/1` return exactly the same
-195-entry map and deterministic term bytes, `timeline_diff_report.v1` and the
-complete facade remainder stay exact, focused and full validation tests pass,
-and bounded review finds no blocker.
+195-entry map and deterministic term bytes, both following boundary fixtures
+and the complete facade remainder stay exact, focused and full validation
+tests pass, and bounded review finds no blocker.
 
 Verification gaps:
-- None for this bounded slice.
+- Next candidate still requires a selection baseline before implementation.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -91,20 +92,18 @@ Behavior/schema changes:
 None.
 
 Outcome:
-The exact four-fixture policy-evidence family now lives in a new cohesive leaf
-behind the unchanged facade. The facade shrank from 7,584 to 7,437 lines; the
-new leaf is 157 lines and owns exactly four fixtures.
+No timeline-handoff implementation has started.
 
 Last completed slice:
-Validation-reference ownership cleanup published as `95bc97fe`: the exact
-report moved into the existing five-fixture core-run leaf, the facade shrank
-from 7,620 to 7,584 lines, the 195-entry map and all deterministic digests
-stayed exact, 21 focused and 181 full validation tests passed, and bounded
-review was clean.
+Policy-evidence extraction published as `86000b54`: the exact four-fixture
+family moved into a new 157-line leaf, the facade shrank from 7,584 to 7,437
+lines, the 195-entry map and all deterministic digests stayed exact, 16 focused
+and 181 full validation tests passed, and bounded review was clean.
 
 Next candidate:
-Select the policy-evidence extraction described above, capture the exact
-baseline and source boundary, then stop before `timeline_diff_report.v1`.
+Select the timeline-handoff extraction described above, capture the exact
+combined map and both source-range boundaries, then move the complete
+test-owned family together.
 
 Blocked:
 No.
