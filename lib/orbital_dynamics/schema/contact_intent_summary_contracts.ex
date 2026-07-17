@@ -1,7 +1,33 @@
 defmodule OrbitalDynamics.Schema.ContactIntentSummaryContracts do
   @moduledoc false
 
-  def validate_summary(issues, path, summary, callbacks) when is_list(callbacks) do
+  alias OrbitalDynamics.Schema.CandidateRefreshReportContracts
+
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [
+      error: 2,
+      expect_equal: 5,
+      expect_field_equals: 6,
+      expect_non_negative_integer: 4,
+      expect_optional_field_equals: 6,
+      expect_optional_number: 4,
+      expect_optional_type: 5,
+      expect_type: 5,
+      validate_nested_non_negative_number_map: 3,
+      validate_non_negative_integer_count_map: 3,
+      validate_non_negative_number_map: 3,
+      validate_string_list_allowed: 5,
+      validate_string_list_items: 4
+    ]
+
+  import OrbitalDynamics.Schema.StableIdValidation,
+    only: [
+      validate_nested_stable_id_array_map: 3,
+      validate_optional_stable_id_list: 4,
+      validate_stable_id_array_map: 3
+    ]
+
+  def validate_summary(issues, path, summary) do
     station_contact_ids = Map.get(summary, "contact_ids_by_ground_station_id", %{})
     direction_contact_ids = Map.get(summary, "contact_ids_by_direction", %{}) || %{}
     capacity_station_ids = Map.get(summary, "capacity_pack_contact_ids_by_ground_station_id", %{})
@@ -31,27 +57,24 @@ defmodule OrbitalDynamics.Schema.ContactIntentSummaryContracts do
       )
 
     issues
-    |> expect_equal(callbacks, path, summary, "schema_contract", "contact_intent_summary.v1")
-    |> expect_equal(callbacks, path, summary, "model", "artifact_only_contact_intent_summary")
-    |> expect_equal(callbacks, path, summary, "source_artifact_type", "contact_intent.v1")
-    |> expect_optional_type(callbacks, path, summary, "model_limits", :list)
-    |> validate_string_list_items(callbacks, path, summary, "model_limits")
-    |> validate_contact_intent_model_limits(callbacks, path, summary)
-    |> expect_non_negative_integer(callbacks, path, summary, "contact_intent_count")
+    |> expect_equal(path, summary, "schema_contract", "contact_intent_summary.v1")
+    |> expect_equal(path, summary, "model", "artifact_only_contact_intent_summary")
+    |> expect_equal(path, summary, "source_artifact_type", "contact_intent.v1")
+    |> expect_optional_type(path, summary, "model_limits", :list)
+    |> validate_string_list_items(path, summary, "model_limits")
+    |> validate_contact_intent_model_limits(path, summary)
+    |> expect_non_negative_integer(path, summary, "contact_intent_count")
     |> expect_non_negative_integer(
-      callbacks,
       path,
       summary,
       "capacity_pack_required_contact_count"
     )
     |> expect_optional_number(
-      callbacks,
       path,
       summary,
       "capacity_pack_required_capacity_fraction"
     )
     |> validate_capacity_fraction_maps(
-      callbacks,
       path,
       summary,
       station_capacity_totals,
@@ -59,7 +82,6 @@ defmodule OrbitalDynamics.Schema.ContactIntentSummaryContracts do
       direction_station_capacity_totals
     )
     |> validate_contact_id_maps(
-      callbacks,
       path,
       summary,
       source_counts,
@@ -71,20 +93,18 @@ defmodule OrbitalDynamics.Schema.ContactIntentSummaryContracts do
       direction_station_contact_ids,
       capacity_direction_station_ids
     )
-    |> expect_type(callbacks, path, summary, "ground_station_ids", :list)
-    |> validate_optional_stable_id_list(callbacks, path, summary, "ground_station_ids")
-    |> expect_type(callbacks, path, summary, "directions", :list)
+    |> expect_type(path, summary, "ground_station_ids", :list)
+    |> validate_optional_stable_id_list(path, summary, "ground_station_ids")
+    |> expect_type(path, summary, "directions", :list)
     |> validate_string_list_allowed(
-      callbacks,
       path,
       summary,
       "directions",
       OrbitalDynamics.Communications.ContactIntent.capabilities().directions
     )
-    |> expect_type(callbacks, path, summary, "assumptions", :map)
-    |> validate_assumptions(callbacks, path, summary)
+    |> expect_type(path, summary, "assumptions", :map)
+    |> validate_assumptions(path, summary)
     |> validate_summary_consistency(
-      callbacks,
       path,
       summary,
       station_contact_ids,
@@ -98,12 +118,11 @@ defmodule OrbitalDynamics.Schema.ContactIntentSummaryContracts do
       direction_capacity_totals,
       direction_station_capacity_totals
     )
-    |> validate_source_id_counts(callbacks, path, summary)
+    |> validate_source_id_counts(path, summary)
   end
 
   defp validate_capacity_fraction_maps(
          issues,
-         callbacks,
          path,
          summary,
          station_capacity_totals,
@@ -112,38 +131,32 @@ defmodule OrbitalDynamics.Schema.ContactIntentSummaryContracts do
        ) do
     issues
     |> expect_optional_type(
-      callbacks,
       path,
       summary,
       "capacity_pack_required_capacity_fraction_by_ground_station_id",
       :map
     )
     |> validate_non_negative_number_map(
-      callbacks,
       path <> ".capacity_pack_required_capacity_fraction_by_ground_station_id",
       station_capacity_totals
     )
     |> expect_optional_type(
-      callbacks,
       path,
       summary,
       "capacity_pack_required_capacity_fraction_by_direction",
       :map
     )
     |> validate_non_negative_number_map(
-      callbacks,
       path <> ".capacity_pack_required_capacity_fraction_by_direction",
       direction_capacity_totals
     )
     |> expect_optional_type(
-      callbacks,
       path,
       summary,
       "capacity_pack_required_capacity_fraction_by_direction_and_ground_station_id",
       :map
     )
     |> validate_nested_non_negative_number_map(
-      callbacks,
       path <> ".capacity_pack_required_capacity_fraction_by_direction_and_ground_station_id",
       direction_station_capacity_totals
     )
@@ -151,7 +164,6 @@ defmodule OrbitalDynamics.Schema.ContactIntentSummaryContracts do
 
   defp validate_contact_id_maps(
          issues,
-         callbacks,
          path,
          summary,
          source_counts,
@@ -165,98 +177,82 @@ defmodule OrbitalDynamics.Schema.ContactIntentSummaryContracts do
        ) do
     issues
     |> expect_optional_type(
-      callbacks,
       path,
       summary,
       "required_capacity_fraction_source_counts",
       :map
     )
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".required_capacity_fraction_source_counts",
       source_counts
     )
     |> expect_optional_type(
-      callbacks,
       path,
       summary,
       "required_capacity_fraction_contact_ids_by_source",
       :map
     )
-    |> expect_optional_type(callbacks, path, summary, "contact_ids_by_ground_station_id", :map)
-    |> expect_optional_type(callbacks, path, summary, "contact_ids_by_direction", :map)
+    |> expect_optional_type(path, summary, "contact_ids_by_ground_station_id", :map)
+    |> expect_optional_type(path, summary, "contact_ids_by_direction", :map)
     |> expect_optional_type(
-      callbacks,
       path,
       summary,
       "contact_ids_by_direction_and_ground_station_id",
       :map
     )
     |> expect_optional_type(
-      callbacks,
       path,
       summary,
       "capacity_pack_contact_ids_by_ground_station_id",
       :map
     )
     |> expect_optional_type(
-      callbacks,
       path,
       summary,
       "capacity_pack_contact_ids_by_direction",
       :map
     )
     |> expect_optional_type(
-      callbacks,
       path,
       summary,
       "capacity_pack_contact_ids_by_direction_and_ground_station_id",
       :map
     )
-    |> expect_optional_type(callbacks, path, summary, "direction_counts", :map)
+    |> expect_optional_type(path, summary, "direction_counts", :map)
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".direction_counts",
       Map.get(summary, "direction_counts")
     )
     |> validate_contact_intent_direction_routing(
-      callbacks,
       path,
       Map.get(summary, "direction_routing"),
       summary
     )
     |> validate_stable_id_array_map(
-      callbacks,
       path <> ".required_capacity_fraction_contact_ids_by_source",
       source_contact_ids
     )
     |> validate_stable_id_array_map(
-      callbacks,
       path <> ".contact_ids_by_ground_station_id",
       station_contact_ids
     )
     |> validate_stable_id_array_map(
-      callbacks,
       path <> ".contact_ids_by_direction",
       direction_contact_ids
     )
     |> validate_stable_id_array_map(
-      callbacks,
       path <> ".capacity_pack_contact_ids_by_ground_station_id",
       capacity_station_ids
     )
     |> validate_stable_id_array_map(
-      callbacks,
       path <> ".capacity_pack_contact_ids_by_direction",
       capacity_direction_ids
     )
     |> validate_nested_stable_id_array_map(
-      callbacks,
       path <> ".contact_ids_by_direction_and_ground_station_id",
       direction_station_contact_ids
     )
     |> validate_nested_stable_id_array_map(
-      callbacks,
       path <> ".capacity_pack_contact_ids_by_direction_and_ground_station_id",
       capacity_direction_station_ids
     )
@@ -264,7 +260,6 @@ defmodule OrbitalDynamics.Schema.ContactIntentSummaryContracts do
 
   defp validate_summary_consistency(
          issues,
-         callbacks,
          path,
          summary,
          station_contact_ids,
@@ -280,7 +275,6 @@ defmodule OrbitalDynamics.Schema.ContactIntentSummaryContracts do
        ) do
     issues
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "contact_intent_count",
@@ -288,7 +282,6 @@ defmodule OrbitalDynamics.Schema.ContactIntentSummaryContracts do
       "must equal contact_ids_by_ground_station_id total"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "contact_intent_count",
@@ -296,7 +289,6 @@ defmodule OrbitalDynamics.Schema.ContactIntentSummaryContracts do
       "must equal contact_ids_by_direction total"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "capacity_pack_required_contact_count",
@@ -304,7 +296,6 @@ defmodule OrbitalDynamics.Schema.ContactIntentSummaryContracts do
       "must equal required_capacity_fraction_source_counts total"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "capacity_pack_required_contact_count",
@@ -312,7 +303,6 @@ defmodule OrbitalDynamics.Schema.ContactIntentSummaryContracts do
       "must equal capacity_pack_contact_ids_by_ground_station_id total"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "capacity_pack_required_contact_count",
@@ -320,7 +310,6 @@ defmodule OrbitalDynamics.Schema.ContactIntentSummaryContracts do
       "must equal capacity_pack_contact_ids_by_direction total"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "contact_intent_count",
@@ -328,7 +317,6 @@ defmodule OrbitalDynamics.Schema.ContactIntentSummaryContracts do
       "must equal contact_ids_by_direction_and_ground_station_id total"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "capacity_pack_required_contact_count",
@@ -336,7 +324,6 @@ defmodule OrbitalDynamics.Schema.ContactIntentSummaryContracts do
       "must equal capacity_pack_contact_ids_by_direction_and_ground_station_id total"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "capacity_pack_required_capacity_fraction",
@@ -344,7 +331,6 @@ defmodule OrbitalDynamics.Schema.ContactIntentSummaryContracts do
       "must equal capacity_pack_required_capacity_fraction_by_ground_station_id total"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "capacity_pack_required_capacity_fraction",
@@ -352,7 +338,6 @@ defmodule OrbitalDynamics.Schema.ContactIntentSummaryContracts do
       "must equal capacity_pack_required_capacity_fraction_by_direction total"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "capacity_pack_required_capacity_fraction",
@@ -360,7 +345,6 @@ defmodule OrbitalDynamics.Schema.ContactIntentSummaryContracts do
       "must equal capacity_pack_required_capacity_fraction_by_direction_and_ground_station_id total"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "ground_station_ids",
@@ -368,7 +352,6 @@ defmodule OrbitalDynamics.Schema.ContactIntentSummaryContracts do
       "must equal contact_ids_by_ground_station_id keys"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "directions",
@@ -376,7 +359,6 @@ defmodule OrbitalDynamics.Schema.ContactIntentSummaryContracts do
       "must equal contact_ids_by_direction keys"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "direction_counts",
@@ -384,7 +366,6 @@ defmodule OrbitalDynamics.Schema.ContactIntentSummaryContracts do
       "must equal contact_ids_by_direction counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "direction_routing",
@@ -393,46 +374,41 @@ defmodule OrbitalDynamics.Schema.ContactIntentSummaryContracts do
     )
   end
 
-  defp validate_assumptions(issues, callbacks, path, summary) do
+  defp validate_assumptions(issues, path, summary) do
     case Map.get(summary, "assumptions") do
       assumptions when is_map(assumptions) ->
         issues
         |> expect_equal(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "execution_boundary",
           "artifact_only_no_provider_reservation_or_schedule_mutation"
         )
         |> expect_equal(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "source_artifact_type",
           "contact_intent.v1"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "station_capacity_value_paths",
-          station_capacity_value_path_assumptions(callbacks),
+          station_capacity_value_path_assumptions(),
           "must match ContactIntent station capacity value paths"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "required_capacity_value_paths",
-          required_capacity_value_path_assumptions(callbacks),
+          required_capacity_value_path_assumptions(),
           "must match ContactIntent required capacity value paths"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "required_capacity_fraction_source_values",
-          required_capacity_fraction_source_values(callbacks),
+          required_capacity_fraction_source_values(),
           "must match ContactIntent required capacity fraction source values"
         )
 
@@ -441,7 +417,7 @@ defmodule OrbitalDynamics.Schema.ContactIntentSummaryContracts do
     end
   end
 
-  defp validate_source_id_counts(issues, callbacks, path, summary) do
+  defp validate_source_id_counts(issues, path, summary) do
     expected =
       case Map.get(summary, "required_capacity_fraction_contact_ids_by_source", %{}) do
         source_contact_ids when is_map(source_contact_ids) ->
@@ -453,7 +429,6 @@ defmodule OrbitalDynamics.Schema.ContactIntentSummaryContracts do
 
     expect_field_equals(
       issues,
-      callbacks,
       path,
       summary,
       "required_capacity_fraction_source_counts",
@@ -528,7 +503,7 @@ defmodule OrbitalDynamics.Schema.ContactIntentSummaryContracts do
     end)
   end
 
-  defp validate_contact_intent_model_limits(issues, callbacks, path, intent) do
+  defp validate_contact_intent_model_limits(issues, path, intent) do
     case Map.get(intent, "model_limits") do
       nil ->
         issues
@@ -537,11 +512,11 @@ defmodule OrbitalDynamics.Schema.ContactIntentSummaryContracts do
         issues
 
       limits when is_list(limits) ->
-        if Enum.sort(limits) == contact_intent_model_limits(callbacks) do
+        if Enum.sort(limits) == contact_intent_model_limits() do
           issues
         else
           [
-            error(callbacks, "#{path}.model_limits", "must match contact intent model limits")
+            error("#{path}.model_limits", "must match contact intent model limits")
             | issues
           ]
         end
@@ -634,123 +609,45 @@ defmodule OrbitalDynamics.Schema.ContactIntentSummaryContracts do
 
   defp sorted_map_keys(_values), do: nil
 
-  defp expect_equal(issues, callbacks, path, map, field, expected),
-    do: apply(Keyword.fetch!(callbacks, :expect_equal), [issues, path, map, field, expected])
-
-  defp expect_type(issues, callbacks, path, map, field, type),
-    do: apply(Keyword.fetch!(callbacks, :expect_type), [issues, path, map, field, type])
-
-  defp expect_optional_type(issues, callbacks, path, map, field, type),
-    do: apply(Keyword.fetch!(callbacks, :expect_optional_type), [issues, path, map, field, type])
-
-  defp expect_non_negative_integer(issues, callbacks, path, map, field) do
-    apply(Keyword.fetch!(callbacks, :expect_non_negative_integer), [
-      issues,
-      path,
-      map,
-      field
-    ])
+  def station_capacity_value_path_assumptions do
+    contact_intent_capabilities()
+    |> Map.fetch!(:station_capacity_value_paths)
+    |> capacity_value_path_assumptions()
   end
 
-  defp expect_optional_number(issues, callbacks, path, map, field),
-    do: apply(Keyword.fetch!(callbacks, :expect_optional_number), [issues, path, map, field])
-
-  defp validate_string_list_items(issues, callbacks, path, map, field),
-    do: apply(Keyword.fetch!(callbacks, :validate_string_list_items), [issues, path, map, field])
-
-  defp validate_non_negative_number_map(issues, callbacks, path, values),
-    do:
-      apply(Keyword.fetch!(callbacks, :validate_non_negative_number_map), [issues, path, values])
-
-  defp validate_nested_non_negative_number_map(issues, callbacks, path, values) do
-    apply(Keyword.fetch!(callbacks, :validate_nested_non_negative_number_map), [
-      issues,
-      path,
-      values
-    ])
+  def required_capacity_value_path_assumptions do
+    contact_intent_capabilities()
+    |> Map.fetch!(:required_capacity_value_paths)
+    |> capacity_value_path_assumptions()
   end
 
-  defp validate_non_negative_integer_count_map(issues, callbacks, path, counts) do
-    apply(Keyword.fetch!(callbacks, :validate_non_negative_integer_count_map), [
-      issues,
-      path,
-      counts
-    ])
+  def required_capacity_fraction_source_values do
+    contact_intent_capabilities()
+    |> Map.fetch!(:required_capacity_fraction_source_values)
   end
 
-  defp validate_stable_id_array_map(issues, callbacks, path, values),
-    do: apply(Keyword.fetch!(callbacks, :validate_stable_id_array_map), [issues, path, values])
-
-  defp validate_nested_stable_id_array_map(issues, callbacks, path, values) do
-    apply(Keyword.fetch!(callbacks, :validate_nested_stable_id_array_map), [
-      issues,
-      path,
-      values
-    ])
+  defp contact_intent_model_limits do
+    contact_intent_capabilities()
+    |> Map.fetch!(:known_limits)
+    |> Enum.map(&Atom.to_string/1)
+    |> Enum.sort()
   end
 
-  defp validate_optional_stable_id_list(issues, callbacks, path, map, field) do
-    apply(Keyword.fetch!(callbacks, :validate_optional_stable_id_list), [
-      issues,
-      path,
-      map,
-      field
-    ])
+  defp capacity_value_path_assumptions(paths) do
+    Enum.map(paths, fn %{unit: unit, path: path} ->
+      %{"unit" => Atom.to_string(unit), "path" => path}
+    end)
   end
 
-  defp validate_string_list_allowed(issues, callbacks, path, map, field, allowed) do
-    apply(Keyword.fetch!(callbacks, :validate_string_list_allowed), [
-      issues,
-      path,
-      map,
-      field,
-      allowed
-    ])
-  end
-
-  defp validate_contact_intent_direction_routing(issues, callbacks, path, value, summary) do
-    apply(Keyword.fetch!(callbacks, :validate_contact_intent_direction_routing), [
+  defp validate_contact_intent_direction_routing(issues, path, value, summary) do
+    CandidateRefreshReportContracts.validate_contact_intent_direction_routing(
       issues,
       path,
       value,
       summary
-    ])
+    )
   end
 
-  defp expect_field_equals(issues, callbacks, path, map, field, expected, message) do
-    apply(Keyword.fetch!(callbacks, :expect_field_equals), [
-      issues,
-      path,
-      map,
-      field,
-      expected,
-      message
-    ])
-  end
-
-  defp expect_optional_field_equals(issues, callbacks, path, map, field, expected, message) do
-    apply(Keyword.fetch!(callbacks, :expect_optional_field_equals), [
-      issues,
-      path,
-      map,
-      field,
-      expected,
-      message
-    ])
-  end
-
-  defp contact_intent_model_limits(callbacks),
-    do: apply(Keyword.fetch!(callbacks, :contact_intent_model_limits), [])
-
-  defp station_capacity_value_path_assumptions(callbacks),
-    do: apply(Keyword.fetch!(callbacks, :station_capacity_value_path_assumptions), [])
-
-  defp required_capacity_value_path_assumptions(callbacks),
-    do: apply(Keyword.fetch!(callbacks, :required_capacity_value_path_assumptions), [])
-
-  defp required_capacity_fraction_source_values(callbacks),
-    do: apply(Keyword.fetch!(callbacks, :required_capacity_fraction_source_values), [])
-
-  defp error(callbacks, path, message),
-    do: apply(Keyword.fetch!(callbacks, :error), [path, message])
+  defp contact_intent_capabilities,
+    do: OrbitalDynamics.Communications.ContactIntent.capabilities()
 end

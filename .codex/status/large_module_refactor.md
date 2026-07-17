@@ -9,7 +9,7 @@ Current slice:
 Contact-intent-summary callback-bag collapse.
 
 Status:
-Selected; implementation not started.
+Complete and ready to publish.
 
 Selected slice:
 Replace the 21-entry `ContactIntentSummaryContracts` keyword bag with direct
@@ -47,10 +47,25 @@ relocated owner, focused/broader/export checks pass, and bounded review finds no
 blocker.
 
 Outcome:
-Pending.
+The 21-entry bag and every summary lookup/apply trampoline are gone. Primitive,
+stable-ID, numeric-map, and direction-routing validators are direct. Contact
+intent model limits and three capability-derived assumption transformations
+now live with the summary owner, and JSON schema generation reuses them. The
+factory, routing trampoline, duplicated assumption helpers, nested numeric-map
+trampoline, and unused facade import disappeared. `schema.ex` fell from 10,818
+to 10,749 lines and the summary owner from 756 to 653, for a net 172-line
+reduction. Three hundred sixty-two focused, 1,340 attributable broader, and 24
+export tests pass; compile, checked-in regeneration, compile-connected xref
+within its existing three-edge threshold, format, and diff hygiene are clean.
+Bounded review found no blocker and confirmed the full pipeline, defaults,
+paths/messages, direct validators, routing delegation, capability transforms,
+JSON-schema reuse, caller arity, and orphan cleanup.
 
 Verification gaps:
-- Not yet verified.
+- Full repository suite not run.
+- The 1,345-test broader batch has the same five known campaign-planner baseline
+  failures previously reproduced on pre-slice commit `6f1f0ac1`; the
+  attributable result is 1,340/1,340.
 
 Last completed slice:
 Contact-intent callback and policy-field ownership collapse published as

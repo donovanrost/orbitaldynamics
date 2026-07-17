@@ -42,7 +42,6 @@ defmodule OrbitalDynamics.Schema do
       validate_number_list_items: 4,
       validate_optional_exact_model_limits: 5,
       validate_optional_string_lists: 4,
-      validate_string_list_allowed: 5,
       validate_string_list_items: 4
     ]
 
@@ -3799,34 +3798,13 @@ defmodule OrbitalDynamics.Schema do
 
   defp contact_intent_summary_assumptions_json_schema do
     OrbitalDynamics.Schema.ContactIntentSummaryJsonSchema.assumptions(
-      station_capacity_value_paths: contact_intent_station_capacity_value_path_assumptions(),
-      required_capacity_value_paths: contact_intent_required_capacity_value_path_assumptions(),
+      station_capacity_value_paths:
+        OrbitalDynamics.Schema.ContactIntentSummaryContracts.station_capacity_value_path_assumptions(),
+      required_capacity_value_paths:
+        OrbitalDynamics.Schema.ContactIntentSummaryContracts.required_capacity_value_path_assumptions(),
       required_capacity_fraction_source_values:
-        contact_intent_required_capacity_fraction_source_values()
+        OrbitalDynamics.Schema.ContactIntentSummaryContracts.required_capacity_fraction_source_values()
     )
-  end
-
-  defp contact_intent_station_capacity_value_path_assumptions do
-    OrbitalDynamics.Communications.ContactIntent.capabilities()
-    |> Map.fetch!(:station_capacity_value_paths)
-    |> contact_intent_capacity_value_path_assumptions()
-  end
-
-  defp contact_intent_required_capacity_value_path_assumptions do
-    OrbitalDynamics.Communications.ContactIntent.capabilities()
-    |> Map.fetch!(:required_capacity_value_paths)
-    |> contact_intent_capacity_value_path_assumptions()
-  end
-
-  defp contact_intent_capacity_value_path_assumptions(paths) do
-    Enum.map(paths, fn %{unit: unit, path: path} ->
-      %{"unit" => Atom.to_string(unit), "path" => path}
-    end)
-  end
-
-  defp contact_intent_required_capacity_fraction_source_values do
-    OrbitalDynamics.Communications.ContactIntent.capabilities()
-    |> Map.fetch!(:required_capacity_fraction_source_values)
   end
 
   defp contact_filter_report_model_limits do
@@ -5751,15 +5729,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp stable_id_field?(field), do: field == "id" or String.ends_with?(field, "_id")
 
-  defp validate_contact_intent_direction_routing(issues, path, value, summary) do
-    OrbitalDynamics.Schema.CandidateRefreshReportContracts.validate_contact_intent_direction_routing(
-      issues,
-      path,
-      value,
-      summary
-    )
-  end
-
   defp validate_timeline_publication_context(issues, path, summary) do
     OrbitalDynamics.Schema.CandidateRefreshReportContracts.validate_timeline_publication_context(
       issues,
@@ -6707,35 +6676,6 @@ defmodule OrbitalDynamics.Schema do
     |> require_fields("$", artifact, contract["required_fields"])
   end
 
-  defp contact_intent_summary_contract_callbacks do
-    [
-      error: &error/2,
-      expect_equal: &expect_equal/5,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_non_negative_integer: &expect_non_negative_integer/4,
-      expect_optional_number: &expect_optional_number/4,
-      expect_field_equals: &expect_field_equals/6,
-      expect_optional_field_equals: &expect_optional_field_equals/6,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_string_list_allowed: &validate_string_list_allowed/5,
-      validate_non_negative_number_map: &validate_non_negative_number_map/3,
-      validate_nested_non_negative_number_map: &validate_nested_non_negative_number_map/3,
-      validate_non_negative_integer_count_map: &validate_non_negative_integer_count_map/3,
-      validate_stable_id_array_map: &validate_stable_id_array_map/3,
-      validate_nested_stable_id_array_map: &validate_nested_stable_id_array_map/3,
-      validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
-      validate_contact_intent_direction_routing: &validate_contact_intent_direction_routing/4,
-      contact_intent_model_limits: &contact_intent_model_limits/0,
-      station_capacity_value_path_assumptions:
-        &contact_intent_station_capacity_value_path_assumptions/0,
-      required_capacity_value_path_assumptions:
-        &contact_intent_required_capacity_value_path_assumptions/0,
-      required_capacity_fraction_source_values:
-        &contact_intent_required_capacity_fraction_source_values/0
-    ]
-  end
-
   defp link_capacity_summary_contract_callbacks do
     [
       expect_equal: &expect_equal/5,
@@ -7236,8 +7176,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.ContactIntentSummaryContracts.validate_summary(
       issues,
       path,
-      summary,
-      contact_intent_summary_contract_callbacks()
+      summary
     )
   end
 
@@ -8221,14 +8160,6 @@ defmodule OrbitalDynamics.Schema do
   defp validate_non_negative_number_map(issues, path, values),
     do:
       OrbitalDynamics.Schema.PrimitiveValidation.validate_non_negative_number_map(
-        issues,
-        path,
-        values
-      )
-
-  defp validate_nested_non_negative_number_map(issues, path, values),
-    do:
-      OrbitalDynamics.Schema.PrimitiveValidation.validate_nested_non_negative_number_map(
         issues,
         path,
         values
