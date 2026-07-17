@@ -18,7 +18,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
   """
 
   alias OrbitalDynamics.Communications.{
-    CommandWindow,
     ContactContention,
     ContactAllocation,
     ContactFilter,
@@ -50,6 +49,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
     BranchRefreshResourceSummaries,
     BranchRefreshSourceInputs,
     BranchRefreshTargets,
+    BuildArtifact,
     CadenceImportDirectPressureBranches,
     CadenceImportSourceReports,
     ContactAllocationPressureFanout,
@@ -175,7 +175,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
     CadenceImport,
     Optimizer,
     OperatorReview,
-    OperationalReadiness,
     Policy,
     ResultSet,
     ResourceFilter,
@@ -185,7 +184,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
     TimelineFeedback
   }
 
-  @schema_version 1
   @strategy_schema_version 3
   @realized_preserved_executed_statuses ~w(completed executed partial)
   @realized_failure_statuses ~w(missed failed canceled cancelled rejected)
@@ -297,41 +295,31 @@ defmodule OrbitalDynamics.CampaignPlanner do
         scoring_policy: policy
       )
 
-    %{
-      "schema_version" => @schema_version,
-      "generated_at" => DateTime.to_iso8601(generated_at),
-      "planner" => "OrbitalDynamics.CampaignPlanner.V1",
-      "plan_id" => plan_id,
-      "study_id" => ValueEncoding.encode_value(result_set.study_id),
-      "planning_horizon" => Map.get(campaign, "planning_horizon", %{}),
-      "activities" => selected_activities,
-      "proposed_contacts" => DownlinkActivityNormalization.proposed_contacts(candidates),
-      "contact_intents" => contact_intents,
-      "contact_filter_report" => contact_filter_report,
-      "resource_filter_report" => resource_filter_report,
-      "station_calendar_report" => station_calendar_report,
-      "contact_contention_report" => contact_contention_report,
-      "contact_contention_resolution_report" =>
+    BuildArtifact.build(result_set, campaign, %{
+      generated_at: generated_at,
+      plan_id: plan_id,
+      activities: selected_activities,
+      proposed_contacts: DownlinkActivityNormalization.proposed_contacts(candidates),
+      contact_intents: contact_intents,
+      contact_filter_report: contact_filter_report,
+      resource_filter_report: resource_filter_report,
+      station_calendar_report: station_calendar_report,
+      contact_contention_report: contact_contention_report,
+      contact_contention_resolution_report:
         contact_contention_resolution_report(candidates, contact_contention_report, campaign),
-      "contact_allocation_report" => contact_allocation_report,
-      "link_capacity_report" => link_capacity_report,
-      "resource_projection_report" => resource_projection_report,
-      "resource_projection_flow_summary" => resource_projection_flow_summary,
-      "timeline_activity_precondition_summaries" => timeline_activity_precondition_summaries,
-      "timeline_integrity_report" => timeline_integrity_report,
-      "target_commitments" => target_commitments,
-      "objective_satisfaction_report" => objective_satisfaction_report,
-      "operational_timeline_report" => operational_timeline_report(selected_activities),
-      "command_window_report" =>
-        CommandWindow.report(selected_activities,
-          source: "campaign_plan.activities",
-          source_assumption: "selected campaign_plan.activities",
-          approval_policy: approval_policy
-        ),
-      "candidate_activities" => candidates,
-      "ranked_timelines" => timelines,
-      "optimizer_contract" => optimizer_contract,
-      "constraint_report" =>
+      contact_allocation_report: contact_allocation_report,
+      link_capacity_report: link_capacity_report,
+      resource_projection_report: resource_projection_report,
+      resource_projection_flow_summary: resource_projection_flow_summary,
+      timeline_activity_precondition_summaries: timeline_activity_precondition_summaries,
+      timeline_integrity_report: timeline_integrity_report,
+      target_commitments: target_commitments,
+      objective_satisfaction_report: objective_satisfaction_report,
+      operational_timeline_report: operational_timeline_report(selected_activities),
+      candidate_activities: candidates,
+      ranked_timelines: timelines,
+      optimizer_contract: optimizer_contract,
+      constraint_report:
         campaign_constraint_report(
           candidates,
           timelines,
@@ -339,9 +327,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
           resource_projection_report,
           link_capacity_report
         ),
-      "objective_tradeoff_report" => objective_tradeoff_report,
-      "score_term_report" => score_term_report(timelines, policy),
-      "warnings" =>
+      objective_tradeoff_report: objective_tradeoff_report,
+      score_term_report: score_term_report(timelines, policy),
+      warnings:
         warnings(
           campaign,
           candidates,
@@ -350,33 +338,11 @@ defmodule OrbitalDynamics.CampaignPlanner do
           resource_filter_report,
           contact_filter_report
         ),
-      "assumptions" => assumptions(campaign),
-      "provenance" => provenance(result_set),
-      "ranking_explanation" => ranking_explanation(policy)
-    }
-    |> then(fn artifact ->
-      Map.put(
-        artifact,
-        "operator_review_package",
-        OperatorReview.from_campaign_artifact(artifact)
-      )
-    end)
-    |> then(fn artifact ->
-      Map.put(
-        artifact,
-        "cadence_import_manifest",
-        CadenceImport.from_campaign_artifact(artifact)
-      )
-    end)
-    |> attach_operational_readiness_reports()
-  end
-
-  defp attach_operational_readiness_reports(%{} = artifact) do
-    readiness_report = OperationalReadiness.report(artifact)
-
-    artifact
-    |> Map.put("operational_readiness_report", readiness_report)
-    |> Map.put("quality_gate_report", OperationalReadiness.quality_gate_report(readiness_report))
+      assumptions: assumptions(campaign),
+      provenance: provenance(result_set),
+      ranking_explanation: ranking_explanation(policy),
+      approval_policy: approval_policy
+    })
   end
 
   @doc """
