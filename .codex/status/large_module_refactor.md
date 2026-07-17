@@ -9,10 +9,10 @@ Current slice:
 Candidate-strategy ownership cleanup.
 
 Status:
-Ready for next slice selection.
+Ready for implementation.
 
 Selected slice:
-No implementation selected yet. The next bounded candidate is to move
+Move
 `strategy_branch.v1` and `strategy_recommendation.v1` from the facade into the
 existing `Validation.ReferenceFixtures.CandidateStrategyArtifacts` leaf beside
 its four related fixtures. Preserve the following study-benchmark fixture
@@ -55,39 +55,25 @@ and the complete facade remainder stay exact, focused and full validation tests
 pass, and bounded review finds no blocker.
 
 Verification gaps:
-- Next candidate still requires a selection baseline before implementation.
+- Implementation and post-move verification pending.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
   `a94507226596cd944ac21994c7889549ec58ecd1fcc0db5c65fa4e55b0f53ef2`,
   and sorted-key digest
   `b0007d04e4154fe879519a4f2b074fe3f9d0d649f3049d5d848264e105d00732`.
-- Selected four-fixture map: deterministic digest
-  `7f26f969db342eb91a4fea5b06a5f68f3bed35d12ac4fa473d60b8d92ae30fec`.
-- Exact 191-entry remainder: deterministic digest
-  `47d11af1a98d05dcce5e24ab73470c338a38d19e20caef4bf8a346bb02731d4c`.
-- Contiguous source boundary confirmed at facade lines 282-507, followed by
-  `strategy_branch.v1`, with no facade helper-attribute dependency in the
+- Selected two-fixture map: deterministic digest
+  `49daba95d0db6c44e6454d713be5eae2918be0fc2d9281b97c2cda72142b15ef`.
+- Existing four-fixture candidate-strategy leaf: deterministic digest
+  `5254bc49379694e676f7912155a3171e02c50a8258e190664377c4a1a52e8651`;
+  expected combined six-fixture digest
+  `f4b58d8bff3e910ea5127f6fb445309e2381fff9fe1769268a6490e124d673ee`.
+- Exact 193-entry remainder: deterministic digest
+  `de93509350d869d96051f93171fa50a69b0070d11398e736f5f3c2143a760a92`.
+- Source boundary confirmed at facade lines 283-386, followed by
+  `study_benchmark.v1`, with no facade helper-attribute dependency in the
   selected literals.
-- Normalized-AST proof against selection commit `a5f75723`: all four moved
-  literals, the following strategy-branch fixture, and the complete 45-entry
-  facade remainder are exact; the new leaf owns only the intended four keys.
-- Post-move exact proof: the 195-entry map, sorted-key digest, selected
-  four-fixture digest, and exact 191-entry remainder digest all match their
-  selection baselines.
-- Source partition proof: 41 maps total 195 entries, the new leaf owns four, the
-  facade owns 45, all 820 pairwise intersections are empty, and the source key
-  union exactly matches the runtime map.
-- Facade proof: all 195 successful `fetch/1` results, missing-key `:error`, and
-  nonbinary `FunctionClauseError` behavior remain unchanged.
-- Focused objective-scoring/facade validation: 16 tests passed.
-- Full validation family: 181 tests passed.
-- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
-  xref caller checks passed.
-- Independent bounded review against selection commit `a5f75723` was clean:
-  the contiguous source range and complete facade remainder are normalized-AST
-  exact, all runtime and partition invariants reproduced, dependency direction
-  remains one-way, and focused/full tests and hygiene gates passed.
+- Focused candidate-strategy/facade selection baseline: 18 tests passed.
 
 Behavior/schema changes:
 None.
