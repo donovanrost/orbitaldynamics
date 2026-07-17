@@ -1931,48 +1931,27 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp json_schema_property(field, @operational_timeline_report = contract_name, contract) do
-    focused_json_schema_property(
+  defp json_schema_property(field, contract_name, contract)
+       when contract_name in [
+              @operational_timeline_report,
+              @timeline_diff_report,
+              @timeline_diff_summary
+            ] do
+    OrbitalDynamics.Schema.TimelineReportPropertyDispatch.property(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.OperationalTimelineReportJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.OperationalTimelineReportJsonSchema.property_fun_from_context(
-        model_limits: &timeline_report_model_limits/0,
-        row_schema: &operational_timeline_row_json_schema/0,
-        stable_id_pattern: @stable_id_pattern,
-        capability: &timeline_capabilities/0
-      )
-    )
-  end
-
-  defp json_schema_property(field, @timeline_diff_report = contract_name, contract) do
-    focused_json_schema_property(
-      field,
-      contract_name,
-      contract,
-      &OrbitalDynamics.Schema.TimelineDiffReportJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.TimelineDiffReportJsonSchema.property_fun_from_context(
-        model_limits: &timeline_report_model_limits/0,
-        row_schema: &timeline_diff_row_json_schema/0,
-        stable_id_pattern: @stable_id_pattern,
-        capability: &timeline_capabilities/0
-      )
-    )
-  end
-
-  defp json_schema_property(field, @timeline_diff_summary = contract_name, contract) do
-    focused_json_schema_property(
-      field,
-      contract_name,
-      contract,
-      &OrbitalDynamics.Schema.TimelineDiffSummaryJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.TimelineDiffSummaryJsonSchema.property_fun_from_context(
-        model_limits: &timeline_report_model_limits/0,
-        row_schema: &timeline_diff_row_json_schema/0,
-        capability: &timeline_capabilities/0,
-        stable_id_pattern: @stable_id_pattern
-      )
+      contracts: %{
+        operational_timeline_report: @operational_timeline_report,
+        timeline_diff_report: @timeline_diff_report,
+        timeline_diff_summary: @timeline_diff_summary
+      },
+      model_limits: &timeline_report_model_limits/0,
+      operational_timeline_row_schema: &operational_timeline_row_json_schema/0,
+      timeline_diff_row_schema: &timeline_diff_row_json_schema/0,
+      stable_id_pattern: @stable_id_pattern,
+      capability: &timeline_capabilities/0,
+      default_property: &default_json_schema_property/3
     )
   end
 
