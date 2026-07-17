@@ -9,7 +9,7 @@ Current slice:
 Capability-catalog fixture mapping.
 
 Status:
-Ready for implementation.
+Publishing.
 
 Selected slice:
 Move the sole remaining `capability_catalog.v1` fixture together with its
@@ -58,7 +58,7 @@ remainder stays exact, focused and full validation tests pass, and bounded
 review finds no blocker.
 
 Verification gaps:
-- Implementation and post-move verification pending.
+None.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -75,12 +75,44 @@ Tests run:
   source occurrences: its definition and its use inside the selected fixture.
 - Focused capability-catalog/facade selection baseline: 5 tests passed with
   warnings as errors.
+- Normalized-AST proof against selection commit `a3b2e2a1`: the fixture map and
+  private ordering attribute are exact in the new leaf; the facade owns neither
+  attribute, contains no fixture literal, and its merge-module order is exact
+  after replacing the final `@fixtures` merge with
+  `CapabilityCatalogArtifacts.all/0`.
+- Post-move exact proof: the 195-entry map, sorted-key digest, selected
+  one-fixture digest, and exact 194-entry remainder digest all match their
+  selection baselines.
+- Source partition proof: 48 leaf maps total 195 entries, the new leaf owns one,
+  all 1,128 pairwise intersections are empty, and the 195 unique source keys
+  exactly match the runtime map.
+- Facade proof: all 195 successful `fetch/1` results, missing-key `:error`, and
+  nonbinary `FunctionClauseError` behavior remain unchanged; no fixture literal,
+  `@fixtures`, or private ordering attribute remains in the facade.
+- Focused capability-catalog/facade validation: 5 tests passed with warnings as
+  errors.
+- Full validation family: 181 tests passed with warnings as errors.
+- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
+  xref caller checks passed.
+- Initial bounded review found that the new leaf merge had been inserted
+  alphabetically instead of at the former final `@fixtures` position. The
+  merge was moved to the exact former position; merge-order proof, all four
+  digests, focused 5-test validation, full 181-test validation, xref,
+  formatting, and diff hygiene passed again.
+- Independent re-review against selection commit `a3b2e2a1` was clean: the
+  corrected merge order, normalized fixture and attribute AST, facade-state
+  removal, all deterministic digests, 48-map source partition, facade behavior,
+  one-way xref dependency, sizes, rerun tests, and hygiene all matched the
+  recorded evidence.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-No capability-catalog implementation has started.
+The exact capability-catalog fixture and its private ordering attribute now
+live in a dedicated cohesive leaf behind the unchanged facade. The facade
+shrunk from 235 to 105 lines and contains only aliases, registry composition,
+`all/0`, and `fetch/1`; the new leaf is 136 lines and owns exactly one fixture.
 
 Last completed slice:
 Station-reservation extraction published as `7e53ba2c`: the exact 12-fixture
