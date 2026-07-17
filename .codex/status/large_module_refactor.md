@@ -9,10 +9,10 @@ Current slice:
 Refreshed-window lineage fixture mapping.
 
 Status:
-Ready for next slice selection.
+Ready for implementation.
 
 Selected slice:
-No implementation selected yet. The next bounded candidate is to move
+Move
 `refreshed_window.v1` and `source_window_lineage.v1` into a new
 `Validation.ReferenceFixtures.ContactWindowArtifacts` leaf. Stop before
 `spacecraft_state_estimate.v1`.
@@ -55,7 +55,7 @@ the complete facade remainder stay exact, focused and full validation tests
 pass, and bounded review finds no blocker.
 
 Verification gaps:
-- Next candidate still requires a selection baseline before implementation.
+- Implementation, verification, and bounded review pending.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -63,30 +63,13 @@ Tests run:
   and sorted-key digest
   `b0007d04e4154fe879519a4f2b074fe3f9d0d649f3049d5d848264e105d00732`.
 - Selected two-fixture map: deterministic digest
-  `7817e0c1af0ec3b38d0c9ea5768aa301c34dce167c369342ffd5c38af2ae7c2d`.
+  `9871471bbf9a63cf018b9d9b5a008a432df478756f4f2b52ce3e7c534435a669`.
 - Exact 193-entry remainder: deterministic digest
-  `c7eb92ec687c0915792b1087ed65ce9e4fb96869f968be0519cfe96da6a2b073`.
-- Source boundaries confirmed at facade lines 157-248 and 3819-3897, followed
-  by `refreshed_window.v1` and `relay_data_path_summary.v1`, respectively, with
-  no facade helper-attribute dependency in either selected literal.
-- Post-move exact proof: the 195-entry map, sorted-key digest, selected
-  two-fixture digest, and exact 193-entry remainder digest all match their
-  selection baselines.
-- Source partition proof: 25 maps total 195 entries, the new leaf owns two, the
-  facade owns 109, and all 300 pairwise intersections are empty.
-- Facade proof: all 195 successful `fetch/1` results, missing-key `:error`, and
-  nonbinary `FunctionClauseError` behavior remain unchanged.
-- Focused link-capacity/facade validation: 15 tests passed.
-- Full validation family: 181 tests passed.
-- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
-  xref caller checks passed.
-- Independent bounded review: CLEAN. It confirmed both noncontiguous
-  link-capacity fixtures moved unchanged, both following boundary fixtures and
-  the complete facade remainder are normalized-AST exact, the new leaf owns
-  only its two intended keys, all 25 maps are unique and pairwise disjoint, all
-  digests and facade edge behaviors are unchanged, dependencies remain one-way,
-  relay-path ownership remains distinct, and it reproduced 15 focused and 181
-  full validation tests.
+  `402653897f9a6052f1460f8a60bd153f99fe3e64453b293b4332a22898b407c1`.
+- Source boundary confirmed at facade lines 158-237, with
+  `spacecraft_state_estimate.v1` beginning at line 238 and no facade
+  helper-attribute dependency in the selected literals.
+- Selection only; implementation verification pending.
 
 Behavior/schema changes:
 None.
