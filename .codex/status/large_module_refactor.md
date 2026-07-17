@@ -9,7 +9,7 @@ Current slice:
 Policy-bundle authority fixture mapping.
 
 Status:
-Ready for implementation.
+Publishing.
 
 Selected slice:
 Move only
@@ -57,7 +57,7 @@ complete facade remainder stay exact, focused and full validation tests pass,
 and bounded review finds no blocker.
 
 Verification gaps:
-- Implementation, verification, and bounded review pending.
+- None for this bounded slice.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -73,13 +73,33 @@ Tests run:
 - Source boundary confirmed at facade lines 154-301, with
   `policy_bundle.conservative_ops` beginning at line 302 and no facade
   helper-attribute dependency in the selected literals.
-- Selection only; implementation verification pending.
+- Post-move exact proof: the 195-entry map, sorted-key digest, selected
+  authority-pair digest, prior base-pair digest, and exact 193-entry remainder
+  digest all match their selection baselines. The resulting four-fixture leaf
+  digest is
+  `f12188bdae7efa82b99ba627007b3844de96c858c14ba919d0c6519cbf4b348f`.
+- Source partition proof: 21 maps total 195 entries, the policy leaf owns four,
+  the facade owns 128, and all 210 pairwise intersections are empty.
+- Facade proof: all 195 successful `fetch/1` results, missing-key `:error`, and
+  nonbinary `FunctionClauseError` behavior remain unchanged.
+- Focused policy-bundle/facade validation: 18 tests passed.
+- Full validation family: 181 tests passed.
+- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
+  xref caller checks passed.
+- Independent bounded review: CLEAN. It confirmed the authority pair moved
+  unchanged, the prior two leaf fixtures and complete facade remainder are
+  normalized-AST exact, the leaf owns only four intended keys, all 21 maps are
+  unique and pairwise disjoint, all six digests and facade edge behaviors are
+  unchanged, dependencies remain one-way, and it reproduced 18 focused and 181
+  full validation tests.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-No authority-fixture implementation has started.
+The two exact authority fixtures now live in the existing policy-bundle leaf
+behind the unchanged facade. The facade shrank from 9,216 to 9,068 lines; the
+leaf grew from two to four fixtures and from 147 to 295 lines.
 
 Last completed slice:
 Base policy-bundle fixture extraction published as `c66cedc3`: the two exact
