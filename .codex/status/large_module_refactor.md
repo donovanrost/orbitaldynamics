@@ -9,7 +9,7 @@ Current slice:
 Schema timeline-report JSON property-dispatch extraction.
 
 Status:
-Review complete; ready to publish.
+Published.
 
 Selected slice:
 Extract property dispatch for operational-timeline report, timeline-diff
@@ -51,7 +51,8 @@ The three facade clauses are now one guarded delegate to
 dispatcher preserves contract-to-module routing, focused-field selection,
 operational and diff row callbacks, shared model-limit/capability callbacks,
 stable identity dependencies, and the common-property fallback. The facade is
-9,615 lines; the new dispatcher is 59 lines.
+9,615 lines; the new dispatcher is 59 lines. Implementation published as
+`39a16f36`.
 
 Verification gaps:
 - `mix compile --warnings-as-errors` passed.
@@ -62,17 +63,21 @@ Verification gaps:
 - Scoped format, diff hygiene, and xref checks passed; xref reports only the
   expected runtime caller from `OrbitalDynamics.Schema`.
 - Bounded read-only review found no blocker or follow-up finding.
+- None for this slice.
 
 Last completed slice:
-Schema provider-counteroffer property dispatch published as `4693ca67`: the
-report, review, import-readiness, and plan-impact contracts now route through
-one cohesive internal dispatcher, 23 focused/export tests passed, full
+Schema timeline-report property dispatch published as `39a16f36`: operational
+timeline report, timeline-diff report, and timeline-diff summary now route
+through one cohesive internal dispatcher, 49 focused/export tests passed, full
 regeneration was byte-identical, and bounded review found no blocker.
 
 Next candidate:
-Audit one adjacent multi-contract timeline property family after this slice is
-published. Leave single-contract neighbors in the facade unless a broader
-cohesive boundary emerges.
+Extract the three adjacent station-reservation review, hold, and hold
+import-readiness summary property clauses into one internal reservation-summary
+dispatcher. Preserve the review/hold shared row callback, import-readiness row
+callback, shared calendar model limits/stable identity, common fallback, and
+exact exports. Leave station reservation/calendar reports and provider clauses
+in the facade.
 
 Blocked:
 No.
