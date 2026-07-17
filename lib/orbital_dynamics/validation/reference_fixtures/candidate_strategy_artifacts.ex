@@ -278,6 +278,110 @@ defmodule OrbitalDynamics.Validation.ReferenceFixtures.CandidateStrategyArtifact
         "internal checked-in artifact regression, not station-provider validation",
         "checks proposed contact identity, timing, source-window, and artifact-only boundary only"
       ]
+    },
+    "fixture.artifact.strategy_branch.v1" => %{
+      "id" => "fixture.artifact.strategy_branch.v1",
+      "model_id" => "artifact.strategy_branch.v1",
+      "reference_case" => "checked-in standalone V3 strategy branch artifact",
+      "validation_level" => "artifact_contract",
+      "fixture_type" => "curated_internal_artifact_regression",
+      "inputs" => %{
+        "artifact_path" => "study_results/strategy_branch_v1.json",
+        "contract" => "strategy_branch.v1"
+      },
+      "expected" => %{
+        "schema_contract" => "strategy_branch.v1",
+        "branch_id" => "derived_urgent_target_target_hot",
+        "label" => "Derived urgent target target_hot",
+        "probability" => 1.0,
+        "event_count" => 2,
+        "event_type_counts" => %{"downlink_completion_gap" => 1, "urgent_target" => 1},
+        "candidate_activity_count" => 0,
+        "strategic_addition_count" => 0,
+        "capacity_adjustment_count" => 0,
+        "repair_delta_count" => 0,
+        "approval_requirement_count" => 0,
+        "policy_classification" => "operator_review_required",
+        "policy_risk_count" => 1,
+        "score" => 2835.3981832107565,
+        "score_term_count" => 4,
+        "warning_count" => 1,
+        "risk_count" => 1,
+        "approval_status" => "operator_review_required",
+        "derived_source" => "mission_state.objectives",
+        "tradeoff_count" => 1,
+        "downlink_capacity_margin" => 0.62
+      },
+      "tolerances" => %{
+        "probability" => 0.0,
+        "event_count" => 0,
+        "candidate_activity_count" => 0,
+        "strategic_addition_count" => 0,
+        "capacity_adjustment_count" => 0,
+        "repair_delta_count" => 0,
+        "approval_requirement_count" => 0,
+        "policy_risk_count" => 0,
+        "score" => 0.0,
+        "score_term_count" => 0,
+        "warning_count" => 0,
+        "risk_count" => 0,
+        "tradeoff_count" => 0,
+        "downlink_capacity_margin" => 0.0
+      },
+      "evidence" => [
+        "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
+        "schema-linted by mix orbital_dynamics.schema.lint"
+      ],
+      "known_limits" => [
+        "internal checked-in artifact regression, not external strategy validation",
+        "checks standalone branch event/risk/score routing only"
+      ]
+    },
+    "fixture.artifact.strategy_recommendation.v1" => %{
+      "id" => "fixture.artifact.strategy_recommendation.v1",
+      "model_id" => "artifact.strategy_recommendation.v1",
+      "reference_case" => "checked-in standalone V3 strategy recommendation artifact",
+      "validation_level" => "artifact_contract",
+      "fixture_type" => "curated_internal_artifact_regression",
+      "inputs" => %{
+        "artifact_path" => "study_results/strategy_recommendation_v1.json",
+        "contract" => "strategy_recommendation.v1"
+      },
+      "expected" => %{
+        "schema_contract" => "strategy_recommendation.v1",
+        "status" => "pass",
+        "recommended_branch_id" => "derived_urgent_target_target_hot",
+        "approval_status" => "operator_review_required",
+        "reason" => "best_expected_score_requiring_operator_review",
+        "ranked_branch_count" => 4,
+        "ranked_branch_id_order" =>
+          "derived_urgent_target_target_hot|derived_target_revisit_target_hot|derived_combined_mission_state|operator_placeholder_urgent",
+        "tradeoff_count" => 3,
+        "explanation_count" => 4,
+        "risk_count" => 2,
+        "approval_requirement_count" => 1,
+        "requires_operator_review_count" => 1,
+        "branch_event_summary_count" => 1,
+        "branch_event_type_counts" => %{"urgent_target" => 1},
+        "branch_requires_operator_review" => true
+      },
+      "tolerances" => %{
+        "ranked_branch_count" => 0,
+        "tradeoff_count" => 0,
+        "explanation_count" => 0,
+        "risk_count" => 0,
+        "approval_requirement_count" => 0,
+        "requires_operator_review_count" => 0,
+        "branch_event_summary_count" => 0
+      },
+      "evidence" => [
+        "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
+        "schema-linted by mix orbital_dynamics.schema.lint"
+      ],
+      "known_limits" => [
+        "internal checked-in artifact regression, not external strategy validation",
+        "checks standalone recommendation ranking/review routing only"
+      ]
     }
   }
 

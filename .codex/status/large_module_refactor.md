@@ -9,7 +9,7 @@ Current slice:
 Candidate-strategy ownership cleanup.
 
 Status:
-Ready for implementation.
+Publishing.
 
 Selected slice:
 Move
@@ -55,7 +55,7 @@ and the complete facade remainder stay exact, focused and full validation tests
 pass, and bounded review finds no blocker.
 
 Verification gaps:
-- Implementation and post-move verification pending.
+- None for this slice.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -73,13 +73,36 @@ Tests run:
 - Source boundary confirmed at facade lines 283-386, followed by
   `study_benchmark.v1`, with no facade helper-attribute dependency in the
   selected literals.
-- Focused candidate-strategy/facade selection baseline: 18 tests passed.
+- Normalized-AST proof against selection commit `d0e05a90`: both moved
+  literals, all four existing target literals, the combined six-entry leaf, the
+  following benchmark fixture, and the complete 43-entry facade remainder are
+  exact.
+- Post-move exact proof: the 195-entry map, sorted-key digest, selected pair
+  digest, combined six-fixture leaf digest, and exact 193-entry remainder digest
+  all match their selection baselines.
+- Source partition proof: 41 maps total 195 entries, the completed
+  candidate-strategy leaf owns six, the facade owns 43, all 820 pairwise
+  intersections are empty, and the source key union exactly matches the runtime
+  map.
+- Facade proof: all 195 successful `fetch/1` results, missing-key `:error`, and
+  nonbinary `FunctionClauseError` behavior remain unchanged.
+- Focused candidate-strategy/facade validation: 18 tests passed.
+- Full validation family: 181 tests passed.
+- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
+  xref caller checks passed.
+- Independent bounded review against selection commit `d0e05a90` was clean:
+  the moved and existing target literals, completed leaf, facade remainder, and
+  boundary fixture are normalized-AST exact; all runtime, partition, focused,
+  full-test, dependency, and hygiene checks reproduced.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-No candidate-strategy ownership cleanup has started.
+The strategy branch and recommendation fixtures now live beside the existing
+four candidate-strategy fixtures in the established leaf. The facade shrank
+from 3,379 to 3,275 lines; the leaf grew from 285 to 389 lines and owns exactly
+the six fixtures exercised together.
 
 Last completed slice:
 Objective-scoring extraction published as `96a0115c`: the exact four-fixture
