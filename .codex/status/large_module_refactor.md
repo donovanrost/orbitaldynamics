@@ -9,10 +9,10 @@ Current slice:
 Policy-bundle organization-adapter ownership cleanup.
 
 Status:
-Ready for next slice selection.
+Ready for implementation.
 
 Selected slice:
-No implementation selected yet. The next bounded candidate is to move the
+Move the
 remaining `policy_bundle.organization_adapter` fixture into the existing
 `Validation.ReferenceFixtures.PolicyBundleArtifacts` leaf. Stop before
 `planned_activity.v1`.
@@ -55,41 +55,23 @@ exact, focused and full validation tests pass, and bounded review finds no
 blocker.
 
 Verification gaps:
-- Next candidate still requires a selection baseline before implementation.
+- Implementation, verification, and bounded review pending.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
   `a94507226596cd944ac21994c7889549ec58ecd1fcc0db5c65fa4e55b0f53ef2`,
   and sorted-key digest
   `b0007d04e4154fe879519a4f2b074fe3f9d0d649f3049d5d848264e105d00732`.
-- Selected three-fixture map: deterministic digest
-  `9ba63587e83807bf27fb8476e6e123fae5204202834a57c467903dadbdd5ce53`.
-- Exact 192-entry remainder: deterministic digest
-  `1bccf186eb7c2481e2fcbdddffc5e0854d99da98b10fbef20945e67bab374cd2`.
-- Existing eight-fixture policy leaf: deterministic digest
-  `52dd813392fb09ac5a16bdc6aa2cb13404f38add14481ac2852122ae380c3a00`.
-- Source boundary confirmed at facade lines 154-345, with
-  `policy_bundle.organization_adapter` beginning at line 346 and no facade
-  helper-attribute dependency in the selected literals.
-- Post-move exact proof: the 195-entry map, sorted-key digest, selected
-  domain-authority digest, prior eight-fixture leaf digest, and exact 192-entry
-  remainder digest all match their selection baselines. The resulting
-  eleven-fixture leaf digest is
+- Selected organization-adapter map: deterministic digest
+  `fed3fb648997d115c74c7eb849051a282520d26f5a7dca489df6d08c5c1652e1`.
+- Exact 194-entry remainder: deterministic digest
+  `97509859c9320c714fdb42424e5d372774b38c0f41fd02a75729e2aae3d2a732`.
+- Existing eleven-fixture policy leaf: deterministic digest
   `ba5aa4182753941be877a6973bc2e5162ef43604e6ecda753d7904a0a9f1769a`.
-- Source partition proof: 21 maps total 195 entries, the policy leaf owns
-  eleven, the facade owns 121, and all 210 pairwise intersections are empty.
-- Facade proof: all 195 successful `fetch/1` results, missing-key `:error`, and
-  nonbinary `FunctionClauseError` behavior remain unchanged.
-- Focused policy-bundle/facade validation: 18 tests passed.
-- Full validation family: 181 tests passed.
-- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
-  xref caller checks passed.
-- Independent bounded review: CLEAN. It confirmed the domain-authority trio
-  moved unchanged, the prior eight leaf fixtures and complete facade remainder
-  are normalized-AST exact, the leaf owns only eleven intended keys, all 21
-  maps are unique and pairwise disjoint, all six digests and facade edge
-  behaviors are unchanged, dependencies remain one-way, and it reproduced 18
-  focused and 181 full validation tests.
+- Source boundary confirmed at facade lines 154-201, with
+  `planned_activity.v1` beginning at line 202 and no facade helper-attribute
+  dependency in the selected literal.
+- Selection only; implementation verification pending.
 
 Behavior/schema changes:
 None.
