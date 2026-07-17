@@ -6,22 +6,22 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema communications-report validation ownership cleanup.
+Schema deferred-priority callback ownership cleanup.
 
 Status:
-Completed and published.
+Ready for implementation.
 
 Selected slice:
-Point link-capacity report validation, contact-contention report validation,
-contention-resolution report validation, and resolution-policy validation
-directly at their owner contracts. Remove four pure facade delegates across six
-positions while preserving the optional nil/type fallback clauses.
+Point the contact-allocation domain callback and operator-review row callback
+for deferred contention priority directly at
+`Schema.ContactContentionReportContracts.validate_deferred_priority/3`. Remove
+the pure facade delegate across two positions.
 
 Why this slice:
-The owners already expose exact `/3` validators. The report helpers only
-forward arguments from direct contract heads and optional-map clauses, while
-the policy helper only forwards the injected callback. Optional nil and invalid
-type behavior remains facade-owned and unchanged.
+The contention owner already exposes the exact `/3` validator and the facade
+helper only forwards arguments. Both callback keys and their surrounding bag
+order can remain unchanged without touching contact-allocation domain behavior
+or operator-review dispatch.
 
 Public facade to preserve:
 All `OrbitalDynamics.Schema` public functions, exact validation issue ordering,
@@ -38,30 +38,16 @@ Likely verification:
 - strict compile, format, xref, diff hygiene, and bounded review
 
 Definition of done:
-All six selected positions call their communications report owners directly,
-the four pure facade delegates are gone, optional fallbacks and positional
-policy callback ordering remain exact, validation and schema exports remain
-byte-for-byte stable, focused tests pass, and bounded review finds no blocker.
+Both callback positions call the contention owner directly, the pure facade
+delegate is gone, callback-key ordering and issue behavior remain exact,
+validation and schema exports remain byte-for-byte stable, focused tests pass,
+and bounded review finds no blocker.
 
 Verification gaps:
-- None for this slice.
+- Implementation and verification pending.
 
 Tests run:
-- `mix compile --warnings-as-errors`
-- 12 focused communications contract and fixture tests
-- 182 complete schema-contract and schema-export tests
-- full checked-in schema export regeneration; no schema diff
-- aggregate schema bundle digest unchanged:
-  `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`
-- `mix format --check-formatted`
-- `git diff --check`
-- compile-connected xref check for `schema.ex`
-- bounded read-only review: clean, no findings
-
-Outcome:
-All six communications report positions now call their owners directly. Four
-pure facade delegates were removed, optional nil/type fallbacks remain exact,
-and `schema.ex` decreased from 8,077 to 8,051 lines.
+- Selection only; implementation verification pending.
 
 Behavior/schema changes:
 None.
@@ -73,10 +59,9 @@ facade delegates were removed, 182 schema/export tests passed, full export
 bytes stayed exact, and bounded review was clean.
 
 Next candidate:
-Point the contact-allocation domain callback and operator-review row callback
-for deferred contention priority directly at
-`ContactContentionReportContracts.validate_deferred_priority/3`, then remove
-the pure facade delegate.
+After this boundary, audit the single CandidateDiff source-window-lineage
+pipeline and the remaining priority evidence helpers before selecting another
+owner family.
 
 Blocked:
 No.
