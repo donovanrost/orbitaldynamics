@@ -9,10 +9,10 @@ Current slice:
 Contact-intent fixture mapping.
 
 Status:
-Ready for next slice selection.
+Ready for implementation.
 
 Selected slice:
-No implementation selected yet. The next bounded candidate is to move
+Move
 `contact_intent.v1` and `contact_intent_summary.v1` into a new
 `Validation.ReferenceFixtures.ContactIntentArtifacts` leaf. Stop before
 `link_capacity_summary.v1`.
@@ -54,42 +54,21 @@ complete facade remainder stay exact, focused and full validation tests pass,
 and bounded review finds no blocker.
 
 Verification gaps:
-- Next candidate still requires a selection baseline before implementation.
+- Implementation, verification, and bounded review pending.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
   `a94507226596cd944ac21994c7889549ec58ecd1fcc0db5c65fa4e55b0f53ef2`,
   and sorted-key digest
   `b0007d04e4154fe879519a4f2b074fe3f9d0d649f3049d5d848264e105d00732`.
-- Selected three-fixture map: deterministic digest
-  `1af1f0f404a98d28b03dc3a04aada31c961f858d6935f3e63d47040737baace1`.
-- Exact 192-entry remainder: deterministic digest
-  `24c35264b2280806309dba8d5df496165c16598524ae2166fd1c253df8fc98ce`.
-- Existing two-fixture activity leaf: deterministic digest
-  `0495cd340d8bd8260c35eddc146e74669a8cddb34800983a92787db202338760`.
-- Source boundary confirmed at facade lines 156-314, with
-  `contact_intent.v1` beginning at line 315 and no facade helper-attribute
-  dependency in the selected literals.
-- Post-move exact proof: the 195-entry map, sorted-key digest, selected
-  three-fixture digest, prior two-fixture activity-leaf digest, and exact
-  192-entry remainder digest all match their selection baselines. The resulting
-  five-fixture leaf digest is
-  `ced869955c4b50090dfc2354f8728d326385d035cf8713c77d6e57d2f977aa18`.
-- Source partition proof: 23 maps total 195 entries, the activity leaf owns
-  five, the facade owns 113, and all 253 pairwise intersections are empty.
-- Facade proof: all 195 successful `fetch/1` results, missing-key `:error`, and
-  nonbinary `FunctionClauseError` behavior remain unchanged.
-- Focused activity-artifact/facade validation: 18 tests passed.
-- Full validation family: 181 tests passed.
-- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
-  xref caller checks passed.
-- Independent bounded review: CLEAN. It confirmed the outcome/change trio moved
-  unchanged, the prior two activity definitions and complete facade remainder
-  are normalized-AST exact, the leaf owns only its five intended activity keys,
-  all 23 maps are unique and pairwise disjoint, all six digests and facade edge
-  behaviors are unchanged, dependencies remain one-way, subsystem/contact
-  fixtures remain distinct, and it reproduced 18 focused and 181 full
-  validation tests.
+- Selected two-fixture map: deterministic digest
+  `37ba67b3227aaa447d940e862eb89ddbfeef9a71a960735218ad65b53f0f3e6f`.
+- Exact 193-entry remainder: deterministic digest
+  `b80744cdcd1814ada66ef0f1a902d18d668c28064a924cdca1f14bdc394f8f3d`.
+- Source boundary confirmed at facade lines 156-283, with
+  `link_capacity_summary.v1` beginning at line 284 and no facade
+  helper-attribute dependency in the selected literals.
+- Selection only; implementation verification pending.
 
 Behavior/schema changes:
 None.
