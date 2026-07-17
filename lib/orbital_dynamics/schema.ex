@@ -5068,19 +5068,25 @@ defmodule OrbitalDynamics.Schema do
   defp validate_contract(@provider_counteroffer_review_summary, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_provider_counteroffer_review_summary("$", artifact)
+    |> OrbitalDynamics.Schema.ProviderCounterofferSummaryContracts.validate_review("$", artifact)
   end
 
   defp validate_contract(@provider_counteroffer_import_readiness_summary, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_provider_counteroffer_import_readiness_summary("$", artifact)
+    |> OrbitalDynamics.Schema.ProviderCounterofferSummaryContracts.validate_import_readiness(
+      "$",
+      artifact
+    )
   end
 
   defp validate_contract(@provider_counteroffer_plan_impact_summary, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_provider_counteroffer_plan_impact_summary("$", artifact)
+    |> OrbitalDynamics.Schema.ProviderCounterofferSummaryContracts.validate_plan_impact(
+      "$",
+      artifact
+    )
   end
 
   defp validate_contract(@resource_summary, contract, artifact) do
@@ -6772,30 +6778,6 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       report
-    )
-  end
-
-  defp validate_provider_counteroffer_review_summary(issues, path, summary) do
-    OrbitalDynamics.Schema.ProviderCounterofferSummaryContracts.validate_review(
-      issues,
-      path,
-      summary
-    )
-  end
-
-  defp validate_provider_counteroffer_import_readiness_summary(issues, path, summary) do
-    OrbitalDynamics.Schema.ProviderCounterofferSummaryContracts.validate_import_readiness(
-      issues,
-      path,
-      summary
-    )
-  end
-
-  defp validate_provider_counteroffer_plan_impact_summary(issues, path, summary) do
-    OrbitalDynamics.Schema.ProviderCounterofferSummaryContracts.validate_plan_impact(
-      issues,
-      path,
-      summary
     )
   end
 
