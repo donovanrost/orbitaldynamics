@@ -9,7 +9,7 @@ Current slice:
 Benchmark fixture mapping.
 
 Status:
-Ready for implementation.
+Publishing.
 
 Selected slice:
 Move all
@@ -55,7 +55,7 @@ and the complete facade remainder stay exact, focused and full validation tests
 pass, and bounded review finds no blocker.
 
 Verification gaps:
-- Implementation and post-move verification pending.
+- None for this slice.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -69,13 +69,33 @@ Tests run:
 - Contiguous source boundary confirmed at facade lines 283-700, followed by
   `schema_validation_report.v1`, with no facade helper-attribute dependency in
   the selected literals.
-- Focused benchmark/facade selection baseline: 13 tests passed.
+- Normalized-AST proof against selection commit `679c126b`: all eight moved
+  literals, the following schema-validation report, and the complete 35-entry
+  facade remainder are exact; the new leaf owns only the intended eight keys.
+- Post-move exact proof: the 195-entry map, sorted-key digest, selected
+  eight-fixture digest, and exact 187-entry remainder digest all match their
+  selection baselines.
+- Source partition proof: 42 maps total 195 entries, the new leaf owns eight,
+  the facade owns 35, all 861 pairwise intersections are empty, and the source
+  key union exactly matches the runtime map.
+- Facade proof: all 195 successful `fetch/1` results, missing-key `:error`, and
+  nonbinary `FunctionClauseError` behavior remain unchanged.
+- Focused benchmark/facade validation: 13 tests passed.
+- Full validation family: 181 tests passed.
+- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
+  xref caller checks passed.
+- Independent bounded review against selection commit `679c126b` was clean:
+  the contiguous source range and complete facade remainder are normalized-AST
+  exact, all runtime and partition invariants reproduced, dependency direction
+  remains one-way, and focused/full tests and hygiene gates passed.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-No benchmark implementation has started.
+The exact eight-fixture benchmark family now lives in a new cohesive leaf
+behind the unchanged facade. The facade shrank from 3,275 to 2,859 lines; the
+new leaf is 426 lines and owns exactly eight fixtures.
 
 Last completed slice:
 Candidate-strategy ownership cleanup published as `f6deef4b`: the exact pair
