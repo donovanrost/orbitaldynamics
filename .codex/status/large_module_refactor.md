@@ -6,22 +6,22 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema suppression callback ownership cleanup.
+Schema suppression duplicate-evidence callback ownership cleanup.
 
 Status:
-Completed and published.
+Ready for implementation.
 
 Selected slice:
-Point two duplicate-group, three source-match, and one cadence source-review
-callback captures directly at `Schema.SuppressionHandoffContracts`. Remove the
-five pure facade clauses and leave callback-injected duplicate-row evidence
-validation unchanged.
+Give `Schema.SuppressionHandoffContracts` a three-argument duplicate-row entry
+point that uses `SuppressedCandidateContracts.validate_duplicate_evidence/3`.
+Point all three duplicate-row captures at the owner and remove the two pure
+facade helpers while retaining the existing four-argument API.
 
 Why this slice:
-The owner already exposes the exact three-argument APIs, including specialized
-and fallback clauses for cadence source-review rows and duplicate-group input.
-The facade clauses only forward arguments. Keeping duplicate-row evidence
-injection separate avoids widening this slice into domain callback ownership.
+The facade’s evidence validator is a one-hop delegate to the stable suppressed
+candidate contract and is used only by the duplicate-row wrapper. An owner
+default can supply that same callback to the unchanged four-argument pipeline,
+removing callback inversion without coupling the owner to facade state.
 
 Public facade to preserve:
 All `OrbitalDynamics.Schema` public functions, exact validation issue ordering,
@@ -30,6 +30,7 @@ schema export bytes.
 
 Likely files:
 - `lib/orbital_dynamics/schema.ex`
+- `lib/orbital_dynamics/schema/suppression_handoff_contracts.ex`
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
@@ -38,31 +39,16 @@ Likely verification:
 - strict compile, format, xref, diff hygiene, and bounded review
 
 Definition of done:
-All six selected captures point directly to `SuppressionHandoffContracts`, the
-five pure facade clauses are gone, duplicate-row evidence injection is
-unchanged, issue ordering remains exact, validation and schema exports remain
+All three selected captures point directly to the owner’s new default, the two
+pure facade helpers are gone, the existing four-argument pipeline and evidence
+validator behavior remain exact, validation and schema exports remain
 byte-for-byte stable, focused tests pass, and bounded review finds no blocker.
 
 Verification gaps:
-- None for this slice.
+- Implementation and verification pending.
 
 Tests run:
-- `mix compile --warnings-as-errors`
-- 104 focused cadence/import and operator-review suppression tests
-- 182 complete schema-contract and schema-export tests
-- full checked-in schema export regeneration; no schema diff
-- aggregate schema bundle digest unchanged:
-  `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`
-- `mix format --check-formatted`
-- `git diff --check`
-- compile-connected xref check for `schema.ex`
-- bounded read-only review: clean, no findings
-
-Outcome:
-All six suppression captures now point directly to
-`SuppressionHandoffContracts`. Five pure facade clauses were removed,
-duplicate-row evidence injection remains unchanged, and `schema.ex` decreased
-from 8,278 to 8,242 lines.
+- Selection only; implementation verification pending.
 
 Behavior/schema changes:
 None.
@@ -74,10 +60,8 @@ clauses were removed, 182 schema/export tests passed, full export bytes stayed
 exact, and bounded review was clean.
 
 Next candidate:
-Give `SuppressionHandoffContracts.validate_duplicate_row_fields/4` an
-owner-owned three-argument default using
-`SuppressedCandidateContracts.validate_duplicate_evidence/3`. Retarget its three
-captures and remove both remaining pure facade helpers.
+After this boundary, audit the remaining pure contact-allocation and quality
+handoff summary delegates by owner and capture count.
 
 Blocked:
 No.
