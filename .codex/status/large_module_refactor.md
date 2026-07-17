@@ -9,7 +9,7 @@ Current slice:
 Policy-decision reference-fixture extraction.
 
 Status:
-Publishing implementation.
+Completed and published as `aeb1b10b`.
 
 Selected slice:
 Move the contiguous approval-requirement and policy-decision fixtures into
@@ -87,16 +87,17 @@ with 19 existing fixture maps plus 133 remaining fixtures. The facade fell
 from 9,483 to 9,397 lines, while the extracted family is 96 lines.
 
 Last completed slice:
-Manifest fixture extraction published as `dbe4437e`: the two exact
-field-reference/lint fixtures moved behind the unchanged facade, approval
-requirements and the remainder stayed exact, the 195-entry map and
-deterministic bytes stayed exact, 181 validation tests passed, and bounded
-review was clean.
+Policy-decision fixture extraction published as `aeb1b10b`: the two exact
+approval/decision fixtures moved behind the unchanged facade, proposed contact
+and the remainder stayed exact, the 195-entry map and deterministic bytes
+stayed exact, 181 validation tests passed, and bounded review was clean.
 
 Next candidate:
-After this boundary, decide whether proposed-contact belongs with the existing
-candidate-strategy family or should remain until a broader candidate input
-family is mapped; do not move it by adjacency alone.
+Move the now-first `proposed_contact.v1` fixture into the existing
+`CandidateStrategyArtifacts` leaf rather than create a micro-module. The
+44-line literal has no helper-attribute coupling and shares dedicated
+`candidate_strategy_fixture_test.exs` ownership with that leaf; re-baseline the
+complete map and prove the existing leaf remains cohesive before selecting.
 
 Blocked:
 No.
