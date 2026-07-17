@@ -9,7 +9,7 @@ Current slice:
 CandidateRefresh timeline feedback/operational timeline replay callback removal.
 
 Status:
-Review complete; ready to publish.
+Published as `531e78f6`.
 
 Selected slice:
 Remove the repeated source-summary callback from the timeline-feedback and
@@ -63,13 +63,13 @@ Verification gaps:
 - bounded read-only review: clean, no findings
 
 Last completed slice:
-Candidate command-window/maneuver-review replay callback removal published as
-`0ececfa0`: both paths are one-argument end to end, 20 focused tests passed,
+Candidate feedback/operational-timeline replay callback removal published as
+`531e78f6`: both paths are one-argument end to end, 27 focused tests passed,
 and bounded review found no blocker.
 
 Next candidate:
-Remove the callback seam from one adjacent timeline replay family after this
-pair is published.
+Audit the adjacent timeline-integrity/lifecycle-state callback seams as one
+possible bounded pair.
 
 Blocked:
 No.
