@@ -9,7 +9,7 @@ Current slice:
 CandidateRefresh contact contention/resolution replay callback removal.
 
 Status:
-Review complete; ready to publish.
+Published as `63e1f657`.
 
 Selected slice:
 Remove the repeated source-summary callback from the contact-contention and
@@ -63,13 +63,13 @@ Verification gaps:
 - bounded read-only review: clean, no findings
 
 Last completed slice:
-Candidate link-capacity replay callback removal published as `060002d9`: the
-path is one-argument end to end, 24 focused tests passed, and bounded review
-found no blocker.
+Candidate contention/resolution replay callback removal published as
+`63e1f657`: both paths are one-argument end to end, 33 focused tests passed,
+and bounded review found no blocker.
 
 Next candidate:
-Remove the callback seam from one adjacent single-owner replay family after
-this pair is published.
+Audit the adjacent contact-intent/provider-counteroffer callback seams as one
+possible bounded pair.
 
 Blocked:
 No.
