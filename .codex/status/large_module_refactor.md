@@ -6,30 +6,28 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Contact-contention fixture mapping.
+Link-capacity ownership cleanup.
 
 Status:
-Publishing.
+Ready for next slice selection.
 
 Selected slice:
-Move
-`contact_filter_report.v1`, `contact_contention_report.v1`,
-`contact_contention_report.cross_station_spacecraft`,
-`contact_contention_resolution_report.v1`, and
-`contact_contention_resolution_summary.v1` from their contiguous facade range
-into a new `Validation.ReferenceFixtures.ContactContentionArtifacts` leaf.
-Preserve the following relay-data-path summary exactly.
+No implementation selected yet. The next bounded candidate is to move
+`relay_data_path_summary.v1` from the facade into the existing
+`Validation.ReferenceFixtures.LinkCapacityArtifacts` leaf beside
+`link_capacity_summary.v1` and `link_capacity_report.v1`. Preserve the
+following maneuver-review report exactly.
 
 Why this slice:
-`ReferenceFixtures` remains the largest production module at 4,721 lines. The
-five fixtures occupy 318 facade lines and exactly own
-`contact_contention_fixture_test.exs`.
+`ReferenceFixtures` remains the largest production module at 4,405 lines. The
+98-line relay fixture is the only fixture owned by
+`link_capacity_fixture_test.exs` that remains outside the existing
+link-capacity leaf.
 
 Current coupling/problem:
-Contact filtering, contention detection, cross-station contention, and
-resolution expectations form one contiguous test-owned family but remain
-embedded in the general registry. Moving all five preserves the complete
-contention workflow without absorbing relay-capacity behavior.
+Relay data-path expectations remain in the general facade while the matching
+link-capacity summary and report already live together. Moving the final member
+completes established family ownership without creating another module.
 
 Public facade to preserve:
 `OrbitalDynamics.Validation.ReferenceFixtures.all/0` and `fetch/1`, exact
@@ -37,28 +35,28 @@ fixture keys and values, map equality and deterministic term bytes, and all
 `OrbitalDynamics.Validation` reference-fixture behavior.
 
 Likely extraction target:
-`OrbitalDynamics.Validation.ReferenceFixtures.ContactContentionArtifacts`.
+`OrbitalDynamics.Validation.ReferenceFixtures.LinkCapacityArtifacts`.
 
 Likely files:
 - `lib/orbital_dynamics/validation/reference_fixtures.ex`
-- `lib/orbital_dynamics/validation/reference_fixtures/contact_contention_artifacts.ex`
+- `lib/orbital_dynamics/validation/reference_fixtures/link_capacity_artifacts.ex`
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
 - exact before/after fixture count, keys, values, and deterministic term digest
-- focused contact-contention and facade validation tests
+- focused link-capacity and facade validation tests
 - full validation test family
 - strict compile, format, xref, diff hygiene, and bounded review
 
 Definition of done:
-The five contact-contention fixtures exist only in the new cohesive leaf, all
-36 fixture maps remain disjoint, `all/0` and `fetch/1` return exactly the same
+All three link-capacity fixtures exist only in the established cohesive leaf,
+all 36 fixture maps remain disjoint, `all/0` and `fetch/1` return exactly the same
 195-entry map and deterministic term bytes, both following boundary fixtures
 and the complete facade remainder stay exact, focused and full validation tests
 pass, and bounded review finds no blocker.
 
 Verification gaps:
-- None for this slice.
+- Next candidate still requires a selection baseline before implementation.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -96,20 +94,18 @@ Behavior/schema changes:
 None.
 
 Outcome:
-The exact five-fixture contact-contention family now lives in a new cohesive
-leaf behind the unchanged facade. The facade shrank from 4,721 to 4,405 lines;
-the new leaf is 326 lines and owns exactly five fixtures.
+No link-capacity ownership cleanup has started.
 
 Last completed slice:
-Provider-capacity-pack extraction published as `19180691`: the exact
-two-fixture family moved into a new 238-line leaf, the facade shrank from 4,949
-to 4,721 lines, the 195-entry map and all deterministic digests stayed exact,
-14 focused and 181 full validation tests passed, and bounded review was clean.
+Contact-contention extraction published as `935df70f`: the exact five-fixture
+family moved into a new 326-line leaf, the facade shrank from 4,721 to 4,405
+lines, the 195-entry map and all deterministic digests stayed exact, 17 focused
+and 181 full validation tests passed, and bounded review was clean.
 
 Next candidate:
-Select the contact-contention extraction described above, capture the exact
-combined map and contiguous source boundary, then move the complete test-owned
-family together.
+Select the relay-data-path ownership cleanup described above, capture the exact
+fixture and facade remainder baselines, then complete the existing test-owned
+family.
 
 Blocked:
 No.
