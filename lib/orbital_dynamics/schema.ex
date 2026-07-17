@@ -4924,7 +4924,7 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp validate_contract(@candidate_diff_report, _contract, artifact) do
-    validate_optional_candidate_diff_report([], "$", artifact)
+    OrbitalDynamics.Schema.CandidateDiffContracts.validate_optional_report([], "$", artifact)
   end
 
   defp validate_contract(@link_capacity_report, contract, artifact) do
@@ -5932,7 +5932,8 @@ defmodule OrbitalDynamics.Schema do
       validate_optional_objective_tradeoff_report: &validate_optional_objective_tradeoff_report/2,
       validate_optional_score_term_report: &validate_optional_score_term_report/2,
       validate_optional_link_capacity_report: &validate_optional_link_capacity_report/2,
-      validate_optional_candidate_diff_report: &validate_optional_candidate_diff_report/3,
+      validate_optional_candidate_diff_report:
+        &OrbitalDynamics.Schema.CandidateDiffContracts.validate_optional_report/3,
       validate_optional_candidate_rejection_report:
         &validate_optional_candidate_rejection_report/3,
       validate_optional_freshness_report: &validate_optional_freshness_report/3,
@@ -6721,14 +6722,6 @@ defmodule OrbitalDynamics.Schema do
       "pending_operator_review",
       "ready_for_review"
     ])
-  end
-
-  defp validate_optional_candidate_diff_report(issues, path, report) do
-    OrbitalDynamics.Schema.CandidateDiffContracts.validate_optional_report(
-      issues,
-      path,
-      report
-    )
   end
 
   defp validate_optional_freshness_report(issues, path, report) do
