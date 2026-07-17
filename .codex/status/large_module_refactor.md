@@ -9,7 +9,7 @@ Current slice:
 Validation manifest fixture test-family extraction.
 
 Status:
-Selected.
+Ready to publish.
 
 Selected slice:
 Move the two contiguous manifest-field reference and study-manifest-lint
@@ -46,10 +46,15 @@ shared builders have one exact owner, focused and parent files pass, names
 remain unique, and bounded review finds no blocker.
 
 Outcome:
-Pending.
+Two byte-identical manifest tests moved into a 234-line focused module. Their
+four raw/observation helpers now have one 27-line shared support owner with an
+exact private JSON loader; the parent imports only the two aggregate observation
+builders. The parent fell from 3,675 to 3,442 lines. Total
+test/support/loader LOC grew by 29 lines for explicit ownership without helper
+duplication. All 181 Validation test names remain unique.
 
 Verification gaps:
-- Pending.
+- Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
 Validation core run-report extraction published as `1ac7b222`: the focused
@@ -60,7 +65,7 @@ exact-source and dependency-closure checks, and bounded review were clean.
 Next candidate:
 Map the approval-requirement and policy-decision fixtures following manifests.
 The two contiguous tests and four raw/observation helpers form a complete policy
-decision family.
+decision family ending before resource-pressure handoffs.
 
 Blocked:
 No.
