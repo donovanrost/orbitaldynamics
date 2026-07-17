@@ -3,13 +3,9 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairAccumulator do
 
   alias OrbitalDynamics.CampaignPlanner.{
     ActivityIdentity,
-    ActivityTiming,
-    DownlinkActivityNormalization,
     PlanDelta,
-    ValueEncoding
+    RepairActivityIdentity
   }
-
-  alias OrbitalDynamics.Timeline
 
   def add_activity(acc, activity),
     do: Map.update!(acc, :activities, &[activity | &1])
@@ -166,10 +162,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairAccumulator do
   defp callbacks,
     do: [
       activity_id: &ActivityIdentity.activity_id/1,
-      activity_timeline_id: &activity_timeline_id/1,
+      activity_timeline_id: &RepairActivityIdentity.timeline_id/1,
       replacement_timeline_id: &replacement_timeline_id/1,
       optional_timeline_link: &optional_timeline_link/2,
-      operational_activity_context: &Timeline.activity_context/1,
+      operational_activity_context: &RepairActivityIdentity.context/1,
       optional_operational_activity_context: &optional_operational_activity_context/1
     ]
 
@@ -198,53 +194,13 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairAccumulator do
   defp optional_timeline_link(_source_activity, nil), do: nil
 
   defp optional_timeline_link(source_activity, replacement_activity),
-    do: Timeline.timeline_link(source_activity, replacement_activity)
+    do: RepairActivityIdentity.timeline_link(source_activity, replacement_activity)
 
   defp optional_operational_activity_context(nil), do: nil
 
   defp optional_operational_activity_context(activity),
-    do: Timeline.activity_context(activity)
+    do: RepairActivityIdentity.context(activity)
 
   defp replacement_timeline_id(nil), do: nil
-  defp replacement_timeline_id(activity), do: activity_timeline_id(activity)
-
-  defp activity_timeline_id(activity) do
-    activity["timeline_id"] ||
-      activity["persistent_id"] ||
-      get_in(activity, ["metadata", "timeline_id"]) ||
-      get_in(activity, ["metadata", "persistent_id"]) ||
-      derived_timeline_id(activity)
-  end
-
-  defp derived_timeline_id(activity) do
-    [
-      "timeline",
-      activity["scenario_id"],
-      activity["type"],
-      activity_subject_id(activity),
-      activity_source_window_id(activity) || ActivityTiming.activity_start(activity)
-    ]
-    |> Enum.reject(&is_nil/1)
-    |> Enum.map(&ValueEncoding.encode_value/1)
-    |> Enum.join(":")
-  end
-
-  defp activity_subject_id(activity) do
-    activity["target_id"] ||
-      activity_ground_station_id(activity) ||
-      activity["spacecraft_id"] ||
-      activity["resource_id"]
-  end
-
-  defp activity_ground_station_id(activity) do
-    Map.get(activity, "ground_station_id") ||
-      Map.get(activity, "station_id") ||
-      DownlinkActivityNormalization.nested_ground_station_id(activity)
-  end
-
-  defp activity_source_window_id(activity) do
-    activity["source_window_id"] ||
-      get_in(activity, ["source_window", "id"]) ||
-      get_in(activity, ["metadata", "source_window_id"])
-  end
+  defp replacement_timeline_id(activity), do: RepairActivityIdentity.timeline_id(activity)
 end

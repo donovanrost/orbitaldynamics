@@ -123,6 +123,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
     ResourceProjectionSourceReports,
     RefreshSourceReports,
     RepairAccumulator,
+    RepairActivityIdentity,
     RepairArtifact,
     RepairCandidateDiff,
     RepairCandidateInputs,
@@ -3111,7 +3112,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
     event_station_id = event_ground_station_id(event)
 
     station_match? =
-      is_nil(event_station_id) or activity_ground_station_id(activity) == event_station_id
+      is_nil(event_station_id) or
+        RepairActivityIdentity.ground_station_id(activity) == event_station_id
 
     scenario_match? =
       is_nil(event["scenario_id"]) or activity["scenario_id"] == event["scenario_id"]
@@ -3457,10 +3459,10 @@ defmodule OrbitalDynamics.CampaignPlanner do
             %{
               "action" => "moved",
               "source_activity_id" => ActivityIdentity.activity_id(activity),
-              "source_timeline_id" => activity_timeline_id(activity),
-              "replacement_timeline_id" => activity_timeline_id(replacement),
-              "timeline_link" => timeline_link(activity, replacement),
-              "source_activity_context" => operational_activity_context(activity),
+              "source_timeline_id" => RepairActivityIdentity.timeline_id(activity),
+              "replacement_timeline_id" => RepairActivityIdentity.timeline_id(replacement),
+              "timeline_link" => RepairActivityIdentity.timeline_link(activity, replacement),
+              "source_activity_context" => RepairActivityIdentity.context(activity),
               "reason" => reason,
               "requires_approval" => true,
               "schedule_churn_s" =>
@@ -3523,10 +3525,10 @@ defmodule OrbitalDynamics.CampaignPlanner do
             %{
               "action" => "replaced",
               "source_activity_id" => ActivityIdentity.activity_id(activity),
-              "source_timeline_id" => activity_timeline_id(activity),
-              "replacement_timeline_id" => activity_timeline_id(replacement),
-              "timeline_link" => timeline_link(activity, replacement),
-              "source_activity_context" => operational_activity_context(activity),
+              "source_timeline_id" => RepairActivityIdentity.timeline_id(activity),
+              "replacement_timeline_id" => RepairActivityIdentity.timeline_id(replacement),
+              "timeline_link" => RepairActivityIdentity.timeline_link(activity, replacement),
+              "source_activity_context" => RepairActivityIdentity.context(activity),
               "reason" => reason,
               "requires_approval" => true,
               "schedule_churn_s" =>
@@ -4068,7 +4070,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
   end
 
   defp candidate_diff_row_matches?(row, source, candidate) do
-    source_window_id = activity_source_window_id(source)
+    source_window_id = RepairActivityIdentity.source_window_id(source)
 
     row["replacement_candidate_id"] == ActivityIdentity.activity_id(candidate) and
       (row["id"] == ActivityIdentity.activity_id(source) or
@@ -4089,10 +4091,11 @@ defmodule OrbitalDynamics.CampaignPlanner do
   end
 
   defp matches_repair_intent?(source, candidate, "downlink") do
-    source_station_id = activity_ground_station_id(source)
+    source_station_id = RepairActivityIdentity.ground_station_id(source)
 
     ActivityIdentity.same_scenario?(source, candidate) and
-      (is_nil(source_station_id) or source_station_id == activity_ground_station_id(candidate))
+      (is_nil(source_station_id) or
+         source_station_id == RepairActivityIdentity.ground_station_id(candidate))
   end
 
   defp matches_repair_intent?(source, candidate, "observe") do
@@ -4100,53 +4103,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
   end
 
   defp matches_repair_intent?(_source, _candidate, _type), do: true
-
-  defp operational_activity_context(activity) do
-    Timeline.activity_context(activity)
-  end
-
-  defp timeline_link(source_activity, replacement_activity) do
-    Timeline.timeline_link(source_activity, replacement_activity)
-  end
-
-  defp activity_timeline_id(activity) do
-    activity["timeline_id"] ||
-      activity["persistent_id"] ||
-      get_in(activity, ["metadata", "timeline_id"]) ||
-      get_in(activity, ["metadata", "persistent_id"]) ||
-      derived_timeline_id(activity)
-  end
-
-  defp derived_timeline_id(activity) do
-    [
-      "timeline",
-      activity["scenario_id"],
-      activity["type"],
-      activity_subject_id(activity),
-      activity_source_window_id(activity) || ActivityTiming.activity_start(activity)
-    ]
-    |> Enum.reject(&is_nil/1)
-    |> Enum.map(&ValueEncoding.encode_value/1)
-    |> Enum.join(":")
-  end
-
-  defp activity_subject_id(activity) do
-    activity["target_id"] ||
-      activity_ground_station_id(activity) ||
-      activity["spacecraft_id"] ||
-      activity["resource_id"]
-  end
-
-  defp activity_ground_station_id(activity) do
-    Map.get(activity, "ground_station_id") || Map.get(activity, "station_id") ||
-      DownlinkActivityNormalization.nested_ground_station_id(activity)
-  end
-
-  defp activity_source_window_id(activity) do
-    activity["source_window_id"] ||
-      get_in(activity, ["source_window", "id"]) ||
-      get_in(activity, ["metadata", "source_window_id"])
-  end
 
   defp timeline_protection_summary(activities, deltas) do
     RepairTimelineSummary.protection_summary(activities, deltas)
