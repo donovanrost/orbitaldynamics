@@ -9,7 +9,7 @@ Current slice:
 Environment capability reference-fixture extraction.
 
 Status:
-Publishing implementation.
+Completed and published as `566532f9`.
 
 Selected slice:
 Move the six contiguous environment model/provider capability fixtures into
@@ -87,14 +87,18 @@ family with 15 existing fixture maps plus 144 remaining fixtures. The facade
 fell from 10,318 to 10,065 lines, while the extracted family is 263 lines.
 
 Last completed slice:
-Candidate-state report fixture extraction published as `089ee63a`: the two
-exact report/diff fixtures moved behind the unchanged facade, the environment-
-capability block and remainder stayed exact, the 195-entry map and deterministic
-bytes stayed exact, 181 validation tests passed, and bounded review was clean.
+Environment capability fixture extraction published as `566532f9`: the six
+exact model/provider capability fixtures moved behind the unchanged facade,
+branch comparison and the remainder stayed exact, the 195-entry map and
+deterministic bytes stayed exact, 181 validation tests passed, and bounded
+review was clean.
 
 Next candidate:
-After this boundary, remap the branch-comparison/optimizer/candidate-state
-report run and choose a family by focused test ownership rather than adjacency.
+Extract the contiguous branch-comparison, optimizer-contract, and
+invalidated-candidate fixtures into a candidate-strategy family. The 233-line
+trio shares dedicated `candidate_strategy_fixture_test.exs` ownership and stops
+before `candidate_diff_report.v1`; first verify helper-attribute independence
+and re-baseline the complete map.
 
 Blocked:
 No.
