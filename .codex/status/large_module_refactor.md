@@ -9,7 +9,7 @@ Current slice:
 Validation station reservation/provider fixture test-family extraction.
 
 Status:
-Ready to publish.
+Published as `d5b34867`.
 
 Selected slice:
 Move the nine contiguous stale reservation-hold, station reservation/review/hold
@@ -59,10 +59,11 @@ Verification gaps:
 - Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
-Validation schema-compatibility fixture extraction published as `42299354`: the
-focused module passed 4/4, the parent passed 77/77, and all twenty-four
-Validation modules preserved the 181-test aggregate with no duplicate names.
-Format, diff hygiene, dependency-closure checks, and bounded review were clean.
+Validation station reservation/provider fixture extraction published as
+`d5b34867`: the focused module passed 9/9, the parent passed 68/68, and all
+twenty-five Validation modules preserved the 181-test aggregate with no
+duplicate names. Format, diff hygiene, exact-source and dependency-closure
+checks, and bounded review were clean.
 
 Next candidate:
 Map the adjacent model-acceptance and validation safety-case fixture tests,
