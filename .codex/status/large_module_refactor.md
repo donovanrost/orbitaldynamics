@@ -9,7 +9,7 @@ Current slice:
 Schema link-capacity handoff callback ownership cleanup.
 
 Status:
-Selected; implementation pending.
+Completed and verified; publishing.
 
 Selected slice:
 Point the link-capacity count-list, general source-match, and
@@ -45,14 +45,31 @@ source-match wrapper pairs are gone,
 validation and schema exports remain byte-for-byte stable, focused tests pass,
 and bounded review finds no blocker.
 
+Outcome:
+All link-capacity count-list and source-match callback lists now capture the
+existing `LinkCapacityHandoffContracts` validators directly. The count-list
+delegate and both specialized/fallback source-match wrapper pairs were removed,
+reducing `schema.ex` from 8,919 to 8,885 lines without changing callback keys,
+iteration or issue order, fallback behavior, results, or checked-in schema
+bytes.
+
 Verification gaps:
-- Implementation and verification pending.
+- None for this slice.
 
 Tests run:
-- Pending.
+- `mix compile --warnings-as-errors`
+- 47 focused link-capacity-referencing schema contract tests
+- 182 complete schema-contract and schema-export tests
+- full checked-in schema export regeneration; no schema diff
+- aggregate schema bundle digest unchanged:
+  `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`
+- `mix format --check-formatted`
+- `git diff --check`
+- compile-connected xref check for `schema.ex`
+- bounded read-only review: clean, no findings
 
 Behavior/schema changes:
-None intended.
+None.
 
 Last completed slice:
 Schema contact-contention handoff callback ownership cleanup published as

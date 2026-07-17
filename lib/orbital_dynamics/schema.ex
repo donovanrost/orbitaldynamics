@@ -7295,9 +7295,10 @@ defmodule OrbitalDynamics.Schema do
         &validate_resource_projection_count_handoff_matches_source/3,
       validate_resource_projection_flow_summary_context_matches_source:
         &validate_resource_projection_flow_summary_context_matches_source/3,
-      validate_link_capacity_handoff_count_lists: &validate_link_capacity_handoff_count_lists/3,
+      validate_link_capacity_handoff_count_lists:
+        &OrbitalDynamics.Schema.LinkCapacityHandoffContracts.validate_count_lists/3,
       validate_link_capacity_handoff_matches_source:
-        &validate_link_capacity_handoff_matches_source/3,
+        &OrbitalDynamics.Schema.LinkCapacityHandoffContracts.validate_matches_source/3,
       validate_contact_allocation_handoff_fields: &validate_contact_allocation_handoff_fields/3,
       validate_contact_allocation_handoff_matches_source:
         &validate_contact_allocation_handoff_matches_source/3,
@@ -7636,7 +7637,7 @@ defmodule OrbitalDynamics.Schema do
       validate_cadence_source_review_freshness_handoff_matches:
         &validate_cadence_source_review_freshness_handoff_matches/3,
       validate_cadence_source_review_link_capacity_handoff_matches:
-        &validate_cadence_source_review_link_capacity_handoff_matches/3,
+        &OrbitalDynamics.Schema.LinkCapacityHandoffContracts.validate_cadence_source_review_matches/3,
       validate_cadence_source_review_maneuver_review_handoff_matches:
         &OrbitalDynamics.Schema.CommandWindowManeuverHandoffContracts.validate_cadence_source_review_maneuver_review_matches/3,
       validate_cadence_source_review_objective_satisfaction_handoff_matches:
@@ -7716,9 +7717,10 @@ defmodule OrbitalDynamics.Schema do
         &OrbitalDynamics.Schema.ContactContentionHandoffContracts.validate_matches_source/3,
       validate_contact_intent_handoff_matches_source:
         &validate_contact_intent_handoff_matches_source/3,
-      validate_link_capacity_handoff_count_lists: &validate_link_capacity_handoff_count_lists/3,
+      validate_link_capacity_handoff_count_lists:
+        &OrbitalDynamics.Schema.LinkCapacityHandoffContracts.validate_count_lists/3,
       validate_link_capacity_handoff_matches_source:
-        &validate_link_capacity_handoff_matches_source/3,
+        &OrbitalDynamics.Schema.LinkCapacityHandoffContracts.validate_matches_source/3,
       validate_maneuver_review_handoff_matches_source:
         &OrbitalDynamics.Schema.CommandWindowManeuverHandoffContracts.validate_maneuver_review_matches_source/3,
       validate_objective_satisfaction_handoff_matches_source:
@@ -8010,43 +8012,6 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp validate_cadence_source_review_suppression_duplicate_matches(issues, _path, _row),
-    do: issues
-
-  defp validate_link_capacity_handoff_count_lists(issues, path, row) do
-    OrbitalDynamics.Schema.LinkCapacityHandoffContracts.validate_count_lists(
-      issues,
-      path,
-      row
-    )
-  end
-
-  defp validate_link_capacity_handoff_matches_source(
-         issues,
-         path,
-         %{"source_link_capacity" => %{}} = row
-       ) do
-    OrbitalDynamics.Schema.LinkCapacityHandoffContracts.validate_matches_source(
-      issues,
-      path,
-      row
-    )
-  end
-
-  defp validate_link_capacity_handoff_matches_source(issues, _path, _row), do: issues
-
-  defp validate_cadence_source_review_link_capacity_handoff_matches(
-         issues,
-         path,
-         %{"source_review_row" => %{}} = row
-       ) do
-    OrbitalDynamics.Schema.LinkCapacityHandoffContracts.validate_cadence_source_review_matches(
-      issues,
-      path,
-      row
-    )
-  end
-
-  defp validate_cadence_source_review_link_capacity_handoff_matches(issues, _path, _row),
     do: issues
 
   defp validate_contact_allocation_handoff_fields(issues, path, row) do
@@ -8753,9 +8718,10 @@ defmodule OrbitalDynamics.Schema do
         &validate_resource_projection_count_handoff_matches_source/3,
       validate_resource_projection_flow_summary_context_matches_source:
         &validate_resource_projection_flow_summary_context_matches_source/3,
-      validate_link_capacity_handoff_count_lists: &validate_link_capacity_handoff_count_lists/3,
+      validate_link_capacity_handoff_count_lists:
+        &OrbitalDynamics.Schema.LinkCapacityHandoffContracts.validate_count_lists/3,
       validate_link_capacity_handoff_matches_source:
-        &validate_link_capacity_handoff_matches_source/3,
+        &OrbitalDynamics.Schema.LinkCapacityHandoffContracts.validate_matches_source/3,
       validate_contact_allocation_handoff_fields: &validate_contact_allocation_handoff_fields/3,
       validate_contact_allocation_handoff_matches_source:
         &validate_contact_allocation_handoff_matches_source/3,
