@@ -9,10 +9,10 @@ Current slice:
 Operational-readiness fixture mapping.
 
 Status:
-Ready for next slice selection.
+Ready for implementation.
 
 Selected slice:
-No implementation selected yet. The next bounded candidate is to move
+Move
 `operator_review_package.v1`, `operational_execution_boundary_summary.v1`,
 `operational_import_eligibility_summary.v1`, `operational_readiness_report.v1`,
 and `operational_readiness_gate_summary.v1` from their contiguous facade range
@@ -57,39 +57,21 @@ and the complete facade remainder stay exact, focused and full validation tests
 pass, and bounded review finds no blocker.
 
 Verification gaps:
-- Next candidate still requires a selection baseline before implementation.
+- Implementation and post-move verification pending.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
   `a94507226596cd944ac21994c7889549ec58ecd1fcc0db5c65fa4e55b0f53ef2`,
   and sorted-key digest
   `b0007d04e4154fe879519a4f2b074fe3f9d0d649f3049d5d848264e105d00732`.
-- Selected four-fixture map: deterministic digest
-  `dc8f18a58380de10149df14c2b91072806b2aa2d7a19545f9260d43306451724`.
-- Exact 191-entry remainder: deterministic digest
-  `af314ed742420bd93c44cc90cc25c7e60f212e98ecd139074e8e02f59b85cbaa`.
-- Contiguous source boundary confirmed at facade lines 285-603, followed by
-  `operator_review_package.v1`, with no facade helper-attribute dependency in
-  the selected literals.
-- Normalized-AST proof against selection commit `83cb847a`: all four moved
-  literals, the following operator-review package, and the complete 27-entry
-  facade remainder are exact; the new leaf owns only the intended four keys.
-- Post-move exact proof: the 195-entry map, sorted-key digest, selected
-  four-fixture digest, and exact 191-entry remainder digest all match their
-  selection baselines.
-- Source partition proof: 44 maps total 195 entries, the new leaf owns four, the
-  facade owns 27, all 946 pairwise intersections are empty, and the source key
-  union exactly matches the runtime map.
-- Facade proof: all 195 successful `fetch/1` results, missing-key `:error`, and
-  nonbinary `FunctionClauseError` behavior remain unchanged.
-- Focused resource-pressure-handoff/facade validation: 13 tests passed.
-- Full validation family: 181 tests passed.
-- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
-  xref caller checks passed.
-- Independent bounded review against selection commit `83cb847a` was clean:
-  the contiguous source range and complete facade remainder are normalized-AST
-  exact, all runtime and partition invariants reproduced, dependency direction
-  remains one-way, and focused/full tests and hygiene gates passed.
+- Selected five-fixture map: deterministic digest
+  `75f5fda732e4dba224c4b1a8f0209e529eb32a4b93b4108f2587089781a35e02`.
+- Exact 190-entry remainder: deterministic digest
+  `da5dcce54b03be7f6658dcc2b01dd07afdbe2fc6c61d8a2624132a9dc94e57b6`.
+- Contiguous source boundary confirmed at facade lines 286-740, followed by
+  `quality_gate_report.v1`, with no facade helper-attribute dependency in the
+  selected literals.
+- Focused operational-readiness/facade selection baseline: 17 tests passed.
 
 Behavior/schema changes:
 None.
