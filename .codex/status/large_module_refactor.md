@@ -6,10 +6,10 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema resource-summary callback ownership mapping.
+Schema resource-summary callback ownership handoff.
 
 Status:
-Ready for publication.
+Published as `405b94cd`.
 
 Selected slice:
 Point both facade uses of `validate_resource_summary/3` directly at
@@ -67,7 +67,10 @@ Realized-state-snapshot cleanup published as `c24e7a3e`: `schema.ex` shrank from
 byte-matched, and bounded review was clean.
 
 Next candidate:
-After review and publication, map the next pure facade ownership boundary.
+Refresh the remaining facade-delegate inventory with both definition-name and
+bare-name searches before selecting the next slice. Prefer an exact-signature
+owner with bounded standalone/callback uses; do not infer caller count from a
+single search shape.
 
 Blocked:
 No.
