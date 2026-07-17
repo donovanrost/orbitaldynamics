@@ -9,7 +9,7 @@ Current slice:
 Schema source-review callback ownership cleanup.
 
 Status:
-Completed and verified; publishing.
+Completed and published.
 
 Selected slice:
 Point the refresh-budget source callback plus cadence warning,
@@ -71,17 +71,17 @@ Behavior/schema changes:
 None.
 
 Last completed slice:
-Schema contact-review source callback ownership cleanup published as
-`19c47be6`: eight provider-counteroffer and contact-intent general/cadence
-captures now point directly to their owner; 182 schema/export tests passed,
-full export bytes stayed exact, and bounded review was clean.
+Schema source-review callback ownership cleanup published as `c0ec315b`: three
+refresh-budget source captures and nine cadence callbacks now point directly to
+their owner; 182 schema/export tests passed, full export bytes stayed exact,
+and bounded review was clean.
 
 Next candidate:
-Audit the `SourceReviewHandoffContracts` callback family. One refresh-budget
-source delegate plus cadence warning, timeline-protection, policy-escalation,
-freshness, refresh-budget, schema-validation, execution, quality-gate, and
-operational-readiness delegates appear to be pure one-hop calls; confirm capture
-counts and owner fallbacks before selecting a cohesive subset.
+Audit `TimelineHandoffContracts` in two boundaries. First map the eleven
+diff/transition/publication/dependency/precondition/lifecycle/preservation/
+operational-timeline callback delegates and their capture counts. Keep the two
+earlier publication-summary helper wrappers separate until their direct
+pipeline consumers are proven safe to retarget.
 
 Blocked:
 No.
