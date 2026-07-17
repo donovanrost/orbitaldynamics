@@ -9,7 +9,7 @@ Current slice:
 Schema handoff-field callback ownership cleanup.
 
 Status:
-Ready for implementation.
+Completed and verified; publishing.
 
 Selected slice:
 Point observation-quality, feedback-maneuver, link, completion-fraction,
@@ -45,10 +45,25 @@ ordering remain exact, validation and schema exports remain byte-for-byte
 stable, focused tests pass, and bounded review finds no blocker.
 
 Verification gaps:
-- Implementation and verification pending.
+- None for this slice.
 
 Tests run:
-- Selection only; implementation verification pending.
+- `mix compile --warnings-as-errors`
+- 107 focused cadence-import, review-import, and operator-review tests
+- 182 complete schema-contract and schema-export tests
+- full checked-in schema export regeneration; no schema diff
+- aggregate schema bundle digest unchanged:
+  `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`
+- `mix format --check-formatted`
+- `git diff --check`
+- compile-connected xref check for `schema.ex`
+- bounded read-only review: clean, no findings
+
+Outcome:
+All twenty-three selected captures now point directly to
+`HandoffFieldContracts`. Eight pure facade delegates were removed across the
+three callback bags, whose key order remains exact, and `schema.ex` decreased
+from 8,210 to 8,166 lines.
 
 Behavior/schema changes:
 None.

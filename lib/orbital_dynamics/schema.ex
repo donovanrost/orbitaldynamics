@@ -6180,62 +6180,6 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validate_observation_quality_handoff_fields(issues, path, row) do
-    OrbitalDynamics.Schema.HandoffFieldContracts.validate_observation_quality_handoff_fields(
-      issues,
-      path,
-      row
-    )
-  end
-
-  defp validate_feedback_maneuver_handoff_fields(issues, path, row) do
-    OrbitalDynamics.Schema.HandoffFieldContracts.validate_feedback_maneuver_handoff_fields(
-      issues,
-      path,
-      row
-    )
-  end
-
-  defp validate_link_handoff_fields(issues, path, row) do
-    OrbitalDynamics.Schema.HandoffFieldContracts.validate_link_handoff_fields(
-      issues,
-      path,
-      row
-    )
-  end
-
-  defp validate_completion_fraction_fields(issues, path, row) do
-    OrbitalDynamics.Schema.HandoffFieldContracts.validate_completion_fraction_fields(
-      issues,
-      path,
-      row
-    )
-  end
-
-  defp validate_station_capacity_fraction_fields(issues, path, row) do
-    OrbitalDynamics.Schema.HandoffFieldContracts.validate_station_capacity_fraction_fields(
-      issues,
-      path,
-      row
-    )
-  end
-
-  defp validate_eclipse_lighting_handoff_fields(issues, path, row) do
-    OrbitalDynamics.Schema.HandoffFieldContracts.validate_eclipse_lighting_handoff_fields(
-      issues,
-      path,
-      row
-    )
-  end
-
-  defp validate_thermal_handoff_fields(issues, path, row) do
-    OrbitalDynamics.Schema.HandoffFieldContracts.validate_thermal_handoff_fields(
-      issues,
-      path,
-      row
-    )
-  end
-
   defp validate_optional_station_calendar_report(issues, report),
     do: validate_optional_station_calendar_report(issues, "$.station_calendar_report", report)
 
@@ -6418,14 +6362,6 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       feedback
-    )
-  end
-
-  defp validate_resource_availability_variance_fields(issues, path, row) do
-    OrbitalDynamics.Schema.HandoffFieldContracts.validate_resource_availability_variance_fields(
-      issues,
-      path,
-      row
     )
   end
 
@@ -7191,14 +7127,20 @@ defmodule OrbitalDynamics.Schema do
       validate_source_quality_gate_report_handoff_matches:
         &OrbitalDynamics.Schema.QualityGateHandoffContracts.validate_report_matches_source/3,
       validate_branch_event_summary_fields: &validate_branch_event_summary_fields/3,
-      validate_observation_quality_handoff_fields: &validate_observation_quality_handoff_fields/3,
-      validate_feedback_maneuver_handoff_fields: &validate_feedback_maneuver_handoff_fields/3,
-      validate_link_handoff_fields: &validate_link_handoff_fields/3,
+      validate_observation_quality_handoff_fields:
+        &OrbitalDynamics.Schema.HandoffFieldContracts.validate_observation_quality_handoff_fields/3,
+      validate_feedback_maneuver_handoff_fields:
+        &OrbitalDynamics.Schema.HandoffFieldContracts.validate_feedback_maneuver_handoff_fields/3,
+      validate_link_handoff_fields:
+        &OrbitalDynamics.Schema.HandoffFieldContracts.validate_link_handoff_fields/3,
       validate_resource_availability_variance_fields:
-        &validate_resource_availability_variance_fields/3,
-      validate_completion_fraction_fields: &validate_completion_fraction_fields/3,
-      validate_eclipse_lighting_handoff_fields: &validate_eclipse_lighting_handoff_fields/3,
-      validate_thermal_handoff_fields: &validate_thermal_handoff_fields/3,
+        &OrbitalDynamics.Schema.HandoffFieldContracts.validate_resource_availability_variance_fields/3,
+      validate_completion_fraction_fields:
+        &OrbitalDynamics.Schema.HandoffFieldContracts.validate_completion_fraction_fields/3,
+      validate_eclipse_lighting_handoff_fields:
+        &OrbitalDynamics.Schema.HandoffFieldContracts.validate_eclipse_lighting_handoff_fields/3,
+      validate_thermal_handoff_fields:
+        &OrbitalDynamics.Schema.HandoffFieldContracts.validate_thermal_handoff_fields/3,
       expect_optional_probability: &expect_optional_probability/4,
       validate_selected_timeline_integrity_fields: &validate_selected_timeline_integrity_fields/3,
       validate_stable_ids: &validate_stable_ids/4,
@@ -7305,7 +7247,8 @@ defmodule OrbitalDynamics.Schema do
         &validate_contact_allocation_capacity_pack_group/3,
       validate_contact_allocation_capacity_pack_handoff_matches_source:
         &OrbitalDynamics.Schema.ContactAllocationHandoffContracts.validate_capacity_pack_matches_source/3,
-      validate_station_capacity_fraction_fields: &validate_station_capacity_fraction_fields/3,
+      validate_station_capacity_fraction_fields:
+        &OrbitalDynamics.Schema.HandoffFieldContracts.validate_station_capacity_fraction_fields/3,
       validate_optional_timeline_link: &validate_optional_timeline_link/4,
       validate_optional_timeline_identity: &validate_optional_timeline_identity/4,
       validate_optional_timeline_protection_summary:
@@ -7505,17 +7448,23 @@ defmodule OrbitalDynamics.Schema do
         &validate_contact_allocation_capacity_pack_group/3,
       validate_contact_allocation_capacity_pack_handoff_matches_source:
         &OrbitalDynamics.Schema.ContactAllocationHandoffContracts.validate_capacity_pack_matches_source/3,
-      validate_station_capacity_fraction_fields: &validate_station_capacity_fraction_fields/3,
+      validate_station_capacity_fraction_fields:
+        &OrbitalDynamics.Schema.HandoffFieldContracts.validate_station_capacity_fraction_fields/3,
       validate_suppression_duplicate_handoff_row_fields:
         &OrbitalDynamics.Schema.SuppressionHandoffContracts.validate_duplicate_row_fields/3,
       validate_scoped_downlink_context_fields: &validate_scoped_downlink_context_fields/3,
-      validate_observation_quality_handoff_fields: &validate_observation_quality_handoff_fields/3,
-      validate_feedback_maneuver_handoff_fields: &validate_feedback_maneuver_handoff_fields/3,
-      validate_link_handoff_fields: &validate_link_handoff_fields/3,
+      validate_observation_quality_handoff_fields:
+        &OrbitalDynamics.Schema.HandoffFieldContracts.validate_observation_quality_handoff_fields/3,
+      validate_feedback_maneuver_handoff_fields:
+        &OrbitalDynamics.Schema.HandoffFieldContracts.validate_feedback_maneuver_handoff_fields/3,
+      validate_link_handoff_fields:
+        &OrbitalDynamics.Schema.HandoffFieldContracts.validate_link_handoff_fields/3,
       validate_resource_availability_variance_fields:
-        &validate_resource_availability_variance_fields/3,
-      validate_eclipse_lighting_handoff_fields: &validate_eclipse_lighting_handoff_fields/3,
-      validate_thermal_handoff_fields: &validate_thermal_handoff_fields/3,
+        &OrbitalDynamics.Schema.HandoffFieldContracts.validate_resource_availability_variance_fields/3,
+      validate_eclipse_lighting_handoff_fields:
+        &OrbitalDynamics.Schema.HandoffFieldContracts.validate_eclipse_lighting_handoff_fields/3,
+      validate_thermal_handoff_fields:
+        &OrbitalDynamics.Schema.HandoffFieldContracts.validate_thermal_handoff_fields/3,
       validate_branch_event_summary_fields: &validate_branch_event_summary_fields/3,
       validate_semantic_change_details: &validate_semantic_change_details/3,
       validate_candidate_diff_changed_fields: &validate_candidate_diff_changed_fields/3,
@@ -7962,12 +7911,18 @@ defmodule OrbitalDynamics.Schema do
       validate_optional_activity_context: &validate_optional_activity_context/4,
       validate_optional_protection_decision: &validate_optional_protection_decision/4,
       validate_scoped_downlink_context_fields: &validate_scoped_downlink_context_fields/3,
-      validate_observation_quality_handoff_fields: &validate_observation_quality_handoff_fields/3,
-      validate_feedback_maneuver_handoff_fields: &validate_feedback_maneuver_handoff_fields/3,
-      validate_link_handoff_fields: &validate_link_handoff_fields/3,
-      validate_completion_fraction_fields: &validate_completion_fraction_fields/3,
-      validate_eclipse_lighting_handoff_fields: &validate_eclipse_lighting_handoff_fields/3,
-      validate_thermal_handoff_fields: &validate_thermal_handoff_fields/3,
+      validate_observation_quality_handoff_fields:
+        &OrbitalDynamics.Schema.HandoffFieldContracts.validate_observation_quality_handoff_fields/3,
+      validate_feedback_maneuver_handoff_fields:
+        &OrbitalDynamics.Schema.HandoffFieldContracts.validate_feedback_maneuver_handoff_fields/3,
+      validate_link_handoff_fields:
+        &OrbitalDynamics.Schema.HandoffFieldContracts.validate_link_handoff_fields/3,
+      validate_completion_fraction_fields:
+        &OrbitalDynamics.Schema.HandoffFieldContracts.validate_completion_fraction_fields/3,
+      validate_eclipse_lighting_handoff_fields:
+        &OrbitalDynamics.Schema.HandoffFieldContracts.validate_eclipse_lighting_handoff_fields/3,
+      validate_thermal_handoff_fields:
+        &OrbitalDynamics.Schema.HandoffFieldContracts.validate_thermal_handoff_fields/3,
       validate_semantic_change_details: &validate_semantic_change_details/3,
       validate_candidate_diff_changed_fields: &validate_candidate_diff_changed_fields/3,
       validate_optional_source_window: &validate_optional_source_window/4,
@@ -7976,9 +7931,10 @@ defmodule OrbitalDynamics.Schema do
         &validate_contact_allocation_capacity_pack_group/3,
       validate_contact_allocation_capacity_pack_handoff_matches_source:
         &OrbitalDynamics.Schema.ContactAllocationHandoffContracts.validate_capacity_pack_matches_source/3,
-      validate_station_capacity_fraction_fields: &validate_station_capacity_fraction_fields/3,
+      validate_station_capacity_fraction_fields:
+        &OrbitalDynamics.Schema.HandoffFieldContracts.validate_station_capacity_fraction_fields/3,
       validate_resource_availability_variance_fields:
-        &validate_resource_availability_variance_fields/3,
+        &OrbitalDynamics.Schema.HandoffFieldContracts.validate_resource_availability_variance_fields/3,
       validate_optional_actual_data_rate_throughput_derivation:
         &validate_optional_actual_data_rate_throughput_derivation/4,
       validate_optional_lifecycle_transition: &validate_optional_lifecycle_transition/4,
