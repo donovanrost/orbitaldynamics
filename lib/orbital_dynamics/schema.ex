@@ -6164,14 +6164,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp validate_priority_field_evidence_counts(issues, _path, _counts), do: issues
 
-  defp validate_scoped_downlink_context_fields(issues, path, row) do
-    OrbitalDynamics.Schema.ScopedDownlinkContextContracts.validate(
-      issues,
-      path,
-      row
-    )
-  end
-
   defp validate_optional_station_calendar_report(issues, report),
     do: validate_optional_station_calendar_report(issues, "$.station_calendar_report", report)
 
@@ -7415,7 +7407,8 @@ defmodule OrbitalDynamics.Schema do
         &OrbitalDynamics.Schema.HandoffFieldContracts.validate_station_capacity_fraction_fields/3,
       validate_suppression_duplicate_handoff_row_fields:
         &OrbitalDynamics.Schema.SuppressionHandoffContracts.validate_duplicate_row_fields/3,
-      validate_scoped_downlink_context_fields: &validate_scoped_downlink_context_fields/3,
+      validate_scoped_downlink_context_fields:
+        &OrbitalDynamics.Schema.ScopedDownlinkContextContracts.validate/3,
       validate_observation_quality_handoff_fields:
         &OrbitalDynamics.Schema.HandoffFieldContracts.validate_observation_quality_handoff_fields/3,
       validate_feedback_maneuver_handoff_fields:
@@ -7787,7 +7780,7 @@ defmodule OrbitalDynamics.Schema do
       path,
       recommendation,
       &OrbitalDynamics.Schema.BranchEventContracts.validate_summary_fields/3,
-      &validate_scoped_downlink_context_fields/3
+      &OrbitalDynamics.Schema.ScopedDownlinkContextContracts.validate/3
     )
   end
 
@@ -7870,7 +7863,8 @@ defmodule OrbitalDynamics.Schema do
     [
       validate_optional_activity_context: &validate_optional_activity_context/4,
       validate_optional_protection_decision: &validate_optional_protection_decision/4,
-      validate_scoped_downlink_context_fields: &validate_scoped_downlink_context_fields/3,
+      validate_scoped_downlink_context_fields:
+        &OrbitalDynamics.Schema.ScopedDownlinkContextContracts.validate/3,
       validate_observation_quality_handoff_fields:
         &OrbitalDynamics.Schema.HandoffFieldContracts.validate_observation_quality_handoff_fields/3,
       validate_feedback_maneuver_handoff_fields:
