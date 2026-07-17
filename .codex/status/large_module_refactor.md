@@ -6,59 +6,49 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema lint-report JSON property-dispatch extraction.
+Schema model-capability JSON property-dispatch extraction.
 
 Status:
-Published.
+Selected.
 
 Selected slice:
-Extract property dispatch for campaign-request and study-manifest lint reports
-from `OrbitalDynamics.Schema` into one internal lint-report dispatcher.
+Extract property dispatch for environment-model, environment-provider, and
+subsystem-model capabilities from `OrbitalDynamics.Schema` into one internal
+model-capability dispatcher.
 
 Why this slice:
-The two adjacent clauses share `LintReportJsonSchema`, stable identity
-dependencies, and one focused lint contract test file. Strategy-branch,
-migration, and executable lint behavior remain out of scope.
+The three adjacent clauses share `CapabilityJsonSchema`, identical dependency
+shape, and focused capability contract coverage. Optimizer, Monte Carlo,
+migration, and capability runtime behavior remain out of scope.
 
 Public facade to preserve:
-All `OrbitalDynamics.Schema` public functions, exact JSON Schema maps for the
-two lint-report contracts, executable lint/validation behavior, bundle
-ordering, and checked-in schema bytes.
+All `OrbitalDynamics.Schema` public functions, exact JSON Schema maps and
+validators for the three capability contracts, bundle ordering, and checked-in
+schema bytes.
 
 Likely files:
 - `lib/orbital_dynamics/schema.ex`
-- new lint-report property-dispatch module
+- new model-capability property-dispatch module
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
-- focused lint/strategy-branch and JSON export tests
+- focused optimizer/capability and registry-capability tests
+- JSON schema export tests
 - schema export task tests
 - full checked-in export regeneration and aggregate digest comparison
 - compile, format, xref, diff hygiene, and bounded review
 
 Definition of done:
-The two facade clauses become one guarded delegate to the internal dispatcher;
-runtime schemas,
-validators, bundle ordering, and checked-in exports remain exact; focused and
-export tests pass; and bounded review finds no blocker.
+The three facade clauses become one guarded delegate to the internal
+dispatcher; runtime schemas, validators, bundle ordering, and checked-in
+exports remain exact; focused and export tests pass; and bounded review finds
+no blocker.
 
 Outcome:
-The two facade clauses are now one guarded delegate to
-`OrbitalDynamics.Schema.LintReportPropertyDispatch`. The internal dispatcher
-preserves each contract's original field predicate, builder context, dependency
-schemas, study-manifest schema version, and common-property fallback. The
-facade is 9,718 lines; the new dispatcher is 53 lines. Implementation published
-as `a64b4fde`.
+Pending.
 
 Verification gaps:
-- `mix compile --warnings-as-errors` passed.
-- 23 focused lint, JSON export, schema export, and export-task tests passed.
-- Full checked-in export regeneration remained byte-identical at aggregate
-  digest `95051be82cec8a75634e4e8712dadd102888f59998d2c26ebe7c36065d824d3b`.
-- Scoped format, diff hygiene, and xref checks passed; xref reports only the
-  expected runtime caller from `OrbitalDynamics.Schema`.
-- Bounded read-only review found no blocker or follow-up finding.
-- None for this slice.
+- Pending.
 
 Last completed slice:
 Schema lint-report property dispatch published as `a64b4fde`: campaign-request
@@ -67,12 +57,9 @@ dispatcher, 23 focused/export tests passed, full regeneration was
 byte-identical, and bounded review found no blocker.
 
 Next candidate:
-Extract the three adjacent environment-model, environment-provider, and
-subsystem-model capability property clauses into one internal capability
-dispatcher. Preserve each capability kind, schema contract, stable identity
-dependency, validation-level callback, common fallback, and exact checked-in
-exports. Leave the single optimizer, migration, and Monte Carlo clauses in the
-facade.
+Audit one adjacent multi-contract report/property family after this slice is
+published. Leave the single optimizer, migration, and Monte Carlo clauses in
+the facade unless a broader cohesive boundary emerges.
 
 Blocked:
 No.
