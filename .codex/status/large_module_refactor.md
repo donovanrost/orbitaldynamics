@@ -9,7 +9,7 @@ Current slice:
 Validation decision-support fixture test-family extraction.
 
 Status:
-Verified and reviewed; ready to publish.
+Published as `7169adcd`.
 
 Selected slice:
 Move the three contiguous maneuver-review, Monte Carlo reproducibility, and
@@ -58,8 +58,8 @@ Verification gaps:
 - Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
-Validation link-capacity fixture extraction published as `5f85ad6e`: the
-focused module passed 3/3, the parent passed 95/95, and all eighteen Validation
+Validation decision-support fixture extraction published as `7169adcd`: the
+focused module passed 3/3, the parent passed 92/92, and all nineteen Validation
 modules preserved the 181-test aggregate with no duplicate names. Format, diff
 hygiene, dependency-closure checks, and bounded review were clean.
 
