@@ -9,7 +9,7 @@ Current slice:
 Schema model-capability JSON property-dispatch extraction.
 
 Status:
-Review complete; ready to publish.
+Published.
 
 Selected slice:
 Extract property dispatch for environment-model, environment-provider, and
@@ -50,7 +50,7 @@ The three facade clauses are now one guarded delegate to
 dispatcher preserves contract-to-kind routing, exact schema contracts, stable
 identity and validation-level dependencies, focused-field selection, and the
 common-property fallback. The facade is 9,694 lines; the new dispatcher is 34
-lines.
+lines. Implementation published as `84444b3a`.
 
 Verification gaps:
 - `mix compile --warnings-as-errors` passed.
@@ -61,17 +61,21 @@ Verification gaps:
 - Scoped format, diff hygiene, and xref checks passed; xref reports only the
   expected runtime caller from `OrbitalDynamics.Schema`.
 - Bounded read-only review found no blocker or follow-up finding.
+- None for this slice.
 
 Last completed slice:
-Schema lint-report property dispatch published as `a64b4fde`: campaign-request
-and study-manifest lint contracts now route through one cohesive internal
-dispatcher, 23 focused/export tests passed, full regeneration was
-byte-identical, and bounded review found no blocker.
+Schema model-capability property dispatch published as `84444b3a`: the three
+environment/provider/subsystem capability contracts now route through one
+cohesive internal dispatcher, 29 focused/export tests passed, full regeneration
+was byte-identical, and bounded review found no blocker.
 
 Next candidate:
-Audit one adjacent multi-contract report/property family after this slice is
-published. Leave the single optimizer, migration, and Monte Carlo clauses in
-the facade unless a broader cohesive boundary emerges.
+Extract the four adjacent provider-counteroffer report, review, import-readiness,
+and plan-impact property clauses into one internal provider-counteroffer
+dispatcher. Preserve each focused predicate and dependency context, lazy
+StationCalendar capability lookups, common fallback, and exact exports. Leave
+the surrounding maneuver-recommendation and candidate-rejection clauses in the
+facade.
 
 Blocked:
 No.
