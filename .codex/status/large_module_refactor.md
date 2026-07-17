@@ -6,27 +6,27 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Candidate-strategy ownership cleanup.
+Benchmark fixture mapping.
 
 Status:
-Publishing.
+Ready for next slice selection.
 
 Selected slice:
-Move
-`strategy_branch.v1` and `strategy_recommendation.v1` from the facade into the
-existing `Validation.ReferenceFixtures.CandidateStrategyArtifacts` leaf beside
-its four related fixtures. Preserve the following study-benchmark fixture
-exactly.
+No implementation selected yet. The next bounded candidate is to move all
+eight `study_benchmark` fixtures from their contiguous facade range into a new
+`Validation.ReferenceFixtures.BenchmarkArtifacts` leaf. Preserve the following
+schema-validation report exactly.
 
 Why this slice:
-`ReferenceFixtures` remains the largest production module at 3,379 lines. The
-two fixtures occupy 104 facade lines and are the only fixtures owned by
-`candidate_strategy_fixture_test.exs` that remain outside its existing leaf.
+`ReferenceFixtures` remains the largest production module at 3,275 lines. The
+eight fixtures occupy 418 facade lines and together own
+`benchmark_fixture_test.exs`.
 
 Current coupling/problem:
-Strategy branch and recommendation expectations remain in the facade while the
-other four candidate-strategy fixtures already live together. Moving the final
-pair completes established family ownership without creating another module.
+Local, distributed, chunked, diagnostic, Monte Carlo, and Nx benchmark
+expectations form one contiguous test-owned family but remain embedded in the
+general registry. Moving the complete range preserves benchmark responsibility
+without absorbing schema compatibility.
 
 Public facade to preserve:
 `OrbitalDynamics.Validation.ReferenceFixtures.all/0` and `fetch/1`, exact
@@ -34,28 +34,28 @@ fixture keys and values, map equality and deterministic term bytes, and all
 `OrbitalDynamics.Validation` reference-fixture behavior.
 
 Likely extraction target:
-`OrbitalDynamics.Validation.ReferenceFixtures.CandidateStrategyArtifacts`.
+`OrbitalDynamics.Validation.ReferenceFixtures.BenchmarkArtifacts`.
 
 Likely files:
 - `lib/orbital_dynamics/validation/reference_fixtures.ex`
-- `lib/orbital_dynamics/validation/reference_fixtures/candidate_strategy_artifacts.ex`
+- `lib/orbital_dynamics/validation/reference_fixtures/benchmark_artifacts.ex`
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
 - exact before/after fixture count, keys, values, and deterministic term digest
-- focused candidate-strategy and facade validation tests
+- focused benchmark and facade validation tests
 - full validation test family
 - strict compile, format, xref, diff hygiene, and bounded review
 
 Definition of done:
-All six candidate-strategy fixtures exist only in the established leaf, all 41
+All eight benchmark fixtures exist only in the new cohesive leaf, all 42
 fixture maps remain disjoint, `all/0` and `fetch/1` return exactly the same
 195-entry map and deterministic term bytes, both following boundary fixtures
 and the complete facade remainder stay exact, focused and full validation tests
 pass, and bounded review finds no blocker.
 
 Verification gaps:
-- None for this slice.
+- Next candidate still requires a selection baseline before implementation.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -99,21 +99,18 @@ Behavior/schema changes:
 None.
 
 Outcome:
-The strategy branch and recommendation fixtures now live beside the existing
-four candidate-strategy fixtures in the established leaf. The facade shrank
-from 3,379 to 3,275 lines; the leaf grew from 285 to 389 lines and owns exactly
-the six fixtures exercised together.
+No benchmark implementation has started.
 
 Last completed slice:
-Objective-scoring extraction published as `96a0115c`: the exact four-fixture
-family moved into a new 234-line leaf, the facade shrank from 3,603 to 3,379
-lines, the 195-entry map and all deterministic digests stayed exact, 16 focused
-and 181 full validation tests passed, and bounded review was clean.
+Candidate-strategy ownership cleanup published as `f6deef4b`: the exact pair
+moved into the existing leaf, the facade shrank from 3,379 to 3,275 lines, the
+leaf grew from 285 to 389 lines, the 195-entry map and all deterministic digests
+stayed exact, 18 focused and 181 full validation tests passed, and bounded
+review was clean.
 
 Next candidate:
-Select the candidate-strategy ownership cleanup described above, capture the
-pair, existing leaf, combined-family, and facade remainder baselines, then
-complete the existing test-owned family.
+Select the benchmark extraction described above, capture the exact map and
+contiguous source boundary, then move the complete test-owned family.
 
 Blocked:
 No.
