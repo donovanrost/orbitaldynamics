@@ -9,7 +9,7 @@ Current slice:
 Validation resource-projection report fixture test-family extraction.
 
 Status:
-Verified and reviewed; ready to publish.
+Published as `385d421e`.
 
 Selected slice:
 Move the two contiguous resource-projection report and projection-flow summary
@@ -58,8 +58,8 @@ Verification gaps:
 - Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
-Validation decision-support fixture extraction published as `7169adcd`: the
-focused module passed 3/3, the parent passed 92/92, and all nineteen Validation
+Validation resource-projection fixture extraction published as `385d421e`: the
+focused module passed 2/2, the parent passed 90/90, and all twenty Validation
 modules preserved the 181-test aggregate with no duplicate names. Format, diff
 hygiene, dependency-closure checks, and bounded review were clean.
 
