@@ -9,7 +9,7 @@ Current slice:
 CampaignPlanner repair replacement-transition extraction.
 
 Status:
-Ready to publish.
+Published as `73a32081`.
 
 Selected slice:
 Extract the complete missed-downlink and failed-observation replacement
@@ -61,10 +61,9 @@ Verification gaps:
 - Independent bounded review found no blocker.
 
 Last completed slice:
-CampaignPlanner repair replacement-selection extraction published as
-`b0006439`: one owner now supplies the complete filter and deterministic sort
-pipeline, 67 repair tests passed, the one broader failure was proven
-pre-existing, and bounded review found no blocker.
+CampaignPlanner repair replacement-transition extraction published as
+`73a32081`: one owner now supplies both complete replacement branches, 67
+repair tests passed, and bounded review found no blocker.
 
 Next candidate:
 After replacement transitions, remap preservation/cancellation transitions;
