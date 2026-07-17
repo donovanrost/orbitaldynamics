@@ -15,3 +15,4 @@ Code.require_file("support/validation/operational_planning_fixtures.ex", __DIR__
 Code.require_file("support/validation/provider_capacity_pack_fixtures.ex", __DIR__)
 Code.require_file("support/validation/contact_contention_fixtures.ex", __DIR__)
 Code.require_file("support/validation/link_capacity_fixtures.ex", __DIR__)
+Code.require_file("support/validation/decision_support_fixtures.ex", __DIR__)
