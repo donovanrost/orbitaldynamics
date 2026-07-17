@@ -6,63 +6,57 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Cadence-import comparison-report test-family extraction.
+Validation orbital-reference fixture test-family extraction.
 
 Status:
-Published as `47e08bb7`.
+Selected; implementation not started.
 
 Selected slice:
-Move the adjacent Pareto-frontier and branch/ranking-comparison import tests into
-a focused comparison-report module, preserving typed evidence, source-review
-handoffs, validation failures, and deterministic row ordering.
+Move the six foundational two-body, J2, access-window, eclipse,
+target-visibility, and ground-track reference-fixture tests into a focused
+orbital-reference module with their cohesive observation helpers.
 
 Why this slice:
-After four splits, the parent is 15,999 lines. Lines 5,036-5,742 form two large,
-inline comparison-report tests with no private-helper dependency; the preceding
-contact-intent test and following warning/risk test define clean boundaries.
+Live inventory shows `validation_test.exs` at 19,372 lines. Tests 1,400-1,505
+form one foundational orbital-reference family. Five observation helpers plus
+`access_state/2` are exclusive; the two-body helper has two later consumers and
+will remain in the parent with an exact local copy in the focused module.
 
 Public facade to preserve:
-`OrbitalDynamics.CadenceImport.from_pareto_frontier_report/1`,
-`from_branch_comparison_report/1`, `from_ranking_comparison_report/1`,
-`OrbitalDynamics.Schema.validate_artifact/1`, exact manifest rows/counts,
-typed comparison evidence, validation paths, and deterministic ordering.
+`OrbitalDynamics.Validation.reference_fixture/1` and
+`verify_reference_fixture/2`, propagator/event-detector behavior, exact report
+checks, curated fixture semantics, and deterministic observations.
 
 Likely files:
-- `test/orbital_dynamics/cadence_import_test.exs`
-- `test/orbital_dynamics/cadence_import/comparison_report_test.exs`
+- `test/orbital_dynamics/validation_test.exs`
+- `test/orbital_dynamics/validation/orbital_reference_fixture_test.exs`
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
-- extracted comparison-report test module directly
-- original Cadence import test ledger
+- extracted orbital-reference test module directly
+- remaining validation test ledger
 - format, diff hygiene, and bounded review
 
 Definition of done:
-Both tests move mechanically with assertion strength and edge coverage
-unchanged; the original ledger no longer duplicates them, both focused and
-original-ledger test files pass, and bounded review finds no blocker.
+All six tests and exclusive helpers move mechanically; the shared two-body helper
+copy stays exact, assertion strength and observations remain unchanged, focused
+and parent files pass, and bounded review finds no blocker.
 
 Outcome:
-Exactly two large adjacent comparison-report tests moved byte-for-byte into
-`OrbitalDynamics.CadenceImport.ComparisonReportTest`; assertion order, Pareto,
-branch/ranking typed evidence, validation failures, and deterministic ordering
-are unchanged. The parent fell from 15,999 to 15,292 lines and the focused module
-is 713 lines. All 113 Cadence import test names remain unique across the parent
-and five extracted modules.
+Pending.
 
 Verification gaps:
-- Full repository suite not run; this is a mechanical test-only extraction.
+- Not yet verified.
 
 Last completed slice:
 Cadence-import comparison-report test-family extraction published as `47e08bb7`:
-the focused module passed 2/2 and the parent passed 96/96; across all six modules
-the complete family remains 113/113 with no duplicate names. Format, diff
-hygiene, helper-independence checks, and bounded review were clean.
+two byte-identical tests moved into a 713-line focused module, shrinking the
+parent from 15,999 to 15,292 lines. The focused module passed 2/2, the parent
+96/96, and the complete 113-test family remained unique and green.
 
 Next candidate:
-Refresh the 19,372-line `validation_test.exs` family inventory and select a
-multi-test, helper-independent contract seam; avoid extracting isolated tests or
-merely continuing by adjacency in the Cadence ledger.
+After this slice, refresh the remaining validation fixture families and prefer
+another multi-test seam with an explicit helper dependency closure.
 
 Blocked:
 No.
