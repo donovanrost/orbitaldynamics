@@ -9,7 +9,7 @@ Current slice:
 CampaignPlanner repair activity-dispatch extraction.
 
 Status:
-Ready to publish.
+Published as `ce902067`.
 
 Selected slice:
 Extract activity normalization/matching, realized-status derivation,
@@ -58,9 +58,10 @@ Verification gaps:
 - Independent bounded review found no blocker.
 
 Last completed slice:
-CampaignPlanner repair maneuver timing-impact extraction published as
-`4d66a619`: one owner now supplies movement and downstream annotation, 17
-focused tests passed, and corrected bounded review found no blocker.
+CampaignPlanner repair activity-dispatch extraction published as `ce902067`:
+one owner now supplies normalization, status/protection priority, and
+transition selection; 68 focused tests passed and bounded review found no
+blocker.
 
 Next candidate:
 After activity dispatch, refresh the CampaignPlanner hotspot map and leave the
