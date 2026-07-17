@@ -9,7 +9,7 @@ Current slice:
 Validation candidate-refresh base fixture test-family extraction.
 
 Status:
-Selected.
+Ready to publish.
 
 Selected slice:
 Move the two contiguous candidate-refresh base artifact and resource-provenance
@@ -46,10 +46,15 @@ shared builders have one exact owner, focused and parent files pass, names remai
 unique, and bounded review finds no blocker.
 
 Outcome:
-Pending.
+Two byte-identical candidate-refresh base artifact/provenance tests moved into a
+116-line focused module. All four observation/raw builders now have one 29-line
+shared support owner; the parent imports only the two aggregate observation
+builders. The parent fell from 8,484 to 8,367 lines. Total
+test/support/loader LOC grew by 29 lines for explicit ownership without helper
+duplication. All 181 Validation test names remain unique.
 
 Verification gaps:
-- Pending.
+- Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
 Validation model-acceptance/safety-case fixture extraction published as
@@ -60,8 +65,10 @@ bounded review were clean.
 
 Next candidate:
 Map the candidate-refresh contact contention and contact-intent replay tests
-beginning after the base fixture pair. Preserve replay-domain boundaries and
-move only a complete helper closure; stop before resource-projection replay.
+beginning after the base fixture pair. Their six family-specific helpers depend
+on the generic `result_set/1` builder shared by the remaining replay families;
+establish one explicit shared owner rather than duplicating it, and stop before
+resource-projection replay.
 
 Blocked:
 No.
