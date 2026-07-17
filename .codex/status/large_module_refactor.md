@@ -9,7 +9,7 @@ Current slice:
 Schema strategy handoff callback ownership cleanup.
 
 Status:
-Completed and verified; publishing.
+Completed and published.
 
 Selected slice:
 Point the strategy-recommendation, strategy-tradeoff, branch-comparison,
@@ -71,17 +71,16 @@ Behavior/schema changes:
 None.
 
 Last completed slice:
-Schema risk-feedback handoff callback ownership cleanup published as `ce35687f`:
-all risk-explanation and realized-feedback callback captures now point directly
-to their existing contract owner; 182 schema/export tests passed, full export
-bytes stayed exact, and bounded review was clean.
+Schema strategy handoff callback ownership cleanup published as `1118be3d`:
+all recommendation/tradeoff, branch, ranking, and Pareto callback captures now
+point directly to their existing contract owner; 182 schema/export tests
+passed, full export bytes stayed exact, and bounded review was clean.
 
 Next candidate:
-Audit the strategy handoff callback family as one possible next boundary:
-strategy recommendation/tradeoff, branch comparison, ranking comparison, and
-Pareto-frontier validators already share `StrategyHandoffContracts`. Select
-only if every delegate is pure, all targets retain fallbacks, and the family is
-still small enough for one independently reviewable slice.
+Audit the command-window/maneuver-review handoff callback family. Both
+general/cadence pairs appear to be pure delegates to the existing
+`CommandWindowManeuverHandoffContracts` owner; select only after confirming
+capture counts, exact targets, and fallback clauses.
 
 Blocked:
 No.
