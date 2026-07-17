@@ -9,7 +9,7 @@ Current slice:
 Policy-bundle fixture family mapping.
 
 Status:
-Ready for implementation.
+Publishing.
 
 Selected slice:
 Move only
@@ -56,7 +56,7 @@ and complete facade remainder stay exact, focused and full validation tests
 pass, and bounded review finds no blocker.
 
 Verification gaps:
-- Implementation, verification, and bounded review pending.
+- None for this bounded slice.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -70,13 +70,32 @@ Tests run:
 - Source boundary confirmed at facade lines 153-291, with
   `policy_bundle.operator_review_queue_authority` beginning at line 292 and no
   facade helper-attribute dependency in the selected literals.
-- Selection only; implementation verification pending.
+- Post-move exact proof: the 195-entry map, sorted-key digest, selected
+  two-fixture digest, and 193-entry remainder digest all match the selection
+  baseline exactly.
+- Source partition proof: 21 maps total 195 entries, the new leaf owns exactly
+  two fixtures, the facade owns 130, and all 210 pairwise intersections are
+  empty.
+- Facade proof: all 195 successful `fetch/1` results, missing-key `:error`, and
+  nonbinary `FunctionClauseError` behavior remain unchanged.
+- Focused policy-bundle/facade validation: 18 tests passed.
+- Full validation family: 181 tests passed.
+- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
+  xref caller checks passed.
+- Independent bounded review: CLEAN. It confirmed both literals and the
+  complete facade remainder are normalized-AST exact, the leaf owns only the
+  selected keys, all 21 maps are unique and pairwise disjoint across 210
+  intersections, all four digests and facade edge behaviors are unchanged,
+  dependencies remain one-way, and it reproduced 18 focused and 181 full
+  validation tests.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-Selection recorded; no policy-bundle implementation has started.
+The two exact base/ground-network fixtures now live in the new policy-bundle
+leaf behind the unchanged facade. The facade shrank from 9,353 to 9,216 lines;
+the new cohesive leaf is 147 lines.
 
 Last completed slice:
 Proposed-contact ownership cleanup published as `ba7a7779`: the exact fixture
