@@ -9,10 +9,10 @@ Current slice:
 Timeline-activity-state fixture mapping.
 
 Status:
-Ready for next slice selection.
+Ready for implementation.
 
 Selected slice:
-No implementation selected yet. The next bounded candidate is to move
+Move
 `timeline_activity_lifecycle_state.v1`, `timeline_activity_status_state.v1`,
 `timeline_activity_approval_state.v1`, `timeline_lifecycle_state_summary.v1`,
 `timeline_activity_state.v1`, and
@@ -59,40 +59,22 @@ and the complete facade remainder stay exact, focused and full validation tests
 pass, and bounded review finds no blocker.
 
 Verification gaps:
-- Next candidate still requires a selection baseline before implementation.
+- Implementation and post-move verification pending.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
   `a94507226596cd944ac21994c7889549ec58ecd1fcc0db5c65fa4e55b0f53ef2`,
   and sorted-key digest
   `b0007d04e4154fe879519a4f2b074fe3f9d0d649f3049d5d848264e105d00732`.
-- Selected three-fixture map: deterministic digest
-  `8419204cdfe486b48062432098b5ab31a702b76d159e4a3584988ee5e97a1c5b`.
-- Exact 192-entry remainder: deterministic digest
-  `8ff06dfa3bd85c7c7988d904ce92277d8495e44f2dc8ab1e139769583c0c5770`.
-- Source boundaries confirmed at facade lines 211-369 and 1594-1713, followed
-  by the timeline lifecycle-state and timeline transition-application report
-  fixtures, respectively, with no facade helper-attribute dependency in the
-  selected literals.
-- Normalized-AST proof against selection commit `19eb8878`: all three moved
-  literals, both following boundary fixtures, and the complete 91-entry facade
-  remainder are exact; the new leaf owns only the intended three keys.
-- Post-move exact proof: the 195-entry map, sorted-key digest, selected
-  three-fixture digest, and exact 192-entry remainder digest all match their
-  selection baselines.
-- Source partition proof: 30 maps total 195 entries, the new leaf owns three,
-  the facade owns 91, all 435 pairwise intersections are empty, and the source
-  key union exactly matches the runtime map.
-- Facade proof: all 195 successful `fetch/1` results, missing-key `:error`, and
-  nonbinary `FunctionClauseError` behavior remain unchanged.
-- Focused operational-planning/facade validation: 15 tests passed.
-- Full validation family: 181 tests passed.
-- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
-  xref caller checks passed.
-- Independent bounded review against selection commit `19eb8878` was clean:
-  both source ranges and the complete facade remainder are normalized-AST
-  exact, all runtime and partition invariants reproduced, dependency direction
-  remains one-way, and focused/full tests and hygiene gates passed.
+- Selected six-fixture map: deterministic digest
+  `90ce066371499bb4da6c122848e3964e324eeeba6f01607129670864dd25291e`.
+- Exact 189-entry remainder: deterministic digest
+  `a8191522d6d577e14dfda8fe6798bd0b9503b343634f26cb1c9db8cd43103992`.
+- Source boundaries confirmed at facade lines 212-546 and 727-860, with the
+  timeline-preservation family between them and the timeline-integrity report
+  following them; the selected literals have no facade helper-attribute
+  dependency.
+- Focused timeline-activity-state/facade selection baseline: 18 tests passed.
 
 Behavior/schema changes:
 None.
