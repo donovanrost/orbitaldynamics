@@ -4930,7 +4930,7 @@ defmodule OrbitalDynamics.Schema do
   defp validate_contract(@link_capacity_report, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_link_capacity_report("$", artifact)
+    |> OrbitalDynamics.Schema.LinkCapacityReportContracts.validate("$", artifact)
   end
 
   defp validate_contract(@link_capacity_summary, contract, artifact) do
@@ -4947,12 +4947,15 @@ defmodule OrbitalDynamics.Schema do
 
   defp validate_contract(@contact_contention_report, _contract, artifact) do
     []
-    |> validate_contact_contention_report("$", artifact)
+    |> OrbitalDynamics.Schema.ContactContentionReportContracts.validate_report("$", artifact)
   end
 
   defp validate_contract(@contact_contention_resolution_report, _contract, artifact) do
     []
-    |> validate_contact_contention_resolution_report("$", artifact)
+    |> OrbitalDynamics.Schema.ContactContentionReportContracts.validate_resolution_report(
+      "$",
+      artifact
+    )
   end
 
   defp validate_contract(@contact_contention_resolution_summary, contract, artifact) do
@@ -4962,7 +4965,7 @@ defmodule OrbitalDynamics.Schema do
       "$",
       artifact,
       contact_contention_report_model_limits(),
-      &validate_contact_contention_resolution_policy/3
+      &OrbitalDynamics.Schema.ContactContentionReportContracts.validate_resolution_policy/3
     )
   end
 
@@ -6041,19 +6044,14 @@ defmodule OrbitalDynamics.Schema do
 
   defp validate_optional_contact_contention_report(issues, %{} = report) do
     issues
-    |> validate_contact_contention_report("$.contact_contention_report", report)
+    |> OrbitalDynamics.Schema.ContactContentionReportContracts.validate_report(
+      "$.contact_contention_report",
+      report
+    )
   end
 
   defp validate_optional_contact_contention_report(issues, _report),
     do: [error("$.contact_contention_report", "must be an object") | issues]
-
-  defp validate_contact_contention_report(issues, path, report) do
-    OrbitalDynamics.Schema.ContactContentionReportContracts.validate_report(
-      issues,
-      path,
-      report
-    )
-  end
 
   defp validate_optional_link_capacity_report(issues, nil), do: issues
 
@@ -6064,14 +6062,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp validate_optional_link_capacity_report(issues, _report),
     do: [error("$.link_capacity_report", "must be an object") | issues]
-
-  defp validate_link_capacity_report(issues, path, report) do
-    OrbitalDynamics.Schema.LinkCapacityReportContracts.validate(
-      issues,
-      path,
-      report
-    )
-  end
 
   defp validate_optional_contact_allocation_report(issues, nil), do: issues
 
@@ -6114,7 +6104,7 @@ defmodule OrbitalDynamics.Schema do
 
   defp validate_optional_contact_contention_resolution_report(issues, %{} = report) do
     issues
-    |> validate_contact_contention_resolution_report(
+    |> OrbitalDynamics.Schema.ContactContentionReportContracts.validate_resolution_report(
       "$.contact_contention_resolution_report",
       report
     )
@@ -6122,22 +6112,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp validate_optional_contact_contention_resolution_report(issues, _report),
     do: [error("$.contact_contention_resolution_report", "must be an object") | issues]
-
-  defp validate_contact_contention_resolution_report(issues, path, report) do
-    OrbitalDynamics.Schema.ContactContentionReportContracts.validate_resolution_report(
-      issues,
-      path,
-      report
-    )
-  end
-
-  defp validate_contact_contention_resolution_policy(issues, path, policy) do
-    OrbitalDynamics.Schema.ContactContentionReportContracts.validate_resolution_policy(
-      issues,
-      path,
-      policy
-    )
-  end
 
   defp validate_contact_contention_deferred_priority(issues, path, row) do
     OrbitalDynamics.Schema.ContactContentionReportContracts.validate_deferred_priority(
