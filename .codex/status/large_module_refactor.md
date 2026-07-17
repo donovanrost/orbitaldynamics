@@ -9,7 +9,7 @@ Current slice:
 Validation policy-bundle fixture test-family extraction.
 
 Status:
-Selected; implementation not started.
+Implemented, verified, reviewed, and ready to publish.
 
 Selected slice:
 Move the six contiguous base, ground-network, operator-review queue,
@@ -45,16 +45,22 @@ shared builders have one exact owner, focused and parent files pass, names remai
 unique, and bounded review finds no blocker.
 
 Outcome:
-Pending.
+Six byte-identical policy-bundle family tests moved into a 429-line focused
+module. Twenty-four observation/raw-fixture builders now have one 119-line
+shared support owner; the parent imports only the 12 observation builders used
+by its deterministic aggregate, with no private residue. The parent fell from
+17,188 to 16,700 lines. Total test/support/loader LOC grew by 61 lines for
+explicit ownership without helper duplication. All 181 Validation test names
+remain unique.
 
 Verification gaps:
-- Not yet verified.
+- Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
-Validation campaign/result fixture extraction published as `b55ee18b`: five
-tests moved into a 467-line focused module and 21 builders into a 113-line shared
-owner, shrinking the parent from 17,710 to 17,188 lines. The focused module
-passed 5/5, the parent 152/152, and the full family preserved 181/181.
+Validation policy-bundle fixture extraction, publication pending: the focused
+module passed 6/6, the parent passed 146/146, and all six Validation modules
+preserved the 181-test aggregate with no duplicate names. Format, diff hygiene,
+dependency-closure checks, and bounded review were clean.
 
 Next candidate:
 After this slice, refresh the remaining validation fixture families and prefer
