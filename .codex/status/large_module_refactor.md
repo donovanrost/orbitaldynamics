@@ -9,7 +9,7 @@ Current slice:
 Schema contact-intent-summary callback ownership mapping.
 
 Status:
-Ready for implementation.
+Ready for publication.
 
 Selected slice:
 Point the standalone `contact_intent_summary.v1` contract pipe directly at
@@ -54,7 +54,7 @@ stay exact, schema bytes do not change, focused and complete tests pass, and
 bounded review finds no blocker.
 
 Verification gaps:
-- Implementation and post-change verification pending.
+None.
 
 Tests run:
 - Source baseline: `validate_contact_intent_summary/3` appears exactly once as
@@ -68,12 +68,34 @@ Tests run:
   across 15,506,740 bytes.
 - Checked-in `schemas/orbital_dynamics.schema_bundle.v1.json` digest:
   `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`.
+- Source proof against selection commit `6e5ff379`: the standalone summary pipe
+  retains `require_fields` and now ends at
+  `ContactIntentSummaryContracts.validate_summary/3`; the private facade
+  delegate is absent.
+- Focused `communications_contracts_test.exs`: 8 tests passed with warnings as
+  errors.
+- Complete schema-contract and schema-export suite: 182 tests passed with
+  warnings as errors.
+- Generated bundle remains exactly 121 schemas, 15,506,740 bytes, and digest
+  `543dbe11bc75f1397dd15dbd10cabd219ae2e46ac1e16d38b810a99befb8cec3`.
+- Full checked-in schema export regeneration completed with no schema diff;
+  aggregate bundle digest remains
+  `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`.
+- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
+  xref caller checks passed.
+- Independent bounded review against selection commit `6e5ff379` was clean:
+  exact pipeline arguments and position, unchanged summary owner, delegate
+  removal, 8 focused and 182 complete tests, generated and checked bundle
+  digests, all 122 generated export files byte-matched, strict compile, xref,
+  formatting, sizes, ledger, and diff hygiene matched the recorded evidence.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-No contact-intent-summary callback implementation has started.
+The standalone contact-intent-summary pipe now references its established owner
+directly and the pure facade delegate is gone. `schema.ex` decreased from 7,950
+to 7,942 lines.
 
 Last completed slice:
 Proposed-contact wrapper cleanup published as `a8175d2f`: both facade uses now
@@ -82,8 +104,9 @@ lines, 8 focused and 182 complete schema/export tests passed, all 122 generated
 schema files byte-matched, and bounded review was clean.
 
 Next candidate:
-Select the direct contact-intent-summary owner described above, preserve the
-final pipeline position exactly, then remove the unused facade delegate.
+After review and publication, map the multi-use `validate_contact_intent/3`
+wrapper, including its top-level pipe and callback-bag captures, before choosing
+whether it remains a bounded cleanup.
 
 Blocked:
 No.
