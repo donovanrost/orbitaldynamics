@@ -9,7 +9,7 @@ Current slice:
 Validation operational-readiness artifact fixture test-family extraction.
 
 Status:
-Ready to publish.
+Published as `6e3edacb`.
 
 Selected slice:
 Move the five contiguous operator-review, operational-readiness,
@@ -71,9 +71,9 @@ Verification gaps:
 - Independent bounded review found no blocker.
 
 Last completed slice:
-Validation contact-allocation artifact fixture extraction published as
-`8e3f7616`: the focused module passed 5/5, the parent passed 15/15, and all
-forty-four Validation modules preserved the 181-test aggregate with no
+Validation operational-readiness artifact fixture extraction published as
+`6e3edacb`: the focused module passed 5/5, the parent passed 10/10, and all
+forty-five Validation modules preserved the 181-test aggregate with no
 duplicate names. Format, diff hygiene, exact-source and ownership-closure
 checks, and bounded review were clean.
 
