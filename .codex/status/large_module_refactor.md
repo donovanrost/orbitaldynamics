@@ -9,7 +9,7 @@ Current slice:
 Validation activity-artifact fixture test-family extraction.
 
 Status:
-Selected.
+Verified and reviewed; ready to publish.
 
 Selected slice:
 Move the six contiguous planned-activity, activity-template, subsystem-model
@@ -46,10 +46,16 @@ shared builders have one exact owner, focused and parent files pass, names remai
 unique, and bounded review finds no blocker.
 
 Outcome:
-Pending.
+Six byte-identical activity-artifact family tests moved into a 411-line focused
+module. Fourteen observation/raw-fixture builders now have one 74-line shared
+support owner; the parent imports only the seven observation builders used by
+its deterministic aggregate, with no private residue. The parent fell from
+16,700 to 16,260 lines. Total test/support/loader LOC grew by 46 lines for
+explicit ownership without helper duplication. All 181 Validation test names
+remain unique.
 
 Verification gaps:
-- Pending.
+- Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
 Validation policy-bundle fixture extraction published as `757d86f8`: the focused
@@ -58,8 +64,8 @@ preserved the 181-test aggregate with no duplicate names. Format, diff hygiene,
 dependency-closure checks, and bounded review were clean.
 
 Next candidate:
-Refresh the adjacent planned/activity-template/subsystem/realized/candidate
-activity fixture cluster in the 16,700-line parent. Select only a coherent
+Refresh the adjacent contact-intent, refreshed-window lineage, and spacecraft
+state fixture clusters in the 16,260-line parent. Select only a coherent
 multi-test boundary and move deterministic-aggregate builders to one shared
 support owner rather than copying them.
 
