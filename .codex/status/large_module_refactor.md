@@ -9,7 +9,7 @@ Current slice:
 Schema provider-counteroffer JSON property-dispatch extraction.
 
 Status:
-Review complete; ready to publish.
+Published.
 
 Selected slice:
 Extract property dispatch for provider-counteroffer report, review summary,
@@ -51,7 +51,7 @@ The four facade clauses are now one guarded delegate to
 dispatcher preserves contract-to-module routing, focused-field selection,
 private row/model callbacks, lazy StationCalendar capability lookups, stable
 identity dependencies, and the common-property fallback. The facade is 9,636
-lines; the new dispatcher is 84 lines.
+lines; the new dispatcher is 84 lines. Implementation published as `4693ca67`.
 
 Verification gaps:
 - `mix compile --warnings-as-errors` passed.
@@ -62,17 +62,20 @@ Verification gaps:
 - Scoped format, diff hygiene, and xref checks passed; xref reports only the
   expected runtime caller from `OrbitalDynamics.Schema`.
 - Bounded read-only review found no blocker or follow-up finding.
+- None for this slice.
 
 Last completed slice:
-Schema model-capability property dispatch published as `84444b3a`: the three
-environment/provider/subsystem capability contracts now route through one
-cohesive internal dispatcher, 29 focused/export tests passed, full regeneration
-was byte-identical, and bounded review found no blocker.
+Schema provider-counteroffer property dispatch published as `4693ca67`: the
+report, review, import-readiness, and plan-impact contracts now route through
+one cohesive internal dispatcher, 23 focused/export tests passed, full
+regeneration was byte-identical, and bounded review found no blocker.
 
 Next candidate:
-Audit one adjacent multi-contract report/property family after this slice is
-published. Leave single-contract neighbors in the facade unless a broader
-cohesive boundary emerges.
+Extract the three adjacent operational-timeline report, timeline-diff report,
+and timeline-diff summary property clauses into one internal timeline-report
+dispatcher. Preserve each row schema, shared model-limit/capability callbacks,
+stable identity dependency, common fallback, validators, and exact exports.
+Leave candidate-rejection and lifecycle-state clauses in the facade.
 
 Blocked:
 No.
