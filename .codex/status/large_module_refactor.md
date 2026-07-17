@@ -6,10 +6,10 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema policy-escalation ownership mapping.
+Schema policy-escalation ownership handoff.
 
 Status:
-Ready for publication.
+Published as `109c7d4b`.
 
 Selected slice:
 Point the `%{}` branch of optional policy-escalation validation directly at
@@ -64,7 +64,10 @@ shrank from 7,805 to 7,798 lines, focused 8 and complete 182 tests passed, all
 122 exports byte-matched, and review was clean.
 
 Next candidate:
-After review and publication, continue the structural exact-wrapper inventory.
+Refresh the live repository hotspot inventory and private/public function counts.
+The remaining exact wrappers are multi-consumer boundaries across several
+families, so choose the next responsibility-focused extraction from current
+module/test sizes rather than continuing wrapper removal solely for line count.
 
 Blocked:
 No.
