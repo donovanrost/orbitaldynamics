@@ -9,7 +9,7 @@ Current slice:
 Campaign planner cadence-import pressure aggregation extraction.
 
 Status:
-Selected.
+Completed and published.
 
 Selected slice:
 Extract prior-plan and mission-state cadence-import pressure collection plus
@@ -45,16 +45,32 @@ approval status, trust boundaries, and emitted branches remain exact; focused
 tests pass; and bounded review finds no blocker.
 
 Outcome:
-Pending.
+`CampaignPlanner` now delegates prior-plan and mission-state cadence-import
+pressure collection to `CampaignPlanner.CadenceImportPressureBranches`. The
+internal aggregator owns row collection, embedded review precedence, direct
+fallback, status/trust-boundary propagation, and source paths. The facade fell
+from 3,592 to 3,530 lines.
 
 Verification gaps:
-- Pending.
+- None for this slice.
+
+Tests run:
+- `mix compile --warnings-as-errors`
+- 26 focused cadence-import/review-import/review-row/strategy tests
+- `mix format --check-formatted`
+- `git diff --check`
+- new-file diff hygiene
+- compile-connected xref check for `campaign_planner.ex`
+- bounded read-only review: clean, no findings
+
+Behavior/schema changes:
+None.
 
 Last completed slice:
-Campaign-planner operator-review pressure dispatch published as `72f92514`:
-all 22 review types and the unknown fallback now live in one cohesive internal
-registry, all three callers delegate through it, 39 focused/regression tests
-passed, and bounded review found no finding.
+Campaign-planner cadence-import pressure aggregation published as `02c913fb`:
+both source collectors, embedded-review precedence, and direct fallback now
+live in one cohesive internal aggregator, 26 focused tests passed, and bounded
+review found no finding.
 
 Next candidate:
 After this slice, audit branch candidate-plan staging or branch-event
