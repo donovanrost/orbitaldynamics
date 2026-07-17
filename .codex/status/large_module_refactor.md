@@ -9,7 +9,7 @@ Current slice:
 Validation state-and-maneuver fixture test-family extraction.
 
 Status:
-Selected.
+Verified and reviewed; ready to publish.
 
 Selected slice:
 Move the five contiguous spacecraft-state-estimate, realized-state-snapshot,
@@ -45,10 +45,16 @@ shared builders have one exact owner, focused and parent files pass, names remai
 unique, and bounded review finds no blocker.
 
 Outcome:
-Pending.
+Five byte-identical state-and-maneuver family tests moved into a 289-line
+focused module. Ten observation/raw-fixture builders now have one 56-line
+shared support owner; the parent imports only the five observation builders
+used by its deterministic aggregate, with no private residue. The parent fell
+from 15,983 to 15,677 lines. Total test/support/loader LOC grew by 40 lines for
+explicit ownership without helper duplication. All 181 Validation test names
+remain unique.
 
 Verification gaps:
-- Pending.
+- Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
 Validation contact-window fixture extraction published as `3b06e3fa`: the
@@ -57,10 +63,10 @@ modules preserved the 181-test aggregate with no duplicate names. Format, diff
 hygiene, dependency-closure checks, and bounded review were clean.
 
 Next candidate:
-Refresh the adjacent spacecraft-state, remaining-horizon, and maneuver outcome
-fixture cluster in the 15,983-line parent. Select only a coherent multi-test
-boundary and move deterministic-aggregate builders to one shared support owner
-rather than copying them.
+Refresh the adjacent backend-acceptance, tolerance-policy, validation-record,
+and validation-check fixture cluster in the 15,677-line parent. Select only a
+coherent multi-test boundary and move deterministic-aggregate builders to one
+shared support owner rather than copying them.
 
 Blocked:
 No.
