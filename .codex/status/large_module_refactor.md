@@ -9,7 +9,7 @@ Current slice:
 Validation resource-safety handoff fixture test-family extraction.
 
 Status:
-Selected.
+Verified and reviewed; ready to publish.
 
 Selected slice:
 Move the two contiguous resource-projection battery-handoff and stale
@@ -46,10 +46,17 @@ shared builders have one exact owner, focused and parent files pass, names remai
 unique, and bounded review finds no blocker.
 
 Outcome:
-Pending.
+Two byte-identical resource-safety handoff family tests moved into a 167-line
+focused module. Ten core/operator/Cadence projection and stale-margin
+observation/raw builders now have one 120-line shared support owner; the parent
+imports only the five aggregate observation builders, with no private residue.
+The parent fell from 11,281 to 11,031 lines, and its now-unused
+`ResourceFilter`/`ResourceProjection` aliases moved to support. Total
+test/support/loader LOC grew by 38 lines for explicit ownership without helper
+duplication. All 181 Validation test names remain unique.
 
 Verification gaps:
-- Pending.
+- Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
 Validation resource-projection fixture extraction published as `385d421e`: the
@@ -58,10 +65,10 @@ modules preserved the 181-test aggregate with no duplicate names. Format, diff
 hygiene, dependency-closure checks, and bounded review were clean.
 
 Next candidate:
-Refresh the adjacent resource-projection battery-handoff, stale-margin, and
-resource-summary fixture cluster in the 11,281-line parent. Select only a
-coherent multi-test boundary and move shared builders to one support owner
-rather than copying them.
+Refresh the adjacent resource-summary and resource-filter report/summary
+fixture cluster in the 11,031-line parent. Select only a coherent multi-test
+boundary and move shared builders to one support owner rather than copying
+them.
 
 Blocked:
 No.

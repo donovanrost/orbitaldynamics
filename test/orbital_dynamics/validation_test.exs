@@ -8,8 +8,6 @@ defmodule OrbitalDynamics.ValidationTest do
     CandidateRefresh,
     Environment,
     ResultSet,
-    ResourceFilter,
-    ResourceProjection,
     Schema,
     Timeline,
     OperatorReview,
@@ -173,6 +171,15 @@ defmodule OrbitalDynamics.ValidationTest do
     only: [
       resource_projection_flow_summary_fixture_observations: 0,
       resource_projection_report_fixture_observations: 0
+    ]
+
+  import OrbitalDynamics.Validation.ResourceSafetyFixtures,
+    only: [
+      cadence_import_resource_projection_battery_handoff_fixture_observations: 0,
+      operator_review_resource_projection_battery_handoff_fixture_observations: 0,
+      resource_filter_stale_margin_fixture_observations: 0,
+      resource_projection_battery_handoff_fixture_observations: 0,
+      resource_projection_stale_margin_fixture_observations: 0
     ]
 
   test "verifies curated operator review package reference fixtures" do
@@ -7136,154 +7143,6 @@ defmodule OrbitalDynamics.ValidationTest do
              Schema.validate_artifact(summary)
   end
 
-  test "verifies resource projection battery handoff reference fixtures" do
-    fixtures = [
-      {
-        "fixture.artifact.resource_projection_report.battery_handoff_v1",
-        "resource_projection_report.v1",
-        resource_projection_battery_handoff_fixture(),
-        resource_projection_battery_handoff_fixture_observations()
-      },
-      {
-        "fixture.artifact.operator_review_package.resource_projection_battery_handoff_v1",
-        "operator_review_package.v1",
-        operator_review_resource_projection_battery_handoff_fixture(),
-        operator_review_resource_projection_battery_handoff_fixture_observations()
-      },
-      {
-        "fixture.artifact.cadence_import_manifest.resource_projection_battery_handoff_v1",
-        "cadence_import_manifest.v1",
-        cadence_import_resource_projection_battery_handoff_fixture(),
-        cadence_import_resource_projection_battery_handoff_fixture_observations()
-      }
-    ]
-
-    Enum.each(fixtures, fn {fixture_id, contract, artifact, observations} ->
-      assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
-      assert fixture["fixture_type"] == "curated_internal_artifact_regression"
-
-      assert {:ok, %{"schema_contract" => ^contract}} =
-               OrbitalDynamics.Schema.validate_artifact(artifact)
-
-      assert {:ok, verification} =
-               Validation.verify_reference_fixture(fixture_id, observations)
-
-      assert verification["status"] == "pass"
-      assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
-    end)
-
-    stale_observations =
-      operator_review_resource_projection_battery_handoff_fixture_observations()
-      |> Map.put("net_resource_projection_battery_energy_delta_wh", 16.0)
-
-    assert {:ok, stale_verification} =
-             Validation.verify_reference_fixture(
-               "fixture.artifact.operator_review_package.resource_projection_battery_handoff_v1",
-               stale_observations
-             )
-
-    assert stale_verification["status"] == "fail"
-
-    assert Enum.any?(
-             stale_verification["checks"],
-             &(&1["field"] == "net_resource_projection_battery_energy_delta_wh" and
-                 &1["status"] == "fail")
-           )
-  end
-
-  test "verifies stale derived-margin resource summary reference fixtures" do
-    fixtures = [
-      {
-        "fixture.artifact.resource_projection_report.stale_resource_summary_margins",
-        "resource_projection_report.v1",
-        resource_projection_stale_margin_fixture(),
-        resource_projection_stale_margin_fixture_observations()
-      },
-      {
-        "fixture.artifact.resource_filter_report.stale_resource_summary_margins",
-        "resource_filter_report.v1",
-        resource_filter_stale_margin_fixture(),
-        resource_filter_stale_margin_fixture_observations()
-      }
-    ]
-
-    Enum.each(fixtures, fn {fixture_id, contract, artifact, observations} ->
-      assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
-      assert fixture["fixture_type"] == "curated_internal_artifact_regression"
-
-      assert {:ok, %{"schema_contract" => ^contract}} =
-               Schema.validate_artifact(artifact)
-
-      assert {:ok, verification} =
-               Validation.verify_reference_fixture(fixture_id, observations)
-
-      assert verification["status"] == "pass"
-      assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
-
-      assert observations["invalid_resource_summary_input_reasons"] ==
-               "stale_battery_state_of_charge|stale_storage_margin"
-    end)
-
-    stale_observations =
-      resource_projection_stale_margin_fixture_observations()
-      |> Map.put("stale_storage_margin_count", 0)
-
-    assert {:ok, stale_verification} =
-             Validation.verify_reference_fixture(
-               "fixture.artifact.resource_projection_report.stale_resource_summary_margins",
-               stale_observations
-             )
-
-    assert stale_verification["status"] == "fail"
-
-    assert Enum.any?(
-             stale_verification["checks"],
-             &(&1["field"] == "stale_storage_margin_count" and &1["status"] == "fail")
-           )
-
-    stale_projection_count =
-      resource_projection_stale_margin_fixture()
-      |> Map.put("invalid_resource_summary_input_count", 1)
-
-    assert {:error, stale_projection_count_report} =
-             Schema.validate_artifact(stale_projection_count,
-               schema_contract: "resource_projection_report.v1"
-             )
-
-    assert Enum.any?(
-             stale_projection_count_report["errors"],
-             &(&1["path"] == "$.invalid_resource_summary_input_count")
-           )
-
-    stale_projection_ids =
-      resource_projection_stale_margin_fixture()
-      |> Map.put("invalid_resource_summary_input_ids", ["leo_2"])
-
-    assert {:error, stale_projection_ids_report} =
-             Schema.validate_artifact(stale_projection_ids,
-               schema_contract: "resource_projection_report.v1"
-             )
-
-    assert Enum.any?(
-             stale_projection_ids_report["errors"],
-             &(&1["path"] == "$.invalid_resource_summary_input_ids")
-           )
-
-    stale_filter_count =
-      resource_filter_stale_margin_fixture()
-      |> Map.put("invalid_resource_summary_input_count", 1)
-
-    assert {:error, stale_filter_count_report} =
-             Schema.validate_artifact(stale_filter_count,
-               schema_contract: "resource_filter_report.v1"
-             )
-
-    assert Enum.any?(
-             stale_filter_count_report["errors"],
-             &(&1["path"] == "$.invalid_resource_summary_input_count")
-           )
-  end
-
   test "verifies curated resource summary reference fixtures" do
     fixture_id = "fixture.artifact.resource_summary.v1"
 
@@ -10616,17 +10475,6 @@ defmodule OrbitalDynamics.ValidationTest do
     read_json!("study_results/policy_decision_v1.json")
   end
 
-  defp cadence_import_resource_projection_battery_handoff_fixture_observations do
-    "cadence_import_manifest.v1"
-    |> Validation.artifact_observations(
-      cadence_import_resource_projection_battery_handoff_fixture()
-    )
-  end
-
-  defp cadence_import_resource_projection_battery_handoff_fixture do
-    read_json!("study_results/cadence_import_resource_projection_battery_handoff_v1.json")
-  end
-
   defp cadence_import_resource_pressure_fixture_observations do
     "cadence_import_manifest.v1"
     |> Validation.artifact_observations(cadence_import_resource_pressure_fixture())
@@ -10673,58 +10521,6 @@ defmodule OrbitalDynamics.ValidationTest do
     )
   end
 
-  defp resource_projection_battery_handoff_fixture_observations do
-    "resource_projection_report.v1"
-    |> Validation.artifact_observations(resource_projection_battery_handoff_fixture())
-  end
-
-  defp resource_projection_battery_handoff_fixture do
-    read_json!("study_results/resource_projection_battery_handoff_v1.json")
-  end
-
-  defp resource_projection_stale_margin_fixture_observations do
-    "resource_projection_report.v1"
-    |> Validation.artifact_observations(resource_projection_stale_margin_fixture())
-  end
-
-  defp resource_projection_stale_margin_fixture do
-    ResourceProjection.report(
-      [
-        %{
-          id: :obs_1,
-          type: :observe,
-          scenario_id: :leo_1,
-          starts_at_s: 10.0,
-          estimated_storage_mb: 20.0
-        }
-      ],
-      [
-        %{
-          spacecraft_id: :leo_1,
-          storage_capacity_mb: 100.0,
-          storage_used_mb: 10.0,
-          battery_capacity_wh: 100.0,
-          battery_energy_used_wh: 20.0
-        },
-        %{
-          spacecraft_id: :leo_2,
-          battery_capacity_wh: 100.0,
-          battery_energy_used_wh: 20.0,
-          battery_state_of_charge: 0.7
-        },
-        %{
-          spacecraft_id: :leo_3,
-          storage_capacity_mb: 100.0,
-          storage_used_mb: 10.0,
-          storage_margin: 0.75
-        }
-      ],
-      model: "thin_stale_derived_margin_resource_projection_fixture",
-      source: "generated_resource_projection_stale_derived_margin_fixture",
-      approval_policy: %{policy_bundle_id: "resource_projection_authority_v1"}
-    )
-  end
-
   defp resource_summary_fixture_observations do
     "resource_summary.v1"
     |> Validation.artifact_observations(resource_summary_fixture())
@@ -10750,42 +10546,6 @@ defmodule OrbitalDynamics.ValidationTest do
 
   defp resource_filter_summary_fixture do
     read_json!("study_results/resource_filter_summary_v1.json")
-  end
-
-  defp resource_filter_stale_margin_fixture_observations do
-    "resource_filter_report.v1"
-    |> Validation.artifact_observations(resource_filter_stale_margin_fixture())
-  end
-
-  defp resource_filter_stale_margin_fixture do
-    ResourceFilter.report(
-      [
-        %{
-          id: :obs_1,
-          type: :observe,
-          scenario_id: :leo_1,
-          spacecraft_id: :sat_1,
-          target_id: :target_alpha,
-          starts_at_s: 10.0,
-          ends_at_s: 20.0
-        }
-      ],
-      [
-        %{
-          spacecraft_id: :sat_1,
-          battery_capacity_wh: 100.0,
-          battery_energy_used_wh: 20.0,
-          battery_state_of_charge: 0.7
-        },
-        %{
-          spacecraft_id: :sat_2,
-          storage_capacity_mb: 100.0,
-          storage_used_mb: 10.0,
-          storage_margin: 0.75
-        }
-      ],
-      approval_policy: %{policy_bundle_id: "degraded_payload_guard_v1"}
-    )
   end
 
   defp objective_satisfaction_report_fixture_observations do
@@ -10884,16 +10644,6 @@ defmodule OrbitalDynamics.ValidationTest do
 
   defp operator_review_package_fixture do
     read_json!("study_results/operator_review_package_v1.json")
-  end
-
-  defp operator_review_resource_projection_battery_handoff_fixture_observations do
-    "study_results/operator_review_resource_projection_battery_handoff_v1.json"
-    |> read_json!()
-    |> then(&Validation.artifact_observations("operator_review_package.v1", &1))
-  end
-
-  defp operator_review_resource_projection_battery_handoff_fixture do
-    read_json!("study_results/operator_review_resource_projection_battery_handoff_v1.json")
   end
 
   defp operator_review_resource_pressure_fixture_observations do
