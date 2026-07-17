@@ -6,10 +6,10 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema operational-feedback callback ownership mapping.
+Schema operational-feedback callback ownership handoff.
 
 Status:
-Ready for publication.
+Published as `10967b5f`.
 
 Selected slice:
 Point the campaign-strategy operational-feedback callback directly at
@@ -62,7 +62,11 @@ shrank from 7,861 to 7,853 lines, focused 6 and complete 182 tests passed, all
 122 exports byte-matched, and review was clean.
 
 Next candidate:
-After review and publication, continue the robust exact-signature inventory.
+Map all four captures of `validate_timeline_publication_context/3`: operational
+readiness gate, readiness evidence, quality-gate import-readiness summary, and
+quality-gate row. They delegate exactly to
+`CandidateRefreshReportContracts.validate_timeline_publication_context/3`;
+preserve each surrounding callback position and use operational/readiness tests.
 
 Blocked:
 No.
