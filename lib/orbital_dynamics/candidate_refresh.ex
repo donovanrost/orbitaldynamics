@@ -161,10 +161,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   resource filtering, select candidates, approve imports, or write to Cadence.
   """
   def resource_filter_replay_summary(refresh_or_artifact) do
-    ReplaySummary.resource_filter(
-      refresh_or_artifact,
-      &source_report_summary/1
-    )
+    ReplaySummary.resource_filter(refresh_or_artifact)
   end
 
   @doc """
@@ -176,10 +173,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   resource projection, select candidates, approve imports, or write to Cadence.
   """
   def resource_projection_replay_summary(refresh_or_artifact) do
-    ReplaySummary.resource_projection(
-      refresh_or_artifact,
-      &source_report_summary/1
-    )
+    ReplaySummary.resource_projection(refresh_or_artifact)
   end
 
   @doc """

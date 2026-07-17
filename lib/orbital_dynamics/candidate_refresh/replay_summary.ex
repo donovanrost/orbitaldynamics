@@ -69,12 +69,12 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary do
     ContactFilter.replay(refresh_or_artifact, source_report_summary)
   end
 
-  def resource_filter(refresh_or_artifact, source_report_summary) do
-    ResourceFilter.replay(refresh_or_artifact, source_report_summary)
+  def resource_filter(refresh_or_artifact) do
+    ResourceFilter.replay(refresh_or_artifact)
   end
 
-  def resource_projection(refresh_or_artifact, source_report_summary) do
-    ResourceProjection.replay(refresh_or_artifact, source_report_summary)
+  def resource_projection(refresh_or_artifact) do
+    ResourceProjection.replay(refresh_or_artifact)
   end
 
   def storage_downlink_pressure(refresh_or_artifact) do

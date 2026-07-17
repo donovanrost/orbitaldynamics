@@ -9,7 +9,7 @@ Current slice:
 CandidateRefresh resource filter/projection replay callback removal.
 
 Status:
-Selected.
+Review complete; ready to publish.
 
 Selected slice:
 Remove the repeated source-summary callback from the resource-filter and
@@ -46,10 +46,20 @@ remain exact; no old callback arity remains; focused tests pass; and bounded
 review finds no blocker.
 
 Outcome:
-Pending.
+The resource-filter and resource-projection replay paths are now one-argument
+end to end. Each owner calls `SourceReportSummary.build/1` directly for the
+provenance fallback while retaining branch-family precedence and its existing
+summary constructor. The four-file production diff removes eight net lines.
 
 Verification gaps:
-- Pending.
+- `mix compile --warnings-as-errors`
+- eight focused replay files: 41 tests passed
+- scoped `mix format --check-formatted`
+- `git diff --check`
+- old callback arity and invocation audits: no matches
+- both owner compile-connected graphs: no dependency edge
+- replay entry callers: aggregator only; owned field helpers retain `summary/3`
+- bounded read-only review: clean, no findings
 
 Last completed slice:
 Candidate storage-downlink-pressure replay callback removal published as
