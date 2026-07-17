@@ -9,7 +9,7 @@ Current slice:
 Schema quality-gate summary callback ownership cleanup.
 
 Status:
-Completed and verified; publishing.
+Completed and published.
 
 Selected slice:
 Point the operator-review package quality-gate summary capture directly at
@@ -65,14 +65,15 @@ Behavior/schema changes:
 None.
 
 Last completed slice:
-Schema contact-allocation expiration-summary callback ownership cleanup
-published as `7ceb704f`: both captures now point directly to the owner, the pure
-facade delegate was removed, 182 schema/export tests passed, full export bytes
-stayed exact, and bounded review was clean.
+Schema quality-gate summary callback ownership cleanup published as `4f870d1e`:
+the operator-review capture now points directly to the owner, the pure facade
+delegate was removed, 182 schema/export tests passed, full export bytes stayed
+exact, and bounded review was clean.
 
 Next candidate:
-After this boundary, remap the remaining local callback captures by owner and
-separate pure delegates from callbacks that still carry facade-owned state.
+Remap the remaining local callback captures by owner and capture count. Separate
+pure delegates from callback-injected functions such as contact-allocation
+evidence validation before selecting the next bounded responsibility.
 
 Blocked:
 No.
