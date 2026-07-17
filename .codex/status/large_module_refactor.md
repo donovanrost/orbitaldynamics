@@ -9,7 +9,7 @@ Current slice:
 Timeline-transition fixture mapping.
 
 Status:
-Ready for implementation.
+Publishing.
 
 Selected slice:
 Move
@@ -59,7 +59,7 @@ and the complete facade remainder stay exact, focused and full validation tests
 pass, and bounded review finds no blocker.
 
 Verification gaps:
-- Implementation and post-move verification pending.
+- None for this slice.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -73,13 +73,33 @@ Tests run:
 - Contiguous source boundary confirmed at facade lines 214-616, followed by
   `contact_allocation_report.v1`, with no facade helper-attribute dependency in
   the selected literals.
-- Focused timeline-transition/facade selection baseline: 16 tests passed.
+- Normalized-AST proof against selection commit `2ce24b78`: all four moved
+  literals, the following contact-allocation report, and the complete 75-entry
+  facade remainder are exact; the new leaf owns only the intended four keys.
+- Post-move exact proof: the 195-entry map, sorted-key digest, selected
+  four-fixture digest, and exact 191-entry remainder digest all match their
+  selection baselines.
+- Source partition proof: 33 maps total 195 entries, the new leaf owns four, the
+  facade owns 75, all 528 pairwise intersections are empty, and the source key
+  union exactly matches the runtime map.
+- Facade proof: all 195 successful `fetch/1` results, missing-key `:error`, and
+  nonbinary `FunctionClauseError` behavior remain unchanged.
+- Focused timeline-transition/facade validation: 16 tests passed.
+- Full validation family: 181 tests passed.
+- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
+  xref caller checks passed.
+- Independent bounded review against selection commit `2ce24b78` was clean:
+  the contiguous source range and complete facade remainder are normalized-AST
+  exact, all runtime and partition invariants reproduced, dependency direction
+  remains one-way, and focused/full tests and hygiene gates passed.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-No timeline-transition implementation has started.
+The exact four-fixture timeline-transition family now lives in a new cohesive
+leaf behind the unchanged facade. The facade shrank from 5,827 to 5,426 lines;
+the new leaf is 411 lines and owns exactly four fixtures.
 
 Last completed slice:
 Timeline-preservation extraction published as `975edb84`: the exact six-fixture
