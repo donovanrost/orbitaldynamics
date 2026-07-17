@@ -128,10 +128,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   contact allocation, select candidates, approve imports, or write to Cadence.
   """
   def link_capacity_replay_summary(refresh_or_artifact) do
-    ReplaySummary.link_capacity(
-      refresh_or_artifact,
-      &source_report_summary/1
-    )
+    ReplaySummary.link_capacity(refresh_or_artifact)
   end
 
   @doc """

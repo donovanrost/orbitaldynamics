@@ -9,7 +9,7 @@ Current slice:
 CandidateRefresh link-capacity replay callback removal.
 
 Status:
-Selected.
+Review complete; ready to publish.
 
 Selected slice:
 Remove the source-summary callback from the link-capacity replay path across
@@ -43,10 +43,20 @@ exact; no old callback arity remains; focused tests pass; and bounded review
 finds no blocker.
 
 Outcome:
-Pending.
+The link-capacity replay path is now one-argument end to end. Its owner calls
+`SourceReportSummary.build/1` directly for provenance fallback while retaining
+branch-family precedence and the existing summary constructor. The three-file
+production diff removes four net lines.
 
 Verification gaps:
-- Pending.
+- `mix compile --warnings-as-errors`
+- seven focused replay files: 24 tests passed
+- scoped `mix format --check-formatted`
+- `git diff --check`
+- old callback arity and invocation audits: no matches
+- owner compile-connected graph: no dependency edge
+- owner callers: replay aggregator only
+- bounded read-only review: clean, no findings
 
 Last completed slice:
 Candidate contact filter/allocation replay callback removal published as

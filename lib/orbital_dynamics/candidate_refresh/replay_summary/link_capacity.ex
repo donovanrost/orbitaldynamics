@@ -5,14 +5,13 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.LinkCapacity do
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.InputProvenance
 
-  def replay(refresh_or_artifact, source_report_summary)
-      when is_function(source_report_summary, 1) do
+  def replay(refresh_or_artifact) do
     branch_link_summary = source_report_summary_branch_family(refresh_or_artifact)
 
     link_summary =
       branch_link_summary ||
         refresh_or_artifact
-        |> source_report_summary.()
+        |> SourceReportSummary.build()
         |> get_in(["source_reports", "link_capacity_report"]) ||
         %{}
 
