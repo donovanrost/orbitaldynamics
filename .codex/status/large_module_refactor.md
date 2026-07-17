@@ -6,10 +6,10 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema spacecraft-state-estimate callback ownership mapping.
+Schema spacecraft-state-estimate callback ownership handoff.
 
 Status:
-Publishing.
+Published as `e10103bf`.
 
 Selected slice:
 Point the standalone `spacecraft_state_estimate.v1` contract pipe directly at
@@ -98,15 +98,17 @@ established owner directly and the pure facade delegate is gone. `schema.ex`
 decreased from 7,963 to 7,958 lines.
 
 Last completed slice:
-Maneuver-execution-delta callback cleanup published as `5bc0e60f`: the
+Spacecraft-state-estimate callback cleanup published as `e10103bf`: the
 standalone contract pipe now calls the established owner directly, `schema.ex`
-shrank from 7,968 to 7,963 lines, 6 focused and 182 complete schema/export
+shrank from 7,963 to 7,958 lines, 6 focused and 182 complete schema/export
 tests passed, all 122 generated schema files byte-matched, and bounded review
 was clean.
 
 Next candidate:
-Select the direct spacecraft-state-estimate owner described above, preserve the
-final pipeline position exactly, then remove the unused facade delegate.
+Map the remaining `validate_proposed_contact/3` facade wrapper. It has two
+uses: the top-level `proposed_contact.v1` pipe and one callback-bag entry.
+Capture pipeline order, callback key/position, and schema-byte baselines before
+pointing both at `ProposedContactContracts.validate/3`.
 
 Blocked:
 No.
