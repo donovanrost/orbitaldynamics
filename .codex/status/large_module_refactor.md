@@ -9,7 +9,7 @@ Current slice:
 Accepted-planning-state reference-fixture family extraction.
 
 Status:
-Publishing implementation.
+Completed and published as `8fffd57d`.
 
 Selected slice:
 Move the first three contiguous artifact fixtures—accepted planning state
@@ -85,15 +85,17 @@ functions. The facade fell from 13,142 to 13,008 lines, while the extracted
 family is 145 lines.
 
 Last completed slice:
-Validation orbital/event reference-fixture extraction published as `005cbbc4`:
-the six exact fixtures moved behind the unchanged facade, the 195-entry map and
-deterministic bytes stayed exact, 181 validation tests passed, and bounded
+Accepted-planning-state reference-fixture extraction published as `8fffd57d`:
+the three exact fixtures moved behind the unchanged facade, the 195-entry map
+and deterministic bytes stayed exact, 181 validation tests passed, and bounded
 review was clean.
 
 Next candidate:
-After this boundary, remap the next contiguous artifact family and its focused
-tests before selecting another move; do not treat the large candidate-refresh
-fixture range as one slice.
+Map the first remaining campaign artifact run: one campaign-plan fixture plus
+nine contiguous result-artifact fixtures, all covered by
+`validation/campaign_artifact_fixture_test.exs`. Select them together only if
+the 600-line block has no facade helper-attribute coupling and its contract
+scope remains reviewable; stop before `campaign_repair`.
 
 Blocked:
 No.
