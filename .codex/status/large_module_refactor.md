@@ -9,7 +9,7 @@ Current slice:
 Campaign artifact reference-fixture family extraction.
 
 Status:
-Ready for implementation.
+Publishing implementation.
 
 Selected slice:
 Move the first remaining 10-fixture campaign artifact run—one campaign plan and
@@ -56,17 +56,36 @@ same 195-entry map and deterministic term bytes, focused and full validation
 tests pass, and bounded review finds no blocker.
 
 Verification gaps:
-- Implementation and verification pending.
+- None for this bounded slice.
 
 Tests run:
-- Selection baseline: 195 entries, deterministic map digest
+- Exact post-split proof matched the 195-entry selection baseline,
+  deterministic map digest
   `a94507226596cd944ac21994c7889549ec58ecd1fcc0db5c65fa4e55b0f53ef2`,
   and sorted-key digest
   `b0007d04e4154fe879519a4f2b074fe3f9d0d649f3049d5d848264e105d00732`.
-- Selection only; implementation verification pending.
+- Source-boundary proof found 10 campaign, 3 accepted-state, 6 orbital, and
+  176 facade keys with no duplicate anchors; facade `fetch/1` matched all 10
+  moved values.
+- Strict test compile passed with warnings as errors.
+- Focused campaign-artifact, core-policy, and facade validation tests: 17
+  passed.
+- Full validation test family: 181 passed.
+- Format, tracked/untracked diff hygiene, and xref caller checks passed.
+- Bounded read-only review was clean: the exact first 10 normalized AST values
+  moved, the remaining facade stayed exact, all four key sets are pairwise
+  disjoint, the four-way union equals `77ead96a`, fetch edge behavior matches,
+  and compile dependencies are one-way.
 
 Behavior/schema changes:
 None.
+
+Outcome:
+The 10 campaign plan/result fixtures now live in
+`Validation.ReferenceFixtures.CampaignArtifacts`; the facade merges that
+family with the accepted-state and orbital families plus 176 remaining
+fixtures. The facade fell from 13,008 to 12,410 lines, while the extracted
+family is 608 lines.
 
 Last completed slice:
 Accepted-planning-state reference-fixture extraction published as `8fffd57d`:
