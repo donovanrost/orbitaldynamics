@@ -5841,7 +5841,7 @@ defmodule OrbitalDynamics.Schema do
       [],
       artifact,
       contract["required_fields"],
-      &validate_operational_feedback/3,
+      &OrbitalDynamics.Schema.OperationalFeedbackContracts.validate/3,
       &validate_branch/3,
       &validate_recommendation/3,
       &validate_optional_branch_comparison_report/2,
@@ -6213,14 +6213,6 @@ defmodule OrbitalDynamics.Schema do
       "pending_operator_review",
       "ready_for_review"
     ])
-  end
-
-  defp validate_operational_feedback(issues, path, feedback) do
-    OrbitalDynamics.Schema.OperationalFeedbackContracts.validate(
-      issues,
-      path,
-      feedback
-    )
   end
 
   defp validate_maneuver_recommendation(issues, path, maneuver) do
