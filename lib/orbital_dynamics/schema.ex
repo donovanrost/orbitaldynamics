@@ -7123,14 +7123,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp contact_allocation_handoff_domain_callbacks do
-    [
-      validate_contact_allocation_duplicate_evidence:
-        &validate_contact_allocation_duplicate_evidence/3,
-      validate_override_count_matches_ids: &validate_override_count_matches_ids/5
-    ]
-  end
-
   defp contact_allocation_station_pressure_summary_contract_callbacks do
     [
       expect_equal: &expect_equal/5,
@@ -8776,8 +8768,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.ContactAllocationHandoffContracts.validate_expiration_summary(
       issues,
       path,
-      artifact,
-      contact_allocation_handoff_domain_callbacks()
+      artifact
     )
   end
 
@@ -9925,7 +9916,7 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       row,
-      contact_allocation_handoff_domain_callbacks()
+      &validate_contact_allocation_duplicate_evidence/3
     )
   end
 

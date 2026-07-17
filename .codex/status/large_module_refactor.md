@@ -9,7 +9,7 @@ Current slice:
 Contact-allocation-handoff domain callback-bag collapse.
 
 Status:
-Selected; implementation pending.
+Complete and ready to publish.
 
 Selected slice:
 Replace the two-entry `ContactAllocationHandoffContracts` bag with direct
@@ -45,13 +45,25 @@ stays explicit; focused, broader, and export checks pass; and bounded review
 finds no blocker.
 
 Outcome:
-Pending.
+The two-entry bag and lookup/apply trampolines are gone. Priority-override
+validation is direct, duplicate-evidence validation stays an explicit guarded
+hook, and the expiration-summary validator dropped an inert callback argument.
+`schema.ex` fell from 11,309 to 11,300 lines and the handoff owner from 936 to
+911. Three hundred ninety-one attributable focused, 1,340 attributable broader,
+and 24 export tests pass. Compile, checked-in regeneration, compile-connected
+xref within its existing three-edge threshold, format, and diff hygiene are
+clean. Bounded review found no blocker and confirmed identical validation order,
+paths/messages, hook behavior, direct-owner semantics, caller arities, and
+cleanup.
 
 Verification gaps:
 - Full repository suite not run.
 - The broader batch has five existing campaign-planner failures. The same five
   fail in the same four files on pre-slice commit `6f1f0ac1`; the attributable
   result is 1,340/1,340.
+- The contact-allocation focused batch has one existing station-calendar count
+  message failure (`nil` instead of `must equal 2`), reproduced unchanged on
+  pre-slice commit `22efe48e`; the attributable focused result is 391/391.
 
 Last completed slice:
 Candidate-refresh-report domain callback-bag collapse published as `a6453475`:

@@ -1,6 +1,8 @@
 defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
   @moduledoc false
 
+  alias OrbitalDynamics.Schema.PriorityOverrideContracts
+
   import OrbitalDynamics.Schema.PrimitiveValidation,
     only: [
       expect_field_at_least: 5,
@@ -201,7 +203,7 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
                                                             end
                                                           )
 
-  def validate_expiration_summary(issues, path, artifact, callbacks) when is_list(callbacks) do
+  def validate_expiration_summary(issues, path, artifact) do
     issues
     |> expect_optional_type(
       path,
@@ -643,7 +645,8 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
     )
   end
 
-  def validate_allocation_fields(issues, path, row, callbacks) when is_list(callbacks) do
+  def validate_allocation_fields(issues, path, row, duplicate_evidence_validator)
+      when is_function(duplicate_evidence_validator, 3) do
     if allocation_handoff_row?(row) do
       issues
       |> expect_optional_integer(path, row, "duplicate_contact_candidate_count")
@@ -654,7 +657,7 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
         row,
         "duplicate_contact_candidate_ids"
       )
-      |> validate_contact_allocation_duplicate_evidence(callbacks, path, row)
+      |> duplicate_evidence_validator.(path, row)
       |> expect_optional_integer(path, row, "resolution_priority_override_count")
       |> expect_field_at_least(path, row, "resolution_priority_override_count", 0)
       |> expect_optional_type(
@@ -668,8 +671,7 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
         row,
         "resolution_priority_override_contact_ids"
       )
-      |> validate_override_count_matches_ids(
-        callbacks,
+      |> PriorityOverrideContracts.validate_count_matches_ids(
         path,
         row,
         "resolution_priority_override_count",
@@ -891,33 +893,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
       Map.get(artifact, field)
     )
   end
-
-  defp require_callback(callbacks, name), do: Keyword.fetch!(callbacks, name)
-
-  defp validate_contact_allocation_duplicate_evidence(issues, callbacks, path, row),
-    do:
-      apply(require_callback(callbacks, :validate_contact_allocation_duplicate_evidence), [
-        issues,
-        path,
-        row
-      ])
-
-  defp validate_override_count_matches_ids(
-         issues,
-         callbacks,
-         path,
-         row,
-         count_field,
-         ids_field
-       ),
-       do:
-         apply(require_callback(callbacks, :validate_override_count_matches_ids), [
-           issues,
-           path,
-           row,
-           count_field,
-           ids_field
-         ])
 
   defp station_calendar_source_handoff_row?(row) do
     Map.get(row, "review_type") in ["station_calendar_review", "station_reservation_review"] or
