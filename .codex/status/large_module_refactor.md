@@ -9,7 +9,7 @@ Current slice:
 Schema link-capacity handoff callback ownership cleanup.
 
 Status:
-Completed and verified; publishing.
+Completed and published.
 
 Selected slice:
 Point the link-capacity count-list, general source-match, and
@@ -72,17 +72,17 @@ Behavior/schema changes:
 None.
 
 Last completed slice:
-Schema contact-contention handoff callback ownership cleanup published as
-`cecaa971`: all general/cadence captures now point directly to their existing
-contract owner, including equivalent cadence fallback behavior; 182
-schema/export tests passed, full export bytes stayed exact, and bounded review
-was clean.
+Schema link-capacity handoff callback ownership cleanup published as
+`49d41864`: all count-list and general/cadence source-match captures now point
+directly to their existing contract owner; 182 schema/export tests passed,
+full export bytes stayed exact, and bounded review was clean.
 
 Next candidate:
-Audit the link-capacity callback family. Count-list, source-match, and
+Audit the station-calendar callback family. Count-list, source-match, and
 cadence-source-review callbacks target the existing
-`LinkCapacityHandoffContracts` owner; select only after confirming all seven
-capture positions and exact specialized/fallback behavior.
+`StationCalendarHandoffContracts` owner across seven capture positions; select
+only after confirming exact total/specialized/fallback behavior and count-list
+iteration order.
 
 Blocked:
 No.
