@@ -9,7 +9,7 @@ Current slice:
 Manifest reference-fixture extraction.
 
 Status:
-Publishing implementation.
+Completed and published as `dbe4437e`.
 
 Selected slice:
 Move the contiguous manifest-field-reference and study-manifest-lint fixtures
@@ -87,15 +87,18 @@ family with 18 existing fixture maps plus 135 remaining fixtures. The facade
 fell from 9,593 to 9,483 lines, while the extracted family is 120 lines.
 
 Last completed slice:
-Core-run report fixture extraction published as `67682478`: the four exact
-diff/budget/execution/freshness fixtures moved behind the unchanged facade,
-manifest metadata and the remainder stayed exact, the 195-entry map and
+Manifest fixture extraction published as `dbe4437e`: the two exact
+field-reference/lint fixtures moved behind the unchanged facade, approval
+requirements and the remainder stayed exact, the 195-entry map and
 deterministic bytes stayed exact, 181 validation tests passed, and bounded
 review was clean.
 
 Next candidate:
-After this boundary, map approval-requirement/policy-decision/proposed-contact
-against focused policy-decision ownership before selecting the next family.
+Extract the contiguous approval-requirement and policy-decision fixtures into a
+policy-decision family. The 88-line pair shares dedicated
+`policy_decision_fixture_test.exs` ownership and stops before proposed contact,
+which belongs to candidate-strategy coverage; first verify helper-attribute
+independence and re-baseline the complete map.
 
 Blocked:
 No.
