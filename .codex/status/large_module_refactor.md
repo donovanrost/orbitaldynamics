@@ -6,27 +6,27 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Activity-definition fixture mapping.
+Subsystem-model capability fixture mapping.
 
 Status:
-Publishing.
+Ready for next slice selection.
 
 Selected slice:
-Move
-`planned_activity.v1` and `activity_template.v1` into a new
-`Validation.ReferenceFixtures.ActivityArtifacts` leaf. Stop before
-`subsystem_model_capability.battery`.
+No implementation selected yet. The next bounded candidate is to move
+`subsystem_model_capability.battery` and
+`subsystem_model_capability.storage` into a new
+`Validation.ReferenceFixtures.SubsystemModelCapabilities` leaf. Stop before
+`realized_activity.v1`.
 
 Why this slice:
-`ReferenceFixtures` remains the largest production module at 8,620 lines. The
-next two contiguous fixtures form the 141-line activity-definition pair and
-have dedicated assertions in `activity_artifact_fixture_test.exs`.
+`ReferenceFixtures` remains the largest production module at 8,481 lines. The
+next two contiguous fixtures form the 125-line subsystem-capability pair and
+are asserted together in `activity_artifact_fixture_test.exs`.
 
 Current coupling/problem:
-Activity definitions remain embedded in the general facade alongside distinct
-subsystem-capability and realized/change artifacts. Moving only the definition
-pair creates a responsibility boundary without sweeping all fixtures from one
-test file into a single oversized leaf.
+Battery and storage model capability expectations remain embedded in the
+general facade between activity definitions and outcome/change artifacts.
+Their shared contract and focused test justify a dedicated capability leaf.
 
 Public facade to preserve:
 `OrbitalDynamics.Validation.ReferenceFixtures.all/0` and `fetch/1`, exact
@@ -34,11 +34,11 @@ fixture keys and values, map equality and deterministic term bytes, and all
 `OrbitalDynamics.Validation` reference-fixture behavior.
 
 Likely extraction target:
-`OrbitalDynamics.Validation.ReferenceFixtures.ActivityArtifacts`.
+`OrbitalDynamics.Validation.ReferenceFixtures.SubsystemModelCapabilities`.
 
 Likely files:
 - `lib/orbital_dynamics/validation/reference_fixtures.ex`
-- `lib/orbital_dynamics/validation/reference_fixtures/activity_artifacts.ex`
+- `lib/orbital_dynamics/validation/reference_fixtures/subsystem_model_capabilities.ex`
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
@@ -48,14 +48,14 @@ Likely verification:
 - strict compile, format, xref, diff hygiene, and bounded review
 
 Definition of done:
-The two activity-definition fixtures exist only in the new cohesive leaf, all
-22 fixture maps remain disjoint, `all/0` and `fetch/1` return exactly the same
-195-entry map and deterministic term bytes, the battery capability and complete
-facade remainder stay exact, focused and full validation tests pass, and
-bounded review finds no blocker.
+The battery/storage capability fixtures exist only in the new cohesive leaf,
+all 23 fixture maps remain disjoint, `all/0` and `fetch/1` return exactly the
+same 195-entry map and deterministic term bytes, `realized_activity.v1` and the
+complete facade remainder stay exact, focused and full validation tests pass,
+and bounded review finds no blocker.
 
 Verification gaps:
-- None for this bounded slice.
+- Next candidate still requires a selection baseline before implementation.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -92,21 +92,18 @@ Behavior/schema changes:
 None.
 
 Outcome:
-The exact activity-definition pair now lives in a new cohesive leaf behind the
-unchanged facade. The facade shrank from 8,620 to 8,481 lines; the new leaf is
-149 lines and owns exactly two fixtures.
+No subsystem-capability implementation has started.
 
 Last completed slice:
-Policy-bundle family ownership completed as `9ac5da0d`: the final exact
-organization-adapter fixture moved into the twelve-fixture leaf, the facade
-shrank from 8,668 to 8,620 lines, the 195-entry map and all deterministic
+Activity-definition extraction published as `f975a5d6`: the exact
+planned-activity/template pair moved into a new 149-line leaf, the facade
+shrank from 8,620 to 8,481 lines, the 195-entry map and all deterministic
 digests stayed exact, 18 focused and 181 full validation tests passed, and
 bounded review was clean.
 
 Next candidate:
-Select the activity-definition extraction described above, capture the exact
-baseline and source partition, then stop before
-`subsystem_model_capability.battery`.
+Select the subsystem-capability extraction described above, capture the exact
+baseline and source partition, then stop before `realized_activity.v1`.
 
 Blocked:
 No.
