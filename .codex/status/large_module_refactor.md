@@ -9,7 +9,7 @@ Current slice:
 Schema station-reservation-summary JSON property-dispatch extraction.
 
 Status:
-Review complete; ready to publish.
+Published.
 
 Selected slice:
 Extract property dispatch for station-reservation review summary, hold summary,
@@ -52,6 +52,7 @@ internal dispatcher preserves contract-to-module routing, focused-field
 selection, the shared review/hold row callback, the distinct import-readiness
 row callback, shared model-limit/stable-identity dependencies, and the common
 fallback. The facade is 9,592 lines; the new dispatcher is 56 lines.
+Implementation published as `e0596370`.
 
 Verification gaps:
 - `mix compile --warnings-as-errors` passed.
@@ -62,17 +63,21 @@ Verification gaps:
 - Scoped format, diff hygiene, and xref checks passed; xref reports only the
   expected runtime caller from `OrbitalDynamics.Schema`.
 - Bounded read-only review found no blocker or follow-up finding.
+- None for this slice.
 
 Last completed slice:
-Schema timeline-report property dispatch published as `39a16f36`: operational
-timeline report, timeline-diff report, and timeline-diff summary now route
-through one cohesive internal dispatcher, 49 focused/export tests passed, full
-regeneration was byte-identical, and bounded review found no blocker.
+Schema station-reservation-summary property dispatch published as `e0596370`:
+review, hold, and hold import-readiness summaries now route through one
+cohesive internal dispatcher, 28 focused/export tests passed, full regeneration
+was byte-identical, and bounded review found no blocker.
 
 Next candidate:
-Audit one adjacent multi-contract station property family after this slice is
-published. Leave station reports/provider clauses in the facade unless a
-broader cohesive boundary emerges.
+Extract the adjacent link-capacity report and summary property clauses into one
+internal link-capacity dispatcher. Preserve distinct assumption callbacks,
+report-only row/throughput-derivation callbacks, summary-only numeric-map
+callbacks, shared model limits and common schema helpers, fallback behavior,
+validators, and exact exports. Leave station-provider and relay-data-path
+clauses in the facade.
 
 Blocked:
 No.
