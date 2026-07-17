@@ -9,7 +9,7 @@ Current slice:
 Activity outcome/change fixture mapping.
 
 Status:
-Ready for implementation.
+Publishing.
 
 Selected slice:
 Move
@@ -55,7 +55,7 @@ facade remainder stay exact, the prior two activity fixtures remain exact,
 focused and full validation tests pass, and bounded review finds no blocker.
 
 Verification gaps:
-- Implementation, verification, and bounded review pending.
+- None for this bounded slice.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -71,13 +71,34 @@ Tests run:
 - Source boundary confirmed at facade lines 156-314, with
   `contact_intent.v1` beginning at line 315 and no facade helper-attribute
   dependency in the selected literals.
-- Selection only; implementation verification pending.
+- Post-move exact proof: the 195-entry map, sorted-key digest, selected
+  three-fixture digest, prior two-fixture activity-leaf digest, and exact
+  192-entry remainder digest all match their selection baselines. The resulting
+  five-fixture leaf digest is
+  `ced869955c4b50090dfc2354f8728d326385d035cf8713c77d6e57d2f977aa18`.
+- Source partition proof: 23 maps total 195 entries, the activity leaf owns
+  five, the facade owns 113, and all 253 pairwise intersections are empty.
+- Facade proof: all 195 successful `fetch/1` results, missing-key `:error`, and
+  nonbinary `FunctionClauseError` behavior remain unchanged.
+- Focused activity-artifact/facade validation: 18 tests passed.
+- Full validation family: 181 tests passed.
+- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
+  xref caller checks passed.
+- Independent bounded review: CLEAN. It confirmed the outcome/change trio moved
+  unchanged, the prior two activity definitions and complete facade remainder
+  are normalized-AST exact, the leaf owns only its five intended activity keys,
+  all 23 maps are unique and pairwise disjoint, all six digests and facade edge
+  behaviors are unchanged, dependencies remain one-way, subsystem/contact
+  fixtures remain distinct, and it reproduced 18 focused and 181 full
+  validation tests.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-No activity outcome/change implementation has started.
+The exact outcome/change trio now lives with the prior definitions in the
+activity leaf behind the unchanged facade. The facade shrank from 8,358 to
+8,199 lines; the leaf grew from two to five fixtures and from 149 to 308 lines.
 
 Last completed slice:
 Subsystem-capability extraction published as `3fa1485d`: the exact
