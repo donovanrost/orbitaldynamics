@@ -6368,8 +6368,7 @@ defmodule OrbitalDynamics.Schema do
     |> require_fields("$", artifact, contract["required_fields"])
     |> OrbitalDynamics.Schema.TimelinePublicationSummaryContracts.validate(
       "$",
-      artifact,
-      timeline_publication_summary_contract_callbacks()
+      artifact
     )
   end
 
@@ -6911,32 +6910,6 @@ defmodule OrbitalDynamics.Schema do
         registry_contract!(@execution_report),
         execution_report
       )
-
-  defp timeline_publication_summary_contract_callbacks do
-    [
-      timeline_report_model_limits: &timeline_report_model_limits/0,
-      error: &error/2,
-      expect_equal: &expect_equal/5,
-      expect_one_of: &expect_one_of/5,
-      expect_optional_one_of: &expect_optional_one_of/5,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_non_negative_integer: &expect_non_negative_integer/4,
-      expect_optional_non_negative_integer: &expect_optional_non_negative_integer/4,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      expect_optional_field_equals: &expect_optional_field_equals/6,
-      validate_stable_ids: &validate_stable_ids/4,
-      validate_non_negative_integer_count_map: &validate_non_negative_integer_count_map/3,
-      validate_stable_id_array_map: &validate_stable_id_array_map/3,
-      validate_optional_exact_model_limits: &validate_optional_exact_model_limits/5,
-      validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_optional_timeline_diff_summary_source:
-        &validate_optional_timeline_diff_summary_source/3,
-      validate_optional_timeline_dependency_impact_summary_source:
-        &validate_optional_timeline_dependency_impact_summary_source/3
-    ]
-  end
 
   defp branch_comparison_report_contract_callbacks do
     [
@@ -7643,41 +7616,19 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validate_optional_timeline_diff_summary_source(issues, _path, nil), do: issues
-
-  defp validate_optional_timeline_diff_summary_source(issues, path, %{} = summary),
+  defp validate_optional_timeline_diff_summary_source(issues, path, summary),
     do:
-      OrbitalDynamics.Schema.TimelineDiffSummaryContracts.validate(
+      OrbitalDynamics.Schema.TimelinePublicationSummaryContracts.validate_optional_timeline_diff_summary_source(
         issues,
         path,
-        summary,
-        timeline_report_model_limits()
+        summary
       )
-
-  defp validate_optional_timeline_diff_summary_source(issues, path, _summary),
-    do: [error(path, "must be an object") | issues]
-
-  defp validate_optional_timeline_dependency_impact_summary_source(issues, _path, nil),
-    do: issues
-
-  defp validate_optional_timeline_dependency_impact_summary_source(issues, path, %{} = summary),
-    do:
-      OrbitalDynamics.Schema.TimelineDependencyImpactSummaryContracts.validate(
-        issues,
-        path,
-        summary,
-        timeline_report_model_limits()
-      )
-
-  defp validate_optional_timeline_dependency_impact_summary_source(issues, path, _summary),
-    do: [error(path, "must be an object") | issues]
 
   defp validate_optional_timeline_publication_summary_source(issues, path, summary) do
     OrbitalDynamics.Schema.TimelineHandoffContracts.validate_optional_timeline_publication_summary_source(
       issues,
       path,
-      summary,
-      timeline_publication_summary_contract_callbacks()
+      summary
     )
   end
 

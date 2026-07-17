@@ -9,7 +9,7 @@ Current slice:
 Timeline-publication-summary callback-bag collapse.
 
 Status:
-Selected; implementation not started.
+Complete and ready to publish.
 
 Selected slice:
 Replace the 19-entry `TimelinePublicationSummaryContracts` keyword bag with
@@ -48,10 +48,27 @@ threads callbacks, focused/broader/export checks pass, and bounded review finds
 no blocker.
 
 Outcome:
-Pending.
+The 19-entry bag and every publication-summary lookup/apply trampoline are gone.
+Primitive and stable-ID validators are direct. Optional timeline-diff and
+dependency-impact source validation now lives with the publication owner while
+preserving nil/map/non-map behavior and timeline model-limit order. Timeline
+handoff validates optional publication sources directly through `/3`; the
+shared Schema diff wrapper delegates to the owner for remaining consumers, and
+the dependency wrapper disappeared as an orphan. `schema.ex` fell from 10,686
+to 10,637 lines, the publication owner from 703 to 599, and the handoff owner by
+two lines, for a net 155-line reduction. Four hundred ninety-four focused,
+1,340 attributable broader, and 24 export tests pass; compile, checked-in
+regeneration, compile-connected xref within its existing three-edge threshold,
+format, and diff hygiene are clean. Bounded review found no blocker and
+confirmed the full pipeline/order/defaults/paths/messages, nested-source
+behavior, model-limit order, wrapper retention/orphan removal, handoff arity,
+all callers, and cleanup.
 
 Verification gaps:
-- Not yet verified.
+- Full repository suite not run.
+- The 1,345-test broader batch has the same five known campaign-planner baseline
+  failures previously reproduced on pre-slice commit `6f1f0ac1`; the
+  attributable result is 1,340/1,340.
 
 Last completed slice:
 Relay-data-path-summary callback collapse published as `6705f3f0`: `schema.ex`

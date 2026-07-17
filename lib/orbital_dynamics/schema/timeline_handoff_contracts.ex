@@ -527,24 +527,22 @@ defmodule OrbitalDynamics.Schema.TimelineHandoffContracts do
   def validate_cadence_source_review_timeline_publication_matches(issues, _path, _row),
     do: issues
 
-  def validate_optional_timeline_publication_summary_source(issues, _path, nil, _callbacks),
+  def validate_optional_timeline_publication_summary_source(issues, _path, nil),
     do: issues
 
   def validate_optional_timeline_publication_summary_source(
         issues,
         path,
-        %{} = summary,
-        callbacks
+        %{} = summary
       ) do
     OrbitalDynamics.Schema.TimelinePublicationSummaryContracts.validate(
       issues,
       path,
-      summary,
-      callbacks
+      summary
     )
   end
 
-  def validate_optional_timeline_publication_summary_source(issues, path, _summary, _callbacks),
+  def validate_optional_timeline_publication_summary_source(issues, path, _summary),
     do: [error(path, "must be an object") | issues]
 
   def validate_timeline_publication_matches_source_summary(
