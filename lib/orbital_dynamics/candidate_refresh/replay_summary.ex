@@ -125,8 +125,8 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary do
     TimelinePreservation.summary(refresh_or_artifact)
   end
 
-  def timeline_diff(refresh_or_artifact, source_report_summary) do
-    TimelineDiff.replay(refresh_or_artifact, source_report_summary)
+  def timeline_diff(refresh_or_artifact) do
+    TimelineDiff.replay(refresh_or_artifact)
   end
 
   def timeline_integrity(refresh_or_artifact) do
@@ -137,8 +137,8 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary do
     TimelineLifecycleState.replay(refresh_or_artifact)
   end
 
-  def timeline_dependency_impact(refresh_or_artifact, source_report_summary) do
-    TimelineDependencyImpact.replay(refresh_or_artifact, source_report_summary)
+  def timeline_dependency_impact(refresh_or_artifact) do
+    TimelineDependencyImpact.replay(refresh_or_artifact)
   end
 
   def timeline_publication(refresh_or_artifact, source_report_summary) do

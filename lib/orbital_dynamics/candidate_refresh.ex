@@ -334,10 +334,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   timelines, select candidates, approve imports, or write to Cadence.
   """
   def timeline_diff_replay_summary(refresh_or_artifact) do
-    ReplaySummary.timeline_diff(
-      refresh_or_artifact,
-      &source_report_summary/1
-    )
+    ReplaySummary.timeline_diff(refresh_or_artifact)
   end
 
   @doc """
@@ -374,10 +371,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   timelines, select candidates, approve imports, or write to Cadence.
   """
   def timeline_dependency_impact_replay_summary(refresh_or_artifact) do
-    ReplaySummary.timeline_dependency_impact(
-      refresh_or_artifact,
-      &source_report_summary/1
-    )
+    ReplaySummary.timeline_dependency_impact(refresh_or_artifact)
   end
 
   @doc """
