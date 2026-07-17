@@ -6,29 +6,31 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Operational-planning fixture mapping.
+Timeline-activity-state fixture mapping.
 
 Status:
-Publishing.
+Ready for next slice selection.
 
 Selected slice:
-Move
-`command_window_report.v1`, `constraint_report.v1`, and
-`operational_timeline_report.v1` from their two facade ranges into a new
-`Validation.ReferenceFixtures.OperationalPlanningArtifacts` leaf. Preserve the
-following timeline lifecycle and timeline transition-application fixtures
-exactly.
+No implementation selected yet. The next bounded candidate is to move
+`timeline_activity_lifecycle_state.v1`, `timeline_activity_status_state.v1`,
+`timeline_activity_approval_state.v1`, `timeline_lifecycle_state_summary.v1`,
+`timeline_activity_state.v1`, and
+`timeline_activity_precondition_summary.v1` from their two facade ranges into a
+new `Validation.ReferenceFixtures.TimelineActivityStateArtifacts` leaf.
+Preserve the intervening timeline-preservation family and following timeline
+integrity report exactly.
 
 Why this slice:
-`ReferenceFixtures` remains the largest production module at 7,122 lines. The
-three fixtures occupy 279 facade lines and exactly own
-`operational_planning_fixture_test.exs`.
+`ReferenceFixtures` remains the largest production module at 6,845 lines. The
+six fixtures occupy 469 facade lines and exactly own
+`timeline_activity_state_fixture_test.exs`.
 
 Current coupling/problem:
-Command-window and constraint expectations are adjacent near the facade start,
-while the operational-timeline report is separated by timeline lifecycle
-families. Moving all three preserves the complete focused-test responsibility
-rather than extracting only the convenient adjacent pair.
+Lifecycle, status, approval, aggregate-state, and precondition expectations are
+split around the separate timeline-preservation family. Moving both complete
+ranges preserves the focused-test responsibility without absorbing unrelated
+preservation behavior.
 
 Public facade to preserve:
 `OrbitalDynamics.Validation.ReferenceFixtures.all/0` and `fetch/1`, exact
@@ -36,28 +38,28 @@ fixture keys and values, map equality and deterministic term bytes, and all
 `OrbitalDynamics.Validation` reference-fixture behavior.
 
 Likely extraction target:
-`OrbitalDynamics.Validation.ReferenceFixtures.OperationalPlanningArtifacts`.
+`OrbitalDynamics.Validation.ReferenceFixtures.TimelineActivityStateArtifacts`.
 
 Likely files:
 - `lib/orbital_dynamics/validation/reference_fixtures.ex`
-- `lib/orbital_dynamics/validation/reference_fixtures/operational_planning_artifacts.ex`
+- `lib/orbital_dynamics/validation/reference_fixtures/timeline_activity_state_artifacts.ex`
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
 - exact before/after fixture count, keys, values, and deterministic term digest
-- focused operational-planning and facade validation tests
+- focused timeline-activity-state and facade validation tests
 - full validation test family
 - strict compile, format, xref, diff hygiene, and bounded review
 
 Definition of done:
-The three operational-planning fixtures exist only in the new cohesive leaf,
-all 30 fixture maps remain disjoint, `all/0` and `fetch/1` return exactly the same
+The six timeline-activity-state fixtures exist only in the new cohesive leaf,
+all 31 fixture maps remain disjoint, `all/0` and `fetch/1` return exactly the same
 195-entry map and deterministic term bytes, both following boundary fixtures
 and the complete facade remainder stay exact, focused and full validation tests
 pass, and bounded review finds no blocker.
 
 Verification gaps:
-- None for this slice.
+- Next candidate still requires a selection baseline before implementation.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -96,18 +98,17 @@ Behavior/schema changes:
 None.
 
 Outcome:
-The exact three-fixture operational-planning family now lives in a new cohesive
-leaf behind the unchanged facade. The facade shrank from 7,122 to 6,845 lines;
-the new leaf is 287 lines and owns exactly three fixtures.
+No timeline-activity-state implementation has started.
 
 Last completed slice:
-Timeline-handoff extraction published as `09fcb24c`: the exact three-fixture
-family moved into a new 325-line leaf, the facade shrank from 7,437 to 7,122
-lines, the 195-entry map and all deterministic digests stayed exact, 15 focused
-and 181 full validation tests passed, and bounded review was clean.
+Operational-planning extraction published as `7999a542`: the exact
+three-fixture family moved into a new 287-line leaf, the facade shrank from
+7,122 to 6,845 lines, the 195-entry map and all deterministic digests stayed
+exact, 15 focused and 181 full validation tests passed, and bounded review was
+clean.
 
 Next candidate:
-Select the operational-planning extraction described above, capture the exact
+Select the timeline-activity-state extraction described above, capture the exact
 combined map and both source-range boundaries, then move the complete
 test-owned family together.
 
