@@ -9,7 +9,7 @@ Current slice:
 Schema resource-projection direct callback ownership cleanup.
 
 Status:
-Selected; implementation pending.
+Completed and verified; publishing.
 
 Selected slice:
 Point the battery-field, remaining-field, battery-source, flow-context,
@@ -47,14 +47,30 @@ count-source wrapper remains unchanged,
 validation and schema exports remain byte-for-byte stable, focused tests pass,
 and bounded review finds no blocker.
 
+Outcome:
+All sixteen selected resource-projection captures now point directly to the
+existing `ResourceProjectionHandoffContracts` owner. Eight pure delegates were
+removed, reducing `schema.ex` from 8,854 to 8,766 lines. Source-evidence
+callback order is unchanged, and the three general count-source captures still
+use the retained facade wrapper and downlink predicate exactly as before.
+
 Verification gaps:
-- Implementation and verification pending.
+- None for this slice.
 
 Tests run:
-- Pending.
+- `mix compile --warnings-as-errors`
+- 47 focused resource-projection-referencing schema contract tests
+- 182 complete schema-contract and schema-export tests
+- full checked-in schema export regeneration; no schema diff
+- aggregate schema bundle digest unchanged:
+  `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`
+- `mix format --check-formatted`
+- `git diff --check`
+- compile-connected xref check for `schema.ex`
+- bounded read-only review: clean, no findings
 
 Behavior/schema changes:
-None intended.
+None.
 
 Last completed slice:
 Schema station-calendar handoff callback ownership cleanup published as

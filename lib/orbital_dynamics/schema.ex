@@ -7286,15 +7286,15 @@ defmodule OrbitalDynamics.Schema do
       validate_operational_readiness_resource_context:
         &validate_operational_readiness_resource_context/3,
       validate_resource_projection_battery_handoff_fields:
-        &validate_resource_projection_battery_handoff_fields/3,
+        &OrbitalDynamics.Schema.ResourceProjectionHandoffContracts.validate_battery_handoff_fields/3,
       validate_resource_projection_remaining_handoff_fields:
-        &validate_resource_projection_remaining_handoff_fields/3,
+        &OrbitalDynamics.Schema.ResourceProjectionHandoffContracts.validate_remaining_handoff_fields/3,
       validate_resource_projection_battery_handoff_matches_source:
-        &validate_resource_projection_battery_handoff_matches_source/3,
+        &OrbitalDynamics.Schema.ResourceProjectionHandoffContracts.validate_battery_handoff_matches_source/3,
       validate_resource_projection_count_handoff_matches_source:
         &validate_resource_projection_count_handoff_matches_source/3,
       validate_resource_projection_flow_summary_context_matches_source:
-        &validate_resource_projection_flow_summary_context_matches_source/3,
+        &OrbitalDynamics.Schema.ResourceProjectionHandoffContracts.validate_flow_summary_context_matches_source/3,
       validate_link_capacity_handoff_count_lists:
         &OrbitalDynamics.Schema.LinkCapacityHandoffContracts.validate_count_lists/3,
       validate_link_capacity_handoff_matches_source:
@@ -7615,7 +7615,7 @@ defmodule OrbitalDynamics.Schema do
       validate_cadence_source_review_approval_requirement_handoff_matches:
         &OrbitalDynamics.Schema.PolicyPlanHandoffContracts.validate_cadence_source_review_approval_requirement_matches/3,
       validate_cadence_source_review_battery_handoff_matches:
-        &validate_cadence_source_review_battery_handoff_matches/3,
+        &OrbitalDynamics.Schema.ResourceProjectionHandoffContracts.validate_cadence_source_review_battery_handoff_matches/3,
       validate_cadence_source_review_candidate_diff_handoff_matches:
         &OrbitalDynamics.Schema.CandidateHandoffContracts.validate_cadence_source_review_candidate_diff_matches/3,
       validate_cadence_source_review_candidate_rejection_handoff_matches:
@@ -7667,9 +7667,9 @@ defmodule OrbitalDynamics.Schema do
       validate_cadence_source_review_refresh_budget_handoff_matches:
         &validate_cadence_source_review_refresh_budget_handoff_matches/3,
       validate_cadence_source_review_resource_projection_context_handoff_matches:
-        &validate_cadence_source_review_resource_projection_context_handoff_matches/3,
+        &OrbitalDynamics.Schema.ResourceProjectionHandoffContracts.validate_cadence_source_review_context_handoff_matches/3,
       validate_cadence_source_review_resource_projection_count_handoff_matches:
-        &validate_cadence_source_review_resource_projection_count_handoff_matches/3,
+        &OrbitalDynamics.Schema.ResourceProjectionHandoffContracts.validate_cadence_source_review_count_handoff_matches/3,
       validate_cadence_source_review_risk_explanation_handoff_matches:
         &OrbitalDynamics.Schema.RiskFeedbackHandoffContracts.validate_cadence_source_review_risk_explanation_matches/3,
       validate_cadence_source_review_schema_validation_handoff_matches:
@@ -7765,15 +7765,15 @@ defmodule OrbitalDynamics.Schema do
       validate_realized_feedback_handoff_matches_source:
         &OrbitalDynamics.Schema.RiskFeedbackHandoffContracts.validate_realized_feedback_matches_source/3,
       validate_resource_projection_battery_handoff_fields:
-        &validate_resource_projection_battery_handoff_fields/3,
+        &OrbitalDynamics.Schema.ResourceProjectionHandoffContracts.validate_battery_handoff_fields/3,
       validate_resource_projection_battery_handoff_matches_source:
-        &validate_resource_projection_battery_handoff_matches_source/3,
+        &OrbitalDynamics.Schema.ResourceProjectionHandoffContracts.validate_battery_handoff_matches_source/3,
       validate_resource_projection_count_handoff_matches_source:
         &validate_resource_projection_count_handoff_matches_source/3,
       validate_resource_projection_flow_summary_context_matches_source:
-        &validate_resource_projection_flow_summary_context_matches_source/3,
+        &OrbitalDynamics.Schema.ResourceProjectionHandoffContracts.validate_flow_summary_context_matches_source/3,
       validate_resource_projection_remaining_handoff_fields:
-        &validate_resource_projection_remaining_handoff_fields/3,
+        &OrbitalDynamics.Schema.ResourceProjectionHandoffContracts.validate_remaining_handoff_fields/3,
       validate_risk_explanation_handoff_matches_source:
         &OrbitalDynamics.Schema.RiskFeedbackHandoffContracts.validate_risk_explanation_matches_source/3,
       validate_score_term_handoff_matches_source:
@@ -7842,8 +7842,8 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       row,
-      &validate_resource_projection_battery_handoff_fields/3,
-      &validate_resource_projection_battery_handoff_matches_own_flow/3
+      &OrbitalDynamics.Schema.ResourceProjectionHandoffContracts.validate_battery_handoff_fields/3,
+      &OrbitalDynamics.Schema.ResourceProjectionHandoffContracts.validate_battery_handoff_matches_own_flow/3
     )
   end
 
@@ -7898,34 +7898,6 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validate_resource_projection_battery_handoff_fields(issues, path, row) do
-    OrbitalDynamics.Schema.ResourceProjectionHandoffContracts.validate_battery_handoff_fields(
-      issues,
-      path,
-      row
-    )
-  end
-
-  defp validate_resource_projection_remaining_handoff_fields(issues, path, row) do
-    OrbitalDynamics.Schema.ResourceProjectionHandoffContracts.validate_remaining_handoff_fields(
-      issues,
-      path,
-      row
-    )
-  end
-
-  defp validate_resource_projection_battery_handoff_matches_source(
-         issues,
-         path,
-         row
-       ) do
-    OrbitalDynamics.Schema.ResourceProjectionHandoffContracts.validate_battery_handoff_matches_source(
-      issues,
-      path,
-      row
-    )
-  end
-
   defp validate_resource_projection_count_handoff_matches_source(
          issues,
          path,
@@ -7936,66 +7908,6 @@ defmodule OrbitalDynamics.Schema do
       path,
       row,
       &resource_projection_downlink_flow_row?/1
-    )
-  end
-
-  defp validate_resource_projection_flow_summary_context_matches_source(
-         issues,
-         path,
-         row
-       ) do
-    OrbitalDynamics.Schema.ResourceProjectionHandoffContracts.validate_flow_summary_context_matches_source(
-      issues,
-      path,
-      row
-    )
-  end
-
-  defp validate_resource_projection_battery_handoff_matches_own_flow(
-         issues,
-         path,
-         row
-       ) do
-    OrbitalDynamics.Schema.ResourceProjectionHandoffContracts.validate_battery_handoff_matches_own_flow(
-      issues,
-      path,
-      row
-    )
-  end
-
-  defp validate_cadence_source_review_battery_handoff_matches(
-         issues,
-         path,
-         row
-       ) do
-    OrbitalDynamics.Schema.ResourceProjectionHandoffContracts.validate_cadence_source_review_battery_handoff_matches(
-      issues,
-      path,
-      row
-    )
-  end
-
-  defp validate_cadence_source_review_resource_projection_count_handoff_matches(
-         issues,
-         path,
-         row
-       ) do
-    OrbitalDynamics.Schema.ResourceProjectionHandoffContracts.validate_cadence_source_review_count_handoff_matches(
-      issues,
-      path,
-      row
-    )
-  end
-
-  defp validate_cadence_source_review_resource_projection_context_handoff_matches(
-         issues,
-         path,
-         row
-       ) do
-    OrbitalDynamics.Schema.ResourceProjectionHandoffContracts.validate_cadence_source_review_context_handoff_matches(
-      issues,
-      path,
-      row
     )
   end
 
@@ -8680,13 +8592,13 @@ defmodule OrbitalDynamics.Schema do
       validate_source_quality_gate_row_handoff_matches:
         &validate_source_quality_gate_row_handoff_matches/3,
       validate_resource_projection_battery_handoff_fields:
-        &validate_resource_projection_battery_handoff_fields/3,
+        &OrbitalDynamics.Schema.ResourceProjectionHandoffContracts.validate_battery_handoff_fields/3,
       validate_resource_projection_battery_handoff_matches_source:
-        &validate_resource_projection_battery_handoff_matches_source/3,
+        &OrbitalDynamics.Schema.ResourceProjectionHandoffContracts.validate_battery_handoff_matches_source/3,
       validate_resource_projection_count_handoff_matches_source:
         &validate_resource_projection_count_handoff_matches_source/3,
       validate_resource_projection_flow_summary_context_matches_source:
-        &validate_resource_projection_flow_summary_context_matches_source/3,
+        &OrbitalDynamics.Schema.ResourceProjectionHandoffContracts.validate_flow_summary_context_matches_source/3,
       validate_link_capacity_handoff_count_lists:
         &OrbitalDynamics.Schema.LinkCapacityHandoffContracts.validate_count_lists/3,
       validate_link_capacity_handoff_matches_source:
