@@ -9,7 +9,7 @@ Current slice:
 CampaignPlanner repair replacement-transition extraction.
 
 Status:
-Selected.
+Ready to publish.
 
 Selected slice:
 Extract the complete missed-downlink and failed-observation replacement
@@ -43,10 +43,22 @@ and ordering remain exact; focused tests pass; and bounded review finds no
 blocker.
 
 Outcome:
-Pending.
+Added `RepairReplacementTransitions` as the owner for the complete
+missed-downlink and failed-observation repair branches. The facade now only
+dispatches to that owner; selection, metadata construction, no-candidate
+cancellation, accumulator mutations, warnings, and approvals move together.
+The facade fell from 4,387 to 4,253 lines; the explicit 154-line transition
+owner makes the bounded scope net +20 lines while removing 134 lines of mixed
+transition responsibility from the facade.
 
 Verification gaps:
-- Pending.
+- Strict compilation and diff hygiene pass.
+- Repair facade, replacement, candidate-diff, execution-policy, and
+  determinism families pass 67/67.
+- Both branch bodies, metadata maps, accumulator call order, warning text,
+  approval actions, and changed dispatch sites were audited against selection
+  commit `339808c7`.
+- Independent bounded review found no blocker.
 
 Last completed slice:
 CampaignPlanner repair replacement-selection extraction published as
