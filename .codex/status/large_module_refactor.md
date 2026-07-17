@@ -9,7 +9,7 @@ Current slice:
 Candidate-strategy reference-fixture extraction.
 
 Status:
-Publishing implementation.
+Completed and published as `6e55724f`.
 
 Selected slice:
 Move the contiguous branch-comparison, optimizer-contract, and
@@ -91,15 +91,18 @@ fixtures. The facade fell from 10,065 to 9,834 lines, while the extracted
 family is 241 lines.
 
 Last completed slice:
-Environment capability fixture extraction published as `566532f9`: the six
-exact model/provider capability fixtures moved behind the unchanged facade,
-branch comparison and the remainder stayed exact, the 195-entry map and
+Candidate-strategy fixture extraction published as `6e55724f`: the three exact
+branch/optimizer/invalidation fixtures moved behind the unchanged facade,
+candidate diff and the remainder stayed exact, the 195-entry map and
 deterministic bytes stayed exact, 181 validation tests passed, and bounded
 review was clean.
 
 Next candidate:
-After this boundary, map the candidate-diff/refresh-budget/execution/freshness
-report run against focused core-run report ownership before choosing a family.
+Extract the four contiguous candidate-diff, refresh-budget, execution, and
+freshness report fixtures into a core-run-report family. The 243-line block
+shares dedicated `core_run_report_fixture_test.exs` ownership and stops before
+manifest-field-reference; first verify helper-attribute independence and
+re-baseline the complete map.
 
 Blocked:
 No.
