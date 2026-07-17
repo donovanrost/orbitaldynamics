@@ -6,55 +6,47 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Provider-counteroffer-summary callback collapse.
+Candidate-refresh top-level callback-bag collapse.
 
 Status:
-Complete and ready to publish.
+Selected; implementation pending.
 
 Selected slice:
-Make all three `ProviderCounterofferSummaryContracts` entry points direct through
-shared owners, local aggregation helpers, and the direct report row validator;
-remove the now-summary-only callback factory and orphan Schema helpers.
+Replace the 27-entry `CandidateRefreshContracts` keyword bag with direct shared
+and extracted owners, retaining only named explicit validators for boundaries
+that still require Schema-owned context.
 
 Why this slice:
-After the report collapse, the 27-entry factory has exactly three callers, all
-inside this 783-line summary owner. Every dependency is static/shared and the
-row validator is now direct, so the factory and its Schema aggregation surface
-can disappear as one cohesive boundary.
+Live inventory leaves `schema.ex` at 11,185 lines. This compact 155-line owner
+and its sole caller route primitives, collection traversal, and already
+extracted candidate-refresh validators through 27 lookup/apply entries; only a
+small set of nested report validators still crosses Schema-owned boundaries.
 
 Public facade to preserve:
-`OrbitalDynamics.Schema.validate_artifact/2`, provider-counteroffer review,
-import-readiness, and plan-impact summaries, exact paths/messages/order, derived
-counts, consumers, deterministic artifacts, and schema exports.
+`OrbitalDynamics.Schema.validate_artifact/2`, all candidate-refresh fields,
+nested reports/rows, exact paths/messages/order, consumers, deterministic
+artifacts, and schema exports.
 
 Likely files:
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/provider_counteroffer_summary_contracts.ex`
+- `lib/orbital_dynamics/schema/candidate_refresh_contracts.ex`
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
 - compile with warnings as errors
-- focused provider-counteroffer and schema tests
+- focused candidate-refresh and schema tests
 - broader candidate-refresh/operator-review regression
 - schema export trio and checked-in export regeneration
 - compile-connected xref, format, diff hygiene, and bounded review
 
 Definition of done:
-No provider-counteroffer callback factory or lookup/apply remains; shared/local
-aggregation preserves exact behavior; focused, broader, and export checks pass;
-and bounded review finds no blocker.
+No candidate-refresh keyword bag or lookup/apply trampolines remain; shared and
+extracted ownership is direct and genuine cross-boundary validators are named
+explicitly; focused, broader, and export checks pass; and bounded review finds
+no blocker.
 
 Outcome:
-All three summary validators now use direct primitive, stable-ID, collection,
-aggregation, and report-row owners plus exact local reducers. The 27-entry
-factory and 12 orphan Schema aggregation/row forwarders are gone; the report
-model helper remains for JSON-schema generation. `schema.ex` fell from 11,297
-to 11,185 lines and the summary owner from 783 to 669. Two hundred four focused,
-1,340 attributable broader, and 24 export tests pass; compile, checked-in
-regeneration, compile-connected xref within its existing three-edge threshold,
-format, and diff hygiene are clean. Bounded review found no blocker and
-confirmed all three pipelines, messages, aggregation edge cases, row behavior,
-caller arities, orphan cleanup, and retained JSON-schema ownership.
+Pending.
 
 Verification gaps:
 - Full repository suite not run.
@@ -63,12 +55,11 @@ Verification gaps:
   attributable result is 1,340/1,340.
 
 Last completed slice:
-Provider-counteroffer-report callback collapse published as `d56cf494`:
-`schema.ex` fell from 11,300 to 11,297 lines and the report owner from 272 to
-209. Report/row validation became direct while the summary factory stayed
-complete. Two hundred four focused, 1,340 attributable broader, and 24 export
-tests passed; compile, regeneration, xref, format, diff hygiene, and bounded
-review were clean.
+Provider-counteroffer-summary callback collapse published as `e30f9090`:
+`schema.ex` fell from 11,297 to 11,185 lines and the summary owner from 783 to
+669. The 27-entry factory and 12 orphan forwarders disappeared. Two hundred
+four focused, 1,340 attributable broader, and 24 export tests passed; compile,
+regeneration, xref, format, diff hygiene, and bounded review were clean.
 
 Blocked:
 No.
