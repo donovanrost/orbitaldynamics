@@ -9,7 +9,7 @@ Current slice:
 Validation timeline transition-application fixture test-family extraction.
 
 Status:
-Verified and reviewed; ready to publish.
+Published as `b777cc7c`.
 
 Selected slice:
 Move the four contiguous timeline transition-application summary,
@@ -57,10 +57,11 @@ Verification gaps:
 - Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
-Validation timeline preservation fixture extraction published as `e1a72162`:
-the focused module passed 6/6, the parent passed 115/115, and all twelve
-Validation modules preserved the 181-test aggregate with no duplicate names.
-Format, diff hygiene, dependency-closure checks, and bounded review were clean.
+Validation timeline transition-application fixture extraction published as
+`b777cc7c`: the focused module passed 4/4, the parent passed 111/111, and all
+thirteen Validation modules preserved the 181-test aggregate with no duplicate
+names. Format, diff hygiene, dependency-closure checks, and bounded review were
+clean.
 
 Next candidate:
 Refresh the adjacent timeline diff/feedback and Cadence-import fixture cluster
