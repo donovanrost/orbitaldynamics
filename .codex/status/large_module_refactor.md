@@ -6,10 +6,10 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema proposed-contact callback ownership mapping.
+Schema proposed-contact callback ownership handoff.
 
 Status:
-Publishing.
+Published as `a8175d2f`.
 
 Selected slice:
 Point both facade uses of `validate_proposed_contact/3` directly at
@@ -98,15 +98,16 @@ Both facade uses now reference the established proposed-contact owner directly
 and the pure wrapper is gone. `schema.ex` decreased from 7,958 to 7,950 lines.
 
 Last completed slice:
-Spacecraft-state-estimate callback cleanup published as `e10103bf`: the
-standalone contract pipe now calls the established owner directly, `schema.ex`
-shrank from 7,963 to 7,958 lines, 6 focused and 182 complete schema/export
-tests passed, all 122 generated schema files byte-matched, and bounded review
-was clean.
+Proposed-contact wrapper cleanup published as `a8175d2f`: both facade uses now
+point directly at the established owner, `schema.ex` shrank from 7,958 to 7,950
+lines, 8 focused and 182 complete schema/export tests passed, all 122 generated
+schema files byte-matched, and bounded review was clean.
 
 Next candidate:
-Select both direct proposed-contact owner references described above, preserve
-pipeline and callback position exactly, then remove the wrapper.
+Map the single-call `validate_contact_intent_summary/3` facade delegate. Its
+established `ContactIntentSummaryContracts.validate/3` owner is unchanged and
+the standalone `contact_intent_summary.v1` pipe is its only caller; capture
+pipeline order and schema-byte baselines before replacing it.
 
 Blocked:
 No.
