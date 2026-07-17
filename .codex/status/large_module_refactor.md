@@ -6,24 +6,23 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema timeline callback ownership cleanup.
+Schema timeline publication-summary callback ownership cleanup.
 
 Status:
-Completed and verified; publishing.
+Ready for implementation.
 
 Selected slice:
-Point timeline-diff, transition-application, operational-timeline, and cadence
-publication/dependency/precondition/lifecycle/preservation callbacks directly
-at `Schema.TimelineHandoffContracts`. Remove the eleven facade delegates across
-seventeen callback positions. Leave the earlier publication-summary pipeline
-helpers unchanged.
+Give `Schema.TimelineHandoffContracts` an owner-owned three-argument publication
+matching entry point that uses its existing summary validator. Point the three
+optional-summary and three publication-matching callback captures directly at
+the owner, then remove the two pure `Schema` facade wrappers.
 
 Why this slice:
-The three general families each appear in three callback bags and have one
-cadence callback; five additional cadence-only families appear once. All eleven
-facade functions are pure one-hop delegates, while the owner already retains
-specialized/fallback clauses and field traversal. Excluding the publication
-summary helpers keeps direct pipeline retargeting separate.
+The owner already implements the complete optional-summary validator and
+publication matching pipeline. Its four-argument entry point only receives that
+same owner validator back from `Schema`, so an owner-owned default removes the
+callback inversion while preserving the existing implementation, fallback
+clauses, field traversal, and issue order.
 
 Public facade to preserve:
 All `OrbitalDynamics.Schema` public functions, exact validation issue ordering,
@@ -32,6 +31,7 @@ schema export bytes.
 
 Likely files:
 - `lib/orbital_dynamics/schema.ex`
+- `lib/orbital_dynamics/schema/timeline_handoff_contracts.ex`
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
@@ -40,49 +40,30 @@ Likely verification:
 - strict compile, format, xref, diff hygiene, and bounded review
 
 Definition of done:
-All seventeen selected captures point directly to `TimelineHandoffContracts`,
-the eleven facade delegates are gone, the publication-summary helpers remain
-unchanged, and callback plus field traversal issue ordering remains exact,
-validation and schema exports remain byte-for-byte stable, focused tests pass,
-and bounded review finds no blocker.
-
-Outcome:
-Timeline-diff, transition-application, operational-timeline, and five
-cadence-only timeline families now capture `TimelineHandoffContracts` directly.
-Eleven pure facade delegates were removed across seventeen positions, reducing
-`schema.ex` from 8,427 to 8,295 lines. The publication-summary helper pipeline
-and its six external captures remain unchanged.
+All six selected captures point directly to `TimelineHandoffContracts`, its
+three-argument matching entry point owns the existing validator dependency, the
+two facade wrappers are gone, issue ordering remains exact, validation and
+schema exports remain byte-for-byte stable, focused tests pass, and bounded
+review finds no blocker.
 
 Verification gaps:
-- None for this slice.
+- Implementation and verification pending.
 
 Tests run:
-- `mix compile --warnings-as-errors`
-- 91 focused timeline-referencing schema contract tests
-- 182 complete schema-contract and schema-export tests
-- full checked-in schema export regeneration; no schema diff
-- aggregate schema bundle digest unchanged:
-  `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`
-- `mix format --check-formatted`
-- `git diff --check`
-- compile-connected xref check for `schema.ex`
-- bounded read-only review: clean, no findings
+- Selection only; implementation verification pending.
 
 Behavior/schema changes:
 None.
 
 Last completed slice:
-Schema source-review callback ownership cleanup published as `c0ec315b`: three
-refresh-budget source captures and nine cadence callbacks now point directly to
-their owner; 182 schema/export tests passed, full export bytes stayed exact,
-and bounded review was clean.
+Schema timeline callback ownership cleanup published as `f2520e49`: seventeen
+captures now point directly to `TimelineHandoffContracts`, eleven pure facade
+delegates were removed, 182 schema/export tests passed, full export bytes stayed
+exact, and bounded review was clean.
 
 Next candidate:
-Audit `TimelineHandoffContracts` in two boundaries. First map the eleven
-diff/transition/publication/dependency/precondition/lifecycle/preservation/
-operational-timeline callback delegates and their capture counts. Keep the two
-earlier publication-summary helper wrappers separate until their direct
-pipeline consumers are proven safe to retarget.
+After this boundary, audit the remaining `Schema` callback captures by owner and
+capture count before selecting another bounded family.
 
 Blocked:
 No.
