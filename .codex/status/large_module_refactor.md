@@ -9,7 +9,7 @@ Current slice:
 Schema ResourceProjection support callback ownership cleanup.
 
 Status:
-Completed and verified; publishing.
+Completed and published.
 
 Selected slice:
 Point report counts, flow-summary counts, two subsystem-assumption callbacks,
@@ -66,14 +66,14 @@ Behavior/schema changes:
 None.
 
 Last completed slice:
-Schema scoped-downlink callback ownership cleanup published as `381690fe`:
-three positions now point directly to `ScopedDownlinkContextContracts`, the
-pure facade delegate was removed, 182 schema/export tests passed, full export
+Schema ResourceProjection support callback ownership cleanup published as
+`395b7249`: five positions now point directly to their owner contracts, four
+pure facade delegates were removed, 182 schema/export tests passed, full export
 bytes stayed exact, and bounded review was clean.
 
 Next candidate:
-After this boundary, audit the remaining source-window lineage and
-link-capacity/relay summary delegates by owner and capture count.
+Point link-capacity-summary and relay-data-path-summary contract pipelines
+directly at their owner validators, then remove both pure facade delegates.
 
 Blocked:
 No.
