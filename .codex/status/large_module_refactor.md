@@ -9,7 +9,7 @@ Current slice:
 Candidate-refresh base reference-fixture family extraction.
 
 Status:
-Publishing implementation.
+Completed and published as `27e1dc2e`.
 
 Selected slice:
 Move the two noncontiguous candidate-refresh base fixtures—
@@ -88,15 +88,17 @@ family with five existing fixture maps plus 171 remaining fixtures. The facade
 fell from 12,147 to 12,063 lines, while the extracted family is 94 lines.
 
 Last completed slice:
-Campaign planning reference-fixture extraction published as `fde8c3ac`: the
-three exact repair/lint/strategy fixtures moved behind the unchanged facade,
-the 195-entry map and deterministic bytes stayed exact, 181 validation tests
-passed, and bounded review was clean.
+Candidate-refresh base reference-fixture extraction published as `27e1dc2e`:
+the two exact checked-in base fixtures moved behind the unchanged facade, all
+19 replay fixtures stayed exact, the 195-entry map and deterministic bytes
+stayed exact, 181 validation tests passed, and bounded review was clean.
 
 Next candidate:
-After this boundary, select one replay family by focused test ownership; the
-freshness/budget pair is a likely first candidate, but recheck helper-attribute
-coupling before moving it.
+Extract the contiguous freshness and refresh-budget replay fixtures into one
+family. The 133-line pair has no helper-attribute coupling, shares dedicated
+`candidate_refresh_freshness_budget_replay_fixture_test.exs` ownership, and can
+move without the preceding rejection or following station-calendar replays;
+re-baseline before selecting.
 
 Blocked:
 No.
