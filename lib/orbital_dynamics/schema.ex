@@ -1805,48 +1805,24 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp json_schema_property(field, @environment_model_capability = contract_name, contract) do
-    focused_json_schema_property(
+  defp json_schema_property(field, contract_name, contract)
+       when contract_name in [
+              @environment_model_capability,
+              @environment_provider_capability,
+              @subsystem_model_capability
+            ] do
+    OrbitalDynamics.Schema.ModelCapabilityPropertyDispatch.property(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.CapabilityJsonSchema.property_field?(&1, :environment_model),
-      OrbitalDynamics.Schema.CapabilityJsonSchema.property_fun_from_context(
-        kind: :environment_model,
-        schema_contract: @environment_model_capability,
-        stable_id_pattern: @stable_id_pattern,
-        validation_level_schema: &validation_level_json_schema/0
-      )
-    )
-  end
-
-  defp json_schema_property(field, @environment_provider_capability = contract_name, contract) do
-    focused_json_schema_property(
-      field,
-      contract_name,
-      contract,
-      &OrbitalDynamics.Schema.CapabilityJsonSchema.property_field?(&1, :environment_provider),
-      OrbitalDynamics.Schema.CapabilityJsonSchema.property_fun_from_context(
-        kind: :environment_provider,
-        schema_contract: @environment_provider_capability,
-        stable_id_pattern: @stable_id_pattern,
-        validation_level_schema: &validation_level_json_schema/0
-      )
-    )
-  end
-
-  defp json_schema_property(field, @subsystem_model_capability = contract_name, contract) do
-    focused_json_schema_property(
-      field,
-      contract_name,
-      contract,
-      &OrbitalDynamics.Schema.CapabilityJsonSchema.property_field?(&1, :subsystem_model),
-      OrbitalDynamics.Schema.CapabilityJsonSchema.property_fun_from_context(
-        kind: :subsystem_model,
-        schema_contract: @subsystem_model_capability,
-        stable_id_pattern: @stable_id_pattern,
-        validation_level_schema: &validation_level_json_schema/0
-      )
+      contracts: %{
+        environment_model: @environment_model_capability,
+        environment_provider: @environment_provider_capability,
+        subsystem_model: @subsystem_model_capability
+      },
+      stable_id_pattern: @stable_id_pattern,
+      validation_level_schema: &validation_level_json_schema/0,
+      default_property: &default_json_schema_property/3
     )
   end
 

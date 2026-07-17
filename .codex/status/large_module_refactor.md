@@ -9,7 +9,7 @@ Current slice:
 Schema model-capability JSON property-dispatch extraction.
 
 Status:
-Selected.
+Review complete; ready to publish.
 
 Selected slice:
 Extract property dispatch for environment-model, environment-provider, and
@@ -45,10 +45,22 @@ exports remain exact; focused and export tests pass; and bounded review finds
 no blocker.
 
 Outcome:
-Pending.
+The three facade clauses are now one guarded delegate to
+`OrbitalDynamics.Schema.ModelCapabilityPropertyDispatch`. The internal
+dispatcher preserves contract-to-kind routing, exact schema contracts, stable
+identity and validation-level dependencies, focused-field selection, and the
+common-property fallback. The facade is 9,694 lines; the new dispatcher is 34
+lines.
 
 Verification gaps:
-- Pending.
+- `mix compile --warnings-as-errors` passed.
+- 29 focused capability, registry, JSON export, schema export, and export-task
+  tests passed.
+- Full checked-in export regeneration remained byte-identical at aggregate
+  digest `95051be82cec8a75634e4e8712dadd102888f59998d2c26ebe7c36065d824d3b`.
+- Scoped format, diff hygiene, and xref checks passed; xref reports only the
+  expected runtime caller from `OrbitalDynamics.Schema`.
+- Bounded read-only review found no blocker or follow-up finding.
 
 Last completed slice:
 Schema lint-report property dispatch published as `a64b4fde`: campaign-request
