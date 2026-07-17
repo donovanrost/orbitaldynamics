@@ -9,7 +9,7 @@ Current slice:
 Validation provider capacity-pack fixture test-family extraction.
 
 Status:
-Verified and reviewed; ready to publish.
+Published as `94b5578b`.
 
 Selected slice:
 Move the two contiguous provider-reservation request summary and
@@ -60,8 +60,8 @@ Verification gaps:
 - Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
-Validation operational planning fixture extraction published as `4c26b4e7`:
-the focused module passed 3/3, the parent passed 105/105, and all fifteen
+Validation provider capacity-pack fixture extraction published as `94b5578b`:
+the focused module passed 2/2, the parent passed 103/103, and all sixteen
 Validation modules preserved the 181-test aggregate with no duplicate names.
 Format, diff hygiene, dependency-closure checks, and bounded review were clean.
 
