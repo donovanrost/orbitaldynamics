@@ -6,59 +6,47 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-CampaignPlanner repair activity-identity ownership extraction.
+CampaignPlanner repair replacement-selection extraction.
 
 Status:
-Published as `6a51d53b`.
+Selected.
 
 Selected slice:
-Extract repair timeline ID, source-window ID, subject/station identity,
-activity-context, and timeline-link helpers into `RepairActivityIdentity`;
-remove duplicated facade and accumulator implementations.
+Extract replacement filtering, repair-intent matching, duplicate rejection,
+candidate-diff priority, and deterministic churn scoring into
+`RepairReplacementSelection`.
 
 Why this slice:
-Replacement selection and transition metadata share identity helpers, while
-`RepairAccumulator` independently duplicates the same timeline-ID derivation
-for deltas. One exact internal owner removes that split without callbacks and
-reduces the dependency closure required for a later transition extraction.
+The identity and accumulator slices removed the facade-only dependencies from
+this cluster. Its remaining closure is now cohesive and can call existing
+timing, identity, policy, candidate-diff, and scalar helpers directly without
+callbacks; unrelated strategy-side candidate-diff lookup can remain outside.
 
 Public facade to preserve:
 `OrbitalDynamics.CampaignPlanner.repair/1`, exact repaired activities, deltas,
-timeline links and contexts, generated timeline IDs, candidate matching, and
+selected replacement candidates, candidate-diff metadata, churn scoring, and
 deterministic ordering.
 
 Likely files:
 - `lib/orbital_dynamics/campaign_planner.ex`
-- `lib/orbital_dynamics/campaign_planner/repair_accumulator.ex`
-- `lib/orbital_dynamics/campaign_planner/repair_activity_identity.ex`
+- `lib/orbital_dynamics/campaign_planner/repair_replacement_selection.ex`
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
-- focused repair facade and repair activity-transition families
-- exact helper-body and call-site audit
+- focused repair replacement, rejection, candidate-diff, and determinism families
+- normalized selection-pipeline and sort-key audit
 - compile, format, diff hygiene, and bounded review
 
 Definition of done:
-All repair identity/context calls route through one owner; duplicate helper
-bodies are absent; repaired artifacts and ordering remain exact; focused tests
-pass; and bounded review finds no blocker.
+Both downlink and observation replacement paths delegate to one owner; the
+filter and sort pipeline remains exact; candidate-diff ambiguity and metadata
+remain exact; focused tests pass; and bounded review finds no blocker.
 
 Outcome:
-Added `RepairActivityIdentity` as the single repair-local owner for activity
-context, timeline links and IDs, source-window IDs, and station/subject
-identity. The facade and `RepairAccumulator` now call that owner directly; the
-two duplicated timeline-ID derivations and the facade's repair identity helper
-cluster are gone. The facade fell from 4,540 to 4,496 lines and the accumulator
-from 250 to 206; the new 55-line owner leaves the bounded scope net -33 lines.
+Pending.
 
 Verification gaps:
-- Strict compilation and diff hygiene pass.
-- Repair facade/transition family passes 67/67.
-- Shared station-event and capacity strategy paths pass 27/27.
-- Former helper bodies and all changed call sites were audited against
-  selection commit `fcbf614f`; repair identity semantics and ordering are
-  unchanged.
-- Independent bounded review found no blocker.
+- Pending.
 
 Last completed slice:
 CampaignPlanner repair activity-identity ownership extraction published as
@@ -67,9 +55,9 @@ identity, the bounded scope is net -33 lines, 94 focused tests passed, and
 bounded review found no blocker.
 
 Next candidate:
-With identity and accumulator ownership unified, remap replacement selection.
-Extract it only if candidate scoring, policy values, and candidate-diff
-matching can move as one complete owner without callbacks.
+After replacement selection, remap the two successful repair-transition
+metadata branches and extract only if their action-specific construction can
+move without obscuring accumulator ownership.
 
 Blocked:
 No.
