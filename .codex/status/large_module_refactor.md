@@ -9,7 +9,7 @@ Current slice:
 Campaign planner branch candidate-plan staging extraction.
 
 Status:
-Selected.
+Completed and published.
 
 Selected slice:
 Extract branch event candidate-plan staging from
@@ -46,16 +46,32 @@ adjustments, ordering, and returned tuple remain exact; focused tests pass; and
 bounded review finds no blocker.
 
 Outcome:
-Pending.
+`CampaignPlanner` now delegates candidate-plan construction to
+`CampaignPlanner.BranchCandidatePlan` with one narrow station-ID callback. The
+internal module owns initialization, four event-family staging paths,
+replacement lookup/deduplication, warnings, additions, capacity adjustments,
+and deterministic result ordering. The facade fell from 3,530 to 3,316 lines.
 
 Verification gaps:
-- Pending.
+- None for this slice.
+
+Tests run:
+- `mix compile --warnings-as-errors`
+- 77 focused staged-event, branch, facade, and determinism tests
+- `mix format --check-formatted`
+- `git diff --check`
+- new-file diff hygiene
+- compile-connected xref check for `campaign_planner.ex`
+- bounded read-only review: clean, no findings
+
+Behavior/schema changes:
+None.
 
 Last completed slice:
-Campaign-planner cadence-import pressure aggregation published as `02c913fb`:
-both source collectors, embedded-review precedence, and direct fallback now
-live in one cohesive internal aggregator, 26 focused tests passed, and bounded
-review found no finding.
+Campaign-planner branch candidate-plan staging published as `f071d63f`: all
+four staged event families, replacement helpers, warnings, and deterministic
+ordering now live in one cohesive internal module, 77 focused/regression tests
+passed, and bounded review found no finding.
 
 Next candidate:
 After this slice, audit branch plan-event versus realized-event application as
