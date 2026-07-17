@@ -47,10 +47,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   candidates, select candidates, or write to Cadence.
   """
   def candidate_diff_replay_summary(refresh_or_artifact) do
-    ReplaySummary.candidate_diff(
-      refresh_or_artifact,
-      &source_report_summary/1
-    )
+    ReplaySummary.candidate_diff(refresh_or_artifact)
   end
 
   @doc """
@@ -63,10 +60,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   Cadence.
   """
   def candidate_rejection_replay_summary(refresh_or_artifact) do
-    ReplaySummary.candidate_rejection(
-      refresh_or_artifact,
-      &source_report_summary/1
-    )
+    ReplaySummary.candidate_rejection(refresh_or_artifact)
   end
 
   @doc """

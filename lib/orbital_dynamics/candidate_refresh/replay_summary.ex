@@ -37,12 +37,12 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary do
   alias __MODULE__.Validation
   alias __MODULE__.ValidationSafetyCase
 
-  def candidate_diff(refresh_or_artifact, source_report_summary) do
-    Candidate.diff(refresh_or_artifact, source_report_summary)
+  def candidate_diff(refresh_or_artifact) do
+    Candidate.diff(refresh_or_artifact)
   end
 
-  def candidate_rejection(refresh_or_artifact, source_report_summary) do
-    Candidate.rejection(refresh_or_artifact, source_report_summary)
+  def candidate_rejection(refresh_or_artifact) do
+    Candidate.rejection(refresh_or_artifact)
   end
 
   def provider_counteroffer(refresh_or_artifact, source_report_summary) do

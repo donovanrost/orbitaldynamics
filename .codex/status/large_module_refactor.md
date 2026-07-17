@@ -9,7 +9,7 @@ Current slice:
 Candidate diff/rejection replay source-summary callback removal.
 
 Status:
-Selected.
+Ready to publish.
 
 Selected slice:
 Remove the repeated source-summary callback from the candidate diff and
@@ -46,10 +46,20 @@ outputs remain exact; no old callback arity remains; focused tests pass; and
 bounded review finds no blocker.
 
 Outcome:
-Pending.
+Removed the source-summary callback from both replay paths across all three
+internal layers. CandidateRefresh and the replay/candidate owners now use
+one-argument delegates, while the leaves call `SourceReportSummary.build/1`
+directly. The five-file scope is net -16 lines.
 
 Verification gaps:
-- Pending.
+- Strict compilation, formatting, and diff hygiene pass.
+- Four focused candidate diff/rejection replay files pass 25/25.
+- No old callback arity or invocation remains in the five-file family.
+- Compile-connected xref adds no candidate-owner compile edge; xref callers
+  show only the replay aggregator at runtime.
+- Branch-source precedence, provenance fallback, and output construction were
+  audited against selection commit `b9a3ae79`.
+- Independent bounded review found no blocker.
 
 Last completed slice:
 CandidateRefresh source-report summary assembly ownership published as

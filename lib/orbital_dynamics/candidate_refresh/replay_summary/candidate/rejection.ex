@@ -4,14 +4,13 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.Candidate.Rejection do
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.InputProvenance
 
-  def replay(refresh_or_artifact, source_report_summary)
-      when is_function(source_report_summary, 1) do
+  def replay(refresh_or_artifact) do
     branch_rejection_summary = source_report_summary_branch_family(refresh_or_artifact)
 
     rejection_summary =
       branch_rejection_summary ||
         refresh_or_artifact
-        |> source_report_summary.()
+        |> SourceReportSummary.build()
         |> get_in(["source_reports", "candidate_rejection_report"]) ||
         %{}
 
