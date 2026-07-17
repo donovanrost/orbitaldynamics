@@ -9,7 +9,7 @@ Current slice:
 Schema link-capacity JSON property-dispatch extraction.
 
 Status:
-Review complete; ready to publish.
+Published.
 
 Selected slice:
 Extract property dispatch for link-capacity report and link-capacity summary
@@ -51,7 +51,7 @@ preserves contract-to-module routing, focused-field selection, distinct report
 and summary assumption callbacks, report-only row/throughput-derivation
 callbacks, summary-only numeric-map callbacks, shared model limits/common
 schema helpers, and the fallback. The facade is 9,579 lines; the new dispatcher
-is 54 lines.
+is 54 lines. Implementation published as `163560ab`.
 
 Verification gaps:
 - `mix compile --warnings-as-errors` passed.
@@ -62,17 +62,21 @@ Verification gaps:
 - Scoped format, diff hygiene, and xref checks passed; xref reports only the
   expected runtime caller from `OrbitalDynamics.Schema`.
 - Bounded read-only review found no blocker or follow-up finding.
+- None for this slice.
 
 Last completed slice:
-Schema station-reservation-summary property dispatch published as `e0596370`:
-review, hold, and hold import-readiness summaries now route through one
-cohesive internal dispatcher, 28 focused/export tests passed, full regeneration
-was byte-identical, and bounded review found no blocker.
+Schema link-capacity property dispatch published as `163560ab`: report and
+summary now route through one cohesive internal dispatcher, 34 focused/export
+tests passed, full regeneration was byte-identical, and bounded review found no
+blocker.
 
 Next candidate:
-Audit one adjacent multi-contract communications property family after this
-slice is published. Leave single-contract neighbors in the facade unless a
-broader cohesive boundary emerges.
+Extract the five adjacent contact-allocation summary property clauses (base,
+reservation-conflict, station-pressure, capacity-pack, and provider-reservation
+request) into one internal summary dispatcher. Preserve each schema contract
+and assumptions callback, shared model limits/stable identity/row callback,
+capacity-pack-only group callback, fallback behavior, validators, and exact
+exports. Leave the preceding contact-allocation report in the facade.
 
 Blocked:
 No.
