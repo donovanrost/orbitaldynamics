@@ -9,7 +9,7 @@ Current slice:
 CandidateRefresh source-report summary assembly ownership.
 
 Status:
-Ready to publish.
+Published as `76d83124`.
 
 Selected slice:
 Move source-report normalization, provenance collection, and final assembly
@@ -60,9 +60,9 @@ Verification gaps:
   no blocker.
 
 Last completed slice:
-Schema capability and validation-evidence direct-owner routing published as
-`9cef6d55`: eight redundant wrappers are gone, 32 focused tests passed, export
-bytes remained exact, and bounded review found no blocker.
+CandidateRefresh source-report summary assembly ownership published as
+`76d83124`: the facade is a one-line delegate, 9 focused tests passed, and
+corrected bounded review found no blocker.
 
 Next candidate:
 Remove the repeated source-summary callback from one cohesive replay family
