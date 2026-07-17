@@ -9,7 +9,7 @@ Current slice:
 Timeline-handoff fixture mapping.
 
 Status:
-Ready for implementation.
+Publishing.
 
 Selected slice:
 Move
@@ -56,7 +56,7 @@ and the complete facade remainder stay exact, focused and full validation
 tests pass, and bounded review finds no blocker.
 
 Verification gaps:
-- Implementation, verification, and bounded review pending.
+- None for this slice.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -70,13 +70,29 @@ Tests run:
 - Source boundaries confirmed at facade lines 161-373 and 2127-2230, followed
   by the resource-handoff manifest and contact-allocation report, respectively,
   with no facade helper-attribute dependency in the selected literals.
-- Selection only; implementation verification pending.
+- Post-move exact proof: the 195-entry map, sorted-key digest, selected
+  three-fixture digest, and exact 192-entry remainder digest all match their
+  selection baselines.
+- Source partition proof: 29 maps total 195 entries, the new leaf owns three,
+  the facade owns 94, and all 406 pairwise intersections are empty.
+- Facade proof: all 195 successful `fetch/1` results, missing-key `:error`, and
+  nonbinary `FunctionClauseError` behavior remain unchanged.
+- Focused timeline-handoff/facade validation: 15 tests passed.
+- Full validation family: 181 tests passed.
+- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
+  xref caller checks passed.
+- Independent bounded review against selection commit `46717eeb` was clean:
+  both source ranges and the complete facade remainder are normalized-AST
+  exact, all runtime and partition invariants reproduced, dependency direction
+  remains one-way, and focused/full tests and hygiene gates passed.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-No timeline-handoff implementation has started.
+The exact three-fixture timeline-handoff family now lives in a new cohesive
+leaf behind the unchanged facade. The facade shrank from 7,437 to 7,122 lines;
+the new leaf is 325 lines and owns exactly three fixtures.
 
 Last completed slice:
 Policy-evidence extraction published as `86000b54`: the exact four-fixture
