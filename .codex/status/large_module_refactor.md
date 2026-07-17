@@ -9,7 +9,7 @@ Current slice:
 Validation candidate-refresh freshness/budget replay test-family extraction.
 
 Status:
-Selected.
+Ready to publish.
 
 Selected slice:
 Move the two contiguous candidate-refresh freshness and refresh-budget replay
@@ -45,10 +45,15 @@ shared builders have one exact owner, focused and parent files pass, names remai
 unique, and bounded review finds no blocker.
 
 Outcome:
-Pending.
+Two byte-identical candidate-refresh freshness/budget replay tests moved into a
+142-line focused module. Their six helpers now have one 117-line shared support
+owner that reuses `result_set/1`; the parent imports only the two aggregate
+observation builders. The parent fell from 6,047 to 5,813 lines. Total
+test/support/loader LOC grew by 30 lines for explicit ownership without helper
+duplication. All 181 Validation test names remain unique.
 
 Verification gaps:
-- Pending.
+- Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
 Validation candidate-refresh filter/rejection replay extraction published as
@@ -60,8 +65,9 @@ checks, and bounded review were clean.
 Next candidate:
 Map the candidate-refresh station-calendar and contact-allocation contradiction
 replay families following the freshness/budget pair. Preserve source-report
-assertion depth and reuse the shared replay result-set builder; stop before the
-curated candidate-rejection report family.
+assertion depth and reuse the shared replay result-set builder. Their six
+helpers form a closed family; stop before the curated candidate-rejection report
+family.
 
 Blocked:
 No.

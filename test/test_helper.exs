@@ -42,3 +42,8 @@ Code.require_file(
   "support/validation/candidate_refresh_filter_rejection_replay_fixtures.ex",
   __DIR__
 )
+
+Code.require_file(
+  "support/validation/candidate_refresh_freshness_budget_replay_fixtures.ex",
+  __DIR__
+)
