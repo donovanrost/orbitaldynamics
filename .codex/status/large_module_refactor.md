@@ -9,7 +9,7 @@ Current slice:
 CandidateRefresh link-capacity replay callback removal.
 
 Status:
-Review complete; ready to publish.
+Published as `060002d9`.
 
 Selected slice:
 Remove the source-summary callback from the link-capacity replay path across
@@ -59,13 +59,13 @@ Verification gaps:
 - bounded read-only review: clean, no findings
 
 Last completed slice:
-Candidate contact filter/allocation replay callback removal published as
-`64de7f00`: both paths are one-argument end to end, 53 focused tests passed,
-and bounded review found no blocker.
+Candidate link-capacity replay callback removal published as `060002d9`: the
+path is one-argument end to end, 24 focused tests passed, and bounded review
+found no blocker.
 
 Next candidate:
-Remove the callback seam from one adjacent single-owner replay family after
-this slice is published.
+Audit the adjacent contact-contention/resolution callback seams as one possible
+bounded pair.
 
 Blocked:
 No.
