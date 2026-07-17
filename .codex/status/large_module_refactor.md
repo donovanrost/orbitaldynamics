@@ -9,7 +9,7 @@ Current slice:
 Schema contact-allocation-summary JSON property-dispatch extraction.
 
 Status:
-Selected.
+Review complete; ready to publish.
 
 Selected slice:
 Extract property dispatch for contact-allocation summary,
@@ -47,10 +47,22 @@ exports remain exact; focused and export tests pass; and bounded review finds
 no blocker.
 
 Outcome:
-Pending.
+The five facade clauses are now one guarded delegate to
+`OrbitalDynamics.Schema.ContactAllocationSummaryPropertyDispatch`. The
+dispatcher preserves contract-to-module routing, each schema-contract and
+assumptions callback, shared model-limit/stable-identity/row dependencies,
+base/capacity-pack group callbacks, focused-field selection, and the common
+fallback. The facade is 9,517 lines; the new dispatcher is 87 lines.
 
 Verification gaps:
-- Pending.
+- `mix compile --warnings-as-errors` passed.
+- 31 focused contact-allocation, provider-reservation, JSON export, schema
+  export, and export-task tests passed.
+- Full checked-in export regeneration remained byte-identical at aggregate
+  digest `95051be82cec8a75634e4e8712dadd102888f59998d2c26ebe7c36065d824d3b`.
+- Scoped format, diff hygiene, and xref checks passed; xref reports only the
+  expected runtime caller from `OrbitalDynamics.Schema`.
+- Bounded read-only review found no blocker or follow-up finding.
 
 Last completed slice:
 Schema link-capacity property dispatch published as `163560ab`: report and

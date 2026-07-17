@@ -2214,104 +2214,42 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp json_schema_property(field, @contact_allocation_summary = contract_name, contract) do
-    focused_json_schema_property(
+  defp json_schema_property(field, contract_name, contract)
+       when contract_name in [
+              @contact_allocation_summary,
+              @contact_allocation_reservation_conflict_summary,
+              @contact_allocation_station_pressure_summary,
+              @contact_allocation_capacity_pack_summary,
+              @contact_allocation_provider_reservation_request_summary
+            ] do
+    OrbitalDynamics.Schema.ContactAllocationSummaryPropertyDispatch.property(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.ContactAllocationSummaryJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.ContactAllocationSummaryJsonSchema.property_fun_from_context(
-        schema_contract: @contact_allocation_summary,
-        stable_id_pattern: @stable_id_pattern,
-        model_limits: &contact_allocation_model_limits/0,
-        assumptions_schema: &contact_allocation_summary_assumptions_json_schema/0,
-        row_schema: &contact_allocation_row_json_schema/0,
-        capacity_pack_group_schema: &contact_allocation_capacity_pack_group_json_schema/0
-      )
-    )
-  end
-
-  defp json_schema_property(
-         field,
-         @contact_allocation_reservation_conflict_summary = contract_name,
-         contract
-       ) do
-    focused_json_schema_property(
-      field,
-      contract_name,
-      contract,
-      &OrbitalDynamics.Schema.ContactAllocationReservationConflictSummaryJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.ContactAllocationReservationConflictSummaryJsonSchema.property_fun_from_context(
-        schema_contract: @contact_allocation_reservation_conflict_summary,
-        stable_id_pattern: @stable_id_pattern,
-        model_limits: &contact_allocation_model_limits/0,
-        assumptions_schema:
+      contracts: %{
+        summary: @contact_allocation_summary,
+        reservation_conflict_summary: @contact_allocation_reservation_conflict_summary,
+        station_pressure_summary: @contact_allocation_station_pressure_summary,
+        capacity_pack_summary: @contact_allocation_capacity_pack_summary,
+        provider_reservation_request_summary:
+          @contact_allocation_provider_reservation_request_summary
+      },
+      assumptions: %{
+        summary: &contact_allocation_summary_assumptions_json_schema/0,
+        reservation_conflict_summary:
           &contact_allocation_reservation_conflict_summary_assumptions_json_schema/0,
-        row_schema: &contact_allocation_row_json_schema/0
-      )
-    )
-  end
-
-  defp json_schema_property(
-         field,
-         @contact_allocation_station_pressure_summary = contract_name,
-         contract
-       ) do
-    focused_json_schema_property(
-      field,
-      contract_name,
-      contract,
-      &OrbitalDynamics.Schema.ContactAllocationStationPressureSummaryJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.ContactAllocationStationPressureSummaryJsonSchema.property_fun_from_context(
-        schema_contract: @contact_allocation_station_pressure_summary,
-        stable_id_pattern: @stable_id_pattern,
-        model_limits: &contact_allocation_model_limits/0,
-        assumptions_schema:
+        station_pressure_summary:
           &contact_allocation_station_pressure_summary_assumptions_json_schema/0,
-        row_schema: &contact_allocation_row_json_schema/0
-      )
-    )
-  end
-
-  defp json_schema_property(
-         field,
-         @contact_allocation_capacity_pack_summary = contract_name,
-         contract
-       ) do
-    focused_json_schema_property(
-      field,
-      contract_name,
-      contract,
-      &OrbitalDynamics.Schema.ContactAllocationCapacityPackSummaryJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.ContactAllocationCapacityPackSummaryJsonSchema.property_fun_from_context(
-        schema_contract: @contact_allocation_capacity_pack_summary,
-        stable_id_pattern: @stable_id_pattern,
-        model_limits: &contact_allocation_model_limits/0,
-        assumptions_schema: &contact_allocation_capacity_pack_summary_assumptions_json_schema/0,
-        row_schema: &contact_allocation_row_json_schema/0,
-        capacity_pack_group_schema: &contact_allocation_capacity_pack_group_json_schema/0
-      )
-    )
-  end
-
-  defp json_schema_property(
-         field,
-         @contact_allocation_provider_reservation_request_summary = contract_name,
-         contract
-       ) do
-    focused_json_schema_property(
-      field,
-      contract_name,
-      contract,
-      &OrbitalDynamics.Schema.ContactAllocationProviderReservationRequestSummaryJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.ContactAllocationProviderReservationRequestSummaryJsonSchema.property_fun_from_context(
-        schema_contract: @contact_allocation_provider_reservation_request_summary,
-        stable_id_pattern: @stable_id_pattern,
-        model_limits: &contact_allocation_model_limits/0,
-        assumptions_schema:
-          &contact_allocation_provider_reservation_request_summary_assumptions_json_schema/0,
-        row_schema: &contact_allocation_row_json_schema/0
-      )
+        capacity_pack_summary:
+          &contact_allocation_capacity_pack_summary_assumptions_json_schema/0,
+        provider_reservation_request_summary:
+          &contact_allocation_provider_reservation_request_summary_assumptions_json_schema/0
+      },
+      stable_id_pattern: @stable_id_pattern,
+      model_limits: &contact_allocation_model_limits/0,
+      row_schema: &contact_allocation_row_json_schema/0,
+      capacity_pack_group_schema: &contact_allocation_capacity_pack_group_json_schema/0,
+      default_property: &default_json_schema_property/3
     )
   end
 
