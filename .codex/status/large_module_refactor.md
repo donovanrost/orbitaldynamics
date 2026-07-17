@@ -6,10 +6,10 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema station-calendar-provider callback ownership mapping.
+Schema station-calendar-provider callback ownership handoff.
 
 Status:
-Ready for publication.
+Published as `40c2471f`.
 
 Selected slice:
 Point the standalone `station_calendar_provider.v1` contract pipe directly at
@@ -101,8 +101,11 @@ from 7,942 to 7,934 lines, 11 focused and 182 complete tests passed, all 122
 exports byte-matched, and bounded review was clean.
 
 Next candidate:
-After review and publication, map the next pure facade delegate by caller count
-and owner signature.
+Map the single-use `validate_candidate_activity/3` facade delegate. Its only
+caller is the final stage of the standalone `candidate_activity.v1` pipe after
+`require_fields`, and its established owner exposes the exact
+`CandidateActivityContracts.validate/3` implementation. Capture focused
+candidate-activity behavior and schema-byte baselines before replacing it.
 
 Blocked:
 No.
