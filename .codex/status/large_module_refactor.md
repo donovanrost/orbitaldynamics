@@ -6,10 +6,10 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema CandidateDiff row callback ownership mapping.
+Schema CandidateDiff row callback ownership handoff.
 
 Status:
-Publishing.
+Published as `e36322fb`.
 
 Selected slice:
 Point the standalone `candidate_diff_row.v1` contract pipe directly at
@@ -98,15 +98,17 @@ directly and the pure facade delegate is gone. `schema.ex` decreased from 8,013
 to 8,005 lines.
 
 Last completed slice:
-CandidateDiff source-window-lineage callback cleanup published as `b99f4314`:
-the standalone contract pipe now calls the established owner directly,
-`schema.ex` shrank from 8,018 to 8,013 lines, 10 focused and 182 complete
-schema/export tests passed, all 122 generated schema files byte-matched, and
-bounded review was clean.
+CandidateDiff row callback cleanup published as `e36322fb`: the standalone
+contract pipe now calls the established owner directly, `schema.ex` shrank from
+8,013 to 8,005 lines, 10 focused and 182 complete schema/export tests passed,
+all 122 generated schema files byte-matched, and bounded review was clean.
 
 Next candidate:
-Select the direct CandidateDiff row owner described above, preserve the final
-pipeline position exactly, then remove the now-unused facade delegate.
+Map the adjacent single-call `validate_invalidated_candidate/3` facade
+delegate. Its established
+`CandidateDiffContracts.validate_invalidated_candidate/3` owner is unchanged
+and the standalone `invalidated_candidate.v1` pipe is the only caller; capture
+the same issue-order and schema-byte baselines before replacing it in place.
 
 Blocked:
 No.
