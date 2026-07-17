@@ -6,61 +6,49 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-CandidateRefresh model-acceptance/safety-case replay callback removal.
+CandidateRefresh timeline activity-state replay callback removal.
 
 Status:
-Published as `d3324fa7`.
+Selected.
 
 Selected slice:
-Remove the repeated source-summary callback from the model-acceptance and
-validation-safety-case replay paths across the facade, replay aggregator, and
-two owners.
+Remove the remaining source-summary callbacks from the five timeline
+activity-state replay paths across the facade, replay aggregator, dedicated
+owners, and shared single-state selection owner.
 
 Why this slice:
-The two owners have the same branch-family-first shape, receive the fixed
-callback only through the replay aggregator, and already depend on
-`SourceReportSummary`. They can own provenance fallback directly without
-changing branch precedence or summary logic.
+These are the final facade callback transports. State, lifecycle, and
+precondition already depend on `SourceReportSummary`; status and approval share
+one selection owner that can call `SourceReportSummary.build/1` directly while
+retaining its separate source-field selection API.
 
 Public facade to preserve:
-The public `model_acceptance_replay_summary/1` and
-`validation_safety_case_replay_summary/1` functions, exact branch-family
-precedence, provenance fallback, source and scope strings, pressure fields,
-assumptions, and deterministic ordering.
+The five public `timeline_activity_*_replay_summary/1` functions, exact direct
+state and branch-family precedence, contract matching, provenance fallback,
+source and scope strings, pressure fields, assumptions, and deterministic
+ordering.
 
 Likely files:
 - `lib/orbital_dynamics/candidate_refresh.ex`
 - `lib/orbital_dynamics/candidate_refresh/replay_summary.ex`
-- `lib/orbital_dynamics/candidate_refresh/replay_summary/model_acceptance.ex`
-- `lib/orbital_dynamics/candidate_refresh/replay_summary/validation_safety_case.ex`
+- five timeline activity-state replay owner/selection files
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
-- four focused acceptance/safety replay files
+- seven focused timeline activity-state replay files
 - callback/caller and compile-connected audits
 - compile, format, diff hygiene, and bounded review
 
 Definition of done:
-Both replay paths are one-argument end to end; branch selection and outputs
-remain exact; no old callback arity remains; focused tests pass; and bounded
-review finds no blocker.
+All five replay paths are one-argument end to end; direct/branch/provenance
+selection and outputs remain exact; no facade callback transport remains;
+focused tests pass; and bounded review finds no blocker.
 
 Outcome:
-The model-acceptance and validation-safety-case replay paths are now
-one-argument end to end. Each owner calls `SourceReportSummary.build/1`
-directly for provenance fallback while retaining branch-family precedence,
-pressure helpers, and its existing summary constructor. The four-file
-production diff removes eight net lines.
+Pending.
 
 Verification gaps:
-- `mix compile --warnings-as-errors`
-- four focused replay files: 25 tests passed
-- scoped `mix format --check-formatted`
-- `git diff --check`
-- old callback arity and invocation audits: no matches
-- both owner compile-connected graphs: no dependency edge
-- both owner callers: replay aggregator only
-- bounded read-only review: clean, no findings
+- Pending.
 
 Last completed slice:
 Candidate acceptance/safety replay callback removal published as `d3324fa7`:
@@ -68,8 +56,8 @@ both paths are one-argument end to end, 25 focused tests passed, and bounded
 review found no blocker.
 
 Next candidate:
-Audit the remaining five-entry timeline activity-state callback family as the
-final callback-removal slice.
+After callback removal is complete, re-inventory the live large-module
+hotspots and choose the next responsibility extraction.
 
 Blocked:
 No.
