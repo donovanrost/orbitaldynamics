@@ -9,7 +9,7 @@ Current slice:
 Validation candidate-state artifact fixture test-family extraction.
 
 Status:
-Selected.
+Ready to publish.
 
 Selected slice:
 Move the five contiguous candidate-rejection report, candidate-diff row, and
@@ -47,10 +47,15 @@ shared builders have one exact owner, focused and parent files pass, names remai
 unique, and bounded review finds no blocker.
 
 Outcome:
-Pending.
+Five byte-identical candidate-state artifact tests moved into a 336-line
+focused module. Their ten raw/observation helpers now have one 54-line shared
+support owner with an exact private JSON loader; the parent imports only the
+five aggregate observation builders. The parent fell from 5,498 to 5,145 lines.
+Total test/support/loader LOC grew by 39 lines for explicit ownership without
+helper duplication. All 181 Validation test names remain unique.
 
 Verification gaps:
-- Pending.
+- Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
 Validation candidate-refresh station/allocation replay extraction published as
@@ -61,8 +66,9 @@ checks, and bounded review were clean.
 
 Next candidate:
 Map the campaign request lint, capability catalog, and environment capability
-fixture families following candidate state. Split only a coherent artifact
-family with complete helper closure.
+fixture families following candidate state. The three contiguous planning-input
+tests and eleven helpers form one closure, contain all remaining parent
+`Environment` calls, and end before proposed-contact fixtures.
 
 Blocked:
 No.
