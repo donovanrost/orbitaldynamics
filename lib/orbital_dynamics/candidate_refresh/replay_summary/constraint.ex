@@ -1,13 +1,13 @@
 defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.Constraint do
   @moduledoc false
 
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary
   alias __MODULE__.Summary
 
-  def replay(refresh_or_artifact, source_report_summary)
-      when is_function(source_report_summary, 1) do
+  def replay(refresh_or_artifact) do
     constraint_summary =
       refresh_or_artifact
-      |> source_report_summary.()
+      |> SourceReportSummary.build()
       |> get_in(["source_reports", "constraint_report"]) ||
         %{}
 

@@ -460,7 +460,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   select candidates, approve imports, or write to Cadence.
   """
   def objective_gap_replay_summary(refresh_or_artifact) do
-    ReplaySummary.objective_gap(refresh_or_artifact, &source_report_summary/1)
+    ReplaySummary.objective_gap(refresh_or_artifact)
   end
 
   @doc """
@@ -471,7 +471,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   select candidates, approve imports, or write to Cadence.
   """
   def constraint_replay_summary(refresh_or_artifact) do
-    ReplaySummary.constraint(refresh_or_artifact, &source_report_summary/1)
+    ReplaySummary.constraint(refresh_or_artifact)
   end
 
   @doc """

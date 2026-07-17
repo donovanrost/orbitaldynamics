@@ -9,7 +9,7 @@ Current slice:
 CandidateRefresh objective/constraint replay source-summary callback removal.
 
 Status:
-Selected.
+Review complete; ready to publish.
 
 Selected slice:
 Remove the repeated source-summary callback from the objective-gap and
@@ -44,10 +44,20 @@ remain exact; no old callback arity remains; focused tests pass; and bounded
 review finds no blocker.
 
 Outcome:
-Pending.
+The objective-gap and constraint replay paths are now one-argument end to end.
+Each owner calls `SourceReportSummary.build/1` directly, while its report
+selection and summary assembly remain unchanged. The four-file production diff
+is line-neutral and removes both callback seams.
 
 Verification gaps:
-- Pending.
+- `mix compile --warnings-as-errors`
+- two focused replay files: 20 tests passed
+- scoped `mix format --check-formatted`
+- `git diff --check`
+- old callback arity and invocation audits: no matches
+- both owner compile-connected graphs: no dependency edge
+- both owner callers: replay aggregator only
+- bounded read-only review: clean, no findings
 
 Last completed slice:
 Candidate validation replay callback removal published as `651df593`:

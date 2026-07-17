@@ -149,12 +149,12 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary do
     TimelineTransitionApplication.replay(refresh_or_artifact, source_report_summary)
   end
 
-  def objective_gap(refresh_or_artifact, source_report_summary) do
-    ObjectiveGap.replay(refresh_or_artifact, source_report_summary)
+  def objective_gap(refresh_or_artifact) do
+    ObjectiveGap.replay(refresh_or_artifact)
   end
 
-  def constraint(refresh_or_artifact, source_report_summary) do
-    Constraint.replay(refresh_or_artifact, source_report_summary)
+  def constraint(refresh_or_artifact) do
+    Constraint.replay(refresh_or_artifact)
   end
 
   def timeline_feedback(refresh_or_artifact, source_report_summary) do
