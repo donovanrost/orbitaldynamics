@@ -9,7 +9,7 @@ Current slice:
 Validation timeline activity-state fixture test-family extraction.
 
 Status:
-Selected.
+Verified and reviewed; ready to publish.
 
 Selected slice:
 Move the six contiguous timeline activity-precondition, activity-state,
@@ -46,10 +46,16 @@ shared builders have one exact owner, focused and parent files pass, names remai
 unique, and bounded review finds no blocker.
 
 Outcome:
-Pending.
+Six byte-identical timeline activity-state family tests moved into a 481-line
+focused module. Eighteen observation/raw/generated builders now have one
+262-line shared support owner; the parent imports the six aggregate observation
+builders plus two raw lifecycle fixtures retained by manifest checks, with no
+private residue. The parent fell from 15,409 to 14,716 lines. Total
+test/support/loader LOC grew by 51 lines for explicit ownership without helper
+duplication. All 181 Validation test names remain unique.
 
 Verification gaps:
-- Pending.
+- Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
 Validation policy-and-evidence fixture extraction published as `3cd3d92d`: the
@@ -58,10 +64,10 @@ modules preserved the 181-test aggregate with no duplicate names. Format, diff
 hygiene, dependency-closure checks, and bounded review were clean.
 
 Next candidate:
-Refresh the adjacent timeline activity-state and lifecycle fixture cluster in
-the 15,409-line parent. Select only a coherent multi-test boundary and move
-deterministic-aggregate builders to one shared support owner rather than
-copying them.
+Refresh the adjacent timeline preservation, integrity, dependency, and summary
+fixture clusters in the 14,716-line parent. Select only a coherent multi-test
+boundary and move shared builders to one support owner rather than copying
+them.
 
 Blocked:
 No.
