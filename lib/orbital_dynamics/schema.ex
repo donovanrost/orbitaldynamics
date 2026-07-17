@@ -6315,7 +6315,7 @@ defmodule OrbitalDynamics.Schema do
       row,
       &validate_approval_requirement/3,
       &validate_policy_rule_match/3,
-      &validate_optional_source_window/4,
+      &OrbitalDynamics.Schema.CandidateDiffContracts.validate_optional_source_window/4,
       &validate_nested_id_match/7,
       &validate_resource_projection_flow_row/3
     )
@@ -6326,7 +6326,7 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       row,
-      &validate_optional_source_window/4,
+      &OrbitalDynamics.Schema.CandidateDiffContracts.validate_optional_source_window/4,
       &validate_nested_id_match/7
     )
   end
@@ -6838,45 +6838,11 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validate_semantic_change_details(issues, path, row) do
-    OrbitalDynamics.Schema.CandidateDiffContracts.validate_semantic_change_details(
-      issues,
-      path,
-      row
-    )
-  end
-
-  defp validate_candidate_diff_changed_fields(issues, path, row) do
-    OrbitalDynamics.Schema.CandidateDiffContracts.validate_changed_fields(
-      issues,
-      path,
-      row
-    )
-  end
-
   defp validate_source_window_lineage(issues, path, lineage) do
     OrbitalDynamics.Schema.CandidateDiffContracts.validate_source_window_lineage(
       issues,
       path,
       lineage
-    )
-  end
-
-  defp validate_optional_source_window(issues, path, row, field) do
-    OrbitalDynamics.Schema.CandidateDiffContracts.validate_optional_source_window(
-      issues,
-      path,
-      row,
-      field
-    )
-  end
-
-  defp validate_optional_source_window_lineage(issues, path, row, field) do
-    OrbitalDynamics.Schema.CandidateDiffContracts.validate_optional_source_window_lineage(
-      issues,
-      path,
-      row,
-      field
     )
   end
 
@@ -7146,8 +7112,10 @@ defmodule OrbitalDynamics.Schema do
       validate_stable_ids: &validate_stable_ids/4,
       expect_optional_number: &expect_optional_number/4,
       validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
-      validate_semantic_change_details: &validate_semantic_change_details/3,
-      validate_candidate_diff_changed_fields: &validate_candidate_diff_changed_fields/3,
+      validate_semantic_change_details:
+        &OrbitalDynamics.Schema.CandidateDiffContracts.validate_semantic_change_details/3,
+      validate_candidate_diff_changed_fields:
+        &OrbitalDynamics.Schema.CandidateDiffContracts.validate_changed_fields/3,
       validate_optional_policy_decision_evidence: &validate_optional_policy_decision_evidence/3,
       validate_optional_policy_escalation: &validate_optional_policy_escalation/4,
       validate_optional_candidate_rejection_source_row:
@@ -7240,8 +7208,10 @@ defmodule OrbitalDynamics.Schema do
         &OrbitalDynamics.Schema.SuppressionHandoffContracts.validate_matches_source/3,
       validate_contact_contention_handoff_matches_source:
         &OrbitalDynamics.Schema.ContactContentionHandoffContracts.validate_matches_source/3,
-      validate_optional_source_window: &validate_optional_source_window/4,
-      validate_optional_source_window_lineage: &validate_optional_source_window_lineage/4,
+      validate_optional_source_window:
+        &OrbitalDynamics.Schema.CandidateDiffContracts.validate_optional_source_window/4,
+      validate_optional_source_window_lineage:
+        &OrbitalDynamics.Schema.CandidateDiffContracts.validate_optional_source_window_lineage/4,
       validate_operator_review_row_links: &validate_operator_review_row_links/3,
       validate_contact_allocation_capacity_pack_group:
         &validate_contact_allocation_capacity_pack_group/3,
@@ -7466,8 +7436,10 @@ defmodule OrbitalDynamics.Schema do
       validate_thermal_handoff_fields:
         &OrbitalDynamics.Schema.HandoffFieldContracts.validate_thermal_handoff_fields/3,
       validate_branch_event_summary_fields: &validate_branch_event_summary_fields/3,
-      validate_semantic_change_details: &validate_semantic_change_details/3,
-      validate_candidate_diff_changed_fields: &validate_candidate_diff_changed_fields/3,
+      validate_semantic_change_details:
+        &OrbitalDynamics.Schema.CandidateDiffContracts.validate_semantic_change_details/3,
+      validate_candidate_diff_changed_fields:
+        &OrbitalDynamics.Schema.CandidateDiffContracts.validate_changed_fields/3,
       validate_optional_policy_decision_evidence: &validate_optional_policy_decision_evidence/3,
       validate_optional_policy_escalation: &validate_optional_policy_escalation/4,
       validate_optional_candidate_rejection_source_row:
@@ -7485,9 +7457,11 @@ defmodule OrbitalDynamics.Schema do
       validate_schema_validation_source_status_matches:
         &validate_schema_validation_source_status_matches/3,
       validate_execution_source_status_matches: &validate_execution_source_status_matches/3,
-      validate_optional_source_window: &validate_optional_source_window/4,
+      validate_optional_source_window:
+        &OrbitalDynamics.Schema.CandidateDiffContracts.validate_optional_source_window/4,
       validate_nested_id_match: &validate_nested_id_match/7,
-      validate_optional_source_window_lineage: &validate_optional_source_window_lineage/4,
+      validate_optional_source_window_lineage:
+        &OrbitalDynamics.Schema.CandidateDiffContracts.validate_optional_source_window_lineage/4,
       validate_optional_activity_context: &validate_optional_activity_context/4,
       validate_optional_timeline_link: &validate_optional_timeline_link/4,
       validate_optional_timeline_identity: &validate_optional_timeline_identity/4,
@@ -7923,10 +7897,14 @@ defmodule OrbitalDynamics.Schema do
         &OrbitalDynamics.Schema.HandoffFieldContracts.validate_eclipse_lighting_handoff_fields/3,
       validate_thermal_handoff_fields:
         &OrbitalDynamics.Schema.HandoffFieldContracts.validate_thermal_handoff_fields/3,
-      validate_semantic_change_details: &validate_semantic_change_details/3,
-      validate_candidate_diff_changed_fields: &validate_candidate_diff_changed_fields/3,
-      validate_optional_source_window: &validate_optional_source_window/4,
-      validate_optional_source_window_lineage: &validate_optional_source_window_lineage/4,
+      validate_semantic_change_details:
+        &OrbitalDynamics.Schema.CandidateDiffContracts.validate_semantic_change_details/3,
+      validate_candidate_diff_changed_fields:
+        &OrbitalDynamics.Schema.CandidateDiffContracts.validate_changed_fields/3,
+      validate_optional_source_window:
+        &OrbitalDynamics.Schema.CandidateDiffContracts.validate_optional_source_window/4,
+      validate_optional_source_window_lineage:
+        &OrbitalDynamics.Schema.CandidateDiffContracts.validate_optional_source_window_lineage/4,
       validate_contact_allocation_capacity_pack_group:
         &validate_contact_allocation_capacity_pack_group/3,
       validate_contact_allocation_capacity_pack_handoff_matches_source:
