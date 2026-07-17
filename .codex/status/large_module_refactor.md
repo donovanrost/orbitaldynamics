@@ -9,7 +9,7 @@ Current slice:
 Contact-allocation fixture mapping.
 
 Status:
-Ready for implementation.
+Publishing.
 
 Selected slice:
 Move
@@ -59,7 +59,7 @@ and the complete facade remainder stay exact, focused and full validation tests
 pass, and bounded review finds no blocker.
 
 Verification gaps:
-- Implementation and post-move verification pending.
+- None for this slice.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -73,13 +73,34 @@ Tests run:
 - Contiguous source boundary confirmed at facade lines 215-693, followed by
   `contact_allocation_provider_reservation_request_summary.v1`, with no facade
   helper-attribute dependency in the selected literals.
-- Focused contact-allocation/facade selection baseline: 17 tests passed.
+- Normalized-AST proof against selection commit `31f3948a`: all five moved
+  literals, the following provider-reservation summary, and the complete
+  70-entry facade remainder are exact; the new leaf owns only the intended five
+  keys.
+- Post-move exact proof: the 195-entry map, sorted-key digest, selected
+  five-fixture digest, and exact 190-entry remainder digest all match their
+  selection baselines.
+- Source partition proof: 34 maps total 195 entries, the new leaf owns five, the
+  facade owns 70, all 561 pairwise intersections are empty, and the source key
+  union exactly matches the runtime map.
+- Facade proof: all 195 successful `fetch/1` results, missing-key `:error`, and
+  nonbinary `FunctionClauseError` behavior remain unchanged.
+- Focused contact-allocation/facade validation: 17 tests passed.
+- Full validation family: 181 tests passed.
+- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
+  xref caller checks passed.
+- Independent bounded review against selection commit `31f3948a` was clean:
+  the contiguous source range and complete facade remainder are normalized-AST
+  exact, all runtime and partition invariants reproduced, dependency direction
+  remains one-way, and focused/full tests and hygiene gates passed.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-No contact-allocation implementation has started.
+The exact five-fixture contact-allocation family now lives in a new cohesive
+leaf behind the unchanged facade. The facade shrank from 5,426 to 4,949 lines;
+the new leaf is 487 lines and owns exactly five fixtures.
 
 Last completed slice:
 Timeline-transition extraction published as `f1f8f552`: the exact four-fixture
