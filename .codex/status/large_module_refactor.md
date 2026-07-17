@@ -9,7 +9,7 @@ Current slice:
 RepairAccumulator delayed-maneuver tracking ownership.
 
 Status:
-Ready to publish.
+Published as `e36c06fd`.
 
 Selected slice:
 Move the delayed-maneuver tracking and downstream activity-replacement
@@ -59,9 +59,9 @@ Verification gaps:
   blocker.
 
 Last completed slice:
-CampaignPlanner repair activity-state transition extraction published as
-`e99f5f3a`: one owner now supplies six complete state branches, 67 repair tests
-passed, and bounded review found no blocker.
+RepairAccumulator delayed-maneuver mutation ownership published as
+`e36c06fd`: all repair-accumulator mutation is now owner-local, 16 focused
+tests passed, and corrected bounded review found no blocker.
 
 Next candidate:
 Extract the complete delayed-maneuver movement and downstream-impact family
