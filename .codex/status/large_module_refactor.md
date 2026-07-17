@@ -6,54 +6,51 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Validation policy-decision fixture test-family extraction.
+Validation resource-pressure handoff fixture test-family extraction.
 
 Status:
-Published as `a1c32f34`.
+Selected.
 
 Selected slice:
-Move the two contiguous approval-requirement and policy-decision fixture tests
-into a focused module with one shared policy-decision fixture owner.
+Move the resource-pressure handoff fixture test into a focused module with one
+shared cross-handoff fixture owner.
 
 Why this slice:
-After the manifest split, `validation_test.exs` is 3,442 lines. Tests
-1,712-1,911 form a coherent policy-decision family and end before
-resource-pressure handoffs. Their four raw/observation helpers form a complete
-JSON fixture closure; only the two observation helpers remain deterministic
-aggregate consumers.
+After the policy-decision split, `validation_test.exs` is 3,230 lines. Test
+1,718-1,861 validates quality-gate, readiness, operator-review, and import
+handoffs as one cross-artifact family. Six local observation/raw helpers form
+its closure, while the quality-gate and readiness raw fixtures remain owned by
+the existing readiness-replay support module.
 
 Public facade to preserve:
 `OrbitalDynamics.Validation.reference_fixture/1`,
-`verify_reference_fixture/2`, `artifact_observations/2`, exact approval and
-policy-decision schema checks, stale policy coverage, and deterministic reports.
+`verify_reference_fixture/2`, `artifact_observations/2`, exact cross-handoff
+resource-pressure schema checks, stale handoff coverage, and deterministic
+reports.
 
 Likely files:
 - `test/orbital_dynamics/validation_test.exs`
-- `test/orbital_dynamics/validation/policy_decision_fixture_test.exs`
-- `test/support/validation/policy_decision_fixtures.ex`
+- `test/orbital_dynamics/validation/resource_pressure_handoff_fixture_test.exs`
+- `test/support/validation/resource_pressure_handoff_fixtures.ex`
 - `test/test_helper.exs`
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
-- extracted policy-decision fixture module directly
+- extracted resource-pressure handoff fixture module directly
 - remaining validation test ledger
 - format, diff hygiene, and bounded review
 
 Definition of done:
-Both tests move mechanically with order and assertion strength unchanged;
-shared builders have one exact owner, focused and parent files pass, names
-remain unique, and bounded review finds no blocker.
+The handoff test moves mechanically with order and assertion strength unchanged;
+shared builders have one exact owner, existing raw source ownership is reused,
+focused and parent files pass, names remain unique, and bounded review finds no
+blocker.
 
 Outcome:
-Two byte-identical policy-decision tests moved into a 213-line focused module.
-Their four raw/observation helpers now have one 27-line shared support owner
-with an exact private JSON loader; the parent imports only the two aggregate
-observation builders. The parent fell from 3,442 to 3,230 lines. Total
-test/support/loader LOC grew by 29 lines for explicit ownership without helper
-duplication. All 181 Validation test names remain unique.
+Pending.
 
 Verification gaps:
-- Full repository suite not run; this is a test-only ownership extraction.
+- Pending.
 
 Last completed slice:
 Validation policy-decision fixture extraction published as `a1c32f34`: the
@@ -63,10 +60,9 @@ hygiene, exact-source and dependency-closure checks, and bounded review were
 clean.
 
 Next candidate:
-Map the resource-pressure handoff fixture family following policy decisions.
-Move its six local observation/raw helpers while reusing the two existing
-quality-gate/readiness raw fixture owners; end before contact-allocation
-fixtures.
+Map the contact-allocation report, reservation-conflict, station-pressure,
+capacity-pack, and contact-allocation summary fixture sequence. Split only a
+complete allocation artifact family with explicit shared helper ownership.
 
 Blocked:
 No.
