@@ -9,7 +9,7 @@ Current slice:
 Validation orbital/event reference-fixture family extraction.
 
 Status:
-Publishing implementation.
+Completed and published as `005cbbc4`.
 
 Selected slice:
 Move the first six contiguous non-artifact fixtures—four event cases plus J2
@@ -74,17 +74,18 @@ The exact six-fixture orbital/event family now lives in
 13,383 to 13,142 lines, while the extracted family is 253 lines.
 
 Last completed slice:
-Schema priority-override count callback ownership cleanup published as
-`3e6ba790`: the contact-allocation callback now points directly to the
-priority-override owner, the guarded facade delegate was removed, 182
-schema/export tests passed, full export bytes stayed exact, and bounded review
-was clean.
+Validation orbital/event reference-fixture extraction published as `005cbbc4`:
+the six exact fixtures moved behind the unchanged facade, the 195-entry map and
+deterministic bytes stayed exact, 181 validation tests passed, and bounded
+review was clean.
 
 Next candidate:
-After this boundary, split the next contiguous artifact family only after
-mapping key ranges and focused contract coverage; candidate-refresh artifacts
-are the largest obvious family but should not be moved as one unreviewable
-block.
+Extract the next three contiguous accepted-planning-state fixtures (`simple`,
+`opm`, and `oem`) into one artifact-family module. They occupy the first
+remaining fixture block, share one model contract, and have dedicated coverage
+in `validation/candidate_state_fixture_test.exs`; first re-baseline the complete
+map and prove that no compile-time helper attributes tie this block to the
+facade before selecting the slice.
 
 Blocked:
 No.
