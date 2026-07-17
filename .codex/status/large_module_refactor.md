@@ -9,7 +9,7 @@ Current slice:
 Schema validation-assessment JSON property-dispatch extraction.
 
 Status:
-Review complete; ready to publish.
+Published as `4e361602`.
 
 Selected slice:
 Extract property dispatch for model-acceptance reports and validation
@@ -66,14 +66,14 @@ Verification gaps:
 - bounded read-only review: clean, no findings
 
 Last completed slice:
-Schema validation-evidence property dispatch published as `c1498887`: four
-contracts now route through one cohesive internal dispatcher, 25 focused/export
+Schema validation-assessment property dispatch published as `4e361602`: two
+contracts now route through one cohesive internal dispatcher, 23 focused/export
 tests passed, full regeneration was byte-identical, and bounded review found no
 blocker.
 
 Next candidate:
-Audit adjacent schema-validation report/batch property dispatch after this
-slice is published.
+Audit adjacent schema-validation report/batch property dispatch as the next
+cohesive validation contract family.
 
 Blocked:
 No.
