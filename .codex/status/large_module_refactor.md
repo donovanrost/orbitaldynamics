@@ -9,7 +9,7 @@ Current slice:
 Provider-capacity-pack fixture mapping.
 
 Status:
-Ready for implementation.
+Publishing.
 
 Selected slice:
 Move
@@ -57,7 +57,7 @@ and the complete facade remainder stay exact, focused and full validation tests
 pass, and bounded review finds no blocker.
 
 Verification gaps:
-- Implementation and post-move verification pending.
+- None for this slice.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -71,13 +71,33 @@ Tests run:
 - Contiguous source boundary confirmed at facade lines 216-445, followed by
   `contact_filter_report.v1`, with no facade helper-attribute dependency in the
   selected literals.
-- Focused provider-capacity-pack/facade selection baseline: 14 tests passed.
+- Normalized-AST proof against selection commit `ae0708d6`: both moved literals,
+  the following contact-filter report, and the complete 68-entry facade
+  remainder are exact; the new leaf owns only the intended two keys.
+- Post-move exact proof: the 195-entry map, sorted-key digest, selected
+  two-fixture digest, and exact 193-entry remainder digest all match their
+  selection baselines.
+- Source partition proof: 35 maps total 195 entries, the new leaf owns two, the
+  facade owns 68, all 595 pairwise intersections are empty, and the source key
+  union exactly matches the runtime map.
+- Facade proof: all 195 successful `fetch/1` results, missing-key `:error`, and
+  nonbinary `FunctionClauseError` behavior remain unchanged.
+- Focused provider-capacity-pack/facade validation: 14 tests passed.
+- Full validation family: 181 tests passed.
+- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
+  xref caller checks passed.
+- Independent bounded review against selection commit `ae0708d6` was clean:
+  the contiguous source range and complete facade remainder are normalized-AST
+  exact, all runtime and partition invariants reproduced, dependency direction
+  remains one-way, and focused/full tests and hygiene gates passed.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-No provider-capacity-pack implementation has started.
+The exact two-fixture provider-capacity-pack family now lives in a new cohesive
+leaf behind the unchanged facade. The facade shrank from 4,949 to 4,721 lines;
+the new leaf is 238 lines and owns exactly two fixtures.
 
 Last completed slice:
 Contact-allocation extraction published as `bbdecf49`: the exact five-fixture
