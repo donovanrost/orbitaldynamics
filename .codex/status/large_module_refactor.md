@@ -9,7 +9,7 @@ Current slice:
 Schema quality-gate report JSON property-dispatch extraction.
 
 Status:
-Selected.
+Completed and published.
 
 Selected slice:
 Extract property dispatch for the operational quality-gate summary and
@@ -46,17 +46,29 @@ remain exact; focused and export tests pass; and bounded review finds no
 blocker.
 
 Outcome:
-Pending.
+The two quality-gate clauses now route through
+`QualityGateReportPropertyDispatch`, which owns their literal contracts, exact
+module/model-limit pairings, shared dependency assembly, focused routing, and
+fallback.
 
 Verification gaps:
-- Pending.
+- None for this slice.
+
+Tests run:
+- strict compile and 30 focused operational/schema-export tests
+- byte-identical full export at digest
+  `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`
+- format and diff hygiene
+- bounded read-only review: clean, no findings
+
+Behavior/schema changes:
+None.
 
 Last completed slice:
-Schema operational readiness gate-summary property dispatch published as
-`ae307679`: import-eligibility, readiness-gate, and execution-boundary summaries
-now route through one cohesive internal dispatcher, 30 focused/export tests
-passed, full regeneration was byte-identical, and bounded review found no
-finding.
+Schema quality-gate report property dispatch published as `91313036`:
+operational quality-gate summary and quality-gate report now route through one
+cohesive internal dispatcher, 30 focused/export tests passed, full regeneration
+was byte-identical, and bounded review found no finding.
 
 Next candidate:
 After this slice, re-audit the remaining facade property clauses and pivot only
