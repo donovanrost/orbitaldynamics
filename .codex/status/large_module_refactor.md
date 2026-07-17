@@ -9,7 +9,7 @@ Current slice:
 Validation candidate-refresh contact replay test-family extraction.
 
 Status:
-Ready to publish.
+Published as `1bd938c9`.
 
 Selected slice:
 Move the two contiguous candidate-refresh contact-contention and contact-intent
@@ -60,8 +60,8 @@ Verification gaps:
 - Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
-Validation candidate-refresh base fixture extraction published as `a37bc4ae`:
-the focused module passed 2/2, the parent passed 64/64, and all twenty-seven
+Validation candidate-refresh contact replay extraction published as `1bd938c9`:
+the focused module passed 2/2, the parent passed 62/62, and all twenty-eight
 Validation modules preserved the 181-test aggregate with no duplicate names.
 Format, diff hygiene, exact-source and dependency-closure checks, and bounded
 review were clean.
