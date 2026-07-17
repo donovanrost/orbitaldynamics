@@ -9,7 +9,7 @@ Current slice:
 Schema provider-counteroffer report ownership mapping.
 
 Status:
-Ready for implementation.
+Ready for publication.
 
 Selected slice:
 Point the standalone `provider_counteroffer_report.v1` pipe directly at
@@ -30,7 +30,7 @@ position, the wrapper is absent, focused/full/schema proof is exact, and review
 is clean.
 
 Verification gaps:
-- Implementation and post-change verification pending.
+None.
 
 Tests run:
 - Source baseline: one standalone final pipe and one pure delegate.
@@ -39,12 +39,23 @@ Tests run:
   `543dbe11bc75f1397dd15dbd10cabd219ae2e46ac1e16d38b810a99befb8cec3`.
 - Checked bundle digest:
   `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`.
+- Source proof against `83404d40`: the pipe retains `require_fields`, ends at
+  `ProviderCounterofferReportContracts.validate/3`, and wrapper is absent.
+- Focused station-provider tests: 6 passed; complete schema/export suite: 182
+  passed, all with warnings as errors.
+- Generated bundle remains exact; export regeneration produced no schema diff
+  and checked digest is unchanged.
+- Strict compile, format, xref, and diff hygiene passed.
+- Independent review against `83404d40` was clean across source ownership,
+  focused 6, complete 182, all 122 exports, digests, strict compile, xref,
+  formatting, sizes, ledger, and hygiene.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-No provider-counteroffer report implementation has started.
+The pipe references the established owner and wrapper is gone. `schema.ex`
+decreased from 7,861 to 7,853 lines.
 
 Last completed slice:
 Provider-counteroffer summary family published as `d1d12861`: `schema.ex`
@@ -52,7 +63,7 @@ shrank from 7,879 to 7,861 lines, focused 6 and complete 182 tests passed, all
 122 exports byte-matched, and review was clean.
 
 Next candidate:
-Implement the direct owner substitution and remove the wrapper.
+After review and publication, continue the robust exact-signature inventory.
 
 Blocked:
 No.

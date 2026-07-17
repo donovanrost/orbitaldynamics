@@ -5062,7 +5062,7 @@ defmodule OrbitalDynamics.Schema do
   defp validate_contract(@provider_counteroffer_report, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_provider_counteroffer_report("$", artifact)
+    |> OrbitalDynamics.Schema.ProviderCounterofferReportContracts.validate("$", artifact)
   end
 
   defp validate_contract(@provider_counteroffer_review_summary, contract, artifact) do
@@ -6772,14 +6772,6 @@ defmodule OrbitalDynamics.Schema do
         path,
         row
       )
-
-  defp validate_provider_counteroffer_report(issues, path, report) do
-    OrbitalDynamics.Schema.ProviderCounterofferReportContracts.validate(
-      issues,
-      path,
-      report
-    )
-  end
 
   defp validate_optional_candidate_rejection_report(issues, _path, nil), do: issues
 
