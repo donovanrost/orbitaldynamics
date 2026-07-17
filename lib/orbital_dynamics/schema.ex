@@ -7037,14 +7037,6 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validate_quality_gate_handoff_summary(issues, path, artifact) do
-    OrbitalDynamics.Schema.QualityGateHandoffContracts.validate_summary(
-      issues,
-      path,
-      artifact
-    )
-  end
-
   defp validate_resource_projection_report_counts(issues, path, report) do
     OrbitalDynamics.Schema.ResourceProjectionReportCountContracts.validate(
       issues,
@@ -7946,7 +7938,8 @@ defmodule OrbitalDynamics.Schema do
     [
       validate_contact_allocation_expiration_handoff_summary:
         &OrbitalDynamics.Schema.ContactAllocationHandoffContracts.validate_expiration_summary/3,
-      validate_quality_gate_handoff_summary: &validate_quality_gate_handoff_summary/3,
+      validate_quality_gate_handoff_summary:
+        &OrbitalDynamics.Schema.QualityGateHandoffContracts.validate_summary/3,
       validate_operator_review_row: &validate_operator_review_row/3,
       validate_suppression_duplicate_handoff_groups:
         &OrbitalDynamics.Schema.SuppressionHandoffContracts.validate_duplicate_groups/3
