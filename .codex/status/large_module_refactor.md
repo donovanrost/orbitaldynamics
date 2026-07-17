@@ -9,10 +9,10 @@ Current slice:
 Policy-bundle authority fixture mapping.
 
 Status:
-Ready for next slice selection.
+Ready for implementation.
 
 Selected slice:
-No implementation selected yet. The next bounded candidate is to move only
+Move only
 `policy_bundle.operator_review_queue_authority` and
 `policy_bundle.command_contact_authority` into the existing
 `Validation.ReferenceFixtures.PolicyBundleArtifacts` leaf. Stop before
@@ -57,7 +57,7 @@ complete facade remainder stay exact, focused and full validation tests pass,
 and bounded review finds no blocker.
 
 Verification gaps:
-- Next candidate still requires a selection baseline before implementation.
+- Implementation, verification, and bounded review pending.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -65,30 +65,15 @@ Tests run:
   and sorted-key digest
   `b0007d04e4154fe879519a4f2b074fe3f9d0d649f3049d5d848264e105d00732`.
 - Selected two-fixture map: deterministic digest
-  `922b0b6e144d06303a9d45cc972d40754be0c36989f499e305fbf13a10fd3a2a`.
+  `bdb6bbadc2eac861823a5789fd1e7c924629f832db664b88e7a0642e2d65f71b`.
 - Exact 193-entry remainder: deterministic digest
-  `42ae1315da283c6e56026138ee125a6b55a3a13f469323ac41c0dcf69ca6de89`.
-- Source boundary confirmed at facade lines 153-291, with
-  `policy_bundle.operator_review_queue_authority` beginning at line 292 and no
-  facade helper-attribute dependency in the selected literals.
-- Post-move exact proof: the 195-entry map, sorted-key digest, selected
-  two-fixture digest, and 193-entry remainder digest all match the selection
-  baseline exactly.
-- Source partition proof: 21 maps total 195 entries, the new leaf owns exactly
-  two fixtures, the facade owns 130, and all 210 pairwise intersections are
-  empty.
-- Facade proof: all 195 successful `fetch/1` results, missing-key `:error`, and
-  nonbinary `FunctionClauseError` behavior remain unchanged.
-- Focused policy-bundle/facade validation: 18 tests passed.
-- Full validation family: 181 tests passed.
-- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
-  xref caller checks passed.
-- Independent bounded review: CLEAN. It confirmed both literals and the
-  complete facade remainder are normalized-AST exact, the leaf owns only the
-  selected keys, all 21 maps are unique and pairwise disjoint across 210
-  intersections, all four digests and facade edge behaviors are unchanged,
-  dependencies remain one-way, and it reproduced 18 focused and 181 full
-  validation tests.
+  `a6a77486ed81152ecf20ff48d07a6e00161d093c7cbd9dc7ca2c062f206239ed`.
+- Existing two-fixture policy leaf: deterministic digest
+  `922b0b6e144d06303a9d45cc972d40754be0c36989f499e305fbf13a10fd3a2a`.
+- Source boundary confirmed at facade lines 154-301, with
+  `policy_bundle.conservative_ops` beginning at line 302 and no facade
+  helper-attribute dependency in the selected literals.
+- Selection only; implementation verification pending.
 
 Behavior/schema changes:
 None.
