@@ -5128,7 +5128,7 @@ defmodule OrbitalDynamics.Schema do
   defp validate_contract(@realized_activity, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_realized_activity("$", artifact)
+    |> OrbitalDynamics.Schema.RealizedActivityContracts.validate("$", artifact)
   end
 
   defp validate_contract(@realized_state_snapshot, contract, artifact) do
@@ -6221,14 +6221,6 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       snapshot
-    )
-  end
-
-  defp validate_realized_activity(issues, path, activity) do
-    OrbitalDynamics.Schema.RealizedActivityContracts.validate(
-      issues,
-      path,
-      activity
     )
   end
 

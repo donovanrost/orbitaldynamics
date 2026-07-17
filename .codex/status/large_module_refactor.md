@@ -9,7 +9,7 @@ Current slice:
 Schema realized-activity callback ownership mapping.
 
 Status:
-Ready for implementation.
+Ready for publication.
 
 Selected slice:
 Point the standalone `realized_activity.v1` pipe directly at
@@ -35,7 +35,7 @@ position, the delegate is gone, behavior and schema bytes remain exact, focused
 and complete tests pass, and bounded review finds no blocker.
 
 Verification gaps:
-- Implementation and post-change verification pending.
+None.
 
 Tests run:
 - Source baseline: one final pipe call and one pure delegate definition.
@@ -45,12 +45,24 @@ Tests run:
   `543dbe11bc75f1397dd15dbd10cabd219ae2e46ac1e16d38b810a99befb8cec3`.
 - Checked bundle digest:
   `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`.
+- Source proof against `0375319e`: the pipe retains `require_fields`, ends at
+  `RealizedActivityContracts.validate/3`, and the delegate is absent.
+- Focused contact-feedback tests: 5 passed; complete schema/export tests: 182
+  passed, all with warnings as errors.
+- Generated bundle remains 121 schemas, 15,506,740 bytes, digest
+  `543dbe11bc75f1397dd15dbd10cabd219ae2e46ac1e16d38b810a99befb8cec3`.
+- Full export regeneration produced no schema diff; checked digest is unchanged.
+- Strict compile, format, xref, and diff hygiene passed.
+- Independent review against `0375319e` was clean across source ownership,
+  focused 5, complete 182, all 122 export bytes, digests, strict compile, xref,
+  formatting, sizes, ledger, and hygiene.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-No realized-activity callback implementation has started.
+The pipe references the established owner directly and the delegate is gone.
+`schema.ex` decreased from 7,910 to 7,902 lines.
 
 Last completed slice:
 Shared activity cleanup published as `3184d18f`: `schema.ex` shrank from 7,918
@@ -58,7 +70,8 @@ to 7,910 lines, 10 focused and 182 complete tests passed, all 122 exports
 byte-matched, and bounded review was clean.
 
 Next candidate:
-Implement the direct owner substitution and remove the unused delegate.
+After review and publication, map the next pure facade delegate by exact caller
+count and owner signature.
 
 Blocked:
 No.
