@@ -9,7 +9,7 @@ Current slice:
 Branch-comparison-report callback-bag and field-metadata ownership collapse.
 
 Status:
-Selected; implementation not started.
+Implemented, verified, reviewed, and ready to publish.
 
 Selected slice:
 Replace the 27-entry branch-comparison keyword bag with direct shared validation,
@@ -47,18 +47,23 @@ ordering remain stable, focused/broader/export checks pass, and bounded review
 finds no blocker.
 
 Outcome:
-Pending.
+The 27-entry callback bag and every lookup/apply trampoline are gone. The owner
+now calls shared primitive, CampaignPlanner model-limit, and BranchEvent
+contracts directly; it also owns the row-count and pressure-handoff field lists,
+with Schema JSON generation consuming the same row-count source. Five orphaned
+Schema imports disappeared. `schema.ex` fell from 10,280 to 10,179 lines and the
+owner from 547 to 474, for a net reduction of 174 lines.
 
 Verification gaps:
-- Not yet verified.
+- Full repository suite not run. The broader regression remains at the
+  baseline-proven 1,340/1,345 result with the same five unrelated
+  campaign-planner failures.
 
 Last completed slice:
-Contact-allocation aggregate-summary callback collapse published as `ef117696`:
-`schema.ex` fell from 10,441 to 10,280 lines and the owner from 1,330 to 1,236;
-the 33-entry domain factory became two explicit validator hooks and 20 facade
-orphans disappeared. Two hundred seventy-four focused, 1,340 attributable
-broader, and 24 export tests passed; compile, regeneration, xref, format, diff
-hygiene, and bounded review were clean.
+Branch-comparison-report callback and metadata ownership collapse, publication
+pending: 194 focused and 24 export tests passed; the broader suite produced the
+baseline-proven 1,340/1,345 result. Compile, checked-in export regeneration,
+compile-connected xref, format, diff hygiene, and bounded review were clean.
 
 Blocked:
 No.

@@ -20,7 +20,6 @@ defmodule OrbitalDynamics.Schema do
       expect_equal: 5,
       expect_field_at_least: 5,
       expect_field_equals: 6,
-      expect_number: 4,
       expect_non_negative_integer: 4,
       expect_one_of: 5,
       expect_optional_integer: 4,
@@ -29,21 +28,17 @@ defmodule OrbitalDynamics.Schema do
       expect_optional_one_of: 5,
       expect_optional_probability: 4,
       expect_optional_type: 5,
-      expect_probability_range: 4,
       expect_type: 5,
       require_fields: 4,
       require_nested: 4,
       validate_non_negative_integer_count_map: 3,
       validate_number_list_items: 4,
       validate_optional_exact_model_limits: 5,
-      validate_optional_string_lists: 4,
       validate_string_list_items: 4
     ]
 
   import OrbitalDynamics.Schema.CollectionValidation,
     only: [
-      expect_list_count_equals: 5,
-      validate_numeric_map: 3,
       validate_optional_rows: 4,
       validate_rows: 4
     ]
@@ -173,39 +168,6 @@ defmodule OrbitalDynamics.Schema do
   ]
   @operator_review_package_scalar_count_fields @operator_review_package_required_scalar_count_fields ++
                                                  @operator_review_package_optional_scalar_count_fields
-  @strategy_recommendation_pressure_handoff_string_list_fields [
-    "operational_readiness_report_ids",
-    "operational_readiness_source_artifact_types",
-    "operational_readiness_source_artifact_ids",
-    "operational_readiness_levels",
-    "operational_readiness_import_classifications",
-    "operational_readiness_statuses",
-    "operational_readiness_gate_ids",
-    "operational_readiness_gate_statuses",
-    "operational_readiness_gate_classifications",
-    "operational_readiness_required_operator_actions",
-    "operational_readiness_feedback_sources",
-    "operational_readiness_feedback_scopes",
-    "operational_readiness_feedback_keys",
-    "operational_readiness_trust_boundaries",
-    "quality_gate_report_ids",
-    "quality_gate_source_artifact_types",
-    "quality_gate_source_artifact_ids",
-    "quality_gate_source_readiness_report_ids",
-    "quality_gate_readiness_levels",
-    "quality_gate_import_classifications",
-    "quality_gate_pressure_statuses",
-    "quality_gate_ids",
-    "quality_gate_statuses",
-    "quality_gate_classifications",
-    "quality_gate_required_operator_actions",
-    "quality_gate_feedback_sources",
-    "quality_gate_feedback_scopes",
-    "quality_gate_feedback_keys",
-    "quality_gate_trust_boundaries",
-    "quality_gate_resource_availability_reason_ids",
-    "quality_gate_unavailable_resource_reason_ids"
-  ]
   @strategy_recommendation "strategy_recommendation.v1"
   @maneuver_recommendation "maneuver_recommendation.v1"
   @maneuver_review_report "maneuver_review_report.v1"
@@ -232,29 +194,6 @@ defmodule OrbitalDynamics.Schema do
   @timeline_transition_application_report "timeline_transition_application_report.v1"
   @timeline_transition_application_summary "timeline_transition_application_summary.v1"
   @branch_comparison_report "branch_comparison_report.v1"
-  @branch_comparison_row_count_fields [
-    "approval_requirement_count",
-    "branch_event_count",
-    "branch_requires_operator_review_count",
-    "candidate_activity_count",
-    "coverage_observed_target_count",
-    "priority_commitment_missed_target_count",
-    "priority_commitment_required_target_count",
-    "priority_commitment_satisfied_target_count",
-    "repair_delta_count",
-    "repair_link_contact_count",
-    "repair_link_selected_contact_count",
-    "repair_score_term_count",
-    "resource_projection_antenna_unavailable_count",
-    "resource_projection_degraded_payload_unavailable_count",
-    "resource_projection_flow_count",
-    "resource_projection_payload_unavailable_count",
-    "resource_projection_spacecraft_count",
-    "resource_projection_unavailable_spacecraft_count",
-    "resource_projection_warning_count",
-    "revisit_count",
-    "risk_count"
-  ]
   @cadence_import_manifest_scalar_count_fields [
     "blocked_count",
     "missing_import_count",
@@ -3382,7 +3321,8 @@ defmodule OrbitalDynamics.Schema do
       branch_event_trust_boundary_status_counts_schema:
         &branch_event_trust_boundary_status_counts_json_schema/0,
       non_negative_integer_properties: fn ->
-        non_negative_integer_property_schemas(@branch_comparison_row_count_fields)
+        OrbitalDynamics.Schema.BranchComparisonReportContracts.row_count_fields()
+        |> non_negative_integer_property_schemas()
       end,
       branch_scoped_downlink_context_properties:
         &branch_scoped_downlink_context_json_schema_properties/0
@@ -6456,8 +6396,7 @@ defmodule OrbitalDynamics.Schema do
     |> require_fields("$", artifact, contract["required_fields"])
     |> OrbitalDynamics.Schema.BranchComparisonReportContracts.validate(
       "$",
-      artifact,
-      branch_comparison_report_contract_callbacks()
+      artifact
     )
   end
 
@@ -6669,45 +6608,6 @@ defmodule OrbitalDynamics.Schema do
         registry_contract!(@execution_report),
         execution_report
       )
-
-  defp branch_comparison_report_contract_callbacks do
-    [
-      branch_comparison_model_limits:
-        &OrbitalDynamics.CampaignPlanner.branch_comparison_model_limits/0,
-      branch_comparison_row_count_fields: &branch_comparison_row_count_fields/0,
-      strategy_recommendation_pressure_handoff_string_list_fields:
-        &strategy_recommendation_pressure_handoff_string_list_fields/0,
-      require_fields: &require_fields/4,
-      expect_equal: &expect_equal/5,
-      expect_one_of: &expect_one_of/5,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_number: &expect_number/4,
-      expect_optional_number: &expect_optional_number/4,
-      expect_optional_integer: &expect_optional_integer/4,
-      expect_optional_non_negative_integer: &expect_optional_non_negative_integer/4,
-      expect_optional_probability: &expect_optional_probability/4,
-      expect_probability_range: &expect_probability_range/4,
-      expect_non_negative_integer: &expect_non_negative_integer/4,
-      expect_field_at_least: &expect_field_at_least/5,
-      expect_field_equals: &expect_field_equals/5,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      expect_list_count_equals: &expect_list_count_equals/5,
-      validate_branch_event_summary_fields: &validate_branch_event_summary_fields/3,
-      validate_numeric_map: &validate_numeric_map/3,
-      validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
-      validate_optional_string_lists: &validate_optional_string_lists/4,
-      validate_rows: &validate_rows/4,
-      validate_stable_ids: &validate_stable_ids/4,
-      validate_string_list_items: &validate_string_list_items/4,
-      error: &error/2
-    ]
-  end
-
-  defp branch_comparison_row_count_fields, do: @branch_comparison_row_count_fields
-
-  defp strategy_recommendation_pressure_handoff_string_list_fields,
-    do: @strategy_recommendation_pressure_handoff_string_list_fields
 
   defp campaign_plan_contract_callbacks do
     [
@@ -7659,8 +7559,7 @@ defmodule OrbitalDynamics.Schema do
     |> expect_optional_probability(path, row, "observation_success_factor")
     |> OrbitalDynamics.Schema.BranchComparisonReportContracts.validate_row_counts(
       path,
-      row,
-      branch_comparison_report_contract_callbacks()
+      row
     )
   end
 
