@@ -6,10 +6,10 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Capability-catalog fixture mapping.
+Capability-catalog fixture extraction handoff.
 
 Status:
-Publishing.
+Published as `8e4be181`.
 
 Selected slice:
 Move the sole remaining `capability_catalog.v1` fixture together with its
@@ -115,15 +115,19 @@ shrunk from 235 to 105 lines and contains only aliases, registry composition,
 `all/0`, and `fetch/1`; the new leaf is 136 lines and owns exactly one fixture.
 
 Last completed slice:
-Station-reservation extraction published as `7e53ba2c`: the exact 12-fixture
-workflow moved into a new 822-line leaf, the facade shrank from 1,047 to 235
-lines, the 195-entry map and all deterministic digests stayed exact, 11 focused
-and 181 full validation tests passed, and bounded review was clean.
+Capability-catalog extraction published as `8e4be181`: the final fixture and
+its private ordering attribute moved into a new 136-line leaf, the facade
+shrunk from 235 to 105 lines with no fixture state, the 195-entry map and all
+deterministic digests stayed exact, 5 focused and 181 full validation tests
+passed, and corrected bounded review was clean.
 
 Next candidate:
-Select the capability-catalog extraction described above, preserve the exact
-alias and merge-chain boundaries, then remove the final fixture state from the
-facade.
+Return to the named 8,018-line `Schema` hotspot. Map the isolated
+`validate_source_window_lineage/3` facade delegate: its established owner
+`Schema.CandidateDiffContracts` already exposes the exact guarded implementation,
+and the `source_window_lineage.v1` contract pipe appears to be its only caller.
+Capture callback/issue ordering, schema bundle/export bytes, and focused
+CandidateDiff validation baselines before replacing the delegate in place.
 
 Blocked:
 No.
