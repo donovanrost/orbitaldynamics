@@ -9,7 +9,7 @@ Current slice:
 Schema contact-allocation expiration-summary callback ownership cleanup.
 
 Status:
-Completed and verified; publishing.
+Completed and published.
 
 Selected slice:
 Point the cadence-import manifest and operator-review package expiration-summary
@@ -66,14 +66,15 @@ Behavior/schema changes:
 None.
 
 Last completed slice:
-Schema suppression duplicate-evidence callback ownership cleanup published as
-`9d901f0d`: three captures now use the owner’s default evidence pipeline, two
-pure facade helpers were removed, 182 schema/export tests passed, full export
-bytes stayed exact, and bounded review was clean.
+Schema contact-allocation expiration-summary callback ownership cleanup
+published as `7ceb704f`: both captures now point directly to the owner, the pure
+facade delegate was removed, 182 schema/export tests passed, full export bytes
+stayed exact, and bounded review was clean.
 
 Next candidate:
-After this boundary, retarget the single quality-gate handoff summary capture if
-its owner API and callback position remain exact.
+Point the single operator-review package quality-gate summary capture directly
+at `QualityGateHandoffContracts.validate_summary/3` and remove the pure facade
+delegate.
 
 Blocked:
 No.
