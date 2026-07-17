@@ -9,7 +9,7 @@ Current slice:
 Cadence-import realized-activity test-family extraction.
 
 Status:
-Selected; implementation not started.
+Implemented, verified, reviewed, and ready to publish.
 
 Selected slice:
 Move the four adjacent realized-activity and realized-state-snapshot import tests
@@ -43,17 +43,21 @@ unchanged; the original ledger no longer duplicates them, both focused and
 original-ledger test files pass, and bounded review finds no blocker.
 
 Outcome:
-Pending.
+Exactly four contiguous realized-activity/snapshot tests moved byte-for-byte into
+`OrbitalDynamics.CadenceImport.RealizedActivityTest`. Its one fixture-loading
+call receives an exact local copy of the five-line `read_json!/1` helper; the
+parent retains its copy for ten remaining consumers. The parent fell from 16,183
+to 15,999 lines and the focused module is 196 lines. All 113 Cadence import test
+names remain unique across the parent and four extracted modules.
 
 Verification gaps:
-- Not yet verified.
+- Full repository suite not run; this is a mechanical test-only extraction.
 
 Last completed slice:
-Cadence-import activity-input test-family extraction published as `aa73fce6`:
-five byte-identical tests moved into a 325-line focused module, shrinking the
-parent from 16,502 to 16,183 lines. The focused module passed 5/5, the parent
-102/102, and the full 113-test family remained unique and green; format, diff
-hygiene, and bounded review were clean.
+Cadence-import realized-activity test-family extraction, publication pending:
+the focused module passed 4/4 and the parent passed 98/98; across all extracted
+modules the full family remains 113/113 with no duplicate names. Format, diff
+hygiene, helper-copy review, and bounded review were clean.
 
 Blocked:
 No.
