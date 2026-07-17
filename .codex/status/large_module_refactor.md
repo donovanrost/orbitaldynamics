@@ -9,7 +9,7 @@ Current slice:
 Schema candidate-diff callback ownership cleanup.
 
 Status:
-Completed and verified; publishing.
+Completed and published.
 
 Selected slice:
 Point semantic-change details, changed-fields, optional-source-window, and
@@ -67,14 +67,15 @@ Behavior/schema changes:
 None.
 
 Last completed slice:
-Schema handoff-field callback ownership cleanup published as `0f51bf28`:
-twenty-three captures now point directly to `HandoffFieldContracts`, eight pure
+Schema candidate-diff callback ownership cleanup published as `ceb1cdb3`:
+fourteen positions now point directly to `CandidateDiffContracts`, four pure
 facade delegates were removed, 182 schema/export tests passed, full export
 bytes stayed exact, and bounded review was clean.
 
 Next candidate:
-After this boundary, audit `BranchEventContracts.validate_summary_fields/3`
-and the remaining scoped-context delegates by owner and capture count.
+Point the single branch-event validator and four branch-event summary-field
+positions directly at `BranchEventContracts`, then remove both pure facade
+delegates. Keep scoped-downlink callbacks separate.
 
 Blocked:
 No.
