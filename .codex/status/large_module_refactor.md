@@ -9,7 +9,7 @@ Current slice:
 Operator-review-package callback-bag and scalar-count metadata ownership collapse.
 
 Status:
-Selected; implementation not started.
+Implemented, verified, reviewed, and ready to publish.
 
 Selected slice:
 Replace the 19-entry operator-review-package keyword bag with direct shared
@@ -48,18 +48,26 @@ direct owners, exact messages and ordering remain stable, focused/broader/export
 checks pass, and bounded review finds no blocker.
 
 Outcome:
-Pending.
+The callback bag now contains only the four genuine Schema-domain validators;
+15 shared primitive dependencies and their lookup/apply wrappers became direct
+owner calls. The owner now owns the exact required and optional scalar-count
+lists, and Schema JSON generation consumes its combined list. Three orphaned
+Schema imports, the field-group helper, and two equality shims disappeared.
+Review caught an implicit equality-message regression; the exact local shim was
+restored in the owner and an assertion now guards `"must equal 1"`. `schema.ex`
+fell from 10,179 to 10,100 lines and the owner from 339 to 297, for a net code
+reduction of 121 lines (120 including the one-line test strengthening).
 
 Verification gaps:
-- Not yet verified.
+- Full repository suite not run. The broader regression remains at the
+  baseline-proven 1,340/1,345 result with the same five unrelated
+  campaign-planner failures.
 
 Last completed slice:
-Branch-comparison-report callback and metadata ownership collapse published as
-`9f095287`: `schema.ex` fell from 10,280 to 10,179 lines and the owner from 547
-to 474, for a net reduction of 174 lines. One hundred ninety-four focused and
-24 export tests passed; the broader suite produced the baseline-proven
-1,340/1,345 result. Compile, checked-in export regeneration, compile-connected
-xref, format, diff hygiene, and bounded review were clean.
+Operator-review-package callback and metadata ownership collapse, publication
+pending: 201 focused and 24 export tests passed; the broader suite produced the
+baseline-proven 1,340/1,345 result. Compile, checked-in export regeneration,
+compile-connected xref, format, diff hygiene, and bounded re-review were clean.
 
 Blocked:
 No.

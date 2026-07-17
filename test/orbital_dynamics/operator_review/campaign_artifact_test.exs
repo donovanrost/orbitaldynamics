@@ -86,7 +86,8 @@ defmodule OrbitalDynamics.OperatorReview.CampaignArtifactTest do
 
     assert Enum.any?(
              scalar_count_report["errors"],
-             &(&1["path"] == "$.contention_recommendation_count")
+             &(&1["path"] == "$.contention_recommendation_count" and
+                 &1["message"] == "must equal 1")
            )
 
     stale_model_limits = Map.put(package, "model_limits", ["no_schedule_mutation"])

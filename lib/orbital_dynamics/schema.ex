@@ -20,7 +20,6 @@ defmodule OrbitalDynamics.Schema do
       expect_equal: 5,
       expect_field_at_least: 5,
       expect_field_equals: 6,
-      expect_non_negative_integer: 4,
       expect_one_of: 5,
       expect_optional_integer: 4,
       expect_optional_non_negative_integer: 4,
@@ -31,9 +30,7 @@ defmodule OrbitalDynamics.Schema do
       expect_type: 5,
       require_fields: 4,
       require_nested: 4,
-      validate_non_negative_integer_count_map: 3,
       validate_number_list_items: 4,
-      validate_optional_exact_model_limits: 5,
       validate_string_list_items: 4
     ]
 
@@ -120,54 +117,6 @@ defmodule OrbitalDynamics.Schema do
   @operational_quality_gate_import_readiness_summary "operational_quality_gate_import_readiness_summary.v1"
   @quality_gate_report "quality_gate_report.v1"
   @operator_review_package "operator_review_package.v1"
-  @operator_review_package_required_scalar_count_fields [
-    "review_count",
-    "approval_requirement_count",
-    "contention_recommendation_count",
-    "realized_feedback_count",
-    "warning_count",
-    "risk_count",
-    "recommendation_count"
-  ]
-  @operator_review_package_optional_scalar_count_fields [
-    "plan_delta_count",
-    "timeline_protection_count",
-    "policy_escalation_count",
-    "contact_suppression_count",
-    "resource_projection_review_count",
-    "command_window_count",
-    "station_calendar_review_count",
-    "station_reservation_review_count",
-    "link_capacity_review_count",
-    "contention_review_count",
-    "resource_suppression_count",
-    "contact_allocation_review_count",
-    "contact_allocation_capacity_pack_review_count",
-    "contact_intent_review_count",
-    "candidate_rejection_review_count",
-    "provider_counteroffer_review_count",
-    "candidate_diff_review_count",
-    "freshness_review_count",
-    "refresh_budget_review_count",
-    "model_acceptance_review_count",
-    "validation_safety_case_review_count",
-    "timeline_diff_count",
-    "maneuver_review_count",
-    "score_term_review_count",
-    "objective_tradeoff_review_count",
-    "constraint_review_count",
-    "objective_satisfaction_review_count",
-    "schema_validation_review_count",
-    "execution_review_count",
-    "operational_timeline_count",
-    "pareto_frontier_count",
-    "tradeoff_count",
-    "ranking_comparison_count",
-    "operational_readiness_review_count",
-    "quality_gate_review_count"
-  ]
-  @operator_review_package_scalar_count_fields @operator_review_package_required_scalar_count_fields ++
-                                                 @operator_review_package_optional_scalar_count_fields
   @strategy_recommendation "strategy_recommendation.v1"
   @maneuver_recommendation "maneuver_recommendation.v1"
   @maneuver_review_report "maneuver_review_report.v1"
@@ -3005,14 +2954,15 @@ defmodule OrbitalDynamics.Schema do
       contract,
       &OrbitalDynamics.Schema.OperatorReviewPackageJsonSchema.property_field?(
         &1,
-        @operator_review_package_scalar_count_fields
+        OrbitalDynamics.Schema.OperatorReviewPackageContracts.scalar_count_fields()
       ),
       OrbitalDynamics.Schema.OperatorReviewPackageJsonSchema.property_fun_from_context(
         capability: OrbitalDynamics.OperatorReview.capabilities(),
         model_limits: operator_review_package_model_limits(),
         readiness_capability: OrbitalDynamics.OperationalReadiness.capabilities(),
         row_schema: operator_review_row_json_schema(),
-        scalar_count_fields: @operator_review_package_scalar_count_fields,
+        scalar_count_fields:
+          OrbitalDynamics.Schema.OperatorReviewPackageContracts.scalar_count_fields(),
         stable_id_pattern: @stable_id_pattern
       )
     )
@@ -8565,12 +8515,6 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp expect_field_equals(issues, path, map, field, nil),
-    do: expect_field_equals(issues, path, map, field, nil, nil)
-
-  defp expect_field_equals(issues, path, map, field, expected),
-    do: expect_field_equals(issues, path, map, field, expected, "must equal #{expected}")
-
   defp validate_plan_delta(issues, path, delta) do
     OrbitalDynamics.Schema.PlanDeltaContracts.validate(
       issues,
@@ -9816,41 +9760,18 @@ defmodule OrbitalDynamics.Schema do
       package,
       OrbitalDynamics.OperatorReview.capabilities().source_artifact_types,
       operator_review_package_model_limits(),
-      operator_review_package_contract_field_groups(),
       operator_review_package_contract_callbacks()
     )
   end
 
-  defp operator_review_package_contract_field_groups do
-    [
-      required_scalar_count_fields: @operator_review_package_required_scalar_count_fields,
-      optional_scalar_count_fields: @operator_review_package_optional_scalar_count_fields
-    ]
-  end
-
   defp operator_review_package_contract_callbacks do
     [
-      expect_equal: &expect_equal/5,
-      expect_one_of: &expect_one_of/5,
-      validate_stable_ids: &validate_stable_ids/4,
-      expect_non_negative_integer: &expect_non_negative_integer/4,
-      expect_optional_non_negative_integer: &expect_optional_non_negative_integer/4,
-      expect_optional_type: &expect_optional_type/5,
-      validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
-      validate_string_list_items: &validate_string_list_items/4,
       validate_contact_allocation_expiration_handoff_summary:
         &validate_contact_allocation_expiration_handoff_summary/3,
       validate_quality_gate_handoff_summary: &validate_quality_gate_handoff_summary/3,
-      validate_optional_exact_model_limits: &validate_optional_exact_model_limits/5,
-      expect_type: &expect_type/5,
-      validate_rows: &validate_rows/4,
       validate_operator_review_row: &validate_operator_review_row/3,
       validate_suppression_duplicate_handoff_groups:
-        &validate_suppression_duplicate_handoff_groups/3,
-      validate_non_negative_integer_count_map: &validate_non_negative_integer_count_map/3,
-      expect_field_equals: &expect_field_equals/5,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      error: &error/2
+        &validate_suppression_duplicate_handoff_groups/3
     ]
   end
 

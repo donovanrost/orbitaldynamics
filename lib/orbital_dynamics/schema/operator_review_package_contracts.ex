@@ -1,6 +1,74 @@
 defmodule OrbitalDynamics.Schema.OperatorReviewPackageContracts do
   @moduledoc false
 
+  import OrbitalDynamics.Schema.CollectionValidation, only: [validate_rows: 4]
+
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [
+      error: 2,
+      expect_equal: 5,
+      expect_field_equals: 6,
+      expect_non_negative_integer: 4,
+      expect_one_of: 5,
+      expect_optional_non_negative_integer: 4,
+      expect_optional_type: 5,
+      expect_type: 5,
+      validate_non_negative_integer_count_map: 3,
+      validate_optional_exact_model_limits: 5,
+      validate_string_list_items: 4
+    ]
+
+  import OrbitalDynamics.Schema.StableIdValidation,
+    only: [validate_optional_stable_id_list: 4, validate_stable_ids: 4]
+
+  @required_scalar_count_fields [
+    "review_count",
+    "approval_requirement_count",
+    "contention_recommendation_count",
+    "realized_feedback_count",
+    "warning_count",
+    "risk_count",
+    "recommendation_count"
+  ]
+
+  @optional_scalar_count_fields [
+    "plan_delta_count",
+    "timeline_protection_count",
+    "policy_escalation_count",
+    "contact_suppression_count",
+    "resource_projection_review_count",
+    "command_window_count",
+    "station_calendar_review_count",
+    "station_reservation_review_count",
+    "link_capacity_review_count",
+    "contention_review_count",
+    "resource_suppression_count",
+    "contact_allocation_review_count",
+    "contact_allocation_capacity_pack_review_count",
+    "contact_intent_review_count",
+    "candidate_rejection_review_count",
+    "provider_counteroffer_review_count",
+    "candidate_diff_review_count",
+    "freshness_review_count",
+    "refresh_budget_review_count",
+    "model_acceptance_review_count",
+    "validation_safety_case_review_count",
+    "timeline_diff_count",
+    "maneuver_review_count",
+    "score_term_review_count",
+    "objective_tradeoff_review_count",
+    "constraint_review_count",
+    "objective_satisfaction_review_count",
+    "schema_validation_review_count",
+    "execution_review_count",
+    "operational_timeline_count",
+    "pareto_frontier_count",
+    "tradeoff_count",
+    "ranking_comparison_count",
+    "operational_readiness_review_count",
+    "quality_gate_review_count"
+  ]
+
   @optional_count_maps [
     "review_type_counts",
     "review_queue_counts",
@@ -13,56 +81,53 @@ defmodule OrbitalDynamics.Schema.OperatorReviewPackageContracts do
     "station_reservation_match_status_counts"
   ]
 
+  def scalar_count_fields, do: @required_scalar_count_fields ++ @optional_scalar_count_fields
+
   def validate(
         issues,
         path,
         package,
         source_artifact_types,
         model_limits,
-        field_groups,
         callbacks
       )
-      when is_list(source_artifact_types) and is_list(model_limits) and is_list(field_groups) and
-             is_list(callbacks) do
+      when is_list(source_artifact_types) and is_list(model_limits) and is_list(callbacks) do
     issues
-    |> expect_equal(path, package, "schema_contract", "operator_review_package.v1", callbacks)
-    |> expect_equal(path, package, "model", "artifact_only_operator_review_package", callbacks)
+    |> expect_equal(path, package, "schema_contract", "operator_review_package.v1")
+    |> expect_equal(path, package, "model", "artifact_only_operator_review_package")
     |> expect_one_of(
       path,
       package,
       "source_artifact_type",
-      source_artifact_types,
-      callbacks
+      source_artifact_types
     )
-    |> validate_stable_ids(path, package, ["source_artifact_id"], callbacks)
-    |> validate_scalar_counts(path, package, field_groups, callbacks)
-    |> validate_optional_count_map_types(path, package, callbacks)
-    |> expect_optional_type(path, package, "station_reservation_ids", :list, callbacks)
-    |> validate_optional_stable_id_list(path, package, "station_reservation_ids", callbacks)
-    |> expect_optional_type(path, package, "station_reserved_bys", :list, callbacks)
-    |> validate_string_list_items(path, package, "station_reserved_bys", callbacks)
-    |> expect_optional_type(path, package, "station_reservation_statuses", :list, callbacks)
-    |> validate_string_list_items(path, package, "station_reservation_statuses", callbacks)
+    |> validate_stable_ids(path, package, ["source_artifact_id"])
+    |> validate_scalar_counts(path, package)
+    |> validate_optional_count_map_types(path, package)
+    |> expect_optional_type(path, package, "station_reservation_ids", :list)
+    |> validate_optional_stable_id_list(path, package, "station_reservation_ids")
+    |> expect_optional_type(path, package, "station_reserved_bys", :list)
+    |> validate_string_list_items(path, package, "station_reserved_bys")
+    |> expect_optional_type(path, package, "station_reservation_statuses", :list)
+    |> validate_string_list_items(path, package, "station_reservation_statuses")
     |> validate_contact_allocation_expiration_handoff_summary(path, package, callbacks)
     |> validate_quality_gate_handoff_summary(path, package, callbacks)
-    |> expect_optional_type(path, package, "model_limits", :list, callbacks)
-    |> validate_string_list_items(path, package, "model_limits", callbacks)
+    |> expect_optional_type(path, package, "model_limits", :list)
+    |> validate_string_list_items(path, package, "model_limits")
     |> validate_optional_exact_model_limits(
       path,
       package,
       model_limits,
-      "must match operator review package model limits",
-      callbacks
+      "must match operator review package model limits"
     )
-    |> validate_assumptions(path, package, callbacks)
-    |> expect_type(path, package, "rows", :list, callbacks)
-    |> expect_type(path, package, "provenance", :map, callbacks)
-    |> expect_type(path, package, "assumptions", :map, callbacks)
+    |> validate_assumptions(path, package)
+    |> expect_type(path, package, "rows", :list)
+    |> expect_type(path, package, "provenance", :map)
+    |> expect_type(path, package, "assumptions", :map)
     |> validate_rows(
       path <> ".rows",
       Map.get(package, "rows", []),
-      :validate_operator_review_row,
-      callbacks
+      require_callback(callbacks, :validate_operator_review_row)
     )
     |> validate_suppression_duplicate_handoff_groups(
       path,
@@ -72,28 +137,26 @@ defmodule OrbitalDynamics.Schema.OperatorReviewPackageContracts do
     |> validate_counts(path, package, callbacks)
   end
 
-  defp validate_scalar_counts(issues, path, package, field_groups, callbacks) do
+  defp validate_scalar_counts(issues, path, package) do
     issues =
-      field_groups
-      |> Keyword.fetch!(:required_scalar_count_fields)
+      @required_scalar_count_fields
       |> Enum.reduce(issues, fn field, acc ->
-        expect_non_negative_integer(acc, path, package, field, callbacks)
+        expect_non_negative_integer(acc, path, package, field)
       end)
 
-    field_groups
-    |> Keyword.fetch!(:optional_scalar_count_fields)
+    @optional_scalar_count_fields
     |> Enum.reduce(issues, fn field, acc ->
-      expect_optional_non_negative_integer(acc, path, package, field, callbacks)
+      expect_optional_non_negative_integer(acc, path, package, field)
     end)
   end
 
-  defp validate_optional_count_map_types(issues, path, package, callbacks) do
+  defp validate_optional_count_map_types(issues, path, package) do
     Enum.reduce(@optional_count_maps, issues, fn field, acc ->
-      expect_optional_type(acc, path, package, field, :map, callbacks)
+      expect_optional_type(acc, path, package, field, :map)
     end)
   end
 
-  defp validate_assumptions(issues, path, package, callbacks) do
+  defp validate_assumptions(issues, path, package) do
     case Map.get(package, "assumptions") do
       %{} = assumptions ->
         if Map.has_key?(assumptions, "boundary") and
@@ -101,8 +164,7 @@ defmodule OrbitalDynamics.Schema.OperatorReviewPackageContracts do
           [
             error(
               path <> ".assumptions.boundary",
-              "must equal \"artifact_only_no_api_or_database_writes\"",
-              callbacks
+              "must equal \"artifact_only_no_api_or_database_writes\""
             )
             | issues
           ]
@@ -122,81 +184,72 @@ defmodule OrbitalDynamics.Schema.OperatorReviewPackageContracts do
       |> Enum.filter(&is_map/1)
 
     issues
-    |> expect_field_equals(path, package, "review_count", length(rows), callbacks)
-    |> validate_count_maps(path, package, callbacks)
+    |> expect_field_equals(path, package, "review_count", length(rows))
+    |> validate_count_maps(path, package)
     |> validate_contact_allocation_expiration_handoff_summary(path, package, callbacks)
     |> expect_field_equals(
       path,
       package,
       "review_type_counts",
       frequency_map(rows, "review_type"),
-      "must equal row-derived review_type_counts",
-      callbacks
+      "must equal row-derived review_type_counts"
     )
     |> expect_field_equals(
       path,
       package,
       "review_queue_counts",
       frequency_map(rows, "review_queue_key"),
-      "must equal row-derived review_queue_counts",
-      callbacks
+      "must equal row-derived review_queue_counts"
     )
     |> expect_field_equals(
       path,
       package,
       "approval_status_counts",
       frequency_map(rows, "approval_status"),
-      "must equal row-derived approval_status_counts",
-      callbacks
+      "must equal row-derived approval_status_counts"
     )
     |> expect_field_equals(
       path,
       package,
       "required_operator_action_counts",
       frequency_map(rows, "required_operator_action"),
-      "must equal row-derived required_operator_action_counts",
-      callbacks
+      "must equal row-derived required_operator_action_counts"
     )
     |> expect_field_equals(
       path,
       package,
       "cadence_import_status_counts",
       frequency_map(rows, "cadence_import_status"),
-      "must equal row-derived cadence_import_status_counts",
-      callbacks
+      "must equal row-derived cadence_import_status_counts"
     )
     |> expect_field_equals(
       path,
       package,
       "source_cadence_import_status_counts",
       frequency_map(rows, "source_cadence_import_status"),
-      "must equal row-derived source_cadence_import_status_counts",
-      callbacks
+      "must equal row-derived source_cadence_import_status_counts"
     )
     |> expect_field_equals(
       path,
       package,
       "replacement_cadence_import_status_counts",
       frequency_map(rows, "replacement_cadence_import_status"),
-      "must equal row-derived replacement_cadence_import_status_counts",
-      callbacks
+      "must equal row-derived replacement_cadence_import_status_counts"
     )
     |> expect_field_equals(
       path,
       package,
       "contention_recommendation_count",
-      Enum.count(rows, &(Map.get(&1, "review_type") == "contact_contention_recommendation")),
-      callbacks
+      Enum.count(rows, &(Map.get(&1, "review_type") == "contact_contention_recommendation"))
     )
   end
 
-  defp validate_count_maps(issues, path, package, callbacks) do
+  defp validate_count_maps(issues, path, package) do
     Enum.reduce(@optional_count_maps, issues, fn field, acc ->
       validate_non_negative_integer_count_map(
         acc,
         path <> ".#{field}",
-        Map.get(package, field),
-        callbacks
+        Map.get(package, field)
       )
     end)
   end
@@ -208,49 +261,8 @@ defmodule OrbitalDynamics.Schema.OperatorReviewPackageContracts do
     |> Enum.frequencies()
   end
 
-  defp expect_equal(issues, path, map, field, expected, callbacks),
-    do: apply(require_callback(callbacks, :expect_equal), [issues, path, map, field, expected])
-
-  defp expect_one_of(issues, path, map, field, allowed, callbacks),
-    do: apply(require_callback(callbacks, :expect_one_of), [issues, path, map, field, allowed])
-
-  defp validate_stable_ids(issues, path, map, fields, callbacks),
-    do: apply(require_callback(callbacks, :validate_stable_ids), [issues, path, map, fields])
-
-  defp expect_non_negative_integer(issues, path, map, field, callbacks),
-    do:
-      apply(require_callback(callbacks, :expect_non_negative_integer), [issues, path, map, field])
-
-  defp expect_optional_non_negative_integer(issues, path, map, field, callbacks),
-    do:
-      apply(require_callback(callbacks, :expect_optional_non_negative_integer), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp expect_optional_type(issues, path, map, field, type, callbacks),
-    do:
-      apply(require_callback(callbacks, :expect_optional_type), [issues, path, map, field, type])
-
-  defp validate_optional_stable_id_list(issues, path, map, field, callbacks),
-    do:
-      apply(require_callback(callbacks, :validate_optional_stable_id_list), [
-        issues,
-        path,
-        map,
-        field
-      ])
-
-  defp validate_string_list_items(issues, path, map, field, callbacks),
-    do:
-      apply(require_callback(callbacks, :validate_string_list_items), [
-        issues,
-        path,
-        map,
-        field
-      ])
+  defp expect_field_equals(issues, path, map, field, expected),
+    do: expect_field_equals(issues, path, map, field, expected, "must equal #{expected}")
 
   defp validate_contact_allocation_expiration_handoff_summary(issues, path, package, callbacks),
     do:
@@ -271,28 +283,6 @@ defmodule OrbitalDynamics.Schema.OperatorReviewPackageContracts do
         package
       ])
 
-  defp validate_optional_exact_model_limits(issues, path, map, expected, message, callbacks),
-    do:
-      apply(require_callback(callbacks, :validate_optional_exact_model_limits), [
-        issues,
-        path,
-        map,
-        expected,
-        message
-      ])
-
-  defp expect_type(issues, path, map, field, type, callbacks),
-    do: apply(require_callback(callbacks, :expect_type), [issues, path, map, field, type])
-
-  defp validate_rows(issues, path, rows, validator_name, callbacks),
-    do:
-      apply(require_callback(callbacks, :validate_rows), [
-        issues,
-        path,
-        rows,
-        require_callback(callbacks, validator_name)
-      ])
-
   defp validate_suppression_duplicate_handoff_groups(issues, path, rows, callbacks),
     do:
       apply(require_callback(callbacks, :validate_suppression_duplicate_handoff_groups), [
@@ -300,38 +290,6 @@ defmodule OrbitalDynamics.Schema.OperatorReviewPackageContracts do
         path,
         rows
       ])
-
-  defp validate_non_negative_integer_count_map(issues, path, counts, callbacks),
-    do:
-      apply(require_callback(callbacks, :validate_non_negative_integer_count_map), [
-        issues,
-        path,
-        counts
-      ])
-
-  defp expect_field_equals(issues, path, map, field, expected, callbacks),
-    do:
-      apply(require_callback(callbacks, :expect_field_equals), [
-        issues,
-        path,
-        map,
-        field,
-        expected
-      ])
-
-  defp expect_field_equals(issues, path, map, field, expected, message, callbacks),
-    do:
-      apply(require_callback(callbacks, :expect_field_equals_with_message), [
-        issues,
-        path,
-        map,
-        field,
-        expected,
-        message
-      ])
-
-  defp error(path, message, callbacks),
-    do: apply(require_callback(callbacks, :error), [path, message])
 
   defp require_callback(callbacks, name) do
     Keyword.fetch!(callbacks, name)
