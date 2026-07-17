@@ -9,7 +9,7 @@ Current slice:
 Validation candidate-refresh base fixture test-family extraction.
 
 Status:
-Ready to publish.
+Published as `a37bc4ae`.
 
 Selected slice:
 Move the two contiguous candidate-refresh base artifact and resource-provenance
@@ -57,11 +57,11 @@ Verification gaps:
 - Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
-Validation model-acceptance/safety-case fixture extraction published as
-`da789d0c`: the focused module passed 2/2, the parent passed 66/66, and all
-twenty-six Validation modules preserved the 181-test aggregate with no duplicate
-names. Format, diff hygiene, exact-source and dependency-closure checks, and
-bounded review were clean.
+Validation candidate-refresh base fixture extraction published as `a37bc4ae`:
+the focused module passed 2/2, the parent passed 64/64, and all twenty-seven
+Validation modules preserved the 181-test aggregate with no duplicate names.
+Format, diff hygiene, exact-source and dependency-closure checks, and bounded
+review were clean.
 
 Next candidate:
 Map the candidate-refresh contact contention and contact-intent replay tests
