@@ -5134,7 +5134,7 @@ defmodule OrbitalDynamics.Schema do
   defp validate_contract(@realized_state_snapshot, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_realized_state_snapshot("$", artifact)
+    |> OrbitalDynamics.Schema.RealizedStateSnapshotContracts.validate("$", artifact)
   end
 
   defp validate_contract(@timeline_feedback_report, contract, artifact) do
@@ -5928,7 +5928,8 @@ defmodule OrbitalDynamics.Schema do
       expect_equal: &expect_equal/5,
       expect_type: &expect_type/5,
       expect_one_of: &expect_one_of/5,
-      validate_realized_state_snapshot: &validate_realized_state_snapshot/3,
+      validate_realized_state_snapshot:
+        &OrbitalDynamics.Schema.RealizedStateSnapshotContracts.validate/3,
       validate_rows: &validate_rows/4,
       validate_optional_rows: &validate_optional_rows/4,
       validate_activity: &OrbitalDynamics.Schema.ActivityContracts.validate/3,
@@ -6214,14 +6215,6 @@ defmodule OrbitalDynamics.Schema do
       "pending_operator_review",
       "ready_for_review"
     ])
-  end
-
-  defp validate_realized_state_snapshot(issues, path, snapshot) do
-    OrbitalDynamics.Schema.RealizedStateSnapshotContracts.validate(
-      issues,
-      path,
-      snapshot
-    )
   end
 
   defp validate_operational_feedback(issues, path, feedback) do
