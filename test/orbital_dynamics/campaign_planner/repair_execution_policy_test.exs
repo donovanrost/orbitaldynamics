@@ -111,10 +111,39 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairExecutionPolicyTest do
         current_epoch_s: 320.0
       )
 
-    assert [%{"id" => "burn_1"}, %{"id" => "obs_after_burn", "repair" => downstream}] =
+    assert [
+             %{
+               "id" => "burn_1",
+               "starts_at_s" => 360.0,
+               "ends_at_s" => 390.0,
+               "repair" => %{
+                 "action" => "moved",
+                 "realized_status" => "delayed",
+                 "schedule_churn_s" => 60.0,
+                 "requires_approval" => true
+               }
+             },
+             %{"id" => "obs_after_burn", "repair" => downstream}
+           ] =
              Enum.sort_by(artifact["activities"], & &1["id"])
 
     assert downstream["affected_by_delayed_maneuver"]
+
+    assert [
+             %{
+               "activity_id" => "burn_1",
+               "status" => "delayed",
+               "repair_action" => "moved",
+               "replacement_activity_id" => "burn_1",
+               "requires_approval" => true
+             }
+           ] = Enum.filter(artifact["deltas"], &(&1["activity_id"] == "burn_1"))
+
+    assert Enum.any?(
+             artifact["approval_requirements"],
+             &(&1["activity_id"] == "burn_1" and
+                 &1["action"] == "approve_delayed_maneuver")
+           )
 
     assert Enum.any?(
              artifact["approval_requirements"],
@@ -122,6 +151,19 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairExecutionPolicyTest do
            )
 
     assert Enum.any?(artifact["warnings"], &String.contains?(&1, "affected by delayed maneuver"))
+  end
+
+  test "repair requires a numeric actual start for a delayed maneuver" do
+    assert_raise ArgumentError, "actual_starts_at_s must be numeric", fn ->
+      repair(
+        %{
+          "activities" => [maneuver("burn_1", 300.0)],
+          "candidate_activities" => []
+        },
+        realized_state: %{activities: [%{id: "burn_1", status: "delayed"}]},
+        current_epoch_s: 320.0
+      )
+    end
   end
 
   test "repair suppresses degraded spacecraft payload activities and preserves health checks" do

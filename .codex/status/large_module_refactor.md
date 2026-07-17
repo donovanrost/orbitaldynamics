@@ -9,7 +9,7 @@ Current slice:
 CampaignPlanner repair maneuver timing-impact extraction.
 
 Status:
-Selected.
+Ready to publish.
 
 Selected slice:
 Extract delayed-maneuver movement and downstream activity-impact annotation
@@ -42,10 +42,23 @@ approvals, and ordering remain exact; focused tests pass; and bounded review
 finds no blocker.
 
 Outcome:
-Pending.
+Added `RepairManeuverTransitions` as the owner for delayed-maneuver movement,
+tracking, and downstream activity-impact annotation. The repair reduce and
+status dispatch now delegate directly; the facade's final repair metadata
+helper and accumulator alias are gone. The facade fell from 4,138 to 4,052
+lines; the explicit 96-line owner makes the bounded scope net +10 lines while
+removing 86 lines of timing-impact responsibility from the facade.
 
 Verification gaps:
-- Pending.
+- Strict compilation and diff hygiene pass.
+- Delayed-maneuver execution-policy, timeline-protection, and determinism
+  families pass 17/17, including exact shifted timing, churn metadata, delta
+  linkage, approval, and invalid actual-start assertions.
+- Delay calculation, moved metadata, affected-activity matching, accumulator
+  call order, warning/approval text, and both changed call sites were audited
+  against selection commit `ec52bddd`.
+- Independent review's focused-proof finding was corrected; re-review found no
+  blocker.
 
 Last completed slice:
 RepairAccumulator delayed-maneuver mutation ownership published as
