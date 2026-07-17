@@ -6,33 +6,34 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema filter-report JSON property-dispatch extraction.
+Schema resource-projection JSON property-dispatch extraction.
 
 Status:
-Published.
+Selected.
 
 Selected slice:
-Extract property dispatch for contact-filter and resource-filter reports from
-`OrbitalDynamics.Schema` into one internal filter-report dispatcher.
+Extract property dispatch for resource-projection report and
+resource-projection flow summary from `OrbitalDynamics.Schema` into one
+internal resource-projection dispatcher.
 
 Why this slice:
-The two adjacent report clauses share stable identity and suppressed-candidate
-schema dependencies, retain explicit family-specific assumptions/model limits,
-and have focused filter-report coverage. Allocation summaries, resource
-projection, and filter runtime behavior remain out of scope.
+The two adjacent clauses share stable identity, model-limit, and assumptions
+dependencies while retaining explicit report/summary row paths and focused
+resource contract coverage. Filter reports, contention, and projection runtime
+behavior remain out of scope.
 
 Public facade to preserve:
 All `OrbitalDynamics.Schema` public functions, exact JSON Schema maps and
-validators for the two filter-report contracts, bundle ordering,
+validators for the two resource-projection contracts, bundle ordering,
 and checked-in schema bytes.
 
 Likely files:
 - `lib/orbital_dynamics/schema.ex`
-- new filter-report property-dispatch module
+- new resource-projection property-dispatch module
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
-- focused filter-report contract tests
+- focused resource contract tests
 - JSON schema export tests
 - schema export task tests
 - full checked-in export regeneration and aggregate digest comparison
@@ -45,24 +46,10 @@ exports remain exact; focused and export tests pass; and bounded review finds
 no blocker.
 
 Outcome:
-The two facade clauses are now one guarded delegate to
-`OrbitalDynamics.Schema.FilterReportPropertyDispatch`. The dispatcher preserves
-contract-to-module routing, focused-field selection, shared stable-identity and
-suppressed-candidate callbacks, distinct model-limit/assumptions callbacks,
-contact-only trust-boundary schema wiring, and the common fallback. The facade
-is 9,507 lines; the new dispatcher is 46 lines. Implementation published as
-`6646d27e`.
+Pending.
 
 Verification gaps:
-- `mix compile --warnings-as-errors` passed.
-- 23 focused filter-report, JSON export, schema export, and export-task tests
-  passed.
-- Full checked-in export regeneration remained byte-identical at aggregate
-  digest `95051be82cec8a75634e4e8712dadd102888f59998d2c26ebe7c36065d824d3b`.
-- Scoped format, diff hygiene, and xref checks passed; xref reports only the
-  expected runtime caller from `OrbitalDynamics.Schema`.
-- Bounded read-only review found no blocker or follow-up finding.
-- None for this slice.
+- Pending.
 
 Last completed slice:
 Schema filter-report property dispatch published as `6646d27e`: contact and
@@ -71,12 +58,9 @@ focused/export tests passed, full regeneration was byte-identical, and bounded
 review found no blocker.
 
 Next candidate:
-Extract the adjacent resource-projection report and flow-summary property
-clauses into one internal projection dispatcher. Preserve shared stable
-identity/model-limit/assumptions callbacks, report-only models/projection-row
-callbacks, flow-summary-only activity-flow-row callback, common fallback,
-validators, and exact exports. Leave filter and contention clauses in the
-facade.
+Audit one adjacent multi-contract report/property family after this slice is
+published. Leave single-contract neighbors in the facade unless a broader
+cohesive boundary emerges.
 
 Blocked:
 No.
