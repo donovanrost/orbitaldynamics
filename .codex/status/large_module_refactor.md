@@ -6,10 +6,10 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema station-calendar contact-count callback ownership mapping.
+Schema station-calendar contact-count callback ownership handoff.
 
 Status:
-Ready for publication.
+Published as `67180b1a`.
 
 Selected slice:
 Point the final `validate_station_calendar_contact_counts` domain callback
@@ -63,7 +63,10 @@ from 7,813 to 7,805 lines, focused 10 and complete 182 tests passed, all 122
 exports byte-matched, and review was clean.
 
 Next candidate:
-After review and publication, continue the structural exact-wrapper inventory.
+Map the single runtime call to `validate_policy_escalation/3` from optional
+policy-escalation validation. It delegates exactly to
+`PolicyEscalationContracts.validate/3`; preserve the optional-field branch and
+use focused policy contract coverage.
 
 Blocked:
 No.
