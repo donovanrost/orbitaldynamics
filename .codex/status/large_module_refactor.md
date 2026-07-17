@@ -9,7 +9,7 @@ Current slice:
 Schema capability and validation-evidence direct owner routing.
 
 Status:
-Ready to publish.
+Published as `9cef6d55`.
 
 Selected slice:
 Route model-capability, validation-record/reference/check, model-acceptance, and
@@ -61,10 +61,9 @@ Verification gaps:
 - Independent bounded review found no blocker.
 
 Last completed slice:
-CampaignPlanner repair activity-dispatch extraction published as `ce902067`:
-one owner now supplies normalization, status/protection priority, and
-transition selection; 68 focused tests passed and bounded review found no
-blocker.
+Schema capability and validation-evidence direct owner routing published as
+`9cef6d55`: eight redundant wrappers are gone, 32 focused tests passed, export
+bytes remained exact, and bounded review found no blocker.
 
 Next candidate:
 Continue schema direct-owner routing only where a whole contract family can be
