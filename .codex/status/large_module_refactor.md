@@ -9,7 +9,7 @@ Current slice:
 CandidateRefresh timeline activity-state replay callback removal.
 
 Status:
-Selected.
+Review complete; ready to publish.
 
 Selected slice:
 Remove the remaining source-summary callbacks from the five timeline
@@ -45,10 +45,23 @@ selection and outputs remain exact; no facade callback transport remains;
 focused tests pass; and bounded review finds no blocker.
 
 Outcome:
-Pending.
+All five timeline activity-state replay paths are now one-argument end to end.
+Dedicated owners and the shared single-state selection owner call
+`SourceReportSummary.build/1` directly for provenance fallback while retaining
+direct-state and branch-family precedence, contract matching, source-field
+selection, and existing summary constructors. The seven-file production diff
+removes 24 net lines.
 
 Verification gaps:
-- Pending.
+- `mix compile --warnings-as-errors`
+- seven focused replay files: 36 tests passed
+- scoped `mix format --check-formatted`
+- `git diff --check`
+- global facade callback and invocation audits: no matches
+- owner compile-connected graphs: no dependency edge
+- replay owner callers: aggregator only
+- shared selection callers: replay owner and retained source-field helper
+- bounded read-only review: clean, no findings
 
 Last completed slice:
 Candidate acceptance/safety replay callback removal published as `d3324fa7`:

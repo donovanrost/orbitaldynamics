@@ -101,24 +101,24 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary do
     ContactIntent.replay(refresh_or_artifact)
   end
 
-  def timeline_activity_state(refresh_or_artifact, source_report_summary) do
-    TimelineActivityState.replay(refresh_or_artifact, source_report_summary)
+  def timeline_activity_state(refresh_or_artifact) do
+    TimelineActivityState.replay(refresh_or_artifact)
   end
 
-  def timeline_activity_status_state(refresh_or_artifact, source_report_summary) do
-    TimelineActivitySingleState.status(refresh_or_artifact, source_report_summary)
+  def timeline_activity_status_state(refresh_or_artifact) do
+    TimelineActivitySingleState.status(refresh_or_artifact)
   end
 
-  def timeline_activity_approval_state(refresh_or_artifact, source_report_summary) do
-    TimelineActivitySingleState.approval(refresh_or_artifact, source_report_summary)
+  def timeline_activity_approval_state(refresh_or_artifact) do
+    TimelineActivitySingleState.approval(refresh_or_artifact)
   end
 
-  def timeline_activity_lifecycle_state(refresh_or_artifact, source_report_summary) do
-    TimelineActivityLifecycleState.replay(refresh_or_artifact, source_report_summary)
+  def timeline_activity_lifecycle_state(refresh_or_artifact) do
+    TimelineActivityLifecycleState.replay(refresh_or_artifact)
   end
 
-  def timeline_activity_precondition(refresh_or_artifact, source_report_summary) do
-    TimelineActivityPrecondition.replay(refresh_or_artifact, source_report_summary)
+  def timeline_activity_precondition(refresh_or_artifact) do
+    TimelineActivityPrecondition.replay(refresh_or_artifact)
   end
 
   def timeline_preservation(refresh_or_artifact) do

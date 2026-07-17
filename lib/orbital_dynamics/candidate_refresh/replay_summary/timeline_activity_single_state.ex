@@ -20,23 +20,22 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelineActivitySingleS
     authority_boundary: "not_granted_by_timeline_activity_approval_state_replay_summary"
   }
 
-  def status(refresh_or_artifact, source_report_summary) do
-    replay(refresh_or_artifact, @status, source_report_summary)
+  def status(refresh_or_artifact) do
+    replay(refresh_or_artifact, @status)
   end
 
-  def approval(refresh_or_artifact, source_report_summary) do
-    replay(refresh_or_artifact, @approval, source_report_summary)
+  def approval(refresh_or_artifact) do
+    replay(refresh_or_artifact, @approval)
   end
 
-  def replay(refresh_or_artifact, config, source_report_summary) when is_map(config) do
+  def replay(refresh_or_artifact, config) when is_map(config) do
     replay(
       refresh_or_artifact,
       Map.fetch!(config, :family),
       Map.fetch!(config, :contract),
       Map.fetch!(config, :source_model),
       Map.fetch!(config, :application_boundary),
-      Map.fetch!(config, :authority_boundary),
-      source_report_summary
+      Map.fetch!(config, :authority_boundary)
     )
   end
 
@@ -46,16 +45,14 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelineActivitySingleS
         contract,
         source_model,
         application_boundary,
-        authority_boundary,
-        source_report_summary
+        authority_boundary
       ) do
     {state_summary, summary_source, replay_scope} =
       Selection.summary_for_replay(
         refresh_or_artifact,
         family,
         contract,
-        source_model,
-        source_report_summary
+        source_model
       )
 
     summary(

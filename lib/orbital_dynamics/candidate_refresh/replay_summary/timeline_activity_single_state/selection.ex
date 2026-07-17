@@ -16,8 +16,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelineActivitySingleS
         refresh_or_artifact,
         family,
         contract,
-        source_model,
-        source_report_summary
+        source_model
       ) do
     {state_summary, branch_summary?} =
       refresh_or_artifact
@@ -29,8 +28,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelineActivitySingleS
         nil ->
           summary_from_source_reports(
             refresh_or_artifact,
-            contract,
-            source_report_summary
+            contract
           )
 
         summary ->
@@ -84,8 +82,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelineActivitySingleS
 
   defp summary_from_source_reports(
          refresh_or_artifact,
-         contract,
-         source_report_summary
+         contract
        ) do
     branch_state_summary =
       refresh_or_artifact
@@ -97,7 +94,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelineActivitySingleS
     else
       state_summary =
         refresh_or_artifact
-        |> source_report_summary.()
+        |> SourceReportSummary.build()
         |> get_in(["source_reports", "timeline_activity_state"])
 
       state_summary

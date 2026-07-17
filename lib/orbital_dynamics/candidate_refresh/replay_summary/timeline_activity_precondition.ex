@@ -6,9 +6,8 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelineActivityPrecond
 
   alias __MODULE__.Summary
 
-  def replay(refresh_or_artifact, source_report_summary)
-      when is_function(source_report_summary, 1) do
-    source_summary = source_report_summary.(refresh_or_artifact)
+  def replay(refresh_or_artifact) do
+    source_summary = SourceReportSummary.build(refresh_or_artifact)
 
     branch_precondition_summary = source_report_summary_branch_family(refresh_or_artifact)
 

@@ -242,10 +242,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   Cadence.
   """
   def timeline_activity_state_replay_summary(refresh_or_artifact) do
-    ReplaySummary.timeline_activity_state(
-      refresh_or_artifact,
-      &source_report_summary/1
-    )
+    ReplaySummary.timeline_activity_state(refresh_or_artifact)
   end
 
   @doc """
@@ -258,10 +255,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   Cadence.
   """
   def timeline_activity_status_state_replay_summary(refresh_or_artifact) do
-    ReplaySummary.timeline_activity_status_state(
-      refresh_or_artifact,
-      &source_report_summary/1
-    )
+    ReplaySummary.timeline_activity_status_state(refresh_or_artifact)
   end
 
   @doc """
@@ -274,10 +268,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   Cadence.
   """
   def timeline_activity_approval_state_replay_summary(refresh_or_artifact) do
-    ReplaySummary.timeline_activity_approval_state(
-      refresh_or_artifact,
-      &source_report_summary/1
-    )
+    ReplaySummary.timeline_activity_approval_state(refresh_or_artifact)
   end
 
   @doc """
@@ -290,10 +281,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   Cadence.
   """
   def timeline_activity_lifecycle_state_replay_summary(refresh_or_artifact) do
-    ReplaySummary.timeline_activity_lifecycle_state(
-      refresh_or_artifact,
-      &source_report_summary/1
-    )
+    ReplaySummary.timeline_activity_lifecycle_state(refresh_or_artifact)
   end
 
   @doc """
@@ -306,10 +294,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   resources, or write to Cadence.
   """
   def timeline_activity_precondition_replay_summary(refresh_or_artifact) do
-    ReplaySummary.timeline_activity_precondition(
-      refresh_or_artifact,
-      &source_report_summary/1
-    )
+    ReplaySummary.timeline_activity_precondition(refresh_or_artifact)
   end
 
   @doc """
