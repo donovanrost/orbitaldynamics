@@ -9,7 +9,7 @@ Current slice:
 Validation timeline preservation fixture test-family extraction.
 
 Status:
-Verified and reviewed; ready to publish.
+Published as `e1a72162`.
 
 Selected slice:
 Move the six contiguous timeline preservation-report, preservation-status,
@@ -60,8 +60,8 @@ Verification gaps:
 - Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
-Validation timeline activity-state fixture extraction published as `f12dc48c`:
-the focused module passed 6/6, the parent passed 121/121, and all eleven
+Validation timeline preservation fixture extraction published as `e1a72162`:
+the focused module passed 6/6, the parent passed 115/115, and all twelve
 Validation modules preserved the 181-test aggregate with no duplicate names.
 Format, diff hygiene, dependency-closure checks, and bounded review were clean.
 
