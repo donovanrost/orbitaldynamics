@@ -9,7 +9,7 @@ Current slice:
 Validation benchmark artifact fixture test-family extraction.
 
 Status:
-Selected.
+Ready to publish.
 
 Selected slice:
 Move the study-benchmark fixture test and all runtime/distributed benchmark
@@ -47,10 +47,16 @@ owner, focused and parent files pass, names remain unique, and bounded review
 finds no blocker.
 
 Outcome:
-Pending.
+The byte-identical high-signal benchmark test moved into a 132-line focused
+module. Its sixteen runtime/distributed raw/observation helpers now have one
+81-line shared support owner with an exact private JSON loader; the parent
+imports only the eight aggregate observation builders. The parent fell from
+4,395 to 4,228 lines. Total test/support/loader LOC grew by 47 lines for
+explicit ownership without helper duplication. All 181 Validation test names
+remain unique.
 
 Verification gaps:
-- Pending.
+- Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
 Validation candidate-strategy artifact extraction published as `7c5aeacf`: the
@@ -61,8 +67,9 @@ review were clean.
 
 Next candidate:
 Map the validation-reference, candidate-diff, refresh-budget, execution, and
-freshness report fixture families following benchmarks. Split only a coherent
-report family with complete helper closure.
+freshness report fixture families following benchmarks. The five contiguous
+tests and ten raw/observation helpers form one core run-report family ending
+before manifest fixtures.
 
 Blocked:
 No.
