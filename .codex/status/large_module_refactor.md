@@ -6,10 +6,10 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema realized-activity callback ownership mapping.
+Schema realized-activity callback ownership handoff.
 
 Status:
-Ready for publication.
+Published as `b0eac99e`.
 
 Selected slice:
 Point the standalone `realized_activity.v1` pipe directly at
@@ -70,8 +70,10 @@ to 7,910 lines, 10 focused and 182 complete tests passed, all 122 exports
 byte-matched, and bounded review was clean.
 
 Next candidate:
-After review and publication, map the next pure facade delegate by exact caller
-count and owner signature.
+Map the two-use `validate_realized_state_snapshot/3` facade delegate: the final
+standalone `realized_state_snapshot.v1` pipe stage and the campaign-repair
+callback capture between `expect_one_of` and `validate_rows`. The established
+owner exposes exact `RealizedStateSnapshotContracts.validate/3`.
 
 Blocked:
 No.
