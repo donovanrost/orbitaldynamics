@@ -37,3 +37,8 @@ Code.require_file(
   "support/validation/candidate_refresh_capacity_filter_replay_fixtures.ex",
   __DIR__
 )
+
+Code.require_file(
+  "support/validation/candidate_refresh_filter_rejection_replay_fixtures.ex",
+  __DIR__
+)
