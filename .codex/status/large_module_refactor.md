@@ -9,7 +9,7 @@ Current slice:
 Schema contact-review source callback ownership cleanup.
 
 Status:
-Completed and verified; publishing.
+Completed and published.
 
 Selected slice:
 Point provider-counteroffer and contact-intent general/cadence source-match
@@ -69,16 +69,17 @@ Behavior/schema changes:
 None.
 
 Last completed slice:
-Schema readiness/quality-gate source callback ownership cleanup published as
-`671dd406`: fourteen readiness gate/report and quality row/report captures now
-point directly to their dedicated owners; 182 schema/export tests passed, full
-export bytes stayed exact, and bounded review was clean.
+Schema contact-review source callback ownership cleanup published as
+`19c47be6`: eight provider-counteroffer and contact-intent general/cadence
+captures now point directly to their owner; 182 schema/export tests passed,
+full export bytes stayed exact, and bounded review was clean.
 
 Next candidate:
-Audit the contact-review source-match family. Provider-counteroffer and
-contact-intent general/cadence wrappers duplicate specialized/fallback clauses
-already exposed by `ContactReviewHandoffContracts` across eight capture
-positions.
+Audit the `SourceReviewHandoffContracts` callback family. One refresh-budget
+source delegate plus cadence warning, timeline-protection, policy-escalation,
+freshness, refresh-budget, schema-validation, execution, quality-gate, and
+operational-readiness delegates appear to be pure one-hop calls; confirm capture
+counts and owner fallbacks before selecting a cohesive subset.
 
 Blocked:
 No.
