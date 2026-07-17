@@ -9,7 +9,7 @@ Current slice:
 Schema objective-report JSON property-dispatch extraction.
 
 Status:
-Review complete; ready to publish.
+Published.
 
 Selected slice:
 Extract property dispatch for objective-satisfaction and objective-tradeoff
@@ -52,6 +52,7 @@ dispatcher owns the allowed contract family, eager context assembly,
 contract-sensitive focused predicate/property builder, and common fallback.
 All satisfaction/tradeoff rows, model limits, model values, and evaluation
 order remain exact. The facade is 9,433 lines; the dispatcher is 31 lines.
+Implementation published as `d6ae77c8`.
 
 Verification gaps:
 - `mix compile --warnings-as-errors` passed.
@@ -62,17 +63,20 @@ Verification gaps:
 - Scoped format, diff hygiene, and xref checks passed; xref reports only the
   expected runtime caller from `OrbitalDynamics.Schema`.
 - Bounded read-only review found no blocker or follow-up finding.
+- None for this slice.
 
 Last completed slice:
-Schema contact-contention property dispatch published as `f6d5420d`: report,
-resolution report, and resolution summary now route through one cohesive
-internal dispatcher, 30 focused/export tests passed, full regeneration was
-byte-identical, and follow-up review found no blocker.
+Schema objective-report property dispatch published as `d6ae77c8`:
+satisfaction and tradeoff reports now route through one cohesive internal
+dispatcher, 24 focused/export tests passed, full regeneration was
+byte-identical, and bounded review found no blocker.
 
 Next candidate:
-Audit one adjacent multi-contract optimizer/report property family after this
-slice is published. Leave single-contract neighbors in the facade unless a
-broader cohesive boundary emerges.
+Extract the adjacent ranking-comparison and Pareto-frontier property clauses
+into one internal optimizer-report dispatcher. Preserve contract-sensitive
+predicates, exact row/winner/model-limit callbacks, stable identity, common
+fallback, validators, and exact exports. Leave score-term and resource-filter
+summary clauses in the facade.
 
 Blocked:
 No.
