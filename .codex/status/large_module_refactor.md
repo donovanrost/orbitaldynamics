@@ -6,28 +6,28 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Decision-support fixture mapping.
+Resource-projection fixture mapping.
 
 Status:
-Publishing.
+Ready for next slice selection.
 
 Selected slice:
-Move
-`maneuver_review_report.v1`, `monte_carlo_reproducibility_report.v1`, and
-`pareto_frontier_report.v1` from their contiguous facade range into a new
-`Validation.ReferenceFixtures.DecisionSupportArtifacts` leaf. Preserve the
-following resource-projection report exactly.
+No implementation selected yet. The next bounded candidate is to move
+`resource_projection_report.v1` and `resource_projection_flow_summary.v1` from
+their contiguous facade range into a new
+`Validation.ReferenceFixtures.ResourceProjectionArtifacts` leaf. Preserve the
+following resource-projection battery-handoff fixture exactly.
 
 Why this slice:
-`ReferenceFixtures` remains the largest production module at 4,307 lines. The
-three fixtures occupy 151 facade lines and exactly own
-`decision_support_fixture_test.exs`.
+`ReferenceFixtures` remains the largest production module at 4,158 lines. The
+two fixtures occupy 130 facade lines and exactly own
+`resource_projection_fixture_test.exs`.
 
 Current coupling/problem:
-Maneuver review, reproducibility, and Pareto-frontier expectations form a
-compact, contiguous test-owned family but remain embedded in the general
-registry. Moving all three preserves the complete decision-support
-responsibility without absorbing resource-projection behavior.
+Resource-projection report and flow-summary expectations form a compact,
+contiguous test-owned family but remain embedded in the general registry.
+Moving both preserves projection behavior without absorbing the separate
+battery-safety handoff family.
 
 Public facade to preserve:
 `OrbitalDynamics.Validation.ReferenceFixtures.all/0` and `fetch/1`, exact
@@ -35,28 +35,28 @@ fixture keys and values, map equality and deterministic term bytes, and all
 `OrbitalDynamics.Validation` reference-fixture behavior.
 
 Likely extraction target:
-`OrbitalDynamics.Validation.ReferenceFixtures.DecisionSupportArtifacts`.
+`OrbitalDynamics.Validation.ReferenceFixtures.ResourceProjectionArtifacts`.
 
 Likely files:
 - `lib/orbital_dynamics/validation/reference_fixtures.ex`
-- `lib/orbital_dynamics/validation/reference_fixtures/decision_support_artifacts.ex`
+- `lib/orbital_dynamics/validation/reference_fixtures/resource_projection_artifacts.ex`
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
 - exact before/after fixture count, keys, values, and deterministic term digest
-- focused decision-support and facade validation tests
+- focused resource-projection and facade validation tests
 - full validation test family
 - strict compile, format, xref, diff hygiene, and bounded review
 
 Definition of done:
-The three decision-support fixtures exist only in the new cohesive leaf, all 37
+The two resource-projection fixtures exist only in the new cohesive leaf, all 38
 fixture maps remain disjoint, `all/0` and `fetch/1` return exactly the same
 195-entry map and deterministic term bytes, both following boundary fixtures
 and the complete facade remainder stay exact, focused and full validation tests
 pass, and bounded review finds no blocker.
 
 Verification gaps:
-- None for this slice.
+- Next candidate still requires a selection baseline before implementation.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -94,19 +94,16 @@ Behavior/schema changes:
 None.
 
 Outcome:
-The exact three-fixture decision-support family now lives in a new cohesive
-leaf behind the unchanged facade. The facade shrank from 4,307 to 4,158 lines;
-the new leaf is 159 lines and owns exactly three fixtures.
+No resource-projection implementation has started.
 
 Last completed slice:
-Link-capacity ownership cleanup published as `ad07b74b`: the exact relay fixture
-moved into the existing leaf, the facade shrank from 4,405 to 4,307 lines, the
-leaf grew from 179 to 277 lines, the 195-entry map and all deterministic digests
-stayed exact, 15 focused and 181 full validation tests passed, and bounded
-review was clean.
+Decision-support extraction published as `59550414`: the exact three-fixture
+family moved into a new 159-line leaf, the facade shrank from 4,307 to 4,158
+lines, the 195-entry map and all deterministic digests stayed exact, 15 focused
+and 181 full validation tests passed, and bounded review was clean.
 
 Next candidate:
-Select the decision-support extraction described above, capture the exact map
+Select the resource-projection extraction described above, capture the exact map
 and contiguous source boundary, then move the complete test-owned family.
 
 Blocked:
