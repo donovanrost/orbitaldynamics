@@ -9,7 +9,7 @@ Current slice:
 Link-capacity ownership cleanup.
 
 Status:
-Ready for implementation.
+Publishing.
 
 Selected slice:
 Move
@@ -56,7 +56,7 @@ and the complete facade remainder stay exact, focused and full validation tests
 pass, and bounded review finds no blocker.
 
 Verification gaps:
-- Implementation and post-move verification pending.
+- None for this slice.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -74,13 +74,36 @@ Tests run:
 - Source boundary confirmed at facade lines 218-315, followed by
   `maneuver_review_report.v1`, with no facade helper-attribute dependency in
   the selected literal.
-- Focused link-capacity/facade selection baseline: 15 tests passed.
+- Normalized-AST proof against selection commit `6365d042`: the moved relay
+  literal, both existing link-capacity literals, the combined three-entry leaf,
+  the following maneuver report, and the complete 62-entry facade remainder
+  are exact.
+- Post-move exact proof: the 195-entry map, sorted-key digest, selected relay
+  digest, combined three-fixture leaf digest, and exact 194-entry remainder
+  digest all match their selection baselines.
+- Source partition proof: 36 maps total 195 entries, the completed
+  link-capacity leaf owns three, the facade owns 62, all 630 pairwise
+  intersections are empty, and the source key union exactly matches the runtime
+  map.
+- Facade proof: all 195 successful `fetch/1` results, missing-key `:error`, and
+  nonbinary `FunctionClauseError` behavior remain unchanged.
+- Focused link-capacity/facade validation: 15 tests passed.
+- Full validation family: 181 tests passed.
+- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
+  xref caller checks passed.
+- Independent bounded review against selection commit `6365d042` was clean:
+  the moved and existing target literals, completed leaf, facade remainder, and
+  boundary fixture are normalized-AST exact; all runtime, partition, focused,
+  full-test, dependency, and hygiene checks reproduced.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-No link-capacity ownership cleanup has started.
+The relay-data-path fixture now lives beside the existing link-capacity summary
+and report in the established leaf behind the unchanged facade. The facade
+shrank from 4,405 to 4,307 lines; the leaf grew from 179 to 277 lines and owns
+exactly the three fixtures exercised together.
 
 Last completed slice:
 Contact-contention extraction published as `935df70f`: the exact five-fixture
