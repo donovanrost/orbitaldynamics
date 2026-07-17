@@ -9,7 +9,7 @@ Current slice:
 Schema resource-projection count predicate ownership extraction.
 
 Status:
-Completed and verified; publishing.
+Completed and published.
 
 Selected slice:
 Move `resource_projection_downlink_flow_row?/1` into
@@ -72,18 +72,17 @@ Behavior/schema changes:
 None.
 
 Last completed slice:
-Schema resource-projection direct callback ownership cleanup published as
-`06762106`: sixteen battery/remaining/flow/cadence captures now point directly
-to their existing owner while the dependency-bearing count wrapper remains;
-182 schema/export tests passed, full export bytes stayed exact, and bounded
-review was clean.
+Schema resource-projection count predicate ownership extraction published as
+`1bad14c5`: the owner now supplies default `/3` count validation with the moved
+predicate while preserving injectable `/4`; 182 schema/export tests passed,
+full export bytes stayed exact, and bounded review was clean.
 
 Next candidate:
-Audit moving the resource-projection downlink-flow predicate into
-`ResourceProjectionHandoffContracts` and adding a facade-independent
-`validate_count_handoff_matches_source/3`. Preserve the existing `/4` owner API;
-select only if the predicate has no other facade consumers and all three count
-captures can then point directly to the owner.
+Audit `ContactAllocationHandoffContracts` source-match ownership separately
+from allocation-field validation. General/cadence allocation, capacity-pack,
+and provider-calendar contention validators appear directly capturable, while
+allocation fields still inject a facade-owned duplicate-evidence validator.
+Select only the dependency-free source-match subset.
 
 Blocked:
 No.
