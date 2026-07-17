@@ -138,6 +138,10 @@ defmodule OrbitalDynamics.Schema.ResourceProjectionHandoffContracts do
 
   def validate_battery_handoff_matches_source(issues, _path, _row), do: issues
 
+  def validate_count_handoff_matches_source(issues, path, row) do
+    validate_count_handoff_matches_source(issues, path, row, &downlink_flow_row?/1)
+  end
+
   def validate_count_handoff_matches_source(
         issues,
         path,
@@ -288,6 +292,23 @@ defmodule OrbitalDynamics.Schema.ResourceProjectionHandoffContracts do
   end
 
   def validate_cadence_source_review_context_handoff_matches(issues, _path, _row), do: issues
+
+  defp downlink_flow_row?(%{"activity_type" => "downlink"}), do: true
+
+  defp downlink_flow_row?(%{
+         "activity_type" => "planned_contact",
+         "direction" => "downlink"
+       }),
+       do: true
+
+  defp downlink_flow_row?(%{
+         "direction" => "downlink",
+         "ground_station_id" => station_id
+       })
+       when not is_nil(station_id),
+       do: true
+
+  defp downlink_flow_row?(_row), do: false
 
   defp handoff_count_values(flow_rows, downlink_flow_row?) do
     flow_rows = Enum.filter(flow_rows, &is_map/1)
