@@ -9,7 +9,7 @@ Current slice:
 CandidateRefresh timeline integrity/lifecycle replay callback removal.
 
 Status:
-Review complete; ready to publish.
+Published as `0f9519cc`.
 
 Selected slice:
 Remove the repeated source-summary callback from the timeline-integrity and
@@ -63,13 +63,13 @@ Verification gaps:
 - bounded read-only review: clean, no findings
 
 Last completed slice:
-Candidate feedback/operational-timeline replay callback removal published as
-`531e78f6`: both paths are one-argument end to end, 27 focused tests passed,
-and bounded review found no blocker.
+Candidate integrity/lifecycle replay callback removal published as `0f9519cc`:
+both paths are one-argument end to end, 24 focused tests passed, and bounded
+review found no blocker.
 
 Next candidate:
-Remove the callback seam from one adjacent timeline replay family after this
-pair is published.
+Audit the adjacent timeline-diff/dependency-impact callback seams as one
+possible bounded pair.
 
 Blocked:
 No.
