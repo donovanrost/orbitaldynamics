@@ -6,23 +6,21 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema contact-allocation source-match callback ownership cleanup.
+Schema readiness/quality-gate source callback ownership cleanup.
 
 Status:
-Completed and published.
+Selected; implementation pending.
 
 Selected slice:
-Point allocation, capacity-pack, and provider-calendar contention
-general/cadence source-match callbacks directly at the existing
-`Schema.ContactAllocationHandoffContracts` owner. Remove the six facade
-delegates. Leave allocation-field validation and its duplicate-evidence
-callback unchanged.
+Point operational-readiness gate/report and quality-gate row/report
+source-match callbacks directly at their existing dedicated owners. Remove the
+four facade delegates across fourteen callback positions.
 
 Why this slice:
-Twelve callback positions forward unchanged through six source-match delegates
-to one existing owner. The owner already retains specialized/fallback behavior
-and provider source precedence. Excluding allocation-field validation preserves
-the facade-owned duplicate-evidence dependency and avoids a broad callback bag.
+All fourteen callback positions forward unchanged through four pure delegates.
+`OperationalReadinessHandoffContracts` and `QualityGateHandoffContracts`
+already own the specialized and fallback clauses, field-pair order, and report
+identity/summary distinction, so direct captures require no callback bag.
 
 Public facade to preserve:
 All `OrbitalDynamics.Schema` public functions, exact validation issue ordering,
@@ -39,34 +37,17 @@ Likely verification:
 - strict compile, format, xref, diff hygiene, and bounded review
 
 Definition of done:
-All twelve selected source-match captures point directly to
-`ContactAllocationHandoffContracts`, the six facade delegates are gone, and
-allocation-field validation still injects
-`validate_contact_allocation_duplicate_evidence/3`,
+All fourteen selected captures point directly to their readiness/quality-gate
+owners, the four facade delegates are gone, and callback plus field-pair issue
+ordering remains exact,
 validation and schema exports remain byte-for-byte stable, focused tests pass,
 and bounded review finds no blocker.
 
-Outcome:
-All allocation, capacity-pack, and provider-calendar contention source-match
-callbacks now capture `ContactAllocationHandoffContracts` directly. Six facade
-delegates were removed across twelve capture positions, reducing `schema.ex`
-from 8,736 to 8,657 lines. Provider source precedence and allocation-field
-duplicate-evidence injection remain unchanged.
-
 Verification gaps:
-- None for this slice.
+- Implementation and verification pending.
 
 Tests run:
-- `mix compile --warnings-as-errors`
-- 42 focused contact-allocation/provider-contention schema contract tests
-- 182 complete schema-contract and schema-export tests
-- full checked-in schema export regeneration; no schema diff
-- aggregate schema bundle digest unchanged:
-  `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`
-- `mix format --check-formatted`
-- `git diff --check`
-- compile-connected xref check for `schema.ex`
-- bounded read-only review: clean, no findings
+- Pending.
 
 Behavior/schema changes:
 None.
