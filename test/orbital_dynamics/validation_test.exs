@@ -3,7 +3,6 @@ defmodule OrbitalDynamics.ValidationTest do
 
   alias OrbitalDynamics.{
     CadenceImport,
-    CandidateRefresh,
     Environment,
     Schema,
     OperatorReview,
@@ -229,8 +228,7 @@ defmodule OrbitalDynamics.ValidationTest do
   import OrbitalDynamics.Validation.CandidateRefreshContactReplayFixtures,
     only: [
       candidate_refresh_contact_contention_challenge_fixture_observations: 0,
-      candidate_refresh_contact_intent_direction_fixture_observations: 0,
-      result_set: 1
+      candidate_refresh_contact_intent_direction_fixture_observations: 0
     ]
 
   import OrbitalDynamics.Validation.CandidateRefreshReadinessReplayFixtures,
@@ -272,6 +270,12 @@ defmodule OrbitalDynamics.ValidationTest do
     only: [
       candidate_refresh_freshness_fixture_observations: 0,
       candidate_refresh_refresh_budget_fixture_observations: 0
+    ]
+
+  import OrbitalDynamics.Validation.CandidateRefreshStationAllocationReplayFixtures,
+    only: [
+      candidate_refresh_contact_allocation_contradiction_fixture_observations: 0,
+      candidate_refresh_station_calendar_fixture_observations: 0
     ]
 
   test "verifies curated operator review package reference fixtures" do
@@ -1646,179 +1650,6 @@ defmodule OrbitalDynamics.ValidationTest do
              &(&1["path"] == "$.rows[0].source_quality_gate_report.report_id" and
                  &1["message"] == "must match quality_gate_report_id on handoff row")
            )
-  end
-
-  test "verifies candidate refresh station-calendar replay fixtures" do
-    fixture_id = "fixture.artifact.candidate_refresh.station_calendar_replay"
-
-    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
-
-    assert fixture["model_id"] == "artifact.candidate_refresh.v1"
-    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
-
-    artifact = candidate_refresh_station_calendar_fixture()
-    observations = candidate_refresh_station_calendar_fixture_observations()
-
-    assert {:ok, verification} =
-             Validation.verify_reference_fixture(fixture_id, observations)
-
-    assert verification["status"] == "pass"
-    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
-
-    assert %{
-             "source_report_family_count" => 1,
-             "source_report_row_count" => 4,
-             "source_station_calendar_report_count" => 1,
-             "source_station_calendar_row_count" => 4,
-             "source_station_calendar_path_keys" => "source_station_calendar_report",
-             "source_station_calendar_affected_contact_count" => 3,
-             "source_station_calendar_provider_calendar_contention_group_count" => 1,
-             "source_station_calendar_provider_calendar_contention_group_id_keys" =>
-               "station_calendar_provider_contention:equator_prime:1",
-             "source_station_calendar_provider_calendar_contention_source_entry_id_keys" =>
-               "provider_a|provider_b",
-             "source_station_calendar_provider_calendar_contention_provider_entry_id_keys" =>
-               "provider_entry_ops|provider_entry_partner",
-             "source_station_calendar_provider_calendar_contention_provider_counts" => %{
-               "ops_calendar" => 1,
-               "partner_calendar" => 1
-             },
-             "source_station_calendar_provider_calendar_contention_ground_station_counts" => %{
-               "dss_43" => 1,
-               "equator_prime" => 1
-             },
-             "source_station_calendar_provider_calendar_contention_direction_counts" => %{
-               "downlink" => 1,
-               "tracking" => 1
-             },
-             "source_station_calendar_provider_calendar_contention_minimum_capacity_fraction" =>
-               0.25,
-             "source_station_calendar_affected_contact_ground_station_counts" => %{
-               "dss_43" => 1,
-               "equator_prime" => 2
-             },
-             "source_station_calendar_affected_contact_availability_counts" => %{
-               "reduced_capacity" => 1,
-               "reserved" => 1,
-               "unavailable" => 1
-             },
-             "source_station_calendar_direction_counts" => %{
-               "downlink" => 2,
-               "uplink" => 1
-             },
-             "source_station_calendar_status_counts" => %{
-               "reduced_capacity" => 1,
-               "reserved" => 1,
-               "unavailable" => 1
-             },
-             "source_station_calendar_trust_boundary_status" => "declared",
-             "source_station_calendar_branch_local_station_calendar_pressure" => true,
-             "source_station_calendar_branch_local_affected_contact_pressure" => true,
-             "source_station_calendar_branch_local_provider_contention_pressure" => true,
-             "source_station_calendar_branch_local_station_availability_pressure" => true
-           } = observations
-
-    stale_station_calendar_pressure_observations =
-      observations
-      |> Map.put("source_station_calendar_branch_local_station_calendar_pressure", false)
-
-    assert {:ok, stale_station_calendar_pressure_verification} =
-             Validation.verify_reference_fixture(
-               fixture_id,
-               stale_station_calendar_pressure_observations
-             )
-
-    assert stale_station_calendar_pressure_verification["status"] == "fail"
-
-    assert Enum.any?(
-             stale_station_calendar_pressure_verification["checks"],
-             &(&1["field"] == "source_station_calendar_branch_local_station_calendar_pressure" and
-                 &1["status"] == "fail")
-           )
-
-    assert {:ok, _validated_artifact} =
-             Schema.validate_artifact(artifact, schema_contract: "candidate_refresh.v1")
-  end
-
-  test "verifies candidate refresh contact allocation contradiction replay fixtures" do
-    fixture_id = "fixture.artifact.candidate_refresh.contact_allocation_contradiction_replay"
-
-    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
-
-    assert fixture["model_id"] == "artifact.candidate_refresh.v1"
-    assert fixture["fixture_type"] == "curated_internal_artifact_regression"
-
-    artifact = candidate_refresh_contact_allocation_contradiction_fixture()
-    observations = candidate_refresh_contact_allocation_contradiction_fixture_observations()
-
-    assert {:ok, verification} =
-             Validation.verify_reference_fixture(fixture_id, observations)
-
-    assert verification["status"] == "pass"
-    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
-
-    assert %{
-             "source_report_family_count" => 2,
-             "source_report_row_count" => 9,
-             "source_station_calendar_provider_calendar_contention_group_count" => 1,
-             "source_station_calendar_branch_local_provider_contention_pressure" => true,
-             "source_contact_allocation_report_count" => 2,
-             "source_contact_allocation_row_count" => 6,
-             "source_contact_allocation_source_summary_schema_contract_counts" => %{
-               "contact_allocation_provider_reservation_request_summary.v1" => 1,
-               "contact_allocation_reservation_conflict_summary.v1" => 1
-             },
-             "source_contact_allocation_reservation_conflict_contact_count" => 3,
-             "source_contact_allocation_reservation_conflict_contact_ids_by_direction_and_ground_station" =>
-               %{
-                 "command" => %{"equator_prime" => ["dl_review_overlap"]},
-                 "downlink" => %{"equator_prime" => ["dl_reserved_intruder"]},
-                 "tracking" => %{"equator_prime" => ["dl_reserved_intruder"]}
-               },
-             "source_contact_allocation_provider_reservation_request_contact_count" => 2,
-             "source_contact_allocation_provider_reservation_review_contact_count" => 1,
-             "source_contact_allocation_branch_local_reservation_conflict_pressure" => true,
-             "source_contact_allocation_branch_local_provider_reservation_request_pressure" =>
-               true
-           } = observations
-
-    stale_conflict_observations =
-      observations
-      |> Map.put("source_contact_allocation_reservation_conflict_contact_count", 1)
-
-    assert {:ok, stale_conflict_verification} =
-             Validation.verify_reference_fixture(fixture_id, stale_conflict_observations)
-
-    assert stale_conflict_verification["status"] == "fail"
-
-    assert Enum.any?(
-             stale_conflict_verification["checks"],
-             &(&1["field"] ==
-                 "source_contact_allocation_reservation_conflict_contact_count" and
-                 &1["status"] == "fail")
-           )
-
-    stale_provider_request_observations =
-      observations
-      |> Map.put(
-        "source_contact_allocation_branch_local_provider_reservation_request_pressure",
-        false
-      )
-
-    assert {:ok, stale_provider_request_verification} =
-             Validation.verify_reference_fixture(fixture_id, stale_provider_request_observations)
-
-    assert stale_provider_request_verification["status"] == "fail"
-
-    assert Enum.any?(
-             stale_provider_request_verification["checks"],
-             &(&1["field"] ==
-                 "source_contact_allocation_branch_local_provider_reservation_request_pressure" and
-                 &1["status"] == "fail")
-           )
-
-    assert {:ok, _validated_artifact} =
-             Schema.validate_artifact(artifact, schema_contract: "candidate_refresh.v1")
   end
 
   test "verifies curated candidate rejection report reference fixtures" do
@@ -5136,152 +4967,6 @@ defmodule OrbitalDynamics.ValidationTest do
 
   defp accepted_planning_state_oem_fixture do
     read_json!("study_results/accepted_planning_state_oem.json")
-  end
-
-  defp candidate_refresh_station_calendar_fixture_observations do
-    "candidate_refresh.v1"
-    |> Validation.artifact_observations(candidate_refresh_station_calendar_fixture())
-  end
-
-  defp candidate_refresh_station_calendar_fixture do
-    result_set(%{})
-    |> CandidateRefresh.build(
-      candidate_refresh: candidate_refresh_station_calendar_request(),
-      generated_at: ~U[2026-05-14 00:00:00Z]
-    )
-  end
-
-  defp candidate_refresh_station_calendar_request do
-    %{
-      "accepted_planning_state" => %{
-        "snapshot_id" => "ops-state-station-calendar-replay-challenge",
-        "accepted_at" => "2026-05-14T00:00:00Z",
-        "spacecraft_states" => [],
-        "source" => %{"system" => "validation_challenge"},
-        "quality" => %{"level" => "accepted"},
-        "provenance" => %{"created_by" => "validation_fixture"}
-      },
-      "current_epoch_s" => 0.0,
-      "remaining_horizon" => %{
-        "starts_at_s" => 0.0,
-        "ends_at_s" => 600.0,
-        "output_step_s" => 60.0
-      },
-      "targets" => [],
-      "constraints" => %{},
-      "scoring_policy" => %{},
-      "model_assumptions" => %{"refresh_level" => "sampled_v1"},
-      "source_station_calendar_report" => %{
-        "schema_contract" => "station_calendar_report.v1",
-        "affected_contacts" => [
-          %{
-            "id" => "station_calendar:dl_unavailable",
-            "contact_id" => "dl_unavailable",
-            "ground_station_id" => "equator_prime",
-            "direction" => "downlink",
-            "station_calendar_entry_id" => "station_entry_unavailable",
-            "station_calendar_status" => "unavailable"
-          },
-          %{
-            "id" => "station_calendar:dl_reserved",
-            "contact_id" => "dl_reserved",
-            "ground_station_id" => "dss_43",
-            "direction" => "uplink",
-            "station_calendar_entry_id" => "station_entry_reserved",
-            "station_reservation_id" => "reservation_dss_43",
-            "station_reserved_by" => "ops_team_b",
-            "station_reservation_expires_at_s" => 1800.0,
-            "station_availability" => "reserved",
-            "station_calendar_status" => "reserved"
-          },
-          %{
-            "id" => "station_calendar:dl_reduced",
-            "contact_id" => "dl_reduced",
-            "ground_station_id" => "equator_prime",
-            "direction" => "downlink",
-            "station_calendar_entry_id" => "station_entry_reduced",
-            "capacity_fraction" => 0.4,
-            "station_availability" => "reduced_capacity",
-            "station_calendar_status" => "reduced_capacity"
-          }
-        ],
-        "provider_calendar_contention_groups" => [
-          %{
-            "id" => "station_calendar_provider_contention:equator_prime:1",
-            "provider_ids" => ["ops_calendar", "partner_calendar"],
-            "provider_entry_ids" => ["provider_entry_ops", "provider_entry_partner"],
-            "ground_station_id" => "equator_prime",
-            "capacity_fraction" => 0.25,
-            "directions" => ["Down Link", "Track-ing"],
-            "source_station_calendar_entries" => [
-              %{"id" => "provider_a", "ground_station_id" => "equator_prime"},
-              %{"id" => "provider_b", "ground_station_id" => "dss_43"}
-            ]
-          }
-        ],
-        "station_calendar_status_counts" => %{"stale_status" => 99},
-        "affected_contact_ground_station_counts" => %{"stale_station" => 99},
-        "affected_contact_availability_counts" => %{"stale_availability" => 99},
-        "provider_calendar_contention_provider_counts" => %{"stale_provider" => 99},
-        "provider_calendar_contention_ground_station_counts" => %{"stale_station" => 99},
-        "provider_calendar_contention_provider_entry_ids_by_provider" => %{
-          "stale_provider" => ["stale_provider_entry"]
-        },
-        "provider_calendar_contention_provider_entry_ids_by_ground_station" => %{
-          "stale_station" => ["stale_provider_entry"]
-        },
-        "provider_calendar_contention_provider_entry_ids_by_direction" => %{
-          "stale_direction" => ["stale_provider_entry"]
-        },
-        "provenance" => %{"trust_boundary" => "ops_station_calendar"}
-      }
-    }
-  end
-
-  defp candidate_refresh_contact_allocation_contradiction_fixture_observations do
-    "candidate_refresh.v1"
-    |> Validation.artifact_observations(
-      candidate_refresh_contact_allocation_contradiction_fixture()
-    )
-  end
-
-  defp candidate_refresh_contact_allocation_contradiction_fixture do
-    result_set(%{})
-    |> CandidateRefresh.build(
-      candidate_refresh: candidate_refresh_contact_allocation_contradiction_request(),
-      generated_at: ~U[2026-05-14 00:00:00Z]
-    )
-  end
-
-  defp candidate_refresh_contact_allocation_contradiction_request do
-    %{
-      "accepted_planning_state" => %{
-        "snapshot_id" => "ops-state-provider-calendar-reservation-allocation-challenge",
-        "accepted_at" => "2026-05-14T00:00:00Z",
-        "spacecraft_states" => [],
-        "source" => %{"system" => "validation_challenge"},
-        "quality" => %{"level" => "accepted"},
-        "provenance" => %{"created_by" => "validation_fixture"}
-      },
-      "current_epoch_s" => 0.0,
-      "remaining_horizon" => %{
-        "starts_at_s" => 0.0,
-        "ends_at_s" => 600.0,
-        "output_step_s" => 60.0
-      },
-      "targets" => [],
-      "constraints" => %{},
-      "scoring_policy" => %{},
-      "model_assumptions" => %{"refresh_level" => "sampled_v1"},
-      "source_station_calendar_report" =>
-        read_json!("study_results/station_calendar_report_v1.json"),
-      "source_contact_allocation_reservation_conflict_summary" =>
-        read_json!("study_results/contact_allocation_reservation_conflict_summary_v1.json"),
-      "source_contact_allocation_provider_reservation_request_summary" =>
-        read_json!(
-          "study_results/contact_allocation_provider_reservation_request_summary_v1.json"
-        )
-    }
   end
 
   defp candidate_rejection_report_fixture_observations do

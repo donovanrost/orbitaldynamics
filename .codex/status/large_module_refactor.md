@@ -9,7 +9,7 @@ Current slice:
 Validation candidate-refresh station/allocation replay test-family extraction.
 
 Status:
-Selected.
+Ready to publish.
 
 Selected slice:
 Move the two contiguous candidate-refresh station-calendar and
@@ -46,10 +46,17 @@ shared builders have one exact owner, focused and parent files pass, names remai
 unique, and bounded review finds no blocker.
 
 Outcome:
-Pending.
+Two byte-identical candidate-refresh station/allocation replay tests moved into
+a 186-line focused module. Their six helpers now have one 158-line shared
+support owner that reuses `result_set/1` and an exact private JSON loader; the
+parent imports only the two aggregate observation builders and no longer owns
+any direct `CandidateRefresh` or `result_set/1` dependency. The parent fell from
+5,813 to 5,498 lines. Total test/support/loader LOC grew by 34 lines for
+explicit ownership without helper duplication. All 181 Validation test names
+remain unique.
 
 Verification gaps:
-- Pending.
+- Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
 Validation candidate-refresh freshness/budget replay extraction published as
@@ -60,8 +67,9 @@ checks, and bounded review were clean.
 
 Next candidate:
 Map the curated candidate-rejection, candidate-diff row, and accepted-planning
-state fixture families following the replay sequence. Split only a coherent
-artifact family with complete helper closure.
+state fixture families following the replay sequence. The five contiguous tests
+and ten raw/observation helpers form one candidate-state artifact family ending
+before campaign request lint.
 
 Blocked:
 No.
