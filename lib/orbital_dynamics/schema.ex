@@ -5718,7 +5718,10 @@ defmodule OrbitalDynamics.Schema do
     []
     |> require_fields("$", artifact, contract["required_fields"])
     |> expect_equal("$", artifact, "schema_contract", "invalidated_candidate.v1")
-    |> validate_invalidated_candidate("$", artifact)
+    |> OrbitalDynamics.Schema.CandidateDiffContracts.validate_invalidated_candidate(
+      "$",
+      artifact
+    )
   end
 
   defp validate_contract(@refresh_budget_report, contract, artifact) do
@@ -6749,14 +6752,6 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       horizon
-    )
-  end
-
-  defp validate_invalidated_candidate(issues, path, candidate) do
-    OrbitalDynamics.Schema.CandidateDiffContracts.validate_invalidated_candidate(
-      issues,
-      path,
-      candidate
     )
   end
 

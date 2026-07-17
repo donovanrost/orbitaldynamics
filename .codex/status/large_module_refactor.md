@@ -9,7 +9,7 @@ Current slice:
 Schema CandidateDiff invalidated-candidate callback ownership mapping.
 
 Status:
-Ready for implementation.
+Publishing.
 
 Selected slice:
 Point the standalone `invalidated_candidate.v1` contract pipe directly at
@@ -55,7 +55,7 @@ not change, focused and complete schema/export tests pass, and bounded review
 finds no blocker.
 
 Verification gaps:
-- Implementation and post-change verification pending.
+None.
 
 Tests run:
 - Source baseline: `validate_invalidated_candidate/3` appears exactly once as
@@ -69,12 +69,35 @@ Tests run:
   across 15,506,740 bytes.
 - Checked-in `schemas/orbital_dynamics.schema_bundle.v1.json` digest:
   `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`.
+- Source proof against selection commit `a00b1d7d`: the standalone
+  invalidated-candidate contract pipe retains the same `require_fields` and
+  `expect_equal` stages and now ends directly at
+  `CandidateDiffContracts.validate_invalidated_candidate/3`; the private facade
+  delegate is absent and no other facade call site remains.
+- Focused `candidate_refresh_contracts_test.exs`: 10 tests passed with warnings
+  as errors.
+- Complete schema-contract and schema-export suite: 182 tests passed with
+  warnings as errors.
+- Generated bundle remains exactly 121 schemas, 15,506,740 bytes, and digest
+  `543dbe11bc75f1397dd15dbd10cabd219ae2e46ac1e16d38b810a99befb8cec3`.
+- Full checked-in schema export regeneration completed with no schema diff;
+  aggregate bundle digest remains
+  `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`.
+- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
+  xref caller checks passed.
+- Independent bounded review against selection commit `a00b1d7d` was clean:
+  exact pipeline and argument equivalence, unchanged CandidateDiff owner, 10
+  focused and 182 complete tests, generated and checked bundle digests, all 122
+  generated export files byte-matched, strict compile, xref, formatting, sizes,
+  ledger, and diff hygiene all matched the recorded evidence.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-No CandidateDiff invalidated-candidate callback implementation has started.
+The standalone invalidated-candidate contract pipe now calls the established
+CandidateDiff owner directly and the pure facade delegate is gone. `schema.ex`
+decreased from 8,005 to 8,000 lines.
 
 Last completed slice:
 CandidateDiff row callback cleanup published as `e36322fb`: the standalone
