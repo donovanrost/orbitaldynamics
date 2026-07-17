@@ -9,7 +9,7 @@ Current slice:
 Validation policy-bundle fixture test-family extraction.
 
 Status:
-Implemented, verified, reviewed, and ready to publish.
+Published as `757d86f8`.
 
 Selected slice:
 Move the six contiguous base, ground-network, operator-review queue,
@@ -57,14 +57,16 @@ Verification gaps:
 - Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
-Validation policy-bundle fixture extraction, publication pending: the focused
+Validation policy-bundle fixture extraction published as `757d86f8`: the focused
 module passed 6/6, the parent passed 146/146, and all six Validation modules
 preserved the 181-test aggregate with no duplicate names. Format, diff hygiene,
 dependency-closure checks, and bounded review were clean.
 
 Next candidate:
-After this slice, refresh the remaining validation fixture families and prefer
-another multi-test seam with an explicit helper dependency closure.
+Refresh the adjacent planned/activity-template/subsystem/realized/candidate
+activity fixture cluster in the 16,700-line parent. Select only a coherent
+multi-test boundary and move deterministic-aggregate builders to one shared
+support owner rather than copying them.
 
 Blocked:
 No.
