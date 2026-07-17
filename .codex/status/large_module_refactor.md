@@ -9,7 +9,7 @@ Current slice:
 Schema scoped-downlink callback ownership cleanup.
 
 Status:
-Completed and verified; publishing.
+Completed and published.
 
 Selected slice:
 Point the positional strategy-recommendation callback plus the cadence-import
@@ -68,14 +68,15 @@ Behavior/schema changes:
 None.
 
 Last completed slice:
-Schema branch-event callback ownership cleanup published as `43fe597e`: five
-positions now point directly to `BranchEventContracts`, two pure facade
-delegates were removed, 182 schema/export tests passed, full export bytes stayed
-exact, and bounded review was clean.
+Schema scoped-downlink callback ownership cleanup published as `381690fe`:
+three positions now point directly to `ScopedDownlinkContextContracts`, the
+pure facade delegate was removed, 182 schema/export tests passed, full export
+bytes stayed exact, and bounded review was clean.
 
 Next candidate:
-After this boundary, audit the remaining source-window lineage and report-count
-delegates by owner and capture count before selecting another responsibility.
+Point five ResourceProjection support callbacks directly at their owner
+contracts: report counts, flow-summary counts, subsystem assumptions twice, and
+flow projected-resource validation. Remove the four pure facade delegates.
 
 Blocked:
 No.
