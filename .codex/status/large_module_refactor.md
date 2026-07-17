@@ -9,7 +9,7 @@ Current slice:
 Contact-intent callback-bag and policy-field ownership collapse.
 
 Status:
-Selected; implementation not started.
+Complete and ready to publish.
 
 Selected slice:
 Replace the 21-entry `ContactIntentContracts` keyword bag with direct shared
@@ -50,10 +50,27 @@ intents and retains only its two genuine report hooks; focused, broader, and
 export checks pass; and bounded review finds no blocker.
 
 Outcome:
-Pending.
+The 21-entry bag and every contact-intent lookup/apply trampoline are gone.
+Primitive, collection, stable-ID, interval, station-calendar count, capability,
+approval-requirement, and policy-decision ownership is direct. Nine policy
+field lists moved unchanged into one shared owner used by validators and JSON
+schema generation. Candidate refresh now calls contact intent directly and
+retains only its two genuine report hooks. `schema.ex` fell from 11,079 to
+10,818 lines and the contact-intent owner from 334 to 268; including the new
+257-line policy owner and four-line candidate-refresh reduction, the slice is a
+net 74-line reduction. Nine hundred eighty-four focused, 1,340 attributable
+broader, and 24 export tests pass; compile, checked-in regeneration,
+compile-connected xref within its existing three-edge threshold, format, and
+diff hygiene are clean. Bounded review found no blocker and confirmed exact
+pipeline/order/paths/messages, all nine ordered policy lists and group shapes,
+direct capability/policy behavior, JSON-schema inputs, hook reduction, and
+orphan cleanup.
 
 Verification gaps:
-- Not yet verified.
+- Full repository suite not run.
+- The 1,345-test broader batch has the same five known campaign-planner baseline
+  failures previously reproduced on pre-slice commit `6f1f0ac1`; the
+  attributable result is 1,340/1,340.
 
 Last completed slice:
 Candidate-refresh callback collapse published as `9cb88173`: `schema.ex` fell

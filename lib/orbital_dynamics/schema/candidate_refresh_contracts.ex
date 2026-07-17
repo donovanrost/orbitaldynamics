@@ -7,6 +7,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshContracts do
   alias OrbitalDynamics.Schema.CandidateRefreshReportContracts
   alias OrbitalDynamics.Schema.CandidateRefreshWindowContracts
   alias OrbitalDynamics.Schema.ContactFilterReportContracts
+  alias OrbitalDynamics.Schema.ContactIntentContracts
   alias OrbitalDynamics.Schema.FreshnessReportContracts
   alias OrbitalDynamics.Schema.OperationalFeedbackContracts
   alias OrbitalDynamics.Schema.RefreshBudgetReportContracts
@@ -43,12 +44,10 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshContracts do
         issues,
         artifact,
         required_fields,
-        contact_intent_validator,
         contact_allocation_report_validator,
         candidate_rejection_report_validator
       )
-      when is_function(contact_intent_validator, 3) and
-             is_function(contact_allocation_report_validator, 2) and
+      when is_function(contact_allocation_report_validator, 2) and
              is_function(candidate_rejection_report_validator, 3) do
     issues
     |> require_fields("$", artifact, required_fields)
@@ -102,7 +101,7 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshContracts do
     |> validate_rows(
       "$.contact_intents",
       Map.get(artifact, "contact_intents", []),
-      contact_intent_validator
+      &ContactIntentContracts.validate/3
     )
     |> contact_allocation_report_validator.(Map.get(artifact, "contact_allocation_report"))
     |> validate_optional_contact_filter_report(Map.get(artifact, "contact_filter_report"))
