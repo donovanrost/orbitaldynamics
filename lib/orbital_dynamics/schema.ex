@@ -1749,31 +1749,24 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp json_schema_property(field, @campaign_request_lint = contract_name, contract) do
-    focused_json_schema_property(
+  defp json_schema_property(field, contract_name, contract)
+       when contract_name in [
+              @campaign_request_lint,
+              @study_manifest_lint
+            ] do
+    OrbitalDynamics.Schema.LintReportPropertyDispatch.property(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.LintReportJsonSchema.campaign_request_property_field?/1,
-      OrbitalDynamics.Schema.LintReportJsonSchema.campaign_request_property_fun_from_context(
-        validation_issue_schema: &validation_issue_json_schema/0,
-        sha256_schema: &sha256_json_schema/0,
-        stable_id_pattern: @stable_id_pattern
-      )
-    )
-  end
-
-  defp json_schema_property(field, @study_manifest_lint = contract_name, contract) do
-    focused_json_schema_property(
-      field,
-      contract_name,
-      contract,
-      &OrbitalDynamics.Schema.LintReportJsonSchema.study_manifest_property_field?/1,
-      OrbitalDynamics.Schema.LintReportJsonSchema.study_manifest_property_fun_from_context(
-        schema_version: 1,
-        stable_id_pattern: @stable_id_pattern,
-        manifest_lint_issue_schema: &manifest_lint_issue_json_schema/0
-      )
+      contracts: %{
+        campaign_request: @campaign_request_lint,
+        study_manifest: @study_manifest_lint
+      },
+      validation_issue_schema: &validation_issue_json_schema/0,
+      sha256_schema: &sha256_json_schema/0,
+      stable_id_pattern: @stable_id_pattern,
+      manifest_lint_issue_schema: &manifest_lint_issue_json_schema/0,
+      default_property: &default_json_schema_property/3
     )
   end
 

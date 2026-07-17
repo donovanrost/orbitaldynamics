@@ -9,7 +9,7 @@ Current slice:
 Schema lint-report JSON property-dispatch extraction.
 
 Status:
-Selected.
+Review complete; ready to publish.
 
 Selected slice:
 Extract property dispatch for campaign-request and study-manifest lint reports
@@ -43,10 +43,20 @@ validators, bundle ordering, and checked-in exports remain exact; focused and
 export tests pass; and bounded review finds no blocker.
 
 Outcome:
-Pending.
+The two facade clauses are now one guarded delegate to
+`OrbitalDynamics.Schema.LintReportPropertyDispatch`. The internal dispatcher
+preserves each contract's original field predicate, builder context, dependency
+schemas, study-manifest schema version, and common-property fallback. The
+facade is 9,718 lines; the new dispatcher is 53 lines.
 
 Verification gaps:
-- Pending.
+- `mix compile --warnings-as-errors` passed.
+- 23 focused lint, JSON export, schema export, and export-task tests passed.
+- Full checked-in export regeneration remained byte-identical at aggregate
+  digest `95051be82cec8a75634e4e8712dadd102888f59998d2c26ebe7c36065d824d3b`.
+- Scoped format, diff hygiene, and xref checks passed; xref reports only the
+  expected runtime caller from `OrbitalDynamics.Schema`.
+- Bounded read-only review found no blocker or follow-up finding.
 
 Last completed slice:
 Schema validation-report property dispatch published as `6e25b831`: report and
