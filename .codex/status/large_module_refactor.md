@@ -6,86 +6,59 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema shared activity callback ownership handoff.
+Schema realized-activity callback ownership mapping.
 
 Status:
-Published as `3184d18f`.
+Ready for implementation.
 
 Selected slice:
-Point both callback-bag captures of `validate_activity/3` directly at
-`Schema.ActivityContracts.validate/3`: the campaign-plan and campaign-repair
-bags. Remove the pure facade delegate while preserving keys and ordering.
+Point the standalone `realized_activity.v1` pipe directly at
+`Schema.RealizedActivityContracts.validate/3`. Remove the pure facade delegate
+while preserving its final position and issue ordering.
 
 Why this slice:
-`Schema` remains a named 7,918-line production hotspot. Live inspection
-corrected the prior shorthand: there are two runtime captures plus the wrapper
-definition. The established owner exposes the exact `/3` implementation.
-
-Current coupling/problem:
-Both campaign validators route nested activity rows through a pure facade
-wrapper even though their callback contract matches the established owner.
+`Schema` remains a 7,910-line production hotspot. The established owner exposes
+the exact `/3` implementation and the delegate has exactly one caller.
 
 Public facade to preserve:
-All `OrbitalDynamics.Schema` public functions, callback keys and list ordering,
-exact validation issue ordering, paths and messages, JSON Schema output,
-checked-in export bytes, and campaign activity behavior.
+All `OrbitalDynamics.Schema` public functions, exact issue ordering, paths and
+messages, JSON Schema output, checked-in export bytes, and realized-activity
+behavior.
 
 Likely files:
 - `lib/orbital_dynamics/schema.ex`
 - `.codex/status/large_module_refactor.md`
 
 Definition of done:
-The campaign-plan bag retains `validate_activity` between `validate_rows` and
-`validate_proposed_contact`; the campaign-repair bag retains it between
-`validate_optional_rows` and `validate_contact_intent`; both capture
-`ActivityContracts.validate/3`; the wrapper is gone; tests, schema bytes, and
-review remain clean.
+The pipe retains `require_fields`, calls the established owner in the same final
+position, the delegate is gone, behavior and schema bytes remain exact, focused
+and complete tests pass, and bounded review finds no blocker.
 
 Verification gaps:
-None.
+- Implementation and post-change verification pending.
 
 Tests run:
-- Source baseline: two callback captures and one pure wrapper definition.
-- Campaign-plan consumes the callback for both `activities` and
-  `candidate_activities`; campaign-repair consumes it for `activities`.
-- Focused communications plus campaign-repair/strategy baseline: 10 tests
-  passed with warnings as errors.
+- Source baseline: one final pipe call and one pure delegate definition.
+- Focused `contact_feedback_contracts_test.exs`: 5 tests passed with warnings as
+  errors.
 - Generated 121-schema bundle: 15,506,740 bytes, digest
   `543dbe11bc75f1397dd15dbd10cabd219ae2e46ac1e16d38b810a99befb8cec3`.
 - Checked bundle digest:
   `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`.
-- Source proof against `70e93873`: both callback keys retain their exact
-  neighboring positions, capture `ActivityContracts.validate/3`, and the
-  facade wrapper is absent.
-- Focused communications and repair/strategy tests: 10 passed; complete
-  schema/export tests: 182 passed, all with warnings as errors.
-- Generated bundle remains 121 schemas, 15,506,740 bytes, digest
-  `543dbe11bc75f1397dd15dbd10cabd219ae2e46ac1e16d38b810a99befb8cec3`.
-- Full export regeneration produced no schema diff; checked digest remains
-  `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`.
-- Strict compile, format, xref, and diff hygiene passed.
-- Independent review against `70e93873` was clean: callback positions, owner
-  and wrapper state, focused 10, complete 182, all 122 export bytes, digests,
-  strict compile, xref, formatting, sizes, ledger, and hygiene passed.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-Both callback bags reference the established owner directly and the pure
-wrapper is gone. `schema.ex` decreased from 7,918 to 7,910 lines.
+No realized-activity callback implementation has started.
 
 Last completed slice:
-Candidate-activity cleanup published as `07c7cf82`: `schema.ex` shrank from
-7,926 to 7,918 lines, 10 focused and 182 complete tests passed, all 122 exports
+Shared activity cleanup published as `3184d18f`: `schema.ex` shrank from 7,918
+to 7,910 lines, 10 focused and 182 complete tests passed, all 122 exports
 byte-matched, and bounded review was clean.
 
 Next candidate:
-Map the single-use `validate_realized_activity/3` facade delegate. Its only
-caller is the final standalone `realized_activity.v1` pipe stage after
-`require_fields`, and the established owner exposes the exact
-`RealizedActivityContracts.validate/3` implementation. Use focused contact
-feedback contracts for executable behavior coverage.
+Implement the direct owner substitution and remove the unused delegate.
 
 Blocked:
 No.
