@@ -6,62 +6,50 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema priority-override count callback ownership cleanup.
+Validation orbital/event reference-fixture family extraction.
 
 Status:
-Completed and published.
+Ready for implementation.
 
 Selected slice:
-Point the contact-allocation priority-override count callback directly at
-`Schema.PriorityOverrideContracts.validate_count_matches_ids/5`. Remove the pure
-guarded facade delegate.
+Move the first six contiguous non-artifact fixtures—four event cases plus J2
+and two-body propagation—into
+`Validation.ReferenceFixtures.Orbital`. Merge that family with the remaining
+artifact fixture map behind unchanged `ReferenceFixtures.all/0` and `fetch/1`.
 
 Why this slice:
-The established priority-override owner already exposes the exact guarded `/5`
-validator. The facade helper only forwards all five arguments, so the callback
-bag can retain its key and position without changing contact-allocation
-dispatch or validation behavior.
+`ReferenceFixtures` is now the largest production module at 13,383 lines but
+exposes only two public facade functions over one giant 194-entry map. The first
+six entries are a contiguous orbital/event family with dedicated focused tests,
+making them a cohesive first split without mixing artifact contracts.
 
 Public facade to preserve:
-All `OrbitalDynamics.Schema` public functions, exact validation issue ordering,
-paths and messages, cadence-import behavior, JSON Schema bytes, and aggregate
-schema export bytes.
+`OrbitalDynamics.Validation.ReferenceFixtures.all/0` and `fetch/1`, exact
+fixture keys and values, map equality and deterministic term bytes, and all
+`OrbitalDynamics.Validation` reference-fixture behavior.
 
 Likely files:
-- `lib/orbital_dynamics/schema.ex`
+- `lib/orbital_dynamics/validation/reference_fixtures.ex`
+- `lib/orbital_dynamics/validation/reference_fixtures/orbital.ex`
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
-- focused cadence-import, readiness, and review-import handoff contract tests
-- JSON Schema contract/export tests and full checked-in schema regeneration
+- exact before/after fixture count, keys, values, and deterministic term digest
+- focused orbital reference-fixture and validation tests
+- full validation test family
 - strict compile, format, xref, diff hygiene, and bounded review
 
 Definition of done:
-The callback points directly to the established priority-override owner, the
-guarded facade delegate is gone, argument and callback ordering remain exact,
-validation and schema exports remain byte-for-byte stable, focused tests pass,
-and bounded review finds no blocker.
+The six fixtures exist only in the orbital family module, the facade merges
+them with all 188 artifact fixtures, `all/0` and `fetch/1` return exactly the
+same 194-entry map and deterministic term bytes, focused and full validation
+tests pass, and bounded review finds no blocker.
 
 Verification gaps:
-- None for this slice.
+- Implementation and verification pending.
 
 Tests run:
-- `mix compile --warnings-as-errors`
-- 8 focused contact-allocation tests
-- 182 complete schema-contract and schema-export tests
-- full checked-in schema export regeneration; no schema diff
-- aggregate schema bundle digest unchanged:
-  `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`
-- `mix format --check-formatted`
-- `git diff --check`
-- compile-connected xref check for `schema.ex`
-- bounded read-only review: clean, no findings
-
-Outcome:
-The priority-override count callback now points directly to
-`PriorityOverrideContracts`. The pure guarded facade delegate is gone, the
-callback bag and `/5` argument order remain exact, and `schema.ex` decreased
-from 8,028 to 8,018 lines.
+- Selection only; implementation verification pending.
 
 Behavior/schema changes:
 None.
@@ -74,11 +62,10 @@ schema/export tests passed, full export bytes stayed exact, and bounded review
 was clean.
 
 Next candidate:
-Pivot to the current largest production hotspot,
-`Validation.ReferenceFixtures` (13,383 lines). Extract its contiguous first six
-orbital/event fixtures—four event cases plus J2 and two-body—into an internal
-family module, then merge that family with the remaining artifact fixtures
-behind unchanged `all/0` and `fetch/1` facade behavior.
+After this boundary, split the next contiguous artifact family only after
+mapping key ranges and focused contract coverage; candidate-refresh artifacts
+are the largest obvious family but should not be moved as one unreviewable
+block.
 
 Blocked:
 No.
