@@ -9,7 +9,7 @@ Current slice:
 Validation candidate-refresh timeline replay test-family extraction.
 
 Status:
-Ready to publish.
+Published as `dd568d9c`.
 
 Selected slice:
 Move the four contiguous candidate-refresh timeline precondition,
@@ -60,11 +60,11 @@ Verification gaps:
 - Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
-Validation candidate-refresh resource/readiness replay extraction published as
-`d4df2765`: the focused module passed 3/3, the parent passed 59/59, and all
-twenty-nine Validation modules preserved the 181-test aggregate with no
-duplicate names. Format, diff hygiene, exact-source and dependency-closure
-checks, and bounded review were clean.
+Validation candidate-refresh timeline replay extraction published as
+`dd568d9c`: the focused module passed 4/4, the parent passed 55/55, and all
+thirty Validation modules preserved the 181-test aggregate with no duplicate
+names. Format, diff hygiene, exact-source and dependency-closure checks, and
+bounded review were clean.
 
 Next candidate:
 Map the candidate-refresh objective-gap and constraint replay families
