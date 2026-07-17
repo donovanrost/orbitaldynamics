@@ -9,7 +9,7 @@ Current slice:
 Schema contact-contention handoff callback ownership cleanup.
 
 Status:
-Completed and verified; publishing.
+Completed and published.
 
 Selected slice:
 Point the contact-contention general and cadence-source-review handoff callback
@@ -71,17 +71,17 @@ Behavior/schema changes:
 None.
 
 Last completed slice:
-Schema command-window/maneuver handoff callback ownership cleanup published as
-`2c91d4e8`: both general/cadence callback pairs now point directly to their
-existing contract owner; 182 schema/export tests passed, full export bytes
-stayed exact, and bounded review was clean.
+Schema contact-contention handoff callback ownership cleanup published as
+`cecaa971`: all general/cadence captures now point directly to their existing
+contract owner, including equivalent cadence fallback behavior; 182
+schema/export tests passed, full export bytes stayed exact, and bounded review
+was clean.
 
 Next candidate:
-Audit the contact-contention handoff callback family. Its general/cadence
-callbacks target the existing `ContactContentionHandoffContracts` owner, but
-the facade also has a cadence fallback clause; select only after proving that
-the owner retains the same fallback and all four general/one cadence capture
-positions can move without changing issue order.
+Audit the link-capacity callback family. Count-list, source-match, and
+cadence-source-review callbacks target the existing
+`LinkCapacityHandoffContracts` owner; select only after confirming all seven
+capture positions and exact specialized/fallback behavior.
 
 Blocked:
 No.
