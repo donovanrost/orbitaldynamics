@@ -9,7 +9,7 @@ Current slice:
 Schema optimizer-report JSON property-dispatch extraction.
 
 Status:
-Review complete; ready to publish.
+Published.
 
 Selected slice:
 Extract property dispatch for ranking-comparison and Pareto-frontier reports
@@ -50,7 +50,7 @@ The two duplicate facade clauses are now one guarded delegate to
 the allowed contract family, lazy context assembly, contract-sensitive focused
 predicate/property builder, and common fallback. Ranking/Pareto row, winner,
 model-limit, and stable-identity callbacks remain exact. The facade is 9,414
-lines; the dispatcher is 32 lines.
+lines; the dispatcher is 32 lines. Implementation published as `3c7967da`.
 
 Verification gaps:
 - `mix compile --warnings-as-errors` passed.
@@ -61,17 +61,21 @@ Verification gaps:
 - Scoped format, diff hygiene, and xref checks passed; xref reports only the
   expected runtime caller from `OrbitalDynamics.Schema`.
 - Bounded read-only review found no blocker or follow-up finding.
+- None for this slice.
 
 Last completed slice:
-Schema objective-report property dispatch published as `d6ae77c8`:
-satisfaction and tradeoff reports now route through one cohesive internal
-dispatcher, 24 focused/export tests passed, full regeneration was
-byte-identical, and bounded review found no blocker.
+Schema optimizer-report property dispatch published as `3c7967da`: ranking and
+Pareto reports now route through one cohesive internal dispatcher, 24
+focused/export tests passed, full regeneration was byte-identical, and bounded
+review found no blocker.
 
 Next candidate:
-Audit one adjacent multi-contract report/property family after this slice is
-published. Leave single-contract neighbors in the facade unless a broader
-cohesive boundary emerges.
+Extract the four adjacent specialized operational quality-gate summaries
+(unavailable-resource, operator-training, schema-validation, and
+import-readiness) into one internal dispatcher. Preserve each module/model-limit
+pair, shared stable identity, common fallback, validators, and exact exports.
+Leave the general operational quality-gate summary and execution-boundary
+summary in the facade.
 
 Blocked:
 No.
