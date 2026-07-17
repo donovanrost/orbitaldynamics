@@ -9,7 +9,7 @@ Current slice:
 Campaign artifact reference-fixture family extraction.
 
 Status:
-Publishing implementation.
+Completed and published as `1c728168`.
 
 Selected slice:
 Move the first remaining 10-fixture campaign artifact run—one campaign plan and
@@ -88,15 +88,16 @@ fixtures. The facade fell from 13,008 to 12,410 lines, while the extracted
 family is 608 lines.
 
 Last completed slice:
-Accepted-planning-state reference-fixture extraction published as `8fffd57d`:
-the three exact fixtures moved behind the unchanged facade, the 195-entry map
-and deterministic bytes stayed exact, 181 validation tests passed, and bounded
-review was clean.
+Campaign artifact reference-fixture extraction published as `1c728168`: the 10
+exact campaign plan/result fixtures moved behind the unchanged facade, the
+195-entry map and deterministic bytes stayed exact, 181 validation tests
+passed, and bounded review was clean.
 
 Next candidate:
-After this boundary, remap the campaign repair/strategy neighbors and their
-focused assertions before choosing whether they form one bounded family; do
-not cross into the large candidate-refresh fixture range.
+Extract the next three contiguous campaign planning fixtures—repair, request
+lint, and strategy—into one family. The 265-line block has no helper-attribute
+coupling, is covered by campaign-artifact, planning-input, and facade tests,
+and stops before `capability_catalog`; re-baseline before selecting.
 
 Blocked:
 No.
