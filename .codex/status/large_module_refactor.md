@@ -6,56 +6,50 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Validation decision-support fixture test-family extraction.
+Validation resource-projection report fixture test-family extraction.
 
 Status:
-Published as `7169adcd`.
+Selected.
 
 Selected slice:
-Move the three contiguous maneuver-review, Monte Carlo reproducibility, and
-Pareto-frontier report fixture tests into a focused module with one shared
-builder owner.
+Move the two contiguous resource-projection report and projection-flow summary
+fixture tests into a focused module with one shared builder owner.
 
 Why this slice:
-After the link-capacity split, `validation_test.exs` is 11,769 lines. Tests
-7,126-7,430 form a coherent decision-support evidence family and end before
-resource-projection fixtures. Their six observation/raw builders form one
-closure; only observation builders remain needed by the deterministic
-aggregate.
+After the decision-support split, `validation_test.exs` is 11,444 lines. Tests
+7,133-7,283 form a coherent resource-projection report family and end before
+battery-handoff fixtures. Their four observation/raw builders form one closure;
+only observation builders remain needed by the deterministic aggregate. The
+battery-handoff test is excluded because it deliberately spans core,
+operator-review, and Cadence-import fixture families.
 
 Public facade to preserve:
 `OrbitalDynamics.Validation.reference_fixture/1`,
-`verify_reference_fixture/2`, `artifact_observations/2`, exact maneuver review,
-reproducibility, Pareto analysis, stale-data coverage, and deterministic
-reports.
+`verify_reference_fixture/2`, `artifact_observations/2`, exact resource
+projection, flow summary, stale-data coverage, and deterministic reports.
 
 Likely files:
 - `test/orbital_dynamics/validation_test.exs`
-- `test/orbital_dynamics/validation/decision_support_fixture_test.exs`
-- `test/support/validation/decision_support_fixtures.ex`
+- `test/orbital_dynamics/validation/resource_projection_fixture_test.exs`
+- `test/support/validation/resource_projection_fixtures.ex`
 - `test/test_helper.exs`
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
-- extracted decision-support fixture module directly
+- extracted resource-projection fixture module directly
 - remaining validation test ledger
 - format, diff hygiene, and bounded review
 
 Definition of done:
-All three tests move mechanically with order and assertion strength unchanged;
+Both tests move mechanically with order and assertion strength unchanged;
 shared builders have one exact owner, focused and parent files pass, names remain
 unique, and bounded review finds no blocker.
 
 Outcome:
-Three byte-identical decision-support family tests moved into a 320-line
-focused module. Six observation/raw builders now have one 38-line shared support
-owner; the parent imports only the three aggregate observation builders, with
-no private residue. The parent fell from 11,769 to 11,444 lines. Total
-test/support/loader LOC grew by 34 lines for explicit ownership without helper
-duplication. All 181 Validation test names remain unique.
+Pending.
 
 Verification gaps:
-- Full repository suite not run; this is a test-only ownership extraction.
+- Pending.
 
 Last completed slice:
 Validation decision-support fixture extraction published as `7169adcd`: the
