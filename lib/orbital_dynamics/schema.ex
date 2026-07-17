@@ -5743,7 +5743,10 @@ defmodule OrbitalDynamics.Schema do
   defp validate_contract(@remaining_horizon, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_remaining_horizon("$", artifact)
+    |> OrbitalDynamics.Schema.CandidateRefreshWindowContracts.validate_remaining_horizon(
+      "$",
+      artifact
+    )
   end
 
   defp validate_contract(@source_window_lineage, contract, artifact) do
@@ -6732,14 +6735,6 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       report
-    )
-  end
-
-  defp validate_remaining_horizon(issues, path, horizon) do
-    OrbitalDynamics.Schema.CandidateRefreshWindowContracts.validate_remaining_horizon(
-      issues,
-      path,
-      horizon
     )
   end
 
