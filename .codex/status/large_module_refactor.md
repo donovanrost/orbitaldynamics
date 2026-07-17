@@ -9,7 +9,7 @@ Current slice:
 CampaignPlanner V1 build-artifact assembly extraction.
 
 Status:
-Ready to publish.
+Published as `af42dda3`.
 
 Selected slice:
 Move the final V1 campaign-plan map construction and operator-review,
@@ -69,15 +69,18 @@ Verification gaps:
   access, or result dependency, so valid-input behavior is unchanged.
 
 Last completed slice:
-Operator-review row JSON Schema provider-manifest and shared-resolver extraction
-published as `43640ea6`: all 42 schema and 11 property providers remained exact
-and lazy, duplicate resolvers were removed, schema exports stayed byte-identical,
-25/25 focused tests passed, and bounded review found no blocker.
+CampaignPlanner V1 build-artifact assembly extraction published as `af42dda3`:
+all 34 fields and attachment order remained exact, every direct `build/2` test
+file passed 36/36, and bounded review found no blocker.
 
 Next candidate:
-After the V1 artifact owner is proven, reassess the remaining `build/2`
-orchestration closure before moving to `do_repair/1`. Prefer a complete
-responsibility boundary over pushing private helper calls through callbacks.
+Reassess the remaining V1 `build/2` orchestration closure. Do not move it behind
+callbacks merely to shorten the facade: map whether candidate generation,
+campaign filters, ranking, and report construction already have complete
+module-owned helper closures. If V1 orchestration remains too coupled, inspect
+the repair activity-transition cluster around `repair_activity_with_status/5`,
+`preserve_*`, `move_missed_downlink/4`, `replace_failed_observation/4`, and
+downstream-maneuver marking for one complete `RepairActivityTransitions` owner.
 
 Blocked:
 No.
