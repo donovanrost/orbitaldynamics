@@ -9,7 +9,7 @@ Current slice:
 Validation contact contention fixture test-family extraction.
 
 Status:
-Selected.
+Verified and reviewed; ready to publish.
 
 Selected slice:
 Move the five contiguous contact-filter, contact-contention, cross-station
@@ -48,10 +48,17 @@ shared builders have one exact owner, focused and parent files pass, names remai
 unique, and bounded review finds no blocker.
 
 Outcome:
-Pending.
+Five byte-identical contact contention family tests moved into a 460-line
+focused module. Ten observation/raw builders and the directly used JSON loader
+now have one 89-line shared support owner; the parent imports the five aggregate
+observation builders plus the raw cross-station report retained by a
+candidate-refresh challenge, with no private residue. The parent fell from
+12,602 to 12,095 lines. Total test/support/loader LOC grew by 43 lines for
+explicit ownership without helper duplication. All 181 Validation test names
+remain unique.
 
 Verification gaps:
-- Pending.
+- Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
 Validation provider capacity-pack fixture extraction published as `94b5578b`:
@@ -60,10 +67,9 @@ Validation modules preserved the 181-test aggregate with no duplicate names.
 Format, diff hygiene, dependency-closure checks, and bounded review were clean.
 
 Next candidate:
-Refresh the adjacent contact-filter, contention, and contention-resolution
-fixture cluster in the 12,602-line parent. Select only a coherent multi-test
-boundary and move shared builders to one support owner rather than copying
-them.
+Refresh the adjacent link-capacity report/summary and relay data-path fixture
+cluster in the 12,095-line parent. Select only a coherent multi-test boundary
+and move shared builders to one support owner rather than copying them.
 
 Blocked:
 No.
