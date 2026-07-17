@@ -9,7 +9,7 @@ Current slice:
 Schema risk-feedback handoff callback ownership cleanup.
 
 Status:
-Completed and verified; publishing.
+Completed and published.
 
 Selected slice:
 Point the risk-explanation and realized-feedback handoff callback captures
@@ -71,16 +71,17 @@ Behavior/schema changes:
 None.
 
 Last completed slice:
-Schema candidate handoff callback ownership cleanup published as `b8aa3071`:
-all candidate-rejection and candidate-diff callback captures now point directly
+Schema risk-feedback handoff callback ownership cleanup published as `ce35687f`:
+all risk-explanation and realized-feedback callback captures now point directly
 to their existing contract owner; 182 schema/export tests passed, full export
 bytes stayed exact, and bounded review was clean.
 
 Next candidate:
-Audit the risk-feedback handoff callback family. Risk-explanation and
-realized-feedback general/cadence validators appear to be pure delegates to the
-existing `RiskFeedbackHandoffContracts` owner; select only after confirming all
-capture counts, exact targets, and fallback clauses.
+Audit the strategy handoff callback family as one possible next boundary:
+strategy recommendation/tradeoff, branch comparison, ranking comparison, and
+Pareto-frontier validators already share `StrategyHandoffContracts`. Select
+only if every delegate is pure, all targets retain fallbacks, and the family is
+still small enough for one independently reviewable slice.
 
 Blocked:
 No.
