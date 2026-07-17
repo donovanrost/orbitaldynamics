@@ -9,7 +9,7 @@ Current slice:
 Validation resource-pressure handoff fixture test-family extraction.
 
 Status:
-Ready to publish.
+Published as `0f28b6a4`.
 
 Selected slice:
 Move the resource-pressure handoff fixture test into a focused module with one
@@ -66,11 +66,11 @@ Verification gaps:
 - Independent bounded review found no blocker.
 
 Last completed slice:
-Validation policy-decision fixture extraction published as `a1c32f34`: the
-focused module passed 2/2, the parent passed 21/21, and all forty-two Validation
-modules preserved the 181-test aggregate with no duplicate names. Format, diff
-hygiene, exact-source and dependency-closure checks, and bounded review were
-clean.
+Validation resource-pressure handoff fixture extraction published as
+`0f28b6a4`: the focused module passed 1/1, the parent passed 20/20, and all
+forty-three Validation modules preserved the 181-test aggregate with no
+duplicate names. Format, diff hygiene, exact-source and ownership-closure
+checks, and bounded review were clean.
 
 Next candidate:
 Map the contact-allocation report, reservation-conflict, station-pressure,
