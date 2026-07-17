@@ -6,10 +6,10 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema optional freshness-report callback ownership mapping.
+Schema optional freshness-report callback ownership handoff.
 
 Status:
-Publishing.
+Published as `e01a81ea`.
 
 Selected slice:
 Point both facade uses of `validate_optional_freshness_report/3` directly at
@@ -100,14 +100,17 @@ Both facade uses now reference the established freshness-report owner directly
 and the pure wrapper is gone. `schema.ex` decreased from 7,975 to 7,968 lines.
 
 Last completed slice:
-Refresh-budget callback cleanup published as `526979a2`: the standalone
-contract pipe now calls the established owner directly, `schema.ex` shrank from
-7,983 to 7,975 lines, 10 focused and 182 complete schema/export tests passed,
-all 122 generated schema files byte-matched, and bounded review was clean.
+Optional freshness-report wrapper cleanup published as `e01a81ea`: both facade
+uses now point directly at the established owner, `schema.ex` shrank from 7,975
+to 7,968 lines, 10 focused and 182 complete schema/export tests passed, all 122
+generated schema files byte-matched, and bounded review was clean.
 
 Next candidate:
-Select both direct freshness-report owner references described above, preserve
-pipeline and callback position exactly, then remove the wrapper.
+Skip the multi-arity station-calendar neighbor and map the isolated
+`validate_maneuver_execution_delta/3` facade delegate. Its established
+`AcceptedStateContracts.validate_maneuver_execution_delta/3` owner is unchanged
+and the standalone `maneuver_execution_delta.v1` pipe is its only caller;
+capture pipeline order and schema-byte baselines before replacing it.
 
 Blocked:
 No.
