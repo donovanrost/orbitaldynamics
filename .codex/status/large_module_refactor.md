@@ -9,7 +9,7 @@ Current slice:
 Schema station-reservation-summary JSON property-dispatch extraction.
 
 Status:
-Selected.
+Review complete; ready to publish.
 
 Selected slice:
 Extract property dispatch for station-reservation review summary, hold summary,
@@ -46,10 +46,22 @@ exports remain exact; focused and export tests pass; and bounded review finds
 no blocker.
 
 Outcome:
-Pending.
+The three facade clauses are now one guarded delegate to
+`OrbitalDynamics.Schema.StationReservationSummaryPropertyDispatch`. The
+internal dispatcher preserves contract-to-module routing, focused-field
+selection, the shared review/hold row callback, the distinct import-readiness
+row callback, shared model-limit/stable-identity dependencies, and the common
+fallback. The facade is 9,592 lines; the new dispatcher is 56 lines.
 
 Verification gaps:
-- Pending.
+- `mix compile --warnings-as-errors` passed.
+- 28 focused station-provider, JSON export, schema export, and export-task tests
+  passed.
+- Full checked-in export regeneration remained byte-identical at aggregate
+  digest `95051be82cec8a75634e4e8712dadd102888f59998d2c26ebe7c36065d824d3b`.
+- Scoped format, diff hygiene, and xref checks passed; xref reports only the
+  expected runtime caller from `OrbitalDynamics.Schema`.
+- Bounded read-only review found no blocker or follow-up finding.
 
 Last completed slice:
 Schema timeline-report property dispatch published as `39a16f36`: operational

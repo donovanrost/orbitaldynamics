@@ -2106,49 +2106,26 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp json_schema_property(field, @station_reservation_review_summary = contract_name, contract) do
-    focused_json_schema_property(
+  defp json_schema_property(field, contract_name, contract)
+       when contract_name in [
+              @station_reservation_review_summary,
+              @station_reservation_hold_summary,
+              @station_reservation_hold_import_readiness_summary
+            ] do
+    OrbitalDynamics.Schema.StationReservationSummaryPropertyDispatch.property(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.StationReservationReviewSummaryJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.StationReservationReviewSummaryJsonSchema.property_fun_from_context(
-        row_schema: &station_reservation_review_summary_row_json_schema/0,
-        model_limits: &station_calendar_report_model_limits/0,
-        stable_id_pattern: @stable_id_pattern
-      )
-    )
-  end
-
-  defp json_schema_property(field, @station_reservation_hold_summary = contract_name, contract) do
-    focused_json_schema_property(
-      field,
-      contract_name,
-      contract,
-      &OrbitalDynamics.Schema.StationReservationHoldSummaryJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.StationReservationHoldSummaryJsonSchema.property_fun_from_context(
-        row_schema: &station_reservation_review_summary_row_json_schema/0,
-        model_limits: &station_calendar_report_model_limits/0,
-        stable_id_pattern: @stable_id_pattern
-      )
-    )
-  end
-
-  defp json_schema_property(
-         field,
-         @station_reservation_hold_import_readiness_summary = contract_name,
-         contract
-       ) do
-    focused_json_schema_property(
-      field,
-      contract_name,
-      contract,
-      &OrbitalDynamics.Schema.StationReservationHoldImportReadinessSummaryJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.StationReservationHoldImportReadinessSummaryJsonSchema.property_fun_from_context(
-        row_schema: &station_reservation_hold_import_readiness_row_json_schema/0,
-        model_limits: &station_calendar_report_model_limits/0,
-        stable_id_pattern: @stable_id_pattern
-      )
+      contracts: %{
+        review_summary: @station_reservation_review_summary,
+        hold_summary: @station_reservation_hold_summary,
+        hold_import_readiness_summary: @station_reservation_hold_import_readiness_summary
+      },
+      review_row_schema: &station_reservation_review_summary_row_json_schema/0,
+      import_readiness_row_schema: &station_reservation_hold_import_readiness_row_json_schema/0,
+      model_limits: &station_calendar_report_model_limits/0,
+      stable_id_pattern: @stable_id_pattern,
+      default_property: &default_json_schema_property/3
     )
   end
 
