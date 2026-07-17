@@ -3,6 +3,14 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummaryAggregateEdgeTest 
 
   alias OrbitalDynamics.CandidateRefresh
 
+  test "source report summary treats non-map inputs as an empty artifact" do
+    empty_summary = CandidateRefresh.source_report_summary(%{})
+
+    for input <- [nil, [], "invalid"] do
+      assert CandidateRefresh.source_report_summary(input) == empty_summary
+    end
+  end
+
   test "source report summary ignores malformed path and grouping values in aggregates" do
     artifact = %{
       "schema_contract" => "candidate_refresh.v1",

@@ -1,8 +1,21 @@
 defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary do
   @moduledoc false
 
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.{Assembly, InputProvenance}
+  alias OrbitalDynamics.CandidateRefresh.ValueEncoding
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.Common.EncodedValue
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.Common.NumericValue
+
+  def build(refresh_or_artifact) when is_map(refresh_or_artifact) do
+    source_reports =
+      refresh_or_artifact
+      |> ValueEncoding.stringify_keys()
+      |> source_reports(&InputProvenance.build/1)
+
+    Assembly.build(refresh_or_artifact, source_reports)
+  end
+
+  def build(_refresh_or_artifact), do: build(%{})
 
   def source_reports(refresh_or_artifact, source_report_input_provenance)
       when is_map(refresh_or_artifact) do

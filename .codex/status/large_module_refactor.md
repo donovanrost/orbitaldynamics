@@ -9,7 +9,7 @@ Current slice:
 CandidateRefresh source-report summary assembly ownership.
 
 Status:
-Selected.
+Ready to publish.
 
 Selected slice:
 Move source-report normalization, provenance collection, and final assembly
@@ -43,10 +43,21 @@ summary output remains exact; focused tests pass; dependency shape is narrow;
 and bounded review finds no blocker.
 
 Outcome:
-Pending.
+Added `SourceReportSummary.build/1` as the owner for input normalization,
+provenance collection, assembly, and non-map fallback. The public facade is now
+a one-line delegate. `candidate_refresh.ex` fell from 641 to 626 lines and the
+owner grew from 304 to 317; the bounded scope is net -2 lines.
 
 Verification gaps:
-- Pending.
+- Strict compilation, formatting, and diff hygiene pass.
+- Five focused source-summary/provenance files pass 9/9, including exact
+  non-map fallback equivalence through the public facade.
+- The moved body and fallback were audited against selection commit
+  `bfc88f46`; call/evaluation order is unchanged.
+- Compile-connected xref adds no facade compile edge; module callers confirm
+  the facade uses the owner at runtime.
+- Independent review's fallback-proof finding was corrected; re-review found
+  no blocker.
 
 Last completed slice:
 Schema capability and validation-evidence direct-owner routing published as

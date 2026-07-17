@@ -13,9 +13,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
     Capabilities,
     ModelLimits,
     ReplaySummary,
-    SourceReportSummary,
-    SourceReportSummary.InputProvenance,
-    ValueEncoding
+    SourceReportSummary
   }
 
   alias OrbitalDynamics.ResultSet
@@ -37,21 +35,8 @@ defmodule OrbitalDynamics.CandidateRefresh do
   @doc """
   Builds an artifact-only summary of candidate-refresh source-report provenance.
   """
-  def source_report_summary(refresh_or_artifact) when is_map(refresh_or_artifact) do
-    source_reports =
-      refresh_or_artifact
-      |> ValueEncoding.stringify_keys()
-      |> SourceReportSummary.source_reports(&InputProvenance.build/1)
-
-    SourceReportSummary.Assembly.build(
-      refresh_or_artifact,
-      source_reports
-    )
-  end
-
-  def source_report_summary(_refresh_or_artifact) do
-    source_report_summary(%{})
-  end
+  def source_report_summary(refresh_or_artifact),
+    do: SourceReportSummary.build(refresh_or_artifact)
 
   @doc """
   Builds a compact branch-local candidate-diff replay summary.
