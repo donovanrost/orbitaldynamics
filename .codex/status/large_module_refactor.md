@@ -6,10 +6,10 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema maneuver-execution-delta callback ownership mapping.
+Schema maneuver-execution-delta callback ownership handoff.
 
 Status:
-Publishing.
+Published as `5bc0e60f`.
 
 Selected slice:
 Point the standalone `maneuver_execution_delta.v1` contract pipe directly at
@@ -98,14 +98,18 @@ owner directly and the pure facade delegate is gone. `schema.ex` decreased from
 7,968 to 7,963 lines.
 
 Last completed slice:
-Optional freshness-report wrapper cleanup published as `e01a81ea`: both facade
-uses now point directly at the established owner, `schema.ex` shrank from 7,975
-to 7,968 lines, 10 focused and 182 complete schema/export tests passed, all 122
-generated schema files byte-matched, and bounded review was clean.
+Maneuver-execution-delta callback cleanup published as `5bc0e60f`: the
+standalone contract pipe now calls the established owner directly, `schema.ex`
+shrank from 7,968 to 7,963 lines, 6 focused and 182 complete schema/export
+tests passed, all 122 generated schema files byte-matched, and bounded review
+was clean.
 
 Next candidate:
-Select the direct maneuver-execution-delta owner described above, preserve the
-final pipeline position exactly, then remove the unused facade delegate.
+Map the adjacent single-call `validate_spacecraft_state_estimate/3` facade
+delegate. Its established
+`AcceptedStateContracts.validate_spacecraft_state_estimate/3` owner is unchanged
+and the standalone `spacecraft_state_estimate.v1` pipe is its only caller;
+capture pipeline order and schema-byte baselines before replacing it.
 
 Blocked:
 No.
