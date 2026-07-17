@@ -6,113 +6,75 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Capability-catalog fixture extraction handoff.
+Schema CandidateDiff lineage callback ownership mapping.
 
 Status:
-Published as `8e4be181`.
+Ready for implementation.
 
 Selected slice:
-Move the sole remaining `capability_catalog.v1` fixture together with its
-private candidate-refresh source-report ordering attribute into a new
-`Validation.ReferenceFixtures.CapabilityCatalogArtifacts` leaf. Preserve the
-alias block, `@all_fixtures` merge chain, and complete 194-fixture remainder
-exactly.
+Point the standalone `source_window_lineage.v1` contract pipe directly at
+`Schema.CandidateDiffContracts.validate_source_window_lineage/3`. Remove the
+pure facade delegate while preserving the pipe position and all issue ordering.
 
 Why this slice:
-`ReferenceFixtures` is now a 235-line facade with one remaining fixture and one
-private attribute used only by that fixture. Moving both completes the
-facade-state extraction and leaves registry composition plus `all/0` and
-`fetch/1` as its only responsibilities.
+`Schema` remains a named 8,018-line production hotspot. The established
+CandidateDiff owner already exposes the exact `/3` implementation, and the
+facade delegate has exactly one caller, so this is a bounded ownership cleanup
+with no contract or dispatch redesign.
 
 Current coupling/problem:
-Public capability-catalog counts and candidate-refresh source-report ordering
-remain embedded in the registry facade. They form one self-contained artifact
-contract and do not belong in the environment- or subsystem-specific
-capability leaves.
+The standalone source-window-lineage validator still routes through a private
+facade callback even though CandidateDiff validation owns the full lineage
+implementation and already calls it internally.
 
 Public facade to preserve:
-`OrbitalDynamics.Validation.ReferenceFixtures.all/0` and `fetch/1`, exact
-fixture keys and values, map equality and deterministic term bytes, and all
-`OrbitalDynamics.Validation` reference-fixture behavior.
+All `OrbitalDynamics.Schema` public functions, exact validation issue ordering,
+paths and messages, JSON Schema output, checked-in export bytes, and
+CandidateDiff artifact behavior.
 
 Likely extraction target:
-`OrbitalDynamics.Validation.ReferenceFixtures.CapabilityCatalogArtifacts`.
+Existing
+`OrbitalDynamics.Schema.CandidateDiffContracts.validate_source_window_lineage/3`.
 
 Likely files:
-- `lib/orbital_dynamics/validation/reference_fixtures.ex`
-- `lib/orbital_dynamics/validation/reference_fixtures/capability_catalog_artifacts.ex`
+- `lib/orbital_dynamics/schema.ex`
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
-- exact before/after fixture count, keys, values, and deterministic term digest
-- focused quality-gate and facade validation tests
-- full validation test family
+- exact source call-site, pipe position, and delegate-removal proof
+- focused CandidateDiff contract tests
+- complete schema-contract/export tests and full checked-in export regeneration
+- aggregate generated and checked-in schema bundle digests
 - strict compile, format, xref, diff hygiene, and bounded review
 
 Definition of done:
-The capability-catalog fixture and its private ordering attribute exist only in
-the new cohesive leaf, all 48 leaf maps remain disjoint, the facade contains no
-fixture literals or private fixture data, `all/0` and `fetch/1` return exactly
-the same 195-entry map and deterministic term bytes, the complete 194-fixture
-remainder stays exact, focused and full validation tests pass, and bounded
-review finds no blocker.
+The standalone contract pipe calls the established CandidateDiff owner in the
+same final pipeline position, the pure facade delegate is gone, issue order and
+messages remain exact, generated and checked-in schema bytes do not change,
+focused and complete schema/export tests pass, and bounded review finds no
+blocker.
 
 Verification gaps:
-None.
+- Implementation and post-change verification pending.
 
 Tests run:
-- Selection baseline: 195 entries, deterministic map digest
-  `a94507226596cd944ac21994c7889549ec58ecd1fcc0db5c65fa4e55b0f53ef2`,
-  and sorted-key digest
-  `b0007d04e4154fe879519a4f2b074fe3f9d0d649f3049d5d848264e105d00732`.
-- Selected one-fixture map: deterministic digest
-  `6a6a01be9d672d9a9850cc95fede2df801a68852affeb122d0fd1c516978e1d2`.
-- Exact 194-entry remainder: deterministic digest
-  `121e19ea8bc9fab732527e90d98ccbc284632a3f9ed609ced6532d91e1ad1759`.
-- Source boundary confirmed across facade lines 52-181, after the complete
-  alias block and before `@all_fixtures`. The private
-  `@candidate_refresh_source_report_input_order` attribute has exactly two
-  source occurrences: its definition and its use inside the selected fixture.
-- Focused capability-catalog/facade selection baseline: 5 tests passed with
+- Source baseline: `validate_source_window_lineage/3` appears exactly once as
+  the final standalone contract-pipe call and once as its pure facade
+  definition; the established CandidateDiff owner exposes the exact `/3`
+  implementation.
+- Focused `candidate_refresh_contracts_test.exs` baseline: 10 tests passed with
   warnings as errors.
-- Normalized-AST proof against selection commit `a3b2e2a1`: the fixture map and
-  private ordering attribute are exact in the new leaf; the facade owns neither
-  attribute, contains no fixture literal, and its merge-module order is exact
-  after replacing the final `@fixtures` merge with
-  `CapabilityCatalogArtifacts.all/0`.
-- Post-move exact proof: the 195-entry map, sorted-key digest, selected
-  one-fixture digest, and exact 194-entry remainder digest all match their
-  selection baselines.
-- Source partition proof: 48 leaf maps total 195 entries, the new leaf owns one,
-  all 1,128 pairwise intersections are empty, and the 195 unique source keys
-  exactly match the runtime map.
-- Facade proof: all 195 successful `fetch/1` results, missing-key `:error`, and
-  nonbinary `FunctionClauseError` behavior remain unchanged; no fixture literal,
-  `@fixtures`, or private ordering attribute remains in the facade.
-- Focused capability-catalog/facade validation: 5 tests passed with warnings as
-  errors.
-- Full validation family: 181 tests passed with warnings as errors.
-- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
-  xref caller checks passed.
-- Initial bounded review found that the new leaf merge had been inserted
-  alphabetically instead of at the former final `@fixtures` position. The
-  merge was moved to the exact former position; merge-order proof, all four
-  digests, focused 5-test validation, full 181-test validation, xref,
-  formatting, and diff hygiene passed again.
-- Independent re-review against selection commit `a3b2e2a1` was clean: the
-  corrected merge order, normalized fixture and attribute AST, facade-state
-  removal, all deterministic digests, 48-map source partition, facade behavior,
-  one-way xref dependency, sizes, rerun tests, and hygiene all matched the
-  recorded evidence.
+- Generated 121-schema bundle JSON byte digest:
+  `543dbe11bc75f1397dd15dbd10cabd219ae2e46ac1e16d38b810a99befb8cec3`
+  across 15,506,740 bytes.
+- Checked-in `schemas/orbital_dynamics.schema_bundle.v1.json` digest:
+  `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-The exact capability-catalog fixture and its private ordering attribute now
-live in a dedicated cohesive leaf behind the unchanged facade. The facade
-shrunk from 235 to 105 lines and contains only aliases, registry composition,
-`all/0`, and `fetch/1`; the new leaf is 136 lines and owns exactly one fixture.
+No CandidateDiff lineage callback implementation has started.
 
 Last completed slice:
 Capability-catalog extraction published as `8e4be181`: the final fixture and
@@ -122,12 +84,8 @@ deterministic digests stayed exact, 5 focused and 181 full validation tests
 passed, and corrected bounded review was clean.
 
 Next candidate:
-Return to the named 8,018-line `Schema` hotspot. Map the isolated
-`validate_source_window_lineage/3` facade delegate: its established owner
-`Schema.CandidateDiffContracts` already exposes the exact guarded implementation,
-and the `source_window_lineage.v1` contract pipe appears to be its only caller.
-Capture callback/issue ordering, schema bundle/export bytes, and focused
-CandidateDiff validation baselines before replacing the delegate in place.
+Select the direct CandidateDiff lineage owner described above, preserve the
+final pipeline position exactly, then remove the now-unused facade delegate.
 
 Blocked:
 No.
