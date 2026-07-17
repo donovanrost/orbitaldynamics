@@ -9,7 +9,7 @@ Current slice:
 Schema operational readiness gate-summary JSON property-dispatch extraction.
 
 Status:
-Selected.
+Completed and published.
 
 Selected slice:
 Extract property dispatch for operational import-eligibility, readiness-gate,
@@ -48,23 +48,47 @@ checked-in exports remain exact; focused and export tests pass; and bounded
 review finds no blocker.
 
 Outcome:
-Pending.
+The three operational readiness gate-summary clauses now route through
+`OperationalReadinessGateSummaryPropertyDispatch`. The dispatcher owns the
+literal contract family, exact JSON-schema-module/dependency pairings, focused
+field routing, and default fallback. `OrbitalDynamics.Schema` remains the public
+facade and supplies only its existing private dependencies as callbacks.
 
 Verification gaps:
-- Pending.
+- None for this slice.
+
+Tests run:
+- `mix compile --warnings-as-errors`
+- 30 focused operational and schema/export tests
+- full checked-in schema export; aggregate bundle digest remained
+  `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`
+- `mix format --check-formatted`
+- `git diff --check`
+- new-file diff hygiene
+- compile-connected xref check for `schema.ex`
+- bounded read-only review: clean, no findings
+
+Behavior/schema changes:
+None. Full export regeneration was byte-identical.
+
+Files changed:
+- `lib/orbital_dynamics/schema.ex`
+- `lib/orbital_dynamics/schema/operational_readiness_gate_summary_property_dispatch.ex`
+- `.codex/status/large_module_refactor.md`
 
 Last completed slice:
-Schema specialized quality-gate-summary property dispatch published as
-`89329531`: unavailable-resource, operator-training, schema-validation, and
-import-readiness summaries now route through one cohesive internal dispatcher,
-33 focused/export tests passed, full regeneration was byte-identical, and
-bounded review found no finding.
+Schema operational readiness gate-summary property dispatch published as
+`ae307679`: import-eligibility, readiness-gate, and execution-boundary summaries
+now route through one cohesive internal dispatcher, 30 focused/export tests
+passed, full regeneration was byte-identical, and bounded review found no
+finding.
 
 Next candidate:
-After this slice, audit the general operational quality-gate summary,
-operational readiness report, and quality-gate report clauses as a possible
-row/evidence report family. Keep them separate unless one explicit cohesive
-boundary emerges.
+Audit the general operational quality-gate summary and quality-gate report as a
+two-contract family: both use the operational-readiness capability,
+quality-gate row schema, stable identity, and contract-specific model limits.
+Keep the operational readiness report separate because it owns gate/evidence
+schema rather than quality-gate rows.
 
 Blocked:
 No.
