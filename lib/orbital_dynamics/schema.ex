@@ -4902,7 +4902,7 @@ defmodule OrbitalDynamics.Schema do
   defp validate_contract(@proposed_contact, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_proposed_contact("$", artifact)
+    |> OrbitalDynamics.Schema.ProposedContactContracts.validate("$", artifact)
   end
 
   defp validate_contract(@contact_intent, contract, artifact) do
@@ -5915,7 +5915,7 @@ defmodule OrbitalDynamics.Schema do
       validate_optional_score_term_report: &validate_optional_score_term_report/2,
       validate_rows: &validate_rows/4,
       validate_activity: &validate_activity/3,
-      validate_proposed_contact: &validate_proposed_contact/3,
+      validate_proposed_contact: &OrbitalDynamics.Schema.ProposedContactContracts.validate/3,
       validate_contact_intent: &validate_contact_intent/3,
       validate_optional_contact_filter_report: &validate_optional_contact_filter_report/2
     ]
@@ -5981,14 +5981,6 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       activity
-    )
-  end
-
-  defp validate_proposed_contact(issues, path, contact) do
-    OrbitalDynamics.Schema.ProposedContactContracts.validate(
-      issues,
-      path,
-      contact
     )
   end
 
