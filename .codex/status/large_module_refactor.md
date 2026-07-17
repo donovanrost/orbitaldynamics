@@ -6,59 +6,52 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Validation operational planning fixture test-family extraction.
+Validation provider capacity-pack fixture test-family extraction.
 
 Status:
-Published as `4c26b4e7`.
+Selected.
 
 Selected slice:
-Move the three contiguous command-window report, constraint report, and
-operational-timeline report fixture tests into a focused module with one shared
-builder owner.
+Move the two contiguous provider-reservation request summary and
+reduced-capacity contact-allocation pack fixture tests into a focused module
+with one shared builder owner.
 
 Why this slice:
-After the timeline handoff split, `validation_test.exs` is 13,343 lines. Tests
-6,627-6,962 form a coherent operational planning report family and end before
-contact-allocation fixtures. Their six observation/raw builders and one
-generated-artifact builder form one closure; only observation builders remain
-needed by the deterministic aggregate. The preceding resource-pressure test is
-excluded because its cross-artifact raw fixtures retain parent consumers.
+After the operational planning split, `validation_test.exs` is 12,943 lines.
+Tests 7,103-7,429 form a coherent provider-request-to-capacity-pack family and
+end before contact-filter fixtures. Their four observation/raw builders form
+one closure; only observation builders remain needed by the deterministic
+aggregate. The preceding summary tests are excluded because they load JSON
+directly while separate aggregate-only observation helpers remain in the
+parent.
 
 Public facade to preserve:
 `OrbitalDynamics.Validation.reference_fixture/1`,
-`verify_reference_fixture/2`, `artifact_observations/2`, exact command-window,
-constraint, operational-timeline, stale-data coverage, and deterministic
-reports.
+`verify_reference_fixture/2`, `artifact_observations/2`, exact provider request,
+reduced-capacity pack, stale-data coverage, and deterministic reports.
 
 Likely files:
 - `test/orbital_dynamics/validation_test.exs`
-- `test/orbital_dynamics/validation/operational_planning_fixture_test.exs`
-- `test/support/validation/operational_planning_fixtures.ex`
+- `test/orbital_dynamics/validation/provider_capacity_pack_fixture_test.exs`
+- `test/support/validation/provider_capacity_pack_fixtures.ex`
 - `test/test_helper.exs`
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
-- extracted operational planning fixture module directly
+- extracted provider capacity-pack fixture module directly
 - remaining validation test ledger
 - format, diff hygiene, and bounded review
 
 Definition of done:
-All three tests move mechanically with order and assertion strength unchanged;
+Both tests move mechanically with order and assertion strength unchanged;
 shared builders have one exact owner, focused and parent files pass, names remain
 unique, and bounded review finds no blocker.
 
 Outcome:
-Three byte-identical operational planning family tests moved into a 352-line
-focused module. Seven observation/raw/generated builders now have one 82-line
-shared support owner; the parent imports only the three aggregate observation
-builders, with no private residue. The cross-artifact resource-pressure family
-and its retained consumers remain in the parent. The parent fell from 13,343 to
-12,943 lines. Total test/support/loader LOC grew by 35 lines for explicit
-ownership without helper duplication. All 181 Validation test names remain
-unique.
+Pending.
 
 Verification gaps:
-- Full repository suite not run; this is a test-only ownership extraction.
+- Pending.
 
 Last completed slice:
 Validation operational planning fixture extraction published as `4c26b4e7`:
