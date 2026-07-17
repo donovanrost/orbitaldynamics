@@ -6,29 +6,29 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Policy-bundle authority fixture mapping.
+Policy-bundle operational-variant mapping.
 
 Status:
-Publishing.
+Ready for next slice selection.
 
 Selected slice:
-Move only
-`policy_bundle.operator_review_queue_authority` and
-`policy_bundle.command_contact_authority` into the existing
+No implementation selected yet. The next bounded candidate is to move only
+`policy_bundle.conservative_ops` and
+`policy_bundle.contact_command_review` into the existing
 `Validation.ReferenceFixtures.PolicyBundleArtifacts` leaf. Stop before
-`policy_bundle.conservative_ops`.
+`policy_bundle.degraded_payload_guard`.
 
 Why this slice:
-`ReferenceFixtures` remains the largest production module at 9,216 lines. The
-next two contiguous fixtures are the operator-review and command/contact
-authority variants, totaling 148 facade lines. Both have dedicated assertions
-in `policy_bundle_fixture_test.exs`.
+`ReferenceFixtures` remains the largest production module at 9,068 lines. The
+next two contiguous fixtures are conservative operations and contact-command
+review variants, totaling 101 facade lines. Both participate in the focused
+remaining-variant assertions in `policy_bundle_fixture_test.exs`.
 
 Current coupling/problem:
-Two authority-focused policy-bundle expectations remain in the general facade
+Two operational-policy bundle expectations remain in the general facade
 even though the policy-bundle family now has a dedicated leaf. Moving this
-pair extends that ownership without conflating the later operational-policy or
-domain-authority groups.
+pair extends that ownership without conflating the following degraded/default
+pair or later domain-authority group.
 
 Public facade to preserve:
 `OrbitalDynamics.Validation.ReferenceFixtures.all/0` and `fetch/1`, exact
@@ -50,14 +50,15 @@ Likely verification:
 - strict compile, format, xref, diff hygiene, and bounded review
 
 Definition of done:
-The two selected authority fixtures exist only in the cohesive policy leaf,
+The two selected operational-policy fixtures exist only in the cohesive leaf,
 all 21 fixture maps remain disjoint, `all/0` and `fetch/1` return exactly the
-same 195-entry map and deterministic term bytes, `conservative_ops` and the
-complete facade remainder stay exact, focused and full validation tests pass,
-and bounded review finds no blocker.
+same 195-entry map and deterministic term bytes, `degraded_payload_guard` and
+the complete facade remainder stay exact, the prior four leaf fixtures remain
+exact, focused and full validation tests pass, and bounded review finds no
+blocker.
 
 Verification gaps:
-- None for this bounded slice.
+- Next candidate still requires a selection baseline before implementation.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -97,20 +98,19 @@ Behavior/schema changes:
 None.
 
 Outcome:
-The two exact authority fixtures now live in the existing policy-bundle leaf
-behind the unchanged facade. The facade shrank from 9,216 to 9,068 lines; the
-leaf grew from two to four fixtures and from 147 to 295 lines.
+No operational-variant implementation has started.
 
 Last completed slice:
-Base policy-bundle fixture extraction published as `c66cedc3`: the two exact
-base/ground-network fixtures moved into a new 147-line leaf, the facade shrank
-from 9,353 to 9,216 lines, the 195-entry map and all deterministic digests
-stayed exact, 18 focused and 181 full validation tests passed, and bounded
-review was clean.
+Policy-bundle authority extraction published as `d3a4e305`: the two exact
+operator-review/command-contact authority fixtures moved into the existing
+leaf, the facade shrank from 9,216 to 9,068 lines, the leaf grew to four
+fixtures, the 195-entry map and all deterministic digests stayed exact, 18
+focused and 181 full validation tests passed, and bounded review was clean.
 
 Next candidate:
-Select the two-fixture authority extraction described above, capture the exact
-baseline and source partition, then stop before `policy_bundle.conservative_ops`.
+Select the two-fixture operational-variant extraction described above, capture
+the exact baseline and source partition, then stop before
+`policy_bundle.degraded_payload_guard`.
 
 Blocked:
 No.
