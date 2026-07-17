@@ -9,7 +9,7 @@ Current slice:
 Candidate-refresh contact replay fixture extraction.
 
 Status:
-Publishing implementation.
+Completed and published as `d468ac6f`.
 
 Selected slice:
 Move the contiguous `contact_contention_cross_station_replay` and
@@ -89,17 +89,18 @@ facade fell from 11,729 to 11,545 lines, while the extracted family is 194
 lines.
 
 Last completed slice:
-Candidate-refresh station-allocation fixture extraction published as
-`3e4ebae8`: the two exact replay fixtures moved behind the unchanged facade,
-the following contact-contention fixture and remainder stayed exact, the
-195-entry map and deterministic bytes stayed exact, 181 validation tests
-passed, and bounded review was clean.
+Candidate-refresh contact fixture extraction published as `d468ac6f`: the two
+exact contention/intent replay fixtures moved behind the unchanged facade,
+resource projection and the remainder stayed exact, the 195-entry map and
+deterministic bytes stayed exact, 181 validation tests passed, and bounded
+review was clean.
 
 Next candidate:
-After this boundary, map the resource-projection/quality-gate/operational-
-readiness trio against
-`candidate_refresh_readiness_replay_fixture_test.exs` and verify
-helper-attribute coupling before selecting.
+Extract the contiguous resource-projection, quality-gate, and operational-
+readiness replays into one family. The 230-line trio has no helper-attribute
+coupling, shares dedicated
+`candidate_refresh_readiness_replay_fixture_test.exs` ownership, and stops
+before timeline replays; re-baseline before selecting.
 
 Blocked:
 No.
