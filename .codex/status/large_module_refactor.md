@@ -9,7 +9,7 @@ Current slice:
 Schema candidate handoff callback ownership cleanup.
 
 Status:
-Completed and verified; publishing.
+Completed and published.
 
 Selected slice:
 Point the candidate-rejection and candidate-diff handoff callback captures
@@ -71,15 +71,15 @@ Behavior/schema changes:
 None.
 
 Last completed slice:
-Schema policy-plan handoff callback ownership cleanup published as `3bdf981f`:
-all approval-requirement and plan-delta callback captures now point directly to
-their existing contract owner; 182 schema/export tests passed, full export
+Schema candidate handoff callback ownership cleanup published as `b8aa3071`:
+all candidate-rejection and candidate-diff callback captures now point directly
+to their existing contract owner; 182 schema/export tests passed, full export
 bytes stayed exact, and bounded review was clean.
 
 Next candidate:
-Audit the adjacent candidate handoff callback family. Candidate-rejection and
-candidate-diff general/cadence validators appear to be pure delegates to the
-existing `CandidateHandoffContracts` owner; select only after confirming all
+Audit the risk-feedback handoff callback family. Risk-explanation and
+realized-feedback general/cadence validators appear to be pure delegates to the
+existing `RiskFeedbackHandoffContracts` owner; select only after confirming all
 capture counts, exact targets, and fallback clauses.
 
 Blocked:
