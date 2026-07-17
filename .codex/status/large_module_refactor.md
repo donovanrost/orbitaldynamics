@@ -9,7 +9,7 @@ Current slice:
 Relay-data-path-summary callback-bag collapse.
 
 Status:
-Selected; implementation not started.
+Complete and ready to publish.
 
 Selected slice:
 Replace the 16-entry `RelayDataPathSummaryContracts` keyword bag with direct
@@ -46,10 +46,27 @@ JSON schema reuses the relocated model-limit owner, focused/broader/export
 checks pass, and bounded review finds no blocker.
 
 Outcome:
-Pending.
+The 16-entry bag and every summary lookup/apply trampoline are gone. Primitive,
+collection, and stable-ID validators are direct; row validation moved from a
+callback-capturing `/4` wrapper to the same indexed direct `/3` traversal. The
+sole implicit equality retains Schema's exact `must equal` message through a
+local compatibility shim; its expected row count is always non-nil. Raw
+relay-data-path model-limit ownership now lives with the summary owner and JSON
+schema reuses it. The factory and duplicate facade helper disappeared.
+`schema.ex` fell from 10,713 to 10,686 lines and the summary owner from 439 to
+372, for a net 94-line reduction. Two hundred sixty focused, 1,340 attributable
+broader, and 24 export tests pass; compile, checked-in regeneration,
+compile-connected xref within its existing three-edge threshold, format, and
+diff hygiene are clean. Bounded review found no blocker and confirmed the full
+pipeline/order/defaults/paths/messages, direct validators, row traversal,
+implicit equality compatibility, raw model-limit order, JSON-schema capture,
+caller arity, and cleanup.
 
 Verification gaps:
-- Not yet verified.
+- Full repository suite not run.
+- The 1,345-test broader batch has the same five known campaign-planner baseline
+  failures previously reproduced on pre-slice commit `6f1f0ac1`; the
+  attributable result is 1,340/1,340.
 
 Last completed slice:
 Link-capacity-summary callback collapse published as `fc0fc343`: `schema.ex`

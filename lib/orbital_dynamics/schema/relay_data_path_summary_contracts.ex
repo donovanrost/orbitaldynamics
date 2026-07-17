@@ -1,30 +1,48 @@
 defmodule OrbitalDynamics.Schema.RelayDataPathSummaryContracts do
   @moduledoc false
 
-  def validate_summary(issues, path, summary, callbacks) when is_list(callbacks) do
+  import OrbitalDynamics.Schema.CollectionValidation, only: [validate_rows: 4]
+
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [
+      expect_equal: 5,
+      expect_field_equals: 6,
+      expect_non_negative_integer: 4,
+      expect_one_of: 5,
+      expect_optional_number: 4,
+      expect_type: 5,
+      require_fields: 4,
+      validate_non_negative_integer_count_map: 3,
+      validate_optional_exact_model_limits: 5,
+      validate_string_list_items: 4
+    ]
+
+  import OrbitalDynamics.Schema.StableIdValidation,
+    only: [validate_stable_id_array_map: 3, validate_stable_id_list: 3, validate_stable_ids: 4]
+
+  def validate_summary(issues, path, summary) do
     issues
-    |> expect_equal(callbacks, path, summary, "schema_contract", "relay_data_path_summary.v1")
-    |> expect_equal(callbacks, path, summary, "schema_version", 1)
-    |> expect_equal(callbacks, path, summary, "model", "artifact_only_relay_data_path_summary")
-    |> expect_type(callbacks, path, summary, "source", :binary)
-    |> expect_non_negative_integer(callbacks, path, summary, "route_count")
-    |> expect_non_negative_integer(callbacks, path, summary, "relay_route_count")
-    |> expect_non_negative_integer(callbacks, path, summary, "direct_downlink_route_count")
-    |> validate_field_types(callbacks, path, summary)
-    |> expect_type(callbacks, path, summary, "assumptions", :map)
-    |> validate_assumptions(callbacks, path, summary)
-    |> expect_type(callbacks, path, summary, "rows", :list)
-    |> validate_rows(callbacks, path <> ".rows", Map.get(summary, "rows", []), &validate_row/4)
-    |> validate_counts(callbacks, path, summary)
+    |> expect_equal(path, summary, "schema_contract", "relay_data_path_summary.v1")
+    |> expect_equal(path, summary, "schema_version", 1)
+    |> expect_equal(path, summary, "model", "artifact_only_relay_data_path_summary")
+    |> expect_type(path, summary, "source", :binary)
+    |> expect_non_negative_integer(path, summary, "route_count")
+    |> expect_non_negative_integer(path, summary, "relay_route_count")
+    |> expect_non_negative_integer(path, summary, "direct_downlink_route_count")
+    |> validate_field_types(path, summary)
+    |> expect_type(path, summary, "assumptions", :map)
+    |> validate_assumptions(path, summary)
+    |> expect_type(path, summary, "rows", :list)
+    |> validate_rows(path <> ".rows", Map.get(summary, "rows", []), &validate_row/3)
+    |> validate_counts(path, summary)
   end
 
-  defp validate_field_types(issues, callbacks, path, summary) do
+  defp validate_field_types(issues, path, summary) do
     issues =
       Enum.reduce(count_map_fields(), issues, fn field, acc ->
         acc
-        |> expect_type(callbacks, path, summary, field, :map)
+        |> expect_type(path, summary, field, :map)
         |> validate_non_negative_integer_count_map(
-          callbacks,
           path <> ".#{field}",
           Map.get(summary, field)
         )
@@ -33,27 +51,26 @@ defmodule OrbitalDynamics.Schema.RelayDataPathSummaryContracts do
     issues =
       Enum.reduce(stable_id_list_fields(), issues, fn field, acc ->
         acc
-        |> expect_type(callbacks, path, summary, field, :list)
-        |> validate_stable_id_list(callbacks, path <> ".#{field}", Map.get(summary, field))
+        |> expect_type(path, summary, field, :list)
+        |> validate_stable_id_list(path <> ".#{field}", Map.get(summary, field))
       end)
 
     issues =
       Enum.reduce(stable_id_array_map_fields(), issues, fn field, acc ->
         acc
-        |> expect_type(callbacks, path, summary, field, :map)
-        |> validate_stable_id_array_map(callbacks, path <> ".#{field}", Map.get(summary, field))
+        |> expect_type(path, summary, field, :map)
+        |> validate_stable_id_array_map(path <> ".#{field}", Map.get(summary, field))
       end)
 
     issues
-    |> expect_optional_number(callbacks, path, summary, "maximum_latency_s")
-    |> expect_optional_number(callbacks, path, summary, "maximum_latency_limit_s")
-    |> expect_type(callbacks, path, summary, "model_limits", :list)
-    |> validate_string_list_items(callbacks, path, summary, "model_limits")
+    |> expect_optional_number(path, summary, "maximum_latency_s")
+    |> expect_optional_number(path, summary, "maximum_latency_limit_s")
+    |> expect_type(path, summary, "model_limits", :list)
+    |> validate_string_list_items(path, summary, "model_limits")
     |> validate_optional_exact_model_limits(
-      callbacks,
       path,
       summary,
-      relay_data_path_model_limits(callbacks),
+      model_limits(),
       "must match relay data-path capability model limits"
     )
   end
@@ -85,40 +102,35 @@ defmodule OrbitalDynamics.Schema.RelayDataPathSummaryContracts do
     ]
   end
 
-  defp validate_assumptions(issues, callbacks, path, summary) do
+  defp validate_assumptions(issues, path, summary) do
     case Map.get(summary, "assumptions") do
       %{} = assumptions ->
         issues
         |> expect_equal(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "execution_boundary",
           "artifact_only_no_relay_scheduling_or_schedule_mutation"
         )
         |> expect_equal(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "crosslink_visibility_model",
           "not_evaluated"
         )
         |> expect_equal(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "custody_acknowledgement_delivery",
           "not_performed"
         )
         |> expect_equal(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "provider_reservation",
           "not_performed"
         )
         |> expect_equal(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "operator_authority",
@@ -130,9 +142,9 @@ defmodule OrbitalDynamics.Schema.RelayDataPathSummaryContracts do
     end
   end
 
-  defp validate_row(issues, callbacks, path, row) do
+  defp validate_row(issues, path, row) do
     issues
-    |> require_fields(callbacks, path, row, [
+    |> require_fields(path, row, [
       "route_id",
       "source_spacecraft_id",
       "relay_chain_spacecraft_ids",
@@ -146,36 +158,33 @@ defmodule OrbitalDynamics.Schema.RelayDataPathSummaryContracts do
       "product_ids",
       "collection_ids"
     ])
-    |> validate_stable_ids(callbacks, path, row, [
+    |> validate_stable_ids(path, row, [
       "route_id",
       "source_spacecraft_id",
       "ground_station_id",
       "ground_downlink_contact_id"
     ])
-    |> expect_non_negative_integer(callbacks, path, row, "relay_hop_count")
-    |> expect_optional_number(callbacks, path, row, "latency_s")
-    |> expect_optional_number(callbacks, path, row, "latency_limit_s")
-    |> expect_one_of(callbacks, path, row, "custody_status", relay_custody_statuses())
-    |> expect_one_of(callbacks, path, row, "latency_status", relay_latency_statuses())
-    |> expect_one_of(callbacks, path, row, "risk_status", relay_risk_statuses())
-    |> expect_type(callbacks, path, row, "relay_chain_spacecraft_ids", :list)
+    |> expect_non_negative_integer(path, row, "relay_hop_count")
+    |> expect_optional_number(path, row, "latency_s")
+    |> expect_optional_number(path, row, "latency_limit_s")
+    |> expect_one_of(path, row, "custody_status", relay_custody_statuses())
+    |> expect_one_of(path, row, "latency_status", relay_latency_statuses())
+    |> expect_one_of(path, row, "risk_status", relay_risk_statuses())
+    |> expect_type(path, row, "relay_chain_spacecraft_ids", :list)
     |> validate_stable_id_list(
-      callbacks,
       path <> ".relay_chain_spacecraft_ids",
       Map.get(row, "relay_chain_spacecraft_ids")
     )
-    |> expect_type(callbacks, path, row, "risk_reasons", :list)
-    |> validate_string_list_items(callbacks, path, row, "risk_reasons")
-    |> expect_type(callbacks, path, row, "product_ids", :list)
-    |> validate_stable_id_list(callbacks, path <> ".product_ids", Map.get(row, "product_ids"))
-    |> expect_type(callbacks, path, row, "collection_ids", :list)
+    |> expect_type(path, row, "risk_reasons", :list)
+    |> validate_string_list_items(path, row, "risk_reasons")
+    |> expect_type(path, row, "product_ids", :list)
+    |> validate_stable_id_list(path <> ".product_ids", Map.get(row, "product_ids"))
+    |> expect_type(path, row, "collection_ids", :list)
     |> validate_stable_id_list(
-      callbacks,
       path <> ".collection_ids",
       Map.get(row, "collection_ids")
     )
     |> expect_field_equals(
-      callbacks,
       path,
       row,
       "relay_hop_count",
@@ -184,16 +193,15 @@ defmodule OrbitalDynamics.Schema.RelayDataPathSummaryContracts do
     )
   end
 
-  defp validate_counts(issues, callbacks, path, summary) do
+  defp validate_counts(issues, path, summary) do
     rows =
       summary
       |> Map.get("rows", [])
       |> Enum.filter(&is_map/1)
 
     issues
-    |> expect_field_equals(callbacks, path, summary, "route_count", length(rows))
+    |> expect_field_equals(path, summary, "route_count", length(rows))
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "relay_route_count",
@@ -201,20 +209,19 @@ defmodule OrbitalDynamics.Schema.RelayDataPathSummaryContracts do
       "must equal rows with relay_hop_count greater than zero"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "direct_downlink_route_count",
       Enum.count(rows, &(Map.get(&1, "relay_hop_count", 0) == 0)),
       "must equal rows with relay_hop_count equal to zero"
     )
-    |> validate_status_counts(callbacks, path, summary, rows)
-    |> validate_stable_id_derived_fields(callbacks, path, summary, rows)
-    |> validate_route_id_maps(callbacks, path, summary, rows)
-    |> validate_latency_maximums(callbacks, path, summary, rows)
+    |> validate_status_counts(path, summary, rows)
+    |> validate_stable_id_derived_fields(path, summary, rows)
+    |> validate_route_id_maps(path, summary, rows)
+    |> validate_latency_maximums(path, summary, rows)
   end
 
-  defp validate_status_counts(issues, callbacks, path, summary, rows) do
+  defp validate_status_counts(issues, path, summary, rows) do
     Enum.reduce(
       [
         {"custody_status_counts", "custody_status",
@@ -227,7 +234,6 @@ defmodule OrbitalDynamics.Schema.RelayDataPathSummaryContracts do
       fn {summary_field, row_field, message}, acc ->
         expect_field_equals(
           acc,
-          callbacks,
           path,
           summary,
           summary_field,
@@ -238,7 +244,7 @@ defmodule OrbitalDynamics.Schema.RelayDataPathSummaryContracts do
     )
   end
 
-  defp validate_stable_id_derived_fields(issues, callbacks, path, summary, rows) do
+  defp validate_stable_id_derived_fields(issues, path, summary, rows) do
     Enum.reduce(
       [
         {"route_ids", "route_id", "must equal row-derived route_ids"},
@@ -254,7 +260,6 @@ defmodule OrbitalDynamics.Schema.RelayDataPathSummaryContracts do
       fn {summary_field, row_field, message}, acc ->
         expect_field_equals(
           acc,
-          callbacks,
           path,
           summary,
           summary_field,
@@ -265,7 +270,7 @@ defmodule OrbitalDynamics.Schema.RelayDataPathSummaryContracts do
     )
   end
 
-  defp validate_route_id_maps(issues, callbacks, path, summary, rows) do
+  defp validate_route_id_maps(issues, path, summary, rows) do
     Enum.reduce(
       [
         {"route_ids_by_custody_status", "custody_status",
@@ -281,7 +286,6 @@ defmodule OrbitalDynamics.Schema.RelayDataPathSummaryContracts do
       fn {summary_field, row_field, message}, acc ->
         expect_field_equals(
           acc,
-          callbacks,
           path,
           summary,
           summary_field,
@@ -292,10 +296,9 @@ defmodule OrbitalDynamics.Schema.RelayDataPathSummaryContracts do
     )
   end
 
-  defp validate_latency_maximums(issues, callbacks, path, summary, rows) do
+  defp validate_latency_maximums(issues, path, summary, rows) do
     issues
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "maximum_latency_s",
@@ -303,7 +306,6 @@ defmodule OrbitalDynamics.Schema.RelayDataPathSummaryContracts do
       "must equal maximum row latency_s"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "maximum_latency_limit_s",
@@ -360,80 +362,11 @@ defmodule OrbitalDynamics.Schema.RelayDataPathSummaryContracts do
   defp relay_latency_statuses, do: ~w(within_limit exceeds_limit not_evaluated unknown)
   defp relay_risk_statuses, do: ~w(nominal review high unknown)
 
-  defp expect_equal(issues, callbacks, path, map, field, expected),
-    do: apply(Keyword.fetch!(callbacks, :expect_equal), [issues, path, map, field, expected])
-
-  defp expect_one_of(issues, callbacks, path, map, field, allowed),
-    do: apply(Keyword.fetch!(callbacks, :expect_one_of), [issues, path, map, field, allowed])
-
-  defp expect_type(issues, callbacks, path, map, field, type),
-    do: apply(Keyword.fetch!(callbacks, :expect_type), [issues, path, map, field, type])
-
-  defp expect_non_negative_integer(issues, callbacks, path, map, field) do
-    apply(Keyword.fetch!(callbacks, :expect_non_negative_integer), [
-      issues,
-      path,
-      map,
-      field
-    ])
+  def model_limits do
+    OrbitalDynamics.Communications.LinkCapacity.capabilities()
+    |> Map.fetch!(:relay_data_path_model_limits)
   end
 
-  defp expect_optional_number(issues, callbacks, path, map, field),
-    do: apply(Keyword.fetch!(callbacks, :expect_optional_number), [issues, path, map, field])
-
-  defp expect_field_equals(issues, callbacks, path, map, field, expected),
-    do:
-      apply(Keyword.fetch!(callbacks, :expect_field_equals), [issues, path, map, field, expected])
-
-  defp expect_field_equals(issues, callbacks, path, map, field, expected, message) do
-    apply(Keyword.fetch!(callbacks, :expect_field_equals_with_message), [
-      issues,
-      path,
-      map,
-      field,
-      expected,
-      message
-    ])
-  end
-
-  defp require_fields(issues, callbacks, path, map, fields),
-    do: apply(Keyword.fetch!(callbacks, :require_fields), [issues, path, map, fields])
-
-  defp validate_rows(issues, callbacks, path, rows, validator) do
-    wrapped_validator = fn acc, row_path, row -> validator.(acc, callbacks, row_path, row) end
-    apply(Keyword.fetch!(callbacks, :validate_rows), [issues, path, rows, wrapped_validator])
-  end
-
-  defp validate_stable_ids(issues, callbacks, path, map, fields),
-    do: apply(Keyword.fetch!(callbacks, :validate_stable_ids), [issues, path, map, fields])
-
-  defp validate_non_negative_integer_count_map(issues, callbacks, path, counts) do
-    apply(Keyword.fetch!(callbacks, :validate_non_negative_integer_count_map), [
-      issues,
-      path,
-      counts
-    ])
-  end
-
-  defp validate_stable_id_list(issues, callbacks, path, values),
-    do: apply(Keyword.fetch!(callbacks, :validate_stable_id_list), [issues, path, values])
-
-  defp validate_stable_id_array_map(issues, callbacks, path, values),
-    do: apply(Keyword.fetch!(callbacks, :validate_stable_id_array_map), [issues, path, values])
-
-  defp validate_string_list_items(issues, callbacks, path, map, field),
-    do: apply(Keyword.fetch!(callbacks, :validate_string_list_items), [issues, path, map, field])
-
-  defp validate_optional_exact_model_limits(issues, callbacks, path, artifact, expected, message) do
-    apply(Keyword.fetch!(callbacks, :validate_optional_exact_model_limits), [
-      issues,
-      path,
-      artifact,
-      expected,
-      message
-    ])
-  end
-
-  defp relay_data_path_model_limits(callbacks),
-    do: apply(Keyword.fetch!(callbacks, :relay_data_path_model_limits), [])
+  defp expect_field_equals(issues, path, map, field, expected),
+    do: expect_field_equals(issues, path, map, field, expected, "must equal #{expected}")
 end

@@ -2511,7 +2511,7 @@ defmodule OrbitalDynamics.Schema do
       contract,
       &OrbitalDynamics.Schema.RelayDataPathSummaryJsonSchema.property_field?/1,
       OrbitalDynamics.Schema.RelayDataPathSummaryJsonSchema.property_fun_from_context(
-        model_limits: &relay_data_path_model_limits/0,
+        model_limits: &OrbitalDynamics.Schema.RelayDataPathSummaryContracts.model_limits/0,
         assumptions_schema: &relay_data_path_assumptions_json_schema/0,
         row_schema: &relay_data_path_row_json_schema/0,
         count_map_schema: &non_negative_integer_count_map_json_schema/0,
@@ -4049,11 +4049,6 @@ defmodule OrbitalDynamics.Schema do
       ],
       required_properties
     )
-  end
-
-  defp relay_data_path_model_limits do
-    OrbitalDynamics.Communications.LinkCapacity.capabilities()
-    |> Map.fetch!(:relay_data_path_model_limits)
   end
 
   defp candidate_rejection_report_model_limits do
@@ -6670,27 +6665,6 @@ defmodule OrbitalDynamics.Schema do
     |> require_fields("$", artifact, contract["required_fields"])
   end
 
-  defp relay_data_path_summary_contract_callbacks do
-    [
-      expect_equal: &expect_equal/5,
-      expect_one_of: &expect_one_of/5,
-      expect_type: &expect_type/5,
-      expect_non_negative_integer: &expect_non_negative_integer/4,
-      expect_optional_number: &expect_optional_number/4,
-      expect_field_equals: &expect_field_equals/5,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      require_fields: &require_fields/4,
-      validate_rows: &validate_rows/4,
-      validate_stable_ids: &validate_stable_ids/4,
-      validate_non_negative_integer_count_map: &validate_non_negative_integer_count_map/3,
-      validate_stable_id_list: &validate_stable_id_list/3,
-      validate_stable_id_array_map: &validate_stable_id_array_map/3,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_optional_exact_model_limits: &validate_optional_exact_model_limits/5,
-      relay_data_path_model_limits: &relay_data_path_model_limits/0
-    ]
-  end
-
   defp contact_allocation_summary_domain_callbacks do
     [
       contact_allocation_model_limits: &contact_allocation_model_limits/0,
@@ -8158,8 +8132,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.RelayDataPathSummaryContracts.validate_summary(
       issues,
       path,
-      summary,
-      relay_data_path_summary_contract_callbacks()
+      summary
     )
   end
 
