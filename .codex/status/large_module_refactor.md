@@ -9,7 +9,7 @@ Current slice:
 Validation safety-case evidence test-family extraction.
 
 Status:
-Selected; implementation not started.
+Implemented, verified, reviewed, and ready to publish.
 
 Selected slice:
 Move the eight contiguous validation safety-case evidence tests into a focused
@@ -42,16 +42,22 @@ and edge coverage unchanged; focused and parent files pass, names remain unique,
 and bounded review finds no blocker.
 
 Outcome:
-Pending.
+Exactly eight contiguous safety-case evidence tests moved byte-for-byte into
+`OrbitalDynamics.Validation.SafetyCaseEvidenceTest`; order, inline fixtures,
+paths/messages, row-derived evidence semantics, and async execution are
+unchanged. The parent fell from 19,074 to 18,144 lines and the focused module is
+935 lines, a five-line total increase for its explicit module/alias boundary.
+All 181 Validation test names remain unique across the parent and two extracted
+modules.
 
 Verification gaps:
-- Not yet verified.
+- Full repository suite not run; this is a mechanical test-only extraction.
 
 Last completed slice:
-Validation orbital-reference fixture extraction published as `2ce12b05`: the
-parent fell from 19,372 to 19,074 lines; six tests moved into a 121-line focused
-module and their observations into a shared 212-line support owner. The focused
-module passed 6/6, the parent 175/175, and the combined run 181/181.
+Validation safety-case evidence extraction, publication pending: the focused
+module passed 8/8 and the parent passed 167/167; together they preserve 175/175,
+and all three Validation modules preserve the 181-test aggregate. Format, diff
+hygiene, helper-independence checks, and bounded review were clean.
 
 Next candidate:
 After this slice, refresh the remaining validation fixture families and prefer
