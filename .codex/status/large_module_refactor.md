@@ -9,7 +9,7 @@ Current slice:
 Schema station-calendar handoff callback ownership cleanup.
 
 Status:
-Selected; implementation pending.
+Completed and verified; publishing.
 
 Selected slice:
 Point the station-calendar count-list, general source-match, and
@@ -45,14 +45,31 @@ and both cadence clauses are gone,
 validation and schema exports remain byte-for-byte stable, focused tests pass,
 and bounded review finds no blocker.
 
+Outcome:
+All station-calendar count-list and source-match callback lists now capture the
+existing `StationCalendarHandoffContracts` validators directly. The general and
+count-list delegates plus specialized/fallback cadence wrapper were removed,
+reducing `schema.ex` from 8,885 to 8,854 lines without changing source
+precedence, count-check or issue order, fallback behavior, results, or
+checked-in schema bytes.
+
 Verification gaps:
-- Implementation and verification pending.
+- None for this slice.
 
 Tests run:
-- Pending.
+- `mix compile --warnings-as-errors`
+- 81 focused station-calendar-referencing schema contract tests
+- 182 complete schema-contract and schema-export tests
+- full checked-in schema export regeneration; no schema diff
+- aggregate schema bundle digest unchanged:
+  `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`
+- `mix format --check-formatted`
+- `git diff --check`
+- compile-connected xref check for `schema.ex`
+- bounded read-only review: clean, no findings
 
 Behavior/schema changes:
-None intended.
+None.
 
 Last completed slice:
 Schema link-capacity handoff callback ownership cleanup published as
