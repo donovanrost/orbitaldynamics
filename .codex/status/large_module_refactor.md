@@ -9,7 +9,7 @@ Current slice:
 Validation operational-readiness artifact fixture test-family extraction.
 
 Status:
-Selected.
+Ready to publish.
 
 Selected slice:
 Move the five contiguous operator-review, operational-readiness,
@@ -50,10 +50,25 @@ required imports, focused and parent files pass, all 181 test names remain
 unique, and bounded review finds no blocker.
 
 Outcome:
-Pending.
+All five operational-readiness artifact tests moved into
+`operational_readiness_fixture_test.exs` with order and assertion strength
+unchanged. Ten fixture helpers moved exactly, apart from the required `defp` to
+`def` visibility change, into `OperationalReadinessFixtures`. The focused
+module imports the complete helper closure. The parent imports only the five
+observation helpers required by its deterministic aggregate report plus the raw
+readiness fixture required by its quality-gate builder. The parent shrank from
+2,567 to 1,968 lines. The focused test file is 583 lines and the support owner
+is 54 lines; explicit shared ownership adds 39 lines across the relevant test
+and support files.
 
 Verification gaps:
-- Pending.
+- Focused operational-readiness fixture module: 5/5 passed.
+- Remaining parent validation module: 10/10 passed.
+- Full Validation family: 45 modules, 181/181 passed.
+- Exact-source audit: five tests, ten helpers, and the private JSON loader
+  exact; all 181 test names remain unique.
+- `mix format --check-formatted` and `git diff --check` passed.
+- Independent bounded review found no blocker.
 
 Last completed slice:
 Validation contact-allocation artifact fixture extraction published as
