@@ -2141,48 +2141,35 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp json_schema_property(field, @link_capacity_report = contract_name, contract) do
-    focused_json_schema_property(
+  defp json_schema_property(field, contract_name, contract)
+       when contract_name in [@link_capacity_report, @link_capacity_summary] do
+    OrbitalDynamics.Schema.LinkCapacityPropertyDispatch.property(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.LinkCapacityReportJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.LinkCapacityReportJsonSchema.property_fun_from_context(
-        row_schema: &link_capacity_row_json_schema/0,
-        model_limits: &OrbitalDynamics.Schema.LinkCapacitySummaryContracts.model_limits/0,
-        assumptions_schema: fn -> link_capacity_assumptions_json_schema([]) end,
-        stable_id_array_schema: &stable_id_array_schema/0,
-        string_array_schema: &string_array_schema/0,
-        count_map_schema: &non_negative_integer_count_map_json_schema/0,
-        number_array_schema: &number_array_schema/0,
-        actual_data_rate_throughput_derivations_schema:
-          &actual_data_rate_throughput_derivations_json_schema/0
-      )
-    )
-  end
-
-  defp json_schema_property(field, @link_capacity_summary = contract_name, contract) do
-    focused_json_schema_property(
-      field,
-      contract_name,
-      contract,
-      &OrbitalDynamics.Schema.LinkCapacitySummaryJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.LinkCapacitySummaryJsonSchema.property_fun_from_context(
-        model_limits: &OrbitalDynamics.Schema.LinkCapacitySummaryContracts.model_limits/0,
-        assumptions_schema: fn ->
-          link_capacity_assumptions_json_schema([
-            "execution_boundary",
-            "source",
-            "operator_authority"
-          ])
-        end,
-        count_map_schema: &non_negative_integer_count_map_json_schema/0,
-        stable_id_array_schema: &stable_id_array_schema/0,
-        string_array_schema: &string_array_schema/0,
-        number_array_schema: &number_array_schema/0,
-        numeric_map_schema: &numeric_map_json_schema/0,
-        stable_id_array_map_schema: &stable_id_array_map_schema/0
-      )
+      contracts: %{
+        report: @link_capacity_report,
+        summary: @link_capacity_summary
+      },
+      row_schema: &link_capacity_row_json_schema/0,
+      model_limits: &OrbitalDynamics.Schema.LinkCapacitySummaryContracts.model_limits/0,
+      report_assumptions_schema: fn -> link_capacity_assumptions_json_schema([]) end,
+      summary_assumptions_schema: fn ->
+        link_capacity_assumptions_json_schema([
+          "execution_boundary",
+          "source",
+          "operator_authority"
+        ])
+      end,
+      stable_id_array_schema: &stable_id_array_schema/0,
+      string_array_schema: &string_array_schema/0,
+      count_map_schema: &non_negative_integer_count_map_json_schema/0,
+      number_array_schema: &number_array_schema/0,
+      actual_data_rate_throughput_derivations_schema:
+        &actual_data_rate_throughput_derivations_json_schema/0,
+      numeric_map_schema: &numeric_map_json_schema/0,
+      stable_id_array_map_schema: &stable_id_array_map_schema/0,
+      default_property: &default_json_schema_property/3
     )
   end
 
