@@ -6,22 +6,23 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Campaign planner branch candidate-plan staging extraction.
+Campaign planner branch event/state application extraction.
 
 Status:
-Completed and published.
+Selected.
 
 Selected slice:
-Extract branch event candidate-plan staging from
-`OrbitalDynamics.CampaignPlanner` into `CampaignPlanner.BranchCandidatePlan`.
+Extract branch plan-event and realized-event application, their station/capacity
+and realized-state merge helpers, into `CampaignPlanner.BranchEventApplication`.
+Consolidate station identity through the existing `BranchEventNormalizer`.
 
 Why this slice:
-The cluster owns one complete transformation: initialize a candidate plan,
-stage urgent-target, downlink-completion, candidate-diff-replacement, and
-capacity-adjustment events, preserve warnings, and deterministically sort the
-result. Its replacement lookup, deduplication, and invalid-event helpers are
-single-purpose. Only station-ID normalization is shared, requiring one narrow
-facade callback rather than a broad callback bag.
+The cluster owns how branch events mutate prior-plan candidates and realized
+state, including station matching, reduced capacity, missed/delayed activities,
+spacecraft degradation, and deterministic state merging. Moving both sides
+together avoids a broad callback bag. Degraded mode/spacecraft helpers remain
+explicit internal functions for branch-refresh summaries, and station identity
+can reuse the existing normalizer instead of remaining duplicated.
 
 Public facade to preserve:
 All `OrbitalDynamics.CampaignPlanner` public functions, exact branch/event
@@ -30,42 +31,27 @@ boundaries.
 
 Likely files:
 - `lib/orbital_dynamics/campaign_planner.ex`
-- new `lib/orbital_dynamics/campaign_planner/branch_candidate_plan.ex`
+- `lib/orbital_dynamics/campaign_planner/branch_event_normalizer.ex`
+- new `lib/orbital_dynamics/campaign_planner/branch_event_application.ex`
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
-- focused urgent-target, downlink-completion, candidate-diff, reduced-capacity,
-  and branch-basics tests
+- focused ground-station, degraded-spacecraft, maneuver, reduced-capacity, and
+  branch-feedback tests
 - deterministic strategy regression coverage
 - compile, format, xref, diff hygiene, and bounded review
 
 Definition of done:
-The planner delegates candidate-plan construction to one internal module;
-event precedence, warnings, replacement selection, additions, capacity
-adjustments, ordering, and returned tuple remain exact; focused tests pass; and
-bounded review finds no blocker.
+The planner delegates plan and realized-state event application and state merges
+to one internal module; event order, matching, statuses, reasons, capacity
+math, degradation fields, and deterministic merge ordering remain exact;
+focused tests pass; and bounded review finds no blocker.
 
 Outcome:
-`CampaignPlanner` now delegates candidate-plan construction to
-`CampaignPlanner.BranchCandidatePlan` with one narrow station-ID callback. The
-internal module owns initialization, four event-family staging paths,
-replacement lookup/deduplication, warnings, additions, capacity adjustments,
-and deterministic result ordering. The facade fell from 3,530 to 3,316 lines.
+Pending.
 
 Verification gaps:
-- None for this slice.
-
-Tests run:
-- `mix compile --warnings-as-errors`
-- 77 focused staged-event, branch, facade, and determinism tests
-- `mix format --check-formatted`
-- `git diff --check`
-- new-file diff hygiene
-- compile-connected xref check for `campaign_planner.ex`
-- bounded read-only review: clean, no findings
-
-Behavior/schema changes:
-None.
+- Pending.
 
 Last completed slice:
 Campaign-planner branch candidate-plan staging published as `f071d63f`: all
@@ -74,9 +60,8 @@ ordering now live in one cohesive internal module, 77 focused/regression tests
 passed, and bounded review found no finding.
 
 Next candidate:
-After this slice, audit branch plan-event versus realized-event application as
-separate responsibilities. Do not combine them if shared state helpers would
-require broad callback plumbing.
+After this slice, refresh the live CampaignPlanner hotspot and select another
+explicit cluster only if it improves ownership without widening callbacks.
 
 Blocked:
 No.
