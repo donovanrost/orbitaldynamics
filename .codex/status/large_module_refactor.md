@@ -9,7 +9,7 @@ Current slice:
 Validation resource-summary fixture test-family extraction.
 
 Status:
-Selected.
+Verified and reviewed; ready to publish.
 
 Selected slice:
 Move the three contiguous resource-summary, resource-filter report, and
@@ -46,10 +46,15 @@ shared builders have one exact owner, focused and parent files pass, names remai
 unique, and bounded review finds no blocker.
 
 Outcome:
-Pending.
+Three byte-identical resource-summary family tests moved into a 240-line
+focused module. Six observation/raw builders now have one 38-line shared support
+owner; the parent imports only the three aggregate observation builders, with
+no private residue. The parent fell from 11,031 to 10,786 lines. Total
+test/support/loader LOC grew by 34 lines for explicit ownership without helper
+duplication. All 181 Validation test names remain unique.
 
 Verification gaps:
-- Pending.
+- Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
 Validation resource-safety fixture extraction published as `d3b2034a`: the
@@ -58,10 +63,10 @@ Validation modules preserved the 181-test aggregate with no duplicate names.
 Format, diff hygiene, dependency-closure checks, and bounded review were clean.
 
 Next candidate:
-Refresh the adjacent resource-summary and resource-filter report/summary
-fixture cluster in the 11,031-line parent. Select only a coherent multi-test
-boundary and move shared builders to one support owner rather than copying
-them.
+Refresh the adjacent objective-satisfaction, tradeoff, score-term, and ranking
+comparison fixture cluster in the 10,786-line parent. Select only a coherent
+multi-test boundary and move shared builders to one support owner rather than
+copying them.
 
 Blocked:
 No.
