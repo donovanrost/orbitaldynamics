@@ -9,7 +9,7 @@ Current slice:
 CampaignPlanner repair-accumulator mutation ownership cleanup.
 
 Status:
-Selected.
+Ready to publish.
 
 Selected slice:
 Move activity insertion, replacement-ID tracking, and warning insertion into
@@ -20,7 +20,7 @@ Why this slice:
 The repair transition cluster cannot move cleanly yet because replacement
 selection still shares scoring and candidate-diff helpers. Its accumulator
 mutation boundary is complete, however: `RepairAccumulator` already owns delta
-and approval construction, while the facade keeps six thin wrappers across 43
+and approval construction, while the facade keeps six thin wrappers serving 37
 call sites. Consolidating those mutations removes split ownership without
 callbacks or semantic movement.
 
@@ -45,10 +45,24 @@ pipeline order unchanged; repaired artifacts and ordering remain exact; focused
 tests pass; and bounded review finds no blocker.
 
 Outcome:
-Pending.
+All 37 repair-transition mutation calls now route directly through
+`RepairAccumulator`. It additionally owns activity insertion, replacement-ID
+tracking, and warning insertion; its existing delta, ambiguous-feedback, and
+approval functions are called without facade wrappers. The facade shrank from
+4,568 to 4,540 lines and the accumulator grew from 237 to 250 lines, for a net
+15-line reduction with one mutation owner.
 
 Verification gaps:
-- Pending.
+- Normalized AST audit: all fourteen repair-transition clauses are exact after
+  removing only the `RepairAccumulator` qualification.
+- All six facade wrappers and all unqualified transition mutation calls are
+  absent.
+- `mix compile --warnings-as-errors` passed.
+- Repair, repair-adjacent constraint/file facade, and strategy-baseline tests
+  passed 67/67.
+- `mix format --check-formatted` and `git diff --check` passed.
+- Independent bounded review found no blocker and accounted for all 34
+  qualified calls plus the three moved primitive mutation bodies.
 
 Last completed slice:
 CampaignPlanner V1 build-artifact assembly extraction published as `af42dda3`:

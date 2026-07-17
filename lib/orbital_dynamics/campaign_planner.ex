@@ -3365,10 +3365,10 @@ defmodule OrbitalDynamics.CampaignPlanner do
       })
 
     acc
-    |> add_activity(activity)
-    |> add_ambiguous_realized_delta(activity, realized_rows, reason)
-    |> add_approval_requirement(activity, "review_realized_feedback", reason)
-    |> add_warning(
+    |> RepairAccumulator.add_activity(activity)
+    |> RepairAccumulator.add_ambiguous_realized_delta(activity, realized_rows, reason)
+    |> RepairAccumulator.add_approval_requirement(activity, "review_realized_feedback", reason)
+    |> RepairAccumulator.add_warning(
       "ambiguous realized feedback for #{ActivityIdentity.activity_id(activity)} requires operator review"
     )
   end
@@ -3377,9 +3377,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     reason = "spacecraft_degraded_mode_suppressed_incompatible_payload_activity"
 
     acc
-    |> add_delta(activity, realized, status, "suppressed", reason, nil, true)
-    |> add_approval_requirement(activity, "cancel", reason)
-    |> add_warning(
+    |> RepairAccumulator.add_delta(activity, realized, status, "suppressed", reason, nil, true)
+    |> RepairAccumulator.add_approval_requirement(activity, "cancel", reason)
+    |> RepairAccumulator.add_warning(
       "spacecraft degraded mode suppressed #{ActivityIdentity.activity_id(activity)}"
     )
   end
@@ -3401,8 +3401,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
       )
 
     acc
-    |> add_activity(activity)
-    |> add_delta(
+    |> RepairAccumulator.add_activity(activity)
+    |> RepairAccumulator.add_delta(
       activity,
       realized,
       status,
@@ -3433,9 +3433,17 @@ defmodule OrbitalDynamics.CampaignPlanner do
         reason = "missed_contact_no_viable_later_access_window"
 
         acc
-        |> add_delta(activity, realized, "missed", "canceled", reason, nil, true)
-        |> add_approval_requirement(activity, "cancel", reason)
-        |> add_warning(
+        |> RepairAccumulator.add_delta(
+          activity,
+          realized,
+          "missed",
+          "canceled",
+          reason,
+          nil,
+          true
+        )
+        |> RepairAccumulator.add_approval_requirement(activity, "cancel", reason)
+        |> RepairAccumulator.add_warning(
           "missed downlink #{ActivityIdentity.activity_id(activity)} could not be repaired"
         )
 
@@ -3465,9 +3473,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
           )
 
         acc
-        |> add_activity(replacement)
-        |> use_replacement(replacement)
-        |> add_delta(
+        |> RepairAccumulator.add_activity(replacement)
+        |> RepairAccumulator.use_replacement(replacement)
+        |> RepairAccumulator.add_delta(
           activity,
           realized,
           "missed",
@@ -3477,7 +3485,11 @@ defmodule OrbitalDynamics.CampaignPlanner do
           true,
           replacement
         )
-        |> add_approval_requirement(replacement, "approve_moved_contact", reason)
+        |> RepairAccumulator.add_approval_requirement(
+          replacement,
+          "approve_moved_contact",
+          reason
+        )
     end
   end
 
@@ -3487,9 +3499,17 @@ defmodule OrbitalDynamics.CampaignPlanner do
         reason = "failed_observation_no_viable_replacement_window"
 
         acc
-        |> add_delta(activity, realized, "failed", "canceled", reason, nil, true)
-        |> add_approval_requirement(activity, "cancel", reason)
-        |> add_warning(
+        |> RepairAccumulator.add_delta(
+          activity,
+          realized,
+          "failed",
+          "canceled",
+          reason,
+          nil,
+          true
+        )
+        |> RepairAccumulator.add_approval_requirement(activity, "cancel", reason)
+        |> RepairAccumulator.add_warning(
           "failed observation #{ActivityIdentity.activity_id(activity)} could not be reassigned"
         )
 
@@ -3519,9 +3539,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
           )
 
         acc
-        |> add_activity(replacement)
-        |> use_replacement(replacement)
-        |> add_delta(
+        |> RepairAccumulator.add_activity(replacement)
+        |> RepairAccumulator.use_replacement(replacement)
+        |> RepairAccumulator.add_delta(
           activity,
           realized,
           "failed",
@@ -3531,7 +3551,11 @@ defmodule OrbitalDynamics.CampaignPlanner do
           true,
           replacement
         )
-        |> add_approval_requirement(replacement, "approve_reassigned_observation", reason)
+        |> RepairAccumulator.add_approval_requirement(
+          replacement,
+          "approve_reassigned_observation",
+          reason
+        )
     end
   end
 
@@ -3559,8 +3583,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
       })
 
     acc
-    |> add_activity(moved)
-    |> add_delta(
+    |> RepairAccumulator.add_activity(moved)
+    |> RepairAccumulator.add_delta(
       activity,
       realized,
       "delayed",
@@ -3570,7 +3594,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       true,
       moved
     )
-    |> add_approval_requirement(moved, "approve_delayed_maneuver", reason)
+    |> RepairAccumulator.add_approval_requirement(moved, "approve_delayed_maneuver", reason)
     |> Map.update!(:delayed_maneuvers, fn maneuvers ->
       [%{"activity" => activity, "delay_s" => delay_s} | maneuvers]
     end)
@@ -3580,8 +3604,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
     reason = "realized_status_#{status}_removed_from_remaining_plan"
 
     acc
-    |> add_delta(activity, realized, status, "canceled", reason, nil, true)
-    |> add_approval_requirement(activity, "cancel", reason)
+    |> RepairAccumulator.add_delta(activity, realized, status, "canceled", reason, nil, true)
+    |> RepairAccumulator.add_approval_requirement(activity, "cancel", reason)
   end
 
   defp preserve_locked_activity(activity, realized, status, acc) do
@@ -3594,8 +3618,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
       })
 
     acc
-    |> add_activity(activity)
-    |> add_delta(
+    |> RepairAccumulator.add_activity(activity)
+    |> RepairAccumulator.add_delta(
       activity,
       realized,
       status,
@@ -3616,8 +3640,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
       })
 
     acc
-    |> add_activity(activity)
-    |> add_delta(
+    |> RepairAccumulator.add_activity(activity)
+    |> RepairAccumulator.add_delta(
       activity,
       realized,
       status,
@@ -3664,8 +3688,10 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
       repaired
       |> Map.put(:activities, activities)
-      |> add_approval_requirement(activity, "review_downstream_window", reason)
-      |> add_warning("#{ActivityIdentity.activity_id(activity)} affected by delayed maneuver")
+      |> RepairAccumulator.add_approval_requirement(activity, "review_downstream_window", reason)
+      |> RepairAccumulator.add_warning(
+        "#{ActivityIdentity.activity_id(activity)} affected by delayed maneuver"
+      )
     end)
   end
 
@@ -4074,60 +4100,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
   end
 
   defp matches_repair_intent?(_source, _candidate, _type), do: true
-
-  defp add_activity(acc, activity), do: Map.update!(acc, :activities, &[activity | &1])
-
-  defp use_replacement(acc, activity) do
-    Map.update!(
-      acc,
-      :used_replacement_ids,
-      &MapSet.put(&1, ActivityIdentity.activity_id(activity))
-    )
-  end
-
-  defp add_delta(
-         acc,
-         activity,
-         realized,
-         status,
-         action,
-         reason,
-         replacement_id,
-         requires_approval?,
-         replacement_activity \\ nil
-       ) do
-    RepairAccumulator.add_delta(
-      acc,
-      activity,
-      realized,
-      status,
-      action,
-      reason,
-      replacement_id,
-      requires_approval?,
-      replacement_activity
-    )
-  end
-
-  defp add_ambiguous_realized_delta(acc, activity, realized_rows, reason) do
-    RepairAccumulator.add_ambiguous_realized_delta(
-      acc,
-      activity,
-      realized_rows,
-      reason
-    )
-  end
-
-  defp add_approval_requirement(acc, activity, action, reason) do
-    RepairAccumulator.add_approval_requirement(
-      acc,
-      activity,
-      action,
-      reason
-    )
-  end
-
-  defp add_warning(acc, warning), do: Map.update!(acc, :warnings, &[warning | &1])
 
   defp operational_activity_context(activity) do
     Timeline.activity_context(activity)

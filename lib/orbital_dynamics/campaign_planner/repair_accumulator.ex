@@ -11,6 +11,20 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairAccumulator do
 
   alias OrbitalDynamics.Timeline
 
+  def add_activity(acc, activity),
+    do: Map.update!(acc, :activities, &[activity | &1])
+
+  def use_replacement(acc, activity) do
+    Map.update!(
+      acc,
+      :used_replacement_ids,
+      &MapSet.put(&1, ActivityIdentity.activity_id(activity))
+    )
+  end
+
+  def add_warning(acc, warning),
+    do: Map.update!(acc, :warnings, &[warning | &1])
+
   def add_delta(
         acc,
         activity,
