@@ -9,7 +9,7 @@ Current slice:
 Contact-intent fixture mapping.
 
 Status:
-Ready for implementation.
+Publishing.
 
 Selected slice:
 Move
@@ -54,7 +54,7 @@ complete facade remainder stay exact, focused and full validation tests pass,
 and bounded review finds no blocker.
 
 Verification gaps:
-- Implementation, verification, and bounded review pending.
+- None for this bounded slice.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -68,13 +68,31 @@ Tests run:
 - Source boundary confirmed at facade lines 156-283, with
   `link_capacity_summary.v1` beginning at line 284 and no facade
   helper-attribute dependency in the selected literals.
-- Selection only; implementation verification pending.
+- Post-move exact proof: the 195-entry map, sorted-key digest, selected
+  two-fixture digest, and exact 193-entry remainder digest all match their
+  selection baselines.
+- Source partition proof: 24 maps total 195 entries, the new leaf owns two, the
+  facade owns 111, and all 276 pairwise intersections are empty.
+- Facade proof: all 195 successful `fetch/1` results, missing-key `:error`, and
+  nonbinary `FunctionClauseError` behavior remain unchanged.
+- Focused contact-window/facade validation: 16 tests passed.
+- Full validation family: 181 tests passed.
+- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
+  xref caller checks passed.
+- Independent bounded review: CLEAN. It confirmed both contact-intent fixtures
+  moved unchanged, the link-capacity summary and complete facade remainder are
+  normalized-AST exact, the new leaf owns only its two intended keys, all 24
+  maps are unique and pairwise disjoint, all digests and facade edge behaviors
+  are unchanged, dependencies remain one-way, link-capacity ownership remains
+  distinct, and it reproduced 16 focused and 181 full validation tests.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-No contact-intent implementation has started.
+The exact contact-intent pair now lives in a new cohesive leaf behind the
+unchanged facade. The facade shrank from 8,199 to 8,073 lines; the new leaf is
+136 lines and owns exactly two fixtures.
 
 Last completed slice:
 Activity-family ownership completed as `c694c2ac`: the exact
