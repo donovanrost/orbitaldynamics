@@ -9,7 +9,7 @@ Current slice:
 Schema command-window/maneuver handoff callback ownership cleanup.
 
 Status:
-Completed and verified; publishing.
+Completed and published.
 
 Selected slice:
 Point the command-window and maneuver-review handoff callback captures directly
@@ -71,16 +71,17 @@ Behavior/schema changes:
 None.
 
 Last completed slice:
-Schema strategy handoff callback ownership cleanup published as `1118be3d`:
-all recommendation/tradeoff, branch, ranking, and Pareto callback captures now
-point directly to their existing contract owner; 182 schema/export tests
-passed, full export bytes stayed exact, and bounded review was clean.
+Schema command-window/maneuver handoff callback ownership cleanup published as
+`2c91d4e8`: both general/cadence callback pairs now point directly to their
+existing contract owner; 182 schema/export tests passed, full export bytes
+stayed exact, and bounded review was clean.
 
 Next candidate:
-Audit the command-window/maneuver-review handoff callback family. Both
-general/cadence pairs appear to be pure delegates to the existing
-`CommandWindowManeuverHandoffContracts` owner; select only after confirming
-capture counts, exact targets, and fallback clauses.
+Audit the contact-contention handoff callback family. Its general/cadence
+callbacks target the existing `ContactContentionHandoffContracts` owner, but
+the facade also has a cadence fallback clause; select only after proving that
+the owner retains the same fallback and all four general/one cadence capture
+positions can move without changing issue order.
 
 Blocked:
 No.
