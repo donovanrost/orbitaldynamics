@@ -9,7 +9,7 @@ Current slice:
 Schema contact-contention JSON property-dispatch extraction.
 
 Status:
-Review complete; ready to publish.
+Published.
 
 Selected slice:
 Extract property dispatch for contact-contention report, resolution report,
@@ -51,7 +51,8 @@ The three duplicate facade clauses are now one guarded delegate to
 dispatcher owns the allowed contract set, shared context constants and
 assembly, contract-sensitive focused predicate/property builder, and common
 fallback. Eager dependency evaluation remains in the facade, preserving prior
-timing. The facade is 9,451 lines; the dispatcher is 35 lines.
+timing. The facade is 9,451 lines; the dispatcher is 35 lines. Implementation
+published as `f6d5420d`.
 
 Verification gaps:
 - `mix compile --warnings-as-errors` passed.
@@ -64,17 +65,20 @@ Verification gaps:
 - Initial bounded review's low cohesion finding was resolved by moving contract
   family ownership and context assembly into the dispatcher; follow-up review
   found no remaining issue.
+- None for this slice.
 
 Last completed slice:
-Schema resource-projection property dispatch published as `b452fa83`: report
-and flow summary now route through one cohesive internal dispatcher, 28
-focused/export tests passed, full regeneration was byte-identical, and bounded
-review found no blocker.
+Schema contact-contention property dispatch published as `f6d5420d`: report,
+resolution report, and resolution summary now route through one cohesive
+internal dispatcher, 30 focused/export tests passed, full regeneration was
+byte-identical, and follow-up review found no blocker.
 
 Next candidate:
-Audit one adjacent multi-contract report/property family after this slice is
-published. Leave single-contract neighbors in the facade unless a broader
-cohesive boundary emerges.
+Extract the adjacent objective-satisfaction and objective-tradeoff property
+clauses into one internal objective-report dispatcher. Preserve
+contract-sensitive predicates, exact eager row/model-limit/model context,
+common fallback, validators, and exact exports. Leave optimizer-ranking clauses
+in the facade.
 
 Blocked:
 No.
