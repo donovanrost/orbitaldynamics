@@ -9,7 +9,7 @@ Current slice:
 Validation activity-artifact fixture test-family extraction.
 
 Status:
-Verified and reviewed; ready to publish.
+Published as `15a58b38`.
 
 Selected slice:
 Move the six contiguous planned-activity, activity-template, subsystem-model
@@ -58,10 +58,10 @@ Verification gaps:
 - Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
-Validation policy-bundle fixture extraction published as `757d86f8`: the focused
-module passed 6/6, the parent passed 146/146, and all six Validation modules
-preserved the 181-test aggregate with no duplicate names. Format, diff hygiene,
-dependency-closure checks, and bounded review were clean.
+Validation activity-artifact fixture extraction published as `15a58b38`: the
+focused module passed 6/6, the parent passed 140/140, and all seven Validation
+modules preserved the 181-test aggregate with no duplicate names. Format, diff
+hygiene, dependency-closure checks, and bounded review were clean.
 
 Next candidate:
 Refresh the adjacent contact-intent, refreshed-window lineage, and spacecraft
