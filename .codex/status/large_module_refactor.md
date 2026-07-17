@@ -9,7 +9,7 @@ Current slice:
 CandidateRefresh command window/maneuver review replay callback removal.
 
 Status:
-Review complete; ready to publish.
+Published as `0ececfa0`.
 
 Selected slice:
 Remove the repeated source-summary callback from the command-window and
@@ -62,13 +62,13 @@ Verification gaps:
 - bounded read-only review: clean, no findings
 
 Last completed slice:
-Candidate intent/counteroffer replay callback removal published as `c1dfa532`:
-both paths are one-argument end to end, 30 focused tests passed, and bounded
-review found no blocker.
+Candidate command-window/maneuver-review replay callback removal published as
+`0ececfa0`: both paths are one-argument end to end, 20 focused tests passed,
+and bounded review found no blocker.
 
 Next candidate:
-Remove the callback seam from one adjacent single-owner replay family after
-this pair is published.
+Audit the adjacent timeline-feedback/operational-timeline callback seams as one
+possible bounded pair.
 
 Blocked:
 No.
