@@ -5734,7 +5734,10 @@ defmodule OrbitalDynamics.Schema do
     []
     |> require_fields("$", artifact, contract["required_fields"])
     |> expect_equal("$", artifact, "schema_contract", "refreshed_window.v1")
-    |> validate_refreshed_window("$", artifact)
+    |> OrbitalDynamics.Schema.CandidateRefreshWindowContracts.validate_refreshed_window(
+      "$",
+      artifact
+    )
   end
 
   defp validate_contract(@remaining_horizon, contract, artifact) do
@@ -5992,14 +5995,6 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       contact
-    )
-  end
-
-  defp validate_refreshed_window(issues, path, window) do
-    OrbitalDynamics.Schema.CandidateRefreshWindowContracts.validate_refreshed_window(
-      issues,
-      path,
-      window
     )
   end
 
