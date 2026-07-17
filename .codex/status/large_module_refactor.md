@@ -6,22 +6,22 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema deferred-priority callback ownership cleanup.
+Schema priority-field evidence contract extraction.
 
 Status:
-Completed and published.
+Ready for implementation.
 
 Selected slice:
-Point the contact-allocation domain callback and operator-review row callback
-for deferred contention priority directly at
-`Schema.ContactContentionReportContracts.validate_deferred_priority/3`. Remove
-the pure facade delegate across two positions.
+Extract guarded priority-field evidence count validation into
+`Schema.PriorityFieldEvidenceContracts.validate/3`. Point the contact-allocation
+and operator-review callback captures at the new owner and remove both private
+facade clauses.
 
 Why this slice:
-The contention owner already exposes the exact `/3` validator and the facade
-helper only forwards arguments. Both callback keys and their surrounding bag
-order can remain unchanged without touching contact-allocation domain behavior
-or operator-review dispatch.
+The two self-contained clauses validate only priority-field evidence maps and
+serve two independent consumers. They depend solely on `error/2`, so a dedicated
+internal contract module gives the responsibility a stable owner without
+pulling facade state or changing callback shapes.
 
 Public facade to preserve:
 All `OrbitalDynamics.Schema` public functions, exact validation issue ordering,
@@ -30,6 +30,7 @@ schema export bytes.
 
 Likely files:
 - `lib/orbital_dynamics/schema.ex`
+- `lib/orbital_dynamics/schema/priority_field_evidence_contracts.ex`
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
@@ -38,30 +39,16 @@ Likely verification:
 - strict compile, format, xref, diff hygiene, and bounded review
 
 Definition of done:
-Both callback positions call the contention owner directly, the pure facade
-delegate is gone, callback-key ordering and issue behavior remain exact,
-validation and schema exports remain byte-for-byte stable, focused tests pass,
-and bounded review finds no blocker.
+The new owner contains the exact map-guarded and fallback clauses, both callback
+captures point to it, the facade clauses are gone, map iteration and error
+ordering remain exact, validation and schema exports remain byte-for-byte
+stable, focused tests pass, and bounded review finds no blocker.
 
 Verification gaps:
-- None for this slice.
+- Implementation and verification pending.
 
 Tests run:
-- `mix compile --warnings-as-errors`
-- 10 focused contact-allocation and operator-review tests
-- 182 complete schema-contract and schema-export tests
-- full checked-in schema export regeneration; no schema diff
-- aggregate schema bundle digest unchanged:
-  `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`
-- `mix format --check-formatted`
-- `git diff --check`
-- compile-connected xref check for `schema.ex`
-- bounded read-only review: clean, no findings
-
-Outcome:
-Both deferred-priority callback bags now point directly to
-`ContactContentionReportContracts`. The pure facade delegate is gone, both bag
-orders remain exact, and `schema.ex` decreased from 8,051 to 8,043 lines.
+- Selection only; implementation verification pending.
 
 Behavior/schema changes:
 None.
@@ -73,9 +60,9 @@ delegate was removed, 182 schema/export tests passed, full export bytes stayed
 exact, and bounded review was clean.
 
 Next candidate:
-Extract priority-field evidence count validation from `Schema` into a dedicated
-internal contract module, point its two callback captures at the new owner, and
-preserve the exact guarded/fallback clauses and error ordering.
+After this boundary, audit the remaining priority-override count helper and the
+single CandidateDiff source-window-lineage pipeline before selecting another
+owner family.
 
 Blocked:
 No.
