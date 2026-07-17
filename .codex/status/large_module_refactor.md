@@ -9,7 +9,7 @@ Current slice:
 Validation benchmark artifact fixture test-family extraction.
 
 Status:
-Ready to publish.
+Published as `616561c7`.
 
 Selected slice:
 Move the study-benchmark fixture test and all runtime/distributed benchmark
@@ -59,11 +59,11 @@ Verification gaps:
 - Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
-Validation candidate-strategy artifact extraction published as `7c5aeacf`: the
-focused module passed 6/6, the parent passed 31/31, and all thirty-eight
-Validation modules preserved the 181-test aggregate with no duplicate names.
-Format, diff hygiene, exact-source and dependency-closure checks, and bounded
-review were clean.
+Validation benchmark artifact extraction published as `616561c7`: the focused
+module passed 1/1, the parent passed 30/30, and all thirty-nine Validation
+modules preserved the 181-test aggregate with no duplicate names. Format, diff
+hygiene, exact-source and dependency-closure checks, and bounded review were
+clean.
 
 Next candidate:
 Map the validation-reference, candidate-diff, refresh-budget, execution, and
