@@ -9,7 +9,7 @@ Current slice:
 CampaignPlanner repair maneuver timing-impact extraction.
 
 Status:
-Ready to publish.
+Published as `4d66a619`.
 
 Selected slice:
 Extract delayed-maneuver movement and downstream activity-impact annotation
@@ -61,9 +61,9 @@ Verification gaps:
   blocker.
 
 Last completed slice:
-RepairAccumulator delayed-maneuver mutation ownership published as
-`e36c06fd`: all repair-accumulator mutation is now owner-local, 16 focused
-tests passed, and corrected bounded review found no blocker.
+CampaignPlanner repair maneuver timing-impact extraction published as
+`4d66a619`: one owner now supplies movement and downstream annotation, 17
+focused tests passed, and corrected bounded review found no blocker.
 
 Next candidate:
 After maneuver transitions, remap the remaining repair dispatch/protection
