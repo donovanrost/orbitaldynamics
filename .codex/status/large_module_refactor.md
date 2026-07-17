@@ -6,10 +6,10 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema timeline-integrity-evidence callback ownership mapping.
+Schema timeline-integrity-evidence callback ownership handoff.
 
 Status:
-Ready for publication.
+Published as `4895d94e`.
 
 Selected slice:
 Point both captures of `validate_timeline_integrity_evidence/3` directly at
@@ -63,7 +63,10 @@ to 7,813 lines, focused 8 and complete 182 tests passed, all 122 exports
 byte-matched, and review was clean.
 
 Next candidate:
-After review and publication, continue the structural exact-wrapper inventory.
+Map the single final `validate_station_calendar_contact_counts/3` capture in
+`contact_allocation_report_domain_callbacks/0`. It delegates exactly to
+`StationCalendarContactCountContracts.validate/3`; preserve the final callback
+key/position and use focused contact-allocation contract coverage.
 
 Blocked:
 No.
