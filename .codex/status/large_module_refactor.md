@@ -9,7 +9,7 @@ Current slice:
 Schema resource-projection JSON property-dispatch extraction.
 
 Status:
-Selected.
+Review complete; ready to publish.
 
 Selected slice:
 Extract property dispatch for resource-projection report and
@@ -46,10 +46,21 @@ exports remain exact; focused and export tests pass; and bounded review finds
 no blocker.
 
 Outcome:
-Pending.
+The two facade clauses are now one guarded delegate to
+`OrbitalDynamics.Schema.ResourceProjectionPropertyDispatch`. The dispatcher
+preserves contract-to-module routing, focused-field selection, shared
+stable-identity/model-limit/assumptions callbacks, report-only models and
+projection-row callbacks, flow-summary-only activity-flow-row callback, and
+the common fallback. The facade is 9,499 lines; the new dispatcher is 46 lines.
 
 Verification gaps:
-- Pending.
+- `mix compile --warnings-as-errors` passed.
+- 28 focused resource, JSON export, schema export, and export-task tests passed.
+- Full checked-in export regeneration remained byte-identical at aggregate
+  digest `95051be82cec8a75634e4e8712dadd102888f59998d2c26ebe7c36065d824d3b`.
+- Scoped format, diff hygiene, and xref checks passed; xref reports only the
+  expected runtime caller from `OrbitalDynamics.Schema`.
+- Bounded read-only review found no blocker or follow-up finding.
 
 Last completed slice:
 Schema filter-report property dispatch published as `6646d27e`: contact and

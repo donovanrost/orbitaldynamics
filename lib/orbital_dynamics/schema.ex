@@ -2274,34 +2274,26 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp json_schema_property(field, @resource_projection_report = contract_name, contract) do
-    focused_json_schema_property(
+  defp json_schema_property(field, contract_name, contract)
+       when contract_name in [
+              @resource_projection_report,
+              @resource_projection_flow_summary
+            ] do
+    OrbitalDynamics.Schema.ResourceProjectionPropertyDispatch.property(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.ResourceProjectionReportJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.ResourceProjectionReportJsonSchema.property_fun_from_context(
-        stable_id_pattern: @stable_id_pattern,
-        models: &resource_projection_report_models/0,
-        model_limits: &resource_projection_report_model_limits/0,
-        assumptions_schema: &resource_projection_assumptions_json_schema/0,
-        resource_projection_row_schema: &resource_projection_row_json_schema/0
-      )
-    )
-  end
-
-  defp json_schema_property(field, @resource_projection_flow_summary = contract_name, contract) do
-    focused_json_schema_property(
-      field,
-      contract_name,
-      contract,
-      &OrbitalDynamics.Schema.ResourceProjectionFlowSummaryJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.ResourceProjectionFlowSummaryJsonSchema.property_fun_from_context(
-        stable_id_pattern: @stable_id_pattern,
-        model_limits: &resource_projection_report_model_limits/0,
-        assumptions_schema: &resource_projection_assumptions_json_schema/0,
-        activity_resource_flow_row_schema: &resource_projection_flow_row_json_schema/0
-      )
+      contracts: %{
+        report: @resource_projection_report,
+        flow_summary: @resource_projection_flow_summary
+      },
+      stable_id_pattern: @stable_id_pattern,
+      models: &resource_projection_report_models/0,
+      model_limits: &resource_projection_report_model_limits/0,
+      assumptions_schema: &resource_projection_assumptions_json_schema/0,
+      projection_row_schema: &resource_projection_row_json_schema/0,
+      flow_row_schema: &resource_projection_flow_row_json_schema/0,
+      default_property: &default_json_schema_property/3
     )
   end
 
