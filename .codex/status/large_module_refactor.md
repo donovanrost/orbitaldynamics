@@ -9,7 +9,7 @@ Current slice:
 Validation policy-and-evidence fixture test-family extraction.
 
 Status:
-Verified and reviewed; ready to publish.
+Published as `3cd3d92d`.
 
 Selected slice:
 Move the four contiguous backend-acceptance-policy,
@@ -58,8 +58,8 @@ Verification gaps:
 - Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
-Validation state-and-maneuver fixture extraction published as `ae06ce20`: the
-focused module passed 5/5, the parent passed 131/131, and all nine Validation
+Validation policy-and-evidence fixture extraction published as `3cd3d92d`: the
+focused module passed 4/4, the parent passed 127/127, and all ten Validation
 modules preserved the 181-test aggregate with no duplicate names. Format, diff
 hygiene, dependency-closure checks, and bounded review were clean.
 
