@@ -455,10 +455,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   candidates, approve operator actions, or write to Cadence.
   """
   def operational_readiness_replay_summary(refresh_or_artifact) do
-    ReplaySummary.operational_readiness(
-      refresh_or_artifact,
-      &source_report_summary/1
-    )
+    ReplaySummary.operational_readiness(refresh_or_artifact)
   end
 
   @doc """
@@ -470,10 +467,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   candidates, approve operator actions, or write to Cadence.
   """
   def quality_gate_replay_summary(refresh_or_artifact) do
-    ReplaySummary.quality_gate(
-      refresh_or_artifact,
-      &source_report_summary/1
-    )
+    ReplaySummary.quality_gate(refresh_or_artifact)
   end
 
   @doc """

@@ -165,12 +165,12 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary do
     OperationalTimeline.replay(refresh_or_artifact)
   end
 
-  def operational_readiness(refresh_or_artifact, source_report_summary) do
-    OperationalReadiness.replay(refresh_or_artifact, source_report_summary)
+  def operational_readiness(refresh_or_artifact) do
+    OperationalReadiness.replay(refresh_or_artifact)
   end
 
-  def quality_gate(refresh_or_artifact, source_report_summary) do
-    QualityGate.replay(refresh_or_artifact, source_report_summary)
+  def quality_gate(refresh_or_artifact) do
+    QualityGate.replay(refresh_or_artifact)
   end
 
   def model_acceptance(refresh_or_artifact, source_report_summary) do

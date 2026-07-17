@@ -6,14 +6,13 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.QualityGate do
   alias OrbitalDynamics.CandidateRefresh.ReplaySummary.QualityGate.Summary
   alias OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelinePublicationContext
 
-  def replay(refresh_or_artifact, source_report_summary)
-      when is_function(source_report_summary, 1) do
+  def replay(refresh_or_artifact) do
     branch_quality_gate_summary = source_report_summary_branch_family(refresh_or_artifact)
 
     quality_gate_summary =
       branch_quality_gate_summary ||
         refresh_or_artifact
-        |> source_report_summary.()
+        |> SourceReportSummary.build()
         |> get_in(["source_reports", "quality_gate_report"]) ||
         %{}
 
