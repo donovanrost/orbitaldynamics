@@ -6164,14 +6164,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp validate_priority_field_evidence_counts(issues, _path, _counts), do: issues
 
-  defp validate_branch_event_summary_fields(issues, path, row) do
-    OrbitalDynamics.Schema.BranchEventContracts.validate_summary_fields(
-      issues,
-      path,
-      row
-    )
-  end
-
   defp validate_scoped_downlink_context_fields(issues, path, row) do
     OrbitalDynamics.Schema.ScopedDownlinkContextContracts.validate(
       issues,
@@ -7092,7 +7084,8 @@ defmodule OrbitalDynamics.Schema do
         &OrbitalDynamics.Schema.OperationalReadinessHandoffContracts.validate_report_matches_source/3,
       validate_source_quality_gate_report_handoff_matches:
         &OrbitalDynamics.Schema.QualityGateHandoffContracts.validate_report_matches_source/3,
-      validate_branch_event_summary_fields: &validate_branch_event_summary_fields/3,
+      validate_branch_event_summary_fields:
+        &OrbitalDynamics.Schema.BranchEventContracts.validate_summary_fields/3,
       validate_observation_quality_handoff_fields:
         &OrbitalDynamics.Schema.HandoffFieldContracts.validate_observation_quality_handoff_fields/3,
       validate_feedback_maneuver_handoff_fields:
@@ -7435,7 +7428,8 @@ defmodule OrbitalDynamics.Schema do
         &OrbitalDynamics.Schema.HandoffFieldContracts.validate_eclipse_lighting_handoff_fields/3,
       validate_thermal_handoff_fields:
         &OrbitalDynamics.Schema.HandoffFieldContracts.validate_thermal_handoff_fields/3,
-      validate_branch_event_summary_fields: &validate_branch_event_summary_fields/3,
+      validate_branch_event_summary_fields:
+        &OrbitalDynamics.Schema.BranchEventContracts.validate_summary_fields/3,
       validate_semantic_change_details:
         &OrbitalDynamics.Schema.CandidateDiffContracts.validate_semantic_change_details/3,
       validate_candidate_diff_changed_fields:
@@ -7780,18 +7774,10 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       branch,
-      &validate_branch_event/3,
+      &OrbitalDynamics.Schema.BranchEventContracts.validate_event/3,
       &validate_optional_resource_projection_report/3,
       &validate_policy_decision/3,
       &validate_approval_requirement/3
-    )
-  end
-
-  defp validate_branch_event(issues, path, event) do
-    OrbitalDynamics.Schema.BranchEventContracts.validate_event(
-      issues,
-      path,
-      event
     )
   end
 
@@ -7800,7 +7786,7 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       recommendation,
-      &validate_branch_event_summary_fields/3,
+      &OrbitalDynamics.Schema.BranchEventContracts.validate_summary_fields/3,
       &validate_scoped_downlink_context_fields/3
     )
   end
@@ -7957,7 +7943,8 @@ defmodule OrbitalDynamics.Schema do
         &validate_optional_timeline_activity_precondition_summary_source/3,
       validate_optional_timeline_preservation_source_row:
         &validate_optional_timeline_preservation_source_row/3,
-      validate_branch_event_summary_fields: &validate_branch_event_summary_fields/3,
+      validate_branch_event_summary_fields:
+        &OrbitalDynamics.Schema.BranchEventContracts.validate_summary_fields/3,
       validate_optional_timeline_identity: &validate_optional_timeline_identity/4,
       validate_optional_timeline_link: &validate_optional_timeline_link/4,
       validate_optional_timeline_protection_summary:
