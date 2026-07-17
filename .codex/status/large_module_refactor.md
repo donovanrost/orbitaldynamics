@@ -9,7 +9,7 @@ Current slice:
 CandidateRefresh model-acceptance/safety-case replay callback removal.
 
 Status:
-Review complete; ready to publish.
+Published as `d3324fa7`.
 
 Selected slice:
 Remove the repeated source-summary callback from the model-acceptance and
@@ -63,13 +63,13 @@ Verification gaps:
 - bounded read-only review: clean, no findings
 
 Last completed slice:
-Candidate readiness/quality replay callback removal published as `337007e2`:
-both paths are one-argument end to end, 49 focused tests passed, and bounded
+Candidate acceptance/safety replay callback removal published as `d3324fa7`:
+both paths are one-argument end to end, 25 focused tests passed, and bounded
 review found no blocker.
 
 Next candidate:
-Audit the remaining five-entry timeline activity-state callback family after
-this pair is published.
+Audit the remaining five-entry timeline activity-state callback family as the
+final callback-removal slice.
 
 Blocked:
 No.
