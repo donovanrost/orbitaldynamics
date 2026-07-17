@@ -9,7 +9,7 @@ Current slice:
 Schema priority-field evidence callback ownership cleanup.
 
 Status:
-Completed and verified; publishing.
+Completed and published.
 
 Selected slice:
 Point the contact-allocation and operator-review priority-field evidence
@@ -69,15 +69,16 @@ Behavior/schema changes:
 None.
 
 Last completed slice:
-Schema deferred-priority callback ownership cleanup published as `b12eb661`:
-both callback bags now point directly to the contention owner, the pure facade
-delegate was removed, 182 schema/export tests passed, full export bytes stayed
-exact, and bounded review was clean.
+Schema priority-field evidence callback ownership cleanup published as
+`4df5f3eb`: both callback bags now reuse the established priority-override
+owner, duplicate facade clauses were removed, 182 schema/export tests passed,
+full export bytes stayed exact, and bounded review was clean.
 
 Next candidate:
-After this boundary, audit the remaining priority-override count helper and the
-single CandidateDiff source-window-lineage pipeline before selecting another
-owner family.
+Point the remaining contact-allocation priority-override count callback directly
+at `PriorityOverrideContracts.validate_count_matches_ids/5` and remove the pure
+guarded facade delegate. Then reassess whether the isolated CandidateDiff
+lineage pipe justifies a slice or Schema should yield to another hotspot.
 
 Blocked:
 No.
