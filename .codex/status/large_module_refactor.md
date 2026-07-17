@@ -9,7 +9,7 @@ Current slice:
 Policy-evidence fixture mapping.
 
 Status:
-Ready for implementation.
+Publishing.
 
 Selected slice:
 Move
@@ -55,7 +55,7 @@ complete facade remainder stay exact, focused and full validation tests pass,
 and bounded review finds no blocker.
 
 Verification gaps:
-- Implementation, verification, and bounded review pending.
+- None for this bounded slice.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -69,13 +69,31 @@ Tests run:
 - Source boundary confirmed at facade lines 160-308, with
   `timeline_diff_report.v1` beginning at line 309 and no facade
   helper-attribute dependency in the selected literals.
-- Selection only; implementation verification pending.
+- Post-move exact proof: the 195-entry map, sorted-key digest, selected
+  four-fixture digest, and exact 191-entry remainder digest all match their
+  selection baselines.
+- Source partition proof: 28 maps total 195 entries, the new leaf owns four, the
+  facade owns 97, and all 378 pairwise intersections are empty.
+- Facade proof: all 195 successful `fetch/1` results, missing-key `:error`, and
+  nonbinary `FunctionClauseError` behavior remain unchanged.
+- Focused policy-evidence/facade validation: 16 tests passed.
+- Full validation family: 181 tests passed.
+- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
+  xref caller checks passed.
+- Independent bounded review: CLEAN. It confirmed all four policy-evidence
+  fixtures moved unchanged, the timeline-diff boundary and complete facade
+  remainder are normalized-AST exact, the new leaf owns only its four intended
+  keys, all 28 maps are unique and pairwise disjoint, all digests and facade
+  edge behaviors are unchanged, dependencies remain one-way, and it reproduced
+  16 focused and 181 full validation tests.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-No policy-evidence implementation has started.
+The exact four-fixture policy-evidence family now lives in a new cohesive leaf
+behind the unchanged facade. The facade shrank from 7,584 to 7,437 lines; the
+new leaf is 157 lines and owns exactly four fixtures.
 
 Last completed slice:
 Validation-reference ownership cleanup published as `95bc97fe`: the exact
