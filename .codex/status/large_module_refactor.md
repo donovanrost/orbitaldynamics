@@ -9,7 +9,7 @@ Current slice:
 Schema policy-escalation ownership mapping.
 
 Status:
-Ready for implementation.
+Ready for publication.
 
 Selected slice:
 Point the `%{}` branch of optional policy-escalation validation directly at
@@ -30,7 +30,7 @@ path, invalid values retain the same error, wrapper is absent, and all proof and
 review remains exact.
 
 Verification gaps:
-- Implementation and post-change verification pending.
+None.
 
 Tests run:
 - Source baseline: one `%{}` branch call and one pure delegate.
@@ -39,12 +39,24 @@ Tests run:
   `543dbe11bc75f1397dd15dbd10cabd219ae2e46ac1e16d38b810a99befb8cec3`.
 - Checked bundle digest:
   `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`.
+- Source proof against `7289efcf`: nil and invalid branches are unchanged, the
+  `%{}` branch calls `PolicyEscalationContracts.validate/3` with the same path,
+  and wrapper is absent.
+- Focused policy test: 1 passed; complete schema/export suite: 182 passed, all
+  with warnings as errors.
+- Generated bundle remains exact; export regeneration produced no schema diff
+  and checked digest is unchanged.
+- Strict compile, format, xref, and diff hygiene passed.
+- Independent review against `7289efcf` was clean across all optional branches,
+  distinct handoff state, focused 1, complete 182, all 122 exports, digests,
+  strict compile, xref, formatting, sizes, ledger, and hygiene.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-No policy-escalation ownership implementation has started.
+The map branch calls the established owner directly and wrapper is gone.
+`schema.ex` decreased from 7,798 to 7,794 lines.
 
 Last completed slice:
 Station-calendar contact-count cleanup published as `67180b1a`: `schema.ex`
@@ -52,7 +64,7 @@ shrank from 7,805 to 7,798 lines, focused 8 and complete 182 tests passed, all
 122 exports byte-matched, and review was clean.
 
 Next candidate:
-Implement the direct owner call and remove the wrapper.
+After review and publication, continue the structural exact-wrapper inventory.
 
 Blocked:
 No.

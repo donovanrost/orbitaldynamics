@@ -7438,7 +7438,11 @@ defmodule OrbitalDynamics.Schema do
         issues
 
       %{} = escalation ->
-        validate_policy_escalation(issues, "#{path}.#{field}", escalation)
+        OrbitalDynamics.Schema.PolicyEscalationContracts.validate(
+          issues,
+          "#{path}.#{field}",
+          escalation
+        )
 
       _value ->
         [error("#{path}.#{field}", "must be an object") | issues]
@@ -7488,14 +7492,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp policy_rule_match_field_groups do
     OrbitalDynamics.Schema.PolicyFieldGroups.rule_match()
-  end
-
-  defp validate_policy_escalation(issues, path, escalation) do
-    OrbitalDynamics.Schema.PolicyEscalationContracts.validate(
-      issues,
-      path,
-      escalation
-    )
   end
 
   defp validate_policy_bundle(issues, path, bundle) do
