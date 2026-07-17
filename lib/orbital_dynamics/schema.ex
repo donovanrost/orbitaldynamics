@@ -29,7 +29,6 @@ defmodule OrbitalDynamics.Schema do
       expect_optional_integer: 4,
       expect_optional_field_equals: 6,
       expect_optional_non_negative_integer: 4,
-      expect_optional_non_negative_number: 4,
       expect_optional_number: 4,
       expect_optional_one_of: 5,
       expect_optional_probability: 4,
@@ -6746,50 +6745,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp contact_allocation_capacity_pack_summary_contract_callbacks do
-    [
-      expect_equal: &expect_equal/5,
-      expect_one_of: &expect_one_of/5,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_non_negative_integer: &expect_non_negative_integer/4,
-      expect_optional_non_negative_number: &expect_optional_non_negative_number/4,
-      expect_field_equals: &expect_field_equals/5,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      expect_optional_field_equals: &expect_optional_field_equals/6,
-      expect_number_field_equals: &expect_number_field_equals/6,
-      validate_rows: &validate_rows/4,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_optional_exact_model_limits: &validate_optional_exact_model_limits/5,
-      validate_non_negative_integer_count_map: &validate_non_negative_integer_count_map/3,
-      validate_non_negative_number_map: &validate_non_negative_number_map/3,
-      validate_stable_id_array_map: &validate_stable_id_array_map/3,
-      validate_stable_id_list: &validate_stable_id_list/3,
-      contact_allocation_model_limits: &contact_allocation_model_limits/0,
-      contact_allocation_capacity_pack_statuses: &contact_allocation_capacity_pack_statuses/0,
-      contact_allocation_reduced_capacity_pack_statuses:
-        &contact_allocation_reduced_capacity_pack_statuses/0,
-      contact_allocation_required_capacity_fraction_source_values:
-        &contact_allocation_required_capacity_fraction_source_values/0,
-      contact_allocation_required_capacity_value_path_assumptions:
-        &contact_allocation_required_capacity_value_path_assumptions/0,
-      contact_allocation_default_required_capacity_value_path_assumptions:
-        &contact_allocation_default_required_capacity_value_path_assumptions/0,
-      validate_contact_allocation_row: &validate_contact_allocation_row/3,
-      validate_contact_allocation_capacity_pack_group:
-        &validate_contact_allocation_capacity_pack_group/3,
-      contact_allocation_capacity_pack_rows: &contact_allocation_capacity_pack_rows/1,
-      contact_allocation_selected_capacity_pack_rows:
-        &contact_allocation_selected_capacity_pack_rows/1,
-      contact_allocation_deferred_capacity_pack_rows:
-        &contact_allocation_deferred_capacity_pack_rows/1,
-      contact_allocation_capacity_pack_required_fraction:
-        &contact_allocation_capacity_pack_required_fraction/1,
-      contact_allocation_capacity_pack_required_fraction_by_field:
-        &contact_allocation_capacity_pack_required_fraction_by_field/2
-    ]
-  end
-
   defp contact_allocation_reservation_conflict_summary_contract_callbacks do
     [
       expect_equal: &expect_equal/5,
@@ -7989,14 +7944,6 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validate_non_negative_number_map(issues, path, values),
-    do:
-      OrbitalDynamics.Schema.PrimitiveValidation.validate_non_negative_number_map(
-        issues,
-        path,
-        values
-      )
-
   defp validate_duplicate_suppressed_candidate_evidence(issues, path, candidate) do
     OrbitalDynamics.Schema.SuppressedCandidateContracts.validate_duplicate_evidence(
       issues,
@@ -8078,7 +8025,8 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       summary,
-      contact_allocation_capacity_pack_summary_contract_callbacks()
+      &validate_contact_allocation_row/3,
+      &validate_contact_allocation_capacity_pack_group/3
     )
   end
 

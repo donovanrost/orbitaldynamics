@@ -9,7 +9,7 @@ Current slice:
 Contact-allocation capacity-pack-summary callback-bag collapse.
 
 Status:
-Selected; implementation not started.
+Implemented, verified, reviewed, and ready to publish.
 
 Selected slice:
 Replace the 30-entry capacity-pack-summary keyword bag with direct primitive,
@@ -47,18 +47,28 @@ are explicit, numeric/equality messages remain exact, focused/broader/export
 checks pass, and bounded review finds no blocker.
 
 Outcome:
-Pending.
+The 30-entry capacity-pack-summary callback bag and all lookup/apply trampolines
+are gone. The extracted owner now calls primitive, stable-ID, capability, and
+contact-allocation report owners directly; Schema passes only the explicit row
+and capacity-pack-group validators. One unused primitive import and one newly
+orphaned numeric-map facade also disappeared. `schema.ex` fell from 10,567 to
+10,515 lines and the owner from 874 to 690, for 236 net deleted lines across the
+slice.
 
 Verification gaps:
-- Not yet verified.
+- Full repository suite not run. The standard broader lane remains at the
+  baseline 1,340/1,345 with the same five known campaign-planner failures
+  attributable at `6f1f0ac1`.
+- Focused capacity-pack/contact-allocation coverage passed 277 tests; export
+  coverage passed 24. Compile with warnings as errors, checked-in schema
+  regeneration, compile-connected xref (three allowed edges), format, diff
+  hygiene, and independent bounded review were clean.
 
 Last completed slice:
-Contact-allocation provider-reservation-request-summary callback collapse
-published as `21b11ea2`: `schema.ex` fell from 10,602 to 10,567 lines and the
-owner from 670 to 552; the 22-entry factory became one explicit row-validator
-hook and one facade orphan disappeared. Two hundred seventy-five focused, 1,340
-attributable broader, and 24 export tests passed; compile, regeneration, xref,
-format, diff hygiene, and bounded review were clean.
+Contact-allocation capacity-pack-summary callback collapse; publication commit
+pending. The 30-entry factory became two explicit validator hooks, with 277
+focused, 1,340 attributable broader, and 24 export tests passing; compile,
+regeneration, xref, format, diff hygiene, and bounded review were clean.
 
 Blocked:
 No.
