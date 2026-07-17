@@ -9,7 +9,7 @@ Current slice:
 CandidateRefresh validation replay source-summary callback removal.
 
 Status:
-Review complete; ready to publish.
+Published as `651df593`.
 
 Selected slice:
 Remove the repeated source-summary callback from freshness, refresh-budget, and
@@ -62,13 +62,13 @@ Verification gaps:
 - bounded read-only review: clean, no findings
 
 Last completed slice:
-Candidate diff/rejection replay callback removal published as `37f533c3`:
-both paths are one-argument end to end, 25 focused tests passed, and bounded
-review found no blocker.
+Candidate validation replay callback removal published as `651df593`:
+freshness, refresh-budget, and schema-validation are one-argument end to end,
+29 focused tests passed, and bounded review found no blocker.
 
 Next candidate:
-Remove the callback seam from one adjacent replay owner after the validation
-trio is published.
+Remove the callback seam from one adjacent objective/constraint replay owner,
+subject to a fresh caller and test audit.
 
 Blocked:
 No.
