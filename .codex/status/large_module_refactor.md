@@ -9,7 +9,7 @@ Current slice:
 Core-run report reference-fixture extraction.
 
 Status:
-Publishing implementation.
+Completed and published as `67682478`.
 
 Selected slice:
 Move the contiguous candidate-diff, refresh-budget, execution, and freshness
@@ -88,15 +88,17 @@ that family with 17 existing fixture maps plus 137 remaining fixtures. The
 facade fell from 9,834 to 9,593 lines, while the extracted family is 251 lines.
 
 Last completed slice:
-Candidate-strategy fixture extraction published as `6e55724f`: the three exact
-branch/optimizer/invalidation fixtures moved behind the unchanged facade,
-candidate diff and the remainder stayed exact, the 195-entry map and
+Core-run report fixture extraction published as `67682478`: the four exact
+diff/budget/execution/freshness fixtures moved behind the unchanged facade,
+manifest metadata and the remainder stayed exact, the 195-entry map and
 deterministic bytes stayed exact, 181 validation tests passed, and bounded
 review was clean.
 
 Next candidate:
-After this boundary, map manifest-field-reference plus study-manifest-lint
-against focused manifest fixture ownership before selecting the next family.
+Extract the contiguous manifest-field-reference and study-manifest-lint
+fixtures into a manifest family. The 112-line pair shares dedicated
+`manifest_fixture_test.exs` ownership and stops before approval requirements;
+first verify helper-attribute independence and re-baseline the complete map.
 
 Blocked:
 No.
