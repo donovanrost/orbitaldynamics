@@ -6,64 +6,52 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Validation resource-pressure handoff fixture test-family extraction.
+Validation contact-allocation artifact fixture test-family extraction.
 
 Status:
-Published as `0f28b6a4`.
+Selected.
 
 Selected slice:
-Move the resource-pressure handoff fixture test into a focused module with one
-shared cross-handoff fixture owner.
+Move the five contiguous contact-allocation report, reservation-conflict,
+station-pressure, capacity-pack, and allocation-summary fixture tests into a
+focused module with one shared contact-allocation fixture owner.
 
 Why this slice:
-After the policy-decision split, `validation_test.exs` is 3,230 lines. Test
-1,718-1,861 validates quality-gate, readiness, operator-review, and import
-handoffs as one cross-artifact family. Six local observation/raw helpers form
-its closure, while the quality-gate and readiness raw fixtures remain owned by
-the existing readiness-replay support module.
+After the resource-pressure split, `validation_test.exs` is 3,064 lines. Tests
+1,724-2,192 validate the primary contact-allocation report and its four derived
+summary artifacts as one contiguous family. Six local observation/raw helpers
+form the closure. The five observation helpers remain consumed by the parent's
+deterministic aggregate report test, so one shared support owner makes that
+cross-module dependency explicit.
 
 Public facade to preserve:
 `OrbitalDynamics.Validation.reference_fixture/1`,
-`verify_reference_fixture/2`, `artifact_observations/2`, exact cross-handoff
-resource-pressure schema checks, stale handoff coverage, and deterministic
-reports.
+`verify_reference_fixture/2`, `artifact_observations/2`, exact allocation and
+derived-summary schema checks, stale derived-count/grouping coverage, and
+deterministic aggregate reports.
 
 Likely files:
 - `test/orbital_dynamics/validation_test.exs`
-- `test/orbital_dynamics/validation/resource_pressure_handoff_fixture_test.exs`
-- `test/support/validation/resource_pressure_handoff_fixtures.ex`
+- `test/orbital_dynamics/validation/contact_allocation_fixture_test.exs`
+- `test/support/validation/contact_allocation_fixtures.ex`
 - `test/test_helper.exs`
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
-- extracted resource-pressure handoff fixture module directly
+- extracted contact-allocation fixture module directly
 - remaining validation test ledger
 - format, diff hygiene, and bounded review
 
 Definition of done:
-The handoff test moves mechanically with order and assertion strength unchanged;
-shared builders have one exact owner, existing raw source ownership is reused,
-focused and parent files pass, names remain unique, and bounded review finds no
-blocker.
+All five tests move mechanically with order and assertion strength unchanged;
+six shared builders have one exact owner, the focused and parent files pass,
+all 181 test names remain unique, and bounded review finds no blocker.
 
 Outcome:
-The single resource-pressure handoff test moved into
-`resource_pressure_handoff_fixture_test.exs`. Six local fixture helpers moved
-exactly, apart from the required `defp` to `def` visibility change, into one
-shared support owner. The existing readiness and quality-gate raw fixtures
-remain owned by `CandidateRefreshReadinessReplayFixtures`; the focused test and
-new support module reuse them directly. The parent now imports only the four
-aggregate observation helpers it still consumes and shrank from 3,230 to 3,064
-lines. The focused test file is 165 lines and the support owner is 43 lines.
+Pending.
 
 Verification gaps:
-- Focused resource-pressure handoff module: 1/1 passed.
-- Remaining parent validation module: 20/20 passed.
-- Full Validation family: 43 modules, 181/181 passed.
-- Exact-source audit: test, six local helpers, and private JSON loader exact;
-  two existing raw owners reused; all 181 test names remain unique.
-- `mix format --check-formatted` and `git diff --check` passed.
-- Independent bounded review found no blocker.
+- Pending.
 
 Last completed slice:
 Validation resource-pressure handoff fixture extraction published as
@@ -73,9 +61,9 @@ duplicate names. Format, diff hygiene, exact-source and ownership-closure
 checks, and bounded review were clean.
 
 Next candidate:
-Map the contact-allocation report, reservation-conflict, station-pressure,
-capacity-pack, and contact-allocation summary fixture sequence. Split only a
-complete allocation artifact family with explicit shared helper ownership.
+Reassess the remaining parent after the allocation family moves. Prefer the
+next contiguous responsibility boundary whose complete helper closure can move
+without pulling the generic tolerance or deterministic aggregate tests.
 
 Blocked:
 No.
