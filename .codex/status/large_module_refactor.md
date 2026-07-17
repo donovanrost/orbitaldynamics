@@ -6,10 +6,10 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema realized-state-snapshot callback ownership mapping.
+Schema realized-state-snapshot callback ownership handoff.
 
 Status:
-Ready for publication.
+Published as `c24e7a3e`.
 
 Selected slice:
 Point both facade uses of `validate_realized_state_snapshot/3` directly at
@@ -66,7 +66,11 @@ to 7,902 lines, 5 focused and 182 complete tests passed, all 122 exports
 byte-matched, and bounded review was clean.
 
 Next candidate:
-After review and publication, map the next pure facade ownership boundary.
+Map the single campaign-repair capture of `validate_resource_summary/3`. The
+callback key remains between `validate_contact_intent` and optional contact
+filter, and the established owner exposes exact
+`ResourceSummaryContracts.validate/3`; remove the pure wrapper if live caller
+mapping confirms no other facade use.
 
 Blocked:
 No.
