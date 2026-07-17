@@ -9,7 +9,7 @@ Current slice:
 Schema handoff-field callback ownership cleanup.
 
 Status:
-Completed and verified; publishing.
+Completed and published.
 
 Selected slice:
 Point observation-quality, feedback-maneuver, link, completion-fraction,
@@ -69,16 +69,16 @@ Behavior/schema changes:
 None.
 
 Last completed slice:
-Schema quality-gate summary callback ownership cleanup published as `4f870d1e`:
-the operator-review capture now points directly to the owner, the pure facade
-delegate was removed, 182 schema/export tests passed, full export bytes stayed
-exact, and bounded review was clean.
+Schema handoff-field callback ownership cleanup published as `0f51bf28`:
+twenty-three captures now point directly to `HandoffFieldContracts`, eight pure
+facade delegates were removed, 182 schema/export tests passed, full export
+bytes stayed exact, and bounded review was clean.
 
 Next candidate:
-After this boundary, map the remaining local `BranchEventContracts` and
-candidate-diff callback delegates by capture count. Continue to defer
-contact-allocation evidence until its shared domain callback ownership has a
-cohesive extraction boundary.
+Point four candidate-diff families directly at `CandidateDiffContracts`:
+semantic details (three captures), changed fields (three), optional source
+window (five), and optional lineage (three). Remove the four pure facade
+delegates while preserving the existing four-argument field callbacks.
 
 Blocked:
 No.
