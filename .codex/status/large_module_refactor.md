@@ -6,23 +6,23 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema command-window/maneuver handoff callback ownership cleanup.
+Schema contact-contention handoff callback ownership cleanup.
 
 Status:
-Completed and published.
+Selected; implementation pending.
 
 Selected slice:
-Point the command-window and maneuver-review handoff callback captures directly
-at the existing `Schema.CommandWindowManeuverHandoffContracts` owner. Remove
-the four redundant private delegates across the general and
-cadence-source-review validation paths.
+Point the contact-contention general and cadence-source-review handoff callback
+captures directly at the existing
+`Schema.ContactContentionHandoffContracts` owner. Remove the general delegate
+and both clauses of the cadence delegate.
 
 Why this slice:
-All four delegates are pure pass-throughs to one already-extracted internal
-module, whose public targets retain their specialized and fallback clauses.
-Each family has three general capture sites and one cadence-specific site, so
-the eight callback positions form one small, independently reviewable owner
-boundary.
+The general delegate is a pure pass-through. The cadence facade wrapper has a
+specialized clause plus permissive fallback, and the existing owner exposes the
+same specialized and fallback clauses. Three general capture sites and one
+cadence-specific site can therefore point directly to the owner without moving
+contact-contention validation logic or issue ordering.
 
 Public facade to preserve:
 All `OrbitalDynamics.Schema` public functions, exact validation issue ordering,
@@ -40,35 +40,19 @@ Likely verification:
 
 Definition of done:
 Every callback list directly captures the corresponding public
-`CommandWindowManeuverHandoffContracts` validator, the four facade delegates
-are gone,
+`ContactContentionHandoffContracts` validator, the general delegate and both
+cadence clauses are gone,
 validation and schema exports remain byte-for-byte stable, focused tests pass,
 and bounded review finds no blocker.
 
-Outcome:
-All command-window and maneuver-review callback lists now capture the existing
-`CommandWindowManeuverHandoffContracts` validators directly. Four private
-one-hop delegates were removed, reducing `schema.ex` from 8,990 to 8,942 lines
-without changing callback keys, order, fallback behavior, validation results,
-or checked-in schema bytes.
-
 Verification gaps:
-- None for this slice.
+- Implementation and verification pending.
 
 Tests run:
-- `mix compile --warnings-as-errors`
-- 61 focused command-window/maneuver-referencing schema contract tests
-- 182 complete schema-contract and schema-export tests
-- full checked-in schema export regeneration; no schema diff
-- aggregate schema bundle digest unchanged:
-  `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`
-- `mix format --check-formatted`
-- `git diff --check`
-- compile-connected xref check for `schema.ex`
-- bounded read-only review: clean, no findings
+- Pending.
 
 Behavior/schema changes:
-None.
+None intended.
 
 Last completed slice:
 Schema command-window/maneuver handoff callback ownership cleanup published as
