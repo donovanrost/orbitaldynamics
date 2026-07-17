@@ -9,7 +9,7 @@ Current slice:
 Candidate-state report reference-fixture extraction.
 
 Status:
-Ready for implementation.
+Publishing implementation.
 
 Selected slice:
 Move the contiguous `candidate_rejection_report.v1` and
@@ -56,17 +56,36 @@ same 195-entry map and deterministic term bytes, focused and full validation
 tests pass, and bounded review finds no blocker.
 
 Verification gaps:
-- Implementation and verification pending.
+- None for this bounded slice.
 
 Tests run:
-- Selection baseline: 195 entries, deterministic map digest
+- Exact post-split proof matched the 195-entry selection baseline,
+  deterministic map digest
   `a94507226596cd944ac21994c7889549ec58ecd1fcc0db5c65fa4e55b0f53ef2`,
   and sorted-key digest
   `b0007d04e4154fe879519a4f2b074fe3f9d0d649f3049d5d848264e105d00732`.
-- Selection only; implementation verification pending.
+- Source-boundary proof found 2 candidate-state, 2 capacity/filter, 2
+  filter/rejection, 2 planning-feedback, 4 timeline, 3 readiness, 2 contact, 2
+  station-allocation, 2 freshness/budget, 2 base, 3 campaign-planning, 10
+  campaign-artifact, 3 accepted-state, 6 orbital, and 150 facade keys with no
+  duplicate anchors; facade `fetch/1` matched both moved values.
+- Strict test compile passed with warnings as errors.
+- Focused candidate-state, core-policy, and facade validation tests: 17 passed.
+- Full validation test family: 181 passed.
+- Format, tracked/untracked diff hygiene, and xref caller checks passed.
+- Bounded read-only review was clean: exactly baseline indices 1-2 moved, the
+  environment-capability block and full remainder stayed exact, all 15 maps
+  are pairwise disjoint, their union equals `27841ffb`, fetch edge behavior
+  matches, and compile dependencies are one-way.
 
 Behavior/schema changes:
 None.
+
+Outcome:
+The candidate-rejection-report and candidate-diff-row fixtures now live in
+`Validation.ReferenceFixtures.CandidateStateArtifacts`; the facade merges that
+family with 14 existing fixture maps plus 150 remaining fixtures. The facade
+fell from 10,424 to 10,318 lines, while the extracted family is 116 lines.
 
 Last completed slice:
 Candidate-refresh capacity/filter fixture extraction published as `bd39ca7f`:
