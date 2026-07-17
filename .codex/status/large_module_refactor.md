@@ -9,7 +9,7 @@ Current slice:
 Validation contact-window fixture test-family extraction.
 
 Status:
-Verified and reviewed; ready to publish.
+Published as `3b06e3fa`.
 
 Selected slice:
 Move the four contiguous contact-intent, contact-intent-summary,
@@ -58,8 +58,8 @@ Verification gaps:
 - Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
-Validation activity-artifact fixture extraction published as `15a58b38`: the
-focused module passed 6/6, the parent passed 140/140, and all seven Validation
+Validation contact-window fixture extraction published as `3b06e3fa`: the
+focused module passed 4/4, the parent passed 136/136, and all eight Validation
 modules preserved the 181-test aggregate with no duplicate names. Format, diff
 hygiene, dependency-closure checks, and bounded review were clean.
 
