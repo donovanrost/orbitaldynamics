@@ -7290,9 +7290,9 @@ defmodule OrbitalDynamics.Schema do
       validate_maneuver_review_handoff_matches_source:
         &OrbitalDynamics.Schema.CommandWindowManeuverHandoffContracts.validate_maneuver_review_matches_source/3,
       validate_timeline_diff_handoff_matches_source:
-        &validate_timeline_diff_handoff_matches_source/3,
+        &OrbitalDynamics.Schema.TimelineHandoffContracts.validate_timeline_diff_matches_source/3,
       validate_timeline_transition_application_handoff_matches_source:
-        &validate_timeline_transition_application_handoff_matches_source/3,
+        &OrbitalDynamics.Schema.TimelineHandoffContracts.validate_timeline_transition_application_matches_source/3,
       validate_candidate_rejection_handoff_matches_source:
         &OrbitalDynamics.Schema.CandidateHandoffContracts.validate_candidate_rejection_matches_source/3,
       validate_candidate_diff_handoff_matches_source:
@@ -7312,7 +7312,7 @@ defmodule OrbitalDynamics.Schema do
       validate_risk_explanation_handoff_matches_source:
         &OrbitalDynamics.Schema.RiskFeedbackHandoffContracts.validate_risk_explanation_matches_source/3,
       validate_operational_timeline_handoff_matches_source:
-        &validate_operational_timeline_handoff_matches_source/3,
+        &OrbitalDynamics.Schema.TimelineHandoffContracts.validate_operational_timeline_matches_source/3,
       validate_strategy_recommendation_handoff_matches_source:
         &OrbitalDynamics.Schema.StrategyHandoffContracts.validate_strategy_recommendation_matches_source/3,
       validate_strategy_tradeoff_handoff_matches_source:
@@ -7630,7 +7630,7 @@ defmodule OrbitalDynamics.Schema do
       validate_cadence_source_review_operational_readiness_handoff_matches:
         &OrbitalDynamics.Schema.SourceReviewHandoffContracts.validate_operational_readiness_matches/3,
       validate_cadence_source_review_operational_timeline_handoff_matches:
-        &validate_cadence_source_review_operational_timeline_handoff_matches/3,
+        &OrbitalDynamics.Schema.TimelineHandoffContracts.validate_cadence_source_review_operational_timeline_matches/3,
       validate_cadence_source_review_pareto_frontier_handoff_matches:
         &OrbitalDynamics.Schema.StrategyHandoffContracts.validate_cadence_source_review_pareto_frontier_matches/3,
       validate_cadence_source_review_plan_delta_handoff_matches:
@@ -7668,21 +7668,21 @@ defmodule OrbitalDynamics.Schema do
       validate_cadence_source_review_suppression_duplicate_matches:
         &validate_cadence_source_review_suppression_duplicate_matches/3,
       validate_cadence_source_review_timeline_activity_precondition_handoff_matches:
-        &validate_cadence_source_review_timeline_activity_precondition_handoff_matches/3,
+        &OrbitalDynamics.Schema.TimelineHandoffContracts.validate_cadence_source_review_timeline_activity_precondition_matches/3,
       validate_cadence_source_review_timeline_dependency_impact_handoff_matches:
-        &validate_cadence_source_review_timeline_dependency_impact_handoff_matches/3,
+        &OrbitalDynamics.Schema.TimelineHandoffContracts.validate_cadence_source_review_timeline_dependency_impact_matches/3,
       validate_cadence_source_review_timeline_diff_handoff_matches:
-        &validate_cadence_source_review_timeline_diff_handoff_matches/3,
+        &OrbitalDynamics.Schema.TimelineHandoffContracts.validate_cadence_source_review_timeline_diff_matches/3,
       validate_cadence_source_review_timeline_lifecycle_state_handoff_matches:
-        &validate_cadence_source_review_timeline_lifecycle_state_handoff_matches/3,
+        &OrbitalDynamics.Schema.TimelineHandoffContracts.validate_cadence_source_review_timeline_lifecycle_state_matches/3,
       validate_cadence_source_review_timeline_preservation_handoff_matches:
-        &validate_cadence_source_review_timeline_preservation_handoff_matches/3,
+        &OrbitalDynamics.Schema.TimelineHandoffContracts.validate_cadence_source_review_timeline_preservation_matches/3,
       validate_cadence_source_review_timeline_protection_handoff_matches:
         &OrbitalDynamics.Schema.SourceReviewHandoffContracts.validate_timeline_protection_matches/3,
       validate_cadence_source_review_timeline_publication_handoff_matches:
-        &validate_cadence_source_review_timeline_publication_handoff_matches/3,
+        &OrbitalDynamics.Schema.TimelineHandoffContracts.validate_cadence_source_review_timeline_publication_matches/3,
       validate_cadence_source_review_timeline_transition_application_handoff_matches:
-        &validate_cadence_source_review_timeline_transition_application_handoff_matches/3,
+        &OrbitalDynamics.Schema.TimelineHandoffContracts.validate_cadence_source_review_timeline_transition_application_matches/3,
       validate_cadence_source_review_warning_handoff_matches:
         &OrbitalDynamics.Schema.SourceReviewHandoffContracts.validate_warning_matches/3,
       validate_candidate_diff_handoff_matches_source:
@@ -7711,7 +7711,7 @@ defmodule OrbitalDynamics.Schema do
       validate_objective_tradeoff_handoff_matches_source:
         &OrbitalDynamics.Schema.OptimizationHandoffContracts.validate_objective_tradeoff_matches_source/3,
       validate_operational_timeline_handoff_matches_source:
-        &validate_operational_timeline_handoff_matches_source/3,
+        &OrbitalDynamics.Schema.TimelineHandoffContracts.validate_operational_timeline_matches_source/3,
       validate_operator_review_row_links: &validate_operator_review_row_links/3,
       validate_optional_timeline_activity_precondition_summary_source:
         &validate_optional_timeline_activity_precondition_summary_source/3,
@@ -7776,11 +7776,11 @@ defmodule OrbitalDynamics.Schema do
         &OrbitalDynamics.Schema.StrategyHandoffContracts.validate_strategy_tradeoff_matches_source/3,
       validate_suppression_handoff_matches_source: &validate_suppression_handoff_matches_source/3,
       validate_timeline_diff_handoff_matches_source:
-        &validate_timeline_diff_handoff_matches_source/3,
+        &OrbitalDynamics.Schema.TimelineHandoffContracts.validate_timeline_diff_matches_source/3,
       validate_timeline_publication_handoff_matches_source:
         &validate_timeline_publication_handoff_matches_source/3,
       validate_timeline_transition_application_handoff_matches_source:
-        &validate_timeline_transition_application_handoff_matches_source/3
+        &OrbitalDynamics.Schema.TimelineHandoffContracts.validate_timeline_transition_application_matches_source/3
     ]
   end
 
@@ -7890,138 +7890,6 @@ defmodule OrbitalDynamics.Schema do
       path,
       row,
       &validate_contact_allocation_duplicate_evidence/3
-    )
-  end
-
-  defp validate_timeline_diff_handoff_matches_source(
-         issues,
-         path,
-         row
-       ) do
-    OrbitalDynamics.Schema.TimelineHandoffContracts.validate_timeline_diff_matches_source(
-      issues,
-      path,
-      row
-    )
-  end
-
-  defp validate_cadence_source_review_timeline_diff_handoff_matches(
-         issues,
-         path,
-         row
-       ) do
-    OrbitalDynamics.Schema.TimelineHandoffContracts.validate_cadence_source_review_timeline_diff_matches(
-      issues,
-      path,
-      row
-    )
-  end
-
-  defp validate_timeline_transition_application_handoff_matches_source(
-         issues,
-         path,
-         row
-       ) do
-    OrbitalDynamics.Schema.TimelineHandoffContracts.validate_timeline_transition_application_matches_source(
-      issues,
-      path,
-      row
-    )
-  end
-
-  defp validate_cadence_source_review_timeline_transition_application_handoff_matches(
-         issues,
-         path,
-         row
-       ) do
-    OrbitalDynamics.Schema.TimelineHandoffContracts.validate_cadence_source_review_timeline_transition_application_matches(
-      issues,
-      path,
-      row
-    )
-  end
-
-  defp validate_cadence_source_review_timeline_publication_handoff_matches(
-         issues,
-         path,
-         row
-       ) do
-    OrbitalDynamics.Schema.TimelineHandoffContracts.validate_cadence_source_review_timeline_publication_matches(
-      issues,
-      path,
-      row
-    )
-  end
-
-  defp validate_cadence_source_review_timeline_dependency_impact_handoff_matches(
-         issues,
-         path,
-         row
-       ) do
-    OrbitalDynamics.Schema.TimelineHandoffContracts.validate_cadence_source_review_timeline_dependency_impact_matches(
-      issues,
-      path,
-      row
-    )
-  end
-
-  defp validate_cadence_source_review_timeline_activity_precondition_handoff_matches(
-         issues,
-         path,
-         row
-       ) do
-    OrbitalDynamics.Schema.TimelineHandoffContracts.validate_cadence_source_review_timeline_activity_precondition_matches(
-      issues,
-      path,
-      row
-    )
-  end
-
-  defp validate_cadence_source_review_timeline_lifecycle_state_handoff_matches(
-         issues,
-         path,
-         row
-       ) do
-    OrbitalDynamics.Schema.TimelineHandoffContracts.validate_cadence_source_review_timeline_lifecycle_state_matches(
-      issues,
-      path,
-      row
-    )
-  end
-
-  defp validate_cadence_source_review_timeline_preservation_handoff_matches(
-         issues,
-         path,
-         row
-       ) do
-    OrbitalDynamics.Schema.TimelineHandoffContracts.validate_cadence_source_review_timeline_preservation_matches(
-      issues,
-      path,
-      row
-    )
-  end
-
-  defp validate_operational_timeline_handoff_matches_source(
-         issues,
-         path,
-         row
-       ) do
-    OrbitalDynamics.Schema.TimelineHandoffContracts.validate_operational_timeline_matches_source(
-      issues,
-      path,
-      row
-    )
-  end
-
-  defp validate_cadence_source_review_operational_timeline_handoff_matches(
-         issues,
-         path,
-         row
-       ) do
-    OrbitalDynamics.Schema.TimelineHandoffContracts.validate_cadence_source_review_operational_timeline_matches(
-      issues,
-      path,
-      row
     )
   end
 
@@ -8272,9 +8140,9 @@ defmodule OrbitalDynamics.Schema do
       validate_maneuver_review_handoff_matches_source:
         &OrbitalDynamics.Schema.CommandWindowManeuverHandoffContracts.validate_maneuver_review_matches_source/3,
       validate_timeline_diff_handoff_matches_source:
-        &validate_timeline_diff_handoff_matches_source/3,
+        &OrbitalDynamics.Schema.TimelineHandoffContracts.validate_timeline_diff_matches_source/3,
       validate_timeline_transition_application_handoff_matches_source:
-        &validate_timeline_transition_application_handoff_matches_source/3,
+        &OrbitalDynamics.Schema.TimelineHandoffContracts.validate_timeline_transition_application_matches_source/3,
       validate_candidate_rejection_handoff_matches_source:
         &OrbitalDynamics.Schema.CandidateHandoffContracts.validate_candidate_rejection_matches_source/3,
       validate_candidate_diff_handoff_matches_source:
@@ -8294,7 +8162,7 @@ defmodule OrbitalDynamics.Schema do
       validate_risk_explanation_handoff_matches_source:
         &OrbitalDynamics.Schema.RiskFeedbackHandoffContracts.validate_risk_explanation_matches_source/3,
       validate_operational_timeline_handoff_matches_source:
-        &validate_operational_timeline_handoff_matches_source/3,
+        &OrbitalDynamics.Schema.TimelineHandoffContracts.validate_operational_timeline_matches_source/3,
       validate_strategy_recommendation_handoff_matches_source:
         &OrbitalDynamics.Schema.StrategyHandoffContracts.validate_strategy_recommendation_matches_source/3,
       validate_strategy_tradeoff_handoff_matches_source:

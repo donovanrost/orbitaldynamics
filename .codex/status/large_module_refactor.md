@@ -9,7 +9,7 @@ Current slice:
 Schema timeline callback ownership cleanup.
 
 Status:
-Selected; implementation pending.
+Completed and verified; publishing.
 
 Selected slice:
 Point timeline-diff, transition-application, operational-timeline, and cadence
@@ -46,11 +46,27 @@ unchanged, and callback plus field traversal issue ordering remains exact,
 validation and schema exports remain byte-for-byte stable, focused tests pass,
 and bounded review finds no blocker.
 
+Outcome:
+Timeline-diff, transition-application, operational-timeline, and five
+cadence-only timeline families now capture `TimelineHandoffContracts` directly.
+Eleven pure facade delegates were removed across seventeen positions, reducing
+`schema.ex` from 8,427 to 8,295 lines. The publication-summary helper pipeline
+and its six external captures remain unchanged.
+
 Verification gaps:
-- Implementation and verification pending.
+- None for this slice.
 
 Tests run:
-- Pending.
+- `mix compile --warnings-as-errors`
+- 91 focused timeline-referencing schema contract tests
+- 182 complete schema-contract and schema-export tests
+- full checked-in schema export regeneration; no schema diff
+- aggregate schema bundle digest unchanged:
+  `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`
+- `mix format --check-formatted`
+- `git diff --check`
+- compile-connected xref check for `schema.ex`
+- bounded read-only review: clean, no findings
 
 Behavior/schema changes:
 None.
