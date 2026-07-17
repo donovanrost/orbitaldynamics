@@ -9,7 +9,7 @@ Current slice:
 CandidateRefresh readiness/quality-gate replay callback removal.
 
 Status:
-Review complete; ready to publish.
+Published as `337007e2`.
 
 Selected slice:
 Remove the repeated source-summary callback from the operational-readiness and
@@ -62,13 +62,13 @@ Verification gaps:
 - bounded read-only review: clean, no findings
 
 Last completed slice:
-Candidate publication/transition replay callback removal published as
-`e10128e3`: both paths are one-argument end to end, 20 focused tests passed,
-and bounded review found no blocker.
+Candidate readiness/quality replay callback removal published as `337007e2`:
+both paths are one-argument end to end, 49 focused tests passed, and bounded
+review found no blocker.
 
 Next candidate:
-Audit the adjacent model-acceptance/validation-safety-case callback seams after
-this pair is published.
+Audit the adjacent model-acceptance/validation-safety-case callback seams as
+one bounded pair.
 
 Blocked:
 No.
