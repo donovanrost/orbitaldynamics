@@ -7353,7 +7353,7 @@ defmodule OrbitalDynamics.Schema do
         &validate_suppression_duplicate_handoff_row_fields/3,
       validate_suppression_handoff_matches_source: &validate_suppression_handoff_matches_source/3,
       validate_contact_contention_handoff_matches_source:
-        &validate_contact_contention_handoff_matches_source/3,
+        &OrbitalDynamics.Schema.ContactContentionHandoffContracts.validate_matches_source/3,
       validate_optional_source_window: &validate_optional_source_window/4,
       validate_optional_source_window_lineage: &validate_optional_source_window_lineage/4,
       validate_operator_review_row_links: &validate_operator_review_row_links/3,
@@ -7628,7 +7628,7 @@ defmodule OrbitalDynamics.Schema do
       validate_cadence_source_review_contact_allocation_handoff_matches:
         &validate_cadence_source_review_contact_allocation_handoff_matches/3,
       validate_cadence_source_review_contact_contention_handoff_matches:
-        &validate_cadence_source_review_contact_contention_handoff_matches/3,
+        &OrbitalDynamics.Schema.ContactContentionHandoffContracts.validate_cadence_source_review_matches/3,
       validate_cadence_source_review_contact_intent_handoff_matches:
         &validate_cadence_source_review_contact_intent_handoff_matches/3,
       validate_cadence_source_review_execution_handoff_matches:
@@ -7713,7 +7713,7 @@ defmodule OrbitalDynamics.Schema do
       validate_contact_allocation_handoff_matches_source:
         &validate_contact_allocation_handoff_matches_source/3,
       validate_contact_contention_handoff_matches_source:
-        &validate_contact_contention_handoff_matches_source/3,
+        &OrbitalDynamics.Schema.ContactContentionHandoffContracts.validate_matches_source/3,
       validate_contact_intent_handoff_matches_source:
         &validate_contact_intent_handoff_matches_source/3,
       validate_link_capacity_handoff_count_lists: &validate_link_capacity_handoff_count_lists/3,
@@ -8093,29 +8093,6 @@ defmodule OrbitalDynamics.Schema do
       row
     )
   end
-
-  defp validate_contact_contention_handoff_matches_source(issues, path, row) do
-    OrbitalDynamics.Schema.ContactContentionHandoffContracts.validate_matches_source(
-      issues,
-      path,
-      row
-    )
-  end
-
-  defp validate_cadence_source_review_contact_contention_handoff_matches(
-         issues,
-         path,
-         %{"source_review_row" => %{}} = row
-       ) do
-    OrbitalDynamics.Schema.ContactContentionHandoffContracts.validate_cadence_source_review_matches(
-      issues,
-      path,
-      row
-    )
-  end
-
-  defp validate_cadence_source_review_contact_contention_handoff_matches(issues, _path, _row),
-    do: issues
 
   defp validate_source_operational_readiness_gate_handoff_matches(
          issues,
@@ -8834,7 +8811,7 @@ defmodule OrbitalDynamics.Schema do
         &validate_suppression_duplicate_handoff_row_fields/3,
       validate_suppression_handoff_matches_source: &validate_suppression_handoff_matches_source/3,
       validate_contact_contention_handoff_matches_source:
-        &validate_contact_contention_handoff_matches_source/3,
+        &OrbitalDynamics.Schema.ContactContentionHandoffContracts.validate_matches_source/3,
       validate_operator_review_row_links: &validate_operator_review_row_links/3
     ]
   end
