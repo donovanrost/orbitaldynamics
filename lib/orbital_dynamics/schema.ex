@@ -4936,13 +4936,13 @@ defmodule OrbitalDynamics.Schema do
   defp validate_contract(@link_capacity_summary, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_link_capacity_summary("$", artifact)
+    |> OrbitalDynamics.Schema.LinkCapacitySummaryContracts.validate_summary("$", artifact)
   end
 
   defp validate_contract(@relay_data_path_summary, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_relay_data_path_summary("$", artifact)
+    |> OrbitalDynamics.Schema.RelayDataPathSummaryContracts.validate_summary("$", artifact)
   end
 
   defp validate_contract(@contact_contention_report, _contract, artifact) do
@@ -6819,22 +6819,6 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       lineage
-    )
-  end
-
-  defp validate_link_capacity_summary(issues, path, summary) do
-    OrbitalDynamics.Schema.LinkCapacitySummaryContracts.validate_summary(
-      issues,
-      path,
-      summary
-    )
-  end
-
-  defp validate_relay_data_path_summary(issues, path, summary) do
-    OrbitalDynamics.Schema.RelayDataPathSummaryContracts.validate_summary(
-      issues,
-      path,
-      summary
     )
   end
 
