@@ -6,69 +6,53 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema timeline-transition callback ownership handoff.
+Schema timeline-integrity-evidence callback ownership mapping.
 
 Status:
-Published as `fb19b31b`.
+Ready for implementation.
 
 Selected slice:
-Directly capture established owners for transition report counts, row identity
-collision fields, and timeline diff rows. Remove the three pure facade wrappers.
+Point both captures of `validate_timeline_integrity_evidence/3` directly at
+`Schema.TimelineIntegrityEvidenceContracts.validate/3` and remove the wrapper.
 
 Why this slice:
-`Schema` remains a 7,837-line hotspot. Structural and bare-name mapping confirms
-three cohesive exact-signature wrappers, each with one callback capture.
+`Schema` remains a 7,813-line hotspot. Structural mapping confirms two captures
+and one pure exact-signature delegate.
 
 Public facade to preserve:
-All Schema APIs, callback argument order, exact issues/messages, JSON Schema and
-checked export bytes, and timeline-transition behavior.
+All Schema APIs, callback order, exact issues/messages, JSON Schema and checked
+exports, and operational/transition integrity-evidence behavior.
 
 Definition of done:
-Report counts remain immediately after model limits; identity collision remains
-after lifecycle/protection callbacks; diff row remains final after selected
-integrity. Each captures its established owner, wrappers are absent, and all
-proof/review remains exact.
+Operational timeline evidence remains after optional preconditions/context and
+before identity; transition selected activity evidence remains final after
+optional context. Both capture the owner, wrapper is absent, and proof is exact.
 
 Verification gaps:
-None.
+- Implementation and post-change verification pending.
 
 Tests run:
-- Source baseline: three single-capture pure wrappers at the positions above.
-- Focused `timeline_report_contracts_test.exs`: 8 tests passed with warnings as
-  errors.
+- Source baseline: two captures and one pure delegate at positions above.
+- Focused operational-timeline plus timeline-report baseline: 10 tests passed
+  with warnings as errors.
 - Generated bundle: 121 schemas, 15,506,740 bytes, digest
   `543dbe11bc75f1397dd15dbd10cabd219ae2e46ac1e16d38b810a99befb8cec3`.
 - Checked bundle digest:
   `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`.
-- Source proof against `1a20a40e`: all three callbacks retain their positions,
-  reference established owners, and wrappers are absent.
-- Focused timeline-report tests: 8 passed; complete schema/export suite: 182
-  passed, all with warnings as errors.
-- Generated bundle remains exact; export regeneration produced no schema diff
-  and checked digest is unchanged.
-- Strict compile, format, xref for all three owners, and diff hygiene passed.
-- Independent review against `1a20a40e` was clean across all positions,
-  focused 8, complete 182, all 122 exports, digests, strict compile, all-owner
-  xref, formatting, sizes, ledger, and hygiene.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-All three callbacks reference established owners and wrappers are gone.
-`schema.ex` decreased from 7,837 to 7,813 lines.
+No timeline-integrity-evidence implementation has started.
 
 Last completed slice:
-Timeline-publication-context cleanup published as `b9f2988d`: `schema.ex`
-shrank from 7,845 to 7,837 lines, focused 11 and complete 182 tests passed, all
-122 exports byte-matched, and review was clean.
+Timeline-transition trio published as `fb19b31b`: `schema.ex` shrank from 7,837
+to 7,813 lines, focused 8 and complete 182 tests passed, all 122 exports
+byte-matched, and review was clean.
 
 Next candidate:
-Map both captures of `validate_timeline_integrity_evidence/3`: operational
-timeline rows after optional preconditions/activity context, and transition
-selected activities after optional activity context. The pure delegate maps
-exactly to `TimelineIntegrityEvidenceContracts.validate/3`; use operational
-timeline plus timeline-report focused tests.
+Implement both direct captures and remove the wrapper.
 
 Blocked:
 No.
