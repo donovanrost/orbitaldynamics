@@ -6,10 +6,10 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema contact-intent-summary callback ownership mapping.
+Schema contact-intent-summary callback ownership handoff.
 
 Status:
-Ready for publication.
+Published as `45e4e439`.
 
 Selected slice:
 Point the standalone `contact_intent_summary.v1` contract pipe directly at
@@ -104,9 +104,12 @@ lines, 8 focused and 182 complete schema/export tests passed, all 122 generated
 schema files byte-matched, and bounded review was clean.
 
 Next candidate:
-After review and publication, map the multi-use `validate_contact_intent/3`
-wrapper, including its top-level pipe and callback-bag captures, before choosing
-whether it remains a bounded cleanup.
+Map the three-use `validate_contact_intent/3` facade wrapper. It is the final
+stage of the standalone `contact_intent.v1` pipe and is captured under the same
+`validate_contact_intent` key in both the result-artifact and campaign-repair
+callback bags. The established owner is
+`ContactIntentContracts.validate/3`; preserve both callback keys, each bag's
+neighboring order, and the final pipeline position before deciding the slice.
 
 Blocked:
 No.
