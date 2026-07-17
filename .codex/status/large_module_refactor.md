@@ -9,7 +9,7 @@ Current slice:
 Validation quality-gate artifact fixture test-family extraction.
 
 Status:
-Selected.
+Ready to publish.
 
 Selected slice:
 Move the eight contiguous quality-gate report, derived-summary, checked-in
@@ -50,10 +50,27 @@ seven deterministic-report imports, focused and parent files pass, all 181 test
 names remain unique, and bounded review finds no blocker.
 
 Outcome:
-Pending.
+All eight quality-gate artifact tests moved into
+`quality_gate_fixture_test.exs` with order and assertion strength unchanged.
+Fourteen fixture helpers moved exactly, apart from the required `defp` to `def`
+visibility change, into `QualityGateFixtures`. The focused module imports the
+complete helper closure and owns the copied-source challenge loader. The
+support owner reuses the readiness raw fixture from
+`OperationalReadinessFixtures`; the parent imports only the seven observation
+helpers required by its deterministic aggregate report. The move also removed
+four obsolete aliases and the now-unused readiness raw import from the parent.
+The parent shrank from 1,968 to 1,052 lines. The focused test file is 839 lines
+and the support owner is 122 lines; explicit shared ownership adds 46 lines
+across the relevant test and support files.
 
 Verification gaps:
-- Pending.
+- Focused quality-gate fixture module: 8/8 passed.
+- Remaining parent validation module: 2/2 passed.
+- Full Validation family: 46 modules, 181/181 passed.
+- Exact-source audit: eight tests, fourteen helpers, and both private JSON
+  loaders exact; all 181 test names remain unique.
+- `mix format --check-formatted` and `git diff --check` passed.
+- Independent bounded review found no blocker.
 
 Last completed slice:
 Validation operational-readiness artifact fixture extraction published as
