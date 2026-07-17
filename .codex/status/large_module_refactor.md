@@ -6,28 +6,28 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-State/maneuver fixture mapping.
+Validation-reference-report ownership cleanup.
 
 Status:
-Publishing.
+Ready for next slice selection.
 
 Selected slice:
-Move
-`spacecraft_state_estimate.v1`, `realized_state_snapshot.v1`,
-`remaining_horizon.v1`, `maneuver_execution_delta.v1`, and
-`maneuver_recommendation.v1` into a new
-`Validation.ReferenceFixtures.StateManeuverArtifacts` leaf. Stop before
-`backend_acceptance_policy.v1`.
+No implementation selected yet. The next bounded candidate is to move
+`validation_reference_report.v1` into the existing
+`Validation.ReferenceFixtures.CoreRunReports` leaf. Preserve its
+`validation_record.v1` and `validation_check.v1` neighbors exactly.
 
 Why this slice:
-`ReferenceFixtures` remains the largest production module at 7,826 lines. The
-next five contiguous fixtures form a 208-line state/maneuver family that
-exactly owns `state_maneuver_fixture_test.exs`.
+`ReferenceFixtures` remains the largest production module at 7,620 lines. The
+36-line validation-reference report is tested in
+`core_run_report_fixture_test.exs` with the four fixtures already in
+`CoreRunReports`.
 
 Current coupling/problem:
-State estimates, realized snapshots, remaining horizon, maneuver delta, and
-recommendation remain embedded together in the general facade. Their shared
-state-to-maneuver responsibility and focused test justify one cohesive leaf.
+One core-run report remains separated from its test-owned family and interrupts
+the otherwise cohesive policy-evidence fixture range. Moving it into the
+existing leaf fixes ownership without creating a micro-module and unlocks the
+next family extraction.
 
 Public facade to preserve:
 `OrbitalDynamics.Validation.ReferenceFixtures.all/0` and `fetch/1`, exact
@@ -35,28 +35,28 @@ fixture keys and values, map equality and deterministic term bytes, and all
 `OrbitalDynamics.Validation` reference-fixture behavior.
 
 Likely extraction target:
-`OrbitalDynamics.Validation.ReferenceFixtures.StateManeuverArtifacts`.
+`OrbitalDynamics.Validation.ReferenceFixtures.CoreRunReports`.
 
 Likely files:
 - `lib/orbital_dynamics/validation/reference_fixtures.ex`
-- `lib/orbital_dynamics/validation/reference_fixtures/state_maneuver_artifacts.ex`
+- `lib/orbital_dynamics/validation/reference_fixtures/core_run_reports.ex`
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
 - exact before/after fixture count, keys, values, and deterministic term digest
-- focused state/maneuver and facade validation tests
+- focused core-run-report, policy-evidence, and facade validation tests
 - full validation test family
 - strict compile, format, xref, diff hygiene, and bounded review
 
 Definition of done:
-The five state/maneuver fixtures exist only in the new cohesive leaf, all 27
+The validation-reference fixture exists only in the core-run leaf, all 27
 fixture maps remain disjoint, `all/0` and `fetch/1` return exactly the same
-195-entry map and deterministic term bytes, `backend_acceptance_policy.v1` and
-the complete facade remainder stay exact, focused and full validation tests
-pass, and bounded review finds no blocker.
+195-entry map and deterministic term bytes, both neighboring policy-evidence
+fixtures and the complete facade remainder stay exact, focused and full
+validation tests pass, and bounded review finds no blocker.
 
 Verification gaps:
-- None for this bounded slice.
+- Next candidate still requires a selection baseline before implementation.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -92,20 +92,18 @@ Behavior/schema changes:
 None.
 
 Outcome:
-The exact five-fixture state/maneuver family now lives in a new cohesive leaf
-behind the unchanged facade. The facade shrank from 7,826 to 7,620 lines; the
-new leaf is 216 lines and owns exactly five fixtures.
+No validation-reference ownership implementation has started.
 
 Last completed slice:
-Refreshed-window lineage extraction published as `ffabc35d`: the exact pair
-moved into a new 88-line leaf, the facade shrank from 7,904 to 7,826 lines, the
-195-entry map and all deterministic digests stayed exact, 16 focused and 181
+State/maneuver extraction published as `903b1fcd`: the exact five-fixture family
+moved into a new 216-line leaf, the facade shrank from 7,826 to 7,620 lines, the
+195-entry map and all deterministic digests stayed exact, 17 focused and 181
 full validation tests passed, and bounded review was clean.
 
 Next candidate:
-Select the state/maneuver extraction described above, capture the exact
-baseline and source boundary, then stop before
-`backend_acceptance_policy.v1`.
+Select the validation-reference ownership cleanup described above, capture the
+exact baseline and both neighboring boundaries, then move it into
+`CoreRunReports`.
 
 Blocked:
 No.
