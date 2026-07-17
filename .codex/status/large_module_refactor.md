@@ -9,7 +9,7 @@ Current slice:
 Schema policy-plan handoff callback ownership cleanup.
 
 Status:
-Completed and verified; publishing.
+Completed and published.
 
 Selected slice:
 Point the approval-requirement and plan-delta handoff callback captures directly
@@ -70,17 +70,16 @@ Behavior/schema changes:
 None.
 
 Last completed slice:
-Schema optimization-handoff callback ownership cleanup published as `5013b9d7`:
-all constraint, objective-satisfaction, score-term, and objective-tradeoff
-callback captures now point directly to their existing contract owner; 182
-schema/export tests passed, full export bytes stayed exact, and bounded review
-was clean.
+Schema policy-plan handoff callback ownership cleanup published as `3bdf981f`:
+all approval-requirement and plan-delta callback captures now point directly to
+their existing contract owner; 182 schema/export tests passed, full export
+bytes stayed exact, and bounded review was clean.
 
 Next candidate:
-Audit the adjacent policy-plan handoff callback family. Approval-requirement and
-plan-delta general/cadence validators appear to have the same pure-delegate
-shape and an existing `PolicyPlanHandoffContracts` owner; select only after
-confirming all capture counts, exact targets, and fallback clauses.
+Audit the adjacent candidate handoff callback family. Candidate-rejection and
+candidate-diff general/cadence validators appear to be pure delegates to the
+existing `CandidateHandoffContracts` owner; select only after confirming all
+capture counts, exact targets, and fallback clauses.
 
 Blocked:
 No.
