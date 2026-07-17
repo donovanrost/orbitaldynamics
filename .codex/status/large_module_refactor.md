@@ -9,7 +9,7 @@ Current slice:
 Schema suppression duplicate-evidence callback ownership cleanup.
 
 Status:
-Completed and verified; publishing.
+Completed and published.
 
 Selected slice:
 Give `Schema.SuppressionHandoffContracts` a three-argument duplicate-row entry
@@ -70,14 +70,16 @@ Behavior/schema changes:
 None.
 
 Last completed slice:
-Schema suppression callback ownership cleanup published as `8805d3da`: six
-captures now point directly to `SuppressionHandoffContracts`, five pure facade
-clauses were removed, 182 schema/export tests passed, full export bytes stayed
-exact, and bounded review was clean.
+Schema suppression duplicate-evidence callback ownership cleanup published as
+`9d901f0d`: three captures now use the owner’s default evidence pipeline, two
+pure facade helpers were removed, 182 schema/export tests passed, full export
+bytes stayed exact, and bounded review was clean.
 
 Next candidate:
-After this boundary, audit the remaining pure contact-allocation and quality
-handoff summary delegates by owner and capture count.
+Point the two contact-allocation expiration-summary captures directly at
+`ContactAllocationHandoffContracts.validate_expiration_summary/3` and remove
+the pure facade delegate. Keep the single quality-gate summary delegate
+separate.
 
 Blocked:
 No.
