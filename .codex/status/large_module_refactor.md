@@ -9,7 +9,7 @@ Current slice:
 Schema communications-report validation ownership cleanup.
 
 Status:
-Completed and verified; publishing.
+Completed and published.
 
 Selected slice:
 Point link-capacity report validation, contact-contention report validation,
@@ -67,15 +67,16 @@ Behavior/schema changes:
 None.
 
 Last completed slice:
-Schema communications-summary validation ownership cleanup published as
-`9f22157d`: both contract heads now call their summary owners directly, two pure
+Schema communications-report validation ownership cleanup published as
+`357bc8f0`: six positions now call their report owners directly, four pure
 facade delegates were removed, 182 schema/export tests passed, full export
 bytes stayed exact, and bounded review was clean.
 
 Next candidate:
-After this boundary, audit the remaining CandidateDiff source-window-lineage
-pipeline and communications deferred-priority callback before selecting another
-owner family.
+Point the contact-allocation domain callback and operator-review row callback
+for deferred contention priority directly at
+`ContactContentionReportContracts.validate_deferred_priority/3`, then remove
+the pure facade delegate.
 
 Blocked:
 No.
