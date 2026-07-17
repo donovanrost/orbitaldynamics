@@ -9,7 +9,7 @@ Current slice:
 Validation candidate-refresh freshness/budget replay test-family extraction.
 
 Status:
-Ready to publish.
+Published as `84b82281`.
 
 Selected slice:
 Move the two contiguous candidate-refresh freshness and refresh-budget replay
@@ -56,9 +56,9 @@ Verification gaps:
 - Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
-Validation candidate-refresh filter/rejection replay extraction published as
-`226a6512`: the focused module passed 2/2, the parent passed 49/49, and all
-thirty-three Validation modules preserved the 181-test aggregate with no
+Validation candidate-refresh freshness/budget replay extraction published as
+`84b82281`: the focused module passed 2/2, the parent passed 47/47, and all
+thirty-four Validation modules preserved the 181-test aggregate with no
 duplicate names. Format, diff hygiene, exact-source and dependency-closure
 checks, and bounded review were clean.
 
