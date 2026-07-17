@@ -9,7 +9,7 @@ Current slice:
 Candidate-refresh station-allocation replay fixture extraction.
 
 Status:
-Publishing implementation.
+Completed and published as `3e4ebae8`.
 
 Selected slice:
 Move the contiguous `station_calendar_replay` and
@@ -90,15 +90,18 @@ fixtures. The facade fell from 11,932 to 11,729 lines, while the extracted
 family is 213 lines.
 
 Last completed slice:
-Candidate-refresh freshness/budget fixture extraction published as `df1f8ef6`:
-the two exact replay fixtures moved behind the unchanged facade, their
-neighbors and remainder stayed exact, the 195-entry map and deterministic
-bytes stayed exact, 181 validation tests passed, and bounded review was clean.
+Candidate-refresh station-allocation fixture extraction published as
+`3e4ebae8`: the two exact replay fixtures moved behind the unchanged facade,
+the following contact-contention fixture and remainder stayed exact, the
+195-entry map and deterministic bytes stayed exact, 181 validation tests
+passed, and bounded review was clean.
 
 Next candidate:
-After this boundary, map the contact-contention/contact-intent pair against
-`candidate_refresh_contact_replay_fixture_test.exs` and verify helper-attribute
-coupling before selecting.
+Extract the contiguous cross-station contact-contention and contact-intent
+direction replays into one family. The 186-line pair has no helper-attribute
+coupling, shares dedicated
+`candidate_refresh_contact_replay_fixture_test.exs` ownership, and stops before
+resource-projection; re-baseline before selecting.
 
 Blocked:
 No.
