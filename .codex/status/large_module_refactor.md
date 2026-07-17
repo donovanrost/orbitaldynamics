@@ -9,7 +9,7 @@ Current slice:
 Schema optimization-handoff callback ownership cleanup.
 
 Status:
-Selected; implementation pending.
+Completed and verified; publishing.
 
 Selected slice:
 Point the constraint, objective-satisfaction, score-term, and
@@ -43,14 +43,30 @@ Every callback list directly captures the corresponding public
 validation and schema exports remain byte-for-byte stable, focused tests pass,
 and bounded review finds no blocker.
 
+Outcome:
+All general and cadence-source-review optimization handoff callback lists now
+capture the existing `OptimizationHandoffContracts` validators directly. Eight
+private one-hop delegates were removed, reducing `schema.ex` from 9,321 to
+9,231 lines without changing callback keys, order, fallback behavior, validation
+results, or checked-in schema bytes.
+
 Verification gaps:
-- Implementation and verification pending.
+- None for this slice.
 
 Tests run:
-- Pending.
+- `mix compile --warnings-as-errors`
+- 11 focused cadence-import, readiness, and review-import handoff tests
+- 182 complete schema-contract and schema-export tests
+- full checked-in schema export regeneration; no schema diff
+- aggregate schema bundle digest unchanged:
+  `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`
+- `mix format --check-formatted`
+- `git diff --check`
+- compile-connected xref check for `schema.ex`
+- bounded read-only review: clean, no findings
 
 Behavior/schema changes:
-None intended.
+None.
 
 Last completed slice:
 Campaign-planner branch event/state application published as `42abcf65`: plan
