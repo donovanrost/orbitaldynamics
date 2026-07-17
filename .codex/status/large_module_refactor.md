@@ -9,7 +9,7 @@ Current slice:
 Link-capacity fixture mapping.
 
 Status:
-Ready for implementation.
+Publishing.
 
 Selected slice:
 Move
@@ -56,7 +56,7 @@ complete facade remainder stay exact, focused and full validation tests pass,
 and bounded review finds no blocker.
 
 Verification gaps:
-- Implementation, verification, and bounded review pending.
+- None for this bounded slice.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -70,13 +70,32 @@ Tests run:
 - Source boundaries confirmed at facade lines 157-248 and 3819-3897, followed
   by `refreshed_window.v1` and `relay_data_path_summary.v1`, respectively, with
   no facade helper-attribute dependency in either selected literal.
-- Selection only; implementation verification pending.
+- Post-move exact proof: the 195-entry map, sorted-key digest, selected
+  two-fixture digest, and exact 193-entry remainder digest all match their
+  selection baselines.
+- Source partition proof: 25 maps total 195 entries, the new leaf owns two, the
+  facade owns 109, and all 300 pairwise intersections are empty.
+- Facade proof: all 195 successful `fetch/1` results, missing-key `:error`, and
+  nonbinary `FunctionClauseError` behavior remain unchanged.
+- Focused link-capacity/facade validation: 15 tests passed.
+- Full validation family: 181 tests passed.
+- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
+  xref caller checks passed.
+- Independent bounded review: CLEAN. It confirmed both noncontiguous
+  link-capacity fixtures moved unchanged, both following boundary fixtures and
+  the complete facade remainder are normalized-AST exact, the new leaf owns
+  only its two intended keys, all 25 maps are unique and pairwise disjoint, all
+  digests and facade edge behaviors are unchanged, dependencies remain one-way,
+  relay-path ownership remains distinct, and it reproduced 15 focused and 181
+  full validation tests.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-No link-capacity implementation has started.
+The exact link-capacity report/summary pair now lives in a new cohesive leaf
+behind the unchanged facade. The facade shrank from 8,073 to 7,904 lines; the
+new leaf is 179 lines and owns exactly two fixtures.
 
 Last completed slice:
 Contact-intent extraction published as `2a189f06`: the exact intent/summary
