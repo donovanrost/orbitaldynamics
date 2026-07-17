@@ -9,7 +9,7 @@ Current slice:
 Accepted-planning-state reference-fixture family extraction.
 
 Status:
-Ready for implementation.
+Publishing implementation.
 
 Selected slice:
 Move the first three contiguous artifact fixtures—accepted planning state
@@ -56,17 +56,33 @@ exactly the same 195-entry map and deterministic term bytes, focused and full
 validation tests pass, and bounded review finds no blocker.
 
 Verification gaps:
-- Implementation and verification pending.
+- None for this bounded slice.
 
 Tests run:
-- Selection baseline: 195 entries, deterministic map digest
+- Exact post-split proof matched the 195-entry selection baseline,
+  deterministic map digest
   `a94507226596cd944ac21994c7889549ec58ecd1fcc0db5c65fa4e55b0f53ef2`,
   and sorted-key digest
   `b0007d04e4154fe879519a4f2b074fe3f9d0d649f3049d5d848264e105d00732`.
-- Selection only; implementation verification pending.
+- Source-boundary proof found 3 accepted-state, 6 orbital, and 186 facade keys
+  with no duplicate anchors; facade `fetch/1` matched all three moved values.
+- Strict test compile passed with warnings as errors.
+- Focused candidate-state, core-policy, and facade validation tests: 17 passed.
+- Full validation test family: 181 passed.
+- Format check, diff hygiene, and xref caller checks passed.
+- Bounded read-only review was clean: normalized AST literals and the complete
+  merged map equal `7a45e795`; all 195 `fetch/1` results and the nonbinary guard
+  behavior match; key sets are pairwise disjoint and compile edges are one-way.
 
 Behavior/schema changes:
 None.
+
+Outcome:
+The three accepted-planning-state fixtures now live in
+`Validation.ReferenceFixtures.AcceptedPlanningState`; the facade merges that
+family, the orbital family, and 186 remaining fixtures behind unchanged public
+functions. The facade fell from 13,142 to 13,008 lines, while the extracted
+family is 145 lines.
 
 Last completed slice:
 Validation orbital/event reference-fixture extraction published as `005cbbc4`:
