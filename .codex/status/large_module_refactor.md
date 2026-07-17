@@ -9,7 +9,7 @@ Current slice:
 Validation candidate-strategy artifact fixture test-family extraction.
 
 Status:
-Selected.
+Ready to publish.
 
 Selected slice:
 Move the six contiguous proposed-contact, branch-comparison,
@@ -48,10 +48,15 @@ shared builders have one exact owner, focused and parent files pass, names remai
 unique, and bounded review finds no blocker.
 
 Outcome:
-Pending.
+Six byte-identical candidate-strategy artifact tests moved into a 379-line
+focused module. Their twelve raw/observation helpers now have one 63-line shared
+support owner with an exact private JSON loader; the parent imports only the six
+aggregate observation builders. The parent fell from 4,797 to 4,395 lines.
+Total test/support/loader LOC grew by 41 lines for explicit ownership without
+helper duplication. All 181 Validation test names remain unique.
 
 Verification gaps:
-- Pending.
+- Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
 Validation planning-input capability extraction published as `3aa5fb12`: the
@@ -62,8 +67,9 @@ review were clean.
 
 Next candidate:
 Map the study benchmark fixture family following candidate strategy. Preserve
-all distributed/runtime benchmark variants and split only its complete helper
-closure.
+all distributed/runtime benchmark variants. Its one high-signal test and
+sixteen raw/observation helpers form a complete closure ending before validation
+reference reports.
 
 Blocked:
 No.
