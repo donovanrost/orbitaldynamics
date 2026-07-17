@@ -9,7 +9,7 @@ Current slice:
 Candidate-refresh top-level callback-bag collapse.
 
 Status:
-Selected; implementation pending.
+Complete and ready to publish.
 
 Selected slice:
 Replace the 27-entry `CandidateRefreshContracts` keyword bag with direct shared
@@ -46,7 +46,18 @@ explicitly; focused, broader, and export checks pass; and bounded review finds
 no blocker.
 
 Outcome:
-Pending.
+The 27-entry bag and every lookup/apply trampoline are gone. Twenty-four
+dependencies are direct; only contact-intent rows, contact-allocation reports,
+and candidate-rejection reports remain named explicit Schema hooks. Publication
+lineage and nested optional filter behavior now live with the top-level
+contract; six orphan Schema forwarders disappeared. `schema.ex` fell from
+11,185 to 11,079 lines while the owner grew from 155 to 224 through responsibility
+relocation, for a net 37-line reduction. Nine hundred forty-eight focused,
+1,340 attributable broader, and 24 export tests pass; compile, checked-in
+regeneration, compile-connected xref within its existing three-edge threshold,
+format, and diff hygiene are clean. Bounded review found no blocker and
+confirmed the full pipeline, publication lineage, direct owners, optional
+reports, explicit hooks, required fields, and orphan cleanup.
 
 Verification gaps:
 - Full repository suite not run.

@@ -5970,16 +5970,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp stable_id_field?(field), do: field == "id" or String.ends_with?(field, "_id")
 
-  defp validate_candidate_refresh_source_report_provenance(
-         issues,
-         artifact
-       ) do
-    OrbitalDynamics.Schema.CandidateRefreshReportContracts.validate_source_report_provenance(
-      issues,
-      artifact
-    )
-  end
-
   defp validate_contact_intent_direction_routing(issues, path, value, summary) do
     OrbitalDynamics.Schema.CandidateRefreshReportContracts.validate_contact_intent_direction_routing(
       issues,
@@ -6809,7 +6799,9 @@ defmodule OrbitalDynamics.Schema do
       [],
       artifact,
       contract["required_fields"],
-      candidate_refresh_contract_callbacks()
+      &validate_contact_intent/3,
+      &validate_optional_contact_allocation_report/2,
+      &validate_optional_candidate_rejection_report/3
     )
   end
 
@@ -6933,41 +6925,6 @@ defmodule OrbitalDynamics.Schema do
   defp validate_contract(_name, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-  end
-
-  defp candidate_refresh_contract_callbacks do
-    [
-      require_fields: &require_fields/4,
-      validate_stable_ids: &validate_stable_ids/4,
-      expect_equal: &expect_equal/5,
-      expect_number: &expect_number/4,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_candidate_refresh_publication_lineage_fields:
-        &validate_candidate_refresh_publication_lineage_fields/2,
-      validate_optional_exact_model_limits: &validate_optional_exact_model_limits/5,
-      validate_candidate_refresh_source_report_provenance:
-        &validate_candidate_refresh_source_report_provenance/2,
-      validate_operational_feedback: &validate_operational_feedback/3,
-      require_nested: &require_nested/4,
-      validate_refreshed_windows: &validate_refreshed_windows/2,
-      validate_rows: &validate_rows/4,
-      validate_candidate_activity: &validate_candidate_activity/3,
-      validate_contact_intent: &validate_contact_intent/3,
-      validate_optional_contact_allocation_report: &validate_optional_contact_allocation_report/2,
-      validate_optional_contact_filter_report: &validate_optional_contact_filter_report/2,
-      validate_resource_summary: &validate_resource_summary/3,
-      validate_optional_resource_filter_report: &validate_optional_resource_filter_report/2,
-      validate_optional_candidate_diff_report: &validate_optional_candidate_diff_report/3,
-      validate_optional_candidate_rejection_report:
-        &validate_optional_candidate_rejection_report/3,
-      validate_optional_freshness_report: &validate_optional_freshness_report/3,
-      validate_optional_refresh_budget_report: &validate_optional_refresh_budget_report/3,
-      validate_invalidated_candidate: &validate_invalidated_candidate/3,
-      validate_embedded_validation_record: &validate_embedded_validation_record/3,
-      validate_source_window_lineage: &validate_source_window_lineage/3
-    ]
   end
 
   defp contact_intent_summary_contract_callbacks do
@@ -7432,40 +7389,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp validate_candidate_refresh_publication_lineage_fields(issues, artifact) do
-    issues =
-      Enum.reduce(
-        OrbitalDynamics.Schema.CandidateRefreshRegistryContracts.publication_lineage_id_array_fields(),
-        issues,
-        fn field, acc ->
-          acc
-          |> expect_optional_type("$", artifact, field, :list)
-          |> validate_optional_stable_id_list("$", artifact, field)
-        end
-      )
-
-    issues =
-      Enum.reduce(
-        OrbitalDynamics.Schema.CandidateRefreshRegistryContracts.publication_lineage_count_map_fields(),
-        issues,
-        fn field, acc ->
-          acc
-          |> expect_optional_type("$", artifact, field, :map)
-          |> validate_non_negative_integer_count_map("$.#{field}", Map.get(artifact, field))
-        end
-      )
-
-    Enum.reduce(
-      OrbitalDynamics.Schema.CandidateRefreshRegistryContracts.publication_lineage_stable_id_array_map_fields(),
-      issues,
-      fn field, acc ->
-        acc
-        |> expect_optional_type("$", artifact, field, :map)
-        |> validate_stable_id_array_map("$.#{field}", Map.get(artifact, field))
-      end
-    )
-  end
-
   defp validation_level_json_schema do
     %{
       "type" => "string",
@@ -7512,15 +7435,6 @@ defmodule OrbitalDynamics.Schema do
       contact
     )
   end
-
-  defp validate_refreshed_windows(issues, refreshed_windows) when is_map(refreshed_windows) do
-    OrbitalDynamics.Schema.CandidateRefreshWindowContracts.validate_refreshed_windows(
-      issues,
-      refreshed_windows
-    )
-  end
-
-  defp validate_refreshed_windows(issues, _refreshed_windows), do: issues
 
   defp validate_refreshed_window(issues, path, window) do
     OrbitalDynamics.Schema.CandidateRefreshWindowContracts.validate_refreshed_window(
@@ -8424,10 +8338,6 @@ defmodule OrbitalDynamics.Schema do
   defp validate_optional_score_term_report(issues, _report),
     do: [error("$.score_term_report", "must be an object") | issues]
 
-  defp validate_optional_resource_filter_report(issues, report) do
-    validate_optional_resource_filter_report(issues, "$.resource_filter_report", report)
-  end
-
   defp validate_optional_resource_filter_report(issues, _path, nil), do: issues
 
   defp validate_optional_resource_filter_report(issues, path, %{} = report) do
@@ -8483,14 +8393,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp validate_optional_freshness_report(issues, path, report) do
     OrbitalDynamics.Schema.FreshnessReportContracts.validate_optional(
-      issues,
-      path,
-      report
-    )
-  end
-
-  defp validate_optional_refresh_budget_report(issues, path, report) do
-    OrbitalDynamics.Schema.RefreshBudgetReportContracts.validate_optional(
       issues,
       path,
       report
@@ -11038,14 +10940,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp validate_validation_record(issues, path, record) do
     OrbitalDynamics.Schema.ValidationRecordContracts.validate(
-      issues,
-      path,
-      record
-    )
-  end
-
-  defp validate_embedded_validation_record(issues, path, record) do
-    OrbitalDynamics.Schema.ValidationRecordContracts.validate_embedded(
       issues,
       path,
       record
