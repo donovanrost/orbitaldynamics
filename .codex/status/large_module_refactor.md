@@ -6,10 +6,10 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema CandidateDiff invalidated-candidate callback ownership mapping.
+Schema CandidateDiff invalidated-candidate callback ownership handoff.
 
 Status:
-Publishing.
+Published as `9b628f99`.
 
 Selected slice:
 Point the standalone `invalidated_candidate.v1` contract pipe directly at
@@ -100,15 +100,18 @@ CandidateDiff owner directly and the pure facade delegate is gone. `schema.ex`
 decreased from 8,005 to 8,000 lines.
 
 Last completed slice:
-CandidateDiff row callback cleanup published as `e36322fb`: the standalone
-contract pipe now calls the established owner directly, `schema.ex` shrank from
-8,013 to 8,005 lines, 10 focused and 182 complete schema/export tests passed,
-all 122 generated schema files byte-matched, and bounded review was clean.
+CandidateDiff invalidated-candidate callback cleanup published as `9b628f99`:
+the standalone contract pipe now calls the established owner directly,
+`schema.ex` shrank from 8,005 to 8,000 lines, 10 focused and 182 complete
+schema/export tests passed, all 122 generated schema files byte-matched, and
+bounded review was clean.
 
 Next candidate:
-Select the direct CandidateDiff invalidated-candidate owner described above,
-preserve the final pipeline position exactly, then remove the unused facade
-delegate.
+Map the remaining `validate_optional_candidate_diff_report/3` facade wrapper.
+It has two uses: the top-level `candidate_diff_report.v1` contract and one
+callback-bag entry. Capture direct-call arguments, callback key/position,
+issue ordering, and schema-byte baselines before pointing both at
+`CandidateDiffContracts.validate_optional_report/3`.
 
 Blocked:
 No.
