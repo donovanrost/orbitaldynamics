@@ -6,29 +6,26 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Policy-bundle domain-authority mapping.
+Policy-bundle organization-adapter ownership cleanup.
 
 Status:
-Publishing.
+Ready for next slice selection.
 
 Selected slice:
-Move
-`policy_bundle.maneuver_authority`,
-`policy_bundle.resource_projection_authority`, and
-`policy_bundle.timeline_protection` into the existing
+No implementation selected yet. The next bounded candidate is to move the
+remaining `policy_bundle.organization_adapter` fixture into the existing
 `Validation.ReferenceFixtures.PolicyBundleArtifacts` leaf. Stop before
-`policy_bundle.organization_adapter`.
+`planned_activity.v1`.
 
 Why this slice:
-`ReferenceFixtures` remains the largest production module at 8,860 lines. The
-next three contiguous fixtures are the domain-authority variants, totaling 192
-facade lines. The focused policy-bundle test asserts exactly this trio together.
+`ReferenceFixtures` remains the largest production module at 8,668 lines. The
+48-line organization-adapter fixture is the only policy-bundle expectation
+still in the facade and already participates in focused policy-bundle tests.
 
 Current coupling/problem:
-The cohesive domain-authority policy expectations remain in the general facade
-even though the policy-bundle family now has a dedicated leaf. Moving the trio
-keeps its test-owned boundary intact and stops before the distinct organization
-adapter.
+One policy-bundle fixture remains separated from the eleven related fixtures in
+the dedicated leaf. Moving it completes family ownership without creating a
+one-fixture module or touching the following planned-activity family.
 
 Public facade to preserve:
 `OrbitalDynamics.Validation.ReferenceFixtures.all/0` and `fetch/1`, exact
@@ -50,15 +47,15 @@ Likely verification:
 - strict compile, format, xref, diff hygiene, and bounded review
 
 Definition of done:
-The three selected domain-authority fixtures exist only in the policy leaf,
+The organization-adapter fixture exists only in the policy leaf,
 all 21 fixture maps remain disjoint, `all/0` and `fetch/1` return exactly the
-same 195-entry map and deterministic term bytes, `organization_adapter` and the
-complete facade remainder stay exact, the prior eight leaf fixtures remain
+same 195-entry map and deterministic term bytes, `planned_activity.v1` and the
+complete facade remainder stay exact, the prior eleven leaf fixtures remain
 exact, focused and full validation tests pass, and bounded review finds no
 blocker.
 
 Verification gaps:
-- None for this bounded slice.
+- Next candidate still requires a selection baseline before implementation.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -98,21 +95,18 @@ Behavior/schema changes:
 None.
 
 Outcome:
-The exact domain-authority trio now lives in the existing policy leaf behind
-the unchanged facade. The facade shrank from 8,860 to 8,668 lines; the leaf
-grew from eight to eleven fixtures and from 503 to 695 lines.
+No organization-adapter implementation has started.
 
 Last completed slice:
-Policy-bundle degraded/default extraction published as `ae587409`: the exact
-pair moved into the existing leaf, the facade shrank from 8,967 to 8,860 lines,
-the leaf grew to eight fixtures, the 195-entry map and all deterministic
-digests stayed exact, 18 focused and 181 full validation tests passed, and
-bounded review was clean.
+Policy-bundle domain-authority extraction published as `d2752ec5`: the exact
+three-fixture group moved into the existing leaf, the facade shrank from 8,860
+to 8,668 lines, the leaf grew to eleven fixtures, the 195-entry map and all
+deterministic digests stayed exact, 18 focused and 181 full validation tests
+passed, and bounded review was clean.
 
 Next candidate:
-Select the domain-authority extraction described above, capture the exact
-baseline and source partition, then stop before
-`policy_bundle.organization_adapter`.
+Select the organization-adapter ownership cleanup described above, capture the
+exact baseline and source partition, then stop before `planned_activity.v1`.
 
 Blocked:
 No.
