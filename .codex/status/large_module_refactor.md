@@ -9,7 +9,7 @@ Current slice:
 Validation timeline activity-state fixture test-family extraction.
 
 Status:
-Verified and reviewed; ready to publish.
+Published as `f12dc48c`.
 
 Selected slice:
 Move the six contiguous timeline activity-precondition, activity-state,
@@ -58,10 +58,10 @@ Verification gaps:
 - Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
-Validation policy-and-evidence fixture extraction published as `3cd3d92d`: the
-focused module passed 4/4, the parent passed 127/127, and all ten Validation
-modules preserved the 181-test aggregate with no duplicate names. Format, diff
-hygiene, dependency-closure checks, and bounded review were clean.
+Validation timeline activity-state fixture extraction published as `f12dc48c`:
+the focused module passed 6/6, the parent passed 121/121, and all eleven
+Validation modules preserved the 181-test aggregate with no duplicate names.
+Format, diff hygiene, dependency-closure checks, and bounded review were clean.
 
 Next candidate:
 Refresh the adjacent timeline preservation, integrity, dependency, and summary
