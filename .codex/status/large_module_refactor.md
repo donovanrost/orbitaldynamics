@@ -9,7 +9,7 @@ Current slice:
 Cadence-import candidate-rejection test-family extraction.
 
 Status:
-Selected; implementation not started.
+Implemented, verified, reviewed, and ready to publish.
 
 Selected slice:
 Move the adjacent standalone candidate-rejection-report and invalidated-candidate
@@ -44,17 +44,21 @@ unchanged; the original ledger no longer duplicates them, both focused and
 original-ledger test files pass, and bounded review finds no blocker.
 
 Outcome:
-Pending.
+Exactly two adjacent rejection/invalidation tests moved byte-for-byte into
+`OrbitalDynamics.CadenceImport.CandidateRejectionTest`; assertion order, source
+review drift checks, manifest-count checks, and async execution are unchanged.
+The parent ledger fell from 16,696 to 16,502 lines and the new helper-independent
+focused module is 200 lines. Unique-name and aggregate-count checks confirm no
+duplicate or orphaned tests.
 
 Verification gaps:
-- Not yet verified.
+- Full repository suite not run; this is a mechanical test-only extraction.
 
 Last completed slice:
-Cadence-import candidate-diff test-family extraction published as `1d24e772`:
-four byte-identical tests moved into a 298-line focused module, shrinking the
-parent from 16,988 to 16,696 lines. The focused module passed 4/4 and the parent
-109/109, preserving the 113-test aggregate; format, diff hygiene, and bounded
-review were clean.
+Cadence-import candidate-rejection test-family extraction, publication pending:
+the focused module passed 2/2 and the parent passed 107/107; together with the
+existing four-test candidate-diff module, the Cadence family remains 113/113.
+Format, diff hygiene, helper-independence checks, and bounded review were clean.
 
 Blocked:
 No.
