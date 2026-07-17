@@ -4920,7 +4920,7 @@ defmodule OrbitalDynamics.Schema do
   defp validate_contract(@candidate_activity, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_candidate_activity("$", artifact)
+    |> OrbitalDynamics.Schema.CandidateActivityContracts.validate("$", artifact)
   end
 
   defp validate_contract(@candidate_diff_report, _contract, artifact) do
@@ -5970,14 +5970,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp validate_activity(issues, path, activity) do
     OrbitalDynamics.Schema.ActivityContracts.validate(
-      issues,
-      path,
-      activity
-    )
-  end
-
-  defp validate_candidate_activity(issues, path, activity) do
-    OrbitalDynamics.Schema.CandidateActivityContracts.validate(
       issues,
       path,
       activity
