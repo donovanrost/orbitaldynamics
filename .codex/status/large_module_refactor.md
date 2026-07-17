@@ -9,7 +9,7 @@ Current slice:
 Candidate diff/rejection replay source-summary callback removal.
 
 Status:
-Ready to publish.
+Published as `37f533c3`.
 
 Selected slice:
 Remove the repeated source-summary callback from the candidate diff and
@@ -62,9 +62,9 @@ Verification gaps:
 - Independent bounded review found no blocker.
 
 Last completed slice:
-CandidateRefresh source-report summary assembly ownership published as
-`76d83124`: the facade is a one-line delegate, 9 focused tests passed, and
-corrected bounded review found no blocker.
+Candidate diff/rejection replay callback removal published as `37f533c3`:
+both paths are one-argument end to end, 25 focused tests passed, and bounded
+review found no blocker.
 
 Next candidate:
 Remove the same callback seam from one adjacent replay family after this pair
