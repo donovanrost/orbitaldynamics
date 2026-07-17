@@ -9,7 +9,7 @@ Current slice:
 CandidateRefresh objective/constraint replay source-summary callback removal.
 
 Status:
-Review complete; ready to publish.
+Published as `9ad25ac2`.
 
 Selected slice:
 Remove the repeated source-summary callback from the objective-gap and
@@ -60,13 +60,13 @@ Verification gaps:
 - bounded read-only review: clean, no findings
 
 Last completed slice:
-Candidate validation replay callback removal published as `651df593`:
-freshness, refresh-budget, and schema-validation are one-argument end to end,
-29 focused tests passed, and bounded review found no blocker.
+Candidate objective/constraint replay callback removal published as `9ad25ac2`:
+both paths are one-argument end to end, 20 focused tests passed, and bounded
+review found no blocker.
 
 Next candidate:
-Remove the callback seam from one adjacent single-owner replay family after
-this pair is published.
+Remove the callback seam from the adjacent storage-downlink-pressure replay
+owner, subject to a fresh caller and test audit.
 
 Blocked:
 No.
