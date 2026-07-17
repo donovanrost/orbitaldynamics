@@ -9,7 +9,7 @@ Current slice:
 Schema contact-allocation source-match callback ownership cleanup.
 
 Status:
-Selected; implementation pending.
+Completed and verified; publishing.
 
 Selected slice:
 Point allocation, capacity-pack, and provider-calendar contention
@@ -46,11 +46,27 @@ allocation-field validation still injects
 validation and schema exports remain byte-for-byte stable, focused tests pass,
 and bounded review finds no blocker.
 
+Outcome:
+All allocation, capacity-pack, and provider-calendar contention source-match
+callbacks now capture `ContactAllocationHandoffContracts` directly. Six facade
+delegates were removed across twelve capture positions, reducing `schema.ex`
+from 8,736 to 8,657 lines. Provider source precedence and allocation-field
+duplicate-evidence injection remain unchanged.
+
 Verification gaps:
-- Implementation and verification pending.
+- None for this slice.
 
 Tests run:
-- Pending.
+- `mix compile --warnings-as-errors`
+- 42 focused contact-allocation/provider-contention schema contract tests
+- 182 complete schema-contract and schema-export tests
+- full checked-in schema export regeneration; no schema diff
+- aggregate schema bundle digest unchanged:
+  `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`
+- `mix format --check-formatted`
+- `git diff --check`
+- compile-connected xref check for `schema.ex`
+- bounded read-only review: clean, no findings
 
 Behavior/schema changes:
 None.
