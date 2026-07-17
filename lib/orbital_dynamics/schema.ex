@@ -5744,7 +5744,10 @@ defmodule OrbitalDynamics.Schema do
     []
     |> require_fields("$", artifact, contract["required_fields"])
     |> expect_equal("$", artifact, "schema_contract", "source_window_lineage.v1")
-    |> validate_source_window_lineage("$", artifact)
+    |> OrbitalDynamics.Schema.CandidateDiffContracts.validate_source_window_lineage(
+      "$",
+      artifact
+    )
   end
 
   defp validate_contract(@validation_reference_fixture_report, contract, artifact) do
@@ -6762,14 +6765,6 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       candidate
-    )
-  end
-
-  defp validate_source_window_lineage(issues, path, lineage) do
-    OrbitalDynamics.Schema.CandidateDiffContracts.validate_source_window_lineage(
-      issues,
-      path,
-      lineage
     )
   end
 
