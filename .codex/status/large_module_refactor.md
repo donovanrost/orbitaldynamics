@@ -9,7 +9,7 @@ Current slice:
 CandidateRefresh contact intent/provider counteroffer replay callback removal.
 
 Status:
-Selected.
+Review complete; ready to publish.
 
 Selected slice:
 Remove the repeated source-summary callback from the contact-intent and
@@ -46,10 +46,21 @@ remain exact; no old callback arity remains; focused tests pass; and bounded
 review finds no blocker.
 
 Outcome:
-Pending.
+The contact-intent and provider-counteroffer replay paths are now one-argument
+end to end. Each owner calls `SourceReportSummary.build/1` directly for
+provenance fallback while retaining branch-family precedence, existing source
+strings, and its summary constructor. The four-file production diff removes
+eight net lines.
 
 Verification gaps:
-- Pending.
+- `mix compile --warnings-as-errors`
+- six focused replay files: 30 tests passed
+- scoped `mix format --check-formatted`
+- `git diff --check`
+- old callback arity and invocation audits: no matches
+- both owner compile-connected graphs: no dependency edge
+- replay entry callers: aggregator only; provider helper retains `summary/3`
+- bounded read-only review: clean, no findings
 
 Last completed slice:
 Candidate contention/resolution replay callback removal published as

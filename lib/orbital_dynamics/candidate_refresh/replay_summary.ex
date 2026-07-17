@@ -45,8 +45,8 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary do
     Candidate.rejection(refresh_or_artifact)
   end
 
-  def provider_counteroffer(refresh_or_artifact, source_report_summary) do
-    ProviderCounteroffer.replay(refresh_or_artifact, source_report_summary)
+  def provider_counteroffer(refresh_or_artifact) do
+    ProviderCounteroffer.replay(refresh_or_artifact)
   end
 
   def contact_contention(refresh_or_artifact) do
@@ -97,8 +97,8 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary do
     ManeuverReview.replay(refresh_or_artifact, source_report_summary)
   end
 
-  def contact_intent(refresh_or_artifact, source_report_summary) do
-    ContactIntent.replay(refresh_or_artifact, source_report_summary)
+  def contact_intent(refresh_or_artifact) do
+    ContactIntent.replay(refresh_or_artifact)
   end
 
   def timeline_activity_state(refresh_or_artifact, source_report_summary) do

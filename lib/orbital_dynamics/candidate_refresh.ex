@@ -71,10 +71,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   approve imports, or write to Cadence.
   """
   def provider_counteroffer_replay_summary(refresh_or_artifact) do
-    ReplaySummary.provider_counteroffer(
-      refresh_or_artifact,
-      &source_report_summary/1
-    )
+    ReplaySummary.provider_counteroffer(refresh_or_artifact)
   end
 
   @doc """
@@ -238,10 +235,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   contacts, select candidates, approve imports, or write to Cadence.
   """
   def contact_intent_replay_summary(refresh_or_artifact) do
-    ReplaySummary.contact_intent(
-      refresh_or_artifact,
-      &source_report_summary/1
-    )
+    ReplaySummary.contact_intent(refresh_or_artifact)
   end
 
   @doc """
