@@ -5157,7 +5157,7 @@ defmodule OrbitalDynamics.Schema do
   defp validate_contract(@plan_delta, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_plan_delta("$", artifact)
+    |> OrbitalDynamics.Schema.PlanDeltaContracts.validate("$", artifact)
   end
 
   defp validate_contract(@approval_requirement, contract, artifact) do
@@ -5952,7 +5952,7 @@ defmodule OrbitalDynamics.Schema do
       validate_optional_freshness_report:
         &OrbitalDynamics.Schema.FreshnessReportContracts.validate_optional/3,
       validate_optional_station_calendar_report: &validate_optional_station_calendar_report/3,
-      validate_plan_delta: &validate_plan_delta/3,
+      validate_plan_delta: &OrbitalDynamics.Schema.PlanDeltaContracts.validate/3,
       validate_approval_requirement: &validate_approval_requirement/3,
       validate_policy_decision: &validate_policy_decision/3,
       require_nested: &require_nested/4,
@@ -7433,14 +7433,6 @@ defmodule OrbitalDynamics.Schema do
       path,
       row,
       cadence_source_review_row_contract_callbacks()
-    )
-  end
-
-  defp validate_plan_delta(issues, path, delta) do
-    OrbitalDynamics.Schema.PlanDeltaContracts.validate(
-      issues,
-      path,
-      delta
     )
   end
 
