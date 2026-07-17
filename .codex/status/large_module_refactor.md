@@ -9,10 +9,10 @@ Current slice:
 Objective-scoring fixture mapping.
 
 Status:
-Ready for next slice selection.
+Ready for implementation.
 
 Selected slice:
-No implementation selected yet. The next bounded candidate is to move
+Move
 `objective_satisfaction_report.v1`, `objective_tradeoff_report.v1`,
 `score_term_report.v1`, and `ranking_comparison_report.v1` from their
 contiguous facade range into a new
@@ -57,41 +57,21 @@ and the complete facade remainder stay exact, focused and full validation tests
 pass, and bounded review finds no blocker.
 
 Verification gaps:
-- Next candidate still requires a selection baseline before implementation.
+- Implementation and post-move verification pending.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
   `a94507226596cd944ac21994c7889549ec58ecd1fcc0db5c65fa4e55b0f53ef2`,
   and sorted-key digest
   `b0007d04e4154fe879519a4f2b074fe3f9d0d649f3049d5d848264e105d00732`.
-- Selected three-fixture map: deterministic digest
-  `0718ed567b5ca451301eba883659836cde6ad4299ec8f32ac53f11ede66a9b49`.
-- Exact 192-entry remainder: deterministic digest
-  `b366a6ab25108ca049895e9c955d3a2f66fab05c5174640c0d62683c8f9c141c`.
-- Source boundaries confirmed at facade lines 172-233 and 343-479, with the
-  station-calendar fixtures between them and
-  `objective_satisfaction_report.v1` following them; the selected literals have
-  no facade helper-attribute dependency.
-- Normalized-AST proof against selection commit `37c2b0fe`: all three moved
-  literals, both intervening station-calendar fixtures, the following
-  objective-satisfaction report, and the complete 49-entry facade remainder are
-  exact; the new leaf owns only the intended three keys.
-- Post-move exact proof: the 195-entry map, sorted-key digest, selected
-  three-fixture digest, and exact 192-entry remainder digest all match their
-  selection baselines.
-- Source partition proof: 40 maps total 195 entries, the new leaf owns three,
-  the facade owns 49, all 780 pairwise intersections are empty, and the source
-  key union exactly matches the runtime map.
-- Facade proof: all 195 successful `fetch/1` results, missing-key `:error`, and
-  nonbinary `FunctionClauseError` behavior remain unchanged.
-- Focused resource-summary/facade validation: 15 tests passed.
-- Full validation family: 181 tests passed.
-- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
-  xref caller checks passed.
-- Independent bounded review against selection commit `37c2b0fe` was clean:
-  both source ranges and the complete facade remainder are normalized-AST
-  exact, all runtime and partition invariants reproduced, dependency direction
-  remains one-way, and focused/full tests and hygiene gates passed.
+- Selected four-fixture map: deterministic digest
+  `7f26f969db342eb91a4fea5b06a5f68f3bed35d12ac4fa473d60b8d92ae30fec`.
+- Exact 191-entry remainder: deterministic digest
+  `47d11af1a98d05dcce5e24ab73470c338a38d19e20caef4bf8a346bb02731d4c`.
+- Contiguous source boundary confirmed at facade lines 282-507, followed by
+  `strategy_branch.v1`, with no facade helper-attribute dependency in the
+  selected literals.
+- Focused objective-scoring/facade selection baseline: 16 tests passed.
 
 Behavior/schema changes:
 None.
