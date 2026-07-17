@@ -59,7 +59,7 @@ defmodule OrbitalDynamics.CampaignPlanner.BranchEventNormalizer do
   end
 
   defp normalize_branch_event_station_identity(event) do
-    case event_ground_station_id(event) do
+    case ground_station_id(event) do
       nil ->
         event
         |> Map.delete("ground_station_id")
@@ -373,7 +373,7 @@ defmodule OrbitalDynamics.CampaignPlanner.BranchEventNormalizer do
 
   defp branch_event_trust_boundary(_event), do: nil
 
-  defp event_ground_station_id(event) do
+  def ground_station_id(event) do
     case encode_value(
            Map.get(event, "ground_station_id") || Map.get(event, "station_id") ||
              nested_ground_station_id(event)
