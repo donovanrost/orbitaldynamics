@@ -2,7 +2,7 @@ defmodule OrbitalDynamics.Schema.StationCalendarContactCountContracts do
   @moduledoc false
 
   import OrbitalDynamics.Schema.CollectionAggregation, only: [list_count: 2]
-  import OrbitalDynamics.Schema.PrimitiveValidation, only: [expect_field_equals: 5]
+  import OrbitalDynamics.Schema.PrimitiveValidation, only: [expect_field_equals: 6]
 
   @count_list_pairs [
     {"station_calendar_overlap_count", "station_calendar_overlap_entry_ids"},
@@ -21,4 +21,10 @@ defmodule OrbitalDynamics.Schema.StationCalendarContactCountContracts do
       )
     end)
   end
+
+  defp expect_field_equals(issues, path, map, field, nil),
+    do: expect_field_equals(issues, path, map, field, nil, nil)
+
+  defp expect_field_equals(issues, path, map, field, expected),
+    do: expect_field_equals(issues, path, map, field, expected, "must equal #{expected}")
 end

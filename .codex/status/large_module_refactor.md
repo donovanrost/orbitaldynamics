@@ -9,7 +9,7 @@ Current slice:
 Station-calendar contact-count message restoration.
 
 Status:
-Selected; implementation pending.
+Complete and ready to publish.
 
 Selected slice:
 Restore the implicit `must equal N` message in
@@ -42,16 +42,20 @@ messages; focused, broader, and export checks pass; and bounded review finds no
 blocker.
 
 Outcome:
-Pending.
+`StationCalendarContactCountContracts` now imports the primitive `/6` helper and
+restores the historical private `/5` compatibility clauses. All three count/list
+mismatches again emit exact `must equal N` messages, including the previously
+failing overlap-count case. Five hundred eleven focused/schema/operator and 24
+export tests pass; compile, checked-in regeneration, compile-connected xref
+within its existing three-edge threshold, format, and diff hygiene are clean.
+Bounded review found no blocker and confirmed exact pre-collapse messages, nil
+handling, pair order, paths, and issue ordering.
 
 Verification gaps:
 - Full repository suite not run.
-- The broader batch has five existing campaign-planner failures. The same five
-  fail in the same four files on pre-slice commit `6f1f0ac1`; the attributable
-  result is 1,340/1,340.
-- The contact-allocation focused batch has one existing station-calendar count
-  message failure (`nil` instead of `must equal 2`), reproduced unchanged on
-  pre-slice commit `22efe48e`; the attributable focused result is 391/391.
+- The full 1,345-test campaign/operator/schema batch was not rerun for this
+  message-only repair. Its prior run had five known campaign-planner baseline
+  failures, previously reproduced on pre-slice commit `6f1f0ac1`.
 
 Last completed slice:
 Contact-allocation-handoff domain callback-bag collapse published as `811172aa`:
