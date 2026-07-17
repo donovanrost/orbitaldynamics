@@ -6,31 +6,29 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Contact-allocation fixture mapping.
+Provider-capacity-pack fixture mapping.
 
 Status:
-Publishing.
+Ready for next slice selection.
 
 Selected slice:
-Move
-`contact_allocation_report.v1`,
-`contact_allocation_reservation_conflict_summary.v1`,
-`contact_allocation_station_pressure_summary.v1`,
-`contact_allocation_capacity_pack_summary.v1`, and
-`contact_allocation_summary.v1` from their contiguous facade range into a new
-`Validation.ReferenceFixtures.ContactAllocationArtifacts` leaf. Preserve the
-following provider-reservation request summary exactly.
+No implementation selected yet. The next bounded candidate is to move
+`contact_allocation_provider_reservation_request_summary.v1` and
+`contact_allocation_report.reduced_capacity_pack` from their contiguous facade
+range into a new
+`Validation.ReferenceFixtures.ProviderCapacityPackArtifacts` leaf. Preserve
+the following contact-filter report exactly.
 
 Why this slice:
-`ReferenceFixtures` remains the largest production module at 5,426 lines. The
-five fixtures occupy 479 facade lines and exactly own
-`contact_allocation_fixture_test.exs`.
+`ReferenceFixtures` remains the largest production module at 4,949 lines. The
+two fixtures occupy 230 facade lines and exactly own
+`provider_capacity_pack_fixture_test.exs`.
 
 Current coupling/problem:
-Allocation, reservation-conflict, station-pressure, capacity-pack, and summary
-expectations form one contiguous facade family but remain embedded in the
-general registry. Moving exactly the focused-test family keeps the following
-provider-capacity-pack responsibility separate.
+Provider reservation-request and reduced-capacity packing expectations form a
+small, contiguous test-owned family but remain embedded in the general
+registry. Moving both together preserves their provider-capacity responsibility
+without absorbing the following contention/filter family.
 
 Public facade to preserve:
 `OrbitalDynamics.Validation.ReferenceFixtures.all/0` and `fetch/1`, exact
@@ -38,28 +36,28 @@ fixture keys and values, map equality and deterministic term bytes, and all
 `OrbitalDynamics.Validation` reference-fixture behavior.
 
 Likely extraction target:
-`OrbitalDynamics.Validation.ReferenceFixtures.ContactAllocationArtifacts`.
+`OrbitalDynamics.Validation.ReferenceFixtures.ProviderCapacityPackArtifacts`.
 
 Likely files:
 - `lib/orbital_dynamics/validation/reference_fixtures.ex`
-- `lib/orbital_dynamics/validation/reference_fixtures/contact_allocation_artifacts.ex`
+- `lib/orbital_dynamics/validation/reference_fixtures/provider_capacity_pack_artifacts.ex`
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
 - exact before/after fixture count, keys, values, and deterministic term digest
-- focused contact-allocation and facade validation tests
+- focused provider-capacity-pack and facade validation tests
 - full validation test family
 - strict compile, format, xref, diff hygiene, and bounded review
 
 Definition of done:
-The five contact-allocation fixtures exist only in the new cohesive leaf, all
-34 fixture maps remain disjoint, `all/0` and `fetch/1` return exactly the same
+The two provider-capacity-pack fixtures exist only in the new cohesive leaf,
+all 35 fixture maps remain disjoint, `all/0` and `fetch/1` return exactly the same
 195-entry map and deterministic term bytes, both following boundary fixtures
 and the complete facade remainder stay exact, focused and full validation tests
 pass, and bounded review finds no blocker.
 
 Verification gaps:
-- None for this slice.
+- Next candidate still requires a selection baseline before implementation.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -98,18 +96,16 @@ Behavior/schema changes:
 None.
 
 Outcome:
-The exact five-fixture contact-allocation family now lives in a new cohesive
-leaf behind the unchanged facade. The facade shrank from 5,426 to 4,949 lines;
-the new leaf is 487 lines and owns exactly five fixtures.
+No provider-capacity-pack implementation has started.
 
 Last completed slice:
-Timeline-transition extraction published as `f1f8f552`: the exact four-fixture
-family moved into a new 411-line leaf, the facade shrank from 5,827 to 5,426
-lines, the 195-entry map and all deterministic digests stayed exact, 16 focused
+Contact-allocation extraction published as `bbdecf49`: the exact five-fixture
+family moved into a new 487-line leaf, the facade shrank from 5,426 to 4,949
+lines, the 195-entry map and all deterministic digests stayed exact, 17 focused
 and 181 full validation tests passed, and bounded review was clean.
 
 Next candidate:
-Select the contact-allocation extraction described above, capture the exact
+Select the provider-capacity-pack extraction described above, capture the exact
 combined map and contiguous source boundary, then move the complete test-owned
 family together.
 
