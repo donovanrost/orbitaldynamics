@@ -141,12 +141,12 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary do
     TimelineDependencyImpact.replay(refresh_or_artifact)
   end
 
-  def timeline_publication(refresh_or_artifact, source_report_summary) do
-    TimelinePublication.replay(refresh_or_artifact, source_report_summary)
+  def timeline_publication(refresh_or_artifact) do
+    TimelinePublication.replay(refresh_or_artifact)
   end
 
-  def timeline_transition_application(refresh_or_artifact, source_report_summary) do
-    TimelineTransitionApplication.replay(refresh_or_artifact, source_report_summary)
+  def timeline_transition_application(refresh_or_artifact) do
+    TimelineTransitionApplication.replay(refresh_or_artifact)
   end
 
   def objective_gap(refresh_or_artifact) do

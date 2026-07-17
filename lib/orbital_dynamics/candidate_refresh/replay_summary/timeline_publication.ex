@@ -6,14 +6,13 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.TimelinePublication do
 
   alias __MODULE__.Summary
 
-  def replay(refresh_or_artifact, source_report_summary)
-      when is_function(source_report_summary, 1) do
+  def replay(refresh_or_artifact) do
     branch_publication_summary = source_report_summary_branch_family(refresh_or_artifact)
 
     publication_summary =
       branch_publication_summary ||
         refresh_or_artifact
-        |> source_report_summary.()
+        |> SourceReportSummary.build()
         |> get_in(["source_reports", "timeline_publication_summary"]) ||
         %{}
 
