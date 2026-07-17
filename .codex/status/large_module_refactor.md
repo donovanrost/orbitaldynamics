@@ -6,22 +6,22 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Campaign planner operator-review pressure-branch dispatch extraction.
+Campaign planner cadence-import pressure aggregation extraction.
 
 Status:
-Completed and published.
+Selected.
 
 Selected slice:
-Extract the 22-review-type operator-review row pressure-branch registry from
-`OrbitalDynamics.CampaignPlanner` into
-`CampaignPlanner.OperatorReviewPressureBranches`.
+Extract prior-plan and mission-state cadence-import pressure collection plus
+source-review/direct fallback dispatch from `OrbitalDynamics.CampaignPlanner`
+into `CampaignPlanner.CadenceImportPressureBranches`.
 
 Why this slice:
-The live hotspot inventory shows `CampaignPlanner` remains 3,967 lines, and
-about 500 lines are one cohesive adapter registry keyed by `review_type`. It
-owns review-row source extraction, approval/trust-boundary propagation, and
-dispatch into family pressure builders. The two facade collectors and all
-strategy behavior can remain unchanged.
+The adjacent cluster is the sole owner of cadence-import pressure aggregation:
+it gathers rows from prior-plan or mission-state manifests, preserves import
+trust boundaries, delegates embedded review rows to the extracted
+operator-review registry, and falls back to direct import pressure branches.
+The strategy facade can delegate both sources without callback plumbing.
 
 Public facade to preserve:
 All `OrbitalDynamics.CampaignPlanner` public functions, exact branch/event
@@ -30,42 +30,25 @@ boundaries.
 
 Likely files:
 - `lib/orbital_dynamics/campaign_planner.ex`
-- new `lib/orbital_dynamics/campaign_planner/operator_review_pressure_branches.ex`
+- new `lib/orbital_dynamics/campaign_planner/cadence_import_pressure_branches.ex`
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
-- focused strategy operator-review row/comms/feedback/objective tests
-- deterministic strategy regression coverage
+- focused strategy cadence-import, review-import, and review-row tests
+- strategy branch regression coverage
 - compile, format, xref, diff hygiene, and bounded review
 
 Definition of done:
-The planner collectors delegate row dispatch to one internal registry; all 22
-review types, fallback behavior, source paths, policy use, trust boundaries,
-and emitted branch artifacts remain exact; focused tests pass; and bounded
-review finds no blocker.
+The planner delegates both cadence-import sources to one internal aggregator;
+embedded review precedence, direct fallback, indices, policies, source paths,
+approval status, trust boundaries, and emitted branches remain exact; focused
+tests pass; and bounded review finds no blocker.
 
 Outcome:
-All three callers now delegate operator-review row dispatch to
-`CampaignPlanner.OperatorReviewPressureBranches`. The internal module owns all
-22 review-type clauses, the unknown-row fallback, source extraction,
-approval/trust-boundary propagation, and the registry-only communications and
-timeline-diff wrappers. `CampaignPlanner` fell from 3,967 to 3,592 lines.
+Pending.
 
 Verification gaps:
-- None for this slice.
-
-Tests run:
-- `mix compile --warnings-as-errors`
-- 29 focused operator-review/objective/timeline/communications tests
-- 10 campaign facade and strategy branch regression tests
-- `mix format --check-formatted`
-- `git diff --check`
-- new-file diff hygiene
-- compile-connected xref check for `campaign_planner.ex`
-- bounded read-only review: clean, no findings
-
-Behavior/schema changes:
-None.
+- Pending.
 
 Last completed slice:
 Campaign-planner operator-review pressure dispatch published as `72f92514`:
@@ -74,8 +57,9 @@ registry, all three callers delegate through it, 39 focused/regression tests
 passed, and bounded review found no finding.
 
 Next candidate:
-After this slice, audit the adjacent cadence-import pressure registry or the
-remaining branch-refresh helper cluster; select only one cohesive boundary.
+After this slice, audit branch candidate-plan staging or branch-event
+application. Select only if private helper ownership can move without a broad
+callback bag.
 
 Blocked:
 No.
