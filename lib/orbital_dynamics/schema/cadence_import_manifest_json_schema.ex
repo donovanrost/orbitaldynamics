@@ -7,8 +7,8 @@ defmodule OrbitalDynamics.Schema.CadenceImportManifestJsonSchema do
     capability = Keyword.fetch!(opts, :capability)
     readiness_capability = Keyword.fetch!(opts, :readiness_capability)
     stable_id_pattern = Keyword.fetch!(opts, :stable_id_pattern)
-    schema = Keyword.fetch!(opts, :schema)
-    properties = Keyword.fetch!(opts, :properties)
+    schema = provider_resolver(Keyword.fetch!(opts, :schema_providers))
+    properties = provider_resolver(Keyword.fetch!(opts, :property_providers))
 
     %{
       "type" => "object",
@@ -466,6 +466,15 @@ defmodule OrbitalDynamics.Schema.CadenceImportManifestJsonSchema do
         |> Map.merge(properties.(:branch_scoped_downlink_context_json_schema_properties))
         |> Map.merge(properties.(:scoped_downlink_context_json_schema_properties))
     }
+  end
+
+  defp provider_resolver(providers) when is_list(providers) do
+    provider_map = Map.new(providers)
+
+    fn name ->
+      provider = Map.fetch!(provider_map, name)
+      provider.()
+    end
   end
 
   @enum_count_fields [
