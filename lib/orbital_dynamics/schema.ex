@@ -5866,7 +5866,8 @@ defmodule OrbitalDynamics.Schema do
         &OrbitalDynamics.Schema.PriorityOverrideContracts.validate_field_evidence_counts/3,
       validate_override_count_matches_ids:
         &OrbitalDynamics.Schema.PriorityOverrideContracts.validate_count_matches_ids/5,
-      validate_station_calendar_contact_counts: &validate_station_calendar_contact_counts/3
+      validate_station_calendar_contact_counts:
+        &OrbitalDynamics.Schema.StationCalendarContactCountContracts.validate/3
     ]
   end
 
@@ -6099,14 +6100,6 @@ defmodule OrbitalDynamics.Schema do
       path,
       summary,
       station_calendar_report_model_limits()
-    )
-  end
-
-  defp validate_station_calendar_contact_counts(issues, path, contact) do
-    OrbitalDynamics.Schema.StationCalendarContactCountContracts.validate(
-      issues,
-      path,
-      contact
     )
   end
 
