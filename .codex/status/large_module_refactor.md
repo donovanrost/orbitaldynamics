@@ -9,7 +9,7 @@ Current slice:
 Candidate-refresh base reference-fixture family extraction.
 
 Status:
-Ready for implementation.
+Publishing implementation.
 
 Selected slice:
 Move the two noncontiguous candidate-refresh base fixtures—
@@ -56,17 +56,36 @@ exactly the same 195-entry map and deterministic term bytes, focused and full
 validation tests pass, and bounded review finds no blocker.
 
 Verification gaps:
-- Implementation and verification pending.
+- None for this bounded slice.
 
 Tests run:
-- Selection baseline: 195 entries, deterministic map digest
+- Exact post-split proof matched the 195-entry selection baseline,
+  deterministic map digest
   `a94507226596cd944ac21994c7889549ec58ecd1fcc0db5c65fa4e55b0f53ef2`,
   and sorted-key digest
   `b0007d04e4154fe879519a4f2b074fe3f9d0d649f3049d5d848264e105d00732`.
-- Selection only; implementation verification pending.
+- Source-boundary proof found 2 candidate-refresh-base, 3
+  campaign-planning, 10 campaign-artifact, 3 accepted-state, 6 orbital, and
+  171 facade keys with no duplicate anchors; facade `fetch/1` matched both
+  moved values.
+- Strict test compile passed with warnings as errors.
+- Focused candidate-refresh-base, core-policy, and facade validation tests: 14
+  passed.
+- Full validation test family: 181 passed.
+- Format, tracked/untracked diff hygiene, and xref caller checks passed.
+- Bounded read-only review was clean: exactly baseline facade indices 1 and 21
+  moved, all 19 intervening replay fixtures and the remainder stayed exact,
+  all six maps are pairwise disjoint, their union equals `6eb18269`, fetch edge
+  behavior matches, and compile dependencies are one-way.
 
 Behavior/schema changes:
 None.
+
+Outcome:
+The two checked-in candidate-refresh base fixtures now live in
+`Validation.ReferenceFixtures.CandidateRefreshBase`; the facade merges that
+family with five existing fixture maps plus 171 remaining fixtures. The facade
+fell from 12,147 to 12,063 lines, while the extracted family is 94 lines.
 
 Last completed slice:
 Campaign planning reference-fixture extraction published as `fde8c3ac`: the
