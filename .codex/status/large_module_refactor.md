@@ -6,31 +6,31 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline-transition fixture mapping.
+Contact-allocation fixture mapping.
 
 Status:
-Publishing.
+Ready for next slice selection.
 
 Selected slice:
-Move
-`timeline_transition_application_summary.v1`,
-`timeline_transition_application_selected_integrity_summary.v1`,
-`timeline_transition_application_report.v1`, and
-`timeline_transition_application_selected_integrity.v1` from their contiguous
-facade range into a new
-`Validation.ReferenceFixtures.TimelineTransitionArtifacts` leaf. Preserve the
-following contact-allocation report exactly.
+No implementation selected yet. The next bounded candidate is to move
+`contact_allocation_report.v1`,
+`contact_allocation_reservation_conflict_summary.v1`,
+`contact_allocation_station_pressure_summary.v1`,
+`contact_allocation_capacity_pack_summary.v1`, and
+`contact_allocation_summary.v1` from their contiguous facade range into a new
+`Validation.ReferenceFixtures.ContactAllocationArtifacts` leaf. Preserve the
+following provider-reservation request summary exactly.
 
 Why this slice:
-`ReferenceFixtures` remains the largest production module at 5,827 lines. The
-four fixtures occupy 403 facade lines and exactly own
-`timeline_transition_fixture_test.exs`.
+`ReferenceFixtures` remains the largest production module at 5,426 lines. The
+five fixtures occupy 479 facade lines and exactly own
+`contact_allocation_fixture_test.exs`.
 
 Current coupling/problem:
-Transition summaries, reports, and selected-integrity expectations now form one
-contiguous facade family but remain embedded in the general registry. Moving
-the whole test-owned range preserves its application/integrity proof as one
-responsibility.
+Allocation, reservation-conflict, station-pressure, capacity-pack, and summary
+expectations form one contiguous facade family but remain embedded in the
+general registry. Moving exactly the focused-test family keeps the following
+provider-capacity-pack responsibility separate.
 
 Public facade to preserve:
 `OrbitalDynamics.Validation.ReferenceFixtures.all/0` and `fetch/1`, exact
@@ -38,28 +38,28 @@ fixture keys and values, map equality and deterministic term bytes, and all
 `OrbitalDynamics.Validation` reference-fixture behavior.
 
 Likely extraction target:
-`OrbitalDynamics.Validation.ReferenceFixtures.TimelineTransitionArtifacts`.
+`OrbitalDynamics.Validation.ReferenceFixtures.ContactAllocationArtifacts`.
 
 Likely files:
 - `lib/orbital_dynamics/validation/reference_fixtures.ex`
-- `lib/orbital_dynamics/validation/reference_fixtures/timeline_transition_artifacts.ex`
+- `lib/orbital_dynamics/validation/reference_fixtures/contact_allocation_artifacts.ex`
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
 - exact before/after fixture count, keys, values, and deterministic term digest
-- focused timeline-transition and facade validation tests
+- focused contact-allocation and facade validation tests
 - full validation test family
 - strict compile, format, xref, diff hygiene, and bounded review
 
 Definition of done:
-The four timeline-transition fixtures exist only in the new cohesive leaf, all
-33 fixture maps remain disjoint, `all/0` and `fetch/1` return exactly the same
+The five contact-allocation fixtures exist only in the new cohesive leaf, all
+34 fixture maps remain disjoint, `all/0` and `fetch/1` return exactly the same
 195-entry map and deterministic term bytes, both following boundary fixtures
 and the complete facade remainder stay exact, focused and full validation tests
 pass, and bounded review finds no blocker.
 
 Verification gaps:
-- None for this slice.
+- Next candidate still requires a selection baseline before implementation.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -97,18 +97,16 @@ Behavior/schema changes:
 None.
 
 Outcome:
-The exact four-fixture timeline-transition family now lives in a new cohesive
-leaf behind the unchanged facade. The facade shrank from 5,827 to 5,426 lines;
-the new leaf is 411 lines and owns exactly four fixtures.
+No contact-allocation implementation has started.
 
 Last completed slice:
-Timeline-preservation extraction published as `975edb84`: the exact six-fixture
-family moved into a new 561-line leaf, the facade shrank from 6,378 to 5,827
-lines, the 195-entry map and all deterministic digests stayed exact, 18 focused
+Timeline-transition extraction published as `f1f8f552`: the exact four-fixture
+family moved into a new 411-line leaf, the facade shrank from 5,827 to 5,426
+lines, the 195-entry map and all deterministic digests stayed exact, 16 focused
 and 181 full validation tests passed, and bounded review was clean.
 
 Next candidate:
-Select the timeline-transition extraction described above, capture the exact
+Select the contact-allocation extraction described above, capture the exact
 combined map and contiguous source boundary, then move the complete test-owned
 family together.
 
