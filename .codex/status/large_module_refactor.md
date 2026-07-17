@@ -9,7 +9,7 @@ Current slice:
 Candidate-state report reference-fixture extraction.
 
 Status:
-Publishing implementation.
+Completed and published as `089ee63a`.
 
 Selected slice:
 Move the contiguous `candidate_rejection_report.v1` and
@@ -88,16 +88,17 @@ family with 14 existing fixture maps plus 150 remaining fixtures. The facade
 fell from 10,424 to 10,318 lines, while the extracted family is 116 lines.
 
 Last completed slice:
-Candidate-refresh capacity/filter fixture extraction published as `bd39ca7f`:
-the final two replay fixtures moved behind the unchanged facade, the first
-non-candidate-refresh report and remainder stayed exact, the 195-entry map and
-deterministic bytes stayed exact, 181 validation tests passed, and bounded
-review was clean.
+Candidate-state report fixture extraction published as `089ee63a`: the two
+exact report/diff fixtures moved behind the unchanged facade, the environment-
+capability block and remainder stayed exact, the 195-entry map and deterministic
+bytes stayed exact, 181 validation tests passed, and bounded review was clean.
 
 Next candidate:
-After this boundary, extract the six contiguous environment model/provider
-capability fixtures if their runtime-derived observations remain entirely
-outside the literal map and focused planning-input coverage proves the family.
+Extract the six contiguous environment model/provider capability fixtures into
+one family. The 255-line block has no helper-attribute coupling, its runtime
+observation construction remains outside the literal map, it shares focused
+`planning_input_fixture_test.exs` coverage, and it stops before
+`branch_comparison_report`; re-baseline before selecting.
 
 Blocked:
 No.
