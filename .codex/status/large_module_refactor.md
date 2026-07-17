@@ -6,23 +6,23 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema candidate handoff callback ownership cleanup.
+Schema risk-feedback handoff callback ownership cleanup.
 
 Status:
-Completed and published.
+Selected; implementation pending.
 
 Selected slice:
-Point the candidate-rejection and candidate-diff handoff callback captures
-directly at the existing `Schema.CandidateHandoffContracts` owner. Remove the
-four redundant private delegates for the general and cadence-source-review
+Point the risk-explanation and realized-feedback handoff callback captures
+directly at the existing `Schema.RiskFeedbackHandoffContracts` owner. Remove
+the four redundant private delegates for the general and cadence-source-review
 validation paths.
 
 Why this slice:
 All four delegates are pure pass-throughs to one already-extracted internal
 module, whose public functions also own the matching fallback clauses. The
 capture audit found three general and one cadence-specific site for each
-candidate family; direct captures consolidate their ownership without moving
-unrelated candidate-refresh or schema orchestration.
+risk/feedback family; direct captures consolidate their ownership without
+moving unrelated strategy, realized-state, or schema orchestration.
 
 Public facade to preserve:
 All `OrbitalDynamics.Schema` public functions, exact validation issue ordering,
@@ -40,35 +40,18 @@ Likely verification:
 
 Definition of done:
 Every callback list directly captures the corresponding public
-`CandidateHandoffContracts` validator, the four facade delegates are gone,
+`RiskFeedbackHandoffContracts` validator, the four facade delegates are gone,
 validation and schema exports remain byte-for-byte stable, focused tests pass,
 and bounded review finds no blocker.
 
-Outcome:
-All general and cadence-source-review candidate handoff callback lists now
-capture the existing `CandidateHandoffContracts` validators directly. Four
-private one-hop delegates were removed, reducing `schema.ex` from 9,186 to
-9,138 lines without changing callback keys, order, fallback behavior, validation
-results, or checked-in schema bytes.
-
 Verification gaps:
-- None for this slice.
+- Implementation and verification pending.
 
 Tests run:
-- `mix compile --warnings-as-errors`
-- 22 focused cadence-import, candidate-refresh, provenance, readiness, and
-  review-import handoff tests
-- 182 complete schema-contract and schema-export tests
-- full checked-in schema export regeneration; no schema diff
-- aggregate schema bundle digest unchanged:
-  `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`
-- `mix format --check-formatted`
-- `git diff --check`
-- compile-connected xref check for `schema.ex`
-- bounded read-only review: clean, no findings
+- Pending.
 
 Behavior/schema changes:
-None.
+None intended.
 
 Last completed slice:
 Schema candidate handoff callback ownership cleanup published as `b8aa3071`:
