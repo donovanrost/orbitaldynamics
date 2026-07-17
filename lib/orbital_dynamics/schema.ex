@@ -7298,7 +7298,6 @@ defmodule OrbitalDynamics.Schema do
       validate_stable_id_array_map: &validate_stable_id_array_map/3,
       validate_stable_id_list: &validate_stable_id_list/3,
       validate_rows: &validate_rows/4,
-      provider_counteroffer_report_models: &provider_counteroffer_report_models/0,
       provider_counteroffer_numeric_value_count: &provider_counteroffer_numeric_value_count/2,
       provider_counteroffer_numeric_value_sum: &provider_counteroffer_numeric_value_sum/2,
       provider_counteroffer_numeric_value_min: &provider_counteroffer_numeric_value_min/2,
@@ -8929,8 +8928,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.ProviderCounterofferReportContracts.validate(
       issues,
       path,
-      report,
-      provider_counteroffer_report_contract_callbacks()
+      report
     )
   end
 
@@ -8938,8 +8936,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.ProviderCounterofferReportContracts.validate_row(
       issues,
       path,
-      row,
-      provider_counteroffer_report_contract_callbacks()
+      row
     )
   end
 

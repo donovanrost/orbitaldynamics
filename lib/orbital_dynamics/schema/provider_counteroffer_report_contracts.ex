@@ -1,60 +1,74 @@
 defmodule OrbitalDynamics.Schema.ProviderCounterofferReportContracts do
   @moduledoc false
 
-  def validate(issues, path, report, callbacks) when is_list(callbacks) do
+  import OrbitalDynamics.Schema.CollectionAggregation, only: [frequency_map: 2]
+  import OrbitalDynamics.Schema.CollectionValidation, only: [validate_rows: 4]
+
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [
+      expect_equal: 5,
+      expect_field_equals: 6,
+      expect_non_negative_integer: 4,
+      expect_number: 4,
+      expect_one_of: 5,
+      expect_optional_number: 4,
+      expect_optional_one_of: 5,
+      expect_optional_type: 5,
+      expect_type: 5,
+      require_fields: 4,
+      validate_non_negative_integer_count_map: 3
+    ]
+
+  import OrbitalDynamics.Schema.StableIdValidation, only: [validate_stable_ids: 4]
+
+  @report_models [
+    "artifact_only_provider_counteroffer_review",
+    "preserved_provider_counteroffer_rows",
+    "preserved_provider_counteroffer_plan_impact_summary",
+    "preserved_provider_counteroffer_import_readiness_summary"
+  ]
+
+  def validate(issues, path, report) do
     issues
-    |> expect_equal(callbacks, path, report, "schema_contract", "provider_counteroffer_report.v1")
-    |> expect_one_of(
-      callbacks,
-      path,
-      report,
-      "model",
-      provider_counteroffer_report_models(callbacks)
-    )
-    |> expect_type(callbacks, path, report, "source", :binary)
-    |> expect_one_of(callbacks, path, report, "source_artifact_type", [
+    |> expect_equal(path, report, "schema_contract", "provider_counteroffer_report.v1")
+    |> expect_one_of(path, report, "model", @report_models)
+    |> expect_type(path, report, "source", :binary)
+    |> expect_one_of(path, report, "source_artifact_type", [
       "station_calendar_provider.v1",
       "station_calendar_report.v1"
     ])
-    |> validate_stable_ids(callbacks, path, report, ["source_artifact_id"])
-    |> expect_non_negative_integer(callbacks, path, report, "counteroffer_count")
-    |> expect_non_negative_integer(callbacks, path, report, "reviewable_count")
-    |> expect_non_negative_integer(callbacks, path, report, "counteroffer_cost_delta_count")
-    |> expect_number(callbacks, path, report, "counteroffer_cost_delta_total")
-    |> expect_non_negative_integer(callbacks, path, report, "counteroffer_lock_deadline_count")
-    |> expect_optional_number(callbacks, path, report, "earliest_counteroffer_lock_deadline_s")
-    |> expect_type(callbacks, path, report, "counteroffer_status_counts", :map)
-    |> expect_type(callbacks, path, report, "counteroffer_negotiation_state_counts", :map)
-    |> expect_type(callbacks, path, report, "required_operator_action_counts", :map)
+    |> validate_stable_ids(path, report, ["source_artifact_id"])
+    |> expect_non_negative_integer(path, report, "counteroffer_count")
+    |> expect_non_negative_integer(path, report, "reviewable_count")
+    |> expect_non_negative_integer(path, report, "counteroffer_cost_delta_count")
+    |> expect_number(path, report, "counteroffer_cost_delta_total")
+    |> expect_non_negative_integer(path, report, "counteroffer_lock_deadline_count")
+    |> expect_optional_number(path, report, "earliest_counteroffer_lock_deadline_s")
+    |> expect_type(path, report, "counteroffer_status_counts", :map)
+    |> expect_type(path, report, "counteroffer_negotiation_state_counts", :map)
+    |> expect_type(path, report, "required_operator_action_counts", :map)
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".counteroffer_status_counts",
       Map.get(report, "counteroffer_status_counts")
     )
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".counteroffer_negotiation_state_counts",
       Map.get(report, "counteroffer_negotiation_state_counts")
     )
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".required_operator_action_counts",
       Map.get(report, "required_operator_action_counts")
     )
-    |> expect_optional_type(callbacks, path, report, "model_limits", :list)
-    |> expect_type(callbacks, path, report, "rows", :list)
-    |> expect_type(callbacks, path, report, "assumptions", :map)
-    |> validate_rows(callbacks, path <> ".rows", Map.get(report, "rows", []), fn acc,
-                                                                                 row_path,
-                                                                                 row ->
-      validate_row(acc, row_path, row, callbacks)
-    end)
-    |> validate_report_counts(callbacks, path, report)
+    |> expect_optional_type(path, report, "model_limits", :list)
+    |> expect_type(path, report, "rows", :list)
+    |> expect_type(path, report, "assumptions", :map)
+    |> validate_rows(path <> ".rows", Map.get(report, "rows", []), &validate_row/3)
+    |> validate_report_counts(path, report)
   end
 
-  def validate_row(issues, path, row, callbacks) do
+  def validate_row(issues, path, row) do
     issues
-    |> require_fields(callbacks, path, row, [
+    |> require_fields(path, row, [
       "id",
       "provider_counteroffer_id",
       "provider_counteroffer_status",
@@ -63,7 +77,7 @@ defmodule OrbitalDynamics.Schema.ProviderCounterofferReportContracts do
       "required_operator_action",
       "source_station_calendar_entry"
     ])
-    |> validate_stable_ids(callbacks, path, row, [
+    |> validate_stable_ids(path, row, [
       "id",
       "provider_counteroffer_id",
       "ground_station_id",
@@ -71,202 +85,125 @@ defmodule OrbitalDynamics.Schema.ProviderCounterofferReportContracts do
       "station_calendar_provider_id",
       "station_calendar_provider_entry_id"
     ])
-    |> expect_type(callbacks, path, row, "provider_counteroffer_status", :binary)
+    |> expect_type(path, row, "provider_counteroffer_status", :binary)
     |> expect_one_of(
-      callbacks,
       path,
       row,
       "provider_counteroffer_negotiation_state",
       capabilities().provider_counteroffer_negotiation_states
     )
-    |> expect_optional_type(callbacks, path, row, "provider_counteroffer_reason_code", :binary)
-    |> expect_optional_number(callbacks, path, row, "provider_counteroffer_cost_delta")
-    |> expect_optional_number(callbacks, path, row, "provider_counteroffer_lock_deadline_s")
-    |> expect_optional_number(callbacks, path, row, "provider_counteroffer_starts_at_s")
-    |> expect_optional_number(callbacks, path, row, "provider_counteroffer_ends_at_s")
-    |> expect_optional_number(callbacks, path, row, "provider_counteroffer_start_delta_s")
-    |> expect_optional_number(callbacks, path, row, "provider_counteroffer_end_delta_s")
-    |> expect_optional_number(callbacks, path, row, "provider_counteroffer_duration_delta_s")
+    |> expect_optional_type(path, row, "provider_counteroffer_reason_code", :binary)
+    |> expect_optional_number(path, row, "provider_counteroffer_cost_delta")
+    |> expect_optional_number(path, row, "provider_counteroffer_lock_deadline_s")
+    |> expect_optional_number(path, row, "provider_counteroffer_starts_at_s")
+    |> expect_optional_number(path, row, "provider_counteroffer_ends_at_s")
+    |> expect_optional_number(path, row, "provider_counteroffer_start_delta_s")
+    |> expect_optional_number(path, row, "provider_counteroffer_end_delta_s")
+    |> expect_optional_number(path, row, "provider_counteroffer_duration_delta_s")
     |> expect_optional_one_of(
-      callbacks,
       path,
       row,
       "provider_counteroffer_lock_deadline_status",
       capabilities().provider_counteroffer_lock_deadline_statuses
     )
     |> expect_optional_one_of(
-      callbacks,
       path,
       row,
       "provider_counteroffer_import_status",
       capabilities().provider_counteroffer_import_statuses
     )
-    |> expect_type(callbacks, path, row, "reviewable", :boolean)
+    |> expect_type(path, row, "reviewable", :boolean)
     |> expect_one_of(
-      callbacks,
       path,
       row,
       "required_operator_action",
       capabilities().provider_counteroffer_actions
     )
-    |> expect_optional_type(callbacks, path, row, "station_availability", :binary)
-    |> expect_optional_number(callbacks, path, row, "starts_at_s")
-    |> expect_optional_number(callbacks, path, row, "ends_at_s")
-    |> expect_type(callbacks, path, row, "source_station_calendar_entry", :map)
+    |> expect_optional_type(path, row, "station_availability", :binary)
+    |> expect_optional_number(path, row, "starts_at_s")
+    |> expect_optional_number(path, row, "ends_at_s")
+    |> expect_type(path, row, "source_station_calendar_entry", :map)
   end
 
-  defp validate_report_counts(issues, callbacks, path, report) do
-    rows =
-      report
-      |> Map.get("rows", [])
-      |> Enum.filter(&is_map/1)
+  defp validate_report_counts(issues, path, report) do
+    rows = report |> Map.get("rows", []) |> Enum.filter(&is_map/1)
 
     issues
-    |> expect_field_equals(callbacks, path, report, "counteroffer_count", length(rows))
+    |> expect_field_equals(path, report, "counteroffer_count", length(rows))
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "reviewable_count",
       Enum.count(rows, & &1["reviewable"])
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "counteroffer_cost_delta_count",
-      numeric_value_count(callbacks, rows, "provider_counteroffer_cost_delta"),
+      numeric_value_count(rows, "provider_counteroffer_cost_delta"),
       "must equal row-derived counteroffer_cost_delta_count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "counteroffer_cost_delta_total",
-      numeric_value_sum(callbacks, rows, "provider_counteroffer_cost_delta"),
+      numeric_value_sum(rows, "provider_counteroffer_cost_delta"),
       "must equal row-derived counteroffer_cost_delta_total"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "counteroffer_lock_deadline_count",
-      numeric_value_count(callbacks, rows, "provider_counteroffer_lock_deadline_s"),
+      numeric_value_count(rows, "provider_counteroffer_lock_deadline_s"),
       "must equal row-derived counteroffer_lock_deadline_count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "earliest_counteroffer_lock_deadline_s",
-      numeric_value_min(callbacks, rows, "provider_counteroffer_lock_deadline_s"),
+      numeric_value_min(rows, "provider_counteroffer_lock_deadline_s"),
       "must equal row-derived earliest_counteroffer_lock_deadline_s"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "counteroffer_status_counts",
-      frequency_map(callbacks, rows, "provider_counteroffer_status"),
+      frequency_map(rows, "provider_counteroffer_status"),
       "must equal row-derived counteroffer_status_counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "counteroffer_negotiation_state_counts",
-      frequency_map(callbacks, rows, "provider_counteroffer_negotiation_state"),
+      frequency_map(rows, "provider_counteroffer_negotiation_state"),
       "must equal row-derived counteroffer_negotiation_state_counts"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       report,
       "required_operator_action_counts",
-      frequency_map(callbacks, rows, "required_operator_action"),
+      frequency_map(rows, "required_operator_action"),
       "must equal row-derived required_operator_action_counts"
     )
   end
 
   defp capabilities, do: OrbitalDynamics.Communications.StationCalendar.capabilities()
 
-  defp require_fields(issues, callbacks, path, map, fields),
-    do: apply(Keyword.fetch!(callbacks, :require_fields), [issues, path, map, fields])
+  defp numeric_value_count(rows, field), do: length(numeric_values(rows, field))
+  defp numeric_value_sum(rows, field), do: rows |> numeric_values(field) |> Enum.sum()
 
-  defp validate_stable_ids(issues, callbacks, path, map, fields),
-    do: apply(Keyword.fetch!(callbacks, :validate_stable_ids), [issues, path, map, fields])
+  defp numeric_value_min(rows, field),
+    do: rows |> numeric_values(field) |> Enum.min(fn -> nil end)
 
-  defp expect_equal(issues, callbacks, path, map, field, expected),
-    do: apply(Keyword.fetch!(callbacks, :expect_equal), [issues, path, map, field, expected])
-
-  defp expect_one_of(issues, callbacks, path, map, field, allowed),
-    do: apply(Keyword.fetch!(callbacks, :expect_one_of), [issues, path, map, field, allowed])
-
-  defp expect_optional_one_of(issues, callbacks, path, map, field, allowed),
-    do:
-      apply(Keyword.fetch!(callbacks, :expect_optional_one_of), [
-        issues,
-        path,
-        map,
-        field,
-        allowed
-      ])
-
-  defp expect_type(issues, callbacks, path, map, field, type),
-    do: apply(Keyword.fetch!(callbacks, :expect_type), [issues, path, map, field, type])
-
-  defp expect_optional_type(issues, callbacks, path, map, field, type),
-    do: apply(Keyword.fetch!(callbacks, :expect_optional_type), [issues, path, map, field, type])
-
-  defp expect_non_negative_integer(issues, callbacks, path, map, field) do
-    apply(Keyword.fetch!(callbacks, :expect_non_negative_integer), [issues, path, map, field])
+  defp numeric_values(rows, field) do
+    rows
+    |> Enum.map(&Map.get(&1, field))
+    |> Enum.filter(&is_number/1)
   end
 
-  defp expect_number(issues, callbacks, path, map, field),
-    do: apply(Keyword.fetch!(callbacks, :expect_number), [issues, path, map, field])
+  defp expect_field_equals(issues, path, map, field, nil),
+    do: expect_field_equals(issues, path, map, field, nil, nil)
 
-  defp expect_optional_number(issues, callbacks, path, map, field),
-    do: apply(Keyword.fetch!(callbacks, :expect_optional_number), [issues, path, map, field])
-
-  defp expect_field_equals(issues, callbacks, path, map, field, expected),
-    do:
-      apply(Keyword.fetch!(callbacks, :expect_field_equals), [issues, path, map, field, expected])
-
-  defp expect_field_equals(issues, callbacks, path, map, field, expected, message) do
-    apply(Keyword.fetch!(callbacks, :expect_field_equals_with_message), [
-      issues,
-      path,
-      map,
-      field,
-      expected,
-      message
-    ])
-  end
-
-  defp validate_non_negative_integer_count_map(issues, callbacks, path, values) do
-    apply(Keyword.fetch!(callbacks, :validate_non_negative_integer_count_map), [
-      issues,
-      path,
-      values
-    ])
-  end
-
-  defp validate_rows(issues, callbacks, path, rows, validator),
-    do: apply(Keyword.fetch!(callbacks, :validate_rows), [issues, path, rows, validator])
-
-  defp provider_counteroffer_report_models(callbacks),
-    do: apply(Keyword.fetch!(callbacks, :provider_counteroffer_report_models), [])
-
-  defp frequency_map(callbacks, rows, field),
-    do: apply(Keyword.fetch!(callbacks, :frequency_map), [rows, field])
-
-  defp numeric_value_count(callbacks, rows, field),
-    do:
-      apply(Keyword.fetch!(callbacks, :provider_counteroffer_numeric_value_count), [rows, field])
-
-  defp numeric_value_sum(callbacks, rows, field),
-    do: apply(Keyword.fetch!(callbacks, :provider_counteroffer_numeric_value_sum), [rows, field])
-
-  defp numeric_value_min(callbacks, rows, field),
-    do: apply(Keyword.fetch!(callbacks, :provider_counteroffer_numeric_value_min), [rows, field])
+  defp expect_field_equals(issues, path, map, field, expected),
+    do: expect_field_equals(issues, path, map, field, expected, "must equal #{expected}")
 end

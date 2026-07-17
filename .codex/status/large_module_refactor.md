@@ -9,7 +9,7 @@ Current slice:
 Provider-counteroffer-report callback collapse.
 
 Status:
-Selected; implementation pending.
+Complete and ready to publish.
 
 Selected slice:
 Make `ProviderCounterofferReportContracts` direct through shared primitive,
@@ -45,7 +45,16 @@ aggregation preserve exact behavior; focused, broader, and export checks pass;
 and bounded review finds no blocker.
 
 Outcome:
-Pending.
+The report and row validators now use direct primitive, stable-ID, collection,
+and aggregation owners plus exact local report models and numeric reducers. The
+larger summary callback boundary remains intact and key-complete; only its
+unused report-model entry disappeared. `schema.ex` fell from 11,300 to 11,297
+lines and the report owner from 272 to 209. Two hundred four focused, 1,340
+attributable broader, and 24 export tests pass; compile, checked-in regeneration,
+compile-connected xref within its existing three-edge threshold, format, and
+diff hygiene are clean. Bounded review found no blocker and confirmed exact
+pipeline order, models/capabilities, numeric edge cases, messages, caller
+arities, and summary-factory preservation.
 
 Verification gaps:
 - Full repository suite not run.
