@@ -9,7 +9,7 @@ Current slice:
 Policy-bundle operational-variant mapping.
 
 Status:
-Ready for implementation.
+Publishing.
 
 Selected slice:
 Move only
@@ -58,7 +58,7 @@ exact, focused and full validation tests pass, and bounded review finds no
 blocker.
 
 Verification gaps:
-- Implementation, verification, and bounded review pending.
+- None for this bounded slice.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -74,13 +74,33 @@ Tests run:
 - Source boundary confirmed at facade lines 154-254, with
   `policy_bundle.degraded_payload_guard` beginning at line 255 and no facade
   helper-attribute dependency in the selected literals.
-- Selection only; implementation verification pending.
+- Post-move exact proof: the 195-entry map, sorted-key digest, selected
+  operational-pair digest, prior four-fixture leaf digest, and exact 193-entry
+  remainder digest all match their selection baselines. The resulting
+  six-fixture leaf digest is
+  `919b9027996552173ee3474e0522e39fe947fd912c09f892474dc0137bf093c1`.
+- Source partition proof: 21 maps total 195 entries, the policy leaf owns six,
+  the facade owns 126, and all 210 pairwise intersections are empty.
+- Facade proof: all 195 successful `fetch/1` results, missing-key `:error`, and
+  nonbinary `FunctionClauseError` behavior remain unchanged.
+- Focused policy-bundle/facade validation: 18 tests passed.
+- Full validation family: 181 tests passed.
+- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
+  xref caller checks passed.
+- Independent bounded review: CLEAN. It confirmed the operational pair moved
+  unchanged, the prior four leaf fixtures and complete facade remainder are
+  normalized-AST exact, the leaf owns only six intended keys, all 21 maps are
+  unique and pairwise disjoint, all six digests and facade edge behaviors are
+  unchanged, dependencies remain one-way, and it reproduced 18 focused and 181
+  full validation tests.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-No operational-variant implementation has started.
+The two exact operational-policy fixtures now live in the existing policy leaf
+behind the unchanged facade. The facade shrank from 9,068 to 8,967 lines; the
+leaf grew from four to six fixtures and from 295 to 396 lines.
 
 Last completed slice:
 Policy-bundle authority extraction published as `d3a4e305`: the two exact
