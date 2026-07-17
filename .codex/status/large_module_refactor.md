@@ -9,7 +9,7 @@ Current slice:
 Resource-pressure handoff fixture mapping.
 
 Status:
-Ready for implementation.
+Publishing.
 
 Selected slice:
 Move
@@ -59,7 +59,7 @@ and the complete facade remainder stay exact, focused and full validation tests
 pass, and bounded review finds no blocker.
 
 Verification gaps:
-- Implementation and post-move verification pending.
+- None for this slice.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -73,13 +73,33 @@ Tests run:
 - Contiguous source boundary confirmed at facade lines 285-603, followed by
   `operator_review_package.v1`, with no facade helper-attribute dependency in
   the selected literals.
-- Focused resource-pressure-handoff/facade selection baseline: 13 tests passed.
+- Normalized-AST proof against selection commit `83cb847a`: all four moved
+  literals, the following operator-review package, and the complete 27-entry
+  facade remainder are exact; the new leaf owns only the intended four keys.
+- Post-move exact proof: the 195-entry map, sorted-key digest, selected
+  four-fixture digest, and exact 191-entry remainder digest all match their
+  selection baselines.
+- Source partition proof: 44 maps total 195 entries, the new leaf owns four, the
+  facade owns 27, all 946 pairwise intersections are empty, and the source key
+  union exactly matches the runtime map.
+- Facade proof: all 195 successful `fetch/1` results, missing-key `:error`, and
+  nonbinary `FunctionClauseError` behavior remain unchanged.
+- Focused resource-pressure-handoff/facade validation: 13 tests passed.
+- Full validation family: 181 tests passed.
+- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
+  xref caller checks passed.
+- Independent bounded review against selection commit `83cb847a` was clean:
+  the contiguous source range and complete facade remainder are normalized-AST
+  exact, all runtime and partition invariants reproduced, dependency direction
+  remains one-way, and focused/full tests and hygiene gates passed.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-No resource-pressure handoff implementation has started.
+The exact four-fixture resource-pressure handoff family now lives in a new
+cohesive leaf behind the unchanged facade. The facade shrank from 2,631 to
+2,314 lines; the new leaf is 327 lines and owns exactly four fixtures.
 
 Last completed slice:
 Schema-compatibility extraction published as `2320389d`: the exact four-fixture
