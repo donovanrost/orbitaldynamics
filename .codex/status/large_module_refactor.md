@@ -9,7 +9,7 @@ Current slice:
 Schema timeline publication-summary callback ownership cleanup.
 
 Status:
-Completed and verified; publishing.
+Completed and published.
 
 Selected slice:
 Give `Schema.TimelineHandoffContracts` an owner-owned three-argument publication
@@ -71,14 +71,17 @@ Behavior/schema changes:
 None.
 
 Last completed slice:
-Schema timeline callback ownership cleanup published as `f2520e49`: seventeen
-captures now point directly to `TimelineHandoffContracts`, eleven pure facade
-delegates were removed, 182 schema/export tests passed, full export bytes stayed
-exact, and bounded review was clean.
+Schema timeline publication-summary callback ownership cleanup published as
+`5bc62467`: six captures now point directly to `TimelineHandoffContracts`, the
+owner internalizes its existing validator dependency, 182 schema/export tests
+passed, full export bytes stayed exact, and bounded review was clean.
 
 Next candidate:
-After this boundary, audit the remaining `Schema` callback captures by owner and
-capture count before selecting another bounded family.
+Collapse the suppression-only callback boundary: two duplicate-group captures,
+three source-match captures, and one cadence source-review capture currently
+pass through five pure `Schema` facade clauses. Confirm the owner’s specialized
+and fallback clauses remain exact, and leave duplicate-row evidence injection
+separate.
 
 Blocked:
 No.
