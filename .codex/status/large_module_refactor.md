@@ -6,10 +6,10 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Quality-gate fixture mapping.
+Quality-gate fixture extraction handoff.
 
 Status:
-Publishing.
+Published as `287ee9f1`.
 
 Selected slice:
 Move
@@ -101,15 +101,17 @@ behind the unchanged facade. The facade shrank from 1,861 to 1,240 lines; the
 new leaf is 631 lines and owns exactly seven fixtures.
 
 Last completed slice:
-Operational-readiness extraction published as `848499d8`: the exact
-five-fixture family moved into a new 463-line leaf, the facade shrank from 2,314
-to 1,861 lines, the 195-entry map and all deterministic digests stayed exact,
-17 focused and 181 full validation tests passed, and bounded review was clean.
+Quality-gate extraction published as `287ee9f1`: the exact seven-fixture family
+moved into a new 631-line leaf, the facade shrank from 1,861 to 1,240 lines, the
+195-entry map and all deterministic digests stayed exact, 20 focused and 181
+full validation tests passed, and bounded review was clean.
 
 Next candidate:
-Select the quality-gate extraction described above, capture the
-exact map and contiguous source boundary, then move the complete test-owned
-family.
+Map the two contiguous model-acceptance fixtures at the end of the facade:
+`model_acceptance_report.operational_import` and
+`validation_safety_case_summary.v1`. Both are owned by
+`model_acceptance_fixture_test.exs`; capture exact selected/remainder digests
+and source boundaries before moving the complete pair into a cohesive leaf.
 
 Blocked:
 No.
