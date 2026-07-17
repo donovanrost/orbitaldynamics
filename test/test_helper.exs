@@ -54,3 +54,4 @@ Code.require_file(
 )
 
 Code.require_file("support/validation/candidate_state_fixtures.ex", __DIR__)
+Code.require_file("support/validation/planning_input_fixtures.ex", __DIR__)

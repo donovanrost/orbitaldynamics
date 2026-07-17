@@ -9,7 +9,7 @@ Current slice:
 Validation planning-input capability fixture test-family extraction.
 
 Status:
-Selected.
+Ready to publish.
 
 Selected slice:
 Move the three contiguous campaign-request lint, capability-catalog, and
@@ -19,7 +19,7 @@ planning-input fixture owner.
 Why this slice:
 After the candidate-state split, `validation_test.exs` is 5,145 lines. Tests
 1,664-1,946 form a coherent planning-input capability family and end before
-proposed-contact fixtures. Their eleven helpers form a complete JSON/runtime
+proposed-contact fixtures. Their twelve helpers form a complete JSON/runtime
 capability closure; eight observation helpers remain deterministic aggregate
 consumers, and the cluster owns every remaining parent `Environment` call.
 
@@ -47,10 +47,16 @@ shared builders have one exact owner, focused and parent files pass, names remai
 unique, and bounded review finds no blocker.
 
 Outcome:
-Pending.
+Three byte-identical planning-input capability tests moved into a 298-line
+focused module. Their twelve helpers now have one 85-line shared support owner
+with an exact private JSON loader; the parent imports only the eight aggregate
+observation builders and no longer owns `Environment`. The parent fell from
+5,145 to 4,797 lines. Total test/support/loader LOC grew by 36 lines for
+explicit ownership without helper duplication. All 181 Validation test names
+remain unique.
 
 Verification gaps:
-- Pending.
+- Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
 Validation candidate-state artifact extraction published as `386d94aa`: the
@@ -60,9 +66,10 @@ hygiene, exact-source and dependency-closure checks, and bounded review were
 clean.
 
 Next candidate:
-Map the proposed-contact and branch-comparison fixture families following
-planning inputs. Split only a coherent artifact family with complete helper
-closure.
+Map the proposed-contact, branch-comparison, optimizer-contract,
+invalidated-candidate, strategy-branch, and strategy-recommendation fixtures
+following planning inputs. The six contiguous tests and twelve raw/observation
+helpers form one candidate-strategy artifact family ending before benchmarks.
 
 Blocked:
 No.
