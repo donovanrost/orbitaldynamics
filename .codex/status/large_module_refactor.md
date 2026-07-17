@@ -9,7 +9,7 @@ Current slice:
 Validation contact-allocation artifact fixture test-family extraction.
 
 Status:
-Selected.
+Ready to publish.
 
 Selected slice:
 Move the five contiguous contact-allocation report, reservation-conflict,
@@ -48,10 +48,24 @@ six shared builders have one exact owner, the focused and parent files pass,
 all 181 test names remain unique, and bounded review finds no blocker.
 
 Outcome:
-Pending.
+All five contact-allocation artifact tests moved into
+`contact_allocation_fixture_test.exs` with order and assertion strength
+unchanged. Six fixture helpers moved exactly, apart from the required `defp` to
+`def` visibility change, into `ContactAllocationFixtures`. The focused module
+imports the report/raw helper pair it consumes, while the parent imports the
+five observation helpers still required by its deterministic aggregate report.
+The parent shrank from 3,064 to 2,567 lines. The focused test file is 486 lines
+and the shared support owner is 46 lines; explicit shared ownership adds 36
+lines across the relevant test and support files.
 
 Verification gaps:
-- Pending.
+- Focused contact-allocation fixture module: 5/5 passed.
+- Remaining parent validation module: 15/15 passed.
+- Full Validation family: 44 modules, 181/181 passed.
+- Exact-source audit: five tests, six helpers, and both private JSON loaders
+  exact; all 181 test names remain unique.
+- `mix format --check-formatted` and `git diff --check` passed.
+- Independent bounded review found no blocker.
 
 Last completed slice:
 Validation resource-pressure handoff fixture extraction published as
