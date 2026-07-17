@@ -9,7 +9,7 @@ Current slice:
 Resource-summary fixture mapping.
 
 Status:
-Ready for implementation.
+Publishing.
 
 Selected slice:
 Move
@@ -56,7 +56,7 @@ and the complete facade remainder stay exact, focused and full validation tests
 pass, and bounded review finds no blocker.
 
 Verification gaps:
-- Implementation and post-move verification pending.
+- None for this slice.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -71,13 +71,34 @@ Tests run:
   station-calendar fixtures between them and
   `objective_satisfaction_report.v1` following them; the selected literals have
   no facade helper-attribute dependency.
-- Focused resource-summary/facade selection baseline: 15 tests passed.
+- Normalized-AST proof against selection commit `37c2b0fe`: all three moved
+  literals, both intervening station-calendar fixtures, the following
+  objective-satisfaction report, and the complete 49-entry facade remainder are
+  exact; the new leaf owns only the intended three keys.
+- Post-move exact proof: the 195-entry map, sorted-key digest, selected
+  three-fixture digest, and exact 192-entry remainder digest all match their
+  selection baselines.
+- Source partition proof: 40 maps total 195 entries, the new leaf owns three,
+  the facade owns 49, all 780 pairwise intersections are empty, and the source
+  key union exactly matches the runtime map.
+- Facade proof: all 195 successful `fetch/1` results, missing-key `:error`, and
+  nonbinary `FunctionClauseError` behavior remain unchanged.
+- Focused resource-summary/facade validation: 15 tests passed.
+- Full validation family: 181 tests passed.
+- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
+  xref caller checks passed.
+- Independent bounded review against selection commit `37c2b0fe` was clean:
+  both source ranges and the complete facade remainder are normalized-AST
+  exact, all runtime and partition invariants reproduced, dependency direction
+  remains one-way, and focused/full tests and hygiene gates passed.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-No resource-summary implementation has started.
+The exact three-fixture resource-summary/filter family now lives in a new
+cohesive leaf behind the unchanged facade. The facade shrank from 3,800 to
+3,603 lines; the new leaf is 207 lines and owns exactly three fixtures.
 
 Last completed slice:
 Resource-safety extraction published as `8f945983`: the exact five-fixture
