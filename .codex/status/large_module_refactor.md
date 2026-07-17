@@ -6,28 +6,28 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Link-capacity ownership cleanup.
+Decision-support fixture mapping.
 
 Status:
-Publishing.
+Ready for next slice selection.
 
 Selected slice:
-Move
-`relay_data_path_summary.v1` from the facade into the existing
-`Validation.ReferenceFixtures.LinkCapacityArtifacts` leaf beside
-`link_capacity_summary.v1` and `link_capacity_report.v1`. Preserve the
-following maneuver-review report exactly.
+No implementation selected yet. The next bounded candidate is to move
+`maneuver_review_report.v1`, `monte_carlo_reproducibility_report.v1`, and
+`pareto_frontier_report.v1` from their contiguous facade range into a new
+`Validation.ReferenceFixtures.DecisionSupportArtifacts` leaf. Preserve the
+following resource-projection report exactly.
 
 Why this slice:
-`ReferenceFixtures` remains the largest production module at 4,405 lines. The
-98-line relay fixture is the only fixture owned by
-`link_capacity_fixture_test.exs` that remains outside the existing
-link-capacity leaf.
+`ReferenceFixtures` remains the largest production module at 4,307 lines. The
+three fixtures occupy 151 facade lines and exactly own
+`decision_support_fixture_test.exs`.
 
 Current coupling/problem:
-Relay data-path expectations remain in the general facade while the matching
-link-capacity summary and report already live together. Moving the final member
-completes established family ownership without creating another module.
+Maneuver review, reproducibility, and Pareto-frontier expectations form a
+compact, contiguous test-owned family but remain embedded in the general
+registry. Moving all three preserves the complete decision-support
+responsibility without absorbing resource-projection behavior.
 
 Public facade to preserve:
 `OrbitalDynamics.Validation.ReferenceFixtures.all/0` and `fetch/1`, exact
@@ -35,28 +35,28 @@ fixture keys and values, map equality and deterministic term bytes, and all
 `OrbitalDynamics.Validation` reference-fixture behavior.
 
 Likely extraction target:
-`OrbitalDynamics.Validation.ReferenceFixtures.LinkCapacityArtifacts`.
+`OrbitalDynamics.Validation.ReferenceFixtures.DecisionSupportArtifacts`.
 
 Likely files:
 - `lib/orbital_dynamics/validation/reference_fixtures.ex`
-- `lib/orbital_dynamics/validation/reference_fixtures/link_capacity_artifacts.ex`
+- `lib/orbital_dynamics/validation/reference_fixtures/decision_support_artifacts.ex`
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
 - exact before/after fixture count, keys, values, and deterministic term digest
-- focused link-capacity and facade validation tests
+- focused decision-support and facade validation tests
 - full validation test family
 - strict compile, format, xref, diff hygiene, and bounded review
 
 Definition of done:
-All three link-capacity fixtures exist only in the established cohesive leaf,
-all 36 fixture maps remain disjoint, `all/0` and `fetch/1` return exactly the same
+The three decision-support fixtures exist only in the new cohesive leaf, all 37
+fixture maps remain disjoint, `all/0` and `fetch/1` return exactly the same
 195-entry map and deterministic term bytes, both following boundary fixtures
 and the complete facade remainder stay exact, focused and full validation tests
 pass, and bounded review finds no blocker.
 
 Verification gaps:
-- None for this slice.
+- Next candidate still requires a selection baseline before implementation.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -100,21 +100,18 @@ Behavior/schema changes:
 None.
 
 Outcome:
-The relay-data-path fixture now lives beside the existing link-capacity summary
-and report in the established leaf behind the unchanged facade. The facade
-shrank from 4,405 to 4,307 lines; the leaf grew from 179 to 277 lines and owns
-exactly the three fixtures exercised together.
+No decision-support implementation has started.
 
 Last completed slice:
-Contact-contention extraction published as `935df70f`: the exact five-fixture
-family moved into a new 326-line leaf, the facade shrank from 4,721 to 4,405
-lines, the 195-entry map and all deterministic digests stayed exact, 17 focused
-and 181 full validation tests passed, and bounded review was clean.
+Link-capacity ownership cleanup published as `ad07b74b`: the exact relay fixture
+moved into the existing leaf, the facade shrank from 4,405 to 4,307 lines, the
+leaf grew from 179 to 277 lines, the 195-entry map and all deterministic digests
+stayed exact, 15 focused and 181 full validation tests passed, and bounded
+review was clean.
 
 Next candidate:
-Select the relay-data-path ownership cleanup described above, capture the exact
-fixture and facade remainder baselines, then complete the existing test-owned
-family.
+Select the decision-support extraction described above, capture the exact map
+and contiguous source boundary, then move the complete test-owned family.
 
 Blocked:
 No.
