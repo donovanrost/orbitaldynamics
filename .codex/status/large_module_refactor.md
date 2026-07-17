@@ -6,23 +6,23 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema strategy handoff callback ownership cleanup.
+Schema command-window/maneuver handoff callback ownership cleanup.
 
 Status:
-Completed and published.
+Selected; implementation pending.
 
 Selected slice:
-Point the strategy-recommendation, strategy-tradeoff, branch-comparison,
-ranking-comparison, and Pareto-frontier handoff callback captures directly at
-the existing `Schema.StrategyHandoffContracts` owner. Remove the nine redundant
-private delegates across the general and cadence-source-review validation paths.
+Point the command-window and maneuver-review handoff callback captures directly
+at the existing `Schema.CommandWindowManeuverHandoffContracts` owner. Remove
+the four redundant private delegates across the general and
+cadence-source-review validation paths.
 
 Why this slice:
-All nine delegates are pure pass-throughs to one already-extracted internal
-module. The four paired families each have three general capture sites and one
-cadence-specific site; branch comparison has one general site. Direct captures
-consolidate all 17 callback positions without moving strategy validation logic
-or unrelated schema orchestration.
+All four delegates are pure pass-throughs to one already-extracted internal
+module, whose public targets retain their specialized and fallback clauses.
+Each family has three general capture sites and one cadence-specific site, so
+the eight callback positions form one small, independently reviewable owner
+boundary.
 
 Public facade to preserve:
 All `OrbitalDynamics.Schema` public functions, exact validation issue ordering,
@@ -40,35 +40,19 @@ Likely verification:
 
 Definition of done:
 Every callback list directly captures the corresponding public
-`StrategyHandoffContracts` validator, the nine facade delegates are gone,
+`CommandWindowManeuverHandoffContracts` validator, the four facade delegates
+are gone,
 validation and schema exports remain byte-for-byte stable, focused tests pass,
 and bounded review finds no blocker.
 
-Outcome:
-All strategy recommendation/tradeoff, branch-comparison, ranking-comparison,
-and Pareto-frontier callback lists now capture the existing
-`StrategyHandoffContracts` validators directly. Nine private one-hop delegates
-were removed, reducing `schema.ex` from 9,090 to 8,990 lines without changing
-callback keys, order, fallback behavior, validation results, or checked-in
-schema bytes.
-
 Verification gaps:
-- None for this slice.
+- Implementation and verification pending.
 
 Tests run:
-- `mix compile --warnings-as-errors`
-- 41 focused strategy-referencing schema contract tests
-- 182 complete schema-contract and schema-export tests
-- full checked-in schema export regeneration; no schema diff
-- aggregate schema bundle digest unchanged:
-  `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`
-- `mix format --check-formatted`
-- `git diff --check`
-- compile-connected xref check for `schema.ex`
-- bounded read-only review: clean, no findings
+- Pending.
 
 Behavior/schema changes:
-None.
+None intended.
 
 Last completed slice:
 Schema strategy handoff callback ownership cleanup published as `1118be3d`:
