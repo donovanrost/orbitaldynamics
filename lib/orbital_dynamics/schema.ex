@@ -6293,14 +6293,6 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validate_timeline_diff_row(issues, path, row) do
-    OrbitalDynamics.Schema.TimelineDiffRowContracts.validate(
-      issues,
-      path,
-      row
-    )
-  end
-
   defp validate_optional_timeline_diff_summary_source(issues, path, summary),
     do:
       OrbitalDynamics.Schema.TimelinePublicationSummaryContracts.validate_optional_timeline_diff_summary_source(
@@ -6425,17 +6417,9 @@ defmodule OrbitalDynamics.Schema do
       path,
       report,
       timeline_report_model_limits(),
-      &validate_timeline_transition_application_report_counts/3,
+      &OrbitalDynamics.Schema.TimelineTransitionApplicationReportCountContracts.validate/3,
       &validate_timeline_transition_selected_activity/3,
       &validate_timeline_transition_application_row/3
-    )
-  end
-
-  defp validate_timeline_transition_application_report_counts(issues, path, report) do
-    OrbitalDynamics.Schema.TimelineTransitionApplicationReportCountContracts.validate(
-      issues,
-      path,
-      report
     )
   end
 
@@ -6487,17 +6471,9 @@ defmodule OrbitalDynamics.Schema do
       row,
       &validate_optional_lifecycle_transition/4,
       &validate_optional_protection_decision/4,
-      &validate_timeline_identity_collision_fields/3,
+      &OrbitalDynamics.Schema.TimelineIdentityCollisionContracts.validate_fields/3,
       &validate_selected_timeline_integrity_fields/3,
-      &validate_timeline_diff_row/3
-    )
-  end
-
-  defp validate_timeline_identity_collision_fields(issues, path, row) do
-    OrbitalDynamics.Schema.TimelineIdentityCollisionContracts.validate_fields(
-      issues,
-      path,
-      row
+      &OrbitalDynamics.Schema.TimelineDiffRowContracts.validate/3
     )
   end
 
