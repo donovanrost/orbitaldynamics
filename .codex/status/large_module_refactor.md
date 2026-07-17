@@ -9,7 +9,7 @@ Current slice:
 CampaignPlanner repair-accumulator mutation ownership cleanup.
 
 Status:
-Ready to publish.
+Published as `0f91bc40`.
 
 Selected slice:
 Move activity insertion, replacement-ID tracking, and warning insertion into
@@ -65,9 +65,9 @@ Verification gaps:
   qualified calls plus the three moved primitive mutation bodies.
 
 Last completed slice:
-CampaignPlanner V1 build-artifact assembly extraction published as `af42dda3`:
-all 34 fields and attachment order remained exact, every direct `build/2` test
-file passed 36/36, and bounded review found no blocker.
+CampaignPlanner repair-accumulator mutation ownership cleanup published as
+`0f91bc40`: all 37 mutation points remained exact, repair-family tests passed
+67/67, and bounded review found no blocker.
 
 Next candidate:
 With accumulator ownership unified, remap the repair transition cluster and
