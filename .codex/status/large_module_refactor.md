@@ -6,59 +6,45 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-CampaignPlanner repair maneuver timing-impact extraction.
+CampaignPlanner repair activity-dispatch extraction.
 
 Status:
-Published as `4d66a619`.
+Selected.
 
 Selected slice:
-Extract delayed-maneuver movement and downstream activity-impact annotation
-into `RepairManeuverTransitions`.
+Extract activity normalization/matching, realized-status derivation,
+protection priority, and transition dispatch into `RepairActivityDispatch`.
 
 Why this slice:
-Accumulator ownership is now complete. Movement, delay calculation, maneuver
-tracking, downstream matching, metadata annotation, approvals, and warnings
-form one closed timing-impact responsibility with no callbacks.
+All transition owners are now explicit. The remaining repair-only status
+attributes and dispatch helpers form a closed orchestration responsibility
+that can move without callbacks while preserving condition priority.
 
 Public facade to preserve:
 `OrbitalDynamics.CampaignPlanner.repair/1`, exact repaired activities, deltas,
-delayed-maneuver tracking, downstream annotations, warnings, approvals, and
-deterministic ordering.
+warnings, approvals, transition choice, protection policy, and deterministic
+ordering.
 
 Likely files:
 - `lib/orbital_dynamics/campaign_planner.ex`
-- `lib/orbital_dynamics/campaign_planner/repair_maneuver_transitions.ex`
+- `lib/orbital_dynamics/campaign_planner/repair_activity_dispatch.ex`
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
-- focused delayed-maneuver and determinism families
-- normalized movement/downstream branch and accumulator-call audit
+- full focused repair/facade family
+- normalized case/condition order and status/protection audit
 - compile, format, diff hygiene, and bounded review
 
 Definition of done:
-Both facade call sites delegate to one timing-impact owner; delay calculation,
-metadata, affected-activity matching, accumulator call order, warnings,
-approvals, and ordering remain exact; focused tests pass; and bounded review
-finds no blocker.
+The repair reduce delegates each activity to one dispatch owner; normalization,
+realized matching/status, protection priority, transition selection, and
+ordering remain exact; focused tests pass; and bounded review finds no blocker.
 
 Outcome:
-Added `RepairManeuverTransitions` as the owner for delayed-maneuver movement,
-tracking, and downstream activity-impact annotation. The repair reduce and
-status dispatch now delegate directly; the facade's final repair metadata
-helper and accumulator alias are gone. The facade fell from 4,138 to 4,052
-lines; the explicit 96-line owner makes the bounded scope net +10 lines while
-removing 86 lines of timing-impact responsibility from the facade.
+Pending.
 
 Verification gaps:
-- Strict compilation and diff hygiene pass.
-- Delayed-maneuver execution-policy, timeline-protection, and determinism
-  families pass 17/17, including exact shifted timing, churn metadata, delta
-  linkage, approval, and invalid actual-start assertions.
-- Delay calculation, moved metadata, affected-activity matching, accumulator
-  call order, warning/approval text, and both changed call sites were audited
-  against selection commit `ec52bddd`.
-- Independent review's focused-proof finding was corrected; re-review found no
-  blocker.
+- Pending.
 
 Last completed slice:
 CampaignPlanner repair maneuver timing-impact extraction published as
@@ -66,8 +52,8 @@ CampaignPlanner repair maneuver timing-impact extraction published as
 focused tests passed, and corrected bounded review found no blocker.
 
 Next candidate:
-After maneuver transitions, remap the remaining repair dispatch/protection
-helpers and stop this lane if no cohesive callback-free owner remains.
+After activity dispatch, refresh the CampaignPlanner hotspot map and leave the
+repair lane if no cohesive callback-free owner remains.
 
 Blocked:
 No.
