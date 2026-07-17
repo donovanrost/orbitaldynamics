@@ -170,6 +170,15 @@ defmodule OrbitalDynamics.Schema.SuppressionHandoffContracts do
     end
   end
 
+  def validate_duplicate_row_fields(issues, path, row) do
+    validate_duplicate_row_fields(
+      issues,
+      path,
+      row,
+      &OrbitalDynamics.Schema.SuppressedCandidateContracts.validate_duplicate_evidence/3
+    )
+  end
+
   def validate_duplicate_row_fields(issues, path, row, evidence_validator)
       when is_function(evidence_validator, 3) do
     if handoff_row?(row) do

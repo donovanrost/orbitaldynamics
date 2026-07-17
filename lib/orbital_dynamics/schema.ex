@@ -6944,14 +6944,6 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validate_duplicate_suppressed_candidate_evidence(issues, path, candidate) do
-    OrbitalDynamics.Schema.SuppressedCandidateContracts.validate_duplicate_evidence(
-      issues,
-      path,
-      candidate
-    )
-  end
-
   defp validate_link_capacity_summary(issues, path, summary) do
     OrbitalDynamics.Schema.LinkCapacitySummaryContracts.validate_summary(
       issues,
@@ -7317,7 +7309,7 @@ defmodule OrbitalDynamics.Schema do
       validate_station_calendar_handoff_count_lists:
         &OrbitalDynamics.Schema.StationCalendarHandoffContracts.validate_count_lists/3,
       validate_suppression_duplicate_handoff_row_fields:
-        &validate_suppression_duplicate_handoff_row_fields/3,
+        &OrbitalDynamics.Schema.SuppressionHandoffContracts.validate_duplicate_row_fields/3,
       validate_suppression_handoff_matches_source:
         &OrbitalDynamics.Schema.SuppressionHandoffContracts.validate_matches_source/3,
       validate_contact_contention_handoff_matches_source:
@@ -7531,7 +7523,7 @@ defmodule OrbitalDynamics.Schema do
         &OrbitalDynamics.Schema.ContactAllocationHandoffContracts.validate_capacity_pack_matches_source/3,
       validate_station_capacity_fraction_fields: &validate_station_capacity_fraction_fields/3,
       validate_suppression_duplicate_handoff_row_fields:
-        &validate_suppression_duplicate_handoff_row_fields/3,
+        &OrbitalDynamics.Schema.SuppressionHandoffContracts.validate_duplicate_row_fields/3,
       validate_scoped_downlink_context_fields: &validate_scoped_downlink_context_fields/3,
       validate_observation_quality_handoff_fields: &validate_observation_quality_handoff_fields/3,
       validate_feedback_maneuver_handoff_fields: &validate_feedback_maneuver_handoff_fields/3,
@@ -7863,15 +7855,6 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validate_suppression_duplicate_handoff_row_fields(issues, path, row) do
-    OrbitalDynamics.Schema.SuppressionHandoffContracts.validate_duplicate_row_fields(
-      issues,
-      path,
-      row,
-      &validate_duplicate_suppressed_candidate_evidence/3
-    )
-  end
-
   defp validate_optional_policy_escalation(issues, path, row, field) do
     case Map.get(row, field) do
       nil ->
@@ -8130,7 +8113,7 @@ defmodule OrbitalDynamics.Schema do
       validate_station_calendar_handoff_count_lists:
         &OrbitalDynamics.Schema.StationCalendarHandoffContracts.validate_count_lists/3,
       validate_suppression_duplicate_handoff_row_fields:
-        &validate_suppression_duplicate_handoff_row_fields/3,
+        &OrbitalDynamics.Schema.SuppressionHandoffContracts.validate_duplicate_row_fields/3,
       validate_suppression_handoff_matches_source:
         &OrbitalDynamics.Schema.SuppressionHandoffContracts.validate_matches_source/3,
       validate_contact_contention_handoff_matches_source:
