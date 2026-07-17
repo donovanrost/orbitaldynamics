@@ -6,30 +6,30 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Provider-counteroffer-report callback collapse.
+Provider-counteroffer-summary callback collapse.
 
 Status:
-Complete and ready to publish.
+Selected; implementation pending.
 
 Selected slice:
-Make `ProviderCounterofferReportContracts` direct through shared primitive,
-stable-ID, collection, and aggregation owners plus local report models/numeric
-reducers; leave the larger summary owner's callback boundary unchanged.
+Make all three `ProviderCounterofferSummaryContracts` entry points direct through
+shared owners, local aggregation helpers, and the direct report row validator;
+remove the now-summary-only callback factory and orphan Schema helpers.
 
 Why this slice:
-Live inventory leaves `schema.ex` at 11,300 lines. This 272-line report owner
-and its two callers route only static/shared work through a 28-entry bag that is
-also used by the distinct summary owner. The report can become direct without
-expanding or destabilizing that larger summary slice.
+After the report collapse, the 27-entry factory has exactly three callers, all
+inside this 783-line summary owner. Every dependency is static/shared and the
+row validator is now direct, so the factory and its Schema aggregation surface
+can disappear as one cohesive boundary.
 
 Public facade to preserve:
-`OrbitalDynamics.Schema.validate_artifact/2`, provider-counteroffer report/row
-fields, exact paths/messages/order, derived counts, consumers, deterministic
-artifacts, and schema exports.
+`OrbitalDynamics.Schema.validate_artifact/2`, provider-counteroffer review,
+import-readiness, and plan-impact summaries, exact paths/messages/order, derived
+counts, consumers, deterministic artifacts, and schema exports.
 
 Likely files:
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/provider_counteroffer_report_contracts.ex`
+- `lib/orbital_dynamics/schema/provider_counteroffer_summary_contracts.ex`
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
@@ -40,21 +40,12 @@ Likely verification:
 - compile-connected xref, format, diff hygiene, and bounded review
 
 Definition of done:
-No callback lookup/apply remains in the report owner; shared ownership and local
-aggregation preserve exact behavior; focused, broader, and export checks pass;
+No provider-counteroffer callback factory or lookup/apply remains; shared/local
+aggregation preserves exact behavior; focused, broader, and export checks pass;
 and bounded review finds no blocker.
 
 Outcome:
-The report and row validators now use direct primitive, stable-ID, collection,
-and aggregation owners plus exact local report models and numeric reducers. The
-larger summary callback boundary remains intact and key-complete; only its
-unused report-model entry disappeared. `schema.ex` fell from 11,300 to 11,297
-lines and the report owner from 272 to 209. Two hundred four focused, 1,340
-attributable broader, and 24 export tests pass; compile, checked-in regeneration,
-compile-connected xref within its existing three-edge threshold, format, and
-diff hygiene are clean. Bounded review found no blocker and confirmed exact
-pipeline order, models/capabilities, numeric edge cases, messages, caller
-arities, and summary-factory preservation.
+Pending.
 
 Verification gaps:
 - Full repository suite not run.
@@ -63,11 +54,12 @@ Verification gaps:
   attributable result is 1,340/1,340.
 
 Last completed slice:
-Direct-helper equality-message restoration published as `0bbcd32d`: eleven
-owners again emit their historical implicit equality messages while explicit
-messages and reachable nil behavior remain unchanged. Five hundred fifty-one
-focused, 1,340 attributable broader, and 24 export tests passed; compile,
-regeneration, xref, format, diff hygiene, and bounded review were clean.
+Provider-counteroffer-report callback collapse published as `d56cf494`:
+`schema.ex` fell from 11,300 to 11,297 lines and the report owner from 272 to
+209. Report/row validation became direct while the summary factory stayed
+complete. Two hundred four focused, 1,340 attributable broader, and 24 export
+tests passed; compile, regeneration, xref, format, diff hygiene, and bounded
+review were clean.
 
 Blocked:
 No.
