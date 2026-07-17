@@ -9,10 +9,10 @@ Current slice:
 Campaign planner operator-review pressure-branch dispatch extraction.
 
 Status:
-Selected.
+Completed and published.
 
 Selected slice:
-Extract the 21-clause operator-review row pressure-branch registry from
+Extract the 22-review-type operator-review row pressure-branch registry from
 `OrbitalDynamics.CampaignPlanner` into
 `CampaignPlanner.OperatorReviewPressureBranches`.
 
@@ -39,22 +39,39 @@ Likely verification:
 - compile, format, xref, diff hygiene, and bounded review
 
 Definition of done:
-The planner collectors delegate row dispatch to one internal registry; all 21
+The planner collectors delegate row dispatch to one internal registry; all 22
 review types, fallback behavior, source paths, policy use, trust boundaries,
 and emitted branch artifacts remain exact; focused tests pass; and bounded
 review finds no blocker.
 
 Outcome:
-Pending.
+All three callers now delegate operator-review row dispatch to
+`CampaignPlanner.OperatorReviewPressureBranches`. The internal module owns all
+22 review-type clauses, the unknown-row fallback, source extraction,
+approval/trust-boundary propagation, and the registry-only communications and
+timeline-diff wrappers. `CampaignPlanner` fell from 3,967 to 3,592 lines.
 
 Verification gaps:
-- Pending.
+- None for this slice.
+
+Tests run:
+- `mix compile --warnings-as-errors`
+- 29 focused operator-review/objective/timeline/communications tests
+- 10 campaign facade and strategy branch regression tests
+- `mix format --check-formatted`
+- `git diff --check`
+- new-file diff hygiene
+- compile-connected xref check for `campaign_planner.ex`
+- bounded read-only review: clean, no findings
+
+Behavior/schema changes:
+None.
 
 Last completed slice:
-Schema quality-gate report property dispatch published as `91313036`:
-operational quality-gate summary and quality-gate report now route through one
-cohesive internal dispatcher, 30 focused/export tests passed, full regeneration
-was byte-identical, and bounded review found no finding.
+Campaign-planner operator-review pressure dispatch published as `72f92514`:
+all 22 review types and the unknown fallback now live in one cohesive internal
+registry, all three callers delegate through it, 39 focused/regression tests
+passed, and bounded review found no finding.
 
 Next candidate:
 After this slice, audit the adjacent cadence-import pressure registry or the
