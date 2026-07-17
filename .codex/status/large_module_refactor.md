@@ -6,10 +6,10 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema provider-counteroffer summary ownership mapping.
+Schema provider-counteroffer summary ownership handoff.
 
 Status:
-Ready for publication.
+Published as `d1d12861`.
 
 Selected slice:
 Point the standalone review, import-readiness, and plan-impact summary pipes
@@ -66,7 +66,10 @@ Plan-delta cleanup published as `fb837511`: `schema.ex` shrank from 7,887 to
 byte-matched, and bounded review was clean.
 
 Next candidate:
-After review and publication, continue the robust exact-signature inventory.
+Map the remaining standalone `validate_provider_counteroffer_report/3` facade
+delegate. Broad search shows one final report pipe and one pure exact-signature
+delegate to `ProviderCounterofferReportContracts.validate/3`; reuse focused
+station-provider executable coverage.
 
 Blocked:
 No.
