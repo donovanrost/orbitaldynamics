@@ -9,7 +9,7 @@ Current slice:
 CampaignPlanner repair activity-state transition extraction.
 
 Status:
-Selected.
+Ready to publish.
 
 Selected slice:
 Extract ambiguous-review, degraded-suppression, executed/locked/viable
@@ -43,10 +43,22 @@ warning and approval behavior, realized-feedback handling, and ordering remain
 exact; focused tests pass; and bounded review finds no blocker.
 
 Outcome:
-Pending.
+Added `RepairActivityStateTransitions` as the owner for ambiguous-feedback
+review, degraded suppression, executed/locked/viable preservation, and
+terminal cancellation. The facade now only dispatches these six state
+branches; metadata construction and accumulator mutations move together. The
+facade fell from 4,253 to 4,140 lines; the explicit 128-line owner makes the
+bounded scope net +15 lines while removing 113 lines of mixed state-transition
+responsibility from the facade.
 
 Verification gaps:
-- Pending.
+- Strict compilation and diff hygiene pass.
+- Repair execution-policy, realized-state, timeline-protection, ambiguity, and
+  determinism families pass 67/67.
+- All six branch bodies, metadata maps, accumulator call order, warning text,
+  approval actions, and changed dispatch sites were audited against selection
+  commit `d333ce84`.
+- Independent bounded review found no blocker.
 
 Last completed slice:
 CampaignPlanner repair replacement-transition extraction published as

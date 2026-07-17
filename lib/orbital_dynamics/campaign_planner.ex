@@ -122,6 +122,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
     ResourceProjectionSourceReports,
     RefreshSourceReports,
     RepairAccumulator,
+    RepairActivityStateTransitions,
     RepairActivityIdentity,
     RepairArtifact,
     RepairCandidateDiff,
@@ -3312,7 +3313,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
     case RepairRealizedState.activity_match(context.realized_by_id, activity_id) do
       {:ambiguous, realized_rows} ->
-        review_ambiguous_realized_activity(activity, realized_rows, acc)
+        RepairActivityStateTransitions.review_ambiguous(activity, realized_rows, acc)
 
       {:ok, realized} ->
         status = realized_status(activity, realized, context.current_epoch_s)
@@ -3325,13 +3326,13 @@ defmodule OrbitalDynamics.CampaignPlanner do
     cond do
       status in @realized_preserved_executed_statuses and
           context.repair_policy.preserve_executed? ->
-        preserve_executed_activity(activity, realized, status, acc)
+        RepairActivityStateTransitions.preserve_executed(activity, realized, status, acc)
 
       preserve_locked_before_repair?(activity, status, context) ->
-        preserve_locked_activity(activity, realized, status, acc)
+        RepairActivityStateTransitions.preserve_locked(activity, realized, status, acc)
 
       degraded_incompatible?(activity, context.degraded_modes, context.repair_policy) ->
-        suppress_degraded_activity(activity, realized, status, acc)
+        RepairActivityStateTransitions.suppress_degraded(activity, realized, status, acc)
 
       status == "missed" and DownlinkActivityNormalization.downlink?(activity) ->
         RepairReplacementTransitions.move_missed_downlink(activity, realized, acc, context)
@@ -3348,76 +3349,14 @@ defmodule OrbitalDynamics.CampaignPlanner do
         move_delayed_maneuver(activity, realized, acc)
 
       status in @terminal_realized_statuses ->
-        cancel_activity(activity, realized, status, acc)
+        RepairActivityStateTransitions.cancel(activity, realized, status, acc)
 
       ActivityTiming.within_remaining_horizon?(activity, context.remaining_horizon) ->
-        preserve_activity(activity, realized, status, acc)
+        RepairActivityStateTransitions.preserve(activity, realized, status, acc)
 
       true ->
         acc
     end
-  end
-
-  defp review_ambiguous_realized_activity(activity, realized_rows, acc) do
-    reason = "ambiguous_realized_activity_feedback"
-
-    activity =
-      put_repair_metadata(activity, %{
-        "action" => "review_realized_feedback",
-        "reason" => reason,
-        "realized_status" => "ambiguous",
-        "realized_feedback_count" => length(realized_rows),
-        "realized_feedback_statuses" => RepairRealizedState.feedback_statuses(realized_rows),
-        "requires_approval" => true
-      })
-
-    acc
-    |> RepairAccumulator.add_activity(activity)
-    |> RepairAccumulator.add_ambiguous_realized_delta(activity, realized_rows, reason)
-    |> RepairAccumulator.add_approval_requirement(activity, "review_realized_feedback", reason)
-    |> RepairAccumulator.add_warning(
-      "ambiguous realized feedback for #{ActivityIdentity.activity_id(activity)} requires operator review"
-    )
-  end
-
-  defp suppress_degraded_activity(activity, realized, status, acc) do
-    reason = "spacecraft_degraded_mode_suppressed_incompatible_payload_activity"
-
-    acc
-    |> RepairAccumulator.add_delta(activity, realized, status, "suppressed", reason, nil, true)
-    |> RepairAccumulator.add_approval_requirement(activity, "cancel", reason)
-    |> RepairAccumulator.add_warning(
-      "spacecraft degraded mode suppressed #{ActivityIdentity.activity_id(activity)}"
-    )
-  end
-
-  defp preserve_executed_activity(activity, realized, status, acc) do
-    activity =
-      put_repair_metadata(
-        activity,
-        %{
-          "action" => "preserved_executed",
-          "reason" => "activity_already_#{status}",
-          "realized_status" => status,
-          "completed_fraction" => Map.get(realized || %{}, "completed_fraction"),
-          "actual_starts_at_s" => Map.get(realized || %{}, "actual_starts_at_s"),
-          "actual_ends_at_s" => Map.get(realized || %{}, "actual_ends_at_s"),
-          "requires_approval" => false
-        }
-        |> ValueEncoding.compact_map()
-      )
-
-    acc
-    |> RepairAccumulator.add_activity(activity)
-    |> RepairAccumulator.add_delta(
-      activity,
-      realized,
-      status,
-      "preserved_executed",
-      "already_#{status}",
-      nil,
-      false
-    )
   end
 
   defp preserve_locked_before_repair?(activity, status, context) do
@@ -3473,58 +3412,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
     |> Map.update!(:delayed_maneuvers, fn maneuvers ->
       [%{"activity" => activity, "delay_s" => delay_s} | maneuvers]
     end)
-  end
-
-  defp cancel_activity(activity, realized, status, acc) do
-    reason = "realized_status_#{status}_removed_from_remaining_plan"
-
-    acc
-    |> RepairAccumulator.add_delta(activity, realized, status, "canceled", reason, nil, true)
-    |> RepairAccumulator.add_approval_requirement(activity, "cancel", reason)
-  end
-
-  defp preserve_locked_activity(activity, realized, status, acc) do
-    activity =
-      put_repair_metadata(activity, %{
-        "action" => "preserved",
-        "reason" => "activity_locked_or_approved",
-        "realized_status" => status,
-        "requires_approval" => false
-      })
-
-    acc
-    |> RepairAccumulator.add_activity(activity)
-    |> RepairAccumulator.add_delta(
-      activity,
-      realized,
-      status,
-      "preserved",
-      "activity_locked_or_approved",
-      nil,
-      false
-    )
-  end
-
-  defp preserve_activity(activity, realized, status, acc) do
-    activity =
-      put_repair_metadata(activity, %{
-        "action" => "preserved",
-        "reason" => "still_viable_in_remaining_horizon",
-        "realized_status" => status,
-        "requires_approval" => false
-      })
-
-    acc
-    |> RepairAccumulator.add_activity(activity)
-    |> RepairAccumulator.add_delta(
-      activity,
-      realized,
-      status,
-      "preserved",
-      "still_viable_in_remaining_horizon",
-      nil,
-      false
-    )
   end
 
   defp mark_downstream_maneuver_effects(%{delayed_maneuvers: []} = acc, _request), do: acc
