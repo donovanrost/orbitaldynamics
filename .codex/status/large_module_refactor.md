@@ -9,7 +9,7 @@ Current slice:
 Schema shared activity callback ownership mapping.
 
 Status:
-Ready for implementation.
+Ready for publication.
 
 Selected slice:
 Point both callback-bag captures of `validate_activity/3` directly at
@@ -42,7 +42,7 @@ The campaign-plan bag retains `validate_activity` between `validate_rows` and
 review remain clean.
 
 Verification gaps:
-- Implementation and post-change verification pending.
+None.
 
 Tests run:
 - Source baseline: two callback captures and one pure wrapper definition.
@@ -54,12 +54,26 @@ Tests run:
   `543dbe11bc75f1397dd15dbd10cabd219ae2e46ac1e16d38b810a99befb8cec3`.
 - Checked bundle digest:
   `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`.
+- Source proof against `70e93873`: both callback keys retain their exact
+  neighboring positions, capture `ActivityContracts.validate/3`, and the
+  facade wrapper is absent.
+- Focused communications and repair/strategy tests: 10 passed; complete
+  schema/export tests: 182 passed, all with warnings as errors.
+- Generated bundle remains 121 schemas, 15,506,740 bytes, digest
+  `543dbe11bc75f1397dd15dbd10cabd219ae2e46ac1e16d38b810a99befb8cec3`.
+- Full export regeneration produced no schema diff; checked digest remains
+  `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`.
+- Strict compile, format, xref, and diff hygiene passed.
+- Independent review against `70e93873` was clean: callback positions, owner
+  and wrapper state, focused 10, complete 182, all 122 export bytes, digests,
+  strict compile, xref, formatting, sizes, ledger, and hygiene passed.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-No shared activity callback implementation has started.
+Both callback bags reference the established owner directly and the pure
+wrapper is gone. `schema.ex` decreased from 7,918 to 7,910 lines.
 
 Last completed slice:
 Candidate-activity cleanup published as `07c7cf82`: `schema.ex` shrank from
@@ -67,7 +81,8 @@ Candidate-activity cleanup published as `07c7cf82`: `schema.ex` shrank from
 byte-matched, and bounded review was clean.
 
 Next candidate:
-Implement the two direct callback captures and remove the unused wrapper.
+After review and publication, map the next pure facade delegate by exact caller
+count, owner signature, and issue-order sensitivity.
 
 Blocked:
 No.

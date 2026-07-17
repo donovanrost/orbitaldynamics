@@ -5914,7 +5914,7 @@ defmodule OrbitalDynamics.Schema do
       validate_optional_resource_filter_report: &validate_optional_resource_filter_report/3,
       validate_optional_score_term_report: &validate_optional_score_term_report/2,
       validate_rows: &validate_rows/4,
-      validate_activity: &validate_activity/3,
+      validate_activity: &OrbitalDynamics.Schema.ActivityContracts.validate/3,
       validate_proposed_contact: &OrbitalDynamics.Schema.ProposedContactContracts.validate/3,
       validate_contact_intent: &OrbitalDynamics.Schema.ContactIntentContracts.validate/3,
       validate_optional_contact_filter_report: &validate_optional_contact_filter_report/2
@@ -5931,7 +5931,7 @@ defmodule OrbitalDynamics.Schema do
       validate_realized_state_snapshot: &validate_realized_state_snapshot/3,
       validate_rows: &validate_rows/4,
       validate_optional_rows: &validate_optional_rows/4,
-      validate_activity: &validate_activity/3,
+      validate_activity: &OrbitalDynamics.Schema.ActivityContracts.validate/3,
       validate_contact_intent: &OrbitalDynamics.Schema.ContactIntentContracts.validate/3,
       validate_resource_summary: &validate_resource_summary/3,
       validate_optional_contact_filter_report: &validate_optional_contact_filter_report/3,
@@ -5966,14 +5966,6 @@ defmodule OrbitalDynamics.Schema do
       "type" => "string",
       "enum" => OrbitalDynamics.Schema.ValidationPolicyContracts.level_names()
     }
-  end
-
-  defp validate_activity(issues, path, activity) do
-    OrbitalDynamics.Schema.ActivityContracts.validate(
-      issues,
-      path,
-      activity
-    )
   end
 
   defp validate_optional_contact_filter_report(issues, report) do
