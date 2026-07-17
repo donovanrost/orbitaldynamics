@@ -2297,71 +2297,23 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp json_schema_property(field, @contact_contention_report = contract_name, contract) do
-    focused_json_schema_property(
+  defp json_schema_property(field, contract_name, contract)
+       when contract_name in [
+              @contact_contention_report,
+              @contact_contention_resolution_report,
+              @contact_contention_resolution_summary
+            ] do
+    OrbitalDynamics.Schema.ContactContentionPropertyDispatch.property(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.ContactContentionJsonSchema.property_field?(&1, contract_name),
-      OrbitalDynamics.Schema.ContactContentionJsonSchema.property_fun_from_context(
-        contract_name: contract_name,
-        schema_contract: @contact_contention_resolution_summary,
-        source_artifact_type: @contact_contention_resolution_report,
-        stable_id_pattern: @stable_id_pattern,
-        model_limits: contact_contention_report_model_limits(),
-        report_assumptions_schema: contact_contention_report_assumptions_json_schema(),
-        conflict_group_schema: contact_contention_group_json_schema(),
-        recommendation_schema: contact_contention_recommendation_json_schema(),
-        resolution_policy_schema: contact_contention_resolution_policy_json_schema()
-      )
-    )
-  end
-
-  defp json_schema_property(
-         field,
-         @contact_contention_resolution_report = contract_name,
-         contract
-       ) do
-    focused_json_schema_property(
-      field,
-      contract_name,
-      contract,
-      &OrbitalDynamics.Schema.ContactContentionJsonSchema.property_field?(&1, contract_name),
-      OrbitalDynamics.Schema.ContactContentionJsonSchema.property_fun_from_context(
-        contract_name: contract_name,
-        schema_contract: @contact_contention_resolution_summary,
-        source_artifact_type: @contact_contention_resolution_report,
-        stable_id_pattern: @stable_id_pattern,
-        model_limits: contact_contention_report_model_limits(),
-        report_assumptions_schema: contact_contention_report_assumptions_json_schema(),
-        conflict_group_schema: contact_contention_group_json_schema(),
-        recommendation_schema: contact_contention_recommendation_json_schema(),
-        resolution_policy_schema: contact_contention_resolution_policy_json_schema()
-      )
-    )
-  end
-
-  defp json_schema_property(
-         field,
-         @contact_contention_resolution_summary = contract_name,
-         contract
-       ) do
-    focused_json_schema_property(
-      field,
-      contract_name,
-      contract,
-      &OrbitalDynamics.Schema.ContactContentionJsonSchema.property_field?(&1, contract_name),
-      OrbitalDynamics.Schema.ContactContentionJsonSchema.property_fun_from_context(
-        contract_name: contract_name,
-        schema_contract: @contact_contention_resolution_summary,
-        source_artifact_type: @contact_contention_resolution_report,
-        stable_id_pattern: @stable_id_pattern,
-        model_limits: contact_contention_report_model_limits(),
-        report_assumptions_schema: contact_contention_report_assumptions_json_schema(),
-        conflict_group_schema: contact_contention_group_json_schema(),
-        recommendation_schema: contact_contention_recommendation_json_schema(),
-        resolution_policy_schema: contact_contention_resolution_policy_json_schema()
-      )
+      stable_id_pattern: @stable_id_pattern,
+      model_limits: contact_contention_report_model_limits(),
+      report_assumptions_schema: contact_contention_report_assumptions_json_schema(),
+      conflict_group_schema: contact_contention_group_json_schema(),
+      recommendation_schema: contact_contention_recommendation_json_schema(),
+      resolution_policy_schema: contact_contention_resolution_policy_json_schema(),
+      default_property: &default_json_schema_property/3
     )
   end
 

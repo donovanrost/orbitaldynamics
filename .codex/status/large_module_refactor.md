@@ -9,7 +9,7 @@ Current slice:
 Schema contact-contention JSON property-dispatch extraction.
 
 Status:
-Selected.
+Review complete; ready to publish.
 
 Selected slice:
 Extract property dispatch for contact-contention report, resolution report,
@@ -46,10 +46,24 @@ exports remain exact; focused and export tests pass; and bounded review finds
 no blocker.
 
 Outcome:
-Pending.
+The three duplicate facade clauses are now one guarded delegate to
+`OrbitalDynamics.Schema.ContactContentionPropertyDispatch`. The internal
+dispatcher owns the allowed contract set, shared context constants and
+assembly, contract-sensitive focused predicate/property builder, and common
+fallback. Eager dependency evaluation remains in the facade, preserving prior
+timing. The facade is 9,451 lines; the dispatcher is 35 lines.
 
 Verification gaps:
-- Pending.
+- `mix compile --warnings-as-errors` passed.
+- 30 focused communications, JSON export, schema export, and export-task tests
+  passed.
+- Full checked-in export regeneration remained byte-identical at aggregate
+  digest `95051be82cec8a75634e4e8712dadd102888f59998d2c26ebe7c36065d824d3b`.
+- Scoped format, diff hygiene, and xref checks passed; xref reports only the
+  expected runtime caller from `OrbitalDynamics.Schema`.
+- Initial bounded review's low cohesion finding was resolved by moving contract
+  family ownership and context assembly into the dispatcher; follow-up review
+  found no remaining issue.
 
 Last completed slice:
 Schema resource-projection property dispatch published as `b452fa83`: report
