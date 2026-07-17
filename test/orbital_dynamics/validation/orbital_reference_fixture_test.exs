@@ -1,0 +1,121 @@
+defmodule OrbitalDynamics.Validation.OrbitalReferenceFixtureTest do
+  use ExUnit.Case, async: true
+
+  import OrbitalDynamics.Validation.OrbitalReferenceFixtures,
+    only: [
+      access_fixture_observations: 0,
+      eclipse_fixture_observations: 0,
+      ground_track_crossing_fixture_observations: 0,
+      j2_fixture_observations: 0,
+      target_visibility_fixture_observations: 0,
+      two_body_fixture_observations: 0
+    ]
+
+  alias OrbitalDynamics.Validation
+
+  test "verifies curated two-body reference fixture observations" do
+    assert {:ok, fixture} = Validation.reference_fixture("fixture.two_body.circular_leo_600s")
+
+    assert fixture["model_id"] == "propagator.two_body"
+    assert fixture["fixture_type"] == "curated_internal_regression"
+
+    assert {:ok, report} =
+             Validation.verify_reference_fixture(
+               "fixture.two_body.circular_leo_600s",
+               two_body_fixture_observations()
+             )
+
+    assert report["schema_contract"] == "validation_reference_report.v1"
+    assert report["status"] == "pass"
+    assert Enum.all?(report["checks"], &(&1["status"] == "pass"))
+  end
+
+  test "verifies curated J2 reference fixture observations" do
+    assert {:ok, fixture} = Validation.reference_fixture("fixture.j2.circular_leo_600s")
+
+    assert fixture["model_id"] == "propagator.j2"
+    assert fixture["fixture_type"] == "curated_internal_regression"
+
+    assert {:ok, report} =
+             Validation.verify_reference_fixture(
+               "fixture.j2.circular_leo_600s",
+               j2_fixture_observations()
+             )
+
+    assert report["schema_contract"] == "validation_reference_report.v1"
+    assert report["status"] == "pass"
+    assert Enum.all?(report["checks"], &(&1["status"] == "pass"))
+  end
+
+  test "verifies curated access-window reference fixture observations" do
+    assert {:ok, fixture} =
+             Validation.reference_fixture("fixture.event.access.equator_overhead_120s")
+
+    assert fixture["model_id"] == "event.access_windows"
+    assert fixture["fixture_type"] == "curated_internal_regression"
+
+    assert {:ok, report} =
+             Validation.verify_reference_fixture(
+               "fixture.event.access.equator_overhead_120s",
+               access_fixture_observations()
+             )
+
+    assert report["schema_contract"] == "validation_reference_report.v1"
+    assert report["status"] == "pass"
+    assert Enum.all?(report["checks"], &(&1["status"] == "pass"))
+  end
+
+  test "verifies curated eclipse reference fixture observations" do
+    assert {:ok, fixture} =
+             Validation.reference_fixture("fixture.event.eclipse.cylindrical_shadow_120s")
+
+    assert fixture["model_id"] == "event.eclipses"
+    assert fixture["fixture_type"] == "curated_internal_regression"
+
+    assert {:ok, report} =
+             Validation.verify_reference_fixture(
+               "fixture.event.eclipse.cylindrical_shadow_120s",
+               eclipse_fixture_observations()
+             )
+
+    assert report["schema_contract"] == "validation_reference_report.v1"
+    assert report["status"] == "pass"
+    assert Enum.all?(report["checks"], &(&1["status"] == "pass"))
+  end
+
+  test "verifies curated target-visibility reference fixture observations" do
+    assert {:ok, fixture} =
+             Validation.reference_fixture("fixture.event.target_visibility.equator_overhead_120s")
+
+    assert fixture["model_id"] == "event.target_visibility"
+    assert fixture["fixture_type"] == "curated_internal_regression"
+
+    assert {:ok, report} =
+             Validation.verify_reference_fixture(
+               "fixture.event.target_visibility.equator_overhead_120s",
+               target_visibility_fixture_observations()
+             )
+
+    assert report["schema_contract"] == "validation_reference_report.v1"
+    assert report["status"] == "pass"
+    assert Enum.all?(report["checks"], &(&1["status"] == "pass"))
+  end
+
+  test "verifies curated ground-track crossing reference fixture observations" do
+    assert {:ok, fixture} =
+             Validation.reference_fixture("fixture.event.ground_track.latitude_equator_60s")
+
+    assert fixture["model_id"] == "event.ground_track_crossings"
+    assert fixture["fixture_type"] == "curated_internal_regression"
+
+    assert {:ok, report} =
+             Validation.verify_reference_fixture(
+               "fixture.event.ground_track.latitude_equator_60s",
+               ground_track_crossing_fixture_observations()
+             )
+
+    assert report["schema_contract"] == "validation_reference_report.v1"
+    assert report["status"] == "pass"
+    assert Enum.all?(report["checks"], &(&1["status"] == "pass"))
+  end
+end
