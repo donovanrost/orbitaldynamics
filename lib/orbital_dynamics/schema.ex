@@ -7324,9 +7324,9 @@ defmodule OrbitalDynamics.Schema do
       validate_realized_feedback_handoff_matches_source:
         &OrbitalDynamics.Schema.RiskFeedbackHandoffContracts.validate_realized_feedback_matches_source/3,
       validate_provider_counteroffer_handoff_matches_source:
-        &validate_provider_counteroffer_handoff_matches_source/3,
+        &OrbitalDynamics.Schema.ContactReviewHandoffContracts.validate_provider_counteroffer_matches_source/3,
       validate_contact_intent_handoff_matches_source:
-        &validate_contact_intent_handoff_matches_source/3,
+        &OrbitalDynamics.Schema.ContactReviewHandoffContracts.validate_contact_intent_matches_source/3,
       validate_station_calendar_handoff_matches_source:
         &OrbitalDynamics.Schema.StationCalendarHandoffContracts.validate_matches_source/3,
       validate_provider_calendar_contention_handoff_matches_source:
@@ -7614,7 +7614,7 @@ defmodule OrbitalDynamics.Schema do
       validate_cadence_source_review_contact_contention_handoff_matches:
         &OrbitalDynamics.Schema.ContactContentionHandoffContracts.validate_cadence_source_review_matches/3,
       validate_cadence_source_review_contact_intent_handoff_matches:
-        &validate_cadence_source_review_contact_intent_handoff_matches/3,
+        &OrbitalDynamics.Schema.ContactReviewHandoffContracts.validate_cadence_source_review_contact_intent_matches/3,
       validate_cadence_source_review_execution_handoff_matches:
         &validate_cadence_source_review_execution_handoff_matches/3,
       validate_cadence_source_review_freshness_handoff_matches:
@@ -7640,7 +7640,7 @@ defmodule OrbitalDynamics.Schema do
       validate_cadence_source_review_provider_calendar_contention_handoff_matches:
         &OrbitalDynamics.Schema.ContactAllocationHandoffContracts.validate_cadence_source_review_provider_calendar_contention_matches/3,
       validate_cadence_source_review_provider_counteroffer_handoff_matches:
-        &validate_cadence_source_review_provider_counteroffer_handoff_matches/3,
+        &OrbitalDynamics.Schema.ContactReviewHandoffContracts.validate_cadence_source_review_provider_counteroffer_matches/3,
       validate_cadence_source_review_quality_gate_handoff_matches:
         &validate_cadence_source_review_quality_gate_handoff_matches/3,
       validate_cadence_source_review_ranking_comparison_handoff_matches:
@@ -7699,7 +7699,7 @@ defmodule OrbitalDynamics.Schema do
       validate_contact_contention_handoff_matches_source:
         &OrbitalDynamics.Schema.ContactContentionHandoffContracts.validate_matches_source/3,
       validate_contact_intent_handoff_matches_source:
-        &validate_contact_intent_handoff_matches_source/3,
+        &OrbitalDynamics.Schema.ContactReviewHandoffContracts.validate_contact_intent_matches_source/3,
       validate_link_capacity_handoff_count_lists:
         &OrbitalDynamics.Schema.LinkCapacityHandoffContracts.validate_count_lists/3,
       validate_link_capacity_handoff_matches_source:
@@ -7742,7 +7742,7 @@ defmodule OrbitalDynamics.Schema do
       validate_provider_calendar_contention_handoff_matches_source:
         &OrbitalDynamics.Schema.ContactAllocationHandoffContracts.validate_provider_calendar_contention_matches_source/3,
       validate_provider_counteroffer_handoff_matches_source:
-        &validate_provider_counteroffer_handoff_matches_source/3,
+        &OrbitalDynamics.Schema.ContactReviewHandoffContracts.validate_provider_counteroffer_matches_source/3,
       validate_ranking_comparison_handoff_matches_source:
         &OrbitalDynamics.Schema.StrategyHandoffContracts.validate_ranking_comparison_matches_source/3,
       validate_realized_feedback_handoff_matches_source:
@@ -8145,68 +8145,6 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validate_provider_counteroffer_handoff_matches_source(
-         issues,
-         path,
-         %{"source_provider_counteroffer" => %{}} = row
-       ) do
-    OrbitalDynamics.Schema.ContactReviewHandoffContracts.validate_provider_counteroffer_matches_source(
-      issues,
-      path,
-      row
-    )
-  end
-
-  defp validate_provider_counteroffer_handoff_matches_source(issues, _path, _row), do: issues
-
-  defp validate_cadence_source_review_provider_counteroffer_handoff_matches(
-         issues,
-         path,
-         %{"source_review_row" => %{}} = row
-       ) do
-    OrbitalDynamics.Schema.ContactReviewHandoffContracts.validate_cadence_source_review_provider_counteroffer_matches(
-      issues,
-      path,
-      row
-    )
-  end
-
-  defp validate_cadence_source_review_provider_counteroffer_handoff_matches(
-         issues,
-         _path,
-         _row
-       ),
-       do: issues
-
-  defp validate_contact_intent_handoff_matches_source(
-         issues,
-         path,
-         %{"source_contact_intent" => %{}} = row
-       ) do
-    OrbitalDynamics.Schema.ContactReviewHandoffContracts.validate_contact_intent_matches_source(
-      issues,
-      path,
-      row
-    )
-  end
-
-  defp validate_contact_intent_handoff_matches_source(issues, _path, _row), do: issues
-
-  defp validate_cadence_source_review_contact_intent_handoff_matches(
-         issues,
-         path,
-         %{"source_review_row" => %{}} = row
-       ) do
-    OrbitalDynamics.Schema.ContactReviewHandoffContracts.validate_cadence_source_review_contact_intent_matches(
-      issues,
-      path,
-      row
-    )
-  end
-
-  defp validate_cadence_source_review_contact_intent_handoff_matches(issues, _path, _row),
-    do: issues
-
   defp validate_suppression_duplicate_handoff_row_fields(issues, path, row) do
     OrbitalDynamics.Schema.SuppressionHandoffContracts.validate_duplicate_row_fields(
       issues,
@@ -8488,9 +8426,9 @@ defmodule OrbitalDynamics.Schema do
       validate_realized_feedback_handoff_matches_source:
         &OrbitalDynamics.Schema.RiskFeedbackHandoffContracts.validate_realized_feedback_matches_source/3,
       validate_provider_counteroffer_handoff_matches_source:
-        &validate_provider_counteroffer_handoff_matches_source/3,
+        &OrbitalDynamics.Schema.ContactReviewHandoffContracts.validate_provider_counteroffer_matches_source/3,
       validate_contact_intent_handoff_matches_source:
-        &validate_contact_intent_handoff_matches_source/3,
+        &OrbitalDynamics.Schema.ContactReviewHandoffContracts.validate_contact_intent_matches_source/3,
       validate_station_calendar_handoff_matches_source:
         &OrbitalDynamics.Schema.StationCalendarHandoffContracts.validate_matches_source/3,
       validate_provider_calendar_contention_handoff_matches_source:

@@ -9,7 +9,7 @@ Current slice:
 Schema contact-review source callback ownership cleanup.
 
 Status:
-Selected; implementation pending.
+Completed and verified; publishing.
 
 Selected slice:
 Point provider-counteroffer and contact-intent general/cadence source-match
@@ -43,11 +43,27 @@ field-pair issue ordering remains exact,
 validation and schema exports remain byte-for-byte stable, focused tests pass,
 and bounded review finds no blocker.
 
+Outcome:
+All provider-counteroffer and contact-intent general/cadence callbacks now
+capture `ContactReviewHandoffContracts` directly. Four specialized/fallback
+facade wrapper pairs were removed across eight positions, reducing `schema.ex`
+from 8,609 to 8,547 lines without changing source-row dispatch, relative
+callback order, field-pair traversal, or checked-in schema bytes.
+
 Verification gaps:
-- Implementation and verification pending.
+- None for this slice.
 
 Tests run:
-- Pending.
+- `mix compile --warnings-as-errors`
+- 44 focused contact-review schema contract tests
+- 182 complete schema-contract and schema-export tests
+- full checked-in schema export regeneration; no schema diff
+- aggregate schema bundle digest unchanged:
+  `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`
+- `mix format --check-formatted`
+- `git diff --check`
+- compile-connected xref check for `schema.ex`
+- bounded read-only review: clean, no findings
 
 Behavior/schema changes:
 None.
