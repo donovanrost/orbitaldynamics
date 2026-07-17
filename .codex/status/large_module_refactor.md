@@ -9,7 +9,7 @@ Current slice:
 Validation candidate-state artifact fixture test-family extraction.
 
 Status:
-Ready to publish.
+Published as `386d94aa`.
 
 Selected slice:
 Move the five contiguous candidate-rejection report, candidate-diff row, and
@@ -58,11 +58,11 @@ Verification gaps:
 - Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
-Validation candidate-refresh station/allocation replay extraction published as
-`823263d2`: the focused module passed 2/2, the parent passed 45/45, and all
-thirty-five Validation modules preserved the 181-test aggregate with no
-duplicate names. Format, diff hygiene, exact-source and dependency-closure
-checks, and bounded review were clean.
+Validation candidate-state artifact extraction published as `386d94aa`: the
+focused module passed 5/5, the parent passed 40/40, and all thirty-six Validation
+modules preserved the 181-test aggregate with no duplicate names. Format, diff
+hygiene, exact-source and dependency-closure checks, and bounded review were
+clean.
 
 Next candidate:
 Map the campaign request lint, capability catalog, and environment capability
