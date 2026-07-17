@@ -9,7 +9,7 @@ Current slice:
 Campaign planning reference-fixture family extraction.
 
 Status:
-Publishing implementation.
+Completed and published as `fde8c3ac`.
 
 Selected slice:
 Move the first three remaining fixtures—campaign repair, campaign request lint,
@@ -86,15 +86,17 @@ with four existing fixture maps plus 173 remaining fixtures. The facade fell
 from 12,410 to 12,147 lines, while the extracted family is 273 lines.
 
 Last completed slice:
-Campaign artifact reference-fixture extraction published as `1c728168`: the 10
-exact campaign plan/result fixtures moved behind the unchanged facade, the
-195-entry map and deterministic bytes stayed exact, 181 validation tests
+Campaign planning reference-fixture extraction published as `fde8c3ac`: the
+three exact repair/lint/strategy fixtures moved behind the unchanged facade,
+the 195-entry map and deterministic bytes stayed exact, 181 validation tests
 passed, and bounded review was clean.
 
 Next candidate:
-After this boundary, remap `capability_catalog` and the candidate-refresh
-fixture prefix. Keep any candidate-refresh extraction bounded by a focused
-replay/source family rather than moving the entire range.
+Extract the two candidate-refresh base fixtures (`candidate_refresh.v1` and
+`resource_provenance_v1`) into one family. They are noncontiguous but share one
+contract and dedicated `candidate_refresh_base_fixture_test.exs` ownership,
+reference no facade helper attributes, and can move without touching replay
+families; re-baseline before selecting.
 
 Blocked:
 No.
