@@ -9,7 +9,7 @@ Current slice:
 Validation model-acceptance/safety-case fixture test-family extraction.
 
 Status:
-Selected.
+Ready to publish.
 
 Selected slice:
 Move the two contiguous model-acceptance report and validation safety-case
@@ -46,10 +46,15 @@ shared builders have one exact owner, focused and parent files pass, names remai
 unique, and bounded review finds no blocker.
 
 Outcome:
-Pending.
+Two byte-identical model-acceptance/safety-case family tests moved into a
+430-line focused module. All four observation/raw builders now have one 35-line
+shared support owner; the parent imports only the two aggregate observation
+builders. The parent fell from 8,921 to 8,484 lines. Total
+test/support/loader LOC grew by 29 lines for explicit ownership without helper
+duplication. All 181 Validation test names remain unique.
 
 Verification gaps:
-- Pending.
+- Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
 Validation station reservation/provider fixture extraction published as
@@ -59,10 +64,11 @@ duplicate names. Format, diff hygiene, exact-source and dependency-closure
 checks, and bounded review were clean.
 
 Next candidate:
-Map the candidate-refresh artifact and replay cluster beginning at line 2,013
-in the 8,921-line parent. Split only along coherent replay responsibility
-boundaries with complete helper closure; do not turn the entire multi-domain
-replay sequence into one oversized test module.
+Map the candidate-refresh base artifact and resource-provenance fixture pair,
+currently lines 1,602-1,704 in the 8,484-line parent. Their four raw/observation
+helpers form a closed base-artifact family, while both observation helpers
+remain deterministic-aggregate consumers; stop before contact-contention replay
+coverage.
 
 Blocked:
 No.
