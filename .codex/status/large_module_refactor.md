@@ -80,9 +80,15 @@ Format, diff hygiene, exact-source and ownership-closure checks, and bounded
 review were clean.
 
 Next candidate:
-Reassess the two remaining generic fixture-engine tests after the quality-gate
-family moves. Keep them together unless a separate responsibility boundary
-improves navigation and focused verification.
+The Validation parent is now a responsibility-focused 1,052-line fixture
+engine with two cohesive tests; do not split it for line count alone. Return to
+the live production hotspot, `lib/orbital_dynamics/schema.ex` (10,085 lines,
+895 public/private clauses). First map the cadence-import row JSON Schema
+dependency/property dispatch around lines 4,980-5,152 against
+`CadenceImportManifestJsonSchema`; select an extraction only if the private
+dependency wiring can gain a clear owner without callback churn. Preserve
+`OrbitalDynamics.Schema` and exact generated schema bytes, and include focused
+JSON Schema export plus checked-in export verification.
 
 Blocked:
 No.
