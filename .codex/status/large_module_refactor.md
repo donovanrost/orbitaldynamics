@@ -6,10 +6,10 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema candidate-activity callback ownership mapping.
+Schema candidate-activity callback ownership handoff.
 
 Status:
-Ready for publication.
+Published as `07c7cf82`.
 
 Selected slice:
 Point the standalone `candidate_activity.v1` pipe directly at
@@ -73,8 +73,10 @@ from 7,934 to 7,926 lines, 6 focused and 182 complete tests passed, all 122
 exports byte-matched, and bounded review was clean.
 
 Next candidate:
-After review and publication, map the next pure facade delegate by exact caller
-count, owner signature, and issue-order sensitivity.
+Map the three-use `validate_activity/3` facade delegate: two callback-bag
+captures plus its pure owner call. Preserve callback keys and neighboring order
+before deciding whether direct `ActivityContracts.validate/3` captures remain a
+bounded cleanup.
 
 Blocked:
 No.
