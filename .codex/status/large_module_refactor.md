@@ -9,7 +9,7 @@ Current slice:
 Schema contact-allocation-summary JSON property-dispatch extraction.
 
 Status:
-Review complete; ready to publish.
+Published.
 
 Selected slice:
 Extract property dispatch for contact-allocation summary,
@@ -53,6 +53,7 @@ dispatcher preserves contract-to-module routing, each schema-contract and
 assumptions callback, shared model-limit/stable-identity/row dependencies,
 base/capacity-pack group callbacks, focused-field selection, and the common
 fallback. The facade is 9,517 lines; the new dispatcher is 87 lines.
+Implementation published as `9f68e87c`.
 
 Verification gaps:
 - `mix compile --warnings-as-errors` passed.
@@ -63,17 +64,21 @@ Verification gaps:
 - Scoped format, diff hygiene, and xref checks passed; xref reports only the
   expected runtime caller from `OrbitalDynamics.Schema`.
 - Bounded read-only review found no blocker or follow-up finding.
+- None for this slice.
 
 Last completed slice:
-Schema link-capacity property dispatch published as `163560ab`: report and
-summary now route through one cohesive internal dispatcher, 34 focused/export
-tests passed, full regeneration was byte-identical, and bounded review found no
-blocker.
+Schema contact-allocation-summary property dispatch published as `9f68e87c`:
+the five summary contracts now route through one cohesive internal dispatcher,
+31 focused/export tests passed, full regeneration was byte-identical, and
+bounded review found no blocker.
 
 Next candidate:
-Audit one adjacent multi-contract report/property family after this slice is
-published. Leave the contact-allocation report in the facade unless a broader
-cohesive boundary emerges.
+Extract the adjacent contact-filter and resource-filter report property clauses
+into one internal filter-report dispatcher. Preserve shared stable identity and
+suppressed-candidate callbacks, distinct model-limit/assumptions callbacks,
+contact-only trust-boundary count schema, common fallback, validators, and
+exact exports. Leave allocation summaries and resource-projection clauses in
+the facade.
 
 Blocked:
 No.
