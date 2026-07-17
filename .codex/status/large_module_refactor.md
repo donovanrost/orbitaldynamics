@@ -6,29 +6,28 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Operational-readiness fixture mapping.
+Quality-gate fixture mapping.
 
 Status:
-Publishing.
+Ready for next slice selection.
 
 Selected slice:
-Move
-`operator_review_package.v1`, `operational_execution_boundary_summary.v1`,
-`operational_import_eligibility_summary.v1`, `operational_readiness_report.v1`,
-and `operational_readiness_gate_summary.v1` from their contiguous facade range
-into a new `Validation.ReferenceFixtures.OperationalReadinessArtifacts` leaf.
-Preserve the following quality-gate report exactly.
+No implementation selected yet. The next bounded candidate is to move
+`quality_gate_report.v1` and the six `operational_quality_gate_*` summaries
+from their contiguous facade range into a new
+`Validation.ReferenceFixtures.QualityGateArtifacts` leaf. Preserve the
+following stale station-calendar fixture exactly.
 
 Why this slice:
-`ReferenceFixtures` remains the largest production module at 2,314 lines. The
-five fixtures occupy 455 facade lines and exactly own
-`operational_readiness_fixture_test.exs`.
+`ReferenceFixtures` remains the largest production module at 1,861 lines. The
+seven fixtures occupy 623 facade lines and exactly own
+`quality_gate_fixture_test.exs`.
 
 Current coupling/problem:
-Operator review, execution boundary, import eligibility, readiness reporting,
-and readiness-gate expectations form one contiguous test-owned workflow but
-remain embedded in the general registry. Moving all five preserves the complete
-readiness responsibility without absorbing quality-gate detail.
+Quality-gate report, summary, import readiness, unavailable-resource,
+resource-projection, operator-training, and schema-validation expectations form
+one contiguous test-owned workflow but remain embedded in the general
+registry. Moving all seven preserves the complete gate responsibility.
 
 Public facade to preserve:
 `OrbitalDynamics.Validation.ReferenceFixtures.all/0` and `fetch/1`, exact
@@ -36,28 +35,28 @@ fixture keys and values, map equality and deterministic term bytes, and all
 `OrbitalDynamics.Validation` reference-fixture behavior.
 
 Likely extraction target:
-`OrbitalDynamics.Validation.ReferenceFixtures.OperationalReadinessArtifacts`.
+`OrbitalDynamics.Validation.ReferenceFixtures.QualityGateArtifacts`.
 
 Likely files:
 - `lib/orbital_dynamics/validation/reference_fixtures.ex`
-- `lib/orbital_dynamics/validation/reference_fixtures/operational_readiness_artifacts.ex`
+- `lib/orbital_dynamics/validation/reference_fixtures/quality_gate_artifacts.ex`
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
 - exact before/after fixture count, keys, values, and deterministic term digest
-- focused operational-readiness and facade validation tests
+- focused quality-gate and facade validation tests
 - full validation test family
 - strict compile, format, xref, diff hygiene, and bounded review
 
 Definition of done:
-All five operational-readiness fixtures exist only in the new cohesive leaf,
-all 45 fixture maps remain disjoint, `all/0` and `fetch/1` return exactly
+All seven quality-gate fixtures exist only in the new cohesive leaf, all 46
+fixture maps remain disjoint, `all/0` and `fetch/1` return exactly
 the same 195-entry map and deterministic term bytes, both following boundary fixtures
 and the complete facade remainder stay exact, focused and full validation tests
 pass, and bounded review finds no blocker.
 
 Verification gaps:
-- None for this slice.
+- Next candidate still requires a selection baseline before implementation.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -95,18 +94,16 @@ Behavior/schema changes:
 None.
 
 Outcome:
-The exact five-fixture operational-readiness family now lives in a new cohesive
-leaf behind the unchanged facade. The facade shrank from 2,314 to 1,861 lines;
-the new leaf is 463 lines and owns exactly five fixtures.
+No quality-gate implementation has started.
 
 Last completed slice:
-Resource-pressure handoff extraction published as `025a3b83`: the exact
-four-fixture family moved into a new 327-line leaf, the facade shrank from 2,631
-to 2,314 lines, the 195-entry map and all deterministic digests stayed exact,
-13 focused and 181 full validation tests passed, and bounded review was clean.
+Operational-readiness extraction published as `848499d8`: the exact
+five-fixture family moved into a new 463-line leaf, the facade shrank from 2,314
+to 1,861 lines, the 195-entry map and all deterministic digests stayed exact,
+17 focused and 181 full validation tests passed, and bounded review was clean.
 
 Next candidate:
-Select the operational-readiness extraction described above, capture the
+Select the quality-gate extraction described above, capture the
 exact map and contiguous source boundary, then move the complete test-owned
 family.
 
