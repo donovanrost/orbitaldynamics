@@ -2424,18 +2424,18 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp json_schema_property(field, @operational_quality_gate_summary = contract_name, contract) do
-    focused_json_schema_property(
+  defp json_schema_property(field, contract_name, contract)
+       when contract_name in [@operational_quality_gate_summary, @quality_gate_report] do
+    OrbitalDynamics.Schema.QualityGateReportPropertyDispatch.property(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.OperationalQualityGateSummaryJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.OperationalQualityGateSummaryJsonSchema.property_fun_from_context(
-        capability: OrbitalDynamics.OperationalReadiness.capabilities(),
-        model_limits: quality_gate_summary_model_limits(),
-        row_schema: quality_gate_report_row_json_schema(),
-        stable_id_pattern: @stable_id_pattern
-      )
+      capability: &OrbitalDynamics.OperationalReadiness.capabilities/0,
+      operational_summary_model_limits: &quality_gate_summary_model_limits/0,
+      report_model_limits: &quality_gate_report_model_limits/0,
+      row_schema: &quality_gate_report_row_json_schema/0,
+      stable_id_pattern: @stable_id_pattern,
+      default_property: &default_json_schema_property/3
     )
   end
 
@@ -2471,21 +2471,6 @@ defmodule OrbitalDynamics.Schema do
         gate_schema: operational_readiness_gate_json_schema(),
         evidence_schema: operational_readiness_evidence_json_schema(),
         model_limits: operational_readiness_model_limits()
-      )
-    )
-  end
-
-  defp json_schema_property(field, @quality_gate_report = contract_name, contract) do
-    focused_json_schema_property(
-      field,
-      contract_name,
-      contract,
-      &OrbitalDynamics.Schema.QualityGateReportJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.QualityGateReportJsonSchema.property_fun_from_context(
-        capability: OrbitalDynamics.OperationalReadiness.capabilities(),
-        model_limits: quality_gate_report_model_limits(),
-        row_schema: quality_gate_report_row_json_schema(),
-        stable_id_pattern: @stable_id_pattern
       )
     )
   end
