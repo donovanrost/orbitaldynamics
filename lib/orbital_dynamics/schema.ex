@@ -2451,71 +2451,24 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp json_schema_property(
-         field,
-         @operational_quality_gate_unavailable_resource_summary = contract_name,
-         contract
-       ) do
-    focused_json_schema_property(
+  defp json_schema_property(field, contract_name, contract)
+       when contract_name in [
+              @operational_quality_gate_unavailable_resource_summary,
+              @operational_quality_gate_operator_training_summary,
+              @operational_quality_gate_schema_validation_summary,
+              @operational_quality_gate_import_readiness_summary
+            ] do
+    OrbitalDynamics.Schema.SpecializedQualityGateSummaryPropertyDispatch.property(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.OperationalQualityGateUnavailableResourceSummaryJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.OperationalQualityGateUnavailableResourceSummaryJsonSchema.property_fun_from_context(
-        model_limits: quality_gate_unavailable_resource_summary_model_limits(),
-        stable_id_pattern: @stable_id_pattern
-      )
-    )
-  end
-
-  defp json_schema_property(
-         field,
-         @operational_quality_gate_operator_training_summary = contract_name,
-         contract
-       ) do
-    focused_json_schema_property(
-      field,
-      contract_name,
-      contract,
-      &OrbitalDynamics.Schema.OperationalQualityGateOperatorTrainingSummaryJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.OperationalQualityGateOperatorTrainingSummaryJsonSchema.property_fun_from_context(
-        model_limits: quality_gate_operator_training_summary_model_limits(),
-        stable_id_pattern: @stable_id_pattern
-      )
-    )
-  end
-
-  defp json_schema_property(
-         field,
-         @operational_quality_gate_schema_validation_summary = contract_name,
-         contract
-       ) do
-    focused_json_schema_property(
-      field,
-      contract_name,
-      contract,
-      &OrbitalDynamics.Schema.OperationalQualityGateSchemaValidationSummaryJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.OperationalQualityGateSchemaValidationSummaryJsonSchema.property_fun_from_context(
-        model_limits: quality_gate_schema_validation_summary_model_limits(),
-        stable_id_pattern: @stable_id_pattern
-      )
-    )
-  end
-
-  defp json_schema_property(
-         field,
-         @operational_quality_gate_import_readiness_summary = contract_name,
-         contract
-       ) do
-    focused_json_schema_property(
-      field,
-      contract_name,
-      contract,
-      &OrbitalDynamics.Schema.OperationalQualityGateImportReadinessSummaryJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.OperationalQualityGateImportReadinessSummaryJsonSchema.property_fun_from_context(
-        model_limits: quality_gate_import_readiness_summary_model_limits(),
-        stable_id_pattern: @stable_id_pattern
-      )
+      unavailable_resource_model_limits:
+        &quality_gate_unavailable_resource_summary_model_limits/0,
+      operator_training_model_limits: &quality_gate_operator_training_summary_model_limits/0,
+      schema_validation_model_limits: &quality_gate_schema_validation_summary_model_limits/0,
+      import_readiness_model_limits: &quality_gate_import_readiness_summary_model_limits/0,
+      stable_id_pattern: @stable_id_pattern,
+      default_property: &default_json_schema_property/3
     )
   end
 
