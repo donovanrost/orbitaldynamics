@@ -1891,85 +1891,27 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp json_schema_property(field, @provider_counteroffer_report = contract_name, contract) do
-    focused_json_schema_property(
+  defp json_schema_property(field, contract_name, contract)
+       when contract_name in [
+              @provider_counteroffer_report,
+              @provider_counteroffer_review_summary,
+              @provider_counteroffer_import_readiness_summary,
+              @provider_counteroffer_plan_impact_summary
+            ] do
+    OrbitalDynamics.Schema.ProviderCounterofferPropertyDispatch.property(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.ProviderCounterofferReportJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.ProviderCounterofferReportJsonSchema.property_fun_from_context(
-        row_schema: &provider_counteroffer_row_json_schema/0,
-        models: &provider_counteroffer_report_models/0,
-        negotiation_states: fn ->
-          OrbitalDynamics.Communications.StationCalendar.capabilities().provider_counteroffer_negotiation_states
-        end,
-        operator_actions: fn ->
-          OrbitalDynamics.Communications.StationCalendar.capabilities().provider_counteroffer_actions
-        end
-      )
-    )
-  end
-
-  defp json_schema_property(
-         field,
-         @provider_counteroffer_review_summary = contract_name,
-         contract
-       ) do
-    focused_json_schema_property(
-      field,
-      contract_name,
-      contract,
-      &OrbitalDynamics.Schema.ProviderCounterofferReviewSummaryJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.ProviderCounterofferReviewSummaryJsonSchema.property_fun_from_context(
-        row_schema: &provider_counteroffer_row_json_schema/0,
-        stable_id_pattern: @stable_id_pattern
-      )
-    )
-  end
-
-  defp json_schema_property(
-         field,
-         @provider_counteroffer_import_readiness_summary = contract_name,
-         contract
-       ) do
-    focused_json_schema_property(
-      field,
-      contract_name,
-      contract,
-      &OrbitalDynamics.Schema.ProviderCounterofferImportReadinessSummaryJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.ProviderCounterofferImportReadinessSummaryJsonSchema.property_fun_from_context(
-        row_schema: &provider_counteroffer_row_json_schema/0,
-        readiness_statuses: fn ->
-          OrbitalDynamics.Communications.StationCalendar.capabilities().provider_counteroffer_import_readiness_statuses
-        end,
-        import_classifications: fn ->
-          OrbitalDynamics.Communications.StationCalendar.capabilities().provider_counteroffer_import_classifications
-        end,
-        stable_id_pattern: @stable_id_pattern
-      )
-    )
-  end
-
-  defp json_schema_property(
-         field,
-         @provider_counteroffer_plan_impact_summary = contract_name,
-         contract
-       ) do
-    focused_json_schema_property(
-      field,
-      contract_name,
-      contract,
-      &OrbitalDynamics.Schema.ProviderCounterofferPlanImpactSummaryJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.ProviderCounterofferPlanImpactSummaryJsonSchema.property_fun_from_context(
-        row_schema: &provider_counteroffer_row_json_schema/0,
-        plan_impact_statuses: fn ->
-          OrbitalDynamics.Communications.StationCalendar.capabilities().provider_counteroffer_plan_impact_statuses
-        end,
-        lock_deadline_statuses: fn ->
-          OrbitalDynamics.Communications.StationCalendar.capabilities().provider_counteroffer_lock_deadline_statuses
-        end,
-        stable_id_pattern: @stable_id_pattern
-      )
+      contracts: %{
+        report: @provider_counteroffer_report,
+        review_summary: @provider_counteroffer_review_summary,
+        import_readiness_summary: @provider_counteroffer_import_readiness_summary,
+        plan_impact_summary: @provider_counteroffer_plan_impact_summary
+      },
+      row_schema: &provider_counteroffer_row_json_schema/0,
+      models: &provider_counteroffer_report_models/0,
+      stable_id_pattern: @stable_id_pattern,
+      default_property: &default_json_schema_property/3
     )
   end
 
