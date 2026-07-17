@@ -9,7 +9,7 @@ Current slice:
 Schema objective-report JSON property-dispatch extraction.
 
 Status:
-Selected.
+Review complete; ready to publish.
 
 Selected slice:
 Extract property dispatch for objective-satisfaction and objective-tradeoff
@@ -46,10 +46,22 @@ exports remain exact; focused and export tests pass; and bounded review finds
 no blocker.
 
 Outcome:
-Pending.
+The two duplicate facade clauses are now one guarded delegate to
+`OrbitalDynamics.Schema.ObjectiveReportPropertyDispatch`. The internal
+dispatcher owns the allowed contract family, eager context assembly,
+contract-sensitive focused predicate/property builder, and common fallback.
+All satisfaction/tradeoff rows, model limits, model values, and evaluation
+order remain exact. The facade is 9,433 lines; the dispatcher is 31 lines.
 
 Verification gaps:
-- Pending.
+- `mix compile --warnings-as-errors` passed.
+- 24 focused optimizer-objective, JSON export, schema export, and export-task
+  tests passed.
+- Full checked-in export regeneration remained byte-identical at aggregate
+  digest `95051be82cec8a75634e4e8712dadd102888f59998d2c26ebe7c36065d824d3b`.
+- Scoped format, diff hygiene, and xref checks passed; xref reports only the
+  expected runtime caller from `OrbitalDynamics.Schema`.
+- Bounded read-only review found no blocker or follow-up finding.
 
 Last completed slice:
 Schema contact-contention property dispatch published as `f6d5420d`: report,

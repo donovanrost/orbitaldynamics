@@ -2317,41 +2317,23 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp json_schema_property(field, @objective_satisfaction_report = contract_name, contract) do
-    focused_json_schema_property(
+  defp json_schema_property(field, contract_name, contract)
+       when contract_name in [
+              @objective_satisfaction_report,
+              @objective_tradeoff_report
+            ] do
+    OrbitalDynamics.Schema.ObjectiveReportPropertyDispatch.property(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.ObjectiveReportJsonSchema.property_field?(&1, contract_name),
-      OrbitalDynamics.Schema.ObjectiveReportJsonSchema.property_fun_from_context(
-        contract_name: contract_name,
-        satisfaction_row_schema: objective_satisfaction_row_json_schema(),
-        satisfaction_model_limits:
-          OrbitalDynamics.CampaignPlanner.objective_satisfaction_model_limits(),
-        tradeoff_row_schema: objective_tradeoff_row_json_schema(),
-        tradeoff_models:
-          OrbitalDynamics.Schema.OptimizerObjectiveContracts.objective_tradeoff_report_models(),
-        score_report_model_limits: OrbitalDynamics.CampaignPlanner.score_report_model_limits()
-      )
-    )
-  end
-
-  defp json_schema_property(field, @objective_tradeoff_report = contract_name, contract) do
-    focused_json_schema_property(
-      field,
-      contract_name,
-      contract,
-      &OrbitalDynamics.Schema.ObjectiveReportJsonSchema.property_field?(&1, contract_name),
-      OrbitalDynamics.Schema.ObjectiveReportJsonSchema.property_fun_from_context(
-        contract_name: contract_name,
-        satisfaction_row_schema: objective_satisfaction_row_json_schema(),
-        satisfaction_model_limits:
-          OrbitalDynamics.CampaignPlanner.objective_satisfaction_model_limits(),
-        tradeoff_row_schema: objective_tradeoff_row_json_schema(),
-        tradeoff_models:
-          OrbitalDynamics.Schema.OptimizerObjectiveContracts.objective_tradeoff_report_models(),
-        score_report_model_limits: OrbitalDynamics.CampaignPlanner.score_report_model_limits()
-      )
+      satisfaction_row_schema: objective_satisfaction_row_json_schema(),
+      satisfaction_model_limits:
+        OrbitalDynamics.CampaignPlanner.objective_satisfaction_model_limits(),
+      tradeoff_row_schema: objective_tradeoff_row_json_schema(),
+      tradeoff_models:
+        OrbitalDynamics.Schema.OptimizerObjectiveContracts.objective_tradeoff_report_models(),
+      score_report_model_limits: OrbitalDynamics.CampaignPlanner.score_report_model_limits(),
+      default_property: &default_json_schema_property/3
     )
   end
 
