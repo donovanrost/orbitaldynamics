@@ -9,7 +9,7 @@ Current slice:
 Schema priority-override count callback ownership cleanup.
 
 Status:
-Completed and verified; publishing.
+Completed and published.
 
 Selected slice:
 Point the contact-allocation priority-override count callback directly at
@@ -67,15 +67,18 @@ Behavior/schema changes:
 None.
 
 Last completed slice:
-Schema priority-field evidence callback ownership cleanup published as
-`4df5f3eb`: both callback bags now reuse the established priority-override
-owner, duplicate facade clauses were removed, 182 schema/export tests passed,
-full export bytes stayed exact, and bounded review was clean.
+Schema priority-override count callback ownership cleanup published as
+`3e6ba790`: the contact-allocation callback now points directly to the
+priority-override owner, the guarded facade delegate was removed, 182
+schema/export tests passed, full export bytes stayed exact, and bounded review
+was clean.
 
 Next candidate:
-After this boundary, refresh the named production hotspot inventory and compare
-the isolated CandidateDiff lineage pipe against a responsibility extraction in
-the next-largest facade.
+Pivot to the current largest production hotspot,
+`Validation.ReferenceFixtures` (13,383 lines). Extract its contiguous first six
+orbital/event fixtures—four event cases plus J2 and two-body—into an internal
+family module, then merge that family with the remaining artifact fixtures
+behind unchanged `all/0` and `fetch/1` facade behavior.
 
 Blocked:
 No.
