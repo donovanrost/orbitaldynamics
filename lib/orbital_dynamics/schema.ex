@@ -5086,7 +5086,7 @@ defmodule OrbitalDynamics.Schema do
   defp validate_contract(@resource_summary, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_resource_summary("$", artifact)
+    |> OrbitalDynamics.Schema.ResourceSummaryContracts.validate("$", artifact)
   end
 
   defp validate_contract(@resource_projection_report, contract, artifact) do
@@ -5934,7 +5934,7 @@ defmodule OrbitalDynamics.Schema do
       validate_optional_rows: &validate_optional_rows/4,
       validate_activity: &OrbitalDynamics.Schema.ActivityContracts.validate/3,
       validate_contact_intent: &OrbitalDynamics.Schema.ContactIntentContracts.validate/3,
-      validate_resource_summary: &validate_resource_summary/3,
+      validate_resource_summary: &OrbitalDynamics.Schema.ResourceSummaryContracts.validate/3,
       validate_optional_contact_filter_report: &validate_optional_contact_filter_report/3,
       validate_optional_resource_filter_report: &validate_optional_resource_filter_report/3,
       validate_optional_resource_projection_report:
@@ -6109,14 +6109,6 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       contact
-    )
-  end
-
-  defp validate_resource_summary(issues, path, summary) do
-    OrbitalDynamics.Schema.ResourceSummaryContracts.validate(
-      issues,
-      path,
-      summary
     )
   end
 
