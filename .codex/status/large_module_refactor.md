@@ -9,10 +9,10 @@ Current slice:
 Resource-safety fixture mapping.
 
 Status:
-Ready for next slice selection.
+Ready for implementation.
 
 Selected slice:
-No implementation selected yet. The next bounded candidate is to move
+Move
 `cadence_import_manifest.resource_projection_battery_handoff_v1`,
 `resource_projection_report.battery_handoff_v1`,
 `resource_projection_report.stale_resource_summary_margins`,
@@ -60,39 +60,23 @@ and the complete facade remainder stay exact, focused and full validation tests
 pass, and bounded review finds no blocker.
 
 Verification gaps:
-- Next candidate still requires a selection baseline before implementation.
+- Implementation and post-move verification pending.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
   `a94507226596cd944ac21994c7889549ec58ecd1fcc0db5c65fa4e55b0f53ef2`,
   and sorted-key digest
   `b0007d04e4154fe879519a4f2b074fe3f9d0d649f3049d5d848264e105d00732`.
-- Selected two-fixture map: deterministic digest
-  `9d8ee8e4a8d9e63c7e2c85094c2362c70195d50dbfb42e8a9702d076ee4cdab6`.
-- Exact 193-entry remainder: deterministic digest
-  `6659c79132cd96d163d53517a3a284a8ab38c4d8a1f8c13b9f4f90bdd29a9551`.
-- Contiguous source boundary confirmed at facade lines 219-348, followed by
-  `resource_projection_report.battery_handoff_v1`, with no facade
-  helper-attribute dependency in the selected literals.
-- Normalized-AST proof against selection commit `69f390f0`: both moved literals,
-  the following battery-handoff fixture, and the complete 57-entry facade
-  remainder are exact; the new leaf owns only the intended two keys.
-- Post-move exact proof: the 195-entry map, sorted-key digest, selected
-  two-fixture digest, and exact 193-entry remainder digest all match their
-  selection baselines.
-- Source partition proof: 38 maps total 195 entries, the new leaf owns two, the
-  facade owns 57, all 703 pairwise intersections are empty, and the source key
-  union exactly matches the runtime map.
-- Facade proof: all 195 successful `fetch/1` results, missing-key `:error`, and
-  nonbinary `FunctionClauseError` behavior remain unchanged.
-- Focused resource-projection/facade validation: 14 tests passed.
-- Full validation family: 181 tests passed.
-- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
-  xref caller checks passed.
-- Independent bounded review against selection commit `69f390f0` was clean:
-  the contiguous source range and complete facade remainder are normalized-AST
-  exact, all runtime and partition invariants reproduced, dependency direction
-  remains one-way, and focused/full tests and hygiene gates passed.
+- Selected five-fixture map: deterministic digest
+  `94ac1bfe2aac2bef4bcf9ccd70c684aa1cc0f4d4f1ddb004c7e8773fb24beb0e`.
+- Exact 190-entry remainder: deterministic digest
+  `1ccbced5cf69920a0f8485ce2bf76cd4afcbbefe9db7dc2a0d061bc391d74028`.
+- Source boundaries confirmed at facade lines 171-312, 621-668, and
+  2051-2092, followed by `resource_summary.v1`,
+  `objective_satisfaction_report.v1`, and
+  `operational_execution_boundary_summary.v1`, respectively; the selected
+  literals have no facade helper-attribute dependency.
+- Focused resource-safety/facade selection baseline: 14 tests passed.
 
 Behavior/schema changes:
 None.
