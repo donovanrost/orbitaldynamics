@@ -9,7 +9,7 @@ Current slice:
 Schema validation-report JSON property-dispatch extraction.
 
 Status:
-Selected.
+Review complete; ready to publish.
 
 Selected slice:
 Extract property dispatch for schema-validation reports and batch reports from
@@ -44,10 +44,24 @@ validators, bundle ordering, and checked-in exports remain exact; focused and
 export tests pass; and bounded review finds no blocker.
 
 Outcome:
-Pending.
+`OrbitalDynamics.Schema` now routes both schema-validation contracts through
+one guarded facade clause. The new `SchemaValidationPropertyDispatch` owns
+report/batch kind resolution, the shared contract callback, focused field
+selection, nested schema dependency wiring, and default fallback. `schema.ex`
+drops from 9,745 to 9,725 lines.
 
 Verification gaps:
-- Pending.
+- `mix compile --warnings-as-errors`
+- validation-scoring, JSON export, schema export, and export-task files:
+  28 tests passed
+- full schema export regeneration: no checked-in diff
+- checked-in schema aggregate digest unchanged:
+  `95051be82cec8a75634e4e8712dadd102888f59998d2c26ebe7c36065d824d3b`
+- scoped `mix format --check-formatted`
+- `git diff --check` and new-file diff hygiene
+- dispatcher compile-connected graph: no dependency edge
+- dispatcher caller: `OrbitalDynamics.Schema` at runtime only
+- bounded read-only review: clean, no findings
 
 Last completed slice:
 Schema validation-assessment property dispatch published as `4e361602`: two

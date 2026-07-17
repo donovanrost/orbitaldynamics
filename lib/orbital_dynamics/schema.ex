@@ -1706,45 +1706,25 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp json_schema_property(field, @schema_validation_report = contract_name, contract) do
-    focused_json_schema_property(
+  defp json_schema_property(field, contract_name, contract)
+       when contract_name in [
+              @schema_validation_report,
+              @schema_validation_batch_report
+            ] do
+    OrbitalDynamics.Schema.SchemaValidationPropertyDispatch.property(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.SchemaValidationReportJsonSchema.property_field?(&1, :report),
-      OrbitalDynamics.Schema.SchemaValidationReportJsonSchema.property_fun_from_context(
-        :report,
-        schema_contract: fn
-          :report -> @schema_validation_report
-          :batch -> @schema_validation_batch_report
-        end,
-        issue_schema: &validation_issue_json_schema/0,
-        remediation_schema: &validation_remediation_json_schema/0,
-        model_limits: &schema_validation_model_limits/0,
-        batch_entry_schema: &schema_validation_batch_entry_json_schema/0,
-        skipped_artifact_schema: &skipped_schema_validation_artifact_json_schema/0
-      )
-    )
-  end
-
-  defp json_schema_property(field, @schema_validation_batch_report = contract_name, contract) do
-    focused_json_schema_property(
-      field,
-      contract_name,
-      contract,
-      &OrbitalDynamics.Schema.SchemaValidationReportJsonSchema.property_field?(&1, :batch),
-      OrbitalDynamics.Schema.SchemaValidationReportJsonSchema.property_fun_from_context(
-        :batch,
-        schema_contract: fn
-          :report -> @schema_validation_report
-          :batch -> @schema_validation_batch_report
-        end,
-        issue_schema: &validation_issue_json_schema/0,
-        remediation_schema: &validation_remediation_json_schema/0,
-        model_limits: &schema_validation_model_limits/0,
-        batch_entry_schema: &schema_validation_batch_entry_json_schema/0,
-        skipped_artifact_schema: &skipped_schema_validation_artifact_json_schema/0
-      )
+      contracts: %{
+        report: @schema_validation_report,
+        batch: @schema_validation_batch_report
+      },
+      issue_schema: &validation_issue_json_schema/0,
+      remediation_schema: &validation_remediation_json_schema/0,
+      model_limits: &schema_validation_model_limits/0,
+      batch_entry_schema: &schema_validation_batch_entry_json_schema/0,
+      skipped_artifact_schema: &skipped_schema_validation_artifact_json_schema/0,
+      default_property: &default_json_schema_property/3
     )
   end
 
