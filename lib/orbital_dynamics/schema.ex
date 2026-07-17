@@ -5705,7 +5705,7 @@ defmodule OrbitalDynamics.Schema do
     []
     |> require_fields("$", artifact, contract["required_fields"])
     |> expect_equal("$", artifact, "schema_contract", "candidate_diff_row.v1")
-    |> validate_candidate_diff_row("$", artifact)
+    |> OrbitalDynamics.Schema.CandidateDiffContracts.validate_row("$", artifact)
   end
 
   defp validate_contract(@freshness_report, contract, artifact) do
@@ -6725,14 +6725,6 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       report
-    )
-  end
-
-  defp validate_candidate_diff_row(issues, path, candidate) do
-    OrbitalDynamics.Schema.CandidateDiffContracts.validate_row(
-      issues,
-      path,
-      candidate
     )
   end
 
