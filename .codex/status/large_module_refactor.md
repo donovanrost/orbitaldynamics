@@ -9,7 +9,7 @@ Current slice:
 Candidate-refresh capacity/filter replay fixture extraction.
 
 Status:
-Publishing implementation.
+Completed and published as `bd39ca7f`.
 
 Selected slice:
 Move the now-contiguous `link_capacity_replay` and `resource_filter_replay`
@@ -90,15 +90,18 @@ The facade fell from 10,603 to 10,424 lines, while the extracted family is 189
 lines.
 
 Last completed slice:
-Candidate-refresh filter/rejection fixture extraction published as `14fb3959`:
-the two exact filtering replay fixtures moved behind the unchanged facade,
-link capacity and the remainder stayed exact, the 195-entry map and
+Candidate-refresh capacity/filter fixture extraction published as `bd39ca7f`:
+the final two replay fixtures moved behind the unchanged facade, the first
+non-candidate-refresh report and remainder stayed exact, the 195-entry map and
 deterministic bytes stayed exact, 181 validation tests passed, and bounded
 review was clean.
 
 Next candidate:
-After this boundary, remap the remaining capability/report fixture families
-and choose the next extraction by focused test ownership rather than adjacency.
+Extract the contiguous candidate-rejection-report and candidate-diff-row
+fixtures into a candidate-state family. The 108-line pair shares dedicated
+`candidate_state_fixture_test.exs` ownership and precedes the six-entry
+environment-capability block; first verify helper-attribute independence and
+re-baseline the complete map.
 
 Blocked:
 No.
