@@ -9,7 +9,7 @@ Current slice:
 Schema readiness/quality-gate source callback ownership cleanup.
 
 Status:
-Completed and verified; publishing.
+Completed and published.
 
 Selected slice:
 Point operational-readiness gate/report and quality-gate row/report
@@ -69,18 +69,16 @@ Behavior/schema changes:
 None.
 
 Last completed slice:
-Schema contact-allocation source-match callback ownership cleanup published as
-`c6930074`: twelve allocation, capacity-pack, and provider-contention captures
-now point directly to their owner while duplicate-evidence injection remains
-facade-owned; 182 schema/export tests passed, full export bytes stayed exact,
-and bounded review was clean.
+Schema readiness/quality-gate source callback ownership cleanup published as
+`671dd406`: fourteen readiness gate/report and quality row/report captures now
+point directly to their dedicated owners; 182 schema/export tests passed, full
+export bytes stayed exact, and bounded review was clean.
 
 Next candidate:
-Leave contact-allocation field validation in the facade because moving it would
-drag the report-domain callback bag across the boundary. Audit the adjacent
-operational-readiness and quality-gate source-match wrappers instead: four pure
-delegates appear across fourteen callback positions and already have dedicated
-owners.
+Audit the contact-review source-match family. Provider-counteroffer and
+contact-intent general/cadence wrappers duplicate specialized/fallback clauses
+already exposed by `ContactReviewHandoffContracts` across eight capture
+positions.
 
 Blocked:
 No.
