@@ -9,7 +9,7 @@ Current slice:
 Validation core run-report fixture test-family extraction.
 
 Status:
-Ready to publish.
+Published as `1ac7b222`.
 
 Selected slice:
 Move the five contiguous validation-reference, candidate-diff, refresh-budget,
@@ -58,11 +58,10 @@ Verification gaps:
 - Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
-Validation benchmark artifact extraction published as `616561c7`: the focused
-module passed 1/1, the parent passed 30/30, and all thirty-nine Validation
-modules preserved the 181-test aggregate with no duplicate names. Format, diff
-hygiene, exact-source and dependency-closure checks, and bounded review were
-clean.
+Validation core run-report extraction published as `1ac7b222`: the focused
+module passed 5/5, the parent passed 25/25, and all forty Validation modules
+preserved the 181-test aggregate with no duplicate names. Format, diff hygiene,
+exact-source and dependency-closure checks, and bounded review were clean.
 
 Next candidate:
 Map the manifest-field and study-manifest-lint fixtures following core reports.
