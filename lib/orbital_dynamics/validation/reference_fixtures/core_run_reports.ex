@@ -244,6 +244,42 @@ defmodule OrbitalDynamics.Validation.ReferenceFixtures.CoreRunReports do
         "internal checked-in artifact regression, not external freshness validation",
         "checks accepted snapshot freshness counts, horizon offsets, state-quality routing, and no-schedule-mutation boundary only"
       ]
+    },
+    "fixture.artifact.validation_reference_report.v1" => %{
+      "id" => "fixture.artifact.validation_reference_report.v1",
+      "model_id" => "artifact.validation_reference_report.v1",
+      "reference_case" => "checked-in standalone validation reference report artifact",
+      "validation_level" => "artifact_contract",
+      "fixture_type" => "curated_internal_artifact_regression",
+      "inputs" => %{
+        "artifact_path" => "study_results/validation_reference_report_v1.json",
+        "contract" => "validation_reference_report.v1"
+      },
+      "expected" => %{
+        "schema_contract" => "validation_reference_report.v1",
+        "fixture_id" => "fixture.artifact.campaign_plan.leo_constellation_v1",
+        "model_id" => "artifact.campaign_plan.v1",
+        "validation_level" => "artifact_contract",
+        "status" => "pass",
+        "status_counts" => %{"pass" => 3},
+        "check_count" => 3,
+        "pass_check_count" => 3,
+        "fail_check_count" => 0,
+        "check_field_order" => "activity_count|candidate_activity_count|planner"
+      },
+      "tolerances" => %{
+        "check_count" => 0,
+        "pass_check_count" => 0,
+        "fail_check_count" => 0
+      },
+      "evidence" => [
+        "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
+        "schema-linted by mix orbital_dynamics.schema.lint"
+      ],
+      "known_limits" => [
+        "internal checked-in artifact regression, not external validation evidence",
+        "checks standalone reference report status and check routing only"
+      ]
     }
   }
 

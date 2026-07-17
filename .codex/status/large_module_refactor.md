@@ -9,7 +9,7 @@ Current slice:
 Validation-reference-report ownership cleanup.
 
 Status:
-Ready for implementation.
+Publishing.
 
 Selected slice:
 Move
@@ -56,7 +56,7 @@ fixtures and the complete facade remainder stay exact, focused and full
 validation tests pass, and bounded review finds no blocker.
 
 Verification gaps:
-- Implementation, verification, and bounded review pending.
+- None for this bounded slice.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -72,13 +72,33 @@ Tests run:
 - Source boundary confirmed at facade lines 275-310, between
   `validation_record.v1` and `validation_check.v1`, with no facade
   helper-attribute dependency in the selected literal.
-- Selection only; implementation verification pending.
+- Post-move exact proof: the 195-entry map, sorted-key digest, selected report
+  digest, prior four-fixture leaf digest, and exact 194-entry remainder digest
+  all match their selection baselines. The resulting five-fixture leaf digest
+  is `493ba6c6b32d7a3fa8c1a43ec4dcb4d2202ef044033925208bb42918a4c48b88`.
+- Source partition proof: 27 maps total 195 entries, the core-run leaf owns
+  five, the facade owns 101, and all 351 pairwise intersections are empty.
+- Facade proof: all 195 successful `fetch/1` results, missing-key `:error`, and
+  nonbinary `FunctionClauseError` behavior remain unchanged.
+- Focused core-run/policy-evidence/facade validation: 21 tests passed.
+- Full validation family: 181 tests passed.
+- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
+  xref caller checks passed.
+- Independent bounded review: CLEAN. It confirmed the validation-reference
+  report moved unchanged, the prior four core-run fixtures, both neighboring
+  policy-evidence fixtures, and complete facade remainder are normalized-AST
+  exact, the leaf owns only its five intended keys, all 27 maps are unique and
+  pairwise disjoint, all six digests and facade edge behaviors are unchanged,
+  dependencies remain one-way, the policy-evidence range is now contiguous,
+  and it reproduced 21 focused and 181 full validation tests.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-No validation-reference ownership implementation has started.
+The exact validation-reference report now lives with the existing core-run
+family behind the unchanged facade. The facade shrank from 7,620 to 7,584
+lines; the leaf grew from four to five fixtures and from 251 to 287 lines.
 
 Last completed slice:
 State/maneuver extraction published as `903b1fcd`: the exact five-fixture family
