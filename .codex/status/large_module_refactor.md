@@ -9,7 +9,7 @@ Current slice:
 Validation candidate-refresh resource/readiness replay test-family extraction.
 
 Status:
-Selected.
+Ready to publish.
 
 Selected slice:
 Move the three contiguous candidate-refresh resource-projection, quality-gate,
@@ -48,10 +48,16 @@ shared builders have one exact owner, focused and parent files pass, names remai
 unique, and bounded review finds no blocker.
 
 Outcome:
-Pending.
+Three byte-identical candidate-refresh resource/readiness replay tests moved
+into a 242-line focused module. Their twelve replay helpers and two retained
+source fixture loaders now have one 184-line shared support owner; the parent
+imports only the three aggregate observation builders and two source loaders.
+The parent fell from 8,057 to 7,667 lines. Total test/support/loader LOC grew by
+37 lines for explicit ownership without helper duplication. All 181 Validation
+test names remain unique.
 
 Verification gaps:
-- Pending.
+- Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
 Validation candidate-refresh contact replay extraction published as `1bd938c9`:
@@ -63,8 +69,9 @@ review were clean.
 Next candidate:
 Map the candidate-refresh timeline precondition, lifecycle-state,
 activity-lifecycle, and transition-application replay sequence. Preserve the
-existing timeline fixture owners and reuse the shared replay result-set builder;
-stop before objective-gap replay.
+existing timeline fixture owners and reuse the shared replay result-set builder.
+Their sixteen helpers own all remaining parent `Timeline` calls; stop before
+objective-gap replay.
 
 Blocked:
 No.
