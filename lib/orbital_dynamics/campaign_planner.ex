@@ -50,8 +50,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
     BranchRefreshSourceInputs,
     BranchRefreshTargets,
     BuildArtifact,
-    CadenceImportDirectPressureBranches,
-    CadenceImportSourceReports,
+    CadenceImportPressureBranches,
     ContactAllocationReportPressureBranches,
     ContactAllocationSummaryPressureBranches,
     ContactAllocationSourceReports,
@@ -1566,8 +1565,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
       |> Kernel.++(derived_mission_state_operational_timeline_pressure_branches(mission_state))
       |> Kernel.++(derived_operator_review_pressure_branches(prior_plan, policy))
       |> Kernel.++(derived_mission_state_operator_review_pressure_branches(mission_state, policy))
-      |> Kernel.++(derived_cadence_import_pressure_branches(prior_plan, policy))
-      |> Kernel.++(derived_mission_state_cadence_import_pressure_branches(mission_state, policy))
+      |> Kernel.++(CadenceImportPressureBranches.from_prior_plan(prior_plan, policy))
+      |> Kernel.++(CadenceImportPressureBranches.from_mission_state(mission_state, policy))
       |> Kernel.++(derived_fuel_preservation_branches(mission_state, policy))
       |> Kernel.++(derived_urgent_target_branches(mission_state, prior_plan, policy))
       |> Kernel.++(derived_collection_latency_branches(mission_state, prior_plan))
@@ -2269,67 +2268,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
         index
       )
     end)
-  end
-
-  defp derived_cadence_import_pressure_branches(prior_plan, policy) do
-    prior_plan
-    |> CadenceImportSourceReports.prior_plan_cadence_import_manifests()
-    |> CadenceImportSourceReports.pressure_rows_with_source()
-    |> Enum.flat_map(fn {row, source_prefix, index} ->
-      cadence_import_pressure_branches(row, index, policy, source_prefix)
-    end)
-  end
-
-  defp derived_mission_state_cadence_import_pressure_branches(mission_state, policy) do
-    mission_state
-    |> CadenceImportSourceReports.cadence_import_manifests()
-    |> CadenceImportSourceReports.pressure_rows_with_source()
-    |> Enum.flat_map(fn {row, source_prefix, index} ->
-      cadence_import_pressure_branches(row, index, policy, source_prefix)
-    end)
-  end
-
-  defp cadence_import_pressure_branches(
-         row,
-         index,
-         policy,
-         source_prefix
-       ) do
-    source_review_row =
-      case Map.get(row, "source_review_row") do
-        %{} = source ->
-          source
-          |> ValueEncoding.stringify_keys()
-          |> Map.put_new("approval_status", row["approval_status"])
-          |> CadenceImportSourceReports.Rows.put_source_report_trust_boundary(row)
-
-        _source ->
-          %{}
-      end
-
-    source_review_branches =
-      if source_review_row == %{} do
-        []
-      else
-        OperatorReviewPressureBranches.from_row(
-          source_review_row,
-          index,
-          policy,
-          "#{source_prefix}.source_review_row"
-        )
-      end
-
-    if source_review_branches != [] do
-      source_review_branches
-    else
-      CadenceImportDirectPressureBranches.branches(
-        row,
-        source_review_row,
-        index,
-        policy,
-        source_prefix
-      )
-    end
   end
 
   defp derived_mission_state_candidate_diff_pressure_branches(mission_state) do
