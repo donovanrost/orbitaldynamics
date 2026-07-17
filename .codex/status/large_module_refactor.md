@@ -9,7 +9,7 @@ Current slice:
 CandidateRefresh storage-downlink-pressure replay callback removal.
 
 Status:
-Review complete; ready to publish.
+Published as `028c3226`.
 
 Selected slice:
 Remove the source-summary callback from the storage-downlink-pressure replay
@@ -59,13 +59,13 @@ Verification gaps:
 - bounded read-only review: clean, no findings
 
 Last completed slice:
-Candidate objective/constraint replay callback removal published as `9ad25ac2`:
-both paths are one-argument end to end, 20 focused tests passed, and bounded
-review found no blocker.
+Candidate storage-downlink-pressure replay callback removal published as
+`028c3226`: the path is one-argument end to end, 13 focused tests passed, and
+bounded review found no blocker.
 
 Next candidate:
-Remove the callback seam from one adjacent single-owner replay family after
-this slice is published.
+Audit the adjacent resource-filter/resource-projection callback seams as one
+possible bounded pair.
 
 Blocked:
 No.
