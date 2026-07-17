@@ -9,7 +9,7 @@ Current slice:
 Schema communications-summary validation ownership cleanup.
 
 Status:
-Completed and verified; publishing.
+Completed and published.
 
 Selected slice:
 Point the link-capacity-summary and relay-data-path-summary contract pipelines
@@ -66,15 +66,16 @@ Behavior/schema changes:
 None.
 
 Last completed slice:
-Schema ResourceProjection support callback ownership cleanup published as
-`395b7249`: five positions now point directly to their owner contracts, four
-pure facade delegates were removed, 182 schema/export tests passed, full export
+Schema communications-summary validation ownership cleanup published as
+`9f22157d`: both contract heads now call their summary owners directly, two pure
+facade delegates were removed, 182 schema/export tests passed, full export
 bytes stayed exact, and bounded review was clean.
 
 Next candidate:
-After this boundary, audit the single CandidateDiff source-window-lineage
-pipeline and remaining communications report delegates before selecting another
-cohesive family.
+Audit the remaining communications report validators—link-capacity, contact
+contention, contention resolution report, and resolution policy—by helper call
+count and optional consumers. Select only a cluster whose direct owner calls
+preserve all fallback and pipeline behavior.
 
 Blocked:
 No.
