@@ -6,25 +6,28 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Proposed-contact fixture ownership cleanup.
+Policy-bundle fixture family mapping.
 
 Status:
-Publishing.
+Ready for next slice selection.
 
 Selected slice:
-Move the now-first `proposed_contact.v1` fixture from the facade into the
-existing `Validation.ReferenceFixtures.CandidateStrategyArtifacts` leaf. Stop
-before `policy_bundle.v1`; do not create another leaf module.
+No implementation selected yet. The next bounded candidate is to move only
+`policy_bundle.v1` and `policy_bundle.ground_network_allocation` into a new
+`Validation.ReferenceFixtures.PolicyBundleArtifacts` leaf. Stop before
+`policy_bundle.operator_review_queue_authority`.
 
 Why this slice:
-`ReferenceFixtures` remains the largest production module at 9,397 lines.
-The 44-line fixture shares candidate-strategy responsibility and dedicated
-coverage with the three fixtures already in `CandidateStrategyArtifacts`.
+`ReferenceFixtures` remains the largest production module at 9,353 lines. The
+next two contiguous fixtures are the base policy bundle and its foundational
+ground-network allocation specialization, totaling 139 facade lines. Both have
+dedicated assertions in `policy_bundle_fixture_test.exs`.
 
 Current coupling/problem:
-One candidate-strategy fixture remains in the facade solely because it was
-previously separated from its test-owned family. It references no facade helper
-attribute, and creating a one-fixture module would fragment ownership.
+Policy-bundle artifact expectations remain embedded in the general facade even
+though they form a large, cohesive, independently tested family. Moving only
+the first two establishes the family leaf without conflating the later
+authority and operational-policy subfamilies.
 
 Public facade to preserve:
 `OrbitalDynamics.Validation.ReferenceFixtures.all/0` and `fetch/1`, exact
@@ -32,27 +35,28 @@ fixture keys and values, map equality and deterministic term bytes, and all
 `OrbitalDynamics.Validation` reference-fixture behavior.
 
 Likely extraction target:
-`OrbitalDynamics.Validation.ReferenceFixtures.CandidateStrategyArtifacts`.
+`OrbitalDynamics.Validation.ReferenceFixtures.PolicyBundleArtifacts`.
 
 Likely files:
 - `lib/orbital_dynamics/validation/reference_fixtures.ex`
-- `lib/orbital_dynamics/validation/reference_fixtures/candidate_strategy_artifacts.ex`
+- `lib/orbital_dynamics/validation/reference_fixtures/policy_bundle_artifacts.ex`
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
 - exact before/after fixture count, keys, values, and deterministic term digest
-- focused candidate-strategy and facade validation tests
+- focused policy-bundle and facade validation tests
 - full validation test family
 - strict compile, format, xref, diff hygiene, and bounded review
 
 Definition of done:
-The proposed-contact fixture exists only in the candidate-strategy leaf, all 20
-fixture maps remain disjoint, `all/0` and `fetch/1` return exactly the
-same 195-entry map and deterministic term bytes, focused and full validation
-tests pass, and bounded review finds no blocker.
+The two selected policy-bundle fixtures exist only in the new cohesive leaf,
+all 21 fixture maps remain disjoint, `all/0` and `fetch/1` return exactly the
+same 195-entry map and deterministic term bytes, the operator-review fixture
+and complete facade remainder stay exact, focused and full validation tests
+pass, and bounded review finds no blocker.
 
 Verification gaps:
-- None for this bounded slice.
+- Next candidate still requires a selection baseline before implementation.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -79,21 +83,18 @@ Behavior/schema changes:
 None.
 
 Outcome:
-The exact proposed-contact fixture now lives with the existing candidate
-strategy artifact family. The public facade remains unchanged and shrank from
-9,397 to 9,353 lines; the cohesive leaf grew from three to four fixtures and
-from 241 to 285 lines without adding another module.
+No policy-bundle implementation has started.
 
 Last completed slice:
-Policy-decision fixture extraction published as `aeb1b10b`: the two exact
-approval/decision fixtures moved behind the unchanged facade, proposed contact
-and the remainder stayed exact, the 195-entry map and deterministic bytes
-stayed exact, 181 validation tests passed, and bounded review was clean.
+Proposed-contact ownership cleanup published as `ba7a7779`: the exact fixture
+moved into the existing candidate-strategy leaf, the facade shrank from 9,397
+to 9,353 lines, the 195-entry map and deterministic bytes stayed exact, 18
+focused and 181 full validation tests passed, and bounded review was clean.
 
 Next candidate:
-After this boundary, map the policy-bundle fixture range by focused policy
-bundle tests and choose bounded subfamilies rather than moving all variants at
-once.
+Select the two-fixture base/ground-network policy-bundle extraction described
+above, capture the exact baseline and source partition, then stop before the
+operator-review authority fixture.
 
 Blocked:
 No.
