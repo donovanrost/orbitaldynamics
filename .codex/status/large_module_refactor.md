@@ -6,23 +6,24 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema source-review callback ownership cleanup.
+Schema timeline callback ownership cleanup.
 
 Status:
-Completed and published.
+Selected; implementation pending.
 
 Selected slice:
-Point the refresh-budget source callback plus cadence warning,
-timeline-protection, policy-escalation, freshness, refresh-budget,
-schema-validation, execution, quality-gate, and operational-readiness callbacks
-directly at `Schema.SourceReviewHandoffContracts`. Remove the ten facade
-delegates across twelve callback positions.
+Point timeline-diff, transition-application, operational-timeline, and cadence
+publication/dependency/precondition/lifecycle/preservation callbacks directly
+at `Schema.TimelineHandoffContracts`. Remove the eleven facade delegates across
+seventeen callback positions. Leave the earlier publication-summary pipeline
+helpers unchanged.
 
 Why this slice:
-The refresh-budget source callback appears in three bags; each cadence callback
-appears once. All ten facade functions are pure one-hop delegates, while the
-owner already retains the specialized source-row dispatch, permissive
-fallbacks, field lists, and issue ordering.
+The three general families each appear in three callback bags and have one
+cadence callback; five additional cadence-only families appear once. All eleven
+facade functions are pure one-hop delegates, while the owner already retains
+specialized/fallback clauses and field traversal. Excluding the publication
+summary helpers keeps direct pipeline retargeting separate.
 
 Public facade to preserve:
 All `OrbitalDynamics.Schema` public functions, exact validation issue ordering,
@@ -39,33 +40,17 @@ Likely verification:
 - strict compile, format, xref, diff hygiene, and bounded review
 
 Definition of done:
-All twelve selected captures point directly to
-`SourceReviewHandoffContracts`, the ten facade delegates are gone, and callback
-plus field traversal issue ordering remains exact,
+All seventeen selected captures point directly to `TimelineHandoffContracts`,
+the eleven facade delegates are gone, the publication-summary helpers remain
+unchanged, and callback plus field traversal issue ordering remains exact,
 validation and schema exports remain byte-for-byte stable, focused tests pass,
 and bounded review finds no blocker.
 
-Outcome:
-The refresh-budget source callback and all nine selected cadence source-review
-callbacks now capture `SourceReviewHandoffContracts` directly. Ten pure facade
-delegates were removed across twelve positions, reducing `schema.ex` from
-8,547 to 8,427 lines without changing source-key dispatch, relative callback
-order, field traversal, fallbacks, or checked-in schema bytes.
-
 Verification gaps:
-- None for this slice.
+- Implementation and verification pending.
 
 Tests run:
-- `mix compile --warnings-as-errors`
-- 98 focused source-review-referencing schema contract tests
-- 182 complete schema-contract and schema-export tests
-- full checked-in schema export regeneration; no schema diff
-- aggregate schema bundle digest unchanged:
-  `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`
-- `mix format --check-formatted`
-- `git diff --check`
-- compile-connected xref check for `schema.ex`
-- bounded read-only review: clean, no findings
+- Pending.
 
 Behavior/schema changes:
 None.
