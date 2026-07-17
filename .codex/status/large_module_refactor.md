@@ -9,7 +9,7 @@ Current slice:
 Candidate-refresh filter/rejection replay fixture extraction.
 
 Status:
-Publishing implementation.
+Completed and published as `14fb3959`.
 
 Selected slice:
 Move the now-contiguous `candidate_rejection_replay` and
@@ -90,16 +90,17 @@ The facade fell from 10,761 to 10,603 lines, while the extracted family is 168
 lines.
 
 Last completed slice:
-Candidate-refresh planning-feedback fixture extraction published as
-`e2fddf8e`: the two exact objective/constraint replay fixtures moved behind the
-unchanged facade, contact filter and the remainder stayed exact, the 195-entry
-map and deterministic bytes stayed exact, 181 validation tests passed, and
-bounded review was clean.
+Candidate-refresh filter/rejection fixture extraction published as `14fb3959`:
+the two exact filtering replay fixtures moved behind the unchanged facade,
+link capacity and the remainder stayed exact, the 195-entry map and
+deterministic bytes stayed exact, 181 validation tests passed, and bounded
+review was clean.
 
 Next candidate:
-After this boundary, map the link-capacity/resource-filter pair against
-`candidate_refresh_capacity_filter_replay_fixture_test.exs` and verify helper
-coupling before selecting.
+Extract the now-contiguous link-capacity and resource-filter replays into one
+family. The 181-line pair has no helper-attribute coupling, shares dedicated
+`candidate_refresh_capacity_filter_replay_fixture_test.exs` ownership, and
+stops before non-candidate-refresh reports; re-baseline before selecting.
 
 Blocked:
 No.
