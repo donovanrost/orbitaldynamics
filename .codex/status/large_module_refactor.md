@@ -9,7 +9,7 @@ Current slice:
 Schema policy-plan handoff callback ownership cleanup.
 
 Status:
-Selected; implementation pending.
+Completed and verified; publishing.
 
 Selected slice:
 Point the approval-requirement and plan-delta handoff callback captures directly
@@ -44,14 +44,30 @@ Every callback list directly captures the corresponding public
 validation and schema exports remain byte-for-byte stable, focused tests pass,
 and bounded review finds no blocker.
 
+Outcome:
+All general and cadence-source-review policy-plan handoff callback lists now
+capture the existing `PolicyPlanHandoffContracts` validators directly. Four
+private one-hop delegates were removed, reducing `schema.ex` from 9,231 to
+9,186 lines without changing callback keys, order, fallback behavior, validation
+results, or checked-in schema bytes.
+
 Verification gaps:
-- Implementation and verification pending.
+- None for this slice.
 
 Tests run:
-- Pending.
+- `mix compile --warnings-as-errors`
+- 11 focused cadence-import, readiness, and review-import handoff tests
+- 182 complete schema-contract and schema-export tests
+- full checked-in schema export regeneration; no schema diff
+- aggregate schema bundle digest unchanged:
+  `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`
+- `mix format --check-formatted`
+- `git diff --check`
+- compile-connected xref check for `schema.ex`
+- bounded read-only review: clean, no findings
 
 Behavior/schema changes:
-None intended.
+None.
 
 Last completed slice:
 Schema optimization-handoff callback ownership cleanup published as `5013b9d7`:

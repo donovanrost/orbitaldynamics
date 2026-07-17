@@ -7322,8 +7322,9 @@ defmodule OrbitalDynamics.Schema do
       validate_objective_tradeoff_handoff_matches_source:
         &OrbitalDynamics.Schema.OptimizationHandoffContracts.validate_objective_tradeoff_matches_source/3,
       validate_approval_requirement_handoff_matches_source:
-        &validate_approval_requirement_handoff_matches_source/3,
-      validate_plan_delta_handoff_matches_source: &validate_plan_delta_handoff_matches_source/3,
+        &OrbitalDynamics.Schema.PolicyPlanHandoffContracts.validate_approval_requirement_matches_source/3,
+      validate_plan_delta_handoff_matches_source:
+        &OrbitalDynamics.Schema.PolicyPlanHandoffContracts.validate_plan_delta_matches_source/3,
       validate_risk_explanation_handoff_matches_source:
         &validate_risk_explanation_handoff_matches_source/3,
       validate_operational_timeline_handoff_matches_source:
@@ -7609,9 +7610,9 @@ defmodule OrbitalDynamics.Schema do
   defp cadence_import_row_handoff_contract_callbacks do
     [
       validate_approval_requirement_handoff_matches_source:
-        &validate_approval_requirement_handoff_matches_source/3,
+        &OrbitalDynamics.Schema.PolicyPlanHandoffContracts.validate_approval_requirement_matches_source/3,
       validate_cadence_source_review_approval_requirement_handoff_matches:
-        &validate_cadence_source_review_approval_requirement_handoff_matches/3,
+        &OrbitalDynamics.Schema.PolicyPlanHandoffContracts.validate_cadence_source_review_approval_requirement_matches/3,
       validate_cadence_source_review_battery_handoff_matches:
         &validate_cadence_source_review_battery_handoff_matches/3,
       validate_cadence_source_review_candidate_diff_handoff_matches:
@@ -7649,7 +7650,7 @@ defmodule OrbitalDynamics.Schema do
       validate_cadence_source_review_pareto_frontier_handoff_matches:
         &validate_cadence_source_review_pareto_frontier_handoff_matches/3,
       validate_cadence_source_review_plan_delta_handoff_matches:
-        &validate_cadence_source_review_plan_delta_handoff_matches/3,
+        &OrbitalDynamics.Schema.PolicyPlanHandoffContracts.validate_cadence_source_review_plan_delta_matches/3,
       validate_cadence_source_review_policy_escalation_handoff_matches:
         &validate_cadence_source_review_policy_escalation_handoff_matches/3,
       validate_cadence_source_review_provider_calendar_contention_handoff_matches:
@@ -7751,7 +7752,8 @@ defmodule OrbitalDynamics.Schema do
         &validate_optional_timeline_transition_application_summary_source/3,
       validate_pareto_frontier_handoff_matches_source:
         &validate_pareto_frontier_handoff_matches_source/3,
-      validate_plan_delta_handoff_matches_source: &validate_plan_delta_handoff_matches_source/3,
+      validate_plan_delta_handoff_matches_source:
+        &OrbitalDynamics.Schema.PolicyPlanHandoffContracts.validate_plan_delta_matches_source/3,
       validate_provider_calendar_contention_handoff_matches_source:
         &validate_provider_calendar_contention_handoff_matches_source/3,
       validate_provider_counteroffer_handoff_matches_source:
@@ -8313,54 +8315,6 @@ defmodule OrbitalDynamics.Schema do
          row
        ) do
     OrbitalDynamics.Schema.CandidateHandoffContracts.validate_cadence_source_review_candidate_diff_matches(
-      issues,
-      path,
-      row
-    )
-  end
-
-  defp validate_approval_requirement_handoff_matches_source(
-         issues,
-         path,
-         row
-       ) do
-    OrbitalDynamics.Schema.PolicyPlanHandoffContracts.validate_approval_requirement_matches_source(
-      issues,
-      path,
-      row
-    )
-  end
-
-  defp validate_cadence_source_review_approval_requirement_handoff_matches(
-         issues,
-         path,
-         row
-       ) do
-    OrbitalDynamics.Schema.PolicyPlanHandoffContracts.validate_cadence_source_review_approval_requirement_matches(
-      issues,
-      path,
-      row
-    )
-  end
-
-  defp validate_plan_delta_handoff_matches_source(
-         issues,
-         path,
-         row
-       ) do
-    OrbitalDynamics.Schema.PolicyPlanHandoffContracts.validate_plan_delta_matches_source(
-      issues,
-      path,
-      row
-    )
-  end
-
-  defp validate_cadence_source_review_plan_delta_handoff_matches(
-         issues,
-         path,
-         row
-       ) do
-    OrbitalDynamics.Schema.PolicyPlanHandoffContracts.validate_cadence_source_review_plan_delta_matches(
       issues,
       path,
       row
@@ -9093,8 +9047,9 @@ defmodule OrbitalDynamics.Schema do
       validate_objective_tradeoff_handoff_matches_source:
         &OrbitalDynamics.Schema.OptimizationHandoffContracts.validate_objective_tradeoff_matches_source/3,
       validate_approval_requirement_handoff_matches_source:
-        &validate_approval_requirement_handoff_matches_source/3,
-      validate_plan_delta_handoff_matches_source: &validate_plan_delta_handoff_matches_source/3,
+        &OrbitalDynamics.Schema.PolicyPlanHandoffContracts.validate_approval_requirement_matches_source/3,
+      validate_plan_delta_handoff_matches_source:
+        &OrbitalDynamics.Schema.PolicyPlanHandoffContracts.validate_plan_delta_matches_source/3,
       validate_risk_explanation_handoff_matches_source:
         &validate_risk_explanation_handoff_matches_source/3,
       validate_operational_timeline_handoff_matches_source:
