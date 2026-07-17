@@ -6531,23 +6531,6 @@ defmodule OrbitalDynamics.Schema do
         summary
       )
 
-  defp validate_optional_timeline_publication_summary_source(issues, path, summary) do
-    OrbitalDynamics.Schema.TimelineHandoffContracts.validate_optional_timeline_publication_summary_source(
-      issues,
-      path,
-      summary
-    )
-  end
-
-  defp validate_timeline_publication_handoff_matches_source(issues, path, row) do
-    OrbitalDynamics.Schema.TimelineHandoffContracts.validate_timeline_publication_matches_source_summary(
-      issues,
-      path,
-      row,
-      &validate_optional_timeline_publication_summary_source/3
-    )
-  end
-
   defp validate_optional_timeline_dependency_impact_source_row(issues, _path, nil), do: issues
 
   defp validate_optional_timeline_dependency_impact_source_row(issues, path, %{} = row),
@@ -7254,9 +7237,9 @@ defmodule OrbitalDynamics.Schema do
       validate_optional_timeline_dependency_impact_source_row:
         &validate_optional_timeline_dependency_impact_source_row/3,
       validate_optional_timeline_publication_summary_source:
-        &validate_optional_timeline_publication_summary_source/3,
+        &OrbitalDynamics.Schema.TimelineHandoffContracts.validate_optional_timeline_publication_summary_source/3,
       validate_timeline_publication_handoff_matches_source:
-        &validate_timeline_publication_handoff_matches_source/3,
+        &OrbitalDynamics.Schema.TimelineHandoffContracts.validate_timeline_publication_matches_source_summary/3,
       validate_optional_branch_comparison_source_row:
         &validate_optional_branch_comparison_source_row/3,
       validate_source_evidence_fields: &validate_source_evidence_fields/3,
@@ -7730,7 +7713,7 @@ defmodule OrbitalDynamics.Schema do
       validate_optional_timeline_protection_summary:
         &validate_optional_timeline_protection_summary/4,
       validate_optional_timeline_publication_summary_source:
-        &validate_optional_timeline_publication_summary_source/3,
+        &OrbitalDynamics.Schema.TimelineHandoffContracts.validate_optional_timeline_publication_summary_source/3,
       validate_optional_timeline_transition_application_row:
         &validate_optional_timeline_transition_application_row/3,
       validate_optional_timeline_transition_application_summary_source:
@@ -7778,7 +7761,7 @@ defmodule OrbitalDynamics.Schema do
       validate_timeline_diff_handoff_matches_source:
         &OrbitalDynamics.Schema.TimelineHandoffContracts.validate_timeline_diff_matches_source/3,
       validate_timeline_publication_handoff_matches_source:
-        &validate_timeline_publication_handoff_matches_source/3,
+        &OrbitalDynamics.Schema.TimelineHandoffContracts.validate_timeline_publication_matches_source_summary/3,
       validate_timeline_transition_application_handoff_matches_source:
         &OrbitalDynamics.Schema.TimelineHandoffContracts.validate_timeline_transition_application_matches_source/3
     ]
@@ -8078,9 +8061,9 @@ defmodule OrbitalDynamics.Schema do
       validate_optional_timeline_dependency_impact_source_row:
         &validate_optional_timeline_dependency_impact_source_row/3,
       validate_optional_timeline_publication_summary_source:
-        &validate_optional_timeline_publication_summary_source/3,
+        &OrbitalDynamics.Schema.TimelineHandoffContracts.validate_optional_timeline_publication_summary_source/3,
       validate_timeline_publication_handoff_matches_source:
-        &validate_timeline_publication_handoff_matches_source/3,
+        &OrbitalDynamics.Schema.TimelineHandoffContracts.validate_timeline_publication_matches_source_summary/3,
       validate_source_evidence_fields: &validate_source_evidence_fields/3,
       validate_source_operational_readiness_report_handoff_matches:
         &OrbitalDynamics.Schema.OperationalReadinessHandoffContracts.validate_report_matches_source/3,

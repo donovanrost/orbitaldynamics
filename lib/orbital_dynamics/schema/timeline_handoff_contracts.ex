@@ -545,6 +545,15 @@ defmodule OrbitalDynamics.Schema.TimelineHandoffContracts do
   def validate_optional_timeline_publication_summary_source(issues, path, _summary),
     do: [error(path, "must be an object") | issues]
 
+  def validate_timeline_publication_matches_source_summary(issues, path, row) do
+    validate_timeline_publication_matches_source_summary(
+      issues,
+      path,
+      row,
+      &validate_optional_timeline_publication_summary_source/3
+    )
+  end
+
   def validate_timeline_publication_matches_source_summary(
         issues,
         path,
