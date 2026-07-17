@@ -9,7 +9,7 @@ Current slice:
 Subsystem-model capability fixture mapping.
 
 Status:
-Ready for implementation.
+Publishing.
 
 Selected slice:
 Move
@@ -55,7 +55,7 @@ complete facade remainder stay exact, focused and full validation tests pass,
 and bounded review finds no blocker.
 
 Verification gaps:
-- Implementation, verification, and bounded review pending.
+- None for this bounded slice.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -69,13 +69,32 @@ Tests run:
 - Source boundary confirmed at facade lines 155-279, with
   `realized_activity.v1` beginning at line 280 and no facade helper-attribute
   dependency in the selected literals.
-- Selection only; implementation verification pending.
+- Post-move exact proof: the 195-entry map, sorted-key digest, selected
+  two-fixture digest, and exact 193-entry remainder digest all match their
+  selection baselines.
+- Source partition proof: 23 maps total 195 entries, the new leaf owns two, the
+  facade owns 116, and all 253 pairwise intersections are empty.
+- Facade proof: all 195 successful `fetch/1` results, missing-key `:error`, and
+  nonbinary `FunctionClauseError` behavior remain unchanged.
+- Focused activity-artifact/facade validation: 18 tests passed.
+- Full validation family: 181 tests passed.
+- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
+  xref caller checks passed.
+- Independent bounded review: CLEAN. It confirmed both subsystem capability
+  fixtures moved unchanged, realized activity and the complete facade remainder
+  are normalized-AST exact, the new leaf owns only its two intended keys, all
+  23 maps are unique and pairwise disjoint, all digests and facade edge
+  behaviors are unchanged, dependencies remain one-way, the capability boundary
+  remains distinct from activity definitions/outcomes, and it reproduced 18
+  focused and 181 full validation tests.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-No subsystem-capability implementation has started.
+The exact battery/storage capability pair now lives in a new cohesive leaf
+behind the unchanged facade. The facade shrank from 8,481 to 8,358 lines; the
+new leaf is 133 lines and owns exactly two fixtures.
 
 Last completed slice:
 Activity-definition extraction published as `f975a5d6`: the exact
