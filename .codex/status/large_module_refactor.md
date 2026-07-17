@@ -9,7 +9,7 @@ Current slice:
 Schema station-calendar handoff callback ownership cleanup.
 
 Status:
-Completed and verified; publishing.
+Completed and published.
 
 Selected slice:
 Point the station-calendar count-list, general source-match, and
@@ -72,17 +72,17 @@ Behavior/schema changes:
 None.
 
 Last completed slice:
-Schema link-capacity handoff callback ownership cleanup published as
-`49d41864`: all count-list and general/cadence source-match captures now point
+Schema station-calendar handoff callback ownership cleanup published as
+`a7b5f246`: all count-list and general/cadence source-match captures now point
 directly to their existing contract owner; 182 schema/export tests passed,
 full export bytes stayed exact, and bounded review was clean.
 
 Next candidate:
-Audit the station-calendar callback family. Count-list, source-match, and
-cadence-source-review callbacks target the existing
-`StationCalendarHandoffContracts` owner across seven capture positions; select
-only after confirming exact total/specialized/fallback behavior and count-list
-iteration order.
+Audit the resource-projection handoff callback family. Several delegates target
+`ResourceProjectionHandoffContracts`, but count and battery paths also carry
+predicate/row-selection dependencies. Select only a cohesive subset whose
+callbacks and fallback clauses can be moved without creating a broad callback
+bag or crossing the separate own-flow validator path.
 
 Blocked:
 No.
