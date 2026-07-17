@@ -181,15 +181,15 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary do
     ValidationSafetyCase.replay(refresh_or_artifact, source_report_summary)
   end
 
-  def freshness(refresh_or_artifact, source_report_summary) do
-    Validation.freshness(refresh_or_artifact, source_report_summary)
+  def freshness(refresh_or_artifact) do
+    Validation.freshness(refresh_or_artifact)
   end
 
-  def refresh_budget(refresh_or_artifact, source_report_summary) do
-    Validation.refresh_budget(refresh_or_artifact, source_report_summary)
+  def refresh_budget(refresh_or_artifact) do
+    Validation.refresh_budget(refresh_or_artifact)
   end
 
-  def schema_validation(refresh_or_artifact, source_report_summary) do
-    Validation.schema_validation(refresh_or_artifact, source_report_summary)
+  def schema_validation(refresh_or_artifact) do
+    Validation.schema_validation(refresh_or_artifact)
   end
 end

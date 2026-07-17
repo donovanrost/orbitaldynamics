@@ -9,7 +9,7 @@ Current slice:
 CandidateRefresh validation replay source-summary callback removal.
 
 Status:
-Selected.
+Review complete; ready to publish.
 
 Selected slice:
 Remove the repeated source-summary callback from freshness, refresh-budget, and
@@ -45,10 +45,21 @@ outputs remain exact; no old callback arity remains; focused tests pass; and
 bounded review finds no blocker.
 
 Outcome:
-Pending.
+The freshness, refresh-budget, and schema-validation replay paths are now
+one-argument end to end. Their leaves call `SourceReportSummary.build/1`
+directly while retaining branch-source precedence and the existing
+three-argument summary constructors. The production diff removes 39 net lines
+across six files.
 
 Verification gaps:
-- Pending.
+- `mix compile --warnings-as-errors`
+- six focused replay files: 29 tests passed
+- scoped `mix format --check-formatted`
+- `git diff --check`
+- old callback arity and invocation audits: no matches
+- validation owner compile-connected graph: no dependency edge
+- validation owner callers: replay aggregator only
+- bounded read-only review: clean, no findings
 
 Last completed slice:
 Candidate diff/rejection replay callback removal published as `37f533c3`:

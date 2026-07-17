@@ -575,10 +575,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   candidates, approve imports, or write to Cadence.
   """
   def freshness_replay_summary(refresh_or_artifact) do
-    ReplaySummary.freshness(
-      refresh_or_artifact,
-      &source_report_summary/1
-    )
+    ReplaySummary.freshness(refresh_or_artifact)
   end
 
   @doc """
@@ -590,10 +587,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   candidates, approve imports, or write to Cadence.
   """
   def refresh_budget_replay_summary(refresh_or_artifact) do
-    ReplaySummary.refresh_budget(
-      refresh_or_artifact,
-      &source_report_summary/1
-    )
+    ReplaySummary.refresh_budget(refresh_or_artifact)
   end
 
   @doc """
@@ -605,10 +599,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   candidates, approve imports, or write to Cadence.
   """
   def schema_validation_replay_summary(refresh_or_artifact) do
-    ReplaySummary.schema_validation(
-      refresh_or_artifact,
-      &source_report_summary/1
-    )
+    ReplaySummary.schema_validation(refresh_or_artifact)
   end
 
   @doc """

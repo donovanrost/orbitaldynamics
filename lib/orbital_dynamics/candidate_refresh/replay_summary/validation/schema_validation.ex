@@ -8,17 +8,13 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.Validation.SchemaValida
   alias OrbitalDynamics.CandidateRefresh.ReplaySummary.Validation.SourceReportFields.SchemaValidation,
     as: SourceReportFields
 
-  def from_refresh(
-        refresh_or_artifact,
-        source_report_summary
-      )
-      when is_function(source_report_summary, 1) do
+  def from_refresh(refresh_or_artifact) do
     branch_validation_summary = source_report_summary_branch_family(refresh_or_artifact)
 
     validation_summary =
       branch_validation_summary ||
         refresh_or_artifact
-        |> source_report_summary.()
+        |> SourceReportSummary.build()
         |> get_in(["source_reports", "schema_validation_report"]) ||
         %{}
 
