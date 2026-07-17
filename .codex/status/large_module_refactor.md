@@ -9,7 +9,7 @@ Current slice:
 Schema validation-evidence JSON property-dispatch extraction.
 
 Status:
-Review complete; ready to publish.
+Published as `c1498887`.
 
 Selected slice:
 Extract property dispatch for validation reference fixture reports, validation
@@ -64,14 +64,14 @@ Verification gaps:
 - bounded read-only review: clean, no findings
 
 Last completed slice:
-Candidate timeline activity-state replay callback removal published as
-`b86fc6a1`: all five paths are one-argument end to end, 36 focused tests
-passed, and bounded review found no blocker. No facade callback transport
-remains.
+Schema validation-evidence property dispatch published as `c1498887`: four
+contracts now route through one cohesive internal dispatcher, 25 focused/export
+tests passed, full regeneration was byte-identical, and bounded review found no
+blocker.
 
 Next candidate:
-Extend the property-dispatch extraction to one adjacent validation contract
-family after this slice is published.
+Audit adjacent model-acceptance/validation-safety-case property dispatch as the
+next cohesive validation contract family.
 
 Blocked:
 No.
