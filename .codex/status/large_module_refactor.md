@@ -6,36 +6,36 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Validation candidate-refresh objective/constraint replay test-family extraction.
+Validation candidate-refresh capacity/filter replay test-family extraction.
 
 Status:
-Published as `78a7ecbf`.
+Selected.
 
 Selected slice:
-Move the two contiguous candidate-refresh objective-gap and constraint replay
-tests into a focused module with one shared planning-feedback builder owner.
+Move the two contiguous candidate-refresh link-capacity and resource-filter
+replay tests into a focused module with one shared capacity/filter builder owner.
 
 Why this slice:
-After the timeline replay split, `validation_test.exs` is 7,108 lines. Tests
-1,627-1,796 form a coherent planning-feedback replay family and end before
-link-capacity replay. Their six helpers form a complete closure and only depend
-on the shared replay `result_set/1` owner.
+After the planning-feedback split, `validation_test.exs` is 6,747 lines. Tests
+1,633-1,833 form a coherent capacity/filter replay family and end before
+contact-filter replay. Their six helpers form a complete closure and only
+depend on the shared replay `result_set/1` owner.
 
 Public facade to preserve:
 `OrbitalDynamics.Validation.reference_fixture/1`,
 `verify_reference_fixture/2`, `artifact_observations/2`, exact candidate-refresh
-objective-gap and constraint replay schema checks, stale planning-feedback
+link-capacity and resource-filter replay schema checks, stale source-report
 coverage, and deterministic reports.
 
 Likely files:
 - `test/orbital_dynamics/validation_test.exs`
-- `test/orbital_dynamics/validation/candidate_refresh_planning_feedback_replay_fixture_test.exs`
-- `test/support/validation/candidate_refresh_planning_feedback_replay_fixtures.ex`
+- `test/orbital_dynamics/validation/candidate_refresh_capacity_filter_replay_fixture_test.exs`
+- `test/support/validation/candidate_refresh_capacity_filter_replay_fixtures.ex`
 - `test/test_helper.exs`
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
-- extracted candidate-refresh planning-feedback replay fixture module directly
+- extracted candidate-refresh capacity/filter replay fixture module directly
 - remaining validation test ledger
 - format, diff hygiene, and bounded review
 
@@ -45,15 +45,10 @@ shared builders have one exact owner, focused and parent files pass, names remai
 unique, and bounded review finds no blocker.
 
 Outcome:
-Two byte-identical candidate-refresh planning-feedback replay tests moved into
-a 183-line focused module. Their six helpers now have one 203-line shared
-support owner that reuses `result_set/1`; the parent imports only the two
-aggregate observation builders. The parent fell from 7,108 to 6,747 lines.
-Total test/support/loader LOC grew by 30 lines for explicit ownership without
-helper duplication. All 181 Validation test names remain unique.
+Pending.
 
 Verification gaps:
-- Full repository suite not run; this is a test-only ownership extraction.
+- Pending.
 
 Last completed slice:
 Validation candidate-refresh planning-feedback replay extraction published as
@@ -63,10 +58,10 @@ names. Format, diff hygiene, exact-source and dependency-closure checks, and
 bounded review were clean.
 
 Next candidate:
-Map the candidate-refresh link-capacity and resource-filter replay families
-following the planning-feedback pair. Preserve source-report family boundaries
-and reuse the shared replay result-set builder. Their six helpers form a closed
-family; stop before contact-filter replay.
+Map the candidate-refresh contact-filter and candidate-rejection replay
+families following the capacity/filter pair. Preserve filter/rejection
+assertion depth and reuse the shared replay result-set builder; stop before
+freshness replay.
 
 Blocked:
 No.
