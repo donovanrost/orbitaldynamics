@@ -9,7 +9,7 @@ Current slice:
 Schema maneuver-execution-delta callback ownership mapping.
 
 Status:
-Ready for implementation.
+Publishing.
 
 Selected slice:
 Point the standalone `maneuver_execution_delta.v1` contract pipe directly at
@@ -54,7 +54,7 @@ exact, schema bytes do not change, focused and complete tests pass, and bounded
 review finds no blocker.
 
 Verification gaps:
-- Implementation and post-change verification pending.
+None.
 
 Tests run:
 - Source baseline: `validate_maneuver_execution_delta/3` appears exactly once
@@ -68,12 +68,34 @@ Tests run:
   across 15,506,740 bytes.
 - Checked-in `schemas/orbital_dynamics.schema_bundle.v1.json` digest:
   `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`.
+- Source proof against selection commit `7ab72d33`: the standalone
+  maneuver-execution-delta pipe retains `require_fields` and now ends directly
+  at `AcceptedStateContracts.validate_maneuver_execution_delta/3`; the private
+  facade delegate is absent and no other facade call site remains.
+- Focused `accepted_state_contracts_test.exs`: 6 tests passed with warnings as
+  errors.
+- Complete schema-contract and schema-export suite: 182 tests passed with
+  warnings as errors.
+- Generated bundle remains exactly 121 schemas, 15,506,740 bytes, and digest
+  `543dbe11bc75f1397dd15dbd10cabd219ae2e46ac1e16d38b810a99befb8cec3`.
+- Full checked-in schema export regeneration completed with no schema diff;
+  aggregate bundle digest remains
+  `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`.
+- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
+  xref caller checks passed.
+- Independent bounded review against selection commit `7ab72d33` was clean:
+  exact pipeline and argument equivalence, unchanged accepted-state owner, 6
+  focused and 182 complete tests, generated and checked bundle digests, all 122
+  generated export files byte-matched, strict compile, xref, formatting, sizes,
+  ledger, and diff hygiene matched the recorded evidence.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-No maneuver-execution-delta callback implementation has started.
+The standalone maneuver-execution-delta contract pipe now calls the established
+owner directly and the pure facade delegate is gone. `schema.ex` decreased from
+7,968 to 7,963 lines.
 
 Last completed slice:
 Optional freshness-report wrapper cleanup published as `e01a81ea`: both facade

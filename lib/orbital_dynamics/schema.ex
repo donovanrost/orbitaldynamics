@@ -5688,7 +5688,10 @@ defmodule OrbitalDynamics.Schema do
   defp validate_contract(@maneuver_execution_delta, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_maneuver_execution_delta("$", artifact)
+    |> OrbitalDynamics.Schema.AcceptedStateContracts.validate_maneuver_execution_delta(
+      "$",
+      artifact
+    )
   end
 
   defp validate_contract(@candidate_refresh, contract, artifact) do
@@ -5983,14 +5986,6 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       state
-    )
-  end
-
-  defp validate_maneuver_execution_delta(issues, path, delta) do
-    OrbitalDynamics.Schema.AcceptedStateContracts.validate_maneuver_execution_delta(
-      issues,
-      path,
-      delta
     )
   end
 
