@@ -9,10 +9,10 @@ Current slice:
 Policy-bundle fixture family mapping.
 
 Status:
-Ready for next slice selection.
+Ready for implementation.
 
 Selected slice:
-No implementation selected yet. The next bounded candidate is to move only
+Move only
 `policy_bundle.v1` and `policy_bundle.ground_network_allocation` into a new
 `Validation.ReferenceFixtures.PolicyBundleArtifacts` leaf. Stop before
 `policy_bundle.operator_review_queue_authority`.
@@ -56,34 +56,27 @@ and complete facade remainder stay exact, focused and full validation tests
 pass, and bounded review finds no blocker.
 
 Verification gaps:
-- Next candidate still requires a selection baseline before implementation.
+- Implementation, verification, and bounded review pending.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
   `a94507226596cd944ac21994c7889549ec58ecd1fcc0db5c65fa4e55b0f53ef2`,
   and sorted-key digest
   `b0007d04e4154fe879519a4f2b074fe3f9d0d649f3049d5d848264e105d00732`.
-- Post-move exact proof: 195 entries with the same deterministic map and
-  sorted-key digests; `CandidateStrategyArtifacts` owns four fixtures, the
-  facade owns 132, all 20 fixture maps remain internally unique and pairwise
-  disjoint, and facade `fetch/1` returns the moved fixture unchanged.
-- Focused validation: 18 tests passed across
-  `candidate_strategy_fixture_test.exs`, `core_policy_test.exs`, and
-  `validation_test.exs`.
-- Full validation family: 181 tests passed.
-- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
-  xref caller checks passed.
-- Independent bounded review: CLEAN. It confirmed the literal one-fixture move,
-  exact normalized source union, all 20 maps internally unique and pairwise
-  disjoint across 190 intersections, exact runtime digests, all 195 successful
-  fetches, unchanged missing/nonbinary edge behavior, one-way dependencies, and
-  reproduced the 18 focused and 181 full validation tests.
+- Selected two-fixture map: deterministic digest
+  `922b0b6e144d06303a9d45cc972d40754be0c36989f499e305fbf13a10fd3a2a`.
+- Exact 193-entry remainder: deterministic digest
+  `42ae1315da283c6e56026138ee125a6b55a3a13f469323ac41c0dcf69ca6de89`.
+- Source boundary confirmed at facade lines 153-291, with
+  `policy_bundle.operator_review_queue_authority` beginning at line 292 and no
+  facade helper-attribute dependency in the selected literals.
+- Selection only; implementation verification pending.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-No policy-bundle implementation has started.
+Selection recorded; no policy-bundle implementation has started.
 
 Last completed slice:
 Proposed-contact ownership cleanup published as `ba7a7779`: the exact fixture
