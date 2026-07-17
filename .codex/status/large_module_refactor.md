@@ -9,7 +9,7 @@ Current slice:
 Validation timeline handoff fixture test-family extraction.
 
 Status:
-Verified and reviewed; ready to publish.
+Published as `92467b94`.
 
 Selected slice:
 Move the three contiguous timeline-diff report, timeline-feedback report, and
@@ -57,11 +57,10 @@ Verification gaps:
 - Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
-Validation timeline transition-application fixture extraction published as
-`b777cc7c`: the focused module passed 4/4, the parent passed 111/111, and all
-thirteen Validation modules preserved the 181-test aggregate with no duplicate
-names. Format, diff hygiene, dependency-closure checks, and bounded review were
-clean.
+Validation timeline handoff fixture extraction published as `92467b94`: the
+focused module passed 3/3, the parent passed 108/108, and all fourteen
+Validation modules preserved the 181-test aggregate with no duplicate names.
+Format, diff hygiene, dependency-closure checks, and bounded review were clean.
 
 Next candidate:
 Refresh the adjacent resource-pressure, command-window, constraint, and
