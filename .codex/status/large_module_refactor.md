@@ -6,28 +6,29 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Policy-bundle fixture family mapping.
+Policy-bundle authority fixture mapping.
 
 Status:
-Publishing.
+Ready for next slice selection.
 
 Selected slice:
-Move only
-`policy_bundle.v1` and `policy_bundle.ground_network_allocation` into a new
+No implementation selected yet. The next bounded candidate is to move only
+`policy_bundle.operator_review_queue_authority` and
+`policy_bundle.command_contact_authority` into the existing
 `Validation.ReferenceFixtures.PolicyBundleArtifacts` leaf. Stop before
-`policy_bundle.operator_review_queue_authority`.
+`policy_bundle.conservative_ops`.
 
 Why this slice:
-`ReferenceFixtures` remains the largest production module at 9,353 lines. The
-next two contiguous fixtures are the base policy bundle and its foundational
-ground-network allocation specialization, totaling 139 facade lines. Both have
-dedicated assertions in `policy_bundle_fixture_test.exs`.
+`ReferenceFixtures` remains the largest production module at 9,216 lines. The
+next two contiguous fixtures are the operator-review and command/contact
+authority variants, totaling 148 facade lines. Both have dedicated assertions
+in `policy_bundle_fixture_test.exs`.
 
 Current coupling/problem:
-Policy-bundle artifact expectations remain embedded in the general facade even
-though they form a large, cohesive, independently tested family. Moving only
-the first two establishes the family leaf without conflating the later
-authority and operational-policy subfamilies.
+Two authority-focused policy-bundle expectations remain in the general facade
+even though the policy-bundle family now has a dedicated leaf. Moving this
+pair extends that ownership without conflating the later operational-policy or
+domain-authority groups.
 
 Public facade to preserve:
 `OrbitalDynamics.Validation.ReferenceFixtures.all/0` and `fetch/1`, exact
@@ -49,14 +50,14 @@ Likely verification:
 - strict compile, format, xref, diff hygiene, and bounded review
 
 Definition of done:
-The two selected policy-bundle fixtures exist only in the new cohesive leaf,
+The two selected authority fixtures exist only in the cohesive policy leaf,
 all 21 fixture maps remain disjoint, `all/0` and `fetch/1` return exactly the
-same 195-entry map and deterministic term bytes, the operator-review fixture
-and complete facade remainder stay exact, focused and full validation tests
-pass, and bounded review finds no blocker.
+same 195-entry map and deterministic term bytes, `conservative_ops` and the
+complete facade remainder stay exact, focused and full validation tests pass,
+and bounded review finds no blocker.
 
 Verification gaps:
-- None for this bounded slice.
+- Next candidate still requires a selection baseline before implementation.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -93,20 +94,18 @@ Behavior/schema changes:
 None.
 
 Outcome:
-The two exact base/ground-network fixtures now live in the new policy-bundle
-leaf behind the unchanged facade. The facade shrank from 9,353 to 9,216 lines;
-the new cohesive leaf is 147 lines.
+No authority-fixture implementation has started.
 
 Last completed slice:
-Proposed-contact ownership cleanup published as `ba7a7779`: the exact fixture
-moved into the existing candidate-strategy leaf, the facade shrank from 9,397
-to 9,353 lines, the 195-entry map and deterministic bytes stayed exact, 18
-focused and 181 full validation tests passed, and bounded review was clean.
+Base policy-bundle fixture extraction published as `c66cedc3`: the two exact
+base/ground-network fixtures moved into a new 147-line leaf, the facade shrank
+from 9,353 to 9,216 lines, the 195-entry map and all deterministic digests
+stayed exact, 18 focused and 181 full validation tests passed, and bounded
+review was clean.
 
 Next candidate:
-Select the two-fixture base/ground-network policy-bundle extraction described
-above, capture the exact baseline and source partition, then stop before the
-operator-review authority fixture.
+Select the two-fixture authority extraction described above, capture the exact
+baseline and source partition, then stop before `policy_bundle.conservative_ops`.
 
 Blocked:
 No.
