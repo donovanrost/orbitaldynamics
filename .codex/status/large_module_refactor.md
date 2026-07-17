@@ -6,10 +6,10 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema remaining-horizon callback ownership mapping.
+Schema remaining-horizon callback ownership handoff.
 
 Status:
-Publishing.
+Published as `d9717806`.
 
 Selected slice:
 Point the standalone `remaining_horizon.v1` contract pipe directly at
@@ -98,14 +98,16 @@ directly and the pure facade delegate is gone. `schema.ex` decreased from 7,988
 to 7,983 lines.
 
 Last completed slice:
-Refreshed-window callback cleanup published as `49dde5ab`: the standalone
+Remaining-horizon callback cleanup published as `d9717806`: the standalone
 contract pipe now calls the established owner directly, `schema.ex` shrank from
-7,993 to 7,988 lines, 10 focused and 182 complete schema/export tests passed,
+7,988 to 7,983 lines, 10 focused and 182 complete schema/export tests passed,
 all 122 generated schema files byte-matched, and bounded review was clean.
 
 Next candidate:
-Select the direct remaining-horizon owner described above, preserve the final
-pipeline position exactly, then remove the unused facade delegate.
+Map the adjacent single-call `validate_refresh_budget_report/3` facade
+delegate. Its established `RefreshBudgetReportContracts.validate/3` owner is
+unchanged and the standalone `refresh_budget_report.v1` pipe is its only
+caller; capture pipeline order and schema-byte baselines before replacing it.
 
 Blocked:
 No.
