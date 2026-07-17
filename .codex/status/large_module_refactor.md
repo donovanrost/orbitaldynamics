@@ -6,10 +6,10 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema timeline-transition callback ownership mapping.
+Schema timeline-transition callback ownership handoff.
 
 Status:
-Ready for publication.
+Published as `fb19b31b`.
 
 Selected slice:
 Directly capture established owners for transition report counts, row identity
@@ -64,7 +64,11 @@ shrank from 7,845 to 7,837 lines, focused 11 and complete 182 tests passed, all
 122 exports byte-matched, and review was clean.
 
 Next candidate:
-After review and publication, continue the structural exact-wrapper inventory.
+Map both captures of `validate_timeline_integrity_evidence/3`: operational
+timeline rows after optional preconditions/activity context, and transition
+selected activities after optional activity context. The pure delegate maps
+exactly to `TimelineIntegrityEvidenceContracts.validate/3`; use operational
+timeline plus timeline-report focused tests.
 
 Blocked:
 No.
