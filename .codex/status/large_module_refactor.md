@@ -6,15 +6,15 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-CandidateRefresh timeline diff/dependency-impact replay callback removal.
+CandidateRefresh timeline publication/transition replay callback removal.
 
 Status:
-Published as `c428c291`.
+Selected.
 
 Selected slice:
-Remove the repeated source-summary callback from the timeline-diff and
-timeline-dependency-impact replay paths across the facade, replay aggregator,
-and two owners.
+Remove the repeated source-summary callback from the timeline-publication and
+timeline-transition-application replay paths across the facade, replay
+aggregator, and two owners.
 
 Why this slice:
 The two owners have the same branch-family-first shape, receive the fixed
@@ -23,20 +23,20 @@ callback only through the replay aggregator, and already depend on
 changing branch precedence or summary logic.
 
 Public facade to preserve:
-The public `timeline_diff_replay_summary/1` and
-`timeline_dependency_impact_replay_summary/1` functions, exact branch-family
-precedence, provenance fallback, source and scope strings, diff/dependency
-pressure fields, assumptions, and deterministic ordering.
+The public `timeline_publication_replay_summary/1` and
+`timeline_transition_application_replay_summary/1` functions, exact
+branch-family precedence, provenance fallback, source and scope strings,
+publication/transition fields, assumptions, and deterministic ordering.
 
 Likely files:
 - `lib/orbital_dynamics/candidate_refresh.ex`
 - `lib/orbital_dynamics/candidate_refresh/replay_summary.ex`
-- `lib/orbital_dynamics/candidate_refresh/replay_summary/timeline_diff.ex`
-- `lib/orbital_dynamics/candidate_refresh/replay_summary/timeline_dependency_impact.ex`
+- `lib/orbital_dynamics/candidate_refresh/replay_summary/timeline_publication.ex`
+- `lib/orbital_dynamics/candidate_refresh/replay_summary/timeline_transition_application.ex`
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
-- four focused diff/dependency replay files
+- five focused publication/transition replay files
 - callback/caller and compile-connected audits
 - compile, format, diff hygiene, and bounded review
 
@@ -46,21 +46,10 @@ remain exact; no old callback arity remains; focused tests pass; and bounded
 review finds no blocker.
 
 Outcome:
-The timeline-diff and timeline-dependency-impact replay paths are now
-one-argument end to end. Each owner calls `SourceReportSummary.build/1`
-directly for provenance fallback while retaining branch-family precedence and
-its existing summary constructor. The four-file production diff removes eight
-net lines.
+Pending.
 
 Verification gaps:
-- `mix compile --warnings-as-errors`
-- four focused replay files: 21 tests passed
-- scoped `mix format --check-formatted`
-- `git diff --check`
-- old callback arity and invocation audits: no matches
-- both owner compile-connected graphs: no dependency edge
-- both owner callers: replay aggregator only
-- bounded read-only review: clean, no findings
+- Pending.
 
 Last completed slice:
 Candidate diff/dependency-impact replay callback removal published as
@@ -68,8 +57,8 @@ Candidate diff/dependency-impact replay callback removal published as
 and bounded review found no blocker.
 
 Next candidate:
-Audit the adjacent timeline-publication/transition-application callback seams
-as one possible bounded pair.
+Audit the adjacent readiness/quality callback seams after this pair is
+published.
 
 Blocked:
 No.
