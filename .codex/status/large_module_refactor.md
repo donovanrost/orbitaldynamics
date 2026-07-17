@@ -9,10 +9,10 @@ Current slice:
 Subsystem-model capability fixture mapping.
 
 Status:
-Ready for next slice selection.
+Ready for implementation.
 
 Selected slice:
-No implementation selected yet. The next bounded candidate is to move
+Move
 `subsystem_model_capability.battery` and
 `subsystem_model_capability.storage` into a new
 `Validation.ReferenceFixtures.SubsystemModelCapabilities` leaf. Stop before
@@ -55,7 +55,7 @@ complete facade remainder stay exact, focused and full validation tests pass,
 and bounded review finds no blocker.
 
 Verification gaps:
-- Next candidate still requires a selection baseline before implementation.
+- Implementation, verification, and bounded review pending.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -63,30 +63,13 @@ Tests run:
   and sorted-key digest
   `b0007d04e4154fe879519a4f2b074fe3f9d0d649f3049d5d848264e105d00732`.
 - Selected two-fixture map: deterministic digest
-  `0495cd340d8bd8260c35eddc146e74669a8cddb34800983a92787db202338760`.
+  `f1c363eb0eb770461ee1bdf8210e8191373c1008cd3693e03b53117204c33c7a`.
 - Exact 193-entry remainder: deterministic digest
-  `27c89d7defc6972a22f9a69761eb35536862d4d42615b7998af30bf79eb5820b`.
-- Source boundary confirmed at facade lines 154-294, with
-  `subsystem_model_capability.battery` beginning at line 295 and no facade
-  helper-attribute dependency in the selected literals.
-- Post-move exact proof: the 195-entry map, sorted-key digest, selected
-  two-fixture digest, and exact 193-entry remainder digest all match their
-  selection baselines.
-- Source partition proof: 22 maps total 195 entries, the new leaf owns two, the
-  facade owns 118, and all 231 pairwise intersections are empty.
-- Facade proof: all 195 successful `fetch/1` results, missing-key `:error`, and
-  nonbinary `FunctionClauseError` behavior remain unchanged.
-- Focused activity-artifact/facade validation: 18 tests passed.
-- Full validation family: 181 tests passed.
-- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
-  xref caller checks passed.
-- Independent bounded review: CLEAN. It confirmed both activity-definition
-  fixtures moved unchanged, the battery capability and complete facade
-  remainder are normalized-AST exact, the new leaf owns only its two intended
-  keys, all 22 maps are unique and pairwise disjoint, all digests and facade
-  edge behaviors are unchanged, dependencies remain one-way, the definition
-  boundary remains distinct from subsystem/outcome fixtures, and it reproduced
-  18 focused and 181 full validation tests.
+  `784d669e3dd1281781820939357c3ef7927a257013415ddf47b0607db38c2992`.
+- Source boundary confirmed at facade lines 155-279, with
+  `realized_activity.v1` beginning at line 280 and no facade helper-attribute
+  dependency in the selected literals.
+- Selection only; implementation verification pending.
 
 Behavior/schema changes:
 None.
