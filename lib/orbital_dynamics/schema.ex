@@ -1684,40 +1684,25 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp json_schema_property(field, @model_acceptance_report = contract_name, contract) do
-    focused_json_schema_property(
+  defp json_schema_property(field, contract_name, contract)
+       when contract_name in [
+              @model_acceptance_report,
+              @validation_safety_case_summary
+            ] do
+    OrbitalDynamics.Schema.ValidationAssessmentPropertyDispatch.property(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.ModelAcceptanceReportJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.ModelAcceptanceReportJsonSchema.property_fun_from_context(
-        intended_uses: fn -> OrbitalDynamics.Validation.capabilities().intended_uses end,
-        acceptance_statuses: fn ->
-          OrbitalDynamics.Validation.capabilities().acceptance_statuses
-        end,
-        row_statuses: fn -> OrbitalDynamics.Validation.capabilities().row_statuses end,
-        model_limits: &model_acceptance_report_model_limits/0,
-        stable_id_pattern: @stable_id_pattern,
-        validation_record_schema: &validation_record_json_schema/0,
-        row_schema: &model_acceptance_row_json_schema/0
-      )
-    )
-  end
-
-  defp json_schema_property(field, @validation_safety_case_summary = contract_name, contract) do
-    focused_json_schema_property(
-      field,
-      contract_name,
-      contract,
-      &OrbitalDynamics.Schema.ValidationSafetyCaseSummaryJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.ValidationSafetyCaseSummaryJsonSchema.property_fun_from_context(
-        stable_id_pattern: @stable_id_pattern,
-        model_limits: &model_acceptance_report_model_limits/0,
-        safety_case_statuses: fn ->
-          OrbitalDynamics.Validation.capabilities().safety_case_statuses
-        end,
-        evidence_row_schema: &safety_case_evidence_row_json_schema/0
-      )
+      contracts: %{
+        model_acceptance_report: @model_acceptance_report,
+        validation_safety_case_summary: @validation_safety_case_summary
+      },
+      model_limits: &model_acceptance_report_model_limits/0,
+      stable_id_pattern: @stable_id_pattern,
+      validation_record_schema: &validation_record_json_schema/0,
+      model_acceptance_row_schema: &model_acceptance_row_json_schema/0,
+      safety_case_evidence_row_schema: &safety_case_evidence_row_json_schema/0,
+      default_property: &default_json_schema_property/3
     )
   end
 
