@@ -6,10 +6,10 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Model-acceptance fixture mapping.
+Model-acceptance fixture extraction handoff.
 
 Status:
-Publishing.
+Published as `1d61337d`.
 
 Selected slice:
 Move `model_acceptance_report.operational_import` and
@@ -104,15 +104,17 @@ behind the unchanged facade. The facade shrank from 1,240 to 1,047 lines; the
 new leaf is 203 lines and owns exactly two fixtures.
 
 Last completed slice:
-Quality-gate extraction published as `287ee9f1`: the exact seven-fixture family
-moved into a new 631-line leaf, the facade shrank from 1,861 to 1,240 lines, the
-195-entry map and all deterministic digests stayed exact, 20 focused and 181
-full validation tests passed, and bounded review was clean.
+Model-acceptance extraction published as `1d61337d`: the exact two-fixture
+family moved into a new 203-line leaf, the facade shrank from 1,240 to 1,047
+lines, the 195-entry map and all deterministic digests stayed exact, 4 focused
+and 181 full validation tests passed, and bounded review was clean.
 
 Next candidate:
-Select the model-acceptance extraction described above, preserve the exact
-preceding fixture and complete remainder, then move the complete test-owned
-pair.
+Map the 12 contiguous station calendar, station reservation, reservation hold,
+and provider-counteroffer fixtures that exactly own
+`station_reservation_fixture_test.exs`. Preserve the preceding capability
+catalog fixture exactly, and capture selected/remainder digests and boundaries
+before moving the complete workflow into one cohesive leaf.
 
 Blocked:
 No.
