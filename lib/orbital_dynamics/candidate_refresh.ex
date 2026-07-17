@@ -448,10 +448,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   or write to Cadence.
   """
   def timeline_feedback_replay_summary(refresh_or_artifact) do
-    ReplaySummary.timeline_feedback(
-      refresh_or_artifact,
-      &source_report_summary/1
-    )
+    ReplaySummary.timeline_feedback(refresh_or_artifact)
   end
 
   @doc """
@@ -464,10 +461,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   or write to Cadence.
   """
   def operational_timeline_replay_summary(refresh_or_artifact) do
-    ReplaySummary.operational_timeline(
-      refresh_or_artifact,
-      &source_report_summary/1
-    )
+    ReplaySummary.operational_timeline(refresh_or_artifact)
   end
 
   @doc """

@@ -157,12 +157,12 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary do
     Constraint.replay(refresh_or_artifact)
   end
 
-  def timeline_feedback(refresh_or_artifact, source_report_summary) do
-    TimelineFeedback.replay(refresh_or_artifact, source_report_summary)
+  def timeline_feedback(refresh_or_artifact) do
+    TimelineFeedback.replay(refresh_or_artifact)
   end
 
-  def operational_timeline(refresh_or_artifact, source_report_summary) do
-    OperationalTimeline.replay(refresh_or_artifact, source_report_summary)
+  def operational_timeline(refresh_or_artifact) do
+    OperationalTimeline.replay(refresh_or_artifact)
   end
 
   def operational_readiness(refresh_or_artifact, source_report_summary) do
