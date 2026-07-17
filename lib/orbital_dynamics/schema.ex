@@ -4872,14 +4872,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp stable_id_field?(field), do: field == "id" or String.ends_with?(field, "_id")
 
-  defp validate_timeline_publication_context(issues, path, summary) do
-    OrbitalDynamics.Schema.CandidateRefreshReportContracts.validate_timeline_publication_context(
-      issues,
-      path,
-      summary
-    )
-  end
-
   defp validate_contract(@activity_template, contract, artifact) do
     OrbitalDynamics.Schema.ActivityTemplateContracts.validate(
       [],
@@ -7013,7 +7005,7 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       gate,
-      &validate_timeline_publication_context/3
+      &OrbitalDynamics.Schema.CandidateRefreshReportContracts.validate_timeline_publication_context/3
     )
   end
 
@@ -7023,7 +7015,7 @@ defmodule OrbitalDynamics.Schema do
       path,
       evidence,
       &validate_operational_readiness_resource_context/3,
-      &validate_timeline_publication_context/3
+      &OrbitalDynamics.Schema.CandidateRefreshReportContracts.validate_timeline_publication_context/3
     )
   end
 
@@ -7070,7 +7062,7 @@ defmodule OrbitalDynamics.Schema do
       path,
       summary,
       quality_gate_import_readiness_summary_model_limits(),
-      &validate_timeline_publication_context/3
+      &OrbitalDynamics.Schema.CandidateRefreshReportContracts.validate_timeline_publication_context/3
     )
   end
 
@@ -7091,7 +7083,7 @@ defmodule OrbitalDynamics.Schema do
       row,
       &OrbitalDynamics.Schema.OperationalReadinessHandoffContracts.validate_gate_matches_source/3,
       &OrbitalDynamics.Schema.OperationalReadinessHandoffContracts.validate_report_matches_source/3,
-      &validate_timeline_publication_context/3
+      &OrbitalDynamics.Schema.CandidateRefreshReportContracts.validate_timeline_publication_context/3
     )
   end
 

@@ -9,7 +9,7 @@ Current slice:
 Schema timeline-publication-context callback ownership mapping.
 
 Status:
-Ready for implementation.
+Ready for publication.
 
 Selected slice:
 Point all four captures of `validate_timeline_publication_context/3` directly at
@@ -31,7 +31,7 @@ quality-row callback after both handoff matchers. Wrapper is absent and all
 proof/review remains exact.
 
 Verification gaps:
-- Implementation and post-change verification pending.
+None.
 
 Tests run:
 - Source baseline: four captures and one pure delegate at the positions above.
@@ -41,12 +41,23 @@ Tests run:
   `543dbe11bc75f1397dd15dbd10cabd219ae2e46ac1e16d38b810a99befb8cec3`.
 - Checked bundle digest:
   `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`.
+- Source proof against `9cd227a7`: all four captures reference the established
+  owner in their original argument positions and the wrapper is absent.
+- Focused operational/readiness tests: 11 passed; complete schema/export suite:
+  182 passed, all with warnings as errors.
+- Generated bundle remains exact; export regeneration produced no schema diff
+  and checked digest is unchanged.
+- Strict compile, format, xref, and diff hygiene passed.
+- Independent review against `9cd227a7` was clean across all four positions,
+  focused 11, complete 182, all 122 exports, digests, strict compile, xref,
+  formatting, sizes, ledger, and hygiene.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-No timeline-publication-context implementation has started.
+All four captures reference the established owner and wrapper is gone.
+`schema.ex` decreased from 7,845 to 7,837 lines.
 
 Last completed slice:
 Operational-feedback cleanup published as `10967b5f`: `schema.ex` shrank from
@@ -54,7 +65,7 @@ Operational-feedback cleanup published as `10967b5f`: `schema.ex` shrank from
 byte-matched, and review was clean.
 
 Next candidate:
-Implement all four direct captures and remove the wrapper.
+After review and publication, continue the robust exact-signature inventory.
 
 Blocked:
 No.
