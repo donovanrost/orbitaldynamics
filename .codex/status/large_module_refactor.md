@@ -9,7 +9,7 @@ Current slice:
 Cadence-import row JSON Schema provider-manifest extraction.
 
 Status:
-Ready to publish.
+Published as `283db7c7`.
 
 Selected slice:
 Replace the cadence-import row JSON Schema dependency/property `case`
@@ -70,11 +70,10 @@ Verification gaps:
   and fully audited, so this is not a public or reachable behavior change.
 
 Last completed slice:
-Validation quality-gate artifact fixture extraction published as `7b28a083`:
-the focused module passed 8/8, the parent passed 2/2, and all forty-six
-Validation modules preserved the 181-test aggregate with no duplicate names.
-Format, diff hygiene, exact-source and ownership-closure checks, and bounded
-review were clean.
+Cadence-import row JSON Schema provider-manifest extraction published as
+`283db7c7`: all 42 schema and 13 property providers remained exact and lazy,
+the cadence schema and full bundle remained byte-identical, 23/23 focused
+export tests passed, and bounded review found no blocker.
 
 Next candidate:
 If this provider-manifest pattern is exact and materially clearer, map the
