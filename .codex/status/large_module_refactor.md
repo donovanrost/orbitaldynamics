@@ -6,22 +6,21 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema candidate-diff callback ownership cleanup.
+Schema branch-event callback ownership cleanup.
 
 Status:
-Completed and published.
+Ready for implementation.
 
 Selected slice:
-Point semantic-change details, changed-fields, optional-source-window, and
-optional-source-window-lineage callbacks directly at
-`Schema.CandidateDiffContracts`. Remove the four pure facade delegates across
-fourteen callback positions.
+Point the strategy-branch event validator and four branch-event summary-field
+positions directly at `Schema.BranchEventContracts`. Remove the two pure facade
+delegates across five positions.
 
 Why this slice:
-The owner already exposes exact `/3` semantic and changed-field validators plus
-exact `/4` optional field validators. The facade functions only forward their
-arguments, and all fourteen uses can retain their current callback or positional
-argument order without an owner API change.
+The owner already exposes exact `/3` event and summary-field validators. The
+facade functions only forward their arguments, while the positional strategy
+callback and four summary callbacks can retain their existing slots and keys
+without owner or consumer changes.
 
 Public facade to preserve:
 All `OrbitalDynamics.Schema` public functions, exact validation issue ordering,
@@ -38,30 +37,16 @@ Likely verification:
 - strict compile, format, xref, diff hygiene, and bounded review
 
 Definition of done:
-All fourteen selected positions point directly to `CandidateDiffContracts`, the
-four pure facade delegates are gone, field arguments, callback list positions,
-and issue ordering remain exact, validation and schema exports remain
-byte-for-byte stable, focused tests pass, and bounded review finds no blocker.
+All five positions point directly to `BranchEventContracts`, both pure facade
+delegates are gone, callback slots and list positions remain exact, validation
+and schema exports remain byte-for-byte stable, focused tests pass, and bounded
+review finds no blocker.
 
 Verification gaps:
-- None for this slice.
+- Implementation and verification pending.
 
 Tests run:
-- `mix compile --warnings-as-errors`
-- 23 focused candidate-diff, resource, cadence, and operator-review tests
-- 182 complete schema-contract and schema-export tests
-- full checked-in schema export regeneration; no schema diff
-- aggregate schema bundle digest unchanged:
-  `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`
-- `mix format --check-formatted`
-- `git diff --check`
-- compile-connected xref check for `schema.ex`
-- bounded read-only review: clean, no findings
-
-Outcome:
-All fourteen selected positions now point directly to `CandidateDiffContracts`.
-Four pure facade delegates were removed, including the two field-aware `/4`
-helpers, and `schema.ex` decreased from 8,166 to 8,144 lines.
+- Selection only; implementation verification pending.
 
 Behavior/schema changes:
 None.
@@ -73,9 +58,9 @@ facade delegates were removed, 182 schema/export tests passed, full export
 bytes stayed exact, and bounded review was clean.
 
 Next candidate:
-Point the single branch-event validator and four branch-event summary-field
-positions directly at `BranchEventContracts`, then remove both pure facade
-delegates. Keep scoped-downlink callbacks separate.
+After this boundary, retarget the three scoped-downlink context positions to
+their owner if the positional strategy callback and both keyword bags remain
+exact.
 
 Blocked:
 No.
