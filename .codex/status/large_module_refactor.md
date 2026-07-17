@@ -9,10 +9,10 @@ Current slice:
 Link-capacity ownership cleanup.
 
 Status:
-Ready for next slice selection.
+Ready for implementation.
 
 Selected slice:
-No implementation selected yet. The next bounded candidate is to move
+Move
 `relay_data_path_summary.v1` from the facade into the existing
 `Validation.ReferenceFixtures.LinkCapacityArtifacts` leaf beside
 `link_capacity_summary.v1` and `link_capacity_report.v1`. Preserve the
@@ -56,39 +56,25 @@ and the complete facade remainder stay exact, focused and full validation tests
 pass, and bounded review finds no blocker.
 
 Verification gaps:
-- Next candidate still requires a selection baseline before implementation.
+- Implementation and post-move verification pending.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
   `a94507226596cd944ac21994c7889549ec58ecd1fcc0db5c65fa4e55b0f53ef2`,
   and sorted-key digest
   `b0007d04e4154fe879519a4f2b074fe3f9d0d649f3049d5d848264e105d00732`.
-- Selected five-fixture map: deterministic digest
-  `ee14e627521262933776cc726d840ec649662ad80004952c75afd38c133ef879`.
-- Exact 190-entry remainder: deterministic digest
-  `83a23ef655563659f24a8d59eebe3844414fe1bfbb5969fc308cd24b5b19a29b`.
-- Contiguous source boundary confirmed at facade lines 217-534, followed by
-  `relay_data_path_summary.v1`, with no facade helper-attribute dependency in
-  the selected literals.
-- Normalized-AST proof against selection commit `f7d531a0`: all five moved
-  literals, the following relay-data-path summary, and the complete 63-entry
-  facade remainder are exact; the new leaf owns only the intended five keys.
-- Post-move exact proof: the 195-entry map, sorted-key digest, selected
-  five-fixture digest, and exact 190-entry remainder digest all match their
-  selection baselines.
-- Source partition proof: 36 maps total 195 entries, the new leaf owns five, the
-  facade owns 63, all 630 pairwise intersections are empty, and the source key
-  union exactly matches the runtime map.
-- Facade proof: all 195 successful `fetch/1` results, missing-key `:error`, and
-  nonbinary `FunctionClauseError` behavior remain unchanged.
-- Focused contact-contention/facade validation: 17 tests passed.
-- Full validation family: 181 tests passed.
-- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
-  xref caller checks passed.
-- Independent bounded review against selection commit `f7d531a0` was clean:
-  the contiguous source range and complete facade remainder are normalized-AST
-  exact, all runtime and partition invariants reproduced, dependency direction
-  remains one-way, and focused/full tests and hygiene gates passed.
+- Selected relay fixture map: deterministic digest
+  `97e28bc97fe67e55c49ce4bdfdfe23b0dde4f9bc26b7470ab56533fd2f3fac16`.
+- Existing two-fixture link-capacity leaf: deterministic digest
+  `7817e0c1af0ec3b38d0c9ea5768aa301c34dce167c369342ffd5c38af2ae7c2d`;
+  expected combined three-fixture digest
+  `4219e88a9ccd588496edd156e2c839c1c1e876159590b2d1eab8348198148a8a`.
+- Exact 194-entry remainder: deterministic digest
+  `6bd87aeff9ffe9f98af1aab104a646697dbe92b75ca04b19e6011c700988f055`.
+- Source boundary confirmed at facade lines 218-315, followed by
+  `maneuver_review_report.v1`, with no facade helper-attribute dependency in
+  the selected literal.
+- Focused link-capacity/facade selection baseline: 15 tests passed.
 
 Behavior/schema changes:
 None.
