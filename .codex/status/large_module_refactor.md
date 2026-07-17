@@ -6,59 +6,45 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-CampaignPlanner repair activity-state transition extraction.
+RepairAccumulator delayed-maneuver tracking ownership.
 
 Status:
-Published as `e99f5f3a`.
+Selected.
 
 Selected slice:
-Extract ambiguous-review, degraded-suppression, executed/locked/viable
-preservation, and terminal-cancellation branches into
-`RepairActivityStateTransitions`.
+Move the final direct `:delayed_maneuvers` accumulator mutation behind
+`RepairAccumulator.track_delayed_maneuver/3`.
 
 Why this slice:
-These non-timing state transitions share a closed dependency set and can move
-whole without callbacks. Delayed-maneuver movement and downstream annotation
-remain separate because they form a timing-impact responsibility and still
-need explicit accumulator ownership for delayed-maneuver tracking.
+All other repair accumulator mutation is owner-local. This exact prepend is the
+only remaining facade mutation and is the prerequisite for moving the complete
+delayed-maneuver/downstream-impact transition without split ownership.
 
 Public facade to preserve:
 `OrbitalDynamics.CampaignPlanner.repair/1`, exact repaired activities, deltas,
-warnings, approvals, repair metadata, realized-feedback review rows, and
+delayed-maneuver tracking, downstream annotations, warnings, approvals, and
 deterministic ordering.
 
 Likely files:
 - `lib/orbital_dynamics/campaign_planner.ex`
-- `lib/orbital_dynamics/campaign_planner/repair_activity_state_transitions.ex`
+- `lib/orbital_dynamics/campaign_planner/repair_accumulator.ex`
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
-- focused execution-policy, realized-state, timeline-protection, and determinism families
-- normalized state-branch, metadata, and accumulator-call audit
+- focused delayed-maneuver and determinism families
+- exact mutation and call-site audit
 - compile, format, diff hygiene, and bounded review
 
 Definition of done:
-All six state branches delegate to one owner; metadata, accumulator call order,
-warning and approval behavior, realized-feedback handling, and ordering remain
-exact; focused tests pass; and bounded review finds no blocker.
+No direct repair-accumulator mutation remains outside its owner; delayed
+maneuver entry shape and prepend order remain exact; focused tests pass; and
+bounded review finds no blocker.
 
 Outcome:
-Added `RepairActivityStateTransitions` as the owner for ambiguous-feedback
-review, degraded suppression, executed/locked/viable preservation, and
-terminal cancellation. The facade now only dispatches these six state
-branches; metadata construction and accumulator mutations move together. The
-facade fell from 4,253 to 4,140 lines; the explicit 128-line owner makes the
-bounded scope net +15 lines while removing 113 lines of mixed state-transition
-responsibility from the facade.
+Pending.
 
 Verification gaps:
-- Strict compilation and diff hygiene pass.
-- Repair execution-policy, realized-state, timeline-protection, ambiguity, and
-  determinism families pass 67/67.
-- All six branch bodies, metadata maps, accumulator call order, warning text,
-  approval actions, and changed dispatch sites were audited against selection
-  commit `d333ce84`.
-- Independent bounded review found no blocker.
+- Pending.
 
 Last completed slice:
 CampaignPlanner repair activity-state transition extraction published as
@@ -66,9 +52,8 @@ CampaignPlanner repair activity-state transition extraction published as
 passed, and bounded review found no blocker.
 
 Next candidate:
-After activity-state transitions, add delayed-maneuver tracking to
-`RepairAccumulator`, then reassess the complete maneuver/downstream-impact
-transition boundary.
+Extract the complete delayed-maneuver movement and downstream-impact family
+once accumulator ownership is unified.
 
 Blocked:
 No.
