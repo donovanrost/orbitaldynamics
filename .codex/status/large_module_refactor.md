@@ -9,7 +9,7 @@ Current slice:
 CampaignPlanner repair activity-dispatch extraction.
 
 Status:
-Selected.
+Ready to publish.
 
 Selected slice:
 Extract activity normalization/matching, realized-status derivation,
@@ -41,10 +41,21 @@ realized matching/status, protection priority, transition selection, and
 ordering remain exact; focused tests pass; and bounded review finds no blocker.
 
 Outcome:
-Pending.
+Added `RepairActivityDispatch` as the owner for activity normalization,
+realized matching/status, protection priority, and ordered transition
+selection. The repair reduce now delegates each activity directly; the three
+repair-only status attributes and all dispatch helpers are gone from the
+facade. The facade fell from 4,052 to 3,967 lines; the explicit 102-line owner
+makes the bounded scope net +17 lines while removing 85 lines of orchestration
+responsibility from the facade.
 
 Verification gaps:
-- Pending.
+- Strict compilation and diff hygiene pass.
+- Full focused repair/facade family passes 68/68.
+- Case matching, status derivation, condition order, protection decision
+  options, terminal status sets, transition arguments, and the changed reduce
+  call site were audited against selection commit `ac2e83ed`.
+- Independent bounded review found no blocker.
 
 Last completed slice:
 CampaignPlanner repair maneuver timing-impact extraction published as
