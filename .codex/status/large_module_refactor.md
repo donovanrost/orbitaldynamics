@@ -9,7 +9,7 @@ Current slice:
 CampaignPlanner repair replacement-selection extraction.
 
 Status:
-Ready to publish.
+Published as `b0006439`.
 
 Selected slice:
 Extract replacement filtering, repair-intent matching, duplicate rejection,
@@ -64,10 +64,10 @@ Verification gaps:
 - Independent bounded review found no blocker.
 
 Last completed slice:
-CampaignPlanner repair activity-identity ownership extraction published as
-`6a51d53b`: one owner now supplies repair timeline/context/station/window
-identity, the bounded scope is net -33 lines, 94 focused tests passed, and
-bounded review found no blocker.
+CampaignPlanner repair replacement-selection extraction published as
+`b0006439`: one owner now supplies the complete filter and deterministic sort
+pipeline, 67 repair tests passed, the one broader failure was proven
+pre-existing, and bounded review found no blocker.
 
 Next candidate:
 After replacement selection, remap the two successful repair-transition
