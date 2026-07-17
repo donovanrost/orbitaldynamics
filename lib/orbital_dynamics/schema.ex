@@ -5846,7 +5846,8 @@ defmodule OrbitalDynamics.Schema do
         &validate_optional_actual_data_rate_throughput_derivation/4,
       validate_contact_contention_deferred_priority:
         &OrbitalDynamics.Schema.ContactContentionReportContracts.validate_deferred_priority/3,
-      validate_priority_field_evidence_counts: &validate_priority_field_evidence_counts/3,
+      validate_priority_field_evidence_counts:
+        &OrbitalDynamics.Schema.PriorityOverrideContracts.validate_field_evidence_counts/3,
       validate_override_count_matches_ids: &validate_override_count_matches_ids/5,
       validate_station_calendar_contact_counts: &validate_station_calendar_contact_counts/3
     ]
@@ -6112,23 +6113,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp validate_optional_contact_contention_resolution_report(issues, _report),
     do: [error("$.contact_contention_resolution_report", "must be an object") | issues]
-
-  defp validate_priority_field_evidence_counts(issues, path, counts) when is_map(counts) do
-    Enum.reduce(counts, issues, fn {field, count}, acc ->
-      cond do
-        not is_binary(field) or field == "" ->
-          [error("#{path}.#{inspect(field)}", "field name must be a non-empty string") | acc]
-
-        not is_integer(count) or count < 0 ->
-          [error("#{path}.#{field}", "must be a non-negative integer") | acc]
-
-        true ->
-          acc
-      end
-    end)
-  end
-
-  defp validate_priority_field_evidence_counts(issues, _path, _counts), do: issues
 
   defp validate_optional_station_calendar_report(issues, report),
     do: validate_optional_station_calendar_report(issues, "$.station_calendar_report", report)
@@ -7816,7 +7800,8 @@ defmodule OrbitalDynamics.Schema do
       validate_optional_lifecycle_transition: &validate_optional_lifecycle_transition/4,
       validate_contact_contention_deferred_priority:
         &OrbitalDynamics.Schema.ContactContentionReportContracts.validate_deferred_priority/3,
-      validate_priority_field_evidence_counts: &validate_priority_field_evidence_counts/3,
+      validate_priority_field_evidence_counts:
+        &OrbitalDynamics.Schema.PriorityOverrideContracts.validate_field_evidence_counts/3,
       validate_optional_branch_comparison_source_row:
         &validate_optional_branch_comparison_source_row/3,
       validate_optional_policy_decision_evidence: &validate_optional_policy_decision_evidence/3,
