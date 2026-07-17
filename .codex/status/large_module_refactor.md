@@ -9,7 +9,7 @@ Current slice:
 CandidateRefresh contact filter/allocation replay callback removal.
 
 Status:
-Review complete; ready to publish.
+Published as `64de7f00`.
 
 Selected slice:
 Remove the repeated source-summary callback from the contact-filter and
@@ -62,13 +62,13 @@ Verification gaps:
 - bounded read-only review: clean, no findings
 
 Last completed slice:
-Candidate resource filter/projection replay callback removal published as
-`e817eb1f`: both paths are one-argument end to end, 41 focused tests passed,
+Candidate contact filter/allocation replay callback removal published as
+`64de7f00`: both paths are one-argument end to end, 53 focused tests passed,
 and bounded review found no blocker.
 
 Next candidate:
-Remove the callback seam from one adjacent single-owner replay family after
-this pair is published.
+Audit the adjacent link-capacity replay callback seam as one possible bounded
+slice.
 
 Blocked:
 No.
