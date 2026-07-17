@@ -6,71 +6,61 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Candidate-refresh top-level callback-bag collapse.
+Contact-intent callback-bag and policy-field ownership collapse.
 
 Status:
-Complete and ready to publish.
+Selected; implementation not started.
 
 Selected slice:
-Replace the 27-entry `CandidateRefreshContracts` keyword bag with direct shared
-and extracted owners, retaining only named explicit validators for boundaries
-that still require Schema-owned context.
+Replace the 21-entry `ContactIntentContracts` keyword bag with direct shared
+owners, extract policy context/action-rule field groups from `schema.ex`, and
+let candidate refresh call the contact-intent owner directly.
 
 Why this slice:
-Live inventory leaves `schema.ex` at 11,185 lines. This compact 155-line owner
-and its sole caller route primitives, collection traversal, and already
-extracted candidate-refresh validators through 27 lookup/apply entries; only a
-small set of nested report validators still crosses Schema-owned boundaries.
+Live inventory leaves `schema.ex` at 11,079 lines. The 334-line contact-intent
+owner routes 21 dependencies through lookup/apply even though primitives,
+stable IDs, intervals, station-calendar counts, and policy validators already
+have extracted owners. Policy field groups remain duplicated configuration in
+the facade, preventing direct policy validation and keeping contact intent as
+one of candidate refresh's three explicit hooks.
 
 Public facade to preserve:
-`OrbitalDynamics.Schema.validate_artifact/2`, all candidate-refresh fields,
-nested reports/rows, exact paths/messages/order, consumers, deterministic
+`OrbitalDynamics.Schema.validate_artifact/2`, all contact-intent and
+candidate-refresh fields, exact paths/messages/order, consumers, deterministic
 artifacts, and schema exports.
 
 Likely files:
 - `lib/orbital_dynamics/schema.ex`
+- `lib/orbital_dynamics/schema/contact_intent_contracts.ex`
 - `lib/orbital_dynamics/schema/candidate_refresh_contracts.ex`
+- one shared policy field-group owner under `lib/orbital_dynamics/schema/`
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
 - compile with warnings as errors
-- focused candidate-refresh and schema tests
-- broader candidate-refresh/operator-review regression
+- focused contact-intent and candidate-refresh tests
+- broader campaign-planner/operator-review/schema regression
 - schema export trio and checked-in export regeneration
 - compile-connected xref, format, diff hygiene, and bounded review
 
 Definition of done:
-No candidate-refresh keyword bag or lookup/apply trampolines remain; shared and
-extracted ownership is direct and genuine cross-boundary validators are named
-explicitly; focused, broader, and export checks pass; and bounded review finds
-no blocker.
+No contact-intent keyword bag or lookup/apply trampolines remain; policy field
+groups have one extracted owner; candidate refresh directly validates contact
+intents and retains only its two genuine report hooks; focused, broader, and
+export checks pass; and bounded review finds no blocker.
 
 Outcome:
-The 27-entry bag and every lookup/apply trampoline are gone. Twenty-four
-dependencies are direct; only contact-intent rows, contact-allocation reports,
-and candidate-rejection reports remain named explicit Schema hooks. Publication
-lineage and nested optional filter behavior now live with the top-level
-contract; six orphan Schema forwarders disappeared. `schema.ex` fell from
-11,185 to 11,079 lines while the owner grew from 155 to 224 through responsibility
-relocation, for a net 37-line reduction. Nine hundred forty-eight focused,
-1,340 attributable broader, and 24 export tests pass; compile, checked-in
-regeneration, compile-connected xref within its existing three-edge threshold,
-format, and diff hygiene are clean. Bounded review found no blocker and
-confirmed the full pipeline, publication lineage, direct owners, optional
-reports, explicit hooks, required fields, and orphan cleanup.
+Pending.
 
 Verification gaps:
-- Full repository suite not run.
-- The 1,345-test broader batch has the same five known campaign-planner baseline
-  failures previously reproduced on pre-slice commit `6f1f0ac1`; the
-  attributable result is 1,340/1,340.
+- Not yet verified.
 
 Last completed slice:
-Provider-counteroffer-summary callback collapse published as `e30f9090`:
-`schema.ex` fell from 11,297 to 11,185 lines and the summary owner from 783 to
-669. The 27-entry factory and 12 orphan forwarders disappeared. Two hundred
-four focused, 1,340 attributable broader, and 24 export tests passed; compile,
-regeneration, xref, format, diff hygiene, and bounded review were clean.
+Candidate-refresh callback collapse published as `9cb88173`: `schema.ex` fell
+from 11,185 to 11,079 lines; the 27-entry factory and six orphan forwarders
+disappeared. Nine hundred forty-eight focused, 1,340 attributable broader, and
+24 export tests passed; compile, regeneration, xref, format, diff hygiene, and
+bounded review were clean.
 
 Blocked:
 No.
