@@ -9,7 +9,7 @@ Current slice:
 Validation campaign/result artifact fixture test-family extraction.
 
 Status:
-Selected; implementation not started.
+Implemented, verified, reviewed, and ready to publish.
 
 Selected slice:
 Move the five leading campaign-plan, result-artifact/variant, repair, and strategy
@@ -45,16 +45,22 @@ shared builders have one exact owner, focused and parent files pass, names remai
 unique, and bounded review finds no blocker.
 
 Outcome:
-Pending.
+Five byte-identical campaign/result artifact tests moved into a 467-line focused
+module. Twenty-one observation/raw-fixture builders plus `read_json!/1` now have
+one 113-line shared support owner; the parent imports only the 12 observation
+builders retained by its deterministic aggregate, with no private residue. The
+parent fell from 17,710 to 17,188 lines. Total test/support/loader LOC grew by 59
+lines for explicit module/import boundaries without helper duplication. All 181
+Validation test names remain unique.
 
 Verification gaps:
-- Not yet verified.
+- Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
-Validation core registry/policy extraction published as `63bf9be9`: ten
-byte-identical tests moved into a 449-line focused module, shrinking the parent
-from 18,144 to 17,710 lines. The focused module passed 10/10, the parent 157/157,
-and all four Validation modules preserved the 181-test aggregate.
+Validation campaign/result fixture extraction, publication pending: the focused
+module passed 5/5, the parent passed 152/152, and all five Validation modules
+preserved the 181-test aggregate with no duplicate names. Format, diff hygiene,
+dependency-closure checks, and bounded review were clean.
 
 Next candidate:
 After this slice, refresh the remaining validation fixture families and prefer
