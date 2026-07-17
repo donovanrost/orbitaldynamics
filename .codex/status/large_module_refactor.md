@@ -9,7 +9,7 @@ Current slice:
 Schema branch-event callback ownership cleanup.
 
 Status:
-Completed and verified; publishing.
+Completed and published.
 
 Selected slice:
 Point the strategy-branch event validator and four branch-event summary-field
@@ -67,15 +67,15 @@ Behavior/schema changes:
 None.
 
 Last completed slice:
-Schema candidate-diff callback ownership cleanup published as `ceb1cdb3`:
-fourteen positions now point directly to `CandidateDiffContracts`, four pure
-facade delegates were removed, 182 schema/export tests passed, full export
-bytes stayed exact, and bounded review was clean.
+Schema branch-event callback ownership cleanup published as `43fe597e`: five
+positions now point directly to `BranchEventContracts`, two pure facade
+delegates were removed, 182 schema/export tests passed, full export bytes stayed
+exact, and bounded review was clean.
 
 Next candidate:
-After this boundary, retarget the three scoped-downlink context positions to
-their owner if the positional strategy callback and both keyword bags remain
-exact.
+Point the positional strategy-recommendation scoped-downlink callback and two
+keyword-bag captures directly at `ScopedDownlinkContextContracts.validate/3`,
+then remove the pure facade delegate.
 
 Blocked:
 No.
