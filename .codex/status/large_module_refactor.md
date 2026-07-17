@@ -6,32 +6,28 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Resource-safety fixture mapping.
+Resource-summary fixture mapping.
 
 Status:
-Publishing.
+Ready for next slice selection.
 
 Selected slice:
-Move
-`cadence_import_manifest.resource_projection_battery_handoff_v1`,
-`resource_projection_report.battery_handoff_v1`,
-`resource_projection_report.stale_resource_summary_margins`,
-`resource_filter_report.stale_resource_summary_margins`, and
-`operator_review_package.resource_projection_battery_handoff_v1` from their
-three facade ranges into a new
-`Validation.ReferenceFixtures.ResourceSafetyArtifacts` leaf. Preserve each
-following boundary fixture exactly.
+No implementation selected yet. The next bounded candidate is to move
+`resource_summary.v1`, `resource_filter_report.v1`, and
+`resource_filter_summary.v1` from their two facade ranges into a new
+`Validation.ReferenceFixtures.ResourceSummaryArtifacts` leaf. Preserve the
+intervening station-calendar fixtures and following objective-satisfaction
+report exactly.
 
 Why this slice:
-`ReferenceFixtures` remains the largest production module at 4,030 lines. The
-five fixtures occupy 232 facade lines and together own
-`resource_safety_fixture_test.exs`.
+`ReferenceFixtures` remains the largest production module at 3,800 lines. The
+three fixtures occupy 199 facade lines and exactly own
+`resource_summary_fixture_test.exs`.
 
 Current coupling/problem:
-Cadence handoff, battery/stale projection, stale resource-filter, and
-operator-review handoff expectations are separated across the facade despite
-forming one focused safety workflow. Moving all five avoids another
-partial-family extraction.
+Resource summary and filtering expectations are split around the separate
+station-calendar family despite forming one focused workflow. Moving all three
+preserves the test-owned responsibility without absorbing station scheduling.
 
 Public facade to preserve:
 `OrbitalDynamics.Validation.ReferenceFixtures.all/0` and `fetch/1`, exact
@@ -39,28 +35,28 @@ fixture keys and values, map equality and deterministic term bytes, and all
 `OrbitalDynamics.Validation` reference-fixture behavior.
 
 Likely extraction target:
-`OrbitalDynamics.Validation.ReferenceFixtures.ResourceSafetyArtifacts`.
+`OrbitalDynamics.Validation.ReferenceFixtures.ResourceSummaryArtifacts`.
 
 Likely files:
 - `lib/orbital_dynamics/validation/reference_fixtures.ex`
-- `lib/orbital_dynamics/validation/reference_fixtures/resource_safety_artifacts.ex`
+- `lib/orbital_dynamics/validation/reference_fixtures/resource_summary_artifacts.ex`
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
 - exact before/after fixture count, keys, values, and deterministic term digest
-- focused resource-safety and facade validation tests
+- focused resource-summary and facade validation tests
 - full validation test family
 - strict compile, format, xref, diff hygiene, and bounded review
 
 Definition of done:
-The five resource-safety fixtures exist only in the new cohesive leaf, all 39
+The three resource-summary fixtures exist only in the new cohesive leaf, all 40
 fixture maps remain disjoint, `all/0` and `fetch/1` return exactly the same
 195-entry map and deterministic term bytes, both following boundary fixtures
 and the complete facade remainder stay exact, focused and full validation tests
 pass, and bounded review finds no blocker.
 
 Verification gaps:
-- None for this slice.
+- Next candidate still requires a selection baseline before implementation.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -100,19 +96,17 @@ Behavior/schema changes:
 None.
 
 Outcome:
-The exact five-fixture resource-safety family now lives in a new cohesive leaf
-behind the unchanged facade. The facade shrank from 4,030 to 3,800 lines; the
-new leaf is 240 lines and owns exactly five fixtures.
+No resource-summary implementation has started.
 
 Last completed slice:
-Resource-projection extraction published as `6df16890`: the exact two-fixture
-family moved into a new 138-line leaf, the facade shrank from 4,158 to 4,030
+Resource-safety extraction published as `8f945983`: the exact five-fixture
+family moved into a new 240-line leaf, the facade shrank from 4,030 to 3,800
 lines, the 195-entry map and all deterministic digests stayed exact, 14 focused
 and 181 full validation tests passed, and bounded review was clean.
 
 Next candidate:
-Select the resource-safety extraction described above, capture the exact map
-and three source boundaries, then move the complete test-owned family.
+Select the resource-summary extraction described above, capture the exact map
+and both source boundaries, then move the complete test-owned family.
 
 Blocked:
 No.
