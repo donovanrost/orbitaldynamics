@@ -6,63 +6,49 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema quality-gate report JSON property-dispatch extraction.
+Campaign planner operator-review pressure-branch dispatch extraction.
 
 Status:
-Completed and published.
+Selected.
 
 Selected slice:
-Extract property dispatch for the operational quality-gate summary and
-quality-gate report from `OrbitalDynamics.Schema` into one internal
-quality-gate report dispatcher.
+Extract the 21-clause operator-review row pressure-branch registry from
+`OrbitalDynamics.CampaignPlanner` into
+`CampaignPlanner.OperatorReviewPressureBranches`.
 
 Why this slice:
-Both contracts share the operational-readiness capability, quality-gate row
-schema, stable identity, and contract-specific model-limit dependency shape.
-The operational readiness report uses gate/evidence schemas instead and stays
-out of scope.
+The live hotspot inventory shows `CampaignPlanner` remains 3,967 lines, and
+about 500 lines are one cohesive adapter registry keyed by `review_type`. It
+owns review-row source extraction, approval/trust-boundary propagation, and
+dispatch into family pressure builders. The two facade collectors and all
+strategy behavior can remain unchanged.
 
 Public facade to preserve:
-All `OrbitalDynamics.Schema` public functions, exact JSON Schema maps and
-validators for the two quality-gate contracts, bundle ordering, and checked-in
-schema bytes.
+All `OrbitalDynamics.CampaignPlanner` public functions, exact branch/event
+artifacts, deterministic ordering, source paths, approval statuses, and trust
+boundaries.
 
 Likely files:
-- `lib/orbital_dynamics/schema.ex`
-- new quality-gate report property-dispatch module
+- `lib/orbital_dynamics/campaign_planner.ex`
+- new `lib/orbital_dynamics/campaign_planner/operator_review_pressure_branches.ex`
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
-- focused operational contract tests
-- JSON schema export tests
-- schema export task tests
-- full checked-in export regeneration and aggregate digest comparison
+- focused strategy operator-review row/comms/feedback/objective tests
+- deterministic strategy regression coverage
 - compile, format, xref, diff hygiene, and bounded review
 
 Definition of done:
-The two facade clauses become one guarded delegate to the internal quality-gate
-dispatcher; runtime schemas, validators, bundle ordering, and checked-in exports
-remain exact; focused and export tests pass; and bounded review finds no
-blocker.
+The planner collectors delegate row dispatch to one internal registry; all 21
+review types, fallback behavior, source paths, policy use, trust boundaries,
+and emitted branch artifacts remain exact; focused tests pass; and bounded
+review finds no blocker.
 
 Outcome:
-The two quality-gate clauses now route through
-`QualityGateReportPropertyDispatch`, which owns their literal contracts, exact
-module/model-limit pairings, shared dependency assembly, focused routing, and
-fallback.
+Pending.
 
 Verification gaps:
-- None for this slice.
-
-Tests run:
-- strict compile and 30 focused operational/schema-export tests
-- byte-identical full export at digest
-  `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`
-- format and diff hygiene
-- bounded read-only review: clean, no findings
-
-Behavior/schema changes:
-None.
+- Pending.
 
 Last completed slice:
 Schema quality-gate report property dispatch published as `91313036`:
@@ -71,9 +57,8 @@ cohesive internal dispatcher, 30 focused/export tests passed, full regeneration
 was byte-identical, and bounded review found no finding.
 
 Next candidate:
-After this slice, re-audit the remaining facade property clauses and pivot only
-to another explicit multi-contract responsibility cluster. Leave the standalone
-operational readiness report in the facade.
+After this slice, audit the adjacent cadence-import pressure registry or the
+remaining branch-refresh helper cluster; select only one cohesive boundary.
 
 Blocked:
 No.
