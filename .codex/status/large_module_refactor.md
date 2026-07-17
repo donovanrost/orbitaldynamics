@@ -9,7 +9,7 @@ Current slice:
 Cadence-import candidate-diff test-family extraction.
 
 Status:
-Selected; implementation not started.
+Implemented, verified, reviewed, and ready to publish.
 
 Selected slice:
 Move the four standalone candidate-diff import tests as one coherent family out
@@ -44,18 +44,21 @@ unchanged; the original ledger no longer duplicates them, both focused and
 original-ledger test files pass, and bounded review finds no blocker.
 
 Outcome:
-Pending.
+Exactly four complete candidate-diff tests moved byte-for-byte into
+`OrbitalDynamics.CadenceImport.CandidateDiffTest`; their order, assertions, edge
+coverage, and async execution are unchanged. The parent ledger fell from 16,988
+to 16,696 lines, while the new focused module is 298 lines and has no dependency
+on the parent's private helper tail. Unique test-name and aggregate-count checks
+confirm no duplicate or orphaned cases.
 
 Verification gaps:
-- Not yet verified.
+- Full repository suite not run; this is a mechanical test-only extraction.
 
 Last completed slice:
-Cadence-import-row primitive callback-boundary collapse published as `d361199c`:
-11 generic dependencies and 90 runtime indirections disappeared while the
-131-key domain boundary stayed exact. Three hundred seven focused and 24 export
-tests passed; the broader suite produced the baseline-proven 1,340/1,345 result.
-Compile, checked-in export regeneration, xref, format, diff hygiene, and bounded
-review were clean.
+Cadence-import candidate-diff test-family extraction, publication pending: the
+new focused module passed 4/4 in 0.1 seconds and the remaining parent ledger
+passed 109/109, preserving the prior 113-test aggregate. Format, diff hygiene,
+helper-independence checks, and bounded review were clean.
 
 Blocked:
 No.
