@@ -9,7 +9,7 @@ Current slice:
 Cadence-import comparison-report test-family extraction.
 
 Status:
-Selected; implementation not started.
+Implemented, verified, reviewed, and ready to publish.
 
 Selected slice:
 Move the adjacent Pareto-frontier and branch/ranking-comparison import tests into
@@ -43,17 +43,21 @@ unchanged; the original ledger no longer duplicates them, both focused and
 original-ledger test files pass, and bounded review finds no blocker.
 
 Outcome:
-Pending.
+Exactly two large adjacent comparison-report tests moved byte-for-byte into
+`OrbitalDynamics.CadenceImport.ComparisonReportTest`; assertion order, Pareto,
+branch/ranking typed evidence, validation failures, and deterministic ordering
+are unchanged. The parent fell from 15,999 to 15,292 lines and the focused module
+is 713 lines. All 113 Cadence import test names remain unique across the parent
+and five extracted modules.
 
 Verification gaps:
-- Not yet verified.
+- Full repository suite not run; this is a mechanical test-only extraction.
 
 Last completed slice:
-Cadence-import realized-activity test-family extraction published as `76558035`:
-four byte-identical tests plus their exact local fixture helper moved into a
-196-line focused module, shrinking the parent from 16,183 to 15,999 lines. The
-focused module passed 4/4, the parent 98/98, and the full 113-test family remained
-unique and green; format, diff hygiene, and bounded review were clean.
+Cadence-import comparison-report test-family extraction, publication pending:
+the focused module passed 2/2 and the parent passed 96/96; across all six modules
+the complete family remains 113/113 with no duplicate names. Format, diff
+hygiene, helper-independence checks, and bounded review were clean.
 
 Blocked:
 No.
