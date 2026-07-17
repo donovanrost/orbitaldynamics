@@ -9,7 +9,7 @@ Current slice:
 Validation contact contention fixture test-family extraction.
 
 Status:
-Verified and reviewed; ready to publish.
+Published as `811bf261`.
 
 Selected slice:
 Move the five contiguous contact-filter, contact-contention, cross-station
@@ -61,10 +61,10 @@ Verification gaps:
 - Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
-Validation provider capacity-pack fixture extraction published as `94b5578b`:
-the focused module passed 2/2, the parent passed 103/103, and all sixteen
-Validation modules preserved the 181-test aggregate with no duplicate names.
-Format, diff hygiene, dependency-closure checks, and bounded review were clean.
+Validation contact contention fixture extraction published as `811bf261`: the
+focused module passed 5/5, the parent passed 98/98, and all seventeen Validation
+modules preserved the 181-test aggregate with no duplicate names. Format, diff
+hygiene, dependency-closure checks, and bounded review were clean.
 
 Next candidate:
 Refresh the adjacent link-capacity report/summary and relay data-path fixture
