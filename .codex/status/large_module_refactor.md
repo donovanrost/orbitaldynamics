@@ -6,10 +6,10 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema provider-counteroffer report ownership mapping.
+Schema provider-counteroffer report ownership handoff.
 
 Status:
-Ready for publication.
+Published as `09224bd4`.
 
 Selected slice:
 Point the standalone `provider_counteroffer_report.v1` pipe directly at
@@ -63,7 +63,10 @@ shrank from 7,879 to 7,861 lines, focused 6 and complete 182 tests passed, all
 122 exports byte-matched, and review was clean.
 
 Next candidate:
-After review and publication, continue the robust exact-signature inventory.
+Map the strategy validator's single `validate_operational_feedback/3` callback
+capture. Broad search shows one capture plus one pure exact-signature delegate
+to `OperationalFeedbackContracts.validate/3`; capture its neighboring callback
+positions and focused strategy behavior before selection.
 
 Blocked:
 No.
