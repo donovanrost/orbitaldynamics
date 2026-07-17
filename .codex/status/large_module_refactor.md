@@ -9,7 +9,7 @@ Current slice:
 Validation planning-input capability fixture test-family extraction.
 
 Status:
-Ready to publish.
+Published as `3aa5fb12`.
 
 Selected slice:
 Move the three contiguous campaign-request lint, capability-catalog, and
@@ -59,11 +59,11 @@ Verification gaps:
 - Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
-Validation candidate-state artifact extraction published as `386d94aa`: the
-focused module passed 5/5, the parent passed 40/40, and all thirty-six Validation
-modules preserved the 181-test aggregate with no duplicate names. Format, diff
-hygiene, exact-source and dependency-closure checks, and bounded review were
-clean.
+Validation planning-input capability extraction published as `3aa5fb12`: the
+focused module passed 3/3, the parent passed 37/37, and all thirty-seven
+Validation modules preserved the 181-test aggregate with no duplicate names.
+Format, diff hygiene, exact-source and dependency-closure checks, and bounded
+review were clean.
 
 Next candidate:
 Map the proposed-contact, branch-comparison, optimizer-contract,
