@@ -7224,13 +7224,13 @@ defmodule OrbitalDynamics.Schema do
       expect_optional_one_of: &expect_optional_one_of/5,
       expect_optional_type: &expect_optional_type/5,
       validate_source_operational_readiness_gate_handoff_matches:
-        &validate_source_operational_readiness_gate_handoff_matches/3,
+        &OrbitalDynamics.Schema.OperationalReadinessHandoffContracts.validate_gate_matches_source/3,
       validate_source_quality_gate_row_handoff_matches:
-        &validate_source_quality_gate_row_handoff_matches/3,
+        &OrbitalDynamics.Schema.QualityGateHandoffContracts.validate_row_matches_source/3,
       validate_source_operational_readiness_report_handoff_matches:
-        &validate_source_operational_readiness_report_handoff_matches/3,
+        &OrbitalDynamics.Schema.OperationalReadinessHandoffContracts.validate_report_matches_source/3,
       validate_source_quality_gate_report_handoff_matches:
-        &validate_source_quality_gate_report_handoff_matches/3,
+        &OrbitalDynamics.Schema.QualityGateHandoffContracts.validate_report_matches_source/3,
       validate_branch_event_summary_fields: &validate_branch_event_summary_fields/3,
       validate_observation_quality_handoff_fields: &validate_observation_quality_handoff_fields/3,
       validate_feedback_maneuver_handoff_fields: &validate_feedback_maneuver_handoff_fields/3,
@@ -7493,8 +7493,8 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       row,
-      &validate_source_operational_readiness_gate_handoff_matches/3,
-      &validate_source_operational_readiness_report_handoff_matches/3,
+      &OrbitalDynamics.Schema.OperationalReadinessHandoffContracts.validate_gate_matches_source/3,
+      &OrbitalDynamics.Schema.OperationalReadinessHandoffContracts.validate_report_matches_source/3,
       &validate_timeline_publication_context/3
     )
   end
@@ -7567,9 +7567,9 @@ defmodule OrbitalDynamics.Schema do
         &validate_optional_branch_comparison_source_row/3,
       validate_source_evidence_fields: &validate_source_evidence_fields/3,
       validate_source_operational_readiness_report_handoff_matches:
-        &validate_source_operational_readiness_report_handoff_matches/3,
+        &OrbitalDynamics.Schema.OperationalReadinessHandoffContracts.validate_report_matches_source/3,
       validate_source_quality_gate_report_handoff_matches:
-        &validate_source_quality_gate_report_handoff_matches/3,
+        &OrbitalDynamics.Schema.QualityGateHandoffContracts.validate_report_matches_source/3,
       validate_freshness_source_status_matches: &validate_freshness_source_status_matches/3,
       validate_refresh_budget_handoff_matches_source:
         &validate_refresh_budget_handoff_matches_source/3,
@@ -7763,9 +7763,9 @@ defmodule OrbitalDynamics.Schema do
         &OrbitalDynamics.Schema.OptimizationHandoffContracts.validate_score_term_matches_source/3,
       validate_selected_timeline_integrity_fields: &validate_selected_timeline_integrity_fields/3,
       validate_source_operational_readiness_gate_handoff_matches:
-        &validate_source_operational_readiness_gate_handoff_matches/3,
+        &OrbitalDynamics.Schema.OperationalReadinessHandoffContracts.validate_gate_matches_source/3,
       validate_source_quality_gate_row_handoff_matches:
-        &validate_source_quality_gate_row_handoff_matches/3,
+        &OrbitalDynamics.Schema.QualityGateHandoffContracts.validate_row_matches_source/3,
       validate_station_calendar_handoff_matches_source:
         &OrbitalDynamics.Schema.StationCalendarHandoffContracts.validate_matches_source/3,
       validate_strategy_branch_comparison_handoff_matches_source:
@@ -7902,54 +7902,6 @@ defmodule OrbitalDynamics.Schema do
       path,
       row,
       &validate_contact_allocation_duplicate_evidence/3
-    )
-  end
-
-  defp validate_source_operational_readiness_gate_handoff_matches(
-         issues,
-         path,
-         row
-       ) do
-    OrbitalDynamics.Schema.OperationalReadinessHandoffContracts.validate_gate_matches_source(
-      issues,
-      path,
-      row
-    )
-  end
-
-  defp validate_source_operational_readiness_report_handoff_matches(
-         issues,
-         path,
-         row
-       ) do
-    OrbitalDynamics.Schema.OperationalReadinessHandoffContracts.validate_report_matches_source(
-      issues,
-      path,
-      row
-    )
-  end
-
-  defp validate_source_quality_gate_row_handoff_matches(
-         issues,
-         path,
-         row
-       ) do
-    OrbitalDynamics.Schema.QualityGateHandoffContracts.validate_row_matches_source(
-      issues,
-      path,
-      row
-    )
-  end
-
-  defp validate_source_quality_gate_report_handoff_matches(
-         issues,
-         path,
-         row
-       ) do
-    OrbitalDynamics.Schema.QualityGateHandoffContracts.validate_report_matches_source(
-      issues,
-      path,
-      row
     )
   end
 
@@ -8445,9 +8397,9 @@ defmodule OrbitalDynamics.Schema do
         &validate_timeline_publication_handoff_matches_source/3,
       validate_source_evidence_fields: &validate_source_evidence_fields/3,
       validate_source_operational_readiness_report_handoff_matches:
-        &validate_source_operational_readiness_report_handoff_matches/3,
+        &OrbitalDynamics.Schema.OperationalReadinessHandoffContracts.validate_report_matches_source/3,
       validate_source_quality_gate_report_handoff_matches:
-        &validate_source_quality_gate_report_handoff_matches/3,
+        &OrbitalDynamics.Schema.QualityGateHandoffContracts.validate_report_matches_source/3,
       validate_freshness_source_status_matches: &validate_freshness_source_status_matches/3,
       validate_refresh_budget_handoff_matches_source:
         &validate_refresh_budget_handoff_matches_source/3,
@@ -8479,9 +8431,9 @@ defmodule OrbitalDynamics.Schema do
       validate_operational_readiness_resource_context:
         &validate_operational_readiness_resource_context/3,
       validate_source_operational_readiness_gate_handoff_matches:
-        &validate_source_operational_readiness_gate_handoff_matches/3,
+        &OrbitalDynamics.Schema.OperationalReadinessHandoffContracts.validate_gate_matches_source/3,
       validate_source_quality_gate_row_handoff_matches:
-        &validate_source_quality_gate_row_handoff_matches/3,
+        &OrbitalDynamics.Schema.QualityGateHandoffContracts.validate_row_matches_source/3,
       validate_resource_projection_battery_handoff_fields:
         &OrbitalDynamics.Schema.ResourceProjectionHandoffContracts.validate_battery_handoff_fields/3,
       validate_resource_projection_battery_handoff_matches_source:
