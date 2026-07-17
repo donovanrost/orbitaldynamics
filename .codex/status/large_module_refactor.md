@@ -9,7 +9,7 @@ Current slice:
 Validation manifest fixture test-family extraction.
 
 Status:
-Ready to publish.
+Published as `8087071d`.
 
 Selected slice:
 Move the two contiguous manifest-field reference and study-manifest-lint
@@ -57,8 +57,8 @@ Verification gaps:
 - Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
-Validation core run-report extraction published as `1ac7b222`: the focused
-module passed 5/5, the parent passed 25/25, and all forty Validation modules
+Validation manifest fixture extraction published as `8087071d`: the focused
+module passed 2/2, the parent passed 23/23, and all forty-one Validation modules
 preserved the 181-test aggregate with no duplicate names. Format, diff hygiene,
 exact-source and dependency-closure checks, and bounded review were clean.
 
