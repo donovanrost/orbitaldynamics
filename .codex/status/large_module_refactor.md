@@ -9,7 +9,7 @@ Current slice:
 Refreshed-window lineage fixture mapping.
 
 Status:
-Ready for implementation.
+Publishing.
 
 Selected slice:
 Move
@@ -55,7 +55,7 @@ the complete facade remainder stay exact, focused and full validation tests
 pass, and bounded review finds no blocker.
 
 Verification gaps:
-- Implementation, verification, and bounded review pending.
+- None for this bounded slice.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -69,13 +69,32 @@ Tests run:
 - Source boundary confirmed at facade lines 158-237, with
   `spacecraft_state_estimate.v1` beginning at line 238 and no facade
   helper-attribute dependency in the selected literals.
-- Selection only; implementation verification pending.
+- Post-move exact proof: the 195-entry map, sorted-key digest, selected
+  two-fixture digest, and exact 193-entry remainder digest all match their
+  selection baselines.
+- Source partition proof: 26 maps total 195 entries, the new leaf owns two, the
+  facade owns 107, and all 325 pairwise intersections are empty.
+- Facade proof: all 195 successful `fetch/1` results, missing-key `:error`, and
+  nonbinary `FunctionClauseError` behavior remain unchanged.
+- Focused contact-window/facade validation: 16 tests passed.
+- Full validation family: 181 tests passed.
+- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
+  xref caller checks passed.
+- Independent bounded review: CLEAN. It confirmed both refreshed-window
+  fixtures moved unchanged, the spacecraft-state boundary and complete facade
+  remainder are normalized-AST exact, the new leaf owns only its two intended
+  keys, all 26 maps are unique and pairwise disjoint, all digests and facade
+  edge behaviors are unchanged, dependencies remain one-way, intent/state
+  ownership remains distinct, and it reproduced 16 focused and 181 full
+  validation tests.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-No refreshed-window lineage implementation has started.
+The exact refreshed-window/lineage pair now lives in a new cohesive leaf behind
+the unchanged facade. The facade shrank from 7,904 to 7,826 lines; the new leaf
+is 88 lines and owns exactly two fixtures.
 
 Last completed slice:
 Link-capacity extraction published as `6f45998d`: the exact report/summary pair
