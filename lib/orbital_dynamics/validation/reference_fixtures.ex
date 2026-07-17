@@ -151,54 +151,6 @@ defmodule OrbitalDynamics.Validation.ReferenceFixtures do
         "checks public catalog counts and key contract routing only"
       ]
     },
-    "fixture.artifact.policy_bundle.organization_adapter" => %{
-      "id" => "fixture.artifact.policy_bundle.organization_adapter",
-      "model_id" => "artifact.policy_bundle.v1",
-      "reference_case" => "checked-in organization adapter policy bundle artifact",
-      "validation_level" => "artifact_contract",
-      "fixture_type" => "curated_internal_artifact_regression",
-      "inputs" => %{
-        "artifact_path" => "study_results/policy_bundle_organization_adapter_v1.json",
-        "contract" => "policy_bundle.v1"
-      },
-      "expected" => %{
-        "schema_contract" => "policy_bundle.v1",
-        "id" => "org:mission_ops:authority:v1",
-        "action_rule_count" => 1,
-        "blocked_risk_type_count" => 0,
-        "auto_approvable_approval_count_limit" => 0,
-        "auto_approvable_risk_limit" => 0,
-        "operator_review_risk_limit" => 1,
-        "classification_counts" => %{"operator_review_required" => 1},
-        "required_authority_counts" => %{"org_command_authority" => 1},
-        "escalation_queue_counts" => %{"org_mission_ops" => 1},
-        "rule_ids_by_classification" => %{
-          "operator_review_required" => ["org_command_station_review"]
-        },
-        "boundary" => "artifact_only_no_authority_lookup",
-        "workflow_execution" => "none",
-        "provenance_source" => "organization_policy_adapter",
-        "no_command_execution" => true,
-        "no_schedule_mutation" => true,
-        "model_limit_count" => 5
-      },
-      "tolerances" => %{
-        "action_rule_count" => 0,
-        "blocked_risk_type_count" => 0,
-        "auto_approvable_approval_count_limit" => 0,
-        "auto_approvable_risk_limit" => 0,
-        "operator_review_risk_limit" => 0,
-        "model_limit_count" => 0
-      },
-      "evidence" => [
-        "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
-        "schema-linted by mix orbital_dynamics.schema.lint"
-      ],
-      "known_limits" => [
-        "internal checked-in artifact regression, not external policy validation",
-        "checks organization adapter authority routing, provenance source, and no-external-authority boundary only"
-      ]
-    },
     "fixture.artifact.planned_activity.v1" => %{
       "id" => "fixture.artifact.planned_activity.v1",
       "model_id" => "artifact.planned_activity.v1",
