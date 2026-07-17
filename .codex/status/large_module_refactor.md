@@ -9,7 +9,7 @@ Current slice:
 State/maneuver fixture mapping.
 
 Status:
-Ready for implementation.
+Publishing.
 
 Selected slice:
 Move
@@ -56,7 +56,7 @@ the complete facade remainder stay exact, focused and full validation tests
 pass, and bounded review finds no blocker.
 
 Verification gaps:
-- Implementation, verification, and bounded review pending.
+- None for this bounded slice.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -70,13 +70,31 @@ Tests run:
 - Source boundary confirmed at facade lines 159-366, with
   `backend_acceptance_policy.v1` beginning at line 367 and no facade
   helper-attribute dependency in the selected literals.
-- Selection only; implementation verification pending.
+- Post-move exact proof: the 195-entry map, sorted-key digest, selected
+  five-fixture digest, and exact 190-entry remainder digest all match their
+  selection baselines.
+- Source partition proof: 27 maps total 195 entries, the new leaf owns five, the
+  facade owns 102, and all 351 pairwise intersections are empty.
+- Facade proof: all 195 successful `fetch/1` results, missing-key `:error`, and
+  nonbinary `FunctionClauseError` behavior remain unchanged.
+- Focused state/maneuver/facade validation: 17 tests passed.
+- Full validation family: 181 tests passed.
+- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
+  xref caller checks passed.
+- Independent bounded review: CLEAN. It confirmed all five state/maneuver
+  fixtures moved unchanged, the backend-policy boundary and complete facade
+  remainder are normalized-AST exact, the new leaf owns only its five intended
+  keys, all 27 maps are unique and pairwise disjoint, all digests and facade
+  edge behaviors are unchanged, dependencies remain one-way, and it reproduced
+  17 focused and 181 full validation tests.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-No state/maneuver implementation has started.
+The exact five-fixture state/maneuver family now lives in a new cohesive leaf
+behind the unchanged facade. The facade shrank from 7,826 to 7,620 lines; the
+new leaf is 216 lines and owns exactly five fixtures.
 
 Last completed slice:
 Refreshed-window lineage extraction published as `ffabc35d`: the exact pair
