@@ -1,161 +1,163 @@
 defmodule OrbitalDynamics.Schema.ContactAllocationProviderReservationRequestSummaryContracts do
   @moduledoc false
 
+  alias OrbitalDynamics.Schema.ContactAllocationReportContracts
+
+  import OrbitalDynamics.Schema.CollectionValidation, only: [validate_rows: 4]
+
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [
+      expect_equal: 5,
+      expect_field_equals: 6,
+      expect_non_negative_integer: 4,
+      expect_one_of: 5,
+      expect_optional_field_equals: 6,
+      expect_optional_type: 5,
+      expect_type: 5,
+      validate_optional_exact_model_limits: 5,
+      validate_string_list_items: 4
+    ]
+
+  import OrbitalDynamics.Schema.StableIdValidation,
+    only: [
+      validate_nested_stable_id_array_map: 3,
+      validate_stable_id_array_map: 3,
+      validate_stable_id_list: 3
+    ]
+
   @request_statuses ["clear", "request_ready", "review_required"]
   @request_ready_match_statuses ["matched", "owner_matched"]
 
-  def validate_summary(issues, path, summary, callbacks) when is_list(callbacks) do
+  def validate_summary(issues, path, summary, row_validator) when is_function(row_validator, 3) do
     issues
     |> expect_equal(
-      callbacks,
       path,
       summary,
       "schema_contract",
       "contact_allocation_provider_reservation_request_summary.v1"
     )
     |> expect_equal(
-      callbacks,
       path,
       summary,
       "model",
       "artifact_only_contact_allocation_provider_reservation_request_summary"
     )
-    |> expect_optional_type(callbacks, path, summary, "model_limits", :list)
-    |> validate_string_list_items(callbacks, path, summary, "model_limits")
+    |> expect_optional_type(path, summary, "model_limits", :list)
+    |> validate_string_list_items(path, summary, "model_limits")
     |> validate_optional_exact_model_limits(
-      callbacks,
       path,
       summary,
-      contact_allocation_model_limits(callbacks),
+      contact_allocation_model_limits(),
       "must match contact allocation model limits"
     )
-    |> expect_one_of(callbacks, path, summary, "source_artifact_type", [
+    |> expect_one_of(path, summary, "source_artifact_type", [
       "contact_allocation_report.v1"
     ])
-    |> expect_optional_type(callbacks, path, summary, "source", :binary)
-    |> expect_non_negative_integer(callbacks, path, summary, "input_contact_count")
+    |> expect_optional_type(path, summary, "source", :binary)
+    |> expect_non_negative_integer(path, summary, "input_contact_count")
     |> expect_non_negative_integer(
-      callbacks,
       path,
       summary,
       "provider_reservation_candidate_contact_count"
     )
     |> expect_non_negative_integer(
-      callbacks,
       path,
       summary,
       "provider_reservation_request_contact_count"
     )
     |> expect_non_negative_integer(
-      callbacks,
       path,
       summary,
       "provider_reservation_review_contact_count"
     )
     |> expect_non_negative_integer(
-      callbacks,
       path,
       summary,
       "provider_reservation_no_request_contact_count"
     )
     |> expect_one_of(
-      callbacks,
       path,
       summary,
       "provider_reservation_request_status",
       @request_statuses
     )
-    |> validate_field_types(callbacks, path, summary)
-    |> expect_type(callbacks, path, summary, "rows", :list)
+    |> validate_field_types(path, summary)
+    |> expect_type(path, summary, "rows", :list)
     |> validate_rows(
-      callbacks,
       path <> ".rows",
       Map.get(summary, "rows", []),
-      fn acc, row_path, row -> validate_contact_allocation_row(acc, callbacks, row_path, row) end
+      row_validator
     )
-    |> expect_type(callbacks, path, summary, "provider_reservation_request_rows", :list)
+    |> expect_type(path, summary, "provider_reservation_request_rows", :list)
     |> validate_rows(
-      callbacks,
       path <> ".provider_reservation_request_rows",
       Map.get(summary, "provider_reservation_request_rows", []),
-      fn acc, row_path, row -> validate_contact_allocation_row(acc, callbacks, row_path, row) end
+      row_validator
     )
-    |> expect_type(callbacks, path, summary, "provider_reservation_review_rows", :list)
+    |> expect_type(path, summary, "provider_reservation_review_rows", :list)
     |> validate_rows(
-      callbacks,
       path <> ".provider_reservation_review_rows",
       Map.get(summary, "provider_reservation_review_rows", []),
-      fn acc, row_path, row -> validate_contact_allocation_row(acc, callbacks, row_path, row) end
+      row_validator
     )
-    |> expect_type(callbacks, path, summary, "assumptions", :map)
-    |> validate_assumptions(callbacks, path, summary)
-    |> validate_counts(callbacks, path, summary)
+    |> expect_type(path, summary, "assumptions", :map)
+    |> validate_assumptions(path, summary)
+    |> validate_counts(path, summary)
   end
 
-  defp validate_field_types(issues, callbacks, path, summary) do
+  defp validate_field_types(issues, path, summary) do
     issues
-    |> expect_type(callbacks, path, summary, "provider_reservation_request_contact_ids", :list)
+    |> expect_type(path, summary, "provider_reservation_request_contact_ids", :list)
     |> validate_stable_id_list(
-      callbacks,
       path <> ".provider_reservation_request_contact_ids",
       Map.get(summary, "provider_reservation_request_contact_ids")
     )
-    |> expect_type(callbacks, path, summary, "provider_reservation_review_contact_ids", :list)
+    |> expect_type(path, summary, "provider_reservation_review_contact_ids", :list)
     |> validate_stable_id_list(
-      callbacks,
       path <> ".provider_reservation_review_contact_ids",
       Map.get(summary, "provider_reservation_review_contact_ids")
     )
-    |> expect_type(callbacks, path, summary, "provider_reservation_no_request_contact_ids", :list)
+    |> expect_type(path, summary, "provider_reservation_no_request_contact_ids", :list)
     |> validate_stable_id_list(
-      callbacks,
       path <> ".provider_reservation_no_request_contact_ids",
       Map.get(summary, "provider_reservation_no_request_contact_ids")
     )
     |> expect_type(
-      callbacks,
       path,
       summary,
       "provider_reservation_request_contact_ids_by_ground_station_id",
       :map
     )
     |> validate_stable_id_array_map(
-      callbacks,
       path <> ".provider_reservation_request_contact_ids_by_ground_station_id",
       Map.get(summary, "provider_reservation_request_contact_ids_by_ground_station_id")
     )
     |> expect_type(
-      callbacks,
       path,
       summary,
       "provider_reservation_review_contact_ids_by_ground_station_id",
       :map
     )
     |> validate_stable_id_array_map(
-      callbacks,
       path <> ".provider_reservation_review_contact_ids_by_ground_station_id",
       Map.get(summary, "provider_reservation_review_contact_ids_by_ground_station_id")
     )
     |> validate_optional_stable_id_array_map(
-      callbacks,
       path,
       summary,
       "provider_reservation_no_request_contact_ids_by_direction"
     )
     |> validate_optional_stable_id_array_map(
-      callbacks,
       path,
       summary,
       "provider_reservation_request_contact_ids_by_direction"
     )
     |> validate_optional_stable_id_array_map(
-      callbacks,
       path,
       summary,
       "provider_reservation_review_contact_ids_by_direction"
     )
     |> validate_nested_stable_id_array_map(
-      callbacks,
       path <> ".provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id",
       Map.get(
         summary,
@@ -163,7 +165,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationProviderReservationRequestSumm
       )
     )
     |> validate_nested_stable_id_array_map(
-      callbacks,
       path <> ".provider_reservation_request_contact_ids_by_direction_and_ground_station_id",
       Map.get(
         summary,
@@ -171,7 +172,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationProviderReservationRequestSumm
       )
     )
     |> validate_nested_stable_id_array_map(
-      callbacks,
       path <> ".provider_reservation_review_contact_ids_by_direction_and_ground_station_id",
       Map.get(
         summary,
@@ -179,109 +179,94 @@ defmodule OrbitalDynamics.Schema.ContactAllocationProviderReservationRequestSumm
       )
     )
     |> expect_type(
-      callbacks,
       path,
       summary,
       "provider_reservation_request_contact_ids_by_match_status",
       :map
     )
     |> validate_stable_id_array_map(
-      callbacks,
       path <> ".provider_reservation_request_contact_ids_by_match_status",
       Map.get(summary, "provider_reservation_request_contact_ids_by_match_status")
     )
     |> expect_type(
-      callbacks,
       path,
       summary,
       "provider_reservation_review_contact_ids_by_match_status",
       :map
     )
     |> validate_stable_id_array_map(
-      callbacks,
       path <> ".provider_reservation_review_contact_ids_by_match_status",
       Map.get(summary, "provider_reservation_review_contact_ids_by_match_status")
     )
     |> expect_type(
-      callbacks,
       path,
       summary,
       "provider_reservation_request_ids_by_match_status",
       :map
     )
     |> validate_stable_id_array_map(
-      callbacks,
       path <> ".provider_reservation_request_ids_by_match_status",
       Map.get(summary, "provider_reservation_request_ids_by_match_status")
     )
     |> expect_type(
-      callbacks,
       path,
       summary,
       "provider_reservation_review_ids_by_match_status",
       :map
     )
     |> validate_stable_id_array_map(
-      callbacks,
       path <> ".provider_reservation_review_ids_by_match_status",
       Map.get(summary, "provider_reservation_review_ids_by_match_status")
     )
   end
 
-  defp validate_assumptions(issues, callbacks, path, summary) do
+  defp validate_assumptions(issues, path, summary) do
     case Map.get(summary, "assumptions") do
       %{} = assumptions ->
         issues
         |> expect_equal(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "execution_boundary",
           "artifact_only_no_provider_reservation_or_schedule_mutation"
         )
         |> expect_equal(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "source",
           "contact_allocation_report.v1"
         )
         |> expect_equal(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "provider_reservation_execution",
           "not_performed_by_summary"
         )
         |> expect_equal(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "operator_authority",
           "not_granted_by_provider_reservation_request_summary"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "provider_reservation_request_statuses",
-          contact_allocation_provider_reservation_request_statuses(callbacks),
+          contact_allocation_provider_reservation_request_statuses(),
           "must match ContactAllocation provider reservation request statuses"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "station_reservation_match_statuses",
-          contact_allocation_station_reservation_match_statuses(callbacks),
+          contact_allocation_station_reservation_match_statuses(),
           "must match ContactAllocation station reservation match statuses"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "provider_direction_aliases",
-          contact_allocation_provider_direction_aliases(callbacks),
+          contact_allocation_provider_direction_aliases(),
           "must match ContactAllocation provider direction aliases"
         )
 
@@ -290,26 +275,25 @@ defmodule OrbitalDynamics.Schema.ContactAllocationProviderReservationRequestSumm
     end
   end
 
-  defp validate_counts(issues, callbacks, path, summary) do
+  defp validate_counts(issues, path, summary) do
     rows =
       summary
       |> Map.get("rows", [])
       |> Enum.filter(&is_map/1)
 
-    candidate_rows = Enum.filter(rows, &provider_reservation_candidate_row?(callbacks, &1))
+    candidate_rows = Enum.filter(rows, &provider_reservation_candidate_row?(&1))
 
     request_rows =
-      Enum.filter(candidate_rows, &provider_reservation_request_ready_row?(callbacks, &1))
+      Enum.filter(candidate_rows, &provider_reservation_request_ready_row?(&1))
 
     review_rows =
-      Enum.reject(candidate_rows, &provider_reservation_request_ready_row?(callbacks, &1))
+      Enum.reject(candidate_rows, &provider_reservation_request_ready_row?(&1))
 
-    no_request_rows = Enum.reject(rows, &provider_reservation_candidate_row?(callbacks, &1))
+    no_request_rows = Enum.reject(rows, &provider_reservation_candidate_row?(&1))
 
     issues
-    |> expect_field_equals(callbacks, path, summary, "input_contact_count", length(rows))
+    |> expect_field_equals(path, summary, "input_contact_count", length(rows))
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "provider_reservation_candidate_contact_count",
@@ -317,7 +301,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationProviderReservationRequestSumm
       "must equal row-derived provider_reservation_candidate_contact_count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "provider_reservation_request_contact_count",
@@ -325,7 +308,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationProviderReservationRequestSumm
       "must equal row-derived provider_reservation_request_contact_count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "provider_reservation_review_contact_count",
@@ -333,7 +315,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationProviderReservationRequestSumm
       "must equal row-derived provider_reservation_review_contact_count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "provider_reservation_no_request_contact_count",
@@ -341,14 +322,12 @@ defmodule OrbitalDynamics.Schema.ContactAllocationProviderReservationRequestSumm
       "must equal row-derived provider_reservation_no_request_contact_count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "provider_reservation_request_status",
       provider_reservation_request_status(request_rows, review_rows)
     )
     |> validate_id_fields(
-      callbacks,
       path,
       summary,
       request_rows,
@@ -359,7 +338,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationProviderReservationRequestSumm
 
   defp validate_id_fields(
          issues,
-         callbacks,
          path,
          summary,
          request_rows,
@@ -368,31 +346,27 @@ defmodule OrbitalDynamics.Schema.ContactAllocationProviderReservationRequestSumm
        ) do
     issues
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "provider_reservation_request_contact_ids",
-      contact_allocation_row_contact_ids(callbacks, request_rows),
+      ContactAllocationReportContracts.row_contact_ids(request_rows),
       "must equal row-derived provider_reservation_request_contact_ids"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "provider_reservation_review_contact_ids",
-      contact_allocation_row_contact_ids(callbacks, review_rows),
+      ContactAllocationReportContracts.row_contact_ids(review_rows),
       "must equal row-derived provider_reservation_review_contact_ids"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "provider_reservation_no_request_contact_ids",
-      contact_allocation_row_contact_ids(callbacks, no_request_rows),
+      ContactAllocationReportContracts.row_contact_ids(no_request_rows),
       "must equal row-derived provider_reservation_no_request_contact_ids"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "provider_reservation_request_contact_ids_by_ground_station_id",
@@ -400,7 +374,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationProviderReservationRequestSumm
       "must equal row-derived provider_reservation_request_contact_ids_by_ground_station_id"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "provider_reservation_review_contact_ids_by_ground_station_id",
@@ -408,7 +381,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationProviderReservationRequestSumm
       "must equal row-derived provider_reservation_review_contact_ids_by_ground_station_id"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "provider_reservation_no_request_contact_ids_by_direction",
@@ -416,7 +388,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationProviderReservationRequestSumm
       "must equal row-derived provider_reservation_no_request_contact_ids_by_direction"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "provider_reservation_request_contact_ids_by_direction",
@@ -424,7 +395,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationProviderReservationRequestSumm
       "must equal row-derived provider_reservation_request_contact_ids_by_direction"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "provider_reservation_review_contact_ids_by_direction",
@@ -432,7 +402,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationProviderReservationRequestSumm
       "must equal row-derived provider_reservation_review_contact_ids_by_direction"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id",
@@ -440,7 +409,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationProviderReservationRequestSumm
       "must equal row-derived provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "provider_reservation_request_contact_ids_by_direction_and_ground_station_id",
@@ -448,7 +416,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationProviderReservationRequestSumm
       "must equal row-derived provider_reservation_request_contact_ids_by_direction_and_ground_station_id"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "provider_reservation_review_contact_ids_by_direction_and_ground_station_id",
@@ -456,7 +423,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationProviderReservationRequestSumm
       "must equal row-derived provider_reservation_review_contact_ids_by_direction_and_ground_station_id"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "provider_reservation_request_contact_ids_by_match_status",
@@ -464,7 +430,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationProviderReservationRequestSumm
       "must equal row-derived provider_reservation_request_contact_ids_by_match_status"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "provider_reservation_review_contact_ids_by_match_status",
@@ -472,7 +437,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationProviderReservationRequestSumm
       "must equal row-derived provider_reservation_review_contact_ids_by_match_status"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "provider_reservation_request_ids_by_match_status",
@@ -484,7 +448,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationProviderReservationRequestSumm
       "must equal row-derived provider_reservation_request_ids_by_match_status"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "provider_reservation_review_ids_by_match_status",
@@ -492,7 +455,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationProviderReservationRequestSumm
       "must equal row-derived provider_reservation_review_ids_by_match_status"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "provider_reservation_request_rows",
@@ -500,7 +462,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationProviderReservationRequestSumm
       "must equal row-derived provider_reservation_request_rows"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "provider_reservation_review_rows",
@@ -509,15 +470,15 @@ defmodule OrbitalDynamics.Schema.ContactAllocationProviderReservationRequestSumm
     )
   end
 
-  defp provider_reservation_candidate_row?(callbacks, row) do
+  defp provider_reservation_candidate_row?(row) do
     Map.get(row, "allocation_status") == "allocated" and
       Map.get(row, "effective_allocation_status") in [nil, "allocated"] and
-      contact_allocation_reservation_expiration_row?(callbacks, row)
+      ContactAllocationReportContracts.reservation_expiration_row?(row)
   end
 
-  defp provider_reservation_request_ready_row?(callbacks, row) do
+  defp provider_reservation_request_ready_row?(row) do
     Map.get(row, "station_reservation_match_status") in @request_ready_match_statuses and
-      contact_allocation_reservation_ids(callbacks, row) != []
+      ContactAllocationReportContracts.reservation_ids(row) != []
   end
 
   defp provider_reservation_request_status(_request_rows, review_rows) when review_rows != [],
@@ -562,109 +523,30 @@ defmodule OrbitalDynamics.Schema.ContactAllocationProviderReservationRequestSumm
     end)
   end
 
-  defp expect_equal(issues, callbacks, path, map, field, expected),
-    do: apply(Keyword.fetch!(callbacks, :expect_equal), [issues, path, map, field, expected])
-
-  defp expect_one_of(issues, callbacks, path, map, field, allowed),
-    do: apply(Keyword.fetch!(callbacks, :expect_one_of), [issues, path, map, field, allowed])
-
-  defp expect_type(issues, callbacks, path, map, field, type),
-    do: apply(Keyword.fetch!(callbacks, :expect_type), [issues, path, map, field, type])
-
-  defp expect_optional_type(issues, callbacks, path, map, field, type),
-    do: apply(Keyword.fetch!(callbacks, :expect_optional_type), [issues, path, map, field, type])
-
-  defp expect_non_negative_integer(issues, callbacks, path, map, field),
-    do: apply(Keyword.fetch!(callbacks, :expect_non_negative_integer), [issues, path, map, field])
-
-  defp expect_field_equals(issues, callbacks, path, map, field, expected),
-    do:
-      apply(Keyword.fetch!(callbacks, :expect_field_equals), [issues, path, map, field, expected])
-
-  defp expect_field_equals(issues, callbacks, path, map, field, expected, message) do
-    apply(Keyword.fetch!(callbacks, :expect_field_equals_with_message), [
-      issues,
-      path,
-      map,
-      field,
-      expected,
-      message
-    ])
-  end
-
-  defp expect_optional_field_equals(issues, callbacks, path, map, field, expected, message) do
-    apply(Keyword.fetch!(callbacks, :expect_optional_field_equals), [
-      issues,
-      path,
-      map,
-      field,
-      expected,
-      message
-    ])
-  end
-
-  defp validate_rows(issues, callbacks, path, rows, validator),
-    do: apply(Keyword.fetch!(callbacks, :validate_rows), [issues, path, rows, validator])
-
-  defp validate_string_list_items(issues, callbacks, path, map, field),
-    do: apply(Keyword.fetch!(callbacks, :validate_string_list_items), [issues, path, map, field])
-
-  defp validate_optional_exact_model_limits(issues, callbacks, path, artifact, expected, message) do
-    apply(Keyword.fetch!(callbacks, :validate_optional_exact_model_limits), [
-      issues,
-      path,
-      artifact,
-      expected,
-      message
-    ])
-  end
-
-  defp validate_stable_id_list(issues, callbacks, path, values),
-    do: apply(Keyword.fetch!(callbacks, :validate_stable_id_list), [issues, path, values])
-
-  defp validate_stable_id_array_map(issues, callbacks, path, values),
-    do: apply(Keyword.fetch!(callbacks, :validate_stable_id_array_map), [issues, path, values])
-
-  defp validate_nested_stable_id_array_map(issues, callbacks, path, values) do
-    apply(Keyword.fetch!(callbacks, :validate_nested_stable_id_array_map), [
-      issues,
-      path,
-      values
-    ])
-  end
-
-  defp validate_optional_stable_id_array_map(issues, callbacks, path, map, field) do
+  defp validate_optional_stable_id_array_map(issues, path, map, field) do
     issues
-    |> expect_optional_type(callbacks, path, map, field, :map)
-    |> validate_stable_id_array_map(callbacks, path <> ".#{field}", Map.get(map, field))
+    |> expect_optional_type(path, map, field, :map)
+    |> validate_stable_id_array_map(path <> ".#{field}", Map.get(map, field))
   end
 
-  defp contact_allocation_model_limits(callbacks),
-    do: apply(Keyword.fetch!(callbacks, :contact_allocation_model_limits), [])
-
-  defp contact_allocation_provider_reservation_request_statuses(callbacks) do
-    apply(
-      Keyword.fetch!(callbacks, :contact_allocation_provider_reservation_request_statuses),
-      []
-    )
+  defp contact_allocation_model_limits do
+    contact_allocation_capabilities()
+    |> Map.fetch!(:known_limits)
+    |> Enum.map(&Atom.to_string/1)
   end
 
-  defp contact_allocation_station_reservation_match_statuses(callbacks),
-    do:
-      apply(Keyword.fetch!(callbacks, :contact_allocation_station_reservation_match_statuses), [])
+  defp contact_allocation_provider_reservation_request_statuses,
+    do: Map.fetch!(contact_allocation_capabilities(), :provider_reservation_request_statuses)
 
-  defp contact_allocation_provider_direction_aliases(callbacks),
-    do: apply(Keyword.fetch!(callbacks, :contact_allocation_provider_direction_aliases), [])
+  defp contact_allocation_station_reservation_match_statuses,
+    do: Map.fetch!(contact_allocation_capabilities(), :station_reservation_match_statuses)
 
-  defp validate_contact_allocation_row(issues, callbacks, path, row),
-    do: apply(Keyword.fetch!(callbacks, :validate_contact_allocation_row), [issues, path, row])
+  defp contact_allocation_provider_direction_aliases,
+    do: Map.fetch!(contact_allocation_capabilities(), :provider_direction_aliases)
 
-  defp contact_allocation_row_contact_ids(callbacks, rows),
-    do: apply(Keyword.fetch!(callbacks, :contact_allocation_row_contact_ids), [rows])
+  defp expect_field_equals(issues, path, map, field, expected),
+    do: expect_field_equals(issues, path, map, field, expected, "must equal #{expected}")
 
-  defp contact_allocation_reservation_expiration_row?(callbacks, row),
-    do: apply(Keyword.fetch!(callbacks, :contact_allocation_reservation_expiration_row?), [row])
-
-  defp contact_allocation_reservation_ids(callbacks, row),
-    do: apply(Keyword.fetch!(callbacks, :contact_allocation_reservation_ids), [row])
+  defp contact_allocation_capabilities,
+    do: OrbitalDynamics.Communications.ContactAllocation.capabilities()
 end
