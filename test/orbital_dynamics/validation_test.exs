@@ -234,9 +234,7 @@ defmodule OrbitalDynamics.ValidationTest do
     only: [
       candidate_refresh_operational_readiness_fixture_observations: 0,
       candidate_refresh_quality_gate_fixture_observations: 0,
-      candidate_refresh_resource_projection_fixture_observations: 0,
-      operational_readiness_resource_pressure_fixture: 0,
-      quality_gate_resource_pressure_fixture: 0
+      candidate_refresh_resource_projection_fixture_observations: 0
     ]
 
   import OrbitalDynamics.Validation.CandidateRefreshTimelineReplayFixtures,
@@ -339,6 +337,14 @@ defmodule OrbitalDynamics.ValidationTest do
     only: [
       approval_requirement_fixture_observations: 0,
       policy_decision_fixture_observations: 0
+    ]
+
+  import OrbitalDynamics.Validation.ResourcePressureHandoffFixtures,
+    only: [
+      cadence_import_resource_pressure_fixture_observations: 0,
+      operational_readiness_resource_pressure_fixture_observations: 0,
+      operator_review_resource_pressure_fixture_observations: 0,
+      quality_gate_resource_pressure_fixture_observations: 0
     ]
 
   test "verifies curated operator review package reference fixtures" do
@@ -1715,150 +1721,6 @@ defmodule OrbitalDynamics.ValidationTest do
            )
   end
 
-  test "verifies curated resource pressure handoff reference fixtures" do
-    fixtures = [
-      {
-        "fixture.artifact.quality_gate_report.resource_pressure_v1",
-        "quality_gate_report.v1",
-        quality_gate_resource_pressure_fixture(),
-        quality_gate_resource_pressure_fixture_observations()
-      },
-      {
-        "fixture.artifact.operational_readiness_report.resource_pressure_v1",
-        "operational_readiness_report.v1",
-        operational_readiness_resource_pressure_fixture(),
-        operational_readiness_resource_pressure_fixture_observations()
-      },
-      {
-        "fixture.artifact.operator_review_package.resource_pressure_v1",
-        "operator_review_package.v1",
-        operator_review_resource_pressure_fixture(),
-        operator_review_resource_pressure_fixture_observations()
-      },
-      {
-        "fixture.artifact.cadence_import_manifest.resource_pressure_v1",
-        "cadence_import_manifest.v1",
-        cadence_import_resource_pressure_fixture(),
-        cadence_import_resource_pressure_fixture_observations()
-      }
-    ]
-
-    for {fixture_id, contract, artifact, observations} <- fixtures do
-      assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
-      assert fixture["fixture_type"] == "curated_internal_artifact_regression"
-
-      assert {:ok, verification} =
-               Validation.verify_reference_fixture(fixture_id, observations)
-
-      assert verification["status"] == "pass"
-      assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
-
-      assert {:ok, _schema_report} =
-               Schema.validate_artifact(artifact, schema_contract: contract)
-
-      assert OrbitalDynamics.validation_artifact_observations(contract, artifact) ==
-               Validation.artifact_observations(contract, artifact)
-    end
-
-    quality_gate_observations = quality_gate_resource_pressure_fixture_observations()
-
-    assert quality_gate_observations["resource_availability_gate_count"] == 1
-    assert quality_gate_observations["row_derived_resource_availability_pressure_count"] == 2
-
-    assert quality_gate_observations["row_derived_resource_availability_reason_counts"] == %{
-             "antenna_unavailable" => 1,
-             "payload_unavailable" => 1
-           }
-
-    readiness_observations = operational_readiness_resource_pressure_fixture_observations()
-
-    assert readiness_observations["resource_availability_pressure_count"] == 2
-
-    assert readiness_observations["row_derived_resource_availability_reason_keys"] ==
-             "antenna_unavailable|payload_unavailable"
-
-    review_observations = operator_review_resource_pressure_fixture_observations()
-
-    assert review_observations["resource_availability_review_row_count"] == 2
-    assert review_observations["row_derived_resource_availability_pressure_count"] == 4
-
-    import_observations = cadence_import_resource_pressure_fixture_observations()
-
-    assert import_observations["resource_availability_import_row_count"] == 2
-    assert import_observations["row_derived_resource_availability_pressure_count"] == 4
-
-    stale_quality_gate_observations =
-      quality_gate_observations
-      |> Map.put("resource_availability_gate_count", 0)
-
-    assert {:ok, stale_quality_gate_verification} =
-             Validation.verify_reference_fixture(
-               "fixture.artifact.quality_gate_report.resource_pressure_v1",
-               stale_quality_gate_observations
-             )
-
-    assert stale_quality_gate_verification["status"] == "fail"
-
-    assert Enum.any?(
-             stale_quality_gate_verification["checks"],
-             &(&1["field"] == "resource_availability_gate_count" and &1["status"] == "fail")
-           )
-
-    stale_readiness_observations =
-      readiness_observations
-      |> Map.put("resource_availability_pressure_count", 0)
-
-    assert {:ok, stale_readiness_verification} =
-             Validation.verify_reference_fixture(
-               "fixture.artifact.operational_readiness_report.resource_pressure_v1",
-               stale_readiness_observations
-             )
-
-    assert stale_readiness_verification["status"] == "fail"
-
-    assert Enum.any?(
-             stale_readiness_verification["checks"],
-             &(&1["field"] == "resource_availability_pressure_count" and
-                 &1["status"] == "fail")
-           )
-
-    stale_review_observations =
-      review_observations
-      |> Map.put("resource_availability_review_row_count", 1)
-
-    assert {:ok, stale_review_verification} =
-             Validation.verify_reference_fixture(
-               "fixture.artifact.operator_review_package.resource_pressure_v1",
-               stale_review_observations
-             )
-
-    assert stale_review_verification["status"] == "fail"
-
-    assert Enum.any?(
-             stale_review_verification["checks"],
-             &(&1["field"] == "resource_availability_review_row_count" and
-                 &1["status"] == "fail")
-           )
-
-    stale_import_observations =
-      import_observations
-      |> put_in(["row_derived_resource_availability_reason_counts", "antenna_unavailable"], 1)
-
-    assert {:ok, stale_import_verification} =
-             Validation.verify_reference_fixture(
-               "fixture.artifact.cadence_import_manifest.resource_pressure_v1",
-               stale_import_observations
-             )
-
-    assert stale_import_verification["status"] == "fail"
-
-    assert Enum.any?(
-             stale_import_verification["checks"],
-             &(&1["field"] == "row_derived_resource_availability_reason_counts" and
-                 &1["status"] == "fail")
-           )
-  end
-
   test "verifies curated contact allocation report reference fixtures" do
     fixture_id = "fixture.artifact.contact_allocation_report.v1"
 
@@ -3002,15 +2864,6 @@ defmodule OrbitalDynamics.ValidationTest do
            )
   end
 
-  defp cadence_import_resource_pressure_fixture_observations do
-    "cadence_import_manifest.v1"
-    |> Validation.artifact_observations(cadence_import_resource_pressure_fixture())
-  end
-
-  defp cadence_import_resource_pressure_fixture do
-    read_json!("study_results/cadence_import_resource_pressure_v1.json")
-  end
-
   defp contact_allocation_report_fixture_observations do
     "contact_allocation_report.v1"
     |> Validation.artifact_observations(contact_allocation_report_fixture())
@@ -3057,15 +2910,6 @@ defmodule OrbitalDynamics.ValidationTest do
     read_json!("study_results/operator_review_package_v1.json")
   end
 
-  defp operator_review_resource_pressure_fixture_observations do
-    "operator_review_package.v1"
-    |> Validation.artifact_observations(operator_review_resource_pressure_fixture())
-  end
-
-  defp operator_review_resource_pressure_fixture do
-    read_json!("study_results/operator_review_resource_pressure_v1.json")
-  end
-
   defp operational_readiness_report_fixture_observations do
     "operational_readiness_report.v1"
     |> Validation.artifact_observations(operational_readiness_report_fixture())
@@ -3073,11 +2917,6 @@ defmodule OrbitalDynamics.ValidationTest do
 
   defp operational_readiness_report_fixture do
     read_json!("study_results/operational_readiness_report_v1.json")
-  end
-
-  defp operational_readiness_resource_pressure_fixture_observations do
-    "operational_readiness_report.v1"
-    |> Validation.artifact_observations(operational_readiness_resource_pressure_fixture())
   end
 
   defp operational_execution_boundary_summary_fixture_observations do
@@ -3215,11 +3054,6 @@ defmodule OrbitalDynamics.ValidationTest do
   defp quality_gate_report_fixture do
     operational_readiness_report_fixture()
     |> OperationalReadiness.quality_gate_report()
-  end
-
-  defp quality_gate_resource_pressure_fixture_observations do
-    "quality_gate_report.v1"
-    |> Validation.artifact_observations(quality_gate_resource_pressure_fixture())
   end
 
   defp read_json!(path) do

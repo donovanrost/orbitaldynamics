@@ -9,7 +9,7 @@ Current slice:
 Validation resource-pressure handoff fixture test-family extraction.
 
 Status:
-Selected.
+Ready to publish.
 
 Selected slice:
 Move the resource-pressure handoff fixture test into a focused module with one
@@ -47,10 +47,23 @@ focused and parent files pass, names remain unique, and bounded review finds no
 blocker.
 
 Outcome:
-Pending.
+The single resource-pressure handoff test moved into
+`resource_pressure_handoff_fixture_test.exs`. Six local fixture helpers moved
+exactly, apart from the required `defp` to `def` visibility change, into one
+shared support owner. The existing readiness and quality-gate raw fixtures
+remain owned by `CandidateRefreshReadinessReplayFixtures`; the focused test and
+new support module reuse them directly. The parent now imports only the four
+aggregate observation helpers it still consumes and shrank from 3,230 to 3,064
+lines. The focused test file is 165 lines and the support owner is 43 lines.
 
 Verification gaps:
-- Pending.
+- Focused resource-pressure handoff module: 1/1 passed.
+- Remaining parent validation module: 20/20 passed.
+- Full Validation family: 43 modules, 181/181 passed.
+- Exact-source audit: test, six local helpers, and private JSON loader exact;
+  two existing raw owners reused; all 181 test names remain unique.
+- `mix format --check-formatted` and `git diff --check` passed.
+- Independent bounded review found no blocker.
 
 Last completed slice:
 Validation policy-decision fixture extraction published as `a1c32f34`: the
