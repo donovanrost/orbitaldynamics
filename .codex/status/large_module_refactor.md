@@ -9,7 +9,7 @@ Current slice:
 Policy-bundle domain-authority mapping.
 
 Status:
-Ready for implementation.
+Publishing.
 
 Selected slice:
 Move
@@ -58,7 +58,7 @@ exact, focused and full validation tests pass, and bounded review finds no
 blocker.
 
 Verification gaps:
-- Implementation, verification, and bounded review pending.
+- None for this bounded slice.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -74,13 +74,33 @@ Tests run:
 - Source boundary confirmed at facade lines 154-345, with
   `policy_bundle.organization_adapter` beginning at line 346 and no facade
   helper-attribute dependency in the selected literals.
-- Selection only; implementation verification pending.
+- Post-move exact proof: the 195-entry map, sorted-key digest, selected
+  domain-authority digest, prior eight-fixture leaf digest, and exact 192-entry
+  remainder digest all match their selection baselines. The resulting
+  eleven-fixture leaf digest is
+  `ba5aa4182753941be877a6973bc2e5162ef43604e6ecda753d7904a0a9f1769a`.
+- Source partition proof: 21 maps total 195 entries, the policy leaf owns
+  eleven, the facade owns 121, and all 210 pairwise intersections are empty.
+- Facade proof: all 195 successful `fetch/1` results, missing-key `:error`, and
+  nonbinary `FunctionClauseError` behavior remain unchanged.
+- Focused policy-bundle/facade validation: 18 tests passed.
+- Full validation family: 181 tests passed.
+- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
+  xref caller checks passed.
+- Independent bounded review: CLEAN. It confirmed the domain-authority trio
+  moved unchanged, the prior eight leaf fixtures and complete facade remainder
+  are normalized-AST exact, the leaf owns only eleven intended keys, all 21
+  maps are unique and pairwise disjoint, all six digests and facade edge
+  behaviors are unchanged, dependencies remain one-way, and it reproduced 18
+  focused and 181 full validation tests.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-No domain-authority implementation has started.
+The exact domain-authority trio now lives in the existing policy leaf behind
+the unchanged facade. The facade shrank from 8,860 to 8,668 lines; the leaf
+grew from eight to eleven fixtures and from 503 to 695 lines.
 
 Last completed slice:
 Policy-bundle degraded/default extraction published as `ae587409`: the exact
