@@ -2253,34 +2253,24 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp json_schema_property(field, @contact_filter_report = contract_name, contract) do
-    focused_json_schema_property(
+  defp json_schema_property(field, contract_name, contract)
+       when contract_name in [@contact_filter_report, @resource_filter_report] do
+    OrbitalDynamics.Schema.FilterReportPropertyDispatch.property(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.ContactFilterReportJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.ContactFilterReportJsonSchema.property_fun_from_context(
-        stable_id_pattern: @stable_id_pattern,
-        trust_boundary_count_map_schema: &branch_event_trust_boundary_status_counts_json_schema/0,
-        model_limits: &contact_filter_report_model_limits/0,
-        assumptions_schema: &contact_filter_report_assumptions_json_schema/0,
-        suppressed_candidate_schema: &suppressed_candidate_json_schema/0
-      )
-    )
-  end
-
-  defp json_schema_property(field, @resource_filter_report = contract_name, contract) do
-    focused_json_schema_property(
-      field,
-      contract_name,
-      contract,
-      &OrbitalDynamics.Schema.ResourceFilterReportJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.ResourceFilterReportJsonSchema.property_fun_from_context(
-        stable_id_pattern: @stable_id_pattern,
-        model_limits: &resource_filter_report_model_limits/0,
-        assumptions_schema: &resource_filter_report_assumptions_json_schema/0,
-        suppressed_candidate_schema: &suppressed_candidate_json_schema/0
-      )
+      contracts: %{
+        contact: @contact_filter_report,
+        resource: @resource_filter_report
+      },
+      stable_id_pattern: @stable_id_pattern,
+      trust_boundary_count_map_schema: &branch_event_trust_boundary_status_counts_json_schema/0,
+      contact_model_limits: &contact_filter_report_model_limits/0,
+      contact_assumptions_schema: &contact_filter_report_assumptions_json_schema/0,
+      resource_model_limits: &resource_filter_report_model_limits/0,
+      resource_assumptions_schema: &resource_filter_report_assumptions_json_schema/0,
+      suppressed_candidate_schema: &suppressed_candidate_json_schema/0,
+      default_property: &default_json_schema_property/3
     )
   end
 
