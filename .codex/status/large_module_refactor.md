@@ -9,7 +9,7 @@ Current slice:
 Validation candidate-refresh station/allocation replay test-family extraction.
 
 Status:
-Ready to publish.
+Published as `823263d2`.
 
 Selected slice:
 Move the two contiguous candidate-refresh station-calendar and
@@ -59,9 +59,9 @@ Verification gaps:
 - Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
-Validation candidate-refresh freshness/budget replay extraction published as
-`84b82281`: the focused module passed 2/2, the parent passed 47/47, and all
-thirty-four Validation modules preserved the 181-test aggregate with no
+Validation candidate-refresh station/allocation replay extraction published as
+`823263d2`: the focused module passed 2/2, the parent passed 45/45, and all
+thirty-five Validation modules preserved the 181-test aggregate with no
 duplicate names. Format, diff hygiene, exact-source and dependency-closure
 checks, and bounded review were clean.
 
