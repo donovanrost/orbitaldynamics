@@ -9,7 +9,7 @@ Current slice:
 CandidateRefresh timeline activity-state replay callback removal.
 
 Status:
-Review complete; ready to publish.
+Published as `b86fc6a1`.
 
 Selected slice:
 Remove the remaining source-summary callbacks from the five timeline
@@ -64,13 +64,15 @@ Verification gaps:
 - bounded read-only review: clean, no findings
 
 Last completed slice:
-Candidate acceptance/safety replay callback removal published as `d3324fa7`:
-both paths are one-argument end to end, 25 focused tests passed, and bounded
-review found no blocker.
+Candidate timeline activity-state replay callback removal published as
+`b86fc6a1`: all five paths are one-argument end to end, 36 focused tests
+passed, and bounded review found no blocker. No facade callback transport
+remains.
 
 Next candidate:
-After callback removal is complete, re-inventory the live large-module
-hotspots and choose the next responsibility extraction.
+Audit a family-cohesive `Schema.JsonExport` property-dispatch extraction from
+the 9,789-line `schema.ex`, starting with one matching focused schema contract
+test family and exact checked-in export comparison.
 
 Blocked:
 No.
