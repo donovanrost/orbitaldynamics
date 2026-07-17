@@ -9,7 +9,7 @@ Current slice:
 CampaignPlanner repair activity-state transition extraction.
 
 Status:
-Ready to publish.
+Published as `e99f5f3a`.
 
 Selected slice:
 Extract ambiguous-review, degraded-suppression, executed/locked/viable
@@ -61,9 +61,9 @@ Verification gaps:
 - Independent bounded review found no blocker.
 
 Last completed slice:
-CampaignPlanner repair replacement-transition extraction published as
-`73a32081`: one owner now supplies both complete replacement branches, 67
-repair tests passed, and bounded review found no blocker.
+CampaignPlanner repair activity-state transition extraction published as
+`e99f5f3a`: one owner now supplies six complete state branches, 67 repair tests
+passed, and bounded review found no blocker.
 
 Next candidate:
 After activity-state transitions, add delayed-maneuver tracking to
