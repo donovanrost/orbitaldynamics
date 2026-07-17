@@ -6,10 +6,10 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema CandidateDiff lineage callback ownership mapping.
+Schema CandidateDiff lineage callback ownership handoff.
 
 Status:
-Publishing.
+Published as `b99f4314`.
 
 Selected slice:
 Point the standalone `source_window_lineage.v1` contract pipe directly at
@@ -99,15 +99,17 @@ CandidateDiff owner directly and the pure facade delegate is gone.
 `schema.ex` decreased from 8,018 to 8,013 lines.
 
 Last completed slice:
-Capability-catalog extraction published as `8e4be181`: the final fixture and
-its private ordering attribute moved into a new 136-line leaf, the facade
-shrunk from 235 to 105 lines with no fixture state, the 195-entry map and all
-deterministic digests stayed exact, 5 focused and 181 full validation tests
-passed, and corrected bounded review was clean.
+CandidateDiff source-window-lineage callback cleanup published as `b99f4314`:
+the standalone contract pipe now calls the established owner directly,
+`schema.ex` shrank from 8,018 to 8,013 lines, 10 focused and 182 complete
+schema/export tests passed, all 122 generated schema files byte-matched, and
+bounded review was clean.
 
 Next candidate:
-Select the direct CandidateDiff lineage owner described above, preserve the
-final pipeline position exactly, then remove the now-unused facade delegate.
+Map the adjacent single-call `validate_candidate_diff_row/3` facade delegate.
+Its established `CandidateDiffContracts.validate_row/3` owner is unchanged and
+the standalone `candidate_diff_row.v1` pipe is the only caller; capture the
+same issue-order and schema-byte baselines before replacing it in place.
 
 Blocked:
 No.
