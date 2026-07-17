@@ -6,23 +6,24 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema station-calendar handoff callback ownership cleanup.
+Schema resource-projection direct callback ownership cleanup.
 
 Status:
-Completed and published.
+Selected; implementation pending.
 
 Selected slice:
-Point the station-calendar count-list, general source-match, and
-cadence-source-review callback captures directly at the existing
-`Schema.StationCalendarHandoffContracts` owner. Remove the general and
-count-list delegates plus both clauses of the cadence wrapper.
+Point the battery-field, remaining-field, battery-source, flow-context,
+own-flow, and three cadence resource-projection callback captures directly at
+the existing `Schema.ResourceProjectionHandoffContracts` owner. Remove the
+eight pure delegates. Keep the general count-source delegate in the facade
+because it injects the facade-owned downlink-flow predicate.
 
 Why this slice:
-The general and count-list delegates are pure pass-throughs to total owner
-functions. The cadence wrapper duplicates the owner's specialized and
-permissive fallback clauses. Three count-list, three general source-match, and
-one cadence capture form one seven-position ownership boundary without moving
-station-calendar validation or changing ordered count checks.
+Sixteen capture positions forward unchanged through eight pure delegates to one
+existing owner. Direct captures consolidate battery, remaining, flow-context,
+own-flow, and cadence validation without creating a callback bag. Excluding the
+general count-source path preserves the explicit dependency on
+`resource_projection_downlink_flow_row?/1` and keeps the boundary cohesive.
 
 Public facade to preserve:
 All `OrbitalDynamics.Schema` public functions, exact validation issue ordering,
@@ -40,36 +41,20 @@ Likely verification:
 
 Definition of done:
 Every callback list directly captures the corresponding public
-`StationCalendarHandoffContracts` validator, the general/count-list delegates
-and both cadence clauses are gone,
+`ResourceProjectionHandoffContracts` validator for the selected eight
+functions, those facade delegates are gone, and the dependency-bearing general
+count-source wrapper remains unchanged,
 validation and schema exports remain byte-for-byte stable, focused tests pass,
 and bounded review finds no blocker.
 
-Outcome:
-All station-calendar count-list and source-match callback lists now capture the
-existing `StationCalendarHandoffContracts` validators directly. The general and
-count-list delegates plus specialized/fallback cadence wrapper were removed,
-reducing `schema.ex` from 8,885 to 8,854 lines without changing source
-precedence, count-check or issue order, fallback behavior, results, or
-checked-in schema bytes.
-
 Verification gaps:
-- None for this slice.
+- Implementation and verification pending.
 
 Tests run:
-- `mix compile --warnings-as-errors`
-- 81 focused station-calendar-referencing schema contract tests
-- 182 complete schema-contract and schema-export tests
-- full checked-in schema export regeneration; no schema diff
-- aggregate schema bundle digest unchanged:
-  `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`
-- `mix format --check-formatted`
-- `git diff --check`
-- compile-connected xref check for `schema.ex`
-- bounded read-only review: clean, no findings
+- Pending.
 
 Behavior/schema changes:
-None.
+None intended.
 
 Last completed slice:
 Schema station-calendar handoff callback ownership cleanup published as
