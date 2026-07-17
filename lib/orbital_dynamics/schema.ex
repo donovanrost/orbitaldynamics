@@ -7037,14 +7037,6 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validate_contact_allocation_expiration_handoff_summary(issues, path, artifact) do
-    OrbitalDynamics.Schema.ContactAllocationHandoffContracts.validate_expiration_summary(
-      issues,
-      path,
-      artifact
-    )
-  end
-
   defp validate_quality_gate_handoff_summary(issues, path, artifact) do
     OrbitalDynamics.Schema.QualityGateHandoffContracts.validate_summary(
       issues,
@@ -7189,7 +7181,7 @@ defmodule OrbitalDynamics.Schema do
       cadence_import_manifest_model_limits(),
       @cadence_import_manifest_scalar_count_fields,
       &validate_cadence_import_row/3,
-      &validate_contact_allocation_expiration_handoff_summary/3,
+      &OrbitalDynamics.Schema.ContactAllocationHandoffContracts.validate_expiration_summary/3,
       &OrbitalDynamics.Schema.SuppressionHandoffContracts.validate_duplicate_groups/3
     )
   end
@@ -7953,7 +7945,7 @@ defmodule OrbitalDynamics.Schema do
   defp operator_review_package_contract_callbacks do
     [
       validate_contact_allocation_expiration_handoff_summary:
-        &validate_contact_allocation_expiration_handoff_summary/3,
+        &OrbitalDynamics.Schema.ContactAllocationHandoffContracts.validate_expiration_summary/3,
       validate_quality_gate_handoff_summary: &validate_quality_gate_handoff_summary/3,
       validate_operator_review_row: &validate_operator_review_row/3,
       validate_suppression_duplicate_handoff_groups:
