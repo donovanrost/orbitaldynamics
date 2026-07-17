@@ -9,7 +9,7 @@ Current slice:
 Validation policy-decision fixture test-family extraction.
 
 Status:
-Ready to publish.
+Published as `a1c32f34`.
 
 Selected slice:
 Move the two contiguous approval-requirement and policy-decision fixture tests
@@ -56,10 +56,11 @@ Verification gaps:
 - Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
-Validation manifest fixture extraction published as `8087071d`: the focused
-module passed 2/2, the parent passed 23/23, and all forty-one Validation modules
-preserved the 181-test aggregate with no duplicate names. Format, diff hygiene,
-exact-source and dependency-closure checks, and bounded review were clean.
+Validation policy-decision fixture extraction published as `a1c32f34`: the
+focused module passed 2/2, the parent passed 21/21, and all forty-two Validation
+modules preserved the 181-test aggregate with no duplicate names. Format, diff
+hygiene, exact-source and dependency-closure checks, and bounded review were
+clean.
 
 Next candidate:
 Map the resource-pressure handoff fixture family following policy decisions.
