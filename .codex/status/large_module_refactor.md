@@ -9,7 +9,7 @@ Current slice:
 Contact-allocation aggregate-summary callback-bag collapse.
 
 Status:
-Selected; implementation not started.
+Implemented, verified, reviewed, and ready to publish.
 
 Selected slice:
 Replace the 33-entry aggregate-summary domain keyword bag with direct capability
@@ -46,18 +46,27 @@ are explicit, numeric/equality messages remain exact, focused/broader/export
 checks pass, and bounded review finds no blocker.
 
 Outcome:
-Pending.
+The 33-entry aggregate-summary domain callback bag and all lookup/apply
+trampolines are gone. The owner now calls capability and contact-allocation
+report owners directly; Schema passes only the explicit row and
+capacity-pack-group validators. Twenty newly orphaned Schema facades and helper
+transforms also disappeared. `schema.ex` fell from 10,441 to 10,280 lines and
+the owner from 1,330 to 1,236, for 255 net deleted lines across the slice.
 
 Verification gaps:
-- Not yet verified.
+- Full repository suite not run. The standard broader lane remains at the
+  baseline 1,340/1,345 with the same five known campaign-planner failures
+  attributable at `6f1f0ac1`.
+- Focused aggregate-summary/contact-allocation coverage passed 274 tests;
+  export coverage passed 24. Compile with warnings as errors, checked-in schema
+  regeneration, compile-connected xref (three allowed edges), format, diff
+  hygiene, and independent bounded review were clean.
 
 Last completed slice:
-Contact-allocation reservation-conflict-summary callback collapse published as
-`5a9baf23`: `schema.ex` fell from 10,515 to 10,441 lines and the owner from 792
-to 616; the 33-entry factory became one explicit row-validator hook and eight
-facade/import orphans disappeared. Two hundred seventy-seven focused, 1,340
-attributable broader, and 24 export tests passed; compile, regeneration, xref,
-format, diff hygiene, and bounded review were clean.
+Contact-allocation aggregate-summary callback collapse; publication commit
+pending. The 33-entry domain factory became two explicit validator hooks, with
+274 focused, 1,340 attributable broader, and 24 export tests passing; compile,
+regeneration, xref, format, diff hygiene, and bounded review were clean.
 
 Blocked:
 No.

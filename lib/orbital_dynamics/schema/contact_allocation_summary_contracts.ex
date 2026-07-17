@@ -1,6 +1,8 @@
 defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
   @moduledoc false
 
+  alias OrbitalDynamics.Schema.ContactAllocationReportContracts
+
   import OrbitalDynamics.Schema.CollectionValidation, only: [validate_rows: 4]
 
   import OrbitalDynamics.Schema.PrimitiveValidation,
@@ -29,7 +31,8 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       validate_stable_id_list: 3
     ]
 
-  def validate_summary(issues, path, summary, callbacks) when is_list(callbacks) do
+  def validate_summary(issues, path, summary, row_validator, group_validator)
+      when is_function(row_validator, 3) and is_function(group_validator, 3) do
     issues
     |> expect_equal(path, summary, "schema_contract", "contact_allocation_summary.v1")
     |> expect_equal(path, summary, "model", "artifact_only_contact_allocation_summary")
@@ -42,7 +45,7 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
     |> validate_optional_exact_model_limits(
       path,
       summary,
-      contact_allocation_model_limits(callbacks),
+      contact_allocation_model_limits(),
       "must match contact allocation model limits"
     )
     |> validate_field_types(path, summary)
@@ -50,25 +53,23 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
     |> validate_rows(
       path <> ".rows",
       Map.get(summary, "rows", []),
-      fn acc, row_path, row -> validate_contact_allocation_row(acc, callbacks, row_path, row) end
+      row_validator
     )
     |> expect_type(path, summary, "review_rows", :list)
     |> validate_rows(
       path <> ".review_rows",
       Map.get(summary, "review_rows", []),
-      fn acc, row_path, row -> validate_contact_allocation_row(acc, callbacks, row_path, row) end
+      row_validator
     )
     |> expect_type(path, summary, "reduced_capacity_pack_groups", :list)
     |> validate_rows(
       path <> ".reduced_capacity_pack_groups",
       Map.get(summary, "reduced_capacity_pack_groups", []),
-      fn acc, row_path, row ->
-        validate_contact_allocation_capacity_pack_group(acc, callbacks, row_path, row)
-      end
+      group_validator
     )
     |> expect_type(path, summary, "assumptions", :map)
-    |> validate_assumptions(callbacks, path, summary)
-    |> validate_counts(callbacks, path, summary)
+    |> validate_assumptions(path, summary)
+    |> validate_counts(path, summary)
   end
 
   defp validate_field_types(issues, path, summary) do
@@ -264,7 +265,7 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
     ]
   end
 
-  defp validate_assumptions(issues, callbacks, path, summary) do
+  defp validate_assumptions(issues, path, summary) do
     case Map.get(summary, "assumptions") do
       %{} = assumptions ->
         issues
@@ -290,91 +291,91 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
           path <> ".assumptions",
           assumptions,
           "row_statuses",
-          contact_allocation_row_statuses(callbacks),
+          contact_allocation_row_statuses(),
           "must match ContactAllocation row statuses"
         )
         |> expect_optional_field_equals(
           path <> ".assumptions",
           assumptions,
           "effective_row_statuses",
-          contact_allocation_effective_row_statuses(callbacks),
+          contact_allocation_effective_row_statuses(),
           "must match ContactAllocation effective row statuses"
         )
         |> expect_optional_field_equals(
           path <> ".assumptions",
           assumptions,
           "station_unavailable_aliases",
-          contact_allocation_station_unavailable_aliases(callbacks),
+          contact_allocation_station_unavailable_aliases(),
           "must match ContactAllocation station unavailable aliases"
         )
         |> expect_optional_field_equals(
           path <> ".assumptions",
           assumptions,
           "station_blocking_availability",
-          contact_allocation_station_blocking_availability(callbacks),
+          contact_allocation_station_blocking_availability(),
           "must match ContactAllocation station blocking availability"
         )
         |> expect_optional_field_equals(
           path <> ".assumptions",
           assumptions,
           "station_availability_precedence",
-          contact_allocation_station_availability_precedence(callbacks),
+          contact_allocation_station_availability_precedence(),
           "must match ContactAllocation station availability precedence"
         )
         |> expect_optional_field_equals(
           path <> ".assumptions",
           assumptions,
           "capacity_pack_statuses",
-          contact_allocation_capacity_pack_statuses(callbacks),
+          contact_allocation_capacity_pack_statuses(),
           "must match ContactAllocation capacity pack statuses"
         )
         |> expect_optional_field_equals(
           path <> ".assumptions",
           assumptions,
           "reduced_capacity_pack_statuses",
-          contact_allocation_reduced_capacity_pack_statuses(callbacks),
+          contact_allocation_reduced_capacity_pack_statuses(),
           "must match ContactAllocation reduced capacity pack statuses"
         )
         |> expect_optional_field_equals(
           path <> ".assumptions",
           assumptions,
           "station_reservation_match_statuses",
-          contact_allocation_station_reservation_match_statuses(callbacks),
+          contact_allocation_station_reservation_match_statuses(),
           "must match ContactAllocation station reservation match statuses"
         )
         |> expect_optional_field_equals(
           path <> ".assumptions",
           assumptions,
           "station_reservation_expiration_statuses",
-          contact_allocation_station_reservation_expiration_statuses(callbacks),
+          contact_allocation_station_reservation_expiration_statuses(),
           "must match ContactAllocation station reservation expiration statuses"
         )
         |> expect_optional_field_equals(
           path <> ".assumptions",
           assumptions,
           "required_capacity_fraction_source_values",
-          contact_allocation_required_capacity_fraction_source_values(callbacks),
+          contact_allocation_required_capacity_fraction_source_values(),
           "must match ContactAllocation required capacity fraction source values"
         )
         |> expect_optional_field_equals(
           path <> ".assumptions",
           assumptions,
           "required_capacity_value_paths",
-          contact_allocation_required_capacity_value_path_assumptions(callbacks),
+          contact_allocation_required_capacity_value_path_assumptions(),
           "must match ContactAllocation required capacity value paths"
         )
         |> expect_optional_field_equals(
           path <> ".assumptions",
           assumptions,
           "default_required_capacity_value_paths",
-          contact_allocation_default_required_capacity_value_path_assumptions(callbacks),
+          contact_allocation_default_required_capacity_value_path_assumptions(),
           "must match ContactAllocation default required capacity value paths"
         )
         |> expect_optional_field_equals(
           path <> ".assumptions",
           assumptions,
           "provider_direction_aliases",
-          contact_allocation_provider_direction_aliases(callbacks),
+          contact_allocation_provider_direction_aliases(),
           "must match ContactAllocation provider direction aliases"
         )
 
@@ -383,28 +384,27 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
     end
   end
 
-  defp validate_counts(issues, callbacks, path, summary) do
+  defp validate_counts(issues, path, summary) do
     rows =
       summary
       |> Map.get("rows", [])
       |> Enum.filter(&is_map/1)
 
-    review_rows = Enum.filter(rows, &contact_allocation_review_row?(callbacks, &1))
-    station_pressure_rows = contact_allocation_station_pressure_rows(callbacks, rows)
-    resource_blocked_rows = contact_allocation_resource_blocked_rows(callbacks, rows)
-    capacity_pack_rows = contact_allocation_capacity_pack_rows(callbacks, rows)
+    review_rows = Enum.filter(rows, &ContactAllocationReportContracts.review_row?(&1))
+    station_pressure_rows = ContactAllocationReportContracts.station_pressure_rows(rows)
+    resource_blocked_rows = ContactAllocationReportContracts.resource_blocked_rows(rows)
+    capacity_pack_rows = ContactAllocationReportContracts.capacity_pack_rows(rows)
 
     selected_capacity_pack_rows =
-      contact_allocation_selected_capacity_pack_rows(callbacks, capacity_pack_rows)
+      ContactAllocationReportContracts.selected_capacity_pack_rows(capacity_pack_rows)
 
     deferred_capacity_pack_rows =
-      contact_allocation_deferred_capacity_pack_rows(callbacks, capacity_pack_rows)
+      ContactAllocationReportContracts.deferred_capacity_pack_rows(capacity_pack_rows)
 
     pack_groups = summary |> Map.get("reduced_capacity_pack_groups", []) |> Enum.filter(&is_map/1)
 
     reservation_expiration_rows =
-      contact_allocation_reservation_expiration_rows(
-        callbacks,
+      ContactAllocationReportContracts.reservation_expiration_rows(
         rows,
         Map.get(summary, "station_reservation_expiration_now_s")
       )
@@ -445,21 +445,21 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       path,
       summary,
       "invalid_contact_input_count",
-      length(contact_allocation_invalid_contact_input_ids(callbacks, rows)),
+      length(ContactAllocationReportContracts.invalid_contact_input_ids(rows)),
       "must equal row-derived invalid_contact_input_count"
     )
     |> expect_field_equals(
       path,
       summary,
       "status_blocked_contact_count",
-      length(contact_allocation_status_blocked_contact_ids(callbacks, rows)),
+      length(ContactAllocationReportContracts.status_blocked_contact_ids(rows)),
       "must equal row-derived status_blocked_contact_count"
     )
     |> expect_field_equals(
       path,
       summary,
       "resource_blocked_contact_count",
-      length(contact_allocation_row_contact_ids(callbacks, resource_blocked_rows)),
+      length(ContactAllocationReportContracts.row_contact_ids(resource_blocked_rows)),
       "must equal row-derived resource_blocked_contact_count"
     )
     |> expect_field_equals(
@@ -522,29 +522,32 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       path,
       summary,
       "capacity_pack_required_capacity_fraction",
-      contact_allocation_capacity_pack_required_fraction(callbacks, capacity_pack_rows),
+      ContactAllocationReportContracts.capacity_pack_required_fraction(capacity_pack_rows),
       "must equal row-derived capacity_pack_required_capacity_fraction"
     )
     |> expect_number_field_equals(
       path,
       summary,
       "capacity_pack_selected_required_capacity_fraction",
-      contact_allocation_capacity_pack_required_fraction(callbacks, selected_capacity_pack_rows),
+      ContactAllocationReportContracts.capacity_pack_required_fraction(
+        selected_capacity_pack_rows
+      ),
       "must equal row-derived capacity_pack_selected_required_capacity_fraction"
     )
     |> expect_number_field_equals(
       path,
       summary,
       "capacity_pack_deferred_required_capacity_fraction",
-      contact_allocation_capacity_pack_required_fraction(callbacks, deferred_capacity_pack_rows),
+      ContactAllocationReportContracts.capacity_pack_required_fraction(
+        deferred_capacity_pack_rows
+      ),
       "must equal row-derived capacity_pack_deferred_required_capacity_fraction"
     )
     |> expect_field_equals(
       path,
       summary,
       "capacity_pack_required_capacity_fraction_by_status",
-      contact_allocation_capacity_pack_required_fraction_by_field(
-        callbacks,
+      ContactAllocationReportContracts.capacity_pack_required_fraction_by_field(
         capacity_pack_rows,
         "capacity_pack_status"
       ),
@@ -589,7 +592,7 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       path,
       summary,
       "station_reservation_expires_at_s",
-      contact_allocation_reservation_expires_at_values(callbacks, rows),
+      ContactAllocationReportContracts.reservation_expires_at_values(rows),
       "must equal row-derived station_reservation_expires_at_s"
     )
     |> expect_field_equals(
@@ -603,8 +606,7 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       path,
       summary,
       "station_reservation_active_contact_count",
-      contact_allocation_reservation_expiration_count(
-        callbacks,
+      ContactAllocationReportContracts.reservation_expiration_count(
         reservation_expiration_rows,
         "active"
       ),
@@ -614,8 +616,7 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       path,
       summary,
       "station_reservation_expired_contact_count",
-      contact_allocation_reservation_expiration_count(
-        callbacks,
+      ContactAllocationReportContracts.reservation_expiration_count(
         reservation_expiration_rows,
         "expired"
       ),
@@ -625,8 +626,7 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       path,
       summary,
       "station_reservation_missing_expiration_contact_count",
-      contact_allocation_reservation_expiration_count(
-        callbacks,
+      ContactAllocationReportContracts.reservation_expiration_count(
         reservation_expiration_rows,
         "missing"
       ),
@@ -636,8 +636,7 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       path,
       summary,
       "station_reservation_declared_expiration_contact_count",
-      contact_allocation_reservation_expiration_count(
-        callbacks,
+      ContactAllocationReportContracts.reservation_expiration_count(
         reservation_expiration_rows,
         "declared"
       ),
@@ -647,8 +646,7 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       path,
       summary,
       "earliest_station_reservation_expires_at_s",
-      contact_allocation_earliest_reservation_expires_at_s(
-        callbacks,
+      ContactAllocationReportContracts.earliest_reservation_expires_at_s(
         reservation_expiration_rows
       ),
       "must equal row-derived earliest_station_reservation_expires_at_s"
@@ -668,7 +666,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       "must equal row-derived resource_blocking_dimension_counts"
     )
     |> validate_id_fields(
-      callbacks,
       path,
       summary,
       rows,
@@ -692,7 +689,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
 
   defp validate_id_fields(
          issues,
-         callbacks,
          path,
          summary,
          rows,
@@ -799,21 +795,21 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       path,
       summary,
       "invalid_contact_input_ids",
-      contact_allocation_invalid_contact_input_ids(callbacks, rows),
+      ContactAllocationReportContracts.invalid_contact_input_ids(rows),
       "must equal row-derived invalid_contact_input_ids"
     )
     |> expect_field_equals(
       path,
       summary,
       "status_blocked_contact_ids",
-      contact_allocation_status_blocked_contact_ids(callbacks, rows),
+      ContactAllocationReportContracts.status_blocked_contact_ids(rows),
       "must equal row-derived status_blocked_contact_ids"
     )
     |> expect_field_equals(
       path,
       summary,
       "resource_blocked_contact_ids",
-      contact_allocation_row_contact_ids(callbacks, resource_blocked_rows),
+      ContactAllocationReportContracts.row_contact_ids(resource_blocked_rows),
       "must equal row-derived resource_blocked_contact_ids"
     )
     |> expect_field_equals(
@@ -850,15 +846,17 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       path,
       summary,
       "station_pressure_contact_ids_by_availability",
-      contact_allocation_station_pressure_ids_by_availability(callbacks, station_pressure_rows),
+      ContactAllocationReportContracts.station_pressure_ids_by_availability(
+        station_pressure_rows
+      ),
       "must equal row-derived station_pressure_contact_ids_by_availability"
     )
     |> expect_field_equals(
       path,
       summary,
       "station_pressure_contact_counts_by_availability",
-      callbacks
-      |> contact_allocation_station_pressure_ids_by_availability(station_pressure_rows)
+      station_pressure_rows
+      |> ContactAllocationReportContracts.station_pressure_ids_by_availability()
       |> id_array_count_map(),
       "must equal row-derived station_pressure_contact_counts_by_availability"
     )
@@ -982,8 +980,7 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       path,
       summary,
       "station_reservation_ids_by_expiration_status",
-      contact_allocation_reservation_ids_by_expiration_status(
-        callbacks,
+      ContactAllocationReportContracts.reservation_ids_by_expiration_status(
         reservation_expiration_rows
       ),
       "must equal row-derived station_reservation_ids_by_expiration_status"
@@ -1020,8 +1017,7 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       path,
       summary,
       "capacity_pack_required_capacity_fraction_by_ground_station_id",
-      contact_allocation_capacity_pack_required_fraction_by_field(
-        callbacks,
+      ContactAllocationReportContracts.capacity_pack_required_fraction_by_field(
         capacity_pack_rows,
         "ground_station_id"
       ),
@@ -1031,8 +1027,7 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       path,
       summary,
       "capacity_pack_selected_required_capacity_fraction_by_ground_station_id",
-      contact_allocation_capacity_pack_required_fraction_by_field(
-        callbacks,
+      ContactAllocationReportContracts.capacity_pack_required_fraction_by_field(
         selected_capacity_pack_rows,
         "ground_station_id"
       ),
@@ -1042,8 +1037,7 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       path,
       summary,
       "capacity_pack_deferred_required_capacity_fraction_by_ground_station_id",
-      contact_allocation_capacity_pack_required_fraction_by_field(
-        callbacks,
+      ContactAllocationReportContracts.capacity_pack_required_fraction_by_field(
         deferred_capacity_pack_rows,
         "ground_station_id"
       ),
@@ -1084,7 +1078,7 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
       path,
       summary,
       "review_contact_ids",
-      contact_allocation_row_contact_ids(callbacks, review_rows),
+      ContactAllocationReportContracts.row_contact_ids(review_rows),
       "must equal row-derived review_contact_ids"
     )
     |> expect_field_equals(
@@ -1180,151 +1174,63 @@ defmodule OrbitalDynamics.Schema.ContactAllocationSummaryContracts do
   defp expect_field_equals(issues, path, map, field, expected),
     do: expect_field_equals(issues, path, map, field, expected, "must equal #{expected}")
 
-  defp contact_allocation_model_limits(callbacks),
-    do: apply(Keyword.fetch!(callbacks, :contact_allocation_model_limits), [])
-
-  defp contact_allocation_capacity_pack_statuses(callbacks),
-    do: apply(Keyword.fetch!(callbacks, :contact_allocation_capacity_pack_statuses), [])
-
-  defp contact_allocation_reduced_capacity_pack_statuses(callbacks),
-    do: apply(Keyword.fetch!(callbacks, :contact_allocation_reduced_capacity_pack_statuses), [])
-
-  defp contact_allocation_station_reservation_match_statuses(callbacks),
-    do:
-      apply(Keyword.fetch!(callbacks, :contact_allocation_station_reservation_match_statuses), [])
-
-  defp contact_allocation_station_reservation_expiration_statuses(callbacks) do
-    apply(
-      Keyword.fetch!(callbacks, :contact_allocation_station_reservation_expiration_statuses),
-      []
-    )
+  defp contact_allocation_model_limits do
+    contact_allocation_capabilities()
+    |> Map.fetch!(:known_limits)
+    |> Enum.map(&Atom.to_string/1)
   end
 
-  defp contact_allocation_row_statuses(callbacks),
-    do: apply(Keyword.fetch!(callbacks, :contact_allocation_row_statuses), [])
+  defp contact_allocation_capacity_pack_statuses,
+    do: Map.fetch!(contact_allocation_capabilities(), :capacity_pack_statuses)
 
-  defp contact_allocation_effective_row_statuses(callbacks),
-    do: apply(Keyword.fetch!(callbacks, :contact_allocation_effective_row_statuses), [])
+  defp contact_allocation_reduced_capacity_pack_statuses,
+    do: Map.fetch!(contact_allocation_capabilities(), :reduced_capacity_pack_statuses)
 
-  defp contact_allocation_station_unavailable_aliases(callbacks),
-    do: apply(Keyword.fetch!(callbacks, :contact_allocation_station_unavailable_aliases), [])
+  defp contact_allocation_station_reservation_match_statuses,
+    do: Map.fetch!(contact_allocation_capabilities(), :station_reservation_match_statuses)
 
-  defp contact_allocation_station_blocking_availability(callbacks),
-    do: apply(Keyword.fetch!(callbacks, :contact_allocation_station_blocking_availability), [])
+  defp contact_allocation_station_reservation_expiration_statuses,
+    do: Map.fetch!(contact_allocation_capabilities(), :station_reservation_expiration_statuses)
 
-  defp contact_allocation_station_availability_precedence(callbacks),
-    do: apply(Keyword.fetch!(callbacks, :contact_allocation_station_availability_precedence), [])
+  defp contact_allocation_row_statuses,
+    do: Map.fetch!(contact_allocation_capabilities(), :row_statuses)
 
-  defp contact_allocation_provider_direction_aliases(callbacks),
-    do: apply(Keyword.fetch!(callbacks, :contact_allocation_provider_direction_aliases), [])
+  defp contact_allocation_effective_row_statuses,
+    do: Map.fetch!(contact_allocation_capabilities(), :effective_row_statuses)
 
-  defp contact_allocation_required_capacity_fraction_source_values(callbacks) do
-    apply(
-      Keyword.fetch!(callbacks, :contact_allocation_required_capacity_fraction_source_values),
-      []
-    )
+  defp contact_allocation_station_unavailable_aliases,
+    do: Map.fetch!(contact_allocation_capabilities(), :station_unavailable_aliases)
+
+  defp contact_allocation_station_blocking_availability,
+    do: Map.fetch!(contact_allocation_capabilities(), :station_blocking_availability)
+
+  defp contact_allocation_station_availability_precedence,
+    do: Map.fetch!(contact_allocation_capabilities(), :station_availability_precedence)
+
+  defp contact_allocation_provider_direction_aliases,
+    do: Map.fetch!(contact_allocation_capabilities(), :provider_direction_aliases)
+
+  defp contact_allocation_required_capacity_fraction_source_values,
+    do: Map.fetch!(contact_allocation_capabilities(), :required_capacity_fraction_source_values)
+
+  defp contact_allocation_required_capacity_value_path_assumptions do
+    contact_allocation_capabilities()
+    |> Map.fetch!(:required_capacity_value_paths)
+    |> contact_allocation_capacity_value_path_assumptions()
   end
 
-  defp contact_allocation_required_capacity_value_path_assumptions(callbacks) do
-    apply(
-      Keyword.fetch!(callbacks, :contact_allocation_required_capacity_value_path_assumptions),
-      []
-    )
+  defp contact_allocation_default_required_capacity_value_path_assumptions do
+    contact_allocation_capabilities()
+    |> Map.fetch!(:default_required_capacity_value_paths)
+    |> contact_allocation_capacity_value_path_assumptions()
   end
 
-  defp contact_allocation_default_required_capacity_value_path_assumptions(callbacks) do
-    apply(
-      Keyword.fetch!(
-        callbacks,
-        :contact_allocation_default_required_capacity_value_path_assumptions
-      ),
-      []
-    )
+  defp contact_allocation_capacity_value_path_assumptions(paths) do
+    Enum.map(paths, fn %{unit: unit, path: path} ->
+      %{"unit" => Atom.to_string(unit), "path" => path}
+    end)
   end
 
-  defp validate_contact_allocation_row(issues, callbacks, path, row),
-    do: apply(Keyword.fetch!(callbacks, :validate_contact_allocation_row), [issues, path, row])
-
-  defp validate_contact_allocation_capacity_pack_group(issues, callbacks, path, group) do
-    apply(Keyword.fetch!(callbacks, :validate_contact_allocation_capacity_pack_group), [
-      issues,
-      path,
-      group
-    ])
-  end
-
-  defp contact_allocation_review_row?(callbacks, row),
-    do: apply(Keyword.fetch!(callbacks, :contact_allocation_review_row?), [row])
-
-  defp contact_allocation_station_pressure_rows(callbacks, rows),
-    do: apply(Keyword.fetch!(callbacks, :contact_allocation_station_pressure_rows), [rows])
-
-  defp contact_allocation_resource_blocked_rows(callbacks, rows),
-    do: apply(Keyword.fetch!(callbacks, :contact_allocation_resource_blocked_rows), [rows])
-
-  defp contact_allocation_capacity_pack_rows(callbacks, rows),
-    do: apply(Keyword.fetch!(callbacks, :contact_allocation_capacity_pack_rows), [rows])
-
-  defp contact_allocation_selected_capacity_pack_rows(callbacks, rows),
-    do: apply(Keyword.fetch!(callbacks, :contact_allocation_selected_capacity_pack_rows), [rows])
-
-  defp contact_allocation_deferred_capacity_pack_rows(callbacks, rows),
-    do: apply(Keyword.fetch!(callbacks, :contact_allocation_deferred_capacity_pack_rows), [rows])
-
-  defp contact_allocation_reservation_expiration_rows(callbacks, rows, now_s) do
-    apply(Keyword.fetch!(callbacks, :contact_allocation_reservation_expiration_rows), [
-      rows,
-      now_s
-    ])
-  end
-
-  defp contact_allocation_invalid_contact_input_ids(callbacks, rows),
-    do: apply(Keyword.fetch!(callbacks, :contact_allocation_invalid_contact_input_ids), [rows])
-
-  defp contact_allocation_status_blocked_contact_ids(callbacks, rows),
-    do: apply(Keyword.fetch!(callbacks, :contact_allocation_status_blocked_contact_ids), [rows])
-
-  defp contact_allocation_row_contact_ids(callbacks, rows),
-    do: apply(Keyword.fetch!(callbacks, :contact_allocation_row_contact_ids), [rows])
-
-  defp contact_allocation_capacity_pack_required_fraction(callbacks, rows) do
-    apply(Keyword.fetch!(callbacks, :contact_allocation_capacity_pack_required_fraction), [rows])
-  end
-
-  defp contact_allocation_capacity_pack_required_fraction_by_field(callbacks, rows, field) do
-    apply(
-      Keyword.fetch!(callbacks, :contact_allocation_capacity_pack_required_fraction_by_field),
-      [
-        rows,
-        field
-      ]
-    )
-  end
-
-  defp contact_allocation_reservation_expires_at_values(callbacks, rows),
-    do:
-      apply(Keyword.fetch!(callbacks, :contact_allocation_reservation_expires_at_values), [rows])
-
-  defp contact_allocation_reservation_expiration_count(callbacks, rows, status) do
-    apply(Keyword.fetch!(callbacks, :contact_allocation_reservation_expiration_count), [
-      rows,
-      status
-    ])
-  end
-
-  defp contact_allocation_earliest_reservation_expires_at_s(callbacks, rows) do
-    apply(Keyword.fetch!(callbacks, :contact_allocation_earliest_reservation_expires_at_s), [rows])
-  end
-
-  defp contact_allocation_station_pressure_ids_by_availability(callbacks, rows) do
-    apply(Keyword.fetch!(callbacks, :contact_allocation_station_pressure_ids_by_availability), [
-      rows
-    ])
-  end
-
-  defp contact_allocation_reservation_ids_by_expiration_status(callbacks, rows) do
-    apply(Keyword.fetch!(callbacks, :contact_allocation_reservation_ids_by_expiration_status), [
-      rows
-    ])
-  end
+  defp contact_allocation_capabilities,
+    do: OrbitalDynamics.Communications.ContactAllocation.capabilities()
 end

@@ -3936,24 +3936,6 @@ defmodule OrbitalDynamics.Schema do
     |> Map.fetch!(:default_required_capacity_value_paths)
   end
 
-  defp contact_allocation_required_capacity_value_path_assumptions do
-    OrbitalDynamics.Communications.ContactAllocation.capabilities()
-    |> Map.fetch!(:required_capacity_value_paths)
-    |> contact_allocation_capacity_value_path_assumptions()
-  end
-
-  defp contact_allocation_default_required_capacity_value_path_assumptions do
-    OrbitalDynamics.Communications.ContactAllocation.capabilities()
-    |> Map.fetch!(:default_required_capacity_value_paths)
-    |> contact_allocation_capacity_value_path_assumptions()
-  end
-
-  defp contact_allocation_capacity_value_path_assumptions(paths) do
-    Enum.map(paths, fn %{unit: unit, path: path} ->
-      %{"unit" => Atom.to_string(unit), "path" => path}
-    end)
-  end
-
   defp contact_allocation_capacity_pack_summary_assumptions_json_schema do
     OrbitalDynamics.Schema.ContactAllocationCapacityPackSummaryJsonSchema.assumptions_from_context(
       &contact_allocation_capacity_pack_statuses/0,
@@ -6659,67 +6641,6 @@ defmodule OrbitalDynamics.Schema do
     |> require_fields("$", artifact, contract["required_fields"])
   end
 
-  defp contact_allocation_summary_domain_callbacks do
-    [
-      contact_allocation_model_limits: &contact_allocation_model_limits/0,
-      contact_allocation_capacity_pack_statuses: &contact_allocation_capacity_pack_statuses/0,
-      contact_allocation_reduced_capacity_pack_statuses:
-        &contact_allocation_reduced_capacity_pack_statuses/0,
-      contact_allocation_station_reservation_match_statuses:
-        &contact_allocation_station_reservation_match_statuses/0,
-      contact_allocation_station_reservation_expiration_statuses:
-        &contact_allocation_station_reservation_expiration_statuses/0,
-      contact_allocation_row_statuses: &contact_allocation_row_statuses/0,
-      contact_allocation_effective_row_statuses: &contact_allocation_effective_row_statuses/0,
-      contact_allocation_station_unavailable_aliases:
-        &contact_allocation_station_unavailable_aliases/0,
-      contact_allocation_station_blocking_availability:
-        &contact_allocation_station_blocking_availability/0,
-      contact_allocation_station_availability_precedence:
-        &contact_allocation_station_availability_precedence/0,
-      contact_allocation_provider_direction_aliases:
-        &contact_allocation_provider_direction_aliases/0,
-      contact_allocation_required_capacity_fraction_source_values:
-        &contact_allocation_required_capacity_fraction_source_values/0,
-      contact_allocation_required_capacity_value_path_assumptions:
-        &contact_allocation_required_capacity_value_path_assumptions/0,
-      contact_allocation_default_required_capacity_value_path_assumptions:
-        &contact_allocation_default_required_capacity_value_path_assumptions/0,
-      validate_contact_allocation_row: &validate_contact_allocation_row/3,
-      validate_contact_allocation_capacity_pack_group:
-        &validate_contact_allocation_capacity_pack_group/3,
-      contact_allocation_review_row?: &contact_allocation_review_row?/1,
-      contact_allocation_station_pressure_rows: &contact_allocation_station_pressure_rows/1,
-      contact_allocation_resource_blocked_rows: &contact_allocation_resource_blocked_rows/1,
-      contact_allocation_capacity_pack_rows: &contact_allocation_capacity_pack_rows/1,
-      contact_allocation_selected_capacity_pack_rows:
-        &contact_allocation_selected_capacity_pack_rows/1,
-      contact_allocation_deferred_capacity_pack_rows:
-        &contact_allocation_deferred_capacity_pack_rows/1,
-      contact_allocation_reservation_expiration_rows:
-        &contact_allocation_reservation_expiration_rows/2,
-      contact_allocation_invalid_contact_input_ids:
-        &contact_allocation_invalid_contact_input_ids/1,
-      contact_allocation_status_blocked_contact_ids:
-        &contact_allocation_status_blocked_contact_ids/1,
-      contact_allocation_row_contact_ids: &contact_allocation_row_contact_ids/1,
-      contact_allocation_capacity_pack_required_fraction:
-        &contact_allocation_capacity_pack_required_fraction/1,
-      contact_allocation_capacity_pack_required_fraction_by_field:
-        &contact_allocation_capacity_pack_required_fraction_by_field/2,
-      contact_allocation_reservation_expires_at_values:
-        &contact_allocation_reservation_expires_at_values/1,
-      contact_allocation_reservation_expiration_count:
-        &contact_allocation_reservation_expiration_count/2,
-      contact_allocation_earliest_reservation_expires_at_s:
-        &contact_allocation_earliest_reservation_expires_at_s/1,
-      contact_allocation_station_pressure_ids_by_availability:
-        &contact_allocation_station_pressure_ids_by_availability/1,
-      contact_allocation_reservation_ids_by_expiration_status:
-        &contact_allocation_reservation_ids_by_expiration_status/1
-    ]
-  end
-
   defp contact_allocation_report_domain_callbacks do
     [
       validate_optional_station_calendar_report: &validate_optional_station_calendar_report/2,
@@ -7943,7 +7864,8 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       summary,
-      contact_allocation_summary_domain_callbacks()
+      &validate_contact_allocation_row/3,
+      &validate_contact_allocation_capacity_pack_group/3
     )
   end
 
@@ -7965,10 +7887,6 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp contact_allocation_review_row?(row) do
-    OrbitalDynamics.Schema.ContactAllocationReportContracts.review_row?(row)
-  end
-
   defp validate_contact_allocation_capacity_pack_summary(issues, path, summary) do
     OrbitalDynamics.Schema.ContactAllocationCapacityPackSummaryContracts.validate_summary(
       issues,
@@ -7988,51 +7906,12 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp contact_allocation_row_contact_ids(rows) do
-    OrbitalDynamics.Schema.ContactAllocationReportContracts.row_contact_ids(rows)
-  end
-
   defp validate_contact_allocation_duplicate_evidence(issues, path, row) do
     OrbitalDynamics.Schema.ContactAllocationReportContracts.validate_duplicate_evidence(
       issues,
       path,
       row,
       contact_allocation_report_domain_callbacks()
-    )
-  end
-
-  defp contact_allocation_invalid_contact_input_ids(rows) do
-    OrbitalDynamics.Schema.ContactAllocationReportContracts.invalid_contact_input_ids(rows)
-  end
-
-  defp contact_allocation_status_blocked_contact_ids(rows) do
-    OrbitalDynamics.Schema.ContactAllocationReportContracts.status_blocked_contact_ids(rows)
-  end
-
-  defp contact_allocation_resource_blocked_rows(rows) do
-    OrbitalDynamics.Schema.ContactAllocationReportContracts.resource_blocked_rows(rows)
-  end
-
-  defp contact_allocation_capacity_pack_rows(rows) do
-    OrbitalDynamics.Schema.ContactAllocationReportContracts.capacity_pack_rows(rows)
-  end
-
-  defp contact_allocation_selected_capacity_pack_rows(rows) do
-    OrbitalDynamics.Schema.ContactAllocationReportContracts.selected_capacity_pack_rows(rows)
-  end
-
-  defp contact_allocation_deferred_capacity_pack_rows(rows) do
-    OrbitalDynamics.Schema.ContactAllocationReportContracts.deferred_capacity_pack_rows(rows)
-  end
-
-  defp contact_allocation_capacity_pack_required_fraction(rows) do
-    OrbitalDynamics.Schema.ContactAllocationReportContracts.capacity_pack_required_fraction(rows)
-  end
-
-  defp contact_allocation_capacity_pack_required_fraction_by_field(rows, field) do
-    OrbitalDynamics.Schema.ContactAllocationReportContracts.capacity_pack_required_fraction_by_field(
-      rows,
-      field
     )
   end
 
@@ -8049,46 +7928,6 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       artifact
-    )
-  end
-
-  defp contact_allocation_reservation_expiration_rows(rows, now_s) do
-    OrbitalDynamics.Schema.ContactAllocationReportContracts.reservation_expiration_rows(
-      rows,
-      now_s
-    )
-  end
-
-  defp contact_allocation_reservation_expiration_count(rows, status) do
-    OrbitalDynamics.Schema.ContactAllocationReportContracts.reservation_expiration_count(
-      rows,
-      status
-    )
-  end
-
-  defp contact_allocation_earliest_reservation_expires_at_s(rows) do
-    OrbitalDynamics.Schema.ContactAllocationReportContracts.earliest_reservation_expires_at_s(
-      rows
-    )
-  end
-
-  defp contact_allocation_reservation_ids_by_expiration_status(rows) do
-    OrbitalDynamics.Schema.ContactAllocationReportContracts.reservation_ids_by_expiration_status(
-      rows
-    )
-  end
-
-  defp contact_allocation_reservation_expires_at_values(rows) do
-    OrbitalDynamics.Schema.ContactAllocationReportContracts.reservation_expires_at_values(rows)
-  end
-
-  defp contact_allocation_station_pressure_rows(rows) do
-    OrbitalDynamics.Schema.ContactAllocationReportContracts.station_pressure_rows(rows)
-  end
-
-  defp contact_allocation_station_pressure_ids_by_availability(rows) do
-    OrbitalDynamics.Schema.ContactAllocationReportContracts.station_pressure_ids_by_availability(
-      rows
     )
   end
 
