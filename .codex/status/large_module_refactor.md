@@ -9,7 +9,7 @@ Current slice:
 Cadence-source-review row JSON Schema provider-manifest extraction.
 
 Status:
-Ready to publish.
+Published as `799ebda9`.
 
 Selected slice:
 Replace the cadence-source-review row JSON Schema dependency/property `case`
@@ -67,8 +67,8 @@ Verification gaps:
   the theoretical missing-key error-class difference unreachable.
 
 Last completed slice:
-Cadence-import row JSON Schema provider-manifest extraction published as
-`283db7c7`: all 42 schema and 13 property providers remained exact and lazy,
+Cadence-source-review row JSON Schema provider-manifest extraction published as
+`799ebda9`: all 35 schema and 13 property providers remained exact and lazy,
 the cadence schema and full bundle remained byte-identical, 23/23 focused
 export tests passed, and bounded review found no blocker.
 
