@@ -9,7 +9,7 @@ Current slice:
 CandidateRefresh timeline diff/dependency-impact replay callback removal.
 
 Status:
-Review complete; ready to publish.
+Published as `c428c291`.
 
 Selected slice:
 Remove the repeated source-summary callback from the timeline-diff and
@@ -63,13 +63,13 @@ Verification gaps:
 - bounded read-only review: clean, no findings
 
 Last completed slice:
-Candidate integrity/lifecycle replay callback removal published as `0f9519cc`:
-both paths are one-argument end to end, 24 focused tests passed, and bounded
-review found no blocker.
+Candidate diff/dependency-impact replay callback removal published as
+`c428c291`: both paths are one-argument end to end, 21 focused tests passed,
+and bounded review found no blocker.
 
 Next candidate:
-Remove the callback seam from one adjacent timeline replay family after this
-pair is published.
+Audit the adjacent timeline-publication/transition-application callback seams
+as one possible bounded pair.
 
 Blocked:
 No.
