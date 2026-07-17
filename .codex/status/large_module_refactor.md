@@ -9,7 +9,7 @@ Current slice:
 Validation link-capacity fixture test-family extraction.
 
 Status:
-Verified and reviewed; ready to publish.
+Published as `5f85ad6e`.
 
 Selected slice:
 Move the three contiguous link-capacity report, link-capacity summary, and
@@ -56,8 +56,8 @@ Verification gaps:
 - Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
-Validation contact contention fixture extraction published as `811bf261`: the
-focused module passed 5/5, the parent passed 98/98, and all seventeen Validation
+Validation link-capacity fixture extraction published as `5f85ad6e`: the
+focused module passed 3/3, the parent passed 95/95, and all eighteen Validation
 modules preserved the 181-test aggregate with no duplicate names. Format, diff
 hygiene, dependency-closure checks, and bounded review were clean.
 
