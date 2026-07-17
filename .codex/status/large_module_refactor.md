@@ -6,21 +6,21 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema readiness/quality-gate source callback ownership cleanup.
+Schema contact-review source callback ownership cleanup.
 
 Status:
-Completed and published.
+Selected; implementation pending.
 
 Selected slice:
-Point operational-readiness gate/report and quality-gate row/report
-source-match callbacks directly at their existing dedicated owners. Remove the
-four facade delegates across fourteen callback positions.
+Point provider-counteroffer and contact-intent general/cadence source-match
+callbacks directly at `Schema.ContactReviewHandoffContracts`. Remove both
+specialized/fallback facade wrapper pairs across eight callback positions.
 
 Why this slice:
-All fourteen callback positions forward unchanged through four pure delegates.
-`OperationalReadinessHandoffContracts` and `QualityGateHandoffContracts`
-already own the specialized and fallback clauses, field-pair order, and report
-identity/summary distinction, so direct captures require no callback bag.
+Each family has three general capture positions and one cadence position. The
+facade duplicates the owner's specialized source-row dispatch and permissive
+fallback clauses; direct captures preserve field-pair order without moving
+contact-review logic or introducing dependencies.
 
 Public facade to preserve:
 All `OrbitalDynamics.Schema` public functions, exact validation issue ordering,
@@ -37,33 +37,17 @@ Likely verification:
 - strict compile, format, xref, diff hygiene, and bounded review
 
 Definition of done:
-All fourteen selected captures point directly to their readiness/quality-gate
-owners, the four facade delegates are gone, and callback plus field-pair issue
-ordering remains exact,
+All eight selected captures point directly to `ContactReviewHandoffContracts`,
+the four specialized/fallback facade wrapper pairs are gone, and callback plus
+field-pair issue ordering remains exact,
 validation and schema exports remain byte-for-byte stable, focused tests pass,
 and bounded review finds no blocker.
 
-Outcome:
-All operational-readiness gate/report and quality-gate row/report source
-callbacks now capture their dedicated owners directly. Four facade delegates
-were removed across fourteen positions, reducing `schema.ex` from 8,657 to
-8,609 lines without changing readiness report identity/summary selection,
-field-pair issue order, fallbacks, or checked-in schema bytes.
-
 Verification gaps:
-- None for this slice.
+- Implementation and verification pending.
 
 Tests run:
-- `mix compile --warnings-as-errors`
-- 38 focused readiness/quality-gate schema contract tests
-- 182 complete schema-contract and schema-export tests
-- full checked-in schema export regeneration; no schema diff
-- aggregate schema bundle digest unchanged:
-  `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`
-- `mix format --check-formatted`
-- `git diff --check`
-- compile-connected xref check for `schema.ex`
-- bounded read-only review: clean, no findings
+- Pending.
 
 Behavior/schema changes:
 None.
