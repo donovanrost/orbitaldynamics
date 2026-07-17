@@ -9,7 +9,7 @@ Current slice:
 Validation model-acceptance/safety-case fixture test-family extraction.
 
 Status:
-Ready to publish.
+Published as `da789d0c`.
 
 Selected slice:
 Move the two contiguous model-acceptance report and validation safety-case
@@ -57,11 +57,11 @@ Verification gaps:
 - Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
-Validation station reservation/provider fixture extraction published as
-`d5b34867`: the focused module passed 9/9, the parent passed 68/68, and all
-twenty-five Validation modules preserved the 181-test aggregate with no
-duplicate names. Format, diff hygiene, exact-source and dependency-closure
-checks, and bounded review were clean.
+Validation model-acceptance/safety-case fixture extraction published as
+`da789d0c`: the focused module passed 2/2, the parent passed 66/66, and all
+twenty-six Validation modules preserved the 181-test aggregate with no duplicate
+names. Format, diff hygiene, exact-source and dependency-closure checks, and
+bounded review were clean.
 
 Next candidate:
 Map the candidate-refresh base artifact and resource-provenance fixture pair,
