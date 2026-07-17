@@ -9,7 +9,7 @@ Current slice:
 Validation candidate-refresh objective/constraint replay test-family extraction.
 
 Status:
-Ready to publish.
+Published as `78a7ecbf`.
 
 Selected slice:
 Move the two contiguous candidate-refresh objective-gap and constraint replay
@@ -56,9 +56,9 @@ Verification gaps:
 - Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
-Validation candidate-refresh timeline replay extraction published as
-`dd568d9c`: the focused module passed 4/4, the parent passed 55/55, and all
-thirty Validation modules preserved the 181-test aggregate with no duplicate
+Validation candidate-refresh planning-feedback replay extraction published as
+`78a7ecbf`: the focused module passed 2/2, the parent passed 53/53, and all
+thirty-one Validation modules preserved the 181-test aggregate with no duplicate
 names. Format, diff hygiene, exact-source and dependency-closure checks, and
 bounded review were clean.
 
