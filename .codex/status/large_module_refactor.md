@@ -9,7 +9,7 @@ Current slice:
 CampaignPlanner repair replacement-selection extraction.
 
 Status:
-Selected.
+Ready to publish.
 
 Selected slice:
 Extract replacement filtering, repair-intent matching, duplicate rejection,
@@ -43,10 +43,25 @@ filter and sort pipeline remains exact; candidate-diff ambiguity and metadata
 remain exact; focused tests pass; and bounded review finds no blocker.
 
 Outcome:
-Pending.
+Added `RepairReplacementSelection` as the owner for downlink/observation
+replacement filtering, repair-intent matching, duplicate rejection,
+candidate-diff priority, and deterministic churn scoring. The two transition
+paths delegate selection and source candidate-diff lookup directly. The facade
+fell from 4,496 to 4,387 lines; the explicit 127-line owner makes the bounded
+scope net +18 lines while removing 109 lines of mixed responsibility from the
+facade.
 
 Verification gaps:
-- Pending.
+- Strict compilation and diff hygiene pass.
+- Repair facade, replacement, rejection, candidate-diff, and determinism
+  families pass 67/67.
+- Filter order, sort tuple order, fallback policy values, candidate-diff match
+  semantics, and changed facade call sites were audited against selection
+  commit `bb749c9d`.
+- Additional strategy candidate-diff staging coverage passes 15/16; the sole
+  refresh-budget replay-summary failure reproduces unchanged with the
+  selection-commit facade and is outside this slice.
+- Independent bounded review found no blocker.
 
 Last completed slice:
 CampaignPlanner repair activity-identity ownership extraction published as

@@ -130,6 +130,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
     RepairMetadata,
     RepairPolicySemantics,
     RepairRealizedState,
+    RepairReplacementSelection,
     RepairScoreTerms,
     RepairSourceReports,
     RepairTimelineSummary,
@@ -3430,7 +3431,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
   end
 
   defp move_missed_downlink(activity, realized, acc, context) do
-    case downlink_replacement_candidate(activity, acc, context) do
+    case RepairReplacementSelection.downlink_candidate(activity, acc, context) do
       nil ->
         reason = "missed_contact_no_viable_later_access_window"
 
@@ -3451,7 +3452,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
       replacement ->
         reason = "missed_contact_rescheduled_to_next_viable_access_window"
-        candidate_diff = replacement_candidate_diff(activity, replacement, context)
+        candidate_diff = RepairReplacementSelection.candidate_diff(activity, replacement, context)
 
         replacement =
           put_repair_metadata(
@@ -3496,7 +3497,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
   end
 
   defp replace_failed_observation(activity, realized, acc, context) do
-    case replacement_candidate(activity, "observe", acc, context) do
+    case RepairReplacementSelection.candidate(activity, "observe", acc, context) do
       nil ->
         reason = "failed_observation_no_viable_replacement_window"
 
@@ -3517,7 +3518,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
       replacement ->
         reason = "failed_observation_reassigned_to_viable_spacecraft_or_later_window"
-        candidate_diff = replacement_candidate_diff(activity, replacement, context)
+        candidate_diff = RepairReplacementSelection.candidate_diff(activity, replacement, context)
 
         replacement =
           put_repair_metadata(
@@ -3994,89 +3995,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
     PlanMetadata.ranking_explanation(policy)
   end
 
-  defp replacement_candidate(activity, type, acc, context) do
-    replacement_candidate(activity, &(&1["type"] == type), type, acc, context)
-  end
-
-  defp downlink_replacement_candidate(activity, acc, context) do
-    replacement_candidate(
-      activity,
-      &DownlinkActivityNormalization.downlink?/1,
-      "downlink",
-      acc,
-      context
-    )
-  end
-
-  defp replacement_candidate(activity, candidate_filter, intent_type, acc, context) do
-    context.candidates
-    |> Enum.map(&ValueEncoding.stringify_keys/1)
-    |> Enum.reject(&(ActivityIdentity.activity_id(&1) == ActivityIdentity.activity_id(activity)))
-    |> Enum.reject(
-      &MapSet.member?(context.selected_activity_ids, ActivityIdentity.activity_id(&1))
-    )
-    |> Enum.reject(&MapSet.member?(acc.used_replacement_ids, ActivityIdentity.activity_id(&1)))
-    |> Enum.filter(candidate_filter)
-    |> Enum.filter(&ActivityTiming.within_remaining_horizon?(&1, context.remaining_horizon))
-    |> Enum.filter(&(ActivityTiming.activity_start(&1) >= context.current_epoch_s))
-    |> Enum.reject(&degraded_incompatible?(&1, context.degraded_modes, context.repair_policy))
-    |> Enum.reject(
-      &MapSet.member?(
-        Map.get(context, :rejected_replacement_candidate_ids, MapSet.new()),
-        ActivityIdentity.activity_id(&1)
-      )
-    )
-    |> Enum.reject(fn candidate ->
-      Enum.any?(acc.activities, &ActivityTiming.overlaps?(candidate, &1))
-    end)
-    |> Enum.filter(&matches_repair_intent?(activity, &1, intent_type))
-    |> reject_duplicate_replacement_candidate_ids()
-    |> Enum.sort_by(fn candidate ->
-      diff_priority =
-        case replacement_candidate_diff(activity, candidate, context) do
-          nil -> 1
-          _diff -> 0
-        end
-
-      churn_s =
-        abs(ActivityTiming.activity_start(candidate) - ActivityTiming.activity_start(activity))
-
-      churn_cost =
-        numeric_policy_value(context.scoring_policy, "schedule_churn_cost_weight", 100.0)
-
-      move_cost = numeric_policy_value(context.scoring_policy, "schedule_move_cost_weight", 0.01)
-
-      {diff_priority, -(candidate_score(candidate) - churn_cost - churn_s * move_cost), churn_s,
-       ActivityTiming.activity_start(candidate), ActivityIdentity.activity_id(candidate)}
-    end)
-    |> List.first()
-  end
-
-  defp reject_duplicate_replacement_candidate_ids(candidates) do
-    candidates
-    |> Enum.group_by(&ActivityIdentity.activity_id/1)
-    |> Enum.flat_map(fn
-      {_candidate_id, [candidate]} -> [candidate]
-      {_candidate_id, _duplicates} -> []
-    end)
-  end
-
-  defp replacement_candidate_diff(source, candidate, context) do
-    context
-    |> Map.get(:candidate_diff_replacements, %{})
-    |> candidate_diff_replacement_map_rows()
-    |> Enum.filter(&candidate_diff_row_matches?(&1, source, candidate))
-    |> candidate_diff_match("source")
-  end
-
-  defp candidate_diff_row_matches?(row, source, candidate) do
-    source_window_id = RepairActivityIdentity.source_window_id(source)
-
-    row["replacement_candidate_id"] == ActivityIdentity.activity_id(candidate) and
-      (row["id"] == ActivityIdentity.activity_id(source) or
-         (not is_nil(source_window_id) and row["source_window_id"] == source_window_id))
-  end
-
   defp maybe_put_candidate_diff(metadata, nil), do: metadata
 
   defp maybe_put_candidate_diff(metadata, row) do
@@ -4087,22 +4005,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
     context
     |> Map.get("candidate_diff_by_replacement_id", %{})
     |> Map.get(ActivityIdentity.activity_id(candidate))
-    |> candidate_diff_match("replacement")
+    |> RepairCandidateDiff.match("replacement")
   end
-
-  defp matches_repair_intent?(source, candidate, "downlink") do
-    source_station_id = RepairActivityIdentity.ground_station_id(source)
-
-    ActivityIdentity.same_scenario?(source, candidate) and
-      (is_nil(source_station_id) or
-         source_station_id == RepairActivityIdentity.ground_station_id(candidate))
-  end
-
-  defp matches_repair_intent?(source, candidate, "observe") do
-    source["target_id"] == candidate["target_id"]
-  end
-
-  defp matches_repair_intent?(_source, _candidate, _type), do: true
 
   defp timeline_protection_summary(activities, deltas) do
     RepairTimelineSummary.protection_summary(activities, deltas)
@@ -4400,19 +4304,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp candidate_diff_replacements_by_replacement_id(%{} = report) do
     RepairCandidateDiff.replacements_by_replacement_id(report)
-  end
-
-  defp candidate_diff_replacement_map_rows(replacements_by_key) do
-    RepairCandidateDiff.replacement_map_rows(replacements_by_key)
-  end
-
-  defp candidate_diff_match(nil, _scope), do: nil
-  defp candidate_diff_match([], _scope), do: nil
-  defp candidate_diff_match(%{} = row, _scope), do: row
-  defp candidate_diff_match([row], _scope), do: row
-
-  defp candidate_diff_match(rows, scope) when is_list(rows) do
-    RepairCandidateDiff.match(rows, scope)
   end
 
   defp repair_operational_readiness_report(candidate_refresh) do
