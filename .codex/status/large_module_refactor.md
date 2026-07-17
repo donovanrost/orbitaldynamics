@@ -9,7 +9,7 @@ Current slice:
 CandidateRefresh timeline integrity/lifecycle replay callback removal.
 
 Status:
-Selected.
+Review complete; ready to publish.
 
 Selected slice:
 Remove the repeated source-summary callback from the timeline-integrity and
@@ -46,10 +46,21 @@ remain exact; no old callback arity remains; focused tests pass; and bounded
 review finds no blocker.
 
 Outcome:
-Pending.
+The timeline-integrity and timeline-lifecycle-state replay paths are now
+one-argument end to end. Each owner calls `SourceReportSummary.build/1`
+directly for provenance fallback while retaining branch-family precedence and
+its existing summary constructor. The four-file production diff removes eight
+net lines.
 
 Verification gaps:
-- Pending.
+- `mix compile --warnings-as-errors`
+- four focused replay files: 24 tests passed
+- scoped `mix format --check-formatted`
+- `git diff --check`
+- old callback arity and invocation audits: no matches
+- both owner compile-connected graphs: no dependency edge
+- both owner callers: replay aggregator only
+- bounded read-only review: clean, no findings
 
 Last completed slice:
 Candidate feedback/operational-timeline replay callback removal published as

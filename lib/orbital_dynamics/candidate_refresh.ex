@@ -349,10 +349,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   timelines, select candidates, approve imports, or write to Cadence.
   """
   def timeline_integrity_replay_summary(refresh_or_artifact) do
-    ReplaySummary.timeline_integrity(
-      refresh_or_artifact,
-      &source_report_summary/1
-    )
+    ReplaySummary.timeline_integrity(refresh_or_artifact)
   end
 
   @doc """
@@ -365,10 +362,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   candidates.
   """
   def timeline_lifecycle_state_replay_summary(refresh_or_artifact) do
-    ReplaySummary.timeline_lifecycle_state(
-      refresh_or_artifact,
-      &source_report_summary/1
-    )
+    ReplaySummary.timeline_lifecycle_state(refresh_or_artifact)
   end
 
   @doc """
