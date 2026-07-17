@@ -6,10 +6,10 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema timeline-publication-context callback ownership mapping.
+Schema timeline-publication-context callback ownership handoff.
 
 Status:
-Ready for publication.
+Published as `b9f2988d`.
 
 Selected slice:
 Point all four captures of `validate_timeline_publication_context/3` directly at
@@ -65,7 +65,12 @@ Operational-feedback cleanup published as `10967b5f`: `schema.ex` shrank from
 byte-matched, and review was clean.
 
 Next candidate:
-After review and publication, continue the robust exact-signature inventory.
+Map the cohesive timeline-transition trio:
+`validate_timeline_transition_application_report_counts/3`,
+`validate_timeline_identity_collision_fields/3`, and
+`validate_timeline_diff_row/3`. Each has one callback capture and one pure
+exact-signature owner; preserve their positions in report/row callback chains
+and use focused timeline-report contracts.
 
 Blocked:
 No.
