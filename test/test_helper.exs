@@ -24,3 +24,4 @@ Code.require_file("support/validation/schema_compatibility_fixtures.ex", __DIR__
 Code.require_file("support/validation/station_reservation_fixtures.ex", __DIR__)
 Code.require_file("support/validation/model_acceptance_fixtures.ex", __DIR__)
 Code.require_file("support/validation/candidate_refresh_base_fixtures.ex", __DIR__)
+Code.require_file("support/validation/candidate_refresh_contact_replay_fixtures.ex", __DIR__)

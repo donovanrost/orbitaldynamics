@@ -9,7 +9,7 @@ Current slice:
 Validation candidate-refresh contact replay test-family extraction.
 
 Status:
-Selected.
+Ready to publish.
 
 Selected slice:
 Move the two contiguous candidate-refresh contact-contention and contact-intent
@@ -47,10 +47,17 @@ shared builders have one exact owner, focused and parent files pass, names remai
 unique, and bounded review finds no blocker.
 
 Outcome:
-Pending.
+Two byte-identical candidate-refresh contact replay tests moved into a 183-line
+focused module. Their six family helpers and the generic `result_set/1` builder
+now have one 151-line shared support owner; the parent imports only
+`result_set/1` and the two aggregate observation builders, and no longer owns
+`ResultSet` or the raw contention fixture dependency. The parent fell from
+8,367 to 8,057 lines. Total test/support/loader LOC grew by 25 lines for
+explicit ownership without helper duplication. All 181 Validation test names
+remain unique.
 
 Verification gaps:
-- Pending.
+- Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
 Validation candidate-refresh base fixture extraction published as `a37bc4ae`:
