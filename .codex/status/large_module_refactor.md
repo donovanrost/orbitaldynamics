@@ -9,7 +9,7 @@ Current slice:
 Validation operational planning fixture test-family extraction.
 
 Status:
-Verified and reviewed; ready to publish.
+Published as `4c26b4e7`.
 
 Selected slice:
 Move the three contiguous command-window report, constraint report, and
@@ -61,8 +61,8 @@ Verification gaps:
 - Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
-Validation timeline handoff fixture extraction published as `92467b94`: the
-focused module passed 3/3, the parent passed 108/108, and all fourteen
+Validation operational planning fixture extraction published as `4c26b4e7`:
+the focused module passed 3/3, the parent passed 105/105, and all fifteen
 Validation modules preserved the 181-test aggregate with no duplicate names.
 Format, diff hygiene, dependency-closure checks, and bounded review were clean.
 
