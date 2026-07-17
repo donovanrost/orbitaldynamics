@@ -9,7 +9,7 @@ Current slice:
 Validation schema-compatibility fixture test-family extraction.
 
 Status:
-Verified and reviewed; ready to publish.
+Published as `42299354`.
 
 Selected slice:
 Move the four contiguous schema-validation report, validation-batch report,
@@ -59,8 +59,8 @@ Verification gaps:
 - Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
-Validation objective-scoring fixture extraction published as `39fede23`: the
-focused module passed 4/4, the parent passed 81/81, and all twenty-three
+Validation schema-compatibility fixture extraction published as `42299354`: the
+focused module passed 4/4, the parent passed 77/77, and all twenty-four
 Validation modules preserved the 181-test aggregate with no duplicate names.
 Format, diff hygiene, dependency-closure checks, and bounded review were clean.
 
