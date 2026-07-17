@@ -9,7 +9,7 @@ Current slice:
 Operator-review row JSON Schema provider-manifest and resolver extraction.
 
 Status:
-Ready to publish.
+Published as `43640ea6`.
 
 Selected slice:
 Replace the operator-review row dependency/property dispatchers with exact lazy
@@ -71,10 +71,10 @@ Verification gaps:
 - Independent bounded review found no blocker.
 
 Last completed slice:
-Cadence-source-review row JSON Schema provider-manifest extraction published as
-`799ebda9`: all 35 schema and 13 property providers remained exact and lazy,
-the cadence schema and full bundle remained byte-identical, 23/23 focused
-export tests passed, and bounded review found no blocker.
+Operator-review row JSON Schema provider-manifest and shared-resolver extraction
+published as `43640ea6`: all 42 schema and 11 property providers remained exact
+and lazy, duplicate resolvers were removed, schema exports stayed byte-identical,
+25/25 focused tests passed, and bounded review found no blocker.
 
 Next candidate:
 After this three-owner boundary is proven, reassess the remaining largest
