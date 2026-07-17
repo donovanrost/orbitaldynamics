@@ -9,7 +9,7 @@ Current slice:
 Schema contact-intent callback ownership mapping.
 
 Status:
-Ready for implementation.
+Ready for publication.
 
 Selected slice:
 Point all three facade uses of `validate_contact_intent/3` directly at
@@ -56,7 +56,7 @@ messages, and schema bytes are unchanged; tests pass; and review finds no
 blocker.
 
 Verification gaps:
-- Implementation and post-change verification pending.
+None.
 
 Tests run:
 - Source baseline: `validate_contact_intent/3` is the final standalone pipe
@@ -72,12 +72,34 @@ Tests run:
   across 15,506,740 bytes.
 - Checked-in `schemas/orbital_dynamics.schema_bundle.v1.json` digest:
   `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`.
+- Source proof against selection commit `2870d928`: the standalone pipe retains
+  `require_fields` and ends at `ContactIntentContracts.validate/3`; both
+  callback bags retain the same key and neighbors while capturing that owner;
+  the private facade delegate is absent.
+- Focused communications, campaign-plan, and campaign-repair source-handoff
+  tests: 11 passed with warnings as errors.
+- Complete schema-contract and schema-export suite: 182 tests passed with
+  warnings as errors.
+- Generated bundle remains exactly 121 schemas, 15,506,740 bytes, and digest
+  `543dbe11bc75f1397dd15dbd10cabd219ae2e46ac1e16d38b810a99befb8cec3`.
+- Full checked-in schema export regeneration completed with no schema diff;
+  aggregate bundle digest remains
+  `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`.
+- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
+  xref caller checks passed.
+- Independent bounded review against selection commit `2870d928` was clean:
+  exact pipeline arguments, callback keys and neighbors, unchanged owner,
+  delegate removal, 11 focused and 182 complete tests, generated and checked
+  bundle digests, all 122 exports byte-matched, strict compile, xref,
+  formatting, sizes, ledger, and diff hygiene matched the recorded evidence.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-No contact-intent callback implementation has started.
+All three facade uses now reference the established contact-intent owner
+directly and the pure wrapper is gone. `schema.ex` decreased from 7,942 to
+7,934 lines.
 
 Last completed slice:
 Contact-intent-summary wrapper cleanup published as `45e4e439`: the standalone
@@ -86,8 +108,8 @@ pipe now points directly at the established owner, `schema.ex` shrank from
 byte-matched, and bounded review was clean.
 
 Next candidate:
-Implement the direct owner substitutions described above and remove the unused
-facade wrapper.
+After review and publication, map the next pure facade ownership callback by
+caller count, owner signature, and issue-order sensitivity.
 
 Blocked:
 No.
