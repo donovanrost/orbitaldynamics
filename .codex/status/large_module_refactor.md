@@ -9,10 +9,10 @@ Current slice:
 Timeline-handoff fixture mapping.
 
 Status:
-Ready for next slice selection.
+Ready for implementation.
 
 Selected slice:
-No implementation selected yet. The next bounded candidate is to move
+Move
 `timeline_diff_report.v1`, `cadence_import_manifest.v1`, and
 `timeline_feedback_report.v1` from their two facade ranges into a new
 `Validation.ReferenceFixtures.TimelineHandoffArtifacts` leaf. Preserve the
@@ -56,37 +56,21 @@ and the complete facade remainder stay exact, focused and full validation
 tests pass, and bounded review finds no blocker.
 
 Verification gaps:
-- Next candidate still requires a selection baseline before implementation.
+- Implementation, verification, and bounded review pending.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
   `a94507226596cd944ac21994c7889549ec58ecd1fcc0db5c65fa4e55b0f53ef2`,
   and sorted-key digest
   `b0007d04e4154fe879519a4f2b074fe3f9d0d649f3049d5d848264e105d00732`.
-- Selected four-fixture map: deterministic digest
-  `8790ec2500573e3e85950af1f3283e67662c16ffbc09c4aae47cf0033cf70a97`.
-- Exact 191-entry remainder: deterministic digest
-  `9450be157ec65f56cfdbca6f1c678e0b56074a28b0d61136bb31c3bffb4b53c6`.
-- Source boundary confirmed at facade lines 160-308, with
-  `timeline_diff_report.v1` beginning at line 309 and no facade
-  helper-attribute dependency in the selected literals.
-- Post-move exact proof: the 195-entry map, sorted-key digest, selected
-  four-fixture digest, and exact 191-entry remainder digest all match their
-  selection baselines.
-- Source partition proof: 28 maps total 195 entries, the new leaf owns four, the
-  facade owns 97, and all 378 pairwise intersections are empty.
-- Facade proof: all 195 successful `fetch/1` results, missing-key `:error`, and
-  nonbinary `FunctionClauseError` behavior remain unchanged.
-- Focused policy-evidence/facade validation: 16 tests passed.
-- Full validation family: 181 tests passed.
-- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
-  xref caller checks passed.
-- Independent bounded review: CLEAN. It confirmed all four policy-evidence
-  fixtures moved unchanged, the timeline-diff boundary and complete facade
-  remainder are normalized-AST exact, the new leaf owns only its four intended
-  keys, all 28 maps are unique and pairwise disjoint, all digests and facade
-  edge behaviors are unchanged, dependencies remain one-way, and it reproduced
-  16 focused and 181 full validation tests.
+- Selected three-fixture map: deterministic digest
+  `8e44976106d5c32da69a6f017448fa9a635e069f348b82a5880548ee0039631e`.
+- Exact 192-entry remainder: deterministic digest
+  `ca8dadbc94fd2f07030dac7ba394ed9dcd089d42eebf60f81c0b0fec7f9c633e`.
+- Source boundaries confirmed at facade lines 161-373 and 2127-2230, followed
+  by the resource-handoff manifest and contact-allocation report, respectively,
+  with no facade helper-attribute dependency in the selected literals.
+- Selection only; implementation verification pending.
 
 Behavior/schema changes:
 None.
