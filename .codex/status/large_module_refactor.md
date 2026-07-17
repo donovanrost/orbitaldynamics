@@ -9,7 +9,7 @@ Current slice:
 Candidate-refresh timeline replay fixture extraction.
 
 Status:
-Publishing implementation.
+Completed and published as `716171c2`.
 
 Selected slice:
 Move the contiguous timeline activity-precondition, lifecycle-state,
@@ -89,16 +89,18 @@ facade fell from 11,317 to 10,966 lines, while the extracted family is 361
 lines.
 
 Last completed slice:
-Candidate-refresh readiness fixture extraction published as `aa06dad1`: the
-three exact readiness replay fixtures moved behind the unchanged facade,
-timeline precondition and the remainder stayed exact, the 195-entry map and
+Candidate-refresh timeline fixture extraction published as `716171c2`: the
+four exact timeline replay fixtures moved behind the unchanged facade,
+objective gap and the remainder stayed exact, the 195-entry map and
 deterministic bytes stayed exact, 181 validation tests passed, and bounded
 review was clean.
 
 Next candidate:
-After this boundary, map the objective-gap/constraint planning-feedback pair
-against `candidate_refresh_planning_feedback_replay_fixture_test.exs` and
-verify helper-attribute coupling before selecting.
+Extract the contiguous objective-gap and constraint planning-feedback replays
+into one family. The 207-line pair has no helper-attribute coupling, shares
+dedicated `candidate_refresh_planning_feedback_replay_fixture_test.exs`
+ownership, and stops before contact-filter rejection; re-baseline before
+selecting.
 
 Blocked:
 No.
