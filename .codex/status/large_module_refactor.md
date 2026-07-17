@@ -9,10 +9,10 @@ Current slice:
 Operational-planning fixture mapping.
 
 Status:
-Ready for next slice selection.
+Ready for implementation.
 
 Selected slice:
-No implementation selected yet. The next bounded candidate is to move
+Move
 `command_window_report.v1`, `constraint_report.v1`, and
 `operational_timeline_report.v1` from their two facade ranges into a new
 `Validation.ReferenceFixtures.OperationalPlanningArtifacts` leaf. Preserve the
@@ -57,7 +57,7 @@ and the complete facade remainder stay exact, focused and full validation tests
 pass, and bounded review finds no blocker.
 
 Verification gaps:
-- Next candidate still requires a selection baseline before implementation.
+- Implementation and post-move verification pending.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -65,27 +65,14 @@ Tests run:
   and sorted-key digest
   `b0007d04e4154fe879519a4f2b074fe3f9d0d649f3049d5d848264e105d00732`.
 - Selected three-fixture map: deterministic digest
-  `8e44976106d5c32da69a6f017448fa9a635e069f348b82a5880548ee0039631e`.
+  `8419204cdfe486b48062432098b5ab31a702b76d159e4a3584988ee5e97a1c5b`.
 - Exact 192-entry remainder: deterministic digest
-  `ca8dadbc94fd2f07030dac7ba394ed9dcd089d42eebf60f81c0b0fec7f9c633e`.
-- Source boundaries confirmed at facade lines 161-373 and 2127-2230, followed
-  by the resource-handoff manifest and contact-allocation report, respectively,
-  with no facade helper-attribute dependency in the selected literals.
-- Post-move exact proof: the 195-entry map, sorted-key digest, selected
-  three-fixture digest, and exact 192-entry remainder digest all match their
-  selection baselines.
-- Source partition proof: 29 maps total 195 entries, the new leaf owns three,
-  the facade owns 94, and all 406 pairwise intersections are empty.
-- Facade proof: all 195 successful `fetch/1` results, missing-key `:error`, and
-  nonbinary `FunctionClauseError` behavior remain unchanged.
-- Focused timeline-handoff/facade validation: 15 tests passed.
-- Full validation family: 181 tests passed.
-- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
-  xref caller checks passed.
-- Independent bounded review against selection commit `46717eeb` was clean:
-  both source ranges and the complete facade remainder are normalized-AST
-  exact, all runtime and partition invariants reproduced, dependency direction
-  remains one-way, and focused/full tests and hygiene gates passed.
+  `8ff06dfa3bd85c7c7988d904ce92277d8495e44f2dc8ab1e139769583c0c5770`.
+- Source boundaries confirmed at facade lines 211-369 and 1594-1713, followed
+  by the timeline lifecycle-state and timeline transition-application report
+  fixtures, respectively, with no facade helper-attribute dependency in the
+  selected literals.
+- Focused operational-planning/facade selection baseline: 15 tests passed.
 
 Behavior/schema changes:
 None.
