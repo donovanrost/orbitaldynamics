@@ -9,7 +9,7 @@ Current slice:
 Station reservation fixture mapping.
 
 Status:
-Ready for implementation.
+Publishing.
 
 Selected slice:
 Move the 12 station calendar, station reservation, reservation hold, and
@@ -56,7 +56,7 @@ and complete facade remainder stay exact, focused and full validation tests
 pass, and bounded review finds no blocker.
 
 Verification gaps:
-- Implementation and post-move verification pending.
+None.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -75,12 +75,36 @@ Tests run:
   `station_reservation_fixture_test.exs` exactly equal the selected facade keys.
 - Focused station-reservation/facade selection baseline: 11 tests passed with
   warnings as errors.
+- Normalized-AST proof against selection commit `f73ca40b`: all 12 moved
+  literals, the preceding capability catalog fixture, and the complete
+  one-entry facade remainder are exact; the new leaf owns only the intended
+  test-owned keys and the selected family was the final literal range.
+- Post-move exact proof: the 195-entry map, sorted-key digest, selected
+  12-fixture digest, and exact 183-entry remainder digest all match their
+  selection baselines.
+- Source partition proof: 48 maps total 195 entries, the new leaf owns 12, the
+  facade owns one, all 1,128 pairwise intersections are empty, and the 195
+  unique source keys exactly match the runtime map.
+- Facade proof: all 195 successful `fetch/1` results, missing-key `:error`, and
+  nonbinary `FunctionClauseError` behavior remain unchanged.
+- Focused station-reservation/facade validation: 11 tests passed with warnings
+  as errors.
+- Full validation family: 181 tests passed with warnings as errors.
+- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
+  xref caller checks passed.
+- Independent bounded review against selection commit `f73ca40b` was clean:
+  exact 12-key test ownership, normalized AST and capability boundary, all four
+  deterministic digests, the 48-map disjoint source partition, facade behavior,
+  one-way xref dependency, focused 11-test gate, full 181-test gate, sizes,
+  formatting, and diff hygiene all matched the recorded evidence.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-No station-reservation implementation has started.
+The exact 12-fixture station reservation workflow now lives in a new cohesive
+leaf behind the unchanged facade. The facade shrank from 1,047 to 235 lines;
+the new leaf is 822 lines and owns exactly 12 fixtures.
 
 Last completed slice:
 Model-acceptance extraction published as `1d61337d`: the exact two-fixture
