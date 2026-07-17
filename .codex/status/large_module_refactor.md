@@ -6,56 +6,46 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Candidate-refresh-report domain callback-bag collapse.
+Contact-allocation-handoff domain callback-bag collapse.
 
 Status:
-Complete and ready to publish.
+Selected; implementation pending.
 
 Selected slice:
-Replace the four-entry `CandidateRefreshReportContracts` domain bag with direct
-operational-readiness and validation-acceptance owners, then remove callback
-arguments that otherwise only serve as list guards across the report owner.
+Replace the two-entry `ContactAllocationHandoffContracts` bag with direct
+priority-override ownership and one explicit duplicate-evidence validator.
 
 Why this slice:
-Live inventory leaves `schema.ex` at 11,332 lines. This 332-line owner and its
-sole caller route three operational-readiness validators and one static count
-field list through lookup/apply. The same bag is also threaded through 34
-otherwise direct report validators despite no dynamic dispatch.
+Live inventory leaves `schema.ex` at 11,309 lines. Only one function in the
+936-line handoff owner and its sole caller use this bag. Priority-override
+validation already has a concrete shared owner; only duplicate-evidence
+validation crosses the remaining report-domain boundary.
 
 Public facade to preserve:
-`OrbitalDynamics.Schema.validate_artifact/2`, candidate-refresh provenance and
-source-report fields, exact paths/messages/order, safety-case counts, consumers,
+`OrbitalDynamics.Schema.validate_artifact/2`, contact-allocation handoff fields,
+duplicate and override count evidence, exact paths/messages/order, consumers,
 deterministic artifacts, and schema exports.
 
 Likely files:
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/candidate_refresh_report_contracts.ex`
+- `lib/orbital_dynamics/schema/contact_allocation_handoff_contracts.ex`
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
 - compile with warnings as errors
-- focused candidate-refresh provenance and validation tests
+- focused contact-allocation handoff and operator-review tests
 - broader candidate-refresh/operator-review regression
 - schema export trio and checked-in export regeneration
 - compile-connected xref, format, diff hygiene, and bounded review
 
 Definition of done:
-No candidate-refresh-report domain bag, lookup/apply trampolines, or inert
-callback arguments remain; operational-readiness and safety-case ownership is
-direct; focused, broader, and export checks pass; and bounded review finds no
-blocker.
+No contact-allocation-handoff callback bag or lookup/apply trampolines remain;
+priority-override ownership is direct and only the duplicate-evidence validator
+stays explicit; focused, broader, and export checks pass; and bounded review
+finds no blocker.
 
 Outcome:
-The four-entry bag and every inert callback argument are gone. Operational
-readiness and safety-case count ownership is direct; one orphan adapter-boundary
-forwarder also disappeared. `schema.ex` fell from 11,332 to 11,309 lines and
-the report owner from 332 to 275. One hundred eighty-eight focused tests pass;
-the broader batch is 1,340/1,345 with all five failures reproduced unchanged
-on the pre-slice commit; and 24 export tests pass. Compile, checked-in export
-regeneration, compile-connected xref within its existing three-edge threshold,
-format, and diff hygiene are clean. Bounded review found no blocker and
-confirmed identical validation order, paths/messages, direct-owner behavior,
-call arities, orphan cleanup, and absence of callback residue.
+Pending.
 
 Verification gaps:
 - Full repository suite not run.
@@ -64,12 +54,12 @@ Verification gaps:
   result is 1,340/1,340.
 
 Last completed slice:
-Contact-filter-report callback-bag collapse published as `a345ce83`: `schema.ex` fell
-from 11,395 to 11,332 lines and its owner from 327 to 254. Primitive,
-collection, stable-ID, count, and capability work became direct; only the
-suppressed-candidate row validator stays explicit. Fifty-four filter/lint and
-one fixture test passed, alongside 1,167 broader and 22 export tests; compile,
-xref, regeneration, format, diff hygiene, and bounded review were clean.
+Candidate-refresh-report domain callback-bag collapse published as `a6453475`:
+`schema.ex` fell from 11,332 to 11,309 lines and its owner from 332 to 275. All
+four dependencies became direct and inert callback arguments disappeared.
+One hundred eighty-eight focused, 1,340 attributable broader, and 24 export
+tests passed; compile, regeneration, xref, format, diff hygiene, and bounded
+review were clean.
 
 Blocked:
 No.
