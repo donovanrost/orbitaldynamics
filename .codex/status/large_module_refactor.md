@@ -9,7 +9,7 @@ Current slice:
 Validation quality-gate artifact fixture test-family extraction.
 
 Status:
-Ready to publish.
+Published as `7b28a083`.
 
 Selected slice:
 Move the eight contiguous quality-gate report, derived-summary, checked-in
@@ -73,11 +73,11 @@ Verification gaps:
 - Independent bounded review found no blocker.
 
 Last completed slice:
-Validation operational-readiness artifact fixture extraction published as
-`6e3edacb`: the focused module passed 5/5, the parent passed 10/10, and all
-forty-five Validation modules preserved the 181-test aggregate with no
-duplicate names. Format, diff hygiene, exact-source and ownership-closure
-checks, and bounded review were clean.
+Validation quality-gate artifact fixture extraction published as `7b28a083`:
+the focused module passed 8/8, the parent passed 2/2, and all forty-six
+Validation modules preserved the 181-test aggregate with no duplicate names.
+Format, diff hygiene, exact-source and ownership-closure checks, and bounded
+review were clean.
 
 Next candidate:
 Reassess the two remaining generic fixture-engine tests after the quality-gate
