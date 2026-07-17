@@ -9,10 +9,10 @@ Current slice:
 Benchmark fixture mapping.
 
 Status:
-Ready for next slice selection.
+Ready for implementation.
 
 Selected slice:
-No implementation selected yet. The next bounded candidate is to move all
+Move all
 eight `study_benchmark` fixtures from their contiguous facade range into a new
 `Validation.ReferenceFixtures.BenchmarkArtifacts` leaf. Preserve the following
 schema-validation report exactly.
@@ -55,45 +55,21 @@ and the complete facade remainder stay exact, focused and full validation tests
 pass, and bounded review finds no blocker.
 
 Verification gaps:
-- Next candidate still requires a selection baseline before implementation.
+- Implementation and post-move verification pending.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
   `a94507226596cd944ac21994c7889549ec58ecd1fcc0db5c65fa4e55b0f53ef2`,
   and sorted-key digest
   `b0007d04e4154fe879519a4f2b074fe3f9d0d649f3049d5d848264e105d00732`.
-- Selected two-fixture map: deterministic digest
-  `49daba95d0db6c44e6454d713be5eae2918be0fc2d9281b97c2cda72142b15ef`.
-- Existing four-fixture candidate-strategy leaf: deterministic digest
-  `5254bc49379694e676f7912155a3171e02c50a8258e190664377c4a1a52e8651`;
-  expected combined six-fixture digest
-  `f4b58d8bff3e910ea5127f6fb445309e2381fff9fe1769268a6490e124d673ee`.
-- Exact 193-entry remainder: deterministic digest
-  `de93509350d869d96051f93171fa50a69b0070d11398e736f5f3c2143a760a92`.
-- Source boundary confirmed at facade lines 283-386, followed by
-  `study_benchmark.v1`, with no facade helper-attribute dependency in the
-  selected literals.
-- Normalized-AST proof against selection commit `d0e05a90`: both moved
-  literals, all four existing target literals, the combined six-entry leaf, the
-  following benchmark fixture, and the complete 43-entry facade remainder are
-  exact.
-- Post-move exact proof: the 195-entry map, sorted-key digest, selected pair
-  digest, combined six-fixture leaf digest, and exact 193-entry remainder digest
-  all match their selection baselines.
-- Source partition proof: 41 maps total 195 entries, the completed
-  candidate-strategy leaf owns six, the facade owns 43, all 820 pairwise
-  intersections are empty, and the source key union exactly matches the runtime
-  map.
-- Facade proof: all 195 successful `fetch/1` results, missing-key `:error`, and
-  nonbinary `FunctionClauseError` behavior remain unchanged.
-- Focused candidate-strategy/facade validation: 18 tests passed.
-- Full validation family: 181 tests passed.
-- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
-  xref caller checks passed.
-- Independent bounded review against selection commit `d0e05a90` was clean:
-  the moved and existing target literals, completed leaf, facade remainder, and
-  boundary fixture are normalized-AST exact; all runtime, partition, focused,
-  full-test, dependency, and hygiene checks reproduced.
+- Selected eight-fixture map: deterministic digest
+  `7fe52275bfb6e159fb453cc472b5549c65db46618bb8c5697ebc088cd6b26ccc`.
+- Exact 187-entry remainder: deterministic digest
+  `b4fd63fe27b9e0ea3484cdee373d6f312b3dc5b0fd2127ea83e25a5a086c8947`.
+- Contiguous source boundary confirmed at facade lines 283-700, followed by
+  `schema_validation_report.v1`, with no facade helper-attribute dependency in
+  the selected literals.
+- Focused benchmark/facade selection baseline: 13 tests passed.
 
 Behavior/schema changes:
 None.
