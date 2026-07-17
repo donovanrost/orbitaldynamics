@@ -6,28 +6,28 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Quality-gate fixture extraction handoff.
+Model-acceptance fixture mapping.
 
 Status:
-Published as `287ee9f1`.
+Ready for implementation.
 
 Selected slice:
-Move
-`quality_gate_report.v1` and the six `operational_quality_gate_*` summaries
-from their contiguous facade range into a new
-`Validation.ReferenceFixtures.QualityGateArtifacts` leaf. Preserve the
-following stale station-calendar fixture exactly.
+Move `model_acceptance_report.operational_import` and
+`validation_safety_case_summary.v1` from the final contiguous facade range into
+a new `Validation.ReferenceFixtures.ModelAcceptanceArtifacts` leaf. Preserve
+the preceding provider-counteroffer review fixture and complete facade
+remainder exactly.
 
 Why this slice:
-`ReferenceFixtures` remains the largest production module at 1,861 lines. The
-seven fixtures occupy 623 facade lines and exactly own
-`quality_gate_fixture_test.exs`.
+`ReferenceFixtures` remains a 1,240-line production module. The two fixtures
+occupy 195 facade lines, form the complete final literal range, and exactly own
+`model_acceptance_fixture_test.exs`.
 
 Current coupling/problem:
-Quality-gate report, summary, import readiness, unavailable-resource,
-resource-projection, operator-training, and schema-validation expectations form
-one contiguous test-owned workflow but remain embedded in the general
-registry. Moving all seven preserves the complete gate responsibility.
+Model acceptance and its validation safety-case handoff form one contiguous,
+test-owned workflow but remain embedded in the general registry. Moving both
+fixtures preserves the complete responsibility without splitting the larger
+station reservation/calendar family.
 
 Public facade to preserve:
 `OrbitalDynamics.Validation.ReferenceFixtures.all/0` and `fetch/1`, exact
@@ -35,11 +35,11 @@ fixture keys and values, map equality and deterministic term bytes, and all
 `OrbitalDynamics.Validation` reference-fixture behavior.
 
 Likely extraction target:
-`OrbitalDynamics.Validation.ReferenceFixtures.QualityGateArtifacts`.
+`OrbitalDynamics.Validation.ReferenceFixtures.ModelAcceptanceArtifacts`.
 
 Likely files:
 - `lib/orbital_dynamics/validation/reference_fixtures.ex`
-- `lib/orbital_dynamics/validation/reference_fixtures/quality_gate_artifacts.ex`
+- `lib/orbital_dynamics/validation/reference_fixtures/model_acceptance_artifacts.ex`
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
@@ -49,56 +49,35 @@ Likely verification:
 - strict compile, format, xref, diff hygiene, and bounded review
 
 Definition of done:
-All seven quality-gate fixtures exist only in the new cohesive leaf, all 46
-fixture maps remain disjoint, `all/0` and `fetch/1` return exactly
-the same 195-entry map and deterministic term bytes, both following boundary fixtures
-and the complete facade remainder stay exact, focused and full validation tests
-pass, and bounded review finds no blocker.
+Both model-acceptance fixtures exist only in the new cohesive leaf, all 47
+fixture maps remain disjoint, `all/0` and `fetch/1` return exactly the same
+195-entry map and deterministic term bytes, the preceding boundary fixture and
+complete facade remainder stay exact, focused and full validation tests pass,
+and bounded review finds no blocker.
 
 Verification gaps:
-None.
+- Implementation and post-move verification pending.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
   `a94507226596cd944ac21994c7889549ec58ecd1fcc0db5c65fa4e55b0f53ef2`,
   and sorted-key digest
   `b0007d04e4154fe879519a4f2b074fe3f9d0d649f3049d5d848264e105d00732`.
-- Selected seven-fixture map: deterministic digest
-  `b89ef2c2eb4cfe803380c04fd88bd18fe3d3942a418fcf50a88f58d45a255e48`.
-- Exact 188-entry remainder: deterministic digest
-  `822cc2811e63e52ad41bc7baa2cee194a3a426ba54089073af9fc83c22a27b0f`.
-- Contiguous source boundary confirmed at facade lines 287-909, followed by
-  `station_calendar_report.stale_provider_reservation_hold`, with no facade
-  helper-attribute dependency in the selected literals.
-- Normalized-AST proof against selection commit `dd6a2493`: all seven moved
-  literals, the following stale station-calendar fixture, and the complete
-  15-entry facade remainder are exact; the new leaf owns only the intended
-  seven keys.
-- Post-move exact proof: the 195-entry map, sorted-key digest, selected
-  seven-fixture digest, and exact 188-entry remainder digest all match their
-  selection baselines.
-- Source partition proof: 46 maps total 195 entries, the new leaf owns seven,
-  the facade owns 15, all 1,035 pairwise intersections are empty, and the source
-  key union exactly matches the runtime map.
-- Facade proof: all 195 successful `fetch/1` results, missing-key `:error`, and
-  nonbinary `FunctionClauseError` behavior remain unchanged.
-- Focused quality-gate/facade validation: 20 tests passed.
-- Full validation family: 181 tests passed.
-- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
-  xref caller checks passed.
-- Independent bounded review against selection commit `dd6a2493` was clean:
-  normalized AST, all four deterministic digests, the 46-map disjoint source
-  partition, facade behavior, one-way xref dependency, focused 20-test gate,
-  full 181-test gate, formatting, and diff hygiene all matched the recorded
-  evidence.
+- Selected two-fixture map: deterministic digest
+  `6156df8e2fa588a5a2ac4cb315acc92f3955df019092b9ff0ae2fe9241f494d4`.
+- Exact 193-entry remainder: deterministic digest
+  `06b73c281338a65814ef98ee5ddbb5dac42c21a81d1e7c437845be241ee70d8e`.
+- Contiguous source boundary confirmed at facade lines 993-1187, immediately
+  after `provider_counteroffer_review_summary.v1` and before the literal map
+  closes, with no facade helper-attribute dependency in the selected literals.
+- Focused model-acceptance/facade selection baseline: 4 tests passed with
+  warnings as errors.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-The exact seven-fixture quality-gate family now lives in a new cohesive leaf
-behind the unchanged facade. The facade shrank from 1,861 to 1,240 lines; the
-new leaf is 631 lines and owns exactly seven fixtures.
+No model-acceptance implementation has started.
 
 Last completed slice:
 Quality-gate extraction published as `287ee9f1`: the exact seven-fixture family
@@ -107,11 +86,9 @@ moved into a new 631-line leaf, the facade shrank from 1,861 to 1,240 lines, the
 full validation tests passed, and bounded review was clean.
 
 Next candidate:
-Map the two contiguous model-acceptance fixtures at the end of the facade:
-`model_acceptance_report.operational_import` and
-`validation_safety_case_summary.v1`. Both are owned by
-`model_acceptance_fixture_test.exs`; capture exact selected/remainder digests
-and source boundaries before moving the complete pair into a cohesive leaf.
+Select the model-acceptance extraction described above, preserve the exact
+preceding fixture and complete remainder, then move the complete test-owned
+pair.
 
 Blocked:
 No.
