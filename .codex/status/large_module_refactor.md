@@ -9,7 +9,7 @@ Current slice:
 Schema resource-projection direct callback ownership cleanup.
 
 Status:
-Completed and verified; publishing.
+Completed and published.
 
 Selected slice:
 Point the battery-field, remaining-field, battery-source, flow-context,
@@ -73,17 +73,18 @@ Behavior/schema changes:
 None.
 
 Last completed slice:
-Schema station-calendar handoff callback ownership cleanup published as
-`a7b5f246`: all count-list and general/cadence source-match captures now point
-directly to their existing contract owner; 182 schema/export tests passed,
-full export bytes stayed exact, and bounded review was clean.
+Schema resource-projection direct callback ownership cleanup published as
+`06762106`: sixteen battery/remaining/flow/cadence captures now point directly
+to their existing owner while the dependency-bearing count wrapper remains;
+182 schema/export tests passed, full export bytes stayed exact, and bounded
+review was clean.
 
 Next candidate:
-Audit the resource-projection handoff callback family. Several delegates target
-`ResourceProjectionHandoffContracts`, but count and battery paths also carry
-predicate/row-selection dependencies. Select only a cohesive subset whose
-callbacks and fallback clauses can be moved without creating a broad callback
-bag or crossing the separate own-flow validator path.
+Audit moving the resource-projection downlink-flow predicate into
+`ResourceProjectionHandoffContracts` and adding a facade-independent
+`validate_count_handoff_matches_source/3`. Preserve the existing `/4` owner API;
+select only if the predicate has no other facade consumers and all three count
+captures can then point directly to the owner.
 
 Blocked:
 No.
