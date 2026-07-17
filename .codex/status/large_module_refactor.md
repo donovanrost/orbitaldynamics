@@ -9,10 +9,10 @@ Current slice:
 Link-capacity fixture mapping.
 
 Status:
-Ready for next slice selection.
+Ready for implementation.
 
 Selected slice:
-No implementation selected yet. The next bounded candidate is to move
+Move
 `link_capacity_summary.v1` and `link_capacity_report.v1` from their two facade
 ranges into a new `Validation.ReferenceFixtures.LinkCapacityArtifacts` leaf.
 Stop before `refreshed_window.v1` and `relay_data_path_summary.v1`,
@@ -56,7 +56,7 @@ complete facade remainder stay exact, focused and full validation tests pass,
 and bounded review finds no blocker.
 
 Verification gaps:
-- Next candidate still requires a selection baseline before implementation.
+- Implementation, verification, and bounded review pending.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -64,29 +64,13 @@ Tests run:
   and sorted-key digest
   `b0007d04e4154fe879519a4f2b074fe3f9d0d649f3049d5d848264e105d00732`.
 - Selected two-fixture map: deterministic digest
-  `37ba67b3227aaa447d940e862eb89ddbfeef9a71a960735218ad65b53f0f3e6f`.
+  `7817e0c1af0ec3b38d0c9ea5768aa301c34dce167c369342ffd5c38af2ae7c2d`.
 - Exact 193-entry remainder: deterministic digest
-  `b80744cdcd1814ada66ef0f1a902d18d668c28064a924cdca1f14bdc394f8f3d`.
-- Source boundary confirmed at facade lines 156-283, with
-  `link_capacity_summary.v1` beginning at line 284 and no facade
-  helper-attribute dependency in the selected literals.
-- Post-move exact proof: the 195-entry map, sorted-key digest, selected
-  two-fixture digest, and exact 193-entry remainder digest all match their
-  selection baselines.
-- Source partition proof: 24 maps total 195 entries, the new leaf owns two, the
-  facade owns 111, and all 276 pairwise intersections are empty.
-- Facade proof: all 195 successful `fetch/1` results, missing-key `:error`, and
-  nonbinary `FunctionClauseError` behavior remain unchanged.
-- Focused contact-window/facade validation: 16 tests passed.
-- Full validation family: 181 tests passed.
-- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
-  xref caller checks passed.
-- Independent bounded review: CLEAN. It confirmed both contact-intent fixtures
-  moved unchanged, the link-capacity summary and complete facade remainder are
-  normalized-AST exact, the new leaf owns only its two intended keys, all 24
-  maps are unique and pairwise disjoint, all digests and facade edge behaviors
-  are unchanged, dependencies remain one-way, link-capacity ownership remains
-  distinct, and it reproduced 16 focused and 181 full validation tests.
+  `c7eb92ec687c0915792b1087ed65ce9e4fb96869f968be0519cfe96da6a2b073`.
+- Source boundaries confirmed at facade lines 157-248 and 3819-3897, followed
+  by `refreshed_window.v1` and `relay_data_path_summary.v1`, respectively, with
+  no facade helper-attribute dependency in either selected literal.
+- Selection only; implementation verification pending.
 
 Behavior/schema changes:
 None.
