@@ -9,7 +9,7 @@ Current slice:
 CandidateRefresh timeline publication/transition replay callback removal.
 
 Status:
-Review complete; ready to publish.
+Published as `e10128e3`.
 
 Selected slice:
 Remove the repeated source-summary callback from the timeline-publication and
@@ -63,13 +63,13 @@ Verification gaps:
 - bounded read-only review: clean, no findings
 
 Last completed slice:
-Candidate diff/dependency-impact replay callback removal published as
-`c428c291`: both paths are one-argument end to end, 21 focused tests passed,
+Candidate publication/transition replay callback removal published as
+`e10128e3`: both paths are one-argument end to end, 20 focused tests passed,
 and bounded review found no blocker.
 
 Next candidate:
-Audit the adjacent readiness/quality callback seams after this pair is
-published.
+Audit the adjacent operational-readiness/quality-gate callback seams as one
+bounded pair.
 
 Blocked:
 No.
