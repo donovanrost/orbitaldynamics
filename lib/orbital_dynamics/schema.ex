@@ -7198,7 +7198,7 @@ defmodule OrbitalDynamics.Schema do
       @cadence_import_manifest_scalar_count_fields,
       &validate_cadence_import_row/3,
       &validate_contact_allocation_expiration_handoff_summary/3,
-      &validate_suppression_duplicate_handoff_groups/3
+      &OrbitalDynamics.Schema.SuppressionHandoffContracts.validate_duplicate_groups/3
     )
   end
 
@@ -7318,7 +7318,8 @@ defmodule OrbitalDynamics.Schema do
         &OrbitalDynamics.Schema.StationCalendarHandoffContracts.validate_count_lists/3,
       validate_suppression_duplicate_handoff_row_fields:
         &validate_suppression_duplicate_handoff_row_fields/3,
-      validate_suppression_handoff_matches_source: &validate_suppression_handoff_matches_source/3,
+      validate_suppression_handoff_matches_source:
+        &OrbitalDynamics.Schema.SuppressionHandoffContracts.validate_matches_source/3,
       validate_contact_contention_handoff_matches_source:
         &OrbitalDynamics.Schema.ContactContentionHandoffContracts.validate_matches_source/3,
       validate_optional_source_window: &validate_optional_source_window/4,
@@ -7649,7 +7650,7 @@ defmodule OrbitalDynamics.Schema do
       validate_cadence_source_review_strategy_tradeoff_handoff_matches:
         &OrbitalDynamics.Schema.StrategyHandoffContracts.validate_cadence_source_review_strategy_tradeoff_matches/3,
       validate_cadence_source_review_suppression_duplicate_matches:
-        &validate_cadence_source_review_suppression_duplicate_matches/3,
+        &OrbitalDynamics.Schema.SuppressionHandoffContracts.validate_cadence_source_review_matches/3,
       validate_cadence_source_review_timeline_activity_precondition_handoff_matches:
         &OrbitalDynamics.Schema.TimelineHandoffContracts.validate_cadence_source_review_timeline_activity_precondition_matches/3,
       validate_cadence_source_review_timeline_dependency_impact_handoff_matches:
@@ -7757,7 +7758,8 @@ defmodule OrbitalDynamics.Schema do
         &OrbitalDynamics.Schema.StrategyHandoffContracts.validate_strategy_recommendation_matches_source/3,
       validate_strategy_tradeoff_handoff_matches_source:
         &OrbitalDynamics.Schema.StrategyHandoffContracts.validate_strategy_tradeoff_matches_source/3,
-      validate_suppression_handoff_matches_source: &validate_suppression_handoff_matches_source/3,
+      validate_suppression_handoff_matches_source:
+        &OrbitalDynamics.Schema.SuppressionHandoffContracts.validate_matches_source/3,
       validate_timeline_diff_handoff_matches_source:
         &OrbitalDynamics.Schema.TimelineHandoffContracts.validate_timeline_diff_matches_source/3,
       validate_timeline_publication_handoff_matches_source:
@@ -7852,21 +7854,6 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validate_cadence_source_review_suppression_duplicate_matches(
-         issues,
-         path,
-         %{"source_review_row" => %{}} = row
-       ) do
-    OrbitalDynamics.Schema.SuppressionHandoffContracts.validate_cadence_source_review_matches(
-      issues,
-      path,
-      row
-    )
-  end
-
-  defp validate_cadence_source_review_suppression_duplicate_matches(issues, _path, _row),
-    do: issues
-
   defp validate_contact_allocation_handoff_fields(issues, path, row) do
     OrbitalDynamics.Schema.ContactAllocationHandoffContracts.validate_allocation_fields(
       issues,
@@ -7882,30 +7869,6 @@ defmodule OrbitalDynamics.Schema do
       path,
       row,
       &validate_duplicate_suppressed_candidate_evidence/3
-    )
-  end
-
-  defp validate_suppression_handoff_matches_source(issues, path, row) do
-    OrbitalDynamics.Schema.SuppressionHandoffContracts.validate_matches_source(
-      issues,
-      path,
-      row
-    )
-  end
-
-  defp validate_suppression_duplicate_handoff_groups(issues, path, rows) when is_list(rows) do
-    OrbitalDynamics.Schema.SuppressionHandoffContracts.validate_duplicate_groups(
-      issues,
-      path,
-      rows
-    )
-  end
-
-  defp validate_suppression_duplicate_handoff_groups(issues, path, rows) do
-    OrbitalDynamics.Schema.SuppressionHandoffContracts.validate_duplicate_groups(
-      issues,
-      path,
-      rows
     )
   end
 
@@ -8011,7 +7974,7 @@ defmodule OrbitalDynamics.Schema do
       validate_quality_gate_handoff_summary: &validate_quality_gate_handoff_summary/3,
       validate_operator_review_row: &validate_operator_review_row/3,
       validate_suppression_duplicate_handoff_groups:
-        &validate_suppression_duplicate_handoff_groups/3
+        &OrbitalDynamics.Schema.SuppressionHandoffContracts.validate_duplicate_groups/3
     ]
   end
 
@@ -8168,7 +8131,8 @@ defmodule OrbitalDynamics.Schema do
         &OrbitalDynamics.Schema.StationCalendarHandoffContracts.validate_count_lists/3,
       validate_suppression_duplicate_handoff_row_fields:
         &validate_suppression_duplicate_handoff_row_fields/3,
-      validate_suppression_handoff_matches_source: &validate_suppression_handoff_matches_source/3,
+      validate_suppression_handoff_matches_source:
+        &OrbitalDynamics.Schema.SuppressionHandoffContracts.validate_matches_source/3,
       validate_contact_contention_handoff_matches_source:
         &OrbitalDynamics.Schema.ContactContentionHandoffContracts.validate_matches_source/3,
       validate_operator_review_row_links: &validate_operator_review_row_links/3
