@@ -9,11 +9,8 @@ defmodule OrbitalDynamics.Schema do
 
   import OrbitalDynamics.Schema.StableIdValidation,
     only: [
-      validate_nested_stable_id_array_map: 3,
       validate_nested_id_match: 7,
       validate_optional_stable_id_list: 4,
-      validate_stable_id_array_map: 3,
-      validate_stable_id_list: 3,
       validate_stable_ids: 4
     ]
 
@@ -27,7 +24,6 @@ defmodule OrbitalDynamics.Schema do
       expect_non_negative_integer: 4,
       expect_one_of: 5,
       expect_optional_integer: 4,
-      expect_optional_field_equals: 6,
       expect_optional_non_negative_integer: 4,
       expect_optional_number: 4,
       expect_optional_one_of: 5,
@@ -6745,53 +6741,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp contact_allocation_reservation_conflict_summary_contract_callbacks do
-    [
-      expect_equal: &expect_equal/5,
-      expect_one_of: &expect_one_of/5,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_non_negative_integer: &expect_non_negative_integer/4,
-      expect_optional_number: &expect_optional_number/4,
-      expect_field_equals: &expect_field_equals/5,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      expect_optional_field_equals: &expect_optional_field_equals/6,
-      expect_number_field_equals: &expect_number_field_equals/6,
-      validate_rows: &validate_rows/4,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_optional_exact_model_limits: &validate_optional_exact_model_limits/5,
-      validate_non_negative_integer_count_map: &validate_non_negative_integer_count_map/3,
-      validate_stable_id_list: &validate_stable_id_list/3,
-      validate_stable_id_array_map: &validate_stable_id_array_map/3,
-      validate_nested_stable_id_array_map: &validate_nested_stable_id_array_map/3,
-      validate_number_list_items: &validate_number_list_items/4,
-      contact_allocation_model_limits: &contact_allocation_model_limits/0,
-      contact_allocation_station_reservation_match_statuses:
-        &contact_allocation_station_reservation_match_statuses/0,
-      contact_allocation_reservation_conflict_match_statuses:
-        &contact_allocation_reservation_conflict_match_statuses/0,
-      contact_allocation_station_reservation_expiration_statuses:
-        &contact_allocation_station_reservation_expiration_statuses/0,
-      contact_allocation_provider_direction_aliases:
-        &contact_allocation_provider_direction_aliases/0,
-      validate_contact_allocation_row: &validate_contact_allocation_row/3,
-      contact_allocation_reservation_expiration_row?:
-        &contact_allocation_reservation_expiration_row?/1,
-      contact_allocation_review_row?: &contact_allocation_review_row?/1,
-      contact_allocation_reservation_expiration_rows:
-        &contact_allocation_reservation_expiration_rows/2,
-      contact_allocation_reservation_row_ids: &contact_allocation_reservation_row_ids/1,
-      contact_allocation_reservation_expires_at_values:
-        &contact_allocation_reservation_expires_at_values/1,
-      contact_allocation_earliest_reservation_expires_at_s:
-        &contact_allocation_earliest_reservation_expires_at_s/1,
-      contact_allocation_row_contact_ids: &contact_allocation_row_contact_ids/1,
-      contact_allocation_reservation_ids_by_expiration_status:
-        &contact_allocation_reservation_ids_by_expiration_status/1,
-      contact_allocation_pressure_value?: &contact_allocation_pressure_value?/1
-    ]
-  end
-
   defp validate_nested_execution_report(execution_report),
     do:
       validate_contract(
@@ -8003,7 +7952,7 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       summary,
-      contact_allocation_reservation_conflict_summary_contract_callbacks()
+      &validate_contact_allocation_row/3
     )
   end
 
@@ -8129,16 +8078,8 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp contact_allocation_reservation_row_ids(rows) do
-    OrbitalDynamics.Schema.ContactAllocationReportContracts.reservation_row_ids(rows)
-  end
-
   defp contact_allocation_reservation_expires_at_values(rows) do
     OrbitalDynamics.Schema.ContactAllocationReportContracts.reservation_expires_at_values(rows)
-  end
-
-  defp contact_allocation_reservation_expiration_row?(row) do
-    OrbitalDynamics.Schema.ContactAllocationReportContracts.reservation_expiration_row?(row)
   end
 
   defp contact_allocation_station_pressure_rows(rows) do
@@ -8149,10 +8090,6 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.ContactAllocationReportContracts.station_pressure_ids_by_availability(
       rows
     )
-  end
-
-  defp contact_allocation_pressure_value?(value) do
-    OrbitalDynamics.Schema.ContactAllocationReportContracts.pressure_value?(value)
   end
 
   defp validate_resource_projection_report_counts(issues, path, report) do
@@ -8895,17 +8832,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp expect_field_equals(issues, path, map, field, expected),
     do: expect_field_equals(issues, path, map, field, expected, "must equal #{expected}")
-
-  defp expect_number_field_equals(issues, path, map, field, expected, message),
-    do:
-      OrbitalDynamics.Schema.PrimitiveValidation.expect_number_field_equals(
-        issues,
-        path,
-        map,
-        field,
-        expected,
-        message
-      )
 
   defp validate_plan_delta(issues, path, delta) do
     OrbitalDynamics.Schema.PlanDeltaContracts.validate(
