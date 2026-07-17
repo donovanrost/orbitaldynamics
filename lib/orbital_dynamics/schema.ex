@@ -5848,7 +5848,8 @@ defmodule OrbitalDynamics.Schema do
         &OrbitalDynamics.Schema.ContactContentionReportContracts.validate_deferred_priority/3,
       validate_priority_field_evidence_counts:
         &OrbitalDynamics.Schema.PriorityOverrideContracts.validate_field_evidence_counts/3,
-      validate_override_count_matches_ids: &validate_override_count_matches_ids/5,
+      validate_override_count_matches_ids:
+        &OrbitalDynamics.Schema.PriorityOverrideContracts.validate_count_matches_ids/5,
       validate_station_calendar_contact_counts: &validate_station_calendar_contact_counts/3
     ]
   end
@@ -8012,17 +8013,6 @@ defmodule OrbitalDynamics.Schema do
       path,
       map,
       field
-    )
-  end
-
-  defp validate_override_count_matches_ids(issues, path, map, count_field, ids_field)
-       when is_map(map) do
-    OrbitalDynamics.Schema.PriorityOverrideContracts.validate_count_matches_ids(
-      issues,
-      path,
-      map,
-      count_field,
-      ids_field
     )
   end
 end
