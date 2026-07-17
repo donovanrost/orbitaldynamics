@@ -2337,43 +2337,24 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp json_schema_property(field, @ranking_comparison_report = contract_name, contract) do
-    focused_json_schema_property(
+  defp json_schema_property(field, contract_name, contract)
+       when contract_name in [
+              @ranking_comparison_report,
+              @pareto_frontier_report
+            ] do
+    OrbitalDynamics.Schema.OptimizerReportPropertyDispatch.property(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.OptimizerReportJsonSchema.property_field?(&1, contract_name),
-      OrbitalDynamics.Schema.OptimizerReportJsonSchema.property_fun_from_context(
-        contract_name: contract_name,
-        ranking_row_schema: &ranking_comparison_row_json_schema/0,
-        ranking_winner_schema: &ranking_comparison_winner_json_schema/0,
-        ranking_model_limits: fn ->
-          OrbitalDynamics.Optimizer.ranking_comparison_model_limits()
-        end,
-        pareto_row_schema: &pareto_frontier_row_json_schema/0,
-        pareto_model_limits: fn -> OrbitalDynamics.Optimizer.pareto_frontier_model_limits() end,
-        stable_id_pattern: @stable_id_pattern
-      )
-    )
-  end
-
-  defp json_schema_property(field, @pareto_frontier_report = contract_name, contract) do
-    focused_json_schema_property(
-      field,
-      contract_name,
-      contract,
-      &OrbitalDynamics.Schema.OptimizerReportJsonSchema.property_field?(&1, contract_name),
-      OrbitalDynamics.Schema.OptimizerReportJsonSchema.property_fun_from_context(
-        contract_name: contract_name,
-        ranking_row_schema: &ranking_comparison_row_json_schema/0,
-        ranking_winner_schema: &ranking_comparison_winner_json_schema/0,
-        ranking_model_limits: fn ->
-          OrbitalDynamics.Optimizer.ranking_comparison_model_limits()
-        end,
-        pareto_row_schema: &pareto_frontier_row_json_schema/0,
-        pareto_model_limits: fn -> OrbitalDynamics.Optimizer.pareto_frontier_model_limits() end,
-        stable_id_pattern: @stable_id_pattern
-      )
+      ranking_row_schema: &ranking_comparison_row_json_schema/0,
+      ranking_winner_schema: &ranking_comparison_winner_json_schema/0,
+      ranking_model_limits: fn ->
+        OrbitalDynamics.Optimizer.ranking_comparison_model_limits()
+      end,
+      pareto_row_schema: &pareto_frontier_row_json_schema/0,
+      pareto_model_limits: fn -> OrbitalDynamics.Optimizer.pareto_frontier_model_limits() end,
+      stable_id_pattern: @stable_id_pattern,
+      default_property: &default_json_schema_property/3
     )
   end
 
