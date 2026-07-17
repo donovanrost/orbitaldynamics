@@ -5739,19 +5739,22 @@ defmodule OrbitalDynamics.Schema do
   defp validate_contract(@environment_model_capability, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_environment_model_capability("$", artifact)
+    |> OrbitalDynamics.Schema.ModelCapabilityContracts.validate_environment_model("$", artifact)
   end
 
   defp validate_contract(@environment_provider_capability, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_environment_provider_capability("$", artifact)
+    |> OrbitalDynamics.Schema.ModelCapabilityContracts.validate_environment_provider(
+      "$",
+      artifact
+    )
   end
 
   defp validate_contract(@subsystem_model_capability, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_subsystem_model_capability("$", artifact)
+    |> OrbitalDynamics.Schema.ModelCapabilityContracts.validate_subsystem_model("$", artifact)
   end
 
   defp validate_contract(@schema_validation_report, contract, artifact) do
@@ -6221,31 +6224,39 @@ defmodule OrbitalDynamics.Schema do
   defp validate_contract(@validation_reference_report, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_validation_reference_report("$", artifact)
+    |> OrbitalDynamics.Schema.ValidationReferenceContracts.validate_report("$", artifact)
   end
 
   defp validate_contract(@validation_check, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_validation_check("$", artifact)
+    |> OrbitalDynamics.Schema.ValidationReferenceContracts.validate_check("$", artifact)
   end
 
   defp validate_contract(@validation_record, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_validation_record("$", artifact)
+    |> OrbitalDynamics.Schema.ValidationRecordContracts.validate("$", artifact)
   end
 
   defp validate_contract(@model_acceptance_report, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_model_acceptance_report("$", artifact)
+    |> OrbitalDynamics.Schema.ValidationAcceptanceReportContracts.validate_model_acceptance_report(
+      "$",
+      artifact,
+      model_acceptance_report_model_limits()
+    )
   end
 
   defp validate_contract(@validation_safety_case_summary, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_validation_safety_case_summary("$", artifact)
+    |> OrbitalDynamics.Schema.ValidationAcceptanceReportContracts.validate_validation_safety_case_summary(
+      "$",
+      artifact,
+      model_acceptance_report_model_limits()
+    )
   end
 
   defp validate_contract(@campaign_plan, contract, artifact) do
@@ -9679,74 +9690,8 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.PolicyFieldGroups.action_rule()
   end
 
-  defp validate_environment_model_capability(issues, path, record) do
-    OrbitalDynamics.Schema.ModelCapabilityContracts.validate_environment_model(
-      issues,
-      path,
-      record
-    )
-  end
-
-  defp validate_environment_provider_capability(issues, path, record) do
-    OrbitalDynamics.Schema.ModelCapabilityContracts.validate_environment_provider(
-      issues,
-      path,
-      record
-    )
-  end
-
-  defp validate_subsystem_model_capability(issues, path, record) do
-    OrbitalDynamics.Schema.ModelCapabilityContracts.validate_subsystem_model(
-      issues,
-      path,
-      record
-    )
-  end
-
-  defp validate_validation_record(issues, path, record) do
-    OrbitalDynamics.Schema.ValidationRecordContracts.validate(
-      issues,
-      path,
-      record
-    )
-  end
-
-  defp validate_model_acceptance_report(issues, path, report) do
-    OrbitalDynamics.Schema.ValidationAcceptanceReportContracts.validate_model_acceptance_report(
-      issues,
-      path,
-      report,
-      model_acceptance_report_model_limits()
-    )
-  end
-
-  defp validate_validation_safety_case_summary(issues, path, report) do
-    OrbitalDynamics.Schema.ValidationAcceptanceReportContracts.validate_validation_safety_case_summary(
-      issues,
-      path,
-      report,
-      model_acceptance_report_model_limits()
-    )
-  end
-
   defp safety_case_count_fields,
     do: OrbitalDynamics.Schema.ValidationAcceptanceReportContracts.safety_case_count_fields()
-
-  defp validate_validation_reference_report(issues, path, report) do
-    OrbitalDynamics.Schema.ValidationReferenceContracts.validate_report(
-      issues,
-      path,
-      report
-    )
-  end
-
-  defp validate_validation_check(issues, path, check) do
-    OrbitalDynamics.Schema.ValidationReferenceContracts.validate_check(
-      issues,
-      path,
-      check
-    )
-  end
 
   defp validate_optional_timeline_preconditions(issues, path, map, field) when is_map(map) do
     OrbitalDynamics.Schema.TimelinePreconditionContracts.validate_optional(

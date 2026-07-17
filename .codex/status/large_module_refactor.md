@@ -9,7 +9,7 @@ Current slice:
 Schema capability and validation-evidence direct owner routing.
 
 Status:
-Selected.
+Ready to publish.
 
 Selected slice:
 Route model-capability, validation-record/reference/check, model-acceptance, and
@@ -41,10 +41,24 @@ ordering/messages and model limits remain exact; generated schema hashes are
 unchanged; focused tests pass; and bounded review finds no blocker.
 
 Outcome:
-Pending.
+Routed all eight artifact clauses directly to
+`ModelCapabilityContracts`, `ValidationRecordContracts`,
+`ValidationReferenceContracts`, and `ValidationAcceptanceReportContracts`;
+removed their redundant private facade wrappers. `schema.ex` fell from 9,844
+to 9,789 lines with no new layer.
 
 Verification gaps:
-- Pending.
+- Strict compilation and diff hygiene pass.
+- Six focused environment, capability, validation-evidence/policy, and schema
+  export test files pass 32/32, including checked-in export comparison.
+- Current and selection-commit exporter bytes match exactly:
+  full bundle SHA-256
+  `543dbe11bc75f1397dd15dbd10cabd219ae2e46ac1e16d38b810a99befb8cec3`;
+  Cadence schema SHA-256
+  `8267ee1869732befc42946ab4d8c1825ccee35972729c9e62c8914636440d39c`.
+- Pipeline issue order, owner arguments, and model-limit calls were audited
+  against selection commit `f1c9f2c6`.
+- Independent bounded review found no blocker.
 
 Last completed slice:
 CampaignPlanner repair activity-dispatch extraction published as `ce902067`:
