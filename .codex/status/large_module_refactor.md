@@ -9,7 +9,7 @@ Current slice:
 Cadence-import proposed-contact/planned-activity test-family extraction.
 
 Status:
-Selected; implementation not started.
+Implemented, verified, reviewed, and ready to publish.
 
 Selected slice:
 Move the five adjacent proposed-contact and planned-activity import tests into a
@@ -44,17 +44,21 @@ unchanged; the original ledger no longer duplicates them, both focused and
 original-ledger test files pass, and bounded review finds no blocker.
 
 Outcome:
-Pending.
+Exactly five contiguous proposed-contact/planned-activity tests moved byte-for-
+byte into `OrbitalDynamics.CadenceImport.ActivityInputTest`; assertion order,
+station-calendar trust evidence, malformed-context gating, and async execution
+are unchanged. The parent fell from 16,502 to 16,183 lines and the new focused
+module is 325 lines. All 113 Cadence import test names remain unique across the
+parent and three extracted modules.
 
 Verification gaps:
-- Not yet verified.
+- Full repository suite not run; this is a mechanical test-only extraction.
 
 Last completed slice:
-Cadence-import candidate-rejection test-family extraction published as
-`abc57076`: two byte-identical tests moved into a 200-line focused module,
-shrinking the parent from 16,696 to 16,502 lines. The focused module passed 2/2,
-the parent 107/107, and the full Cadence family remained 113/113; format, diff
-hygiene, and bounded review were clean.
+Cadence-import activity-input test-family extraction, publication pending: the
+focused module passed 5/5 and the parent passed 102/102; with prior extracted
+modules, the complete Cadence family remains 113/113 with no duplicate names.
+Format, diff hygiene, helper-independence checks, and bounded review were clean.
 
 Blocked:
 No.
