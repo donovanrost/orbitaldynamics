@@ -77,9 +77,15 @@ and lazy, duplicate resolvers were removed, schema exports stayed byte-identical
 25/25 focused tests passed, and bounded review found no blocker.
 
 Next candidate:
-After this three-owner boundary is proven, reassess the remaining largest
-`Schema` callback lists. Do not force provider manifests onto unrelated
-validator callback registries.
+The remaining largest `Schema` spans are already explicit validator callback
+manifests; do not relocate them for line count alone. Return to the unresolved
+primary production hotspot, `lib/orbital_dynamics/campaign_planner.ex` (4,602
+lines). Map the V1 `build/2` artifact-assembly tail against the existing
+`RepairArtifact` and `StrategyArtifact` pattern. A likely bounded owner is
+`CampaignPlanner.BuildArtifact`: it should receive already-computed planning
+components, construct the exact V1 map, and own operator-review,
+cadence-import, readiness, and quality-gate attachment without changing
+`CampaignPlanner.build/2`, output ordering/content, timestamps, or IDs.
 
 Blocked:
 No.
