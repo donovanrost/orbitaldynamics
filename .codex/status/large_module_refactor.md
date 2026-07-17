@@ -9,10 +9,10 @@ Current slice:
 Contact-contention fixture mapping.
 
 Status:
-Ready for next slice selection.
+Ready for implementation.
 
 Selected slice:
-No implementation selected yet. The next bounded candidate is to move
+Move
 `contact_filter_report.v1`, `contact_contention_report.v1`,
 `contact_contention_report.cross_station_spacecraft`,
 `contact_contention_resolution_report.v1`, and
@@ -58,39 +58,21 @@ and the complete facade remainder stay exact, focused and full validation tests
 pass, and bounded review finds no blocker.
 
 Verification gaps:
-- Next candidate still requires a selection baseline before implementation.
+- Implementation and post-move verification pending.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
   `a94507226596cd944ac21994c7889549ec58ecd1fcc0db5c65fa4e55b0f53ef2`,
   and sorted-key digest
   `b0007d04e4154fe879519a4f2b074fe3f9d0d649f3049d5d848264e105d00732`.
-- Selected two-fixture map: deterministic digest
-  `d6e0eb517519cbe6cb0b2a0770231ca48709e9b7c1798b85a55ec235c0e88b5a`.
-- Exact 193-entry remainder: deterministic digest
-  `b512254e64e877a6cf42b2933a733de83eff74b903369c74b839d0eb887ae458`.
-- Contiguous source boundary confirmed at facade lines 216-445, followed by
-  `contact_filter_report.v1`, with no facade helper-attribute dependency in the
-  selected literals.
-- Normalized-AST proof against selection commit `ae0708d6`: both moved literals,
-  the following contact-filter report, and the complete 68-entry facade
-  remainder are exact; the new leaf owns only the intended two keys.
-- Post-move exact proof: the 195-entry map, sorted-key digest, selected
-  two-fixture digest, and exact 193-entry remainder digest all match their
-  selection baselines.
-- Source partition proof: 35 maps total 195 entries, the new leaf owns two, the
-  facade owns 68, all 595 pairwise intersections are empty, and the source key
-  union exactly matches the runtime map.
-- Facade proof: all 195 successful `fetch/1` results, missing-key `:error`, and
-  nonbinary `FunctionClauseError` behavior remain unchanged.
-- Focused provider-capacity-pack/facade validation: 14 tests passed.
-- Full validation family: 181 tests passed.
-- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
-  xref caller checks passed.
-- Independent bounded review against selection commit `ae0708d6` was clean:
-  the contiguous source range and complete facade remainder are normalized-AST
-  exact, all runtime and partition invariants reproduced, dependency direction
-  remains one-way, and focused/full tests and hygiene gates passed.
+- Selected five-fixture map: deterministic digest
+  `ee14e627521262933776cc726d840ec649662ad80004952c75afd38c133ef879`.
+- Exact 190-entry remainder: deterministic digest
+  `83a23ef655563659f24a8d59eebe3844414fe1bfbb5969fc308cd24b5b19a29b`.
+- Contiguous source boundary confirmed at facade lines 217-534, followed by
+  `relay_data_path_summary.v1`, with no facade helper-attribute dependency in
+  the selected literals.
+- Focused contact-contention/facade selection baseline: 17 tests passed.
 
 Behavior/schema changes:
 None.
