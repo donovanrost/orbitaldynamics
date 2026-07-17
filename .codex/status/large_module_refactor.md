@@ -9,7 +9,7 @@ Current slice:
 Candidate-refresh freshness/budget replay fixture extraction.
 
 Status:
-Publishing implementation.
+Completed and published as `df1f8ef6`.
 
 Selected slice:
 Move the contiguous `freshness_replay` and `refresh_budget_replay` fixtures into
@@ -89,15 +89,17 @@ The facade fell from 12,063 to 11,932 lines, while the extracted family is 141
 lines.
 
 Last completed slice:
-Candidate-refresh base reference-fixture extraction published as `27e1dc2e`:
-the two exact checked-in base fixtures moved behind the unchanged facade, all
-19 replay fixtures stayed exact, the 195-entry map and deterministic bytes
-stayed exact, 181 validation tests passed, and bounded review was clean.
+Candidate-refresh freshness/budget fixture extraction published as `df1f8ef6`:
+the two exact replay fixtures moved behind the unchanged facade, their
+neighbors and remainder stayed exact, the 195-entry map and deterministic
+bytes stayed exact, 181 validation tests passed, and bounded review was clean.
 
 Next candidate:
-After this boundary, map the station-calendar/contact-allocation pair against
-`candidate_refresh_station_allocation_replay_fixture_test.exs` and verify
-whether either value uses facade helper attributes.
+Extract the contiguous station-calendar and contact-allocation contradiction
+replays into one family. The 205-line pair has no helper-attribute coupling,
+shares dedicated
+`candidate_refresh_station_allocation_replay_fixture_test.exs` ownership, and
+stops before contact-contention; re-baseline before selecting.
 
 Blocked:
 No.
