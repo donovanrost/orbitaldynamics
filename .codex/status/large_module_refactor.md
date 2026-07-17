@@ -9,7 +9,7 @@ Current slice:
 Schema refresh-budget callback ownership mapping.
 
 Status:
-Ready for implementation.
+Publishing.
 
 Selected slice:
 Point the standalone `refresh_budget_report.v1` contract pipe directly at
@@ -53,7 +53,7 @@ exact, generated and checked-in schema bytes do not change, focused and
 complete schema/export tests pass, and bounded review finds no blocker.
 
 Verification gaps:
-- Implementation and post-change verification pending.
+None.
 
 Tests run:
 - Source baseline: `validate_refresh_budget_report/3` appears exactly once as
@@ -67,12 +67,34 @@ Tests run:
   across 15,506,740 bytes.
 - Checked-in `schemas/orbital_dynamics.schema_bundle.v1.json` digest:
   `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`.
+- Source proof against selection commit `cfddc30a`: the standalone
+  refresh-budget pipe retains its `require_fields` stage and now ends directly
+  at `RefreshBudgetReportContracts.validate/3`; the private facade delegate is
+  absent and no other facade call site remains.
+- Focused `candidate_refresh_contracts_test.exs`: 10 tests passed with warnings
+  as errors.
+- Complete schema-contract and schema-export suite: 182 tests passed with
+  warnings as errors.
+- Generated bundle remains exactly 121 schemas, 15,506,740 bytes, and digest
+  `543dbe11bc75f1397dd15dbd10cabd219ae2e46ac1e16d38b810a99befb8cec3`.
+- Full checked-in schema export regeneration completed with no schema diff;
+  aggregate bundle digest remains
+  `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`.
+- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
+  xref caller checks passed.
+- Independent bounded review against selection commit `cfddc30a` was clean:
+  exact pipeline and argument equivalence, unchanged refresh-budget owner, 10
+  focused and 182 complete tests, generated and checked bundle digests, all 122
+  generated export files byte-matched, strict compile, xref, formatting, sizes,
+  ledger, and diff hygiene matched the recorded evidence.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-No refresh-budget callback implementation has started.
+The standalone refresh-budget contract pipe now calls the established owner
+directly and the pure facade delegate is gone. `schema.ex` decreased from 7,983
+to 7,975 lines.
 
 Last completed slice:
 Remaining-horizon callback cleanup published as `d9717806`: the standalone

@@ -5727,7 +5727,7 @@ defmodule OrbitalDynamics.Schema do
   defp validate_contract(@refresh_budget_report, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_refresh_budget_report("$", artifact)
+    |> OrbitalDynamics.Schema.RefreshBudgetReportContracts.validate("$", artifact)
   end
 
   defp validate_contract(@refreshed_window, contract, artifact) do
@@ -6724,14 +6724,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp validate_optional_freshness_report(issues, path, report) do
     OrbitalDynamics.Schema.FreshnessReportContracts.validate_optional(
-      issues,
-      path,
-      report
-    )
-  end
-
-  defp validate_refresh_budget_report(issues, path, report) do
-    OrbitalDynamics.Schema.RefreshBudgetReportContracts.validate(
       issues,
       path,
       report
