@@ -6,36 +6,38 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Validation link-capacity fixture test-family extraction.
+Validation decision-support fixture test-family extraction.
 
 Status:
-Published as `5f85ad6e`.
+Selected.
 
 Selected slice:
-Move the three contiguous link-capacity report, link-capacity summary, and
-relay data-path summary fixture tests into a focused module with one shared
+Move the three contiguous maneuver-review, Monte Carlo reproducibility, and
+Pareto-frontier report fixture tests into a focused module with one shared
 builder owner.
 
 Why this slice:
-After the contact contention split, `validation_test.exs` is 12,095 lines.
-Tests 7,119-7,424 form a coherent link-capacity-to-relay family and end before
-maneuver-review fixtures. Their six observation/raw builders form one closure;
-only observation builders remain needed by the deterministic aggregate.
+After the link-capacity split, `validation_test.exs` is 11,769 lines. Tests
+7,126-7,430 form a coherent decision-support evidence family and end before
+resource-projection fixtures. Their six observation/raw builders form one
+closure; only observation builders remain needed by the deterministic
+aggregate.
 
 Public facade to preserve:
 `OrbitalDynamics.Validation.reference_fixture/1`,
-`verify_reference_fixture/2`, `artifact_observations/2`, exact link capacity,
-relay path, stale-data coverage, and deterministic reports.
+`verify_reference_fixture/2`, `artifact_observations/2`, exact maneuver review,
+reproducibility, Pareto analysis, stale-data coverage, and deterministic
+reports.
 
 Likely files:
 - `test/orbital_dynamics/validation_test.exs`
-- `test/orbital_dynamics/validation/link_capacity_fixture_test.exs`
-- `test/support/validation/link_capacity_fixtures.ex`
+- `test/orbital_dynamics/validation/decision_support_fixture_test.exs`
+- `test/support/validation/decision_support_fixtures.ex`
 - `test/test_helper.exs`
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
-- extracted link-capacity fixture module directly
+- extracted decision-support fixture module directly
 - remaining validation test ledger
 - format, diff hygiene, and bounded review
 
@@ -45,15 +47,10 @@ shared builders have one exact owner, focused and parent files pass, names remai
 unique, and bounded review finds no blocker.
 
 Outcome:
-Three byte-identical link-capacity family tests moved into a 321-line focused
-module. Six observation/raw builders now have one 38-line shared support owner;
-the parent imports only the three aggregate observation builders, with no
-private residue. The parent fell from 12,095 to 11,769 lines. Total
-test/support/loader LOC grew by 34 lines for explicit ownership without helper
-duplication. All 181 Validation test names remain unique.
+Pending.
 
 Verification gaps:
-- Full repository suite not run; this is a test-only ownership extraction.
+- Pending.
 
 Last completed slice:
 Validation link-capacity fixture extraction published as `5f85ad6e`: the
