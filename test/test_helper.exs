@@ -11,3 +11,4 @@ Code.require_file("support/validation/timeline_activity_state_fixtures.ex", __DI
 Code.require_file("support/validation/timeline_preservation_fixtures.ex", __DIR__)
 Code.require_file("support/validation/timeline_transition_fixtures.ex", __DIR__)
 Code.require_file("support/validation/timeline_handoff_fixtures.ex", __DIR__)
+Code.require_file("support/validation/operational_planning_fixtures.ex", __DIR__)
