@@ -6,20 +6,23 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema quality-gate summary callback ownership cleanup.
+Schema handoff-field callback ownership cleanup.
 
 Status:
-Completed and published.
+Ready for implementation.
 
 Selected slice:
-Point the operator-review package quality-gate summary capture directly at
-`Schema.QualityGateHandoffContracts.validate_summary/3`, then remove the pure
-`Schema` facade delegate.
+Point observation-quality, feedback-maneuver, link, completion-fraction,
+station-capacity, eclipse-lighting, thermal, and resource-availability callback
+captures directly at `Schema.HandoffFieldContracts`. Remove the eight pure
+facade delegates across twenty-three callback positions.
 
 Why this slice:
-The single callback already matches the owner’s public three-argument API and
-the facade helper only forwards its arguments unchanged. Keeping this isolated
-preserves a minimal owner-bounded review surface.
+All eight owner APIs already expose the exact three-argument validation
+pipelines. Their facade functions only forward arguments, while the twenty-three
+captures span three stable callback bags without specialized facade behavior.
+The contact-allocation evidence path remains separate because it still depends
+on facade-owned domain callbacks.
 
 Public facade to preserve:
 All `OrbitalDynamics.Schema` public functions, exact validation issue ordering,
@@ -36,30 +39,16 @@ Likely verification:
 - strict compile, format, xref, diff hygiene, and bounded review
 
 Definition of done:
-The selected capture points directly to the quality-gate owner, the pure facade
-delegate is gone, validation ordering remains exact, validation and schema
-exports remain byte-for-byte stable, focused tests pass, and bounded review
-finds no blocker.
+All twenty-three selected captures point directly to `HandoffFieldContracts`,
+the eight pure facade delegates are gone, callback list positions and issue
+ordering remain exact, validation and schema exports remain byte-for-byte
+stable, focused tests pass, and bounded review finds no blocker.
 
 Verification gaps:
-- None for this slice.
+- Implementation and verification pending.
 
 Tests run:
-- `mix compile --warnings-as-errors`
-- 14 focused operator-review and quality-gate tests
-- 182 complete schema-contract and schema-export tests
-- full checked-in schema export regeneration; no schema diff
-- aggregate schema bundle digest unchanged:
-  `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`
-- `mix format --check-formatted`
-- `git diff --check`
-- compile-connected xref check for `schema.ex`
-- bounded read-only review: clean, no findings
-
-Outcome:
-The quality-gate summary capture now points directly to
-`QualityGateHandoffContracts`. The pure facade delegate is gone and `schema.ex`
-decreased from 8,217 to 8,210 lines.
+- Selection only; implementation verification pending.
 
 Behavior/schema changes:
 None.
@@ -71,9 +60,10 @@ delegate was removed, 182 schema/export tests passed, full export bytes stayed
 exact, and bounded review was clean.
 
 Next candidate:
-Remap the remaining local callback captures by owner and capture count. Separate
-pure delegates from callback-injected functions such as contact-allocation
-evidence validation before selecting the next bounded responsibility.
+After this boundary, map the remaining local `BranchEventContracts` and
+candidate-diff callback delegates by capture count. Continue to defer
+contact-allocation evidence until its shared domain callback ownership has a
+cohesive extraction boundary.
 
 Blocked:
 No.
