@@ -9,7 +9,7 @@ Current slice:
 Schema optimization-handoff callback ownership cleanup.
 
 Status:
-Completed and verified; publishing.
+Completed and published.
 
 Selected slice:
 Point the constraint, objective-satisfaction, score-term, and
@@ -69,16 +69,17 @@ Behavior/schema changes:
 None.
 
 Last completed slice:
-Campaign-planner branch event/state application published as `42abcf65`: plan
-and realized event pipelines, capacity/station matching, degradation, and state
-merge helpers now live in one cohesive internal module, 64 focused/regression
-tests passed, and bounded review found no finding.
+Schema optimization-handoff callback ownership cleanup published as `5013b9d7`:
+all constraint, objective-satisfaction, score-term, and objective-tradeoff
+callback captures now point directly to their existing contract owner; 182
+schema/export tests passed, full export bytes stayed exact, and bounded review
+was clean.
 
 Next candidate:
-Pivot to `schema.ex` and audit the cadence-import row JSON-provider and
-contract-callback clusters. Select only a boundary whose provider/validator
-dependencies can move with it; do not extract the remaining large
-CampaignPlanner orchestration functions through broad callback bags.
+Audit the adjacent policy-plan handoff callback family. Approval-requirement and
+plan-delta general/cadence validators appear to have the same pure-delegate
+shape and an existing `PolicyPlanHandoffContracts` owner; select only after
+confirming all capture counts, exact targets, and fallback clauses.
 
 Blocked:
 No.
