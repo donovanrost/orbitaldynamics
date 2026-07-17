@@ -9,7 +9,7 @@ Current slice:
 Validation candidate-refresh filter/rejection replay test-family extraction.
 
 Status:
-Ready to publish.
+Published as `226a6512`.
 
 Selected slice:
 Move the two contiguous candidate-refresh contact-filter and
@@ -57,11 +57,11 @@ Verification gaps:
 - Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
-Validation candidate-refresh capacity/filter replay extraction published as
-`156760a6`: the focused module passed 2/2, the parent passed 51/51, and all
-thirty-two Validation modules preserved the 181-test aggregate with no duplicate
-names. Format, diff hygiene, exact-source and dependency-closure checks, and
-bounded review were clean.
+Validation candidate-refresh filter/rejection replay extraction published as
+`226a6512`: the focused module passed 2/2, the parent passed 49/49, and all
+thirty-three Validation modules preserved the 181-test aggregate with no
+duplicate names. Format, diff hygiene, exact-source and dependency-closure
+checks, and bounded review were clean.
 
 Next candidate:
 Map the candidate-refresh freshness and refresh-budget replay families following
