@@ -9,7 +9,7 @@ Current slice:
 Cadence-import comparison-report test-family extraction.
 
 Status:
-Implemented, verified, reviewed, and ready to publish.
+Published as `47e08bb7`.
 
 Selected slice:
 Move the adjacent Pareto-frontier and branch/ranking-comparison import tests into
@@ -54,10 +54,15 @@ Verification gaps:
 - Full repository suite not run; this is a mechanical test-only extraction.
 
 Last completed slice:
-Cadence-import comparison-report test-family extraction, publication pending:
+Cadence-import comparison-report test-family extraction published as `47e08bb7`:
 the focused module passed 2/2 and the parent passed 96/96; across all six modules
 the complete family remains 113/113 with no duplicate names. Format, diff
 hygiene, helper-independence checks, and bounded review were clean.
+
+Next candidate:
+Refresh the 19,372-line `validation_test.exs` family inventory and select a
+multi-test, helper-independent contract seam; avoid extracting isolated tests or
+merely continuing by adjacency in the Cadence ledger.
 
 Blocked:
 No.
