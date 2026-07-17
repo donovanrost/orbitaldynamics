@@ -9,7 +9,7 @@ Current slice:
 Validation state-and-maneuver fixture test-family extraction.
 
 Status:
-Verified and reviewed; ready to publish.
+Published as `ae06ce20`.
 
 Selected slice:
 Move the five contiguous spacecraft-state-estimate, realized-state-snapshot,
@@ -57,8 +57,8 @@ Verification gaps:
 - Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
-Validation contact-window fixture extraction published as `3b06e3fa`: the
-focused module passed 4/4, the parent passed 136/136, and all eight Validation
+Validation state-and-maneuver fixture extraction published as `ae06ce20`: the
+focused module passed 5/5, the parent passed 131/131, and all nine Validation
 modules preserved the 181-test aggregate with no duplicate names. Format, diff
 hygiene, dependency-closure checks, and bounded review were clean.
 
