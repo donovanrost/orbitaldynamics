@@ -9,7 +9,7 @@ Current slice:
 Quality-gate fixture mapping.
 
 Status:
-Ready for implementation.
+Publishing.
 
 Selected slice:
 Move
@@ -56,7 +56,7 @@ and the complete facade remainder stay exact, focused and full validation tests
 pass, and bounded review finds no blocker.
 
 Verification gaps:
-- Implementation and post-move verification pending.
+None.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -70,13 +70,35 @@ Tests run:
 - Contiguous source boundary confirmed at facade lines 287-909, followed by
   `station_calendar_report.stale_provider_reservation_hold`, with no facade
   helper-attribute dependency in the selected literals.
-- Focused quality-gate/facade selection baseline: 20 tests passed.
+- Normalized-AST proof against selection commit `dd6a2493`: all seven moved
+  literals, the following stale station-calendar fixture, and the complete
+  15-entry facade remainder are exact; the new leaf owns only the intended
+  seven keys.
+- Post-move exact proof: the 195-entry map, sorted-key digest, selected
+  seven-fixture digest, and exact 188-entry remainder digest all match their
+  selection baselines.
+- Source partition proof: 46 maps total 195 entries, the new leaf owns seven,
+  the facade owns 15, all 1,035 pairwise intersections are empty, and the source
+  key union exactly matches the runtime map.
+- Facade proof: all 195 successful `fetch/1` results, missing-key `:error`, and
+  nonbinary `FunctionClauseError` behavior remain unchanged.
+- Focused quality-gate/facade validation: 20 tests passed.
+- Full validation family: 181 tests passed.
+- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
+  xref caller checks passed.
+- Independent bounded review against selection commit `dd6a2493` was clean:
+  normalized AST, all four deterministic digests, the 46-map disjoint source
+  partition, facade behavior, one-way xref dependency, focused 20-test gate,
+  full 181-test gate, formatting, and diff hygiene all matched the recorded
+  evidence.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-No quality-gate implementation has started.
+The exact seven-fixture quality-gate family now lives in a new cohesive leaf
+behind the unchanged facade. The facade shrank from 1,861 to 1,240 lines; the
+new leaf is 631 lines and owns exactly seven fixtures.
 
 Last completed slice:
 Operational-readiness extraction published as `848499d8`: the exact
