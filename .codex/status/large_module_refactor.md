@@ -9,7 +9,7 @@ Current slice:
 Cadence-import-row primitive callback-boundary collapse.
 
 Status:
-Selected; implementation not started.
+Implemented, verified, reviewed, and ready to publish.
 
 Selected slice:
 Replace the 11 shared primitive entries in the Cadence-import-row callback bag
@@ -48,18 +48,24 @@ messages and ordering remain stable, focused/broader/export checks pass, and
 bounded review finds no blocker.
 
 Outcome:
-Pending.
+All 11 shared primitive callback entries and 90 generic lookup/apply call routes
+are gone. The owner now imports its primitive and stable-ID dependencies
+directly, while the 131 genuinely contextual domain callbacks remain exact and
+complete (131 consumed and 131 supplied). Four newly orphaned Schema imports
+also disappeared. `schema.ex` fell from 10,100 to 10,085 lines; the explicit
+owner import boundary raised the owner from 713 to 729, for a neutral one-line
+overall change but substantially less runtime indirection and clearer ownership.
 
 Verification gaps:
-- Not yet verified.
+- Full repository suite not run. The broader regression remains at the
+  baseline-proven 1,340/1,345 result with the same five unrelated
+  campaign-planner failures.
 
 Last completed slice:
-Operator-review-package callback and metadata ownership collapse published as
-`03a8a709`: `schema.ex` fell from 10,179 to 10,100 lines and the owner from 339
-to 297, for a net code reduction of 121 lines. Two hundred one focused and 24
-export tests passed; the broader suite produced the baseline-proven 1,340/1,345
-result. Compile, checked-in export regeneration, compile-connected xref, format,
-diff hygiene, and bounded re-review were clean.
+Cadence-import-row primitive callback-boundary collapse, publication pending:
+307 focused and 24 export tests passed; the broader suite produced the
+baseline-proven 1,340/1,345 result. Compile, checked-in export regeneration,
+compile-connected xref, format, diff hygiene, and bounded review were clean.
 
 Blocked:
 No.

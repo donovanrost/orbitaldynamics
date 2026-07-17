@@ -18,10 +18,8 @@ defmodule OrbitalDynamics.Schema do
     only: [
       error: 2,
       expect_equal: 5,
-      expect_field_at_least: 5,
       expect_field_equals: 6,
       expect_one_of: 5,
-      expect_optional_integer: 4,
       expect_optional_non_negative_integer: 4,
       expect_optional_number: 4,
       expect_optional_one_of: 5,
@@ -29,9 +27,7 @@ defmodule OrbitalDynamics.Schema do
       expect_optional_type: 5,
       expect_type: 5,
       require_fields: 4,
-      require_nested: 4,
-      validate_number_list_items: 4,
-      validate_string_list_items: 4
+      require_nested: 4
     ]
 
   import OrbitalDynamics.Schema.CollectionValidation,
@@ -8254,16 +8250,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp cadence_import_row_contract_callbacks do
     [
-      require_fields: &require_fields/4,
-      validate_stable_ids: &validate_stable_ids/4,
-      expect_optional_integer: &expect_optional_integer/4,
-      expect_one_of: &expect_one_of/5,
-      expect_optional_one_of: &expect_optional_one_of/5,
-      expect_optional_type: &expect_optional_type/5,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
-      expect_field_at_least: &expect_field_at_least/5,
-      validate_number_list_items: &validate_number_list_items/4,
       validate_station_calendar_handoff_count_lists:
         &validate_station_calendar_handoff_count_lists/3,
       validate_contact_allocation_capacity_pack_group:
@@ -8282,7 +8268,6 @@ defmodule OrbitalDynamics.Schema do
       validate_eclipse_lighting_handoff_fields: &validate_eclipse_lighting_handoff_fields/3,
       validate_thermal_handoff_fields: &validate_thermal_handoff_fields/3,
       validate_branch_event_summary_fields: &validate_branch_event_summary_fields/3,
-      expect_optional_number: &expect_optional_number/4,
       validate_semantic_change_details: &validate_semantic_change_details/3,
       validate_candidate_diff_changed_fields: &validate_candidate_diff_changed_fields/3,
       validate_optional_policy_decision_evidence: &validate_optional_policy_decision_evidence/3,
