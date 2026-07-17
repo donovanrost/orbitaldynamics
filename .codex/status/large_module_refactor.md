@@ -77,8 +77,10 @@ merge helpers now live in one cohesive internal module, 64 focused/regression
 tests passed, and bounded review found no finding.
 
 Next candidate:
-After this slice, refresh the live CampaignPlanner hotspot and select another
-explicit cluster only if it improves ownership without widening callbacks.
+Pivot to `schema.ex` and audit the cadence-import row JSON-provider and
+contract-callback clusters. Select only a boundary whose provider/validator
+dependencies can move with it; do not extract the remaining large
+CampaignPlanner orchestration functions through broad callback bags.
 
 Blocked:
 No.
