@@ -6,10 +6,10 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema plan-delta callback ownership mapping.
+Schema plan-delta callback ownership handoff.
 
 Status:
-Ready for publication.
+Published as `fb837511`.
 
 Selected slice:
 Point both facade uses of `validate_plan_delta/3` directly at
@@ -66,7 +66,10 @@ to 7,887 lines, corrected focused 8 and complete 182 tests passed, all 122
 exports byte-matched, and bounded review was clean.
 
 Next candidate:
-After review and publication, continue the robust exact-signature inventory.
+Map the cohesive provider-counteroffer summary family: standalone review,
+import-readiness, and plan-impact pipes each have a single pure exact-signature
+facade delegate to `ProviderCounterofferSummaryContracts`. Confirm all bare-name
+caller counts and use the focused station-provider contracts before selection.
 
 Blocked:
 No.
