@@ -2403,36 +2403,24 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp json_schema_property(
-         field,
-         @operational_import_eligibility_summary = contract_name,
-         contract
-       ) do
-    focused_json_schema_property(
+  defp json_schema_property(field, contract_name, contract)
+       when contract_name in [
+              @operational_import_eligibility_summary,
+              @operational_readiness_gate_summary,
+              @operational_execution_boundary_summary
+            ] do
+    OrbitalDynamics.Schema.OperationalReadinessGateSummaryPropertyDispatch.property(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.OperationalImportEligibilitySummaryJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.OperationalImportEligibilitySummaryJsonSchema.property_fun_from_context(
-        capability: OrbitalDynamics.OperationalReadiness.capabilities(),
-        gate_schema: operational_readiness_gate_json_schema(),
-        model_limits: operational_import_eligibility_summary_model_limits()
-      )
-    )
-  end
-
-  defp json_schema_property(field, @operational_readiness_gate_summary = contract_name, contract) do
-    focused_json_schema_property(
-      field,
-      contract_name,
-      contract,
-      &OrbitalDynamics.Schema.OperationalReadinessGateSummaryJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.OperationalReadinessGateSummaryJsonSchema.property_fun_from_context(
-        capability: OrbitalDynamics.OperationalReadiness.capabilities(),
-        gate_schema: operational_readiness_gate_json_schema(),
-        model_limits: operational_readiness_gate_summary_model_limits(),
-        stable_id_pattern: @stable_id_pattern
-      )
+      capability: &OrbitalDynamics.OperationalReadiness.capabilities/0,
+      gate_schema: &operational_readiness_gate_json_schema/0,
+      import_eligibility_model_limits: &operational_import_eligibility_summary_model_limits/0,
+      readiness_gate_model_limits: &operational_readiness_gate_summary_model_limits/0,
+      execution_boundary_model_limits: &operational_execution_boundary_summary_model_limits/0,
+      stable_id_pattern: @stable_id_pattern,
+      string_array_schema: &string_array_schema/0,
+      default_property: &default_json_schema_property/3
     )
   end
 
@@ -2469,25 +2457,6 @@ defmodule OrbitalDynamics.Schema do
       import_readiness_model_limits: &quality_gate_import_readiness_summary_model_limits/0,
       stable_id_pattern: @stable_id_pattern,
       default_property: &default_json_schema_property/3
-    )
-  end
-
-  defp json_schema_property(
-         field,
-         @operational_execution_boundary_summary = contract_name,
-         contract
-       ) do
-    focused_json_schema_property(
-      field,
-      contract_name,
-      contract,
-      &OrbitalDynamics.Schema.OperationalExecutionBoundarySummaryJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.OperationalExecutionBoundarySummaryJsonSchema.property_fun_from_context(
-        capability: OrbitalDynamics.OperationalReadiness.capabilities(),
-        gate_schema: operational_readiness_gate_json_schema(),
-        model_limits: operational_execution_boundary_summary_model_limits(),
-        string_array_schema: string_array_schema()
-      )
     )
   end
 
