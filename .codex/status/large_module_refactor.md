@@ -6,23 +6,22 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema handoff-field callback ownership cleanup.
+Schema candidate-diff callback ownership cleanup.
 
 Status:
-Completed and published.
+Ready for implementation.
 
 Selected slice:
-Point observation-quality, feedback-maneuver, link, completion-fraction,
-station-capacity, eclipse-lighting, thermal, and resource-availability callback
-captures directly at `Schema.HandoffFieldContracts`. Remove the eight pure
-facade delegates across twenty-three callback positions.
+Point semantic-change details, changed-fields, optional-source-window, and
+optional-source-window-lineage callbacks directly at
+`Schema.CandidateDiffContracts`. Remove the four pure facade delegates across
+fourteen callback positions.
 
 Why this slice:
-All eight owner APIs already expose the exact three-argument validation
-pipelines. Their facade functions only forward arguments, while the twenty-three
-captures span three stable callback bags without specialized facade behavior.
-The contact-allocation evidence path remains separate because it still depends
-on facade-owned domain callbacks.
+The owner already exposes exact `/3` semantic and changed-field validators plus
+exact `/4` optional field validators. The facade functions only forward their
+arguments, and all fourteen uses can retain their current callback or positional
+argument order without an owner API change.
 
 Public facade to preserve:
 All `OrbitalDynamics.Schema` public functions, exact validation issue ordering,
@@ -39,31 +38,16 @@ Likely verification:
 - strict compile, format, xref, diff hygiene, and bounded review
 
 Definition of done:
-All twenty-three selected captures point directly to `HandoffFieldContracts`,
-the eight pure facade delegates are gone, callback list positions and issue
-ordering remain exact, validation and schema exports remain byte-for-byte
-stable, focused tests pass, and bounded review finds no blocker.
+All fourteen selected positions point directly to `CandidateDiffContracts`, the
+four pure facade delegates are gone, field arguments, callback list positions,
+and issue ordering remain exact, validation and schema exports remain
+byte-for-byte stable, focused tests pass, and bounded review finds no blocker.
 
 Verification gaps:
-- None for this slice.
+- Implementation and verification pending.
 
 Tests run:
-- `mix compile --warnings-as-errors`
-- 107 focused cadence-import, review-import, and operator-review tests
-- 182 complete schema-contract and schema-export tests
-- full checked-in schema export regeneration; no schema diff
-- aggregate schema bundle digest unchanged:
-  `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`
-- `mix format --check-formatted`
-- `git diff --check`
-- compile-connected xref check for `schema.ex`
-- bounded read-only review: clean, no findings
-
-Outcome:
-All twenty-three selected captures now point directly to
-`HandoffFieldContracts`. Eight pure facade delegates were removed across the
-three callback bags, whose key order remains exact, and `schema.ex` decreased
-from 8,210 to 8,166 lines.
+- Selection only; implementation verification pending.
 
 Behavior/schema changes:
 None.
@@ -75,10 +59,8 @@ facade delegates were removed, 182 schema/export tests passed, full export
 bytes stayed exact, and bounded review was clean.
 
 Next candidate:
-Point four candidate-diff families directly at `CandidateDiffContracts`:
-semantic details (three captures), changed fields (three), optional source
-window (five), and optional lineage (three). Remove the four pure facade
-delegates while preserving the existing four-argument field callbacks.
+After this boundary, audit `BranchEventContracts.validate_summary_fields/3`
+and the remaining scoped-context delegates by owner and capture count.
 
 Blocked:
 No.
