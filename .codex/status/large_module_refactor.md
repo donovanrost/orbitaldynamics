@@ -9,7 +9,7 @@ Current slice:
 Provider-counteroffer-summary callback collapse.
 
 Status:
-Selected; implementation pending.
+Complete and ready to publish.
 
 Selected slice:
 Make all three `ProviderCounterofferSummaryContracts` entry points direct through
@@ -45,7 +45,16 @@ aggregation preserves exact behavior; focused, broader, and export checks pass;
 and bounded review finds no blocker.
 
 Outcome:
-Pending.
+All three summary validators now use direct primitive, stable-ID, collection,
+aggregation, and report-row owners plus exact local reducers. The 27-entry
+factory and 12 orphan Schema aggregation/row forwarders are gone; the report
+model helper remains for JSON-schema generation. `schema.ex` fell from 11,297
+to 11,185 lines and the summary owner from 783 to 669. Two hundred four focused,
+1,340 attributable broader, and 24 export tests pass; compile, checked-in
+regeneration, compile-connected xref within its existing three-edge threshold,
+format, and diff hygiene are clean. Bounded review found no blocker and
+confirmed all three pipelines, messages, aggregation edge cases, row behavior,
+caller arities, orphan cleanup, and retained JSON-schema ownership.
 
 Verification gaps:
 - Full repository suite not run.

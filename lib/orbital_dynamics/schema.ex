@@ -7280,38 +7280,6 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp provider_counteroffer_report_contract_callbacks do
-    [
-      require_fields: &require_fields/4,
-      validate_stable_ids: &validate_stable_ids/4,
-      expect_equal: &expect_equal/5,
-      expect_one_of: &expect_one_of/5,
-      expect_optional_one_of: &expect_optional_one_of/5,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_non_negative_integer: &expect_non_negative_integer/4,
-      expect_number: &expect_number/4,
-      expect_optional_number: &expect_optional_number/4,
-      expect_field_equals: &expect_field_equals/5,
-      expect_field_equals_with_message: &expect_field_equals/6,
-      validate_non_negative_integer_count_map: &validate_non_negative_integer_count_map/3,
-      validate_stable_id_array_map: &validate_stable_id_array_map/3,
-      validate_stable_id_list: &validate_stable_id_list/3,
-      validate_rows: &validate_rows/4,
-      provider_counteroffer_numeric_value_count: &provider_counteroffer_numeric_value_count/2,
-      provider_counteroffer_numeric_value_sum: &provider_counteroffer_numeric_value_sum/2,
-      provider_counteroffer_numeric_value_min: &provider_counteroffer_numeric_value_min/2,
-      provider_counteroffer_numeric_rows: &provider_counteroffer_numeric_rows/2,
-      provider_counteroffer_timing_shift_rows: &provider_counteroffer_timing_shift_rows/1,
-      provider_counteroffer_stable_ids: &provider_counteroffer_stable_ids/2,
-      provider_counteroffer_ids: &provider_counteroffer_ids/1,
-      provider_counteroffer_ids_by: &provider_counteroffer_ids_by/2,
-      provider_counteroffer_status_count: &provider_counteroffer_status_count/3,
-      validate_provider_counteroffer_row: &validate_provider_counteroffer_row/3,
-      frequency_map: &frequency_map/2
-    ]
-  end
-
   defp validate_nested_execution_report(execution_report),
     do:
       validate_contract(
@@ -8932,20 +8900,11 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validate_provider_counteroffer_row(issues, path, row) do
-    OrbitalDynamics.Schema.ProviderCounterofferReportContracts.validate_row(
-      issues,
-      path,
-      row
-    )
-  end
-
   defp validate_provider_counteroffer_review_summary(issues, path, summary) do
     OrbitalDynamics.Schema.ProviderCounterofferSummaryContracts.validate_review(
       issues,
       path,
-      summary,
-      provider_counteroffer_report_contract_callbacks()
+      summary
     )
   end
 
@@ -8953,8 +8912,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.ProviderCounterofferSummaryContracts.validate_import_readiness(
       issues,
       path,
-      summary,
-      provider_counteroffer_report_contract_callbacks()
+      summary
     )
   end
 
@@ -8962,74 +8920,8 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.ProviderCounterofferSummaryContracts.validate_plan_impact(
       issues,
       path,
-      summary,
-      provider_counteroffer_report_contract_callbacks()
+      summary
     )
-  end
-
-  defp provider_counteroffer_numeric_rows(rows, field) do
-    Enum.filter(rows, fn row -> is_number(Map.get(row, field)) end)
-  end
-
-  defp provider_counteroffer_timing_shift_rows(rows) do
-    Enum.filter(rows, fn row ->
-      Enum.any?(
-        [
-          row["provider_counteroffer_start_delta_s"],
-          row["provider_counteroffer_end_delta_s"],
-          row["provider_counteroffer_duration_delta_s"]
-        ],
-        fn value -> is_number(value) and value != 0.0 end
-      )
-    end)
-  end
-
-  defp provider_counteroffer_ids(rows),
-    do: provider_counteroffer_stable_ids(rows, "provider_counteroffer_id")
-
-  defp provider_counteroffer_stable_ids(rows, field) do
-    rows
-    |> Enum.map(&Map.get(&1, field))
-    |> Enum.filter(&is_binary/1)
-    |> Enum.uniq()
-    |> Enum.sort()
-  end
-
-  defp provider_counteroffer_ids_by(rows, field) do
-    rows
-    |> Enum.group_by(&Map.get(&1, field), &Map.get(&1, "provider_counteroffer_id"))
-    |> Enum.reject(fn {key, _ids} -> is_nil(key) end)
-    |> Map.new(fn {key, ids} ->
-      {key, ids |> Enum.filter(&is_binary/1) |> Enum.uniq() |> Enum.sort()}
-    end)
-  end
-
-  defp provider_counteroffer_status_count(rows, field, status) do
-    Enum.count(rows, &(Map.get(&1, field) == status))
-  end
-
-  defp provider_counteroffer_numeric_value_count(rows, field) do
-    rows
-    |> provider_counteroffer_numeric_values(field)
-    |> length()
-  end
-
-  defp provider_counteroffer_numeric_value_sum(rows, field) do
-    rows
-    |> provider_counteroffer_numeric_values(field)
-    |> Enum.sum()
-  end
-
-  defp provider_counteroffer_numeric_value_min(rows, field) do
-    rows
-    |> provider_counteroffer_numeric_values(field)
-    |> Enum.min(fn -> nil end)
-  end
-
-  defp provider_counteroffer_numeric_values(rows, field) do
-    rows
-    |> Enum.map(&Map.get(&1, field))
-    |> Enum.filter(&is_number/1)
   end
 
   defp validate_optional_candidate_rejection_report(issues, _path, nil), do: issues
@@ -9644,10 +9536,6 @@ defmodule OrbitalDynamics.Schema do
       row,
       cadence_source_review_row_contract_callbacks()
     )
-  end
-
-  defp frequency_map(rows, field) do
-    OrbitalDynamics.Schema.CollectionAggregation.frequency_map(rows, field)
   end
 
   defp expect_field_equals(issues, path, map, field, nil),
