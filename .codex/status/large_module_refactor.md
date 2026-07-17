@@ -6,10 +6,10 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema shared activity callback ownership mapping.
+Schema shared activity callback ownership handoff.
 
 Status:
-Ready for publication.
+Published as `3184d18f`.
 
 Selected slice:
 Point both callback-bag captures of `validate_activity/3` directly at
@@ -81,8 +81,11 @@ Candidate-activity cleanup published as `07c7cf82`: `schema.ex` shrank from
 byte-matched, and bounded review was clean.
 
 Next candidate:
-After review and publication, map the next pure facade delegate by exact caller
-count, owner signature, and issue-order sensitivity.
+Map the single-use `validate_realized_activity/3` facade delegate. Its only
+caller is the final standalone `realized_activity.v1` pipe stage after
+`require_fields`, and the established owner exposes the exact
+`RealizedActivityContracts.validate/3` implementation. Use focused contact
+feedback contracts for executable behavior coverage.
 
 Blocked:
 No.
