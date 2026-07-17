@@ -9,7 +9,7 @@ Current slice:
 Schema ResourceProjection support callback ownership cleanup.
 
 Status:
-Ready for implementation.
+Completed and verified; publishing.
 
 Selected slice:
 Point report counts, flow-summary counts, two subsystem-assumption callbacks,
@@ -43,10 +43,24 @@ exact, validation and schema exports remain byte-for-byte stable, focused tests
 pass, and bounded review finds no blocker.
 
 Verification gaps:
-- Implementation and verification pending.
+- None for this slice.
 
 Tests run:
-- Selection only; implementation verification pending.
+- `mix compile --warnings-as-errors`
+- 7 focused ResourceProjection and provenance tests
+- 182 complete schema-contract and schema-export tests
+- full checked-in schema export regeneration; no schema diff
+- aggregate schema bundle digest unchanged:
+  `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`
+- `mix format --check-formatted`
+- `git diff --check`
+- compile-connected xref check for `schema.ex`
+- bounded read-only review: clean, no findings
+
+Outcome:
+All five ResourceProjection support positions now point directly to their owner
+contracts. Four pure facade delegates were removed, both positional callback
+pipelines remain exact, and `schema.ex` decreased from 8,125 to 8,093 lines.
 
 Behavior/schema changes:
 None.

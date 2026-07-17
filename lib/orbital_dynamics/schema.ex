@@ -6263,11 +6263,11 @@ defmodule OrbitalDynamics.Schema do
       report,
       resource_projection_report_models(),
       resource_projection_report_model_limits(),
-      &validate_resource_projection_subsystem_model_assumptions/3,
+      &OrbitalDynamics.Schema.ResourceProjectionAssumptionsContracts.validate_subsystem_model_assumptions/3,
       &validate_invalid_resource_summary_input/3,
       &validate_invalid_activity_input/3,
       &validate_resource_projection_row/3,
-      &validate_resource_projection_report_counts/3
+      &OrbitalDynamics.Schema.ResourceProjectionReportCountContracts.validate/3
     )
   end
 
@@ -6277,18 +6277,10 @@ defmodule OrbitalDynamics.Schema do
       path,
       summary,
       resource_projection_report_model_limits(),
-      &validate_resource_projection_subsystem_model_assumptions/3,
-      &validate_resource_projection_flow_summary_projected_resource/3,
+      &OrbitalDynamics.Schema.ResourceProjectionAssumptionsContracts.validate_subsystem_model_assumptions/3,
+      &OrbitalDynamics.Schema.ResourceProjectionFlowProjectedResourceContracts.validate/3,
       &validate_resource_projection_flow_row/3,
-      &validate_resource_projection_flow_summary_counts/3
-    )
-  end
-
-  defp validate_resource_projection_flow_summary_projected_resource(issues, path, row) do
-    OrbitalDynamics.Schema.ResourceProjectionFlowProjectedResourceContracts.validate(
-      issues,
-      path,
-      row
+      &OrbitalDynamics.Schema.ResourceProjectionFlowSummaryCountContracts.validate/3
     )
   end
 
@@ -6923,22 +6915,6 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validate_resource_projection_report_counts(issues, path, report) do
-    OrbitalDynamics.Schema.ResourceProjectionReportCountContracts.validate(
-      issues,
-      path,
-      report
-    )
-  end
-
-  defp validate_resource_projection_flow_summary_counts(issues, path, summary) do
-    OrbitalDynamics.Schema.ResourceProjectionFlowSummaryCountContracts.validate(
-      issues,
-      path,
-      summary
-    )
-  end
-
   defp resource_projection_report_model_limits do
     OrbitalDynamics.ResourceProjection.capabilities()
     |> Map.fetch!(:known_limits)
@@ -6947,14 +6923,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp resource_projection_assumptions_json_schema do
     OrbitalDynamics.Schema.ResourceProjectionReportJsonSchema.assumptions()
-  end
-
-  defp validate_resource_projection_subsystem_model_assumptions(issues, path, artifact) do
-    OrbitalDynamics.Schema.ResourceProjectionAssumptionsContracts.validate_subsystem_model_assumptions(
-      issues,
-      path,
-      artifact
-    )
   end
 
   defp resource_projection_report_models do
