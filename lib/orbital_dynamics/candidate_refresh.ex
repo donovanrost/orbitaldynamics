@@ -205,10 +205,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   commands, select candidates, approve imports, or write to Cadence.
   """
   def command_window_replay_summary(refresh_or_artifact) do
-    ReplaySummary.command_window(
-      refresh_or_artifact,
-      &source_report_summary/1
-    )
+    ReplaySummary.command_window(refresh_or_artifact)
   end
 
   @doc """
@@ -220,10 +217,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   maneuvers, select candidates, approve imports, or write to Cadence.
   """
   def maneuver_review_replay_summary(refresh_or_artifact) do
-    ReplaySummary.maneuver_review(
-      refresh_or_artifact,
-      &source_report_summary/1
-    )
+    ReplaySummary.maneuver_review(refresh_or_artifact)
   end
 
   @doc """

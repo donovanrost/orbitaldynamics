@@ -6,14 +6,13 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ManeuverReview do
 
   alias __MODULE__.Summary
 
-  def replay(refresh_or_artifact, source_report_summary)
-      when is_function(source_report_summary, 1) do
+  def replay(refresh_or_artifact) do
     branch_maneuver_summary = source_report_summary_branch_family(refresh_or_artifact)
 
     maneuver_summary =
       branch_maneuver_summary ||
         refresh_or_artifact
-        |> source_report_summary.()
+        |> SourceReportSummary.build()
         |> get_in(["source_reports", "maneuver_review_report"]) ||
         %{}
 

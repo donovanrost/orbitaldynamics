@@ -89,12 +89,12 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary do
     StationReservation.replay(refresh_or_artifact)
   end
 
-  def command_window(refresh_or_artifact, source_report_summary) do
-    CommandWindow.replay(refresh_or_artifact, source_report_summary)
+  def command_window(refresh_or_artifact) do
+    CommandWindow.replay(refresh_or_artifact)
   end
 
-  def maneuver_review(refresh_or_artifact, source_report_summary) do
-    ManeuverReview.replay(refresh_or_artifact, source_report_summary)
+  def maneuver_review(refresh_or_artifact) do
+    ManeuverReview.replay(refresh_or_artifact)
   end
 
   def contact_intent(refresh_or_artifact) do
