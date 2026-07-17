@@ -1657,47 +1657,30 @@ defmodule OrbitalDynamics.Schema do
 
   defp json_schema_property(
          field,
-         @validation_reference_fixture_report = contract_name,
+         contract_name,
          contract
-       ) do
-    focused_json_schema_property(
+       )
+       when contract_name in [
+              @validation_reference_fixture_report,
+              @validation_reference_report,
+              @validation_record,
+              @validation_check
+            ] do
+    OrbitalDynamics.Schema.ValidationEvidencePropertyDispatch.property(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.ValidationJsonSchema.reference_fixture_report_property_field?/1,
-      OrbitalDynamics.Schema.ValidationJsonSchema.reference_fixture_report_property_fun_from_context(
-        schema_contract: @validation_reference_fixture_report,
-        reference_report_schema: &validation_reference_report_json_schema/0
-      )
-    )
-  end
-
-  defp json_schema_property(field, @validation_reference_report = contract_name, contract) do
-    focused_json_schema_property(
-      field,
-      contract_name,
-      contract,
-      &OrbitalDynamics.Schema.ValidationJsonSchema.reference_report_property_field?/1,
-      OrbitalDynamics.Schema.ValidationJsonSchema.reference_report_property_fun_from_context(
-        schema_contract: @validation_reference_report,
-        stable_id_pattern: @stable_id_pattern,
-        validation_check_schema: &validation_check_json_schema/0,
-        validation_level_schema: &validation_level_json_schema/0
-      )
-    )
-  end
-
-  defp json_schema_property(field, @validation_record = contract_name, contract) do
-    focused_json_schema_property(
-      field,
-      contract_name,
-      contract,
-      &OrbitalDynamics.Schema.ValidationJsonSchema.record_property_field?/1,
-      OrbitalDynamics.Schema.ValidationJsonSchema.record_property_fun_from_context(
-        schema_contract: @validation_record,
-        stable_id_pattern: @stable_id_pattern,
-        validation_level_schema: &validation_level_json_schema/0
-      )
+      contracts: %{
+        reference_fixture_report: @validation_reference_fixture_report,
+        reference_report: @validation_reference_report,
+        record: @validation_record,
+        check: @validation_check
+      },
+      reference_report_schema: &validation_reference_report_json_schema/0,
+      stable_id_pattern: @stable_id_pattern,
+      validation_check_schema: &validation_check_json_schema/0,
+      validation_level_schema: &validation_level_json_schema/0,
+      default_property: &default_json_schema_property/3
     )
   end
 
@@ -1734,18 +1717,6 @@ defmodule OrbitalDynamics.Schema do
           OrbitalDynamics.Validation.capabilities().safety_case_statuses
         end,
         evidence_row_schema: &safety_case_evidence_row_json_schema/0
-      )
-    )
-  end
-
-  defp json_schema_property(field, @validation_check = contract_name, contract) do
-    focused_json_schema_property(
-      field,
-      contract_name,
-      contract,
-      &OrbitalDynamics.Schema.ValidationJsonSchema.check_property_field?/1,
-      OrbitalDynamics.Schema.ValidationJsonSchema.check_property_fun_from_context(
-        schema_contract: @validation_check
       )
     )
   end
