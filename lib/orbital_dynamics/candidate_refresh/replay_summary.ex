@@ -173,12 +173,12 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary do
     QualityGate.replay(refresh_or_artifact)
   end
 
-  def model_acceptance(refresh_or_artifact, source_report_summary) do
-    ModelAcceptance.replay(refresh_or_artifact, source_report_summary)
+  def model_acceptance(refresh_or_artifact) do
+    ModelAcceptance.replay(refresh_or_artifact)
   end
 
-  def validation_safety_case(refresh_or_artifact, source_report_summary) do
-    ValidationSafetyCase.replay(refresh_or_artifact, source_report_summary)
+  def validation_safety_case(refresh_or_artifact) do
+    ValidationSafetyCase.replay(refresh_or_artifact)
   end
 
   def freshness(refresh_or_artifact) do

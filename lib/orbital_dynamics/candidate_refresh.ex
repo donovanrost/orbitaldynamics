@@ -479,10 +479,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   candidates, certify models, approve imports, or write to Cadence.
   """
   def model_acceptance_replay_summary(refresh_or_artifact) do
-    ReplaySummary.model_acceptance(
-      refresh_or_artifact,
-      &source_report_summary/1
-    )
+    ReplaySummary.model_acceptance(refresh_or_artifact)
   end
 
   @doc """
@@ -494,10 +491,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   candidates, certify safety cases, approve imports, or write to Cadence.
   """
   def validation_safety_case_replay_summary(refresh_or_artifact) do
-    ReplaySummary.validation_safety_case(
-      refresh_or_artifact,
-      &source_report_summary/1
-    )
+    ReplaySummary.validation_safety_case(refresh_or_artifact)
   end
 
   @doc """

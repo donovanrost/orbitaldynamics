@@ -6,14 +6,13 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ValidationSafetyCase do
 
   alias __MODULE__.Summary
 
-  def replay(refresh_or_artifact, source_report_summary)
-      when is_function(source_report_summary, 1) do
+  def replay(refresh_or_artifact) do
     branch_safety_case_summary = source_report_summary_branch_family(refresh_or_artifact)
 
     safety_case_summary =
       branch_safety_case_summary ||
         refresh_or_artifact
-        |> source_report_summary.()
+        |> SourceReportSummary.build()
         |> get_in(["source_reports", "validation_safety_case_summary"]) ||
         %{}
 

@@ -6,14 +6,13 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.ModelAcceptance do
 
   alias __MODULE__.Summary
 
-  def replay(refresh_or_artifact, source_report_summary)
-      when is_function(source_report_summary, 1) do
+  def replay(refresh_or_artifact) do
     branch_model_acceptance_summary = source_report_summary_branch_family(refresh_or_artifact)
 
     model_acceptance_summary =
       branch_model_acceptance_summary ||
         refresh_or_artifact
-        |> source_report_summary.()
+        |> SourceReportSummary.build()
         |> get_in(["source_reports", "model_acceptance_report"]) ||
         %{}
 
