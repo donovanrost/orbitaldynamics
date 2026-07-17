@@ -6,67 +6,55 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema operational-feedback callback ownership handoff.
+Schema timeline-publication-context callback ownership mapping.
 
 Status:
-Published as `10967b5f`.
+Ready for implementation.
 
 Selected slice:
-Point the campaign-strategy operational-feedback callback directly at
-`Schema.OperationalFeedbackContracts.validate/3` and remove the pure wrapper.
+Point all four captures of `validate_timeline_publication_context/3` directly at
+`Schema.CandidateRefreshReportContracts.validate_timeline_publication_context/3`
+and remove the pure wrapper.
 
 Why this slice:
-`Schema` remains a 7,853-line hotspot. Broad mapping confirms one callback
-capture plus one pure exact-signature delegate.
+`Schema` remains a 7,845-line hotspot. Broad mapping confirms four captures and
+one exact-signature delegate shared by a cohesive operational-readiness concern.
 
 Public facade to preserve:
-All Schema APIs, campaign-strategy validator argument order, exact issues and
-messages, JSON Schema and checked export bytes, and feedback behavior.
+All Schema APIs, callback argument positions, exact issues/messages, JSON Schema
+and checked export bytes, and readiness/quality-gate publication behavior.
 
 Definition of done:
-The direct callback remains the first strategy-specific validator argument,
-immediately before branch and recommendation callbacks; the wrapper is absent;
-focused/full/schema proof and review remain clean.
+The owner remains the sole gate callback; second evidence callback after
+resource context; final import-readiness callback after model limits; and third
+quality-row callback after both handoff matchers. Wrapper is absent and all
+proof/review remains exact.
 
 Verification gaps:
-None.
+- Implementation and post-change verification pending.
 
 Tests run:
-- Source baseline: one strategy callback capture and one pure delegate.
-- Focused repair/strategy baseline: 2 tests passed with warnings as errors.
+- Source baseline: four captures and one pure delegate at the positions above.
+- Focused operational plus readiness baseline: 11 tests passed with warnings as
+  errors.
 - Generated bundle: 121 schemas, 15,506,740 bytes, digest
   `543dbe11bc75f1397dd15dbd10cabd219ae2e46ac1e16d38b810a99befb8cec3`.
 - Checked bundle digest:
   `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`.
-- Source proof against `d0e908c6`: the direct owner callback remains first
-  before branch/recommendation callbacks and the wrapper is absent.
-- Focused repair/strategy tests: 2 passed; complete schema/export suite: 182
-  passed, all with warnings as errors.
-- Generated bundle remains exact; export regeneration produced no schema diff
-  and checked digest is unchanged.
-- Strict compile, format, xref, and diff hygiene passed.
-- Independent review against `d0e908c6` was clean across callback order,
-  focused 2, complete 182, all 122 exports, digests, strict compile, xref,
-  formatting, sizes, ledger, and hygiene.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-The strategy validator references the established owner directly and wrapper is
-gone. `schema.ex` decreased from 7,853 to 7,845 lines.
+No timeline-publication-context implementation has started.
 
 Last completed slice:
-Provider-counteroffer report cleanup published as `09224bd4`: `schema.ex`
-shrank from 7,861 to 7,853 lines, focused 6 and complete 182 tests passed, all
-122 exports byte-matched, and review was clean.
+Operational-feedback cleanup published as `10967b5f`: `schema.ex` shrank from
+7,853 to 7,845 lines, focused 2 and complete 182 tests passed, all 122 exports
+byte-matched, and review was clean.
 
 Next candidate:
-Map all four captures of `validate_timeline_publication_context/3`: operational
-readiness gate, readiness evidence, quality-gate import-readiness summary, and
-quality-gate row. They delegate exactly to
-`CandidateRefreshReportContracts.validate_timeline_publication_context/3`;
-preserve each surrounding callback position and use operational/readiness tests.
+Implement all four direct captures and remove the wrapper.
 
 Blocked:
 No.
