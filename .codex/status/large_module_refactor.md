@@ -9,7 +9,7 @@ Current slice:
 Schema resource-projection JSON property-dispatch extraction.
 
 Status:
-Review complete; ready to publish.
+Published.
 
 Selected slice:
 Extract property dispatch for resource-projection report and
@@ -52,6 +52,7 @@ preserves contract-to-module routing, focused-field selection, shared
 stable-identity/model-limit/assumptions callbacks, report-only models and
 projection-row callbacks, flow-summary-only activity-flow-row callback, and
 the common fallback. The facade is 9,499 lines; the new dispatcher is 46 lines.
+Implementation published as `b452fa83`.
 
 Verification gaps:
 - `mix compile --warnings-as-errors` passed.
@@ -61,17 +62,21 @@ Verification gaps:
 - Scoped format, diff hygiene, and xref checks passed; xref reports only the
   expected runtime caller from `OrbitalDynamics.Schema`.
 - Bounded read-only review found no blocker or follow-up finding.
+- None for this slice.
 
 Last completed slice:
-Schema filter-report property dispatch published as `6646d27e`: contact and
-resource filter reports now route through one cohesive internal dispatcher, 23
+Schema resource-projection property dispatch published as `b452fa83`: report
+and flow summary now route through one cohesive internal dispatcher, 28
 focused/export tests passed, full regeneration was byte-identical, and bounded
 review found no blocker.
 
 Next candidate:
-Audit one adjacent multi-contract report/property family after this slice is
-published. Leave single-contract neighbors in the facade unless a broader
-cohesive boundary emerges.
+Extract the three adjacent contact-contention report, resolution-report, and
+resolution-summary property clauses into one internal contention dispatcher.
+Preserve contract-sensitive predicates, shared context contract constants,
+stable identity, exact model-limit/assumptions/nested-schema values, common
+fallback, validators, and exact exports. Leave objective-report clauses in the
+facade.
 
 Blocked:
 No.
