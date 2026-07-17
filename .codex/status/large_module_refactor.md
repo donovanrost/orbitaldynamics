@@ -9,7 +9,7 @@ Current slice:
 Validation resource-summary fixture test-family extraction.
 
 Status:
-Verified and reviewed; ready to publish.
+Published as `52815a6d`.
 
 Selected slice:
 Move the three contiguous resource-summary, resource-filter report, and
@@ -57,8 +57,8 @@ Verification gaps:
 - Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
-Validation resource-safety fixture extraction published as `d3b2034a`: the
-focused module passed 2/2, the parent passed 88/88, and all twenty-one
+Validation resource-summary fixture extraction published as `52815a6d`: the
+focused module passed 3/3, the parent passed 85/85, and all twenty-two
 Validation modules preserved the 181-test aggregate with no duplicate names.
 Format, diff hygiene, dependency-closure checks, and bounded review were clean.
 
