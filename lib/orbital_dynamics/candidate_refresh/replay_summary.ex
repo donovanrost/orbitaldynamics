@@ -49,12 +49,12 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary do
     ProviderCounteroffer.replay(refresh_or_artifact, source_report_summary)
   end
 
-  def contact_contention(refresh_or_artifact, source_report_summary) do
-    ContactContention.replay(refresh_or_artifact, source_report_summary)
+  def contact_contention(refresh_or_artifact) do
+    ContactContention.replay(refresh_or_artifact)
   end
 
-  def contact_contention_resolution(refresh_or_artifact, source_report_summary) do
-    ContactContentionResolution.replay(refresh_or_artifact, source_report_summary)
+  def contact_contention_resolution(refresh_or_artifact) do
+    ContactContentionResolution.replay(refresh_or_artifact)
   end
 
   def contact_allocation(refresh_or_artifact) do

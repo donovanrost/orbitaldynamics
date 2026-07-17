@@ -86,10 +86,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   contact allocation, select candidates, approve imports, or write to Cadence.
   """
   def contact_contention_replay_summary(refresh_or_artifact) do
-    ReplaySummary.contact_contention(
-      refresh_or_artifact,
-      &source_report_summary/1
-    )
+    ReplaySummary.contact_contention(refresh_or_artifact)
   end
 
   @doc """
@@ -101,10 +98,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   contact allocation, select candidates, approve imports, or write to Cadence.
   """
   def contact_contention_resolution_replay_summary(refresh_or_artifact) do
-    ReplaySummary.contact_contention_resolution(
-      refresh_or_artifact,
-      &source_report_summary/1
-    )
+    ReplaySummary.contact_contention_resolution(refresh_or_artifact)
   end
 
   @doc """
