@@ -9,7 +9,7 @@ Current slice:
 Validation resource-safety handoff fixture test-family extraction.
 
 Status:
-Verified and reviewed; ready to publish.
+Published as `d3b2034a`.
 
 Selected slice:
 Move the two contiguous resource-projection battery-handoff and stale
@@ -59,10 +59,10 @@ Verification gaps:
 - Full repository suite not run; this is a test-only ownership extraction.
 
 Last completed slice:
-Validation resource-projection fixture extraction published as `385d421e`: the
-focused module passed 2/2, the parent passed 90/90, and all twenty Validation
-modules preserved the 181-test aggregate with no duplicate names. Format, diff
-hygiene, dependency-closure checks, and bounded review were clean.
+Validation resource-safety fixture extraction published as `d3b2034a`: the
+focused module passed 2/2, the parent passed 88/88, and all twenty-one
+Validation modules preserved the 181-test aggregate with no duplicate names.
+Format, diff hygiene, dependency-closure checks, and bounded review were clean.
 
 Next candidate:
 Refresh the adjacent resource-summary and resource-filter report/summary
