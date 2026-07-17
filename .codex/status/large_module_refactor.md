@@ -6,28 +6,29 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Policy-bundle degraded/default variant mapping.
+Policy-bundle domain-authority mapping.
 
 Status:
-Publishing.
+Ready for next slice selection.
 
 Selected slice:
-Move only
-`policy_bundle.degraded_payload_guard` and `policy_bundle.default` into the
-existing `Validation.ReferenceFixtures.PolicyBundleArtifacts` leaf. Stop
-before `policy_bundle.maneuver_authority`.
+No implementation selected yet. The next bounded candidate is to move
+`policy_bundle.maneuver_authority`,
+`policy_bundle.resource_projection_authority`, and
+`policy_bundle.timeline_protection` into the existing
+`Validation.ReferenceFixtures.PolicyBundleArtifacts` leaf. Stop before
+`policy_bundle.organization_adapter`.
 
 Why this slice:
-`ReferenceFixtures` remains the largest production module at 8,967 lines. The
-next two contiguous fixtures are the degraded-payload guard and default policy
-variants, totaling 107 facade lines. Both participate in the focused
-remaining-variant assertions in `policy_bundle_fixture_test.exs`.
+`ReferenceFixtures` remains the largest production module at 8,860 lines. The
+next three contiguous fixtures are the domain-authority variants, totaling 192
+facade lines. The focused policy-bundle test asserts exactly this trio together.
 
 Current coupling/problem:
-The remaining contiguous operational-policy expectations stay in the facade
-even though the policy-bundle family now has a dedicated leaf. Moving this
-pair completes that local variant group without conflating the following
-domain-authority group.
+The cohesive domain-authority policy expectations remain in the general facade
+even though the policy-bundle family now has a dedicated leaf. Moving the trio
+keeps its test-owned boundary intact and stops before the distinct organization
+adapter.
 
 Public facade to preserve:
 `OrbitalDynamics.Validation.ReferenceFixtures.all/0` and `fetch/1`, exact
@@ -49,14 +50,15 @@ Likely verification:
 - strict compile, format, xref, diff hygiene, and bounded review
 
 Definition of done:
-The degraded/default fixtures exist only in the cohesive policy leaf,
+The three selected domain-authority fixtures exist only in the policy leaf,
 all 21 fixture maps remain disjoint, `all/0` and `fetch/1` return exactly the
-same 195-entry map and deterministic term bytes, `maneuver_authority` and the
-complete facade remainder stay exact, the prior six leaf fixtures remain exact,
-focused and full validation tests pass, and bounded review finds no blocker.
+same 195-entry map and deterministic term bytes, `organization_adapter` and the
+complete facade remainder stay exact, the prior eight leaf fixtures remain
+exact, focused and full validation tests pass, and bounded review finds no
+blocker.
 
 Verification gaps:
-- None for this bounded slice.
+- Next candidate still requires a selection baseline before implementation.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -96,21 +98,19 @@ Behavior/schema changes:
 None.
 
 Outcome:
-The exact degraded/default fixtures now live in the existing policy leaf behind
-the unchanged facade. The facade shrank from 8,967 to 8,860 lines; the leaf
-grew from six to eight fixtures and from 396 to 503 lines.
+No domain-authority implementation has started.
 
 Last completed slice:
-Policy-bundle operational extraction published as `f5227ca0`: the exact
-conservative/contact-review fixtures moved into the existing leaf, the facade
-shrank from 9,068 to 8,967 lines, the leaf grew to six fixtures, the 195-entry
-map and all deterministic digests stayed exact, 18 focused and 181 full
-validation tests passed, and bounded review was clean.
+Policy-bundle degraded/default extraction published as `ae587409`: the exact
+pair moved into the existing leaf, the facade shrank from 8,967 to 8,860 lines,
+the leaf grew to eight fixtures, the 195-entry map and all deterministic
+digests stayed exact, 18 focused and 181 full validation tests passed, and
+bounded review was clean.
 
 Next candidate:
-Select the degraded/default extraction described above, capture the exact
+Select the domain-authority extraction described above, capture the exact
 baseline and source partition, then stop before
-`policy_bundle.maneuver_authority`.
+`policy_bundle.organization_adapter`.
 
 Blocked:
 No.
