@@ -6,21 +6,22 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema branch-event callback ownership cleanup.
+Schema scoped-downlink callback ownership cleanup.
 
 Status:
-Completed and published.
+Ready for implementation.
 
 Selected slice:
-Point the strategy-branch event validator and four branch-event summary-field
-positions directly at `Schema.BranchEventContracts`. Remove the two pure facade
-delegates across five positions.
+Point the positional strategy-recommendation callback plus the cadence-import
+and operator-review keyword captures directly at
+`Schema.ScopedDownlinkContextContracts.validate/3`. Remove the pure facade
+delegate across three positions.
 
 Why this slice:
-The owner already exposes exact `/3` event and summary-field validators. The
-facade functions only forward their arguments, while the positional strategy
-callback and four summary callbacks can retain their existing slots and keys
-without owner or consumer changes.
+The owner already exposes the exact `/3` context validator and the facade only
+forwards its arguments. The positional strategy callback and both keyword-bag
+entries can retain their current slots and keys without owner or consumer
+changes.
 
 Public facade to preserve:
 All `OrbitalDynamics.Schema` public functions, exact validation issue ordering,
@@ -37,31 +38,16 @@ Likely verification:
 - strict compile, format, xref, diff hygiene, and bounded review
 
 Definition of done:
-All five positions point directly to `BranchEventContracts`, both pure facade
-delegates are gone, callback slots and list positions remain exact, validation
-and schema exports remain byte-for-byte stable, focused tests pass, and bounded
-review finds no blocker.
+All three positions point directly to `ScopedDownlinkContextContracts`, the pure
+facade delegate is gone, callback slots and list positions remain exact,
+validation and schema exports remain byte-for-byte stable, focused tests pass,
+and bounded review finds no blocker.
 
 Verification gaps:
-- None for this slice.
+- Implementation and verification pending.
 
 Tests run:
-- `mix compile --warnings-as-errors`
-- 14 focused strategy, branch, and operator-review tests
-- 182 complete schema-contract and schema-export tests
-- full checked-in schema export regeneration; no schema diff
-- aggregate schema bundle digest unchanged:
-  `757bb20af70443e376085ef2e6f97e5a0a0a8ee97323b5911343e88cd8b9ad15`
-- `mix format --check-formatted`
-- `git diff --check`
-- compile-connected xref check for `schema.ex`
-- bounded read-only review: clean, no findings
-
-Outcome:
-The branch-event validator and four summary-field positions now point directly
-to `BranchEventContracts`. Both pure facade delegates are gone, positional and
-keyword callback ordering remains exact, and `schema.ex` decreased from 8,144
-to 8,131 lines.
+- Selection only; implementation verification pending.
 
 Behavior/schema changes:
 None.
@@ -73,9 +59,8 @@ delegates were removed, 182 schema/export tests passed, full export bytes stayed
 exact, and bounded review was clean.
 
 Next candidate:
-Point the positional strategy-recommendation scoped-downlink callback and two
-keyword-bag captures directly at `ScopedDownlinkContextContracts.validate/3`,
-then remove the pure facade delegate.
+After this boundary, audit the remaining source-window lineage and report-count
+delegates by owner and capture count before selecting another responsibility.
 
 Blocked:
 No.
