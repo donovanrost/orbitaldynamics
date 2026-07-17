@@ -1,236 +1,229 @@
 defmodule OrbitalDynamics.Schema.ContactAllocationStationPressureSummaryContracts do
   @moduledoc false
 
-  def validate_summary(issues, path, summary, callbacks) when is_list(callbacks) do
+  alias OrbitalDynamics.Schema.ContactAllocationReportContracts
+
+  import OrbitalDynamics.Schema.CollectionValidation, only: [validate_rows: 4]
+
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [
+      expect_equal: 5,
+      expect_field_equals: 6,
+      expect_non_negative_integer: 4,
+      expect_one_of: 5,
+      expect_optional_field_equals: 6,
+      expect_optional_type: 5,
+      expect_type: 5,
+      validate_non_negative_integer_count_map: 3,
+      validate_optional_exact_model_limits: 5,
+      validate_string_list_items: 4
+    ]
+
+  import OrbitalDynamics.Schema.StableIdValidation,
+    only: [
+      validate_nested_stable_id_array_map: 3,
+      validate_stable_id_array_map: 3,
+      validate_stable_id_list: 3
+    ]
+
+  def validate_summary(issues, path, summary, row_validator) when is_function(row_validator, 3) do
     issues
     |> expect_equal(
-      callbacks,
       path,
       summary,
       "schema_contract",
       "contact_allocation_station_pressure_summary.v1"
     )
     |> expect_equal(
-      callbacks,
       path,
       summary,
       "model",
       "artifact_only_contact_allocation_station_pressure_summary"
     )
-    |> expect_optional_type(callbacks, path, summary, "model_limits", :list)
-    |> validate_string_list_items(callbacks, path, summary, "model_limits")
+    |> expect_optional_type(path, summary, "model_limits", :list)
+    |> validate_string_list_items(path, summary, "model_limits")
     |> validate_optional_exact_model_limits(
-      callbacks,
       path,
       summary,
-      contact_allocation_model_limits(callbacks),
+      contact_allocation_model_limits(),
       "must match contact allocation model limits"
     )
-    |> expect_one_of(callbacks, path, summary, "source_artifact_type", [
+    |> expect_one_of(path, summary, "source_artifact_type", [
       "contact_allocation_report.v1"
     ])
-    |> expect_optional_type(callbacks, path, summary, "source", :binary)
-    |> expect_non_negative_integer(callbacks, path, summary, "input_contact_count")
-    |> expect_non_negative_integer(callbacks, path, summary, "station_pressure_contact_count")
+    |> expect_optional_type(path, summary, "source", :binary)
+    |> expect_non_negative_integer(path, summary, "input_contact_count")
+    |> expect_non_negative_integer(path, summary, "station_pressure_contact_count")
     |> expect_non_negative_integer(
-      callbacks,
       path,
       summary,
       "station_pressure_review_contact_count"
     )
-    |> validate_field_types(callbacks, path, summary)
-    |> expect_type(callbacks, path, summary, "rows", :list)
+    |> validate_field_types(path, summary)
+    |> expect_type(path, summary, "rows", :list)
     |> validate_rows(
-      callbacks,
       path <> ".rows",
       Map.get(summary, "rows", []),
-      fn acc, row_path, row -> validate_contact_allocation_row(acc, callbacks, row_path, row) end
+      row_validator
     )
-    |> expect_type(callbacks, path, summary, "review_rows", :list)
+    |> expect_type(path, summary, "review_rows", :list)
     |> validate_rows(
-      callbacks,
       path <> ".review_rows",
       Map.get(summary, "review_rows", []),
-      fn acc, row_path, row -> validate_contact_allocation_row(acc, callbacks, row_path, row) end
+      row_validator
     )
-    |> expect_type(callbacks, path, summary, "assumptions", :map)
-    |> validate_assumptions(callbacks, path, summary)
-    |> validate_counts(callbacks, path, summary)
+    |> expect_type(path, summary, "assumptions", :map)
+    |> validate_assumptions(path, summary)
+    |> validate_counts(path, summary)
   end
 
-  defp validate_field_types(issues, callbacks, path, summary) do
+  defp validate_field_types(issues, path, summary) do
     issues
-    |> expect_type(callbacks, path, summary, "station_pressure_contact_ids", :list)
+    |> expect_type(path, summary, "station_pressure_contact_ids", :list)
     |> validate_stable_id_list(
-      callbacks,
       path <> ".station_pressure_contact_ids",
       Map.get(summary, "station_pressure_contact_ids")
     )
-    |> expect_type(callbacks, path, summary, "station_pressure_review_contact_ids", :list)
+    |> expect_type(path, summary, "station_pressure_review_contact_ids", :list)
     |> validate_stable_id_list(
-      callbacks,
       path <> ".station_pressure_review_contact_ids",
       Map.get(summary, "station_pressure_review_contact_ids")
     )
     |> expect_type(
-      callbacks,
       path,
       summary,
       "station_pressure_contact_ids_by_ground_station_id",
       :map
     )
     |> validate_stable_id_array_map(
-      callbacks,
       path <> ".station_pressure_contact_ids_by_ground_station_id",
       Map.get(summary, "station_pressure_contact_ids_by_ground_station_id")
     )
     |> expect_type(
-      callbacks,
       path,
       summary,
       "station_pressure_contact_counts_by_ground_station_id",
       :map
     )
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".station_pressure_contact_counts_by_ground_station_id",
       Map.get(summary, "station_pressure_contact_counts_by_ground_station_id")
     )
-    |> expect_type(callbacks, path, summary, "station_pressure_contact_ids_by_availability", :map)
+    |> expect_type(path, summary, "station_pressure_contact_ids_by_availability", :map)
     |> validate_stable_id_array_map(
-      callbacks,
       path <> ".station_pressure_contact_ids_by_availability",
       Map.get(summary, "station_pressure_contact_ids_by_availability")
     )
     |> expect_type(
-      callbacks,
       path,
       summary,
       "station_pressure_contact_counts_by_availability",
       :map
     )
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".station_pressure_contact_counts_by_availability",
       Map.get(summary, "station_pressure_contact_counts_by_availability")
     )
     |> expect_type(
-      callbacks,
       path,
       summary,
       "station_pressure_contact_ids_by_precedence_availability",
       :map
     )
     |> validate_stable_id_array_map(
-      callbacks,
       path <> ".station_pressure_contact_ids_by_precedence_availability",
       Map.get(summary, "station_pressure_contact_ids_by_precedence_availability")
     )
     |> expect_type(
-      callbacks,
       path,
       summary,
       "station_pressure_contact_counts_by_precedence_availability",
       :map
     )
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".station_pressure_contact_counts_by_precedence_availability",
       Map.get(summary, "station_pressure_contact_counts_by_precedence_availability")
     )
     |> expect_type(
-      callbacks,
       path,
       summary,
       "station_pressure_contact_ids_by_precedence_rank",
       :map
     )
     |> validate_stable_id_array_map(
-      callbacks,
       path <> ".station_pressure_contact_ids_by_precedence_rank",
       Map.get(summary, "station_pressure_contact_ids_by_precedence_rank")
     )
     |> expect_type(
-      callbacks,
       path,
       summary,
       "station_pressure_contact_counts_by_precedence_rank",
       :map
     )
     |> validate_non_negative_integer_count_map(
-      callbacks,
       path <> ".station_pressure_contact_counts_by_precedence_rank",
       Map.get(summary, "station_pressure_contact_counts_by_precedence_rank")
     )
     |> expect_optional_type(
-      callbacks,
       path,
       summary,
       "station_pressure_contact_ids_by_direction_and_ground_station_id",
       :map
     )
     |> validate_nested_stable_id_array_map(
-      callbacks,
       path <> ".station_pressure_contact_ids_by_direction_and_ground_station_id",
       Map.get(summary, "station_pressure_contact_ids_by_direction_and_ground_station_id")
     )
   end
 
-  defp validate_assumptions(issues, callbacks, path, summary) do
+  defp validate_assumptions(issues, path, summary) do
     case Map.get(summary, "assumptions") do
       %{} = assumptions ->
         issues
         |> expect_equal(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "execution_boundary",
           "artifact_only_no_provider_reservation_or_schedule_mutation"
         )
         |> expect_equal(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "source",
           "contact_allocation_report.v1"
         )
         |> expect_equal(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "operator_authority",
           "not_granted_by_station_pressure_summary"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "station_unavailable_aliases",
-          contact_allocation_station_unavailable_aliases(callbacks),
+          contact_allocation_station_unavailable_aliases(),
           "must match ContactAllocation station unavailable aliases"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "station_blocking_availability",
-          contact_allocation_station_blocking_availability(callbacks),
+          contact_allocation_station_blocking_availability(),
           "must match ContactAllocation station blocking availability"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "station_availability_precedence",
-          contact_allocation_station_availability_precedence(callbacks),
+          contact_allocation_station_availability_precedence(),
           "must match ContactAllocation station availability precedence"
         )
         |> expect_optional_field_equals(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "provider_direction_aliases",
-          contact_allocation_provider_direction_aliases(callbacks),
+          contact_allocation_provider_direction_aliases(),
           "must match ContactAllocation provider direction aliases"
         )
 
@@ -239,22 +232,22 @@ defmodule OrbitalDynamics.Schema.ContactAllocationStationPressureSummaryContract
     end
   end
 
-  defp validate_counts(issues, callbacks, path, summary) do
+  defp validate_counts(issues, path, summary) do
     rows =
       summary
       |> Map.get("rows", [])
       |> Enum.filter(&is_map/1)
 
-    station_pressure_rows = contact_allocation_station_pressure_rows(callbacks, rows)
+    station_pressure_rows = ContactAllocationReportContracts.station_pressure_rows(rows)
 
     review_rows =
-      Enum.filter(station_pressure_rows, &contact_allocation_review_row?(callbacks, &1))
+      Enum.filter(station_pressure_rows, &ContactAllocationReportContracts.review_row?(&1))
 
     ids_by_ground_station =
       row_ids_by_field(station_pressure_rows, "ground_station_id", "contact_id")
 
     ids_by_availability =
-      contact_allocation_station_pressure_ids_by_availability(callbacks, station_pressure_rows)
+      ContactAllocationReportContracts.station_pressure_ids_by_availability(station_pressure_rows)
 
     ids_by_precedence_availability =
       row_ids_by_field(
@@ -274,9 +267,8 @@ defmodule OrbitalDynamics.Schema.ContactAllocationStationPressureSummaryContract
       row_ids_by_field(station_pressure_rows, "station_calendar_status", "contact_id")
 
     issues
-    |> expect_field_equals(callbacks, path, summary, "input_contact_count", length(rows))
+    |> expect_field_equals(path, summary, "input_contact_count", length(rows))
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "station_pressure_contact_count",
@@ -284,7 +276,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationStationPressureSummaryContract
       "must equal row-derived station_pressure_contact_count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "station_pressure_review_contact_count",
@@ -292,23 +283,20 @@ defmodule OrbitalDynamics.Schema.ContactAllocationStationPressureSummaryContract
       "must equal row-derived station_pressure_review_contact_count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "station_pressure_contact_ids",
-      contact_allocation_row_contact_ids(callbacks, station_pressure_rows),
+      ContactAllocationReportContracts.row_contact_ids(station_pressure_rows),
       "must equal row-derived station_pressure_contact_ids"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "station_pressure_review_contact_ids",
-      contact_allocation_row_contact_ids(callbacks, review_rows),
+      ContactAllocationReportContracts.row_contact_ids(review_rows),
       "must equal row-derived station_pressure_review_contact_ids"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "station_pressure_contact_ids_by_ground_station_id",
@@ -316,7 +304,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationStationPressureSummaryContract
       "must equal row-derived station_pressure_contact_ids_by_ground_station_id"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "station_pressure_contact_counts_by_ground_station_id",
@@ -324,7 +311,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationStationPressureSummaryContract
       "must equal row-derived station_pressure_contact_counts_by_ground_station_id"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "station_pressure_contact_ids_by_availability",
@@ -332,7 +318,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationStationPressureSummaryContract
       "must equal row-derived station_pressure_contact_ids_by_availability"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "station_pressure_contact_counts_by_availability",
@@ -340,7 +325,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationStationPressureSummaryContract
       "must equal row-derived station_pressure_contact_counts_by_availability"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "station_pressure_contact_ids_by_precedence_availability",
@@ -348,7 +332,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationStationPressureSummaryContract
       "must equal row-derived station_pressure_contact_ids_by_precedence_availability"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "station_pressure_contact_counts_by_precedence_availability",
@@ -356,7 +339,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationStationPressureSummaryContract
       "must equal row-derived station_pressure_contact_counts_by_precedence_availability"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "station_pressure_contact_ids_by_precedence_rank",
@@ -364,7 +346,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationStationPressureSummaryContract
       "must equal row-derived station_pressure_contact_ids_by_precedence_rank"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "station_pressure_contact_counts_by_precedence_rank",
@@ -372,7 +353,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationStationPressureSummaryContract
       "must equal row-derived station_pressure_contact_counts_by_precedence_rank"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "station_pressure_contact_ids_by_status",
@@ -380,7 +360,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationStationPressureSummaryContract
       "must equal row-derived station_pressure_contact_ids_by_status"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "station_pressure_contact_counts_by_status",
@@ -388,7 +367,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationStationPressureSummaryContract
       "must equal row-derived station_pressure_contact_counts_by_status"
     )
     |> expect_optional_field_equals(
-      callbacks,
       path,
       summary,
       "station_pressure_contact_ids_by_direction_and_ground_station_id",
@@ -396,7 +374,6 @@ defmodule OrbitalDynamics.Schema.ContactAllocationStationPressureSummaryContract
       "must equal row-derived station_pressure_contact_ids_by_direction_and_ground_station_id"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "review_rows",
@@ -451,115 +428,27 @@ defmodule OrbitalDynamics.Schema.ContactAllocationStationPressureSummaryContract
     end)
   end
 
-  defp expect_equal(issues, callbacks, path, map, field, expected),
-    do: apply(Keyword.fetch!(callbacks, :expect_equal), [issues, path, map, field, expected])
-
-  defp expect_one_of(issues, callbacks, path, map, field, allowed),
-    do: apply(Keyword.fetch!(callbacks, :expect_one_of), [issues, path, map, field, allowed])
-
-  defp expect_type(issues, callbacks, path, map, field, type),
-    do: apply(Keyword.fetch!(callbacks, :expect_type), [issues, path, map, field, type])
-
-  defp expect_optional_type(issues, callbacks, path, map, field, type),
-    do: apply(Keyword.fetch!(callbacks, :expect_optional_type), [issues, path, map, field, type])
-
-  defp expect_non_negative_integer(issues, callbacks, path, map, field),
-    do: apply(Keyword.fetch!(callbacks, :expect_non_negative_integer), [issues, path, map, field])
-
-  defp expect_field_equals(issues, callbacks, path, map, field, expected),
-    do:
-      apply(Keyword.fetch!(callbacks, :expect_field_equals), [issues, path, map, field, expected])
-
-  defp expect_field_equals(issues, callbacks, path, map, field, expected, message) do
-    apply(Keyword.fetch!(callbacks, :expect_field_equals_with_message), [
-      issues,
-      path,
-      map,
-      field,
-      expected,
-      message
-    ])
+  defp contact_allocation_model_limits do
+    contact_allocation_capabilities()
+    |> Map.fetch!(:known_limits)
+    |> Enum.map(&Atom.to_string/1)
   end
 
-  defp expect_optional_field_equals(issues, callbacks, path, map, field, expected, message) do
-    apply(Keyword.fetch!(callbacks, :expect_optional_field_equals), [
-      issues,
-      path,
-      map,
-      field,
-      expected,
-      message
-    ])
-  end
+  defp contact_allocation_station_unavailable_aliases,
+    do: Map.fetch!(contact_allocation_capabilities(), :station_unavailable_aliases)
 
-  defp validate_rows(issues, callbacks, path, rows, validator),
-    do: apply(Keyword.fetch!(callbacks, :validate_rows), [issues, path, rows, validator])
+  defp contact_allocation_station_blocking_availability,
+    do: Map.fetch!(contact_allocation_capabilities(), :station_blocking_availability)
 
-  defp validate_string_list_items(issues, callbacks, path, map, field),
-    do: apply(Keyword.fetch!(callbacks, :validate_string_list_items), [issues, path, map, field])
+  defp contact_allocation_station_availability_precedence,
+    do: Map.fetch!(contact_allocation_capabilities(), :station_availability_precedence)
 
-  defp validate_optional_exact_model_limits(issues, callbacks, path, artifact, expected, message) do
-    apply(Keyword.fetch!(callbacks, :validate_optional_exact_model_limits), [
-      issues,
-      path,
-      artifact,
-      expected,
-      message
-    ])
-  end
+  defp contact_allocation_provider_direction_aliases,
+    do: Map.fetch!(contact_allocation_capabilities(), :provider_direction_aliases)
 
-  defp validate_stable_id_list(issues, callbacks, path, values),
-    do: apply(Keyword.fetch!(callbacks, :validate_stable_id_list), [issues, path, values])
+  defp expect_field_equals(issues, path, map, field, expected),
+    do: expect_field_equals(issues, path, map, field, expected, "must equal #{expected}")
 
-  defp validate_stable_id_array_map(issues, callbacks, path, values),
-    do: apply(Keyword.fetch!(callbacks, :validate_stable_id_array_map), [issues, path, values])
-
-  defp validate_non_negative_integer_count_map(issues, callbacks, path, counts) do
-    apply(Keyword.fetch!(callbacks, :validate_non_negative_integer_count_map), [
-      issues,
-      path,
-      counts
-    ])
-  end
-
-  defp validate_nested_stable_id_array_map(issues, callbacks, path, values) do
-    apply(Keyword.fetch!(callbacks, :validate_nested_stable_id_array_map), [
-      issues,
-      path,
-      values
-    ])
-  end
-
-  defp contact_allocation_model_limits(callbacks),
-    do: apply(Keyword.fetch!(callbacks, :contact_allocation_model_limits), [])
-
-  defp contact_allocation_station_unavailable_aliases(callbacks),
-    do: apply(Keyword.fetch!(callbacks, :contact_allocation_station_unavailable_aliases), [])
-
-  defp contact_allocation_station_blocking_availability(callbacks),
-    do: apply(Keyword.fetch!(callbacks, :contact_allocation_station_blocking_availability), [])
-
-  defp contact_allocation_station_availability_precedence(callbacks),
-    do: apply(Keyword.fetch!(callbacks, :contact_allocation_station_availability_precedence), [])
-
-  defp contact_allocation_provider_direction_aliases(callbacks),
-    do: apply(Keyword.fetch!(callbacks, :contact_allocation_provider_direction_aliases), [])
-
-  defp validate_contact_allocation_row(issues, callbacks, path, row),
-    do: apply(Keyword.fetch!(callbacks, :validate_contact_allocation_row), [issues, path, row])
-
-  defp contact_allocation_station_pressure_rows(callbacks, rows),
-    do: apply(Keyword.fetch!(callbacks, :contact_allocation_station_pressure_rows), [rows])
-
-  defp contact_allocation_review_row?(callbacks, row),
-    do: apply(Keyword.fetch!(callbacks, :contact_allocation_review_row?), [row])
-
-  defp contact_allocation_row_contact_ids(callbacks, rows),
-    do: apply(Keyword.fetch!(callbacks, :contact_allocation_row_contact_ids), [rows])
-
-  defp contact_allocation_station_pressure_ids_by_availability(callbacks, rows) do
-    apply(Keyword.fetch!(callbacks, :contact_allocation_station_pressure_ids_by_availability), [
-      rows
-    ])
-  end
+  defp contact_allocation_capabilities,
+    do: OrbitalDynamics.Communications.ContactAllocation.capabilities()
 end

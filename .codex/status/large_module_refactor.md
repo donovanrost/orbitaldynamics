@@ -9,7 +9,7 @@ Current slice:
 Contact-allocation station-pressure-summary callback-bag collapse.
 
 Status:
-Selected; implementation not started.
+Implemented, verified, reviewed, and ready to publish.
 
 Selected slice:
 Replace the 25-entry station-pressure-summary keyword bag with direct primitive,
@@ -46,18 +46,27 @@ equality messages remain exact, focused/broader/export checks pass, and bounded
 review finds no blocker.
 
 Outcome:
-Pending.
+The 25-entry station-pressure-summary callback bag and all lookup/apply
+trampolines are gone. The extracted owner now calls primitive, stable-ID,
+capability, and contact-allocation report owners directly; Schema passes only
+`&validate_contact_allocation_row/3`. `schema.ex` fell from 10,637 to 10,602
+lines and the owner from 565 to 454, for 146 net deleted lines across the slice.
 
 Verification gaps:
-- Not yet verified.
+- Full repository suite not run. The standard broader lane remains at the
+  baseline 1,340/1,345 with the same five known campaign-planner failures
+  attributable at `6f1f0ac1`.
+- Focused station-pressure/contact-allocation coverage passed 284 tests; export
+  coverage passed 24. Compile with warnings as errors, checked-in schema
+  regeneration, compile-connected xref (three allowed edges), format, diff
+  hygiene, and independent bounded review were clean.
 
 Last completed slice:
-Timeline-publication-summary callback collapse published as `1a668690`:
-`schema.ex` fell from 10,686 to 10,637 lines and the owner from 703 to 599; the
-19-entry factory, lookup/apply trampolines, handoff callback threading, and one
-facade orphan disappeared. Four hundred ninety-four focused, 1,340 attributable
-broader, and 24 export tests passed; compile, regeneration, xref, format, diff
-hygiene, and bounded review were clean.
+Contact-allocation station-pressure-summary callback collapse; publication
+commit pending. The 25-entry factory became one explicit row-validator hook,
+with 284 focused, 1,340 attributable broader, and 24 export tests passing;
+compile, regeneration, xref, format, diff hygiene, and bounded review were
+clean.
 
 Blocked:
 No.
