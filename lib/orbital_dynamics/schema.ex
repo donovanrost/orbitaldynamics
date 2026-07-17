@@ -2467,7 +2467,7 @@ defmodule OrbitalDynamics.Schema do
       &OrbitalDynamics.Schema.LinkCapacityReportJsonSchema.property_field?/1,
       OrbitalDynamics.Schema.LinkCapacityReportJsonSchema.property_fun_from_context(
         row_schema: &link_capacity_row_json_schema/0,
-        model_limits: &link_capacity_model_limits/0,
+        model_limits: &OrbitalDynamics.Schema.LinkCapacitySummaryContracts.model_limits/0,
         assumptions_schema: fn -> link_capacity_assumptions_json_schema([]) end,
         stable_id_array_schema: &stable_id_array_schema/0,
         string_array_schema: &string_array_schema/0,
@@ -2486,7 +2486,7 @@ defmodule OrbitalDynamics.Schema do
       contract,
       &OrbitalDynamics.Schema.LinkCapacitySummaryJsonSchema.property_field?/1,
       OrbitalDynamics.Schema.LinkCapacitySummaryJsonSchema.property_fun_from_context(
-        model_limits: &link_capacity_model_limits/0,
+        model_limits: &OrbitalDynamics.Schema.LinkCapacitySummaryContracts.model_limits/0,
         assumptions_schema: fn ->
           link_capacity_assumptions_json_schema([
             "execution_boundary",
@@ -4011,12 +4011,6 @@ defmodule OrbitalDynamics.Schema do
       &contact_allocation_station_reservation_match_statuses/0,
       &contact_allocation_provider_direction_aliases/0
     )
-  end
-
-  defp link_capacity_model_limits do
-    OrbitalDynamics.Communications.LinkCapacity.capabilities()
-    |> Map.fetch!(:known_limits)
-    |> Enum.map(&Atom.to_string/1)
   end
 
   defp link_capacity_station_unavailable_aliases do
@@ -6676,27 +6670,6 @@ defmodule OrbitalDynamics.Schema do
     |> require_fields("$", artifact, contract["required_fields"])
   end
 
-  defp link_capacity_summary_contract_callbacks do
-    [
-      expect_equal: &expect_equal/5,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      expect_non_negative_integer: &expect_non_negative_integer/4,
-      expect_number: &expect_number/4,
-      expect_field_equals: &expect_field_equals/6,
-      validate_string_list_items: &validate_string_list_items/4,
-      validate_optional_exact_model_limits: &validate_optional_exact_model_limits/5,
-      validate_link_capacity_assumptions: &validate_link_capacity_assumptions/3,
-      validate_non_negative_integer_count_map: &validate_non_negative_integer_count_map/3,
-      validate_numeric_map: &validate_numeric_map/3,
-      validate_stable_id_list: &validate_stable_id_list/3,
-      validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
-      validate_stable_id_array_map: &validate_stable_id_array_map/3,
-      validate_number_list_items: &validate_number_list_items/4,
-      link_capacity_model_limits: &link_capacity_model_limits/0
-    ]
-  end
-
   defp relay_data_path_summary_contract_callbacks do
     [
       expect_equal: &expect_equal/5,
@@ -8177,16 +8150,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.LinkCapacitySummaryContracts.validate_summary(
       issues,
       path,
-      summary,
-      link_capacity_summary_contract_callbacks()
-    )
-  end
-
-  defp validate_link_capacity_assumptions(issues, path, artifact) do
-    OrbitalDynamics.Schema.LinkCapacityReportContracts.validate_assumptions(
-      issues,
-      path,
-      artifact
+      summary
     )
   end
 

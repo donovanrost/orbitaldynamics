@@ -1,45 +1,68 @@
 defmodule OrbitalDynamics.Schema.LinkCapacitySummaryContracts do
   @moduledoc false
 
-  def validate_summary(issues, path, summary, callbacks) when is_list(callbacks) do
+  alias OrbitalDynamics.Schema.LinkCapacityReportContracts
+
+  import OrbitalDynamics.Schema.CollectionValidation, only: [validate_numeric_map: 3]
+
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [
+      expect_equal: 5,
+      expect_field_equals: 6,
+      expect_non_negative_integer: 4,
+      expect_number: 4,
+      expect_optional_type: 5,
+      expect_type: 5,
+      validate_non_negative_integer_count_map: 3,
+      validate_number_list_items: 4,
+      validate_optional_exact_model_limits: 5,
+      validate_string_list_items: 4
+    ]
+
+  import OrbitalDynamics.Schema.StableIdValidation,
+    only: [
+      validate_optional_stable_id_list: 4,
+      validate_stable_id_array_map: 3,
+      validate_stable_id_list: 3
+    ]
+
+  def validate_summary(issues, path, summary) do
     issues
-    |> expect_equal(callbacks, path, summary, "schema_contract", "link_capacity_summary.v1")
-    |> expect_equal(callbacks, path, summary, "model", "artifact_only_link_capacity_summary")
-    |> expect_equal(callbacks, path, summary, "source_artifact_type", "link_capacity_report.v1")
-    |> expect_type(callbacks, path, summary, "source", :binary)
-    |> expect_optional_type(callbacks, path, summary, "model_limits", :list)
-    |> validate_string_list_items(callbacks, path, summary, "model_limits")
+    |> expect_equal(path, summary, "schema_contract", "link_capacity_summary.v1")
+    |> expect_equal(path, summary, "model", "artifact_only_link_capacity_summary")
+    |> expect_equal(path, summary, "source_artifact_type", "link_capacity_report.v1")
+    |> expect_type(path, summary, "source", :binary)
+    |> expect_optional_type(path, summary, "model_limits", :list)
+    |> validate_string_list_items(path, summary, "model_limits")
     |> validate_optional_exact_model_limits(
-      callbacks,
       path,
       summary,
-      link_capacity_model_limits(callbacks),
+      model_limits(),
       "must match link capacity capability model limits"
     )
-    |> validate_field_types(callbacks, path, summary)
-    |> expect_type(callbacks, path, summary, "assumptions", :map)
-    |> validate_link_capacity_assumptions(callbacks, path, summary)
-    |> validate_summary_assumptions(callbacks, path, summary)
-    |> validate_counts(callbacks, path, summary)
+    |> validate_field_types(path, summary)
+    |> expect_type(path, summary, "assumptions", :map)
+    |> LinkCapacityReportContracts.validate_assumptions(path, summary)
+    |> validate_summary_assumptions(path, summary)
+    |> validate_counts(path, summary)
   end
 
-  defp validate_field_types(issues, callbacks, path, summary) do
+  defp validate_field_types(issues, path, summary) do
     issues =
       Enum.reduce(count_fields(), issues, fn field, acc ->
-        expect_non_negative_integer(acc, callbacks, path, summary, field)
+        expect_non_negative_integer(acc, path, summary, field)
       end)
 
     issues =
       Enum.reduce(number_fields(), issues, fn field, acc ->
-        expect_number(acc, callbacks, path, summary, field)
+        expect_number(acc, path, summary, field)
       end)
 
     issues =
       Enum.reduce(count_map_fields(), issues, fn field, acc ->
         acc
-        |> expect_type(callbacks, path, summary, field, :map)
+        |> expect_type(path, summary, field, :map)
         |> validate_non_negative_integer_count_map(
-          callbacks,
           path <> ".#{field}",
           Map.get(summary, field)
         )
@@ -48,46 +71,46 @@ defmodule OrbitalDynamics.Schema.LinkCapacitySummaryContracts do
     issues =
       Enum.reduce(numeric_map_fields(), issues, fn field, acc ->
         acc
-        |> expect_type(callbacks, path, summary, field, :map)
-        |> validate_numeric_map(callbacks, path <> ".#{field}", Map.get(summary, field))
+        |> expect_type(path, summary, field, :map)
+        |> validate_numeric_map(path <> ".#{field}", Map.get(summary, field))
       end)
 
     issues =
       Enum.reduce(stable_id_list_fields(), issues, fn field, acc ->
         acc
-        |> expect_type(callbacks, path, summary, field, :list)
-        |> validate_stable_id_list(callbacks, path <> ".#{field}", Map.get(summary, field))
+        |> expect_type(path, summary, field, :list)
+        |> validate_stable_id_list(path <> ".#{field}", Map.get(summary, field))
       end)
 
     issues =
       Enum.reduce(string_list_fields(), issues, fn field, acc ->
         acc
-        |> expect_type(callbacks, path, summary, field, :list)
-        |> validate_string_list_items(callbacks, path, summary, field)
+        |> expect_type(path, summary, field, :list)
+        |> validate_string_list_items(path, summary, field)
       end)
 
     issues =
       Enum.reduce(optional_stable_id_list_fields(), issues, fn field, acc ->
         acc
-        |> expect_optional_type(callbacks, path, summary, field, :list)
-        |> validate_optional_stable_id_list(callbacks, path, summary, field)
+        |> expect_optional_type(path, summary, field, :list)
+        |> validate_optional_stable_id_list(path, summary, field)
       end)
 
     issues =
       Enum.reduce(stable_id_array_map_fields(), issues, fn field, acc ->
         acc
-        |> expect_type(callbacks, path, summary, field, :map)
-        |> validate_stable_id_array_map(callbacks, path <> ".#{field}", Map.get(summary, field))
+        |> expect_type(path, summary, field, :map)
+        |> validate_stable_id_array_map(path <> ".#{field}", Map.get(summary, field))
       end)
 
     issues =
       Enum.reduce(optional_status_fields(), issues, fn field, acc ->
-        expect_optional_type(acc, callbacks, path, summary, field, :binary)
+        expect_optional_type(acc, path, summary, field, :binary)
       end)
 
     issues
-    |> expect_type(callbacks, path, summary, "station_reservation_expires_at_s", :list)
-    |> validate_number_list_items(callbacks, path, summary, "station_reservation_expires_at_s")
+    |> expect_type(path, summary, "station_reservation_expires_at_s", :list)
+    |> validate_number_list_items(path, summary, "station_reservation_expires_at_s")
   end
 
   defp count_fields do
@@ -209,26 +232,23 @@ defmodule OrbitalDynamics.Schema.LinkCapacitySummaryContracts do
     ]
   end
 
-  defp validate_summary_assumptions(issues, callbacks, path, summary) do
+  defp validate_summary_assumptions(issues, path, summary) do
     case Map.get(summary, "assumptions") do
       %{} = assumptions ->
         issues
         |> expect_equal(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "execution_boundary",
           "artifact_only_no_provider_reservation_or_schedule_mutation"
         )
         |> expect_equal(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "source",
           "link_capacity_report.v1"
         )
         |> expect_equal(
-          callbacks,
           path <> ".assumptions",
           assumptions,
           "operator_authority",
@@ -240,10 +260,9 @@ defmodule OrbitalDynamics.Schema.LinkCapacitySummaryContracts do
     end
   end
 
-  defp validate_counts(issues, callbacks, path, summary) do
+  defp validate_counts(issues, path, summary) do
     issues
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "station_count",
@@ -251,19 +270,18 @@ defmodule OrbitalDynamics.Schema.LinkCapacitySummaryContracts do
       "must equal ground_station_ids count"
     )
     |> expect_field_equals(
-      callbacks,
       path,
       summary,
       "ground_station_ids",
       sorted_map_keys(Map.get(summary, "capacity_adjusted_throughput_mb_by_ground_station_id")),
       "must equal capacity_adjusted_throughput_mb_by_ground_station_id keys"
     )
-    |> validate_list_count_consistency(callbacks, path, summary)
-    |> validate_numeric_total_consistency(callbacks, path, summary)
-    |> validate_station_calendar_id_consistency(callbacks, path, summary)
+    |> validate_list_count_consistency(path, summary)
+    |> validate_numeric_total_consistency(path, summary)
+    |> validate_station_calendar_id_consistency(path, summary)
   end
 
-  defp validate_list_count_consistency(issues, callbacks, path, summary) do
+  defp validate_list_count_consistency(issues, path, summary) do
     Enum.reduce(
       [
         {"contact_count", "contact_ids", "must equal contact_ids count"},
@@ -298,7 +316,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacitySummaryContracts do
       fn {count_field, list_field, message}, acc ->
         expect_field_equals(
           acc,
-          callbacks,
           path,
           summary,
           count_field,
@@ -309,7 +326,7 @@ defmodule OrbitalDynamics.Schema.LinkCapacitySummaryContracts do
     )
   end
 
-  defp validate_numeric_total_consistency(issues, callbacks, path, summary) do
+  defp validate_numeric_total_consistency(issues, path, summary) do
     Enum.reduce(
       [
         {"selected_downlink_shortfall_mb", "selected_downlink_shortfall_mb_by_ground_station_id",
@@ -330,7 +347,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacitySummaryContracts do
       fn {field, map_field, message}, acc ->
         expect_field_equals(
           acc,
-          callbacks,
           path,
           summary,
           field,
@@ -341,7 +357,7 @@ defmodule OrbitalDynamics.Schema.LinkCapacitySummaryContracts do
     )
   end
 
-  defp validate_station_calendar_id_consistency(issues, callbacks, path, summary) do
+  defp validate_station_calendar_id_consistency(issues, path, summary) do
     Enum.reduce(
       [
         {"station_calendar_entry_ids", "station_calendar_entry_ids_by_ground_station_id",
@@ -358,7 +374,6 @@ defmodule OrbitalDynamics.Schema.LinkCapacitySummaryContracts do
       fn {field, map_field, message}, acc ->
         expect_field_equals(
           acc,
-          callbacks,
           path,
           summary,
           field,
@@ -408,94 +423,9 @@ defmodule OrbitalDynamics.Schema.LinkCapacitySummaryContracts do
 
   defp sorted_stable_id_array_map_values(_values), do: nil
 
-  defp expect_equal(issues, callbacks, path, map, field, expected),
-    do: apply(Keyword.fetch!(callbacks, :expect_equal), [issues, path, map, field, expected])
-
-  defp expect_type(issues, callbacks, path, map, field, type),
-    do: apply(Keyword.fetch!(callbacks, :expect_type), [issues, path, map, field, type])
-
-  defp expect_optional_type(issues, callbacks, path, map, field, type),
-    do: apply(Keyword.fetch!(callbacks, :expect_optional_type), [issues, path, map, field, type])
-
-  defp expect_non_negative_integer(issues, callbacks, path, map, field) do
-    apply(Keyword.fetch!(callbacks, :expect_non_negative_integer), [
-      issues,
-      path,
-      map,
-      field
-    ])
+  def model_limits do
+    OrbitalDynamics.Communications.LinkCapacity.capabilities()
+    |> Map.fetch!(:known_limits)
+    |> Enum.map(&Atom.to_string/1)
   end
-
-  defp expect_number(issues, callbacks, path, map, field),
-    do: apply(Keyword.fetch!(callbacks, :expect_number), [issues, path, map, field])
-
-  defp expect_field_equals(issues, callbacks, path, map, field, expected, message) do
-    apply(Keyword.fetch!(callbacks, :expect_field_equals), [
-      issues,
-      path,
-      map,
-      field,
-      expected,
-      message
-    ])
-  end
-
-  defp validate_string_list_items(issues, callbacks, path, map, field),
-    do: apply(Keyword.fetch!(callbacks, :validate_string_list_items), [issues, path, map, field])
-
-  defp validate_optional_exact_model_limits(issues, callbacks, path, artifact, expected, message) do
-    apply(Keyword.fetch!(callbacks, :validate_optional_exact_model_limits), [
-      issues,
-      path,
-      artifact,
-      expected,
-      message
-    ])
-  end
-
-  defp validate_link_capacity_assumptions(issues, callbacks, path, artifact) do
-    apply(Keyword.fetch!(callbacks, :validate_link_capacity_assumptions), [
-      issues,
-      path,
-      artifact
-    ])
-  end
-
-  defp validate_non_negative_integer_count_map(issues, callbacks, path, counts) do
-    apply(Keyword.fetch!(callbacks, :validate_non_negative_integer_count_map), [
-      issues,
-      path,
-      counts
-    ])
-  end
-
-  defp validate_numeric_map(issues, callbacks, path, values),
-    do: apply(Keyword.fetch!(callbacks, :validate_numeric_map), [issues, path, values])
-
-  defp validate_stable_id_list(issues, callbacks, path, values),
-    do: apply(Keyword.fetch!(callbacks, :validate_stable_id_list), [issues, path, values])
-
-  defp validate_optional_stable_id_list(issues, callbacks, path, map, field) do
-    apply(Keyword.fetch!(callbacks, :validate_optional_stable_id_list), [
-      issues,
-      path,
-      map,
-      field
-    ])
-  end
-
-  defp validate_stable_id_array_map(issues, callbacks, path, values),
-    do: apply(Keyword.fetch!(callbacks, :validate_stable_id_array_map), [issues, path, values])
-
-  defp validate_number_list_items(issues, callbacks, path, map, field) do
-    apply(Keyword.fetch!(callbacks, :validate_number_list_items), [
-      issues,
-      path,
-      map,
-      field
-    ])
-  end
-
-  defp link_capacity_model_limits(callbacks),
-    do: apply(Keyword.fetch!(callbacks, :link_capacity_model_limits), [])
 end

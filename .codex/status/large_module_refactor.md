@@ -9,7 +9,7 @@ Current slice:
 Link-capacity-summary callback-bag collapse.
 
 Status:
-Selected; implementation not started.
+Complete and ready to publish.
 
 Selected slice:
 Replace the 16-entry `LinkCapacitySummaryContracts` keyword bag with direct
@@ -47,10 +47,30 @@ relocated model-limit owner, focused/broader/export checks pass, and bounded
 review finds no blocker.
 
 Outcome:
-Pending.
+The 16-entry bag and every summary lookup/apply trampoline are gone. Primitive,
+collection, and stable-ID validators are direct; link-capacity assumptions call
+the extracted report owner at the same pipeline position. Model-limit ownership
+now lives with the summary owner and both report/summary JSON schema builders
+reuse it. The factory, assumption wrapper, and duplicate facade model-limit
+helper disappeared. `schema.ex` fell from 10,749 to 10,713 lines and the summary
+owner from 501 to 431, for a net 106-line reduction. Four hundred eighty-seven
+attributable focused, 1,340 attributable broader, and 24 export tests pass;
+compile, checked-in regeneration, compile-connected xref within its existing
+three-edge threshold, format, and diff hygiene are clean. Bounded review found
+no blocker and confirmed the full pipeline/order/paths/messages, field lists,
+direct validators, assumption position, unsorted model-limit transformation,
+JSON-schema captures, caller arity, and cleanup.
 
 Verification gaps:
-- Not yet verified.
+- Full repository suite not run.
+- The focused batch's golden campaign exact-match failure was reproduced
+  unchanged on selection commit `beab9f42`; the attributable result is
+  487/487.
+- The 1,345-test broader batch has the same five known campaign-planner baseline
+  failures previously reproduced on pre-slice commit `6f1f0ac1`; the
+  attributable result is 1,340/1,340.
+- The first concurrent export run timed out one test during a cold 3,561-file
+  rebuild; the uncontended rerun passed 24/24.
 
 Last completed slice:
 Contact-intent-summary callback collapse published as `847778fa`: `schema.ex`
