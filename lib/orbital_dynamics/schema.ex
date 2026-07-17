@@ -5012,7 +5012,7 @@ defmodule OrbitalDynamics.Schema do
   defp validate_contract(@station_calendar_provider, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_station_calendar_provider("$", artifact)
+    |> OrbitalDynamics.Schema.StationCalendarProviderContracts.validate("$", artifact)
   end
 
   defp validate_contract(@station_calendar_report, contract, artifact) do
@@ -5981,14 +5981,6 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       activity
-    )
-  end
-
-  defp validate_station_calendar_provider(issues, path, provider) do
-    OrbitalDynamics.Schema.StationCalendarProviderContracts.validate(
-      issues,
-      path,
-      provider
     )
   end
 
