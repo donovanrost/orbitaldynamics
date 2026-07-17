@@ -191,10 +191,7 @@ defmodule OrbitalDynamics.CandidateRefresh do
   imports, or write to Cadence.
   """
   def storage_downlink_pressure_replay_summary(refresh_or_artifact) do
-    ReplaySummary.storage_downlink_pressure(
-      refresh_or_artifact,
-      &source_report_summary/1
-    )
+    ReplaySummary.storage_downlink_pressure(refresh_or_artifact)
   end
 
   @doc """

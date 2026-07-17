@@ -9,7 +9,7 @@ Current slice:
 CandidateRefresh storage-downlink-pressure replay callback removal.
 
 Status:
-Selected.
+Review complete; ready to publish.
 
 Selected slice:
 Remove the source-summary callback from the storage-downlink-pressure replay
@@ -43,10 +43,20 @@ remain exact; no old callback arity remains; focused tests pass; and bounded
 review finds no blocker.
 
 Outcome:
-Pending.
+The storage-downlink-pressure replay path is now one-argument end to end. Its
+owner calls `SourceReportSummary.build/1` directly while retaining the existing
+source-report composition and summary assembly. The three-file production diff
+removes three net lines.
 
 Verification gaps:
-- Pending.
+- `mix compile --warnings-as-errors`
+- two focused replay files: 13 tests passed
+- scoped `mix format --check-formatted`
+- `git diff --check`
+- old callback arity and invocation audits: no matches
+- owner compile-connected graph: no dependency edge
+- owner callers: replay aggregator only
+- bounded read-only review: clean, no findings
 
 Last completed slice:
 Candidate objective/constraint replay callback removal published as `9ad25ac2`:

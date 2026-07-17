@@ -1,13 +1,13 @@
 defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.StorageDownlinkPressure do
   @moduledoc false
 
+  alias OrbitalDynamics.CandidateRefresh.SourceReportSummary
   alias OrbitalDynamics.CandidateRefresh.ReplaySummary.StorageDownlinkPressure.Summary
 
-  def replay(refresh_or_artifact, source_report_summary)
-      when is_function(source_report_summary, 1) do
+  def replay(refresh_or_artifact) do
     source_reports =
       refresh_or_artifact
-      |> source_report_summary.()
+      |> SourceReportSummary.build()
       |> Map.get("source_reports", %{})
 
     summary(source_reports)

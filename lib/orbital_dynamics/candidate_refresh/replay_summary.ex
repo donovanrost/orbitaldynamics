@@ -77,8 +77,8 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary do
     ResourceProjection.replay(refresh_or_artifact, source_report_summary)
   end
 
-  def storage_downlink_pressure(refresh_or_artifact, source_report_summary) do
-    StorageDownlinkPressure.replay(refresh_or_artifact, source_report_summary)
+  def storage_downlink_pressure(refresh_or_artifact) do
+    StorageDownlinkPressure.replay(refresh_or_artifact)
   end
 
   def station_calendar(refresh_or_artifact) do
