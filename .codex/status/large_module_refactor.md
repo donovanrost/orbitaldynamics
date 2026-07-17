@@ -6,28 +6,28 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Model-acceptance fixture extraction handoff.
+Station reservation fixture mapping.
 
 Status:
-Published as `1d61337d`.
+Ready for implementation.
 
 Selected slice:
-Move `model_acceptance_report.operational_import` and
-`validation_safety_case_summary.v1` from the final contiguous facade range into
-a new `Validation.ReferenceFixtures.ModelAcceptanceArtifacts` leaf. Preserve
-the preceding provider-counteroffer review fixture and complete facade
-remainder exactly.
+Move the 12 station calendar, station reservation, reservation hold, and
+provider-counteroffer fixtures from the final contiguous facade range into a
+new `Validation.ReferenceFixtures.StationReservationArtifacts` leaf. Preserve
+the preceding capability catalog fixture and complete facade remainder exactly.
 
 Why this slice:
-`ReferenceFixtures` remains a 1,240-line production module. The two fixtures
-occupy 195 facade lines, form the complete final literal range, and exactly own
-`model_acceptance_fixture_test.exs`.
+`ReferenceFixtures` remains a 1,047-line production module. The 12 fixtures
+occupy 814 facade lines, form the complete final literal range, and exactly own
+`station_reservation_fixture_test.exs`; the capability catalog remains the sole
+unrelated facade fixture.
 
 Current coupling/problem:
-Model acceptance and its validation safety-case handoff form one contiguous,
-test-owned workflow but remain embedded in the general registry. Moving both
-fixtures preserves the complete responsibility without splitting the larger
-station reservation/calendar family.
+Station calendar precedence/provider state, reservation review/holds, and
+provider counteroffers form one contiguous, test-owned communications workflow
+but remain embedded in the general registry. Moving all 12 preserves that
+complete responsibility rather than splitting the workflow by artifact name.
 
 Public facade to preserve:
 `OrbitalDynamics.Validation.ReferenceFixtures.all/0` and `fetch/1`, exact
@@ -35,11 +35,11 @@ fixture keys and values, map equality and deterministic term bytes, and all
 `OrbitalDynamics.Validation` reference-fixture behavior.
 
 Likely extraction target:
-`OrbitalDynamics.Validation.ReferenceFixtures.ModelAcceptanceArtifacts`.
+`OrbitalDynamics.Validation.ReferenceFixtures.StationReservationArtifacts`.
 
 Likely files:
 - `lib/orbital_dynamics/validation/reference_fixtures.ex`
-- `lib/orbital_dynamics/validation/reference_fixtures/model_acceptance_artifacts.ex`
+- `lib/orbital_dynamics/validation/reference_fixtures/station_reservation_artifacts.ex`
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
@@ -49,59 +49,38 @@ Likely verification:
 - strict compile, format, xref, diff hygiene, and bounded review
 
 Definition of done:
-Both model-acceptance fixtures exist only in the new cohesive leaf, all 47
+All 12 station workflow fixtures exist only in the new cohesive leaf, all 48
 fixture maps remain disjoint, `all/0` and `fetch/1` return exactly the same
-195-entry map and deterministic term bytes, the preceding boundary fixture and
-complete facade remainder stay exact, focused and full validation tests pass,
-and bounded review finds no blocker.
+195-entry map and deterministic term bytes, the preceding capability fixture
+and complete facade remainder stay exact, focused and full validation tests
+pass, and bounded review finds no blocker.
 
 Verification gaps:
-None.
+- Implementation and post-move verification pending.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
   `a94507226596cd944ac21994c7889549ec58ecd1fcc0db5c65fa4e55b0f53ef2`,
   and sorted-key digest
   `b0007d04e4154fe879519a4f2b074fe3f9d0d649f3049d5d848264e105d00732`.
-- Selected two-fixture map: deterministic digest
-  `6156df8e2fa588a5a2ac4cb315acc92f3955df019092b9ff0ae2fe9241f494d4`.
-- Exact 193-entry remainder: deterministic digest
-  `06b73c281338a65814ef98ee5ddbb5dac42c21a81d1e7c437845be241ee70d8e`.
-- Contiguous source boundary confirmed at facade lines 993-1187, immediately
-  after `provider_counteroffer_review_summary.v1` and before the literal map
-  closes, with no facade helper-attribute dependency in the selected literals.
-- Focused model-acceptance/facade selection baseline: 4 tests passed with
+- Selected 12-fixture map: deterministic digest
+  `98b5b92ece7a6e39cc26b3e0dd18fffcf9bf5dd94140f6762ea4d554211c6af2`.
+- Exact 183-entry remainder: deterministic digest
+  `da62ba99a75a6efda9a755338db7d489fed68746cead6f07273e1b0e433556d6`.
+- Contiguous source boundary confirmed at facade lines 180-993, immediately
+  after `capability_catalog.v1` and before the literal map closes. The only
+  facade helper-attribute reference belongs to the retained capability fixture;
+  the selected literals have no helper-attribute dependency.
+- The 12 unique fixture IDs asserted by
+  `station_reservation_fixture_test.exs` exactly equal the selected facade keys.
+- Focused station-reservation/facade selection baseline: 11 tests passed with
   warnings as errors.
-- Normalized-AST proof against selection commit `dff43fee`: both moved literals,
-  the preceding provider-counteroffer review fixture, and the complete 13-entry
-  facade remainder are exact; the new leaf owns only the intended two keys and
-  the selected pair was the final literal range.
-- Post-move exact proof: the 195-entry map, sorted-key digest, selected
-  two-fixture digest, and exact 193-entry remainder digest all match their
-  selection baselines.
-- Source partition proof: 47 maps total 195 entries, the new leaf owns two, the
-  facade owns 13, all 1,081 pairwise intersections are empty, and the 195
-  unique source keys exactly match the runtime map.
-- Facade proof: all 195 successful `fetch/1` results, missing-key `:error`, and
-  nonbinary `FunctionClauseError` behavior remain unchanged.
-- Focused model-acceptance/facade validation: 4 tests passed with warnings as
-  errors.
-- Full validation family: 181 tests passed with warnings as errors.
-- Strict test compile, `mix format --check-formatted`, `git diff --check`, and
-  xref caller checks passed.
-- Independent bounded review against selection commit `dff43fee` was clean:
-  normalized AST and boundary ownership, all four deterministic digests, the
-  47-map disjoint source partition, facade behavior, one-way xref dependency,
-  focused 4-test gate, full 181-test gate, formatting, and diff hygiene all
-  matched the recorded evidence.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-The exact two-fixture model-acceptance family now lives in a new cohesive leaf
-behind the unchanged facade. The facade shrank from 1,240 to 1,047 lines; the
-new leaf is 203 lines and owns exactly two fixtures.
+No station-reservation implementation has started.
 
 Last completed slice:
 Model-acceptance extraction published as `1d61337d`: the exact two-fixture
@@ -110,11 +89,9 @@ lines, the 195-entry map and all deterministic digests stayed exact, 4 focused
 and 181 full validation tests passed, and bounded review was clean.
 
 Next candidate:
-Map the 12 contiguous station calendar, station reservation, reservation hold,
-and provider-counteroffer fixtures that exactly own
-`station_reservation_fixture_test.exs`. Preserve the preceding capability
-catalog fixture exactly, and capture selected/remainder digests and boundaries
-before moving the complete workflow into one cohesive leaf.
+Select the station-reservation extraction described above, preserve the exact
+preceding capability fixture and complete remainder, then move the complete
+test-owned workflow.
 
 Blocked:
 No.
