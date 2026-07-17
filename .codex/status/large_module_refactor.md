@@ -9,7 +9,7 @@ Current slice:
 Schema contact-allocation source-match callback ownership cleanup.
 
 Status:
-Completed and verified; publishing.
+Completed and published.
 
 Selected slice:
 Point allocation, capacity-pack, and provider-calendar contention
@@ -72,17 +72,18 @@ Behavior/schema changes:
 None.
 
 Last completed slice:
-Schema resource-projection count predicate ownership extraction published as
-`1bad14c5`: the owner now supplies default `/3` count validation with the moved
-predicate while preserving injectable `/4`; 182 schema/export tests passed,
-full export bytes stayed exact, and bounded review was clean.
+Schema contact-allocation source-match callback ownership cleanup published as
+`c6930074`: twelve allocation, capacity-pack, and provider-contention captures
+now point directly to their owner while duplicate-evidence injection remains
+facade-owned; 182 schema/export tests passed, full export bytes stayed exact,
+and bounded review was clean.
 
 Next candidate:
-Audit `ContactAllocationHandoffContracts` source-match ownership separately
-from allocation-field validation. General/cadence allocation, capacity-pack,
-and provider-calendar contention validators appear directly capturable, while
-allocation fields still inject a facade-owned duplicate-evidence validator.
-Select only the dependency-free source-match subset.
+Leave contact-allocation field validation in the facade because moving it would
+drag the report-domain callback bag across the boundary. Audit the adjacent
+operational-readiness and quality-gate source-match wrappers instead: four pure
+delegates appear across fourteen callback positions and already have dedicated
+owners.
 
 Blocked:
 No.
