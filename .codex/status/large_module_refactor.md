@@ -65,9 +65,11 @@ Validation modules preserved the 181-test aggregate with no duplicate names.
 Format, diff hygiene, dependency-closure checks, and bounded review were clean.
 
 Next candidate:
-Refresh the remaining 9,952-line parent inventory and select the next largest
-coherent multi-test fixture family. Leave the generic tolerance/determinism tail
-in place unless its helper closure forms a real focused verification unit.
+Map the nine-test station reservation/provider fixture cluster spanning stale
+reservation hold through provider counteroffer summary in the 9,952-line
+parent. Move only a complete helper closure with retained cross-family
+consumers imported explicitly; leave the generic tolerance/determinism tail in
+place.
 
 Blocked:
 No.
