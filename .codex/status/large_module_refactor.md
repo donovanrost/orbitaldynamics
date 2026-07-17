@@ -6,10 +6,10 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Station reservation fixture mapping.
+Station reservation fixture extraction handoff.
 
 Status:
-Publishing.
+Published as `7e53ba2c`.
 
 Selected slice:
 Move the 12 station calendar, station reservation, reservation hold, and
@@ -107,15 +107,18 @@ leaf behind the unchanged facade. The facade shrank from 1,047 to 235 lines;
 the new leaf is 822 lines and owns exactly 12 fixtures.
 
 Last completed slice:
-Model-acceptance extraction published as `1d61337d`: the exact two-fixture
-family moved into a new 203-line leaf, the facade shrank from 1,240 to 1,047
-lines, the 195-entry map and all deterministic digests stayed exact, 4 focused
+Station-reservation extraction published as `7e53ba2c`: the exact 12-fixture
+workflow moved into a new 822-line leaf, the facade shrank from 1,047 to 235
+lines, the 195-entry map and all deterministic digests stayed exact, 11 focused
 and 181 full validation tests passed, and bounded review was clean.
 
 Next candidate:
-Select the station-reservation extraction described above, preserve the exact
-preceding capability fixture and complete remainder, then move the complete
-test-owned workflow.
+Map the sole remaining `capability_catalog.v1` facade fixture together with its
+private candidate-refresh source-report ordering attribute. Confirm the
+attribute is used only by that fixture, capture exact selected/remainder
+digests, and move the complete public capability-catalog responsibility into a
+dedicated leaf rather than mixing it into environment- or subsystem-specific
+capability leaves.
 
 Blocked:
 No.
