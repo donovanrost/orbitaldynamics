@@ -9,7 +9,7 @@ Current slice:
 Schema suppression callback ownership cleanup.
 
 Status:
-Completed and verified; publishing.
+Completed and published.
 
 Selected slice:
 Point two duplicate-group, three source-match, and one cadence source-review
@@ -68,15 +68,16 @@ Behavior/schema changes:
 None.
 
 Last completed slice:
-Schema timeline publication-summary callback ownership cleanup published as
-`5bc62467`: six captures now point directly to `TimelineHandoffContracts`, the
-owner internalizes its existing validator dependency, 182 schema/export tests
-passed, full export bytes stayed exact, and bounded review was clean.
+Schema suppression callback ownership cleanup published as `8805d3da`: six
+captures now point directly to `SuppressionHandoffContracts`, five pure facade
+clauses were removed, 182 schema/export tests passed, full export bytes stayed
+exact, and bounded review was clean.
 
 Next candidate:
-After this boundary, audit whether suppression duplicate-row evidence can move
-behind an owner-owned default without coupling `SuppressionHandoffContracts` to
-unrelated facade state.
+Give `SuppressionHandoffContracts.validate_duplicate_row_fields/4` an
+owner-owned three-argument default using
+`SuppressedCandidateContracts.validate_duplicate_evidence/3`. Retarget its three
+captures and remove both remaining pure facade helpers.
 
 Blocked:
 No.
