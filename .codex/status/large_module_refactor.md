@@ -6,28 +6,27 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Link-capacity fixture mapping.
+Refreshed-window lineage fixture mapping.
 
 Status:
-Publishing.
+Ready for next slice selection.
 
 Selected slice:
-Move
-`link_capacity_summary.v1` and `link_capacity_report.v1` from their two facade
-ranges into a new `Validation.ReferenceFixtures.LinkCapacityArtifacts` leaf.
-Stop before `refreshed_window.v1` and `relay_data_path_summary.v1`,
-respectively.
+No implementation selected yet. The next bounded candidate is to move
+`refreshed_window.v1` and `source_window_lineage.v1` into a new
+`Validation.ReferenceFixtures.ContactWindowArtifacts` leaf. Stop before
+`spacecraft_state_estimate.v1`.
 
 Why this slice:
-`ReferenceFixtures` remains the largest production module at 8,073 lines. The
-two link-capacity fixtures total 171 lines and are jointly owned by dedicated
-assertions in `link_capacity_fixture_test.exs`.
+`ReferenceFixtures` remains the largest production module at 7,904 lines. The
+next two contiguous fixtures form an 80-line refreshed-window/lineage pair with
+dedicated assertions in `contact_window_fixture_test.exs`.
 
 Current coupling/problem:
-The capacity report and its summary are separated by unrelated fixture families
-inside the general facade despite sharing one contract responsibility and
-focused test module. Extracting both avoids a one-fixture leaf and reunifies
-their ownership.
+Refreshed-window output and its source lineage remain in the general facade
+between contact/link evidence and spacecraft-state fixtures. Their shared
+window-transformation responsibility warrants a distinct leaf from contact
+intent.
 
 Public facade to preserve:
 `OrbitalDynamics.Validation.ReferenceFixtures.all/0` and `fetch/1`, exact
@@ -35,28 +34,28 @@ fixture keys and values, map equality and deterministic term bytes, and all
 `OrbitalDynamics.Validation` reference-fixture behavior.
 
 Likely extraction target:
-`OrbitalDynamics.Validation.ReferenceFixtures.LinkCapacityArtifacts`.
+`OrbitalDynamics.Validation.ReferenceFixtures.ContactWindowArtifacts`.
 
 Likely files:
 - `lib/orbital_dynamics/validation/reference_fixtures.ex`
-- `lib/orbital_dynamics/validation/reference_fixtures/link_capacity_artifacts.ex`
+- `lib/orbital_dynamics/validation/reference_fixtures/contact_window_artifacts.ex`
 - `.codex/status/large_module_refactor.md`
 
 Likely verification:
 - exact before/after fixture count, keys, values, and deterministic term digest
-- focused link-capacity and facade validation tests
+- focused contact-window and facade validation tests
 - full validation test family
 - strict compile, format, xref, diff hygiene, and bounded review
 
 Definition of done:
-The report/summary fixtures exist only in the new cohesive leaf, all 25 fixture
-maps remain disjoint, `all/0` and `fetch/1` return exactly the same 195-entry
-map and deterministic term bytes, both following boundary fixtures and the
-complete facade remainder stay exact, focused and full validation tests pass,
-and bounded review finds no blocker.
+The refreshed-window/lineage fixtures exist only in the new cohesive leaf, all
+26 fixture maps remain disjoint, `all/0` and `fetch/1` return exactly the same
+195-entry map and deterministic term bytes, `spacecraft_state_estimate.v1` and
+the complete facade remainder stay exact, focused and full validation tests
+pass, and bounded review finds no blocker.
 
 Verification gaps:
-- None for this bounded slice.
+- Next candidate still requires a selection baseline before implementation.
 
 Tests run:
 - Selection baseline: 195 entries, deterministic map digest
@@ -93,19 +92,19 @@ Behavior/schema changes:
 None.
 
 Outcome:
-The exact link-capacity report/summary pair now lives in a new cohesive leaf
-behind the unchanged facade. The facade shrank from 8,073 to 7,904 lines; the
-new leaf is 179 lines and owns exactly two fixtures.
+No refreshed-window lineage implementation has started.
 
 Last completed slice:
-Contact-intent extraction published as `2a189f06`: the exact intent/summary
-pair moved into a new 136-line leaf, the facade shrank from 8,199 to 8,073
-lines, the 195-entry map and all deterministic digests stayed exact, 16 focused
-and 181 full validation tests passed, and bounded review was clean.
+Link-capacity extraction published as `6f45998d`: the exact report/summary pair
+moved from two facade ranges into a new 179-line leaf, the facade shrank from
+8,073 to 7,904 lines, the 195-entry map and all deterministic digests stayed
+exact, 15 focused and 181 full validation tests passed, and bounded review was
+clean.
 
 Next candidate:
-Select the link-capacity extraction described above, capture the exact baseline
-and both source boundaries, then move the two test-owned fixtures together.
+Select the refreshed-window lineage extraction described above, capture the
+exact baseline and source boundary, then stop before
+`spacecraft_state_estimate.v1`.
 
 Blocked:
 No.
