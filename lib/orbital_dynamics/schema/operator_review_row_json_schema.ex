@@ -1,13 +1,15 @@
 defmodule OrbitalDynamics.Schema.OperatorReviewRowJsonSchema do
   @moduledoc false
 
+  alias OrbitalDynamics.Schema.LazyProviderResolver
+
   def row(opts) do
     operator_review_capability = Keyword.fetch!(opts, :operator_review_capability)
     readiness_capability = Keyword.fetch!(opts, :readiness_capability)
     timeline_capability = Keyword.fetch!(opts, :timeline_capability)
     stable_id_pattern = Keyword.fetch!(opts, :stable_id_pattern)
-    schema = Keyword.fetch!(opts, :schema)
-    properties = Keyword.fetch!(opts, :properties)
+    schema = LazyProviderResolver.resolver(Keyword.fetch!(opts, :schema_providers))
+    properties = LazyProviderResolver.resolver(Keyword.fetch!(opts, :property_providers))
 
     %{
       "type" => "object",

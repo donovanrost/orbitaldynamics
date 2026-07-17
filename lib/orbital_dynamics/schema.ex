@@ -5223,176 +5223,91 @@ defmodule OrbitalDynamics.Schema do
       readiness_capability: OrbitalDynamics.OperationalReadiness.capabilities(),
       timeline_capability: timeline_capabilities(),
       stable_id_pattern: @stable_id_pattern,
-      schema: &operator_review_row_json_schema_dependency/1,
-      properties: &operator_review_row_json_schema_properties/1
+      schema_providers: operator_review_row_json_schema_providers(),
+      property_providers: operator_review_row_json_schema_property_providers()
     )
   end
 
-  defp operator_review_row_json_schema_dependency(name) do
-    case name do
-      :activity_context_json_schema ->
-        activity_context_json_schema()
-
-      :actual_data_rate_throughput_derivation_json_schema ->
-        actual_data_rate_throughput_derivation_json_schema()
-
-      :approval_requirement_json_schema ->
-        approval_requirement_json_schema()
-
-      :branch_comparison_source_row_json_schema ->
-        branch_comparison_source_row_json_schema()
-
-      :branch_event_trust_boundary_status_counts_json_schema ->
-        branch_event_trust_boundary_status_counts_json_schema()
-
-      :candidate_activity_source_window_json_schema ->
-        candidate_activity_source_window_json_schema()
-
-      :contact_allocation_capacity_requirement_row_json_schema ->
-        contact_allocation_capacity_requirement_row_json_schema()
-
-      :contact_contention_deferred_priority_json_schema ->
-        contact_contention_deferred_priority_json_schema()
-
-      :lifecycle_transition_json_schema ->
-        lifecycle_transition_json_schema()
-
-      :non_negative_number_map_json_schema ->
-        non_negative_number_map_json_schema()
-
-      :number_array_schema ->
-        number_array_schema()
-
-      :number_or_number_array_schema ->
-        number_or_number_array_schema()
-
-      :number_or_string_json_schema ->
-        number_or_string_json_schema()
-
-      :numeric_triplet_schema ->
-        numeric_triplet_schema()
-
-      :operational_readiness_evidence_json_schema ->
-        operational_readiness_evidence_json_schema()
-
-      :operational_readiness_gate_json_schema ->
-        operational_readiness_gate_json_schema()
-
-      :operational_readiness_source_report_evidence_json_schema ->
-        operational_readiness_source_report_evidence_json_schema()
-
-      :operational_timeline_row_json_schema ->
-        operational_timeline_row_json_schema()
-
-      :policy_decision_evidence_json_schema ->
-        policy_decision_evidence_json_schema()
-
-      :policy_decision_rule_match_json_schema ->
-        policy_decision_rule_match_json_schema()
-
-      :policy_escalation_json_schema ->
-        policy_escalation_json_schema()
-
-      :priority_field_evidence_counts_json_schema ->
-        priority_field_evidence_counts_json_schema()
-
-      :probability_json_schema ->
-        probability_json_schema()
-
-      :protection_decision_json_schema ->
-        protection_decision_json_schema()
-
-      :quality_gate_report_row_json_schema ->
-        quality_gate_report_row_json_schema()
-
-      :quality_gate_source_report_evidence_json_schema ->
-        quality_gate_source_report_evidence_json_schema()
-
-      :semantic_change_details_json_schema ->
-        semantic_change_details_json_schema()
-
-      :source_evidence_json_schema ->
-        source_evidence_json_schema()
-
-      :source_window_lineage_json_schema ->
-        source_window_lineage_json_schema()
-
-      :stable_id_array_map_schema ->
-        stable_id_array_map_schema()
-
-      :stable_id_array_schema ->
-        stable_id_array_schema()
-
-      :string_array_schema ->
-        string_array_schema()
-
-      :timeline_activity_precondition_summary_source_json_schema ->
-        timeline_activity_precondition_summary_source_json_schema()
-
-      :timeline_activity_state_source_json_schema ->
-        timeline_activity_state_source_json_schema()
-
-      :timeline_diff_summary_source_json_schema ->
-        timeline_diff_summary_source_json_schema()
-
-      :timeline_identity_json_schema ->
-        timeline_identity_json_schema()
-
-      :timeline_lifecycle_state_source_json_schema ->
-        timeline_lifecycle_state_source_json_schema()
-
-      :timeline_link_json_schema ->
-        timeline_link_json_schema()
-
-      :timeline_preservation_source_json_schema ->
-        timeline_preservation_source_json_schema()
-
-      :timeline_protection_summary_json_schema ->
-        timeline_protection_summary_json_schema()
-
-      :timeline_transition_application_row_json_schema ->
-        timeline_transition_application_row_json_schema()
-
-      :timeline_transition_application_summary_source_json_schema ->
-        timeline_transition_application_summary_source_json_schema()
-    end
+  defp operator_review_row_json_schema_providers do
+    [
+      activity_context_json_schema: &activity_context_json_schema/0,
+      actual_data_rate_throughput_derivation_json_schema:
+        &actual_data_rate_throughput_derivation_json_schema/0,
+      approval_requirement_json_schema: &approval_requirement_json_schema/0,
+      branch_comparison_source_row_json_schema: &branch_comparison_source_row_json_schema/0,
+      branch_event_trust_boundary_status_counts_json_schema:
+        &branch_event_trust_boundary_status_counts_json_schema/0,
+      candidate_activity_source_window_json_schema:
+        &candidate_activity_source_window_json_schema/0,
+      contact_allocation_capacity_requirement_row_json_schema:
+        &contact_allocation_capacity_requirement_row_json_schema/0,
+      contact_contention_deferred_priority_json_schema:
+        &contact_contention_deferred_priority_json_schema/0,
+      lifecycle_transition_json_schema: &lifecycle_transition_json_schema/0,
+      non_negative_number_map_json_schema: &non_negative_number_map_json_schema/0,
+      number_array_schema: &number_array_schema/0,
+      number_or_number_array_schema: &number_or_number_array_schema/0,
+      number_or_string_json_schema: &number_or_string_json_schema/0,
+      numeric_triplet_schema: &numeric_triplet_schema/0,
+      operational_readiness_evidence_json_schema: &operational_readiness_evidence_json_schema/0,
+      operational_readiness_gate_json_schema: &operational_readiness_gate_json_schema/0,
+      operational_readiness_source_report_evidence_json_schema:
+        &operational_readiness_source_report_evidence_json_schema/0,
+      operational_timeline_row_json_schema: &operational_timeline_row_json_schema/0,
+      policy_decision_evidence_json_schema: &policy_decision_evidence_json_schema/0,
+      policy_decision_rule_match_json_schema: &policy_decision_rule_match_json_schema/0,
+      policy_escalation_json_schema: &policy_escalation_json_schema/0,
+      priority_field_evidence_counts_json_schema: &priority_field_evidence_counts_json_schema/0,
+      probability_json_schema: &probability_json_schema/0,
+      protection_decision_json_schema: &protection_decision_json_schema/0,
+      quality_gate_report_row_json_schema: &quality_gate_report_row_json_schema/0,
+      quality_gate_source_report_evidence_json_schema:
+        &quality_gate_source_report_evidence_json_schema/0,
+      semantic_change_details_json_schema: &semantic_change_details_json_schema/0,
+      source_evidence_json_schema: &source_evidence_json_schema/0,
+      source_window_lineage_json_schema: &source_window_lineage_json_schema/0,
+      stable_id_array_map_schema: &stable_id_array_map_schema/0,
+      stable_id_array_schema: &stable_id_array_schema/0,
+      string_array_schema: &string_array_schema/0,
+      timeline_activity_precondition_summary_source_json_schema:
+        &timeline_activity_precondition_summary_source_json_schema/0,
+      timeline_activity_state_source_json_schema: &timeline_activity_state_source_json_schema/0,
+      timeline_diff_summary_source_json_schema: &timeline_diff_summary_source_json_schema/0,
+      timeline_identity_json_schema: &timeline_identity_json_schema/0,
+      timeline_lifecycle_state_source_json_schema: &timeline_lifecycle_state_source_json_schema/0,
+      timeline_link_json_schema: &timeline_link_json_schema/0,
+      timeline_preservation_source_json_schema: &timeline_preservation_source_json_schema/0,
+      timeline_protection_summary_json_schema: &timeline_protection_summary_json_schema/0,
+      timeline_transition_application_row_json_schema:
+        &timeline_transition_application_row_json_schema/0,
+      timeline_transition_application_summary_source_json_schema:
+        &timeline_transition_application_summary_source_json_schema/0
+    ]
   end
 
-  defp operator_review_row_json_schema_properties(name) do
-    case name do
-      :branch_scoped_downlink_context_json_schema_properties ->
-        branch_scoped_downlink_context_json_schema_properties()
-
-      :command_authority_handoff_json_schema_properties ->
-        command_authority_handoff_json_schema_properties()
-
-      :feedback_maneuver_handoff_json_schema_properties ->
-        feedback_maneuver_handoff_json_schema_properties()
-
-      :link_handoff_json_schema_properties ->
-        link_handoff_json_schema_properties()
-
-      :resource_availability_variance_json_schema_properties ->
-        resource_availability_variance_json_schema_properties()
-
-      :resource_projection_battery_handoff_json_schema_properties ->
-        resource_projection_battery_handoff_json_schema_properties()
-
-      :scoped_downlink_context_json_schema_properties ->
-        scoped_downlink_context_json_schema_properties()
-
-      :thermal_handoff_json_schema_properties ->
-        thermal_handoff_json_schema_properties()
-
-      :timeline_activity_precondition_handoff_json_schema_properties ->
-        timeline_activity_precondition_handoff_json_schema_properties()
-
-      :timeline_dependency_impact_handoff_json_schema_properties ->
-        timeline_dependency_impact_handoff_json_schema_properties()
-
-      :timeline_publication_handoff_json_schema_properties ->
-        timeline_publication_handoff_json_schema_properties()
-    end
+  defp operator_review_row_json_schema_property_providers do
+    [
+      branch_scoped_downlink_context_json_schema_properties:
+        &branch_scoped_downlink_context_json_schema_properties/0,
+      command_authority_handoff_json_schema_properties:
+        &command_authority_handoff_json_schema_properties/0,
+      feedback_maneuver_handoff_json_schema_properties:
+        &feedback_maneuver_handoff_json_schema_properties/0,
+      link_handoff_json_schema_properties: &link_handoff_json_schema_properties/0,
+      resource_availability_variance_json_schema_properties:
+        &resource_availability_variance_json_schema_properties/0,
+      resource_projection_battery_handoff_json_schema_properties:
+        &resource_projection_battery_handoff_json_schema_properties/0,
+      scoped_downlink_context_json_schema_properties:
+        &scoped_downlink_context_json_schema_properties/0,
+      thermal_handoff_json_schema_properties: &thermal_handoff_json_schema_properties/0,
+      timeline_activity_precondition_handoff_json_schema_properties:
+        &timeline_activity_precondition_handoff_json_schema_properties/0,
+      timeline_dependency_impact_handoff_json_schema_properties:
+        &timeline_dependency_impact_handoff_json_schema_properties/0,
+      timeline_publication_handoff_json_schema_properties:
+        &timeline_publication_handoff_json_schema_properties/0
+    ]
   end
 
   defp maybe_add_const(property, "schema_contract", name, _contract) do
