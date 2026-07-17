@@ -9,7 +9,7 @@ Current slice:
 Candidate-refresh planning-feedback replay fixture extraction.
 
 Status:
-Publishing implementation.
+Completed and published as `e2fddf8e`.
 
 Selected slice:
 Move the contiguous `objective_gap_replay` and `constraint_replay` fixtures
@@ -89,16 +89,17 @@ The facade fell from 10,966 to 10,761 lines, while the extracted family is 215
 lines.
 
 Last completed slice:
-Candidate-refresh timeline fixture extraction published as `716171c2`: the
-four exact timeline replay fixtures moved behind the unchanged facade,
-objective gap and the remainder stayed exact, the 195-entry map and
-deterministic bytes stayed exact, 181 validation tests passed, and bounded
-review was clean.
+Candidate-refresh planning-feedback fixture extraction published as
+`e2fddf8e`: the two exact objective/constraint replay fixtures moved behind the
+unchanged facade, contact filter and the remainder stayed exact, the 195-entry
+map and deterministic bytes stayed exact, 181 validation tests passed, and
+bounded review was clean.
 
 Next candidate:
-After this boundary, map candidate-rejection plus contact-filter against
-`candidate_refresh_filter_rejection_replay_fixture_test.exs`; they are
-noncontiguous, so verify the entire intervening facade remains exact.
+Extract the now-contiguous candidate-rejection and contact-filter replays into
+one family. The 160-line pair has no helper-attribute coupling, shares
+dedicated `candidate_refresh_filter_rejection_replay_fixture_test.exs`
+ownership, and stops before link capacity; re-baseline before selecting.
 
 Blocked:
 No.
