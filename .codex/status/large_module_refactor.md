@@ -9,7 +9,7 @@ Current slice:
 Timeline identity-grouping policy extraction.
 
 Status:
-Selection recorded; implementation has not started.
+Implementation published in `ffbcd5f0`; focused and broad proof is green.
 
 Selected boundary:
 Move normalized activity grouping by timeline ID, unique-or-nil activity
@@ -18,33 +18,34 @@ into `Timeline.IdentityGroupingPolicy`. `Timeline` retains three private entry
 points; activity normalization crosses the boundary explicitly.
 
 Why this slice:
-The 6,268-line Timeline facade still owns three exclusive clauses that define
-timeline-identity grouping semantics shared by operational, diff, and
-transition-application paths. Moving them together isolates grouping keys,
-duplicate/missing behavior, and within-group ordering without extracting
-duplicate annotation or report coordinators.
+The extraction moved three clauses into a 24-line internal module and reduced
+Timeline from 6,268 to 6,263 lines. Three private entry points preserve
+operational, diff, and transition-application coordinators while grouping keys,
+duplicate/missing behavior, and within-group ordering now live together.
 
-Planned proof:
+Completed proof:
 - Focused operational duplicate identity, transition application, and timeline
-  diff duplicate-collision examples.
-- Full Timeline and Timeline schema-contract suites.
-- Strict warnings-as-errors compile.
-- Canonical AST equivalence for all three moved clauses after normalizing only
+  diff duplicate-collision examples: 3 passed.
+- Full Timeline suite: 127 passed.
+- Timeline schema-contract suites: 36 passed.
+- Strict warnings-as-errors compile: 3,759 files.
+- Canonical AST equivalence: all three moved clauses after normalizing only
   public/private heads and the activity normalization callback.
-- Format, diff, whitespace, ownership, exactly-three-facade, unchanged Timeline
-  public-definition, and xref checks.
-- Independent read-only review before publication.
+- Format, whitespace, ownership, exactly-three-facade, unchanged Timeline
+  public definitions, and xref checks passed; Timeline is the only runtime
+  caller.
+- Independent read-only review found no production-code findings.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline deterministic count-summary policy extraction, selected in `254c0c28`,
-implemented in `e822e150`, and handed off in `362474a4`.
+Timeline identity-grouping policy extraction, selected in `e1ff48a7` and
+implemented in `ffbcd5f0`.
 
 Next candidate:
-Continue remapping the reduced Timeline facade after this slice, avoiding wide
+Continue remapping the 6,263-line Timeline facade after this slice, avoiding wide
 report and activity-context map coordinator callback surfaces.
 
 Blocked:
