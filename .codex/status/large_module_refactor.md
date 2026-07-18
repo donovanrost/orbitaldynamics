@@ -16,12 +16,13 @@ Move the contiguous pure strategy-recommendation context cluster into internal
 `CadenceImport.StrategyRecommendationContext`: resource-pressure,
 readiness/quality-gate, risk, resource-margin, merge, and value-collection
 helpers. Update the strategy row builder to call four explicit internal entry
-points.
+points. Supply shared `stringify_keys/1` to the three context-producing entry
+points; `merge/2` remains dependency-free.
 
 Why this slice:
 The reduced facade is 4,662 lines. This roughly 440-line cluster is cohesive and
-dependency-free. The adjacent operational-feedback trust helpers are excluded
-because they also serve an upstream facade path.
+has one shared normalization dependency. The adjacent operational-feedback
+trust helpers are excluded because they also serve an upstream facade path.
 
 Public facade to preserve:
 All `CadenceImport` APIs; exact context maps, filtering, normalization,
@@ -37,13 +38,16 @@ Likely tests:
 - `test/orbital_dynamics/schema/cadence_import_contracts_test.exs`
 
 Definition of done:
-The internal module owns the exact pure context cluster behind explicit
+The internal module owns the exact context cluster behind explicit
 resource-pressure, readiness/quality-gate, risk, and merge entry points;
-operational-feedback helpers remain in the facade; focused tests, strict
-compile, equivalence/API checks, and independent review are clean.
+`stringify_keys/1` is supplied exactly where needed, operational-feedback
+helpers remain in the facade, and focused tests, strict compile,
+equivalence/API checks, and independent review are clean.
 
 Verification gaps:
 - Focused baseline, implementation proof, strict compile, and review remain.
+- Initial implementation compile exposed the omitted shared stringify
+  dependency; the boundary was corrected before successful compile.
 
 Behavior/schema changes:
 None intended.
