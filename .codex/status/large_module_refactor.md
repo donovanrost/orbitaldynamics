@@ -9,45 +9,48 @@ Current slice:
 Timeline candidate-rejection condition policy extraction.
 
 Status:
-Selected; implementation has not started.
+Implemented, verified, independently reviewed, committed, and pushed.
 
-Selected boundary:
-Move locked-overlap, negative-margin, short-contact, policy-blocked,
+Completed boundary:
+Moved locked-overlap, negative-margin, short-contact, policy-blocked,
 stale-state, model-incompatible, and quality-gate-failed classification plus
-their token normalization into a dedicated candidate-rejection condition
-policy. Keep seven thin private Timeline facades so the derived-reason
-coordinator remains unchanged, plus one private normalization facade for the
-existing activity-precondition callback.
+their token normalization into the 105-line
+`Timeline.CandidateRejectionConditionPolicy`. The 6,064-line Timeline retains
+seven thin classifier facades so the derived-reason coordinator remains
+unchanged, plus one normalization facade for the existing activity-precondition
+callback.
 
-Selection evidence:
-- The boundary is nine adjacent private clauses at Timeline lines 2,251-2,321.
-  The seven classifiers are consumed only by the derived candidate-rejection
-  reason coordinator; `activity_precondition_row_summary/1` also retains its
-  existing `&normalized_token/1` callback through a thin Timeline facade.
-- Existing field, numeric, timing, lifecycle normalization, and artifact
-  encoding policies supply every dependency directly; no callbacks are needed.
-- The extraction should replace roughly 71 helper lines with about 25 facade
-  lines, materially reducing the current 6,104-line Timeline.
-- Station classification, declared reasons, boolean availability checks,
-  reviewability, report/row construction, and schema logic remain outside the
-  boundary.
+Published commits:
+Initially selected in `a5fbcc2d`, corrected in `70396748` after strict compile
+identified the activity-precondition normalization callback, and implemented in
+`6e5fc6f3`.
 
 Verification:
-Pending: focused baseline, implementation, strict compile, focused and full
-Timeline tests, schema-contract tests, canonical AST equivalence, static
-ownership/facade/public-definition/xref checks, and independent review.
+- Strict warnings-as-errors compile passed across 3,785 files after preserving
+  the normalization callback facade.
+- Three focused candidate-rejection examples passed before and after extraction.
+- Full Timeline suite passed with 127 examples; Timeline schema-contract suites
+  passed with 36 examples.
+- Canonical AST equivalence passed for all nine moved clauses after normalizing
+  only public/private definition kind.
+- Format, diff, whitespace, exactly-eight-facade, unchanged Timeline
+  public-definition, sole-production-consumer, callback-wiring, and xref checks
+  passed.
+- Independent read-only review found no production-code issues and confirmed
+  exact fields, tokens, thresholds, comparison strictness, normalization,
+  transitive dependency adapters, coordinator order, and callback preservation.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline candidate-rejection station policy extraction, selected in `68aec198`
-implemented in `da7ab611`, and handed off in `c34acaa6`.
+Timeline candidate-rejection condition policy extraction, initially selected in
+`a5fbcc2d`, corrected in `70396748`, and implemented in `6e5fc6f3`.
 
 Next candidate:
-Implement and verify this selected boundary before remapping the reduced
-Timeline facade.
+Continue remapping the reduced Timeline facade after this slice, avoiding wide
+report and activity-context map coordinator callback surfaces.
 
 Blocked:
 No.
