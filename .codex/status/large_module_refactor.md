@@ -9,7 +9,7 @@ Current slice:
 Schema export operational-timeline test split.
 
 Status:
-Selected; implementation has not started.
+Complete and published.
 
 Selected boundary:
 Move both operational-timeline schema assertion clusters into one focused
@@ -31,16 +31,27 @@ Selection evidence:
   assertions, and helper ownership remain outside the boundary.
 
 Verification:
-Pending: focused baseline, mechanical assertion move, strict compile,
-focused/original test files, structural/static checks, and independent review.
+- Selection published in `779f8c11`; implementation published in `5b1c6ac9`.
+- Original bundle test baseline: 1 passed.
+- Strict warnings-as-errors compile: 3,800 files compiled.
+- Focused operational-timeline export test: 1 passed.
+- Retained bundle-content test: 1 passed.
+- Canonical AST comparison: retained bundle remainder and all 20 moved
+  operational-timeline expressions equivalent in order.
+- Static checks confirmed no operational-timeline assertions remain in the
+  original, unchanged 14-helper set, no temporary checker, and clean
+  formatting/diff.
+- Independent review: clean, with no findings.
+- Original export ledger is 8,450 lines; the focused operational-timeline
+  module is 153 lines.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Schema export validation-family test split, selected in `832e0d04` and
-implemented in `08b23d2c`.
+Schema export operational-timeline test split, selected in `779f8c11` and
+implemented in `5b1c6ac9`.
 
 Next candidate:
 Continue remapping the reduced Timeline facade.
