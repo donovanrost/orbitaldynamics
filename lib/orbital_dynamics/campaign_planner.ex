@@ -43,14 +43,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
     BranchCandidateRefresh,
     BranchApprovalRequirements,
     BranchGenerationPolicy,
-    BranchOperationalFeedback,
     BranchRefreshAcceptedState,
     BranchRefreshGroundNetwork,
-    BranchRefreshPolicies,
-    BranchRefreshRequestBuilder,
-    BranchRefreshRequestOptions,
-    BranchRefreshResourceSummaries,
-    BranchRefreshSourceInputs,
     BranchRefreshTargets,
     BuildArtifact,
     CadenceImportPressureBranches,
@@ -81,9 +75,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
     FuelPreservationBranches,
     LinkCapacityPressureBranches,
     LinkCapacitySourceReports,
-    MissionStateCandidateRefreshSourceReports,
     MissionStateNormalization,
-    MissionStateResourceSources,
     MissionStateResourceConstraintBranches,
     ModelLimits,
     ModelAcceptancePressureEvents,
@@ -104,7 +96,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
     OperatorReviewSourceReports,
     PlanBranch,
     PlanMetadata,
-    PriorActivityContext,
     PriorityCommitmentSatisfaction,
     ProviderCounterofferSourceReports,
     ProviderCounterofferPressureEvents,
@@ -906,7 +897,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
     prior_plan = BranchEventApplication.apply_plan(request.prior_plan, branch)
 
     candidate_refresh_request =
-      BranchCandidateRefresh.request(branch, request, &derive_branch_candidate_refresh_request/2)
+      BranchCandidateRefresh.request(branch, request, &BranchCandidateRefresh.derive/2)
 
     candidate_refresh =
       BranchCandidateRefresh.refresh(
@@ -974,7 +965,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         candidate_plan,
         repair_result,
         branch,
-        branch_refresh_operational_feedback(branch, request.operational_feedback)
+        BranchCandidateRefresh.operational_feedback(branch, request.operational_feedback)
       )
 
     objective_satisfaction = branch_objective_satisfaction(candidate_plan, request)
@@ -985,7 +976,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         branch,
         request,
         repair_result,
-        &derive_branch_candidate_refresh_request/2
+        &BranchCandidateRefresh.derive/2
       )
 
     risk_indicators =
@@ -2138,147 +2129,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
     )
   end
 
-  defp mission_state_candidate_refresh_source_reports(mission_state) do
-    MissionStateCandidateRefreshSourceReports.build(mission_state)
-  end
-
-  defp derive_branch_candidate_refresh_request(%{"id" => "baseline"}, _request), do: nil
-
-  defp derive_branch_candidate_refresh_request(%{"events" => []}, _request), do: nil
-
-  defp derive_branch_candidate_refresh_request(branch, request) do
-    with %{} = accepted_state <-
-           branch_accepted_planning_state(branch, request.mission_state, request.prior_plan) do
-      defaults = Map.get(request.mission_state, "candidate_refresh_defaults", %{})
-
-      operational_feedback =
-        branch_refresh_operational_feedback(branch, request.operational_feedback)
-
-      targets =
-        mission_state_refresh_targets(
-          branch,
-          request.mission_state,
-          operational_feedback
-        )
-
-      ground_stations = mission_state_refresh_ground_stations(branch, request.mission_state)
-      outputs = branch_refresh_outputs(targets, ground_stations)
-
-      BranchRefreshRequestBuilder.build(branch, request, defaults, %{
-        accepted_state: accepted_state,
-        outputs: outputs,
-        ground_stations: ground_stations,
-        remaining_horizon: branch_refresh_horizon(request, defaults),
-        targets: targets,
-        ground_network:
-          branch_refresh_ground_network(
-            branch,
-            request.mission_state,
-            operational_feedback
-          ),
-        constraints: branch_refresh_constraints(request, defaults),
-        resource_filter_policy: branch_refresh_resource_filter_policy(branch, defaults),
-        candidate_limit_policy: branch_refresh_candidate_limit_policy(branch, defaults),
-        source_timeline_feedback_report:
-          BranchRefreshSourceInputs.timeline_feedback_source_report(request.mission_state),
-        timeline_feedback_report:
-          BranchRefreshSourceInputs.timeline_feedback_report_input(request.mission_state),
-        source_operational_timeline_report:
-          BranchRefreshSourceInputs.operational_timeline_source_report(request.mission_state),
-        operational_timeline_report:
-          BranchRefreshSourceInputs.operational_timeline_report_input(request.mission_state),
-        mission_state: mission_state_candidate_refresh_source_reports(request.mission_state),
-        operational_feedback: operational_feedback,
-        scoring_policy: branch_refresh_scoring_policy(request, defaults),
-        resource_summaries: branch_refresh_resource_summaries(branch, request.mission_state),
-        prior_candidate_activities: PriorActivityContext.candidate_activities(request.prior_plan),
-        approval_policy: branch_refresh_approval_policy(request)
-      })
-    else
-      _missing -> nil
-    end
-  end
-
-  defp branch_refresh_operational_feedback(branch, operational_feedback) do
-    BranchOperationalFeedback.derive(branch, operational_feedback,
-      normalize_operational_feedback: &OperationalFeedbackNormalization.normalize/1,
-      normalize_resource_margin_aliases:
-        &OperationalFeedbackNormalization.normalize_resource_margin_aliases/1,
-      normalize_resource_availability_aliases:
-        &OperationalFeedbackNormalization.normalize_resource_availability_aliases/1,
-      event_ground_station_id: &BranchEventNormalizer.ground_station_id/1,
-      branch_event_spacecraft_id: &BranchEventApplication.spacecraft_id/1
-    )
-  end
-
-  defp branch_refresh_approval_policy(request),
-    do: BranchRefreshRequestOptions.approval_policy(request)
-
-  defp mission_state_accepted_planning_state(mission_state, prior_plan) do
-    BranchRefreshAcceptedState.from_mission_state(mission_state, prior_plan)
-  end
-
-  defp branch_accepted_planning_state(branch, mission_state, prior_plan) do
-    BranchRefreshAcceptedState.for_branch(branch, mission_state, prior_plan)
-  end
-
-  defp mission_state_refresh_targets(branch, mission_state, operational_feedback) do
-    BranchRefreshTargets.build(branch, mission_state, operational_feedback)
-  end
-
-  defp mission_state_refresh_ground_stations(_branch, mission_state) do
-    BranchRefreshGroundNetwork.ground_stations(mission_state)
-  end
-
-  defp branch_refresh_ground_network(branch, mission_state, operational_feedback) do
-    BranchRefreshGroundNetwork.build(branch, mission_state, operational_feedback)
-  end
-
-  defp branch_refresh_outputs(targets, ground_stations) do
-    BranchRefreshRequestOptions.outputs(targets, ground_stations)
-  end
-
-  defp branch_refresh_horizon(request, defaults) do
-    BranchRefreshRequestOptions.horizon(request, defaults)
-  end
-
-  defp branch_refresh_constraints(request, defaults) do
-    BranchRefreshRequestOptions.constraints(request, defaults)
-  end
-
-  defp branch_refresh_scoring_policy(request, defaults) do
-    BranchRefreshRequestOptions.scoring_policy(request, defaults)
-  end
-
-  defp branch_refresh_resource_filter_policy(branch, defaults) do
-    BranchRefreshPolicies.resource_filter_policy(branch, defaults)
-  end
-
-  defp branch_refresh_candidate_limit_policy(branch, defaults) do
-    BranchRefreshPolicies.candidate_limit_policy(branch, defaults)
-  end
-
-  defp branch_refresh_resource_summaries(branch, mission_state) do
-    base_summaries =
-      case Map.get(mission_state, "resource_summaries") do
-        summaries when is_list(summaries) and summaries != [] ->
-          summaries
-
-        _other ->
-          MissionStateResourceSources.summaries(mission_state)
-      end
-      |> Enum.map(&ValueEncoding.stringify_keys/1)
-      |> Enum.map(&RepairRealizedState.spacecraft_state_booleans/1)
-
-    branch
-    |> BranchRefreshResourceSummaries.build(base_summaries,
-      branch_event_spacecraft_id: &BranchEventApplication.spacecraft_id/1,
-      degraded_event_mode: &BranchEventApplication.degraded_mode/1,
-      normalize_incompatible_activity_types:
-        &BranchOperationalFeedback.normalize_incompatible_activity_types/1
-    )
-  end
-
   defp branch_assumptions(branch, request, repair_policy, scoring_policy, candidate_source) do
     %{
       "branch_id" => branch["id"],
@@ -2765,11 +2615,11 @@ defmodule OrbitalDynamics.CampaignPlanner do
     refresh
     |> put_if_absent(
       "accepted_planning_state",
-      mission_state_accepted_planning_state(mission_state, prior_plan)
+      BranchRefreshAcceptedState.from_mission_state(mission_state, prior_plan)
     )
     |> put_if_absent(
       "targets",
-      mission_state_refresh_targets(%{"events" => []}, mission_state, operational_feedback)
+      BranchRefreshTargets.build(%{"events" => []}, mission_state, operational_feedback)
     )
   end
 
@@ -2777,7 +2627,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
     put_if_absent(
       request,
       "ground_stations",
-      mission_state_refresh_ground_stations(%{"events" => []}, mission_state)
+      BranchRefreshGroundNetwork.ground_stations(mission_state)
     )
   end
 
