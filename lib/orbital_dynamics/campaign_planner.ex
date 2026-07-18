@@ -34,7 +34,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
     ActivityIdentity,
     ActivityTiming,
     ApprovalPolicy,
-    BranchCollection,
     BranchCandidatePlan,
     BranchEventApplication,
     BranchEventNormalizer,
@@ -46,34 +45,17 @@ defmodule OrbitalDynamics.CampaignPlanner do
     BranchRefreshGroundNetwork,
     BranchRefreshTargets,
     BuildArtifact,
-    CadenceImportPressureBranches,
-    CollectionLatencyBranches,
     CollectionLatencySatisfaction,
-    DerivedBranchCollection,
-    DerivedActivityPressureBranches,
-    DerivedContactPressureBranches,
-    DerivedDegradedSpacecraftBranches,
-    DerivedGroundNetworkBranches,
-    DerivedObjectivePressureBranches,
-    DerivedOperationalReviewPressureBranches,
-    DerivedReviewReadinessPressureBranches,
-    DerivedResourcePressureBranches,
-    DerivedStationPressureBranches,
-    DerivedTimelinePressureBranches,
+    DerivedBranchOrchestration,
     CandidateRefreshNormalization,
     CandidateRefreshRequest,
     CandidateRefreshOperationalFeedback,
     DownlinkActivityNormalization,
-    DownlinkConstrainedBranches,
     DownlinkObjectiveRequirements,
-    FuelPreservationBranches,
-    LinkCapacityPressureBranches,
-    LinkCapacitySourceReports,
     MissionStateNormalization,
     ModelLimits,
     ObjectiveSatisfactionReports,
     OperationalFeedbackAggregation,
-    OperationalFeedbackBranches,
     OperationalFeedbackNormalization,
     OperationalFeedbackProvenance,
     PlanBranch,
@@ -99,7 +81,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
     StrategyBranchNormalization,
     StrategyPolicyNormalization,
     StrategyRiskIndicators,
-    TargetObjectiveBranches,
     StrategyArtifact,
     StrategyCandidateSource,
     StrategyFeedbackAdjustments,
@@ -702,8 +683,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
       )
 
     branches =
-      branches
-      |> maybe_add_derived_branches(
+      DerivedBranchOrchestration.merge(
+        branches,
         prior_plan,
         mission_state,
         operational_feedback,
@@ -1123,70 +1104,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp branch_generation_policy(request), do: BranchGenerationPolicy.build(request)
 
-  defp maybe_add_derived_branches(
-         branches,
-         _prior_plan,
-         _mission_state,
-         _operational_feedback,
-         _operational_feedback_provenance,
-         %{
-           "derive_branches" => false
-         }
-       ),
-       do: branches
-
-  defp maybe_add_derived_branches(
-         branches,
-         prior_plan,
-         mission_state,
-         operational_feedback,
-         operational_feedback_provenance,
-         policy
-       ) do
-    individual_derived =
-      []
-      |> Kernel.++(derived_degraded_spacecraft_branches(mission_state))
-      |> Kernel.++(derived_ground_network_branches(mission_state, prior_plan))
-      |> Kernel.++(DerivedStationPressureBranches.build(prior_plan, mission_state))
-      |> Kernel.++(
-        derived_operational_feedback_branches(
-          mission_state,
-          prior_plan,
-          operational_feedback,
-          operational_feedback_provenance,
-          policy
-        )
-      )
-      |> Kernel.++(DerivedResourcePressureBranches.build(prior_plan, mission_state, policy))
-      |> Kernel.++(DerivedContactPressureBranches.build(prior_plan, mission_state))
-      |> Kernel.++(DerivedReviewReadinessPressureBranches.build(prior_plan, mission_state))
-      |> Kernel.++(derived_link_capacity_pressure_branches(prior_plan))
-      |> Kernel.++(derived_mission_state_link_capacity_pressure_branches(mission_state))
-      |> Kernel.++(DerivedObjectivePressureBranches.build(prior_plan, mission_state))
-      |> Kernel.++(DerivedTimelinePressureBranches.build(prior_plan, mission_state, policy))
-      |> Kernel.++(DerivedActivityPressureBranches.build(prior_plan, mission_state))
-      |> Kernel.++(
-        DerivedOperationalReviewPressureBranches.build(prior_plan, mission_state, policy)
-      )
-      |> Kernel.++(CadenceImportPressureBranches.from_prior_plan(prior_plan, policy))
-      |> Kernel.++(CadenceImportPressureBranches.from_mission_state(mission_state, policy))
-      |> Kernel.++(derived_fuel_preservation_branches(mission_state, policy))
-      |> Kernel.++(derived_urgent_target_branches(mission_state, prior_plan, policy))
-      |> Kernel.++(derived_collection_latency_branches(mission_state, prior_plan))
-      |> Kernel.++(derived_downlink_constrained_branches(mission_state, prior_plan, policy))
-      |> BranchCollection.dedupe_contact_intent_pressure()
-
-    DerivedBranchCollection.merge(branches, individual_derived, policy)
-  end
-
-  defp derived_degraded_spacecraft_branches(mission_state) do
-    DerivedDegradedSpacecraftBranches.build(mission_state)
-  end
-
-  defp derived_ground_network_branches(mission_state, prior_plan) do
-    DerivedGroundNetworkBranches.build(mission_state, prior_plan)
-  end
-
   defp put_if_absent(map, _key, value) when value in [nil, "", [], %{}], do: map
 
   defp put_if_absent(map, key, value) do
@@ -1194,22 +1111,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
       existing when existing in [nil, "", [], %{}] -> Map.put(map, key, value)
       _existing -> map
     end
-  end
-
-  defp derived_operational_feedback_branches(
-         mission_state,
-         prior_plan,
-         operational_feedback,
-         operational_feedback_provenance,
-         policy
-       ) do
-    OperationalFeedbackBranches.branches(
-      mission_state,
-      prior_plan,
-      operational_feedback,
-      operational_feedback_provenance,
-      policy
-    )
   end
 
   defp numeric_policy_value(policy, key, default) do
@@ -1224,36 +1125,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
       value when is_number(value) -> max(trunc(value), 0)
       _value -> default
     end
-  end
-
-  defp derived_fuel_preservation_branches(mission_state, policy) do
-    FuelPreservationBranches.build(mission_state, policy)
-  end
-
-  defp derived_link_capacity_pressure_branches(prior_plan) do
-    prior_plan
-    |> LinkCapacitySourceReports.prior_plan_reports()
-    |> LinkCapacityPressureBranches.from_reports()
-    |> LinkCapacityPressureBranches.disambiguate()
-  end
-
-  defp derived_mission_state_link_capacity_pressure_branches(mission_state) do
-    mission_state
-    |> LinkCapacitySourceReports.reports()
-    |> LinkCapacityPressureBranches.from_reports()
-    |> LinkCapacityPressureBranches.disambiguate()
-  end
-
-  defp derived_urgent_target_branches(mission_state, prior_plan, policy) do
-    TargetObjectiveBranches.build(mission_state, prior_plan, policy)
-  end
-
-  defp derived_collection_latency_branches(mission_state, prior_plan) do
-    CollectionLatencyBranches.build(mission_state, prior_plan)
-  end
-
-  defp derived_downlink_constrained_branches(mission_state, prior_plan, policy) do
-    DownlinkConstrainedBranches.build(mission_state, prior_plan, policy)
   end
 
   defp normalize_strategy_branches(branches),
