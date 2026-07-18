@@ -5484,8 +5484,12 @@ defmodule OrbitalDynamics.Timeline do
     OrbitalDynamics.Timeline.ProviderContactNormalizationPolicy.normalize_type_alias(activity)
   end
 
-  defp optional_activity_to_map(nil), do: nil
-  defp optional_activity_to_map(activity), do: activity_to_map(activity)
+  defp optional_activity_to_map(activity) do
+    OrbitalDynamics.Timeline.OptionalActivityInputPolicy.convert(
+      activity,
+      &activity_to_map/1
+    )
+  end
 
   defp provider_direction_aliases do
     OrbitalDynamics.Timeline.ContactDirectionNormalizationPolicy.provider_direction_aliases()
