@@ -6,46 +6,47 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline activity-metric calculation policy extraction.
+Timeline activity identity policy extraction.
 
 Status:
-Implementation published in `7df37151`; focused and broad proof is green.
+Selection recorded; implementation has not started.
 
 Selected boundary:
-Move numeric replacement/source delta and positive-planned completion-fraction
-calculation into `Timeline.ActivityMetricCalculationPolicy`. `Timeline` retains
-two private entry points. The boundary has no callbacks, module attributes, or
-shared vocabulary arguments.
+Move durable/derived timeline identity, subject selection, and source-window ID
+and type selection into `Timeline.ActivityIdentityPolicy`. `Timeline` retains
+four private entry points; derived identity becomes internal to the policy.
+Activity start selection and artifact-value encoding cross the boundary
+explicitly.
 
 Why this slice:
-The extraction moved four clauses into a 15-line internal module and reduced
-Timeline from 6,603 to 6,599 lines. Two private entry points preserve
-data-volume, throughput, latency, delivery, thermal, diff, context, and
-callback-capture callers while moving numeric delta and completion-fraction
-rules out of the facade.
+The reduced Timeline facade is 6,599 lines. These five exclusive clauses own
+the precedence for explicit timeline/persistent IDs, deterministic derived
+timeline IDs, subject identity, and nested top-level/metadata source-window
+identity used across row, context, transition, lifecycle-summary, and
+publication surfaces.
 
-Completed proof:
-- Focused data-volume, throughput, thermal, and diff examples: 5 passed.
-- Full Timeline suite: 127 passed.
-- Timeline schema-contract suites: 36 passed.
-- Strict warnings-as-errors compile: 3,746 files.
-- Canonical AST equivalence: all four moved clauses after normalizing only
-  the two facade names.
-- Format, whitespace, ownership, exactly-two-facade, unchanged Timeline public
-  definitions, and xref checks passed; Timeline is the only runtime caller.
-- Independent read-only review found no production-code findings.
+Planned proof:
+- Focused persistent/derived identity, subject precedence, provider station,
+  nested source-window, and metadata source-window examples.
+- Full Timeline and Timeline schema-contract suites.
+- Strict warnings-as-errors compile.
+- Canonical AST equivalence for all five moved clauses after normalizing only
+  the four facade names and two callback boundaries.
+- Format, diff, whitespace, ownership, exactly-four-facade, unchanged Timeline
+  public-definition, and xref checks.
+- Independent read-only review before publication.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline activity-metric calculation policy extraction, selected in `26915dd1`
-and implemented in `7df37151`.
+Timeline activity-metric calculation policy extraction, selected in `26915dd1`,
+implemented in `7df37151`, and handed off in `b2dbc7eb`.
 
 Next candidate:
-Remap the reduced 6,599-line Timeline facade, avoiding boundaries whose guard
-vocabularies remain shared with Timeline.
+Remap the reduced Timeline facade after this slice, avoiding boundaries whose
+guard vocabularies remain shared with Timeline.
 
 Blocked:
 No.
