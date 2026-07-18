@@ -5560,11 +5560,19 @@ defmodule OrbitalDynamics.Timeline do
   defp preservation_sensitive_source?(%{"status" => status}) when status in @executed_statuses,
     do: true
 
-  defp preservation_sensitive_source?(source),
-    do: source["locked"] || approval_protected?(source)
+  defp preservation_sensitive_source?(source) do
+    OrbitalDynamics.Timeline.ApprovalProtectionPolicy.preservation_sensitive_source?(
+      source,
+      @protected_approval_statuses
+    )
+  end
 
-  defp approval_protected?(source),
-    do: source["approval_status"] in @protected_approval_statuses
+  defp approval_protected?(source) do
+    OrbitalDynamics.Timeline.ApprovalProtectionPolicy.approval_protected?(
+      source,
+      @protected_approval_statuses
+    )
+  end
 
   defp executed_status?(status), do: status in @executed_statuses
 
