@@ -5621,23 +5621,22 @@ defmodule OrbitalDynamics.Timeline do
   defp timeline_integrity_review?(row), do: row["timeline_integrity_status"] == "review_required"
 
   defp timeline_integrity_issue_count(rows) do
-    Enum.reduce(rows, 0, &(&2 + Map.get(&1, "timeline_integrity_issue_count", 0)))
+    OrbitalDynamics.Timeline.IntegrityCountPolicy.timeline_integrity_issue_count(rows)
   end
 
   defp timeline_integrity_issue_types(rows) do
-    rows
-    |> Enum.flat_map(&list_value(&1, "timeline_integrity_issue_types"))
-    |> Enum.uniq()
-    |> Enum.sort()
+    OrbitalDynamics.Timeline.IntegrityCountPolicy.timeline_integrity_issue_types(
+      rows,
+      &list_value/2
+    )
   end
 
   defp timeline_integrity_issue_type_counts(rows) do
-    rows
-    |> Enum.flat_map(&list_value(&1, "timeline_integrity_issues"))
-    |> Enum.map(&Map.get(&1, "type"))
-    |> Enum.reject(&is_nil/1)
-    |> Enum.frequencies()
-    |> sort_count_map()
+    OrbitalDynamics.Timeline.IntegrityCountPolicy.timeline_integrity_issue_type_counts(
+      rows,
+      &list_value/2,
+      &sort_count_map/1
+    )
   end
 
   defp timeline_row_ids(rows, field) do
@@ -5693,34 +5692,12 @@ defmodule OrbitalDynamics.Timeline do
   end
 
   defp dependency_issue_count(rows) do
-    rows
-    |> Enum.flat_map(&list_value(&1, "timeline_integrity_issues"))
-    |> Enum.count(fn issue ->
-      is_map(issue) and
-        issue
-        |> Map.get("type")
-        |> dependency_issue_type?()
-    end)
+    OrbitalDynamics.Timeline.IntegrityCountPolicy.dependency_issue_count(rows, &list_value/2)
   end
 
   defp exclusivity_issue_count(rows) do
-    rows
-    |> Enum.flat_map(&list_value(&1, "timeline_integrity_issues"))
-    |> Enum.count(fn issue ->
-      is_map(issue) and
-        issue
-        |> Map.get("type")
-        |> exclusivity_issue_type?()
-    end)
+    OrbitalDynamics.Timeline.IntegrityCountPolicy.exclusivity_issue_count(rows, &list_value/2)
   end
-
-  defp dependency_issue_type?(type) when is_binary(type), do: String.contains?(type, "dependency")
-  defp dependency_issue_type?(_type), do: false
-
-  defp exclusivity_issue_type?(type) when is_binary(type),
-    do: String.contains?(type, "exclusivity")
-
-  defp exclusivity_issue_type?(_type), do: false
 
   defp non_empty_list?(value), do: is_list(value) and value != []
   defp list_value(value, key), do: Map.get(value, key) || []
