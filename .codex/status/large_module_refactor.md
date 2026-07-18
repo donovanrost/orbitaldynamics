@@ -6,53 +6,43 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-CadenceImport command-window manifest-row builder extraction.
+CadenceImport warning manifest-row builder extraction.
 
 Status:
-Implementation published as `60607379`; handoff publication pending.
+Slice selected; selection publication pending.
 
 Selected slice:
-Move `command_window_manifest_row/2` into internal
-`CadenceImport.CommandWindowManifestRow.build/3`. Inject the five shared facade
-helpers for review action, adapter status, provider-result values, provider
-context normalization, and compact-map cleanup.
+Move `warning_manifest_row/2` into internal
+`CadenceImport.WarningManifestRow.build/3`. Inject the three shared facade
+helpers for review action, adapter status, and compact-map cleanup.
 
 Why this slice:
-`CadenceImport` was 5,983 lines. The builder was a 118-line transformation with
-101 projected keys, two provider-result conversions, two identical context
-normalizations, no exclusive helper dependencies, and one facade caller. The
-facade is now 5,877 lines.
+`CadenceImport` is 5,877 lines. The builder is a 71-line transformation with 46
+projected keys, no exclusive helper dependencies, and one facade caller.
 
 Public facade to preserve:
-All `CadenceImport` APIs; all command-window keys and value expressions; import
-status/type defaults, context alias normalization, provider-result conversion,
-approval defaults, compaction, deterministic output, and contracts.
+All `CadenceImport` APIs; all warning keys and value expressions; resource
+pressure fallback precedence, import/approval defaults, compaction,
+deterministic output, and contracts.
 
 Likely files:
 - `lib/orbital_dynamics/cadence_import.ex`
-- `lib/orbital_dynamics/cadence_import/command_window_manifest_row.ex`
+- `lib/orbital_dynamics/cadence_import/warning_manifest_row.ex`
 - `.codex/status/large_module_refactor.md`
 
 Definition of done:
-The internal builder owns the exact 101-key projection; the facade supplies five
+The internal builder owns the exact 46-key projection; the facade supplies three
 exact callbacks; focused tests, strict compile, equivalence/API checks, and
 independent review are clean.
 
 Verification gaps:
-- None for this slice.
+- Focused baseline, implementation proof, strict compile, and review remain.
 
 Tests run:
-- Focused CadenceImport and schema contracts: 100/100.
-- Strict warnings-as-errors compile: 3,683 files.
-- Exact AST proof: 101/101 entries, full normalized body, and all public facade
-  definitions match selection `157146a5`.
-- Format, diff, caller/xref, callback-surface, and whitespace checks clean.
-- Independent read-only review: no code findings or additional test gaps.
+- None yet.
 
 Behavior/schema changes:
-None. Import status/type defaults, both context aliases, provider-result
-conversion, approval defaults, compaction, deterministic output, and APIs are
-exact.
+None intended.
 
 Last completed slice:
 Command-window row builder selected in `157146a5` and published in `60607379`:
