@@ -6,47 +6,51 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline activity-precondition context extraction.
+Timeline integrity annotation extraction.
 
 Status:
-Implementation published in `91250c45`; handoff publication pending.
+Selection recorded; implementation has not started.
 
-Completed boundary:
-`Timeline.ActivityPreconditionContext.build/2` now owns summary ordering/status/
-counts/type sets and the complete availability, degraded, resource, margin,
-membership, command authority/safety, and template-required-state precondition
-engine. `Timeline` retains every public function, ten shared helpers, and the
-shared unit-interval alias table behind callbacks/data. The facade dropped
-from 9,223 to 8,930 lines.
+Selected boundary:
+Move `annotate_timeline_integrity_rows/2` and the complete integrity engine
+through `issue_value/2` into `Timeline.IntegrityAnnotation.annotate/3`:
+activity/timeline dependency validation, missing/self/duplicate/cycle/order
+issues, explicit and group exclusivity overlaps, issue aggregation, operator
+routing/supersession, and deterministic ID/type evidence. `Timeline` retains
+all public functions and supplies only shared list lookup and map compaction
+callbacks. Duplicate timeline-identity annotation remains in the facade as a
+separate responsibility.
 
-Selection:
-Selected and published in `ddb47161` as the next materially larger cohesive
-ownership boundary.
+Why this slice:
+The reduced Timeline facade is 8,930 lines. This approximately 378-line region
+has one cohesive responsibility, six facade callers, no module-attribute
+dependencies, two shared helper dependencies, and dense focused coverage.
+Keeping duplicate timeline identity separate makes the boundary match
+dependency/exclusivity integrity rather than unrelated collision routing.
 
-Verification:
-- Pre-change and post-change focused Timeline cases: 3/3.
-- Full Timeline suite: 127/127.
-- Timeline schema-contract suites: 36/36.
-- Strict warnings-as-errors compile: 3,715 files.
-- Canonical AST equivalence: exact builder and all 20 moved clauses after
-  normalizing only callback and shared-alias-data boundaries.
-- Public-definition hash unchanged; format, diff, whitespace, ownership,
-  caller, and xref checks clean; xref reports only Timeline.
-- Independent review: no code findings. Summary sorting/status/counts,
-  availability/resource/margin/membership conditions, authority/safety
-  precedence, template source/filter/index semantics, row construction,
-  callbacks/data, consumers, API, schema shape, and determinism are exact.
+Planned proof:
+- Focused Timeline tests covering missing, self, duplicate, cyclic, and
+  order-violating dependencies; explicit/group exclusivity; timeline-ID
+  evidence; and normalized selected-activity annotations.
+- Full Timeline and Timeline schema-contract suites.
+- Strict warnings-as-errors compile.
+- Canonical AST equivalence for every moved clause after normalizing only the
+  two callback boundaries.
+- Format, diff, whitespace, ownership, six-caller, public-definition, and xref
+  checks.
+- Independent read-only review before publication.
 
 Behavior/schema changes:
-None. No schema-generation boundary changed, so export regeneration was not
-required.
+None intended. No schema-generation boundary is selected, so export
+regeneration should not be required.
 
 Last completed slice:
-Timeline activity-precondition context extraction, published in `91250c45`.
+Timeline activity-precondition context extraction, implementation published in
+`91250c45` and handoff published in `f6fae270`.
 
 Next candidate:
-Remap the reduced Timeline facade, emphasizing transition integrity and diff
-construction.
+Remap the reduced Timeline facade after this slice, emphasizing diff-row and
+transition-application construction.
 
 Blocked:
 No.
