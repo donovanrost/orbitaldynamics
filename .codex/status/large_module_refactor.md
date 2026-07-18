@@ -9,53 +9,45 @@ Current slice:
 CadenceImport resource-projection manifest-row builder extraction.
 
 Status:
-Slice selected; selection publication pending.
+Implementation `6f621cde` published; verified handoff publication pending.
 
-Selected slice:
-Move `resource_projection_manifest_row/2` into internal
-`CadenceImport.ResourceProjectionManifestRow.build/3`, injecting only the three
-shared facade helpers for review action, adapter status, and compact-map
-cleanup.
+Completed slice:
+Moved the resource-projection and flow-summary manifest row projection into
+internal `CadenceImport.ResourceProjectionManifestRow.build/3`. The facade
+injects only three shared review/status/compaction callbacks.
 
 Why this slice:
-`CadenceImport` is 6,327 lines. The resource-projection builder is a 125-line
-transformation with 108 projected keys, one facade caller, and a complete call
-inventory of only three shared dependencies.
+`CadenceImport` was 6,327 lines. The builder was a 125-line transformation with
+108 projected keys. `CadenceImport` is now 6,211 lines.
 
-Current coupling/problem:
-The main artifact adapter embeds a large resource-projection and flow-summary
-projection alongside every other source transformation.
+Published commits:
+- Selection: `7f3df537`
+- Implementation: `6f621cde`
+- Handoff: pending
 
-Public facade to preserve:
-All `CadenceImport` APIs; all resource-projection row keys and value
-expressions; approval/import defaults, review action, adapter status,
+Preserved facade and behavior:
+All `CadenceImport` APIs; all 108 resource-projection keys and value
+expressions; approval defaults, review action, constant present adapter status,
 compaction, deterministic output, and artifact contracts.
 
-Likely files:
-- `lib/orbital_dynamics/cadence_import.ex`
-- `lib/orbital_dynamics/cadence_import/resource_projection_manifest_row.ex`
-- `.codex/status/large_module_refactor.md`
-
-Definition of done:
-The internal builder owns the exact 108-key projection; the facade supplies
-only three same-purpose callbacks; focused Cadence-import and schema-contract
-tests pass; strict warnings-as-errors compile, projection equivalence, public
-API checks, and independent review are clean.
+Verification:
+- Focused Cadence-import plus schema-contract tests: 100/100.
+- Strict warnings-as-errors compile: 3,680 files.
+- Whole-builder AST comparison after callback normalization: exact.
+- Projection comparison: 108/108 keys and expressions, zero mismatches.
+- Three shared callbacks: exact identities and arities.
+- Resource-projection dispatch and public `CadenceImport` definitions:
+  unchanged.
+- Format, whitespace, diff, xref caller, and independent read-only review:
+  clean.
+- Schema export not rerun: no schema-generation code or schema artifacts
+  changed.
 
 Verification gaps:
-- Focused baseline, implementation proof, strict compile, and independent
-  review remain.
-
-Tests run:
-- None yet for this selected slice.
+None for this slice.
 
 Behavior/schema changes:
-None intended.
-
-Last completed slice:
-CadenceImport station-calendar row builder published as implementation
-`099f0ef9` and handoff `36f1ad87`: focused 100/100, strict 3,679-file compile,
-exact 125-entry AST comparison, and independent review passed.
+None.
 
 Next candidate:
 Remap the reduced `CadenceImport` module and select the next low-coupling
