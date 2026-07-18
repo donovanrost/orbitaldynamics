@@ -9,49 +9,44 @@ Current slice:
 Timeline activity-precondition context extraction.
 
 Status:
-Selection recorded; implementation has not started.
+Implementation published in `91250c45`; handoff publication pending.
 
-Selected boundary:
-Move `activity_precondition_row_summary/1` and the complete private
-precondition engine into `Timeline.ActivityPreconditionContext.build/2`:
-availability/degraded/resource blocks, depleted margins, incompatible and
-suppressed activity types, command authority/safety, activity-template
-required states, row construction, status precedence, counts, and sorted type
-sets. `Timeline` retains every public function, shared normalization helpers,
-and the shared unit-interval alias table, supplying them through callbacks and
-selection data.
+Completed boundary:
+`Timeline.ActivityPreconditionContext.build/2` now owns summary ordering/status/
+counts/type sets and the complete availability, degraded, resource, margin,
+membership, command authority/safety, and template-required-state precondition
+engine. `Timeline` retains every public function, ten shared helpers, and the
+shared unit-interval alias table behind callbacks/data. The facade dropped
+from 9,223 to 8,930 lines.
 
-Why this slice:
-After four context extractions, Timeline remains a 9,223-line facade. This
-approximately 305-line region owns one cohesive artifact concern and has two
-facade callers plus focused operational/precondition coverage. The
-unit-interval alias table remains in Timeline because capabilities and input
-validation also consume it; the extraction therefore avoids taking mixed
-schema/validation ownership.
+Selection:
+Selected and published in `ddb47161` as the next materially larger cohesive
+ownership boundary.
 
-Planned proof:
-- Focused Timeline tests covering authority/safety, availability/resource/
-  margin blocks, activity-type membership, template-required states, summary
-  precedence/counts/sorting, and numeric-string normalization.
-- Full Timeline and Timeline schema-contract suites.
-- Strict warnings-as-errors compile.
-- Canonical AST equivalence for the exact summary and every moved clause after
-  normalizing only callback/data boundaries.
-- Format, diff, whitespace, ownership, caller, public-definition, and xref
-  checks.
-- Independent read-only review before publication.
+Verification:
+- Pre-change and post-change focused Timeline cases: 3/3.
+- Full Timeline suite: 127/127.
+- Timeline schema-contract suites: 36/36.
+- Strict warnings-as-errors compile: 3,715 files.
+- Canonical AST equivalence: exact builder and all 20 moved clauses after
+  normalizing only callback and shared-alias-data boundaries.
+- Public-definition hash unchanged; format, diff, whitespace, ownership,
+  caller, and xref checks clean; xref reports only Timeline.
+- Independent review: no code findings. Summary sorting/status/counts,
+  availability/resource/margin/membership conditions, authority/safety
+  precedence, template source/filter/index semantics, row construction,
+  callbacks/data, consumers, API, schema shape, and determinism are exact.
 
 Behavior/schema changes:
-None intended. No schema-generation boundary is selected, so export
-regeneration should not be required.
+None. No schema-generation boundary changed, so export regeneration was not
+required.
 
 Last completed slice:
-Timeline command-window context extraction, implementation published in
-`4658c14f` and handoff published in `adfc3a44`.
+Timeline activity-precondition context extraction, published in `91250c45`.
 
 Next candidate:
-Remap the reduced Timeline facade after this slice, emphasizing transition
-integrity and diff construction.
+Remap the reduced Timeline facade, emphasizing transition integrity and diff
+construction.
 
 Blocked:
 No.
