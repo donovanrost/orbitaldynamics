@@ -6,41 +6,53 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-CadenceImport suppression manifest-row builder extraction.
+CadenceImport strategy-recommendation context extraction.
 
 Status:
-Implementation published in `9ed575c7`; handoff publication pending.
+Slice selected; selection publication pending.
 
-Completed boundary:
-`CadenceImport.SuppressionManifestRow.build/4` now owns the exact 113-key
-contact/resource suppression projection. Shared approval, rule, policy,
-provider-result, status, and compaction helpers remain in the facade behind nine
-callbacks. `CadenceImport` dropped from 4,790 to 4,662 lines.
+Selected slice:
+Move the contiguous pure strategy-recommendation context cluster into internal
+`CadenceImport.StrategyRecommendationContext`: resource-pressure,
+readiness/quality-gate, risk, resource-margin, merge, and value-collection
+helpers. Update the strategy row builder to call four explicit internal entry
+points.
 
-Selection:
-The slice boundary was selected and published in `8bbcb003`.
+Why this slice:
+The reduced facade is 4,662 lines. This roughly 440-line cluster is cohesive and
+dependency-free. The adjacent operational-feedback trust helpers are excluded
+because they also serve an upstream facade path.
 
-Verification:
-- Focused baseline and implementation CadenceImport/contract suites: 100/100.
-- Strict warnings-as-errors compile: 3,707 files.
-- Canonical normalized AST equivalence: exact 113-key body after normalizing
-  only the nine callback boundaries.
-- Format, diff, whitespace, ownership, caller, public-definition, and xref
-  checks: clean; both suppression dispatch variants remain.
-- Independent review: no code findings; interpolation, fallback chains,
-  escalation/stringification, provider-result conversion, shared-helper
-  ownership, API, and determinism are exact. Its handoff-only stale-ledger
-  finding is resolved by this replacement.
+Public facade to preserve:
+All `CadenceImport` APIs; exact context maps, filtering, normalization,
+deduplication, sorting, merge semantics, deterministic output, and contracts.
+
+Likely files:
+- `lib/orbital_dynamics/cadence_import.ex`
+- `lib/orbital_dynamics/cadence_import/strategy_recommendation_context.ex`
+- `.codex/status/large_module_refactor.md`
+
+Likely tests:
+- `test/orbital_dynamics/cadence_import_test.exs`
+- `test/orbital_dynamics/schema/cadence_import_contracts_test.exs`
+
+Definition of done:
+The internal module owns the exact pure context cluster behind explicit
+resource-pressure, readiness/quality-gate, risk, and merge entry points;
+operational-feedback helpers remain in the facade; focused tests, strict
+compile, equivalence/API checks, and independent review are clean.
+
+Verification gaps:
+- Focused baseline, implementation proof, strict compile, and review remain.
 
 Behavior/schema changes:
-None. No schema-generation boundary changed, so no export regeneration was
-required.
+None intended.
 
 Last completed slice:
-Suppression manifest-row builder extraction, published in `9ed575c7`.
+Suppression row builder published in `9ed575c7`; handoff in `c87f0a7a`.
 
 Next candidate:
-Remap the reduced `CadenceImport` facade for the next cohesive boundary.
+Remap the reduced strategy builder after this extraction.
 
 Blocked:
 No.
