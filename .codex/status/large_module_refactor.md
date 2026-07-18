@@ -9,7 +9,7 @@ Current slice:
 Schema export operator-review model/evidence test split.
 
 Status:
-Selected; implementation has not started.
+Completed and published.
 
 Selected boundary:
 Move the contiguous four-assertion operator-review block covering its model,
@@ -33,16 +33,28 @@ Selection evidence:
   assertions, and helper ownership remain outside the boundary.
 
 Verification:
-Pending: focused baseline, mechanical assertion/helper move, strict compile,
-focused/original test files, structural/static checks, and independent review.
+- Focused baseline: original export test passed 1 test.
+- Strict warnings-as-errors compile passed 3,800 modules.
+- Focused operator-review export test passed 1 test.
+- Reduced original export test passed 1 test.
+- AST conservation proved the four selected assertions and sole helper moved
+  exactly; the reduced original is the source AST minus only that boundary.
+- Static checks confirmed the original retains 21 operator-review references
+  and its other 11 helpers, formatting and diff checks pass, and no temporary
+  checker remains.
+- Independent review was clean with no correctness or maintainability findings;
+  it confirmed the retained 886-expression test is the exact 890-expression
+  source minus the four selected expressions.
+- The original export test decreased from 8,317 to 8,276 lines; the focused test
+  is 65 lines.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Schema export maneuver-review test split, selected in `322068ce` and implemented
-in `8f3cbf6b`.
+Schema export operator-review model/evidence test split, selected in `0e38d868`
+and implemented in `6e8d1396`.
 
 Next candidate:
 Continue remapping the reduced Timeline facade.
