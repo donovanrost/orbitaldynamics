@@ -6,54 +6,64 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-CadenceImport generic-review passthrough field-registry extraction.
+CadenceImport realized-feedback manifest-row builder extraction.
 
 Status:
-Implementation `514d444a` published; verified handoff publication pending.
+Slice selected; selection publication pending.
 
-Completed slice:
-Moved the exact generic-review passthrough field list from `CadenceImport` into
-internal `CadenceImport.GenericReviewPassthroughFields.fields/0`. The sole
-generic-review manifest-row `Map.take/2` call now reads that registry directly;
-all row construction remains in the facade.
+Selected slice:
+Move `realized_feedback_manifest_row/2` and its exclusively used
+`realized_feedback_has_cadence_import?/2`, `realized_feedback_import_status/2`,
+and `realized_feedback_import_action/1` helpers into internal
+`CadenceImport.RealizedFeedbackManifestRow.build/3`. Inject only the shared
+facade helpers for review action, provider-result normalization, adapter status,
+and compact-map cleanup.
 
 Why this slice:
-`CadenceImport` was 8,674 lines. The field registry was a 388-line static data
-responsibility with 384 ordered entries and one intentional duplicate.
-`CadenceImport` is now 8,285 lines.
+`CadenceImport` is 8,285 lines. The realized-feedback row builder is 451 lines,
+and its adjacent specialized status/action helpers add 18 lines. The builder is
+a self-contained artifact-row transformation with one facade caller.
 
-Published commits:
-- Selection: `056ea372`
-- Implementation: `514d444a`
-- Handoff: pending
+Current coupling/problem:
+The main artifact adapter embeds an exceptionally large realized-feedback field
+projection and its specialized import-state policy alongside every other source
+family’s manifest transformation.
 
-Preserved facade and behavior:
-All `CadenceImport` APIs; generic operator-review row keys and values;
-passthrough field membership and order; import actions/statuses; merge and
-compaction precedence; deterministic manifest output; and artifact contracts.
+Public facade to preserve:
+All `CadenceImport` APIs; realized-feedback manifest row keys, values, default
+statuses, identifiers, import actions, import statuses, provider-result
+normalization, compaction, deterministic row output, and artifact contracts.
 
-Verification:
-- Full Cadence-import tests plus schema Cadence-import contracts: 100/100.
-- Strict warnings-as-errors compile: 3,672 files.
-- Exact field-list comparison: 384/384 entries, zero mismatches.
-- Sole duplicate `requires_operator_review` preserved at positions 128 and 328.
-- Generic row construction, `Map.delete/2`, merge, and compaction pipeline:
-  unchanged.
-- Public `CadenceImport` definition diff: empty.
-- Format, whitespace, diff, xref caller, and independent read-only review:
-  clean.
-- Schema export not rerun: no schema-generation code or schema artifacts
-  changed.
+Likely files:
+- `lib/orbital_dynamics/cadence_import.ex`
+- `lib/orbital_dynamics/cadence_import/realized_feedback_manifest_row.ex`
+- `.codex/status/large_module_refactor.md`
+
+Definition of done:
+The internal builder owns the exact realized-feedback row projection and
+specialized status/action helpers; the facade supplies only the five shared
+callbacks; focused Cadence-import and schema-contract tests pass; strict
+warnings-as-errors compile, public API and row-construction equivalence checks,
+and independent review are clean.
 
 Verification gaps:
-None for this slice.
+- Focused baseline, implementation proof, strict compile, and independent
+  review remain.
+
+Tests run:
+- None yet for this selected slice.
 
 Behavior/schema changes:
-None.
+None intended.
+
+Last completed slice:
+CadenceImport generic-review passthrough registry published as implementation
+`514d444a` and handoff `fe952c71`: focused 100/100, strict 3,672-file compile,
+exact 384-entry comparison, and independent review passed.
 
 Next candidate:
-Remap the reduced `CadenceImport` module and select a source-specific
-manifest-row builder or another large static registry.
+Remap the reduced `CadenceImport` module and select the next source-specific
+manifest-row builder.
 
 Blocked:
 No.
