@@ -5680,14 +5680,12 @@ defmodule OrbitalDynamics.Timeline do
     end
   end
 
-  defp normalize_activity_direction(%{"direction" => direction} = activity) do
-    case normalize_contact_direction(direction) do
-      nil -> Map.delete(activity, "direction")
-      normalized -> Map.put(activity, "direction", normalized)
-    end
+  defp normalize_activity_direction(activity) do
+    OrbitalDynamics.Timeline.ContactDirectionNormalizationPolicy.normalize_activity(
+      activity,
+      &encode_value/1
+    )
   end
-
-  defp normalize_activity_direction(activity), do: activity
 
   @doc """
   Normalizes provider-shaped contact direction labels into canonical timeline directions.
@@ -5697,36 +5695,18 @@ defmodule OrbitalDynamics.Timeline do
   artifacts can preserve provider evidence without accepting it as a known
   contact direction.
   """
-  def normalize_contact_direction(direction) when direction in [nil, ""], do: nil
-
-  def normalize_contact_direction(direction) do
-    normalized_direction = normalize_contact_direction_token(direction)
-
-    cond do
-      normalized_direction in [nil, "", "nil"] ->
-        nil
-
-      aliased_direction = Map.get(provider_direction_aliases(), normalized_direction) ->
-        aliased_direction
-
-      normalized_direction in contact_direction_values() ->
-        normalized_direction
-
-      normalized_direction == "contact" ->
-        normalized_direction
-
-      true ->
-        normalized_direction
-    end
+  def normalize_contact_direction(direction) when direction in [nil, ""] do
+    OrbitalDynamics.Timeline.ContactDirectionNormalizationPolicy.normalize(
+      direction,
+      &encode_value/1
+    )
   end
 
-  defp normalize_contact_direction_token(direction) do
-    direction
-    |> encode_value()
-    |> to_string()
-    |> String.trim()
-    |> String.downcase()
-    |> String.replace(~r/[\s-]+/, "_")
+  def normalize_contact_direction(direction) do
+    OrbitalDynamics.Timeline.ContactDirectionNormalizationPolicy.normalize(
+      direction,
+      &encode_value/1
+    )
   end
 
   defp normalize_numeric_activity_fields(activity) do
@@ -5768,13 +5748,7 @@ defmodule OrbitalDynamics.Timeline do
   defp optional_activity_to_map(activity), do: activity_to_map(activity)
 
   defp provider_direction_aliases do
-    OrbitalDynamics.MissionPlan.Activity.capabilities().contact_direction_aliases
-    |> Map.new(fn {alias_value, direction} -> {alias_value, Atom.to_string(direction)} end)
-  end
-
-  defp contact_direction_values do
-    OrbitalDynamics.MissionPlan.Activity.capabilities().contact_directions
-    |> Enum.map(&Atom.to_string/1)
+    OrbitalDynamics.Timeline.ContactDirectionNormalizationPolicy.provider_direction_aliases()
   end
 
   defp timeline_lifecycle_event!(event) do
