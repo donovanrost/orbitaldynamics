@@ -18,7 +18,7 @@ retains one private entry point. The boundary has no callbacks or shared
 vocabulary arguments.
 
 Why this slice:
-The reduced Timeline facade is 6,615 lines. These 10 exclusive clauses own the
+The reduced Timeline facade is 6,615 lines. These 11 exclusive clauses own the
 precedence that maps explicit activity types, contact directions, and
 ground-station evidence into the operational-kind vocabulary used by report
 rows and import/action policy. The previously selected lifecycle-category
@@ -31,7 +31,7 @@ Planned proof:
   ground-station fallback, and generic activity examples.
 - Full Timeline and Timeline schema-contract suites.
 - Strict warnings-as-errors compile.
-- Canonical AST equivalence for all 10 moved clauses after normalizing only the
+- Canonical AST equivalence for all 11 moved clauses after normalizing only the
   single facade name.
 - Format, diff, whitespace, ownership, exactly-one-facade, unchanged Timeline
   public-definition, and xref checks.
