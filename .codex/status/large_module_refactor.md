@@ -9,7 +9,7 @@ Current slice:
 Timeline activity-field value policy extraction.
 
 Status:
-Selection recorded; implementation has not started.
+Implementation published in `37b9114f`; focused and broad proof is green.
 
 Selected boundary:
 Move top-level/metadata field lookup, string/existing-atom key fallback, and
@@ -20,34 +20,34 @@ provider-result artifact extraction, and stable-ID validation cross the
 boundary explicitly.
 
 Why this slice:
-The reduced Timeline facade is 6,674 lines. These 10 exclusive clauses own the
-shared field-selection semantics used across candidate rejection, activity
-context, resource, link, dependency, exclusivity, and publication surfaces:
-key precedence, metadata fallback, nil handling, scalar coercion, and stable-ID
-filtering.
+The extraction moved 10 clauses into a 106-line internal module and reduced
+Timeline from 6,674 to 6,615 lines. Seven private entry points preserve
+candidate rejection, activity context, resource, link, dependency,
+exclusivity, and publication callers while moving key precedence, metadata
+fallback, nil handling, scalar coercion, and stable-ID filtering out of the
+facade.
 
-Planned proof:
-- Focused activity-context examples covering top-level/metadata precedence,
-  numeric and scalar coercion, provider-result strings, and stable identifiers.
-- Full Timeline and Timeline schema-contract suites.
-- Strict warnings-as-errors compile.
-- Canonical AST equivalence for all 10 moved clauses after normalizing only the
+Completed proof:
+- Focused activity-context and identity examples: 5 passed.
+- Full Timeline suite: 127 passed.
+- Timeline schema-contract suites: 36 passed.
+- Strict warnings-as-errors compile: 3,743 files.
+- Canonical AST equivalence: all 10 moved clauses after normalizing only the
   seven facade names and three callback boundaries.
-- Format, diff, whitespace, ownership, exactly-seven-facade, unchanged Timeline
-  public-definition, and xref checks.
-- Independent read-only review before publication.
+- Format, whitespace, ownership, exactly-seven-facade, unchanged Timeline public
+  definitions, and xref checks passed; Timeline is the only runtime caller.
+- Independent read-only review found no production-code findings.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline activity-reference ID policy extraction, selected in `ff1f4dd0`,
-corrected in `368a318e`, implemented in `b3bb5c3f`, and handed off in
-`46559f51`.
+Timeline activity-field value policy extraction, selected in `d7da8e84` and
+implemented in `37b9114f`.
 
 Next candidate:
-Remap the reduced Timeline facade after this slice, emphasizing lifecycle state
+Remap the reduced 6,615-line Timeline facade, emphasizing lifecycle state
 assembly.
 
 Blocked:
