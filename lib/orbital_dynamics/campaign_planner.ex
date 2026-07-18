@@ -57,6 +57,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
     DerivedDegradedSpacecraftBranches,
     DerivedGroundNetworkBranches,
     DerivedObjectivePressureBranches,
+    DerivedResourcePressureBranches,
     DerivedTimelinePressureBranches,
     CandidateDiffPressureEvents,
     CandidateRejectionPressureEvents,
@@ -71,7 +72,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
     LinkCapacityPressureBranches,
     LinkCapacitySourceReports,
     MissionStateNormalization,
-    MissionStateResourceConstraintBranches,
     ModelLimits,
     ModelAcceptancePressureEvents,
     ModelAcceptanceSourceReports,
@@ -97,10 +97,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
     RealizedFeedbackPressureEvents,
     RefreshBudgetPressureEvents,
     RequestIO,
-    ResourceFilterSourceReports,
-    ResourceFilterPressureBranches,
-    ResourceProjectionPressureBranches,
-    ResourceProjectionSourceReports,
     RefreshSourceReports,
     RepairActivityDispatch,
     RepairArtifact,
@@ -1194,16 +1190,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
           policy
         )
       )
-      |> Kernel.++(derived_power_constrained_branches(mission_state, policy))
-      |> Kernel.++(derived_thermal_constrained_branches(mission_state, policy))
-      |> Kernel.++(derived_payload_constrained_branches(mission_state))
-      |> Kernel.++(derived_antenna_constrained_branches(mission_state))
-      |> Kernel.++(derived_resource_projection_pressure_branches(prior_plan, policy))
-      |> Kernel.++(
-        derived_mission_state_resource_projection_pressure_branches(mission_state, policy)
-      )
-      |> Kernel.++(derived_resource_filter_pressure_branches(prior_plan))
-      |> Kernel.++(derived_mission_state_resource_filter_pressure_branches(mission_state))
+      |> Kernel.++(DerivedResourcePressureBranches.build(prior_plan, mission_state, policy))
       |> Kernel.++(DerivedContactPressureBranches.build(prior_plan, mission_state))
       |> Kernel.++(derived_mission_state_candidate_diff_pressure_branches(mission_state))
       |> Kernel.++(derived_mission_state_candidate_rejection_pressure_branches(mission_state))
@@ -1329,46 +1316,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp derived_fuel_preservation_branches(mission_state, policy) do
     FuelPreservationBranches.build(mission_state, policy)
-  end
-
-  defp derived_power_constrained_branches(mission_state, policy) do
-    MissionStateResourceConstraintBranches.power(mission_state, policy)
-  end
-
-  defp derived_thermal_constrained_branches(mission_state, policy) do
-    MissionStateResourceConstraintBranches.thermal(mission_state, policy)
-  end
-
-  defp derived_payload_constrained_branches(mission_state) do
-    MissionStateResourceConstraintBranches.payload(mission_state)
-  end
-
-  defp derived_antenna_constrained_branches(mission_state) do
-    MissionStateResourceConstraintBranches.antenna(mission_state)
-  end
-
-  defp derived_resource_projection_pressure_branches(prior_plan, policy) do
-    prior_plan
-    |> ResourceProjectionSourceReports.prior_plan_reports()
-    |> ResourceProjectionPressureBranches.from_reports(policy)
-  end
-
-  defp derived_mission_state_resource_projection_pressure_branches(mission_state, policy) do
-    mission_state
-    |> ResourceProjectionSourceReports.reports()
-    |> ResourceProjectionPressureBranches.from_reports(policy)
-  end
-
-  defp derived_resource_filter_pressure_branches(prior_plan) do
-    prior_plan
-    |> ResourceFilterSourceReports.prior_plan_reports()
-    |> ResourceFilterPressureBranches.from_reports()
-  end
-
-  defp derived_mission_state_resource_filter_pressure_branches(mission_state) do
-    mission_state
-    |> ResourceFilterSourceReports.reports()
-    |> ResourceFilterPressureBranches.from_reports()
   end
 
   defp derived_link_capacity_pressure_branches(prior_plan) do
