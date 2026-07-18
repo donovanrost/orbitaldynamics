@@ -9,7 +9,7 @@ Current slice:
 Campaign-planner timeline-pressure derivation orchestration extraction.
 
 Status:
-Ready for implementation.
+Implementation published as `085b76d9`; handoff publication pending.
 
 Selected slice:
 Move the private prior-plan/mission-state timeline-pressure source orchestration
@@ -49,30 +49,58 @@ ordering are unchanged; focused timeline tests pass to their live baseline;
 strict compile and independent review are clean.
 
 Verification gaps:
-- Baseline focused timeline test state is pending.
 - The full planner directory has five known baseline failures recorded by the
-  preceding slice; none is in a selected timeline test file.
+  preceding slice. Post-change result is the same 728/733 with the same five
+  test names, values, and stacktraces.
+- `strategy_recommendation_pressure_events_test.exs` passes its one test but
+  `--warnings-as-errors` aborts afterward on two pre-existing `0.0` pattern
+  warnings in the unchanged test source.
+- Independent review was clean. No behavior, artifact, ordering, callback,
+  policy, API, or ownership finding remains.
 
 Tests run:
 - Live inventory: `CampaignPlanner` is 2,875 lines.
 - Target cluster maps 16 ordered pipeline calls to 25 private
   derivation/source helpers spanning timeline pressure families.
+- Baseline complete `strategy_timeline_*` family: 87 passed with warnings as
+  errors.
+- Post-change complete `strategy_timeline_*` family: 87 passed with warnings as
+  errors.
+- Strict forced compile: 3,640 files clean with warnings as errors.
+- File-backed facade coverage: 7 passed with warnings as errors.
+- Recommendation-pressure coverage: 1 assertion passed, then the test command
+  aborted on the two documented pre-existing test-source warnings.
+- Full planner directory: 728/733 passed, matching the documented five-failure
+  baseline exactly.
+- Public `CampaignPlanner` function list matches selection commit `54560d8d`.
+  Xref reports the new internal module has only the planner runtime caller.
+- Format check and `git diff --check` passed. No old timeline derivation helper
+  remains in the facade.
+- `CampaignPlanner` shrank from 2,875 to 2,584 lines. The new internal timeline
+  orchestration module is 255 lines.
+- Independent reviewer reran the 87 timeline cases, 7 file-backed cases,
+  warning-bearing recommendation assertion, 3,640-file forced compile, xref,
+  formatting, and whitespace checks. Results matched primary proof.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-No timeline-pressure extraction has started.
+The derived-branch pipeline now makes one ordered call to
+`DerivedTimelinePressureBranches.build/3`. The new internal module owns the
+exact prior-plan/mission-state source-report and report-to-branch sequence for
+all eight timeline families; the facade no longer duplicates that
+orchestration. Implementation published as `085b76d9`.
 
 Last completed slice:
-Branch candidate-refresh derivation extraction published as `2a0ef9fe`:
-`CampaignPlanner` shrank from 3,025 to 2,875 lines; focused, operational
-feedback, branch-repair, file-backed, compile, and baseline-equivalence proof
-passed; independent review was clean. Handoff published as `0fa48dfa`.
+Timeline-pressure derivation orchestration extraction published as `085b76d9`:
+`CampaignPlanner` shrank from 2,875 to 2,584 lines; focused, file-backed,
+compile, and full planner baseline-equivalence proof passed; independent review
+was clean.
 
 Next candidate:
-Publish this selection note, run the focused timeline baseline, then perform a
-mechanical ordered extraction.
+Publish this handoff, then refresh the remaining facade responsibilities and
+select the next bounded extraction.
 
 Blocked:
 No.
