@@ -6,35 +6,35 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline operational action policy extraction.
+Timeline Cadence-import policy extraction.
 
 Status:
-Implementation published in `be206e7e`; focused and broad proof is green.
+Selection recorded; implementation has not started.
 
 Selected boundary:
-Move Cadence-import status classification, required operator-action precedence,
-and command-review policy into `Timeline.OperationalActionPolicy`. `Timeline`
-retains two private entry points used by row construction. Terminal/executed
-status lists are supplied as selection data; the seven existing status/import/
-lock/provider evidence helpers are supplied as callbacks. Operational-kind
-inference remains Timeline-owned because its command-direction clause uses the
-shared compile-time guard list also surfaced by capabilities.
+Move accepted Cadence-import extraction, invalidity checks, review-context
+construction, issue precedence, external-ID/trust-boundary validation, and
+invalid-context removal into `Timeline.CadenceImportPolicy`. `Timeline` retains
+five private entry points used by row/context construction and operational
+action policy. Shared stable-ID validation and invalid-shape encoding are
+supplied as callbacks.
 
 Why this slice:
-The extraction moved three clauses into an 86-line internal module and reduced
-Timeline from 7,752 to 7,705 lines. The corrected boundary preserves all 11
-Timeline-owned operational-kind clauses and their compile-time direction guard.
+The reduced Timeline facade is 7,705 lines. This approximately 80-line,
+13-clause cluster has one cohesive import-validation responsibility and no
+callers outside the five facade entry points. Moving the internal external-ID,
+adapter-context, and trust-boundary helpers keeps issue precedence together.
 
-Completed proof:
-- Focused operational-action examples: 6 passed.
-- Full Timeline suite: 127 passed.
-- Timeline schema-contract suites: 36 passed.
-- Strict warnings-as-errors compile: 3,722 files.
-- Canonical AST equivalence: all three moved clauses after normalizing only the
-  two facade names and selection-data/callback boundaries.
-- Format, whitespace, ownership, exactly-two-facade, unchanged Timeline public
-  definitions, unchanged operational-kind clauses, and xref checks passed.
-- Independent read-only review found no findings.
+Planned proof:
+- Focused Timeline tests for malformed shape, missing trust boundary, malformed
+  external ID, and canonical provider-shaped imports.
+- Full Timeline and Timeline schema-contract suites.
+- Strict warnings-as-errors compile.
+- Canonical AST equivalence for all 13 moved clauses after normalizing only the
+  five facade names and two callback boundaries.
+- Format, diff, whitespace, ownership, exactly-five-facade, unchanged Timeline
+  public-definition, and xref checks.
+- Independent read-only review before publication.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
@@ -42,11 +42,12 @@ regeneration should not be required.
 
 Last completed slice:
 Timeline operational action policy extraction, selected in `eea68690`, boundary
-corrected in `4d37d6f3`, and implemented in `be206e7e`.
+corrected in `4d37d6f3`, implemented in `be206e7e`, and handed off in
+`660d454a`.
 
 Next candidate:
-Remap the reduced 7,705-line Timeline facade, emphasizing transition integrity
-gating and Cadence-import validation.
+Remap the reduced Timeline facade after this slice, emphasizing transition
+integrity gating and invalid-activity construction.
 
 Blocked:
 No.
