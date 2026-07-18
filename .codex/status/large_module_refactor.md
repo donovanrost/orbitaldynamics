@@ -9,7 +9,7 @@ Current slice:
 Timeline invalid lifecycle-state input policy extraction.
 
 Status:
-Selection recorded; implementation has not started.
+Implementation published in `7099753c`; focused and broad proof is green.
 
 Selected boundary:
 Move optional lifecycle-state input conversion, invalid-row detection and
@@ -19,34 +19,33 @@ retains nine private entry points. Activity conversion, activity/timeline ID,
 and sorted-unique helpers cross the boundary as callbacks.
 
 Why this slice:
-The reduced Timeline facade is 6,767 lines. These 17 exclusive clauses own the
-invalid-input semantics shared by status, approval, and combined lifecycle
-state artifacts. The boundary preserves optional nil behavior, existing invalid
-rows, conversion error rows, invalid-row order, and planned identity priority.
+The extraction moved 17 clauses into a 93-line internal module and reduced
+Timeline from 6,767 to 6,759 lines. Nine private entry points preserve shared
+status, approval, combined-state, and transition-helper callers while moving
+the branching responsibility out of the facade.
 
-Planned proof:
-- Focused status, approval, and combined lifecycle-state examples, including
-  malformed activity input and invalid count/reason/identity surfaces.
-- Full Timeline and Timeline schema-contract suites.
-- Strict warnings-as-errors compile.
-- Canonical AST equivalence for all 17 moved clauses after normalizing only the
+Completed proof:
+- Focused invalid lifecycle-state input examples: 3 passed.
+- Full Timeline suite: 127 passed.
+- Timeline schema-contract suites: 36 passed.
+- Strict warnings-as-errors compile: 3,741 files.
+- Canonical AST equivalence: all 17 moved clauses after normalizing only the
   nine facade names and callback boundaries.
-- Format, diff, whitespace, ownership, exactly-nine-facade, unchanged Timeline
-  public-definition, and xref checks.
-- Independent read-only review before publication.
+- Format, whitespace, ownership, exactly-nine-facade, unchanged Timeline public
+  definitions, and xref checks passed.
+- Independent read-only review found no findings.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline lifecycle-transition assembly policy extraction, initially selected as
-vocabulary in `da906798`, corrected in `0e098fb0`, implemented in `4717aadf`,
-and handed off in `6b275dff`.
+Timeline invalid lifecycle-state input policy extraction, selected in
+`070962e4` and implemented in `7099753c`.
 
 Next candidate:
-Remap the reduced Timeline facade after this slice, emphasizing remaining
-activity normalization and lifecycle state assembly.
+Remap the reduced 6,759-line Timeline facade, emphasizing remaining activity
+normalization and lifecycle state assembly.
 
 Blocked:
 No.
