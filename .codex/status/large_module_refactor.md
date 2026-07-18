@@ -6,33 +6,34 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline lifecycle-category policy extraction.
+Timeline activity operational-kind policy extraction.
 
 Status:
 Selection recorded; implementation has not started.
 
 Selected boundary:
-Move status and approval lifecycle categorization plus unsupported status and
-approval predicates into `Timeline.LifecycleCategoryPolicy`. `Timeline`
-retains four private entry points. Executed, terminal-exception, activity,
-protected-approval, review-approval, and approval vocabulary sets cross the
-boundary explicitly.
+Move activity-type, contact-direction, and ground-station operational-kind
+classification into `Timeline.ActivityOperationalKindPolicy`. `Timeline`
+retains one private entry point. The boundary has no callbacks or shared
+vocabulary arguments.
 
 Why this slice:
-The reduced Timeline facade is 6,615 lines. These 17 exclusive clauses own the
-classification vocabulary shared by status-state, approval-state, combined
-lifecycle-state, and transition-review surfaces: nil handling, protected and
-review categories, executed and terminal categories, repairable/blocked
-categories, and unsupported-value detection.
+The reduced Timeline facade is 6,615 lines. These 10 exclusive clauses own the
+precedence that maps explicit activity types, contact directions, and
+ground-station evidence into the operational-kind vocabulary used by report
+rows and import/action policy. The previously selected lifecycle-category
+boundary was rejected before implementation because its `in` guards require
+compile-time vocabulary ownership and cannot preserve clause structure with
+runtime vocabulary arguments.
 
 Planned proof:
-- Focused unsupported-status, unsupported-approval, status-state,
-  approval-state, and combined lifecycle-state examples.
+- Focused command, observation, maneuver, attitude, coast, contact-direction,
+  ground-station fallback, and generic activity examples.
 - Full Timeline and Timeline schema-contract suites.
 - Strict warnings-as-errors compile.
-- Canonical AST equivalence for all 17 moved clauses after normalizing only the
-  four facade names and explicit vocabulary arguments.
-- Format, diff, whitespace, ownership, exactly-four-facade, unchanged Timeline
+- Canonical AST equivalence for all 10 moved clauses after normalizing only the
+  single facade name.
+- Format, diff, whitespace, ownership, exactly-one-facade, unchanged Timeline
   public-definition, and xref checks.
 - Independent read-only review before publication.
 
@@ -45,8 +46,8 @@ Timeline activity-field value policy extraction, selected in `d7da8e84`,
 implemented in `37b9114f`, and handed off in `e3890899`.
 
 Next candidate:
-Remap the reduced Timeline facade after this slice, emphasizing remaining
-lifecycle-state assembly and summary ownership.
+Remap the reduced Timeline facade after this slice; lifecycle-category
+extraction requires an explicit compile-time vocabulary ownership decision.
 
 Blocked:
 No.
