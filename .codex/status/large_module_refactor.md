@@ -9,54 +9,39 @@ Current slice:
 CadenceImport strategy-recommendation context extraction.
 
 Status:
-Slice selected; selection publication pending.
+Implementation published in `2c7648e2`; handoff publication pending.
 
-Selected slice:
-Move the contiguous pure strategy-recommendation context cluster into internal
-`CadenceImport.StrategyRecommendationContext`: resource-pressure,
+Completed boundary:
+`CadenceImport.StrategyRecommendationContext` now owns the resource-pressure,
 readiness/quality-gate, risk, resource-margin, merge, and value-collection
-helpers. Update the strategy row builder to call four explicit internal entry
-points. Supply shared `stringify_keys/1` to the three context-producing entry
-points; `merge/2` remains dependency-free.
+cluster. Shared `stringify_keys/1` is supplied only to the three context
+producers; merge remains dependency-free. Operational-feedback trust helpers
+remain in the facade. `CadenceImport` dropped from 4,662 to 4,236 lines.
 
-Why this slice:
-The reduced facade is 4,662 lines. This roughly 440-line cluster is cohesive and
-has one shared normalization dependency. The adjacent operational-feedback
-trust helpers are excluded because they also serve an upstream facade path.
+Selection and correction:
+Selected in `d0f06cea`. Initial compile exposed the shared stringify dependency;
+the corrected boundary was published in `94b05a97` before successful compile.
 
-Public facade to preserve:
-All `CadenceImport` APIs; exact context maps, filtering, normalization,
-deduplication, sorting, merge semantics, deterministic output, and contracts.
-
-Likely files:
-- `lib/orbital_dynamics/cadence_import.ex`
-- `lib/orbital_dynamics/cadence_import/strategy_recommendation_context.ex`
-- `.codex/status/large_module_refactor.md`
-
-Likely tests:
-- `test/orbital_dynamics/cadence_import_test.exs`
-- `test/orbital_dynamics/schema/cadence_import_contracts_test.exs`
-
-Definition of done:
-The internal module owns the exact context cluster behind explicit
-resource-pressure, readiness/quality-gate, risk, and merge entry points;
-`stringify_keys/1` is supplied exactly where needed, operational-feedback
-helpers remain in the facade, and focused tests, strict compile,
-equivalence/API checks, and independent review are clean.
-
-Verification gaps:
-- Focused baseline, implementation proof, strict compile, and review remain.
-- Initial implementation compile exposed the omitted shared stringify
-  dependency; the boundary was corrected before successful compile.
+Verification:
+- Focused baseline and implementation CadenceImport/contract suites: 100/100.
+- Strict warnings-as-errors compile: 3,708 files.
+- Canonical AST equivalence: exact strategy pipeline and every moved clause
+  group after normalizing internal names and the stringify callback capture.
+- Format, diff, whitespace, ownership, caller, public-definition, and xref
+  checks: clean; xref reports only the facade.
+- Independent review: no code findings; selected-only merge order, all context
+  maps, merge/deduplication semantics, retained operational-feedback ownership,
+  API, and determinism are exact. Its handoff-only finding is resolved here.
 
 Behavior/schema changes:
-None intended.
+None. No schema-generation boundary changed, so no export regeneration was
+required.
 
 Last completed slice:
-Suppression row builder published in `9ed575c7`; handoff in `c87f0a7a`.
+Strategy-recommendation context extraction, published in `2c7648e2`.
 
 Next candidate:
-Remap the reduced strategy builder after this extraction.
+Remap the reduced strategy builder and station-reservation specialization.
 
 Blocked:
 No.
