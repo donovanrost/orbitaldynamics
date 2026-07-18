@@ -5254,13 +5254,15 @@ defmodule OrbitalDynamics.Timeline do
   end
 
   def contact_timeline_row?(row) do
-    row["activity_type"] in ["downlink", "planned_contact", "tracking"] ||
-      is_binary(row["ground_station_id"])
+    OrbitalDynamics.Timeline.OperationalRowClassificationPolicy.contact?(row)
   end
 
   def command_timeline_row?(row) do
-    row["activity_type"] in @command_health_activity_types ||
-      row["direction"] in @command_contact_directions
+    OrbitalDynamics.Timeline.OperationalRowClassificationPolicy.command?(
+      row,
+      @command_health_activity_types,
+      @command_contact_directions
+    )
   end
 
   defp operational_kind(%{"type" => "command"}), do: "command"
