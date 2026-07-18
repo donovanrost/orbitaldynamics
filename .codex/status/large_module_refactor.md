@@ -9,7 +9,7 @@ Current slice:
 Campaign-planner resource-pressure derivation orchestration extraction.
 
 Status:
-Ready for implementation.
+Implementation published as `287e3425`; handoff publication pending.
 
 Selected slice:
 Move the private power, thermal, payload, antenna, resource-projection, and
@@ -46,30 +46,53 @@ unchanged; focused resource tests pass to their live baseline; strict
 compile and independent review are clean.
 
 Verification gaps:
-- Focused resource baseline is pending.
 - The full planner directory has five known baseline failures; the resource
   filter selector at `strategy_filter_link_pressure_test.exs:182` is adjacent
-  and must remain identical.
+  and its post-change `List.first(nil)` failure is identical through the line
+  241 assertion stacktrace.
+- The full directory was not rerun; focused derivation/resource and
+  file-backed coverage is green.
+- Independent review was clean. No API, artifact, determinism, ordering,
+  policy, ownership, error-behavior, or behavioral finding remains.
 
 Tests run:
 - Live inventory: `CampaignPlanner` is 2,413 lines with 182 private functions.
 - Target cluster is 8 ordered pipeline calls and 8 private helpers.
+- Baseline focused resource/branch-derivation coverage: 10 passed with warnings
+  as errors.
+- Post-change focused resource/branch-derivation coverage: 10 passed with
+  warnings as errors.
+- Strict forced compile: 3,643 files clean with warnings as errors.
+- File-backed facade coverage: 7 passed with warnings as errors.
+- Adjacent resource-filter baseline failure reproduced exactly.
+- Public `CampaignPlanner` function list matches selection commit `990c5327`.
+  Xref reports the new internal module has only the planner runtime caller.
+- Format check and `git diff --check` passed. No old selected resource helper
+  remains in the facade.
+- `CampaignPlanner` shrank from 2,413 to 2,360 lines. The new internal resource
+  orchestration module is 47 lines.
+- Independent reviewer reran all focused, file-backed, adjacent-baseline,
+  compile, xref, formatting, and whitespace checks; results matched primary
+  proof.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-No resource-pressure extraction has started.
+The derived-branch pipeline now makes one ordered call to
+`DerivedResourcePressureBranches.build/3`. The new internal module owns the
+exact mission constraint, prior/mission resource-projection, and prior/mission
+resource-filter branch sequence. Implementation published as `287e3425`.
 
 Last completed slice:
-Contact-pressure derivation orchestration extraction published as `c9bf75e0`:
-`CampaignPlanner` shrank from 2,485 to 2,413 lines; focused, file-backed,
+Resource-pressure derivation orchestration extraction published as `287e3425`:
+`CampaignPlanner` shrank from 2,413 to 2,360 lines; focused, file-backed,
 compile, and adjacent baseline-equivalence proof passed; independent review was
-clean. Handoff published as `b682295d`.
+clean.
 
 Next candidate:
-Publish this selection note, run the focused resource baseline, then perform
-the mechanical ordered extraction.
+Publish this handoff, then refresh the remaining facade responsibilities and
+select the next bounded extraction.
 
 Blocked:
 No.
