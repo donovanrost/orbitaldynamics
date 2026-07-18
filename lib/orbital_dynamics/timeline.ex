@@ -1915,95 +1915,59 @@ defmodule OrbitalDynamics.Timeline do
   defp publication_id_array_map(_values), do: %{}
 
   defp publication_invalidation_ids(
-         [],
+         invalidated,
          downstream_product_ids,
          dependency_impact_summary,
          supersedes
        ) do
-    cond do
-      publication_dependency_impact_review_required?(dependency_impact_summary) ->
-        downstream_product_ids
-
-      supersedes != [] ->
-        downstream_product_ids
-
-      true ->
-        []
-    end
+    OrbitalDynamics.Timeline.PublicationInvalidationPolicy.publication_invalidation_ids(
+      invalidated,
+      downstream_product_ids,
+      dependency_impact_summary,
+      supersedes
+    )
   end
 
-  defp publication_invalidation_ids(invalidated, downstream_product_ids, _summary, _supersedes) do
-    unknown_ids = invalidated -- downstream_product_ids
-
-    if unknown_ids == [] do
-      invalidated
-    else
-      raise ArgumentError,
-            "invalidated_downstream_product_ids must be included in downstream_product_ids"
-    end
+  defp publication_invalidation_reason(invalidated, dependency_impact_summary, supersedes) do
+    OrbitalDynamics.Timeline.PublicationInvalidationPolicy.publication_invalidation_reason(
+      invalidated,
+      dependency_impact_summary,
+      supersedes
+    )
   end
-
-  defp publication_invalidation_reason([], _dependency_impact_summary, _supersedes), do: nil
-
-  defp publication_invalidation_reason(invalidated, dependency_impact_summary, supersedes)
-       when invalidated != [] do
-    cond do
-      publication_dependency_impact_review_required?(dependency_impact_summary) ->
-        "dependency_impact_review_required"
-
-      supersedes != [] ->
-        "superseded_publication"
-
-      true ->
-        "explicit_downstream_invalidation"
-    end
-  end
-
-  defp publication_invalidation_ids_by_reason(_invalidated, nil), do: %{}
 
   defp publication_invalidation_ids_by_reason(invalidated, reason) do
-    %{reason => invalidated}
+    OrbitalDynamics.Timeline.PublicationInvalidationPolicy.publication_invalidation_ids_by_reason(
+      invalidated,
+      reason
+    )
   end
 
   defp publication_invalidation_reason_counts(ids_by_reason) do
-    ids_by_reason
-    |> Enum.map(fn {reason, ids} -> {reason, length(ids)} end)
-    |> Map.new()
+    OrbitalDynamics.Timeline.PublicationInvalidationPolicy.publication_invalidation_reason_counts(
+      ids_by_reason
+    )
   end
-
-  defp publication_dependency_impact_review_required?(%{
-         "dependency_impact_status" => "review_required"
-       }),
-       do: true
-
-  defp publication_dependency_impact_review_required?(_summary), do: false
 
   defp publication_status(invalidated_downstream_product_ids, dependency_impact_summary) do
-    cond do
-      invalidated_downstream_product_ids != [] ->
-        "published_with_downstream_invalidations"
-
-      publication_dependency_impact_review_required?(dependency_impact_summary) ->
-        "review_required"
-
-      true ->
-        "published"
-    end
+    OrbitalDynamics.Timeline.PublicationInvalidationPolicy.publication_status(
+      invalidated_downstream_product_ids,
+      dependency_impact_summary
+    )
   end
 
-  defp publication_downstream_invalidation_status([]), do: "clear"
-
-  defp publication_downstream_invalidation_status(_invalidated_downstream_product_ids),
-    do: "invalidated"
+  defp publication_downstream_invalidation_status(invalidated_downstream_product_ids) do
+    OrbitalDynamics.Timeline.PublicationInvalidationPolicy.publication_downstream_invalidation_status(
+      invalidated_downstream_product_ids
+    )
+  end
 
   defp publication_summary_id(source_artifact_id, publication_sequence, supersedes_artifact_ids) do
-    supersedes =
-      case supersedes_artifact_ids do
-        [] -> "initial"
-        ids -> Enum.join(ids, "_")
-      end
-
-    "timeline_publication:#{publication_sequence}:#{source_artifact_id}:#{supersedes}"
+    OrbitalDynamics.Timeline.PublicationInvalidationPolicy.publication_summary_id(
+      source_artifact_id,
+      publication_sequence,
+      supersedes_artifact_ids
+    )
   end
 
   defp dependency_impact_source_identities(diff_report) do
