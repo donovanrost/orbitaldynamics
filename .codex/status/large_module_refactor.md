@@ -9,56 +9,49 @@ Current slice:
 CadenceImport contact-allocation manifest-row builder extraction.
 
 Status:
-Slice selected; selection publication pending.
+Implementation `0d59c21b` published; verified handoff publication pending.
 
-Selected slice:
-Move `contact_allocation_manifest_row/2` and its exclusively used
-`contact_allocation_import_action/1` clauses into internal
-`CadenceImport.ContactAllocationManifestRow.build/3`. Inject only the four
-shared facade helpers for review action, adapter status, provider-result value
-normalization, and compact-map cleanup.
+Completed slice:
+Moved the contact-allocation manifest row projection and exclusive provider-
+reservation action clauses into internal
+`CadenceImport.ContactAllocationManifestRow.build/3`. The facade injects only
+four shared review/status/provider-result/compaction callbacks.
 
 Why this slice:
-`CadenceImport` is 6,683 lines. The contact-allocation builder is a 205-line
-transformation with 185 projected keys and one facade caller.
+`CadenceImport` was 6,683 lines. The contact-allocation builder was a 205-line
+transformation with 185 projected keys. `CadenceImport` is now 6,481 lines.
 
-Current coupling/problem:
-The main artifact adapter embeds a large contact-allocation projection and its
-provider-reservation action policy alongside every other source transformation.
+Published commits:
+- Selection: `2ce1d7b7`
+- Selection correction: `6c1bc239`
+- Implementation: `0d59c21b`
+- Handoff: pending
 
-Public facade to preserve:
-All `CadenceImport` APIs; all contact-allocation row keys and value expressions;
-approval/import defaults, provider-reservation import action, import status,
-compaction, deterministic output, and artifact contracts.
+Preserved facade and behavior:
+All `CadenceImport` APIs; all 185 contact-allocation keys and value expressions;
+approval/import defaults, provider-reservation action, provider-result
+normalization, import status, compaction, deterministic output, and artifact
+contracts.
 
-Likely files:
-- `lib/orbital_dynamics/cadence_import.ex`
-- `lib/orbital_dynamics/cadence_import/contact_allocation_manifest_row.ex`
-- `.codex/status/large_module_refactor.md`
-
-Definition of done:
-The internal builder owns the exact 185-key projection and exclusive action
-clauses; the facade supplies only four same-purpose callbacks; focused
-Cadence-import and schema-contract tests pass; strict warnings-as-errors
-compile, projection equivalence, public API checks, and independent review are
-clean.
+Verification:
+- Focused Cadence-import plus schema-contract tests: 100/100.
+- Strict warnings-as-errors compile: 3,678 files.
+- Whole-builder AST comparison after callback normalization: exact.
+- Projection comparison: 185/185 keys and expressions, zero mismatches.
+- Moved two-clause import-action helper: AST-identical.
+- Four shared callbacks are exact; provider-result conversion remains only at
+  `contact_result` and `command_result`.
+- Contact-allocation dispatch and public `CadenceImport` definitions: unchanged.
+- Format, whitespace, diff, xref caller, and independent read-only review:
+  clean.
+- Schema export not rerun: no schema-generation code or schema artifacts
+  changed.
 
 Verification gaps:
-- Initial implementation compile identified two shared provider-result
-  normalization calls omitted from the selection count; this correction is
-  published before a successful implementation compile.
-- Implementation proof, strict compile, and independent review remain.
-
-Tests run:
-- Focused baseline: 100/100.
+None for this slice.
 
 Behavior/schema changes:
-None intended.
-
-Last completed slice:
-CadenceImport strategy-tradeoff row builder published as implementation
-`aec22fe0` and handoff `fa2e78d0`: focused 100/100, strict 3,677-file compile,
-exact 184-entry AST/pipeline comparison, and independent review passed.
+None.
 
 Next candidate:
 Remap the reduced `CadenceImport` module and select the next source-specific
