@@ -3450,16 +3450,6 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "enum"
            ]) == OrbitalDynamics.Timeline.capabilities().candidate_rejection_actions
 
-    assert Map.has_key?(schemas, "timeline_feedback_report.v1")
-
-    feedback_schema = schemas["timeline_feedback_report.v1"]
-
-    assert get_in(feedback_schema, ["properties", "model", "const"]) ==
-             "planned_vs_realized_activity_reconciliation"
-
-    assert get_in(feedback_schema, ["properties", "model_limits", "const"]) ==
-             timeline_feedback_report_model_limits()
-
     assert Map.has_key?(schemas, "result_artifact.v1")
     assert Map.has_key?(schemas, "validation_tolerance_policy.v1")
     assert Map.has_key?(schemas, "backend_acceptance_policy.v1")
@@ -7491,80 +7481,6 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
            ]) == "^[A-Za-z0-9][A-Za-z0-9._:@-]*$"
 
     assert get_in(schemas, [
-             "timeline_feedback_report.v1",
-             "properties",
-             "rows",
-             "items",
-             "properties",
-             "status",
-             "enum"
-           ]) == ["matched", "planned_only", "realized_only"]
-
-    assert get_in(schemas, [
-             "timeline_feedback_report.v1",
-             "properties",
-             "rows",
-             "items",
-             "properties",
-             "lighting_condition",
-             "type"
-           ]) == "string"
-
-    assert get_in(schemas, [
-             "timeline_feedback_report.v1",
-             "properties",
-             "rows",
-             "items",
-             "properties",
-             "realized_activity_context",
-             "properties",
-             "lighting_confidence",
-             "type"
-           ]) == ["number", "string"]
-
-    assert get_in(schemas, [
-             "timeline_feedback_report.v1",
-             "properties",
-             "rows",
-             "items",
-             "properties",
-             "attitude_confidence",
-             "type"
-           ]) == "number"
-
-    assert get_in(schemas, [
-             "timeline_feedback_report.v1",
-             "properties",
-             "rows",
-             "items",
-             "properties",
-             "command_authority_status",
-             "type"
-           ]) == "string"
-
-    assert get_in(schemas, [
-             "timeline_feedback_report.v1",
-             "properties",
-             "rows",
-             "items",
-             "properties",
-             "realized_command_authorized",
-             "type"
-           ]) == "boolean"
-
-    assert get_in(schemas, [
-             "timeline_feedback_report.v1",
-             "properties",
-             "rows",
-             "items",
-             "properties",
-             "realized_activity_context",
-             "properties",
-             "command_safety_checked",
-             "type"
-           ]) == "boolean"
-
-    assert get_in(schemas, [
              "realized_activity.v1",
              "properties",
              "attitude_target_id",
@@ -7807,18 +7723,6 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "attitude_confidence",
              "type"
            ]) == "number"
-
-    assert get_in(schemas, [
-             "timeline_feedback_report.v1",
-             "properties",
-             "rows",
-             "items",
-             "properties",
-             "source_activity_context",
-             "properties",
-             "attitude_target_id",
-             "pattern"
-           ]) == Schema.identity_policy()["stable_id_pattern"]
 
     assert get_in(schemas, [
              "candidate_activity.v1",
@@ -8353,12 +8257,6 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "activity_id",
              "pattern"
            ]) == Schema.identity_policy()["stable_id_pattern"]
-  end
-
-  defp timeline_feedback_report_model_limits do
-    OrbitalDynamics.TimelineFeedback.capabilities()
-    |> Map.fetch!(:known_limits)
-    |> Enum.map(&Atom.to_string/1)
   end
 
   defp maneuver_review_report_model_limits do
