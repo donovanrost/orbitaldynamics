@@ -9,7 +9,7 @@ Current slice:
 Timeline station-calendar status normalization policy extraction.
 
 Status:
-Selection recorded; implementation has not started.
+Implementation published in `86c63a95`; focused and broad proof is green.
 
 Selected boundary:
 Move station-calendar scalar/list status canonicalization and nested source
@@ -18,33 +18,33 @@ evidence normalization into
 single normalization entry point used by `activity_to_map/1`.
 
 Why this slice:
-The reduced Timeline facade is 7,258 lines. These nine exclusive clauses own
-status token normalization for top-level station-calendar fields, lists, and
-nested source entries/overlaps. The boundary preserves field order and leaves
-all non-status station-calendar context derivation in Timeline.
+The extraction moved nine clauses into a 90-line internal module and reduced
+Timeline from 7,258 to 7,175 lines. The single private entry point preserves
+`activity_to_map/1` pipeline order while scalar/list and nested-source helpers
+stay private to the new policy.
 
-Planned proof:
-- Focused Timeline examples for provider string and atom-shaped reservation,
-  contention, list, and nested source statuses.
-- Full Timeline and Timeline schema-contract suites.
-- Strict warnings-as-errors compile.
-- Canonical AST equivalence for all nine moved clauses after normalizing only
-  the single facade name.
-- Format, diff, whitespace, ownership, exactly-one-facade, unchanged Timeline
-  public-definition, and xref checks.
-- Independent read-only review before publication.
+Completed proof:
+- Focused station-calendar normalization examples: 2 passed.
+- Full Timeline suite: 127 passed.
+- Timeline schema-contract suites: 36 passed.
+- Strict warnings-as-errors compile: 3,733 files.
+- Canonical AST equivalence: all nine moved clauses after normalizing only the
+  single facade name.
+- Format, whitespace, ownership, exactly-one-facade, unchanged Timeline public
+  definitions, and xref checks passed.
+- Independent read-only review found no findings.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline activity-identity normalization policy extraction, selected in
-`82fdd813`, implemented in `2b825450`, and handed off in `710ca5a8`.
+Timeline station-calendar status normalization policy extraction, selected in
+`b1e680a8` and implemented in `86c63a95`.
 
 Next candidate:
-Remap the reduced Timeline facade after this slice, emphasizing activity
-normalization and lifecycle application.
+Remap the reduced 7,175-line Timeline facade, emphasizing activity normalization
+and lifecycle application.
 
 Blocked:
 No.
