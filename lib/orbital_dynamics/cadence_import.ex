@@ -4957,39 +4957,13 @@ defmodule OrbitalDynamics.CadenceImport do
   end
 
   defp constraint_manifest_row(row, rank) do
-    approval_status = Map.get(row, "approval_status", "operator_review_required")
-    import_status = Map.get(row, "cadence_import_status", "present")
-
-    %{
-      "id" => "cadence_import:constraint:#{row["id"] || rank}",
-      "rank" => rank,
-      "import_action" => "review_constraint",
-      "import_status" => adapter_import_status(import_status, approval_status),
-      "import_side" => "source",
-      "source_review_row_id" => row["id"],
-      "source_review_type" => row["review_type"],
-      "source_review_action" => source_review_action(row),
-      "source" => row["source"],
-      "subject_id" => row["subject_id"],
-      "scenario_id" => row["scenario_id"],
-      "branch_id" => row["branch_id"],
-      "constraint_id" => row["constraint_id"],
-      "metric" => row["metric"],
-      "operator" => row["operator"],
-      "threshold" => row["threshold"],
-      "value" => row["value"],
-      "score" => row["score"],
-      "violation_severity" => row["violation_severity"],
-      "constraint_status" => row["constraint_status"],
-      "approval_status" => approval_status,
-      "required_operator_action" => row["required_operator_action"],
-      "reason" => row["reason"],
-      "cadence_import_status" => import_status,
-      "has_cadence_import" => false,
-      "source_constraint_row" => row["source_constraint_row"],
-      "source_review_row" => row
-    }
-    |> compact_map()
+    OrbitalDynamics.CadenceImport.ConstraintManifestRow.build(
+      row,
+      rank,
+      source_review_action: &source_review_action/1,
+      adapter_import_status: &adapter_import_status/2,
+      compact_map: &compact_map/1
+    )
   end
 
   defp objective_satisfaction_manifest_row(row, rank) do
