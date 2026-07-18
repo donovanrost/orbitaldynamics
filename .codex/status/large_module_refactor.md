@@ -9,7 +9,7 @@ Current slice:
 Timeline activity operational-hint context extraction.
 
 Status:
-Selected; implementation has not started.
+Complete and published.
 
 Selected boundary:
 Move activity operational-hint context construction and direct-value/template
@@ -38,16 +38,27 @@ Selection evidence:
   the boundary.
 
 Verification:
-Pending: focused baseline, implementation, strict compile, focused/full tests,
-contracts, structural/static checks, and independent review.
+- Selection published in `37156e81`; corrected helper ownership published in
+  `d5b82292`; implementation published in `3f72fc39`.
+- Focused baseline and post-change operational-hint coverage: 1 passed.
+- Strict warnings-as-errors compile: 3,797 files compiled.
+- Full Timeline suite: 127 passed.
+- Operational Timeline schema contracts: 36 passed.
+- Canonical AST comparison: all five moved functions equivalent after
+  normalizing only facade names and the direct provenance-policy adapter.
+- Static checks confirmed unchanged public API, four private facades with exact
+  consumer counts, removal of the moved/dead helpers, Timeline-only runtime
+  ownership, no temporary checker, and clean formatting/diff.
+- Independent review: clean, with no production-code findings.
+- Timeline is 5,408 lines; the extracted module is 88 lines.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline activity feedback context extraction, selected in `328db40e`,
-corrected in `cf067a38`, and implemented in `615428bf`.
+Timeline activity operational-hint context extraction, selected in `37156e81`,
+corrected in `d5b82292`, and implemented in `3f72fc39`.
 
 Next candidate:
 Continue remapping the reduced Timeline facade.
