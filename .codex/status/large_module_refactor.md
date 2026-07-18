@@ -6,91 +6,72 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Campaign-planner derived-branch generation boundary extraction.
+Campaign-planner V2 repair-execution boundary extraction.
 
 Status:
-Implementation published as `1841dc35`; handoff publication pending.
+Slice selected; implementation not started.
 
 Selected slice:
-Move the two private `maybe_add_derived_branches/6` clauses and their remaining
-thin family wrappers from `CampaignPlanner` into a new internal
-`CampaignPlanner.DerivedBranchOrchestration.merge/6` boundary.
+Move the state-transition phase at the start of `CampaignPlanner.do_repair/1`
+and its repair-only preparation helpers into a new internal
+`CampaignPlanner.RepairExecution.run/1` boundary.
 
 Why this slice:
-After the station extraction, `CampaignPlanner` is 2,023 lines with 144 private
-functions. Repeated family extractions have made the remaining derived-branch
-pipeline a cohesive V3 generation boundary composed almost entirely of
-internal owners.
+After the derived-branch orchestration extraction, `CampaignPlanner` is 1,894
+lines. Its 144-line `do_repair/1` still directly owns the most stateful V2
+responsibility: preparing source candidates, applying the station calendar,
+matching realized activity state, reducing planned activities through repair
+dispatch, propagating maneuver effects, and sorting execution outputs.
 
 Current coupling/problem:
-The public planner facade still owns derive-disabled handling, the complete
-family ordering, final contact-intent deduplication, merge policy, and thin
-wrappers for degraded/ground/feedback/link/fuel/target/latency/downlink
-families.
+The public facade coordinates low-level V2 activity transitions even though
+candidate input, realized-state, dispatch, transition, and source-report owners
+already exist. Keeping that reduction in the facade obscures the boundary
+between repair execution and the later approval/report/scoring/artifact phase.
 
 Public facade to preserve:
-`CampaignPlanner.strategy/1`, `strategy!/1`, file-backed entry points, branch
-IDs/events/metadata, branch ordering and deduplication, scoring artifacts,
-deterministic output, and all error behavior.
+`CampaignPlanner.repair/1`, `repair!/1`, file-backed entry points, V2 artifacts,
+candidate and activity ordering, deltas, approvals, warnings, scores, reports,
+metadata, deterministic output, and all error behavior.
 
 Likely files:
 - `lib/orbital_dynamics/campaign_planner.ex`
-- `lib/orbital_dynamics/campaign_planner/derived_branch_orchestration.ex`
+- `lib/orbital_dynamics/campaign_planner/repair_execution.ex`
 - `.codex/status/large_module_refactor.md`
 
 Definition of done:
-Strategy normalization delegates derived-branch generation to
-`DerivedBranchOrchestration.merge/6`; disabled behavior, exact family ordering,
-deduplication, merge policy, public artifacts, and errors are unchanged;
-focused and full planner tests match live baseline; strict compile and
-independent review are clean.
+`do_repair/1` delegates candidate preparation and repair state transitions to
+`RepairExecution.run/1`; the facade retains approval, report, scoring, and
+artifact assembly; public artifacts and errors are unchanged; focused and full
+planner tests match live baseline; strict compile and independent review are
+clean.
 
 Verification gaps:
-- The full planner directory has five previously documented failures that must
-  retain their exact observations. Post-change result is the same 728/733 with
-  identical test names, values, and stacktraces.
-- Independent review was clean. No API, artifact, determinism, ordering,
-  policy/provenance, ownership, error-behavior, or behavioral finding remains.
+- The full planner directory has five previously documented failures. The
+  post-change run must retain the same 728/733 result and observations.
+- The exact focused repair-execution baseline still needs to be captured.
 
 Tests run:
-- Live inventory: `CampaignPlanner` is 2,023 lines with 144 private functions.
-- Target includes the two orchestration clauses and nine remaining thin family
-  helpers.
-- Baseline full planner directory: 728/733 passed with the five documented
-  failures.
-- Post-change full planner directory: 728/733 passed with the same five
-  failures and observations.
-- Focused green orchestration subset: 107 passed with warnings as errors before
-  and after extraction.
-- Strict forced compile: 3,648 files clean with warnings as errors.
-- Public `CampaignPlanner` function list matches selection commit `ce6665f5`.
-  Xref reports the new internal module has only the planner runtime caller.
-- Format, new-file whitespace, and `git diff --check` passed. No old
-  orchestration or selected thin helper remains in the facade.
-- `CampaignPlanner` shrank from 2,023 to 1,894 lines. The new internal
-  orchestration module is 94 lines.
-- Independent reviewer reran the exact 107-test subset, 3,648-file compile,
-  public-def, xref, formatting, diff, and new-file checks; results matched
-  primary proof.
+- Live inventory: `CampaignPlanner` is 1,894 lines.
+- Dependency mapping found a callback-free extraction using existing
+  `RepairCandidateInputs`, `RepairRealizedState`, `RepairActivityDispatch`,
+  `RepairManeuverTransitions`, `RepairPolicySemantics`, `RepairSourceReports`,
+  and `StationCalendar` owners.
+- No runtime code has changed in this slice.
 
 Behavior/schema changes:
-None.
+None intended.
 
 Outcome:
-Strategy normalization now delegates one call to
-`DerivedBranchOrchestration.merge/6`. The new owner preserves derive-disabled
-behavior, exact family order, link-capacity transforms, contact-intent
-deduplication, and final policy-aware branch merging. Implementation published
-as `1841dc35`.
+Pending.
 
 Last completed slice:
-Derived-branch generation boundary extraction published as `1841dc35`:
-`CampaignPlanner` shrank from 2,023 to 1,894 lines; focused, full-baseline, and
-compile proof passed; independent review was clean.
+Derived-branch generation boundary extraction published as implementation
+`1841dc35` and handoff `b3be6001`: `CampaignPlanner` shrank from 2,023 to 1,894
+lines; focused and full-baseline proof passed; independent review was clean.
 
 Next candidate:
-Publish this handoff, then refresh the remaining facade responsibilities and
-select the next bounded extraction.
+Implement and verify the selected V2 repair-execution boundary.
 
 Blocked:
 No.
