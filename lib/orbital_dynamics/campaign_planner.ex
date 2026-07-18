@@ -34,18 +34,12 @@ defmodule OrbitalDynamics.CampaignPlanner do
     ActivityIdentity,
     ActivityTiming,
     ApprovalPolicy,
-    BranchCandidatePlan,
-    BranchEventApplication,
-    BranchEventNormalizer,
     BranchComparisonReport,
-    BranchCandidateRefresh,
-    BranchApprovalRequirements,
     BranchGenerationPolicy,
     BranchRefreshAcceptedState,
     BranchRefreshGroundNetwork,
     BranchRefreshTargets,
     BuildArtifact,
-    CollectionLatencySatisfaction,
     DerivedBranchOrchestration,
     CandidateRefreshNormalization,
     CandidateRefreshRequest,
@@ -58,9 +52,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
     OperationalFeedbackAggregation,
     OperationalFeedbackNormalization,
     OperationalFeedbackProvenance,
-    PlanBranch,
     PlanMetadata,
-    PriorityCommitmentSatisfaction,
     RealizedActivitiesOperationalFeedback,
     RequestIO,
     RepairArtifact,
@@ -75,18 +67,13 @@ defmodule OrbitalDynamics.CampaignPlanner do
     ReplanRequest,
     ScalarValues,
     ScoreReports,
-    StrategicScoreTerms,
     StrategyBranchNormalization,
+    StrategyBranchEvaluation,
     StrategyPolicyNormalization,
-    StrategyRiskIndicators,
     StrategyArtifact,
-    StrategyCandidateSource,
-    StrategyFeedbackAdjustments,
-    StrategyMetrics,
     StrategyPriorPlanCandidates,
     StrategyRecommendationBuilder,
     StrategyReport,
-    StrategyResourceImpacts,
     TimelineRanking,
     ValueEncoding
   }
@@ -711,7 +698,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
   defp do_strategy_with_baseline(%{} = request) do
     input_order_branches =
       request.branches
-      |> Enum.map(&evaluate_branch(&1, request))
+      |> Enum.map(fn branch ->
+        StrategyBranchEvaluation.evaluate(branch, request, &repair/1)
+      end)
 
     branches =
       input_order_branches
@@ -779,255 +768,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
         CadenceImport.from_strategy_artifact(artifact)
       )
     end)
-  end
-
-  defp evaluate_branch(branch, request) do
-    prior_plan = BranchEventApplication.apply_plan(request.prior_plan, branch)
-
-    candidate_refresh_request =
-      BranchCandidateRefresh.request(branch, request, &BranchCandidateRefresh.derive/2)
-
-    candidate_refresh =
-      BranchCandidateRefresh.refresh(
-        branch,
-        request,
-        candidate_refresh_request,
-        source_plan_id(request.prior_plan)
-      )
-
-    realized_state =
-      request.realized_state
-      |> BranchEventApplication.merge_realized_state(
-        BranchEventApplication.mission_state_repair_state(request.mission_state)
-      )
-      |> BranchEventApplication.merge_realized_state(branch["realized_state_overrides"])
-      |> BranchEventApplication.apply_realized(prior_plan, branch)
-
-    policy_overrides = Map.get(branch, "policy_overrides", %{})
-
-    repair_policy =
-      request.repair_policy
-      |> RepairPolicySemantics.to_map()
-      |> Map.merge(Map.get(policy_overrides, "repair_policy", %{}))
-      |> RepairPolicySemantics.normalize()
-
-    scoring_policy =
-      request.scoring_policy
-      |> Map.merge(Map.get(policy_overrides, "scoring_policy", %{}))
-
-    repair_result =
-      repair(%ReplanRequest{
-        prior_plan: prior_plan,
-        realized_state: realized_state,
-        current_epoch_s: request.current_epoch_s,
-        remaining_horizon: request.remaining_horizon,
-        repair_policy: repair_policy,
-        approval_policy: request.approval_policy,
-        scoring_policy: scoring_policy,
-        candidate_refresh: candidate_refresh,
-        candidate_refresh_request: candidate_refresh_request,
-        mission_state: request.mission_state,
-        generated_at: request.generated_at,
-        metadata: %{"branch_id" => branch["id"]}
-      })
-
-    {candidate_plan, candidate_warnings} =
-      BranchCandidatePlan.build(
-        repair_result,
-        branch,
-        request,
-        event_ground_station_id: &BranchEventNormalizer.ground_station_id/1
-      )
-
-    resource_projection_report =
-      branch_resource_projection_report(
-        candidate_plan,
-        repair_result,
-        StrategyPolicyNormalization.approval_to_map(request.approval_policy)
-      )
-
-    resource_impacts = StrategyResourceImpacts.build(candidate_plan, branch, request)
-
-    feedback_adjustments =
-      StrategyFeedbackAdjustments.build(
-        candidate_plan,
-        repair_result,
-        branch,
-        BranchCandidateRefresh.operational_feedback(branch, request.operational_feedback)
-      )
-
-    objective_satisfaction = branch_objective_satisfaction(candidate_plan, request)
-    feasibility_summary = branch_feasibility_summary(candidate_plan)
-
-    candidate_source =
-      StrategyCandidateSource.branch_source(
-        branch,
-        request,
-        repair_result,
-        &BranchCandidateRefresh.derive/2
-      )
-
-    risk_indicators =
-      branch_risk_indicators(
-        branch,
-        repair_result,
-        candidate_plan,
-        request,
-        resource_impacts,
-        resource_projection_report,
-        feedback_adjustments,
-        candidate_source
-      )
-
-    approval_requirements = branch_approval_requirements(repair_result, candidate_plan)
-
-    {approval_status, approval_requirements, approval_rule_matches, policy_decision} =
-      approval_decision(
-        approval_requirements,
-        risk_indicators,
-        branch,
-        candidate_plan,
-        request.approval_policy
-      )
-
-    score_terms =
-      strategic_score_terms(
-        candidate_plan,
-        repair_result,
-        risk_indicators,
-        branch,
-        request,
-        resource_impacts,
-        feedback_adjustments
-      )
-
-    score = Map.get(score_terms, "expected_score", 0.0)
-
-    warnings =
-      (Map.get(repair_result, "warnings", []) ++
-         candidate_warnings ++
-         branch_event_warnings(branch) ++
-         Map.get(resource_impacts, "warnings", []))
-      |> Enum.uniq()
-      |> Enum.sort()
-
-    %PlanBranch{
-      id: branch["id"],
-      label: branch["label"],
-      probability: branch["probability"],
-      events: branch["events"],
-      candidate_plan: candidate_plan,
-      repair_result: repair_result,
-      score: score,
-      score_terms: score_terms,
-      warnings: warnings,
-      risk_indicators: risk_indicators,
-      approval_status: approval_status,
-      approval_requirements: approval_requirements,
-      approval_rule_matches: approval_rule_matches,
-      policy_decision: policy_decision,
-      derived_source: get_in(branch, ["metadata", "derived_source"]),
-      resource_impacts: resource_impacts,
-      resource_projection_report: resource_projection_report,
-      feedback_adjustments: feedback_adjustments,
-      objective_satisfaction: objective_satisfaction,
-      feasibility_summary: feasibility_summary,
-      assumptions:
-        branch_assumptions(
-          branch,
-          request,
-          repair_policy,
-          scoring_policy,
-          candidate_source
-        ),
-      provenance:
-        branch_provenance(
-          request.prior_plan,
-          branch,
-          candidate_source
-        ),
-      tradeoffs: []
-    }
-  end
-
-  defp branch_event_warnings(branch) do
-    branch
-    |> Map.get("events", [])
-    |> Enum.flat_map(fn event ->
-      event
-      |> Map.get("invalid_branch_event_input_reasons", [])
-      |> List.wrap()
-      |> Enum.map(fn reason ->
-        field = String.replace_prefix(reason, "invalid_", "")
-        value = get_in(event, ["invalid_branch_event_values", field])
-        branch_id = Map.get(branch, "id")
-        event_type = Map.get(event, "type", "branch_event")
-
-        "branch #{branch_id} #{event_type} ignored invalid #{field} #{ValueEncoding.encode_value(value)}"
-      end)
-    end)
-  end
-
-  defp strategic_score_terms(
-         candidate_plan,
-         repair_result,
-         risk_indicators,
-         branch,
-         request,
-         resource_impacts,
-         feedback_adjustments
-       ) do
-    StrategicScoreTerms.build(
-      candidate_plan,
-      repair_result,
-      risk_indicators,
-      branch,
-      request,
-      resource_impacts,
-      feedback_adjustments
-    )
-  end
-
-  defp branch_risk_indicators(
-         branch,
-         repair_result,
-         candidate_plan,
-         request,
-         resource_impacts,
-         resource_projection_report,
-         feedback_adjustments,
-         candidate_source
-       ) do
-    StrategyRiskIndicators.build(
-      branch,
-      repair_result,
-      candidate_plan,
-      request,
-      resource_impacts,
-      resource_projection_report,
-      feedback_adjustments,
-      candidate_source
-    )
-  end
-
-  defp branch_approval_requirements(repair_result, candidate_plan) do
-    BranchApprovalRequirements.build(repair_result, candidate_plan)
-  end
-
-  defp approval_decision(
-         approval_requirements,
-         risk_indicators,
-         branch,
-         candidate_plan,
-         %ApprovalPolicy{} = policy
-       ) do
-    Policy.decide(
-      approval_requirements,
-      risk_indicators,
-      branch,
-      candidate_plan,
-      StrategyPolicyNormalization.approval_to_map(policy)
-    )
   end
 
   defp repair_approval_decision(approval_requirements, %ApprovalPolicy{} = policy) do
@@ -1098,39 +838,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
     )
   end
 
-  defp branch_assumptions(branch, request, repair_policy, scoring_policy, candidate_source) do
-    %{
-      "branch_id" => branch["id"],
-      "what_if_events" => branch["events"],
-      "repair_policy" => RepairPolicySemantics.to_map(repair_policy),
-      "repair_scoring_policy" => scoring_policy,
-      "strategy_policy" => StrategyPolicyNormalization.strategy_to_map(request.strategy_policy),
-      "candidate_source" => candidate_source,
-      "model_limits" => [
-        "thin_resource_summary_only",
-        "no_autonomous_execution",
-        "no_external_astrodynamics_backend"
-      ]
-    }
-  end
-
-  defp branch_provenance(prior_plan, branch, candidate_source) do
-    %{
-      "source_plan_id" => source_plan_id(prior_plan),
-      "branch_id" => branch["id"],
-      "branch_metadata" => branch["metadata"],
-      "candidate_source" => candidate_source
-    }
-  end
-
-  defp target_count(activities) do
-    StrategyMetrics.target_count(activities)
-  end
-
-  defp revisit_count(activities) do
-    StrategyMetrics.revisit_count(activities)
-  end
-
   defp objective_required_downlink_mb(%{} = objective) do
     DownlinkObjectiveRequirements.required_mb(objective)
   end
@@ -1143,55 +850,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp candidate_score(candidate),
     do: ScalarValues.numeric_or_nil(Map.get(candidate, "score")) || 0.0
-
-  defp branch_objective_satisfaction(candidate_plan, request) do
-    activities = Map.get(candidate_plan, "activities", [])
-    priority_commitments = priority_commitment_satisfaction(request.mission_state, activities)
-
-    %{
-      "priority_commitments" => priority_commitments,
-      "downlink_completion" =>
-        StrategyMetrics.downlink_completion_satisfaction(activities, request),
-      "coverage" => %{"observed_target_count" => target_count(activities)},
-      "revisit" => %{"revisit_count" => revisit_count(activities)}
-    }
-    |> maybe_put_collection_latency_satisfaction(activities, request.mission_state)
-  end
-
-  defp priority_commitment_satisfaction(mission_state, activities) do
-    mission_state
-    |> priority_commitment_satisfaction_rows(activities)
-    |> PriorityCommitmentSatisfaction.summary_from_rows()
-  end
-
-  defp priority_commitment_satisfaction_rows(mission_state, activities) do
-    objectives = priority_commitment_objectives(mission_state)
-
-    PriorityCommitmentSatisfaction.rows(objectives, activities)
-  end
-
-  defp priority_commitment_objectives(mission_state) do
-    PriorityCommitmentSatisfaction.objectives(mission_state)
-  end
-
-  defp maybe_put_collection_latency_satisfaction(satisfaction, activities, mission_state) do
-    CollectionLatencySatisfaction.put(satisfaction, activities, mission_state)
-  end
-
-  defp branch_feasibility_summary(candidate_plan) do
-    additions = Map.get(candidate_plan, "strategic_additions", [])
-
-    %{
-      "strategic_additions" =>
-        Enum.map(additions, fn activity ->
-          Map.get(activity, "feasibility", %{
-            "status" => "not_applicable",
-            "target_id" => activity["target_id"],
-            "requires_approval" => get_in(activity, ["repair", "requires_approval"]) || false
-          })
-        end)
-    }
-  end
 
   defp candidate_activities(event_results, campaign, constraints, policy) do
     ActivityCandidate.build(
@@ -1719,23 +1377,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
   end
 
   defp repair_timeline_feedback_report(_planned_activities, _realized_state), do: nil
-
-  defp branch_resource_projection_report(candidate_plan, repair_result, approval_policy) do
-    activities =
-      (Map.get(candidate_plan, "activities", []) ++
-         Map.get(candidate_plan, "strategic_additions", []))
-      |> Enum.map(&ValueEncoding.stringify_keys/1)
-      |> Map.new(&{ActivityIdentity.activity_id(&1), &1})
-      |> Map.values()
-
-    resource_projection_report(
-      activities,
-      Map.get(repair_result, "source_resource_summaries", []),
-      "thin_strategy_branch_activity_resource_projection",
-      "branch.repair_result.source_resource_summaries",
-      approval_policy
-    )
-  end
 
   defp resource_projection_report(_activities, [], _model, _source, _approval_policy), do: nil
 
