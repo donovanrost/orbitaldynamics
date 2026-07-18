@@ -9,7 +9,7 @@ Current slice:
 Timeline activity-reference ID policy extraction.
 
 Status:
-Selection recorded; implementation has not started.
+Implementation published in `b3bb5c3f`; focused and broad proof is green.
 
 Selected boundary:
 Move scalar/map reference flattening, normalized stable-ID lists, duplicate-ID
@@ -20,33 +20,34 @@ private scalar stable-ID entry point used by publication and station-calendar
 context. The stable-activity-ID predicate crosses the boundary explicitly.
 
 Why this slice:
-The reduced Timeline facade is 6,759 lines. These 24 exclusive clauses own the
-reference-ID semantics shared by dependency, exclusivity, objective, and data
-product surfaces: input-shape filtering, comma splitting, stable-ID validation,
-deduplication, duplicate detection, and deterministic sorting.
+The extraction moved 24 clauses into a 127-line internal module and reduced
+Timeline from 6,759 to 6,674 lines. Five private entry points preserve
+dependency, exclusivity, objective, publication, and station-calendar callers
+while moving input-shape filtering, stable-ID validation, normalization, and
+duplicate detection out of the facade.
 
-Planned proof:
-- Focused dependency/exclusivity examples for scalar strings, malformed IDs,
-  nested maps, duplicates, booleans, atoms, integers, and deterministic order.
-- Full Timeline and Timeline schema-contract suites.
-- Strict warnings-as-errors compile.
-- Canonical AST equivalence for all 24 moved clauses after normalizing only the
+Completed proof:
+- Focused dependency/exclusivity examples: 3 passed.
+- Full Timeline suite: 127 passed.
+- Timeline schema-contract suites: 36 passed.
+- Strict warnings-as-errors compile: 3,742 files.
+- Canonical AST equivalence: all 24 moved clauses after normalizing only the
   five facade names and stable-ID predicate callback.
-- Format, diff, whitespace, ownership, exactly-five-facade, unchanged Timeline
-  public-definition, and xref checks.
-- Independent read-only review before publication.
+- Format, whitespace, ownership, exactly-five-facade, unchanged Timeline public
+  definitions, and xref checks passed; Timeline is the only runtime caller.
+- Independent read-only review found no production-code findings.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline invalid lifecycle-state input policy extraction, selected in
-`070962e4`, implemented in `7099753c`, and handed off in `33f34a72`.
+Timeline activity-reference ID policy extraction, selected in `ff1f4dd0`,
+corrected in `368a318e`, and implemented in `b3bb5c3f`.
 
 Next candidate:
-Remap the reduced Timeline facade after this slice, emphasizing remaining
-activity normalization and lifecycle state assembly.
+Remap the reduced 6,674-line Timeline facade, emphasizing remaining activity
+normalization and lifecycle state assembly.
 
 Blocked:
 No.
