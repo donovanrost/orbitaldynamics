@@ -5616,13 +5616,11 @@ defmodule OrbitalDynamics.Timeline do
   end
 
   defp timeline_row_has_dependencies?(row) do
-    non_empty_list?(row["dependency_activity_ids"]) or
-      non_empty_list?(row["dependency_timeline_ids"])
+    OrbitalDynamics.Timeline.RelationshipPresencePolicy.has_dependencies?(row)
   end
 
   defp timeline_row_has_exclusivity?(row) do
-    non_empty_list?(row["exclusive_with_activity_ids"]) or
-      non_empty_list?(row["exclusive_with_timeline_ids"])
+    OrbitalDynamics.Timeline.RelationshipPresencePolicy.has_exclusivity?(row)
   end
 
   defp timeline_integrity_review?(row), do: row["timeline_integrity_status"] == "review_required"
@@ -5707,7 +5705,6 @@ defmodule OrbitalDynamics.Timeline do
     OrbitalDynamics.Timeline.IntegrityCountPolicy.exclusivity_issue_count(rows, &list_value/2)
   end
 
-  defp non_empty_list?(value), do: is_list(value) and value != []
   defp list_value(value, key), do: Map.get(value, key) || []
 
   defp diff_dependency_context(prefix, row) do
