@@ -5636,37 +5636,11 @@ defmodule OrbitalDynamics.Timeline do
     |> put_new_present("type", Map.get(activity, "activity_type"))
   end
 
-  defp normalize_source_window(%{"source_window" => %{} = source_window} = activity) do
-    activity
-    |> put_new_present("source_window_id", source_window_id_value(source_window))
-    |> put_new_present("source_window_type", source_window_type_value(source_window))
-    |> put_new_present("source_window_type", Map.get(activity, "source_window_kind"))
-    |> put_new_present("source_window_type", get_in(activity, ["metadata", "source_window_kind"]))
-  end
-
-  defp normalize_source_window(
-         %{"metadata" => %{"source_window" => %{} = source_window}} = activity
-       ) do
-    activity
-    |> Map.put("source_window", source_window)
-    |> put_new_present("source_window_id", source_window_id_value(source_window))
-    |> put_new_present("source_window_type", source_window_type_value(source_window))
-    |> put_new_present("source_window_type", get_in(activity, ["metadata", "source_window_kind"]))
-  end
-
   defp normalize_source_window(activity) do
-    activity
-    |> put_new_present("source_window_type", Map.get(activity, "source_window_kind"))
-    |> put_new_present("source_window_type", get_in(activity, ["metadata", "source_window_kind"]))
-  end
-
-  defp source_window_id_value(%{} = source_window) do
-    Map.get(source_window, "id") || Map.get(source_window, "window_id")
-  end
-
-  defp source_window_type_value(%{} = source_window) do
-    Map.get(source_window, "type") || Map.get(source_window, "kind") ||
-      Map.get(source_window, "window_type")
+    OrbitalDynamics.Timeline.SourceWindowNormalizationPolicy.normalize(
+      activity,
+      &put_new_present/3
+    )
   end
 
   defp put_new_present(activity, _key, value) when value in [nil, ""], do: activity
