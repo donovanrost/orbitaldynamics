@@ -9,7 +9,7 @@ Current slice:
 Timeline dependency-impact row policy extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and published.
 
 Selected boundary:
 Move dependency-impact row construction, row inclusion, operator-action reason,
@@ -33,9 +33,22 @@ Selection evidence:
   and other timeline responsibilities remain outside the boundary.
 
 Verification:
-Pending: focused baselines, mechanical policy extraction, strict compile,
-focused and full Timeline tests, schema contracts, structural/static checks, and
-independent review.
+- Focused baseline passed 2 dependency-impact summary tests.
+- Strict warnings-as-errors compile passed 3,801 modules.
+- Focused dependency-impact summary tests passed 2 tests.
+- Full Timeline suite passed 127 tests.
+- Four Timeline schema-contract suites passed 36 tests.
+- AST conservation proved the selected five-function row policy moved exactly;
+  the only intersection change threads the facade's existing sorted-ID callback.
+- Static checks confirmed the five private functions left Timeline, the facade
+  has exactly two policy calls, the new module owns its six private helpers,
+  formatting and diff checks pass, and no temporary checker remains.
+- Independent review was clean with no correctness or maintainability findings;
+  it confirmed source-then-replacement ordering, wrapper equivalence, public
+  defs, capabilities, output structure, schema fields, and ordering are
+  unchanged.
+- Timeline decreased from 5,319 to 5,227 lines; the extracted policy is 129
+  lines.
 
 Behavior/schema changes:
 None intended. Dependency-impact row maps, filtering, ID ordering, report
@@ -43,8 +56,8 @@ aggregation, capabilities, and schema exports should remain byte-for-byte
 stable.
 
 Last completed slice:
-Timeline diff comparison-value policy completion, selected in `4b541c00` and
-implemented in `76d88290`.
+Timeline dependency-impact row policy extraction, selected in `bf4f2e94` and
+implemented in `ece31812`.
 
 Next candidate:
 Continue remapping the reduced Timeline facade after this row-policy boundary is
