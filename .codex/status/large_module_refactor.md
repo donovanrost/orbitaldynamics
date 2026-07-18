@@ -6,24 +6,25 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema result artifact property-dispatch extraction.
+Schema maneuver artifact property-dispatch extraction.
 
 Status:
-Implementation published as `6b7ed38d`; handoff publication pending.
+Slice selected; selection publication pending.
 
 Selected slice:
-Move JSON-property dispatch/context assembly for execution report, result
-artifact, and resource summary into an internal
-`Schema.ResultArtifactPropertyDispatch` owner.
+Move JSON-property dispatch/context assembly for realized-state snapshot,
+maneuver recommendation, and maneuver-review report into an internal
+`Schema.ManeuverArtifactPropertyDispatch` owner.
 
 Why this slice:
-`Schema` is 7,752 lines. These three adjacent result-set artifacts share schema,
-version, stable-ID, execution-contract, embedded-contract, and model-limit
-context but still route directly through the facade.
+`Schema` is 7,744 lines. These three maneuver/state-review artifacts
+collectively carry 11 activity/state/vector/row/model dependencies but still
+route directly through the facade.
 
 Current coupling/problem:
-The facade owns nine result artifact constants/providers plus focused fallback
-routing across this cohesive result-set family.
+The facade owns realized-state components and limits, maneuver recommendation
+contract/vector/limits, and maneuver-review row/pattern/limits across separated
+clauses.
 
 Public facade to preserve:
 All `Schema` APIs; the three JSON Schema documents; checked-in exports,
@@ -32,42 +33,27 @@ and all errors.
 
 Likely files:
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/result_artifact_property_dispatch.ex`
+- `lib/orbital_dynamics/schema/maneuver_artifact_property_dispatch.ex`
 - `.codex/status/large_module_refactor.md`
 
 Definition of done:
 The three clauses pass compact dependencies to the new owner; named contexts
-and focused fallback routing move out of `Schema`; focused result/resource/
-execution/export tests pass; strict compile, full byte-clean schema
-regeneration, and independent review are clean.
+and focused fallback routing move out of `Schema`; focused maneuver/state/
+import/export tests pass; strict compile, full byte-clean schema regeneration,
+and independent review are clean.
 
 Verification gaps:
-- None for this slice. Full checked-in schema regeneration is byte-identical.
-- Independent review was clean. No API, schema, export, ordering,
-  error-behavior, ownership, or behavioral finding remains.
+- Focused baseline, strict compile, export proof, and independent review remain.
 
 Tests run:
-- Baseline and post-change focused result/resource/execution/export subset:
-  27 passed with warnings as errors.
-- Strict forced compile: 3,665 files clean with warnings as errors.
-- Full schema export regenerated every checked-in schema and bundle with zero
-  diff.
-- Public `Schema` definitions match selection commit `4dac9b40`; xref reports
-  the dispatcher has only the `Schema` runtime caller.
-- Format, changed/new-file whitespace, and `git diff --check` passed.
-- Independent review confirmed exact constants, provider order/arities, and
-  unchanged adjacent routes, then reran all proof clean.
+- None yet for this selected slice.
 
 Behavior/schema changes:
 None intended.
 
-Outcome:
-Execution report, result artifact, and resource-summary routes now delegate to
-`ResultArtifactPropertyDispatch`. Implementation published as `6b7ed38d`.
-
 Last completed slice:
-Contact-planning schema dispatch published as implementation `f2c56254` and
-handoff `4affa8d6`: focused 40/40, strict 3,664-file compile, full byte-clean
+Result artifact schema dispatch published as implementation `6b7ed38d` and
+handoff `bc56d049`: focused 27/27, strict 3,665-file compile, full byte-clean
 schema regeneration, and independent review passed.
 
 Next candidate:
