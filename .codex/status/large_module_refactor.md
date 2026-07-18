@@ -6,46 +6,46 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline source-window normalization policy extraction.
+Timeline provider-contact normalization policy extraction.
 
 Status:
-Implementation published in `ca54e136`; focused and broad proof is green.
+Selection recorded; implementation has not started.
 
 Selected boundary:
-Move direct and metadata-nested source-window normalization plus exclusive
-window ID/type lookup into `Timeline.SourceWindowNormalizationPolicy`.
-`Timeline` retains the single normalization entry point used by
-`activity_to_map/1` and supplies its shared `put_new_present/3` helper as a
-callback.
+Move activity-type alias promotion, provider downlink inference, direction-based
+contact inference, and command-feedback suppression into
+`Timeline.ProviderContactNormalizationPolicy`. `Timeline` retains the three
+ordered normalization entry points used by `activity_to_map/1`.
 
 Why this slice:
-The extraction moved five clauses into a 49-line internal module and reduced
-Timeline from 7,108 to 7,082 lines. The single private entry point preserves
-`activity_to_map/1` pipeline order and supplies only the shared present-value
-insertion callback.
+The reduced Timeline facade is 7,082 lines. These eight exclusive clauses own
+provider contact shape inference after direction and numeric normalization. The
+boundary preserves the type-alias, inferred-downlink, then direction-contact
+pipeline order.
 
-Completed proof:
-- Focused source-window normalization examples: 2 passed.
-- Full Timeline suite: 127 passed.
-- Timeline schema-contract suites: 36 passed.
-- Strict warnings-as-errors compile: 3,734 files.
-- Canonical AST equivalence: all five moved clauses after normalizing only the
-  single facade name and callback boundary.
-- Format, whitespace, ownership, exactly-one-facade, unchanged Timeline public
-  definitions, and xref checks passed.
-- Independent read-only review found no findings.
+Planned proof:
+- Focused Timeline examples for type-less downlink inference, command-feedback
+  suppression, direction-only command/health-check contacts, and
+  activity-type-only inputs.
+- Full Timeline and Timeline schema-contract suites.
+- Strict warnings-as-errors compile.
+- Canonical AST equivalence for all eight moved clauses after normalizing only
+  the three facade names.
+- Format, diff, whitespace, ownership, exactly-three-facade, unchanged Timeline
+  public-definition, and xref checks.
+- Independent read-only review before publication.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline source-window normalization policy extraction, selected in `9f7b012d`
-and implemented in `ca54e136`.
+Timeline source-window normalization policy extraction, selected in `9f7b012d`,
+implemented in `ca54e136`, and handed off in `ed199fe2`.
 
 Next candidate:
-Remap the reduced 7,082-line Timeline facade, emphasizing activity normalization
-and lifecycle application.
+Remap the reduced Timeline facade after this slice, emphasizing activity
+normalization and lifecycle application.
 
 Blocked:
 No.
