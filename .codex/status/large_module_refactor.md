@@ -6,34 +6,34 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline lifecycle-transition assembly policy extraction.
+Timeline invalid lifecycle-state input policy extraction.
 
 Status:
-Implementation published in `4717aadf`; focused and broad proof is green.
+Selection recorded; implementation has not started.
 
 Selected boundary:
-Move lifecycle transition object construction and field-specific semantic
-assembly into `Timeline.LifecycleTransitionPolicy`. `Timeline` retains the
-single private `lifecycle_transition/3` entry point. Status/approval category,
-status/approval review, and compact-map helpers cross the boundary as callbacks.
+Move optional lifecycle-state input conversion, invalid-row detection and
+aggregation, invalid/valid state identity access, and planned-before-realized
+display identity into `Timeline.InvalidLifecycleStateInputPolicy`. `Timeline`
+retains nine private entry points. Activity conversion, activity/timeline ID,
+and sorted-unique helpers cross the boundary as callbacks.
 
 Why this slice:
-The extraction moved seven clauses into a 138-line callback-explicit module and
-reduced Timeline from 6,791 to 6,767 lines. The single private entry point
-preserves all status and approval transition callers. The initially mapped
-lifecycle-vocabulary candidate remained rejected because its module-attribute
-guards would require semantic reshaping.
+The reduced Timeline facade is 6,767 lines. These 17 exclusive clauses own the
+invalid-input semantics shared by status, approval, and combined lifecycle
+state artifacts. The boundary preserves optional nil behavior, existing invalid
+rows, conversion error rows, invalid-row order, and planned identity priority.
 
-Completed proof:
-- Focused lifecycle-transition assembly examples: 2 passed.
-- Full Timeline suite: 127 passed.
-- Timeline schema-contract suites: 36 passed.
-- Strict warnings-as-errors compile: 3,740 files.
-- Canonical AST equivalence: all seven moved clauses after normalizing only the
-  single facade name and callback boundaries.
-- Format, whitespace, ownership, exactly-one-facade, unchanged Timeline public
-  definitions, and xref checks passed.
-- Independent read-only review found no findings.
+Planned proof:
+- Focused status, approval, and combined lifecycle-state examples, including
+  malformed activity input and invalid count/reason/identity surfaces.
+- Full Timeline and Timeline schema-contract suites.
+- Strict warnings-as-errors compile.
+- Canonical AST equivalence for all 17 moved clauses after normalizing only the
+  nine facade names and callback boundaries.
+- Format, diff, whitespace, ownership, exactly-nine-facade, unchanged Timeline
+  public-definition, and xref checks.
+- Independent read-only review before publication.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
@@ -41,12 +41,12 @@ regeneration should not be required.
 
 Last completed slice:
 Timeline lifecycle-transition assembly policy extraction, initially selected as
-vocabulary in `da906798`, corrected in `0e098fb0`, and implemented in
-`4717aadf`.
+vocabulary in `da906798`, corrected in `0e098fb0`, implemented in `4717aadf`,
+and handed off in `6b275dff`.
 
 Next candidate:
-Remap the reduced 6,767-line Timeline facade, emphasizing remaining activity
-normalization and lifecycle state assembly.
+Remap the reduced Timeline facade after this slice, emphasizing remaining
+activity normalization and lifecycle state assembly.
 
 Blocked:
 No.
