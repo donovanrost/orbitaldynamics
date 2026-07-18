@@ -4917,43 +4917,13 @@ defmodule OrbitalDynamics.CadenceImport do
   end
 
   defp execution_manifest_row(row, rank) do
-    approval_status = Map.get(row, "approval_status", "operator_review_required")
-    import_status = Map.get(row, "cadence_import_status", "present")
-
-    %{
-      "id" => "cadence_import:execution:#{row["id"] || rank}",
-      "rank" => rank,
-      "import_action" => "review_execution",
-      "import_status" => adapter_import_status(import_status, approval_status),
-      "import_side" => "source",
-      "source_review_row_id" => row["id"],
-      "source_review_type" => row["review_type"],
-      "source_review_action" => source_review_action(row),
-      "source" => row["source"],
-      "subject_id" => row["subject_id"],
-      "scenario_id" => row["scenario_id"],
-      "scenario_index" => row["scenario_index"],
-      "approval_status" => approval_status,
-      "required_operator_action" => row["required_operator_action"],
-      "reason" => row["reason"],
-      "cadence_import_status" => import_status,
-      "has_cadence_import" => false,
-      "execution_status" => row["execution_status"],
-      "execution_mode" => row["execution_mode"],
-      "execution_stage" => row["execution_stage"],
-      "execution_error" => row["execution_error"],
-      "resumability" => row["resumability"],
-      "retry_recommendation" => row["retry_recommendation"],
-      "study_id" => row["study_id"],
-      "run_id" => row["run_id"],
-      "failed_scenario_count" => row["failed_scenario_count"],
-      "completed_scenario_count" => row["completed_scenario_count"],
-      "scenario_count" => row["scenario_count"],
-      "source_execution_failure" => row["source_execution_failure"],
-      "source_execution_report" => row["source_execution_report"],
-      "source_review_row" => row
-    }
-    |> compact_map()
+    OrbitalDynamics.CadenceImport.ExecutionManifestRow.build(
+      row,
+      rank,
+      source_review_action: &source_review_action/1,
+      adapter_import_status: &adapter_import_status/2,
+      compact_map: &compact_map/1
+    )
   end
 
   defp constraint_manifest_row(row, rank) do
