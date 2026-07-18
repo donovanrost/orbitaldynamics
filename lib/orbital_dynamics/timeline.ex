@@ -2668,18 +2668,7 @@ defmodule OrbitalDynamics.Timeline do
   end
 
   defp activity_dependency_context(activity) do
-    %{
-      "dependency_activity_ids" => dependency_activity_ids(activity),
-      "dependency_timeline_ids" => dependency_timeline_ids(activity),
-      "exclusive_with_activity_ids" => exclusive_with_activity_ids(activity),
-      "exclusive_with_timeline_ids" => exclusive_with_timeline_ids(activity),
-      "duplicate_dependency_activity_ids" => duplicate_dependency_activity_ids(activity),
-      "duplicate_dependency_timeline_ids" => duplicate_dependency_timeline_ids(activity),
-      "duplicate_exclusivity_activity_ids" => duplicate_exclusivity_activity_ids(activity),
-      "duplicate_exclusivity_timeline_ids" => duplicate_exclusivity_timeline_ids(activity),
-      "allow_overlap" => activity_allow_overlap(activity)
-    }
-    |> compact_map()
+    OrbitalDynamics.Timeline.ActivityRelationshipContext.build(activity, @stable_id_pattern)
   end
 
   defp activity_feedback_context(activity) do
@@ -5234,70 +5223,58 @@ defmodule OrbitalDynamics.Timeline do
   end
 
   defp dependency_activity_ids(activity) do
-    OrbitalDynamics.Timeline.ActivityRelationshipPolicy.dependency_activity_ids(
+    OrbitalDynamics.Timeline.ActivityRelationshipContext.dependency_activity_ids(
       activity,
-      &first_value/2,
-      &normalize_id_list/2
+      @stable_id_pattern
     )
   end
 
   defp duplicate_dependency_activity_ids(activity) do
-    OrbitalDynamics.Timeline.ActivityRelationshipPolicy.duplicate_dependency_activity_ids(
+    OrbitalDynamics.Timeline.ActivityRelationshipContext.duplicate_dependency_activity_ids(
       activity,
-      &first_value/2,
-      &duplicate_id_list/2
+      @stable_id_pattern
     )
   end
 
   defp dependency_timeline_ids(activity) do
-    OrbitalDynamics.Timeline.ActivityRelationshipPolicy.dependency_timeline_ids(
+    OrbitalDynamics.Timeline.ActivityRelationshipContext.dependency_timeline_ids(
       activity,
-      &first_value/2,
-      &normalize_map_id_list/2,
-      &normalize_id_list/2
+      @stable_id_pattern
     )
   end
 
   defp duplicate_dependency_timeline_ids(activity) do
-    OrbitalDynamics.Timeline.ActivityRelationshipPolicy.duplicate_dependency_timeline_ids(
+    OrbitalDynamics.Timeline.ActivityRelationshipContext.duplicate_dependency_timeline_ids(
       activity,
-      &first_value/2,
-      &duplicate_map_id_list/2,
-      &duplicate_id_list/2
+      @stable_id_pattern
     )
   end
 
   defp exclusive_with_activity_ids(activity) do
-    OrbitalDynamics.Timeline.ActivityRelationshipPolicy.exclusive_with_activity_ids(
+    OrbitalDynamics.Timeline.ActivityRelationshipContext.exclusive_with_activity_ids(
       activity,
-      &first_value/2,
-      &normalize_id_list/2
+      @stable_id_pattern
     )
   end
 
   defp duplicate_exclusivity_activity_ids(activity) do
-    OrbitalDynamics.Timeline.ActivityRelationshipPolicy.duplicate_exclusivity_activity_ids(
+    OrbitalDynamics.Timeline.ActivityRelationshipContext.duplicate_exclusivity_activity_ids(
       activity,
-      &first_value/2,
-      &duplicate_id_list/2
+      @stable_id_pattern
     )
   end
 
   defp exclusive_with_timeline_ids(activity) do
-    OrbitalDynamics.Timeline.ActivityRelationshipPolicy.exclusive_with_timeline_ids(
+    OrbitalDynamics.Timeline.ActivityRelationshipContext.exclusive_with_timeline_ids(
       activity,
-      &first_value/2,
-      &normalize_map_id_list/2,
-      &normalize_id_list/2
+      @stable_id_pattern
     )
   end
 
   defp duplicate_exclusivity_timeline_ids(activity) do
-    OrbitalDynamics.Timeline.ActivityRelationshipPolicy.duplicate_exclusivity_timeline_ids(
+    OrbitalDynamics.Timeline.ActivityRelationshipContext.duplicate_exclusivity_timeline_ids(
       activity,
-      &first_value/2,
-      &duplicate_map_id_list/2,
-      &duplicate_id_list/2
+      @stable_id_pattern
     )
   end
 
@@ -5323,30 +5300,6 @@ defmodule OrbitalDynamics.Timeline do
 
   defp normalize_id_list(value, map_keys) do
     OrbitalDynamics.Timeline.ActivityReferenceIdPolicy.normalize(
-      value,
-      map_keys,
-      &stable_activity_id?/1
-    )
-  end
-
-  defp duplicate_id_list(value, map_keys) do
-    OrbitalDynamics.Timeline.ActivityReferenceIdPolicy.duplicates(
-      value,
-      map_keys,
-      &stable_activity_id?/1
-    )
-  end
-
-  defp normalize_map_id_list(value, map_keys) do
-    OrbitalDynamics.Timeline.ActivityReferenceIdPolicy.normalize_maps(
-      value,
-      map_keys,
-      &stable_activity_id?/1
-    )
-  end
-
-  defp duplicate_map_id_list(value, map_keys) do
-    OrbitalDynamics.Timeline.ActivityReferenceIdPolicy.duplicate_maps(
       value,
       map_keys,
       &stable_activity_id?/1
