@@ -5190,64 +5190,25 @@ defmodule OrbitalDynamics.Timeline do
   end
 
   defp maybe_gate_single_transition_decision_integrity(
-         %{"transition_decision" => decision} = transition_decision,
+         transition_decision,
          source_activity,
          replacement_activity,
          opts
        ) do
-    source = transition_application_activity(source_activity, opts)
-    replacement = transition_application_activity(replacement_activity, opts)
-
-    decision
-    |> transition_application_selection(source, replacement)
-    |> Map.get("selected_activity")
-    |> case do
-      %{} = selected_activity ->
-        selected_activity
-        |> List.wrap()
-        |> annotate_transition_selected_activities(opts)
-        |> case do
-          [%{} = selected_with_integrity] ->
-            maybe_gate_transition_decision_integrity(
-              transition_decision,
-              selected_with_integrity
-            )
-
-          _other ->
-            transition_decision
-        end
-
-      _other ->
-        transition_decision
-    end
-  end
-
-  defp maybe_gate_single_transition_decision_integrity(
-         transition_decision,
-         _source_activity,
-         _replacement_activity,
-         _opts
-       ),
-       do: transition_decision
-
-  defp maybe_gate_transition_decision_integrity(transition_decision, selected_activity) do
-    if timeline_integrity_review?(selected_activity) do
-      issue_types = list_value(selected_activity, "timeline_integrity_issue_types")
-      reason = selected_integrity_reason(issue_types)
-
-      transition_decision
-      |> Map.put("transition_decision", "review")
-      |> Map.put("transition_decision_reason", reason)
-      |> Map.put("requires_operator_review", true)
-      |> Map.put("required_operator_action", "review_timeline_integrity")
-      |> Map.merge(selected_integrity_context(selected_activity))
-      |> Map.update("reason", reason, fn current_reason ->
-        if current_reason in [nil, "no_timeline_change"], do: reason, else: current_reason
-      end)
-      |> compact_map()
-    else
-      transition_decision
-    end
+    OrbitalDynamics.Timeline.TransitionDecisionIntegrityPolicy.gate(
+      transition_decision,
+      source_activity,
+      replacement_activity,
+      opts,
+      &transition_application_activity/2,
+      &transition_application_selection/3,
+      &annotate_transition_selected_activities/2,
+      &timeline_integrity_review?/1,
+      &list_value/2,
+      &selected_integrity_reason/1,
+      &selected_integrity_context/1,
+      &compact_map/1
+    )
   end
 
   defp annotate_transition_selected_activities(selected_activities, opts) do
