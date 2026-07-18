@@ -6,30 +6,33 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline integrity issue-construction policy extraction.
+Timeline stable-identifier policy extraction.
 
 Status:
-Implemented, verified, independently reviewed, committed, and pushed.
+Selection recorded; implementation has not started.
 
-Completed boundary:
-Moved Timeline's integrity issue-construction leaf into the 5-line
-`Timeline.IntegrityIssuePolicy`. The 6,260-line `Timeline` retains one private
-entry point and the `IntegrityAnnotation` callback bundle remains unchanged.
+Selected boundary:
+Move Timeline's stable binary identifier regex predicate into
+`Timeline.StableIdentifierPolicy`. `Timeline` retains one private entry point
+and passes the existing compiled regex explicitly; all input, cadence import,
+identity, and relationship callbacks remain unchanged.
 
-Published commits:
-Selected in `73a1628b` and implemented in `12a69a75`.
+Why this slice:
+The 6,260-line Timeline facade still owns one exclusive validation leaf shared
+across input review and reference normalization. Moving it isolates exact binary
+guard and regex-match behavior without moving any identity coordinator or
+changing the regex owner.
 
-Verification:
-- Strict warnings-as-errors compile passed across 3,779 files.
-- Three focused dependency/exclusivity, timeline-ID handoff, and normalized
-  integrity annotation examples passed.
-- Full Timeline suite passed with 127 examples; Timeline schema-contract suites
-  passed with 36 examples.
-- Canonical AST equivalence passed after normalizing only the public/private
-  head.
+Planned proof:
+- Focused malformed activity identity, malformed identity fields, and malformed
+  relationship-list examples.
+- Full Timeline and Timeline schema-contract suites.
+- Strict warnings-as-errors compile.
+- Canonical AST equivalence for the moved guarded definition after normalizing
+  only the public/private head, facade name, and explicit regex argument.
 - Format, diff, whitespace, ownership, exactly-one-facade, unchanged Timeline
-  public-definition, and xref checks passed.
-- Independent read-only review found no production-code issues.
+  public-definition, and xref checks.
+- Independent read-only review before publication.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
