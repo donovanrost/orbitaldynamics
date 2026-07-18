@@ -9,7 +9,7 @@ Current slice:
 Campaign-planner contact-pressure derivation orchestration extraction.
 
 Status:
-Ready for implementation.
+Implementation published as `c9bf75e0`; handoff publication pending.
 
 Selected slice:
 Move the private prior-plan/mission-state contact filter, contention,
@@ -47,29 +47,51 @@ unchanged; focused contact tests pass to their live baseline; strict
 compile and independent review are clean.
 
 Verification gaps:
-- Focused contact baseline is pending.
 - The full planner directory has five known baseline failures; two filter-link
-  cases are adjacent to this responsibility and must remain identical.
+  selectors are adjacent to this responsibility. Both post-change failures are
+  identical `List.first(nil)` observations with the same assertion stacktraces.
+- The full directory was not rerun because it was baseline-confirmed two slices
+  ago; focused and file-backed contact coverage is green.
+- Independent review was clean. No API, artifact, determinism, ordering,
+  ownership, error-behavior, or behavioral finding remains.
 
 Tests run:
 - Live inventory: `CampaignPlanner` is 2,485 lines with 191 private functions.
 - Target cluster is 9 ordered pipeline calls and 9 private helpers.
+- Baseline focused contact family: 14 passed with warnings as errors.
+- Post-change focused contact family: 14 passed with warnings as errors.
+- Strict forced compile: 3,642 files clean with warnings as errors.
+- File-backed facade coverage: 7 passed with warnings as errors.
+- Both adjacent filter-link baseline failures reproduced exactly.
+- Public `CampaignPlanner` function list matches selection commit `1c2cd930`.
+  Xref reports the new internal module has only the planner runtime caller.
+- Format check and `git diff --check` passed. No old selected contact helper
+  remains in the facade.
+- `CampaignPlanner` shrank from 2,485 to 2,413 lines. The new internal contact
+  orchestration module is 80 lines.
+- Independent reviewer reran all focused, file-backed, adjacent-baseline,
+  compile, xref, formatting, and whitespace checks; results matched primary
+  proof.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-No contact-pressure extraction has started.
+The derived-branch pipeline now makes one ordered call to
+`DerivedContactPressureBranches.build/2`. The new internal module owns the
+exact source-report and report-to-branch sequence for contact filter,
+contention, contention resolution, allocation reports, and allocation
+summaries. Implementation published as `c9bf75e0`.
 
 Last completed slice:
-Objective-pressure derivation orchestration extraction published as
-`a4e917cc`: `CampaignPlanner` shrank from 2,584 to 2,485 lines; focused,
-file-backed, recommendation, compile, and adjacent baseline-equivalence proof
-passed; independent review was clean. Handoff published as `a5a11372`.
+Contact-pressure derivation orchestration extraction published as `c9bf75e0`:
+`CampaignPlanner` shrank from 2,485 to 2,413 lines; focused, file-backed,
+compile, and adjacent baseline-equivalence proof passed; independent review was
+clean.
 
 Next candidate:
-Publish this selection note, run the focused contact baseline, then perform the
-mechanical ordered extraction.
+Publish this handoff, then refresh the remaining facade responsibilities and
+select the next bounded extraction.
 
 Blocked:
 No.
