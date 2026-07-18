@@ -18,10 +18,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
   """
 
   alias OrbitalDynamics.Communications.{
-    ContactContention,
     ContactAllocation,
-    ContactFilter,
-    ContactIntent,
     LinkCapacity,
     StationCalendar
   }
@@ -30,7 +27,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
   alias OrbitalDynamics.Study.Manifest
 
   alias OrbitalDynamics.CampaignPlanner.{
-    ActivityCandidate,
     ActivityIdentity,
     ActivityTiming,
     ApprovalPolicy,
@@ -39,20 +35,19 @@ defmodule OrbitalDynamics.CampaignPlanner do
     BranchRefreshAcceptedState,
     BranchRefreshGroundNetwork,
     BranchRefreshTargets,
-    BuildArtifact,
+    BuildOrchestration,
     DerivedBranchOrchestration,
     CandidateRefreshNormalization,
     CandidateRefreshRequest,
     CandidateRefreshOperationalFeedback,
+    ContactContentionResolutionPolicy,
     DownlinkActivityNormalization,
     DownlinkObjectiveRequirements,
     MissionStateNormalization,
     ModelLimits,
-    ObjectiveSatisfactionReports,
     OperationalFeedbackAggregation,
     OperationalFeedbackNormalization,
     OperationalFeedbackProvenance,
-    PlanMetadata,
     RealizedActivitiesOperationalFeedback,
     RequestIO,
     RepairArtifact,
@@ -74,18 +69,15 @@ defmodule OrbitalDynamics.CampaignPlanner do
     StrategyPriorPlanCandidates,
     StrategyRecommendationBuilder,
     StrategyReport,
-    TimelineRanking,
     ValueEncoding
   }
 
   alias OrbitalDynamics.{
     CandidateRefresh,
     CadenceImport,
-    Optimizer,
     OperatorReview,
     Policy,
     ResultSet,
-    ResourceFilter,
     ResourceProjection,
     StudyRunner,
     Timeline,
@@ -119,135 +111,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
   def build(%ResultSet{} = result_set, opts \\ []) do
     campaign = Keyword.fetch!(opts, :campaign)
     generated_at = Keyword.get_lazy(opts, :generated_at, &DateTime.utc_now/0)
-    policy = Map.get(campaign, "scoring_policy", %{})
-    constraints = Map.get(campaign, "constraints", %{})
 
-    sorted_candidates =
-      result_set.event_results
-      |> candidate_activities(campaign, constraints, policy)
-      |> Enum.sort_by(&{&1["scenario_id"], &1["starts_at_s"], &1["id"]})
-
-    {calendar_candidates, station_calendar_report} =
-      apply_station_calendar(sorted_candidates, campaign)
-
-    {resource_candidates, resource_filter_report} =
-      apply_campaign_resource_filters(calendar_candidates, campaign)
-
-    {contact_candidates, contact_filter_report} =
-      apply_campaign_contact_filters(resource_candidates, campaign)
-
-    {candidates, contact_contention_report} = annotate_contact_contention(contact_candidates)
-    contact_allocation_report = contact_allocation_report(candidates, campaign)
-
-    timelines =
-      candidates
-      |> Enum.group_by(& &1["scenario_id"])
-      |> Enum.map(fn {scenario_id, scenario_candidates} ->
-        ranked_timeline(scenario_id, scenario_candidates, constraints, policy, campaign)
-      end)
-      |> Enum.sort_by(&{-candidate_score(&1), &1["scenario_id"]})
-      |> Enum.take(policy_count_value(policy, "rank_limit", 10))
-
-    best_timeline = List.first(timelines)
-    selected_activities = if best_timeline, do: best_timeline["activities"], else: []
-    approval_policy = Map.get(campaign, "approval_policy") || Map.get(campaign, :approval_policy)
-    contact_intents = ContactIntent.from_activities(candidates, approval_policy: approval_policy)
-    plan_id = plan_id(result_set.study_id, generated_at)
-
-    link_capacity_report =
-      link_capacity_report(
-        candidates,
-        selected_activities,
-        campaign_link_capacity_policy(campaign, policy),
-        "campaign_plan.candidate_activities",
-        approval_policy
-      )
-
-    resource_projection_report =
-      campaign_resource_projection_report(selected_activities, campaign)
-
-    resource_projection_flow_summary =
-      resource_projection_flow_summary(resource_projection_report)
-
-    timeline_activity_precondition_summaries =
-      timeline_activity_precondition_summaries(selected_activities)
-
-    timeline_integrity_report =
-      timeline_integrity_report(selected_activities)
-
-    target_commitments =
-      ObjectiveSatisfactionReports.target_commitments(campaign, candidates, selected_activities)
-
-    objective_satisfaction_report =
-      ObjectiveSatisfactionReports.report(
-        campaign,
-        candidates,
-        selected_activities,
-        ModelLimits.objective_satisfaction_model_limits()
-      )
-
-    objective_tradeoff_report =
-      ScoreReports.objective_tradeoff_report(
-        timelines,
-        policy,
-        ModelLimits.score_report_model_limits()
-      )
-
-    optimizer_contract =
-      Optimizer.greedy_timeline_contract(candidates, timelines,
-        plan_id: plan_id,
-        constraints: constraints,
-        scoring_policy: policy
-      )
-
-    BuildArtifact.build(result_set, campaign, %{
-      generated_at: generated_at,
-      plan_id: plan_id,
-      activities: selected_activities,
-      proposed_contacts: DownlinkActivityNormalization.proposed_contacts(candidates),
-      contact_intents: contact_intents,
-      contact_filter_report: contact_filter_report,
-      resource_filter_report: resource_filter_report,
-      station_calendar_report: station_calendar_report,
-      contact_contention_report: contact_contention_report,
-      contact_contention_resolution_report:
-        contact_contention_resolution_report(candidates, contact_contention_report, campaign),
-      contact_allocation_report: contact_allocation_report,
-      link_capacity_report: link_capacity_report,
-      resource_projection_report: resource_projection_report,
-      resource_projection_flow_summary: resource_projection_flow_summary,
-      timeline_activity_precondition_summaries: timeline_activity_precondition_summaries,
-      timeline_integrity_report: timeline_integrity_report,
-      target_commitments: target_commitments,
-      objective_satisfaction_report: objective_satisfaction_report,
-      operational_timeline_report: operational_timeline_report(selected_activities),
-      candidate_activities: candidates,
-      ranked_timelines: timelines,
-      optimizer_contract: optimizer_contract,
-      constraint_report:
-        campaign_constraint_report(
-          candidates,
-          timelines,
-          constraints,
-          resource_projection_report,
-          link_capacity_report
-        ),
-      objective_tradeoff_report: objective_tradeoff_report,
-      score_term_report: score_term_report(timelines, policy),
-      warnings:
-        warnings(
-          campaign,
-          candidates,
-          timelines,
-          result_set,
-          resource_filter_report,
-          contact_filter_report
-        ),
-      assumptions: assumptions(campaign),
-      provenance: provenance(result_set),
-      ranking_explanation: ranking_explanation(policy),
-      approval_policy: approval_policy
-    })
+    BuildOrchestration.build(result_set, campaign, generated_at)
   end
 
   @doc """
@@ -803,20 +668,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
     end
   end
 
-  defp numeric_policy_value(policy, key, default) do
-    case ScalarValues.numeric_or_nil(Map.get(policy, key)) do
-      value when is_number(value) -> value
-      _value -> default
-    end
-  end
-
-  defp policy_count_value(policy, key, default) do
-    case numeric_policy_value(policy, key, default) do
-      value when is_number(value) -> max(trunc(value), 0)
-      _value -> default
-    end
-  end
-
   defp normalize_strategy_branches(branches),
     do: StrategyBranchNormalization.normalize_branches(branches)
 
@@ -848,96 +699,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
     DownlinkObjectiveRequirements.objectives(mission_state)
   end
 
-  defp candidate_score(candidate),
-    do: ScalarValues.numeric_or_nil(Map.get(candidate, "score")) || 0.0
-
-  defp candidate_activities(event_results, campaign, constraints, policy) do
-    ActivityCandidate.build(
-      event_results,
-      campaign,
-      constraints,
-      policy
-    )
-  end
-
-  defp apply_station_calendar(candidates, campaign),
-    do: apply_station_calendar(candidates, campaign, "campaign.ground_network")
-
-  defp apply_station_calendar(candidates, campaign, source) do
-    station_calendar = ValueEncoding.get_key(campaign, "ground_network") || []
-    approval_policy = Map.get(campaign, "approval_policy") || Map.get(campaign, :approval_policy)
-
-    StationCalendar.overlay_contacts(candidates, station_calendar,
-      source: source,
-      approval_policy: approval_policy
-    )
-  end
-
-  defp apply_campaign_resource_filters(candidates, campaign) do
-    summaries =
-      campaign
-      |> Map.get("resource_summaries", [])
-      |> List.wrap()
-      |> Enum.map(&ValueEncoding.stringify_keys/1)
-
-    if summaries == [] do
-      {candidates, nil}
-    else
-      ResourceFilter.filter_candidates(candidates, summaries,
-        policy: campaign_resource_filter_policy(campaign),
-        approval_policy:
-          Map.get(campaign, "approval_policy") || Map.get(campaign, :approval_policy)
-      )
-    end
-  end
-
-  defp campaign_resource_filter_policy(campaign) do
-    campaign
-    |> Map.get("resource_filter_policy", %{})
-    |> ResourceFilter.resource_filter_policy()
-  end
-
-  defp apply_campaign_contact_filters(candidates, campaign) do
-    ContactFilter.filter_candidates(candidates, Map.get(campaign, "ground_network", []),
-      approval_policy: Map.get(campaign, "approval_policy") || Map.get(campaign, :approval_policy)
-    )
-  end
-
-  defp annotate_contact_contention(candidates) do
-    ContactContention.annotate_contacts(candidates, source: "campaign_plan.candidate_activities")
-  end
-
-  defp contact_contention_resolution_report(candidates, contention_report, campaign) do
-    ContactContention.resolution_report(candidates, contention_report,
-      policy: contact_contention_resolution_policy(campaign)
-    )
-  end
-
   defp contact_contention_resolution_policy(campaign) do
-    policy =
-      campaign
-      |> ValueEncoding.get_key("contact_contention_resolution_policy")
-      |> case do
-        %{} = policy -> ValueEncoding.stringify_keys(policy)
-        _policy -> %{}
-      end
-
-    Map.merge(
-      %{
-        "selection_rule" => Map.get(policy, "selection_rule", "highest_score_earliest_start"),
-        "tie_breakers" => Map.get(policy, "tie_breakers", ["starts_at_s", "id"]),
-        "action" => Map.get(policy, "action", "recommend_preferred_contact_for_operator_review")
-      },
-      policy
-    )
-  end
-
-  defp contact_allocation_report(candidates, campaign) do
-    ContactAllocation.report(candidates, Map.get(campaign, "ground_network", []),
-      source: "campaign_plan.candidate_activities",
-      policy: contact_contention_resolution_policy(campaign),
-      approval_policy: Map.get(campaign, "approval_policy") || Map.get(campaign, :approval_policy)
-    )
+    ContactContentionResolutionPolicy.build(campaign)
   end
 
   defp link_capacity_report(
@@ -952,18 +715,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
       source: source,
       approval_policy: approval_policy
     )
-  end
-
-  defp campaign_link_capacity_policy(campaign, policy) do
-    policy = ValueEncoding.stringify_keys(policy || %{})
-
-    case campaign_required_downlink_mb(campaign) do
-      value when is_number(value) ->
-        Map.put_new(policy, "required_downlink_mb", value)
-
-      _value ->
-        policy
-    end
   end
 
   defp repair_link_capacity_policy(request) do
@@ -988,67 +739,10 @@ defmodule OrbitalDynamics.CampaignPlanner do
     end
   end
 
-  defp operational_timeline_report(selected_activities) do
-    Timeline.operational_report(selected_activities,
-      source: "campaign_plan.activities",
-      source_assumption: "selected campaign_plan.activities"
-    )
-  end
-
-  defp timeline_activity_precondition_summaries(selected_activities) do
-    selected_activities
-    |> Enum.map(&Timeline.activity_precondition_summary/1)
-    |> Enum.map(&Map.put(&1, "source", "campaign_plan.activities"))
-  end
-
-  defp timeline_integrity_report(selected_activities) do
-    Timeline.integrity_report(selected_activities,
-      source: "campaign_plan.activities",
-      validate_missing_dependencies?: false
-    )
-  end
-
   defp repair_timeline_transition_application_report(planned_activities, repaired_activities) do
     Timeline.transition_application_report(planned_activities, repaired_activities,
       source: "campaign_repair.timeline_transition_application",
       source_assumption: "source campaign activities compared with repaired campaign activities"
-    )
-  end
-
-  defp campaign_required_downlink_mb(campaign) do
-    campaign
-    |> downlink_completion_objectives()
-    |> Enum.map(&objective_required_downlink_mb/1)
-    |> Enum.filter(&is_number/1)
-    |> case do
-      [] -> nil
-      values -> Enum.sum(values)
-    end
-  end
-
-  defp ranked_timeline(scenario_id, candidates, constraints, policy, campaign) do
-    TimelineRanking.ranked_timeline(
-      scenario_id,
-      candidates,
-      constraints,
-      policy,
-      campaign
-    )
-  end
-
-  defp campaign_constraint_report(
-         candidates,
-         timelines,
-         constraints,
-         resource_projection_report,
-         link_capacity_report
-       ) do
-    CampaignLocalConstraint.report(
-      candidates,
-      timelines,
-      constraints,
-      resource_projection_report,
-      link_capacity_report
     )
   end
 
@@ -1089,50 +783,12 @@ defmodule OrbitalDynamics.CampaignPlanner do
     )
   end
 
-  defp score_term_report(timelines, policy) do
-    ScoreReports.score_term_report(
-      timelines,
-      policy,
-      ModelLimits.score_report_model_limits()
-    )
-  end
-
   defp repair_score_term_report(timeline, policy) do
     ScoreReports.repair_score_term_report(
       timeline,
       policy,
       ModelLimits.score_report_model_limits()
     )
-  end
-
-  defp warnings(
-         campaign,
-         candidates,
-         timelines,
-         result_set,
-         resource_filter_report,
-         contact_filter_report
-       ) do
-    PlanMetadata.warnings(
-      campaign,
-      candidates,
-      timelines,
-      result_set,
-      resource_filter_report,
-      contact_filter_report
-    )
-  end
-
-  defp assumptions(campaign) do
-    PlanMetadata.assumptions(campaign)
-  end
-
-  defp provenance(%ResultSet{} = result_set) do
-    PlanMetadata.provenance(result_set)
-  end
-
-  defp ranking_explanation(policy) do
-    PlanMetadata.ranking_explanation(policy)
   end
 
   defp timeline_protection_summary(activities, deltas) do
@@ -1341,22 +997,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
     RepairSourceReports.resource_filter(candidate_refresh)
   end
 
-  defp campaign_resource_projection_report(activities, %{} = campaign) do
-    resource_projection_report(
-      activities,
-      Map.get(campaign, "resource_summaries", []),
-      "thin_campaign_selected_activity_resource_projection",
-      "campaign.resource_summaries",
-      Map.get(campaign, "approval_policy") || Map.get(campaign, :approval_policy)
-    )
-  end
-
-  defp resource_projection_flow_summary(nil), do: nil
-
-  defp resource_projection_flow_summary(%{} = report) do
-    ResourceProjection.flow_summary(report)
-  end
-
   defp repair_resource_projection_report(activities, summaries, approval_policy) do
     resource_projection_report(
       activities,
@@ -1428,11 +1068,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp source_plan_id(prior_plan) do
     RepairMetadata.source_plan_id(prior_plan)
-  end
-
-  defp plan_id(study_id, generated_at) do
-    "campaign_plan:" <>
-      ValueEncoding.encode_value(study_id) <> ":" <> DateTime.to_iso8601(generated_at)
   end
 
   defp score(score_terms) do
