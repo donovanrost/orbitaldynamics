@@ -9,39 +9,36 @@ Current slice:
 Timeline diff invalid-input context policy extraction.
 
 Status:
-Selection recorded; implementation has not started.
+Implemented, verified, independently reviewed, committed, and pushed.
 
-Selected boundary:
-Move all three invalid-activity-input diff-context clauses into
-`Timeline.DiffInvalidInputContextPolicy`. `Timeline` retains one private entry
-point and the existing diff-row callback remains unchanged; no callback,
+Completed boundary:
+Moved all three invalid-activity-input diff-context clauses into the 15-line
+`Timeline.DiffInvalidInputContextPolicy`. The 6,258-line `Timeline` retains one
+private entry point and the diff-row callback remains unchanged; no callback,
 constant, coordinator, or schema boundary crosses the extraction.
 
-Why this slice:
-The 6,266-line Timeline facade still owns three exclusive context-shaping
-clauses for invalid diff inputs. Moving the complete clause family isolates
-prefix interpolation and empty/default behavior without pulling the adjacent
-wide dependency context or callback-bearing protection context across the
-boundary.
+Published commits:
+Selected in `a5faf610` and implemented in `fcf2bd75`.
 
-Planned proof:
-- Focused invalid source/replacement diff, unchanged public-facade diff, and
-  valid changed-row diff examples.
-- Full Timeline and Timeline schema-contract suites.
-- Strict warnings-as-errors compile.
-- Canonical AST equivalence for all three moved clauses after normalizing only
-  public/private heads and facade function names.
+Verification:
+- Strict warnings-as-errors compile passed across 3,770 files.
+- Three focused invalid source/replacement, unchanged, and valid changed-row
+  diff examples passed.
+- Full Timeline suite passed with 127 examples; Timeline schema-contract suites
+  passed with 36 examples.
+- Canonical AST equivalence passed for all three moved clauses after normalizing
+  only public/private heads and facade function names.
 - Format, diff, whitespace, ownership, exactly-one-facade, unchanged Timeline
-  public-definition, and xref checks.
-- Independent read-only review before publication.
+  public-definition, and xref checks passed.
+- Independent read-only review found no production-code issues.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline row-state classification policy extraction, selected in `f609bf27` and
-implemented in `88520818`.
+Timeline diff invalid-input context policy extraction, selected in `a5faf610`
+and implemented in `fcf2bd75`.
 
 Next candidate:
 Continue remapping the reduced Timeline facade after this slice, avoiding wide
