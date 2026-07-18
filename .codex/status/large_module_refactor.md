@@ -6,54 +6,63 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema Cadence source-review callback-provider extraction.
+Schema Cadence-import handoff callback-provider extraction.
 
 Status:
-Implementation `e9fe1aae` published; verified handoff publication pending.
+Slice selected; selection publication pending.
 
-Completed slice:
-Moved the exact ordered callback registry and all external contract captures from
-`Schema.cadence_source_review_row_contract_callbacks/0` into internal
-`Schema.CadenceSourceReviewRowCallbacks.build/1`. The facade now injects only
-its private validator captures.
+Selected slice:
+Move callback-key ordering and external contract wiring from
+`cadence_import_row_handoff_contract_callbacks/0` into an internal
+`Schema.CadenceImportRowHandoffCallbacks.build/1`, injecting only
+facade-private validators. Leave the separate base import callback registry
+unchanged.
 
 Why this slice:
-`Schema` was 7,725 lines. The source-review callback registry was a 164-line
-responsibility mixing stable external contract captures with private facade
-validators. `Schema` is now 7,613 lines.
+`Schema` is 7,613 lines. The handoff registry is a 194-line responsibility with
+96 ordered callback keys, 83 stable external captures, and only 13
+facade-private captures.
 
-Published commits:
-- Selection: `3f001bbe`
-- Implementation: `e9fe1aae`
-- Handoff: pending
+Current coupling/problem:
+The facade owns the complete Cadence-import handoff dependency registry,
+callback ordering, and dozens of external handoff-contract module captures.
 
-Preserved facade and behavior:
-All `Schema` APIs; Cadence source-review validation behavior; callback keys,
-order, values, arities, error ordering, deterministic output, and all schema
-exports.
+Public facade to preserve:
+All `Schema` APIs; Cadence import and source-review validation behavior;
+callback keys, order, values, arities, merge behavior, error ordering,
+deterministic output, and all schema exports.
 
-Verification:
-- Focused Cadence source-review/import/readiness/timeline/export tests: 34/34.
-- Strict warnings-as-errors compile: 3,668 files.
-- Full schema export regeneration: byte-clean checked-in `schemas/`.
-- AST registry comparison: exact 89-key order, zero value mismatches, no
-  duplicates, exact 56 external and 33 facade-private captures.
-- Capture arities unchanged: external 54x/3 and 2x/4; private 1x/2, 21x/3,
-  9x/4, and 2x/5.
-- Public `Schema` definition diff: empty.
-- Independent supplementary focused tests: 28/28.
-- Format, whitespace, diff, xref caller, and independent read-only review:
-  clean.
+Likely files:
+- `lib/orbital_dynamics/schema.ex`
+- `lib/orbital_dynamics/schema/cadence_import_row_handoff_callbacks.ex`
+- `.codex/status/large_module_refactor.md`
+
+Definition of done:
+The new provider owns the exact ordered 96-key handoff registry and 83 external
+captures; `Schema` passes only 13 private callback captures; focused Cadence
+import, review-handoff, readiness, timeline, and export tests pass; strict
+compile, full byte-clean schema regeneration, exact registry comparison, and
+independent review are clean.
 
 Verification gaps:
-None for this slice.
+- Focused baseline, implementation proof, strict compile, export proof, and
+  independent review remain.
+
+Tests run:
+- None yet for this selected slice.
 
 Behavior/schema changes:
-None.
+None intended.
+
+Last completed slice:
+Cadence source-review callback provider published as implementation `e9fe1aae`
+and handoff `7eb48e0d`: focused 34/34, strict 3,668-file compile, full
+byte-clean schema regeneration, exact 89-key comparison, and independent
+review passed.
 
 Next candidate:
-Remap the reduced `Schema` facade and select a bounded callback-provider
-extraction from the Cadence import or operator-review registries.
+After remapping the reduced facade, extract the base Cadence-import or
+operator-review callback registry.
 
 Blocked:
 No.
