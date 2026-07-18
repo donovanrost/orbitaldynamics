@@ -6,33 +6,33 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline station-calendar status normalization policy extraction.
+Timeline cadence-import normalization policy extraction.
 
 Status:
-Implementation published in `86c63a95`; focused and broad proof is green.
+Selection recorded; implementation has not started.
 
 Selected boundary:
-Move station-calendar scalar/list status canonicalization and nested source
-evidence normalization into
-`Timeline.StationCalendarStatusNormalizationPolicy`. `Timeline` retains the
-single normalization entry point used by `activity_to_map/1`.
+Move cadence-import alias canonicalization into the existing
+`Timeline.CadenceImportPolicy`. `Timeline` retains the single normalization
+entry point used by `activity_to_map/1` and supplies its shared
+`put_new_present/3` helper as a callback.
 
 Why this slice:
-The extraction moved nine clauses into a 90-line internal module and reduced
-Timeline from 7,258 to 7,175 lines. The single private entry point preserves
-`activity_to_map/1` pipeline order while scalar/list and nested-source helpers
-stay private to the new policy.
+The reduced Timeline facade is 7,175 lines. These five exclusive clauses own
+provider alias removal and first-present selection for external ID, activity
+type, schema contract, and trust boundary. Extending the existing policy keeps
+normalization and validation for the same embedded artifact together.
 
-Completed proof:
-- Focused station-calendar normalization examples: 2 passed.
-- Full Timeline suite: 127 passed.
-- Timeline schema-contract suites: 36 passed.
-- Strict warnings-as-errors compile: 3,733 files.
-- Canonical AST equivalence: all nine moved clauses after normalizing only the
-  single facade name.
-- Format, whitespace, ownership, exactly-one-facade, unchanged Timeline public
-  definitions, and xref checks passed.
-- Independent read-only review found no findings.
+Planned proof:
+- Focused Timeline examples for provider-shaped aliases and malformed non-map
+  cadence-import evidence.
+- Full Timeline and Timeline schema-contract suites.
+- Strict warnings-as-errors compile.
+- Canonical AST equivalence for all five moved clauses after normalizing only
+  the single facade name and callback boundary.
+- Format, diff, whitespace, ownership, exactly-one-facade, unchanged Timeline
+  public-definition, and xref checks.
+- Independent read-only review before publication.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
@@ -40,11 +40,11 @@ regeneration should not be required.
 
 Last completed slice:
 Timeline station-calendar status normalization policy extraction, selected in
-`b1e680a8` and implemented in `86c63a95`.
+`b1e680a8`, implemented in `86c63a95`, and handed off in `f0b88744`.
 
 Next candidate:
-Remap the reduced 7,175-line Timeline facade, emphasizing activity normalization
-and lifecycle application.
+Remap the reduced Timeline facade after this slice, emphasizing activity
+normalization and lifecycle application.
 
 Blocked:
 No.
