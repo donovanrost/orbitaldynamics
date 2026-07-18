@@ -4937,43 +4937,13 @@ defmodule OrbitalDynamics.CadenceImport do
   end
 
   defp objective_satisfaction_manifest_row(row, rank) do
-    approval_status = Map.get(row, "approval_status", "operator_review_required")
-    import_status = Map.get(row, "cadence_import_status", "present")
-
-    %{
-      "id" => "cadence_import:objective_satisfaction:#{row["id"] || rank}",
-      "rank" => rank,
-      "import_action" => "review_objective_satisfaction",
-      "import_status" => adapter_import_status(import_status, approval_status),
-      "import_side" => "source",
-      "source_review_row_id" => row["id"],
-      "source_review_type" => row["review_type"],
-      "source_review_action" => source_review_action(row),
-      "subject_id" => row["subject_id"],
-      "objective" => row["objective"],
-      "objective_status" => row["objective_status"],
-      "target_id" => row["target_id"],
-      "required_count" => row["required_count"],
-      "candidate_count" => row["candidate_count"],
-      "selected_count" => row["selected_count"],
-      "satisfied_count" => row["satisfied_count"],
-      "candidate_target_ids" => row["candidate_target_ids"],
-      "selected_target_ids" => row["selected_target_ids"],
-      "selected_activity_ids" => row["selected_activity_ids"],
-      "selected_contact_ids" => row["selected_contact_ids"],
-      "required_downlink_mb" => row["required_downlink_mb"],
-      "candidate_downlink_mb" => row["candidate_downlink_mb"],
-      "selected_downlink_mb" => row["selected_downlink_mb"],
-      "satisfied_downlink_mb" => row["satisfied_downlink_mb"],
-      "approval_status" => approval_status,
-      "required_operator_action" => row["required_operator_action"],
-      "reason" => row["reason"],
-      "cadence_import_status" => import_status,
-      "has_cadence_import" => false,
-      "source_objective_satisfaction" => row["source_objective_satisfaction"],
-      "source_review_row" => row
-    }
-    |> compact_map()
+    OrbitalDynamics.CadenceImport.ObjectiveSatisfactionManifestRow.build(
+      row,
+      rank,
+      source_review_action: &source_review_action/1,
+      adapter_import_status: &adapter_import_status/2,
+      compact_map: &compact_map/1
+    )
   end
 
   defp link_capacity_manifest_row(row, rank) do
