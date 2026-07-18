@@ -9,38 +9,37 @@ Current slice:
 Timeline invalid activity-input row filtering extraction.
 
 Status:
-Selection recorded; implementation has not started.
+Implemented, verified, independently reviewed, committed, and pushed.
 
-Selected boundary:
-Move Timeline's invalid-activity-input row filter into the existing
-`Timeline.ActivityInputPolicy`. `Timeline` retains one private entry point;
-source/replacement diff report assembly and invalid row construction remain
+Completed boundary:
+Moved Timeline's invalid-activity-input row filter into the 153-line
+`Timeline.ActivityInputPolicy`. The 6,262-line `Timeline` retains one private
+entry point; source/replacement diff assembly and row construction remain
 unchanged.
 
-Why this slice:
-The 6,262-line Timeline facade still owns one exclusive input-classification
-leaf while activity issue detection already belongs to `ActivityInputPolicy`.
-Moving the row filter completes that simple classification boundary without
-moving report counts, ordering, or preservation logic.
+Published commits:
+Selected in `c369cc24` and implemented in `3a133522`.
 
-Planned proof:
-- Focused invalid operational input, invalid source/replacement diff, and valid
-  unchanged public diff examples.
-- Full Timeline and Timeline schema-contract suites.
-- Strict warnings-as-errors compile.
-- Canonical AST equivalence for the moved definition after normalizing only the
-  public/private head and facade name.
+Verification:
+- Strict warnings-as-errors compile passed across 3,780 files.
+- Three focused invalid operational, invalid source/replacement diff, and valid
+  unchanged diff examples passed.
+- Full Timeline suite passed with 127 examples; Timeline schema-contract suites
+  passed with 36 examples.
+- Canonical AST equivalence passed after normalizing only the public/private
+  head and facade name.
 - Format, diff, whitespace, ownership, exactly-one-facade, unchanged Timeline
-  public-definition, and xref checks.
-- Independent read-only review before publication.
+  public-definition, and xref checks passed.
+- Independent read-only review found no production-code issues; existing input
+  issue detection is untouched.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline stable-identifier policy extraction, selected in `19bfd2ad` and
-implemented in `7eaf4c9c`.
+Timeline invalid activity-input row filtering, selected in `c369cc24` and
+implemented in `3a133522`.
 
 Next candidate:
 Continue remapping the reduced Timeline facade after this slice, avoiding wide
