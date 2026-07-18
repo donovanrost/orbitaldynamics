@@ -9,7 +9,7 @@ Current slice:
 Schema policy artifact property-dispatch extraction.
 
 Status:
-Slice selected; selection publication pending.
+Implementation published as `f5409c15`; handoff publication pending.
 
 Selected slice:
 Move JSON-property dispatch/context assembly for policy bundle, policy decision,
@@ -42,13 +42,28 @@ export tests pass; strict compile, full byte-clean schema regeneration, and
 independent review are clean.
 
 Verification gaps:
-- Focused baseline, strict compile, export proof, and independent review remain.
+- None for this slice. Full checked-in schema regeneration is byte-identical.
+- Independent review was clean. No API, schema, export, ordering,
+  error-behavior, ownership, or behavioral finding remains.
 
 Tests run:
-- None yet for this selected slice.
+- Baseline and post-change focused policy/strategy/export subset: 19 passed
+  with warnings as errors.
+- Strict forced compile: 3,663 files clean with warnings as errors.
+- Full schema export regenerated every checked-in schema and bundle with zero
+  diff.
+- Public `Schema` definitions match selection commit `5407efcc`; xref reports
+  the dispatcher has only the `Schema` runtime caller.
+- Format, changed/new-file whitespace, and `git diff --check` passed.
+- Independent review confirmed exact context order and lazy captures, unchanged
+  adjacent routes, then reran all proof clean.
 
 Behavior/schema changes:
 None intended.
+
+Outcome:
+Policy bundle, policy decision, and approval requirement routes now delegate to
+`PolicyArtifactPropertyDispatch`. Implementation published as `f5409c15`.
 
 Last completed slice:
 Strategy artifact schema dispatch published as implementation `abbd645d` and
