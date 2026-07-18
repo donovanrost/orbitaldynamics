@@ -6,42 +6,52 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-CadenceImport strategy manifest-row builder extraction.
+CadenceImport operational-feedback manifest-context extraction.
 
 Status:
-Implementation published in `9fccbf48`; handoff publication pending.
+Slice selected; selection publication pending.
 
-Completed boundary:
-`CadenceImport.StrategyManifestRow.build/5` now owns the exact 204-key strategy
-projection and four status clauses. Shared branch-field providers,
-`stringify_keys/1`, and compaction remain in the facade behind five callbacks.
-`CadenceImport` dropped from 4,236 to 3,942 lines.
+Selected slice:
+Move `operational_feedback_manifest_context/1` and its exclusive trust-status,
+trust-boundary, field-boundary, and merge helpers into internal
+`CadenceImport.OperationalFeedbackManifestContext.build/2`. Inject shared
+`compact_map/1`.
 
-Selection and correction:
-Selected in `ca8d8c47`. Initial compile exposed the stringify callback forwarded
-into recommendation context; the corrected boundary was published in
-`1cf3896d` before successful compile.
+Why this slice:
+The reduced facade is 3,942 lines. This contiguous roughly 138-line provenance
+cluster has one upstream caller, an exact 7-key projection, exclusive helper
+ownership, and one shared dependency.
 
-Verification:
-- Focused baseline and implementation CadenceImport/contract suites: 100/100.
-- Strict warnings-as-errors compile: 3,709 files.
-- Normalized AST equivalence: exact 204-key builder, four status clauses, five
-  callbacks, and public facade definitions.
-- Format, diff, whitespace, ownership, caller, and xref checks: clean; xref
-  reports only the facade.
-- Independent review: no code findings; selected/status semantics, context and
-  branch/feedback merge order, retained shared providers, API, and determinism
-  are exact. Its handoff-only finding is resolved here.
+Public facade to preserve:
+All `CadenceImport` APIs; exact trust classification, source normalization,
+deduplication and sorting, field-boundary merge semantics, compaction,
+deterministic output, and contracts.
+
+Likely files:
+- `lib/orbital_dynamics/cadence_import.ex`
+- `lib/orbital_dynamics/cadence_import/operational_feedback_manifest_context.ex`
+- `.codex/status/large_module_refactor.md`
+
+Likely tests:
+- `test/orbital_dynamics/cadence_import_test.exs`
+- `test/orbital_dynamics/schema/cadence_import_contracts_test.exs`
+
+Definition of done:
+The internal module owns the exact 7-key projection and all exclusive trust and
+merge clauses; the facade supplies one compact callback; focused tests, strict
+compile, equivalence/API checks, and independent review are clean.
+
+Verification gaps:
+- Focused baseline, implementation proof, strict compile, and review remain.
 
 Behavior/schema changes:
-None. No schema-generation boundary changed, so no export regeneration was
-required.
+None intended.
 
 Last completed slice:
-Strategy manifest-row builder extraction, published in `9fccbf48`.
+Strategy row builder published in `9fccbf48`; handoff in `5c74d4e0`.
 
 Next candidate:
-Remap the reduced `CadenceImport` facade and station-reservation specialization.
+Remap the reduced facade and station-reservation specialization.
 
 Blocked:
 No.
