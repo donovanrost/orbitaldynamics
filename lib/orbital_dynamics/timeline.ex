@@ -5770,15 +5770,20 @@ defmodule OrbitalDynamics.Timeline do
 
   defp diff_invalid_activity_input_context(_prefix, _row), do: %{}
 
-  defp diff_required_operator_action("unchanged", _requires_review), do: "none"
-  defp diff_required_operator_action("changed", true), do: "review_timeline_change"
-  defp diff_required_operator_action("changed", false), do: "record_timeline_change"
+  defp diff_required_operator_action(diff_status, requires_review) do
+    OrbitalDynamics.Timeline.DiffPresentationPolicy.required_operator_action(
+      diff_status,
+      requires_review
+    )
+  end
 
-  defp diff_reason("unchanged", source, _replacement, _changed_fields),
-    do: "timeline activity #{source["activity_id"]} is unchanged"
-
-  defp diff_reason("changed", source, replacement, changed_fields) do
-    "timeline activity #{source["activity_id"]} changes to #{replacement["activity_id"]}: #{Enum.join(changed_fields, ",")}"
+  defp diff_reason(diff_status, source, replacement, changed_fields) do
+    OrbitalDynamics.Timeline.DiffPresentationPolicy.reason(
+      diff_status,
+      source,
+      replacement,
+      changed_fields
+    )
   end
 
   defp lifecycle_transition(field, from, to) do
