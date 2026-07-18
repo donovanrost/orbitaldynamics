@@ -9,7 +9,7 @@ Current slice:
 Timeline lifecycle-state input policy extraction.
 
 Status:
-Selection recorded; implementation has not started.
+Implementation published in `b1a9a980`; focused and broad proof is green.
 
 Selected boundary:
 Move lifecycle-state input row conversion and timeline-ID fallback into
@@ -18,31 +18,32 @@ points and keeps rank/group orchestration; activity input conversion, activity
 map conversion, and derived timeline identity cross explicitly.
 
 Why this slice:
-The 6,269-line Timeline facade still owns two exclusive input-policy clauses
-below the lifecycle-state grouping coordinator. Moving them together isolates
-success/error row selection and direct/identity/derived timeline-ID fallback
-without widening the grouping or summary-row coordinator boundary.
+The extraction moved both clauses into a 19-line internal module. Timeline
+retains two private entry points and is now 6,272 lines; the three-line facade
+increase makes input/map/identity dependencies explicit. Success/error row
+selection and direct/identity/derived timeline-ID fallback now live together.
 
-Planned proof:
-- Focused lifecycle-state handoff and multi-activity summary examples.
-- Full Timeline and Timeline schema-contract suites.
-- Strict warnings-as-errors compile.
-- Canonical AST equivalence for both moved clauses after normalizing only
+Completed proof:
+- Focused lifecycle-state handoff and multi-activity summary examples: 2 passed.
+- Full Timeline suite: 127 passed.
+- Timeline schema-contract suites: 36 passed.
+- Strict warnings-as-errors compile: 3,763 files.
+- Canonical AST equivalence: both moved clauses after normalizing only
   public/private heads and the three conversion/identity callbacks.
-- Format, diff, whitespace, ownership, exactly-two-facade, unchanged Timeline
-  public-definition, and xref checks.
-- Independent read-only review before publication.
+- Format, whitespace, ownership, exactly-two-facade, unchanged Timeline public
+  definitions, and xref checks passed; Timeline is the only runtime caller.
+- Independent read-only review found no production-code findings.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline lifecycle-state summary metrics policy extraction, selected in
-`aa4ce0bf`, implemented in `fb51c537`, and handed off in `c3d64a67`.
+Timeline lifecycle-state input policy extraction, selected in `36dabe24` and
+implemented in `b1a9a980`.
 
 Next candidate:
-Continue remapping the 6,269-line Timeline facade after this slice, avoiding wide
+Continue remapping the 6,272-line Timeline facade after this slice, avoiding wide
 report and activity-context map coordinator callback surfaces.
 
 Blocked:
