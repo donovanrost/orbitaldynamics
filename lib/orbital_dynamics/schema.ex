@@ -1760,15 +1760,12 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property(field, @optimizer_contract = contract_name, contract) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.PlanningAnalysisPropertyDispatch.optimizer_contract(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.OptimizerContractJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.OptimizerContractJsonSchema.property_fun_from_context(
-        schema_contract: @optimizer_contract,
-        stable_id_pattern: @stable_id_pattern
-      )
+      &default_json_schema_property/3,
+      {@optimizer_contract, @stable_id_pattern}
     )
   end
 
@@ -1794,17 +1791,17 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property(field, @monte_carlo_reproducibility_report = contract_name, contract) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.PlanningAnalysisPropertyDispatch.monte_carlo(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.MonteCarloReproducibilityReportJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.MonteCarloReproducibilityReportJsonSchema.property_fun_from_context(
-        schema_contract: @monte_carlo_reproducibility_report,
-        stable_id_pattern: @stable_id_pattern,
-        model_limits: &OrbitalDynamics.Schema.MonteCarloReproducibilityContracts.model_limits/0,
-        numeric_triplet_schema: &numeric_triplet_schema/0
-      )
+      &default_json_schema_property/3,
+      {
+        @monte_carlo_reproducibility_report,
+        @stable_id_pattern,
+        &OrbitalDynamics.Schema.MonteCarloReproducibilityContracts.model_limits/0,
+        &numeric_triplet_schema/0
+      }
     )
   end
 
