@@ -5136,54 +5136,31 @@ defmodule OrbitalDynamics.Timeline do
   end
 
   defp duplicate_group_count(groups) do
-    groups
-    |> Map.values()
-    |> Enum.count(&(length(&1) > 1))
+    OrbitalDynamics.Timeline.CountSummaryPolicy.duplicate_group_count(groups)
   end
 
   defp duplicate_activity_count(groups) do
-    groups
-    |> Map.values()
-    |> Enum.filter(&(length(&1) > 1))
-    |> Enum.map(&length/1)
-    |> Enum.sum()
+    OrbitalDynamics.Timeline.CountSummaryPolicy.duplicate_activity_count(groups)
   end
 
   defp count_by(rows, field) do
-    rows
-    |> Enum.map(&Map.get(&1, field))
-    |> Enum.reject(&is_nil/1)
-    |> Enum.frequencies()
-    |> sort_count_map()
+    OrbitalDynamics.Timeline.CountSummaryPolicy.count_by(rows, field)
   end
 
   defp changed_field_counts(rows) do
-    rows
-    |> Enum.flat_map(&list_value(&1, "changed_fields"))
-    |> Enum.frequencies()
-    |> sort_count_map()
+    OrbitalDynamics.Timeline.CountSummaryPolicy.changed_field_counts(rows, &list_value/2)
   end
 
   defp transition_counts(rows, field) do
-    rows
-    |> Enum.map(&get_in(&1, [field, "transition_type"]))
-    |> Enum.reject(&is_nil/1)
-    |> Enum.frequencies()
-    |> sort_count_map()
+    OrbitalDynamics.Timeline.CountSummaryPolicy.transition_counts(rows, field)
   end
 
   defp transition_category_counts(rows, field) do
-    rows
-    |> Enum.map(&get_in(&1, [field, "transition_category"]))
-    |> Enum.reject(&is_nil/1)
-    |> Enum.frequencies()
-    |> sort_count_map()
+    OrbitalDynamics.Timeline.CountSummaryPolicy.transition_category_counts(rows, field)
   end
 
   defp sort_count_map(counts) do
-    counts
-    |> Enum.sort_by(fn {key, _count} -> key end)
-    |> Map.new()
+    OrbitalDynamics.Timeline.CountSummaryPolicy.sort_count_map(counts)
   end
 
   defp annotate_duplicate_timeline_identity_rows(rows) do
