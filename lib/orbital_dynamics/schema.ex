@@ -1269,29 +1269,26 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property(field, @policy_bundle = contract_name, contract) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.PolicyArtifactPropertyDispatch.bundle(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.PolicyBundleJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.PolicyBundleJsonSchema.property_fun_from_context(
-        policy_action_rule_schema: &policy_action_rule_json_schema/0,
-        policy_model_limits: &policy_model_limits/0
-      )
+      &default_json_schema_property/3,
+      {&policy_action_rule_json_schema/0, &policy_model_limits/0}
     )
   end
 
   defp json_schema_property(field, @policy_decision = contract_name, contract) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.PolicyArtifactPropertyDispatch.decision(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.PolicyDecisionJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.PolicyDecisionJsonSchema.property_fun_from_context(
-        policy_decision_rule_match_schema: &policy_decision_rule_match_json_schema/0,
-        policy_escalation_schema: &policy_escalation_json_schema/0,
-        policy_model_limits: &policy_model_limits/0
-      )
+      &default_json_schema_property/3,
+      {
+        &policy_decision_rule_match_json_schema/0,
+        &policy_escalation_json_schema/0,
+        &policy_model_limits/0
+      }
     )
   end
 
@@ -1627,17 +1624,17 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property(field, @approval_requirement = contract_name, contract) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.PolicyArtifactPropertyDispatch.approval_requirement(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.ApprovalRequirementJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.ApprovalRequirementJsonSchema.property_fun_from_context(
-        stable_id_pattern: @stable_id_pattern,
-        rule_match_schema: &policy_decision_rule_match_json_schema/0,
-        activity_context_schema: &activity_context_json_schema/0,
-        policy_escalation_schema: &policy_escalation_json_schema/0
-      )
+      &default_json_schema_property/3,
+      {
+        @stable_id_pattern,
+        &policy_decision_rule_match_json_schema/0,
+        &activity_context_json_schema/0,
+        &policy_escalation_json_schema/0
+      }
     )
   end
 
