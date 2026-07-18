@@ -6,31 +6,33 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline terminal-exception classification policy extraction.
+Timeline preservation-sensitivity policy extraction.
 
 Status:
-Implemented, verified, independently reviewed, committed, and pushed.
+Selection recorded; implementation has not started.
 
-Completed boundary:
-Moved the terminal-exception row classifier into the 13-line
-`Timeline.TerminalExceptionPolicy`. The 6,224-line `Timeline` retains one
-private entry point and passes the terminal-status list and provider-result
-failure predicate explicitly; provider-result normalization remains in place.
+Selected boundary:
+Move both preservation-sensitive source clauses and approval-protection
+membership into `Timeline.PreservationSensitivityPolicy`. `Timeline` retains
+two private entry points and passes the existing executed-status and protected
+approval-status lists explicitly; diff-row callbacks remain unchanged.
 
-Published commits:
-Selected in `c77b9c61` and implemented in `2712e34d`.
+Why this slice:
+The 6,224-line Timeline facade still owns one complete three-clause protection
+classification family used by diff decisions. Moving it together isolates
+guard precedence, truthy lock behavior, and approval membership without moving
+the diff coordinator or protection-decision assembly.
 
-Verification:
-- Strict warnings-as-errors compile passed across 3,773 files.
-- Three focused terminal-status, provider failure alias, and provider failure
-  map examples passed.
-- Full Timeline suite passed with 127 examples; Timeline schema-contract suites
-  passed with 36 examples.
-- Canonical AST equivalence passed after normalizing only the public/private
-  head, facade name, terminal-status argument, and callback.
-- Format, diff, whitespace, ownership, exactly-one-facade, unchanged Timeline
-  public-definition, and xref checks passed.
-- Independent read-only review found no production-code issues.
+Planned proof:
+- Focused changed protected/executed, changed unprotected, and removed
+  protected/executed diff examples.
+- Full Timeline and Timeline schema-contract suites.
+- Strict warnings-as-errors compile.
+- Canonical AST equivalence for all three moved clauses after normalizing only
+  public/private heads, facade names, and explicit status-list arguments.
+- Format, diff, whitespace, ownership, exactly-two-facade, unchanged Timeline
+  public-definition, and xref checks.
+- Independent read-only review before publication.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
