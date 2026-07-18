@@ -15,15 +15,16 @@ Selected boundary:
 Move declared rejection reason collection, delimiter/list splitting, token
 canonicalization, alias mapping, and allowed-reason fallback into
 `Timeline.CandidateRejectionReasonPolicy`. `Timeline` retains one private entry
-point and passes the existing allowed reason list explicitly; derived reason
-classification and report assembly remain unchanged.
+point for canonical reasons plus one for raw declared values, and passes the
+existing allowed reason list explicitly; derived reason classification and
+report assembly remain unchanged.
 
 Why this slice:
-The 6,264-line Timeline facade still owns a cohesive nine-clause parsing policy
-for external rejection evidence. Moving the complete family isolates source
-field order, recursive splitting, normalization, aliasing, and unknown fallback
-without pulling derived candidate checks or summary coordinators across the
-boundary.
+The initial one-facade selection missed candidate-row publication of raw
+declared values. Retaining both entry points while moving the complete
+nine-clause family isolates source field order, recursive splitting,
+normalization, aliasing, and unknown fallback without pulling derived candidate
+checks or summary coordinators across the boundary.
 
 Planned proof:
 - Focused declared/derived candidate rejection, nested capacity evidence, and
@@ -32,7 +33,7 @@ Planned proof:
 - Strict warnings-as-errors compile.
 - Canonical AST equivalence for all nine moved clauses after normalizing only
   public/private heads, facade names, and explicit allowed-reason routing.
-- Format, diff, whitespace, ownership, exactly-one-facade, unchanged Timeline
+- Format, diff, whitespace, ownership, exactly-two-facade, unchanged Timeline
   public-definition, and xref checks.
 - Independent read-only review before publication.
 
