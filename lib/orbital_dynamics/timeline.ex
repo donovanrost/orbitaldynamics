@@ -2396,35 +2396,26 @@ defmodule OrbitalDynamics.Timeline do
   end
 
   defp reason_counts(rows) do
-    rows
-    |> Enum.flat_map(& &1["rejection_reasons"])
-    |> Enum.frequencies()
+    OrbitalDynamics.Timeline.CandidateRejectionSummaryPolicy.reason_counts(rows)
   end
 
   defp candidate_rejection_row_ids(rows, predicate) do
-    rows
-    |> Enum.filter(predicate)
-    |> Enum.map(& &1["candidate_id"])
-    |> sorted_uniq()
+    OrbitalDynamics.Timeline.CandidateRejectionSummaryPolicy.candidate_rejection_row_ids(
+      rows,
+      predicate
+    )
   end
 
   defp candidate_id_sets_by_rejection_reason(rows) do
-    rows
-    |> Enum.flat_map(fn row ->
-      row
-      |> Map.get("rejection_reasons", [])
-      |> Enum.map(&{&1, row["candidate_id"]})
-    end)
-    |> Enum.group_by(fn {reason, _candidate_id} -> reason end, fn {_reason, candidate_id} ->
-      candidate_id
-    end)
-    |> Map.new(fn {reason, candidate_ids} -> {reason, sorted_uniq(candidate_ids)} end)
+    OrbitalDynamics.Timeline.CandidateRejectionSummaryPolicy.candidate_id_sets_by_rejection_reason(
+      rows
+    )
   end
 
   defp candidate_ids_by_required_operator_action(rows) do
-    rows
-    |> Enum.group_by(& &1["required_operator_action"], & &1["candidate_id"])
-    |> Map.new(fn {action, candidate_ids} -> {action, sorted_uniq(candidate_ids)} end)
+    OrbitalDynamics.Timeline.CandidateRejectionSummaryPolicy.candidate_ids_by_required_operator_action(
+      rows
+    )
   end
 
   defp normalize_activity_input({activity, sequence}, opts) do
