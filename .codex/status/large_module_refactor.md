@@ -6,47 +6,45 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline deterministic count-summary policy extraction.
+Timeline identity-grouping policy extraction.
 
 Status:
-Implementation published in `e822e150`; focused and broad proof is green.
+Selection recorded; implementation has not started.
 
 Selected boundary:
-Move duplicate-group/activity totals, generic field counts, changed-field
-counts, transition type/category counts, and deterministic count-map sorting
-into `Timeline.CountSummaryPolicy`. `Timeline` retains seven private entry
-points; changed-field list extraction crosses the boundary explicitly.
+Move normalized activity grouping by timeline ID, unique-or-nil activity
+selection, and deterministic activity-ID ordering within timeline row groups
+into `Timeline.IdentityGroupingPolicy`. `Timeline` retains three private entry
+points; activity normalization crosses the boundary explicitly.
 
 Why this slice:
-The extraction moved seven clauses into a 54-line internal module and reduced
-Timeline from 6,291 to 6,268 lines. Seven private entry points preserve all
-report coordinators while nil filtering, frequency calculation, duplicate
-cardinality, transition path selection, and stable map ordering now live
-together.
+The 6,268-line Timeline facade still owns three exclusive clauses that define
+timeline-identity grouping semantics shared by operational, diff, and
+transition-application paths. Moving them together isolates grouping keys,
+duplicate/missing behavior, and within-group ordering without extracting
+duplicate annotation or report coordinators.
 
-Completed proof:
-- Focused operational count, duplicate identity, transition application
-  summary, and timeline-diff changed/transition count examples: 4 passed.
-- Full Timeline suite: 127 passed.
-- Timeline schema-contract suites: 36 passed.
-- Strict warnings-as-errors compile: 3,758 files.
-- Canonical AST equivalence: all seven moved clauses after normalizing only
-  public/private heads and the changed-field list callback.
-- Format, whitespace, ownership, exactly-seven-facade, unchanged Timeline
-  public definitions, and xref checks passed; Timeline is the only runtime
-  caller.
-- Independent read-only review found no production-code findings.
+Planned proof:
+- Focused operational duplicate identity, transition application, and timeline
+  diff duplicate-collision examples.
+- Full Timeline and Timeline schema-contract suites.
+- Strict warnings-as-errors compile.
+- Canonical AST equivalence for all three moved clauses after normalizing only
+  public/private heads and the activity normalization callback.
+- Format, diff, whitespace, ownership, exactly-three-facade, unchanged Timeline
+  public-definition, and xref checks.
+- Independent read-only review before publication.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline deterministic count-summary policy extraction, selected in `254c0c28`
-and implemented in `e822e150`.
+Timeline deterministic count-summary policy extraction, selected in `254c0c28`,
+implemented in `e822e150`, and handed off in `362474a4`.
 
 Next candidate:
-Continue remapping the 6,268-line Timeline facade after this slice, avoiding wide
+Continue remapping the reduced Timeline facade after this slice, avoiding wide
 report and activity-context map coordinator callback surfaces.
 
 Blocked:
