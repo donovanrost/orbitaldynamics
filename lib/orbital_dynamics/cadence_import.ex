@@ -4940,36 +4940,13 @@ defmodule OrbitalDynamics.CadenceImport do
   end
 
   defp pareto_frontier_manifest_row(row, rank) do
-    approval_status = Map.get(row, "approval_status", "operator_review_required")
-    import_status = Map.get(row, "cadence_import_status", "present")
-
-    %{
-      "id" => "cadence_import:pareto_frontier:#{row["id"] || rank}",
-      "rank" => rank,
-      "import_action" => "review_pareto_frontier",
-      "import_status" => adapter_import_status(import_status, approval_status),
-      "import_side" => "source",
-      "source_review_row_id" => row["id"],
-      "source_review_type" => row["review_type"],
-      "source_review_action" => source_review_action(row),
-      "source" => row["source"],
-      "subject_id" => row["subject_id"],
-      "scenario_id" => row["scenario_id"],
-      "branch_id" => row["branch_id"],
-      "approval_status" => approval_status,
-      "required_operator_action" => row["required_operator_action"],
-      "reason" => row["reason"],
-      "frontier" => row["frontier"],
-      "objective_keys" => row["objective_keys"],
-      "objective_values" => row["objective_values"],
-      "dominated_by_ids" => row["dominated_by_ids"],
-      "dominates_ids" => row["dominates_ids"],
-      "cadence_import_status" => import_status,
-      "has_cadence_import" => false,
-      "source_pareto_frontier" => row["source_pareto_frontier"],
-      "source_review_row" => row
-    }
-    |> compact_map()
+    OrbitalDynamics.CadenceImport.ParetoFrontierManifestRow.build(
+      row,
+      rank,
+      source_review_action: &source_review_action/1,
+      adapter_import_status: &adapter_import_status/2,
+      compact_map: &compact_map/1
+    )
   end
 
   defp schema_validation_manifest_row(row, rank) do
