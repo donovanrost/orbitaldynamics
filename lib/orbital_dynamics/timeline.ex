@@ -6234,7 +6234,9 @@ defmodule OrbitalDynamics.Timeline do
     OrbitalDynamics.Timeline.ActivityTimingPolicy.duration(activity)
   end
 
-  defp activity_id(%{"id" => id}), do: encode_value(id)
+  defp activity_id(activity) do
+    OrbitalDynamics.Timeline.ActivityIdentityPolicy.activity_id(activity, &encode_value/1)
+  end
 
   defp stringify_keys(value) do
     OrbitalDynamics.Timeline.ArtifactValueEncodingPolicy.stringify_keys(value)

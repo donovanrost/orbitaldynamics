@@ -1,6 +1,8 @@
 defmodule OrbitalDynamics.Timeline.ActivityIdentityPolicy do
   @moduledoc false
 
+  def activity_id(%{"id" => id}, encode_value), do: encode_value.(id)
+
   def timeline_id(activity, activity_start, encode_value) do
     activity["timeline_id"] ||
       activity["persistent_id"] ||
