@@ -2249,75 +2249,35 @@ defmodule OrbitalDynamics.Timeline do
   end
 
   defp locked_overlap?(activity) do
-    status =
-      activity
-      |> first_scalar_string(["schedule_conflict_status", "conflict_status"])
-      |> normalized_token()
-
-    status in ["locked_overlap", "overlaps_locked", "conflict_locked", "locked_conflict"]
+    OrbitalDynamics.Timeline.CandidateRejectionConditionPolicy.locked_overlap?(activity)
   end
 
   defp negative_margin?(activity, fields) do
-    case first_number(activity, fields) do
-      value when is_number(value) -> value < 0.0
-      _value -> false
-    end
+    OrbitalDynamics.Timeline.CandidateRejectionConditionPolicy.negative_margin?(activity, fields)
   end
 
   defp contact_too_short?(activity) do
-    duration = activity_duration_s(activity)
-
-    minimum =
-      first_number(activity, ["minimum_duration_s", "min_duration_s", "required_duration_s"])
-
-    is_number(duration) and is_number(minimum) and duration < minimum
+    OrbitalDynamics.Timeline.CandidateRejectionConditionPolicy.contact_too_short?(activity)
   end
 
   defp policy_blocked?(activity) do
-    activity_status(activity) == "blocked_by_policy" or
-      activity_approval_status(activity) == "blocked_by_policy"
+    OrbitalDynamics.Timeline.CandidateRejectionConditionPolicy.policy_blocked?(activity)
   end
 
   defp stale_state?(activity) do
-    status =
-      activity
-      |> first_scalar_string(["freshness_status", "state_freshness_status"])
-      |> normalized_token()
-
-    status == "stale"
+    OrbitalDynamics.Timeline.CandidateRejectionConditionPolicy.stale_state?(activity)
   end
 
   defp model_incompatible?(activity) do
-    status =
-      activity
-      |> first_scalar_string(["model_compatibility_status", "compatibility_status"])
-      |> normalized_token()
-
-    status in ["incompatible", "model_incompatible"]
+    OrbitalDynamics.Timeline.CandidateRejectionConditionPolicy.model_incompatible?(activity)
   end
 
   defp quality_gate_failed?(activity) do
-    status =
-      activity
-      |> first_scalar_string([
-        "quality_gate_status",
-        "schema_validation_status",
-        "validation_status"
-      ])
-      |> normalized_token()
-
-    status in ["fail", "failed", "blocked"]
+    OrbitalDynamics.Timeline.CandidateRejectionConditionPolicy.quality_gate_failed?(activity)
   end
 
-  defp normalized_token(nil), do: nil
-
   defp normalized_token(value) do
-    value
-    |> to_string()
-    |> String.trim()
-    |> String.downcase()
-    |> String.replace(~r/[^a-z0-9]+/, "_")
-    |> String.trim("_")
+    OrbitalDynamics.Timeline.CandidateRejectionConditionPolicy.normalized_token(value)
   end
 
   defp candidate_reviewable?(_activity, []), do: false
