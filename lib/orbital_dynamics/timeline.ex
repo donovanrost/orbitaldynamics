@@ -5576,8 +5576,13 @@ defmodule OrbitalDynamics.Timeline do
       get_in(activity, ["metadata", "schedule_conflict_status"])
   end
 
-  defp approved_timeline_row?(row), do: row["approval_status"] in ["approved", "auto_approvable"]
-  defp executed_timeline_row?(row), do: row["status"] in @executed_statuses
+  defp approved_timeline_row?(row) do
+    OrbitalDynamics.Timeline.RowStateClassificationPolicy.approved?(row)
+  end
+
+  defp executed_timeline_row?(row) do
+    OrbitalDynamics.Timeline.RowStateClassificationPolicy.executed?(row, @executed_statuses)
+  end
 
   defp terminal_exception_timeline_row?(row) do
     row["status"] in @terminal_exception_statuses or
@@ -5623,7 +5628,9 @@ defmodule OrbitalDynamics.Timeline do
     OrbitalDynamics.Timeline.RelationshipPresencePolicy.has_exclusivity?(row)
   end
 
-  defp timeline_integrity_review?(row), do: row["timeline_integrity_status"] == "review_required"
+  defp timeline_integrity_review?(row) do
+    OrbitalDynamics.Timeline.RowStateClassificationPolicy.integrity_review?(row)
+  end
 
   defp timeline_integrity_issue_count(rows) do
     OrbitalDynamics.Timeline.IntegrityCountPolicy.timeline_integrity_issue_count(rows)
