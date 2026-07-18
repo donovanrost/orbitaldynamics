@@ -228,11 +228,7 @@ defmodule OrbitalDynamics.Timeline do
     invalid_candidate_input
     declared_rejection
   )
-  @candidate_rejection_station_capacity_fraction_fields ~w(
-    capacity_fraction
-    station_capacity_fraction
-    capacity_pack_capacity_fraction
-  )
+  @candidate_rejection_station_capacity_fraction_fields OrbitalDynamics.Timeline.CandidateRejectionStationPolicy.capacity_fraction_fields()
   @candidate_rejection_station_capacity_fraction_paths Enum.flat_map(
                                                          @candidate_rejection_station_capacity_fraction_fields,
                                                          fn field ->
@@ -2241,78 +2237,16 @@ defmodule OrbitalDynamics.Timeline do
   defp maybe_add_reason(reasons, _condition, _reason), do: reasons
 
   defp station_unavailable?(activity) do
-    status =
-      activity
-      |> candidate_rejection_station_status([
-        "station_availability",
-        "station_calendar_status",
-        "availability",
-        "status"
-      ])
-      |> normalized_token()
-
-    status in ["unavailable", "not_available", "closed", "outage"]
+    OrbitalDynamics.Timeline.CandidateRejectionStationPolicy.station_unavailable?(activity)
   end
 
   defp station_reserved?(activity) do
-    status =
-      activity
-      |> candidate_rejection_station_status([
-        "station_availability",
-        "station_reservation_match_status",
-        "station_calendar_status",
-        "availability",
-        "status",
-        "reservation_status"
-      ])
-      |> normalized_token()
-
-    status in ["reserved", "reservation_hold", "hold", "held", "matched_reserved"]
+    OrbitalDynamics.Timeline.CandidateRejectionStationPolicy.station_reserved?(activity)
   end
-
-  defp candidate_rejection_station_status(activity, fields) do
-    first_scalar_string(activity, fields) ||
-      source_station_status(activity["source_station_calendar_entry"], fields) ||
-      source_station_status(activity["source_station_calendar_overlaps"], fields)
-  end
-
-  defp source_station_status(sources, fields) when is_list(sources),
-    do: Enum.find_value(sources, &source_station_status(&1, fields))
-
-  defp source_station_status(%{} = source, fields), do: first_scalar_string(source, fields)
-
-  defp source_station_status(_source, _fields), do: nil
 
   defp station_capacity_reduced?(activity) do
-    status =
-      activity
-      |> candidate_rejection_station_status([
-        "station_availability",
-        "station_calendar_status",
-        "availability",
-        "status"
-      ])
-      |> normalized_token()
-
-    capacity_fraction = candidate_rejection_station_capacity_fraction(activity)
-
-    status in ["reduced_capacity", "degraded_capacity"] or
-      (is_number(capacity_fraction) and capacity_fraction >= 0.0 and capacity_fraction < 1.0)
+    OrbitalDynamics.Timeline.CandidateRejectionStationPolicy.station_capacity_reduced?(activity)
   end
-
-  defp candidate_rejection_station_capacity_fraction(activity) do
-    first_number(activity, @candidate_rejection_station_capacity_fraction_fields) ||
-      source_station_capacity_fraction(activity["source_station_calendar_entry"]) ||
-      source_station_capacity_fraction(activity["source_station_calendar_overlaps"])
-  end
-
-  defp source_station_capacity_fraction(sources) when is_list(sources),
-    do: Enum.find_value(sources, &source_station_capacity_fraction/1)
-
-  defp source_station_capacity_fraction(%{} = source),
-    do: first_number(source, @candidate_rejection_station_capacity_fraction_fields)
-
-  defp source_station_capacity_fraction(_source), do: nil
 
   defp locked_overlap?(activity) do
     status =
