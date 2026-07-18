@@ -9,7 +9,7 @@ Current slice:
 Timeline activity-identity normalization policy extraction.
 
 Status:
-Selection recorded; implementation has not started.
+Implementation published in `2b825450`; focused and broad proof is green.
 
 Selected boundary:
 Move spacecraft, ground-station, and target identity canonicalization plus the
@@ -18,34 +18,33 @@ exclusive nested-identity lookup helpers into
 normalization entry points used by `activity_to_map/1`.
 
 Why this slice:
-The reduced Timeline facade is 7,305 lines. These 11 exclusive clauses own the
-precedence from canonical IDs to aliases to nested provider objects for the
-three activity identity dimensions. The boundary preserves pipeline order and
-leaves string encoding and downstream timeline-identity construction
-unchanged.
+The extraction moved 11 clauses into a 63-line internal module and reduced
+Timeline from 7,305 to 7,258 lines. The three private entry points preserve
+`activity_to_map/1` pipeline order while nested lookup stays private to the new
+policy.
 
-Planned proof:
-- Focused Timeline examples for nested spacecraft/satellite, station aliases
-  and objects, target objects, and changed spacecraft assignment.
-- Full Timeline and Timeline schema-contract suites.
-- Strict warnings-as-errors compile.
-- Canonical AST equivalence for all 11 moved clauses after normalizing only the
+Completed proof:
+- Focused activity-identity examples: 3 passed.
+- Full Timeline suite: 127 passed.
+- Timeline schema-contract suites: 36 passed.
+- Strict warnings-as-errors compile: 3,732 files.
+- Canonical AST equivalence: all 11 moved clauses after normalizing only the
   three facade names.
-- Format, diff, whitespace, ownership, exactly-three-facade, unchanged Timeline
-  public-definition, and xref checks.
-- Independent read-only review before publication.
+- Format, whitespace, ownership, exactly-three-facade, unchanged Timeline public
+  definitions, and xref checks passed.
+- Independent read-only review found no findings.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline lifecycle-event policy extraction, selected in `1599ab57`, implemented
-in `a9c981ad`, and handed off in `06a3b36c`.
+Timeline activity-identity normalization policy extraction, selected in
+`82fdd813` and implemented in `2b825450`.
 
 Next candidate:
-Remap the reduced Timeline facade after this slice, emphasizing activity
-normalization and lifecycle application.
+Remap the reduced 7,258-line Timeline facade, emphasizing activity normalization
+and lifecycle application.
 
 Blocked:
 No.
