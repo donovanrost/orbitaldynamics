@@ -9,7 +9,7 @@ Current slice:
 Timeline transition-application integrity orchestration extraction.
 
 Status:
-Selection recorded; implementation has not started.
+Implementation published in `67195816`; focused and broad proof is green.
 
 Selected boundary:
 Move single selected-activity integrity annotation/gating and batch selected
@@ -19,33 +19,32 @@ entry points for single gating and batch reintegration. Existing integrity
 annotation and selected-integrity application gating are supplied as callbacks.
 
 Why this slice:
-The reduced Timeline facade is 7,353 lines. These three exclusive clauses form
-an approximately 45-line application-integrity responsibility shared by direct
-and batch application helpers. The boundary preserves selected-activity
-replacement before gating and batch output order.
+The extraction moved three clauses into a 56-line internal module and reduced
+Timeline from 7,353 to 7,332 lines. The two private entry points preserve direct
+and batch application callers.
 
-Planned proof:
-- Focused Timeline tests for reusable single applications, batch applications,
-  and withheld-dependency subset rechecks.
-- Full Timeline and Timeline schema-contract suites.
-- Strict warnings-as-errors compile.
-- Canonical AST equivalence for all three moved clauses after normalizing only
-  the two facade names and callback boundaries.
-- Format, diff, whitespace, ownership, exactly-two-facade, unchanged Timeline
-  public-definition, and xref checks.
-- Independent read-only review before publication.
+Completed proof:
+- Focused transition-application integrity examples: 3 passed.
+- Full Timeline suite: 127 passed.
+- Timeline schema-contract suites: 36 passed.
+- Strict warnings-as-errors compile: 3,730 files.
+- Canonical AST equivalence: all three moved clauses after normalizing only the
+  two facade names and callback boundaries.
+- Format, whitespace, ownership, exactly-two-facade, unchanged Timeline public
+  definitions, and xref checks passed.
+- Independent read-only review found no findings.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline transition-decision integrity gate extraction, selected in `efd959ff`,
-implemented in `c67c917b`, and handed off in `3221cff1`.
+Timeline transition-application integrity orchestration extraction, selected in
+`4faa56ed` and implemented in `67195816`.
 
 Next candidate:
-Remap the reduced Timeline facade after this slice, emphasizing activity
-normalization and lifecycle application.
+Remap the reduced 7,332-line Timeline facade, emphasizing activity normalization
+and lifecycle application.
 
 Blocked:
 No.
