@@ -9,7 +9,7 @@ Current slice:
 Schema timeline protection property-dispatch extraction.
 
 Status:
-Slice selected; implementation not started.
+Implementation published as `facf3107`; handoff publication pending.
 
 Selected slice:
 Move JSON-property dispatch/context assembly for activity precondition summaries
@@ -44,19 +44,30 @@ summary/export tests pass; strict compile, full byte-clean schema regeneration,
 and independent review are clean.
 
 Verification gaps:
-- Focused timeline summary/export baselines still need to be captured.
-- Checked-in schema exports must remain byte-identical.
+- None for this slice. Full checked-in schema regeneration is byte-identical.
+- Independent review was clean. No API, schema, export, ordering, evaluation,
+  error-behavior, ownership, or behavioral finding remains.
 
 Tests run:
-- Live mapping found two clauses covering three lifecycle-safety contracts and
-  two existing family-specific JSON-schema builders.
-- No runtime or schema code has changed in this slice.
+- Baseline and post-change focused timeline summary/export subset: 32 passed
+  with warnings as errors.
+- Strict forced compile: 3,655 files clean with warnings as errors.
+- Full schema export regenerated every checked-in schema and bundle with zero
+  diff.
+- Public `Schema` definitions match selection commit `a235ff14`; xref reports
+  the dispatcher has only the Schema runtime caller.
+- Format, tracked/new-file whitespace, and `git diff --check` passed.
+- Independent review confirmed exact precondition/preservation contexts,
+  contract-dependent routing, lazy precondition limits, eager preservation
+  limits, fallback/error order, then reran compile, 32/32, and full export.
 
 Behavior/schema changes:
 None intended.
 
 Outcome:
-Pending.
+Activity precondition and preservation report/status property routing now
+delegates to `TimelineProtectionPropertyDispatch`; named lifecycle-safety
+contexts live in the family owner. Implementation published as `facf3107`.
 
 Last completed slice:
 Timeline activity-state schema dispatch published as implementation `a3bc7e2a`
@@ -64,7 +75,7 @@ and handoff `11e6498d`: focused 24/24, strict 3,654-file compile, full
 byte-clean schema regeneration, and independent review passed.
 
 Next candidate:
-Implement and verify timeline protection schema property dispatch.
+Publish this handoff, then select the next cohesive Schema property family.
 
 Blocked:
 No.
