@@ -4171,116 +4171,15 @@ defmodule OrbitalDynamics.Timeline do
   end
 
   defp activity_throughput_context(activity) do
-    planned = planned_estimated_throughput_mb(activity)
-    derivation = actual_data_rate_throughput_derivation(activity)
-    actual = actual_throughput_mb(activity) || get_in(derivation || %{}, ["actual_throughput_mb"])
-
-    %{
-      "planned_estimated_throughput_mb" => planned,
-      "actual_throughput_mb" => actual,
-      "actual_data_rate_throughput_derivation" => derivation,
-      "throughput_delta_mb" => delta(actual, planned),
-      "throughput_completion_fraction" => completion_fraction(actual, planned)
-    }
-    |> compact_map()
-  end
-
-  defp planned_estimated_throughput_mb(activity) do
-    first_number(activity, [
-      "planned_estimated_throughput_mb",
-      "estimated_throughput_mb",
-      "estimated_downlink_mb"
-    ])
-  end
-
-  defp actual_throughput_mb(activity) do
-    first_number(activity, [
-      "actual_throughput_mb",
-      "actual_downlink_mb",
-      "delivered_throughput_mb",
-      "received_throughput_mb"
-    ])
-  end
-
-  defp actual_data_rate_throughput_derivation(activity) do
-    cond do
-      is_map(first_value(activity, ["actual_data_rate_throughput_derivation"])) ->
-        activity
-        |> first_value(["actual_data_rate_throughput_derivation"])
-        |> stringify_keys()
-
-      not is_nil(actual_throughput_mb(activity)) ->
-        nil
-
-      true ->
-        derive_actual_data_rate_throughput(activity)
-    end
-  end
-
-  defp derive_actual_data_rate_throughput(activity) do
-    duration_s = actual_data_rate_duration_s(activity)
-
-    cond do
-      rate_mb_s = actual_data_rate_mb_s(activity) ->
-        actual_data_rate_derivation("actual_data_rate_mb_s", rate_mb_s, duration_s)
-
-      rate_mbps = actual_data_rate_mbps(activity) ->
-        actual_data_rate_derivation("actual_data_rate_mbps", rate_mbps, duration_s)
-
-      true ->
-        nil
-    end
-  end
-
-  defp actual_data_rate_derivation(_rate_unit, _rate, nil), do: nil
-
-  defp actual_data_rate_derivation("actual_data_rate_mb_s", rate_mb_s, duration_s) do
-    %{
-      "derivation" => "actual_data_rate_times_duration",
-      "rate_unit" => "MB/s",
-      "actual_data_rate_mb_s" => rate_mb_s,
-      "duration_s" => duration_s,
-      "actual_throughput_mb" => rate_mb_s * duration_s
-    }
-  end
-
-  defp actual_data_rate_derivation("actual_data_rate_mbps", rate_mbps, duration_s) do
-    rate_mb_s = rate_mbps / 8.0
-
-    %{
-      "derivation" => "actual_data_rate_times_duration",
-      "rate_unit" => "Mbps",
-      "actual_data_rate_mbps" => rate_mbps,
-      "actual_data_rate_mb_s" => rate_mb_s,
-      "duration_s" => duration_s,
-      "actual_throughput_mb" => rate_mb_s * duration_s
-    }
-  end
-
-  defp actual_data_rate_mb_s(activity) do
-    first_number(activity, [
-      "actual_data_rate_mb_s",
-      "actual_downlink_rate_mb_s",
-      "delivered_rate_mb_s",
-      "received_rate_mb_s"
-    ])
-  end
-
-  defp actual_data_rate_mbps(activity) do
-    first_number(activity, [
-      "actual_data_rate_mbps",
-      "actual_downlink_rate_mbps",
-      "delivered_rate_mbps",
-      "received_rate_mbps"
-    ])
-  end
-
-  defp actual_data_rate_duration_s(activity) do
-    first_number(activity, [
-      "actual_duration_s",
-      "actual_contact_duration_s",
-      "contact_duration_s"
-    ])
+    OrbitalDynamics.Timeline.ThroughputContext.build(
+      activity,
+      first_number: &first_number/2,
+      first_value: &first_value/2,
+      stringify_keys: &stringify_keys/1,
+      delta: &delta/2,
+      completion_fraction: &completion_fraction/2,
+      compact_map: &compact_map/1
+    )
   end
 
   defp activity_link_context(activity) do
