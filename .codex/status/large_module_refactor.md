@@ -6,50 +6,58 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-CadenceImport timeline-diff manifest-row builder extraction.
+CadenceImport strategy-tradeoff manifest-row builder extraction.
 
 Status:
-Implementation `7cde78b9` published; verified handoff publication pending.
+Slice selected; selection publication pending.
 
-Completed slice:
-Moved the timeline-diff and transition-application manifest row projection into
-internal `CadenceImport.TimelineDiffManifestRow.build/3`. The facade now
-injects only five shared review/status/context/normalization/compaction
-callbacks.
+Selected slice:
+Move `strategy_tradeoff_manifest_row/2` and its exclusively used
+`strategy_tradeoff_import_action/1` clauses into internal
+`CadenceImport.StrategyTradeoffManifestRow.build/3`. Inject only the six shared
+facade helpers for review action, adapter status, three branch field catalogs,
+and compact-map cleanup.
 
 Why this slice:
-`CadenceImport` was 7,166 lines. The timeline-diff builder was a 266-line
-transformation with 182 projected keys. `CadenceImport` is now 6,911 lines.
+`CadenceImport` is 6,911 lines. The strategy-tradeoff builder is a 233-line
+transformation with 184 projected keys, three ordered branch-field merges, and
+one facade caller.
 
-Published commits:
-- Selection: `aa847108`
-- Implementation: `7cde78b9`
-- Handoff: pending
+Current coupling/problem:
+The main artifact adapter embeds a large strategy-tradeoff projection and
+branch evidence merge pipeline alongside every other source transformation.
 
-Preserved facade and behavior:
-All `CadenceImport` APIs; all 182 timeline-diff keys and value expressions;
-approval/import defaults, activity-context fallback and normalization, import
+Public facade to preserve:
+All `CadenceImport` APIs; all strategy-tradeoff row keys and value expressions;
+branch merge order and collision precedence; approval/import defaults, import
 status/action, compaction, deterministic output, and artifact contracts.
 
-Verification:
-- Full Cadence-import tests plus schema Cadence-import contracts: 100/100.
-- Strict warnings-as-errors compile: 3,676 files.
-- Whole-builder AST comparison after callback normalization: exact.
-- Projection comparison: 182/182 keys and expressions, zero mismatches.
-- Five shared facade callbacks: exact names, purposes, and arities.
-- Generic context fallback, three normalization sites, and final compaction:
-  unchanged.
-- Timeline-diff dispatch and public `CadenceImport` definitions: unchanged.
-- Format, whitespace, diff, xref caller, and independent read-only review:
-  clean.
-- Schema export not rerun: no schema-generation code or schema artifacts
-  changed.
+Likely files:
+- `lib/orbital_dynamics/cadence_import.ex`
+- `lib/orbital_dynamics/cadence_import/strategy_tradeoff_manifest_row.ex`
+- `.codex/status/large_module_refactor.md`
+
+Definition of done:
+The internal builder owns the exact 184-key projection, three branch merges,
+and exclusive import-action clauses; the facade supplies only six same-purpose
+callbacks; focused Cadence-import and schema-contract tests pass; strict
+warnings-as-errors compile, projection/pipeline equivalence, public API checks,
+and independent review are clean.
 
 Verification gaps:
-None for this slice.
+- Focused baseline, implementation proof, strict compile, and independent
+  review remain.
+
+Tests run:
+- None yet for this selected slice.
 
 Behavior/schema changes:
-None.
+None intended.
+
+Last completed slice:
+CadenceImport timeline-diff row builder published as implementation `7cde78b9`
+and handoff `dad1b910`: focused 100/100, strict 3,676-file compile, exact
+182-entry AST comparison, and independent review passed.
 
 Next candidate:
 Remap the reduced `CadenceImport` module and select the next source-specific
