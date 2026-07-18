@@ -6,78 +6,68 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema timeline-report property-dispatch extraction.
+Schema timeline activity-state property-dispatch extraction.
 
 Status:
-Implementation published as `4bf57bd4`; handoff publication pending.
+Slice selected; implementation not started.
 
 Selected slice:
-Move JSON-property dispatch/context assembly for timeline feedback, integrity,
-dependency-impact, and publication artifacts into an internal
-`Schema.TimelineReportPropertyDispatch` owner.
+Move JSON-property dispatch/context assembly for `timeline_activity_state` and
+the status/approval/lifecycle state trio into an internal
+`Schema.TimelineActivityStatePropertyDispatch` owner.
 
 Why this slice:
-`Schema` remains 7,793 lines. These four adjacent clauses share the same
-focused-dispatch pattern and already delegate property construction to dedicated
-family builders, making their named context assembly one cohesive boundary.
+`Schema` remains 7,791 lines. These adjacent logical state contracts already
+have two dedicated JSON-schema builders but no family dispatcher, leaving
+lifecycle identity, transition, protection, context, assumption, and
+model-limit wiring in the facade.
 
 Current coupling/problem:
-The Schema facade still names and assembles row, capability, identity,
-source-summary, stable-ID collection, issue-type, and model-limit dependencies
-for four related timeline report families.
+The Schema facade names and assembles the complete activity-state and
+lifecycle-state builder contexts, including contract-specific lifecycle/default
+assumption selection for three related contracts.
 
 Public facade to preserve:
-All `Schema` APIs; timeline feedback, integrity, dependency-impact, and
-publication JSON Schema documents; recursive/embedded schema behavior;
-checked-in exports, deterministic ordering, and all errors.
+All `Schema` APIs; the four timeline activity-state JSON Schema documents;
+contract-specific assumptions, checked-in exports, deterministic ordering,
+focused fallback behavior, and all errors.
 
 Likely files:
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/timeline_report_property_dispatch.ex`
+- `lib/orbital_dynamics/schema/timeline_activity_state_property_dispatch.ex`
 - `.codex/status/large_module_refactor.md`
 
 Definition of done:
-The four clauses supply compact dependency tuples to the new dispatcher; named
-builder contexts and focused fallback routing move out of the facade; focused
-timeline schema tests pass; strict compile, full checked-in export
+The two facade clauses pass compact dependencies to the new owner; named
+builder contexts and focused fallback routing move out of `Schema`; focused
+activity-state/export tests pass; strict compile, full byte-clean schema
 regeneration, and independent review are clean.
 
 Verification gaps:
-- None for this slice. Full checked-in schema regeneration is byte-identical.
-- Independent review found and verified the fix for one lazy-fallback
-  regression. No API, schema, export, ordering, error-behavior, ownership, or
-  behavioral finding remains.
+- Focused activity-state/export baselines still need to be captured.
+- Checked-in schema exports must remain byte-identical.
 
 Tests run:
-- Baseline and final focused timeline schema/export subset: 42 passed with
-  warnings as errors.
-- Strict forced compile: 3,653 files clean with warnings as errors.
-- Full schema export regenerated every checked-in schema and bundle with zero
-  diff.
-- Public `Schema` definitions match selection commit `d79cdea9`; xref reports
-  the dispatcher has only the Schema runtime caller.
-- Format, whitespace, and `git diff --check` passed.
-- Independent review caught eager `:default_property` lookup in the existing
-  `property/4` path. The corrected closure restores lazy fallback and exact
-  error precedence; direct focused/fallback checks, 42/42, compile, and full
-  export all passed on the final state.
+- Live mapping found two clauses covering four contracts and two existing
+  family-specific JSON-schema builders.
+- Timeline activity-state contract tests and JSON-schema export tests are the
+  primary focused proof.
+- No runtime or schema code has changed in this slice.
 
 Behavior/schema changes:
 None intended.
 
 Outcome:
-The existing `TimelineReportPropertyDispatch` now also owns named contexts for
-feedback, integrity, dependency-impact, and publication families. Its original
-operational/diff/summary API remains compatible. Implementation published as
-`4bf57bd4`.
+Pending.
 
 Last completed slice:
-Campaign-artifact schema dispatch published as implementation `11ef0e9e` and
-handoff `ba4b237b`: focused 19/19, strict 3,653-file compile, full byte-clean
-schema regeneration, and independent review passed.
+Timeline-report schema dispatch published as implementation `4bf57bd4` and
+handoff `4351b7c7`: final focused 42/42, strict 3,653-file compile, full
+byte-clean schema regeneration, and independent review passed after restoring
+lazy default fallback in the pre-existing dispatcher API.
 
 Next candidate:
-Publish this handoff, then select the next cohesive Schema property family.
+Implement and verify timeline activity-state schema property dispatch.
 
 Blocked:
 No.
