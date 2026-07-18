@@ -9,7 +9,7 @@ Current slice:
 Campaign-planner station-pressure derivation orchestration extraction.
 
 Status:
-Ready for implementation.
+Implementation published as `73737ad1`; handoff publication pending.
 
 Selected slice:
 Move the private prior/mission station-calendar and mission reservation
@@ -46,29 +46,46 @@ unchanged; focused station tests pass to their live baseline; strict
 compile and independent review are clean.
 
 Verification gaps:
-- Focused station baseline is pending.
 - The full planner directory retains five known baseline failures; none is in
   the selected focused files.
+- The full directory was not rerun; focused and file-backed coverage is green.
+- Independent review was clean. No API, artifact, determinism, ordering,
+  callback, ownership, error-behavior, schema, or behavioral finding remains.
 
 Tests run:
 - Live inventory: `CampaignPlanner` is 2,064 lines with 148 private functions.
 - Target cluster is 4 ordered pipeline calls and 4 private helpers.
+- Baseline focused station family: 9 passed with warnings as errors.
+- Post-change focused station family: 9 passed with warnings as errors.
+- Strict forced compile: 3,647 files clean with warnings as errors.
+- File-backed facade coverage: 7 passed with warnings as errors.
+- Public `CampaignPlanner` function list matches selection commit `f56e0928`.
+  Xref reports the new internal module has only the planner runtime caller.
+- Format, new-file whitespace, and `git diff --check` passed. No old selected
+  station helper remains in the facade.
+- `CampaignPlanner` shrank from 2,064 to 2,023 lines. The new internal station
+  orchestration module is 49 lines.
+- Independent reviewer reran the 9 focused cases, 7 file-backed cases,
+  3,647-file compile, public-def, xref, formatting, diff, and new-file checks;
+  results matched primary proof.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-No station-pressure extraction has started.
+The derived-branch pipeline now makes one ordered call to
+`DerivedStationPressureBranches.build/2`. The new internal module owns the
+exact prior/mission station-calendar and reservation review/hold report
+sequence and source-path callbacks. Implementation published as `73737ad1`.
 
 Last completed slice:
-Operational-review derivation orchestration extraction published as
-`a5ae4f60`: `CampaignPlanner` shrank from 2,113 to 2,064 lines; focused,
-file-backed, and compile proof passed; independent review was clean. Handoff
-published as `11756b23`.
+Station-pressure derivation orchestration extraction published as `73737ad1`:
+`CampaignPlanner` shrank from 2,064 to 2,023 lines; focused, file-backed, and
+compile proof passed; independent review was clean.
 
 Next candidate:
-Publish this selection note, run the focused station baseline, then perform the
-mechanical ordered extraction.
+Publish this handoff, then refresh the remaining facade responsibilities and
+select the next bounded extraction.
 
 Blocked:
 No.
