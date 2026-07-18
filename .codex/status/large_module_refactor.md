@@ -15,8 +15,9 @@ Selected boundary:
 Move scalar/map reference flattening, normalized stable-ID lists, duplicate-ID
 lists, and scalar stable-ID filtering into
 `Timeline.ActivityReferenceIdPolicy`. `Timeline` retains the four private
-normalize/duplicate entry points for general and map-only references. The
-stable-activity-ID predicate crosses the boundary explicitly.
+normalize/duplicate entry points for general and map-only references plus the
+private scalar stable-ID entry point used by publication and station-calendar
+context. The stable-activity-ID predicate crosses the boundary explicitly.
 
 Why this slice:
 The reduced Timeline facade is 6,759 lines. These 24 exclusive clauses own the
@@ -30,8 +31,8 @@ Planned proof:
 - Full Timeline and Timeline schema-contract suites.
 - Strict warnings-as-errors compile.
 - Canonical AST equivalence for all 24 moved clauses after normalizing only the
-  four facade names and stable-ID predicate callback.
-- Format, diff, whitespace, ownership, exactly-four-facade, unchanged Timeline
+  five facade names and stable-ID predicate callback.
+- Format, diff, whitespace, ownership, exactly-five-facade, unchanged Timeline
   public-definition, and xref checks.
 - Independent read-only review before publication.
 
