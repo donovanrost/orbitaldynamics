@@ -251,7 +251,7 @@ defmodule OrbitalDynamics.Timeline do
                                                         do: {:fraction, path}
   @candidate_rejection_actions ~w(none review_candidate_rejection)
   @command_health_activity_types ~w(command health_check)
-  @command_contact_directions ~w(command uplink)
+  @command_contact_directions OrbitalDynamics.Timeline.OperationalRowClassificationPolicy.command_contact_directions()
   @operational_kinds ~w(activity attitude coast command contact health_check maneuver observation)
   @stable_id_pattern ~r/^[A-Za-z0-9][A-Za-z0-9._:@-]*$/
   @provider_result_map_value_keys ~w(result results outcome outcomes status state disposition provider_result provider_results provider_outcome provider_outcomes provider_status provider_state provider_code code reason reasons message messages error errors details metadata provider diagnostics)
@@ -4971,29 +4971,9 @@ defmodule OrbitalDynamics.Timeline do
     )
   end
 
-  defp operational_kind(%{"type" => "command"}), do: "command"
-  defp operational_kind(%{"type" => "health_check"}), do: "health_check"
-  defp operational_kind(%{"type" => "observe"}), do: "observation"
-  defp operational_kind(%{"type" => "impulsive_burn"}), do: "maneuver"
-  defp operational_kind(%{"type" => "slew"}), do: "attitude"
-  defp operational_kind(%{"type" => "attitude"}), do: "attitude"
-  defp operational_kind(%{"type" => "coast"}), do: "coast"
-
-  defp operational_kind(%{"direction" => direction})
-       when direction in @command_contact_directions,
-       do: "command"
-
-  defp operational_kind(%{"type" => type})
-       when type in ["downlink", "planned_contact", "contact", "tracking"] do
-    "contact"
+  defp operational_kind(activity) do
+    OrbitalDynamics.Timeline.OperationalRowClassificationPolicy.operational_kind(activity)
   end
-
-  defp operational_kind(%{"ground_station_id" => ground_station_id})
-       when is_binary(ground_station_id) and ground_station_id != "" do
-    "contact"
-  end
-
-  defp operational_kind(_activity), do: "activity"
 
   defp cadence_import_status(activity, operational_kind) do
     OrbitalDynamics.Timeline.OperationalActionPolicy.cadence_import_status(
