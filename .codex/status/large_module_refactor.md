@@ -9,7 +9,7 @@ Current slice:
 Schema export CLI test-ledger split.
 
 Status:
-Selected; implementation has not started.
+Complete and published.
 
 Selected boundary:
 Move the three Mix task CLI behavior tests for single-contract export, missing
@@ -33,16 +33,27 @@ Selection evidence:
   and the bundle-content assertion body remain outside the boundary.
 
 Verification:
-Pending: focused baseline, mechanical move, strict compile, focused/original
-test files, structural/static checks, and independent review.
+- Selection published in `d5bb3d07`; corrected timeout boundary published in
+  `52c6ea2e`; implementation published in `03b4d2ec`.
+- Focused baseline: 3 passed.
+- Strict warnings-as-errors compile: 3,800 files compiled.
+- Split CLI test module: 3 passed.
+- Original bundle-content test module: 1 passed.
+- Canonical AST comparison: all three moved test bodies equivalent; independent
+  review also confirmed the retained bundle test is equivalent.
+- Static checks confirmed exactly three unique moved test names, one retained
+  bundle test, unchanged 14-helper set, no temporary checker, and clean
+  formatting/diff.
+- Independent review: clean, with no findings.
+- Original export ledger is 8,671 lines; the focused CLI module is 101 lines.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline activity scheduling-coordinate context extraction, selected in
-`b5dbb381`, corrected in `c5eafdc1`, and implemented in `e1e22500`.
+Schema export CLI test-ledger split, selected in `d5bb3d07`, corrected in
+`52c6ea2e`, and implemented in `03b4d2ec`.
 
 Next candidate:
 Continue remapping the reduced Timeline facade.
