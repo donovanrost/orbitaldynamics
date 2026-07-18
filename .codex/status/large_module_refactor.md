@@ -9,7 +9,7 @@ Current slice:
 Campaign-planner activity-pressure derivation orchestration extraction.
 
 Status:
-Ready for implementation.
+Implementation published as `ed8526d5`; handoff publication pending.
 
 Selected slice:
 Move the private planned-activity, proposed-contact, contact-intent/summary, and
@@ -46,29 +46,47 @@ unchanged; focused activity/contact tests pass to their live baseline; strict
 compile and independent review are clean.
 
 Verification gaps:
-- Focused activity/contact baseline is pending.
 - The full planner directory retains five known baseline failures; none is in
   the selected focused files.
+- The full directory was not rerun; focused and file-backed coverage is green.
+- Independent review was clean. No API, artifact, determinism, ordering,
+  identity, ownership, error-behavior, or behavioral finding remains.
 
 Tests run:
 - Live inventory: `CampaignPlanner` is 2,233 lines with 162 private functions.
 - Target cluster is 10 ordered pipeline calls and 10 private helpers.
+- Baseline focused activity/contact family: 15 passed with warnings as errors.
+- Post-change focused activity/contact family: 15 passed with warnings as
+  errors.
+- Strict forced compile: 3,645 files clean with warnings as errors.
+- File-backed facade coverage: 7 passed with warnings as errors.
+- Public `CampaignPlanner` function list matches selection commit `eb1b33cd`.
+  Xref reports the new internal module has only the planner runtime caller.
+- Format, new-file whitespace, and `git diff --check` passed. No old selected
+  activity helper remains in the facade.
+- `CampaignPlanner` shrank from 2,233 to 2,113 lines. The new internal activity
+  orchestration module is 101 lines.
+- Independent reviewer reran the 15 focused cases, 7 file-backed cases,
+  3,645-file compile, public-def, xref, formatting, diff, and new-file checks;
+  results matched primary proof.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-No activity-pressure extraction has started.
+The derived-branch pipeline now makes one ordered call to
+`DerivedActivityPressureBranches.build/2`. The new internal module owns the
+exact planned/proposed, contact-intent direct/summary, and realized-activity
+source-to-branch sequence. Implementation published as `ed8526d5`.
 
 Last completed slice:
-Review/readiness derivation orchestration extraction published as `6740eb4d`:
-`CampaignPlanner` shrank from 2,360 to 2,233 lines; focused, file-backed,
-compile, and adjacent baseline-equivalence proof passed; independent review was
-clean. Handoff published as `f23acd85`.
+Activity-pressure derivation orchestration extraction published as `ed8526d5`:
+`CampaignPlanner` shrank from 2,233 to 2,113 lines; focused, file-backed, and
+compile proof passed; independent review was clean.
 
 Next candidate:
-Publish this selection note, run the focused activity/contact baseline, then
-perform the mechanical ordered extraction.
+Publish this handoff, then refresh the remaining facade responsibilities and
+select the next bounded extraction.
 
 Blocked:
 No.
