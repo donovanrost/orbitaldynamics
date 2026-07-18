@@ -9,40 +9,36 @@ Current slice:
 Timeline diff-comparison policy extraction.
 
 Status:
-Selection recorded; implementation has not started.
+Implemented, verified, independently reviewed, committed, and pushed.
 
-Selected boundary:
-Move changed-field selection and review-significant field membership into
-`Timeline.DiffFieldSelectionPolicy`. `Timeline` retains two private entry
-points plus both existing comparison-value clauses; the comparison callback and
-full comparison field list cross the boundary explicitly.
+Completed boundary:
+Moved changed-field selection and review-significant field membership into the
+12-line `Timeline.DiffFieldSelectionPolicy`. The 6,257-line `Timeline` retains
+two private entry points plus both comparison-value clauses; the comparison
+callback and full comparison field list cross the boundary explicitly.
 
-Why this slice:
-The 6,250-line Timeline facade still owns two exclusive selection clauses
-consumed by diff-row assembly and review decisions. Moving them together
-isolates comparison order and significant-field membership without duplicating
-the large compile-time activity-context guard list or extracting diff
-coordinators.
+Published commits:
+Selected in `ed3377ac`, narrowed in `93ec001b`, and implemented in `68e7e332`.
 
-Planned proof:
-- Focused changed command, product/latency, throughput, and resource-assignment
-  diff examples.
-- Full Timeline and Timeline schema-contract suites.
-- Strict warnings-as-errors compile.
-- Canonical AST equivalence for both moved clauses after normalizing only
-  public/private heads, the comparison callback, and comparison-field argument.
+Verification:
+- Strict warnings-as-errors compile passed across 3,766 files.
+- Four focused changed command, product/latency, throughput, and
+  resource-assignment diff examples passed.
+- Full Timeline suite passed with 127 examples; Timeline schema-contract suites
+  passed with 36 examples.
+- Canonical AST equivalence passed for both moved clauses after normalizing
+  only heads and explicit callback/list arguments.
 - Format, diff, whitespace, ownership, exactly-two-facade, unchanged Timeline
-  public-definition, and xref checks.
-- Independent read-only review before publication.
+  public-definition, and xref checks passed.
+- Independent read-only review found no production-code issues.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline integrity-ID grouping policy extraction, selected in `7e726f43`,
-corrected in `8f39e03a`, implemented in `fcdc3670`, and handed off in
-`84ce76db`.
+Timeline diff-comparison policy extraction, selected in `ed3377ac`, narrowed in
+`93ec001b`, and implemented in `68e7e332`.
 
 Next candidate:
 Continue remapping the reduced Timeline facade after this slice, avoiding wide
