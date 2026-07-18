@@ -5675,75 +5675,8 @@ defmodule OrbitalDynamics.Timeline do
     Map.put_new(activity, key, value)
   end
 
-  defp normalize_cadence_import(%{"cadence_import" => %{} = cadence_import} = activity) do
-    Map.put(activity, "cadence_import", canonical_cadence_import(cadence_import))
-  end
-
-  defp normalize_cadence_import(activity), do: activity
-
-  defp canonical_cadence_import(cadence_import) do
-    cadence_import
-    |> Map.drop(cadence_import_alias_keys())
-    |> put_new_present(
-      "external_id",
-      first_present_cadence_import_value(cadence_import, [
-        "external_id",
-        "id",
-        "cadence_id",
-        "external_ref",
-        "external_reference"
-      ])
-    )
-    |> put_new_present(
-      "activity_type",
-      first_present_cadence_import_value(cadence_import, [
-        "activity_type",
-        "type",
-        "import_type",
-        "cadence_import_type"
-      ])
-    )
-    |> put_new_present(
-      "schema_contract",
-      first_present_cadence_import_value(cadence_import, [
-        "schema_contract",
-        "contract",
-        "schema",
-        "artifact_contract"
-      ])
-    )
-    |> put_new_present(
-      "trust_boundary",
-      first_present_cadence_import_value(cadence_import, ["trust_boundary"])
-    )
-  end
-
-  defp first_present_cadence_import_value(cadence_import, keys) do
-    Enum.find_value(keys, fn key ->
-      case Map.get(cadence_import, key) do
-        value when value in [nil, ""] -> nil
-        value -> value
-      end
-    end)
-  end
-
-  defp cadence_import_alias_keys do
-    ~w(
-      external_id
-      id
-      cadence_id
-      external_ref
-      external_reference
-      activity_type
-      type
-      import_type
-      cadence_import_type
-      schema_contract
-      contract
-      schema
-      artifact_contract
-      trust_boundary
-    )
+  defp normalize_cadence_import(activity) do
+    OrbitalDynamics.Timeline.CadenceImportPolicy.normalize(activity, &put_new_present/3)
   end
 
   defp normalize_station_calendar_status_fields(activity) do
