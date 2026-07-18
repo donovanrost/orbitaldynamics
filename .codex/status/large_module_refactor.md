@@ -9,7 +9,7 @@ Current slice:
 Schema standalone communications property-dispatch extraction.
 
 Status:
-Slice selected; selection publication pending.
+Implementation published as `3f05cbe7`; handoff publication pending.
 
 Selected slice:
 Move JSON-property dispatch/context assembly for station-calendar provider,
@@ -43,13 +43,30 @@ communications, contact-allocation, and export tests pass; strict compile,
 full byte-clean schema regeneration, and independent review are clean.
 
 Verification gaps:
-- Focused baseline, strict compile, export proof, and independent review remain.
+- None for this slice. Full checked-in schema regeneration is byte-identical.
+- Independent review was clean. No API, schema, export, ordering,
+  error-behavior, ownership, or behavioral finding remains.
 
 Tests run:
-- None yet for this selected slice.
+- Baseline and post-change focused station-provider/communications/
+  contact-allocation/export subset: 37 passed with warnings as errors.
+- Strict forced compile: 3,658 files clean with warnings as errors.
+- Full schema export regenerated every checked-in schema and bundle with zero
+  diff.
+- Public `Schema` definitions match selection commit `3cf5af7a`; xref reports
+  the dispatcher has only the `Schema` runtime caller.
+- Format, changed/new-file whitespace, and `git diff --check` passed.
+- Independent review confirmed exact context values and ordering, preserved
+  eager calendar-provider entry evaluation and lazy relay/allocation
+  dependencies, untouched adjacent dispatchers, then reran all proof clean.
 
 Behavior/schema changes:
 None intended.
+
+Outcome:
+Station-calendar provider, relay data-path summary, and contact-allocation
+report routing now delegates to `StandaloneCommunicationsPropertyDispatch`.
+Implementation published as `3f05cbe7`.
 
 Last completed slice:
 Ground-network report schema dispatch published as implementation `12c5485e`
