@@ -9,43 +9,41 @@ Current slice:
 Timeline command-window context extraction.
 
 Status:
-Selection recorded; implementation has not started.
+Implementation published in `4658c14f`; handoff publication pending.
 
-Selected boundary:
-Move the private command-window activity-type constant,
-`activity_command_window_context/1`, relevance checks, explicit/nested/metadata
-ID and type lookup, ID inference, and type inference into
-`Timeline.CommandWindowContext.build/2`. `Timeline` retains every public
-function and supplies shared activity-ID and compaction helpers as callbacks.
+Completed boundary:
+`Timeline.CommandWindowContext.build/2` now owns the private activity-type
+constant, exact two-key projection, relevance predicates, explicit/nested/
+metadata ID and type precedence, ID inference, and ordered type inference.
+`Timeline` retains every public function and two shared helpers behind
+callbacks. The facade dropped from 9,269 to 9,223 lines.
 
-Why this slice:
-The reduced 9,269-line Timeline facade still owns this compact, self-contained
-projection. The approximately 52-line cluster has one responsibility, two
-callers, a private-only constant, focused regression/diff coverage, and only
-two shared dependencies. It is a clean small seam before remapping the larger
+Selection:
+Selected and published in `d9f4a2e0` as a compact clean seam before the larger
 precondition and transition regions.
 
-Planned proof:
-- Focused Timeline tests covering inferred and explicit command-window
-  provenance and command-window-sensitive diffs.
-- Full Timeline and Timeline schema-contract suites.
-- Strict warnings-as-errors compile.
-- Canonical AST equivalence for the exact projection, private constant, and
-  every moved clause after normalizing only callback boundaries.
-- Format, diff, whitespace, ownership, caller, public-definition, and xref
-  checks.
-- Independent read-only review before publication.
+Verification:
+- Pre-change and post-change focused Timeline cases: 3/3.
+- Full Timeline suite: 127/127.
+- Timeline schema-contract suites: 36/36.
+- Strict warnings-as-errors compile: 3,714 files.
+- Private activity-type constant exact; canonical AST equivalence across all
+  12 moved clauses after normalizing only callback boundaries.
+- Public-definition hash unchanged; format, diff, whitespace, ownership,
+  caller, and xref checks clean; xref reports only Timeline.
+- Independent review: no code findings. Relevance ordering, ID precedence and
+  empty-ID behavior, type precedence and inference, callbacks, consumers, API,
+  schema shape, ownership, and determinism are exact.
 
 Behavior/schema changes:
-None intended. No schema-generation boundary is selected, so export
-regeneration should not be required.
+None. No schema-generation boundary changed, so export regeneration was not
+required.
 
 Last completed slice:
-Timeline execution-uncertainty context extraction, implementation published in
-`b2b15284` and handoff published in `5e28e4c1`.
+Timeline command-window context extraction, published in `4658c14f`.
 
 Next candidate:
-Remap the reduced Timeline facade after this slice, emphasizing the larger
+Remap the reduced Timeline facade, emphasizing the larger
 activity-precondition and transition-integrity regions.
 
 Blocked:
