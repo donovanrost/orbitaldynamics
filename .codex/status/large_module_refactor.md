@@ -9,7 +9,7 @@ Current slice:
 Timeline lifecycle-event policy extraction.
 
 Status:
-Selection recorded; implementation has not started.
+Implementation published in `a9c981ad`; focused and broad proof is green.
 
 Selected boundary:
 Move lifecycle-event replacement derivation, review-transition precedence, and
@@ -19,34 +19,33 @@ normalization, preserved-status handling, and operator-review classification
 remain Timeline-owned callbacks.
 
 Why this slice:
-The reduced Timeline facade is 7,332 lines. These four exclusive clauses form
-the policy used only by `apply_lifecycle_event/3`: event-to-replacement mapping,
-status-before-approval review precedence, and deterministic provenance
-selection. The boundary leaves the public helper orchestration and all shared
-normalization/state semantics in Timeline.
+The extraction moved four clauses into a 66-line internal module and reduced
+Timeline from 7,332 to 7,305 lines. The four private entry points preserve the
+public lifecycle-helper orchestration and all shared normalization/state
+semantics.
 
-Planned proof:
-- Focused lifecycle helper examples covering safe application, unsafe status
-  and approval transitions, preserved terminal status, aliases, and provenance.
-- Full Timeline and Timeline schema-contract suites.
-- Strict warnings-as-errors compile.
-- Canonical AST equivalence for all four moved clauses after normalizing only
-  the four facade names and callback boundaries.
-- Format, diff, whitespace, ownership, exactly-four-facade, unchanged Timeline
-  public-definition, and xref checks.
-- Independent read-only review before publication.
+Completed proof:
+- Focused lifecycle helper example: 1 passed.
+- Full Timeline suite: 127 passed.
+- Timeline schema-contract suites: 36 passed.
+- Strict warnings-as-errors compile: 3,731 files.
+- Canonical AST equivalence: all four moved clauses after normalizing only the
+  four facade names and callback boundaries.
+- Format, whitespace, ownership, exactly-four-facade, unchanged Timeline public
+  definitions, and xref checks passed.
+- Independent read-only review found no findings.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline transition-application integrity orchestration extraction, selected in
-`4faa56ed`, implemented in `67195816`, and handed off in `62d96609`.
+Timeline lifecycle-event policy extraction, selected in `1599ab57` and
+implemented in `a9c981ad`.
 
 Next candidate:
-Remap the reduced Timeline facade after this slice, emphasizing activity
-normalization and lifecycle application.
+Remap the reduced 7,305-line Timeline facade, emphasizing activity normalization
+and lifecycle application.
 
 Blocked:
 No.
