@@ -1858,39 +1858,33 @@ defmodule OrbitalDynamics.Timeline do
     |> sorted_uniq()
   end
 
-  defp publication_dependency_impact_summary(%{} = summary) do
-    summary
-    |> stringify_keys()
-    |> case do
-      %{"schema_contract" => @dependency_impact_summary_schema_contract} = summary -> summary
-      %{"model" => "artifact_only_timeline_dependency_impact_summary"} = summary -> summary
-      _summary -> %{}
-    end
+  defp publication_dependency_impact_summary(summary) do
+    OrbitalDynamics.Timeline.PublicationSourceSummaryPolicy.publication_dependency_impact_summary(
+      summary,
+      &stringify_keys/1,
+      @dependency_impact_summary_schema_contract
+    )
   end
 
-  defp publication_dependency_impact_summary(_summary), do: %{}
-
-  defp publication_optional_source_timeline_dependency_impact_summary(%{} = summary)
-       when map_size(summary) > 0,
-       do: summary
-
-  defp publication_optional_source_timeline_dependency_impact_summary(_summary), do: nil
-
-  defp publication_timeline_diff_summary(%{} = summary) do
-    summary
-    |> stringify_keys()
-    |> case do
-      %{"schema_contract" => @diff_summary_schema_contract} = summary -> summary
-      %{"model" => "artifact_only_timeline_diff_summary"} = summary -> summary
-      _summary -> %{}
-    end
+  defp publication_optional_source_timeline_dependency_impact_summary(summary) do
+    OrbitalDynamics.Timeline.PublicationSourceSummaryPolicy.publication_optional_source_timeline_dependency_impact_summary(
+      summary
+    )
   end
 
-  defp publication_timeline_diff_summary(_summary), do: %{}
+  defp publication_timeline_diff_summary(summary) do
+    OrbitalDynamics.Timeline.PublicationSourceSummaryPolicy.publication_timeline_diff_summary(
+      summary,
+      &stringify_keys/1,
+      @diff_summary_schema_contract
+    )
+  end
 
-  defp publication_optional_source_timeline_diff_summary(summary) when summary == %{}, do: nil
-
-  defp publication_optional_source_timeline_diff_summary(summary), do: summary
+  defp publication_optional_source_timeline_diff_summary(summary) do
+    OrbitalDynamics.Timeline.PublicationSourceSummaryPolicy.publication_optional_source_timeline_diff_summary(
+      summary
+    )
+  end
 
   defp publication_id_list(nil), do: nil
 
