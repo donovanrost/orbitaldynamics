@@ -9,36 +9,37 @@ Current slice:
 Timeline activity-link context extraction.
 
 Status:
-Selected; implementation has not started.
+Implemented, verified, independently reviewed, committed, and pushed.
 
-Selected boundary:
-Move activity link-profile and link-quality context construction into a
-dedicated module. Keep one private Timeline facade for its two coordinator
-consumers and route scalar, numeric, boolean, and compaction dependencies
-directly.
+Completed boundary:
+Moved activity link-profile and link-quality context construction into the
+58-line `Timeline.ActivityLinkContext`. The 5,554-line Timeline retains one
+private facade for its two coordinator consumers.
 
-Selection evidence:
-- The builder owns protocol/band/modulation/coding/polarization; planned and
-  actual rate variants; delivered/received rates; duration variants; margin,
-  SNR, Eb/No, error/loss rates; carrier/symbol locks; quality status.
-- Its two consumers are the operational row and valid activity-context
-  coordinators.
-- Direct existing policies satisfy the boundary without Timeline callbacks.
-- The extraction should materially reduce the current 5,585-line Timeline.
-- Throughput, precondition, execution uncertainty, command window, resource,
-  orientation, public API, and schema remain outside the boundary.
+Published commits:
+Selected in `a47755aa` and implemented in `37bd9f8e`.
 
 Verification:
-Pending: focused baseline, implementation, strict compile, focused/full tests,
-contracts, structural/static checks, and independent review.
+- Strict warnings-as-errors compile passed across 3,793 files.
+- The comprehensive link profile/quality example passed before and after
+  extraction.
+- Full Timeline suite passed with 127 examples; Timeline schema-contract suites
+  passed with 36 examples.
+- Canonical AST equivalence passed for the builder after normalizing only its
+  public name and definition kind.
+- Format, diff, exactly-one-facade, two-consumer, unchanged public definitions,
+  sole-consumer, and xref checks passed.
+- Independent review found no production issues and confirmed all 29 fields,
+  aliases, ordering, numeric/boolean semantics, compaction, adapters, and
+  neighbor isolation.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline activity-resource context extraction, selected in `45680c40`,
-implemented in `d4ba542c`, and handed off in `b3901475`.
+Timeline activity-link context extraction, selected in `a47755aa` and
+implemented in `37bd9f8e`.
 
 Next candidate:
 Continue remapping the reduced Timeline facade.
