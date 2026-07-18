@@ -9,57 +9,50 @@ Current slice:
 CadenceImport strategy-recommendation manifest-row builder extraction.
 
 Status:
-Slice selected; selection publication pending.
+Implementation `1126b2ac` published; verified handoff publication pending.
 
-Selected slice:
-Move `strategy_recommendation_manifest_row/2` into internal
-`CadenceImport.StrategyRecommendationManifestRow.build/3`. Keep public
-`RecommendationRiskContext` catalogs referenced directly and inject only the
-six shared facade helpers for review action, adapter status, three branch field
-catalogs, and compact-map cleanup.
+Completed slice:
+Moved the strategy-recommendation manifest row projection and ordered context
+merge pipeline into internal
+`CadenceImport.StrategyRecommendationManifestRow.build/3`. The facade now
+injects only six shared review/status/branch-catalog/compaction callbacks.
 
 Why this slice:
-`CadenceImport` is 7,827 lines. The strategy-recommendation row builder is a
-379-line transformation with 200 direct projection keys, 30 shared
-`RecommendationRiskContext` catalog merges, and one facade caller.
+`CadenceImport` was 7,827 lines. The builder was a 379-line transformation with
+200 direct projection keys and 30 risk-context catalog merges.
+`CadenceImport` is now 7,460 lines.
 
-Current coupling/problem:
-The main artifact adapter embeds a large strategy-recommendation projection and
-its long ordered context-merge pipeline alongside every other source family’s
-manifest transformation.
+Published commits:
+- Selection: `6f9fb251`
+- Implementation: `1126b2ac`
+- Handoff: pending
 
-Public facade to preserve:
-All `CadenceImport` APIs; strategy-recommendation row keys and value
-expressions; all 30 context catalog merges and their order; branch field merges;
-defaults, import status/action, compaction, deterministic output, and artifact
+Preserved facade and behavior:
+All `CadenceImport` APIs; all 200 strategy-recommendation keys and value
+expressions; exact 34-stage merge/compaction order; defaults, import
+status/action, collision precedence, deterministic output, and artifact
 contracts.
 
-Likely files:
-- `lib/orbital_dynamics/cadence_import.ex`
-- `lib/orbital_dynamics/cadence_import/strategy_recommendation_manifest_row.ex`
-- `.codex/status/large_module_refactor.md`
-
-Definition of done:
-The internal builder owns the exact 200-key projection and ordered merge
-pipeline; the facade supplies only six same-purpose callbacks; focused
-Cadence-import and schema-contract tests pass; strict warnings-as-errors
-compile, projection/merge equivalence, public API checks, and independent
-review are clean.
+Verification:
+- Full Cadence-import tests plus schema Cadence-import contracts: 100/100.
+- Strict warnings-as-errors compile: 3,674 files.
+- Whole-builder AST comparison after callback normalization: exact.
+- Projection comparison: 200/200 keys and expressions, zero mismatches.
+- Pipeline comparison: exact 30 risk-context merges, three branch-field merges,
+  and final compaction.
+- Six shared facade callbacks: exact names, purposes, and arities.
+- Strategy-recommendation dispatch and public `CadenceImport` definitions:
+  unchanged.
+- Format, whitespace, diff, xref caller, and independent read-only review:
+  clean.
+- Schema export not rerun: no schema-generation code or schema artifacts
+  changed.
 
 Verification gaps:
-- Focused baseline, implementation proof, strict compile, and independent
-  review remain.
-
-Tests run:
-- None yet for this selected slice.
+None for this slice.
 
 Behavior/schema changes:
-None intended.
-
-Last completed slice:
-CadenceImport realized-feedback row builder published as implementation
-`44f84e10` and handoff `672fa031`: focused 100/100, strict 3,673-file compile,
-exact 435-entry AST comparison, independent behavior matrix, and review passed.
+None.
 
 Next candidate:
 Remap the reduced `CadenceImport` module and select the next source-specific
