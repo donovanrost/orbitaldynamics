@@ -9,42 +9,44 @@ Current slice:
 Timeline duplicate-identity annotation extraction.
 
 Status:
-Selected; implementation has not started.
+Implemented, verified, independently reviewed, committed, and pushed.
 
-Selected boundary:
-Move duplicate timeline-identity group detection, row mapping, collision
+Completed boundary:
+Moved duplicate timeline-identity group detection, row mapping, collision
 annotation fields, superseded action preservation, and compact-map cleanup into
-a dedicated annotation module. Keep one private Timeline facade used by
-operational reports, normalized activity lists, and diff preparation.
+the 45-line `Timeline.DuplicateTimelineIdentityAnnotation`. The 5,970-line
+Timeline retains one private facade used by operational reports, normalized
+activity lists, and diff preparation.
 
-Selection evidence:
-- The boundary is two adjacent private helpers at Timeline lines 4,908-4,942.
-- All three call sites consume the same annotated row list; no public API or
-  coordinator contract changes are needed.
-- Existing `IdentityGroupingPolicy.rows_by_timeline_id/1` and
-  `ArtifactValueEncodingPolicy.compact/1` provide the only dependencies
-  directly, so the extraction requires no callbacks.
-- The extraction should replace roughly 35 helper lines with one thin facade,
-  reducing the current 6,000-line Timeline.
-- Timeline integrity annotation, diff-row construction, count summaries,
-  operational row construction, and schema logic remain outside the boundary.
+Published commits:
+Selected in `bbc879ed` and implemented in `6c6b6a86`.
 
 Verification:
-Pending: focused baseline, implementation, strict compile, focused and full
-Timeline tests, schema-contract tests, canonical AST equivalence, static
-ownership/facade/public-definition/xref checks, and independent review.
+- Strict warnings-as-errors compile passed across 3,787 files.
+- Three focused operational-report, normalized-list, and diff-propagation
+  duplicate-identity examples passed before and after extraction.
+- Full Timeline suite passed with 127 examples; Timeline schema-contract suites
+  passed with 36 examples.
+- Canonical AST equivalence passed for both moved definitions after normalizing
+  only the public coordinator name and public/private definition kind.
+- Format, diff, whitespace, exactly-one-facade, three-call-site, singular-helper
+  removal, unchanged Timeline public-definition, sole-production-consumer, and
+  xref checks passed.
+- Independent read-only review found no production-code issues and confirmed
+  exact grouping/filtering, row order, passthrough, activity-ID preservation,
+  annotation fields, superseded values, replacement actions, and compaction.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline candidate-rejection derived-reason policy extraction, selected in
-`082c5ac9`, implemented in `631d8f84`, and handed off in `5e256d75`.
+Timeline duplicate-identity annotation extraction, selected in `bbc879ed` and
+implemented in `6c6b6a86`.
 
 Next candidate:
-Implement and verify this selected boundary before remapping the reduced
-Timeline facade.
+Continue remapping the reduced Timeline facade after this slice, avoiding wide
+report and activity-context map coordinator callback surfaces.
 
 Blocked:
 No.
