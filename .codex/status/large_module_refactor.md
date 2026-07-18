@@ -9,7 +9,7 @@ Current slice:
 Schema candidate-refresh family property-dispatch extraction.
 
 Status:
-Slice selected; selection publication pending.
+Implementation published as `872b34a8`; handoff publication pending.
 
 Selected slice:
 Move JSON-property dispatch/context assembly for candidate-diff report,
@@ -44,13 +44,30 @@ and export tests pass; strict compile, full byte-clean schema regeneration, and
 independent review are clean.
 
 Verification gaps:
-- Focused baseline, strict compile, export proof, and independent review remain.
+- None for this slice. Full checked-in schema regeneration is byte-identical.
+- Independent review was clean. No API, schema, export, ordering,
+  error-behavior, ownership, or behavioral finding remains.
 
 Tests run:
-- None yet for this selected slice.
+- Baseline and post-change focused candidate-refresh/provenance/export subset:
+  26 passed with warnings as errors.
+- Strict forced compile: 3,661 files clean with warnings as errors.
+- Full schema export regenerated every checked-in schema and bundle with zero
+  diff.
+- Public `Schema` definitions match selection commit `4d19e4bb`; xref reports
+  the dispatcher has only the `Schema` runtime caller.
+- Format, changed/new-file whitespace, and `git diff --check` passed.
+- Independent review confirmed exact contract-name predicates and lazy context
+  order, unchanged adjacent and distant main candidate-refresh routes, then
+  reran all proof clean.
 
 Behavior/schema changes:
 None intended.
+
+Outcome:
+Candidate-diff report/family and the four auxiliary refresh-state report routes
+now delegate to `CandidateRefreshPropertyDispatch`. Implementation published as
+`872b34a8`.
 
 Last completed slice:
 Planning-analysis schema dispatch published as implementation `01f7840e` and
