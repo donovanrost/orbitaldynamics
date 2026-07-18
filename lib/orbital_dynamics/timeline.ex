@@ -3400,66 +3400,47 @@ defmodule OrbitalDynamics.Timeline do
   end
 
   defp temperature_c(activity) do
-    first_number(activity, ["temperature_c", "temp_c"])
+    OrbitalDynamics.Timeline.ActivityThermalMetricPolicy.temperature_c(
+      activity,
+      &first_number/2
+    )
   end
 
   defp planned_temperature_c(activity) do
-    first_number(activity, [
-      "planned_temperature_c",
-      "planned_temp_c",
-      "predicted_temperature_c",
-      "estimated_temperature_c"
-    ])
+    OrbitalDynamics.Timeline.ActivityThermalMetricPolicy.planned_temperature_c(
+      activity,
+      &first_number/2
+    )
   end
 
   defp actual_temperature_c(activity) do
-    first_number(activity, [
-      "actual_temperature_c",
-      "actual_temp_c",
-      "measured_temperature_c",
-      "measured_temp_c"
-    ])
+    OrbitalDynamics.Timeline.ActivityThermalMetricPolicy.actual_temperature_c(
+      activity,
+      &first_number/2
+    )
   end
 
   defp min_operating_temperature_c(activity) do
-    first_number(activity, [
-      "min_operating_temperature_c",
-      "minimum_operating_temperature_c",
-      "min_temperature_c"
-    ])
+    OrbitalDynamics.Timeline.ActivityThermalMetricPolicy.min_operating_temperature_c(
+      activity,
+      &first_number/2
+    )
   end
 
   defp max_operating_temperature_c(activity) do
-    first_number(activity, [
-      "max_operating_temperature_c",
-      "maximum_operating_temperature_c",
-      "max_temperature_c"
-    ])
+    OrbitalDynamics.Timeline.ActivityThermalMetricPolicy.max_operating_temperature_c(
+      activity,
+      &first_number/2
+    )
   end
 
   defp thermal_margin_c(activity, observed_temperature_c) do
-    first_number(activity, ["thermal_margin_c", "temperature_margin_c"]) ||
-      derived_thermal_margin_c(
-        observed_temperature_c,
-        min_operating_temperature_c(activity),
-        max_operating_temperature_c(activity)
-      )
+    OrbitalDynamics.Timeline.ActivityThermalMetricPolicy.thermal_margin_c(
+      activity,
+      observed_temperature_c,
+      &first_number/2
+    )
   end
-
-  defp derived_thermal_margin_c(temperature_c, min_c, max_c)
-       when is_number(temperature_c) and is_number(min_c) and is_number(max_c) do
-    min(temperature_c - min_c, max_c - temperature_c)
-  end
-
-  defp derived_thermal_margin_c(temperature_c, nil, max_c)
-       when is_number(temperature_c) and is_number(max_c),
-       do: max_c - temperature_c
-
-  defp derived_thermal_margin_c(temperature_c, min_c, nil)
-       when is_number(temperature_c) and is_number(min_c),
-       do: temperature_c - min_c
-
-  defp derived_thermal_margin_c(_temperature_c, _min_c, _max_c), do: nil
 
   defp collection_ends_at_s(activity) do
     first_number(activity, [
