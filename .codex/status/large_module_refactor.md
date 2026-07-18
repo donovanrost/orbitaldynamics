@@ -6,46 +6,46 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline lifecycle-event policy extraction.
+Timeline activity-identity normalization policy extraction.
 
 Status:
-Implementation published in `a9c981ad`; focused and broad proof is green.
+Selection recorded; implementation has not started.
 
 Selected boundary:
-Move lifecycle-event replacement derivation, review-transition precedence, and
-provenance field/transition selection into `Timeline.LifecycleEventPolicy`.
-`Timeline` retains the four existing private entry points. Lifecycle-event
-normalization, preserved-status handling, and operator-review classification
-remain Timeline-owned callbacks.
+Move spacecraft, ground-station, and target identity canonicalization plus the
+exclusive nested-identity lookup helpers into
+`Timeline.ActivityIdentityNormalizationPolicy`. `Timeline` retains the three
+normalization entry points used by `activity_to_map/1`.
 
 Why this slice:
-The extraction moved four clauses into a 66-line internal module and reduced
-Timeline from 7,332 to 7,305 lines. The four private entry points preserve the
-public lifecycle-helper orchestration and all shared normalization/state
-semantics.
+The reduced Timeline facade is 7,305 lines. These 11 exclusive clauses own the
+precedence from canonical IDs to aliases to nested provider objects for the
+three activity identity dimensions. The boundary preserves pipeline order and
+leaves string encoding and downstream timeline-identity construction
+unchanged.
 
-Completed proof:
-- Focused lifecycle helper example: 1 passed.
-- Full Timeline suite: 127 passed.
-- Timeline schema-contract suites: 36 passed.
-- Strict warnings-as-errors compile: 3,731 files.
-- Canonical AST equivalence: all four moved clauses after normalizing only the
-  four facade names and callback boundaries.
-- Format, whitespace, ownership, exactly-four-facade, unchanged Timeline public
-  definitions, and xref checks passed.
-- Independent read-only review found no findings.
+Planned proof:
+- Focused Timeline examples for nested spacecraft/satellite, station aliases
+  and objects, target objects, and changed spacecraft assignment.
+- Full Timeline and Timeline schema-contract suites.
+- Strict warnings-as-errors compile.
+- Canonical AST equivalence for all 11 moved clauses after normalizing only the
+  three facade names.
+- Format, diff, whitespace, ownership, exactly-three-facade, unchanged Timeline
+  public-definition, and xref checks.
+- Independent read-only review before publication.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline lifecycle-event policy extraction, selected in `1599ab57` and
-implemented in `a9c981ad`.
+Timeline lifecycle-event policy extraction, selected in `1599ab57`, implemented
+in `a9c981ad`, and handed off in `06a3b36c`.
 
 Next candidate:
-Remap the reduced 7,305-line Timeline facade, emphasizing activity normalization
-and lifecycle application.
+Remap the reduced Timeline facade after this slice, emphasizing activity
+normalization and lifecycle application.
 
 Blocked:
 No.
