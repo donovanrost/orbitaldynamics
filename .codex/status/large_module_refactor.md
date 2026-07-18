@@ -9,7 +9,7 @@ Current slice:
 Timeline lifecycle-state decision policy extraction.
 
 Status:
-Selection recorded; implementation has not started.
+Implementation published in `8c570e68`; focused and broad proof is green.
 
 Selected boundary:
 Move the complete status/approval/lifecycle decision and operator-action policy
@@ -20,33 +20,32 @@ construction. The shared deterministic `sorted_uniq/1` behavior is supplied as
 one callback to the two aggregators.
 
 Why this slice:
-The reduced Timeline facade is 7,852 lines. This approximately 115-line cluster
-has one cohesive lifecycle-decision responsibility, 27 clauses, and three
-exclusive protection helpers. The 11 facade entry points preserve all current
-status, approval, and combined-lifecycle artifact callers.
+The extraction moved 27 clauses into a 127-line internal module and reduced
+Timeline from 7,852 to 7,813 lines. The 11 facade entry points preserve all
+current status, approval, and combined-lifecycle artifact callers.
 
-Planned proof:
-- Focused Timeline tests for status state, approval state, combined lifecycle
-  state, and lifecycle summaries.
-- Full Timeline and Timeline schema-contract suites.
-- Strict warnings-as-errors compile.
-- Canonical AST equivalence for all 27 moved clauses after normalizing only
-  facade names and the `sorted_uniq/1` callback boundary.
-- Format, diff, whitespace, ownership, exactly-11-facade, unchanged Timeline
-  public-definition, and xref checks.
-- Independent read-only review before publication.
+Completed proof:
+- Focused lifecycle-state examples: 4 passed.
+- Full Timeline suite: 127 passed.
+- Timeline schema-contract suites: 36 passed.
+- Strict warnings-as-errors compile: 3,720 files.
+- Canonical AST equivalence: all 27 moved clauses after normalizing only facade
+  names and the `sorted_uniq/1` callback boundary.
+- Format, whitespace, ownership, exactly-11-facade, unchanged Timeline public
+  definitions, and xref checks passed.
+- Independent read-only review found no findings.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline transition-application policy extraction, selected in `88e2b690` and
-implemented in `4c8c2d03`, with handoff published in `a5124032`.
+Timeline lifecycle-state decision policy extraction, selected in `4fdafc43` and
+implemented in `8c570e68`.
 
 Next candidate:
-Remap the reduced Timeline facade after this slice, emphasizing operational
-action classification and transition-decision summarization.
+Remap the reduced 7,813-line Timeline facade, emphasizing operational action
+classification and transition-decision summarization.
 
 Blocked:
 No.
