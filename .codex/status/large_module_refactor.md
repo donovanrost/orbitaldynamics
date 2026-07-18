@@ -9,7 +9,7 @@ Current slice:
 Timeline lifecycle-transition review policy extraction.
 
 Status:
-Selection recorded; implementation has not started.
+Implementation published in `b16a898a`; focused and broad proof is green.
 
 Selected boundary:
 Move status/approval transition review classification, shared review metadata
@@ -20,33 +20,33 @@ and existing unsupported/repairable predicates cross the boundary explicitly;
 transition assembly and lifecycle categories remain Timeline-owned.
 
 Why this slice:
-The reduced Timeline facade is 6,918 lines. These nine clauses own the
-precedence-sensitive review vocabulary for added, removed, and changed status
-or approval values. The boundary keeps transition object assembly separate
-while consolidating review decisions and reasons.
+The extraction moved nine clauses into a 194-line internal module and reduced
+Timeline from 6,918 to 6,791 lines. Three private entry points preserve status
+review, approval review, and operator-review detection callers while transition
+assembly and lifecycle categories remain Timeline-owned.
 
-Planned proof:
-- Focused Timeline transition-helper examples covering safe/unsafe status and
-  approval changes, lifecycle events, unsupported values, and review detection.
-- Full Timeline and Timeline schema-contract suites.
-- Strict warnings-as-errors compile.
-- Canonical AST equivalence for all nine moved clauses after normalizing only
-  the three facade names, constant arguments, and predicate callbacks.
-- Format, diff, whitespace, ownership, exactly-three-facade, unchanged Timeline
-  public-definition, and xref checks.
-- Independent read-only review before publication.
+Completed proof:
+- Focused lifecycle-transition review examples: 2 passed.
+- Full Timeline suite: 127 passed.
+- Timeline schema-contract suites: 36 passed.
+- Strict warnings-as-errors compile: 3,739 files.
+- Canonical AST equivalence: all nine moved clauses after normalizing only the
+  three facade names, constant arguments, and predicate callbacks.
+- Format, whitespace, ownership, exactly-three-facade, unchanged Timeline public
+  definitions, and xref checks passed.
+- Independent read-only review found no findings.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline contact-direction normalization policy extraction, selected in
-`81c89fc5`, implemented in `6bc2d557`, and handed off in `10ad0dcd`.
+Timeline lifecycle-transition review policy extraction, selected in `f1b8de8b`
+and implemented in `b16a898a`.
 
 Next candidate:
-Remap the reduced Timeline facade after this slice, emphasizing lifecycle
-transition assembly and remaining activity normalization.
+Remap the reduced 6,791-line Timeline facade, emphasizing lifecycle transition
+assembly and remaining activity normalization.
 
 Blocked:
 No.
