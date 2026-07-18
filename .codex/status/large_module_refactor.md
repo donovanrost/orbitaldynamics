@@ -9,54 +9,43 @@ Current slice:
 Timeline integrity annotation extraction.
 
 Status:
-Implementation in progress; initial compile exposed one shared helper boundary
-that is being corrected before verification.
+Implementation published in `c32fa811`; handoff publication pending.
 
-Selected boundary:
-Move `annotate_timeline_integrity_rows/2` and the complete integrity engine
-through `issue_value/2` into `Timeline.IntegrityAnnotation.annotate/3`:
-activity/timeline dependency validation, missing/self/duplicate/cycle/order
-issues, explicit and group exclusivity overlaps, issue aggregation, operator
-routing/supersession, and deterministic ID/type evidence. `Timeline` retains
-all public functions and supplies shared issue construction, list lookup, and
-map compaction callbacks. Duplicate timeline-identity annotation remains in
-the facade as a separate responsibility.
+Completed boundary:
+`Timeline.IntegrityAnnotation.annotate/3` now owns missing/self/duplicate/cycle/
+order dependency validation, explicit/group exclusivity, issue aggregation,
+and integrity routing/supersession. `Timeline` retains every public function,
+duplicate-identity annotation, and three shared helpers behind callbacks. The
+facade dropped from 8,930 to 8,564 lines.
 
-Why this slice:
-The reduced Timeline facade is 8,930 lines. This approximately 378-line region
-has one cohesive responsibility, six facade callers, no module-attribute
-dependencies, three shared helper dependencies, and dense focused coverage.
-Keeping duplicate timeline identity separate makes the boundary match
-dependency/exclusivity integrity rather than unrelated collision routing.
+Selection and correction:
+Selected in `00c11dcc`. Initial compile exposed shared `issue/2` use by invalid
+input normalization; the corrected three-callback boundary was published in
+`cac43933` before successful compile.
 
-Boundary correction:
-The initial strict compile exposed that `issue/2` is also used by invalid-input
-normalization outside the selected block. It therefore remains in Timeline
-and is injected into the integrity module alongside list lookup and
-compaction.
-
-Planned proof:
-- Focused Timeline tests covering missing, self, duplicate, cyclic, and
-  order-violating dependencies; explicit/group exclusivity; timeline-ID
-  evidence; and normalized selected-activity annotations.
-- Full Timeline and Timeline schema-contract suites.
-- Strict warnings-as-errors compile.
-- Canonical AST equivalence for every moved clause after normalizing only the
-  three callback boundaries.
-- Format, diff, whitespace, ownership, six-caller, public-definition, and xref
-  checks.
-- Independent read-only review before publication.
+Verification:
+- Pre-change and post-change focused Timeline cases: 6/6.
+- Full Timeline suite: 127/127.
+- Timeline schema-contract suites: 36/36.
+- Strict warnings-as-errors compile: 3,716 files.
+- Canonical AST equivalence: exact annotator and all 24 moved clauses after
+  normalizing only three callback boundaries.
+- Six callers and public-definition hash unchanged; format, diff, whitespace,
+  ownership, caller, and xref checks clean; xref reports only Timeline.
+- Independent review: no code findings. Issue ordering, dependency precedence,
+  graph/cycle recursion, ordering and overlap rules, aggregation/sorting,
+  supersession, callbacks, callers, API, schema shape, ownership, and
+  determinism are exact.
 
 Behavior/schema changes:
-None intended. No schema-generation boundary is selected, so export
-regeneration should not be required.
+None. No schema-generation boundary changed, so export regeneration was not
+required.
 
 Last completed slice:
-Timeline activity-precondition context extraction, implementation published in
-`91250c45` and handoff published in `f6fae270`.
+Timeline integrity annotation extraction, published in `c32fa811`.
 
 Next candidate:
-Remap the reduced Timeline facade after this slice, emphasizing diff-row and
+Remap the reduced Timeline facade, emphasizing diff-row and
 transition-application construction.
 
 Blocked:
