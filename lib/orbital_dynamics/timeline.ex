@@ -5778,81 +5778,50 @@ defmodule OrbitalDynamics.Timeline do
   end
 
   defp timeline_lifecycle_event!(event) do
-    normalized = normalize_lifecycle_value(event)
-
-    cond do
-      aliased_event = Map.get(lifecycle_event_aliases(), normalized) ->
-        aliased_event
-
-      normalized in @lifecycle_events ->
-        normalized
-
-      true ->
-        raise ArgumentError, "lifecycle event must be one of #{inspect(@lifecycle_events)}"
-    end
-  end
-
-  defp lifecycle_event_aliases do
-    OrbitalDynamics.MissionPlan.Activity.capabilities().lifecycle_event_aliases
-    |> Map.new(fn {alias_value, event} -> {alias_value, Atom.to_string(event)} end)
+    OrbitalDynamics.Timeline.LifecycleStateNormalizationPolicy.lifecycle_event!(
+      event,
+      @lifecycle_events,
+      &encode_value/1
+    )
   end
 
   defp maybe_put_lifecycle_status_unless_preserved(activity, status) do
-    if activity_status(activity) in (@executed_statuses ++ @terminal_exception_statuses) do
-      activity
-    else
-      Map.put(activity, "status", status)
-    end
+    OrbitalDynamics.Timeline.LifecycleStateNormalizationPolicy.maybe_put_status_unless_preserved(
+      activity,
+      status,
+      @executed_statuses,
+      @terminal_exception_statuses,
+      &encode_value/1
+    )
   end
 
   defp activity_status(activity) do
-    activity
-    |> Map.get("status", get_in(activity, ["metadata", "status"]) || "planned")
-    |> normalize_activity_status_value()
+    OrbitalDynamics.Timeline.LifecycleStateNormalizationPolicy.activity_status(
+      activity,
+      &encode_value/1
+    )
   end
 
   defp activity_approval_status(activity) do
-    activity
-    |> Map.get(
-      "approval_status",
-      get_in(activity, ["metadata", "approval_status"]) || "not_evaluated"
+    OrbitalDynamics.Timeline.LifecycleStateNormalizationPolicy.activity_approval_status(
+      activity,
+      &encode_value/1
     )
-    |> normalize_approval_status_value()
-  end
-
-  defp normalize_lifecycle_value(value) when is_binary(value) do
-    value
-    |> String.trim()
-    |> String.downcase()
-    |> String.replace(~r/[\s-]+/, "_")
-  end
-
-  defp normalize_lifecycle_value(value) when is_atom(value) do
-    value
-    |> Atom.to_string()
-    |> normalize_lifecycle_value()
-  end
-
-  defp normalize_lifecycle_value(value), do: encode_value(value)
-
-  defp normalize_activity_status_value(value) do
-    normalized = normalize_lifecycle_value(value)
-    Map.get(activity_status_aliases(), normalized, normalized)
   end
 
   defp activity_status_aliases do
-    OrbitalDynamics.MissionPlan.Activity.capabilities().activity_status_aliases
-    |> Map.new(fn {alias_value, status} -> {alias_value, Atom.to_string(status)} end)
-  end
-
-  defp normalize_approval_status_value(value) do
-    normalized = normalize_lifecycle_value(value)
-    Map.get(approval_status_aliases(), normalized, normalized)
+    OrbitalDynamics.Timeline.LifecycleStateNormalizationPolicy.activity_status_aliases()
   end
 
   defp approval_status_aliases do
-    OrbitalDynamics.MissionPlan.Activity.capabilities().approval_status_aliases
-    |> Map.new(fn {alias_value, status} -> {alias_value, Atom.to_string(status)} end)
+    OrbitalDynamics.Timeline.LifecycleStateNormalizationPolicy.approval_status_aliases()
+  end
+
+  defp normalize_lifecycle_value(value) do
+    OrbitalDynamics.Timeline.LifecycleStateNormalizationPolicy.normalize_lifecycle_value(
+      value,
+      &encode_value/1
+    )
   end
 
   defp activity_locked?(activity) do
