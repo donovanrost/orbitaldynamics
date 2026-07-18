@@ -6327,54 +6327,23 @@ defmodule OrbitalDynamics.Timeline do
   end
 
   defp activity_timeline_id(activity) do
-    activity["timeline_id"] ||
-      activity["persistent_id"] ||
-      get_in(activity, ["metadata", "timeline_id"]) ||
-      get_in(activity, ["metadata", "persistent_id"]) ||
-      derived_timeline_id(activity)
-  end
-
-  defp derived_timeline_id(activity) do
-    [
-      "timeline",
-      activity["scenario_id"],
-      activity["type"],
-      activity_subject_id(activity),
-      activity_source_window_id(activity) || activity_start(activity)
-    ]
-    |> Enum.reject(&is_nil/1)
-    |> Enum.map(&encode_value/1)
-    |> Enum.join(":")
+    OrbitalDynamics.Timeline.ActivityIdentityPolicy.timeline_id(
+      activity,
+      &activity_start/1,
+      &encode_value/1
+    )
   end
 
   defp activity_subject_id(activity) do
-    activity["target_id"] ||
-      activity["ground_station_id"] ||
-      activity["maneuver_id"] ||
-      activity["spacecraft_id"] ||
-      activity["resource_id"]
+    OrbitalDynamics.Timeline.ActivityIdentityPolicy.subject_id(activity)
   end
 
   defp activity_source_window_id(activity) do
-    activity["source_window_id"] ||
-      get_in(activity, ["source_window", "id"]) ||
-      get_in(activity, ["source_window", "window_id"]) ||
-      get_in(activity, ["metadata", "source_window_id"]) ||
-      get_in(activity, ["metadata", "source_window", "id"]) ||
-      get_in(activity, ["metadata", "source_window", "window_id"])
+    OrbitalDynamics.Timeline.ActivityIdentityPolicy.source_window_id(activity)
   end
 
   defp activity_source_window_type(activity) do
-    activity["source_window_type"] ||
-      activity["source_window_kind"] ||
-      get_in(activity, ["source_window", "type"]) ||
-      get_in(activity, ["source_window", "kind"]) ||
-      get_in(activity, ["source_window", "window_type"]) ||
-      get_in(activity, ["metadata", "source_window_type"]) ||
-      get_in(activity, ["metadata", "source_window_kind"]) ||
-      get_in(activity, ["metadata", "source_window", "type"]) ||
-      get_in(activity, ["metadata", "source_window", "kind"]) ||
-      get_in(activity, ["metadata", "source_window", "window_type"])
+    OrbitalDynamics.Timeline.ActivityIdentityPolicy.source_window_type(activity)
   end
 
   defp dependency_activity_ids(activity) do
