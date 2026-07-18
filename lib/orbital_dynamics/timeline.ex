@@ -5211,7 +5211,9 @@ defmodule OrbitalDynamics.Timeline do
     )
   end
 
-  defp issue(type, fields), do: Map.put(fields, "type", type)
+  defp issue(type, fields) do
+    OrbitalDynamics.Timeline.IntegrityIssuePolicy.issue(type, fields)
+  end
 
   defp timeline_diff_row(timeline_id, rank, source_matches, replacement_matches) do
     OrbitalDynamics.Timeline.DiffRow.build(
