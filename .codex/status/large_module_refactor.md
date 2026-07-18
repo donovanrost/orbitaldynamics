@@ -6,62 +6,50 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline dependency-impact row policy extraction.
+Timeline dependency-impact summary policy extraction.
 
 Status:
-Completed and published.
+Selected; implementation has not started.
 
 Selected boundary:
-Move dependency-impact row construction, row inclusion, operator-action reason,
-row identity, and set intersection from the Timeline facade into one
-`DependencyImpactRowPolicy` module. Keep summary orchestration and aggregation
-in the public facade.
+Move dependency-impact source identity derivation, row-policy orchestration,
+scope/row ID aggregation, and the summary artifact map from the Timeline facade
+into one `DependencyImpactSummaryPolicy` module. Keep public guards, diff
+generation, activity normalization, schema-contract ownership, and model-limit
+ownership in the facade.
 
 Selection evidence:
-- The selected five-function cluster is used only to build the source and
-  replacement rows of `dependency_impact_summary/3`.
-- Row construction can call the already extracted collection and compact-map
-  policies directly; the facade supplies its existing `sorted_uniq/1` behavior
-  for intersection ordering.
+- The remaining three dependency-impact private helpers are used only by
+  `dependency_impact_summary/3`.
+- The extracted row policy provides the lower-level source/replacement row
+  boundary; summary assembly is now a cohesive next layer.
+- The facade can supply its existing schema contract, model limits, and
+  `sorted_uniq/1` behavior, preserving ownership and deterministic ordering.
 - Focused tests cover changed/removed activity dependencies, timeline-ID
   dependencies, combined exclusivity, clear status, facade parity, persisted
   fixtures, and schema validation.
-- Timeline is 5,319 lines; the selected cluster spans about 100 lines of
-  dependency-impact row policy.
-- Public Timeline APIs, source-identity derivation, summary aggregation,
-  capability values, report/schema shapes, field ordering, generated exports,
-  and other timeline responsibilities remain outside the boundary.
+- Timeline is 5,227 lines; the selected summary body and helpers span about 100
+  additional lines of dependency-impact responsibility.
+- Public Timeline APIs, input validation and normalization, capability values,
+  report/schema shapes, field ordering, generated exports, and other timeline
+  responsibilities remain outside the boundary.
 
 Verification:
-- Focused baseline passed 2 dependency-impact summary tests.
-- Strict warnings-as-errors compile passed 3,801 modules.
-- Focused dependency-impact summary tests passed 2 tests.
-- Full Timeline suite passed 127 tests.
-- Four Timeline schema-contract suites passed 36 tests.
-- AST conservation proved the selected five-function row policy moved exactly;
-  the only intersection change threads the facade's existing sorted-ID callback.
-- Static checks confirmed the five private functions left Timeline, the facade
-  has exactly two policy calls, the new module owns its six private helpers,
-  formatting and diff checks pass, and no temporary checker remains.
-- Independent review was clean with no correctness or maintainability findings;
-  it confirmed source-then-replacement ordering, wrapper equivalence, public
-  defs, capabilities, output structure, schema fields, and ordering are
-  unchanged.
-- Timeline decreased from 5,319 to 5,227 lines; the extracted policy is 129
-  lines.
+Pending: focused baselines, mechanical summary-policy extraction, strict
+compile, focused and full Timeline tests, schema contracts, structural/static
+checks, and independent review.
 
 Behavior/schema changes:
-None intended. Dependency-impact row maps, filtering, ID ordering, report
-aggregation, capabilities, and schema exports should remain byte-for-byte
-stable.
+None intended. Dependency-impact row order, ID ordering, summary fields,
+capabilities, and schema exports should remain byte-for-byte stable.
 
 Last completed slice:
 Timeline dependency-impact row policy extraction, selected in `bf4f2e94` and
 implemented in `ece31812`.
 
 Next candidate:
-Continue remapping the reduced Timeline facade after this row-policy boundary is
-owned.
+Continue remapping the reduced Timeline facade after the dependency-impact
+summary boundary is owned.
 
 Blocked:
 No.
