@@ -9,59 +9,48 @@ Current slice:
 Timeline diff-row construction extraction.
 
 Status:
-Implementation in progress; initial compile exposed a compile-time constant
-boundary that is being corrected before verification.
+Implementation published in `80f18ab2`; handoff publication pending.
 
-Selected boundary:
-Move all `timeline_diff_row/4` clauses and their exclusive private helpers
-through `duplicate_timeline_identity_scope/2` into
-`Timeline.DiffRow.build/5`: duplicate/add/remove/change rows, review and action
-selection, safe transition-application provenance, transition-decision
-annotation, activity-context projection, and duplicate-scope classification.
-`Timeline` retains all public functions and shared status/approval/diff-context
-helpers, supplying them through callbacks. The four private activity/status
-constants are mirrored exactly in the extracted module because Elixir guards
-require compile-time lists; Timeline retains its copies for other consumers.
+Completed boundary:
+`Timeline.DiffRow.build/5` now owns all four duplicate/add/remove/change row
+clauses plus exclusive review, safe-provenance, transition-decision,
+activity-context, and duplicate-scope helpers.
+`Timeline.DiffRow.put_transition_decision/2` preserves the second captured
+facade entry point. `Timeline` retains every public function, including the
+unchanged contact/command predicates, and supplies 17 shared callbacks. The
+two moved guard constants are mirrored exactly. The facade dropped from 8,564
+to 8,077 lines.
 
-Why this slice:
-The reduced Timeline facade is 8,564 lines. This approximately 533-line region
-has one facade caller, and every private helper it defines is exclusive to the
-diff-row constructor. The boundary requires a larger callback/data surface
-than prior slices, but it removes a substantially larger mixed responsibility
-and preserves public diff-report orchestration in Timeline.
+Selection and corrections:
+Selected in `d8c5c4e7`. Guard-required compile-time constants were corrected in
+`b05908d4`; both facade entry points and missed activity/protection callbacks
+were corrected in `bbeda85e` before successful compile.
 
-Boundary corrections:
-Initial compile confirmed that executed/protected status and command activity/
-direction lists are used in guards. Runtime selection data is invalid in those
-guards, so the extracted module mirrors the exact private constants instead.
-The next compile exposed the existing `put_transition_decision/1` facade
-caller through a function capture plus shared `activity_context/1` and
-`approval_protected?/1` dependencies. Both facade entry points therefore use
-one shared callback list.
-
-Planned proof:
-- Focused Timeline tests covering duplicate identities, added/removed/
-  unchanged/changed rows, protected/executed routing, command/contact review,
-  context-sensitive changes, blocked transitions, and safe helper provenance.
-- Full Timeline and Timeline schema-contract suites.
-- Strict warnings-as-errors compile.
-- Canonical AST equivalence for every moved clause after normalizing only
-  callback boundaries and verifying the mirrored constants exactly.
-- Format, diff, whitespace, ownership, two-caller, public-definition, and
-  xref checks.
-- Independent read-only review before publication.
+Verification:
+- Pre-change and post-change focused Timeline cases: 8/8.
+- Full Timeline suite: 127/127.
+- Timeline schema-contract suites: 36/36.
+- Strict warnings-as-errors compile: 3,717 files.
+- Canonical AST equivalence: all 39 moved clauses after normalizing only
+  callback boundaries; both mirrored guard constants are exact.
+- Both callers and public-definition hash unchanged; format, diff, whitespace,
+  ownership, caller, and xref checks clean; xref reports only Timeline.
+- Independent review: no code findings. Duplicate/add/remove/change routing,
+  protected/executed/blocked semantics, safe provenance, transition decisions,
+  projections, callback wiring, public predicates, API, schema shape, order,
+  determinism, and ownership are exact. Its constant-count documentation note
+  is resolved here.
 
 Behavior/schema changes:
-None intended. No schema-generation boundary is selected, so export
-regeneration should not be required.
+None. No schema-generation boundary changed, so export regeneration was not
+required.
 
 Last completed slice:
-Timeline integrity annotation extraction, implementation published in
-`c32fa811` and handoff published in `220056d8`.
+Timeline diff-row construction extraction, published in `80f18ab2`.
 
 Next candidate:
-Remap the reduced Timeline facade after this slice, emphasizing transition
-application and operational-row classification.
+Remap the reduced Timeline facade, emphasizing transition application and
+operational-row classification.
 
 Blocked:
 No.
