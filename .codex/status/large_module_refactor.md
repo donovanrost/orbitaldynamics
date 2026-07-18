@@ -9,7 +9,7 @@ Current slice:
 Timeline single-transition decision policy extraction.
 
 Status:
-Selection recorded; implementation has not started.
+Implementation published in `11b72e46`; focused and broad proof is green.
 
 Selected boundary:
 Move the complete single-transition decision builder, diff-report adapter, and
@@ -19,32 +19,32 @@ public decision and application helpers. Shared `diff_report/3` and
 `compact_map/1` behavior is supplied as callbacks.
 
 Why this slice:
-The reduced Timeline facade is 7,813 lines. These six exclusive clauses form
-one approximately 70-line responsibility with no callers outside the one
-private facade. The boundary preserves empty, single-row, and identity-changing
-multi-row semantics without moving integrity gating.
+The extraction moved six clauses into a 76-line internal module and reduced
+Timeline from 7,813 to 7,752 lines. The one private facade preserves public
+decision/application callers and leaves integrity gating Timeline-owned.
 
-Planned proof:
-- Focused Timeline tests for reusable transition decisions and applications.
-- Full Timeline and Timeline schema-contract suites.
-- Strict warnings-as-errors compile.
-- Canonical AST equivalence for all six moved clauses after normalizing only
-  the facade name and the two callback boundaries.
-- Format, diff, whitespace, ownership, exactly-one-facade, unchanged Timeline
-  public-definition, and xref checks.
-- Independent read-only review before publication.
+Completed proof:
+- Focused transition decision/application examples: 2 passed.
+- Full Timeline suite: 127 passed.
+- Timeline schema-contract suites: 36 passed.
+- Strict warnings-as-errors compile: 3,721 files.
+- Canonical AST equivalence: all six moved clauses after normalizing only the
+  facade name and two callback boundaries.
+- Format, whitespace, ownership, exactly-one-facade, unchanged Timeline public
+  definitions, and xref checks passed.
+- Independent read-only review found no findings.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline lifecycle-state decision policy extraction, selected in `4fdafc43`,
-implemented in `8c570e68`, and handed off in `95a4dd2a`.
+Timeline single-transition decision policy extraction, selected in `e398ffc1`
+and implemented in `11b72e46`.
 
 Next candidate:
-Remap the reduced Timeline facade after this slice, emphasizing operational
-action classification and transition integrity gating.
+Remap the reduced 7,752-line Timeline facade, emphasizing operational action
+classification and transition integrity gating.
 
 Blocked:
 No.
