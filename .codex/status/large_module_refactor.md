@@ -9,7 +9,7 @@ Current slice:
 CadenceImport pareto-frontier manifest-row builder extraction.
 
 Status:
-Slice selected; selection publication pending.
+Implementation published as `92bd80b5`; handoff publication pending.
 
 Selected slice:
 Move `pareto_frontier_manifest_row/2` into internal
@@ -17,8 +17,9 @@ Move `pareto_frontier_manifest_row/2` into internal
 helpers for review action, adapter status, and compact-map cleanup.
 
 Why this slice:
-`CadenceImport` is 5,641 lines. The builder is a 33-line transformation with 24
-projected keys, no exclusive helper dependencies, and one facade caller.
+`CadenceImport` was 5,641 lines. The builder was a 33-line transformation with
+24 projected keys, no exclusive helper dependencies, and one facade caller.
+The facade is now 5,618 lines.
 
 Public facade to preserve:
 All `CadenceImport` APIs; all pareto-frontier keys and value expressions;
@@ -36,17 +37,23 @@ exact callbacks; focused tests, strict compile, equivalence/API checks, and
 independent review are clean.
 
 Verification gaps:
-- Focused baseline, implementation proof, strict compile, and review remain.
+- None for this slice.
 
 Tests run:
-- None yet.
+- Focused CadenceImport and schema contracts: 100/100.
+- Strict warnings-as-errors compile: 3,690 files.
+- Exact AST proof: 24/24 entries, full normalized body, and all public facade
+  definitions match selection `f62d24b7`.
+- Format, diff, caller/xref, callback-surface, and whitespace checks clean.
+- Independent read-only review: no code findings or additional test gaps.
 
 Behavior/schema changes:
-None intended.
+None. Pareto-frontier action/status, import/approval defaults, compaction,
+deterministic output, and APIs are exact.
 
 Last completed slice:
-Score-term row builder selected in `78dec6b5` and published in `6a311378`:
-focused 100/100, strict 3,689-file compile, exact 23-entry/full-body AST
+Pareto-frontier row builder selected in `f62d24b7` and published in `92bd80b5`:
+focused 100/100, strict 3,690-file compile, exact 24-entry/full-body AST
 comparison, and independent review passed.
 
 Next candidate:
