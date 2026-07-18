@@ -6,73 +6,59 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema migration property-dispatch extension.
+Schema candidate-rejection timeline property-dispatch extension.
 
 Status:
-Implementation published as `49c99fb8`; handoff publication pending.
+Slice selected; selection publication pending.
 
 Selected slice:
-Move focused JSON-property routing/context assembly for schema-migration report
-into the existing internal `Schema.SchemaValidationPropertyDispatch` owner.
+Move focused JSON-property routing/context assembly for candidate-rejection
+report into the existing internal `Schema.TimelineReportPropertyDispatch`
+owner, then remove the facade's now-unused `focused_json_schema_property/5`.
 
 Why this slice:
-`Schema` is 7,733 lines. Only schema migration and candidate rejection remain
-as direct focused clauses; schema migration belongs with the existing
-schema-validation report/batch owner.
+`Schema` is 7,733 lines. Candidate rejection is the final direct focused
+property clause and belongs with the existing operational timeline/report
+owner.
 
 Current coupling/problem:
-The facade owns migration contract/version, capability-derived status providers,
-row schema, model limits, and focused fallback routing.
+The facade owns candidate-rejection limits, rows, reasons, operator actions,
+stable-pattern context, focused fallback routing, and the shared helper that
+will have no remaining callers.
 
 Public facade to preserve:
-All `Schema` APIs; the schema-migration JSON Schema document; checked-in
+All `Schema` APIs; the candidate-rejection JSON Schema document; checked-in
 exports, deterministic ordering, focused fallback behavior, provider order and
-arity, capability lookup timing, and all errors.
+arity, and all errors.
 
 Likely files:
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/schema_validation_property_dispatch.ex`
+- `lib/orbital_dynamics/schema/timeline_report_property_dispatch.ex`
 - `.codex/status/large_module_refactor.md`
 
 Definition of done:
 The clause passes compact dependencies to the existing owner; named context and
-focused fallback routing move out of `Schema`; focused validation/registry/
-export tests pass; strict compile, full byte-clean schema regeneration, and
-independent review are clean.
+focused fallback routing move out of `Schema`; the unused private facade helper
+is removed; focused rejection/timeline/export tests pass; strict compile, full
+byte-clean schema regeneration, and independent review are clean.
 
 Verification gaps:
-- None for this slice. Full checked-in schema regeneration is byte-identical.
-- Independent review was clean. No API, schema, export, ordering,
-  error-behavior, ownership, or behavioral finding remains.
+- Focused baseline, strict compile, export proof, and independent review remain.
 
 Tests run:
-- Baseline and post-change focused validation/registry/export subset: 24 passed
-  with warnings as errors.
-- Strict forced compile: 3,667 files clean with warnings as errors.
-- Full schema export regenerated every checked-in schema and bundle with zero
-  diff.
-- Public `Schema` definitions match selection commit `b40c4be7`; xref reports
-  the dispatcher has only the `Schema` runtime caller.
-- Format, changed-file whitespace, and `git diff --check` passed.
-- Independent review confirmed exact six-key context and capability lookup
-  timing, unchanged existing validation and adjacent routes, then reran all
-  proof clean.
+- None yet for this selected slice.
 
 Behavior/schema changes:
 None intended.
 
-Outcome:
-Schema-migration report routing now delegates to the existing
-`SchemaValidationPropertyDispatch`. Implementation published as `49c99fb8`.
-
 Last completed slice:
-Planning-analysis model schema dispatch published as implementation `fba3dc77`
-and handoff `6e089ea6`: focused 22/22, strict 3,667-file compile, full
-byte-clean schema regeneration, and independent review passed.
+Schema-migration schema dispatch published as implementation `49c99fb8` and
+handoff `3f4c5723`: focused 24/24, strict 3,667-file compile, full byte-clean
+schema regeneration, and independent review passed.
 
 Next candidate:
-Extend the existing timeline-report owner for the final candidate-rejection
-direct clause, then remove the unused facade focused helper.
+After publication, remap `Schema` and the original large-module goal hotspots
+to select the next responsibility-based extraction beyond property dispatch.
 
 Blocked:
 No.
