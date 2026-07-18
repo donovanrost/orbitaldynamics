@@ -6576,21 +6576,15 @@ defmodule OrbitalDynamics.Timeline do
   end
 
   defp activity_start(activity) do
-    Map.get(activity, "starts_at_s") || Map.get(activity, "start_s")
+    OrbitalDynamics.Timeline.ActivityTimingPolicy.start(activity)
   end
 
   defp activity_end(activity) do
-    Map.get(activity, "ends_at_s") || Map.get(activity, "end_s")
+    OrbitalDynamics.Timeline.ActivityTimingPolicy.end_time(activity)
   end
 
-  defp activity_duration_s(%{"duration_s" => duration_s}) when is_number(duration_s),
-    do: duration_s
-
   defp activity_duration_s(activity) do
-    start_s = activity_start(activity)
-    end_s = activity_end(activity)
-
-    if is_number(start_s) and is_number(end_s), do: end_s - start_s, else: nil
+    OrbitalDynamics.Timeline.ActivityTimingPolicy.duration(activity)
   end
 
   defp activity_id(%{"id" => id}), do: encode_value(id)
