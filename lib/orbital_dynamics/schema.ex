@@ -1998,17 +1998,17 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property(field, @timeline_lifecycle_state_summary = contract_name, contract) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.TimelineTransitionPropertyDispatch.lifecycle_summary(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.TimelineLifecycleStateSummaryJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.TimelineLifecycleStateSummaryJsonSchema.property_fun_from_context(
+      &default_json_schema_property/3,
+      {
         &timeline_lifecycle_state_row_json_schema/0,
         &timeline_report_model_limits/0,
         &non_negative_integer_count_map_json_schema/0,
         &stable_id_array_schema/0
-      )
+      }
     )
   end
 
@@ -2017,24 +2017,20 @@ defmodule OrbitalDynamics.Schema do
               @timeline_transition_application_report,
               @timeline_transition_application_summary
             ] do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.TimelineTransitionPropertyDispatch.application(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.TimelineTransitionApplicationJsonSchema.property_field?(
-        &1,
-        contract_name
-      ),
-      OrbitalDynamics.Schema.TimelineTransitionApplicationJsonSchema.property_fun_from_context(
-        contract_name: contract_name,
-        application_row_schema: &timeline_transition_application_row_json_schema/0,
-        selected_activity_schema: &timeline_transition_selected_activity_json_schema/0,
-        model_limits: &timeline_report_model_limits/0,
-        timeline_capability: &timeline_capabilities/0,
-        enum_count_map_schema: &enum_count_map_json_schema/1,
-        stable_id_array_schema: &stable_id_array_schema/0,
-        stable_id_array_map_schema: &stable_id_array_map_schema/0
-      )
+      &default_json_schema_property/3,
+      {
+        &timeline_transition_application_row_json_schema/0,
+        &timeline_transition_selected_activity_json_schema/0,
+        &timeline_report_model_limits/0,
+        &timeline_capabilities/0,
+        &enum_count_map_json_schema/1,
+        &stable_id_array_schema/0,
+        &stable_id_array_map_schema/0
+      }
     )
   end
 
