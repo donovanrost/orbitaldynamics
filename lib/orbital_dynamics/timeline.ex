@@ -5574,10 +5574,16 @@ defmodule OrbitalDynamics.Timeline do
     )
   end
 
-  defp executed_status?(status), do: status in @executed_statuses
+  defp executed_status?(status) do
+    OrbitalDynamics.Timeline.LifecycleStatusMembershipPolicy.executed?(
+      status,
+      @executed_statuses
+    )
+  end
 
-  defp repairable_status?(status),
-    do: status in ["missed", "failed", "delayed", "canceled", "cancelled", "rejected"]
+  defp repairable_status?(status) do
+    OrbitalDynamics.Timeline.LifecycleStatusMembershipPolicy.repairable?(status)
+  end
 
   defp activity_schedule_conflict_status(activity) do
     activity["schedule_conflict_status"] ||
@@ -5870,11 +5876,19 @@ defmodule OrbitalDynamics.Timeline do
   defp approval_lifecycle_category("rejected"), do: "rejected"
   defp approval_lifecycle_category(_status), do: "other"
 
-  defp unsupported_approval_status?(nil), do: false
-  defp unsupported_approval_status?(status), do: status not in @approval_statuses
+  defp unsupported_approval_status?(status) do
+    OrbitalDynamics.Timeline.LifecycleStatusMembershipPolicy.unsupported_approval?(
+      status,
+      @approval_statuses
+    )
+  end
 
-  defp unsupported_activity_status?(nil), do: false
-  defp unsupported_activity_status?(status), do: status not in @activity_statuses
+  defp unsupported_activity_status?(status) do
+    OrbitalDynamics.Timeline.LifecycleStatusMembershipPolicy.unsupported_activity?(
+      status,
+      @activity_statuses
+    )
+  end
 
   defp optional_activity_state_input(activity, sequence) do
     OrbitalDynamics.Timeline.InvalidLifecycleStateInputPolicy.optional_input(
