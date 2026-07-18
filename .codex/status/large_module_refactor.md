@@ -15,7 +15,9 @@ Selected boundary:
 Move observation-quality and observation-lighting context construction into
 one dedicated evidence module. Keep two private Timeline facades for their
 three coordinator consumers and route scalar, numeric, number-or-scalar, and
-compaction dependencies directly.
+compaction dependencies directly. Remove the shared
+`first_number_or_scalar/2` Timeline facade because strict compile confirmed the
+lighting builder owned its only remaining caller.
 
 Selection evidence:
 - Quality owns score/status/source plus cloud-cover and blur aliases.
@@ -23,6 +25,8 @@ Selection evidence:
   aliases, and numeric-or-label confidence.
 - Quality has one valid-context consumer; lighting has operational-row and
   valid-context consumers.
+- The initial strict compile proved `first_number_or_scalar/2` became unused
+  after the move; repo search confirmed no other Timeline caller.
 - Direct existing policies satisfy the boundary without Timeline callbacks.
 - The extraction should materially reduce the current 5,554-line Timeline.
 - Product, orientation, thermal, resource, link, broad context coordination,
