@@ -1757,24 +1757,24 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property(field, @strategy_branch = contract_name, contract) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.StrategyArtifactPropertyDispatch.branch(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.StrategyBranchJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.StrategyBranchJsonSchema.property_fun_from_context(
-        stable_id_pattern: @stable_id_pattern,
-        event_schema: &strategy_branch_event_json_schema/0,
-        risk_schema: fn ->
+      &default_json_schema_property/3,
+      {
+        @stable_id_pattern,
+        &strategy_branch_event_json_schema/0,
+        fn ->
           OrbitalDynamics.Schema.StrategyBranchJsonSchema.risk(
             @stable_id_pattern,
             scoped_downlink_context_json_schema_properties()
           )
         end,
-        approval_requirement_schema: &approval_requirement_json_schema/0,
-        numeric_map_schema: &numeric_map_json_schema/0,
-        policy_decision_schema: &policy_decision_json_schema/0
-      )
+        &approval_requirement_json_schema/0,
+        &numeric_map_json_schema/0,
+        &policy_decision_json_schema/0
+      }
     )
   end
 
@@ -1828,19 +1828,19 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property(field, @strategy_recommendation = contract_name, contract) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.StrategyArtifactPropertyDispatch.recommendation(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.StrategyRecommendationJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.StrategyRecommendationJsonSchema.property_fun_from_context(
-        schema_contract: @strategy_recommendation,
-        stable_id_pattern: @stable_id_pattern,
-        tradeoff_schema: &strategy_branch_tradeoff_json_schema/0,
-        explanation_schema: &strategy_explanation_json_schema/0,
-        risk_schema: &strategy_branch_risk_json_schema/0,
-        approval_requirement_schema: &approval_requirement_json_schema/0
-      )
+      &default_json_schema_property/3,
+      {
+        @strategy_recommendation,
+        @stable_id_pattern,
+        &strategy_branch_tradeoff_json_schema/0,
+        &strategy_explanation_json_schema/0,
+        &strategy_branch_risk_json_schema/0,
+        &approval_requirement_json_schema/0
+      }
     )
   end
 
@@ -2492,30 +2492,30 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property(field, @branch_comparison_report = contract_name, contract) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.StrategyArtifactPropertyDispatch.branch_comparison(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.BranchComparisonReportJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.BranchComparisonReportJsonSchema.property_fun_from_context(
-        row_schema: &branch_comparison_row_json_schema/0,
-        model_limits: &OrbitalDynamics.CampaignPlanner.branch_comparison_model_limits/0
-      )
+      &default_json_schema_property/3,
+      {
+        &branch_comparison_row_json_schema/0,
+        &OrbitalDynamics.CampaignPlanner.branch_comparison_model_limits/0
+      }
     )
   end
 
   defp json_schema_property(field, @campaign_strategy = contract_name, contract) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.StrategyArtifactPropertyDispatch.campaign_strategy(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.CampaignStrategyJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.CampaignStrategyJsonSchema.property_fun_from_context(
-        strategy_branch_schema: &strategy_branch_json_schema/0,
-        strategy_recommendation_schema: &strategy_recommendation_json_schema/0,
-        operational_feedback_schema: &operational_feedback_json_schema/0,
-        policy_action_rule_schema: &policy_action_rule_json_schema/0
-      )
+      &default_json_schema_property/3,
+      {
+        &strategy_branch_json_schema/0,
+        &strategy_recommendation_json_schema/0,
+        &operational_feedback_json_schema/0,
+        &policy_action_rule_json_schema/0
+      }
     )
   end
 
