@@ -6,35 +6,34 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline duplicate-identity annotation extraction.
+Timeline operational-kind classification extraction.
 
 Status:
-Implemented, verified, independently reviewed, committed, and pushed.
+Selected; implementation has not started.
 
-Completed boundary:
-Moved duplicate timeline-identity group detection, row mapping, collision
-annotation fields, superseded action preservation, and compact-map cleanup into
-the 45-line `Timeline.DuplicateTimelineIdentityAnnotation`. The 5,970-line
-Timeline retains one private facade used by operational reports, normalized
-activity lists, and diff preparation.
+Selected boundary:
+Move all 11 `operational_kind/1` clauses and the command/uplink direction list
+into the existing `Timeline.OperationalRowClassificationPolicy`. Keep one
+private Timeline facade and source the identical direction list from the policy
+for capability metadata and command-row classification.
 
-Published commits:
-Selected in `bbc879ed` and implemented in `6c6b6a86`.
+Selection evidence:
+- The ordered clauses own command, health-check, observation, maneuver,
+  attitude, coast, direction-based command, contact-type, ground-station, and
+  generic activity classification.
+- `operational_kind/1` has one runtime call site in operational row construction.
+- The direction list has two existing Timeline consumers: capability metadata
+  and command-row classification; both can retain the same module attribute
+  sourced from the policy.
+- The extraction should replace roughly 23 classifier lines with one thin
+  facade, reducing the current 5,970-line Timeline without callbacks.
+- Cadence import status, required actions, normalization, row construction,
+  public API, and schema logic remain outside the boundary.
 
 Verification:
-- Strict warnings-as-errors compile passed across 3,787 files.
-- Three focused operational-report, normalized-list, and diff-propagation
-  duplicate-identity examples passed before and after extraction.
-- Full Timeline suite passed with 127 examples; Timeline schema-contract suites
-  passed with 36 examples.
-- Canonical AST equivalence passed for both moved definitions after normalizing
-  only the public coordinator name and public/private definition kind.
-- Format, diff, whitespace, exactly-one-facade, three-call-site, singular-helper
-  removal, unchanged Timeline public-definition, sole-production-consumer, and
-  xref checks passed.
-- Independent read-only review found no production-code issues and confirmed
-  exact grouping/filtering, row order, passthrough, activity-ID preservation,
-  annotation fields, superseded values, replacement actions, and compaction.
+Pending: focused baseline, implementation, strict compile, focused and full
+Timeline tests, schema-contract tests, canonical AST and constant equivalence,
+static ownership/facade/public-definition/xref checks, and independent review.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
@@ -42,11 +41,11 @@ regeneration should not be required.
 
 Last completed slice:
 Timeline duplicate-identity annotation extraction, selected in `bbc879ed` and
-implemented in `6c6b6a86`.
+implemented in `6c6b6a86`, and handed off in `21ad7ef3`.
 
 Next candidate:
-Continue remapping the reduced Timeline facade after this slice, avoiding wide
-report and activity-context map coordinator callback surfaces.
+Implement and verify this selected boundary before remapping the reduced
+Timeline facade.
 
 Blocked:
 No.
