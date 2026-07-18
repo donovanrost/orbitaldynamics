@@ -6,32 +6,35 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline provider-contact normalization policy extraction.
+Timeline lifecycle-state normalization policy extraction.
 
 Status:
-Implementation published in `b3b22afa`; focused and broad proof is green.
+Selection recorded; implementation has not started.
 
 Selected boundary:
-Move activity-type alias promotion, provider downlink inference, direction-based
-contact inference, and command-feedback suppression into
-`Timeline.ProviderContactNormalizationPolicy`. `Timeline` retains the three
-ordered normalization entry points used by `activity_to_map/1`.
+Move lifecycle event alias resolution, activity/approval status
+canonicalization, and preserved terminal-status handling into
+`Timeline.LifecycleStateNormalizationPolicy`. `Timeline` retains private entry
+points for lifecycle events, lifecycle values, activity status, approval
+status, and preserved-status application. Constant lists and the non-string
+encoder cross the boundary explicitly.
 
 Why this slice:
-The extraction moved eight clauses into a 64-line internal module and reduced
-Timeline from 7,082 to 7,037 lines. The three private entry points preserve the
-type-alias, inferred-downlink, then direction-contact pipeline order.
+The reduced Timeline facade is 7,037 lines. These 13 clauses form the shared
+lifecycle vocabulary used by reports, transitions, and lifecycle application.
+The boundary keeps caller-facing private names in Timeline while consolidating
+MissionPlan capability aliases and token normalization.
 
-Completed proof:
-- Focused provider-contact normalization examples: 2 passed.
-- Full Timeline suite: 127 passed.
-- Timeline schema-contract suites: 36 passed.
-- Strict warnings-as-errors compile: 3,735 files.
-- Canonical AST equivalence: all eight moved clauses after normalizing only the
-  three facade names.
-- Format, whitespace, ownership, exactly-three-facade, unchanged Timeline public
-  definitions, and xref checks passed.
-- Independent read-only review found no findings.
+Planned proof:
+- Focused Timeline lifecycle-helper examples for safe/unsafe events, aliases,
+  status and approval canonicalization, and preserved terminal status.
+- Full Timeline and Timeline schema-contract suites.
+- Strict warnings-as-errors compile.
+- Canonical AST equivalence for all 13 moved clauses after normalizing only the
+  five facade names, constant arguments, and encoder callback.
+- Format, diff, whitespace, ownership, exactly-five-facade, unchanged Timeline
+  public-definition, and xref checks.
+- Independent read-only review before publication.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
@@ -39,11 +42,11 @@ regeneration should not be required.
 
 Last completed slice:
 Timeline provider-contact normalization policy extraction, selected in
-`a4931cc1` and implemented in `b3b22afa`.
+`a4931cc1`, implemented in `b3b22afa`, and handed off in `d0cdf412`.
 
 Next candidate:
-Remap the reduced 7,037-line Timeline facade, emphasizing activity normalization
-and lifecycle application.
+Remap the reduced Timeline facade after this slice, emphasizing activity
+normalization and lifecycle application.
 
 Blocked:
 No.
