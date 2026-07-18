@@ -9,7 +9,7 @@ Current slice:
 Schema main candidate-refresh property-dispatch extension.
 
 Status:
-Slice selected; selection publication pending.
+Implementation published as `725a1184`; handoff publication pending.
 
 Selected slice:
 Move JSON-property dispatch/context assembly for the main candidate-refresh
@@ -43,13 +43,29 @@ candidate-refresh and export tests pass; strict compile, full byte-clean schema
 regeneration, and independent review are clean.
 
 Verification gaps:
-- Focused baseline, strict compile, export proof, and independent review remain.
+- None for this slice. Full checked-in schema regeneration is byte-identical.
+- Independent review was clean. No API, schema, export, ordering,
+  error-behavior, ownership, or behavioral finding remains.
 
 Tests run:
-- None yet for this selected slice.
+- Baseline and post-change focused candidate-refresh/provenance/export subset:
+  26 passed with warnings as errors.
+- Strict forced compile: 3,661 files clean with warnings as errors.
+- Full schema export regenerated every checked-in schema and bundle with zero
+  diff.
+- Public `Schema` definitions match selection commit `a262b4f9`; xref reports
+  the dispatcher has only the `Schema` runtime caller.
+- Format, changed-file whitespace, and `git diff --check` passed.
+- Independent review confirmed the exact 12-key lazy context order, unchanged
+  provider-action closure, untouched existing family and adjacent routes, then
+  reran all proof clean.
 
 Behavior/schema changes:
 None intended.
+
+Outcome:
+The main candidate-refresh route now delegates to the existing
+`CandidateRefreshPropertyDispatch`. Implementation published as `725a1184`.
 
 Last completed slice:
 Candidate-refresh diff/auxiliary schema dispatch published as implementation
