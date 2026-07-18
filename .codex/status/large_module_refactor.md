@@ -6,46 +6,47 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline selected-integrity policy extraction.
+Timeline transition-helper integrity policy extraction.
 
 Status:
-Implementation published in `90858060`; focused and broad proof is green.
+Selection recorded; implementation has not started.
 
 Selected boundary:
-Move selected-activity application gating, the complete selected-integrity
-projection, review action/status upgrades, and deterministic reason formatting
-into `Timeline.SelectedIntegrityPolicy`. `Timeline` retains private entry points
-for application gating, context projection, and reason formatting. Integrity
-review detection, list normalization, and map compaction are supplied as
-callbacks.
+Move opt-in transition-helper selected-activity validation, structured
+integrity error construction, and status/approval/lifecycle raising policy into
+`Timeline.TransitionHelperIntegrityPolicy`. `Timeline` retains private entry
+points for validation and the three helper-specific raisers. Integrity
+annotation/detection, selected projection/reason, list normalization, and map
+compaction are supplied as callbacks.
 
 Why this slice:
-The extraction moved eight clauses into an 89-line internal module and reduced
-Timeline from 7,491 to 7,429 lines. The three private entry points preserve
-direct decisions, single/batch applications, and transition helper errors.
+The reduced Timeline facade is 7,429 lines. These eight exclusive clauses form
+one helper-integrity responsibility shared by status, approval, and lifecycle
+APIs. Keeping structured error construction beside raising policy preserves
+the exact selected-integrity versus transition-error messages.
 
-Completed proof:
-- Focused selected-integrity examples: 4 passed.
-- Full Timeline suite: 127 passed.
-- Timeline schema-contract suites: 36 passed.
-- Strict warnings-as-errors compile: 3,727 files.
-- Canonical AST equivalence: all eight moved clauses after normalizing only the
-  three facade names and callback boundaries.
-- Format, whitespace, ownership, exactly-three-facade, unchanged Timeline
-  public definitions, and xref checks passed.
-- Independent read-only review found no findings.
+Planned proof:
+- Focused Timeline tests for reusable transitions, safe/unsafe status and
+  approval application, and opt-in lifecycle selected-integrity gating.
+- Full Timeline and Timeline schema-contract suites.
+- Strict warnings-as-errors compile.
+- Canonical AST equivalence for all eight moved clauses after normalizing only
+  the four facade names and callback boundaries.
+- Format, diff, whitespace, ownership, exactly-four-facade, unchanged Timeline
+  public-definition, and xref checks.
+- Independent read-only review before publication.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline selected-integrity policy extraction, selected in `135fa967` and
-implemented in `90858060`.
+Timeline selected-integrity policy extraction, selected in `135fa967`,
+implemented in `90858060`, and handed off in `08b3a86a`.
 
 Next candidate:
-Remap the reduced 7,429-line Timeline facade, emphasizing transition integrity
-orchestration and activity normalization.
+Remap the reduced Timeline facade after this slice, emphasizing transition
+integrity orchestration and activity normalization.
 
 Blocked:
 No.
