@@ -9,54 +9,50 @@ Current slice:
 CadenceImport operational-timeline manifest-row builder extraction.
 
 Status:
-Slice selected; selection publication pending.
+Implementation `a05666c3` published; verified handoff publication pending.
 
-Selected slice:
-Move `operational_timeline_manifest_row/2` into internal
-`CadenceImport.OperationalTimelineManifestRow.build/3`, injecting only the six
-shared facade helpers for import presence, review action, adapter status,
-provider-result normalization/value extraction, and compact-map cleanup.
+Completed slice:
+Moved the operational-timeline manifest row projection into internal
+`CadenceImport.OperationalTimelineManifestRow.build/3`. The facade now injects
+only six shared import-presence/review/status/provider-result/compaction
+callbacks.
 
 Why this slice:
-`CadenceImport` is 7,460 lines. The operational-timeline builder is a 306-line
-transformation with 287 projected keys and one facade caller.
+`CadenceImport` was 7,460 lines. The operational-timeline builder was a
+306-line transformation with 287 projected keys. `CadenceImport` is now 7,166
+lines.
 
-Current coupling/problem:
-The main artifact adapter embeds a large operational-timeline field projection
-alongside every other source family’s manifest transformation.
+Published commits:
+- Selection: `6a4bb929`
+- Implementation: `a05666c3`
+- Handoff: pending
 
-Public facade to preserve:
-All `CadenceImport` APIs; all operational-timeline row keys and value
+Preserved facade and behavior:
+All `CadenceImport` APIs; all 287 operational-timeline keys and value
 expressions; approval/import defaults, import presence, provider-result
 normalization, import status/action, compaction, deterministic output, and
 artifact contracts.
 
-Likely files:
-- `lib/orbital_dynamics/cadence_import.ex`
-- `lib/orbital_dynamics/cadence_import/operational_timeline_manifest_row.ex`
-- `.codex/status/large_module_refactor.md`
-
-Definition of done:
-The internal builder owns the exact 287-key projection; the facade supplies
-only six same-purpose callbacks; focused Cadence-import and schema-contract
-tests pass; strict warnings-as-errors compile, projection equivalence, public
-API checks, and independent review are clean.
+Verification:
+- Full Cadence-import tests plus schema Cadence-import contracts: 100/100.
+- Strict warnings-as-errors compile: 3,675 files.
+- Whole-builder AST comparison after callback normalization: exact.
+- Projection comparison: 287/287 keys and expressions, zero mismatches.
+- Six shared facade callbacks: exact names, purposes, and arities.
+- Exact four provider-result conversions, two context normalizations, and final
+  compaction position.
+- Operational-timeline dispatch and public `CadenceImport` definitions:
+  unchanged.
+- Format, whitespace, diff, xref caller, and independent read-only review:
+  clean.
+- Schema export not rerun: no schema-generation code or schema artifacts
+  changed.
 
 Verification gaps:
-- Focused baseline, implementation proof, strict compile, and independent
-  review remain.
-
-Tests run:
-- None yet for this selected slice.
+None for this slice.
 
 Behavior/schema changes:
-None intended.
-
-Last completed slice:
-CadenceImport strategy-recommendation row builder published as implementation
-`1126b2ac` and handoff `f193b639`: focused 100/100, strict 3,674-file compile,
-exact 200-entry and 34-stage pipeline comparison, and independent review
-passed.
+None.
 
 Next candidate:
 Remap the reduced `CadenceImport` module and select the next source-specific
