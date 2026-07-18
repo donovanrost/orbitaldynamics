@@ -32,7 +32,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
   alias OrbitalDynamics.CampaignPlanner.{
     ActivityCandidate,
     ActivityIdentity,
-    ActivitySourceRows,
     ActivityTiming,
     ApprovalPolicy,
     BranchCollection,
@@ -48,11 +47,10 @@ defmodule OrbitalDynamics.CampaignPlanner do
     BranchRefreshTargets,
     BuildArtifact,
     CadenceImportPressureBranches,
-    ContactIntentPressureBranches,
-    ContactIntentSourceReports,
     CollectionLatencyBranches,
     CollectionLatencySatisfaction,
     DerivedBranchCollection,
+    DerivedActivityPressureBranches,
     DerivedContactPressureBranches,
     DerivedDegradedSpacecraftBranches,
     DerivedGroundNetworkBranches,
@@ -84,7 +82,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
     PlanMetadata,
     PriorityCommitmentSatisfaction,
     RealizedActivitiesOperationalFeedback,
-    RealizedFeedbackPressureEvents,
     RequestIO,
     RepairActivityDispatch,
     RepairArtifact,
@@ -1180,18 +1177,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       |> Kernel.++(derived_mission_state_link_capacity_pressure_branches(mission_state))
       |> Kernel.++(DerivedObjectivePressureBranches.build(prior_plan, mission_state))
       |> Kernel.++(DerivedTimelinePressureBranches.build(prior_plan, mission_state, policy))
-      |> Kernel.++(derived_planned_activity_pressure_branches(prior_plan))
-      |> Kernel.++(derived_mission_state_planned_activity_pressure_branches(mission_state))
-      |> Kernel.++(derived_proposed_contact_pressure_branches(prior_plan))
-      |> Kernel.++(derived_mission_state_proposed_contact_pressure_branches(mission_state))
-      |> Kernel.++(derived_contact_intent_pressure_branches(prior_plan))
-      |> Kernel.++(derived_contact_intent_summary_pressure_branches(prior_plan))
-      |> Kernel.++(derived_mission_state_contact_intent_pressure_branches(mission_state))
-      |> Kernel.++(derived_mission_state_contact_intent_summary_pressure_branches(mission_state))
-      |> Kernel.++(derived_realized_activity_pressure_branches(prior_plan))
-      |> Kernel.++(
-        derived_mission_state_realized_activity_pressure_branches(mission_state, prior_plan)
-      )
+      |> Kernel.++(DerivedActivityPressureBranches.build(prior_plan, mission_state))
       |> Kernel.++(derived_operational_timeline_pressure_branches(prior_plan))
       |> Kernel.++(derived_mission_state_operational_timeline_pressure_branches(mission_state))
       |> Kernel.++(derived_operator_review_pressure_branches(prior_plan, policy))
@@ -1341,112 +1327,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
     |> OperationalTimelineSourceRows.pressure_rows_with_source()
     |> Enum.flat_map(fn {row, source_path, index} ->
       OperationalTimelinePressureEvents.pressure_branch(
-        row,
-        source_path,
-        index
-      )
-    end)
-  end
-
-  defp derived_planned_activity_pressure_branches(prior_plan) do
-    prior_plan
-    |> ActivitySourceRows.prior_plan_planned_activity_pressure_rows_with_source()
-    |> Enum.flat_map(fn {row, source_path, index} ->
-      OperationalTimelinePressureEvents.pressure_branch(
-        row,
-        source_path,
-        index
-      )
-    end)
-  end
-
-  defp derived_mission_state_planned_activity_pressure_branches(mission_state) do
-    mission_state
-    |> ActivitySourceRows.mission_state_planned_activity_pressure_rows_with_source()
-    |> Enum.flat_map(fn {row, source_path, index} ->
-      OperationalTimelinePressureEvents.pressure_branch(
-        row,
-        source_path,
-        index
-      )
-    end)
-  end
-
-  defp derived_proposed_contact_pressure_branches(prior_plan) do
-    prior_plan
-    |> ActivitySourceRows.prior_plan_proposed_contact_pressure_rows_with_source()
-    |> Enum.flat_map(fn {row, source_path, index} ->
-      OperationalTimelinePressureEvents.pressure_branch(
-        row,
-        source_path,
-        index
-      )
-    end)
-  end
-
-  defp derived_mission_state_proposed_contact_pressure_branches(mission_state) do
-    mission_state
-    |> ActivitySourceRows.mission_state_proposed_contact_pressure_rows_with_source()
-    |> Enum.flat_map(fn {row, source_path, index} ->
-      OperationalTimelinePressureEvents.pressure_branch(
-        row,
-        source_path,
-        index
-      )
-    end)
-  end
-
-  defp derived_contact_intent_pressure_branches(prior_plan) do
-    prior_plan
-    |> ContactIntentSourceReports.prior_plan_rows_with_source()
-    |> ContactIntentPressureBranches.from_rows_with_source()
-  end
-
-  defp derived_contact_intent_summary_pressure_branches(prior_plan) do
-    direct_identities =
-      prior_plan
-      |> ContactIntentSourceReports.prior_plan_rows_with_source()
-      |> ContactIntentPressureBranches.identity_set()
-
-    prior_plan
-    |> ContactIntentSourceReports.prior_plan_summaries_with_source()
-    |> ContactIntentPressureBranches.summaries_from_sources(direct_identities)
-  end
-
-  defp derived_mission_state_contact_intent_pressure_branches(mission_state) do
-    mission_state
-    |> ContactIntentSourceReports.mission_state_rows_with_source()
-    |> ContactIntentPressureBranches.from_rows_with_source()
-  end
-
-  defp derived_mission_state_contact_intent_summary_pressure_branches(mission_state) do
-    direct_identities =
-      mission_state
-      |> ContactIntentSourceReports.mission_state_rows_with_source()
-      |> ContactIntentPressureBranches.identity_set()
-
-    mission_state
-    |> ContactIntentSourceReports.mission_state_summaries_with_source()
-    |> ContactIntentPressureBranches.summaries_from_sources(direct_identities)
-  end
-
-  defp derived_realized_activity_pressure_branches(prior_plan) do
-    prior_plan
-    |> ActivitySourceRows.prior_plan_realized_activity_pressure_rows_with_source()
-    |> Enum.flat_map(fn {row, source_path, index} ->
-      RealizedFeedbackPressureEvents.pressure_branch(
-        row,
-        source_path,
-        index
-      )
-    end)
-  end
-
-  defp derived_mission_state_realized_activity_pressure_branches(mission_state, prior_plan) do
-    mission_state
-    |> ActivitySourceRows.mission_state_realized_activity_pressure_rows_with_source(prior_plan)
-    |> Enum.flat_map(fn {row, source_path, index} ->
-      RealizedFeedbackPressureEvents.pressure_branch(
         row,
         source_path,
         index
