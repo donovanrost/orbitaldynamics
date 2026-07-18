@@ -9,7 +9,7 @@ Current slice:
 Schema candidate-rejection timeline property-dispatch extension.
 
 Status:
-Slice selected; selection publication pending.
+Implementation published as `ee84e47c`; handoff publication pending.
 
 Selected slice:
 Move focused JSON-property routing/context assembly for candidate-rejection
@@ -43,13 +43,31 @@ is removed; focused rejection/timeline/export tests pass; strict compile, full
 byte-clean schema regeneration, and independent review are clean.
 
 Verification gaps:
-- Focused baseline, strict compile, export proof, and independent review remain.
+- None for this slice. Full checked-in schema regeneration is byte-identical.
+- Independent review was clean. No API, schema, export, ordering,
+  error-behavior, ownership, or behavioral finding remains.
 
 Tests run:
-- None yet for this selected slice.
+- Baseline and post-change focused rejection/provenance/timeline/export subset:
+  25 passed with warnings as errors.
+- Strict forced compile: 3,667 files clean with warnings as errors.
+- Full schema export regenerated every checked-in schema and bundle with zero
+  diff.
+- Public `Schema` definitions match selection commit `939e51d1`; xref reports
+  the dispatcher has only the `Schema` runtime caller.
+- Repository-wide search confirms zero remaining facade focused-helper refs.
+- Format, changed-file whitespace, and `git diff --check` passed.
+- Independent review confirmed exact five-key context, safe helper removal,
+  unchanged existing timeline and adjacent routes, then reran all proof clean.
 
 Behavior/schema changes:
 None intended.
+
+Outcome:
+Candidate-rejection report routing now delegates to the existing
+`TimelineReportPropertyDispatch`, and the unused facade
+`focused_json_schema_property/5` is removed. Implementation published as
+`ee84e47c`.
 
 Last completed slice:
 Schema-migration schema dispatch published as implementation `49c99fb8` and
