@@ -6,47 +6,46 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline operational-kind classification extraction.
+Timeline activity-template provenance extraction.
 
 Status:
-Implemented, verified, independently reviewed, committed, and pushed.
+Selected; implementation has not started.
 
-Completed boundary:
-Moved all 11 `operational_kind/1` clauses and the command/uplink direction list
-into the existing `Timeline.OperationalRowClassificationPolicy`. Timeline keeps
-one private facade and sources the identical direction list from the policy for
-capability metadata and command-row classification. Timeline is now 5,950 lines;
-the classification policy is 41 lines.
+Selected boundary:
+Move activity-template context wrapping, provenance validation/field selection,
+operational-hint normalization, and number/boolean/string hint insertion into a
+dedicated policy. Keep two private Timeline facades for provenance and context,
+including the existing activity-precondition callback.
 
-Published commits:
-Selected in `54c846d6` and implemented in `c51daf17`.
+Selection evidence:
+- The boundary is 12 adjacent private clauses at Timeline lines 2,618-2,715.
+- Provenance has three consumers: operational row construction, activity
+  operational-hint context, and the activity-precondition callback; context has
+  one valid-activity-context consumer.
+- Existing artifact encoding, numeric-value, and boolean policies supply all
+  dependencies directly, so the extraction requires no callbacks.
+- The extraction should replace roughly 98 helper lines with two thin facades,
+  materially reducing the current 5,950-line Timeline.
+- Valid activity-context coordination, lifecycle/timing/source/product/resource
+  contexts, precondition coordination, public API, and schema remain outside
+  the boundary.
 
 Verification:
-- Strict warnings-as-errors compile passed across 3,787 files.
-- Three focused station-ID, provider-contact, and activity-type classification
-  examples passed before and after extraction.
-- Full Timeline suite passed with 127 examples; Timeline schema-contract suites
-  passed with 36 examples.
-- Canonical AST equivalence passed for all 11 ordered clauses and the direction
-  constant after normalizing only public/private definition kind.
-- Format, diff, whitespace, exactly-one-facade, exactly-eleven-policy-clause,
-  direction-consumer, unchanged Timeline public-definition,
-  sole-production-consumer, and xref checks passed.
-- Independent read-only review found no production-code issues and confirmed
-  exact clause precedence, type/direction/contact/ground-station behavior,
-  direction metadata, command-row use, and the sole operational-row call site.
+Pending: focused baseline, implementation, strict compile, focused and full
+Timeline tests, schema-contract tests, canonical AST equivalence, static
+ownership/facade/public-definition/xref checks, and independent review.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline operational-kind classification extraction, selected in `54c846d6` and
-implemented in `c51daf17`.
+Timeline operational-kind classification extraction, selected in `54c846d6`,
+implemented in `c51daf17`, and handed off in `7c79ea45`.
 
 Next candidate:
-Continue remapping the reduced Timeline facade after this slice, avoiding wide
-report and activity-context map coordinator callback surfaces.
+Implement and verify this selected boundary before remapping the reduced
+Timeline facade.
 
 Blocked:
 No.
