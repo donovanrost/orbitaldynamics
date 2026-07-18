@@ -9,7 +9,7 @@ Current slice:
 Schema campaign-artifact property-dispatch extraction.
 
 Status:
-Slice selected; implementation not started.
+Implementation published as `11ef0e9e`; handoff publication pending.
 
 Selected slice:
 Move the `campaign_plan` and `campaign_repair` `json_schema_property/3`
@@ -44,21 +44,31 @@ unchanged; focused campaign schema tests pass; strict compile, schema export
 tests, checked-in export diff, and independent review are clean.
 
 Verification gaps:
-- Focused campaign schema and export baselines still need to be captured.
-- Checked-in schema exports must remain byte-identical.
+- None for this slice. Full checked-in schema regeneration is byte-identical.
+- Independent review was clean. No API, schema, export, ordering, recursion,
+  error-behavior, ownership, or behavioral finding remains.
 
 Tests run:
-- Live hotspot inventory: `Schema` is 7,794 lines and remains the only original
-  production goal hotspot in the repo-wide top tier.
-- Existing `CampaignPlanJsonSchema` and `CampaignRepairJsonSchema` modules own
-  property construction; this slice moves only routing/context assembly.
-- No runtime or schema code has changed in this slice.
+- Baseline and post-change focused campaign schema/export subset: 19 passed
+  with warnings as errors.
+- Strict forced compile: 3,653 files clean with warnings as errors.
+- Full schema export task regenerated every checked-in per-contract schema and
+  bundle; `git diff --exit-code -- schemas` was clean.
+- Public `Schema` definitions match selection commit `9fe449a6`. Xref reports
+  the dispatcher has only the Schema runtime caller.
+- Format, tracked and new-file whitespace, and `git diff --check` passed.
+- Independent review confirmed exact callback mapping, registry lookup timing,
+  transition required/optional fields, recursive property routing, fallback and
+  error precedence, then reran compile, 19/19, and full byte-clean export.
 
 Behavior/schema changes:
 None intended.
 
 Outcome:
-Pending.
+Campaign plan and repair property routing now delegates to
+`CampaignArtifactPropertyDispatch`. The facade supplies compact dependency
+tuples and retains registry ownership/recursive routing; the new owner assembles
+the named family-builder contexts. Implementation published as `11ef0e9e`.
 
 Last completed slice:
 Campaign-planner V1 build orchestration published as implementation `6fc2e3e4`
@@ -67,7 +77,7 @@ and handoff `52ebb0ec`: the facade shrank from 1,443 to 1,078 lines; focused
 was clean after restoring exact report evaluation order.
 
 Next candidate:
-Implement and verify campaign-artifact schema property dispatch.
+Publish this handoff, then select the next cohesive Schema property family.
 
 Blocked:
 No.
