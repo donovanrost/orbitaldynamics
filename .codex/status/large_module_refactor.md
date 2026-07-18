@@ -6,40 +6,39 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline activity-thermal context extraction.
+Timeline activity-product delivery context extraction.
 
 Status:
-Implemented, verified, independently reviewed, committed, and pushed.
+Selected; implementation has not started.
 
-Completed boundary:
-Moved the activity thermal-context map builder and its six thermal metric
-facades into the 104-line `Timeline.ActivityThermalContext`. The 5,792-line
-Timeline retains one private context facade and removes all six metric facades.
+Selected boundary:
+Move the activity product/delivery context builder plus collection end,
+planned/actual delivery, maximum/planned/actual latency, and planned/actual data
+volume helpers into a dedicated context module. Keep one private Timeline
+context facade and remove the eight helper facades.
 
-Published commits:
-Selected in `20d57037` and implemented in `df9621d1`.
+Selection evidence:
+- The builder exclusively consumes all eight adjacent timing/data-volume
+  helpers and owns delivery IDs/status, latency deltas/margin, priority, and
+  objective linkage.
+- Existing delivery timing, field value, numeric value, relationship ID,
+  metric delta, stable identifier, and encoding policies provide the boundary
+  directly without Timeline callbacks.
+- The extraction should materially reduce the current 5,792-line Timeline.
+- Observation quality, pointing, attitude, thermal, resource, broad context
+  coordination, public API, and schema remain outside the boundary.
 
 Verification:
-- Strict warnings-as-errors compile passed across 3,789 files.
-- Two focused operational thermal and thermal-diff examples passed before and
-  after extraction.
-- Full Timeline suite passed with 127 examples; Timeline schema-contract suites
-  passed with 36 examples.
-- Canonical AST equivalence passed for the builder and six metric facades after
-  normalizing only the stable-pattern data parameter and definition kind.
-- Format, diff, exactly-one-facade, six-facade-removal, unchanged public
-  definitions, sole-consumer, and xref checks passed.
-- Independent review found no production issues and confirmed exact precedence,
-  aliases, fields, margin behavior, stable validation, routing, delta, and
-  compaction.
+Pending: focused baseline, implementation, strict compile, focused/full tests,
+contracts, structural/static checks, and independent review.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline activity-thermal context extraction, selected in `20d57037` and
-implemented in `df9621d1`.
+Timeline activity-thermal context extraction, selected in `20d57037`,
+implemented in `df9621d1`, and handed off in `6db09840`.
 
 Next candidate:
 Continue remapping the reduced Timeline facade.
