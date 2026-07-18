@@ -9,7 +9,7 @@ Current slice:
 CadenceImport execution manifest-row builder extraction.
 
 Status:
-Slice selected; selection publication pending.
+Implementation published as `944bf730`; handoff publication pending.
 
 Selected slice:
 Move `execution_manifest_row/2` into internal
@@ -17,8 +17,9 @@ Move `execution_manifest_row/2` into internal
 helpers for review action, adapter status, and compact-map cleanup.
 
 Why this slice:
-`CadenceImport` is 5,514 lines. The builder is a 40-line transformation with 31
-projected keys, no exclusive helper dependencies, and one facade caller.
+`CadenceImport` was 5,514 lines. The builder was a 40-line transformation with
+31 projected keys, no exclusive helper dependencies, and one facade caller.
+The facade is now 5,484 lines.
 
 Public facade to preserve:
 All `CadenceImport` APIs; all execution keys and value expressions;
@@ -36,17 +37,23 @@ exact callbacks; focused tests, strict compile, equivalence/API checks, and
 independent review are clean.
 
 Verification gaps:
-- Focused baseline, implementation proof, strict compile, and review remain.
+- None for this slice.
 
 Tests run:
-- None yet.
+- Focused CadenceImport and schema contracts: 100/100.
+- Strict warnings-as-errors compile: 3,695 files.
+- Exact AST proof: 31/31 entries, full normalized body, and all public facade
+  definitions match selection `1509e848`.
+- Format, diff, caller/xref, callback-surface, and whitespace checks clean.
+- Independent read-only review: no code findings or additional test gaps.
 
 Behavior/schema changes:
-None intended.
+None. Execution action/status, import/approval defaults, compaction,
+deterministic output, and APIs are exact.
 
 Last completed slice:
-Constraint row builder selected in `115d97da` and published in `c06e6b02`:
-focused 100/100, strict 3,694-file compile, exact 27-entry/full-body AST
+Execution row builder selected in `1509e848` and published in `944bf730`:
+focused 100/100, strict 3,695-file compile, exact 31-entry/full-body AST
 comparison, and independent review passed.
 
 Next candidate:
