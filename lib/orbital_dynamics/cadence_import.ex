@@ -4905,38 +4905,13 @@ defmodule OrbitalDynamics.CadenceImport do
   end
 
   defp objective_tradeoff_manifest_row(row, rank) do
-    approval_status = Map.get(row, "approval_status", "operator_review_required")
-    import_status = Map.get(row, "cadence_import_status", "present")
-
-    %{
-      "id" => "cadence_import:objective_tradeoff:#{row["id"] || rank}",
-      "rank" => rank,
-      "import_action" => "review_objective_tradeoff",
-      "import_status" => adapter_import_status(import_status, approval_status),
-      "import_side" => "source",
-      "source_review_row_id" => row["id"],
-      "source_review_type" => row["review_type"],
-      "source_review_action" => source_review_action(row),
-      "source" => row["source"],
-      "subject_id" => row["subject_id"],
-      "scenario_id" => row["scenario_id"],
-      "branch_id" => row["branch_id"],
-      "score" => row["score"],
-      "score_delta_from_selected" => row["score_delta_from_selected"],
-      "activity_count" => row["activity_count"],
-      "selected_observation_count" => row["selected_observation_count"],
-      "selected_contact_count" => row["selected_contact_count"],
-      "score_terms" => row["score_terms"],
-      "activity_ids" => row["activity_ids"],
-      "approval_status" => approval_status,
-      "required_operator_action" => row["required_operator_action"],
-      "reason" => row["reason"],
-      "cadence_import_status" => import_status,
-      "has_cadence_import" => false,
-      "source_objective_tradeoff" => row["source_objective_tradeoff"],
-      "source_review_row" => row
-    }
-    |> compact_map()
+    OrbitalDynamics.CadenceImport.ObjectiveTradeoffManifestRow.build(
+      row,
+      rank,
+      source_review_action: &source_review_action/1,
+      adapter_import_status: &adapter_import_status/2,
+      compact_map: &compact_map/1
+    )
   end
 
   defp pareto_frontier_manifest_row(row, rank) do
