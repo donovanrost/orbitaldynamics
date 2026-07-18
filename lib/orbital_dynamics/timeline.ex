@@ -6056,22 +6056,18 @@ defmodule OrbitalDynamics.Timeline do
     "timeline activity #{source["activity_id"]} changes to #{replacement["activity_id"]}: #{Enum.join(changed_fields, ",")}"
   end
 
-  defp lifecycle_transition(_field, value, value), do: nil
-
-  defp lifecycle_transition(field, nil, to),
-    do:
-      %{"field" => field, "transition_type" => "added", "to" => to}
-      |> Map.merge(transition_semantics(field, nil, to))
-
-  defp lifecycle_transition(field, from, nil),
-    do:
-      %{"field" => field, "transition_type" => "removed", "from" => from}
-      |> Map.merge(transition_semantics(field, from, nil))
-
-  defp lifecycle_transition(field, from, to),
-    do:
-      %{"field" => field, "transition_type" => "changed", "from" => from, "to" => to}
-      |> Map.merge(transition_semantics(field, from, to))
+  defp lifecycle_transition(field, from, to) do
+    OrbitalDynamics.Timeline.LifecycleTransitionPolicy.build(
+      field,
+      from,
+      to,
+      &status_lifecycle_category/1,
+      &approval_lifecycle_category/1,
+      &status_transition_review/2,
+      &approval_transition_review/2,
+      &compact_map/1
+    )
+  end
 
   defp activity_state_status_transition(planned_activity, realized_activity) do
     planned_status = planned_activity && activity_status(planned_activity)
@@ -6125,26 +6121,6 @@ defmodule OrbitalDynamics.Timeline do
     |> Map.merge(values)
     |> compact_map()
   end
-
-  defp transition_semantics("status", from, to) do
-    %{
-      "from_category" => status_lifecycle_category(from),
-      "to_category" => status_lifecycle_category(to)
-    }
-    |> Map.merge(status_transition_review(from, to))
-    |> compact_map()
-  end
-
-  defp transition_semantics("approval_status", from, to) do
-    %{
-      "from_category" => approval_lifecycle_category(from),
-      "to_category" => approval_lifecycle_category(to)
-    }
-    |> Map.merge(approval_transition_review(from, to))
-    |> compact_map()
-  end
-
-  defp transition_semantics(_field, _from, _to), do: %{}
 
   defp status_transition_review(from, to) do
     OrbitalDynamics.Timeline.LifecycleTransitionReviewPolicy.status_review(
