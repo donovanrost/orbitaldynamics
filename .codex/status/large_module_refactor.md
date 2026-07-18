@@ -9,7 +9,7 @@ Current slice:
 Timeline invalid-activity row extraction.
 
 Status:
-Selection recorded; implementation has not started.
+Implementation published in `9ee57bb5`; focused and broad proof is green.
 
 Selected boundary:
 Move deterministic invalid-activity row construction and invalid activity-ID
@@ -19,33 +19,32 @@ stable-ID validation, integrity-issue construction, and map compaction are
 supplied as callbacks.
 
 Why this slice:
-The reduced Timeline facade is 7,663 lines. These three exclusive clauses form
-an approximately 55-line invalid-row responsibility with no callers outside
-the one facade. The boundary preserves stable source IDs, atom IDs, deterministic
-reason/sequence fallbacks, and the complete review/integrity artifact shape.
+The extraction moved three clauses into a 60-line internal module and reduced
+Timeline from 7,663 to 7,619 lines. The one private facade preserves both
+normalization callers and the complete review/integrity artifact shape.
 
-Planned proof:
-- Focused Timeline tests for invalid batch inputs, out-of-range activity
-  context, and single invalid activity normalization.
-- Full Timeline and Timeline schema-contract suites.
-- Strict warnings-as-errors compile.
-- Canonical AST equivalence for all three moved clauses after normalizing only
-  the facade name and three callback boundaries.
-- Format, diff, whitespace, ownership, exactly-one-facade, unchanged Timeline
-  public-definition, and xref checks.
-- Independent read-only review before publication.
+Completed proof:
+- Focused invalid-activity examples: 3 passed.
+- Full Timeline suite: 127 passed.
+- Timeline schema-contract suites: 36 passed.
+- Strict warnings-as-errors compile: 3,724 files.
+- Canonical AST equivalence: all three moved clauses after normalizing only the
+  facade name and three callback boundaries.
+- Format, whitespace, ownership, exactly-one-facade, unchanged Timeline public
+  definitions, and xref checks passed.
+- Independent read-only review found no findings.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline Cadence-import policy extraction, selected in `f0f49209`, implemented
-in `26437371`, and handed off in `a706cc1a`.
+Timeline invalid-activity row extraction, selected in `e586b0f5` and
+implemented in `9ee57bb5`.
 
 Next candidate:
-Remap the reduced Timeline facade after this slice, emphasizing transition
-integrity gating and invalid-activity validation.
+Remap the reduced 7,619-line Timeline facade, emphasizing transition integrity
+gating and invalid-activity validation.
 
 Blocked:
 No.
