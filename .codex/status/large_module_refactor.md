@@ -16,14 +16,17 @@ Move locked-overlap, negative-margin, short-contact, policy-blocked,
 stale-state, model-incompatible, and quality-gate-failed classification plus
 their token normalization into a dedicated candidate-rejection condition
 policy. Keep seven thin private Timeline facades so the derived-reason
-coordinator remains unchanged.
+coordinator remains unchanged, plus one private normalization facade for the
+existing activity-precondition callback.
 
 Selection evidence:
-- The boundary is nine adjacent private clauses at Timeline lines 2,251-2,321,
-  consumed only by the derived candidate-rejection reason coordinator.
+- The boundary is nine adjacent private clauses at Timeline lines 2,251-2,321.
+  The seven classifiers are consumed only by the derived candidate-rejection
+  reason coordinator; `activity_precondition_row_summary/1` also retains its
+  existing `&normalized_token/1` callback through a thin Timeline facade.
 - Existing field, numeric, timing, lifecycle normalization, and artifact
   encoding policies supply every dependency directly; no callbacks are needed.
-- The extraction should replace roughly 71 helper lines with about 21 facade
+- The extraction should replace roughly 71 helper lines with about 25 facade
   lines, materially reducing the current 6,104-line Timeline.
 - Station classification, declared reasons, boolean availability checks,
   reviewability, report/row construction, and schema logic remain outside the
