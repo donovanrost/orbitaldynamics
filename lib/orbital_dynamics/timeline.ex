@@ -2626,25 +2626,7 @@ defmodule OrbitalDynamics.Timeline do
   end
 
   defp activity_lifecycle_context(activity) do
-    %{}
-    |> maybe_put_lifecycle_context(
-      activity,
-      "status",
-      &activity_status/1
-    )
-    |> maybe_put_lifecycle_context(
-      activity,
-      "approval_status",
-      &activity_approval_status/1
-    )
-  end
-
-  defp maybe_put_lifecycle_context(context, activity, field, value_fun) do
-    if Map.has_key?(activity, field) or not is_nil(get_in(activity, ["metadata", field])) do
-      Map.put(context, field, value_fun.(activity))
-    else
-      context
-    end
+    OrbitalDynamics.Timeline.ActivityLifecycleContext.build(activity)
   end
 
   defp activity_command_authority_context(activity) do
