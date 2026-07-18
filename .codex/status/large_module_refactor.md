@@ -6,36 +6,35 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline activity delivery-timing policy extraction.
+Timeline publication invalidation policy extraction.
 
 Status:
-Implementation published in `0154cab2`; focused and broad proof is green.
+Selection recorded; implementation has not started.
 
 Selected boundary:
-Move collection-end, planned/actual delivery, maximum latency, and
-explicit-or-derived planned/actual latency selection into
-`Timeline.ActivityDeliveryTimingPolicy`. `Timeline` retains six private entry
-points; numeric field selection and delta calculation cross the boundary
-explicitly.
+Move downstream invalidation ID selection and validation, reason
+classification/grouping/counting, publication/downstream status selection, and
+publication-summary ID construction into
+`Timeline.PublicationInvalidationPolicy`. `Timeline` retains seven private
+entry points; the dependency-impact review predicate becomes policy-internal.
 
 Why this slice:
-The extraction moved six exclusive clauses into a 61-line internal module.
-Timeline retains six private entry points and is now 6,366 lines; the two-line
-facade increase is the formatting cost of keeping numeric selection and delta
-calculation explicit at the boundary. Alias order and explicit/derived
-precedence now live together in the delivery-timing policy.
+The 6,366-line Timeline facade still owns 13 contiguous, pure clauses for one
+publication responsibility. They have no callback dependencies, and their
+ordering-sensitive validation and precedence rules can move together without
+extracting the much wider publication-summary map coordinator.
 
-Completed proof:
-- Focused numeric-context, latency-diff, and operational handoff examples:
-  3 passed.
-- Full Timeline suite: 127 passed.
-- Timeline schema-contract suites: 36 passed.
-- Strict warnings-as-errors compile: 3,753 files.
-- Canonical AST equivalence: all six moved clauses after normalizing only
-  public/private heads and numeric selector/delta callbacks.
-- Format, whitespace, ownership, exactly-six-facade, unchanged Timeline public
-  definitions, and xref checks passed; Timeline is the only runtime caller.
-- Independent read-only review found no production-code findings.
+Planned proof:
+- Focused publication summary example covering dependency-impact invalidation,
+  supersession identity, no-impact status, grouped reason counts, schema
+  validation, and invalid explicit invalidation IDs.
+- Full Timeline and Timeline schema-contract suites.
+- Strict warnings-as-errors compile.
+- Canonical AST equivalence for all 13 moved clauses after normalizing only
+  public/private heads.
+- Format, diff, whitespace, ownership, exactly-seven-facade, unchanged Timeline
+  public-definition, and xref checks.
+- Independent read-only review before publication.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
@@ -43,11 +42,12 @@ regeneration should not be required.
 
 Last completed slice:
 Timeline activity delivery-timing policy extraction, selected in `615501f8` and
-implemented in `0154cab2`.
+implemented in `0154cab2`, and handed off in `f99882b8`.
 
 Next candidate:
-Remap the 6,366-line Timeline facade after this slice, avoiding the wide
-activity-to-map coordinator callback surface.
+Continue remapping the reduced Timeline facade after this slice, avoiding the
+wide publication-summary and activity-context map coordinator callback
+surfaces.
 
 Blocked:
 No.
