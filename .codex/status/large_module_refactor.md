@@ -16,7 +16,9 @@ Move activity feedback context construction into one dedicated module. Keep a
 private Timeline facade for its single valid-context consumer, pass the
 existing provider-result map key list explicitly, and route boolean, provider
 result, numeric, scalar, and compaction dependencies directly through existing
-policies.
+policies. Remove the shared `first_provider_result_string/2` Timeline facade
+because strict compile confirmed the feedback builder owned its only remaining
+caller.
 
 Selection evidence:
 - The builder owns success, result, success-factor, and factor-source evidence
@@ -25,6 +27,8 @@ Selection evidence:
 - It has exactly one consumer in valid activity-context assembly.
 - Passing the existing provider-result key list preserves one configuration
   owner and avoids duplicating normalization knowledge.
+- The initial strict compile proved `first_provider_result_string/2` became
+  unused after the move; repo search confirmed no other Timeline caller.
 - Direct existing policies satisfy the boundary without Timeline callbacks.
 - The extraction should reduce the current 5,496-line Timeline while preserving
   the private coordinator seam.
