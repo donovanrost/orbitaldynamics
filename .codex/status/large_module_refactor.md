@@ -9,7 +9,7 @@ Current slice:
 Campaign-planner V1 build-orchestration boundary extraction.
 
 Status:
-Slice selected; implementation not started.
+Implementation published as `6fc2e3e4`; handoff publication pending.
 
 Selected slice:
 Move the body of public `CampaignPlanner.build/2` and its V1-only generation,
@@ -46,23 +46,40 @@ unchanged; focused and full planner tests match live baseline; strict compile
 and independent review are clean.
 
 Verification gaps:
-- The full planner directory has five previously documented failures. The
-  post-change run must retain the same 728/733 result and observations.
-- The exact focused V1 build baseline still needs to be captured.
+- The full planner directory retains the five previously documented failures:
+  728/733 passed with the same test names, values, and stack locations.
+- Independent review found and then verified the fix for one evaluation-order
+  issue. No code, API, artifact, determinism, ordering, ownership,
+  error-behavior, or behavioral finding remains.
 
 Tests run:
-- Live inventory: `CampaignPlanner` is 1,443 lines.
-- The public `build/2` body spans 156 lines and is followed by a cohesive set
-  of V1-only private helpers.
-- Shared V2 link-capacity, resource-projection, scoring, and downlink helpers
-  are excluded from the extraction.
-- No runtime code has changed in this slice.
+- Baseline and post-change focused V1 subset: 34 passed with warnings as
+  errors.
+- Post-change full planner directory: 728/733 passed with the same five
+  documented failures and observations as the live baseline.
+- Strict forced compile: 3,652 files clean with warnings as errors.
+- Public `CampaignPlanner` definitions match selection commit `f727c1f9`.
+  Xref reports it as the only runtime caller of `BuildOrchestration`.
+- The shared contention policy has exactly the two intended callers:
+  `CampaignPlanner` for V2 repair and `BuildOrchestration` for V1.
+- Format, tracked and new-file whitespace, and `git diff --check` passed.
+  Selected V1-only helpers are absent from the facade.
+- `CampaignPlanner` shrank from 1,443 to 1,078 lines.
+  `BuildOrchestration` is 312 lines after the evaluation-order fix; the shared
+  contention policy owner is 24 lines.
+- Independent review caught inlined report computation changing malformed-input
+  error precedence. The final code restores the exact flow, precondition,
+  integrity, objective, tradeoff, and optimizer evaluation order. The reviewer
+  reran 34/34 and the 3,652-file compile on the corrected state.
 
 Behavior/schema changes:
 None intended.
 
 Outcome:
-Pending.
+Public `build/2` now retains option and generated-time evaluation before
+delegating to `BuildOrchestration.build/3`. V1 artifact construction and shared
+V2 contention policy behavior are preserved. Implementation published as
+`6fc2e3e4`.
 
 Last completed slice:
 V3 branch-evaluation boundary published as implementation `3fecf5e0` and
@@ -71,7 +88,8 @@ handoff `078c673f`: `CampaignPlanner` shrank from 1,802 to 1,443 lines; focused
 was clean.
 
 Next candidate:
-Implement and verify the selected V1 build-orchestration boundary.
+Publish this handoff, then refresh the remaining normalization and V2 reporting
+responsibilities before selecting the next bounded extraction.
 
 Blocked:
 No.
