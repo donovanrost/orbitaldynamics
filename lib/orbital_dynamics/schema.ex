@@ -2440,58 +2440,51 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property(field, @operational_readiness_report = contract_name, contract) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.OperationalHandoffPropertyDispatch.readiness(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.OperationalReadinessReportJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.OperationalReadinessReportJsonSchema.property_fun_from_context(
-        capability: OrbitalDynamics.OperationalReadiness.capabilities(),
-        gate_schema: operational_readiness_gate_json_schema(),
-        evidence_schema: operational_readiness_evidence_json_schema(),
-        model_limits: operational_readiness_model_limits()
-      )
+      &default_json_schema_property/3,
+      {
+        OrbitalDynamics.OperationalReadiness.capabilities(),
+        operational_readiness_gate_json_schema(),
+        operational_readiness_evidence_json_schema(),
+        operational_readiness_model_limits()
+      }
     )
   end
 
   defp json_schema_property(field, @operator_review_package = contract_name, contract) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.OperationalHandoffPropertyDispatch.operator_review(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.OperatorReviewPackageJsonSchema.property_field?(
-        &1,
-        OrbitalDynamics.Schema.OperatorReviewPackageContracts.scalar_count_fields()
-      ),
-      OrbitalDynamics.Schema.OperatorReviewPackageJsonSchema.property_fun_from_context(
-        capability: OrbitalDynamics.OperatorReview.capabilities(),
-        model_limits: operator_review_package_model_limits(),
-        readiness_capability: OrbitalDynamics.OperationalReadiness.capabilities(),
-        row_schema: operator_review_row_json_schema(),
-        scalar_count_fields:
-          OrbitalDynamics.Schema.OperatorReviewPackageContracts.scalar_count_fields(),
-        stable_id_pattern: @stable_id_pattern
-      )
+      &default_json_schema_property/3,
+      {
+        OrbitalDynamics.OperatorReview.capabilities(),
+        operator_review_package_model_limits(),
+        OrbitalDynamics.OperationalReadiness.capabilities(),
+        operator_review_row_json_schema(),
+        OrbitalDynamics.Schema.OperatorReviewPackageContracts.scalar_count_fields(),
+        @stable_id_pattern
+      }
     )
   end
 
   defp json_schema_property(field, @cadence_import_manifest = contract_name, contract) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.OperationalHandoffPropertyDispatch.cadence_import(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.CadenceImportManifestJsonSchema.property_field?(
-        &1,
-        @cadence_import_manifest_scalar_count_fields
-      ),
-      OrbitalDynamics.Schema.CadenceImportManifestJsonSchema.property_fun_from_context(
-        capability: OrbitalDynamics.CadenceImport.capability(),
-        model_limits: cadence_import_manifest_model_limits(),
-        readiness_capability: OrbitalDynamics.OperationalReadiness.capabilities(),
-        row_schema: cadence_import_manifest_row_json_schema(),
-        scalar_count_fields: @cadence_import_manifest_scalar_count_fields,
-        stable_id_pattern: @stable_id_pattern
-      )
+      &default_json_schema_property/3,
+      {
+        OrbitalDynamics.CadenceImport.capability(),
+        cadence_import_manifest_model_limits(),
+        OrbitalDynamics.OperationalReadiness.capabilities(),
+        cadence_import_manifest_row_json_schema(),
+        @cadence_import_manifest_scalar_count_fields,
+        @stable_id_pattern
+      }
     )
   end
 
