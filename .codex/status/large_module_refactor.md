@@ -9,7 +9,7 @@ Current slice:
 Timeline publication invalidation policy extraction.
 
 Status:
-Selection recorded; implementation has not started.
+Implementation published in `615d4d3c`; focused and broad proof is green.
 
 Selected boundary:
 Move downstream invalidation ID selection and validation, reason
@@ -19,33 +19,36 @@ publication-summary ID construction into
 entry points; the dependency-impact review predicate becomes policy-internal.
 
 Why this slice:
-The 6,366-line Timeline facade still owns 13 contiguous, pure clauses for one
-publication responsibility. They have no callback dependencies, and their
-ordering-sensitive validation and precedence rules can move together without
-extracting the much wider publication-summary map coordinator.
+The extraction moved 13 contiguous, pure clauses into a 100-line internal
+module and reduced Timeline from 6,366 to 6,330 lines. Seven private entry
+points preserve the publication-summary coordinator while invalidation
+validation, precedence, grouping, status selection, and ID construction now
+live together.
 
-Planned proof:
-- Focused publication summary example covering dependency-impact invalidation,
-  supersession identity, no-impact status, grouped reason counts, schema
-  validation, and invalid explicit invalidation IDs.
-- Full Timeline and Timeline schema-contract suites.
-- Strict warnings-as-errors compile.
-- Canonical AST equivalence for all 13 moved clauses after normalizing only
+Completed proof:
+- Focused publication summary example: 1 passed, covering dependency-impact
+  invalidation, supersession identity, no-impact status, grouped reason counts,
+  schema validation, and invalid explicit invalidation IDs.
+- Full Timeline suite: 127 passed.
+- Timeline schema-contract suites: 36 passed.
+- Strict warnings-as-errors compile: 3,754 files.
+- Canonical AST equivalence: all 13 moved clauses after normalizing only
   public/private heads.
-- Format, diff, whitespace, ownership, exactly-seven-facade, unchanged Timeline
-  public-definition, and xref checks.
-- Independent read-only review before publication.
+- Format, whitespace, ownership, exactly-seven-facade, unchanged Timeline
+  public definitions, and xref checks passed; Timeline is the only runtime
+  caller.
+- Independent read-only review found no production-code findings.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline activity delivery-timing policy extraction, selected in `615501f8` and
-implemented in `0154cab2`, and handed off in `f99882b8`.
+Timeline publication invalidation policy extraction, selected in `a599aed4` and
+implemented in `615d4d3c`.
 
 Next candidate:
-Continue remapping the reduced Timeline facade after this slice, avoiding the
+Continue remapping the 6,330-line Timeline facade after this slice, avoiding the
 wide publication-summary and activity-context map coordinator callback
 surfaces.
 
