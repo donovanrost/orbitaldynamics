@@ -6,34 +6,34 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline approval-protection policy extraction.
+Timeline lifecycle-status membership policy extraction.
 
 Status:
-Implemented, verified, independently reviewed, committed, and pushed.
+Selection recorded; implementation has not started.
 
-Completed boundary:
-Moved the fallback lock/approval preservation-sensitive source clause and
-approval-protection membership into the 9-line
-`Timeline.ApprovalProtectionPolicy`. The 6,232-line `Timeline` retains the
-guarded executed-source clause plus two private entry points; callbacks remain
-unchanged.
+Selected boundary:
+Move executed-status membership, repairable-status membership, and both
+two-clause unsupported approval/activity status predicates into
+`Timeline.LifecycleStatusMembershipPolicy`. `Timeline` retains four private
+entry points and passes existing executed, approval, and activity status lists
+explicitly.
 
-Published commits:
-Initially selected in `b506b201`, narrowed in `4b15cd10`, and implemented in
-`32aba82d`.
+Why this slice:
+The 6,232-line Timeline facade still owns six exclusive scalar membership
+clauses used by transition review, lifecycle state, and transition application.
+Moving them together isolates nil handling and exact list membership without
+moving lifecycle coordinators or compile-time guard clauses.
 
-Verification:
-- Strict warnings-as-errors compile passed across 3,774 files.
-- Three focused changed protected/executed, changed unprotected, and removed
-  protected/executed diff examples passed.
-- Full Timeline suite passed with 127 examples; Timeline schema-contract suites
-  passed with 36 examples.
-- Canonical AST equivalence passed for both moved clauses after normalizing only
-  public/private heads, facade names, and the protected-status argument.
-- Format, diff, whitespace, ownership, exactly-two-facade, unchanged Timeline
-  public-definition, and xref checks passed.
-- Independent read-only review found no production-code issues; the retained
-  executed-status guard is byte-for-byte unchanged.
+Planned proof:
+- Focused unsupported approval input, unsupported activity input, reusable
+  transition membership, and lifecycle state examples.
+- Full Timeline and Timeline schema-contract suites.
+- Strict warnings-as-errors compile.
+- Canonical AST equivalence for all six moved clauses after normalizing only
+  public/private heads, facade names, and explicit status-list arguments.
+- Format, diff, whitespace, ownership, exactly-four-facade, unchanged Timeline
+  public-definition, and xref checks.
+- Independent read-only review before publication.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
