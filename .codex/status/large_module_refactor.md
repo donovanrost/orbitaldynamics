@@ -6,31 +6,33 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline diff-presentation policy extraction.
+Timeline relationship-presence policy extraction.
 
 Status:
-Implemented, verified, independently reviewed, committed, and pushed.
+Selection recorded; implementation has not started.
 
-Completed boundary:
-Moved the three diff required-operator-action clauses and two diff reason
-clauses into the 14-line `Timeline.DiffPresentationPolicy`. The 6,262-line
-`Timeline` retains two private entry points and the diff-row callback list is
-unchanged; no callback, constant, or coordinator crosses the new boundary.
+Selected boundary:
+Move dependency-presence, exclusivity-presence, and their private non-empty-list
+predicate into `Timeline.RelationshipPresencePolicy`. `Timeline` retains two
+private entry points; no callback, constant, report coordinator, or schema
+boundary crosses the extraction.
 
-Published commits:
-Selected in `3665226a` and implemented in `f3f7120a`.
+Why this slice:
+The 6,262-line Timeline facade still owns three exclusive relationship-presence
+clauses used only by operational-report counts. Moving them together isolates
+the list-only/non-empty semantics without pulling the surrounding wide report
+assembly or integrity aggregation into the new module.
 
-Verification:
-- Strict warnings-as-errors compile passed across 3,767 files.
-- Three focused unchanged, changed dependency/exclusivity, and changed
-  unprotected command-direction diff examples passed.
-- Full Timeline suite passed with 127 examples; Timeline schema-contract suites
-  passed with 36 examples.
-- Canonical AST equivalence passed for all five moved clauses after normalizing
-  only public/private heads and function names.
+Planned proof:
+- Focused list relationship, normalized scalar relationship, and malformed
+  relationship operational-report examples.
+- Full Timeline and Timeline schema-contract suites.
+- Strict warnings-as-errors compile.
+- Canonical AST equivalence for all three moved clauses after normalizing only
+  public/private heads and facade function names.
 - Format, diff, whitespace, ownership, exactly-two-facade, unchanged Timeline
-  public-definition, and xref checks passed.
-- Independent read-only review found no production-code issues.
+  public-definition, and xref checks.
+- Independent read-only review before publication.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
