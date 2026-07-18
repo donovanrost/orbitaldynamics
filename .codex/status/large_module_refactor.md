@@ -9,7 +9,7 @@ Current slice:
 CadenceImport policy-escalation manifest-row builder extraction.
 
 Status:
-Slice selected; selection publication pending.
+Implementation published as `b83cc43f`; handoff publication pending.
 
 Selected slice:
 Move `policy_escalation_manifest_row/2` into internal
@@ -17,8 +17,9 @@ Move `policy_escalation_manifest_row/2` into internal
 helpers for review action, adapter status, and compact-map cleanup.
 
 Why this slice:
-`CadenceImport` is 5,568 lines. The builder is a 38-line transformation with 30
-projected keys, no exclusive helper dependencies, and one facade caller.
+`CadenceImport` was 5,568 lines. The builder was a 38-line transformation with
+30 projected keys, no exclusive helper dependencies, and one facade caller.
+The facade is now 5,540 lines.
 
 Public facade to preserve:
 All `CadenceImport` APIs; all policy-escalation keys and value expressions;
@@ -36,17 +37,24 @@ exact callbacks; focused tests, strict compile, equivalence/API checks, and
 independent review are clean.
 
 Verification gaps:
-- Focused baseline, implementation proof, strict compile, and review remain.
+- None for this slice.
 
 Tests run:
-- None yet.
+- Focused CadenceImport and schema contracts: 100/100.
+- Strict warnings-as-errors compile: 3,693 files.
+- Exact AST proof: 30/30 entries, full normalized body, and all public facade
+  definitions match selection `ef84fb57`.
+- Both constant `"present"` status uses are exact.
+- Format, diff, caller/xref, callback-surface, and whitespace checks clean.
+- Independent read-only review: no code findings or additional test gaps.
 
 Behavior/schema changes:
-None intended.
+None. Policy-escalation action/status, approval defaults, compaction,
+deterministic output, and APIs are exact.
 
 Last completed slice:
-Ranking-comparison row builder selected in `b49ea026` and published in
-`c58ebf4d`: focused 100/100, strict 3,692-file compile, exact 26-entry/full-body
+Policy-escalation row builder selected in `ef84fb57` and published in
+`b83cc43f`: focused 100/100, strict 3,693-file compile, exact 30-entry/full-body
 AST comparison, and independent review passed.
 
 Next candidate:
