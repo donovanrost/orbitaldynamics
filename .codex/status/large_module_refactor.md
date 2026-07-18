@@ -6,52 +6,43 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-CadenceImport risk manifest-row builder extraction.
+CadenceImport freshness manifest-row builder extraction.
 
 Status:
-Implementation published as `79067c2b`; handoff publication pending.
+Slice selected; selection publication pending.
 
 Selected slice:
-Move `risk_manifest_row/2` into internal
-`CadenceImport.RiskManifestRow.build/3`. Inject the three shared facade
+Move `freshness_manifest_row/2` into internal
+`CadenceImport.FreshnessManifestRow.build/3`. Inject the three shared facade
 helpers for review action, adapter status, and compact-map cleanup.
 
 Why this slice:
-`CadenceImport` was 5,816 lines. The builder was a 70-line transformation with
-47 projected keys, no exclusive helper dependencies, and one facade caller.
-The facade is now 5,755 lines.
+`CadenceImport` is 5,755 lines. The builder is a 46-line transformation with 35
+projected keys, no exclusive helper dependencies, and one facade caller.
 
 Public facade to preserve:
-All `CadenceImport` APIs; all risk keys and value expressions; resource-pressure
-and source-window fallback precedence, import/approval defaults, compaction,
+All `CadenceImport` APIs; all freshness keys and value expressions; stale and
+unknown reason normalization/counting, import/approval defaults, compaction,
 deterministic output, and contracts.
 
 Likely files:
 - `lib/orbital_dynamics/cadence_import.ex`
-- `lib/orbital_dynamics/cadence_import/risk_manifest_row.ex`
+- `lib/orbital_dynamics/cadence_import/freshness_manifest_row.ex`
 - `.codex/status/large_module_refactor.md`
 
 Definition of done:
-The internal builder owns the exact 47-key projection; the facade supplies three
+The internal builder owns the exact 35-key projection; the facade supplies three
 exact callbacks; focused tests, strict compile, equivalence/API checks, and
 independent review are clean.
 
 Verification gaps:
-- None for this slice.
+- Focused baseline, implementation proof, strict compile, and review remain.
 
 Tests run:
-- Focused CadenceImport and schema contracts: 100/100.
-- Strict warnings-as-errors compile: 3,685 files.
-- Exact AST proof: 47/47 entries, full normalized body, and all public facade
-  definitions match selection `512d1c03`.
-- All six resource-pressure and three source-window fallbacks retain primary-row
-  precedence.
-- Format, diff, caller/xref, callback-surface, and whitespace checks clean.
-- Independent read-only review: no code findings or additional test gaps.
+- None yet.
 
 Behavior/schema changes:
-None. Risk action/status, import/approval defaults, all nine fallbacks,
-compaction, deterministic output, and APIs are exact.
+None intended.
 
 Last completed slice:
 Risk row builder selected in `512d1c03` and published in `79067c2b`: focused
