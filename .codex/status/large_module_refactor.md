@@ -9,7 +9,7 @@ Current slice:
 Schema ground-network report property-dispatch extraction.
 
 Status:
-Slice selected; implementation not started.
+Implementation published as `12c5485e`; handoff publication pending.
 
 Selected slice:
 Move JSON-property dispatch/context assembly for command-window, station
@@ -42,20 +42,29 @@ communications/export tests pass; strict compile, full byte-clean schema
 regeneration, and independent review are clean.
 
 Verification gaps:
-- Focused command/station/communications/export baselines need capture.
-- Checked-in schema exports must remain byte-identical.
+- None for this slice. Full checked-in schema regeneration is byte-identical.
+- Independent review was clean. No API, schema, export, ordering,
+  error-behavior, ownership, or behavioral finding remains.
 
 Tests run:
-- Live mapping found four adjacent report clauses with dedicated builders.
-- Existing station-reservation-summary and link-capacity dispatchers are
-  explicitly out of scope.
-- No runtime or schema code has changed in this slice.
+- Baseline and post-change focused command/station/communications/export
+  subset: 30 passed with warnings as errors.
+- Strict forced compile: 3,657 files clean with warnings as errors.
+- Full schema export regenerated every checked-in schema and bundle with zero
+  diff.
+- Public `Schema` definitions match selection commit `18a10d64`; xref reports
+  the dispatcher has only the Schema runtime caller.
+- Format, tracked/new-file whitespace, and `git diff --check` passed.
+- Independent review confirmed all four named contexts and untouched adjacent
+  reservation-summary/provider routes, then reran compile, 30/30, and export.
 
 Behavior/schema changes:
 None intended.
 
 Outcome:
-Pending.
+Command-window, calendar-precedence, station-reservation, and station-calendar
+report routing now delegates to `GroundNetworkReportPropertyDispatch`.
+Implementation published as `12c5485e`.
 
 Last completed slice:
 Timeline transition schema dispatch published as implementation `fc25d762` and
@@ -63,7 +72,7 @@ handoff `f02b5597`: focused 40/40, strict 3,656-file compile, full byte-clean
 schema regeneration, and independent review passed.
 
 Next candidate:
-Implement and verify ground-network report schema property dispatch.
+Publish this handoff, then select the next cohesive Schema property family.
 
 Blocked:
 No.
