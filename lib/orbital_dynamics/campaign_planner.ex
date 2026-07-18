@@ -58,6 +58,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
     DerivedOperationalReviewPressureBranches,
     DerivedReviewReadinessPressureBranches,
     DerivedResourcePressureBranches,
+    DerivedStationPressureBranches,
     DerivedTimelinePressureBranches,
     CandidateRefreshNormalization,
     CandidateRefreshRequest,
@@ -94,9 +95,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
     ReplanRequest,
     ScalarValues,
     ScoreReports,
-    StationSourceReports,
-    StationCalendarPressureBranches,
-    StationReservationPressureReports,
     StrategicScoreTerms,
     StrategyBranchNormalization,
     StrategyPolicyNormalization,
@@ -1149,14 +1147,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       []
       |> Kernel.++(derived_degraded_spacecraft_branches(mission_state))
       |> Kernel.++(derived_ground_network_branches(mission_state, prior_plan))
-      |> Kernel.++(derived_station_calendar_pressure_branches(prior_plan))
-      |> Kernel.++(derived_mission_state_station_calendar_pressure_branches(mission_state))
-      |> Kernel.++(
-        derived_mission_state_station_reservation_review_summary_pressure_branches(mission_state)
-      )
-      |> Kernel.++(
-        derived_mission_state_station_reservation_hold_pressure_branches(mission_state)
-      )
+      |> Kernel.++(DerivedStationPressureBranches.build(prior_plan, mission_state))
       |> Kernel.++(
         derived_operational_feedback_branches(
           mission_state,
@@ -1203,38 +1194,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
       existing when existing in [nil, "", [], %{}] -> Map.put(map, key, value)
       _existing -> map
     end
-  end
-
-  defp derived_station_calendar_pressure_branches(prior_plan) do
-    prior_plan
-    |> StationSourceReports.prior_plan_station_calendar_reports()
-    |> StationCalendarPressureBranches.from_reports()
-  end
-
-  defp derived_mission_state_station_calendar_pressure_branches(mission_state) do
-    mission_state
-    |> StationSourceReports.station_calendar_reports()
-    |> StationCalendarPressureBranches.from_reports()
-  end
-
-  defp derived_mission_state_station_reservation_review_summary_pressure_branches(mission_state) do
-    mission_state
-    |> StationReservationPressureReports.review_summary_reports()
-    |> StationCalendarPressureBranches.from_reports(
-      provider_contention_source_path: fn _report, source_path ->
-        "#{source_path}.review_rows"
-      end
-    )
-  end
-
-  defp derived_mission_state_station_reservation_hold_pressure_branches(mission_state) do
-    mission_state
-    |> StationReservationPressureReports.hold_pressure_reports()
-    |> StationCalendarPressureBranches.from_reports(
-      provider_contention_source_path: fn report, source_path ->
-        "#{source_path}.#{report["source_row_collection"] || "review_rows"}"
-      end
-    )
   end
 
   defp derived_operational_feedback_branches(
