@@ -9,7 +9,7 @@ Current slice:
 Schema operational handoff property-dispatch extraction.
 
 Status:
-Slice selected; selection publication pending.
+Implementation published as `d7a69831`; handoff publication pending.
 
 Selected slice:
 Move JSON-property dispatch/context assembly for operational-readiness report,
@@ -43,13 +43,30 @@ operator-review, Cadence-import, and export tests pass; strict compile, full
 byte-clean schema regeneration, and independent review are clean.
 
 Verification gaps:
-- Focused baseline, strict compile, export proof, and independent review remain.
+- None for this slice. Full checked-in schema regeneration is byte-identical.
+- Independent review was clean. No API, schema, export, ordering,
+  error-behavior, ownership, or behavioral finding remains.
 
 Tests run:
-- None yet for this selected slice.
+- Baseline and post-change focused readiness/operator-review/Cadence-import/
+  export subset: 24 passed with warnings as errors.
+- Strict forced compile: 3,659 files clean with warnings as errors.
+- Full schema export regenerated every checked-in schema and bundle with zero
+  diff.
+- Public `Schema` definitions match selection commit `c274a548`; xref reports
+  the dispatcher has only the `Schema` runtime caller.
+- Format, changed/new-file whitespace, and `git diff --check` passed.
+- Independent review confirmed exact eager left-to-right contexts, the distinct
+  later operator-review scalar-field predicate lookup, unchanged adjacent
+  dispatchers, then reran all proof clean.
 
 Behavior/schema changes:
 None intended.
+
+Outcome:
+Operational-readiness report, operator-review package, and Cadence import
+manifest routing now delegates to `OperationalHandoffPropertyDispatch`.
+Implementation published as `d7a69831`.
 
 Last completed slice:
 Standalone communications schema dispatch published as implementation
