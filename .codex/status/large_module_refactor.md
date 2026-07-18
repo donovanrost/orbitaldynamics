@@ -6,41 +6,55 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-CadenceImport proposed-contact manifest-row builder extraction.
+CadenceImport contact-intent manifest-row builder extraction.
 
 Status:
-Implementation published in `f5481b14`; handoff publication pending.
+Slice selected; selection publication pending.
 
-Completed boundary:
-`CadenceImport.ProposedContactManifestRow.build/3` now owns the exact 53-key
-projection, three cadence-status clauses, three import-status clauses, and both
-activity-context clauses. The facade supplies three shared callbacks for JSON
-encoding, provider-field normalization, and compaction. `CadenceImport` dropped
-from 5,000 to 4,909 lines.
+Selected slice:
+Move `contact_intent_manifest_row/2` into internal
+`CadenceImport.ContactIntentManifestRow.build/3`. Keep approval requirement,
+rule-match, escalation, activity, normalization, and status helpers shared with
+suppression and other builders; inject their exact twelve callback identities.
 
-Selection:
-The slice boundary was selected and published in `af3cd62b`.
+Why this slice:
+The reduced `CadenceImport` facade is 4,909 lines. The builder has one dispatch
+caller and an exact 104-key contact, calendar, reservation, result, dependency,
+import, approval, and policy projection with a clear facade boundary.
 
-Verification:
-- Focused baseline and implementation CadenceImport/contract suites: 100/100.
-- Strict warnings-as-errors compile: 3,705 files.
-- Canonical normalized AST equivalence: exact 53-key body, all eight helper
-  clauses, three callback identities/arities, and public facade definitions.
-- Format, diff, whitespace, ownership-reference, caller, and xref checks: clean;
-  both intended facade call paths remain and xref reports only the facade.
-- Independent review: no code findings; raw import classification, direct then
-  provenance trust fallback, and both invalid-shape encoding paths are exact.
-  Its handoff-only stale-ledger finding is resolved by this replacement.
+Public facade to preserve:
+All `CadenceImport` APIs; all 104 keys and fallback order; import-presence
+classification; provider-result normalization; approval/rule/escalation
+selection; activity normalization; compaction; deterministic output; and
+artifact contracts.
+
+Likely files:
+- `lib/orbital_dynamics/cadence_import.ex`
+- `lib/orbital_dynamics/cadence_import/contact_intent_manifest_row.ex`
+- `.codex/status/large_module_refactor.md`
+
+Likely tests:
+- `test/orbital_dynamics/cadence_import_test.exs`
+- `test/orbital_dynamics/schema/cadence_import_contracts_test.exs`
+
+Definition of done:
+The internal builder owns the exact 104-key projection; shared policy and
+normalization helpers stay in the facade, which supplies twelve exact callbacks;
+focused tests, strict compile, equivalence/API checks, and independent review
+are clean.
+
+Verification gaps:
+- Focused baseline, implementation proof, strict compile, and review remain.
 
 Behavior/schema changes:
-None. No schema-generation boundary changed, so no export regeneration was
-required.
+None intended.
 
 Last completed slice:
-Proposed-contact manifest-row builder extraction, published in `f5481b14`.
+Proposed-contact row builder published in `f5481b14`; compact handoff published
+in `dc9db652`.
 
 Next candidate:
-Remap the reduced `CadenceImport` module for the next low-coupling builder.
+Remap the reduced `CadenceImport` module after this extraction.
 
 Blocked:
 No.
