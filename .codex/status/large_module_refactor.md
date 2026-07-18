@@ -6,46 +6,30 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema export CLI test-ledger split.
+Schema export validation-family test split.
 
 Status:
-Complete and published.
+Selected; implementation has not started.
 
 Selected boundary:
-Move the three Mix task CLI behavior tests for single-contract export, missing
-required flags, and all-contract directory export into a dedicated test module.
-Keep the giant schema-bundle content contract test and all of its local
-model-limit helpers together in the original file. Give the all-contract
-directory test a 120-second per-test timeout because standalone cold execution
-can exceed ExUnit's 60-second default.
+Move the final model-acceptance, validation-safety-case, and validation
+reference-fixture schema assertions into a focused validation-family export
+test. Preserve end-to-end coverage by invoking the Mix export task and reading
+the generated bundle in the new test.
 
 Selection evidence:
-- The three tests share only Mix task invocation, captured IO, filesystem
-  cleanup, and task re-enablement.
-- The bundle-content test owns all schema-family assertions and every local
-  helper, so it can remain unchanged.
-- The split should reduce the current 8,764-line export test ledger without
-  duplicating fixtures or weakening assertions.
-- Initial standalone verification showed the all-contract directory export can
-  exceed 60 seconds without the former bundle-test warmup; the assertion body
-  remains unchanged and only that test receives the larger timeout.
-- Production code, public APIs, generated schema exports, contract behavior,
-  and the bundle-content assertion body remain outside the boundary.
+- The selected tail block uses only the exported `schemas` map and
+  `OrbitalDynamics.Validation.capabilities().known_limits`.
+- The new test will retain Mix task invocation, captured IO, output cleanup, and
+  task re-enablement, so assertions still prove serialized export behavior.
+- The split should further reduce the current 8,671-line bundle-content ledger
+  without moving its 14 helpers or weakening the selected assertions.
+- Production code, public APIs, generated schema exports, other contract-family
+  assertions, and helper ownership remain outside the boundary.
 
 Verification:
-- Selection published in `d5bb3d07`; corrected timeout boundary published in
-  `52c6ea2e`; implementation published in `03b4d2ec`.
-- Focused baseline: 3 passed.
-- Strict warnings-as-errors compile: 3,800 files compiled.
-- Split CLI test module: 3 passed.
-- Original bundle-content test module: 1 passed.
-- Canonical AST comparison: all three moved test bodies equivalent; independent
-  review also confirmed the retained bundle test is equivalent.
-- Static checks confirmed exactly three unique moved test names, one retained
-  bundle test, unchanged 14-helper set, no temporary checker, and clean
-  formatting/diff.
-- Independent review: clean, with no findings.
-- Original export ledger is 8,671 lines; the focused CLI module is 101 lines.
+Pending: focused baseline, mechanical assertion move, strict compile,
+focused/original test files, structural/static checks, and independent review.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
