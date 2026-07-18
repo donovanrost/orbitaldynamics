@@ -9,7 +9,7 @@ Current slice:
 Timeline activity scheduling-coordinate context extraction.
 
 Status:
-Selected; implementation has not started.
+Complete and published.
 
 Selected boundary:
 Move activity timing/target and source-window context construction into one
@@ -34,16 +34,28 @@ Selection evidence:
   the boundary.
 
 Verification:
-Pending: focused baseline, implementation, strict compile, focused/full tests,
-contracts, structural/static checks, and independent review.
+- Selection published in `b5dbb381`; corrected helper ownership published in
+  `c5eafdc1`; implementation published in `e1e22500`.
+- Focused baseline and post-change scheduling-coordinate coverage: 3 passed.
+- Strict warnings-as-errors compile: 3,800 files compiled.
+- Full Timeline suite: 127 passed.
+- Operational Timeline schema contracts: 36 passed.
+- Canonical AST comparison: both builders equivalent after normalizing only the
+  direct timing/identity policy calls.
+- Static checks confirmed unchanged public API, two private facades with one
+  consumer each, removal of the dead duration facade while retaining shared
+  row/identity facades, Timeline-only runtime ownership, no temporary checker,
+  and clean formatting/diff.
+- Independent review: clean, with no production-code findings.
+- Timeline is 5,329 lines; the extracted module is 27 lines.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline activity relationship context extraction, selected in `7a910e0c`,
-corrected in `af7fcfff`, and implemented in `2c33add2`.
+Timeline activity scheduling-coordinate context extraction, selected in
+`b5dbb381`, corrected in `c5eafdc1`, and implemented in `e1e22500`.
 
 Next candidate:
 Continue remapping the reduced Timeline facade.
