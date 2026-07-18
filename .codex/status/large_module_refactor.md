@@ -9,7 +9,7 @@ Current slice:
 Timeline activity feedback context extraction.
 
 Status:
-Selected; implementation has not started.
+Complete and published.
 
 Selected boundary:
 Move activity feedback context construction into one dedicated module. Keep a
@@ -37,16 +37,28 @@ Selection evidence:
   the boundary.
 
 Verification:
-Pending: focused baseline, implementation, strict compile, focused/full tests,
-contracts, structural/static checks, and independent review.
+- Selection published in `328db40e`; corrected helper ownership published in
+  `cf067a38`; implementation published in `615428bf`.
+- Focused baseline and post-change feedback coverage: 4 passed.
+- Strict warnings-as-errors compile: 3,796 files compiled.
+- Full Timeline suite: 127 passed.
+- Operational Timeline schema contracts: 36 passed.
+- Canonical AST comparison: extracted builder equivalent after normalizing only
+  the explicit provider-key argument.
+- Static checks confirmed unchanged public API, one private facade, one
+  coordinator consumer, removal of the dead provider-result facade,
+  Timeline-only runtime ownership, no temporary checker, and clean
+  formatting/diff.
+- Independent review: clean, with no production-code findings.
+- Timeline is 5,467 lines; the extracted module is 76 lines.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline activity command-authority context extraction, selected in
-`bb108bcc` and implemented in `7a036142`.
+Timeline activity feedback context extraction, selected in `328db40e`,
+corrected in `cf067a38`, and implemented in `615428bf`.
 
 Next candidate:
 Continue remapping the reduced Timeline facade.
