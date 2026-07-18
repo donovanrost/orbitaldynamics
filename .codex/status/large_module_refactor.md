@@ -9,7 +9,7 @@ Current slice:
 Timeline activity delivery-timing policy extraction.
 
 Status:
-Selection recorded; implementation has not started.
+Implementation published in `0154cab2`; focused and broad proof is green.
 
 Selected boundary:
 Move collection-end, planned/actual delivery, maximum latency, and
@@ -19,32 +19,34 @@ points; numeric field selection and delta calculation cross the boundary
 explicitly.
 
 Why this slice:
-The reduced Timeline facade is 6,364 lines. These six exclusive clauses own the
-alias order and explicit/derived precedence that produce collection, delivery,
-and latency evidence used by product activity context, operational rows, and
-timeline diff review.
+The extraction moved six exclusive clauses into a 61-line internal module.
+Timeline retains six private entry points and is now 6,366 lines; the two-line
+facade increase is the formatting cost of keeping numeric selection and delta
+calculation explicit at the boundary. Alias order and explicit/derived
+precedence now live together in the delivery-timing policy.
 
-Planned proof:
-- Focused explicit/derived latency, collection/delivery aliases,
-  numeric-string normalization, operational handoff, and latency-diff examples.
-- Full Timeline and Timeline schema-contract suites.
-- Strict warnings-as-errors compile.
-- Canonical AST equivalence for all six moved clauses after normalizing only the
-  six facade names and numeric selector/delta callbacks.
-- Format, diff, whitespace, ownership, exactly-six-facade, unchanged Timeline
-  public-definition, and xref checks.
-- Independent read-only review before publication.
+Completed proof:
+- Focused numeric-context, latency-diff, and operational handoff examples:
+  3 passed.
+- Full Timeline suite: 127 passed.
+- Timeline schema-contract suites: 36 passed.
+- Strict warnings-as-errors compile: 3,753 files.
+- Canonical AST equivalence: all six moved clauses after normalizing only
+  public/private heads and numeric selector/delta callbacks.
+- Format, whitespace, ownership, exactly-six-facade, unchanged Timeline public
+  definitions, and xref checks passed; Timeline is the only runtime caller.
+- Independent read-only review found no production-code findings.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline activity thermal-metric policy extraction, selected in `fde9f37a`,
-implemented in `dacfb2bd`, and handed off in `b6977bc4`.
+Timeline activity delivery-timing policy extraction, selected in `615501f8` and
+implemented in `0154cab2`.
 
 Next candidate:
-Remap the reduced Timeline facade after this slice, avoiding the wide
+Remap the 6,366-line Timeline facade after this slice, avoiding the wide
 activity-to-map coordinator callback surface.
 
 Blocked:
