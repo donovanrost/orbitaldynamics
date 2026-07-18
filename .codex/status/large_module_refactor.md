@@ -6,88 +6,72 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Campaign-planner V3 branch-evaluation boundary extraction.
+Campaign-planner V1 build-orchestration boundary extraction.
 
 Status:
-Implementation published as `3fecf5e0`; handoff publication pending.
+Slice selected; implementation not started.
 
 Selected slice:
-Move `evaluate_branch/2` and its branch-only assessment helpers from
-`CampaignPlanner` into an internal `CampaignPlanner.StrategyBranchEvaluation`
-boundary. Inject only the facade-preserving normalized `repair/1` entry point.
+Move the body of public `CampaignPlanner.build/2` and its V1-only generation,
+filtering, ranking, reporting, and metadata helpers into an internal
+`CampaignPlanner.BuildOrchestration.build/3` boundary.
 
 Why this slice:
-After the V2 repair-execution extraction, `CampaignPlanner` is 1,802 lines. Its
-remaining 169-line evaluator still coordinates the complete V3 branch lifecycle
-and is followed by branch-only warning, risk, approval, objective, feasibility,
-assumption, and provenance helpers.
+After V2 repair-execution and V3 branch-evaluation extractions,
+`CampaignPlanner` is 1,443 lines. The public 156-line V1 `build/2` entry point
+still owns the full candidate-to-artifact pipeline and is the last generation
+entry point without a cohesive orchestration owner.
 
 Current coupling/problem:
-The public facade directly owns branch event application, candidate refresh,
-V2 repair invocation, candidate-plan construction, resource and feedback
-assessment, objective satisfaction, feasibility, risk, approval, strategic
-scoring, warning aggregation, assumptions, provenance, and `PlanBranch`
-construction. This is one cohesive V3 evaluation responsibility.
+The facade directly coordinates candidate generation, station/resource/contact
+filters, contention/allocation, scenario ranking, contact intents, link and
+resource reports, objective and timeline reports, optimizer contract, local
+constraints, warnings, metadata, and `BuildArtifact` assembly.
 
 Public facade to preserve:
-`CampaignPlanner.strategy/1`, `strategy!/1`, repair entry points, file-backed
-entry points, branch ordering, `PlanBranch` fields, scores, risks, approvals,
-warnings, reports, provenance, deterministic output, and all error behavior.
+`CampaignPlanner.build/2`, all V1 artifact fields and ordering, generated-time
+semantics, contact/resource/timeline/objective reports, optimizer contract,
+deterministic output for fixed inputs, and all error behavior.
 
 Likely files:
 - `lib/orbital_dynamics/campaign_planner.ex`
-- `lib/orbital_dynamics/campaign_planner/strategy_branch_evaluation.ex`
+- `lib/orbital_dynamics/campaign_planner/build_orchestration.ex`
 - `.codex/status/large_module_refactor.md`
 
 Definition of done:
-`do_strategy_with_baseline/1` delegates each branch to
-`StrategyBranchEvaluation.evaluate/3`; only normalized `repair/1` is injected;
-branch artifacts, ordering, policy application, warnings, scoring, provenance,
-and errors are unchanged; focused and full planner tests match live baseline;
-strict compile and independent review are clean.
+Public `build/2` keeps option validation and delegates to
+`BuildOrchestration.build/3`; V1-only helpers move with the pipeline while
+shared V2 helpers remain in the facade; public artifacts and errors are
+unchanged; focused and full planner tests match live baseline; strict compile
+and independent review are clean.
 
 Verification gaps:
-- The full planner directory retains the five previously documented failures:
-  728/733 passed with the same test names, values, and stack locations.
-- Independent review was clean. No code, API, artifact, determinism, ordering,
-  policy, provenance, ownership, error-behavior, or behavioral finding remains.
+- The full planner directory has five previously documented failures. The
+  post-change run must retain the same 728/733 result and observations.
+- The exact focused V1 build baseline still needs to be captured.
 
 Tests run:
-- Baseline and post-change focused branch-evaluation subset: 55 passed with
-  warnings as errors.
-- Post-change full planner directory: 728/733 passed with the same five
-  documented failures and observations as the live baseline.
-- Strict forced compile: 3,650 files clean with warnings as errors.
-- Public `CampaignPlanner` definitions match selection commit `8e3e0e25`.
-  Xref reports `CampaignPlanner` as the only runtime caller of the new owner.
-- Format, tracked and new-file whitespace, and `git diff --check` passed. The
-  selected evaluator and branch-only helpers are absent from the facade.
-- `CampaignPlanner` shrank from 1,802 to 1,443 lines. The new internal
-  `StrategyBranchEvaluation` module is 282 lines.
-- The only injected dependency is the facade's normalized `repair/1` entry
-  point. Direct internal calls replace the removed thin metric helpers.
-- Independent review compared the full lifecycle and every `PlanBranch` field,
-  then reran the exact 55-test subset, 3,650-file compile, public-def, xref,
-  formatting, diff, and new-file checks; results matched primary proof.
+- Live inventory: `CampaignPlanner` is 1,443 lines.
+- The public `build/2` body spans 156 lines and is followed by a cohesive set
+  of V1-only private helpers.
+- Shared V2 link-capacity, resource-projection, scoring, and downlink helpers
+  are excluded from the extraction.
+- No runtime code has changed in this slice.
 
 Behavior/schema changes:
 None intended.
 
 Outcome:
-`do_strategy_with_baseline/1` now delegates each normalized branch to
-`StrategyBranchEvaluation.evaluate/3`. Cross-branch ordering, recommendation,
-comparison, and artifact assembly remain in the facade. Implementation
-published as `3fecf5e0`.
+Pending.
 
 Last completed slice:
-V2 repair-execution boundary published as implementation `bb696784` and handoff
-`bc064c2c`: `CampaignPlanner` shrank from 1,894 to 1,802 lines; focused 35/35,
-full-baseline, and 3,649-file compile proof passed; independent review was
-clean.
+V3 branch-evaluation boundary published as implementation `3fecf5e0` and
+handoff `078c673f`: `CampaignPlanner` shrank from 1,802 to 1,443 lines; focused
+55/55, full-baseline, and 3,650-file compile proof passed; independent review
+was clean.
 
 Next candidate:
-Publish this handoff, then refresh the remaining facade responsibilities and
-select the next bounded extraction.
+Implement and verify the selected V1 build-orchestration boundary.
 
 Blocked:
 No.
