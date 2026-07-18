@@ -12,19 +12,19 @@ Status:
 Selection recorded; implementation has not started.
 
 Selected boundary:
-Move operational-kind inference, Cadence-import status classification, required
-operator-action precedence, and command-review policy into
-`Timeline.OperationalActionPolicy`. `Timeline` retains three private entry
-points used by row construction. Command directions plus terminal/executed
+Move Cadence-import status classification, required operator-action precedence,
+and command-review policy into `Timeline.OperationalActionPolicy`. `Timeline`
+retains two private entry points used by row construction. Terminal/executed
 status lists are supplied as selection data; the seven existing status/import/
-lock/provider evidence helpers are supplied as callbacks.
+lock/provider evidence helpers are supplied as callbacks. Operational-kind
+inference remains Timeline-owned because its command-direction clause uses the
+shared compile-time guard list also surfaced by capabilities.
 
 Why this slice:
-The reduced Timeline facade is 7,752 lines. This approximately 95-line,
-14-clause cluster has one cohesive operational classification responsibility
-and is exclusive to normalized row construction. Keeping all precedence
-branches together avoids splitting kind/import inference from the action policy
-that consumes them.
+The reduced Timeline facade is 7,752 lines. This approximately 65-line,
+three-clause cluster has one cohesive operational-action responsibility and is
+exclusive to normalized row construction. The corrected boundary preserves the
+compile-time operational-kind guard without duplicating its shared constant.
 
 Planned proof:
 - Focused Timeline tests for command authority, kind/import classification,
@@ -32,9 +32,9 @@ Planned proof:
   rejected/blocked precedence.
 - Full Timeline and Timeline schema-contract suites.
 - Strict warnings-as-errors compile.
-- Canonical AST equivalence for all 14 clauses after normalizing only the three
-  facade names and selection-data/callback boundaries.
-- Format, diff, whitespace, ownership, exactly-three-facade, unchanged Timeline
+- Canonical AST equivalence for all three moved clauses after normalizing only
+  the two facade names and selection-data/callback boundaries.
+- Format, diff, whitespace, ownership, exactly-two-facade, unchanged Timeline
   public-definition, and xref checks.
 - Independent read-only review before publication.
 
