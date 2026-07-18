@@ -13,13 +13,13 @@ Slice selected; selection publication pending.
 
 Selected slice:
 Move `station_calendar_manifest_row/2` into internal
-`CadenceImport.StationCalendarManifestRow.build/3`, injecting only the three
-shared facade helpers for review action, adapter status, and compact-map
-cleanup.
+`CadenceImport.StationCalendarManifestRow.build/3`, injecting only the four
+shared facade helpers for review action, adapter status, provider-result value
+normalization, and compact-map cleanup.
 
 Why this slice:
 `CadenceImport` is 6,481 lines. The station-calendar builder is a 164-line
-transformation with 125 projected keys, one facade caller, and only three
+transformation with 125 projected keys, one facade caller, and only four
 shared dependencies.
 
 Current coupling/problem:
@@ -38,16 +38,18 @@ Likely files:
 
 Definition of done:
 The internal builder owns the exact 125-key projection; the facade supplies
-only three same-purpose callbacks; focused Cadence-import and schema-contract
+only four same-purpose callbacks; focused Cadence-import and schema-contract
 tests pass; strict warnings-as-errors compile, projection equivalence, public
 API checks, and independent review are clean.
 
 Verification gaps:
-- Focused baseline, implementation proof, strict compile, and independent
-  review remain.
+- Initial implementation compile identified two shared provider-result
+  normalization calls omitted from the selection count; this correction is
+  published before a successful implementation compile.
+- Implementation proof, strict compile, and independent review remain.
 
 Tests run:
-- None yet for this selected slice.
+- Focused baseline: 100/100.
 
 Behavior/schema changes:
 None intended.
