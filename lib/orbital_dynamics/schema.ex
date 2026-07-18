@@ -2035,63 +2035,55 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property(field, @command_window_report = contract_name, contract) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.GroundNetworkReportPropertyDispatch.command_window(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.CommandWindowReportJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.CommandWindowReportJsonSchema.property_fun_from_context(
-        model_limits: &command_window_report_model_limits/0,
-        row_schema: &command_window_row_json_schema/0
-      )
+      &default_json_schema_property/3,
+      {&command_window_report_model_limits/0, &command_window_row_json_schema/0}
     )
   end
 
   defp json_schema_property(field, @station_calendar_precedence_summary = contract_name, contract) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.GroundNetworkReportPropertyDispatch.calendar_precedence(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.StationCalendarPrecedenceSummaryJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.StationCalendarPrecedenceSummaryJsonSchema.property_fun_from_context(
-        model_limits: &station_calendar_report_model_limits/0,
-        stable_id_pattern: @stable_id_pattern
-      )
+      &default_json_schema_property/3,
+      @stable_id_pattern,
+      &station_calendar_report_model_limits/0
     )
   end
 
   defp json_schema_property(field, @station_reservation_report = contract_name, contract) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.GroundNetworkReportPropertyDispatch.reservation(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.StationReservationReportJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.StationReservationReportJsonSchema.property_fun_from_context(
-        models: &station_reservation_report_models/0,
-        contact_schema: &station_reservation_contact_json_schema/0,
-        provider_contention_group_schema:
-          &station_reservation_provider_contention_group_json_schema/0,
-        stable_id_pattern: @stable_id_pattern
-      )
+      &default_json_schema_property/3,
+      @stable_id_pattern,
+      {
+        &station_reservation_report_models/0,
+        &station_reservation_contact_json_schema/0,
+        &station_reservation_provider_contention_group_json_schema/0
+      }
     )
   end
 
   defp json_schema_property(field, @station_calendar_report = contract_name, contract) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.GroundNetworkReportPropertyDispatch.calendar(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.StationCalendarReportJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.StationCalendarReportJsonSchema.property_fun_from_context(
-        contact_schema: &station_calendar_contact_json_schema/0,
-        model: &station_calendar_report_model/0,
-        provider_contention_group_schema:
-          &station_calendar_provider_contention_group_json_schema/0,
-        entry_schema: &station_calendar_provider_entry_json_schema/0,
-        trust_boundary_status_count_schema:
-          &branch_event_trust_boundary_status_counts_json_schema/0,
-        model_limits: &station_calendar_report_model_limits/0
-      )
+      &default_json_schema_property/3,
+      {
+        &station_calendar_contact_json_schema/0,
+        &station_calendar_report_model/0,
+        &station_calendar_provider_contention_group_json_schema/0,
+        &station_calendar_provider_entry_json_schema/0,
+        &branch_event_trust_boundary_status_counts_json_schema/0,
+        &station_calendar_report_model_limits/0
+      }
     )
   end
 
