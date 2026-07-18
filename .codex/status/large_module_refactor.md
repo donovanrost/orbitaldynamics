@@ -9,7 +9,7 @@ Current slice:
 Timeline diff comparison-value policy completion.
 
 Status:
-Selected; implementation has not started.
+Completed and published.
 
 Selected boundary:
 Move the two `diff_compare_value/2` clauses from the Timeline facade into
@@ -31,17 +31,30 @@ Selection evidence:
   boundary.
 
 Verification:
-Pending: focused baselines, policy ownership change, strict compile, focused and
-full Timeline tests, schema contracts, structural/static checks, and independent
-review.
+- Focused baseline passed 2 timeline-diff tests.
+- Strict warnings-as-errors compile passed 3,800 modules.
+- Focused timeline-diff tests passed 2 tests.
+- Full Timeline suite passed 127 tests.
+- Four Timeline schema-contract suites passed 36 tests.
+- AST conservation proved the two comparison branches moved exactly and the
+  facade changed only by replacing the callback with the unchanged context-field
+  list and removing the two helper clauses.
+- Static checks confirmed Timeline has no `diff_compare_value` helper, the policy
+  has the sole private comparison function, formatting and diff checks pass, and
+  no temporary checker remains.
+- Independent review was clean with no correctness or maintainability findings;
+  it also confirmed Timeline remains the policy's sole caller and public defs,
+  capability fields, report/schema fields, and ordering are unchanged.
+- Timeline decreased from 5,329 to 5,319 lines; the policy increased from 12 to
+  32 lines.
 
 Behavior/schema changes:
 None intended. The facade continues supplying both compare-field lists, so
 capabilities and schema exports should remain byte-for-byte stable.
 
 Last completed slice:
-Schema export operator-review model/evidence test split, selected in `0e38d868`
-and implemented in `6e8d1396`.
+Timeline diff comparison-value policy completion, selected in `4b541c00` and
+implemented in `76d88290`.
 
 Next candidate:
 Continue remapping the reduced Timeline facade after this callback-ownership
