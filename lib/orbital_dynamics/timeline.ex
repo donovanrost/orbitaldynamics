@@ -1812,33 +1812,14 @@ defmodule OrbitalDynamics.Timeline do
   end
 
   defp publication_source_artifact_type(source_artifact) do
-    [
-      source_artifact["schema_contract"],
-      source_artifact["artifact_type"],
-      source_artifact["model"]
-    ]
-    |> Enum.map(&encode_value/1)
-    |> Enum.find(&(&1 not in [nil, ""]))
-    |> case do
-      nil -> "unknown_artifact"
-      value -> value
-    end
+    OrbitalDynamics.Timeline.PublicationScalarInputPolicy.publication_source_artifact_type(
+      source_artifact,
+      &encode_value/1
+    )
   end
 
   defp publication_sequence!(opts) do
-    case Keyword.get(opts, :publication_sequence, Keyword.get(opts, :sequence, 1)) do
-      value when is_integer(value) and value >= 0 ->
-        value
-
-      value when is_binary(value) ->
-        case Integer.parse(value) do
-          {integer, ""} when integer >= 0 -> integer
-          _parsed -> raise ArgumentError, "publication_sequence must be a non-negative integer"
-        end
-
-      _value ->
-        raise ArgumentError, "publication_sequence must be a non-negative integer"
-    end
+    OrbitalDynamics.Timeline.PublicationScalarInputPolicy.publication_sequence!(opts)
   end
 
   defp publication_stable_id_list(opts, key) do
