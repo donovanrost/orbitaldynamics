@@ -5070,9 +5070,11 @@ defmodule OrbitalDynamics.Timeline do
   end
 
   defp normalized_activity_groups(activities, opts) do
-    activities
-    |> normalize_activities(opts)
-    |> Enum.group_by(& &1["timeline_id"])
+    OrbitalDynamics.Timeline.IdentityGroupingPolicy.normalized_activity_groups(
+      activities,
+      opts,
+      &normalize_activities/2
+    )
   end
 
   defp transition_application_from_diff_row(row, source_by_timeline, replacement_by_timeline) do
@@ -5121,18 +5123,11 @@ defmodule OrbitalDynamics.Timeline do
   end
 
   defp unique_timeline_activity(groups, timeline_id) do
-    case Map.get(groups, timeline_id, []) do
-      [activity] -> activity
-      _duplicates_or_missing -> nil
-    end
+    OrbitalDynamics.Timeline.IdentityGroupingPolicy.unique_timeline_activity(groups, timeline_id)
   end
 
   defp rows_by_timeline_id(rows) do
-    rows
-    |> Enum.group_by(& &1["timeline_id"])
-    |> Map.new(fn {timeline_id, matches} ->
-      {timeline_id, Enum.sort_by(matches, & &1["activity_id"])}
-    end)
+    OrbitalDynamics.Timeline.IdentityGroupingPolicy.rows_by_timeline_id(rows)
   end
 
   defp duplicate_group_count(groups) do
