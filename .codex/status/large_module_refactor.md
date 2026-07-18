@@ -9,52 +9,37 @@ Current slice:
 CadenceImport approval-requirement manifest-row builder extraction.
 
 Status:
-Slice selected; selection publication pending.
+Implementation published in `930077ec`; handoff publication pending.
 
-Selected slice:
-Move `approval_requirement_manifest_row/2` and its exclusive candidate-diff
-row-enrichment helpers into internal
-`CadenceImport.ApprovalRequirementManifestRow.build/3`. Keep changed-field/count
-normalization shared with candidate diff and inject eleven facade helpers for
-that shared normalization plus policy, review/adapter, activity context, and
-compaction.
+Completed boundary:
+`CadenceImport.ApprovalRequirementManifestRow.build/3` now owns the exact 33-key
+base projection and its exclusive candidate-diff row-enrichment chain. The
+facade retains shared changed-field/count normalization and supplies eleven
+callbacks for that normalization plus policy, review/adapter, activity context,
+and compaction. `CadenceImport` dropped from 5,142 to 5,057 lines.
 
-Why this slice:
-`CadenceImport` is 5,142 lines. The builder has 33 base keys, an exclusive
-candidate-diff row-enrichment chain, eleven shared dependencies, and one facade
-caller.
+Selection and correction:
+The slice was selected in `1ca14579`. Initial compilation exposed that
+changed-field/count normalization is shared with CandidateDiff, so the published
+boundary was corrected in `baec4a52` before successful implementation proof.
 
-Public facade to preserve:
-All `CadenceImport` APIs; all approval-requirement keys and fallback expressions;
-policy escalation, candidate-diff enrichment, activity-context normalization,
-action/defaults, compaction, deterministic output, and contracts.
-
-Likely files:
-- `lib/orbital_dynamics/cadence_import.ex`
-- `lib/orbital_dynamics/cadence_import/approval_requirement_manifest_row.ex`
-- `.codex/status/large_module_refactor.md`
-
-Definition of done:
-The internal builder owns the exact 33-key base projection and row-enrichment
-chain; shared changed-field/count normalization stays in the facade, which
-supplies eleven exact callbacks; focused tests, strict compile, equivalence/API
-checks, and independent review are clean.
-
-Verification gaps:
-- Focused baseline, implementation proof, strict compile, and review remain.
-
-Tests run:
-- Focused baseline: 100/100.
-- Initial implementation compile exposed shared changed-field/count ownership
-  omitted from the selection; selection corrected before successful compile.
+Verification:
+- Focused CadenceImport and contract tests: 100/100.
+- Strict warnings-as-errors compile: 3,703 files.
+- Normalized AST equivalence: exact builder body, 33 base entries and fallback
+  order, both enrichment clauses, shared changed-field helpers, and public
+  facade definitions.
+- Format, diff, whitespace, ownership-reference, and xref checks: clean; one
+  intended runtime caller.
+- Independent review: no code findings. Its handoff-only stale-ledger finding is
+  resolved by this replacement.
 
 Behavior/schema changes:
-None intended.
+None. No schema-generation boundary changed, so no export regeneration was
+required.
 
 Last completed slice:
-Candidate-diff row builder selected in `3b02d0f4` and published in `46c32945`:
-focused 100/100, strict 3,702-file compile, exact 66-entry/46-field/helper AST
-comparison, and independent review passed.
+Approval-requirement manifest-row builder extraction, published in `930077ec`.
 
 Next candidate:
 Remap the reduced `CadenceImport` module for the next low-coupling builder.
