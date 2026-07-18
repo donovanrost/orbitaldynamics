@@ -6,30 +6,33 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline collection list-value policy extraction.
+Timeline lock-or-approval protection policy extraction.
 
 Status:
-Implemented, verified, independently reviewed, committed, and pushed.
+Selection recorded; implementation has not started.
 
-Completed boundary:
-Moved Timeline's shared list-value fallback into the 5-line
-`Timeline.CollectionValuePolicy`. The 6,253-line `Timeline` retains one private
-entry point; impact, integrity, diff, and lifecycle consumers remain unchanged.
+Selected boundary:
+Move Timeline's remaining lock-or-approval combination clause into the existing
+`Timeline.ApprovalProtectionPolicy`. `Timeline` retains one private entry point
+and passes its existing locked and approved predicates explicitly; protection
+decision coordination remains unchanged.
 
-Published commits:
-Selected in `77ebf7f8` and implemented in `67d1a114`.
+Why this slice:
+The 6,253-line Timeline facade still owns one exclusive protection combination
+leaf while fallback source sensitivity and approval membership already belong
+to `ApprovalProtectionPolicy`. Moving it completes the reusable boolean
+classification boundary without moving transition application decisions.
 
-Verification:
-- Strict warnings-as-errors compile passed across 3,778 files.
-- Four focused dependency-impact, integrity-review, diff relationship, and
-  lifecycle summary examples passed.
-- Full Timeline suite passed with 127 examples; Timeline schema-contract suites
-  passed with 36 examples.
-- Canonical AST equivalence passed after normalizing only the public/private
-  head.
+Planned proof:
+- Focused auto-approvable, lock/approval/executed preservation, and JSON-string
+  truthy protection examples.
+- Full Timeline and Timeline schema-contract suites.
+- Strict warnings-as-errors compile.
+- Canonical AST equivalence for the moved definition after normalizing only the
+  public/private head and explicit predicate callbacks.
 - Format, diff, whitespace, ownership, exactly-one-facade, unchanged Timeline
-  public-definition, and xref checks passed.
-- Independent read-only review found no production-code issues.
+  public-definition, and xref checks.
+- Independent read-only review before publication.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
