@@ -6,46 +6,45 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline lifecycle-state decision policy extraction.
+Timeline single-transition decision policy extraction.
 
 Status:
-Implementation published in `8c570e68`; focused and broad proof is green.
+Selection recorded; implementation has not started.
 
 Selected boundary:
-Move the complete status/approval/lifecycle decision and operator-action policy
-cluster into `Timeline.LifecycleStatePolicy`: transition decisions, review
-flags, import actions, operator actions/reasons, and protection aggregation.
-`Timeline` retains the 11 existing private entry points used by state artifact
-construction. The shared deterministic `sorted_uniq/1` behavior is supplied as
-one callback to the two aggregators.
+Move the complete single-transition decision builder, diff-report adapter, and
+zero/one/multiple-row summarization policy into `Timeline.TransitionDecisionPolicy`.
+`Timeline` retains one private `base_transition_decision/3` facade used by the
+public decision and application helpers. Shared `diff_report/3` and
+`compact_map/1` behavior is supplied as callbacks.
 
 Why this slice:
-The extraction moved 27 clauses into a 127-line internal module and reduced
-Timeline from 7,852 to 7,813 lines. The 11 facade entry points preserve all
-current status, approval, and combined-lifecycle artifact callers.
+The reduced Timeline facade is 7,813 lines. These six exclusive clauses form
+one approximately 70-line responsibility with no callers outside the one
+private facade. The boundary preserves empty, single-row, and identity-changing
+multi-row semantics without moving integrity gating.
 
-Completed proof:
-- Focused lifecycle-state examples: 4 passed.
-- Full Timeline suite: 127 passed.
-- Timeline schema-contract suites: 36 passed.
-- Strict warnings-as-errors compile: 3,720 files.
-- Canonical AST equivalence: all 27 moved clauses after normalizing only facade
-  names and the `sorted_uniq/1` callback boundary.
-- Format, whitespace, ownership, exactly-11-facade, unchanged Timeline public
-  definitions, and xref checks passed.
-- Independent read-only review found no findings.
+Planned proof:
+- Focused Timeline tests for reusable transition decisions and applications.
+- Full Timeline and Timeline schema-contract suites.
+- Strict warnings-as-errors compile.
+- Canonical AST equivalence for all six moved clauses after normalizing only
+  the facade name and the two callback boundaries.
+- Format, diff, whitespace, ownership, exactly-one-facade, unchanged Timeline
+  public-definition, and xref checks.
+- Independent read-only review before publication.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline lifecycle-state decision policy extraction, selected in `4fdafc43` and
-implemented in `8c570e68`.
+Timeline lifecycle-state decision policy extraction, selected in `4fdafc43`,
+implemented in `8c570e68`, and handed off in `95a4dd2a`.
 
 Next candidate:
-Remap the reduced 7,813-line Timeline facade, emphasizing operational action
-classification and transition-decision summarization.
+Remap the reduced Timeline facade after this slice, emphasizing operational
+action classification and transition integrity gating.
 
 Blocked:
 No.
