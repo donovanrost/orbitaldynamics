@@ -9,39 +9,36 @@ Current slice:
 Timeline terminal-exception classification policy extraction.
 
 Status:
-Selection recorded; implementation has not started.
+Implemented, verified, independently reviewed, committed, and pushed.
 
-Selected boundary:
-Move the terminal-exception row classifier into
-`Timeline.TerminalExceptionPolicy`. `Timeline` retains one private entry point
-and passes the existing terminal-status list and provider-result failure
-predicate explicitly; provider-result normalization remains in its current
-module.
+Completed boundary:
+Moved the terminal-exception row classifier into the 13-line
+`Timeline.TerminalExceptionPolicy`. The 6,224-line `Timeline` retains one
+private entry point and passes the terminal-status list and provider-result
+failure predicate explicitly; provider-result normalization remains in place.
 
-Why this slice:
-The 6,226-line Timeline facade still owns one exclusive OR-chain classifier
-covering terminal statuses, explicit action reasons, and contact/command result
-failures. Isolating it preserves the previously deferred callback boundary
-without moving provider-result interpretation or report assembly.
+Published commits:
+Selected in `c77b9c61` and implemented in `2712e34d`.
 
-Planned proof:
-- Focused cancelled/rejected terminal statuses, provider failure aliases, and
-  provider failure maps examples.
-- Full Timeline and Timeline schema-contract suites.
-- Strict warnings-as-errors compile.
-- Canonical AST equivalence for the moved definition after normalizing only the
-  public/private head, facade name, terminal-status argument, and callback.
+Verification:
+- Strict warnings-as-errors compile passed across 3,773 files.
+- Three focused terminal-status, provider failure alias, and provider failure
+  map examples passed.
+- Full Timeline suite passed with 127 examples; Timeline schema-contract suites
+  passed with 36 examples.
+- Canonical AST equivalence passed after normalizing only the public/private
+  head, facade name, terminal-status argument, and callback.
 - Format, diff, whitespace, ownership, exactly-one-facade, unchanged Timeline
-  public-definition, and xref checks.
-- Independent read-only review before publication.
+  public-definition, and xref checks passed.
+- Independent read-only review found no production-code issues.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline diff protection-context policy extraction, selected in `de7c4f8f` and
-implemented in `30c111c7`.
+Timeline terminal-exception classification policy extraction, selected in
+`c77b9c61` and implemented in `2712e34d`.
 
 Next candidate:
 Continue remapping the reduced Timeline facade after this slice, avoiding wide
