@@ -6,50 +6,43 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-CadenceImport constraint manifest-row builder extraction.
+CadenceImport execution manifest-row builder extraction.
 
 Status:
-Implementation published as `c06e6b02`; handoff publication pending.
+Slice selected; selection publication pending.
 
 Selected slice:
-Move `constraint_manifest_row/2` into internal
-`CadenceImport.ConstraintManifestRow.build/3`. Inject the three shared facade
+Move `execution_manifest_row/2` into internal
+`CadenceImport.ExecutionManifestRow.build/3`. Inject the three shared facade
 helpers for review action, adapter status, and compact-map cleanup.
 
 Why this slice:
-`CadenceImport` was 5,540 lines. The builder was a 36-line transformation with
-27 projected keys, no exclusive helper dependencies, and one facade caller.
-The facade is now 5,514 lines.
+`CadenceImport` is 5,514 lines. The builder is a 40-line transformation with 31
+projected keys, no exclusive helper dependencies, and one facade caller.
 
 Public facade to preserve:
-All `CadenceImport` APIs; all constraint keys and value expressions;
+All `CadenceImport` APIs; all execution keys and value expressions;
 action/status semantics, import/approval defaults, compaction, deterministic
 output, and contracts.
 
 Likely files:
 - `lib/orbital_dynamics/cadence_import.ex`
-- `lib/orbital_dynamics/cadence_import/constraint_manifest_row.ex`
+- `lib/orbital_dynamics/cadence_import/execution_manifest_row.ex`
 - `.codex/status/large_module_refactor.md`
 
 Definition of done:
-The internal builder owns the exact 27-key projection; the facade supplies three
+The internal builder owns the exact 31-key projection; the facade supplies three
 exact callbacks; focused tests, strict compile, equivalence/API checks, and
 independent review are clean.
 
 Verification gaps:
-- None for this slice.
+- Focused baseline, implementation proof, strict compile, and review remain.
 
 Tests run:
-- Focused CadenceImport and schema contracts: 100/100.
-- Strict warnings-as-errors compile: 3,694 files.
-- Exact AST proof: 27/27 entries, full normalized body, and all public facade
-  definitions match selection `115d97da`.
-- Format, diff, caller/xref, callback-surface, and whitespace checks clean.
-- Independent read-only review: no code findings or additional test gaps.
+- None yet.
 
 Behavior/schema changes:
-None. Constraint action/status, import/approval defaults, compaction,
-deterministic output, and APIs are exact.
+None intended.
 
 Last completed slice:
 Constraint row builder selected in `115d97da` and published in `c06e6b02`:
