@@ -5631,9 +5631,7 @@ defmodule OrbitalDynamics.Timeline do
   end
 
   defp normalize_activity_row_aliases(activity) do
-    activity
-    |> put_new_present("id", Map.get(activity, "activity_id"))
-    |> put_new_present("type", Map.get(activity, "activity_type"))
+    OrbitalDynamics.Timeline.ActivityRowAliasPolicy.normalize(activity)
   end
 
   defp normalize_source_window(activity) do
@@ -5643,10 +5641,8 @@ defmodule OrbitalDynamics.Timeline do
     )
   end
 
-  defp put_new_present(activity, _key, value) when value in [nil, ""], do: activity
-
   defp put_new_present(activity, key, value) do
-    Map.put_new(activity, key, value)
+    OrbitalDynamics.Timeline.ActivityRowAliasPolicy.put_new_present(activity, key, value)
   end
 
   defp normalize_cadence_import(activity) do
