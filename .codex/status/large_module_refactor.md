@@ -6,51 +6,34 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline activity operational-hint context extraction.
+Timeline activity lifecycle context extraction.
 
 Status:
-Complete and published.
+Selected; implementation has not started.
 
 Selected boundary:
-Move activity operational-hint context construction and direct-value/template
-fallback resolution into one dedicated module. Keep private Timeline facades
-for the context builder and the three operational-row value consumers, and
-route field lookup, numeric/boolean conversion, template provenance, and
-compaction directly through existing policies. Remove the shared
-`first_present_value/2` and `boolean_value/1` Timeline facades because strict
-compile confirmed the moved fallback logic owned their only remaining callers.
+Move conditional activity lifecycle context construction into one dedicated
+module. Keep one private Timeline facade for the valid-context consumer and
+route status and approval-status normalization directly through the existing
+lifecycle and artifact-value policies.
 
 Selection evidence:
-- The boundary owns setup/cooldown duration plus telemetry-confirmation
-  requirement/status resolution.
-- Direct activity or metadata values retain precedence over normalized activity
-  template operational hints.
-- The context builder has one valid-context consumer; the three value helpers
-  also serve the operational-row builder.
-- The initial strict compile proved `first_present_value/2` and
-  `boolean_value/1` became unused after the move; repo search confirmed no other
-  Timeline callers.
+- The builder conditionally emits status and approval status only when the
+  activity or its metadata explicitly carries the corresponding field.
+- Existing lifecycle normalization preserves defaults and provider aliases,
+  while the context-specific presence check prevents implicit defaults from
+  appearing in the reusable context.
+- The builder has exactly one consumer in valid activity-context assembly.
 - Direct existing policies satisfy the boundary without Timeline callbacks.
-- The extraction should materially reduce the current 5,467-line Timeline while
-  preserving all four private coordinator seams.
-- Activity-template normalization, timing, command windows, lifecycle
-  decisions, broad context coordination, public API, and schema remain outside
-  the boundary.
+- The extraction should reduce the current 5,408-line Timeline while preserving
+  the private coordinator seam.
+- General lifecycle state normalization, transition decisions, timing, command
+  windows, broad context coordination, public API, and schema remain outside the
+  boundary.
 
 Verification:
-- Selection published in `37156e81`; corrected helper ownership published in
-  `d5b82292`; implementation published in `3f72fc39`.
-- Focused baseline and post-change operational-hint coverage: 1 passed.
-- Strict warnings-as-errors compile: 3,797 files compiled.
-- Full Timeline suite: 127 passed.
-- Operational Timeline schema contracts: 36 passed.
-- Canonical AST comparison: all five moved functions equivalent after
-  normalizing only facade names and the direct provenance-policy adapter.
-- Static checks confirmed unchanged public API, four private facades with exact
-  consumer counts, removal of the moved/dead helpers, Timeline-only runtime
-  ownership, no temporary checker, and clean formatting/diff.
-- Independent review: clean, with no production-code findings.
-- Timeline is 5,408 lines; the extracted module is 88 lines.
+Pending: focused baseline, implementation, strict compile, focused/full tests,
+contracts, structural/static checks, and independent review.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
