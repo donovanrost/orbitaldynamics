@@ -9,59 +9,51 @@ Current slice:
 CadenceImport generic-review passthrough field-registry extraction.
 
 Status:
-Slice selected; selection publication pending.
+Implementation `514d444a` published; verified handoff publication pending.
 
-Selected slice:
-Move the exact ordered field list from
-`CadenceImport.generic_review_passthrough_fields/0` into internal
-`CadenceImport.GenericReviewPassthroughFields.fields/0`. Keep the sole
-`generic_review_manifest_row/2` `Map.take/2` call and all row construction in
-the facade.
+Completed slice:
+Moved the exact generic-review passthrough field list from `CadenceImport` into
+internal `CadenceImport.GenericReviewPassthroughFields.fields/0`. The sole
+generic-review manifest-row `Map.take/2` call now reads that registry directly;
+all row construction remains in the facade.
 
 Why this slice:
-`CadenceImport` is 8,674 lines. The field registry is a 388-line static data
-responsibility with 384 ordered entries and one intentional duplicate
-(`requires_operator_review`).
+`CadenceImport` was 8,674 lines. The field registry was a 388-line static data
+responsibility with 384 ordered entries and one intentional duplicate.
+`CadenceImport` is now 8,285 lines.
 
-Current coupling/problem:
-The main artifact adapter embeds a large generic-review field catalog directly
-beside manifest construction and source-specific row transformation behavior.
+Published commits:
+- Selection: `056ea372`
+- Implementation: `514d444a`
+- Handoff: pending
 
-Public facade to preserve:
+Preserved facade and behavior:
 All `CadenceImport` APIs; generic operator-review row keys and values;
-passthrough field membership and order; the intentional duplicate; import
-actions/statuses; deterministic manifest output; and all artifact contracts.
+passthrough field membership and order; import actions/statuses; merge and
+compaction precedence; deterministic manifest output; and artifact contracts.
 
-Likely files:
-- `lib/orbital_dynamics/cadence_import.ex`
-- `lib/orbital_dynamics/cadence_import/generic_review_passthrough_fields.ex`
-- `.codex/status/large_module_refactor.md`
-
-Definition of done:
-The internal module owns the exact 384-entry ordered registry; the facade’s sole
-caller delegates to it; focused Cadence-import/operator-review and contract
-tests pass; strict warnings-as-errors compile, exact field-list comparison,
-public API comparison, and independent review are clean.
+Verification:
+- Full Cadence-import tests plus schema Cadence-import contracts: 100/100.
+- Strict warnings-as-errors compile: 3,672 files.
+- Exact field-list comparison: 384/384 entries, zero mismatches.
+- Sole duplicate `requires_operator_review` preserved at positions 128 and 328.
+- Generic row construction, `Map.delete/2`, merge, and compaction pipeline:
+  unchanged.
+- Public `CadenceImport` definition diff: empty.
+- Format, whitespace, diff, xref caller, and independent read-only review:
+  clean.
+- Schema export not rerun: no schema-generation code or schema artifacts
+  changed.
 
 Verification gaps:
-- Focused baseline, implementation proof, strict compile, and independent
-  review remain.
-
-Tests run:
-- None yet for this selected slice.
+None for this slice.
 
 Behavior/schema changes:
-None intended.
-
-Last completed slice:
-Operator-review row callback provider published as implementation `1688b4f9`
-and handoff `68ee425d`: focused 33/33, strict 3,671-file compile, full
-byte-clean schema regeneration, exact 86-key comparison, and independent
-review passed.
+None.
 
 Next candidate:
-Remap `CadenceImport` after extraction and select a source-specific manifest-row
-builder or another large static registry.
+Remap the reduced `CadenceImport` module and select a source-specific
+manifest-row builder or another large static registry.
 
 Blocked:
 No.
