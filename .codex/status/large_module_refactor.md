@@ -6,39 +6,36 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline candidate-rejection condition policy extraction.
+Timeline candidate-rejection derived-reason policy extraction.
 
 Status:
-Implemented, verified, independently reviewed, committed, and pushed.
+Selected; implementation has not started.
 
-Completed boundary:
-Moved locked-overlap, negative-margin, short-contact, policy-blocked,
-stale-state, model-incompatible, and quality-gate-failed classification plus
-their token normalization into the 105-line
-`Timeline.CandidateRejectionConditionPolicy`. The 6,064-line Timeline retains
-seven thin classifier facades so the derived-reason coordinator remains
-unchanged, plus one normalization facade for the existing activity-precondition
-callback.
+Selected boundary:
+Move the derived candidate-rejection reason pipeline and its two
+`maybe_add_reason/3` clauses into a dedicated policy. Have that policy call the
+existing station, condition, and boolean policies directly; replace the
+coordinator with one private Timeline facade and remove ten now-redundant
+station/condition facades. Retain the normalization facade used by the unrelated
+activity-precondition callback.
 
-Published commits:
-Initially selected in `a5fbcc2d`, corrected in `70396748` after strict compile
-identified the activity-precondition normalization callback, and implemented in
-`6e5fc6f3`.
+Selection evidence:
+- The derived pipeline and two prepend clauses are the single owner of reason
+  ordering before the existing final unique/sort step.
+- The three station and seven condition private Timeline facades are consumed
+  only by that pipeline; their policies already expose equivalent entry points.
+- `ActivityBooleanPolicy.first_boolean/2` supplies the remaining payload and
+  antenna checks directly, so the new boundary requires no callbacks.
+- The extraction should remove the coordinator, two prepend clauses, and ten
+  classifier facades while adding one coordinator facade, materially reducing
+  the current 6,064-line Timeline.
+- Declared reasons, final unique/sort behavior, normalization callback,
+  reviewability, report/row construction, and schema logic remain unchanged.
 
 Verification:
-- Strict warnings-as-errors compile passed across 3,785 files after preserving
-  the normalization callback facade.
-- Three focused candidate-rejection examples passed before and after extraction.
-- Full Timeline suite passed with 127 examples; Timeline schema-contract suites
-  passed with 36 examples.
-- Canonical AST equivalence passed for all nine moved clauses after normalizing
-  only public/private definition kind.
-- Format, diff, whitespace, exactly-eight-facade, unchanged Timeline
-  public-definition, sole-production-consumer, callback-wiring, and xref checks
-  passed.
-- Independent read-only review found no production-code issues and confirmed
-  exact fields, tokens, thresholds, comparison strictness, normalization,
-  transitive dependency adapters, coordinator order, and callback preservation.
+Pending: focused baseline, implementation, strict compile, focused and full
+Timeline tests, schema-contract tests, canonical AST equivalence, static
+ownership/facade/public-definition/xref checks, and independent review.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
@@ -46,11 +43,12 @@ regeneration should not be required.
 
 Last completed slice:
 Timeline candidate-rejection condition policy extraction, initially selected in
-`a5fbcc2d`, corrected in `70396748`, and implemented in `6e5fc6f3`.
+`a5fbcc2d`, corrected in `70396748`, implemented in `6e5fc6f3`, and handed off
+in `654574f1`.
 
 Next candidate:
-Continue remapping the reduced Timeline facade after this slice, avoiding wide
-report and activity-context map coordinator callback surfaces.
+Implement and verify this selected boundary before remapping the reduced
+Timeline facade.
 
 Blocked:
 No.
