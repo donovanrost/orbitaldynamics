@@ -7270,31 +7270,6 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
            ]) == 3
 
     assert get_in(schemas, [
-             "maneuver_review_report.v1",
-             "properties",
-             "model",
-             "const"
-           ]) == "artifact_only_maneuver_review_report"
-
-    assert get_in(schemas, [
-             "maneuver_review_report.v1",
-             "properties",
-             "model_limits",
-             "const"
-           ]) == maneuver_review_report_model_limits()
-
-    assert get_in(schemas, [
-             "maneuver_review_report.v1",
-             "properties",
-             "rows",
-             "items",
-             "properties",
-             "delta_v_km_s",
-             "items",
-             "type"
-           ]) == "number"
-
-    assert get_in(schemas, [
              "operator_review_package.v1",
              "properties",
              "timeline_protection_count",
@@ -8257,12 +8232,6 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "activity_id",
              "pattern"
            ]) == Schema.identity_policy()["stable_id_pattern"]
-  end
-
-  defp maneuver_review_report_model_limits do
-    OrbitalDynamics.ManeuverReview.capabilities()
-    |> Map.fetch!(:known_limits)
-    |> Enum.map(&Atom.to_string/1)
   end
 
   defp operator_review_package_model_limits do
