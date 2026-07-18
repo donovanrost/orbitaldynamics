@@ -57,12 +57,12 @@ defmodule OrbitalDynamics.CampaignPlanner do
     ContactFilterSourceReports,
     ContactIntentPressureBranches,
     ContactIntentSourceReports,
-    ConstraintPressureBranches,
     CollectionLatencyBranches,
     CollectionLatencySatisfaction,
     DerivedBranchCollection,
     DerivedDegradedSpacecraftBranches,
     DerivedGroundNetworkBranches,
+    DerivedObjectivePressureBranches,
     DerivedTimelinePressureBranches,
     CandidateDiffPressureEvents,
     CandidateRejectionPressureEvents,
@@ -81,10 +81,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
     ModelLimits,
     ModelAcceptancePressureEvents,
     ModelAcceptanceSourceReports,
-    ObjectiveConstraintSourceReports,
-    ObjectiveSatisfactionPressureBranches,
     ObjectiveSatisfactionReports,
-    ObjectiveTradeoffPressureBranches,
     OperationalFeedbackAggregation,
     OperationalFeedbackBranches,
     OperationalFeedbackNormalization,
@@ -129,7 +126,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
     ScalarValues,
     SchemaValidationSourceReports,
     ScoreReports,
-    ScoreTermPressureBranches,
     StationSourceReports,
     StationCalendarPressureBranches,
     StationReservationPressureReports,
@@ -1241,14 +1237,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       |> Kernel.++(derived_mission_state_refresh_freshness_pressure_branches(mission_state))
       |> Kernel.++(derived_link_capacity_pressure_branches(prior_plan))
       |> Kernel.++(derived_mission_state_link_capacity_pressure_branches(mission_state))
-      |> Kernel.++(derived_score_term_pressure_branches(prior_plan))
-      |> Kernel.++(derived_mission_state_score_term_pressure_branches(mission_state))
-      |> Kernel.++(derived_objective_satisfaction_pressure_branches(prior_plan))
-      |> Kernel.++(derived_mission_state_objective_satisfaction_pressure_branches(mission_state))
-      |> Kernel.++(derived_objective_tradeoff_pressure_branches(prior_plan))
-      |> Kernel.++(derived_mission_state_objective_tradeoff_pressure_branches(mission_state))
-      |> Kernel.++(derived_constraint_pressure_branches(prior_plan))
-      |> Kernel.++(derived_mission_state_constraint_pressure_branches(mission_state))
+      |> Kernel.++(DerivedObjectivePressureBranches.build(prior_plan, mission_state))
       |> Kernel.++(DerivedTimelinePressureBranches.build(prior_plan, mission_state, policy))
       |> Kernel.++(derived_planned_activity_pressure_branches(prior_plan))
       |> Kernel.++(derived_mission_state_planned_activity_pressure_branches(mission_state))
@@ -1466,94 +1455,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
     |> LinkCapacitySourceReports.reports()
     |> LinkCapacityPressureBranches.from_reports()
     |> LinkCapacityPressureBranches.disambiguate()
-  end
-
-  defp derived_score_term_pressure_branches(prior_plan) do
-    prior_plan
-    |> ObjectiveConstraintSourceReports.prior_score_term_reports()
-    |> ObjectiveConstraintSourceReports.pressure_rows()
-    |> Enum.flat_map(fn {row, source_path, index} ->
-      ScoreTermPressureBranches.branch(row, source_path, index)
-    end)
-  end
-
-  defp derived_mission_state_score_term_pressure_branches(mission_state) do
-    mission_state
-    |> ObjectiveConstraintSourceReports.score_term_reports()
-    |> ObjectiveConstraintSourceReports.pressure_rows()
-    |> Enum.flat_map(fn {row, source_path, index} ->
-      ScoreTermPressureBranches.branch(row, source_path, index)
-    end)
-  end
-
-  defp derived_objective_satisfaction_pressure_branches(prior_plan) do
-    prior_plan
-    |> ObjectiveConstraintSourceReports.prior_objective_satisfaction_reports()
-    |> ObjectiveConstraintSourceReports.pressure_rows()
-    |> Enum.flat_map(fn {row, source_path, index} ->
-      ObjectiveSatisfactionPressureBranches.branch(
-        row,
-        source_path,
-        index
-      )
-    end)
-  end
-
-  defp derived_mission_state_objective_satisfaction_pressure_branches(mission_state) do
-    mission_state
-    |> ObjectiveConstraintSourceReports.objective_satisfaction_reports()
-    |> ObjectiveConstraintSourceReports.pressure_rows()
-    |> Enum.flat_map(fn {row, source_path, index} ->
-      ObjectiveSatisfactionPressureBranches.branch(
-        row,
-        source_path,
-        index
-      )
-    end)
-  end
-
-  defp derived_objective_tradeoff_pressure_branches(prior_plan) do
-    prior_plan
-    |> ObjectiveConstraintSourceReports.prior_objective_tradeoff_reports()
-    |> ObjectiveConstraintSourceReports.objective_tradeoff_pressure_rows()
-    |> Enum.flat_map(fn {row, source_path, index} ->
-      ObjectiveTradeoffPressureBranches.branch(
-        row,
-        source_path,
-        index
-      )
-    end)
-  end
-
-  defp derived_mission_state_objective_tradeoff_pressure_branches(mission_state) do
-    mission_state
-    |> ObjectiveConstraintSourceReports.objective_tradeoff_reports()
-    |> ObjectiveConstraintSourceReports.objective_tradeoff_pressure_rows()
-    |> Enum.flat_map(fn {row, source_path, index} ->
-      ObjectiveTradeoffPressureBranches.branch(
-        row,
-        source_path,
-        index
-      )
-    end)
-  end
-
-  defp derived_constraint_pressure_branches(prior_plan) do
-    prior_plan
-    |> ObjectiveConstraintSourceReports.prior_constraint_reports()
-    |> ObjectiveConstraintSourceReports.pressure_rows()
-    |> Enum.flat_map(fn {row, source_path, index} ->
-      ConstraintPressureBranches.branch(row, source_path, index)
-    end)
-  end
-
-  defp derived_mission_state_constraint_pressure_branches(mission_state) do
-    mission_state
-    |> ObjectiveConstraintSourceReports.constraint_reports()
-    |> ObjectiveConstraintSourceReports.pressure_rows()
-    |> Enum.flat_map(fn {row, source_path, index} ->
-      ConstraintPressureBranches.branch(row, source_path, index)
-    end)
   end
 
   defp derived_operator_review_pressure_branches(prior_plan, policy) do
