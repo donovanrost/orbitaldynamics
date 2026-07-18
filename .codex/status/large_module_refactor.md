@@ -6,54 +6,62 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema operator-review row callback-provider extraction.
+CadenceImport generic-review passthrough field-registry extraction.
 
 Status:
-Implementation `1688b4f9` published; verified handoff publication pending.
+Slice selected; selection publication pending.
 
-Completed slice:
-Moved the exact ordered operator-review row callback registry and all external
-domain/handoff captures from `Schema` into internal
-`Schema.OperatorReviewRowCallbacks.build/1`. The facade now injects only its
-private validator captures; the package registry and row caller are unchanged.
+Selected slice:
+Move the exact ordered field list from
+`CadenceImport.generic_review_passthrough_fields/0` into internal
+`CadenceImport.GenericReviewPassthroughFields.fields/0`. Keep the sole
+`generic_review_manifest_row/2` `Map.take/2` call and all row construction in
+the facade.
 
 Why this slice:
-`Schema` was 7,409 lines. The row-domain registry was a 163-line responsibility
-with 86 ordered callback keys, 58 stable external captures, and 28
-facade-private captures. `Schema` is now 7,293 lines.
+`CadenceImport` is 8,674 lines. The field registry is a 388-line static data
+responsibility with 384 ordered entries and one intentional duplicate
+(`requires_operator_review`).
 
-Published commits:
-- Selection: `4c3f9571`
-- Implementation: `1688b4f9`
-- Handoff: pending
+Current coupling/problem:
+The main artifact adapter embeds a large generic-review field catalog directly
+beside manifest construction and source-specific row transformation behavior.
 
-Preserved facade and behavior:
-All `Schema` APIs; operator-review row/package and Cadence-import validation
-behavior; callback keys, order, values, arities, error ordering, deterministic
-output, and all schema exports.
+Public facade to preserve:
+All `CadenceImport` APIs; generic operator-review row keys and values;
+passthrough field membership and order; the intentional duplicate; import
+actions/statuses; deterministic manifest output; and all artifact contracts.
 
-Verification:
-- Focused operator-review/Cadence-import/review-handoff/timeline/export tests:
-  33/33.
-- Strict warnings-as-errors compile: 3,671 files.
-- Full schema export regeneration: byte-clean checked-in `schemas/`.
-- AST registry comparison: exact 86-key order, zero value mismatches, no
-  duplicates, exact 58 external and 28 facade-private captures.
-- Capture arities unchanged: external 56x/3 and 2x/4; private 20x/3 and 8x/4.
-- Four-entry package registry and row validation caller: unchanged.
-- Public `Schema` definition diff: empty.
-- Format, whitespace, diff, xref caller, and independent read-only review:
-  clean.
+Likely files:
+- `lib/orbital_dynamics/cadence_import.ex`
+- `lib/orbital_dynamics/cadence_import/generic_review_passthrough_fields.ex`
+- `.codex/status/large_module_refactor.md`
+
+Definition of done:
+The internal module owns the exact 384-entry ordered registry; the facade’s sole
+caller delegates to it; focused Cadence-import/operator-review and contract
+tests pass; strict warnings-as-errors compile, exact field-list comparison,
+public API comparison, and independent review are clean.
 
 Verification gaps:
-None for this slice.
+- Focused baseline, implementation proof, strict compile, and independent
+  review remain.
+
+Tests run:
+- None yet for this selected slice.
 
 Behavior/schema changes:
-None.
+None intended.
+
+Last completed slice:
+Operator-review row callback provider published as implementation `1688b4f9`
+and handoff `68ee425d`: focused 33/33, strict 3,671-file compile, full
+byte-clean schema regeneration, exact 86-key comparison, and independent
+review passed.
 
 Next candidate:
-Remap the reduced `Schema` facade and choose between the small operator-review
-package registry and remaining campaign/contact callback registries.
+Remap `CadenceImport` after extraction and select a source-specific manifest-row
+builder or another large static registry.
 
 Blocked:
 No.
