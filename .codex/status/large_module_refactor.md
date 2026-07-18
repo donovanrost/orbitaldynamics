@@ -9,38 +9,36 @@ Current slice:
 Timeline optional activity-input policy extraction.
 
 Status:
-Selection recorded; implementation has not started.
+Implemented, verified, independently reviewed, committed, and pushed.
 
-Selected boundary:
-Move both optional activity-to-map clauses into
-`Timeline.OptionalActivityInputPolicy`. `Timeline` retains one private entry
-point and passes its existing activity conversion function explicitly; public
-status/approval transition coordinators remain unchanged.
+Completed boundary:
+Moved both optional activity-to-map clauses into the 6-line
+`Timeline.OptionalActivityInputPolicy`. The 6,250-line `Timeline` retains one
+private entry point and passes its activity conversion function explicitly;
+public transition coordinators remain unchanged.
 
-Why this slice:
-The 6,246-line Timeline facade still owns a complete two-clause optional-input
-family reused by activity, status, and approval transition entry points. Moving
-it isolates nil callback bypass and present-input conversion without moving
-those public coordinators or the larger activity normalization pipeline.
+Published commits:
+Selected in `cd27ded1` and implemented in `fb8a47fa`.
 
-Planned proof:
-- Focused reusable transition, selected-integrity transition, and blocked
-  lifecycle transition examples.
-- Full Timeline and Timeline schema-contract suites.
-- Strict warnings-as-errors compile.
-- Canonical AST equivalence for both moved clauses after normalizing only
-  public/private heads, facade name, and the explicit conversion callback.
+Verification:
+- Strict warnings-as-errors compile passed across 3,776 files.
+- Three focused reusable, selected-integrity, and blocked lifecycle transition
+  examples passed.
+- Full Timeline suite passed with 127 examples; Timeline schema-contract suites
+  passed with 36 examples.
+- Canonical AST equivalence passed for both moved clauses after normalizing only
+  public/private heads, facade name, and the conversion callback.
 - Format, diff, whitespace, ownership, exactly-one-facade, unchanged Timeline
-  public-definition, and xref checks.
-- Independent read-only review before publication.
+  public-definition, and xref checks passed.
+- Independent read-only review found no production-code issues.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline lifecycle-status membership policy extraction, selected in `873251c3`
-and implemented in `804f0f70`.
+Timeline optional activity-input policy extraction, selected in `cd27ded1` and
+implemented in `fb8a47fa`.
 
 Next candidate:
 Continue remapping the reduced Timeline facade after this slice, avoiding wide
