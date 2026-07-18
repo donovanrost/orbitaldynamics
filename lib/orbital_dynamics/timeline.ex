@@ -5142,23 +5142,16 @@ defmodule OrbitalDynamics.Timeline do
   end
 
   defp maybe_gate_single_transition_selected_activity(
-         %{"selected_activity" => %{} = selected_activity} = application,
+         application,
          opts
        ) do
-    [selected_activity]
-    |> annotate_transition_selected_activities(opts)
-    |> case do
-      [%{} = selected_with_integrity] ->
-        application
-        |> Map.put("selected_activity", selected_with_integrity)
-        |> maybe_gate_selected_activity_integrity(selected_with_integrity)
-
-      _other ->
-        application
-    end
+    OrbitalDynamics.Timeline.TransitionApplicationIntegrityPolicy.gate_single(
+      application,
+      opts,
+      &annotate_transition_selected_activities/2,
+      &maybe_gate_selected_activity_integrity/2
+    )
   end
-
-  defp maybe_gate_single_transition_selected_activity(application, _opts), do: application
 
   defp maybe_validate_transition_helper_selected_integrity(activity, opts) do
     OrbitalDynamics.Timeline.TransitionHelperIntegrityPolicy.validate(
@@ -5218,25 +5211,11 @@ defmodule OrbitalDynamics.Timeline do
   end
 
   defp put_transition_selected_activity_integrity(applications, selected_activities) do
-    selected_by_timeline_id = Map.new(selected_activities, &{&1["timeline_id"], &1})
-
-    Enum.map(applications, fn application ->
-      case Map.get(application, "selected_activity") do
-        %{} = selected ->
-          case Map.get(selected_by_timeline_id, selected["timeline_id"]) do
-            nil ->
-              application
-
-            selected_with_integrity ->
-              application
-              |> Map.put("selected_activity", selected_with_integrity)
-              |> maybe_gate_selected_activity_integrity(selected_with_integrity)
-          end
-
-        _other ->
-          application
-      end
-    end)
+    OrbitalDynamics.Timeline.TransitionApplicationIntegrityPolicy.put_batch(
+      applications,
+      selected_activities,
+      &maybe_gate_selected_activity_integrity/2
+    )
   end
 
   defp maybe_gate_selected_activity_integrity(application, selected_activity) do
