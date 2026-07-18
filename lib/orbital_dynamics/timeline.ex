@@ -4031,15 +4031,18 @@ defmodule OrbitalDynamics.Timeline do
   end
 
   defp lifecycle_state_input_row({activity, sequence}) do
-    case activity_input_to_map(activity, sequence) do
-      {:ok, activity} -> activity_to_map(activity)
-      {:error, row} -> row
-    end
+    OrbitalDynamics.Timeline.LifecycleStateInputPolicy.lifecycle_state_input_row(
+      {activity, sequence},
+      &activity_input_to_map/2,
+      &activity_to_map/1
+    )
   end
 
   defp lifecycle_state_row_timeline_id(row) do
-    row["timeline_id"] || get_in(row, ["timeline_identity", "timeline_id"]) ||
-      activity_timeline_id(row)
+    OrbitalDynamics.Timeline.LifecycleStateInputPolicy.lifecycle_state_row_timeline_id(
+      row,
+      &activity_timeline_id/1
+    )
   end
 
   defp lifecycle_state_summary_row(timeline_id, rank, planned_matches, realized_matches) do
