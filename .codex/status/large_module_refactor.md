@@ -9,7 +9,7 @@ Current slice:
 Campaign-planner review/readiness derivation orchestration extraction.
 
 Status:
-Implementation published as `6740eb4d`; handoff publication pending.
+Implementation published as `6740eb4d`; handoff published as `f23acd85`.
 
 Selected slice:
 Move the private candidate-review, provider-counteroffer, validation,
@@ -87,11 +87,14 @@ Last completed slice:
 Review/readiness derivation orchestration extraction published as `6740eb4d`:
 `CampaignPlanner` shrank from 2,360 to 2,233 lines; focused, file-backed,
 compile, and adjacent baseline-equivalence proof passed; independent review was
-clean.
+clean. Handoff published as `f23acd85`.
 
 Next candidate:
-Publish this handoff, then refresh the remaining facade responsibilities and
-select the next bounded extraction.
+Extract the ten contiguous planned-activity, proposed-contact,
+contact-intent/summary, and realized-activity pressure stages into an ordered
+`DerivedActivityPressureBranches.build/2` owner. Focused tests should cover
+contact-intent, realized feedback/status, operational-timeline source rows, and
+the file-backed facade.
 
 Blocked:
 No.
