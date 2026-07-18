@@ -15,9 +15,9 @@ Selected boundary:
 Move boolean parsing, strict truthiness, first-present top-level/metadata lookup,
 and locked/approved/overlap activity flags into
 `Timeline.ActivityBooleanPolicy`. `Timeline` retains private entry points for
-first boolean lookup, boolean parsing, truthiness, and the three activity flags.
-Approval-status normalization and protected approval constants cross the
-boundary explicitly.
+first boolean lookup, boolean parsing, and the three activity flags. Strict
+truthiness stays internal to the new policy. Approval-status normalization and
+protected approval constants cross the boundary explicitly.
 
 Why this slice:
 The reduced Timeline facade is 7,006 lines. These 13 clauses own the two
@@ -31,8 +31,8 @@ Planned proof:
 - Full Timeline and Timeline schema-contract suites.
 - Strict warnings-as-errors compile.
 - Canonical AST equivalence for all 13 moved clauses after normalizing only the
-  six facade names, protected-status argument, and approval-status callback.
-- Format, diff, whitespace, ownership, exactly-six-facade, unchanged Timeline
+  five facade names, protected-status argument, and approval-status callback.
+- Format, diff, whitespace, ownership, exactly-five-facade, unchanged Timeline
   public-definition, and xref checks.
 - Independent read-only review before publication.
 
