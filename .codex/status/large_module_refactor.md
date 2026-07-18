@@ -6,32 +6,33 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline invalid activity-input row filtering extraction.
+Timeline operational row-classification policy extraction.
 
 Status:
-Implemented, verified, independently reviewed, committed, and pushed.
+Selection recorded; implementation has not started.
 
-Completed boundary:
-Moved Timeline's invalid-activity-input row filter into the 153-line
-`Timeline.ActivityInputPolicy`. The 6,262-line `Timeline` retains one private
-entry point; source/replacement diff assembly and row construction remain
-unchanged.
+Selected boundary:
+Move contact-row and command-row classification into
+`Timeline.OperationalRowClassificationPolicy`. `Timeline` retains both public
+API entry points and passes its command/health activity types and command
+directions explicitly; operational report assembly remains unchanged.
 
-Published commits:
-Selected in `c369cc24` and implemented in `3a133522`.
+Why this slice:
+The 6,262-line Timeline facade still owns two exclusive public classification
+bodies used by operational report counts. Moving their policy bodies isolates
+exact type/direction membership and ground-station fallback while preserving
+the public facade and report coordinator.
 
-Verification:
-- Strict warnings-as-errors compile passed across 3,780 files.
-- Three focused invalid operational, invalid source/replacement diff, and valid
-  unchanged diff examples passed.
-- Full Timeline suite passed with 127 examples; Timeline schema-contract suites
-  passed with 36 examples.
-- Canonical AST equivalence passed after normalizing only the public/private
-  head and facade name.
-- Format, diff, whitespace, ownership, exactly-one-facade, unchanged Timeline
-  public-definition, and xref checks passed.
-- Independent read-only review found no production-code issues; existing input
-  issue detection is untouched.
+Planned proof:
+- Focused general operational report, station-ID-only contact, and inferred
+  provider contact examples.
+- Full Timeline and Timeline schema-contract suites.
+- Strict warnings-as-errors compile.
+- Canonical AST equivalence for both moved definitions after normalizing only
+  facade/policy names and explicit list arguments.
+- Format, diff, whitespace, ownership, exactly-two-public-facade, unchanged
+  Timeline public-definition, and xref checks.
+- Independent read-only review before publication.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
