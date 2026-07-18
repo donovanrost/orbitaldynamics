@@ -9,7 +9,7 @@ Current slice:
 Schema timeline transition property-dispatch extraction.
 
 Status:
-Slice selected; implementation not started.
+Implementation published as `fc25d762`; handoff publication pending.
 
 Selected slice:
 Move JSON-property dispatch/context assembly for timeline lifecycle-state
@@ -44,19 +44,30 @@ report/summary/export tests pass; strict compile, full byte-clean schema
 regeneration, and independent review are clean.
 
 Verification gaps:
-- Focused timeline report/summary/export baselines still need capture.
-- Checked-in schema exports must remain byte-identical.
+- None for this slice. Full checked-in schema regeneration is byte-identical.
+- Independent review was clean. No API, schema, export, ordering,
+  error-behavior, ownership, or behavioral finding remains.
 
 Tests run:
-- Live mapping found two clauses covering three contracts and two existing
-  family-specific JSON-schema builders.
-- No runtime or schema code has changed in this slice.
+- Baseline and post-change focused timeline report/summary/export subset:
+  40 passed with warnings as errors.
+- Strict forced compile: 3,656 files clean with warnings as errors.
+- Full schema export regenerated every checked-in schema and bundle with zero
+  diff.
+- Public `Schema` definitions match selection commit `35691054`; xref reports
+  the dispatcher has only the Schema runtime caller.
+- Format, tracked/new-file whitespace, and `git diff --check` passed.
+- Independent review confirmed exact positional lifecycle dependencies,
+  contract-sensitive transition routing, context/fallback error order, then
+  reran compile, 40/40, and full export.
 
 Behavior/schema changes:
 None intended.
 
 Outcome:
-Pending.
+Lifecycle-state summary and transition-application report/summary property
+routing now delegates to `TimelineTransitionPropertyDispatch`.
+Implementation published as `fc25d762`.
 
 Last completed slice:
 Timeline protection schema dispatch published as implementation `facf3107` and
@@ -64,7 +75,7 @@ handoff `aaef69e3`: focused 32/32, strict 3,655-file compile, full byte-clean
 schema regeneration, and independent review passed.
 
 Next candidate:
-Implement and verify timeline transition schema property dispatch.
+Publish this handoff, then select the next cohesive Schema property family.
 
 Blocked:
 No.
