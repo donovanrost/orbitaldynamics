@@ -5722,20 +5722,12 @@ defmodule OrbitalDynamics.Timeline do
     OrbitalDynamics.Timeline.DiffRelationshipContextPolicy.schedule(prefix, row)
   end
 
-  defp diff_protection_context(_prefix, nil), do: %{}
-  defp diff_protection_context(_prefix, row) when row == %{}, do: %{}
-
   defp diff_protection_context(prefix, row) do
-    decision =
-      row
-      |> Map.put("id", row["activity_id"])
-      |> protection_decision()
-
-    %{
-      "#{prefix}_protection_decision" => decision,
-      "#{prefix}_protection_category" => decision["protection_category"],
-      "#{prefix}_protection_reason" => decision["reason"]
-    }
+    OrbitalDynamics.Timeline.DiffProtectionContextPolicy.build(
+      prefix,
+      row,
+      &protection_decision/1
+    )
   end
 
   defp diff_invalid_activity_input_context(prefix, row) do
