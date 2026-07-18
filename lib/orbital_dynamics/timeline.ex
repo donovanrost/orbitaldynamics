@@ -6318,17 +6318,13 @@ defmodule OrbitalDynamics.Timeline do
     )
   end
 
-  defp delta(replacement, source) when is_number(replacement) and is_number(source),
-    do: replacement - source
-
-  defp delta(_replacement, _source), do: nil
-
-  defp completion_fraction(actual, planned)
-       when is_number(actual) and is_number(planned) and planned > 0.0 do
-    actual / planned
+  defp delta(replacement, source) do
+    OrbitalDynamics.Timeline.ActivityMetricCalculationPolicy.delta(replacement, source)
   end
 
-  defp completion_fraction(_actual, _planned), do: nil
+  defp completion_fraction(actual, planned) do
+    OrbitalDynamics.Timeline.ActivityMetricCalculationPolicy.completion_fraction(actual, planned)
+  end
 
   defp activity_timeline_id(activity) do
     activity["timeline_id"] ||
