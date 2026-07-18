@@ -9,7 +9,7 @@ Current slice:
 Schema timeline activity-state property-dispatch extraction.
 
 Status:
-Slice selected; implementation not started.
+Implementation published as `a3bc7e2a`; handoff publication pending.
 
 Selected slice:
 Move JSON-property dispatch/context assembly for `timeline_activity_state` and
@@ -44,21 +44,30 @@ activity-state/export tests pass; strict compile, full byte-clean schema
 regeneration, and independent review are clean.
 
 Verification gaps:
-- Focused activity-state/export baselines still need to be captured.
-- Checked-in schema exports must remain byte-identical.
+- None for this slice. Full checked-in schema regeneration is byte-identical.
+- Independent review was clean. No API, schema, export, ordering, assumptions,
+  error-behavior, ownership, or behavioral finding remains.
 
 Tests run:
-- Live mapping found two clauses covering four contracts and two existing
-  family-specific JSON-schema builders.
-- Timeline activity-state contract tests and JSON-schema export tests are the
-  primary focused proof.
-- No runtime or schema code has changed in this slice.
+- Baseline and post-change focused activity-state/export subset: 24 passed with
+  warnings as errors.
+- Strict forced compile: 3,654 files clean with warnings as errors.
+- Full schema export regenerated every checked-in schema and bundle with zero
+  diff.
+- Public `Schema` definitions match selection commit `56fa8208`; xref reports
+  the dispatcher has only the Schema runtime caller.
+- Format, tracked/new-file whitespace, and `git diff --check` passed.
+- Independent review confirmed exact named contexts, contract-specific
+  lifecycle routing, stable-ID pattern, capability/limits, assumption closure,
+  focused fallback/error order, then reran compile, 24/24, and full export.
 
 Behavior/schema changes:
 None intended.
 
 Outcome:
-Pending.
+Timeline activity state plus status/approval/lifecycle property routing now
+delegates to `TimelineActivityStatePropertyDispatch`; the facade supplies only
+compact captures/scalars. Implementation published as `a3bc7e2a`.
 
 Last completed slice:
 Timeline-report schema dispatch published as implementation `4bf57bd4` and
@@ -67,7 +76,7 @@ byte-clean schema regeneration, and independent review passed after restoring
 lazy default fallback in the pre-existing dispatcher API.
 
 Next candidate:
-Implement and verify timeline activity-state schema property dispatch.
+Publish this handoff, then select the next cohesive Schema property family.
 
 Blocked:
 No.
