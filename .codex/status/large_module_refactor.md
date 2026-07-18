@@ -6,31 +6,33 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline schedule-conflict lookup policy extraction.
+Timeline collection list-value policy extraction.
 
 Status:
-Implemented, verified, independently reviewed, committed, and pushed.
+Selection recorded; implementation has not started.
 
-Completed boundary:
-Moved activity schedule-conflict lookup into the 8-line
-`Timeline.ScheduleConflictPolicy`. The 6,251-line `Timeline` retains one private
-entry point; operational row assembly and operator-action callback wiring remain
+Selected boundary:
+Move Timeline's shared list-value fallback into
+`Timeline.CollectionValuePolicy`. `Timeline` retains one private entry point;
+impact, integrity, diff, and lifecycle summary call sites and callbacks remain
 unchanged.
 
-Published commits:
-Selected in `9d18d04a` and implemented in `cecc1013`.
+Why this slice:
+The 6,251-line Timeline facade still owns one exclusive collection lookup used
+across four responsibility modules. Moving it isolates exact truthy-value versus
+empty-list fallback semantics without moving any consumer coordinator or adding
+list validation.
 
-Verification:
-- Strict warnings-as-errors compile passed across 3,777 files.
-- Three focused operational context, conflict action, and general operational
-  report examples passed.
-- Full Timeline suite passed with 127 examples; Timeline schema-contract suites
-  passed with 36 examples.
-- Canonical AST equivalence passed after normalizing only the public/private
-  head and facade name.
+Planned proof:
+- Focused dependency-impact, integrity-review, diff relationship, and lifecycle
+  summary examples.
+- Full Timeline and Timeline schema-contract suites.
+- Strict warnings-as-errors compile.
+- Canonical AST equivalence for the moved definition after normalizing only the
+  public/private head and facade name.
 - Format, diff, whitespace, ownership, exactly-one-facade, unchanged Timeline
-  public-definition, and xref checks passed.
-- Independent read-only review found no production-code issues.
+  public-definition, and xref checks.
+- Independent read-only review before publication.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
