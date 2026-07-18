@@ -9,45 +9,43 @@ Current slice:
 Timeline throughput-context extraction.
 
 Status:
-Selection recorded; implementation has not started.
+Implementation published in `545b4848`; handoff publication pending.
 
-Selected boundary:
-Move `activity_throughput_context/1` and its private throughput lookup and
-data-rate derivation helpers into `Timeline.ThroughputContext.build/2`.
-`OrbitalDynamics.Timeline` retains every public function and supplies its
-existing `first_number`, `first_value`, `stringify_keys`, `delta`,
-`completion_fraction`, and `compact_map` behavior through callbacks.
+Completed boundary:
+`Timeline.ThroughputContext.build/2` now owns the exact five-key throughput
+projection, planned and actual aliases, declared-versus-derived selection,
+MB/s and Mbps derivations, and duration aliases. `Timeline` retains every
+public function and six shared helpers behind callbacks. The facade dropped
+from 9,657 to 9,556 lines.
 
-Why this slice:
-The refreshed production inventory makes the 9,657-line `Timeline` the
-largest cohesive implementation hotspot outside the callback-heavy Schema
-facade. The selected approximately 113-line cluster has one responsibility:
-normalize declared throughput evidence or deterministically derive actual
-throughput from an actual data rate and duration. It has two facade callers
-and focused regression coverage, while avoiding lifecycle, diff, integrity,
-and schema ownership.
+Selection:
+Selected and published in `2da59a60` after the live hotspot refresh showed
+Timeline was the largest cohesive implementation hotspot outside the
+callback-heavy Schema facade.
 
-Planned proof:
-- Focused Timeline tests covering throughput projection, numeric-string
-  normalization, data-rate derivation, and throughput-sensitive diffs.
-- Strict warnings-as-errors compile.
-- Canonical AST equivalence for the exact five-key projection and all moved
-  derivation clauses after normalizing only callback boundaries.
-- Format, diff, whitespace, ownership, caller, public-definition, and xref
-  checks.
-- Independent read-only review before publication.
+Verification:
+- Pre-change focused baseline: 4/4.
+- Post-change focused tests: 4/4; full Timeline suite: 127/127.
+- Timeline schema-contract suites: 36/36.
+- Strict warnings-as-errors compile: 3,711 files.
+- Canonical AST equivalence: exact five-key builder and all 11 moved clauses
+  after normalizing only callback boundaries.
+- Public-definition hash unchanged; format, diff, whitespace, ownership,
+  caller, and xref checks clean; xref reports only Timeline.
+- Independent review: no code findings. Alias precedence, declared and
+  explicit actual selection, conversions, nil/zero semantics, callbacks,
+  consumers, API, schema shape, compaction, and determinism are exact.
 
 Behavior/schema changes:
-None intended. No schema-generation boundary is selected, so export
-regeneration should not be required.
+None. No schema-generation boundary changed, so export regeneration was not
+required.
 
 Last completed slice:
-CadenceImport operational-feedback manifest-context extraction, implementation
-published in `ea240845` and handoff published in `46ba5c39`.
+Timeline throughput-context extraction, published in `545b4848`.
 
 Next candidate:
-Remap Timeline after this slice; likely link-context or station-calendar
-context if the live dependency boundary remains cohesive.
+Remap the reduced Timeline facade; link-context is adjacent and cohesive, while
+station-calendar context remains a larger alternative.
 
 Blocked:
 No.
