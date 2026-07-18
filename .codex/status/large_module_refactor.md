@@ -9,7 +9,7 @@ Current slice:
 Timeline activity numeric-normalization policy extraction.
 
 Status:
-Selection recorded; implementation has not started.
+Implementation published in `9eb1ad8d`; focused and broad proof is green.
 
 Selected boundary:
 Move the exclusive numeric activity-field vocabulary, canonical/alternate time
@@ -19,34 +19,37 @@ entry points; numeric parsing crosses the boundary explicitly. The per-field
 helper becomes internal to the policy.
 
 Why this slice:
-The reduced Timeline facade is 6,528 lines. These three exclusive clauses and
-their field vocabulary own numeric string conversion, invalid numeric field
-removal, canonical time precedence, and alternate time fallback used by the
-activity conversion coordinator. The vocabulary has no other Timeline
-consumer.
+The extraction moved three clauses and the exact 116-field vocabulary into a
+152-line internal module and reduced Timeline from 6,528 to 6,396 lines. Two
+private entry points preserve the activity conversion coordinator while moving
+numeric string conversion, invalid-field removal, canonical time precedence,
+and alternate time fallback out of the facade.
 
-Planned proof:
-- Focused canonical/alternate timing, numeric-string context, throughput,
-  link-quality, thermal, and invalid-number removal examples.
-- Full Timeline and Timeline schema-contract suites.
-- Strict warnings-as-errors compile.
-- Canonical AST equivalence for all three moved clauses after normalizing only
+Completed proof:
+- Focused timing, numeric-string context, throughput, link-quality, and thermal
+  examples: 5 passed.
+- Full Timeline suite: 127 passed.
+- Timeline schema-contract suites: 36 passed.
+- Strict warnings-as-errors compile: 3,750 files.
+- Canonical AST equivalence: the exact 116-field vocabulary and all three moved
+  clauses after normalizing only
   the two facade names, numeric callback, and attribute relocation.
-- Format, diff, whitespace, vocabulary ownership, exactly-two-facade, unchanged
-  Timeline public-definition, and xref checks.
-- Independent read-only review before publication.
+- Format, whitespace, vocabulary ownership, exactly-two-facade, unchanged
+  Timeline public definitions, and xref checks passed; Timeline is the only
+  runtime caller.
+- Independent read-only review found no production-code findings.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline activity row-alias policy extraction, selected in `b443c84e`,
-implemented in `da390b5d`, and handed off in `39f033b8`.
+Timeline activity numeric-normalization policy extraction, selected in
+`c0138e37` and implemented in `9eb1ad8d`.
 
 Next candidate:
-Remap the reduced Timeline facade after this slice, avoiding the wide
-activity-to-map coordinator callback surface.
+Remap the reduced 6,396-line Timeline facade, avoiding the wide activity-to-map
+coordinator callback surface.
 
 Blocked:
 No.
