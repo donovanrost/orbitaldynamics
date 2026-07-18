@@ -6,31 +6,33 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline optional activity-input policy extraction.
+Timeline activity-ID encoding policy extraction.
 
 Status:
-Implemented, verified, independently reviewed, committed, and pushed.
+Selection recorded; implementation has not started.
 
-Completed boundary:
-Moved both optional activity-to-map clauses into the 6-line
-`Timeline.OptionalActivityInputPolicy`. The 6,250-line `Timeline` retains one
-private entry point and passes its activity conversion function explicitly;
-public transition coordinators remain unchanged.
+Selected boundary:
+Move Timeline's remaining activity-ID encoding clause into the existing
+`Timeline.ActivityIdentityPolicy`. `Timeline` retains one private entry point
+and passes its existing artifact value encoder explicitly; other identity
+facades and public coordinators remain unchanged.
 
-Published commits:
-Selected in `cd27ded1` and implemented in `fb8a47fa`.
+Why this slice:
+The 6,250-line Timeline facade still owns one exclusive identity leaf while
+timeline, subject, and source-window identity behavior already belongs to
+`ActivityIdentityPolicy`. Moving the final ID encoder completes that
+responsibility boundary without changing normalization or identity derivation.
 
-Verification:
-- Strict warnings-as-errors compile passed across 3,776 files.
-- Three focused reusable, selected-integrity, and blocked lifecycle transition
-  examples passed.
-- Full Timeline suite passed with 127 examples; Timeline schema-contract suites
-  passed with 36 examples.
-- Canonical AST equivalence passed for both moved clauses after normalizing only
-  public/private heads, facade name, and the conversion callback.
+Planned proof:
+- Focused operational-row, reusable transition, and unchanged public diff
+  examples.
+- Full Timeline and Timeline schema-contract suites.
+- Strict warnings-as-errors compile.
+- Canonical AST equivalence for the moved clause after normalizing only the
+  public/private head, facade name, and explicit encoding callback.
 - Format, diff, whitespace, ownership, exactly-one-facade, unchanged Timeline
-  public-definition, and xref checks passed.
-- Independent read-only review found no production-code issues.
+  public-definition, and xref checks.
+- Independent read-only review before publication.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
