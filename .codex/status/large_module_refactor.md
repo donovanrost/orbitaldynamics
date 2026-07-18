@@ -9,53 +9,39 @@ Current slice:
 CadenceImport strategy manifest-row builder extraction.
 
 Status:
-Slice selected; selection publication pending.
+Implementation published in `9fccbf48`; handoff publication pending.
 
-Selected slice:
-Move `strategy_manifest_row/4` and all four exclusive
-`strategy_import_status/2` clauses into internal
-`CadenceImport.StrategyManifestRow.build/5`. Inject the three shared branch-field
-list providers, `stringify_keys/1` forwarded to recommendation context, and
-compaction.
+Completed boundary:
+`CadenceImport.StrategyManifestRow.build/5` now owns the exact 204-key strategy
+projection and four status clauses. Shared branch-field providers,
+`stringify_keys/1`, and compaction remain in the facade behind five callbacks.
+`CadenceImport` dropped from 4,236 to 3,942 lines.
 
-Why this slice:
-After extracting recommendation context, the builder is a cohesive roughly
-300-line boundary with one caller, an exact 204-key base projection, and five
-shared dependency identities. `CadenceImport` is 4,236 lines.
+Selection and correction:
+Selected in `ca8d8c47`. Initial compile exposed the stringify callback forwarded
+into recommendation context; the corrected boundary was published in
+`1cf3896d` before successful compile.
 
-Public facade to preserve:
-All `CadenceImport` APIs; all 204 base keys and selected/default expressions;
-context merge order; branch-field, operational-feedback, and compaction
-pipelines; status mapping; deterministic output; and contracts.
-
-Likely files:
-- `lib/orbital_dynamics/cadence_import.ex`
-- `lib/orbital_dynamics/cadence_import/strategy_manifest_row.ex`
-- `.codex/status/large_module_refactor.md`
-
-Likely tests:
-- `test/orbital_dynamics/cadence_import_test.exs`
-- `test/orbital_dynamics/schema/cadence_import_contracts_test.exs`
-
-Definition of done:
-The internal builder owns the exact strategy projection and four status clauses;
-the facade supplies five exact callbacks; focused tests, strict compile,
-equivalence/API checks, and independent review are clean.
-
-Verification gaps:
-- Focused baseline, implementation proof, strict compile, and review remain.
-- Initial implementation compile exposed the omitted stringify callback
-  forwarded into recommendation context; the boundary was corrected before
-  successful compile.
+Verification:
+- Focused baseline and implementation CadenceImport/contract suites: 100/100.
+- Strict warnings-as-errors compile: 3,709 files.
+- Normalized AST equivalence: exact 204-key builder, four status clauses, five
+  callbacks, and public facade definitions.
+- Format, diff, whitespace, ownership, caller, and xref checks: clean; xref
+  reports only the facade.
+- Independent review: no code findings; selected/status semantics, context and
+  branch/feedback merge order, retained shared providers, API, and determinism
+  are exact. Its handoff-only finding is resolved here.
 
 Behavior/schema changes:
-None intended.
+None. No schema-generation boundary changed, so no export regeneration was
+required.
 
 Last completed slice:
-Strategy-recommendation context published in `2c7648e2`; handoff in `5416e4f6`.
+Strategy manifest-row builder extraction, published in `9fccbf48`.
 
 Next candidate:
-Remap the reduced facade after the strategy builder extraction.
+Remap the reduced `CadenceImport` facade and station-reservation specialization.
 
 Blocked:
 No.
