@@ -30,10 +30,14 @@ diff-row constructor. The boundary requires a larger callback/data surface
 than prior slices, but it removes a substantially larger mixed responsibility
 and preserves public diff-report orchestration in Timeline.
 
-Boundary correction:
+Boundary corrections:
 Initial compile confirmed that executed/protected status and command activity/
 direction lists are used in guards. Runtime selection data is invalid in those
 guards, so the extracted module mirrors the exact private constants instead.
+The next compile exposed the existing `put_transition_decision/1` facade
+caller through a function capture plus shared `activity_context/1` and
+`approval_protected?/1` dependencies. Both facade entry points therefore use
+one shared callback list.
 
 Planned proof:
 - Focused Timeline tests covering duplicate identities, added/removed/
@@ -43,7 +47,7 @@ Planned proof:
 - Strict warnings-as-errors compile.
 - Canonical AST equivalence for every moved clause after normalizing only
   callback boundaries and verifying the mirrored constants exactly.
-- Format, diff, whitespace, ownership, single-caller, public-definition, and
+- Format, diff, whitespace, ownership, two-caller, public-definition, and
   xref checks.
 - Independent read-only review before publication.
 
