@@ -6,29 +6,28 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Campaign-planner objective-pressure derivation orchestration extraction.
+Campaign-planner contact-pressure derivation orchestration extraction.
 
 Status:
-Implementation published as `a4e917cc`; handoff publication pending.
+Ready for implementation.
 
 Selected slice:
-Move the private prior-plan/mission-state score-term, objective-satisfaction,
-objective-tradeoff, and constraint pressure orchestration from
-`CampaignPlanner` into a new internal
-`CampaignPlanner.DerivedObjectivePressureBranches` module with one ordered
+Move the private prior-plan/mission-state contact filter, contention,
+contention-resolution, allocation-report, and allocation-summary pressure
+orchestration from `CampaignPlanner` into a new internal
+`CampaignPlanner.DerivedContactPressureBranches` module with one ordered
 `build/2` entry point.
 
 Why this slice:
-After the timeline extraction, `CampaignPlanner` remains the largest named
-implementation hotspot at 2,584 lines and 199 private functions. The selected
-eight-stage cluster is cohesive report-to-branch orchestration behind one
-source-report owner and four existing family branch builders.
+After the objective extraction, `CampaignPlanner` remains the largest named
+implementation hotspot at 2,485 lines and 191 private functions. The selected
+nine-stage cluster is contiguous, cohesive report-to-branch orchestration
+behind dedicated contact source and branch owners.
 
 Current coupling/problem:
-The public planner facade owns paired prior-plan and mission-state wrappers for
-four objective/constraint pressure families. These helpers add no facade
-policy; they only select report sources, derive rows, and delegate branch
-construction.
+The public planner facade owns nine contact-pressure wrappers that add no
+strategy policy; they only select prior/mission reports and delegate contact
+branch construction.
 
 Public facade to preserve:
 `CampaignPlanner.strategy/1`, `strategy!/1`, file-backed entry points, branch
@@ -37,64 +36,40 @@ deterministic output, and all error behavior.
 
 Likely files:
 - `lib/orbital_dynamics/campaign_planner.ex`
-- `lib/orbital_dynamics/campaign_planner/derived_objective_pressure_branches.ex`
+- `lib/orbital_dynamics/campaign_planner/derived_contact_pressure_branches.ex`
 - `.codex/status/large_module_refactor.md`
 
 Definition of done:
-The planner’s derived-branch pipeline delegates the exact existing eight-stage
-sequence to `DerivedObjectivePressureBranches.build/2`; the private wrapper
+The planner’s derived-branch pipeline delegates the exact existing nine-stage
+sequence to `DerivedContactPressureBranches.build/2`; the private wrapper
 cluster is removed from the facade; public artifacts and ordering are
-unchanged; focused objective/score tests pass to their live baseline; strict
+unchanged; focused contact tests pass to their live baseline; strict
 compile and independent review are clean.
 
 Verification gaps:
-- The full planner directory has five known baseline failures; one readiness
-  score assertion is adjacent to this responsibility. Its isolated post-change
-  result is identical: `risk_penalty` is `-100.0` while the stale assertion
-  expects `-200.0`, with the same stacktrace.
-- The full directory was not rerun because it was baseline-confirmed in the
-  immediately preceding slice; focused and broader objective coverage is green.
-- Independent review was clean. No API, artifact, determinism, ordering,
-  ownership, or behavioral finding remains.
+- Focused contact baseline is pending.
+- The full planner directory has five known baseline failures; two filter-link
+  cases are adjacent to this responsibility and must remain identical.
 
 Tests run:
-- Live inventory: `CampaignPlanner` is 2,584 lines with 199 private functions.
-- Target cluster is 8 ordered pipeline calls and 8 private helpers.
-- Baseline objective/score family: 57 passed with warnings as errors.
-- Post-change objective/score family: 57 passed with warnings as errors.
-- Strict forced compile: 3,641 files clean with warnings as errors.
-- File-backed facade coverage: 7 passed with warnings as errors.
-- Strategy recommendation explanation coverage: 3 passed with warnings as
-  errors.
-- Isolated adjacent readiness baseline failure reproduced exactly.
-- Public `CampaignPlanner` function list matches selection commit `e117a9e3`.
-  Xref reports the new internal module has only the planner runtime caller.
-- Format check and `git diff --check` passed. No old objective/score derivation
-  helper remains in the facade.
-- `CampaignPlanner` shrank from 2,584 to 2,485 lines. The new internal objective
-  orchestration module is 111 lines.
-- Independent reviewer reran all focused, broader, isolated-baseline, compile,
-  xref, formatting, and whitespace checks; results matched primary proof.
+- Live inventory: `CampaignPlanner` is 2,485 lines with 191 private functions.
+- Target cluster is 9 ordered pipeline calls and 9 private helpers.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-The derived-branch pipeline now makes one ordered call to
-`DerivedObjectivePressureBranches.build/2`. The new internal module owns the
-exact prior-plan/mission-state source-report and row-to-branch sequence for
-score-term, objective-satisfaction, objective-tradeoff, and constraint
-pressure. Implementation published as `a4e917cc`.
+No contact-pressure extraction has started.
 
 Last completed slice:
 Objective-pressure derivation orchestration extraction published as
 `a4e917cc`: `CampaignPlanner` shrank from 2,584 to 2,485 lines; focused,
 file-backed, recommendation, compile, and adjacent baseline-equivalence proof
-passed; independent review was clean.
+passed; independent review was clean. Handoff published as `a5a11372`.
 
 Next candidate:
-Publish this handoff, then refresh the remaining facade responsibilities and
-select the next bounded extraction.
+Publish this selection note, run the focused contact baseline, then perform the
+mechanical ordered extraction.
 
 Blocked:
 No.
