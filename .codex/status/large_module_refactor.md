@@ -9,7 +9,7 @@ Current slice:
 CadenceImport candidate-diff manifest-row builder extraction.
 
 Status:
-Slice selected; selection publication pending.
+Implementation published as `46c32945`; handoff publication pending.
 
 Selected slice:
 Move `candidate_diff_manifest_row/2`, its scoped-context registry/merge, gate
@@ -18,9 +18,9 @@ policy, and semantic-reason normalization into internal
 helpers for changed fields/count, review action, adapter status, and compaction.
 
 Why this slice:
-`CadenceImport` is 5,295 lines. The builder has 66 base keys, one scoped-context
-merge, four exclusive helper responsibilities, five shared dependencies, and
-one facade caller.
+`CadenceImport` was 5,295 lines. The builder had 66 base keys, one 46-field
+scoped-context merge, four exclusive helper responsibilities, five shared
+dependencies, and one facade caller. The facade is now 5,142 lines.
 
 Public facade to preserve:
 All `CadenceImport` APIs; all candidate-diff keys and value expressions; scoped
@@ -39,18 +39,27 @@ exact callbacks; focused tests, strict compile, equivalence/API checks, and
 independent review are clean.
 
 Verification gaps:
-- Focused baseline, implementation proof, strict compile, and review remain.
+- None for this slice.
 
 Tests run:
-- None yet.
+- Focused CadenceImport and schema contracts: 100/100.
+- Strict warnings-as-errors compile: 3,702 files.
+- Exact AST proof: 66/66 entries, 46/46 scoped registry, scoped/gate/semantic
+  helpers, and all public facade definitions match selection `3b02d0f4`.
+- Initial compile exposed missing callback threading in the moved scoped helper;
+  corrected before the successful focused and strict gates.
+- Format, diff, caller/xref, callback-surface, and whitespace checks clean.
+- Independent read-only review: no code findings or additional test gaps.
 
 Behavior/schema changes:
-None intended.
+None. Scoped-over-base precedence, gate and semantic-reason policy,
+changed-field behavior, actions/defaults, compaction, deterministic output, and
+APIs are exact.
 
 Last completed slice:
-Generic-review row builder selected in `2b863c8e` and published in `4a7c07a5`:
-focused 100/100, strict 3,701-file compile, exact 20-entry/protected-passthrough
-full-body comparison, and independent review passed.
+Candidate-diff row builder selected in `3b02d0f4` and published in `46c32945`:
+focused 100/100, strict 3,702-file compile, exact 66-entry/46-field/helper AST
+comparison, and independent review passed.
 
 Next candidate:
 Remap the reduced `CadenceImport` module for the next low-coupling builder.
