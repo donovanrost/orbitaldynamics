@@ -4895,35 +4895,13 @@ defmodule OrbitalDynamics.CadenceImport do
   end
 
   defp score_term_manifest_row(row, rank) do
-    approval_status = Map.get(row, "approval_status", "operator_review_required")
-    import_status = Map.get(row, "cadence_import_status", "present")
-
-    %{
-      "id" => "cadence_import:score_term:#{row["id"] || rank}",
-      "rank" => rank,
-      "import_action" => "review_score_term",
-      "import_status" => adapter_import_status(import_status, approval_status),
-      "import_side" => "source",
-      "source_review_row_id" => row["id"],
-      "source_review_type" => row["review_type"],
-      "source_review_action" => source_review_action(row),
-      "source" => row["source"],
-      "subject_id" => row["subject_id"],
-      "scenario_id" => row["scenario_id"],
-      "branch_id" => row["branch_id"],
-      "term_key" => row["term_key"],
-      "value" => row["value"],
-      "timeline_score" => row["timeline_score"],
-      "selected" => row["selected"],
-      "approval_status" => approval_status,
-      "required_operator_action" => row["required_operator_action"],
-      "reason" => row["reason"],
-      "cadence_import_status" => import_status,
-      "has_cadence_import" => false,
-      "source_score_term" => row["source_score_term"],
-      "source_review_row" => row
-    }
-    |> compact_map()
+    OrbitalDynamics.CadenceImport.ScoreTermManifestRow.build(
+      row,
+      rank,
+      source_review_action: &source_review_action/1,
+      adapter_import_status: &adapter_import_status/2,
+      compact_map: &compact_map/1
+    )
   end
 
   defp objective_tradeoff_manifest_row(row, rank) do
