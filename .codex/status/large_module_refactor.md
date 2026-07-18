@@ -9,7 +9,7 @@ Current slice:
 CadenceImport command-window manifest-row builder extraction.
 
 Status:
-Slice selected; selection publication pending.
+Implementation published as `60607379`; handoff publication pending.
 
 Selected slice:
 Move `command_window_manifest_row/2` into internal
@@ -18,9 +18,10 @@ helpers for review action, adapter status, provider-result values, provider
 context normalization, and compact-map cleanup.
 
 Why this slice:
-`CadenceImport` is 5,983 lines. The builder is a 118-line transformation with
+`CadenceImport` was 5,983 lines. The builder was a 118-line transformation with
 101 projected keys, two provider-result conversions, two identical context
-normalizations, no exclusive helper dependencies, and one facade caller.
+normalizations, no exclusive helper dependencies, and one facade caller. The
+facade is now 5,877 lines.
 
 Public facade to preserve:
 All `CadenceImport` APIs; all command-window keys and value expressions; import
@@ -38,17 +39,24 @@ exact callbacks; focused tests, strict compile, equivalence/API checks, and
 independent review are clean.
 
 Verification gaps:
-- Focused baseline, implementation proof, strict compile, and review remain.
+- None for this slice.
 
 Tests run:
-- None yet.
+- Focused CadenceImport and schema contracts: 100/100.
+- Strict warnings-as-errors compile: 3,683 files.
+- Exact AST proof: 101/101 entries, full normalized body, and all public facade
+  definitions match selection `157146a5`.
+- Format, diff, caller/xref, callback-surface, and whitespace checks clean.
+- Independent read-only review: no code findings or additional test gaps.
 
 Behavior/schema changes:
-None intended.
+None. Import status/type defaults, both context aliases, provider-result
+conversion, approval defaults, compaction, deterministic output, and APIs are
+exact.
 
 Last completed slice:
-Link-capacity row builder selected in `0ef33258` and published in `31d860df`:
-focused 100/100, strict 3,682-file compile, exact 105-entry/full-body AST
+Command-window row builder selected in `157146a5` and published in `60607379`:
+focused 100/100, strict 3,683-file compile, exact 101-entry/full-body AST
 comparison, and independent review passed.
 
 Next candidate:
