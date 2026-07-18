@@ -6,46 +6,50 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline throughput-context extraction.
+Timeline station-calendar context extraction.
 
 Status:
-Implementation published in `545b4848`; handoff publication pending.
+Selection recorded; implementation has not started.
 
-Completed boundary:
-`Timeline.ThroughputContext.build/2` now owns the exact five-key throughput
-projection, planned and actual aliases, declared-versus-derived selection,
-MB/s and Mbps derivations, and duration aliases. `Timeline` retains every
-public function and six shared helpers behind callbacks. The facade dropped
-from 9,657 to 9,556 lines.
+Selected boundary:
+Move `station_calendar_context/1`, source-overlap expiration lookup, number-list
+normalization, reservation-expiration aggregation, direction normalization,
+nested entry-ID flattening, and calendar ID-list normalization into
+`Timeline.StationCalendarContext.build/2`. `Timeline` retains all public
+functions plus shared numeric parsing, JSON encoding, stable-ID validation,
+ID-list normalization, and map compaction behind callbacks.
 
-Selection:
-Selected and published in `2da59a60` after the live hotspot refresh showed
-Timeline was the largest cohesive implementation hotspot outside the
-callback-heavy Schema facade.
+Why this slice:
+After the throughput extraction, the 9,556-line Timeline facade remains the
+largest cohesive implementation hotspot outside Schema. This approximately
+230-line cluster owns one artifact projection: the 22 direct station-calendar
+fields plus deterministic normalization of nested entry, direction,
+expiration, and stable-ID evidence. It has two facade callers and focused
+regression coverage. Shared `numeric_value/1` and `vector_norm/1` remain with
+execution-uncertainty math, avoiding a mixed ownership boundary.
 
-Verification:
-- Pre-change focused baseline: 4/4.
-- Post-change focused tests: 4/4; full Timeline suite: 127/127.
-- Timeline schema-contract suites: 36/36.
-- Strict warnings-as-errors compile: 3,711 files.
-- Canonical AST equivalence: exact five-key builder and all 11 moved clauses
+Planned proof:
+- Focused Timeline tests covering reservation ownership/expiration,
+  stable-ID-list cleanup, nested entry flattening, and diff sensitivity.
+- Full Timeline and Timeline schema-contract suites.
+- Strict warnings-as-errors compile.
+- Canonical AST equivalence for the exact projection and every moved clause
   after normalizing only callback boundaries.
-- Public-definition hash unchanged; format, diff, whitespace, ownership,
-  caller, and xref checks clean; xref reports only Timeline.
-- Independent review: no code findings. Alias precedence, declared and
-  explicit actual selection, conversions, nil/zero semantics, callbacks,
-  consumers, API, schema shape, compaction, and determinism are exact.
+- Format, diff, whitespace, ownership, caller, public-definition, and xref
+  checks.
+- Independent read-only review before publication.
 
 Behavior/schema changes:
-None. No schema-generation boundary changed, so export regeneration was not
-required.
+None intended. No schema-generation boundary is selected, so export
+regeneration should not be required.
 
 Last completed slice:
-Timeline throughput-context extraction, published in `545b4848`.
+Timeline throughput-context extraction, implementation published in `545b4848`
+and handoff published in `2c33c26b`.
 
 Next candidate:
-Remap the reduced Timeline facade; link-context is adjacent and cohesive, while
-station-calendar context remains a larger alternative.
+Remap the reduced Timeline facade after this slice; execution-uncertainty
+context is the leading smaller candidate.
 
 Blocked:
 No.
