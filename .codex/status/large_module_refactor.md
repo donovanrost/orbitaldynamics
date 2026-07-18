@@ -9,7 +9,7 @@ Current slice:
 CadenceImport freshness manifest-row builder extraction.
 
 Status:
-Slice selected; selection publication pending.
+Implementation published as `f7830da5`; handoff publication pending.
 
 Selected slice:
 Move `freshness_manifest_row/2` into internal
@@ -17,8 +17,9 @@ Move `freshness_manifest_row/2` into internal
 helpers for review action, adapter status, and compact-map cleanup.
 
 Why this slice:
-`CadenceImport` is 5,755 lines. The builder is a 46-line transformation with 35
-projected keys, no exclusive helper dependencies, and one facade caller.
+`CadenceImport` was 5,755 lines. The builder was a 46-line transformation with
+35 projected keys, no exclusive helper dependencies, and one facade caller.
+The facade is now 5,719 lines.
 
 Public facade to preserve:
 All `CadenceImport` APIs; all freshness keys and value expressions; stale and
@@ -36,18 +37,25 @@ exact callbacks; focused tests, strict compile, equivalence/API checks, and
 independent review are clean.
 
 Verification gaps:
-- Focused baseline, implementation proof, strict compile, and review remain.
+- None for this slice.
 
 Tests run:
-- None yet.
+- Focused CadenceImport and schema contracts: 100/100.
+- Strict warnings-as-errors compile: 3,686 files.
+- Exact AST proof: 35/35 entries, full normalized body, and all public facade
+  definitions match selection `8a39fa27`.
+- Both reason-list normalizations and their summed count are exact.
+- Format, diff, caller/xref, callback-surface, and whitespace checks clean.
+- Independent read-only review: no code findings or additional test gaps.
 
 Behavior/schema changes:
-None intended.
+None. Freshness action/status, import/approval defaults, reason normalization
+and counting, compaction, deterministic output, and APIs are exact.
 
 Last completed slice:
-Risk row builder selected in `512d1c03` and published in `79067c2b`: focused
-100/100, strict 3,685-file compile, exact 47-entry/full-body AST comparison, and
-independent review passed.
+Freshness row builder selected in `8a39fa27` and published in `f7830da5`:
+focused 100/100, strict 3,686-file compile, exact 35-entry/full-body AST
+comparison, and independent review passed.
 
 Next candidate:
 Remap the reduced `CadenceImport` module for the next low-coupling builder.
