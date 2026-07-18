@@ -9,37 +9,35 @@ Current slice:
 Timeline integrity issue-construction policy extraction.
 
 Status:
-Selection recorded; implementation has not started.
+Implemented, verified, independently reviewed, committed, and pushed.
 
-Selected boundary:
-Move Timeline's integrity issue-construction leaf into
-`Timeline.IntegrityIssuePolicy`. `Timeline` retains one private entry point and
-the existing `IntegrityAnnotation` callback bundle remains unchanged.
+Completed boundary:
+Moved Timeline's integrity issue-construction leaf into the 5-line
+`Timeline.IntegrityIssuePolicy`. The 6,260-line `Timeline` retains one private
+entry point and the `IntegrityAnnotation` callback bundle remains unchanged.
 
-Why this slice:
-The 6,258-line Timeline facade still owns one exclusive issue-map mutation used
-only through integrity annotation. Moving it isolates exact string-key
-insertion and overwrite behavior without moving the annotation coordinator or
-its issue detection clauses.
+Published commits:
+Selected in `73a1628b` and implemented in `12a69a75`.
 
-Planned proof:
-- Focused dependency/exclusivity integrity, timeline-ID integrity handoff, and
-  normalized integrity annotation examples.
-- Full Timeline and Timeline schema-contract suites.
-- Strict warnings-as-errors compile.
-- Canonical AST equivalence for the moved definition after normalizing only the
-  public/private head and facade name.
+Verification:
+- Strict warnings-as-errors compile passed across 3,779 files.
+- Three focused dependency/exclusivity, timeline-ID handoff, and normalized
+  integrity annotation examples passed.
+- Full Timeline suite passed with 127 examples; Timeline schema-contract suites
+  passed with 36 examples.
+- Canonical AST equivalence passed after normalizing only the public/private
+  head.
 - Format, diff, whitespace, ownership, exactly-one-facade, unchanged Timeline
-  public-definition, and xref checks.
-- Independent read-only review before publication.
+  public-definition, and xref checks passed.
+- Independent read-only review found no production-code issues.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline lock-or-approval protection policy extraction, selected in `95633792`
-and implemented in `15e50e2a`.
+Timeline integrity issue-construction policy extraction, selected in `73a1628b`
+and implemented in `12a69a75`.
 
 Next candidate:
 Continue remapping the reduced Timeline facade after this slice, avoiding wide
