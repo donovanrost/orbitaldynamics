@@ -9,40 +9,39 @@ Current slice:
 Timeline approval-protection policy extraction.
 
 Status:
-Selection recorded; implementation has not started.
+Implemented, verified, independently reviewed, committed, and pushed.
 
-Selected boundary:
-Move the fallback lock/approval preservation-sensitive source clause and
-approval-protection membership into `Timeline.ApprovalProtectionPolicy`.
-`Timeline` retains the guarded executed-source clause plus two private entry
-points and passes only the protected approval-status list explicitly; diff-row
-callbacks remain unchanged.
+Completed boundary:
+Moved the fallback lock/approval preservation-sensitive source clause and
+approval-protection membership into the 9-line
+`Timeline.ApprovalProtectionPolicy`. The 6,232-line `Timeline` retains the
+guarded executed-source clause plus two private entry points; callbacks remain
+unchanged.
 
-Why this slice:
-The original complete-family selection cannot pass `@executed_statuses`
-explicitly without changing or duplicating the compile-time `in` guard. Keeping
-that clause in Timeline preserves it exactly while the two remaining exclusive
-clauses isolate truthy lock behavior and approval membership without moving the
-diff coordinator or protection-decision assembly.
+Published commits:
+Initially selected in `b506b201`, narrowed in `4b15cd10`, and implemented in
+`32aba82d`.
 
-Planned proof:
-- Focused changed protected/executed, changed unprotected, and removed
-  protected/executed diff examples.
-- Full Timeline and Timeline schema-contract suites.
-- Strict warnings-as-errors compile.
-- Canonical AST equivalence for both moved clauses after normalizing only
+Verification:
+- Strict warnings-as-errors compile passed across 3,774 files.
+- Three focused changed protected/executed, changed unprotected, and removed
+  protected/executed diff examples passed.
+- Full Timeline suite passed with 127 examples; Timeline schema-contract suites
+  passed with 36 examples.
+- Canonical AST equivalence passed for both moved clauses after normalizing only
   public/private heads, facade names, and the protected-status argument.
 - Format, diff, whitespace, ownership, exactly-two-facade, unchanged Timeline
-  public-definition, and xref checks.
-- Independent read-only review before publication.
+  public-definition, and xref checks passed.
+- Independent read-only review found no production-code issues; the retained
+  executed-status guard is byte-for-byte unchanged.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline terminal-exception classification policy extraction, selected in
-`c77b9c61` and implemented in `2712e34d`.
+Timeline approval-protection policy extraction, initially selected in
+`b506b201`, narrowed in `4b15cd10`, and implemented in `32aba82d`.
 
 Next candidate:
 Continue remapping the reduced Timeline facade after this slice, avoiding wide
