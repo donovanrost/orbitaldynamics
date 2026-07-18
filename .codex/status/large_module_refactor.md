@@ -9,36 +9,39 @@ Current slice:
 Timeline activity-product delivery context extraction.
 
 Status:
-Selected; implementation has not started.
+Implemented, verified, independently reviewed, committed, and pushed.
 
-Selected boundary:
-Move the activity product/delivery context builder plus collection end,
+Completed boundary:
+Moved the activity product/delivery context builder plus collection end,
 planned/actual delivery, maximum/planned/actual latency, and planned/actual data
-volume helpers into a dedicated context module. Keep one private Timeline
-context facade and remove the eight helper facades.
+volume helpers into the 173-line
+`Timeline.ActivityProductDeliveryContext`. The 5,662-line Timeline retains one
+private context facade and removes all eight helper facades.
 
-Selection evidence:
-- The builder exclusively consumes all eight adjacent timing/data-volume
-  helpers and owns delivery IDs/status, latency deltas/margin, priority, and
-  objective linkage.
-- Existing delivery timing, field value, numeric value, relationship ID,
-  metric delta, stable identifier, and encoding policies provide the boundary
-  directly without Timeline callbacks.
-- The extraction should materially reduce the current 5,792-line Timeline.
-- Observation quality, pointing, attitude, thermal, resource, broad context
-  coordination, public API, and schema remain outside the boundary.
+Published commits:
+Selected in `81be7c14` and implemented in `a7ffe1da`.
 
 Verification:
-Pending: focused baseline, implementation, strict compile, focused/full tests,
-contracts, structural/static checks, and independent review.
+- Strict warnings-as-errors compile passed across 3,790 files.
+- Three focused operational, string-normalization, and changed-delivery diff
+  examples passed before and after extraction.
+- Full Timeline suite passed with 127 examples; Timeline schema-contract suites
+  passed with 36 examples.
+- Canonical AST equivalence passed for the builder and eight helpers after
+  normalizing only the stable-pattern data parameter and definition kind.
+- Format, diff, exactly-one-facade, eight-helper-removal, unchanged public
+  definitions, sole-consumer, and xref checks passed.
+- Independent review found no production issues and confirmed exact evaluation
+  order, aliases, fields, repeated metric evaluation, latency fallback, ID
+  normalization, deltas, completion, and compaction.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline activity-thermal context extraction, selected in `20d57037`,
-implemented in `df9621d1`, and handed off in `6db09840`.
+Timeline activity-product delivery context extraction, selected in `81be7c14`
+and implemented in `a7ffe1da`.
 
 Next candidate:
 Continue remapping the reduced Timeline facade.
