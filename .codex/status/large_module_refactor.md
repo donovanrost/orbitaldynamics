@@ -6,51 +6,50 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline diff-row construction extraction.
+Timeline provider-result policy extraction.
 
 Status:
-Implementation published in `80f18ab2`; handoff publication pending.
+Selection recorded; implementation has not started.
 
-Completed boundary:
-`Timeline.DiffRow.build/5` now owns all four duplicate/add/remove/change row
-clauses plus exclusive review, safe-provenance, transition-decision,
-activity-context, and duplicate-scope helpers.
-`Timeline.DiffRow.put_transition_decision/2` preserves the second captured
-facade entry point. `Timeline` retains every public function, including the
-unchanged contact/command predicates, and supplies 17 shared callbacks. The
-two moved guard constants are mirrored exactly. The facade dropped from 8,564
-to 8,077 lines.
+Selected boundary:
+Move provider execution failure reasons and the complete provider-result
+flattening, failure/success token classification, and artifact serialization
+cluster into `Timeline.ProviderResult`. `Timeline` retains three private facade
+entry points for failure reason, failure predicate, and artifact value. The
+shared ordered provider-result map-key list remains Timeline-owned for
+capabilities and is supplied as selection data.
 
-Selection and corrections:
-Selected in `d8c5c4e7`. Guard-required compile-time constants were corrected in
-`b05908d4`; both facade entry points and missed activity/protection callbacks
-were corrected in `bbeda85e` before successful compile.
+Why this slice:
+The reduced Timeline facade is 8,077 lines. This approximately 165-line cluster
+has one cohesive provider-evidence responsibility and no behavioral helper
+dependencies. Its three facade entry points preserve all existing callers,
+while the shared key list remains with the capabilities surface. This is a
+cleaner boundary than combining operational action policy with Cadence import
+validation.
 
-Verification:
-- Pre-change and post-change focused Timeline cases: 8/8.
-- Full Timeline suite: 127/127.
-- Timeline schema-contract suites: 36/36.
-- Strict warnings-as-errors compile: 3,717 files.
-- Canonical AST equivalence: all 39 moved clauses after normalizing only
-  callback boundaries; both mirrored guard constants are exact.
-- Both callers and public-definition hash unchanged; format, diff, whitespace,
-  ownership, caller, and xref checks clean; xref reports only Timeline.
-- Independent review: no code findings. Duplicate/add/remove/change routing,
-  protected/executed/blocked semantics, safe provenance, transition decisions,
-  projections, callback wiring, public predicates, API, schema shape, order,
-  determinism, and ownership are exact. Its constant-count documentation note
-  is resolved here.
+Planned proof:
+- Focused Timeline tests covering contact and command result/success evidence,
+  nested provider result maps/lists, operational failure routing, and
+  diff-sensitive command evidence.
+- Full Timeline and Timeline schema-contract suites.
+- Strict warnings-as-errors compile.
+- Canonical AST equivalence for every moved clause after normalizing only
+  facade entry points and the shared key-list data boundary.
+- Format, diff, whitespace, ownership, three-caller, public-definition, and
+  xref checks.
+- Independent read-only review before publication.
 
 Behavior/schema changes:
-None. No schema-generation boundary changed, so export regeneration was not
-required.
+None intended. No schema-generation boundary is selected, so export
+regeneration should not be required.
 
 Last completed slice:
-Timeline diff-row construction extraction, published in `80f18ab2`.
+Timeline diff-row construction extraction, implementation published in
+`80f18ab2` and handoff published in `246c7840`.
 
 Next candidate:
-Remap the reduced Timeline facade, emphasizing transition application and
-operational-row classification.
+Remap the reduced Timeline facade after this slice, emphasizing operational
+action classification and transition application.
 
 Blocked:
 No.
