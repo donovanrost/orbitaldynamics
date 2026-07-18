@@ -5762,17 +5762,9 @@ defmodule OrbitalDynamics.Timeline do
     }
   end
 
-  defp diff_invalid_activity_input_context(_prefix, row) when row == %{}, do: %{}
-
-  defp diff_invalid_activity_input_context(prefix, %{"invalid_activity_input" => true} = row) do
-    %{
-      "#{prefix}_invalid_activity_input" => true,
-      "#{prefix}_invalid_activity_input_reason" => row["invalid_activity_input_reason"],
-      "#{prefix}_activity" => row["source_activity"]
-    }
+  defp diff_invalid_activity_input_context(prefix, row) do
+    OrbitalDynamics.Timeline.DiffInvalidInputContextPolicy.build(prefix, row)
   end
-
-  defp diff_invalid_activity_input_context(_prefix, _row), do: %{}
 
   defp diff_required_operator_action(diff_status, requires_review) do
     OrbitalDynamics.Timeline.DiffPresentationPolicy.required_operator_action(
