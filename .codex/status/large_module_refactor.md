@@ -6,35 +6,33 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline candidate-rejection station policy extraction.
+Timeline candidate-rejection condition policy extraction.
 
 Status:
-Implemented, verified, independently reviewed, committed, and pushed.
+Selected; implementation has not started.
 
-Completed boundary:
-Moved station unavailable, reservation, and reduced-capacity classification;
-top-level/source status lookup; top-level/source capacity-fraction lookup; and
-the three capacity field names into the 109-line
-`Timeline.CandidateRejectionStationPolicy`. The 6,104-line Timeline retains
-three thin private facades for the derived-reason coordinator and sources the
-identical field list from the policy for existing capability metadata.
+Selected boundary:
+Move locked-overlap, negative-margin, short-contact, policy-blocked,
+stale-state, model-incompatible, and quality-gate-failed classification plus
+their token normalization into a dedicated candidate-rejection condition
+policy. Keep seven thin private Timeline facades so the derived-reason
+coordinator remains unchanged.
 
-Published commits:
-Selected in `68aec198` and implemented in `da7ab611`.
+Selection evidence:
+- The boundary is nine adjacent private clauses at Timeline lines 2,251-2,321,
+  consumed only by the derived candidate-rejection reason coordinator.
+- Existing field, numeric, timing, lifecycle normalization, and artifact
+  encoding policies supply every dependency directly; no callbacks are needed.
+- The extraction should replace roughly 71 helper lines with about 21 facade
+  lines, materially reducing the current 6,104-line Timeline.
+- Station classification, declared reasons, boolean availability checks,
+  reviewability, report/row construction, and schema logic remain outside the
+  boundary.
 
 Verification:
-- Strict warnings-as-errors compile passed across 3,784 files.
-- Three focused direct-status, nested-capacity, and nested-availability
-  candidate-rejection examples passed before and after extraction.
-- Full Timeline suite passed with 127 examples; Timeline schema-contract suites
-  passed with 36 examples.
-- Canonical AST equivalence passed for all 11 moved clauses and the capacity
-  field constant after normalizing only public/private definition kind.
-- Format, diff, whitespace, exactly-three-facade, unchanged Timeline
-  public-definition, sole-production-consumer, and xref checks passed.
-- Independent read-only review found no production-code issues and confirmed
-  exact field/token lists, lookup precedence, recursive-list behavior,
-  normalization, numeric routing, capacity threshold, and metadata exposure.
+Pending: focused baseline, implementation, strict compile, focused and full
+Timeline tests, schema-contract tests, canonical AST equivalence, static
+ownership/facade/public-definition/xref checks, and independent review.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
@@ -42,11 +40,11 @@ regeneration should not be required.
 
 Last completed slice:
 Timeline candidate-rejection station policy extraction, selected in `68aec198`
-and implemented in `da7ab611`.
+implemented in `da7ab611`, and handed off in `c34acaa6`.
 
 Next candidate:
-Continue remapping the reduced Timeline facade after this slice, avoiding wide
-report and activity-context map coordinator callback surfaces.
+Implement and verify this selected boundary before remapping the reduced
+Timeline facade.
 
 Blocked:
 No.
