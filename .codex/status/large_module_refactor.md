@@ -16,8 +16,8 @@ Move lifecycle event alias resolution, activity/approval status
 canonicalization, and preserved terminal-status handling into
 `Timeline.LifecycleStateNormalizationPolicy`. `Timeline` retains private entry
 points for lifecycle events, lifecycle values, activity status, approval
-status, and preserved-status application. Constant lists and the non-string
-encoder cross the boundary explicitly.
+status, the two capability alias maps, and preserved-status application.
+Constant lists and the non-string encoder cross the boundary explicitly.
 
 Why this slice:
 The reduced Timeline facade is 7,037 lines. These 13 clauses form the shared
@@ -31,8 +31,8 @@ Planned proof:
 - Full Timeline and Timeline schema-contract suites.
 - Strict warnings-as-errors compile.
 - Canonical AST equivalence for all 13 moved clauses after normalizing only the
-  five facade names, constant arguments, and encoder callback.
-- Format, diff, whitespace, ownership, exactly-five-facade, unchanged Timeline
+  seven facade names, constant arguments, and encoder callback.
+- Format, diff, whitespace, ownership, exactly-seven-facade, unchanged Timeline
   public-definition, and xref checks.
 - Independent read-only review before publication.
 
