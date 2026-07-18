@@ -16,7 +16,9 @@ Move activity operational-hint context construction and direct-value/template
 fallback resolution into one dedicated module. Keep private Timeline facades
 for the context builder and the three operational-row value consumers, and
 route field lookup, numeric/boolean conversion, template provenance, and
-compaction directly through existing policies.
+compaction directly through existing policies. Remove the shared
+`first_present_value/2` and `boolean_value/1` Timeline facades because strict
+compile confirmed the moved fallback logic owned their only remaining callers.
 
 Selection evidence:
 - The boundary owns setup/cooldown duration plus telemetry-confirmation
@@ -25,6 +27,9 @@ Selection evidence:
   template operational hints.
 - The context builder has one valid-context consumer; the three value helpers
   also serve the operational-row builder.
+- The initial strict compile proved `first_present_value/2` and
+  `boolean_value/1` became unused after the move; repo search confirmed no other
+  Timeline callers.
 - Direct existing policies satisfy the boundary without Timeline callbacks.
 - The extraction should materially reduce the current 5,467-line Timeline while
   preserving all four private coordinator seams.
