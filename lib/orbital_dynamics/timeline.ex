@@ -6595,129 +6595,44 @@ defmodule OrbitalDynamics.Timeline do
   defp boolean_value(value),
     do: OrbitalDynamics.Timeline.ActivityBooleanPolicy.boolean_value(value)
 
-  defp normalize_id_list(nil, _map_keys), do: nil
-
-  defp normalize_id_list(values, map_keys) when is_list(values) do
-    values
-    |> Enum.flat_map(&id_values(&1, map_keys))
-    |> normalize_scalar_ids()
-  end
-
   defp normalize_id_list(value, map_keys) do
-    value
-    |> id_values(map_keys)
-    |> normalize_scalar_ids()
-  end
-
-  defp normalize_map_id_list(nil, _map_keys), do: nil
-
-  defp normalize_map_id_list(values, map_keys) when is_list(values) do
-    values
-    |> Enum.filter(&is_map/1)
-    |> Enum.flat_map(&id_values(&1, map_keys))
-    |> normalize_scalar_ids()
-  end
-
-  defp normalize_map_id_list(%{} = value, map_keys) do
-    value
-    |> id_values(map_keys)
-    |> normalize_scalar_ids()
-  end
-
-  defp normalize_map_id_list(_value, _map_keys), do: nil
-
-  defp duplicate_id_list(nil, _map_keys), do: nil
-
-  defp duplicate_id_list(values, map_keys) when is_list(values) do
-    values
-    |> Enum.flat_map(&id_values(&1, map_keys))
-    |> duplicate_scalar_ids()
+    OrbitalDynamics.Timeline.ActivityReferenceIdPolicy.normalize(
+      value,
+      map_keys,
+      &stable_activity_id?/1
+    )
   end
 
   defp duplicate_id_list(value, map_keys) do
-    value
-    |> id_values(map_keys)
-    |> duplicate_scalar_ids()
+    OrbitalDynamics.Timeline.ActivityReferenceIdPolicy.duplicates(
+      value,
+      map_keys,
+      &stable_activity_id?/1
+    )
   end
 
-  defp duplicate_map_id_list(nil, _map_keys), do: nil
-
-  defp duplicate_map_id_list(values, map_keys) when is_list(values) do
-    values
-    |> Enum.filter(&is_map/1)
-    |> Enum.flat_map(&id_values(&1, map_keys))
-    |> duplicate_scalar_ids()
+  defp normalize_map_id_list(value, map_keys) do
+    OrbitalDynamics.Timeline.ActivityReferenceIdPolicy.normalize_maps(
+      value,
+      map_keys,
+      &stable_activity_id?/1
+    )
   end
 
-  defp duplicate_map_id_list(%{} = value, map_keys) do
-    value
-    |> id_values(map_keys)
-    |> duplicate_scalar_ids()
+  defp duplicate_map_id_list(value, map_keys) do
+    OrbitalDynamics.Timeline.ActivityReferenceIdPolicy.duplicate_maps(
+      value,
+      map_keys,
+      &stable_activity_id?/1
+    )
   end
 
-  defp duplicate_map_id_list(_value, _map_keys), do: nil
-
-  defp id_values(%{} = value, map_keys) do
-    Enum.flat_map(map_keys, fn key ->
-      case Map.get(value, key) do
-        nil -> []
-        nested when is_list(nested) -> nested
-        nested -> [nested]
-      end
-    end)
+  defp stable_id_value(value) do
+    OrbitalDynamics.Timeline.ActivityReferenceIdPolicy.stable_id_value(
+      value,
+      &stable_activity_id?/1
+    )
   end
-
-  defp id_values(value, _map_keys), do: [value]
-
-  defp normalize_scalar_ids(values) do
-    values
-    |> Enum.flat_map(&stable_id_value/1)
-    |> Enum.uniq()
-    |> Enum.sort()
-    |> case do
-      [] -> nil
-      ids -> ids
-    end
-  end
-
-  defp duplicate_scalar_ids(values) do
-    values
-    |> Enum.flat_map(&stable_id_value/1)
-    |> Enum.frequencies()
-    |> Enum.filter(fn {_id, count} -> count > 1 end)
-    |> Enum.map(fn {id, _count} -> id end)
-    |> Enum.sort()
-    |> case do
-      [] -> nil
-      ids -> ids
-    end
-  end
-
-  defp stable_id_value(nil), do: []
-  defp stable_id_value(value) when is_boolean(value), do: []
-
-  defp stable_id_value(value) when is_atom(value) do
-    value
-    |> Atom.to_string()
-    |> stable_id_value()
-  end
-
-  defp stable_id_value(value) when is_binary(value) do
-    value
-    |> String.split(",", trim: false)
-    |> Enum.map(&String.trim/1)
-    |> Enum.filter(fn value ->
-      value != "" and value != "nil" and stable_activity_id?(value)
-    end)
-  end
-
-  defp stable_id_value(value) when is_integer(value) do
-    value
-    |> Integer.to_string()
-    |> stable_id_value()
-  end
-
-  defp stable_id_value(_value), do: []
 
   defp activity_start(activity) do
     Map.get(activity, "starts_at_s") || Map.get(activity, "start_s")
