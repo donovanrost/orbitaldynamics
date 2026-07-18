@@ -9,7 +9,7 @@ Current slice:
 Timeline provider-result policy extraction.
 
 Status:
-Selection recorded; implementation has not started.
+Implementation published in `6778bbcd`; focused and broad proof is green.
 
 Selected boundary:
 Move provider execution failure reasons and the complete provider-result
@@ -20,36 +20,33 @@ shared ordered provider-result map-key list remains Timeline-owned for
 capabilities and is supplied as selection data.
 
 Why this slice:
-The reduced Timeline facade is 8,077 lines. This approximately 165-line cluster
-has one cohesive provider-evidence responsibility and no behavioral helper
-dependencies. Its three facade entry points preserve all existing callers,
-while the shared key list remains with the capabilities surface. This is a
-cleaner boundary than combining operational action policy with Cadence import
-validation.
+The extraction moved 25 clauses into a 174-line internal module and reduced
+Timeline from 8,077 to 7,930 lines. The three facade entry points preserve all
+existing callers, while the shared key list remains with the capabilities
+surface.
 
-Planned proof:
-- Focused Timeline tests covering contact and command result/success evidence,
-  nested provider result maps/lists, operational failure routing, and
-  diff-sensitive command evidence.
-- Full Timeline and Timeline schema-contract suites.
-- Strict warnings-as-errors compile.
-- Canonical AST equivalence for every moved clause after normalizing only
-  facade entry points and the shared key-list data boundary.
-- Format, diff, whitespace, ownership, three-caller, public-definition, and
-  xref checks.
-- Independent read-only review before publication.
+Completed proof:
+- Focused provider-result examples: 3 passed.
+- Full Timeline suite: 127 passed.
+- Timeline schema-contract suites: 36 passed.
+- Strict warnings-as-errors compile: 3,718 files.
+- Canonical AST equivalence: all 25 moved clauses after normalizing only facade
+  names and the shared key-list data argument.
+- Format, whitespace, ownership, exactly-three-facade, unchanged Timeline
+  public definitions, and xref checks passed.
+- Independent read-only review found no production-code findings.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline diff-row construction extraction, implementation published in
-`80f18ab2` and handoff published in `246c7840`.
+Timeline provider-result policy extraction, selected in `63d6d709` and
+implemented in `6778bbcd`.
 
 Next candidate:
-Remap the reduced Timeline facade after this slice, emphasizing operational
-action classification and transition application.
+Remap the reduced 7,930-line Timeline facade, emphasizing operational action
+classification and transition application.
 
 Blocked:
 No.
