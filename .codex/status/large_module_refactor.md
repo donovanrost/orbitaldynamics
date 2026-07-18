@@ -6,32 +6,33 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline lifecycle-status membership policy extraction.
+Timeline optional activity-input policy extraction.
 
 Status:
-Implemented, verified, independently reviewed, committed, and pushed.
+Selection recorded; implementation has not started.
 
-Completed boundary:
-Moved executed-status membership, repairable-status membership, and both
-two-clause unsupported approval/activity predicates into the 14-line
-`Timeline.LifecycleStatusMembershipPolicy`. The 6,246-line `Timeline` retains
-four private entry points and passes all status lists explicitly.
+Selected boundary:
+Move both optional activity-to-map clauses into
+`Timeline.OptionalActivityInputPolicy`. `Timeline` retains one private entry
+point and passes its existing activity conversion function explicitly; public
+status/approval transition coordinators remain unchanged.
 
-Published commits:
-Selected in `873251c3` and implemented in `804f0f70`.
+Why this slice:
+The 6,246-line Timeline facade still owns a complete two-clause optional-input
+family reused by activity, status, and approval transition entry points. Moving
+it isolates nil callback bypass and present-input conversion without moving
+those public coordinators or the larger activity normalization pipeline.
 
-Verification:
-- Strict warnings-as-errors compile passed across 3,775 files.
-- Four focused unsupported approval/activity, reusable transition, and
-  lifecycle state examples passed.
-- Full Timeline suite passed with 127 examples; Timeline schema-contract suites
-  passed with 36 examples.
-- Canonical AST equivalence passed for all six moved clauses after normalizing
-  only public/private heads, facade names, and status-list arguments.
-- Format, diff, whitespace, ownership, exactly-four-facade, unchanged Timeline
-  public-definition, and xref checks passed.
-- Independent read-only review found no production-code issues; compile-time
-  lifecycle category guards remain byte-for-byte unchanged.
+Planned proof:
+- Focused reusable transition, selected-integrity transition, and blocked
+  lifecycle transition examples.
+- Full Timeline and Timeline schema-contract suites.
+- Strict warnings-as-errors compile.
+- Canonical AST equivalence for both moved clauses after normalizing only
+  public/private heads, facade name, and the explicit conversion callback.
+- Format, diff, whitespace, ownership, exactly-one-facade, unchanged Timeline
+  public-definition, and xref checks.
+- Independent read-only review before publication.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
