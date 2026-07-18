@@ -4631,55 +4631,15 @@ defmodule OrbitalDynamics.CadenceImport do
   end
 
   defp manifest_row(row, rank) do
-    import_side = import_side(row)
-    import_status = Map.get(row, "#{import_side}_cadence_import_status", "not_applicable")
-    approval_status = Map.get(row, "approval_status", "operator_review_required")
-
-    %{
-      "id" => "cadence_import:#{row["id"] || rank}",
-      "rank" => rank,
-      "import_action" => import_action(row),
-      "import_status" => adapter_import_status(import_status, approval_status),
-      "import_side" => import_side,
-      "source_review_row_id" => row["id"],
-      "source_review_type" => row["review_type"],
-      "source_review_action" => source_review_action(row),
-      "subject_id" => row["subject_id"],
-      "activity_id" => row["activity_id"],
-      "activity_type" => row["activity_type"],
-      "target_id" => row["target_id"],
-      "repair_action" => row["repair_action"],
-      "approval_status" => approval_status,
-      "required_operator_action" => row["required_operator_action"],
-      "source_timeline_id" => row["source_timeline_id"],
-      "replacement_activity_id" => row["replacement_activity_id"],
-      "replacement_timeline_id" => row["replacement_timeline_id"],
-      "timeline_link" => row["timeline_link"],
-      "source_timeline_identity" => row["source_timeline_identity"],
-      "replacement_timeline_identity" => row["replacement_timeline_identity"],
-      "cadence_import_status" => import_status,
-      "cadence_import_type" => row["#{import_side}_cadence_import_type"],
-      "cadence_import_id" => row["#{import_side}_cadence_import_id"],
-      "cadence_import_contract" => row["#{import_side}_cadence_import_contract"],
-      "has_cadence_import" => row["#{import_side}_has_cadence_import"],
-      "source_cadence_import_status" => row["source_cadence_import_status"],
-      "replacement_cadence_import_status" => row["replacement_cadence_import_status"],
-      "invalid_cadence_import" => row["invalid_cadence_import"],
-      "invalid_cadence_import_reason" => row["invalid_cadence_import_reason"],
-      "source_cadence_import" => row["source_cadence_import"],
-      "import_activity_context" =>
-        normalize_provider_result_artifact_fields(row["#{import_side}_activity_context"]),
-      "source_delta" => row["source_delta"]
-    }
-    |> compact_map()
+    OrbitalDynamics.CadenceImport.PlanDeltaManifestRow.build(
+      row,
+      rank,
+      source_review_action: &source_review_action/1,
+      adapter_import_status: &adapter_import_status/2,
+      normalize_provider_result_artifact_fields: &normalize_provider_result_artifact_fields/1,
+      compact_map: &compact_map/1
+    )
   end
-
-  defp import_side(%{"replacement_activity_id" => replacement_id} = row)
-       when is_binary(replacement_id) and replacement_id != "" do
-    if Map.has_key?(row, "replacement_cadence_import_status"), do: "replacement", else: "source"
-  end
-
-  defp import_side(_row), do: "source"
 
   defp adapter_import_status("invalid", _approval_status), do: "review_required_before_import"
   defp adapter_import_status("missing", _approval_status), do: "blocked_missing_cadence_import"
@@ -4692,23 +4652,6 @@ defmodule OrbitalDynamics.CadenceImport do
 
   defp adapter_import_status("present", _approval_status), do: "ready_for_import"
   defp adapter_import_status(_status, _approval_status), do: "review_required_before_import"
-
-  defp import_action(%{"repair_action" => action})
-       when action in ["moved", "replaced"] do
-    "import_replacement_activity"
-  end
-
-  defp import_action(%{"repair_action" => "canceled"}), do: "cancel_source_activity"
-  defp import_action(%{"repair_action" => "suppressed"}), do: "suppress_source_activity"
-
-  defp import_action(%{"repair_action" => "preserved_executed"}),
-    do: "record_preserved_executed_activity"
-
-  defp import_action(%{"repair_action" => "preserved"}) do
-    "record_preserved_activity"
-  end
-
-  defp import_action(_row), do: "review_plan_delta"
 
   defp generic_review_import_action("link_capacity_review"), do: "review_link_capacity"
 
