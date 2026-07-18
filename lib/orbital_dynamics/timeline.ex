@@ -6347,107 +6347,71 @@ defmodule OrbitalDynamics.Timeline do
   end
 
   defp dependency_activity_ids(activity) do
-    activity
-    |> first_value([
-      "dependency_activity_ids",
-      "depends_on_activity_ids",
-      "depends_on",
-      "dependencies"
-    ])
-    |> normalize_id_list(["activity_id", "id"])
+    OrbitalDynamics.Timeline.ActivityRelationshipPolicy.dependency_activity_ids(
+      activity,
+      &first_value/2,
+      &normalize_id_list/2
+    )
   end
 
   defp duplicate_dependency_activity_ids(activity) do
-    activity
-    |> first_value([
-      "dependency_activity_ids",
-      "depends_on_activity_ids",
-      "depends_on",
-      "dependencies"
-    ])
-    |> duplicate_id_list(["activity_id", "id"])
+    OrbitalDynamics.Timeline.ActivityRelationshipPolicy.duplicate_dependency_activity_ids(
+      activity,
+      &first_value/2,
+      &duplicate_id_list/2
+    )
   end
 
   defp dependency_timeline_ids(activity) do
-    case first_value(activity, ["dependency_timeline_ids", "depends_on_timeline_ids"]) do
-      value when value in [nil, []] ->
-        activity
-        |> first_value(["dependencies"])
-        |> normalize_map_id_list(["timeline_id", "persistent_id"])
-
-      values ->
-        normalize_id_list(values, ["timeline_id", "persistent_id"])
-    end
+    OrbitalDynamics.Timeline.ActivityRelationshipPolicy.dependency_timeline_ids(
+      activity,
+      &first_value/2,
+      &normalize_map_id_list/2,
+      &normalize_id_list/2
+    )
   end
 
   defp duplicate_dependency_timeline_ids(activity) do
-    case first_value(activity, ["dependency_timeline_ids", "depends_on_timeline_ids"]) do
-      value when value in [nil, []] ->
-        activity
-        |> first_value(["dependencies"])
-        |> duplicate_map_id_list(["timeline_id", "persistent_id"])
-
-      values ->
-        duplicate_id_list(values, ["timeline_id", "persistent_id"])
-    end
+    OrbitalDynamics.Timeline.ActivityRelationshipPolicy.duplicate_dependency_timeline_ids(
+      activity,
+      &first_value/2,
+      &duplicate_map_id_list/2,
+      &duplicate_id_list/2
+    )
   end
 
   defp exclusive_with_activity_ids(activity) do
-    explicit =
-      activity
-      |> first_value(["exclusive_with_activity_ids"])
-      |> normalize_id_list(["activity_id", "id"])
-
-    case explicit do
-      values when is_list(values) and values != [] ->
-        values
-
-      _empty ->
-        activity
-        |> first_value(["exclusive_with", "exclusions"])
-        |> normalize_id_list(["activity_id", "id"])
-    end
+    OrbitalDynamics.Timeline.ActivityRelationshipPolicy.exclusive_with_activity_ids(
+      activity,
+      &first_value/2,
+      &normalize_id_list/2
+    )
   end
 
   defp duplicate_exclusivity_activity_ids(activity) do
-    explicit =
-      activity
-      |> first_value(["exclusive_with_activity_ids"])
-      |> duplicate_id_list(["activity_id", "id"])
-
-    case explicit do
-      values when is_list(values) and values != [] ->
-        values
-
-      _empty ->
-        activity
-        |> first_value(["exclusive_with", "exclusions"])
-        |> duplicate_id_list(["activity_id", "id"])
-    end
+    OrbitalDynamics.Timeline.ActivityRelationshipPolicy.duplicate_exclusivity_activity_ids(
+      activity,
+      &first_value/2,
+      &duplicate_id_list/2
+    )
   end
 
   defp exclusive_with_timeline_ids(activity) do
-    case first_value(activity, ["exclusive_with_timeline_ids"]) do
-      value when value in [nil, []] ->
-        activity
-        |> first_value(["exclusive_with", "exclusions"])
-        |> normalize_map_id_list(["timeline_id", "persistent_id"])
-
-      values ->
-        normalize_id_list(values, ["timeline_id", "persistent_id"])
-    end
+    OrbitalDynamics.Timeline.ActivityRelationshipPolicy.exclusive_with_timeline_ids(
+      activity,
+      &first_value/2,
+      &normalize_map_id_list/2,
+      &normalize_id_list/2
+    )
   end
 
   defp duplicate_exclusivity_timeline_ids(activity) do
-    case first_value(activity, ["exclusive_with_timeline_ids"]) do
-      value when value in [nil, []] ->
-        activity
-        |> first_value(["exclusive_with", "exclusions"])
-        |> duplicate_map_id_list(["timeline_id", "persistent_id"])
-
-      values ->
-        duplicate_id_list(values, ["timeline_id", "persistent_id"])
-    end
+    OrbitalDynamics.Timeline.ActivityRelationshipPolicy.duplicate_exclusivity_timeline_ids(
+      activity,
+      &first_value/2,
+      &duplicate_map_id_list/2,
+      &duplicate_id_list/2
+    )
   end
 
   defp first_present_value(activity, keys) do
