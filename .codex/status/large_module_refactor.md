@@ -6,50 +6,43 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-CadenceImport objective-satisfaction manifest-row builder extraction.
+CadenceImport schema-validation manifest-row builder extraction.
 
 Status:
-Implementation published as `0b333d0e`; handoff publication pending.
+Slice selected; selection publication pending.
 
 Selected slice:
-Move `objective_satisfaction_manifest_row/2` into internal
-`CadenceImport.ObjectiveSatisfactionManifestRow.build/3`. Inject the three shared facade
+Move `schema_validation_manifest_row/2` into internal
+`CadenceImport.SchemaValidationManifestRow.build/3`. Inject the three shared facade
 helpers for review action, adapter status, and compact-map cleanup.
 
 Why this slice:
-`CadenceImport` was 5,484 lines. The builder was a 40-line transformation with
-31 projected keys, no exclusive helper dependencies, and one facade caller.
-The facade is now 5,454 lines.
+`CadenceImport` is 5,454 lines. The builder is a 45-line transformation with 35
+projected keys, one local issue-count computation, and one facade caller.
 
 Public facade to preserve:
-All `CadenceImport` APIs; all objective-satisfaction keys and value expressions;
-action/status semantics, import/approval defaults, compaction, deterministic
-output, and contracts.
+All `CadenceImport` APIs; all schema-validation keys and value expressions;
+issue-count semantics, action/status, import/approval defaults, compaction,
+deterministic output, and contracts.
 
 Likely files:
 - `lib/orbital_dynamics/cadence_import.ex`
-- `lib/orbital_dynamics/cadence_import/objective_satisfaction_manifest_row.ex`
+- `lib/orbital_dynamics/cadence_import/schema_validation_manifest_row.ex`
 - `.codex/status/large_module_refactor.md`
 
 Definition of done:
-The internal builder owns the exact 31-key projection; the facade supplies three
+The internal builder owns the exact 35-key projection; the facade supplies three
 exact callbacks; focused tests, strict compile, equivalence/API checks, and
 independent review are clean.
 
 Verification gaps:
-- None for this slice.
+- Focused baseline, implementation proof, strict compile, and review remain.
 
 Tests run:
-- Focused CadenceImport and schema contracts: 100/100.
-- Strict warnings-as-errors compile: 3,696 files.
-- Exact AST proof: 31/31 entries, full normalized body, and all public facade
-  definitions match selection `66eccccd`.
-- Format, diff, caller/xref, callback-surface, and whitespace checks clean.
-- Independent read-only review: no code findings or additional test gaps.
+- None yet.
 
 Behavior/schema changes:
-None. Objective-satisfaction action/status, import/approval defaults,
-compaction, deterministic output, and APIs are exact.
+None intended.
 
 Last completed slice:
 Objective-satisfaction row builder selected in `66eccccd` and published in
