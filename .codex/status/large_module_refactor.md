@@ -6,48 +6,46 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline publication source-summary policy extraction.
+Timeline publication identifier policy extraction.
 
 Status:
-Implementation published in `abea4c55`; focused and broad proof is green.
+Selection recorded; implementation has not started.
 
 Selected boundary:
-Move dependency-impact and timeline-diff source-summary recognition plus
-optional source-summary embedding into
-`Timeline.PublicationSourceSummaryPolicy`. `Timeline` retains four private
-entry points; key stringification and the two accepted schema-contract values
-cross the boundary explicitly.
+Move publication source-artifact ID precedence/defaulting, option ID-list
+normalization, summary ID-list normalization, and changed-field ID-array map
+normalization into `Timeline.PublicationIdentifierPolicy`. `Timeline` retains
+four private entry points; stable-ID normalization and sorted uniqueness cross
+the boundary explicitly.
 
 Why this slice:
-The extraction moved eight contiguous clauses into a 37-line internal module
-and reduced Timeline from 6,330 to 6,324 lines. Four private entry points
-preserve the publication-summary coordinator while schema/model fallback order
-and empty-summary embedding now live together.
+The 6,324-line Timeline facade still owns seven clauses for one publication
+identifier responsibility. Moving source-ID precedence, list normalization,
+map-key filtering, and deterministic sorting together preserves the
+publication-summary map coordinator without widening its callback surface.
 
-Completed proof:
-- Focused publication summary example: 1 passed, covering recognized
-  dependency/diff summaries, absent-summary fallbacks, optional embedding, and
-  schema validation.
-- Full Timeline suite: 127 passed.
-- Timeline schema-contract suites: 36 passed.
-- Strict warnings-as-errors compile: 3,755 files.
-- Canonical AST equivalence: all eight moved clauses after normalizing only
-  public/private heads, the stringifier callback, and schema-contract
-  arguments.
-- Format, whitespace, ownership, exactly-four-facade, unchanged Timeline public
-  definitions, and xref checks passed; Timeline is the only runtime caller.
-- Independent read-only review found no production-code findings.
+Planned proof:
+- Focused publication summary example covering source ID precedence,
+  duplicate/sorted option IDs, normalized diff ID lists/maps, and schema
+  validation.
+- Full Timeline and Timeline schema-contract suites.
+- Strict warnings-as-errors compile.
+- Canonical AST equivalence for all seven moved clauses after normalizing only
+  four facade names plus stable-ID/sorted-unique callbacks.
+- Format, diff, whitespace, ownership, exactly-four-facade, unchanged Timeline
+  public-definition, and xref checks.
+- Independent read-only review before publication.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline publication source-summary policy extraction, selected in `12f85c09`
-and implemented in `abea4c55`.
+Timeline publication source-summary policy extraction, selected in `12f85c09`,
+implemented in `abea4c55`, and handed off in `5436345d`.
 
 Next candidate:
-Continue remapping the 6,324-line Timeline publication helpers after this slice,
+Continue remapping the reduced Timeline publication helpers after this slice,
 avoiding the wide publication-summary and activity-context map coordinator
 callback surfaces.
 
