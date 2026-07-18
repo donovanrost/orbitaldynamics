@@ -6,54 +6,60 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-CadenceImport realized-feedback manifest-row builder extraction.
+CadenceImport strategy-recommendation manifest-row builder extraction.
 
 Status:
-Implementation `44f84e10` published; verified handoff publication pending.
+Slice selected; selection publication pending.
 
-Completed slice:
-Moved the realized-feedback manifest row projection and its exclusive
-has-import/status/action policy into internal
-`CadenceImport.RealizedFeedbackManifestRow.build/3`. The facade now injects
-only five shared normalization/status/compaction callbacks.
+Selected slice:
+Move `strategy_recommendation_manifest_row/2` into internal
+`CadenceImport.StrategyRecommendationManifestRow.build/3`. Keep public
+`RecommendationRiskContext` catalogs referenced directly and inject only the
+six shared facade helpers for review action, adapter status, three branch field
+catalogs, and compact-map cleanup.
 
 Why this slice:
-`CadenceImport` was 8,285 lines. The realized-feedback row builder was 451
-lines, and its adjacent specialized helpers added 18 lines. `CadenceImport` is
-now 7,827 lines.
+`CadenceImport` is 7,827 lines. The strategy-recommendation row builder is a
+379-line transformation with 200 direct projection keys, 30 shared
+`RecommendationRiskContext` catalog merges, and one facade caller.
 
-Published commits:
-- Selection: `b69b4189`
-- Implementation: `44f84e10`
-- Handoff: pending
+Current coupling/problem:
+The main artifact adapter embeds a large strategy-recommendation projection and
+its long ordered context-merge pipeline alongside every other source family’s
+manifest transformation.
 
-Preserved facade and behavior:
-All `CadenceImport` APIs; all 435 realized-feedback row keys and value
-expressions; default statuses, identifiers, import actions/statuses,
-provider-result normalization, compaction, deterministic output, and artifact
+Public facade to preserve:
+All `CadenceImport` APIs; strategy-recommendation row keys and value
+expressions; all 30 context catalog merges and their order; branch field merges;
+defaults, import status/action, compaction, deterministic output, and artifact
 contracts.
 
-Verification:
-- Full Cadence-import tests plus schema Cadence-import contracts: 100/100.
-- Strict warnings-as-errors compile: 3,673 files.
-- AST projection comparison: exact 435-key order and value expressions, zero
-  mismatches.
-- Five shared facade callbacks: exact names, purposes, and arities.
-- Independent status/action behavior matrix: default, invalid, missing,
-  present, boolean overrides, and `not_required` all match.
-- Generic realized-feedback dispatch and normalization/compaction positions:
-  unchanged.
-- Public `CadenceImport` definition diff: empty.
-- Format, whitespace, diff, xref caller, and independent read-only review:
-  clean.
-- Schema export not rerun: no schema-generation code or schema artifacts
-  changed.
+Likely files:
+- `lib/orbital_dynamics/cadence_import.ex`
+- `lib/orbital_dynamics/cadence_import/strategy_recommendation_manifest_row.ex`
+- `.codex/status/large_module_refactor.md`
+
+Definition of done:
+The internal builder owns the exact 200-key projection and ordered merge
+pipeline; the facade supplies only six same-purpose callbacks; focused
+Cadence-import and schema-contract tests pass; strict warnings-as-errors
+compile, projection/merge equivalence, public API checks, and independent
+review are clean.
 
 Verification gaps:
-None for this slice.
+- Focused baseline, implementation proof, strict compile, and independent
+  review remain.
+
+Tests run:
+- None yet for this selected slice.
 
 Behavior/schema changes:
-None.
+None intended.
+
+Last completed slice:
+CadenceImport realized-feedback row builder published as implementation
+`44f84e10` and handoff `672fa031`: focused 100/100, strict 3,673-file compile,
+exact 435-entry AST comparison, independent behavior matrix, and review passed.
 
 Next candidate:
 Remap the reduced `CadenceImport` module and select the next source-specific
