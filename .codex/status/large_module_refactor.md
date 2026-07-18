@@ -9,7 +9,7 @@ Current slice:
 Timeline contact-direction normalization policy extraction.
 
 Status:
-Selection recorded; implementation has not started.
+Implementation published in `6bc2d557`; focused and broad proof is green.
 
 Selected boundary:
 Move activity direction normalization, provider alias resolution, canonical
@@ -20,33 +20,32 @@ public `normalize_contact_direction/1` clauses. The non-string encoder crosses
 the boundary explicitly.
 
 Why this slice:
-The reduced Timeline facade is 6,944 lines. These seven clauses own direction
-normalization from raw activity input through provider aliases and canonical
-MissionPlan capability values. The boundary preserves the public helper and
-capability-map surfaces.
+The extraction moved seven clauses into a 54-line internal module and reduced
+Timeline from 6,944 to 6,918 lines. Four facade surfaces preserve the private
+activity/capability callers and the two-clause public normalization helper.
 
-Planned proof:
-- Focused Timeline capability and direction-normalization examples covering
-  nil/empty, atoms, provider aliases, canonical values, and unknown tokens.
-- Full Timeline and Timeline schema-contract suites.
-- Strict warnings-as-errors compile.
-- Canonical AST equivalence for all seven moved clauses after normalizing only
-  the four facade names and encoder callback.
-- Format, diff, whitespace, ownership, exactly-four-facade, unchanged Timeline
-  public-definition, and xref checks.
-- Independent read-only review before publication.
+Completed proof:
+- Focused capability and contact-direction examples: 2 passed.
+- Full Timeline suite: 127 passed.
+- Timeline schema-contract suites: 36 passed.
+- Strict warnings-as-errors compile: 3,738 files.
+- Canonical AST equivalence: all seven moved clauses after normalizing only the
+  four facade names and encoder callback.
+- Format, whitespace, ownership, exactly-four-facade, unchanged Timeline public
+  name/arity/guards, and xref checks passed.
+- Independent read-only review found no findings.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline activity-boolean policy extraction, selected in `25604047`, corrected
-in `20e122b9`, implemented in `787e5732`, and handed off in `6cd27a69`.
+Timeline contact-direction normalization policy extraction, selected in
+`81c89fc5` and implemented in `6bc2d557`.
 
 Next candidate:
-Remap the reduced Timeline facade after this slice, emphasizing remaining
-activity normalization and lifecycle application.
+Remap the reduced 6,918-line Timeline facade, emphasizing remaining activity
+normalization and lifecycle application.
 
 Blocked:
 No.
