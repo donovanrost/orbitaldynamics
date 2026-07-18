@@ -16,7 +16,10 @@ Move dependency/exclusivity context construction and its eight relationship
 policy adapters into one dedicated module. Keep the existing private Timeline
 facades for coordinator consumers, pass the stable-ID pattern explicitly, and
 route field selection, ID normalization/duplicate detection, overlap
-normalization, and compaction directly through existing policies.
+normalization, and compaction directly through existing policies. Remove the
+shared duplicate scalar, normalized map, and duplicate map ID Timeline facades
+because strict compile confirmed the moved adapters owned their only remaining
+callers.
 
 Selection evidence:
 - The boundary owns normalized and duplicate dependency/exclusivity activity
@@ -27,6 +30,10 @@ Selection evidence:
   diff workflows through existing private Timeline facades.
 - Passing the stable-ID pattern explicitly preserves one validation
   configuration owner.
+- The initial strict compile proved `duplicate_id_list/2`,
+  `normalize_map_id_list/2`, and `duplicate_map_id_list/2` became unused after
+  the move; repo search confirmed no other Timeline callers. The shared scalar
+  `normalize_id_list/2` remains used by other boundaries.
 - Direct existing policies satisfy the boundary without Timeline callbacks.
 - The extraction should materially reduce the current 5,390-line Timeline while
   preserving coordinator seams.
