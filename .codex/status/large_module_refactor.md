@@ -9,7 +9,7 @@ Current slice:
 Timeline activity-input normalization flow extraction.
 
 Status:
-Selection recorded; implementation has not started.
+Implementation published in `f07698e1`; focused and broad proof is green.
 
 Selected boundary:
 Move safe activity conversion, validation dispatch, invalid-row routing, and
@@ -21,33 +21,32 @@ classification, invalid-row construction, and valid normalization are supplied
 as callbacks.
 
 Why this slice:
-The reduced Timeline facade is 7,507 lines. These four exclusive clauses form a
-small but reusable normalization transaction: conversion exceptions become
-deterministic invalid rows, validation failures route through the same builder,
-and valid inputs retain sequence-aware normalization.
+The extraction moved four clauses into a 69-line internal module and reduced
+Timeline from 7,507 to 7,491 lines. The two private entry points preserve all
+candidate, lifecycle, diff, summary, and list-normalization callers.
 
-Planned proof:
-- Focused Timeline tests for invalid batch input, single invalid normalization,
-  and valid identity preservation.
-- Full Timeline and Timeline schema-contract suites.
-- Strict warnings-as-errors compile.
-- Canonical AST equivalence for all four moved clauses after normalizing only
-  the two facade names and callback boundaries.
-- Format, diff, whitespace, ownership, exactly-two-facade, unchanged Timeline
-  public-definition, and xref checks.
-- Independent read-only review before publication.
+Completed proof:
+- Focused activity-input normalization examples: 3 passed.
+- Full Timeline suite: 127 passed.
+- Timeline schema-contract suites: 36 passed.
+- Strict warnings-as-errors compile: 3,726 files.
+- Canonical AST equivalence: all four moved clauses after normalizing only the
+  two facade names and callback boundaries.
+- Format, whitespace, ownership, exactly-two-facade, unchanged Timeline public
+  definitions, and xref checks passed.
+- Independent read-only review found no findings.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline activity-input validation policy extraction, selected in `677f8278`,
-implemented in `ea3e2c42`, and handed off in `77d4770a`.
+Timeline activity-input normalization flow extraction, selected in `a6bca7f2`
+and implemented in `f07698e1`.
 
 Next candidate:
-Remap the reduced Timeline facade after this slice, emphasizing transition
-integrity gating and activity normalization.
+Remap the reduced 7,491-line Timeline facade, emphasizing transition integrity
+gating and activity normalization.
 
 Blocked:
 No.
