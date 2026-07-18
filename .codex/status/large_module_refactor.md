@@ -6,45 +6,36 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline activity lifecycle context extraction.
+Timeline activity relationship context extraction.
 
 Status:
-Complete and published.
+Selected; implementation has not started.
 
 Selected boundary:
-Move conditional activity lifecycle context construction into one dedicated
-module. Keep one private Timeline facade for the valid-context consumer and
-route status and approval-status normalization directly through the existing
-lifecycle and artifact-value policies.
+Move dependency/exclusivity context construction and its eight relationship
+policy adapters into one dedicated module. Keep the existing private Timeline
+facades for coordinator consumers, pass the stable-ID pattern explicitly, and
+route field selection, ID normalization/duplicate detection, overlap
+normalization, and compaction directly through existing policies.
 
 Selection evidence:
-- The builder conditionally emits status and approval status only when the
-  activity or its metadata explicitly carries the corresponding field.
-- Existing lifecycle normalization preserves defaults and provider aliases,
-  while the context-specific presence check prevents implicit defaults from
-  appearing in the reusable context.
-- The builder has exactly one consumer in valid activity-context assembly.
+- The boundary owns normalized and duplicate dependency/exclusivity activity
+  and timeline IDs plus allow-overlap evidence.
+- The context builder has two consumers: activity precondition summaries and
+  valid activity-context assembly.
+- The eight relationship values also serve integrity, row, precondition, and
+  diff workflows through existing private Timeline facades.
+- Passing the stable-ID pattern explicitly preserves one validation
+  configuration owner.
 - Direct existing policies satisfy the boundary without Timeline callbacks.
-- The extraction should reduce the current 5,408-line Timeline while preserving
-  the private coordinator seam.
-- General lifecycle state normalization, transition decisions, timing, command
-  windows, broad context coordination, public API, and schema remain outside the
-  boundary.
+- The extraction should materially reduce the current 5,390-line Timeline while
+  preserving coordinator seams.
+- Relationship policy logic, integrity annotation, scheduling decisions, broad
+  context coordination, public API, and schema remain outside the boundary.
 
 Verification:
-- Selection published in `a05a86dd`; implementation published in `55d76306`.
-- Focused baseline and post-change lifecycle alias coverage: 2 passed.
-- Strict warnings-as-errors compile: 3,798 files compiled.
-- Full Timeline suite: 127 passed.
-- Operational Timeline schema contracts: 36 passed.
-- Canonical AST comparison: both moved functions equivalent after normalizing
-  only the private helper name.
-- Static checks confirmed unchanged public API, one private facade and one
-  consumer, direct lifecycle normalization adapters, removal of the moved
-  helper, Timeline-only runtime ownership, no temporary checker, and clean
-  formatting/diff.
-- Independent review: clean, with no production-code findings.
-- Timeline is 5,390 lines; the extracted module is 39 lines.
+Pending: focused baseline, implementation, strict compile, focused/full tests,
+contracts, structural/static checks, and independent review.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
