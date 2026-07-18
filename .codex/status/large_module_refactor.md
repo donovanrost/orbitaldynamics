@@ -9,57 +9,51 @@ Current slice:
 CadenceImport realized-feedback manifest-row builder extraction.
 
 Status:
-Slice selected; selection publication pending.
+Implementation `44f84e10` published; verified handoff publication pending.
 
-Selected slice:
-Move `realized_feedback_manifest_row/2` and its exclusively used
-`realized_feedback_has_cadence_import?/2`, `realized_feedback_import_status/2`,
-and `realized_feedback_import_action/1` helpers into internal
-`CadenceImport.RealizedFeedbackManifestRow.build/3`. Inject only the shared
-facade helpers for review action, provider-result normalization, adapter status,
-and compact-map cleanup.
+Completed slice:
+Moved the realized-feedback manifest row projection and its exclusive
+has-import/status/action policy into internal
+`CadenceImport.RealizedFeedbackManifestRow.build/3`. The facade now injects
+only five shared normalization/status/compaction callbacks.
 
 Why this slice:
-`CadenceImport` is 8,285 lines. The realized-feedback row builder is 451 lines,
-and its adjacent specialized status/action helpers add 18 lines. The builder is
-a self-contained artifact-row transformation with one facade caller.
+`CadenceImport` was 8,285 lines. The realized-feedback row builder was 451
+lines, and its adjacent specialized helpers added 18 lines. `CadenceImport` is
+now 7,827 lines.
 
-Current coupling/problem:
-The main artifact adapter embeds an exceptionally large realized-feedback field
-projection and its specialized import-state policy alongside every other source
-family’s manifest transformation.
+Published commits:
+- Selection: `b69b4189`
+- Implementation: `44f84e10`
+- Handoff: pending
 
-Public facade to preserve:
-All `CadenceImport` APIs; realized-feedback manifest row keys, values, default
-statuses, identifiers, import actions, import statuses, provider-result
-normalization, compaction, deterministic row output, and artifact contracts.
+Preserved facade and behavior:
+All `CadenceImport` APIs; all 435 realized-feedback row keys and value
+expressions; default statuses, identifiers, import actions/statuses,
+provider-result normalization, compaction, deterministic output, and artifact
+contracts.
 
-Likely files:
-- `lib/orbital_dynamics/cadence_import.ex`
-- `lib/orbital_dynamics/cadence_import/realized_feedback_manifest_row.ex`
-- `.codex/status/large_module_refactor.md`
-
-Definition of done:
-The internal builder owns the exact realized-feedback row projection and
-specialized status/action helpers; the facade supplies only the five shared
-callbacks; focused Cadence-import and schema-contract tests pass; strict
-warnings-as-errors compile, public API and row-construction equivalence checks,
-and independent review are clean.
+Verification:
+- Full Cadence-import tests plus schema Cadence-import contracts: 100/100.
+- Strict warnings-as-errors compile: 3,673 files.
+- AST projection comparison: exact 435-key order and value expressions, zero
+  mismatches.
+- Five shared facade callbacks: exact names, purposes, and arities.
+- Independent status/action behavior matrix: default, invalid, missing,
+  present, boolean overrides, and `not_required` all match.
+- Generic realized-feedback dispatch and normalization/compaction positions:
+  unchanged.
+- Public `CadenceImport` definition diff: empty.
+- Format, whitespace, diff, xref caller, and independent read-only review:
+  clean.
+- Schema export not rerun: no schema-generation code or schema artifacts
+  changed.
 
 Verification gaps:
-- Focused baseline, implementation proof, strict compile, and independent
-  review remain.
-
-Tests run:
-- None yet for this selected slice.
+None for this slice.
 
 Behavior/schema changes:
-None intended.
-
-Last completed slice:
-CadenceImport generic-review passthrough registry published as implementation
-`514d444a` and handoff `fe952c71`: focused 100/100, strict 3,672-file compile,
-exact 384-entry comparison, and independent review passed.
+None.
 
 Next candidate:
 Remap the reduced `CadenceImport` module and select the next source-specific
