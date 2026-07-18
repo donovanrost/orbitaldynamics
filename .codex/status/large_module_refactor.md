@@ -15,12 +15,13 @@ Selected slice:
 Move `strategy_manifest_row/4` and all four exclusive
 `strategy_import_status/2` clauses into internal
 `CadenceImport.StrategyManifestRow.build/5`. Inject the three shared branch-field
-list providers and compaction.
+list providers, `stringify_keys/1` forwarded to recommendation context, and
+compaction.
 
 Why this slice:
 After extracting recommendation context, the builder is a cohesive roughly
-300-line boundary with one caller, an exact 204-key base projection, and four
-shared callbacks. `CadenceImport` is 4,236 lines.
+300-line boundary with one caller, an exact 204-key base projection, and five
+shared dependency identities. `CadenceImport` is 4,236 lines.
 
 Public facade to preserve:
 All `CadenceImport` APIs; all 204 base keys and selected/default expressions;
@@ -38,11 +39,14 @@ Likely tests:
 
 Definition of done:
 The internal builder owns the exact strategy projection and four status clauses;
-the facade supplies four exact callbacks; focused tests, strict compile,
+the facade supplies five exact callbacks; focused tests, strict compile,
 equivalence/API checks, and independent review are clean.
 
 Verification gaps:
 - Focused baseline, implementation proof, strict compile, and review remain.
+- Initial implementation compile exposed the omitted stringify callback
+  forwarded into recommendation context; the boundary was corrected before
+  successful compile.
 
 Behavior/schema changes:
 None intended.
