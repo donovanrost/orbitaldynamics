@@ -15,7 +15,9 @@ Selected boundary:
 Move the three Mix task CLI behavior tests for single-contract export, missing
 required flags, and all-contract directory export into a dedicated test module.
 Keep the giant schema-bundle content contract test and all of its local
-model-limit helpers together in the original file.
+model-limit helpers together in the original file. Give the all-contract
+directory test a 120-second per-test timeout because standalone cold execution
+can exceed ExUnit's 60-second default.
 
 Selection evidence:
 - The three tests share only Mix task invocation, captured IO, filesystem
@@ -24,6 +26,9 @@ Selection evidence:
   helper, so it can remain unchanged.
 - The split should reduce the current 8,764-line export test ledger without
   duplicating fixtures or weakening assertions.
+- Initial standalone verification showed the all-contract directory export can
+  exceed 60 seconds without the former bundle-test warmup; the assertion body
+  remains unchanged and only that test receives the larger timeout.
 - Production code, public APIs, generated schema exports, contract behavior,
   and the bundle-content assertion body remain outside the boundary.
 
