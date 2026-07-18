@@ -5590,8 +5590,12 @@ defmodule OrbitalDynamics.Timeline do
   end
 
   defp changed_fields(source, replacement) do
-    @diff_compare_fields
-    |> Enum.filter(&(diff_compare_value(source, &1) != diff_compare_value(replacement, &1)))
+    OrbitalDynamics.Timeline.DiffFieldSelectionPolicy.changed_fields(
+      source,
+      replacement,
+      @diff_compare_fields,
+      &diff_compare_value/2
+    )
   end
 
   defp diff_compare_value(row, field) when field in @diff_activity_context_compare_fields do
@@ -5605,7 +5609,10 @@ defmodule OrbitalDynamics.Timeline do
   defp diff_compare_value(row, field), do: Map.get(row, field)
 
   defp review_significant_change?(changed_fields) do
-    Enum.any?(changed_fields, &(&1 in @diff_compare_fields))
+    OrbitalDynamics.Timeline.DiffFieldSelectionPolicy.review_significant_change?(
+      changed_fields,
+      @diff_compare_fields
+    )
   end
 
   defp timeline_row_has_dependencies?(row) do
