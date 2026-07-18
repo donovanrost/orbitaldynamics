@@ -6,35 +6,32 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline lifecycle-state summary metrics policy extraction.
+Timeline lifecycle-state input policy extraction.
 
 Status:
-Implementation published in `fb51c537`; focused and broad proof is green.
+Selection recorded; implementation has not started.
 
 Selected boundary:
-Move duplicate match counts, planned/realized match activity IDs,
-operator-action reason frequencies, filtered timeline IDs, and flattened review
-activity IDs into `Timeline.LifecycleStateSummaryMetricsPolicy`. `Timeline`
-retains five private entry points; list extraction, count-map sorting, and
-sorted uniqueness cross the boundary explicitly.
+Move lifecycle-state input row conversion and timeline-ID fallback into
+`Timeline.LifecycleStateInputPolicy`. `Timeline` retains two private entry
+points and keeps rank/group orchestration; activity input conversion, activity
+map conversion, and derived timeline identity cross explicitly.
 
 Why this slice:
-The extraction moved six clauses into a 40-line internal module and reduced
-Timeline from 6,270 to 6,269 lines. Five private entry points preserve summary
-row assembly while duplicate cardinality, ID fallback order, row filtering,
-flattened activity-ID collection, reason frequencies, and deterministic
-ordering now live together.
+The 6,269-line Timeline facade still owns two exclusive input-policy clauses
+below the lifecycle-state grouping coordinator. Moving them together isolates
+success/error row selection and direct/identity/derived timeline-ID fallback
+without widening the grouping or summary-row coordinator boundary.
 
-Completed proof:
-- Focused lifecycle-state handoff and multi-activity summary examples: 2 passed.
-- Full Timeline suite: 127 passed.
-- Timeline schema-contract suites: 36 passed.
-- Strict warnings-as-errors compile: 3,762 files.
-- Canonical AST equivalence: all six moved clauses after normalizing only
-  public/private heads, list/sort callbacks, and internal callback threading.
-- Format, whitespace, ownership, exactly-five-facade, unchanged Timeline public
-  definitions, and xref checks passed; Timeline is the only runtime caller.
-- Independent read-only review found no production-code findings.
+Planned proof:
+- Focused lifecycle-state handoff and multi-activity summary examples.
+- Full Timeline and Timeline schema-contract suites.
+- Strict warnings-as-errors compile.
+- Canonical AST equivalence for both moved clauses after normalizing only
+  public/private heads and the three conversion/identity callbacks.
+- Format, diff, whitespace, ownership, exactly-two-facade, unchanged Timeline
+  public-definition, and xref checks.
+- Independent read-only review before publication.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
@@ -42,7 +39,7 @@ regeneration should not be required.
 
 Last completed slice:
 Timeline lifecycle-state summary metrics policy extraction, selected in
-`aa4ce0bf` and implemented in `fb51c537`.
+`aa4ce0bf`, implemented in `fb51c537`, and handed off in `c3d64a67`.
 
 Next candidate:
 Continue remapping the 6,269-line Timeline facade after this slice, avoiding wide
