@@ -9,7 +9,7 @@ Current slice:
 Timeline Cadence-import policy extraction.
 
 Status:
-Selection recorded; implementation has not started.
+Implementation published in `26437371`; focused and broad proof is green.
 
 Selected boundary:
 Move accepted Cadence-import extraction, invalidity checks, review-context
@@ -20,34 +20,32 @@ action policy. Shared stable-ID validation and invalid-shape encoding are
 supplied as callbacks.
 
 Why this slice:
-The reduced Timeline facade is 7,705 lines. This approximately 80-line,
-13-clause cluster has one cohesive import-validation responsibility and no
-callers outside the five facade entry points. Moving the internal external-ID,
-adapter-context, and trust-boundary helpers keeps issue precedence together.
+The extraction moved 13 clauses into a 96-line internal module and reduced
+Timeline from 7,705 to 7,663 lines. The five private facade entry points
+preserve all row/context and operational-action callers.
 
-Planned proof:
-- Focused Timeline tests for malformed shape, missing trust boundary, malformed
-  external ID, and canonical provider-shaped imports.
-- Full Timeline and Timeline schema-contract suites.
-- Strict warnings-as-errors compile.
-- Canonical AST equivalence for all 13 moved clauses after normalizing only the
+Completed proof:
+- Focused Cadence-import examples: 4 passed.
+- Full Timeline suite: 127 passed.
+- Timeline schema-contract suites: 36 passed.
+- Strict warnings-as-errors compile: 3,723 files.
+- Canonical AST equivalence: all 13 moved clauses after normalizing only the
   five facade names and two callback boundaries.
-- Format, diff, whitespace, ownership, exactly-five-facade, unchanged Timeline
-  public-definition, and xref checks.
-- Independent read-only review before publication.
+- Format, whitespace, ownership, exactly-five-facade, unchanged Timeline public
+  definitions, and xref checks passed.
+- Independent read-only review found no findings.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline operational action policy extraction, selected in `eea68690`, boundary
-corrected in `4d37d6f3`, implemented in `be206e7e`, and handed off in
-`660d454a`.
+Timeline Cadence-import policy extraction, selected in `f0f49209` and
+implemented in `26437371`.
 
 Next candidate:
-Remap the reduced Timeline facade after this slice, emphasizing transition
-integrity gating and invalid-activity construction.
+Remap the reduced 7,663-line Timeline facade, emphasizing transition integrity
+gating and invalid-activity construction.
 
 Blocked:
 No.
