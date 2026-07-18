@@ -9,7 +9,7 @@ Current slice:
 Schema planning-reference property-dispatch extraction.
 
 Status:
-Slice selected; selection publication pending.
+Implementation published as `b4b57709`; handoff publication pending.
 
 Selected slice:
 Move focused JSON-property routing/context assembly for activity template,
@@ -42,13 +42,30 @@ registry/refresh/export tests pass; strict compile, full byte-clean schema
 regeneration, and independent review are clean.
 
 Verification gaps:
-- Focused baseline, strict compile, export proof, and independent review remain.
+- None for this slice. Full checked-in schema regeneration is byte-identical.
+- Independent review was clean. No API, schema, export, ordering,
+  error-behavior, ownership, or behavioral finding remains.
 
 Tests run:
-- None yet for this selected slice.
+- Baseline and post-change focused accepted-state/registry/refresh/export
+  subset: 36 passed with warnings as errors.
+- Strict forced compile: 3,667 files clean with warnings as errors.
+- Full schema export regenerated every checked-in schema and bundle with zero
+  diff.
+- Public `Schema` definitions match selection commit `52ec3b58`; xref reports
+  the dispatcher has only the `Schema` runtime caller.
+- Format, changed/new-file whitespace, and `git diff --check` passed.
+- Independent review confirmed exact direct property pairs, constants, accepted
+  state provider order/arities, and untouched adjacent routes, then reran all
+  proof clean.
 
 Behavior/schema changes:
 None intended.
+
+Outcome:
+Activity template, capability catalog, accepted planning state, and
+manifest-field reference routes now delegate to
+`PlanningReferencePropertyDispatch`. Implementation published as `b4b57709`.
 
 Last completed slice:
 Maneuver artifact schema dispatch published as implementation `ca7da9e7` and
