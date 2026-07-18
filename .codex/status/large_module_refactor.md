@@ -6,55 +6,47 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-CadenceImport candidate-diff manifest-row builder extraction.
+CadenceImport approval-requirement manifest-row builder extraction.
 
 Status:
-Implementation published as `46c32945`; handoff publication pending.
+Slice selected; selection publication pending.
 
 Selected slice:
-Move `candidate_diff_manifest_row/2`, its scoped-context registry/merge, gate
-policy, and semantic-reason normalization into internal
-`CadenceImport.CandidateDiffManifestRow.build/3`. Inject five shared facade
-helpers for changed fields/count, review action, adapter status, and compaction.
+Move `approval_requirement_manifest_row/2` and its now-exclusive candidate-diff
+enrichment helpers into internal
+`CadenceImport.ApprovalRequirementManifestRow.build/3`. Inject nine shared facade
+helpers for policy selection, normalization, review/adapter status, activity
+context, and compaction.
 
 Why this slice:
-`CadenceImport` was 5,295 lines. The builder had 66 base keys, one 46-field
-scoped-context merge, four exclusive helper responsibilities, five shared
-dependencies, and one facade caller. The facade is now 5,142 lines.
+`CadenceImport` is 5,142 lines. The builder has 33 base keys, an exclusive
+candidate-diff enrichment chain, nine shared dependencies, and one facade
+caller.
 
 Public facade to preserve:
-All `CadenceImport` APIs; all candidate-diff keys and value expressions; scoped
-context precedence, gate and semantic-reason policy, changed-field behavior,
+All `CadenceImport` APIs; all approval-requirement keys and fallback expressions;
+policy escalation, candidate-diff enrichment, activity-context normalization,
 action/defaults, compaction, deterministic output, and contracts.
 
 Likely files:
 - `lib/orbital_dynamics/cadence_import.ex`
-- `lib/orbital_dynamics/cadence_import/candidate_diff_manifest_row.ex`
+- `lib/orbital_dynamics/cadence_import/approval_requirement_manifest_row.ex`
 - `.codex/status/large_module_refactor.md`
 
 Definition of done:
-The internal builder owns the exact 66-key base projection, scoped registry and
-merge, gate policy, and semantic-reason normalization; the facade supplies five
-exact callbacks; focused tests, strict compile, equivalence/API checks, and
-independent review are clean.
+The internal builder owns the exact 33-key base projection and complete
+candidate-diff enrichment chain; the facade supplies nine exact callbacks;
+focused tests, strict compile, equivalence/API checks, and independent review
+are clean.
 
 Verification gaps:
-- None for this slice.
+- Focused baseline, implementation proof, strict compile, and review remain.
 
 Tests run:
-- Focused CadenceImport and schema contracts: 100/100.
-- Strict warnings-as-errors compile: 3,702 files.
-- Exact AST proof: 66/66 entries, 46/46 scoped registry, scoped/gate/semantic
-  helpers, and all public facade definitions match selection `3b02d0f4`.
-- Initial compile exposed missing callback threading in the moved scoped helper;
-  corrected before the successful focused and strict gates.
-- Format, diff, caller/xref, callback-surface, and whitespace checks clean.
-- Independent read-only review: no code findings or additional test gaps.
+- None yet.
 
 Behavior/schema changes:
-None. Scoped-over-base precedence, gate and semantic-reason policy,
-changed-field behavior, actions/defaults, compaction, deterministic output, and
-APIs are exact.
+None intended.
 
 Last completed slice:
 Candidate-diff row builder selected in `3b02d0f4` and published in `46c32945`:
