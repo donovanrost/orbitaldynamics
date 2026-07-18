@@ -6,32 +6,33 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline diff relationship-context policy extraction.
+Timeline diff protection-context policy extraction.
 
 Status:
-Implemented, verified, independently reviewed, committed, and pushed.
+Selection recorded; implementation has not started.
 
-Completed boundary:
-Moved dependency/integrity diff-context shaping and schedule-overlap context
-shaping into the 35-line `Timeline.DiffRelationshipContextPolicy`. The
-6,234-line `Timeline` retains two private entry points and the diff-row callbacks
-remain unchanged; no callback, constant, report coordinator, or schema boundary
-crosses the extraction.
+Selected boundary:
+Move all three diff protection-context clauses into
+`Timeline.DiffProtectionContextPolicy`. `Timeline` retains one private entry
+point and passes the existing protection-decision function explicitly; the
+protection coordinator and diff-row callback list remain unchanged.
 
-Published commits:
-Selected in `b3b9347f` and implemented in `56cc0522`.
+Why this slice:
+The 6,234-line Timeline facade still owns a complete three-clause context
+family for nil, empty, and populated protection rows. Moving the family together
+isolates exact callback timing and prefixed result projection without moving the
+protection decision coordinator or widening the diff-row boundary.
 
-Verification:
-- Strict warnings-as-errors compile passed across 3,771 files.
-- Three focused dependency-cycle, relationship/overlap change, and unchanged
-  diff examples passed.
-- Full Timeline suite passed with 127 examples; Timeline schema-contract suites
-  passed with 36 examples.
-- Canonical AST equivalence passed for both moved definitions after normalizing
-  only public/private heads and facade function names.
-- Format, diff, whitespace, ownership, exactly-two-facade, unchanged Timeline
-  public-definition, and xref checks passed.
-- Independent read-only review found no production-code issues.
+Planned proof:
+- Focused changed protected/executed, changed unprotected, and unchanged
+  public-facade diff examples.
+- Full Timeline and Timeline schema-contract suites.
+- Strict warnings-as-errors compile.
+- Canonical AST equivalence for all three moved clauses after normalizing only
+  public/private heads, facade names, and the explicit callback argument.
+- Format, diff, whitespace, ownership, exactly-one-facade, unchanged Timeline
+  public-definition, and xref checks.
+- Independent read-only review before publication.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
