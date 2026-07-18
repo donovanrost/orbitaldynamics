@@ -4834,39 +4834,17 @@ defmodule OrbitalDynamics.CadenceImport do
   end
 
   defp generic_review_manifest_row(row, rank) do
-    approval_status = Map.get(row, "approval_status", "operator_review_required")
-    cadence_import_status = Map.get(row, "cadence_import_status", "present")
-    has_cadence_import = cadence_import_present?(row, cadence_import_status)
-
-    %{
-      "id" => "cadence_import:#{row["review_type"] || "review"}:#{row["id"] || rank}",
-      "rank" => rank,
-      "import_action" => generic_review_import_action(row["review_type"]),
-      "import_status" => adapter_import_status(cadence_import_status, approval_status),
-      "import_side" => "source",
-      "source_review_row_id" => row["id"],
-      "source_review_type" => row["review_type"],
-      "source_review_action" => source_review_action(row),
-      "source" => row["source"],
-      "subject_id" => row["subject_id"],
-      "approval_status" => approval_status,
-      "required_operator_action" => row["required_operator_action"],
-      "cadence_import_status" => cadence_import_status,
-      "has_cadence_import" => has_cadence_import,
-      "source_review_row" => row,
-      "timeline_identity" => row["timeline_identity"],
-      "source_timeline_identity" => row["source_timeline_identity"],
-      "replacement_timeline_identity" => row["replacement_timeline_identity"],
-      "timeline_link" => row["timeline_link"],
-      "import_activity_context" =>
-        normalize_provider_result_artifact_fields(generic_review_activity_context(row))
-    }
-    |> Map.merge(
-      row
-      |> Map.take(OrbitalDynamics.CadenceImport.GenericReviewPassthroughFields.fields())
-      |> Map.delete("has_cadence_import")
+    OrbitalDynamics.CadenceImport.GenericReviewManifestRow.build(
+      row,
+      rank,
+      cadence_import_present?: &cadence_import_present?/2,
+      generic_review_import_action: &generic_review_import_action/1,
+      source_review_action: &source_review_action/1,
+      adapter_import_status: &adapter_import_status/2,
+      generic_review_activity_context: &generic_review_activity_context/1,
+      normalize_provider_result_artifact_fields: &normalize_provider_result_artifact_fields/1,
+      compact_map: &compact_map/1
     )
-    |> compact_map()
   end
 
   defp cadence_import_present?(%{"has_cadence_import" => value}, _status)
