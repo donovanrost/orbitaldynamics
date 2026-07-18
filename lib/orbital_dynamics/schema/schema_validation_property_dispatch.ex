@@ -1,7 +1,10 @@
 defmodule OrbitalDynamics.Schema.SchemaValidationPropertyDispatch do
   @moduledoc false
 
-  alias OrbitalDynamics.Schema.SchemaValidationReportJsonSchema
+  alias OrbitalDynamics.Schema.{
+    SchemaMigrationReportJsonSchema,
+    SchemaValidationReportJsonSchema
+  }
 
   def property(field, contract_name, contract, deps) do
     contracts = Keyword.fetch!(deps, :contracts)
@@ -25,6 +28,37 @@ defmodule OrbitalDynamics.Schema.SchemaValidationPropertyDispatch do
         skipped_artifact_schema: Keyword.fetch!(deps, :skipped_artifact_schema)
       ),
       deps
+    )
+  end
+
+  def migration(
+        field,
+        contract_name,
+        contract,
+        default_property,
+        {
+          schema_contract,
+          schema_version,
+          schema_migration_statuses,
+          schema_migration_row_statuses,
+          row_schema,
+          model_limits
+        }
+      ) do
+    focused_property(
+      field,
+      contract_name,
+      contract,
+      &SchemaMigrationReportJsonSchema.property_field?/1,
+      SchemaMigrationReportJsonSchema.property_fun_from_context(
+        schema_contract: schema_contract,
+        schema_version: schema_version,
+        schema_migration_statuses: schema_migration_statuses,
+        schema_migration_row_statuses: schema_migration_row_statuses,
+        row_schema: row_schema,
+        model_limits: model_limits
+      ),
+      default_property: default_property
     )
   end
 

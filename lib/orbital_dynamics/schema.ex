@@ -1696,23 +1696,23 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property(field, @schema_migration_report = contract_name, contract) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.SchemaValidationPropertyDispatch.migration(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.SchemaMigrationReportJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.SchemaMigrationReportJsonSchema.property_fun_from_context(
-        schema_contract: @schema_migration_report,
-        schema_version: 1,
-        schema_migration_statuses: fn ->
+      &default_json_schema_property/3,
+      {
+        @schema_migration_report,
+        1,
+        fn ->
           OrbitalDynamics.Validation.capabilities().schema_migration_statuses
         end,
-        schema_migration_row_statuses: fn ->
+        fn ->
           OrbitalDynamics.Validation.capabilities().schema_migration_row_statuses
         end,
-        row_schema: &schema_migration_row_json_schema/0,
-        model_limits: &OrbitalDynamics.Schema.SchemaMigrationContracts.model_limits/0
-      )
+        &schema_migration_row_json_schema/0,
+        &OrbitalDynamics.Schema.SchemaMigrationContracts.model_limits/0
+      }
     )
   end
 
