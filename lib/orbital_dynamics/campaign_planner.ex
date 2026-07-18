@@ -48,18 +48,12 @@ defmodule OrbitalDynamics.CampaignPlanner do
     BranchRefreshTargets,
     BuildArtifact,
     CadenceImportPressureBranches,
-    ContactAllocationReportPressureBranches,
-    ContactAllocationSummaryPressureBranches,
-    ContactAllocationSourceReports,
-    ContactContentionPressureBranches,
-    ContactContentionSourceReports,
-    ContactFilterPressureBranches,
-    ContactFilterSourceReports,
     ContactIntentPressureBranches,
     ContactIntentSourceReports,
     CollectionLatencyBranches,
     CollectionLatencySatisfaction,
     DerivedBranchCollection,
+    DerivedContactPressureBranches,
     DerivedDegradedSpacecraftBranches,
     DerivedGroundNetworkBranches,
     DerivedObjectivePressureBranches,
@@ -1210,19 +1204,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       )
       |> Kernel.++(derived_resource_filter_pressure_branches(prior_plan))
       |> Kernel.++(derived_mission_state_resource_filter_pressure_branches(mission_state))
-      |> Kernel.++(derived_contact_filter_pressure_branches(prior_plan))
-      |> Kernel.++(derived_mission_state_contact_filter_pressure_branches(mission_state))
-      |> Kernel.++(derived_mission_state_contact_contention_pressure_branches(mission_state))
-      |> Kernel.++(derived_contact_contention_resolution_pressure_branches(prior_plan))
-      |> Kernel.++(
-        derived_mission_state_contact_contention_resolution_pressure_branches(mission_state)
-      )
-      |> Kernel.++(derived_contact_allocation_pressure_branches(prior_plan))
-      |> Kernel.++(derived_contact_allocation_summary_pressure_branches(prior_plan))
-      |> Kernel.++(derived_mission_state_contact_allocation_pressure_branches(mission_state))
-      |> Kernel.++(
-        derived_mission_state_contact_allocation_summary_pressure_branches(mission_state)
-      )
+      |> Kernel.++(DerivedContactPressureBranches.build(prior_plan, mission_state))
       |> Kernel.++(derived_mission_state_candidate_diff_pressure_branches(mission_state))
       |> Kernel.++(derived_mission_state_candidate_rejection_pressure_branches(mission_state))
       |> Kernel.++(derived_mission_state_provider_counteroffer_pressure_branches(mission_state))
@@ -1387,60 +1369,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
     mission_state
     |> ResourceFilterSourceReports.reports()
     |> ResourceFilterPressureBranches.from_reports()
-  end
-
-  defp derived_contact_allocation_pressure_branches(prior_plan) do
-    prior_plan
-    |> ContactAllocationSourceReports.prior_plan_reports()
-    |> ContactAllocationReportPressureBranches.build()
-  end
-
-  defp derived_contact_allocation_summary_pressure_branches(prior_plan) do
-    prior_plan
-    |> ContactAllocationSourceReports.prior_plan_pressure_summaries()
-    |> ContactAllocationSummaryPressureBranches.build()
-  end
-
-  defp derived_mission_state_contact_allocation_pressure_branches(mission_state) do
-    mission_state
-    |> ContactAllocationSourceReports.reports()
-    |> ContactAllocationReportPressureBranches.build()
-  end
-
-  defp derived_mission_state_contact_allocation_summary_pressure_branches(mission_state) do
-    mission_state
-    |> ContactAllocationSourceReports.pressure_summaries()
-    |> ContactAllocationSummaryPressureBranches.build()
-  end
-
-  defp derived_contact_filter_pressure_branches(prior_plan) do
-    prior_plan
-    |> ContactFilterSourceReports.prior_plan_reports()
-    |> ContactFilterPressureBranches.from_reports()
-  end
-
-  defp derived_mission_state_contact_filter_pressure_branches(mission_state) do
-    mission_state
-    |> ContactFilterSourceReports.reports()
-    |> ContactFilterPressureBranches.from_reports()
-  end
-
-  defp derived_contact_contention_resolution_pressure_branches(prior_plan) do
-    prior_plan
-    |> ContactContentionSourceReports.prior_resolution_reports()
-    |> ContactContentionPressureBranches.resolutions_from_reports()
-  end
-
-  defp derived_mission_state_contact_contention_resolution_pressure_branches(mission_state) do
-    mission_state
-    |> ContactContentionSourceReports.resolution_reports()
-    |> ContactContentionPressureBranches.resolutions_from_reports()
-  end
-
-  defp derived_mission_state_contact_contention_pressure_branches(mission_state) do
-    mission_state
-    |> ContactContentionSourceReports.contention_reports()
-    |> ContactContentionPressureBranches.conflicts_from_reports()
   end
 
   defp derived_link_capacity_pressure_branches(prior_plan) do
