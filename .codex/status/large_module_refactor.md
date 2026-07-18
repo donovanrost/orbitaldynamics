@@ -9,7 +9,7 @@ Current slice:
 Campaign-planner objective-pressure derivation orchestration extraction.
 
 Status:
-Ready for implementation.
+Implementation published as `a4e917cc`; handoff publication pending.
 
 Selected slice:
 Move the private prior-plan/mission-state score-term, objective-satisfaction,
@@ -48,29 +48,53 @@ unchanged; focused objective/score tests pass to their live baseline; strict
 compile and independent review are clean.
 
 Verification gaps:
-- Focused objective/score baseline is pending.
 - The full planner directory has five known baseline failures; one readiness
-  score assertion is adjacent to this responsibility and must remain identical.
+  score assertion is adjacent to this responsibility. Its isolated post-change
+  result is identical: `risk_penalty` is `-100.0` while the stale assertion
+  expects `-200.0`, with the same stacktrace.
+- The full directory was not rerun because it was baseline-confirmed in the
+  immediately preceding slice; focused and broader objective coverage is green.
+- Independent review was clean. No API, artifact, determinism, ordering,
+  ownership, or behavioral finding remains.
 
 Tests run:
 - Live inventory: `CampaignPlanner` is 2,584 lines with 199 private functions.
 - Target cluster is 8 ordered pipeline calls and 8 private helpers.
+- Baseline objective/score family: 57 passed with warnings as errors.
+- Post-change objective/score family: 57 passed with warnings as errors.
+- Strict forced compile: 3,641 files clean with warnings as errors.
+- File-backed facade coverage: 7 passed with warnings as errors.
+- Strategy recommendation explanation coverage: 3 passed with warnings as
+  errors.
+- Isolated adjacent readiness baseline failure reproduced exactly.
+- Public `CampaignPlanner` function list matches selection commit `e117a9e3`.
+  Xref reports the new internal module has only the planner runtime caller.
+- Format check and `git diff --check` passed. No old objective/score derivation
+  helper remains in the facade.
+- `CampaignPlanner` shrank from 2,584 to 2,485 lines. The new internal objective
+  orchestration module is 111 lines.
+- Independent reviewer reran all focused, broader, isolated-baseline, compile,
+  xref, formatting, and whitespace checks; results matched primary proof.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-No objective-pressure extraction has started.
+The derived-branch pipeline now makes one ordered call to
+`DerivedObjectivePressureBranches.build/2`. The new internal module owns the
+exact prior-plan/mission-state source-report and row-to-branch sequence for
+score-term, objective-satisfaction, objective-tradeoff, and constraint
+pressure. Implementation published as `a4e917cc`.
 
 Last completed slice:
-Timeline-pressure derivation orchestration extraction published as `085b76d9`:
-`CampaignPlanner` shrank from 2,875 to 2,584 lines; focused, file-backed,
-compile, and full planner baseline-equivalence proof passed; independent review
-was clean. Handoff published as `b41c2aa6`.
+Objective-pressure derivation orchestration extraction published as
+`a4e917cc`: `CampaignPlanner` shrank from 2,584 to 2,485 lines; focused,
+file-backed, recommendation, compile, and adjacent baseline-equivalence proof
+passed; independent review was clean.
 
 Next candidate:
-Publish this selection note, run the focused objective/score baseline, then
-perform the mechanical ordered extraction.
+Publish this handoff, then refresh the remaining facade responsibilities and
+select the next bounded extraction.
 
 Blocked:
 No.
