@@ -4917,10 +4917,12 @@ defmodule OrbitalDynamics.Timeline do
     )
   end
 
-  defp transition_application_activity(nil, _opts), do: nil
-
   defp transition_application_activity(activity, opts) do
-    normalize_activity(activity, opts)
+    OrbitalDynamics.Timeline.TransitionApplicationActivityPolicy.transition_application_activity(
+      activity,
+      opts,
+      &normalize_activity/2
+    )
   end
 
   defp maybe_gate_single_transition_selected_activity(
@@ -5068,10 +5070,10 @@ defmodule OrbitalDynamics.Timeline do
   end
 
   defp maybe_preserve_transition_application_provenance(row, activity) do
-    case Map.get(activity, "transition_application_provenance") do
-      %{} = provenance -> Map.put(row, "transition_application_provenance", provenance)
-      _other -> row
-    end
+    OrbitalDynamics.Timeline.TransitionApplicationActivityPolicy.maybe_preserve_transition_application_provenance(
+      row,
+      activity
+    )
   end
 
   defp normalized_activity_groups(activities, opts) do
