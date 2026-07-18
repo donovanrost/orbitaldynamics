@@ -14,8 +14,9 @@ Selection recorded; implementation has not started.
 Selected boundary:
 Move deterministic timeline row IDs, integrity scope IDs, IDs grouped by issue
 type or row field, grouped ID sorting, row-list IDs, and diff-status IDs into
-`Timeline.IntegrityIdGroupingPolicy`. `Timeline` retains seven private entry
-points; list extraction and sorted uniqueness cross the boundary explicitly.
+`Timeline.IntegrityIdGroupingPolicy`. `Timeline` retains six private entry
+points; grouped ID sorting becomes policy-internal, while list extraction and
+sorted uniqueness cross the boundary explicitly.
 
 Why this slice:
 The 6,249-line Timeline facade still owns seven exclusive ID aggregation
@@ -31,7 +32,7 @@ Planned proof:
 - Strict warnings-as-errors compile.
 - Canonical AST equivalence for all seven moved clauses after normalizing only
   public/private heads, list/sort callbacks, and internal callback threading.
-- Format, diff, whitespace, ownership, exactly-seven-facade, unchanged Timeline
+- Format, diff, whitespace, ownership, exactly-six-facade, unchanged Timeline
   public-definition, and xref checks.
 - Independent read-only review before publication.
 
