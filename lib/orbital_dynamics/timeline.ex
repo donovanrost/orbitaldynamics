@@ -6176,77 +6176,69 @@ defmodule OrbitalDynamics.Timeline do
   defp unsupported_activity_status?(nil), do: false
   defp unsupported_activity_status?(status), do: status not in @activity_statuses
 
-  defp optional_activity_state_input(nil, _sequence), do: nil
-
-  defp optional_activity_state_input(%{"invalid_activity_input" => true} = activity, _sequence),
-    do: activity_to_map(activity)
-
-  defp optional_activity_state_input(%{invalid_activity_input: true} = activity, _sequence),
-    do: activity_to_map(activity)
-
   defp optional_activity_state_input(activity, sequence) do
-    case activity_input_to_map(activity, sequence) do
-      {:ok, activity} -> activity
-      {:error, row} -> row
-    end
+    OrbitalDynamics.Timeline.InvalidLifecycleStateInputPolicy.optional_input(
+      activity,
+      sequence,
+      &activity_to_map/1,
+      &activity_input_to_map/2
+    )
   end
 
-  defp invalid_activity_state_row?(%{"invalid_activity_input" => true}), do: true
-  defp invalid_activity_state_row?(%{invalid_activity_input: true}), do: true
-  defp invalid_activity_state_row?(_activity), do: false
+  defp invalid_activity_state_row?(activity) do
+    OrbitalDynamics.Timeline.InvalidLifecycleStateInputPolicy.invalid_row?(activity)
+  end
 
   defp invalid_activity_state?(planned_activity, realized_activity) do
-    planned_activity
-    |> invalid_activity_state_rows(realized_activity)
-    |> Enum.any?()
+    OrbitalDynamics.Timeline.InvalidLifecycleStateInputPolicy.invalid?(
+      planned_activity,
+      realized_activity
+    )
   end
 
   defp invalid_activity_state_count(planned_activity, realized_activity) do
-    planned_activity
-    |> invalid_activity_state_rows(realized_activity)
-    |> length()
-    |> case do
-      0 -> nil
-      count -> count
-    end
+    OrbitalDynamics.Timeline.InvalidLifecycleStateInputPolicy.invalid_count(
+      planned_activity,
+      realized_activity
+    )
   end
 
   defp invalid_activity_state_reasons(planned_activity, realized_activity) do
-    reasons =
-      planned_activity
-      |> invalid_activity_state_rows(realized_activity)
-      |> Enum.map(& &1["invalid_activity_input_reason"])
-      |> sorted_uniq()
-
-    if reasons == [], do: nil, else: reasons
+    OrbitalDynamics.Timeline.InvalidLifecycleStateInputPolicy.invalid_reasons(
+      planned_activity,
+      realized_activity,
+      &sorted_uniq/1
+    )
   end
 
-  defp invalid_activity_state_rows(planned_activity, realized_activity) do
-    [planned_activity, realized_activity]
-    |> Enum.filter(fn
-      %{"invalid_activity_input" => true} -> true
-      _activity -> false
-    end)
+  defp state_activity_id(activity) do
+    OrbitalDynamics.Timeline.InvalidLifecycleStateInputPolicy.state_activity_id(
+      activity,
+      &activity_id/1
+    )
   end
 
-  defp state_activity_id(%{"invalid_activity_input" => true, "activity_id" => activity_id}),
-    do: activity_id
-
-  defp state_activity_id(activity), do: activity_id(activity)
-
-  defp state_timeline_id(%{"invalid_activity_input" => true, "timeline_id" => timeline_id}),
-    do: timeline_id
-
-  defp state_timeline_id(activity), do: activity_timeline_id(activity)
+  defp state_timeline_id(activity) do
+    OrbitalDynamics.Timeline.InvalidLifecycleStateInputPolicy.state_timeline_id(
+      activity,
+      &activity_timeline_id/1
+    )
+  end
 
   defp status_state_activity_id(planned_activity, realized_activity) do
-    (planned_activity && state_activity_id(planned_activity)) ||
-      (realized_activity && state_activity_id(realized_activity))
+    OrbitalDynamics.Timeline.InvalidLifecycleStateInputPolicy.status_state_activity_id(
+      planned_activity,
+      realized_activity,
+      &activity_id/1
+    )
   end
 
   defp status_state_timeline_id(planned_activity, realized_activity) do
-    (planned_activity && state_timeline_id(planned_activity)) ||
-      (realized_activity && state_timeline_id(realized_activity))
+    OrbitalDynamics.Timeline.InvalidLifecycleStateInputPolicy.status_state_timeline_id(
+      planned_activity,
+      realized_activity,
+      &activity_timeline_id/1
+    )
   end
 
   defp status_state_transition_decision(status_transition) do
