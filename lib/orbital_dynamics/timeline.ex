@@ -3652,29 +3652,16 @@ defmodule OrbitalDynamics.Timeline do
     )
   end
 
-  defp numeric_triplet([x, y, z]) do
-    triplet = Enum.map([x, y, z], &numeric_value/1)
-
-    if Enum.all?(triplet, &is_number/1), do: triplet, else: nil
+  defp numeric_triplet(value) do
+    OrbitalDynamics.Timeline.ActivityNumericValuePolicy.numeric_triplet(value)
   end
 
-  defp numeric_triplet(_value), do: nil
-
-  defp numeric_value(value) when is_number(value), do: value
-
-  defp numeric_value(value) when is_binary(value) do
-    case Float.parse(String.trim(value)) do
-      {number, ""} -> number
-      _other -> nil
-    end
+  defp numeric_value(value) do
+    OrbitalDynamics.Timeline.ActivityNumericValuePolicy.numeric_value(value)
   end
 
-  defp numeric_value(_value), do: nil
-
-  defp vector_norm(nil), do: nil
-
-  defp vector_norm([x, y, z]) do
-    :math.sqrt(x * x + y * y + z * z)
+  defp vector_norm(value) do
+    OrbitalDynamics.Timeline.ActivityNumericValuePolicy.vector_norm(value)
   end
 
   defp station_calendar_context(activity) do
