@@ -9,7 +9,7 @@ Current slice:
 Timeline artifact-value encoding policy extraction.
 
 Status:
-Selection recorded; implementation has not started.
+Implementation published in `0a12b3ee`; focused and broad proof is green.
 
 Selected boundary:
 Move recursive map/list key stringification, scalar artifact-value encoding,
@@ -18,35 +18,34 @@ and nil-only map compaction into `Timeline.ArtifactValueEncodingPolicy`.
 shared vocabulary arguments.
 
 Why this slice:
-The reduced Timeline facade is 6,615 lines. These eight exclusive clauses own
-the common output-value semantics used across report, context, transition, and
-summary assembly: recursive key/value normalization, boolean and nil
-preservation, atom encoding, scalar pass-through, and removal of nil map
-values. The operational-kind boundary was rejected before implementation
-because its command-direction vocabulary is also owned by Timeline row
-semantics and public row classification.
+The extraction moved eight clauses into a 21-line internal module and reduced
+Timeline from 6,615 to 6,609 lines. Three private entry points preserve report,
+context, transition, and summary callers while moving recursive key/value
+normalization, boolean and nil preservation, atom encoding, scalar
+pass-through, and nil-only map compaction out of the facade.
 
-Planned proof:
-- Focused nested atom-key/value, boolean, nil, list, scalar, and compact-map
-  examples through operational rows, activity contexts, and transition state.
-- Full Timeline and Timeline schema-contract suites.
-- Strict warnings-as-errors compile.
-- Canonical AST equivalence for all eight moved clauses after normalizing only
-  the three facade names.
-- Format, diff, whitespace, ownership, exactly-three-facade, unchanged Timeline
-  public-definition, and xref checks.
-- Independent read-only review before publication.
+Completed proof:
+- Focused operational-row, activity-context, transition, and state examples: 5
+  passed.
+- Full Timeline suite: 127 passed.
+- Timeline schema-contract suites: 36 passed.
+- Strict warnings-as-errors compile: 3,744 files.
+- Canonical AST equivalence: all eight moved clauses after normalizing only the
+  three facade names.
+- Format, whitespace, ownership, exactly-three-facade, unchanged Timeline public
+  definitions, and xref checks passed; Timeline is the only runtime caller.
+- Independent read-only review found no production-code findings.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline activity-field value policy extraction, selected in `d7da8e84`,
-implemented in `37b9114f`, and handed off in `e3890899`.
+Timeline artifact-value encoding policy extraction, finalized in selection
+correction `82527298` and implemented in `0a12b3ee`.
 
 Next candidate:
-Remap the reduced Timeline facade after this slice; lifecycle-category and
+Remap the reduced 6,609-line Timeline facade; lifecycle-category and
 operational-kind extraction both require explicit compile-time vocabulary
 ownership decisions.
 
