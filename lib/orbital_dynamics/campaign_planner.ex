@@ -55,6 +55,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
     DerivedDegradedSpacecraftBranches,
     DerivedGroundNetworkBranches,
     DerivedObjectivePressureBranches,
+    DerivedOperationalReviewPressureBranches,
     DerivedReviewReadinessPressureBranches,
     DerivedResourcePressureBranches,
     DerivedTimelinePressureBranches,
@@ -74,10 +75,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
     OperationalFeedbackBranches,
     OperationalFeedbackNormalization,
     OperationalFeedbackProvenance,
-    OperationalTimelinePressureEvents,
-    OperationalTimelineSourceRows,
-    OperatorReviewPressureBranches,
-    OperatorReviewSourceReports,
     PlanBranch,
     PlanMetadata,
     PriorityCommitmentSatisfaction,
@@ -95,7 +92,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
     RepairSourceReports,
     RepairTimelineSummary,
     ReplanRequest,
-    ReviewSourceReports,
     ScalarValues,
     ScoreReports,
     StationSourceReports,
@@ -1178,10 +1174,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
       |> Kernel.++(DerivedObjectivePressureBranches.build(prior_plan, mission_state))
       |> Kernel.++(DerivedTimelinePressureBranches.build(prior_plan, mission_state, policy))
       |> Kernel.++(DerivedActivityPressureBranches.build(prior_plan, mission_state))
-      |> Kernel.++(derived_operational_timeline_pressure_branches(prior_plan))
-      |> Kernel.++(derived_mission_state_operational_timeline_pressure_branches(mission_state))
-      |> Kernel.++(derived_operator_review_pressure_branches(prior_plan, policy))
-      |> Kernel.++(derived_mission_state_operator_review_pressure_branches(mission_state, policy))
+      |> Kernel.++(
+        DerivedOperationalReviewPressureBranches.build(prior_plan, mission_state, policy)
+      )
       |> Kernel.++(CadenceImportPressureBranches.from_prior_plan(prior_plan, policy))
       |> Kernel.++(CadenceImportPressureBranches.from_mission_state(mission_state, policy))
       |> Kernel.++(derived_fuel_preservation_branches(mission_state, policy))
@@ -1288,50 +1283,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
     |> LinkCapacitySourceReports.reports()
     |> LinkCapacityPressureBranches.from_reports()
     |> LinkCapacityPressureBranches.disambiguate()
-  end
-
-  defp derived_operator_review_pressure_branches(prior_plan, policy) do
-    prior_plan
-    |> OperatorReviewSourceReports.prior_plan_operator_review_packages()
-    |> OperatorReviewSourceReports.pressure_rows_with_source()
-    |> Enum.flat_map(fn {row, source_prefix, index} ->
-      OperatorReviewPressureBranches.from_row(row, index, policy, source_prefix)
-    end)
-  end
-
-  defp derived_mission_state_operator_review_pressure_branches(mission_state, policy) do
-    mission_state
-    |> OperatorReviewSourceReports.operator_review_packages()
-    |> OperatorReviewSourceReports.pressure_rows_with_source()
-    |> Enum.flat_map(fn {row, source_prefix, index} ->
-      OperatorReviewPressureBranches.from_row(row, index, policy, source_prefix)
-    end)
-  end
-
-  defp derived_operational_timeline_pressure_branches(prior_plan) do
-    prior_plan
-    |> ReviewSourceReports.prior_plan_operational_timeline_reports()
-    |> OperationalTimelineSourceRows.pressure_rows_with_source()
-    |> Enum.flat_map(fn {row, source_path, index} ->
-      OperationalTimelinePressureEvents.pressure_branch(
-        row,
-        source_path,
-        index
-      )
-    end)
-  end
-
-  defp derived_mission_state_operational_timeline_pressure_branches(mission_state) do
-    mission_state
-    |> ReviewSourceReports.operational_timeline_reports()
-    |> OperationalTimelineSourceRows.pressure_rows_with_source()
-    |> Enum.flat_map(fn {row, source_path, index} ->
-      OperationalTimelinePressureEvents.pressure_branch(
-        row,
-        source_path,
-        index
-      )
-    end)
   end
 
   defp derived_urgent_target_branches(mission_state, prior_plan, policy) do
