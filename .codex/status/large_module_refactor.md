@@ -6,48 +6,46 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline publication scalar-input policy extraction.
+Timeline deterministic count-summary policy extraction.
 
 Status:
-Implementation published in `e5df6b2a`; focused and broad proof is green.
+Selection recorded; implementation has not started.
 
 Selected boundary:
-Move source-artifact type precedence/defaulting and publication-sequence
-parsing/validation into `Timeline.PublicationScalarInputPolicy`. `Timeline`
-retains two private entry points; artifact-value encoding crosses the boundary
-explicitly.
+Move duplicate-group/activity totals, generic field counts, changed-field
+counts, transition type/category counts, and deterministic count-map sorting
+into `Timeline.CountSummaryPolicy`. `Timeline` retains seven private entry
+points; changed-field list extraction crosses the boundary explicitly.
 
 Why this slice:
-The extraction moved both clauses into a 33-line internal module and reduced
-Timeline from 6,310 to 6,291 lines. Two private entry points preserve the
-publication-summary coordinator while artifact-type precedence/defaulting and
-sequence parsing/validation now live together.
+The 6,291-line Timeline facade still owns seven pure summary clauses shared by
+operational, diff, lifecycle, transition-application, protection, and integrity
+reports. Moving them together isolates nil filtering, frequency calculation,
+duplicate cardinality, transition path selection, and stable map ordering
+without extracting any report coordinator.
 
-Completed proof:
-- Focused publication summary example: 1 passed, covering source-artifact type
-  selection, string/integer publication sequence handling, facade parity, and
-  schema validation.
-- Full Timeline suite: 127 passed.
-- Timeline schema-contract suites: 36 passed.
-- Strict warnings-as-errors compile: 3,757 files.
-- Canonical AST equivalence: both moved clauses after normalizing only
-  public/private heads and the artifact encoder callback.
-- Format, whitespace, ownership, exactly-two-facade, unchanged Timeline public
-  definitions, and xref checks passed; Timeline is the only runtime caller.
-- Independent read-only review found no production-code findings.
+Planned proof:
+- Focused operational count, duplicate identity, transition application
+  summary, and timeline-diff changed/transition count examples.
+- Full Timeline and Timeline schema-contract suites.
+- Strict warnings-as-errors compile.
+- Canonical AST equivalence for all seven moved clauses after normalizing only
+  public/private heads and the changed-field list callback.
+- Format, diff, whitespace, ownership, exactly-seven-facade, unchanged Timeline
+  public-definition, and xref checks.
+- Independent read-only review before publication.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline publication scalar-input policy extraction, selected in `93af9e7a` and
-implemented in `e5df6b2a`.
+Timeline publication scalar-input policy extraction, selected in `93af9e7a`,
+implemented in `e5df6b2a`, and handed off in `3f39dd86`.
 
 Next candidate:
-Remap the 6,291-line Timeline facade beyond the publication helper cluster after
-this slice, avoiding the wide publication-summary and activity-context map
-coordinator callback surfaces.
+Continue remapping the reduced Timeline facade after this slice, avoiding wide
+report and activity-context map coordinator callback surfaces.
 
 Blocked:
 No.
