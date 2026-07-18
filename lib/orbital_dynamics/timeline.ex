@@ -4763,22 +4763,28 @@ defmodule OrbitalDynamics.Timeline do
   end
 
   defp protection_decision_ids(rows, decision, field) do
-    rows
-    |> Enum.filter(&(&1["protection_decision"] == decision))
-    |> Enum.map(& &1[field])
-    |> sorted_uniq()
+    OrbitalDynamics.Timeline.ProtectionSummaryPolicy.protection_decision_ids(
+      rows,
+      decision,
+      field,
+      &sorted_uniq/1
+    )
   end
 
   defp protection_category_activity_ids(rows) do
-    protection_id_sets_by_field(rows, "protection_category", "activity_id")
+    OrbitalDynamics.Timeline.ProtectionSummaryPolicy.protection_category_activity_ids(
+      rows,
+      &sorted_uniq/1
+    )
   end
 
   defp protection_id_sets_by_field(rows, group_field, id_field) do
-    rows
-    |> Enum.reject(&(is_nil(&1[group_field]) or is_nil(&1[id_field])))
-    |> Enum.group_by(& &1[group_field], & &1[id_field])
-    |> Enum.sort_by(fn {group, _ids} -> group end)
-    |> Map.new(fn {group, ids} -> {group, sorted_uniq(ids)} end)
+    OrbitalDynamics.Timeline.ProtectionSummaryPolicy.protection_id_sets_by_field(
+      rows,
+      group_field,
+      id_field,
+      &sorted_uniq/1
+    )
   end
 
   @doc """
@@ -4904,13 +4910,12 @@ defmodule OrbitalDynamics.Timeline do
     |> compact_map()
   end
 
-  defp preservation_status_from_counts(_preserve_count, review_count) when review_count > 0,
-    do: "review_required"
-
-  defp preservation_status_from_counts(preserve_count, _review_count) when preserve_count > 0,
-    do: "preservation_required"
-
-  defp preservation_status_from_counts(_preserve_count, _review_count), do: "clear"
+  defp preservation_status_from_counts(preserve_count, review_count) do
+    OrbitalDynamics.Timeline.ProtectionSummaryPolicy.preservation_status_from_counts(
+      preserve_count,
+      review_count
+    )
+  end
 
   defp transition_application_activity(nil, _opts), do: nil
 
