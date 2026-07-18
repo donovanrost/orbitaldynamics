@@ -6,34 +6,34 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline activity operational-kind policy extraction.
+Timeline artifact-value encoding policy extraction.
 
 Status:
 Selection recorded; implementation has not started.
 
 Selected boundary:
-Move activity-type, contact-direction, and ground-station operational-kind
-classification into `Timeline.ActivityOperationalKindPolicy`. `Timeline`
-retains one private entry point. The boundary has no callbacks or shared
-vocabulary arguments.
+Move recursive map/list key stringification, scalar artifact-value encoding,
+and nil-only map compaction into `Timeline.ArtifactValueEncodingPolicy`.
+`Timeline` retains three private entry points. The boundary has no callbacks or
+shared vocabulary arguments.
 
 Why this slice:
-The reduced Timeline facade is 6,615 lines. These 11 exclusive clauses own the
-precedence that maps explicit activity types, contact directions, and
-ground-station evidence into the operational-kind vocabulary used by report
-rows and import/action policy. The previously selected lifecycle-category
-boundary was rejected before implementation because its `in` guards require
-compile-time vocabulary ownership and cannot preserve clause structure with
-runtime vocabulary arguments.
+The reduced Timeline facade is 6,615 lines. These eight exclusive clauses own
+the common output-value semantics used across report, context, transition, and
+summary assembly: recursive key/value normalization, boolean and nil
+preservation, atom encoding, scalar pass-through, and removal of nil map
+values. The operational-kind boundary was rejected before implementation
+because its command-direction vocabulary is also owned by Timeline row
+semantics and public row classification.
 
 Planned proof:
-- Focused command, observation, maneuver, attitude, coast, contact-direction,
-  ground-station fallback, and generic activity examples.
+- Focused nested atom-key/value, boolean, nil, list, scalar, and compact-map
+  examples through operational rows, activity contexts, and transition state.
 - Full Timeline and Timeline schema-contract suites.
 - Strict warnings-as-errors compile.
-- Canonical AST equivalence for all 11 moved clauses after normalizing only the
-  single facade name.
-- Format, diff, whitespace, ownership, exactly-one-facade, unchanged Timeline
+- Canonical AST equivalence for all eight moved clauses after normalizing only
+  the three facade names.
+- Format, diff, whitespace, ownership, exactly-three-facade, unchanged Timeline
   public-definition, and xref checks.
 - Independent read-only review before publication.
 
@@ -46,8 +46,9 @@ Timeline activity-field value policy extraction, selected in `d7da8e84`,
 implemented in `37b9114f`, and handed off in `e3890899`.
 
 Next candidate:
-Remap the reduced Timeline facade after this slice; lifecycle-category
-extraction requires an explicit compile-time vocabulary ownership decision.
+Remap the reduced Timeline facade after this slice; lifecycle-category and
+operational-kind extraction both require explicit compile-time vocabulary
+ownership decisions.
 
 Blocked:
 No.
