@@ -6,52 +6,54 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-CadenceImport resource-projection manifest-row builder extraction.
+CadenceImport contact-contention manifest-row builder extraction.
 
 Status:
-Implementation `6f621cde` published; verified handoff publication pending.
+Slice selected; selection publication pending.
 
-Completed slice:
-Moved the resource-projection and flow-summary manifest row projection into
-internal `CadenceImport.ResourceProjectionManifestRow.build/3`. The facade
-injects only three shared review/status/compaction callbacks.
+Selected slice:
+Move `contact_contention_manifest_row/2` and its exclusive
+`contact_contention_import_action/1` clauses into internal
+`CadenceImport.ContactContentionManifestRow.build/3`. Inject the five shared
+facade helpers for review action, adapter status, provider-result values,
+station-calendar context fields, and compact-map cleanup.
 
 Why this slice:
-`CadenceImport` was 6,327 lines. The builder was a 125-line transformation with
-108 projected keys. `CadenceImport` is now 6,211 lines.
+`CadenceImport` is 6,211 lines. The builder is a 125-line transformation with
+107 projected keys, one station-context merge, two provider-result conversions,
+and one facade caller.
 
-Published commits:
-- Selection: `7f3df537`
-- Implementation: `6f621cde`
-- Handoff: pending
+Public facade to preserve:
+All `CadenceImport` APIs; all contact-contention keys and value expressions;
+action policy, station-context merge precedence, provider-result normalization,
+approval/import defaults, compaction, deterministic output, and contracts.
 
-Preserved facade and behavior:
-All `CadenceImport` APIs; all 108 resource-projection keys and value
-expressions; approval defaults, review action, constant present adapter status,
-compaction, deterministic output, and artifact contracts.
+Likely files:
+- `lib/orbital_dynamics/cadence_import.ex`
+- `lib/orbital_dynamics/cadence_import/contact_contention_manifest_row.ex`
+- `.codex/status/large_module_refactor.md`
 
-Verification:
-- Focused Cadence-import plus schema-contract tests: 100/100.
-- Strict warnings-as-errors compile: 3,680 files.
-- Whole-builder AST comparison after callback normalization: exact.
-- Projection comparison: 108/108 keys and expressions, zero mismatches.
-- Three shared callbacks: exact identities and arities.
-- Resource-projection dispatch and public `CadenceImport` definitions:
-  unchanged.
-- Format, whitespace, diff, xref caller, and independent read-only review:
-  clean.
-- Schema export not rerun: no schema-generation code or schema artifacts
-  changed.
+Definition of done:
+The internal builder owns the exact 107-key projection, station-context merge,
+and action clauses; the facade supplies five exact callbacks; focused tests,
+strict compile, equivalence/API checks, and independent review are clean.
 
 Verification gaps:
-None for this slice.
+- Focused baseline, implementation proof, strict compile, and review remain.
+
+Tests run:
+- None yet.
 
 Behavior/schema changes:
-None.
+None intended.
+
+Last completed slice:
+Resource-projection row builder published as implementation `6f621cde` and
+handoff `62136117`: focused 100/100, strict 3,680-file compile, exact
+108-entry AST comparison, and independent review passed.
 
 Next candidate:
-Remap the reduced `CadenceImport` module and select the next low-coupling
-source-specific manifest-row builder.
+Remap the reduced `CadenceImport` module for the next low-coupling builder.
 
 Blocked:
 No.
