@@ -5590,8 +5590,7 @@ defmodule OrbitalDynamics.Timeline do
   end
 
   defp activity_schedule_conflict_status(activity) do
-    activity["schedule_conflict_status"] ||
-      get_in(activity, ["metadata", "schedule_conflict_status"])
+    OrbitalDynamics.Timeline.ScheduleConflictPolicy.status(activity)
   end
 
   defp approved_timeline_row?(row) do
