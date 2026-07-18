@@ -9,38 +9,36 @@ Current slice:
 Timeline schedule-conflict lookup policy extraction.
 
 Status:
-Selection recorded; implementation has not started.
+Implemented, verified, independently reviewed, committed, and pushed.
 
-Selected boundary:
-Move activity schedule-conflict lookup into
-`Timeline.ScheduleConflictPolicy`. `Timeline` retains one private entry point;
-operational row assembly and operator-action policy callback wiring remain
+Completed boundary:
+Moved activity schedule-conflict lookup into the 8-line
+`Timeline.ScheduleConflictPolicy`. The 6,251-line `Timeline` retains one private
+entry point; operational row assembly and operator-action callback wiring remain
 unchanged.
 
-Why this slice:
-The 6,252-line Timeline facade still owns one exclusive fallback lookup used by
-both operational row evidence and action classification. Moving it isolates
-top-level-over-metadata precedence without moving either coordinator or
-normalizing the provider value.
+Published commits:
+Selected in `9d18d04a` and implemented in `cecc1013`.
 
-Planned proof:
-- Focused operational activity context, conflict operator-action, and general
-  operational report examples.
-- Full Timeline and Timeline schema-contract suites.
-- Strict warnings-as-errors compile.
-- Canonical AST equivalence for the moved definition after normalizing only the
-  public/private head and facade name.
+Verification:
+- Strict warnings-as-errors compile passed across 3,777 files.
+- Three focused operational context, conflict action, and general operational
+  report examples passed.
+- Full Timeline suite passed with 127 examples; Timeline schema-contract suites
+  passed with 36 examples.
+- Canonical AST equivalence passed after normalizing only the public/private
+  head and facade name.
 - Format, diff, whitespace, ownership, exactly-one-facade, unchanged Timeline
-  public-definition, and xref checks.
-- Independent read-only review before publication.
+  public-definition, and xref checks passed.
+- Independent read-only review found no production-code issues.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline activity-ID encoding policy extraction, selected in `70ce1d8e` and
-implemented in `24d6193c`.
+Timeline schedule-conflict lookup policy extraction, selected in `9d18d04a` and
+implemented in `cecc1013`.
 
 Next candidate:
 Continue remapping the reduced Timeline facade after this slice, avoiding wide
