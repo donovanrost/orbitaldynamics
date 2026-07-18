@@ -1,6 +1,10 @@
 defmodule OrbitalDynamics.Timeline.ActivityInputPolicy do
   @moduledoc false
 
+  def invalid_rows(rows) do
+    Enum.filter(rows, &(&1["invalid_activity_input"] == true))
+  end
+
   def issue(
         activity,
         activity_statuses,

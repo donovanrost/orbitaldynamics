@@ -2552,7 +2552,7 @@ defmodule OrbitalDynamics.Timeline do
   end
 
   defp invalid_activity_input_rows(rows) do
-    Enum.filter(rows, &(&1["invalid_activity_input"] == true))
+    OrbitalDynamics.Timeline.ActivityInputPolicy.invalid_rows(rows)
   end
 
   defp invalid_activity_input_row(source_activity, sequence, reason) do
