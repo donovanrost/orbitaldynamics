@@ -6,33 +6,32 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline lifecycle-vocabulary policy extraction.
+Timeline lifecycle-transition assembly policy extraction.
 
 Status:
 Selection recorded; implementation has not started.
 
 Selected boundary:
-Move status/approval lifecycle category classification, supported-value checks,
-and repairable-status classification into `Timeline.LifecycleVocabularyPolicy`.
-`Timeline` retains private entry points for status category, approval category,
-unsupported status/approval checks, and repairable status. All vocabulary lists
-cross the boundary explicitly.
+Move lifecycle transition object construction and field-specific semantic
+assembly into `Timeline.LifecycleTransitionPolicy`. `Timeline` retains the
+single private `lifecycle_transition/3` entry point. Status/approval category,
+status/approval review, and compact-map helpers cross the boundary as callbacks.
 
 Why this slice:
-The reduced Timeline facade is 6,791 lines. These 18 clauses own the shared
-lifecycle vocabulary consumed by reports, transition assembly, direct helpers,
-and review policy callbacks. The boundary consolidates classification without
-moving any artifact assembly.
+The reduced Timeline facade is 6,791 lines. These seven exclusive clauses own
+added, removed, changed, and unchanged transition assembly plus field-specific
+semantic merging. The initially mapped lifecycle-vocabulary candidate was
+rejected because its module-attribute guards cannot cross a module boundary
+without a guard-to-conditional semantic rewrite.
 
 Planned proof:
-- Focused Timeline transition/state examples covering executed, terminal,
-  blocked, repairable, planned, protected, review-required, rejected,
-  unsupported, and nil values.
+- Focused Timeline transition/state examples covering unchanged, added,
+  removed, changed, status, approval, unsupported, and review-required values.
 - Full Timeline and Timeline schema-contract suites.
 - Strict warnings-as-errors compile.
-- Canonical AST equivalence for all 18 moved clauses after normalizing only the
-  five facade names and constant arguments.
-- Format, diff, whitespace, ownership, exactly-five-facade, unchanged Timeline
+- Canonical AST equivalence for all seven moved clauses after normalizing only
+  the single facade name and callback boundaries.
+- Format, diff, whitespace, ownership, exactly-one-facade, unchanged Timeline
   public-definition, and xref checks.
 - Independent read-only review before publication.
 
