@@ -9,7 +9,7 @@ Current slice:
 Timeline transition-application activity policy extraction.
 
 Status:
-Selection recorded; implementation has not started.
+Implementation published in `2c96d882`; focused and broad proof is green.
 
 Selected boundary:
 Move nil/non-nil transition-application activity normalization and preservation
@@ -18,32 +18,32 @@ of existing transition-application provenance into
 entry points; activity normalization crosses the boundary explicitly.
 
 Why this slice:
-The 6,268-line Timeline facade still owns three exclusive clauses that govern
-transition-application activity normalization and provenance carry-forward.
-Moving them together isolates nil behavior, normalization dispatch, exact
-provenance-map matching, and no-op fallback without extracting transition
-selection or integrity coordinators.
+The extraction moved three clauses into a 16-line internal module. Timeline
+retains two private entry points and is now 6,270 lines; the two-line facade
+increase makes activity normalization explicit. Nil behavior, normalization
+dispatch, provenance-map matching, and no-op fallback now live together.
 
-Planned proof:
-- Focused transition application and helper-provenance examples.
-- Full Timeline and Timeline schema-contract suites.
-- Strict warnings-as-errors compile.
-- Canonical AST equivalence for all three moved clauses after normalizing only
+Completed proof:
+- Focused transition application and helper-provenance examples: 2 passed.
+- Full Timeline suite: 127 passed.
+- Timeline schema-contract suites: 36 passed.
+- Strict warnings-as-errors compile: 3,761 files.
+- Canonical AST equivalence: all three moved clauses after normalizing only
   public/private heads and the activity normalization callback.
-- Format, diff, whitespace, ownership, exactly-two-facade, unchanged Timeline
-  public-definition, and xref checks.
-- Independent read-only review before publication.
+- Format, whitespace, ownership, exactly-two-facade, unchanged Timeline public
+  definitions, and xref checks passed; Timeline is the only runtime caller.
+- Independent read-only review found no production-code findings.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline protection-summary policy extraction, selected in `3d551921`,
-implemented in `ac9421ae`, and handed off in `a5af2b2e`.
+Timeline transition-application activity policy extraction, selected in
+`fed4f449` and implemented in `2c96d882`.
 
 Next candidate:
-Continue remapping the reduced Timeline facade after this slice, avoiding wide
+Continue remapping the 6,270-line Timeline facade after this slice, avoiding wide
 report and activity-context map coordinator callback surfaces.
 
 Blocked:
