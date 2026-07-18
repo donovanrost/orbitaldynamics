@@ -9,7 +9,7 @@ Current slice:
 Timeline operational action policy extraction.
 
 Status:
-Selection recorded; implementation has not started.
+Implementation published in `be206e7e`; focused and broad proof is green.
 
 Selected boundary:
 Move Cadence-import status classification, required operator-action precedence,
@@ -21,34 +21,32 @@ inference remains Timeline-owned because its command-direction clause uses the
 shared compile-time guard list also surfaced by capabilities.
 
 Why this slice:
-The reduced Timeline facade is 7,752 lines. This approximately 65-line,
-three-clause cluster has one cohesive operational-action responsibility and is
-exclusive to normalized row construction. The corrected boundary preserves the
-compile-time operational-kind guard without duplicating its shared constant.
+The extraction moved three clauses into an 86-line internal module and reduced
+Timeline from 7,752 to 7,705 lines. The corrected boundary preserves all 11
+Timeline-owned operational-kind clauses and their compile-time direction guard.
 
-Planned proof:
-- Focused Timeline tests for command authority, kind/import classification,
-  malformed Cadence import, conflict/terminal precedence, provider failure, and
-  rejected/blocked precedence.
-- Full Timeline and Timeline schema-contract suites.
-- Strict warnings-as-errors compile.
-- Canonical AST equivalence for all three moved clauses after normalizing only
-  the two facade names and selection-data/callback boundaries.
-- Format, diff, whitespace, ownership, exactly-two-facade, unchanged Timeline
-  public-definition, and xref checks.
-- Independent read-only review before publication.
+Completed proof:
+- Focused operational-action examples: 6 passed.
+- Full Timeline suite: 127 passed.
+- Timeline schema-contract suites: 36 passed.
+- Strict warnings-as-errors compile: 3,722 files.
+- Canonical AST equivalence: all three moved clauses after normalizing only the
+  two facade names and selection-data/callback boundaries.
+- Format, whitespace, ownership, exactly-two-facade, unchanged Timeline public
+  definitions, unchanged operational-kind clauses, and xref checks passed.
+- Independent read-only review found no findings.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline single-transition decision policy extraction, selected in `e398ffc1`,
-implemented in `11b72e46`, and handed off in `0407e6f0`.
+Timeline operational action policy extraction, selected in `eea68690`, boundary
+corrected in `4d37d6f3`, and implemented in `be206e7e`.
 
 Next candidate:
-Remap the reduced Timeline facade after this slice, emphasizing transition
-integrity gating and Cadence-import validation.
+Remap the reduced 7,705-line Timeline facade, emphasizing transition integrity
+gating and Cadence-import validation.
 
 Blocked:
 No.
