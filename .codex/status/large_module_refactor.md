@@ -6,42 +6,48 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-CadenceImport operational-feedback manifest-context extraction.
+Timeline throughput-context extraction.
 
 Status:
-Implementation published in `ea240845`; handoff publication pending.
+Selection recorded; implementation has not started.
 
-Completed boundary:
-`CadenceImport.OperationalFeedbackManifestContext.build/2` now owns the exact
-7-key projection and all trust-status, trust-boundary, field-boundary, and merge
-helpers. Shared stringify, JSON encoding, and compaction remain in the facade
-behind three callbacks. `CadenceImport` dropped from 3,942 to 3,813 lines.
+Selected boundary:
+Move `activity_throughput_context/1` and its private throughput lookup and
+data-rate derivation helpers into `Timeline.ThroughputContext.build/2`.
+`OrbitalDynamics.Timeline` retains every public function and supplies its
+existing `first_number`, `first_value`, `stringify_keys`, `delta`,
+`completion_fraction`, and `compact_map` behavior through callbacks.
 
-Selection and correction:
-Selected in `6ae0787d`. Initial compile exposed shared stringify and JSON
-encoding dependencies; the corrected boundary was published in `8ea99304`
-before successful compile.
+Why this slice:
+The refreshed production inventory makes the 9,657-line `Timeline` the
+largest cohesive implementation hotspot outside the callback-heavy Schema
+facade. The selected approximately 113-line cluster has one responsibility:
+normalize declared throughput evidence or deterministically derive actual
+throughput from an actual data rate and duration. It has two facade callers
+and focused regression coverage, while avoiding lifecycle, diff, integrity,
+and schema ownership.
 
-Verification:
-- Focused baseline and implementation CadenceImport/contract suites: 100/100.
-- Strict warnings-as-errors compile: 3,710 files.
-- Canonical AST equivalence: exact 7-key projection and every trust/merge clause
-  after normalizing only the three callback boundaries.
+Planned proof:
+- Focused Timeline tests covering throughput projection, numeric-string
+  normalization, data-rate derivation, and throughput-sensitive diffs.
+- Strict warnings-as-errors compile.
+- Canonical AST equivalence for the exact five-key projection and all moved
+  derivation clauses after normalizing only callback boundaries.
 - Format, diff, whitespace, ownership, caller, public-definition, and xref
-  checks: clean; xref reports only the facade.
-- Independent review: no code findings; status precedence, boundary and field
-  normalization, encoding, merge/deduplication/sorting, API, and determinism are
-  exact. Its handoff-only finding is resolved here.
+  checks.
+- Independent read-only review before publication.
 
 Behavior/schema changes:
-None. No schema-generation boundary changed, so no export regeneration was
-required.
+None intended. No schema-generation boundary is selected, so export
+regeneration should not be required.
 
 Last completed slice:
-Operational-feedback context extraction, published in `ea240845`.
+CadenceImport operational-feedback manifest-context extraction, implementation
+published in `ea240845` and handoff published in `46ba5c39`.
 
 Next candidate:
-Remap the reduced facade and station-reservation specialization.
+Remap Timeline after this slice; likely link-context or station-calendar
+context if the live dependency boundary remains cohesive.
 
 Blocked:
 No.
