@@ -9,7 +9,7 @@ Current slice:
 Campaign-planner review/readiness derivation orchestration extraction.
 
 Status:
-Ready for implementation.
+Implementation published as `6740eb4d`; handoff publication pending.
 
 Selected slice:
 Move the private candidate-review, provider-counteroffer, validation,
@@ -47,29 +47,51 @@ unchanged; focused review/readiness tests pass to their live baseline; strict
 compile and independent review are clean.
 
 Verification gaps:
-- Focused review/readiness baseline is pending.
 - The full planner directory has five known baseline failures; readiness and
-  refresh-budget cases are adjacent and must retain their exact observations.
+  refresh-budget cases are adjacent. Both post-change failures are identical:
+  readiness remains `-100.0` versus stale `-200.0`; refresh budget retains the
+  same two source paths, counts, and branch-local pressure flags.
+- The full directory was not rerun; focused and file-backed coverage is green.
+- Independent review was clean. No API, artifact, determinism, ordering,
+  ownership, error-behavior, or behavioral finding remains.
 
 Tests run:
 - Live inventory: `CampaignPlanner` is 2,360 lines with 174 private functions.
 - Target cluster is 12 ordered pipeline calls and 12 private helpers.
+- Baseline focused review/readiness family: 20 passed with warnings as errors.
+- Post-change focused review/readiness family: 20 passed with warnings as
+  errors.
+- Strict forced compile: 3,644 files clean with warnings as errors.
+- File-backed facade coverage: 7 passed with warnings as errors.
+- Both adjacent baseline failures reproduced exactly.
+- Public `CampaignPlanner` function list matches selection commit `511f0e80`.
+  Xref reports the new internal module has only the planner runtime caller.
+- Format, new-file whitespace, and `git diff --check` passed. No old selected
+  review/readiness helper remains in the facade.
+- `CampaignPlanner` shrank from 2,360 to 2,233 lines. The new internal
+  review/readiness orchestration module is 124 lines.
+- Independent reviewer reran the exact 20-test set, a broader 22-test superset,
+  7 file-backed cases, both baseline failures, compile, xref, formatting, diff,
+  and new-file checks; results matched primary proof.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-No review/readiness extraction has started.
+The derived-branch pipeline now makes one ordered call to
+`DerivedReviewReadinessPressureBranches.build/2`. The new internal module owns
+the exact candidate/provider, validation, readiness/quality, and refresh-health
+source-to-branch sequence. Implementation published as `6740eb4d`.
 
 Last completed slice:
-Resource-pressure derivation orchestration extraction published as `287e3425`:
-`CampaignPlanner` shrank from 2,413 to 2,360 lines; focused, file-backed,
+Review/readiness derivation orchestration extraction published as `6740eb4d`:
+`CampaignPlanner` shrank from 2,360 to 2,233 lines; focused, file-backed,
 compile, and adjacent baseline-equivalence proof passed; independent review was
-clean. Handoff published as `139c6604`.
+clean.
 
 Next candidate:
-Publish this selection note, run the focused review/readiness baseline, then
-perform the mechanical ordered extraction.
+Publish this handoff, then refresh the remaining facade responsibilities and
+select the next bounded extraction.
 
 Blocked:
 No.
