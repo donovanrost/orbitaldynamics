@@ -9,7 +9,7 @@ Current slice:
 Schema export maneuver-review test split.
 
 Status:
-Selected; implementation has not started.
+Completed and published.
 
 Selected boundary:
 Move the dedicated maneuver-review schema assertion block and its sole
@@ -32,19 +32,30 @@ Selection evidence:
   assertions, and helper ownership remain outside the boundary.
 
 Verification:
-Pending: focused baseline, mechanical assertion/helper move, strict compile,
-focused/original test files, structural/static checks, and independent review.
+- Focused baseline: original export test passed 1 test.
+- Strict warnings-as-errors compile passed 3,800 modules.
+- Focused maneuver-review export test passed 1 test.
+- Reduced original export test passed 1 test.
+- AST conservation proved the three selected assertions and sole helper moved
+  exactly; the reduced original is the source AST minus only that boundary.
+- Static checks confirmed the shared maneuver-review policy-decision tuple
+  remains, the original retains its other 12 helpers, formatting and diff checks
+  pass, and no temporary checker remains.
+- Independent review was clean with no correctness or maintainability findings.
+- The original export test decreased from 8,348 to 8,317 lines; the focused test
+  is 55 lines.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Schema export timeline-feedback test split, selected in `4e2c27b6` and
-implemented in `60ac4dea`.
+Schema export maneuver-review test split, selected in `322068ce` and implemented
+in `8f3cbf6b`.
 
 Next candidate:
-Continue remapping the reduced Timeline facade.
+Continue splitting a cohesive schema-contract family from the reduced export
+bundle test, then return to remapping the reduced Timeline facade.
 
 Blocked:
 No.
