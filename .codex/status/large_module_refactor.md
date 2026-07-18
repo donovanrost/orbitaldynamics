@@ -6,35 +6,35 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline provider-result policy extraction.
+Timeline transition-application policy extraction.
 
 Status:
-Implementation published in `6778bbcd`; focused and broad proof is green.
+Selection recorded; implementation has not started.
 
 Selected boundary:
-Move provider execution failure reasons and the complete provider-result
-flattening, failure/success token classification, and artifact serialization
-cluster into `Timeline.ProviderResult`. `Timeline` retains three private facade
-entry points for failure reason, failure predicate, and artifact value. The
-shared ordered provider-result map-key list remains Timeline-owned for
-capabilities and is supplied as selection data.
+Move the complete transition-application selection and provenance construction
+cluster into `Timeline.TransitionApplicationPolicy`: seven selection clauses,
+selected-activity provenance carry-forward, provenance construction, and
+no-change reason policy. `Timeline` retains two private facade entry points for
+selection and provenance attachment. The shared `compact_map/1` behavior is
+supplied as one callback.
 
 Why this slice:
-The extraction moved 25 clauses into a 174-line internal module and reduced
-Timeline from 8,077 to 7,930 lines. The three facade entry points preserve all
-existing callers, while the shared key list remains with the capabilities
-surface.
+The reduced Timeline facade is 7,930 lines. This approximately 95-line cluster
+has one cohesive application-selection responsibility, 13 exclusive clauses,
+and only one shared behavior dependency. Its two facade entry points preserve
+all current single, batch, lifecycle, and integrity-gating callers.
 
-Completed proof:
-- Focused provider-result examples: 3 passed.
-- Full Timeline suite: 127 passed.
-- Timeline schema-contract suites: 36 passed.
-- Strict warnings-as-errors compile: 3,718 files.
-- Canonical AST equivalence: all 25 moved clauses after normalizing only facade
-  names and the shared key-list data argument.
-- Format, whitespace, ownership, exactly-three-facade, unchanged Timeline
-  public definitions, and xref checks passed.
-- Independent read-only review found no production-code findings.
+Planned proof:
+- Focused Timeline tests for direct transition selection, batch selection,
+  helper-produced provenance, and provenance carry-forward.
+- Full Timeline and Timeline schema-contract suites.
+- Strict warnings-as-errors compile.
+- Canonical AST equivalence for all 13 moved clauses after normalizing only the
+  two facade names and `compact_map/1` callback boundary.
+- Format, diff, whitespace, ownership, exactly-two-facade, unchanged Timeline
+  public-definition, and xref checks.
+- Independent read-only review before publication.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
@@ -42,11 +42,11 @@ regeneration should not be required.
 
 Last completed slice:
 Timeline provider-result policy extraction, selected in `63d6d709` and
-implemented in `6778bbcd`.
+implemented in `6778bbcd`, with handoff published in `4d52c1fd`.
 
 Next candidate:
-Remap the reduced 7,930-line Timeline facade, emphasizing operational action
-classification and transition application.
+Remap the reduced Timeline facade after this slice, emphasizing operational
+action classification and lifecycle-state decision policy.
 
 Blocked:
 No.
