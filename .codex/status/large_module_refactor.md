@@ -9,7 +9,7 @@ Current slice:
 Schema export validation-family test split.
 
 Status:
-Selected; implementation has not started.
+Complete and published.
 
 Selected boundary:
 Move the final model-acceptance, validation-safety-case, and validation
@@ -28,16 +28,26 @@ Selection evidence:
   assertions, and helper ownership remain outside the boundary.
 
 Verification:
-Pending: focused baseline, mechanical assertion move, strict compile,
-focused/original test files, structural/static checks, and independent review.
+- Selection published in `832e0d04`; implementation published in `08b23d2c`.
+- Original bundle test baseline: 1 passed.
+- Strict warnings-as-errors compile: 3,800 files compiled.
+- Focused validation-family export test: 1 passed.
+- Retained bundle-content test: 1 passed.
+- Canonical AST comparison: retained bundle prefix and moved validation suffix
+  equivalent; independent review accounted for all 937 original expressions.
+- Static checks confirmed all three validation contracts moved, unchanged
+  14-helper set, no temporary checker, and clean formatting/diff.
+- Independent review: clean, with no findings.
+- Original export ledger is 8,578 lines; the focused validation module is 117
+  lines.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Schema export CLI test-ledger split, selected in `d5bb3d07`, corrected in
-`52c6ea2e`, and implemented in `03b4d2ec`.
+Schema export validation-family test split, selected in `832e0d04` and
+implemented in `08b23d2c`.
 
 Next candidate:
 Continue remapping the reduced Timeline facade.
