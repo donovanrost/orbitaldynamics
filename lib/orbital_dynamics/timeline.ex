@@ -1804,20 +1804,11 @@ defmodule OrbitalDynamics.Timeline do
     do: raise(ArgumentError, "source artifact must be a map")
 
   defp publication_source_artifact_id(source_artifact, opts) do
-    [
-      Keyword.get(opts, :source_artifact_id),
-      source_artifact["id"],
-      source_artifact["artifact_id"],
-      source_artifact["refresh_id"],
-      source_artifact["summary_id"],
-      source_artifact["plan_id"]
-    ]
-    |> Enum.flat_map(&stable_id_value/1)
-    |> List.first()
-    |> case do
-      nil -> "timeline_publication_source"
-      value -> value
-    end
+    OrbitalDynamics.Timeline.PublicationIdentifierPolicy.publication_source_artifact_id(
+      source_artifact,
+      opts,
+      &stable_id_value/1
+    )
   end
 
   defp publication_source_artifact_type(source_artifact) do
@@ -1851,11 +1842,12 @@ defmodule OrbitalDynamics.Timeline do
   end
 
   defp publication_stable_id_list(opts, key) do
-    opts
-    |> Keyword.get(key, [])
-    |> List.wrap()
-    |> Enum.flat_map(&stable_id_value/1)
-    |> sorted_uniq()
+    OrbitalDynamics.Timeline.PublicationIdentifierPolicy.publication_stable_id_list(
+      opts,
+      key,
+      &stable_id_value/1,
+      &sorted_uniq/1
+    )
   end
 
   defp publication_dependency_impact_summary(summary) do
@@ -1886,27 +1878,21 @@ defmodule OrbitalDynamics.Timeline do
     )
   end
 
-  defp publication_id_list(nil), do: nil
-
   defp publication_id_list(values) do
-    values
-    |> List.wrap()
-    |> Enum.flat_map(&stable_id_value/1)
-    |> sorted_uniq()
+    OrbitalDynamics.Timeline.PublicationIdentifierPolicy.publication_id_list(
+      values,
+      &stable_id_value/1,
+      &sorted_uniq/1
+    )
   end
 
-  defp publication_id_array_map(%{} = values) do
-    values
-    |> Enum.map(fn {key, ids} ->
-      {to_string(key), publication_id_list(ids)}
-    end)
-    |> Enum.reject(fn {key, ids} -> key in ["", "nil"] or ids in [nil, []] end)
-    |> Map.new()
+  defp publication_id_array_map(values) do
+    OrbitalDynamics.Timeline.PublicationIdentifierPolicy.publication_id_array_map(
+      values,
+      &stable_id_value/1,
+      &sorted_uniq/1
+    )
   end
-
-  defp publication_id_array_map(nil), do: nil
-
-  defp publication_id_array_map(_values), do: %{}
 
   defp publication_invalidation_ids(
          invalidated,
