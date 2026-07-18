@@ -6,45 +6,47 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline invalid-activity row extraction.
+Timeline activity-input validation policy extraction.
 
 Status:
-Implementation published in `9ee57bb5`; focused and broad proof is green.
+Selection recorded; implementation has not started.
 
 Selected boundary:
-Move deterministic invalid-activity row construction and invalid activity-ID
-fallback policy into `Timeline.InvalidActivityRow`. `Timeline` retains one
-private `invalid_activity_input_row/3` facade used by normalization. Shared
-stable-ID validation, integrity-issue construction, and map compaction are
-supplied as callbacks.
+Move activity input issue precedence plus ID/type/status/approval, nested-shape,
+unit-interval, and stable-identity-path validation into
+`Timeline.ActivityInputPolicy`. `Timeline` retains one private
+`activity_input_issue/1` facade. Status/approval lists and field/path metadata
+are supplied as selection data; activity status/approval normalization,
+numeric normalization, and stable-ID validation are supplied as callbacks.
 
 Why this slice:
-The extraction moved three clauses into a 60-line internal module and reduced
-Timeline from 7,663 to 7,619 lines. The one private facade preserves both
-normalization callers and the complete review/integrity artifact shape.
+The reduced Timeline facade is 7,619 lines. These 19 exclusive clauses form an
+approximately 125-line validation responsibility with no callers outside the
+one facade. Keeping the short-circuit issue order together preserves which
+invalid reason wins when multiple fields are malformed.
 
-Completed proof:
-- Focused invalid-activity examples: 3 passed.
-- Full Timeline suite: 127 passed.
-- Timeline schema-contract suites: 36 passed.
-- Strict warnings-as-errors compile: 3,724 files.
-- Canonical AST equivalence: all three moved clauses after normalizing only the
-  facade name and three callback boundaries.
-- Format, whitespace, ownership, exactly-one-facade, unchanged Timeline public
-  definitions, and xref checks passed.
-- Independent read-only review found no findings.
+Planned proof:
+- Focused Timeline tests for general invalid inputs, unit intervals, unsupported
+  approval/status, malformed activity IDs, and malformed identity fields.
+- Full Timeline and Timeline schema-contract suites.
+- Strict warnings-as-errors compile.
+- Canonical AST equivalence for all 19 moved clauses after normalizing only the
+  facade name and selection-data/callback boundaries.
+- Format, diff, whitespace, ownership, exactly-one-facade, unchanged Timeline
+  public-definition, and xref checks.
+- Independent read-only review before publication.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline invalid-activity row extraction, selected in `e586b0f5` and
-implemented in `9ee57bb5`.
+Timeline invalid-activity row extraction, selected in `e586b0f5`, implemented
+in `9ee57bb5`, and handed off in `90456b40`.
 
 Next candidate:
-Remap the reduced 7,619-line Timeline facade, emphasizing transition integrity
-gating and invalid-activity validation.
+Remap the reduced Timeline facade after this slice, emphasizing transition
+integrity gating and invalid-input normalization flow.
 
 Blocked:
 No.
