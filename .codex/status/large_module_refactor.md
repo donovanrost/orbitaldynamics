@@ -9,7 +9,7 @@ Current slice:
 Timeline activity-observation evidence context extraction.
 
 Status:
-Selected; implementation has not started.
+Complete and published.
 
 Selected boundary:
 Move observation-quality and observation-lighting context construction into
@@ -33,16 +33,26 @@ Selection evidence:
   public API, and schema remain outside the boundary.
 
 Verification:
-Pending: focused baseline, implementation, strict compile, focused/full tests,
-contracts, structural/static checks, and independent review.
+- Selection published in `ca3f14a2`; corrected helper ownership published in
+  `ff38e55c`; implementation published in `c290eabc`.
+- Focused baseline and post-change observation/lighting coverage: 3 passed.
+- Strict warnings-as-errors compile: 3,794 files compiled.
+- Full Timeline suite: 127 passed.
+- Operational Timeline schema contracts: 36 passed.
+- Canonical AST comparison: both extracted builders equivalent.
+- Static checks confirmed unchanged public API, exactly two private facades,
+  expected one/two consumer counts, Timeline-only module ownership, no
+  temporary checker, and clean diff.
+- Independent review: clean, with no production-code findings.
+- Timeline is 5,512 lines; the extracted module is 69 lines.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline activity-link context extraction, selected in `a47755aa`, implemented
-in `37bd9f8e`, and handed off in `eaa14e36`.
+Timeline activity-observation evidence context extraction, selected in
+`ca3f14a2`, corrected in `ff38e55c`, and implemented in `c290eabc`.
 
 Next candidate:
 Continue remapping the reduced Timeline facade.
