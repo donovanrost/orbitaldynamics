@@ -9,45 +9,43 @@ Current slice:
 Timeline execution-uncertainty context extraction.
 
 Status:
-Selection recorded; implementation has not started.
+Implementation published in `b2b15284`; handoff publication pending.
 
-Selected boundary:
-Move `activity_execution_uncertainty_context/1`, uncertainty-source lookup,
-relevance classification, numeric/triplet field normalization, and the exact
-uncertainty projection into `Timeline.ExecutionUncertaintyContext.build/2`.
-`Timeline` retains every public function plus shared stringify, numeric,
-triplet, vector-norm, and compaction helpers behind callbacks.
+Completed boundary:
+`Timeline.ExecutionUncertaintyContext.build/2` now owns all six uncertainty
+source paths, declared/missing relevance, scalar and triplet normalization,
+the exact uncertainty projection, magnitude derivation, and source/model
+selection. `Timeline` retains every public function and five shared helpers
+behind callbacks. The facade dropped from 9,343 to 9,269 lines.
 
-Why this slice:
-After the station-calendar extraction, Timeline remains a 9,343-line facade.
-This approximately 85-line cluster owns one artifact concern: declared,
-missing, and normalized maneuver execution uncertainty. It has two callers and
-focused regression/diff coverage. Keeping numeric parsing and vector math in
-the facade preserves their shared use by station-calendar callbacks and avoids
-coupling that context to an execution-specific module.
+Selection:
+Selected and published in `88add146`. Shared numeric, triplet, and vector
+helpers remain in Timeline for station-calendar and other context ownership.
 
-Planned proof:
-- Focused Timeline tests covering declared/missing uncertainty, numeric-string
-  normalization, and uncertainty-sensitive diffs.
-- Full Timeline and Timeline schema-contract suites.
-- Strict warnings-as-errors compile.
-- Canonical AST equivalence for the exact projection and every moved clause
-  after normalizing only callback boundaries.
-- Format, diff, whitespace, ownership, caller, public-definition, and xref
-  checks.
-- Independent read-only review before publication.
+Verification:
+- Pre-change and post-change focused Timeline cases: 3/3.
+- Full Timeline suite: 127/127.
+- Timeline schema-contract suites: 36/36.
+- Strict warnings-as-errors compile: 3,713 files.
+- Canonical AST equivalence: exact builder and all eight moved clauses after
+  normalizing only callback boundaries.
+- Public-definition hash unchanged; format, diff, whitespace, ownership,
+  caller, and xref checks clean; xref reports only Timeline.
+- Independent review: no code findings. Lookup precedence, malformed-value
+  blocking, map selection, stringify timing, relevance, scalar/triplet
+  normalization, magnitude derivation, source precedence, callbacks,
+  consumers, API, schema shape, and determinism are exact.
 
 Behavior/schema changes:
-None intended. No schema-generation boundary is selected, so export
-regeneration should not be required.
+None. No schema-generation boundary changed, so export regeneration was not
+required.
 
 Last completed slice:
-Timeline station-calendar context extraction, implementation published in
-`8d9d6b74` and handoff published in `9d775ccf`.
+Timeline execution-uncertainty context extraction, published in `b2b15284`.
 
 Next candidate:
-Remap the reduced Timeline facade after this slice; command-window context is
-the leading smaller candidate.
+Remap the reduced Timeline facade; command-window context is the leading
+smaller candidate.
 
 Blocked:
 No.
