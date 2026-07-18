@@ -6,48 +6,46 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline activity relationship policy extraction.
+Timeline activity row-alias policy extraction.
 
 Status:
-Implementation published in `374151ea`; focused and broad proof is green.
+Selection recorded; implementation has not started.
 
 Selected boundary:
-Move dependency and exclusivity activity/timeline ID field selection, explicit
-versus fallback precedence, and duplicate-reference selection into
-`Timeline.ActivityRelationshipPolicy`. `Timeline` retains eight private entry
-points. Field lookup and general/map-only normalize/duplicate operations cross
-the boundary explicitly.
+Move provider `activity_id`/`activity_type` insertion into canonical `id`/`type`
+fields plus nil/empty guarded put-new behavior into
+`Timeline.ActivityRowAliasPolicy`. `Timeline` retains two private entry points.
+The boundary has no callbacks, module attributes, or shared vocabulary
+arguments.
 
 Why this slice:
-The extraction moved eight clauses into a 127-line internal module and reduced
-Timeline from 6,568 to 6,532 lines. Eight private entry points preserve
-integrity, diff, transition, and publication callers while moving dependency
-and exclusivity aliases, explicit/fallback precedence, map-only selection, and
-duplicate-reference routing out of the facade.
+The reduced Timeline facade is 6,532 lines. These three exclusive clauses own
+canonical activity ID/type alias insertion and the shared present-only,
+non-overwriting field insertion semantics reused by source-window and
+cadence-import normalization.
 
-Completed proof:
-- Focused scalar, map, fallback, malformed, duplicate, and transition-handoff
-  relationship examples: 5 passed.
-- Full Timeline suite: 127 passed.
-- Timeline schema-contract suites: 36 passed.
-- Strict warnings-as-errors compile: 3,748 files.
-- Canonical AST equivalence: all eight moved clauses after normalizing only
-  the eight facade names and five callback boundaries.
-- Format, whitespace, ownership, exactly-eight-facade, unchanged Timeline public
-  definitions, and xref checks passed; Timeline is the only runtime caller.
-- Independent read-only review found no production-code findings.
+Planned proof:
+- Focused provider activity aliases, canonical-field precedence, nil/empty
+  filtering, source-window, and cadence-import normalization examples.
+- Full Timeline and Timeline schema-contract suites.
+- Strict warnings-as-errors compile.
+- Canonical AST equivalence for all three moved clauses after normalizing only
+  the two facade names.
+- Format, diff, whitespace, ownership, exactly-two-facade, unchanged Timeline
+  public-definition, and xref checks.
+- Independent read-only review before publication.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline activity relationship policy extraction, selected in `3fdbecd8` and
-implemented in `374151ea`.
+Timeline activity relationship policy extraction, selected in `3fdbecd8`,
+implemented in `374151ea`, and handed off in `e7fbb933`.
 
 Next candidate:
-Remap the reduced 6,532-line Timeline facade, avoiding boundaries whose guard
-vocabularies remain shared with Timeline.
+Remap the reduced Timeline facade after this slice, avoiding the wide
+activity-to-map coordinator callback surface.
 
 Blocked:
 No.
