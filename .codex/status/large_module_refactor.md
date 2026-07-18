@@ -6,48 +6,46 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline activity identity policy extraction.
+Timeline activity relationship policy extraction.
 
 Status:
-Implementation published in `40a099b3`; focused and broad proof is green.
+Selection recorded; implementation has not started.
 
 Selected boundary:
-Move durable/derived timeline identity, subject selection, and source-window ID
-and type selection into `Timeline.ActivityIdentityPolicy`. `Timeline` retains
-four private entry points; derived identity becomes internal to the policy.
-Activity start selection and artifact-value encoding cross the boundary
-explicitly.
+Move dependency and exclusivity activity/timeline ID field selection, explicit
+versus fallback precedence, and duplicate-reference selection into
+`Timeline.ActivityRelationshipPolicy`. `Timeline` retains eight private entry
+points. Field lookup and general/map-only normalize/duplicate operations cross
+the boundary explicitly.
 
 Why this slice:
-The extraction moved five clauses into a 54-line internal module and reduced
-Timeline from 6,599 to 6,568 lines. Four private entry points preserve row,
-context, transition, lifecycle-summary, and publication callers while moving
-explicit/derived timeline identity, subject precedence, and nested
-source-window identity out of the facade.
+The reduced Timeline facade is 6,568 lines. These eight exclusive clauses own
+the alias lists and explicit/fallback precedence that turn dependency,
+exclusion, and exclusivity fields into activity/timeline ID and duplicate-ID
+surfaces used by integrity, diff, transition, and publication behavior.
 
-Completed proof:
-- Focused persistent/derived identity, provider station, nested source-window,
-  and metadata source-window examples: 5 passed.
-- Full Timeline suite: 127 passed.
-- Timeline schema-contract suites: 36 passed.
-- Strict warnings-as-errors compile: 3,747 files.
-- Canonical AST equivalence: all five moved clauses after normalizing only
-  the four facade names and two callback boundaries.
-- Format, whitespace, ownership, exactly-four-facade, unchanged Timeline public
-  definitions, and xref checks passed; Timeline is the only runtime caller.
-- Independent read-only review found no production-code findings.
+Planned proof:
+- Focused dependency/exclusivity scalar, map, explicit, fallback, duplicate,
+  malformed, and deterministic-order examples.
+- Full Timeline and Timeline schema-contract suites.
+- Strict warnings-as-errors compile.
+- Canonical AST equivalence for all eight moved clauses after normalizing only
+  the eight facade names and five callback boundaries.
+- Format, diff, whitespace, ownership, exactly-eight-facade, unchanged Timeline
+  public-definition, and xref checks.
+- Independent read-only review before publication.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline activity identity policy extraction, selected in `c05b969c` and
-implemented in `40a099b3`.
+Timeline activity identity policy extraction, selected in `c05b969c`,
+implemented in `40a099b3`, and handed off in `5cfc8a5d`.
 
 Next candidate:
-Remap the reduced 6,568-line Timeline facade, avoiding boundaries whose guard
-vocabularies remain shared with Timeline.
+Remap the reduced Timeline facade after this slice, avoiding boundaries whose
+guard vocabularies remain shared with Timeline.
 
 Blocked:
 No.
