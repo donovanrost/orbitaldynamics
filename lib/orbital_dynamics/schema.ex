@@ -2111,14 +2111,12 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property(field, @station_calendar_provider = contract_name, contract) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.StandaloneCommunicationsPropertyDispatch.station_calendar_provider(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.StationCalendarProviderJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.StationCalendarProviderJsonSchema.property_fun_from_context(
-        entry_schema: station_calendar_provider_entry_json_schema()
-      )
+      &default_json_schema_property/3,
+      station_calendar_provider_entry_json_schema()
     )
   end
 
@@ -2155,43 +2153,43 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property(field, @relay_data_path_summary = contract_name, contract) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.StandaloneCommunicationsPropertyDispatch.relay_data_path(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.RelayDataPathSummaryJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.RelayDataPathSummaryJsonSchema.property_fun_from_context(
-        model_limits: &OrbitalDynamics.Schema.RelayDataPathSummaryContracts.model_limits/0,
-        assumptions_schema: &relay_data_path_assumptions_json_schema/0,
-        row_schema: &relay_data_path_row_json_schema/0,
-        count_map_schema: &non_negative_integer_count_map_json_schema/0,
-        stable_id_array_schema: &stable_id_array_schema/0,
-        stable_id_array_map_schema: &stable_id_array_map_schema/0
-      )
+      &default_json_schema_property/3,
+      {
+        &OrbitalDynamics.Schema.RelayDataPathSummaryContracts.model_limits/0,
+        &relay_data_path_assumptions_json_schema/0,
+        &relay_data_path_row_json_schema/0,
+        &non_negative_integer_count_map_json_schema/0,
+        &stable_id_array_schema/0,
+        &stable_id_array_map_schema/0
+      }
     )
   end
 
   defp json_schema_property(field, @contact_allocation_report = contract_name, contract) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.StandaloneCommunicationsPropertyDispatch.contact_allocation(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.ContactAllocationReportJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.ContactAllocationReportJsonSchema.property_fun_from_context(
-        row_schema: &contact_allocation_row_json_schema/0,
-        capacity_pack_group_schema: &contact_allocation_capacity_pack_group_json_schema/0,
-        model_limits: &contact_allocation_model_limits/0,
-        stable_id_array_schema: &stable_id_array_schema/0,
-        nested_stable_id_array_map_schema: &nested_stable_id_array_map_json_schema/0,
-        string_array_schema: &string_array_schema/0,
-        trust_boundary_count_map_schema: &branch_event_trust_boundary_status_counts_json_schema/0,
-        contact_allocation_capability: fn ->
+      &default_json_schema_property/3,
+      {
+        &contact_allocation_row_json_schema/0,
+        &contact_allocation_capacity_pack_group_json_schema/0,
+        &contact_allocation_model_limits/0,
+        &stable_id_array_schema/0,
+        &nested_stable_id_array_map_json_schema/0,
+        &string_array_schema/0,
+        &branch_event_trust_boundary_status_counts_json_schema/0,
+        fn ->
           OrbitalDynamics.Communications.ContactAllocation.capabilities()
         end,
-        enum_count_map_schema: &enum_count_map_json_schema/1,
-        count_map_schema: &non_negative_integer_count_map_json_schema/0,
-        non_negative_number_map_schema: &non_negative_number_map_json_schema/0
-      )
+        &enum_count_map_json_schema/1,
+        &non_negative_integer_count_map_json_schema/0,
+        &non_negative_number_map_json_schema/0
+      }
     )
   end
 
