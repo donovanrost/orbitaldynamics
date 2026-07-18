@@ -6,77 +6,59 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema candidate-rejection timeline property-dispatch extension.
+Schema Cadence source-review callback-provider extraction.
 
 Status:
-Implementation published as `ee84e47c`; handoff publication pending.
+Slice selected; selection publication pending.
 
 Selected slice:
-Move focused JSON-property routing/context assembly for candidate-rejection
-report into the existing internal `Schema.TimelineReportPropertyDispatch`
-owner, then remove the facade's now-unused `focused_json_schema_property/5`.
+Move callback-key ordering and external contract wiring from
+`cadence_source_review_row_contract_callbacks/0` into an internal
+`Schema.CadenceSourceReviewRowCallbacks.build/1`, injecting only facade-private
+validators.
 
 Why this slice:
-`Schema` is 7,733 lines. Candidate rejection is the final direct focused
-property clause and belongs with the existing operational timeline/report
-owner.
+`Schema` is 7,725 lines. The source-review callback registry is a 164-line
+responsibility mixing stable external contract captures with private facade
+validators.
 
 Current coupling/problem:
-The facade owns candidate-rejection limits, rows, reasons, operator actions,
-stable-pattern context, focused fallback routing, and the shared helper that
-will have no remaining callers.
+The facade owns the complete dependency registry, callback ordering, and dozens
+of external handoff-contract module captures for Cadence source-review rows.
 
 Public facade to preserve:
-All `Schema` APIs; the candidate-rejection JSON Schema document; checked-in
-exports, deterministic ordering, focused fallback behavior, provider order and
-arity, and all errors.
+All `Schema` APIs; Cadence source-review validation behavior; callback keys,
+order, values, arities, error ordering, deterministic output, and all schema
+exports.
 
 Likely files:
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/timeline_report_property_dispatch.ex`
+- `lib/orbital_dynamics/schema/cadence_source_review_row_callbacks.ex`
 - `.codex/status/large_module_refactor.md`
 
 Definition of done:
-The clause passes compact dependencies to the existing owner; named context and
-focused fallback routing move out of `Schema`; the unused private facade helper
-is removed; focused rejection/timeline/export tests pass; strict compile, full
+The new provider owns the exact ordered callback registry and external captures;
+`Schema` passes only private callback captures; focused Cadence source-review,
+import, readiness, timeline, and export tests pass; strict compile, full
 byte-clean schema regeneration, and independent review are clean.
 
 Verification gaps:
-- None for this slice. Full checked-in schema regeneration is byte-identical.
-- Independent review was clean. No API, schema, export, ordering,
-  error-behavior, ownership, or behavioral finding remains.
+- Focused baseline, strict compile, export proof, and independent review remain.
 
 Tests run:
-- Baseline and post-change focused rejection/provenance/timeline/export subset:
-  25 passed with warnings as errors.
-- Strict forced compile: 3,667 files clean with warnings as errors.
-- Full schema export regenerated every checked-in schema and bundle with zero
-  diff.
-- Public `Schema` definitions match selection commit `939e51d1`; xref reports
-  the dispatcher has only the `Schema` runtime caller.
-- Repository-wide search confirms zero remaining facade focused-helper refs.
-- Format, changed-file whitespace, and `git diff --check` passed.
-- Independent review confirmed exact five-key context, safe helper removal,
-  unchanged existing timeline and adjacent routes, then reran all proof clean.
+- None yet for this selected slice.
 
 Behavior/schema changes:
 None intended.
 
-Outcome:
-Candidate-rejection report routing now delegates to the existing
-`TimelineReportPropertyDispatch`, and the unused facade
-`focused_json_schema_property/5` is removed. Implementation published as
-`ee84e47c`.
-
 Last completed slice:
-Schema-migration schema dispatch published as implementation `49c99fb8` and
-handoff `3f4c5723`: focused 24/24, strict 3,667-file compile, full byte-clean
-schema regeneration, and independent review passed.
+Candidate-rejection timeline schema dispatch published as implementation
+`ee84e47c` and handoff `e8413564`: focused 25/25, strict 3,667-file compile,
+full byte-clean schema regeneration, and independent review passed.
 
 Next candidate:
-After publication, remap `Schema` and the original large-module goal hotspots
-to select the next responsibility-based extraction beyond property dispatch.
+Continue callback-provider extraction with the Cadence import or operator-review
+registries after remapping the reduced facade.
 
 Blocked:
 No.
