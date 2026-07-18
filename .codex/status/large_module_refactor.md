@@ -9,7 +9,7 @@ Current slice:
 Campaign-planner derived-branch generation boundary extraction.
 
 Status:
-Ready for implementation.
+Implementation published as `1841dc35`; handoff publication pending.
 
 Selected slice:
 Move the two private `maybe_add_derived_branches/6` clauses and their remaining
@@ -46,30 +46,51 @@ focused and full planner tests match live baseline; strict compile and
 independent review are clean.
 
 Verification gaps:
-- Focused and full planner baselines are pending.
 - The full planner directory has five previously documented failures that must
-  retain their exact observations.
+  retain their exact observations. Post-change result is the same 728/733 with
+  identical test names, values, and stacktraces.
+- Independent review was clean. No API, artifact, determinism, ordering,
+  policy/provenance, ownership, error-behavior, or behavioral finding remains.
 
 Tests run:
 - Live inventory: `CampaignPlanner` is 2,023 lines with 144 private functions.
 - Target includes the two orchestration clauses and nine remaining thin family
   helpers.
+- Baseline full planner directory: 728/733 passed with the five documented
+  failures.
+- Post-change full planner directory: 728/733 passed with the same five
+  failures and observations.
+- Focused green orchestration subset: 107 passed with warnings as errors before
+  and after extraction.
+- Strict forced compile: 3,648 files clean with warnings as errors.
+- Public `CampaignPlanner` function list matches selection commit `ce6665f5`.
+  Xref reports the new internal module has only the planner runtime caller.
+- Format, new-file whitespace, and `git diff --check` passed. No old
+  orchestration or selected thin helper remains in the facade.
+- `CampaignPlanner` shrank from 2,023 to 1,894 lines. The new internal
+  orchestration module is 94 lines.
+- Independent reviewer reran the exact 107-test subset, 3,648-file compile,
+  public-def, xref, formatting, diff, and new-file checks; results matched
+  primary proof.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-No derived-branch boundary extraction has started.
+Strategy normalization now delegates one call to
+`DerivedBranchOrchestration.merge/6`. The new owner preserves derive-disabled
+behavior, exact family order, link-capacity transforms, contact-intent
+deduplication, and final policy-aware branch merging. Implementation published
+as `1841dc35`.
 
 Last completed slice:
-Station-pressure derivation orchestration extraction published as `73737ad1`:
-`CampaignPlanner` shrank from 2,064 to 2,023 lines; focused, file-backed, and
-compile proof passed; independent review was clean. Handoff published as
-`6ee115cf`.
+Derived-branch generation boundary extraction published as `1841dc35`:
+`CampaignPlanner` shrank from 2,023 to 1,894 lines; focused, full-baseline, and
+compile proof passed; independent review was clean.
 
 Next candidate:
-Publish this selection note, capture focused and full planner baselines, then
-perform the mechanical generation-boundary extraction.
+Publish this handoff, then refresh the remaining facade responsibilities and
+select the next bounded extraction.
 
 Blocked:
 No.
