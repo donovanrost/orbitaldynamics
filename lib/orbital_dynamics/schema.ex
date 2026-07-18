@@ -1546,21 +1546,21 @@ defmodule OrbitalDynamics.Schema do
          @timeline_activity_precondition_summary = contract_name,
          contract
        ) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.TimelineProtectionPropertyDispatch.precondition(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.TimelineActivityPreconditionSummaryJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.TimelineActivityPreconditionSummaryJsonSchema.property_fun_from_context(
-        schema_contract: @timeline_activity_precondition_summary,
-        model_limits: &timeline_report_model_limits/0,
-        precondition_statuses: &timeline_activity_precondition_statuses/0,
-        string_array_schema: &string_array_schema/0,
-        precondition_schema: &timeline_precondition_json_schema/0,
-        stable_id_pattern: @stable_id_pattern,
-        stable_id_array_schema: &stable_id_array_schema/0,
-        timeline_identity_schema: &timeline_identity_json_schema/0
-      )
+      &default_json_schema_property/3,
+      @timeline_activity_precondition_summary,
+      @stable_id_pattern,
+      {
+        &timeline_report_model_limits/0,
+        &timeline_activity_precondition_statuses/0,
+        &string_array_schema/0,
+        &timeline_precondition_json_schema/0,
+        &stable_id_array_schema/0,
+        &timeline_identity_json_schema/0
+      }
     )
   end
 
@@ -1979,22 +1979,21 @@ defmodule OrbitalDynamics.Schema do
 
   defp json_schema_property(field, contract_name, contract)
        when contract_name in [@timeline_preservation_report, @timeline_preservation_status] do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.TimelineProtectionPropertyDispatch.preservation(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.TimelinePreservationJsonSchema.property_field?(&1, contract_name),
-      OrbitalDynamics.Schema.TimelinePreservationJsonSchema.property_fun_from_context(
-        contract_name: contract_name,
-        model_limits: timeline_report_model_limits(),
-        count_map_schema: &non_negative_integer_count_map_json_schema/0,
-        stable_id_array_schema: &stable_id_array_schema/0,
-        stable_id_array_map_schema: &stable_id_array_map_schema/0,
-        protection_decision_schema: &protection_decision_json_schema/0,
-        stable_id_pattern: @stable_id_pattern,
-        timeline_identity_schema: &timeline_identity_json_schema/0,
-        assumptions_schema: &timeline_preservation_assumptions_json_schema/1
-      )
+      &default_json_schema_property/3,
+      @stable_id_pattern,
+      timeline_report_model_limits(),
+      {
+        &non_negative_integer_count_map_json_schema/0,
+        &stable_id_array_schema/0,
+        &stable_id_array_map_schema/0,
+        &protection_decision_json_schema/0,
+        &timeline_identity_json_schema/0,
+        &timeline_preservation_assumptions_json_schema/1
+      }
     )
   end
 
