@@ -6,46 +6,46 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline Cadence-import policy extraction.
+Timeline invalid-activity row extraction.
 
 Status:
-Implementation published in `26437371`; focused and broad proof is green.
+Selection recorded; implementation has not started.
 
 Selected boundary:
-Move accepted Cadence-import extraction, invalidity checks, review-context
-construction, issue precedence, external-ID/trust-boundary validation, and
-invalid-context removal into `Timeline.CadenceImportPolicy`. `Timeline` retains
-five private entry points used by row/context construction and operational
-action policy. Shared stable-ID validation and invalid-shape encoding are
+Move deterministic invalid-activity row construction and invalid activity-ID
+fallback policy into `Timeline.InvalidActivityRow`. `Timeline` retains one
+private `invalid_activity_input_row/3` facade used by normalization. Shared
+stable-ID validation, integrity-issue construction, and map compaction are
 supplied as callbacks.
 
 Why this slice:
-The extraction moved 13 clauses into a 96-line internal module and reduced
-Timeline from 7,705 to 7,663 lines. The five private facade entry points
-preserve all row/context and operational-action callers.
+The reduced Timeline facade is 7,663 lines. These three exclusive clauses form
+an approximately 55-line invalid-row responsibility with no callers outside
+the one facade. The boundary preserves stable source IDs, atom IDs, deterministic
+reason/sequence fallbacks, and the complete review/integrity artifact shape.
 
-Completed proof:
-- Focused Cadence-import examples: 4 passed.
-- Full Timeline suite: 127 passed.
-- Timeline schema-contract suites: 36 passed.
-- Strict warnings-as-errors compile: 3,723 files.
-- Canonical AST equivalence: all 13 moved clauses after normalizing only the
-  five facade names and two callback boundaries.
-- Format, whitespace, ownership, exactly-five-facade, unchanged Timeline public
-  definitions, and xref checks passed.
-- Independent read-only review found no findings.
+Planned proof:
+- Focused Timeline tests for invalid batch inputs, out-of-range activity
+  context, and single invalid activity normalization.
+- Full Timeline and Timeline schema-contract suites.
+- Strict warnings-as-errors compile.
+- Canonical AST equivalence for all three moved clauses after normalizing only
+  the facade name and three callback boundaries.
+- Format, diff, whitespace, ownership, exactly-one-facade, unchanged Timeline
+  public-definition, and xref checks.
+- Independent read-only review before publication.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline Cadence-import policy extraction, selected in `f0f49209` and
-implemented in `26437371`.
+Timeline Cadence-import policy extraction, selected in `f0f49209`, implemented
+in `26437371`, and handed off in `a706cc1a`.
 
 Next candidate:
-Remap the reduced 7,663-line Timeline facade, emphasizing transition integrity
-gating and invalid-activity construction.
+Remap the reduced Timeline facade after this slice, emphasizing transition
+integrity gating and invalid-activity validation.
 
 Blocked:
 No.
