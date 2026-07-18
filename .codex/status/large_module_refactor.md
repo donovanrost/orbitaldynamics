@@ -9,7 +9,7 @@ Current slice:
 Timeline activity relationship context extraction.
 
 Status:
-Selected; implementation has not started.
+Complete and published.
 
 Selected boundary:
 Move dependency/exclusivity context construction and its eight relationship
@@ -41,16 +41,28 @@ Selection evidence:
   context coordination, public API, and schema remain outside the boundary.
 
 Verification:
-Pending: focused baseline, implementation, strict compile, focused/full tests,
-contracts, structural/static checks, and independent review.
+- Selection published in `7a910e0c`; corrected helper ownership published in
+  `af7fcfff`; implementation published in `2c33add2`.
+- Focused baseline and post-change relationship coverage: 3 passed.
+- Strict warnings-as-errors compile: 3,799 files compiled.
+- Full Timeline suite: 127 passed.
+- Operational Timeline schema contracts: 36 passed.
+- Canonical AST comparison: the builder and all eight adapters equivalent after
+  normalizing only the explicit stable-pattern boundary and callback captures.
+- Static checks confirmed unchanged public API, exact context/value facade
+  consumer counts, removal of three dead ID helpers while retaining the shared
+  scalar normalizer, Timeline-only runtime ownership, no temporary checker, and
+  clean formatting/diff.
+- Independent review: clean, with no production-code findings.
+- Timeline is 5,343 lines; the extracted module is 138 lines.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline activity lifecycle context extraction, selected in `a05a86dd` and
-implemented in `55d76306`.
+Timeline activity relationship context extraction, selected in `7a910e0c`,
+corrected in `af7fcfff`, and implemented in `2c33add2`.
 
 Next candidate:
 Continue remapping the reduced Timeline facade.
