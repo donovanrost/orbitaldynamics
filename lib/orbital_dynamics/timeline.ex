@@ -2634,13 +2634,7 @@ defmodule OrbitalDynamics.Timeline do
   end
 
   defp activity_timing_context(activity) do
-    %{
-      "starts_at_s" => activity_start(activity),
-      "ends_at_s" => activity_end(activity),
-      "duration_s" => activity_duration_s(activity),
-      "target_id" => activity["target_id"]
-    }
-    |> compact_map()
+    OrbitalDynamics.Timeline.ActivitySchedulingCoordinateContext.timing(activity)
   end
 
   defp activity_operational_hint_context(activity) do
@@ -2660,11 +2654,7 @@ defmodule OrbitalDynamics.Timeline do
   end
 
   defp activity_source_window_context(activity) do
-    %{
-      "source_window_id" => activity_source_window_id(activity),
-      "source_window_type" => activity_source_window_type(activity)
-    }
-    |> compact_map()
+    OrbitalDynamics.Timeline.ActivitySchedulingCoordinateContext.source_window(activity)
   end
 
   defp activity_dependency_context(activity) do
@@ -5319,10 +5309,6 @@ defmodule OrbitalDynamics.Timeline do
 
   defp activity_end(activity) do
     OrbitalDynamics.Timeline.ActivityTimingPolicy.end_time(activity)
-  end
-
-  defp activity_duration_s(activity) do
-    OrbitalDynamics.Timeline.ActivityTimingPolicy.duration(activity)
   end
 
   defp activity_id(activity) do
