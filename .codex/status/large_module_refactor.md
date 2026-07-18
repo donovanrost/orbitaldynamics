@@ -9,43 +9,45 @@ Current slice:
 Timeline activity-template provenance extraction.
 
 Status:
-Selected; implementation has not started.
+Implemented, verified, independently reviewed, committed, and pushed.
 
-Selected boundary:
-Move activity-template context wrapping, provenance validation/field selection,
+Completed boundary:
+Moved activity-template context wrapping, provenance validation/field selection,
 operational-hint normalization, and number/boolean/string hint insertion into a
-dedicated policy. Keep two private Timeline facades for provenance and context,
-including the existing activity-precondition callback.
+118-line `Timeline.ActivityTemplateProvenancePolicy`. The 5,861-line Timeline
+retains two private facades for provenance and context, including the existing
+activity-precondition callback.
 
-Selection evidence:
-- The boundary is 12 adjacent private clauses at Timeline lines 2,618-2,715.
-- Provenance has three consumers: operational row construction, activity
-  operational-hint context, and the activity-precondition callback; context has
-  one valid-activity-context consumer.
-- Existing artifact encoding, numeric-value, and boolean policies supply all
-  dependencies directly, so the extraction requires no callbacks.
-- The extraction should replace roughly 98 helper lines with two thin facades,
-  materially reducing the current 5,950-line Timeline.
-- Valid activity-context coordination, lifecycle/timing/source/product/resource
-  contexts, precondition coordination, public API, and schema remain outside
-  the boundary.
+Published commits:
+Selected in `4151821b` and implemented in `43f3319f`.
 
 Verification:
-Pending: focused baseline, implementation, strict compile, focused and full
-Timeline tests, schema-contract tests, canonical AST equivalence, static
-ownership/facade/public-definition/xref checks, and independent review.
+- Strict warnings-as-errors compile passed across 3,788 files.
+- Two focused template validation/normalization and operational-context
+  examples passed before and after extraction.
+- Full Timeline suite passed with 127 examples; Timeline schema-contract suites
+  passed with 36 examples.
+- Canonical AST equivalence passed for all 12 moved clauses after normalizing
+  only public/private definition kind.
+- Format, diff, whitespace, exactly-two-facade, internal-helper-removal,
+  consumer/callback, unchanged Timeline public-definition,
+  sole-production-consumer, and xref checks passed.
+- Independent read-only review found no production-code issues and confirmed
+  exact validation gates, field selection, hint normalization/insertion order,
+  numeric/boolean/string behavior, adapters, consumers, and callback wiring.
+  Nonempty binary confirmation status remains trimmed exactly as in the baseline.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline operational-kind classification extraction, selected in `54c846d6`,
-implemented in `c51daf17`, and handed off in `7c79ea45`.
+Timeline activity-template provenance extraction, selected in `4151821b` and
+implemented in `43f3319f`.
 
 Next candidate:
-Implement and verify this selected boundary before remapping the reduced
-Timeline facade.
+Continue remapping the reduced Timeline facade after this slice, avoiding wide
+report and activity-context map coordinator callback surfaces.
 
 Blocked:
 No.
