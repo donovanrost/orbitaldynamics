@@ -2547,7 +2547,9 @@ defmodule OrbitalDynamics.Timeline do
     )
   end
 
-  defp stable_activity_id?(id) when is_binary(id), do: Regex.match?(@stable_id_pattern, id)
+  defp stable_activity_id?(id) do
+    OrbitalDynamics.Timeline.StableIdentifierPolicy.valid?(id, @stable_id_pattern)
+  end
 
   defp invalid_activity_input_rows(rows) do
     Enum.filter(rows, &(&1["invalid_activity_input"] == true))
