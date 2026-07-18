@@ -9,7 +9,7 @@ Current slice:
 Campaign-planner operational-review derivation orchestration extraction.
 
 Status:
-Ready for implementation.
+Implementation published as `a5ae4f60`; handoff publication pending.
 
 Selected slice:
 Move the private prior/mission operational-timeline and operator-review pressure
@@ -46,29 +46,48 @@ unchanged; focused operational-review tests pass to their live baseline; strict
 compile and independent review are clean.
 
 Verification gaps:
-- Focused operational-review baseline is pending.
 - The full planner directory retains five known baseline failures; none is in
   the selected focused files.
+- The full directory was not rerun; focused and file-backed coverage is green.
+- Independent review was clean. No API, artifact, determinism, ordering,
+  ownership, error-behavior, or behavioral finding remains.
 
 Tests run:
 - Live inventory: `CampaignPlanner` is 2,113 lines with 152 private functions.
 - Target cluster is 4 ordered pipeline calls and 4 private helpers.
+- Baseline focused operational-review family: 14 passed with warnings as
+  errors.
+- Post-change focused operational-review family: 14 passed with warnings as
+  errors.
+- Strict forced compile: 3,646 files clean with warnings as errors.
+- File-backed facade coverage: 7 passed with warnings as errors.
+- Public `CampaignPlanner` function list matches selection commit `f87eb8cd`.
+  Xref reports the new internal module has only the planner runtime caller.
+- Format, new-file whitespace, and `git diff --check` passed. No old selected
+  operational-review helper remains in the facade.
+- `CampaignPlanner` shrank from 2,113 to 2,064 lines. The new internal
+  operational-review orchestration module is 55 lines.
+- Independent reviewer reran the 14 focused cases, 7 file-backed cases,
+  3,646-file compile, public-def, xref, formatting, diff, and new-file checks;
+  results matched primary proof.
 
 Behavior/schema changes:
 None.
 
 Outcome:
-No operational-review extraction has started.
+The derived-branch pipeline now makes one ordered call to
+`DerivedOperationalReviewPressureBranches.build/3`. The new internal module
+owns the exact prior/mission operational-timeline and operator-review
+source-to-branch sequence. Implementation published as `a5ae4f60`.
 
 Last completed slice:
-Activity-pressure derivation orchestration extraction published as `ed8526d5`:
-`CampaignPlanner` shrank from 2,233 to 2,113 lines; focused, file-backed, and
-compile proof passed; independent review was clean. Handoff published as
-`e419e271`.
+Operational-review derivation orchestration extraction published as
+`a5ae4f60`: `CampaignPlanner` shrank from 2,113 to 2,064 lines; focused,
+file-backed, and compile proof passed; independent review was clean.
 
 Next candidate:
-Publish this selection note, run the focused operational-review baseline, then
-perform the mechanical ordered extraction.
+Publish this handoff, then refresh the remaining facade responsibilities and
+select the next bounded extraction.
 
 Blocked:
 No.
