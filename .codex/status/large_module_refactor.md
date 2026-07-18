@@ -9,41 +9,38 @@ Current slice:
 Timeline declared candidate-rejection reason policy extraction.
 
 Status:
-Selection recorded; implementation has not started.
+Implemented, verified, independently reviewed, committed, and pushed.
 
-Selected boundary:
-Move declared rejection reason collection, delimiter/list splitting, token
-canonicalization, alias mapping, and allowed-reason fallback into
-`Timeline.CandidateRejectionReasonPolicy`. `Timeline` retains one private entry
-point for canonical reasons plus one for raw declared values, and passes the
-existing allowed reason list explicitly; derived reason classification and
-report assembly remain unchanged.
+Completed boundary:
+Moved declared reason collection, recursive splitting, token canonicalization,
+alias mapping, and allowed fallback into the 99-line
+`Timeline.CandidateRejectionReasonPolicy`. The 6,179-line `Timeline` retains two
+private entry points for canonical and raw values; derived logic is unchanged.
 
-Why this slice:
-The initial one-facade selection missed candidate-row publication of raw
-declared values. Retaining both entry points while moving the complete
-nine-clause family isolates source field order, recursive splitting,
-normalization, aliasing, and unknown fallback without pulling derived candidate
-checks or summary coordinators across the boundary.
+Published commits:
+Initially selected in `c71c6889`, corrected in `e59cf630`, and implemented in
+`41dd8346`.
 
-Planned proof:
-- Focused declared/derived candidate rejection, nested capacity evidence, and
-  nested availability evidence examples.
-- Full Timeline and Timeline schema-contract suites.
-- Strict warnings-as-errors compile.
-- Canonical AST equivalence for all nine moved clauses after normalizing only
-  public/private heads, facade names, and explicit allowed-reason routing.
+Verification:
+- Strict warnings-as-errors compile passed across 3,782 files.
+- Three focused declared/derived, nested capacity, and nested availability
+  candidate rejection examples passed.
+- Full Timeline suite passed with 127 examples; Timeline schema-contract suites
+  passed with 36 examples.
+- Canonical AST equivalence passed for all nine moved clauses after normalizing
+  only heads, facade names, and allowed-reason routing.
 - Format, diff, whitespace, ownership, exactly-two-facade, unchanged Timeline
-  public-definition, and xref checks.
-- Independent read-only review before publication.
+  public-definition, and xref checks passed.
+- Independent read-only review found no production-code issues; raw/canonical
+  consumers remain distinct and derived logic is untouched.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline operational row-classification policy extraction, selected in
-`f6d58e54` and implemented in `3a689cf2`.
+Timeline declared candidate-rejection reason policy extraction, initially
+selected in `c71c6889`, corrected in `e59cf630`, and implemented in `41dd8346`.
 
 Next candidate:
 Continue remapping the reduced Timeline facade after this slice, avoiding wide
