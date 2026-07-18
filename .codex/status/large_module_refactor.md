@@ -9,7 +9,7 @@ Current slice:
 Schema export timeline-feedback test split.
 
 Status:
-Selected; implementation has not started.
+Complete and published.
 
 Selected boundary:
 Move all three timeline-feedback schema assertion clusters and their sole
@@ -30,16 +30,27 @@ Selection evidence:
   assertions, and helper ownership remain outside the boundary.
 
 Verification:
-Pending: focused baseline, mechanical assertion/helper move, strict compile,
-focused/original test files, structural/static checks, and independent review.
+- Selection published in `4e2c27b6`; implementation published in `60ac4dea`.
+- Original bundle test baseline: 1 passed.
+- Strict warnings-as-errors compile: 3,800 files compiled.
+- Focused timeline-feedback export test: 1 passed.
+- Retained bundle-content test: 1 passed.
+- Canonical AST comparison: retained bundle remainder, all 12 moved feedback
+  expressions, and the moved helper equivalent in order.
+- Static checks confirmed no feedback assertions/helper remain in the original,
+  13 unchanged retained helpers, no temporary checker, and clean
+  formatting/diff.
+- Independent review: clean, with no findings.
+- Original export ledger is 8,348 lines; the focused timeline-feedback module
+  is 128 lines.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Schema export operational-timeline test split, selected in `779f8c11` and
-implemented in `5b1c6ac9`.
+Schema export timeline-feedback test split, selected in `4e2c27b6` and
+implemented in `60ac4dea`.
 
 Next candidate:
 Continue remapping the reduced Timeline facade.
