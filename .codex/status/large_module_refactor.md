@@ -9,7 +9,7 @@ Current slice:
 Timeline activity lifecycle context extraction.
 
 Status:
-Selected; implementation has not started.
+Complete and published.
 
 Selected boundary:
 Move conditional activity lifecycle context construction into one dedicated
@@ -32,16 +32,27 @@ Selection evidence:
   boundary.
 
 Verification:
-Pending: focused baseline, implementation, strict compile, focused/full tests,
-contracts, structural/static checks, and independent review.
+- Selection published in `a05a86dd`; implementation published in `55d76306`.
+- Focused baseline and post-change lifecycle alias coverage: 2 passed.
+- Strict warnings-as-errors compile: 3,798 files compiled.
+- Full Timeline suite: 127 passed.
+- Operational Timeline schema contracts: 36 passed.
+- Canonical AST comparison: both moved functions equivalent after normalizing
+  only the private helper name.
+- Static checks confirmed unchanged public API, one private facade and one
+  consumer, direct lifecycle normalization adapters, removal of the moved
+  helper, Timeline-only runtime ownership, no temporary checker, and clean
+  formatting/diff.
+- Independent review: clean, with no production-code findings.
+- Timeline is 5,390 lines; the extracted module is 39 lines.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline activity operational-hint context extraction, selected in `37156e81`,
-corrected in `d5b82292`, and implemented in `3f72fc39`.
+Timeline activity lifecycle context extraction, selected in `a05a86dd` and
+implemented in `55d76306`.
 
 Next candidate:
 Continue remapping the reduced Timeline facade.
