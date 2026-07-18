@@ -9,51 +9,38 @@ Current slice:
 CadenceImport proposed-contact manifest-row builder extraction.
 
 Status:
-Slice selected; selection publication pending.
+Implementation published in `f5481b14`; handoff publication pending.
 
-Selected slice:
-Move `proposed_contact_manifest_row/2`, all three cadence-import-status clauses,
-all three import-status clauses, and both activity-context clauses into internal
-`CadenceImport.ProposedContactManifestRow.build/3`. Inject the three shared JSON
-encoding, provider-field normalization, and compaction helpers.
+Completed boundary:
+`CadenceImport.ProposedContactManifestRow.build/3` now owns the exact 53-key
+projection, three cadence-status clauses, three import-status clauses, and both
+activity-context clauses. The facade supplies three shared callbacks for JSON
+encoding, provider-field normalization, and compaction. `CadenceImport` dropped
+from 5,000 to 4,909 lines.
 
-Why this slice:
-The reduced `CadenceImport` facade is 5,000 lines. The cluster has an exact
-53-key projection, two facade callers, eight cohesive helper clauses used
-nowhere else, and a small shared dependency boundary.
+Selection:
+The slice boundary was selected and published in `af3cd62b`.
 
-Public facade to preserve:
-All `CadenceImport` APIs; all proposed-contact keys, ordering, defaults,
-valid/missing/invalid import classification, nested trust-boundary fallback,
-invalid-shape encoding, activity-context normalization, compaction,
-deterministic output, and artifact contracts.
-
-Likely files:
-- `lib/orbital_dynamics/cadence_import.ex`
-- `lib/orbital_dynamics/cadence_import/proposed_contact_manifest_row.ex`
-- `.codex/status/large_module_refactor.md`
-
-Likely tests:
-- `test/orbital_dynamics/cadence_import_test.exs`
-- `test/orbital_dynamics/schema/cadence_import_contracts_test.exs`
-
-Definition of done:
-The internal builder owns the exact 53-key projection and all eight exclusive
-status/context clauses; the facade supplies three exact callbacks; focused
-tests, strict compile, equivalence/API checks, and independent review are clean.
-
-Verification gaps:
-- Focused baseline, implementation proof, strict compile, and review remain.
+Verification:
+- Focused baseline and implementation CadenceImport/contract suites: 100/100.
+- Strict warnings-as-errors compile: 3,705 files.
+- Canonical normalized AST equivalence: exact 53-key body, all eight helper
+  clauses, three callback identities/arities, and public facade definitions.
+- Format, diff, whitespace, ownership-reference, caller, and xref checks: clean;
+  both intended facade call paths remain and xref reports only the facade.
+- Independent review: no code findings; raw import classification, direct then
+  provenance trust fallback, and both invalid-shape encoding paths are exact.
+  Its handoff-only stale-ledger finding is resolved by this replacement.
 
 Behavior/schema changes:
-None intended.
+None. No schema-generation boundary changed, so no export regeneration was
+required.
 
 Last completed slice:
-Plan-delta row builder published in `d3b9c980`; compact handoff published in
-`73fd237c`.
+Proposed-contact manifest-row builder extraction, published in `f5481b14`.
 
 Next candidate:
-Remap the reduced `CadenceImport` module after this extraction.
+Remap the reduced `CadenceImport` module for the next low-coupling builder.
 
 Blocked:
 No.
