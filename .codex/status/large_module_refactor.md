@@ -9,7 +9,7 @@ Current slice:
 Timeline activity-input validation policy extraction.
 
 Status:
-Selection recorded; implementation has not started.
+Implementation published in `ea3e2c42`; focused and broad proof is green.
 
 Selected boundary:
 Move activity input issue precedence plus ID/type/status/approval, nested-shape,
@@ -20,33 +20,32 @@ are supplied as selection data; activity status/approval normalization,
 numeric normalization, and stable-ID validation are supplied as callbacks.
 
 Why this slice:
-The reduced Timeline facade is 7,619 lines. These 19 exclusive clauses form an
-approximately 125-line validation responsibility with no callers outside the
-one facade. Keeping the short-circuit issue order together preserves which
-invalid reason wins when multiple fields are malformed.
+The extraction moved 19 clauses into a 149-line internal module and reduced
+Timeline from 7,619 to 7,507 lines. The one private facade preserves the
+short-circuit order that determines which invalid reason wins.
 
-Planned proof:
-- Focused Timeline tests for general invalid inputs, unit intervals, unsupported
-  approval/status, malformed activity IDs, and malformed identity fields.
-- Full Timeline and Timeline schema-contract suites.
-- Strict warnings-as-errors compile.
-- Canonical AST equivalence for all 19 moved clauses after normalizing only the
+Completed proof:
+- Focused activity-input validation examples: 6 passed.
+- Full Timeline suite: 127 passed.
+- Timeline schema-contract suites: 36 passed.
+- Strict warnings-as-errors compile: 3,725 files.
+- Canonical AST equivalence: all 19 moved clauses after normalizing only the
   facade name and selection-data/callback boundaries.
-- Format, diff, whitespace, ownership, exactly-one-facade, unchanged Timeline
-  public-definition, and xref checks.
-- Independent read-only review before publication.
+- Format, whitespace, ownership, exactly-one-facade, unchanged Timeline public
+  definitions, and xref checks passed.
+- Independent read-only review found no findings.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline invalid-activity row extraction, selected in `e586b0f5`, implemented
-in `9ee57bb5`, and handed off in `90456b40`.
+Timeline activity-input validation policy extraction, selected in `677f8278`
+and implemented in `ea3e2c42`.
 
 Next candidate:
-Remap the reduced Timeline facade after this slice, emphasizing transition
-integrity gating and invalid-input normalization flow.
+Remap the reduced 7,507-line Timeline facade, emphasizing transition integrity
+gating and invalid-input normalization flow.
 
 Blocked:
 No.
