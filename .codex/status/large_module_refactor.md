@@ -9,7 +9,7 @@ Current slice:
 CadenceImport operational-readiness manifest-row builder extraction.
 
 Status:
-Slice selected; selection publication pending.
+Implementation published as `452ab316`; handoff publication pending.
 
 Selected slice:
 Move `operational_readiness_manifest_row/2` into internal
@@ -18,8 +18,9 @@ facade helpers for generic action, review action, adapter status, four readiness
 contexts, and compact-map cleanup.
 
 Why this slice:
-`CadenceImport` is 5,348 lines. The builder has 36 projected keys, four ordered
-context merges, eight shared dependencies, and one facade caller.
+`CadenceImport` was 5,348 lines. The builder had 36 projected keys, four ordered
+context merges, eight shared dependencies, and one facade caller. The facade is
+now 5,317 lines.
 
 Public facade to preserve:
 All `CadenceImport` APIs; all operational-readiness keys and value expressions;
@@ -37,18 +38,25 @@ the facade supplies eight exact callbacks; focused tests, strict compile,
 equivalence/API checks, and independent review are clean.
 
 Verification gaps:
-- Focused baseline, implementation proof, strict compile, and review remain.
+- None for this slice.
 
 Tests run:
-- None yet.
+- Focused CadenceImport and schema contracts: 100/100.
+- Strict warnings-as-errors compile: 3,700 files.
+- Exact AST proof: 36/36 entries, generic action, full normalized body, four
+  ordered merges, and all public facade definitions match `5bacc482`.
+- Format, diff, caller/xref, callback-surface, and whitespace checks clean.
+- Independent read-only review: no code findings or additional test gaps.
 
 Behavior/schema changes:
-None intended.
+None. Cadence-over-training-over-adapter-over-resource-over-base precedence,
+generic action, import/approval defaults, compaction, deterministic output, and
+APIs are exact.
 
 Last completed slice:
-Maneuver-review row builder selected in `5f7acd7e` and published in `a9b6565b`:
-focused 100/100, strict 3,699-file compile, exact 41-entry/full-body AST
-comparison, and independent review passed.
+Operational-readiness row builder selected in `5bacc482` and published in
+`452ab316`: focused 100/100, strict 3,700-file compile, exact 36-entry/full-body
+and four-merge comparison, and independent review passed.
 
 Next candidate:
 Remap the reduced `CadenceImport` module for the next low-coupling builder.
