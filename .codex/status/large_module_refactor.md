@@ -9,39 +9,37 @@ Current slice:
 Timeline lifecycle-status membership policy extraction.
 
 Status:
-Selection recorded; implementation has not started.
+Implemented, verified, independently reviewed, committed, and pushed.
 
-Selected boundary:
-Move executed-status membership, repairable-status membership, and both
-two-clause unsupported approval/activity status predicates into
-`Timeline.LifecycleStatusMembershipPolicy`. `Timeline` retains four private
-entry points and passes existing executed, approval, and activity status lists
-explicitly.
+Completed boundary:
+Moved executed-status membership, repairable-status membership, and both
+two-clause unsupported approval/activity predicates into the 14-line
+`Timeline.LifecycleStatusMembershipPolicy`. The 6,246-line `Timeline` retains
+four private entry points and passes all status lists explicitly.
 
-Why this slice:
-The 6,232-line Timeline facade still owns six exclusive scalar membership
-clauses used by transition review, lifecycle state, and transition application.
-Moving them together isolates nil handling and exact list membership without
-moving lifecycle coordinators or compile-time guard clauses.
+Published commits:
+Selected in `873251c3` and implemented in `804f0f70`.
 
-Planned proof:
-- Focused unsupported approval input, unsupported activity input, reusable
-  transition membership, and lifecycle state examples.
-- Full Timeline and Timeline schema-contract suites.
-- Strict warnings-as-errors compile.
-- Canonical AST equivalence for all six moved clauses after normalizing only
-  public/private heads, facade names, and explicit status-list arguments.
+Verification:
+- Strict warnings-as-errors compile passed across 3,775 files.
+- Four focused unsupported approval/activity, reusable transition, and
+  lifecycle state examples passed.
+- Full Timeline suite passed with 127 examples; Timeline schema-contract suites
+  passed with 36 examples.
+- Canonical AST equivalence passed for all six moved clauses after normalizing
+  only public/private heads, facade names, and status-list arguments.
 - Format, diff, whitespace, ownership, exactly-four-facade, unchanged Timeline
-  public-definition, and xref checks.
-- Independent read-only review before publication.
+  public-definition, and xref checks passed.
+- Independent read-only review found no production-code issues; compile-time
+  lifecycle category guards remain byte-for-byte unchanged.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline approval-protection policy extraction, initially selected in
-`b506b201`, narrowed in `4b15cd10`, and implemented in `32aba82d`.
+Timeline lifecycle-status membership policy extraction, selected in `873251c3`
+and implemented in `804f0f70`.
 
 Next candidate:
 Continue remapping the reduced Timeline facade after this slice, avoiding wide
