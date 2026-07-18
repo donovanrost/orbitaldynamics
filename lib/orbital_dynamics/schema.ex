@@ -1413,17 +1413,17 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property(field, @realized_state_snapshot = contract_name, contract) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.ManeuverArtifactPropertyDispatch.realized_state_snapshot(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.RealizedStateSnapshotJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.RealizedStateSnapshotJsonSchema.property_fun_from_context(
-        realized_activity_schema: &realized_activity_json_schema/0,
-        realized_spacecraft_state_schema: &realized_spacecraft_state_json_schema/0,
-        metadata_schema: &realized_state_snapshot_metadata_json_schema/0,
-        model_limits: &OrbitalDynamics.CampaignPlanner.realized_state_snapshot_model_limits/0
-      )
+      &default_json_schema_property/3,
+      {
+        &realized_activity_json_schema/0,
+        &realized_spacecraft_state_json_schema/0,
+        &realized_state_snapshot_metadata_json_schema/0,
+        &OrbitalDynamics.CampaignPlanner.realized_state_snapshot_model_limits/0
+      }
     )
   end
 
@@ -1852,17 +1852,17 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property(field, @maneuver_recommendation = contract_name, contract) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.ManeuverArtifactPropertyDispatch.recommendation(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.ManeuverRecommendationJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.ManeuverRecommendationJsonSchema.property_fun_from_context(
-        schema_contract: @maneuver_recommendation,
-        stable_id_pattern: @stable_id_pattern,
-        numeric_triplet_schema: &numeric_triplet_schema/0,
-        model_limits: &maneuver_recommendation_model_limits/0
-      )
+      &default_json_schema_property/3,
+      {
+        @maneuver_recommendation,
+        @stable_id_pattern,
+        &numeric_triplet_schema/0,
+        &maneuver_recommendation_model_limits/0
+      }
     )
   end
 
@@ -2467,16 +2467,16 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property(field, @maneuver_review_report = contract_name, contract) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.ManeuverArtifactPropertyDispatch.review(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.ManeuverReviewReportJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.ManeuverReviewReportJsonSchema.property_fun_from_context(
-        row_schema: &maneuver_review_row_json_schema/0,
-        stable_id_pattern: @stable_id_pattern,
-        model_limits: &maneuver_review_report_model_limits/0
-      )
+      &default_json_schema_property/3,
+      {
+        &maneuver_review_row_json_schema/0,
+        @stable_id_pattern,
+        &maneuver_review_report_model_limits/0
+      }
     )
   end
 
