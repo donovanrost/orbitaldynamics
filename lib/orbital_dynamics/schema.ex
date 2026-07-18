@@ -1551,44 +1551,36 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property(field, @execution_report = contract_name, contract) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.ResultArtifactPropertyDispatch.execution_report(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.ExecutionReportJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.ExecutionReportJsonSchema.property_fun_from_context(
-        schema_contract: @execution_report,
-        stable_id_pattern: @stable_id_pattern,
-        model_limits: &OrbitalDynamics.ResultSet.Artifact.execution_report_model_limits/0
-      )
+      &default_json_schema_property/3,
+      {
+        @execution_report,
+        @stable_id_pattern,
+        &OrbitalDynamics.ResultSet.Artifact.execution_report_model_limits/0
+      }
     )
   end
 
   defp json_schema_property(field, @result_artifact = contract_name, contract) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.ResultArtifactPropertyDispatch.result_artifact(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.ResultArtifactJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.ResultArtifactJsonSchema.property_fun_from_context(
-        schema_version: 1,
-        stable_id_pattern: @stable_id_pattern,
-        execution_report_contract: @execution_report,
-        embedded_contract_schema: &embedded_contract_json_schema/1
-      )
+      &default_json_schema_property/3,
+      {1, @stable_id_pattern, @execution_report, &embedded_contract_json_schema/1}
     )
   end
 
   defp json_schema_property(field, @resource_summary = contract_name, contract) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.ResultArtifactPropertyDispatch.resource_summary(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.ResourceSummaryJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.ResourceSummaryJsonSchema.property_fun_from_context(
-        schema_contract: @resource_summary,
-        stable_id_pattern: @stable_id_pattern
-      )
+      &default_json_schema_property/3,
+      {@resource_summary, @stable_id_pattern}
     )
   end
 
