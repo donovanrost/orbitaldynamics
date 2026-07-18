@@ -14,7 +14,9 @@ Selected; implementation has not started.
 Selected boundary:
 Move pointing and attitude context-map construction into one dedicated
 orientation context module. Keep two private Timeline facades and pass the
-existing stable-ID pattern as data for target validation.
+existing stable-ID pattern as data for target validation. Remove the shared
+`first_stable_identifier/2` Timeline facade because strict compile confirmed
+that these builders owned its only remaining callers.
 
 Selection evidence:
 - Pointing owns mode/target/boresight/angles/rate/error/status/model/source and
@@ -22,6 +24,8 @@ Selection evidence:
   and confidence.
 - The builders have three total context-coordinator call sites and share only
   field, numeric, stable-identifier, and compact-map dependencies.
+- The initial strict compile proved `first_stable_identifier/2` became unused
+  after the move; repo search confirmed no other Timeline caller.
 - Direct existing policies satisfy the boundary without Timeline callbacks.
 - The extraction should materially reduce the current 5,662-line Timeline.
 - Observation quality, lighting, thermal, product, resource, broad context
