@@ -6,40 +6,39 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline activity-resource context extraction.
+Timeline activity-link context extraction.
 
 Status:
-Implemented, verified, independently reviewed, committed, and pushed.
+Selected; implementation has not started.
 
-Completed boundary:
-Moved activity resource-state context construction into the 65-line
-`Timeline.ActivityResourceContext`. The 5,585-line Timeline retains one private
-facade for its two coordinator consumers.
+Selected boundary:
+Move activity link-profile and link-quality context construction into a
+dedicated module. Keep one private Timeline facade for its two coordinator
+consumers and route scalar, numeric, boolean, and compaction dependencies
+directly.
 
-Published commits:
-Selected in `45680c40` and implemented in `d4ba542c`.
+Selection evidence:
+- The builder owns protocol/band/modulation/coding/polarization; planned and
+  actual rate variants; delivered/received rates; duration variants; margin,
+  SNR, Eb/No, error/loss rates; carrier/symbol locks; quality status.
+- Its two consumers are the operational row and valid activity-context
+  coordinators.
+- Direct existing policies satisfy the boundary without Timeline callbacks.
+- The extraction should materially reduce the current 5,585-line Timeline.
+- Throughput, precondition, execution uncertainty, command window, resource,
+  orientation, public API, and schema remain outside the boundary.
 
 Verification:
-- Strict warnings-as-errors compile passed across 3,792 files.
-- Three focused numeric-string, reusable-context, and changed-resource diff
-  examples passed before and after extraction.
-- Full Timeline suite passed with 127 examples; Timeline schema-contract suites
-  passed with 36 examples.
-- Canonical AST equivalence passed for the builder after normalizing only its
-  public name and definition kind.
-- Format, diff, exactly-one-facade, two-consumer, unchanged public definitions,
-  sole-consumer, and xref checks passed.
-- Independent review found no production issues and confirmed exact fields,
-  aliases, generated-energy lookup order, booleans, compaction, adapters, and
-  neighbor isolation.
+Pending: focused baseline, implementation, strict compile, focused/full tests,
+contracts, structural/static checks, and independent review.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline activity-resource context extraction, selected in `45680c40` and
-implemented in `d4ba542c`.
+Timeline activity-resource context extraction, selected in `45680c40`,
+implemented in `d4ba542c`, and handed off in `b3901475`.
 
 Next candidate:
 Continue remapping the reduced Timeline facade.
