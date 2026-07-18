@@ -5161,69 +5161,32 @@ defmodule OrbitalDynamics.Timeline do
   defp maybe_gate_single_transition_selected_activity(application, _opts), do: application
 
   defp maybe_validate_transition_helper_selected_integrity(activity, opts) do
-    if Keyword.get(opts, :validate_selected_integrity?, false) do
-      activity
-      |> List.wrap()
-      |> annotate_transition_selected_activities(opts)
-      |> case do
-        [%{} = selected_with_integrity] ->
-          if timeline_integrity_review?(selected_with_integrity) do
-            {:error, transition_helper_selected_integrity_error(selected_with_integrity)}
-          else
-            {:ok, selected_with_integrity}
-          end
-
-        _other ->
-          {:ok, activity}
-      end
-    else
-      {:ok, activity}
-    end
-  end
-
-  defp transition_helper_selected_integrity_error(selected_activity) do
-    %{
-      "field" => "timeline_integrity",
-      "transition_category" => "selected_timeline_integrity_review_required",
-      "requires_operator_review" => true,
-      "required_operator_action" => "review_timeline_integrity",
-      "operator_action_reason" =>
-        selected_integrity_reason(list_value(selected_activity, "timeline_integrity_issue_types"))
-    }
-    |> Map.merge(selected_integrity_context(selected_activity))
-    |> compact_map()
-  end
-
-  defp raise_transition_activity_status_error(%{"field" => "timeline_integrity"} = transition) do
-    raise ArgumentError,
-          "unsafe timeline activity selected integrity: #{transition["operator_action_reason"]}"
+    OrbitalDynamics.Timeline.TransitionHelperIntegrityPolicy.validate(
+      activity,
+      opts,
+      &annotate_transition_selected_activities/2,
+      &timeline_integrity_review?/1,
+      &selected_integrity_reason/1,
+      &list_value/2,
+      &selected_integrity_context/1,
+      &compact_map/1
+    )
   end
 
   defp raise_transition_activity_status_error(transition) do
-    raise ArgumentError,
-          "unsafe timeline activity status transition #{transition["from"]} -> #{transition["to"]}: #{transition["operator_action_reason"]}"
-  end
-
-  defp raise_transition_activity_approval_status_error(
-         %{"field" => "timeline_integrity"} = transition
-       ) do
-    raise ArgumentError,
-          "unsafe timeline activity selected integrity: #{transition["operator_action_reason"]}"
+    OrbitalDynamics.Timeline.TransitionHelperIntegrityPolicy.raise_status_error!(transition)
   end
 
   defp raise_transition_activity_approval_status_error(transition) do
-    raise ArgumentError,
-          "unsafe timeline activity approval transition #{transition["from"]} -> #{transition["to"]}: #{transition["operator_action_reason"]}"
-  end
-
-  defp raise_apply_lifecycle_event_error(%{"field" => "timeline_integrity"} = transition) do
-    raise ArgumentError,
-          "unsafe timeline activity selected integrity: #{transition["operator_action_reason"]}"
+    OrbitalDynamics.Timeline.TransitionHelperIntegrityPolicy.raise_approval_status_error!(
+      transition
+    )
   end
 
   defp raise_apply_lifecycle_event_error(transition) do
-    raise ArgumentError,
-          "unsafe timeline activity lifecycle event #{transition["field"]} transition #{transition["from"]} -> #{transition["to"]}: #{transition["operator_action_reason"]}"
+    OrbitalDynamics.Timeline.TransitionHelperIntegrityPolicy.raise_lifecycle_event_error!(
+      transition
+    )
   end
 
   defp maybe_gate_single_transition_decision_integrity(
