@@ -1329,35 +1329,30 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property(field, @candidate_diff_report = contract_name, contract) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.CandidateRefreshPropertyDispatch.diff_report(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.CandidateDiffJsonSchema.report_property_field?/1,
-      OrbitalDynamics.Schema.CandidateDiffJsonSchema.report_property_fun_from_context(
-        source_window_lineage_schema: fn -> source_window_lineage_json_schema() end,
-        stable_id_pattern: @stable_id_pattern,
-        model_limits: fn -> OrbitalDynamics.CandidateRefresh.model_limits() end,
-        candidate_diff_row_schema: fn -> candidate_diff_row_json_schema() end,
-        invalidated_candidate_schema: fn -> invalidated_candidate_json_schema() end
-      )
+      &default_json_schema_property/3,
+      @stable_id_pattern,
+      {
+        fn -> source_window_lineage_json_schema() end,
+        fn -> OrbitalDynamics.CandidateRefresh.model_limits() end,
+        fn -> candidate_diff_row_json_schema() end,
+        fn -> invalidated_candidate_json_schema() end
+      }
     )
   end
 
   defp json_schema_property(field, contract_name, contract)
        when contract_name in [@candidate_diff_row, @invalidated_candidate, @source_window_lineage] do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.CandidateRefreshPropertyDispatch.diff_family(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.CandidateDiffJsonSchema.family_property_field?(&1, contract_name),
-      OrbitalDynamics.Schema.CandidateDiffJsonSchema.family_property_fun_from_context(
-        contract_name: contract_name,
-        stable_id_pattern: @stable_id_pattern,
-        scoped_context_properties: fn ->
-          candidate_refresh_scoped_context_json_schema_properties()
-        end
-      )
+      &default_json_schema_property/3,
+      @stable_id_pattern,
+      fn -> candidate_refresh_scoped_context_json_schema_properties() end
     )
   end
 
@@ -1368,19 +1363,13 @@ defmodule OrbitalDynamics.Schema do
               @refreshed_window,
               @remaining_horizon
             ] do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.CandidateRefreshPropertyDispatch.auxiliary(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.CandidateRefreshReportJsonSchema.auxiliary_report_property_field?(
-        &1,
-        contract_name
-      ),
-      OrbitalDynamics.Schema.CandidateRefreshReportJsonSchema.auxiliary_report_property_fun_from_context(
-        contract_name: contract_name,
-        stable_id_pattern: @stable_id_pattern,
-        model_limits: fn -> OrbitalDynamics.CandidateRefresh.model_limits() end
-      )
+      &default_json_schema_property/3,
+      @stable_id_pattern,
+      fn -> OrbitalDynamics.CandidateRefresh.model_limits() end
     )
   end
 
