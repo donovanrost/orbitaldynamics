@@ -6,45 +6,49 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline single-transition decision policy extraction.
+Timeline operational action policy extraction.
 
 Status:
-Implementation published in `11b72e46`; focused and broad proof is green.
+Selection recorded; implementation has not started.
 
 Selected boundary:
-Move the complete single-transition decision builder, diff-report adapter, and
-zero/one/multiple-row summarization policy into `Timeline.TransitionDecisionPolicy`.
-`Timeline` retains one private `base_transition_decision/3` facade used by the
-public decision and application helpers. Shared `diff_report/3` and
-`compact_map/1` behavior is supplied as callbacks.
+Move operational-kind inference, Cadence-import status classification, required
+operator-action precedence, and command-review policy into
+`Timeline.OperationalActionPolicy`. `Timeline` retains three private entry
+points used by row construction. Command directions plus terminal/executed
+status lists are supplied as selection data; the seven existing status/import/
+lock/provider evidence helpers are supplied as callbacks.
 
 Why this slice:
-The extraction moved six clauses into a 76-line internal module and reduced
-Timeline from 7,813 to 7,752 lines. The one private facade preserves public
-decision/application callers and leaves integrity gating Timeline-owned.
+The reduced Timeline facade is 7,752 lines. This approximately 95-line,
+14-clause cluster has one cohesive operational classification responsibility
+and is exclusive to normalized row construction. Keeping all precedence
+branches together avoids splitting kind/import inference from the action policy
+that consumes them.
 
-Completed proof:
-- Focused transition decision/application examples: 2 passed.
-- Full Timeline suite: 127 passed.
-- Timeline schema-contract suites: 36 passed.
-- Strict warnings-as-errors compile: 3,721 files.
-- Canonical AST equivalence: all six moved clauses after normalizing only the
-  facade name and two callback boundaries.
-- Format, whitespace, ownership, exactly-one-facade, unchanged Timeline public
-  definitions, and xref checks passed.
-- Independent read-only review found no findings.
+Planned proof:
+- Focused Timeline tests for command authority, kind/import classification,
+  malformed Cadence import, conflict/terminal precedence, provider failure, and
+  rejected/blocked precedence.
+- Full Timeline and Timeline schema-contract suites.
+- Strict warnings-as-errors compile.
+- Canonical AST equivalence for all 14 clauses after normalizing only the three
+  facade names and selection-data/callback boundaries.
+- Format, diff, whitespace, ownership, exactly-three-facade, unchanged Timeline
+  public-definition, and xref checks.
+- Independent read-only review before publication.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline single-transition decision policy extraction, selected in `e398ffc1`
-and implemented in `11b72e46`.
+Timeline single-transition decision policy extraction, selected in `e398ffc1`,
+implemented in `11b72e46`, and handed off in `0407e6f0`.
 
 Next candidate:
-Remap the reduced 7,752-line Timeline facade, emphasizing operational action
-classification and transition integrity gating.
+Remap the reduced Timeline facade after this slice, emphasizing transition
+integrity gating and Cadence-import validation.
 
 Blocked:
 No.
