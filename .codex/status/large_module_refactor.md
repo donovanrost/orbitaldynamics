@@ -6,51 +6,43 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-CadenceImport policy-escalation manifest-row builder extraction.
+CadenceImport constraint manifest-row builder extraction.
 
 Status:
-Implementation published as `b83cc43f`; handoff publication pending.
+Slice selected; selection publication pending.
 
 Selected slice:
-Move `policy_escalation_manifest_row/2` into internal
-`CadenceImport.PolicyEscalationManifestRow.build/3`. Inject the three shared facade
+Move `constraint_manifest_row/2` into internal
+`CadenceImport.ConstraintManifestRow.build/3`. Inject the three shared facade
 helpers for review action, adapter status, and compact-map cleanup.
 
 Why this slice:
-`CadenceImport` was 5,568 lines. The builder was a 38-line transformation with
-30 projected keys, no exclusive helper dependencies, and one facade caller.
-The facade is now 5,540 lines.
+`CadenceImport` is 5,540 lines. The builder is a 36-line transformation with 27
+projected keys, no exclusive helper dependencies, and one facade caller.
 
 Public facade to preserve:
-All `CadenceImport` APIs; all policy-escalation keys and value expressions;
-constant present-status semantics, approval defaults, compaction, deterministic
+All `CadenceImport` APIs; all constraint keys and value expressions;
+action/status semantics, import/approval defaults, compaction, deterministic
 output, and contracts.
 
 Likely files:
 - `lib/orbital_dynamics/cadence_import.ex`
-- `lib/orbital_dynamics/cadence_import/policy_escalation_manifest_row.ex`
+- `lib/orbital_dynamics/cadence_import/constraint_manifest_row.ex`
 - `.codex/status/large_module_refactor.md`
 
 Definition of done:
-The internal builder owns the exact 30-key projection; the facade supplies three
+The internal builder owns the exact 27-key projection; the facade supplies three
 exact callbacks; focused tests, strict compile, equivalence/API checks, and
 independent review are clean.
 
 Verification gaps:
-- None for this slice.
+- Focused baseline, implementation proof, strict compile, and review remain.
 
 Tests run:
-- Focused CadenceImport and schema contracts: 100/100.
-- Strict warnings-as-errors compile: 3,693 files.
-- Exact AST proof: 30/30 entries, full normalized body, and all public facade
-  definitions match selection `ef84fb57`.
-- Both constant `"present"` status uses are exact.
-- Format, diff, caller/xref, callback-surface, and whitespace checks clean.
-- Independent read-only review: no code findings or additional test gaps.
+- None yet.
 
 Behavior/schema changes:
-None. Policy-escalation action/status, approval defaults, compaction,
-deterministic output, and APIs are exact.
+None intended.
 
 Last completed slice:
 Policy-escalation row builder selected in `ef84fb57` and published in
