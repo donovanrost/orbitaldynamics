@@ -15,12 +15,17 @@ Selected boundary:
 Move activity timing/target and source-window context construction into one
 dedicated scheduling-coordinate module. Keep two private Timeline facades for
 their valid-context consumers and route timing, source-window identity, and
-compaction directly through existing policies.
+compaction directly through existing policies. Remove the shared
+`activity_duration_s/1` Timeline facade because strict compile confirmed the
+moved timing builder owned its only remaining caller.
 
 Selection evidence:
 - Timing owns start, end, derived/explicit duration, and target identity.
 - Source-window context owns normalized source-window ID and type.
 - Each builder has exactly one consumer in valid activity-context assembly.
+- The initial strict compile proved `activity_duration_s/1` became unused after
+  the move; repo search confirmed start/end and source-window facades still
+  serve row and identity paths.
 - Direct existing policies satisfy the boundary without Timeline callbacks.
 - The extraction should reduce the current 5,343-line Timeline while preserving
   both private coordinator seams.
