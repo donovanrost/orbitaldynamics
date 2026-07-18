@@ -5727,7 +5727,9 @@ defmodule OrbitalDynamics.Timeline do
     OrbitalDynamics.Timeline.IntegrityCountPolicy.exclusivity_issue_count(rows, &list_value/2)
   end
 
-  defp list_value(value, key), do: Map.get(value, key) || []
+  defp list_value(value, key) do
+    OrbitalDynamics.Timeline.CollectionValuePolicy.list_value(value, key)
+  end
 
   defp diff_dependency_context(prefix, row) do
     OrbitalDynamics.Timeline.DiffRelationshipContextPolicy.dependency(prefix, row)
