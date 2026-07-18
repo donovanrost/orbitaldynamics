@@ -6595,21 +6595,15 @@ defmodule OrbitalDynamics.Timeline do
 
   defp activity_id(%{"id" => id}), do: encode_value(id)
 
-  defp stringify_keys(%{} = map) do
-    Map.new(map, fn {key, value} -> {encode_value(key), stringify_keys(value)} end)
+  defp stringify_keys(value) do
+    OrbitalDynamics.Timeline.ArtifactValueEncodingPolicy.stringify_keys(value)
   end
 
-  defp stringify_keys(values) when is_list(values), do: Enum.map(values, &stringify_keys/1)
-  defp stringify_keys(value), do: encode_value(value)
-
-  defp encode_value(value) when is_boolean(value), do: value
-  defp encode_value(nil), do: nil
-  defp encode_value(value) when is_atom(value), do: Atom.to_string(value)
-  defp encode_value(value), do: value
+  defp encode_value(value) do
+    OrbitalDynamics.Timeline.ArtifactValueEncodingPolicy.encode(value)
+  end
 
   defp compact_map(map) do
-    map
-    |> Enum.reject(fn {_key, value} -> is_nil(value) end)
-    |> Map.new()
+    OrbitalDynamics.Timeline.ArtifactValueEncodingPolicy.compact(map)
   end
 end
