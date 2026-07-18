@@ -79,6 +79,49 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshPropertyDispatch do
     )
   end
 
+  def candidate_refresh(
+        field,
+        contract_name,
+        contract,
+        default_property,
+        {
+          source_window_lineage_schema,
+          invalidated_candidate_schema,
+          candidate_activity_schema,
+          contact_intent_schema,
+          resource_summary_schema,
+          validation_record_schema,
+          model_limits,
+          stable_id_pattern,
+          operational_feedback_schema,
+          provider_counteroffer_actions,
+          safety_case_count_fields,
+          embedded_contract_schema
+        }
+      ) do
+    dispatch(
+      field,
+      contract_name,
+      contract,
+      &CandidateRefreshReportJsonSchema.candidate_refresh_property_field?/1,
+      CandidateRefreshReportJsonSchema.candidate_refresh_property_fun_from_context(
+        source_window_lineage_schema: source_window_lineage_schema,
+        invalidated_candidate_schema: invalidated_candidate_schema,
+        candidate_activity_schema: candidate_activity_schema,
+        contact_intent_schema: contact_intent_schema,
+        resource_summary_schema: resource_summary_schema,
+        validation_record_schema: validation_record_schema,
+        model_limits: model_limits,
+        stable_id_pattern: stable_id_pattern,
+        operational_feedback_schema: operational_feedback_schema,
+        provider_counteroffer_actions: provider_counteroffer_actions,
+        safety_case_count_fields: safety_case_count_fields,
+        embedded_contract_schema: embedded_contract_schema
+      ),
+      default_property
+    )
+  end
+
   defp dispatch(
          field,
          contract_name,

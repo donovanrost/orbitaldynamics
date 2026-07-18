@@ -2572,27 +2572,27 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property(field, @candidate_refresh = contract_name, contract) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.CandidateRefreshPropertyDispatch.candidate_refresh(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.CandidateRefreshReportJsonSchema.candidate_refresh_property_field?/1,
-      OrbitalDynamics.Schema.CandidateRefreshReportJsonSchema.candidate_refresh_property_fun_from_context(
-        source_window_lineage_schema: &source_window_lineage_json_schema/0,
-        invalidated_candidate_schema: &invalidated_candidate_json_schema/0,
-        candidate_activity_schema: &candidate_activity_json_schema/0,
-        contact_intent_schema: &contact_intent_row_json_schema/0,
-        resource_summary_schema: &resource_summary_row_json_schema/0,
-        validation_record_schema: &validation_record_json_schema/0,
-        model_limits: fn -> OrbitalDynamics.CandidateRefresh.model_limits() end,
-        stable_id_pattern: @stable_id_pattern,
-        operational_feedback_schema: &operational_feedback_json_schema/0,
-        provider_counteroffer_actions: fn ->
+      &default_json_schema_property/3,
+      {
+        &source_window_lineage_json_schema/0,
+        &invalidated_candidate_json_schema/0,
+        &candidate_activity_json_schema/0,
+        &contact_intent_row_json_schema/0,
+        &resource_summary_row_json_schema/0,
+        &validation_record_json_schema/0,
+        fn -> OrbitalDynamics.CandidateRefresh.model_limits() end,
+        @stable_id_pattern,
+        &operational_feedback_json_schema/0,
+        fn ->
           OrbitalDynamics.Communications.StationCalendar.capabilities().provider_counteroffer_actions
         end,
-        safety_case_count_fields: &safety_case_count_fields/0,
-        embedded_contract_schema: &embedded_contract_json_schema/1
-      )
+        &safety_case_count_fields/0,
+        &embedded_contract_json_schema/1
+      }
     )
   end
 
