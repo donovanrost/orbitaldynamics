@@ -63,11 +63,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     PriorityCommitmentSatisfaction,
     RealizedActivitiesOperationalFeedback,
     RequestIO,
-    RepairActivityDispatch,
     RepairArtifact,
-    RepairCandidateDiff,
     RepairCandidateInputs,
-    RepairManeuverTransitions,
+    RepairExecution,
     RepairMetadata,
     RepairPolicySemantics,
     RepairRealizedState,
@@ -475,66 +473,18 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp do_repair(%{} = request) do
     prior_plan = request.prior_plan
-
-    planned_activities =
-      prior_plan
-      |> Map.get("activities", [])
-      |> Enum.map(&ValueEncoding.stringify_keys/1)
-      |> Enum.map(&DownlinkActivityNormalization.normalize/1)
-
-    source_candidates = repair_candidates(prior_plan, request.candidate_refresh)
-
-    {candidates, station_calendar_report} =
-      apply_repair_station_calendar(source_candidates, request)
-
-    realized_by_id = RepairRealizedState.activities_by_id(request.realized_state)
-    degraded_modes = degraded_modes_by_scenario(request.realized_state, request.repair_policy)
-    selected_activity_ids = selected_activity_ids(planned_activities)
-    rejected_replacement_candidate_ids = repair_rejected_candidate_ids(request)
-
-    initial = %{
-      activities: [],
-      deltas: [],
-      approval_requirements: [],
-      warnings: [],
-      used_replacement_ids: MapSet.new(),
-      delayed_maneuvers: []
-    }
-
-    repaired =
-      planned_activities
-      |> Enum.sort_by(&{ActivityTiming.activity_start(&1), ActivityIdentity.activity_id(&1)})
-      |> Enum.reduce(initial, fn activity, acc ->
-        RepairActivityDispatch.repair(activity, acc, %{
-          candidates: candidates,
-          current_epoch_s: request.current_epoch_s,
-          remaining_horizon: request.remaining_horizon,
-          realized_by_id: realized_by_id,
-          degraded_modes: degraded_modes,
-          rejected_replacement_candidate_ids: rejected_replacement_candidate_ids,
-          selected_activity_ids: selected_activity_ids,
-          repair_policy: request.repair_policy,
-          scoring_policy: request.scoring_policy,
-          candidate_diff_replacements:
-            repair_candidate_diff_replacements(request.candidate_refresh)
-        })
-      end)
-      |> RepairManeuverTransitions.mark_downstream_effects()
-
-    activities =
-      Enum.sort_by(
-        repaired.activities,
-        &{ActivityTiming.activity_start(&1), ActivityIdentity.activity_id(&1)}
-      )
-
-    deltas = Enum.sort_by(repaired.deltas, &{&1.activity_id, &1.status})
-    approval_requirements = Enum.sort_by(repaired.approval_requirements, & &1["activity_id"])
+    execution = RepairExecution.run(request)
+    planned_activities = execution.planned_activities
+    candidates = execution.candidates
+    activities = execution.activities
+    deltas = execution.deltas
+    approval_requirements = execution.approval_requirements
 
     {approval_status, approval_requirements, approval_rule_matches, policy_decision} =
       repair_approval_decision(approval_requirements, request.approval_policy)
 
     warnings =
-      repaired.warnings
+      execution.warnings
       |> Kernel.++(repair_refresh_warnings(request.candidate_refresh))
       |> Enum.uniq()
       |> Enum.sort()
@@ -611,7 +561,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       contact_allocation_report: repair_contact_allocation_report(activities, request),
       source_resource_projection_report: source_resource_projection_report,
       source_timeline_feedback_report: source_timeline_feedback_report,
-      station_calendar_report: station_calendar_report,
+      station_calendar_report: execution.station_calendar_report,
       timeline_protection: timeline_protection,
       timeline_transition_application_report: timeline_transition_application_report
     })
@@ -1265,19 +1215,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
     )
   end
 
-  defp apply_repair_station_calendar(candidates, %{ground_network: nil}), do: {candidates, nil}
-
-  defp apply_repair_station_calendar(candidates, %{ground_network: ground_network} = request) do
-    apply_station_calendar(
-      candidates,
-      %{
-        "ground_network" => ground_network,
-        "approval_policy" => Map.get(request, :approval_policy)
-      },
-      "repair.ground_network"
-    )
-  end
-
   defp apply_campaign_resource_filters(candidates, campaign) do
     summaries =
       campaign
@@ -1714,14 +1651,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
     raise ArgumentError, "invalid generated_at: #{inspect(generated_at)}"
   end
 
-  defp repair_candidates(prior_plan, nil) do
-    RepairCandidateInputs.candidates(prior_plan, nil)
-  end
-
-  defp repair_candidates(_prior_plan, %{} = candidate_refresh) do
-    RepairCandidateInputs.candidates(nil, candidate_refresh)
-  end
-
   defp repair_resource_summaries(nil), do: []
 
   defp repair_resource_summaries(%{} = candidate_refresh) do
@@ -1818,18 +1747,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
     )
   end
 
-  defp repair_candidate_diff_replacements(nil), do: %{}
-
-  defp repair_candidate_diff_replacements(%{} = candidate_refresh) do
-    RepairCandidateDiff.replacements(candidate_refresh)
-  end
-
   defp repair_candidate_rejection_report(%{} = request) do
     RepairSourceReports.candidate_rejection_report(request)
-  end
-
-  defp repair_rejected_candidate_ids(%{} = request) do
-    RepairSourceReports.rejected_candidate_ids(request)
   end
 
   defp repair_operational_readiness_report(candidate_refresh) do
@@ -1873,17 +1792,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
   defp plan_id(study_id, generated_at) do
     "campaign_plan:" <>
       ValueEncoding.encode_value(study_id) <> ":" <> DateTime.to_iso8601(generated_at)
-  end
-
-  defp selected_activity_ids(planned_activities) do
-    planned_activities
-    |> Enum.map(&ValueEncoding.stringify_keys/1)
-    |> Enum.map(&ActivityIdentity.activity_id/1)
-    |> MapSet.new()
-  end
-
-  defp degraded_modes_by_scenario(realized_state, repair_policy) do
-    RepairPolicySemantics.degraded_modes_by_scenario(realized_state, repair_policy)
   end
 
   defp score(score_terms) do
