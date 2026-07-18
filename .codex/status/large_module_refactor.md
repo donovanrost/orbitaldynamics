@@ -9,7 +9,7 @@ Current slice:
 Schema contact-planning property-dispatch extraction.
 
 Status:
-Slice selected; selection publication pending.
+Implementation published as `f2c56254`; handoff publication pending.
 
 Selected slice:
 Move JSON-property dispatch/context assembly for contact intent,
@@ -42,13 +42,29 @@ refresh/export tests pass; strict compile, full byte-clean schema regeneration,
 and independent review are clean.
 
 Verification gaps:
-- Focused baseline, strict compile, export proof, and independent review remain.
+- None for this slice. Full checked-in schema regeneration is byte-identical.
+- Independent review was clean. No API, schema, export, ordering,
+  error-behavior, ownership, or behavioral finding remains.
 
 Tests run:
-- None yet for this selected slice.
+- Baseline and post-change focused campaign/contact/refresh/export subset:
+  40 passed with warnings as errors.
+- Strict forced compile: 3,664 files clean with warnings as errors.
+- Full schema export regenerated every checked-in schema and bundle with zero
+  diff.
+- Public `Schema` definitions match selection commit `3fa93fab`; xref reports
+  the dispatcher has only the `Schema` runtime caller.
+- Format, changed/new-file whitespace, and `git diff --check` passed.
+- Independent review confirmed exact context order, callback arities, unchanged
+  proposed-contact import closure and neighboring routes, then reran all proof
+  clean.
 
 Behavior/schema changes:
 None intended.
+
+Outcome:
+Contact intent, contact-intent summary, and proposed-contact routes now delegate
+to `ContactPlanningPropertyDispatch`. Implementation published as `f2c56254`.
 
 Last completed slice:
 Policy artifact schema dispatch published as implementation `f5409c15` and
