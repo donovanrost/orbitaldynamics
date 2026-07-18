@@ -1256,15 +1256,12 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property(field, @activity_template = contract_name, contract) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.PlanningReferencePropertyDispatch.activity_template(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.ActivityTemplateJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.ActivityTemplateJsonSchema.property_fun_from_context(
-        schema_contract: @activity_template,
-        stable_id_pattern: @stable_id_pattern
-      )
+      &default_json_schema_property/3,
+      {@activity_template, @stable_id_pattern}
     )
   end
 
@@ -1293,35 +1290,30 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property(field, @capability_catalog = contract_name, contract) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.PlanningReferencePropertyDispatch.capability_catalog(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.CapabilityCatalogJsonSchema.property_field?/1,
-      &OrbitalDynamics.Schema.CapabilityCatalogJsonSchema.property/1
+      &default_json_schema_property/3
     )
   end
 
   defp json_schema_property(field, @accepted_planning_state = contract_name, contract) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.PlanningReferencePropertyDispatch.accepted_state(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.AcceptedStateJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.AcceptedStateJsonSchema.property_fun_from_context(
-        spacecraft_state_estimate_schema: &spacecraft_state_estimate_json_schema/0,
-        maneuver_execution_delta_schema: &maneuver_execution_delta_json_schema/0
-      )
+      &default_json_schema_property/3,
+      {&spacecraft_state_estimate_json_schema/0, &maneuver_execution_delta_json_schema/0}
     )
   end
 
   defp json_schema_property(field, @manifest_field_reference = contract_name, contract) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.PlanningReferencePropertyDispatch.manifest_field_reference(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.ManifestFieldReferenceJsonSchema.property_field?/1,
-      &OrbitalDynamics.Schema.ManifestFieldReferenceJsonSchema.property/1
+      &default_json_schema_property/3
     )
   end
 
