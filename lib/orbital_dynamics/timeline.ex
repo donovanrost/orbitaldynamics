@@ -6093,171 +6093,24 @@ defmodule OrbitalDynamics.Timeline do
       approval_status not in ["approved", "auto_approvable", "locked"]
   end
 
-  defp provider_execution_failure_reason(activity, "contact") do
-    cond do
-      provider_result_failure?(Map.get(activity, "contact_result")) ->
-        "contact_result_#{provider_result_failure_token(activity["contact_result"])}_requires_review"
-
-      Map.get(activity, "contact_success") == false ->
-        "contact_success_false_requires_review"
-
-      true ->
-        nil
-    end
+  defp provider_execution_failure_reason(activity, kind) do
+    OrbitalDynamics.Timeline.ProviderResult.execution_failure_reason(
+      activity,
+      kind,
+      @provider_result_map_value_keys
+    )
   end
-
-  defp provider_execution_failure_reason(activity, kind)
-       when kind in ["command", "health_check"] do
-    cond do
-      provider_result_failure?(Map.get(activity, "command_result")) ->
-        "command_result_#{provider_result_failure_token(activity["command_result"])}_requires_review"
-
-      Map.get(activity, "command_success") == false ->
-        "command_success_false_requires_review"
-
-      provider_result_failure?(Map.get(activity, "contact_result")) ->
-        "contact_result_#{provider_result_failure_token(activity["contact_result"])}_requires_review"
-
-      Map.get(activity, "contact_success") == false ->
-        "contact_success_false_requires_review"
-
-      true ->
-        nil
-    end
-  end
-
-  defp provider_execution_failure_reason(_activity, _kind), do: nil
 
   defp provider_result_failure?(result) do
-    result
-    |> provider_result_outcomes()
-    |> Enum.member?(:failure)
+    OrbitalDynamics.Timeline.ProviderResult.failure?(result, @provider_result_map_value_keys)
   end
 
-  defp provider_result_failure_token(result) do
-    result
-    |> provider_result_values()
-    |> Enum.find_value(fn token ->
-      normalized = provider_result_token(token)
-      if provider_result_token_outcome(normalized) == :failure, do: normalized
-    end) || "failure"
+  defp provider_result_artifact_value(result) do
+    OrbitalDynamics.Timeline.ProviderResult.artifact_value(
+      result,
+      @provider_result_map_value_keys
+    )
   end
-
-  defp provider_result_outcomes(result) do
-    result
-    |> provider_result_values()
-    |> Enum.map(&provider_result_token/1)
-    |> Enum.map(&provider_result_token_outcome/1)
-    |> Enum.reject(&(&1 == :unknown))
-  end
-
-  defp provider_result_values(result) when is_binary(result) do
-    result
-    |> String.split(",", trim: true)
-    |> Enum.map(&String.trim/1)
-    |> Enum.reject(&(&1 == ""))
-  end
-
-  defp provider_result_values(values) when is_list(values) do
-    Enum.flat_map(values, &provider_result_values/1)
-  end
-
-  defp provider_result_values(%{} = result) do
-    Enum.flat_map(@provider_result_map_value_keys, fn key ->
-      result
-      |> Map.get(key)
-      |> provider_result_values()
-    end)
-  end
-
-  defp provider_result_values(nil), do: []
-
-  defp provider_result_values(result) when is_atom(result) do
-    result
-    |> Atom.to_string()
-    |> provider_result_values()
-  end
-
-  defp provider_result_values(_result), do: []
-
-  defp provider_result_artifact_value(nil), do: nil
-
-  defp provider_result_artifact_value(result) when is_binary(result) do
-    case String.trim(result) do
-      "" -> nil
-      _value -> result
-    end
-  end
-
-  defp provider_result_artifact_value(results) when is_list(results) do
-    case provider_result_values(results) do
-      [] -> nil
-      values -> Enum.join(values, ",")
-    end
-  end
-
-  defp provider_result_artifact_value(%{} = result) do
-    case provider_result_values(result) do
-      [] -> nil
-      values -> Enum.join(values, ",")
-    end
-  end
-
-  defp provider_result_artifact_value(result) when is_integer(result),
-    do: Integer.to_string(result)
-
-  defp provider_result_artifact_value(result) when is_float(result), do: Float.to_string(result)
-  defp provider_result_artifact_value(result) when is_boolean(result), do: Atom.to_string(result)
-
-  defp provider_result_artifact_value(result) when is_atom(result) do
-    result
-    |> Atom.to_string()
-    |> provider_result_artifact_value()
-  end
-
-  defp provider_result_artifact_value(_result), do: nil
-
-  defp provider_result_token(token) when is_binary(token) do
-    token
-    |> String.trim()
-    |> String.downcase()
-    |> String.replace(~r/[\s-]+/, "_")
-  end
-
-  defp provider_result_token_outcome(value)
-       when value in [
-              "rejected",
-              "failed",
-              "failure",
-              "timeout",
-              "timed_out",
-              "aborted",
-              "error",
-              "dropped",
-              "lost",
-              "missed",
-              "canceled",
-              "cancelled",
-              "no_contact"
-            ],
-       do: :failure
-
-  defp provider_result_token_outcome(value)
-       when value in [
-              "accepted",
-              "acknowledged",
-              "completed",
-              "executed",
-              "succeeded",
-              "success",
-              "ok",
-              "acquired",
-              "established",
-              "delivered"
-            ],
-       do: :success
-
-  defp provider_result_token_outcome(_value), do: :unknown
 
   defp cadence_import(%{"cadence_import" => cadence_import} = activity)
        when is_map(cadence_import) do
