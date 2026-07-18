@@ -6,47 +6,47 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline lifecycle-transition review policy extraction.
+Timeline lifecycle-vocabulary policy extraction.
 
 Status:
-Implementation published in `b16a898a`; focused and broad proof is green.
+Selection recorded; implementation has not started.
 
 Selected boundary:
-Move status/approval transition review classification, shared review metadata
-construction, and operator-review detection into
-`Timeline.LifecycleTransitionReviewPolicy`. `Timeline` retains the private
-status-review, approval-review, and review-detection entry points. Status lists
-and existing unsupported/repairable predicates cross the boundary explicitly;
-transition assembly and lifecycle categories remain Timeline-owned.
+Move status/approval lifecycle category classification, supported-value checks,
+and repairable-status classification into `Timeline.LifecycleVocabularyPolicy`.
+`Timeline` retains private entry points for status category, approval category,
+unsupported status/approval checks, and repairable status. All vocabulary lists
+cross the boundary explicitly.
 
 Why this slice:
-The extraction moved nine clauses into a 194-line internal module and reduced
-Timeline from 6,918 to 6,791 lines. Three private entry points preserve status
-review, approval review, and operator-review detection callers while transition
-assembly and lifecycle categories remain Timeline-owned.
+The reduced Timeline facade is 6,791 lines. These 18 clauses own the shared
+lifecycle vocabulary consumed by reports, transition assembly, direct helpers,
+and review policy callbacks. The boundary consolidates classification without
+moving any artifact assembly.
 
-Completed proof:
-- Focused lifecycle-transition review examples: 2 passed.
-- Full Timeline suite: 127 passed.
-- Timeline schema-contract suites: 36 passed.
-- Strict warnings-as-errors compile: 3,739 files.
-- Canonical AST equivalence: all nine moved clauses after normalizing only the
-  three facade names, constant arguments, and predicate callbacks.
-- Format, whitespace, ownership, exactly-three-facade, unchanged Timeline public
-  definitions, and xref checks passed.
-- Independent read-only review found no findings.
+Planned proof:
+- Focused Timeline transition/state examples covering executed, terminal,
+  blocked, repairable, planned, protected, review-required, rejected,
+  unsupported, and nil values.
+- Full Timeline and Timeline schema-contract suites.
+- Strict warnings-as-errors compile.
+- Canonical AST equivalence for all 18 moved clauses after normalizing only the
+  five facade names and constant arguments.
+- Format, diff, whitespace, ownership, exactly-five-facade, unchanged Timeline
+  public-definition, and xref checks.
+- Independent read-only review before publication.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline lifecycle-transition review policy extraction, selected in `f1b8de8b`
-and implemented in `b16a898a`.
+Timeline lifecycle-transition review policy extraction, selected in `f1b8de8b`,
+implemented in `b16a898a`, and handed off in `2c0d16f2`.
 
 Next candidate:
-Remap the reduced 6,791-line Timeline facade, emphasizing lifecycle transition
-assembly and remaining activity normalization.
+Remap the reduced Timeline facade after this slice, emphasizing lifecycle
+transition assembly and remaining activity normalization.
 
 Blocked:
 No.
