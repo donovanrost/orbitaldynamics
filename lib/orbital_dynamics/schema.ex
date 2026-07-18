@@ -1513,31 +1513,31 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property(field, @timeline_activity_state = contract_name, contract) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.TimelineActivityStatePropertyDispatch.state(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.TimelineActivityStateJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.TimelineActivityStateJsonSchema.property_fun_from_context(
-        row_schema: &timeline_feedback_row_json_schema/0,
-        schema_contract: @timeline_activity_state,
-        capability: &OrbitalDynamics.TimelineFeedback.capabilities/0,
-        stable_id_pattern: @stable_id_pattern,
-        stable_id_array_schema: &stable_id_array_schema/0,
-        string_array_schema: &string_array_schema/0,
-        timeline_identity_schema: &timeline_identity_json_schema/0,
-        activity_context_schema: &activity_context_json_schema/0,
-        lifecycle_transition_schema: &lifecycle_transition_json_schema/0,
-        protection_decision_schema: &protection_decision_json_schema/0,
-        assumptions_schema: fn ->
+      &default_json_schema_property/3,
+      @timeline_activity_state,
+      @stable_id_pattern,
+      {
+        &timeline_feedback_row_json_schema/0,
+        &OrbitalDynamics.TimelineFeedback.capabilities/0,
+        &stable_id_array_schema/0,
+        &string_array_schema/0,
+        &timeline_identity_json_schema/0,
+        &activity_context_json_schema/0,
+        &lifecycle_transition_json_schema/0,
+        &protection_decision_json_schema/0,
+        fn ->
           timeline_activity_state_assumptions_json_schema([
             "artifact_only",
             "no_schedule_mutation",
             "no_command_execution"
           ])
         end,
-        model_limits: &timeline_feedback_report_model_limits/0
-      )
+        &timeline_feedback_report_model_limits/0
+      }
     )
   end
 
@@ -1958,25 +1958,22 @@ defmodule OrbitalDynamics.Schema do
               @timeline_activity_approval_state,
               @timeline_activity_lifecycle_state
             ] do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.TimelineActivityStatePropertyDispatch.lifecycle(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.TimelineActivityLifecycleStateJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.TimelineActivityLifecycleStateJsonSchema.property_fun_from_context(
-        contract_name: contract_name,
-        model_limits: &timeline_report_model_limits/0,
-        stable_id_pattern: @stable_id_pattern,
-        transition_decisions: &timeline_transition_decisions/0,
-        string_array_schema: &string_array_schema/0,
-        lifecycle_transition_schema: &lifecycle_transition_json_schema/0,
-        protection_decision_schema: &protection_decision_json_schema/0,
-        activity_context_schema: &activity_context_json_schema/0,
-        lifecycle_assumptions_schema:
-          &OrbitalDynamics.Schema.TimelineActivityLifecycleStateJsonSchema.lifecycle_assumptions/0,
-        default_assumptions_schema:
-          &OrbitalDynamics.Schema.TimelineActivityLifecycleStateJsonSchema.default_assumptions/0
-      )
+      &default_json_schema_property/3,
+      @stable_id_pattern,
+      {
+        &timeline_report_model_limits/0,
+        &timeline_transition_decisions/0,
+        &string_array_schema/0,
+        &lifecycle_transition_json_schema/0,
+        &protection_decision_json_schema/0,
+        &activity_context_json_schema/0,
+        &OrbitalDynamics.Schema.TimelineActivityLifecycleStateJsonSchema.lifecycle_assumptions/0,
+        &OrbitalDynamics.Schema.TimelineActivityLifecycleStateJsonSchema.default_assumptions/0
+      }
     )
   end
 
