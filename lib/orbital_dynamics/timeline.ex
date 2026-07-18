@@ -256,7 +256,6 @@ defmodule OrbitalDynamics.Timeline do
   @candidate_rejection_actions ~w(none review_candidate_rejection)
   @command_health_activity_types ~w(command health_check)
   @command_contact_directions ~w(command uplink)
-  @command_window_activity_types ~w(command tracking health_check)
   @operational_kinds ~w(activity attitude coast command contact health_check maneuver observation)
   @stable_id_pattern ~r/^[A-Za-z0-9][A-Za-z0-9._:@-]*$/
   @provider_result_map_value_keys ~w(result results outcome outcomes status state disposition provider_result provider_results provider_outcome provider_outcomes provider_status provider_state provider_code code reason reasons message messages error errors details metadata provider diagnostics)
@@ -4229,57 +4228,12 @@ defmodule OrbitalDynamics.Timeline do
   end
 
   defp activity_command_window_context(activity) do
-    if command_window_context_relevant?(activity) do
-      %{
-        "command_window_id" => activity_command_window_id(activity),
-        "command_window_type" => activity_command_window_type(activity)
-      }
-      |> compact_map()
-    else
-      %{}
-    end
+    OrbitalDynamics.Timeline.CommandWindowContext.build(
+      activity,
+      activity_id: &activity_id/1,
+      compact_map: &compact_map/1
+    )
   end
-
-  defp command_window_context_relevant?(activity) do
-    activity["type"] in @command_window_activity_types or
-      is_map(activity["command_window"]) or
-      is_binary(activity["command_window_id"]) or
-      is_binary(activity["command_window_type"]) or
-      is_binary(activity["window_type"]) or
-      is_binary(get_in(activity, ["metadata", "command_window_id"])) or
-      is_binary(get_in(activity, ["metadata", "command_window_type"]))
-  end
-
-  defp activity_command_window_id(activity) do
-    activity["command_window_id"] ||
-      get_in(activity, ["command_window", "id"]) ||
-      get_in(activity, ["metadata", "command_window_id"]) ||
-      inferred_command_window_id(activity)
-  end
-
-  defp inferred_command_window_id(activity) do
-    case activity_id(activity) do
-      "" -> nil
-      activity_id -> "command_window:#{activity_id}"
-    end
-  end
-
-  defp activity_command_window_type(activity) do
-    activity["command_window_type"] ||
-      activity["window_type"] ||
-      get_in(activity, ["command_window", "type"]) ||
-      get_in(activity, ["command_window", "window_type"]) ||
-      get_in(activity, ["metadata", "command_window_type"]) ||
-      infer_command_window_type(activity)
-  end
-
-  defp infer_command_window_type(%{"type" => "command"}), do: "command_window"
-  defp infer_command_window_type(%{"type" => "health_check"}), do: "health_check_window"
-  defp infer_command_window_type(%{"type" => "tracking"}), do: "tracking_window"
-  defp infer_command_window_type(%{"direction" => "tracking"}), do: "tracking_window"
-  defp infer_command_window_type(%{"direction" => "uplink"}), do: "uplink_window"
-  defp infer_command_window_type(%{"direction" => "command"}), do: "command_window"
-  defp infer_command_window_type(_activity), do: "command_context_window"
 
   defp numeric_triplet([x, y, z]) do
     triplet = Enum.map([x, y, z], &numeric_value/1)
