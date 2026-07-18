@@ -12,15 +12,16 @@ Status:
 Slice selected; selection publication pending.
 
 Selected slice:
-Move `approval_requirement_manifest_row/2` and its now-exclusive candidate-diff
-enrichment helpers into internal
-`CadenceImport.ApprovalRequirementManifestRow.build/3`. Inject nine shared facade
-helpers for policy selection, normalization, review/adapter status, activity
-context, and compaction.
+Move `approval_requirement_manifest_row/2` and its exclusive candidate-diff
+row-enrichment helpers into internal
+`CadenceImport.ApprovalRequirementManifestRow.build/3`. Keep changed-field/count
+normalization shared with candidate diff and inject eleven facade helpers for
+that shared normalization plus policy, review/adapter, activity context, and
+compaction.
 
 Why this slice:
 `CadenceImport` is 5,142 lines. The builder has 33 base keys, an exclusive
-candidate-diff enrichment chain, nine shared dependencies, and one facade
+candidate-diff row-enrichment chain, eleven shared dependencies, and one facade
 caller.
 
 Public facade to preserve:
@@ -34,16 +35,18 @@ Likely files:
 - `.codex/status/large_module_refactor.md`
 
 Definition of done:
-The internal builder owns the exact 33-key base projection and complete
-candidate-diff enrichment chain; the facade supplies nine exact callbacks;
-focused tests, strict compile, equivalence/API checks, and independent review
-are clean.
+The internal builder owns the exact 33-key base projection and row-enrichment
+chain; shared changed-field/count normalization stays in the facade, which
+supplies eleven exact callbacks; focused tests, strict compile, equivalence/API
+checks, and independent review are clean.
 
 Verification gaps:
 - Focused baseline, implementation proof, strict compile, and review remain.
 
 Tests run:
-- None yet.
+- Focused baseline: 100/100.
+- Initial implementation compile exposed shared changed-field/count ownership
+  omitted from the selection; selection corrected before successful compile.
 
 Behavior/schema changes:
 None intended.
