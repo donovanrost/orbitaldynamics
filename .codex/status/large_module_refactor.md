@@ -6,52 +6,44 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-CadenceImport operational-readiness manifest-row builder extraction.
+CadenceImport generic-review manifest-row builder extraction.
 
 Status:
-Implementation published as `452ab316`; handoff publication pending.
+Slice selected; selection publication pending.
 
 Selected slice:
-Move `operational_readiness_manifest_row/2` into internal
-`CadenceImport.OperationalReadinessManifestRow.build/3`. Inject eight shared
-facade helpers for generic action, review action, adapter status, four readiness
-contexts, and compact-map cleanup.
+Move `generic_review_manifest_row/2` into internal
+`CadenceImport.GenericReviewManifestRow.build/3`. Inject seven shared facade
+helpers for presence, action, review action, adapter status, activity context,
+provider normalization, and compact-map cleanup.
 
 Why this slice:
-`CadenceImport` was 5,348 lines. The builder had 36 projected keys, four ordered
-context merges, eight shared dependencies, and one facade caller. The facade is
-now 5,317 lines.
+`CadenceImport` is 5,317 lines. The builder has 20 base keys, one passthrough
+registry merge, seven shared dependencies, and one fallback facade caller.
 
 Public facade to preserve:
-All `CadenceImport` APIs; all operational-readiness keys and value expressions;
-resource, adapter, training, then cadence context precedence; generic action,
-import/approval defaults, compaction, deterministic output, and contracts.
+All `CadenceImport` APIs; all generic-review keys and value expressions;
+passthrough precedence with `has_cadence_import` protected, activity-context
+normalization, presence/action/defaults, compaction, and deterministic output.
 
 Likely files:
 - `lib/orbital_dynamics/cadence_import.ex`
-- `lib/orbital_dynamics/cadence_import/operational_readiness_manifest_row.ex`
+- `lib/orbital_dynamics/cadence_import/generic_review_manifest_row.ex`
 - `.codex/status/large_module_refactor.md`
 
 Definition of done:
-The internal builder owns the exact 36-key projection and four ordered merges;
-the facade supplies eight exact callbacks; focused tests, strict compile,
-equivalence/API checks, and independent review are clean.
+The internal builder owns the exact 20-key base projection and protected
+passthrough merge; the facade supplies seven exact callbacks; focused tests,
+strict compile, equivalence/API checks, and independent review are clean.
 
 Verification gaps:
-- None for this slice.
+- Focused baseline, implementation proof, strict compile, and review remain.
 
 Tests run:
-- Focused CadenceImport and schema contracts: 100/100.
-- Strict warnings-as-errors compile: 3,700 files.
-- Exact AST proof: 36/36 entries, generic action, full normalized body, four
-  ordered merges, and all public facade definitions match `5bacc482`.
-- Format, diff, caller/xref, callback-surface, and whitespace checks clean.
-- Independent read-only review: no code findings or additional test gaps.
+- None yet.
 
 Behavior/schema changes:
-None. Cadence-over-training-over-adapter-over-resource-over-base precedence,
-generic action, import/approval defaults, compaction, deterministic output, and
-APIs are exact.
+None intended.
 
 Last completed slice:
 Operational-readiness row builder selected in `5bacc482` and published in
