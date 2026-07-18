@@ -4860,38 +4860,13 @@ defmodule OrbitalDynamics.CadenceImport do
   end
 
   defp ranking_comparison_manifest_row(row, rank) do
-    approval_status = Map.get(row, "approval_status", "operator_review_required")
-    import_status = Map.get(row, "cadence_import_status", "present")
-
-    %{
-      "id" => "cadence_import:ranking_comparison:#{row["id"] || rank}",
-      "rank" => rank,
-      "import_action" => "review_ranking_comparison",
-      "import_status" => adapter_import_status(import_status, approval_status),
-      "import_side" => "source",
-      "source_review_row_id" => row["id"],
-      "source_review_type" => row["review_type"],
-      "source_review_action" => source_review_action(row),
-      "source" => row["source"],
-      "subject_id" => row["subject_id"],
-      "scenario_id" => row["scenario_id"],
-      "scenario_index" => row["scenario_index"],
-      "approval_status" => approval_status,
-      "required_operator_action" => row["required_operator_action"],
-      "reason" => row["reason"],
-      "status" => row["status"],
-      "left_rank" => row["left_rank"],
-      "right_rank" => row["right_rank"],
-      "rank_delta" => row["rank_delta"],
-      "left_value" => row["left_value"],
-      "right_value" => row["right_value"],
-      "value_delta" => row["value_delta"],
-      "cadence_import_status" => import_status,
-      "has_cadence_import" => false,
-      "source_ranking_comparison" => row["source_ranking_comparison"],
-      "source_review_row" => row
-    }
-    |> compact_map()
+    OrbitalDynamics.CadenceImport.RankingComparisonManifestRow.build(
+      row,
+      rank,
+      source_review_action: &source_review_action/1,
+      adapter_import_status: &adapter_import_status/2,
+      compact_map: &compact_map/1
+    )
   end
 
   defp score_term_manifest_row(row, rank) do
