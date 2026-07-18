@@ -1247,14 +1247,6 @@ defmodule OrbitalDynamics.Schema do
     })
   end
 
-  defp focused_json_schema_property(field, contract_name, contract, property_field?, property) do
-    if property_field?.(field) do
-      property.(field)
-    else
-      default_json_schema_property(field, contract_name, contract)
-    end
-  end
-
   defp json_schema_property(field, @activity_template = contract_name, contract) do
     OrbitalDynamics.Schema.PlanningReferencePropertyDispatch.activity_template(
       field,
@@ -1880,18 +1872,18 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property(field, @candidate_rejection_report = contract_name, contract) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.TimelineReportPropertyDispatch.candidate_rejection(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.CandidateRejectionReportJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.CandidateRejectionReportJsonSchema.property_fun_from_context(
-        model_limits: &candidate_rejection_report_model_limits/0,
-        row_schema: &candidate_rejection_row_json_schema/0,
-        rejection_reasons: &timeline_candidate_rejection_reasons/0,
-        required_operator_actions: &timeline_candidate_rejection_actions/0,
-        stable_id_pattern: @stable_id_pattern
-      )
+      &default_json_schema_property/3,
+      {
+        &candidate_rejection_report_model_limits/0,
+        &candidate_rejection_row_json_schema/0,
+        &timeline_candidate_rejection_reasons/0,
+        &timeline_candidate_rejection_actions/0,
+        @stable_id_pattern
+      }
     )
   end
 

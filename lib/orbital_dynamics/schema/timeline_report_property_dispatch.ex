@@ -2,6 +2,7 @@ defmodule OrbitalDynamics.Schema.TimelineReportPropertyDispatch do
   @moduledoc false
 
   alias OrbitalDynamics.Schema.{
+    CandidateRejectionReportJsonSchema,
     OperationalTimelineReportJsonSchema,
     TimelineDependencyImpactSummaryJsonSchema,
     TimelineDiffReportJsonSchema,
@@ -147,6 +148,35 @@ defmodule OrbitalDynamics.Schema.TimelineReportPropertyDispatch do
         stable_id_array_schema: stable_id_array_schema,
         stable_id_array_map_schema: stable_id_array_map_schema,
         model_limits: model_limits
+      ),
+      default_property
+    )
+  end
+
+  def candidate_rejection(
+        field,
+        contract_name,
+        contract,
+        default_property,
+        {
+          model_limits,
+          row_schema,
+          rejection_reasons,
+          required_operator_actions,
+          stable_id_pattern
+        }
+      ) do
+    dispatch(
+      field,
+      contract_name,
+      contract,
+      &CandidateRejectionReportJsonSchema.property_field?/1,
+      CandidateRejectionReportJsonSchema.property_fun_from_context(
+        model_limits: model_limits,
+        row_schema: row_schema,
+        rejection_reasons: rejection_reasons,
+        required_operator_actions: required_operator_actions,
+        stable_id_pattern: stable_id_pattern
       ),
       default_property
     )
