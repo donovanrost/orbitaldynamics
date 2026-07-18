@@ -1442,37 +1442,36 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property(field, @timeline_feedback_report = contract_name, contract) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.TimelineReportPropertyDispatch.feedback(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.TimelineFeedbackReportJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.TimelineFeedbackReportJsonSchema.property_fun_from_context(
-        row_schema: &timeline_feedback_row_json_schema/0,
-        model_limits: &timeline_feedback_report_model_limits/0,
-        capability: &OrbitalDynamics.TimelineFeedback.capabilities/0,
-        operational_feedback_schema: &operational_feedback_json_schema/0,
-        operational_feedback_provenance_schema:
-          &timeline_feedback_operational_feedback_provenance_json_schema/0
-      )
+      &default_json_schema_property/3,
+      {
+        &timeline_feedback_row_json_schema/0,
+        &timeline_feedback_report_model_limits/0,
+        &OrbitalDynamics.TimelineFeedback.capabilities/0,
+        &operational_feedback_json_schema/0,
+        &timeline_feedback_operational_feedback_provenance_json_schema/0
+      }
     )
   end
 
   defp json_schema_property(field, @timeline_integrity_report = contract_name, contract) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.TimelineReportPropertyDispatch.integrity(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.TimelineIntegrityReportJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.TimelineIntegrityReportJsonSchema.property_fun_from_context(
-        row_schema: &operational_timeline_row_json_schema/0,
-        schema_contract: @timeline_integrity_report,
-        stable_id_pattern: @stable_id_pattern,
-        timeline_integrity_issue_types: &timeline_integrity_issue_types/0,
-        stable_id_array_schema: &stable_id_array_schema/0,
-        stable_id_array_map_schema: &stable_id_array_map_schema/0,
-        model_limits: &timeline_report_model_limits/0
-      )
+      &default_json_schema_property/3,
+      @timeline_integrity_report,
+      @stable_id_pattern,
+      {
+        &operational_timeline_row_json_schema/0,
+        &timeline_integrity_issue_types/0,
+        &stable_id_array_schema/0,
+        &stable_id_array_map_schema/0,
+        &timeline_report_model_limits/0
+      }
     )
   end
 
@@ -1481,36 +1480,35 @@ defmodule OrbitalDynamics.Schema do
          @timeline_dependency_impact_summary = contract_name,
          contract
        ) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.TimelineReportPropertyDispatch.dependency_impact(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.TimelineDependencyImpactSummaryJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.TimelineDependencyImpactSummaryJsonSchema.property_fun_from_context(
-        schema_contract: @timeline_dependency_impact_summary,
-        stable_id_array_schema: &stable_id_array_schema/0,
-        row_schema: &timeline_dependency_impact_row_json_schema/0,
-        model_limits: &timeline_report_model_limits/0
-      )
+      &default_json_schema_property/3,
+      @timeline_dependency_impact_summary,
+      {
+        &stable_id_array_schema/0,
+        &timeline_dependency_impact_row_json_schema/0,
+        &timeline_report_model_limits/0
+      }
     )
   end
 
   defp json_schema_property(field, @timeline_publication_summary = contract_name, contract) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.TimelineReportPropertyDispatch.publication(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.TimelinePublicationSummaryJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.TimelinePublicationSummaryJsonSchema.property_fun_from_context(
-        schema_contract: @timeline_publication_summary,
-        stable_id_pattern: @stable_id_pattern,
-        timeline_diff_summary_source_schema: &timeline_diff_summary_source_json_schema/0,
-        timeline_dependency_impact_summary_source_schema:
-          &timeline_dependency_impact_summary_source_json_schema/0,
-        stable_id_array_schema: &stable_id_array_schema/0,
-        stable_id_array_map_schema: &stable_id_array_map_schema/0,
-        model_limits: &timeline_report_model_limits/0
-      )
+      &default_json_schema_property/3,
+      @timeline_publication_summary,
+      @stable_id_pattern,
+      {
+        &timeline_diff_summary_source_json_schema/0,
+        &timeline_dependency_impact_summary_source_json_schema/0,
+        &stable_id_array_schema/0,
+        &stable_id_array_map_schema/0,
+        &timeline_report_model_limits/0
+      }
     )
   end
 
