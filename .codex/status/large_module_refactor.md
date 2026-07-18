@@ -9,7 +9,7 @@ Current slice:
 Timeline transition-helper integrity policy extraction.
 
 Status:
-Selection recorded; implementation has not started.
+Implementation published in `ae937888`; focused and broad proof is green.
 
 Selected boundary:
 Move opt-in transition-helper selected-activity validation, structured
@@ -20,33 +20,32 @@ annotation/detection, selected projection/reason, list normalization, and map
 compaction are supplied as callbacks.
 
 Why this slice:
-The reduced Timeline facade is 7,429 lines. These eight exclusive clauses form
-one helper-integrity responsibility shared by status, approval, and lifecycle
-APIs. Keeping structured error construction beside raising policy preserves
-the exact selected-integrity versus transition-error messages.
+The extraction moved eight clauses into a 91-line internal module and reduced
+Timeline from 7,429 to 7,392 lines. The four private entry points preserve all
+status, approval, and lifecycle helper callers.
 
-Planned proof:
-- Focused Timeline tests for reusable transitions, safe/unsafe status and
-  approval application, and opt-in lifecycle selected-integrity gating.
-- Full Timeline and Timeline schema-contract suites.
-- Strict warnings-as-errors compile.
-- Canonical AST equivalence for all eight moved clauses after normalizing only
-  the four facade names and callback boundaries.
-- Format, diff, whitespace, ownership, exactly-four-facade, unchanged Timeline
-  public-definition, and xref checks.
-- Independent read-only review before publication.
+Completed proof:
+- Focused transition-helper integrity examples: 3 passed.
+- Full Timeline suite: 127 passed.
+- Timeline schema-contract suites: 36 passed.
+- Strict warnings-as-errors compile: 3,728 files.
+- Canonical AST equivalence: all eight moved clauses after normalizing only the
+  four facade names and callback boundaries.
+- Format, whitespace, ownership, exactly-four-facade, unchanged Timeline public
+  definitions, and xref checks passed.
+- Independent read-only review found no findings.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline selected-integrity policy extraction, selected in `135fa967`,
-implemented in `90858060`, and handed off in `08b3a86a`.
+Timeline transition-helper integrity policy extraction, selected in `73d5f985`
+and implemented in `ae937888`.
 
 Next candidate:
-Remap the reduced Timeline facade after this slice, emphasizing transition
-integrity orchestration and activity normalization.
+Remap the reduced 7,392-line Timeline facade, emphasizing transition integrity
+orchestration and activity normalization.
 
 Blocked:
 No.
