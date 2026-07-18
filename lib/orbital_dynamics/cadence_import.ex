@@ -4604,31 +4604,13 @@ defmodule OrbitalDynamics.CadenceImport do
   end
 
   defp timeline_protection_manifest_row(row, rank) do
-    approval_status = Map.get(row, "approval_status", "operator_review_required")
-    import_status = Map.get(row, "cadence_import_status", "present")
-
-    %{
-      "id" => "cadence_import:timeline_protection:#{row["id"] || rank}",
-      "rank" => rank,
-      "import_action" => "review_timeline_protection",
-      "import_status" => adapter_import_status(import_status, approval_status),
-      "import_side" => "source",
-      "source_review_row_id" => row["id"],
-      "source_review_type" => row["review_type"],
-      "source_review_action" => source_review_action(row),
-      "subject_id" => row["subject_id"],
-      "activity_id" => row["activity_id"],
-      "approval_status" => approval_status,
-      "required_operator_action" => row["required_operator_action"],
-      "reason" => row["reason"],
-      "protection_category" => row["protection_category"],
-      "protection_decision" => row["protection_decision"],
-      "cadence_import_status" => import_status,
-      "has_cadence_import" => false,
-      "source_timeline_protection" => row["source_timeline_protection"],
-      "source_review_row" => row
-    }
-    |> compact_map()
+    OrbitalDynamics.CadenceImport.TimelineProtectionManifestRow.build(
+      row,
+      rank,
+      source_review_action: &source_review_action/1,
+      adapter_import_status: &adapter_import_status/2,
+      compact_map: &compact_map/1
+    )
   end
 
   defp command_window_manifest_row(row, rank) do
