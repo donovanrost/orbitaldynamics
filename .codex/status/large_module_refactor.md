@@ -6,36 +6,35 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline integrity-ID grouping policy extraction.
+Timeline diff-comparison policy extraction.
 
 Status:
-Implementation published in `fcdc3670`; focused and broad proof is green.
+Selection recorded; implementation has not started.
 
 Selected boundary:
-Move deterministic timeline row IDs, integrity scope IDs, IDs grouped by issue
-type or row field, grouped ID sorting, row-list IDs, and diff-status IDs into
-`Timeline.IntegrityIdGroupingPolicy`. `Timeline` retains six private entry
-points; grouped ID sorting becomes policy-internal, while list extraction and
-sorted uniqueness cross the boundary explicitly.
+Move changed-field calculation, direct/activity-context comparison fallback,
+and review-significant field membership into
+`Timeline.DiffComparisonPolicy`. `Timeline` retains two private entry points;
+the full comparison field list and activity-context comparison subset cross the
+boundary explicitly, while comparison-value selection becomes policy-internal.
 
 Why this slice:
-The extraction moved seven clauses into a 55-line internal module. Timeline
-retains six private entry points and is now 6,250 lines; the one-line facade
-increase makes list/sort dependencies explicit, while grouped sorting becomes
-policy-internal. Filtering, pair construction, nil rejection, group ordering,
-per-group deduplication, and status-scoped ID selection now live together.
+The 6,250-line Timeline facade still owns four exclusive clauses that define
+diff comparison semantics consumed by diff-row assembly and review decisions.
+Moving them together isolates comparison order, explicit nil fallback,
+missing-field fallback, direct-field access, and significant-field membership
+without extracting diff coordinators.
 
-Completed proof:
-- Focused dependency/exclusivity review, public integrity summary, and timeline
-  diff integrity examples: 3 passed.
-- Full Timeline suite: 127 passed.
-- Timeline schema-contract suites: 36 passed.
-- Strict warnings-as-errors compile: 3,765 files.
-- Canonical AST equivalence: all seven moved clauses after normalizing only
-  public/private heads, list/sort callbacks, and internal callback threading.
-- Format, whitespace, ownership, exactly-six-facade, unchanged Timeline public
-  definitions, and xref checks passed; Timeline is the only runtime caller.
-- Independent read-only review found no production-code findings.
+Planned proof:
+- Focused changed command, product/latency, throughput, and resource-assignment
+  diff examples.
+- Full Timeline and Timeline schema-contract suites.
+- Strict warnings-as-errors compile.
+- Canonical AST equivalence for all four moved clauses after normalizing only
+  public/private heads and the two comparison-field arguments.
+- Format, diff, whitespace, ownership, exactly-two-facade, unchanged Timeline
+  public-definition, and xref checks.
+- Independent read-only review before publication.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
@@ -43,10 +42,11 @@ regeneration should not be required.
 
 Last completed slice:
 Timeline integrity-ID grouping policy extraction, selected in `7e726f43`,
-corrected in `8f39e03a`, and implemented in `fcdc3670`.
+corrected in `8f39e03a`, implemented in `fcdc3670`, and handed off in
+`84ce76db`.
 
 Next candidate:
-Continue remapping the 6,250-line Timeline facade after this slice, avoiding wide
+Continue remapping the reduced Timeline facade after this slice, avoiding wide
 report and activity-context map coordinator callback surfaces.
 
 Blocked:
