@@ -2825,42 +2825,11 @@ defmodule OrbitalDynamics.Timeline do
   end
 
   defp activity_pointing_context(activity) do
-    %{
-      "pointing_mode" => first_scalar_string(activity, ["pointing_mode", "attitude_mode"]),
-      "pointing_target_id" =>
-        first_stable_identifier(activity, [
-          "pointing_target_id",
-          "attitude_target_id"
-        ]),
-      "boresight_axis" => first_scalar_string(activity, ["boresight_axis", "sensor_axis"]),
-      "off_nadir_angle_deg" => first_number(activity, ["off_nadir_angle_deg", "look_angle_deg"]),
-      "slew_angle_deg" => first_number(activity, ["slew_angle_deg"]),
-      "slew_rate_deg_s" => first_number(activity, ["slew_rate_deg_s"]),
-      "pointing_error_deg" =>
-        first_number(activity, ["pointing_error_deg", "attitude_error_deg"]),
-      "pointing_status" => first_scalar_string(activity, ["pointing_status", "attitude_status"]),
-      "pointing_model" => first_scalar_string(activity, ["pointing_model", "attitude_model"]),
-      "pointing_source" => first_scalar_string(activity, ["pointing_source", "attitude_source"]),
-      "pointing_confidence" =>
-        first_number(activity, ["pointing_confidence", "attitude_confidence"])
-    }
-    |> compact_map()
+    OrbitalDynamics.Timeline.ActivityOrientationContext.pointing(activity, @stable_id_pattern)
   end
 
   defp activity_attitude_context(activity) do
-    %{
-      "attitude_mode" => first_scalar_string(activity, ["attitude_mode"]),
-      "attitude_target_id" => first_stable_identifier(activity, ["attitude_target_id"]),
-      "roll_deg" => first_number(activity, ["roll_deg"]),
-      "pitch_deg" => first_number(activity, ["pitch_deg"]),
-      "yaw_deg" => first_number(activity, ["yaw_deg"]),
-      "attitude_error_deg" => first_number(activity, ["attitude_error_deg"]),
-      "attitude_status" => first_scalar_string(activity, ["attitude_status"]),
-      "attitude_model" => first_scalar_string(activity, ["attitude_model"]),
-      "attitude_source" => first_scalar_string(activity, ["attitude_source"]),
-      "attitude_confidence" => first_number(activity, ["attitude_confidence"])
-    }
-    |> compact_map()
+    OrbitalDynamics.Timeline.ActivityOrientationContext.attitude(activity, @stable_id_pattern)
   end
 
   defp activity_thermal_context(activity) do
@@ -5575,14 +5544,6 @@ defmodule OrbitalDynamics.Timeline do
       activity,
       keys,
       &provider_result_artifact_value/1
-    )
-  end
-
-  defp first_stable_identifier(activity, keys) do
-    OrbitalDynamics.Timeline.ActivityFieldValuePolicy.first_stable_identifier(
-      activity,
-      keys,
-      &stable_activity_id?/1
     )
   end
 
