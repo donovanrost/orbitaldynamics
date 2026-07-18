@@ -9,7 +9,7 @@ Current slice:
 Timeline activity command-authority context extraction.
 
 Status:
-Selected; implementation has not started.
+Complete and published.
 
 Selected boundary:
 Move command-authority context construction into one dedicated module. Keep a
@@ -27,16 +27,25 @@ Selection evidence:
   coordination, public API, and schema remain outside the boundary.
 
 Verification:
-Pending: focused baseline, implementation, strict compile, focused/full tests,
-contracts, structural/static checks, and independent review.
+- Selection published in `bb108bcc`; implementation published in `7a036142`.
+- Focused baseline and post-change authority/context coverage: 2 passed.
+- Strict warnings-as-errors compile: 3,795 files compiled.
+- Full Timeline suite: 127 passed.
+- Operational Timeline schema contracts: 36 passed.
+- Canonical AST comparison: extracted builder equivalent.
+- Static checks confirmed unchanged public API, one private facade, two
+  coordinator consumers, Timeline-only runtime ownership, no temporary checker,
+  and clean formatting/diff.
+- Independent review: clean, with no production-code findings.
+- Timeline is 5,496 lines; the extracted module is 35 lines.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline activity-observation evidence context extraction, selected in
-`ca3f14a2`, corrected in `ff38e55c`, and implemented in `c290eabc`.
+Timeline activity command-authority context extraction, selected in
+`bb108bcc` and implemented in `7a036142`.
 
 Next candidate:
 Continue remapping the reduced Timeline facade.
