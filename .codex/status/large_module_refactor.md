@@ -6,35 +6,35 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline candidate-rejection summary policy extraction.
+Timeline candidate-rejection station policy extraction.
 
 Status:
-Implemented, verified, independently reviewed, committed, and pushed.
+Selected; implementation has not started.
 
-Completed boundary:
-Moved candidate-rejection reason frequencies, predicate-selected candidate IDs,
-candidate IDs grouped by rejection reason, candidate IDs grouped by required
-operator action, and their deterministic nil-rejecting sort/unique helper into
-the 42-line `Timeline.CandidateRejectionSummaryPolicy`. The 6,170-line Timeline
-retains four thin private facades; report coordination and public API are
-unchanged.
+Selected boundary:
+Move station unavailable, reservation, and reduced-capacity classification;
+top-level/source status lookup; top-level/source capacity-fraction lookup; and
+the three capacity field names into a dedicated candidate-rejection station
+policy. Keep three thin private Timeline facades for the derived-reason
+coordinator and expose the field list back to Timeline's existing capability
+metadata.
 
-Published commits:
-Selected in `5449e522` and implemented in `63a5d72c`.
+Selection evidence:
+- The boundary is 11 adjacent private clauses at Timeline lines 2,243-2,315,
+  consumed only by the three derived candidate-rejection reason checks.
+- The policy can reuse `ActivityFieldValuePolicy` and
+  `ActivityNumericValuePolicy` directly, avoiding coordinator callbacks.
+- Timeline's capacity path metadata remains unchanged and can derive its field
+  list from the policy's single source of truth at compile time.
+- The extraction should replace roughly 73 helper lines with three thin
+  facades, materially reducing the current 6,170-line Timeline.
+- Locked-overlap, margin, duration, policy, freshness, compatibility, quality,
+  declared-reason, report, row, and schema logic remain outside the boundary.
 
 Verification:
-- Strict warnings-as-errors compile passed across 3,783 files.
-- Three focused mixed-summary, nested-capacity, and nested-availability
-  candidate-rejection examples passed before and after extraction.
-- Full Timeline suite passed with 127 examples; Timeline schema-contract suites
-  passed with 36 examples.
-- Canonical AST equivalence passed for all five moved definitions after
-  normalizing only public/private definition kind.
-- Format, diff, whitespace, exactly-four-facade, exactly-four-policy-entry-point,
-  unchanged Timeline public-definition, and sole-runtime-caller checks passed.
-- Independent read-only review found no production-code issues and confirmed
-  exact frequency, predicate, missing-key, grouping, nil-rejection, uniqueness,
-  sorting, and nil-group-key behavior.
+Pending: focused baseline, implementation, strict compile, focused and full
+Timeline tests, schema-contract tests, canonical AST equivalence, static
+ownership/facade/public-definition/xref checks, and independent review.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
@@ -42,11 +42,11 @@ regeneration should not be required.
 
 Last completed slice:
 Timeline candidate-rejection summary policy extraction, selected in `5449e522`
-and implemented in `63a5d72c`.
+implemented in `63a5d72c`, and handed off in `886c86c9`.
 
 Next candidate:
-Continue remapping the reduced Timeline facade after this slice, avoiding wide
-report and activity-context map coordinator callback surfaces.
+Implement and verify this selected boundary before remapping the reduced
+Timeline facade.
 
 Blocked:
 No.
