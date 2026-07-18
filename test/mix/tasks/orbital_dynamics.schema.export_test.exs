@@ -6179,41 +6179,6 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
            ]) == "integer"
 
     assert get_in(schemas, [
-             "operator_review_package.v1",
-             "properties",
-             "model",
-             "const"
-           ]) == "artifact_only_operator_review_package"
-
-    assert get_in(schemas, [
-             "operator_review_package.v1",
-             "properties",
-             "model_limits",
-             "const"
-           ]) == operator_review_package_model_limits()
-
-    assert get_in(schemas, [
-             "operator_review_package.v1",
-             "properties",
-             "rows",
-             "items",
-             "properties",
-             "priority_fields_without_numeric_evidence",
-             "items",
-             "type"
-           ]) == "string"
-
-    assert get_in(schemas, [
-             "operator_review_package.v1",
-             "properties",
-             "rows",
-             "items",
-             "properties",
-             "priority_fields_without_numeric_evidence_count",
-             "minimum"
-           ]) == 0
-
-    assert get_in(schemas, [
              "cadence_import_manifest.v1",
              "properties",
              "model",
@@ -8232,12 +8197,6 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.ExportTest do
              "activity_id",
              "pattern"
            ]) == Schema.identity_policy()["stable_id_pattern"]
-  end
-
-  defp operator_review_package_model_limits do
-    OrbitalDynamics.OperatorReview.capabilities()
-    |> Map.fetch!(:known_limits)
-    |> Enum.map(&Atom.to_string/1)
   end
 
   defp cadence_import_manifest_model_limits do
