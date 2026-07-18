@@ -6,47 +6,44 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline protection-summary policy extraction.
+Timeline transition-application activity policy extraction.
 
 Status:
-Implementation published in `ac9421ae`; focused and broad proof is green.
+Selection recorded; implementation has not started.
 
 Selected boundary:
-Move filtered protection-decision IDs, protection-category activity-ID sets,
-deterministic ID sorting, and preservation status precedence into
-`Timeline.ProtectionSummaryPolicy`. `Timeline` retains four private entry
-points; sorted uniqueness crosses the boundary explicitly.
+Move nil/non-nil transition-application activity normalization and preservation
+of existing transition-application provenance into
+`Timeline.TransitionApplicationActivityPolicy`. `Timeline` retains two private
+entry points; activity normalization crosses the boundary explicitly.
 
 Why this slice:
-The extraction moved six clauses into a 35-line internal module. Timeline
-retains four private entry points and is now 6,268 lines; the five-line facade
-increase is the cost of making sorted uniqueness explicit at all three ID
-boundaries. Decision/category filtering, grouped ID-set ordering, and
-review-over-preserve-over-clear precedence now live together.
+The 6,268-line Timeline facade still owns three exclusive clauses that govern
+transition-application activity normalization and provenance carry-forward.
+Moving them together isolates nil behavior, normalization dispatch, exact
+provenance-map matching, and no-op fallback without extracting transition
+selection or integrity coordinators.
 
-Completed proof:
-- Focused lifecycle preservation summary/status and protection-decision
-  classification examples: 3 passed.
-- Full Timeline suite: 127 passed.
-- Timeline schema-contract suites: 36 passed.
-- Strict warnings-as-errors compile: 3,760 files.
-- Canonical AST equivalence: all six moved clauses after normalizing only
-  public/private heads, sorted-unique callbacks, and internal grouped-ID
-  callback threading.
-- Format, whitespace, ownership, exactly-four-facade, unchanged Timeline public
-  definitions, and xref checks passed; Timeline is the only runtime caller.
-- Independent read-only review found no production-code findings.
+Planned proof:
+- Focused transition application and helper-provenance examples.
+- Full Timeline and Timeline schema-contract suites.
+- Strict warnings-as-errors compile.
+- Canonical AST equivalence for all three moved clauses after normalizing only
+  public/private heads and the activity normalization callback.
+- Format, diff, whitespace, ownership, exactly-two-facade, unchanged Timeline
+  public-definition, and xref checks.
+- Independent read-only review before publication.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline protection-summary policy extraction, selected in `3d551921` and
-implemented in `ac9421ae`.
+Timeline protection-summary policy extraction, selected in `3d551921`,
+implemented in `ac9421ae`, and handed off in `a5af2b2e`.
 
 Next candidate:
-Continue remapping the 6,268-line Timeline facade after this slice, avoiding wide
+Continue remapping the reduced Timeline facade after this slice, avoiding wide
 report and activity-context map coordinator callback surfaces.
 
 Blocked:
