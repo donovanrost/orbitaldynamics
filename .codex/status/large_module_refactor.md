@@ -6,51 +6,49 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline publication invalidation policy extraction.
+Timeline publication source-summary policy extraction.
 
 Status:
-Implementation published in `615d4d3c`; focused and broad proof is green.
+Selection recorded; implementation has not started.
 
 Selected boundary:
-Move downstream invalidation ID selection and validation, reason
-classification/grouping/counting, publication/downstream status selection, and
-publication-summary ID construction into
-`Timeline.PublicationInvalidationPolicy`. `Timeline` retains seven private
-entry points; the dependency-impact review predicate becomes policy-internal.
+Move dependency-impact and timeline-diff source-summary recognition plus
+optional source-summary embedding into
+`Timeline.PublicationSourceSummaryPolicy`. `Timeline` retains four private
+entry points; key stringification and the two accepted schema-contract values
+cross the boundary explicitly.
 
 Why this slice:
-The extraction moved 13 contiguous, pure clauses into a 100-line internal
-module and reduced Timeline from 6,366 to 6,330 lines. Seven private entry
-points preserve the publication-summary coordinator while invalidation
-validation, precedence, grouping, status selection, and ID construction now
-live together.
+The 6,330-line Timeline facade still owns eight contiguous clauses that decide
+whether dependency-impact and diff summaries are recognized, discarded, or
+embedded. Moving these clauses together preserves the publication-summary map
+coordinator while isolating schema/model fallback order and empty-summary
+handling.
 
-Completed proof:
-- Focused publication summary example: 1 passed, covering dependency-impact
-  invalidation, supersession identity, no-impact status, grouped reason counts,
-  schema validation, and invalid explicit invalidation IDs.
-- Full Timeline suite: 127 passed.
-- Timeline schema-contract suites: 36 passed.
-- Strict warnings-as-errors compile: 3,754 files.
-- Canonical AST equivalence: all 13 moved clauses after normalizing only
-  public/private heads.
-- Format, whitespace, ownership, exactly-seven-facade, unchanged Timeline
-  public definitions, and xref checks passed; Timeline is the only runtime
-  caller.
-- Independent read-only review found no production-code findings.
+Planned proof:
+- Focused publication summary example covering recognized dependency/diff
+  summaries, absent-summary fallbacks, optional embedding, and schema
+  validation.
+- Full Timeline and Timeline schema-contract suites.
+- Strict warnings-as-errors compile.
+- Canonical AST equivalence for all eight moved clauses after normalizing only
+  four facade names plus stringifier/schema-contract arguments.
+- Format, diff, whitespace, ownership, exactly-four-facade, unchanged Timeline
+  public-definition, and xref checks.
+- Independent read-only review before publication.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline publication invalidation policy extraction, selected in `a599aed4` and
-implemented in `615d4d3c`.
+Timeline publication invalidation policy extraction, selected in `a599aed4`,
+implemented in `615d4d3c`, and handed off in `078878e6`.
 
 Next candidate:
-Continue remapping the 6,330-line Timeline facade after this slice, avoiding the
-wide publication-summary and activity-context map coordinator callback
-surfaces.
+Continue remapping the reduced Timeline publication helpers after this slice,
+avoiding the wide publication-summary and activity-context map coordinator
+callback surfaces.
 
 Blocked:
 No.
