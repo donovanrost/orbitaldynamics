@@ -9,55 +9,48 @@ Current slice:
 CadenceImport station-calendar manifest-row builder extraction.
 
 Status:
-Slice selected; selection publication pending.
+Implementation `099f0ef9` published; verified handoff publication pending.
 
-Selected slice:
-Move `station_calendar_manifest_row/2` into internal
-`CadenceImport.StationCalendarManifestRow.build/3`, injecting only the four
-shared facade helpers for review action, adapter status, provider-result value
-normalization, and compact-map cleanup.
+Completed slice:
+Moved the station-calendar and reservation manifest row projection into internal
+`CadenceImport.StationCalendarManifestRow.build/3`. The facade injects only
+four shared review/status/provider-result/compaction callbacks.
 
 Why this slice:
-`CadenceImport` is 6,481 lines. The station-calendar builder is a 164-line
-transformation with 125 projected keys, one facade caller, and only four
-shared dependencies.
+`CadenceImport` was 6,481 lines. The station-calendar builder was a 164-line
+transformation with 125 projected keys. `CadenceImport` is now 6,327 lines.
 
-Current coupling/problem:
-The main artifact adapter embeds a large station-calendar and reservation
-projection alongside every other source transformation.
+Published commits:
+- Selection: `c2a02192`
+- Selection correction: `e707b14e`
+- Implementation: `099f0ef9`
+- Handoff: pending
 
-Public facade to preserve:
-All `CadenceImport` APIs; all station-calendar row keys and value expressions;
-approval defaults, constant present adapter status, review action, compaction,
-deterministic output, and artifact contracts.
+Preserved facade and behavior:
+All `CadenceImport` APIs; all 125 station-calendar keys and value expressions;
+approval defaults, constant present adapter status, provider-result
+normalization, review action, compaction, deterministic output, station-
+reservation reuse, and artifact contracts.
 
-Likely files:
-- `lib/orbital_dynamics/cadence_import.ex`
-- `lib/orbital_dynamics/cadence_import/station_calendar_manifest_row.ex`
-- `.codex/status/large_module_refactor.md`
-
-Definition of done:
-The internal builder owns the exact 125-key projection; the facade supplies
-only four same-purpose callbacks; focused Cadence-import and schema-contract
-tests pass; strict warnings-as-errors compile, projection equivalence, public
-API checks, and independent review are clean.
+Verification:
+- Focused Cadence-import plus schema-contract tests: 100/100.
+- Strict warnings-as-errors compile: 3,679 files.
+- Whole-builder AST comparison after callback normalization: exact.
+- Projection comparison: 125/125 keys and expressions, zero mismatches.
+- Four shared callbacks are exact; provider-result conversion remains only at
+  `contact_result` and `command_result`.
+- Station-calendar dispatch, station-reservation reuse, and public
+  `CadenceImport` definitions: unchanged.
+- Format, whitespace, diff, xref caller, and independent read-only review:
+  clean.
+- Schema export not rerun: no schema-generation code or schema artifacts
+  changed.
 
 Verification gaps:
-- Initial implementation compile identified two shared provider-result
-  normalization calls omitted from the selection count; this correction is
-  published before a successful implementation compile.
-- Implementation proof, strict compile, and independent review remain.
-
-Tests run:
-- Focused baseline: 100/100.
+None for this slice.
 
 Behavior/schema changes:
-None intended.
-
-Last completed slice:
-CadenceImport contact-allocation row builder published as implementation
-`0d59c21b` and handoff `28b5ec3d`: focused 100/100, strict 3,678-file compile,
-exact 185-entry AST comparison, and independent review passed.
+None.
 
 Next candidate:
 Remap the reduced `CadenceImport` module and select the next low-coupling
