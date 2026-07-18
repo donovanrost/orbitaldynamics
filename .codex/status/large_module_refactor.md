@@ -6,31 +6,35 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline operational row-classification policy extraction.
+Timeline declared candidate-rejection reason policy extraction.
 
 Status:
-Implemented, verified, independently reviewed, committed, and pushed.
+Selection recorded; implementation has not started.
 
-Completed boundary:
-Moved contact-row and command-row classification into the 13-line
-`Timeline.OperationalRowClassificationPolicy`. The 6,264-line `Timeline`
-retains both public API entry points and passes classification lists explicitly;
-operational report assembly remains unchanged.
+Selected boundary:
+Move declared rejection reason collection, delimiter/list splitting, token
+canonicalization, alias mapping, and allowed-reason fallback into
+`Timeline.CandidateRejectionReasonPolicy`. `Timeline` retains one private entry
+point and passes the existing allowed reason list explicitly; derived reason
+classification and report assembly remain unchanged.
 
-Published commits:
-Selected in `f6d58e54` and implemented in `3a689cf2`.
+Why this slice:
+The 6,264-line Timeline facade still owns a cohesive nine-clause parsing policy
+for external rejection evidence. Moving the complete family isolates source
+field order, recursive splitting, normalization, aliasing, and unknown fallback
+without pulling derived candidate checks or summary coordinators across the
+boundary.
 
-Verification:
-- Strict warnings-as-errors compile passed across 3,781 files.
-- Three focused general operational report, station-ID-only contact, and
-  inferred provider contact examples passed.
-- Full Timeline suite passed with 127 examples; Timeline schema-contract suites
-  passed with 36 examples.
-- Canonical AST equivalence passed for both public classifier bodies after
-  normalizing only policy names and list arguments.
-- Format, diff, whitespace, ownership, exactly-two-public-facade, unchanged
-  Timeline public-definition, and xref checks passed.
-- Independent read-only review found no production-code issues.
+Planned proof:
+- Focused declared/derived candidate rejection, nested capacity evidence, and
+  nested availability evidence examples.
+- Full Timeline and Timeline schema-contract suites.
+- Strict warnings-as-errors compile.
+- Canonical AST equivalence for all nine moved clauses after normalizing only
+  public/private heads, facade names, and explicit allowed-reason routing.
+- Format, diff, whitespace, ownership, exactly-one-facade, unchanged Timeline
+  public-definition, and xref checks.
+- Independent read-only review before publication.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
