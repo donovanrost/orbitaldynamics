@@ -9,43 +9,40 @@ Current slice:
 Timeline activity-thermal context extraction.
 
 Status:
-Selected; implementation has not started.
+Implemented, verified, independently reviewed, committed, and pushed.
 
-Selected boundary:
-Move the activity thermal-context map builder and its six thermal metric
-facades into a dedicated context module. Have the context call the existing
-thermal-metric and scalar policies directly, keep one private Timeline context
-facade, and remove the six Timeline metric facades.
+Completed boundary:
+Moved the activity thermal-context map builder and its six thermal metric
+facades into the 104-line `Timeline.ActivityThermalContext`. The 5,792-line
+Timeline retains one private context facade and removes all six metric facades.
 
-Selection evidence:
-- The context owns thermal zone, observed/planned/actual temperatures, delta,
-  operating limits, margin, status/model/source/confidence, and compaction.
-- The six thermal metric facades are consumed only by the thermal context.
-- Existing thermal metric, field value, numeric value, stable identifier,
-  artifact encoding, and delta policies supply all dependencies directly, so
-  the extraction requires no callbacks at the Timeline boundary.
-- The extraction should remove the roughly 31-line builder and six facade
-  functions while adding one thin facade, materially reducing the current
-  5,861-line Timeline.
-- Lighting, attitude, resource, delivery timing, broad context coordination,
-  public API, and schema remain outside the boundary.
+Published commits:
+Selected in `20d57037` and implemented in `df9621d1`.
 
 Verification:
-Pending: focused baseline, implementation, strict compile, focused and full
-Timeline tests, schema-contract tests, structural equivalence, static
-ownership/facade/public-definition/xref checks, and independent review.
+- Strict warnings-as-errors compile passed across 3,789 files.
+- Two focused operational thermal and thermal-diff examples passed before and
+  after extraction.
+- Full Timeline suite passed with 127 examples; Timeline schema-contract suites
+  passed with 36 examples.
+- Canonical AST equivalence passed for the builder and six metric facades after
+  normalizing only the stable-pattern data parameter and definition kind.
+- Format, diff, exactly-one-facade, six-facade-removal, unchanged public
+  definitions, sole-consumer, and xref checks passed.
+- Independent review found no production issues and confirmed exact precedence,
+  aliases, fields, margin behavior, stable validation, routing, delta, and
+  compaction.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline activity-template provenance extraction, selected in `4151821b`,
-implemented in `43f3319f`, and handed off in `ea9403c2`.
+Timeline activity-thermal context extraction, selected in `20d57037` and
+implemented in `df9621d1`.
 
 Next candidate:
-Implement and verify this selected boundary before remapping the reduced
-Timeline facade.
+Continue remapping the reduced Timeline facade.
 
 Blocked:
 No.
