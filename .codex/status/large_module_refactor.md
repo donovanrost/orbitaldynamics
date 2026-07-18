@@ -9,7 +9,7 @@ Current slice:
 Schema maneuver artifact property-dispatch extraction.
 
 Status:
-Slice selected; selection publication pending.
+Implementation published as `ca7da9e7`; handoff publication pending.
 
 Selected slice:
 Move JSON-property dispatch/context assembly for realized-state snapshot,
@@ -43,13 +43,29 @@ import/export tests pass; strict compile, full byte-clean schema regeneration,
 and independent review are clean.
 
 Verification gaps:
-- Focused baseline, strict compile, export proof, and independent review remain.
+- None for this slice. Full checked-in schema regeneration is byte-identical.
+- Independent review was clean. No API, schema, export, ordering,
+  error-behavior, ownership, or behavioral finding remains.
 
 Tests run:
-- None yet for this selected slice.
+- Baseline and post-change focused maneuver/state/import/export subset:
+  26 passed with warnings as errors.
+- Strict forced compile: 3,666 files clean with warnings as errors.
+- Full schema export regenerated every checked-in schema and bundle with zero
+  diff.
+- Public `Schema` definitions match selection commit `91db634d`; xref reports
+  the dispatcher has only the `Schema` runtime caller.
+- Format, changed/new-file whitespace, and `git diff --check` passed.
+- Independent review confirmed exact constants, lazy provider order/arities,
+  and unchanged intervening routes, then reran all proof clean.
 
 Behavior/schema changes:
 None intended.
+
+Outcome:
+Realized-state snapshot, maneuver recommendation, and maneuver-review report
+routes now delegate to `ManeuverArtifactPropertyDispatch`. Implementation
+published as `ca7da9e7`.
 
 Last completed slice:
 Result artifact schema dispatch published as implementation `6b7ed38d` and
