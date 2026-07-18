@@ -9,38 +9,36 @@ Current slice:
 Timeline relationship-presence policy extraction.
 
 Status:
-Selection recorded; implementation has not started.
+Implemented, verified, independently reviewed, committed, and pushed.
 
-Selected boundary:
-Move dependency-presence, exclusivity-presence, and their private non-empty-list
-predicate into `Timeline.RelationshipPresencePolicy`. `Timeline` retains two
-private entry points; no callback, constant, report coordinator, or schema
-boundary crosses the extraction.
+Completed boundary:
+Moved dependency-presence, exclusivity-presence, and their private non-empty-list
+predicate into the 15-line `Timeline.RelationshipPresencePolicy`. The 6,259-line
+`Timeline` retains two private entry points; no callback, constant, report
+coordinator, or schema boundary crosses the extraction.
 
-Why this slice:
-The 6,262-line Timeline facade still owns three exclusive relationship-presence
-clauses used only by operational-report counts. Moving them together isolates
-the list-only/non-empty semantics without pulling the surrounding wide report
-assembly or integrity aggregation into the new module.
+Published commits:
+Selected in `4cee1cae` and implemented in `ee9f01a3`.
 
-Planned proof:
-- Focused list relationship, normalized scalar relationship, and malformed
-  relationship operational-report examples.
-- Full Timeline and Timeline schema-contract suites.
-- Strict warnings-as-errors compile.
-- Canonical AST equivalence for all three moved clauses after normalizing only
-  public/private heads and facade function names.
+Verification:
+- Strict warnings-as-errors compile passed across 3,768 files.
+- Three focused list, normalized scalar, and malformed relationship
+  operational-report examples passed.
+- Full Timeline suite passed with 127 examples; Timeline schema-contract suites
+  passed with 36 examples.
+- Canonical AST equivalence passed for all three moved clauses after normalizing
+  only public/private heads and facade function names.
 - Format, diff, whitespace, ownership, exactly-two-facade, unchanged Timeline
-  public-definition, and xref checks.
-- Independent read-only review before publication.
+  public-definition, and xref checks passed.
+- Independent read-only review found no production-code issues.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline diff-presentation policy extraction, selected in `3665226a` and
-implemented in `f3f7120a`.
+Timeline relationship-presence policy extraction, selected in `4cee1cae` and
+implemented in `ee9f01a3`.
 
 Next candidate:
 Continue remapping the reduced Timeline facade after this slice, avoiding wide
