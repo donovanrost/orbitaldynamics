@@ -9,7 +9,7 @@ Current slice:
 Schema migration property-dispatch extension.
 
 Status:
-Slice selected; selection publication pending.
+Implementation published as `49c99fb8`; handoff publication pending.
 
 Selected slice:
 Move focused JSON-property routing/context assembly for schema-migration report
@@ -41,13 +41,29 @@ export tests pass; strict compile, full byte-clean schema regeneration, and
 independent review are clean.
 
 Verification gaps:
-- Focused baseline, strict compile, export proof, and independent review remain.
+- None for this slice. Full checked-in schema regeneration is byte-identical.
+- Independent review was clean. No API, schema, export, ordering,
+  error-behavior, ownership, or behavioral finding remains.
 
 Tests run:
-- None yet for this selected slice.
+- Baseline and post-change focused validation/registry/export subset: 24 passed
+  with warnings as errors.
+- Strict forced compile: 3,667 files clean with warnings as errors.
+- Full schema export regenerated every checked-in schema and bundle with zero
+  diff.
+- Public `Schema` definitions match selection commit `b40c4be7`; xref reports
+  the dispatcher has only the `Schema` runtime caller.
+- Format, changed-file whitespace, and `git diff --check` passed.
+- Independent review confirmed exact six-key context and capability lookup
+  timing, unchanged existing validation and adjacent routes, then reran all
+  proof clean.
 
 Behavior/schema changes:
 None intended.
+
+Outcome:
+Schema-migration report routing now delegates to the existing
+`SchemaValidationPropertyDispatch`. Implementation published as `49c99fb8`.
 
 Last completed slice:
 Planning-analysis model schema dispatch published as implementation `fba3dc77`
