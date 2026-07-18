@@ -9,38 +9,36 @@ Current slice:
 Timeline stable-identifier policy extraction.
 
 Status:
-Selection recorded; implementation has not started.
+Implemented, verified, independently reviewed, committed, and pushed.
 
-Selected boundary:
-Move Timeline's stable binary identifier regex predicate into
-`Timeline.StableIdentifierPolicy`. `Timeline` retains one private entry point
-and passes the existing compiled regex explicitly; all input, cadence import,
-identity, and relationship callbacks remain unchanged.
+Completed boundary:
+Moved Timeline's stable binary identifier regex predicate into the 6-line
+`Timeline.StableIdentifierPolicy`. The 6,262-line `Timeline` retains one private
+entry point and passes the compiled regex explicitly; all consumers remain
+unchanged.
 
-Why this slice:
-The 6,260-line Timeline facade still owns one exclusive validation leaf shared
-across input review and reference normalization. Moving it isolates exact binary
-guard and regex-match behavior without moving any identity coordinator or
-changing the regex owner.
+Published commits:
+Selected in `19bfd2ad` and implemented in `7eaf4c9c`.
 
-Planned proof:
-- Focused malformed activity identity, malformed identity fields, and malformed
-  relationship-list examples.
-- Full Timeline and Timeline schema-contract suites.
-- Strict warnings-as-errors compile.
-- Canonical AST equivalence for the moved guarded definition after normalizing
-  only the public/private head, facade name, and explicit regex argument.
+Verification:
+- Strict warnings-as-errors compile passed across 3,780 files.
+- Three focused malformed activity identity, identity field, and relationship
+  list examples passed.
+- Full Timeline suite passed with 127 examples; Timeline schema-contract suites
+  passed with 36 examples.
+- Guarded canonical AST equivalence passed after normalizing only the
+  public/private head, facade name, and regex argument.
 - Format, diff, whitespace, ownership, exactly-one-facade, unchanged Timeline
-  public-definition, and xref checks.
-- Independent read-only review before publication.
+  public-definition, and xref checks passed.
+- Independent read-only review found no production-code issues.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline integrity issue-construction policy extraction, selected in `73a1628b`
-and implemented in `12a69a75`.
+Timeline stable-identifier policy extraction, selected in `19bfd2ad` and
+implemented in `7eaf4c9c`.
 
 Next candidate:
 Continue remapping the reduced Timeline facade after this slice, avoiding wide
