@@ -9,7 +9,7 @@ Current slice:
 CadenceImport generic-review manifest-row builder extraction.
 
 Status:
-Slice selected; selection publication pending.
+Implementation published as `4a7c07a5`; handoff publication pending.
 
 Selected slice:
 Move `generic_review_manifest_row/2` into internal
@@ -18,8 +18,9 @@ helpers for presence, action, review action, adapter status, activity context,
 provider normalization, and compact-map cleanup.
 
 Why this slice:
-`CadenceImport` is 5,317 lines. The builder has 20 base keys, one passthrough
-registry merge, seven shared dependencies, and one fallback facade caller.
+`CadenceImport` was 5,317 lines. The builder had 20 base keys, one passthrough
+registry merge, seven shared dependencies, and one fallback facade caller. The
+facade is now 5,295 lines.
 
 Public facade to preserve:
 All `CadenceImport` APIs; all generic-review keys and value expressions;
@@ -37,18 +38,25 @@ passthrough merge; the facade supplies seven exact callbacks; focused tests,
 strict compile, equivalence/API checks, and independent review are clean.
 
 Verification gaps:
-- Focused baseline, implementation proof, strict compile, and review remain.
+- None for this slice.
 
 Tests run:
-- None yet.
+- Focused CadenceImport and schema contracts: 100/100.
+- Strict warnings-as-errors compile: 3,701 files.
+- Exact AST proof: 20/20 base entries, protected passthrough/full normalized
+  body, and all public facade definitions match selection `2b863c8e`.
+- Format, diff, caller/xref, callback-surface, and whitespace checks clean.
+- Independent read-only review: no code findings or additional test gaps.
 
 Behavior/schema changes:
-None intended.
+None. Passthrough-over-base precedence with computed presence protected,
+activity normalization, actions/defaults, compaction, deterministic output, and
+APIs are exact.
 
 Last completed slice:
-Operational-readiness row builder selected in `5bacc482` and published in
-`452ab316`: focused 100/100, strict 3,700-file compile, exact 36-entry/full-body
-and four-merge comparison, and independent review passed.
+Generic-review row builder selected in `2b863c8e` and published in `4a7c07a5`:
+focused 100/100, strict 3,701-file compile, exact 20-entry/protected-passthrough
+full-body comparison, and independent review passed.
 
 Next candidate:
 Remap the reduced `CadenceImport` module for the next low-coupling builder.
