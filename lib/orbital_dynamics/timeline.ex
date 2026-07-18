@@ -2706,40 +2706,24 @@ defmodule OrbitalDynamics.Timeline do
   end
 
   defp normalize_activity_input({activity, sequence}, opts) do
-    case activity_input_to_map(activity, sequence) do
-      {:ok, activity} ->
-        normalize_valid_activity(activity, Keyword.put(opts, :sequence, sequence))
-
-      {:error, row} ->
-        Map.drop(row, ["id"])
-    end
+    OrbitalDynamics.Timeline.ActivityInputNormalization.normalize(
+      {activity, sequence},
+      opts,
+      &activity_to_map/1,
+      &activity_input_issue/1,
+      &invalid_activity_input_row/3,
+      &normalize_valid_activity/2
+    )
   end
 
   defp activity_input_to_map(activity, sequence) do
-    case safe_activity_to_map(activity) do
-      {:ok, activity} ->
-        maybe_valid_activity_map(activity, sequence)
-
-      {:error, reason, source_activity} ->
-        {:error, invalid_activity_input_row(source_activity, sequence, reason)}
-    end
-  end
-
-  defp safe_activity_to_map(activity) do
-    {:ok, activity_to_map(activity)}
-  rescue
-    _error ->
-      {:error, "invalid_activity_shape", %{"raw_input" => inspect(activity)}}
-  end
-
-  defp maybe_valid_activity_map(activity, sequence) do
-    case activity_input_issue(activity) do
-      nil ->
-        {:ok, activity}
-
-      reason ->
-        {:error, invalid_activity_input_row(activity, sequence, reason)}
-    end
+    OrbitalDynamics.Timeline.ActivityInputNormalization.to_map(
+      activity,
+      sequence,
+      &activity_to_map/1,
+      &activity_input_issue/1,
+      &invalid_activity_input_row/3
+    )
   end
 
   defp activity_input_issue(activity) do
