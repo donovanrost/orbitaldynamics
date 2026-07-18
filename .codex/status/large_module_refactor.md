@@ -6,74 +6,57 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema planning-reference property-dispatch extraction.
+Schema planning-analysis model property-dispatch extension.
 
 Status:
-Implementation published as `b4b57709`; handoff publication pending.
+Slice selected; selection publication pending.
 
 Selected slice:
-Move focused JSON-property routing/context assembly for activity template,
-capability catalog, accepted planning state, and manifest-field reference into
-an internal `Schema.PlanningReferencePropertyDispatch` owner.
+Move focused JSON-property routing/context assembly for optimizer contract and
+Monte Carlo reproducibility report into the existing internal
+`Schema.PlanningAnalysisPropertyDispatch` owner.
 
 Why this slice:
-`Schema` is 7,744 lines. These four adjacent planning-reference artifacts still
-route directly through the facade; two build small contexts and two use direct
-focused property functions.
+`Schema` is 7,736 lines. Only four direct focused clauses remain, and these two
+model/reproducibility contracts fit the existing planning-analysis owner.
 
 Current coupling/problem:
-The facade owns contract/pattern and state/delta contexts plus direct focused
-predicate/property pairing for catalog and manifest references.
+The facade owns optimizer contract/pattern context and Monte Carlo
+contract/pattern/model-limit/vector context plus focused fallback routing.
 
 Public facade to preserve:
-All `Schema` APIs; the four JSON Schema documents; checked-in exports,
+All `Schema` APIs; both JSON Schema documents; checked-in exports,
 deterministic ordering, focused fallback behavior, provider order and arity,
-direct property routing, and all errors.
+and all errors.
 
 Likely files:
 - `lib/orbital_dynamics/schema.ex`
-- `lib/orbital_dynamics/schema/planning_reference_property_dispatch.ex`
+- `lib/orbital_dynamics/schema/planning_analysis_property_dispatch.ex`
 - `.codex/status/large_module_refactor.md`
 
 Definition of done:
-The four clauses pass compact dependencies to the new owner; named contexts and
-focused fallback routing move out of `Schema`; focused accepted-state/
-registry/refresh/export tests pass; strict compile, full byte-clean schema
+Both clauses pass compact dependencies to the existing owner; named contexts
+and focused fallback routing move out of `Schema`; focused optimizer/
+reproducibility/export tests pass; strict compile, full byte-clean schema
 regeneration, and independent review are clean.
 
 Verification gaps:
-- None for this slice. Full checked-in schema regeneration is byte-identical.
-- Independent review was clean. No API, schema, export, ordering,
-  error-behavior, ownership, or behavioral finding remains.
+- Focused baseline, strict compile, export proof, and independent review remain.
 
 Tests run:
-- Baseline and post-change focused accepted-state/registry/refresh/export
-  subset: 36 passed with warnings as errors.
-- Strict forced compile: 3,667 files clean with warnings as errors.
-- Full schema export regenerated every checked-in schema and bundle with zero
-  diff.
-- Public `Schema` definitions match selection commit `52ec3b58`; xref reports
-  the dispatcher has only the `Schema` runtime caller.
-- Format, changed/new-file whitespace, and `git diff --check` passed.
-- Independent review confirmed exact direct property pairs, constants, accepted
-  state provider order/arities, and untouched adjacent routes, then reran all
-  proof clean.
+- None yet for this selected slice.
 
 Behavior/schema changes:
 None intended.
 
-Outcome:
-Activity template, capability catalog, accepted planning state, and
-manifest-field reference routes now delegate to
-`PlanningReferencePropertyDispatch`. Implementation published as `b4b57709`.
-
 Last completed slice:
-Maneuver artifact schema dispatch published as implementation `ca7da9e7` and
-handoff `048e1251`: focused 26/26, strict 3,666-file compile, full byte-clean
+Planning-reference schema dispatch published as implementation `b4b57709` and
+handoff `9c0f2ae2`: focused 36/36, strict 3,667-file compile, full byte-clean
 schema regeneration, and independent review passed.
 
 Next candidate:
-After this slice, remap the remaining direct property clauses in `Schema`.
+Extend the existing schema-validation and timeline-report owners for the final
+schema-migration and candidate-rejection direct clauses.
 
 Blocked:
 No.
