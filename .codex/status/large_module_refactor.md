@@ -6,30 +6,32 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline preservation-sensitivity policy extraction.
+Timeline approval-protection policy extraction.
 
 Status:
 Selection recorded; implementation has not started.
 
 Selected boundary:
-Move both preservation-sensitive source clauses and approval-protection
-membership into `Timeline.PreservationSensitivityPolicy`. `Timeline` retains
-two private entry points and passes the existing executed-status and protected
-approval-status lists explicitly; diff-row callbacks remain unchanged.
+Move the fallback lock/approval preservation-sensitive source clause and
+approval-protection membership into `Timeline.ApprovalProtectionPolicy`.
+`Timeline` retains the guarded executed-source clause plus two private entry
+points and passes only the protected approval-status list explicitly; diff-row
+callbacks remain unchanged.
 
 Why this slice:
-The 6,224-line Timeline facade still owns one complete three-clause protection
-classification family used by diff decisions. Moving it together isolates
-guard precedence, truthy lock behavior, and approval membership without moving
-the diff coordinator or protection-decision assembly.
+The original complete-family selection cannot pass `@executed_statuses`
+explicitly without changing or duplicating the compile-time `in` guard. Keeping
+that clause in Timeline preserves it exactly while the two remaining exclusive
+clauses isolate truthy lock behavior and approval membership without moving the
+diff coordinator or protection-decision assembly.
 
 Planned proof:
 - Focused changed protected/executed, changed unprotected, and removed
   protected/executed diff examples.
 - Full Timeline and Timeline schema-contract suites.
 - Strict warnings-as-errors compile.
-- Canonical AST equivalence for all three moved clauses after normalizing only
-  public/private heads, facade names, and explicit status-list arguments.
+- Canonical AST equivalence for both moved clauses after normalizing only
+  public/private heads, facade names, and the protected-status argument.
 - Format, diff, whitespace, ownership, exactly-two-facade, unchanged Timeline
   public-definition, and xref checks.
 - Independent read-only review before publication.
