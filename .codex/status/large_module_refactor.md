@@ -9,49 +9,38 @@ Current slice:
 CadenceImport suppression manifest-row builder extraction.
 
 Status:
-Slice selected; selection publication pending.
+Implementation published in `9ed575c7`; handoff publication pending.
 
-Selected slice:
-Move `suppression_manifest_row/3` into internal
-`CadenceImport.SuppressionManifestRow.build/4`. Preserve the shared approval,
-rule-match, escalation, provider-result, status, and compaction helpers in the
-facade and inject nine exact callbacks.
+Completed boundary:
+`CadenceImport.SuppressionManifestRow.build/4` now owns the exact 113-key
+contact/resource suppression projection. Shared approval, rule, policy,
+provider-result, status, and compaction helpers remain in the facade behind nine
+callbacks. `CadenceImport` dropped from 4,790 to 4,662 lines.
 
-Why this slice:
-The reduced facade is 4,790 lines. The shared contact/resource suppression
-builder has two dispatch callers and an exact 113-key projection with a clear
-responsibility boundary.
+Selection:
+The slice boundary was selected and published in `8bbcb003`.
 
-Public facade to preserve:
-All `CadenceImport` APIs; both suppression variants; all 113 keys, interpolation,
-fallback order, provider-result normalization, policy selection, compaction,
-determinism, and contracts.
-
-Likely files:
-- `lib/orbital_dynamics/cadence_import.ex`
-- `lib/orbital_dynamics/cadence_import/suppression_manifest_row.ex`
-- `.codex/status/large_module_refactor.md`
-
-Likely tests:
-- `test/orbital_dynamics/cadence_import_test.exs`
-- `test/orbital_dynamics/schema/cadence_import_contracts_test.exs`
-
-Definition of done:
-The internal builder owns the exact 113-key projection; shared helpers stay in
-the facade behind nine exact callbacks; focused tests, strict compile,
-equivalence/API checks, and independent review are clean.
-
-Verification gaps:
-- Focused baseline, implementation proof, strict compile, and review remain.
+Verification:
+- Focused baseline and implementation CadenceImport/contract suites: 100/100.
+- Strict warnings-as-errors compile: 3,707 files.
+- Canonical normalized AST equivalence: exact 113-key body after normalizing
+  only the nine callback boundaries.
+- Format, diff, whitespace, ownership, caller, public-definition, and xref
+  checks: clean; both suppression dispatch variants remain.
+- Independent review: no code findings; interpolation, fallback chains,
+  escalation/stringification, provider-result conversion, shared-helper
+  ownership, API, and determinism are exact. Its handoff-only stale-ledger
+  finding is resolved by this replacement.
 
 Behavior/schema changes:
-None intended.
+None. No schema-generation boundary changed, so no export regeneration was
+required.
 
 Last completed slice:
-Contact-intent row builder published in `eec84abb`; handoff in `8811ec77`.
+Suppression manifest-row builder extraction, published in `9ed575c7`.
 
 Next candidate:
-Remap the reduced facade after this extraction.
+Remap the reduced `CadenceImport` facade for the next cohesive boundary.
 
 Blocked:
 No.
