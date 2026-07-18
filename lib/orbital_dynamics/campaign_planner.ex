@@ -57,14 +57,12 @@ defmodule OrbitalDynamics.CampaignPlanner do
     DerivedDegradedSpacecraftBranches,
     DerivedGroundNetworkBranches,
     DerivedObjectivePressureBranches,
+    DerivedReviewReadinessPressureBranches,
     DerivedResourcePressureBranches,
     DerivedTimelinePressureBranches,
-    CandidateDiffPressureEvents,
-    CandidateRejectionPressureEvents,
     CandidateRefreshNormalization,
     CandidateRefreshRequest,
     CandidateRefreshOperationalFeedback,
-    CandidateReviewSourceReports,
     DownlinkActivityNormalization,
     DownlinkConstrainedBranches,
     DownlinkObjectiveRequirements,
@@ -73,8 +71,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
     LinkCapacitySourceReports,
     MissionStateNormalization,
     ModelLimits,
-    ModelAcceptancePressureEvents,
-    ModelAcceptanceSourceReports,
     ObjectiveSatisfactionReports,
     OperationalFeedbackAggregation,
     OperationalFeedbackBranches,
@@ -82,22 +78,14 @@ defmodule OrbitalDynamics.CampaignPlanner do
     OperationalFeedbackProvenance,
     OperationalTimelinePressureEvents,
     OperationalTimelineSourceRows,
-    OperationalReadinessPressureEvents,
-    OperationalReadinessSourceReports,
     OperatorReviewPressureBranches,
     OperatorReviewSourceReports,
     PlanBranch,
     PlanMetadata,
     PriorityCommitmentSatisfaction,
-    ProviderCounterofferSourceReports,
-    ProviderCounterofferPressureEvents,
-    QualityGatePressureEvents,
-    QualityGateSourceReports,
     RealizedActivitiesOperationalFeedback,
     RealizedFeedbackPressureEvents,
-    RefreshBudgetPressureEvents,
     RequestIO,
-    RefreshSourceReports,
     RepairActivityDispatch,
     RepairArtifact,
     RepairCandidateDiff,
@@ -110,11 +98,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
     RepairSourceReports,
     RepairTimelineSummary,
     ReplanRequest,
-    RefreshFreshnessPressureEvents,
     ReviewSourceReports,
-    SchemaValidationPressureEvents,
     ScalarValues,
-    SchemaValidationSourceReports,
     ScoreReports,
     StationSourceReports,
     StationCalendarPressureBranches,
@@ -133,9 +118,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
     StrategyReport,
     StrategyResourceImpacts,
     TimelineRanking,
-    ValueEncoding,
-    ValidationSafetyCasePressureEvents,
-    ValidationSafetyCaseSourceReports
+    ValueEncoding
   }
 
   alias OrbitalDynamics.{
@@ -1192,18 +1175,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       )
       |> Kernel.++(DerivedResourcePressureBranches.build(prior_plan, mission_state, policy))
       |> Kernel.++(DerivedContactPressureBranches.build(prior_plan, mission_state))
-      |> Kernel.++(derived_mission_state_candidate_diff_pressure_branches(mission_state))
-      |> Kernel.++(derived_mission_state_candidate_rejection_pressure_branches(mission_state))
-      |> Kernel.++(derived_mission_state_provider_counteroffer_pressure_branches(mission_state))
-      |> Kernel.++(derived_mission_state_schema_validation_pressure_branches(mission_state))
-      |> Kernel.++(derived_operational_readiness_pressure_branches(prior_plan))
-      |> Kernel.++(derived_mission_state_operational_readiness_pressure_branches(mission_state))
-      |> Kernel.++(derived_quality_gate_pressure_branches(prior_plan))
-      |> Kernel.++(derived_mission_state_quality_gate_pressure_branches(mission_state))
-      |> Kernel.++(derived_mission_state_model_acceptance_pressure_branches(mission_state))
-      |> Kernel.++(derived_mission_state_validation_safety_case_pressure_branches(mission_state))
-      |> Kernel.++(derived_mission_state_refresh_budget_pressure_branches(mission_state))
-      |> Kernel.++(derived_mission_state_refresh_freshness_pressure_branches(mission_state))
+      |> Kernel.++(DerivedReviewReadinessPressureBranches.build(prior_plan, mission_state))
       |> Kernel.++(derived_link_capacity_pressure_branches(prior_plan))
       |> Kernel.++(derived_mission_state_link_capacity_pressure_branches(mission_state))
       |> Kernel.++(DerivedObjectivePressureBranches.build(prior_plan, mission_state))
@@ -1480,105 +1452,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
         index
       )
     end)
-  end
-
-  defp derived_mission_state_candidate_diff_pressure_branches(mission_state) do
-    mission_state
-    |> CandidateReviewSourceReports.candidate_diff_reports()
-    |> CandidateReviewSourceReports.candidate_diff_pressure_rows()
-    |> Enum.flat_map(fn {row, source_path, index} ->
-      CandidateDiffPressureEvents.pressure_branch(
-        row,
-        source_path,
-        index
-      )
-    end)
-  end
-
-  defp derived_mission_state_candidate_rejection_pressure_branches(mission_state) do
-    mission_state
-    |> CandidateReviewSourceReports.candidate_rejection_reports()
-    |> CandidateReviewSourceReports.candidate_rejection_pressure_rows()
-    |> Enum.flat_map(fn {row, source_path, index} ->
-      CandidateRejectionPressureEvents.pressure_branch(
-        row,
-        source_path,
-        index
-      )
-    end)
-  end
-
-  defp derived_mission_state_provider_counteroffer_pressure_branches(mission_state) do
-    ProviderCounterofferSourceReports.pressure_sources(mission_state)
-    |> ProviderCounterofferSourceReports.pressure_rows()
-    |> Enum.flat_map(fn {row, source_path, index} ->
-      ProviderCounterofferPressureEvents.pressure_branch(
-        row,
-        source_path,
-        index
-      )
-    end)
-  end
-
-  defp derived_mission_state_refresh_budget_pressure_branches(mission_state) do
-    mission_state
-    |> RefreshSourceReports.refresh_budget_reports()
-    |> RefreshSourceReports.pressure_rows()
-    |> Enum.flat_map(fn {report, source_path, index} ->
-      RefreshBudgetPressureEvents.pressure_branch(
-        report,
-        source_path,
-        index
-      )
-    end)
-  end
-
-  defp derived_operational_readiness_pressure_branches(prior_plan) do
-    prior_plan
-    |> OperationalReadinessSourceReports.prior_plan_pressure_sources()
-    |> OperationalReadinessPressureEvents.pressure_branches_from_sources()
-  end
-
-  defp derived_mission_state_operational_readiness_pressure_branches(mission_state) do
-    mission_state
-    |> OperationalReadinessSourceReports.pressure_sources()
-    |> OperationalReadinessPressureEvents.pressure_branches_from_sources()
-  end
-
-  defp derived_quality_gate_pressure_branches(prior_plan) do
-    prior_plan
-    |> QualityGateSourceReports.prior_plan_pressure_sources()
-    |> QualityGatePressureEvents.pressure_branches_from_sources()
-  end
-
-  defp derived_mission_state_quality_gate_pressure_branches(mission_state) do
-    mission_state
-    |> QualityGateSourceReports.pressure_sources()
-    |> QualityGatePressureEvents.pressure_branches_from_sources()
-  end
-
-  defp derived_mission_state_model_acceptance_pressure_branches(mission_state) do
-    mission_state
-    |> ModelAcceptanceSourceReports.model_acceptance_reports()
-    |> ModelAcceptancePressureEvents.pressure_branches_from_sources()
-  end
-
-  defp derived_mission_state_validation_safety_case_pressure_branches(mission_state) do
-    mission_state
-    |> ValidationSafetyCaseSourceReports.validation_safety_case_summaries()
-    |> ValidationSafetyCasePressureEvents.pressure_branches_from_sources()
-  end
-
-  defp derived_mission_state_schema_validation_pressure_branches(mission_state) do
-    mission_state
-    |> SchemaValidationSourceReports.schema_validation_reports()
-    |> SchemaValidationPressureEvents.pressure_branches_from_sources()
-  end
-
-  defp derived_mission_state_refresh_freshness_pressure_branches(mission_state) do
-    mission_state
-    |> RefreshSourceReports.freshness_reports()
-    |> RefreshFreshnessPressureEvents.pressure_branches_from_sources()
   end
 
   defp derived_urgent_target_branches(mission_state, prior_plan, policy) do
