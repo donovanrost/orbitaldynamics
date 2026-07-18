@@ -5558,8 +5558,13 @@ defmodule OrbitalDynamics.Timeline do
     )
   end
 
-  defp protected_by_lock_or_approval?(activity),
-    do: activity_locked?(activity) or activity_approved?(activity)
+  defp protected_by_lock_or_approval?(activity) do
+    OrbitalDynamics.Timeline.ApprovalProtectionPolicy.protected_by_lock_or_approval?(
+      activity,
+      &activity_locked?/1,
+      &activity_approved?/1
+    )
+  end
 
   defp preservation_sensitive_source?(%{"status" => status}) when status in @executed_statuses,
     do: true
