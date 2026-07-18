@@ -4761,19 +4761,9 @@ defmodule OrbitalDynamics.Timeline do
       source,
       replacement,
       @diff_compare_fields,
-      &diff_compare_value/2
+      @diff_activity_context_compare_fields
     )
   end
-
-  defp diff_compare_value(row, field) when field in @diff_activity_context_compare_fields do
-    case Map.fetch(row, field) do
-      {:ok, nil} -> get_in(row, ["activity_context", field])
-      {:ok, value} -> value
-      :error -> get_in(row, ["activity_context", field])
-    end
-  end
-
-  defp diff_compare_value(row, field), do: Map.get(row, field)
 
   defp review_significant_change?(changed_fields) do
     OrbitalDynamics.Timeline.DiffFieldSelectionPolicy.review_significant_change?(
