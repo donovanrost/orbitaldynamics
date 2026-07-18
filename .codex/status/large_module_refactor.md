@@ -9,39 +9,41 @@ Current slice:
 Timeline activity-orientation context extraction.
 
 Status:
-Selected; implementation has not started.
+Implemented, verified, independently reviewed, committed, and pushed.
 
-Selected boundary:
-Move pointing and attitude context-map construction into one dedicated
-orientation context module. Keep two private Timeline facades and pass the
-existing stable-ID pattern as data for target validation. Remove the shared
-`first_stable_identifier/2` Timeline facade because strict compile confirmed
-that these builders owned its only remaining callers.
+Completed boundary:
+Moved pointing and attitude context-map construction into the 68-line
+`Timeline.ActivityOrientationContext`. The 5,623-line Timeline retains two
+private context facades and passes its stable-ID pattern as data. The shared
+`first_stable_identifier/2` facade was removed after strict compile proved the
+moved builders owned its only remaining callers.
 
-Selection evidence:
-- Pointing owns mode/target/boresight/angles/rate/error/status/model/source and
-  confidence; attitude owns mode/target/Euler angles/error/status/model/source
-  and confidence.
-- The builders have three total context-coordinator call sites and share only
-  field, numeric, stable-identifier, and compact-map dependencies.
-- The initial strict compile proved `first_stable_identifier/2` became unused
-  after the move; repo search confirmed no other Timeline caller.
-- Direct existing policies satisfy the boundary without Timeline callbacks.
-- The extraction should materially reduce the current 5,662-line Timeline.
-- Observation quality, lighting, thermal, product, resource, broad context
-  coordination, public API, and schema remain outside the boundary.
+Published commits:
+Initially selected in `2179a76d`, corrected in `46dbabb9` after strict compile
+identified the dead shared facade, and implemented in `65316388`.
 
 Verification:
-Pending: focused baseline, implementation, strict compile, focused/full tests,
-contracts, structural/static checks, and independent review.
+- Strict warnings-as-errors compile passed across 3,791 files after removing
+  the dead facade.
+- Three focused combined-orientation, first-class-attitude, and numeric-string
+  examples passed before and after extraction.
+- Full Timeline suite passed with 127 examples; Timeline schema-contract suites
+  passed with 36 examples.
+- Canonical AST equivalence passed for both builders after normalizing only
+  public names, stable-pattern data parameters, and definition kind.
+- Format, diff, exactly-two-facade, dead-helper-removal, three-consumer,
+  unchanged public definitions, sole-consumer, and xref checks passed.
+- Independent review found no production issues and confirmed exact fields,
+  aliases, ordering, stable validation, adapters, consumers, and neighbor
+  isolation.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline activity-product delivery context extraction, selected in `81be7c14`
-implemented in `a7ffe1da`, and handed off in `ac27cc44`.
+Timeline activity-orientation context extraction, initially selected in
+`2179a76d`, corrected in `46dbabb9`, and implemented in `65316388`.
 
 Next candidate:
 Continue remapping the reduced Timeline facade.
