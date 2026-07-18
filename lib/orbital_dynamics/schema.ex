@@ -1385,45 +1385,44 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property(field, @campaign_plan = contract_name, contract) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.CampaignArtifactPropertyDispatch.campaign_plan(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.CampaignPlanJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.CampaignPlanJsonSchema.property_fun_from_context(
-        proposed_contact_schema: &proposed_contact_row_json_schema/0,
-        campaign_activity_schema: &campaign_activity_json_schema/0,
-        contact_intent_schema: &contact_intent_row_json_schema/0,
-        ranked_timeline_schema: &ranked_timeline_json_schema/0
-      )
+      &default_json_schema_property/3,
+      {
+        &proposed_contact_row_json_schema/0,
+        &campaign_activity_json_schema/0,
+        &contact_intent_row_json_schema/0,
+        &ranked_timeline_json_schema/0
+      }
     )
   end
 
   defp json_schema_property(field, @campaign_repair = contract_name, contract) do
     timeline_transition_contract = registry_contract!(@timeline_transition_application_report)
 
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.CampaignArtifactPropertyDispatch.campaign_repair(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.CampaignRepairJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.CampaignRepairJsonSchema.property_fun_from_context(
-        planned_activity_schema: &planned_activity_json_schema/0,
-        candidate_activity_schema: &candidate_activity_json_schema/0,
-        plan_delta_schema: &plan_delta_json_schema/0,
-        approval_requirement_schema: &approval_requirement_json_schema/0,
-        policy_action_rule_schema: &policy_action_rule_json_schema/0,
-        policy_decision_schema: &policy_decision_json_schema/0,
-        timeline_transition_required_fields: timeline_transition_contract["required_fields"],
-        timeline_transition_optional_fields: timeline_transition_contract["optional_fields"],
-        timeline_transition_property_fun: fn transition_field ->
-          json_schema_property(
-            transition_field,
-            @timeline_transition_application_report,
-            timeline_transition_contract
-          )
-        end
-      )
+      &default_json_schema_property/3,
+      timeline_transition_contract,
+      fn transition_field ->
+        json_schema_property(
+          transition_field,
+          @timeline_transition_application_report,
+          timeline_transition_contract
+        )
+      end,
+      {
+        &planned_activity_json_schema/0,
+        &candidate_activity_json_schema/0,
+        &plan_delta_json_schema/0,
+        &approval_requirement_json_schema/0,
+        &policy_action_rule_json_schema/0,
+        &policy_decision_json_schema/0
+      }
     )
   end
 
