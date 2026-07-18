@@ -1593,33 +1593,33 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property(field, @contact_intent = contract_name, contract) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.ContactPlanningPropertyDispatch.intent(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.ContactIntentJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.ContactIntentJsonSchema.property_fun_from_context(
-        approval_requirement_schema: &approval_requirement_json_schema/0,
-        policy_decision_rule_match_schema: &policy_decision_rule_match_json_schema/0,
-        policy_decision_schema: &policy_decision_json_schema/0,
-        model_limits: &contact_intent_model_limits/0,
-        timeline_integrity_issue_types: &timeline_integrity_issue_types/0
-      )
+      &default_json_schema_property/3,
+      {
+        &approval_requirement_json_schema/0,
+        &policy_decision_rule_match_json_schema/0,
+        &policy_decision_json_schema/0,
+        &contact_intent_model_limits/0,
+        &timeline_integrity_issue_types/0
+      }
     )
   end
 
   defp json_schema_property(field, @contact_intent_summary = contract_name, contract) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.ContactPlanningPropertyDispatch.summary(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.ContactIntentSummaryJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.ContactIntentSummaryJsonSchema.property_fun_from_context(
-        schema_contract: @contact_intent_summary,
-        stable_id_pattern: @stable_id_pattern,
-        model_limits: &contact_intent_model_limits/0,
-        assumptions_schema: &contact_intent_summary_assumptions_json_schema/0
-      )
+      &default_json_schema_property/3,
+      {
+        @contact_intent_summary,
+        @stable_id_pattern,
+        &contact_intent_model_limits/0,
+        &contact_intent_summary_assumptions_json_schema/0
+      }
     )
   end
 
@@ -2554,17 +2554,17 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property(field, @proposed_contact = contract_name, contract) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.ContactPlanningPropertyDispatch.proposed_contact(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.ProposedContactJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.ProposedContactJsonSchema.property_fun_from_context(
-        cadence_import_schema: fn -> cadence_import_json_schema("proposed_contact.v1") end,
-        model_limits: &OrbitalDynamics.Schema.ProposedContactContracts.model_limits/0,
-        source_window_schema: &candidate_activity_source_window_json_schema/0,
-        timeline_identity_schema: &timeline_identity_json_schema/0
-      )
+      &default_json_schema_property/3,
+      {
+        fn -> cadence_import_json_schema("proposed_contact.v1") end,
+        &OrbitalDynamics.Schema.ProposedContactContracts.model_limits/0,
+        &candidate_activity_source_window_json_schema/0,
+        &timeline_identity_json_schema/0
+      }
     )
   end
 
