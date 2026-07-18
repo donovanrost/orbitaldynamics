@@ -5628,94 +5628,23 @@ defmodule OrbitalDynamics.Timeline do
     "selected_timeline_integrity_issue_requires_review:#{Enum.join(issue_types, ",")}"
   end
 
-  defp transition_application_selection("preserve_source", source, _replacement)
-       when is_map(source) do
-    %{
-      "application_status" => "source_preserved_pending_review",
-      "selected_activity_source" => "source",
-      "selected_activity" => source
-    }
-    |> maybe_put_selected_transition_application_provenance(source)
-  end
-
-  defp transition_application_selection("record", _source, replacement)
-       when is_map(replacement) do
-    %{
-      "application_status" => "replacement_recorded",
-      "selected_activity_source" => "replacement",
-      "selected_activity" => replacement
-    }
-    |> maybe_put_selected_transition_application_provenance(replacement)
-  end
-
-  defp transition_application_selection("none", source, _replacement) when is_map(source) do
-    %{
-      "application_status" => "source_unchanged",
-      "selected_activity_source" => "source",
-      "selected_activity" => source
-    }
-    |> maybe_put_selected_transition_application_provenance(source)
-  end
-
-  defp transition_application_selection("none", _source, replacement)
-       when is_map(replacement) do
-    %{
-      "application_status" => "replacement_unchanged",
-      "selected_activity_source" => "replacement",
-      "selected_activity" => replacement
-    }
-    |> maybe_put_selected_transition_application_provenance(replacement)
-  end
-
-  defp transition_application_selection("none", _source, _replacement) do
-    %{"application_status" => "no_activity"}
-  end
-
-  defp transition_application_selection("review", _source, _replacement) do
-    %{"application_status" => "operator_review_required"}
-  end
-
-  defp transition_application_selection(_decision, _source, _replacement) do
-    %{"application_status" => "operator_review_required"}
-  end
-
-  defp put_transition_application_provenance(activity, helper, field, transition) do
-    Map.put(
-      activity,
-      "transition_application_provenance",
-      transition_application_provenance(helper, field, transition)
+  defp transition_application_selection(decision, source, replacement) do
+    OrbitalDynamics.Timeline.TransitionApplicationPolicy.selection(
+      decision,
+      source,
+      replacement
     )
   end
 
-  defp transition_application_provenance(helper, field, nil) do
-    %{
-      "helper" => helper,
-      "field" => field,
-      "transition_type" => "unchanged",
-      "requires_operator_review" => false,
-      "operator_action_reason" => transition_application_no_change_reason(field)
-    }
+  defp put_transition_application_provenance(activity, helper, field, transition) do
+    OrbitalDynamics.Timeline.TransitionApplicationPolicy.put_provenance(
+      activity,
+      helper,
+      field,
+      transition,
+      &compact_map/1
+    )
   end
-
-  defp transition_application_provenance(helper, field, transition) when is_map(transition) do
-    transition
-    |> Map.take([
-      "field",
-      "transition_type",
-      "from",
-      "to",
-      "transition_category",
-      "requires_operator_review",
-      "operator_action_reason"
-    ])
-    |> Map.put("helper", helper)
-    |> Map.put_new("field", field)
-    |> Map.put_new("requires_operator_review", false)
-    |> compact_map()
-  end
-
-  defp transition_application_no_change_reason("approval_status"), do: "no_approval_status_change"
-  defp transition_application_no_change_reason(_field), do: "no_status_change"
 
   defp lifecycle_event_replacement_activity!(source_activity, event) do
     case timeline_lifecycle_event!(event) do
@@ -5779,13 +5708,6 @@ defmodule OrbitalDynamics.Timeline do
     case Map.get(activity, "transition_application_provenance") do
       %{} = provenance -> Map.put(row, "transition_application_provenance", provenance)
       _other -> row
-    end
-  end
-
-  defp maybe_put_selected_transition_application_provenance(application, selected_activity) do
-    case Map.get(selected_activity, "transition_application_provenance") do
-      %{} = provenance -> Map.put(application, "transition_application_provenance", provenance)
-      _other -> application
     end
   end
 
