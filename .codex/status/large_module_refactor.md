@@ -6,41 +6,54 @@ facade-preserving, responsibility-focused extraction with no public behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-CadenceImport plan-delta manifest-row builder extraction.
+CadenceImport proposed-contact manifest-row builder extraction.
 
 Status:
-Implementation published in `d3b9c980`; handoff publication pending.
+Slice selected; selection publication pending.
 
-Completed boundary:
-`CadenceImport.PlanDeltaManifestRow.build/3` now owns the exact 33-key
-plan-delta projection, both ordered side-selection clauses, and all six ordered
-action-selection clauses. The facade supplies four shared callbacks for review
-action, adapter status, activity normalization, and compaction. `CadenceImport`
-dropped from 5,057 to 5,000 lines.
+Selected slice:
+Move `proposed_contact_manifest_row/2`, all three cadence-import-status clauses,
+all three import-status clauses, and both activity-context clauses into internal
+`CadenceImport.ProposedContactManifestRow.build/3`. Inject the three shared JSON
+encoding, provider-field normalization, and compaction helpers.
 
-Selection:
-The slice boundary was selected and published in `9d0654d5`.
+Why this slice:
+The reduced `CadenceImport` facade is 5,000 lines. The cluster has an exact
+53-key projection, two facade callers, eight cohesive helper clauses used
+nowhere else, and a small shared dependency boundary.
 
-Verification:
-- Focused baseline and implementation CadenceImport/contract suites: 100/100.
-- Strict warnings-as-errors compile: 3,704 files.
-- Normalized AST equivalence: exact builder body, 33 entries and interpolation
-  order, both side clauses, all six action clauses, four callback identities and
-  arities, and public facade definitions.
-- Format, diff, whitespace, ownership-reference, and xref checks: clean; one
-  intended plan-delta dispatch and one runtime builder caller.
-- Independent review: no code findings. Its handoff-only stale-ledger finding is
-  resolved by this replacement.
+Public facade to preserve:
+All `CadenceImport` APIs; all proposed-contact keys, ordering, defaults,
+valid/missing/invalid import classification, nested trust-boundary fallback,
+invalid-shape encoding, activity-context normalization, compaction,
+deterministic output, and artifact contracts.
+
+Likely files:
+- `lib/orbital_dynamics/cadence_import.ex`
+- `lib/orbital_dynamics/cadence_import/proposed_contact_manifest_row.ex`
+- `.codex/status/large_module_refactor.md`
+
+Likely tests:
+- `test/orbital_dynamics/cadence_import_test.exs`
+- `test/orbital_dynamics/schema/cadence_import_contracts_test.exs`
+
+Definition of done:
+The internal builder owns the exact 53-key projection and all eight exclusive
+status/context clauses; the facade supplies three exact callbacks; focused
+tests, strict compile, equivalence/API checks, and independent review are clean.
+
+Verification gaps:
+- Focused baseline, implementation proof, strict compile, and review remain.
 
 Behavior/schema changes:
-None. No schema-generation boundary changed, so no export regeneration was
-required.
+None intended.
 
 Last completed slice:
-Plan-delta manifest-row builder extraction, published in `d3b9c980`.
+Plan-delta row builder published in `d3b9c980`; compact handoff published in
+`73fd237c`.
 
 Next candidate:
-Remap the reduced `CadenceImport` module for the next low-coupling builder.
+Remap the reduced `CadenceImport` module after this extraction.
 
 Blocked:
 No.
