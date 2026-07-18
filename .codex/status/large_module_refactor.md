@@ -9,7 +9,8 @@ Current slice:
 Timeline integrity annotation extraction.
 
 Status:
-Selection recorded; implementation has not started.
+Implementation in progress; initial compile exposed one shared helper boundary
+that is being corrected before verification.
 
 Selected boundary:
 Move `annotate_timeline_integrity_rows/2` and the complete integrity engine
@@ -17,16 +18,22 @@ through `issue_value/2` into `Timeline.IntegrityAnnotation.annotate/3`:
 activity/timeline dependency validation, missing/self/duplicate/cycle/order
 issues, explicit and group exclusivity overlaps, issue aggregation, operator
 routing/supersession, and deterministic ID/type evidence. `Timeline` retains
-all public functions and supplies only shared list lookup and map compaction
-callbacks. Duplicate timeline-identity annotation remains in the facade as a
-separate responsibility.
+all public functions and supplies shared issue construction, list lookup, and
+map compaction callbacks. Duplicate timeline-identity annotation remains in
+the facade as a separate responsibility.
 
 Why this slice:
 The reduced Timeline facade is 8,930 lines. This approximately 378-line region
 has one cohesive responsibility, six facade callers, no module-attribute
-dependencies, two shared helper dependencies, and dense focused coverage.
+dependencies, three shared helper dependencies, and dense focused coverage.
 Keeping duplicate timeline identity separate makes the boundary match
 dependency/exclusivity integrity rather than unrelated collision routing.
+
+Boundary correction:
+The initial strict compile exposed that `issue/2` is also used by invalid-input
+normalization outside the selected block. It therefore remains in Timeline
+and is injected into the integrity module alongside list lookup and
+compaction.
 
 Planned proof:
 - Focused Timeline tests covering missing, self, duplicate, cyclic, and
@@ -35,7 +42,7 @@ Planned proof:
 - Full Timeline and Timeline schema-contract suites.
 - Strict warnings-as-errors compile.
 - Canonical AST equivalence for every moved clause after normalizing only the
-  two callback boundaries.
+  three callback boundaries.
 - Format, diff, whitespace, ownership, six-caller, public-definition, and xref
   checks.
 - Independent read-only review before publication.
