@@ -2338,47 +2338,47 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property(field, @score_term_report = contract_name, contract) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.PlanningAnalysisPropertyDispatch.score_term(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.ScoreTermReportJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.ScoreTermReportJsonSchema.property_fun_from_context(
-        models: OrbitalDynamics.Schema.OptimizerObjectiveContracts.score_term_report_models(),
-        model_limits: OrbitalDynamics.CampaignPlanner.score_report_model_limits(),
-        row_schema: score_term_row_json_schema()
-      )
+      &default_json_schema_property/3,
+      {
+        OrbitalDynamics.Schema.OptimizerObjectiveContracts.score_term_report_models(),
+        OrbitalDynamics.CampaignPlanner.score_report_model_limits(),
+        score_term_row_json_schema()
+      }
     )
   end
 
   defp json_schema_property(field, @resource_filter_summary = contract_name, contract) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.PlanningAnalysisPropertyDispatch.resource_filter_summary(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.ResourceFilterSummaryJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.ResourceFilterSummaryJsonSchema.property_fun_from_context(
-        schema_contract: @resource_filter_summary,
-        source_artifact_type: @resource_filter_report,
-        stable_id_pattern: @stable_id_pattern,
-        model_limits: fn -> resource_filter_report_model_limits() end,
-        assumptions_schema: %{"type" => "object"},
-        suppressed_candidate_schema: fn -> suppressed_candidate_json_schema() end
-      )
+      &default_json_schema_property/3,
+      {
+        @resource_filter_summary,
+        @resource_filter_report,
+        @stable_id_pattern,
+        fn -> resource_filter_report_model_limits() end,
+        %{"type" => "object"},
+        fn -> suppressed_candidate_json_schema() end
+      }
     )
   end
 
   defp json_schema_property(field, @constraint_report = contract_name, contract) do
-    focused_json_schema_property(
+    OrbitalDynamics.Schema.PlanningAnalysisPropertyDispatch.constraint(
       field,
       contract_name,
       contract,
-      &OrbitalDynamics.Schema.ConstraintReportJsonSchema.property_field?/1,
-      OrbitalDynamics.Schema.ConstraintReportJsonSchema.property_fun_from_context(
-        models: OrbitalDynamics.Schema.ConstraintReportContracts.models(),
-        model_limits: OrbitalDynamics.Schema.ConstraintReportContracts.model_limit_values(),
-        row_schema: constraint_row_json_schema()
-      )
+      &default_json_schema_property/3,
+      {
+        OrbitalDynamics.Schema.ConstraintReportContracts.models(),
+        OrbitalDynamics.Schema.ConstraintReportContracts.model_limit_values(),
+        constraint_row_json_schema()
+      }
     )
   end
 
