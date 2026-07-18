@@ -14,9 +14,9 @@ Slice selected; selection publication pending.
 Selected slice:
 Move `contact_allocation_manifest_row/2` and its exclusively used
 `contact_allocation_import_action/1` clauses into internal
-`CadenceImport.ContactAllocationManifestRow.build/3`. Inject only the three
-shared facade helpers for review action, adapter status, and compact-map
-cleanup.
+`CadenceImport.ContactAllocationManifestRow.build/3`. Inject only the four
+shared facade helpers for review action, adapter status, provider-result value
+normalization, and compact-map cleanup.
 
 Why this slice:
 `CadenceImport` is 6,683 lines. The contact-allocation builder is a 205-line
@@ -38,17 +38,19 @@ Likely files:
 
 Definition of done:
 The internal builder owns the exact 185-key projection and exclusive action
-clauses; the facade supplies only three same-purpose callbacks; focused
+clauses; the facade supplies only four same-purpose callbacks; focused
 Cadence-import and schema-contract tests pass; strict warnings-as-errors
 compile, projection equivalence, public API checks, and independent review are
 clean.
 
 Verification gaps:
-- Focused baseline, implementation proof, strict compile, and independent
-  review remain.
+- Initial implementation compile identified two shared provider-result
+  normalization calls omitted from the selection count; this correction is
+  published before a successful implementation compile.
+- Implementation proof, strict compile, and independent review remain.
 
 Tests run:
-- None yet for this selected slice.
+- Focused baseline: 100/100.
 
 Behavior/schema changes:
 None intended.
