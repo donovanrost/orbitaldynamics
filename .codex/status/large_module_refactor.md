@@ -1,47 +1,57 @@
 # Large Module Refactor Status
 
 Overall objective:
-Reduce maintenance risk in the largest OrbitalDynamics modules and tests through
-facade-preserving, responsibility-focused extraction with no public behavior,
+Reduce maintenance risk in the largest OrbitalDynamics modules through
+facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-CadenceImport contact-intent manifest-row builder extraction.
+CadenceImport suppression manifest-row builder extraction.
 
 Status:
-Implementation published in `eec84abb`; handoff publication pending.
+Slice selected; selection publication pending.
 
-Completed boundary:
-`CadenceImport.ContactIntentManifestRow.build/3` now owns the exact 104-key
-contact-intent projection. Shared presence, approval, policy, provider-result,
-activity-normalization, and compaction helpers remain in the facade and are
-supplied through twelve callbacks. `CadenceImport` dropped from 4,909 to 4,790
-lines.
+Selected slice:
+Move `suppression_manifest_row/3` into internal
+`CadenceImport.SuppressionManifestRow.build/4`. Preserve the shared approval,
+rule-match, escalation, provider-result, status, and compaction helpers in the
+facade and inject nine exact callbacks.
 
-Selection:
-The slice boundary was selected and published in `d78544a8`.
+Why this slice:
+The reduced facade is 4,790 lines. The shared contact/resource suppression
+builder has two dispatch callers and an exact 113-key projection with a clear
+responsibility boundary.
 
-Verification:
-- Focused baseline and implementation CadenceImport/contract suites: 100/100.
-- Strict warnings-as-errors compile: 3,706 files.
-- Canonical normalized AST equivalence: exact 104-key body after normalizing
-  only the twelve callback boundaries.
-- Format, diff, whitespace, caller, and xref checks: clean; one intended
-  dispatch and one runtime builder caller.
-- Independent review: no code findings; presence classification, policy
-  escalation/stringification, both provider-result paths, activity
-  normalization, fallback order, API, and determinism are exact. Its
-  handoff-only stale-ledger finding is resolved by this replacement.
+Public facade to preserve:
+All `CadenceImport` APIs; both suppression variants; all 113 keys, interpolation,
+fallback order, provider-result normalization, policy selection, compaction,
+determinism, and contracts.
+
+Likely files:
+- `lib/orbital_dynamics/cadence_import.ex`
+- `lib/orbital_dynamics/cadence_import/suppression_manifest_row.ex`
+- `.codex/status/large_module_refactor.md`
+
+Likely tests:
+- `test/orbital_dynamics/cadence_import_test.exs`
+- `test/orbital_dynamics/schema/cadence_import_contracts_test.exs`
+
+Definition of done:
+The internal builder owns the exact 113-key projection; shared helpers stay in
+the facade behind nine exact callbacks; focused tests, strict compile,
+equivalence/API checks, and independent review are clean.
+
+Verification gaps:
+- Focused baseline, implementation proof, strict compile, and review remain.
 
 Behavior/schema changes:
-None. No schema-generation boundary changed, so no export regeneration was
-required.
+None intended.
 
 Last completed slice:
-Contact-intent manifest-row builder extraction, published in `eec84abb`.
+Contact-intent row builder published in `eec84abb`; handoff in `8811ec77`.
 
 Next candidate:
-Remap the reduced `CadenceImport` module for the next low-coupling builder.
+Remap the reduced facade after this extraction.
 
 Blocked:
 No.
