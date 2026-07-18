@@ -9,39 +9,37 @@ Current slice:
 Timeline diff relationship-context policy extraction.
 
 Status:
-Selection recorded; implementation has not started.
+Implemented, verified, independently reviewed, committed, and pushed.
 
-Selected boundary:
-Move dependency/integrity diff-context shaping and schedule-overlap
-diff-context shaping into `Timeline.DiffRelationshipContextPolicy`. `Timeline`
-retains two private entry points and the existing diff-row callbacks remain
-unchanged; no callback, constant, report coordinator, or schema boundary
+Completed boundary:
+Moved dependency/integrity diff-context shaping and schedule-overlap context
+shaping into the 35-line `Timeline.DiffRelationshipContextPolicy`. The
+6,234-line `Timeline` retains two private entry points and the diff-row callbacks
+remain unchanged; no callback, constant, report coordinator, or schema boundary
 crosses the extraction.
 
-Why this slice:
-The 6,258-line Timeline facade still owns two exclusive pure map shapers for
-relationship review context. Moving them together isolates exact prefixed field
-projection without pulling the adjacent callback-bearing protection context or
-the wider diff-row coordinator across the boundary.
+Published commits:
+Selected in `b3b9347f` and implemented in `56cc0522`.
 
-Planned proof:
-- Focused dependency-cycle, dependency/exclusivity/overlap change, and unchanged
-  public-facade diff examples.
-- Full Timeline and Timeline schema-contract suites.
-- Strict warnings-as-errors compile.
-- Canonical AST equivalence for both moved definitions after normalizing only
-  public/private heads and facade function names.
+Verification:
+- Strict warnings-as-errors compile passed across 3,771 files.
+- Three focused dependency-cycle, relationship/overlap change, and unchanged
+  diff examples passed.
+- Full Timeline suite passed with 127 examples; Timeline schema-contract suites
+  passed with 36 examples.
+- Canonical AST equivalence passed for both moved definitions after normalizing
+  only public/private heads and facade function names.
 - Format, diff, whitespace, ownership, exactly-two-facade, unchanged Timeline
-  public-definition, and xref checks.
-- Independent read-only review before publication.
+  public-definition, and xref checks passed.
+- Independent read-only review found no production-code issues.
 
 Behavior/schema changes:
 None intended. No schema-generation boundary is selected, so export
 regeneration should not be required.
 
 Last completed slice:
-Timeline diff invalid-input context policy extraction, selected in `a5faf610`
-and implemented in `fcf2bd75`.
+Timeline diff relationship-context policy extraction, selected in `b3b9347f`
+and implemented in `56cc0522`.
 
 Next candidate:
 Continue remapping the reduced Timeline facade after this slice, avoiding wide
