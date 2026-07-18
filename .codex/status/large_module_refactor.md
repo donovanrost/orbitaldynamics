@@ -9,7 +9,7 @@ Current slice:
 Campaign-planner V2 repair-execution boundary extraction.
 
 Status:
-Slice selected; implementation not started.
+Implementation published as `bb696784`; handoff publication pending.
 
 Selected slice:
 Move the state-transition phase at the start of `CampaignPlanner.do_repair/1`
@@ -47,23 +47,38 @@ planner tests match live baseline; strict compile and independent review are
 clean.
 
 Verification gaps:
-- The full planner directory has five previously documented failures. The
-  post-change run must retain the same 728/733 result and observations.
-- The exact focused repair-execution baseline still needs to be captured.
+- The full planner directory retains the five previously documented failures:
+  728/733 passed with the same test names, values, and stack locations.
+- Independent review was clean. No code, API, artifact, determinism, ordering,
+  ownership, error-behavior, or behavioral finding remains.
 
 Tests run:
-- Live inventory: `CampaignPlanner` is 1,894 lines.
-- Dependency mapping found a callback-free extraction using existing
+- Baseline and post-change focused repair-execution subset: 35 passed with
+  warnings as errors.
+- Post-change full planner directory: 728/733 passed with the same five
+  documented failures and observations as the live baseline.
+- Strict forced compile: 3,649 files clean with warnings as errors.
+- Public `CampaignPlanner` definitions match selection commit `fec8a4f5`.
+  Xref reports `CampaignPlanner` as the only runtime caller of the new owner.
+- Format, tracked and new-file whitespace, and `git diff --check` passed. The
+  selected repair-only helpers are absent from the facade.
+- `CampaignPlanner` shrank from 1,894 to 1,802 lines. The new internal
+  `RepairExecution` module is 111 lines.
+- The extraction is callback-free and uses existing
   `RepairCandidateInputs`, `RepairRealizedState`, `RepairActivityDispatch`,
   `RepairManeuverTransitions`, `RepairPolicySemantics`, `RepairSourceReports`,
   and `StationCalendar` owners.
-- No runtime code has changed in this slice.
+- Independent review reran the exact 35-test subset, 3,649-file compile,
+  public-def, xref, formatting, diff, and new-file checks; results matched
+  primary proof.
 
 Behavior/schema changes:
 None intended.
 
 Outcome:
-Pending.
+`do_repair/1` now delegates its candidate preparation and state-transition
+phase to `RepairExecution.run/1`. The facade retains approval, reports, scoring,
+and artifact assembly. Implementation published as `bb696784`.
 
 Last completed slice:
 Derived-branch generation boundary extraction published as implementation
@@ -71,7 +86,8 @@ Derived-branch generation boundary extraction published as implementation
 lines; focused and full-baseline proof passed; independent review was clean.
 
 Next candidate:
-Implement and verify the selected V2 repair-execution boundary.
+Publish this handoff, then refresh the remaining facade responsibilities and
+select the next bounded extraction.
 
 Blocked:
 No.
