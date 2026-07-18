@@ -20,7 +20,7 @@ status, the two capability alias maps, and preserved-status application.
 Constant lists and the non-string encoder cross the boundary explicitly.
 
 Why this slice:
-The reduced Timeline facade is 7,037 lines. These 13 clauses form the shared
+The reduced Timeline facade is 7,037 lines. These 12 clauses form the shared
 lifecycle vocabulary used by reports, transitions, and lifecycle application.
 The boundary keeps caller-facing private names in Timeline while consolidating
 MissionPlan capability aliases and token normalization.
@@ -30,7 +30,7 @@ Planned proof:
   status and approval canonicalization, and preserved terminal status.
 - Full Timeline and Timeline schema-contract suites.
 - Strict warnings-as-errors compile.
-- Canonical AST equivalence for all 13 moved clauses after normalizing only the
+- Canonical AST equivalence for all 12 moved clauses after normalizing only the
   seven facade names, constant arguments, and encoder callback.
 - Format, diff, whitespace, ownership, exactly-seven-facade, unchanged Timeline
   public-definition, and xref checks.
