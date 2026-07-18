@@ -9,7 +9,7 @@ Current slice:
 Campaign-planner V3 branch-evaluation boundary extraction.
 
 Status:
-Slice selected; implementation not started.
+Implementation published as `3fecf5e0`; handoff publication pending.
 
 Selected slice:
 Move `evaluate_branch/2` and its branch-only assessment helpers from
@@ -47,24 +47,37 @@ and errors are unchanged; focused and full planner tests match live baseline;
 strict compile and independent review are clean.
 
 Verification gaps:
-- The full planner directory has five previously documented failures. The
-  post-change run must retain the same 728/733 result and observations.
-- The exact focused branch-evaluation baseline still needs to be captured.
+- The full planner directory retains the five previously documented failures:
+  728/733 passed with the same test names, values, and stack locations.
+- Independent review was clean. No code, API, artifact, determinism, ordering,
+  policy, provenance, ownership, error-behavior, or behavioral finding remains.
 
 Tests run:
-- Live inventory: `CampaignPlanner` is 1,802 lines.
-- Usage mapping confirms the selected branch assessment helpers are evaluator
-  only. Shared V1 metrics remain in the facade; the new owner can call
-  `StrategyMetrics` directly.
-- Dependency mapping found one required seam: the facade's normalized
-  `repair/1` entry point. All other work uses existing internal owners.
-- No runtime code has changed in this slice.
+- Baseline and post-change focused branch-evaluation subset: 55 passed with
+  warnings as errors.
+- Post-change full planner directory: 728/733 passed with the same five
+  documented failures and observations as the live baseline.
+- Strict forced compile: 3,650 files clean with warnings as errors.
+- Public `CampaignPlanner` definitions match selection commit `8e3e0e25`.
+  Xref reports `CampaignPlanner` as the only runtime caller of the new owner.
+- Format, tracked and new-file whitespace, and `git diff --check` passed. The
+  selected evaluator and branch-only helpers are absent from the facade.
+- `CampaignPlanner` shrank from 1,802 to 1,443 lines. The new internal
+  `StrategyBranchEvaluation` module is 282 lines.
+- The only injected dependency is the facade's normalized `repair/1` entry
+  point. Direct internal calls replace the removed thin metric helpers.
+- Independent review compared the full lifecycle and every `PlanBranch` field,
+  then reran the exact 55-test subset, 3,650-file compile, public-def, xref,
+  formatting, diff, and new-file checks; results matched primary proof.
 
 Behavior/schema changes:
 None intended.
 
 Outcome:
-Pending.
+`do_strategy_with_baseline/1` now delegates each normalized branch to
+`StrategyBranchEvaluation.evaluate/3`. Cross-branch ordering, recommendation,
+comparison, and artifact assembly remain in the facade. Implementation
+published as `3fecf5e0`.
 
 Last completed slice:
 V2 repair-execution boundary published as implementation `bb696784` and handoff
@@ -73,7 +86,8 @@ full-baseline, and 3,649-file compile proof passed; independent review was
 clean.
 
 Next candidate:
-Implement and verify the selected V3 branch-evaluation boundary.
+Publish this handoff, then refresh the remaining facade responsibilities and
+select the next bounded extraction.
 
 Blocked:
 No.
