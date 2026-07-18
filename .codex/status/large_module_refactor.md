@@ -9,7 +9,7 @@ Current slice:
 Schema planning-analysis model property-dispatch extension.
 
 Status:
-Slice selected; selection publication pending.
+Implementation published as `fba3dc77`; handoff publication pending.
 
 Selected slice:
 Move focused JSON-property routing/context assembly for optimizer contract and
@@ -41,13 +41,30 @@ reproducibility/export tests pass; strict compile, full byte-clean schema
 regeneration, and independent review are clean.
 
 Verification gaps:
-- Focused baseline, strict compile, export proof, and independent review remain.
+- None for this slice. Full checked-in schema regeneration is byte-identical.
+- Independent review was clean. No API, schema, export, ordering,
+  error-behavior, ownership, or behavioral finding remains.
 
 Tests run:
-- None yet for this selected slice.
+- Baseline and post-change focused optimizer/reproducibility/export subset:
+  22 passed with warnings as errors.
+- Strict forced compile: 3,667 files clean with warnings as errors.
+- Full schema export regenerated every checked-in schema and bundle with zero
+  diff.
+- Public `Schema` definitions match selection commit `4a0594d6`; xref reports
+  the dispatcher has only the `Schema` runtime caller.
+- Format, changed-file whitespace, and `git diff --check` passed.
+- Independent review confirmed exact constants/provider order and arities,
+  unchanged existing owner functions and neighboring routes, then reran all
+  proof clean.
 
 Behavior/schema changes:
 None intended.
+
+Outcome:
+Optimizer contract and Monte Carlo reproducibility routes now delegate to the
+existing `PlanningAnalysisPropertyDispatch`. Implementation published as
+`fba3dc77`.
 
 Last completed slice:
 Planning-reference schema dispatch published as implementation `b4b57709` and
