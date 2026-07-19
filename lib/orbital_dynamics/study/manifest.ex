@@ -8,6 +8,7 @@ defmodule OrbitalDynamics.Study.Manifest do
   """
 
   import OrbitalDynamics.Study.Manifest.SchemaProperty
+  import OrbitalDynamics.Study.Manifest.ValueSchema
 
   alias OrbitalDynamics.Benchmark.ScenarioFixture
   alias OrbitalDynamics.Maneuver.ImpulsiveBurn
@@ -751,29 +752,6 @@ defmodule OrbitalDynamics.Study.Manifest do
     )
   end
 
-  defp target_identity_schema do
-    object_property(%{
-      "id" => string_property(),
-      "target_id" => string_property()
-    })
-  end
-
-  defp ground_station_identity_schema do
-    object_property(%{
-      "id" => string_property(),
-      "station_id" => string_property(),
-      "ground_station_id" => string_property()
-    })
-  end
-
-  defp spacecraft_identity_schema do
-    object_property(%{
-      "id" => string_property(),
-      "spacecraft_id" => string_property(),
-      "satellite_id" => string_property()
-    })
-  end
-
   defp ground_track_crossing_schema do
     object_property(%{
       "id" => string_property(),
@@ -1177,15 +1155,6 @@ defmodule OrbitalDynamics.Study.Manifest do
       "description",
       "Embedded #{contract_name} artifact accepted by the manifest loader."
     )
-  end
-
-  defp vector3_schema do
-    %{
-      "type" => "array",
-      "items" => number_property(),
-      "minItems" => 3,
-      "maxItems" => 3
-    }
   end
 
   defp central_body(source) do
