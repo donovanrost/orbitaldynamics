@@ -6,43 +6,33 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-CadenceImport strategy-decision import extraction.
+CadenceImport candidate-evaluation import extraction.
 
 Status:
-Completed and published.
+Selected; implementation has not started.
 
 Selected boundary:
-Extract the seven approval-requirement, policy-decision, comparison, scoring,
-tradeoff, and Pareto constructor implementations into
-`OrbitalDynamics.CadenceImport.StrategyDecisionImport`. Preserve every public
-facade entry point and pass the existing review-package import seam as a
-callback.
+Extract the eight contact/resource filtering, candidate diff/rejection,
+provider counteroffer, invalidation, freshness, and refresh-budget constructor
+implementations into `OrbitalDynamics.CadenceImport.CandidateEvaluationImport`.
+Preserve every public facade entry point and pass the existing review-package
+import seam as a callback.
 
 Selection evidence:
-- `cadence_import.ex` is now 2,523 lines.
-- The selected contiguous family spans about 120 lines and repeats the same
+- `cadence_import.ex` is now 2,472 lines.
+- The selected contiguous family spans about 125 lines and repeats the same
   normalization, source-identity, OperatorReview conversion, and contract
-  routing flow for seven strategy-decision artifact shapes.
-- The family has one responsibility: turn decision evidence into review-package
-  imports while preserving each artifact's identity fallback.
-- Public API docs, row construction, manifest assembly, schemas, and
-  validation/readiness imports remain outside the boundary.
+  routing flow for eight candidate-evaluation artifact shapes.
+- The family has one responsibility: turn candidate acceptance, suppression,
+  validity, freshness, and budget evidence into review-package imports.
+- Public API docs, row construction, manifest assembly, schemas, and adjacent
+  resource projection/constraint imports remain outside the boundary.
 
 Verification:
-- Strict test compile passed with 3,829 files and warnings as errors.
-- Five representative strategy-decision tests passed with 67 excluded.
-- All combined CadenceImport tests passed: 96 tests.
-- CadenceImport schema contracts passed: 4 tests.
-- An executable before/after proof matched 42 cases across all seven
-  constructors, three key/source-ID shapes, and inferred versus explicit IDs.
-- Formatting and diff checks passed, and no temporary proof files remain.
-- Static ownership checks confirmed all seven public facade entry points
-  delegate to one implementation owner.
-- Runtime xref confirmed `cadence_import.ex` is the direct consumer of
-  `strategy_decision_import.ex`.
-- Bounded local review found no normalization, source-ID precedence or
-  fallback, OperatorReview conversion, source-contract, public API, row,
-  ordering, or schema changes.
+Pending: representative focused candidate-evaluation baselines, exact old/new
+constructor equivalence proof, strict compile, all combined CadenceImport
+tests, schema contracts, static single ownership, runtime xref, and bounded
+review.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
@@ -53,8 +43,8 @@ implemented in `3203c852`. `cadence_import.ex` moved from 2,523 to 2,472 lines;
 the extracted owner is 112 lines.
 
 Next candidate:
-Re-inventory remaining public routing after strategy-decision imports have one
-production owner.
+Re-inventory remaining public routing after candidate-evaluation imports have
+one production owner.
 
 Blocked:
 No.
