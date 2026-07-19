@@ -6,57 +6,46 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Study.Manifest schema-document extraction.
+ResourceProjection activity-effect policy extraction.
 
 Status:
-Completed and pushed.
+Selected; strict focused baseline pending.
 
 Selected boundary:
-Extract structural study-manifest JSON Schema assembly, including scenario,
-mission-plan, campaign, candidate-refresh, search, Monte Carlo, constraint,
-spacecraft, state-vector, ground-network, planning-state, resource, and
-operational-feedback schema fragments, into
-`OrbitalDynamics.Study.Manifest.SchemaDocument`. Preserve
-`OrbitalDynamics.Study.Manifest.json_schema/0`, schema export, field-reference,
-lint-report, parsing, and all other public facade behavior.
+Extract activity resource-effect classification, including terminal and
+approval-state gating, contact-allocation gating, suppressed/incompatible
+activity-type matching, payload/antenna availability policy, activity
+status/approval lookup, resource direction, and downlink classification, into
+`OrbitalDynamics.ResourceProjection.ActivityEffectPolicy`. Preserve all public
+ResourceProjection report, flow-report, flow-summary, and capability facades.
 
 Selection evidence:
 - Excluding the generated/declarative candidate-refresh JSON-schema module,
-  live re-ranking places `study/manifest.ex` at 2,229 lines, the largest
-  ordinary eligible facade behind Schema, Timeline, and MissionPlan.Activity.
-- The public schema document starts at line 282 and its private structural
-  builders occupy lines 395-986, a contiguous responsibility already composed
-  from dedicated ActivitySchema and RealizedActivitySchema owners.
-- Parsing, semantic validation, scenario construction, metadata assembly,
-  execution options, validation-report execution, and file I/O remain outside
-  the boundary.
-- The facade will pass its authoritative schema version, accepted propagator
-  and output names, search objectives, and lint error codes into the owner so
-  no public contract constants fork.
-- Exact map shape, nested contract embedding, list ordering, compatibility and
-  identity policy metadata, JSON export bytes, field-reference output, and lint
-  behavior must remain unchanged.
+  live re-ranking ties `resource_projection.ex` and
+  `communications/contact_allocation.ex` at 2,197 lines, the largest ordinary
+  eligible facades behind Schema, Timeline, and MissionPlan.Activity.
+- ResourceProjection already has seven responsibility owners, while its
+  activity-effect policy remains split between activity-type matching at lines
+  624-696 and effect/status/allocation/direction helpers at lines 1,782-1,970.
+- The selected helpers form one pure decision boundary consumed by projected
+  activity flow rows; the facade can pass its authoritative activity-type alias
+  map into the owner without forking normalization policy.
+- Activity input normalization/validation, resource-summary normalization,
+  projection arithmetic, delivery evidence, margins, pressure classification,
+  approval requirements, report assembly, and artifact contracts remain
+  outside the boundary.
+- Existing precedence and exact reasons for unavailable spacecraft,
+  rejection/terminal state, allocation deferral, suppressed/incompatible
+  activity types, payload/degraded state, antenna availability, and active
+  projection must remain unchanged.
 
 Implementation:
-- Selection was recorded and pushed in `4beb22bd`.
-- Implementation was committed and pushed in `d80ce4e9`.
-- `study/manifest.ex` moved from 2,229 to 1,621 lines.
-- `OrbitalDynamics.Study.Manifest.SchemaDocument` is a 632-line owner reached
-  through the public facade's unchanged `json_schema/0` entry point.
+Pending.
 
 Verification:
-- Strict warning-clean compilation passed across 3,982 files.
-- The focused manifest loader, schema export, reference, manifest lint, and
-  adjacent schema-lint consumers passed together: 72 tests.
-- Exact old/new public parity passed for the complete schema term, encoded
-  schema bytes, complete field-reference term, encoded field-reference bytes,
-  exported file bytes, and checked-in schema bytes.
-- One broader campaign golden-artifact assertion failed identically in an
-  isolated pre-extraction worktree at `4beb22bd`; it is unrelated to the schema
-  ownership move.
-- `mix xref callers` reports only the Study.Manifest facade.
-- The facade-owned structural schema builders are absent, formatting and
-  `git diff --check` passed, and the final diff is ownership-only.
+Pending strict focused baseline, exact old/new public parity, focused and
+adjacent tests, static ownership checks, xref, strict warning-clean compile,
+formatting, and diff checks.
 
 Behavior/schema changes:
 None intended.
@@ -68,8 +57,7 @@ implemented in `d80ce4e9`.
 document owner is 632 lines.
 
 Next candidate:
-Re-rank the live checkout and select the next cohesive facade-preserving
-boundary.
+Complete the selected ResourceProjection activity-effect policy extraction.
 
 Blocked:
 No.
