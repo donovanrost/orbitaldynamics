@@ -9,7 +9,7 @@ Current slice:
 TimelineFeedback throughput reconciliation ownership extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `86340697`.
 
 Selected boundary:
 Move reconciliation throughput and data-volume evidence, denominator
@@ -29,20 +29,32 @@ Selection evidence:
 - Existing public report APIs and artifact row shapes remain unchanged.
 
 Verification:
-Pending.
+- Strict test-environment compile passed with warnings as errors across 3,898
+  files.
+- Focused TimelineFeedback coverage passed: 73 tests.
+- Adjacent operator-review, Cadence import, and contact-feedback contract
+  coverage passed: 79 tests.
+- Exact public old/new comparison against selection commit `cfd577ed` passed
+  for five reports covering matched, mismatched, planned-only, realized-only,
+  and mixed rows with divergent throughput and data-volume evidence.
+- `mix xref callers` reports only the TimelineFeedback facade as a runtime
+  caller of the Throughput owner.
+- Static ownership checks confirm denominator selection, deltas, and completion
+  fractions live in Throughput while generic delta math remains in the facade.
+- `git diff --check` passed.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-TimelineFeedback reconciliation timing-evidence extraction, selected in
-`90ff1df4` and implemented in `c8ec267e`.
-`timeline_feedback.ex` moved from 4,122 to 4,099 lines; the dedicated owner is
-42 lines.
+TimelineFeedback throughput reconciliation ownership extraction, selected in
+`cfd577ed` and implemented in `86340697`.
+`timeline_feedback.ex` moved from 4,099 to 4,070 lines; the Throughput owner
+moved from 221 to 263 lines.
 
 Next candidate:
-Implement and verify the selected TimelineFeedback throughput reconciliation
-ownership extraction.
+Re-rank the live largest-module set and select the next cohesive ownership
+boundary.
 
 Blocked:
 No.
