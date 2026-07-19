@@ -133,6 +133,7 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
   alias OrbitalDynamics.Communications.StationCalendar.ProviderCounteroffer
   alias OrbitalDynamics.Communications.StationCalendar.ProviderCounterofferReport
   alias OrbitalDynamics.Communications.StationCalendar.ProviderCounterofferReviewSummary
+  alias OrbitalDynamics.Communications.StationCalendar.ProviderContention
   alias OrbitalDynamics.Communications.StationCalendar.ProviderResult
 
   @doc """
@@ -310,7 +311,7 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
 
     provider_contention_groups =
       entries
-      |> provider_calendar_contention_groups()
+      |> ProviderContention.groups()
       |> Enum.map(&maybe_apply_provider_contention_approval_policy(&1, approval_policy))
 
     affected =
@@ -1633,134 +1634,6 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
     |> Enum.map(&Atom.to_string/1)
   end
 
-  defp provider_calendar_contention_groups(entries) do
-    entries
-    |> provider_calendar_contention_pairs()
-    |> Enum.with_index(1)
-    |> Enum.map(fn {{left, right, overlap}, index} ->
-      provider_calendar_contention_group(left, right, overlap, index)
-    end)
-  end
-
-  defp provider_calendar_contention_pairs(entries) do
-    entries
-    |> Enum.with_index()
-    |> Enum.flat_map(fn {left, left_index} ->
-      entries
-      |> Enum.drop(left_index + 1)
-      |> Enum.flat_map(fn right ->
-        if provider_calendar_entries_conflict?(left, right) do
-          [{left, right, overlap_window(left, right)}]
-        else
-          []
-        end
-      end)
-    end)
-  end
-
-  defp provider_calendar_entries_conflict?(left, right) do
-    left["ground_station_id"] == right["ground_station_id"] and
-      station_calendar_directions_overlap?(left, right) and
-      window_overlaps?(
-        left["starts_at_s"],
-        left["ends_at_s"],
-        right["starts_at_s"],
-        right["ends_at_s"]
-      )
-  end
-
-  defp station_calendar_directions_overlap?(left, right) do
-    left_directions = station_calendar_direction_set(left)
-    right_directions = station_calendar_direction_set(right)
-
-    cond do
-      MapSet.size(left_directions) == 0 ->
-        true
-
-      MapSet.size(right_directions) == 0 ->
-        true
-
-      not MapSet.disjoint?(left_directions, right_directions) ->
-        true
-
-      MapSet.subset?(left_directions, MapSet.new(@command_contact_directions)) and
-          MapSet.subset?(right_directions, MapSet.new(@command_contact_directions)) ->
-        true
-
-      true ->
-        false
-    end
-  end
-
-  defp station_calendar_direction_set(entry) do
-    entry
-    |> Map.get("directions", [])
-    |> List.wrap()
-    |> Enum.map(&normalize_direction/1)
-    |> Enum.reject(&is_nil/1)
-    |> MapSet.new()
-  end
-
-  defp provider_calendar_contention_group(left, right, overlap, index) do
-    entries = [left, right]
-    entry_ids = Enum.map(entries, & &1["id"])
-    provider_ids = entries |> Enum.map(&station_calendar_provider_id/1) |> compact_sorted_values()
-
-    provider_entry_ids =
-      entries |> Enum.map(&station_calendar_provider_entry_id/1) |> compact_sorted_values()
-
-    %{
-      "id" => "station_calendar_provider_contention:#{left["ground_station_id"]}:#{index}",
-      "provider_calendar_contention_status" => "provider_calendar_overlap",
-      "required_operator_action" => "review_station_provider_contention",
-      "approval_status" => "operator_review_required",
-      "operator_action_reason" => "overlapping_provider_calendar_entries",
-      "ground_station_id" => left["ground_station_id"],
-      "starts_at_s" => overlap["starts_at_s"],
-      "ends_at_s" => overlap["ends_at_s"],
-      "overlap_duration_s" => overlap["duration_s"],
-      "entry_count" => length(entries),
-      "entry_ids" => Enum.sort(entry_ids),
-      "provider_ids" => provider_ids,
-      "provider_entry_ids" => provider_entry_ids,
-      "availabilities" => entries |> Enum.map(& &1["availability"]) |> compact_sorted_values(),
-      "directions" =>
-        entries
-        |> Enum.flat_map(&(Map.get(&1, "directions", []) || []))
-        |> compact_sorted_values(),
-      "reservation_ids" => entries |> Enum.map(&reservation_id/1) |> compact_sorted_values(),
-      "reserved_by" => entries |> Enum.map(& &1["reserved_by"]) |> compact_sorted_values(),
-      "reservation_statuses" =>
-        entries |> Enum.map(&reservation_status_or_reserved/1) |> compact_sorted_values(),
-      "reservation_expires_at_s" =>
-        entries |> Enum.map(& &1["reservation_expires_at_s"]) |> compact_sorted_numbers(),
-      "trust_boundary_statuses" =>
-        entries |> Enum.map(&station_calendar_trust_boundary_status/1) |> compact_sorted_values(),
-      "overlap_pairs" => provider_calendar_contention_overlap_pairs(left, right, overlap),
-      "source_station_calendar_entries" => entries
-    }
-    |> compact_map()
-  end
-
-  defp provider_calendar_contention_overlap_pairs(left, right, %{
-         "starts_at_s" => starts_at_s,
-         "ends_at_s" => ends_at_s,
-         "duration_s" => duration_s
-       })
-       when is_number(starts_at_s) and is_number(ends_at_s) and is_number(duration_s) do
-    [
-      %{
-        "left_entry_id" => left["id"],
-        "right_entry_id" => right["id"],
-        "overlap_starts_at_s" => starts_at_s,
-        "overlap_ends_at_s" => ends_at_s,
-        "overlap_duration_s" => duration_s
-      }
-    ]
-  end
-
-  defp provider_calendar_contention_overlap_pairs(_left, _right, _overlap), do: []
-
   defp compact_sorted_values(values) do
     values
     |> List.wrap()
@@ -1770,20 +1643,6 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
     |> Enum.uniq()
     |> Enum.sort()
   end
-
-  defp compact_sorted_numbers(values) do
-    values
-    |> List.wrap()
-    |> Enum.map(&numeric_or_nil/1)
-    |> Enum.reject(&is_nil/1)
-    |> Enum.uniq()
-    |> Enum.sort()
-  end
-
-  defp reservation_status_or_reserved(%{"availability" => "reserved"} = entry),
-    do: entry["reservation_status"] || "reserved"
-
-  defp reservation_status_or_reserved(entry), do: entry["reservation_status"]
 
   @doc """
   Converts declared provider calendar artifacts into ground-network intervals.
