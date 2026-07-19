@@ -9,7 +9,7 @@ Current slice:
 OperationalReadiness evidence-normalization extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `c8501c35`.
 
 Selected boundary:
 Extract readiness row access/counting plus freshness, schema-validation,
@@ -19,51 +19,56 @@ the public OperationalReadiness facade and private delegates used by the
 central evidence builder and quality-gate summaries.
 
 Selection evidence:
-- Live re-ranking places `operational_readiness.ex` at 2,766 lines, fourth
+- Live re-ranking placed `operational_readiness.ex` at 2,766 lines, fourth
   behind Schema, Timeline, and MissionPlan.Activity, and ahead of
   RecommendationRiskContext, TimelineFeedback, StationCalendar, and
   LinkCapacity.
-- The selected family spans lines 1,832-2,139. It owns artifact/review/import
-  freshness extraction, schema-validation status and issue counts, source
-  model and model-limit collection, policy classification extraction, scalar
-  normalization, and deterministic frequency aggregation.
+- The extracted family owns artifact/review/import freshness extraction,
+  schema-validation status and issue counts, source model and model-limit
+  collection, policy classification extraction, scalar normalization, and
+  deterministic frequency aggregation.
 - The central readiness evidence builder consumes all normalized families;
-  quality-gate summaries also consume row extraction and map-value counting.
-  Narrow delegates keep those facade callers stable.
+  quality-gate and resource summaries also consume row extraction, integer,
+  list, normalized-string, and map-value primitives through narrow delegates.
 - Gate construction, resource/adapter/operator-training/timeline evidence,
   import classification, execution boundaries, public clauses, and artifact
   contracts remain outside this boundary.
-- Existing nested lookup precedence, blank/null omission, accepted status and
-  classification vocabularies, integer truncation/parsing, list wrapping,
-  duplicate frequency semantics, row filtering, and exact errors must remain
-  unchanged.
 
-Verification plan:
-- Run the strict warning-clean compile before and after implementation.
-- Run the focused OperationalReadiness regression file and adjacent
-  quality-gate, operator-review, import, and schema consumers selected from
-  live references.
-- Run exact old/new parity from this selection commit across direct and nested
-  freshness/schema/policy evidence, mixed atom/string/count inputs,
-  source-model limits, review/import row precedence, empty evidence,
-  deterministic output, and invalid public errors.
-- Run `mix xref callers` for the new owner, inspect compile-connected
-  dependents, check formatting and `git diff --check`, prove the removed
-  helper family is absent from the facade, and review final facade/owner
-  boundaries.
+Verification:
+- Strict warning-clean compile passed across 3,956 files:
+  `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 mix compile --force --warnings-as-errors`.
+- Focused OperationalReadiness regression passed 31 tests; adjacent
+  operational-readiness/quality-gate operator review, candidate-refresh
+  replay, and validation fixture consumers passed 22 tests. The final
+  consolidated run passed all 53 tests.
+- Exact old/new parity passed 9 comparisons from selection commit `a361cea1`
+  with `/tmp/operational_readiness_evidence_normalization_compare.exs`,
+  covering review/import rows, direct freshness/schema/policy artifacts,
+  mixed atom/string/integer/float coercion, nested source evidence, model
+  limits, empty evidence, quality-gate wrapping, and public errors.
+- `mix xref callers
+  OrbitalDynamics.OperationalReadiness.EvidenceNormalization` reports only the
+  OperationalReadiness facade.
+- Compile-connected xref scope for the new owner does not expand beyond the
+  owner itself.
+- Focused formatting, `git diff --check`, removed-family static checks, and
+  final facade/owner review passed.
 
 Behavior/schema changes:
-None intended.
+None. The public OperationalReadiness facade, nested lookup precedence,
+blank/null omission, vocabularies, integer coercion, list wrapping, frequency
+semantics, row filtering, deterministic artifacts, and exact errors are
+unchanged.
 
 Last completed slice:
-StationCalendar approval-policy extraction, selected in `7ca6a115`,
-implemented in `7cf1481b`, and handed off in `9f6325b8`.
-`station_calendar.ex` moved from 2,778 to 2,595 lines; the dedicated approval
-policy owner is 213 lines.
+OperationalReadiness evidence-normalization extraction, selected in
+`a361cea1` and implemented in `c8501c35`.
+`operational_readiness.ex` moved from 2,766 to 2,500 lines; the dedicated
+evidence-normalization owner is 312 lines.
 
 Next candidate:
-Implement and verify the selected OperationalReadiness evidence-normalization
-extraction.
+Re-rank the live largest-module inventory and select the next cohesive,
+facade-preserving ownership boundary.
 
 Blocked:
 No.
