@@ -9,7 +9,7 @@ Current slice:
 ContactAllocation contact-validation extraction.
 
 Status:
-Selected; strict focused baseline pending.
+Completed and pushed in `6d894840`.
 
 Selected boundary:
 Extract contact eligibility, provider-contact detection, terminal/approval
@@ -36,24 +36,42 @@ Selection evidence:
   rows/reports/summaries, and error behavior must remain unchanged.
 
 Implementation:
-Pending.
+- Added
+  `OrbitalDynamics.Communications.ContactAllocation.ContactValidation` as the
+  owner of contact eligibility, provider inference, status blocking, identity
+  and unit-interval validation, and invalid-reason precedence.
+- Preserved ContactAllocation and root public APIs as allocation, report, and
+  summary delegates.
+- Kept row evidence projection in the facade while routing shared status,
+  completion, and feedback-factor values through the validation owner.
+- `communications/contact_allocation.ex` moved from 1,953 to 1,804 lines; the
+  new owner is 205 lines.
 
 Verification:
-Pending strict focused baseline, exact old/new public parity, focused and
-adjacent tests, static ownership checks, xref, strict warning-clean compile,
-formatting, and diff checks.
+- Strict focused baseline passed all 70 ContactAllocation tests.
+- Exact old/new public parity passed for four deterministic captures: inferred
+  provider downlink allocation, invalid-input reason coverage, terminal and
+  approval status blocking, and status-blocked allocation summary.
+- Post-extraction focused and adjacent verification passed all 86 tests.
+- Static checks confirm the detailed validation helper family left the facade
+  and is owned by ContactValidation; xref reports only ContactAllocation as a
+  runtime caller.
+- Strict warning-clean forced compile passed for 3,998 files.
+- Formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-ResourceFilter candidate-input extraction, selected in `a2a84802` and
-implemented in `a1b248fa`.
-`resource_filter.ex` moved from 1,964 to 1,542 lines; the dedicated
-CandidateInput owner is 477 lines.
+ContactAllocation contact-validation extraction, selected in `325980b5` and
+implemented in `6d894840`.
+`communications/contact_allocation.ex` moved from 1,953 to 1,804 lines; the
+dedicated ContactValidation owner is 205 lines.
 
 Next candidate:
-Complete the selected ContactAllocation contact-validation extraction.
+Re-rank the live checkout and select the next bounded facade-preserving
+extraction. `timeline_feedback.ex` is now the largest ordinary eligible facade
+at 1,948 lines, followed by OperationalReadiness and StationCalendar.
 
 Blocked:
 No.
