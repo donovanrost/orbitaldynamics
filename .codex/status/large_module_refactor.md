@@ -6,43 +6,32 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-CadenceImport operational-timeline import extraction.
+CadenceImport activity-result import extraction.
 
 Status:
-Completed and published.
+Selected; implementation has not started.
 
 Selected boundary:
-Extract the timeline-feedback and operational-timeline report constructor
-implementations into
-`OrbitalDynamics.CadenceImport.OperationalTimelineImport`. Preserve both public
+Extract the planned activity, realized activity, realized-state snapshot, and
+result-artifact constructor implementations into
+`OrbitalDynamics.CadenceImport.ActivityResultImport`. Preserve all four public
 facade entry points and pass the existing review-package import seam as a
 callback.
 
 Selection evidence:
-- `cadence_import.ex` is now 2,254 lines.
-- The selected contiguous pair spans about 40 lines and owns operational
-  timeline feedback/report normalization, conversion, and routing.
-- The pair has one responsibility: turn realized feedback and operational
-  timeline evidence into review-package imports while preserving feedback's
-  embedded-package precedence.
-- Public API docs, row construction, manifest assembly, schemas, and adjacent
-  repair/contention imports remain outside the boundary.
+- `cadence_import.ex` is now 2,236 lines.
+- The selected contiguous family spans about 75 lines plus one result identity
+  delegate and owns activity/result normalization, conversion, and routing.
+- The family has one responsibility: turn planned, realized, snapshot, and
+  final result evidence into review-package imports while preserving each
+  distinct identity chain.
+- Public API docs, proposed-contact row construction, manifest assembly,
+  schemas, and campaign/candidate-refresh imports remain outside the boundary.
 
 Verification:
-- Strict test compile passed with 3,837 files and warnings as errors.
-- Two focused operational-timeline tests passed with 70 excluded.
-- All combined CadenceImport tests passed: 96 tests.
-- CadenceImport schema contracts passed: 4 tests.
-- An executable before/after proof matched 16 cases across both constructors,
-  including an embedded feedback package and inferred/explicit IDs.
-- Formatting and diff checks passed, and no temporary proof files remain.
-- Static ownership checks confirmed both public facade entry points delegate to
-  one implementation owner.
-- Runtime xref confirmed `cadence_import.ex` is the direct consumer of
-  `operational_timeline_import.ex`.
-- Bounded local review found no embedded-package precedence, normalization,
-  source-ID fallback, OperatorReview conversion, source-contract, public API,
-  row, ordering, or schema changes.
+Pending: focused activity/result baselines, exact old/new constructor
+equivalence proof, strict compile, all combined CadenceImport tests, schema
+contracts, static single ownership, runtime xref, and bounded review.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
@@ -53,8 +42,8 @@ and implemented in `a002de2b`. `cadence_import.ex` moved from 2,254 to 2,236
 lines; the extracted owner is 36 lines.
 
 Next candidate:
-Re-inventory remaining public routing after operational-timeline imports have
-one production owner.
+Re-inventory remaining public routing after activity/result imports have one
+production owner.
 
 Blocked:
 No.
