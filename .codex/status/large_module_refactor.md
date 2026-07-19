@@ -9,7 +9,7 @@ Current slice:
 CadenceImport candidate-evaluation import extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and published.
 
 Selected boundary:
 Extract the eight contact/resource filtering, candidate diff/rejection,
@@ -29,18 +29,28 @@ Selection evidence:
   resource projection/constraint imports remain outside the boundary.
 
 Verification:
-Pending: representative focused candidate-evaluation baselines, exact old/new
-constructor equivalence proof, strict compile, all combined CadenceImport
-tests, schema contracts, static single ownership, runtime xref, and bounded
-review.
+- Strict test compile passed with 3,830 files and warnings as errors.
+- Five representative candidate-evaluation tests passed with 67 excluded.
+- All combined CadenceImport tests passed: 96 tests.
+- CadenceImport schema contracts passed: 4 tests.
+- An executable before/after proof matched 48 cases across all eight
+  constructors, three key/source-ID shapes, and inferred versus explicit IDs.
+- Formatting and diff checks passed, and no temporary proof files remain.
+- Static ownership checks confirmed all eight public facade entry points
+  delegate to one implementation owner.
+- Runtime xref confirmed `cadence_import.ex` is the direct consumer of
+  `candidate_evaluation_import.ex`.
+- Bounded local review found no normalization, source-ID precedence or
+  fallback, OperatorReview conversion, source-contract, public API, row,
+  ordering, or schema changes.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-CadenceImport strategy-decision import extraction, selected in `89b81749` and
-implemented in `3203c852`. `cadence_import.ex` moved from 2,523 to 2,472 lines;
-the extracted owner is 112 lines.
+CadenceImport candidate-evaluation import extraction, selected in `179a6333`
+and implemented in `e1dabcb5`. `cadence_import.ex` moved from 2,472 to 2,411
+lines; the extracted owner is 122 lines.
 
 Next candidate:
 Re-inventory remaining public routing after candidate-evaluation imports have
