@@ -6,45 +6,28 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-ContactAllocation contact identity extraction.
+Study.Manifest input field extraction.
 
 Status:
-Completed and pushed in `ed1e1cbd`.
+Selected; implementation not started.
 
 Selected boundary:
-Extract contact ID resolution and validation, spacecraft identity resolution,
-declared stable-identity validation, station-calendar identity selection,
-stable ID/number list normalization, reservation-expiry selection, and derived
-calendar counts into
-`OrbitalDynamics.Communications.ContactAllocation.ContactIdentity`. Preserve
-the existing private identity/calendar seams in the facade while moving
-`@stable_id_pattern` to its single owner.
+Extract required/optional scalar, number, boolean, string, identifier, map,
+list, integer, vector, atom, station-availability, and interval field readers
+into `OrbitalDynamics.Study.Manifest.InputField`. Preserve the existing private
+field-reader seams in the Manifest facade.
 
 Selection evidence:
-- Live re-ranking places `contact_allocation.ex` at 4,296 lines.
-- The selected 3,970-4,210 helper family shares one stable-ID policy across
-  scalar contact identity and station-calendar collection forms.
-- The advertised stable identity field list remains facade-owned capability
-  policy and will be passed only to declared-field validation.
-- Generic numeric parsing remains in the facade and is reused for calendar
-  number lists and reservation expiry selection.
-- Allocation, contact normalization, contention, capacity, reservation,
-  summary, and public report APIs remain in their existing owners or facade.
+- Live re-ranking places `study/manifest.ex` at 4,489 lines.
+- The selected 4,193-4,476 helper family is a pure typed field-reader layer
+  shared across manifest parsing branches.
+- Manifest source routing, domain-specific assembly, run options, planning
+  state interpretation, and public load/validation APIs remain in the facade.
+- Field-reference normalization and validation-error shaping remain with their
+  existing dedicated owners.
 
 Verification:
-- Strict warnings-as-errors compile passed across 3,888 files.
-- Focused ContactAllocation coverage passed: 70 tests.
-- Adjacent operator-review, schema-contract, and allocation-fixture coverage
-  passed: 24 tests.
-- Exact old/new public artifact comparison against `452b1c23` passed for 18
-  scalar ID, nested spacecraft, provider/calendar ID, mixed ID-list,
-  number-list, reservation-expiry, and invalid-identity cases plus 5 aggregate
-  summary artifacts.
-- Runtime xref found the new owner referenced only by ContactAllocation;
-  static review confirmed the stable-ID regex has one owner and numeric parsing
-  is callback-reused, and `git diff --check` passed.
-- `communications/contact_allocation.ex` moved from 4,296 to 4,127 lines; the
-  dedicated owner is 243 lines.
+Pending.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
@@ -55,8 +38,7 @@ implemented in `ed1e1cbd`. `communications/contact_allocation.ex` moved from
 4,296 to 4,127 lines; the dedicated owner is 243 lines.
 
 Next candidate:
-Re-rank all remaining hotspots after the ContactAllocation ingestion and
-identity pass.
+Implement and verify the selected Study.Manifest input field extraction.
 
 Blocked:
 No.
