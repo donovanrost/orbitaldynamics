@@ -8,6 +8,7 @@ defmodule OrbitalDynamics.Schema do
   """
 
   alias OrbitalDynamics.Schema.{
+    CandidateRejectionValidation,
     ContactAllocationValidation,
     ContactReportValidation,
     DecisionSupportValidation,
@@ -6380,47 +6381,27 @@ defmodule OrbitalDynamics.Schema do
   defp resource_projection_report_models,
     do: ResourceValidation.resource_projection_report_models()
 
-  defp validate_candidate_rejection_report(issues, path, report) do
-    OrbitalDynamics.Schema.CandidateRejectionReportContracts.validate(
-      issues,
-      path,
-      report,
-      candidate_rejection_report_model_limits()
-    )
-  end
-
-  defp validate_optional_candidate_rejection_source_row(issues, _path, nil), do: issues
-
-  defp validate_optional_candidate_rejection_source_row(issues, path, %{} = row) do
-    OrbitalDynamics.Schema.CandidateRejectionReportContracts.validate_optional_source_row(
-      issues,
-      path,
-      row
-    )
-  end
-
-  defp validate_optional_candidate_rejection_source_row(issues, path, row),
+  defp validate_candidate_rejection_report(issues, path, report),
     do:
-      OrbitalDynamics.Schema.CandidateRejectionReportContracts.validate_optional_source_row(
+      CandidateRejectionValidation.validate_report(
         issues,
         path,
-        row
+        report,
+        candidate_rejection_report_model_limits()
       )
 
-  defp validate_optional_candidate_rejection_report(issues, _path, nil), do: issues
+  defp validate_optional_candidate_rejection_source_row(issues, path, row),
+    do: CandidateRejectionValidation.validate_optional_source_row(issues, path, row)
 
-  defp validate_optional_candidate_rejection_report(issues, path, %{} = report) do
-    issues
-    |> require_fields(
-      path,
-      report,
-      registry_contract!(@candidate_rejection_report)["required_fields"]
-    )
-    |> validate_candidate_rejection_report(path, report)
-  end
-
-  defp validate_optional_candidate_rejection_report(issues, path, _report),
-    do: [error(path, "must be an object") | issues]
+  defp validate_optional_candidate_rejection_report(issues, path, report),
+    do:
+      CandidateRejectionValidation.validate_optional_report(
+        issues,
+        path,
+        report,
+        registry_contract!(@candidate_rejection_report)["required_fields"],
+        candidate_rejection_report_model_limits()
+      )
 
   defp validate_cadence_import_manifest(issues, path, manifest) do
     OrbitalDynamics.Schema.CadenceImportManifestContracts.validate(
