@@ -6,56 +6,42 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-ContactIntent provider-result normalization extraction.
+StationCalendar precedence-summary extraction.
 
 Status:
-Completed and pushed in `54820d60`.
+Selected; strict focused baseline pending.
 
 Selected boundary:
-Extract the provider-result map traversal key contract, recursive scalar/list/
-map value collection, blank handling, and artifact-string canonicalization
-into `OrbitalDynamics.Communications.ContactIntent.ProviderResult`. Preserve
-all ContactIntent and root public facades.
+Extract row-derived station-calendar availability precedence aggregation,
+higher-precedence reservation surfacing, contact/reservation routing maps, and
+precedence-specific list/count helpers into
+`OrbitalDynamics.Communications.StationCalendar.PrecedenceSummary`. Preserve
+all StationCalendar and root public facades.
 
 Selection evidence:
 - Excluding the generated/declarative candidate-refresh JSON-schema module,
-  live re-ranking places `communications/contact_intent.ex` at 2,112 lines,
+  live re-ranking places `communications/station_calendar.ex` at 2,068 lines,
   the largest ordinary eligible facade.
-- The summary/routing aggregation region was assessed first but remains coupled
-  to capacity derivation, direction normalization, capability limits, and
-  facade-owned assumptions, so it is not the selected boundary.
-- Provider-result normalization has one explicit traversal key contract at line
-  230, five artifact-value call sites, and a self-contained helper family at
-  lines 2,037-2,108.
-- Activity/timeline normalization, capacity derivation, station-calendar
-  evidence, policy classification, identity construction, summary routing,
-  and generic recursive key stringification remain outside the boundary.
-- Traversal-key ordering, comma splitting, whitespace behavior, nested
-  list/map flattening, scalar conversion, map-key handling, and nil/unsupported
-  fallback must remain unchanged.
+- StationCalendar already delegates to twelve responsibility-focused owners;
+  its precedence-summary builder remains in the facade at lines 801-876 with a
+  cohesive set of precedence-specific routing helpers near lines 1,823-1,914.
+- The new owner will receive facade-owned schema/model-limit values explicitly,
+  avoiding ownership changes to public dispatch or capability contracts.
+- Contact overlay, station matching, provider contention/counteroffers,
+  reservation reports and hold readiness, approval policy, capacity handling,
+  feedback validation, and shared facade aggregators remain outside the
+  boundary.
+- Exact string/atom input parity, source/default selection, sparse output,
+  deterministic sorting, counts, applied/overlap routing, higher-precedence
+  reservation routing, and pass-through summary behavior must remain unchanged.
 
 Implementation:
-- Added `OrbitalDynamics.Communications.ContactIntent.ProviderResult` as the
-  owner of ordered map traversal keys, recursive scalar/list/map collection,
-  blank handling, and artifact-string canonicalization.
-- Preserved all ContactIntent and root public APIs while routing capability
-  metadata and five internal artifact-value call sites through the new owner.
-- Removed the provider-result attribute and helper family from the facade;
-  generic recursive key stringification remains facade-owned.
-- `communications/contact_intent.ex` moved from 2,112 to 2,038 lines; the new
-  owner is 77 lines.
+Pending.
 
 Verification:
-- Strict focused baseline passed all 27 ContactIntent tests.
-- Exact old/new public parity passed for seven captured cases: ordered
-  capability keys, preserved nonblank strings, blank strings, flattened lists,
-  ordered nested maps, nested lists, and unsupported values.
-- Focused and schema-adjacent verification passed 35 tests across ContactIntent
-  behavior and communications contracts.
-- Static checks confirm the old attribute and private helper family left the
-  facade; xref reports only ContactIntent as a runtime caller of the new owner.
-- Strict warning-clean forced compile passed for 3,987 files.
-- Formatting and `git diff --check` passed.
+Pending strict focused baseline, exact old/new public parity, focused and
+adjacent tests, static ownership checks, xref, strict warning-clean compile,
+formatting, and diff checks.
 
 Behavior/schema changes:
 None intended.
@@ -67,10 +53,7 @@ ContactIntent provider-result normalization extraction, selected in
 dedicated provider-result owner is 77 lines.
 
 Next candidate:
-Re-rank the live checkout and select the next bounded facade-preserving
-extraction. `communications/station_calendar.ex`,
-`communications/contact_filter.ex`, and `resource_filter.ex` are now the
-largest ordinary eligible facades near 2,060 lines.
+Complete the selected StationCalendar precedence-summary extraction.
 
 Blocked:
 No.
