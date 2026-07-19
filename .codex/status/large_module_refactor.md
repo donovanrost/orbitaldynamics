@@ -6,73 +6,66 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-ContactContention feedback-context extraction.
+LinkCapacity station-reservation evidence extraction.
 
 Status:
-Completed and pushed in `760a7ba0`.
+Selected; implementation not started.
 
 Selected boundary:
-Extract contact/command feedback aggregation, provider-result artifact
-normalization, actual-throughput selection, and actual-data-rate throughput
-derivation into
-`OrbitalDynamics.Communications.ContactContention.FeedbackContext`. Preserve
-the public ContactContention facade and private delegates used by contention
-group/recommendation construction, approval-policy context copying, and
-provider-contact evidence detection.
+Extract station-reservation IDs, expiration timestamps, owners, statuses,
+match statuses, nested/wrapped station-calendar source traversal, and the
+corresponding row-derived summary aggregations into
+`OrbitalDynamics.Communications.LinkCapacity.StationReservationEvidence`.
+Preserve the public LinkCapacity facade and private delegates used by report
+row construction, report-level aggregation, and compact summary projection.
 
 Selection evidence:
-- Live re-ranking placed `contact_contention.ex` at 2,805 lines, fifth behind
-  Schema, Timeline, MissionPlan.Activity, and the intentionally public
-  `OrbitalDynamics` facade, and ahead of LinkCapacity, StationCalendar,
-  OperationalReadiness, RecommendationRiskContext, TimelineFeedback, and
-  ResourceProjection.
-- The extracted family owned boolean/factor/string feedback aggregation,
-  metadata fallback, nested provider-result flattening, explicit throughput
-  aliases, data-rate unit conversion, duration fallback, and derivation
-  evidence.
-- Four contention group/recommendation builders consume the feedback context;
-  two approval-policy paths consume its field allowlist; provider contact
-  evidence consumes actual throughput. Three narrow private delegates preserve
-  those facade callers.
-- Station-calendar context/capacity semantics, contention grouping, approval
-  requirements, resolution-policy normalization and ordering, contact
-  identity, public report clauses, and artifact contracts remain outside this
-  boundary.
+- Live re-ranking places `link_capacity.ex` at 2,792 lines, fourth behind
+  Schema, Timeline, and MissionPlan.Activity, and ahead of StationCalendar,
+  OperationalReadiness, RecommendationRiskContext, and TimelineFeedback.
+- The selected family spans row-derived reservation aggregation at lines
+  1,353-1,410 and contact/source reservation extraction at lines 1,438-1,654.
+  It owns explicit and nested reservation IDs, reserved-entry fallback IDs,
+  recursively wrapped expiration values, owner/status/match-status
+  normalization, and deterministic list/count aggregation.
+- Report station rows, report-level reservation fields, summary reservation
+  fields/counts, and summary routing maps remain facade consumers through
+  narrow delegates.
+- Link-capacity throughput, selection reconciliation, downlink requirements,
+  approval policy, general station-calendar identity/direction evidence,
+  availability/capacity semantics, public clauses, and artifact contracts
+  remain outside this boundary.
+- Existing explicit-ID precedence, reserved-source fallback, recursion depth,
+  alias order, numeric/string/status normalization, nil/empty omission,
+  uniqueness, sorting, frequency counts, and exact errors must remain
+  unchanged.
 
-Verification:
-- Strict warning-clean compile passed across 3,953 files:
-  `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 mix compile --force --warnings-as-errors`.
-- Focused ContactContention regression passed 40 tests; the adjacent
-  ContactAllocation, campaign-planner contention, operator-review contention
-  and resolution, and validation-fixture bundle passed 83 tests. The final
-  consolidated run passed all 123 tests.
-- Exact old/new parity passed 10 comparisons from selection commit `1eb8bb50`
-  with `/tmp/contact_contention_feedback_context_compare.exs`, covering rich
-  nested feedback, metadata fallback, explicit-throughput precedence, MB/s and
-  Mbps derivation, negative-rate clamping, atom-key normalization, empty and
-  deterministic reports, resolution reports/summaries, and public errors.
-- `mix xref callers
-  OrbitalDynamics.Communications.ContactContention.FeedbackContext` reports
-  only the ContactContention facade.
-- Compile-connected xref scope for the new owner does not expand beyond the
-  owner itself.
-- Focused formatting, `git diff --check`, removed-family static checks, and
-  final facade/owner review passed.
+Verification plan:
+- Run the strict warning-clean compile before and after implementation.
+- Run the focused LinkCapacity regression file and adjacent compact-summary,
+  operator-review, validation, and schema fixture consumers selected from live
+  references.
+- Run exact old/new parity from this selection commit across direct and nested
+  reservation evidence, wrapped expiration values, reserved-entry fallback,
+  mixed atom/string/numeric values, stale row summaries, deterministic output,
+  and invalid public input errors.
+- Run `mix xref callers` for the new owner, inspect compile-connected
+  dependents, check formatting and `git diff --check`, prove the removed
+  helper family is absent from the facade, and review final facade/owner
+  boundaries.
 
 Behavior/schema changes:
-None. The public ContactContention facade, feedback aggregation, provider
-result traversal, throughput precedence and conversion, contact identity,
-deterministic output, artifact contracts, and exact errors are unchanged.
+None intended.
 
 Last completed slice:
-ContactContention feedback-context extraction, selected in `1eb8bb50` and
-implemented in `760a7ba0`.
+ContactContention feedback-context extraction, selected in `1eb8bb50`,
+implemented in `760a7ba0`, and handed off in `67213d3e`.
 `contact_contention.ex` moved from 2,805 to 2,509 lines; the dedicated
 feedback-context owner is 327 lines.
 
 Next candidate:
-Re-rank the live largest-module inventory and select the next cohesive,
-facade-preserving ownership boundary.
+Implement and verify the selected LinkCapacity station-reservation evidence
+extraction.
 
 Blocked:
 No.
