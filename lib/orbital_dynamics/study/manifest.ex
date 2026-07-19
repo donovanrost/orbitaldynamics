@@ -36,7 +36,7 @@ defmodule OrbitalDynamics.Study.Manifest do
     Search.MonteCarlo
   }
 
-  alias OrbitalDynamics.Study.Manifest.FieldReference
+  alias OrbitalDynamics.Study.Manifest.{FieldReference, ValidationError}
 
   alias OrbitalDynamics.Propagators.{
     J2,
@@ -381,131 +381,7 @@ defmodule OrbitalDynamics.Study.Manifest do
     |> maybe_put("sha256", metadata[:sha256])
   end
 
-  defp manifest_error({:missing_field, field}) when is_binary(field) do
-    error("missing_field", manifest_path(field), "required field is missing: #{field}", %{
-      "field" => field
-    })
-  end
-
-  defp manifest_error({:invalid_field, field}) when is_binary(field) do
-    error("invalid_field", manifest_path(field), "field has an invalid value: #{field}", %{
-      "field" => field
-    })
-  end
-
-  defp manifest_error({:unsupported_schema_version, version}) do
-    error(
-      "unsupported_schema_version",
-      "$.schema_version",
-      "unsupported study manifest schema_version: #{inspect(version)}",
-      %{"expected" => @schema_version, "actual" => json_safe(version)}
-    )
-  end
-
-  defp manifest_error({:unsupported_central_body, value}) do
-    error("unsupported_central_body", "$.central_body", "unsupported central_body", %{
-      "actual" => json_safe(value)
-    })
-  end
-
-  defp manifest_error({:unsupported_propagator, value}) do
-    error("unsupported_propagator", "$.propagator", "unsupported propagator", %{
-      "actual" => json_safe(value)
-    })
-  end
-
-  defp manifest_error({:unsupported_output, value}) do
-    error("unsupported_output", "$.outputs", "unsupported output", %{
-      "actual" => json_safe(value)
-    })
-  end
-
-  defp manifest_error({:invalid_output, value}) do
-    error("invalid_output", "$.outputs", "output entries must be supported strings", %{
-      "actual" => json_safe(value)
-    })
-  end
-
-  defp manifest_error({:missing_option, option}) when is_atom(option) do
-    option = Atom.to_string(option)
-
-    error(
-      "missing_run_option",
-      manifest_option_path(option),
-      "required run option is missing: #{option}",
-      %{"option" => option}
-    )
-  end
-
-  defp manifest_error({:invalid_option, option}) when is_atom(option) do
-    option = Atom.to_string(option)
-
-    error(
-      "invalid_run_option",
-      manifest_option_path(option),
-      "run option has an invalid value: #{option}",
-      %{"option" => option}
-    )
-  end
-
-  defp manifest_error({:unsupported_option, field, option})
-       when is_binary(field) and is_binary(option) do
-    error("unsupported_option", manifest_path("#{field}.#{option}"), "unsupported option", %{
-      "field" => field,
-      "option" => option
-    })
-  end
-
-  defp manifest_error({:file_error, reason, path}) do
-    error("file_error", "$", "could not read manifest file", %{
-      "file_reason" => to_string(reason),
-      "path" => path
-    })
-  end
-
-  defp manifest_error({:invalid_json, :expected_object}) do
-    error("invalid_json_object", "$", "manifest JSON must decode to an object", %{})
-  end
-
-  defp manifest_error(:invalid_json) do
-    error("invalid_json", "$", "manifest file is not valid JSON", %{})
-  end
-
-  defp manifest_error({:invalid_manifest, message}) do
-    error("invalid_manifest", "$", to_string(message), %{})
-  end
-
-  defp manifest_error(reason) do
-    error("manifest_error", "$", "manifest validation failed", %{
-      "reason" => inspect(reason)
-    })
-  end
-
-  defp manifest_option_path("ground_stations"), do: "$.ground_stations"
-  defp manifest_option_path("targets"), do: "$.targets"
-  defp manifest_option_path("ground_track_crossings"), do: "$.ground_track_crossings"
-  defp manifest_option_path(option), do: manifest_path(option)
-
-  defp error(code, path, message, details) do
-    %{
-      "code" => code,
-      "path" => path,
-      "message" => message,
-      "details" => details
-    }
-  end
-
-  defp manifest_path(field) do
-    "$." <> field
-  end
-
-  defp json_safe(value) do
-    value
-    |> :json.encode()
-    |> :json.decode()
-  rescue
-    _error -> inspect(value)
-  end
+  defp manifest_error(reason), do: ValidationError.build(reason, @schema_version)
 
   defp manifest_schema_properties do
     %{
