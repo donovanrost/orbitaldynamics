@@ -9,7 +9,7 @@ Current slice:
 Schema operational-readiness validation extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and published in `9577045d`.
 
 Selected boundary:
 Extract operational-readiness, operational-summary, and quality-gate validator
@@ -31,17 +31,26 @@ Selection evidence:
   and all public `Schema` APIs remain outside.
 
 Verification:
-Pending: focused operational/readiness contract baselines, exact old/new fixture
-validation reports, strict compile, broader Schema contract tests, schema export
-checks, static single ownership, runtime xref, and bounded review.
+- Strict compile passed across 3,856 files with warnings as errors.
+- All 11 focused operational/readiness contract tests passed.
+- All 175 split Schema contract tests passed with warnings as errors.
+- All 15 JSON-export contract tests and all 3 schema-export tests passed.
+- Exact old/new executable comparison passed for 18 valid and intentionally
+  invalid checked-in readiness reports.
+- A byte-level mechanical comparison confirmed the new owner preserves the
+  selected model-limit and validator bodies apart from public entrypoints.
+- Static ownership confirms one readiness-validation owner with the required
+  private Schema dispatch/export seams.
+- Runtime xref, format, diff checks, and bounded review passed.
+- `schema.ex` moved from 7,293 to 7,204 lines; the new owner is 216 lines.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-Policy approval-policy normalizer extraction, selected in `34b34b50` and
-implemented in `b1d4a27a`. `policy.ex` moved from 2,119 to 1,507 lines; the
-dedicated normalizer is 656 lines.
+Schema operational-readiness validation extraction, selected in `30c29dfa` and
+implemented in `9577045d`. `schema.ex` moved from 7,293 to 7,204 lines; the
+dedicated owner is 216 lines.
 
 Next candidate:
 Re-inventory remaining Schema JSON-property and family-validation clusters
