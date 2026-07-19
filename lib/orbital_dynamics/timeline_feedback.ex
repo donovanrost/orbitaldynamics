@@ -2561,29 +2561,6 @@ defmodule OrbitalDynamics.TimelineFeedback do
       "realized_activity" => value(realized, "source_activity"),
       "source_activity_context" => feedback_source_activity_context(planned),
       "realized_activity_context" => value(realized, "realized_activity_context"),
-      "contact_success_factor" =>
-        value(realized, "contact_success_factor") || value(planned, "contact_success_factor"),
-      "contact_success_factor_source" =>
-        value(realized, "contact_success_factor_source") ||
-          value(planned, "contact_success_factor_source"),
-      "command_success_factor" =>
-        value(realized, "command_success_factor") || value(planned, "command_success_factor"),
-      "command_success_factor_source" =>
-        value(realized, "command_success_factor_source") ||
-          value(planned, "command_success_factor_source"),
-      "observation_success_factor" =>
-        value(realized, "observation_success_factor") ||
-          value(planned, "observation_success_factor"),
-      "observation_success_factor_source" =>
-        value(realized, "observation_success_factor_source") ||
-          value(planned, "observation_success_factor_source"),
-      "feedback_weight" => feedback_weight(planned, realized),
-      "feedback_weight_source" => feedback_weight_source(planned, realized),
-      "maneuver_success_factor" =>
-        value(realized, "maneuver_success_factor") || value(planned, "maneuver_success_factor"),
-      "maneuver_success_factor_source" =>
-        value(realized, "maneuver_success_factor_source") ||
-          value(planned, "maneuver_success_factor_source"),
       "dependency_activity_ids" => value(planned, "dependency_activity_ids"),
       "dependency_timeline_ids" => value(planned, "dependency_timeline_ids"),
       "exclusive_with_activity_ids" => value(planned, "exclusive_with_activity_ids"),
@@ -2643,6 +2620,7 @@ defmodule OrbitalDynamics.TimelineFeedback do
     |> Map.merge(
       ReconciliationTimingEvidence.context(planned, realized, timing_variance_threshold_s)
     )
+    |> Map.merge(SuccessFactor.reconciliation_context(planned, realized))
     |> Map.merge(Throughput.reconciliation_context(planned, realized))
     |> Map.merge(execution_uncertainty_context)
     |> put_duplicate_realized_feedback(realized_matches)
@@ -3637,17 +3615,6 @@ defmodule OrbitalDynamics.TimelineFeedback do
   end
 
   defp feedback_average_weight(_row), do: 1.0
-
-  defp feedback_weight(planned, realized) do
-    Enum.find_value([value(realized, "feedback_weight"), value(planned, "feedback_weight")], fn
-      weight when is_number(weight) and weight >= 0.0 -> weight * 1.0
-      _weight -> nil
-    end)
-  end
-
-  defp feedback_weight_source(planned, realized) do
-    value(realized, "feedback_weight_source") || value(planned, "feedback_weight_source")
-  end
 
   defp ambiguous_timeline_match_count(rows) do
     Enum.count(rows, &(&1["match_strategy"] == "ambiguous_timeline_id"))

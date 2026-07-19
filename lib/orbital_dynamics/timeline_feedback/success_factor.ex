@@ -95,6 +95,35 @@ defmodule OrbitalDynamics.TimelineFeedback.SuccessFactor do
     end
   end
 
+  def reconciliation_context(planned, realized) do
+    %{
+      "contact_success_factor" =>
+        value(realized, "contact_success_factor") || value(planned, "contact_success_factor"),
+      "contact_success_factor_source" =>
+        value(realized, "contact_success_factor_source") ||
+          value(planned, "contact_success_factor_source"),
+      "command_success_factor" =>
+        value(realized, "command_success_factor") || value(planned, "command_success_factor"),
+      "command_success_factor_source" =>
+        value(realized, "command_success_factor_source") ||
+          value(planned, "command_success_factor_source"),
+      "observation_success_factor" =>
+        value(realized, "observation_success_factor") ||
+          value(planned, "observation_success_factor"),
+      "observation_success_factor_source" =>
+        value(realized, "observation_success_factor_source") ||
+          value(planned, "observation_success_factor_source"),
+      "feedback_weight" => feedback_weight(planned, realized),
+      "feedback_weight_source" =>
+        value(realized, "feedback_weight_source") || value(planned, "feedback_weight_source"),
+      "maneuver_success_factor" =>
+        value(realized, "maneuver_success_factor") || value(planned, "maneuver_success_factor"),
+      "maneuver_success_factor_source" =>
+        value(realized, "maneuver_success_factor_source") ||
+          value(planned, "maneuver_success_factor_source")
+    }
+  end
+
   defp explicit_observation(activity) do
     first_unit_interval_number(activity, [
       "observation_success_factor",
@@ -258,4 +287,14 @@ defmodule OrbitalDynamics.TimelineFeedback.SuccessFactor do
   defp missing?(_value), do: false
 
   defp present_string?(value), do: ArtifactValue.present_string?(value)
+
+  defp feedback_weight(planned, realized) do
+    Enum.find_value([value(realized, "feedback_weight"), value(planned, "feedback_weight")], fn
+      weight when is_number(weight) and weight >= 0.0 -> weight * 1.0
+      _weight -> nil
+    end)
+  end
+
+  defp value(nil, _key), do: nil
+  defp value(map, key), do: Map.get(map, key)
 end
