@@ -6018,51 +6018,42 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp validate_maneuver_recommendation(issues, path, maneuver) do
-    OrbitalDynamics.Schema.ManeuverRecommendationContracts.validate(
-      issues,
-      path,
-      maneuver,
-      maneuver_recommendation_model_limits()
-    )
-  end
+  defp validate_maneuver_recommendation(issues, path, maneuver),
+    do:
+      DecisionSupportValidation.validate_maneuver_recommendation(
+        issues,
+        path,
+        maneuver,
+        maneuver_recommendation_model_limits()
+      )
 
-  defp validate_maneuver_review_report(issues, path, report) do
-    OrbitalDynamics.Schema.ManeuverReviewReportContracts.validate(
-      issues,
-      path,
-      report,
-      maneuver_review_report_model_limits()
-    )
-  end
+  defp validate_maneuver_review_report(issues, path, report),
+    do:
+      DecisionSupportValidation.validate_maneuver_review_report(
+        issues,
+        path,
+        report,
+        maneuver_review_report_model_limits()
+      )
 
-  defp validate_optional_objective_tradeoff_report(issues, nil), do: issues
+  defp validate_optional_objective_tradeoff_report(issues, report),
+    do:
+      DecisionSupportValidation.validate_optional_objective_tradeoff_report(
+        issues,
+        report,
+        &validate_registered_contract(@objective_tradeoff_report, &1)
+      )
 
-  defp validate_optional_objective_tradeoff_report(issues, %{} = report) do
-    validate_contract(
-      @objective_tradeoff_report,
-      registry_contract!(@objective_tradeoff_report),
-      report
-    ) ++
-      issues
-  end
+  defp validate_optional_objective_satisfaction_report(issues, report),
+    do:
+      DecisionSupportValidation.validate_optional_objective_satisfaction_report(
+        issues,
+        report,
+        &validate_registered_contract(@objective_satisfaction_report, &1)
+      )
 
-  defp validate_optional_objective_tradeoff_report(issues, _report),
-    do: [error("$.objective_tradeoff_report", "must be an object") | issues]
-
-  defp validate_optional_objective_satisfaction_report(issues, nil), do: issues
-
-  defp validate_optional_objective_satisfaction_report(issues, %{} = report) do
-    validate_contract(
-      @objective_satisfaction_report,
-      registry_contract!(@objective_satisfaction_report),
-      report
-    ) ++
-      issues
-  end
-
-  defp validate_optional_objective_satisfaction_report(issues, _report),
-    do: [error("$.objective_satisfaction_report", "must be an object") | issues]
+  defp validate_registered_contract(name, artifact),
+    do: validate_contract(name, registry_contract!(name), artifact)
 
   defp validate_optional_operational_timeline_report(issues, nil), do: issues
 

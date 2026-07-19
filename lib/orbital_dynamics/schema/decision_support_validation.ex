@@ -8,6 +8,42 @@ defmodule OrbitalDynamics.Schema.DecisionSupportValidation do
       expect_optional_probability: 4
     ]
 
+  def validate_maneuver_recommendation(issues, path, maneuver, model_limits) do
+    OrbitalDynamics.Schema.ManeuverRecommendationContracts.validate(
+      issues,
+      path,
+      maneuver,
+      model_limits
+    )
+  end
+
+  def validate_maneuver_review_report(issues, path, report, model_limits) do
+    OrbitalDynamics.Schema.ManeuverReviewReportContracts.validate(
+      issues,
+      path,
+      report,
+      model_limits
+    )
+  end
+
+  def validate_optional_objective_tradeoff_report(issues, report, validate_contract),
+    do:
+      validate_optional_report(
+        issues,
+        report,
+        "$.objective_tradeoff_report",
+        validate_contract
+      )
+
+  def validate_optional_objective_satisfaction_report(issues, report, validate_contract),
+    do:
+      validate_optional_report(
+        issues,
+        report,
+        "$.objective_satisfaction_report",
+        validate_contract
+      )
+
   def validate_optional_branch_comparison_report(issues, nil, _validate_contract), do: issues
 
   def validate_optional_branch_comparison_report(issues, %{} = report, validate_contract),
@@ -56,4 +92,12 @@ defmodule OrbitalDynamics.Schema.DecisionSupportValidation do
 
   def validate_optional_score_term_report(issues, _report, _validate_contract),
     do: [error("$.score_term_report", "must be an object") | issues]
+
+  defp validate_optional_report(issues, nil, _path, _validate_contract), do: issues
+
+  defp validate_optional_report(issues, %{} = report, _path, validate_contract),
+    do: validate_contract.(report) ++ issues
+
+  defp validate_optional_report(issues, _report, path, _validate_contract),
+    do: [error(path, "must be an object") | issues]
 end
