@@ -9,7 +9,7 @@ Current slice:
 ContactContention resolution-summary values extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Extract resolution-summary selected/deferred/review ID projection, grouped
@@ -34,31 +34,39 @@ Selection evidence:
   flattening, deduplication, lexicographic sorting, frequency counts, exact
   routing keys, and deterministic output must remain unchanged.
 
-Verification plan:
-- Run the strict warning-clean compile before and after implementation.
-- Run the focused ContactContention regression file and adjacent resolution
-  review/import/replay/schema consumers selected from live references.
-- Run exact old/new public parity from this selection commit across selected,
-  deferred, duplicate, ambiguous, review, grouped resource/action/reason
-  routes, nil/empty groups, duplicate values, ordering, deterministic
-  summaries, and public errors.
-- Run `mix xref callers` for the new owner, inspect compile-connected
-  dependents, check formatting and `git diff --check`, prove the removed
-  helper family is absent from the facade, and review final facade/owner
-  boundaries.
+Implementation:
+- Selection was recorded and pushed in `4541dbd9`.
+- Implementation was committed and pushed in `12e731f7`.
+- `communications/contact_contention.ex` moved from 2,509 to 2,466 lines.
+- `OrbitalDynamics.Communications.ContactContention.ResolutionSummaryValues`
+  is a 71-line owner reached through private facade delegates.
+
+Verification:
+- Strict warning-clean compilation passed across 3,963 files.
+- The focused ContactContention file and five adjacent resolution
+  review/strategy/replay/schema consumers passed together: 55 tests.
+- Exact old/new public parity passed for 6 summaries covering empty,
+  selected/deferred, duplicate/ambiguous, review, grouped
+  resource/action/reason, nil-group, duplicate-value, atom-key, ordering, and
+  public-error cases.
+- `mix xref callers` reports only the ContactContention facade; the
+  compile-connected graph reports the new owner and facade.
+- The removed projection helpers are absent from the facade apart from thin
+  delegates, formatting and `git diff --check` passed, and the final diff is
+  ownership-only.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-RecommendationRiskContext timeline-lifecycle-state extraction, selected in
-`94b78264` and implemented in `8019fcad`.
-`recommendation_risk_context.ex` moved from 2,521 to 2,417 lines; the dedicated
-timeline-lifecycle-state owner is 139 lines.
+ContactContention resolution-summary values extraction, selected in
+`4541dbd9` and implemented in `12e731f7`.
+`communications/contact_contention.ex` moved from 2,509 to 2,466 lines; the
+dedicated resolution-summary values owner is 71 lines.
 
 Next candidate:
-Implement and verify the selected ContactContention resolution-summary values
-extraction.
+Re-rank the live checkout and select the next cohesive facade-preserving
+boundary.
 
 Blocked:
 No.
