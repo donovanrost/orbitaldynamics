@@ -12,6 +12,7 @@ defmodule OrbitalDynamics.Schema do
     DecisionSupportValidation,
     OperationalReadinessValidation,
     ResourceValidation,
+    StationReservationValidation,
     TimelineSourceValidation,
     TimelineTransitionValidation
   }
@@ -5962,44 +5963,29 @@ defmodule OrbitalDynamics.Schema do
     do: [error("$.contact_contention_resolution_report", "must be an object") | issues]
 
   defp validate_optional_station_calendar_report(issues, report),
-    do: validate_optional_station_calendar_report(issues, "$.station_calendar_report", report)
+    do:
+      StationReservationValidation.validate_optional_calendar_report(
+        issues,
+        "$.station_calendar_report",
+        report
+      )
 
-  defp validate_optional_station_calendar_report(issues, path, report) do
-    OrbitalDynamics.Schema.StationCalendarReportContracts.validate_optional_report(
-      issues,
-      path,
-      report,
-      station_calendar_report_model(),
-      station_calendar_report_model_limits()
-    )
-  end
+  defp validate_optional_station_calendar_report(issues, path, report),
+    do: StationReservationValidation.validate_optional_calendar_report(issues, path, report)
 
-  defp validate_station_reservation_review_summary(issues, path, summary) do
-    OrbitalDynamics.Schema.StationReservationSummaryContracts.validate_review(
-      issues,
-      path,
-      summary,
-      station_calendar_report_model_limits()
-    )
-  end
+  defp validate_station_reservation_review_summary(issues, path, summary),
+    do: StationReservationValidation.validate_review_summary(issues, path, summary)
 
-  defp validate_station_reservation_hold_summary(issues, path, summary) do
-    OrbitalDynamics.Schema.StationReservationSummaryContracts.validate_hold(
-      issues,
-      path,
-      summary,
-      station_calendar_report_model_limits()
-    )
-  end
+  defp validate_station_reservation_hold_summary(issues, path, summary),
+    do: StationReservationValidation.validate_hold_summary(issues, path, summary)
 
-  defp validate_station_reservation_hold_import_readiness_summary(issues, path, summary) do
-    OrbitalDynamics.Schema.StationReservationSummaryContracts.validate_hold_import_readiness(
-      issues,
-      path,
-      summary,
-      station_calendar_report_model_limits()
-    )
-  end
+  defp validate_station_reservation_hold_import_readiness_summary(issues, path, summary),
+    do:
+      StationReservationValidation.validate_hold_import_readiness_summary(
+        issues,
+        path,
+        summary
+      )
 
   defp validate_optional_resource_projection_report(issues, path, value),
     do:
