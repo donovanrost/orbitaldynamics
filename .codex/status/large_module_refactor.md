@@ -9,7 +9,7 @@ Current slice:
 CadenceImport JSON normalization extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and published.
 
 Selected boundary:
 Extract recursive atom-key normalization and JSON-safe value encoding into
@@ -28,17 +28,29 @@ Selection evidence:
   schemas, ordering, and manifest construction remain outside the boundary.
 
 Verification:
-Pending: focused atom-key and unsupported-status baselines, exact recursive
-normalization matrix, strict compile, all combined CadenceImport tests, schema
-contracts, static single ownership, runtime xref, and bounded review.
+- Strict test compile passed with 3,810 files and warnings as errors.
+- Three focused atom-key, execution-report, and unsupported-status tests passed
+  with 69 excluded.
+- All combined CadenceImport tests passed: 96 tests.
+- CadenceImport schema contracts passed: 4 tests.
+- A 9-case direct recursive matrix covered nested atom keys, nulls, preserved
+  atom and tuple values during key normalization, map encoding, list atoms,
+  tuples, scalar atoms, and scalar passthrough.
+- Formatting and diff checks passed, and no temporary proof files remain.
+- Static ownership checks confirmed both recursive clause families have one
+  production implementation behind the preserved facade seams.
+- Runtime xref confirmed `cadence_import.ex` is the direct consumer of
+  `json_normalization.ex`.
+- Bounded local review found no recursion, clause-order, dispatch, output-shape,
+  or null/atom/tuple behavior changes.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-CadenceImport import-readiness policy extraction, selected in `a5edf9e8` and
-implemented in `27cbfdb9`. `cadence_import.ex` moved from 3,573 to 3,554 lines;
-the extracted owner is 29 lines.
+CadenceImport JSON normalization extraction, selected in `b9b31830` and
+implemented in `f6ebf3bf`. `cadence_import.ex` moved from 3,554 to 3,536 lines;
+the extracted owner is 28 lines.
 
 Next candidate:
 Return to the remaining CadenceImport row-building or manifest-routing helpers
