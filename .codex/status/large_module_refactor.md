@@ -9,7 +9,7 @@ Current slice:
 CadenceImport campaign review-package import extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and published.
 
 Selected boundary:
 Extract the candidate-refresh and campaign-repair review-package constructor
@@ -28,17 +28,28 @@ Selection evidence:
   assembly, schemas, and activity/result imports remain outside the boundary.
 
 Verification:
-Pending: focused generation baselines, exact old/new constructor equivalence
-proof, strict compile, all combined CadenceImport tests, schema contracts,
-static single ownership, runtime xref, and bounded review.
+- Strict test compile passed with 3,839 files and warnings as errors.
+- Two focused generation tests passed with 70 excluded.
+- All combined CadenceImport tests passed: 96 tests.
+- CadenceImport schema contracts passed: 4 tests.
+- An executable before/after proof matched 16 cases across both constructors,
+  including embedded packages and the distinct explicit-ID behavior.
+- Formatting and diff checks passed, and no temporary proof files remain.
+- Static ownership checks confirmed both public facade entry points delegate to
+  one implementation owner.
+- Runtime xref confirmed `cadence_import.ex` is the direct consumer of
+  `campaign_review_package_import.ex`.
+- Bounded local review found no embedded-package precedence, normalization,
+  refresh/repair identity, provenance, source-contract, public API, row,
+  ordering, or schema changes.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-CadenceImport activity-result import extraction, selected in `4f515b1f` and
-implemented in `33cf46dc`. `cadence_import.ex` moved from 2,236 to 2,193 lines;
-the extracted owner is 69 lines.
+CadenceImport campaign review-package import extraction, selected in
+`072075ce` and implemented in `e761b39b`. `cadence_import.ex` moved from 2,193
+to 2,170 lines; the extracted owner is 46 lines.
 
 Next candidate:
 Re-inventory V1 campaign/V3 strategy or manifest routing after generation
