@@ -11,6 +11,7 @@ defmodule OrbitalDynamics.CadenceImport do
   alias OrbitalDynamics.CadenceImport.{
     GenericReviewActionPolicy,
     ImportReadinessPolicy,
+    JsonNormalization,
     ProviderResultNormalization,
     ReviewPackageRowSourcePolicy,
     SourceIdentifierPolicy
@@ -3489,28 +3490,9 @@ defmodule OrbitalDynamics.CadenceImport do
     |> Enum.join(", ")
   end
 
-  defp stringify_keys(%{} = map) do
-    Map.new(map, fn
-      {key, value} when is_atom(key) -> {Atom.to_string(key), stringify_keys(value)}
-      {key, value} -> {key, stringify_keys(value)}
-    end)
-  end
+  defp stringify_keys(value), do: JsonNormalization.stringify_keys(value)
 
-  defp stringify_keys(values) when is_list(values), do: Enum.map(values, &stringify_keys/1)
-  defp stringify_keys(nil), do: nil
-  defp stringify_keys(:null), do: nil
-  defp stringify_keys(value), do: value
-
-  defp encode_json_value(%{} = map), do: stringify_keys(map)
-  defp encode_json_value(values) when is_list(values), do: Enum.map(values, &encode_json_value/1)
-
-  defp encode_json_value(value) when is_tuple(value),
-    do: value |> Tuple.to_list() |> encode_json_value()
-
-  defp encode_json_value(nil), do: nil
-  defp encode_json_value(:null), do: nil
-  defp encode_json_value(value) when is_atom(value), do: Atom.to_string(value)
-  defp encode_json_value(value), do: value
+  defp encode_json_value(value), do: JsonNormalization.encode_json_value(value)
 
   defp normalize_provider_result_artifact_fields(value),
     do: ProviderResultNormalization.normalize_artifact_fields(value)
