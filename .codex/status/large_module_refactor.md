@@ -9,7 +9,7 @@ Current slice:
 Study.Manifest activity-schema extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `90b9d08e`.
 
 Selected boundary:
 Extract the activity input JSON Schema assembly, including activity-specific
@@ -28,18 +28,30 @@ Selection evidence:
 - Existing public manifest schema output and loader behavior remain unchanged.
 
 Verification:
-Pending.
+- Strict warnings-as-errors compile passed across 3,893 files.
+- Focused `study/manifest_test.exs` passed under warnings-as-errors: 42 tests.
+- Adjacent manifest lint, reference, schema-export, and schema-lint coverage
+  passed under warnings-as-errors: 30 tests.
+- Exact public old/new comparison against `73142212` passed for the complete
+  Manifest JSON Schema, including all 178 activity properties.
+- `mix xref callers OrbitalDynamics.Study.Manifest.ActivitySchema` reports
+  only the Manifest facade as a runtime caller.
+- Static ownership review confirms the activity contract assembly and its
+  activity-local identity, capability-enum, direction-alias, vector, frame,
+  and primitive schema fragments live in the new owner.
+- `git diff --check` passed.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-TimelineFeedback reconciliation observation-evidence extraction, selected in
-`df6f88b8` and implemented in `180de1a0`. `timeline_feedback.ex` moved from
-4,376 to 4,293 lines; the dedicated owner is 117 lines.
+Study.Manifest activity-schema extraction, selected in `73142212` and
+implemented in `90b9d08e`. `study/manifest.ex` moved from 4,260 to 4,075
+lines; the dedicated owner is 283 lines.
 
 Next candidate:
-Implement and verify the selected Study.Manifest activity-schema extraction.
+Re-rank the remaining large modules and select the next cohesive,
+facade-preserving responsibility boundary.
 
 Blocked:
 No.
