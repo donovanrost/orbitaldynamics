@@ -6,42 +6,30 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-CadenceImport V1 campaign artifact orchestration extraction.
+CadenceImport standalone proposed-contact import extraction.
 
 Status:
-Completed and published.
+Selected; implementation has not started.
 
 Selected boundary:
-Extract the V1 campaign artifact constructor orchestration into
-`OrbitalDynamics.CadenceImport.CampaignArtifactImport`. Preserve
-`from_campaign_artifact/2` as the public facade and pass its existing proposed
-contact row, review-row, and manifest-builder seams as callbacks.
+Extract the standalone proposed-contact constructor implementation into
+`OrbitalDynamics.CadenceImport.ProposedContactImport`. Preserve
+`from_proposed_contact/2` as the public facade and pass its existing row and
+manifest-builder seams as callbacks.
 
 Selection evidence:
-- `cadence_import.ex` is now 2,122 lines.
-- The selected constructor spans about 70 lines and coordinates proposed
-  contact ordering, selected review-row composition, provenance, and context.
-- Its responsibility is orchestration; concrete proposed-contact/review row
-  builders and manifest assembly already have separate owners.
-- Public API docs, standalone proposed-contact construction, schemas, and
-  V2/V3 generation imports remain outside the boundary.
+- `cadence_import.ex` is now 2,068 lines.
+- The selected constructor spans about 30 lines and is the final non-router
+  public constructor still assembling a manifest directly on the facade.
+- Its responsibility is standalone proposed-contact provenance/context;
+  concrete row construction and manifest assembly already have owners.
+- Public API docs, schemas, campaign orchestration, and manifest routing remain
+  outside the boundary.
 
 Verification:
-- Strict test compile passed with 3,841 files and warnings as errors.
-- Two focused campaign tests passed with 70 excluded.
-- All combined CadenceImport tests passed: 96 tests.
-- CadenceImport schema contracts passed: 4 tests.
-- An executable before/after proof matched six complete manifests across
-  empty, string-keyed, atom-keyed, inferred-ID, and explicit-ID inputs.
-- Formatting and diff checks passed, and no temporary proof files remain.
-- Static ownership checks confirmed the public facade entry point delegates to
-  one orchestration owner and the stale summary-context facade seam was
-  retired.
-- Runtime xref confirmed `cadence_import.ex` is the direct consumer of
-  `campaign_artifact_import.ex`.
-- Bounded local review found no proposed-contact ordering, accepted review-type
-  set, review ordering, provenance, source-ID, public API, row, or schema
-  changes.
+Pending: focused proposed-contact baseline, exact old/new constructor
+equivalence proof, strict compile, all combined CadenceImport tests, schema
+contracts, static single ownership, runtime xref, and bounded review.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
@@ -52,8 +40,8 @@ CadenceImport V1 campaign artifact orchestration extraction, selected in
 to 2,068 lines; the extracted owner is 72 lines.
 
 Next candidate:
-Re-inventory standalone proposed-contact construction or manifest routing after
-V1 campaign orchestration has one production owner.
+Select the manifest routing extraction after standalone proposed-contact import
+has one production owner.
 
 Blocked:
 No.
