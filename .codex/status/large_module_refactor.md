@@ -6,42 +6,32 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-MissionPlan.Activity scalar input extraction.
+MissionPlan.Activity collection input extraction.
 
 Status:
-Completed and pushed in `02dc170e`.
+Selected; implementation not started.
 
 Selected boundary:
-Extract boolean, numeric, non-negative numeric/integer, unit-interval,
-string/atom scalar, and number-or-scalar predicates and coercions into
-`OrbitalDynamics.MissionPlan.Activity.ScalarInput`. Preserve the existing
-private helper seams in the Activity facade. Keep stable-identifier validation
-in the facade because its pattern is also used by later identifier-list
-normalization.
+Extract scalar-list, non-negative-number-list, map-list, and optional-map
+validation and normalization into
+`OrbitalDynamics.MissionPlan.Activity.CollectionInput`. Preserve the existing
+private helper seams in the Activity facade. Keep dependency and identifier
+list handling in the facade because they participate in activity dependency
+semantics and share stable-identifier policy.
 
 Selection evidence:
-- Live re-ranking places `mission_plan/activity.ex` at 4,770 lines.
-- The selected 4,165-4,304 helper family is pure scalar input normalization
-  used by map parsing and common option validation.
+- Live re-ranking places `mission_plan/activity.ex` at 4,672 lines.
+- The selected 4,221-4,264 and 4,368-4,510 helper families are generic
+  collection/map input normalization used by map parsing and validation.
 - Activity construction, field selection, option assembly, struct validation,
   and public constructors remain in the facade.
-- Numeric-string parsing remains owned by the adjacent
-  `ExecutionUncertaintyInput` helper and will be reused by the new owner.
-- Stable-identifier predicates and coercions remain with the facade-owned
-  identifier policy instead of duplicating `@stable_id_pattern`.
+- Numeric-string parsing remains single-owned by
+  `ExecutionUncertaintyInput` and will be reused by the new owner.
+- Dependency flattening, dependency activity-ID projection, and stable-ID list
+  parsing remain together in the facade.
 
 Verification:
-- Strict warnings-as-errors compile passed across 3,882 files.
-- Focused MissionPlan.Activity coverage passed: 31 tests.
-- Adjacent mission-plan, activity-fixture, and timeline-activity schema
-  coverage passed: 44 tests.
-- Exact old/new public map construction and error comparison against
-  `0c45d036` passed for 10 valid boolean, numeric, integer, interval, scalar,
-  number-or-scalar, and nil cases plus 10 invalid value/shape cases.
-- Runtime xref found the new owner referenced only by the Activity facade;
-  static single-ownership review and `git diff --check` passed.
-- `mission_plan/activity.ex` moved from 4,770 to 4,672 lines; the dedicated
-  owner is 138 lines.
+Pending.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
@@ -52,8 +42,7 @@ implemented in `02dc170e`. `mission_plan/activity.ex` moved from 4,770 to 4,672
 lines; the dedicated owner is 138 lines.
 
 Next candidate:
-Re-inventory remaining MissionPlan.Activity list/map normalization families
-after scalar input has one owner.
+Implement and verify the selected collection input extraction.
 
 Blocked:
 No.
