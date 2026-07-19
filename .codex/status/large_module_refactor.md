@@ -9,7 +9,7 @@ Current slice:
 CadenceImport station-calendar context field catalog extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and published.
 
 Selected boundary:
 Extract the static station-calendar and reservation context field allowlist into
@@ -28,17 +28,27 @@ Selection evidence:
   outside this list, and manifest construction remain outside the boundary.
 
 Verification:
-Pending: focused contact-contention baseline, exact ordered catalog equivalence
-proof, strict compile, all combined CadenceImport tests, schema contracts,
-static single ownership, runtime xref, and bounded review.
+- Strict test compile passed with 3,812 files and warnings as errors.
+- One focused contact-contention test passed with 71 excluded.
+- All combined CadenceImport tests passed: 96 tests.
+- CadenceImport schema contracts passed: 4 tests.
+- An AST-derived proof against selection commit `f2d6c001` confirmed exact
+  ordered equality for all 20 station-calendar context fields.
+- Formatting and diff checks passed, and no temporary proof files remain.
+- Static ownership checks confirmed the catalog has one production
+  implementation behind the preserved facade callback seam.
+- Runtime xref confirmed `cadence_import.ex` is the direct consumer of
+  `station_calendar_context_fields.ex`.
+- Bounded local review found no callback, membership, order, row-shape,
+  compaction, or schema changes.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-CadenceImport branch-evidence field catalog extraction, selected in `d4c737af`
-and implemented in `bac4dd7e`. `cadence_import.ex` moved from 3,536 to 3,428
-lines; the extracted owner is 121 lines.
+CadenceImport station-calendar context field catalog extraction, selected in
+`f2d6c001` and implemented in `e7fd5299`. `cadence_import.ex` moved from 3,428
+to 3,407 lines; the extracted owner is 28 lines.
 
 Next candidate:
 Return to the remaining CadenceImport row-building or manifest-routing helpers
