@@ -9,7 +9,7 @@ Current slice:
 Schema operational-timeline validation extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and published.
 
 Selected boundary:
 Extract optional operational-timeline report validation and timeline-row
@@ -27,17 +27,24 @@ Selection evidence:
   and all public `Schema` APIs remain outside.
 
 Verification:
-Pending: focused operational-timeline baselines, exact old/new fixture
-validation reports, strict compile, broader Schema contract tests, JSON Schema
-export checks, static single ownership, runtime xref, and bounded review.
+- Strict compile passed across 3,869 files with warnings as errors.
+- Focused operational-timeline and timeline-summary contracts passed: 19 tests.
+- Full Schema suite passed: 175 tests.
+- JSON Schema export contracts passed: 15 tests.
+- Exact old/new validation reports matched for 8 valid and mutated standalone
+  row and nested campaign fixtures.
+- Static inspection confirms the facade retains only its arity-2/arity-3 seams
+  plus registry and timeline-context callback inputs; runtime xref reports
+  `Schema` as the sole caller of the new owner.
+- `git diff --check` and bounded ownership review passed.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-Schema operator-review validation extraction, selected in `b55ade2d` and
-implemented in `818526c4`. `schema.ex` moved from 6,888 to 6,878 lines; the
-dedicated owner is 46 lines.
+Schema operational-timeline validation extraction, selected in `477cf707` and
+implemented in `0c32a016`. `schema.ex` moved from 6,878 to 6,872 lines; the
+dedicated owner is 25 lines.
 
 Next candidate:
 Re-inventory remaining Schema family-validation clusters after
