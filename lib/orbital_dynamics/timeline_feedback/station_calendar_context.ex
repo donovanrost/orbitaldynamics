@@ -9,6 +9,27 @@ defmodule OrbitalDynamics.TimelineFeedback.StationCalendarContext do
 
   @stable_id_pattern ~r/^[A-Za-z0-9][A-Za-z0-9._:@-]*$/
 
+  @station_capacity_fraction_paths [
+    ["capacity_pack_capacity_fraction"],
+    ["station_capacity_fraction"],
+    ["capacity_fraction"],
+    ["throughput_model", "station_capacity_fraction"],
+    ["throughput_model", "capacity_fraction"],
+    ["capacity_model", "station_capacity_fraction"],
+    ["capacity_model", "capacity_fraction"],
+    ["activity_context", "station_capacity_fraction"],
+    ["activity_context", "capacity_fraction"]
+  ]
+  @station_capacity_percent_paths [
+    ["station_capacity_percent"],
+    ["capacity_percent"],
+    ["throughput_model", "station_capacity_percent"],
+    ["throughput_model", "capacity_percent"],
+    ["capacity_model", "station_capacity_percent"],
+    ["capacity_model", "capacity_percent"],
+    ["activity_context", "station_capacity_percent"],
+    ["activity_context", "capacity_percent"]
+  ]
   @station_capacity_value_paths [
     {:fraction, ["capacity_pack_capacity_fraction"]},
     {:fraction, ["station_capacity_fraction"]},
@@ -28,6 +49,13 @@ defmodule OrbitalDynamics.TimelineFeedback.StationCalendarContext do
     {:percent, ["activity_context", "station_capacity_percent"]},
     {:percent, ["activity_context", "capacity_percent"]}
   ]
+
+  def capacity_fraction_paths, do: @station_capacity_fraction_paths
+  def capacity_percent_paths, do: @station_capacity_percent_paths
+
+  def capacity_value_path_metadata do
+    Enum.map(@station_capacity_value_paths, fn {unit, path} -> %{unit: unit, path: path} end)
+  end
 
   def build(activity) when is_map(activity) do
     capacity_context = station_capacity_context(activity)

@@ -36,46 +36,6 @@ defmodule OrbitalDynamics.TimelineFeedback do
     "delay" => "delayed",
     "cancel" => "canceled"
   }
-  @station_capacity_fraction_paths [
-    ["capacity_pack_capacity_fraction"],
-    ["station_capacity_fraction"],
-    ["capacity_fraction"],
-    ["throughput_model", "station_capacity_fraction"],
-    ["throughput_model", "capacity_fraction"],
-    ["capacity_model", "station_capacity_fraction"],
-    ["capacity_model", "capacity_fraction"],
-    ["activity_context", "station_capacity_fraction"],
-    ["activity_context", "capacity_fraction"]
-  ]
-  @station_capacity_percent_paths [
-    ["station_capacity_percent"],
-    ["capacity_percent"],
-    ["throughput_model", "station_capacity_percent"],
-    ["throughput_model", "capacity_percent"],
-    ["capacity_model", "station_capacity_percent"],
-    ["capacity_model", "capacity_percent"],
-    ["activity_context", "station_capacity_percent"],
-    ["activity_context", "capacity_percent"]
-  ]
-  @station_capacity_value_paths [
-    {:fraction, ["capacity_pack_capacity_fraction"]},
-    {:fraction, ["station_capacity_fraction"]},
-    {:fraction, ["capacity_fraction"]},
-    {:percent, ["station_capacity_percent"]},
-    {:percent, ["capacity_percent"]},
-    {:fraction, ["throughput_model", "station_capacity_fraction"]},
-    {:fraction, ["throughput_model", "capacity_fraction"]},
-    {:percent, ["throughput_model", "station_capacity_percent"]},
-    {:percent, ["throughput_model", "capacity_percent"]},
-    {:fraction, ["capacity_model", "station_capacity_fraction"]},
-    {:fraction, ["capacity_model", "capacity_fraction"]},
-    {:percent, ["capacity_model", "station_capacity_percent"]},
-    {:percent, ["capacity_model", "capacity_percent"]},
-    {:fraction, ["activity_context", "station_capacity_fraction"]},
-    {:fraction, ["activity_context", "capacity_fraction"]},
-    {:percent, ["activity_context", "station_capacity_percent"]},
-    {:percent, ["activity_context", "capacity_percent"]}
-  ]
   @command_contact_directions ~w(command uplink)
   @stable_id_pattern ~r/^[A-Za-z0-9][A-Za-z0-9._:@-]*$/
   @provider_result_map_value_keys ~w(result results outcome outcomes status state disposition provider_result provider_results provider_outcome provider_outcomes provider_status provider_state provider_code code reason reasons message messages error errors details metadata provider diagnostics)
@@ -139,13 +99,12 @@ defmodule OrbitalDynamics.TimelineFeedback do
       realized_failure_statuses: @realized_failure_statuses,
       realized_feedback_match_statuses: @realized_feedback_match_statuses,
       lifecycle_event_realized_statuses: @lifecycle_event_realized_statuses,
-      station_capacity_fraction_paths: @station_capacity_fraction_paths,
-      station_capacity_percent_paths: @station_capacity_percent_paths,
-      station_capacity_value_paths: capacity_value_path_metadata(@station_capacity_value_paths),
-      source_station_capacity_fraction_paths: @station_capacity_fraction_paths,
-      source_station_capacity_percent_paths: @station_capacity_percent_paths,
-      source_station_capacity_value_paths:
-        capacity_value_path_metadata(@station_capacity_value_paths),
+      station_capacity_fraction_paths: StationCalendarContext.capacity_fraction_paths(),
+      station_capacity_percent_paths: StationCalendarContext.capacity_percent_paths(),
+      station_capacity_value_paths: StationCalendarContext.capacity_value_path_metadata(),
+      source_station_capacity_fraction_paths: StationCalendarContext.capacity_fraction_paths(),
+      source_station_capacity_percent_paths: StationCalendarContext.capacity_percent_paths(),
+      source_station_capacity_value_paths: StationCalendarContext.capacity_value_path_metadata(),
       command_contact_directions: @command_contact_directions,
       provider_result_map_value_keys: @provider_result_map_value_keys,
       feedback_helpers: [
@@ -261,10 +220,6 @@ defmodule OrbitalDynamics.TimelineFeedback do
         :timing_deltas_require_declared_actual_times
       ]
     }
-  end
-
-  defp capacity_value_path_metadata(paths) do
-    Enum.map(paths, fn {unit, path} -> %{unit: unit, path: path} end)
   end
 
   @doc """
