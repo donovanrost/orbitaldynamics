@@ -9,7 +9,7 @@ Current slice:
 CadenceImport standalone proposed-contact import extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and published.
 
 Selected boundary:
 Extract the standalone proposed-contact constructor implementation into
@@ -27,17 +27,28 @@ Selection evidence:
   outside the boundary.
 
 Verification:
-Pending: focused proposed-contact baseline, exact old/new constructor
-equivalence proof, strict compile, all combined CadenceImport tests, schema
-contracts, static single ownership, runtime xref, and bounded review.
+- Strict test compile passed with 3,842 files and warnings as errors.
+- One focused proposed-contact test passed with 71 excluded.
+- All combined CadenceImport tests passed: 96 tests.
+- CadenceImport schema contracts passed: 4 tests.
+- An executable before/after proof matched six complete manifests across
+  empty, string-keyed, atom-keyed, inferred-ID, and explicit-ID inputs.
+- Formatting and diff checks passed, and no temporary proof files remain.
+- Static ownership checks confirmed the public facade entry point delegates to
+  one implementation owner and the facade's final generic option helper was
+  retired.
+- Runtime xref confirmed `cadence_import.ex` is the direct consumer of
+  `proposed_contact_import.ex`.
+- Bounded local review found no normalization, row rank/shape, provenance,
+  context, source-ID, public API, ordering, or schema changes.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-CadenceImport V1 campaign artifact orchestration extraction, selected in
-`81c45f3b` and implemented in `cedcccc5`. `cadence_import.ex` moved from 2,122
-to 2,068 lines; the extracted owner is 72 lines.
+CadenceImport standalone proposed-contact import extraction, selected in
+`31ca7a2d` and implemented in `b300f602`. `cadence_import.ex` moved from 2,068
+to 2,056 lines; the extracted owner is 25 lines.
 
 Next candidate:
 Select the manifest routing extraction after standalone proposed-contact import
