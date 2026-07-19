@@ -11,6 +11,7 @@ defmodule OrbitalDynamics.CadenceImport do
   alias OrbitalDynamics.CadenceImport.{
     ApprovalContextPolicy,
     BranchEvidenceFields,
+    CandidateDiffFields,
     GenericReviewActionPolicy,
     ImportReadinessPolicy,
     JsonNormalization,
@@ -2997,24 +2998,11 @@ defmodule OrbitalDynamics.CadenceImport do
     )
   end
 
-  defp candidate_diff_changed_fields(row) do
-    row
-    |> Map.get("candidate_diff_changed_fields", Map.get(row, "changed_fields"))
-    |> List.wrap()
-    |> Enum.concat(semantic_change_detail_fields(row["semantic_change_details"]))
-    |> Enum.filter(&is_binary/1)
-    |> Enum.uniq()
-    |> Enum.sort()
-  end
+  defp candidate_diff_changed_fields(row),
+    do: CandidateDiffFields.derive(row)
 
-  defp semantic_change_detail_fields(details) do
-    details
-    |> List.wrap()
-    |> Enum.map(&Map.get(&1, "field"))
-  end
-
-  defp candidate_diff_changed_field_count([]), do: nil
-  defp candidate_diff_changed_field_count(fields), do: length(fields)
+  defp candidate_diff_changed_field_count(fields),
+    do: CandidateDiffFields.count(fields)
 
   defp maneuver_review_manifest_row(row, rank) do
     OrbitalDynamics.CadenceImport.ManeuverReviewManifestRow.build(
