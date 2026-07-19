@@ -9,7 +9,7 @@ Current slice:
 ContactContention station-calendar context extraction.
 
 Status:
-Selected; strict focused baseline pending.
+Completed and pushed in `935abd1b`.
 
 Selected boundary:
 Extract station availability precedence, capacity fraction/percent contracts,
@@ -36,24 +36,43 @@ Selection evidence:
   reports, summaries, and error behavior must remain unchanged.
 
 Implementation:
-Pending.
+- Added
+  `OrbitalDynamics.Communications.ContactContention.StationCalendarContext` as
+  the owner of station availability/capacity contracts, normalized context
+  aggregation, and the context field list.
+- Preserved ContactContention and root public APIs as capability, report,
+  annotation, and resolution delegates.
+- Routed contact normalization's unavailable-status aliases through the same
+  owner because normalization consumes that station-calendar contract.
+- `communications/contact_contention.ex` moved from 1,978 to 1,665 lines; the
+  new owner is 333 lines.
 
 Verification:
-Pending strict focused baseline, exact old/new public parity, focused and
-adjacent tests, static ownership checks, xref, strict warning-clean compile,
-formatting, and diff checks.
+- Strict focused baseline passed all 40 ContactContention tests.
+- Exact old/new public parity passed for four deterministic captures:
+  station-calendar capability contracts, annotated contacts, contention
+  report, and resolution report with mixed availability/capacity,
+  provider/reservation, direction, trust-boundary, and expiration evidence.
+- Post-extraction focused and adjacent verification passed all 50 tests.
+- Static checks confirm the new owner solely declares the availability and
+  station-capacity contracts and owns the context helper family; xref reports
+  only ContactContention as a runtime caller.
+- Strict warning-clean forced compile passed for 3,996 files.
+- Formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-ResourceProjection station-capacity evidence extraction, selected in
-`438a67a8` and implemented in `4ca5f9fb`.
-`resource_projection.ex` moved from 1,981 to 1,789 lines; the dedicated
-StationCapacityEvidence owner is 255 lines.
+ContactContention station-calendar context extraction, selected in `5e23d9f3`
+and implemented in `935abd1b`.
+`communications/contact_contention.ex` moved from 1,978 to 1,665 lines; the
+dedicated StationCalendarContext owner is 333 lines.
 
 Next candidate:
-Complete the selected ContactContention station-calendar context extraction.
+Re-rank the live checkout and select the next bounded facade-preserving
+extraction. `resource_filter.ex` is now the largest ordinary eligible facade at
+1,964 lines, followed by ContactAllocation and TimelineFeedback.
 
 Blocked:
 No.
