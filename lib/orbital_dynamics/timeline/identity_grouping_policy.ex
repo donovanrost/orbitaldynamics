@@ -22,6 +22,22 @@ defmodule OrbitalDynamics.Timeline.IdentityGroupingPolicy do
     end)
   end
 
+  def application_timeline_ids(applications, predicate, sorted_uniq)
+      when is_list(applications) do
+    applications
+    |> Enum.filter(predicate)
+    |> Enum.map(& &1["timeline_id"])
+    |> sorted_uniq.()
+  end
+
+  def application_activity_ids(applications, predicate, sorted_uniq)
+      when is_list(applications) do
+    applications
+    |> Enum.filter(predicate)
+    |> Enum.flat_map(&[&1["source_activity_id"], &1["replacement_activity_id"]])
+    |> sorted_uniq.()
+  end
+
   def timeline_ids_by(rows, key_fun, predicate, sorted_uniq) when is_list(rows) do
     rows
     |> Enum.filter(predicate)

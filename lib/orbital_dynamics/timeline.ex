@@ -1888,17 +1888,19 @@ defmodule OrbitalDynamics.Timeline do
   end
 
   defp application_timeline_ids(applications, predicate) when is_list(applications) do
-    applications
-    |> Enum.filter(predicate)
-    |> Enum.map(& &1["timeline_id"])
-    |> sorted_uniq()
+    OrbitalDynamics.Timeline.IdentityGroupingPolicy.application_timeline_ids(
+      applications,
+      predicate,
+      &sorted_uniq/1
+    )
   end
 
   defp application_activity_ids(applications, predicate) when is_list(applications) do
-    applications
-    |> Enum.filter(predicate)
-    |> Enum.flat_map(&[&1["source_activity_id"], &1["replacement_activity_id"]])
-    |> sorted_uniq()
+    OrbitalDynamics.Timeline.IdentityGroupingPolicy.application_activity_ids(
+      applications,
+      predicate,
+      &sorted_uniq/1
+    )
   end
 
   defp timeline_ids_by(rows, key_fun, predicate) when is_list(rows) do
