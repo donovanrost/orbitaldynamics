@@ -9,7 +9,7 @@ Current slice:
 ContactAllocation station-capacity evidence extraction.
 
 Status:
-Selected; strict focused baseline pending.
+Completed and pushed.
 
 Selected boundary:
 Extract station availability precedence, station-capacity blocking decisions,
@@ -42,24 +42,38 @@ Selection evidence:
   reasons, and exact invalid-input reasons must remain unchanged.
 
 Implementation:
-Pending.
+- Selection was recorded and pushed in `fb4cb586`.
+- Implementation was committed and pushed in `e60823d7`.
+- `communications/contact_allocation.ex` moved from 2,197 to 1,953 lines.
+- `OrbitalDynamics.Communications.ContactAllocation.StationCapacityEvidence`
+  is a 315-line owner reached through thin private facade delegates.
 
 Verification:
-Pending strict focused baseline, exact old/new public parity, focused and
-adjacent tests, static ownership checks, xref, strict warning-clean compile,
-formatting, and diff checks.
+- Strict warning-clean compilation passed across 3,984 files.
+- The focused ContactAllocation suite and six adjacent capacity-pack,
+  candidate-refresh, campaign, operator-review, schema, and validation
+  consumers passed together: 106 tests.
+- Exact old/new public allocation/report/specialized-summary/capability parity
+  passed for 7 chains covering direct fractions and percentages, nested
+  throughput/capacity/activity sources, source entries and overlaps, ambiguous
+  overlaps, availability and zero-capacity blocking, and invalid declarations.
+- `mix xref callers` reports only the ContactAllocation facade.
+- The facade-owned availability/capacity candidate, parsing, validation, and
+  attribution helpers are absent apart from thin delegates; formatting and
+  `git diff --check` passed, and the final diff is ownership-only.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-ResourceProjection activity-effect policy extraction, selected in `444f0395`
-and implemented in `cd89b612`.
-`resource_projection.ex` moved from 2,197 to 1,981 lines; the dedicated
-activity-effect policy owner is 246 lines.
+ContactAllocation station-capacity evidence extraction, selected in
+`fb4cb586` and implemented in `e60823d7`.
+`communications/contact_allocation.ex` moved from 2,197 to 1,953 lines; the
+dedicated station-capacity evidence owner is 315 lines.
 
 Next candidate:
-Complete the selected ContactAllocation station-capacity evidence extraction.
+Re-rank the live checkout and select the next cohesive facade-preserving
+boundary.
 
 Blocked:
 No.
