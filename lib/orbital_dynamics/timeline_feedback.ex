@@ -90,6 +90,7 @@ defmodule OrbitalDynamics.TimelineFeedback do
   alias OrbitalDynamics.TimelineFeedback.{
     ArtifactValue,
     ExecutionUncertainty,
+    OutcomeValue,
     ProviderResult,
     ReconciliationCommunicationsEvidence,
     ReconciliationIdentity,
@@ -3251,10 +3252,6 @@ defmodule OrbitalDynamics.TimelineFeedback do
     end
   end
 
-  defp feedback_number(value) do
-    unit_interval_number_or_nil(value)
-  end
-
   defp first_feedback_resource_boolean(row, fields) do
     case first_feedback_resource_value(row, fields) |> boolean_value() do
       value when is_boolean(value) -> value
@@ -3338,144 +3335,70 @@ defmodule OrbitalDynamics.TimelineFeedback do
   end
 
   defp contact_success_feedback_value(%{"feedback_kind" => "contact"} = row) do
-    realized_context_feedback_number(row, "contact_success_factor") ||
-      boolean_success_value(row["contact_success"]) ||
-      first_feedback_number(row, ["contact_success_factor"]) ||
-      station_throughput_feedback_value(row) ||
-      status_success_value(row)
+    OutcomeValue.contact_success(row, @realized_completion_statuses, @realized_failure_statuses)
   end
 
   defp contact_success_feedback_value(_row), do: nil
 
   defp station_throughput_feedback_value(%{"feedback_kind" => "contact"} = row) do
-    feedback_number(row["throughput_completion_fraction"]) ||
-      derived_throughput_completion_fraction(row)
+    OutcomeValue.station_throughput(row)
   end
 
   defp station_throughput_feedback_value(_row), do: nil
 
   defp observation_success_feedback_value(%{"feedback_kind" => "observation"} = row) do
-    realized_context_feedback_number(row, "observation_success_factor") ||
-      provider_result_feedback_value(row["observation_result"], row) ||
-      first_feedback_number(row, ["observation_success_factor"]) ||
-      realized_context_feedback_number(row, "image_quality_score") ||
-      first_feedback_number(row, ["realized_image_quality_score"]) ||
-      boolean_success_value(row["observation_success"]) ||
-      status_success_value(row)
+    OutcomeValue.observation_success(
+      row,
+      @provider_result_map_value_keys,
+      @realized_completion_statuses,
+      @realized_failure_statuses
+    )
   end
 
   defp observation_success_feedback_value(_row), do: nil
 
   defp image_quality_score_feedback_value(%{"feedback_kind" => "observation"} = row) do
-    realized_context_feedback_number(row, "image_quality_score") ||
-      first_feedback_number(row, ["realized_image_quality_score", "image_quality_score"])
+    OutcomeValue.image_quality_score(row)
   end
 
   defp image_quality_score_feedback_value(_row), do: nil
 
   defp cloud_cover_feedback_value(%{"feedback_kind" => "observation"} = row) do
-    realized_context_feedback_number(row, "cloud_cover_fraction") ||
-      first_feedback_number(row, ["realized_cloud_cover_fraction", "cloud_cover_fraction"])
+    OutcomeValue.cloud_cover(row)
   end
 
   defp cloud_cover_feedback_value(_row), do: nil
 
   defp blur_score_feedback_value(%{"feedback_kind" => "observation"} = row) do
-    realized_context_feedback_number(row, "blur_score") ||
-      first_feedback_number(row, ["realized_blur_score", "blur_score"])
+    OutcomeValue.blur_score(row)
   end
 
   defp blur_score_feedback_value(_row), do: nil
 
   defp image_quality_status_feedback_value(%{"feedback_kind" => "observation"} = row) do
-    first_feedback_string(row, [
-      ["realized_activity_context", "image_quality_status"],
-      "realized_image_quality_status",
-      "image_quality_status"
-    ])
+    OutcomeValue.image_quality_status(row)
   end
 
   defp image_quality_status_feedback_value(_row), do: nil
 
   defp image_quality_source_feedback_value(%{"feedback_kind" => "observation"} = row) do
-    first_feedback_string(row, [
-      ["realized_activity_context", "image_quality_source"],
-      "image_quality_source"
-    ])
+    OutcomeValue.image_quality_source(row)
   end
 
   defp image_quality_source_feedback_value(_row), do: nil
 
   defp maneuver_success_feedback_value(%{"feedback_kind" => "maneuver"} = row) do
-    realized_context_feedback_number(row, "maneuver_success_factor") ||
-      boolean_success_value(row["maneuver_success"]) ||
-      first_feedback_number(row, ["maneuver_success_factor"]) ||
-      status_success_value(row)
+    OutcomeValue.maneuver_success(row, @realized_completion_statuses, @realized_failure_statuses)
   end
 
   defp maneuver_success_feedback_value(_row), do: nil
 
   defp command_success_feedback_value(%{"feedback_kind" => kind} = row)
        when kind in ["command", "health_check"] do
-    realized_context_feedback_number(row, "command_success_factor") ||
-      boolean_success_value(row["command_success"]) ||
-      first_feedback_number(row, ["command_success_factor"]) ||
-      status_success_value(row)
+    OutcomeValue.command_success(row, @realized_completion_statuses, @realized_failure_statuses)
   end
 
   defp command_success_feedback_value(_row), do: nil
-
-  defp first_feedback_number(row, fields) do
-    Enum.find_value(fields, fn field ->
-      feedback_number(row[field])
-    end)
-  end
-
-  defp first_feedback_string(row, fields) do
-    Enum.find_value(fields, fn field ->
-      value =
-        case field do
-          path when is_list(path) -> get_in(row, path)
-          field -> Map.get(row, field)
-        end
-
-      case stringify_scalar(value) do
-        value when is_binary(value) and value != "" -> value
-        _value -> nil
-      end
-    end)
-  end
-
-  defp realized_context_feedback_number(row, field) do
-    feedback_number(get_in(row, ["realized_activity_context", field]))
-  end
-
-  defp boolean_success_value(true), do: 1.0
-  defp boolean_success_value(false), do: 0.0
-  defp boolean_success_value(_value), do: nil
-
-  defp status_success_value(%{"realized_status" => status} = row)
-       when status in @realized_completion_statuses do
-    completed_fraction_success_value(row, 1.0)
-  end
-
-  defp status_success_value(%{"realized_status" => "partial"} = row),
-    do: completed_fraction_success_value(row, 0.5)
-
-  defp status_success_value(%{"realized_status" => "delayed"}), do: 0.5
-
-  defp status_success_value(%{"realized_status" => status})
-       when status in @realized_failure_statuses,
-       do: 0.0
-
-  defp status_success_value(_row), do: nil
-
-  defp completed_fraction_success_value(row, default) do
-    case unit_interval_number_or_nil(row["completed_fraction"]) do
-      value when is_number(value) -> value
-      _value -> default
-    end
-  end
 
   defp clamp_unit_interval(value) when is_number(value) do
     value
@@ -3484,19 +3407,11 @@ defmodule OrbitalDynamics.TimelineFeedback do
   end
 
   defp weighted_average(weighted_values) do
-    {weighted_sum, total_weight} =
-      Enum.reduce(weighted_values, {0.0, 0.0}, fn {value, weight}, {sum, total} ->
-        {sum + value * weight, total + weight}
-      end)
-
-    weighted_sum / total_weight
+    OutcomeValue.weighted_average(weighted_values)
   end
 
   defp feedback_average_weight(%{"feedback_weight" => weight}) do
-    case numeric_value(weight) do
-      weight when is_number(weight) and weight >= 0.0 -> weight * 1.0
-      _weight -> 1.0
-    end
+    OutcomeValue.average_weight(%{"feedback_weight" => weight})
   end
 
   defp feedback_average_weight(_row), do: 1.0
@@ -3612,19 +3527,6 @@ defmodule OrbitalDynamics.TimelineFeedback do
     end)
   end
 
-  defp provider_result_outcome(result),
-    do: ProviderResult.outcome(result, @provider_result_map_value_keys)
-
-  defp provider_result_feedback_value(result, row) when not is_nil(result) do
-    case provider_result_outcome(result) do
-      :failure -> 0.0
-      :success -> completed_fraction_success_value(row, 1.0)
-      :unknown -> nil
-    end
-  end
-
-  defp provider_result_feedback_value(_result, _row), do: nil
-
   defp provider_result_artifact_value(result),
     do: ProviderResult.artifact_value(result, @provider_result_map_value_keys)
 
@@ -3670,9 +3572,6 @@ defmodule OrbitalDynamics.TimelineFeedback do
 
   defp actual_data_rate_throughput_derivation(activity),
     do: Throughput.actual_data_rate_throughput_derivation(activity)
-
-  defp derived_throughput_completion_fraction(row),
-    do: Throughput.derived_throughput_completion_fraction(row)
 
   defp normalized_feedback_weight(activity) do
     case first_number(activity, [
