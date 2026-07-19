@@ -9,7 +9,7 @@ Current slice:
 MissionPlan.Activity lifecycle-transition policy extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and pushed in `5bad93be`.
 
 Selected boundary:
 Extract status-transition review/category policy, approval-transition
@@ -29,17 +29,24 @@ Selection evidence:
   for transition safety, categories, aliases, facade wrappers, and failures.
 
 Verification:
-Pending: focused Activity baseline, exact old/new public transition outputs
-and errors, strict compile, adjacent timeline facade coverage, static single
-ownership, runtime xref, and bounded review.
+- Strict warnings-as-errors compile passed across 3,875 files.
+- Focused MissionPlan.Activity coverage passed: 31 tests.
+- Adjacent mission-plan, timeline-activity schema, and candidate-refresh
+  lifecycle replay coverage passed: 48 tests.
+- Exact old/new public output/error comparison against `1c530694` passed for
+  27 status, approval, lifecycle-event, and invalid-event cases.
+- Runtime xref found the new owner referenced only by the `Activity` facade;
+  static single-ownership review and `git diff --check` passed.
+- `mission_plan/activity.ex` moved from 5,236 to 5,169 lines; the dedicated
+  owner is 101 lines.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-TimelineFeedback execution-uncertainty extraction, selected in `194959c0` and
-implemented in `1c8213e6`. `timeline_feedback.ex` moved from 5,173 to 5,023
-lines; the dedicated owner is 234 lines.
+MissionPlan.Activity lifecycle-transition policy extraction, selected in
+`1c530694` and implemented in `5bad93be`. `mission_plan/activity.ex` moved from
+5,236 to 5,169 lines; the dedicated owner is 101 lines.
 
 Next candidate:
 Re-inventory remaining MissionPlan.Activity lifecycle/precondition and map
