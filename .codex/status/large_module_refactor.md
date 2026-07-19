@@ -9,7 +9,7 @@ Current slice:
 Policy approval-policy normalizer extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and published in `b1d4a27a`.
 
 Selected boundary:
 Extract approval-policy bundle resolution, inline-bundle checks, action-rule
@@ -33,17 +33,28 @@ Selection evidence:
   outside.
 
 Verification:
-Pending: focused normalization/validation baselines, exact old/new valid and
-invalid input proofs, strict compile, full Policy tests, relevant
-schema/contracts, static single ownership, runtime xref, and bounded review.
+- Strict compile passed across 3,855 files with warnings as errors.
+- Twelve focused normalization and validation baselines passed.
+- All 89 Policy tests and the Policy schema-contract test passed with warnings
+  as errors.
+- Exact old/new executable comparison passed for 44 valid and invalid inputs,
+  including every built-in bundle and validation error messages.
+- Static ownership confirms one `ApprovalPolicyNormalizer.normalize/3`
+  production owner and one unchanged public
+  `Policy.normalize_approval_policy/1` facade.
+- Runtime xref confirms `Policy` calls `ApprovalPolicyNormalizer`; format, diff
+  checks, and bounded review passed.
+- The separate Cadence-status capability accessor remains in `Policy` for its
+  existing `capabilities/0` caller.
+- `policy.ex` moved from 2,119 to 1,507 lines; the new owner is 656 lines.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-Policy decision-result builder extraction, selected in `a0ef1d25` and
-implemented in `c6b46cee`. `policy.ex` moved from 2,324 to 2,119 lines; the
-dedicated builder is 233 lines.
+Policy approval-policy normalizer extraction, selected in `34b34b50` and
+implemented in `b1d4a27a`. `policy.ex` moved from 2,119 to 1,507 lines; the
+dedicated normalizer is 656 lines.
 
 Next candidate:
 Re-inventory the remaining Policy bundle/catalog facade after approval-policy
