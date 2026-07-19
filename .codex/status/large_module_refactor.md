@@ -9,7 +9,7 @@ Current slice:
 TimelineFeedback reconciliation lifecycle-evidence extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `ea3a4941`.
 
 Selected boundary:
 Extract row lifecycle status, planned/realized type and status, public status
@@ -30,20 +30,33 @@ Selection evidence:
 - Existing public report APIs and artifact row shapes remain unchanged.
 
 Verification:
-Pending.
+- Strict test-environment compile passed with warnings as errors across 3,906
+  files.
+- Focused TimelineFeedback coverage passed: 73 tests.
+- Adjacent operator-review, Cadence import, and contact-feedback contract
+  coverage passed: 79 tests.
+- Exact public old/new comparison against selection commit `f517ed33` passed
+  for six reports with asserted lifecycle status, transition, protection,
+  source activity, and activity-context evidence.
+- `mix xref callers` reports only the TimelineFeedback facade as a runtime
+  caller of the extracted owner.
+- Static ownership checks confirm lifecycle projection and its helper families
+  live in the dedicated owner while matching and aggregation remain in the
+  facade.
+- `git diff --check` passed.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-TimelineFeedback reconciliation realized-ingress-evidence extraction, selected
-in `498bd1ba` and implemented in `4a574e1d`.
-`timeline_feedback.ex` moved from 3,862 to 3,842 lines; the dedicated owner is
-33 lines.
+TimelineFeedback reconciliation lifecycle-evidence extraction, selected in
+`f517ed33` and implemented in `ea3a4941`.
+`timeline_feedback.ex` moved from 3,842 to 3,776 lines; the dedicated owner is
+83 lines.
 
 Next candidate:
-Implement and verify the selected TimelineFeedback reconciliation
-lifecycle-evidence extraction.
+Re-rank the live largest-module set and select the next cohesive ownership
+boundary.
 
 Blocked:
 No.
