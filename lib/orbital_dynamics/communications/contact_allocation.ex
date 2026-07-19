@@ -12,6 +12,7 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
   alias OrbitalDynamics.Communications.{ContactContention, ContactFilter, StationCalendar}
 
   alias OrbitalDynamics.Communications.ContactAllocation.{
+    AllocationSummary,
     ApprovalPolicy,
     CapacityPacking,
     ProviderCounteroffer,
@@ -1137,221 +1138,12 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
     do: raise(ArgumentError, "contacts must be a list")
 
   defp allocation_summary(report, opts) do
-    report = stringify_keys(report)
-    now_s = Keyword.get(opts, :now_s)
-
-    rows =
-      report
-      |> Map.get("rows", [])
-      |> Enum.filter(&is_map/1)
-      |> Enum.map(&normalize_station_calendar_status_fields/1)
-      |> Enum.map(&ensure_effective_allocation_status/1)
-
-    review_rows = Enum.filter(rows, &allocation_summary_review_row?/1)
-    station_pressure_rows = station_pressure_summary_rows(rows)
-
-    station_pressure_contact_ids_by_ground_station_id =
-      contact_ids_by_field(station_pressure_rows, "ground_station_id")
-
-    station_pressure_contact_ids_by_availability =
-      station_pressure_contact_ids_by_availability(station_pressure_rows)
-
-    station_pressure_contact_ids_by_precedence_availability =
-      contact_ids_by_field(station_pressure_rows, "station_calendar_precedence_availability")
-
-    station_pressure_contact_ids_by_precedence_rank =
-      contact_ids_by_string_field(station_pressure_rows, "station_calendar_precedence_rank")
-
-    station_pressure_contact_ids_by_status =
-      contact_ids_by_field(station_pressure_rows, "station_calendar_status")
-
-    station_pressure_contact_ids_by_direction_and_ground_station_id =
-      contact_ids_by_direction_and_ground_station_id(station_pressure_rows)
-
-    capacity_pack_rows = capacity_pack_summary_rows(rows)
-    selected_capacity_pack_rows = selected_capacity_pack_summary_rows(capacity_pack_rows)
-    deferred_capacity_pack_rows = deferred_capacity_pack_summary_rows(capacity_pack_rows)
-    reservation_expiration_rows = station_reservation_expiration_summary_rows(rows, now_s)
-
-    %{
-      "schema_contract" => @summary_schema_contract,
-      "model" => "artifact_only_contact_allocation_summary",
-      "source_artifact_type" => Map.get(report, "schema_contract", @schema_contract),
-      "source" => report["source"],
-      "input_contact_count" => length(rows),
-      "allocated_contact_count" =>
-        allocation_summary_count(rows, "allocation_status", "allocated"),
-      "returned_allocated_contact_count" =>
-        allocation_summary_count(rows, "effective_allocation_status", "allocated"),
-      "policy_blocked_allocated_contact_count" =>
-        allocation_summary_count(rows, "effective_allocation_status", "policy_blocked"),
-      "deferred_contact_count" => allocation_summary_count(rows, "allocation_status", "deferred"),
-      "blocked_contact_count" => allocation_summary_count(rows, "allocation_status", "blocked"),
-      "invalid_contact_input_count" => invalid_allocation_input_count(rows),
-      "status_blocked_contact_count" => status_blocked_allocation_count(rows),
-      "resource_blocked_contact_count" => resource_blocked_contact_count(rows),
-      "duplicate_contact_id_count" => duplicate_contact_group_count(rows),
-      "reduced_capacity_pack_group_count" => length(report["reduced_capacity_pack_groups"] || []),
-      "reduced_capacity_pack_status_counts" =>
-        count_by(report["reduced_capacity_pack_groups"] || [], "pack_status"),
-      "allocation_status_counts" => count_by(rows, "allocation_status"),
-      "effective_allocation_status_counts" => count_by(rows, "effective_allocation_status"),
-      "allocation_reason_counts" => count_by(rows, "allocation_reason"),
-      "contact_ids_by_allocation_reason" => contact_ids_by_field(rows, "allocation_reason"),
-      "capacity_pack_status_counts" => count_by(rows, "capacity_pack_status"),
-      "capacity_pack_required_capacity_fraction" =>
-        capacity_pack_required_fraction(capacity_pack_rows),
-      "capacity_pack_selected_required_capacity_fraction" =>
-        capacity_pack_required_fraction(selected_capacity_pack_rows),
-      "capacity_pack_deferred_required_capacity_fraction" =>
-        capacity_pack_required_fraction(deferred_capacity_pack_rows),
-      "capacity_pack_required_capacity_fraction_by_status" =>
-        capacity_pack_required_fraction_by_field(capacity_pack_rows, "capacity_pack_status"),
-      "required_capacity_fraction_source_counts" =>
-        count_by(rows, "required_capacity_fraction_source"),
-      "station_reservation_match_status_counts" =>
-        count_by(rows, "station_reservation_match_status"),
-      "station_reservation_status_counts" => count_by(rows, "station_reservation_status"),
-      "station_reserved_by_counts" => count_by(rows, "station_reserved_by"),
-      "station_reservation_ids" => row_values(rows, "station_reservation_id"),
-      "station_reservation_expires_at_s" => row_values(rows, "station_reservation_expires_at_s"),
-      "station_reservation_expiration_now_s" => now_s,
-      "station_reservation_expiration_status_counts" =>
-        station_reservation_expiration_status_counts(reservation_expiration_rows),
-      "station_reservation_active_contact_count" =>
-        station_reservation_expiration_count(reservation_expiration_rows, "active"),
-      "station_reservation_expired_contact_count" =>
-        station_reservation_expiration_count(reservation_expiration_rows, "expired"),
-      "station_reservation_missing_expiration_contact_count" =>
-        station_reservation_expiration_count(reservation_expiration_rows, "missing"),
-      "station_reservation_declared_expiration_contact_count" =>
-        station_reservation_expiration_count(reservation_expiration_rows, "declared"),
-      "earliest_station_reservation_expires_at_s" =>
-        earliest_station_reservation_expires_at_s(reservation_expiration_rows),
-      "station_calendar_trust_boundary_status_counts" =>
-        station_calendar_trust_boundary_status_counts(rows) || %{},
-      "calendar_entry_trust_boundary_status_counts" =>
-        report["calendar_entry_trust_boundary_status_counts"] || %{},
-      "resource_blocking_dimension_counts" =>
-        contact_id_count_map(resource_blocked_summary_rows(rows), "resource_blocking_dimension"),
-      "allocated_contact_ids" =>
-        allocation_summary_contact_ids(rows, "allocation_status", "allocated"),
-      "allocated_contact_ids_by_ground_station_id" =>
-        allocation_summary_contact_ids_by_station(rows, "allocation_status", "allocated"),
-      "returned_allocated_contact_ids" =>
-        rows
-        |> Enum.filter(&(&1["effective_allocation_status"] == "allocated"))
-        |> row_contact_ids(),
-      "returned_allocated_contact_ids_by_ground_station_id" =>
-        allocation_summary_contact_ids_by_station(
-          rows,
-          "effective_allocation_status",
-          "allocated"
-        ),
-      "deferred_contact_ids" =>
-        allocation_summary_contact_ids(rows, "allocation_status", "deferred"),
-      "deferred_contact_ids_by_ground_station_id" =>
-        allocation_summary_contact_ids_by_station(rows, "allocation_status", "deferred"),
-      "blocked_contact_ids" =>
-        allocation_summary_contact_ids(rows, "allocation_status", "blocked"),
-      "blocked_contact_ids_by_ground_station_id" =>
-        allocation_summary_contact_ids_by_station(rows, "allocation_status", "blocked"),
-      "policy_blocked_contact_ids" =>
-        allocation_summary_contact_ids(rows, "effective_allocation_status", "policy_blocked"),
-      "policy_blocked_contact_ids_by_ground_station_id" =>
-        allocation_summary_contact_ids_by_station(
-          rows,
-          "effective_allocation_status",
-          "policy_blocked"
-        ),
-      "invalid_contact_input_ids" => invalid_allocation_input_ids(rows),
-      "status_blocked_contact_ids" => status_blocked_allocation_ids(rows),
-      "resource_blocked_contact_ids" => resource_blocked_summary_rows(rows) |> row_contact_ids(),
-      "resource_blocked_contact_ids_by_blocking_dimension" =>
-        contact_ids_by_field(resource_blocked_summary_rows(rows), "resource_blocking_dimension"),
-      "resource_blocked_contact_ids_by_spacecraft_id" =>
-        contact_ids_by_field(resource_blocked_summary_rows(rows), "spacecraft_id"),
-      "station_pressure_contact_ids_by_ground_station_id" =>
-        station_pressure_contact_ids_by_ground_station_id,
-      "station_pressure_contact_counts_by_ground_station_id" =>
-        id_set_count_map(station_pressure_contact_ids_by_ground_station_id),
-      "station_pressure_contact_ids_by_availability" =>
-        station_pressure_contact_ids_by_availability,
-      "station_pressure_contact_counts_by_availability" =>
-        id_set_count_map(station_pressure_contact_ids_by_availability),
-      "station_pressure_contact_ids_by_precedence_availability" =>
-        station_pressure_contact_ids_by_precedence_availability,
-      "station_pressure_contact_counts_by_precedence_availability" =>
-        id_set_count_map(station_pressure_contact_ids_by_precedence_availability),
-      "station_pressure_contact_ids_by_precedence_rank" =>
-        station_pressure_contact_ids_by_precedence_rank,
-      "station_pressure_contact_counts_by_precedence_rank" =>
-        id_set_count_map(station_pressure_contact_ids_by_precedence_rank),
-      "station_pressure_contact_ids_by_status" => station_pressure_contact_ids_by_status,
-      "station_pressure_contact_counts_by_status" =>
-        id_set_count_map(station_pressure_contact_ids_by_status),
-      "station_pressure_contact_ids_by_direction_and_ground_station_id" =>
-        station_pressure_contact_ids_by_direction_and_ground_station_id,
-      "station_reservation_contact_ids_by_match_status" =>
-        contact_ids_by_field(rows, "station_reservation_match_status"),
-      "station_reservation_contact_ids_by_status" =>
-        contact_ids_by_field(rows, "station_reservation_status"),
-      "station_reservation_contact_ids_by_reserved_by" =>
-        contact_ids_by_field(rows, "station_reserved_by"),
-      "station_reservation_ids_by_match_status" =>
-        ids_by_field(rows, "station_reservation_match_status", "station_reservation_id"),
-      "station_reservation_ids_by_status" =>
-        ids_by_field(rows, "station_reservation_status", "station_reservation_id"),
-      "station_reservation_ids_by_reserved_by" =>
-        ids_by_field(rows, "station_reserved_by", "station_reservation_id"),
-      "station_reservation_contact_ids_by_expiration_status" =>
-        station_reservation_contact_ids_by_expiration_status(reservation_expiration_rows),
-      "station_reservation_ids_by_expiration_status" =>
-        station_reservation_ids_by_expiration_status(reservation_expiration_rows),
-      "capacity_pack_contact_ids_by_status" => contact_ids_by_field(rows, "capacity_pack_status"),
-      "capacity_pack_contact_ids_by_ground_station_id" =>
-        contact_ids_by_field(capacity_pack_rows, "ground_station_id"),
-      "capacity_pack_selected_contact_ids_by_ground_station_id" =>
-        contact_ids_by_field(selected_capacity_pack_rows, "ground_station_id"),
-      "capacity_pack_deferred_contact_ids_by_ground_station_id" =>
-        contact_ids_by_field(deferred_capacity_pack_rows, "ground_station_id"),
-      "capacity_pack_required_capacity_fraction_by_ground_station_id" =>
-        capacity_pack_required_fraction_by_field(capacity_pack_rows, "ground_station_id"),
-      "capacity_pack_selected_required_capacity_fraction_by_ground_station_id" =>
-        capacity_pack_required_fraction_by_field(selected_capacity_pack_rows, "ground_station_id"),
-      "capacity_pack_deferred_required_capacity_fraction_by_ground_station_id" =>
-        capacity_pack_required_fraction_by_field(deferred_capacity_pack_rows, "ground_station_id"),
-      "required_capacity_fraction_contact_ids_by_source" =>
-        contact_ids_by_field(rows, "required_capacity_fraction_source"),
-      "reduced_capacity_packed_contact_ids" =>
-        allocation_summary_contact_ids(
-          rows,
-          "capacity_pack_status",
-          "selected_by_reduced_station_capacity_pack"
-        ),
-      "reduced_capacity_deferred_contact_ids" =>
-        allocation_summary_contact_ids(
-          rows,
-          "capacity_pack_status",
-          "deferred_by_reduced_station_capacity_pack"
-        ),
-      "rows" => rows,
-      "review_contact_ids" => row_contact_ids(review_rows),
-      "review_row_count" => length(review_rows),
-      "review_rows" => review_rows,
-      "reduced_capacity_pack_groups" => report["reduced_capacity_pack_groups"] || [],
-      "model_limits" => model_limits(),
-      "assumptions" =>
-        Map.merge(
-          %{
-            "execution_boundary" => "artifact_only_no_provider_reservation_or_schedule_mutation",
-            "source" => "contact_allocation_report.v1",
-            "operator_authority" => "not_granted_by_summary"
-          },
-          allocation_summary_capability_assumptions()
-        )
-    }
-    |> compact_map()
+    AllocationSummary.build(
+      report,
+      opts,
+      model_limits(),
+      allocation_summary_capability_assumptions()
+    )
   end
 
   defp allocation_station_pressure_summary(report, _opts) do
@@ -1772,20 +1564,6 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
     end)
   end
 
-  defp allocation_summary_count(rows, field, value) do
-    Enum.count(rows, &(Map.get(&1, field) == value))
-  end
-
-  defp invalid_allocation_input_count(rows) do
-    Enum.count(rows, &(&1["invalid_contact_input"] == true))
-  end
-
-  defp invalid_allocation_input_ids(rows) do
-    rows
-    |> Enum.filter(&(&1["invalid_contact_input"] == true))
-    |> row_contact_ids()
-  end
-
   defp status_blocked_allocation_count(rows) do
     Enum.count(rows, &status_blocked_allocation_row?/1)
   end
@@ -1802,15 +1580,6 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
     is_binary(reason) and
       (String.starts_with?(reason, "activity_status_") or
          String.starts_with?(reason, "approval_status_"))
-  end
-
-  defp duplicate_contact_group_count(rows) do
-    rows
-    |> Enum.filter(&(&1["duplicate_contact_id_collision"] == true))
-    |> Enum.map(& &1["contact_id"])
-    |> Enum.reject(&is_nil/1)
-    |> Enum.uniq()
-    |> length()
   end
 
   defp station_pressure_summary_rows(rows) do
@@ -1918,12 +1687,6 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
       end
     end)
     |> Map.new(fn {direction, contact_ids} -> {direction, sorted_stable_ids(contact_ids)} end)
-  end
-
-  defp allocation_summary_contact_ids_by_station(rows, status_field, status) do
-    rows
-    |> Enum.filter(&(&1[status_field] == status))
-    |> contact_ids_by_field("ground_station_id")
   end
 
   defp ids_by_field(rows, field, id_field) do
