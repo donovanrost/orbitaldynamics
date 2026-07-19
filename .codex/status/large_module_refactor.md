@@ -9,7 +9,7 @@ Current slice:
 LinkCapacity contact-normalization extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Extract recursive key/string conversion, numeric parsing, contact shape,
@@ -43,20 +43,52 @@ Selection evidence:
   nil omission, and deterministic output must remain unchanged.
 
 Verification:
-Pending implementation.
+- Focused baseline before implementation:
+  `test/orbital_dynamics/communications/link_capacity_test.exs` passed 44
+  tests.
+- Strict compilation after implementation:
+  `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 mix compile --force --warnings-as-errors`
+  compiled 3,946 files successfully.
+- Focused regression:
+  `test/orbital_dynamics/communications/link_capacity_test.exs` passed 44
+  tests.
+- All adjacent Cadence-import, campaign-planner, CandidateRefresh replay,
+  operator-review, and validation-fixture LinkCapacity consumers passed 44
+  tests.
+- Exact old/new comparison against selection commit `7f8dedfb` compiled the
+  selected facade under a comparison module name and matched five outputs
+  exactly: a rich report, compact summary, summary from source inputs, report
+  handoff, and summary handoff.
+- The exact inputs covered atom/string keys, nested station identity,
+  canonical and alternate times, numeric strings, unavailable aliases,
+  status/direction lists, recursive station-calendar sources, type/direction
+  aliases, nested throughput-model keys, selected matching, policy values, and
+  invalid candidate/selected shapes.
+- `git diff --check` passed.
+- `mix xref callers
+  OrbitalDynamics.Communications.LinkCapacity.ContactNormalization` reports
+  only the LinkCapacity facade as a runtime caller; compile-connected xref
+  reports no unexpected coupling.
+- Static review confirmed the facade preserves seven narrow delegates while
+  report/summary aggregation, station capacity, feedback/identity, relay
+  paths, validation, throughput/completion, downlink and approval policy,
+  station availability, contracts, and public clauses remain outside the
+  boundary.
 
 Behavior/schema changes:
-None intended.
+None. Existing key/numeric normalization, status and direction aliases,
+recursive source handling, throughput-model normalization, report contracts,
+and deterministic output are preserved.
 
 Last completed slice:
-ContactContention contact-normalization extraction, selected in `16aa47c2`
-and implemented in `8206862c`.
-`communications/contact_contention.ex` moved from 3,035 to 2,805 lines; the
-dedicated contact-normalization owner is 275 lines.
+LinkCapacity contact-normalization extraction, selected in `7f8dedfb` and
+implemented in `053ed894`.
+`communications/link_capacity.ex` moved from 3,016 to 2,792 lines; the
+dedicated contact-normalization owner is 307 lines.
 
 Next candidate:
-Implement and verify the selected LinkCapacity contact-normalization
-extraction.
+Re-rank the live largest-module set and select the next cohesive ownership
+boundary.
 
 Blocked:
 No.
