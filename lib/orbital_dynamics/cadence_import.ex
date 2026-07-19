@@ -35,8 +35,8 @@ defmodule OrbitalDynamics.CadenceImport do
     ReviewSummaryContext,
     StationOperationsImport,
     StationCalendarContextFields,
+    StrategyArtifactImport,
     StrategyDecisionImport,
-    StrategyReview,
     TimelineReviewImport,
     ValidationReadinessImport
   }
@@ -1047,53 +1047,13 @@ defmodule OrbitalDynamics.CadenceImport do
   Builds an import manifest from a V3 strategy artifact.
   """
   def from_strategy_artifact(%{} = artifact, opts \\ []) do
-    artifact = stringify_keys(artifact)
-
-    source_artifact_id =
-      option(opts, :source_artifact_id, get_in(artifact, ["strategy_metadata", "strategy_id"]))
-
-    recommendation = Map.get(artifact, "recommendation", %{})
-    comparison_rows = get_in(artifact, ["branch_comparison_report", "rows"]) || []
-    review_package = strategy_review_package(artifact)
-
-    operational_feedback_context =
-      operational_feedback_manifest_context(Map.get(artifact, "operational_feedback_provenance"))
-
-    rows =
-      comparison_rows
-      |> Enum.map(&stringify_keys/1)
-      |> Enum.sort_by(&{Map.get(&1, "rank", 0), Map.get(&1, "branch_id", "")})
-      |> Enum.with_index(1)
-      |> Enum.map(fn {row, rank} ->
-        strategy_manifest_row(row, recommendation, rank, operational_feedback_context)
-      end)
-
-    review_rows = strategy_review_manifest_rows(review_package, length(rows) + 1)
-    rows = rows ++ review_rows
-
-    build_manifest(
-      rows,
-      %{
-        "source" => "OrbitalDynamics.CadenceImport.from_strategy_artifact",
-        "source_artifact_type" => "campaign_strategy.v3",
-        "source_artifact_id" => source_artifact_id,
-        "source_plan_id" => artifact["source_plan_id"],
-        "source_repair_id" => artifact["source_repair_id"],
-        "recommended_branch_id" => recommendation["recommended_branch_id"],
-        "source_branch_count" => length(comparison_rows),
-        "source_review_count" => strategy_review_count(review_package),
-        "operator_review_package_source" =>
-          if(Map.has_key?(artifact, "operator_review_package"), do: "embedded", else: "derived")
-      }
-      |> Map.merge(review_summary_context(review_package)),
-      %{
-        "source_artifact_type" => "campaign_strategy.v3",
-        "source_artifact_id" => source_artifact_id,
-        "row_source" =>
-          "campaign_strategy.branch_comparison_report.rows_and_operator_review_package.rows",
-        "deterministic_ordering" => "branch_comparison_rank_then_branch_id"
-      }
-      |> Map.merge(review_summary_context(review_package))
+    StrategyArtifactImport.build(
+      artifact,
+      opts,
+      strategy_row: &strategy_manifest_row/4,
+      review_row: &review_manifest_row/2,
+      feedback_context: &operational_feedback_manifest_context/1,
+      build_manifest: &build_manifest/3
     )
   end
 
@@ -1632,14 +1592,6 @@ defmodule OrbitalDynamics.CadenceImport do
       compact_map: &compact_map/1
     )
   end
-
-  defp strategy_review_manifest_rows(review_package, starting_rank) do
-    StrategyReview.manifest_rows(review_package, starting_rank, &review_manifest_row/2)
-  end
-
-  defp strategy_review_package(artifact), do: StrategyReview.package(artifact)
-
-  defp strategy_review_count(review_package), do: StrategyReview.count(review_package)
 
   defp review_manifest_row(row, rank) do
     ReviewRowDispatch.dispatch(row, rank, %{
