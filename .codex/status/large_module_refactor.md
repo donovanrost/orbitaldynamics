@@ -6,53 +6,46 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-RecommendationRiskContext timeline-lifecycle-state extraction.
+ContactContention resolution-summary values extraction.
 
 Status:
-Completed and pushed.
+Selected; implementation not started.
 
 Selected boundary:
-Extract timeline-lifecycle-state risk filtering, string-key normalization,
-scalar/map/list context projection, nil removal, stable first-seen
-deduplication, and non-list fallback into
-`OrbitalDynamics.RecommendationRiskContext.TimelineLifecycleState`. Preserve
-the public RecommendationRiskContext function as a delegate.
+Extract resolution-summary selected/deferred/review ID projection, grouped
+value/list routing, grouped review-contact routing, field counts, stable
+nil-removing deduplication, sorting, and empty-group omission into
+`OrbitalDynamics.Communications.ContactContention.ResolutionSummaryValues`.
+Preserve all public ContactContention report and summary facades.
 
 Selection evidence:
-- Live re-ranking places `recommendation_risk_context.ex` at 2,521 lines, the
-  largest eligible facade behind Schema, Timeline, MissionPlan.Activity, and
-  the root public facade.
-- The selected public family spans lines 1,276-1,381 and exclusively owns the
-  timeline-lifecycle-state predicate plus its 35-field projection.
-- Production consumers call only the public facade from operator-review and
-  Cadence-import strategy recommendation contexts.
-- Context-key declarations, neighboring publication/activity-lifecycle/
-  dependency projections, shared facade helpers, public names, and artifact
-  contracts remain outside this boundary.
-- Existing type-or-feedback-scope selection, atom-key normalization,
-  scalar-versus-list field semantics, nil/empty omission, first-seen ordering,
-  deduplication, non-list fallback, and exact output keys must remain
-  unchanged.
+- Live re-ranking places `communications/contact_contention.ex` at 2,509
+  lines, the largest eligible facade behind Schema, Timeline,
+  MissionPlan.Activity, and the root public facade.
+- The selected helper family spans lines 711-778 and exclusively owns
+  deterministic recommendation value/list/count projection for resolution
+  summaries.
+- Resolution-summary construction consumes seven helpers; capacity-demand
+  source routing consumes the stable compact-list primitive once.
+- Capacity-demand arithmetic, contention grouping, recommendation selection,
+  resolution policy, approval requirements, provider/station evidence, public
+  clauses, and artifact contracts remain outside this boundary.
+- Existing selected/deferred/duplicate inclusion, nil/group omission,
+  flattening, deduplication, lexicographic sorting, frequency counts, exact
+  routing keys, and deterministic output must remain unchanged.
 
-Implementation:
-- Selection was recorded and pushed in `94b78264`.
-- Implementation was committed and pushed in `8019fcad`.
-- `recommendation_risk_context.ex` moved from 2,521 to 2,417 lines.
-- `OrbitalDynamics.RecommendationRiskContext.TimelineLifecycleState` is a
-  139-line owner reached through the unchanged public facade function.
-
-Verification:
-- Strict warning-clean compilation passed across 3,962 files.
-- The focused strategy pressure regression and four adjacent lifecycle
-  source/review/replay files passed together: 23 tests.
-- Exact old/new public parity passed for 8 cases covering empty/non-list
-  inputs, unrelated risks, type/scope selection, atom/string keys,
-  scalar/map/nested-list fields, nil removal, stable deduplication, and
-  ordering.
-- `mix xref callers` reports only the RecommendationRiskContext facade; the
-  compile-connected graph reports the new owner and facade.
-- The removed projection body is absent from the facade, formatting and
-  `git diff --check` passed, and the final diff is ownership-only.
+Verification plan:
+- Run the strict warning-clean compile before and after implementation.
+- Run the focused ContactContention regression file and adjacent resolution
+  review/import/replay/schema consumers selected from live references.
+- Run exact old/new public parity from this selection commit across selected,
+  deferred, duplicate, ambiguous, review, grouped resource/action/reason
+  routes, nil/empty groups, duplicate values, ordering, deterministic
+  summaries, and public errors.
+- Run `mix xref callers` for the new owner, inspect compile-connected
+  dependents, check formatting and `git diff --check`, prove the removed
+  helper family is absent from the facade, and review final facade/owner
+  boundaries.
 
 Behavior/schema changes:
 None intended.
@@ -64,8 +57,8 @@ RecommendationRiskContext timeline-lifecycle-state extraction, selected in
 timeline-lifecycle-state owner is 139 lines.
 
 Next candidate:
-Re-rank the live checkout and select the next cohesive facade-preserving
-boundary.
+Implement and verify the selected ContactContention resolution-summary values
+extraction.
 
 Blocked:
 No.
