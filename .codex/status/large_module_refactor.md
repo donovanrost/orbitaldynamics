@@ -9,7 +9,7 @@ Current slice:
 Timeline candidate-rejection test family split.
 
 Status:
-Selected; implementation has not started.
+Complete and published in `39e58a20`.
 
 Selected boundary:
 Move the three contiguous candidate-rejection tests into one focused
@@ -29,20 +29,33 @@ Selection evidence:
   schema validation, and all other test families remain outside the boundary.
 
 Verification:
-Pending: three-test focused baseline, mechanical AST-preserving move, strict
-compile, focused new/original/combined Timeline tests, schema contracts,
-structural/static checks, and bounded review.
+- The pre-move focused baseline passed all three selected tests from selection
+  commit `96f62b40`.
+- Strict test compilation passed with warnings as errors across 3,804 files.
+- The new focused module passed 3 tests; the reduced original passed 109 tests;
+  the four-file combined Timeline proof passed all 127 tests.
+- The four Timeline schema contract files passed all 36 tests.
+- An exact AST comparison against `96f62b40` proved that the new module contains
+  only `use`, the `Schema`/`Timeline` alias, and the three selected test ASTs,
+  while the original module is exactly its former body minus those tests.
+- Formatting, tracked and new-file diff checks, exact static test counts,
+  temporary-checker absence, and the public-facade/timeline-diff seam passed.
+- Bounded local review found no assertion, helper, fixture, production, public
+  API, schema, or deterministic-output change.
+- The original ledger fell from 10,234 to 9,981 lines; the focused module is
+  258 lines.
 
 Behavior/schema changes:
 None. This is a test-only ownership split with all assertions preserved.
 
 Last completed slice:
-Timeline transition-application test family split, selected in `97170e3d`,
-corrected in `c8a29923`, and implemented in `04a19d66`.
+Timeline candidate-rejection test family split, selected in `96f62b40` and
+implemented in `39e58a20`.
 
 Next candidate:
-Return to production facade mapping or pivot to the larger CadenceImport ledger
-after this complete small family is isolated.
+Refresh the live hotspot inventory and choose between a responsibility-focused
+production facade extraction and the larger CadenceImport test ledger. Do not
+isolate the remaining single public-facade smoke test merely for line count.
 
 Blocked:
 No.
