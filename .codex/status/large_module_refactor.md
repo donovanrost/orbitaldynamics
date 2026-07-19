@@ -9,7 +9,7 @@ Current slice:
 OperationalReadiness resource-availability evidence extraction.
 
 Status:
-Selected; strict focused baseline pending.
+Completed and pushed.
 
 Selected boundary:
 Extract resource-availability reason and blocking-dimension aggregation,
@@ -40,25 +40,42 @@ Selection evidence:
   allowlist, group-map merging, and provenance selection must remain unchanged.
 
 Implementation:
-Pending.
+- Selection was recorded and pushed in `d5786ac1`.
+- Implementation was committed and pushed in `efb06679`.
+- `operational_readiness.ex` moved from 2,186 to 2,018 lines.
+- `OrbitalDynamics.OperationalReadiness.ResourceAvailabilityEvidence` is a
+  215-line owner reached through thin private facade delegates.
 
 Verification:
-Pending strict focused baseline, exact old/new public parity, focused and
-adjacent tests, static ownership checks, xref, strict warning-clean compile,
-formatting, and diff checks.
+- Strict warning-clean compilation passed across 3,985 files.
+- The focused OperationalReadiness suite and six adjacent operator-review,
+  quality-gate, candidate-refresh, schema, and validation consumers passed
+  together: 52 tests.
+- Exact old/new public readiness/eligibility/gate/execution/quality-summary
+  parity passed for 4 chains covering direct resource projections, nested
+  contact-allocation suppressions and provenance, import-row fallback, stable
+  blocked-ID maps, and capabilities.
+- One adjacent strategy readiness-row score assertion was already failing at
+  the selection-only baseline `d5786ac1`; it is unrelated to this evidence
+  ownership move.
+- `mix xref callers` reports only the OperationalReadiness facade.
+- The facade-owned nested resource traversal, reason/dimension aggregation,
+  provenance, and stable-map helpers are absent apart from thin delegates;
+  formatting and `git diff --check` passed, and the final diff is
+  ownership-only.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-ContactAllocation station-capacity evidence extraction, selected in
-`fb4cb586` and implemented in `e60823d7`.
-`communications/contact_allocation.ex` moved from 2,197 to 1,953 lines; the
-dedicated station-capacity evidence owner is 315 lines.
+OperationalReadiness resource-availability evidence extraction, selected in
+`d5786ac1` and implemented in `efb06679`.
+`operational_readiness.ex` moved from 2,186 to 2,018 lines; the dedicated
+resource-availability evidence owner is 215 lines.
 
 Next candidate:
-Complete the selected OperationalReadiness resource-availability evidence
-extraction.
+Re-rank the live checkout and select the next cohesive facade-preserving
+boundary.
 
 Blocked:
 No.
