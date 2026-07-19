@@ -9,7 +9,7 @@ Current slice:
 ResourceFilter candidate-input extraction.
 
 Status:
-Selected; strict focused baseline pending.
+Completed and pushed in `a1b248fa`.
 
 Selected boundary:
 Extract candidate shape coercion, provider/station direction contracts,
@@ -35,24 +35,45 @@ Selection evidence:
   report rows, summaries, and error behavior must remain unchanged.
 
 Implementation:
-Pending.
+- Added `OrbitalDynamics.ResourceFilter.CandidateInput` as the owner of
+  candidate alias contracts, normalization, stable identity checks,
+  station-calendar ID lists, contact inference, feedback-factor validation,
+  and deterministic invalid rows.
+- Preserved ResourceFilter and root public APIs as capability, filtering,
+  report, and summary delegates.
+- Routed shared stable-ID checks and resource activity alias normalization
+  through CandidateInput so the moved contracts have one owner.
+- `resource_filter.ex` moved from 1,964 to 1,542 lines; the new owner is 477
+  lines.
 
 Verification:
-Pending strict focused baseline, exact old/new public parity, focused and
-adjacent tests, static ownership checks, xref, strict warning-clean compile,
-formatting, and diff checks.
+- Strict focused baseline passed all 37 ResourceFilter tests.
+- Exact old/new public parity passed for four deterministic captures:
+  candidate/direction capabilities, filtering without summaries, filtering
+  against unavailable resources, and report construction across inferred
+  contacts, station-calendar ID lists, invalid factors, missing IDs, and
+  invalid raw shapes.
+- Post-extraction focused and adjacent verification passed all 50 tests.
+- Static checks confirm CandidateInput solely declares the moved contracts and
+  owns the candidate normalization helper family; xref reports only
+  ResourceFilter as a runtime caller.
+- Strict warning-clean forced compile passed for 3,997 files.
+- Formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-ContactContention station-calendar context extraction, selected in `5e23d9f3`
-and implemented in `935abd1b`.
-`communications/contact_contention.ex` moved from 1,978 to 1,665 lines; the
-dedicated StationCalendarContext owner is 333 lines.
+ResourceFilter candidate-input extraction, selected in `a2a84802` and
+implemented in `a1b248fa`.
+`resource_filter.ex` moved from 1,964 to 1,542 lines; the dedicated
+CandidateInput owner is 477 lines.
 
 Next candidate:
-Complete the selected ResourceFilter candidate-input extraction.
+Re-rank the live checkout and select the next bounded facade-preserving
+extraction. `communications/contact_allocation.ex` is now the largest ordinary
+eligible facade at 1,953 lines, followed by TimelineFeedback and
+OperationalReadiness.
 
 Blocked:
 No.
