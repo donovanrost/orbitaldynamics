@@ -6,44 +6,31 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-CadenceImport candidate-diff field policy extraction.
+CadenceImport manifest-contract diagnostic extraction.
 
 Status:
-Completed and published.
+Selected; implementation has not started.
 
 Selected boundary:
-Extract candidate-diff changed-field derivation and count normalization into
-`OrbitalDynamics.CadenceImport.CandidateDiffFields`. Preserve the facade's
-existing derivation and count callback seams as delegates; keep semantic-change
-detail field collection private to the new owner.
+Extract unsupported manifest contract labeling and supported-contract list
+formatting into `OrbitalDynamics.CadenceImport.ManifestContractDiagnostics`.
+Preserve the facade's two existing private diagnostic seams as delegates and
+pass the existing capability map into the supported-list formatter.
 
 Selection evidence:
-- `cadence_import.ex` is now 3,361 lines.
-- The selected contiguous policy family spans about 18 lines and is shared by
-  candidate-diff and approval-requirement row builders through stable callbacks.
-- The family has one responsibility: combine explicit and semantic-detail
-  changed fields, retain binary names, deduplicate/sort them, and omit the count
-  when the resulting list is empty.
-- Dispatch, row construction, review actions, map compaction, schemas, and
-  manifest construction remain outside the boundary.
+- `cadence_import.ex` is now 3,349 lines.
+- The selected contiguous diagnostic family spans about 15 lines and supplies
+  the unsupported-input error returned by the manifest facade.
+- The family has one responsibility: normalize the reported contract label and
+  render the advertised supported-source list without changing capability
+  ownership.
+- Manifest dispatch, capability construction, row construction, schemas, and
+  successful manifest construction remain outside the boundary.
 
 Verification:
-- Strict test compile passed with 3,814 files and warnings as errors.
-- Two focused candidate-refresh and approval-requirement tests passed with 70
-  excluded.
-- All combined CadenceImport tests passed: 96 tests.
-- CadenceImport schema contracts passed: 4 tests.
-- A 9-case direct decision matrix covered explicit fields, absent-key fallback,
-  present-nil suppression of fallback, scalar wrapping, semantic-detail merging,
-  binary filtering, uniqueness, sorting, missing data, and count normalization.
-- Formatting and diff checks passed, and no temporary proof files remain.
-- Static ownership checks confirmed derivation, semantic-detail collection, and
-  count normalization have one production implementation behind preserved
-  facade callback seams.
-- Runtime xref confirmed `cadence_import.ex` is the direct consumer of
-  `candidate_diff_fields.ex`.
-- Bounded local review found no callback, fallback, merge, filter, order, count,
-  row-shape, or schema changes.
+Pending: focused capability and unsupported-input baselines, exact diagnostic
+decision matrix, strict compile, all combined CadenceImport tests, schema
+contracts, static single ownership, runtime xref, and bounded review.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
@@ -55,7 +42,7 @@ lines; the extracted owner is 22 lines.
 
 Next candidate:
 Return to the remaining CadenceImport row-building or manifest-routing helpers
-after candidate-diff field derivation has one production owner.
+after manifest-contract diagnostics have one production owner.
 
 Blocked:
 No.
