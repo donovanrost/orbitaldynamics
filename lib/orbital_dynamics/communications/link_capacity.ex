@@ -10,14 +10,6 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
 
   @schema_contract "link_capacity_report.v1"
   @summary_schema_contract "link_capacity_summary.v1"
-  @unavailable_aliases ["outage", "down", "offline"]
-  @station_availability_severity %{
-    "unavailable" => 5,
-    "maintenance" => 5,
-    "reserved" => 4,
-    "reduced_capacity" => 3,
-    "available" => 1
-  }
   @required_downlink_policy_paths [
     ["required_downlink_mb"],
     ["required_downlink_mb_by_ground_station"]
@@ -95,6 +87,7 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
   alias OrbitalDynamics.Communications.LinkCapacity.ContactNormalization
   alias OrbitalDynamics.Communications.LinkCapacity.RelayDataPath
   alias OrbitalDynamics.Communications.LinkCapacity.StationCapacity
+  alias OrbitalDynamics.Communications.LinkCapacity.StationAvailability
   alias OrbitalDynamics.Communications.LinkCapacity.StationReservationEvidence
 
   @doc """
@@ -107,8 +100,8 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
       relay_data_path_summary_artifact_contract: RelayDataPath.schema_contract(),
       model: :fixed_rate_downlink_capacity_summary,
       validation_level: :artifact_contract,
-      station_unavailable_aliases: @unavailable_aliases,
-      station_availability_precedence: @station_availability_severity,
+      station_unavailable_aliases: station_unavailable_aliases(),
+      station_availability_precedence: station_availability_precedence(),
       station_capacity_fraction_paths: StationCapacity.fraction_paths(),
       station_capacity_percent_paths: StationCapacity.percent_paths(),
       station_capacity_value_paths: StationCapacity.value_path_metadata(),
@@ -695,8 +688,8 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
         "throughput_model" => "fixed_rate_from_campaign_policy",
         "capacity_adjusted_throughput_model" =>
           "estimated_throughput_mb_times_declared_station_capacity_fraction",
-        "station_unavailable_aliases" => @unavailable_aliases,
-        "station_availability_precedence" => @station_availability_severity,
+        "station_unavailable_aliases" => station_unavailable_aliases(),
+        "station_availability_precedence" => station_availability_precedence(),
         "station_capacity_value_paths" => capacity_value_path_assumptions(),
         "source_station_capacity_value_paths" => capacity_value_path_assumptions(),
         "provider_direction_aliases" => @provider_direction_aliases,
@@ -944,8 +937,8 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
         "execution_boundary" => "artifact_only_no_provider_reservation_or_schedule_mutation",
         "source" => "link_capacity_report.v1",
         "operator_authority" => "not_granted_by_summary",
-        "station_unavailable_aliases" => @unavailable_aliases,
-        "station_availability_precedence" => @station_availability_severity,
+        "station_unavailable_aliases" => station_unavailable_aliases(),
+        "station_availability_precedence" => station_availability_precedence(),
         "station_capacity_value_paths" => capacity_value_path_assumptions(),
         "source_station_capacity_value_paths" => capacity_value_path_assumptions(),
         "provider_direction_aliases" => @provider_direction_aliases
@@ -2419,98 +2412,13 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
     |> compact_map()
   end
 
-  defp station_availability(contacts) when is_list(contacts) do
-    contacts
-    |> Enum.map(&contact_station_availability/1)
-    |> Enum.reject(&is_nil/1)
-    |> highest_station_availability()
-  end
+  defp station_availability(value), do: StationAvailability.value(value)
 
-  defp station_availability(%{} = row) do
-    availability =
-      row
-      |> station_availability_candidates()
-      |> Enum.map(&normalized_status_token/1)
-      |> Enum.filter(&station_availability_value?/1)
-      |> highest_station_availability()
+  defp contact_station_availability(contact), do: StationAvailability.contact_value(contact)
 
-    cond do
-      availability in ["unavailable", "maintenance"] ->
-        "unavailable"
+  defp station_unavailable_aliases, do: StationAvailability.unavailable_aliases()
 
-      availability == "reserved" ->
-        "reserved"
-
-      availability == "reduced_capacity" ->
-        "reduced_capacity"
-
-      is_number(row["capacity_fraction_min"]) and row["capacity_fraction_min"] < 1.0 ->
-        "reduced_capacity"
-
-      true ->
-        nil
-    end
-  end
-
-  defp station_availability(_row), do: nil
-
-  defp contact_station_availability(contact) do
-    availability =
-      contact
-      |> station_availability_candidates()
-      |> Enum.filter(&station_availability_value?/1)
-      |> highest_station_availability()
-
-    cond do
-      availability in ["unavailable", "maintenance" | @unavailable_aliases] -> "unavailable"
-      availability == "reserved" -> "reserved"
-      availability == "reduced_capacity" -> "reduced_capacity"
-      capacity_fraction_value(contact) < 1.0 -> "reduced_capacity"
-      true -> nil
-    end
-  end
-
-  defp station_availability_candidates(contact) do
-    [
-      contact["station_availability"],
-      contact["availability"],
-      contact["station_calendar_status"],
-      contact["status"]
-    ] ++
-      source_station_calendar_availability_candidates(contact["source_station_calendar_entry"]) ++
-      source_station_calendar_availability_candidates(contact["source_station_calendar_overlaps"])
-  end
-
-  defp highest_station_availability([]), do: nil
-
-  defp highest_station_availability(values),
-    do: Enum.max_by(values, &station_availability_severity/1)
-
-  defp station_availability_value?(value)
-       when value in ["available", "unavailable", "maintenance", "reserved", "reduced_capacity"],
-       do: true
-
-  defp station_availability_value?(value) when value in @unavailable_aliases, do: true
-  defp station_availability_value?(_value), do: false
-
-  defp station_availability_severity(value) when value in @unavailable_aliases,
-    do: @station_availability_severity["unavailable"]
-
-  defp station_availability_severity(value), do: Map.get(@station_availability_severity, value, 0)
-
-  defp source_station_calendar_availability_candidates(sources) when is_list(sources),
-    do: Enum.flat_map(sources, &source_station_calendar_availability_candidates/1)
-
-  defp source_station_calendar_availability_candidates(%{} = source) do
-    [
-      source["station_availability"],
-      source["availability"],
-      source["station_calendar_status"],
-      source["status"]
-    ]
-  end
-
-  defp source_station_calendar_availability_candidates(_source), do: []
+  defp station_availability_precedence, do: StationAvailability.precedence()
 
   defp contact_id(contact), do: ContactIdentity.contact_id!(contact)
 
@@ -2530,19 +2438,19 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
   defp stable_id_or_nil(value), do: ContactIdentity.stable_id_or_nil(value)
 
   defp normalize_contact(contact) do
-    ContactNormalization.normalize(contact, @unavailable_aliases, @provider_direction_aliases)
+    ContactNormalization.normalize(
+      contact,
+      station_unavailable_aliases(),
+      @provider_direction_aliases
+    )
   end
 
   defp normalize_station_calendar_status_fields(row) do
     ContactNormalization.normalize_station_calendar_status_fields(
       row,
-      @unavailable_aliases,
+      station_unavailable_aliases(),
       @provider_direction_aliases
     )
-  end
-
-  defp normalized_status_token(value) do
-    ContactNormalization.normalized_status_token(value, @unavailable_aliases)
   end
 
   defp normalized_direction_token(value) do
