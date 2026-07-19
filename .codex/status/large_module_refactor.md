@@ -9,7 +9,7 @@ Current slice:
 TimelineFeedback provider-result normalization extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and pushed in `19b422d6`.
 
 Selected boundary:
 Extract provider-result flattening, token outcome classification, and artifact
@@ -29,17 +29,25 @@ Selection evidence:
   specialized modules already owned the behavior.
 
 Verification:
-Pending: focused timeline-feedback baselines, exact old/new public artifact
-outputs, strict compile, broader timeline-feedback tests, capability checks,
-static single ownership, runtime xref, and bounded review.
+- Strict warnings-as-errors compile passed across 3,872 files.
+- Focused TimelineFeedback coverage passed: 73 tests.
+- Adjacent operator-review, contact-feedback-contract, and realized-activity
+  feedback integration coverage passed: 10 tests.
+- Exact old/new public output comparison against `d9366691` passed for 8
+  representative normalization and reconciliation cases.
+- Static ownership review found the new owner referenced only by the
+  `TimelineFeedback` facade at runtime; `git diff --check` and bounded review
+  passed.
+- `timeline_feedback.ex` moved from 5,463 to 5,343 lines; the dedicated owner
+  is 133 lines.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-Schema strategy-context JSON Schema extraction, selected in `42dddf3b` and
-implemented in `f6d4ad0b`. `schema.ex` moved from 6,786 to 6,764 lines; the
-dedicated owner is 77 lines.
+TimelineFeedback provider-result normalization extraction, selected in
+`d9366691` and implemented in `19b422d6`. `timeline_feedback.ex` moved from
+5,463 to 5,343 lines; the dedicated owner is 133 lines.
 
 Next candidate:
 Re-inventory remaining TimelineFeedback normalization/reconciliation families
