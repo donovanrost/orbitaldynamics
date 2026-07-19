@@ -12,17 +12,21 @@ Status:
 Selected; implementation has not started.
 
 Selected boundary:
-Move the eight contiguous transition-decision/application tests and their sole
-stale-selected-activity validation helper into one focused
-`timeline_transition_application_test.exs` module. Keep lifecycle-preservation
-and candidate-rejection tests in the original ledger.
+Move the eight contiguous transition-decision/application tests and their
+family-specific stale-selected-activity validation helper into one focused
+`timeline_transition_application_test.exs` module. Retain the shared pure
+`read_json!/1` helper in the original and duplicate it in the focused module;
+keep lifecycle-preservation and candidate-rejection tests in the original.
 
 Selection evidence:
 - The selected eight tests form one contiguous family from reusable transition
   decisions through application reports, summaries, selected-activity
   extraction/rechecks, and exclusivity handoff.
-- The sole selected helper has exactly three consumers, all inside this family;
-  no other test uses it.
+- The stale-selected-activity helper has exactly three consumers, all inside this
+  family, and moves with them.
+- `read_json!/1` has one selected fixture consumer and two original-ledger
+  consumers; duplicating this four-line pure decoder keeps fixture setup local
+  without coupling the focused module back to the original.
 - The family needs only `Timeline`, `Schema`, `OperatorReview`, and
   `CadenceImport`; it has no setup, fixture files, or cross-test state.
 - The next test begins the distinct lifecycle-preservation family and remains in
