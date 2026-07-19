@@ -9,7 +9,7 @@ Current slice:
 OperationalReadiness quality-gate import-readiness summary extraction.
 
 Status:
-Selected; strict focused baseline pending.
+Completed and pushed in `5b0dab62`.
 
 Selected boundary:
 Extract quality-gate import-readiness row selection, count/status aggregation,
@@ -37,25 +37,41 @@ Selection evidence:
   behavior must remain unchanged.
 
 Implementation:
-Pending.
+- Added
+  `OrbitalDynamics.OperationalReadiness.QualityGateImportReadinessSummary` as
+  the owner of cadence-import row selection, freshness/import/blocking
+  decisions, counts, routing IDs, publication context, and summary output.
+- Preserved OperationalReadiness and root public APIs as quality-gate summary
+  delegates.
+- Matched the existing operator-training/schema-validation summary-owner
+  pattern while removing the import-specific helper family from the facade.
+- `operational_readiness.ex` moved from 1,927 to 1,768 lines; the new owner is
+  227 lines.
 
 Verification:
-Pending strict focused baseline, exact old/new public parity, focused and
-adjacent tests, static ownership checks, xref, strict warning-clean compile,
-formatting, and diff checks.
+- Strict focused baseline passed all 31 OperationalReadiness tests.
+- Exact old/new public parity passed for five deterministic summaries:
+  ready/current with publication context, review/stale/unknown,
+  blocked/invalid, analysis-only, and empty import routing.
+- Post-extraction focused and adjacent verification passed all 39 tests.
+- Static checks confirm all import-readiness-specific helpers left the facade;
+  xref reports only OperationalReadiness as a runtime caller.
+- Strict warning-clean forced compile passed for 4,000 files.
+- Formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-TimelineFeedback operational-feedback provenance extraction, selected in
-`9782f23d` and implemented in `79d7904c`.
-`timeline_feedback.ex` moved from 1,948 to 1,797 lines; the dedicated
-OperationalFeedbackProvenance owner is 181 lines.
+OperationalReadiness quality-gate import-readiness summary extraction,
+selected in `1a2d9063` and implemented in `5b0dab62`.
+`operational_readiness.ex` moved from 1,927 to 1,768 lines; the dedicated
+QualityGateImportReadinessSummary owner is 227 lines.
 
 Next candidate:
-Complete the selected OperationalReadiness quality-gate import-readiness
-summary extraction.
+Re-rank the live checkout and select the next bounded facade-preserving
+extraction. `communications/station_calendar.ex` is now the largest ordinary
+eligible facade at 1,911 lines, followed by LinkCapacity and ContactFilter.
 
 Blocked:
 No.
