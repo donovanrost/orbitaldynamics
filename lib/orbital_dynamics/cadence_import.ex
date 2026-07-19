@@ -10,7 +10,8 @@ defmodule OrbitalDynamics.CadenceImport do
 
   alias OrbitalDynamics.CadenceImport.{
     GenericReviewActionPolicy,
-    ProviderResultNormalization
+    ProviderResultNormalization,
+    ReviewPackageRowSourcePolicy
   }
 
   alias OrbitalDynamics.OperatorReview
@@ -3471,59 +3472,8 @@ defmodule OrbitalDynamics.CadenceImport do
   defp generic_review_import_action(review_type),
     do: GenericReviewActionPolicy.resolve(review_type)
 
-  defp review_package_row_source("timeline_feedback_report.v1"),
-    do: "operator_review_package.realized_feedback"
-
-  defp review_package_row_source("operational_timeline_report.v1"),
-    do: "operator_review_package.operational_timeline_review"
-
-  defp review_package_row_source("contact_contention_report.v1"),
-    do: "operator_review_package.contact_contention_review"
-
-  defp review_package_row_source("contact_contention_resolution_report.v1"),
-    do: "operator_review_package.contact_contention_recommendation"
-
-  defp review_package_row_source("campaign_plan.v1"),
-    do: "operator_review_package.rows"
-
-  defp review_package_row_source("campaign_repair.v2"),
-    do: "operator_review_package.rows"
-
-  defp review_package_row_source("command_window_report.v1"),
-    do: "operator_review_package.command_window_review"
-
-  defp review_package_row_source("station_calendar_report.v1"),
-    do: "operator_review_package.station_calendar_review"
-
-  defp review_package_row_source("station_reservation_report.v1"),
-    do: "operator_review_package.station_reservation_review"
-
-  defp review_package_row_source("contact_allocation_report.v1"),
-    do: "operator_review_package.contact_allocation_review"
-
-  defp review_package_row_source("resource_projection_report.v1"),
-    do: "operator_review_package.resource_projection_review"
-
-  defp review_package_row_source("resource_projection_flow_summary.v1"),
-    do: "operator_review_package.resource_projection_review"
-
-  defp review_package_row_source("candidate_rejection_report.v1"),
-    do: "operator_review_package.candidate_rejection_review"
-
-  defp review_package_row_source("provider_counteroffer_report.v1"),
-    do: "operator_review_package.provider_counteroffer_review"
-
-  defp review_package_row_source("operational_readiness_report.v1"),
-    do: "operator_review_package.operational_readiness_review"
-
-  defp review_package_row_source("quality_gate_report.v1"),
-    do: "operator_review_package.quality_gate_review"
-
-  defp review_package_row_source(source_artifact_type) when is_binary(source_artifact_type),
-    do: "operator_review_package.rows"
-
-  defp review_package_row_source(_source_artifact_type),
-    do: "operator_review_package.rows"
+  defp review_package_row_source(source_artifact_type),
+    do: ReviewPackageRowSourcePolicy.resolve(source_artifact_type)
 
   defp schema_validation_report_source_id(report) do
     [
