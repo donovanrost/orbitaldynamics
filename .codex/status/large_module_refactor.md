@@ -6,60 +6,43 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-TimelineFeedback realized feedback validation extraction.
+LinkCapacity throughput evidence extraction.
 
 Status:
-Completed and pushed.
+Selected; strict focused baseline pending.
 
 Selected boundary:
-Extract realized feedback unit-interval and nonnegative-weight path policy,
-invalid-section construction, invalid value and orphaned source sanitization,
-nested path lookup/deletion, valid/invalid factor and weight detection,
-invalid-row annotation, and failure-reason classification into
-`OrbitalDynamics.TimelineFeedback.RealizedFeedbackValidation`. Preserve all
-public TimelineFeedback reconciliation, normalization, state, operational
-feedback, and capability facades.
+Extract capacity-adjusted estimated throughput, actual throughput/completion
+evidence selection and contact-ID resolution, explicit and data-rate-derived
+throughput precedence, duration/rate unit handling, derivation artifacts,
+completion fraction precedence, unresolved contact routing, and aggregate
+throughput/completion calculations into
+`OrbitalDynamics.Communications.LinkCapacity.ThroughputEvidence`. Preserve all
+public LinkCapacity report, summary, relay-summary, and capability facades.
 
 Selection evidence:
-- Live re-ranking places `timeline_feedback.ex` at 2,267 lines, the largest
-  eligible facade behind Schema, Timeline, MissionPlan.Activity, and the root
-  public facade.
-- The selected validation/sanitization family spans lines 1,095-1,374 and is
-  reached through four private helpers during realized-input normalization and
-  row construction.
-- The family exclusively owns feedback-factor/quality/cloud/blur unit-interval
-  policy, feedback-weight nonnegative policy, nested feedback paths, and
-  invalid-section annotations.
-- Reconciliation identity/matching, planned/realized row construction,
-  operational feedback aggregation, throughput/resource/station/thermal/link
-  contexts, publication, and artifact contracts remain outside this boundary.
-- Existing path order, duplicate field reporting, number/string parsing,
-  invalid number versus shape evidence, nested empty-map cleanup, fallback
-  source preservation/removal, combined failure reason selection, exact keys,
-  and deterministic section order must remain unchanged.
+- Live re-ranking places `communications/link_capacity.ex` at 2,246 lines, the
+  largest eligible facade behind Schema, Timeline, MissionPlan.Activity, and
+  the root public facade.
+- The selected throughput family spans lines 1,563-1,971 and exclusively owns
+  estimated/actual throughput, completion, rate/duration derivation, and
+  selected-contact evidence resolution.
+- Report construction consumes this family through private helper calls; no
+  public clause or artifact schema depends on the helpers directly.
+- Input validation, contact normalization/identity policy, station calendar/
+  reservation summaries, required-downlink policy, approval policy, report
+  summary construction, and relay paths remain outside this boundary.
+- Existing explicit-over-derived precedence, top-level-over-model precedence,
+  MB/s versus Mbps conversion, nonnegative rate clamp, actual-duration
+  precedence, strict unit-interval completion selection, duplicate/ambiguous/
+  unmatched contact routing, deterministic sorting, nil aggregate semantics,
+  exact derivation maps, and floating-point behavior must remain unchanged.
 
 Implementation:
-- Selection was recorded and pushed in `75aca312`.
-- Implementation was committed and pushed in `60020f26`.
-- `timeline_feedback.ex` moved from 2,267 to 1,993 lines.
-- `OrbitalDynamics.TimelineFeedback.RealizedFeedbackValidation` is a 294-line
-  owner reached through four private facade delegates.
+Pending.
 
 Verification:
-- Strict warning-clean compilation passed across 3,979 files.
-- The focused TimelineFeedback file and five adjacent candidate-refresh,
-  strategy, observation-feedback, provenance, and schema consumers passed
-  together: 117 tests.
-- Exact old/new public normalization/reconciliation parity passed for 16 cases
-  covering valid and invalid contact/command/observation/maneuver factors,
-  direct/nested fallback sources, quality/cloud/blur aliases, invalid numbers
-  and shapes, weight aliases and sources, sanitization, row annotations, and
-  capability metadata.
-- `mix xref callers` reports only the TimelineFeedback facade.
-- The facade-owned path policy, validation, sanitization, nested lookup/delete,
-  source cleanup, and invalid-reason helpers are absent apart from four thin
-  delegates, formatting and `git diff --check` passed, and the final diff is
-  ownership-only.
+Pending.
 
 Behavior/schema changes:
 None intended.
@@ -71,8 +54,7 @@ TimelineFeedback realized feedback validation extraction, selected in
 feedback validation owner is 294 lines.
 
 Next candidate:
-Re-rank the live checkout and select the next cohesive facade-preserving
-boundary.
+Implement and verify the selected LinkCapacity throughput-evidence boundary.
 
 Blocked:
 No.
