@@ -9,7 +9,7 @@ Current slice:
 Schema strategy-context JSON Schema extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and published.
 
 Selected boundary:
 Extract strategy branch tradeoff/risk/event/assumptions/provenance/branch plus
@@ -29,17 +29,24 @@ Selection evidence:
   and all public `Schema` APIs remain outside.
 
 Verification:
-Pending: focused strategy-schema baselines, exact old/new JSON Schema documents,
-strict compile, broader Schema contract tests, JSON Schema export checks,
-static single ownership, runtime xref, and bounded review.
+- Strict compile passed across 3,871 files with warnings as errors.
+- Focused JSON Schema export, strategy-recommendation, and branch-lint
+  contracts passed: 17 tests, including all 15 export contracts.
+- Full Schema suite passed: 175 tests.
+- Exact old/new JSON Schema documents matched for 6 strategy, branch,
+  operator-review, and campaign contracts.
+- Static inspection confirms the facade retains one explicit primitive/context
+  bundle and the three orphaned internal wrappers were removed; runtime xref
+  reports `Schema` as the sole caller of the new owner.
+- `git diff --check` and bounded ownership review passed.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-Schema timeline-context JSON Schema extraction, selected in `a3b0ad64` and
-implemented in `b082045f`. `schema.ex` moved from 6,861 to 6,786 lines; the
-dedicated owner is 124 lines.
+Schema strategy-context JSON Schema extraction, selected in `42dddf3b` and
+implemented in `f6d4ad0b`. `schema.ex` moved from 6,786 to 6,764 lines; the
+dedicated owner is 77 lines.
 
 Next candidate:
 Re-inventory remaining Schema families after strategy-context JSON Schema
