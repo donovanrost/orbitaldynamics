@@ -1,6 +1,19 @@
 defmodule OrbitalDynamics.Timeline.LifecycleStateInputPolicy do
   @moduledoc false
 
+  def groups(activities, activity_input_to_map, activity_to_map, activity_timeline_id) do
+    rows =
+      activities
+      |> Enum.with_index(1)
+      |> Enum.map(&lifecycle_state_input_row(&1, activity_input_to_map, activity_to_map))
+
+    {rows,
+     Enum.group_by(
+       rows,
+       &lifecycle_state_row_timeline_id(&1, activity_timeline_id)
+     )}
+  end
+
   def lifecycle_state_input_row(
         {activity, sequence},
         activity_input_to_map,

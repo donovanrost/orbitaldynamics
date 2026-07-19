@@ -3016,25 +3016,10 @@ defmodule OrbitalDynamics.Timeline do
     do: raise(ArgumentError, "planned and realized activities must be lists")
 
   defp lifecycle_state_input_groups(activities) do
-    rows =
-      activities
-      |> Enum.with_index(1)
-      |> Enum.map(&lifecycle_state_input_row/1)
-
-    {rows, Enum.group_by(rows, &lifecycle_state_row_timeline_id/1)}
-  end
-
-  defp lifecycle_state_input_row({activity, sequence}) do
-    OrbitalDynamics.Timeline.LifecycleStateInputPolicy.lifecycle_state_input_row(
-      {activity, sequence},
+    OrbitalDynamics.Timeline.LifecycleStateInputPolicy.groups(
+      activities,
       &activity_input_to_map/2,
-      &activity_to_map/1
-    )
-  end
-
-  defp lifecycle_state_row_timeline_id(row) do
-    OrbitalDynamics.Timeline.LifecycleStateInputPolicy.lifecycle_state_row_timeline_id(
-      row,
+      &activity_to_map/1,
       &activity_timeline_id/1
     )
   end
