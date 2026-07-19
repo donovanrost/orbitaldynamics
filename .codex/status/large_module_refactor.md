@@ -6,46 +6,31 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-CadenceImport central manifest builder extraction.
+CadenceImport review-type inclusion policy extraction.
 
 Status:
-Completed and published.
+Selected; implementation has not started.
 
 Selected boundary:
-Extract normalized row assembly, manifest counts/context projection, provenance,
-model limits, and assumptions into
-`OrbitalDynamics.CadenceImport.ManifestBuilder`. Preserve the facade's existing
-`build_manifest/3` seam as a delegate; pass schema constants, accepted statuses,
-and the existing capability map from the facade. Reuse the extracted source-ID,
-row-normalization, statistics, and map-normalization owners.
+Extract the supported import-manifest review-type allowlist and the
+strategy-review exclusion for recommendation rows into
+`OrbitalDynamics.CadenceImport.ReviewTypePolicy`. Preserve the facade's existing
+`import_manifest_review_row?/1` and `strategy_review_manifest_row?/1` seams as
+delegates.
 
 Selection evidence:
-- `cadence_import.ex` is now 3,078 lines.
-- The selected contiguous builder spans about 198 lines and is the remaining
-  central owner of final manifest shape and summary aggregation.
-- Row status, identifier construction, frequency rendering, model-limit
-  rendering, and nil compaction already have extracted production owners.
-- Public dispatch, capability construction, review-summary selection, row
-  builders, schemas, and source ordering remain outside the boundary.
+- `cadence_import.ex` is now 2,876 lines.
+- The selected contiguous policy spans about 55 lines and gates which operator
+  review rows become import-manifest rows.
+- The family has one responsibility: maintain exact review-type membership and
+  exclude strategy recommendations from the secondary strategy review pass.
+- Review-package lookup/counting, row dispatch/building, schemas, and source
+  ordering remain outside the boundary.
 
 Verification:
-- Strict test compile passed with 3,822 files and warnings as errors.
-- Three focused representative manifest tests passed with 69 excluded.
-- All combined CadenceImport tests passed: 96 tests.
-- CadenceImport schema contracts passed: 4 tests.
-- An AST proof against selection commit `caa62f6f` confirmed the new builder is
-  exactly the selected function with schema/capability inputs and calls adapted
-  to the extracted ID, row-normalization, statistics, and map-normalization
-  owners.
-- Formatting and diff checks passed, and no temporary extraction/proof files
-  remain.
-- Static ownership checks confirmed central assembly has one production
-  implementation behind the preserved facade seam; four now-unused facade-only
-  helper delegates were retired.
-- Runtime xref confirmed `cadence_import.ex` is the direct consumer of
-  `manifest_builder.ex`.
-- Bounded local review found no manifest keys, counts, context projection,
-  provenance, assumptions, limits, compaction, ordering, or schema changes.
+Pending: focused strategy/general review baselines, exact allowlist membership
+proof, strict compile, all combined CadenceImport tests, schema contracts,
+static single ownership, runtime xref, and bounded review.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
@@ -56,8 +41,8 @@ implemented in `8e584b9a`. `cadence_import.ex` moved from 3,078 to 2,876 lines;
 the extracted owner is 216 lines.
 
 Next candidate:
-Return to remaining row dispatch after central manifest assembly has one
-production owner.
+Return to remaining review-package orchestration or row dispatch after
+review-type inclusion has one production owner.
 
 Blocked:
 No.
