@@ -9,7 +9,7 @@ Current slice:
 TimelineFeedback success-factor normalization extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and pushed in `da8f5be3`.
 
 Selected boundary:
 Extract observation, contact, and command success-factor selection, source
@@ -31,17 +31,26 @@ Selection evidence:
   dependency rather than duplicating token classification.
 
 Verification:
-Pending: focused timeline-feedback baseline, exact old/new public artifact
-outputs, strict compile, broader timeline-feedback tests, static single
-ownership, runtime xref, and bounded review.
+- Strict warnings-as-errors compile passed across 3,873 files.
+- Focused TimelineFeedback coverage passed: 73 tests.
+- Adjacent operator-review, contact-feedback-contract, and realized-activity
+  feedback integration coverage passed: 10 tests.
+- Exact old/new public output comparison against `8a40121e` passed for 10
+  realized-activity normalization cases and one reconciliation artifact.
+- Runtime xref found the new owner referenced only by the `TimelineFeedback`
+  facade; static single-ownership review and `git diff --check` passed.
+- Bounded review retained nil-on-malformed nested path behavior before the
+  final compile and focused rerun.
+- `timeline_feedback.ex` moved from 5,343 to 5,173 lines; the dedicated owner
+  is 261 lines.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-TimelineFeedback provider-result normalization extraction, selected in
-`d9366691` and implemented in `19b422d6`. `timeline_feedback.ex` moved from
-5,463 to 5,343 lines; the dedicated owner is 133 lines.
+TimelineFeedback success-factor normalization extraction, selected in
+`8a40121e` and implemented in `da8f5be3`. `timeline_feedback.ex` moved from
+5,343 to 5,173 lines; the dedicated owner is 261 lines.
 
 Next candidate:
 Re-inventory remaining TimelineFeedback execution-uncertainty and
