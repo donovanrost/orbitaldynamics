@@ -11,7 +11,8 @@ defmodule OrbitalDynamics.CadenceImport do
   alias OrbitalDynamics.CadenceImport.{
     GenericReviewActionPolicy,
     ProviderResultNormalization,
-    ReviewPackageRowSourcePolicy
+    ReviewPackageRowSourcePolicy,
+    SourceIdentifierPolicy
   }
 
   alias OrbitalDynamics.OperatorReview
@@ -3475,52 +3476,20 @@ defmodule OrbitalDynamics.CadenceImport do
   defp review_package_row_source(source_artifact_type),
     do: ReviewPackageRowSourcePolicy.resolve(source_artifact_type)
 
-  defp schema_validation_report_source_id(report) do
-    [
-      "schema_validation",
-      report["validated_contract"],
-      report["validation_mode"],
-      report["status"]
-    ]
-    |> Enum.reject(&(&1 in [nil, ""]))
-    |> Enum.join(":")
-  end
+  defp schema_validation_report_source_id(report),
+    do: SourceIdentifierPolicy.schema_validation_report(report)
 
-  defp schema_validation_batch_report_source_id(report) do
-    [
-      "schema_validation_batch",
-      report["validation_mode"],
-      report["status"]
-    ]
-    |> Enum.reject(&(&1 in [nil, ""]))
-    |> Enum.join(":")
-  end
+  defp schema_validation_batch_report_source_id(report),
+    do: SourceIdentifierPolicy.schema_validation_batch_report(report)
 
-  defp execution_report_source_id(report) do
-    [
-      "execution",
-      report["study_id"],
-      report["run_id"] || report["status"]
-    ]
-    |> Enum.reject(&(&1 in [nil, ""]))
-    |> Enum.join(":")
-  end
+  defp execution_report_source_id(report),
+    do: SourceIdentifierPolicy.execution_report(report)
 
-  defp result_artifact_source_id(artifact) do
-    [
-      "result_artifact",
-      artifact["study_id"],
-      get_in(artifact, ["run", "id"]) || get_in(artifact, ["execution_report", "run_id"])
-    ]
-    |> Enum.reject(&(&1 in [nil, ""]))
-    |> Enum.join(":")
-  end
+  defp result_artifact_source_id(artifact),
+    do: SourceIdentifierPolicy.result_artifact(artifact)
 
-  defp manifest_id(source_artifact_id)
-       when is_binary(source_artifact_id) and source_artifact_id != "",
-       do: "cadence_import_manifest:#{source_artifact_id}"
-
-  defp manifest_id(_source_artifact_id), do: "cadence_import_manifest:unknown_source"
+  defp manifest_id(source_artifact_id),
+    do: SourceIdentifierPolicy.manifest(source_artifact_id)
 
   defp option(opts, key, default \\ nil), do: Keyword.get(opts, key, default)
 
