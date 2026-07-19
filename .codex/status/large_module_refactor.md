@@ -9,7 +9,7 @@ Current slice:
 Policy risk-rule matcher extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and pushed in `bd14ec63`.
 
 Selected boundary:
 Extract `approval_rule_risk_match?/2`, all risk direction/identity/context
@@ -31,17 +31,25 @@ Selection evidence:
   boundary.
 
 Verification:
-Pending: focused risk type/direction/station/spacecraft/target baselines, exact
-old/new risk decision proofs, strict compile, full Policy tests, relevant
-schema/contracts, static single ownership, runtime xref, and bounded review.
+- Strict warnings-as-errors compile passed across 3,848 files.
+- Five focused risk type/direction/station/spacecraft/target tests passed.
+- All 89 Policy tests passed.
+- The Policy schema-contract test passed.
+- Exact old/new comparison passed for 55 built-in bundle/risk decisions spanning
+  direction, station identity/status, spacecraft, target, provider calendar,
+  and reservation evidence.
+- Static search confirms one risk matcher owner with seven explicit private
+  Policy seams plus one shared direction-selector predicate.
+- Runtime xref confirms Policy owns the dependency on RiskMatcher.
+- Formatting, diff checks, and bounded review passed.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-Policy requirement-context extraction, selected in `56a7dfce` and implemented
-in `44d83250`. `policy.ex` moved from 5,555 to 4,960 lines; the dedicated
-resolver is 630 lines.
+Policy risk-matcher extraction, selected in `27fba3ea` and implemented in
+`bd14ec63`. `policy.ex` moved from 4,960 to 4,652 lines; the dedicated matcher
+is 326 lines.
 
 Next candidate:
 Re-inventory the neighboring Policy event/activity match families after risk
