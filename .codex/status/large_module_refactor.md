@@ -6,43 +6,34 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-CadenceImport manifest-map normalization extraction.
+CadenceImport review-summary context extraction.
 
 Status:
-Completed and published.
+Selected; implementation has not started.
 
 Selected boundary:
-Extract top-level nil compaction and nonempty-map normalization into
-`OrbitalDynamics.CadenceImport.ManifestMapNormalization`. Preserve the facade's
-existing `compact_map/1` and `non_empty_map/1` callback seams as delegates for
-all row builders.
+Extract review-package summary field selection and provenance
+`run_input_sources` promotion into
+`OrbitalDynamics.CadenceImport.ReviewSummaryContext`. Preserve the facade's
+existing `review_summary_context/1` seam as a delegate and reuse the extracted
+manifest-map normalizer for final nil compaction.
 
 Selection evidence:
-- `cadence_import.ex` is now 3,341 lines.
-- The selected tail family is small but is shared by manifest construction and
-  nearly every extracted row builder through stable callbacks.
-- The family has one responsibility: remove top-level nil map entries and map
-  empty/non-map context values to nil without recursively altering values.
-- Row construction, nested normalization, schemas, ordering, and manifest
-  dispatch remain outside the boundary.
-- This ownership seam enables the next large review-summary context extraction
-  without duplicating compaction behavior.
+- `cadence_import.ex` is now 3,337 lines.
+- The selected contiguous family spans about 112 lines, primarily an ordered
+  allowlist of readiness, station-pressure, capacity-pack, provider-reservation,
+  and reservation-expiration summary fields.
+- The family has one responsibility: select review-package summary context,
+  conditionally promote nonempty provenance run-input sources, and compact nil
+  values.
+- Manifest assembly, row normalization, capability metadata, schemas, ordering,
+  and review-row construction remain outside the boundary.
 
 Verification:
-- Strict test compile passed with 3,816 files and warnings as errors.
-- Three focused representative row/manifest tests passed with 69 excluded.
-- All combined CadenceImport tests passed: 96 tests.
-- CadenceImport schema contracts passed: 4 tests.
-- An 8-case direct decision matrix covered top-level nil removal, preservation of
-  false/zero/empty and nested values, key-value enumerables, nonempty maps,
-  empty maps, and non-map inputs.
-- Formatting and diff checks passed, and no temporary proof files remain.
-- Static ownership checks confirmed both normalization policies have one
-  production implementation behind the preserved facade callback seams.
-- Runtime xref confirmed `cadence_import.ex` is the direct consumer of
-  `manifest_map_normalization.ex`.
-- Bounded local review found no callback, recursion, preservation, empty-map,
-  row-shape, or schema changes.
+Pending: focused readiness/capacity/provider-summary baselines, AST-derived
+ordered allowlist proof, exact promotion/compaction matrix, strict compile, all
+combined CadenceImport tests, schema contracts, static single ownership,
+runtime xref, and bounded review.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
@@ -53,8 +44,8 @@ implemented in `a28108f9`. `cadence_import.ex` moved from 3,341 to 3,337 lines;
 the extracted owner is 12 lines.
 
 Next candidate:
-Extract review-summary context selection after manifest-map normalization has
-one production owner.
+Return to manifest assembly or remaining row-dispatch policy after review-summary
+context has one production owner.
 
 Blocked:
 No.
