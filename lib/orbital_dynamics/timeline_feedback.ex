@@ -96,6 +96,7 @@ defmodule OrbitalDynamics.TimelineFeedback do
     ReconciliationObservationEvidence,
     ReconciliationResourceEvidence,
     ReconciliationStationCalendarEvidence,
+    ReconciliationTimingEvidence,
     RealizedIdentity,
     RealizedStatus,
     SuccessFactor,
@@ -2520,9 +2521,6 @@ defmodule OrbitalDynamics.TimelineFeedback do
 
     match_strategy = value(realized, "match_strategy") || "unmatched_planned"
     protection_decision = feedback_protection_decision(planned, realized)
-    start_delta_s = delta(value(realized, "actual_starts_at_s"), value(planned, "starts_at_s"))
-    end_delta_s = delta(value(realized, "actual_ends_at_s"), value(planned, "ends_at_s"))
-    max_timing_delta_s = max_abs_timing_delta_s(start_delta_s, end_delta_s)
 
     %{
       "activity_id" => id,
@@ -2571,16 +2569,6 @@ defmodule OrbitalDynamics.TimelineFeedback do
       "realized_activity" => value(realized, "source_activity"),
       "source_activity_context" => feedback_source_activity_context(planned),
       "realized_activity_context" => value(realized, "realized_activity_context"),
-      "planned_starts_at_s" => value(planned, "starts_at_s"),
-      "planned_ends_at_s" => value(planned, "ends_at_s"),
-      "actual_starts_at_s" => value(realized, "actual_starts_at_s"),
-      "actual_ends_at_s" => value(realized, "actual_ends_at_s"),
-      "start_delta_s" => start_delta_s,
-      "end_delta_s" => end_delta_s,
-      "max_timing_delta_s" => if(is_number(timing_variance_threshold_s), do: max_timing_delta_s),
-      "timing_variance_threshold_s" => timing_variance_threshold_s,
-      "timing_variance_status" =>
-        timing_variance_status(max_timing_delta_s, timing_variance_threshold_s),
       "contact_success_factor" =>
         value(realized, "contact_success_factor") || value(planned, "contact_success_factor"),
       "contact_success_factor_source" =>
@@ -2701,6 +2689,9 @@ defmodule OrbitalDynamics.TimelineFeedback do
     |> Map.merge(ReconciliationObservationEvidence.context(planned, realized))
     |> Map.merge(ReconciliationResourceEvidence.context(planned, realized))
     |> Map.merge(ReconciliationStationCalendarEvidence.context(planned, realized))
+    |> Map.merge(
+      ReconciliationTimingEvidence.context(planned, realized, timing_variance_threshold_s)
+    )
     |> Map.merge(execution_uncertainty_context)
     |> put_duplicate_realized_feedback(realized_matches)
     |> ReconciliationIdentity.put_mismatch_summary()
@@ -3744,20 +3735,6 @@ defmodule OrbitalDynamics.TimelineFeedback do
 
   defp delta(actual, planned) when is_number(actual) and is_number(planned), do: actual - planned
   defp delta(_actual, _planned), do: nil
-
-  defp max_abs_timing_delta_s(start_delta_s, end_delta_s) do
-    [start_delta_s, end_delta_s]
-    |> Enum.filter(&is_number/1)
-    |> Enum.map(&abs/1)
-    |> Enum.max(fn -> nil end)
-  end
-
-  defp timing_variance_status(max_timing_delta_s, threshold)
-       when is_number(max_timing_delta_s) and is_number(threshold) do
-    if max_timing_delta_s > threshold, do: "exceeds_threshold", else: "within_threshold"
-  end
-
-  defp timing_variance_status(_max_timing_delta_s, _threshold), do: nil
 
   defp throughput_fraction(actual, planned)
        when is_number(actual) and is_number(planned) and planned > 0.0 do
