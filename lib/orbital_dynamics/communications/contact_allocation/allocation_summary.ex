@@ -3,6 +3,10 @@ defmodule OrbitalDynamics.Communications.ContactAllocation.AllocationSummary do
 
   @summary_schema_contract "contact_allocation_summary.v1"
   @schema_contract "contact_allocation_report.v1"
+  @station_pressure_summary_schema_contract "contact_allocation_station_pressure_summary.v1"
+  @capacity_pack_summary_schema_contract "contact_allocation_capacity_pack_summary.v1"
+  @reservation_conflict_summary_schema_contract "contact_allocation_reservation_conflict_summary.v1"
+  @provider_reservation_request_summary_schema_contract "contact_allocation_provider_reservation_request_summary.v1"
   @unavailable_aliases ["outage", "down", "offline"]
   @provider_direction_aliases %{
     "cmd" => "command",
@@ -242,6 +246,523 @@ defmodule OrbitalDynamics.Communications.ContactAllocation.AllocationSummary do
     |> compact_map()
   end
 
+  def report_fields(allocation_rows, reduced_capacity_pack_groups) do
+    station_pressure_rows = station_pressure_summary_rows(allocation_rows)
+
+    station_pressure_contact_ids_by_ground_station_id =
+      contact_ids_by_field(station_pressure_rows, "ground_station_id")
+
+    station_pressure_contact_ids_by_availability =
+      station_pressure_contact_ids_by_availability(station_pressure_rows)
+
+    station_pressure_contact_ids_by_precedence_availability =
+      contact_ids_by_field(station_pressure_rows, "station_calendar_precedence_availability")
+
+    station_pressure_contact_ids_by_precedence_rank =
+      contact_ids_by_string_field(station_pressure_rows, "station_calendar_precedence_rank")
+
+    station_pressure_contact_ids_by_status =
+      contact_ids_by_field(station_pressure_rows, "station_calendar_status")
+
+    station_pressure_contact_ids_by_direction_and_ground_station_id =
+      contact_ids_by_direction_and_ground_station_id(station_pressure_rows)
+
+    reservation_expiration_rows =
+      station_reservation_expiration_summary_rows(allocation_rows, nil)
+
+    capacity_pack_rows = capacity_pack_summary_rows(allocation_rows)
+    selected_capacity_pack_rows = selected_capacity_pack_summary_rows(capacity_pack_rows)
+    deferred_capacity_pack_rows = deferred_capacity_pack_summary_rows(capacity_pack_rows)
+
+    %{
+      "allocated_contact_count" =>
+        allocation_summary_count(allocation_rows, "allocation_status", "allocated"),
+      "returned_allocated_contact_count" =>
+        allocation_summary_count(allocation_rows, "effective_allocation_status", "allocated"),
+      "policy_blocked_allocated_contact_count" =>
+        allocation_summary_count(
+          allocation_rows,
+          "effective_allocation_status",
+          "policy_blocked"
+        ),
+      "deferred_contact_count" =>
+        allocation_summary_count(allocation_rows, "allocation_status", "deferred"),
+      "blocked_contact_count" =>
+        allocation_summary_count(allocation_rows, "allocation_status", "blocked"),
+      "allocation_status_counts" => count_by(allocation_rows, "allocation_status"),
+      "effective_allocation_status_counts" =>
+        count_by(allocation_rows, "effective_allocation_status"),
+      "allocation_reason_counts" => count_by(allocation_rows, "allocation_reason"),
+      "station_reservation_match_status_counts" =>
+        count_by(allocation_rows, "station_reservation_match_status"),
+      "station_reservation_ids" => row_values(allocation_rows, "station_reservation_id"),
+      "station_reservation_expires_at_s" =>
+        row_values(allocation_rows, "station_reservation_expires_at_s"),
+      "station_reservation_expiration_status_counts" =>
+        station_reservation_expiration_status_counts(reservation_expiration_rows),
+      "station_reservation_declared_expiration_contact_count" =>
+        station_reservation_expiration_count(reservation_expiration_rows, "declared"),
+      "station_reservation_missing_expiration_contact_count" =>
+        station_reservation_expiration_count(reservation_expiration_rows, "missing"),
+      "earliest_station_reservation_expires_at_s" =>
+        earliest_station_reservation_expires_at_s(reservation_expiration_rows),
+      "station_reservation_contact_ids_by_expiration_status" =>
+        station_reservation_contact_ids_by_expiration_status(reservation_expiration_rows),
+      "station_reservation_ids_by_expiration_status" =>
+        station_reservation_ids_by_expiration_status(reservation_expiration_rows),
+      "station_reserved_bys" => row_values(allocation_rows, "station_reserved_by"),
+      "station_reservation_statuses" => row_values(allocation_rows, "station_reservation_status"),
+      "station_calendar_trust_boundary_status_counts" =>
+        station_calendar_trust_boundary_status_counts(allocation_rows),
+      "station_pressure_contact_ids_by_ground_station_id" =>
+        station_pressure_contact_ids_by_ground_station_id,
+      "station_pressure_contact_counts_by_ground_station_id" =>
+        id_set_count_map(station_pressure_contact_ids_by_ground_station_id),
+      "station_pressure_contact_ids_by_availability" =>
+        station_pressure_contact_ids_by_availability,
+      "station_pressure_contact_counts_by_availability" =>
+        id_set_count_map(station_pressure_contact_ids_by_availability),
+      "station_pressure_contact_ids_by_precedence_availability" =>
+        station_pressure_contact_ids_by_precedence_availability,
+      "station_pressure_contact_counts_by_precedence_availability" =>
+        id_set_count_map(station_pressure_contact_ids_by_precedence_availability),
+      "station_pressure_contact_ids_by_precedence_rank" =>
+        station_pressure_contact_ids_by_precedence_rank,
+      "station_pressure_contact_counts_by_precedence_rank" =>
+        id_set_count_map(station_pressure_contact_ids_by_precedence_rank),
+      "station_pressure_contact_ids_by_status" => station_pressure_contact_ids_by_status,
+      "station_pressure_contact_counts_by_status" =>
+        id_set_count_map(station_pressure_contact_ids_by_status),
+      "station_pressure_contact_ids_by_direction_and_ground_station_id" =>
+        station_pressure_contact_ids_by_direction_and_ground_station_id,
+      "status_blocked_contact_count" => status_blocked_allocation_count(allocation_rows),
+      "status_blocked_contact_ids" => status_blocked_allocation_ids(allocation_rows),
+      "resource_blocked_contact_count" => resource_blocked_contact_count(allocation_rows),
+      "resource_blocked_contact_ids" =>
+        allocation_rows |> resource_blocked_summary_rows() |> row_contact_ids(),
+      "resource_blocking_dimension_counts" =>
+        contact_id_count_map(
+          resource_blocked_summary_rows(allocation_rows),
+          "resource_blocking_dimension"
+        ),
+      "resource_blocked_contact_ids_by_blocking_dimension" =>
+        contact_ids_by_field(
+          resource_blocked_summary_rows(allocation_rows),
+          "resource_blocking_dimension"
+        ),
+      "resource_blocked_contact_ids_by_spacecraft_id" =>
+        contact_ids_by_field(resource_blocked_summary_rows(allocation_rows), "spacecraft_id"),
+      "reduced_capacity_pack_group_count" => length(reduced_capacity_pack_groups),
+      "reduced_capacity_pack_groups" => reduced_capacity_pack_groups,
+      "reduced_capacity_pack_status_counts" =>
+        count_by(reduced_capacity_pack_groups, "pack_status"),
+      "capacity_pack_status_counts" => count_by(allocation_rows, "capacity_pack_status"),
+      "capacity_pack_required_capacity_fraction" =>
+        capacity_pack_required_fraction(capacity_pack_rows),
+      "capacity_pack_selected_required_capacity_fraction" =>
+        capacity_pack_required_fraction(selected_capacity_pack_rows),
+      "capacity_pack_deferred_required_capacity_fraction" =>
+        capacity_pack_required_fraction(deferred_capacity_pack_rows),
+      "capacity_pack_required_capacity_fraction_by_status" =>
+        capacity_pack_required_fraction_by_field(capacity_pack_rows, "capacity_pack_status"),
+      "capacity_pack_required_capacity_fraction_by_ground_station_id" =>
+        capacity_pack_required_fraction_by_field(capacity_pack_rows, "ground_station_id"),
+      "capacity_pack_selected_required_capacity_fraction_by_ground_station_id" =>
+        capacity_pack_required_fraction_by_field(
+          selected_capacity_pack_rows,
+          "ground_station_id"
+        ),
+      "capacity_pack_deferred_required_capacity_fraction_by_ground_station_id" =>
+        capacity_pack_required_fraction_by_field(
+          deferred_capacity_pack_rows,
+          "ground_station_id"
+        ),
+      "capacity_pack_contact_ids_by_status" =>
+        contact_ids_by_field(allocation_rows, "capacity_pack_status"),
+      "required_capacity_fraction_source_counts" =>
+        count_by(allocation_rows, "required_capacity_fraction_source"),
+      "required_capacity_fraction_contact_ids_by_source" =>
+        contact_ids_by_field(allocation_rows, "required_capacity_fraction_source"),
+      "reduced_capacity_packed_contact_ids" =>
+        allocation_summary_contact_ids(
+          allocation_rows,
+          "capacity_pack_status",
+          "selected_by_reduced_station_capacity_pack"
+        ),
+      "reduced_capacity_deferred_contact_ids" =>
+        allocation_summary_contact_ids(
+          allocation_rows,
+          "capacity_pack_status",
+          "deferred_by_reduced_station_capacity_pack"
+        )
+    }
+  end
+
+  def build_station_pressure(report, model_limits, capability_assumptions) do
+    report = stringify_keys(report)
+
+    rows =
+      report
+      |> Map.get("rows", [])
+      |> Enum.filter(&is_map/1)
+      |> Enum.map(&normalize_station_calendar_status_fields/1)
+
+    station_pressure_rows = station_pressure_summary_rows(rows)
+
+    contact_ids_by_ground_station_id =
+      contact_ids_by_field(station_pressure_rows, "ground_station_id")
+
+    contact_ids_by_availability =
+      station_pressure_contact_ids_by_availability(station_pressure_rows)
+
+    contact_ids_by_precedence_availability =
+      contact_ids_by_field(station_pressure_rows, "station_calendar_precedence_availability")
+
+    contact_ids_by_precedence_rank =
+      contact_ids_by_string_field(station_pressure_rows, "station_calendar_precedence_rank")
+
+    contact_ids_by_status =
+      contact_ids_by_field(station_pressure_rows, "station_calendar_status")
+
+    contact_ids_by_direction_and_ground_station_id =
+      contact_ids_by_direction_and_ground_station_id(station_pressure_rows)
+
+    review_rows = Enum.filter(station_pressure_rows, &allocation_summary_review_row?/1)
+
+    %{
+      "schema_contract" => @station_pressure_summary_schema_contract,
+      "model" => "artifact_only_contact_allocation_station_pressure_summary",
+      "source_artifact_type" => Map.get(report, "schema_contract", @schema_contract),
+      "source" => report["source"],
+      "input_contact_count" => length(rows),
+      "station_pressure_contact_count" => length(station_pressure_rows),
+      "station_pressure_review_contact_count" => length(review_rows),
+      "station_pressure_contact_ids" => row_contact_ids(station_pressure_rows),
+      "station_pressure_review_contact_ids" => row_contact_ids(review_rows),
+      "station_pressure_contact_ids_by_ground_station_id" => contact_ids_by_ground_station_id,
+      "station_pressure_contact_counts_by_ground_station_id" =>
+        id_set_count_map(contact_ids_by_ground_station_id),
+      "station_pressure_contact_ids_by_availability" => contact_ids_by_availability,
+      "station_pressure_contact_counts_by_availability" =>
+        id_set_count_map(contact_ids_by_availability),
+      "station_pressure_contact_ids_by_precedence_availability" =>
+        contact_ids_by_precedence_availability,
+      "station_pressure_contact_counts_by_precedence_availability" =>
+        id_set_count_map(contact_ids_by_precedence_availability),
+      "station_pressure_contact_ids_by_precedence_rank" => contact_ids_by_precedence_rank,
+      "station_pressure_contact_counts_by_precedence_rank" =>
+        id_set_count_map(contact_ids_by_precedence_rank),
+      "station_pressure_contact_ids_by_status" => contact_ids_by_status,
+      "station_pressure_contact_counts_by_status" => id_set_count_map(contact_ids_by_status),
+      "station_pressure_contact_ids_by_direction_and_ground_station_id" =>
+        contact_ids_by_direction_and_ground_station_id,
+      "rows" => rows,
+      "review_rows" => review_rows,
+      "model_limits" => model_limits,
+      "assumptions" =>
+        Map.merge(
+          %{
+            "execution_boundary" => "artifact_only_no_provider_reservation_or_schedule_mutation",
+            "source" => "contact_allocation_report.v1",
+            "operator_authority" => "not_granted_by_station_pressure_summary"
+          },
+          capability_assumptions
+        )
+    }
+    |> compact_map()
+  end
+
+  def build_capacity_pack(report, model_limits, capability_assumptions) do
+    report = stringify_keys(report)
+
+    rows =
+      report
+      |> Map.get("rows", [])
+      |> Enum.filter(&is_map/1)
+      |> Enum.map(&normalize_station_calendar_status_fields/1)
+
+    capacity_pack_rows = capacity_pack_summary_rows(rows)
+    selected_capacity_pack_rows = selected_capacity_pack_summary_rows(capacity_pack_rows)
+    deferred_capacity_pack_rows = deferred_capacity_pack_summary_rows(capacity_pack_rows)
+    pack_groups = report["reduced_capacity_pack_groups"] || []
+
+    %{
+      "schema_contract" => @capacity_pack_summary_schema_contract,
+      "model" => "artifact_only_contact_allocation_capacity_pack_summary",
+      "source_artifact_type" => Map.get(report, "schema_contract", @schema_contract),
+      "source" => report["source"],
+      "input_contact_count" => length(rows),
+      "capacity_pack_contact_count" => length(capacity_pack_rows),
+      "capacity_pack_review_status" =>
+        if(capacity_pack_rows == [] and pack_groups == [], do: "clear", else: "review_required"),
+      "reduced_capacity_pack_group_count" => length(pack_groups),
+      "reduced_capacity_pack_status_counts" => count_by(pack_groups, "pack_status"),
+      "capacity_pack_status_counts" => count_by(capacity_pack_rows, "capacity_pack_status"),
+      "capacity_pack_contact_ids_by_status" =>
+        contact_ids_by_field(capacity_pack_rows, "capacity_pack_status"),
+      "capacity_pack_contact_ids_by_ground_station_id" =>
+        contact_ids_by_field(capacity_pack_rows, "ground_station_id"),
+      "capacity_pack_selected_contact_ids_by_ground_station_id" =>
+        contact_ids_by_field(selected_capacity_pack_rows, "ground_station_id"),
+      "capacity_pack_deferred_contact_ids_by_ground_station_id" =>
+        contact_ids_by_field(deferred_capacity_pack_rows, "ground_station_id"),
+      "capacity_pack_required_capacity_fraction" =>
+        capacity_pack_required_fraction(capacity_pack_rows),
+      "capacity_pack_selected_required_capacity_fraction" =>
+        capacity_pack_required_fraction(selected_capacity_pack_rows),
+      "capacity_pack_deferred_required_capacity_fraction" =>
+        capacity_pack_required_fraction(deferred_capacity_pack_rows),
+      "capacity_pack_required_capacity_fraction_by_status" =>
+        capacity_pack_required_fraction_by_field(capacity_pack_rows, "capacity_pack_status"),
+      "capacity_pack_required_capacity_fraction_by_ground_station_id" =>
+        capacity_pack_required_fraction_by_field(capacity_pack_rows, "ground_station_id"),
+      "capacity_pack_selected_required_capacity_fraction_by_ground_station_id" =>
+        capacity_pack_required_fraction_by_field(selected_capacity_pack_rows, "ground_station_id"),
+      "capacity_pack_deferred_required_capacity_fraction_by_ground_station_id" =>
+        capacity_pack_required_fraction_by_field(deferred_capacity_pack_rows, "ground_station_id"),
+      "capacity_pack_required_capacity_fraction_by_direction" =>
+        capacity_pack_required_fraction_by_field(capacity_pack_rows, "direction"),
+      "capacity_pack_selected_required_capacity_fraction_by_direction" =>
+        capacity_pack_required_fraction_by_field(selected_capacity_pack_rows, "direction"),
+      "capacity_pack_deferred_required_capacity_fraction_by_direction" =>
+        capacity_pack_required_fraction_by_field(deferred_capacity_pack_rows, "direction"),
+      "required_capacity_fraction_source_counts" =>
+        count_by(capacity_pack_rows, "required_capacity_fraction_source"),
+      "required_capacity_fraction_contact_ids_by_source" =>
+        contact_ids_by_field(capacity_pack_rows, "required_capacity_fraction_source"),
+      "capacity_pack_contact_ids_by_direction" =>
+        contact_ids_by_field(capacity_pack_rows, "direction"),
+      "capacity_pack_selected_contact_ids_by_direction" =>
+        contact_ids_by_field(selected_capacity_pack_rows, "direction"),
+      "capacity_pack_deferred_contact_ids_by_direction" =>
+        contact_ids_by_field(deferred_capacity_pack_rows, "direction"),
+      "reduced_capacity_packed_contact_ids" =>
+        allocation_summary_contact_ids(
+          capacity_pack_rows,
+          "capacity_pack_status",
+          "selected_by_reduced_station_capacity_pack"
+        ),
+      "reduced_capacity_deferred_contact_ids" =>
+        allocation_summary_contact_ids(
+          capacity_pack_rows,
+          "capacity_pack_status",
+          "deferred_by_reduced_station_capacity_pack"
+        ),
+      "capacity_pack_group_ids" => row_values(pack_groups, "contention_group_id"),
+      "capacity_pack_group_ids_by_status" =>
+        ids_by_field(pack_groups, "pack_status", "contention_group_id"),
+      "rows" => rows,
+      "reduced_capacity_pack_groups" => pack_groups,
+      "review_rows" => capacity_pack_rows,
+      "model_limits" => model_limits,
+      "assumptions" =>
+        Map.merge(
+          %{
+            "execution_boundary" => "artifact_only_no_provider_reservation_or_schedule_mutation",
+            "source" => "contact_allocation_report.v1",
+            "operator_authority" => "not_granted_by_capacity_pack_summary"
+          },
+          capability_assumptions
+        )
+    }
+    |> compact_map()
+  end
+
+  def build_reservation_conflict(report, opts, model_limits, capability_assumptions) do
+    report = stringify_keys(report)
+    now_s = Keyword.get(opts, :now_s)
+
+    rows =
+      report
+      |> Map.get("rows", [])
+      |> Enum.filter(&is_map/1)
+      |> Enum.map(&normalize_station_calendar_status_fields/1)
+
+    reservation_rows = Enum.filter(rows, &station_reservation_summary_row?/1)
+    conflict_rows = Enum.filter(reservation_rows, &reservation_conflict_row?/1)
+    review_rows = Enum.filter(reservation_rows, &allocation_summary_review_row?/1)
+    expiration_rows = station_reservation_expiration_summary_rows(reservation_rows, now_s)
+
+    conflict_contact_ids_by_direction_and_ground_station_id =
+      contact_ids_by_direction_and_ground_station_id(conflict_rows)
+
+    %{
+      "schema_contract" => @reservation_conflict_summary_schema_contract,
+      "model" => "artifact_only_contact_allocation_reservation_conflict_summary",
+      "model_limits" => model_limits,
+      "source_artifact_type" => Map.get(report, "schema_contract", @schema_contract),
+      "source" => report["source"],
+      "input_contact_count" => length(rows),
+      "station_reservation_contact_count" => length(reservation_rows),
+      "reservation_conflict_contact_count" => length(conflict_rows),
+      "reservation_review_contact_count" => length(review_rows),
+      "station_reservation_match_status_counts" =>
+        count_by(reservation_rows, "station_reservation_match_status"),
+      "reservation_conflict_match_status_counts" =>
+        count_by(conflict_rows, "station_reservation_match_status"),
+      "station_reservation_status_counts" =>
+        count_by(reservation_rows, "station_reservation_status"),
+      "station_reserved_by_counts" => count_by(reservation_rows, "station_reserved_by"),
+      "station_reservation_ids" => row_values(reservation_rows, "station_reservation_id"),
+      "station_reservation_expires_at_s" =>
+        row_values(reservation_rows, "station_reservation_expires_at_s"),
+      "station_reservation_expiration_now_s" => now_s,
+      "station_reservation_expiration_status_counts" =>
+        station_reservation_expiration_status_counts(expiration_rows),
+      "earliest_station_reservation_expires_at_s" =>
+        earliest_station_reservation_expires_at_s(expiration_rows),
+      "reservation_conflict_contact_ids" => row_contact_ids(conflict_rows),
+      "reservation_review_contact_ids" => row_contact_ids(review_rows),
+      "station_reservation_contact_ids_by_match_status" =>
+        contact_ids_by_field(reservation_rows, "station_reservation_match_status"),
+      "reservation_conflict_contact_ids_by_match_status" =>
+        contact_ids_by_field(conflict_rows, "station_reservation_match_status"),
+      "reservation_conflict_contact_ids_by_direction" => contact_ids_by_direction(conflict_rows),
+      "reservation_conflict_contact_ids_by_direction_and_ground_station_id" =>
+        conflict_contact_ids_by_direction_and_ground_station_id,
+      "station_reservation_contact_ids_by_status" =>
+        contact_ids_by_field(reservation_rows, "station_reservation_status"),
+      "station_reservation_contact_ids_by_reserved_by" =>
+        contact_ids_by_field(reservation_rows, "station_reserved_by"),
+      "station_reservation_contact_ids_by_expiration_status" =>
+        station_reservation_contact_ids_by_expiration_status(expiration_rows),
+      "station_reservation_ids_by_match_status" =>
+        ids_by_field(
+          reservation_rows,
+          "station_reservation_match_status",
+          "station_reservation_id"
+        ),
+      "reservation_conflict_reservation_ids_by_match_status" =>
+        ids_by_field(conflict_rows, "station_reservation_match_status", "station_reservation_id"),
+      "station_reservation_ids_by_status" =>
+        ids_by_field(reservation_rows, "station_reservation_status", "station_reservation_id"),
+      "station_reservation_ids_by_reserved_by" =>
+        ids_by_field(reservation_rows, "station_reserved_by", "station_reservation_id"),
+      "station_reservation_ids_by_expiration_status" =>
+        station_reservation_ids_by_expiration_status(expiration_rows),
+      "rows" => rows,
+      "reservation_conflict_rows" => conflict_rows,
+      "reservation_review_rows" => review_rows,
+      "assumptions" =>
+        Map.merge(
+          %{
+            "execution_boundary" => "artifact_only_no_provider_reservation_or_schedule_mutation",
+            "source" => "contact_allocation_report.v1",
+            "operator_authority" => "not_granted_by_reservation_conflict_summary"
+          },
+          capability_assumptions
+        )
+    }
+    |> compact_map()
+  end
+
+  def build_provider_reservation_request(report, model_limits, capability_assumptions) do
+    report = stringify_keys(report)
+
+    rows =
+      report
+      |> Map.get("rows", [])
+      |> Enum.filter(&is_map/1)
+      |> Enum.map(&normalize_station_calendar_status_fields/1)
+      |> Enum.map(&ensure_effective_allocation_status/1)
+
+    reservation_candidate_rows =
+      Enum.filter(rows, &provider_reservation_request_candidate_row?/1)
+
+    request_rows =
+      Enum.filter(reservation_candidate_rows, &provider_reservation_request_ready_row?/1)
+
+    review_rows = reservation_candidate_rows -- request_rows
+
+    no_request_rows =
+      Enum.reject(rows, &provider_reservation_request_candidate_row?/1)
+
+    %{
+      "schema_contract" => @provider_reservation_request_summary_schema_contract,
+      "model" => "artifact_only_contact_allocation_provider_reservation_request_summary",
+      "model_limits" => model_limits,
+      "source_artifact_type" => Map.get(report, "schema_contract", @schema_contract),
+      "source" => report["source"],
+      "input_contact_count" => length(rows),
+      "provider_reservation_candidate_contact_count" => length(reservation_candidate_rows),
+      "provider_reservation_request_contact_count" => length(request_rows),
+      "provider_reservation_review_contact_count" => length(review_rows),
+      "provider_reservation_no_request_contact_count" =>
+        length(rows) - length(reservation_candidate_rows),
+      "provider_reservation_request_status" =>
+        provider_reservation_request_status(request_rows, review_rows),
+      "provider_reservation_request_contact_ids" => row_contact_ids(request_rows),
+      "provider_reservation_review_contact_ids" => row_contact_ids(review_rows),
+      "provider_reservation_no_request_contact_ids" => row_contact_ids(no_request_rows),
+      "provider_reservation_request_contact_ids_by_ground_station_id" =>
+        contact_ids_by_field(request_rows, "ground_station_id"),
+      "provider_reservation_review_contact_ids_by_ground_station_id" =>
+        contact_ids_by_field(review_rows, "ground_station_id"),
+      "provider_reservation_no_request_contact_ids_by_direction" =>
+        contact_ids_by_field(no_request_rows, "direction"),
+      "provider_reservation_request_contact_ids_by_direction" =>
+        contact_ids_by_field(request_rows, "direction"),
+      "provider_reservation_review_contact_ids_by_direction" =>
+        contact_ids_by_field(review_rows, "direction"),
+      "provider_reservation_no_request_contact_ids_by_direction_and_ground_station_id" =>
+        contact_ids_by_direction_and_ground_station_id(no_request_rows),
+      "provider_reservation_request_contact_ids_by_direction_and_ground_station_id" =>
+        contact_ids_by_direction_and_ground_station_id(request_rows),
+      "provider_reservation_review_contact_ids_by_direction_and_ground_station_id" =>
+        contact_ids_by_direction_and_ground_station_id(review_rows),
+      "provider_reservation_request_contact_ids_by_match_status" =>
+        contact_ids_by_field(request_rows, "station_reservation_match_status"),
+      "provider_reservation_review_contact_ids_by_match_status" =>
+        contact_ids_by_field(review_rows, "station_reservation_match_status"),
+      "provider_reservation_request_ids_by_match_status" =>
+        ids_by_field(request_rows, "station_reservation_match_status", "station_reservation_id"),
+      "provider_reservation_review_ids_by_match_status" =>
+        ids_by_field(review_rows, "station_reservation_match_status", "station_reservation_id"),
+      "rows" => rows,
+      "provider_reservation_request_rows" => request_rows,
+      "provider_reservation_review_rows" => review_rows,
+      "assumptions" =>
+        Map.merge(
+          %{
+            "execution_boundary" => "artifact_only_no_provider_reservation_or_schedule_mutation",
+            "source" => "contact_allocation_report.v1",
+            "provider_reservation_execution" => "not_performed_by_summary",
+            "operator_authority" => "not_granted_by_provider_reservation_request_summary"
+          },
+          capability_assumptions
+        )
+    }
+    |> compact_map()
+  end
+
+  defp provider_reservation_request_status(_request_rows, review_rows) when review_rows != [],
+    do: "review_required"
+
+  defp provider_reservation_request_status(request_rows, _review_rows) when request_rows != [],
+    do: "request_ready"
+
+  defp provider_reservation_request_status(_request_rows, _review_rows), do: "clear"
+
+  defp reservation_conflict_row?(row) do
+    station_pressure_value?(row["station_reservation_match_status"]) and
+      row["station_reservation_match_status"] not in ["matched", "owner_matched"]
+  end
+
+  defp provider_reservation_request_ready_row?(row) do
+    row["station_reservation_match_status"] in ["matched", "owner_matched"] and
+      station_reservation_summary_ids(row) != []
+  end
+
+  defp provider_reservation_request_candidate_row?(row) do
+    row["allocation_status"] == "allocated" and
+      row["effective_allocation_status"] in [nil, "allocated"] and
+      station_reservation_summary_row?(row)
+  end
+
+  defp station_reservation_summary_row?(row) do
+    station_reservation_expiration_summary_row?(row)
+  end
+
   defp ensure_effective_allocation_status(%{"effective_allocation_status" => status} = row)
        when is_binary(status),
        do: row
@@ -426,6 +947,21 @@ defmodule OrbitalDynamics.Communications.ContactAllocation.AllocationSummary do
     rows
     |> contact_ids_by_field(field)
     |> Map.new(fn {field_value, contact_ids} -> {to_string(field_value), contact_ids} end)
+  end
+
+  defp contact_ids_by_direction(rows) do
+    rows
+    |> Enum.reduce(%{}, fn row, acc ->
+      direction = normalize_direction(row["direction"] || row["type"])
+      contact_id = row["contact_id"]
+
+      if direction in [nil, ""] or contact_id in [nil, ""] do
+        acc
+      else
+        Map.update(acc, direction, [contact_id], fn contact_ids -> [contact_id | contact_ids] end)
+      end
+    end)
+    |> Map.new(fn {direction, contact_ids} -> {direction, sorted_stable_ids(contact_ids)} end)
   end
 
   defp allocation_summary_contact_ids_by_station(rows, status_field, status) do
