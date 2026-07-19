@@ -6,37 +6,34 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema optional operational-readiness validation consolidation.
+Schema timeline-context JSON Schema extraction.
 
 Status:
-Completed and published.
+Selected; implementation has not started.
 
 Selected boundary:
-Move optional operational-readiness and quality-gate report branching into the
-existing `OrbitalDynamics.Schema.OperationalReadinessValidation` owner.
-Preserve the existing arity-3 private Schema callback seams.
+Extract timeline identity, provenance, throughput derivation, execution
+uncertainty, protection/lifecycle/link, protection-summary, and activity-context
+JSON Schema construction into
+`OrbitalDynamics.Schema.TimelineContextJsonSchema`. Preserve the existing
+private Schema helper seams.
 
 Selection evidence:
-- `schema.ex` is 6,872 lines; the selected contiguous cluster spans
-  5,982-5,998.
-- The cluster has one responsibility: apply the common nil/object/type boundary
-  before readiness and quality-gate contract validation.
-- Both concrete report validators already have one production owner in
-  `OperationalReadinessValidation`, so no registry or callback dependency moves.
+- `schema.ex` is 6,861 lines; the selected JSON Schema family spans
+  3,870-3,940 and 3,950-3,995.
+- The cluster has one responsibility: construct reusable timeline/activity
+  context schemas consumed by operational timeline, diff, review, and import
+  schema exporters.
+- Stable-ID, collection, probability, and numeric-triplet primitives remain
+  facade-owned inputs; timeline-preservation source construction remains
+  outside this boundary.
 - Registry data, JSON Schema export, contract dispatch, unrelated validation,
   and all public `Schema` APIs remain outside.
 
 Verification:
-- Strict compile passed across 3,869 files with warnings as errors.
-- Focused readiness and operational contracts passed: 11 tests.
-- Full Schema suite passed: 175 tests.
-- JSON Schema export contracts passed: 15 tests.
-- Exact old/new validation reports matched for 9 valid and mutated standalone
-  and nested readiness/quality-gate fixtures.
-- Static inspection confirms the facade retains only its arity-3 seams and the
-  obsolete quality-gate wrapper was removed; runtime xref reports `Schema` as
-  the sole caller of the expanded owner.
-- `git diff --check` and bounded ownership review passed.
+Pending: focused timeline/activity schema baselines, exact old/new JSON Schema
+documents, strict compile, broader Schema contract tests, JSON Schema export
+checks, static single ownership, runtime xref, and bounded review.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
@@ -47,8 +44,8 @@ Schema optional operational-readiness validation consolidation, selected in
 lines; the existing owner moved from 216 to 234 lines.
 
 Next candidate:
-Re-inventory remaining Schema family-validation clusters after optional
-operational-readiness validation has one production owner.
+Re-inventory remaining Schema families after timeline-context JSON Schema
+construction has one production owner.
 
 Blocked:
 No.
