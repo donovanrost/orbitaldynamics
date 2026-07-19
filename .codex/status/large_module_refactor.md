@@ -6,41 +6,33 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Study.Manifest realized-activity input-schema extraction.
+ContactAllocation approval-policy ownership extraction.
 
 Status:
-Completed and pushed in `e6decc5e`.
+Selected; implementation not started.
 
 Selected boundary:
-Extract the complete embedded realized-activity input JSON Schema into
-`OrbitalDynamics.Study.Manifest.RealizedActivitySchema`. Preserve the existing
-public Manifest schema and loader facade.
+Extract allocation policy-boundary detection, approval decisions,
+requirements, command/health-check classification, and policy context
+projection into
+`OrbitalDynamics.Communications.ContactAllocation.ApprovalPolicy`. Preserve
+the existing allocation/report facade.
 
 Selection evidence:
-- Live re-ranking places `study/manifest.ex` at 4,008 lines, ahead of
-  ContactAllocation and TimelineFeedback and behind the three larger
+- Live re-ranking places `communications/contact_allocation.ex` at 3,984 lines,
+  ahead of TimelineFeedback and Manifest and behind the three larger
   orchestration-heavy facades.
-- The selected 175-line builder is one embedded artifact-input contract with
-  no runtime parsing or semantic-validation responsibility.
-- Its property and embedded-value dependencies now have dedicated owners, so
-  the extraction introduces no duplicated schema primitives.
-- Public schema/export APIs, operational-feedback composition, and all runtime
-  loader behavior remain in the facade.
+- The selected policy projection has one facade entry point and forms one
+  approval-review responsibility.
+- Contact normalization, allocation and packing decisions, summary
+  aggregation, provider counteroffers, and returned allocation projection
+  remain with their existing owners.
+- The facade passes its command-direction policy explicitly; no configuration
+  is duplicated.
 - Existing public report APIs and artifact row shapes remain unchanged.
 
 Verification:
-- Strict test-environment compile passed with warnings as errors across 3,902
-  files.
-- Focused Manifest coverage passed: 42 tests.
-- Adjacent manifest lint/reference/schema-export and schema-lint task coverage
-  passed: 30 tests.
-- Exact public old/new comparison against selection commit `f3f73799` passed
-  for the complete Manifest JSON Schema.
-- `mix xref callers` reports only the Manifest facade as a runtime caller of
-  the extracted owner.
-- Static ownership checks confirm the realized-activity contract lives in the
-  dedicated owner while public schema composition remains in the facade.
-- `git diff --check` passed.
+Pending.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
@@ -52,8 +44,8 @@ Study.Manifest realized-activity input-schema extraction, selected in
 lines.
 
 Next candidate:
-Re-rank the live largest-module set and select the next cohesive ownership
-boundary.
+Implement and verify the selected ContactAllocation approval-policy ownership
+extraction.
 
 Blocked:
 No.
