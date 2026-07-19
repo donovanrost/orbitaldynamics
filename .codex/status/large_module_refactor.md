@@ -6,41 +6,30 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Study.Manifest reusable value-schema ownership extraction.
+Study.Manifest realized-activity input-schema extraction.
 
 Status:
-Completed and pushed in `e796c533`.
+Selected; implementation not started.
 
 Selected boundary:
-Extract reusable target, ground-station, and spacecraft identity schemas plus
-the three-number vector schema into
-`OrbitalDynamics.Study.Manifest.ValueSchema`. Preserve the existing public
-Manifest schema and loader facade.
+Extract the complete embedded realized-activity input JSON Schema into
+`OrbitalDynamics.Study.Manifest.RealizedActivitySchema`. Preserve the existing
+public Manifest schema and loader facade.
 
 Selection evidence:
-- Live re-ranking places `study/manifest.ex` at 4,039 lines, ahead of
+- Live re-ranking places `study/manifest.ex` at 4,008 lines, ahead of
   ContactAllocation and TimelineFeedback and behind the three larger
   orchestration-heavy facades.
-- The selected builders form one reusable embedded-value schema vocabulary
-  with no runtime parsing or semantic-validation responsibility.
-- Public schema/export APIs and entity schemas remain in the facade.
-- This removes the last facade-private builder dependencies from the remaining
-  realized-activity input-schema boundary.
+- The selected 175-line builder is one embedded artifact-input contract with
+  no runtime parsing or semantic-validation responsibility.
+- Its property and embedded-value dependencies now have dedicated owners, so
+  the extraction introduces no duplicated schema primitives.
+- Public schema/export APIs, operational-feedback composition, and all runtime
+  loader behavior remain in the facade.
 - Existing public report APIs and artifact row shapes remain unchanged.
 
 Verification:
-- Strict test-environment compile passed with warnings as errors across 3,901
-  files.
-- Focused Manifest coverage passed: 42 tests.
-- Adjacent manifest lint/reference/schema-export and schema-lint task coverage
-  passed: 30 tests.
-- Exact public old/new comparison against selection commit `b8f1453e` passed
-  for the complete Manifest JSON Schema.
-- `mix xref callers` reports only the Manifest facade as an export-time caller
-  of the extracted owner.
-- Static ownership checks confirm the selected identity and vector builders
-  live in ValueSchema while entity schemas remain in the facade.
-- `git diff --check` passed.
+Pending.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
@@ -52,8 +41,8 @@ Study.Manifest reusable value-schema ownership extraction, selected in
 lines.
 
 Next candidate:
-Re-rank the live largest-module set and select the next cohesive ownership
-boundary.
+Implement and verify the selected Study.Manifest realized-activity
+input-schema extraction.
 
 Blocked:
 No.
