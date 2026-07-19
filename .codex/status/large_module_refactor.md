@@ -9,7 +9,7 @@ Current slice:
 TimelineFeedback realized-status extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and pushed in `efd6a8a5`.
 
 Selected boundary:
 Extract realized-status normalization, lifecycle-event interpretation,
@@ -30,17 +30,26 @@ Selection evidence:
   normalized public artifacts.
 
 Verification:
-Pending: focused TimelineFeedback baseline, exact old/new public normalized
-artifacts, strict compile, adjacent realized-feedback coverage, static single
-ownership, runtime xref, and bounded review.
+- Strict warnings-as-errors compile passed across 3,879 files.
+- Focused TimelineFeedback coverage passed: 73 tests.
+- Adjacent operator-review, contact-feedback-contract, and realized-activity
+  feedback integration coverage passed: 10 tests.
+- Exact old/new public artifact comparison against `40a5a32c` passed for 12
+  direct, envelope, lifecycle, unsupported, and missing-status inputs plus the
+  aggregate normalized list.
+- Bounded review replaced verbose repeated collection arguments with one
+  facade-owned policy tuple; runtime xref found only the TimelineFeedback
+  facade, static ownership review passed, and `git diff --check` passed.
+- `timeline_feedback.ex` moved from 5,023 to 4,962 lines; the dedicated owner
+  is 131 lines.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-Study.Manifest validation-error extraction, selected in `8fde79c4` and
-implemented in `3cf172e6`. `study/manifest.ex` moved from 4,613 to 4,489 lines;
-the dedicated owner is 127 lines.
+TimelineFeedback realized-status extraction, selected in `40a5a32c` and
+implemented in `efd6a8a5`. `timeline_feedback.ex` moved from 5,023 to 4,962
+lines; the dedicated owner is 131 lines.
 
 Next candidate:
 Re-inventory remaining TimelineFeedback realized-identity and normalization
