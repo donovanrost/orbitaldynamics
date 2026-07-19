@@ -9,7 +9,7 @@ Current slice:
 TimelineFeedback station-calendar context extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Extract station-calendar feedback context assembly, capacity fraction/path
@@ -34,16 +34,43 @@ Selection evidence:
   unchanged.
 
 Verification:
-Pending.
+- Focused baseline before implementation:
+  `test/orbital_dynamics/timeline_feedback_test.exs` passed 73 tests.
+- Strict compilation after implementation:
+  `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 mix compile --force --warnings-as-errors`
+  compiled 3,930 files successfully.
+- Focused regression:
+  `test/orbital_dynamics/timeline_feedback_test.exs` passed 73 tests.
+- Adjacent timeline regression:
+  `test/orbital_dynamics/timeline_test.exs` passed 109 tests.
+- Adjacent station-calendar regressions:
+  `test/orbital_dynamics/operator_review/station_calendar_test.exs` passed
+  3 tests and
+  `test/orbital_dynamics/communications/station_calendar_test.exs` passed
+  42 tests.
+- Exact old/new comparison against selection commit `8b6914d7` covered six
+  station-calendar states across `reconcile/3`,
+  `normalize_realized_activity/2`, and `activity_state/3`; all 18 outputs
+  matched exactly.
+- `git diff --check` passed.
+- `mix xref callers
+  OrbitalDynamics.TimelineFeedback.StationCalendarContext` reports only the
+  TimelineFeedback facade as a runtime caller; compile-connected xref reports
+  no unexpected coupling.
+- Static review confirmed the facade retains station-capacity capability
+  metadata, shared non-calendar string normalization, reconciliation, and all
+  public APIs while the owner exposes only `build/1`.
 
 Behavior/schema changes:
-None intended. This is a facade-preserving production ownership extraction.
+None. Existing path precedence, capacity validation, provider identity,
+reservation-expiration consolidation, list normalization, omission behavior,
+artifact shape, and deterministic output are preserved.
 
 Last completed slice:
-StationCalendar provider-contention extraction, selected in `65de2bc1` and
-implemented in `addd1606`.
-`station_calendar.ex` moved from 3,487 to 3,346 lines; the dedicated
-provider-contention owner is 271 lines.
+TimelineFeedback station-calendar context extraction, selected in `8b6914d7`
+and implemented in `a88b7ff5`.
+`timeline_feedback.ex` moved from 3,452 to 3,268 lines; the dedicated
+station-calendar context owner is 241 lines.
 
 Next candidate:
 Re-rank the live largest-module set and select the next cohesive ownership
