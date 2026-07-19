@@ -9,7 +9,7 @@ Current slice:
 Policy rule-match evidence assembly extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and published in `136fc1ee`.
 
 Selected boundary:
 Extract `approval_rule_matches/5`, all four requirement/risk/event/activity
@@ -29,17 +29,26 @@ Selection evidence:
   policy, and public APIs remain outside the boundary.
 
 Verification:
-Pending: focused four-family evidence/escalation baselines, exact old/new mixed
-decision proofs, strict compile, full Policy tests, relevant schema/contracts,
-static single ownership, runtime xref, and bounded review.
+- Strict compile passed across 3,852 files with warnings as errors.
+- Five focused four-family evidence/escalation baselines passed.
+- All 89 Policy tests and the Policy schema-contract test passed with warnings
+  as errors.
+- Exact old/new executable comparison passed for 33 mixed four-family decisions
+  spanning all 11 policy bundles and three scenarios.
+- Static ownership confirms one `approval_rule_matches/5` facade seam, one
+  `RuleMatchBuilder.build/6` production owner, and only the required
+  `non_empty_list/1` facade delegation for the remaining Policy caller.
+- Runtime xref confirms `Policy` calls `RuleMatchBuilder`; format, diff checks,
+  and bounded review passed.
+- `policy.ex` moved from 3,205 to 2,649 lines; the new owner is 549 lines.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-Policy approval-requirement matcher extraction, selected in `310fed8d` and
-implemented in `856cf299`. `policy.ex` moved from 4,220 to 3,205 lines; the
-dedicated matcher is 1,026 lines.
+Policy rule-match evidence assembly extraction, selected in `ce942b7d` and
+implemented in `136fc1ee`. `policy.ex` moved from 3,205 to 2,649 lines; the
+dedicated builder is 549 lines.
 
 Next candidate:
 Re-inventory Policy decision classification and bundle normalization after
