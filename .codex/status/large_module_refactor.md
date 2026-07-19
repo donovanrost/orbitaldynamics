@@ -6,64 +6,41 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-ContactContention timing metrics extraction.
+RecommendationRiskContext activity-lifecycle-state extraction.
 
 Status:
-Completed and pushed.
+Selected; implementation pending.
 
 Selected boundary:
-Extract interval validation, contention-window duration, summed contact
-duration, union overlap duration, maximum concurrency, and overlapping-pair
-count into `OrbitalDynamics.Communications.ContactContention.TimingMetrics`.
-Preserve the existing ContactContention public API facade.
+Extract timeline-activity lifecycle-state risk recognition, the ordered
+context-key catalog, and lifecycle-state context projection into
+`OrbitalDynamics.RecommendationRiskContext.TimelineActivityLifecycleState`.
+Preserve the existing RecommendationRiskContext public API facade.
 
 Selection evidence:
-- Live re-ranking places `communications/contact_contention.ex` at 3,114
-  lines, fourth behind Schema, Timeline, and MissionPlan.Activity and ahead of
-  LinkCapacity, Manifest, RecommendationRiskContext, ContactAllocation,
+- Live re-ranking places `recommendation_risk_context.ex` at 3,091 lines,
+  seventh behind Schema, Timeline, MissionPlan.Activity, LinkCapacity,
+  Manifest, and ContactContention and ahead of ContactAllocation,
   TimelineFeedback, ResourceProjection, StationCalendar, and
   OperationalReadiness.
-- The selected family is one independent five-field projection merged into
-  both ground-station and spacecraft contention groups; it owns only interval
-  arithmetic and not grouping or recommendation decisions.
-- Contact normalization, identity validation, group formation, station
-  calendar and feedback context, capacity inference, approval policy, and
-  resolution policy remain outside this boundary.
-- Existing invalid-interval omission, half-open overlap semantics,
-  same-timestamp event coalescing, duration arithmetic, pair counting, empty
-  output behavior, and deterministic output remain unchanged.
+- Higher-ranked LinkCapacity summary aggregation remains coupled to shared
+  station-calendar normalization and reservation inference. The selected
+  family is one closed 39-field projection reached through two stable facade
+  calls.
+- Timeline lifecycle artifact generation, recommendation assembly, Cadence
+  import, replay summaries, schemas, and every unrelated risk-context family
+  remain outside this boundary.
+- Existing atom/string key normalization, type/feedback-scope recognition,
+  list flattening, first-seen uniqueness, empty-field omission, invalid-input
+  fallback, field order, and deterministic output remain unchanged.
 
 Verification:
-- Focused baseline before implementation:
-  `test/orbital_dynamics/communications/contact_contention_test.exs` passed
-  40 tests.
-- Strict compilation after implementation:
-  `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 mix compile --force --warnings-as-errors`
-  compiled 3,940 files successfully.
-- Focused regression:
-  `test/orbital_dynamics/communications/contact_contention_test.exs` passed
-  40 tests.
-- Adjacent regression:
-  `test/orbital_dynamics/operator_review/contact_contention_test.exs` passed
-  3 tests.
-- Exact old/new comparison against selection commit `ee124dce` exposed the
-  selected private reducer and compared seven contact sets; all 7 timing maps
-  matched exactly.
-- The exact inputs covered empty and single intervals, invalid intervals,
-  touching intervals, two-way and three-way overlap, same-timestamp event
-  coalescing, integer/float arithmetic, and ignored string values.
-- `git diff --check` passed.
-- `mix xref callers
-  OrbitalDynamics.Communications.ContactContention.TimingMetrics` reports only
-  the ContactContention facade as a runtime caller; compile-connected xref
-  reports no unexpected coupling.
-- Static review confirmed the owner exposes only `build/1`; grouping,
-  identity, feedback, station-capacity, approval, and resolution-policy
-  responsibilities remain outside the boundary.
+Pending implementation.
 
 Behavior/schema changes:
-None. Existing timing arithmetic, contention-group shape, artifact contracts,
-and deterministic output are preserved.
+None planned. Existing lifecycle-state risk recognition and context
+projection, recommendation shape, schemas, and deterministic output will be
+preserved.
 
 Last completed slice:
 ContactContention timing metrics extraction, selected in `ee124dce` and
@@ -72,8 +49,7 @@ implemented in `e03e56d2`.
 dedicated timing-metrics owner is 91 lines.
 
 Next candidate:
-Re-rank the live largest-module set and select the next cohesive ownership
-boundary.
+Implement and verify the selected activity-lifecycle-state extraction.
 
 Blocked:
 No.
