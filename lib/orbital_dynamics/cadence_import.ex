@@ -16,6 +16,7 @@ defmodule OrbitalDynamics.CadenceImport do
     GenericReviewActionPolicy,
     ImportReadinessPolicy,
     JsonNormalization,
+    ManeuverReviewImport,
     ManifestContractDiagnostics,
     ManifestBuilder,
     ManifestMapNormalization,
@@ -1522,16 +1523,10 @@ defmodule OrbitalDynamics.CadenceImport do
   Builds an import manifest from a standalone maneuver recommendation.
   """
   def from_maneuver_recommendation(%{} = recommendation, opts \\ []) do
-    recommendation = stringify_keys(recommendation)
-
-    source_artifact_id =
-      option(opts, :source_artifact_id, recommendation["id"] || recommendation["maneuver_id"])
-
-    from_review_report(
-      OperatorReview.from_maneuver_recommendation(recommendation),
+    ManeuverReviewImport.from_maneuver_recommendation(
+      recommendation,
       opts,
-      "maneuver_recommendation.v1",
-      source_artifact_id || "maneuver_recommendation"
+      &from_review_report/4
     )
   end
 
@@ -1539,36 +1534,14 @@ defmodule OrbitalDynamics.CadenceImport do
   Builds an import manifest from a standalone maneuver execution delta.
   """
   def from_maneuver_execution_delta(%{} = delta, opts \\ []) do
-    delta = stringify_keys(delta)
-    source_artifact_id = option(opts, :source_artifact_id, delta["id"] || delta["activity_id"])
-
-    from_review_report(
-      OperatorReview.from_maneuver_execution_delta(delta),
-      opts,
-      "maneuver_execution_delta.v1",
-      source_artifact_id || "maneuver_execution_delta"
-    )
+    ManeuverReviewImport.from_maneuver_execution_delta(delta, opts, &from_review_report/4)
   end
 
   @doc """
   Builds an import manifest from a maneuver-review report.
   """
   def from_maneuver_review_report(%{} = report, opts \\ []) do
-    report = stringify_keys(report)
-
-    source_artifact_id =
-      option(
-        opts,
-        :source_artifact_id,
-        report["id"] || report["source_artifact_id"] || report["source"]
-      )
-
-    from_review_report(
-      OperatorReview.from_maneuver_review_report(report),
-      opts,
-      "maneuver_review_report.v1",
-      source_artifact_id || "maneuver_review_report"
-    )
+    ManeuverReviewImport.from_maneuver_review_report(report, opts, &from_review_report/4)
   end
 
   @doc """
