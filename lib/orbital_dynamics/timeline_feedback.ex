@@ -90,6 +90,7 @@ defmodule OrbitalDynamics.TimelineFeedback do
   alias OrbitalDynamics.TimelineFeedback.{
     ExecutionUncertainty,
     ProviderResult,
+    RealizedIdentity,
     RealizedStatus,
     SuccessFactor
   }
@@ -4356,81 +4357,10 @@ defmodule OrbitalDynamics.TimelineFeedback do
   defp provider_result_artifact_value(result),
     do: ProviderResult.artifact_value(result, @provider_result_map_value_keys)
 
-  defp identifier(map, key) do
-    case Map.get(map, key) do
-      nil -> nil
-      value when is_binary(value) and value != "" -> if(stable_id?(value), do: value)
-      value when is_atom(value) -> value |> Atom.to_string() |> stable_identifier()
-      _value -> nil
-    end
-  end
+  defp identifier(map, key), do: RealizedIdentity.identifier(map, key, @stable_id_pattern)
 
-  defp realized_input_identity(activity) do
-    Enum.find_value(
-      ["id", "realized_activity_id", "planned_activity_id", "activity_id", "timeline_id"],
-      &identifier(activity, &1)
-    )
-  end
-
-  defp realized_input_identity_issue(activity) do
-    raw_identities =
-      ["id", "realized_activity_id", "planned_activity_id", "activity_id", "timeline_id"]
-      |> Enum.map(&raw_identifier(activity, &1))
-      |> Kernel.++([get_in(activity, ["metadata", "timeline_id"])])
-      |> Kernel.++(raw_realized_context_identifiers(activity))
-      |> Enum.reject(&is_nil/1)
-
-    cond do
-      Enum.any?(raw_identities, &(not stable_id?(&1))) -> "invalid_realized_feedback_id"
-      realized_input_identity(activity) in [nil, ""] -> "missing_realized_feedback_id"
-      true -> nil
-    end
-  end
-
-  defp raw_identifier(activity, key) do
-    case Map.get(activity, key) do
-      nil -> nil
-      value when is_binary(value) and value != "" -> value
-      value when is_atom(value) -> Atom.to_string(value)
-      _value -> nil
-    end
-  end
-
-  defp raw_realized_context_identifiers(activity) do
-    [
-      raw_identifier(activity, "ground_station_id"),
-      raw_identifier(activity, "station_id"),
-      raw_identifier(activity, "target_id"),
-      raw_identifier(activity, "spacecraft_id"),
-      raw_identifier(activity, "satellite_id"),
-      raw_identifier(activity, "resource_id"),
-      raw_identifier(activity, "source_window_id"),
-      raw_identifier(activity, "scenario_id"),
-      raw_value_identifier(get_in(activity, ["metadata", "ground_station_id"])),
-      raw_value_identifier(get_in(activity, ["metadata", "station_id"])),
-      raw_value_identifier(get_in(activity, ["metadata", "target_id"])),
-      raw_value_identifier(get_in(activity, ["metadata", "spacecraft_id"])),
-      raw_value_identifier(get_in(activity, ["metadata", "source_window_id"])),
-      raw_nested_identifier(activity, "target", ["target_id", "id"]),
-      raw_nested_identifier(activity, "ground_station", ["ground_station_id", "station_id", "id"]),
-      raw_nested_identifier(activity, "station", ["station_id", "id"]),
-      raw_nested_identifier(activity, "spacecraft", ["spacecraft_id", "id"]),
-      raw_nested_identifier(activity, "satellite", ["satellite_id", "id"]),
-      raw_nested_identifier(activity, "source_window", ["source_window_id", "id"])
-    ]
-    |> Enum.reject(&is_nil/1)
-  end
-
-  defp raw_nested_identifier(activity, object_key, identity_keys) do
-    case Map.get(activity, object_key) do
-      %{} = object -> Enum.find_value(identity_keys, &raw_identifier(object, &1))
-      _value -> nil
-    end
-  end
-
-  defp raw_value_identifier(value) when is_binary(value) and value != "", do: value
-  defp raw_value_identifier(value) when is_atom(value), do: Atom.to_string(value)
-  defp raw_value_identifier(_value), do: nil
+  defp realized_input_identity_issue(activity),
+    do: RealizedIdentity.input_issue(activity, @stable_id_pattern)
 
   defp realized_status_supported?(activity),
     do: RealizedStatus.supported?(activity, @realized_status_policy)
@@ -4441,20 +4371,14 @@ defmodule OrbitalDynamics.TimelineFeedback do
   defp realized_feedback_status(activity),
     do: RealizedStatus.feedback_value(activity, @realized_status_policy)
 
-  defp source_realized_activity_id(source_activity) do
-    identifier(source_activity, "id") || identifier(source_activity, "realized_activity_id")
-  end
+  defp source_realized_activity_id(source_activity),
+    do: RealizedIdentity.source_id(source_activity, @stable_id_pattern)
 
-  defp invalid_realized_planned_activity_id(source_activity) do
-    identifier(source_activity, "planned_activity_id") ||
-      identifier(source_activity, "activity_id") ||
-      source_realized_activity_id(source_activity)
-  end
+  defp invalid_realized_planned_activity_id(source_activity),
+    do: RealizedIdentity.invalid_planned_id(source_activity, @stable_id_pattern)
 
-  defp invalid_realized_timeline_id(source_activity) do
-    identifier(source_activity, "timeline_id") ||
-      stable_identifier(get_in(source_activity, ["metadata", "timeline_id"]))
-  end
+  defp invalid_realized_timeline_id(source_activity),
+    do: RealizedIdentity.invalid_timeline_id(source_activity, @stable_id_pattern)
 
   defp invalid_realized_status_reason(activity) do
     RealizedStatus.invalid_reason(activity, @realized_status_policy)
@@ -4463,15 +4387,11 @@ defmodule OrbitalDynamics.TimelineFeedback do
   defp unsupported_realized_status(source_activity, reason),
     do: RealizedStatus.unsupported_value(source_activity, reason, @realized_status_policy)
 
-  defp realized_id!(activity) do
-    realized_input_identity(activity) || raise(ArgumentError, "id is required")
-  end
+  defp realized_id!(activity), do: RealizedIdentity.id!(activity, @stable_id_pattern)
 
-  defp stable_identifier(value) when is_binary(value), do: if(stable_id?(value), do: value)
-  defp stable_identifier(_value), do: nil
+  defp stable_identifier(value), do: RealizedIdentity.stable_value(value, @stable_id_pattern)
 
-  defp stable_id?(value) when is_binary(value), do: Regex.match?(@stable_id_pattern, value)
-  defp stable_id?(_value), do: false
+  defp stable_id?(value), do: RealizedIdentity.stable?(value, @stable_id_pattern)
 
   defp first_number(map, keys) do
     Enum.find_value(keys, fn key ->
