@@ -9,7 +9,7 @@ Current slice:
 ContactAllocation provider-counteroffer context extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `456360fd`.
 
 Selected boundary:
 Extract provider-counteroffer field ownership, nested source discovery,
@@ -29,19 +29,35 @@ Selection evidence:
   context seams; downstream public call sites remain unchanged.
 
 Verification:
-Pending.
+- Strict warnings-as-errors compile passed across 3,894 files.
+- Focused `communications/contact_allocation_test.exs` passed under
+  warnings-as-errors: 70 tests.
+- Adjacent operator-review contact-allocation, provider-reservation schema,
+  and wrapped provider-counteroffer Cadence coverage passed under
+  warnings-as-errors: 14 tests.
+- Exact public old/new comparison against `5d597e6c` passed capabilities and 6
+  allocations covering direct fields, nested station entries, overlap lists,
+  overlap maps, unknown-only state, derived deltas, and explicit deltas.
+- `mix xref callers
+  OrbitalDynamics.Communications.ContactAllocation.ProviderCounteroffer`
+  reports only the ContactAllocation facade as a runtime caller.
+- Static ownership review confirms provider-counteroffer field ownership,
+  nested discovery, presence rules, timing deltas, and compact context assembly
+  live in the new owner.
+- `git diff --check` passed.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-Study.Manifest activity-schema extraction, selected in `73142212` and
-implemented in `90b9d08e`. `study/manifest.ex` moved from 4,260 to 4,075
-lines; the dedicated owner is 283 lines.
+ContactAllocation provider-counteroffer context extraction, selected in
+`5d597e6c` and implemented in `456360fd`.
+`communications/contact_allocation.ex` moved from 4,127 to 3,984 lines; the
+dedicated owner is 141 lines.
 
 Next candidate:
-Implement and verify the selected ContactAllocation provider-counteroffer
-context extraction.
+Re-rank the remaining large modules and select the next cohesive,
+facade-preserving responsibility boundary.
 
 Blocked:
 No.
