@@ -17,6 +17,7 @@ defmodule OrbitalDynamics.CadenceImport do
     JsonNormalization,
     ManifestContractDiagnostics,
     ManifestMapNormalization,
+    OperationalReadinessContext,
     ProviderResultNormalization,
     ReviewSummaryContext,
     ReviewPackageRowSourcePolicy,
@@ -2751,124 +2752,17 @@ defmodule OrbitalDynamics.CadenceImport do
     )
   end
 
-  defp operational_readiness_adapter_boundary_context(%{} = row) do
-    evidence = Map.get(row, "evidence") || %{}
+  defp operational_readiness_adapter_boundary_context(row),
+    do: OperationalReadinessContext.adapter_boundary(row)
 
-    %{
-      "adapter_context_count" =>
-        row["adapter_context_count"] || evidence["adapter_context_count"],
-      "adapter_trust_boundary_declared_count" =>
-        row["adapter_trust_boundary_declared_count"] ||
-          evidence["adapter_trust_boundary_declared_count"],
-      "adapter_trust_boundary_missing_count" =>
-        row["adapter_trust_boundary_missing_count"] ||
-          evidence["adapter_trust_boundary_missing_count"],
-      "adapter_trust_boundary_untrusted_count" =>
-        row["adapter_trust_boundary_untrusted_count"] ||
-          evidence["adapter_trust_boundary_untrusted_count"],
-      "adapter_boundary_status_counts" =>
-        row["adapter_boundary_status_counts"] || evidence["adapter_boundary_status_counts"]
-    }
-  end
+  defp operational_readiness_resource_context(row),
+    do: OperationalReadinessContext.resource(row)
 
-  defp operational_readiness_resource_context(%{} = row) do
-    evidence = Map.get(row, "evidence") || %{}
+  defp operational_readiness_operator_training_context(row),
+    do: OperationalReadinessContext.operator_training(row)
 
-    %{
-      "resource_availability_pressure_count" =>
-        row["resource_availability_pressure_count"] ||
-          evidence["resource_availability_pressure_count"],
-      "resource_availability_reason_counts" =>
-        row["resource_availability_reason_counts"] ||
-          evidence["resource_availability_reason_counts"],
-      "resource_availability_reason_ids" =>
-        row["resource_availability_reason_ids"] ||
-          evidence["resource_availability_reason_ids"],
-      "station_availability_reason_ids" =>
-        row["station_availability_reason_ids"] ||
-          evidence["station_availability_reason_ids"],
-      "station_availability_reason_counts" =>
-        row["station_availability_reason_counts"] ||
-          evidence["station_availability_reason_counts"],
-      "unavailable_resource_reason_ids" =>
-        row["unavailable_resource_reason_ids"] ||
-          evidence["unavailable_resource_reason_ids"],
-      "resource_blocking_dimension_counts" =>
-        row["resource_blocking_dimension_counts"] ||
-          evidence["resource_blocking_dimension_counts"],
-      "resource_blocked_contact_ids_by_blocking_dimension" =>
-        row["resource_blocked_contact_ids_by_blocking_dimension"] ||
-          evidence["resource_blocked_contact_ids_by_blocking_dimension"],
-      "resource_blocked_contact_ids_by_spacecraft_id" =>
-        row["resource_blocked_contact_ids_by_spacecraft_id"] ||
-          evidence["resource_blocked_contact_ids_by_spacecraft_id"],
-      "resource_source_quality_counts" =>
-        row["resource_source_quality_counts"] || evidence["resource_source_quality_counts"],
-      "resource_trust_boundary_status_counts" =>
-        row["resource_trust_boundary_status_counts"] ||
-          evidence["resource_trust_boundary_status_counts"]
-    }
-  end
-
-  defp operational_readiness_operator_training_context(%{} = row) do
-    evidence = Map.get(row, "evidence") || %{}
-
-    %{
-      "operator_training_requirement_count" =>
-        row["operator_training_requirement_count"] ||
-          evidence["operator_training_requirement_count"],
-      "operator_training_requirement_counts" =>
-        row["operator_training_requirement_counts"] ||
-          evidence["operator_training_requirement_counts"],
-      "required_operator_roles" =>
-        row["required_operator_roles"] || evidence["required_operator_roles"],
-      "required_training_ids" =>
-        row["required_training_ids"] || evidence["required_training_ids"],
-      "required_certification_ids" =>
-        row["required_certification_ids"] || evidence["required_certification_ids"],
-      "required_qualification_ids" =>
-        row["required_qualification_ids"] || evidence["required_qualification_ids"]
-    }
-  end
-
-  defp operational_readiness_cadence_import_context(%{} = row) do
-    evidence = Map.get(row, "evidence") || %{}
-
-    %{
-      "ready_for_import_count" =>
-        row["ready_for_import_count"] || evidence["ready_for_import_count"],
-      "manifest_review_required_count" =>
-        row["manifest_review_required_count"] || evidence["manifest_review_required_count"],
-      "blocked_import_count" => row["blocked_import_count"] || evidence["blocked_import_count"],
-      "missing_import_count" => row["missing_import_count"] || evidence["missing_import_count"],
-      "invalid_cadence_import_count" =>
-        row["invalid_cadence_import_count"] || evidence["invalid_cadence_import_count"],
-      "current_freshness_count" =>
-        row["current_freshness_count"] || evidence["current_freshness_count"],
-      "stale_freshness_count" =>
-        row["stale_freshness_count"] || evidence["stale_freshness_count"],
-      "unknown_freshness_count" =>
-        row["unknown_freshness_count"] || evidence["unknown_freshness_count"],
-      "freshness_status_counts" =>
-        row["freshness_status_counts"] || evidence["freshness_status_counts"],
-      "schema_validation_pass_count" =>
-        row["schema_validation_pass_count"] || evidence["schema_validation_pass_count"],
-      "schema_validation_fail_count" =>
-        row["schema_validation_fail_count"] || evidence["schema_validation_fail_count"],
-      "schema_validation_error_count" =>
-        row["schema_validation_error_count"] || evidence["schema_validation_error_count"],
-      "schema_validation_warning_count" =>
-        row["schema_validation_warning_count"] || evidence["schema_validation_warning_count"],
-      "schema_validation_remediation_count" =>
-        row["schema_validation_remediation_count"] ||
-          evidence["schema_validation_remediation_count"],
-      "schema_validation_status_counts" =>
-        row["schema_validation_status_counts"] || evidence["schema_validation_status_counts"],
-      "import_status_counts" => row["import_status_counts"] || evidence["import_status_counts"],
-      "cadence_import_status_counts" =>
-        row["cadence_import_status_counts"] || evidence["cadence_import_status_counts"]
-    }
-  end
+  defp operational_readiness_cadence_import_context(row),
+    do: OperationalReadinessContext.cadence_import(row)
 
   defp approval_requirement_manifest_row(row, rank) do
     OrbitalDynamics.CadenceImport.ApprovalRequirementManifestRow.build(
