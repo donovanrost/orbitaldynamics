@@ -26,6 +26,7 @@ defmodule OrbitalDynamics.CadenceImport do
     ReviewSummaryContext,
     SourceIdentifierPolicy,
     StationCalendarContextFields,
+    StrategyDecisionImport,
     StrategyReview,
     TimelineReviewImport,
     ValidationReadinessImport
@@ -1764,48 +1765,24 @@ defmodule OrbitalDynamics.CadenceImport do
   Builds an import manifest from a standalone approval requirement.
   """
   def from_approval_requirement(%{} = requirement, opts \\ []) do
-    requirement = stringify_keys(requirement)
-
-    source_artifact_id =
-      option(opts, :source_artifact_id, requirement["id"] || requirement["activity_id"])
-
-    from_review_report(
-      OperatorReview.from_approval_requirement(requirement),
-      opts,
-      "approval_requirement.v1",
-      source_artifact_id || "approval_requirement"
-    )
+    StrategyDecisionImport.from_approval_requirement(requirement, opts, &from_review_report/4)
   end
 
   @doc """
   Builds an import manifest from a policy-decision artifact.
   """
   def from_policy_decision(%{} = decision, opts \\ []) do
-    decision = stringify_keys(decision)
-
-    source_artifact_id =
-      option(opts, :source_artifact_id, decision["id"] || decision["policy_bundle_id"])
-
-    from_review_report(
-      OperatorReview.from_policy_decision(decision),
-      opts,
-      "policy_decision.v1",
-      source_artifact_id || "policy_decision"
-    )
+    StrategyDecisionImport.from_policy_decision(decision, opts, &from_review_report/4)
   end
 
   @doc """
   Builds an import manifest from a branch-comparison report.
   """
   def from_branch_comparison_report(%{} = report, opts \\ []) do
-    report = stringify_keys(report)
-    source_artifact_id = option(opts, :source_artifact_id, report["id"] || report["source"])
-
-    from_review_report(
-      OperatorReview.from_branch_comparison_report(report),
+    StrategyDecisionImport.from_branch_comparison_report(
+      report,
       opts,
-      "branch_comparison_report.v1",
-      source_artifact_id || "branch_comparison_report"
+      &from_review_report/4
     )
   end
 
@@ -1813,14 +1790,10 @@ defmodule OrbitalDynamics.CadenceImport do
   Builds an import manifest from a ranking-comparison report.
   """
   def from_ranking_comparison_report(%{} = report, opts \\ []) do
-    report = stringify_keys(report)
-    source_artifact_id = option(opts, :source_artifact_id, report["id"] || report["source"])
-
-    from_review_report(
-      OperatorReview.from_ranking_comparison_report(report),
+    StrategyDecisionImport.from_ranking_comparison_report(
+      report,
       opts,
-      "ranking_comparison_report.v1",
-      source_artifact_id || "ranking_comparison_report"
+      &from_review_report/4
     )
   end
 
@@ -1828,45 +1801,21 @@ defmodule OrbitalDynamics.CadenceImport do
   Builds an import manifest from a score-term report.
   """
   def from_score_term_report(%{} = report, opts \\ []) do
-    report = stringify_keys(report)
-    source_artifact_id = option(opts, :source_artifact_id, report["id"] || report["source"])
-
-    from_review_report(
-      OperatorReview.from_score_term_report(report),
-      opts,
-      "score_term_report.v1",
-      source_artifact_id || "score_term_report"
-    )
+    StrategyDecisionImport.from_score_term_report(report, opts, &from_review_report/4)
   end
 
   @doc """
   Builds an import manifest from an objective-tradeoff report.
   """
   def from_objective_tradeoff_report(%{} = report, opts \\ []) do
-    report = stringify_keys(report)
-    source_artifact_id = option(opts, :source_artifact_id, report["id"] || report["source"])
-
-    from_review_report(
-      OperatorReview.from_objective_tradeoff_report(report),
-      opts,
-      "objective_tradeoff_report.v1",
-      source_artifact_id || "objective_tradeoff_report"
-    )
+    StrategyDecisionImport.from_objective_tradeoff_report(report, opts, &from_review_report/4)
   end
 
   @doc """
   Builds an import manifest from a Pareto-frontier report.
   """
   def from_pareto_frontier_report(%{} = report, opts \\ []) do
-    report = stringify_keys(report)
-    source_artifact_id = option(opts, :source_artifact_id, report["id"] || report["source"])
-
-    from_review_report(
-      OperatorReview.from_pareto_frontier_report(report),
-      opts,
-      "pareto_frontier_report.v1",
-      source_artifact_id || "pareto_frontier_report"
-    )
+    StrategyDecisionImport.from_pareto_frontier_report(report, opts, &from_review_report/4)
   end
 
   @doc """
