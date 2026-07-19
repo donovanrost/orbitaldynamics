@@ -228,6 +228,7 @@ defmodule OrbitalDynamics.ResourceProjection do
   ]
 
   alias OrbitalDynamics.Policy
+  alias OrbitalDynamics.ResourceProjection.ActivityDeliveryEvidence
 
   @doc """
   Declares the resource projection model and known limits.
@@ -3039,7 +3040,6 @@ defmodule OrbitalDynamics.ResourceProjection do
           downlink_after = downlink_before + planned_downlink_mb
           downlink_row? = downlink_activity?(activity)
           capacity_fraction = contact_capacity_fraction(activity)
-          latency = activity_latency_context(activity)
 
           row =
             %{
@@ -3051,7 +3051,6 @@ defmodule OrbitalDynamics.ResourceProjection do
               "actual_data_volume_mb" => actual_data_volume_mb(activity),
               "data_volume_delta_mb" => data_volume_delta_mb(activity),
               "data_volume_completion_fraction" => data_volume_completion_fraction(activity),
-              "completed_fraction" => completed_fraction(activity),
               "resource_effect_status" => resource_effect_status,
               "resource_effect_reason" => resource_effect_reason,
               "scenario_id" =>
@@ -3059,15 +3058,6 @@ defmodule OrbitalDynamics.ResourceProjection do
                   stable_id_or_nil(activity["spacecraft_id"]),
               "starts_at_s" => activity["starts_at_s"],
               "ends_at_s" => activity["ends_at_s"],
-              "collection_ends_at_s" => latency["collection_ends_at_s"],
-              "planned_delivery_at_s" => latency["planned_delivery_at_s"],
-              "actual_delivery_at_s" => latency["actual_delivery_at_s"],
-              "max_latency_s" => latency["max_latency_s"],
-              "planned_latency_s" => latency["planned_latency_s"],
-              "actual_latency_s" => latency["actual_latency_s"],
-              "latency_margin_s" => latency["latency_margin_s"],
-              "latency_basis" => latency["latency_basis"],
-              "latency_status" => latency["latency_status"],
               "source_window_id" => stable_id_or_nil(activity["source_window_id"]),
               "source_window_type" => activity["source_window_type"],
               "source_window" => activity["source_window"],
@@ -3120,6 +3110,7 @@ defmodule OrbitalDynamics.ResourceProjection do
               "battery_overuse_wh" =>
                 projected_battery_overuse_wh(battery_capacity_wh, battery_after)
             }
+            |> Map.merge(ActivityDeliveryEvidence.context(activity))
             |> compact_map()
 
           {row,
@@ -3197,104 +3188,6 @@ defmodule OrbitalDynamics.ResourceProjection do
     actual = actual_data_volume_mb(activity)
 
     if is_number(planned) and planned > 0.0 and is_number(actual), do: actual / planned
-  end
-
-  defp activity_latency_context(activity) do
-    collection_ends_at_s =
-      first_number([
-        activity["collection_ends_at_s"],
-        activity["collection_end_s"],
-        get_in(activity, ["metadata", "collection_ends_at_s"]),
-        get_in(activity, ["metadata", "collection_end_s"])
-      ])
-
-    planned_delivery_at_s =
-      first_number([
-        activity["planned_delivery_at_s"],
-        activity["expected_delivery_at_s"],
-        activity["delivery_at_s"],
-        get_in(activity, ["metadata", "planned_delivery_at_s"]),
-        get_in(activity, ["metadata", "expected_delivery_at_s"]),
-        get_in(activity, ["metadata", "delivery_at_s"])
-      ])
-
-    actual_delivery_at_s =
-      first_number([
-        activity["actual_delivery_at_s"],
-        activity["delivered_at_s"],
-        get_in(activity, ["metadata", "actual_delivery_at_s"]),
-        get_in(activity, ["metadata", "delivered_at_s"])
-      ])
-
-    max_latency_s =
-      first_number([
-        activity["max_latency_s"],
-        activity["latency_requirement_s"],
-        get_in(activity, ["metadata", "max_latency_s"]),
-        get_in(activity, ["metadata", "latency_requirement_s"])
-      ])
-
-    planned_latency_s =
-      first_number([
-        activity["planned_latency_s"],
-        get_in(activity, ["metadata", "planned_latency_s"])
-      ]) || latency_between(collection_ends_at_s, planned_delivery_at_s)
-
-    actual_latency_s =
-      first_number([
-        activity["actual_latency_s"],
-        get_in(activity, ["metadata", "actual_latency_s"])
-      ]) || latency_between(collection_ends_at_s, actual_delivery_at_s)
-
-    {latency_basis, selected_latency_s} =
-      cond do
-        is_number(actual_latency_s) -> {"actual", actual_latency_s}
-        is_number(planned_latency_s) -> {"planned", planned_latency_s}
-        true -> {nil, nil}
-      end
-
-    %{
-      "collection_ends_at_s" => collection_ends_at_s,
-      "planned_delivery_at_s" => planned_delivery_at_s,
-      "actual_delivery_at_s" => actual_delivery_at_s,
-      "max_latency_s" => max_latency_s,
-      "planned_latency_s" => planned_latency_s,
-      "actual_latency_s" => actual_latency_s,
-      "latency_margin_s" => latency_margin_s(max_latency_s, selected_latency_s),
-      "latency_basis" => latency_basis,
-      "latency_status" => activity_latency_status(max_latency_s, selected_latency_s)
-    }
-  end
-
-  defp latency_between(collection_ends_at_s, delivery_at_s)
-       when is_number(collection_ends_at_s) and is_number(delivery_at_s),
-       do: max(delivery_at_s - collection_ends_at_s, 0.0)
-
-  defp latency_between(_collection_ends_at_s, _delivery_at_s), do: nil
-
-  defp latency_margin_s(max_latency_s, selected_latency_s)
-       when is_number(max_latency_s) and is_number(selected_latency_s),
-       do: max_latency_s - selected_latency_s
-
-  defp latency_margin_s(_max_latency_s, _selected_latency_s), do: nil
-
-  defp activity_latency_status(max_latency_s, selected_latency_s)
-       when is_number(max_latency_s) and is_number(selected_latency_s) do
-    if selected_latency_s > max_latency_s, do: "late", else: "within_limit"
-  end
-
-  defp activity_latency_status(_max_latency_s, _selected_latency_s), do: nil
-
-  defp completed_fraction(activity) do
-    case first_number([
-           activity["completed_fraction"],
-           activity["completion_fraction"],
-           get_in(activity, ["metadata", "completed_fraction"]),
-           get_in(activity, ["metadata", "completion_fraction"])
-         ]) do
-      value when is_number(value) and value >= 0.0 and value <= 1.0 -> value
-      _value -> nil
-    end
   end
 
   defp first_number(values) do
