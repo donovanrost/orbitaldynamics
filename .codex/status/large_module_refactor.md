@@ -6,43 +6,36 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Policy activity-feasibility matcher extraction.
+Policy approval-requirement matcher extraction.
 
 Status:
-Completed and pushed in `2afb9c0b`.
+Selected; implementation has not started.
 
 Selected boundary:
-Extract `approval_rule_feasibility_match?/2`, activity provenance/context,
-direction, station/spacecraft/target matching, and activity evidence accessors
-into `OrbitalDynamics.Policy.ActivityMatcher`. Preserve private Policy seams
-used by decision matching and rule-match evidence construction; reuse the
-existing normalized direction predicate and RequirementContext helpers.
+Extract `approval_rule_requirement_match?/2`, its 63 context-selector checks,
+provider-result selectors, numeric threshold/range predicates, and all private
+matcher helpers into `OrbitalDynamics.Policy.RequirementMatcher`. Preserve one
+private Policy seam used by rule-match orchestration and reuse
+`Policy.RequirementContext` as the sole context-normalization owner.
 
 Selection evidence:
-- `policy.ex` is now 4,378 lines; the selected continuous activity matcher spans
-  161 lines at 3,795-3,955.
-- The cluster has one responsibility: decide whether one normalized candidate
-  activity/feasibility record satisfies one rule and expose the exact activity
-  fields recorded in match evidence.
-- It depends only on maps/lists, RiskMatcher's shared direction predicate, and
-  RequirementContext normalization helpers.
-- Policy bundles, requirement/risk/event matching, decision orchestration,
+- `policy.ex` is now 4,220 lines; the selected continuous requirement matcher
+  spans 1,020 lines at 2,730-3,749.
+- The cluster has one responsibility: decide whether one normalized approval
+  requirement satisfies one rule across identity, review, station, resource,
+  timeline, provider-result, success-factor, and threshold selectors.
+- Call inventory shows only six matcher-local helper families and
+  RequirementContext access; only the top-level predicate is used outside the
+  boundary.
+- Policy bundles, risk/event/activity matching, decision orchestration,
   escalation, fallback classification, and public APIs remain outside the
   boundary.
 
 Verification:
-- Strict warnings-as-errors compile passed across 3,850 files.
-- Four focused activity target/direction/provenance/spacecraft/station tests
-  passed.
-- All 89 Policy tests passed.
-- The Policy schema-contract test passed.
-- Exact old/new comparison passed for 55 built-in bundle/activity decisions
-  spanning top-level and nested feasibility direction, identity, status, and
-  feedback provenance evidence.
-- Static search confirms one activity matcher owner with seven explicit private
-  Policy seams; three now-unused cross-family normalization seams were retired.
-- Runtime xref confirms Policy owns the dependency on ActivityMatcher.
-- Formatting, diff checks, and bounded review passed.
+Pending: focused requirement identity/review/station/resource/provider/timeline
+baselines, exact old/new requirement decision proofs, strict compile, full
+Policy tests, relevant schema/contracts, static single ownership, runtime xref,
+and bounded review.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
@@ -53,8 +46,8 @@ implemented in `2afb9c0b`. `policy.ex` moved from 4,378 to 4,220 lines; the
 dedicated matcher is 168 lines.
 
 Next candidate:
-Re-inventory Policy requirement-rule matching after all risk/event/activity
-families have dedicated owners.
+Re-inventory Policy decision-evidence assembly after all four match families
+have dedicated owners.
 
 Blocked:
 No.
