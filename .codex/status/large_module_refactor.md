@@ -9,7 +9,7 @@ Current slice:
 CadenceImport manifest-row status normalization extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and published.
 
 Selected boundary:
 Extract Cadence-import status encoding, accepted-status preservation, and
@@ -29,17 +29,28 @@ Selection evidence:
   schemas, and ordering remain outside the boundary.
 
 Verification:
-Pending: focused accepted/unsupported status baselines, exact normalization
-decision matrix, strict compile, all combined CadenceImport tests, schema
-contracts, static single ownership, runtime xref, and bounded review.
+- Strict test compile passed with 3,819 files and warnings as errors.
+- Two focused accepted/unsupported status tests passed with 70 excluded.
+- All combined CadenceImport tests passed: 96 tests.
+- CadenceImport schema contracts passed: 4 tests.
+- A 10-case direct decision matrix covered missing status, all four accepted
+  statuses, atom acceptance, unsupported atom/tuple/nil encoding, invalidation
+  overrides, and existing invalid-reason preservation.
+- Formatting and diff checks passed, and no temporary proof files remain.
+- Static ownership checks confirmed status normalization and invalidation have
+  one production implementation behind the preserved facade seam.
+- Runtime xref confirmed `cadence_import.ex` is the direct consumer of
+  `manifest_row_normalization.ex`.
+- Bounded local review found no accepted-status ownership, encoding, overwrite,
+  reason-preservation, row-shape, aggregation-order, or schema changes.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-CadenceImport operational-readiness context extraction, selected in `a130e6f5`
-and implemented in `3da7bbea`. `cadence_import.ex` moved from 3,225 to 3,119
-lines; the extracted owner is 64 lines.
+CadenceImport manifest-row status normalization extraction, selected in
+`805bc211` and implemented in `2c195242`. `cadence_import.ex` moved from 3,119
+to 3,097 lines; the extracted owner is 34 lines.
 
 Next candidate:
 Extract central manifest assembly after row-status normalization has one
