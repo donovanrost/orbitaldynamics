@@ -1902,44 +1902,21 @@ defmodule OrbitalDynamics.Timeline do
   end
 
   defp timeline_ids_by(rows, key_fun, predicate) when is_list(rows) do
-    rows
-    |> Enum.filter(predicate)
-    |> Enum.reduce(%{}, fn row, grouped ->
-      key = key_fun.(row)
-      timeline_id = row["timeline_id"]
-
-      if key in [nil, ""] or timeline_id in [nil, ""] do
-        grouped
-      else
-        Map.update(grouped, key, [timeline_id], &[timeline_id | &1])
-      end
-    end)
-    |> Enum.map(fn {key, timeline_ids} -> {key, sorted_uniq(timeline_ids)} end)
-    |> Enum.sort_by(fn {key, _timeline_ids} -> key end)
-    |> Map.new()
+    OrbitalDynamics.Timeline.IdentityGroupingPolicy.timeline_ids_by(
+      rows,
+      key_fun,
+      predicate,
+      &sorted_uniq/1
+    )
   end
 
   defp timeline_ids_by_each(rows, values_fun, predicate) when is_list(rows) do
-    rows
-    |> Enum.filter(predicate)
-    |> Enum.reduce(%{}, fn row, grouped ->
-      timeline_id = row["timeline_id"]
-
-      if timeline_id in [nil, ""] do
-        grouped
-      else
-        row
-        |> values_fun.()
-        |> List.wrap()
-        |> Enum.reject(&(&1 in [nil, ""]))
-        |> Enum.reduce(grouped, fn key, nested ->
-          Map.update(nested, key, [timeline_id], &[timeline_id | &1])
-        end)
-      end
-    end)
-    |> Enum.map(fn {key, timeline_ids} -> {key, sorted_uniq(timeline_ids)} end)
-    |> Enum.sort_by(fn {key, _timeline_ids} -> key end)
-    |> Map.new()
+    OrbitalDynamics.Timeline.IdentityGroupingPolicy.timeline_ids_by_each(
+      rows,
+      values_fun,
+      predicate,
+      &sorted_uniq/1
+    )
   end
 
   defp sorted_uniq(values) do
