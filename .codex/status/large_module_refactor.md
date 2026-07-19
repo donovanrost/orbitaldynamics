@@ -6,39 +6,34 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-MissionPlan.Activity lifecycle-transition policy extraction.
+MissionPlan.Activity precondition-summary extraction.
 
 Status:
-Completed and pushed in `5bad93be`.
+Selected; implementation has not started.
 
 Selected boundary:
-Extract status-transition review/category policy, approval-transition
-review/category policy, and lifecycle-event token normalization into
-`OrbitalDynamics.MissionPlan.Activity.LifecycleTransition`. Keep all public
-`Activity` functions and struct mutations in the existing facade.
+Extract resource, command-authority, command-safety, activity-template, and
+activity-type precondition classification into
+`OrbitalDynamics.MissionPlan.Activity.PreconditionSummary`. Keep
+`precondition_summary/1` as the public `Activity` facade and pass the
+facade-owned unit-interval field list into the dedicated owner.
 
 Selection evidence:
-- Live re-ranking shows `mission_plan/activity.ex` is now the second-largest
-  production module at 5,236 lines after `schema.ex` at 6,764 lines.
-- The selected transition-policy helpers span 1,255-1,315 and 1,623-1,649 and
-  are pure classification/normalization logic with no struct construction.
-- Public mutation helpers, lifecycle dispatch, validation, and the Activity
-  struct remain in the facade; the owner receives the facade-owned status and
-  alias collections as data.
-- `test/orbital_dynamics/mission_plan/activity_test.exs` has focused coverage
-  for transition safety, categories, aliases, facade wrappers, and failures.
+- `mission_plan/activity.ex` remains the second-largest production module at
+  5,169 lines after the transition-policy extraction.
+- The selected public builder and private helper family spans 1,058-1,085 and
+  1,276-1,579 and has one responsibility: deterministic precondition artifact
+  construction.
+- The helpers have no callers outside `precondition_summary/1`; capability
+  metadata, the Activity struct, and all validation/mutation stay in the
+  facade.
+- Focused Activity coverage exercises clear, review-required, blocked,
+  command-authority, command-safety, template-state, and facade-wrapper cases.
 
 Verification:
-- Strict warnings-as-errors compile passed across 3,875 files.
-- Focused MissionPlan.Activity coverage passed: 31 tests.
-- Adjacent mission-plan, timeline-activity schema, and candidate-refresh
-  lifecycle replay coverage passed: 48 tests.
-- Exact old/new public output/error comparison against `1c530694` passed for
-  27 status, approval, lifecycle-event, and invalid-event cases.
-- Runtime xref found the new owner referenced only by the `Activity` facade;
-  static single-ownership review and `git diff --check` passed.
-- `mission_plan/activity.ex` moved from 5,236 to 5,169 lines; the dedicated
-  owner is 101 lines.
+Pending: focused Activity baseline, exact old/new public precondition artifacts,
+strict compile, adjacent timeline/operator-review/schema coverage, static
+single ownership, runtime xref, and bounded review.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
@@ -49,8 +44,8 @@ MissionPlan.Activity lifecycle-transition policy extraction, selected in
 5,236 to 5,169 lines; the dedicated owner is 101 lines.
 
 Next candidate:
-Re-inventory remaining MissionPlan.Activity lifecycle/precondition and map
-normalization families after transition policy has one production owner.
+Re-inventory remaining MissionPlan.Activity map normalization and validation
+families after precondition summaries have one production owner.
 
 Blocked:
 No.
