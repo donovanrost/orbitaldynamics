@@ -9,7 +9,7 @@ Current slice:
 Study.Manifest schema-property ownership extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `924833ac`.
 
 Selected boundary:
 Extract the reusable JSON-schema object, array, string, numeric, boolean, enum,
@@ -29,20 +29,31 @@ Selection evidence:
 - Existing public report APIs and artifact row shapes remain unchanged.
 
 Verification:
-Pending.
+- Strict test-environment compile passed with warnings as errors across 3,899
+  files.
+- Focused Manifest coverage passed: 42 tests.
+- Adjacent manifest lint/reference/schema-export and schema-lint task coverage
+  passed: 30 tests.
+- Exact public old/new comparison against selection commit `0105af34` passed
+  for the complete Manifest JSON Schema.
+- `mix xref callers` reports only the Manifest facade as an export-time caller
+  of the extracted owner.
+- Static ownership checks confirm all selected builders live in SchemaProperty
+  while runtime parsing and semantic validation remain in the facade.
+- `git diff --check` passed.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-TimelineFeedback throughput reconciliation ownership extraction, selected in
-`cfd577ed` and implemented in `86340697`.
-`timeline_feedback.ex` moved from 4,099 to 4,070 lines; the Throughput owner
-moved from 221 to 263 lines.
+Study.Manifest schema-property ownership extraction, selected in `0105af34`
+and implemented in `924833ac`.
+`study/manifest.ex` moved from 4,075 to 4,039 lines; the dedicated owner is 44
+lines.
 
 Next candidate:
-Implement and verify the selected Study.Manifest schema-property ownership
-extraction.
+Re-rank the live largest-module set and select the next cohesive ownership
+boundary.
 
 Blocked:
 No.
