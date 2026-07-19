@@ -6,51 +6,33 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-RecommendationRiskContext operational-feedback extraction.
+TimelineFeedback reconciliation-identity extraction.
 
 Status:
-Completed and pushed in `8ee8763d`.
+Selected; implementation not started.
 
 Selected boundary:
-Extract the operational-feedback context-key registry, risk classification,
-key normalization, value collection, and public context assembly into
-`OrbitalDynamics.RecommendationRiskContext.OperationalFeedback`. Preserve
-`operational_feedback_context_keys/0` and `operational_feedback_context/1` as
-public facade delegates.
+Extract planned/realized identity selection and comparison for direction,
+ground station, spacecraft, target, resource, collection, product, payload,
+instrument, pointing, attitude, link configuration, and source window into
+`OrbitalDynamics.TimelineFeedback.ReconciliationIdentity`. Move reconciliation
+identity-mismatch annotation with the fields it classifies; preserve the
+existing report and row assembly facade.
 
 Selection evidence:
-- Live re-ranking places `recommendation_risk_context.ex` at 4,033 lines,
-  behind the larger Schema, Timeline, TimelineFeedback, MissionPlan.Activity,
-  and Study.Manifest facades.
-- The selected 973-1,052 registry and 3,651-3,834 assembly form one cohesive
-  operational-feedback responsibility with no dependency on other context
-  families.
-- The existing public facade is consumed by strategy recommendation import,
-  manifest-row, and operator-review paths; those call sites remain unchanged.
-- Execution-success feedback, shared context families, and all other risk
-  registries and assemblers remain in the facade.
+- Live re-ranking places `timeline_feedback.ex` at 4,508 lines. Its
+  2,494-3,057 reconciliation-row assembler is the largest remaining single
+  responsibility hotspot in the facade.
+- Identity selection, pairwise match status, and mismatch-summary annotation
+  are a cohesive subset of that assembler and depend only on planned and
+  realized row maps.
+- Reconciliation matching, timing, throughput, execution uncertainty,
+  operational-feedback exclusion, and report aggregation remain in the
+  facade.
+- Existing public report APIs and artifact row shapes remain unchanged.
 
 Verification:
-- Strict warnings-as-errors compile passed across 3,890 files.
-- Focused strategy-recommendation pressure-event coverage passed: 1 test. The
-  test file emits two pre-existing `0.0` pattern warnings, so its
-  warnings-as-errors baseline and post-extraction runs abort after the passing
-  assertion; the post-extraction proof was therefore also run without
-  warnings-as-errors and passed.
-- Adjacent operational-feedback provenance, source-feedback provenance,
-  Cadence comparison-report, and operator-review strategy-artifact coverage
-  passed under warnings-as-errors: 19 tests.
-- Exact public old/new comparison against `dc4a34a0` passed the ordered 77-key
-  registry and 9 input cases covering scalar/list values, atom-key
-  normalization, all three matching risk types, mixed risks, ignored risks,
-  and invalid inputs.
-- `mix xref callers
-  OrbitalDynamics.RecommendationRiskContext.OperationalFeedback` reports only
-  the RecommendationRiskContext facade as a runtime caller.
-- Static ownership review confirms the registry, classifier, normalizer,
-  collector, and assembler live in the new owner; the facade retains only the
-  two public delegates.
-- `git diff --check` passed.
+Pending.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
@@ -62,8 +44,8 @@ RecommendationRiskContext operational-feedback extraction, selected in
 owner is 158 lines.
 
 Next candidate:
-Re-rank the remaining large modules and select the next cohesive,
-facade-preserving responsibility boundary.
+Implement and verify the selected TimelineFeedback reconciliation-identity
+extraction.
 
 Blocked:
 No.
