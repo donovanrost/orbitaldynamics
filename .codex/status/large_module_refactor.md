@@ -9,7 +9,7 @@ Current slice:
 ResourceFilter summary extraction.
 
 Status:
-Selected; strict focused baseline pending.
+Completed and pushed in `4af22e46`.
 
 Selected boundary:
 Extract `resource_filter_summary.v1` construction, report-row normalization,
@@ -35,24 +35,43 @@ Selection evidence:
   exception behavior must remain unchanged.
 
 Implementation:
-Pending.
+- Added `OrbitalDynamics.ResourceFilter.Summary` as the owner of
+  `resource_filter_summary.v1` construction, report-row normalization,
+  deterministic counts and routing maps, invalid-input evidence, and duplicate
+  collision aggregation.
+- Preserved all ResourceFilter and root public APIs; the facade passes its
+  existing summary contract, source artifact contract, and model limits to the
+  new owner.
+- Removed the summary builder and summary-only count/routing helpers from the
+  facade while retaining shared report aggregators.
+- `resource_filter.ex` moved from 2,059 to 1,964 lines; the new owner is 161
+  lines.
 
 Verification:
-Pending strict focused baseline, exact old/new public parity, focused and
-adjacent tests, static ownership checks, xref, strict warning-clean compile,
-formatting, and diff checks.
+- Strict focused baseline passed all 37 ResourceFilter tests.
+- Exact old/new public parity passed for six captured cases: complex routing
+  and duplicate evidence, atom normalization, empty reports, ignored options,
+  and string- and atom-keyed pass-through summaries.
+- Focused and adjacent verification passed 50 tests across ResourceFilter,
+  operator-review handoff, and candidate-refresh construction.
+- Static checks confirm the builder and summary-only helpers left the facade;
+  xref reports only ResourceFilter as a runtime caller of the owner.
+- Strict warning-clean forced compile passed for 3,990 files.
+- Formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-ContactFilter provider-counteroffer context extraction, selected in `b1f30133`
-and implemented in `a24fb6f8`.
-`communications/contact_filter.ex` moved from 2,062 to 1,898 lines; the
-dedicated provider-counteroffer context owner is 149 lines.
+ResourceFilter summary extraction, selected in `c2ec6ed6` and implemented in
+`4af22e46`.
+`resource_filter.ex` moved from 2,059 to 1,964 lines; the dedicated summary
+owner is 161 lines.
 
 Next candidate:
-Complete the selected ResourceFilter summary extraction.
+Re-rank the live checkout and select the next bounded facade-preserving
+extraction. `communications/contact_intent.ex` is now the largest ordinary
+eligible facade at 2,038 lines.
 
 Blocked:
 No.
