@@ -9,7 +9,7 @@ Current slice:
 ContactFilter provider-counteroffer context extraction.
 
 Status:
-Selected; strict focused baseline pending.
+Completed and pushed in `a24fb6f8`.
 
 Selected boundary:
 Extract the provider-counteroffer field contract, depth-limited nested/overlap
@@ -38,24 +38,43 @@ Selection evidence:
   delta behavior must remain unchanged.
 
 Implementation:
-Pending.
+- Added
+  `OrbitalDynamics.Communications.ContactFilter.ProviderCounterofferContext`
+  as the owner of the ordered field contract, depth-limited nested/overlap
+  traversal, evidence precedence and presence rules, sparse context insertion,
+  and explicit/derived timing deltas.
+- Preserved all ContactFilter and root public APIs; capability metadata,
+  counteroffer review detection, and suppressed-row construction now call the
+  dedicated owner.
+- Removed the field attribute and full counteroffer context helper family from
+  the facade.
+- `communications/contact_filter.ex` moved from 2,062 to 1,898 lines; the new
+  owner is 149 lines.
 
 Verification:
-Pending strict focused baseline, exact old/new public parity, focused and
-adjacent tests, static ownership checks, xref, strict warning-clean compile,
-formatting, and diff checks.
+- Strict focused baseline passed all 42 ContactFilter tests.
+- Exact old/new public parity passed for five captured cases: ordered fields,
+  candidate-over-station precedence, nested overlap traversal, unknown-state
+  omission, and the no-context path.
+- Focused and communications-contract verification passed 50 tests.
+- Static checks confirm the attribute and helper family left the facade; xref
+  reports only ContactFilter as a runtime caller of the new owner.
+- Strict warning-clean forced compile passed for 3,989 files.
+- Formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-StationCalendar precedence-summary extraction, selected in `2bfb28f3` and
-implemented in `b0d0e175`.
-`communications/station_calendar.ex` moved from 2,068 to 1,911 lines; the
-dedicated precedence-summary owner is 218 lines.
+ContactFilter provider-counteroffer context extraction, selected in `b1f30133`
+and implemented in `a24fb6f8`.
+`communications/contact_filter.ex` moved from 2,062 to 1,898 lines; the
+dedicated provider-counteroffer context owner is 149 lines.
 
 Next candidate:
-Complete the selected ContactFilter provider-counteroffer context extraction.
+Re-rank the live checkout and select the next bounded facade-preserving
+extraction. `resource_filter.ex` is now the largest ordinary eligible facade
+at 2,059 lines.
 
 Blocked:
 No.
