@@ -6,51 +6,36 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-RecommendationRiskContext objective-satisfaction projection extraction.
+StationCalendar provider-result canonicalization extraction.
 
 Status:
-Completed and pushed in `2814c640`.
+Selected; implementation pending.
 
 Selected boundary:
-Extract objective-satisfaction context keys, risk selection, and context-value
-projection into
-`OrbitalDynamics.RecommendationRiskContext.ObjectiveSatisfaction`.
-Preserve the existing RecommendationRiskContext public API facade.
+Extract the provider-result map-value key contract, recursive value
+normalization, and artifact-value canonicalization into
+`OrbitalDynamics.Communications.StationCalendar.ProviderResult`.
+Preserve the existing StationCalendar public API facade.
 
 Selection evidence:
-- Live re-ranking places `recommendation_risk_context.ex` at 3,754 lines,
-  fourth behind Schema, Timeline, and MissionPlan.Activity and ahead of
-  StationCalendar, LinkCapacity, ResourceProjection, TimelineFeedback, and
-  Manifest.
-- The selected family owns one risk-domain projection responsibility: its
-  exported context-key contract, objective-satisfaction risk selection, and
-  deterministic aggregation of values from matching risks.
-- Score-term, objective-tradeoff, resource-margin, operational-feedback, and
-  all other risk projections remain outside this boundary.
-- Existing public APIs, atom/string key normalization, list flattening,
-  nil/duplicate removal, empty-key omission, and deterministic output remain
-  unchanged.
+- Live re-ranking places `station_calendar.ex` at 3,728 lines, fourth behind
+  Schema, Timeline, and MissionPlan.Activity and ahead of LinkCapacity,
+  ResourceProjection, TimelineFeedback, Manifest, ContactAllocation, and
+  RecommendationRiskContext.
+- The selected family owns one representation-boundary responsibility used by
+  affected-contact and approval-policy rows: deterministic conversion of
+  scalar, list, and map-valued provider results into artifact strings.
+- Calendar matching, availability precedence, capacity normalization,
+  reservations, counteroffers, policy decisions, and artifact assembly remain
+  outside this boundary.
+- Existing capability metadata, recursive map-key precedence, comma splitting,
+  trimming, omission, scalar conversion, and output ordering remain unchanged.
 
 Verification:
-- Strict test-environment compile passed with warnings as errors across 3,914
-  files.
-- Focused objective-satisfaction operator-review and recommendation-pressure
-  coverage passed: 3 tests.
-- Adjacent Cadence import, operator-review artifact, and schema contract
-  coverage passed: 75 tests.
-- Exact public old/new comparison against selection commit `6244115e` passed
-  for the context-key contract and seven context samples covering the full
-  projected field set, atom/string keys, list flattening, duplicates, nils,
-  unrelated risks, and invalid inputs.
-- `mix xref callers` reports only the RecommendationRiskContext facade as a
-  runtime caller of the extracted objective-satisfaction owner.
-- Static ownership checks confirm the context-key contract, risk selector, and
-  value projection live in the dedicated owner while adjacent risk domains
-  remain in the facade.
-- `git diff --check` passed.
+Pending.
 
 Behavior/schema changes:
-None. This is a facade-preserving production ownership extraction.
+None intended. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
 RecommendationRiskContext objective-satisfaction projection extraction,
