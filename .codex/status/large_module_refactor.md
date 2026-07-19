@@ -6,44 +6,33 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-CadenceImport constraint/objective assessment import extraction.
+CadenceImport resource-projection import extraction.
 
 Status:
-Completed and published.
+Selected; implementation has not started.
 
 Selected boundary:
-Extract the constraint-report and objective-satisfaction constructor
+Extract the resource-projection report and flow-summary constructor
 implementations into
-`OrbitalDynamics.CadenceImport.ConstraintObjectiveImport`. Preserve both public
+`OrbitalDynamics.CadenceImport.ResourceProjectionImport`. Preserve both public
 facade entry points and pass the existing review-package import seam as a
 callback.
 
 Selection evidence:
-- `cadence_import.ex` is now 2,384 lines.
-- The selected contiguous pair spans about 35 lines and owns assessment
+- `cadence_import.ex` is now 2,371 lines.
+- The selected contiguous pair spans about 40 lines and owns projection
   normalization, source-identity, OperatorReview conversion, and source
   contracts.
-- The pair has one responsibility: turn constraint and objective-satisfaction
-  evidence into review-package imports while preserving the constraint
-  assumptions-source fallback.
+- The pair has one responsibility: turn resource-projection report and flow
+  evidence into review-package imports while preserving their distinct nested
+  assumptions-source precedence.
 - Public API docs, row construction, manifest assembly, schemas, and adjacent
-  candidate/maneuver/resource-projection imports remain outside the boundary.
+  contact/candidate imports remain outside the boundary.
 
 Verification:
-- Strict test compile passed with 3,832 files and warnings as errors.
-- Two focused assessment constructor tests passed with 70 excluded.
-- All combined CadenceImport tests passed: 96 tests.
-- CadenceImport schema contracts passed: 4 tests.
-- An executable before/after proof matched 12 cases across both constructors,
-  three key/source-ID shapes, and inferred versus explicit IDs.
-- Formatting and diff checks passed, and no temporary proof files remain.
-- Static ownership checks confirmed both public facade entry points delegate to
-  one implementation owner.
-- Runtime xref confirmed `cadence_import.ex` is the direct consumer of
-  `constraint_objective_import.ex`.
-- Bounded local review found no normalization, source-ID precedence or
-  fallback, OperatorReview conversion, source-contract, public API, row,
-  ordering, or schema changes.
+Pending: focused resource-projection baselines, exact old/new constructor
+equivalence proof, strict compile, all combined CadenceImport tests, schema
+contracts, static single ownership, runtime xref, and bounded review.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
@@ -54,7 +43,7 @@ CadenceImport constraint/objective assessment import extraction, selected in
 to 2,371 lines; the extracted owner is 45 lines.
 
 Next candidate:
-Re-inventory remaining public routing after constraint/objective imports have
+Re-inventory remaining public routing after resource-projection imports have
 one production owner.
 
 Blocked:
