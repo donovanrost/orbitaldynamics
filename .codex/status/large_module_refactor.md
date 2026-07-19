@@ -6,59 +6,42 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-ResourceFilter candidate-input extraction.
+ContactAllocation contact-validation extraction.
 
 Status:
-Completed and pushed in `a1b248fa`.
+Selected; strict focused baseline pending.
 
 Selected boundary:
-Extract candidate shape coercion, provider/station direction contracts,
-stable-identity validation, station-calendar ID-list normalization,
-provider-contact inference, feedback-factor validation, and invalid-candidate
-construction into `OrbitalDynamics.ResourceFilter.CandidateInput`. Preserve all
-ResourceFilter and root public facades.
+Extract contact eligibility, provider-contact detection, terminal/approval
+blocking, stable identity/time/station checks, completion and feedback-factor
+unit-interval validation, station-capacity validation, and deterministic
+invalid-input reasons into
+`OrbitalDynamics.Communications.ContactAllocation.ContactValidation`. Preserve
+all ContactAllocation and root public facades.
 
 Selection evidence:
 - Excluding the generated/declarative candidate-refresh JSON-schema module,
-  live re-ranking places `resource_filter.ex` at 1,964 lines, the largest
-  ordinary eligible facade.
-- ResourceFilter currently delegates only summary generation; candidate
-  normalization and validation occupy lines 1,306-1,659, with their stable
-  identity and station-calendar contracts still declared in the facade.
-- The selected block has one responsibility: turn heterogeneous candidate
-  inputs into valid normalized rows or deterministic reviewable invalid rows.
-- Resource-summary normalization/ambiguity, suppression policy, approval
-  routing, risk mapping, provenance counts, filter summaries, and all other
-  capability contracts remain outside the boundary.
-- Exact alias maps, stable-ID rules, station-calendar ID-list handling,
-  direction/contact inference, time parsing, source-candidate preservation,
-  report rows, summaries, and error behavior must remain unchanged.
+  live re-ranking places `communications/contact_allocation.ex` at 1,953 lines,
+  the largest ordinary eligible facade.
+- ContactAllocation already delegates to eight focused owners, including
+  ContactIdentity, ContactNormalization, StationCapacityEvidence, and
+  ThroughputEvidence, while validation still occupies lines 1,546-1,790.
+- The selected block has one responsibility: decide whether a normalized
+  contact is eligible, status-blocked, or invalid and explain the exact reason.
+- Allocation composition, ground-network filtering, contention resolution,
+  row construction, capacity packing, counteroffers, approval policy, summary
+  generation, and all capability contracts remain outside the boundary.
+- Exact provider-contact inference, precedence of invalid reasons, terminal
+  status handling, station-capacity policy, unit-interval semantics, returned
+  rows/reports/summaries, and error behavior must remain unchanged.
 
 Implementation:
-- Added `OrbitalDynamics.ResourceFilter.CandidateInput` as the owner of
-  candidate alias contracts, normalization, stable identity checks,
-  station-calendar ID lists, contact inference, feedback-factor validation,
-  and deterministic invalid rows.
-- Preserved ResourceFilter and root public APIs as capability, filtering,
-  report, and summary delegates.
-- Routed shared stable-ID checks and resource activity alias normalization
-  through CandidateInput so the moved contracts have one owner.
-- `resource_filter.ex` moved from 1,964 to 1,542 lines; the new owner is 477
-  lines.
+Pending.
 
 Verification:
-- Strict focused baseline passed all 37 ResourceFilter tests.
-- Exact old/new public parity passed for four deterministic captures:
-  candidate/direction capabilities, filtering without summaries, filtering
-  against unavailable resources, and report construction across inferred
-  contacts, station-calendar ID lists, invalid factors, missing IDs, and
-  invalid raw shapes.
-- Post-extraction focused and adjacent verification passed all 50 tests.
-- Static checks confirm CandidateInput solely declares the moved contracts and
-  owns the candidate normalization helper family; xref reports only
-  ResourceFilter as a runtime caller.
-- Strict warning-clean forced compile passed for 3,997 files.
-- Formatting and `git diff --check` passed.
+Pending strict focused baseline, exact old/new public parity, focused and
+adjacent tests, static ownership checks, xref, strict warning-clean compile,
+formatting, and diff checks.
 
 Behavior/schema changes:
 None intended.
@@ -70,10 +53,7 @@ implemented in `a1b248fa`.
 CandidateInput owner is 477 lines.
 
 Next candidate:
-Re-rank the live checkout and select the next bounded facade-preserving
-extraction. `communications/contact_allocation.ex` is now the largest ordinary
-eligible facade at 1,953 lines, followed by TimelineFeedback and
-OperationalReadiness.
+Complete the selected ContactAllocation contact-validation extraction.
 
 Blocked:
 No.
