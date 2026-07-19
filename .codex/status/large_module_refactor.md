@@ -9,7 +9,7 @@ Current slice:
 Timeline lifecycle-state summary assembly policy extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and published.
 
 Selected boundary:
 Move lifecycle-state review-row selection, derived counts, routing ID sets, and
@@ -35,17 +35,32 @@ Selection evidence:
   exports, and other lifecycle responsibilities remain outside the boundary.
 
 Verification:
-Pending: focused baseline, mechanical summary-policy extraction, strict compile,
-focused and full Timeline tests, schema contracts, structural/static checks, and
-bounded review.
+- Focused baseline passed 1 lifecycle-state summary test.
+- Strict warnings-as-errors compile passed 3,804 modules.
+- Focused lifecycle-state summary test passed 1 test.
+- Full Timeline suite passed 127 tests.
+- Four Timeline schema-contract suites passed 36 tests.
+- AST conservation proved the full summary artifact assembly and three selected
+  metric wrappers moved exactly after normalizing only metadata/callback
+  threading.
+- Static checks confirmed all three metrics helpers left Timeline, the facade has
+  one summary-policy call, public def count remains 101,
+  formatting/diff/new-file checks pass, and no temporary checker remains.
+- Compile-connected xref remained narrow: Timeline has only the pre-existing
+  compile edge to `CandidateRejectionStationPolicy`.
+- Bounded local review found no correctness or maintainability issues and
+  confirmed derived counts, review rows, routing ID maps, assumptions, map-key
+  ordering, and deterministic ID ordering are unchanged.
+- Timeline decreased from 5,010 to 4,923 lines; the extracted policy is 160
+  lines.
 
 Behavior/schema changes:
 None intended. Derived counts, routing ID sets, review rows, map ordering,
 capabilities, and schema exports should remain byte-for-byte stable.
 
 Last completed slice:
-Timeline lifecycle-state input grouping policy completion, selected in
-`aa1d7c62` and implemented in `9af8e6e1`.
+Timeline lifecycle-state summary assembly policy extraction, selected in
+`65a3fa6a` and implemented in `8afb167b`.
 
 Next candidate:
 Continue remapping the reduced Timeline facade after lifecycle-state summary
