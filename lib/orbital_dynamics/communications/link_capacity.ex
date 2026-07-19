@@ -95,6 +95,7 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
   alias OrbitalDynamics.Communications.LinkCapacity.ContactNormalization
   alias OrbitalDynamics.Communications.LinkCapacity.RelayDataPath
   alias OrbitalDynamics.Communications.LinkCapacity.StationCapacity
+  alias OrbitalDynamics.Communications.LinkCapacity.StationReservationEvidence
 
   @doc """
   Declares the fixed-rate link-capacity summary model and known limits.
@@ -1350,64 +1351,21 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
     |> empty_list_to_nil()
   end
 
-  defp row_station_reservation_ids(rows) do
-    [
-      row_list_values(rows, "station_reservation_ids", :stable_id),
-      station_reservation_ids(rows)
-    ]
-    |> List.flatten()
-    |> sorted_stable_ids()
-    |> empty_list_to_nil()
-  end
+  defp row_station_reservation_ids(rows), do: StationReservationEvidence.row_ids(rows)
 
-  defp row_station_reservation_expires_at_s(rows) do
-    [
-      row_list_values(rows, "station_reservation_expires_at_s", :number),
-      station_reservation_expires_at_s(rows)
-    ]
-    |> normalized_number_values()
-  end
+  defp row_station_reservation_expires_at_s(rows),
+    do: StationReservationEvidence.row_expires_at_s(rows)
 
-  defp row_station_reserved_bys(rows) do
-    [
-      row_list_values(rows, "station_reserved_bys", :string),
-      station_reserved_bys(rows)
-    ]
-    |> normalized_string_values()
-  end
+  defp row_station_reserved_bys(rows), do: StationReservationEvidence.row_reserved_bys(rows)
 
-  defp row_station_reservation_statuses(rows) do
-    [
-      row_list_values(rows, "station_reservation_statuses", :string),
-      station_reservation_statuses(rows)
-    ]
-    |> normalized_status_values()
-  end
+  defp row_station_reservation_statuses(rows),
+    do: StationReservationEvidence.row_statuses(rows)
 
-  defp row_station_reservation_match_status_counts(rows) do
-    rows
-    |> Enum.flat_map(&row_station_reservation_match_statuses/1)
-    |> Enum.frequencies()
-    |> empty_map_to_nil()
-  end
+  defp row_station_reservation_match_status_counts(rows),
+    do: StationReservationEvidence.row_match_status_counts(rows)
 
-  defp row_station_reservation_match_statuses(row) do
-    [
-      row["station_reservation_match_status"],
-      row["reservation_match_status"],
-      row["station_reservation_match_statuses"],
-      source_station_calendar_values(row["source_station_calendar_entry"], [
-        "station_reservation_match_status",
-        "reservation_match_status"
-      ]),
-      source_station_calendar_values(row["source_station_calendar_overlaps"], [
-        "station_reservation_match_status",
-        "reservation_match_status"
-      ])
-    ]
-    |> normalized_status_values()
-    |> List.wrap()
-  end
+  defp row_station_reservation_match_statuses(row),
+    do: StationReservationEvidence.row_match_statuses(row)
 
   defp row_source_station_calendar_values(rows, source_fields) do
     rows
@@ -1435,223 +1393,27 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
     |> empty_map_to_nil()
   end
 
-  defp station_reservation_ids(contacts) do
-    contacts
-    |> Enum.flat_map(fn contact ->
-      [
-        contact["station_reservation_id"],
-        contact["reservation_id"]
-      ] ++
-        source_station_calendar_reservation_ids(contact["source_station_calendar_entry"]) ++
-        source_station_calendar_reservation_ids(contact["source_station_calendar_overlaps"])
-    end)
-    |> Enum.map(&stable_id_or_nil/1)
-    |> Enum.reject(&is_nil/1)
-    |> Enum.uniq()
-    |> Enum.sort()
-    |> empty_list_to_nil()
-  end
+  defp station_reservation_ids(contacts), do: StationReservationEvidence.ids(contacts)
 
-  defp station_reservation_expires_at_s(contacts) do
-    contacts
-    |> Enum.flat_map(fn contact ->
-      [
-        contact["station_reservation_expires_at_s"],
-        contact["reservation_expires_at_s"],
-        contact["reservation_hold_expires_at_s"],
-        contact["hold_expires_at_s"],
-        contact["expires_at_s"],
-        contact["expires_at"],
-        contact["station_calendar_reservation_expires_at_s"]
-      ] ++
-        source_station_calendar_number_values(contact["source_station_calendar_entry"], [
-          "station_calendar_reservation_expires_at_s",
-          "station_reservation_expires_at_s",
-          "reservation_expires_at_s",
-          "reservation_hold_expires_at_s",
-          "hold_expires_at_s",
-          "expires_at_s",
-          "expires_at"
-        ]) ++
-        source_station_calendar_number_values(contact["source_station_calendar_overlaps"], [
-          "station_calendar_reservation_expires_at_s",
-          "station_reservation_expires_at_s",
-          "reservation_expires_at_s",
-          "reservation_hold_expires_at_s",
-          "hold_expires_at_s",
-          "expires_at_s",
-          "expires_at"
-        ])
-    end)
-    |> normalized_number_values()
-  end
+  defp station_reservation_expires_at_s(contacts),
+    do: StationReservationEvidence.expires_at_s(contacts)
 
-  defp station_reserved_bys(contacts) do
-    contacts
-    |> Enum.flat_map(fn contact ->
-      [
-        contact["station_reserved_by"],
-        contact["reserved_by"]
-      ] ++
-        source_station_calendar_values(contact["source_station_calendar_entry"], [
-          "station_reserved_by",
-          "reserved_by"
-        ]) ++
-        source_station_calendar_values(contact["source_station_calendar_overlaps"], [
-          "station_reserved_by",
-          "reserved_by"
-        ])
-    end)
-    |> normalized_string_values()
-  end
+  defp station_reserved_bys(contacts), do: StationReservationEvidence.reserved_bys(contacts)
 
-  defp station_reservation_statuses(contacts) do
-    contacts
-    |> Enum.flat_map(fn contact ->
-      [
-        contact["station_reservation_status"],
-        contact["reservation_status"]
-      ] ++
-        source_station_calendar_values(contact["source_station_calendar_entry"], [
-          "station_reservation_status",
-          "reservation_status"
-        ]) ++
-        source_station_calendar_values(contact["source_station_calendar_overlaps"], [
-          "station_reservation_status",
-          "reservation_status"
-        ])
-    end)
-    |> normalized_status_values()
-  end
+  defp station_reservation_statuses(contacts),
+    do: StationReservationEvidence.statuses(contacts)
 
-  defp station_reservation_match_statuses(contacts) do
-    contacts
-    |> Enum.flat_map(fn contact ->
-      [
-        contact["station_reservation_match_status"],
-        contact["reservation_match_status"]
-      ] ++
-        source_station_calendar_values(contact["source_station_calendar_entry"], [
-          "station_reservation_match_status",
-          "reservation_match_status"
-        ]) ++
-        source_station_calendar_values(contact["source_station_calendar_overlaps"], [
-          "station_reservation_match_status",
-          "reservation_match_status"
-        ])
-    end)
-    |> normalized_status_values()
-  end
+  defp station_reservation_match_statuses(contacts),
+    do: StationReservationEvidence.match_statuses(contacts)
 
-  defp source_station_calendar_reservation_ids(sources) when is_list(sources),
-    do: Enum.flat_map(sources, &source_station_calendar_reservation_ids/1)
+  defp source_station_calendar_values(sources, fields),
+    do: StationReservationEvidence.source_values(sources, fields)
 
-  defp source_station_calendar_reservation_ids(%{} = source) do
-    explicit_ids =
-      source_station_calendar_values(source, ["station_reservation_id", "reservation_id"])
-      |> Enum.reject(&is_nil/1)
+  defp normalized_string_values(values),
+    do: StationReservationEvidence.normalized_string_values(values)
 
-    cond do
-      explicit_ids != [] ->
-        explicit_ids
-
-      reserved_station_calendar_source?(source) ->
-        source_station_calendar_values(source, [
-          "id",
-          "entry_id",
-          "station_calendar_entry_id"
-        ])
-
-      true ->
-        []
-    end
-  end
-
-  defp source_station_calendar_reservation_ids(_source), do: []
-
-  defp source_station_calendar_values(sources, fields) when is_list(sources),
-    do: Enum.flat_map(sources, &source_station_calendar_values(&1, fields))
-
-  defp source_station_calendar_values(%{} = source, fields),
-    do: Enum.map(fields, &Map.get(source, &1))
-
-  defp source_station_calendar_values(_source, _fields), do: []
-
-  defp source_station_calendar_number_values(sources, fields),
-    do: source_station_calendar_number_values(sources, fields, 0)
-
-  defp source_station_calendar_number_values(sources, fields, depth) when is_list(sources),
-    do: Enum.flat_map(sources, &source_station_calendar_number_values(&1, fields, depth))
-
-  defp source_station_calendar_number_values(%{} = source, fields, depth) when depth < 4 do
-    direct_values =
-      fields
-      |> Enum.flat_map(fn field -> List.wrap(Map.get(source, field)) end)
-
-    direct_values ++
-      source_station_calendar_number_values(
-        source["source_station_calendar_entry"],
-        fields,
-        depth + 1
-      ) ++
-      source_station_calendar_number_values(
-        source["source_station_calendar_overlaps"],
-        fields,
-        depth + 1
-      )
-  end
-
-  defp source_station_calendar_number_values(_source, _fields, _depth), do: []
-
-  defp reserved_station_calendar_source?(source) do
-    source
-    |> source_station_calendar_availability_candidates()
-    |> Enum.any?(&(&1 == "reserved"))
-  end
-
-  defp normalized_string_values(values) do
-    values
-    |> List.flatten()
-    |> Enum.map(&string_value/1)
-    |> Enum.reject(&is_nil/1)
-    |> Enum.uniq()
-    |> Enum.sort()
-    |> empty_list_to_nil()
-  end
-
-  defp normalized_number_values(values) do
-    values
-    |> List.flatten()
-    |> Enum.map(&numeric_value/1)
-    |> Enum.reject(&is_nil/1)
-    |> Enum.uniq()
-    |> Enum.sort()
-    |> empty_list_to_nil()
-  end
-
-  defp normalized_status_values(values) do
-    values
-    |> List.flatten()
-    |> Enum.map(&normalized_status_token/1)
-    |> Enum.map(&string_value/1)
-    |> Enum.reject(&is_nil/1)
-    |> Enum.uniq()
-    |> Enum.sort()
-    |> empty_list_to_nil()
-  end
-
-  defp string_value(value) when value in [nil, ""], do: nil
-
-  defp string_value(value) when is_binary(value) do
-    case String.trim(value) do
-      "" -> nil
-      trimmed -> trimmed
-    end
-  end
-
-  defp string_value(value) when is_atom(value), do: value |> Atom.to_string() |> string_value()
-  defp string_value(value) when is_integer(value), do: Integer.to_string(value)
-  defp string_value(value), do: value |> to_string() |> string_value()
+  defp normalized_number_values(values),
+    do: StationReservationEvidence.normalized_number_values(values)
 
   defp ignored_contact_ids(contacts) do
     contacts
