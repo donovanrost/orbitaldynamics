@@ -110,6 +110,7 @@ defmodule OrbitalDynamics.TimelineFeedback do
     ReconciliationTimingEvidence,
     RealizedIdentity,
     RealizedStatus,
+    ResourceFeedback,
     StationCalendarContext,
     SuccessFactor,
     ThermalContext,
@@ -1866,95 +1867,14 @@ defmodule OrbitalDynamics.TimelineFeedback do
 
   defp target_priority_feedback_value(_row), do: nil
 
-  defp resource_margin_feedback(rows) do
-    rows
-    |> Enum.reject(&operational_feedback_excluded?/1)
-    |> Enum.reduce(%{}, fn row, feedback ->
-      spacecraft_id = resource_feedback_spacecraft_id(row)
-      margins = resource_margin_values(row)
+  defp resource_margin_feedback(rows), do: ResourceFeedback.margin_overrides(rows)
 
-      if spacecraft_id in [nil, ""] or margins == %{} do
-        feedback
-      else
-        Map.update(feedback, spacecraft_id, margins, &merge_resource_margin_feedback(&1, margins))
-      end
-    end)
-    |> sort_nested_feedback_map()
-  end
+  defp resource_margin_feedback_trust_value(row), do: ResourceFeedback.margin_trust_value(row)
 
-  defp resource_margin_values(row) do
-    %{
-      "fuel_margin" => first_feedback_resource_number(row, ["fuel_margin"]),
-      "power_margin" => first_feedback_resource_number(row, ["power_margin"]),
-      "storage_margin" => first_feedback_resource_number(row, ["storage_margin"]),
-      "downlink_margin" =>
-        first_feedback_resource_number(row, ["downlink_margin", "downlink_capacity_margin"]),
-      "thermal_margin_c" => first_feedback_resource_number(row, ["thermal_margin_c"]),
-      "battery_capacity_wh" => first_feedback_resource_number(row, ["battery_capacity_wh"]),
-      "battery_energy_used_wh" => first_feedback_resource_number(row, ["battery_energy_used_wh"]),
-      "battery_energy_generated_wh" =>
-        first_feedback_resource_number(row, ["battery_energy_generated_wh"]),
-      "battery_state_of_charge" =>
-        first_feedback_resource_number(row, ["battery_state_of_charge"])
-    }
-    |> Enum.reject(fn {_field, value} -> not is_number(value) end)
-    |> Map.new(fn {field, value} -> {field, value * 1.0} end)
-  end
+  defp resource_availability_feedback(rows), do: ResourceFeedback.availability_overrides(rows)
 
-  defp resource_margin_feedback_trust_value(row) do
-    if operational_feedback_excluded?(row) do
-      nil
-    else
-      case resource_margin_values(row) do
-        values when map_size(values) > 0 -> values
-        _values -> nil
-      end
-    end
-  end
-
-  defp merge_resource_margin_feedback(existing, incoming) do
-    Map.merge(existing, incoming, fn field, current, candidate ->
-      merge_resource_margin_value(field, current, candidate)
-    end)
-  end
-
-  defp merge_resource_margin_value(field, current, candidate)
-       when field in ["battery_energy_used_wh", "battery_energy_generated_wh"],
-       do: max(current, candidate)
-
-  defp merge_resource_margin_value(_field, current, candidate), do: min(current, candidate)
-
-  defp resource_availability_feedback(rows) do
-    rows
-    |> Enum.reject(&operational_feedback_excluded?/1)
-    |> Enum.reduce(%{}, fn row, feedback ->
-      spacecraft_id = resource_feedback_spacecraft_id(row)
-      availability = resource_availability_values(row)
-
-      if spacecraft_id in [nil, ""] or availability == %{} do
-        feedback
-      else
-        Map.update(
-          feedback,
-          spacecraft_id,
-          availability,
-          &merge_resource_availability_feedback(&1, availability)
-        )
-      end
-    end)
-    |> sort_nested_feedback_map()
-  end
-
-  defp resource_availability_feedback_trust_value(row) do
-    if operational_feedback_excluded?(row) do
-      nil
-    else
-      case resource_availability_values(row) do
-        values when map_size(values) > 0 -> values
-        _values -> nil
-      end
-    end
-  end
+  defp resource_availability_feedback_trust_value(row),
+    do: ResourceFeedback.availability_trust_value(row)
 
   defp maneuver_execution_uncertainty_feedback(rows) do
     rows
@@ -1992,133 +1912,9 @@ defmodule OrbitalDynamics.TimelineFeedback do
     end
   end
 
-  defp resource_availability_values(row) do
-    %{
-      "payload_available" =>
-        first_feedback_resource_boolean(row, ["payload_available", "payload_available?"]),
-      "antenna_available" =>
-        first_feedback_resource_boolean(row, ["antenna_available", "antenna_available?"]),
-      "degraded" => first_feedback_resource_boolean(row, ["degraded", "degraded?"]),
-      "spacecraft_available" => first_feedback_resource_boolean(row, ["spacecraft_available"]),
-      "spacecraft_availability" =>
-        first_feedback_resource_boolean(row, ["spacecraft_availability"]),
-      "mode" => first_feedback_resource_value(row, ["mode"]),
-      "incompatible_activity_types" =>
-        first_feedback_resource_value(row, ["incompatible_activity_types"]),
-      "suppressed_activity_types" =>
-        first_feedback_resource_value(row, ["suppressed_activity_types"])
-    }
-    |> Enum.reject(fn
-      {_field, nil} -> true
-      {_field, ""} -> true
-      {_field, []} -> true
-      {_field, _value} -> false
-    end)
-    |> Map.new()
-  end
-
-  defp merge_resource_availability_feedback(existing, incoming) do
-    Map.merge(existing, incoming, fn
-      field, current, candidate when field in ["payload_available", "antenna_available"] ->
-        current != false and candidate != false
-
-      field, current, candidate
-      when field in ["spacecraft_available", "spacecraft_availability"] ->
-        current != false and candidate != false
-
-      "degraded", current, candidate ->
-        truthy?(current) or truthy?(candidate)
-
-      field, current, candidate
-      when field in ["incompatible_activity_types", "suppressed_activity_types"] ->
-        merge_string_lists(current, candidate)
-
-      "mode", current, candidate ->
-        degraded_mode_preference(current, candidate)
-
-      _field, _current, candidate ->
-        candidate
-    end)
-  end
-
-  defp resource_feedback_spacecraft_id(row) do
-    [
-      row,
-      Map.get(row, "realized_activity_context", %{}),
-      Map.get(row, "realized_activity", %{})
-    ]
-    |> Enum.find_value(fn source ->
-      [
-        Map.get(source, "spacecraft_id"),
-        Map.get(source, "scenario_id"),
-        Map.get(source, "resource_spacecraft_id"),
-        get_in(source, ["metadata", "spacecraft_id"]),
-        get_in(source, ["provenance", "spacecraft_id"])
-      ]
-      |> Enum.find_value(&stable_scalar_identifier/1)
-    end)
-  end
-
-  defp first_feedback_resource_number(row, fields) do
-    case first_feedback_resource_value(row, fields) do
-      value -> numeric_value(value)
-    end
-  end
-
-  defp first_feedback_resource_boolean(row, fields) do
-    case first_feedback_resource_value(row, fields) |> boolean_value() do
-      value when is_boolean(value) -> value
-      nil -> nil
-    end
-  end
-
-  defp first_feedback_resource_value(row, fields) do
-    sources = [
-      row,
-      Map.get(row, "realized_activity_context", %{}),
-      Map.get(row, "realized_activity", %{})
-    ]
-
-    Enum.reduce_while(sources, nil, fn source, _value ->
-      case first_feedback_resource_source_value(source, fields) do
-        {:ok, value} -> {:halt, value}
-        :error -> {:cont, nil}
-      end
-    end)
-  end
-
-  defp first_feedback_resource_source_value(source, fields) do
-    Enum.reduce_while(fields, :error, fn field, _value ->
-      case feedback_resource_value(source, field) do
-        nil -> {:cont, :error}
-        value -> {:halt, {:ok, value}}
-      end
-    end)
-  end
-
-  defp feedback_resource_value(%{} = source, field) when is_list(field), do: get_in(source, field)
-  defp feedback_resource_value(%{} = source, field), do: Map.get(source, field)
-  defp feedback_resource_value(_source, _field), do: nil
+  defp resource_feedback_spacecraft_id(row), do: ResourceFeedback.spacecraft_id(row)
 
   defp stable_scalar_identifier(value), do: FeedbackAggregation.stable_identifier(value)
-
-  defp merge_string_lists(current, candidate) do
-    [current, candidate]
-    |> List.flatten()
-    |> Enum.map(&stringify_scalar/1)
-    |> Enum.reject(&(&1 in [nil, ""]))
-    |> Enum.uniq()
-    |> Enum.sort()
-  end
-
-  defp degraded_mode_preference(current, candidate) do
-    Enum.find(
-      [current, candidate],
-      &(stringify_scalar(&1) in ["safe", "degraded", "degraded_mode"])
-    ) ||
-      candidate ||
-      current
-  end
 
   defp sort_nested_feedback_map(feedback) do
     feedback
@@ -2465,7 +2261,6 @@ defmodule OrbitalDynamics.TimelineFeedback do
 
   defp stringify_keys(value), do: ArtifactValue.stringify_keys(value)
   defp stringify_scalar(value), do: ArtifactValue.stringify_scalar(value)
-  defp truthy?(value), do: ArtifactValue.truthy?(value)
   defp boolean_value(value), do: ArtifactValue.boolean_value(value)
   defp compact_map(map), do: ArtifactValue.compact_map(map)
   defp maybe_put(map, key, value), do: ArtifactValue.maybe_put(map, key, value)
