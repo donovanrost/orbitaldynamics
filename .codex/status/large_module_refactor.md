@@ -6,54 +6,41 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-StationCalendar reservation summary-value extraction.
+ResourceProjection activity evidence validation extraction.
 
 Status:
-Completed and pushed.
+Selected; implementation pending.
 
 Selected boundary:
-Extract reservation ID/status/owner projection, status and match-status
-routing, hold detection, expiration aggregation, row ID projection, and
-generic row-value grouping into
-`OrbitalDynamics.Communications.StationCalendar.ReservationSummaryValues`.
-Preserve all public StationCalendar report, reservation, review, hold, and
-import-readiness summary facades.
+Extract completed-fraction, station-capacity, latency, resource-quantity, and
+nested actual-data-volume evidence validation into
+`OrbitalDynamics.ResourceProjection.ActivityInputValidation`. Centralize the
+advertised actual-data-volume evidence paths with that owner. Preserve all
+public ResourceProjection report and flow-summary facades.
 
 Selection evidence:
-- Live re-ranking places `communications/station_calendar.ex` at 2,425
+- Live re-ranking places `resource_projection.ex` at 2,418
   lines, the largest eligible facade behind Schema, Timeline,
   MissionPlan.Activity, and the root public facade.
-- The selected helper family spans lines 1,195-1,380 and exclusively owns
-  normalized reservation values and non-directional routing maps.
-- Reservation, review, hold, and hold-import-readiness summaries are the only
-  consumers of these projections.
-- Direction/station routing, source-row normalization, provider contention,
-  overlay matching, approval policy, report construction, public clauses, and
-  artifact contracts remain outside this boundary.
-- Existing scalar/list flattening, status normalization, one-to-many and
-  positional ID/status pairing, nil omission, stable deduplication/sorting,
-  hold-token matching, numeric-string expiration normalization, frequency
-  counts, empty behavior, and row-value grouping must remain unchanged.
+- The selected helper family spans lines 822-1,042 and exclusively owns four
+  validation decisions and their evidence discovery.
+- Activity-input normalization is the only consumer of the validation entry
+  points; actual-volume projection also consumes the shared evidence paths.
+- Activity identity/type normalization, source-window normalization, resource
+  arithmetic, flow construction, approval policy, public clauses, and artifact
+  contracts remain outside this boundary.
+- Existing top-level/metadata/model/source precedence, recursive capacity
+  evidence discovery, first-error ordering, unit-interval/percent bounds,
+  non-negative latency/resource guards, nil handling, numeric-string parsing,
+  path presence semantics, exact reason strings, and path metadata must remain
+  unchanged.
 
 Implementation:
-- Selection was recorded and pushed in `162c6a73`.
-- Implementation was committed and pushed in `def426ce`.
-- `communications/station_calendar.ex` moved from 2,425 to 2,268 lines.
-- `OrbitalDynamics.Communications.StationCalendar.ReservationSummaryValues`
-  is a 210-line owner reached through private facade delegates.
+- Pending.
 
 Verification:
-- Strict warning-clean compilation passed across 3,969 files.
-- The focused StationCalendar file and six adjacent campaign-strategy and
-  CandidateRefresh replay consumers passed together: 52 tests.
-- Exact old/new public parity passed for 6 complete
-  reservation-to-review-to-hold-to-import-readiness chains covering empty
-  evidence, expired/active/missing expirations, provider contention,
-  held/on-hold tokens, atom and numeric IDs, and deadline evaluation.
-- `mix xref callers` reports only the StationCalendar facade.
-- The removed value/routing helpers and two now-unused normalization wrappers
-  are absent apart from thin delegates, formatting and `git diff --check`
-  passed, and the final diff is ownership-only.
+- Pending focused baseline, strict compilation, exact old/new public parity,
+  focused and adjacent tests, static ownership checks, and xref review.
 
 Behavior/schema changes:
 None intended.
@@ -65,8 +52,8 @@ and implemented in `def426ce`.
 dedicated reservation-summary values owner is 210 lines.
 
 Next candidate:
-Re-rank the live checkout and select the next cohesive facade-preserving
-boundary.
+Complete and verify the selected ResourceProjection activity evidence
+validation extraction.
 
 Blocked:
 No.
