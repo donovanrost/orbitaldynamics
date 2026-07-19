@@ -139,11 +139,11 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
   @provider_counteroffer_plan_impact_statuses ~w(clear review_required)
   @command_contact_directions ~w(command uplink)
   @stable_id_pattern ~r/^[A-Za-z0-9][A-Za-z0-9._:@-]*$/
-  @provider_result_map_value_keys ~w(result results outcome outcomes status state disposition provider_result provider_results provider_outcome provider_outcomes provider_status provider_state provider_code code reason reasons message messages error errors details metadata provider diagnostics)
   alias OrbitalDynamics.Policy
   alias OrbitalDynamics.Communications.StationCalendar.ProviderCounteroffer
   alias OrbitalDynamics.Communications.StationCalendar.ProviderCounterofferReport
   alias OrbitalDynamics.Communications.StationCalendar.ProviderCounterofferReviewSummary
+  alias OrbitalDynamics.Communications.StationCalendar.ProviderResult
 
   @doc """
   Declares the station-calendar provider adapter contract and known limits.
@@ -205,7 +205,7 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
       provider_capacity_percent_paths: @provider_capacity_percent_paths,
       provider_capacity_value_paths: capacity_value_path_metadata(@provider_capacity_value_paths),
       provider_direction_aliases: @provider_direction_aliases,
-      provider_result_map_value_keys: @provider_result_map_value_keys,
+      provider_result_map_value_keys: ProviderResult.map_value_keys(),
       command_contact_directions: @command_contact_directions,
       provider_counteroffer_actions: ["none", "review_provider_counteroffer"],
       provider_counteroffer_negotiation_states: ProviderCounteroffer.negotiation_states(),
@@ -2565,7 +2565,7 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
       "contact_type" => contact["type"] || contact["activity_type"] || "planned_contact",
       "direction" => contact_direction(contact),
       "contact_success" => contact["contact_success"],
-      "contact_result" => provider_result_artifact_value(contact["contact_result"]),
+      "contact_result" => ProviderResult.artifact_value(contact["contact_result"]),
       "contact_success_factor" => unit_interval_factor(contact, "contact_success_factor"),
       "contact_success_factor_source" =>
         unit_interval_factor_source(
@@ -2574,7 +2574,7 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
           "contact_success_factor_source"
         ),
       "command_success" => contact["command_success"],
-      "command_result" => provider_result_artifact_value(contact["command_result"]),
+      "command_result" => ProviderResult.artifact_value(contact["command_result"]),
       "command_success_factor" => unit_interval_factor(contact, "command_success_factor"),
       "command_success_factor_source" =>
         unit_interval_factor_source(
@@ -2832,11 +2832,11 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
           "invalid_feedback_confidence_reason" => row["invalid_feedback_confidence_reason"],
           "source_contact_candidate" => row["source_contact_candidate"],
           "contact_success" => row["contact_success"],
-          "contact_result" => provider_result_artifact_value(row["contact_result"]),
+          "contact_result" => ProviderResult.artifact_value(row["contact_result"]),
           "contact_success_factor" => row["contact_success_factor"],
           "contact_success_factor_source" => row["contact_success_factor_source"],
           "command_success" => row["command_success"],
-          "command_result" => provider_result_artifact_value(row["command_result"]),
+          "command_result" => ProviderResult.artifact_value(row["command_result"]),
           "command_success_factor" => row["command_success_factor"],
           "command_success_factor_source" => row["command_success_factor_source"],
           "trust_boundary" => row["trust_boundary"],
@@ -3583,79 +3583,6 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
   defp stringify_keys(nil), do: nil
   defp stringify_keys(value) when is_atom(value), do: Atom.to_string(value)
   defp stringify_keys(value), do: value
-
-  defp provider_result_values(result) when is_binary(result) do
-    result
-    |> String.split(",", trim: true)
-    |> Enum.map(&String.trim/1)
-    |> Enum.reject(&(&1 == ""))
-  end
-
-  defp provider_result_values(values) when is_list(values) do
-    Enum.flat_map(values, &provider_result_values/1)
-  end
-
-  defp provider_result_values(%{} = result) do
-    Enum.flat_map(@provider_result_map_value_keys, fn key ->
-      result
-      |> Map.get(key)
-      |> provider_result_values()
-    end)
-  end
-
-  defp provider_result_values(nil), do: []
-
-  defp provider_result_values(result) when is_atom(result) do
-    result
-    |> Atom.to_string()
-    |> provider_result_values()
-  end
-
-  defp provider_result_values(result)
-       when is_integer(result) or is_float(result) or is_boolean(result) do
-    result
-    |> to_string()
-    |> provider_result_values()
-  end
-
-  defp provider_result_values(_result), do: []
-
-  defp provider_result_artifact_value(nil), do: nil
-
-  defp provider_result_artifact_value(result) when is_binary(result) do
-    case String.trim(result) do
-      "" -> nil
-      _value -> result
-    end
-  end
-
-  defp provider_result_artifact_value(results) when is_list(results) do
-    case provider_result_values(results) do
-      [] -> nil
-      values -> Enum.join(values, ",")
-    end
-  end
-
-  defp provider_result_artifact_value(%{} = result) do
-    case provider_result_values(result) do
-      [] -> nil
-      values -> Enum.join(values, ",")
-    end
-  end
-
-  defp provider_result_artifact_value(result) when is_integer(result),
-    do: Integer.to_string(result)
-
-  defp provider_result_artifact_value(result) when is_float(result), do: Float.to_string(result)
-  defp provider_result_artifact_value(result) when is_boolean(result), do: Atom.to_string(result)
-
-  defp provider_result_artifact_value(result) when is_atom(result) do
-    result
-    |> Atom.to_string()
-    |> provider_result_artifact_value()
-  end
-
-  defp provider_result_artifact_value(_result), do: nil
 
   defp compact_map(map) do
     map
