@@ -9,7 +9,7 @@ Current slice:
 CadenceImport wrapped suppression-report test family split.
 
 Status:
-Selected; implementation has not started.
+Complete and published in `4fb90113`.
 
 Selected boundary:
 Move the two contiguous candidate-refresh wrapped suppression report tests into
@@ -35,21 +35,34 @@ Selection evidence:
   this ownership-only boundary.
 
 Verification:
-Pending: two-test focused baseline, mechanical AST-preserving move, strict
-compile, focused new/original/combined CadenceImport tests, relevant schema
-contracts, structural/static checks, and bounded review.
+- The pre-move focused baseline passed both selected tests from selection commit
+  `0cb9a051`.
+- Strict test compilation passed with warnings as errors across 3,804 files.
+- The new focused module passed 2 tests; the reduced original passed 86 tests;
+  the five-file combined CadenceImport proof passed all 96 tests.
+- `cadence_import_contracts_test.exs` passed all 4 tests.
+- An exact AST comparison against `0cb9a051` proved that the new module contains
+  only `use`, the `CadenceImport`/`Schema` alias, and the two selected test ASTs,
+  while the original is exactly its former body minus those tests.
+- Formatting, tracked and new-file diff checks, exact static test counts,
+  temporary-checker absence, and the resource-projection/provider-reservation
+  seam passed.
+- Bounded local review found no assertion, fixture-value, production, public API,
+  schema, deterministic-output, policy-evidence, or source-path change.
+- The original ledger fell from 14,402 to 14,046 lines; the focused module is
+  361 lines.
 
 Behavior/schema changes:
 None. This is a test-only ownership split with all assertions preserved.
 
 Last completed slice:
-CadenceImport wrapped provider-counteroffer test family split, selected in
-`b0e32756` and implemented in `4afdcafc`.
+CadenceImport wrapped suppression-report test family split, selected in
+`0cb9a051` and implemented in `4fb90113`.
 
 Next candidate:
-Continue with another independently-fixtured CadenceImport responsibility or
-return to production facade mapping after the suppression wrapper family is
-isolated.
+Refresh the reduced CadenceImport family seams and production facade map, then
+select another cohesive boundary with independent fixtures or a bounded helper
+surface.
 
 Blocked:
 No.
