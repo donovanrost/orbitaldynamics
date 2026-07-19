@@ -6,32 +6,32 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema validation-context JSON Schema extraction.
+TimelineFeedback provider-result normalization extraction.
 
 Status:
 Selected; implementation has not started.
 
 Selected boundary:
-Extract validation issues, remediation, batch/migration/skipped rows, validation
-records, registry conditions, model-acceptance and safety-case rows, reference
-reports, and checks into
-`OrbitalDynamics.Schema.ValidationContextJsonSchema`. Preserve the existing
-private Schema helper seams.
+Extract provider-result flattening, token outcome classification, and artifact
+scalar normalization into
+`OrbitalDynamics.TimelineFeedback.ProviderResult`. Preserve the existing
+private outcome and artifact-value seams used by `TimelineFeedback`.
 
 Selection evidence:
-- `schema.ex` is 6,764 lines; the selected contiguous validation-schema cluster
-  spans 3,726-3,788.
-- The cluster has one responsibility: construct reusable validation, migration,
-  acceptance, and safety-case evidence schemas.
-- Stable-ID patterns, validation levels, and the registry-backed batch report
-  document remain facade-owned inputs to the new owner.
-- Registry data, JSON Schema export, contract dispatch, unrelated validation,
-  and all public `Schema` APIs remain outside.
+- Live re-ranking shows `timeline_feedback.ex` is the second-largest production
+  module at 5,463 lines after `schema.ex` reached 6,764 lines.
+- The selected provider-result seams span 4,331-4,343 and 4,355-4,468 and share
+  one responsibility with no timeline reconciliation state dependency.
+- The provider result map keys remain capability/facade data passed into the new
+  owner; completion-fraction weighting remains in `TimelineFeedback`.
+- The prior validation-context Schema candidate was rejected during bounded
+  review because it added 48 lines of aggregation for only 6 facade lines while
+  specialized modules already owned the behavior.
 
 Verification:
-Pending: focused validation-schema baselines, exact old/new JSON Schema
-documents, strict compile, broader Schema contract tests, JSON Schema export
-checks, static single ownership, runtime xref, and bounded review.
+Pending: focused timeline-feedback baselines, exact old/new public artifact
+outputs, strict compile, broader timeline-feedback tests, capability checks,
+static single ownership, runtime xref, and bounded review.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
@@ -42,8 +42,8 @@ implemented in `f6d4ad0b`. `schema.ex` moved from 6,786 to 6,764 lines; the
 dedicated owner is 77 lines.
 
 Next candidate:
-Re-inventory remaining Schema families after validation-context JSON Schema
-construction has one production owner.
+Re-inventory remaining TimelineFeedback normalization/reconciliation families
+after provider-result normalization has one production owner.
 
 Blocked:
 No.
