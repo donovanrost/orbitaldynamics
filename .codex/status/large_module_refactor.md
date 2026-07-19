@@ -9,7 +9,7 @@ Current slice:
 CadenceImport import-readiness policy extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and published.
 
 Selected boundary:
 Extract Cadence-import presence detection and adapter import-status resolution
@@ -29,17 +29,28 @@ Selection evidence:
   schemas, ordering, and manifest construction remain outside the boundary.
 
 Verification:
-Pending: focused readiness baselines, exact presence/status decision matrix,
-strict compile, all combined CadenceImport tests, schema contracts, static
-single ownership, runtime xref, and bounded review.
+- Strict test compile passed with 3,809 files and warnings as errors.
+- Three focused readiness tests passed with 69 excluded.
+- All combined CadenceImport tests passed: 96 tests.
+- CadenceImport schema contracts passed: 4 tests.
+- A 16-case direct decision matrix covered explicit boolean presence,
+  missing-status precedence, inferred ID/type/map presence, invalid/missing/
+  not-applicable states, approval-policy overrides, ready state, and fallback.
+- Formatting and diff checks passed, and no temporary proof files remain.
+- Static ownership checks confirmed both policies and the string predicate have
+  one production implementation behind the preserved facade callback seams.
+- Runtime xref confirmed `cadence_import.ex` is the direct consumer of
+  `import_readiness_policy.ex`.
+- Bounded local review found no callback, clause-precedence, row-shape,
+  ordering, or fallback changes.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-CadenceImport source-identifier policy extraction, selected in `94797583` and
-implemented in `fa5fad26`. `cadence_import.ex` moved from 3,604 to 3,573 lines;
-the extracted owner is 52 lines.
+CadenceImport import-readiness policy extraction, selected in `a5edf9e8` and
+implemented in `27cbfdb9`. `cadence_import.ex` moved from 3,573 to 3,554 lines;
+the extracted owner is 29 lines.
 
 Next candidate:
 Return to the remaining CadenceImport row-building or manifest-routing helpers
