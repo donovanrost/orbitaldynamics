@@ -6,52 +6,39 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-ResourceProjection pressure-risk projection extraction.
+OperationalReadiness adapter-boundary evidence extraction.
 
 Status:
-Completed and pushed.
+Selected; implementation pending.
 
 Selected boundary:
-Extract row-to-policy-risk construction for storage overflow, downlink
-shortfall, battery depletion, negative thermal margin, spacecraft
-unavailability, and activity availability into
-`OrbitalDynamics.ResourceProjection.PressureRisks`. Preserve all public
-ResourceProjection report facades.
+Extract adapter-shaped context detection, nested trust-boundary collection,
+trust-boundary token classification, and declared/missing/untrusted frequency
+projection into
+`OrbitalDynamics.OperationalReadiness.AdapterBoundaryEvidence`. Preserve all
+public OperationalReadiness report and summary facades.
 
 Selection evidence:
-- Live re-ranking places `resource_projection.ex` at 2,504 lines, the largest
+- Live re-ranking places `operational_readiness.ex` at 2,500 lines, the largest
   eligible facade behind Schema, Timeline, MissionPlan.Activity, and the root
   public facade.
-- The selected helper family spans lines 1,642-1,728 and exclusively converts
-  an already-projected resource row into policy risk maps.
-- Approval-policy application is the single consumer of the risk builder.
-- Resource arithmetic, activity flow, first-event projection, pressure
-  type/status classification, approval requirements, input normalization,
-  public clauses, and artifact contracts remain outside this boundary.
-- Existing risk order, severity, reason strings, units, numeric guards,
-  activity-availability filtering, duplicate behavior, and empty-list behavior
-  must remain unchanged.
+- The selected helper family spans lines 2,202-2,319 and exclusively derives
+  adapter trust-boundary status counts from the source artifact, review rows,
+  and import rows.
+- Readiness evidence construction is the single consumer of the classifier.
+- Adapter gate decisions, generic count projection, other evidence families,
+  report/summary construction, public clauses, and artifact contracts remain
+  outside this boundary.
+- Existing direct and nested adapter-key detection, blank-value rejection,
+  trust-boundary precedence, missing/untrusted token matching, substring
+  matching, duplicate counting, and empty-map behavior must remain unchanged.
 
 Implementation:
-- Selection was recorded and pushed in `351c84ce`.
-- Implementation was committed and pushed in `5dd9dd79`.
-- `resource_projection.ex` moved from 2,504 to 2,418 lines.
-- `OrbitalDynamics.ResourceProjection.PressureRisks` is a 91-line owner
-  reached through a private facade delegate.
+- Pending.
 
 Verification:
-- Strict warning-clean compilation passed across 3,964 files.
-- The focused ResourceProjection file and five adjacent review, strategy,
-  replay-routing, Cadence-import, and schema consumers passed together:
-  137 tests.
-- Exact old/new public parity passed for 8 cases covering combined storage,
-  downlink, battery, and thermal pressure; spacecraft unavailability;
-  payload/antenna unavailability; nominal and empty projections; report
-  passthrough; and public-error behavior.
-- `mix xref callers` reports only the ResourceProjection facade.
-- The removed risk helpers are absent from the facade apart from the thin
-  delegate, formatting and `git diff --check` passed, and the final diff is
-  ownership-only.
+- Pending focused baseline, strict compilation, exact old/new public parity,
+  focused and adjacent tests, static ownership checks, and xref review.
 
 Behavior/schema changes:
 None intended.
@@ -63,8 +50,8 @@ ResourceProjection pressure-risk projection extraction, selected in
 pressure-risk owner is 91 lines.
 
 Next candidate:
-Re-rank the live checkout and select the next cohesive facade-preserving
-boundary.
+Complete and verify the selected OperationalReadiness adapter-boundary
+evidence extraction.
 
 Blocked:
 No.
