@@ -9,7 +9,7 @@ Current slice:
 Policy activity-feasibility matcher extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and pushed in `2afb9c0b`.
 
 Selected boundary:
 Extract `approval_rule_feasibility_match?/2`, activity provenance/context,
@@ -31,18 +31,26 @@ Selection evidence:
   boundary.
 
 Verification:
-Pending: focused activity target/direction/provenance/spacecraft/station
-baselines, exact old/new activity decision proofs, strict compile, full Policy
-tests, relevant schema/contracts, static single ownership, runtime xref, and
-bounded review.
+- Strict warnings-as-errors compile passed across 3,850 files.
+- Four focused activity target/direction/provenance/spacecraft/station tests
+  passed.
+- All 89 Policy tests passed.
+- The Policy schema-contract test passed.
+- Exact old/new comparison passed for 55 built-in bundle/activity decisions
+  spanning top-level and nested feasibility direction, identity, status, and
+  feedback provenance evidence.
+- Static search confirms one activity matcher owner with seven explicit private
+  Policy seams; three now-unused cross-family normalization seams were retired.
+- Runtime xref confirms Policy owns the dependency on ActivityMatcher.
+- Formatting, diff checks, and bounded review passed.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-Policy branch-event matcher extraction, selected in `cac7d7d9` and implemented
-in `62a73bed`. `policy.ex` moved from 4,652 to 4,378 lines; the dedicated matcher
-is 289 lines.
+Policy activity-feasibility matcher extraction, selected in `8b078935` and
+implemented in `2afb9c0b`. `policy.ex` moved from 4,378 to 4,220 lines; the
+dedicated matcher is 168 lines.
 
 Next candidate:
 Re-inventory Policy requirement-rule matching after all risk/event/activity
