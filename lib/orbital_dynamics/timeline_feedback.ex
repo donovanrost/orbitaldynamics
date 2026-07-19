@@ -94,6 +94,7 @@ defmodule OrbitalDynamics.TimelineFeedback do
     ReconciliationCommunicationsEvidence,
     ReconciliationIdentity,
     ReconciliationObservationEvidence,
+    ReconciliationResourceEvidence,
     RealizedIdentity,
     RealizedStatus,
     SuccessFactor,
@@ -2692,48 +2693,6 @@ defmodule OrbitalDynamics.TimelineFeedback do
         ),
       "maneuver_result" => provider_result_artifact_value(value(realized, "maneuver_result")),
       "completed_fraction" => value(realized, "completed_fraction"),
-      "fuel_margin" => realized_or_planned(realized, planned, "fuel_margin"),
-      "power_margin" => realized_or_planned(realized, planned, "power_margin"),
-      "storage_margin" => realized_or_planned(realized, planned, "storage_margin"),
-      "downlink_margin" => realized_or_planned(realized, planned, "downlink_margin"),
-      "battery_capacity_wh" => realized_or_planned(realized, planned, "battery_capacity_wh"),
-      "battery_energy_used_wh" =>
-        realized_or_planned(realized, planned, "battery_energy_used_wh"),
-      "battery_energy_generated_wh" =>
-        realized_or_planned(realized, planned, "battery_energy_generated_wh"),
-      "battery_state_of_charge" =>
-        realized_or_planned(realized, planned, "battery_state_of_charge"),
-      "spacecraft_available" => realized_or_planned(realized, planned, "spacecraft_available"),
-      "planned_spacecraft_available" => value(planned, "spacecraft_available"),
-      "realized_spacecraft_available" => value(realized, "spacecraft_available"),
-      "spacecraft_available_match_status" =>
-        match_status(
-          value(planned, "spacecraft_available"),
-          value(realized, "spacecraft_available")
-        ),
-      "payload_available" => realized_or_planned(realized, planned, "payload_available"),
-      "planned_payload_available" => value(planned, "payload_available"),
-      "realized_payload_available" => value(realized, "payload_available"),
-      "payload_available_match_status" =>
-        match_status(value(planned, "payload_available"), value(realized, "payload_available")),
-      "antenna_available" => realized_or_planned(realized, planned, "antenna_available"),
-      "planned_antenna_available" => value(planned, "antenna_available"),
-      "realized_antenna_available" => value(realized, "antenna_available"),
-      "antenna_available_match_status" =>
-        match_status(value(planned, "antenna_available"), value(realized, "antenna_available")),
-      "degraded" => realized_or_planned(realized, planned, "degraded"),
-      "planned_degraded" => value(planned, "degraded"),
-      "realized_degraded" => value(realized, "degraded"),
-      "degraded_match_status" =>
-        match_status(value(planned, "degraded"), value(realized, "degraded")),
-      "mode" => realized_or_planned(realized, planned, "mode"),
-      "planned_mode" => value(planned, "mode"),
-      "realized_mode" => value(realized, "mode"),
-      "mode_match_status" => match_status(value(planned, "mode"), value(realized, "mode")),
-      "incompatible_activity_types" =>
-        realized_or_planned(realized, planned, "incompatible_activity_types"),
-      "suppressed_activity_types" =>
-        realized_or_planned(realized, planned, "suppressed_activity_types"),
       "station_availability" => realized_or_planned(realized, planned, "station_availability"),
       "station_contention_status" =>
         realized_or_planned(realized, planned, "station_contention_status"),
@@ -2792,6 +2751,7 @@ defmodule OrbitalDynamics.TimelineFeedback do
     |> Map.merge(ReconciliationCommunicationsEvidence.context(planned, realized))
     |> Map.merge(ReconciliationIdentity.context(planned, realized))
     |> Map.merge(ReconciliationObservationEvidence.context(planned, realized))
+    |> Map.merge(ReconciliationResourceEvidence.context(planned, realized))
     |> Map.merge(execution_uncertainty_context)
     |> put_duplicate_realized_feedback(realized_matches)
     |> ReconciliationIdentity.put_mismatch_summary()
