@@ -9,7 +9,7 @@ Current slice:
 RecommendationRiskContext operational-feedback extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `8ee8763d`.
 
 Selected boundary:
 Extract the operational-feedback context-key registry, risk classification,
@@ -31,19 +31,39 @@ Selection evidence:
   registries and assemblers remain in the facade.
 
 Verification:
-Pending.
+- Strict warnings-as-errors compile passed across 3,890 files.
+- Focused strategy-recommendation pressure-event coverage passed: 1 test. The
+  test file emits two pre-existing `0.0` pattern warnings, so its
+  warnings-as-errors baseline and post-extraction runs abort after the passing
+  assertion; the post-extraction proof was therefore also run without
+  warnings-as-errors and passed.
+- Adjacent operational-feedback provenance, source-feedback provenance,
+  Cadence comparison-report, and operator-review strategy-artifact coverage
+  passed under warnings-as-errors: 19 tests.
+- Exact public old/new comparison against `dc4a34a0` passed the ordered 77-key
+  registry and 9 input cases covering scalar/list values, atom-key
+  normalization, all three matching risk types, mixed risks, ignored risks,
+  and invalid inputs.
+- `mix xref callers
+  OrbitalDynamics.RecommendationRiskContext.OperationalFeedback` reports only
+  the RecommendationRiskContext facade as a runtime caller.
+- Static ownership review confirms the registry, classifier, normalizer,
+  collector, and assembler live in the new owner; the facade retains only the
+  two public delegates.
+- `git diff --check` passed.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-Study.Manifest input-field extraction, selected in `6f2faa18` and implemented
-in `2cd566e6`. `study/manifest.ex` moved from 4,489 to 4,260 lines; the
-dedicated owner is 195 lines.
+RecommendationRiskContext operational-feedback extraction, selected in
+`dc4a34a0` and implemented in `8ee8763d`.
+`recommendation_risk_context.ex` moved from 4,033 to 3,754 lines; the dedicated
+owner is 158 lines.
 
 Next candidate:
-Implement and verify the selected RecommendationRiskContext operational-
-feedback extraction.
+Re-rank the remaining large modules and select the next cohesive,
+facade-preserving responsibility boundary.
 
 Blocked:
 No.
