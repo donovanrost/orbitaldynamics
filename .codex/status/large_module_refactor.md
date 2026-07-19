@@ -6,42 +6,32 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Study.Manifest input field extraction.
+RecommendationRiskContext operational-feedback extraction.
 
 Status:
-Completed and pushed in `2cd566e6`.
+Selected; implementation not started.
 
 Selected boundary:
-Extract required/optional scalar, number, boolean, string, identifier, map,
-list, integer, vector, atom, station-availability, and interval field readers
-into `OrbitalDynamics.Study.Manifest.InputField`. Preserve the existing private
-field-reader seams in the Manifest facade.
+Extract the operational-feedback context-key registry, risk classification,
+key normalization, value collection, and public context assembly into
+`OrbitalDynamics.RecommendationRiskContext.OperationalFeedback`. Preserve
+`operational_feedback_context_keys/0` and `operational_feedback_context/1` as
+public facade delegates.
 
 Selection evidence:
-- Live re-ranking places `study/manifest.ex` at 4,489 lines.
-- The selected 4,193-4,476 helper family is a pure typed field-reader layer
-  shared across manifest parsing branches.
-- Manifest source routing, domain-specific assembly, run options, planning
-  state interpretation, and public load/validation APIs remain in the facade.
-- Field-reference normalization and validation-error shaping remain with their
-  existing dedicated owners.
+- Live re-ranking places `recommendation_risk_context.ex` at 4,033 lines,
+  behind the larger Schema, Timeline, TimelineFeedback, MissionPlan.Activity,
+  and Study.Manifest facades.
+- The selected 973-1,052 registry and 3,651-3,834 assembly form one cohesive
+  operational-feedback responsibility with no dependency on other context
+  families.
+- The existing public facade is consumed by strategy recommendation import,
+  manifest-row, and operator-review paths; those call sites remain unchanged.
+- Execution-success feedback, shared context families, and all other risk
+  registries and assemblers remain in the facade.
 
 Verification:
-- Strict warnings-as-errors compile passed across 3,889 files.
-- Focused `study/manifest_test.exs` passed: 42 tests.
-- Adjacent manifest lint, reference, schema-export, schema-lint, and golden
-  artifact bundle passed 41 of 42 tests. The remaining golden-artifact failure
-  is a pre-existing deterministic payload-metric mismatch at
-  `payload_metrics.sections.campaign_plan.bytes` (checked-in 294,278 versus
-  generated 294,280); compiling and using the pre-slice Manifest from
-  `6f2faa18` reproduced the identical mismatch.
-- Exact public old/new comparison against `6f2faa18` passed all 11 checked-in
-  study manifests and 13 invalid-input mutations.
-- `mix xref callers OrbitalDynamics.Study.Manifest.InputField` reports only
-  the Manifest facade as a runtime caller.
-- Static ownership review confirms field-reader implementations live in the
-  new owner and the facade retains only delegating private seams.
-- `git diff --check` passed.
+Pending.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
@@ -52,9 +42,8 @@ in `2cd566e6`. `study/manifest.ex` moved from 4,489 to 4,260 lines; the
 dedicated owner is 195 lines.
 
 Next candidate:
-Re-rank the remaining large modules and select the next cohesive,
-facade-preserving responsibility boundary. Prefer a remaining domain-specific
-Manifest parsing family only if ownership is clearer than the alternatives.
+Implement and verify the selected RecommendationRiskContext operational-
+feedback extraction.
 
 Blocked:
 No.
