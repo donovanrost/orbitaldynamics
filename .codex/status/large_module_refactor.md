@@ -9,7 +9,7 @@ Current slice:
 StationCalendar reservation summary-value extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Extract reservation ID/status/owner projection, status and match-status
@@ -36,24 +36,37 @@ Selection evidence:
   counts, empty behavior, and row-value grouping must remain unchanged.
 
 Implementation:
-- Pending.
+- Selection was recorded and pushed in `162c6a73`.
+- Implementation was committed and pushed in `def426ce`.
+- `communications/station_calendar.ex` moved from 2,425 to 2,268 lines.
+- `OrbitalDynamics.Communications.StationCalendar.ReservationSummaryValues`
+  is a 210-line owner reached through private facade delegates.
 
 Verification:
-- Pending focused baseline, strict compilation, exact old/new public parity,
-  focused and adjacent tests, static ownership checks, and xref review.
+- Strict warning-clean compilation passed across 3,969 files.
+- The focused StationCalendar file and six adjacent campaign-strategy and
+  CandidateRefresh replay consumers passed together: 52 tests.
+- Exact old/new public parity passed for 6 complete
+  reservation-to-review-to-hold-to-import-readiness chains covering empty
+  evidence, expired/active/missing expirations, provider contention,
+  held/on-hold tokens, atom and numeric IDs, and deadline evaluation.
+- `mix xref callers` reports only the StationCalendar facade.
+- The removed value/routing helpers and two now-unused normalization wrappers
+  are absent apart from thin delegates, formatting and `git diff --check`
+  passed, and the final diff is ownership-only.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-LinkCapacity downlink-requirement projection extraction, selected in
-`defe0c62` and implemented in `f7c379d7`.
-`communications/link_capacity.ex` moved from 2,462 to 2,246 lines; the
-dedicated downlink-requirement owner is 270 lines.
+StationCalendar reservation summary-value extraction, selected in `162c6a73`
+and implemented in `def426ce`.
+`communications/station_calendar.ex` moved from 2,425 to 2,268 lines; the
+dedicated reservation-summary values owner is 210 lines.
 
 Next candidate:
-Complete and verify the selected StationCalendar reservation summary-value
-extraction.
+Re-rank the live checkout and select the next cohesive facade-preserving
+boundary.
 
 Blocked:
 No.
