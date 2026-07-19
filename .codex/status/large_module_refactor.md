@@ -9,7 +9,7 @@ Current slice:
 ContactContention contact-normalization extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Extract recursive key/string conversion, numeric parsing, contact shape,
@@ -45,20 +45,49 @@ Selection evidence:
   output must remain unchanged.
 
 Verification:
-Pending implementation.
+- Focused baseline before implementation:
+  `test/orbital_dynamics/communications/contact_contention_test.exs` passed
+  40 tests.
+- Strict compilation after implementation:
+  `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 mix compile --force --warnings-as-errors`
+  compiled 3,945 files successfully.
+- Focused regression:
+  `test/orbital_dynamics/communications/contact_contention_test.exs` passed
+  40 tests.
+- All campaign-planner, CandidateRefresh replay, operator-review, and
+  validation-fixture ContactContention consumers passed 55 tests.
+- Exact old/new comparison against selection commit `16aa47c2` compiled the
+  selected facade under a comparison module name and matched five end-to-end
+  outputs exactly: annotation, report, resolution report, resolution summary,
+  and resolution summary from source inputs.
+- The exact inputs covered atom/string keys, nested station identity,
+  canonical and alternate times, numeric priority strings, status aliases and
+  lists, recursive station-calendar sources, type/direction aliases, provider
+  throughput fields, policy normalization, and an invalid contact shape.
+- `git diff --check` passed.
+- `mix xref callers
+  OrbitalDynamics.Communications.ContactContention.ContactNormalization`
+  reports only the ContactContention facade as a runtime caller;
+  compile-connected xref reports no unexpected coupling.
+- Static review confirmed the facade preserves its existing helper call sites
+  through six narrow delegates; grouping, resolution summaries,
+  capacity/station evidence, feedback, approval/resolution policy, identity,
+  throughput, contracts, and public clauses remain outside the boundary.
 
 Behavior/schema changes:
-None intended.
+None. Existing contact normalization, numeric parsing, status and direction
+aliases, recursive source handling, float encoding, report contracts, and
+deterministic output are preserved.
 
 Last completed slice:
-TimelineFeedback operational-context extraction, selected in `933df86b` and
-implemented in `88f7271c`.
-`timeline_feedback.ex` moved from 3,061 to 2,809 lines; the dedicated
-operational-context owner is 295 lines.
+ContactContention contact-normalization extraction, selected in `16aa47c2`
+and implemented in `8206862c`.
+`communications/contact_contention.ex` moved from 3,035 to 2,805 lines; the
+dedicated contact-normalization owner is 275 lines.
 
 Next candidate:
-Implement and verify the selected ContactContention contact-normalization
-extraction.
+Re-rank the live largest-module set and select the next cohesive ownership
+boundary.
 
 Blocked:
 No.
