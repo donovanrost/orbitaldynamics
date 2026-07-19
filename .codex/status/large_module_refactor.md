@@ -9,7 +9,7 @@ Current slice:
 OrbitalDynamics activity-template catalog extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed in `c122fda2`.
 
 Selected boundary:
 Extract the baseline activity-template specifications, catalog capabilities,
@@ -34,16 +34,30 @@ Selection evidence:
   public return values remain unchanged.
 
 Verification:
-Pending.
+- Strict test-environment compile passed with warnings as errors across 3,926
+  files.
+- Focused public capability/catalog coverage passed: 6 tests.
+- Adjacent activity-template fixture and mission-plan coverage passed: 35
+  tests.
+- Exact public old/new comparison against selection commit `599aa35d` passed
+  for all six template artifacts, twelve id/type lookups, seven successful
+  instantiations, five error cases, and the planning capability-catalog entry.
+- `mix xref callers` reports only the `OrbitalDynamics` facade as a runtime
+  caller of the extracted activity-template catalog.
+- Static ownership checks confirm template specifications, artifact
+  construction, lookup, override/required-field validation, normalized
+  instantiation, and provenance live in the dedicated owner while the root
+  public API retains its three documented facade functions.
+- `git diff --check` passed.
 
 Behavior/schema changes:
-None intended. This is a facade-preserving production ownership extraction.
+None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-RecommendationRiskContext validation-refresh extraction, selected in
-`bbc28b0e` and implemented in `cfae3494`.
-`recommendation_risk_context.ex` moved from 3,582 to 3,293 lines; the dedicated
-validation-refresh owner is 170 lines.
+OrbitalDynamics activity-template catalog extraction, selected in `599aa35d`
+and implemented in `c122fda2`.
+`orbital_dynamics.ex` moved from 3,572 to 2,951 lines; the dedicated
+activity-template catalog owner is 646 lines.
 
 Next candidate:
 Re-rank the live largest-module set and select the next cohesive ownership
