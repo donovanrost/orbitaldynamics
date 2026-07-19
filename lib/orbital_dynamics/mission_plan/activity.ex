@@ -10,6 +10,7 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
   """
 
   alias OrbitalDynamics.{Frame, Vector3}
+  alias OrbitalDynamics.MissionPlan.Activity.LifecycleTransition
 
   @activity_types [
     :coast,
@@ -1253,67 +1254,24 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
   end
 
   defp status_transition_review(status, status),
-    do: {true, false, "status_unchanged"}
+    do: LifecycleTransition.status_review(status, status, @status_preserving_approval_updates)
 
-  defp status_transition_review(:invalid, _to),
-    do: {false, true, "invalid_status_change_requires_review"}
+  defp status_transition_review(from, to),
+    do: LifecycleTransition.status_review(from, to, @status_preserving_approval_updates)
 
-  defp status_transition_review(_from, :invalid),
-    do: {false, true, "invalid_status_requires_review"}
+  defp lifecycle_status_category(status),
+    do:
+      LifecycleTransition.status_category(
+        status,
+        @status_preserving_approval_updates,
+        @activity_statuses
+      )
 
-  defp status_transition_review(:blocked_by_policy, _to),
-    do: {false, true, "blocked_status_clear_requires_review"}
+  defp approval_transition_review(from, to),
+    do: LifecycleTransition.approval_review(from, to)
 
-  defp status_transition_review(_from, :blocked_by_policy),
-    do: {false, true, "policy_block_requires_review"}
-
-  defp status_transition_review(from, _to) when from in @status_preserving_approval_updates,
-    do: {false, true, "terminal_or_executed_status_change_requires_review"}
-
-  defp status_transition_review(_from, _to),
-    do: {true, false, "status_transition_allowed"}
-
-  defp lifecycle_status_category(status) when status in @status_preserving_approval_updates,
-    do: "terminal_or_executed"
-
-  defp lifecycle_status_category(:blocked_by_policy), do: "blocked"
-  defp lifecycle_status_category(:invalid), do: "invalid"
-  defp lifecycle_status_category(:executing), do: "executing"
-  defp lifecycle_status_category(:delayed), do: "repairable"
-  defp lifecycle_status_category(status) when status in @activity_statuses, do: "planned"
-
-  defp approval_transition_review(status, status),
-    do: {true, false, "approval_status_unchanged"}
-
-  defp approval_transition_review(:blocked_by_policy, _to),
-    do: {false, true, "blocked_approval_clear_requires_review"}
-
-  defp approval_transition_review(:rejected, _to),
-    do: {false, true, "rejected_approval_clear_requires_review"}
-
-  defp approval_transition_review(:locked, _to),
-    do: {false, true, "locked_approval_change_requires_review"}
-
-  defp approval_transition_review(_from, to) when to in [:approved, :auto_approvable],
-    do: {false, true, "approval_grant_requires_operator_authority"}
-
-  defp approval_transition_review(_from, :not_required),
-    do: {false, true, "approval_review_clear_requires_operator_authority"}
-
-  defp approval_transition_review(_from, _to),
-    do: {true, false, "approval_transition_allowed"}
-
-  defp approval_status_category(status) when status in [:approved, :auto_approvable],
-    do: "approval_granted"
-
-  defp approval_status_category(status) when status in [:pending, :operator_review_required],
-    do: "review_required"
-
-  defp approval_status_category(:not_evaluated), do: "not_evaluated"
-  defp approval_status_category(:not_required), do: "not_required"
-  defp approval_status_category(:blocked_by_policy), do: "blocked"
-  defp approval_status_category(:locked), do: "locked"
-  defp approval_status_category(:rejected), do: "rejected"
+  defp approval_status_category(status),
+    do: LifecycleTransition.approval_category(status)
 
   defp precondition_rows(%__MODULE__{} = activity) do
     []
@@ -1620,33 +1578,8 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
     |> Enum.sort()
   end
 
-  defp lifecycle_event!(event) when is_atom(event) do
-    event
-    |> Atom.to_string()
-    |> lifecycle_event!()
-  end
-
-  defp lifecycle_event!(event) when is_binary(event) do
-    normalized =
-      event
-      |> String.trim()
-      |> String.downcase()
-      |> String.replace(~r/[\s-]+/, "_")
-
-    cond do
-      Map.has_key?(@lifecycle_event_aliases, normalized) ->
-        Map.fetch!(@lifecycle_event_aliases, normalized)
-
-      event = Enum.find(@lifecycle_events, &(Atom.to_string(&1) == normalized)) ->
-        event
-
-      true ->
-        raise ArgumentError, "lifecycle event must be one of #{inspect(@lifecycle_events)}"
-    end
-  end
-
-  defp lifecycle_event!(_event),
-    do: raise(ArgumentError, "lifecycle event must be one of #{inspect(@lifecycle_events)}")
+  defp lifecycle_event!(event),
+    do: LifecycleTransition.event!(event, @lifecycle_event_aliases, @lifecycle_events)
 
   def coast!(id, start_s, end_s, opts \\ []) do
     interval_activity!(id, :coast, start_s, end_s, opts)
