@@ -6,78 +6,47 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-ContactContention contact-normalization extraction.
+LinkCapacity contact-normalization extraction.
 
 Status:
-Completed and pushed.
+Selected; implementation not started.
 
 Selected boundary:
 Extract recursive key/string conversion, numeric parsing, contact shape,
-station identity, timing/numeric fields, station-calendar status trees,
-activity type/direction aliases, compact-map behavior, and deterministic value
-encoding into
-`OrbitalDynamics.Communications.ContactContention.ContactNormalization`.
+station identity, timing fields, station-calendar status/direction trees,
+activity type aliases, nested throughput-model normalization, and compact-map
+behavior into
+`OrbitalDynamics.Communications.LinkCapacity.ContactNormalization`.
 Preserve narrow private facade delegates and the existing public API.
 
 Selection evidence:
-- Live re-ranking places `communications/contact_contention.ex` at 3,035
-  lines,
+- Live re-ranking places `communications/link_capacity.ex` at 3,016 lines,
   fourth behind Schema, Timeline, and MissionPlan.Activity and ahead of
-  LinkCapacity, ResourceProjection, Manifest, StationCalendar,
-  OrbitalDynamics, RecommendationRiskContext, OperationalReadiness,
-  TimelineFeedback, and ContactAllocation.
-- The selected terminal family occupies the facade's final normalization block
-  from numeric parsing through contact normalization, with recursive status
-  normalization and value encoding used consistently by annotation, report,
-  resolution, policy, evidence, and sorting paths.
-- The owner can expose eight narrow functions while receiving the three
-  policy catalogs that differ by caller: unavailable aliases, default priority
-  fields, and provider direction aliases. Existing facade call sites remain
-  unchanged behind private delegates.
-- Contention grouping, timing metrics, resolution summaries, capacity and
-  station evidence, feedback aggregation, approval policy, resolution policy,
-  identity validation, throughput derivation, report contracts, and public
-  clauses remain outside this boundary.
+  ResourceProjection, Manifest, StationCalendar, OrbitalDynamics,
+  RecommendationRiskContext, OperationalReadiness, TimelineFeedback,
+  ContactContention, and ContactAllocation.
+- The selected terminal family occupies lines 2,780-3,015 and is the single
+  normalization path used before link-capacity validation, grouping,
+  throughput, and summary assembly.
+- Numeric parsing is also used by throughput, completion, policy, and summary
+  helpers, so the new owner exposes it through the existing facade helper;
+  recursive status/direction and throughput-model helpers remain private to
+  the owner.
+- Report/summary aggregation, station-capacity evidence, contact feedback and
+  identity, relay paths, input validation, throughput/completion derivation,
+  downlink policy, approval policy, station availability, contracts, and
+  public clauses remain outside this boundary.
 - Existing recursive key conversion, atom/boolean handling, numeric-string
-  parsing, station identity precedence, canonical time precedence, status
-  aliasing, nested station-calendar recursion, numeric priority normalization,
-  type/direction inference, float encoding, nil omission, and deterministic
-  output must remain unchanged.
+  parsing, station identity precedence, canonical time precedence, unavailable
+  aliases, status/direction normalization, direction-list cleanup, nested
+  station-calendar recursion, type inference, throughput-model shape handling,
+  nil omission, and deterministic output must remain unchanged.
 
 Verification:
-- Focused baseline before implementation:
-  `test/orbital_dynamics/communications/contact_contention_test.exs` passed
-  40 tests.
-- Strict compilation after implementation:
-  `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 mix compile --force --warnings-as-errors`
-  compiled 3,945 files successfully.
-- Focused regression:
-  `test/orbital_dynamics/communications/contact_contention_test.exs` passed
-  40 tests.
-- All campaign-planner, CandidateRefresh replay, operator-review, and
-  validation-fixture ContactContention consumers passed 55 tests.
-- Exact old/new comparison against selection commit `16aa47c2` compiled the
-  selected facade under a comparison module name and matched five end-to-end
-  outputs exactly: annotation, report, resolution report, resolution summary,
-  and resolution summary from source inputs.
-- The exact inputs covered atom/string keys, nested station identity,
-  canonical and alternate times, numeric priority strings, status aliases and
-  lists, recursive station-calendar sources, type/direction aliases, provider
-  throughput fields, policy normalization, and an invalid contact shape.
-- `git diff --check` passed.
-- `mix xref callers
-  OrbitalDynamics.Communications.ContactContention.ContactNormalization`
-  reports only the ContactContention facade as a runtime caller;
-  compile-connected xref reports no unexpected coupling.
-- Static review confirmed the facade preserves its existing helper call sites
-  through six narrow delegates; grouping, resolution summaries,
-  capacity/station evidence, feedback, approval/resolution policy, identity,
-  throughput, contracts, and public clauses remain outside the boundary.
+Pending implementation.
 
 Behavior/schema changes:
-None. Existing contact normalization, numeric parsing, status and direction
-aliases, recursive source handling, float encoding, report contracts, and
-deterministic output are preserved.
+None intended.
 
 Last completed slice:
 ContactContention contact-normalization extraction, selected in `16aa47c2`
@@ -86,8 +55,8 @@ and implemented in `8206862c`.
 dedicated contact-normalization owner is 275 lines.
 
 Next candidate:
-Re-rank the live largest-module set and select the next cohesive ownership
-boundary.
+Implement and verify the selected LinkCapacity contact-normalization
+extraction.
 
 Blocked:
 No.
