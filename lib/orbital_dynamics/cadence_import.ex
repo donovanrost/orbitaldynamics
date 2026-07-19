@@ -27,7 +27,8 @@ defmodule OrbitalDynamics.CadenceImport do
     SourceIdentifierPolicy,
     StationCalendarContextFields,
     StrategyReview,
-    TimelineReviewImport
+    TimelineReviewImport,
+    ValidationReadinessImport
   }
 
   alias OrbitalDynamics.OperatorReview
@@ -1872,33 +1873,17 @@ defmodule OrbitalDynamics.CadenceImport do
   Builds an import manifest from a schema-validation report.
   """
   def from_schema_validation_report(%{} = report, opts \\ []) do
-    report = stringify_keys(report)
-
-    source_artifact_id =
-      option(opts, :source_artifact_id, schema_validation_report_source_id(report))
-
-    from_review_report(
-      OperatorReview.from_schema_validation_report(report),
-      opts,
-      "schema_validation_report.v1",
-      source_artifact_id
-    )
+    ValidationReadinessImport.from_schema_validation_report(report, opts, &from_review_report/4)
   end
 
   @doc """
   Builds an import manifest from a schema-validation batch report.
   """
   def from_schema_validation_batch_report(%{} = report, opts \\ []) do
-    report = stringify_keys(report)
-
-    source_artifact_id =
-      option(opts, :source_artifact_id, schema_validation_batch_report_source_id(report))
-
-    from_review_report(
-      OperatorReview.from_schema_validation_batch_report(report),
+    ValidationReadinessImport.from_schema_validation_batch_report(
+      report,
       opts,
-      "schema_validation_batch_report.v1",
-      source_artifact_id
+      &from_review_report/4
     )
   end
 
@@ -1906,33 +1891,17 @@ defmodule OrbitalDynamics.CadenceImport do
   Builds an import manifest from an execution report.
   """
   def from_execution_report(%{} = report, opts \\ []) do
-    report = stringify_keys(report)
-
-    source_artifact_id =
-      option(opts, :source_artifact_id, execution_report_source_id(report))
-
-    from_review_report(
-      OperatorReview.from_execution_report(report),
-      opts,
-      "execution_report.v1",
-      source_artifact_id
-    )
+    ValidationReadinessImport.from_execution_report(report, opts, &from_review_report/4)
   end
 
   @doc """
   Builds an import manifest from an operational-readiness report.
   """
   def from_operational_readiness_report(%{} = report, opts \\ []) do
-    report = stringify_keys(report)
-
-    source_artifact_id =
-      option(opts, :source_artifact_id, report["report_id"] || "operational_readiness_report")
-
-    from_review_report(
-      OperatorReview.from_operational_readiness_report(report),
+    ValidationReadinessImport.from_operational_readiness_report(
+      report,
       opts,
-      "operational_readiness_report.v1",
-      source_artifact_id
+      &from_review_report/4
     )
   end
 
@@ -1940,17 +1909,7 @@ defmodule OrbitalDynamics.CadenceImport do
   Builds an import manifest from a quality-gate report.
   """
   def from_quality_gate_report(%{} = report, opts \\ []) do
-    report = stringify_keys(report)
-
-    source_artifact_id =
-      option(opts, :source_artifact_id, report["report_id"] || "quality_gate_report")
-
-    from_review_report(
-      OperatorReview.from_quality_gate_report(report),
-      opts,
-      "quality_gate_report.v1",
-      source_artifact_id
-    )
+    ValidationReadinessImport.from_quality_gate_report(report, opts, &from_review_report/4)
   end
 
   @doc """
@@ -2533,15 +2492,6 @@ defmodule OrbitalDynamics.CadenceImport do
 
   defp generic_review_import_action(review_type),
     do: GenericReviewActionPolicy.resolve(review_type)
-
-  defp schema_validation_report_source_id(report),
-    do: SourceIdentifierPolicy.schema_validation_report(report)
-
-  defp schema_validation_batch_report_source_id(report),
-    do: SourceIdentifierPolicy.schema_validation_batch_report(report)
-
-  defp execution_report_source_id(report),
-    do: SourceIdentifierPolicy.execution_report(report)
 
   defp result_artifact_source_id(artifact),
     do: SourceIdentifierPolicy.result_artifact(artifact)
