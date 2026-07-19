@@ -6,53 +6,45 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-CadenceImport wrapped link-capacity test family split.
+CadenceImport wrapped resource-planning test family split.
 
 Status:
-Complete and published in `55ab3fdb`.
+Selected; implementation has not started.
 
 Selected boundary:
-Move the two contiguous candidate-refresh link-capacity wrapper tests into one
-focused `cadence_import_wrapped_link_capacity_test.exs` module:
-- map-wrapped `link_capacity_report.v1` import rows;
-- list-wrapped `link_capacity_report.v1` import rows.
+Move the two now-contiguous candidate-refresh resource-planning wrapper tests
+into one focused `cadence_import_wrapped_resource_planning_test.exs` module:
+- wrapped `contact_allocation_report.v1` import rows;
+- wrapped `resource_projection_report.v1` plus
+  `resource_projection_flow_summary.v1` import rows.
 
-Keep the preceding wrapped contact-allocation test and following wrapped
-resource-projection test in the original ledger.
+Copy the pure `resource_projection_flow_summary/0` fixture helper exactly into
+the focused module while retaining it in the original module, where its
+standalone import test and supported-source fixture registry still call it.
+Keep the preceding timeline-integrity wrapper test and following standalone
+freshness/refresh-budget family in the original ledger.
 
 Selection evidence:
 - After the prior split, `cadence_import_test.exs` remains the repository's
-  largest source file at 13,600 lines and contains 83 top-level tests.
-- The selected family spans lines 3,213 through 3,430 and covers both supported
-  candidate-refresh wrapper shapes for one link-capacity import responsibility.
-- Both tests build their fixtures inline and use only `CadenceImport` and
-  `Schema`; they have no private helpers, setup, external fixtures, or
-  cross-test state.
-- The tests preserve selected/ignored contact evidence, planned and actual
-  throughput/shortfall fields, policy evidence, wrapper-specific source paths,
-  nested source rows, and schema validation.
+  largest source file at 13,382 lines and contains 81 top-level tests.
+- The selected family spans lines 3,065 through 3,384 and covers allocation,
+  reduced-capacity packing, projected spacecraft resources, and correlated
+  resource-flow summary handoff as one resource-planning import boundary.
+- The tests use only `CadenceImport`, `Schema`, and one pure fixture builder;
+  they have no setup, external fixtures, or cross-test state.
+- The helper has three original callers, so copying its exact AST avoids
+  changing the standalone import and supported-source fixture paths.
+- The tests preserve capacity-pack, resource-pressure, policy, nested source,
+  wrapper source-path, and schema-validation evidence.
 - Production code, public APIs, assertions, edge cases, assertion ordering,
   fixture values, schema validation, and all other test families remain outside
   this ownership-only boundary.
 
 Verification:
-- The pre-move focused baseline passed both selected tests from selection commit
-  `329cc431`.
-- Strict test compilation passed with warnings as errors across 3,804 files.
-- The new focused module passed 2 tests; the reduced original passed 81 tests;
-  the seven-file combined CadenceImport proof passed all 96 tests.
-- `cadence_import_contracts_test.exs` passed all 4 tests.
-- An exact AST comparison against `329cc431` proved that the new module contains
-  only `use`, the `CadenceImport`/`Schema` alias, and the two selected test ASTs,
-  while the original is exactly its former body minus those tests.
-- Formatting, tracked and new-file diff checks, exact static test counts,
-  temporary-checker absence, and the contact-allocation/resource-projection seam
-  passed.
-- Bounded local review found no assertion, fixture-value, production, public API,
-  schema, deterministic-output, policy-evidence, throughput, or source-path
-  change.
-- The original ledger fell from 13,600 to 13,382 lines; the focused module is
-  223 lines.
+Pending: two-test focused baseline, mechanical AST-preserving move, exact
+fixture-helper copy proof, strict compile, focused new/original/combined
+CadenceImport tests, relevant schema contracts, structural/static checks, and
+bounded review.
 
 Behavior/schema changes:
 None. This is a test-only ownership split with all assertions preserved.
@@ -62,8 +54,8 @@ CadenceImport wrapped link-capacity test family split, selected in `329cc431` an
 implemented in `55ab3fdb`.
 
 Next candidate:
-Refresh the reduced CadenceImport family seams and production facade map, then
-select another cohesive boundary with independent fixtures or exclusive helpers.
+Refresh the reduced CadenceImport family seams and production facade map after
+the wrapped resource-planning family is isolated.
 
 Blocked:
 No.
