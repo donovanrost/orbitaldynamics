@@ -7,7 +7,7 @@ defmodule OrbitalDynamics.Schema do
   the artifact shapes are still maturing.
   """
 
-  alias OrbitalDynamics.Schema.OperationalReadinessValidation
+  alias OrbitalDynamics.Schema.{OperationalReadinessValidation, TimelineSourceValidation}
 
   import OrbitalDynamics.Schema.StableIdValidation,
     only: [
@@ -6180,123 +6180,60 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validate_optional_timeline_diff_summary_source(issues, path, summary),
+  defp validate_optional_timeline_diff_summary_source(issues, path, value),
     do:
-      OrbitalDynamics.Schema.TimelinePublicationSummaryContracts.validate_optional_timeline_diff_summary_source(
+      TimelineSourceValidation.validate_optional_timeline_diff_summary_source(issues, path, value)
+
+  defp validate_optional_timeline_dependency_impact_source_row(issues, path, value),
+    do:
+      TimelineSourceValidation.validate_optional_timeline_dependency_impact_source_row(
         issues,
         path,
-        summary
+        value
       )
 
-  defp validate_optional_timeline_dependency_impact_source_row(issues, _path, nil), do: issues
-
-  defp validate_optional_timeline_dependency_impact_source_row(issues, path, %{} = row),
+  defp validate_optional_timeline_activity_precondition_summary_source(issues, path, value),
     do:
-      OrbitalDynamics.Schema.TimelineDependencyImpactSummaryContracts.validate_row(
+      TimelineSourceValidation.validate_optional_timeline_activity_precondition_summary_source(
         issues,
         path,
-        row
+        value
       )
 
-  defp validate_optional_timeline_dependency_impact_source_row(issues, path, _row),
-    do: [error(path, "must be an object") | issues]
-
-  defp validate_optional_timeline_activity_precondition_summary_source(issues, _path, nil),
-    do: issues
-
-  defp validate_optional_timeline_activity_precondition_summary_source(
-         issues,
-         path,
-         %{} = summary
-       ) do
-    OrbitalDynamics.Schema.TimelineActivityPreconditionSummaryContracts.validate(
-      issues,
-      path,
-      summary,
-      timeline_report_model_limits()
-    )
-  end
-
-  defp validate_optional_timeline_activity_precondition_summary_source(issues, path, _summary),
-    do: [error(path, "must be an object") | issues]
-
-  defp validate_optional_timeline_activity_precondition_summaries(issues, _path, nil),
-    do: issues
-
-  defp validate_optional_timeline_activity_precondition_summaries(issues, path, summaries)
-       when is_list(summaries) do
-    summaries
-    |> Enum.with_index()
-    |> Enum.reduce(issues, fn
-      {%{} = summary, index}, acc ->
-        OrbitalDynamics.Schema.TimelineActivityPreconditionSummaryContracts.validate(
-          acc,
-          "#{path}[#{index}]",
-          summary,
-          timeline_report_model_limits()
-        )
-
-      {_summary, index}, acc ->
-        [error("#{path}[#{index}]", "must be an object") | acc]
-    end)
-  end
-
-  defp validate_optional_timeline_activity_precondition_summaries(issues, path, _summaries),
-    do: [error(path, "must be a list") | issues]
-
-  defp validate_optional_timeline_integrity_report(issues, _path, nil), do: issues
-
-  defp validate_optional_timeline_integrity_report(issues, path, %{} = report) do
-    OrbitalDynamics.Schema.TimelineIntegrityReportContracts.validate(
-      issues,
-      path,
-      report,
-      timeline_report_model_limits()
-    )
-  end
-
-  defp validate_optional_timeline_integrity_report(issues, path, _report),
-    do: [error(path, "must be an object") | issues]
-
-  defp validate_optional_timeline_preservation_source_row(issues, _path, nil), do: issues
-
-  defp validate_optional_timeline_preservation_source_row(issues, path, %{} = row) do
-    OrbitalDynamics.Schema.TimelinePreservationContracts.validate_optional_source_row(
-      issues,
-      path,
-      row
-    )
-  end
-
-  defp validate_optional_timeline_preservation_source_row(issues, path, row),
+  defp validate_optional_timeline_activity_precondition_summaries(issues, path, value),
     do:
-      OrbitalDynamics.Schema.TimelinePreservationContracts.validate_optional_source_row(
+      TimelineSourceValidation.validate_optional_timeline_activity_precondition_summaries(
         issues,
         path,
-        row
+        value
       )
 
-  defp validate_optional_timeline_lifecycle_state_source_row(issues, path, row) do
-    OrbitalDynamics.Schema.TimelineLifecycleStateSourceContracts.validate_optional(
-      issues,
-      path,
-      row
-    )
-  end
+  defp validate_optional_timeline_integrity_report(issues, path, value),
+    do: TimelineSourceValidation.validate_optional_timeline_integrity_report(issues, path, value)
 
-  defp validate_optional_timeline_activity_state_source(issues, _path, nil), do: issues
+  defp validate_optional_timeline_preservation_source_row(issues, path, value),
+    do:
+      TimelineSourceValidation.validate_optional_timeline_preservation_source_row(
+        issues,
+        path,
+        value
+      )
 
-  defp validate_optional_timeline_activity_state_source(issues, path, %{} = state) do
-    OrbitalDynamics.Schema.TimelineActivityStateContracts.validate(
-      issues,
-      path,
-      state,
-      timeline_feedback_report_model_limits()
-    )
-  end
+  defp validate_optional_timeline_lifecycle_state_source_row(issues, path, value),
+    do:
+      TimelineSourceValidation.validate_optional_timeline_lifecycle_state_source_row(
+        issues,
+        path,
+        value
+      )
 
-  defp validate_optional_timeline_activity_state_source(issues, path, _state),
-    do: [error(path, "must be an object") | issues]
+  defp validate_optional_timeline_activity_state_source(issues, path, value),
+    do:
+      TimelineSourceValidation.validate_optional_timeline_activity_state_source(
+        issues,
+        path,
+        value
+      )
 
   defp validate_timeline_transition_application_report(issues, path, report) do
     OrbitalDynamics.Schema.TimelineTransitionApplicationReportContracts.validate(
