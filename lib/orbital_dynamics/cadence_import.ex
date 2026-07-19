@@ -23,6 +23,7 @@ defmodule OrbitalDynamics.CadenceImport do
     ManifestMapNormalization,
     OperationalReadinessContext,
     ProviderResultNormalization,
+    ResourceProjectionImport,
     ReviewPackageImport,
     ReviewRowMetadata,
     ReviewRowDispatch,
@@ -1394,37 +1395,17 @@ defmodule OrbitalDynamics.CadenceImport do
   Builds an import manifest from a resource-projection report.
   """
   def from_resource_projection_report(%{} = report, opts \\ []) do
-    report = stringify_keys(report)
-
-    source_artifact_id =
-      option(opts, :source_artifact_id, report["id"] || get_in(report, ["assumptions", "source"]))
-
-    from_review_report(
-      OperatorReview.from_resource_projection_report(report),
-      opts,
-      "resource_projection_report.v1",
-      source_artifact_id || "resource_projection_report"
-    )
+    ResourceProjectionImport.from_resource_projection_report(report, opts, &from_review_report/4)
   end
 
   @doc """
   Builds an import manifest from a resource-projection flow summary.
   """
   def from_resource_projection_flow_summary(%{} = summary, opts \\ []) do
-    summary = stringify_keys(summary)
-
-    source_artifact_id =
-      option(
-        opts,
-        :source_artifact_id,
-        summary["id"] || summary["source"] || get_in(summary, ["assumptions", "source"])
-      )
-
-    from_review_report(
-      OperatorReview.from_resource_projection_flow_summary(summary),
+    ResourceProjectionImport.from_resource_projection_flow_summary(
+      summary,
       opts,
-      "resource_projection_flow_summary.v1",
-      source_artifact_id || "resource_projection_flow_summary"
+      &from_review_report/4
     )
   end
 
