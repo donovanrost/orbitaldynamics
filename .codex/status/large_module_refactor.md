@@ -9,7 +9,7 @@ Current slice:
 LinkCapacity relay data-path summary extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed in `2acd5177`.
 
 Selected boundary:
 Extract relay/store-and-forward route identity, relay-chain, custody, latency,
@@ -33,16 +33,31 @@ Selection evidence:
   deterministic output remain unchanged.
 
 Verification:
-Pending.
+- Strict test-environment compile passed with warnings as errors across 3,928
+  files.
+- Focused LinkCapacity coverage passed: 44 tests.
+- Adjacent relay replay, operator-review, schema-contract, and validation
+  fixture coverage passed: 22 tests.
+- Exact public old/new comparison against selection commit `b3395bce` passed
+  for five route sets across list input, idempotent string-key summary, and
+  atom-key summary paths, plus relay capability metadata and four invalid
+  inputs.
+- `mix xref callers` reports only the LinkCapacity facade as a runtime caller
+  of the extracted relay data-path owner.
+- Static ownership checks confirm relay contracts/statuses/model limits, route
+  identity, chain/custody/latency/risk normalization, aggregate routing maps,
+  and artifact assembly live in the dedicated owner while fixed-rate capacity
+  responsibilities remain in the facade.
+- `git diff --check` passed.
 
 Behavior/schema changes:
-None intended. This is a facade-preserving production ownership extraction.
+None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-Manifest candidate-refresh run-input source extraction, selected in `a29d7dd7`
-and implemented in `74cc1a1d`.
-`manifest.ex` moved from 3,530 to 3,357 lines; the dedicated run-input-source
-owner is 185 lines.
+LinkCapacity relay data-path summary extraction, selected in `b3395bce` and
+implemented in `2acd5177`.
+`link_capacity.ex` moved from 3,520 to 3,113 lines; the dedicated relay
+data-path owner is 506 lines.
 
 Next candidate:
 Re-rank the live largest-module set and select the next cohesive ownership
