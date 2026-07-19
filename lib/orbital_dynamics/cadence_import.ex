@@ -25,7 +25,8 @@ defmodule OrbitalDynamics.CadenceImport do
     ReviewSummaryContext,
     ReviewTypePolicy,
     SourceIdentifierPolicy,
-    StationCalendarContextFields
+    StationCalendarContextFields,
+    StrategyReview
   }
 
   alias OrbitalDynamics.OperatorReview
@@ -2189,25 +2190,12 @@ defmodule OrbitalDynamics.CadenceImport do
   end
 
   defp strategy_review_manifest_rows(review_package, starting_rank) do
-    review_package
-    |> Map.get("rows", [])
-    |> Enum.map(&stringify_keys/1)
-    |> Enum.filter(&strategy_review_manifest_row?/1)
-    |> Enum.with_index(starting_rank)
-    |> Enum.map(fn {row, rank} -> review_manifest_row(row, rank) end)
+    StrategyReview.manifest_rows(review_package, starting_rank, &review_manifest_row/2)
   end
 
-  defp strategy_review_package(artifact) do
-    Map.get(artifact, "operator_review_package") ||
-      OperatorReview.from_strategy_artifact(artifact)
-  end
+  defp strategy_review_package(artifact), do: StrategyReview.package(artifact)
 
-  defp strategy_review_count(review_package) do
-    Map.get(review_package, "review_count") ||
-      length(Map.get(review_package, "rows", []))
-  end
-
-  defp strategy_review_manifest_row?(row), do: ReviewTypePolicy.strategy_manifest?(row)
+  defp strategy_review_count(review_package), do: StrategyReview.count(review_package)
 
   defp import_manifest_review_row?(row), do: ReviewTypePolicy.import_manifest?(row)
 
