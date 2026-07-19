@@ -113,6 +113,7 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
   alias OrbitalDynamics.Communications.StationCalendar.ProviderResult
   alias OrbitalDynamics.Communications.StationCalendar.PrecedenceSummary
   alias OrbitalDynamics.Communications.StationCalendar.ReservationSourceEvidence
+  alias OrbitalDynamics.Communications.StationCalendar.ReservationReviewSummary
   alias OrbitalDynamics.Communications.StationCalendar.ReservationSummaryValues
   alias OrbitalDynamics.Communications.StationCalendar.StationMatching
 
@@ -804,97 +805,8 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
   end
 
   defp reservation_review_summary_from_report(report, opts) do
-    report = stringify_keys(report)
-    now_s = opts |> Keyword.get(:now_s) |> numeric_or_nil()
-
-    affected_rows =
-      report
-      |> Map.get("affected_contacts", [])
-      |> Enum.filter(&is_map/1)
-      |> Enum.map(&reservation_review_summary_row(&1, "affected_contact", now_s))
-
-    provider_rows =
-      report
-      |> Map.get("provider_calendar_contention_groups", [])
-      |> Enum.filter(&is_map/1)
-      |> Enum.map(
-        &reservation_review_summary_row(&1, "provider_calendar_contention_group", now_s)
-      )
-
-    rows = affected_rows ++ provider_rows
-
-    %{
-      "schema_contract" => @reservation_review_summary_schema_contract,
-      "model" => "artifact_only_station_reservation_review_summary",
-      "source_artifact_type" => Map.get(report, "schema_contract", @reservation_schema_contract),
-      "source" => report["source"],
-      "model_limits" => model_limits(),
-      "reservation_count" => length(rows),
-      "affected_contact_reservation_count" => length(affected_rows),
-      "provider_calendar_contention_group_count" => length(provider_rows),
-      "reservation_review_status" => if(rows == [], do: "clear", else: "review_required"),
-      "reservation_expiration_count" => reservation_expiration_count(rows),
-      "earliest_reservation_expires_at_s" => earliest_reservation_expires_at_s(rows),
-      "reservation_expiration_status_counts" =>
-        count_by(rows, "station_reservation_expiration_status"),
-      "reservation_ids_by_expiration_status" =>
-        reservation_ids_by(rows, "station_reservation_expiration_status"),
-      "expired_reservation_count" =>
-        Enum.count(rows, &(&1["station_reservation_expiration_status"] == "expired")),
-      "active_reservation_count" =>
-        Enum.count(rows, &(&1["station_reservation_expiration_status"] == "active")),
-      "missing_reservation_expiration_count" =>
-        Enum.count(rows, &(&1["station_reservation_expiration_status"] == "missing")),
-      "review_reservation_ids" => reservation_row_ids(rows),
-      "review_rows" => rows,
-      "assumptions" =>
-        %{
-          "execution_boundary" => "artifact_only_no_provider_reservation",
-          "source" => "station_reservation_report.v1",
-          "operator_authority" => "not_granted_by_summary",
-          "deadline_evaluation" =>
-            if(is_number(now_s), do: "relative_to_now_s", else: "not_evaluated")
-        }
-        |> maybe_put("now_s", now_s)
-    }
-    |> compact_map()
+    ReservationReviewSummary.build(report, opts, model_limits())
   end
-
-  defp reservation_review_summary_row(row, row_type, now_s) do
-    row = stringify_keys(row)
-    expiration_values = reservation_expiration_values(row)
-
-    %{
-      "reservation_review_row_type" => row_type,
-      "contact_id" => row["contact_id"],
-      "direction" => row["direction"],
-      "directions" => row["directions"],
-      "station_calendar_directions" => row["station_calendar_directions"],
-      "ground_station_id" => row["ground_station_id"],
-      "station_calendar_entry_id" => row["station_calendar_entry_id"],
-      "station_calendar_provider_id" => row["station_calendar_provider_id"],
-      "station_calendar_provider_entry_id" => row["station_calendar_provider_entry_id"],
-      "station_contention_status" => row["station_contention_status"],
-      "provider_calendar_contention_status" => row["provider_calendar_contention_status"],
-      "station_reservation_match_status" => row["station_reservation_match_status"],
-      "reservation_ids" => reservation_ids_for_row(row),
-      "reservation_statuses" => reservation_statuses_for_row(row),
-      "reserved_by" => reservation_reserved_by_for_row(row),
-      "reservation_expires_at_s" => expiration_values,
-      "station_reservation_expiration_status" =>
-        reservation_expiration_status(expiration_values, now_s),
-      "required_operator_action" => row["required_operator_action"]
-    }
-    |> compact_map()
-  end
-
-  defp reservation_expiration_status([], _now_s), do: "missing"
-
-  defp reservation_expiration_status(expiration_values, now_s) when is_number(now_s) do
-    if Enum.any?(expiration_values, &(&1 < now_s)), do: "expired", else: "active"
-  end
-
-  defp reservation_expiration_status(_expiration_values, _now_s), do: "declared"
 
   defp reservation_hold_summary_from_review_summary(summary, _opts) do
     summary = stringify_keys(summary)
@@ -1109,16 +1021,7 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
   defp reservation_ids_by_match_status(affected_reservations),
     do: ReservationSummaryValues.ids_by_match_status(affected_reservations)
 
-  defp reservation_ids_for_row(row), do: ReservationSummaryValues.ids_for_row(row)
-
-  defp reservation_statuses_for_row(row), do: ReservationSummaryValues.statuses_for_row(row)
-
-  defp reservation_reserved_by_for_row(row),
-    do: ReservationSummaryValues.reserved_by_for_row(row)
-
   defp reservation_hold_review_row?(row), do: ReservationSummaryValues.hold_review_row?(row)
-
-  defp reservation_expiration_values(row), do: ReservationSummaryValues.expiration_values(row)
 
   defp reservation_expiration_count(rows), do: ReservationSummaryValues.expiration_count(rows)
 
