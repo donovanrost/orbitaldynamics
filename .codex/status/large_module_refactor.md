@@ -9,7 +9,7 @@ Current slice:
 MissionPlan.Activity scalar input extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `02dc170e`.
 
 Selected boundary:
 Extract boolean, numeric, non-negative numeric/integer, unit-interval,
@@ -31,18 +31,29 @@ Selection evidence:
   identifier policy instead of duplicating `@stable_id_pattern`.
 
 Verification:
-Pending.
+- Strict warnings-as-errors compile passed across 3,882 files.
+- Focused MissionPlan.Activity coverage passed: 31 tests.
+- Adjacent mission-plan, activity-fixture, and timeline-activity schema
+  coverage passed: 44 tests.
+- Exact old/new public map construction and error comparison against
+  `0c45d036` passed for 10 valid boolean, numeric, integer, interval, scalar,
+  number-or-scalar, and nil cases plus 10 invalid value/shape cases.
+- Runtime xref found the new owner referenced only by the Activity facade;
+  static single-ownership review and `git diff --check` passed.
+- `mission_plan/activity.ex` moved from 4,770 to 4,672 lines; the dedicated
+  owner is 138 lines.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-MissionPlan.Activity execution-uncertainty input extraction, selected in
-`4e424eee` and implemented in `8aaca2ef`. `mission_plan/activity.ex` moved from
-4,841 to 4,770 lines; the dedicated owner is 78 lines.
+MissionPlan.Activity scalar input extraction, selected in `0c45d036` and
+implemented in `02dc170e`. `mission_plan/activity.ex` moved from 4,770 to 4,672
+lines; the dedicated owner is 138 lines.
 
 Next candidate:
-Implement and verify the selected scalar input extraction.
+Re-inventory remaining MissionPlan.Activity list/map normalization families
+after scalar input has one owner.
 
 Blocked:
 No.
