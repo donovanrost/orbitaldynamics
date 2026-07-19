@@ -9,7 +9,7 @@ Current slice:
 ContactAllocation general summary extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Extract normalized row aggregation, allocation/blocking/duplicate counts,
@@ -37,16 +37,45 @@ Selection evidence:
   remain unchanged.
 
 Verification:
-Pending.
+- Focused baseline before implementation:
+  `test/orbital_dynamics/communications/contact_allocation_test.exs` passed
+  70 tests.
+- Strict compilation after implementation:
+  `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 mix compile --force --warnings-as-errors`
+  compiled 3,934 files successfully.
+- Focused regression:
+  `test/orbital_dynamics/communications/contact_allocation_test.exs` passed
+  70 tests.
+- Adjacent regressions:
+  `test/orbital_dynamics/operator_review/contact_allocation_test.exs` passed
+  11 tests and
+  `test/orbital_dynamics/campaign_planner/repair_contact_allocation_contention_test.exs`
+  passed 1 test.
+- Exact old/new comparison against selection commit `de0dc8d8` covered six
+  allocation-report states with and without `now_s`; all 12 summary outputs
+  matched exactly.
+- The exact states covered empty and allocated rows, policy blocking,
+  invalid/status/resource/duplicate blocking, station pressure, capacity
+  packing, trust counts, and active/missing reservation expiration.
+- `git diff --check` passed.
+- `mix xref callers
+  OrbitalDynamics.Communications.ContactAllocation.AllocationSummary` reports
+  only the ContactAllocation facade as a runtime caller; compile-connected xref
+  reports no unexpected coupling.
+- Static review confirmed the owner exposes only `build/4`; allocation
+  execution and the station-pressure, capacity-pack, reservation-conflict, and
+  provider-request specialized summaries remain in the facade.
 
 Behavior/schema changes:
-None intended. This is a facade-preserving production ownership extraction.
+None. Existing row normalization, count/group semantics, reservation
+expiration rules, model limits, assumptions, omission behavior, artifact
+shape, and deterministic output are preserved.
 
 Last completed slice:
-StationCalendar calendar-input normalization extraction, selected in
-`8c62649c` and implemented in `31df3bf1`.
-`communications/station_calendar.ex` moved from 3,346 to 2,981 lines; the
-dedicated calendar-input owner is 449 lines.
+ContactAllocation general summary extraction, selected in `de0dc8d8` and
+implemented in `6c3d18c4`.
+`communications/contact_allocation.ex` moved from 3,308 to 3,071 lines; the
+dedicated allocation-summary owner is 710 lines.
 
 Next candidate:
 Re-rank the live largest-module set and select the next cohesive ownership
