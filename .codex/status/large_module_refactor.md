@@ -6,42 +6,36 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-TimelineFeedback realized-status extraction.
+TimelineFeedback realized-identity extraction.
 
 Status:
-Completed and pushed in `efd6a8a5`.
+Selected; implementation has not started.
 
 Selected boundary:
-Extract realized-status normalization, lifecycle-event interpretation,
-feedback-envelope status detection, supported-status classification, and
-invalid-status reason rendering into
-`OrbitalDynamics.TimelineFeedback.RealizedStatus`. Preserve the existing
-private status helper seams and pass facade-owned lifecycle/status collections
+Extract stable identifier validation, realized input identity selection,
+identity issue classification, nested/context identifier inspection, and
+invalid-row fallback identities into
+`OrbitalDynamics.TimelineFeedback.RealizedIdentity`. Preserve the existing
+private identity/stable-ID seams and pass the facade-owned stable-ID pattern
 into the dedicated owner.
 
 Selection evidence:
-- Live re-ranking still places `timeline_feedback.ex` second at 5,023 lines.
-- The selected 4,424-4,499 and 4,515-4,525 helper family owns one status
-  interpretation concern used by realized-input validation and row assembly.
-- Realized identity resolution, report assembly, artifact packaging, and
-  lifecycle capability metadata remain in the facade.
-- Focused TimelineFeedback coverage exercises direct statuses, feedback
-  envelopes, lifecycle-event aliases, missing/unsupported statuses, and
-  normalized public artifacts.
+- `timeline_feedback.ex` remains the second-largest production module at 4,962
+  lines after realized-status extraction.
+- The selected 4,359-4,433, 4,444-4,456, and 4,466-4,474 helper family owns
+  stable realized identity interpretation used by input validation, row
+  assembly, and fallback invalid rows.
+- Row construction, status interpretation, reconciliation, and artifact
+  packaging remain in the facade; generic facade callers retain their existing
+  private identifier/stable-ID seams as delegates.
+- Focused TimelineFeedback coverage exercises aliases, nested identities,
+  invalid identifiers, missing identifiers, fallback IDs, and deterministic
+  normalized rows.
 
 Verification:
-- Strict warnings-as-errors compile passed across 3,879 files.
-- Focused TimelineFeedback coverage passed: 73 tests.
-- Adjacent operator-review, contact-feedback-contract, and realized-activity
-  feedback integration coverage passed: 10 tests.
-- Exact old/new public artifact comparison against `40a5a32c` passed for 12
-  direct, envelope, lifecycle, unsupported, and missing-status inputs plus the
-  aggregate normalized list.
-- Bounded review replaced verbose repeated collection arguments with one
-  facade-owned policy tuple; runtime xref found only the TimelineFeedback
-  facade, static ownership review passed, and `git diff --check` passed.
-- `timeline_feedback.ex` moved from 5,023 to 4,962 lines; the dedicated owner
-  is 131 lines.
+Pending: focused TimelineFeedback baseline, exact old/new public normalized
+identity artifacts, strict compile, adjacent realized-feedback coverage,
+static single ownership, runtime xref, and bounded review.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
@@ -52,8 +46,8 @@ implemented in `efd6a8a5`. `timeline_feedback.ex` moved from 5,023 to 4,962
 lines; the dedicated owner is 131 lines.
 
 Next candidate:
-Re-inventory remaining TimelineFeedback realized-identity and normalization
-families after realized status has one production owner.
+Re-inventory remaining TimelineFeedback normalization/reconciliation families
+after realized identity has one production owner.
 
 Blocked:
 No.
