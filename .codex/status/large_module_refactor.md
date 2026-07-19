@@ -6,41 +6,29 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-CadenceImport timeline source-identifier policy extension.
+CadenceImport review-row run-input metadata extension.
 
 Status:
-Completed and published.
+Selected; implementation has not started.
 
 Selected boundary:
-Move the duplicate timeline activity-state and preservation-status source-ID
-fallback chains into the existing
-`OrbitalDynamics.CadenceImport.SourceIdentifierPolicy`. Preserve both facade
-seams as delegates and resolve the existing option override before entering the
-policy owner.
+Move nonempty `run_input_sources` propagation into the existing
+`OrbitalDynamics.CadenceImport.ReviewRowMetadata` owner. Preserve the facade's
+existing `put_run_input_sources/2` seam as a delegate.
 
 Selection evidence:
-- `cadence_import.ex` is now 2,813 lines.
-- The selected two helpers are identical ordered fallback chains and belong with
-  the existing source/manifest identifier policy.
-- The family has one responsibility: choose option, ID, source, timeline,
-  activity, then explicit fallback identity in that order.
-- Option parsing, manifest dispatch, row building, schemas, and ordering remain
+- `cadence_import.ex` is now 2,819 lines.
+- The selected two-clause helper propagates row-level source metadata and shares
+  the same review-row metadata responsibility as queue/action/context helpers.
+- Only nonempty map values are propagated; empty, non-map, and missing values
+  leave the destination row unchanged.
+- Row construction, provenance construction, schemas, and ordering remain
   outside the boundary.
 
 Verification:
-- Strict test compile passed with 3,824 files and warnings as errors.
-- Two focused timeline state/preservation tests passed with 70 excluded.
-- All combined CadenceImport tests passed: 96 tests.
-- CadenceImport schema contracts passed: 4 tests.
-- A 6-case direct matrix covered exact option, ID, source, timeline, activity,
-  and explicit fallback precedence.
-- Formatting and diff checks passed, and no temporary proof files remain.
-- Static ownership checks confirmed the shared fallback chain has one
-  production implementation behind both preserved facade seams.
-- Runtime xref confirmed `cadence_import.ex` directly consumes the extended
-  `source_identifier_policy.ex`.
-- Bounded local review found no option resolution, precedence, identity,
-  dispatch, ordering, or schema changes.
+Pending: focused run-input-source baseline, exact propagation matrix, strict
+compile, all combined CadenceImport tests, schema contracts, static single
+ownership, runtime xref, and bounded review.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
@@ -52,8 +40,8 @@ to 2,819 lines because the two explicit facade delegates expanded for readable
 argument passing; the shared policy owner grew from 52 to 57 lines.
 
 Next candidate:
-Return to remaining review-package or row dispatch after timeline identity
-fallback has one production owner.
+Return to remaining review-package or row dispatch after review-row metadata
+propagation has one production owner.
 
 Blocked:
 No.
