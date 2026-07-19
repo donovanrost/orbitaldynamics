@@ -1,7 +1,10 @@
 defmodule OrbitalDynamics.RecommendationRiskContext do
   @moduledoc false
 
-  alias OrbitalDynamics.RecommendationRiskContext.OperationalFeedback
+  alias OrbitalDynamics.RecommendationRiskContext.{
+    ObjectiveSatisfaction,
+    OperationalFeedback
+  }
 
   @validation_refresh_context_keys [
     "model_acceptance_report_ids",
@@ -763,59 +766,6 @@ defmodule OrbitalDynamics.RecommendationRiskContext do
     "score_term_pressure_derivation_reasons"
   ]
 
-  @objective_satisfaction_context_keys [
-    "objective_satisfaction_pressure_risk_types",
-    "objective_satisfaction_pressure_objective_ids",
-    "objective_satisfaction_pressure_objective_types",
-    "objective_satisfaction_pressure_objective_statuses",
-    "objective_satisfaction_pressure_source_objective_statuses",
-    "objective_satisfaction_pressure_latency_objective_values",
-    "objective_satisfaction_pressure_target_ids",
-    "objective_satisfaction_pressure_scenario_ids",
-    "objective_satisfaction_pressure_spacecraft_ids",
-    "objective_satisfaction_pressure_branch_ids",
-    "objective_satisfaction_pressure_ground_station_ids",
-    "objective_satisfaction_pressure_collection_ids",
-    "objective_satisfaction_pressure_product_ids",
-    "objective_satisfaction_pressure_payload_ids",
-    "objective_satisfaction_pressure_instrument_ids",
-    "objective_satisfaction_pressure_start_values_s",
-    "objective_satisfaction_pressure_end_values_s",
-    "objective_satisfaction_pressure_required_contact_values",
-    "objective_satisfaction_pressure_planned_contact_values",
-    "objective_satisfaction_pressure_required_downlink_values_mb",
-    "objective_satisfaction_pressure_planned_downlink_values_mb",
-    "objective_satisfaction_pressure_max_latency_values_s",
-    "objective_satisfaction_pressure_planned_latency_values_s",
-    "objective_satisfaction_pressure_required_observation_values",
-    "objective_satisfaction_pressure_planned_observation_values",
-    "objective_satisfaction_pressure_priorities",
-    "objective_satisfaction_pressure_latitude_values_deg",
-    "objective_satisfaction_pressure_longitude_values_deg",
-    "objective_satisfaction_pressure_minimum_elevation_values_deg",
-    "objective_satisfaction_pressure_source_activity_ids",
-    "objective_satisfaction_pressure_missed_downlink_activity_ids",
-    "objective_satisfaction_pressure_realized_statuses",
-    "objective_satisfaction_pressure_contact_results",
-    "objective_satisfaction_pressure_observation_success_factor_values",
-    "objective_satisfaction_pressure_image_quality_score_values",
-    "objective_satisfaction_pressure_image_quality_statuses",
-    "objective_satisfaction_pressure_image_quality_sources",
-    "objective_satisfaction_pressure_cloud_cover_fraction_values",
-    "objective_satisfaction_pressure_blur_score_values",
-    "objective_satisfaction_pressure_quality_feedback_sources",
-    "objective_satisfaction_pressure_candidate_window_maps",
-    "objective_satisfaction_pressure_allowed_scenario_ids",
-    "objective_satisfaction_pressure_spacecraft_constraint_maps",
-    "objective_satisfaction_pressure_coverage_objective_ids",
-    "objective_satisfaction_pressure_downlink_demand_sources",
-    "objective_satisfaction_pressure_downlink_completion_sources",
-    "objective_satisfaction_pressure_feedback_sources",
-    "objective_satisfaction_pressure_feedback_scopes",
-    "objective_satisfaction_pressure_trust_boundaries",
-    "objective_satisfaction_pressure_derivation_reasons"
-  ]
-
   @objective_tradeoff_context_keys [
     "objective_tradeoff_pressure_risk_types",
     "objective_tradeoff_pressure_objective_ids",
@@ -1022,7 +972,7 @@ defmodule OrbitalDynamics.RecommendationRiskContext do
 
   def score_term_context_keys, do: @score_term_context_keys
 
-  def objective_satisfaction_context_keys, do: @objective_satisfaction_context_keys
+  def objective_satisfaction_context_keys, do: ObjectiveSatisfaction.context_keys()
 
   def objective_tradeoff_context_keys, do: @objective_tradeoff_context_keys
 
@@ -3072,125 +3022,7 @@ defmodule OrbitalDynamics.RecommendationRiskContext do
 
   def score_term_context(_risks), do: %{}
 
-  def objective_satisfaction_context(risks) when is_list(risks) do
-    risks = Enum.map(risks, &stringify_keys/1)
-
-    objective_satisfaction_risks =
-      Enum.filter(risks, &objective_satisfaction_risk?/1)
-
-    %{
-      "objective_satisfaction_pressure_risk_types" =>
-        risk_context_values(objective_satisfaction_risks, ["type", "risk_type"]),
-      "objective_satisfaction_pressure_objective_ids" =>
-        risk_context_values(objective_satisfaction_risks, "objective_id"),
-      "objective_satisfaction_pressure_objective_types" =>
-        risk_context_values(objective_satisfaction_risks, "objective_type"),
-      "objective_satisfaction_pressure_objective_statuses" =>
-        risk_context_values(objective_satisfaction_risks, "objective_status"),
-      "objective_satisfaction_pressure_source_objective_statuses" =>
-        risk_context_values(objective_satisfaction_risks, "source_objective_status"),
-      "objective_satisfaction_pressure_latency_objective_values" =>
-        risk_context_values(objective_satisfaction_risks, "latency_objective"),
-      "objective_satisfaction_pressure_target_ids" =>
-        risk_context_values(objective_satisfaction_risks, "target_id"),
-      "objective_satisfaction_pressure_scenario_ids" =>
-        risk_context_values(objective_satisfaction_risks, "scenario_id"),
-      "objective_satisfaction_pressure_spacecraft_ids" =>
-        risk_context_values(objective_satisfaction_risks, "spacecraft_id"),
-      "objective_satisfaction_pressure_branch_ids" =>
-        risk_context_values(objective_satisfaction_risks, "branch_id"),
-      "objective_satisfaction_pressure_ground_station_ids" =>
-        risk_context_values(objective_satisfaction_risks, "ground_station_id"),
-      "objective_satisfaction_pressure_collection_ids" =>
-        risk_context_values(objective_satisfaction_risks, ["collection_id", "collection_ids"]),
-      "objective_satisfaction_pressure_product_ids" =>
-        risk_context_values(objective_satisfaction_risks, ["product_id", "product_ids"]),
-      "objective_satisfaction_pressure_payload_ids" =>
-        risk_context_values(objective_satisfaction_risks, ["payload_id", "payload_ids"]),
-      "objective_satisfaction_pressure_instrument_ids" =>
-        risk_context_values(objective_satisfaction_risks, ["instrument_id", "instrument_ids"]),
-      "objective_satisfaction_pressure_start_values_s" =>
-        risk_context_values(objective_satisfaction_risks, "starts_at_s"),
-      "objective_satisfaction_pressure_end_values_s" =>
-        risk_context_values(objective_satisfaction_risks, "ends_at_s"),
-      "objective_satisfaction_pressure_required_contact_values" =>
-        risk_context_values(objective_satisfaction_risks, "required_contacts"),
-      "objective_satisfaction_pressure_planned_contact_values" =>
-        risk_context_values(objective_satisfaction_risks, "planned_contacts"),
-      "objective_satisfaction_pressure_required_downlink_values_mb" =>
-        risk_context_values(objective_satisfaction_risks, "required_downlink_mb"),
-      "objective_satisfaction_pressure_planned_downlink_values_mb" =>
-        risk_context_values(objective_satisfaction_risks, "planned_downlink_mb"),
-      "objective_satisfaction_pressure_max_latency_values_s" =>
-        risk_context_values(objective_satisfaction_risks, "max_latency_s"),
-      "objective_satisfaction_pressure_planned_latency_values_s" =>
-        risk_context_values(objective_satisfaction_risks, "planned_latency_s"),
-      "objective_satisfaction_pressure_required_observation_values" =>
-        risk_context_values(objective_satisfaction_risks, "required_observations"),
-      "objective_satisfaction_pressure_planned_observation_values" =>
-        risk_context_values(objective_satisfaction_risks, "planned_observations"),
-      "objective_satisfaction_pressure_priorities" =>
-        risk_context_values(objective_satisfaction_risks, "priority"),
-      "objective_satisfaction_pressure_latitude_values_deg" =>
-        risk_context_values(objective_satisfaction_risks, "latitude_deg"),
-      "objective_satisfaction_pressure_longitude_values_deg" =>
-        risk_context_values(objective_satisfaction_risks, "longitude_deg"),
-      "objective_satisfaction_pressure_minimum_elevation_values_deg" =>
-        risk_context_values(objective_satisfaction_risks, "minimum_elevation_deg"),
-      "objective_satisfaction_pressure_source_activity_ids" =>
-        risk_context_values(objective_satisfaction_risks, [
-          "source_activity_id",
-          "source_activity_ids"
-        ]),
-      "objective_satisfaction_pressure_missed_downlink_activity_ids" =>
-        risk_context_values(objective_satisfaction_risks, [
-          "missed_downlink_activity_id",
-          "missed_downlink_activity_ids"
-        ]),
-      "objective_satisfaction_pressure_realized_statuses" =>
-        risk_context_values(objective_satisfaction_risks, "realized_status"),
-      "objective_satisfaction_pressure_contact_results" =>
-        risk_context_values(objective_satisfaction_risks, "contact_result"),
-      "objective_satisfaction_pressure_observation_success_factor_values" =>
-        risk_context_values(objective_satisfaction_risks, "observation_success_factor"),
-      "objective_satisfaction_pressure_image_quality_score_values" =>
-        risk_context_values(objective_satisfaction_risks, "image_quality_score"),
-      "objective_satisfaction_pressure_image_quality_statuses" =>
-        risk_context_values(objective_satisfaction_risks, "image_quality_status"),
-      "objective_satisfaction_pressure_image_quality_sources" =>
-        risk_context_values(objective_satisfaction_risks, "image_quality_source"),
-      "objective_satisfaction_pressure_cloud_cover_fraction_values" =>
-        risk_context_values(objective_satisfaction_risks, "cloud_cover_fraction"),
-      "objective_satisfaction_pressure_blur_score_values" =>
-        risk_context_values(objective_satisfaction_risks, "blur_score"),
-      "objective_satisfaction_pressure_quality_feedback_sources" =>
-        risk_context_values(objective_satisfaction_risks, "quality_feedback_source"),
-      "objective_satisfaction_pressure_candidate_window_maps" =>
-        risk_context_values(objective_satisfaction_risks, ["candidate_windows"]),
-      "objective_satisfaction_pressure_allowed_scenario_ids" =>
-        risk_context_values(objective_satisfaction_risks, ["allowed_scenario_ids"]),
-      "objective_satisfaction_pressure_spacecraft_constraint_maps" =>
-        risk_context_values(objective_satisfaction_risks, ["spacecraft_constraints"]),
-      "objective_satisfaction_pressure_coverage_objective_ids" =>
-        risk_context_values(objective_satisfaction_risks, "coverage_objective_id"),
-      "objective_satisfaction_pressure_downlink_demand_sources" =>
-        risk_context_values(objective_satisfaction_risks, ["downlink_demand_sources"]),
-      "objective_satisfaction_pressure_downlink_completion_sources" =>
-        risk_context_values(objective_satisfaction_risks, ["downlink_completion_sources"]),
-      "objective_satisfaction_pressure_feedback_sources" =>
-        risk_context_values(objective_satisfaction_risks, "feedback_source"),
-      "objective_satisfaction_pressure_feedback_scopes" =>
-        risk_context_values(objective_satisfaction_risks, "feedback_scope"),
-      "objective_satisfaction_pressure_trust_boundaries" =>
-        risk_context_values(objective_satisfaction_risks, "trust_boundary"),
-      "objective_satisfaction_pressure_derivation_reasons" =>
-        risk_context_values(objective_satisfaction_risks, ["derivation_reasons"])
-    }
-    |> Enum.reject(fn {_key, values} -> values == [] end)
-    |> Map.new()
-  end
-
-  def objective_satisfaction_context(_risks), do: %{}
+  def objective_satisfaction_context(risks), do: ObjectiveSatisfaction.context(risks)
 
   def objective_tradeoff_context(risks) when is_list(risks) do
     risks = Enum.map(risks, &stringify_keys/1)
@@ -3704,10 +3536,6 @@ defmodule OrbitalDynamics.RecommendationRiskContext do
   defp score_term_risk?(%{"feedback_scope" => "score_term"}), do: true
 
   defp score_term_risk?(_risk), do: false
-
-  defp objective_satisfaction_risk?(%{"feedback_scope" => "objective_satisfaction"}), do: true
-
-  defp objective_satisfaction_risk?(_risk), do: false
 
   defp objective_tradeoff_risk?(%{"feedback_scope" => "objective_tradeoff"}), do: true
 
