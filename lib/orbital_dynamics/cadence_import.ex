@@ -8,7 +8,11 @@ defmodule OrbitalDynamics.CadenceImport do
   Cadence APIs or mutate schedules.
   """
 
-  alias OrbitalDynamics.CadenceImport.ProviderResultNormalization
+  alias OrbitalDynamics.CadenceImport.{
+    GenericReviewActionPolicy,
+    ProviderResultNormalization
+  }
+
   alias OrbitalDynamics.OperatorReview
 
   @schema_contract "cadence_import_manifest.v1"
@@ -3464,85 +3468,8 @@ defmodule OrbitalDynamics.CadenceImport do
   defp adapter_import_status("present", _approval_status), do: "ready_for_import"
   defp adapter_import_status(_status, _approval_status), do: "review_required_before_import"
 
-  defp generic_review_import_action("link_capacity_review"), do: "review_link_capacity"
-
-  defp generic_review_import_action("operational_timeline_review"),
-    do: "review_operational_timeline"
-
-  defp generic_review_import_action("contact_allocation_review"), do: "review_contact_allocation"
-
-  defp generic_review_import_action("contact_allocation_capacity_pack_review"),
-    do: "review_contact_allocation_capacity_pack"
-
-  defp generic_review_import_action("contact_intent_review"), do: "review_contact_intent"
-
-  defp generic_review_import_action("candidate_rejection_review"),
-    do: "review_candidate_rejection"
-
-  defp generic_review_import_action("provider_counteroffer_review"),
-    do: "review_provider_counteroffer"
-
-  defp generic_review_import_action("station_reservation_review"),
-    do: "review_station_reservation"
-
-  defp generic_review_import_action("candidate_diff_review"), do: "review_candidate_diff"
-  defp generic_review_import_action("freshness_review"), do: "review_refresh_freshness"
-  defp generic_review_import_action("refresh_budget_review"), do: "review_refresh_budget"
-  defp generic_review_import_action("constraint_review"), do: "review_constraint"
-  defp generic_review_import_action("score_term_review"), do: "review_score_term"
-
-  defp generic_review_import_action("objective_tradeoff_review"),
-    do: "review_objective_tradeoff"
-
-  defp generic_review_import_action("objective_satisfaction_review"),
-    do: "review_objective_satisfaction"
-
-  defp generic_review_import_action("resource_projection_review"),
-    do: "review_resource_projection"
-
-  defp generic_review_import_action("contact_suppression"), do: "review_contact_suppression"
-  defp generic_review_import_action("resource_suppression"), do: "review_resource_suppression"
-  defp generic_review_import_action("maneuver_review"), do: "review_maneuver"
-  defp generic_review_import_action("timeline_diff_review"), do: "review_timeline_diff"
-
-  defp generic_review_import_action("timeline_dependency_impact_review"),
-    do: "review_timeline_dependency_impact"
-
-  defp generic_review_import_action("timeline_publication_review"),
-    do: "review_timeline_publication"
-
-  defp generic_review_import_action("timeline_activity_precondition_review"),
-    do: "review_timeline_precondition"
-
-  defp generic_review_import_action("timeline_lifecycle_state_review"),
-    do: "review_timeline_lifecycle_state"
-
-  defp generic_review_import_action("timeline_preservation_review"),
-    do: "review_timeline_preservation"
-
-  defp generic_review_import_action("timeline_integrity_review"),
-    do: "review_timeline_integrity"
-
-  defp generic_review_import_action("approval_requirement"), do: "review_approval_requirement"
-  defp generic_review_import_action("policy_escalation"), do: "review_policy_escalation"
-  defp generic_review_import_action("timeline_protection"), do: "review_timeline_protection"
-  defp generic_review_import_action("warning"), do: "review_warning"
-  defp generic_review_import_action("risk_explanation"), do: "review_risk"
-
-  defp generic_review_import_action("strategy_recommendation"),
-    do: "review_strategy_recommendation"
-
-  defp generic_review_import_action("strategy_tradeoff"), do: "review_strategy_tradeoff"
-  defp generic_review_import_action("ranking_comparison_review"), do: "review_ranking_comparison"
-  defp generic_review_import_action("pareto_frontier_review"), do: "review_pareto_frontier"
-  defp generic_review_import_action("schema_validation_review"), do: "review_schema_validation"
-
-  defp generic_review_import_action("operational_readiness_review"),
-    do: "review_operational_readiness"
-
-  defp generic_review_import_action("quality_gate_review"), do: "review_quality_gate"
-
-  defp generic_review_import_action(_review_type), do: "review_operator_row"
+  defp generic_review_import_action(review_type),
+    do: GenericReviewActionPolicy.resolve(review_type)
 
   defp review_package_row_source("timeline_feedback_report.v1"),
     do: "operator_review_package.realized_feedback"
