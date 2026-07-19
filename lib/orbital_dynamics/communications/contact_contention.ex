@@ -186,7 +186,7 @@ defmodule OrbitalDynamics.Communications.ContactContention do
     source_window_id
   )
   @provider_result_map_value_keys ~w(result results outcome outcomes status state disposition provider_result provider_results provider_outcome provider_outcomes provider_status provider_state provider_code code reason reasons message messages error errors details metadata provider diagnostics)
-  alias OrbitalDynamics.Communications.ContactContention.TimingMetrics
+  alias OrbitalDynamics.Communications.ContactContention.{ContactNormalization, TimingMetrics}
   alias OrbitalDynamics.Policy
 
   @doc """
@@ -2771,248 +2771,21 @@ defmodule OrbitalDynamics.Communications.ContactContention do
 
   defp numeric_or_zero(value), do: numeric_or_nil(value) || 0.0
 
-  defp first_number(values), do: Enum.find_value(values, &numeric_or_nil/1)
-
-  defp numeric_or_nil(value) when is_integer(value) or is_float(value), do: value * 1.0
-
-  defp numeric_or_nil(value) when is_binary(value) do
-    value = String.trim(value)
-
-    case Float.parse(value) do
-      {number, ""} -> number
-      _result -> nil
-    end
-  end
-
-  defp numeric_or_nil(_value), do: nil
-
-  defp stringify_keys(%_struct{} = struct), do: struct |> Map.from_struct() |> stringify_keys()
-
-  defp stringify_keys(%{} = map) do
-    Map.new(map, fn {key, value} -> {encode_key(key), stringify_keys(value)} end)
-  end
-
-  defp stringify_keys(values) when is_list(values), do: Enum.map(values, &stringify_keys/1)
-  defp stringify_keys(value) when is_boolean(value), do: value
-  defp stringify_keys(nil), do: nil
-  defp stringify_keys(value) when is_atom(value), do: Atom.to_string(value)
-  defp stringify_keys(value), do: value
-
-  defp normalize_contact(%{} = contact) do
-    contact
-    |> stringify_keys()
-    |> normalize_station_id()
-    |> normalize_contact_time("starts_at_s", "start_s")
-    |> normalize_contact_time("ends_at_s", "end_s")
-    |> normalize_contact_numeric_fields()
-    |> normalize_station_calendar_status_fields()
-    |> normalize_activity_type_alias()
-    |> normalize_contact_direction()
-  end
+  defp first_number(values), do: ContactNormalization.first_number(values)
+  defp numeric_or_nil(value), do: ContactNormalization.numeric_or_nil(value)
+  defp stringify_keys(value), do: ContactNormalization.stringify_keys(value)
 
   defp normalize_contact(contact) do
-    %{
-      "invalid_contact_shape" => true,
-      "raw_input" => inspect(contact)
-    }
+    ContactNormalization.normalize(
+      contact,
+      @unavailable_aliases,
+      @default_resolution_priority_fields,
+      @provider_direction_aliases
+    )
   end
 
-  defp normalize_station_id(%{"ground_station_id" => station_id} = contact)
-       when not is_nil(station_id),
-       do: contact
-
-  defp normalize_station_id(%{"station_id" => station_id} = contact) when not is_nil(station_id),
-    do: Map.put(contact, "ground_station_id", station_id)
-
-  defp normalize_station_id(contact) do
-    case nested_station_id(contact) do
-      nil -> contact
-      station_id -> Map.put(contact, "ground_station_id", station_id)
-    end
-  end
-
-  defp nested_station_id(contact) do
-    Enum.find_value(["ground_station", "station"], fn station_key ->
-      case Map.get(contact, station_key) do
-        %{} = station ->
-          Enum.find_value(["ground_station_id", "station_id", "id"], fn identity_key ->
-            Map.get(station, identity_key)
-          end)
-
-        _station ->
-          nil
-      end
-    end)
-  end
-
-  defp normalize_station_calendar_status_fields(contact) do
-    contact
-    |> normalize_status_field("availability")
-    |> normalize_status_field("status")
-    |> normalize_status_field("station_availability")
-    |> normalize_status_field("station_calendar_status")
-    |> normalize_status_field("station_contention_status")
-    |> normalize_status_field("reservation_status")
-    |> normalize_status_field("station_reservation_status")
-    |> normalize_status_field("reservation_match_status")
-    |> normalize_status_field("station_reservation_match_status")
-    |> normalize_status_list_field("station_calendar_overlap_availabilities")
-    |> normalize_status_list_field("station_calendar_reservation_statuses")
-    |> normalize_source_station_calendar_field("source_station_calendar_entry")
-    |> normalize_source_station_calendar_field("source_station_calendar_overlaps")
-  end
-
-  defp normalize_status_field(contact, field) do
-    case Map.fetch(contact, field) do
-      {:ok, value} when value in [nil, ""] ->
-        contact
-
-      {:ok, value} ->
-        Map.put(contact, field, normalized_status_token(value))
-
-      :error ->
-        contact
-    end
-  end
-
-  defp normalize_status_list_field(contact, field) do
-    case Map.fetch(contact, field) do
-      {:ok, values} when is_list(values) ->
-        values =
-          values
-          |> Enum.map(&normalized_status_token/1)
-          |> Enum.reject(&(&1 in [nil, ""]))
-
-        Map.put(contact, field, values)
-
-      {:ok, value} when value not in [nil, ""] ->
-        Map.put(contact, field, [normalized_status_token(value)])
-
-      _missing_or_empty ->
-        contact
-    end
-  end
-
-  defp normalize_source_station_calendar_field(contact, field) do
-    case Map.fetch(contact, field) do
-      {:ok, values} when is_list(values) ->
-        Map.put(contact, field, Enum.map(values, &normalize_source_station_calendar/1))
-
-      {:ok, value} ->
-        Map.put(contact, field, normalize_source_station_calendar(value))
-
-      :error ->
-        contact
-    end
-  end
-
-  defp normalize_source_station_calendar(%{} = source),
-    do: normalize_station_calendar_status_fields(source)
-
-  defp normalize_source_station_calendar(value), do: value
-
-  defp normalized_status_token(value) when is_binary(value) do
-    value
-    |> String.trim()
-    |> String.downcase()
-    |> String.replace(~r/[\s-]+/, "_")
-    |> canonical_status_token()
-  end
-
-  defp normalized_status_token(value) when is_atom(value) do
-    value
-    |> Atom.to_string()
-    |> normalized_status_token()
-  end
-
-  defp normalized_status_token(value), do: value
-
-  defp canonical_status_token(value) when value in @unavailable_aliases, do: "unavailable"
-  defp canonical_status_token(value), do: value
-
-  defp normalize_contact_time(contact, canonical_key, alternate_key) do
-    case first_number([Map.get(contact, canonical_key), Map.get(contact, alternate_key)]) do
-      nil -> contact
-      value -> Map.put(contact, canonical_key, value)
-    end
-  end
-
-  defp normalize_contact_numeric_fields(contact) do
-    ["score" | @default_resolution_priority_fields]
-    |> Enum.uniq()
-    |> Enum.reduce(contact, &normalize_contact_numeric_field(&2, &1))
-  end
-
-  defp normalize_contact_numeric_field(contact, field) do
-    case Map.fetch(contact, field) do
-      {:ok, value} ->
-        case numeric_or_nil(value) do
-          number when is_number(number) -> Map.put(contact, field, number)
-          _value -> contact
-        end
-
-      :error ->
-        contact
-    end
-  end
-
-  defp normalize_activity_type_alias(%{"type" => type} = contact) when not is_nil(type),
-    do: contact
-
-  defp normalize_activity_type_alias(%{"activity_type" => type} = contact)
-       when is_binary(type) and type != "",
-       do: Map.put(contact, "type", type)
-
-  defp normalize_activity_type_alias(contact), do: contact
-
-  defp normalize_contact_direction(%{"direction" => direction} = contact) do
-    case normalize_direction(direction) do
-      nil -> contact
-      direction -> Map.put(contact, "direction", direction)
-    end
-  end
-
-  defp normalize_contact_direction(%{"type" => "downlink"} = contact),
-    do: Map.put(contact, "direction", "downlink")
-
-  defp normalize_contact_direction(%{"type" => "tracking"} = contact),
-    do: Map.put(contact, "direction", "tracking")
-
-  defp normalize_contact_direction(%{"type" => "command"} = contact),
-    do: Map.put(contact, "direction", "command")
-
-  defp normalize_contact_direction(%{"type" => "health_check"} = contact),
-    do: Map.put(contact, "direction", "health_check")
-
-  defp normalize_contact_direction(contact), do: contact
-
-  defp normalize_direction(direction) when direction in [nil, ""], do: nil
-
-  defp normalize_direction(direction) do
-    direction
-    |> encode_value()
-    |> String.trim()
-    |> String.downcase()
-    |> String.replace(~r/[\s-]+/, "_")
-    |> case do
-      "uplink" -> "uplink"
-      "downlink" -> "downlink"
-      "tracking" -> "tracking"
-      "health_check" -> "health_check"
-      "nil" -> nil
-      "" -> nil
-      value -> Map.get(@provider_direction_aliases, value, value)
-    end
-  end
-
-  defp compact_map(map) do
-    map
-    |> Enum.reject(fn {_key, value} -> is_nil(value) end)
-    |> Map.new()
-  end
-
-  defp encode_key(key) when is_atom(key), do: Atom.to_string(key)
-  defp encode_key(key), do: key
+  defp compact_map(map), do: ContactNormalization.compact_map(map)
+  defp encode_value(value), do: ContactNormalization.encode_value(value)
 
   defp encoded_value_or_nil(value), do: encode_value(value)
 
@@ -3029,7 +2802,4 @@ defmodule OrbitalDynamics.Communications.ContactContention do
   defp value_present?(""), do: false
   defp value_present?([]), do: false
   defp value_present?(_value), do: true
-
-  defp encode_value(value) when is_float(value), do: :erlang.float_to_binary(value, decimals: 6)
-  defp encode_value(value), do: to_string(value)
 end
