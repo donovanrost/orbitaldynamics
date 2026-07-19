@@ -6,38 +6,31 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema contact-allocation validation extraction.
+Schema station-reservation validation extraction.
 
 Status:
-Completed and published in `90c1d4c3`.
+Selected; implementation has not started.
 
 Selected boundary:
-Extract contact-allocation report, row, capacity-pack group, count,
-duplicate-evidence, and five summary-family validators into
-`OrbitalDynamics.Schema.ContactAllocationValidation`. Preserve existing private
-Schema seams and pass the shared domain-callback bundle explicitly.
+Extract optional station-calendar report validation plus station-reservation
+review, hold, and hold-import-readiness summary validation into
+`OrbitalDynamics.Schema.StationReservationValidation`. Preserve the existing
+arity-2 and arity-3 private Schema seams.
 
 Selection evidence:
-- `schema.ex` is 7,040 lines; report/row/group validation spans 5,915-5,952 and
-  count/summary validation spans 6,357-6,422.
-- The cluster has one responsibility: orchestrate executable contact-allocation
-  validation across report and summary artifact families.
-- Its only facade-owned dependency is the existing contact-allocation domain
-  callback bundle; model limits can be read directly from capabilities.
-- Registry data, JSON Schema export, contract dispatch, station-summary
-  validation, and all public `Schema` APIs remain outside.
+- `schema.ex` is 7,037 lines; the selected contiguous cluster spans
+  5,964-6,003.
+- The cluster has one responsibility: validate station-calendar and
+  station-reservation summary artifacts.
+- All validators share the same station-calendar model and capability-derived
+  model limits, with no facade-owned callback dependency.
+- Registry data, JSON Schema export, contract dispatch, unrelated validation,
+  and all public `Schema` APIs remain outside.
 
 Verification:
-- Strict compile passed across 3,861 files with warnings as errors.
-- All 9 focused contact-allocation tests passed.
-- All 175 split Schema contract tests passed with warnings as errors.
-- All 15 JSON-export contract tests passed.
-- Exact old/new executable comparison passed for 12 valid and intentionally
-  invalid checked-in contact-allocation artifacts.
-- Static ownership confirms one contact-allocation validation owner with the
-  existing domain-callback bundle passed through preserved private Schema seams.
-- Runtime xref, format, diff checks, and bounded review passed.
-- `schema.ex` moved from 7,040 to 7,037 lines; the new owner is 118 lines.
+Pending: focused station-provider baselines, exact old/new fixture validation
+reports, strict compile, broader Schema contract tests, schema export checks,
+static single ownership, runtime xref, and bounded review.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
@@ -48,8 +41,8 @@ implemented in `90c1d4c3`. `schema.ex` moved from 7,040 to 7,037 lines; the
 dedicated owner is 118 lines.
 
 Next candidate:
-Re-inventory remaining Schema station-summary and family-validation clusters
-after contact-allocation validation has one production owner.
+Re-inventory remaining Schema family-validation clusters after station
+reservation validation has one production owner.
 
 Blocked:
 No.
