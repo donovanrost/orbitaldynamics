@@ -6,43 +6,36 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Policy decision-result builder extraction.
+Policy approval-policy normalizer extraction.
 
 Status:
-Completed and published in `c6b46cee`.
+Selected; implementation has not started.
 
 Selected boundary:
-Extract rule-match provenance projection and canonical sorting, approval
-requirement enrichment, strongest/fallback classification, escalation summary,
-decision counts, and final decision-map assembly into
-`OrbitalDynamics.Policy.DecisionBuilder`. Preserve `Policy.decide/5` as the
-public orchestration facade that normalizes policy and builds raw rule matches.
+Extract approval-policy bundle resolution, inline-bundle checks, action-rule
+normalization, numeric/status/direction normalization, and policy/rule
+validation into `OrbitalDynamics.Policy.ApprovalPolicyNormalizer`. Move the
+rule-field schema constants with their sole consumer; preserve
+`Policy.normalize_approval_policy/1` as the public facade, passing the built-in
+bundle resolver and default blocked-risk types into the new owner.
 
 Selection evidence:
-- `policy.ex` is now 2,324 lines; the selected result assembly is the private
-  decision body at 1,654-1,729 plus its exclusive helpers at 1,732-1,745 and
-  2,176-2,295.
-- Every selected helper is called only within this result-building path; the
-  only production dependency is `BlockedRiskMatcher`.
-- The cluster has one responsibility: turn raw rule matches and fallback inputs
-  into the deterministic `policy_decision.v1` tuple returned by `decide/5`.
-- Policy normalization, raw four-family rule-match construction, bundles,
-  validation, capabilities, and public API signatures remain outside.
+- `policy.ex` is now 2,119 lines; the selected rule-field schemas occupy lines
+  15-211 and their exclusive normalization/validation helpers span
+  1,665-2,080 around the public facade.
+- The cluster has one responsibility: resolve policy input into a deterministic,
+  validated string-keyed approval policy.
+- Its external call inventory is limited to the supplied built-in bundle
+  resolver, `RequirementContext` normalization, and CadenceImport capability
+  values.
+- Built-in bundle definitions, organization/artifact wrappers, decision
+  orchestration, match construction, capabilities, and public signatures remain
+  outside.
 
 Verification:
-- Strict compile passed across 3,854 files with warnings as errors.
-- Seven focused classification, ordering, escalation, and fallback baselines
-  passed.
-- All 89 Policy tests and the Policy schema-contract test passed with warnings
-  as errors.
-- Exact old/new executable comparison passed for 37 decisions spanning all 11
-  bundles, three mixed scenarios, and four fallback cases.
-- Static ownership confirms one `DecisionBuilder.build/6` production owner,
-  one unchanged public `Policy.decide/5` facade, and no result helpers left in
-  the facade.
-- Runtime xref confirms `Policy` calls `DecisionBuilder`; format, diff checks,
-  and bounded review passed.
-- `policy.ex` moved from 2,324 to 2,119 lines; the new owner is 233 lines.
+Pending: focused normalization/validation baselines, exact old/new valid and
+invalid input proofs, strict compile, full Policy tests, relevant
+schema/contracts, static single ownership, runtime xref, and bounded review.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
@@ -53,8 +46,8 @@ implemented in `c6b46cee`. `policy.ex` moved from 2,324 to 2,119 lines; the
 dedicated builder is 233 lines.
 
 Next candidate:
-Re-inventory Policy bundle and action-rule normalization after decision-result
-assembly has one production owner.
+Re-inventory the remaining Policy bundle/catalog facade after approval-policy
+normalization has one production owner.
 
 Blocked:
 No.
