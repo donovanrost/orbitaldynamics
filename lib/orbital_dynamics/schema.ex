@@ -13,6 +13,7 @@ defmodule OrbitalDynamics.Schema do
     ContactReportValidation,
     DecisionSupportValidation,
     OperationalReadinessValidation,
+    OperatorReviewValidation,
     PolicyValidation,
     ResourceValidation,
     SourceEvidenceValidation,
@@ -6072,19 +6073,13 @@ defmodule OrbitalDynamics.Schema do
   defp validate_optional_operational_timeline_report(issues, _report),
     do: [error("$.operational_timeline_report", "must be an object") | issues]
 
-  defp validate_optional_operator_review_package(issues, nil), do: issues
-
-  defp validate_optional_operator_review_package(issues, %{} = package) do
-    validate_contract(
-      @operator_review_package,
-      registry_contract!(@operator_review_package),
-      package
-    ) ++
-      issues
-  end
-
-  defp validate_optional_operator_review_package(issues, _package),
-    do: [error("$.operator_review_package", "must be an object") | issues]
+  defp validate_optional_operator_review_package(issues, package),
+    do:
+      OperatorReviewValidation.validate_optional_package(
+        issues,
+        package,
+        &validate_registered_contract(@operator_review_package, &1)
+      )
 
   defp validate_operational_timeline_row(issues, path, row) do
     OrbitalDynamics.Schema.OperationalTimelineRowContracts.validate(
@@ -6294,13 +6289,8 @@ defmodule OrbitalDynamics.Schema do
   defp relay_latency_statuses, do: ~w(within_limit exceeds_limit not_evaluated unknown)
   defp relay_risk_statuses, do: ~w(nominal review high unknown)
 
-  defp validate_operator_review_row_links(issues, path, row) do
-    OrbitalDynamics.Schema.ReviewRowLinkContracts.validate(
-      issues,
-      path,
-      row
-    )
-  end
+  defp validate_operator_review_row_links(issues, path, row),
+    do: OperatorReviewValidation.validate_row_links(issues, path, row)
 
   defp validate_contact_allocation_report_counts(issues, path, report),
     do:
@@ -6753,16 +6743,16 @@ defmodule OrbitalDynamics.Schema do
         policy_action_rule_field_groups()
       )
 
-  defp validate_operator_review_package(issues, path, package) do
-    OrbitalDynamics.Schema.OperatorReviewPackageContracts.validate(
-      issues,
-      path,
-      package,
-      OrbitalDynamics.OperatorReview.capabilities().source_artifact_types,
-      operator_review_package_model_limits(),
-      operator_review_package_contract_callbacks()
-    )
-  end
+  defp validate_operator_review_package(issues, path, package),
+    do:
+      OperatorReviewValidation.validate_package(
+        issues,
+        path,
+        package,
+        OrbitalDynamics.OperatorReview.capabilities().source_artifact_types,
+        operator_review_package_model_limits(),
+        operator_review_package_contract_callbacks()
+      )
 
   defp operator_review_package_contract_callbacks do
     [
@@ -6776,16 +6766,16 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp validate_operator_review_row(issues, path, row) do
-    OrbitalDynamics.Schema.OperatorReviewRowContracts.validate(
-      issues,
-      path,
-      row,
-      OrbitalDynamics.OperatorReview.capabilities().review_types,
-      OrbitalDynamics.Communications.StationCalendar.capabilities().provider_counteroffer_negotiation_states,
-      operator_review_row_domain_callbacks()
-    )
-  end
+  defp validate_operator_review_row(issues, path, row),
+    do:
+      OperatorReviewValidation.validate_row(
+        issues,
+        path,
+        row,
+        OrbitalDynamics.OperatorReview.capabilities().review_types,
+        OrbitalDynamics.Communications.StationCalendar.capabilities().provider_counteroffer_negotiation_states,
+        operator_review_row_domain_callbacks()
+      )
 
   defp operator_review_row_domain_callbacks do
     OrbitalDynamics.Schema.OperatorReviewRowCallbacks.build(
