@@ -13,6 +13,7 @@ defmodule OrbitalDynamics.Schema do
     ContactReportValidation,
     DecisionSupportValidation,
     OperationalReadinessValidation,
+    PolicyValidation,
     ResourceValidation,
     StationReservationValidation,
     TimelineSourceValidation,
@@ -6640,24 +6641,24 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validate_approval_requirement(issues, path, requirement) do
-    OrbitalDynamics.Schema.ApprovalRequirementContracts.validate(
-      issues,
-      path,
-      requirement,
-      policy_model_limits(),
-      policy_rule_match_field_groups()
-    )
-  end
+  defp validate_approval_requirement(issues, path, requirement),
+    do:
+      PolicyValidation.validate_approval_requirement(
+        issues,
+        path,
+        requirement,
+        policy_model_limits(),
+        policy_rule_match_field_groups()
+      )
 
-  defp validate_optional_policy_decision_evidence(issues, path, decision) do
-    OrbitalDynamics.Schema.ApprovalRequirementContracts.validate_policy_decision_evidence(
-      issues,
-      path,
-      decision,
-      policy_model_limits()
-    )
-  end
+  defp validate_optional_policy_decision_evidence(issues, path, decision),
+    do:
+      PolicyValidation.validate_optional_decision_evidence(
+        issues,
+        path,
+        decision,
+        policy_model_limits()
+      )
 
   defp validate_source_evidence_fields(issues, path, row) do
     OrbitalDynamics.Schema.SourceEvidenceContracts.validate_fields(
@@ -6717,22 +6718,8 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validate_optional_policy_escalation(issues, path, row, field) do
-    case Map.get(row, field) do
-      nil ->
-        issues
-
-      %{} = escalation ->
-        OrbitalDynamics.Schema.PolicyEscalationContracts.validate(
-          issues,
-          "#{path}.#{field}",
-          escalation
-        )
-
-      _value ->
-        [error("#{path}.#{field}", "must be an object") | issues]
-    end
-  end
+  defp validate_optional_policy_escalation(issues, path, row, field),
+    do: PolicyValidation.validate_optional_escalation(issues, path, row, field)
 
   defp validate_branch(issues, path, branch) do
     OrbitalDynamics.Schema.StrategyBranchContracts.validate(
@@ -6756,38 +6743,38 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validate_policy_decision(issues, path, decision) do
-    OrbitalDynamics.Schema.PolicyDecisionContracts.validate(
-      issues,
-      path,
-      decision,
-      policy_model_limits(),
-      policy_rule_match_field_groups()
-    )
-  end
+  defp validate_policy_decision(issues, path, decision),
+    do:
+      PolicyValidation.validate_decision(
+        issues,
+        path,
+        decision,
+        policy_model_limits(),
+        policy_rule_match_field_groups()
+      )
 
-  defp validate_policy_rule_match(issues, path, match) do
-    OrbitalDynamics.Schema.PolicyRuleMatchContracts.validate(
-      issues,
-      path,
-      match,
-      policy_rule_match_field_groups()
-    )
-  end
+  defp validate_policy_rule_match(issues, path, match),
+    do:
+      PolicyValidation.validate_rule_match(
+        issues,
+        path,
+        match,
+        policy_rule_match_field_groups()
+      )
 
   defp policy_rule_match_field_groups do
     OrbitalDynamics.Schema.PolicyFieldGroups.rule_match()
   end
 
-  defp validate_policy_bundle(issues, path, bundle) do
-    OrbitalDynamics.Schema.PolicyBundleContracts.validate(
-      issues,
-      path,
-      bundle,
-      policy_model_limits(),
-      policy_action_rule_field_groups()
-    )
-  end
+  defp validate_policy_bundle(issues, path, bundle),
+    do:
+      PolicyValidation.validate_bundle(
+        issues,
+        path,
+        bundle,
+        policy_model_limits(),
+        policy_action_rule_field_groups()
+      )
 
   defp validate_operator_review_package(issues, path, package) do
     OrbitalDynamics.Schema.OperatorReviewPackageContracts.validate(
