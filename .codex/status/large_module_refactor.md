@@ -6,43 +6,31 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-CadenceImport manifest routing extraction.
+CadenceImport review-row builder extraction.
 
 Status:
-Completed and published.
+Selected; implementation has not started.
 
 Selected boundary:
-Extract all 179 `manifest/2` pattern clauses into
-`OrbitalDynamics.CadenceImport.ManifestRouter`. Preserve `manifest/2` as the
-public facade, pass constructor dispatch and unsupported-contract handling as
-callbacks, and keep every `from_*` public constructor on the facade.
+Extract `review_manifest_row/2`, its 36-type callback registry, all
+review-specific row adapter functions, and their private normalization/context
+helpers into `OrbitalDynamics.CadenceImport.ReviewRowBuilder`. Preserve one
+private facade seam used by review-package and campaign/strategy orchestration.
 
 Selection evidence:
-- `cadence_import.ex` is now 2,056 lines.
-- The selected multimethod spans 691 lines, contains 179 pattern clauses, and
-  routes to 64 constructor names plus pass-through/error fallbacks.
-- The family has one responsibility: classify supported wrapper, schema,
-  version, and model shapes and dispatch to the stable public constructors.
-- Constructor behavior, capability data, diagnostics wording, row builders,
-  manifest assembly, and schemas remain outside the boundary.
+- `cadence_import.ex` is now 1,415 lines.
+- The selected cluster spans roughly 500 lines and wires 36 review types to
+  family-specific row modules plus shared normalization/context policies.
+- The cluster has one responsibility: construct one manifest row from one
+  normalized operator-review row and rank.
+- Campaign proposed-contact/strategy rows, public constructors, manifest
+  routing, manifest assembly, capability data, and schemas remain outside the
+  boundary.
 
 Verification:
-- Strict test compile passed with 3,843 files and warnings as errors.
-- Six focused routing/contract tests passed with 70 excluded.
-- All combined CadenceImport tests passed: 96 tests.
-- CadenceImport schema contracts passed: 4 tests.
-- Executable before/after proofs matched 344 routes: all 64 declared source
-  contracts in string/atom form, all 13 model-only routes, wrappers, version
-  shapes, explicit options, pass-through manifests, and error fallbacks.
-- Formatting, tracked/untracked diff checks passed, and no proof files remain.
-- Static ownership checks confirmed one public `manifest/2` facade and exactly
-  179 clauses in the dedicated router.
-- Runtime xref confirmed `cadence_import.ex` is the direct consumer of
-  `manifest_router.ex`.
-- Bounded local review found and fixed only migration mechanics: multiline
-  callback arguments, used callback names, and atom-key pipeline argument
-  order. No pattern order, normalization, dispatch target, option, diagnostic,
-  public API, artifact, or schema changes remain.
+Pending: representative focused row-family baselines, exact old/new manifest
+proofs, strict compile, all combined CadenceImport tests, schema contracts,
+static single ownership, runtime xref, and bounded review.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
@@ -53,8 +41,8 @@ implemented in `ee8f7b3a`. `cadence_import.ex` moved from 2,056 to 1,415 lines;
 the dedicated router is 1,640 lines.
 
 Next candidate:
-Re-inventory remaining private row/helper ownership after manifest routing has
-one production owner.
+Re-inventory the remaining campaign/strategy facade callback adapters after
+review-row construction has one production owner.
 
 Blocked:
 No.
