@@ -81,7 +81,7 @@ defmodule OrbitalDynamics.TimelineFeedback do
   @provider_result_map_value_keys ~w(result results outcome outcomes status state disposition provider_result provider_results provider_outcome provider_outcomes provider_status provider_state provider_code code reason reasons message messages error errors details metadata provider diagnostics)
 
   alias OrbitalDynamics.{CadenceImport, OperatorReview, Timeline}
-  alias OrbitalDynamics.TimelineFeedback.ProviderResult
+  alias OrbitalDynamics.TimelineFeedback.{ProviderResult, SuccessFactor}
 
   @doc """
   Declares the feedback reconciliation model and known limits.
@@ -4943,214 +4943,44 @@ defmodule OrbitalDynamics.TimelineFeedback do
   defp vector_delta(_actual, _planned), do: nil
 
   defp realized_observation_success_factor(activity) do
-    explicit_observation_success_factor(activity) ||
-      provider_result_observation_factor(activity) ||
-      completed_fraction_observation_factor(activity)
+    SuccessFactor.observation(activity, @provider_result_map_value_keys)
   end
 
   defp realized_observation_success_factor_source(activity) do
-    Map.get(activity, "observation_success_factor_source") ||
-      get_in(activity, ["metadata", "observation_success_factor_source"]) ||
-      if is_nil(explicit_observation_success_factor(activity)) do
-        provider_result_observation_factor_source(activity) ||
-          completed_fraction_observation_factor_source(activity)
-      end
-  end
-
-  defp explicit_observation_success_factor(activity) do
-    first_unit_interval_number(activity, [
-      "observation_success_factor",
-      ["metadata", "observation_success_factor"]
-    ])
+    SuccessFactor.observation_source(activity, @provider_result_map_value_keys)
   end
 
   defp normalized_completed_fraction(activity) do
     unit_interval_number_or_nil(Map.get(activity, "completed_fraction"))
   end
 
-  defp first_unit_interval_number(activity, fields) do
-    Enum.find_value(fields, fn field ->
-      value =
-        case field do
-          path when is_list(path) -> feedback_path_value(activity, path)
-          field -> first_value(activity, [field])
-        end
-
-      unit_interval_number_or_nil(value)
-    end)
-  end
-
-  defp provider_result_observation_factor(%{"observation_result" => result} = activity) do
-    provider_result_feedback_value(result, activity)
-  end
-
-  defp provider_result_observation_factor(_activity), do: nil
-
-  defp provider_result_observation_factor_source(%{"observation_result" => result})
-       when not is_nil(result) do
-    case provider_result_outcome(result) do
-      outcome when outcome in [:failure, :success] -> "realized_activity.observation_result"
-      :unknown -> nil
-    end
-  end
-
-  defp provider_result_observation_factor_source(_activity), do: nil
-
-  defp completed_fraction_observation_factor(%{"type" => type} = activity)
-       when type in ["observe", "observation"] do
-    case numeric_value(Map.get(activity, "completed_fraction")) do
-      value when is_number(value) and value >= 0.0 and value <= 1.0 -> value
-      _value -> nil
-    end
-  end
-
-  defp completed_fraction_observation_factor(_activity), do: nil
-
-  defp completed_fraction_observation_factor_source(activity) do
-    if completed_fraction_observation_factor(activity) do
-      "realized_activity.completed_fraction"
-    end
-  end
+  defp first_unit_interval_number(activity, fields),
+    do: SuccessFactor.first_unit_interval_number(activity, fields)
 
   defp realized_contact_success_factor(activity) do
-    explicit_contact_success_factor(activity) ||
-      completed_fraction_contact_factor(activity)
+    SuccessFactor.contact(activity, @command_contact_directions)
   end
 
   defp realized_contact_success_factor_source(activity) do
-    explicit_contact_success_factor_source(activity) ||
-      if is_nil(explicit_contact_success_factor(activity)) do
-        completed_fraction_contact_factor_source(activity)
-      end
-  end
-
-  defp explicit_contact_success_factor(activity) do
-    first_unit_interval_number(activity, [
-      "contact_success_factor",
-      ["metadata", "contact_success_factor"],
-      ["throughput_model", "contact_success_factor"]
-    ])
-  end
-
-  defp explicit_contact_success_factor_source(activity) do
-    Map.get(activity, "contact_success_factor_source") ||
-      get_in(activity, ["metadata", "contact_success_factor_source"]) ||
-      get_in(activity, ["throughput_model", "confidence_source"])
-  end
-
-  defp completed_fraction_contact_factor(activity) do
-    if contact_feedback_activity?(activity) do
-      completed_fraction_factor(activity)
-    end
-  end
-
-  defp completed_fraction_contact_factor_source(activity) do
-    if completed_fraction_contact_factor(activity) do
-      "realized_activity.completed_fraction"
-    end
+    SuccessFactor.contact_source(activity, @command_contact_directions)
   end
 
   defp realized_command_success_factor(activity) do
-    explicit_command_success_factor(activity) ||
-      completed_fraction_command_factor(activity)
+    SuccessFactor.command(activity, @command_contact_directions)
   end
 
   defp realized_command_success_factor_source(activity) do
-    explicit_command_success_factor_source(activity) ||
-      if is_nil(explicit_command_success_factor(activity)) do
-        completed_fraction_command_factor_source(activity)
-      end
+    SuccessFactor.command_source(activity, @command_contact_directions)
   end
 
-  defp explicit_command_success_factor(activity) do
-    first_unit_interval_number(activity, [
-      "command_success_factor",
-      ["metadata", "command_success_factor"]
-    ])
-  end
+  defp unit_interval_number_or_nil(value),
+    do: SuccessFactor.unit_interval_number_or_nil(value)
 
-  defp explicit_command_success_factor_source(activity) do
-    Map.get(activity, "command_success_factor_source") ||
-      get_in(activity, ["metadata", "command_success_factor_source"])
-  end
+  defp unit_interval_number_status(value),
+    do: SuccessFactor.unit_interval_number_status(value)
 
-  defp completed_fraction_command_factor(activity) do
-    if command_feedback_activity?(activity) do
-      completed_fraction_factor(activity)
-    end
-  end
-
-  defp completed_fraction_command_factor_source(activity) do
-    if completed_fraction_command_factor(activity) do
-      "realized_activity.completed_fraction"
-    end
-  end
-
-  defp completed_fraction_factor(activity) do
-    unit_interval_number_or_nil(Map.get(activity, "completed_fraction"))
-  end
-
-  defp unit_interval_number_or_nil(value) do
-    case unit_interval_number_status(value) do
-      {:ok, number} -> number
-      _status -> nil
-    end
-  end
-
-  defp unit_interval_number_status(value) do
-    case numeric_value(value) do
-      number when is_number(number) and number >= 0.0 and number <= 1.0 ->
-        {:ok, number * 1.0}
-
-      number when is_number(number) ->
-        {:invalid_number, number}
-
-      _value ->
-        if feedback_value_missing?(value), do: :missing, else: {:invalid_shape, value}
-    end
-  end
-
-  defp nonnegative_number_status(value) do
-    case numeric_value(value) do
-      number when is_number(number) and number >= 0.0 ->
-        {:ok, number * 1.0}
-
-      number when is_number(number) ->
-        {:invalid_number, number}
-
-      _value ->
-        if feedback_value_missing?(value), do: :missing, else: {:invalid_shape, value}
-    end
-  end
-
-  defp feedback_value_missing?(nil), do: true
-  defp feedback_value_missing?(""), do: true
-  defp feedback_value_missing?(_value), do: false
-
-  defp command_feedback_activity?(%{"type" => type}) when type in ["command", "health_check"],
-    do: true
-
-  defp command_feedback_activity?(%{"direction" => direction})
-       when direction in @command_contact_directions or direction == "health_check",
-       do: true
-
-  defp command_feedback_activity?(_activity), do: false
-
-  defp contact_feedback_activity?(%{"type" => type} = activity)
-       when type in ["downlink", "planned_contact", "tracking"],
-       do: not command_feedback_activity?(activity)
-
-  defp contact_feedback_activity?(%{"direction" => direction})
-       when direction in ["downlink", "tracking"],
-       do: true
-
-  defp contact_feedback_activity?(activity) do
-    not command_feedback_activity?(activity) and
-      (present_string?(Map.get(activity, "ground_station_id")) or
-         present_string?(Map.get(activity, "station_id")) or
-         is_map(Map.get(activity, "ground_station")) or
-         is_map(Map.get(activity, "station")))
-  end
+  defp nonnegative_number_status(value),
+    do: SuccessFactor.nonnegative_number_status(value)
 
   defp present_string?(value), do: is_binary(value) and value != ""
 
