@@ -6,47 +6,34 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Policy approval-policy normalizer extraction.
+Schema operational-readiness validation extraction.
 
 Status:
-Completed and published in `b1d4a27a`.
+Selected; implementation has not started.
 
 Selected boundary:
-Extract approval-policy bundle resolution, inline-bundle checks, action-rule
-normalization, numeric/status/direction normalization, and policy/rule
-validation into `OrbitalDynamics.Policy.ApprovalPolicyNormalizer`. Move the
-rule-field schema constants with their sole consumer; preserve
-`Policy.normalize_approval_policy/1` as the public facade, passing the built-in
-bundle resolver and default blocked-risk types into the new owner.
+Extract operational-readiness, operational-summary, and quality-gate validator
+orchestration plus their model-limit providers into
+`OrbitalDynamics.Schema.OperationalReadinessValidation`. Preserve the existing
+private `Schema` validator seams as thin delegates so contract dispatch and
+callback wiring remain unchanged.
 
 Selection evidence:
-- `policy.ex` is now 2,119 lines; the selected rule-field schemas occupy lines
-  15-211 and their exclusive normalization/validation helpers span
-  1,665-2,080 around the public facade.
-- The cluster has one responsibility: resolve policy input into a deterministic,
-  validated string-keyed approval policy.
-- Its external call inventory is limited to the supplied built-in bundle
-  resolver, `RequirementContext` normalization, and CadenceImport capability
-  values.
-- Built-in bundle definitions, organization/artifact wrappers, decision
-  orchestration, match construction, capabilities, and public signatures remain
-  outside.
+- The refreshed production ranking places `schema.ex` first at 7,293 lines;
+  `policy.ex` is now 1,507 lines and no longer a leading hotspot.
+- The selected model-limit providers span lines 3,062-3,131 and the validator
+  family spans 6,742-6,886.
+- The cluster has one responsibility: orchestrate executable validation for
+  operational-readiness and quality-gate artifact families.
+- Its dependencies are existing family contract modules, OperationalReadiness
+  capabilities, and callbacks wholly owned by the selected family.
+- Registry data, JSON Schema export, contract dispatch, Cadence row validation,
+  and all public `Schema` APIs remain outside.
 
 Verification:
-- Strict compile passed across 3,855 files with warnings as errors.
-- Twelve focused normalization and validation baselines passed.
-- All 89 Policy tests and the Policy schema-contract test passed with warnings
-  as errors.
-- Exact old/new executable comparison passed for 44 valid and invalid inputs,
-  including every built-in bundle and validation error messages.
-- Static ownership confirms one `ApprovalPolicyNormalizer.normalize/3`
-  production owner and one unchanged public
-  `Policy.normalize_approval_policy/1` facade.
-- Runtime xref confirms `Policy` calls `ApprovalPolicyNormalizer`; format, diff
-  checks, and bounded review passed.
-- The separate Cadence-status capability accessor remains in `Policy` for its
-  existing `capabilities/0` caller.
-- `policy.ex` moved from 2,119 to 1,507 lines; the new owner is 656 lines.
+Pending: focused operational/readiness contract baselines, exact old/new fixture
+validation reports, strict compile, broader Schema contract tests, schema export
+checks, static single ownership, runtime xref, and bounded review.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
@@ -57,8 +44,8 @@ implemented in `b1d4a27a`. `policy.ex` moved from 2,119 to 1,507 lines; the
 dedicated normalizer is 656 lines.
 
 Next candidate:
-Re-inventory the remaining Policy bundle/catalog facade after approval-policy
-normalization has one production owner.
+Re-inventory remaining Schema JSON-property and family-validation clusters
+after operational-readiness validation has one production owner.
 
 Blocked:
 No.
