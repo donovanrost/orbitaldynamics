@@ -15,6 +15,7 @@ defmodule OrbitalDynamics.CadenceImport do
     GenericReviewActionPolicy,
     ImportReadinessPolicy,
     JsonNormalization,
+    ManifestContractDiagnostics,
     ProviderResultNormalization,
     ReviewPackageRowSourcePolicy,
     SourceIdentifierPolicy,
@@ -3310,20 +3311,11 @@ defmodule OrbitalDynamics.CadenceImport do
 
   defp option(opts, key, default \\ nil), do: Keyword.get(opts, key, default)
 
-  defp unsupported_manifest_contract(%{} = artifact) do
-    case artifact |> stringify_keys() |> Map.get("schema_contract") do
-      contract when is_binary(contract) and contract != "" -> contract
-      nil -> "unknown"
-      contract when is_atom(contract) -> Atom.to_string(contract)
-      contract -> inspect(contract)
-    end
-  end
+  defp unsupported_manifest_contract(artifact),
+    do: ManifestContractDiagnostics.unsupported_contract(artifact)
 
-  defp supported_manifest_contracts do
-    capability()
-    |> Map.fetch!(:supported_sources)
-    |> Enum.join(", ")
-  end
+  defp supported_manifest_contracts,
+    do: capability() |> ManifestContractDiagnostics.supported_contracts()
 
   defp stringify_keys(value), do: JsonNormalization.stringify_keys(value)
 
