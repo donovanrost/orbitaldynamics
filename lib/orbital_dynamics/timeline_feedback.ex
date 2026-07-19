@@ -96,6 +96,7 @@ defmodule OrbitalDynamics.TimelineFeedback do
     ReconciliationObservationEvidence,
     ReconciliationOutcomeEvidence,
     ReconciliationPlanEvidence,
+    ReconciliationRealizedIngressEvidence,
     ReconciliationResourceEvidence,
     ReconciliationStationCalendarEvidence,
     ReconciliationTimingEvidence,
@@ -2522,28 +2523,6 @@ defmodule OrbitalDynamics.TimelineFeedback do
       "feedback_kind" => feedback_kind,
       "planned_timeline_id" => value(planned, "timeline_id"),
       "timeline_identity" => value(planned, "timeline_identity"),
-      "realized_timeline_id" => value(realized, "timeline_id"),
-      "realized_activity_id" => value(realized, "realized_activity_id"),
-      "realized_source" => value(realized, "source"),
-      "realized_provider" => value(realized, "provider"),
-      "realized_source_quality" => value(realized, "source_quality"),
-      "realized_adapter" => value(realized, "adapter"),
-      "realized_adapter_version" => value(realized, "adapter_version"),
-      "realized_external_id" => value(realized, "external_id"),
-      "realized_schema_contract" => value(realized, "schema_contract"),
-      "realized_trust_boundary" => value(realized, "trust_boundary"),
-      "realized_received_at" => value(realized, "received_at"),
-      "realized_ingested_at" => value(realized, "ingested_at"),
-      "realized_provenance" => value(realized, "provenance"),
-      "invalid_realized_feedback_input" => value(realized, "invalid_realized_feedback_input"),
-      "invalid_realized_feedback_input_reason" =>
-        value(realized, "invalid_realized_feedback_input_reason"),
-      "invalid_realized_feedback_sections" =>
-        value(realized, "invalid_realized_feedback_sections"),
-      "unsupported_realized_status" => value(realized, "unsupported_realized_status"),
-      "invalid_cadence_import" => value(realized, "invalid_cadence_import"),
-      "invalid_cadence_import_reason" => value(realized, "invalid_cadence_import_reason"),
-      "source_cadence_import" => value(realized, "source_cadence_import"),
       "planned_type" => value(planned, "type"),
       "realized_type" => value(realized, "type"),
       "planned_status" => value(planned, "status"),
@@ -2571,6 +2550,7 @@ defmodule OrbitalDynamics.TimelineFeedback do
       )
     )
     |> Map.merge(ReconciliationPlanEvidence.context(planned))
+    |> Map.merge(ReconciliationRealizedIngressEvidence.context(realized))
     |> Map.merge(ReconciliationResourceEvidence.context(planned, realized))
     |> Map.merge(ReconciliationStationCalendarEvidence.context(planned, realized))
     |> Map.merge(
