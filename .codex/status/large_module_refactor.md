@@ -9,7 +9,7 @@ Current slice:
 StationCalendar provider-contention extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed in `addd1606`.
 
 Selected boundary:
 Extract provider-calendar pairwise station/direction/window conflict
@@ -34,16 +34,30 @@ Selection evidence:
   deterministic output remain unchanged.
 
 Verification:
-Pending.
+- Strict test-environment compile passed with warnings as errors across 3,929
+  files.
+- Focused StationCalendar coverage passed: 42 tests.
+- Adjacent station-calendar operator-review and schema-contract coverage
+  passed: 3 tests.
+- Exact public old/new comparison against selection commit `65de2bc1` passed
+  for six calendar states and three public outputs per state: station-calendar
+  report, reservation report, and precedence summary.
+- `mix xref callers` reports only the StationCalendar facade as a runtime
+  caller of the extracted provider-contention owner.
+- Static ownership checks confirm pairwise station/direction/window conflict
+  detection, group IDs, overlap evidence, and provider/reservation metadata
+  live in the dedicated owner while overlay and review-summary responsibilities
+  remain in the facade.
+- `git diff --check` passed.
 
 Behavior/schema changes:
-None intended. This is a facade-preserving production ownership extraction.
+None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-LinkCapacity relay data-path summary extraction, selected in `b3395bce` and
-implemented in `2acd5177`.
-`link_capacity.ex` moved from 3,520 to 3,113 lines; the dedicated relay
-data-path owner is 506 lines.
+StationCalendar provider-contention extraction, selected in `65de2bc1` and
+implemented in `addd1606`.
+`station_calendar.ex` moved from 3,487 to 3,346 lines; the dedicated
+provider-contention owner is 271 lines.
 
 Next candidate:
 Re-rank the live largest-module set and select the next cohesive ownership
