@@ -6,38 +6,31 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema policy validation extraction.
+Schema timeline-context validation extraction.
 
 Status:
-Completed and published.
+Selected; implementation has not started.
 
 Selected boundary:
-Extract approval requirements, policy-decision evidence, policy escalations,
-policy decisions, rule matches, and policy bundles into
-`OrbitalDynamics.Schema.PolicyValidation`. Preserve the existing arity-3 and
-arity-4 private Schema callback seams.
+Extract optional timeline preconditions, activity context, protection
+decisions, lifecycle transitions, timeline identity/link data, and timeline
+protection summaries into `OrbitalDynamics.Schema.TimelineContextValidation`.
+Preserve the existing guarded arity-3/arity-4 private Schema callback seams.
 
 Selection evidence:
-- `schema.ex` is 6,963 lines; the selected policy-validation seams span
-  6,643-6,661, 6,720-6,736, and 6,759-6,790.
-- The cluster has one responsibility: validate nested and standalone policy
-  evidence consumed by campaign, resource, import, and review contracts.
-- Policy model limits and field groups remain shared facade/export data and can
-  be passed into the new validator without moving their ownership.
+- `schema.ex` is 6,950 lines; the selected bottom-of-facade seams span
+  6,868-6,885 and 6,896-6,949.
+- The cluster has one responsibility: validate nested timeline and activity
+  context fields consumed by campaign, import, and operator-review contracts.
+- Every selected seam delegates directly to a dedicated contract module and
+  has no registry, model-limit, or facade-owned callback dependency.
 - Registry data, JSON Schema export, contract dispatch, unrelated validation,
   and all public `Schema` APIs remain outside.
 
 Verification:
-- Strict compile passed across 3,865 files with warnings as errors.
-- Focused policy and contact-feedback contracts passed: 6 tests.
-- Full Schema suite passed: 175 tests.
-- JSON Schema export contracts passed: 15 tests.
-- Exact old/new validation reports matched for 9 valid and mutated standalone
-  and nested policy fixtures.
-- Static inspection confirms the facade retains only its arity-3/arity-4 seams
-  plus shared model/field-group inputs; runtime xref reports `Schema` as the
-  sole caller of the new owner.
-- `git diff --check` and bounded ownership review passed.
+Pending: focused timeline-context baselines, exact old/new fixture validation
+reports, strict compile, broader Schema contract tests, JSON Schema export
+checks, static single ownership, runtime xref, and bounded review.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
@@ -48,7 +41,7 @@ Schema policy validation extraction, selected in `253ec596` and implemented in
 76 lines.
 
 Next candidate:
-Re-inventory remaining Schema family-validation clusters after policy
+Re-inventory remaining Schema family-validation clusters after timeline-context
 validation has one production owner.
 
 Blocked:
