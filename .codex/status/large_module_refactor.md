@@ -6,62 +6,46 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-StationCalendar provider-counteroffer handoff-summary extraction.
+RecommendationRiskContext station-reservation-hold import-readiness extraction.
 
 Status:
-Completed and pushed in `bb5307a5`.
+Selected; implementation not started.
 
 Selected boundary:
-Extract provider-counteroffer import-readiness and plan-impact summary
-assembly, report-row routing, deadline classification orchestration,
-counteroffer ID grouping, numeric cost aggregation, and timing/duration deltas
-into
-`OrbitalDynamics.Communications.StationCalendar.ProviderCounterofferHandoffSummary`.
-Preserve the public StationCalendar facade and retain private delegates for the
-timing helpers also used by contact annotation.
+Extract the station-reservation-hold import-readiness context-key catalog,
+risk selection, key/value routing, nested summary preservation, deterministic
+normalization, and empty-context behavior into
+`OrbitalDynamics.RecommendationRiskContext.StationReservationHoldImportReadiness`.
+Preserve the public RecommendationRiskContext facade with delegates for the key
+catalog and context builder.
 
 Selection evidence:
-- Live re-ranking places `communications/station_calendar.ex` at 2,981 lines,
-  fourth behind Schema, Timeline, and MissionPlan.Activity and ahead of
-  OrbitalDynamics, RecommendationRiskContext, OperationalReadiness,
-  TimelineFeedback, ContactContention, LinkCapacity, and ResourceProjection.
-- The selected family spans the two summary builders and shared helpers from
-  lines 2,503-2,697. It owns import-readiness classification, plan-impact
-  timing/cost evidence, deadline-status orchestration, report-row selection,
-  counteroffer routing IDs, and numeric delta/count/sum semantics.
-- Contact annotation also uses counteroffer timing and duration deltas. Those
-  calculations will be exposed by the owner and retained behind private facade
-  delegates so there is one implementation.
-- Calendar input normalization, contact matching and annotation, availability
-  precedence, reservation summaries, provider contention, counteroffer report
-  and review-summary construction, approval policy, public input-shape clauses,
-  and schema contracts remain outside this boundary.
-- Existing summary fields, row compaction, numeric coercion, deadline routing,
-  stable ordering, idempotent summary clauses, and exact error behavior must
-  remain unchanged.
+- Live re-ranking places `recommendation_risk_context.ex` at 2,909 lines,
+  fifth behind Schema, Timeline, MissionPlan.Activity, and the intentionally
+  public `OrbitalDynamics` facade, and ahead of OperationalReadiness,
+  TimelineFeedback, ContactContention, LinkCapacity, StationCalendar, and
+  ResourceProjection.
+- The selected responsibility owns a 27-key catalog at lines 136-164 and the
+  context collector at lines 1,167-1,303. It selects risks carrying hold import
+  status/readiness/summary evidence and routes status, source, artifact type,
+  classification, hold and contact IDs, nested direction/station maps, count
+  maps, execution boundaries, write/acceptance boundaries, provenance, and the
+  preserved source summary.
+- The root `OrbitalDynamics` file remains unchanged because its size is
+  dominated by intentional public facade clauses rather than private
+  implementation ownership.
+- All other recommendation risk contexts and their catalogs, recommendation
+  construction, campaign strategy, policy evaluation, and source artifact
+  generation remain outside this boundary.
+- Existing atom/string normalization, list flattening, deterministic
+  `term_to_binary` ordering, duplicate removal, omission of empty keys, nested
+  map preservation, and non-list fallback must remain unchanged.
 
 Verification:
-- Strict warning-clean compile passed across 3,949 files:
-  `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 mix compile --force --warnings-as-errors`.
-- Focused StationCalendar regression passed: 42 tests.
-- Full adjacent station-calendar campaign-planner, candidate-refresh, and
-  operator-review regression bundle passed: 57 tests.
-- Exact old/new parity passed 10 comparisons from selection commit `4dcb6468`
-  with `/tmp/station_counteroffer_handoff_compare.exs`, covering expired,
-  active, and declared deadlines; import-readiness and plan-impact summaries;
-  atom-key and raw-provider inputs; idempotent handoffs; contact-overlay timing
-  delegates; and duplicate-counteroffer stable routing.
-- `mix xref callers
-  OrbitalDynamics.Communications.StationCalendar.ProviderCounterofferHandoffSummary`
-  reports only the StationCalendar facade.
-- The owner has no compile-connected expansion beyond itself.
-- Focused formatting, `git diff --check`, removed-helper static checks, and
-  final facade/owner review passed.
+Pending implementation.
 
 Behavior/schema changes:
-None. The public StationCalendar facade, counteroffer handoff contracts,
-deadline and timing semantics, stable routing, row compaction, and exact error
-behavior are unchanged.
+None intended.
 
 Last completed slice:
 StationCalendar provider-counteroffer handoff-summary extraction, selected in
@@ -70,8 +54,8 @@ StationCalendar provider-counteroffer handoff-summary extraction, selected in
 dedicated handoff-summary owner is 265 lines.
 
 Next candidate:
-Re-rank the live largest-module inventory and select the next cohesive,
-facade-preserving ownership boundary.
+Implement and verify the selected RecommendationRiskContext
+station-reservation-hold import-readiness extraction.
 
 Blocked:
 No.
