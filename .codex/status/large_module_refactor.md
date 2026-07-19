@@ -6,47 +6,31 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-CadenceImport approval-context selection policy extraction.
+CadenceImport candidate-diff field policy extraction.
 
 Status:
-Completed and published.
+Selected; implementation has not started.
 
 Selected boundary:
-Extract approval-requirement, preferred rule-match, and preferred escalation
-selection into `OrbitalDynamics.CadenceImport.ApprovalContextPolicy`. Preserve
-the facade's existing three callback seams as delegates; keep approval
-classification, rule-match filtering, and escalation-context detection private
-to the new owner.
+Extract candidate-diff changed-field derivation and count normalization into
+`OrbitalDynamics.CadenceImport.CandidateDiffFields`. Preserve the facade's
+existing derivation and count callback seams as delegates; keep semantic-change
+detail field collection private to the new owner.
 
 Selection evidence:
-- `cadence_import.ex` is now 3,407 lines.
-- The selected contiguous policy family spans about 55 lines and is shared by
-  contact-intent, suppression, and approval-requirement row builders through
-  stable callbacks.
-- The family has one responsibility: normalize and choose the most relevant
-  approval requirement, rule match, and escalation context with current
-  classification/rule-ID precedence.
-- Dispatch, row construction, review actions, map compaction, schemas, ordering
-  outside candidate selection, and manifest construction remain outside the
-  boundary.
+- `cadence_import.ex` is now 3,361 lines.
+- The selected contiguous policy family spans about 18 lines and is shared by
+  candidate-diff and approval-requirement row builders through stable callbacks.
+- The family has one responsibility: combine explicit and semantic-detail
+  changed fields, retain binary names, deduplicate/sort them, and omit the count
+  when the resulting list is empty.
+- Dispatch, row construction, review actions, map compaction, schemas, and
+  manifest construction remain outside the boundary.
 
 Verification:
-- Strict test compile passed with 3,813 files and warnings as errors.
-- Three focused contact-intent, approval-requirement, and suppression tests
-  passed with 69 excluded.
-- All combined CadenceImport tests passed: 96 tests.
-- CadenceImport schema contracts passed: 4 tests.
-- An 11-case direct decision matrix covered requirement filtering and
-  normalization, approval-status/classification precedence, first-map fallback,
-  row/source rule-ID matching, escalation ordering, contextual fallback, and
-  invalid inputs.
-- Formatting and diff checks passed, and no temporary proof files remain.
-- Static ownership checks confirmed the selection chain has one production
-  implementation behind the three preserved facade callback seams.
-- Runtime xref confirmed `cadence_import.ex` is the direct consumer of
-  `approval_context_policy.ex`.
-- Bounded local review found no callback, normalization, precedence, candidate
-  order, fallback, row-shape, or schema changes.
+Pending: focused candidate-refresh and approval-requirement baselines, exact
+field/count decision matrix, strict compile, all combined CadenceImport tests,
+schema contracts, static single ownership, runtime xref, and bounded review.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
@@ -58,7 +42,7 @@ to 3,361 lines; the extracted owner is 64 lines.
 
 Next candidate:
 Return to the remaining CadenceImport row-building or manifest-routing helpers
-after approval-context selection has one production owner.
+after candidate-diff field derivation has one production owner.
 
 Blocked:
 No.
