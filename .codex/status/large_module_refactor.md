@@ -9,7 +9,7 @@ Current slice:
 TimelineFeedback resource override projection extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Extract resource margin and availability override projection, trust-value
@@ -36,24 +36,39 @@ Selection evidence:
   deduplication/sorting, and empty-map behavior must remain unchanged.
 
 Implementation:
-- Pending.
+- Selection was recorded and pushed in `f4bb05b5`.
+- Implementation was committed and pushed in `42cfbee0`.
+- `timeline_feedback.ex` moved from 2,472 to 2,267 lines.
+- `OrbitalDynamics.TimelineFeedback.ResourceFeedback` is a 232-line owner
+  reached through five private facade delegates.
 
 Verification:
-- Pending focused baseline, strict compilation, exact old/new public parity,
-  focused and adjacent tests, static ownership checks, and xref review.
+- Strict warning-clean compilation passed across 3,966 files.
+- The focused TimelineFeedback file and six adjacent campaign-strategy,
+  CandidateRefresh build, replay, and Cadence-import consumers passed
+  together: 104 tests.
+- Exact old/new public parity passed for 10 operational-feedback cases covering
+  direct and nested source precedence, conservative margin min/max merging,
+  degraded availability merging, list normalization, spacecraft/scenario and
+  nested identity fallback, excluded and invalid rows, atom-keyed input, empty
+  input, and public-error behavior.
+- `mix xref callers` reports only the TimelineFeedback facade.
+- The removed resource projection helpers are absent from the facade apart
+  from thin delegates, formatting and `git diff --check` passed, and the final
+  diff is ownership-only.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-OperationalReadiness adapter-boundary evidence extraction, selected in
-`f917e600` and implemented in `967b7ade`.
-`operational_readiness.ex` moved from 2,500 to 2,385 lines; the dedicated
-adapter-boundary evidence owner is 121 lines.
+TimelineFeedback resource override projection extraction, selected in
+`f4bb05b5` and implemented in `42cfbee0`.
+`timeline_feedback.ex` moved from 2,472 to 2,267 lines; the dedicated resource
+feedback owner is 232 lines.
 
 Next candidate:
-Complete and verify the selected TimelineFeedback resource override projection
-extraction.
+Re-rank the live checkout and select the next cohesive facade-preserving
+boundary.
 
 Blocked:
 No.
