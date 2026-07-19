@@ -9,7 +9,7 @@ Current slice:
 Timeline lifecycle-state test family split.
 
 Status:
-Selected; implementation has not started.
+Completed and published.
 
 Selected boundary:
 Move the seven contiguous lifecycle-state tests from reusable status/approval
@@ -32,16 +32,29 @@ Selection evidence:
   schema validation, and all other test families remain outside the boundary.
 
 Verification:
-Pending: seven-test focused baseline, mechanical AST-preserving move, strict
-compile, focused new/original/full Timeline tests, schema contracts,
-structural/static checks, and bounded review.
+- Focused baseline passed the seven selected tests.
+- Strict warnings-as-errors compile passed 3,804 modules.
+- Focused lifecycle-state test module passed 7 tests.
+- Reduced original Timeline test module passed 120 tests.
+- Combined Timeline test modules passed 127 tests.
+- Four Timeline schema-contract suites passed 36 tests.
+- AST conservation proved all seven test bodies moved exactly and the other 120
+  tests remained unchanged.
+- Static checks confirmed the focused module has exactly seven tests, no private
+  helpers, only its required aliases, formatting/diff/new-file checks pass, and
+  no temporary extraction/checker remains.
+- Bounded local review found no correctness or maintainability issues and
+  confirmed the original family boundary now runs directly from source-window
+  coverage into transition-decision coverage.
+- The original test ledger decreased from 12,901 to 11,564 lines; the focused
+  lifecycle-state module is 1,342 lines.
 
 Behavior/schema changes:
 None. This is a test-only ownership split with all assertions preserved.
 
 Last completed slice:
-Timeline lifecycle-state summary assembly policy extraction, selected in
-`65a3fa6a` and implemented in `8afb167b`.
+Timeline lifecycle-state test family split, selected in `274208f4` and
+implemented in `047b6b90`.
 
 Next candidate:
 Continue matching large Timeline test families to the extracted production
