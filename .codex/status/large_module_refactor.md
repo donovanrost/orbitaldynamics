@@ -9,7 +9,7 @@ Current slice:
 Study.Manifest schema-document extraction.
 
 Status:
-Selected; strict focused baseline pending.
+Completed and pushed.
 
 Selected boundary:
 Extract structural study-manifest JSON Schema assembly, including scenario,
@@ -38,24 +38,38 @@ Selection evidence:
   behavior must remain unchanged.
 
 Implementation:
-Pending.
+- Selection was recorded and pushed in `4beb22bd`.
+- Implementation was committed and pushed in `d80ce4e9`.
+- `study/manifest.ex` moved from 2,229 to 1,621 lines.
+- `OrbitalDynamics.Study.Manifest.SchemaDocument` is a 632-line owner reached
+  through the public facade's unchanged `json_schema/0` entry point.
 
 Verification:
-Pending strict focused baseline, exact old/new public parity, focused and
-adjacent tests, static ownership checks, xref, strict warning-clean compile,
-formatting, and diff checks.
+- Strict warning-clean compilation passed across 3,982 files.
+- The focused manifest loader, schema export, reference, manifest lint, and
+  adjacent schema-lint consumers passed together: 72 tests.
+- Exact old/new public parity passed for the complete schema term, encoded
+  schema bytes, complete field-reference term, encoded field-reference bytes,
+  exported file bytes, and checked-in schema bytes.
+- One broader campaign golden-artifact assertion failed identically in an
+  isolated pre-extraction worktree at `4beb22bd`; it is unrelated to the schema
+  ownership move.
+- `mix xref callers` reports only the Study.Manifest facade.
+- The facade-owned structural schema builders are absent, formatting and
+  `git diff --check` passed, and the final diff is ownership-only.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-ContactContention capacity-demand extraction, selected in `ab0e2883` and
-implemented in `c7c37b01`.
-`communications/contact_contention.ex` moved from 2,242 to 1,978 lines; the
-dedicated capacity-demand owner is 317 lines.
+Study.Manifest schema-document extraction, selected in `4beb22bd` and
+implemented in `d80ce4e9`.
+`study/manifest.ex` moved from 2,229 to 1,621 lines; the dedicated schema
+document owner is 632 lines.
 
 Next candidate:
-Complete the selected Study.Manifest schema-document extraction.
+Re-rank the live checkout and select the next cohesive facade-preserving
+boundary.
 
 Blocked:
 No.
