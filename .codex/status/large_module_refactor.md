@@ -9,7 +9,7 @@ Current slice:
 Study.Manifest validation-error extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and pushed in `3cf172e6`.
 
 Selected boundary:
 Extract manifest validation reason-to-error rendering, field/option path
@@ -29,17 +29,24 @@ Selection evidence:
   details, and valid/invalid report status.
 
 Verification:
-Pending: focused Manifest baseline, exact old/new public validation reports,
-strict compile, adjacent lint/schema coverage, static single ownership,
-runtime xref, and bounded review.
+- Strict warnings-as-errors compile passed across 3,878 files.
+- Focused Study.Manifest coverage passed: 42 tests.
+- Adjacent manifest-lint and validation-fixture coverage passed: 9 tests.
+- Exact old/new public validation-report comparison against `8fde79c4` passed
+  for 8 missing, unsupported, malformed JSON, non-object JSON, and file-error
+  cases.
+- Runtime xref found the new owner referenced only by the Manifest facade;
+  static single-ownership review and `git diff --check` passed.
+- `study/manifest.ex` moved from 4,613 to 4,489 lines; the dedicated owner is
+  127 lines.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-Study.Manifest field-reference extraction, selected in `aeb6e003` and
-implemented in `5a432b81`. `study/manifest.ex` moved from 4,825 to 4,613
-lines; the dedicated owner is 241 lines.
+Study.Manifest validation-error extraction, selected in `8fde79c4` and
+implemented in `3cf172e6`. `study/manifest.ex` moved from 4,613 to 4,489 lines;
+the dedicated owner is 127 lines.
 
 Next candidate:
 Re-inventory remaining Study.Manifest schema, scenario, and source-normalization
