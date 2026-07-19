@@ -9,7 +9,7 @@ Current slice:
 CadenceImport review-type inclusion policy extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and published.
 
 Selected boundary:
 Extract the supported import-manifest review-type allowlist and the
@@ -28,17 +28,29 @@ Selection evidence:
   ordering remain outside the boundary.
 
 Verification:
-Pending: focused strategy/general review baselines, exact allowlist membership
-proof, strict compile, all combined CadenceImport tests, schema contracts,
-static single ownership, runtime xref, and bounded review.
+- Strict test compile passed with 3,823 files and warnings as errors.
+- Two focused strategy/general review tests passed with 70 excluded.
+- All combined CadenceImport tests passed: 96 tests.
+- CadenceImport schema contracts passed: 4 tests.
+- An AST-derived proof against selection commit `7f604aa3` confirmed exact
+  membership and order for all 45 review types, then exercised every member,
+  recommendation exclusion, accepted strategy fallback, unknown type, and
+  malformed row.
+- Formatting and diff checks passed, and no temporary proof files remain.
+- Static ownership checks confirmed membership and strategy exclusion have one
+  production implementation behind the preserved facade seams.
+- Runtime xref confirmed `cadence_import.ex` is the direct consumer of
+  `review_type_policy.ex`.
+- Bounded local review found no allowlist membership/order, exclusion,
+  fallback, row selection, dispatch, or schema changes.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-CadenceImport central manifest builder extraction, selected in `caa62f6f` and
-implemented in `8e584b9a`. `cadence_import.ex` moved from 3,078 to 2,876 lines;
-the extracted owner is 216 lines.
+CadenceImport review-type inclusion policy extraction, selected in `7f604aa3`
+and implemented in `cc8132e5`. `cadence_import.ex` moved from 2,876 to 2,825
+lines; the extracted owner is 60 lines.
 
 Next candidate:
 Return to remaining review-package orchestration or row dispatch after
