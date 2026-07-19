@@ -6,45 +6,29 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-ContactAllocation provider-counteroffer context extraction.
+TimelineFeedback reconciliation communications-evidence extraction.
 
 Status:
-Completed and pushed in `456360fd`.
+Selected; implementation not started.
 
 Selected boundary:
-Extract provider-counteroffer field ownership, nested source discovery,
-presence classification, timing-delta derivation, and compact context assembly
-into `OrbitalDynamics.Communications.ContactAllocation.ProviderCounteroffer`.
-Preserve the existing private context seam and capabilities output in the
-ContactAllocation facade.
+Extract planned/realized link-quality measurements and command authority/safety
+evidence into
+`OrbitalDynamics.TimelineFeedback.ReconciliationCommunicationsEvidence`.
+Preserve the existing report and row assembly facade.
 
 Selection evidence:
-- Live re-ranking places `communications/contact_allocation.ex` at 4,127
-  lines.
-- The selected field registry and 2,462-2,593 helper family form one cohesive
-  recursive provider-counteroffer normalization policy.
-- Allocation, contention, capacity packing, reservation review, approval
-  decisions, reporting, and public summary APIs remain in the facade.
-- The context is consumed only through existing allocation-row and policy-
-  context seams; downstream public call sites remain unchanged.
+- Live re-ranking places `timeline_feedback.ex` at 4,293 lines, behind Timeline
+  and MissionPlan.Activity but ahead of the remaining Manifest facade.
+- The selected reconciliation-row fields form one communications execution-
+  evidence responsibility and depend only on planned and realized row maps.
+- Identity, observation evidence, resource state, throughput, timing,
+  execution uncertainty, operational-feedback exclusion, and report
+  aggregation remain with their current owners.
+- Existing public report APIs and artifact row shapes remain unchanged.
 
 Verification:
-- Strict warnings-as-errors compile passed across 3,894 files.
-- Focused `communications/contact_allocation_test.exs` passed under
-  warnings-as-errors: 70 tests.
-- Adjacent operator-review contact-allocation, provider-reservation schema,
-  and wrapped provider-counteroffer Cadence coverage passed under
-  warnings-as-errors: 14 tests.
-- Exact public old/new comparison against `5d597e6c` passed capabilities and 6
-  allocations covering direct fields, nested station entries, overlap lists,
-  overlap maps, unknown-only state, derived deltas, and explicit deltas.
-- `mix xref callers
-  OrbitalDynamics.Communications.ContactAllocation.ProviderCounteroffer`
-  reports only the ContactAllocation facade as a runtime caller.
-- Static ownership review confirms provider-counteroffer field ownership,
-  nested discovery, presence rules, timing deltas, and compact context assembly
-  live in the new owner.
-- `git diff --check` passed.
+Pending.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
@@ -56,8 +40,8 @@ ContactAllocation provider-counteroffer context extraction, selected in
 dedicated owner is 141 lines.
 
 Next candidate:
-Re-rank the remaining large modules and select the next cohesive,
-facade-preserving responsibility boundary.
+Implement and verify the selected TimelineFeedback reconciliation
+communications-evidence extraction.
 
 Blocked:
 No.
