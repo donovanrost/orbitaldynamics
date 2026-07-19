@@ -9,7 +9,7 @@ Current slice:
 Manifest ground-track crossing input extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `03ef30f0`.
 
 Selected boundary:
 Extract ground-track crossing request validation, rotation options,
@@ -34,20 +34,33 @@ Selection evidence:
   selection, ordering, and exported schema remain unchanged.
 
 Verification:
-Pending.
+- Strict test-environment compile passed with warnings as errors across 3,909
+  files.
+- Focused Manifest coverage passed: 42 tests.
+- Adjacent StudyRunner and ground-track event-detector coverage passed: 31
+  tests.
+- Exact public old/new comparison against selection commit `294e8ca0` passed
+  for seven valid/invalid manifest inputs plus exact exported JSON Schema
+  equality.
+- `mix xref callers` reports only the Manifest facade as a runtime caller of
+  the extracted input owner.
+- Static ownership checks confirm crossing validation, rotation options,
+  provider selection, and tabular sample normalization live in the dedicated
+  owner while schema and execution remain in their existing owners.
+- `git diff --check` passed.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-StationCalendar provider-counteroffer report projection extraction, selected
-in `4aadbd79` and implemented in `e0e40d24`.
-`station_calendar.ex` moved from 3,924 to 3,804 lines; the dedicated report
-owner is 217 lines.
+Manifest ground-track crossing input extraction, selected in `294e8ca0` and
+implemented in `03ef30f0`.
+`manifest.ex` moved from 3,836 to 3,638 lines; the dedicated input owner is 215
+lines.
 
 Next candidate:
-Implement and verify the selected Manifest ground-track crossing input
-extraction.
+Re-rank the live largest-module set and select the next cohesive ownership
+boundary.
 
 Blocked:
 No.
