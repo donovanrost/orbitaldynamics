@@ -9,7 +9,7 @@ Current slice:
 StationCalendar provider-counteroffer handoff-summary extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `bb5307a5`.
 
 Selected boundary:
 Extract provider-counteroffer import-readiness and plan-impact summary
@@ -41,20 +41,37 @@ Selection evidence:
   remain unchanged.
 
 Verification:
-Pending implementation.
+- Strict warning-clean compile passed across 3,949 files:
+  `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 mix compile --force --warnings-as-errors`.
+- Focused StationCalendar regression passed: 42 tests.
+- Full adjacent station-calendar campaign-planner, candidate-refresh, and
+  operator-review regression bundle passed: 57 tests.
+- Exact old/new parity passed 10 comparisons from selection commit `4dcb6468`
+  with `/tmp/station_counteroffer_handoff_compare.exs`, covering expired,
+  active, and declared deadlines; import-readiness and plan-impact summaries;
+  atom-key and raw-provider inputs; idempotent handoffs; contact-overlay timing
+  delegates; and duplicate-counteroffer stable routing.
+- `mix xref callers
+  OrbitalDynamics.Communications.StationCalendar.ProviderCounterofferHandoffSummary`
+  reports only the StationCalendar facade.
+- The owner has no compile-connected expansion beyond itself.
+- Focused formatting, `git diff --check`, removed-helper static checks, and
+  final facade/owner review passed.
 
 Behavior/schema changes:
-None intended.
+None. The public StationCalendar facade, counteroffer handoff contracts,
+deadline and timing semantics, stable routing, row compaction, and exact error
+behavior are unchanged.
 
 Last completed slice:
-Study Manifest activity-input extraction, selected in `c864d294` and
-implemented in `edd99630`.
-`study/manifest.ex` moved from 3,000 to 2,229 lines; the dedicated
-activity-input owner is 826 lines.
+StationCalendar provider-counteroffer handoff-summary extraction, selected in
+`4dcb6468` and implemented in `bb5307a5`.
+`communications/station_calendar.ex` moved from 2,981 to 2,778 lines; the
+dedicated handoff-summary owner is 265 lines.
 
 Next candidate:
-Implement and verify the selected StationCalendar provider-counteroffer
-handoff-summary extraction.
+Re-rank the live largest-module inventory and select the next cohesive,
+facade-preserving ownership boundary.
 
 Blocked:
 No.
