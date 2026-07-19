@@ -9,7 +9,7 @@ Current slice:
 CadenceImport approval-context selection policy extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and published.
 
 Selected boundary:
 Extract approval-requirement, preferred rule-match, and preferred escalation
@@ -31,18 +31,30 @@ Selection evidence:
   boundary.
 
 Verification:
-Pending: focused contact-intent, approval-requirement, and suppression baselines,
-exact selection decision matrix, strict compile, all combined CadenceImport
-tests, schema contracts, static single ownership, runtime xref, and bounded
-review.
+- Strict test compile passed with 3,813 files and warnings as errors.
+- Three focused contact-intent, approval-requirement, and suppression tests
+  passed with 69 excluded.
+- All combined CadenceImport tests passed: 96 tests.
+- CadenceImport schema contracts passed: 4 tests.
+- An 11-case direct decision matrix covered requirement filtering and
+  normalization, approval-status/classification precedence, first-map fallback,
+  row/source rule-ID matching, escalation ordering, contextual fallback, and
+  invalid inputs.
+- Formatting and diff checks passed, and no temporary proof files remain.
+- Static ownership checks confirmed the selection chain has one production
+  implementation behind the three preserved facade callback seams.
+- Runtime xref confirmed `cadence_import.ex` is the direct consumer of
+  `approval_context_policy.ex`.
+- Bounded local review found no callback, normalization, precedence, candidate
+  order, fallback, row-shape, or schema changes.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-CadenceImport station-calendar context field catalog extraction, selected in
-`f2d6c001` and implemented in `e7fd5299`. `cadence_import.ex` moved from 3,428
-to 3,407 lines; the extracted owner is 28 lines.
+CadenceImport approval-context selection policy extraction, selected in
+`a0ced38d` and implemented in `6b3411ab`. `cadence_import.ex` moved from 3,407
+to 3,361 lines; the extracted owner is 64 lines.
 
 Next candidate:
 Return to the remaining CadenceImport row-building or manifest-routing helpers
