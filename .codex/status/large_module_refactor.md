@@ -9,7 +9,7 @@ Current slice:
 TimelineFeedback operational-feedback grouping extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed in `06f6111d`.
 
 Selected boundary:
 Extract operational-feedback row eligibility, stable grouping-key
@@ -33,16 +33,30 @@ Selection evidence:
   unchanged.
 
 Verification:
-Pending.
+- Strict test-environment compile passed with warnings as errors across 3,918
+  files.
+- Focused TimelineFeedback coverage passed: 73 tests.
+- Adjacent operator-review, Cadence-import, and contact-feedback contract
+  coverage passed: 79 tests.
+- Exact public old/new comparison against selection commit `25f2362c` passed
+  for seven operational-feedback samples covering weighted averages, clamping,
+  deterministic text selection, atom/string keys, input-order changes, zero
+  weights, explicit exclusions, and malformed identities.
+- `mix xref callers` reports only the TimelineFeedback facade as a runtime
+  caller of the extracted feedback-aggregation owner.
+- Static ownership checks confirm identity-gated eligibility, stable grouping
+  keys, and numeric/text aggregation live in the dedicated owner while outcome
+  and domain-specific feedback responsibilities remain outside it.
+- `git diff --check` passed.
 
 Behavior/schema changes:
-None intended. This is a facade-preserving production ownership extraction.
+None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-ResourceProjection margin and warning extraction, selected in `28bb1c49` and
-implemented in `24a8fe53`.
-`resource_projection.ex` moved from 3,720 to 3,629 lines; the dedicated
-margin-projection owner is 170 lines.
+TimelineFeedback operational-feedback grouping extraction, selected in
+`25f2362c` and implemented in `06f6111d`.
+`timeline_feedback.ex` moved from 3,675 to 3,606 lines; the dedicated
+feedback-aggregation owner is 86 lines.
 
 Next candidate:
 Re-rank the live largest-module set and select the next cohesive ownership
