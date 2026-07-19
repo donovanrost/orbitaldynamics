@@ -9,7 +9,7 @@ Current slice:
 CadenceImport provider-reservation handoff test family split.
 
 Status:
-Selected; implementation has not started.
+Complete and published in `fc684963`.
 
 Selected boundary:
 Move the three contiguous candidate-refresh provider-reservation handoff tests
@@ -40,20 +40,32 @@ Selection evidence:
   this ownership-only boundary.
 
 Verification:
-Pending: three-test focused baseline, mechanical AST-preserving test/helper move,
-strict compile, focused new/original/combined CadenceImport tests, relevant
-schema contracts, structural/static checks, and bounded review.
+- The pre-move focused baseline passed all three selected tests from selection
+  commit `9ae8d12b`.
+- Strict test compilation passed with warnings as errors across 3,804 files.
+- The new focused module passed 3 tests; the reduced original passed 83 tests;
+  the six-file combined CadenceImport proof passed all 96 tests.
+- `cadence_import_contracts_test.exs` passed all 4 tests.
+- An exact AST comparison against `9ae8d12b` proved that the focused module owns
+  the three exact test ASTs and both exact fixture-helper ASTs, while the original
+  is exactly its former body minus those five expressions.
+- Formatting, tracked and new-file diff checks, exact static test/helper counts,
+  temporary-checker absence, and the resource-projection/freshness seam passed.
+- Bounded local review found no assertion, fixture-value, production, public API,
+  schema, deterministic-output, execution-boundary, or source-path change.
+- The original ledger fell from 14,046 to 13,600 lines; the focused module is
+  451 lines.
 
 Behavior/schema changes:
 None. This is a test-only ownership split with all assertions preserved.
 
 Last completed slice:
-CadenceImport wrapped suppression-report test family split, selected in
-`0cb9a051` and implemented in `4fb90113`.
+CadenceImport provider-reservation handoff test family split, selected in
+`9ae8d12b` and implemented in `fc684963`.
 
 Next candidate:
-Refresh the reduced CadenceImport family seams and production facade map after
-the provider-reservation handoff family and its exclusive helpers are isolated.
+Refresh the reduced CadenceImport family seams and production facade map, then
+select another cohesive boundary with independent fixtures or exclusive helpers.
 
 Blocked:
 No.
