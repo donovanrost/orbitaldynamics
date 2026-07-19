@@ -6,57 +6,39 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-CadenceImport wrapped specialized quality-gate test family split.
+CadenceImport provider-result normalization extraction.
 
 Status:
-Complete and published in `00d8d22d`.
+Selected; implementation has not started.
 
 Selected boundary:
-Move the two contiguous candidate-refresh specialized quality-gate wrapper tests
-into one focused `cadence_import_wrapped_specialized_quality_gates_test.exs`
-module:
-- wrapped operator-training and schema-validation quality-gate summaries;
-- wrapped import-readiness quality-gate summary.
-
-Move the three corresponding pure summary fixture helpers into the focused
-module. Keep the preceding wrapped operational import-eligibility test and
-following standalone freshness/refresh-budget family in the original ledger.
+Extract provider-result artifact normalization into
+`OrbitalDynamics.CadenceImport.ProviderResultNormalization`. Move ownership of
+the provider-result field list, map-value key list, recursive value collection,
+artifact scalarization, and result-field normalization. Preserve
+`CadenceImport` as the public facade with narrow private delegates, and source
+the capability metadata from the extracted module.
 
 Selection evidence:
-- After the prior split, `cadence_import_test.exs` remains the repository's
-  largest source file at 12,608 lines and contains 74 top-level tests.
-- The selected family spans lines 2,349 through 2,610 and covers operator
-  training, schema validation, and import readiness as one specialized
-  quality-gate handoff boundary.
-- The tests use only `CadenceImport`, `Schema`, and three pure map fixture
-  builders;
-  they have no setup, external fixtures, or cross-test state.
-- A post-move warnings-as-errors run proved all three helpers would be unused in
-  the original module; repository-wide call search confirms the selected tests
-  are their only callers, so their ownership moves rather than being duplicated.
-- The tests preserve training requirements, schema failure counts, import
-  readiness counts, nested source rows, wrapper source paths, and schema
-  validation.
-- Production code, public APIs, assertions, edge cases, assertion ordering,
-  fixture values, schema validation, and all other test families remain outside
-  this ownership-only boundary.
+- `cadence_import.ex` remains a 3,813-line production facade after the test-ledger
+  extractions.
+- The selected private family spans about 89 lines and is used through two
+  callback surfaces across proposed-contact, review, suppression, timeline, and
+  generic import row builders.
+- The family has one cohesive responsibility: flatten provider result values
+  from strings, lists, maps, atoms, numerics, and booleans into stable artifact
+  strings, deleting empty results.
+- Capability metadata exposes the map-value key list, so the extracted module
+  will own and return that exact list without changing the public capability
+  shape.
+- Manifest dispatch, row construction, public function signatures, schemas,
+  ordering, and every non-provider normalization helper remain outside the
+  boundary.
 
 Verification:
-- The pre-move focused baseline passed both selected tests from selection commit
-  `189bd883`; helper ownership was corrected in `aa645476`.
-- Strict test compilation passed with warnings as errors across 3,804 files.
-- The new focused module passed 2 tests; the reduced original passed 72 tests;
-  the eleven-file combined CadenceImport proof passed all 96 tests.
-- `cadence_import_contracts_test.exs` passed all 4 tests.
-- An exact AST comparison against `189bd883` proved that the focused module owns
-  the two exact test ASTs and all three exact fixture-helper ASTs, while the
-  original is exactly its former body minus those five expressions.
-- Formatting, tracked and new-file diff checks, exact static test/helper counts,
-  temporary-checker absence, and the import-eligibility/freshness seam passed.
-- Bounded local review found no assertion, fixture-value, production, public API,
-  schema, deterministic-output, quality-gate, or source-path change.
-- The original ledger fell from 12,608 to 12,184 lines; the focused module is
-  429 lines.
+Pending: capability/provider-map focused baselines, strict compile, focused and
+all combined CadenceImport tests, schema contracts, exact capability equality,
+static ownership checks, compile-connected xref, and bounded review.
 
 Behavior/schema changes:
 None. This is a test-only ownership split with all assertions preserved.
@@ -66,8 +48,8 @@ CadenceImport wrapped specialized quality-gate test family split, selected in
 `189bd883`, corrected in `aa645476`, and implemented in `00d8d22d`.
 
 Next candidate:
-Refresh the reduced CadenceImport family seams and production facade map, then
-select another cohesive boundary with independent fixtures or exclusive helpers.
+Return to the remaining CadenceImport row-building or manifest-routing map after
+provider-result normalization has one production owner.
 
 Blocked:
 No.
