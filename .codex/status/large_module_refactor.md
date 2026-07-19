@@ -6,43 +6,33 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-ContactAllocation contact normalization extraction.
+ContactAllocation contact identity extraction.
 
 Status:
-Completed and pushed in `08172144`.
+Selected; implementation not started.
 
 Selected boundary:
-Extract contact key normalization, station/source-window aliases, nested
-station-calendar status canonicalization, contact time normalization, activity
-type aliases, and provider direction normalization into
-`OrbitalDynamics.Communications.ContactAllocation.ContactNormalization`.
-Preserve the existing private `normalize_contact/1` seam and keep advertised
-status/direction alias policy in the ContactAllocation facade.
+Extract contact ID resolution and validation, spacecraft identity resolution,
+declared stable-identity validation, station-calendar identity selection,
+stable ID/number list normalization, reservation-expiry selection, and derived
+calendar counts into
+`OrbitalDynamics.Communications.ContactAllocation.ContactIdentity`. Preserve
+the existing private identity/calendar seams in the facade while moving
+`@stable_id_pattern` to its single owner.
 
 Selection evidence:
-- Live re-ranking places `contact_allocation.ex` at 4,522 lines; the larger
-  Timeline facade is already dominated by delegates to existing owners.
-- The selected 4,211-4,465 helper family is one contact ingestion pipeline
-  called through a single private normalization seam.
-- Provider direction aliases and unavailable-status aliases remain
-  facade-owned capability policy and will be passed as one policy value.
-- Allocation, contention, capacity, reservation, summary, and public report
-  APIs remain in the facade.
+- Live re-ranking places `contact_allocation.ex` at 4,296 lines.
+- The selected 3,970-4,210 helper family shares one stable-ID policy across
+  scalar contact identity and station-calendar collection forms.
+- The advertised stable identity field list remains facade-owned capability
+  policy and will be passed only to declared-field validation.
+- Generic numeric parsing remains in the facade and is reused for calendar
+  number lists and reservation expiry selection.
+- Allocation, contact normalization, contention, capacity, reservation,
+  summary, and public report APIs remain in their existing owners or facade.
 
 Verification:
-- Strict warnings-as-errors compile passed across 3,887 files.
-- Focused ContactAllocation coverage passed: 70 tests.
-- Adjacent operator-review, schema-contract, and allocation-fixture coverage
-  passed: 24 tests.
-- Exact old/new public artifact comparison against `233ec122` passed for 12
-  station alias, source-window location, nested calendar status, time/type
-  alias, provider direction, and invalid-shape cases plus 5 aggregate summary
-  artifacts.
-- Runtime xref found the new owner referenced only by ContactAllocation;
-  static review preserved the three summary-facing status/direction seams as
-  delegates to the same owner, and `git diff --check` passed.
-- `communications/contact_allocation.ex` moved from 4,522 to 4,296 lines; the
-  dedicated owner is 269 lines.
+Pending.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
@@ -53,8 +43,8 @@ implemented in `08172144`. `communications/contact_allocation.ex` moved from
 4,522 to 4,296 lines; the dedicated owner is 269 lines.
 
 Next candidate:
-Re-inventory remaining ContactAllocation identity/calendar normalization and
-switch focus if no cohesive facade-reducing boundary remains.
+Implement and verify the selected ContactAllocation contact identity
+extraction.
 
 Blocked:
 No.
