@@ -6,63 +6,48 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-ResourceProjection flow-summary extraction.
+Study Manifest activity-input extraction.
 
 Status:
-Completed and pushed in `2e1f6682`.
+Selected; implementation not started.
 
 Selected boundary:
-Extract `resource_projection_flow_summary.v1` assembly, projected-remaining
-derivation, flow-row flattening, invalid-input routing, pressure routing,
-quantity/latency aggregation, and deterministic grouped identities into
-`OrbitalDynamics.ResourceProjection.FlowSummary`. Preserve the public
-ResourceProjection facade and private delegates for flow/pressure primitives
-also used by report construction.
+Extract activity-list parsing and construction, mission-plan activity scope
+enforcement, activity option/evidence parsing, nested identity aliases,
+contact-direction normalization, and the matching contact-direction schema
+property into `OrbitalDynamics.Study.Manifest.ActivityInput`. Preserve
+`OrbitalDynamics.Study.Manifest` as the public facade and retain private
+delegates at its three existing call sites.
 
 Selection evidence:
-- Live re-ranking places `resource_projection.ex` at 3,010 lines,
-  fourth behind Schema, Timeline, and MissionPlan.Activity and ahead of
-  Manifest, StationCalendar, OrbitalDynamics, RecommendationRiskContext,
-  OperationalReadiness, TimelineFeedback, ContactContention, LinkCapacity,
-  and ContactAllocation.
-- The selected block spans the flow-summary report clause and its cohesive
-  helper family from lines 591-1,130. It owns flow counts, ignored and invalid
-  routing, resource-pressure dimensions, quantity totals/minima/maxima,
-  realized data-volume variance, latency review, projected-resource compaction,
-  and stable grouped evidence.
-- Report construction also uses flow-row flattening and a subset of pressure
-  routing/grouped-ID primitives. Those functions will be exposed by the owner
-  and retained behind private facade delegates so there is one implementation.
-- Activity/resource-summary normalization, resource projection math,
-  approval/risk policy, subsystem capability catalogs, source/trust evidence,
-  activity delivery evidence, margin and pressure classification policy,
-  report contracts, and public input-shape clauses remain outside this
-  boundary.
-- Existing row-count derivation, invalid-input fallback, pressure
-  classification, stable grouping/sorting, projected-remaining clamping,
-  quantity aggregation, latency semantics, model limits, assumptions, schema
-  contracts, and deterministic output must remain unchanged.
+- Live re-ranking places `study/manifest.ex` at 3,000 lines, fourth behind
+  Schema, Timeline, and MissionPlan.Activity and ahead of StationCalendar,
+  OrbitalDynamics, RecommendationRiskContext, OperationalReadiness,
+  TimelineFeedback, ContactContention, LinkCapacity, and ResourceProjection.
+- The selected block spans lines 1,746-2,511. It owns the activity array
+  reducer, scenario/spacecraft scope validation, all supported activity
+  constructors, the complete activity option/evidence field matrix, nested
+  target/station/spacecraft/command-window identity resolution, legacy overlap
+  handling, status/approval parsing, provider direction aliases, health-check
+  direction validation, and the schema enum derived from the same capability
+  catalog.
+- The boundary has three facade consumers: mission-plan activity parsing,
+  mission-plan scope application, and prior-candidate direction schema
+  construction. Private facade delegates preserve those call sites while the
+  owner holds one implementation.
+- General manifest JSON decoding, validation reports, schema assembly,
+  scenario/campaign/candidate-refresh parsing, spacecraft and maneuver input,
+  run options, metadata outside activity options, and public input/output
+  contracts remain outside this boundary.
+- Existing first-error behavior, activity order, struct construction, option
+  omission/defaults, identity precedence, direction aliases, schema ordering,
+  and exact error tuples must remain unchanged.
 
 Verification:
-- Strict warning-clean compile passed across 3,947 files:
-  `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 mix compile --force --warnings-as-errors`.
-- Focused ResourceProjection regression passed: 49 tests.
-- Adjacent campaign-planner, candidate-refresh, operator-review, and validation
-  ResourceProjection regression bundle passed: 45 tests.
-- Exact old/new parity passed 7 comparisons from selection commit `692d755f`
-  with `/tmp/resource_projection_flow_summary_compare.exs`, covering live
-  report construction, live flow summary/report, rich flow evidence, atom-key
-  normalization, and both idempotent summary handoff paths.
-- `mix xref callers OrbitalDynamics.ResourceProjection.FlowSummary` reports
-  only the ResourceProjection facade.
-- The owner has no compile-connected expansion beyond itself.
-- Focused formatting, `git diff --check`, removed-helper static checks, and
-  final facade/owner review passed.
+Pending implementation.
 
 Behavior/schema changes:
-None. The public ResourceProjection facade, report and flow-summary contracts,
-deterministic ordering, pressure classification, and error behavior are
-unchanged.
+None intended.
 
 Last completed slice:
 ResourceProjection flow-summary extraction, selected in `692d755f` and
@@ -71,8 +56,7 @@ implemented in `2e1f6682`.
 flow-summary owner is 562 lines.
 
 Next candidate:
-Re-rank the live largest-module inventory and select the next cohesive,
-facade-preserving ownership boundary.
+Implement and verify the selected Study Manifest activity-input extraction.
 
 Blocked:
 No.
