@@ -9,7 +9,7 @@ Current slice:
 Policy blocked-risk matcher extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and published in `4936bedc`.
 
 Selected boundary:
 Extract `blocked_risk_indicator?/2`, the blocked-type dispatch clauses, and
@@ -28,17 +28,27 @@ Selection evidence:
   normalization, and public APIs remain outside the boundary.
 
 Verification:
-Pending: eight focused fallback blocked-risk baselines, exact old/new blocked
-type/alias proofs, strict compile, full Policy tests, relevant schema/contracts,
-static single ownership, runtime xref, and bounded review.
+- Strict compile passed across 3,853 files with warnings as errors.
+- Eight focused fallback blocked-risk baselines passed.
+- All 89 Policy tests and the Policy schema-contract test passed with warnings
+  as errors.
+- Exact old/new executable comparison passed for 53 blocked and neutral
+  decisions spanning every blocked-risk dispatch family.
+- A byte-level mechanical comparison confirmed the new owner preserves the
+  selected predicate cluster exactly apart from its public entrypoint.
+- Static ownership confirms one `blocked?/2` production owner and one private
+  `blocked_risk_indicator?/2` Policy seam.
+- Runtime xref confirms `Policy` calls `BlockedRiskMatcher`; format, diff
+  checks, and bounded review passed.
+- `policy.ex` moved from 2,649 to 2,324 lines; the new owner is 331 lines.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-Policy rule-match evidence assembly extraction, selected in `ce942b7d` and
-implemented in `136fc1ee`. `policy.ex` moved from 3,205 to 2,649 lines; the
-dedicated builder is 549 lines.
+Policy blocked-risk matcher extraction, selected in `99bdf15f` and implemented
+in `4936bedc`. `policy.ex` moved from 2,649 to 2,324 lines; the dedicated matcher
+is 331 lines.
 
 Next candidate:
 Re-inventory Policy decision-result assembly and bundle normalization after
