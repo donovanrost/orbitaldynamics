@@ -6,53 +6,42 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-ContactContention priority-override normalization extraction.
+LinkCapacity downlink-requirement projection extraction.
 
 Status:
-Completed and pushed.
+Selected; implementation pending.
 
 Selected boundary:
-Extract resolution priority-override alias routing, stable contact-ID and
-numeric-priority normalization, ignored-input diagnostics, counts, and sorted
-contact-ID projection into
-`OrbitalDynamics.Communications.ContactContention.PriorityOverrides`. Preserve
-all public ContactContention report, resolution, and summary facades.
+Extract report/station required-downlink resolution, policy station-value
+normalization, invalid station diagnostics, contact requirement/source
+projection, selected and actual shortfall/status calculation, and actual
+completion ratio into
+`OrbitalDynamics.Communications.LinkCapacity.DownlinkRequirement`. Preserve all
+public LinkCapacity report and summary facades.
 
 Selection evidence:
-- Live re-ranking places `communications/contact_contention.ex` at 2,466
+- Live re-ranking places `communications/link_capacity.ex` at 2,462
   lines, the largest eligible facade behind Schema, Timeline,
   MissionPlan.Activity, and the root public facade.
-- The selected helper family spans lines 1,892-1,997 and exclusively owns
-  priority-override normalization and derived policy context.
-- Resolution-policy construction is the only consumer of the normalized
-  override values and diagnostics.
-- Selection-rule validation, tie breaking, contact scoring, recommendation
-  construction, contention grouping, approval policy, public clauses, and
-  artifact contracts remain outside this boundary.
-- Existing alias precedence, atom/string key handling, stable-ID rejection,
-  numeric-string coercion, duplicate normalized-ID overwrite behavior,
-  ignored-key rendering, ignored-input counting, nil omission, and
-  deterministic sorting must remain unchanged.
+- The selected helper family spans lines 2,024-2,267 and exclusively owns
+  required-downlink evidence and completion-state projection.
+- Report construction and per-station row construction are the only consumers
+  of the requirement projection entry points.
+- Estimated/actual throughput derivation, capacity adjustment, contact
+  eligibility, station evidence, approval policy, summary aggregation, public
+  clauses, and artifact contracts remain outside this boundary.
+- Existing report-policy/station-policy/contact precedence, stable station-ID
+  validation, numeric-string coercion, invalid-key rendering, positive-value
+  guards, source-list precedence, contact-ID fallback sources, nil/empty
+  behavior, shortfall/status thresholds, and unit-interval clamping must remain
+  unchanged.
 
 Implementation:
-- Selection was recorded and pushed in `fab92d36`.
-- Implementation was committed and pushed in `b46b3b30`.
-- `communications/contact_contention.ex` moved from 2,466 to 2,370 lines.
-- `OrbitalDynamics.Communications.ContactContention.PriorityOverrides` is a
-  134-line owner reached through private facade delegates.
+- Pending.
 
 Verification:
-- Strict warning-clean compilation passed across 3,967 files.
-- The focused ContactContention file and five adjacent campaign, strategy,
-  Cadence-import, operator-review, and manifest consumers passed together:
-  178 tests.
-- Exact old/new public parity passed for 13 cases covering every override
-  alias, atom/string/integer IDs, numeric strings, malformed values and
-  containers, keyword and invalid policy input, and capability metadata.
-- `mix xref callers` reports only the ContactContention facade.
-- The removed override normalization helpers and facade-owned alias attribute
-  are absent apart from thin delegates, formatting and `git diff --check`
-  passed, and the final diff is ownership-only.
+- Pending focused baseline, strict compilation, exact old/new public parity,
+  focused and adjacent tests, static ownership checks, and xref review.
 
 Behavior/schema changes:
 None intended.
@@ -64,8 +53,8 @@ ContactContention priority-override normalization extraction, selected in
 dedicated priority-overrides owner is 134 lines.
 
 Next candidate:
-Re-rank the live checkout and select the next cohesive facade-preserving
-boundary.
+Complete and verify the selected LinkCapacity downlink-requirement projection
+extraction.
 
 Blocked:
 No.
