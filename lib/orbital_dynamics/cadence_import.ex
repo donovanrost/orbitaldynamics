@@ -13,6 +13,7 @@ defmodule OrbitalDynamics.CadenceImport do
     BranchEvidenceFields,
     CandidateEvaluationImport,
     CandidateDiffFields,
+    ContactPlanningImport,
     ConstraintObjectiveImport,
     GenericReviewActionPolicy,
     ImportReadinessPolicy,
@@ -1320,44 +1321,24 @@ defmodule OrbitalDynamics.CadenceImport do
   Builds an import manifest from a link-capacity report.
   """
   def from_link_capacity_report(%{} = report, opts \\ []) do
-    report = stringify_keys(report)
-    source_artifact_id = option(opts, :source_artifact_id, report["id"] || report["source"])
-
-    from_review_report(
-      OperatorReview.from_link_capacity_report(report),
-      opts,
-      "link_capacity_report.v1",
-      source_artifact_id || "link_capacity_report"
-    )
+    ContactPlanningImport.from_link_capacity_report(report, opts, &from_review_report/4)
   end
 
   @doc """
   Builds an import manifest from a contact-allocation report.
   """
   def from_contact_allocation_report(%{} = report, opts \\ []) do
-    report = stringify_keys(report)
-    source_artifact_id = option(opts, :source_artifact_id, report["id"] || report["source"])
-
-    from_review_report(
-      OperatorReview.from_contact_allocation_report(report),
-      opts,
-      "contact_allocation_report.v1",
-      source_artifact_id || "contact_allocation_report"
-    )
+    ContactPlanningImport.from_contact_allocation_report(report, opts, &from_review_report/4)
   end
 
   @doc """
   Builds an import manifest from a contact-allocation capacity-pack summary.
   """
   def from_contact_allocation_capacity_pack_summary(%{} = summary, opts \\ []) do
-    summary = stringify_keys(summary)
-    source_artifact_id = option(opts, :source_artifact_id, summary["id"] || summary["source"])
-
-    from_review_report(
-      OperatorReview.from_contact_allocation_capacity_pack_summary(summary),
+    ContactPlanningImport.from_contact_allocation_capacity_pack_summary(
+      summary,
       opts,
-      "contact_allocation_capacity_pack_summary.v1",
-      source_artifact_id || "contact_allocation_capacity_pack_summary"
+      &from_review_report/4
     )
   end
 
@@ -1365,14 +1346,10 @@ defmodule OrbitalDynamics.CadenceImport do
   Builds an import manifest from a contact-allocation reservation-conflict summary.
   """
   def from_contact_allocation_reservation_conflict_summary(%{} = summary, opts \\ []) do
-    summary = stringify_keys(summary)
-    source_artifact_id = option(opts, :source_artifact_id, summary["id"] || summary["source"])
-
-    from_review_report(
-      OperatorReview.from_contact_allocation_reservation_conflict_summary(summary),
+    ContactPlanningImport.from_contact_allocation_reservation_conflict_summary(
+      summary,
       opts,
-      "contact_allocation_reservation_conflict_summary.v1",
-      source_artifact_id || "contact_allocation_reservation_conflict_summary"
+      &from_review_report/4
     )
   end
 
@@ -1380,15 +1357,7 @@ defmodule OrbitalDynamics.CadenceImport do
   Builds an import manifest from a standalone contact-intent row.
   """
   def from_contact_intent(%{} = intent, opts \\ []) do
-    intent = stringify_keys(intent)
-    source_artifact_id = option(opts, :source_artifact_id, intent["id"] || intent["activity_id"])
-
-    from_review_report(
-      OperatorReview.from_contact_intent(intent),
-      opts,
-      "contact_intent.v1",
-      source_artifact_id || "contact_intent"
-    )
+    ContactPlanningImport.from_contact_intent(intent, opts, &from_review_report/4)
   end
 
   @doc """
