@@ -9,7 +9,7 @@ Current slice:
 Timeline lifecycle-state summary row policy extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and published.
 
 Selected boundary:
 Move lifecycle-state row classification, duplicate-identity review-row
@@ -34,17 +34,32 @@ Selection evidence:
   responsibilities remain outside the boundary.
 
 Verification:
-Pending: focused baseline, mechanical row-policy extraction, strict compile,
-focused and full Timeline tests, schema contracts, structural/static checks, and
-bounded review.
+- Focused baseline passed 1 lifecycle-state summary test.
+- Strict warnings-as-errors compile passed 3,803 modules.
+- Focused lifecycle-state summary test passed 1 test.
+- Full Timeline suite passed 127 tests.
+- Four Timeline schema-contract suites passed 36 tests.
+- AST conservation proved the three row functions and two redundant metrics
+  wrappers moved exactly after normalizing only callback threading and direct
+  policy delegation.
+- Static checks confirmed all five helpers left Timeline, the facade has one row
+  policy call, public def count remains 101, formatting/diff/new-file checks
+  pass, and no temporary checker remains.
+- Compile-connected xref remained narrow: Timeline has only the pre-existing
+  compile edge to `CandidateRejectionStationPolicy`.
+- Bounded local review found no correctness or maintainability issues and
+  confirmed duplicate/invalid precedence, unique-pair lifecycle semantics,
+  review routing, field ordering, and deterministic ID ordering are unchanged.
+- Timeline decreased from 5,144 to 5,046 lines; the extracted policy is 112
+  lines.
 
 Behavior/schema changes:
 None intended. Lifecycle row selection, review routing, ID ordering, summary
 fields, capabilities, and schema exports should remain byte-for-byte stable.
 
 Last completed slice:
-Timeline dependency-impact summary policy extraction, selected in `59e8b1bf`
-and implemented in `8b53743d`.
+Timeline lifecycle-state summary row policy extraction, selected in `c813f233`
+and implemented in `6fa5b2bd`.
 
 Next candidate:
 Continue remapping the reduced Timeline facade after lifecycle summary row
