@@ -230,6 +230,7 @@ defmodule OrbitalDynamics.ResourceProjection do
   alias OrbitalDynamics.Policy
   alias OrbitalDynamics.ResourceProjection.ActivityDeliveryEvidence
   alias OrbitalDynamics.ResourceProjection.MarginProjection
+  alias OrbitalDynamics.ResourceProjection.PressureClassification
 
   @doc """
   Declares the resource projection model and known limits.
@@ -919,9 +920,6 @@ defmodule OrbitalDynamics.ResourceProjection do
     if row_count > 0, do: row_count, else: report_count
   end
 
-  defp flow_summary_valid_activity_count(_projected_resources, _flow_rows, report_count),
-    do: report_count
-
   defp resource_pressure_row?(row), do: resource_pressure_types([row]) != []
 
   defp resource_pressure_spacecraft_ids(projected_resources) do
@@ -1106,21 +1104,8 @@ defmodule OrbitalDynamics.ResourceProjection do
     |> sorted_stable_ids()
   end
 
-  defp resource_pressure_types(projected_resources) do
-    projection_pressure_types =
-      projected_resources
-      |> Enum.flat_map(&Map.get(&1, "resource_pressure_types", []))
-
-    flow_pressure_types =
-      projected_resources
-      |> Enum.flat_map(&Map.get(&1, "activity_resource_flow", []))
-      |> Enum.map(&first_resource_pressure_kind/1)
-      |> Enum.reject(&is_nil/1)
-
-    (projection_pressure_types ++ flow_pressure_types)
-    |> Enum.uniq()
-    |> Enum.sort()
-  end
+  defp resource_pressure_types(projected_resources),
+    do: PressureClassification.types(projected_resources)
 
   defp stable_ids_by_key(pairs) do
     pairs
@@ -2678,15 +2663,8 @@ defmodule OrbitalDynamics.ResourceProjection do
     end)
   end
 
-  defp activity_availability_risk_types do
-    ~w(
-      payload_unavailable
-      spacecraft_degraded_payload_unavailable
-      activity_type_suppressed_by_resource_summary
-      activity_type_incompatible_with_resource_summary
-      antenna_unavailable
-    )
-  end
+  defp activity_availability_risk_types,
+    do: PressureClassification.activity_availability_risk_types()
 
   defp resource_pressure_types(
          storage_overflow_mb,
@@ -2695,182 +2673,22 @@ defmodule OrbitalDynamics.ResourceProjection do
          thermal_margin_c,
          activity_resource_flow,
          spacecraft_available
-       ) do
-    []
-    |> maybe_add_resource_pressure_type("storage_overflow", storage_overflow_mb)
-    |> maybe_add_resource_pressure_type("downlink_shortfall", downlink_shortfall_mb)
-    |> maybe_add_resource_pressure_type("battery_depletion", battery_overuse_wh)
-    |> maybe_add_thermal_margin_pressure_type(thermal_margin_c)
-    |> add_activity_resource_pressure_types(activity_resource_flow)
-    |> maybe_add_spacecraft_unavailable_pressure_type(spacecraft_available)
-    |> Enum.uniq()
-    |> Enum.sort()
-  end
+       ),
+       do:
+         PressureClassification.types(
+           storage_overflow_mb,
+           downlink_shortfall_mb,
+           battery_overuse_wh,
+           thermal_margin_c,
+           activity_resource_flow,
+           spacecraft_available
+         )
 
-  defp maybe_add_resource_pressure_type(types, type, value)
-       when is_number(value) and value > 0.0,
-       do: [type | types]
+  defp resource_pressure_status(types), do: PressureClassification.status(types)
 
-  defp maybe_add_resource_pressure_type(types, _type, _value), do: types
+  defp first_resource_pressure_event(rows), do: PressureClassification.first_event(rows)
 
-  defp maybe_add_thermal_margin_pressure_type(types, value) when is_number(value) and value < 0.0,
-    do: ["thermal_margin_below_limit" | types]
-
-  defp maybe_add_thermal_margin_pressure_type(types, _value), do: types
-
-  defp add_activity_resource_pressure_types(types, rows) when is_list(rows) do
-    Enum.reduce(rows, types, fn row, acc ->
-      reason = Map.get(row, "resource_effect_reason")
-
-      if reason in resource_availability_pressure_types() do
-        [reason | acc]
-      else
-        acc
-      end
-    end)
-  end
-
-  defp add_activity_resource_pressure_types(types, _rows), do: types
-
-  defp resource_availability_pressure_types do
-    ~w(
-      spacecraft_unavailable
-      payload_unavailable
-      spacecraft_degraded_payload_unavailable
-      activity_type_suppressed_by_resource_summary
-      activity_type_incompatible_with_resource_summary
-      antenna_unavailable
-    )
-  end
-
-  defp maybe_add_spacecraft_unavailable_pressure_type(types, false),
-    do: ["spacecraft_unavailable" | types]
-
-  defp maybe_add_spacecraft_unavailable_pressure_type(types, _spacecraft_available), do: types
-
-  defp resource_pressure_status([]), do: "nominal"
-
-  defp resource_pressure_status(["downlink_shortfall"]), do: "downlink_shortfall"
-
-  defp resource_pressure_status(["spacecraft_unavailable"]), do: "spacecraft_unavailable"
-
-  defp resource_pressure_status(["payload_unavailable"]), do: "payload_unavailable"
-
-  defp resource_pressure_status(["antenna_unavailable"]), do: "antenna_unavailable"
-
-  defp resource_pressure_status(["spacecraft_degraded_payload_unavailable"]),
-    do: "spacecraft_degraded_payload_unavailable"
-
-  defp resource_pressure_status(types) when is_list(types) do
-    if Enum.all?(types, &(&1 in resource_availability_pressure_types())) do
-      "resource_availability_pressure"
-    else
-      resource_pressure_status_fallback(types)
-    end
-  end
-
-  defp resource_pressure_status_fallback(["storage_overflow"]), do: "storage_overflow"
-
-  defp resource_pressure_status_fallback(["downlink_shortfall", "storage_overflow"]),
-    do: "storage_and_downlink_pressure"
-
-  defp resource_pressure_status_fallback(_types), do: "resource_pressure"
-
-  defp first_resource_pressure_event(rows) when is_list(rows) do
-    rows
-    |> Enum.find(fn row ->
-      positive_number?(row["storage_overflow_mb"]) or
-        positive_number?(row["downlink_shortfall_mb"]) or
-        positive_number?(row["battery_overuse_wh"]) or
-        Map.get(row, "resource_effect_reason") in resource_availability_pressure_types()
-    end)
-    |> case do
-      nil ->
-        %{}
-
-      row ->
-        %{
-          "first_resource_pressure_activity_id" => row["activity_id"],
-          "first_resource_pressure_activity_type" => row["activity_type"],
-          "first_resource_pressure_kind" => first_resource_pressure_kind(row),
-          "first_resource_pressure_starts_at_s" => row["starts_at_s"],
-          "first_resource_pressure_direction" => row["direction"],
-          "first_resource_pressure_ground_station_id" => row["ground_station_id"],
-          "first_resource_pressure_station_calendar_entry_id" => row["station_calendar_entry_id"],
-          "first_resource_pressure_station_calendar_provider_id" =>
-            row["station_calendar_provider_id"],
-          "first_resource_pressure_station_calendar_provider_entry_id" =>
-            row["station_calendar_provider_entry_id"],
-          "first_resource_pressure_station_calendar_directions" =>
-            row["station_calendar_directions"],
-          "first_resource_pressure_capacity_fraction" => row["capacity_fraction"],
-          "first_resource_pressure_source_window_id" => row["source_window_id"],
-          "first_resource_pressure_source_window_type" => row["source_window_type"],
-          "first_resource_pressure_source_window" => row["source_window"],
-          "source_window_id" => row["source_window_id"],
-          "source_window_type" => row["source_window_type"],
-          "source_window" => row["source_window"]
-        }
-        |> compact_map()
-    end
-  end
-
-  defp first_resource_pressure_kind(%{"storage_overflow_mb" => value})
-       when is_number(value) and value > 0.0,
-       do: "storage_overflow"
-
-  defp first_resource_pressure_kind(%{"downlink_shortfall_mb" => value})
-       when is_number(value) and value > 0.0,
-       do: "downlink_shortfall"
-
-  defp first_resource_pressure_kind(%{"battery_overuse_wh" => value})
-       when is_number(value) and value > 0.0,
-       do: "battery_depletion"
-
-  defp first_resource_pressure_kind(%{"resource_effect_reason" => reason})
-       when reason in [
-              "spacecraft_unavailable",
-              "payload_unavailable",
-              "spacecraft_degraded_payload_unavailable",
-              "activity_type_suppressed_by_resource_summary",
-              "activity_type_incompatible_with_resource_summary",
-              "antenna_unavailable"
-            ],
-       do: reason
-
-  defp first_resource_pressure_kind(_row), do: nil
-
-  defp resource_pressure_kinds(row) do
-    []
-    |> maybe_add_resource_pressure_kind(row, "storage_overflow", "storage_overflow_mb")
-    |> maybe_add_resource_pressure_kind(row, "downlink_shortfall", "downlink_shortfall_mb")
-    |> maybe_add_resource_pressure_kind(row, "battery_depletion", "battery_overuse_wh")
-    |> maybe_add_availability_resource_pressure_kind(row)
-    |> Enum.uniq()
-    |> Enum.sort()
-  end
-
-  defp maybe_add_resource_pressure_kind(types, row, type, field) do
-    case Map.get(row, field) do
-      value when is_number(value) and value > 0.0 -> [type | types]
-      _value -> types
-    end
-  end
-
-  defp maybe_add_availability_resource_pressure_kind(types, %{"resource_effect_reason" => reason})
-       when reason in [
-              "spacecraft_unavailable",
-              "payload_unavailable",
-              "spacecraft_degraded_payload_unavailable",
-              "activity_type_suppressed_by_resource_summary",
-              "activity_type_incompatible_with_resource_summary",
-              "antenna_unavailable"
-            ],
-       do: [reason | types]
-
-  defp maybe_add_availability_resource_pressure_kind(types, _row), do: types
-
-  defp positive_number?(value), do: is_number(value) and value > 0.0
+  defp resource_pressure_kinds(row), do: PressureClassification.kinds(row)
 
   defp resource_projection_activities(%{"spacecraft_id" => nil}, activities, 1), do: activities
 
