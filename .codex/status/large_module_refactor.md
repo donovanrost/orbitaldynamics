@@ -9,7 +9,7 @@ Current slice:
 LinkCapacity stable contact-identity extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed in `eef2a62a`.
 
 Selected boundary:
 Extract the stable contact-identity field contract, stable-ID normalization,
@@ -34,16 +34,31 @@ Selection evidence:
   remain unchanged.
 
 Verification:
-Pending.
+- Strict test-environment compile passed with warnings as errors across 3,916
+  files.
+- Focused LinkCapacity coverage passed: 44 tests.
+- Adjacent operator-review and Cadence-import link-capacity coverage passed:
+  10 tests.
+- Exact public old/new comparison against selection commit `a4818a70` passed
+  for capability metadata and report, summary, and relay-data-path outputs
+  covering atom, string, integer, nested, missing, malformed, and invalid
+  contact, station, spacecraft, and route identities.
+- `mix xref callers` reports only the LinkCapacity facade as a runtime caller
+  of the extracted contact-identity owner.
+- Static ownership checks confirm the stable-ID pattern, field contract,
+  resolution precedence, and invalid-identity classification live in the
+  dedicated owner while throughput and artifact responsibilities remain in
+  the facade.
+- `git diff --check` passed.
 
 Behavior/schema changes:
-None intended. This is a facade-preserving production ownership extraction.
+None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-StationCalendar provider-result canonicalization extraction, selected in
-`bc3a559d` and implemented in `18189013`.
-`station_calendar.ex` moved from 3,728 to 3,655 lines; the dedicated
-provider-result owner is 77 lines.
+LinkCapacity stable contact-identity extraction, selected in `a4818a70` and
+implemented in `eef2a62a`.
+`link_capacity.ex` moved from 3,724 to 3,656 lines; the dedicated
+contact-identity owner is 89 lines.
 
 Next candidate:
 Re-rank the live largest-module set and select the next cohesive ownership
