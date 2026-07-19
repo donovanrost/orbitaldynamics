@@ -9,7 +9,7 @@ Current slice:
 Policy branch-event matcher extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and pushed in `62a73bed`.
 
 Selected boundary:
 Extract `approval_rule_event_match?/2`, event status/allocation/station-calendar
@@ -32,18 +32,26 @@ Selection evidence:
   boundary.
 
 Verification:
-Pending: focused event type/direction/station/spacecraft/target/provenance/status
-baselines, exact old/new event decision proofs, strict compile, full Policy
-tests, relevant schema/contracts, static single ownership, runtime xref, and
-bounded review.
+- Strict warnings-as-errors compile passed across 3,849 files.
+- Seven focused event type/direction/station/spacecraft/target/provenance/status
+  tests passed.
+- All 89 Policy tests passed.
+- The Policy schema-contract test passed.
+- Exact old/new comparison passed for 55 built-in bundle/event decisions
+  spanning direction, identity, status/allocation, provider calendar,
+  reservation, and feedback provenance evidence.
+- Static search confirms one event matcher owner with six explicit private
+  Policy seams.
+- Runtime xref confirms Policy owns the dependency on EventMatcher.
+- Formatting, diff checks, and bounded review passed.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-Policy risk-matcher extraction, selected in `27fba3ea` and implemented in
-`bd14ec63`. `policy.ex` moved from 4,960 to 4,652 lines; the dedicated matcher
-is 326 lines.
+Policy branch-event matcher extraction, selected in `cac7d7d9` and implemented
+in `62a73bed`. `policy.ex` moved from 4,652 to 4,378 lines; the dedicated matcher
+is 289 lines.
 
 Next candidate:
 Re-inventory the neighboring Policy activity matcher after branch-event
