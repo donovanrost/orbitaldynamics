@@ -9,7 +9,7 @@ Current slice:
 ResourceProjection activity evidence validation extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Extract completed-fraction, station-capacity, latency, resource-quantity, and
@@ -36,24 +36,39 @@ Selection evidence:
   unchanged.
 
 Implementation:
-- Pending.
+- Selection was recorded and pushed in `d39bd372`.
+- Implementation was committed and pushed in `66c5aca8`.
+- `resource_projection.ex` moved from 2,418 to 2,197 lines.
+- `OrbitalDynamics.ResourceProjection.ActivityInputValidation` is a 253-line
+  owner reached through four private facade delegates plus the shared
+  actual-volume path contract.
 
 Verification:
-- Pending focused baseline, strict compilation, exact old/new public parity,
-  focused and adjacent tests, static ownership checks, and xref review.
+- Strict warning-clean compilation passed across 3,970 files.
+- The focused ResourceProjection file and five adjacent operator-review,
+  Cadence-import, schema, campaign-strategy, and replay consumers passed
+  together: 146 tests.
+- Exact old/new public parity passed for 14 validation and capability cases
+  covering valid numeric strings; completed-fraction, nested capacity,
+  allocation/overlap, latency, resource-quantity, and actual-volume errors;
+  nil behavior; first-error ordering; and path metadata.
+- `mix xref callers` reports only the ResourceProjection facade.
+- The removed validation/evidence-walking helpers and facade-owned actual
+  volume path attribute are absent apart from thin delegates, formatting and
+  `git diff --check` passed, and the final diff is ownership-only.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-StationCalendar reservation summary-value extraction, selected in `162c6a73`
-and implemented in `def426ce`.
-`communications/station_calendar.ex` moved from 2,425 to 2,268 lines; the
-dedicated reservation-summary values owner is 210 lines.
+ResourceProjection activity evidence validation extraction, selected in
+`d39bd372` and implemented in `66c5aca8`.
+`resource_projection.ex` moved from 2,418 to 2,197 lines; the dedicated
+activity-input validation owner is 253 lines.
 
 Next candidate:
-Complete and verify the selected ResourceProjection activity evidence
-validation extraction.
+Re-rank the live checkout and select the next cohesive facade-preserving
+boundary.
 
 Blocked:
 No.
