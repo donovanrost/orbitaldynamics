@@ -9,7 +9,7 @@ Current slice:
 CadenceImport strategy-decision import extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and published.
 
 Selected boundary:
 Extract the seven approval-requirement, policy-decision, comparison, scoring,
@@ -29,18 +29,28 @@ Selection evidence:
   validation/readiness imports remain outside the boundary.
 
 Verification:
-Pending: representative focused decision-import baselines, exact old/new
-constructor equivalence proof, strict compile, all combined CadenceImport
-tests, schema contracts, static single ownership, runtime xref, and bounded
-review.
+- Strict test compile passed with 3,829 files and warnings as errors.
+- Five representative strategy-decision tests passed with 67 excluded.
+- All combined CadenceImport tests passed: 96 tests.
+- CadenceImport schema contracts passed: 4 tests.
+- An executable before/after proof matched 42 cases across all seven
+  constructors, three key/source-ID shapes, and inferred versus explicit IDs.
+- Formatting and diff checks passed, and no temporary proof files remain.
+- Static ownership checks confirmed all seven public facade entry points
+  delegate to one implementation owner.
+- Runtime xref confirmed `cadence_import.ex` is the direct consumer of
+  `strategy_decision_import.ex`.
+- Bounded local review found no normalization, source-ID precedence or
+  fallback, OperatorReview conversion, source-contract, public API, row,
+  ordering, or schema changes.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-CadenceImport validation and readiness import extraction, selected in
-`31ee642d` and implemented in `ab7fd582`. `cadence_import.ex` moved from 2,573
-to 2,523 lines; the extracted owner is 68 lines.
+CadenceImport strategy-decision import extraction, selected in `89b81749` and
+implemented in `3203c852`. `cadence_import.ex` moved from 2,523 to 2,472 lines;
+the extracted owner is 112 lines.
 
 Next candidate:
 Re-inventory remaining public routing after strategy-decision imports have one
