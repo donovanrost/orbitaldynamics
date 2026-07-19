@@ -11,6 +11,7 @@ defmodule OrbitalDynamics.CadenceImport do
   alias OrbitalDynamics.CadenceImport.{
     ApprovalContextPolicy,
     BranchEvidenceFields,
+    CandidateEvaluationImport,
     CandidateDiffFields,
     GenericReviewActionPolicy,
     ImportReadinessPolicy,
@@ -1429,59 +1430,31 @@ defmodule OrbitalDynamics.CadenceImport do
   Builds an import manifest from a contact-filter report.
   """
   def from_contact_filter_report(%{} = report, opts \\ []) do
-    report = stringify_keys(report)
-    source_artifact_id = option(opts, :source_artifact_id, report["id"] || report["source"])
-
-    from_review_report(
-      OperatorReview.from_contact_filter_report(report),
-      opts,
-      "contact_filter_report.v1",
-      source_artifact_id || "contact_filter_report"
-    )
+    CandidateEvaluationImport.from_contact_filter_report(report, opts, &from_review_report/4)
   end
 
   @doc """
   Builds an import manifest from a candidate-diff report.
   """
   def from_candidate_diff_report(%{} = report, opts \\ []) do
-    report = stringify_keys(report)
-    source_artifact_id = option(opts, :source_artifact_id, report["id"] || report["source"])
-
-    from_review_report(
-      OperatorReview.from_candidate_diff_report(report),
-      opts,
-      "candidate_diff_report.v1",
-      source_artifact_id || "candidate_diff_report"
-    )
+    CandidateEvaluationImport.from_candidate_diff_report(report, opts, &from_review_report/4)
   end
 
   @doc """
   Builds an import manifest from a candidate-rejection report.
   """
   def from_candidate_rejection_report(%{} = report, opts \\ []) do
-    report = stringify_keys(report)
-    source_artifact_id = option(opts, :source_artifact_id, report["id"] || report["source"])
-
-    from_review_report(
-      OperatorReview.from_candidate_rejection_report(report),
-      opts,
-      "candidate_rejection_report.v1",
-      source_artifact_id || "candidate_rejection_report"
-    )
+    CandidateEvaluationImport.from_candidate_rejection_report(report, opts, &from_review_report/4)
   end
 
   @doc """
   Builds an import manifest from a provider-counteroffer report.
   """
   def from_provider_counteroffer_report(%{} = report, opts \\ []) do
-    report = stringify_keys(report)
-    source_artifact_id = option(opts, :source_artifact_id, report["id"] || report["source"])
-
-    from_review_report(
-      OperatorReview.from_provider_counteroffer_report(report),
+    CandidateEvaluationImport.from_provider_counteroffer_report(
+      report,
       opts,
-      "provider_counteroffer_report.v1",
-      source_artifact_id || "provider_counteroffer_report"
+      &from_review_report/4
     )
   end
 
@@ -1489,62 +1462,28 @@ defmodule OrbitalDynamics.CadenceImport do
   Builds an import manifest from a standalone invalidated-candidate row.
   """
   def from_invalidated_candidate(%{} = candidate, opts \\ []) do
-    candidate = stringify_keys(candidate)
-
-    source_artifact_id =
-      option(opts, :source_artifact_id, candidate["id"] || candidate["invalidated_candidate_id"])
-
-    from_review_report(
-      OperatorReview.from_invalidated_candidate(candidate),
-      opts,
-      "invalidated_candidate.v1",
-      source_artifact_id || "invalidated_candidate"
-    )
+    CandidateEvaluationImport.from_invalidated_candidate(candidate, opts, &from_review_report/4)
   end
 
   @doc """
   Builds an import manifest from a resource-filter report.
   """
   def from_resource_filter_report(%{} = report, opts \\ []) do
-    report = stringify_keys(report)
-    source_artifact_id = option(opts, :source_artifact_id, report["id"] || report["source"])
-
-    from_review_report(
-      OperatorReview.from_resource_filter_report(report),
-      opts,
-      "resource_filter_report.v1",
-      source_artifact_id || "resource_filter_report"
-    )
+    CandidateEvaluationImport.from_resource_filter_report(report, opts, &from_review_report/4)
   end
 
   @doc """
   Builds an import manifest from a freshness report.
   """
   def from_freshness_report(%{} = report, opts \\ []) do
-    report = stringify_keys(report)
-    source_artifact_id = option(opts, :source_artifact_id, report["id"] || report["source"])
-
-    from_review_report(
-      OperatorReview.from_freshness_report(report),
-      opts,
-      "freshness_report.v1",
-      source_artifact_id || "freshness_report"
-    )
+    CandidateEvaluationImport.from_freshness_report(report, opts, &from_review_report/4)
   end
 
   @doc """
   Builds an import manifest from a refresh-budget report.
   """
   def from_refresh_budget_report(%{} = report, opts \\ []) do
-    report = stringify_keys(report)
-    source_artifact_id = option(opts, :source_artifact_id, report["id"] || report["source"])
-
-    from_review_report(
-      OperatorReview.from_refresh_budget_report(report),
-      opts,
-      "refresh_budget_report.v1",
-      source_artifact_id || "refresh_budget_report"
-    )
+    CandidateEvaluationImport.from_refresh_budget_report(report, opts, &from_review_report/4)
   end
 
   @doc """
