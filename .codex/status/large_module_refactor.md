@@ -9,7 +9,7 @@ Current slice:
 MissionPlan.Activity precondition-summary extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and pushed in `437652a8`.
 
 Selected boundary:
 Extract resource, command-authority, command-safety, activity-template, and
@@ -31,17 +31,24 @@ Selection evidence:
   command-authority, command-safety, template-state, and facade-wrapper cases.
 
 Verification:
-Pending: focused Activity baseline, exact old/new public precondition artifacts,
-strict compile, adjacent timeline/operator-review/schema coverage, static
-single ownership, runtime xref, and bounded review.
+- Strict warnings-as-errors compile passed across 3,876 files.
+- Focused MissionPlan.Activity coverage passed: 31 tests.
+- Adjacent operator-review, timeline-activity schema, candidate-refresh replay,
+  and campaign-strategy coverage passed: 28 tests.
+- Exact old/new public artifact comparison against `2bcf1229` passed for 13
+  clear, review, blocked, authority, safety, template, and combined cases.
+- Runtime xref found the new owner referenced only by the `Activity` facade;
+  static single-ownership review and `git diff --check` passed.
+- `mission_plan/activity.ex` moved from 5,169 to 4,841 lines; the dedicated
+  owner is 367 lines.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-MissionPlan.Activity lifecycle-transition policy extraction, selected in
-`1c530694` and implemented in `5bad93be`. `mission_plan/activity.ex` moved from
-5,236 to 5,169 lines; the dedicated owner is 101 lines.
+MissionPlan.Activity precondition-summary extraction, selected in `2bcf1229`
+and implemented in `437652a8`. `mission_plan/activity.ex` moved from 5,169 to
+4,841 lines; the dedicated owner is 367 lines.
 
 Next candidate:
 Re-inventory remaining MissionPlan.Activity map normalization and validation
