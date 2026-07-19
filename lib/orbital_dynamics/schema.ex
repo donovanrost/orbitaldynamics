@@ -3867,77 +3867,23 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp timeline_identity_json_schema do
-    %{
-      "type" => "object",
-      "additionalProperties" => true,
-      "properties" => %{
-        "timeline_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
-        "activity_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
-        "activity_type" => %{"type" => "string"},
-        "scenario_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
-        "subject_id" => %{"type" => "string"},
-        "source_window_id" => %{"type" => "string", "pattern" => @stable_id_pattern}
-      }
-    }
-  end
+  defp timeline_identity_json_schema,
+    do: OrbitalDynamics.Schema.TimelineContextJsonSchema.timeline_identity(@stable_id_pattern)
 
-  defp provenance_json_schema do
-    %{
-      "type" => "object",
-      "additionalProperties" => true,
-      "properties" => %{
-        "source" => %{"type" => "string"},
-        "adapter" => %{"type" => "string"},
-        "import_adapter" => %{"type" => "string"},
-        "trust_boundary" => %{"type" => "string"},
-        "trust_boundary_status" => %{"type" => "string"}
-      }
-    }
-  end
+  defp actual_data_rate_throughput_derivation_json_schema,
+    do: OrbitalDynamics.Schema.TimelineContextJsonSchema.actual_data_rate_throughput_derivation()
 
-  defp actual_data_rate_throughput_derivation_json_schema do
-    %{
-      "type" => "object",
-      "additionalProperties" => true,
-      "properties" => %{
-        "derivation" => %{"type" => "string"},
-        "rate_unit" => %{"type" => "string"},
-        "actual_data_rate_mbps" => %{"type" => "number"},
-        "actual_data_rate_mb_s" => %{"type" => "number"},
-        "duration_s" => %{"type" => "number"},
-        "actual_throughput_mb" => %{"type" => "number"}
-      }
-    }
-  end
+  defp actual_data_rate_throughput_derivations_json_schema,
+    do: OrbitalDynamics.Schema.TimelineContextJsonSchema.actual_data_rate_throughput_derivations()
 
-  defp actual_data_rate_throughput_derivations_json_schema do
-    %{
-      "type" => "array",
-      "items" => actual_data_rate_throughput_derivation_json_schema()
-    }
-  end
+  defp execution_uncertainty_json_schema,
+    do:
+      OrbitalDynamics.Schema.TimelineContextJsonSchema.execution_uncertainty(
+        numeric_triplet_schema()
+      )
 
-  defp execution_uncertainty_json_schema do
-    %{
-      "type" => "object",
-      "additionalProperties" => true,
-      "properties" => %{
-        "timing_3sigma_s" => %{"type" => "number"},
-        "delta_v_3sigma_km_s" => numeric_triplet_schema(),
-        "delta_v_3sigma_magnitude_km_s" => %{"type" => "number"},
-        "source" => %{"type" => "string"},
-        "model" => %{"type" => "string"}
-      }
-    }
-  end
-
-  defp protection_decision_json_schema do
-    OrbitalDynamics.Schema.TimelineSupportJsonSchema.protection_decision_from_context(
-      stable_id_pattern: @stable_id_pattern,
-      timeline_identity_schema: &timeline_identity_json_schema/0
-    )
-  end
+  defp protection_decision_json_schema,
+    do: OrbitalDynamics.Schema.TimelineContextJsonSchema.protection_decision(@stable_id_pattern)
 
   defp timeline_preservation_source_json_schema do
     OrbitalDynamics.Schema.TimelinePreservationJsonSchema.source_from_context(
@@ -3947,51 +3893,30 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp lifecycle_transition_json_schema do
-    OrbitalDynamics.Schema.TimelineSupportJsonSchema.lifecycle_transition_from_context()
-  end
+  defp lifecycle_transition_json_schema,
+    do: OrbitalDynamics.Schema.TimelineContextJsonSchema.lifecycle_transition()
 
-  defp timeline_link_json_schema do
-    OrbitalDynamics.Schema.TimelineSupportJsonSchema.timeline_link_from_context(
-      stable_id_pattern: @stable_id_pattern,
-      timeline_identity_schema: &timeline_identity_json_schema/0
-    )
-  end
+  defp timeline_link_json_schema,
+    do: OrbitalDynamics.Schema.TimelineContextJsonSchema.timeline_link(@stable_id_pattern)
 
-  defp timeline_protection_summary_json_schema do
-    %{
-      "type" => "object",
-      "additionalProperties" => true,
-      "properties" => %{
-        "preserved_locked_or_approved_count" => %{"type" => "integer", "minimum" => 0},
-        "preserved_executed_count" => %{"type" => "integer", "minimum" => 0},
-        "changed_locked_or_approved_count" => %{"type" => "integer", "minimum" => 0},
-        "changed_executed_count" => %{"type" => "integer", "minimum" => 0},
-        "preserved_locked_or_approved_activity_ids" => stable_id_array_schema(),
-        "preserved_executed_activity_ids" => stable_id_array_schema(),
-        "changed_locked_or_approved_activity_ids" => stable_id_array_schema(),
-        "changed_executed_activity_ids" => stable_id_array_schema()
-      }
-    }
-  end
+  defp timeline_protection_summary_json_schema,
+    do:
+      OrbitalDynamics.Schema.TimelineContextJsonSchema.timeline_protection_summary(
+        stable_id_array_schema()
+      )
 
-  defp activity_context_json_schema do
-    OrbitalDynamics.Schema.ActivityContextJsonSchema.schema(
-      stable_id_pattern: @stable_id_pattern,
-      stable_id_array_schema: stable_id_array_schema(),
-      string_array_schema: string_array_schema(),
-      number_array_schema: number_array_schema(),
-      numeric_map_schema: numeric_map_json_schema(),
-      provenance_schema: provenance_json_schema(),
-      timeline_identity_schema: timeline_identity_json_schema(),
-      candidate_activity_source_window_schema: candidate_activity_source_window_json_schema(),
-      actual_data_rate_throughput_derivation_schema:
-        actual_data_rate_throughput_derivation_json_schema(),
-      execution_uncertainty_schema: execution_uncertainty_json_schema(),
-      numeric_triplet_schema: numeric_triplet_schema(),
-      probability_schema: probability_json_schema()
-    )
-  end
+  defp activity_context_json_schema,
+    do:
+      OrbitalDynamics.Schema.TimelineContextJsonSchema.activity_context(
+        stable_id_pattern: @stable_id_pattern,
+        stable_id_array_schema: stable_id_array_schema(),
+        string_array_schema: string_array_schema(),
+        number_array_schema: number_array_schema(),
+        numeric_map_schema: numeric_map_json_schema(),
+        candidate_activity_source_window_schema: candidate_activity_source_window_json_schema(),
+        numeric_triplet_schema: numeric_triplet_schema(),
+        probability_schema: probability_json_schema()
+      )
 
   defp ranked_timeline_json_schema do
     OrbitalDynamics.Schema.CampaignPlanJsonSchema.ranked_timeline_from_context(
