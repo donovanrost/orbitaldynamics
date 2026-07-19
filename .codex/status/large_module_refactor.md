@@ -9,7 +9,7 @@ Current slice:
 CadenceImport wrapped timeline-summary test family split.
 
 Status:
-Selected; implementation has not started.
+Complete and published in `9476ac96`.
 
 Selected boundary:
 Move the three contiguous candidate-refresh timeline summary wrapper tests into
@@ -43,21 +43,34 @@ Selection evidence:
   this ownership-only boundary.
 
 Verification:
-Pending: three-test focused baseline, mechanical AST-preserving move, exact
-fixture-helper copy proof, strict compile, focused new/original/combined
-CadenceImport tests, relevant schema contracts, structural/static checks, and
-bounded review.
+- The pre-move focused baseline passed all three selected tests from selection
+  commit `a6c6afcf`.
+- Strict test compilation passed with warnings as errors across 3,804 files.
+- The new focused module passed 3 tests; the reduced original passed 74 tests;
+  the ten-file combined CadenceImport proof passed all 96 tests.
+- `cadence_import_contracts_test.exs` passed all 4 tests.
+- An exact AST comparison against `a6c6afcf` proved that the original is exactly
+  its former body minus the three selected tests, the focused module owns those
+  exact test ASTs, and all three timeline summary fixture helpers are exact
+  copies.
+- Formatting, tracked and new-file diff checks, exact static test/helper counts,
+  temporary-checker absence, and the quality-gate/freshness seam passed.
+- Bounded local review found no assertion, fixture-value, production, public API,
+  schema, deterministic-output, dependency-impact, publication, lifecycle, or
+  source-path change.
+- The original ledger fell from 12,876 to 12,608 lines; the focused module is
+  372 lines.
 
 Behavior/schema changes:
 None. This is a test-only ownership split with all assertions preserved.
 
 Last completed slice:
-CadenceImport wrapped timeline-guard test family split, selected in `d85b7417`
-and implemented in `726cdd8c`.
+CadenceImport wrapped timeline-summary test family split, selected in `a6c6afcf`
+and implemented in `9476ac96`.
 
 Next candidate:
-Refresh the reduced CadenceImport family seams and production facade map after
-the wrapped timeline-summary family is isolated.
+Refresh the reduced CadenceImport family seams and production facade map, then
+select another cohesive boundary with independent fixtures or exclusive helpers.
 
 Blocked:
 No.
