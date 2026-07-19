@@ -9,7 +9,7 @@ Current slice:
 Timeline dependency-impact summary policy extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and published.
 
 Selected boundary:
 Move dependency-impact source identity derivation, row-policy orchestration,
@@ -35,17 +35,33 @@ Selection evidence:
   responsibilities remain outside the boundary.
 
 Verification:
-Pending: focused baselines, mechanical summary-policy extraction, strict
-compile, focused and full Timeline tests, schema contracts, structural/static
-checks, and independent review.
+- Focused baseline passed 2 dependency-impact summary tests.
+- Strict warnings-as-errors compile passed 3,802 modules; the post-interruption
+  incremental warnings-as-errors compile also passed.
+- Focused dependency-impact summary tests passed 2 tests.
+- Full Timeline suite passed 127 tests.
+- Four Timeline schema-contract suites passed 36 tests.
+- AST conservation proved the summary assembly and three selected helpers moved
+  exactly after normalizing only callback/configuration threading.
+- Static checks confirmed the three helpers left Timeline, the facade has one
+  summary-policy call, public def count remains 101, formatting/diff/new-file
+  checks pass, and no temporary checker remains.
+- Compile-connected xref remained narrow: Timeline has only the pre-existing
+  compile edge to `CandidateRejectionStationPolicy`.
+- The prior review sidecar was unavailable after interruption; bounded local
+  review found no correctness or maintainability issues and confirmed
+  source-then-replacement ordering, schema/model ownership, output fields, and
+  deterministic ordering are unchanged.
+- Timeline decreased from 5,227 to 5,144 lines; the extracted policy is 108
+  lines.
 
 Behavior/schema changes:
 None intended. Dependency-impact row order, ID ordering, summary fields,
 capabilities, and schema exports should remain byte-for-byte stable.
 
 Last completed slice:
-Timeline dependency-impact row policy extraction, selected in `bf4f2e94` and
-implemented in `ece31812`.
+Timeline dependency-impact summary policy extraction, selected in `59e8b1bf`
+and implemented in `8b53743d`.
 
 Next candidate:
 Continue remapping the reduced Timeline facade after the dependency-impact
