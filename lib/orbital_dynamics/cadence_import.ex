@@ -30,6 +30,7 @@ defmodule OrbitalDynamics.CadenceImport do
     ReviewRowDispatch,
     ReviewSummaryContext,
     SourceIdentifierPolicy,
+    StationOperationsImport,
     StationCalendarContextFields,
     StrategyDecisionImport,
     StrategyReview,
@@ -1257,63 +1258,24 @@ defmodule OrbitalDynamics.CadenceImport do
   Builds an import manifest from a command-window report.
   """
   def from_command_window_report(%{} = report, opts \\ []) do
-    report = stringify_keys(report)
-
-    review_package =
-      Map.get(report, "operator_review_package") ||
-        OperatorReview.from_command_window_report(report)
-
-    source_artifact_id =
-      option(opts, :source_artifact_id, Map.get(report, "id") || Map.get(report, "source")) ||
-        "command_window_report"
-
-    from_operator_review_package(
-      review_package,
-      Keyword.merge(opts,
-        source_artifact_type: "command_window_report.v1",
-        source_artifact_id: source_artifact_id
-      )
-    )
+    StationOperationsImport.from_command_window_report(report, opts, &from_review_report/4)
   end
 
   @doc """
   Builds an import manifest from a station-calendar report.
   """
   def from_station_calendar_report(%{} = report, opts \\ []) do
-    report = stringify_keys(report)
-
-    review_package =
-      Map.get(report, "operator_review_package") ||
-        OperatorReview.from_station_calendar_report(report)
-
-    source_artifact_id =
-      option(
-        opts,
-        :source_artifact_id,
-        Map.get(report, "id") || get_in(report, ["assumptions", "source"])
-      ) || "station_calendar_report"
-
-    from_operator_review_package(
-      review_package,
-      Keyword.merge(opts,
-        source_artifact_type: "station_calendar_report.v1",
-        source_artifact_id: source_artifact_id
-      )
-    )
+    StationOperationsImport.from_station_calendar_report(report, opts, &from_review_report/4)
   end
 
   @doc """
   Builds an import manifest from a station-reservation report.
   """
   def from_station_reservation_report(%{} = report, opts \\ []) do
-    report = stringify_keys(report)
-    source_artifact_id = option(opts, :source_artifact_id, report["id"] || report["source"])
-
-    from_review_report(
-      OperatorReview.from_station_reservation_report(report),
+    StationOperationsImport.from_station_reservation_report(
+      report,
       opts,
-      "station_reservation_report.v1",
-      source_artifact_id || "station_reservation_report"
+      &from_review_report/4
     )
   end
 
