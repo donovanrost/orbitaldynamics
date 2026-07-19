@@ -9,7 +9,7 @@ Current slice:
 CadenceImport V1 campaign artifact orchestration extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and published.
 
 Selected boundary:
 Extract the V1 campaign artifact constructor orchestration into
@@ -27,17 +27,29 @@ Selection evidence:
   V2/V3 generation imports remain outside the boundary.
 
 Verification:
-Pending: focused campaign baselines, exact old/new constructor equivalence
-proof, strict compile, all combined CadenceImport tests, schema contracts,
-static single ownership, runtime xref, and bounded review.
+- Strict test compile passed with 3,841 files and warnings as errors.
+- Two focused campaign tests passed with 70 excluded.
+- All combined CadenceImport tests passed: 96 tests.
+- CadenceImport schema contracts passed: 4 tests.
+- An executable before/after proof matched six complete manifests across
+  empty, string-keyed, atom-keyed, inferred-ID, and explicit-ID inputs.
+- Formatting and diff checks passed, and no temporary proof files remain.
+- Static ownership checks confirmed the public facade entry point delegates to
+  one orchestration owner and the stale summary-context facade seam was
+  retired.
+- Runtime xref confirmed `cadence_import.ex` is the direct consumer of
+  `campaign_artifact_import.ex`.
+- Bounded local review found no proposed-contact ordering, accepted review-type
+  set, review ordering, provenance, source-ID, public API, row, or schema
+  changes.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-CadenceImport V3 strategy artifact orchestration extraction, selected in
-`c7e06ba2` and implemented in `7364935c`. `cadence_import.ex` moved from 2,170
-to 2,122 lines; the extracted owner is 72 lines.
+CadenceImport V1 campaign artifact orchestration extraction, selected in
+`81c45f3b` and implemented in `cedcccc5`. `cadence_import.ex` moved from 2,122
+to 2,068 lines; the extracted owner is 72 lines.
 
 Next candidate:
 Re-inventory standalone proposed-contact construction or manifest routing after
