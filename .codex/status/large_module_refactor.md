@@ -9,7 +9,7 @@ Current slice:
 TimelineFeedback station-capacity contract consolidation.
 
 Status:
-Selected; strict focused baseline pending.
+Completed and pushed in `99d57227`.
 
 Selected boundary:
 Move the station-capacity fraction/percent path contracts and unit-tagged
@@ -35,25 +35,38 @@ Selection evidence:
   reconciliation behavior must remain unchanged.
 
 Implementation:
-Pending.
+- Added station-capacity fraction/percent contracts and the unit-tagged value
+  path projection to the existing StationCalendarContext owner.
+- Preserved TimelineFeedback capability and reconciliation APIs as delegates.
+- Removed all station-capacity path attributes and the metadata projection
+  helper from the facade.
+- `timeline_feedback.ex` moved from 1,993 to 1,948 lines; the existing owner
+  moved from 241 to 269 lines.
 
 Verification:
-Pending strict focused baseline, exact old/new public parity, focused and
-adjacent tests, static ownership checks, xref, strict warning-clean compile,
-formatting, and diff checks.
+- Strict focused baseline passed all 73 TimelineFeedback tests.
+- Exact old/new public parity passed for three deterministic captures: the six
+  capability contracts, direct station-capacity evidence reconciliation, and
+  source station-calendar capacity reconciliation.
+- Post-consolidation focused and adjacent verification passed all 76 tests.
+- Static checks confirm only StationCalendarContext declares the three path
+  contracts; xref reports only TimelineFeedback as a runtime caller.
+- Strict warning-clean forced compile passed for 3,994 files.
+- Formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-OrbitData OMM metadata extraction, selected in `16cee79c` and implemented in
-`20216348`.
-`orbit_data.ex` moved from 2,016 to 1,856 lines; the dedicated OMM metadata
-owner is 286 lines.
+TimelineFeedback station-capacity contract consolidation, selected in
+`efa062e9` and implemented in `99d57227`.
+`timeline_feedback.ex` moved from 1,993 to 1,948 lines; the existing
+StationCalendarContext owner moved from 241 to 269 lines.
 
 Next candidate:
-Complete the selected TimelineFeedback station-capacity contract
-consolidation.
+Re-rank the live checkout and select the next bounded facade-preserving
+extraction. `resource_projection.ex` is now the largest ordinary eligible
+facade at 1,981 lines, followed by ContactContention and ResourceFilter.
 
 Blocked:
 No.
