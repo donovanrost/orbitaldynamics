@@ -6,43 +6,31 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema operational-readiness validation extraction.
+Schema timeline-source validation extraction.
 
 Status:
-Completed and published in `9577045d`.
+Selected; implementation has not started.
 
 Selected boundary:
-Extract operational-readiness, operational-summary, and quality-gate validator
-orchestration plus their model-limit providers into
-`OrbitalDynamics.Schema.OperationalReadinessValidation`. Preserve the existing
-private `Schema` validator seams as thin delegates so contract dispatch and
-callback wiring remain unchanged.
+Extract optional timeline diff, dependency-impact, activity-precondition,
+integrity, preservation, lifecycle, and activity-state source validation into
+`OrbitalDynamics.Schema.TimelineSourceValidation`. Preserve the existing
+private `Schema` callback seams as thin delegates.
 
 Selection evidence:
-- The refreshed production ranking places `schema.ex` first at 7,293 lines;
-  `policy.ex` is now 1,507 lines and no longer a leading hotspot.
-- The selected model-limit providers span lines 3,062-3,131 and the validator
-  family spans 6,742-6,886.
-- The cluster has one responsibility: orchestrate executable validation for
-  operational-readiness and quality-gate artifact families.
-- Its dependencies are existing family contract modules, OperationalReadiness
-  capabilities, and callbacks wholly owned by the selected family.
-- Registry data, JSON Schema export, contract dispatch, Cadence row validation,
-  and all public `Schema` APIs remain outside.
+- `schema.ex` is 7,204 lines; the selected contiguous cluster spans
+  6,183-6,337.
+- The cluster has one responsibility: validate optional timeline-family source
+  artifacts embedded in handoff and summary rows.
+- Its dependencies are existing timeline contract modules, primitive errors,
+  and capability-derived timeline/timeline-feedback model limits.
+- Transition-application validation, registry data, JSON Schema export,
+  contract dispatch, and all public `Schema` APIs remain outside.
 
 Verification:
-- Strict compile passed across 3,856 files with warnings as errors.
-- All 11 focused operational/readiness contract tests passed.
-- All 175 split Schema contract tests passed with warnings as errors.
-- All 15 JSON-export contract tests and all 3 schema-export tests passed.
-- Exact old/new executable comparison passed for 18 valid and intentionally
-  invalid checked-in readiness reports.
-- A byte-level mechanical comparison confirmed the new owner preserves the
-  selected model-limit and validator bodies apart from public entrypoints.
-- Static ownership confirms one readiness-validation owner with the required
-  private Schema dispatch/export seams.
-- Runtime xref, format, diff checks, and bounded review passed.
-- `schema.ex` moved from 7,293 to 7,204 lines; the new owner is 216 lines.
+Pending: focused timeline-summary and activity-state baselines, exact old/new
+fixture validation reports, strict compile, broader Schema contract tests,
+schema export checks, static single ownership, runtime xref, and bounded review.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
@@ -53,8 +41,8 @@ implemented in `9577045d`. `schema.ex` moved from 7,293 to 7,204 lines; the
 dedicated owner is 216 lines.
 
 Next candidate:
-Re-inventory remaining Schema JSON-property and family-validation clusters
-after operational-readiness validation has one production owner.
+Re-inventory remaining Schema transition-application and family-validation
+clusters after timeline-source validation has one production owner.
 
 Blocked:
 No.
