@@ -12,6 +12,7 @@ defmodule OrbitalDynamics.CadenceImport do
     ApprovalContextPolicy,
     ActivityResultImport,
     BranchEvidenceFields,
+    CampaignArtifactImport,
     CampaignReviewPackageImport,
     CandidateEvaluationImport,
     CandidateDiffFields,
@@ -32,7 +33,6 @@ defmodule OrbitalDynamics.CadenceImport do
     ReviewPackageImport,
     ReviewRowMetadata,
     ReviewRowDispatch,
-    ReviewSummaryContext,
     StationOperationsImport,
     StationCalendarContextFields,
     StrategyArtifactImport,
@@ -916,64 +916,12 @@ defmodule OrbitalDynamics.CadenceImport do
   Builds an import manifest from a V1 campaign plan artifact.
   """
   def from_campaign_artifact(%{} = artifact, opts \\ []) do
-    artifact = stringify_keys(artifact)
-    source_artifact_id = option(opts, :source_artifact_id, artifact["plan_id"])
-    review_package = OperatorReview.from_campaign_artifact(artifact)
-
-    rows =
-      artifact
-      |> Map.get("proposed_contacts", [])
-      |> Enum.map(&stringify_keys/1)
-      |> Enum.sort_by(&{Map.get(&1, "starts_at_s", 0.0), Map.get(&1, "id", "")})
-      |> Enum.with_index(1)
-      |> Enum.map(fn {contact, rank} -> proposed_contact_manifest_row(contact, rank) end)
-
-    review_rows =
-      review_package
-      |> Map.get("rows", [])
-      |> Enum.filter(
-        &(&1["review_type"] in [
-            "contact_contention_recommendation",
-            "contact_contention_review",
-            "operational_timeline_review",
-            "timeline_integrity_review",
-            "command_window_review",
-            "station_calendar_review",
-            "link_capacity_review",
-            "resource_projection_review",
-            "timeline_activity_precondition_review",
-            "objective_satisfaction_review",
-            "score_term_review",
-            "objective_tradeoff_review",
-            "contact_allocation_review",
-            "contact_intent_review",
-            "constraint_review"
-          ])
-      )
-      |> Enum.with_index(length(rows) + 1)
-      |> Enum.map(fn {row, rank} -> review_manifest_row(row, rank) end)
-
-    rows = rows ++ review_rows
-
-    build_manifest(
-      rows,
-      %{
-        "source" => "OrbitalDynamics.CadenceImport.from_campaign_artifact",
-        "source_artifact_type" => "campaign_plan.v1",
-        "source_artifact_id" => source_artifact_id,
-        "source_plan_id" => artifact["plan_id"],
-        "source_proposed_contact_count" => length(Map.get(artifact, "proposed_contacts", []))
-      }
-      |> Map.merge(review_summary_context(review_package)),
-      %{
-        "source_artifact_type" => "campaign_plan.v1",
-        "source_artifact_id" => source_artifact_id,
-        "row_source" =>
-          "campaign_plan.proposed_contacts_contact_contention_groups_recommendations_operational_timeline_integrity_activity_precondition_command_window_station_calendar_link_capacity_resource_projection_objective_satisfaction_score_term_objective_tradeoff_and_contact_allocation_rows",
-        "deterministic_ordering" =>
-          "proposed_contacts_starts_at_s_then_contact_id_then_operator_review_row_order"
-      }
-      |> Map.merge(review_summary_context(review_package))
+    CampaignArtifactImport.build(
+      artifact,
+      opts,
+      proposed_contact_row: &proposed_contact_manifest_row/2,
+      review_row: &review_manifest_row/2,
+      build_manifest: &build_manifest/3
     )
   end
 
@@ -1555,8 +1503,6 @@ defmodule OrbitalDynamics.CadenceImport do
       capability: capability()
     )
   end
-
-  defp review_summary_context(package), do: ReviewSummaryContext.build(package)
 
   defp source_review_action(row), do: ReviewRowMetadata.action(row)
 
