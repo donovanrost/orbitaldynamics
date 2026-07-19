@@ -3787,16 +3787,15 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.ValidationJsonSchema.check()
   end
 
-  defp strategy_branch_tradeoff_json_schema do
-    OrbitalDynamics.Schema.StrategyBranchJsonSchema.tradeoff()
-  end
+  defp strategy_branch_tradeoff_json_schema,
+    do: OrbitalDynamics.Schema.StrategyContextJsonSchema.tradeoff()
 
-  defp strategy_branch_risk_json_schema do
-    OrbitalDynamics.Schema.StrategyBranchJsonSchema.risk(
-      @stable_id_pattern,
-      scoped_downlink_context_json_schema_properties()
-    )
-  end
+  defp strategy_branch_risk_json_schema,
+    do:
+      OrbitalDynamics.Schema.StrategyContextJsonSchema.risk(
+        @stable_id_pattern,
+        scoped_downlink_context_json_schema_properties()
+      )
 
   defp strategy_recommendation_json_schema do
     @strategy_recommendation
@@ -3804,48 +3803,34 @@ defmodule OrbitalDynamics.Schema do
     |> Map.take(["type", "additionalProperties", "required", "properties"])
   end
 
-  defp strategy_branch_json_schema do
-    OrbitalDynamics.Schema.StrategyBranchJsonSchema.branch(
-      stable_id_pattern: @stable_id_pattern,
-      numeric_map_schema: numeric_map_json_schema(),
-      string_array_schema: string_array_schema(),
-      event_schema: strategy_branch_event_json_schema(),
-      risk_schema: strategy_branch_risk_json_schema(),
-      approval_requirement_schema: approval_requirement_json_schema(),
-      policy_decision_rule_match_schema: policy_decision_rule_match_json_schema(),
-      tradeoff_schema: strategy_branch_tradeoff_json_schema(),
-      policy_decision_schema: policy_decision_json_schema(),
-      assumptions_schema: strategy_branch_assumptions_json_schema(),
-      provenance_schema: strategy_branch_provenance_json_schema()
-    )
-  end
+  defp strategy_branch_json_schema,
+    do:
+      OrbitalDynamics.Schema.StrategyContextJsonSchema.branch(
+        strategy_context_json_schema_inputs()
+      )
 
-  defp strategy_branch_assumptions_json_schema do
-    OrbitalDynamics.Schema.StrategyBranchJsonSchema.assumptions(
-      stable_id_pattern: @stable_id_pattern,
-      string_array_schema: string_array_schema(),
-      event_schema: strategy_branch_event_json_schema()
-    )
-  end
+  defp strategy_branch_event_json_schema,
+    do:
+      OrbitalDynamics.Schema.StrategyContextJsonSchema.event(
+        strategy_context_json_schema_inputs()
+      )
 
-  defp strategy_branch_provenance_json_schema do
-    OrbitalDynamics.Schema.StrategyBranchJsonSchema.provenance(
-      stable_id_pattern: @stable_id_pattern,
-      string_array_schema: string_array_schema()
-    )
-  end
-
-  defp strategy_branch_event_json_schema do
-    OrbitalDynamics.Schema.StrategyBranchJsonSchema.event(
+  defp strategy_context_json_schema_inputs do
+    [
       stable_id_pattern: @stable_id_pattern,
       stable_id_array_schema: stable_id_array_schema(),
-      semantic_change_details_schema: semantic_change_details_json_schema(),
       numeric_map_schema: numeric_map_json_schema(),
+      string_array_schema: string_array_schema(),
+      semantic_change_details_schema: semantic_change_details_json_schema(),
       string_list_map_schema: string_list_map_json_schema(),
       non_negative_integer_count_map_schema: non_negative_integer_count_map_json_schema(),
       provider_counteroffer_negotiation_states:
-        OrbitalDynamics.Communications.StationCalendar.capabilities().provider_counteroffer_negotiation_states
-    )
+        OrbitalDynamics.Communications.StationCalendar.capabilities().provider_counteroffer_negotiation_states,
+      scoped_downlink_context_properties: scoped_downlink_context_json_schema_properties(),
+      approval_requirement_schema: approval_requirement_json_schema(),
+      policy_decision_rule_match_schema: policy_decision_rule_match_json_schema(),
+      policy_decision_schema: policy_decision_json_schema()
+    ]
   end
 
   defp branch_comparison_source_row_json_schema do
@@ -3853,19 +3838,12 @@ defmodule OrbitalDynamics.Schema do
     |> Map.delete("required")
   end
 
-  defp strategy_explanation_json_schema do
-    OrbitalDynamics.Schema.StrategyRecommendationJsonSchema.explanation(
-      @stable_id_pattern,
-      branch_event_summary_json_schema_properties()
-    )
-  end
-
-  defp branch_event_summary_json_schema_properties do
-    OrbitalDynamics.Schema.StrategyRecommendationJsonSchema.branch_event_summary_properties(
-      @stable_id_pattern,
-      branch_scoped_downlink_context_json_schema_properties()
-    )
-  end
+  defp strategy_explanation_json_schema,
+    do:
+      OrbitalDynamics.Schema.StrategyContextJsonSchema.explanation(
+        @stable_id_pattern,
+        branch_scoped_downlink_context_json_schema_properties()
+      )
 
   defp timeline_identity_json_schema,
     do: OrbitalDynamics.Schema.TimelineContextJsonSchema.timeline_identity(@stable_id_pattern)
