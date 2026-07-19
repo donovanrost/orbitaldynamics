@@ -9,7 +9,7 @@ Current slice:
 CadenceImport manifest statistics extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and published.
 
 Selected boundary:
 Extract per-field row frequency aggregation and known-limit string rendering
@@ -27,17 +27,27 @@ Selection evidence:
   schemas, and ordering outside frequency keys remain outside the boundary.
 
 Verification:
-Pending: focused capability/manifest baselines, exact aggregation/limit matrix,
-strict compile, all combined CadenceImport tests, schema contracts, static
-single ownership, runtime xref, and bounded review.
+- Strict test compile passed with 3,820 files and warnings as errors.
+- Two focused capability/manifest tests passed with 70 excluded.
+- All combined CadenceImport tests passed: 96 tests.
+- CadenceImport schema contracts passed: 4 tests.
+- A 5-case direct matrix covered nil/missing filtering, string and numeric
+  frequencies, ordered atom-to-string known limits, and empty results.
+- Formatting and diff checks passed, and no temporary proof files remain.
+- Static ownership checks confirmed aggregation and limit rendering have one
+  production implementation behind the preserved facade seams.
+- Runtime xref confirmed `cadence_import.ex` is the direct consumer of
+  `manifest_statistics.ex`.
+- Bounded local review found no capability ownership, filter, frequency,
+  ordering, rendering, manifest-shape, or schema changes.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-CadenceImport manifest-row status normalization extraction, selected in
-`805bc211` and implemented in `2c195242`. `cadence_import.ex` moved from 3,119
-to 3,097 lines; the extracted owner is 34 lines.
+CadenceImport manifest statistics extraction, selected in `155ae778` and
+implemented in `e3c402cd`. `cadence_import.ex` moved from 3,097 to 3,087 lines;
+the extracted owner is 18 lines.
 
 Next candidate:
 Extract central manifest assembly after statistics have one production owner.
