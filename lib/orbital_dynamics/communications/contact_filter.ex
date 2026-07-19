@@ -35,21 +35,9 @@ defmodule OrbitalDynamics.Communications.ContactFilter do
     {:percent, ["station_capacity_percent"]}
   ]
   @provider_result_map_value_keys ~w(result results outcome outcomes status state disposition provider_result provider_results provider_outcome provider_outcomes provider_status provider_state provider_code code reason reasons message messages error errors details metadata provider diagnostics)
-  @provider_counteroffer_fields ~w(
-    provider_counteroffer_id
-    provider_counteroffer_status
-    provider_counteroffer_negotiation_state
-    provider_counteroffer_reason_code
-    provider_counteroffer_cost_delta
-    provider_counteroffer_lock_deadline_s
-    provider_counteroffer_starts_at_s
-    provider_counteroffer_ends_at_s
-    provider_counteroffer_start_delta_s
-    provider_counteroffer_end_delta_s
-    provider_counteroffer_duration_delta_s
-  )
   alias OrbitalDynamics.Policy
   alias OrbitalDynamics.Communications.ContactFilter.ContactNormalization
+  alias OrbitalDynamics.Communications.ContactFilter.ProviderCounterofferContext
   alias OrbitalDynamics.Communications.StationCalendar
 
   @doc """
@@ -71,7 +59,7 @@ defmodule OrbitalDynamics.Communications.ContactFilter do
       contact_capacity_value_paths: capacity_value_path_metadata(@capacity_value_paths),
       provider_direction_aliases: ContactNormalization.provider_direction_aliases(),
       provider_result_map_value_keys: @provider_result_map_value_keys,
-      provider_counteroffer_fields: @provider_counteroffer_fields,
+      provider_counteroffer_fields: ProviderCounterofferContext.fields(),
       contact_stable_identity_fields: ContactNormalization.stable_identity_fields(),
       row_semantics: [
         :invalid_contact_input_review,
@@ -810,10 +798,10 @@ defmodule OrbitalDynamics.Communications.ContactFilter do
   defp provider_counteroffer_review?(station) do
     station["required_operator_action"] == "review_provider_counteroffer" or
       present_station_evidence?(
-        provider_counteroffer_source_value(station, "provider_counteroffer_id")
+        ProviderCounterofferContext.source_value(station, "provider_counteroffer_id")
       ) or
       present_station_evidence?(
-        provider_counteroffer_source_value(station, "provider_counteroffer_status")
+        ProviderCounterofferContext.source_value(station, "provider_counteroffer_status")
       )
   end
 
@@ -1277,163 +1265,11 @@ defmodule OrbitalDynamics.Communications.ContactFilter do
         candidate["operator_action_reason"] || station_state["operator_action_reason"] ||
           suppression_operator_action_reason(reason)
     }
-    |> put_provider_counteroffer_context(candidate, station_state)
+    |> ProviderCounterofferContext.put(candidate, station_state)
     |> put_provider_contention_context()
     |> normalize_station_calendar_id_lists()
     |> normalize_station_calendar_number_lists()
     |> compact_map()
-  end
-
-  defp put_provider_counteroffer_context(row, candidate, station_state) do
-    if provider_counteroffer_context_present?(candidate) or
-         provider_counteroffer_context_present?(station_state) do
-      @provider_counteroffer_fields
-      |> Enum.reduce(row, fn field, row ->
-        maybe_put(row, field, provider_counteroffer_value(field, candidate, station_state))
-      end)
-      |> maybe_put(
-        "provider_counteroffer_start_delta_s",
-        provider_counteroffer_start_delta(candidate, station_state)
-      )
-      |> maybe_put(
-        "provider_counteroffer_end_delta_s",
-        provider_counteroffer_end_delta(candidate, station_state)
-      )
-      |> maybe_put(
-        "provider_counteroffer_duration_delta_s",
-        provider_counteroffer_duration_delta(candidate, station_state)
-      )
-    else
-      row
-    end
-  end
-
-  defp provider_counteroffer_context_present?(source) when is_map(source) do
-    source["required_operator_action"] == "review_provider_counteroffer" or
-      Enum.any?(@provider_counteroffer_fields, fn field ->
-        provider_counteroffer_context_value_present?(
-          field,
-          provider_counteroffer_source_value(source, field)
-        )
-      end)
-  end
-
-  defp provider_counteroffer_context_present?(_source), do: false
-
-  defp provider_counteroffer_context_value_present?(
-         "provider_counteroffer_negotiation_state",
-         value
-       ),
-       do: present_station_evidence?(value) and stringify_keys(value) != "unknown"
-
-  defp provider_counteroffer_context_value_present?(_field, value),
-    do: present_station_evidence?(value)
-
-  defp provider_counteroffer_value(field, candidate, station_state) do
-    [
-      provider_counteroffer_source_value(candidate, field),
-      provider_counteroffer_source_value(station_state, field)
-    ]
-    |> Enum.find(&present_station_evidence?/1)
-  end
-
-  defp provider_counteroffer_source_value(source, field),
-    do: provider_counteroffer_source_value(source, field, 0)
-
-  defp provider_counteroffer_source_value(source, field, depth)
-       when is_map(source) and depth < 4 do
-    [
-      source[field],
-      provider_counteroffer_source_value(
-        source["source_station_calendar_entry"],
-        field,
-        depth + 1
-      )
-      | source_station_calendar_overlap_values(source, field, depth + 1)
-    ]
-    |> Enum.find(&present_station_evidence?/1)
-  end
-
-  defp provider_counteroffer_source_value(_source, _field, _depth), do: nil
-
-  defp source_station_calendar_overlap_values(
-         %{"source_station_calendar_overlaps" => overlaps},
-         field,
-         depth
-       )
-       when is_list(overlaps),
-       do: Enum.map(overlaps, &provider_counteroffer_source_value(&1, field, depth))
-
-  defp source_station_calendar_overlap_values(
-         %{"source_station_calendar_overlaps" => overlap},
-         field,
-         depth
-       ),
-       do: [provider_counteroffer_source_value(overlap, field, depth)]
-
-  defp source_station_calendar_overlap_values(_source, _field, _depth), do: []
-
-  defp provider_counteroffer_start_delta(candidate, station_state) do
-    provider_counteroffer_value("provider_counteroffer_start_delta_s", candidate, station_state) ||
-      numeric_delta(
-        provider_counteroffer_value(
-          "provider_counteroffer_starts_at_s",
-          candidate,
-          station_state
-        ),
-        candidate["starts_at_s"]
-      )
-  end
-
-  defp provider_counteroffer_end_delta(candidate, station_state) do
-    provider_counteroffer_value("provider_counteroffer_end_delta_s", candidate, station_state) ||
-      numeric_delta(
-        provider_counteroffer_value("provider_counteroffer_ends_at_s", candidate, station_state),
-        candidate["ends_at_s"]
-      )
-  end
-
-  defp provider_counteroffer_duration_delta(candidate, station_state) do
-    provider_counteroffer_value(
-      "provider_counteroffer_duration_delta_s",
-      candidate,
-      station_state
-    ) ||
-      derived_provider_counteroffer_duration_delta(candidate, station_state)
-  end
-
-  defp derived_provider_counteroffer_duration_delta(candidate, station_state) do
-    with start when is_number(start) <- numeric_or_nil(candidate["starts_at_s"]),
-         finish when is_number(finish) <- numeric_or_nil(candidate["ends_at_s"]),
-         counter_start when is_number(counter_start) <-
-           numeric_or_nil(
-             provider_counteroffer_value(
-               "provider_counteroffer_starts_at_s",
-               candidate,
-               station_state
-             )
-           ),
-         counter_finish when is_number(counter_finish) <-
-           numeric_or_nil(
-             provider_counteroffer_value(
-               "provider_counteroffer_ends_at_s",
-               candidate,
-               station_state
-             )
-           ) do
-      counter_finish - counter_start - (finish - start)
-    else
-      _value -> nil
-    end
-  end
-
-  defp numeric_delta(value, base_value) do
-    with value when is_number(value) <- numeric_or_nil(value),
-         base_value when is_number(base_value) <- numeric_or_nil(base_value) do
-      value - base_value
-    else
-      _value -> nil
-    end
   end
 
   defp suppression_required_operator_action("provider_counteroffer_review"),
