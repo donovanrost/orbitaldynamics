@@ -9,7 +9,7 @@ Current slice:
 ResourceProjection flow-summary extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `2e1f6682`.
 
 Selected boundary:
 Extract `resource_projection_flow_summary.v1` assembly, projected-remaining
@@ -44,19 +44,35 @@ Selection evidence:
   contracts, and deterministic output must remain unchanged.
 
 Verification:
-Pending implementation.
+- Strict warning-clean compile passed across 3,947 files:
+  `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 mix compile --force --warnings-as-errors`.
+- Focused ResourceProjection regression passed: 49 tests.
+- Adjacent campaign-planner, candidate-refresh, operator-review, and validation
+  ResourceProjection regression bundle passed: 45 tests.
+- Exact old/new parity passed 7 comparisons from selection commit `692d755f`
+  with `/tmp/resource_projection_flow_summary_compare.exs`, covering live
+  report construction, live flow summary/report, rich flow evidence, atom-key
+  normalization, and both idempotent summary handoff paths.
+- `mix xref callers OrbitalDynamics.ResourceProjection.FlowSummary` reports
+  only the ResourceProjection facade.
+- The owner has no compile-connected expansion beyond itself.
+- Focused formatting, `git diff --check`, removed-helper static checks, and
+  final facade/owner review passed.
 
 Behavior/schema changes:
-None intended.
+None. The public ResourceProjection facade, report and flow-summary contracts,
+deterministic ordering, pressure classification, and error behavior are
+unchanged.
 
 Last completed slice:
-LinkCapacity contact-normalization extraction, selected in `7f8dedfb` and
-implemented in `053ed894`.
-`communications/link_capacity.ex` moved from 3,016 to 2,792 lines; the
-dedicated contact-normalization owner is 307 lines.
+ResourceProjection flow-summary extraction, selected in `692d755f` and
+implemented in `2e1f6682`.
+`resource_projection.ex` moved from 3,010 to 2,504 lines; the dedicated
+flow-summary owner is 562 lines.
 
 Next candidate:
-Implement and verify the selected ResourceProjection flow-summary extraction.
+Re-rank the live largest-module inventory and select the next cohesive,
+facade-preserving ownership boundary.
 
 Blocked:
 No.
