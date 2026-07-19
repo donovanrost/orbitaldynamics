@@ -8,6 +8,7 @@ defmodule OrbitalDynamics.Schema do
   """
 
   alias OrbitalDynamics.Schema.{
+    ContactAllocationValidation,
     DecisionSupportValidation,
     OperationalReadinessValidation,
     ResourceValidation,
@@ -5912,42 +5913,40 @@ defmodule OrbitalDynamics.Schema do
   defp validate_optional_link_capacity_report(issues, _report),
     do: [error("$.link_capacity_report", "must be an object") | issues]
 
-  defp validate_optional_contact_allocation_report(issues, nil), do: issues
+  defp validate_optional_contact_allocation_report(issues, value),
+    do:
+      ContactAllocationValidation.validate_optional_report(
+        issues,
+        value,
+        contact_allocation_report_domain_callbacks()
+      )
 
-  defp validate_optional_contact_allocation_report(issues, %{} = report) do
-    validate_contact_allocation_report(issues, "$.contact_allocation_report", report)
-  end
+  defp validate_contact_allocation_report(issues, path, report),
+    do:
+      ContactAllocationValidation.validate_report(
+        issues,
+        path,
+        report,
+        contact_allocation_report_domain_callbacks()
+      )
 
-  defp validate_optional_contact_allocation_report(issues, _report),
-    do: [error("$.contact_allocation_report", "must be an object") | issues]
+  defp validate_contact_allocation_row(issues, path, row),
+    do:
+      ContactAllocationValidation.validate_row(
+        issues,
+        path,
+        row,
+        contact_allocation_report_domain_callbacks()
+      )
 
-  defp validate_contact_allocation_report(issues, path, report) do
-    OrbitalDynamics.Schema.ContactAllocationReportContracts.validate_report(
-      issues,
-      path,
-      report,
-      contact_allocation_model_limits(),
-      contact_allocation_report_domain_callbacks()
-    )
-  end
-
-  defp validate_contact_allocation_row(issues, path, row) do
-    OrbitalDynamics.Schema.ContactAllocationReportContracts.validate_row(
-      issues,
-      path,
-      row,
-      contact_allocation_report_domain_callbacks()
-    )
-  end
-
-  defp validate_contact_allocation_capacity_pack_group(issues, path, group) do
-    OrbitalDynamics.Schema.ContactAllocationReportContracts.validate_capacity_pack_group(
-      issues,
-      path,
-      group,
-      contact_allocation_report_domain_callbacks()
-    )
-  end
+  defp validate_contact_allocation_capacity_pack_group(issues, path, group),
+    do:
+      ContactAllocationValidation.validate_capacity_pack_group(
+        issues,
+        path,
+        group,
+        contact_allocation_report_domain_callbacks()
+      )
 
   defp validate_optional_contact_contention_resolution_report(issues, nil), do: issues
 
@@ -6354,70 +6353,68 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validate_contact_allocation_report_counts(issues, path, report) do
-    OrbitalDynamics.Schema.ContactAllocationReportContracts.validate_counts(
-      issues,
-      path,
-      report,
-      contact_allocation_report_domain_callbacks()
-    )
-  end
+  defp validate_contact_allocation_report_counts(issues, path, report),
+    do:
+      ContactAllocationValidation.validate_counts(
+        issues,
+        path,
+        report,
+        contact_allocation_report_domain_callbacks()
+      )
 
-  defp validate_contact_allocation_summary(issues, path, summary) do
-    OrbitalDynamics.Schema.ContactAllocationSummaryContracts.validate_summary(
-      issues,
-      path,
-      summary,
-      &validate_contact_allocation_row/3,
-      &validate_contact_allocation_capacity_pack_group/3
-    )
-  end
+  defp validate_contact_allocation_summary(issues, path, summary),
+    do:
+      ContactAllocationValidation.validate_summary(
+        issues,
+        path,
+        summary,
+        contact_allocation_report_domain_callbacks()
+      )
 
-  defp validate_contact_allocation_reservation_conflict_summary(issues, path, summary) do
-    OrbitalDynamics.Schema.ContactAllocationReservationConflictSummaryContracts.validate_summary(
-      issues,
-      path,
-      summary,
-      &validate_contact_allocation_row/3
-    )
-  end
+  defp validate_contact_allocation_reservation_conflict_summary(issues, path, summary),
+    do:
+      ContactAllocationValidation.validate_reservation_conflict_summary(
+        issues,
+        path,
+        summary,
+        contact_allocation_report_domain_callbacks()
+      )
 
-  defp validate_contact_allocation_station_pressure_summary(issues, path, summary) do
-    OrbitalDynamics.Schema.ContactAllocationStationPressureSummaryContracts.validate_summary(
-      issues,
-      path,
-      summary,
-      &validate_contact_allocation_row/3
-    )
-  end
+  defp validate_contact_allocation_station_pressure_summary(issues, path, summary),
+    do:
+      ContactAllocationValidation.validate_station_pressure_summary(
+        issues,
+        path,
+        summary,
+        contact_allocation_report_domain_callbacks()
+      )
 
-  defp validate_contact_allocation_capacity_pack_summary(issues, path, summary) do
-    OrbitalDynamics.Schema.ContactAllocationCapacityPackSummaryContracts.validate_summary(
-      issues,
-      path,
-      summary,
-      &validate_contact_allocation_row/3,
-      &validate_contact_allocation_capacity_pack_group/3
-    )
-  end
+  defp validate_contact_allocation_capacity_pack_summary(issues, path, summary),
+    do:
+      ContactAllocationValidation.validate_capacity_pack_summary(
+        issues,
+        path,
+        summary,
+        contact_allocation_report_domain_callbacks()
+      )
 
-  defp validate_contact_allocation_provider_reservation_request_summary(issues, path, summary) do
-    OrbitalDynamics.Schema.ContactAllocationProviderReservationRequestSummaryContracts.validate_summary(
-      issues,
-      path,
-      summary,
-      &validate_contact_allocation_row/3
-    )
-  end
+  defp validate_contact_allocation_provider_reservation_request_summary(issues, path, summary),
+    do:
+      ContactAllocationValidation.validate_provider_reservation_request_summary(
+        issues,
+        path,
+        summary,
+        contact_allocation_report_domain_callbacks()
+      )
 
-  defp validate_contact_allocation_duplicate_evidence(issues, path, row) do
-    OrbitalDynamics.Schema.ContactAllocationReportContracts.validate_duplicate_evidence(
-      issues,
-      path,
-      row,
-      contact_allocation_report_domain_callbacks()
-    )
-  end
+  defp validate_contact_allocation_duplicate_evidence(issues, path, row),
+    do:
+      ContactAllocationValidation.validate_duplicate_evidence(
+        issues,
+        path,
+        row,
+        contact_allocation_report_domain_callbacks()
+      )
 
   defp resource_projection_report_model_limits,
     do: ResourceValidation.resource_projection_report_model_limits()
