@@ -7,7 +7,11 @@ defmodule OrbitalDynamics.Schema do
   the artifact shapes are still maturing.
   """
 
-  alias OrbitalDynamics.Schema.{OperationalReadinessValidation, TimelineSourceValidation}
+  alias OrbitalDynamics.Schema.{
+    OperationalReadinessValidation,
+    TimelineSourceValidation,
+    TimelineTransitionValidation
+  }
 
   import OrbitalDynamics.Schema.StableIdValidation,
     only: [
@@ -6235,100 +6239,74 @@ defmodule OrbitalDynamics.Schema do
         value
       )
 
-  defp validate_timeline_transition_application_report(issues, path, report) do
-    OrbitalDynamics.Schema.TimelineTransitionApplicationReportContracts.validate(
-      issues,
-      path,
-      report,
-      timeline_report_model_limits(),
-      &OrbitalDynamics.Schema.TimelineTransitionApplicationReportCountContracts.validate/3,
-      &validate_timeline_transition_selected_activity/3,
-      &validate_timeline_transition_application_row/3
-    )
-  end
-
-  defp validate_timeline_transition_application_summary(issues, path, summary) do
-    OrbitalDynamics.Schema.TimelineTransitionApplicationSummaryContracts.validate(
-      issues,
-      path,
-      summary,
-      timeline_report_model_limits(),
-      &validate_timeline_transition_application_row/3
-    )
-  end
-
-  defp validate_optional_timeline_transition_application_report(issues, _path, nil), do: issues
-
-  defp validate_optional_timeline_transition_application_report(issues, path, %{} = report),
-    do: validate_timeline_transition_application_report(issues, path, report)
-
-  defp validate_optional_timeline_transition_application_report(issues, path, _report),
-    do: [error(path, "must be an object") | issues]
-
-  defp validate_optional_timeline_transition_application_summary_source(issues, _path, nil),
-    do: issues
-
-  defp validate_optional_timeline_transition_application_summary_source(
-         issues,
-         path,
-         %{} = summary
-       ),
-       do: validate_timeline_transition_application_summary(issues, path, summary)
-
-  defp validate_optional_timeline_transition_application_summary_source(issues, path, _summary),
-    do: [error(path, "must be an object") | issues]
-
-  defp validate_timeline_transition_selected_activity(issues, path, activity) do
-    OrbitalDynamics.Schema.TimelineTransitionSelectedActivityContracts.validate(
-      issues,
-      path,
-      activity,
-      &validate_optional_activity_context/4,
-      &OrbitalDynamics.Schema.TimelineIntegrityEvidenceContracts.validate/3
-    )
-  end
-
-  defp validate_timeline_transition_application_row(issues, path, row) do
-    OrbitalDynamics.Schema.TimelineTransitionApplicationRowContracts.validate(
-      issues,
-      path,
-      row,
-      &validate_optional_lifecycle_transition/4,
-      &validate_optional_protection_decision/4,
-      &OrbitalDynamics.Schema.TimelineIdentityCollisionContracts.validate_fields/3,
-      &validate_selected_timeline_integrity_fields/3,
-      &OrbitalDynamics.Schema.TimelineDiffRowContracts.validate/3
-    )
-  end
-
-  defp validate_selected_timeline_integrity_fields(issues, path, row) do
-    OrbitalDynamics.Schema.TimelineSelectedIntegrityContracts.validate(
-      issues,
-      path,
-      row
-    )
-  end
-
-  defp validate_optional_timeline_transition_application_row(issues, _path, nil), do: issues
-
-  defp validate_optional_timeline_transition_application_row(issues, path, %{} = row),
-    do: validate_timeline_transition_application_row(issues, path, row)
-
-  defp validate_optional_timeline_transition_application_row(issues, path, _row),
-    do: [error(path, "must be an object") | issues]
-
-  defp validate_optional_timeline_integrity_source_row(issues, _path, nil), do: issues
-
-  defp validate_optional_timeline_integrity_source_row(issues, path, %{} = row),
+  defp validate_timeline_transition_application_report(issues, path, value),
     do:
-      OrbitalDynamics.Schema.TimelineIntegrityReportContracts.validate_row(
+      TimelineTransitionValidation.validate_timeline_transition_application_report(
         issues,
         path,
-        row
+        value,
+        timeline_transition_validation_callbacks()
       )
 
-  defp validate_optional_timeline_integrity_source_row(issues, path, _row),
-    do: [error(path, "must be an object") | issues]
+  defp validate_timeline_transition_application_summary(issues, path, value),
+    do:
+      TimelineTransitionValidation.validate_timeline_transition_application_summary(
+        issues,
+        path,
+        value,
+        timeline_transition_validation_callbacks()
+      )
+
+  defp validate_optional_timeline_transition_application_report(issues, path, value),
+    do:
+      TimelineTransitionValidation.validate_optional_timeline_transition_application_report(
+        issues,
+        path,
+        value,
+        timeline_transition_validation_callbacks()
+      )
+
+  defp validate_optional_timeline_transition_application_summary_source(issues, path, value),
+    do:
+      TimelineTransitionValidation.validate_optional_timeline_transition_application_summary_source(
+        issues,
+        path,
+        value,
+        timeline_transition_validation_callbacks()
+      )
+
+  defp validate_selected_timeline_integrity_fields(issues, path, value),
+    do:
+      TimelineTransitionValidation.validate_selected_timeline_integrity_fields(
+        issues,
+        path,
+        value
+      )
+
+  defp validate_optional_timeline_transition_application_row(issues, path, value),
+    do:
+      TimelineTransitionValidation.validate_optional_timeline_transition_application_row(
+        issues,
+        path,
+        value,
+        timeline_transition_validation_callbacks()
+      )
+
+  defp validate_optional_timeline_integrity_source_row(issues, path, value),
+    do:
+      TimelineTransitionValidation.validate_optional_timeline_integrity_source_row(
+        issues,
+        path,
+        value
+      )
+
+  defp timeline_transition_validation_callbacks do
+    [
+      validate_optional_activity_context: &validate_optional_activity_context/4,
+      validate_optional_lifecycle_transition: &validate_optional_lifecycle_transition/4,
+      validate_optional_protection_decision: &validate_optional_protection_decision/4
+    ]
+  end
 
   defp validate_optional_branch_comparison_report(issues, nil), do: issues
 
