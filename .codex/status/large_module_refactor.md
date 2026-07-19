@@ -6,70 +6,64 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-LinkCapacity station-reservation evidence extraction.
+StationCalendar approval-policy extraction.
 
 Status:
-Completed and pushed in `130b2c33`.
+Selected; implementation not started.
 
 Selected boundary:
-Extract station-reservation IDs, expiration timestamps, owners, statuses,
-match statuses, nested/wrapped station-calendar source traversal, and the
-corresponding row-derived summary aggregations into
-`OrbitalDynamics.Communications.LinkCapacity.StationReservationEvidence`.
-Preserve the public LinkCapacity facade and private delegates used by report
-row construction, report-level aggregation, and compact summary projection.
+Extract affected-contact and provider-contention approval decisions,
+requirement construction, activity context, command/health-check requirement
+typing, provider-result normalization, and provider-counteroffer delta evidence
+into `OrbitalDynamics.Communications.StationCalendar.ApprovalPolicy`. Preserve
+the public StationCalendar facade and the two private policy-application
+delegates used by affected rows and provider-contention groups.
 
 Selection evidence:
-- Live re-ranking placed `link_capacity.ex` at 2,792 lines, fourth behind
-  Schema, Timeline, and MissionPlan.Activity, and ahead of StationCalendar,
-  OperationalReadiness, RecommendationRiskContext, and TimelineFeedback.
-- The extracted family owns explicit and nested reservation IDs,
-  reserved-entry fallback IDs, recursively wrapped expiration values,
-  owner/status/match-status normalization, and deterministic list/count
-  aggregation for both report and summary rows.
-- Report station rows, report-level reservation fields, summary reservation
-  fields/counts, and summary routing maps remain facade consumers through
-  narrow delegates.
-- Link-capacity throughput, selection reconciliation, downlink requirements,
-  approval policy, general station-calendar identity/direction evidence,
-  availability/capacity semantics, public clauses, and artifact contracts
-  remain outside this boundary.
+- Live re-ranking places `station_calendar.ex` at 2,778 lines, fourth behind
+  Schema, Timeline, and MissionPlan.Activity, and ahead of
+  OperationalReadiness, RecommendationRiskContext, TimelineFeedback, and
+  LinkCapacity.
+- The selected family spans lines 2,237-2,424 plus the two counteroffer delta
+  helpers at lines 2,502-2,505. It owns Policy decisions for affected contacts
+  and provider-contention groups, requirement activity types/actions/reasons,
+  approval context projection, command and health-check specialization,
+  provider result artifact flattening, and derived counteroffer time deltas.
+- Affected-row construction and provider-contention grouping remain facade
+  consumers through two narrow delegates.
+- Calendar overlay/matching, reservation and hold summaries, counteroffer
+  artifacts, station action/reason selection, duplicate disambiguation,
+  general feedback validation, public clauses, and artifact contracts remain
+  outside this boundary.
+- Existing nil-policy pass-through, Policy inputs, requirement maps, context
+  omission, provider-result traversal, command/health-check precedence,
+  counteroffer explicit-value precedence, numeric delta fallback, decision
+  fields, and exact errors must remain unchanged.
 
-Verification:
-- Strict warning-clean compile passed across 3,954 files:
-  `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 mix compile --force --warnings-as-errors`.
-- Focused LinkCapacity regression passed 44 tests; adjacent compact-summary
-  replay, operator-review, wrapped Cadence import, and communications schema
-  fixture consumers passed 16 tests. The final consolidated run passed all 60
-  tests.
-- Exact old/new parity passed 10 comparisons from selection commit `6d4702ee`
-  with `/tmp/link_capacity_station_reservation_compare.exs`, covering direct
-  and nested reservation evidence, explicit-ID precedence, reserved-entry
-  fallback, recursively wrapped expirations, mixed atom/string/numeric values,
-  stale row-derived summaries, empty and deterministic reports, and public
-  errors.
-- `mix xref callers
-  OrbitalDynamics.Communications.LinkCapacity.StationReservationEvidence`
-  reports only the LinkCapacity facade.
-- Compile-connected xref scope for the new owner does not expand beyond the
-  owner itself.
-- Focused formatting, `git diff --check`, removed-family static checks, and
-  final facade/owner review passed.
+Verification plan:
+- Run the strict warning-clean compile before and after implementation.
+- Run the focused StationCalendar regression file and adjacent policy,
+  operator-review, and validation consumers selected from live references.
+- Run exact old/new parity from this selection commit across no-policy
+  pass-through, affected row types, provider contention, counteroffers,
+  command/health-check specialization, nested provider results, explicit and
+  derived delta evidence, deterministic output, and invalid public errors.
+- Run `mix xref callers` for the new owner, inspect compile-connected
+  dependents, check formatting and `git diff --check`, prove the removed
+  helper family is absent from the facade, and review final facade/owner
+  boundaries.
 
 Behavior/schema changes:
-None. The public LinkCapacity facade, reservation evidence precedence and
-traversal, recursion depth, coercion, deterministic aggregation, report and
-summary artifacts, routing maps, and exact errors are unchanged.
+None intended.
 
 Last completed slice:
-LinkCapacity station-reservation evidence extraction, selected in `6d4702ee`
-and implemented in `130b2c33`.
+LinkCapacity station-reservation evidence extraction, selected in `6d4702ee`,
+implemented in `130b2c33`, and handed off in `f04e6781`.
 `link_capacity.ex` moved from 2,792 to 2,554 lines; the dedicated
 station-reservation evidence owner is 334 lines.
 
 Next candidate:
-Re-rank the live largest-module inventory and select the next cohesive,
-facade-preserving ownership boundary.
+Implement and verify the selected StationCalendar approval-policy extraction.
 
 Blocked:
 No.
