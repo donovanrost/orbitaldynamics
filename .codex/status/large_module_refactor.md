@@ -9,7 +9,7 @@ Current slice:
 Policy decision-result builder extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and published in `c6b46cee`.
 
 Selected boundary:
 Extract rule-match provenance projection and canonical sorting, approval
@@ -30,18 +30,27 @@ Selection evidence:
   validation, capabilities, and public API signatures remain outside.
 
 Verification:
-Pending: focused classification/order/escalation/fallback baselines, exact
-old/new bundle and fallback decision proofs, strict compile, full Policy tests,
-relevant schema/contracts, static single ownership, runtime xref, and bounded
-review.
+- Strict compile passed across 3,854 files with warnings as errors.
+- Seven focused classification, ordering, escalation, and fallback baselines
+  passed.
+- All 89 Policy tests and the Policy schema-contract test passed with warnings
+  as errors.
+- Exact old/new executable comparison passed for 37 decisions spanning all 11
+  bundles, three mixed scenarios, and four fallback cases.
+- Static ownership confirms one `DecisionBuilder.build/6` production owner,
+  one unchanged public `Policy.decide/5` facade, and no result helpers left in
+  the facade.
+- Runtime xref confirms `Policy` calls `DecisionBuilder`; format, diff checks,
+  and bounded review passed.
+- `policy.ex` moved from 2,324 to 2,119 lines; the new owner is 233 lines.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-Policy blocked-risk matcher extraction, selected in `99bdf15f` and implemented
-in `4936bedc`. `policy.ex` moved from 2,649 to 2,324 lines; the dedicated matcher
-is 331 lines.
+Policy decision-result builder extraction, selected in `a0ef1d25` and
+implemented in `c6b46cee`. `policy.ex` moved from 2,324 to 2,119 lines; the
+dedicated builder is 233 lines.
 
 Next candidate:
 Re-inventory Policy bundle and action-rule normalization after decision-result
