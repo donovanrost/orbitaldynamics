@@ -9,7 +9,7 @@ Current slice:
 CadenceImport validation and readiness import extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and published.
 
 Selected boundary:
 Extract the five schema-validation, execution, operational-readiness, and
@@ -29,18 +29,28 @@ Selection evidence:
   unrelated result-artifact identity remain outside the boundary.
 
 Verification:
-Pending: representative focused validation/readiness baselines, exact old/new
-constructor equivalence proof, strict compile, all combined CadenceImport
-tests, schema contracts, static single ownership, runtime xref, and bounded
-review.
+- Strict test compile passed with 3,828 files and warnings as errors.
+- Five representative constructor tests passed with 67 excluded.
+- All combined CadenceImport tests passed: 96 tests.
+- CadenceImport schema contracts passed: 4 tests.
+- An executable before/after proof matched 30 cases across all five
+  constructors, three key/source-ID shapes, and inferred versus explicit IDs.
+- Formatting and diff checks passed, and no temporary proof files remain.
+- Static ownership checks confirmed all five public facade entry points
+  delegate to one implementation owner.
+- Runtime xref confirmed `cadence_import.ex` is the direct consumer of
+  `validation_readiness_import.ex`.
+- Bounded local review found no normalization, source-ID precedence,
+  OperatorReview conversion, source-contract, public API, row, ordering, or
+  schema changes.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-CadenceImport timeline review import orchestration extraction, selected in
-`893716e0` and implemented in `fd48e3cf`. `cadence_import.ex` moved from 2,708
-to 2,573 lines; the extracted owner is 221 lines.
+CadenceImport validation and readiness import extraction, selected in
+`31ee642d` and implemented in `ab7fd582`. `cadence_import.ex` moved from 2,573
+to 2,523 lines; the extracted owner is 68 lines.
 
 Next candidate:
 Re-inventory remaining public routing after validation/readiness imports have
