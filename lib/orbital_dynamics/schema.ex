@@ -8,6 +8,7 @@ defmodule OrbitalDynamics.Schema do
   """
 
   alias OrbitalDynamics.Schema.{
+    DecisionSupportValidation,
     OperationalReadinessValidation,
     TimelineSourceValidation,
     TimelineTransitionValidation
@@ -26,7 +27,6 @@ defmodule OrbitalDynamics.Schema do
       expect_equal: 5,
       expect_field_equals: 6,
       expect_one_of: 5,
-      expect_optional_non_negative_integer: 4,
       expect_optional_number: 4,
       expect_optional_one_of: 5,
       expect_optional_probability: 4,
@@ -6308,70 +6308,61 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp validate_optional_branch_comparison_report(issues, nil), do: issues
-
-  defp validate_optional_branch_comparison_report(issues, %{} = report) do
-    validate_contract(
-      @branch_comparison_report,
-      registry_contract!(@branch_comparison_report),
-      report
-    ) ++
-      issues
-  end
-
-  defp validate_optional_branch_comparison_report(issues, _report),
-    do: [error("$.branch_comparison_report", "must be an object") | issues]
-
-  defp validate_optional_ranking_comparison_report(issues, nil), do: issues
-
-  defp validate_optional_ranking_comparison_report(issues, %{} = report) do
-    validate_contract(
-      @ranking_comparison_report,
-      registry_contract!(@ranking_comparison_report),
-      report
-    ) ++
-      issues
-  end
-
-  defp validate_optional_ranking_comparison_report(issues, _report),
-    do: [error("$.ranking_comparison_report", "must be an object") | issues]
-
-  defp validate_optional_branch_comparison_source_row(issues, _path, nil), do: issues
-
-  defp validate_optional_branch_comparison_source_row(issues, path, %{} = row) do
-    issues
-    |> expect_optional_non_negative_integer(path, row, "downlink_completion_required_contacts")
-    |> expect_optional_non_negative_integer(path, row, "downlink_completion_planned_contacts")
-    |> expect_optional_probability(path, row, "downlink_completion_ratio")
-    |> expect_optional_probability(path, row, "observation_success_factor")
-    |> OrbitalDynamics.Schema.BranchComparisonReportContracts.validate_row_counts(
-      path,
-      row
+  defp validate_optional_branch_comparison_report(issues, value) do
+    DecisionSupportValidation.validate_optional_branch_comparison_report(
+      issues,
+      value,
+      fn report ->
+        validate_contract(
+          @branch_comparison_report,
+          registry_contract!(@branch_comparison_report),
+          report
+        )
+      end
     )
   end
 
-  defp validate_optional_branch_comparison_source_row(issues, path, _row),
-    do: [error(path, "must be an object") | issues]
-
-  defp validate_optional_optimizer_contract(issues, nil), do: issues
-
-  defp validate_optional_optimizer_contract(issues, %{} = contract) do
-    validate_contract(@optimizer_contract, registry_contract!(@optimizer_contract), contract) ++
-      issues
+  defp validate_optional_ranking_comparison_report(issues, value) do
+    DecisionSupportValidation.validate_optional_ranking_comparison_report(
+      issues,
+      value,
+      fn report ->
+        validate_contract(
+          @ranking_comparison_report,
+          registry_contract!(@ranking_comparison_report),
+          report
+        )
+      end
+    )
   end
 
-  defp validate_optional_optimizer_contract(issues, _contract),
-    do: [error("$.optimizer_contract", "must be an object") | issues]
+  defp validate_optional_branch_comparison_source_row(issues, path, value),
+    do:
+      DecisionSupportValidation.validate_optional_branch_comparison_source_row(
+        issues,
+        path,
+        value
+      )
 
-  defp validate_optional_score_term_report(issues, nil), do: issues
-
-  defp validate_optional_score_term_report(issues, %{} = report) do
-    validate_contract(@score_term_report, registry_contract!(@score_term_report), report) ++
-      issues
+  defp validate_optional_optimizer_contract(issues, value) do
+    DecisionSupportValidation.validate_optional_optimizer_contract(
+      issues,
+      value,
+      fn contract ->
+        validate_contract(@optimizer_contract, registry_contract!(@optimizer_contract), contract)
+      end
+    )
   end
 
-  defp validate_optional_score_term_report(issues, _report),
-    do: [error("$.score_term_report", "must be an object") | issues]
+  defp validate_optional_score_term_report(issues, value) do
+    DecisionSupportValidation.validate_optional_score_term_report(
+      issues,
+      value,
+      fn report ->
+        validate_contract(@score_term_report, registry_contract!(@score_term_report), report)
+      end
+    )
+  end
 
   defp validate_optional_resource_filter_report(issues, _path, nil), do: issues
 
