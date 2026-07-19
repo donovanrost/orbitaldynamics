@@ -9,7 +9,7 @@ Current slice:
 Schema optional operational-readiness validation consolidation.
 
 Status:
-Selected; implementation has not started.
+Completed and published.
 
 Selected boundary:
 Move optional operational-readiness and quality-gate report branching into the
@@ -27,17 +27,24 @@ Selection evidence:
   and all public `Schema` APIs remain outside.
 
 Verification:
-Pending: focused readiness/quality-gate baselines, exact old/new fixture
-validation reports, strict compile, broader Schema contract tests, JSON Schema
-export checks, static single ownership, runtime xref, and bounded review.
+- Strict compile passed across 3,869 files with warnings as errors.
+- Focused readiness and operational contracts passed: 11 tests.
+- Full Schema suite passed: 175 tests.
+- JSON Schema export contracts passed: 15 tests.
+- Exact old/new validation reports matched for 9 valid and mutated standalone
+  and nested readiness/quality-gate fixtures.
+- Static inspection confirms the facade retains only its arity-3 seams and the
+  obsolete quality-gate wrapper was removed; runtime xref reports `Schema` as
+  the sole caller of the expanded owner.
+- `git diff --check` and bounded ownership review passed.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-Schema operational-timeline validation extraction, selected in `477cf707` and
-implemented in `0c32a016`. `schema.ex` moved from 6,878 to 6,872 lines; the
-dedicated owner is 25 lines.
+Schema optional operational-readiness validation consolidation, selected in
+`38190e37` and implemented in `d8568e86`. `schema.ex` moved from 6,872 to 6,861
+lines; the existing owner moved from 216 to 234 lines.
 
 Next candidate:
 Re-inventory remaining Schema family-validation clusters after optional
