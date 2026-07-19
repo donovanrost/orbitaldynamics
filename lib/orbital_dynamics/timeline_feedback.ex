@@ -79,9 +79,20 @@ defmodule OrbitalDynamics.TimelineFeedback do
   @command_contact_directions ~w(command uplink)
   @stable_id_pattern ~r/^[A-Za-z0-9][A-Za-z0-9._:@-]*$/
   @provider_result_map_value_keys ~w(result results outcome outcomes status state disposition provider_result provider_results provider_outcome provider_outcomes provider_status provider_state provider_code code reason reasons message messages error errors details metadata provider diagnostics)
+  @realized_status_policy {
+    @realized_terminal_statuses,
+    @realized_feedback_match_statuses,
+    @lifecycle_event_realized_statuses
+  }
 
   alias OrbitalDynamics.{CadenceImport, OperatorReview, Timeline}
-  alias OrbitalDynamics.TimelineFeedback.{ExecutionUncertainty, ProviderResult, SuccessFactor}
+
+  alias OrbitalDynamics.TimelineFeedback.{
+    ExecutionUncertainty,
+    ProviderResult,
+    RealizedStatus,
+    SuccessFactor
+  }
 
   @doc """
   Declares the feedback reconciliation model and known limits.
@@ -4422,80 +4433,13 @@ defmodule OrbitalDynamics.TimelineFeedback do
   defp raw_value_identifier(_value), do: nil
 
   defp realized_status_supported?(activity),
-    do: realized_status(activity) in @realized_terminal_statuses
+    do: RealizedStatus.supported?(activity, @realized_status_policy)
 
-  defp realized_status(%{"status" => status, "realized_status" => realized_status}) do
-    status = normalize_realized_status_value(status)
-    realized_status = normalize_realized_status_value(realized_status)
+  defp realized_status(activity),
+    do: RealizedStatus.value(activity, @realized_status_policy)
 
-    if status in @realized_feedback_match_statuses do
-      realized_status
-    else
-      status
-    end
-  end
-
-  defp realized_status(%{"status" => status, "lifecycle_event" => lifecycle_event}) do
-    status = normalize_realized_status_value(status)
-    lifecycle_status = lifecycle_event_realized_status(lifecycle_event)
-
-    if status in @realized_feedback_match_statuses do
-      lifecycle_status
-    else
-      status
-    end
-  end
-
-  defp realized_status(%{"status" => status}), do: normalize_realized_status_value(status)
-
-  defp realized_status(%{"lifecycle_event" => lifecycle_event}),
-    do: lifecycle_event_realized_status(lifecycle_event)
-
-  defp realized_status(_activity), do: nil
-
-  defp realized_feedback_status(%{"status" => status, "realized_status" => realized_status}) do
-    status = normalize_realized_status_value(status)
-    realized_status = normalize_realized_status_value(realized_status)
-
-    if status in @realized_feedback_match_statuses and
-         realized_status in @realized_terminal_statuses do
-      status
-    end
-  end
-
-  defp realized_feedback_status(%{"status" => status, "lifecycle_event" => lifecycle_event}) do
-    status = normalize_realized_status_value(status)
-    lifecycle_status = lifecycle_event_realized_status(lifecycle_event)
-
-    if status in @realized_feedback_match_statuses and
-         lifecycle_status in @realized_terminal_statuses do
-      status
-    end
-  end
-
-  defp realized_feedback_status(_activity), do: nil
-
-  defp normalize_realized_status_value(status) when is_binary(status),
-    do: normalize_realized_status(status)
-
-  defp normalize_realized_status_value(status) when is_atom(status),
-    do: status |> Atom.to_string() |> normalize_realized_status()
-
-  defp normalize_realized_status_value(_status), do: nil
-
-  defp normalize_realized_status(status) when is_binary(status) do
-    status
-    |> String.trim()
-    |> String.downcase()
-    |> String.replace(~r/[\s-]+/, "_")
-  end
-
-  defp lifecycle_event_realized_status(event) do
-    case normalize_realized_status_value(event) do
-      nil -> nil
-      event -> Map.get(@lifecycle_event_realized_statuses, event, event)
-    end
-  end
+  defp realized_feedback_status(activity),
+    do: RealizedStatus.feedback_value(activity, @realized_status_policy)
 
   defp source_realized_activity_id(source_activity) do
     identifier(source_activity, "id") || identifier(source_activity, "realized_activity_id")
@@ -4513,16 +4457,11 @@ defmodule OrbitalDynamics.TimelineFeedback do
   end
 
   defp invalid_realized_status_reason(activity) do
-    case realized_status(activity) do
-      nil -> "missing_realized_status"
-      _status -> "unsupported_realized_status"
-    end
+    RealizedStatus.invalid_reason(activity, @realized_status_policy)
   end
 
-  defp unsupported_realized_status(source_activity, "unsupported_realized_status"),
-    do: realized_status(source_activity)
-
-  defp unsupported_realized_status(_source_activity, _reason), do: nil
+  defp unsupported_realized_status(source_activity, reason),
+    do: RealizedStatus.unsupported_value(source_activity, reason, @realized_status_policy)
 
   defp realized_id!(activity) do
     realized_input_identity(activity) || raise(ArgumentError, "id is required")
