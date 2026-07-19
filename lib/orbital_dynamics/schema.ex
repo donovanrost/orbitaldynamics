@@ -5979,23 +5979,16 @@ defmodule OrbitalDynamics.Schema do
         resource_validation_callbacks()
       )
 
-  defp validate_optional_operational_readiness_report(issues, _path, nil), do: issues
+  defp validate_optional_operational_readiness_report(issues, path, report),
+    do:
+      OperationalReadinessValidation.validate_optional_operational_readiness_report(
+        issues,
+        path,
+        report
+      )
 
-  defp validate_optional_operational_readiness_report(issues, path, %{} = report) do
-    validate_operational_readiness_report(issues, path, report)
-  end
-
-  defp validate_optional_operational_readiness_report(issues, path, _report),
-    do: [error(path, "must be an object") | issues]
-
-  defp validate_optional_quality_gate_report(issues, _path, nil), do: issues
-
-  defp validate_optional_quality_gate_report(issues, path, %{} = report) do
-    validate_quality_gate_report(issues, path, report)
-  end
-
-  defp validate_optional_quality_gate_report(issues, path, _report),
-    do: [error(path, "must be an object") | issues]
+  defp validate_optional_quality_gate_report(issues, path, report),
+    do: OperationalReadinessValidation.validate_optional_quality_gate_report(issues, path, report)
 
   defp validate_resource_projection_report(issues, path, report),
     do:
@@ -6514,10 +6507,6 @@ defmodule OrbitalDynamics.Schema do
       path,
       summary
     )
-  end
-
-  defp validate_quality_gate_report(issues, path, report) do
-    OperationalReadinessValidation.validate_quality_gate_report(issues, path, report)
   end
 
   defp validate_quality_gate_row(issues, path, row) do

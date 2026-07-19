@@ -1,6 +1,8 @@
 defmodule OrbitalDynamics.Schema.OperationalReadinessValidation do
   @moduledoc false
 
+  import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2]
+
   def operational_readiness_model_limits do
     OrbitalDynamics.OperationalReadiness.capabilities()
     |> Map.fetch!(:known_limits)
@@ -69,6 +71,22 @@ defmodule OrbitalDynamics.Schema.OperationalReadinessValidation do
       "quality_gate_import_readiness_summary_does_not_approve_or_import"
     ]
   end
+
+  def validate_optional_operational_readiness_report(issues, _path, nil), do: issues
+
+  def validate_optional_operational_readiness_report(issues, path, %{} = report),
+    do: validate_operational_readiness_report(issues, path, report)
+
+  def validate_optional_operational_readiness_report(issues, path, _report),
+    do: [error(path, "must be an object") | issues]
+
+  def validate_optional_quality_gate_report(issues, _path, nil), do: issues
+
+  def validate_optional_quality_gate_report(issues, path, %{} = report),
+    do: validate_quality_gate_report(issues, path, report)
+
+  def validate_optional_quality_gate_report(issues, path, _report),
+    do: [error(path, "must be an object") | issues]
 
   def validate_operational_readiness_report(issues, path, report) do
     OrbitalDynamics.Schema.OperationalReadinessReportContracts.validate(
