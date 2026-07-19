@@ -10,6 +10,7 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
 
   alias OrbitalDynamics.{Policy, ResourceFilter}
   alias OrbitalDynamics.Communications.{ContactContention, ContactFilter, StationCalendar}
+  alias OrbitalDynamics.Communications.ContactAllocation.ProviderCounteroffer
 
   @schema_contract "contact_allocation_report.v1"
   @summary_schema_contract "contact_allocation_summary.v1"
@@ -20,19 +21,6 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
   @contact_types ~w(downlink planned_contact tracking command health_check)
   @contact_directions ~w(downlink uplink command tracking health_check)
   @command_contact_directions ~w(command uplink)
-  @provider_counteroffer_fields ~w(
-    provider_counteroffer_id
-    provider_counteroffer_status
-    provider_counteroffer_negotiation_state
-    provider_counteroffer_reason_code
-    provider_counteroffer_cost_delta
-    provider_counteroffer_lock_deadline_s
-    provider_counteroffer_starts_at_s
-    provider_counteroffer_ends_at_s
-    provider_counteroffer_start_delta_s
-    provider_counteroffer_end_delta_s
-    provider_counteroffer_duration_delta_s
-  )
   @row_statuses ~w(allocated deferred blocked)
   @effective_row_statuses @row_statuses ++ ["policy_blocked"]
   @unavailable_aliases ["outage", "down", "offline"]
@@ -264,7 +252,7 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
         capacity_value_path_metadata(@default_required_capacity_value_paths),
       provider_direction_aliases: @provider_direction_aliases,
       provider_result_map_value_keys: @provider_result_map_value_keys,
-      provider_counteroffer_fields: @provider_counteroffer_fields,
+      provider_counteroffer_fields: ProviderCounteroffer.fields(),
       contact_stable_identity_fields: @contact_stable_identity_fields,
       command_contact_directions: @command_contact_directions,
       contention_resolution_selection_rules: contention_capabilities.resolution_selection_rules,
@@ -2459,138 +2447,7 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
     |> compact_map()
   end
 
-  defp provider_counteroffer_context(row) do
-    if provider_counteroffer_context_present?(row) do
-      @provider_counteroffer_fields
-      |> Enum.reduce(%{}, fn field, context ->
-        put_provider_counteroffer_value(context, field, provider_counteroffer_value(row, field))
-      end)
-      |> put_provider_counteroffer_value(
-        "provider_counteroffer_start_delta_s",
-        provider_counteroffer_start_delta(row)
-      )
-      |> put_provider_counteroffer_value(
-        "provider_counteroffer_end_delta_s",
-        provider_counteroffer_end_delta(row)
-      )
-      |> put_provider_counteroffer_value(
-        "provider_counteroffer_duration_delta_s",
-        provider_counteroffer_duration_delta(row)
-      )
-      |> compact_map()
-    else
-      %{}
-    end
-  end
-
-  defp provider_counteroffer_context_present?(row) do
-    row["required_operator_action"] == "review_provider_counteroffer" or
-      Enum.any?(@provider_counteroffer_fields, fn field ->
-        provider_counteroffer_context_value_present?(
-          field,
-          provider_counteroffer_value(row, field)
-        )
-      end)
-  end
-
-  defp provider_counteroffer_value(row, field) do
-    provider_counteroffer_source_value(row, field)
-  end
-
-  defp provider_counteroffer_source_value(source, field),
-    do: provider_counteroffer_source_value(source, field, 0)
-
-  defp provider_counteroffer_source_value(source, field, depth)
-       when is_map(source) and depth < 4 do
-    [
-      source[field],
-      provider_counteroffer_source_value(
-        source["source_station_calendar_entry"],
-        field,
-        depth + 1
-      )
-      | source_station_calendar_overlap_values(source, field, depth + 1)
-    ]
-    |> Enum.find(&provider_counteroffer_value_present?/1)
-  end
-
-  defp provider_counteroffer_source_value(_source, _field, _depth), do: nil
-
-  defp source_station_calendar_overlap_values(
-         %{"source_station_calendar_overlaps" => overlaps},
-         field,
-         depth
-       )
-       when is_list(overlaps),
-       do: Enum.map(overlaps, &provider_counteroffer_source_value(&1, field, depth))
-
-  defp source_station_calendar_overlap_values(
-         %{"source_station_calendar_overlaps" => overlap},
-         field,
-         depth
-       ),
-       do: [provider_counteroffer_source_value(overlap, field, depth)]
-
-  defp source_station_calendar_overlap_values(_row, _field, _depth), do: []
-
-  defp provider_counteroffer_start_delta(row) do
-    provider_counteroffer_value(row, "provider_counteroffer_start_delta_s") ||
-      numeric_delta(
-        provider_counteroffer_value(row, "provider_counteroffer_starts_at_s"),
-        row["starts_at_s"]
-      )
-  end
-
-  defp provider_counteroffer_end_delta(row) do
-    provider_counteroffer_value(row, "provider_counteroffer_end_delta_s") ||
-      numeric_delta(
-        provider_counteroffer_value(row, "provider_counteroffer_ends_at_s"),
-        row["ends_at_s"]
-      )
-  end
-
-  defp provider_counteroffer_duration_delta(row) do
-    provider_counteroffer_value(row, "provider_counteroffer_duration_delta_s") ||
-      derived_provider_counteroffer_duration_delta(row)
-  end
-
-  defp derived_provider_counteroffer_duration_delta(row) do
-    with start when is_number(start) <- numeric_or_nil(row["starts_at_s"]),
-         finish when is_number(finish) <- numeric_or_nil(row["ends_at_s"]),
-         counter_start when is_number(counter_start) <-
-           numeric_or_nil(provider_counteroffer_value(row, "provider_counteroffer_starts_at_s")),
-         counter_finish when is_number(counter_finish) <-
-           numeric_or_nil(provider_counteroffer_value(row, "provider_counteroffer_ends_at_s")) do
-      counter_finish - counter_start - (finish - start)
-    else
-      _value -> nil
-    end
-  end
-
-  defp numeric_delta(value, base_value) do
-    with value when is_number(value) <- numeric_or_nil(value),
-         base_value when is_number(base_value) <- numeric_or_nil(base_value) do
-      value - base_value
-    else
-      _value -> nil
-    end
-  end
-
-  defp put_provider_counteroffer_value(context, _field, value) when value in [nil, "", [], %{}],
-    do: context
-
-  defp put_provider_counteroffer_value(context, field, value), do: Map.put(context, field, value)
-
-  defp provider_counteroffer_value_present?(value), do: value not in [nil, "", [], %{}]
-
-  defp provider_counteroffer_context_value_present?(
-         "provider_counteroffer_negotiation_state",
-         value
-       ),
-       do: provider_counteroffer_value_present?(value) and stringify_keys(value) != "unknown"
-
-  defp provider_counteroffer_context_value_present?(_field, value),
-    do: provider_counteroffer_value_present?(value)
+  defp provider_counteroffer_context(row), do: ProviderCounteroffer.context(row)
 
   defp resource_suppression_context(row) do
     Map.take(row, [
