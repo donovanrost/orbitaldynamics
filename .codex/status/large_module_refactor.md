@@ -9,7 +9,7 @@ Current slice:
 Schema optional decision-support validation extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and published in `27959afb`.
 
 Selected boundary:
 Extract optional branch-comparison, ranking-comparison, optimizer-contract,
@@ -28,17 +28,24 @@ Selection evidence:
   family validation, and all public `Schema` APIs remain outside.
 
 Verification:
-Pending: focused optimizer/strategy baselines, exact old/new fixture validation
-reports, strict compile, broader Schema contract tests, schema export checks,
-static single ownership, runtime xref, and bounded review.
+- Strict compile passed across 3,859 files with warnings as errors.
+- All 4 focused optimizer/strategy tests passed.
+- All 175 split Schema contract tests passed with warnings as errors.
+- All 15 JSON-export contract tests passed.
+- Exact old/new executable comparison passed for 8 valid and intentionally
+  invalid checked-in decision-support reports.
+- Static ownership confirms one decision-support validation owner with five
+  preserved private Schema seams and explicit contract-validation closures.
+- Runtime xref, format, diff checks, and bounded review passed.
+- `schema.ex` moved from 7,119 to 7,110 lines; the new owner is 59 lines.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-Schema timeline-transition validation extraction, selected in `76e489e1` and
-implemented in `17e58a4b`. `schema.ex` moved from 7,141 to 7,119 lines; the
-dedicated owner is 140 lines.
+Schema optional decision-support validation extraction, selected in `5a801498`
+and implemented in `27959afb`. `schema.ex` moved from 7,119 to 7,110 lines; the
+dedicated owner is 59 lines.
 
 Next candidate:
 Re-inventory remaining Schema resource/filter and family-validation clusters
