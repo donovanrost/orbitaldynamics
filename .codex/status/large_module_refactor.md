@@ -9,7 +9,7 @@ Current slice:
 CadenceImport wrapped station-report test family split.
 
 Status:
-Selected; implementation has not started.
+Complete and published in `92e43ac5`.
 
 Selected boundary:
 Move the two contiguous candidate-refresh wrapped station report tests into one
@@ -34,21 +34,34 @@ Selection evidence:
   this ownership-only boundary.
 
 Verification:
-Pending: two-test focused baseline, mechanical AST-preserving move, strict
-compile, focused new/original/combined CadenceImport tests, relevant schema
-contracts, structural/static checks, and bounded review.
+- The pre-move focused baseline passed both selected tests from selection commit
+  `5db1ed60`.
+- Strict test compilation passed with warnings as errors across 3,804 files.
+- The new focused module passed 2 tests; the reduced original passed 90 tests;
+  the three-file combined CadenceImport proof passed all 96 tests.
+- `cadence_import_contracts_test.exs` passed all 4 tests.
+- An exact AST comparison against `5db1ed60` proved that the new module contains
+  only `use`, the `CadenceImport`/`Schema` alias, and the two selected test ASTs,
+  while the original is exactly its former body minus those tests.
+- Formatting, tracked and new-file diff checks, exact static test counts,
+  temporary-checker absence, and the provider-counteroffer/provider-reservation
+  seam passed.
+- Bounded local review found no assertion, fixture-value, production, public API,
+  schema, deterministic-output, or source-path change.
+- The original ledger fell from 14,831 to 14,530 lines; the focused module is
+  306 lines.
 
 Behavior/schema changes:
 None. This is a test-only ownership split with all assertions preserved.
 
 Last completed slice:
-CadenceImport timeline-transition test family split, selected in `55413ac8` and
-implemented in `8621886e`.
+CadenceImport wrapped station-report test family split, selected in `5db1ed60`
+and implemented in `92e43ac5`.
 
 Next candidate:
-Continue with another independently-fixtured CadenceImport responsibility or
-return to production facade mapping after the wrapped station family is
-isolated.
+Refresh the reduced CadenceImport family seams and production facade map, then
+select another cohesive boundary with independent fixtures or a bounded helper
+surface.
 
 Blocked:
 No.
