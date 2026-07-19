@@ -9,7 +9,7 @@ Current slice:
 Study.Manifest reusable value-schema ownership extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `e796c533`.
 
 Selected boundary:
 Extract reusable target, ground-station, and spacecraft identity schemas plus
@@ -29,20 +29,31 @@ Selection evidence:
 - Existing public report APIs and artifact row shapes remain unchanged.
 
 Verification:
-Pending.
+- Strict test-environment compile passed with warnings as errors across 3,901
+  files.
+- Focused Manifest coverage passed: 42 tests.
+- Adjacent manifest lint/reference/schema-export and schema-lint task coverage
+  passed: 30 tests.
+- Exact public old/new comparison against selection commit `b8f1453e` passed
+  for the complete Manifest JSON Schema.
+- `mix xref callers` reports only the Manifest facade as an export-time caller
+  of the extracted owner.
+- Static ownership checks confirm the selected identity and vector builders
+  live in ValueSchema while entity schemas remain in the facade.
+- `git diff --check` passed.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-TimelineFeedback reconciliation outcome-evidence extraction, selected in
-`32b15d88` and implemented in `64be0fd0`.
-`timeline_feedback.ex` moved from 4,070 to 3,950 lines; the dedicated owner is
-215 lines.
+Study.Manifest reusable value-schema ownership extraction, selected in
+`b8f1453e` and implemented in `e796c533`.
+`study/manifest.ex` moved from 4,039 to 4,008 lines; the dedicated owner is 37
+lines.
 
 Next candidate:
-Implement and verify the selected Study.Manifest reusable value-schema
-ownership extraction.
+Re-rank the live largest-module set and select the next cohesive ownership
+boundary.
 
 Blocked:
 No.
