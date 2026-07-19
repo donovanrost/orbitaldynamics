@@ -9,7 +9,7 @@ Current slice:
 RecommendationRiskContext station-reservation-hold import-readiness extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `04980e12`.
 
 Selected boundary:
 Extract the station-reservation-hold import-readiness context-key catalog,
@@ -37,25 +37,42 @@ Selection evidence:
 - All other recommendation risk contexts and their catalogs, recommendation
   construction, campaign strategy, policy evaluation, and source artifact
   generation remain outside this boundary.
-- Existing atom/string normalization, list flattening, deterministic
-  `term_to_binary` ordering, duplicate removal, omission of empty keys, nested
-  map preservation, and non-list fallback must remain unchanged.
+- Existing top-level atom/string normalization, list flattening, first-seen
+  ordering, duplicate removal, omission of empty keys, nested map preservation,
+  and non-list fallback must remain unchanged.
 
 Verification:
-Pending implementation.
+- Strict warning-clean compile passed across 3,950 files:
+  `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 mix compile --force --warnings-as-errors`.
+- Focused recommendation-pressure context assertion passed: 1 test.
+- Adjacent recommendation-pressure, station-reservation recommendation, and
+  Cadence provider-reservation handoff regression bundle passed: 5 tests.
+- Exact old/new parity passed 7 comparisons from selection commit `4501d5fe`
+  with `/tmp/reservation_hold_risk_context_compare.exs`, covering the 27-key
+  catalog, full string-key and top-level atom-key contexts, nested maps,
+  first-seen ordering and duplicate removal, irrelevant risks, and nil/map
+  fallbacks.
+- `mix xref callers
+  OrbitalDynamics.RecommendationRiskContext.StationReservationHoldImportReadiness`
+  reports only the RecommendationRiskContext facade.
+- The owner has no compile-connected expansion beyond itself.
+- Focused formatting, `git diff --check`, removed-owner static checks, and
+  final facade/owner review passed.
 
 Behavior/schema changes:
-None intended.
+None. The public RecommendationRiskContext facade, 27-key catalog, top-level
+normalization, first-seen ordering, nested map preservation, empty-key
+omission, and fallback behavior are unchanged.
 
 Last completed slice:
-StationCalendar provider-counteroffer handoff-summary extraction, selected in
-`4dcb6468` and implemented in `bb5307a5`.
-`communications/station_calendar.ex` moved from 2,981 to 2,778 lines; the
-dedicated handoff-summary owner is 265 lines.
+RecommendationRiskContext station-reservation-hold import-readiness
+extraction, selected in `4501d5fe` and implemented in `04980e12`.
+`recommendation_risk_context.ex` moved from 2,909 to 2,748 lines; the dedicated
+context owner is 202 lines.
 
 Next candidate:
-Implement and verify the selected RecommendationRiskContext
-station-reservation-hold import-readiness extraction.
+Re-rank the live largest-module inventory and select the next cohesive,
+facade-preserving ownership boundary.
 
 Blocked:
 No.
