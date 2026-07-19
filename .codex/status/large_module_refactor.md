@@ -6,54 +6,43 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-OperationalReadiness operator-training evidence extraction.
+ContactContention contact/group identity extraction.
 
 Status:
-Completed and pushed.
+Selected; implementation pending.
 
 Selected boundary:
-Extract artifact/review/import operator-training evidence traversal,
-role/training/certification/qualification alias resolution, stable string
-normalization, deduplication/sorting, and requirement-count projection into
-`OrbitalDynamics.OperationalReadiness.OperatorTrainingEvidence`. Preserve all
-public OperationalReadiness report and summary facades.
+Extract contact/spacecraft/stable-ID resolution, contact identity validation,
+group station/spacecraft/stable-ID/direction projection, contact-ID failure
+behavior, and canonical contact sorting into
+`OrbitalDynamics.Communications.ContactContention.ContactIdentity`. Centralize
+the advertised stable identity fields with that owner. Preserve all public
+ContactContention report, resolution, and summary facades.
 
 Selection evidence:
-- Live re-ranking places `operational_readiness.ex` at 2,385
+- Live re-ranking places `communications/contact_contention.ex` at 2,370
   lines, the largest eligible facade behind Schema, Timeline,
   MissionPlan.Activity, and the root public facade.
-- The selected helper family spans lines 1,876-1,984 and exclusively owns
-  operator-training evidence collection and aggregation.
-- Readiness evidence construction is the single consumer of the resulting
-  training context.
-- Quality-gate summary projection, training gate decisions, generic evidence
-  normalization, shared stable-ID map routing, other evidence families, public
-  clauses, and artifact contracts remain outside this boundary.
-- Existing artifact-before-review-before-import traversal, nested source-row
-  discovery, field-alias order, scalar/list wrapping, atom/string
-  normalization, unsupported-value omission, deduplication, lexical sorting,
-  positive-count omission, total counting, exact keys, and empty behavior must
-  remain unchanged.
+- The selected helper family spans lines 2,185-2,334 and exclusively owns
+  contact identity, group identity, direction, and canonical sort semantics.
+- Contention grouping, resolution, validation, capacity-demand, and summary
+  construction consume this shared identity layer through private facade
+  delegates.
+- Candidate eligibility, contact normalization, timing/feedback/station
+  context, scoring, approval policy, public clauses, and artifact contracts
+  remain outside this boundary.
+- Existing spacecraft/satellite/scenario precedence, nested identity
+  precedence, ID fallback order, atom/integer normalization, stable-pattern
+  validation, `nil` rejection, exact error text, group deduplication/sorting,
+  mixed/default direction behavior, numeric-zero sort fallback, full tuple
+  order, and capability metadata must remain unchanged.
 
 Implementation:
-- Selection was recorded and pushed in `0a2611d2`.
-- Implementation was committed and pushed in `7d28b490`.
-- `operational_readiness.ex` moved from 2,385 to 2,276 lines.
-- `OrbitalDynamics.OperationalReadiness.OperatorTrainingEvidence` is a
-  131-line owner reached through a private facade delegate.
+- Pending.
 
 Verification:
-- Strict warning-clean compilation passed across 3,972 files.
-- The focused OperationalReadiness file and six adjacent Cadence-import,
-  campaign-strategy, replay, operator-review, and schema consumers passed
-  together: 64 tests.
-- Exact old/new public parity passed for 6 report-to-quality-gate chains
-  covering empty, artifact-level, nested training, source-review/source-gate,
-  duplicate, atom/scalar/list, blank, and unsupported evidence.
-- `mix xref callers` reports only the OperationalReadiness facade.
-- The removed collector, nested traversal, alias readers, and list collector
-  are absent from the facade apart from the thin delegate, formatting and
-  `git diff --check` passed, and the final diff is ownership-only.
+- Pending focused baseline, strict compilation, exact old/new public parity,
+  focused and adjacent tests, static ownership checks, and xref review.
 
 Behavior/schema changes:
 None intended.
@@ -65,8 +54,8 @@ OperationalReadiness operator-training evidence extraction, selected in
 operator-training evidence owner is 131 lines.
 
 Next candidate:
-Re-rank the live checkout and select the next cohesive facade-preserving
-boundary.
+Complete and verify the selected ContactContention contact/group identity
+extraction.
 
 Blocked:
 No.
