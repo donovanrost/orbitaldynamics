@@ -9,7 +9,7 @@ Current slice:
 MissionPlan.Activity identifier input extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `292a84df`.
 
 Selected boundary:
 Extract required/optional identifier validation, stable-identifier validation,
@@ -30,18 +30,29 @@ Selection evidence:
 - The stable-ID regex has no remaining non-identifier consumer in the facade.
 
 Verification:
-Pending.
+- Strict warnings-as-errors compile passed across 3,884 files.
+- Focused MissionPlan.Activity coverage passed: 31 tests.
+- Adjacent mission-plan, activity-fixture, and timeline-activity schema
+  coverage passed: 44 tests.
+- Exact old/new public map construction and error comparison against
+  `9aded909` passed for 11 valid required/optional/stable identifier, ID-list,
+  dependency-map, and nil cases plus 10 invalid value/shape cases.
+- Runtime xref found the new owner referenced only by the Activity facade;
+  static single-ownership review and `git diff --check` passed.
+- `mission_plan/activity.ex` moved from 4,577 to 4,470 lines; the dedicated
+  owner is 143 lines.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-MissionPlan.Activity collection input extraction, selected in `b9673591` and
-implemented in `9defcde8`. `mission_plan/activity.ex` moved from 4,672 to 4,577
-lines; the dedicated owner is 126 lines.
+MissionPlan.Activity identifier input extraction, selected in `9aded909` and
+implemented in `292a84df`. `mission_plan/activity.ex` moved from 4,577 to 4,470
+lines; the dedicated owner is 143 lines.
 
 Next candidate:
-Implement and verify the selected identifier input extraction.
+Re-rank all hotspots after the Activity input-normalization pass and select the
+next facade-reducing responsibility boundary.
 
 Blocked:
 No.
