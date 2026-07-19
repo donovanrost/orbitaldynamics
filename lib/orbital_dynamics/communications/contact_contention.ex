@@ -189,6 +189,7 @@ defmodule OrbitalDynamics.Communications.ContactContention do
   alias OrbitalDynamics.Communications.ContactContention.{
     ContactNormalization,
     FeedbackContext,
+    ResolutionSummaryValues,
     TimingMetrics
   }
 
@@ -708,73 +709,29 @@ defmodule OrbitalDynamics.Communications.ContactContention do
     end)
   end
 
-  defp contention_resolution_review_contact_ids(recommendations) do
-    recommendations
-    |> Enum.flat_map(fn recommendation ->
-      [recommendation["selected_contact_id"]] ++
-        List.wrap(recommendation["deferred_contact_ids"]) ++
-        List.wrap(recommendation["duplicate_contact_ids"])
-    end)
-    |> compact_sorted_unique_list()
-  end
+  defp contention_resolution_review_contact_ids(recommendations),
+    do: ResolutionSummaryValues.review_contact_ids(recommendations)
 
-  defp recommendation_values(recommendations, field) do
-    recommendations
-    |> Enum.map(& &1[field])
-    |> compact_sorted_unique_list()
-  end
+  defp recommendation_values(recommendations, field),
+    do: ResolutionSummaryValues.values(recommendations, field)
 
-  defp recommendation_list_values(recommendations, field) do
-    recommendations
-    |> Enum.flat_map(&List.wrap(&1[field]))
-    |> compact_sorted_unique_list()
-  end
+  defp recommendation_list_values(recommendations, field),
+    do: ResolutionSummaryValues.list_values(recommendations, field)
 
-  defp recommendation_values_by_field(recommendations, group_field, value_field) do
-    recommendations
-    |> Enum.group_by(& &1[group_field], & &1[value_field])
-    |> compact_value_map()
-  end
+  defp recommendation_values_by_field(recommendations, group_field, value_field),
+    do: ResolutionSummaryValues.values_by_field(recommendations, group_field, value_field)
 
-  defp recommendation_list_values_by_field(recommendations, group_field, value_field) do
-    recommendations
-    |> Enum.group_by(& &1[group_field], &List.wrap(&1[value_field]))
-    |> Map.new(fn {group, values} -> {group, Enum.flat_map(values, & &1)} end)
-    |> compact_value_map()
-  end
+  defp recommendation_list_values_by_field(recommendations, group_field, value_field),
+    do: ResolutionSummaryValues.list_values_by_field(recommendations, group_field, value_field)
 
-  defp contention_resolution_review_contact_ids_by_field(recommendations, group_field) do
-    recommendations
-    |> Enum.group_by(& &1[group_field], fn recommendation ->
-      [recommendation["selected_contact_id"]] ++
-        List.wrap(recommendation["deferred_contact_ids"]) ++
-        List.wrap(recommendation["duplicate_contact_ids"])
-    end)
-    |> Map.new(fn {group, values} -> {group, Enum.flat_map(values, & &1)} end)
-    |> compact_value_map()
-  end
+  defp contention_resolution_review_contact_ids_by_field(recommendations, group_field),
+    do: ResolutionSummaryValues.review_contact_ids_by_field(recommendations, group_field)
 
-  defp recommendation_count_by_field(recommendations, field) do
-    recommendations
-    |> Enum.map(& &1[field])
-    |> Enum.reject(&is_nil/1)
-    |> Enum.frequencies()
-  end
+  defp recommendation_count_by_field(recommendations, field),
+    do: ResolutionSummaryValues.count_by_field(recommendations, field)
 
-  defp compact_sorted_unique_list(values) do
-    values
-    |> Enum.reject(&is_nil/1)
-    |> Enum.uniq()
-    |> Enum.sort()
-  end
-
-  defp compact_value_map(values_by_group) do
-    values_by_group
-    |> Enum.reject(fn {group, values} ->
-      is_nil(group) or Enum.all?(List.wrap(values), &is_nil/1)
-    end)
-    |> Map.new(fn {group, values} -> {group, compact_sorted_unique_list(List.wrap(values))} end)
-  end
+  defp compact_sorted_unique_list(values),
+    do: ResolutionSummaryValues.compact_sorted_unique_list(values)
 
   defp contention_report(contact_inputs, groups, invalid_contact_inputs, opts) do
     source = opts |> Keyword.get(:source, "contact_candidates") |> to_string()
