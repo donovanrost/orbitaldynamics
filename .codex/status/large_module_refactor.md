@@ -6,41 +6,34 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Policy blocked-risk matcher extraction.
+Policy decision-result builder extraction.
 
 Status:
-Completed and published in `4936bedc`.
+Selected; implementation has not started.
 
 Selected boundary:
-Extract `blocked_risk_indicator?/2`, the blocked-type dispatch clauses, and
-their pressure/value/count predicates into
-`OrbitalDynamics.Policy.BlockedRiskMatcher`. Preserve one private Policy seam
-used only by `fallback_status/3`.
+Extract rule-match provenance projection and canonical sorting, approval
+requirement enrichment, strongest/fallback classification, escalation summary,
+decision counts, and final decision-map assembly into
+`OrbitalDynamics.Policy.DecisionBuilder`. Preserve `Policy.decide/5` as the
+public orchestration facade that normalizes policy and builds raw rule matches.
 
 Selection evidence:
-- `policy.ex` is now 2,649 lines; the selected fallback-risk interpretation
-  cluster spans 326 lines at 2,294-2,619.
-- The cluster has one responsibility: decide whether a risk indicator matches
-  any configured blocked-risk type, including derived pressure aliases.
-- Its call inventory is self-contained map/list/value/count interpretation and
-  has one production caller through `fallback_status/3`.
-- Fallback thresholds, rule-match classification, decision assembly, bundle
-  normalization, and public APIs remain outside the boundary.
+- `policy.ex` is now 2,324 lines; the selected result assembly is the private
+  decision body at 1,654-1,729 plus its exclusive helpers at 1,732-1,745 and
+  2,176-2,295.
+- Every selected helper is called only within this result-building path; the
+  only production dependency is `BlockedRiskMatcher`.
+- The cluster has one responsibility: turn raw rule matches and fallback inputs
+  into the deterministic `policy_decision.v1` tuple returned by `decide/5`.
+- Policy normalization, raw four-family rule-match construction, bundles,
+  validation, capabilities, and public API signatures remain outside.
 
 Verification:
-- Strict compile passed across 3,853 files with warnings as errors.
-- Eight focused fallback blocked-risk baselines passed.
-- All 89 Policy tests and the Policy schema-contract test passed with warnings
-  as errors.
-- Exact old/new executable comparison passed for 53 blocked and neutral
-  decisions spanning every blocked-risk dispatch family.
-- A byte-level mechanical comparison confirmed the new owner preserves the
-  selected predicate cluster exactly apart from its public entrypoint.
-- Static ownership confirms one `blocked?/2` production owner and one private
-  `blocked_risk_indicator?/2` Policy seam.
-- Runtime xref confirms `Policy` calls `BlockedRiskMatcher`; format, diff
-  checks, and bounded review passed.
-- `policy.ex` moved from 2,649 to 2,324 lines; the new owner is 331 lines.
+Pending: focused classification/order/escalation/fallback baselines, exact
+old/new bundle and fallback decision proofs, strict compile, full Policy tests,
+relevant schema/contracts, static single ownership, runtime xref, and bounded
+review.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
@@ -51,8 +44,8 @@ in `4936bedc`. `policy.ex` moved from 2,649 to 2,324 lines; the dedicated matche
 is 331 lines.
 
 Next candidate:
-Re-inventory Policy decision-result assembly and bundle normalization after
-blocked-risk interpretation has one production owner.
+Re-inventory Policy bundle and action-rule normalization after decision-result
+assembly has one production owner.
 
 Blocked:
 No.
