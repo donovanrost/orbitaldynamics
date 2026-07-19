@@ -10,6 +10,7 @@ defmodule OrbitalDynamics.Schema do
   alias OrbitalDynamics.Schema.{
     DecisionSupportValidation,
     OperationalReadinessValidation,
+    ResourceValidation,
     TimelineSourceValidation,
     TimelineTransitionValidation
   }
@@ -6001,23 +6002,23 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validate_optional_resource_projection_report(issues, _path, nil), do: issues
+  defp validate_optional_resource_projection_report(issues, path, value),
+    do:
+      ResourceValidation.validate_optional_resource_projection_report(
+        issues,
+        path,
+        value,
+        resource_validation_callbacks()
+      )
 
-  defp validate_optional_resource_projection_report(issues, path, %{} = report) do
-    validate_resource_projection_report(issues, path, report)
-  end
-
-  defp validate_optional_resource_projection_report(issues, path, _report),
-    do: [error(path, "must be an object") | issues]
-
-  defp validate_optional_resource_projection_flow_summary(issues, _path, nil), do: issues
-
-  defp validate_optional_resource_projection_flow_summary(issues, path, %{} = summary) do
-    validate_resource_projection_flow_summary(issues, path, summary)
-  end
-
-  defp validate_optional_resource_projection_flow_summary(issues, path, _summary),
-    do: [error(path, "must be an object") | issues]
+  defp validate_optional_resource_projection_flow_summary(issues, path, value),
+    do:
+      ResourceValidation.validate_optional_resource_projection_flow_summary(
+        issues,
+        path,
+        value,
+        resource_validation_callbacks()
+      )
 
   defp validate_optional_operational_readiness_report(issues, _path, nil), do: issues
 
@@ -6037,65 +6038,30 @@ defmodule OrbitalDynamics.Schema do
   defp validate_optional_quality_gate_report(issues, path, _report),
     do: [error(path, "must be an object") | issues]
 
-  defp validate_resource_projection_report(issues, path, report) do
-    OrbitalDynamics.Schema.ResourceProjectionReportContracts.validate(
-      issues,
-      path,
-      report,
-      resource_projection_report_models(),
-      resource_projection_report_model_limits(),
-      &OrbitalDynamics.Schema.ResourceProjectionAssumptionsContracts.validate_subsystem_model_assumptions/3,
-      &validate_invalid_resource_summary_input/3,
-      &validate_invalid_activity_input/3,
-      &validate_resource_projection_row/3,
-      &OrbitalDynamics.Schema.ResourceProjectionReportCountContracts.validate/3
-    )
-  end
+  defp validate_resource_projection_report(issues, path, report),
+    do:
+      ResourceValidation.validate_resource_projection_report(
+        issues,
+        path,
+        report,
+        resource_validation_callbacks()
+      )
 
-  defp validate_resource_projection_flow_summary(issues, path, summary) do
-    OrbitalDynamics.Schema.ResourceProjectionFlowSummaryContracts.validate(
-      issues,
-      path,
-      summary,
-      resource_projection_report_model_limits(),
-      &OrbitalDynamics.Schema.ResourceProjectionAssumptionsContracts.validate_subsystem_model_assumptions/3,
-      &OrbitalDynamics.Schema.ResourceProjectionFlowProjectedResourceContracts.validate/3,
-      &validate_resource_projection_flow_row/3,
-      &OrbitalDynamics.Schema.ResourceProjectionFlowSummaryCountContracts.validate/3
-    )
-  end
+  defp validate_resource_projection_flow_summary(issues, path, summary),
+    do:
+      ResourceValidation.validate_resource_projection_flow_summary(
+        issues,
+        path,
+        summary,
+        resource_validation_callbacks()
+      )
 
-  defp validate_resource_projection_row(issues, path, row) do
-    OrbitalDynamics.Schema.ResourceProjectionRowContracts.validate(
-      issues,
-      path,
-      row,
-      &validate_approval_requirement/3,
-      &validate_policy_rule_match/3,
-      &OrbitalDynamics.Schema.CandidateDiffContracts.validate_optional_source_window/4,
-      &validate_nested_id_match/7,
-      &validate_resource_projection_flow_row/3
-    )
-  end
-
-  defp validate_resource_projection_flow_row(issues, path, row) do
-    OrbitalDynamics.Schema.ResourceProjectionFlowRowContracts.validate(
-      issues,
-      path,
-      row,
-      &OrbitalDynamics.Schema.CandidateDiffContracts.validate_optional_source_window/4,
-      &validate_nested_id_match/7
-    )
-  end
-
-  defp validate_invalid_activity_input(issues, path, row) do
-    issues
-    |> expect_optional_one_of(path, row, "review_status", [
-      "operator_review_required",
-      "review_required",
-      "pending_operator_review",
-      "ready_for_review"
-    ])
+  defp resource_validation_callbacks do
+    [
+      validate_approval_requirement: &validate_approval_requirement/3,
+      validate_policy_rule_match: &validate_policy_rule_match/3,
+      validate_nested_id_match: &validate_nested_id_match/7
+    ]
   end
 
   defp validate_maneuver_recommendation(issues, path, maneuver) do
@@ -6364,42 +6330,17 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validate_optional_resource_filter_report(issues, _path, nil), do: issues
+  defp validate_optional_resource_filter_report(issues, path, value),
+    do: ResourceValidation.validate_optional_resource_filter_report(issues, path, value)
 
-  defp validate_optional_resource_filter_report(issues, path, %{} = report) do
-    validate_resource_filter_report(issues, path, report)
-  end
+  defp validate_resource_filter_report(issues, path, report),
+    do: ResourceValidation.validate_resource_filter_report(issues, path, report)
 
-  defp validate_optional_resource_filter_report(issues, path, _report),
-    do: [error(path, "must be an object") | issues]
+  defp validate_suppressed_candidate(issues, path, candidate),
+    do: ResourceValidation.validate_suppressed_candidate(issues, path, candidate)
 
-  defp validate_resource_filter_report(issues, path, report) do
-    OrbitalDynamics.Schema.ResourceFilterReportContracts.validate(
-      issues,
-      path,
-      report,
-      &validate_invalid_resource_summary_input/3,
-      &validate_suppressed_candidate/3
-    )
-  end
-
-  defp validate_suppressed_candidate(issues, path, candidate) do
-    OrbitalDynamics.Schema.SuppressedCandidateContracts.validate(
-      issues,
-      path,
-      candidate
-    )
-  end
-
-  defp validate_invalid_resource_summary_input(issues, path, row) do
-    issues
-    |> expect_optional_one_of(path, row, "review_status", [
-      "operator_review_required",
-      "review_required",
-      "pending_operator_review",
-      "ready_for_review"
-    ])
-  end
+  defp validate_invalid_resource_summary_input(issues, path, row),
+    do: ResourceValidation.validate_invalid_resource_summary_input(issues, path, row)
 
   defp relay_custody_statuses, do: ~w(confirmed pending missing_ack failed unknown)
   defp relay_latency_statuses, do: ~w(within_limit exceeds_limit not_evaluated unknown)
@@ -6478,26 +6419,15 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp resource_projection_report_model_limits do
-    OrbitalDynamics.ResourceProjection.capabilities()
-    |> Map.fetch!(:known_limits)
-    |> Enum.map(&Atom.to_string/1)
-  end
+  defp resource_projection_report_model_limits,
+    do: ResourceValidation.resource_projection_report_model_limits()
 
   defp resource_projection_assumptions_json_schema do
     OrbitalDynamics.Schema.ResourceProjectionReportJsonSchema.assumptions()
   end
 
-  defp resource_projection_report_models do
-    [
-      "thin_battery_handoff_resource_projection_fixture",
-      "thin_campaign_selected_activity_resource_projection",
-      "thin_repaired_activity_resource_projection",
-      "thin_selected_activity_resource_projection",
-      "thin_stale_derived_margin_resource_projection_fixture",
-      "thin_strategy_branch_activity_resource_projection"
-    ]
-  end
+  defp resource_projection_report_models,
+    do: ResourceValidation.resource_projection_report_models()
 
   defp validate_candidate_rejection_report(issues, path, report) do
     OrbitalDynamics.Schema.CandidateRejectionReportContracts.validate(
