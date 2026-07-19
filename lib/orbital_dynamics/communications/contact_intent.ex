@@ -7,6 +7,7 @@ defmodule OrbitalDynamics.Communications.ContactIntent do
   """
 
   alias OrbitalDynamics.{Policy, Timeline}
+  alias OrbitalDynamics.Communications.ContactIntent.ProviderResult
 
   @schema_contract "contact_intent.v1"
   @summary_schema_contract "contact_intent_summary.v1"
@@ -227,8 +228,6 @@ defmodule OrbitalDynamics.Communications.ContactIntent do
     station_calendar_entry_id
     station_reservation_id
   )
-  @provider_result_map_value_keys ~w(result results outcome outcomes status state disposition provider_result provider_results provider_outcome provider_outcomes provider_status provider_state provider_code code reason reasons message messages error errors details metadata provider diagnostics)
-
   @doc """
   Declares the contact-intent artifact model and known limits.
   """
@@ -243,7 +242,7 @@ defmodule OrbitalDynamics.Communications.ContactIntent do
       default_direction_by_activity_type: @default_direction_by_activity_type,
       provider_direction_aliases: @provider_direction_aliases,
       station_calendar_direction_aliases: @station_calendar_direction_aliases,
-      provider_result_map_value_keys: @provider_result_map_value_keys,
+      provider_result_map_value_keys: ProviderResult.map_value_keys(),
       station_unavailable_aliases: @unavailable_aliases,
       station_availability_precedence: @station_availability_severity,
       station_capacity_fraction_paths: @station_capacity_fraction_paths,
@@ -769,13 +768,13 @@ defmodule OrbitalDynamics.Communications.ContactIntent do
         Map.get(activity, "schedule_conflict_status", "not_evaluated"),
       "contact_success" => activity_boolean(activity, "contact_success"),
       "contact_result" =>
-        provider_result_artifact_value(activity_value(activity, "contact_result")),
+        ProviderResult.artifact_value(activity_value(activity, "contact_result")),
       "contact_success_factor" => unit_interval_factor(activity, "contact_success_factor"),
       "contact_success_factor_source" =>
         activity_value(activity, "contact_success_factor_source"),
       "command_success" => activity_boolean(activity, "command_success"),
       "command_result" =>
-        provider_result_artifact_value(activity_value(activity, "command_result")),
+        ProviderResult.artifact_value(activity_value(activity, "command_result")),
       "command_success_factor" => unit_interval_factor(activity, "command_success_factor"),
       "command_success_factor_source" =>
         activity_value(activity, "command_success_factor_source"),
@@ -974,11 +973,11 @@ defmodule OrbitalDynamics.Communications.ContactIntent do
           "station_reservation_status" => intent["station_reservation_status"],
           "station_reservation_match_status" => intent["station_reservation_match_status"],
           "contact_success" => intent["contact_success"],
-          "contact_result" => provider_result_artifact_value(intent["contact_result"]),
+          "contact_result" => ProviderResult.artifact_value(intent["contact_result"]),
           "contact_success_factor" => intent["contact_success_factor"],
           "contact_success_factor_source" => intent["contact_success_factor_source"],
           "command_success" => intent["command_success"],
-          "command_result" => provider_result_artifact_value(intent["command_result"]),
+          "command_result" => ProviderResult.artifact_value(intent["command_result"]),
           "command_success_factor" => intent["command_success_factor"],
           "command_success_factor_source" => intent["command_success_factor_source"],
           "dependency_activity_ids" => intent["dependency_activity_ids"],
@@ -2005,7 +2004,7 @@ defmodule OrbitalDynamics.Communications.ContactIntent do
   end
 
   defp maybe_put_activity_provider_result(context, activity, field) do
-    case activity |> activity_value(field) |> provider_result_artifact_value() do
+    case activity |> activity_value(field) |> ProviderResult.artifact_value() do
       nil -> context
       value -> Map.put(context, field, value)
     end
@@ -2033,79 +2032,6 @@ defmodule OrbitalDynamics.Communications.ContactIntent do
   defp stringify_keys(nil), do: nil
   defp stringify_keys(value) when is_atom(value), do: Atom.to_string(value)
   defp stringify_keys(value), do: value
-
-  defp provider_result_values(result) when is_binary(result) do
-    result
-    |> String.split(",", trim: true)
-    |> Enum.map(&String.trim/1)
-    |> Enum.reject(&(&1 == ""))
-  end
-
-  defp provider_result_values(values) when is_list(values) do
-    Enum.flat_map(values, &provider_result_values/1)
-  end
-
-  defp provider_result_values(%{} = result) do
-    Enum.flat_map(@provider_result_map_value_keys, fn key ->
-      result
-      |> Map.get(key)
-      |> provider_result_values()
-    end)
-  end
-
-  defp provider_result_values(nil), do: []
-
-  defp provider_result_values(result) when is_atom(result) do
-    result
-    |> Atom.to_string()
-    |> provider_result_values()
-  end
-
-  defp provider_result_values(result)
-       when is_integer(result) or is_float(result) or is_boolean(result) do
-    result
-    |> to_string()
-    |> provider_result_values()
-  end
-
-  defp provider_result_values(_result), do: []
-
-  defp provider_result_artifact_value(nil), do: nil
-
-  defp provider_result_artifact_value(result) when is_binary(result) do
-    case String.trim(result) do
-      "" -> nil
-      _value -> result
-    end
-  end
-
-  defp provider_result_artifact_value(results) when is_list(results) do
-    case provider_result_values(results) do
-      [] -> nil
-      values -> Enum.join(values, ",")
-    end
-  end
-
-  defp provider_result_artifact_value(%{} = result) do
-    case provider_result_values(result) do
-      [] -> nil
-      values -> Enum.join(values, ",")
-    end
-  end
-
-  defp provider_result_artifact_value(result) when is_integer(result),
-    do: Integer.to_string(result)
-
-  defp provider_result_artifact_value(result) when is_float(result), do: Float.to_string(result)
-  defp provider_result_artifact_value(result) when is_boolean(result), do: Atom.to_string(result)
-
-  defp provider_result_artifact_value(result) when is_atom(result) do
-    result
-    |> Atom.to_string()
-    |> provider_result_artifact_value()
-  end
-
-  defp provider_result_artifact_value(_result), do: nil
 
   defp encode_key(key) when is_atom(key), do: Atom.to_string(key)
   defp encode_key(key), do: key
