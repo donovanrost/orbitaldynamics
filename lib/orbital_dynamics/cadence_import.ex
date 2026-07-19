@@ -8,6 +8,7 @@ defmodule OrbitalDynamics.CadenceImport do
   Cadence APIs or mutate schedules.
   """
 
+  alias OrbitalDynamics.CadenceImport.ProviderResultNormalization
   alias OrbitalDynamics.OperatorReview
 
   @schema_contract "cadence_import_manifest.v1"
@@ -19,9 +20,6 @@ defmodule OrbitalDynamics.CadenceImport do
     review_required_before_import
   )
   @cadence_import_statuses ~w(invalid missing not_applicable present)
-  @provider_result_fields ~w(contact_result command_result observation_result maneuver_result)
-  @provider_result_map_value_keys ~w(result results outcome outcomes status state disposition provider_result provider_results provider_outcome provider_outcomes provider_status provider_state provider_code code reason reasons message messages error errors details metadata provider diagnostics)
-
   @doc """
   Declares the artifact-only import-manifest model and known limits.
   """
@@ -156,7 +154,7 @@ defmodule OrbitalDynamics.CadenceImport do
       source_review_types: source_review_types(),
       import_statuses: @import_statuses,
       cadence_import_statuses: @cadence_import_statuses,
-      provider_result_map_value_keys: @provider_result_map_value_keys,
+      provider_result_map_value_keys: ProviderResultNormalization.map_value_keys(),
       handoff_row_semantics: [
         :schema_validation_import_rows,
         :schema_validation_issue_context,
@@ -3687,95 +3685,11 @@ defmodule OrbitalDynamics.CadenceImport do
   defp encode_json_value(value) when is_atom(value), do: Atom.to_string(value)
   defp encode_json_value(value), do: value
 
-  defp normalize_provider_result_artifact_fields(%{} = map) do
-    Enum.reduce(@provider_result_fields, map, fn field, acc ->
-      case Map.fetch(acc, field) do
-        {:ok, value} ->
-          case provider_result_artifact_value(value) do
-            nil -> Map.delete(acc, field)
-            normalized -> Map.put(acc, field, normalized)
-          end
+  defp normalize_provider_result_artifact_fields(value),
+    do: ProviderResultNormalization.normalize_artifact_fields(value)
 
-        :error ->
-          acc
-      end
-    end)
-  end
-
-  defp normalize_provider_result_artifact_fields(value), do: value
-
-  defp provider_result_values(result) when is_binary(result) do
-    result
-    |> String.split(",", trim: true)
-    |> Enum.map(&String.trim/1)
-    |> Enum.reject(&(&1 == ""))
-  end
-
-  defp provider_result_values(values) when is_list(values) do
-    Enum.flat_map(values, &provider_result_values/1)
-  end
-
-  defp provider_result_values(%{} = result) do
-    Enum.flat_map(@provider_result_map_value_keys, fn key ->
-      result
-      |> Map.get(key)
-      |> provider_result_values()
-    end)
-  end
-
-  defp provider_result_values(nil), do: []
-
-  defp provider_result_values(result) when is_atom(result) do
-    result
-    |> Atom.to_string()
-    |> provider_result_values()
-  end
-
-  defp provider_result_values(result)
-       when is_integer(result) or is_float(result) or is_boolean(result) do
-    result
-    |> to_string()
-    |> provider_result_values()
-  end
-
-  defp provider_result_values(_result), do: []
-
-  defp provider_result_artifact_value(nil), do: nil
-
-  defp provider_result_artifact_value(result) when is_binary(result) do
-    case String.trim(result) do
-      "" -> nil
-      _value -> result
-    end
-  end
-
-  defp provider_result_artifact_value(results) when is_list(results) do
-    case provider_result_values(results) do
-      [] -> nil
-      values -> Enum.join(values, ",")
-    end
-  end
-
-  defp provider_result_artifact_value(%{} = result) do
-    case provider_result_values(result) do
-      [] -> nil
-      values -> Enum.join(values, ",")
-    end
-  end
-
-  defp provider_result_artifact_value(result) when is_integer(result),
-    do: Integer.to_string(result)
-
-  defp provider_result_artifact_value(result) when is_float(result), do: Float.to_string(result)
-  defp provider_result_artifact_value(result) when is_boolean(result), do: Atom.to_string(result)
-
-  defp provider_result_artifact_value(result) when is_atom(result) do
-    result
-    |> Atom.to_string()
-    |> provider_result_artifact_value()
-  end
-
-  defp provider_result_artifact_value(_result), do: nil
+  defp provider_result_artifact_value(value),
+    do: ProviderResultNormalization.artifact_value(value)
 
   defp station_calendar_context_fields do
     [
