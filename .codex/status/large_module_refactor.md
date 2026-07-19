@@ -6,42 +6,32 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-CadenceImport manifest-contract diagnostic extraction.
+CadenceImport manifest-map normalization extraction.
 
 Status:
-Completed and published.
+Selected; implementation has not started.
 
 Selected boundary:
-Extract unsupported manifest contract labeling and supported-contract list
-formatting into `OrbitalDynamics.CadenceImport.ManifestContractDiagnostics`.
-Preserve the facade's two existing private diagnostic seams as delegates and
-pass the existing capability map into the supported-list formatter.
+Extract top-level nil compaction and nonempty-map normalization into
+`OrbitalDynamics.CadenceImport.ManifestMapNormalization`. Preserve the facade's
+existing `compact_map/1` and `non_empty_map/1` callback seams as delegates for
+all row builders.
 
 Selection evidence:
-- `cadence_import.ex` is now 3,349 lines.
-- The selected contiguous diagnostic family spans about 15 lines and supplies
-  the unsupported-input error returned by the manifest facade.
-- The family has one responsibility: normalize the reported contract label and
-  render the advertised supported-source list without changing capability
-  ownership.
-- Manifest dispatch, capability construction, row construction, schemas, and
-  successful manifest construction remain outside the boundary.
+- `cadence_import.ex` is now 3,341 lines.
+- The selected tail family is small but is shared by manifest construction and
+  nearly every extracted row builder through stable callbacks.
+- The family has one responsibility: remove top-level nil map entries and map
+  empty/non-map context values to nil without recursively altering values.
+- Row construction, nested normalization, schemas, ordering, and manifest
+  dispatch remain outside the boundary.
+- This ownership seam enables the next large review-summary context extraction
+  without duplicating compaction behavior.
 
 Verification:
-- Strict test compile passed with 3,815 files and warnings as errors.
-- Two focused capability and unsupported-input tests passed with 70 excluded.
-- All combined CadenceImport tests passed: 96 tests.
-- CadenceImport schema contracts passed: 4 tests.
-- A 10-case direct decision matrix covered binary, atom-key/value, missing,
-  nil/null, empty-string, numeric, and collection contract labels plus ordered
-  and empty supported-source lists.
-- Formatting and diff checks passed, and no temporary proof files remain.
-- Static ownership checks confirmed both diagnostic formatters have one
-  production implementation behind the preserved facade seams.
-- Runtime xref confirmed `cadence_import.ex` is the direct consumer of
-  `manifest_contract_diagnostics.ex`.
-- Bounded local review found no capability ownership, normalization, inspection,
-  list order, error-message, dispatch, or schema changes.
+Pending: focused representative row/manifest baselines, exact map-normalization
+decision matrix, strict compile, all combined CadenceImport tests, schema
+contracts, static single ownership, runtime xref, and bounded review.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
@@ -52,8 +42,8 @@ and implemented in `580eb142`. `cadence_import.ex` moved from 3,349 to 3,341
 lines; the extracted owner is 20 lines.
 
 Next candidate:
-Return to the remaining CadenceImport row-building or manifest-routing helpers
-after manifest-contract diagnostics have one production owner.
+Extract review-summary context selection after manifest-map normalization has
+one production owner.
 
 Blocked:
 No.
