@@ -9,7 +9,7 @@ Current slice:
 ResourceProjection activity-effect policy extraction.
 
 Status:
-Selected; strict focused baseline pending.
+Completed and pushed.
 
 Selected boundary:
 Extract activity resource-effect classification, including terminal and
@@ -40,24 +40,39 @@ Selection evidence:
   projection must remain unchanged.
 
 Implementation:
-Pending.
+- Selection was recorded and pushed in `444f0395`.
+- Implementation was committed and pushed in `cd89b612`.
+- `resource_projection.ex` moved from 2,197 to 1,981 lines.
+- `OrbitalDynamics.ResourceProjection.ActivityEffectPolicy` is a 246-line
+  owner reached through thin private facade delegates.
 
 Verification:
-Pending strict focused baseline, exact old/new public parity, focused and
-adjacent tests, static ownership checks, xref, strict warning-clean compile,
-formatting, and diff checks.
+- Strict warning-clean compilation passed across 3,983 files.
+- The focused ResourceProjection suite and six adjacent campaign,
+  candidate-refresh, resource-filter, operator-review, flow-summary, and
+  validation consumers passed together: 111 tests.
+- Exact old/new public report/flow/capability parity passed for 7 chains
+  covering active, terminal, rejected, allocated, deferred, policy-blocked,
+  suppressed, incompatible, payload-unavailable, antenna-unavailable,
+  degraded, spacecraft-unavailable, and nested-allocation cases.
+- `mix xref callers` reports only the ResourceProjection facade.
+- The facade-owned effect/allocation/type-matching helpers are absent apart
+  from thin delegates used by flow-row assembly and input normalization;
+  formatting and `git diff --check` passed, and the final diff is
+  ownership-only.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-Study.Manifest schema-document extraction, selected in `4beb22bd` and
-implemented in `d80ce4e9`.
-`study/manifest.ex` moved from 2,229 to 1,621 lines; the dedicated schema
-document owner is 632 lines.
+ResourceProjection activity-effect policy extraction, selected in `444f0395`
+and implemented in `cd89b612`.
+`resource_projection.ex` moved from 2,197 to 1,981 lines; the dedicated
+activity-effect policy owner is 246 lines.
 
 Next candidate:
-Complete the selected ResourceProjection activity-effect policy extraction.
+Re-rank the live checkout and select the next cohesive facade-preserving
+boundary.
 
 Blocked:
 No.
