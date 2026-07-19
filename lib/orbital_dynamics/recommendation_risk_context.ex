@@ -4,6 +4,7 @@ defmodule OrbitalDynamics.RecommendationRiskContext do
   alias OrbitalDynamics.RecommendationRiskContext.{
     ObjectiveSatisfaction,
     OperationalFeedback,
+    StationCalendar,
     ValidationRefresh
   }
 
@@ -593,55 +594,6 @@ defmodule OrbitalDynamics.RecommendationRiskContext do
     "resource_projection_pressure_derivation_reasons"
   ]
 
-  @station_calendar_context_keys [
-    "station_calendar_pressure_risk_types",
-    "station_calendar_pressure_ground_station_ids",
-    "station_calendar_pressure_start_values_s",
-    "station_calendar_pressure_end_values_s",
-    "station_calendar_pressure_capacity_fraction_values",
-    "station_calendar_pressure_station_availabilities",
-    "station_calendar_pressure_station_contention_statuses",
-    "station_calendar_pressure_station_calendar_entry_ids",
-    "station_calendar_pressure_station_calendar_provider_ids",
-    "station_calendar_pressure_station_calendar_provider_entry_ids",
-    "station_calendar_pressure_station_calendar_directions",
-    "station_calendar_pressure_station_calendar_statuses",
-    "station_calendar_pressure_station_calendar_overlap_count_values",
-    "station_calendar_pressure_station_calendar_overlap_entry_ids",
-    "station_calendar_pressure_station_calendar_overlap_availabilities",
-    "station_calendar_pressure_station_calendar_entry_ambiguous_values",
-    "station_calendar_pressure_station_calendar_ambiguous_entry_count_values",
-    "station_calendar_pressure_station_calendar_ambiguous_entry_ids",
-    "station_calendar_pressure_station_calendar_reservation_overlap_count_values",
-    "station_calendar_pressure_station_calendar_reservation_ids",
-    "station_calendar_pressure_station_calendar_reserved_by",
-    "station_calendar_pressure_station_calendar_reservation_statuses",
-    "station_calendar_pressure_station_calendar_trust_boundary_statuses",
-    "station_calendar_pressure_station_reservation_ids",
-    "station_calendar_pressure_station_reserved_by",
-    "station_calendar_pressure_station_reservation_statuses",
-    "station_calendar_pressure_station_reservation_match_statuses",
-    "station_calendar_pressure_station_reservation_expires_at_values_s",
-    "station_calendar_pressure_station_reservation_expiration_statuses",
-    "station_calendar_pressure_provider_calendar_contention_group_ids",
-    "station_calendar_pressure_provider_calendar_contention_statuses",
-    "station_calendar_pressure_provider_calendar_contention_entry_ids",
-    "station_calendar_pressure_provider_calendar_contention_provider_ids",
-    "station_calendar_pressure_provider_calendar_contention_provider_entry_ids",
-    "station_calendar_pressure_provider_calendar_contention_availabilities",
-    "station_calendar_pressure_provider_calendar_contention_directions",
-    "station_calendar_pressure_provider_calendar_contention_reservation_ids",
-    "station_calendar_pressure_provider_calendar_contention_reserved_by",
-    "station_calendar_pressure_provider_calendar_contention_reservation_statuses",
-    "station_calendar_pressure_provider_calendar_contention_trust_boundary_statuses",
-    "station_calendar_pressure_provider_calendar_contention_overlap_pairs",
-    "station_calendar_pressure_required_operator_actions",
-    "station_calendar_pressure_feedback_sources",
-    "station_calendar_pressure_feedback_scopes",
-    "station_calendar_pressure_trust_boundaries",
-    "station_calendar_pressure_derivation_reasons"
-  ]
-
   @score_term_context_keys [
     "score_term_pressure_risk_types",
     "score_term_pressure_objective_ids",
@@ -884,7 +836,7 @@ defmodule OrbitalDynamics.RecommendationRiskContext do
 
   def resource_projection_context_keys, do: @resource_projection_context_keys
 
-  def station_calendar_context_keys, do: @station_calendar_context_keys
+  def station_calendar_context_keys, do: StationCalendar.context_keys()
 
   def score_term_context_keys, do: @score_term_context_keys
 
@@ -2516,141 +2468,7 @@ defmodule OrbitalDynamics.RecommendationRiskContext do
 
   def resource_projection_context(_risks), do: %{}
 
-  def station_calendar_context(risks) when is_list(risks) do
-    risks = Enum.map(risks, &stringify_keys/1)
-
-    station_calendar_risks =
-      Enum.filter(risks, &station_calendar_risk?/1)
-
-    %{
-      "station_calendar_pressure_risk_types" =>
-        risk_context_values(station_calendar_risks, ["type", "risk_type"]),
-      "station_calendar_pressure_ground_station_ids" =>
-        risk_context_values(station_calendar_risks, "ground_station_id"),
-      "station_calendar_pressure_start_values_s" =>
-        risk_context_values(station_calendar_risks, "starts_at_s"),
-      "station_calendar_pressure_end_values_s" =>
-        risk_context_values(station_calendar_risks, "ends_at_s"),
-      "station_calendar_pressure_capacity_fraction_values" =>
-        risk_context_values(station_calendar_risks, "capacity_fraction"),
-      "station_calendar_pressure_station_availabilities" =>
-        risk_context_values(station_calendar_risks, "station_availability"),
-      "station_calendar_pressure_station_contention_statuses" =>
-        risk_context_values(station_calendar_risks, "station_contention_status"),
-      "station_calendar_pressure_station_calendar_entry_ids" =>
-        risk_context_values(station_calendar_risks, "station_calendar_entry_id"),
-      "station_calendar_pressure_station_calendar_provider_ids" =>
-        risk_context_values(station_calendar_risks, "station_calendar_provider_id"),
-      "station_calendar_pressure_station_calendar_provider_entry_ids" =>
-        risk_context_values(station_calendar_risks, "station_calendar_provider_entry_id"),
-      "station_calendar_pressure_station_calendar_directions" =>
-        risk_context_values(station_calendar_risks, ["station_calendar_directions"]),
-      "station_calendar_pressure_station_calendar_statuses" =>
-        risk_context_values(station_calendar_risks, "station_calendar_status"),
-      "station_calendar_pressure_station_calendar_overlap_count_values" =>
-        risk_context_values(station_calendar_risks, "station_calendar_overlap_count"),
-      "station_calendar_pressure_station_calendar_overlap_entry_ids" =>
-        risk_context_values(station_calendar_risks, ["station_calendar_overlap_entry_ids"]),
-      "station_calendar_pressure_station_calendar_overlap_availabilities" =>
-        risk_context_values(station_calendar_risks, [
-          "station_calendar_overlap_availabilities"
-        ]),
-      "station_calendar_pressure_station_calendar_entry_ambiguous_values" =>
-        risk_context_values(station_calendar_risks, "station_calendar_entry_ambiguous"),
-      "station_calendar_pressure_station_calendar_ambiguous_entry_count_values" =>
-        risk_context_values(station_calendar_risks, "station_calendar_ambiguous_entry_count"),
-      "station_calendar_pressure_station_calendar_ambiguous_entry_ids" =>
-        risk_context_values(station_calendar_risks, ["station_calendar_ambiguous_entry_ids"]),
-      "station_calendar_pressure_station_calendar_reservation_overlap_count_values" =>
-        risk_context_values(
-          station_calendar_risks,
-          "station_calendar_reservation_overlap_count"
-        ),
-      "station_calendar_pressure_station_calendar_reservation_ids" =>
-        risk_context_values(station_calendar_risks, ["station_calendar_reservation_ids"]),
-      "station_calendar_pressure_station_calendar_reserved_by" =>
-        risk_context_values(station_calendar_risks, ["station_calendar_reserved_by"]),
-      "station_calendar_pressure_station_calendar_reservation_statuses" =>
-        risk_context_values(station_calendar_risks, [
-          "station_calendar_reservation_statuses"
-        ]),
-      "station_calendar_pressure_station_calendar_trust_boundary_statuses" =>
-        risk_context_values(station_calendar_risks, "station_calendar_trust_boundary_status"),
-      "station_calendar_pressure_station_reservation_ids" =>
-        risk_context_values(station_calendar_risks, ["station_reservation_id", "reservation_id"]),
-      "station_calendar_pressure_station_reserved_by" =>
-        risk_context_values(station_calendar_risks, ["station_reserved_by", "reserved_by"]),
-      "station_calendar_pressure_station_reservation_statuses" =>
-        risk_context_values(station_calendar_risks, [
-          "station_reservation_status",
-          "reservation_status"
-        ]),
-      "station_calendar_pressure_station_reservation_match_statuses" =>
-        risk_context_values(station_calendar_risks, "station_reservation_match_status"),
-      "station_calendar_pressure_station_reservation_expires_at_values_s" =>
-        risk_context_values(station_calendar_risks, "station_reservation_expires_at_s"),
-      "station_calendar_pressure_station_reservation_expiration_statuses" =>
-        risk_context_values(station_calendar_risks, "station_reservation_expiration_status"),
-      "station_calendar_pressure_provider_calendar_contention_group_ids" =>
-        risk_context_values(station_calendar_risks, "provider_calendar_contention_group_id"),
-      "station_calendar_pressure_provider_calendar_contention_statuses" =>
-        risk_context_values(station_calendar_risks, "provider_calendar_contention_status"),
-      "station_calendar_pressure_provider_calendar_contention_entry_ids" =>
-        risk_context_values(station_calendar_risks, [
-          "provider_calendar_contention_entry_ids"
-        ]),
-      "station_calendar_pressure_provider_calendar_contention_provider_ids" =>
-        risk_context_values(station_calendar_risks, [
-          "provider_calendar_contention_provider_ids"
-        ]),
-      "station_calendar_pressure_provider_calendar_contention_provider_entry_ids" =>
-        risk_context_values(station_calendar_risks, [
-          "provider_calendar_contention_provider_entry_ids"
-        ]),
-      "station_calendar_pressure_provider_calendar_contention_availabilities" =>
-        risk_context_values(station_calendar_risks, [
-          "provider_calendar_contention_availabilities"
-        ]),
-      "station_calendar_pressure_provider_calendar_contention_directions" =>
-        risk_context_values(station_calendar_risks, [
-          "provider_calendar_contention_directions"
-        ]),
-      "station_calendar_pressure_provider_calendar_contention_reservation_ids" =>
-        risk_context_values(station_calendar_risks, [
-          "provider_calendar_contention_reservation_ids"
-        ]),
-      "station_calendar_pressure_provider_calendar_contention_reserved_by" =>
-        risk_context_values(station_calendar_risks, [
-          "provider_calendar_contention_reserved_by"
-        ]),
-      "station_calendar_pressure_provider_calendar_contention_reservation_statuses" =>
-        risk_context_values(station_calendar_risks, [
-          "provider_calendar_contention_reservation_statuses"
-        ]),
-      "station_calendar_pressure_provider_calendar_contention_trust_boundary_statuses" =>
-        risk_context_values(station_calendar_risks, [
-          "provider_calendar_contention_trust_boundary_statuses"
-        ]),
-      "station_calendar_pressure_provider_calendar_contention_overlap_pairs" =>
-        risk_context_values(station_calendar_risks, [
-          "provider_calendar_contention_overlap_pairs"
-        ]),
-      "station_calendar_pressure_required_operator_actions" =>
-        risk_context_values(station_calendar_risks, "required_operator_action"),
-      "station_calendar_pressure_feedback_sources" =>
-        risk_context_values(station_calendar_risks, "feedback_source"),
-      "station_calendar_pressure_feedback_scopes" =>
-        risk_context_values(station_calendar_risks, "feedback_scope"),
-      "station_calendar_pressure_trust_boundaries" =>
-        risk_context_values(station_calendar_risks, "trust_boundary"),
-      "station_calendar_pressure_derivation_reasons" =>
-        risk_context_values(station_calendar_risks, ["derivation_reasons"])
-    }
-    |> Enum.reject(fn {_key, values} -> values == [] end)
-    |> Map.new()
-  end
-
-  def station_calendar_context(_risks), do: %{}
+  def station_calendar_context(risks), do: StationCalendar.context(risks)
 
   def score_term_context(risks) when is_list(risks) do
     risks = Enum.map(risks, &stringify_keys/1)
@@ -3223,26 +3041,6 @@ defmodule OrbitalDynamics.RecommendationRiskContext do
   defp resource_projection_risk?(%{"feedback_scope" => "resource_projection"}), do: true
 
   defp resource_projection_risk?(_risk), do: false
-
-  defp station_calendar_risk?(%{"feedback_scope" => "station_calendar"}), do: true
-
-  defp station_calendar_risk?(%{"type" => type}) when is_binary(type) do
-    type in [
-      "ground_station_reserved",
-      "ground_station_outage",
-      "reduced_downlink_capacity"
-    ]
-  end
-
-  defp station_calendar_risk?(%{"risk_type" => type}) when is_binary(type) do
-    type in [
-      "ground_station_reserved",
-      "ground_station_outage",
-      "reduced_downlink_capacity"
-    ]
-  end
-
-  defp station_calendar_risk?(_risk), do: false
 
   defp score_term_risk?(%{"feedback_scope" => "score_term"}), do: true
 
