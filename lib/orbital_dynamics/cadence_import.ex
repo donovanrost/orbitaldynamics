@@ -26,7 +26,8 @@ defmodule OrbitalDynamics.CadenceImport do
     ReviewSummaryContext,
     SourceIdentifierPolicy,
     StationCalendarContextFields,
-    StrategyReview
+    StrategyReview,
+    TimelineReviewImport
   }
 
   alias OrbitalDynamics.OperatorReview
@@ -1633,44 +1634,24 @@ defmodule OrbitalDynamics.CadenceImport do
   Builds an import manifest from a timeline-diff report.
   """
   def from_timeline_diff_report(%{} = report, opts \\ []) do
-    report = stringify_keys(report)
-    source_artifact_id = option(opts, :source_artifact_id, report["id"] || report["source"])
-
-    from_review_report(
-      OperatorReview.from_timeline_diff_report(report),
-      opts,
-      "timeline_diff_report.v1",
-      source_artifact_id || "timeline_diff_report"
-    )
+    TimelineReviewImport.from_timeline_diff_report(report, opts, &from_review_report/4)
   end
 
   @doc """
   Builds an import manifest from a model-only timeline diff summary.
   """
   def from_timeline_diff_summary(%{} = summary, opts \\ []) do
-    summary = stringify_keys(summary)
-    source_artifact_id = option(opts, :source_artifact_id, summary["id"] || summary["source"])
-
-    from_review_report(
-      OperatorReview.from_timeline_diff_summary(summary),
-      opts,
-      "timeline_diff_summary.v1",
-      source_artifact_id || "timeline_diff_summary"
-    )
+    TimelineReviewImport.from_timeline_diff_summary(summary, opts, &from_review_report/4)
   end
 
   @doc """
   Builds an import manifest from a timeline dependency-impact summary.
   """
   def from_timeline_dependency_impact_summary(%{} = summary, opts \\ []) do
-    summary = stringify_keys(summary)
-    source_artifact_id = option(opts, :source_artifact_id, summary["id"] || summary["source"])
-
-    from_review_report(
-      OperatorReview.from_timeline_dependency_impact_summary(summary),
+    TimelineReviewImport.from_timeline_dependency_impact_summary(
+      summary,
       opts,
-      "timeline_dependency_impact_summary.v1",
-      source_artifact_id || "timeline_dependency_impact_summary"
+      &from_review_report/4
     )
   end
 
@@ -1678,41 +1659,17 @@ defmodule OrbitalDynamics.CadenceImport do
   Builds an import manifest from a timeline publication summary.
   """
   def from_timeline_publication_summary(%{} = summary, opts \\ []) do
-    summary = stringify_keys(summary)
-
-    source_artifact_id =
-      option(
-        opts,
-        :source_artifact_id,
-        summary["publication_id"] || summary["source_artifact_id"]
-      )
-
-    from_review_report(
-      OperatorReview.from_timeline_publication_summary(summary),
-      opts,
-      "timeline_publication_summary.v1",
-      source_artifact_id || "timeline_publication_summary"
-    )
+    TimelineReviewImport.from_timeline_publication_summary(summary, opts, &from_review_report/4)
   end
 
   @doc """
   Builds an import manifest from a timeline activity precondition summary.
   """
   def from_timeline_activity_precondition_summary(%{} = summary, opts \\ []) do
-    summary = stringify_keys(summary)
-
-    source_artifact_id =
-      option(
-        opts,
-        :source_artifact_id,
-        summary["id"] || summary["source"] || summary["timeline_id"]
-      )
-
-    from_review_report(
-      OperatorReview.from_timeline_activity_precondition_summary(summary),
+    TimelineReviewImport.from_timeline_activity_precondition_summary(
+      summary,
       opts,
-      "timeline_activity_precondition_summary.v1",
-      source_artifact_id || summary["activity_id"] || "timeline_activity_precondition_summary"
+      &from_review_report/4
     )
   end
 
@@ -1720,14 +1677,10 @@ defmodule OrbitalDynamics.CadenceImport do
   Builds an import manifest from a timeline lifecycle-state summary.
   """
   def from_timeline_lifecycle_state_summary(%{} = summary, opts \\ []) do
-    summary = stringify_keys(summary)
-    source_artifact_id = option(opts, :source_artifact_id, summary["id"] || summary["source"])
-
-    from_review_report(
-      OperatorReview.from_timeline_lifecycle_state_summary(summary),
+    TimelineReviewImport.from_timeline_lifecycle_state_summary(
+      summary,
       opts,
-      "timeline_lifecycle_state_summary.v1",
-      source_artifact_id || "timeline_lifecycle_state_summary"
+      &from_review_report/4
     )
   end
 
@@ -1735,65 +1688,31 @@ defmodule OrbitalDynamics.CadenceImport do
   Builds an import manifest from a compact activity-state artifact.
   """
   def from_timeline_activity_state(%{} = state, opts \\ []) do
-    state = stringify_keys(state)
-    source_artifact_id = timeline_activity_state_source_id(state, opts, "timeline_activity_state")
-
-    from_review_report(
-      OperatorReview.from_timeline_activity_state(state),
-      opts,
-      "timeline_activity_state.v1",
-      source_artifact_id
-    )
+    TimelineReviewImport.from_timeline_activity_state(state, opts, &from_review_report/4)
   end
 
   @doc """
   Builds an import manifest from a single activity status-state artifact.
   """
   def from_timeline_activity_status_state(%{} = state, opts \\ []) do
-    state = stringify_keys(state)
-
-    source_artifact_id =
-      timeline_activity_state_source_id(state, opts, "timeline_activity_status_state")
-
-    from_review_report(
-      OperatorReview.from_timeline_activity_status_state(state),
-      opts,
-      "timeline_activity_status_state.v1",
-      source_artifact_id
-    )
+    TimelineReviewImport.from_timeline_activity_status_state(state, opts, &from_review_report/4)
   end
 
   @doc """
   Builds an import manifest from a single activity approval-state artifact.
   """
   def from_timeline_activity_approval_state(%{} = state, opts \\ []) do
-    state = stringify_keys(state)
-
-    source_artifact_id =
-      timeline_activity_state_source_id(state, opts, "timeline_activity_approval_state")
-
-    from_review_report(
-      OperatorReview.from_timeline_activity_approval_state(state),
-      opts,
-      "timeline_activity_approval_state.v1",
-      source_artifact_id
-    )
+    TimelineReviewImport.from_timeline_activity_approval_state(state, opts, &from_review_report/4)
   end
 
   @doc """
   Builds an import manifest from a single activity lifecycle-state artifact.
   """
   def from_timeline_activity_lifecycle_state(%{} = state, opts \\ []) do
-    state = stringify_keys(state)
-
-    source_artifact_id =
-      timeline_activity_state_source_id(state, opts, "timeline_activity_lifecycle_state")
-
-    from_review_report(
-      OperatorReview.from_timeline_activity_lifecycle_state(state),
+    TimelineReviewImport.from_timeline_activity_lifecycle_state(
+      state,
       opts,
-      "timeline_activity_lifecycle_state.v1",
-      source_artifact_id
+      &from_review_report/4
     )
   end
 
@@ -1801,63 +1720,31 @@ defmodule OrbitalDynamics.CadenceImport do
   Builds an import manifest from a timeline preservation report.
   """
   def from_timeline_preservation_report(%{} = report, opts \\ []) do
-    report = stringify_keys(report)
-    source_artifact_id = option(opts, :source_artifact_id, report["id"] || report["source"])
-
-    from_review_report(
-      OperatorReview.from_timeline_preservation_report(report),
-      opts,
-      "timeline_preservation_report.v1",
-      source_artifact_id || "timeline_preservation_report"
-    )
+    TimelineReviewImport.from_timeline_preservation_report(report, opts, &from_review_report/4)
   end
 
   @doc """
   Builds an import manifest from a single timeline preservation status artifact.
   """
   def from_timeline_preservation_status(%{} = status, opts \\ []) do
-    status = stringify_keys(status)
-
-    source_artifact_id =
-      timeline_preservation_source_id(status, opts, "timeline_preservation_status")
-
-    from_review_report(
-      OperatorReview.from_timeline_preservation_status(status),
-      opts,
-      "timeline_preservation_status.v1",
-      source_artifact_id
-    )
+    TimelineReviewImport.from_timeline_preservation_status(status, opts, &from_review_report/4)
   end
 
   @doc """
   Builds an import manifest from a model-only timeline integrity report.
   """
   def from_timeline_integrity_report(%{} = report, opts \\ []) do
-    report = stringify_keys(report)
-    source_artifact_id = option(opts, :source_artifact_id, report["id"] || report["source"])
-
-    from_review_report(
-      OperatorReview.from_timeline_integrity_report(report),
-      opts,
-      "timeline_integrity_report.v1",
-      source_artifact_id || "timeline_integrity_report"
-    )
+    TimelineReviewImport.from_timeline_integrity_report(report, opts, &from_review_report/4)
   end
 
   @doc """
   Builds an import manifest from a model-only timeline transition-application summary.
   """
   def from_timeline_transition_application_summary(%{} = summary, opts \\ []) do
-    summary = stringify_keys(summary)
-    source_artifact_id = option(opts, :source_artifact_id, summary["id"] || summary["source"])
-
-    from_review_report(
-      OperatorReview.from_timeline_transition_application_summary(summary,
-        approval_policy: option(opts, :approval_policy)
-      ),
+    TimelineReviewImport.from_timeline_transition_application_summary(
+      summary,
       opts,
-      "timeline_transition_application_summary.v1",
-      source_artifact_id || "timeline_transition_application_summary"
+      &from_review_report/4
     )
   end
 
@@ -1865,16 +1752,10 @@ defmodule OrbitalDynamics.CadenceImport do
   Builds an import manifest from a timeline transition application report.
   """
   def from_timeline_transition_application_report(%{} = report, opts \\ []) do
-    report = stringify_keys(report)
-    source_artifact_id = option(opts, :source_artifact_id, report["id"] || report["source"])
-
-    from_review_report(
-      OperatorReview.from_timeline_transition_application_report(report,
-        approval_policy: option(opts, :approval_policy)
-      ),
+    TimelineReviewImport.from_timeline_transition_application_report(
+      report,
       opts,
-      "timeline_transition_application_report.v1",
-      source_artifact_id || "timeline_transition_application_report"
+      &from_review_report/4
     )
   end
 
@@ -2094,22 +1975,6 @@ defmodule OrbitalDynamics.CadenceImport do
         source_artifact_type: source_artifact_type,
         source_artifact_id: source_artifact_id
       )
-    )
-  end
-
-  defp timeline_activity_state_source_id(state, opts, fallback) do
-    SourceIdentifierPolicy.timeline_state(
-      state,
-      option(opts, :source_artifact_id),
-      fallback
-    )
-  end
-
-  defp timeline_preservation_source_id(status, opts, fallback) do
-    SourceIdentifierPolicy.timeline_state(
-      status,
-      option(opts, :source_artifact_id),
-      fallback
     )
   end
 
@@ -2681,7 +2546,7 @@ defmodule OrbitalDynamics.CadenceImport do
   defp result_artifact_source_id(artifact),
     do: SourceIdentifierPolicy.result_artifact(artifact)
 
-  defp option(opts, key, default \\ nil), do: Keyword.get(opts, key, default)
+  defp option(opts, key, default), do: Keyword.get(opts, key, default)
 
   defp unsupported_manifest_contract(artifact),
     do: ManifestContractDiagnostics.unsupported_contract(artifact)
