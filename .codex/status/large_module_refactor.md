@@ -9,7 +9,7 @@ Current slice:
 StationCalendar provider-counteroffer review summary extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `bea811b2`.
 
 Selected boundary:
 Extract `provider_counteroffer_review_summary.v1` construction and shared
@@ -32,20 +32,33 @@ Selection evidence:
   omission behavior, and deterministic ordering remain unchanged.
 
 Verification:
-Pending.
+- Strict test-environment compile passed with warnings as errors across 3,911
+  files.
+- Focused StationCalendar coverage passed: 42 tests.
+- Adjacent operator-review, schema-contract, and wrapped Cadence-import
+  counteroffer coverage passed: 5 tests.
+- Exact public old/new comparison against selection commit `29995109` passed
+  for eight artifacts covering canonical report projection, review summary,
+  deadline classification, import readiness, and plan impact.
+- `mix xref callers` reports only the StationCalendar facade as a runtime
+  caller of the extracted review owner.
+- Static ownership checks confirm review-summary construction and lock-deadline
+  classification live in the dedicated owner while import-readiness and
+  plan-impact assembly remain in the facade.
+- `git diff --check` passed.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-ResourceProjection activity delivery evidence extraction, selected in
-`299d93df` and implemented in `d80e997a`.
-`resource_projection.ex` moved from 3,827 to 3,720 lines; the dedicated
-evidence owner is 117 lines.
+StationCalendar provider-counteroffer review summary extraction, selected in
+`29995109` and implemented in `bea811b2`.
+`station_calendar.ex` moved from 3,804 to 3,728 lines; the dedicated review
+owner is 157 lines.
 
 Next candidate:
-Implement and verify the selected StationCalendar provider-counteroffer review
-summary extraction.
+Re-rank the live largest-module set and select the next cohesive ownership
+boundary.
 
 Blocked:
 No.
