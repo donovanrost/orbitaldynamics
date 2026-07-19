@@ -14,6 +14,7 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
   alias OrbitalDynamics.MissionPlan.Activity.{
     CollectionInput,
     ExecutionUncertaintyInput,
+    IdentifierInput,
     LifecycleTransition,
     PreconditionSummary,
     ScalarInput
@@ -168,7 +169,6 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
     "review_required" => :operator_review_required,
     "under_review" => :operator_review_required
   }
-  @stable_id_pattern ~r/^[A-Za-z0-9][A-Za-z0-9._:@-]*$/
   @status_preserving_approval_updates [
     :completed,
     :partial,
@@ -4178,15 +4178,8 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
   defp optional_unit_interval?(value), do: ScalarInput.optional_unit_interval?(value)
   defp optional_scalar?(value), do: ScalarInput.optional_scalar?(value)
 
-  defp optional_stable_identifier?(nil), do: true
-
-  defp optional_stable_identifier?(value) when is_binary(value),
-    do: Regex.match?(@stable_id_pattern, value)
-
-  defp optional_stable_identifier?(value) when is_atom(value),
-    do: value |> Atom.to_string() |> optional_stable_identifier?()
-
-  defp optional_stable_identifier?(_value), do: false
+  defp optional_stable_identifier?(value),
+    do: IdentifierInput.optional_stable_identifier?(value)
 
   defp optional_number_or_scalar?(value), do: ScalarInput.optional_number_or_scalar?(value)
   defp optional_number!(value), do: ScalarInput.optional_number!(value)
@@ -4209,15 +4202,11 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
   defp optional_direction!(nil), do: nil
   defp optional_direction!(direction), do: contact_direction!(direction)
 
-  defp optional_dependencies!(nil), do: nil
-
   defp optional_dependencies!(dependencies),
-    do: dependencies_input!(dependencies, "dependencies", "activity ids")
-
-  defp optional_id_list!(nil, _field, _description), do: nil
+    do: IdentifierInput.optional_dependencies!(dependencies)
 
   defp optional_id_list!(values, field, description),
-    do: id_list_input!(values, field, description)
+    do: IdentifierInput.optional_id_list!(values, field, description)
 
   defp optional_scalar_list!(values, field, description),
     do: CollectionInput.optional_scalar_list!(values, field, description)
@@ -4228,24 +4217,10 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
   defp optional_map_list!(values, field, description),
     do: CollectionInput.optional_map_list!(values, field, description)
 
-  defp optional_identifier!(nil), do: nil
-
-  defp optional_identifier!(value) do
-    if invalid_identifier?(value) do
-      raise ArgumentError, "identifier fields must be non-empty"
-    else
-      value
-    end
-  end
-
-  defp optional_stable_identifier!(nil, _field), do: nil
+  defp optional_identifier!(value), do: IdentifierInput.optional_identifier!(value)
 
   defp optional_stable_identifier!(value, field) do
-    if optional_stable_identifier?(value) do
-      value
-    else
-      raise ArgumentError, "#{field} must be a stable identifier"
-    end
+    IdentifierInput.optional_stable_identifier!(value, field)
   end
 
   defp optional_map!(value), do: CollectionInput.optional_map!(value)
@@ -4353,11 +4328,7 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
     end
   end
 
-  defp valid_dependencies?(dependencies) when is_list(dependencies) do
-    match?({:ok, _values}, dependency_values(dependencies))
-  end
-
-  defp valid_dependencies?(_dependencies), do: false
+  defp valid_dependencies?(dependencies), do: IdentifierInput.valid_dependencies?(dependencies)
 
   defp valid_scalar_list?(values), do: CollectionInput.valid_scalar_list?(values)
 
@@ -4370,91 +4341,14 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
   defp map_list_input!(values, field, description),
     do: CollectionInput.map_list_input!(values, field, description)
 
-  defp dependencies_input!(values, field, description) do
-    case dependency_values(values) do
-      {:ok, ids} -> ids
-      :error -> raise ArgumentError, "#{field} must be a list of #{description}"
-    end
-  end
+  defp dependencies_input!(values, field, description),
+    do: IdentifierInput.dependencies_input!(values, field, description)
 
-  defp dependency_values(values) when is_list(values) do
-    Enum.reduce_while(values, {:ok, []}, fn value, {:ok, ids} ->
-      case dependency_values(value) do
-        {:ok, value_ids} -> {:cont, {:ok, ids ++ value_ids}}
-        :error -> {:halt, :error}
-      end
-    end)
-  end
+  defp dependency_activity_ids(values),
+    do: IdentifierInput.dependency_activity_ids(values)
 
-  defp dependency_values(%{} = value), do: {:ok, [value]}
-
-  defp dependency_values(value) do
-    case id_list_value(value) do
-      [] -> :error
-      ids -> {:ok, ids}
-    end
-  end
-
-  defp dependency_activity_ids(values) when is_list(values) do
-    values
-    |> Enum.flat_map(&dependency_activity_id_values/1)
-    |> Enum.uniq()
-  end
-
-  defp dependency_activity_id_values(%{} = value) do
-    [:activity_id, "activity_id", :id, "id"]
-    |> Enum.flat_map(fn key ->
-      case Map.get(value, key) do
-        nil -> []
-        nested when is_list(nested) -> Enum.flat_map(nested, &id_list_value/1)
-        nested -> id_list_value(nested)
-      end
-    end)
-  end
-
-  defp dependency_activity_id_values(value), do: id_list_value(value)
-
-  defp id_list_input!(values, field, description) do
-    case id_list_values(values) do
-      {:ok, ids} -> ids
-      :error -> raise ArgumentError, "#{field} must be a list of #{description}"
-    end
-  end
-
-  defp id_list_values(values) when is_list(values) do
-    Enum.reduce_while(values, {:ok, []}, fn value, {:ok, ids} ->
-      case id_list_values(value) do
-        {:ok, value_ids} -> {:cont, {:ok, ids ++ value_ids}}
-        :error -> {:halt, :error}
-      end
-    end)
-  end
-
-  defp id_list_values(value) do
-    case id_list_value(value) do
-      [] -> :error
-      ids -> {:ok, ids}
-    end
-  end
-
-  defp id_list_value(value) when is_atom(value) and not is_nil(value) do
-    string_value = Atom.to_string(value)
-    if Regex.match?(@stable_id_pattern, string_value), do: [value], else: []
-  end
-
-  defp id_list_value(value) when is_binary(value) do
-    values =
-      value
-      |> String.split(",", trim: false)
-      |> Enum.map(&String.trim/1)
-
-    if Enum.all?(values, &stable_id_string?/1), do: values, else: []
-  end
-
-  defp id_list_value(_value), do: []
-
-  defp stable_id_string?(value),
-    do: value != "" and Regex.match?(@stable_id_pattern, value)
+  defp id_list_input!(values, field, description),
+    do: IdentifierInput.id_list_input!(values, field, description)
 
   defp nested_source_window_id(%{} = source_window) do
     Map.get(source_window, :id) || Map.get(source_window, "id") ||
@@ -4565,13 +4459,12 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
   defp styled_key(key, :atom), do: key
   defp styled_key(key, :string), do: Atom.to_string(key)
 
-  defp required_identifier!(value, field) do
-    if invalid_identifier?(value), do: raise(ArgumentError, "#{field} is required"), else: value
-  end
+  defp required_identifier!(value, field),
+    do: IdentifierInput.required_identifier!(value, field)
 
   defp frame_name(nil), do: nil
   defp frame_name(%Frame{} = frame), do: frame.name
 
-  defp invalid_identifier?(value), do: value in [nil, ""]
+  defp invalid_identifier?(value), do: IdentifierInput.invalid_identifier?(value)
   defp non_negative_number?(value), do: (is_integer(value) or is_float(value)) and value >= 0
 end
