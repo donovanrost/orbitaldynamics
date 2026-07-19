@@ -9,7 +9,7 @@ Current slice:
 TimelineFeedback realized-identity extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and pushed in `1b1aa4c7`.
 
 Selected boundary:
 Extract stable identifier validation, realized input identity selection,
@@ -33,17 +33,25 @@ Selection evidence:
   normalized rows.
 
 Verification:
-Pending: focused TimelineFeedback baseline, exact old/new public normalized
-identity artifacts, strict compile, adjacent realized-feedback coverage,
-static single ownership, runtime xref, and bounded review.
+- Strict warnings-as-errors compile passed across 3,880 files.
+- Focused TimelineFeedback coverage passed: 73 tests.
+- Adjacent operator-review, contact-feedback-contract, and realized-activity
+  feedback integration coverage passed: 10 tests.
+- Exact old/new public artifact comparison against `65df60b1` passed for 12
+  identifier precedence, alias, invalid nested/context, metadata, and missing
+  identity inputs plus the aggregate normalized list.
+- Runtime xref found the new owner referenced only by the TimelineFeedback
+  facade; static single-ownership review and `git diff --check` passed.
+- `timeline_feedback.ex` moved from 4,962 to 4,882 lines; the dedicated owner
+  is 121 lines.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-TimelineFeedback realized-status extraction, selected in `40a5a32c` and
-implemented in `efd6a8a5`. `timeline_feedback.ex` moved from 5,023 to 4,962
-lines; the dedicated owner is 131 lines.
+TimelineFeedback realized-identity extraction, selected in `65df60b1` and
+implemented in `1b1aa4c7`. `timeline_feedback.ex` moved from 4,962 to 4,882
+lines; the dedicated owner is 121 lines.
 
 Next candidate:
 Re-inventory remaining TimelineFeedback normalization/reconciliation families
