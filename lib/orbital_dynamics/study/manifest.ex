@@ -36,7 +36,7 @@ defmodule OrbitalDynamics.Study.Manifest do
     Search.MonteCarlo
   }
 
-  alias OrbitalDynamics.Study.Manifest.{FieldReference, ValidationError}
+  alias OrbitalDynamics.Study.Manifest.{FieldReference, InputField, ValidationError}
 
   alias OrbitalDynamics.Propagators.{
     J2,
@@ -4190,289 +4190,60 @@ defmodule OrbitalDynamics.Study.Manifest do
 
   defp known_keyword_map(_map, field, _known_keys), do: {:error, {:invalid_field, field}}
 
-  defp required(map, key) do
-    case Map.fetch(map, key) do
-      {:ok, value} when value not in [nil, ""] -> {:ok, value}
-      _missing_or_empty -> {:error, {:missing_field, key}}
-    end
-  end
+  defp required(map, key), do: InputField.required(map, key)
 
-  defp required_map(map, key) do
-    case Map.fetch(map, key) do
-      {:ok, %{} = value} -> {:ok, value}
-      {:ok, _value} -> {:error, {:invalid_field, key}}
-      :error -> {:error, {:missing_field, key}}
-    end
-  end
+  defp required_map(map, key), do: InputField.required_map(map, key)
+  defp required_list(map, key), do: InputField.required_list(map, key)
+  defp optional_list(map, key), do: InputField.optional_list(map, key)
+  defp required_number(map, key), do: InputField.required_number(map, key)
+  defp required_number_list(map, key), do: InputField.required_number_list(map, key)
+  defp optional_number(map, key), do: InputField.optional_number(map, key)
+  defp optional_string(map, key), do: InputField.optional_string(map, key)
 
-  defp required_list(map, key) do
-    case Map.fetch(map, key) do
-      {:ok, value} when is_list(value) and value != [] -> {:ok, value}
-      {:ok, _value} -> {:error, {:invalid_field, key}}
-      :error -> {:error, {:missing_field, key}}
-    end
-  end
+  defp optional_number_or_identifier(map, key),
+    do: InputField.optional_number_or_identifier(map, key)
 
-  defp optional_list(map, key) do
-    case Map.fetch(map, key) do
-      {:ok, value} when is_list(value) -> {:ok, value}
-      {:ok, _value} -> {:error, {:invalid_field, key}}
-      :error -> {:ok, []}
-    end
-  end
+  defp optional_boolean(map, key, default),
+    do: InputField.optional_boolean(map, key, default)
 
-  defp required_number(map, key) do
-    case Map.fetch(map, key) do
-      {:ok, value} when is_integer(value) or is_float(value) -> {:ok, value}
-      {:ok, _value} -> {:error, {:invalid_field, key}}
-      :error -> {:error, {:missing_field, key}}
-    end
-  end
+  defp optional_boolean_or_nil(map, key), do: InputField.optional_boolean_or_nil(map, key)
+  defp optional_string(map, key, default), do: InputField.optional_string(map, key, default)
 
-  defp required_number_list(map, key) do
-    case Map.fetch(map, key) do
-      {:ok, values} when is_list(values) and values != [] ->
-        if Enum.all?(values, &(is_integer(&1) or is_float(&1))) do
-          {:ok, values}
-        else
-          {:error, {:invalid_field, key}}
-        end
+  defp optional_station_availability(map, key),
+    do: InputField.optional_station_availability(map, key)
 
-      {:ok, _value} ->
-        {:error, {:invalid_field, key}}
+  defp validate_optional_interval(field, start_s, end_s),
+    do: InputField.validate_optional_interval(field, start_s, end_s)
 
-      :error ->
-        {:error, {:missing_field, key}}
-    end
-  end
+  defp optional_identifier(map, key), do: InputField.optional_identifier(map, key)
+  defp optional_identifier_list(map, key), do: InputField.optional_identifier_list(map, key)
 
-  defp optional_number(map, key) do
-    case Map.fetch(map, key) do
-      {:ok, value} when is_integer(value) or is_float(value) -> {:ok, value}
-      {:ok, nil} -> {:ok, nil}
-      {:ok, _value} -> {:error, {:invalid_field, key}}
-      :error -> {:ok, nil}
-    end
-  end
+  defp optional_identifier_list_or_nil(map, key),
+    do: InputField.optional_identifier_list_or_nil(map, key)
 
-  defp optional_string(map, key) do
-    case Map.fetch(map, key) do
-      {:ok, value} when is_binary(value) and value != "" -> {:ok, value}
-      {:ok, nil} -> {:ok, nil}
-      {:ok, _value} -> {:error, {:invalid_field, key}}
-      :error -> {:ok, nil}
-    end
-  end
+  defp optional_map(map, key), do: InputField.optional_map(map, key)
+  defp optional_map_or_nil(map, key), do: InputField.optional_map_or_nil(map, key)
 
-  defp optional_number_or_identifier(map, key) do
-    case Map.fetch(map, key) do
-      {:ok, value} when is_integer(value) or is_float(value) -> {:ok, value}
-      {:ok, value} when is_binary(value) and value != "" -> {:ok, value}
-      {:ok, nil} -> {:ok, nil}
-      {:ok, value} when is_atom(value) -> {:ok, value}
-      {:ok, _value} -> {:error, {:invalid_field, key}}
-      :error -> {:ok, nil}
-    end
-  end
+  defp required_positive_integer(map, key),
+    do: InputField.required_positive_integer(map, key)
 
-  defp optional_boolean(map, key, default) do
-    case Map.fetch(map, key) do
-      {:ok, value} when is_boolean(value) -> {:ok, value}
-      {:ok, _value} -> {:error, {:invalid_field, key}}
-      :error -> {:ok, default}
-    end
-  end
+  defp required_non_negative_integer(map, key),
+    do: InputField.required_non_negative_integer(map, key)
 
-  defp optional_boolean_or_nil(map, key) do
-    case Map.fetch(map, key) do
-      {:ok, value} when is_boolean(value) -> {:ok, value}
-      {:ok, nil} -> {:ok, nil}
-      {:ok, _value} -> {:error, {:invalid_field, key}}
-      :error -> {:ok, nil}
-    end
-  end
+  defp optional_positive_integer(map, key, default),
+    do: InputField.optional_positive_integer(map, key, default)
 
-  defp optional_string(map, key, default) do
-    case Map.fetch(map, key) do
-      {:ok, value} when is_binary(value) and value != "" -> {:ok, value}
-      {:ok, _value} -> {:error, {:invalid_field, key}}
-      :error -> {:ok, default}
-    end
-  end
+  defp required_vector(map, key), do: InputField.required_vector(map, key)
+  defp vector(value, key), do: InputField.vector(value, key)
 
-  defp optional_station_availability(map, key) do
-    allowed = ["available", "unavailable", "reduced_capacity", "maintenance", "reserved"]
+  defp validate_non_negative_vector(vector, key),
+    do: InputField.validate_non_negative_vector(vector, key)
 
-    case Map.fetch(map, key) do
-      {:ok, value} when is_binary(value) ->
-        if value in allowed do
-          {:ok, value}
-        else
-          {:error, {:invalid_field, key}}
-        end
+  defp required_vector_list(map, key), do: InputField.required_vector_list(map, key)
+  defp required_atom(map, key), do: InputField.required_atom(map, key)
 
-      {:ok, value} when is_number(value) and value >= 0.0 and value <= 1.0 ->
-        {:ok, value}
-
-      {:ok, nil} ->
-        {:ok, nil}
-
-      {:ok, _value} ->
-        {:error, {:invalid_field, key}}
-
-      :error ->
-        {:ok, nil}
-    end
-  end
-
-  defp validate_optional_interval(_field, nil, nil), do: :ok
-  defp validate_optional_interval(_field, nil, end_s) when is_number(end_s), do: :ok
-  defp validate_optional_interval(_field, start_s, nil) when is_number(start_s), do: :ok
-
-  defp validate_optional_interval(field, start_s, end_s)
-       when is_number(start_s) and is_number(end_s) do
-    if end_s > start_s, do: :ok, else: {:error, {:invalid_field, field}}
-  end
-
-  defp validate_optional_interval(field, _start_s, _end_s), do: {:error, {:invalid_field, field}}
-
-  defp optional_identifier(map, key) do
-    case Map.fetch(map, key) do
-      {:ok, value} when is_binary(value) and value != "" -> {:ok, value}
-      {:ok, nil} -> {:ok, nil}
-      {:ok, value} when is_atom(value) -> {:ok, value}
-      {:ok, _value} -> {:error, {:invalid_field, key}}
-      :error -> {:ok, nil}
-    end
-  end
-
-  defp optional_identifier_list(map, key) do
-    case Map.fetch(map, key) do
-      {:ok, values} when is_list(values) ->
-        if Enum.all?(values, &(is_binary(&1) and &1 != "")) do
-          {:ok, values}
-        else
-          {:error, {:invalid_field, key}}
-        end
-
-      {:ok, _value} ->
-        {:error, {:invalid_field, key}}
-
-      :error ->
-        {:ok, []}
-    end
-  end
-
-  defp optional_identifier_list_or_nil(map, key) do
-    case optional_identifier_list(map, key) do
-      {:ok, []} ->
-        if Map.has_key?(map, key), do: {:ok, []}, else: {:ok, nil}
-
-      other ->
-        other
-    end
-  end
-
-  defp optional_map(map, key) do
-    case Map.fetch(map, key) do
-      {:ok, %{} = value} -> {:ok, value}
-      {:ok, nil} -> {:ok, %{}}
-      {:ok, _value} -> {:error, {:invalid_field, key}}
-      :error -> {:ok, %{}}
-    end
-  end
-
-  defp optional_map_or_nil(map, key) do
-    case Map.fetch(map, key) do
-      {:ok, %{} = value} -> {:ok, value}
-      {:ok, nil} -> {:ok, nil}
-      {:ok, _value} -> {:error, {:invalid_field, key}}
-      :error -> {:ok, nil}
-    end
-  end
-
-  defp required_positive_integer(map, key) do
-    case Map.fetch(map, key) do
-      {:ok, value} when is_integer(value) and value > 0 -> {:ok, value}
-      {:ok, _value} -> {:error, {:invalid_field, key}}
-      :error -> {:error, {:missing_field, key}}
-    end
-  end
-
-  defp required_non_negative_integer(map, key) do
-    case Map.fetch(map, key) do
-      {:ok, value} when is_integer(value) and value >= 0 -> {:ok, value}
-      {:ok, _value} -> {:error, {:invalid_field, key}}
-      :error -> {:error, {:missing_field, key}}
-    end
-  end
-
-  defp optional_positive_integer(map, key, default) do
-    case Map.fetch(map, key) do
-      {:ok, value} when is_integer(value) and value > 0 -> {:ok, value}
-      {:ok, _value} -> {:error, {:invalid_field, key}}
-      :error -> {:ok, default}
-    end
-  end
-
-  defp required_vector(map, key) do
-    with {:ok, value} <- required(map, key), do: vector(value, key)
-  end
-
-  defp vector([x, y, z], _key)
-       when (is_integer(x) or is_float(x)) and (is_integer(y) or is_float(y)) and
-              (is_integer(z) or is_float(z)) do
-    {:ok, {x * 1.0, y * 1.0, z * 1.0}}
-  end
-
-  defp vector(_value, key), do: {:error, {:invalid_field, key}}
-
-  defp validate_non_negative_vector({x, y, z}, _key) when x >= 0.0 and y >= 0.0 and z >= 0.0,
-    do: :ok
-
-  defp validate_non_negative_vector(_vector, key), do: {:error, {:invalid_field, key}}
-
-  defp required_vector_list(map, key) do
-    case Map.fetch(map, key) do
-      {:ok, values} when is_list(values) and values != [] ->
-        values
-        |> Enum.reduce_while({:ok, []}, fn value, {:ok, vectors} ->
-          case vector(value, key) do
-            {:ok, vector} -> {:cont, {:ok, vectors ++ [vector]}}
-            {:error, reason} -> {:halt, {:error, reason}}
-          end
-        end)
-
-      {:ok, _value} ->
-        {:error, {:invalid_field, key}}
-
-      :error ->
-        {:error, {:missing_field, key}}
-    end
-  end
-
-  defp required_atom(map, key) do
-    with {:ok, value} <- required(map, key) do
-      if is_binary(value), do: {:ok, String.to_atom(value)}, else: {:error, {:invalid_field, key}}
-    end
-  end
-
-  defp optional_atom(map, key, default, allowed) do
-    case Map.fetch(map, key) do
-      {:ok, value} when is_binary(value) ->
-        if value in allowed do
-          {:ok, String.to_atom(value)}
-        else
-          {:error, {:invalid_field, key}}
-        end
-
-      {:ok, _value} ->
-        {:error, {:invalid_field, key}}
-
-      :error ->
-        {:ok, default}
-    end
-  end
+  defp optional_atom(map, key, default, allowed),
+    do: InputField.optional_atom(map, key, default, allowed)
 
   defp compact_keyword(keyword) do
     Enum.reject(keyword, fn {_key, value} -> is_nil(value) end)
