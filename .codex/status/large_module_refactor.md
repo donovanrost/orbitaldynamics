@@ -9,7 +9,7 @@ Current slice:
 OrbitData OMM metadata extraction.
 
 Status:
-Selected; strict focused baseline pending.
+Completed and pushed in `20216348`.
 
 Selected boundary:
 Extract CCSDS OMM KVN duplicate validation, parsing, required mean-element
@@ -37,24 +37,40 @@ Selection evidence:
   compact output, and invalid-input errors must remain unchanged.
 
 Implementation:
-Pending.
+- Added `OrbitalDynamics.OrbitData.OmmMetadata` as the owner of supported OMM
+  fields, duplicate validation, KVN parsing, required/optional mean elements,
+  epoch/center/time handling, preflight regime estimates, option maps,
+  provenance, compact output, and invalid-input errors.
+- Preserved all OrbitData and root public APIs as capability and inspection
+  delegates.
+- Removed the inline supported-field list and full OMM parser/builder family
+  from the facade.
+- `orbit_data.ex` moved from 2,016 to 1,856 lines; the new owner is 286 lines.
 
 Verification:
-Pending strict focused baseline, exact old/new public parity, focused and
-adjacent tests, static ownership checks, xref, strict warning-clean compile,
-formatting, and diff checks.
+- Strict focused baseline passed all 37 OrbitData tests.
+- Exact old/new public parity passed for nine captured cases: supported fields,
+  valid and defaulted OMM, BOM/comments, duplicate and missing fields,
+  unsupported center/time system, invalid option maps, and non-binary input.
+- Post-extraction verification passed all 37 OrbitData tests.
+- Static checks confirm the inline contract and OMM helper family left the
+  facade; xref reports only OrbitData as a runtime caller of the owner.
+- Strict warning-clean forced compile passed for 3,994 files.
+- Formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-RecommendationRiskContext objective-tradeoff extraction, selected in
-`3ebf90d9` and implemented in `2f581923`.
-`recommendation_risk_context.ex` moved from 2,016 to 1,893 lines; the dedicated
-objective-tradeoff owner is 159 lines.
+OrbitData OMM metadata extraction, selected in `16cee79c` and implemented in
+`20216348`.
+`orbit_data.ex` moved from 2,016 to 1,856 lines; the dedicated OMM metadata
+owner is 286 lines.
 
 Next candidate:
-Complete the selected OrbitData OMM metadata extraction.
+Re-rank the live checkout and select the next bounded facade-preserving
+extraction. `timeline_feedback.ex` is now the largest ordinary eligible facade
+at 1,993 lines, followed by ResourceProjection and ContactContention.
 
 Blocked:
 No.
