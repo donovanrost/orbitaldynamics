@@ -94,6 +94,7 @@ defmodule OrbitalDynamics.TimelineFeedback do
     ReconciliationCommunicationsEvidence,
     ReconciliationIdentity,
     ReconciliationObservationEvidence,
+    ReconciliationOutcomeEvidence,
     ReconciliationResourceEvidence,
     ReconciliationStationCalendarEvidence,
     ReconciliationTimingEvidence,
@@ -2624,46 +2625,19 @@ defmodule OrbitalDynamics.TimelineFeedback do
       "realized_delta_v_magnitude_km_s" => realized_delta_v_magnitude,
       "delta_v_magnitude_delta_km_s" =>
         delta(realized_delta_v_magnitude, planned_delta_v_magnitude),
-      "delta_v_match_status" => match_status(planned_delta_v, realized_delta_v),
-      "contact_success" =>
-        contact_success(
-          feedback_kind,
-          value(realized, "status"),
-          value(realized, "contact_success"),
-          value(realized, "contact_result")
-        ),
-      "contact_result" => provider_result_artifact_value(value(realized, "contact_result")),
-      "command_success" =>
-        command_success(
-          feedback_kind,
-          value(realized, "status"),
-          value(realized, "command_success"),
-          value(realized, "command_result")
-        ),
-      "command_result" => provider_result_artifact_value(value(realized, "command_result")),
-      "observation_success" =>
-        observation_success(
-          feedback_kind,
-          value(realized, "status"),
-          value(realized, "observation_success"),
-          value(realized, "observation_result")
-        ),
-      "observation_result" =>
-        provider_result_artifact_value(value(realized, "observation_result")),
-      "maneuver_success" =>
-        maneuver_success(
-          feedback_kind,
-          value(realized, "status"),
-          value(realized, "maneuver_success"),
-          value(realized, "maneuver_result")
-        ),
-      "maneuver_result" => provider_result_artifact_value(value(realized, "maneuver_result")),
-      "completed_fraction" => value(realized, "completed_fraction"),
-      "reason" => value(realized, "reason")
+      "delta_v_match_status" => match_status(planned_delta_v, realized_delta_v)
     }
     |> Map.merge(ReconciliationCommunicationsEvidence.context(planned, realized))
     |> Map.merge(ReconciliationIdentity.context(planned, realized))
     |> Map.merge(ReconciliationObservationEvidence.context(planned, realized))
+    |> Map.merge(
+      ReconciliationOutcomeEvidence.context(
+        realized,
+        feedback_kind,
+        @provider_result_map_value_keys,
+        @realized_failure_statuses
+      )
+    )
     |> Map.merge(ReconciliationResourceEvidence.context(planned, realized))
     |> Map.merge(ReconciliationStationCalendarEvidence.context(planned, realized))
     |> Map.merge(
@@ -3809,100 +3783,6 @@ defmodule OrbitalDynamics.TimelineFeedback do
           nil
       end
     end)
-  end
-
-  defp contact_success("contact", _status, explicit, _result) when is_boolean(explicit),
-    do: explicit
-
-  defp contact_success("contact", status, explicit, result) when not is_nil(result) do
-    case provider_result_outcome(result) do
-      :failure -> false
-      :success -> true
-      :unknown -> contact_success("contact", status, explicit, nil)
-    end
-  end
-
-  defp contact_success("contact", status, _explicit, _result)
-       when status in ["completed", "executed"],
-       do: true
-
-  defp contact_success("contact", "partial", _explicit, _result), do: nil
-
-  defp contact_success("contact", status, _explicit, _result) when is_binary(status), do: false
-  defp contact_success(_feedback_kind, _status, _explicit, _result), do: nil
-
-  defp command_success(kind, _status, explicit, _result)
-       when kind in ["command", "health_check"] and is_boolean(explicit),
-       do: explicit
-
-  defp command_success(kind, status, explicit, result)
-       when kind in ["command", "health_check"] and not is_nil(result) do
-    case command_result_outcome(result) do
-      :failure -> false
-      :success -> true
-      :unknown -> command_success(kind, status, explicit, nil)
-    end
-  end
-
-  defp command_success(kind, status, _explicit, _result)
-       when kind in ["command", "health_check"] and status in ["completed", "executed"],
-       do: true
-
-  defp command_success(kind, "partial", _explicit, _result)
-       when kind in ["command", "health_check"],
-       do: nil
-
-  defp command_success(kind, status, _explicit, _result)
-       when kind in ["command", "health_check"] and is_binary(status), do: false
-
-  defp command_success(_feedback_kind, _status, _explicit, _result), do: nil
-
-  defp observation_success("observation", _status, explicit, _result) when is_boolean(explicit),
-    do: explicit
-
-  defp observation_success("observation", status, explicit, result) when not is_nil(result) do
-    case provider_result_outcome(result) do
-      :failure -> false
-      :success -> true
-      :unknown -> observation_success("observation", status, explicit, nil)
-    end
-  end
-
-  defp observation_success("observation", status, _explicit, _result)
-       when status in ["completed", "executed"],
-       do: true
-
-  defp observation_success("observation", "partial", _explicit, _result), do: nil
-
-  defp observation_success("observation", status, _explicit, _result)
-       when status in @realized_failure_statuses,
-       do: false
-
-  defp observation_success(_feedback_kind, _status, _explicit, _result), do: nil
-
-  defp maneuver_success("maneuver", _status, explicit, _result) when is_boolean(explicit),
-    do: explicit
-
-  defp maneuver_success("maneuver", status, explicit, result) when not is_nil(result) do
-    case provider_result_outcome(result) do
-      :failure -> false
-      :success -> true
-      :unknown -> maneuver_success("maneuver", status, explicit, nil)
-    end
-  end
-
-  defp maneuver_success("maneuver", status, _explicit, _result)
-       when status in ["completed", "executed"],
-       do: true
-
-  defp maneuver_success("maneuver", status, _explicit, _result)
-       when status in @realized_failure_statuses,
-       do: false
-
-  defp maneuver_success(_feedback_kind, _status, _explicit, _result), do: nil
-
-  defp command_result_outcome(result) do
-    provider_result_outcome(result)
   end
 
   defp provider_result_outcome(result),
