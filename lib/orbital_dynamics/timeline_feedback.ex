@@ -81,7 +81,7 @@ defmodule OrbitalDynamics.TimelineFeedback do
   @provider_result_map_value_keys ~w(result results outcome outcomes status state disposition provider_result provider_results provider_outcome provider_outcomes provider_status provider_state provider_code code reason reasons message messages error errors details metadata provider diagnostics)
 
   alias OrbitalDynamics.{CadenceImport, OperatorReview, Timeline}
-  alias OrbitalDynamics.TimelineFeedback.{ProviderResult, SuccessFactor}
+  alias OrbitalDynamics.TimelineFeedback.{ExecutionUncertainty, ProviderResult, SuccessFactor}
 
   @doc """
   Declares the feedback reconciliation model and known limits.
@@ -4772,175 +4772,25 @@ defmodule OrbitalDynamics.TimelineFeedback do
   end
 
   defp maneuver_delta_v_context(activity) do
-    delta_v = maneuver_delta_v(activity)
-
-    %{
-      "delta_v_km_s" => delta_v,
-      "delta_v_magnitude_km_s" => vector_norm(delta_v)
-    }
-    |> compact_map()
+    ExecutionUncertainty.maneuver_delta_v_context(activity)
   end
 
   defp activity_execution_uncertainty_context(activity) do
-    uncertainty = activity_execution_uncertainty(activity)
-
-    cond do
-      is_map(uncertainty) ->
-        uncertainty
-        |> execution_uncertainty_fields()
-        |> Map.merge(%{
-          "execution_uncertainty_status" => "declared",
-          "execution_uncertainty" => uncertainty
-        })
-        |> compact_map()
-
-      execution_uncertainty_relevant?(activity) ->
-        %{"execution_uncertainty_status" => "missing"}
-
-      true ->
-        %{}
-    end
-  end
-
-  defp activity_execution_uncertainty(activity) do
-    uncertainty =
-      Map.get(activity, "execution_uncertainty") ||
-        Map.get(activity, "maneuver_execution_uncertainty") ||
-        get_in(activity, ["metadata", "execution_uncertainty"]) ||
-        get_in(activity, ["metadata", "maneuver_execution_uncertainty"]) ||
-        get_in(activity, ["assumptions", "execution_uncertainty"]) ||
-        get_in(activity, ["assumptions", "maneuver_execution_uncertainty"])
-
-    case uncertainty do
-      %{} = uncertainty -> normalize_execution_uncertainty(stringify_keys(uncertainty))
-      _value -> nil
-    end
-  end
-
-  defp execution_uncertainty_relevant?(%{"type" => "impulsive_burn"}), do: true
-  defp execution_uncertainty_relevant?(_activity), do: false
-
-  defp normalize_execution_uncertainty(%{} = uncertainty) do
-    uncertainty
-    |> normalize_uncertainty_number("timing_3sigma_s")
-    |> normalize_uncertainty_triplet("delta_v_3sigma_km_s")
-    |> normalize_uncertainty_number("delta_v_3sigma_magnitude_km_s")
-  end
-
-  defp normalize_uncertainty_number(%{} = uncertainty, key) do
-    case Map.fetch(uncertainty, key) do
-      {:ok, value} ->
-        case numeric_value(value) do
-          nil -> uncertainty
-          number -> Map.put(uncertainty, key, number)
-        end
-
-      :error ->
-        uncertainty
-    end
-  end
-
-  defp normalize_uncertainty_triplet(%{} = uncertainty, key) do
-    case Map.fetch(uncertainty, key) do
-      {:ok, value} ->
-        case numeric_triplet(value) do
-          nil -> uncertainty
-          triplet -> Map.put(uncertainty, key, triplet)
-        end
-
-      :error ->
-        uncertainty
-    end
-  end
-
-  defp execution_uncertainty_fields(uncertainty) do
-    delta_v_3sigma_km_s = numeric_triplet(Map.get(uncertainty, "delta_v_3sigma_km_s"))
-
-    %{
-      "timing_3sigma_s" => numeric_value(Map.get(uncertainty, "timing_3sigma_s")),
-      "delta_v_3sigma_km_s" => delta_v_3sigma_km_s,
-      "delta_v_3sigma_magnitude_km_s" => vector_norm(delta_v_3sigma_km_s),
-      "execution_uncertainty_source" =>
-        Map.get(uncertainty, "source") || Map.get(uncertainty, "model")
-    }
-    |> compact_map()
+    ExecutionUncertainty.activity_context(activity)
   end
 
   defp execution_uncertainty_reconciliation_context(planned, realized) do
-    planned_context = execution_uncertainty_row_context(planned)
-    realized_context = execution_uncertainty_row_context(realized)
-
-    cond do
-      declared_execution_uncertainty?(realized_context) -> realized_context
-      declared_execution_uncertainty?(planned_context) -> planned_context
-      missing_execution_uncertainty?(realized_context) -> realized_context
-      missing_execution_uncertainty?(planned_context) -> planned_context
-      true -> %{}
-    end
+    ExecutionUncertainty.reconciliation_context(planned, realized)
   end
-
-  defp execution_uncertainty_row_context(nil), do: %{}
-
-  defp execution_uncertainty_row_context(row) do
-    %{
-      "execution_uncertainty_status" => value(row, "execution_uncertainty_status"),
-      "execution_uncertainty" => value(row, "execution_uncertainty"),
-      "timing_3sigma_s" => value(row, "timing_3sigma_s"),
-      "delta_v_3sigma_km_s" => value(row, "delta_v_3sigma_km_s"),
-      "delta_v_3sigma_magnitude_km_s" => value(row, "delta_v_3sigma_magnitude_km_s"),
-      "execution_uncertainty_source" => value(row, "execution_uncertainty_source")
-    }
-    |> compact_map()
-  end
-
-  defp declared_execution_uncertainty?(%{"execution_uncertainty_status" => "declared"}), do: true
-  defp declared_execution_uncertainty?(_context), do: false
-
-  defp missing_execution_uncertainty?(%{"execution_uncertainty_status" => "missing"}), do: true
-  defp missing_execution_uncertainty?(_context), do: false
 
   defp maneuver_delta_v(activity) do
-    first_value(activity, [
-      "delta_v_km_s",
-      "actual_delta_v_km_s",
-      "executed_delta_v_km_s",
-      ["metadata", "delta_v_km_s"],
-      ["metadata", "actual_delta_v_km_s"],
-      ["metadata", "executed_delta_v_km_s"]
-    ])
-    |> numeric_triplet()
+    ExecutionUncertainty.maneuver_delta_v(activity)
   end
 
-  defp numeric_triplet([x, y, z]) do
-    triplet = Enum.map([x, y, z], &numeric_value/1)
-
-    if Enum.all?(triplet, &is_number/1), do: triplet, else: nil
-  end
-
-  defp numeric_triplet(_value), do: nil
-
-  defp numeric_value(value) when is_number(value), do: value
-
-  defp numeric_value(value) when is_binary(value) do
-    case Float.parse(String.trim(value)) do
-      {number, ""} -> number
-      _other -> nil
-    end
-  end
-
-  defp numeric_value(_value), do: nil
-
-  defp vector_norm(nil), do: nil
-
-  defp vector_norm([x, y, z]) do
-    :math.sqrt(x * x + y * y + z * z)
-  end
-
-  defp vector_delta([actual_x, actual_y, actual_z], [planned_x, planned_y, planned_z]) do
-    [actual_x - planned_x, actual_y - planned_y, actual_z - planned_z]
-  end
-
-  defp vector_delta(_actual, _planned), do: nil
+  defp numeric_triplet(value), do: ExecutionUncertainty.numeric_triplet(value)
+  defp numeric_value(value), do: ExecutionUncertainty.numeric_value(value)
+  defp vector_norm(value), do: ExecutionUncertainty.vector_norm(value)
+  defp vector_delta(actual, planned), do: ExecutionUncertainty.vector_delta(actual, planned)
 
   defp realized_observation_success_factor(activity) do
     SuccessFactor.observation(activity, @provider_result_map_value_keys)
