@@ -20,10 +20,9 @@ defmodule OrbitalDynamics.CadenceImport do
     ManifestMapNormalization,
     OperationalReadinessContext,
     ProviderResultNormalization,
-    ReviewPackageRowSourcePolicy,
+    ReviewPackageImport,
     ReviewRowMetadata,
     ReviewSummaryContext,
-    ReviewTypePolicy,
     SourceIdentifierPolicy,
     StationCalendarContextFields,
     StrategyReview
@@ -2076,41 +2075,14 @@ defmodule OrbitalDynamics.CadenceImport do
   Builds an import manifest from an operator-review package.
   """
   def from_operator_review_package(%{} = package, opts \\ []) do
-    package = stringify_keys(package)
-    source_artifact_type = option(opts, :source_artifact_type, package["source_artifact_type"])
-    source_artifact_id = option(opts, :source_artifact_id, package["source_artifact_id"])
-
-    rows =
-      package
-      |> Map.get("rows", [])
-      |> Enum.map(&stringify_keys/1)
-      |> Enum.filter(&import_manifest_review_row?/1)
-      |> Enum.with_index(1)
-      |> Enum.map(fn {row, rank} ->
-        row
-        |> review_manifest_row(rank)
-        |> put_run_input_sources(row)
-        |> put_source_review_queue(row)
-      end)
-
-    build_manifest(
-      rows,
-      %{
-        "source" => "OrbitalDynamics.CadenceImport.from_operator_review_package",
-        "source_artifact_type" => source_artifact_type,
-        "source_artifact_id" => source_artifact_id,
-        "source_review_count" => package["review_count"],
-        "source_repair_id" => option(opts, :source_repair_id),
-        "source_plan_id" => option(opts, :source_plan_id)
-      }
-      |> Map.merge(review_summary_context(package)),
-      %{
-        "source_artifact_type" => source_artifact_type,
-        "source_artifact_id" => source_artifact_id,
-        "row_source" => review_package_row_source(source_artifact_type),
-        "deterministic_ordering" => "source review row order"
-      }
-      |> Map.merge(review_summary_context(package))
+    ReviewPackageImport.build(
+      package,
+      opts,
+      &review_manifest_row/2,
+      schema_contract: @schema_contract,
+      schema_version: @schema_version,
+      accepted_statuses: @cadence_import_statuses,
+      capability: capability()
     )
   end
 
@@ -2151,13 +2123,7 @@ defmodule OrbitalDynamics.CadenceImport do
 
   defp review_summary_context(package), do: ReviewSummaryContext.build(package)
 
-  defp put_run_input_sources(row, source_row),
-    do: ReviewRowMetadata.put_run_input_sources(row, source_row)
-
   defp source_review_action(row), do: ReviewRowMetadata.action(row)
-
-  defp put_source_review_queue(manifest_row, source_row),
-    do: ReviewRowMetadata.put_queue(manifest_row, source_row)
 
   defp proposed_contact_manifest_row(contact, rank) do
     OrbitalDynamics.CadenceImport.ProposedContactManifestRow.build(
@@ -2199,8 +2165,6 @@ defmodule OrbitalDynamics.CadenceImport do
   defp strategy_review_package(artifact), do: StrategyReview.package(artifact)
 
   defp strategy_review_count(review_package), do: StrategyReview.count(review_package)
-
-  defp import_manifest_review_row?(row), do: ReviewTypePolicy.import_manifest?(row)
 
   defp review_manifest_row(%{"review_type" => "realized_feedback"} = row, rank),
     do: realized_feedback_manifest_row(row, rank)
@@ -2773,9 +2737,6 @@ defmodule OrbitalDynamics.CadenceImport do
 
   defp generic_review_import_action(review_type),
     do: GenericReviewActionPolicy.resolve(review_type)
-
-  defp review_package_row_source(source_artifact_type),
-    do: ReviewPackageRowSourcePolicy.resolve(source_artifact_type)
 
   defp schema_validation_report_source_id(report),
     do: SourceIdentifierPolicy.schema_validation_report(report)
