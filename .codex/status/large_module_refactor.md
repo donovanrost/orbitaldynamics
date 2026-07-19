@@ -9,7 +9,7 @@ Current slice:
 TimelineFeedback reconciliation realized-ingress-evidence extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `4a574e1d`.
 
 Selected boundary:
 Extract realized identity reference, source/provider/adapter provenance,
@@ -31,20 +31,31 @@ Selection evidence:
 - Existing public report APIs and artifact row shapes remain unchanged.
 
 Verification:
-Pending.
+- Strict test-environment compile passed with warnings as errors across 3,905
+  files.
+- Focused TimelineFeedback coverage passed: 73 tests.
+- Adjacent operator-review, Cadence import, and contact-feedback contract
+  coverage passed: 79 tests.
+- Exact public old/new comparison against selection commit `498bd1ba` passed
+  for six reports with asserted provider, adapter, and trust evidence.
+- `mix xref callers` reports only the TimelineFeedback facade as a runtime
+  caller of the extracted owner.
+- Static ownership checks confirm realized ingress projection lives in the
+  dedicated owner while validation and aggregation remain in the facade.
+- `git diff --check` passed.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-TimelineFeedback reconciliation plan-evidence extraction, selected in
-`54aad1a5` and implemented in `fddf4f52`.
-`timeline_feedback.ex` moved from 3,894 to 3,862 lines; the dedicated owner is
-45 lines.
+TimelineFeedback reconciliation realized-ingress-evidence extraction, selected
+in `498bd1ba` and implemented in `4a574e1d`.
+`timeline_feedback.ex` moved from 3,862 to 3,842 lines; the dedicated owner is
+33 lines.
 
 Next candidate:
-Implement and verify the selected TimelineFeedback reconciliation
-realized-ingress-evidence extraction.
+Re-rank the live largest-module set and select the next cohesive ownership
+boundary.
 
 Blocked:
 No.
