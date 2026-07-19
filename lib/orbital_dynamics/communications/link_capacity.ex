@@ -149,8 +149,8 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
     "healthcheck" => "health_check",
     "health_check_window" => "health_check"
   }
-  @provider_result_map_value_keys ~w(result results outcome outcomes status state disposition provider_result provider_results provider_outcome provider_outcomes provider_status provider_state provider_code code reason reasons message messages error errors details metadata provider diagnostics)
   alias OrbitalDynamics.Policy
+  alias OrbitalDynamics.Communications.LinkCapacity.ContactFeedback
   alias OrbitalDynamics.Communications.LinkCapacity.ContactIdentity
 
   @doc """
@@ -182,7 +182,7 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
       actual_duration_fields: @actual_duration_fields,
       actual_completion_fraction_paths: @actual_completion_fraction_paths,
       provider_direction_aliases: @provider_direction_aliases,
-      provider_result_map_value_keys: @provider_result_map_value_keys,
+      provider_result_map_value_keys: ContactFeedback.provider_result_map_value_keys(),
       contact_stable_identity_fields: ContactIdentity.stable_fields(),
       row_semantics: [
         :invalid_contact_input_review,
@@ -1690,145 +1690,9 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
     Enum.count(contacts, &MapSet.member?(duplicate_contact_ids, contact_id(&1)))
   end
 
-  defp contact_feedback_context(contacts) do
-    %{
-      "contact_success" => aggregate_boolean_feedback(contacts, "contact_success"),
-      "contact_result" => aggregate_string_feedback(contacts, "contact_result"),
-      "contact_success_factor" => aggregate_factor_feedback(contacts, "contact_success_factor"),
-      "contact_success_factor_source" =>
-        aggregate_factor_source(
-          contacts,
-          "contact_success_factor",
-          "contact_success_factor_source"
-        ),
-      "command_success" => aggregate_boolean_feedback(contacts, "command_success"),
-      "command_result" => aggregate_string_feedback(contacts, "command_result"),
-      "command_success_factor" => aggregate_factor_feedback(contacts, "command_success_factor"),
-      "command_success_factor_source" =>
-        aggregate_factor_source(
-          contacts,
-          "command_success_factor",
-          "command_success_factor_source"
-        )
-    }
-    |> compact_map()
-  end
+  defp contact_feedback_context(contacts), do: ContactFeedback.context(contacts)
 
-  defp aggregate_boolean_feedback(contacts, key) do
-    values =
-      contacts
-      |> Enum.map(&boolean_feedback_value(&1, key))
-      |> Enum.reject(&is_nil/1)
-
-    cond do
-      Enum.any?(values, &(&1 == false)) -> false
-      Enum.any?(values, &(&1 == true)) -> true
-      true -> nil
-    end
-  end
-
-  defp aggregate_factor_feedback(contacts, key) do
-    contacts
-    |> Enum.map(&numeric_value(contact_value(&1, key)))
-    |> Enum.reject(&is_nil/1)
-    |> Enum.min(fn -> nil end)
-  end
-
-  defp aggregate_factor_source(contacts, factor_key, source_key) do
-    contacts
-    |> Enum.filter(&is_number(numeric_value(contact_value(&1, factor_key))))
-    |> Enum.map(&contact_value(&1, source_key))
-    |> Enum.reject(&is_nil/1)
-    |> Enum.uniq()
-    |> case do
-      [source] -> source
-      [_source | _rest] -> "mixed_feedback_sources"
-      [] -> nil
-    end
-  end
-
-  defp aggregate_string_feedback(contacts, key) do
-    contacts
-    |> Enum.map(&provider_result_artifact_value(contact_value(&1, key)))
-    |> Enum.filter(&(is_binary(&1) and &1 != ""))
-    |> Enum.uniq()
-    |> case do
-      [value] -> value
-      [_value | _rest] -> "mixed"
-      [] -> nil
-    end
-  end
-
-  defp provider_result_values(values) when is_list(values) do
-    values
-    |> Enum.flat_map(&provider_result_values/1)
-    |> Enum.reject(&(&1 == ""))
-  end
-
-  defp provider_result_values(%{} = result) do
-    @provider_result_map_value_keys
-    |> Enum.flat_map(fn key -> provider_result_values(Map.get(result, key)) end)
-    |> Enum.reject(&(&1 == ""))
-  end
-
-  defp provider_result_values(value) when is_binary(value) do
-    value
-    |> String.trim()
-    |> case do
-      "" -> []
-      normalized -> [normalized]
-    end
-  end
-
-  defp provider_result_values(nil), do: []
-
-  defp provider_result_values(value) when is_atom(value),
-    do: provider_result_values(Atom.to_string(value))
-
-  defp provider_result_values(value), do: provider_result_values(to_string(value))
-
-  defp provider_result_artifact_value(value) do
-    case provider_result_values(value) do
-      [] -> nil
-      values -> Enum.join(values, ",")
-    end
-  end
-
-  defp contact_value(contact, key) do
-    case Map.fetch(contact, key) do
-      {:ok, nil} -> get_in(contact, ["metadata", key])
-      {:ok, value} -> value
-      :error -> get_in(contact, ["metadata", key])
-    end
-  end
-
-  defp boolean_feedback_value(contact, key) do
-    contact
-    |> contact_value(key)
-    |> boolean_value()
-  end
-
-  defp boolean_value(value) when is_boolean(value), do: value
-
-  defp boolean_value(value) when is_number(value) do
-    cond do
-      value == 1 -> true
-      value == 0 -> false
-      true -> nil
-    end
-  end
-
-  defp boolean_value(value) when is_binary(value) do
-    case String.downcase(String.trim(value)) do
-      "true" -> true
-      "1" -> true
-      "false" -> false
-      "0" -> false
-      _value -> nil
-    end
-  end
-
-  defp boolean_value(_value), do: nil
+  defp contact_value(contact, key), do: ContactFeedback.value(contact, key)
 
   defp station_calendar_directions(contacts) do
     contacts
