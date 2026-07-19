@@ -9,7 +9,7 @@ Current slice:
 StationCalendar reservation-review summary extraction.
 
 Status:
-Selected; strict focused baseline pending.
+Completed and pushed in `0635b27d`.
 
 Selected boundary:
 Extract reservation-review row projection, expiration evaluation, count/status
@@ -33,24 +33,42 @@ Selection evidence:
   behavior, public facade output, and error behavior must remain unchanged.
 
 Implementation:
-Pending.
+- Added `OrbitalDynamics.Communications.StationCalendar.ReservationReviewSummary`
+  as the owner of reservation-review row projection, expiration evaluation,
+  status/count aggregation, routing IDs, assumptions, and summary output.
+- Preserved StationCalendar and root public APIs as delegates and kept the
+  facade's capability-derived model limits authoritative.
+- Removed the review-specific row and expiration helpers from the facade while
+  leaving shared reservation-hold summary values in their existing owner.
+- `station_calendar.ex` moved from 1,911 to 1,814 lines; the new owner is 129
+  lines.
 
 Verification:
-Pending.
+- Strict focused baseline passed all 42 StationCalendar tests.
+- Exact old/new public parity passed for four deterministic summaries:
+  evaluated active/expired/missing rows, unevaluated declared/missing rows,
+  atom-keyed/string-numeric input, and an empty report.
+- Post-extraction focused and adjacent schema/replay verification passed all 50
+  tests.
+- Static checks confirm the review row/expiration helpers left the facade; xref
+  reports only StationCalendar as a runtime caller.
+- Strict warning-clean forced compile passed for 4,001 files.
+- Formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-OperationalReadiness quality-gate import-readiness summary extraction,
-selected in `1a2d9063` and implemented in `5b0dab62`.
-`operational_readiness.ex` moved from 1,927 to 1,768 lines; the dedicated
-QualityGateImportReadinessSummary owner is 227 lines.
+StationCalendar reservation-review summary extraction, selected in `0da707f7`
+and implemented in `0635b27d`.
+`station_calendar.ex` moved from 1,911 to 1,814 lines; the dedicated
+ReservationReviewSummary owner is 129 lines.
 
 Next candidate:
 Re-rank the live checkout and select the next bounded facade-preserving
-extraction. `communications/station_calendar.ex` is now the largest ordinary
-eligible facade at 1,911 lines, followed by LinkCapacity and ContactFilter.
+extraction. `communications/link_capacity.ex` is now the largest ordinary
+eligible facade at 1,904 lines, followed by ContactFilter and
+RecommendationRiskContext.
 
 Blocked:
 No.
