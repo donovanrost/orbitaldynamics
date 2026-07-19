@@ -9,7 +9,7 @@ Current slice:
 CadenceImport operational-readiness context extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and published.
 
 Selected boundary:
 Extract adapter-boundary, resource, operator-training, and Cadence-import
@@ -28,18 +28,29 @@ Selection evidence:
   schemas, and ordering remain outside the boundary.
 
 Verification:
-Pending: focused operational-readiness and quality-gate baselines, executable
-old-AST equivalence across all four projections, strict compile, all combined
-CadenceImport tests, schema contracts, static single ownership, runtime xref,
-and bounded review.
+- Strict test compile passed with 3,818 files and warnings as errors.
+- Three focused operational-readiness and quality-gate tests passed with 69
+  excluded.
+- All combined CadenceImport tests passed: 96 tests.
+- CadenceImport schema contracts passed: 4 tests.
+- Executable old-AST equivalence against selection commit `a130e6f5` confirmed
+  all 39 fields across 20 cases: empty, evidence-only, top-level precedence,
+  false-value fallback, and nil evidence for each projection.
+- Formatting and diff checks passed, and no temporary proof files remain.
+- Static ownership checks confirmed all four projections have one production
+  implementation behind the preserved facade callback seams.
+- Runtime xref confirmed `cadence_import.ex` is a direct consumer of
+  `operational_readiness_context.ex`.
+- Bounded local review found no field membership, precedence, fallback, context
+  shape, row construction, or schema changes.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-CadenceImport review-summary context extraction, selected in `18611476` and
-implemented in `19e4312d`. `cadence_import.ex` moved from 3,337 to 3,225 lines;
-the extracted owner is 122 lines.
+CadenceImport operational-readiness context extraction, selected in `a130e6f5`
+and implemented in `3da7bbea`. `cadence_import.ex` moved from 3,225 to 3,119
+lines; the extracted owner is 64 lines.
 
 Next candidate:
 Return to manifest assembly after operational-readiness context projections
