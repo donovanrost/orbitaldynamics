@@ -6,50 +6,38 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-StationCalendar provider-result canonicalization extraction.
+LinkCapacity stable contact-identity extraction.
 
 Status:
-Completed and pushed in `18189013`.
+Selected; implementation pending.
 
 Selected boundary:
-Extract the provider-result map-value key contract, recursive value
-normalization, and artifact-value canonicalization into
-`OrbitalDynamics.Communications.StationCalendar.ProviderResult`.
-Preserve the existing StationCalendar public API facade.
+Extract the stable contact-identity field contract, stable-ID normalization,
+contact/station/spacecraft identity resolution, and invalid-identity
+classification into
+`OrbitalDynamics.Communications.LinkCapacity.ContactIdentity`.
+Preserve the existing LinkCapacity public API facade.
 
 Selection evidence:
-- Live re-ranking places `station_calendar.ex` at 3,728 lines, fourth behind
-  Schema, Timeline, and MissionPlan.Activity and ahead of LinkCapacity,
-  ResourceProjection, TimelineFeedback, Manifest, ContactAllocation, and
+- Live re-ranking places `link_capacity.ex` at 3,724 lines, fourth behind
+  Schema, Timeline, and MissionPlan.Activity and ahead of ResourceProjection,
+  TimelineFeedback, StationCalendar, Manifest, ContactAllocation, and
   RecommendationRiskContext.
-- The selected family owns one representation-boundary responsibility used by
-  affected-contact and approval-policy rows: deterministic conversion of
-  scalar, list, and map-valued provider results into artifact strings.
-- Calendar matching, availability precedence, capacity normalization,
-  reservations, counteroffers, policy decisions, and artifact assembly remain
+- The selected family owns one validation-boundary responsibility reused by
+  grouping, relay evidence, invalid-input review rows, and policy metadata:
+  canonical stable identities and deterministic identity failure reasons.
+- Throughput derivation, capacity adjustment, station availability,
+  requirement resolution, policy decisions, and artifact assembly remain
   outside this boundary.
-- Existing capability metadata, recursive map-key precedence, comma splitting,
-  trimming, omission, scalar conversion, and output ordering remain unchanged.
+- Existing capability metadata, accepted identity types and pattern, fallback
+  precedence, missing/invalid classifications, exceptions, and output ordering
+  remain unchanged.
 
 Verification:
-- Strict test-environment compile passed with warnings as errors across 3,915
-  files.
-- Focused StationCalendar coverage passed: 42 tests.
-- Adjacent station-calendar operator-review coverage passed: 3 tests.
-- Exact public old/new comparison against selection commit `bc3a559d` passed
-  for capability metadata and three public overlay/report outputs across ten
-  provider-result shapes covering nil, blank and comma-delimited strings,
-  nested lists and maps, every scalar type, unknown map keys, and unsupported
-  values.
-- `mix xref callers` reports only the StationCalendar facade as a runtime
-  caller of the extracted provider-result owner.
-- Static ownership checks confirm the provider-result key contract and
-  canonicalization semantics live in the dedicated owner while calendar and
-  artifact responsibilities remain in the facade.
-- `git diff --check` passed.
+Pending.
 
 Behavior/schema changes:
-None. This is a facade-preserving production ownership extraction.
+None intended. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
 StationCalendar provider-result canonicalization extraction, selected in
