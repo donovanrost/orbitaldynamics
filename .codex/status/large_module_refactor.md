@@ -9,7 +9,7 @@ Current slice:
 TimelineFeedback throughput extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `14cd441c`.
 
 Selected boundary:
 Extract numeric path lookup, planned/actual data-volume selection, data-rate
@@ -29,18 +29,29 @@ Selection evidence:
   public report APIs remain in the facade.
 
 Verification:
-Pending.
+- Strict warnings-as-errors compile passed across 3,885 files.
+- Focused TimelineFeedback coverage passed: 73 tests.
+- Adjacent operator-review, contact-feedback-contract, and realized-activity
+  feedback integration coverage passed: 10 tests.
+- Exact old/new public artifact comparison against `5a8f2b1b` passed for 9
+  explicit, Mbps, MB/s, nested-model, interval-duration, denominator-fallback,
+  zero-value, and missing-input reports plus 9 standalone realized rows.
+- Runtime xref found the new owner referenced only by the TimelineFeedback
+  facade; static single-ownership review and `git diff --check` passed.
+- `timeline_feedback.ex` moved from 4,766 to 4,563 lines; the dedicated owner
+  is 221 lines.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-MissionPlan.Activity identifier input extraction, selected in `9aded909` and
-implemented in `292a84df`. `mission_plan/activity.ex` moved from 4,577 to 4,470
-lines; the dedicated owner is 143 lines.
+TimelineFeedback throughput extraction, selected in `5a8f2b1b` and implemented
+in `14cd441c`. `timeline_feedback.ex` moved from 4,766 to 4,563 lines; the
+dedicated owner is 221 lines.
 
 Next candidate:
-Implement and verify the selected TimelineFeedback throughput extraction.
+Re-inventory remaining TimelineFeedback numeric normalization and feedback
+aggregation boundaries after throughput has one owner.
 
 Blocked:
 No.
