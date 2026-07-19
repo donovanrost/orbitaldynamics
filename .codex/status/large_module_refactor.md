@@ -9,7 +9,7 @@ Current slice:
 Timeline application identity collection policy completion.
 
 Status:
-Selected; implementation has not started.
+Completed and published.
 
 Selected boundary:
 Move transition-application timeline-ID and activity-ID collection from the
@@ -32,17 +32,32 @@ Selection evidence:
   responsibilities remain outside the boundary.
 
 Verification:
-Pending: focused baseline, mechanical policy move, strict compile, focused and
-full Timeline tests, schema contracts, structural/static checks, and bounded
-review.
+- Focused baseline passed 1 transition-application summary test.
+- Strict warnings-as-errors compile passed 3,803 modules.
+- Focused transition-application summary test passed 1 test.
+- Full Timeline suite passed 127 tests.
+- Four Timeline schema-contract suites passed 36 tests.
+- AST conservation proved both application identity collectors moved exactly
+  after normalizing only the sorted-ID callback invocation.
+- Static checks confirmed the facade retains two thin wrappers, the policy owns
+  exactly one implementation of each collector, public def count remains 101,
+  formatting/diff checks pass, and no temporary checker remains.
+- Compile-connected xref remained narrow: Timeline has only the pre-existing
+  compile edge to `CandidateRejectionStationPolicy`.
+- Bounded local review found no correctness or maintainability issues and
+  confirmed predicate filtering, source/replacement activity flattening, nil
+  rejection, and deterministic unique ID ordering are unchanged.
+- Timeline increased from 5,023 to 5,025 lines because the two wrappers remain
+  readable across five call sites; `IdentityGroupingPolicy` increased from 65
+  to 81 lines and now owns the behavior.
 
 Behavior/schema changes:
 None intended. Predicate filtering, nil rejection, ID ordering, summary fields,
 capabilities, and schema exports should remain byte-for-byte stable.
 
 Last completed slice:
-Timeline grouped timeline-ID policy completion, selected in `754829e3` and
-implemented in `68aea844`.
+Timeline application identity collection policy completion, selected in
+`6db5ac0d` and implemented in `2fb91b08`.
 
 Next candidate:
 Continue remapping the reduced Timeline facade after application identity
