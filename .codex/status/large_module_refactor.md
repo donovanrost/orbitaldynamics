@@ -9,7 +9,7 @@ Current slice:
 Policy requirement-context resolution extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and pushed in `44d83250`.
 
 Selected boundary:
 Extract requirement-context lookup and list expansion, station/direction
@@ -32,17 +32,25 @@ Selection evidence:
   the boundary.
 
 Verification:
-Pending: focused direction/station/provider/protection baselines, exact old/new
-decision proofs, strict compile, full Policy tests, relevant schema/contracts,
-static single ownership, runtime xref, and bounded review.
+- Strict warnings-as-errors compile passed across 3,847 files.
+- Five focused provider/station/direction/protection tests passed.
+- All 89 Policy tests passed.
+- The Policy schema-contract test passed.
+- Exact old/new comparison passed for the complete Policy capability map and 55
+  built-in bundle/context decisions spanning direction aliases, station lists,
+  provider results, nested protection, and resource evidence.
+- Static search confirms one resolver owner with nine explicit private Policy
+  seams shared by requirement, risk, event, and activity matching.
+- Runtime xref confirms Policy owns the dependency on RequirementContext.
+- Formatting, diff checks, and bounded review passed.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-CadenceImport capability ownership extraction, selected in `ace1eb07` and
-implemented in `7d081341`. `cadence_import.ex` moved from 866 to 663 lines; the
-dedicated capability owner is 216 lines.
+Policy requirement-context extraction, selected in `56a7dfce` and implemented
+in `44d83250`. `policy.ex` moved from 5,555 to 4,960 lines; the dedicated
+resolver is 630 lines.
 
 Next candidate:
 Re-inventory the remaining Policy rule-match families after requirement context
