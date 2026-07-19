@@ -6,48 +6,32 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-CadenceImport review-summary context extraction.
+CadenceImport operational-readiness context extraction.
 
 Status:
-Completed and published.
+Selected; implementation has not started.
 
 Selected boundary:
-Extract review-package summary field selection and provenance
-`run_input_sources` promotion into
-`OrbitalDynamics.CadenceImport.ReviewSummaryContext`. Preserve the facade's
-existing `review_summary_context/1` seam as a delegate and reuse the extracted
-manifest-map normalizer for final nil compaction.
+Extract adapter-boundary, resource, operator-training, and Cadence-import
+operational-readiness context projections into
+`OrbitalDynamics.CadenceImport.OperationalReadinessContext`. Preserve the
+facade's four existing callback seams as delegates for operational-readiness and
+quality-gate row builders.
 
 Selection evidence:
-- `cadence_import.ex` is now 3,337 lines.
-- The selected contiguous family spans about 112 lines, primarily an ordered
-  allowlist of readiness, station-pressure, capacity-pack, provider-reservation,
-  and reservation-expiration summary fields.
-- The family has one responsibility: select review-package summary context,
-  conditionally promote nonempty provenance run-input sources, and compact nil
-  values.
-- Manifest assembly, row normalization, capability metadata, schemas, ordering,
-  and review-row construction remain outside the boundary.
+- `cadence_import.ex` is now 3,225 lines.
+- The selected contiguous family spans about 120 lines and is shared by
+  operational-readiness and quality-gate row builders through stable callbacks.
+- The family has one responsibility: project typed readiness evidence with the
+  existing top-level-value-first, nested-evidence-fallback precedence.
+- Manifest assembly, row construction, map compaction, capability metadata,
+  schemas, and ordering remain outside the boundary.
 
 Verification:
-- Strict test compile passed with 3,817 files and warnings as errors.
-- Three focused readiness, candidate-refresh, and provider-reservation summary
-  tests passed with 72 excluded.
-- All combined CadenceImport tests passed: 96 tests.
-- CadenceImport schema contracts passed: 4 tests.
-- An AST-derived proof against selection commit `18611476` confirmed exact
-  ordered equality for all 99 review-summary fields.
-- Five direct behavior cases covered all-field retention, ignored-field removal,
-  nil compaction, nonempty run-input-source promotion, and empty/non-map
-  promotion suppression.
-- Formatting and diff checks passed, and no temporary proof files remain.
-- Static ownership checks confirmed field selection and run-input-source
-  promotion have one production implementation behind the preserved facade
-  seam.
-- Runtime xref confirmed `cadence_import.ex` is the direct consumer of
-  `review_summary_context.ex`.
-- Bounded local review found no field membership/order, promotion, compaction,
-  context shape, manifest assembly, or schema changes.
+Pending: focused operational-readiness and quality-gate baselines, executable
+old-AST equivalence across all four projections, strict compile, all combined
+CadenceImport tests, schema contracts, static single ownership, runtime xref,
+and bounded review.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
@@ -58,8 +42,8 @@ implemented in `19e4312d`. `cadence_import.ex` moved from 3,337 to 3,225 lines;
 the extracted owner is 122 lines.
 
 Next candidate:
-Return to manifest assembly or remaining row-dispatch policy after review-summary
-context has one production owner.
+Return to manifest assembly after operational-readiness context projections
+have one production owner.
 
 Blocked:
 No.
