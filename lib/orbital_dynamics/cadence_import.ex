@@ -24,6 +24,7 @@ defmodule OrbitalDynamics.CadenceImport do
     ManifestBuilder,
     ManifestMapNormalization,
     OperationalReadinessContext,
+    OperationalTimelineImport,
     ProviderResultNormalization,
     ResourceProjectionImport,
     ReviewPackageImport,
@@ -1174,36 +1175,17 @@ defmodule OrbitalDynamics.CadenceImport do
   Builds an import manifest from a realized timeline feedback report.
   """
   def from_timeline_feedback_report(%{} = report, opts \\ []) do
-    report = stringify_keys(report)
-
-    review_package =
-      Map.get(report, "operator_review_package") ||
-        OperatorReview.from_timeline_feedback_report(report)
-
-    source_artifact_id =
-      option(opts, :source_artifact_id, Map.get(report, "id") || "timeline_feedback_report")
-
-    from_operator_review_package(
-      review_package,
-      Keyword.merge(opts,
-        source_artifact_type: "timeline_feedback_report.v1",
-        source_artifact_id: source_artifact_id
-      )
-    )
+    OperationalTimelineImport.from_timeline_feedback_report(report, opts, &from_review_report/4)
   end
 
   @doc """
   Builds an import manifest from an operational timeline report.
   """
   def from_operational_timeline_report(%{} = report, opts \\ []) do
-    report = stringify_keys(report)
-    source_artifact_id = option(opts, :source_artifact_id, report["id"] || report["source"])
-
-    from_review_report(
-      OperatorReview.from_operational_timeline_report(report),
+    OperationalTimelineImport.from_operational_timeline_report(
+      report,
       opts,
-      "operational_timeline_report.v1",
-      source_artifact_id || "operational_timeline_report"
+      &from_review_report/4
     )
   end
 
