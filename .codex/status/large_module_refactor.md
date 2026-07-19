@@ -9,7 +9,7 @@ Current slice:
 StationCalendar precedence-summary extraction.
 
 Status:
-Selected; strict focused baseline pending.
+Completed and pushed in `b0d0e175`.
 
 Selected boundary:
 Extract row-derived station-calendar availability precedence aggregation,
@@ -36,24 +36,42 @@ Selection evidence:
   reservation routing, and pass-through summary behavior must remain unchanged.
 
 Implementation:
-Pending.
+- Added `OrbitalDynamics.Communications.StationCalendar.PrecedenceSummary` as
+  the owner of row-derived availability/status counts, overlap routing,
+  higher-precedence reservation surfacing, and deterministic contact/
+  reservation routing maps.
+- Preserved all StationCalendar and root public APIs; the facade passes its
+  existing summary contract, source artifact contract, and model limits to the
+  new owner.
+- Removed the precedence builder and precedence-only helper family from the
+  facade while retaining shared report aggregators used by other paths.
+- `communications/station_calendar.ex` moved from 2,068 to 1,911 lines; the new
+  owner is 218 lines.
 
 Verification:
-Pending strict focused baseline, exact old/new public parity, focused and
-adjacent tests, static ownership checks, xref, strict warning-clean compile,
-formatting, and diff checks.
+- Strict focused baseline passed all 42 StationCalendar tests.
+- Exact old/new public parity passed for five captured cases: complex routing
+  and counts, atom-key/value normalization, empty reports, and string- and
+  atom-keyed pass-through summaries.
+- Focused and communications-contract verification passed 50 tests.
+- Static checks confirm the old builder and precedence-only helpers left the
+  facade; xref reports only StationCalendar as a runtime caller of the owner.
+- Strict warning-clean forced compile passed for 3,988 files.
+- Formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-ContactIntent provider-result normalization extraction, selected in
-`7b01da01` and implemented in `54820d60`.
-`communications/contact_intent.ex` moved from 2,112 to 2,038 lines; the
-dedicated provider-result owner is 77 lines.
+StationCalendar precedence-summary extraction, selected in `2bfb28f3` and
+implemented in `b0d0e175`.
+`communications/station_calendar.ex` moved from 2,068 to 1,911 lines; the
+dedicated precedence-summary owner is 218 lines.
 
 Next candidate:
-Complete the selected StationCalendar precedence-summary extraction.
+Re-rank the live checkout and select the next bounded facade-preserving
+extraction. `communications/contact_filter.ex` and `resource_filter.ex` are
+now the largest ordinary eligible facades near 2,060 lines.
 
 Blocked:
 No.
