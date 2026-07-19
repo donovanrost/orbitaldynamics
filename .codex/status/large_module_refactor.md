@@ -9,7 +9,7 @@ Current slice:
 Timeline grouped timeline-ID policy completion.
 
 Status:
-Selected; implementation has not started.
+Completed and published.
 
 Selected boundary:
 Move the two grouped timeline-ID aggregation bodies from the Timeline facade
@@ -31,17 +31,32 @@ Selection evidence:
   aggregation responsibilities remain outside the boundary.
 
 Verification:
-Pending: focused baselines, mechanical policy move, strict compile, focused and
-full Timeline tests, schema contracts, structural/static checks, and bounded
-review.
+- Focused baseline passed 3 summary tests.
+- Strict warnings-as-errors compile passed 3,803 modules.
+- Focused diff, lifecycle-state, and transition-application summary tests passed
+  3 tests.
+- Full Timeline suite passed 127 tests.
+- Four Timeline schema-contract suites passed 36 tests.
+- AST conservation proved both grouping algorithms moved exactly after
+  normalizing only the sorted-ID callback invocation.
+- Static checks confirmed the facade retains two thin wrappers, the policy owns
+  exactly one implementation of each grouping algorithm, public def count
+  remains 101, formatting/diff checks pass, and no temporary checker remains.
+- Compile-connected xref remained narrow: Timeline has only the pre-existing
+  compile edge to `CandidateRejectionStationPolicy`.
+- Bounded local review found no correctness or maintainability issues and
+  confirmed predicate filtering, nil/empty rejection, map-key sorting, and
+  deterministic unique timeline-ID ordering are unchanged.
+- Timeline decreased from 5,046 to 5,023 lines; `IdentityGroupingPolicy`
+  increased from 24 to 65 lines.
 
 Behavior/schema changes:
 None intended. Group filtering, map-key ordering, ID ordering, summary fields,
 capabilities, and schema exports should remain byte-for-byte stable.
 
 Last completed slice:
-Timeline lifecycle-state summary row policy extraction, selected in `c813f233`
-and implemented in `6fa5b2bd`.
+Timeline grouped timeline-ID policy completion, selected in `754829e3` and
+implemented in `68aea844`.
 
 Next candidate:
 Continue remapping the reduced Timeline facade after generic identity grouping
