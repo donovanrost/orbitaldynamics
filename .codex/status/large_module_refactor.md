@@ -9,7 +9,7 @@ Current slice:
 OperationalReadiness operational-mode decision extraction.
 
 Status:
-Selected; strict focused baseline pending.
+Completed and pushed in `5a80b5c7`.
 
 Selected boundary:
 Extract the analysis-mode vocabulary and aliases, option/artifact precedence,
@@ -35,25 +35,41 @@ Selection evidence:
   ordering, and public report behavior must remain unchanged.
 
 Implementation:
-Pending.
+- Added `OrbitalDynamics.OperationalReadiness.OperationalModeDecision` as the
+  owner of the analysis-mode vocabulary and aliases, option/artifact
+  precedence, nested mode lookup, truthy/token normalization, and analysis-only
+  decision tuples.
+- Preserved all OperationalReadiness and root public APIs; capability metadata
+  and the operational-mode gate now call the dedicated owner.
+- Removed the vocabulary attributes and complete decision helper family from
+  the facade.
+- `operational_readiness.ex` moved from 2,018 to 1,927 lines; the new owner is
+  103 lines.
 
 Verification:
-Pending strict focused baseline, exact old/new public parity, focused and
-adjacent tests, static ownership checks, xref, strict warning-clean compile,
-formatting, and diff checks.
+- Strict focused baseline passed all 31 OperationalReadiness tests.
+- Exact old/new public parity passed for eight captured cases: capability
+  metadata, options not-for-execution, option mode aliases, artifact and nested
+  not-for-execution/mode values, and unknown-mode fallback.
+- Focused and operator-review handoff verification passed 34 tests.
+- Static checks confirm the attributes and decision helpers left the facade;
+  xref reports only OperationalReadiness as a runtime caller of the owner.
+- Strict warning-clean forced compile passed for 3,992 files.
+- Formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-ContactIntent capacity-evidence extraction, selected in `85949f03` and
-implemented in `f01406f6`.
-`communications/contact_intent.ex` moved from 2,038 to 1,785 lines; the
-dedicated capacity-evidence owner is 281 lines.
+OperationalReadiness operational-mode decision extraction, selected in
+`0582a8c2` and implemented in `5a80b5c7`.
+`operational_readiness.ex` moved from 2,018 to 1,927 lines; the dedicated
+operational-mode decision owner is 103 lines.
 
 Next candidate:
-Complete the selected OperationalReadiness operational-mode decision
-extraction.
+Re-rank the live checkout and select the next bounded facade-preserving
+extraction. RecommendationRiskContext and OrbitData are now tied as the largest
+ordinary eligible facades at 2,016 lines.
 
 Blocked:
 No.
