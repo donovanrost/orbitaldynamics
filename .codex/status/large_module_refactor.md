@@ -9,7 +9,7 @@ Current slice:
 ContactAllocation approval-policy ownership extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `0593a3ef`.
 
 Selected boundary:
 Extract allocation policy-boundary detection, approval decisions,
@@ -32,20 +32,31 @@ Selection evidence:
 - Existing public report APIs and artifact row shapes remain unchanged.
 
 Verification:
-Pending.
+- Strict test-environment compile passed with warnings as errors across 3,903
+  files.
+- Focused ContactAllocation coverage passed: 70 tests.
+- Adjacent operator-review, schema-contract, provider-reservation-contract,
+  and validation-fixture coverage passed: 25 tests.
+- Exact public old/new comparison against selection commit `af08b116` passed
+  for eight policy-enabled allocations including command and health-check rows.
+- `mix xref callers` reports only the ContactAllocation facade as a runtime
+  caller of the extracted owner.
+- Static ownership checks confirm policy projection lives in ApprovalPolicy
+  while allocation, packing, and summary responsibilities remain in the facade.
+- `git diff --check` passed.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-Study.Manifest realized-activity input-schema extraction, selected in
-`f3f73799` and implemented in `e6decc5e`.
-`study/manifest.ex` moved from 4,008 to 3,836 lines; the dedicated owner is 181
-lines.
+ContactAllocation approval-policy ownership extraction, selected in
+`af08b116` and implemented in `0593a3ef`.
+`communications/contact_allocation.ex` moved from 3,984 to 3,782 lines; the
+dedicated owner is 218 lines.
 
 Next candidate:
-Implement and verify the selected ContactAllocation approval-policy ownership
-extraction.
+Re-rank the live largest-module set and select the next cohesive ownership
+boundary.
 
 Blocked:
 No.
