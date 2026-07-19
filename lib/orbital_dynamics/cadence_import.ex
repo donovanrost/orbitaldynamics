@@ -10,6 +10,7 @@ defmodule OrbitalDynamics.CadenceImport do
 
   alias OrbitalDynamics.CadenceImport.{
     ApprovalContextPolicy,
+    ActivityResultImport,
     BranchEvidenceFields,
     CandidateEvaluationImport,
     CandidateDiffFields,
@@ -31,7 +32,6 @@ defmodule OrbitalDynamics.CadenceImport do
     ReviewRowMetadata,
     ReviewRowDispatch,
     ReviewSummaryContext,
-    SourceIdentifierPolicy,
     StationOperationsImport,
     StationCalendarContextFields,
     StrategyDecisionImport,
@@ -1003,54 +1003,24 @@ defmodule OrbitalDynamics.CadenceImport do
   Builds an import manifest from a standalone planned-activity row.
   """
   def from_planned_activity(%{} = activity, opts \\ []) do
-    activity = stringify_keys(activity)
-
-    source_artifact_id =
-      option(opts, :source_artifact_id, activity["id"] || activity["activity_id"])
-
-    from_review_report(
-      OperatorReview.from_planned_activity(activity),
-      opts,
-      "planned_activity.v1",
-      source_artifact_id || "planned_activity"
-    )
+    ActivityResultImport.from_planned_activity(activity, opts, &from_review_report/4)
   end
 
   @doc """
   Builds an import manifest from a standalone realized-activity row.
   """
   def from_realized_activity(%{} = activity, opts \\ []) do
-    activity = stringify_keys(activity)
-
-    source_artifact_id =
-      option(opts, :source_artifact_id, activity["id"] || activity["realized_activity_id"])
-
-    from_review_report(
-      OperatorReview.from_realized_activity(activity),
-      opts,
-      "realized_activity.v1",
-      source_artifact_id || "realized_activity"
-    )
+    ActivityResultImport.from_realized_activity(activity, opts, &from_review_report/4)
   end
 
   @doc """
   Builds an import manifest from a realized-state snapshot.
   """
   def from_realized_state_snapshot(%{} = snapshot, opts \\ []) do
-    snapshot = stringify_keys(snapshot)
-
-    source_artifact_id =
-      option(
-        opts,
-        :source_artifact_id,
-        snapshot["snapshot_id"] || get_in(snapshot, ["metadata", "snapshot_id"])
-      )
-
-    from_review_report(
-      OperatorReview.from_realized_state_snapshot(snapshot),
+    ActivityResultImport.from_realized_state_snapshot(
+      snapshot,
       opts,
-      "realized_state_snapshot.v1",
-      source_artifact_id || "realized_state_snapshot"
+      &from_review_report/4
     )
   end
 
@@ -1058,17 +1028,7 @@ defmodule OrbitalDynamics.CadenceImport do
   Builds an import manifest from a top-level study result artifact.
   """
   def from_result_artifact(%{} = artifact, opts \\ []) do
-    artifact = stringify_keys(artifact)
-
-    source_artifact_id =
-      option(opts, :source_artifact_id, result_artifact_source_id(artifact))
-
-    from_review_report(
-      OperatorReview.from_result_artifact(artifact),
-      opts,
-      "result_artifact.v1",
-      source_artifact_id || "result_artifact"
-    )
+    ActivityResultImport.from_result_artifact(artifact, opts, &from_review_report/4)
   end
 
   @doc """
@@ -2205,9 +2165,6 @@ defmodule OrbitalDynamics.CadenceImport do
 
   defp generic_review_import_action(review_type),
     do: GenericReviewActionPolicy.resolve(review_type)
-
-  defp result_artifact_source_id(artifact),
-    do: SourceIdentifierPolicy.result_artifact(artifact)
 
   defp option(opts, key, default), do: Keyword.get(opts, key, default)
 
