@@ -14,7 +14,8 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
   alias OrbitalDynamics.MissionPlan.Activity.{
     ExecutionUncertaintyInput,
     LifecycleTransition,
-    PreconditionSummary
+    PreconditionSummary,
+    ScalarInput
   }
 
   @activity_types [
@@ -4162,49 +4163,19 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
     |> String.replace(~r/[\s-]+/, "_")
   end
 
-  defp optional_boolean!(nil), do: nil
-  defp optional_boolean!(value) when is_boolean(value), do: value
-  defp optional_boolean!(value) when value in ["true", "1", 1], do: true
-  defp optional_boolean!(value) when value in ["false", "0", 0], do: false
-  defp optional_boolean!(_value), do: raise(ArgumentError, "boolean field must be a boolean")
+  defp optional_boolean!(value), do: ScalarInput.optional_boolean!(value)
+  defp optional_boolean!(value, field), do: ScalarInput.optional_boolean!(value, field)
+  defp optional_boolean?(value), do: ScalarInput.optional_boolean?(value)
+  defp optional_number?(value), do: ScalarInput.optional_number?(value)
 
-  defp optional_boolean!(nil, _field), do: nil
-  defp optional_boolean!(value, _field) when is_boolean(value), do: value
-  defp optional_boolean!(value, _field) when value in ["true", "1", 1], do: true
-  defp optional_boolean!(value, _field) when value in ["false", "0", 0], do: false
-  defp optional_boolean!(_value, field), do: raise(ArgumentError, "#{field} must be a boolean")
+  defp optional_non_negative_number?(value),
+    do: ScalarInput.optional_non_negative_number?(value)
 
-  defp optional_boolean?(nil), do: true
-  defp optional_boolean?(value), do: is_boolean(value)
+  defp optional_non_negative_integer?(value),
+    do: ScalarInput.optional_non_negative_integer?(value)
 
-  defp optional_number?(nil), do: true
-  defp optional_number?(value), do: is_number(value)
-
-  defp optional_non_negative_number?(nil), do: true
-
-  defp optional_non_negative_number?(value) when is_number(value),
-    do: value >= 0.0
-
-  defp optional_non_negative_number?(_value), do: false
-
-  defp optional_non_negative_integer?(nil), do: true
-
-  defp optional_non_negative_integer?(value) when is_integer(value),
-    do: value >= 0
-
-  defp optional_non_negative_integer?(_value), do: false
-
-  defp optional_unit_interval?(nil), do: true
-
-  defp optional_unit_interval?(value) when is_number(value),
-    do: value >= 0.0 and value <= 1.0
-
-  defp optional_unit_interval?(_value), do: false
-
-  defp optional_scalar?(nil), do: true
-  defp optional_scalar?(value) when is_binary(value), do: value != ""
-  defp optional_scalar?(value) when is_atom(value), do: true
-  defp optional_scalar?(_value), do: false
+  defp optional_unit_interval?(value), do: ScalarInput.optional_unit_interval?(value)
+  defp optional_scalar?(value), do: ScalarInput.optional_scalar?(value)
 
   defp optional_stable_identifier?(nil), do: true
 
@@ -4216,92 +4187,23 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
 
   defp optional_stable_identifier?(_value), do: false
 
-  defp optional_number_or_scalar?(nil), do: true
-  defp optional_number_or_scalar?(value) when is_number(value), do: true
-  defp optional_number_or_scalar?(value), do: optional_scalar?(value)
+  defp optional_number_or_scalar?(value), do: ScalarInput.optional_number_or_scalar?(value)
+  defp optional_number!(value), do: ScalarInput.optional_number!(value)
 
-  defp optional_number!(nil), do: nil
+  defp optional_non_negative_number!(value, field),
+    do: ScalarInput.optional_non_negative_number!(value, field)
 
-  defp optional_number!(value) do
-    case numeric_or_nil(value) do
-      nil -> raise ArgumentError, "number fields must be numbers"
-      number -> number
-    end
-  end
+  defp optional_non_negative_integer!(value, field),
+    do: ScalarInput.optional_non_negative_integer!(value, field)
 
-  defp optional_non_negative_number!(nil, _field), do: nil
+  defp optional_unit_interval!(value, field),
+    do: ScalarInput.optional_unit_interval!(value, field)
 
-  defp optional_non_negative_number!(value, field) do
-    case numeric_or_nil(value) do
-      number when is_number(number) and number >= 0.0 ->
-        number
+  defp optional_scalar!(value), do: ScalarInput.optional_scalar!(value)
+  defp optional_scalar!(value, field), do: ScalarInput.optional_scalar!(value, field)
 
-      number when is_number(number) ->
-        raise ArgumentError, "#{field} must be a non-negative number"
-
-      nil ->
-        raise ArgumentError, "#{field} must be a number"
-    end
-  end
-
-  defp optional_non_negative_integer!(nil, _field), do: nil
-
-  defp optional_non_negative_integer!(value, _field) when is_integer(value) and value >= 0,
-    do: value
-
-  defp optional_non_negative_integer!(value, field) when is_binary(value) do
-    case Integer.parse(String.trim(value)) do
-      {integer, ""} when integer >= 0 ->
-        integer
-
-      _other ->
-        raise ArgumentError, "#{field} must be a non-negative integer"
-    end
-  end
-
-  defp optional_non_negative_integer!(_value, field),
-    do: raise(ArgumentError, "#{field} must be a non-negative integer")
-
-  defp optional_unit_interval!(nil, _field), do: nil
-
-  defp optional_unit_interval!(value, field) do
-    case numeric_or_nil(value) do
-      number when is_number(number) and number >= 0.0 and number <= 1.0 ->
-        number
-
-      number when is_number(number) ->
-        raise ArgumentError, "#{field} must be between 0.0 and 1.0"
-
-      nil ->
-        raise ArgumentError, "#{field} must be a number"
-    end
-  end
-
-  defp optional_scalar!(nil), do: nil
-  defp optional_scalar!(value) when is_binary(value) and value != "", do: value
-  defp optional_scalar!(value) when is_atom(value) and not is_nil(value), do: value
-
-  defp optional_scalar!(_value),
-    do: raise(ArgumentError, "scalar fields must be strings or atoms")
-
-  defp optional_scalar!(nil, _field), do: nil
-  defp optional_scalar!(value, _field) when is_binary(value) and value != "", do: value
-  defp optional_scalar!(value, _field) when is_atom(value) and not is_nil(value), do: value
-
-  defp optional_scalar!(_value, field),
-    do: raise(ArgumentError, "#{field} must be nil, a string, or an atom")
-
-  defp optional_number_or_scalar!(nil), do: nil
-  defp optional_number_or_scalar!(value) when is_number(value), do: value
-
-  defp optional_number_or_scalar!(value) when is_binary(value) do
-    case numeric_or_nil(value) do
-      nil -> optional_scalar!(value)
-      number -> number
-    end
-  end
-
-  defp optional_number_or_scalar!(value), do: optional_scalar!(value)
+  defp optional_number_or_scalar!(value),
+    do: ScalarInput.optional_number_or_scalar!(value)
 
   defp optional_direction!(nil), do: nil
   defp optional_direction!(direction), do: contact_direction!(direction)
