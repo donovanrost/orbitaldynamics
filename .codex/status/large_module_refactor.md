@@ -9,7 +9,7 @@ Current slice:
 ContactFilter contact normalization extraction.
 
 Status:
-Selected; strict focused baseline pending.
+Completed and pushed.
 
 Selected boundary:
 Extract recursive key normalization, station/time/status/direction
@@ -39,22 +39,40 @@ Selection evidence:
   exact error reasons, and capability metadata must remain unchanged.
 
 Implementation:
-Pending.
+- Selection was recorded and pushed in `4a188222`.
+- Implementation was committed and pushed in `2e6869b4`.
+- `communications/contact_filter.ex` moved from 2,356 to 2,062 lines.
+- `OrbitalDynamics.Communications.ContactFilter.ContactNormalization` is a
+  340-line owner reached through private facade delegates.
 
 Verification:
-Pending.
+- Strict warning-clean compilation passed across 3,974 files.
+- The focused ContactFilter file and five adjacent candidate-refresh,
+  campaign, operator-review, schema, and Cadence-import consumers passed
+  together: 52 tests.
+- Exact old/new public filter/report parity passed for 8 cases covering nested
+  and atom identities, recursive key stringification, station and spacecraft
+  precedence, activity/type and direction aliases, numeric times, nested
+  station-calendar statuses, invalid shapes and IDs, reservation matching,
+  policy options, report normalization, and capability metadata.
+- `mix xref callers` reports only the ContactFilter facade.
+- The removed normalization/identity helpers and facade-owned provider alias,
+  stable-pattern, and stable-identity attributes are absent apart from thin
+  delegates, formatting and `git diff --check` passed, and the final diff is
+  ownership-only.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-ContactContention contact/group identity extraction, selected in `21c6ee41`
-and implemented in `4c827f4c`.
-`communications/contact_contention.ex` moved from 2,370 to 2,242 lines; the
-dedicated contact-identity owner is 167 lines.
+ContactFilter contact normalization extraction, selected in `4a188222` and
+implemented in `2e6869b4`.
+`communications/contact_filter.ex` moved from 2,356 to 2,062 lines; the
+dedicated contact-normalization owner is 340 lines.
 
 Next candidate:
-Implement and verify the selected ContactFilter contact-normalization boundary.
+Re-rank the live checkout and select the next cohesive facade-preserving
+boundary.
 
 Blocked:
 No.
