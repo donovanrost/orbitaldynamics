@@ -9,7 +9,7 @@ Current slice:
 TimelineFeedback realized feedback validation extraction.
 
 Status:
-Selected; strict focused baseline pending.
+Completed and pushed.
 
 Selected boundary:
 Extract realized feedback unit-interval and nonnegative-weight path policy,
@@ -39,23 +39,40 @@ Selection evidence:
   and deterministic section order must remain unchanged.
 
 Implementation:
-Pending.
+- Selection was recorded and pushed in `75aca312`.
+- Implementation was committed and pushed in `60020f26`.
+- `timeline_feedback.ex` moved from 2,267 to 1,993 lines.
+- `OrbitalDynamics.TimelineFeedback.RealizedFeedbackValidation` is a 294-line
+  owner reached through four private facade delegates.
 
 Verification:
-Pending.
+- Strict warning-clean compilation passed across 3,979 files.
+- The focused TimelineFeedback file and five adjacent candidate-refresh,
+  strategy, observation-feedback, provenance, and schema consumers passed
+  together: 117 tests.
+- Exact old/new public normalization/reconciliation parity passed for 16 cases
+  covering valid and invalid contact/command/observation/maneuver factors,
+  direct/nested fallback sources, quality/cloud/blur aliases, invalid numbers
+  and shapes, weight aliases and sources, sanitization, row annotations, and
+  capability metadata.
+- `mix xref callers` reports only the TimelineFeedback facade.
+- The facade-owned path policy, validation, sanitization, nested lookup/delete,
+  source cleanup, and invalid-reason helpers are absent apart from four thin
+  delegates, formatting and `git diff --check` passed, and the final diff is
+  ownership-only.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-StationCalendar station matching extraction, selected in `bd2cead6` and
-implemented in `7e6add9c`.
-`communications/station_calendar.ex` moved from 2,268 to 2,068 lines; the
-dedicated station-matching owner is 237 lines.
+TimelineFeedback realized feedback validation extraction, selected in
+`75aca312` and implemented in `60020f26`.
+`timeline_feedback.ex` moved from 2,267 to 1,993 lines; the dedicated realized
+feedback validation owner is 294 lines.
 
 Next candidate:
-Implement and verify the selected TimelineFeedback realized-feedback
-validation boundary.
+Re-rank the live checkout and select the next cohesive facade-preserving
+boundary.
 
 Blocked:
 No.
