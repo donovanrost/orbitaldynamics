@@ -6,44 +6,31 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-TimelineFeedback realized-identity extraction.
+TimelineFeedback identity-value consolidation.
 
 Status:
-Completed and pushed in `1b1aa4c7`.
+Selected; implementation has not started.
 
 Selected boundary:
-Extract stable identifier validation, realized input identity selection,
-identity issue classification, nested/context identifier inspection, and
-invalid-row fallback identities into
-`OrbitalDynamics.TimelineFeedback.RealizedIdentity`. Preserve the existing
-private identity/stable-ID seams and pass the facade-owned stable-ID pattern
-into the dedicated owner.
+Move generic first-identifier lookup, metadata-aware first-value lookup,
+stable identifier-list normalization, and required-ID rendering into the
+existing `OrbitalDynamics.TimelineFeedback.RealizedIdentity` owner. Preserve
+the facade’s private helper seams and reuse its stable-ID pattern.
 
 Selection evidence:
-- `timeline_feedback.ex` remains the second-largest production module at 4,962
-  lines after realized-status extraction.
-- The selected 4,359-4,433, 4,444-4,456, and 4,466-4,474 helper family owns
-  stable realized identity interpretation used by input validation, row
-  assembly, and fallback invalid rows.
-- Row construction, status interpretation, reconciliation, and artifact
-  packaging remain in the facade; generic facade callers retain their existing
-  private identifier/stable-ID seams as delegates.
-- Focused TimelineFeedback coverage exercises aliases, nested identities,
-  invalid identifiers, missing identifiers, fallback IDs, and deterministic
-  normalized rows.
+- `timeline_feedback.ex` remains a top production hotspot at 4,882 lines.
+- The selected 4,696-4,819 helper family duplicates stable-ID and identifier
+  normalization already owned by `RealizedIdentity`.
+- First-value metadata fallback remains reusable through the existing private
+  facade seam; row construction and product/provider context assembly do not
+  move.
+- Consolidation avoids adding another narrow identity module and leaves one
+  stable-ID implementation for realized and generic feedback identifiers.
 
 Verification:
-- Strict warnings-as-errors compile passed across 3,880 files.
-- Focused TimelineFeedback coverage passed: 73 tests.
-- Adjacent operator-review, contact-feedback-contract, and realized-activity
-  feedback integration coverage passed: 10 tests.
-- Exact old/new public artifact comparison against `65df60b1` passed for 12
-  identifier precedence, alias, invalid nested/context, metadata, and missing
-  identity inputs plus the aggregate normalized list.
-- Runtime xref found the new owner referenced only by the TimelineFeedback
-  facade; static single-ownership review and `git diff --check` passed.
-- `timeline_feedback.ex` moved from 4,962 to 4,882 lines; the dedicated owner
-  is 121 lines.
+Pending: focused TimelineFeedback baseline, exact old/new product/identity
+artifacts, strict compile, adjacent realized-feedback coverage, static single
+ownership, runtime xref, and bounded review.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
@@ -54,8 +41,8 @@ implemented in `1b1aa4c7`. `timeline_feedback.ex` moved from 4,962 to 4,882
 lines; the dedicated owner is 121 lines.
 
 Next candidate:
-Re-inventory remaining TimelineFeedback normalization/reconciliation families
-after realized identity has one production owner.
+Re-inventory remaining TimelineFeedback scalar/map normalization and
+reconciliation families after identity normalization has one owner.
 
 Blocked:
 No.
