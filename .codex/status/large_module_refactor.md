@@ -6,40 +6,34 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-TimelineFeedback provider-result normalization extraction.
+TimelineFeedback success-factor normalization extraction.
 
 Status:
-Completed and pushed in `19b422d6`.
+Selected; implementation has not started.
 
 Selected boundary:
-Extract provider-result flattening, token outcome classification, and artifact
-scalar normalization into
-`OrbitalDynamics.TimelineFeedback.ProviderResult`. Preserve the existing
-private outcome and artifact-value seams used by `TimelineFeedback`.
+Extract observation, contact, and command success-factor selection, source
+attribution, and numeric validation into
+`OrbitalDynamics.TimelineFeedback.SuccessFactor`. Preserve the existing
+private helper seams used by `TimelineFeedback`; pass command-contact
+directions and provider-result interpretation into the dedicated owner.
 
 Selection evidence:
-- Live re-ranking shows `timeline_feedback.ex` is the second-largest production
-  module at 5,463 lines after `schema.ex` reached 6,764 lines.
-- The selected provider-result seams span 4,331-4,343 and 4,355-4,468 and share
-  one responsibility with no timeline reconciliation state dependency.
-- The provider result map keys remain capability/facade data passed into the new
-  owner; completion-fraction weighting remains in `TimelineFeedback`.
-- The prior validation-context Schema candidate was rejected during bounded
-  review because it added 48 lines of aggregation for only 6 facade lines while
-  specialized modules already owned the behavior.
+- Live re-ranking shows `timeline_feedback.ex` remains the second-largest
+  production module at 5,343 lines after `schema.ex` at 6,764 lines.
+- The selected 4,945-5,155 helper family owns one scalar feedback concern used
+  when building planned, realized, and realized-activity-context rows.
+- The owner can also centralize the unit-interval and nonnegative-number status
+  checks already used by realized-input sanitization, without moving row
+  assembly or reconciliation policy out of the facade.
+- Provider-result normalization remains in its existing dedicated owner;
+  success-factor selection consumes its public outcome through a narrow
+  dependency rather than duplicating token classification.
 
 Verification:
-- Strict warnings-as-errors compile passed across 3,872 files.
-- Focused TimelineFeedback coverage passed: 73 tests.
-- Adjacent operator-review, contact-feedback-contract, and realized-activity
-  feedback integration coverage passed: 10 tests.
-- Exact old/new public output comparison against `d9366691` passed for 8
-  representative normalization and reconciliation cases.
-- Static ownership review found the new owner referenced only by the
-  `TimelineFeedback` facade at runtime; `git diff --check` and bounded review
-  passed.
-- `timeline_feedback.ex` moved from 5,463 to 5,343 lines; the dedicated owner
-  is 133 lines.
+Pending: focused timeline-feedback baseline, exact old/new public artifact
+outputs, strict compile, broader timeline-feedback tests, static single
+ownership, runtime xref, and bounded review.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
@@ -50,8 +44,9 @@ TimelineFeedback provider-result normalization extraction, selected in
 5,463 to 5,343 lines; the dedicated owner is 133 lines.
 
 Next candidate:
-Re-inventory remaining TimelineFeedback normalization/reconciliation families
-after provider-result normalization has one production owner.
+Re-inventory remaining TimelineFeedback execution-uncertainty and
+normalization families after success-factor normalization has one production
+owner.
 
 Blocked:
 No.
