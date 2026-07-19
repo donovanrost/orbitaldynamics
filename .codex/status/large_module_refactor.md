@@ -9,7 +9,7 @@ Current slice:
 StationCalendar provider-counteroffer normalization extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `46e8ddb5`.
 
 Selected boundary:
 Extract provider-counteroffer detection, aliased field resolution, stable
@@ -33,20 +33,33 @@ Selection evidence:
   vocabularies, and deterministic ordering remain unchanged.
 
 Verification:
-Pending.
+- Strict test-environment compile passed with warnings as errors across 3,907
+  files.
+- Focused StationCalendar coverage passed: 42 tests.
+- Adjacent operator-review, schema-contract, and wrapped Cadence-import
+  counteroffer coverage passed: 5 tests.
+- Exact public old/new comparison against selection commit `a0dbc00c` passed
+  for eight artifacts covering capabilities, provider normalization, contact
+  overlay, report projection, review, import readiness, and plan impact.
+- `mix xref callers` reports only the StationCalendar facade as a runtime
+  caller of the extracted owner.
+- Static ownership checks confirm counteroffer detection, aliased fields,
+  negotiation-state vocabulary, numeric conversion, and stable ID validation
+  live in the dedicated owner.
+- `git diff --check` passed.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-TimelineFeedback reconciliation lifecycle-evidence extraction, selected in
-`f517ed33` and implemented in `ea3a4941`.
-`timeline_feedback.ex` moved from 3,842 to 3,776 lines; the dedicated owner is
-83 lines.
+StationCalendar provider-counteroffer normalization extraction, selected in
+`a0dbc00c` and implemented in `46e8ddb5`.
+`station_calendar.ex` moved from 4,012 to 3,924 lines; the dedicated owner is
+195 lines.
 
 Next candidate:
-Implement and verify the selected StationCalendar provider-counteroffer
-normalization extraction.
+Re-rank the live largest-module set and select the next cohesive ownership
+boundary.
 
 Blocked:
 No.
