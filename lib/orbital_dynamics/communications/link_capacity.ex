@@ -149,10 +149,9 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
     "healthcheck" => "health_check",
     "health_check_window" => "health_check"
   }
-  @stable_id_pattern ~r/^[A-Za-z0-9][A-Za-z0-9._:@-]*$/
-  @contact_stable_identity_fields ~w(scenario_id spacecraft_id satellite_id ground_station_id)
   @provider_result_map_value_keys ~w(result results outcome outcomes status state disposition provider_result provider_results provider_outcome provider_outcomes provider_status provider_state provider_code code reason reasons message messages error errors details metadata provider diagnostics)
   alias OrbitalDynamics.Policy
+  alias OrbitalDynamics.Communications.LinkCapacity.ContactIdentity
 
   @doc """
   Declares the fixed-rate link-capacity summary model and known limits.
@@ -184,7 +183,7 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
       actual_completion_fraction_paths: @actual_completion_fraction_paths,
       provider_direction_aliases: @provider_direction_aliases,
       provider_result_map_value_keys: @provider_result_map_value_keys,
-      contact_stable_identity_fields: @contact_stable_identity_fields,
+      contact_stable_identity_fields: ContactIdentity.stable_fields(),
       row_semantics: [
         :invalid_contact_input_review,
         :feedback_unit_interval_input_validation,
@@ -3401,89 +3400,22 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
 
   defp source_station_calendar_availability_candidates(_source), do: []
 
-  defp contact_id(contact) do
-    case contact_id_or_nil(contact) do
-      value when is_binary(value) and value != "" -> value
-      _value -> raise ArgumentError, "contact id is required"
-    end
-  end
+  defp contact_id(contact), do: ContactIdentity.contact_id!(contact)
 
-  defp contact_id_or_nil(contact) do
-    case Map.get(contact, "id") || Map.get(contact, "contact_id") ||
-           Map.get(contact, "activity_id") do
-      value when is_binary(value) and value != "" -> stable_id_or_nil(value)
-      value when is_atom(value) and not is_nil(value) -> stable_id_or_nil(value)
-      value when is_integer(value) -> stable_id_or_nil(value)
-      _value -> nil
-    end
-  end
+  defp contact_id_or_nil(contact), do: ContactIdentity.contact_id_or_nil(contact)
 
-  defp contact_ground_station_id(contact), do: stable_id_or_nil(contact["ground_station_id"])
+  defp contact_ground_station_id(contact), do: ContactIdentity.ground_station_id(contact)
 
   defp invalid_contact_row_id("invalid_contact_shape", index), do: "missing_contact_id:#{index}"
   defp invalid_contact_row_id(reason, index), do: "#{reason}:#{index}"
 
-  defp contact_id_issue(contact) do
-    raw_id =
-      Map.get(contact, "id") || Map.get(contact, "contact_id") ||
-        Map.get(contact, "activity_id")
+  defp contact_id_issue(contact), do: ContactIdentity.contact_id_issue(contact)
 
-    cond do
-      raw_id in [nil, ""] -> "missing_contact_id"
-      stable_id?(raw_id) -> nil
-      true -> "invalid_contact_id"
-    end
-  end
+  defp contact_identity_issue(contact), do: ContactIdentity.contact_identity_issue(contact)
 
-  defp contact_identity_issue(contact) do
-    Enum.find_value(@contact_stable_identity_fields, fn field ->
-      value = Map.get(contact, field)
+  defp contact_spacecraft_id(contact), do: ContactIdentity.spacecraft_id(contact)
 
-      cond do
-        value in [nil, ""] -> nil
-        stable_id?(value) -> nil
-        true -> "invalid_#{field}"
-      end
-    end)
-  end
-
-  defp contact_spacecraft_id(contact) do
-    spacecraft_identity_value(contact["spacecraft_id"]) ||
-      spacecraft_identity_value(contact["satellite_id"]) ||
-      spacecraft_identity_value(contact["spacecraft"]) ||
-      spacecraft_identity_value(contact["satellite"])
-  end
-
-  defp spacecraft_identity_value(%{} = spacecraft) do
-    Enum.find_value(["spacecraft_id", "satellite_id", "id"], fn field ->
-      spacecraft_identity_value(Map.get(spacecraft, field))
-    end)
-  end
-
-  defp spacecraft_identity_value(value), do: stable_id_or_nil(value)
-
-  defp stable_id?(value) when is_atom(value) and not is_nil(value) do
-    value
-    |> Atom.to_string()
-    |> stable_id?()
-  end
-
-  defp stable_id?("nil"), do: false
-  defp stable_id?(value) when is_binary(value), do: Regex.match?(@stable_id_pattern, value)
-  defp stable_id?(value) when is_integer(value), do: value |> Integer.to_string() |> stable_id?()
-  defp stable_id?(_value), do: false
-
-  defp stable_id_or_nil(nil), do: nil
-  defp stable_id_or_nil("nil"), do: nil
-  defp stable_id_or_nil(value) when is_binary(value), do: if(stable_id?(value), do: value)
-
-  defp stable_id_or_nil(value) when is_atom(value),
-    do: value |> Atom.to_string() |> stable_id_or_nil()
-
-  defp stable_id_or_nil(value) when is_integer(value),
-    do: value |> Integer.to_string() |> stable_id_or_nil()
-
-  defp stable_id_or_nil(_value), do: nil
+  defp stable_id_or_nil(value), do: ContactIdentity.stable_id_or_nil(value)
 
   defp normalize_contact(%{} = contact) do
     contact
