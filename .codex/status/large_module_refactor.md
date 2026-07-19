@@ -9,7 +9,7 @@ Current slice:
 Schema policy validation extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and published.
 
 Selected boundary:
 Extract approval requirements, policy-decision evidence, policy escalations,
@@ -28,17 +28,24 @@ Selection evidence:
   and all public `Schema` APIs remain outside.
 
 Verification:
-Pending: focused policy baselines, exact old/new fixture validation reports,
-strict compile, broader Schema contract tests, JSON Schema export checks,
-static single ownership, runtime xref, and bounded review.
+- Strict compile passed across 3,865 files with warnings as errors.
+- Focused policy and contact-feedback contracts passed: 6 tests.
+- Full Schema suite passed: 175 tests.
+- JSON Schema export contracts passed: 15 tests.
+- Exact old/new validation reports matched for 9 valid and mutated standalone
+  and nested policy fixtures.
+- Static inspection confirms the facade retains only its arity-3/arity-4 seams
+  plus shared model/field-group inputs; runtime xref reports `Schema` as the
+  sole caller of the new owner.
+- `git diff --check` and bounded ownership review passed.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-Schema decision-support validation consolidation, selected in `57f70207` and
-implemented in `88aa3c57`. `schema.ex` moved from 6,972 to 6,963 lines; the
-existing owner moved from 59 to 103 lines.
+Schema policy validation extraction, selected in `253ec596` and implemented in
+`e207f932`. `schema.ex` moved from 6,963 to 6,950 lines; the dedicated owner is
+76 lines.
 
 Next candidate:
 Re-inventory remaining Schema family-validation clusters after policy
