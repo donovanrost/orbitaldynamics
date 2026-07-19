@@ -18,31 +18,6 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
     "reduced_capacity" => 3,
     "available" => 1
   }
-  @station_capacity_fraction_paths [
-    ["availability"],
-    ["capacity_pack_capacity_fraction"],
-    ["throughput_model", "availability"],
-    ["throughput_model", "station_capacity_fraction"],
-    ["throughput_model", "capacity_fraction"],
-    ["capacity_model", "availability"],
-    ["capacity_model", "station_capacity_fraction"],
-    ["capacity_model", "capacity_fraction"],
-    ["activity_context", "availability"],
-    ["activity_context", "station_capacity_fraction"],
-    ["activity_context", "capacity_fraction"],
-    ["station_capacity_fraction"],
-    ["capacity_fraction"]
-  ]
-  @station_capacity_percent_paths [
-    ["throughput_model", "station_capacity_percent"],
-    ["throughput_model", "capacity_percent"],
-    ["capacity_model", "station_capacity_percent"],
-    ["capacity_model", "capacity_percent"],
-    ["activity_context", "station_capacity_percent"],
-    ["activity_context", "capacity_percent"],
-    ["station_capacity_percent"],
-    ["capacity_percent"]
-  ]
   @required_downlink_policy_paths [
     ["required_downlink_mb"],
     ["required_downlink_mb_by_ground_station"]
@@ -95,29 +70,6 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
     ["throughput_model", "completion_fraction"],
     ["throughput_model", "contact_completion_fraction"]
   ]
-  @station_capacity_value_paths [
-    {:fraction, ["availability"]},
-    {:fraction, ["capacity_pack_capacity_fraction"]},
-    {:fraction, ["throughput_model", "availability"]},
-    {:fraction, ["throughput_model", "station_capacity_fraction"]},
-    {:fraction, ["throughput_model", "capacity_fraction"]},
-    {:percent, ["throughput_model", "station_capacity_percent"]},
-    {:percent, ["throughput_model", "capacity_percent"]},
-    {:fraction, ["capacity_model", "availability"]},
-    {:fraction, ["capacity_model", "station_capacity_fraction"]},
-    {:fraction, ["capacity_model", "capacity_fraction"]},
-    {:percent, ["capacity_model", "station_capacity_percent"]},
-    {:percent, ["capacity_model", "capacity_percent"]},
-    {:fraction, ["activity_context", "availability"]},
-    {:fraction, ["activity_context", "station_capacity_fraction"]},
-    {:fraction, ["activity_context", "capacity_fraction"]},
-    {:percent, ["activity_context", "station_capacity_percent"]},
-    {:percent, ["activity_context", "capacity_percent"]},
-    {:fraction, ["station_capacity_fraction"]},
-    {:fraction, ["capacity_fraction"]},
-    {:percent, ["station_capacity_percent"]},
-    {:percent, ["capacity_percent"]}
-  ]
   @provider_direction_aliases %{
     "cmd" => "command",
     "commanding" => "command",
@@ -141,6 +93,7 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
   alias OrbitalDynamics.Communications.LinkCapacity.ContactFeedback
   alias OrbitalDynamics.Communications.LinkCapacity.ContactIdentity
   alias OrbitalDynamics.Communications.LinkCapacity.RelayDataPath
+  alias OrbitalDynamics.Communications.LinkCapacity.StationCapacity
 
   @doc """
   Declares the fixed-rate link-capacity summary model and known limits.
@@ -154,13 +107,12 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
       validation_level: :artifact_contract,
       station_unavailable_aliases: @unavailable_aliases,
       station_availability_precedence: @station_availability_severity,
-      station_capacity_fraction_paths: @station_capacity_fraction_paths,
-      station_capacity_percent_paths: @station_capacity_percent_paths,
-      station_capacity_value_paths: capacity_value_path_metadata(@station_capacity_value_paths),
-      source_station_capacity_fraction_paths: @station_capacity_fraction_paths,
-      source_station_capacity_percent_paths: @station_capacity_percent_paths,
-      source_station_capacity_value_paths:
-        capacity_value_path_metadata(@station_capacity_value_paths),
+      station_capacity_fraction_paths: StationCapacity.fraction_paths(),
+      station_capacity_percent_paths: StationCapacity.percent_paths(),
+      station_capacity_value_paths: StationCapacity.value_path_metadata(),
+      source_station_capacity_fraction_paths: StationCapacity.fraction_paths(),
+      source_station_capacity_percent_paths: StationCapacity.percent_paths(),
+      source_station_capacity_value_paths: StationCapacity.value_path_metadata(),
       required_downlink_policy_paths: @required_downlink_policy_paths,
       contact_required_downlink_paths: @contact_required_downlink_paths,
       downlink_completion_source_paths: @downlink_completion_source_paths,
@@ -279,17 +231,7 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
     }
   end
 
-  defp capacity_value_path_metadata(paths) do
-    Enum.map(paths, fn {unit, path} -> %{unit: unit, path: path} end)
-  end
-
-  defp capacity_value_path_assumptions do
-    @station_capacity_value_paths
-    |> capacity_value_path_metadata()
-    |> Enum.map(fn %{unit: unit, path: path} ->
-      %{"unit" => Atom.to_string(unit), "path" => path}
-    end)
-  end
+  defp capacity_value_path_assumptions, do: StationCapacity.assumptions()
 
   @doc """
   Builds a `link_capacity_report.v1` from contact candidates and selected contacts.
@@ -842,7 +784,6 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
   def relay_data_path_summary(routes, opts \\ [])
 
   def relay_data_path_summary(routes, opts), do: RelayDataPath.summary(routes, opts)
-
 
   defp link_capacity_summary(report) do
     report = stringify_keys(report)
@@ -1889,45 +1830,7 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
     end
   end
 
-  defp capacity_fraction_value(contact) do
-    (capacity_fraction_from_paths(contact, @station_capacity_value_paths) ||
-       source_station_capacity_fraction(contact["source_station_calendar_entry"]) ||
-       source_station_capacity_fraction(contact["source_station_calendar_overlaps"]))
-    |> case do
-      value when is_number(value) -> value
-      _value -> 1.0
-    end
-  end
-
-  defp source_station_capacity_fraction(sources) when is_list(sources) do
-    sources
-    |> Enum.map(&source_station_capacity_fraction/1)
-    |> Enum.reject(&is_nil/1)
-    |> Enum.uniq()
-    |> case do
-      [capacity_fraction] -> capacity_fraction
-      _ambiguous_or_missing -> nil
-    end
-  end
-
-  defp source_station_capacity_fraction(%{} = source),
-    do: capacity_fraction_from_paths(source, @station_capacity_value_paths)
-
-  defp source_station_capacity_fraction(_source), do: nil
-
-  defp capacity_fraction_from_paths(value, paths) do
-    paths
-    |> Enum.find_value(fn
-      {:fraction, path} ->
-        value |> path_value(path) |> numeric_value()
-
-      {:percent, path} ->
-        case numeric_value(path_value(value, path)) do
-          value when is_number(value) -> value / 100.0
-          _value -> nil
-        end
-    end)
-  end
+  defp capacity_fraction_value(contact), do: StationCapacity.value(contact)
 
   defp path_value(value, [field]), do: Map.get(value, field)
   defp path_value(value, path), do: get_in(value, path)
