@@ -16,6 +16,7 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
     ApprovalPolicy,
     CapacityPacking,
     ProviderCounteroffer,
+    StationCapacityEvidence,
     ThroughputEvidence
   }
 
@@ -1526,80 +1527,21 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
   defp put_effective_allocation_status(%{"allocation_status" => status} = row),
     do: Map.put(row, "effective_allocation_status", status)
 
-  defp station_allocation_blocked?(contact) do
-    availability = station_availability(contact)
-    capacity_fraction = station_capacity_fraction(contact)
-    required_capacity_fraction = required_capacity_fraction_value(contact) || 0.0
+  defp station_allocation_blocked?(contact),
+    do: StationCapacityEvidence.station_allocation_blocked?(contact, station_capacity_policy())
 
-    cond do
-      availability in @station_blocking_availability -> true
-      is_number(capacity_fraction) and capacity_fraction <= 0.0 -> true
-      is_number(capacity_fraction) and required_capacity_fraction > capacity_fraction -> true
-      true -> false
-    end
-  end
-
-  defp station_allocation_blocked_reason(contact) do
-    availability = station_availability(contact)
-    capacity_fraction = station_capacity_fraction(contact)
-    required_capacity_fraction = required_capacity_fraction_value(contact) || 0.0
-
-    cond do
-      availability in @station_blocking_availability ->
-        "ground_station_unavailable"
-
-      is_number(capacity_fraction) and capacity_fraction <= 0.0 ->
-        "ground_station_capacity_zero"
-
-      is_number(capacity_fraction) and required_capacity_fraction > capacity_fraction ->
-        "ground_station_reduced_capacity_insufficient"
-
-      true ->
-        "ground_station_capacity_zero"
-    end
-  end
+  defp station_allocation_blocked_reason(contact),
+    do:
+      StationCapacityEvidence.station_allocation_blocked_reason(
+        contact,
+        station_capacity_policy()
+      )
 
   defp station_capacity_fraction(contact),
-    do: first_unit_interval(station_capacity_fraction_candidates(contact))
+    do: StationCapacityEvidence.station_capacity_fraction(contact, station_capacity_policy())
 
-  defp station_availability(contact) do
-    case Enum.filter(station_availability_candidates(contact), &station_availability_value?/1) do
-      [] -> nil
-      values -> Enum.max_by(values, &station_availability_severity/1)
-    end
-  end
-
-  defp station_availability_candidates(contact) do
-    [
-      contact["station_availability"],
-      contact["availability"],
-      contact["station_calendar_status"]
-    ] ++
-      source_station_calendar_availability_candidates(contact["source_station_calendar_entry"]) ++
-      source_station_calendar_availability_candidates(contact["source_station_calendar_overlaps"])
-  end
-
-  defp station_availability_value?(value)
-       when value in ["available", "unavailable", "maintenance", "reserved", "reduced_capacity"],
-       do: true
-
-  defp station_availability_value?(_value), do: false
-
-  defp station_availability_severity(value), do: Map.get(@station_availability_severity, value, 0)
-
-  defp source_station_calendar_availability_candidates(sources) when is_list(sources),
-    do: Enum.flat_map(sources, &source_station_calendar_availability_candidates/1)
-
-  defp source_station_calendar_availability_candidates(%{} = source) do
-    [
-      source["station_availability"],
-      source["availability"],
-      source["station_calendar_status"],
-      source["status"]
-    ]
-  end
-
-  defp source_station_calendar_availability_candidates(_source), do: []
+  defp station_availability(contact),
+    do: StationCapacityEvidence.station_availability(contact, station_capacity_policy())
 
   defp status_allocation_blocked?(contact) do
     contact_status(contact) in terminal_contact_statuses() or
@@ -1638,10 +1580,8 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
       is_number(Map.get(contact, "starts_at_s")) and
       is_number(Map.get(contact, "ends_at_s")) and
       not is_nil(Map.get(contact, "ground_station_id")) and
-      not invalid_unit_interval_declared?(station_capacity_fraction_candidates(contact)) and
-      not invalid_percent_declared?(station_capacity_percent_candidates(contact)) and
-      not invalid_unit_interval_declared?(required_capacity_fraction_candidates(contact)) and
-      not invalid_percent_declared?(required_capacity_percent_candidates(contact)) and
+      not invalid_station_capacity_declared?(contact) and
+      not invalid_required_capacity_declared?(contact) and
       not invalid_unit_interval_declared?(completed_fraction_candidates(contact)) and
       not invalid_unit_interval_declared?(
         contact_feedback_factor_candidates(contact, "contact_success_factor")
@@ -1707,98 +1647,12 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
     ThroughputEvidence.downlink_completion_context(contact)
   end
 
-  defp required_capacity_fraction_value(contact) do
-    first_unit_interval(required_capacity_fraction_candidates(contact))
-  end
+  defp required_capacity_fraction_value(contact),
+    do:
+      StationCapacityEvidence.required_capacity_fraction_value(contact, station_capacity_policy())
 
-  defp required_capacity_fraction_source(contact) do
-    cond do
-      valid_capacity_value_declared?(contact["required_capacity_fraction"]) or
-        valid_capacity_value_declared?(contact["required_station_capacity_fraction"]) or
-        valid_capacity_value_declared?(contact["station_capacity_requirement"]) or
-        valid_capacity_percent_declared?(contact["required_capacity_percent"]) or
-        valid_capacity_percent_declared?(contact["required_station_capacity_percent"]) or
-          valid_capacity_percent_declared?(contact["station_capacity_requirement_percent"]) ->
-        nil
-
-      valid_capacity_value_declared?(
-        get_in(contact, ["throughput_model", "required_capacity_fraction"])
-      ) or
-        valid_capacity_value_declared?(
-          get_in(contact, ["throughput_model", "required_station_capacity_fraction"])
-        ) or
-        valid_capacity_value_declared?(
-          get_in(contact, ["throughput_model", "station_capacity_requirement"])
-        ) or
-        valid_capacity_percent_declared?(
-          get_in(contact, ["throughput_model", "required_capacity_percent"])
-        ) or
-        valid_capacity_percent_declared?(
-          get_in(contact, ["throughput_model", "required_station_capacity_percent"])
-        ) or
-          valid_capacity_percent_declared?(
-            get_in(contact, ["throughput_model", "station_capacity_requirement_percent"])
-          ) ->
-        "throughput_model"
-
-      valid_capacity_value_declared?(
-        get_in(contact, ["capacity_model", "required_capacity_fraction"])
-      ) or
-        valid_capacity_value_declared?(
-          get_in(contact, ["capacity_model", "required_station_capacity_fraction"])
-        ) or
-        valid_capacity_value_declared?(
-          get_in(contact, ["capacity_model", "station_capacity_requirement"])
-        ) or
-        valid_capacity_percent_declared?(
-          get_in(contact, ["capacity_model", "required_capacity_percent"])
-        ) or
-        valid_capacity_percent_declared?(
-          get_in(contact, ["capacity_model", "required_station_capacity_percent"])
-        ) or
-          valid_capacity_percent_declared?(
-            get_in(contact, ["capacity_model", "station_capacity_requirement_percent"])
-          ) ->
-        "capacity_model"
-
-      valid_capacity_value_declared?(
-        get_in(contact, ["activity_context", "required_capacity_fraction"])
-      ) or
-        valid_capacity_value_declared?(
-          get_in(contact, ["activity_context", "required_station_capacity_fraction"])
-        ) or
-        valid_capacity_value_declared?(
-          get_in(contact, ["activity_context", "station_capacity_requirement"])
-        ) or
-        valid_capacity_percent_declared?(
-          get_in(contact, ["activity_context", "required_capacity_percent"])
-        ) or
-        valid_capacity_percent_declared?(
-          get_in(contact, ["activity_context", "required_station_capacity_percent"])
-        ) or
-          valid_capacity_percent_declared?(
-            get_in(contact, ["activity_context", "station_capacity_requirement_percent"])
-          ) ->
-        "activity_context"
-
-      true ->
-        nil
-    end
-  end
-
-  defp valid_capacity_value_declared?(value) do
-    case numeric_or_nil(value) do
-      value when is_number(value) -> unit_interval?(value)
-      _value -> false
-    end
-  end
-
-  defp valid_capacity_percent_declared?(value) do
-    case numeric_or_nil(value) do
-      value when is_number(value) -> value >= 0.0 and value <= 100.0
-      _value -> false
-    end
-  end
+  defp required_capacity_fraction_source(contact),
+    do: StationCapacityEvidence.required_capacity_fraction_source(contact)
 
   defp contact_feedback_factor(contact, key) do
     first_unit_interval(contact_feedback_factor_candidates(contact, key))
@@ -1840,27 +1694,9 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
     end
   end
 
-  defp first_unit_interval(values) do
-    Enum.find_value(values, fn value ->
-      case numeric_or_nil(value) do
-        value when is_number(value) -> if(unit_interval?(value), do: value)
-        _value -> nil
-      end
-    end)
-  end
+  defp first_unit_interval(values), do: StationCapacityEvidence.first_unit_interval(values)
 
-  defp numeric_or_nil(value) when is_integer(value) or is_float(value), do: value * 1.0
-
-  defp numeric_or_nil(value) when is_binary(value) do
-    value = String.trim(value)
-
-    case Float.parse(value) do
-      {number, ""} -> number
-      _result -> nil
-    end
-  end
-
-  defp numeric_or_nil(_value), do: nil
+  defp numeric_or_nil(value), do: StationCapacityEvidence.numeric_or_nil(value)
 
   defp invalid_contact_input?(contact), do: not contact_candidate?(contact)
 
@@ -1884,16 +1720,10 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
       not is_number(Map.get(contact, "ends_at_s")) ->
         "missing_contact_ends_at_s"
 
-      invalid_unit_interval_declared?(station_capacity_fraction_candidates(contact)) ->
+      invalid_station_capacity_declared?(contact) ->
         "invalid_capacity_fraction"
 
-      invalid_percent_declared?(station_capacity_percent_candidates(contact)) ->
-        "invalid_capacity_fraction"
-
-      invalid_unit_interval_declared?(required_capacity_fraction_candidates(contact)) ->
-        "invalid_required_capacity_fraction"
-
-      invalid_percent_declared?(required_capacity_percent_candidates(contact)) ->
+      invalid_required_capacity_declared?(contact) ->
         "invalid_required_capacity_fraction"
 
       invalid_unit_interval_declared?(completed_fraction_candidates(contact)) ->
@@ -1929,107 +1759,33 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
     [contact_value(contact, key)]
   end
 
-  defp station_capacity_fraction_candidates(contact) do
-    capacity_value_candidates(contact, @station_capacity_value_paths) ++
-      source_station_capacity_fraction_candidates(contact["source_station_calendar_entry"]) ++
-      source_station_capacity_overlap_fraction_candidates(contact)
+  defp station_capacity_policy do
+    %{
+      station_blocking_availability: @station_blocking_availability,
+      station_availability_severity: @station_availability_severity,
+      station_capacity_value_paths: @station_capacity_value_paths,
+      station_capacity_percent_paths: @station_capacity_percent_paths,
+      required_capacity_value_paths: @required_capacity_value_paths,
+      required_capacity_percent_paths: @required_capacity_percent_paths
+    }
   end
 
-  defp required_capacity_fraction_candidates(contact) do
-    capacity_value_candidates(contact, @required_capacity_value_paths)
-  end
+  defp invalid_station_capacity_declared?(contact),
+    do:
+      StationCapacityEvidence.invalid_station_capacity_declared?(
+        contact,
+        station_capacity_policy()
+      )
 
-  defp station_capacity_percent_candidates(contact) do
-    path_values(contact, @station_capacity_percent_paths) ++
-      source_station_capacity_percent_candidates(contact["source_station_calendar_entry"]) ++
-      source_station_capacity_overlap_percent_candidates(contact)
-  end
+  defp invalid_required_capacity_declared?(contact),
+    do:
+      StationCapacityEvidence.invalid_required_capacity_declared?(
+        contact,
+        station_capacity_policy()
+      )
 
-  defp source_station_capacity_overlap_fraction_candidates(contact) do
-    if station_calendar_entry_ambiguous?(contact) do
-      []
-    else
-      source_station_capacity_fraction_candidates(contact["source_station_calendar_overlaps"])
-    end
-  end
-
-  defp source_station_capacity_overlap_percent_candidates(contact) do
-    if station_calendar_entry_ambiguous?(contact) do
-      []
-    else
-      source_station_capacity_percent_candidates(contact["source_station_calendar_overlaps"])
-    end
-  end
-
-  defp station_calendar_entry_ambiguous?(contact) do
-    contact["station_calendar_entry_ambiguous"] == true ||
-      get_in(contact, ["source_station_calendar_entry", "station_calendar_entry_ambiguous"]) ==
-        true
-  end
-
-  defp source_station_capacity_fraction_candidates(sources) when is_list(sources),
-    do: Enum.flat_map(sources, &source_station_capacity_fraction_candidates/1)
-
-  defp source_station_capacity_fraction_candidates(%{} = source) do
-    capacity_value_candidates(source, @station_capacity_value_paths)
-  end
-
-  defp source_station_capacity_fraction_candidates(_source), do: []
-
-  defp source_station_capacity_percent_candidates(sources) when is_list(sources),
-    do: Enum.flat_map(sources, &source_station_capacity_percent_candidates/1)
-
-  defp source_station_capacity_percent_candidates(%{} = source) do
-    path_values(source, @station_capacity_percent_paths)
-  end
-
-  defp source_station_capacity_percent_candidates(_source), do: []
-
-  defp required_capacity_percent_candidates(contact) do
-    path_values(contact, @required_capacity_percent_paths)
-  end
-
-  defp capacity_value_candidates(value, paths) do
-    Enum.map(paths, fn
-      {:fraction, path} ->
-        path_value(value, path)
-
-      {:percent, path} ->
-        capacity_percent_fraction(path_value(value, path))
-    end)
-  end
-
-  defp path_values(value, paths), do: Enum.map(paths, &path_value(value, &1))
-
-  defp path_value(value, [field]), do: Map.get(value, field)
-  defp path_value(value, path), do: get_in(value, path)
-
-  defp capacity_percent_fraction(value) do
-    case numeric_or_nil(value) do
-      value when is_number(value) and value >= 0.0 and value <= 100.0 -> value / 100.0
-      _value -> nil
-    end
-  end
-
-  defp invalid_unit_interval_declared?(values) do
-    Enum.any?(values, fn value ->
-      case numeric_or_nil(value) do
-        value when is_number(value) -> not unit_interval?(value)
-        _value -> false
-      end
-    end)
-  end
-
-  defp invalid_percent_declared?(values) do
-    Enum.any?(values, fn value ->
-      case numeric_or_nil(value) do
-        value when is_number(value) -> value < 0.0 or value > 100.0
-        _value -> false
-      end
-    end)
-  end
-
-  defp unit_interval?(value) when is_number(value), do: value >= 0.0 and value <= 1.0
+  defp invalid_unit_interval_declared?(values),
+    do: StationCapacityEvidence.invalid_unit_interval_declared?(values)
 
   defp contact_direction(%{"direction" => direction})
        when is_binary(direction) and direction != "",
