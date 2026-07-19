@@ -9,7 +9,7 @@ Current slice:
 LinkCapacity station-availability extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Extract station-unavailability aliases, availability precedence, contact and
@@ -35,31 +35,37 @@ Selection evidence:
   maintenance/outage collapse, capacity-fraction fallback, nil behavior,
   capability metadata, and deterministic output must remain unchanged.
 
-Verification plan:
-- Run the strict warning-clean compile before and after implementation.
-- Run the focused LinkCapacity regression file and adjacent capacity
-  review/import/summary consumers selected from live references.
-- Run exact old/new public parity from this selection commit across direct and
-  nested availability evidence, aliases, mixed precedence, contact lists,
-  reduced-capacity fallback, available/unknown/nil values, capability
-  metadata, deterministic reports/summaries, and public errors.
-- Run `mix xref callers` for the new owner, inspect compile-connected
-  dependents, check formatting and `git diff --check`, prove the removed
-  policy family is absent from the facade, and review final facade/owner
-  boundaries.
+Implementation:
+- Selection was recorded and pushed in `824e5611`.
+- Implementation was committed and pushed in `f2c45f2e`.
+- `communications/link_capacity.ex` moved from 2,554 to 2,462 lines.
+- `OrbitalDynamics.Communications.LinkCapacity.StationAvailability` is a
+  116-line owner reached through private availability and metadata delegates.
+
+Verification:
+- Strict warning-clean compilation passed across 3,961 files.
+- The focused LinkCapacity file and four adjacent review/import/replay/schema
+  consumers passed together: 64 tests.
+- Exact old/new public parity passed for 7 cases covering capability metadata,
+  empty reports, direct/nested aliases, maintenance/outage precedence,
+  reserved/reduced capacity, capacity-fraction fallback, available/unknown
+  evidence, summary routing, deterministic output, and the public error path.
+- `mix xref callers` reports only the LinkCapacity facade; the
+  compile-connected graph reports the new owner and facade.
+- The removed policy family is absent from the facade, formatting and
+  `git diff --check` passed, and the final diff is ownership-only.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-StationCalendar reservation-source evidence extraction, selected in
-`d5c47875` and implemented in `77f354df`.
-`communications/station_calendar.ex` moved from 2,595 to 2,425 lines; the
-dedicated reservation-source owner is 227 lines.
+LinkCapacity station-availability extraction, selected in `824e5611` and
+implemented in `f2c45f2e`. `communications/link_capacity.ex` moved from 2,554
+to 2,462 lines; the dedicated station-availability owner is 116 lines.
 
 Next candidate:
-Implement and verify the selected LinkCapacity station-availability
-extraction.
+Re-rank the live checkout and select the next cohesive facade-preserving
+boundary.
 
 Blocked:
 No.
