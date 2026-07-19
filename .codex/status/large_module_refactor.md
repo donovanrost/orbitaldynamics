@@ -9,7 +9,7 @@ Current slice:
 TimelineFeedback activity-state artifact extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed in `0e23963f`.
 
 Selected boundary:
 Extract compact activity-state artifact assembly, primary-row selection,
@@ -33,16 +33,32 @@ Selection evidence:
   unchanged.
 
 Verification:
-Pending.
+- Strict test-environment compile passed with warnings as errors across 3,923
+  files.
+- Focused TimelineFeedback coverage passed: 73 tests.
+- Adjacent Timeline coverage passed: 109 tests.
+- Adjacent activity-state operator-review, schema-contract,
+  candidate-refresh, and campaign-planner coverage passed: 25 tests.
+- Exact public old/new comparison against selection commit `3575f21a` passed
+  for six output scenarios covering matched, approval-regression, unmatched,
+  planned-only, realized-only, and timing-threshold states, plus all three
+  public error paths.
+- `mix xref callers` reports only the TimelineFeedback facade as a runtime
+  caller of the extracted activity-state owner.
+- Static ownership checks confirm artifact assembly, primary-row selection,
+  counts, review evidence, and trust-boundary derivation live in the dedicated
+  owner while validation, reconciliation, and lifecycle derivation remain in
+  the facade.
+- `git diff --check` passed.
 
 Behavior/schema changes:
-None intended. This is a facade-preserving production ownership extraction.
+None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-ResourceProjection pressure classification extraction, selected in `bab45b76`
-and implemented in `b034086a`.
-`resource_projection.ex` moved from 3,629 to 3,447 lines; the dedicated
-pressure-classification owner is 192 lines.
+TimelineFeedback activity-state artifact extraction, selected in `3575f21a`
+and implemented in `0e23963f`.
+`timeline_feedback.ex` moved from 3,606 to 3,452 lines; the dedicated
+activity-state owner is 183 lines.
 
 Next candidate:
 Re-rank the live largest-module set and select the next cohesive ownership
