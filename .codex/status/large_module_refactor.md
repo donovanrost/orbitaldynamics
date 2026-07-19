@@ -9,7 +9,7 @@ Current slice:
 OperationalReadiness adapter-boundary evidence extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Extract adapter-shaped context detection, nested trust-boundary collection,
@@ -34,24 +34,39 @@ Selection evidence:
   matching, duplicate counting, and empty-map behavior must remain unchanged.
 
 Implementation:
-- Pending.
+- Selection was recorded and pushed in `f917e600`.
+- Implementation was committed and pushed in `967b7ade`.
+- `operational_readiness.ex` moved from 2,500 to 2,385 lines.
+- `OrbitalDynamics.OperationalReadiness.AdapterBoundaryEvidence` is a
+  121-line owner reached through a private facade delegate.
 
 Verification:
-- Pending focused baseline, strict compilation, exact old/new public parity,
-  focused and adjacent tests, static ownership checks, and xref review.
+- Strict warning-clean compilation passed across 3,965 files.
+- The focused OperationalReadiness file and five adjacent operator-review,
+  quality-gate, Cadence-import, replay-routing, and schema consumers passed
+  together: 44 tests.
+- Exact old/new public parity passed for 10 reports covering empty evidence;
+  direct missing, declared, and untrusted boundaries; nested adapter evidence;
+  blank adapter values; missing-token and substring-untrusted normalization;
+  mixed counts; artifact-level context; and public-error behavior.
+- `mix xref callers` reports only the OperationalReadiness facade; the
+  compile-connected graph reports the new owner and facade.
+- The removed classifier helpers are absent from the facade apart from the
+  thin delegate, formatting and `git diff --check` passed, and the final diff
+  is ownership-only.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-ResourceProjection pressure-risk projection extraction, selected in
-`351c84ce` and implemented in `5dd9dd79`.
-`resource_projection.ex` moved from 2,504 to 2,418 lines; the dedicated
-pressure-risk owner is 91 lines.
+OperationalReadiness adapter-boundary evidence extraction, selected in
+`f917e600` and implemented in `967b7ade`.
+`operational_readiness.ex` moved from 2,500 to 2,385 lines; the dedicated
+adapter-boundary evidence owner is 121 lines.
 
 Next candidate:
-Complete and verify the selected OperationalReadiness adapter-boundary
-evidence extraction.
+Re-rank the live checkout and select the next cohesive facade-preserving
+boundary.
 
 Blocked:
 No.
