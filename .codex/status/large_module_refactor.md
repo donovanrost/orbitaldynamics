@@ -9,7 +9,7 @@ Current slice:
 RecommendationRiskContext objective-tradeoff extraction.
 
 Status:
-Selected; strict focused baseline pending.
+Completed and pushed in `2f581923`.
 
 Selected boundary:
 Extract the objective-tradeoff key contract, scope filtering, atom-key
@@ -36,24 +36,43 @@ Selection evidence:
   unchanged.
 
 Implementation:
-Pending.
+- Added `OrbitalDynamics.RecommendationRiskContext.ObjectiveTradeoff` as the
+  owner of the ordered key contract, scope predicate, atom-key normalization,
+  scalar/list flattening, stable deduplication, sparse context construction,
+  and non-list fallback.
+- Preserved all RecommendationRiskContext and root public APIs as two facade
+  delegates.
+- Removed the objective-tradeoff attribute, builder, and predicate from the
+  facade while leaving shared helpers used by other families unchanged.
+- `recommendation_risk_context.ex` moved from 2,016 to 1,893 lines; the new
+  owner is 159 lines.
 
 Verification:
-Pending strict focused baseline, exact old/new public parity, focused and
-adjacent tests, static ownership checks, xref, strict warning-clean compile,
-formatting, and diff checks.
+- Strict focused baseline passed 13 objective-tradeoff operator-review and
+  alias-refresh tests.
+- Exact old/new public parity passed for six captured cases: ordered keys,
+  string and atom risks, mixed/duplicate risks, empty input, and non-list
+  fallback.
+- Post-extraction focused verification passed the same 13 tests.
+- Static checks confirm the attribute and predicate left the facade and only
+  its two public delegates remain; xref reports only RecommendationRiskContext
+  as a runtime caller of the owner.
+- Strict warning-clean forced compile passed for 3,993 files.
+- Formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-OperationalReadiness operational-mode decision extraction, selected in
-`0582a8c2` and implemented in `5a80b5c7`.
-`operational_readiness.ex` moved from 2,018 to 1,927 lines; the dedicated
-operational-mode decision owner is 103 lines.
+RecommendationRiskContext objective-tradeoff extraction, selected in
+`3ebf90d9` and implemented in `2f581923`.
+`recommendation_risk_context.ex` moved from 2,016 to 1,893 lines; the dedicated
+objective-tradeoff owner is 159 lines.
 
 Next candidate:
-Complete the selected RecommendationRiskContext objective-tradeoff extraction.
+Re-rank the live checkout and select the next bounded facade-preserving
+extraction. `orbit_data.ex` is now the largest ordinary eligible facade at
+2,016 lines.
 
 Blocked:
 No.
