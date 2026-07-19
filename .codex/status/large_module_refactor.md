@@ -6,53 +6,38 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-RecommendationRiskContext validation-refresh extraction.
+OrbitalDynamics activity-template catalog extraction.
 
 Status:
-Completed and pushed in `cfae3494`.
+Selected; implementation pending.
 
 Selected boundary:
-Extract the validation-refresh context-key contract and deterministic
-aggregation for model-acceptance, schema-validation, validation-safety-case,
-refresh-budget, and refresh-freshness risks into
-`OrbitalDynamics.RecommendationRiskContext.ValidationRefresh`.
-Preserve the existing RecommendationRiskContext public API facade.
+Extract the baseline activity-template specifications, catalog capabilities,
+artifact construction, lookup, override validation, normalized activity
+instantiation, and template provenance into
+`OrbitalDynamics.ActivityTemplateCatalog`.
+Preserve the existing `OrbitalDynamics` public API facade.
 
 Selection evidence:
-- Live re-ranking places `recommendation_risk_context.ex` at 3,582 lines,
-  fourth behind Schema, Timeline, and MissionPlan.Activity and ahead of
-  OrbitalDynamics, Manifest, LinkCapacity, StationCalendar, TimelineFeedback,
-  ResourceProjection, and ContactAllocation.
-- The selected family owns one recommendation explanation responsibility:
-  translating validation and refresh risk rows into the declared compact
-  context vocabulary used by downstream recommendations.
-- Approval, communications, timeline, resource, objective, and operational
-  feedback context families remain outside this boundary.
-- Existing risk matching, atom/string normalization, list flattening,
-  encounter-order deduplication, empty-value omission, invalid-input behavior,
-  and public context-key ordering remain unchanged.
+- Live re-ranking places `orbital_dynamics.ex` at 3,572 lines, fourth behind
+  Schema, Timeline, and MissionPlan.Activity and ahead of Manifest,
+  LinkCapacity, StationCalendar, TimelineFeedback, ResourceProjection,
+  ContactAllocation, and RecommendationRiskContext.
+- The selected family is the root facade's only substantial private domain
+  responsibility: owning the reusable baseline planning activity-template
+  catalog and converting templates into normalized timeline activities.
+- Capability catalog assembly and all propagation, planning, operations,
+  review, import, readiness, validation, and reporting facades remain outside
+  this boundary.
+- Existing template vocabulary and ordering, lookup behavior, validation/error
+  shapes, lifecycle/default merge precedence, provenance, normalization, and
+  public return values remain unchanged.
 
 Verification:
-- Strict test-environment compile passed with warnings as errors across 3,925
-  files.
-- Focused validation/refresh campaign-planner coverage passed: 19 tests.
-- Broader recommendation/readiness coverage passed 19 of 20 tests. The one
-  readiness score-count assertion failure was reproduced unchanged at clean
-  selection commit `bbc28b0e` in a detached worktree, so it is a pre-existing
-  baseline failure rather than a slice regression.
-- Exact public old/new comparison against selection commit `bbc28b0e` passed
-  for the complete public context-key contract, six mixed risk sets covering
-  all five validation/refresh families, and four invalid inputs.
-- `mix xref callers` reports only the RecommendationRiskContext facade as a
-  runtime caller of the extracted validation-refresh owner.
-- Static ownership checks confirm the key vocabulary, family matching,
-  normalization, aggregation, deduplication, and omission behavior live in the
-  dedicated owner while all other recommendation-risk families remain in the
-  facade.
-- `git diff --check` passed.
+Pending.
 
 Behavior/schema changes:
-None. This is a facade-preserving production ownership extraction.
+None intended. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
 RecommendationRiskContext validation-refresh extraction, selected in
