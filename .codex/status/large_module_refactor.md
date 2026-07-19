@@ -6,55 +6,43 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-TimelineFeedback operational-feedback provenance extraction.
+OperationalReadiness quality-gate import-readiness summary extraction.
 
 Status:
-Completed and pushed in `79d7904c`.
+Selected; strict focused baseline pending.
 
 Selected boundary:
-Extract operational-feedback input-key detection, realized and weighted row
-counts, weight-source and source-quality evidence, overall trust-boundary
-aggregation, and per-feedback-key trust routing into
-`OrbitalDynamics.TimelineFeedback.OperationalFeedbackProvenance`. Preserve all
-TimelineFeedback and root public facades.
+Extract quality-gate import-readiness row selection, count/status aggregation,
+freshness/import-preparation/blocking predicates, routing IDs, publication
+context projection, and summary construction into
+`OrbitalDynamics.OperationalReadiness.QualityGateImportReadinessSummary`.
+Preserve all OperationalReadiness and root public facades.
 
 Selection evidence:
 - Excluding the generated/declarative candidate-refresh JSON-schema module,
-  live re-ranking places `timeline_feedback.ex` at 1,948 lines, the largest
+  live re-ranking places `operational_readiness.ex` at 1,927 lines, the largest
   ordinary eligible facade.
-- TimelineFeedback already delegates to twenty-eight focused owners, while its
-  operational-feedback provenance builder and helper family still occupy lines
-  463-646.
-- The selected block has one responsibility: explain which normalized report
-  rows and trust boundaries produced each operational-feedback input.
-- Feedback value derivation, reconciliation, realized normalization, activity
-  state, resource/downlink/uncertainty aggregation, and all capability
+- OperationalReadiness already delegates operator-training and
+  schema-validation quality-gate summaries, while the import-readiness sibling
+  builder remains at lines 775-873 and its specialized helpers at
+  lines 1,067-1,120.
+- The selected block has one responsibility: derive import readiness,
+  freshness review, import preparation, and blocking routes from cadence-import
+  quality-gate rows.
+- Readiness report construction, gate classification, unavailable-resource and
+  operator-training/schema summaries, evidence normalization, and all public
   contracts remain outside the boundary.
-- Exact input-key ordering, source counts, weighted-row semantics, source
-  quality maps, trust-boundary routing, omission behavior, report provenance,
-  reconciliation output, and error behavior must remain unchanged.
+- Exact row selection, counts, status IDs, boolean decisions, publication
+  context, omission behavior, summary fields, public facade output, and error
+  behavior must remain unchanged.
 
 Implementation:
-- Added `OrbitalDynamics.TimelineFeedback.OperationalFeedbackProvenance` as the
-  owner of operational-feedback input keys, row/weight/source-quality counts,
-  trust boundaries, and per-feedback-key trust routing.
-- Preserved TimelineFeedback and root public APIs as reconciliation and
-  operational-feedback delegates.
-- Kept feedback-specific key/value functions in the facade and passed their
-  trust-routing specifications into the generic provenance owner.
-- `timeline_feedback.ex` moved from 1,948 to 1,797 lines; the new owner is 181
-  lines.
+Pending.
 
 Verification:
-- Strict focused baseline passed all 73 TimelineFeedback tests.
-- Exact old/new public parity passed for four deterministic report captures:
-  omitted provenance, weighted multi-row contact feedback, source-quality and
-  trust-boundary observation feedback, and excluded operational feedback.
-- Post-extraction focused and adjacent verification passed all 76 tests.
-- Static checks confirm the provenance aggregation helper family left the
-  facade; xref reports only TimelineFeedback as a runtime caller.
-- Strict warning-clean forced compile passed for 3,999 files.
-- Formatting and `git diff --check` passed.
+Pending strict focused baseline, exact old/new public parity, focused and
+adjacent tests, static ownership checks, xref, strict warning-clean compile,
+formatting, and diff checks.
 
 Behavior/schema changes:
 None intended.
@@ -66,9 +54,8 @@ TimelineFeedback operational-feedback provenance extraction, selected in
 OperationalFeedbackProvenance owner is 181 lines.
 
 Next candidate:
-Re-rank the live checkout and select the next bounded facade-preserving
-extraction. `operational_readiness.ex` is now the largest ordinary eligible
-facade at 1,927 lines, followed by StationCalendar and LinkCapacity.
+Complete the selected OperationalReadiness quality-gate import-readiness
+summary extraction.
 
 Blocked:
 No.
