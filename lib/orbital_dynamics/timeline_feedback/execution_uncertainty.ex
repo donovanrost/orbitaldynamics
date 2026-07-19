@@ -1,6 +1,8 @@
 defmodule OrbitalDynamics.TimelineFeedback.ExecutionUncertainty do
   @moduledoc false
 
+  alias OrbitalDynamics.TimelineFeedback.ArtifactValue
+
   def maneuver_delta_v_context(activity) do
     delta_v = maneuver_delta_v(activity)
 
@@ -211,24 +213,8 @@ defmodule OrbitalDynamics.TimelineFeedback.ExecutionUncertainty do
     ArgumentError -> :error
   end
 
-  defp stringify_keys(%{} = map) do
-    Map.new(map, fn {key, value} -> {encode_key(key), stringify_keys(value)} end)
-  end
+  defp stringify_keys(value), do: ArtifactValue.stringify_keys(value)
 
-  defp stringify_keys(values) when is_list(values), do: Enum.map(values, &stringify_keys/1)
-  defp stringify_keys(nil), do: nil
-  defp stringify_keys(value) when is_boolean(value), do: value
-  defp stringify_keys(value) when is_atom(value), do: Atom.to_string(value)
-  defp stringify_keys(value), do: value
-
-  defp encode_key(key) when is_atom(key), do: Atom.to_string(key)
-  defp encode_key(key), do: key
-
-  defp compact_map(map) do
-    Map.reject(map, fn
-      {_key, nil} -> true
-      {_key, []} -> true
-      _entry -> false
-    end)
-  end
+  defp compact_map(map),
+    do: ArtifactValue.compact_map(map, :nil_and_empty_lists)
 end

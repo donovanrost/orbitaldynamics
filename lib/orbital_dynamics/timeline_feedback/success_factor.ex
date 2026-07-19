@@ -1,7 +1,7 @@
 defmodule OrbitalDynamics.TimelineFeedback.SuccessFactor do
   @moduledoc false
 
-  alias OrbitalDynamics.TimelineFeedback.ProviderResult
+  alias OrbitalDynamics.TimelineFeedback.{ArtifactValue, ProviderResult}
 
   def observation(activity, provider_result_map_value_keys) do
     explicit_observation(activity) ||
@@ -257,5 +257,5 @@ defmodule OrbitalDynamics.TimelineFeedback.SuccessFactor do
   defp missing?(""), do: true
   defp missing?(_value), do: false
 
-  defp present_string?(value), do: is_binary(value) and value != ""
+  defp present_string?(value), do: ArtifactValue.present_string?(value)
 end

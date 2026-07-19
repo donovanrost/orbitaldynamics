@@ -88,6 +88,7 @@ defmodule OrbitalDynamics.TimelineFeedback do
   alias OrbitalDynamics.{CadenceImport, OperatorReview, Timeline}
 
   alias OrbitalDynamics.TimelineFeedback.{
+    ArtifactValue,
     ExecutionUncertainty,
     ProviderResult,
     RealizedIdentity,
@@ -4486,7 +4487,7 @@ defmodule OrbitalDynamics.TimelineFeedback do
   defp nonnegative_number_status(value),
     do: SuccessFactor.nonnegative_number_status(value)
 
-  defp present_string?(value), do: is_binary(value) and value != ""
+  defp present_string?(value), do: ArtifactValue.present_string?(value)
 
   defp first_identifier(map, keys),
     do: RealizedIdentity.first_identifier(map, keys, @stable_id_pattern)
@@ -4498,66 +4499,10 @@ defmodule OrbitalDynamics.TimelineFeedback do
 
   defp required_id!(map, key), do: RealizedIdentity.required_id!(map, key)
 
-  defp stringify_keys(%{} = map) do
-    Map.new(map, fn {key, value} -> {encode_key(key), stringify_keys(value)} end)
-  end
-
-  defp stringify_keys(values) when is_list(values), do: Enum.map(values, &stringify_keys/1)
-  defp stringify_keys(nil), do: nil
-  defp stringify_keys(value) when is_boolean(value), do: value
-  defp stringify_keys(value) when is_atom(value), do: Atom.to_string(value)
-  defp stringify_keys(value), do: value
-
-  defp stringify_scalar(nil), do: nil
-  defp stringify_scalar(value) when is_binary(value), do: value
-  defp stringify_scalar(value) when is_atom(value), do: Atom.to_string(value)
-  defp stringify_scalar(value) when is_integer(value), do: Integer.to_string(value)
-  defp stringify_scalar(value) when is_float(value), do: Float.to_string(value)
-  defp stringify_scalar(_value), do: nil
-
-  defp truthy?(value) when is_boolean(value), do: value
-  defp truthy?(value) when is_number(value), do: value == 1
-
-  defp truthy?(value) when is_binary(value) do
-    String.downcase(String.trim(value)) in ["true", "yes", "1"]
-  end
-
-  defp truthy?(_value), do: false
-
-  defp boolean_value(value) when is_boolean(value), do: value
-
-  defp boolean_value(value) when is_number(value) do
-    cond do
-      value == 1 -> true
-      value == 0 -> false
-      true -> nil
-    end
-  end
-
-  defp boolean_value(value) when is_binary(value) do
-    case String.downcase(String.trim(value)) do
-      "true" -> true
-      "yes" -> true
-      "1" -> true
-      "false" -> false
-      "no" -> false
-      "0" -> false
-      _value -> nil
-    end
-  end
-
-  defp boolean_value(_value), do: nil
-
-  defp encode_key(key) when is_atom(key), do: Atom.to_string(key)
-  defp encode_key(key), do: key
-
-  defp compact_map(map) do
-    map
-    |> Enum.reject(fn {_key, value} -> is_nil(value) end)
-    |> Map.new()
-  end
-
-  defp maybe_put(map, _key, nil), do: map
-  defp maybe_put(map, _key, []), do: map
-  defp maybe_put(map, key, value), do: Map.put(map, key, value)
+  defp stringify_keys(value), do: ArtifactValue.stringify_keys(value)
+  defp stringify_scalar(value), do: ArtifactValue.stringify_scalar(value)
+  defp truthy?(value), do: ArtifactValue.truthy?(value)
+  defp boolean_value(value), do: ArtifactValue.boolean_value(value)
+  defp compact_map(map), do: ArtifactValue.compact_map(map)
+  defp maybe_put(map, key, value), do: ArtifactValue.maybe_put(map, key, value)
 end
