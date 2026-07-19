@@ -18,10 +18,9 @@ module:
 - wrapped operator-training and schema-validation quality-gate summaries;
 - wrapped import-readiness quality-gate summary.
 
-Copy the three corresponding pure summary fixture helpers exactly into the
-focused module while retaining them in the original module. Keep the preceding
-wrapped operational import-eligibility test and following standalone
-freshness/refresh-budget family in the original ledger.
+Move the three corresponding pure summary fixture helpers into the focused
+module. Keep the preceding wrapped operational import-eligibility test and
+following standalone freshness/refresh-budget family in the original ledger.
 
 Selection evidence:
 - After the prior split, `cadence_import_test.exs` remains the repository's
@@ -32,8 +31,9 @@ Selection evidence:
 - The tests use only `CadenceImport`, `Schema`, and three pure map fixture
   builders;
   they have no setup, external fixtures, or cross-test state.
-- The helpers are kept in the original module to avoid changing its other
-  quality-gate fixture ownership while this test-only slice moves.
+- A post-move warnings-as-errors run proved all three helpers would be unused in
+  the original module; repository-wide call search confirms the selected tests
+  are their only callers, so their ownership moves rather than being duplicated.
 - The tests preserve training requirements, schema failure counts, import
   readiness counts, nested source rows, wrapper source paths, and schema
   validation.
@@ -42,8 +42,8 @@ Selection evidence:
   this ownership-only boundary.
 
 Verification:
-Pending: two-test focused baseline, mechanical AST-preserving move, exact
-fixture-helper copy proof, strict compile, focused new/original/combined
+Pending: two-test focused baseline, mechanical AST-preserving test/helper move,
+strict compile, focused new/original/combined
 CadenceImport tests, relevant schema contracts, structural/static checks, and
 bounded review.
 
