@@ -6,44 +6,31 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-ContactAllocation approval-policy ownership extraction.
+TimelineFeedback success-factor reconciliation ownership extraction.
 
 Status:
-Completed and pushed in `0593a3ef`.
+Selected; implementation not started.
 
 Selected boundary:
-Extract allocation policy-boundary detection, approval decisions,
-requirements, command/health-check classification, and policy context
-projection into
-`OrbitalDynamics.Communications.ContactAllocation.ApprovalPolicy`. Preserve
-the existing allocation/report facade.
+Move reconciled contact, command, observation, and maneuver factor/source
+projection plus feedback sample weight/source selection into the existing
+`OrbitalDynamics.TimelineFeedback.SuccessFactor` owner. Preserve the existing
+report and row assembly facade.
 
 Selection evidence:
-- Live re-ranking places `communications/contact_allocation.ex` at 3,984 lines,
-  ahead of TimelineFeedback and Manifest and behind the three larger
+- Live re-ranking places `timeline_feedback.ex` at 3,950 lines, ahead of
+  Manifest and ContactAllocation and behind the three larger
   orchestration-heavy facades.
-- The selected policy projection has one facade entry point and forms one
-  approval-review responsibility.
-- Contact normalization, allocation and packing decisions, summary
-  aggregation, provider counteroffers, and returned allocation projection
-  remain with their existing owners.
-- The facade passes its command-direction policy explicitly; no configuration
-  is duplicated.
+- The selected fields and helpers form one planned-versus-realized
+  success-factor evidence responsibility.
+- Success-factor normalization already lives in the selected owner; this
+  extension completes its reconciliation projection without a parallel module.
+- Outcome projection, maneuver comparison, timing, throughput, identity, and
+  operational-feedback aggregation remain separate.
 - Existing public report APIs and artifact row shapes remain unchanged.
 
 Verification:
-- Strict test-environment compile passed with warnings as errors across 3,903
-  files.
-- Focused ContactAllocation coverage passed: 70 tests.
-- Adjacent operator-review, schema-contract, provider-reservation-contract,
-  and validation-fixture coverage passed: 25 tests.
-- Exact public old/new comparison against selection commit `af08b116` passed
-  for eight policy-enabled allocations including command and health-check rows.
-- `mix xref callers` reports only the ContactAllocation facade as a runtime
-  caller of the extracted owner.
-- Static ownership checks confirm policy projection lives in ApprovalPolicy
-  while allocation, packing, and summary responsibilities remain in the facade.
-- `git diff --check` passed.
+Pending.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
@@ -55,8 +42,8 @@ ContactAllocation approval-policy ownership extraction, selected in
 dedicated owner is 218 lines.
 
 Next candidate:
-Re-rank the live largest-module set and select the next cohesive ownership
-boundary.
+Implement and verify the selected TimelineFeedback success-factor
+reconciliation ownership extraction.
 
 Blocked:
 No.
