@@ -21,7 +21,7 @@ Selection evidence:
 - `cadence_import.ex` is now 3,727 lines.
 - The selected private clause family spans about 79 lines and has exactly two
   callback captures, both inside CadenceImport row-builder adapters.
-- The family is a pure, closed policy mapping 36 known review types to stable
+- The family is a pure, closed policy mapping 38 known review types to stable
   import actions with one generic fallback.
 - Row construction, status selection, source actions, capability metadata,
   manifest dispatch, schemas, ordering, and all other review context remain
