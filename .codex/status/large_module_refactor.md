@@ -9,7 +9,7 @@ Current slice:
 Timeline lifecycle-state input grouping policy completion.
 
 Status:
-Selected; implementation has not started.
+Completed and published.
 
 Selected boundary:
 Move lifecycle-state input row mapping and timeline-identity grouping into the
@@ -31,9 +31,24 @@ Selection evidence:
   responsibilities remain outside the boundary.
 
 Verification:
-Pending: focused baseline, mechanical policy completion, strict compile,
-focused and full Timeline tests, schema contracts, structural/static checks, and
-bounded review.
+- Focused baseline passed 1 lifecycle-state summary test.
+- Strict warnings-as-errors compile passed 3,803 modules.
+- Focused lifecycle-state summary test passed 1 test.
+- Full Timeline suite passed 127 tests.
+- Four Timeline schema-contract suites passed 36 tests.
+- AST conservation proved input grouping moved exactly after normalizing
+  callback threading and that the two removed facade helpers were pure delegates
+  to unchanged policy functions.
+- Static checks confirmed both subordinate helpers left Timeline, the facade has
+  one group-policy call, public def count remains 101, formatting/diff checks
+  pass, and no temporary checker remains.
+- Compile-connected xref remained narrow: Timeline has only the pre-existing
+  compile edge to `CandidateRejectionStationPolicy`.
+- Bounded local review found no correctness or maintainability issues and
+  confirmed indexed input order, invalid-row routing, timeline-identity fallback,
+  and grouping semantics are unchanged.
+- Timeline decreased from 5,025 to 5,010 lines; `LifecycleStateInputPolicy`
+  increased from 19 to 32 lines.
 
 Behavior/schema changes:
 None intended. Input normalization, invalid-row routing, identity grouping, row
@@ -41,8 +56,8 @@ ordering, summary fields, capabilities, and schema exports should remain
 byte-for-byte stable.
 
 Last completed slice:
-Timeline application identity collection policy completion, selected in
-`6db5ac0d` and implemented in `2fb91b08`.
+Timeline lifecycle-state input grouping policy completion, selected in
+`aa1d7c62` and implemented in `9af8e6e1`.
 
 Next candidate:
 Evaluate lifecycle-state summary assembly now that input grouping and row
