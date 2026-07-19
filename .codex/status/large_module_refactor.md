@@ -9,7 +9,7 @@ Current slice:
 CadenceImport review-row run-input metadata extension.
 
 Status:
-Selected; implementation has not started.
+Completed and published.
 
 Selected boundary:
 Move nonempty `run_input_sources` propagation into the existing
@@ -26,18 +26,27 @@ Selection evidence:
   outside the boundary.
 
 Verification:
-Pending: focused run-input-source baseline, exact propagation matrix, strict
-compile, all combined CadenceImport tests, schema contracts, static single
-ownership, runtime xref, and bounded review.
+- Strict test compile passed with 3,824 files and warnings as errors.
+- One focused run-input-source test passed with 71 excluded.
+- All combined CadenceImport tests passed: 96 tests.
+- CadenceImport schema contracts passed: 4 tests.
+- A 4-case direct matrix covered nonempty map propagation and empty-map,
+  non-map, and missing-value suppression.
+- Formatting and diff checks passed; no temporary proof files were created.
+- Static ownership checks confirmed run-input-source propagation has one
+  production implementation behind the preserved facade seam.
+- Runtime xref confirmed `cadence_import.ex` directly consumes the extended
+  `review_row_metadata.ex`.
+- Bounded local review found no guard, propagation, overwrite, row-shape,
+  provenance, ordering, or schema changes.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-CadenceImport timeline source-identifier policy extension, selected in
-`cd5e4d8e` and implemented in `d51df814`. `cadence_import.ex` moved from 2,813
-to 2,819 lines because the two explicit facade delegates expanded for readable
-argument passing; the shared policy owner grew from 52 to 57 lines.
+CadenceImport review-row run-input metadata extension, selected in `de39d347`
+and implemented in `840ddfb5`. `cadence_import.ex` moved from 2,819 to 2,816
+lines; the shared metadata owner grew from 21 to 27 lines.
 
 Next candidate:
 Return to remaining review-package or row dispatch after review-row metadata
