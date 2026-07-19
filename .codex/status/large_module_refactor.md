@@ -9,7 +9,7 @@ Current slice:
 OperationalReadiness quality-gate schema-validation summary extraction.
 
 Status:
-Selected; strict focused baseline pending.
+Completed and pushed.
 
 Selected boundary:
 Extract quality-gate schema-validation row selection, context detection,
@@ -39,23 +39,38 @@ Selection evidence:
   remain unchanged.
 
 Implementation:
-Pending.
+- Selection was recorded and pushed in `7eed3ebf`.
+- Implementation was committed and pushed in `e0ba1c1e`.
+- `operational_readiness.ex` moved from 2,276 to 2,186 lines.
+- `OrbitalDynamics.OperationalReadiness.QualityGateSchemaValidationSummary` is
+  a 171-line owner reached through one private facade delegate.
 
 Verification:
-Pending.
+- Strict warning-clean compilation passed across 3,976 files.
+- The focused OperationalReadiness file and five adjacent Cadence-import,
+  campaign, candidate-refresh, operator-review, and schema consumers passed
+  together: 63 tests.
+- Exact old/new public summary parity passed for 8 cases covering empty and
+  irrelevant rows, pass counts, blocked fail/error evidence, warning and
+  remediation review evidence, mixed malformed counts, duplicate/nil IDs,
+  atom-keyed reports, deterministic routing, and capability metadata.
+- `mix xref callers` reports only the OperationalReadiness facade.
+- The removed schema-validation row/context/failure helpers and facade-owned
+  summary contract are absent apart from the thin builder delegate, formatting
+  and `git diff --check` passed, and the final diff is ownership-only.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-OrbitData TLE metadata inspection extraction, selected in `88ff0fb6` and
-implemented in `edc3ffee`.
-`orbit_data.ex` moved from 2,304 to 2,016 lines; the dedicated TLE metadata
-owner is 325 lines.
+OperationalReadiness quality-gate schema-validation summary extraction,
+selected in `7eed3ebf` and implemented in `e0ba1c1e`.
+`operational_readiness.ex` moved from 2,276 to 2,186 lines; the dedicated
+schema-validation summary owner is 171 lines.
 
 Next candidate:
-Implement and verify the selected OperationalReadiness quality-gate
-schema-validation summary boundary.
+Re-rank the live checkout and select the next cohesive facade-preserving
+boundary.
 
 Blocked:
 No.
