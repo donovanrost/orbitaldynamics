@@ -9,7 +9,7 @@ Current slice:
 ResourceProjection pressure classification extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed in `b034086a`.
 
 Selected boundary:
 Extract projection/flow pressure-type derivation, availability pressure
@@ -33,16 +33,32 @@ Selection evidence:
   remain unchanged.
 
 Verification:
-Pending.
+- Strict test-environment compile passed with warnings as errors across 3,922
+  files.
+- Focused ResourceProjection coverage passed: 49 tests.
+- Adjacent operator-review ResourceProjection coverage passed: 9 tests.
+- Exact public old/new comparison against selection commit `bab45b76` passed
+  for eight resource states and three public outputs per state: report, flow
+  report, and flow summary.
+- `mix xref callers` reports only the ResourceProjection facade as a runtime
+  caller of the extracted pressure-classification owner.
+- Static ownership checks confirm pressure vocabulary, type derivation, status
+  precedence, first-event selection, and per-row pressure kinds live in the
+  dedicated owner while projection math and artifact assembly remain in the
+  facade.
+- Strict compilation proved an unchanged private fallback clause unreachable
+  from its only call site; removing that dead clause restored the
+  warnings-as-errors gate without changing reachable behavior.
+- `git diff --check` passed.
 
 Behavior/schema changes:
-None intended. This is a facade-preserving production ownership extraction.
+None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-Manifest candidate-refresh accepted planning-state extraction, selected in
-`a1394b10` and implemented in `24f39a5c`.
-`manifest.ex` moved from 3,638 to 3,530 lines; the dedicated planning-state
-owner is 109 lines.
+ResourceProjection pressure classification extraction, selected in `bab45b76`
+and implemented in `b034086a`.
+`resource_projection.ex` moved from 3,629 to 3,447 lines; the dedicated
+pressure-classification owner is 192 lines.
 
 Next candidate:
 Re-rank the live largest-module set and select the next cohesive ownership
