@@ -15,6 +15,7 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
     AllocationSummary,
     ApprovalPolicy,
     CapacityPacking,
+    ContactValidation,
     ProviderCounteroffer,
     StationCapacityEvidence,
     ThroughputEvidence
@@ -1543,101 +1544,29 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
   defp station_availability(contact),
     do: StationCapacityEvidence.station_availability(contact, station_capacity_policy())
 
-  defp status_allocation_blocked?(contact) do
-    contact_status(contact) in terminal_contact_statuses() or
-      contact_status(contact) == "blocked_by_policy" or
-      contact_approval_status(contact) in ["blocked_by_policy", "rejected"]
-  end
+  defp status_allocation_blocked?(contact),
+    do: ContactValidation.status_allocation_blocked?(contact)
 
-  defp status_allocation_blocked_reason(contact) do
-    status = contact_status(contact)
-    approval_status = contact_approval_status(contact)
+  defp status_allocation_blocked_reason(contact),
+    do: ContactValidation.status_allocation_blocked_reason(contact, station_capacity_policy())
 
-    cond do
-      approval_status == "rejected" -> "approval_status_rejected"
-      status == "blocked_by_policy" -> "activity_status_blocked_by_policy"
-      status in terminal_contact_statuses() -> "activity_status_#{status}"
-      station_allocation_blocked?(contact) -> station_allocation_blocked_reason(contact)
-      approval_status == "blocked_by_policy" -> "approval_status_blocked_by_policy"
-    end
-  end
+  defp contact_candidate?(contact),
+    do: ContactValidation.candidate?(contact, contact_validation_policy())
 
-  defp terminal_contact_statuses,
-    do: ~w(canceled cancelled completed executed failed missed partial rejected)
+  defp contact_like_input?(contact),
+    do: ContactValidation.contact_like_input?(contact, contact_validation_policy())
 
-  defp contact_status(contact) do
-    Map.get(contact, "status") || get_in(contact, ["metadata", "status"]) || "planned"
-  end
+  defp provider_downlink_contact_input?(contact),
+    do: ContactValidation.provider_downlink_contact_input?(contact)
 
-  defp contact_approval_status(contact) do
-    Map.get(contact, "approval_status") || get_in(contact, ["metadata", "approval_status"])
-  end
-
-  defp contact_candidate?(contact) do
-    contact_like_input?(contact) and
-      is_nil(contact_id_issue(contact)) and
-      is_nil(contact_identity_issue(contact)) and
-      is_number(Map.get(contact, "starts_at_s")) and
-      is_number(Map.get(contact, "ends_at_s")) and
-      not is_nil(Map.get(contact, "ground_station_id")) and
-      not invalid_station_capacity_declared?(contact) and
-      not invalid_required_capacity_declared?(contact) and
-      not invalid_unit_interval_declared?(completed_fraction_candidates(contact)) and
-      not invalid_unit_interval_declared?(
-        contact_feedback_factor_candidates(contact, "contact_success_factor")
-      ) and
-      not invalid_unit_interval_declared?(
-        contact_feedback_factor_candidates(contact, "command_success_factor")
-      )
-  end
-
-  defp contact_like_input?(contact) do
-    Map.get(contact, "invalid_contact_shape") == true or
-      Map.get(contact, "type") in @contact_types or
-      Map.get(contact, "direction") in @contact_directions or
-      provider_downlink_contact_input?(contact)
-  end
-
-  defp provider_downlink_contact_input?(contact) do
-    Map.get(contact, "type") in [nil, "contact", "planned_contact"] and
-      Map.get(contact, "direction") in [nil, "downlink"] and
-      provider_contact_evidence?(contact)
-  end
-
-  defp provider_contact_evidence?(contact) do
-    Enum.any?(
-      [
-        Map.get(contact, "id"),
-        Map.get(contact, "contact_id"),
-        Map.get(contact, "activity_id"),
-        Map.get(contact, "ground_station_id"),
-        Map.get(contact, "station"),
-        Map.get(contact, "ground_station"),
-        Map.get(contact, "starts_at_s"),
-        Map.get(contact, "ends_at_s"),
-        Map.get(contact, "source_window_id"),
-        Map.get(contact, "source_window"),
-        get_in(contact, ["metadata", "source_window"]),
-        get_in(contact, ["activity_context", "source_window"]),
-        estimated_throughput_value(contact),
-        actual_throughput_value(contact),
-        completed_fraction_value(contact)
-      ],
-      fn value -> not is_nil(value) end
-    )
-  end
+  defp contact_status(contact), do: ContactValidation.contact_status(contact)
+  defp contact_approval_status(contact), do: ContactValidation.contact_approval_status(contact)
 
   defp actual_throughput_value(contact) do
     ThroughputEvidence.actual_throughput(contact)
   end
 
-  defp estimated_throughput_value(contact) do
-    ThroughputEvidence.estimated_throughput(contact)
-  end
-
-  defp completed_fraction_value(contact) do
-    first_unit_interval(completed_fraction_candidates(contact))
-  end
+  defp completed_fraction_value(contact), do: ContactValidation.completed_fraction_value(contact)
 
   defp actual_data_rate_throughput_derivation(contact) do
     ThroughputEvidence.actual_data_rate_derivation(contact)
@@ -1654,9 +1583,7 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
   defp required_capacity_fraction_source(contact),
     do: StationCapacityEvidence.required_capacity_fraction_source(contact)
 
-  defp contact_feedback_factor(contact, key) do
-    first_unit_interval(contact_feedback_factor_candidates(contact, key))
-  end
+  defp contact_feedback_factor(contact, key), do: ContactValidation.feedback_factor(contact, key)
 
   defp contact_boolean_value(contact, key) do
     contact
@@ -1694,70 +1621,12 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
     end
   end
 
-  defp first_unit_interval(values), do: StationCapacityEvidence.first_unit_interval(values)
-
   defp numeric_or_nil(value), do: StationCapacityEvidence.numeric_or_nil(value)
 
   defp invalid_contact_input?(contact), do: not contact_candidate?(contact)
 
-  defp invalid_contact_input_reason(contact) do
-    cond do
-      Map.get(contact, "invalid_contact_shape") == true ->
-        "invalid_contact_shape"
-
-      reason = contact_id_issue(contact) ->
-        reason
-
-      reason = contact_identity_issue(contact) ->
-        reason
-
-      is_nil(Map.get(contact, "ground_station_id")) ->
-        "missing_ground_station_id"
-
-      not is_number(Map.get(contact, "starts_at_s")) ->
-        "missing_contact_starts_at_s"
-
-      not is_number(Map.get(contact, "ends_at_s")) ->
-        "missing_contact_ends_at_s"
-
-      invalid_station_capacity_declared?(contact) ->
-        "invalid_capacity_fraction"
-
-      invalid_required_capacity_declared?(contact) ->
-        "invalid_required_capacity_fraction"
-
-      invalid_unit_interval_declared?(completed_fraction_candidates(contact)) ->
-        "invalid_completed_fraction"
-
-      invalid_unit_interval_declared?(
-        contact_feedback_factor_candidates(contact, "contact_success_factor")
-      ) ->
-        "invalid_contact_success_factor"
-
-      invalid_unit_interval_declared?(
-        contact_feedback_factor_candidates(contact, "command_success_factor")
-      ) ->
-        "invalid_command_success_factor"
-
-      true ->
-        "invalid_contact_input"
-    end
-  end
-
-  defp completed_fraction_candidates(contact) do
-    [
-      contact["completed_fraction"],
-      contact["completion_fraction"],
-      contact["contact_completion_fraction"],
-      get_in(contact, ["throughput_model", "completed_fraction"]),
-      get_in(contact, ["throughput_model", "completion_fraction"]),
-      get_in(contact, ["throughput_model", "contact_completion_fraction"])
-    ]
-  end
-
-  defp contact_feedback_factor_candidates(contact, key) do
-    [contact_value(contact, key)]
-  end
+  defp invalid_contact_input_reason(contact),
+    do: ContactValidation.invalid_reason(contact, contact_validation_policy())
 
   defp station_capacity_policy do
     %{
@@ -1770,22 +1639,14 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
     }
   end
 
-  defp invalid_station_capacity_declared?(contact),
-    do:
-      StationCapacityEvidence.invalid_station_capacity_declared?(
-        contact,
-        station_capacity_policy()
-      )
-
-  defp invalid_required_capacity_declared?(contact),
-    do:
-      StationCapacityEvidence.invalid_required_capacity_declared?(
-        contact,
-        station_capacity_policy()
-      )
-
-  defp invalid_unit_interval_declared?(values),
-    do: StationCapacityEvidence.invalid_unit_interval_declared?(values)
+  defp contact_validation_policy do
+    %{
+      contact_types: @contact_types,
+      contact_directions: @contact_directions,
+      contact_stable_identity_fields: @contact_stable_identity_fields,
+      station_capacity_policy: station_capacity_policy()
+    }
+  end
 
   defp contact_direction(%{"direction" => direction})
        when is_binary(direction) and direction != "",
@@ -1816,19 +1677,9 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
   defp invalid_contact_row_id("invalid_contact_shape", index), do: "missing_contact_id:#{index}"
   defp invalid_contact_row_id(reason, index), do: "#{reason}:#{index}"
 
-  defp contact_id_issue(contact),
-    do: OrbitalDynamics.Communications.ContactAllocation.ContactIdentity.contact_id_issue(contact)
-
   defp contact_spacecraft_id(contact) do
     OrbitalDynamics.Communications.ContactAllocation.ContactIdentity.contact_spacecraft_id(
       contact
-    )
-  end
-
-  defp contact_identity_issue(contact) do
-    OrbitalDynamics.Communications.ContactAllocation.ContactIdentity.contact_identity_issue(
-      contact,
-      @contact_stable_identity_fields
     )
   end
 
