@@ -6,65 +6,42 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Manifest ground-station catalog input extraction.
+OperationalReadiness timeline-publication context extraction.
 
 Status:
-Completed and pushed.
+Selected; implementation pending.
 
 Selected boundary:
-Extract direct ground-station catalog parsing, candidate-refresh mission-state
-fallback, ground-network station normalization, stable-ID dedupe, and
-GroundStation construction into
-`OrbitalDynamics.Study.Manifest.GroundStationCatalogInput`.
-Preserve the existing Manifest public API facade.
+Extract timeline-publication source discovery, context normalization,
+duplicate-publication merging, count/list aggregation, row-summary reduction,
+and evidence-map projection into
+`OrbitalDynamics.OperationalReadiness.TimelinePublicationContext`.
+Preserve the existing OperationalReadiness public API facade.
 
 Selection evidence:
-- Live re-ranking places `study/manifest.ex` at 3,234 lines, fourth behind
-  Schema, Timeline, and MissionPlan.Activity and ahead of
-  OperationalReadiness, TimelineFeedback, ContactContention, LinkCapacity,
+- Live re-ranking places `operational_readiness.ex` at 3,195 lines, fourth
+  behind Schema, Timeline, and MissionPlan.Activity and ahead of
+  TimelineFeedback, ContactContention, LinkCapacity, Manifest,
   RecommendationRiskContext, ContactAllocation, ResourceProjection, and
   StationCalendar.
-- The selected family is one independent run-input catalog reached once from
-  `from_map/1`; it owns source selection, coordinate-bearing station
-  normalization, stable-ID dedupe, field validation, and GroundStation
-  construction.
-- Manifest schema generation, campaign ground-network metadata, candidate
-  refresh metadata, target and crossing catalogs, scenario/activity parsing,
-  and run assembly remain outside this boundary.
-- Existing direct-catalog precedence, empty-list fallback, invalid-field paths,
-  coordinate filtering, default minimum elevation, first-ID-wins order,
-  constructor behavior, and deterministic output remain unchanged.
+- The selected family is one contiguous 21-field evidence reducer reached from
+  readiness evidence assembly, quality-gate import-readiness summarization,
+  and Cadence-import gate context.
+- Gate evaluation, report and summary assembly, resource availability,
+  operator training, schema validation, adapter boundary, policy
+  classification, and import-classification decisions remain outside this
+  boundary.
+- Existing recursive source precedence, publication-ID dedupe, first-nonempty
+  scalar preference, max-per-publication counts, summed cross-publication
+  counts, sorted unique identifiers, empty-value omission, and deterministic
+  output remain unchanged.
 
 Verification:
-- Focused baseline before implementation:
-  `test/orbital_dynamics/study/manifest_test.exs` passed 42 tests.
-- Strict compilation after implementation:
-  `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 mix compile --force --warnings-as-errors`
-  compiled 3,937 files successfully.
-- Focused regression:
-  `test/orbital_dynamics/study/manifest_test.exs` passed 42 tests.
-- Adjacent regressions:
-  `test/orbital_dynamics/validation/manifest_fixture_test.exs` passed 2 tests
-  and `test/orbital_dynamics/cadence_import_test.exs` passed 72 tests.
-- Exact old/new comparison against selection commit `03d2f023` exposed the
-  selected private parser from the old facade and compared ten catalog inputs;
-  all 10 outputs matched exactly.
-- The exact inputs covered absent and direct catalogs, invalid catalog and
-  station inputs, empty-list mission-state fallback, invalid mission state,
-  ground-network coordinate filtering, catalog/network duplicate precedence,
-  and partially invalid mission-state sources.
-- `git diff --check` passed.
-- `mix xref callers
-  OrbitalDynamics.Study.Manifest.GroundStationCatalogInput` reports only the
-  Manifest facade as a runtime caller; compile-connected xref reports no
-  unexpected coupling.
-- Static review confirmed the owner exposes only `parse/1`; schema generation,
-  campaign and candidate-refresh metadata, target and crossing catalogs,
-  scenario/activity parsing, and run assembly remain outside the boundary.
+Pending implementation.
 
 Behavior/schema changes:
-None. Existing station source precedence and normalization, validation errors,
-manifest shape, schema exports, and deterministic output are preserved.
+None planned. Existing publication evidence precedence and aggregation,
+readiness shape, schema contracts, and deterministic output will be preserved.
 
 Last completed slice:
 Manifest ground-station catalog input extraction, selected in `03d2f023` and
@@ -73,8 +50,7 @@ implemented in `04338497`.
 ground-station catalog owner is 146 lines.
 
 Next candidate:
-Re-rank the live largest-module set and select the next cohesive ownership
-boundary.
+Implement and verify the selected timeline-publication context extraction.
 
 Blocked:
 No.
