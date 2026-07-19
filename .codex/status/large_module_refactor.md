@@ -9,7 +9,7 @@ Current slice:
 Manifest ground-network input extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Extract campaign/candidate-refresh ground-network list parsing, station
@@ -36,20 +36,46 @@ Selection evidence:
   unchanged.
 
 Verification:
-Pending implementation.
+- Focused baseline before implementation:
+  `test/orbital_dynamics/study/manifest_test.exs` passed 42 tests.
+- Strict compilation after implementation:
+  `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 mix compile --force --warnings-as-errors`
+  compiled 3,942 files successfully.
+- Focused regression:
+  `test/orbital_dynamics/study/manifest_test.exs` passed 42 tests.
+- Adjacent regressions:
+  `test/orbital_dynamics/validation/manifest_fixture_test.exs` passed 2 tests
+  and `test/orbital_dynamics/cadence_import_test.exs` passed 72 tests.
+- Exact old/new comparison against selection commit `fe2a7e97` exposed the
+  selected list parser and campaign wrapper and compared 14 inputs; all 14
+  outputs matched exactly.
+- The exact inputs covered empty/full entries, station identity aliases,
+  numeric and string availability, explicit status precedence, nullable
+  fields, empty directions, invalid entry shapes, missing station identity,
+  invalid availability and intervals, absent campaign input, and invalid
+  campaign list shape.
+- `git diff --check` passed.
+- `mix xref callers OrbitalDynamics.Study.Manifest.GroundNetworkInput` reports
+  only the Manifest facade as a runtime caller; compile-connected xref reports
+  no unexpected coupling.
+- Static review confirmed the owner exposes only `campaign/1` and `parse/2`;
+  schema generation, metadata assembly, station catalogs, scenarios,
+  activities, resource summaries, and run assembly remain outside the
+  boundary.
 
 Behavior/schema changes:
-None planned. Existing ground-network normalization, validation errors,
-manifest shape, schemas, and deterministic output will be preserved.
+None. Existing ground-network normalization, validation errors, manifest
+shape, schemas, and deterministic output are preserved.
 
 Last completed slice:
-RecommendationRiskContext activity-lifecycle-state extraction, selected in
-`460fb43d` and implemented in `d2fcdfd4`.
-`recommendation_risk_context.ex` moved from 3,091 to 2,909 lines; the dedicated
-activity-lifecycle-state owner is 220 lines.
+Manifest ground-network input extraction, selected in `fe2a7e97` and
+implemented in `f99a8866`.
+`study/manifest.ex` moved from 3,108 to 3,000 lines; the dedicated
+ground-network input owner is 117 lines.
 
 Next candidate:
-Implement and verify the selected ground-network input extraction.
+Re-rank the live largest-module set and select the next cohesive ownership
+boundary.
 
 Blocked:
 No.
