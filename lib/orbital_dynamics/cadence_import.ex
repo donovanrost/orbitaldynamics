@@ -18,6 +18,7 @@ defmodule OrbitalDynamics.CadenceImport do
     ManifestContractDiagnostics,
     ManifestMapNormalization,
     ManifestRowNormalization,
+    ManifestStatistics,
     OperationalReadinessContext,
     ProviderResultNormalization,
     ReviewSummaryContext,
@@ -2342,20 +2343,9 @@ defmodule OrbitalDynamics.CadenceImport do
 
   defp put_run_input_sources(row, _source_row), do: row
 
-  defp count_by(rows, field) do
-    rows
-    |> Enum.map(&Map.get(&1, field))
-    |> Enum.reject(&is_nil/1)
-    |> Enum.frequencies()
-    |> Enum.sort_by(fn {key, _count} -> key end)
-    |> Map.new()
-  end
+  defp count_by(rows, field), do: ManifestStatistics.count_by(rows, field)
 
-  defp model_limits do
-    capability()
-    |> Map.fetch!(:known_limits)
-    |> Enum.map(&Atom.to_string/1)
-  end
+  defp model_limits, do: capability() |> ManifestStatistics.model_limits()
 
   defp source_review_action(row), do: row["action"] || row["required_operator_action"]
 
