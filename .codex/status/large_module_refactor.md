@@ -9,7 +9,7 @@ Current slice:
 TimelineFeedback operational-context extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Extract resource, pointing, attitude, command-authority, lighting, and
@@ -42,21 +42,48 @@ Selection evidence:
   remain unchanged.
 
 Verification:
-Pending implementation.
+- Focused baseline before implementation:
+  `test/orbital_dynamics/timeline_feedback_test.exs` passed 73 tests.
+- Strict compilation after implementation:
+  `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 mix compile --force --warnings-as-errors`
+  compiled 3,944 files successfully.
+- Focused regression:
+  `test/orbital_dynamics/timeline_feedback_test.exs` passed 73 tests.
+- All eight adjacent TimelineFeedback consumers passed 26 tests across schema
+  export, campaign strategy, CandidateRefresh build/replay, and operator-review
+  suites.
+- Exact old/new comparison against selection commit `933df86b` compiled the
+  selected facade under a comparison module name and matched six rich outputs
+  exactly: direct and metadata-fallback realized normalization, batch
+  normalization, matched reconciliation, planned-only reconciliation, and
+  activity state.
+- The exact activities exercised all six evidence families, direct and alias
+  fields, nested metadata fallback, numeric strings, booleans, stable
+  identifiers, scalar/list normalization, unit-interval values, and
+  planned/realized merge paths.
+- `git diff --check` passed.
+- `mix xref callers OrbitalDynamics.TimelineFeedback.OperationalContext`
+  reports only the TimelineFeedback facade as a runtime caller;
+  compile-connected xref reports no unexpected coupling.
+- Static review confirmed the owner exposes only `build/2`; reconciliation,
+  identity, row assembly, products/providers, link/station-calendar/thermal
+  context, uncertainty, aggregation, report contracts, and public clauses
+  remain outside the boundary.
 
 Behavior/schema changes:
-None intended.
+None. Existing operational-context precedence, parsing, stable-identity
+filtering, nil omission, list ordering, merge order, report contracts, and
+deterministic output are preserved.
 
 Last completed slice:
-ContactAllocation specialized-summary ownership extraction, selected in
-`e8ce52b8` and implemented in `94d0835e`.
-`communications/contact_allocation.ex` moved from 3,071 to 2,197 lines; the
-existing summary owner moved from 710 to 1,246 lines while eliminating the
-facade's duplicate aggregation machinery.
+TimelineFeedback operational-context extraction, selected in `933df86b` and
+implemented in `88f7271c`.
+`timeline_feedback.ex` moved from 3,061 to 2,809 lines; the dedicated
+operational-context owner is 295 lines.
 
 Next candidate:
-Implement and verify the selected TimelineFeedback operational-context
-extraction.
+Re-rank the live largest-module set and select the next cohesive ownership
+boundary.
 
 Blocked:
 No.
