@@ -9,7 +9,7 @@ Current slice:
 ContactContention contact/group identity extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Extract contact/spacecraft/stable-ID resolution, contact identity validation,
@@ -38,24 +38,37 @@ Selection evidence:
   order, and capability metadata must remain unchanged.
 
 Implementation:
-- Pending.
+- Selection was recorded and pushed in `21c6ee41`.
+- Implementation was committed and pushed in `4c827f4c`.
+- `communications/contact_contention.ex` moved from 2,370 to 2,242 lines.
+- `OrbitalDynamics.Communications.ContactContention.ContactIdentity` is a
+  167-line owner reached through private facade delegates.
 
 Verification:
-- Pending focused baseline, strict compilation, exact old/new public parity,
-  focused and adjacent tests, static ownership checks, and xref review.
+- Strict warning-clean compilation passed across 3,973 files.
+- The focused ContactContention file and five adjacent campaign, strategy,
+  replay, operator-review, and schema consumers passed together: 77 tests.
+- Exact old/new public report/resolution parity passed for 8 cases covering
+  station and spacecraft groups, nested spacecraft identities, atom/integer
+  IDs, duplicates, invalid identities, scenario fallback, mixed/default
+  directions, provider ordering, canonical sorting, and capability metadata.
+- `mix xref callers` reports only the ContactContention facade.
+- The removed identity/group/sort helpers and facade-owned stable identity
+  attributes are absent apart from thin delegates, formatting and
+  `git diff --check` passed, and the final diff is ownership-only.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-OperationalReadiness operator-training evidence extraction, selected in
-`0a2611d2` and implemented in `7d28b490`.
-`operational_readiness.ex` moved from 2,385 to 2,276 lines; the dedicated
-operator-training evidence owner is 131 lines.
+ContactContention contact/group identity extraction, selected in `21c6ee41`
+and implemented in `4c827f4c`.
+`communications/contact_contention.ex` moved from 2,370 to 2,242 lines; the
+dedicated contact-identity owner is 167 lines.
 
 Next candidate:
-Complete and verify the selected ContactContention contact/group identity
-extraction.
+Re-rank the live checkout and select the next cohesive facade-preserving
+boundary.
 
 Blocked:
 No.
