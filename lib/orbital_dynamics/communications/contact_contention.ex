@@ -152,12 +152,6 @@ defmodule OrbitalDynamics.Communications.ContactContention do
     station_reservation_priority
     command_contact_priority
   )
-  @resolution_priority_override_aliases ~w(
-    priority_overrides
-    contact_priority_overrides
-    contact_priorities
-    priority_by_contact_id
-  )
   @provider_direction_aliases %{
     "cmd" => "command",
     "commanding" => "command",
@@ -189,6 +183,7 @@ defmodule OrbitalDynamics.Communications.ContactContention do
   alias OrbitalDynamics.Communications.ContactContention.{
     ContactNormalization,
     FeedbackContext,
+    PriorityOverrides,
     ResolutionSummaryValues,
     TimingMetrics
   }
@@ -226,7 +221,7 @@ defmodule OrbitalDynamics.Communications.ContactContention do
       resolution_selection_rules: @resolution_selection_rules,
       resolution_tie_breakers: @resolution_tie_breakers,
       default_resolution_priority_fields: @default_resolution_priority_fields,
-      resolution_priority_override_aliases: @resolution_priority_override_aliases,
+      resolution_priority_override_aliases: PriorityOverrides.aliases(),
       provider_direction_aliases: @provider_direction_aliases,
       provider_result_map_value_keys: @provider_result_map_value_keys,
       contact_stable_identity_fields: @contact_stable_identity_fields,
@@ -1889,111 +1884,20 @@ defmodule OrbitalDynamics.Communications.ContactContention do
 
   defp normalize_resolution_policy_input(policy), do: {%{}, inspect(policy, limit: 20)}
 
-  defp normalize_priority_overrides(policy) do
-    {priority_overrides, ignored_override_context} =
-      policy
-      |> raw_priority_overrides()
-      |> normalized_priority_overrides()
+  defp normalize_priority_overrides(policy), do: PriorityOverrides.normalize(policy)
 
-    policy =
-      if map_size(priority_overrides) == 0 do
-        policy
-      else
-        Map.put(policy, "priority_overrides", priority_overrides)
-      end
+  defp priority_override_count(policy), do: PriorityOverrides.count(policy)
 
-    Map.merge(policy, ignored_override_context)
-  end
+  defp ignored_priority_override_count(policy), do: PriorityOverrides.ignored_count(policy)
 
-  defp raw_priority_overrides(policy) do
-    Enum.find_value(@resolution_priority_override_aliases, &Map.get(policy, &1)) || %{}
-  end
+  defp priority_overrides(policy), do: PriorityOverrides.values(policy)
 
-  defp normalized_priority_overrides(%{} = overrides) do
-    {priority_overrides, ignored_keys, ignored_contact_ids} =
-      Enum.reduce(overrides, {%{}, [], []}, fn {raw_id, raw_priority},
-                                               {priority_overrides, ignored_keys,
-                                                ignored_contact_ids} ->
-        contact_id = stable_id_or_nil(raw_id)
-        priority = numeric_or_nil(raw_priority)
+  defp priority_override_contact_ids(policy), do: PriorityOverrides.contact_ids(policy)
 
-        if is_binary(contact_id) and is_number(priority) do
-          {Map.put(priority_overrides, contact_id, priority), ignored_keys, ignored_contact_ids}
-        else
-          ignored_key = encode_value(raw_id) || inspect(raw_id, limit: 20)
-
-          ignored_contact_ids =
-            if is_binary(contact_id),
-              do: [contact_id | ignored_contact_ids],
-              else: ignored_contact_ids
-
-          {priority_overrides, [ignored_key | ignored_keys], ignored_contact_ids}
-        end
-      end)
-
-    ignored_context =
-      ignored_priority_override_context(ignored_keys, ignored_contact_ids, nil)
-
-    {priority_overrides, ignored_context}
-  end
-
-  defp normalized_priority_overrides(overrides) do
-    {%{}, ignored_priority_override_context([], [], inspect(overrides, limit: 20))}
-  end
-
-  defp ignored_priority_override_context(ignored_keys, ignored_contact_ids, ignored_input) do
-    ignored_keys =
-      ignored_keys
-      |> Enum.map(&encode_value/1)
-      |> Enum.reject(&(&1 in [nil, ""]))
-      |> Enum.uniq()
-      |> Enum.sort()
-
-    ignored_contact_ids =
-      ignored_contact_ids
-      |> Enum.uniq()
-      |> Enum.sort()
-
-    ignored_count = length(ignored_keys) + if(is_nil(ignored_input), do: 0, else: 1)
-
-    %{
-      "ignored_priority_override_count" => if(ignored_count == 0, do: nil, else: ignored_count),
-      "ignored_priority_override_keys" => if(ignored_keys == [], do: nil, else: ignored_keys),
-      "ignored_priority_override_contact_ids" =>
-        if(ignored_contact_ids == [], do: nil, else: ignored_contact_ids),
-      "ignored_priority_override_input" => ignored_input
-    }
-    |> compact_map()
-  end
-
-  defp priority_override_count(policy), do: map_size(Map.get(policy, "priority_overrides", %{}))
-
-  defp ignored_priority_override_count(policy),
-    do: Map.get(policy, "ignored_priority_override_count", 0)
-
-  defp priority_overrides(policy) do
-    case Map.get(policy, "priority_overrides", %{}) do
-      overrides when map_size(overrides) == 0 -> nil
-      overrides -> overrides
-    end
-  end
-
-  defp priority_override_contact_ids(policy) do
-    policy
-    |> Map.get("priority_overrides", %{})
-    |> Map.keys()
-    |> Enum.sort()
-    |> case do
-      [] -> nil
-      ids -> ids
-    end
-  end
-
-  defp ignored_priority_override_keys(policy),
-    do: Map.get(policy, "ignored_priority_override_keys")
+  defp ignored_priority_override_keys(policy), do: PriorityOverrides.ignored_keys(policy)
 
   defp ignored_priority_override_contact_ids(policy),
-    do: Map.get(policy, "ignored_priority_override_contact_ids")
+    do: PriorityOverrides.ignored_contact_ids(policy)
 
   defp selection_rule(policy) do
     case requested_selection_rule(policy) do
