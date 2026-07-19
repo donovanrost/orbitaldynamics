@@ -13,6 +13,7 @@ defmodule OrbitalDynamics.CadenceImport do
     BranchEvidenceFields,
     CandidateEvaluationImport,
     CandidateDiffFields,
+    ConstraintObjectiveImport,
     GenericReviewActionPolicy,
     ImportReadinessPolicy,
     JsonNormalization,
@@ -1491,31 +1492,17 @@ defmodule OrbitalDynamics.CadenceImport do
   Builds an import manifest from a constraint report.
   """
   def from_constraint_report(%{} = report, opts \\ []) do
-    report = stringify_keys(report)
-
-    source_artifact_id =
-      option(opts, :source_artifact_id, report["id"] || get_in(report, ["assumptions", "source"]))
-
-    from_review_report(
-      OperatorReview.from_constraint_report(report),
-      opts,
-      "constraint_report.v1",
-      source_artifact_id || "constraint_report"
-    )
+    ConstraintObjectiveImport.from_constraint_report(report, opts, &from_review_report/4)
   end
 
   @doc """
   Builds an import manifest from an objective-satisfaction report.
   """
   def from_objective_satisfaction_report(%{} = report, opts \\ []) do
-    report = stringify_keys(report)
-    source_artifact_id = option(opts, :source_artifact_id, report["id"] || report["source"])
-
-    from_review_report(
-      OperatorReview.from_objective_satisfaction_report(report),
+    ConstraintObjectiveImport.from_objective_satisfaction_report(
+      report,
       opts,
-      "objective_satisfaction_report.v1",
-      source_artifact_id || "objective_satisfaction_report"
+      &from_review_report/4
     )
   end
 
