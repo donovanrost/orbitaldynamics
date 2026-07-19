@@ -9,7 +9,7 @@ Current slice:
 ContactIntent provider-result normalization extraction.
 
 Status:
-Selected; strict focused baseline pending.
+Completed and pushed in `54820d60`.
 
 Selected boundary:
 Extract the provider-result map traversal key contract, recursive scalar/list/
@@ -25,7 +25,7 @@ Selection evidence:
   to capacity derivation, direction normalization, capability limits, and
   facade-owned assumptions, so it is not the selected boundary.
 - Provider-result normalization has one explicit traversal key contract at line
-  230, four artifact-value call sites, and a self-contained helper family at
+  230, five artifact-value call sites, and a self-contained helper family at
   lines 2,037-2,108.
 - Activity/timeline normalization, capacity derivation, station-calendar
   evidence, policy classification, identity construction, summary routing,
@@ -35,24 +35,42 @@ Selection evidence:
   fallback must remain unchanged.
 
 Implementation:
-Pending.
+- Added `OrbitalDynamics.Communications.ContactIntent.ProviderResult` as the
+  owner of ordered map traversal keys, recursive scalar/list/map collection,
+  blank handling, and artifact-string canonicalization.
+- Preserved all ContactIntent and root public APIs while routing capability
+  metadata and five internal artifact-value call sites through the new owner.
+- Removed the provider-result attribute and helper family from the facade;
+  generic recursive key stringification remains facade-owned.
+- `communications/contact_intent.ex` moved from 2,112 to 2,038 lines; the new
+  owner is 77 lines.
 
 Verification:
-Pending strict focused baseline, exact old/new public parity, focused and
-adjacent tests, static ownership checks, xref, strict warning-clean compile,
-formatting, and diff checks.
+- Strict focused baseline passed all 27 ContactIntent tests.
+- Exact old/new public parity passed for seven captured cases: ordered
+  capability keys, preserved nonblank strings, blank strings, flattened lists,
+  ordered nested maps, nested lists, and unsupported values.
+- Focused and schema-adjacent verification passed 35 tests across ContactIntent
+  behavior and communications contracts.
+- Static checks confirm the old attribute and private helper family left the
+  facade; xref reports only ContactIntent as a runtime caller of the new owner.
+- Strict warning-clean forced compile passed for 3,987 files.
+- Formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-RecommendationRiskContext contact-allocation extraction, selected in
-`8496a10e` and implemented in `567b1b93`.
-`recommendation_risk_context.ex` moved from 2,142 to 2,016 lines; the dedicated
-contact-allocation context owner is 160 lines.
+ContactIntent provider-result normalization extraction, selected in
+`7b01da01` and implemented in `54820d60`.
+`communications/contact_intent.ex` moved from 2,112 to 2,038 lines; the
+dedicated provider-result owner is 77 lines.
 
 Next candidate:
-Complete the selected ContactIntent provider-result normalization extraction.
+Re-rank the live checkout and select the next bounded facade-preserving
+extraction. `communications/station_calendar.ex`,
+`communications/contact_filter.ex`, and `resource_filter.ex` are now the
+largest ordinary eligible facades near 2,060 lines.
 
 Blocked:
 No.
