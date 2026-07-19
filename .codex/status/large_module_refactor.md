@@ -9,7 +9,7 @@ Current slice:
 CadenceImport timeline-transition test family split.
 
 Status:
-Selected; implementation has not started.
+Complete and published in `8621886e`.
 
 Selected boundary:
 Move the four contiguous timeline transition/diff import tests into one focused
@@ -41,21 +41,33 @@ Selection evidence:
   the boundary.
 
 Verification:
-Pending: four-test focused baseline, mechanical AST-preserving move, exact
-helper-copy proof, strict compile, focused new/original/combined CadenceImport
-tests, relevant schema contracts, structural/static checks, and bounded review.
+- The pre-move focused baseline passed all four selected tests from selection
+  commit `55413ac8`.
+- Strict test compilation passed with warnings as errors across 3,804 files.
+- The new focused module passed 4 tests; the reduced original passed 92 tests;
+  the combined CadenceImport proof passed all 96 tests.
+- `cadence_import_contracts_test.exs` passed all 4 tests.
+- An exact AST comparison against `55413ac8` proved that the original module is
+  exactly its former body minus the four selected tests, the focused module owns
+  those exact test ASTs, and its four fixture helpers are exact copies.
+- Formatting, tracked and new-file diff checks, exact static test/helper counts,
+  temporary-checker absence, and the resource-flow/policy-escalation seam passed.
+- Bounded local review found no assertion, fixture-value, production, public API,
+  schema, deterministic-output, or supported-source-registry change.
+- The original ledger fell from 15,292 to 14,831 lines; the focused module is
+  581 lines.
 
 Behavior/schema changes:
 None. This is a test-only ownership split with all assertions preserved.
 
 Last completed slice:
-Timeline candidate-rejection test family split, selected in `96f62b40` and
-implemented in `39e58a20`.
+CadenceImport timeline-transition test family split, selected in `55413ac8` and
+implemented in `8621886e`.
 
 Next candidate:
-Continue responsibility-focused reduction of the CadenceImport ledger or return
-to production facade mapping after this complete timeline import family is
-isolated.
+Refresh the remaining CadenceImport families and production facade map, then
+select one cohesive boundary with independent fixtures or a small exact helper
+copy surface.
 
 Blocked:
 No.
