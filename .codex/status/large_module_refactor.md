@@ -9,7 +9,7 @@ Current slice:
 ContactIntent capacity-evidence extraction.
 
 Status:
-Selected; strict focused baseline pending.
+Completed and pushed in `f01406f6`.
 
 Selected boundary:
 Extract station/required capacity path contracts, capability and artifact
@@ -38,24 +38,44 @@ Selection evidence:
   unchanged.
 
 Implementation:
-Pending.
+- Added `OrbitalDynamics.Communications.ContactIntent.CapacityEvidence` as the
+  owner of station/required capacity path contracts, capability metadata,
+  summary assumptions, station evidence aggregation, required-capacity source
+  classification, nested source-calendar lookup, and unit conversion.
+- Preserved all ContactIntent and root public APIs; capability construction,
+  contact-intent summary recomputation, and row construction now call the
+  dedicated owner.
+- Removed all capacity path attributes and the full capacity evidence helper
+  family from the facade.
+- `communications/contact_intent.ex` moved from 2,038 to 1,785 lines; the new
+  owner is 281 lines.
 
 Verification:
-Pending strict focused baseline, exact old/new public parity, focused and
-adjacent tests, static ownership checks, xref, strict warning-clean compile,
-formatting, and diff checks.
+- Strict focused baseline passed all 27 ContactIntent tests.
+- Exact old/new public parity passed for five captured cases: capability
+  metadata, direct capacity evidence, nested source-calendar evidence, invalid
+  ranges, and summary recomputation.
+- Focused and communications-contract verification passed 35 tests.
+- Static checks confirm all capacity path attributes and evidence helpers left
+  the facade; remaining similarly named functions are summary aggregators.
+- Xref reports only ContactIntent as a runtime caller of the owner.
+- Strict warning-clean forced compile passed for 3,991 files.
+- Formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-ResourceFilter summary extraction, selected in `c2ec6ed6` and implemented in
-`4af22e46`.
-`resource_filter.ex` moved from 2,059 to 1,964 lines; the dedicated summary
-owner is 161 lines.
+ContactIntent capacity-evidence extraction, selected in `85949f03` and
+implemented in `f01406f6`.
+`communications/contact_intent.ex` moved from 2,038 to 1,785 lines; the
+dedicated capacity-evidence owner is 281 lines.
 
 Next candidate:
-Complete the selected ContactIntent capacity-evidence extraction.
+Re-rank the live checkout and select the next bounded facade-preserving
+extraction. `operational_readiness.ex` is now the largest ordinary eligible
+facade at 2,018 lines, closely followed by RecommendationRiskContext and
+OrbitData at 2,016 lines.
 
 Blocked:
 No.
