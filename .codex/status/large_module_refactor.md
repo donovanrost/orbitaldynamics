@@ -9,7 +9,7 @@ Current slice:
 TimelineFeedback operational-feedback provenance extraction.
 
 Status:
-Selected; strict focused baseline pending.
+Completed and pushed in `79d7904c`.
 
 Selected boundary:
 Extract operational-feedback input-key detection, realized and weighted row
@@ -35,25 +35,40 @@ Selection evidence:
   reconciliation output, and error behavior must remain unchanged.
 
 Implementation:
-Pending.
+- Added `OrbitalDynamics.TimelineFeedback.OperationalFeedbackProvenance` as the
+  owner of operational-feedback input keys, row/weight/source-quality counts,
+  trust boundaries, and per-feedback-key trust routing.
+- Preserved TimelineFeedback and root public APIs as reconciliation and
+  operational-feedback delegates.
+- Kept feedback-specific key/value functions in the facade and passed their
+  trust-routing specifications into the generic provenance owner.
+- `timeline_feedback.ex` moved from 1,948 to 1,797 lines; the new owner is 181
+  lines.
 
 Verification:
-Pending strict focused baseline, exact old/new public parity, focused and
-adjacent tests, static ownership checks, xref, strict warning-clean compile,
-formatting, and diff checks.
+- Strict focused baseline passed all 73 TimelineFeedback tests.
+- Exact old/new public parity passed for four deterministic report captures:
+  omitted provenance, weighted multi-row contact feedback, source-quality and
+  trust-boundary observation feedback, and excluded operational feedback.
+- Post-extraction focused and adjacent verification passed all 76 tests.
+- Static checks confirm the provenance aggregation helper family left the
+  facade; xref reports only TimelineFeedback as a runtime caller.
+- Strict warning-clean forced compile passed for 3,999 files.
+- Formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-ContactAllocation contact-validation extraction, selected in `325980b5` and
-implemented in `6d894840`.
-`communications/contact_allocation.ex` moved from 1,953 to 1,804 lines; the
-dedicated ContactValidation owner is 205 lines.
+TimelineFeedback operational-feedback provenance extraction, selected in
+`9782f23d` and implemented in `79d7904c`.
+`timeline_feedback.ex` moved from 1,948 to 1,797 lines; the dedicated
+OperationalFeedbackProvenance owner is 181 lines.
 
 Next candidate:
-Complete the selected TimelineFeedback operational-feedback provenance
-extraction.
+Re-rank the live checkout and select the next bounded facade-preserving
+extraction. `operational_readiness.ex` is now the largest ordinary eligible
+facade at 1,927 lines, followed by StationCalendar and LinkCapacity.
 
 Blocked:
 No.
