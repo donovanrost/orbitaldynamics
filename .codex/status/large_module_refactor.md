@@ -6,53 +6,37 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-ContactAllocation reduced-capacity packing extraction.
+RecommendationRiskContext validation-refresh extraction.
 
 Status:
-Completed and pushed in `54011624`.
+Selected; implementation pending.
 
 Selected boundary:
-Extract default capacity-requirement policy normalization, reduced-station
-capacity group packing, fractional-fit decisions, row promotion/deferral, and
-capacity-requirement evidence into
-`OrbitalDynamics.Communications.ContactAllocation.CapacityPacking`.
-Preserve the existing ContactAllocation public API facade.
+Extract the validation-refresh context-key contract and deterministic
+aggregation for model-acceptance, schema-validation, validation-safety-case,
+refresh-budget, and refresh-freshness risks into
+`OrbitalDynamics.RecommendationRiskContext.ValidationRefresh`.
+Preserve the existing RecommendationRiskContext public API facade.
 
 Selection evidence:
-- Live re-ranking places `contact_allocation.ex` at 3,593 lines, fourth behind
-  Schema, Timeline, and MissionPlan.Activity and ahead of
-  RecommendationRiskContext, OrbitalDynamics, Manifest, LinkCapacity,
-  StationCalendar, TimelineFeedback, and ResourceProjection.
-- The selected family owns one deterministic allocation-policy responsibility:
-  fitting contention-ordered contacts within declared reduced station capacity
-  and recording the resulting row/group evidence.
-- Contact normalization, station filtering, contention resolution, approval
-  policy, provider counteroffers, report summaries, and returned-contact
-  assembly remain outside this boundary.
-- Existing option precedence and validation, contact ordering, fractional-fit
-  tolerance, row status/reason transitions, evidence fields, omission behavior,
-  and deterministic output remain unchanged.
+- Live re-ranking places `recommendation_risk_context.ex` at 3,582 lines,
+  fourth behind Schema, Timeline, and MissionPlan.Activity and ahead of
+  OrbitalDynamics, Manifest, LinkCapacity, StationCalendar, TimelineFeedback,
+  ResourceProjection, and ContactAllocation.
+- The selected family owns one recommendation explanation responsibility:
+  translating validation and refresh risk rows into the declared compact
+  context vocabulary used by downstream recommendations.
+- Approval, communications, timeline, resource, objective, and operational
+  feedback context families remain outside this boundary.
+- Existing risk matching, atom/string normalization, list flattening,
+  deduplication, deterministic sorting, empty-value omission, invalid-input
+  behavior, and public context-key ordering remain unchanged.
 
 Verification:
-- Strict test-environment compile passed with warnings as errors across 3,924
-  files.
-- Focused ContactAllocation coverage passed: 70 tests.
-- Adjacent campaign-planner and candidate-refresh capacity-pack coverage
-  passed: 8 tests.
-- Exact public old/new comparison against selection commit `75c6e6fe` passed
-  for five allocation states and three public outputs per state: allocation,
-  allocation summary, and capacity-pack summary; the invalid-default error path
-  also matched.
-- `mix xref callers` reports only the ContactAllocation facade as a runtime
-  caller of the extracted capacity-packing owner.
-- Static ownership checks confirm option normalization, group fitting,
-  row decisions, promotion/deferral, and requirement evidence live in the
-  dedicated owner while allocation orchestration and report assembly remain in
-  the facade.
-- `git diff --check` passed.
+Pending.
 
 Behavior/schema changes:
-None. This is a facade-preserving production ownership extraction.
+None intended. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
 ContactAllocation reduced-capacity packing extraction, selected in `75c6e6fe`
