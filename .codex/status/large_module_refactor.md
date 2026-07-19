@@ -6,39 +6,32 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema strategy-context JSON Schema extraction.
+Schema validation-context JSON Schema extraction.
 
 Status:
-Completed and published.
+Selected; implementation has not started.
 
 Selected boundary:
-Extract strategy branch tradeoff/risk/event/assumptions/provenance/branch plus
-strategy explanation and branch-event-summary JSON Schema construction into
-`OrbitalDynamics.Schema.StrategyContextJsonSchema`. Preserve the existing
+Extract validation issues, remediation, batch/migration/skipped rows, validation
+records, registry conditions, model-acceptance and safety-case rows, reference
+reports, and checks into
+`OrbitalDynamics.Schema.ValidationContextJsonSchema`. Preserve the existing
 private Schema helper seams.
 
 Selection evidence:
-- `schema.ex` is 6,786 lines; the selected strategy-schema seams span
-  3,788-3,800, 3,807-3,849, and 3,856-3,867.
-- The cluster has one responsibility: construct reusable strategy branch and
-  recommendation context schemas.
-- Stable-ID, collection, policy, semantic-change, and scoped-downlink schemas
-  remain facade-owned inputs; registry-backed strategy documents and branch
-  comparison source rows remain outside.
+- `schema.ex` is 6,764 lines; the selected contiguous validation-schema cluster
+  spans 3,726-3,788.
+- The cluster has one responsibility: construct reusable validation, migration,
+  acceptance, and safety-case evidence schemas.
+- Stable-ID patterns, validation levels, and the registry-backed batch report
+  document remain facade-owned inputs to the new owner.
 - Registry data, JSON Schema export, contract dispatch, unrelated validation,
   and all public `Schema` APIs remain outside.
 
 Verification:
-- Strict compile passed across 3,871 files with warnings as errors.
-- Focused JSON Schema export, strategy-recommendation, and branch-lint
-  contracts passed: 17 tests, including all 15 export contracts.
-- Full Schema suite passed: 175 tests.
-- Exact old/new JSON Schema documents matched for 6 strategy, branch,
-  operator-review, and campaign contracts.
-- Static inspection confirms the facade retains one explicit primitive/context
-  bundle and the three orphaned internal wrappers were removed; runtime xref
-  reports `Schema` as the sole caller of the new owner.
-- `git diff --check` and bounded ownership review passed.
+Pending: focused validation-schema baselines, exact old/new JSON Schema
+documents, strict compile, broader Schema contract tests, JSON Schema export
+checks, static single ownership, runtime xref, and bounded review.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
@@ -49,7 +42,7 @@ implemented in `f6d4ad0b`. `schema.ex` moved from 6,786 to 6,764 lines; the
 dedicated owner is 77 lines.
 
 Next candidate:
-Re-inventory remaining Schema families after strategy-context JSON Schema
+Re-inventory remaining Schema families after validation-context JSON Schema
 construction has one production owner.
 
 Blocked:
