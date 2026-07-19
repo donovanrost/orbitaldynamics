@@ -9,7 +9,7 @@ Current slice:
 ResourceProjection resource-summary input extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Extract external resource-summary key/alias normalization, provenance and
@@ -35,16 +35,44 @@ Selection evidence:
   behavior, and deterministic output remain unchanged.
 
 Verification:
-Pending.
+- Focused baseline before implementation:
+  `test/orbital_dynamics/resource_projection_test.exs` passed 49 tests.
+- Strict compilation after implementation:
+  `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 mix compile --force --warnings-as-errors`
+  compiled 3,931 files successfully.
+- Focused regression:
+  `test/orbital_dynamics/resource_projection_test.exs` passed 49 tests.
+- Adjacent downstream regressions:
+  `test/orbital_dynamics/resource_filter_test.exs` passed 37 tests and
+  `test/orbital_dynamics/operator_review/resource_projection_test.exs` passed
+  5 tests.
+- Exact old/new comparison against selection commit `73a15f12` covered six
+  resource-summary sets across `report/3`, `flow_summary/1`, and
+  `flow_report/1`; all 18 outputs matched exactly.
+- The exact states covered canonical and aliased valid input, provenance and
+  availability aliases, numeric and battery derivation, invalid shapes and
+  negative values, stale derived margins, duplicate scopes, mixed wildcard
+  scopes, nested spacecraft identity, and activity-type list normalization.
+- `git diff --check` passed.
+- `mix xref callers
+  OrbitalDynamics.ResourceProjection.ResourceSummaryInput` reports only the
+  ResourceProjection facade as a runtime caller; compile-connected xref reports
+  no unexpected coupling.
+- Static review confirmed the owner exposes only `normalize/1`; activity input
+  handling, shared activity/provider token helpers, projection math,
+  pressure/risk policy, flow summaries, and public APIs remain in the facade.
 
 Behavior/schema changes:
-None intended. This is a facade-preserving production ownership extraction.
+None. Existing input ordering, alias precedence, value validation,
+derived-margin tolerance, invalid-row identities, duplicate/wildcard review
+gating, omission behavior, artifact shape, and deterministic output are
+preserved.
 
 Last completed slice:
-TimelineFeedback station-calendar context extraction, selected in `8b6914d7`
-and implemented in `a88b7ff5`.
-`timeline_feedback.ex` moved from 3,452 to 3,268 lines; the dedicated
-station-calendar context owner is 241 lines.
+ResourceProjection resource-summary input extraction, selected in `73a15f12`
+and implemented in `d61339d3`.
+`resource_projection.ex` moved from 3,447 to 3,010 lines; the dedicated
+resource-summary input owner is 611 lines.
 
 Next candidate:
 Re-rank the live largest-module set and select the next cohesive ownership
