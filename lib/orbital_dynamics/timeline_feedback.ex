@@ -91,6 +91,7 @@ defmodule OrbitalDynamics.TimelineFeedback do
     ArtifactValue,
     ExecutionUncertainty,
     ProviderResult,
+    ReconciliationIdentity,
     RealizedIdentity,
     RealizedStatus,
     SuccessFactor,
@@ -2576,100 +2577,6 @@ defmodule OrbitalDynamics.TimelineFeedback do
       "timing_variance_threshold_s" => timing_variance_threshold_s,
       "timing_variance_status" =>
         timing_variance_status(max_timing_delta_s, timing_variance_threshold_s),
-      "direction" => value(planned, "direction") || value(realized, "direction"),
-      "planned_direction" => value(planned, "direction"),
-      "realized_direction" => value(realized, "direction"),
-      "direction_match_status" =>
-        match_status(value(planned, "direction"), value(realized, "direction")),
-      "ground_station_id" =>
-        value(planned, "ground_station_id") || value(realized, "ground_station_id"),
-      "planned_ground_station_id" => value(planned, "ground_station_id"),
-      "realized_ground_station_id" => value(realized, "ground_station_id"),
-      "ground_station_match_status" =>
-        match_status(value(planned, "ground_station_id"), value(realized, "ground_station_id")),
-      "spacecraft_id" => value(planned, "spacecraft_id") || value(realized, "spacecraft_id"),
-      "target_id" => value(planned, "target_id") || value(realized, "target_id"),
-      "planned_target_id" => value(planned, "target_id"),
-      "realized_target_id" => value(realized, "target_id"),
-      "target_match_status" =>
-        match_status(value(planned, "target_id"), value(realized, "target_id")),
-      "resource_id" => value(planned, "resource_id") || value(realized, "resource_id"),
-      "planned_resource_id" => value(planned, "resource_id"),
-      "realized_resource_id" => value(realized, "resource_id"),
-      "resource_match_status" =>
-        match_status(value(planned, "resource_id"), value(realized, "resource_id")),
-      "collection_id" => value(planned, "collection_id") || value(realized, "collection_id"),
-      "planned_collection_id" => value(planned, "collection_id"),
-      "realized_collection_id" => value(realized, "collection_id"),
-      "collection_match_status" =>
-        match_status(value(planned, "collection_id"), value(realized, "collection_id")),
-      "product_id" => value(planned, "product_id") || value(realized, "product_id"),
-      "planned_product_id" => value(planned, "product_id"),
-      "realized_product_id" => value(realized, "product_id"),
-      "product_match_status" =>
-        match_status(value(planned, "product_id"), value(realized, "product_id")),
-      "product_ids" => value(planned, "product_ids") || value(realized, "product_ids"),
-      "planned_product_ids" => value(planned, "product_ids"),
-      "realized_product_ids" => value(realized, "product_ids"),
-      "product_ids_match_status" =>
-        match_status(value(planned, "product_ids"), value(realized, "product_ids")),
-      "payload_id" => value(planned, "payload_id") || value(realized, "payload_id"),
-      "planned_payload_id" => value(planned, "payload_id"),
-      "realized_payload_id" => value(realized, "payload_id"),
-      "payload_match_status" =>
-        match_status(value(planned, "payload_id"), value(realized, "payload_id")),
-      "instrument_id" => value(planned, "instrument_id") || value(realized, "instrument_id"),
-      "planned_instrument_id" => value(planned, "instrument_id"),
-      "realized_instrument_id" => value(realized, "instrument_id"),
-      "instrument_match_status" =>
-        match_status(value(planned, "instrument_id"), value(realized, "instrument_id")),
-      "pointing_target_id" =>
-        value(planned, "pointing_target_id") || value(realized, "pointing_target_id"),
-      "planned_pointing_target_id" => value(planned, "pointing_target_id"),
-      "realized_pointing_target_id" => value(realized, "pointing_target_id"),
-      "pointing_target_match_status" =>
-        match_status(value(planned, "pointing_target_id"), value(realized, "pointing_target_id")),
-      "pointing_mode" => value(planned, "pointing_mode") || value(realized, "pointing_mode"),
-      "planned_pointing_mode" => value(planned, "pointing_mode"),
-      "realized_pointing_mode" => value(realized, "pointing_mode"),
-      "pointing_mode_match_status" =>
-        match_status(value(planned, "pointing_mode"), value(realized, "pointing_mode")),
-      "attitude_target_id" =>
-        value(planned, "attitude_target_id") || value(realized, "attitude_target_id"),
-      "planned_attitude_target_id" => value(planned, "attitude_target_id"),
-      "realized_attitude_target_id" => value(realized, "attitude_target_id"),
-      "attitude_target_match_status" =>
-        match_status(value(planned, "attitude_target_id"), value(realized, "attitude_target_id")),
-      "attitude_mode" => value(planned, "attitude_mode") || value(realized, "attitude_mode"),
-      "planned_attitude_mode" => value(planned, "attitude_mode"),
-      "realized_attitude_mode" => value(realized, "attitude_mode"),
-      "attitude_mode_match_status" =>
-        match_status(value(planned, "attitude_mode"), value(realized, "attitude_mode")),
-      "link_protocol" => value(planned, "link_protocol") || value(realized, "link_protocol"),
-      "planned_link_protocol" => value(planned, "link_protocol"),
-      "realized_link_protocol" => value(realized, "link_protocol"),
-      "link_protocol_match_status" =>
-        match_status(value(planned, "link_protocol"), value(realized, "link_protocol")),
-      "frequency_band" => value(planned, "frequency_band") || value(realized, "frequency_band"),
-      "planned_frequency_band" => value(planned, "frequency_band"),
-      "realized_frequency_band" => value(realized, "frequency_band"),
-      "frequency_band_match_status" =>
-        match_status(value(planned, "frequency_band"), value(realized, "frequency_band")),
-      "modulation" => value(planned, "modulation") || value(realized, "modulation"),
-      "planned_modulation" => value(planned, "modulation"),
-      "realized_modulation" => value(realized, "modulation"),
-      "modulation_match_status" =>
-        match_status(value(planned, "modulation"), value(realized, "modulation")),
-      "coding_scheme" => value(planned, "coding_scheme") || value(realized, "coding_scheme"),
-      "planned_coding_scheme" => value(planned, "coding_scheme"),
-      "realized_coding_scheme" => value(realized, "coding_scheme"),
-      "coding_scheme_match_status" =>
-        match_status(value(planned, "coding_scheme"), value(realized, "coding_scheme")),
-      "polarization" => value(planned, "polarization") || value(realized, "polarization"),
-      "planned_polarization" => value(planned, "polarization"),
-      "realized_polarization" => value(realized, "polarization"),
-      "polarization_match_status" =>
-        match_status(value(planned, "polarization"), value(realized, "polarization")),
       "data_rate_mbps" => realized_or_planned(realized, planned, "data_rate_mbps"),
       "planned_data_rate_mbps" => value(planned, "data_rate_mbps"),
       "realized_data_rate_mbps" => value(realized, "data_rate_mbps"),
@@ -2830,13 +2737,6 @@ defmodule OrbitalDynamics.TimelineFeedback do
       "thermal_model" => realized_or_planned(realized, planned, "thermal_model"),
       "thermal_source" => realized_or_planned(realized, planned, "thermal_source"),
       "thermal_confidence" => realized_or_planned(realized, planned, "thermal_confidence"),
-      "source_window_id" =>
-        value(planned, "source_window_id") || value(realized, "source_window_id"),
-      "planned_source_window_id" => value(planned, "source_window_id"),
-      "realized_source_window_id" => value(realized, "source_window_id"),
-      "source_window_match_status" =>
-        match_status(value(planned, "source_window_id"), value(realized, "source_window_id")),
-      "source_window_type" => value(planned, "source_window_type"),
       "contact_success_factor" =>
         value(realized, "contact_success_factor") || value(planned, "contact_success_factor"),
       "contact_success_factor_source" =>
@@ -3047,9 +2947,10 @@ defmodule OrbitalDynamics.TimelineFeedback do
         realized_or_planned(realized, planned, "station_reservation_match_status"),
       "reason" => value(realized, "reason")
     }
+    |> Map.merge(ReconciliationIdentity.context(planned, realized))
     |> Map.merge(execution_uncertainty_context)
     |> put_duplicate_realized_feedback(realized_matches)
-    |> put_identity_mismatch_summary()
+    |> ReconciliationIdentity.put_mismatch_summary()
     |> put_operational_feedback_exclusion()
     |> Enum.reject(fn {_key, value} -> is_nil(value) end)
     |> Map.new()
@@ -3059,39 +2960,6 @@ defmodule OrbitalDynamics.TimelineFeedback do
     case value(realized, field) do
       nil -> value(planned, field)
       value -> value
-    end
-  end
-
-  defp put_identity_mismatch_summary(row) do
-    mismatch_fields =
-      [
-        {"direction", "direction_match_status"},
-        {"ground_station", "ground_station_match_status"},
-        {"target", "target_match_status"},
-        {"resource", "resource_match_status"},
-        {"collection", "collection_match_status"},
-        {"product", "product_match_status"},
-        {"product_ids", "product_ids_match_status"},
-        {"payload", "payload_match_status"},
-        {"instrument", "instrument_match_status"},
-        {"pointing_target", "pointing_target_match_status"},
-        {"link_protocol", "link_protocol_match_status"},
-        {"frequency_band", "frequency_band_match_status"},
-        {"modulation", "modulation_match_status"},
-        {"coding_scheme", "coding_scheme_match_status"},
-        {"polarization", "polarization_match_status"},
-        {"source_window", "source_window_match_status"}
-      ]
-      |> Enum.filter(fn {_field, status_field} -> row[status_field] == "mismatch" end)
-      |> Enum.map(fn {field, _status_field} -> field end)
-
-    if mismatch_fields == [] do
-      row
-    else
-      row
-      |> Map.put("identity_mismatch_fields", mismatch_fields)
-      |> Map.put("identity_mismatch_count", length(mismatch_fields))
-      |> Map.put("identity_match_status", "mismatch")
     end
   end
 
