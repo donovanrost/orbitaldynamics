@@ -132,7 +132,6 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
   @counteroffer_review_summary_schema_contract "provider_counteroffer_review_summary.v1"
   @counteroffer_import_readiness_summary_schema_contract "provider_counteroffer_import_readiness_summary.v1"
   @counteroffer_plan_impact_summary_schema_contract "provider_counteroffer_plan_impact_summary.v1"
-  @provider_counteroffer_negotiation_states ~w(proposed pending accepted rejected expired canceled unknown)
   @provider_counteroffer_lock_deadline_statuses ~w(missing expired active declared)
   @provider_counteroffer_import_statuses ~w(review_required_before_import not_applicable)
   @provider_counteroffer_import_readiness_statuses ~w(clear review_required)
@@ -142,6 +141,7 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
   @stable_id_pattern ~r/^[A-Za-z0-9][A-Za-z0-9._:@-]*$/
   @provider_result_map_value_keys ~w(result results outcome outcomes status state disposition provider_result provider_results provider_outcome provider_outcomes provider_status provider_state provider_code code reason reasons message messages error errors details metadata provider diagnostics)
   alias OrbitalDynamics.Policy
+  alias OrbitalDynamics.Communications.StationCalendar.ProviderCounteroffer
 
   @doc """
   Declares the station-calendar provider adapter contract and known limits.
@@ -206,7 +206,7 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
       provider_result_map_value_keys: @provider_result_map_value_keys,
       command_contact_directions: @command_contact_directions,
       provider_counteroffer_actions: ["none", "review_provider_counteroffer"],
-      provider_counteroffer_negotiation_states: @provider_counteroffer_negotiation_states,
+      provider_counteroffer_negotiation_states: ProviderCounteroffer.negotiation_states(),
       provider_counteroffer_lock_deadline_statuses: @provider_counteroffer_lock_deadline_statuses,
       provider_counteroffer_import_statuses: @provider_counteroffer_import_statuses,
       provider_counteroffer_import_readiness_statuses:
@@ -2119,17 +2119,7 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
   end
 
   defp provider_counteroffer_entry?(entry) do
-    value_present?(
-      first_present_value(entry, ["provider_counteroffer_id", "counteroffer_id", "offer_id"])
-    ) or
-      value_present?(
-        first_present_value(entry, [
-          "provider_counteroffer_status",
-          "counteroffer_status",
-          "offer_status",
-          "negotiation_status"
-        ])
-      )
+    ProviderCounteroffer.entry?(entry)
   end
 
   defp contact_row?(contact) do
@@ -2432,109 +2422,35 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
   end
 
   defp provider_counteroffer_id(entry) do
-    entry
-    |> first_present_value(["provider_counteroffer_id", "counteroffer_id", "offer_id"])
-    |> stable_id_or_nil()
+    ProviderCounteroffer.id(entry)
   end
 
   defp provider_counteroffer_status(entry) do
-    entry
-    |> first_present_value([
-      "provider_counteroffer_status",
-      "counteroffer_status",
-      "offer_status",
-      "negotiation_status"
-    ])
-    |> normalize_status_value()
+    ProviderCounteroffer.status(entry)
   end
 
   defp provider_counteroffer_negotiation_state(%{} = entry) do
-    entry
-    |> first_present_value([
-      "provider_counteroffer_negotiation_state",
-      "counteroffer_negotiation_state",
-      "negotiation_state",
-      "provider_counteroffer_status",
-      "counteroffer_status",
-      "offer_status",
-      "negotiation_status"
-    ])
-    |> normalize_counteroffer_negotiation_state()
-  end
-
-  defp normalize_counteroffer_negotiation_state(nil), do: "unknown"
-
-  defp normalize_counteroffer_negotiation_state(value) do
-    value
-    |> normalize_status_value()
-    |> case do
-      state when state in @provider_counteroffer_negotiation_states -> state
-      state when state in ["proposal", "offered", "offer", "new"] -> "proposed"
-      state when state in ["open", "in_review", "review", "review_required"] -> "pending"
-      state when state in ["approved", "confirmed", "accepted_by_operator"] -> "accepted"
-      state when state in ["declined", "denied", "provider_rejected"] -> "rejected"
-      state when state in ["timed_out", "timeout", "lapsed"] -> "expired"
-      state when state in ["cancelled", "withdrawn", "withdraw"] -> "canceled"
-      _state -> "unknown"
-    end
+    ProviderCounteroffer.negotiation_state(entry)
   end
 
   defp provider_counteroffer_reason_code(entry) do
-    entry
-    |> first_present_value([
-      "provider_counteroffer_reason_code",
-      "counteroffer_reason_code",
-      "offer_reason_code",
-      "provider_reason_code",
-      "reason_code"
-    ])
-    |> normalize_status_value()
+    ProviderCounteroffer.reason_code(entry)
   end
 
   defp provider_counteroffer_cost_delta(entry) do
-    entry
-    |> first_present_value([
-      "provider_counteroffer_cost_delta",
-      "counteroffer_cost_delta",
-      "cost_delta",
-      "price_delta"
-    ])
-    |> numeric_or_nil()
+    ProviderCounteroffer.cost_delta(entry)
   end
 
   defp provider_counteroffer_lock_deadline_s(entry) do
-    entry
-    |> first_present_value([
-      "provider_counteroffer_lock_deadline_s",
-      "counteroffer_lock_deadline_s",
-      "schedule_lock_deadline_s",
-      "lock_deadline_s"
-    ])
-    |> numeric_or_nil()
+    ProviderCounteroffer.lock_deadline_s(entry)
   end
 
   defp provider_counteroffer_starts_at_s(entry) do
-    entry
-    |> first_present_value([
-      "provider_counteroffer_starts_at_s",
-      "counteroffer_starts_at_s",
-      "counteroffer_start_s",
-      "offered_starts_at_s",
-      "offered_start_s"
-    ])
-    |> numeric_or_nil()
+    ProviderCounteroffer.starts_at_s(entry)
   end
 
   defp provider_counteroffer_ends_at_s(entry) do
-    entry
-    |> first_present_value([
-      "provider_counteroffer_ends_at_s",
-      "counteroffer_ends_at_s",
-      "counteroffer_end_s",
-      "offered_ends_at_s",
-      "offered_end_s"
-    ])
-    |> numeric_or_nil()
+    ProviderCounteroffer.ends_at_s(entry)
   end
 
   defp reservation_match_status(contact, reservations) do
@@ -3821,10 +3737,6 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
   defp stable_provider_id!(_value, field) do
     raise ArgumentError, "station calendar #{field} must match stable ID pattern"
   end
-
-  defp stable_id_or_nil(value) when value in [nil, ""], do: nil
-
-  defp stable_id_or_nil(value), do: stable_provider_id!(value, "provider_counteroffer_id")
 
   defp stable_id?("nil"), do: false
   defp stable_id?(value) when is_binary(value), do: Regex.match?(@stable_id_pattern, value)
