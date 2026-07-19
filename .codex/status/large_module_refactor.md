@@ -9,7 +9,7 @@ Current slice:
 ResourceProjection pressure-risk projection extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Extract row-to-policy-risk construction for storage overflow, downlink
@@ -33,24 +33,38 @@ Selection evidence:
   must remain unchanged.
 
 Implementation:
-- Pending.
+- Selection was recorded and pushed in `351c84ce`.
+- Implementation was committed and pushed in `5dd9dd79`.
+- `resource_projection.ex` moved from 2,504 to 2,418 lines.
+- `OrbitalDynamics.ResourceProjection.PressureRisks` is a 91-line owner
+  reached through a private facade delegate.
 
 Verification:
-- Pending focused baseline, strict compilation, exact old/new public parity,
-  focused and adjacent tests, static ownership checks, and xref review.
+- Strict warning-clean compilation passed across 3,964 files.
+- The focused ResourceProjection file and five adjacent review, strategy,
+  replay-routing, Cadence-import, and schema consumers passed together:
+  137 tests.
+- Exact old/new public parity passed for 8 cases covering combined storage,
+  downlink, battery, and thermal pressure; spacecraft unavailability;
+  payload/antenna unavailability; nominal and empty projections; report
+  passthrough; and public-error behavior.
+- `mix xref callers` reports only the ResourceProjection facade.
+- The removed risk helpers are absent from the facade apart from the thin
+  delegate, formatting and `git diff --check` passed, and the final diff is
+  ownership-only.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-ContactContention resolution-summary values extraction, selected in
-`4541dbd9` and implemented in `12e731f7`.
-`communications/contact_contention.ex` moved from 2,509 to 2,466 lines; the
-dedicated resolution-summary values owner is 71 lines.
+ResourceProjection pressure-risk projection extraction, selected in
+`351c84ce` and implemented in `5dd9dd79`.
+`resource_projection.ex` moved from 2,504 to 2,418 lines; the dedicated
+pressure-risk owner is 91 lines.
 
 Next candidate:
-Complete and verify the selected ResourceProjection pressure-risk projection
-extraction.
+Re-rank the live checkout and select the next cohesive facade-preserving
+boundary.
 
 Blocked:
 No.
