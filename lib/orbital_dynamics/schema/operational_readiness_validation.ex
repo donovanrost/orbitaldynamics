@@ -1,0 +1,216 @@
+defmodule OrbitalDynamics.Schema.OperationalReadinessValidation do
+  @moduledoc false
+
+  def operational_readiness_model_limits do
+    OrbitalDynamics.OperationalReadiness.capabilities()
+    |> Map.fetch!(:known_limits)
+    |> Enum.map(&Atom.to_string/1)
+  end
+
+  def operational_readiness_gate_summary_model_limits do
+    [
+      "operational_readiness_gate_summary_routes_only",
+      "operational_readiness_gate_summary_does_not_approve_or_import"
+    ]
+  end
+
+  def operational_execution_boundary_summary_model_limits do
+    [
+      "operational_execution_boundary_summary_routes_only",
+      "operational_execution_boundary_summary_does_not_execute_or_import"
+    ]
+  end
+
+  def operational_import_eligibility_summary_model_limits do
+    [
+      "operational_import_eligibility_summary_routes_only",
+      "operational_import_eligibility_summary_does_not_approve_or_import"
+    ]
+  end
+
+  def quality_gate_report_model_limits do
+    [
+      "quality_gate_report_derives_classification_from_gate_rows",
+      "quality_gate_report_does_not_approve_or_import"
+    ]
+  end
+
+  def quality_gate_summary_model_limits do
+    [
+      "quality_gate_summary_derives_classification_from_gate_rows",
+      "quality_gate_summary_does_not_approve_or_import"
+    ]
+  end
+
+  def quality_gate_unavailable_resource_summary_model_limits do
+    [
+      "quality_gate_unavailable_resource_summary_routes_only",
+      "quality_gate_unavailable_resource_summary_does_not_approve_or_import"
+    ]
+  end
+
+  def quality_gate_operator_training_summary_model_limits do
+    [
+      "quality_gate_operator_training_summary_routes_only",
+      "quality_gate_operator_training_summary_does_not_approve_or_import"
+    ]
+  end
+
+  def quality_gate_schema_validation_summary_model_limits do
+    [
+      "quality_gate_schema_validation_summary_routes_only",
+      "quality_gate_schema_validation_summary_does_not_approve_or_import"
+    ]
+  end
+
+  def quality_gate_import_readiness_summary_model_limits do
+    [
+      "quality_gate_import_readiness_summary_routes_only",
+      "quality_gate_import_readiness_summary_does_not_approve_or_import"
+    ]
+  end
+
+  def validate_operational_readiness_report(issues, path, report) do
+    OrbitalDynamics.Schema.OperationalReadinessReportContracts.validate(
+      issues,
+      path,
+      report,
+      operational_readiness_model_limits(),
+      &validate_operational_readiness_gate/3,
+      &validate_operational_readiness_evidence/3
+    )
+  end
+
+  def validate_operational_import_eligibility_summary(issues, path, summary) do
+    OrbitalDynamics.Schema.OperationalImportEligibilitySummaryContracts.validate_summary(
+      issues,
+      path,
+      summary,
+      operational_import_eligibility_summary_model_limits(),
+      &validate_operational_readiness_gate/3
+    )
+  end
+
+  def validate_operational_readiness_gate_summary(issues, path, summary) do
+    OrbitalDynamics.Schema.OperationalReadinessGateSummaryContracts.validate_summary(
+      issues,
+      path,
+      summary,
+      operational_readiness_gate_summary_model_limits(),
+      &validate_operational_readiness_gate/3
+    )
+  end
+
+  def validate_operational_execution_boundary_summary(issues, path, summary) do
+    OrbitalDynamics.Schema.OperationalExecutionBoundarySummaryContracts.validate_summary(
+      issues,
+      path,
+      summary,
+      operational_execution_boundary_summary_model_limits(),
+      &validate_operational_readiness_gate/3
+    )
+  end
+
+  def validate_operational_readiness_gate(issues, path, gate) do
+    OrbitalDynamics.Schema.OperationalReadinessGateContracts.validate(
+      issues,
+      path,
+      gate,
+      &OrbitalDynamics.Schema.CandidateRefreshReportContracts.validate_timeline_publication_context/3
+    )
+  end
+
+  def validate_operational_readiness_evidence(issues, path, evidence) do
+    OrbitalDynamics.Schema.OperationalReadinessEvidenceContracts.validate(
+      issues,
+      path,
+      evidence,
+      &validate_operational_readiness_resource_context/3,
+      &OrbitalDynamics.Schema.CandidateRefreshReportContracts.validate_timeline_publication_context/3
+    )
+  end
+
+  def validate_operational_quality_gate_summary(issues, path, summary) do
+    OrbitalDynamics.Schema.OperationalQualityGateSummaryContracts.validate_summary(
+      issues,
+      path,
+      summary,
+      quality_gate_summary_model_limits(),
+      &validate_quality_gate_row/3
+    )
+  end
+
+  def validate_operational_quality_gate_unavailable_resource_summary(issues, path, summary) do
+    OrbitalDynamics.Schema.OperationalQualityGateUnavailableResourceSummaryContracts.validate_summary(
+      issues,
+      path,
+      summary,
+      quality_gate_unavailable_resource_summary_model_limits()
+    )
+  end
+
+  def validate_operational_quality_gate_operator_training_summary(issues, path, summary) do
+    OrbitalDynamics.Schema.OperationalQualityGateOperatorTrainingSummaryContracts.validate_summary(
+      issues,
+      path,
+      summary,
+      quality_gate_operator_training_summary_model_limits()
+    )
+  end
+
+  def validate_operational_quality_gate_schema_validation_summary(issues, path, summary) do
+    OrbitalDynamics.Schema.OperationalQualityGateSchemaValidationSummaryContracts.validate_summary(
+      issues,
+      path,
+      summary,
+      quality_gate_schema_validation_summary_model_limits()
+    )
+  end
+
+  def validate_operational_quality_gate_import_readiness_summary(issues, path, summary) do
+    OrbitalDynamics.Schema.OperationalQualityGateImportReadinessSummaryContracts.validate_summary(
+      issues,
+      path,
+      summary,
+      quality_gate_import_readiness_summary_model_limits(),
+      &OrbitalDynamics.Schema.CandidateRefreshReportContracts.validate_timeline_publication_context/3
+    )
+  end
+
+  def validate_quality_gate_report(issues, path, report) do
+    OrbitalDynamics.Schema.QualityGateReportContracts.validate_report(
+      issues,
+      path,
+      report,
+      quality_gate_report_model_limits(),
+      &validate_quality_gate_row/3
+    )
+  end
+
+  def validate_quality_gate_row(issues, path, row) do
+    OrbitalDynamics.Schema.QualityGateRowContracts.validate(
+      issues,
+      path,
+      row,
+      &OrbitalDynamics.Schema.OperationalReadinessHandoffContracts.validate_gate_matches_source/3,
+      &OrbitalDynamics.Schema.OperationalReadinessHandoffContracts.validate_report_matches_source/3,
+      &OrbitalDynamics.Schema.CandidateRefreshReportContracts.validate_timeline_publication_context/3
+    )
+  end
+
+  def validate_operational_readiness_resource_context(issues, path, row) do
+    OrbitalDynamics.Schema.OperationalReadinessContextContracts.validate_resource_context(
+      issues,
+      path,
+      row
+    )
+  end
+
+  def validate_operational_readiness_cadence_import_context(issues, path, row) do
+    OrbitalDynamics.Schema.OperationalReadinessContextContracts.validate_cadence_import_context(
+      issues,
+      path,
+      row
+    )
+  end
+end
