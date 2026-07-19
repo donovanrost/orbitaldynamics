@@ -9,7 +9,7 @@ Current slice:
 StationCalendar availability and capacity normalization extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed in `8cf68232`.
 
 Selected boundary:
 Extract the availability/alias contract, capacity fraction and percent
@@ -34,16 +34,30 @@ Selection evidence:
   remain unchanged.
 
 Verification:
-Pending.
+- Strict test-environment compile passed with warnings as errors across 3,920
+  files.
+- Focused StationCalendar coverage passed: 42 tests.
+- Adjacent station-calendar operator-review coverage passed: 3 tests.
+- Exact public old/new comparison against selection commit `6c271bee` passed
+  for capability metadata, ground-network conversion, contact overlay, and
+  report outputs across ten availability/capacity shapes plus identical errors
+  for three invalid fraction/availability cases.
+- `mix xref callers` reports only the StationCalendar facade as a runtime
+  caller of the extracted availability owner.
+- Static ownership checks confirm availability aliases, numeric/status
+  normalization, capacity interpretation, and range validation live in the
+  dedicated owner while matching and artifact responsibilities remain in the
+  facade.
+- `git diff --check` passed.
 
 Behavior/schema changes:
-None intended. This is a facade-preserving production ownership extraction.
+None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-LinkCapacity contact-feedback aggregation extraction, selected in `8fb99b99`
-and implemented in `cc37865f`.
-`link_capacity.ex` moved from 3,656 to 3,520 lines; the dedicated
-contact-feedback owner is 166 lines.
+StationCalendar availability and capacity normalization extraction, selected
+in `6c271bee` and implemented in `8cf68232`.
+`station_calendar.ex` moved from 3,655 to 3,487 lines; the dedicated
+availability owner is 205 lines.
 
 Next candidate:
 Re-rank the live largest-module set and select the next cohesive ownership
