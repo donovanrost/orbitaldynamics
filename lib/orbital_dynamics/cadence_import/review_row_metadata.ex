@@ -9,6 +9,12 @@ defmodule OrbitalDynamics.CadenceImport.ReviewRowMetadata do
     |> maybe_put_queue("source_review_queue_key", source_row["review_queue_key"])
   end
 
+  def put_run_input_sources(row, %{"run_input_sources" => sources})
+      when is_map(sources) and map_size(sources) > 0,
+      do: Map.put(row, "run_input_sources", sources)
+
+  def put_run_input_sources(row, _source_row), do: row
+
   def activity_context(row) do
     row["import_activity_context"] ||
       row["activity_context"] ||

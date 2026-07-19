@@ -2151,11 +2151,8 @@ defmodule OrbitalDynamics.CadenceImport do
 
   defp review_summary_context(package), do: ReviewSummaryContext.build(package)
 
-  defp put_run_input_sources(row, %{"run_input_sources" => sources})
-       when is_map(sources) and map_size(sources) > 0,
-       do: Map.put(row, "run_input_sources", sources)
-
-  defp put_run_input_sources(row, _source_row), do: row
+  defp put_run_input_sources(row, source_row),
+    do: ReviewRowMetadata.put_run_input_sources(row, source_row)
 
   defp source_review_action(row), do: ReviewRowMetadata.action(row)
 
