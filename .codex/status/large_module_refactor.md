@@ -9,7 +9,7 @@ Current slice:
 CadenceImport V3 strategy artifact orchestration extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and published.
 
 Selected boundary:
 Extract the V3 strategy artifact constructor orchestration into
@@ -28,17 +28,29 @@ Selection evidence:
   review-package imports remain outside the boundary.
 
 Verification:
-Pending: focused strategy baselines, exact old/new constructor equivalence
-proof, strict compile, all combined CadenceImport tests, schema contracts,
-static single ownership, runtime xref, and bounded review.
+- Strict test compile passed with 3,840 files and warnings as errors.
+- Two focused strategy tests passed with 70 excluded.
+- All combined CadenceImport tests passed: 96 tests.
+- CadenceImport schema contracts passed: 4 tests.
+- An executable before/after proof matched eight complete manifests across
+  empty, populated, atom-keyed, embedded-package, and explicit-ID inputs.
+- Formatting and diff checks passed, and no temporary proof files remain.
+- Static ownership checks confirmed the public facade entry point delegates to
+  one orchestration owner and the three stale StrategyReview facade seams were
+  retired.
+- Runtime xref confirmed `cadence_import.ex` is the direct consumer of
+  `strategy_artifact_import.ex`.
+- Bounded local review found no branch ordering, review ordering, embedded
+  package, feedback context, provenance, source-ID, public API, row, or schema
+  changes.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-CadenceImport campaign review-package import extraction, selected in
-`072075ce` and implemented in `e761b39b`. `cadence_import.ex` moved from 2,193
-to 2,170 lines; the extracted owner is 46 lines.
+CadenceImport V3 strategy artifact orchestration extraction, selected in
+`c7e06ba2` and implemented in `7364935c`. `cadence_import.ex` moved from 2,170
+to 2,122 lines; the extracted owner is 72 lines.
 
 Next candidate:
 Re-inventory V1 campaign construction or manifest routing after V3 strategy
