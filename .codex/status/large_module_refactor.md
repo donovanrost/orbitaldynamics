@@ -9,7 +9,7 @@ Current slice:
 LinkCapacity station-capacity evidence extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Extract station-capacity fraction/percent path catalogs, capability metadata,
@@ -36,21 +36,50 @@ Selection evidence:
   output remain unchanged.
 
 Verification:
-Pending implementation.
+- Focused baseline before implementation:
+  `test/orbital_dynamics/communications/link_capacity_test.exs` passed 44 tests.
+- Strict compilation after implementation:
+  `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 mix compile --force --warnings-as-errors`
+  compiled 3,943 files successfully.
+- Focused regression:
+  `test/orbital_dynamics/communications/link_capacity_test.exs` passed 44 tests.
+- Adjacent regressions:
+  `test/orbital_dynamics/operator_review/link_capacity_test.exs` passed 8 tests,
+  `test/orbital_dynamics/validation/link_capacity_fixture_test.exs` passed
+  3 tests, and
+  `test/orbital_dynamics/campaign_planner/repair_link_capacity_requirements_test.exs`
+  passed 3 tests.
+- Exact old/new comparison against selection commit `df538ba1` exposed the
+  selected private resolver and compared eleven contact/source states plus the
+  public capacity capability catalog; all 12 outputs matched exactly.
+- The exact inputs covered missing evidence, direct fraction/percent values,
+  numeric strings, every nested model family, ordered direct precedence,
+  unique duplicate source values, ambiguous source values, invalid direct
+  values, source fallback, percent conversion, and default fraction.
+- `git diff --check` passed.
+- `mix xref callers
+  OrbitalDynamics.Communications.LinkCapacity.StationCapacity` reports only
+  the LinkCapacity facade as a runtime caller; compile-connected xref reports
+  no unexpected coupling.
+- Static review confirmed the owner exposes the path catalogs, metadata,
+  assumptions, and `value/1`; contact validation, throughput/completion
+  derivation, availability severity, report/summary assembly, approval policy,
+  and relay data paths remain outside the boundary.
 
 Behavior/schema changes:
-None planned. Existing station-capacity precedence and normalization,
-throughput behavior, capability metadata, schemas, and deterministic output
-will be preserved.
+None. Existing station-capacity precedence and normalization, throughput
+behavior, capability metadata, schemas, and deterministic output are
+preserved.
 
 Last completed slice:
-Manifest ground-network input extraction, selected in `fe2a7e97` and
-implemented in `f99a8866`.
-`study/manifest.ex` moved from 3,108 to 3,000 lines; the dedicated
-ground-network input owner is 117 lines.
+LinkCapacity station-capacity evidence extraction, selected in `df538ba1` and
+implemented in `638f1592`.
+`communications/link_capacity.ex` moved from 3,113 to 3,016 lines; the
+dedicated station-capacity owner is 121 lines.
 
 Next candidate:
-Implement and verify the selected station-capacity evidence extraction.
+Re-rank the live largest-module set and select the next cohesive ownership
+boundary.
 
 Blocked:
 No.
