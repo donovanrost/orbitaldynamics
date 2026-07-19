@@ -109,6 +109,7 @@ defmodule OrbitalDynamics.TimelineFeedback do
     RealizedStatus,
     StationCalendarContext,
     SuccessFactor,
+    ThermalContext,
     Throughput
   }
 
@@ -1723,97 +1724,7 @@ defmodule OrbitalDynamics.TimelineFeedback do
     |> compact_map()
   end
 
-  defp thermal_context(activity) do
-    planned_temperature_c = planned_temperature_c(activity)
-    actual_temperature_c = actual_temperature_c(activity)
-
-    observed_temperature_c =
-      actual_temperature_c || planned_temperature_c || temperature_c(activity)
-
-    %{
-      "thermal_zone_id" =>
-        first_identifier(activity, [
-          "thermal_zone_id",
-          "thermal_component_id",
-          "thermal_node_id"
-        ]),
-      "temperature_c" => temperature_c(activity),
-      "planned_temperature_c" => planned_temperature_c,
-      "actual_temperature_c" => actual_temperature_c,
-      "temperature_delta_c" => delta(actual_temperature_c, planned_temperature_c),
-      "min_operating_temperature_c" => min_operating_temperature_c(activity),
-      "max_operating_temperature_c" => max_operating_temperature_c(activity),
-      "thermal_margin_c" => thermal_margin_c(activity, observed_temperature_c),
-      "thermal_status" => first_string(activity, ["thermal_status", "temperature_status"]),
-      "thermal_model" => first_string(activity, ["thermal_model", "temperature_model"]),
-      "thermal_source" => first_string(activity, ["thermal_source", "temperature_source"]),
-      "thermal_confidence" =>
-        first_number(activity, ["thermal_confidence", "temperature_confidence"])
-    }
-    |> compact_map()
-  end
-
-  defp temperature_c(activity) do
-    first_number(activity, ["temperature_c", "temp_c"])
-  end
-
-  defp planned_temperature_c(activity) do
-    first_number(activity, [
-      "planned_temperature_c",
-      "planned_temp_c",
-      "predicted_temperature_c",
-      "estimated_temperature_c"
-    ])
-  end
-
-  defp actual_temperature_c(activity) do
-    first_number(activity, [
-      "actual_temperature_c",
-      "actual_temp_c",
-      "measured_temperature_c",
-      "measured_temp_c"
-    ])
-  end
-
-  defp min_operating_temperature_c(activity) do
-    first_number(activity, [
-      "min_operating_temperature_c",
-      "minimum_operating_temperature_c",
-      "min_temperature_c"
-    ])
-  end
-
-  defp max_operating_temperature_c(activity) do
-    first_number(activity, [
-      "max_operating_temperature_c",
-      "maximum_operating_temperature_c",
-      "max_temperature_c"
-    ])
-  end
-
-  defp thermal_margin_c(activity, observed_temperature_c) do
-    first_number(activity, ["thermal_margin_c", "temperature_margin_c"]) ||
-      derived_thermal_margin_c(
-        observed_temperature_c,
-        min_operating_temperature_c(activity),
-        max_operating_temperature_c(activity)
-      )
-  end
-
-  defp derived_thermal_margin_c(temperature_c, min_c, max_c)
-       when is_number(temperature_c) and is_number(min_c) and is_number(max_c) do
-    min(temperature_c - min_c, max_c - temperature_c)
-  end
-
-  defp derived_thermal_margin_c(temperature_c, nil, max_c)
-       when is_number(temperature_c) and is_number(max_c),
-       do: max_c - temperature_c
-
-  defp derived_thermal_margin_c(temperature_c, min_c, nil)
-       when is_number(temperature_c) and is_number(min_c),
-       do: temperature_c - min_c
-
-  defp derived_thermal_margin_c(_temperature_c, _min_c, _max_c), do: nil
+  defp thermal_context(activity), do: ThermalContext.build(activity)
 
   defp link_context(activity), do: LinkContext.build(activity)
 
@@ -2918,9 +2829,6 @@ defmodule OrbitalDynamics.TimelineFeedback do
   end
 
   defp source_activity_value(_source_activity, _primary_key, _fallback_key), do: nil
-
-  defp delta(actual, planned) when is_number(actual) and is_number(planned), do: actual - planned
-  defp delta(_actual, _planned), do: nil
 
   defp feedback_kind(planned, realized) do
     value(planned, "operational_kind") ||
