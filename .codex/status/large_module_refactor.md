@@ -9,7 +9,7 @@ Current slice:
 ContactAllocation throughput evidence extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `5232aaf7`.
 
 Selected boundary:
 Extract explicit and data-rate-derived actual throughput, estimated throughput,
@@ -33,20 +33,34 @@ Selection evidence:
   remain unchanged.
 
 Verification:
-Pending.
+- Strict test-environment compile passed with warnings as errors across 3,912
+  files.
+- Focused ContactAllocation coverage passed: 70 tests.
+- Adjacent operator-review, schema-contract, and validation-fixture coverage
+  passed: 24 tests.
+- Exact public old/new comparison against selection commit `7873709f` passed
+  for eleven allocations covering explicit throughput precedence, MB/s and
+  Mbps derivation, duration aliases and fallback, nested evidence, and
+  downlink-completion fields.
+- `mix xref callers` reports only the ContactAllocation facade as a runtime
+  caller of the extracted throughput owner.
+- Static ownership checks confirm throughput resolution, rate derivation,
+  duration resolution, and downlink-completion evidence live in the dedicated
+  owner while validation and allocation remain in the facade.
+- `git diff --check` passed.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-StationCalendar provider-counteroffer review summary extraction, selected in
-`29995109` and implemented in `bea811b2`.
-`station_calendar.ex` moved from 3,804 to 3,728 lines; the dedicated review
-owner is 157 lines.
+ContactAllocation throughput evidence extraction, selected in `7873709f` and
+implemented in `5232aaf7`.
+`contact_allocation.ex` moved from 3,782 to 3,593 lines; the dedicated
+throughput owner is 220 lines.
 
 Next candidate:
-Implement and verify the selected ContactAllocation throughput evidence
-extraction.
+Re-rank the live largest-module set and select the next cohesive ownership
+boundary.
 
 Blocked:
 No.
