@@ -6,44 +6,31 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-CadenceImport resource-projection import extraction.
+CadenceImport contact-planning import extraction.
 
 Status:
-Completed and published.
+Selected; implementation has not started.
 
 Selected boundary:
-Extract the resource-projection report and flow-summary constructor
-implementations into
-`OrbitalDynamics.CadenceImport.ResourceProjectionImport`. Preserve both public
-facade entry points and pass the existing review-package import seam as a
-callback.
+Extract the link-capacity, contact-allocation report, capacity-pack summary,
+reservation-conflict summary, and standalone contact-intent constructor
+implementations into `OrbitalDynamics.CadenceImport.ContactPlanningImport`.
+Preserve all five public facade entry points and pass the existing
+review-package import seam as a callback.
 
 Selection evidence:
-- `cadence_import.ex` is now 2,371 lines.
-- The selected contiguous pair spans about 40 lines and owns projection
-  normalization, source-identity, OperatorReview conversion, and source
-  contracts.
-- The pair has one responsibility: turn resource-projection report and flow
-  evidence into review-package imports while preserving their distinct nested
-  assumptions-source precedence.
+- `cadence_import.ex` is now 2,352 lines.
+- The selected contiguous family spans about 80 lines and owns contact
+  capacity, allocation, conflict, and intent normalization and routing.
+- The family has one responsibility: turn contact-planning evidence into
+  review-package imports while preserving the intent activity-ID fallback.
 - Public API docs, row construction, manifest assembly, schemas, and adjacent
-  contact/candidate imports remain outside the boundary.
+  station/resource-projection imports remain outside the boundary.
 
 Verification:
-- Strict test compile passed with 3,833 files and warnings as errors.
-- Two focused resource-projection tests passed with 70 excluded.
-- All combined CadenceImport tests passed: 96 tests.
-- CadenceImport schema contracts passed: 4 tests.
-- An executable before/after proof matched 12 cases across both constructors,
-  three key/source-ID shapes, and inferred versus explicit IDs.
-- Formatting and diff checks passed, and no temporary proof files remain.
-- Static ownership checks confirmed both public facade entry points delegate to
-  one implementation owner.
-- Runtime xref confirmed `cadence_import.ex` is the direct consumer of
-  `resource_projection_import.ex`.
-- Bounded local review found no normalization, source-ID precedence or
-  fallback, OperatorReview conversion, source-contract, public API, row,
-  ordering, or schema changes.
+Pending: focused contact-planning baselines, exact old/new constructor
+equivalence proof, strict compile, all combined CadenceImport tests, schema
+contracts, static single ownership, runtime xref, and bounded review.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
@@ -54,8 +41,8 @@ and implemented in `82f89a5d`. `cadence_import.ex` moved from 2,371 to 2,352
 lines; the extracted owner is 45 lines.
 
 Next candidate:
-Re-inventory remaining public routing after resource-projection imports have
-one production owner.
+Re-inventory remaining public routing after contact-planning imports have one
+production owner.
 
 Blocked:
 No.
