@@ -9,7 +9,7 @@ Current slice:
 StationCalendar provider-counteroffer report projection extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `e0e40d24`.
 
 Selected boundary:
 Extract canonical provider-counteroffer report construction, row projection,
@@ -34,20 +34,34 @@ Selection evidence:
   deterministic ordering remain unchanged.
 
 Verification:
-Pending.
+- Strict test-environment compile passed with warnings as errors across 3,908
+  files.
+- Focused StationCalendar coverage passed: 42 tests.
+- Adjacent operator-review, schema-contract, and wrapped Cadence-import
+  counteroffer coverage passed: 5 tests.
+- Exact public old/new comparison against selection commit `4aadbd79` passed
+  for eight artifacts covering capabilities, provider normalization, contact
+  overlay, canonical report projection, review, import readiness, and plan
+  impact.
+- `mix xref callers` reports only the StationCalendar facade as a runtime
+  caller of the extracted report owner.
+- Static ownership checks confirm report construction, row identity,
+  reviewability, source preservation, and report-row projection live in the
+  dedicated owner while downstream summaries remain in the facade.
+- `git diff --check` passed.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-StationCalendar provider-counteroffer normalization extraction, selected in
-`a0dbc00c` and implemented in `46e8ddb5`.
-`station_calendar.ex` moved from 4,012 to 3,924 lines; the dedicated owner is
-195 lines.
+StationCalendar provider-counteroffer report projection extraction, selected
+in `4aadbd79` and implemented in `e0e40d24`.
+`station_calendar.ex` moved from 3,924 to 3,804 lines; the dedicated report
+owner is 217 lines.
 
 Next candidate:
-Implement and verify the selected StationCalendar provider-counteroffer report
-projection extraction.
+Re-rank the live largest-module set and select the next cohesive ownership
+boundary.
 
 Blocked:
 No.
