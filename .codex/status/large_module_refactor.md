@@ -9,7 +9,7 @@ Current slice:
 Schema station-reservation validation extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and published.
 
 Selected boundary:
 Extract optional station-calendar report validation plus station-reservation
@@ -28,17 +28,24 @@ Selection evidence:
   and all public `Schema` APIs remain outside.
 
 Verification:
-Pending: focused station-provider baselines, exact old/new fixture validation
-reports, strict compile, broader Schema contract tests, schema export checks,
-static single ownership, runtime xref, and bounded review.
+- Strict compile passed across 3,862 files with warnings as errors.
+- Focused station-provider contracts passed: 6 tests.
+- Full Schema suite passed: 175 tests.
+- JSON Schema export contracts passed: 15 tests.
+- Exact old/new validation reports matched for 8 valid and mutated
+  station-calendar/reservation fixtures.
+- Static inspection confirms the facade retains only its arity-2/arity-3
+  callback seams; runtime xref reports `Schema` as the sole caller of the new
+  owner.
+- `git diff --check` and bounded ownership review passed.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-Schema contact-allocation validation extraction, selected in `c862c76e` and
-implemented in `90c1d4c3`. `schema.ex` moved from 7,040 to 7,037 lines; the
-dedicated owner is 118 lines.
+Schema station-reservation validation extraction, selected in `24310979` and
+implemented in `de73642a`. `schema.ex` moved from 7,037 to 7,023 lines; the
+dedicated owner is 48 lines.
 
 Next candidate:
 Re-inventory remaining Schema family-validation clusters after station
