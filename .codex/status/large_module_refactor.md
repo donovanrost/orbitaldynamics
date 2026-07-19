@@ -9,7 +9,7 @@ Current slice:
 MissionPlan.Activity collection input extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `9defcde8`.
 
 Selected boundary:
 Extract scalar-list, non-negative-number-list, map-list, and optional-map
@@ -31,18 +31,29 @@ Selection evidence:
   parsing remain together in the facade.
 
 Verification:
-Pending.
+- Strict warnings-as-errors compile passed across 3,883 files.
+- Focused MissionPlan.Activity coverage passed: 31 tests.
+- Adjacent mission-plan, activity-fixture, and timeline-activity schema
+  coverage passed: 44 tests.
+- Exact old/new public map construction and error comparison against
+  `b9673591` passed for 11 valid scalar-list, numeric-list, map-list,
+  optional-map, and nil cases plus 10 invalid value/shape cases.
+- Runtime xref found the new owner referenced only by the Activity facade;
+  static single-ownership review and `git diff --check` passed.
+- `mission_plan/activity.ex` moved from 4,672 to 4,577 lines; the dedicated
+  owner is 126 lines.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-MissionPlan.Activity scalar input extraction, selected in `0c45d036` and
-implemented in `02dc170e`. `mission_plan/activity.ex` moved from 4,770 to 4,672
-lines; the dedicated owner is 138 lines.
+MissionPlan.Activity collection input extraction, selected in `b9673591` and
+implemented in `9defcde8`. `mission_plan/activity.ex` moved from 4,672 to 4,577
+lines; the dedicated owner is 126 lines.
 
 Next candidate:
-Implement and verify the selected collection input extraction.
+Re-inventory remaining MissionPlan.Activity identifier/dependency normalization
+and switch focus if no facade-reducing boundary remains.
 
 Blocked:
 No.
