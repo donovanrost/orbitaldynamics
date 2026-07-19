@@ -9,7 +9,7 @@ Current slice:
 StationCalendar station matching extraction.
 
 Status:
-Selected; strict focused baseline pending.
+Completed and pushed.
 
 Selected boundary:
 Extract contact normalization, contact-row/direction classification,
@@ -39,22 +39,40 @@ Selection evidence:
   exact errors, and capability metadata must remain unchanged.
 
 Implementation:
-Pending.
+- Selection was recorded and pushed in `bd2cead6`.
+- Implementation was committed and pushed in `7e6add9c`.
+- `communications/station_calendar.ex` moved from 2,268 to 2,068 lines.
+- `OrbitalDynamics.Communications.StationCalendar.StationMatching` is a
+  237-line owner reached through private facade delegates.
 
 Verification:
-Pending.
+- Strict warning-clean compilation passed across 3,978 files.
+- The focused StationCalendar file and five adjacent campaign, repair,
+  candidate-refresh, operator-review, and schema consumers passed together:
+  69 tests.
+- Exact old/new public overlay/capability parity passed for 11 cases covering
+  empty input, contact type and provider direction aliases, strict-open window
+  boundaries, available/counteroffer inclusion, precedence, same/different
+  capacity and direction ambiguity, atom-key/station-ID normalization, invalid
+  input errors, and capability metadata.
+- `mix xref callers` reports only the StationCalendar facade.
+- The facade-owned selector, ambiguity, contact normalization, direction/
+  window matching, precedence helpers, and direction-policy attributes are
+  absent apart from thin delegates, formatting and `git diff --check` passed,
+  and the final diff is ownership-only.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-RecommendationRiskContext resource-projection context extraction, selected in
-`d5f57df7` and implemented in `c1465974`.
-`recommendation_risk_context.ex` moved from 2,274 to 2,142 lines; the dedicated
-resource-projection context owner is 168 lines.
+StationCalendar station matching extraction, selected in `bd2cead6` and
+implemented in `7e6add9c`.
+`communications/station_calendar.ex` moved from 2,268 to 2,068 lines; the
+dedicated station-matching owner is 237 lines.
 
 Next candidate:
-Implement and verify the selected StationCalendar station-matching boundary.
+Re-rank the live checkout and select the next cohesive facade-preserving
+boundary.
 
 Blocked:
 No.
