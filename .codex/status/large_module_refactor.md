@@ -9,7 +9,7 @@ Current slice:
 TimelineFeedback reconciliation station-calendar-evidence extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `9cebb4bf`.
 
 Selected boundary:
 Extract reconciled station availability and capacity, calendar provenance,
@@ -30,20 +30,33 @@ Selection evidence:
 - Existing public report APIs and artifact row shapes remain unchanged.
 
 Verification:
-Pending.
+- Strict test-environment compile passed with warnings as errors across 3,897
+  files.
+- Focused TimelineFeedback coverage passed: 73 tests.
+- Adjacent operator-review, Cadence import, and contact-feedback contract
+  coverage passed: 79 tests.
+- Exact public old/new comparison against selection commit `03b80371` passed
+  for five reports covering matched, mismatched, planned-only, realized-only,
+  and mixed rows with divergent valid station-calendar evidence.
+- `mix xref callers` reports only the TimelineFeedback facade as a runtime
+  caller of the extracted owner.
+- Static ownership checks confirm reconciliation fallback assembly lives in
+  the dedicated owner while station-calendar normalization and operational
+  consumers remain in the facade.
+- `git diff --check` passed.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-TimelineFeedback reconciliation resource-evidence extraction, selected in
-`d44a89d6` and implemented in `8875bd76`.
-`timeline_feedback.ex` moved from 4,220 to 4,180 lines; the dedicated owner is
-69 lines.
+TimelineFeedback reconciliation station-calendar-evidence extraction, selected
+in `03b80371` and implemented in `9cebb4bf`.
+`timeline_feedback.ex` moved from 4,180 to 4,122 lines; the dedicated owner is
+51 lines.
 
 Next candidate:
-Implement and verify the selected TimelineFeedback reconciliation
-station-calendar-evidence extraction.
+Re-rank the live largest-module set and select the next cohesive ownership
+boundary.
 
 Blocked:
 No.
