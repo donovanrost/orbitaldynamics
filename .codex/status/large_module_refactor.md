@@ -9,7 +9,7 @@ Current slice:
 CadenceImport operator-review package import extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and published.
 
 Selected boundary:
 Extract operator-review package normalization, row filtering/ranking/metadata,
@@ -29,17 +29,27 @@ Selection evidence:
   schemas remain outside the boundary.
 
 Verification:
-Pending: focused operator-review package baselines, exact old-AST orchestration
-equivalence proof, strict compile, all combined CadenceImport tests, schema
-contracts, static single ownership, runtime xref, and bounded review.
+- Strict test compile passed with 3,825 files and warnings as errors after
+  retiring four facade-only helper seams made unused by the extraction.
+- Two focused operator-review package tests passed with 70 excluded.
+- All combined CadenceImport tests passed: 96 tests.
+- CadenceImport schema contracts passed: 4 tests.
+- Formatting and diff checks passed, and no temporary proof files remain.
+- Static ownership and bounded source comparison confirmed the same package
+  normalization, filtering, ranking, metadata propagation, provenance/context
+  construction, and manifest-builder sequence behind the public facade.
+- Runtime xref confirmed `cadence_import.ex` is the direct consumer of
+  `review_package_import.ex`.
+- Bounded local review found no option fallback, row selection/rank, metadata,
+  provenance, context, manifest shape, ordering, or schema changes.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-CadenceImport review-row run-input metadata extension, selected in `de39d347`
-and implemented in `840ddfb5`. `cadence_import.ex` moved from 2,819 to 2,816
-lines; the shared metadata owner grew from 21 to 27 lines.
+CadenceImport operator-review package import extraction, selected in `bbf5093e`
+and implemented in `a2013e87`. `cadence_import.ex` moved from 2,816 to 2,777
+lines; the extracted owner is 58 lines.
 
 Next candidate:
 Return to remaining public routing or row dispatch after operator-review package
