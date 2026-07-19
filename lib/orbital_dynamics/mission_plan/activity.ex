@@ -12,6 +12,7 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
   alias OrbitalDynamics.{Frame, Vector3}
 
   alias OrbitalDynamics.MissionPlan.Activity.{
+    CollectionInput,
     ExecutionUncertaintyInput,
     LifecycleTransition,
     PreconditionSummary,
@@ -4218,20 +4219,14 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
   defp optional_id_list!(values, field, description),
     do: id_list_input!(values, field, description)
 
-  defp optional_scalar_list!(nil, _field, _description), do: nil
-
   defp optional_scalar_list!(values, field, description),
-    do: scalar_list_input!(values, field, description)
-
-  defp optional_non_negative_number_list!(nil, _field), do: nil
+    do: CollectionInput.optional_scalar_list!(values, field, description)
 
   defp optional_non_negative_number_list!(values, field),
-    do: non_negative_number_list_input!(values, field)
-
-  defp optional_map_list!(nil, _field, _description), do: nil
+    do: CollectionInput.optional_non_negative_number_list!(values, field)
 
   defp optional_map_list!(values, field, description),
-    do: map_list_input!(values, field, description)
+    do: CollectionInput.optional_map_list!(values, field, description)
 
   defp optional_identifier!(nil), do: nil
 
@@ -4253,15 +4248,8 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
     end
   end
 
-  defp optional_map!(nil), do: nil
-  defp optional_map!(value) when is_map(value), do: value
-  defp optional_map!(_value), do: raise(ArgumentError, "map fields must be maps")
-
-  defp optional_map!(nil, _field), do: nil
-  defp optional_map!(value, _field) when is_map(value), do: value
-
-  defp optional_map!(_value, field),
-    do: raise(ArgumentError, "#{field} must be nil or a map")
+  defp optional_map!(value), do: CollectionInput.optional_map!(value)
+  defp optional_map!(value, field), do: CollectionInput.optional_map!(value, field)
 
   defp optional_cadence_import!(nil), do: nil
 
@@ -4371,11 +4359,16 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
 
   defp valid_dependencies?(_dependencies), do: false
 
-  defp valid_scalar_list?(values) when is_list(values) do
-    match?({:ok, _values}, scalar_list_values(values))
-  end
+  defp valid_scalar_list?(values), do: CollectionInput.valid_scalar_list?(values)
 
-  defp valid_scalar_list?(_values), do: false
+  defp scalar_list_input!(values, field, description),
+    do: CollectionInput.scalar_list_input!(values, field, description)
+
+  defp non_negative_number_list_input!(values, field),
+    do: CollectionInput.non_negative_number_list_input!(values, field)
+
+  defp map_list_input!(values, field, description),
+    do: CollectionInput.map_list_input!(values, field, description)
 
   defp dependencies_input!(values, field, description) do
     case dependency_values(values) do
@@ -4420,94 +4413,6 @@ defmodule OrbitalDynamics.MissionPlan.Activity do
   end
 
   defp dependency_activity_id_values(value), do: id_list_value(value)
-
-  defp scalar_list_input!(values, field, description) do
-    case scalar_list_values(values) do
-      {:ok, values} -> values
-      :error -> raise ArgumentError, "#{field} must be a list of #{description}"
-    end
-  end
-
-  defp scalar_list_values(values) when is_list(values) do
-    Enum.reduce_while(values, {:ok, []}, fn value, {:ok, scalars} ->
-      case scalar_list_values(value) do
-        {:ok, value_scalars} -> {:cont, {:ok, scalars ++ value_scalars}}
-        :error -> {:halt, :error}
-      end
-    end)
-  end
-
-  defp scalar_list_values(value) do
-    case scalar_list_value(value) do
-      [] -> :error
-      values -> {:ok, values}
-    end
-  end
-
-  defp scalar_list_value(value) when is_atom(value) and not is_nil(value),
-    do: [value]
-
-  defp scalar_list_value(value) when is_binary(value) do
-    values =
-      value
-      |> String.split(",", trim: false)
-      |> Enum.map(&String.trim/1)
-
-    if Enum.all?(values, &(&1 != "")), do: values, else: []
-  end
-
-  defp scalar_list_value(_value), do: []
-
-  defp non_negative_number_list_input!(values, field) do
-    case non_negative_number_list_values(values) do
-      {:ok, numbers} -> numbers
-      :error -> raise ArgumentError, "#{field} must be a list of non-negative numbers"
-    end
-  end
-
-  defp non_negative_number_list_values(values) when is_list(values) do
-    Enum.reduce_while(values, {:ok, []}, fn value, {:ok, numbers} ->
-      case non_negative_number_list_values(value) do
-        {:ok, value_numbers} -> {:cont, {:ok, numbers ++ value_numbers}}
-        :error -> {:halt, :error}
-      end
-    end)
-  end
-
-  defp non_negative_number_list_values(value) when is_binary(value) do
-    values =
-      value
-      |> String.split(",", trim: false)
-      |> Enum.map(&String.trim/1)
-
-    numbers = Enum.map(values, &numeric_or_nil/1)
-
-    if values != [] and Enum.all?(numbers, &(is_number(&1) and &1 >= 0.0)) do
-      {:ok, numbers}
-    else
-      :error
-    end
-  end
-
-  defp non_negative_number_list_values(value) do
-    case numeric_or_nil(value) do
-      number when is_number(number) and number >= 0.0 -> {:ok, [number]}
-      _other -> :error
-    end
-  end
-
-  defp map_list_input!(values, field, description) do
-    case map_list_values(values) do
-      {:ok, maps} -> maps
-      :error -> raise ArgumentError, "#{field} must be a list of #{description}"
-    end
-  end
-
-  defp map_list_values(values) when is_list(values) do
-    if Enum.all?(values, &is_map/1), do: {:ok, values}, else: :error
-  end
-
-  defp map_list_values(_values), do: :error
 
   defp id_list_input!(values, field, description) do
     case id_list_values(values) do
