@@ -9,7 +9,7 @@ Current slice:
 RecommendationRiskContext execution-success feedback extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Extract command/maneuver execution-success risk selection, context projection,
@@ -34,24 +34,38 @@ Selection evidence:
   map behavior, exact output keys, and value shapes must remain unchanged.
 
 Implementation:
-- Pending.
+- Selection was recorded and pushed in `a4a79ea4`.
+- Implementation was committed and pushed in `d0e3a58c`.
+- `recommendation_risk_context.ex` moved from 2,417 to 2,274 lines.
+- `OrbitalDynamics.RecommendationRiskContext.ExecutionSuccessFeedback` is a
+  180-line owner reached through the two public facade delegates.
 
 Verification:
-- Pending focused baseline, strict compilation, exact old/new public parity,
-  focused and adjacent tests, static ownership checks, and xref review.
+- Strict warning-clean compilation passed across 3,971 files.
+- Seven adjacent strategy and comparison consumers passed together: 45 tests.
+- Exact old/new public parity passed for 9 context/key cases covering both risk
+  types, every projected field, atom/string keys and values, scalar/list
+  flattening, duplicates, nils, predicate precedence, empty input, invalid
+  input, and advertised key ordering.
+- `mix xref callers` reports only the RecommendationRiskContext facade.
+- The removed key attribute, context projection, and risk predicate are absent
+  from the facade apart from public delegates, formatting and
+  `git diff --check` passed, and the final diff is ownership-only.
+- The adjacent pressure-events test emits two pre-existing signed-zero pattern
+  warnings; production strict compilation is warning-clean.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-ResourceProjection activity evidence validation extraction, selected in
-`d39bd372` and implemented in `66c5aca8`.
-`resource_projection.ex` moved from 2,418 to 2,197 lines; the dedicated
-activity-input validation owner is 253 lines.
+RecommendationRiskContext execution-success feedback extraction, selected in
+`a4a79ea4` and implemented in `d0e3a58c`.
+`recommendation_risk_context.ex` moved from 2,417 to 2,274 lines; the dedicated
+execution-success feedback owner is 180 lines.
 
 Next candidate:
-Complete and verify the selected execution-success feedback context
-extraction.
+Re-rank the live checkout and select the next cohesive facade-preserving
+boundary.
 
 Blocked:
 No.
