@@ -14,23 +14,6 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
     ["required_downlink_mb"],
     ["required_downlink_mb_by_ground_station"]
   ]
-  @contact_required_downlink_paths [
-    ["required_downlink_mb"],
-    ["metadata", "required_downlink_mb"],
-    ["throughput_model", "required_downlink_mb"]
-  ]
-  @downlink_completion_source_paths [
-    ["downlink_completion_source"],
-    ["metadata", "downlink_completion_source"],
-    ["throughput_model", "downlink_completion_source"],
-    ["activity_context", "downlink_completion_source"]
-  ]
-  @downlink_completion_sources_paths [
-    ["downlink_completion_sources"],
-    ["metadata", "downlink_completion_sources"],
-    ["throughput_model", "downlink_completion_sources"],
-    ["activity_context", "downlink_completion_sources"]
-  ]
   @actual_throughput_fields ~w(
     actual_throughput_mb
     actual_downlink_mb
@@ -85,6 +68,7 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
   alias OrbitalDynamics.Communications.LinkCapacity.ContactFeedback
   alias OrbitalDynamics.Communications.LinkCapacity.ContactIdentity
   alias OrbitalDynamics.Communications.LinkCapacity.ContactNormalization
+  alias OrbitalDynamics.Communications.LinkCapacity.DownlinkRequirement
   alias OrbitalDynamics.Communications.LinkCapacity.RelayDataPath
   alias OrbitalDynamics.Communications.LinkCapacity.StationCapacity
   alias OrbitalDynamics.Communications.LinkCapacity.StationAvailability
@@ -109,9 +93,9 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
       source_station_capacity_percent_paths: StationCapacity.percent_paths(),
       source_station_capacity_value_paths: StationCapacity.value_path_metadata(),
       required_downlink_policy_paths: @required_downlink_policy_paths,
-      contact_required_downlink_paths: @contact_required_downlink_paths,
-      downlink_completion_source_paths: @downlink_completion_source_paths,
-      downlink_completion_sources_paths: @downlink_completion_sources_paths,
+      contact_required_downlink_paths: DownlinkRequirement.contact_paths(),
+      downlink_completion_source_paths: DownlinkRequirement.source_paths(),
+      downlink_completion_sources_paths: DownlinkRequirement.sources_paths(),
       actual_throughput_fields: @actual_throughput_fields,
       actual_throughput_model_paths: @actual_throughput_model_paths,
       actual_data_rate_fields: @actual_data_rate_fields,
@@ -1588,9 +1572,6 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
 
   defp capacity_fraction_value(contact), do: StationCapacity.value(contact)
 
-  defp path_value(value, [field]), do: Map.get(value, field)
-  defp path_value(value, path), do: get_in(value, path)
-
   defp total_estimated_throughput(contacts) do
     contacts
     |> Enum.map(&(estimated_throughput_value(&1) || 0.0))
@@ -2021,250 +2002,53 @@ defmodule OrbitalDynamics.Communications.LinkCapacity do
   defp selection_utilization_status(_capacity_adjusted, _selected_capacity_adjusted),
     do: "fully_selected"
 
-  defp report_required_downlink_mb(policy, contacts) do
-    numeric_value(Map.get(policy, "required_downlink_mb")) ||
-      policy
-      |> Map.get("required_downlink_mb_by_ground_station", %{})
-      |> station_required_downlink_values()
-      |> Map.values()
-      |> Enum.sum()
-      |> positive_or_nil() ||
-      total_required_downlink_mb(contacts)
-  end
+  defp report_required_downlink_mb(policy, contacts),
+    do: DownlinkRequirement.report_required_mb(policy, contacts)
 
-  defp station_required_downlink_mb(ground_station_id, policy, contacts) do
-    policy
-    |> policy_station_required_downlink_values()
-    |> Map.get(ground_station_id) ||
-      total_required_downlink_mb(contacts)
-  end
+  defp station_required_downlink_mb(ground_station_id, policy, contacts),
+    do: DownlinkRequirement.station_required_mb(ground_station_id, policy, contacts)
 
-  defp policy_station_required_downlink_values(policy) do
-    policy
-    |> Map.get("required_downlink_mb_by_ground_station", %{})
-    |> station_required_downlink_values()
-  end
+  defp invalid_policy_required_downlink_station_ids(policy),
+    do: DownlinkRequirement.invalid_policy_station_ids(policy)
 
-  defp station_required_downlink_values(%{} = values) do
-    values
-    |> Enum.map(fn {station_id, value} ->
-      {stable_id_or_nil(station_id), numeric_value(value)}
-    end)
-    |> Enum.reject(fn {station_id, value} -> is_nil(station_id) or is_nil(value) end)
-    |> Map.new()
-  end
+  defp required_downlink_contact_ids(contacts),
+    do: DownlinkRequirement.required_contact_ids(contacts)
 
-  defp station_required_downlink_values(_values), do: %{}
+  defp policy_station_required_downlink_values(policy),
+    do: DownlinkRequirement.policy_station_values(policy)
 
-  defp invalid_policy_required_downlink_station_ids(policy) do
-    policy
-    |> Map.get("required_downlink_mb_by_ground_station", %{})
-    |> invalid_station_required_downlink_ids()
-  end
+  defp downlink_completion_source(policy, contacts),
+    do: DownlinkRequirement.completion_source(policy, contacts)
 
-  defp invalid_station_required_downlink_ids(%{} = values) do
-    values
-    |> Enum.filter(fn {station_id, value} ->
-      is_nil(stable_id_or_nil(station_id)) and positive_number?(numeric_value(value))
-    end)
-    |> Enum.map(fn {station_id, _value} -> policy_station_id_to_string(station_id) end)
-    |> Enum.uniq()
-    |> Enum.sort()
-  end
+  defp downlink_completion_source(ground_station_id, policy, contacts),
+    do: DownlinkRequirement.completion_source(ground_station_id, policy, contacts)
 
-  defp invalid_station_required_downlink_ids(_values), do: []
+  defp downlink_completion_sources(policy, contacts),
+    do: DownlinkRequirement.completion_sources(policy, contacts)
 
-  defp positive_number?(value), do: is_number(value) and value > 0
-
-  defp policy_station_id_to_string(station_id) when is_binary(station_id), do: station_id
-
-  defp policy_station_id_to_string(station_id)
-       when is_atom(station_id) and not is_nil(station_id),
-       do: Atom.to_string(station_id)
-
-  defp policy_station_id_to_string(station_id) when is_integer(station_id),
-    do: Integer.to_string(station_id)
-
-  defp policy_station_id_to_string(station_id) when is_float(station_id),
-    do: Float.to_string(station_id)
-
-  defp policy_station_id_to_string(station_id), do: inspect(station_id)
-
-  defp total_required_downlink_mb(contacts) do
-    contacts
-    |> Enum.map(&contact_required_downlink_mb/1)
-    |> Enum.reject(&is_nil/1)
-    |> Enum.sum()
-    |> positive_or_nil()
-  end
-
-  defp required_downlink_contact_ids(contacts) do
-    contacts
-    |> Enum.filter(fn contact ->
-      case contact_required_downlink_mb(contact) do
-        value when is_number(value) and value > 0.0 -> true
-        _value -> false
-      end
-    end)
-    |> Enum.map(&contact_id/1)
-    |> Enum.sort()
-  end
-
-  defp downlink_completion_source(policy, contacts) do
-    cond do
-      positive_number?(numeric_value(Map.get(policy, "required_downlink_mb"))) ->
-        "link_capacity.policy.required_downlink_mb"
-
-      map_size(policy_station_required_downlink_values(policy)) > 0 ->
-        "link_capacity.policy.required_downlink_mb_by_ground_station"
-
-      total_required_downlink_mb(contacts) ->
-        "link_capacity.contact.required_downlink_mb"
-
-      true ->
-        nil
-    end
-  end
-
-  defp downlink_completion_source(ground_station_id, policy, contacts) do
-    cond do
-      Map.has_key?(policy_station_required_downlink_values(policy), ground_station_id) ->
-        "link_capacity.policy.required_downlink_mb_by_ground_station"
-
-      total_required_downlink_mb(contacts) ->
-        "link_capacity.contact.required_downlink_mb"
-
-      true ->
-        nil
-    end
-  end
-
-  defp downlink_completion_sources(policy, contacts) do
-    cond do
-      positive_number?(numeric_value(Map.get(policy, "required_downlink_mb"))) ->
-        ["link_capacity.policy.required_downlink_mb"]
-
-      policy_station_required_downlink_values(policy) != %{} ->
-        policy
-        |> policy_station_required_downlink_values()
-        |> Map.keys()
-        |> Enum.sort()
-        |> Enum.map(&"link_capacity.policy.required_downlink_mb_by_ground_station:#{&1}")
-
-      true ->
-        contact_downlink_completion_sources(contacts)
-    end
-  end
-
-  defp downlink_completion_sources(ground_station_id, policy, contacts) do
-    if Map.has_key?(policy_station_required_downlink_values(policy), ground_station_id) do
-      ["link_capacity.policy.required_downlink_mb_by_ground_station:#{ground_station_id}"]
-    else
-      contact_downlink_completion_sources(contacts)
-    end
-  end
-
-  defp contact_downlink_completion_sources(contacts) when is_list(contacts) do
-    contacts
-    |> Enum.filter(fn contact ->
-      case contact_required_downlink_mb(contact) do
-        value when is_number(value) and value > 0.0 -> true
-        _value -> false
-      end
-    end)
-    |> Enum.flat_map(&contact_downlink_completion_sources/1)
-    |> Enum.uniq()
-    |> Enum.sort()
-    |> empty_list_to_nil()
-  end
-
-  defp contact_downlink_completion_sources(contact) when is_map(contact) do
-    first_string_list(path_values(contact, @downlink_completion_sources_paths)) ||
-      first_string_list(Enum.map(path_values(contact, @downlink_completion_source_paths), &[&1])) ||
-      ["link_capacity.contact.required_downlink_mb:#{contact_id(contact)}"]
-  end
-
-  defp first_string_list(values) do
-    Enum.find_value(values, fn
-      values when is_list(values) ->
-        values =
-          values
-          |> Enum.map(fn
-            value when is_binary(value) -> value
-            value when is_atom(value) and not is_nil(value) -> Atom.to_string(value)
-            value when is_integer(value) -> Integer.to_string(value)
-            _value -> nil
-          end)
-          |> Enum.reject(&(&1 == ""))
-          |> Enum.reject(&is_nil/1)
-
-        if values == [], do: nil, else: values
-
-      _value ->
-        nil
-    end)
-  end
-
-  defp empty_list_to_nil([]), do: nil
-  defp empty_list_to_nil(values), do: values
+  defp downlink_completion_sources(ground_station_id, policy, contacts),
+    do: DownlinkRequirement.completion_sources(ground_station_id, policy, contacts)
 
   defp empty_map_to_nil(map) when map == %{}, do: nil
   defp empty_map_to_nil(map), do: map
+  defp empty_list_to_nil([]), do: nil
+  defp empty_list_to_nil(values), do: values
 
-  defp contact_required_downlink_mb(contact) do
-    contact
-    |> path_values(@contact_required_downlink_paths)
-    |> Enum.find_value(&numeric_value/1)
-  end
+  defp selected_downlink_shortfall_mb(required_downlink_mb, selected_capacity_adjusted),
+    do:
+      DownlinkRequirement.selected_shortfall_mb(required_downlink_mb, selected_capacity_adjusted)
 
-  defp path_values(value, paths), do: Enum.map(paths, &path_value(value, &1))
-
-  defp selected_downlink_shortfall_mb(nil, _selected_capacity_adjusted), do: nil
-
-  defp selected_downlink_shortfall_mb(required_downlink_mb, selected_capacity_adjusted)
-       when is_number(required_downlink_mb) and is_number(selected_capacity_adjusted) do
-    max(required_downlink_mb - selected_capacity_adjusted, 0.0)
-  end
-
-  defp selected_downlink_shortfall_mb(_required_downlink_mb, _selected_capacity_adjusted),
-    do: nil
-
-  defp downlink_requirement_status(nil, _selected_capacity_adjusted), do: nil
-
-  defp downlink_requirement_status(required_downlink_mb, selected_capacity_adjusted)
-       when is_number(required_downlink_mb) and is_number(selected_capacity_adjusted) and
-              selected_capacity_adjusted >= required_downlink_mb,
-       do: "satisfied"
-
-  defp downlink_requirement_status(required_downlink_mb, selected_capacity_adjusted)
-       when is_number(required_downlink_mb) and is_number(selected_capacity_adjusted) and
-              selected_capacity_adjusted < required_downlink_mb,
-       do: "shortfall"
-
-  defp downlink_requirement_status(_required_downlink_mb, _selected_capacity_adjusted), do: nil
-
-  defp actual_downlink_shortfall_mb(_required_downlink_mb, nil), do: nil
+  defp downlink_requirement_status(required_downlink_mb, selected_capacity_adjusted),
+    do: DownlinkRequirement.status(required_downlink_mb, selected_capacity_adjusted)
 
   defp actual_downlink_shortfall_mb(required_downlink_mb, actual_throughput_mb),
-    do: selected_downlink_shortfall_mb(required_downlink_mb, actual_throughput_mb)
+    do: DownlinkRequirement.actual_shortfall_mb(required_downlink_mb, actual_throughput_mb)
 
-  defp actual_downlink_completion_ratio(required_downlink_mb, actual_throughput_mb)
-       when is_number(required_downlink_mb) and required_downlink_mb > 0.0 and
-              is_number(actual_throughput_mb) do
-    actual_throughput_mb
-    |> Kernel./(required_downlink_mb)
-    |> clamp_unit_interval()
-  end
-
-  defp actual_downlink_completion_ratio(_required_downlink_mb, _actual_throughput_mb), do: nil
-
-  defp actual_downlink_requirement_status(_required_downlink_mb, nil), do: nil
+  defp actual_downlink_completion_ratio(required_downlink_mb, actual_throughput_mb),
+    do: DownlinkRequirement.actual_completion_ratio(required_downlink_mb, actual_throughput_mb)
 
   defp actual_downlink_requirement_status(required_downlink_mb, actual_throughput_mb),
-    do: downlink_requirement_status(required_downlink_mb, actual_throughput_mb)
-
-  defp positive_or_nil(value) when is_number(value) and value > 0.0, do: value
-  defp positive_or_nil(_value), do: nil
+    do: DownlinkRequirement.actual_status(required_downlink_mb, actual_throughput_mb)
 
   defp numeric_value(value), do: ContactNormalization.numeric_value(value)
 
