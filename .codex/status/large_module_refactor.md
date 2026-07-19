@@ -9,7 +9,7 @@ Current slice:
 Manifest candidate-refresh accepted planning-state extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed in `24f39a5c`.
 
 Selected boundary:
 Extract accepted-planning-state selection, schema validation, mission-state
@@ -33,16 +33,29 @@ Selection evidence:
   remain unchanged.
 
 Verification:
-Pending.
+- Strict test-environment compile passed with warnings as errors across 3,921
+  files.
+- Focused Manifest coverage passed: 42 tests.
+- Adjacent manifest-fixture validation coverage passed: 2 tests.
+- Exact public old/new comparison against selection commit `a1394b10` passed
+  for eight normalized `from_map/1` samples covering explicit accepted state,
+  mission-state construction/defaults, orbit-data import, and five
+  invalid/missing cases.
+- `mix xref callers` reports only the Manifest facade as a runtime caller of
+  the extracted planning-state owner.
+- Static ownership checks confirm planning-state precedence, validation,
+  mission-state completion, and orbit-data fallback live in the dedicated
+  owner while horizon and manifest responsibilities remain in the facade.
+- `git diff --check` passed.
 
 Behavior/schema changes:
-None intended. This is a facade-preserving production ownership extraction.
+None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-StationCalendar availability and capacity normalization extraction, selected
-in `6c271bee` and implemented in `8cf68232`.
-`station_calendar.ex` moved from 3,655 to 3,487 lines; the dedicated
-availability owner is 205 lines.
+Manifest candidate-refresh accepted planning-state extraction, selected in
+`a1394b10` and implemented in `24f39a5c`.
+`manifest.ex` moved from 3,638 to 3,530 lines; the dedicated planning-state
+owner is 109 lines.
 
 Next candidate:
 Re-rank the live largest-module set and select the next cohesive ownership
