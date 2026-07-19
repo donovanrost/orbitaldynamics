@@ -2502,15 +2502,6 @@ defmodule OrbitalDynamics.TimelineFeedback do
     realized_matches = Map.get(realized_by_id, id, [])
     realized = List.first(realized_matches)
     feedback_kind = feedback_kind(planned, realized)
-    planned_throughput = value(planned, "estimated_throughput_mb")
-
-    throughput_denominator =
-      planned_throughput || value(planned, "required_downlink_mb") ||
-        value(realized, "required_downlink_mb")
-
-    actual_throughput = value(realized, "actual_throughput_mb")
-    planned_data_volume_mb = value(planned, "planned_data_volume_mb")
-    actual_data_volume_mb = value(realized, "actual_data_volume_mb")
     planned_delta_v = value(planned, "delta_v_km_s")
     realized_delta_v = value(realized, "delta_v_km_s")
     planned_delta_v_magnitude = value(planned, "delta_v_magnitude_km_s")
@@ -2626,20 +2617,6 @@ defmodule OrbitalDynamics.TimelineFeedback do
       "exclusivity_violation_timeline_ids" =>
         value(planned, "exclusivity_violation_timeline_ids"),
       "exclusivity_violation_group" => value(planned, "exclusivity_violation_group"),
-      "planned_estimated_throughput_mb" => planned_throughput,
-      "actual_throughput_mb" => actual_throughput,
-      "actual_data_rate_throughput_derivation" =>
-        value(realized, "actual_data_rate_throughput_derivation"),
-      "throughput_delta_mb" => delta(actual_throughput, planned_throughput),
-      "throughput_completion_fraction" =>
-        throughput_fraction(actual_throughput, throughput_denominator),
-      "planned_data_volume_mb" => planned_data_volume_mb,
-      "actual_data_volume_mb" => actual_data_volume_mb,
-      "data_volume_delta_mb" => delta(actual_data_volume_mb, planned_data_volume_mb),
-      "data_volume_completion_fraction" =>
-        throughput_fraction(actual_data_volume_mb, planned_data_volume_mb),
-      "required_downlink_mb" =>
-        value(planned, "required_downlink_mb") || value(realized, "required_downlink_mb"),
       "planned_delta_v_km_s" => planned_delta_v,
       "realized_delta_v_km_s" => realized_delta_v,
       "delta_v_delta_km_s" => vector_delta(realized_delta_v, planned_delta_v),
@@ -2692,6 +2669,7 @@ defmodule OrbitalDynamics.TimelineFeedback do
     |> Map.merge(
       ReconciliationTimingEvidence.context(planned, realized, timing_variance_threshold_s)
     )
+    |> Map.merge(Throughput.reconciliation_context(planned, realized))
     |> Map.merge(execution_uncertainty_context)
     |> put_duplicate_realized_feedback(realized_matches)
     |> ReconciliationIdentity.put_mismatch_summary()
@@ -3735,13 +3713,6 @@ defmodule OrbitalDynamics.TimelineFeedback do
 
   defp delta(actual, planned) when is_number(actual) and is_number(planned), do: actual - planned
   defp delta(_actual, _planned), do: nil
-
-  defp throughput_fraction(actual, planned)
-       when is_number(actual) and is_number(planned) and planned > 0.0 do
-    actual / planned
-  end
-
-  defp throughput_fraction(_actual, _planned), do: nil
 
   defp match_status(planned, realized)
        when planned in [nil, "", []] and realized in [nil, "", []],

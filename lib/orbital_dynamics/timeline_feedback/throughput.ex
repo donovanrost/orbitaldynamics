@@ -111,6 +111,35 @@ defmodule OrbitalDynamics.TimelineFeedback.Throughput do
     end
   end
 
+  def reconciliation_context(planned, realized) do
+    planned_throughput = value(planned, "estimated_throughput_mb")
+
+    throughput_denominator =
+      planned_throughput || value(planned, "required_downlink_mb") ||
+        value(realized, "required_downlink_mb")
+
+    actual_throughput = value(realized, "actual_throughput_mb")
+    planned_data_volume_mb = value(planned, "planned_data_volume_mb")
+    actual_data_volume_mb = value(realized, "actual_data_volume_mb")
+
+    %{
+      "planned_estimated_throughput_mb" => planned_throughput,
+      "actual_throughput_mb" => actual_throughput,
+      "actual_data_rate_throughput_derivation" =>
+        value(realized, "actual_data_rate_throughput_derivation"),
+      "throughput_delta_mb" => delta(actual_throughput, planned_throughput),
+      "throughput_completion_fraction" =>
+        throughput_fraction(actual_throughput, throughput_denominator),
+      "planned_data_volume_mb" => planned_data_volume_mb,
+      "actual_data_volume_mb" => actual_data_volume_mb,
+      "data_volume_delta_mb" => delta(actual_data_volume_mb, planned_data_volume_mb),
+      "data_volume_completion_fraction" =>
+        throughput_fraction(actual_data_volume_mb, planned_data_volume_mb),
+      "required_downlink_mb" =>
+        value(planned, "required_downlink_mb") || value(realized, "required_downlink_mb")
+    }
+  end
+
   defp data_rate_mb_s(activity) do
     case first_number(activity, [
            "data_rate_mb_s",
@@ -218,4 +247,17 @@ defmodule OrbitalDynamics.TimelineFeedback.Throughput do
       end_s - start_s
     end
   end
+
+  defp value(nil, _key), do: nil
+  defp value(map, key), do: Map.get(map, key)
+
+  defp delta(actual, planned) when is_number(actual) and is_number(planned), do: actual - planned
+  defp delta(_actual, _planned), do: nil
+
+  defp throughput_fraction(actual, planned)
+       when is_number(actual) and is_number(planned) and planned > 0.0 do
+    actual / planned
+  end
+
+  defp throughput_fraction(_actual, _planned), do: nil
 end
