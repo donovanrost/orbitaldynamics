@@ -101,6 +101,7 @@ defmodule OrbitalDynamics.ResourceFilter do
     min_downlink_margin
   )
   alias OrbitalDynamics.Policy
+  alias OrbitalDynamics.ResourceFilter.Summary
 
   @doc """
   Declares the resource filter model and known limits.
@@ -350,7 +351,11 @@ defmodule OrbitalDynamics.ResourceFilter do
       do: summary
 
   def summary(%{"schema_contract" => @schema_contract} = report, opts) when is_list(opts) do
-    resource_filter_summary(report)
+    Summary.build(report,
+      schema_contract: @summary_schema_contract,
+      source_artifact_type: @schema_contract,
+      model_limits: model_limits()
+    )
   end
 
   def summary(%{schema_contract: @summary_schema_contract} = summary, opts) when is_list(opts) do
@@ -413,73 +418,6 @@ defmodule OrbitalDynamics.ResourceFilter do
       "suppression_reasons" => capabilities.suppression_reasons,
       "row_review_statuses" => capabilities.row_review_statuses
     }
-  end
-
-  defp resource_filter_summary(report) do
-    report = stringify_keys(report)
-
-    suppressed =
-      report
-      |> Map.get("suppressed_candidates", [])
-      |> Enum.filter(&is_map/1)
-      |> Enum.map(&stringify_keys/1)
-
-    invalid_summary_inputs =
-      report
-      |> Map.get("invalid_resource_summary_inputs", [])
-      |> Enum.filter(&is_map/1)
-      |> Enum.map(&stringify_keys/1)
-
-    %{
-      "schema_contract" => @summary_schema_contract,
-      "model" => "artifact_only_resource_filter_summary",
-      "source_artifact_type" => Map.get(report, "schema_contract", @schema_contract),
-      "model_limits" => model_limits(),
-      "input_candidate_count" => Map.get(report, "input_candidate_count", 0),
-      "kept_candidate_count" => Map.get(report, "kept_candidate_count", 0),
-      "suppressed_candidate_count" => length(suppressed),
-      "suppression_review_status" =>
-        if(suppressed == [] and invalid_summary_inputs == [],
-          do: "clear",
-          else: "review_required"
-        ),
-      "suppressed_candidate_ids" => row_ids(suppressed, "id"),
-      "suppressed_reason_counts" => count_by_field(suppressed, "suppressed_reason"),
-      "suppressed_candidate_ids_by_reason" => ids_by_field(suppressed, "suppressed_reason", "id"),
-      "resource_blocking_dimension_counts" =>
-        count_by_field(suppressed, "resource_blocking_dimension"),
-      "suppressed_candidate_ids_by_resource_blocking_dimension" =>
-        ids_by_field(suppressed, "resource_blocking_dimension", "id"),
-      "suppressed_candidate_ids_by_spacecraft_id" =>
-        ids_by_field(suppressed, "spacecraft_id", "id"),
-      "suppressed_candidate_ids_by_scenario_id" => ids_by_field(suppressed, "scenario_id", "id"),
-      "suppressed_resource_source_quality_counts" =>
-        count_by_field(suppressed, "resource_source_quality"),
-      "suppressed_candidate_ids_by_resource_source_quality" =>
-        ids_by_field(suppressed, "resource_source_quality", "id"),
-      "suppressed_resource_trust_boundary_status_counts" =>
-        count_by_field(suppressed, "resource_trust_boundary_status"),
-      "suppressed_candidate_ids_by_resource_trust_boundary_status" =>
-        ids_by_field(suppressed, "resource_trust_boundary_status", "id"),
-      "invalid_candidate_input_count" => invalid_candidate_input_count(suppressed),
-      "invalid_candidate_input_ids" => invalid_candidate_input_ids(suppressed),
-      "invalid_resource_summary_input_count" => length(invalid_summary_inputs),
-      "invalid_resource_summary_input_ids" =>
-        row_ids(invalid_summary_inputs, "resource_summary_id"),
-      "duplicate_suppressed_candidate_id_count" =>
-        duplicate_suppressed_candidate_id_count(suppressed),
-      "duplicate_suppressed_candidate_row_count" =>
-        duplicate_suppressed_candidate_row_count_from_rows(suppressed),
-      "review_rows" => suppressed,
-      "invalid_resource_summary_inputs" => invalid_summary_inputs,
-      "assumptions" => %{
-        "execution_boundary" => "artifact_only_no_schedule_mutation",
-        "source" => "resource_filter_report.v1",
-        "operator_authority" => "not_granted_by_resource_filter_summary",
-        "resource_state_propagation" => "not_performed"
-      }
-    }
-    |> compact_map()
   end
 
   defp normalize_summary_input({summary, index}) when is_map(summary) do
@@ -1326,39 +1264,6 @@ defmodule OrbitalDynamics.ResourceFilter do
     suppressed
     |> Enum.map(&{Map.get(&1, "resource_trust_boundary_status"), Map.get(&1, "id")})
     |> stable_ids_by_key()
-  end
-
-  defp count_by_field(rows, field) do
-    rows
-    |> Enum.map(&Map.get(&1, field))
-    |> Enum.reject(&(&1 in [nil, ""]))
-    |> Enum.frequencies()
-    |> Enum.sort_by(fn {key, _count} -> key end)
-    |> Map.new()
-  end
-
-  defp ids_by_field(rows, field, id_field) do
-    rows
-    |> Enum.map(&{Map.get(&1, field), Map.get(&1, id_field)})
-    |> stable_ids_by_key()
-  end
-
-  defp row_ids(rows, field) do
-    rows
-    |> Enum.map(&Map.get(&1, field))
-    |> sorted_stable_ids()
-  end
-
-  defp duplicate_suppressed_candidate_id_count(rows) do
-    rows
-    |> duplicate_suppressed_candidate_id_groups()
-    |> length()
-  end
-
-  defp duplicate_suppressed_candidate_row_count_from_rows(rows) do
-    rows
-    |> duplicate_suppressed_candidate_id_groups()
-    |> duplicate_suppressed_candidate_row_count()
   end
 
   defp stable_ids_by_key(pairs) do
