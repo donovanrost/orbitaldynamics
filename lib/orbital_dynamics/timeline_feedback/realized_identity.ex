@@ -74,6 +74,54 @@ defmodule OrbitalDynamics.TimelineFeedback.RealizedIdentity do
 
   def stable?(_value, _stable_id_pattern), do: false
 
+  def first_identifier(map, keys, stable_id_pattern) do
+    Enum.find_value(keys, fn key ->
+      value = first_value(map, [key])
+
+      case value do
+        nil -> nil
+        value when is_binary(value) and value != "" -> stable_value(value, stable_id_pattern)
+        value when is_atom(value) -> value |> Atom.to_string() |> stable_value(stable_id_pattern)
+        %{} = nested -> identifier(nested, "id", stable_id_pattern)
+        _value -> nil
+      end
+    end)
+  end
+
+  def first_value(map, keys) do
+    Enum.reduce_while(keys, nil, fn key, _value ->
+      metadata = Map.get(map, "metadata") || Map.get(map, :metadata) || %{}
+
+      case fetch_key_or_atom(map, key) do
+        {:ok, nil} -> first_value_from_metadata(metadata, key)
+        {:ok, value} -> {:halt, value}
+        :error -> first_value_from_metadata(metadata, key)
+      end
+    end)
+  end
+
+  def normalize_list(nil, _map_keys, _stable_id_pattern), do: nil
+
+  def normalize_list(values, map_keys, stable_id_pattern) when is_list(values) do
+    values
+    |> Enum.flat_map(&id_values(&1, map_keys))
+    |> normalize_scalar_ids(stable_id_pattern)
+  end
+
+  def normalize_list(value, map_keys, stable_id_pattern) do
+    value
+    |> id_values(map_keys)
+    |> normalize_scalar_ids(stable_id_pattern)
+  end
+
+  def required_id!(map, key) do
+    case Map.get(map, key) do
+      value when is_binary(value) and value != "" -> value
+      value when is_atom(value) and not is_nil(value) -> Atom.to_string(value)
+      _value -> raise ArgumentError, "#{key} is required"
+    end
+  end
+
   defp raw_identifier(activity, key) do
     case Map.get(activity, key) do
       nil -> nil
@@ -118,4 +166,75 @@ defmodule OrbitalDynamics.TimelineFeedback.RealizedIdentity do
   defp raw_value_identifier(value) when is_binary(value) and value != "", do: value
   defp raw_value_identifier(value) when is_atom(value), do: Atom.to_string(value)
   defp raw_value_identifier(_value), do: nil
+
+  defp first_value_from_metadata(metadata, key) do
+    case fetch_key_or_atom(metadata, key) do
+      {:ok, nil} -> {:cont, nil}
+      {:ok, value} -> {:halt, value}
+      :error -> {:cont, nil}
+    end
+  end
+
+  defp fetch_key_or_atom(map, key) when is_map(map) do
+    case Map.fetch(map, key) do
+      {:ok, value} -> {:ok, value}
+      :error when is_binary(key) -> fetch_existing_atom_key(map, key)
+      :error -> :error
+    end
+  end
+
+  defp fetch_key_or_atom(_map, _key), do: :error
+
+  defp fetch_existing_atom_key(map, key) do
+    atom_key = String.to_existing_atom(key)
+    Map.fetch(map, atom_key)
+  rescue
+    ArgumentError -> :error
+  end
+
+  defp id_values(%{} = value, map_keys) do
+    Enum.flat_map(map_keys, fn key ->
+      case Map.get(value, key) do
+        nil -> []
+        nested when is_list(nested) -> nested
+        nested -> [nested]
+      end
+    end)
+  end
+
+  defp id_values(value, _map_keys), do: [value]
+
+  defp normalize_scalar_ids(values, stable_id_pattern) do
+    values
+    |> Enum.flat_map(&stable_id_values(&1, stable_id_pattern))
+    |> Enum.uniq()
+    |> Enum.sort()
+    |> case do
+      [] -> nil
+      ids -> ids
+    end
+  end
+
+  defp stable_id_values(nil, _stable_id_pattern), do: []
+  defp stable_id_values(value, _stable_id_pattern) when is_boolean(value), do: []
+
+  defp stable_id_values(value, stable_id_pattern) when is_atom(value) do
+    value
+    |> Atom.to_string()
+    |> stable_id_values(stable_id_pattern)
+  end
+
+  defp stable_id_values("nil", _stable_id_pattern), do: []
+
+  defp stable_id_values(value, stable_id_pattern) when is_binary(value) and value != "" do
+    if stable?(value, stable_id_pattern), do: [value], else: []
+  end
+
+  defp stable_id_values(value, stable_id_pattern) when is_integer(value) do
+    value
+    |> Integer.to_string()
+    |> stable_id_values(stable_id_pattern)
+  end
+
+  defp stable_id_values(_value, _stable_id_pattern), do: []
 end

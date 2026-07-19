@@ -4391,8 +4391,6 @@ defmodule OrbitalDynamics.TimelineFeedback do
 
   defp stable_identifier(value), do: RealizedIdentity.stable_value(value, @stable_id_pattern)
 
-  defp stable_id?(value), do: RealizedIdentity.stable?(value, @stable_id_pattern)
-
   defp first_number(map, keys) do
     Enum.find_value(keys, fn key ->
       value =
@@ -4693,129 +4691,15 @@ defmodule OrbitalDynamics.TimelineFeedback do
 
   defp present_string?(value), do: is_binary(value) and value != ""
 
-  defp first_identifier(map, keys) do
-    Enum.find_value(keys, fn key ->
-      value = first_value(map, [key])
+  defp first_identifier(map, keys),
+    do: RealizedIdentity.first_identifier(map, keys, @stable_id_pattern)
 
-      case value do
-        nil -> nil
-        value when is_binary(value) and value != "" -> stable_identifier(value)
-        value when is_atom(value) -> value |> Atom.to_string() |> stable_identifier()
-        %{} = nested -> identifier(nested, "id")
-        _value -> nil
-      end
-    end)
-  end
+  defp first_value(map, keys), do: RealizedIdentity.first_value(map, keys)
 
-  defp first_value(map, keys) do
-    Enum.reduce_while(keys, nil, fn key, _value ->
-      metadata = Map.get(map, "metadata") || Map.get(map, :metadata) || %{}
+  defp normalize_id_list(value, map_keys),
+    do: RealizedIdentity.normalize_list(value, map_keys, @stable_id_pattern)
 
-      case fetch_key_or_atom(map, key) do
-        {:ok, nil} ->
-          first_value_from_metadata(metadata, key)
-
-        {:ok, value} ->
-          {:halt, value}
-
-        :error ->
-          first_value_from_metadata(metadata, key)
-      end
-    end)
-  end
-
-  defp first_value_from_metadata(metadata, key) do
-    case fetch_key_or_atom(metadata, key) do
-      {:ok, nil} -> {:cont, nil}
-      {:ok, value} -> {:halt, value}
-      :error -> {:cont, nil}
-    end
-  end
-
-  defp fetch_key_or_atom(map, key) when is_map(map) do
-    case Map.fetch(map, key) do
-      {:ok, value} -> {:ok, value}
-      :error when is_binary(key) -> fetch_existing_atom_key(map, key)
-      :error -> :error
-    end
-  end
-
-  defp fetch_key_or_atom(_map, _key), do: :error
-
-  defp fetch_existing_atom_key(map, key) do
-    atom_key = String.to_existing_atom(key)
-    Map.fetch(map, atom_key)
-  rescue
-    ArgumentError -> :error
-  end
-
-  defp normalize_id_list(nil, _map_keys), do: nil
-
-  defp normalize_id_list(values, map_keys) when is_list(values) do
-    values
-    |> Enum.flat_map(&id_values(&1, map_keys))
-    |> normalize_scalar_ids()
-  end
-
-  defp normalize_id_list(value, map_keys) do
-    value
-    |> id_values(map_keys)
-    |> normalize_scalar_ids()
-  end
-
-  defp id_values(%{} = value, map_keys) do
-    Enum.flat_map(map_keys, fn key ->
-      case Map.get(value, key) do
-        nil -> []
-        nested when is_list(nested) -> nested
-        nested -> [nested]
-      end
-    end)
-  end
-
-  defp id_values(value, _map_keys), do: [value]
-
-  defp normalize_scalar_ids(values) do
-    values
-    |> Enum.flat_map(&stable_id_value/1)
-    |> Enum.uniq()
-    |> Enum.sort()
-    |> case do
-      [] -> nil
-      ids -> ids
-    end
-  end
-
-  defp stable_id_value(nil), do: []
-  defp stable_id_value(value) when is_boolean(value), do: []
-
-  defp stable_id_value(value) when is_atom(value) do
-    value
-    |> Atom.to_string()
-    |> stable_id_value()
-  end
-
-  defp stable_id_value("nil"), do: []
-
-  defp stable_id_value(value) when is_binary(value) and value != "" do
-    if stable_id?(value), do: [value], else: []
-  end
-
-  defp stable_id_value(value) when is_integer(value) do
-    value
-    |> Integer.to_string()
-    |> stable_id_value()
-  end
-
-  defp stable_id_value(_value), do: []
-
-  defp required_id!(map, key) do
-    case Map.get(map, key) do
-      value when is_binary(value) and value != "" -> value
-      value when is_atom(value) and not is_nil(value) -> Atom.to_string(value)
-      _value -> raise ArgumentError, "#{key} is required"
-    end
-  end
+  defp required_id!(map, key), do: RealizedIdentity.required_id!(map, key)
 
   defp stringify_keys(%{} = map) do
     Map.new(map, fn {key, value} -> {encode_key(key), stringify_keys(value)} end)
