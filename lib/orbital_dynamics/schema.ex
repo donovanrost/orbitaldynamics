@@ -9,6 +9,7 @@ defmodule OrbitalDynamics.Schema do
 
   alias OrbitalDynamics.Schema.{
     ContactAllocationValidation,
+    ContactReportValidation,
     DecisionSupportValidation,
     OperationalReadinessValidation,
     ResourceValidation,
@@ -5869,40 +5870,17 @@ defmodule OrbitalDynamics.Schema do
     }
   end
 
-  defp validate_optional_contact_filter_report(issues, report) do
-    validate_optional_contact_filter_report(issues, "$.contact_filter_report", report)
-  end
+  defp validate_optional_contact_filter_report(issues, report),
+    do: ContactReportValidation.validate_optional_filter_report(issues, report)
 
-  defp validate_optional_contact_filter_report(issues, _path, nil), do: issues
+  defp validate_optional_contact_filter_report(issues, path, report),
+    do: ContactReportValidation.validate_optional_filter_report(issues, path, report)
 
-  defp validate_optional_contact_filter_report(issues, path, %{} = report) do
-    validate_contact_filter_report(issues, path, report)
-  end
+  defp validate_contact_filter_report(issues, path, report),
+    do: ContactReportValidation.validate_filter_report(issues, path, report)
 
-  defp validate_optional_contact_filter_report(issues, path, _report),
-    do: [error(path, "must be an object") | issues]
-
-  defp validate_contact_filter_report(issues, path, report) do
-    OrbitalDynamics.Schema.ContactFilterReportContracts.validate(
-      issues,
-      path,
-      report,
-      &validate_suppressed_candidate/3
-    )
-  end
-
-  defp validate_optional_contact_contention_report(issues, nil), do: issues
-
-  defp validate_optional_contact_contention_report(issues, %{} = report) do
-    issues
-    |> OrbitalDynamics.Schema.ContactContentionReportContracts.validate_report(
-      "$.contact_contention_report",
-      report
-    )
-  end
-
-  defp validate_optional_contact_contention_report(issues, _report),
-    do: [error("$.contact_contention_report", "must be an object") | issues]
+  defp validate_optional_contact_contention_report(issues, report),
+    do: ContactReportValidation.validate_optional_contention_report(issues, report)
 
   defp validate_optional_link_capacity_report(issues, nil), do: issues
 
@@ -5949,18 +5927,8 @@ defmodule OrbitalDynamics.Schema do
         contact_allocation_report_domain_callbacks()
       )
 
-  defp validate_optional_contact_contention_resolution_report(issues, nil), do: issues
-
-  defp validate_optional_contact_contention_resolution_report(issues, %{} = report) do
-    issues
-    |> OrbitalDynamics.Schema.ContactContentionReportContracts.validate_resolution_report(
-      "$.contact_contention_resolution_report",
-      report
-    )
-  end
-
-  defp validate_optional_contact_contention_resolution_report(issues, _report),
-    do: [error("$.contact_contention_resolution_report", "must be an object") | issues]
+  defp validate_optional_contact_contention_resolution_report(issues, report),
+    do: ContactReportValidation.validate_optional_contention_resolution_report(issues, report)
 
   defp validate_optional_station_calendar_report(issues, report),
     do:
