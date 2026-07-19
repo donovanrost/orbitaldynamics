@@ -6,43 +6,30 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-TimelineFeedback reconciliation outcome-evidence extraction.
+Study.Manifest reusable value-schema ownership extraction.
 
 Status:
-Completed and pushed in `64be0fd0`.
+Selected; implementation not started.
 
 Selected boundary:
-Extract contact, command, observation, and maneuver success/result projection,
-completed fraction, reason, and their reconciliation-only outcome helpers into
-`OrbitalDynamics.TimelineFeedback.ReconciliationOutcomeEvidence`. Preserve the
-existing report and row assembly facade.
+Extract reusable target, ground-station, and spacecraft identity schemas plus
+the three-number vector schema into
+`OrbitalDynamics.Study.Manifest.ValueSchema`. Preserve the existing public
+Manifest schema and loader facade.
 
 Selection evidence:
-- Live re-ranking places `timeline_feedback.ex` at 4,070 lines, 31 lines ahead
-  of Manifest and behind the three larger orchestration-heavy facades.
-- The selected fields and helpers form one provider-result/status-to-outcome
-  projection responsibility.
-- Provider-result normalization and feedback-factor consumers remain with
-  their existing owners. Identity, timing, throughput, resource,
-  communications, observation-quality, and station-calendar evidence remain
-  separate.
+- Live re-ranking places `study/manifest.ex` at 4,039 lines, ahead of
+  ContactAllocation and TimelineFeedback and behind the three larger
+  orchestration-heavy facades.
+- The selected builders form one reusable embedded-value schema vocabulary
+  with no runtime parsing or semantic-validation responsibility.
+- Public schema/export APIs and entity schemas remain in the facade.
+- This removes the last facade-private builder dependencies from the remaining
+  realized-activity input-schema boundary.
 - Existing public report APIs and artifact row shapes remain unchanged.
 
 Verification:
-- Strict test-environment compile passed with warnings as errors across 3,900
-  files.
-- Focused TimelineFeedback coverage passed: 73 tests.
-- Adjacent operator-review, Cadence import, and contact-feedback contract
-  coverage passed: 79 tests.
-- Exact public old/new comparison against selection commit `32b15d88` passed
-  for five reports covering matched, mismatched, planned-only, realized-only,
-  and mixed rows with successful and failed provider outcomes.
-- `mix xref callers` reports only the TimelineFeedback facade as a runtime
-  caller of the extracted owner.
-- Static ownership checks confirm reconciliation outcome projection lives in
-  the dedicated owner while provider normalization and feedback consumers
-  remain in the facade.
-- `git diff --check` passed.
+Pending.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
@@ -54,8 +41,8 @@ TimelineFeedback reconciliation outcome-evidence extraction, selected in
 215 lines.
 
 Next candidate:
-Re-rank the live largest-module set and select the next cohesive ownership
-boundary.
+Implement and verify the selected Study.Manifest reusable value-schema
+ownership extraction.
 
 Blocked:
 No.
