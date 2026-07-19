@@ -22,6 +22,7 @@ defmodule OrbitalDynamics.CadenceImport do
     ProviderResultNormalization,
     ReviewPackageImport,
     ReviewRowMetadata,
+    ReviewRowDispatch,
     ReviewSummaryContext,
     SourceIdentifierPolicy,
     StationCalendarContextFields,
@@ -2166,116 +2167,46 @@ defmodule OrbitalDynamics.CadenceImport do
 
   defp strategy_review_count(review_package), do: StrategyReview.count(review_package)
 
-  defp review_manifest_row(%{"review_type" => "realized_feedback"} = row, rank),
-    do: realized_feedback_manifest_row(row, rank)
-
-  defp review_manifest_row(
-         %{"review_type" => review_type} = row,
-         rank
-       )
-       when review_type in ["contact_contention_recommendation", "contact_contention_review"],
-       do: contact_contention_manifest_row(row, rank)
-
-  defp review_manifest_row(%{"review_type" => "contact_allocation_review"} = row, rank),
-    do: contact_allocation_manifest_row(row, rank)
-
-  defp review_manifest_row(%{"review_type" => "contact_intent_review"} = row, rank),
-    do: contact_intent_manifest_row(row, rank)
-
-  defp review_manifest_row(%{"review_type" => "candidate_diff_review"} = row, rank),
-    do: candidate_diff_manifest_row(row, rank)
-
-  defp review_manifest_row(%{"review_type" => "contact_suppression"} = row, rank),
-    do: suppression_manifest_row(row, rank, "contact")
-
-  defp review_manifest_row(%{"review_type" => "resource_suppression"} = row, rank),
-    do: suppression_manifest_row(row, rank, "resource")
-
-  defp review_manifest_row(%{"review_type" => "freshness_review"} = row, rank),
-    do: freshness_manifest_row(row, rank)
-
-  defp review_manifest_row(%{"review_type" => "refresh_budget_review"} = row, rank),
-    do: refresh_budget_manifest_row(row, rank)
-
-  defp review_manifest_row(%{"review_type" => "constraint_review"} = row, rank),
-    do: constraint_manifest_row(row, rank)
-
-  defp review_manifest_row(%{"review_type" => "objective_satisfaction_review"} = row, rank),
-    do: objective_satisfaction_manifest_row(row, rank)
-
-  defp review_manifest_row(%{"review_type" => "approval_requirement"} = row, rank),
-    do: approval_requirement_manifest_row(row, rank)
-
-  defp review_manifest_row(%{"review_type" => "maneuver_review"} = row, rank),
-    do: maneuver_review_manifest_row(row, rank)
-
-  defp review_manifest_row(%{"review_type" => "timeline_diff_review"} = row, rank),
-    do: timeline_diff_manifest_row(row, rank)
-
-  defp review_manifest_row(%{"review_type" => "timeline_protection"} = row, rank),
-    do: timeline_protection_manifest_row(row, rank)
-
-  defp review_manifest_row(%{"review_type" => "command_window_review"} = row, rank),
-    do: command_window_manifest_row(row, rank)
-
-  defp review_manifest_row(%{"review_type" => "station_calendar_review"} = row, rank),
-    do: station_calendar_manifest_row(row, rank)
-
-  defp review_manifest_row(%{"review_type" => "station_reservation_review"} = row, rank),
-    do: station_reservation_manifest_row(row, rank)
-
-  defp review_manifest_row(%{"review_type" => "link_capacity_review"} = row, rank),
-    do: link_capacity_manifest_row(row, rank)
-
-  defp review_manifest_row(%{"review_type" => "resource_projection_review"} = row, rank),
-    do: resource_projection_manifest_row(row, rank)
-
-  defp review_manifest_row(%{"review_type" => "policy_escalation"} = row, rank),
-    do: policy_escalation_manifest_row(row, rank)
-
-  defp review_manifest_row(%{"review_type" => "warning"} = row, rank),
-    do: warning_manifest_row(row, rank)
-
-  defp review_manifest_row(%{"review_type" => "risk_explanation"} = row, rank),
-    do: risk_manifest_row(row, rank)
-
-  defp review_manifest_row(%{"review_type" => "strategy_recommendation"} = row, rank),
-    do: strategy_recommendation_manifest_row(row, rank)
-
-  defp review_manifest_row(%{"review_type" => "strategy_tradeoff"} = row, rank),
-    do: strategy_tradeoff_manifest_row(row, rank)
-
-  defp review_manifest_row(%{"review_type" => "ranking_comparison_review"} = row, rank),
-    do: ranking_comparison_manifest_row(row, rank)
-
-  defp review_manifest_row(%{"review_type" => "score_term_review"} = row, rank),
-    do: score_term_manifest_row(row, rank)
-
-  defp review_manifest_row(%{"review_type" => "objective_tradeoff_review"} = row, rank),
-    do: objective_tradeoff_manifest_row(row, rank)
-
-  defp review_manifest_row(%{"review_type" => "pareto_frontier_review"} = row, rank),
-    do: pareto_frontier_manifest_row(row, rank)
-
-  defp review_manifest_row(%{"review_type" => "schema_validation_review"} = row, rank),
-    do: schema_validation_manifest_row(row, rank)
-
-  defp review_manifest_row(%{"review_type" => "execution_review"} = row, rank),
-    do: execution_manifest_row(row, rank)
-
-  defp review_manifest_row(%{"review_type" => "operational_readiness_review"} = row, rank),
-    do: operational_readiness_manifest_row(row, rank)
-
-  defp review_manifest_row(%{"review_type" => "quality_gate_review"} = row, rank),
-    do: quality_gate_manifest_row(row, rank)
-
-  defp review_manifest_row(%{"review_type" => "operational_timeline_review"} = row, rank),
-    do: operational_timeline_manifest_row(row, rank)
-
-  defp review_manifest_row(%{"review_type" => "plan_delta_review"} = row, rank),
-    do: manifest_row(row, rank)
-
-  defp review_manifest_row(row, rank), do: generic_review_manifest_row(row, rank)
+  defp review_manifest_row(row, rank) do
+    ReviewRowDispatch.dispatch(row, rank, %{
+      approval_requirement: &approval_requirement_manifest_row/2,
+      candidate_diff: &candidate_diff_manifest_row/2,
+      command_window: &command_window_manifest_row/2,
+      constraint: &constraint_manifest_row/2,
+      contact_allocation: &contact_allocation_manifest_row/2,
+      contact_contention: &contact_contention_manifest_row/2,
+      contact_intent: &contact_intent_manifest_row/2,
+      contact_suppression: &suppression_manifest_row(&1, &2, "contact"),
+      execution: &execution_manifest_row/2,
+      freshness: &freshness_manifest_row/2,
+      generic: &generic_review_manifest_row/2,
+      link_capacity: &link_capacity_manifest_row/2,
+      maneuver_review: &maneuver_review_manifest_row/2,
+      objective_satisfaction: &objective_satisfaction_manifest_row/2,
+      objective_tradeoff: &objective_tradeoff_manifest_row/2,
+      operational_readiness: &operational_readiness_manifest_row/2,
+      operational_timeline: &operational_timeline_manifest_row/2,
+      pareto_frontier: &pareto_frontier_manifest_row/2,
+      plan_delta: &manifest_row/2,
+      policy_escalation: &policy_escalation_manifest_row/2,
+      quality_gate: &quality_gate_manifest_row/2,
+      ranking_comparison: &ranking_comparison_manifest_row/2,
+      realized_feedback: &realized_feedback_manifest_row/2,
+      refresh_budget: &refresh_budget_manifest_row/2,
+      resource_projection: &resource_projection_manifest_row/2,
+      resource_suppression: &suppression_manifest_row(&1, &2, "resource"),
+      risk: &risk_manifest_row/2,
+      schema_validation: &schema_validation_manifest_row/2,
+      score_term: &score_term_manifest_row/2,
+      station_calendar: &station_calendar_manifest_row/2,
+      station_reservation: &station_reservation_manifest_row/2,
+      strategy_recommendation: &strategy_recommendation_manifest_row/2,
+      strategy_tradeoff: &strategy_tradeoff_manifest_row/2,
+      timeline_diff: &timeline_diff_manifest_row/2,
+      timeline_protection: &timeline_protection_manifest_row/2,
+      warning: &warning_manifest_row/2
+    })
+  end
 
   defp realized_feedback_manifest_row(row, rank) do
     OrbitalDynamics.CadenceImport.RealizedFeedbackManifestRow.build(
