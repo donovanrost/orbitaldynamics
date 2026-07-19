@@ -6,53 +6,38 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-TimelineFeedback activity-state artifact extraction.
+ContactAllocation reduced-capacity packing extraction.
 
 Status:
-Completed and pushed in `0e23963f`.
+Selected; implementation pending.
 
 Selected boundary:
-Extract compact activity-state artifact assembly, primary-row selection,
-status/count summaries, review evidence, and realized trust-boundary
-derivation into `OrbitalDynamics.TimelineFeedback.ActivityState`.
-Preserve the existing TimelineFeedback public API facade.
+Extract default capacity-requirement policy normalization, reduced-station
+capacity group packing, fractional-fit decisions, row promotion/deferral, and
+capacity-requirement evidence into
+`OrbitalDynamics.Communications.ContactAllocation.CapacityPacking`.
+Preserve the existing ContactAllocation public API facade.
 
 Selection evidence:
-- Live re-ranking places `timeline_feedback.ex` at 3,606 lines, fourth behind
-  Schema, Timeline, and MissionPlan.Activity and ahead of ContactAllocation,
+- Live re-ranking places `contact_allocation.ex` at 3,593 lines, fourth behind
+  Schema, Timeline, and MissionPlan.Activity and ahead of
   RecommendationRiskContext, OrbitalDynamics, Manifest, LinkCapacity,
-  StationCalendar, and ResourceProjection.
-- The selected family owns one public artifact responsibility: reducing a
-  reconciled planned/realized activity pair into its compact activity-state
-  contract and review/trust-boundary evidence.
-- Reconciliation, realized-input normalization, lifecycle-state derivation,
-  operational-feedback aggregation, evidence extraction, and row construction
-  remain outside this boundary.
-- Existing input validation, reconciliation semantics, artifact fields,
-  omission behavior, counts, review rules, and deterministic output remain
-  unchanged.
+  StationCalendar, TimelineFeedback, and ResourceProjection.
+- The selected family owns one deterministic allocation-policy responsibility:
+  fitting contention-ordered contacts within declared reduced station capacity
+  and recording the resulting row/group evidence.
+- Contact normalization, station filtering, contention resolution, approval
+  policy, provider counteroffers, report summaries, and returned-contact
+  assembly remain outside this boundary.
+- Existing option precedence and validation, contact ordering, fractional-fit
+  tolerance, row status/reason transitions, evidence fields, omission behavior,
+  and deterministic output remain unchanged.
 
 Verification:
-- Strict test-environment compile passed with warnings as errors across 3,923
-  files.
-- Focused TimelineFeedback coverage passed: 73 tests.
-- Adjacent Timeline coverage passed: 109 tests.
-- Adjacent activity-state operator-review, schema-contract,
-  candidate-refresh, and campaign-planner coverage passed: 25 tests.
-- Exact public old/new comparison against selection commit `3575f21a` passed
-  for six output scenarios covering matched, approval-regression, unmatched,
-  planned-only, realized-only, and timing-threshold states, plus all three
-  public error paths.
-- `mix xref callers` reports only the TimelineFeedback facade as a runtime
-  caller of the extracted activity-state owner.
-- Static ownership checks confirm artifact assembly, primary-row selection,
-  counts, review evidence, and trust-boundary derivation live in the dedicated
-  owner while validation, reconciliation, and lifecycle derivation remain in
-  the facade.
-- `git diff --check` passed.
+Pending.
 
 Behavior/schema changes:
-None. This is a facade-preserving production ownership extraction.
+None intended. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
 TimelineFeedback activity-state artifact extraction, selected in `3575f21a`
