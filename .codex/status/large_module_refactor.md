@@ -9,7 +9,7 @@ Current slice:
 OperationalReadiness operator-training evidence extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Extract artifact/review/import operator-training evidence traversal,
@@ -36,24 +36,37 @@ Selection evidence:
   remain unchanged.
 
 Implementation:
-- Pending.
+- Selection was recorded and pushed in `0a2611d2`.
+- Implementation was committed and pushed in `7d28b490`.
+- `operational_readiness.ex` moved from 2,385 to 2,276 lines.
+- `OrbitalDynamics.OperationalReadiness.OperatorTrainingEvidence` is a
+  131-line owner reached through a private facade delegate.
 
 Verification:
-- Pending focused baseline, strict compilation, exact old/new public parity,
-  focused and adjacent tests, static ownership checks, and xref review.
+- Strict warning-clean compilation passed across 3,972 files.
+- The focused OperationalReadiness file and six adjacent Cadence-import,
+  campaign-strategy, replay, operator-review, and schema consumers passed
+  together: 64 tests.
+- Exact old/new public parity passed for 6 report-to-quality-gate chains
+  covering empty, artifact-level, nested training, source-review/source-gate,
+  duplicate, atom/scalar/list, blank, and unsupported evidence.
+- `mix xref callers` reports only the OperationalReadiness facade.
+- The removed collector, nested traversal, alias readers, and list collector
+  are absent from the facade apart from the thin delegate, formatting and
+  `git diff --check` passed, and the final diff is ownership-only.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-RecommendationRiskContext execution-success feedback extraction, selected in
-`a4a79ea4` and implemented in `d0e3a58c`.
-`recommendation_risk_context.ex` moved from 2,417 to 2,274 lines; the dedicated
-execution-success feedback owner is 180 lines.
+OperationalReadiness operator-training evidence extraction, selected in
+`0a2611d2` and implemented in `7d28b490`.
+`operational_readiness.ex` moved from 2,385 to 2,276 lines; the dedicated
+operator-training evidence owner is 131 lines.
 
 Next candidate:
-Complete and verify the selected OperationalReadiness operator-training
-evidence extraction.
+Re-rank the live checkout and select the next cohesive facade-preserving
+boundary.
 
 Blocked:
 No.
