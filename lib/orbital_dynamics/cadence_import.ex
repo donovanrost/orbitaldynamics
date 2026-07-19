@@ -12,6 +12,7 @@ defmodule OrbitalDynamics.CadenceImport do
     ApprovalContextPolicy,
     ActivityResultImport,
     BranchEvidenceFields,
+    CampaignReviewPackageImport,
     CandidateEvaluationImport,
     CandidateDiffFields,
     ContactContentionImport,
@@ -1035,20 +1036,10 @@ defmodule OrbitalDynamics.CadenceImport do
   Builds an import manifest from a candidate refresh artifact.
   """
   def from_candidate_refresh_artifact(%{} = artifact, opts \\ []) do
-    artifact = stringify_keys(artifact)
-
-    review_package =
-      Map.get(artifact, "operator_review_package") ||
-        OperatorReview.from_candidate_refresh_artifact(artifact)
-
-    source_artifact_id = option(opts, :source_artifact_id, Map.get(artifact, "refresh_id"))
-
-    from_operator_review_package(
-      review_package,
-      Keyword.merge(opts,
-        source_artifact_type: "candidate_refresh.v1",
-        source_artifact_id: source_artifact_id
-      )
+    CampaignReviewPackageImport.from_candidate_refresh_artifact(
+      artifact,
+      opts,
+      &from_operator_review_package/2
     )
   end
 
@@ -1110,24 +1101,10 @@ defmodule OrbitalDynamics.CadenceImport do
   Builds an import manifest from a V2 repair artifact.
   """
   def from_repair_artifact(%{} = artifact, opts \\ []) do
-    artifact = stringify_keys(artifact)
-
-    review_package =
-      Map.get(artifact, "operator_review_package") ||
-        OperatorReview.from_repair_artifact(artifact)
-
-    source_artifact_id =
-      get_in(artifact, ["repair_metadata", "repair_id"]) ||
-        Map.get(artifact, "source_plan_id", "campaign_repair")
-
-    from_operator_review_package(
-      review_package,
-      Keyword.merge(opts,
-        source_artifact_type: "campaign_repair.v2",
-        source_artifact_id: source_artifact_id,
-        source_repair_id: source_artifact_id,
-        source_plan_id: Map.get(artifact, "source_plan_id")
-      )
+    CampaignReviewPackageImport.from_repair_artifact(
+      artifact,
+      opts,
+      &from_operator_review_package/2
     )
   end
 
