@@ -6,45 +6,33 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-ResourceProjection activity delivery evidence extraction.
+StationCalendar provider-counteroffer review summary extraction.
 
 Status:
-Completed and pushed in `d80e997a`.
+Selected; implementation not started.
 
 Selected boundary:
-Extract collection/delivery timestamps, planned and actual latency, latency
-requirement margin and status, basis selection, and normalized completion
-fraction into `OrbitalDynamics.ResourceProjection.ActivityDeliveryEvidence`.
-Preserve the existing ResourceProjection public API facade.
+Extract `provider_counteroffer_review_summary.v1` construction and shared
+counteroffer lock-deadline classification into
+`OrbitalDynamics.Communications.StationCalendar.ProviderCounterofferReviewSummary`.
+Preserve the existing StationCalendar public API facade.
 
 Selection evidence:
-- Live re-ranking places `resource_projection.ex` at 3,827 lines, fourth
-  behind Schema, Timeline, and MissionPlan.Activity and ahead of
-  StationCalendar, ContactAllocation, TimelineFeedback, and
-  RecommendationRiskContext.
-- The selected helper family owns one activity delivery/progress evidence
-  responsibility used during resource-flow row projection.
-- Resource flow roll-forward, pressure classification, approval policy,
-  contact allocation, station-capacity evidence, and report aggregation remain
-  outside this boundary.
-- Existing public APIs, row fields, numeric-string acceptance, omission
-  behavior, ordering, and report/schema artifacts remain unchanged.
+- Live re-ranking places `station_calendar.ex` at 3,804 lines, fourth behind
+  Schema, Timeline, and MissionPlan.Activity and ahead of ContactAllocation,
+  TimelineFeedback, RecommendationRiskContext, LinkCapacity, and
+  ResourceProjection.
+- The selected helper family owns one review-summary artifact plus the
+  deadline classification used by downstream counteroffer summaries.
+- Canonical counteroffer report projection remains in its dedicated owner;
+  import-readiness and plan-impact summary assembly remain in the facade.
+- Calendar ingestion, availability, reservation, contention, precedence,
+  approval policy, and contact matching remain outside this boundary.
+- Existing public APIs, review rows, deadline status, counts, routing ID sets,
+  omission behavior, and deterministic ordering remain unchanged.
 
 Verification:
-- Strict test-environment compile passed with warnings as errors across 3,910
-  files.
-- Focused ResourceProjection coverage passed: 49 tests.
-- Adjacent operator-review and validation-fixture coverage passed: 7 tests.
-- Exact public old/new comparison against selection commit `299d93df` passed
-  for six report and flow-summary artifacts covering direct and metadata
-  aliases, numeric strings, derived latency, actual/planned basis selection,
-  margins, status, and completion fraction.
-- `mix xref callers` reports only the ResourceProjection facade as a runtime
-  caller of the extracted evidence owner.
-- Static ownership checks confirm activity delivery/progress projection and
-  helper calculations live in the dedicated owner while resource roll-forward
-  remains in the facade.
-- `git diff --check` passed.
+Pending.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
@@ -56,8 +44,8 @@ ResourceProjection activity delivery evidence extraction, selected in
 evidence owner is 117 lines.
 
 Next candidate:
-Re-rank the live largest-module set and select the next cohesive ownership
-boundary.
+Implement and verify the selected StationCalendar provider-counteroffer review
+summary extraction.
 
 Blocked:
 No.
