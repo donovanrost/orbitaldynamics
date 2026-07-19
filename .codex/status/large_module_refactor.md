@@ -6,52 +6,37 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-StationCalendar availability and capacity normalization extraction.
+Manifest candidate-refresh accepted planning-state extraction.
 
 Status:
-Completed and pushed in `8cf68232`.
+Selected; implementation pending.
 
 Selected boundary:
-Extract the availability/alias contract, capacity fraction and percent
-interpretation, unavailable/reservation normalization, status tokenization,
-and numeric validation into
-`OrbitalDynamics.Communications.StationCalendar.Availability`.
-Preserve the existing StationCalendar public API facade.
+Extract accepted-planning-state selection, schema validation, mission-state
+fallback construction, spacecraft-state completion, and orbit-data import
+fallback into
+`OrbitalDynamics.Study.Manifest.CandidateRefreshPlanningState`.
+Preserve the existing Manifest public API facade.
 
 Selection evidence:
-- Live re-ranking places `station_calendar.ex` at 3,655 lines, fourth behind
-  Schema, Timeline, and MissionPlan.Activity and ahead of Manifest,
-  ResourceProjection, TimelineFeedback, ContactAllocation,
-  RecommendationRiskContext, OrbitalDynamics, and LinkCapacity.
-- The selected family owns one provider-boundary responsibility used by raw
-  entry validation, ground-network conversion, overlay precedence, and
-  capability metadata: canonical availability and capacity interpretation.
-- Contact matching, direction handling, reservations, counteroffers, policy
-  decisions, feedback evidence, and artifact assembly remain outside this
-  boundary.
-- Existing aliases, precedence, numeric-string/percent handling, range
-  validation, fallback-to-full behavior, error text, and deterministic output
+- Live re-ranking places `manifest.ex` at 3,638 lines, fourth behind Schema,
+  Timeline, and MissionPlan.Activity and ahead of ResourceProjection,
+  TimelineFeedback, ContactAllocation, RecommendationRiskContext,
+  OrbitalDynamics, LinkCapacity, and StationCalendar.
+- The selected family owns one candidate-refresh input responsibility reused
+  by simulator and artifact-only manifest paths: resolving the authoritative
+  accepted planning state from explicit, mission-state, or orbit-data inputs.
+- Horizon, target/ground-station discovery, policies, activities, run options,
+  schema generation, and manifest assembly remain outside this boundary.
+- Existing source precedence, schema validation, mission-state defaults,
+  identity completion, orbit-data errors, and missing/invalid classifications
   remain unchanged.
 
 Verification:
-- Strict test-environment compile passed with warnings as errors across 3,920
-  files.
-- Focused StationCalendar coverage passed: 42 tests.
-- Adjacent station-calendar operator-review coverage passed: 3 tests.
-- Exact public old/new comparison against selection commit `6c271bee` passed
-  for capability metadata, ground-network conversion, contact overlay, and
-  report outputs across ten availability/capacity shapes plus identical errors
-  for three invalid fraction/availability cases.
-- `mix xref callers` reports only the StationCalendar facade as a runtime
-  caller of the extracted availability owner.
-- Static ownership checks confirm availability aliases, numeric/status
-  normalization, capacity interpretation, and range validation live in the
-  dedicated owner while matching and artifact responsibilities remain in the
-  facade.
-- `git diff --check` passed.
+Pending.
 
 Behavior/schema changes:
-None. This is a facade-preserving production ownership extraction.
+None intended. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
 StationCalendar availability and capacity normalization extraction, selected
