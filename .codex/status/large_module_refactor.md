@@ -9,7 +9,7 @@ Current slice:
 CadenceImport capability ownership extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and pushed in `7d081341`.
 
 Selected boundary:
 Extract the full capability declaration, schema contract/version, accepted
@@ -29,18 +29,24 @@ Selection evidence:
   schemas remain outside the boundary.
 
 Verification:
-Pending: focused capability and representative manifest baselines, exact
-old/new capability/manifest proofs, strict compile, all combined CadenceImport
-tests, schema contracts, static single ownership, runtime xref, and bounded
-review.
+- Strict warnings-as-errors compile passed across 3,846 files.
+- Three focused capability/schema/manifest tests passed.
+- All 96 combined CadenceImport tests passed.
+- All four CadenceImport schema-contract tests passed.
+- Exact old/new comparison passed for both complete public capability maps and
+  four representative direct/routed campaign and strategy manifests.
+- Static search confirms schema contract/version and accepted statuses have one
+  capability owner while the facade preserves both public capability APIs.
+- Runtime xref confirms the facade owns the dependency on the capability owner.
+- Formatting, diff checks, and bounded review passed.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-CadenceImport campaign-row builder extraction, selected in `2cfecef1` and
-implemented in `60973011`. `cadence_import.ex` moved from 907 to 866 lines; the
-dedicated builder is 61 lines.
+CadenceImport capability ownership extraction, selected in `ace1eb07` and
+implemented in `7d081341`. `cadence_import.ex` moved from 866 to 663 lines; the
+dedicated capability owner is 216 lines.
 
 Next candidate:
 Re-inventory the remaining generic facade orchestration seams after capability
