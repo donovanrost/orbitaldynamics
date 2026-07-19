@@ -2503,10 +2503,6 @@ defmodule OrbitalDynamics.TimelineFeedback do
     realized_matches = Map.get(realized_by_id, id, [])
     realized = List.first(realized_matches)
     feedback_kind = feedback_kind(planned, realized)
-    planned_delta_v = value(planned, "delta_v_km_s")
-    realized_delta_v = value(realized, "delta_v_km_s")
-    planned_delta_v_magnitude = value(planned, "delta_v_magnitude_km_s")
-    realized_delta_v_magnitude = value(realized, "delta_v_magnitude_km_s")
 
     execution_uncertainty_context =
       execution_uncertainty_reconciliation_context(planned, realized)
@@ -2594,15 +2590,7 @@ defmodule OrbitalDynamics.TimelineFeedback do
         value(planned, "exclusivity_violation_activity_ids"),
       "exclusivity_violation_timeline_ids" =>
         value(planned, "exclusivity_violation_timeline_ids"),
-      "exclusivity_violation_group" => value(planned, "exclusivity_violation_group"),
-      "planned_delta_v_km_s" => planned_delta_v,
-      "realized_delta_v_km_s" => realized_delta_v,
-      "delta_v_delta_km_s" => vector_delta(realized_delta_v, planned_delta_v),
-      "planned_delta_v_magnitude_km_s" => planned_delta_v_magnitude,
-      "realized_delta_v_magnitude_km_s" => realized_delta_v_magnitude,
-      "delta_v_magnitude_delta_km_s" =>
-        delta(realized_delta_v_magnitude, planned_delta_v_magnitude),
-      "delta_v_match_status" => match_status(planned_delta_v, realized_delta_v)
+      "exclusivity_violation_group" => value(planned, "exclusivity_violation_group")
     }
     |> Map.merge(ReconciliationCommunicationsEvidence.context(planned, realized))
     |> Map.merge(ReconciliationIdentity.context(planned, realized))
@@ -2620,6 +2608,7 @@ defmodule OrbitalDynamics.TimelineFeedback do
     |> Map.merge(
       ReconciliationTimingEvidence.context(planned, realized, timing_variance_threshold_s)
     )
+    |> Map.merge(ExecutionUncertainty.maneuver_reconciliation_context(planned, realized))
     |> Map.merge(SuccessFactor.reconciliation_context(planned, realized))
     |> Map.merge(Throughput.reconciliation_context(planned, realized))
     |> Map.merge(execution_uncertainty_context)
@@ -3655,17 +3644,6 @@ defmodule OrbitalDynamics.TimelineFeedback do
   defp delta(actual, planned) when is_number(actual) and is_number(planned), do: actual - planned
   defp delta(_actual, _planned), do: nil
 
-  defp match_status(planned, realized)
-       when planned in [nil, "", []] and realized in [nil, "", []],
-       do: nil
-
-  defp match_status(planned, _realized) when planned in [nil, "", []], do: "realized_only"
-
-  defp match_status(_planned, realized) when realized in [nil, "", []], do: "planned_only"
-
-  defp match_status(value, value), do: "matched"
-  defp match_status(_planned, _realized), do: "mismatch"
-
   defp feedback_kind(planned, realized) do
     value(planned, "operational_kind") ||
       realized_operational_kind(realized) ||
@@ -3854,7 +3832,6 @@ defmodule OrbitalDynamics.TimelineFeedback do
   defp numeric_triplet(value), do: ExecutionUncertainty.numeric_triplet(value)
   defp numeric_value(value), do: ExecutionUncertainty.numeric_value(value)
   defp vector_norm(value), do: ExecutionUncertainty.vector_norm(value)
-  defp vector_delta(actual, planned), do: ExecutionUncertainty.vector_delta(actual, planned)
 
   defp realized_observation_success_factor(activity) do
     SuccessFactor.observation(activity, @provider_result_map_value_keys)

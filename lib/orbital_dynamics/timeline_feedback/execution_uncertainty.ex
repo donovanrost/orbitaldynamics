@@ -47,6 +47,24 @@ defmodule OrbitalDynamics.TimelineFeedback.ExecutionUncertainty do
     end
   end
 
+  def maneuver_reconciliation_context(planned, realized) do
+    planned_delta_v = value(planned, "delta_v_km_s")
+    realized_delta_v = value(realized, "delta_v_km_s")
+    planned_delta_v_magnitude = value(planned, "delta_v_magnitude_km_s")
+    realized_delta_v_magnitude = value(realized, "delta_v_magnitude_km_s")
+
+    %{
+      "planned_delta_v_km_s" => planned_delta_v,
+      "realized_delta_v_km_s" => realized_delta_v,
+      "delta_v_delta_km_s" => vector_delta(realized_delta_v, planned_delta_v),
+      "planned_delta_v_magnitude_km_s" => planned_delta_v_magnitude,
+      "realized_delta_v_magnitude_km_s" => realized_delta_v_magnitude,
+      "delta_v_magnitude_delta_km_s" =>
+        delta(realized_delta_v_magnitude, planned_delta_v_magnitude),
+      "delta_v_match_status" => match_status(planned_delta_v, realized_delta_v)
+    }
+  end
+
   def maneuver_delta_v(activity) do
     first_value(activity, [
       "delta_v_km_s",
@@ -174,7 +192,20 @@ defmodule OrbitalDynamics.TimelineFeedback.ExecutionUncertainty do
   defp missing?(%{"execution_uncertainty_status" => "missing"}), do: true
   defp missing?(_context), do: false
 
+  defp value(nil, _key), do: nil
   defp value(map, key), do: Map.get(map, key)
+
+  defp delta(actual, planned) when is_number(actual) and is_number(planned), do: actual - planned
+  defp delta(_actual, _planned), do: nil
+
+  defp match_status(planned, realized)
+       when planned in [nil, "", []] and realized in [nil, "", []],
+       do: nil
+
+  defp match_status(planned, _realized) when planned in [nil, "", []], do: "realized_only"
+  defp match_status(_planned, realized) when realized in [nil, "", []], do: "planned_only"
+  defp match_status(value, value), do: "matched"
+  defp match_status(_planned, _realized), do: "mismatch"
 
   defp first_value(map, keys) do
     Enum.reduce_while(keys, nil, fn key, _value ->
