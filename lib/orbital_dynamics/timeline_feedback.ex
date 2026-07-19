@@ -90,6 +90,7 @@ defmodule OrbitalDynamics.TimelineFeedback do
   alias OrbitalDynamics.TimelineFeedback.{
     ArtifactValue,
     ExecutionUncertainty,
+    FeedbackAggregation,
     OutcomeValue,
     ProviderResult,
     ReconciliationCommunicationsEvidence,
@@ -2733,71 +2734,13 @@ defmodule OrbitalDynamics.TimelineFeedback do
     end)
   end
 
-  defp operational_feedback_excluded?(%{"operational_feedback_excluded" => true}), do: true
-  defp operational_feedback_excluded?(%{} = row), do: invalid_operational_feedback_identity?(row)
-  defp operational_feedback_excluded?(_row), do: false
+  defp operational_feedback_excluded?(row), do: FeedbackAggregation.excluded?(row)
 
-  defp invalid_operational_feedback_identity?(row) do
-    ["activity_id", "ground_station_id", "target_id", "spacecraft_id", "resource_id"]
-    |> Enum.any?(fn field ->
-      case Map.get(row, field) do
-        value when value in [nil, ""] -> false
-        value -> is_nil(stable_scalar_identifier(value))
-      end
-    end)
-  end
+  defp feedback_average_by(rows, key_fun, value_fun),
+    do: FeedbackAggregation.average_by(rows, key_fun, value_fun)
 
-  defp feedback_average_by(rows, key_fun, value_fun) do
-    rows
-    |> Enum.reject(&operational_feedback_excluded?/1)
-    |> Enum.reduce(%{}, fn row, grouped ->
-      key = stable_scalar_identifier(key_fun.(row))
-      value = value_fun.(row)
-      weight = feedback_average_weight(row)
-
-      if is_binary(key) and key != "" and is_number(value) and is_number(weight) and
-           weight > 0.0 do
-        Map.update(grouped, key, [{value, weight}], &[{value, weight} | &1])
-      else
-        grouped
-      end
-    end)
-    |> Enum.map(fn {key, weighted_values} ->
-      average =
-        weighted_average(weighted_values)
-        |> clamp_unit_interval()
-
-      {key, average}
-    end)
-    |> Enum.sort_by(fn {key, _value} -> key end)
-    |> Map.new()
-  end
-
-  defp feedback_text_by(rows, key_fun, value_fun) do
-    rows
-    |> Enum.reject(&operational_feedback_excluded?/1)
-    |> Enum.reduce(%{}, fn row, grouped ->
-      key = stable_scalar_identifier(key_fun.(row))
-      value = value_fun.(row)
-
-      if is_binary(key) and key != "" and is_binary(value) and value != "" do
-        Map.update(grouped, key, [value], &[value | &1])
-      else
-        grouped
-      end
-    end)
-    |> Enum.map(fn {key, values} ->
-      value =
-        values
-        |> Enum.uniq()
-        |> Enum.sort()
-        |> List.first()
-
-      {key, value}
-    end)
-    |> Enum.sort_by(fn {key, _value} -> key end)
-    |> Map.new()
-  end
+  defp feedback_text_by(rows, key_fun, value_fun),
+    do: FeedbackAggregation.text_by(rows, key_fun, value_fun)
 
   defp downlink_demand_feedback(rows) do
     rows
@@ -3287,11 +3230,7 @@ defmodule OrbitalDynamics.TimelineFeedback do
   defp feedback_resource_value(%{} = source, field), do: Map.get(source, field)
   defp feedback_resource_value(_source, _field), do: nil
 
-  defp stable_scalar_identifier(value) do
-    value
-    |> stringify_scalar()
-    |> stable_identifier()
-  end
+  defp stable_scalar_identifier(value), do: FeedbackAggregation.stable_identifier(value)
 
   defp merge_string_lists(current, candidate) do
     [current, candidate]
@@ -3399,12 +3338,6 @@ defmodule OrbitalDynamics.TimelineFeedback do
   end
 
   defp command_success_feedback_value(_row), do: nil
-
-  defp clamp_unit_interval(value) when is_number(value) do
-    value
-    |> max(0.0)
-    |> min(1.0)
-  end
 
   defp weighted_average(weighted_values) do
     OutcomeValue.weighted_average(weighted_values)
@@ -3561,8 +3494,6 @@ defmodule OrbitalDynamics.TimelineFeedback do
     do: RealizedStatus.unsupported_value(source_activity, reason, @realized_status_policy)
 
   defp realized_id!(activity), do: RealizedIdentity.id!(activity, @stable_id_pattern)
-
-  defp stable_identifier(value), do: RealizedIdentity.stable_value(value, @stable_id_pattern)
 
   defp first_number(map, keys), do: Throughput.first_number(map, keys)
   defp planned_data_volume_mb(activity), do: Throughput.planned_data_volume_mb(activity)
