@@ -28,6 +28,7 @@ defmodule OrbitalDynamics.CadenceImport do
     ManifestMapNormalization,
     OperationalReadinessContext,
     OperationalTimelineImport,
+    ProposedContactImport,
     ProviderResultNormalization,
     ResourceProjectionImport,
     ReviewPackageImport,
@@ -929,22 +930,11 @@ defmodule OrbitalDynamics.CadenceImport do
   Builds an import manifest from a standalone proposed-contact row.
   """
   def from_proposed_contact(%{} = contact, opts \\ []) do
-    contact = stringify_keys(contact)
-    source_artifact_id = option(opts, :source_artifact_id, contact["id"])
-
-    build_manifest(
-      [proposed_contact_manifest_row(contact, 1)],
-      %{
-        "source" => "OrbitalDynamics.CadenceImport.from_proposed_contact",
-        "source_artifact_type" => "proposed_contact.v1",
-        "source_artifact_id" => source_artifact_id
-      },
-      %{
-        "source_artifact_type" => "proposed_contact.v1",
-        "source_artifact_id" => source_artifact_id || "proposed_contact",
-        "row_source" => "proposed_contact",
-        "deterministic_ordering" => "single proposed contact"
-      }
+    ProposedContactImport.build(
+      contact,
+      opts,
+      row: &proposed_contact_manifest_row/2,
+      build_manifest: &build_manifest/3
     )
   end
 
@@ -2040,8 +2030,6 @@ defmodule OrbitalDynamics.CadenceImport do
 
   defp generic_review_import_action(review_type),
     do: GenericReviewActionPolicy.resolve(review_type)
-
-  defp option(opts, key, default), do: Keyword.get(opts, key, default)
 
   defp unsupported_manifest_contract(artifact),
     do: ManifestContractDiagnostics.unsupported_contract(artifact)
