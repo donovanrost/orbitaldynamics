@@ -6,44 +6,34 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-TimelineFeedback reconciliation lifecycle-evidence extraction.
+StationCalendar provider-counteroffer normalization extraction.
 
 Status:
-Completed and pushed in `ea3a4941`.
+Selected; implementation not started.
 
 Selected boundary:
-Extract row lifecycle status, planned/realized type and status, public status
-transition, protection decision, source activities, and activity contexts into
-`OrbitalDynamics.TimelineFeedback.ReconciliationLifecycleEvidence`. Preserve
-the existing report and row assembly facade.
+Extract provider-counteroffer detection, aliased field resolution, stable
+counteroffer identity, negotiation-state normalization, and numeric offer
+fields into
+`OrbitalDynamics.Communications.StationCalendar.ProviderCounteroffer`.
+Preserve the existing StationCalendar public APIs and report assembly facade.
 
 Selection evidence:
-- Live re-ranking places `timeline_feedback.ex` at 3,842 lines, six lines ahead
-  of Manifest and ahead of ContactAllocation, behind the three larger
-  orchestration-heavy facades.
-- The selected fields and five helper families form one planned-versus-realized
-  lifecycle/protection evidence responsibility.
-- Status transition and protection continue to delegate to the public Timeline
-  owner; configuration and algorithms are not duplicated.
-- Matching metadata, ingress, plan, resource, timing, outcome, and aggregation
-  responsibilities remain separate.
-- Existing public report APIs and artifact row shapes remain unchanged.
+- Live re-ranking places `station_calendar.ex` at 4,012 lines, fourth behind
+  Schema, Timeline, and MissionPlan.Activity and ahead of Manifest,
+  ResourceProjection, ContactAllocation, and TimelineFeedback.
+- The selected helper family owns one external provider-counteroffer
+  normalization vocabulary used by both calendar ingestion and counteroffer
+  artifact projection.
+- Provider-counteroffer report, review, import-readiness, and plan-impact
+  assembly remain in the facade for later responsibility-focused slices.
+- Station availability, reservation, contention, precedence, approval-policy,
+  and contact matching behavior remain outside this boundary.
+- Existing public APIs, normalized row shapes, report artifacts, capability
+  vocabularies, and deterministic ordering remain unchanged.
 
 Verification:
-- Strict test-environment compile passed with warnings as errors across 3,906
-  files.
-- Focused TimelineFeedback coverage passed: 73 tests.
-- Adjacent operator-review, Cadence import, and contact-feedback contract
-  coverage passed: 79 tests.
-- Exact public old/new comparison against selection commit `f517ed33` passed
-  for six reports with asserted lifecycle status, transition, protection,
-  source activity, and activity-context evidence.
-- `mix xref callers` reports only the TimelineFeedback facade as a runtime
-  caller of the extracted owner.
-- Static ownership checks confirm lifecycle projection and its helper families
-  live in the dedicated owner while matching and aggregation remain in the
-  facade.
-- `git diff --check` passed.
+Pending.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
@@ -55,8 +45,8 @@ TimelineFeedback reconciliation lifecycle-evidence extraction, selected in
 83 lines.
 
 Next candidate:
-Re-rank the live largest-module set and select the next cohesive ownership
-boundary.
+Implement and verify the selected StationCalendar provider-counteroffer
+normalization extraction.
 
 Blocked:
 No.
