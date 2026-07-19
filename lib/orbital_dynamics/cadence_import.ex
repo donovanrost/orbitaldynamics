@@ -17,6 +17,7 @@ defmodule OrbitalDynamics.CadenceImport do
     JsonNormalization,
     ManifestContractDiagnostics,
     ManifestMapNormalization,
+    ManifestRowNormalization,
     OperationalReadinessContext,
     ProviderResultNormalization,
     ReviewSummaryContext,
@@ -2332,37 +2333,14 @@ defmodule OrbitalDynamics.CadenceImport do
 
   defp review_summary_context(package), do: ReviewSummaryContext.build(package)
 
-  defp normalize_import_row(%{} = row) do
-    case Map.fetch(row, "cadence_import_status") do
-      {:ok, status} ->
-        normalize_import_row_status(row, status)
-
-      :error ->
-        row
-    end
-  end
+  defp normalize_import_row(row),
+    do: ManifestRowNormalization.normalize(row, @cadence_import_statuses)
 
   defp put_run_input_sources(row, %{"run_input_sources" => sources})
        when is_map(sources) and map_size(sources) > 0,
        do: Map.put(row, "run_input_sources", sources)
 
   defp put_run_input_sources(row, _source_row), do: row
-
-  defp normalize_import_row_status(row, status) do
-    normalized_status = encode_json_value(status)
-
-    if normalized_status in @cadence_import_statuses do
-      Map.put(row, "cadence_import_status", normalized_status)
-    else
-      row
-      |> Map.put("cadence_import_status", "invalid")
-      |> Map.put("import_status", "review_required_before_import")
-      |> Map.put("has_cadence_import", false)
-      |> Map.put("invalid_cadence_import", true)
-      |> Map.put_new("invalid_cadence_import_reason", "unsupported_cadence_import_status")
-      |> Map.put("unsupported_cadence_import_status", encode_json_value(status))
-    end
-  end
 
   defp count_by(rows, field) do
     rows
