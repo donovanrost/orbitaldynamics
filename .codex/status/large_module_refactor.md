@@ -6,43 +6,34 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-CadenceImport JSON normalization extraction.
+CadenceImport branch-evidence field catalog extraction.
 
 Status:
-Completed and published.
+Selected; implementation has not started.
 
 Selected boundary:
-Extract recursive atom-key normalization and JSON-safe value encoding into
-`OrbitalDynamics.CadenceImport.JsonNormalization`. Move the complete
-`stringify_keys/1` and `encode_json_value/1` clause families while preserving
-their two existing private facade call seams as delegates.
+Extract the static branch contact-allocation, readiness/quality-gate, and
+timeline evidence field catalogs into
+`OrbitalDynamics.CadenceImport.BranchEvidenceFields`. Preserve the facade's
+three existing zero-arity callback seams as delegates; keep the timeline
+activity/publication subcatalog composition private to the new owner.
 
 Selection evidence:
-- `cadence_import.ex` is now 3,554 lines.
-- The selected contiguous recursive family spans about 22 lines and serves the
-  facade's many atom-key compatibility paths plus unsupported-status encoding.
-- The family has one responsibility: convert Elixir-shaped keys and values into
-  deterministic JSON-safe data while preserving the distinct behavior of key
-  normalization versus general value encoding.
-- Dispatch, row construction, capability diagnostics, provider normalization,
-  schemas, ordering, and manifest construction remain outside the boundary.
+- `cadence_import.ex` is now 3,536 lines.
+- The selected contiguous catalog family spans about 115 lines and is shared by
+  branch-comparison and strategy-recommendation row builders through stable
+  callbacks.
+- The family has one responsibility: declare the exact source field allowlists
+  copied into branch evidence, including timeline activity plus publication
+  composition and order.
+- Dispatch, row construction, review actions, provider normalization, schemas,
+  ordering outside these lists, and manifest construction remain outside the
+  boundary.
 
 Verification:
-- Strict test compile passed with 3,810 files and warnings as errors.
-- Three focused atom-key, execution-report, and unsupported-status tests passed
-  with 69 excluded.
-- All combined CadenceImport tests passed: 96 tests.
-- CadenceImport schema contracts passed: 4 tests.
-- A 9-case direct recursive matrix covered nested atom keys, nulls, preserved
-  atom and tuple values during key normalization, map encoding, list atoms,
-  tuples, scalar atoms, and scalar passthrough.
-- Formatting and diff checks passed, and no temporary proof files remain.
-- Static ownership checks confirmed both recursive clause families have one
-  production implementation behind the preserved facade seams.
-- Runtime xref confirmed `cadence_import.ex` is the direct consumer of
-  `json_normalization.ex`.
-- Bounded local review found no recursion, clause-order, dispatch, output-shape,
-  or null/atom/tuple behavior changes.
+Pending: focused branch-row baselines, exact ordered catalog equivalence proof,
+strict compile, all combined CadenceImport tests, schema contracts, static
+single ownership, runtime xref, and bounded review.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
@@ -54,7 +45,7 @@ the extracted owner is 28 lines.
 
 Next candidate:
 Return to the remaining CadenceImport row-building or manifest-routing helpers
-after JSON normalization has one production owner.
+after branch-evidence field selection has one production owner.
 
 Blocked:
 No.
