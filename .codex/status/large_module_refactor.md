@@ -6,41 +6,30 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Study.Manifest schema-property ownership extraction.
+TimelineFeedback reconciliation outcome-evidence extraction.
 
 Status:
-Completed and pushed in `924833ac`.
+Selected; implementation not started.
 
 Selected boundary:
-Extract the reusable JSON-schema object, array, string, numeric, boolean, enum,
-and station-availability property builders into
-`OrbitalDynamics.Study.Manifest.SchemaProperty`. Preserve the existing public
-Manifest schema and loader facade.
+Extract contact, command, observation, and maneuver success/result projection,
+completed fraction, reason, and their reconciliation-only outcome helpers into
+`OrbitalDynamics.TimelineFeedback.ReconciliationOutcomeEvidence`. Preserve the
+existing report and row assembly facade.
 
 Selection evidence:
-- Live re-ranking places `study/manifest.ex` at 4,075 lines, five lines ahead
-  of TimelineFeedback and behind the three larger orchestration-heavy facades.
-- The selected helpers form one schema-property vocabulary used only by
-  Manifest JSON-schema construction.
-- Runtime parsing, semantic validation, artifact schema lookup, vector schema,
-  and all public schema/export APIs remain in the facade.
-- This owner provides a non-duplicated primitive boundary for a later
-  realized-activity input-schema extraction.
+- Live re-ranking places `timeline_feedback.ex` at 4,070 lines, 31 lines ahead
+  of Manifest and behind the three larger orchestration-heavy facades.
+- The selected fields and helpers form one provider-result/status-to-outcome
+  projection responsibility.
+- Provider-result normalization and feedback-factor consumers remain with
+  their existing owners. Identity, timing, throughput, resource,
+  communications, observation-quality, and station-calendar evidence remain
+  separate.
 - Existing public report APIs and artifact row shapes remain unchanged.
 
 Verification:
-- Strict test-environment compile passed with warnings as errors across 3,899
-  files.
-- Focused Manifest coverage passed: 42 tests.
-- Adjacent manifest lint/reference/schema-export and schema-lint task coverage
-  passed: 30 tests.
-- Exact public old/new comparison against selection commit `0105af34` passed
-  for the complete Manifest JSON Schema.
-- `mix xref callers` reports only the Manifest facade as an export-time caller
-  of the extracted owner.
-- Static ownership checks confirm all selected builders live in SchemaProperty
-  while runtime parsing and semantic validation remain in the facade.
-- `git diff --check` passed.
+Pending.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
@@ -52,8 +41,8 @@ and implemented in `924833ac`.
 lines.
 
 Next candidate:
-Re-rank the live largest-module set and select the next cohesive ownership
-boundary.
+Implement and verify the selected TimelineFeedback reconciliation
+outcome-evidence extraction.
 
 Blocked:
 No.
