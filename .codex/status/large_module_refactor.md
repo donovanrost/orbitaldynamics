@@ -6,69 +6,57 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-OperationalReadiness evidence-normalization extraction.
+RecommendationRiskContext contact-intent extraction.
 
 Status:
-Completed and pushed in `c8501c35`.
+Selected; implementation not started.
 
 Selected boundary:
-Extract readiness row access/counting plus freshness, schema-validation,
-source-model/model-limit, and policy-classification evidence normalization
-into `OrbitalDynamics.OperationalReadiness.EvidenceNormalization`. Preserve
-the public OperationalReadiness facade and private delegates used by the
-central evidence builder and quality-gate summaries.
+Extract the contact-intent risk-context key contract, downlink-completion-gap
+predicate, atom-key normalization, value aggregation, and context projection
+into `OrbitalDynamics.RecommendationRiskContext.ContactIntent`. Preserve the
+public RecommendationRiskContext facade through direct key/context delegates.
 
 Selection evidence:
-- Live re-ranking placed `operational_readiness.ex` at 2,766 lines, fourth
-  behind Schema, Timeline, and MissionPlan.Activity, and ahead of
-  RecommendationRiskContext, TimelineFeedback, StationCalendar, and
-  LinkCapacity.
-- The extracted family owns artifact/review/import freshness extraction,
-  schema-validation status and issue counts, source model and model-limit
-  collection, policy classification extraction, scalar normalization, and
-  deterministic frequency aggregation.
-- The central readiness evidence builder consumes all normalized families;
-  quality-gate and resource summaries also consume row extraction, integer,
-  list, normalized-string, and map-value primitives through narrow delegates.
-- Gate construction, resource/adapter/operator-training/timeline evidence,
-  import classification, execution boundaries, public clauses, and artifact
-  contracts remain outside this boundary.
+- Live re-ranking places `recommendation_risk_context.ex` at 2,748 lines,
+  fourth behind Schema, Timeline, and MissionPlan.Activity, and ahead of
+  TimelineFeedback, StationCalendar, LinkCapacity, and ContactContention.
+- The selected family owns 38 contact-intent context keys, the contact-intent
+  downlink-completion-gap predicate, contact-intent filtering, atom-key
+  normalization, scalar/list value aggregation, nil omission, and context-map
+  construction.
+- Only the public `contact_intent_context_keys/0` and
+  `contact_intent_context/1` facade functions consume this responsibility.
+- Other risk families, shared facade context helpers, public contracts, and
+  recommendation assembly remain outside this boundary.
+- Existing input-order uniqueness, first-seen ordering, scalar versus list
+  flattening, atom-key normalization, exact predicate matching, nil/empty
+  omission, invalid-input fallback, and output keys must remain unchanged.
 
-Verification:
-- Strict warning-clean compile passed across 3,956 files:
-  `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 mix compile --force --warnings-as-errors`.
-- Focused OperationalReadiness regression passed 31 tests; adjacent
-  operational-readiness/quality-gate operator review, candidate-refresh
-  replay, and validation fixture consumers passed 22 tests. The final
-  consolidated run passed all 53 tests.
-- Exact old/new parity passed 9 comparisons from selection commit `a361cea1`
-  with `/tmp/operational_readiness_evidence_normalization_compare.exs`,
-  covering review/import rows, direct freshness/schema/policy artifacts,
-  mixed atom/string/integer/float coercion, nested source evidence, model
-  limits, empty evidence, quality-gate wrapping, and public errors.
-- `mix xref callers
-  OrbitalDynamics.OperationalReadiness.EvidenceNormalization` reports only the
-  OperationalReadiness facade.
-- Compile-connected xref scope for the new owner does not expand beyond the
-  owner itself.
-- Focused formatting, `git diff --check`, removed-family static checks, and
-  final facade/owner review passed.
+Verification plan:
+- Run the strict warning-clean compile before and after implementation.
+- Run the focused RecommendationRiskContext regression file and adjacent
+  contact-intent/recommendation consumers selected from live references.
+- Run exact old/new parity from this selection commit across string/atom keys,
+  type/risk_type predicates, scalar/list values, duplicates, unrelated risks,
+  empty/invalid inputs, deterministic ordering, and full key contracts.
+- Run `mix xref callers` for the new owner, inspect compile-connected
+  dependents, check formatting and `git diff --check`, prove the removed
+  helper family is absent from the facade, and review final facade/owner
+  boundaries.
 
 Behavior/schema changes:
-None. The public OperationalReadiness facade, nested lookup precedence,
-blank/null omission, vocabularies, integer coercion, list wrapping, frequency
-semantics, row filtering, deterministic artifacts, and exact errors are
-unchanged.
+None intended.
 
 Last completed slice:
 OperationalReadiness evidence-normalization extraction, selected in
-`a361cea1` and implemented in `c8501c35`.
+`a361cea1`, implemented in `c8501c35`, and handed off in `f721f395`.
 `operational_readiness.ex` moved from 2,766 to 2,500 lines; the dedicated
 evidence-normalization owner is 312 lines.
 
 Next candidate:
-Re-rank the live largest-module inventory and select the next cohesive,
-facade-preserving ownership boundary.
+Implement and verify the selected RecommendationRiskContext contact-intent
+extraction.
 
 Blocked:
 No.
