@@ -9,7 +9,7 @@ Current slice:
 CadenceImport branch-evidence field catalog extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and published.
 
 Selected boundary:
 Extract the static branch contact-allocation, readiness/quality-gate, and
@@ -31,17 +31,28 @@ Selection evidence:
   boundary.
 
 Verification:
-Pending: focused branch-row baselines, exact ordered catalog equivalence proof,
-strict compile, all combined CadenceImport tests, schema contracts, static
-single ownership, runtime xref, and bounded review.
+- Strict test compile passed with 3,811 files and warnings as errors.
+- Two focused branch-row tests passed with 70 excluded.
+- All combined CadenceImport tests passed: 96 tests.
+- CadenceImport schema contracts passed: 4 tests.
+- An AST-derived proof against selection commit `d4c737af` confirmed exact
+  ordered equality for all catalogs: 9 contact-allocation fields, 24 readiness/
+  quality-gate fields, and 61 composed timeline fields.
+- Formatting and diff checks passed, and no temporary proof files remain.
+- Static ownership checks confirmed the three catalogs and two timeline
+  subcatalogs have one production implementation behind preserved facade seams.
+- Runtime xref confirmed `cadence_import.ex` is the direct consumer of
+  `branch_evidence_fields.ex`.
+- Bounded local review found no callback, membership, order, composition,
+  row-shape, or schema changes.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-CadenceImport JSON normalization extraction, selected in `b9b31830` and
-implemented in `f6ebf3bf`. `cadence_import.ex` moved from 3,554 to 3,536 lines;
-the extracted owner is 28 lines.
+CadenceImport branch-evidence field catalog extraction, selected in `d4c737af`
+and implemented in `bac4dd7e`. `cadence_import.ex` moved from 3,536 to 3,428
+lines; the extracted owner is 121 lines.
 
 Next candidate:
 Return to the remaining CadenceImport row-building or manifest-routing helpers
