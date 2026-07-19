@@ -9,7 +9,7 @@ Current slice:
 CadenceImport candidate-diff field policy extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and published.
 
 Selected boundary:
 Extract candidate-diff changed-field derivation and count normalization into
@@ -28,17 +28,30 @@ Selection evidence:
   manifest construction remain outside the boundary.
 
 Verification:
-Pending: focused candidate-refresh and approval-requirement baselines, exact
-field/count decision matrix, strict compile, all combined CadenceImport tests,
-schema contracts, static single ownership, runtime xref, and bounded review.
+- Strict test compile passed with 3,814 files and warnings as errors.
+- Two focused candidate-refresh and approval-requirement tests passed with 70
+  excluded.
+- All combined CadenceImport tests passed: 96 tests.
+- CadenceImport schema contracts passed: 4 tests.
+- A 9-case direct decision matrix covered explicit fields, absent-key fallback,
+  present-nil suppression of fallback, scalar wrapping, semantic-detail merging,
+  binary filtering, uniqueness, sorting, missing data, and count normalization.
+- Formatting and diff checks passed, and no temporary proof files remain.
+- Static ownership checks confirmed derivation, semantic-detail collection, and
+  count normalization have one production implementation behind preserved
+  facade callback seams.
+- Runtime xref confirmed `cadence_import.ex` is the direct consumer of
+  `candidate_diff_fields.ex`.
+- Bounded local review found no callback, fallback, merge, filter, order, count,
+  row-shape, or schema changes.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-CadenceImport approval-context selection policy extraction, selected in
-`a0ced38d` and implemented in `6b3411ab`. `cadence_import.ex` moved from 3,407
-to 3,361 lines; the extracted owner is 64 lines.
+CadenceImport candidate-diff field policy extraction, selected in `47b70576`
+and implemented in `84d11b0a`. `cadence_import.ex` moved from 3,361 to 3,349
+lines; the extracted owner is 22 lines.
 
 Next candidate:
 Return to the remaining CadenceImport row-building or manifest-routing helpers
