@@ -9,7 +9,7 @@ Current slice:
 Schema timeline-transition validation extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and published in `17e58a4b`.
 
 Selected boundary:
 Extract timeline transition-application report, summary, row,
@@ -30,17 +30,24 @@ Selection evidence:
   source validation, and all public `Schema` APIs remain outside.
 
 Verification:
-Pending: focused transition report/summary baselines, exact old/new fixture
-validation reports, strict compile, broader Schema contract tests, schema export
-checks, static single ownership, runtime xref, and bounded review.
+- Strict compile passed across 3,858 files with warnings as errors.
+- All 8 focused transition report/summary tests passed.
+- All 175 split Schema contract tests passed with warnings as errors.
+- All 15 JSON-export contract tests passed.
+- Exact old/new executable comparison passed for 8 valid and intentionally
+  invalid checked-in transition reports.
+- Static ownership confirms one timeline-transition validation owner with seven
+  required private Schema seams and three explicit facade callbacks.
+- Runtime xref, format, diff checks, and bounded review passed.
+- `schema.ex` moved from 7,141 to 7,119 lines; the new owner is 140 lines.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-Schema timeline-source validation extraction, selected in `6d33c608` and
-implemented in `abaa5617`. `schema.ex` moved from 7,204 to 7,141 lines; the
-dedicated owner is 135 lines.
+Schema timeline-transition validation extraction, selected in `76e489e1` and
+implemented in `17e58a4b`. `schema.ex` moved from 7,141 to 7,119 lines; the
+dedicated owner is 140 lines.
 
 Next candidate:
 Re-inventory remaining Schema family-validation clusters after timeline
