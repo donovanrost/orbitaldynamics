@@ -13,6 +13,7 @@ defmodule OrbitalDynamics.CadenceImport do
     BranchEvidenceFields,
     CandidateEvaluationImport,
     CandidateDiffFields,
+    ContactContentionImport,
     ContactPlanningImport,
     ConstraintObjectiveImport,
     GenericReviewActionPolicy,
@@ -1210,47 +1211,17 @@ defmodule OrbitalDynamics.CadenceImport do
   Builds an import manifest from a contact-contention report.
   """
   def from_contact_contention_report(%{} = report, opts \\ []) do
-    report = stringify_keys(report)
-
-    review_package =
-      Map.get(report, "operator_review_package") ||
-        OperatorReview.from_contact_contention_report(report)
-
-    source_artifact_id =
-      option(opts, :source_artifact_id, Map.get(report, "id") || "contact_contention_report")
-
-    from_operator_review_package(
-      review_package,
-      Keyword.merge(opts,
-        source_artifact_type: "contact_contention_report.v1",
-        source_artifact_id: source_artifact_id
-      )
-    )
+    ContactContentionImport.from_contact_contention_report(report, opts, &from_review_report/4)
   end
 
   @doc """
   Builds an import manifest from a contact-contention resolution report.
   """
   def from_contact_contention_resolution_report(%{} = report, opts \\ []) do
-    report = stringify_keys(report)
-
-    review_package =
-      Map.get(report, "operator_review_package") ||
-        OperatorReview.from_contact_contention_resolution_report(report)
-
-    source_artifact_id =
-      option(
-        opts,
-        :source_artifact_id,
-        Map.get(report, "id") || "contact_contention_resolution_report"
-      )
-
-    from_operator_review_package(
-      review_package,
-      Keyword.merge(opts,
-        source_artifact_type: "contact_contention_resolution_report.v1",
-        source_artifact_id: source_artifact_id
-      )
+    ContactContentionImport.from_contact_contention_resolution_report(
+      report,
+      opts,
+      &from_review_report/4
     )
   end
 
