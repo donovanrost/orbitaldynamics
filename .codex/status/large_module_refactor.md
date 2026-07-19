@@ -6,48 +6,32 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Manifest ground-track crossing input extraction.
+ResourceProjection activity delivery evidence extraction.
 
 Status:
-Completed and pushed in `03ef30f0`.
+Selected; implementation not started.
 
 Selected boundary:
-Extract ground-track crossing request validation, rotation options,
-constant/tabular Earth-orientation provider selection, and tabular sample
-normalization into
-`OrbitalDynamics.Study.Manifest.GroundTrackCrossingInput`.
-Preserve the existing Manifest public API facade.
+Extract collection/delivery timestamps, planned and actual latency, latency
+requirement margin and status, basis selection, and normalized completion
+fraction into `OrbitalDynamics.ResourceProjection.ActivityDeliveryEvidence`.
+Preserve the existing ResourceProjection public API facade.
 
 Selection evidence:
-- Live re-ranking places `manifest.ex` at 3,836 lines, fourth behind Schema,
-  Timeline, and MissionPlan.Activity and ahead of ResourceProjection,
-  StationCalendar, ContactAllocation, and TimelineFeedback.
-- The selected helper family owns one manifest-input responsibility spanning
-  crossing shape, rotation configuration, provider selection, and provider
-  sample normalization.
-- The dedicated input owner can reuse the existing Manifest.InputField owner
-  and public environment provider modules without duplicating parsing policy.
-- Target parsing, candidate refresh, accepted planning state, run options,
-  schema export, file loading, and study execution remain outside this
-  boundary.
-- Existing public APIs, error tuples, normalized keyword values, provider
-  selection, ordering, and exported schema remain unchanged.
+- Live re-ranking places `resource_projection.ex` at 3,827 lines, fourth
+  behind Schema, Timeline, and MissionPlan.Activity and ahead of
+  StationCalendar, ContactAllocation, TimelineFeedback, and
+  RecommendationRiskContext.
+- The selected helper family owns one activity delivery/progress evidence
+  responsibility used during resource-flow row projection.
+- Resource flow roll-forward, pressure classification, approval policy,
+  contact allocation, station-capacity evidence, and report aggregation remain
+  outside this boundary.
+- Existing public APIs, row fields, numeric-string acceptance, omission
+  behavior, ordering, and report/schema artifacts remain unchanged.
 
 Verification:
-- Strict test-environment compile passed with warnings as errors across 3,909
-  files.
-- Focused Manifest coverage passed: 42 tests.
-- Adjacent StudyRunner and ground-track event-detector coverage passed: 31
-  tests.
-- Exact public old/new comparison against selection commit `294e8ca0` passed
-  for seven valid/invalid manifest inputs plus exact exported JSON Schema
-  equality.
-- `mix xref callers` reports only the Manifest facade as a runtime caller of
-  the extracted input owner.
-- Static ownership checks confirm crossing validation, rotation options,
-  provider selection, and tabular sample normalization live in the dedicated
-  owner while schema and execution remain in their existing owners.
-- `git diff --check` passed.
+Pending.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
@@ -59,8 +43,8 @@ implemented in `03ef30f0`.
 lines.
 
 Next candidate:
-Re-rank the live largest-module set and select the next cohesive ownership
-boundary.
+Implement and verify the selected ResourceProjection activity delivery
+evidence extraction.
 
 Blocked:
 No.
