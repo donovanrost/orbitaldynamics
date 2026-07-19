@@ -15,6 +15,7 @@ defmodule OrbitalDynamics.Schema do
     OperationalReadinessValidation,
     PolicyValidation,
     ResourceValidation,
+    SourceEvidenceValidation,
     StationReservationValidation,
     TimelineContextValidation,
     TimelineSourceValidation,
@@ -6661,54 +6662,29 @@ defmodule OrbitalDynamics.Schema do
         policy_model_limits()
       )
 
-  defp validate_source_evidence_fields(issues, path, row) do
-    OrbitalDynamics.Schema.SourceEvidenceContracts.validate_fields(
-      issues,
-      path,
-      row,
-      &OrbitalDynamics.Schema.ResourceProjectionHandoffContracts.validate_battery_handoff_fields/3,
-      &OrbitalDynamics.Schema.ResourceProjectionHandoffContracts.validate_battery_handoff_matches_own_flow/3
-    )
-  end
+  defp validate_source_evidence_fields(issues, path, row),
+    do: SourceEvidenceValidation.validate_fields(issues, path, row)
 
-  defp validate_freshness_source_status_matches(
-         issues,
-         path,
-         row
-       ) do
-    OrbitalDynamics.Schema.SourceStatusContracts.validate_freshness_matches(
-      issues,
-      path,
-      row,
-      freshness_statuses()
-    )
-  end
+  defp validate_freshness_source_status_matches(issues, path, row),
+    do:
+      SourceEvidenceValidation.validate_freshness_status_matches(
+        issues,
+        path,
+        row,
+        freshness_statuses()
+      )
 
-  defp validate_schema_validation_source_status_matches(
-         issues,
-         path,
-         row
-       ) do
-    OrbitalDynamics.Schema.SourceStatusContracts.validate_schema_validation_matches(
-      issues,
-      path,
-      row,
-      schema_validation_statuses()
-    )
-  end
+  defp validate_schema_validation_source_status_matches(issues, path, row),
+    do:
+      SourceEvidenceValidation.validate_schema_validation_status_matches(
+        issues,
+        path,
+        row,
+        schema_validation_statuses()
+      )
 
-  defp validate_execution_source_status_matches(
-         issues,
-         path,
-         row
-       ) do
-    OrbitalDynamics.Schema.SourceStatusContracts.validate_execution_matches(
-      issues,
-      path,
-      row,
-      OrbitalDynamics.Schema.ExecutionReportContracts.statuses()
-    )
-  end
+  defp validate_execution_source_status_matches(issues, path, row),
+    do: SourceEvidenceValidation.validate_execution_status_matches(issues, path, row)
 
   defp validate_contact_allocation_handoff_fields(issues, path, row) do
     OrbitalDynamics.Schema.ContactAllocationHandoffContracts.validate_allocation_fields(
