@@ -9,7 +9,7 @@ Current slice:
 CadenceImport manifest routing extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and published.
 
 Selected boundary:
 Extract all 179 `manifest/2` pattern clauses into
@@ -27,17 +27,30 @@ Selection evidence:
   manifest assembly, and schemas remain outside the boundary.
 
 Verification:
-Pending: focused routing baselines, exhaustive old/new routing proof, strict
-compile, all combined CadenceImport tests, schema contracts, static single
-ownership, runtime xref, and bounded review.
+- Strict test compile passed with 3,843 files and warnings as errors.
+- Six focused routing/contract tests passed with 70 excluded.
+- All combined CadenceImport tests passed: 96 tests.
+- CadenceImport schema contracts passed: 4 tests.
+- Executable before/after proofs matched 344 routes: all 64 declared source
+  contracts in string/atom form, all 13 model-only routes, wrappers, version
+  shapes, explicit options, pass-through manifests, and error fallbacks.
+- Formatting, tracked/untracked diff checks passed, and no proof files remain.
+- Static ownership checks confirmed one public `manifest/2` facade and exactly
+  179 clauses in the dedicated router.
+- Runtime xref confirmed `cadence_import.ex` is the direct consumer of
+  `manifest_router.ex`.
+- Bounded local review found and fixed only migration mechanics: multiline
+  callback arguments, used callback names, and atom-key pipeline argument
+  order. No pattern order, normalization, dispatch target, option, diagnostic,
+  public API, artifact, or schema changes remain.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-CadenceImport standalone proposed-contact import extraction, selected in
-`31ca7a2d` and implemented in `b300f602`. `cadence_import.ex` moved from 2,068
-to 2,056 lines; the extracted owner is 25 lines.
+CadenceImport manifest routing extraction, selected in `dc7d43b2` and
+implemented in `ee8f7b3a`. `cadence_import.ex` moved from 2,056 to 1,415 lines;
+the dedicated router is 1,640 lines.
 
 Next candidate:
 Re-inventory remaining private row/helper ownership after manifest routing has
