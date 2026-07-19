@@ -6,65 +6,45 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Study Manifest activity-input extraction.
+StationCalendar provider-counteroffer handoff-summary extraction.
 
 Status:
-Completed and pushed in `edd99630`.
+Selected; implementation not started.
 
 Selected boundary:
-Extract activity-list parsing and construction, mission-plan activity scope
-enforcement, activity option/evidence parsing, nested identity aliases,
-contact-direction normalization, and the matching contact-direction schema
-property into `OrbitalDynamics.Study.Manifest.ActivityInput`. Preserve
-`OrbitalDynamics.Study.Manifest` as the public facade and retain private
-delegates at its three existing call sites.
+Extract provider-counteroffer import-readiness and plan-impact summary
+assembly, report-row routing, deadline classification orchestration,
+counteroffer ID grouping, numeric cost aggregation, and timing/duration deltas
+into
+`OrbitalDynamics.Communications.StationCalendar.ProviderCounterofferHandoffSummary`.
+Preserve the public StationCalendar facade and retain private delegates for the
+timing helpers also used by contact annotation.
 
 Selection evidence:
-- Live re-ranking places `study/manifest.ex` at 3,000 lines, fourth behind
-  Schema, Timeline, and MissionPlan.Activity and ahead of StationCalendar,
+- Live re-ranking places `communications/station_calendar.ex` at 2,981 lines,
+  fourth behind Schema, Timeline, and MissionPlan.Activity and ahead of
   OrbitalDynamics, RecommendationRiskContext, OperationalReadiness,
   TimelineFeedback, ContactContention, LinkCapacity, and ResourceProjection.
-- The selected block spans lines 1,746-2,511. It owns the activity array
-  reducer, scenario/spacecraft scope validation, all supported activity
-  constructors, the complete activity option/evidence field matrix, nested
-  target/station/spacecraft/command-window identity resolution, legacy overlap
-  handling, status/approval parsing, provider direction aliases, health-check
-  direction validation, and the schema enum derived from the same capability
-  catalog.
-- The boundary has three facade consumers: mission-plan activity parsing,
-  mission-plan scope application, and prior-candidate direction schema
-  construction. Private facade delegates preserve those call sites while the
-  owner holds one implementation.
-- General manifest JSON decoding, validation reports, schema assembly,
-  scenario/campaign/candidate-refresh parsing, spacecraft and maneuver input,
-  run options, metadata outside activity options, and public input/output
-  contracts remain outside this boundary.
-- Existing first-error behavior, activity order, struct construction, option
-  omission/defaults, identity precedence, direction aliases, schema ordering,
-  and exact error tuples must remain unchanged.
+- The selected family spans the two summary builders and shared helpers from
+  lines 2,503-2,697. It owns import-readiness classification, plan-impact
+  timing/cost evidence, deadline-status orchestration, report-row selection,
+  counteroffer routing IDs, and numeric delta/count/sum semantics.
+- Contact annotation also uses counteroffer timing and duration deltas. Those
+  calculations will be exposed by the owner and retained behind private facade
+  delegates so there is one implementation.
+- Calendar input normalization, contact matching and annotation, availability
+  precedence, reservation summaries, provider contention, counteroffer report
+  and review-summary construction, approval policy, public input-shape clauses,
+  and schema contracts remain outside this boundary.
+- Existing summary fields, row compaction, numeric coercion, deadline routing,
+  stable ordering, idempotent summary clauses, and exact error behavior must
+  remain unchanged.
 
 Verification:
-- Strict warning-clean compile passed across 3,948 files:
-  `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 mix compile --force --warnings-as-errors`.
-- Focused Study Manifest regression passed: 42 tests.
-- Adjacent manifest lint, reference, schema-export, and validation-fixture
-  regression bundle passed: 20 tests.
-- Exact old/new parity passed 11 comparisons from selection commit `c864d294`
-  with `/tmp/manifest_activity_input_compare.exs`, covering option-rich activity
-  construction, JSON loading, JSON Schema and field-reference output,
-  `activity_type` and nested identity aliases, provider directions, scope and
-  overlap failures, health-check validation, invalid nested identities, and
-  unsupported activity frames.
-- `mix xref callers OrbitalDynamics.Study.Manifest.ActivityInput` reports only
-  the Study Manifest facade.
-- The owner has no compile-connected expansion beyond itself.
-- Focused formatting, `git diff --check`, removed-helper static checks, and
-  final facade/owner review passed.
+Pending implementation.
 
 Behavior/schema changes:
-None. The public Study Manifest facade, manifest and activity input contracts,
-JSON Schema and field-reference output, deterministic ordering, defaults,
-identity precedence, and exact error tuples are unchanged.
+None intended.
 
 Last completed slice:
 Study Manifest activity-input extraction, selected in `c864d294` and
@@ -73,8 +53,8 @@ implemented in `edd99630`.
 activity-input owner is 826 lines.
 
 Next candidate:
-Re-rank the live largest-module inventory and select the next cohesive,
-facade-preserving ownership boundary.
+Implement and verify the selected StationCalendar provider-counteroffer
+handoff-summary extraction.
 
 Blocked:
 No.
