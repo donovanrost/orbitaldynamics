@@ -7,6 +7,8 @@ defmodule OrbitalDynamics.Study.Manifest do
   `circular_leo` scenario generator used by benchmark/demo studies.
   """
 
+  import OrbitalDynamics.Study.Manifest.SchemaProperty
+
   alias OrbitalDynamics.Benchmark.ScenarioFixture
   alias OrbitalDynamics.Maneuver.ImpulsiveBurn
   alias OrbitalDynamics.MissionPlan
@@ -1185,44 +1187,6 @@ defmodule OrbitalDynamics.Study.Manifest do
       "maxItems" => 3
     }
   end
-
-  defp object_property(properties \\ %{}, required \\ []) do
-    %{
-      "type" => "object",
-      "additionalProperties" => true,
-      "properties" => properties
-    }
-    |> maybe_put_required(required)
-  end
-
-  defp array_property(items), do: %{"type" => "array", "items" => items}
-
-  defp string_property(description \\ nil),
-    do: maybe_put(%{"type" => "string"}, "description", description)
-
-  defp number_property, do: %{"type" => "number"}
-  defp non_negative_number_property, do: %{"type" => "number", "minimum" => 0.0}
-  defp integer_property, do: %{"type" => "integer"}
-  defp boolean_property, do: %{"type" => "boolean"}
-  defp enum_property(values), do: %{"type" => "string", "enum" => Enum.sort(values)}
-
-  defp station_availability_property do
-    %{
-      "oneOf" => [
-        enum_property([
-          "available",
-          "unavailable",
-          "reduced_capacity",
-          "maintenance",
-          "reserved"
-        ]),
-        %{"type" => "number", "minimum" => 0.0, "maximum" => 1.0}
-      ]
-    }
-  end
-
-  defp maybe_put_required(property, []), do: property
-  defp maybe_put_required(property, required), do: Map.put(property, "required", required)
 
   defp central_body(source) do
     case Map.get(source, "central_body", "earth") do
