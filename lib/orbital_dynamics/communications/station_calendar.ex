@@ -143,6 +143,7 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
   alias OrbitalDynamics.Policy
   alias OrbitalDynamics.Communications.StationCalendar.ProviderCounteroffer
   alias OrbitalDynamics.Communications.StationCalendar.ProviderCounterofferReport
+  alias OrbitalDynamics.Communications.StationCalendar.ProviderCounterofferReviewSummary
 
   @doc """
   Declares the station-calendar provider adapter contract and known limits.
@@ -2942,57 +2943,7 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
   end
 
   defp provider_counteroffer_review_summary_from_report(report, opts) do
-    report = stringify_keys(report)
-    now_s = opts |> Keyword.get(:now_s) |> numeric_or_nil()
-
-    rows =
-      report
-      |> provider_counteroffer_report_rows()
-      |> Enum.map(&put_counteroffer_lock_deadline_status(&1, now_s))
-
-    review_rows = Enum.filter(rows, &(&1["reviewable"] == true))
-
-    %{
-      "schema_contract" => @counteroffer_review_summary_schema_contract,
-      "model" => "artifact_only_provider_counteroffer_review_summary",
-      "source_artifact_type" => Map.get(report, "schema_contract", @counteroffer_schema_contract),
-      "source" => report["source"],
-      "source_counteroffer_artifact_type" => report["source_artifact_type"],
-      "source_artifact_id" => report["source_artifact_id"],
-      "counteroffer_count" => length(rows),
-      "reviewable_count" => length(review_rows),
-      "counteroffer_review_status" => if(review_rows == [], do: "clear", else: "review_required"),
-      "counteroffer_status_counts" => count_by(rows, "provider_counteroffer_status"),
-      "counteroffer_negotiation_state_counts" =>
-        count_by(rows, "provider_counteroffer_negotiation_state"),
-      "counteroffer_lock_deadline_count" =>
-        numeric_value_count(rows, "provider_counteroffer_lock_deadline_s"),
-      "earliest_counteroffer_lock_deadline_s" =>
-        numeric_value_min(rows, "provider_counteroffer_lock_deadline_s"),
-      "counteroffer_lock_deadline_status_counts" =>
-        count_by(rows, "provider_counteroffer_lock_deadline_status"),
-      "counteroffer_ids_by_lock_deadline_status" =>
-        counteroffer_ids_by(rows, "provider_counteroffer_lock_deadline_status"),
-      "expired_counteroffer_lock_deadline_count" =>
-        Enum.count(rows, &(&1["provider_counteroffer_lock_deadline_status"] == "expired")),
-      "active_counteroffer_lock_deadline_count" =>
-        Enum.count(rows, &(&1["provider_counteroffer_lock_deadline_status"] == "active")),
-      "missing_counteroffer_lock_deadline_count" =>
-        Enum.count(rows, &(&1["provider_counteroffer_lock_deadline_status"] == "missing")),
-      "review_counteroffer_ids" => counteroffer_ids(review_rows),
-      "rows" => rows,
-      "review_rows" => review_rows,
-      "assumptions" =>
-        %{
-          "execution_boundary" => "artifact_only_no_provider_writes",
-          "source" => "provider_counteroffer_report.v1",
-          "operator_authority" => "not_granted_by_summary",
-          "deadline_evaluation" =>
-            if(is_number(now_s), do: "relative_to_now_s", else: "not_evaluated")
-        }
-        |> maybe_put("now_s", now_s)
-    }
-    |> compact_map()
+    ProviderCounterofferReviewSummary.build(report, opts)
   end
 
   defp provider_counteroffer_import_readiness_summary_from_report(report, opts) do
@@ -3002,7 +2953,7 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
     rows =
       report
       |> provider_counteroffer_report_rows()
-      |> Enum.map(&put_counteroffer_lock_deadline_status(&1, now_s))
+      |> Enum.map(&ProviderCounterofferReviewSummary.put_deadline_status(&1, now_s))
       |> Enum.map(&put_provider_counteroffer_import_status/1)
 
     review_rows = Enum.filter(rows, &(&1["reviewable"] == true))
@@ -3062,7 +3013,7 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
     rows =
       report
       |> provider_counteroffer_report_rows()
-      |> Enum.map(&put_counteroffer_lock_deadline_status(&1, now_s))
+      |> Enum.map(&ProviderCounterofferReviewSummary.put_deadline_status(&1, now_s))
       |> Enum.map(&provider_counteroffer_plan_impact_row/1)
 
     review_rows = Enum.filter(rows, &(&1["reviewable"] == true))
@@ -3168,27 +3119,6 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
     end
   end
 
-  defp put_counteroffer_lock_deadline_status(row, now_s) do
-    deadline_s = numeric_or_nil(row["provider_counteroffer_lock_deadline_s"])
-
-    status =
-      cond do
-        is_nil(deadline_s) ->
-          "missing"
-
-        is_number(now_s) and deadline_s < now_s ->
-          "expired"
-
-        is_number(now_s) ->
-          "active"
-
-        true ->
-          "declared"
-      end
-
-    Map.put(row, "provider_counteroffer_lock_deadline_status", status)
-  end
-
   defp provider_counteroffer_report_rows(report) do
     ProviderCounterofferReport.rows(report)
   end
@@ -3203,12 +3133,6 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
     rows
     |> numeric_values(field)
     |> Enum.sum()
-  end
-
-  defp numeric_value_min(rows, field) do
-    rows
-    |> numeric_values(field)
-    |> Enum.min(fn -> nil end)
   end
 
   defp numeric_values(rows, field) do
