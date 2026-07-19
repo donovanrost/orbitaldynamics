@@ -9,7 +9,7 @@ Current slice:
 ResourceProjection activity delivery evidence extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `d80e997a`.
 
 Selected boundary:
 Extract collection/delivery timestamps, planned and actual latency, latency
@@ -31,20 +31,33 @@ Selection evidence:
   behavior, ordering, and report/schema artifacts remain unchanged.
 
 Verification:
-Pending.
+- Strict test-environment compile passed with warnings as errors across 3,910
+  files.
+- Focused ResourceProjection coverage passed: 49 tests.
+- Adjacent operator-review and validation-fixture coverage passed: 7 tests.
+- Exact public old/new comparison against selection commit `299d93df` passed
+  for six report and flow-summary artifacts covering direct and metadata
+  aliases, numeric strings, derived latency, actual/planned basis selection,
+  margins, status, and completion fraction.
+- `mix xref callers` reports only the ResourceProjection facade as a runtime
+  caller of the extracted evidence owner.
+- Static ownership checks confirm activity delivery/progress projection and
+  helper calculations live in the dedicated owner while resource roll-forward
+  remains in the facade.
+- `git diff --check` passed.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-Manifest ground-track crossing input extraction, selected in `294e8ca0` and
-implemented in `03ef30f0`.
-`manifest.ex` moved from 3,836 to 3,638 lines; the dedicated input owner is 215
-lines.
+ResourceProjection activity delivery evidence extraction, selected in
+`299d93df` and implemented in `d80e997a`.
+`resource_projection.ex` moved from 3,827 to 3,720 lines; the dedicated
+evidence owner is 117 lines.
 
 Next candidate:
-Implement and verify the selected ResourceProjection activity delivery
-evidence extraction.
+Re-rank the live largest-module set and select the next cohesive ownership
+boundary.
 
 Blocked:
 No.
