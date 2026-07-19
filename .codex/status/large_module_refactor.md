@@ -9,7 +9,7 @@ Current slice:
 Study.Manifest realized-activity input-schema extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `e6decc5e`.
 
 Selected boundary:
 Extract the complete embedded realized-activity input JSON Schema into
@@ -29,20 +29,31 @@ Selection evidence:
 - Existing public report APIs and artifact row shapes remain unchanged.
 
 Verification:
-Pending.
+- Strict test-environment compile passed with warnings as errors across 3,902
+  files.
+- Focused Manifest coverage passed: 42 tests.
+- Adjacent manifest lint/reference/schema-export and schema-lint task coverage
+  passed: 30 tests.
+- Exact public old/new comparison against selection commit `f3f73799` passed
+  for the complete Manifest JSON Schema.
+- `mix xref callers` reports only the Manifest facade as a runtime caller of
+  the extracted owner.
+- Static ownership checks confirm the realized-activity contract lives in the
+  dedicated owner while public schema composition remains in the facade.
+- `git diff --check` passed.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-Study.Manifest reusable value-schema ownership extraction, selected in
-`b8f1453e` and implemented in `e796c533`.
-`study/manifest.ex` moved from 4,039 to 4,008 lines; the dedicated owner is 37
+Study.Manifest realized-activity input-schema extraction, selected in
+`f3f73799` and implemented in `e6decc5e`.
+`study/manifest.ex` moved from 4,008 to 3,836 lines; the dedicated owner is 181
 lines.
 
 Next candidate:
-Implement and verify the selected Study.Manifest realized-activity
-input-schema extraction.
+Re-rank the live largest-module set and select the next cohesive ownership
+boundary.
 
 Blocked:
 No.
