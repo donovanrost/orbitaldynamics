@@ -9,7 +9,7 @@ Current slice:
 Manifest target-catalog input extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Extract campaign and candidate-refresh target-source precedence, mission-state
@@ -36,16 +36,43 @@ Selection evidence:
   unchanged.
 
 Verification:
-Pending.
+- Focused baseline before implementation:
+  `test/orbital_dynamics/study/manifest_test.exs` passed 42 tests.
+- Strict compilation after implementation:
+  `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 mix compile --force --warnings-as-errors`
+  compiled 3,932 files successfully.
+- Focused regression:
+  `test/orbital_dynamics/study/manifest_test.exs` passed 42 tests.
+- Adjacent regressions:
+  `test/orbital_dynamics/validation/manifest_fixture_test.exs` passed 2 tests,
+  `test/orbital_dynamics/candidate_refresh/observation_objective_build_test.exs`
+  passed 5 tests, and
+  `test/mix/tasks/orbital_dynamics.manifest.lint_test.exs` passed 7 tests.
+- Exact old/new comparison against selection commit `2769ef8f` covered eight
+  target-source states; all 8 outputs matched exactly.
+- The exact states covered no targets, empty campaign targets, populated and
+  invalid campaign targets, direct candidate-refresh targets, empty-target
+  mission-state fallback, duplicate target IDs, objective-derived targets, and
+  invalid mission-state catalog/objective shapes.
+- `git diff --check` passed.
+- `mix xref callers
+  OrbitalDynamics.Study.Manifest.TargetCatalogInput` reports only the Manifest
+  facade as a runtime caller; compile-connected xref reports no unexpected
+  coupling.
+- Static review confirmed campaign precedence, invalid-field paths, defaults,
+  ordering, and first-ID-wins semantics remain in the owner; the shared
+  ground-station deduplication helper remains in the facade.
 
 Behavior/schema changes:
-None intended. This is a facade-preserving production ownership extraction.
+None. Existing target-source precedence, mission-state fallback, validation,
+normalization, deduplication, defaults, error tuples, and deterministic output
+are preserved.
 
 Last completed slice:
-ResourceProjection resource-summary input extraction, selected in `73a15f12`
-and implemented in `d61339d3`.
-`resource_projection.ex` moved from 3,447 to 3,010 lines; the dedicated
-resource-summary input owner is 611 lines.
+Manifest target-catalog input extraction, selected in `2769ef8f` and
+implemented in `cc2431e8`.
+`study/manifest.ex` moved from 3,357 to 3,234 lines; the dedicated
+target-catalog input owner is 159 lines.
 
 Next candidate:
 Re-rank the live largest-module set and select the next cohesive ownership
