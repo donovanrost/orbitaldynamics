@@ -2949,11 +2949,13 @@ defmodule OrbitalDynamics.Timeline do
       |> Enum.sort()
       |> Enum.with_index(1)
       |> Enum.map(fn {timeline_id, rank} ->
-        lifecycle_state_summary_row(
+        OrbitalDynamics.Timeline.LifecycleStateSummaryRowPolicy.build(
           timeline_id,
           rank,
           Map.get(planned_by_timeline, timeline_id, []),
-          Map.get(realized_by_timeline, timeline_id, [])
+          Map.get(realized_by_timeline, timeline_id, []),
+          &activity_lifecycle_state/2,
+          &sorted_uniq/1
         )
       end)
 
@@ -3055,106 +3057,6 @@ defmodule OrbitalDynamics.Timeline do
     OrbitalDynamics.Timeline.LifecycleStateInputPolicy.lifecycle_state_row_timeline_id(
       row,
       &activity_timeline_id/1
-    )
-  end
-
-  defp lifecycle_state_summary_row(timeline_id, rank, planned_matches, realized_matches) do
-    cond do
-      length(planned_matches) > 1 or length(realized_matches) > 1 ->
-        duplicate_lifecycle_state_summary_row(
-          timeline_id,
-          rank,
-          planned_matches,
-          realized_matches
-        )
-
-      Enum.any?(planned_matches ++ realized_matches, &(&1["invalid_activity_input"] == true)) ->
-        invalid_lifecycle_state_summary_row(timeline_id, rank, planned_matches, realized_matches)
-
-      true ->
-        planned_activity = List.first(planned_matches)
-        realized_activity = List.first(realized_matches)
-
-        planned_activity
-        |> activity_lifecycle_state(realized_activity)
-        |> Map.put("rank", rank)
-    end
-  end
-
-  defp duplicate_lifecycle_state_summary_row(
-         timeline_id,
-         rank,
-         planned_matches,
-         realized_matches
-       ) do
-    %{
-      "rank" => rank,
-      "timeline_id" => timeline_id,
-      "planned_activity_ids" => lifecycle_state_match_activity_ids(planned_matches),
-      "realized_activity_ids" => lifecycle_state_match_activity_ids(realized_matches),
-      "planned_duplicate_activity_count" => duplicate_match_count(planned_matches),
-      "realized_duplicate_activity_count" => duplicate_match_count(realized_matches),
-      "timeline_identity_collision" => true,
-      "transition_decision" => "review",
-      "review_required" => true,
-      "required_operator_action" => "review_duplicate_timeline_identity",
-      "required_operator_actions" => ["review_duplicate_timeline_identity"],
-      "operator_action_reasons" => ["duplicate_timeline_identity"],
-      "import_action" => "review_timeline_diff",
-      "assumptions" => %{
-        "artifact_only" => true,
-        "no_schedule_mutation" => true,
-        "no_operator_authority_grant" => true,
-        "no_cadence_import" => true,
-        "no_command_execution" => true
-      }
-    }
-    |> compact_map()
-  end
-
-  defp invalid_lifecycle_state_summary_row(timeline_id, rank, planned_matches, realized_matches) do
-    invalid_rows =
-      Enum.filter(planned_matches ++ realized_matches, &(&1["invalid_activity_input"] == true))
-
-    %{
-      "rank" => rank,
-      "timeline_id" => timeline_id,
-      "planned_activity_ids" => lifecycle_state_match_activity_ids(planned_matches),
-      "realized_activity_ids" => lifecycle_state_match_activity_ids(realized_matches),
-      "invalid_activity_input" => true,
-      "invalid_activity_input_count" => length(invalid_rows),
-      "invalid_activity_input_reasons" =>
-        invalid_rows
-        |> Enum.map(& &1["invalid_activity_input_reason"])
-        |> sorted_uniq(),
-      "transition_decision" => "review",
-      "review_required" => true,
-      "required_operator_action" => "review_invalid_activity_input",
-      "required_operator_actions" => ["review_invalid_activity_input"],
-      "operator_action_reasons" =>
-        invalid_rows
-        |> Enum.map(& &1["invalid_activity_input_reason"])
-        |> sorted_uniq(),
-      "import_action" => "review_timeline_diff",
-      "assumptions" => %{
-        "artifact_only" => true,
-        "no_schedule_mutation" => true,
-        "no_operator_authority_grant" => true,
-        "no_cadence_import" => true,
-        "no_command_execution" => true
-      }
-    }
-    |> compact_map()
-  end
-
-  defp duplicate_match_count(matches) do
-    OrbitalDynamics.Timeline.LifecycleStateSummaryMetricsPolicy.duplicate_match_count(matches)
-  end
-
-  defp lifecycle_state_match_activity_ids(matches) do
-    OrbitalDynamics.Timeline.LifecycleStateSummaryMetricsPolicy.lifecycle_state_match_activity_ids(
-      matches,
-      &sorted_uniq/1
     )
   end
 
