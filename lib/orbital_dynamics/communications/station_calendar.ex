@@ -137,6 +137,7 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
   alias OrbitalDynamics.Communications.StationCalendar.ProviderContention
   alias OrbitalDynamics.Communications.StationCalendar.ProviderResult
   alias OrbitalDynamics.Communications.StationCalendar.ReservationSourceEvidence
+  alias OrbitalDynamics.Communications.StationCalendar.ReservationSummaryValues
 
   @doc """
   Declares the station-calendar provider adapter contract and known limits.
@@ -1192,192 +1193,46 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
     ])
   end
 
-  defp reservation_status_counts(affected_reservations, provider_contention_groups) do
-    affected_statuses =
-      affected_reservations
-      |> Enum.flat_map(fn row ->
-        [
-          Map.get(row, "station_reservation_status")
-          | Map.get(row, "station_calendar_reservation_statuses", [])
-        ]
-      end)
+  defp reservation_status_counts(affected_reservations, provider_contention_groups),
+    do: ReservationSummaryValues.status_counts(affected_reservations, provider_contention_groups)
 
-    provider_statuses =
-      Enum.flat_map(provider_contention_groups, &Map.get(&1, "reservation_statuses", []))
+  defp reservation_ids(affected_reservations, provider_contention_groups),
+    do: ReservationSummaryValues.ids(affected_reservations, provider_contention_groups)
 
-    (affected_statuses ++ provider_statuses)
-    |> Enum.reject(&is_nil/1)
-    |> Enum.frequencies()
-  end
+  defp reservation_ids_by_status(affected_reservations, provider_contention_groups),
+    do: ReservationSummaryValues.ids_by_status(affected_reservations, provider_contention_groups)
 
-  defp reservation_ids(affected_reservations, provider_contention_groups) do
-    affected_ids =
-      affected_reservations
-      |> Enum.flat_map(fn row ->
-        [
-          Map.get(row, "station_reservation_id")
-          | Map.get(row, "station_calendar_reservation_ids", [])
-        ]
-      end)
+  defp reservation_ids_by_match_status(affected_reservations),
+    do: ReservationSummaryValues.ids_by_match_status(affected_reservations)
 
-    provider_ids = Enum.flat_map(provider_contention_groups, &Map.get(&1, "reservation_ids", []))
+  defp reservation_ids_for_row(row), do: ReservationSummaryValues.ids_for_row(row)
 
-    (affected_ids ++ provider_ids)
-    |> Enum.reject(&is_nil/1)
-    |> Enum.uniq()
-    |> Enum.sort()
-  end
+  defp reservation_statuses_for_row(row), do: ReservationSummaryValues.statuses_for_row(row)
 
-  defp reservation_ids_by_status(affected_reservations, provider_contention_groups) do
-    affected_pairs =
-      Enum.flat_map(affected_reservations, fn row ->
-        reservation_id_value_pairs(
-          List.wrap(row["station_reservation_id"]),
-          List.wrap(row["station_reservation_status"])
-        ) ++
-          reservation_id_value_pairs(
-            row["station_calendar_reservation_ids"],
-            row["station_calendar_reservation_statuses"]
-          )
-      end)
+  defp reservation_reserved_by_for_row(row),
+    do: ReservationSummaryValues.reserved_by_for_row(row)
 
-    provider_pairs =
-      Enum.flat_map(provider_contention_groups, fn group ->
-        reservation_id_value_pairs(group["reservation_ids"], group["reservation_statuses"])
-      end)
+  defp reservation_hold_review_row?(row), do: ReservationSummaryValues.hold_review_row?(row)
 
-    reservation_id_pairs_to_map(affected_pairs ++ provider_pairs)
-  end
+  defp reservation_expiration_values(row), do: ReservationSummaryValues.expiration_values(row)
 
-  defp reservation_ids_by_match_status(affected_reservations) do
-    affected_reservations
-    |> Enum.flat_map(fn row ->
-      reservation_id_value_pairs(
-        [row["station_reservation_id"] | List.wrap(row["station_calendar_reservation_ids"])],
-        List.wrap(row["station_reservation_match_status"])
-      )
-    end)
-    |> reservation_id_pairs_to_map()
-  end
+  defp reservation_expiration_count(rows), do: ReservationSummaryValues.expiration_count(rows)
 
-  defp reservation_id_value_pairs(ids, values) do
-    ids = List.wrap(ids) |> Enum.reject(&is_nil/1)
-    values = List.wrap(values) |> Enum.reject(&is_nil/1)
+  defp earliest_reservation_expires_at_s(rows),
+    do: ReservationSummaryValues.earliest_expiration(rows)
 
-    cond do
-      ids == [] or values == [] ->
-        []
+  defp reservation_row_ids(rows), do: ReservationSummaryValues.row_ids(rows)
 
-      length(values) == 1 ->
-        Enum.map(ids, &{List.first(values), &1})
+  defp reservation_ids_by(rows, field), do: ReservationSummaryValues.ids_by(rows, field)
 
-      true ->
-        Enum.zip(values, ids)
-    end
-  end
+  defp reservation_ids_by_row_values(rows, field),
+    do: ReservationSummaryValues.ids_by_row_values(rows, field)
 
-  defp reservation_id_pairs_to_map(pairs) do
-    pairs
-    |> Enum.group_by(fn {value, _id} -> normalize_status_value(value) end, fn {_value, id} ->
-      id
-    end)
-    |> Enum.reject(fn {value, ids} -> is_nil(value) or ids == [] end)
-    |> Map.new(fn {value, ids} -> {value, compact_sorted_values(ids)} end)
-  end
+  defp reservation_id_value_pairs(ids, values),
+    do: ReservationSummaryValues.id_value_pairs(ids, values)
 
-  defp reservation_ids_for_row(row) do
-    [
-      row["station_reservation_id"],
-      row["station_calendar_reservation_ids"],
-      row["reservation_ids"]
-    ]
-    |> Enum.flat_map(&List.wrap/1)
-    |> compact_sorted_values()
-  end
-
-  defp reservation_statuses_for_row(row) do
-    [
-      row["station_reservation_status"],
-      row["station_calendar_reservation_statuses"],
-      row["reservation_statuses"]
-    ]
-    |> Enum.flat_map(&List.wrap/1)
-    |> Enum.map(&normalize_status_value/1)
-    |> compact_sorted_values()
-  end
-
-  defp reservation_reserved_by_for_row(row) do
-    [
-      row["station_reserved_by"],
-      row["station_calendar_reserved_by"],
-      row["reserved_by"]
-    ]
-    |> Enum.flat_map(&List.wrap/1)
-    |> compact_sorted_values()
-  end
-
-  defp reservation_hold_review_row?(row) do
-    row
-    |> reservation_statuses_for_row()
-    |> Enum.any?(&reservation_hold_status?/1)
-  end
-
-  defp reservation_hold_status?(status) do
-    status = normalize_status_value(status) || ""
-
-    status == "held" or String.contains?(status, "hold")
-  end
-
-  defp reservation_expiration_values(row) do
-    [
-      row["station_reservation_expires_at_s"],
-      row["station_calendar_reservation_expires_at_s"],
-      row["reservation_expires_at_s"]
-    ]
-    |> Enum.flat_map(&List.wrap/1)
-    |> Enum.map(&numeric_or_nil/1)
-    |> Enum.filter(&is_number/1)
-    |> Enum.uniq()
-    |> Enum.sort()
-  end
-
-  defp reservation_expiration_count(rows) do
-    rows
-    |> Enum.flat_map(&Map.get(&1, "reservation_expires_at_s", []))
-    |> length()
-  end
-
-  defp earliest_reservation_expires_at_s(rows) do
-    rows
-    |> Enum.flat_map(&Map.get(&1, "reservation_expires_at_s", []))
-    |> Enum.min(fn -> nil end)
-  end
-
-  defp reservation_row_ids(rows) do
-    rows
-    |> Enum.flat_map(&Map.get(&1, "reservation_ids", []))
-    |> sorted_values()
-  end
-
-  defp reservation_ids_by(rows, field) do
-    rows
-    |> Enum.group_by(&Map.get(&1, field), &Map.get(&1, "reservation_ids", []))
-    |> Enum.reject(fn {key, _ids} -> is_nil(key) end)
-    |> Map.new(fn {key, ids} -> {key, ids |> List.flatten() |> sorted_values()} end)
-  end
-
-  defp reservation_ids_by_row_values(rows, field) do
-    rows
-    |> Enum.flat_map(fn row ->
-      row
-      |> Map.get(field, [])
-      |> List.wrap()
-      |> Enum.map(&{&1, Map.get(row, "reservation_ids", [])})
-    end)
-    |> Enum.reject(fn {key, ids} -> is_nil(key) or ids == [] end)
-    |> Enum.group_by(fn {key, _ids} -> key end, fn {_key, ids} -> ids end)
-    |> Map.new(fn {key, ids} -> {key, ids |> List.flatten() |> sorted_values()} end)
-  end
+  defp reservation_id_pairs_to_map(pairs),
+    do: ReservationSummaryValues.id_pairs_to_map(pairs)
 
   defp reservation_ids_by_direction(rows) do
     rows
@@ -1471,16 +1326,6 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
     capabilities()
     |> Map.fetch!(:known_limits)
     |> Enum.map(&Atom.to_string/1)
-  end
-
-  defp compact_sorted_values(values) do
-    values
-    |> List.wrap()
-    |> Enum.reject(&is_nil/1)
-    |> Enum.map(&to_string/1)
-    |> Enum.reject(&(&1 == ""))
-    |> Enum.uniq()
-    |> Enum.sort()
   end
 
   @doc """
@@ -2328,8 +2173,6 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
   defp min_present(value, nil), do: value
   defp min_present(left, right) when is_number(left) and is_number(right), do: min(left, right)
   defp min_present(_left, _right), do: nil
-
-  defp normalize_status_value(value), do: Availability.normalize_status(value)
 
   defp value_present?(value), do: value not in [nil, ""]
 
