@@ -9,7 +9,7 @@ Current slice:
 CadenceImport wrapped provider-counteroffer test family split.
 
 Status:
-Selected; implementation has not started.
+Complete and published in `4afdcafc`.
 
 Selected boundary:
 Move the two contiguous candidate-refresh provider-counteroffer wrapper tests
@@ -37,22 +37,34 @@ Selection evidence:
   this ownership-only boundary.
 
 Verification:
-Pending: two-test focused baseline, mechanical AST-preserving move, exact
-fixture-helper copy proof, strict compile, focused new/original/combined
-CadenceImport tests, relevant schema contracts, structural/static checks, and
-bounded review.
+- The pre-move focused baseline passed both selected tests from selection commit
+  `b0e32756`.
+- Strict test compilation passed with warnings as errors across 3,804 files.
+- The new focused module passed 2 tests; the reduced original passed 88 tests;
+  the four-file combined CadenceImport proof passed all 96 tests.
+- `cadence_import_contracts_test.exs` passed all 4 tests.
+- An exact AST comparison against `b0e32756` proved that the original is exactly
+  its former body minus the two selected tests, the focused module owns those
+  exact test ASTs, and `provider_counteroffer_report/0` is an exact helper copy.
+- Formatting, tracked and new-file diff checks, exact static test/helper counts,
+  temporary-checker absence, and the resource-filter/provider-reservation seam
+  passed.
+- Bounded local review found no assertion, fixture-value, production, public API,
+  schema, deterministic-output, supported-source-registry, or source-path change.
+- The original ledger fell from 14,530 to 14,402 lines; the focused module is
+  155 lines.
 
 Behavior/schema changes:
 None. This is a test-only ownership split with all assertions preserved.
 
 Last completed slice:
-CadenceImport wrapped station-report test family split, selected in `5db1ed60`
-and implemented in `92e43ac5`.
+CadenceImport wrapped provider-counteroffer test family split, selected in
+`b0e32756` and implemented in `4afdcafc`.
 
 Next candidate:
-Continue with another independently-fixtured CadenceImport responsibility or
-return to production facade mapping after the provider-counteroffer wrapper
-family is isolated.
+Refresh the reduced CadenceImport family seams and production facade map, then
+select another cohesive boundary with independent fixtures or a bounded helper
+surface.
 
 Blocked:
 No.
