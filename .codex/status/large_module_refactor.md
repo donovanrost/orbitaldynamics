@@ -9,7 +9,7 @@ Current slice:
 ContactContention capacity-demand extraction.
 
 Status:
-Selected; strict focused baseline pending.
+Completed and pushed.
 
 Selected boundary:
 Extract required-capacity fraction/percent path policy, declaration validation,
@@ -41,22 +41,39 @@ Selection evidence:
   remain unchanged.
 
 Implementation:
-Pending.
+- Selection was recorded and pushed in `ab0e2883`.
+- Implementation was committed and pushed in `c7c37b01`.
+- `communications/contact_contention.ex` moved from 2,242 to 1,978 lines.
+- `OrbitalDynamics.Communications.ContactContention.CapacityDemand` is a
+  317-line owner reached through one private facade delegate.
 
 Verification:
-Pending.
+- Strict warning-clean compilation passed across 3,981 files.
+- The focused ContactContention file and five adjacent campaign,
+  candidate-refresh, operator-review, schema, and validation consumers passed
+  together: 62 tests.
+- Exact old/new public report/resolution/summary parity passed for 9 chains
+  covering direct, throughput-model, capacity-model, and activity-context
+  sources, fractions and percentages, precedence, zero/100-percent bounds,
+  invalid declarations, missing station IDs, aggregate source/status/station
+  routing, and capability metadata.
+- `mix xref callers` reports only the ContactContention facade.
+- The facade-owned required-capacity attributes and demand/source/validation
+  helpers are absent apart from one thin summary delegate, formatting and
+  `git diff --check` passed, and the final diff is ownership-only.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-LinkCapacity throughput evidence extraction, selected in `a27627e3` and
-implemented in `4817d7dc`.
-`communications/link_capacity.ex` moved from 2,246 to 1,904 lines; the
-dedicated throughput-evidence owner is 426 lines.
+ContactContention capacity-demand extraction, selected in `ab0e2883` and
+implemented in `c7c37b01`.
+`communications/contact_contention.ex` moved from 2,242 to 1,978 lines; the
+dedicated capacity-demand owner is 317 lines.
 
 Next candidate:
-Implement and verify the selected ContactContention capacity-demand boundary.
+Re-rank the live checkout and select the next cohesive facade-preserving
+boundary.
 
 Blocked:
 No.
