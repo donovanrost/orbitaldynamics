@@ -9,7 +9,7 @@ Current slice:
 CadenceImport wrapped resource-planning test family split.
 
 Status:
-Selected; implementation has not started.
+Complete and published in `b25a3817`.
 
 Selected boundary:
 Move the two now-contiguous candidate-refresh resource-planning wrapper tests
@@ -41,21 +41,34 @@ Selection evidence:
   this ownership-only boundary.
 
 Verification:
-Pending: two-test focused baseline, mechanical AST-preserving move, exact
-fixture-helper copy proof, strict compile, focused new/original/combined
-CadenceImport tests, relevant schema contracts, structural/static checks, and
-bounded review.
+- The pre-move focused baseline passed both selected tests from selection commit
+  `fb14d011`.
+- Strict test compilation passed with warnings as errors across 3,804 files.
+- The new focused module passed 2 tests; the reduced original passed 79 tests;
+  the eight-file combined CadenceImport proof passed all 96 tests.
+- `cadence_import_contracts_test.exs` passed all 4 tests.
+- An exact AST comparison against `fb14d011` proved that the original is exactly
+  its former body minus the two selected tests, the focused module owns those
+  exact test ASTs, and `resource_projection_flow_summary/0` is an exact helper
+  copy.
+- Formatting, tracked and new-file diff checks, exact static test/helper counts,
+  temporary-checker absence, and the timeline-integrity/freshness seam passed.
+- Bounded local review found no assertion, fixture-value, production, public API,
+  schema, deterministic-output, policy-evidence, resource-flow, or source-path
+  change.
+- The original ledger fell from 13,382 to 13,062 lines; the focused module is
+  362 lines.
 
 Behavior/schema changes:
 None. This is a test-only ownership split with all assertions preserved.
 
 Last completed slice:
-CadenceImport wrapped link-capacity test family split, selected in `329cc431` and
-implemented in `55ab3fdb`.
+CadenceImport wrapped resource-planning test family split, selected in
+`fb14d011` and implemented in `b25a3817`.
 
 Next candidate:
-Refresh the reduced CadenceImport family seams and production facade map after
-the wrapped resource-planning family is isolated.
+Refresh the reduced CadenceImport family seams and production facade map, then
+select another cohesive boundary with independent fixtures or exclusive helpers.
 
 Blocked:
 No.
