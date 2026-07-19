@@ -9,7 +9,7 @@ Current slice:
 RecommendationRiskContext resource-projection context extraction.
 
 Status:
-Selected; strict focused baseline pending.
+Completed and pushed.
 
 Selected boundary:
 Extract resource-projection risk selection, atom-key normalization,
@@ -36,23 +36,40 @@ Selection evidence:
   names, and advertised key ordering must remain unchanged.
 
 Implementation:
-Pending.
+- Selection was recorded and pushed in `d5f57df7`.
+- Implementation was committed and pushed in `c1465974`.
+- `recommendation_risk_context.ex` moved from 2,274 to 2,142 lines.
+- `OrbitalDynamics.RecommendationRiskContext.ResourceProjection` is a 168-line
+  owner reached through the two public context/key facades.
 
 Verification:
-Pending.
+- Strict warning-clean compilation passed across 3,977 files.
+- The focused resource-projection strategy file and four adjacent flow,
+  candidate-replay, and policy consumers passed warning-clean: 100 tests.
+- The additional recommendation-pressure-events consumer also passed, bringing
+  the combined behavior total to 101 tests; its strict process exited nonzero
+  only on the pre-existing signed-zero `0.0` pattern warning in that test file.
+- Exact old/new public context/key parity passed for 10 cases covering empty
+  and irrelevant inputs, atom/string keys, scalar/list source IDs, duplicate
+  and nil aggregation, boolean/numeric/map values, availability and all margin
+  families, non-list fallbacks, and advertised key ordering.
+- `mix xref callers` reports only the RecommendationRiskContext facade.
+- The facade-owned resource-projection key list, selector, and builder are
+  absent apart from the two thin public delegates, formatting and
+  `git diff --check` passed, and the final diff is ownership-only.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-OperationalReadiness quality-gate schema-validation summary extraction,
-selected in `7eed3ebf` and implemented in `e0ba1c1e`.
-`operational_readiness.ex` moved from 2,276 to 2,186 lines; the dedicated
-schema-validation summary owner is 171 lines.
+RecommendationRiskContext resource-projection context extraction, selected in
+`d5f57df7` and implemented in `c1465974`.
+`recommendation_risk_context.ex` moved from 2,274 to 2,142 lines; the dedicated
+resource-projection context owner is 168 lines.
 
 Next candidate:
-Implement and verify the selected RecommendationRiskContext
-resource-projection context boundary.
+Re-rank the live checkout and select the next cohesive facade-preserving
+boundary.
 
 Blocked:
 No.
