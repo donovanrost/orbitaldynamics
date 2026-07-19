@@ -9,7 +9,7 @@ Current slice:
 ContactContention priority-override normalization extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Extract resolution priority-override alias routing, stable contact-ID and
@@ -35,24 +35,37 @@ Selection evidence:
   deterministic sorting must remain unchanged.
 
 Implementation:
-- Pending.
+- Selection was recorded and pushed in `fab92d36`.
+- Implementation was committed and pushed in `b46b3b30`.
+- `communications/contact_contention.ex` moved from 2,466 to 2,370 lines.
+- `OrbitalDynamics.Communications.ContactContention.PriorityOverrides` is a
+  134-line owner reached through private facade delegates.
 
 Verification:
-- Pending focused baseline, strict compilation, exact old/new public parity,
-  focused and adjacent tests, static ownership checks, and xref review.
+- Strict warning-clean compilation passed across 3,967 files.
+- The focused ContactContention file and five adjacent campaign, strategy,
+  Cadence-import, operator-review, and manifest consumers passed together:
+  178 tests.
+- Exact old/new public parity passed for 13 cases covering every override
+  alias, atom/string/integer IDs, numeric strings, malformed values and
+  containers, keyword and invalid policy input, and capability metadata.
+- `mix xref callers` reports only the ContactContention facade.
+- The removed override normalization helpers and facade-owned alias attribute
+  are absent apart from thin delegates, formatting and `git diff --check`
+  passed, and the final diff is ownership-only.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-TimelineFeedback resource override projection extraction, selected in
-`f4bb05b5` and implemented in `42cfbee0`.
-`timeline_feedback.ex` moved from 2,472 to 2,267 lines; the dedicated resource
-feedback owner is 232 lines.
+ContactContention priority-override normalization extraction, selected in
+`fab92d36` and implemented in `b46b3b30`.
+`communications/contact_contention.ex` moved from 2,466 to 2,370 lines; the
+dedicated priority-overrides owner is 134 lines.
 
 Next candidate:
-Complete and verify the selected ContactContention priority-override
-normalization extraction.
+Re-rank the live checkout and select the next cohesive facade-preserving
+boundary.
 
 Blocked:
 No.
