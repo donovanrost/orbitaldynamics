@@ -6,40 +6,32 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Study.Manifest field-reference extraction.
+Study.Manifest validation-error extraction.
 
 Status:
-Completed and pushed in `5a432b81`.
+Selected; implementation has not started.
 
 Selected boundary:
-Extract exported-schema traversal, field row construction, required
-alternatives, stable-identifier classification, trust-boundary source
-classification, and identity-policy projection into
-`OrbitalDynamics.Study.Manifest.FieldReference`. Keep `field_reference/0` as
-the public Manifest facade and pass its schema and facade-owned report metadata
-into the dedicated owner.
+Extract manifest validation reason-to-error rendering, field/option path
+selection, JSON-safe detail normalization, and fallback error construction into
+`OrbitalDynamics.Study.Manifest.ValidationError`. Preserve the existing
+private `manifest_error/1` seam in the Manifest facade and pass the
+facade-owned schema version into the dedicated owner.
 
 Selection evidence:
-- Live re-ranking places `study/manifest.ex` at 4,825 lines, immediately behind
-  the other active production hotspots.
-- The selected public builder at 339-362 and private schema-walking helper
-  family at 610-799 have no callers outside `field_reference/0`.
-- JSON Schema construction, manifest parsing, validation, supported capability
-  data, and public CLI-facing commands remain in the Manifest facade.
-- Dedicated manifest-reference task tests exercise filtering, field metadata,
-  stable identifiers, trust boundaries, and deterministic exported rows.
+- `study/manifest.ex` remains a production hotspot at 4,613 lines after the
+  field-reference extraction.
+- The selected 384-507 helper family is closed behind the two
+  `manifest_error/1` call sites in `validation_report/1`.
+- File reading, JSON decoding, semantic validation, report assembly, and
+  schema metadata remain in the Manifest facade.
+- Focused Manifest tests assert deterministic error codes, paths, messages,
+  details, and valid/invalid report status.
 
 Verification:
-- Strict warnings-as-errors compile passed across 3,877 files.
-- Focused manifest-reference CLI coverage passed: 9 tests.
-- Adjacent validation-fixture, schema-lint, and JSON Schema export coverage
-  passed: 29 tests.
-- Exact old/new public artifact comparison against `aeb6e003` passed for the
-  complete 4,120-row field reference.
-- Runtime xref found the new owner referenced only by the Manifest facade;
-  static single-ownership review and `git diff --check` passed.
-- `study/manifest.ex` moved from 4,825 to 4,613 lines; the dedicated owner is
-  241 lines.
+Pending: focused Manifest baseline, exact old/new public validation reports,
+strict compile, adjacent lint/schema coverage, static single ownership,
+runtime xref, and bounded review.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
@@ -51,7 +43,7 @@ lines; the dedicated owner is 241 lines.
 
 Next candidate:
 Re-inventory remaining Study.Manifest schema, scenario, and source-normalization
-families after field-reference generation has one production owner.
+families after validation errors have one production owner.
 
 Blocked:
 No.
