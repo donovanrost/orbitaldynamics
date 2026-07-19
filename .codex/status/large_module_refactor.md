@@ -9,7 +9,7 @@ Current slice:
 CadenceImport campaign-row builder extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and pushed in `60973011`.
 
 Selected boundary:
 Extract proposed-contact row construction, strategy row construction,
@@ -28,17 +28,24 @@ Selection evidence:
   capability data, and schemas remain outside the boundary.
 
 Verification:
-Pending: focused proposed-contact and strategy baselines, exact old/new public
-manifest proofs, strict compile, all combined CadenceImport tests, schema
-contracts, static single ownership, runtime xref, and bounded review.
+- Strict warnings-as-errors compile passed across 3,845 files.
+- Three focused proposed-contact/strategy tests passed.
+- All 96 combined CadenceImport tests passed.
+- All four CadenceImport schema-contract tests passed.
+- Exact old/new public-manifest comparison passed for the checked-in campaign
+  artifact, its standalone proposed contact, the checked-in V3 strategy
+  artifact, and both artifacts through public manifest routing.
+- Static search confirms three private facade seams and one campaign-row owner.
+- Runtime xref confirms the facade owns the dependency on the new builder.
+- Formatting, diff checks, and bounded review passed.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-CadenceImport review-row builder extraction, selected in `5cf4c17c` and
-implemented in `540325fc`. `cadence_import.ex` moved from 1,415 to 907 lines;
-the dedicated builder is 537 lines.
+CadenceImport campaign-row builder extraction, selected in `2cfecef1` and
+implemented in `60973011`. `cadence_import.ex` moved from 907 to 866 lines; the
+dedicated builder is 61 lines.
 
 Next candidate:
 Re-inventory capability metadata and the remaining generic facade seams after
