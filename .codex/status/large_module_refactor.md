@@ -9,7 +9,7 @@ Current slice:
 RecommendationRiskContext contact-allocation extraction.
 
 Status:
-Selected; strict focused baseline pending.
+Completed and pushed in `567b1b93`.
 
 Selected boundary:
 Extract the contact-allocation risk-context key contract, allocation-risk
@@ -38,24 +38,48 @@ Selection evidence:
   omission, and non-list fallback must remain unchanged.
 
 Implementation:
-Pending.
+- Added `OrbitalDynamics.RecommendationRiskContext.ContactAllocation` as the
+  owner of the ordered contact-allocation key contract, risk filtering,
+  atom-key normalization, multi-key/list flattening, stable deduplication,
+  sparse context construction, and non-list fallback.
+- Preserved the RecommendationRiskContext public API as two thin delegates.
+- Removed the contact-allocation attribute, builder, and private scope
+  predicate from the facade while leaving shared helpers used by other context
+  families unchanged.
+- `recommendation_risk_context.ex` moved from 2,142 to 2,016 lines; the new
+  dedicated owner is 160 lines.
 
 Verification:
-Pending strict focused baseline, exact old/new public parity, focused and
-adjacent tests, static ownership checks, xref, strict warning-clean compile,
-formatting, and diff checks.
+- Strict focused baseline: 7 contact-allocation pressure tests passed.
+- A combined baseline with the recommendation pressure-event tests passed all
+  eight behavior tests but retained the pre-existing signed-zero pattern
+  warnings documented by earlier slices.
+- Exact old/new public parity passed for all six captured cases: ordered keys,
+  string-key risks, atom-key risks, mixed/duplicate risks, empty input, and
+  non-list fallback.
+- Focused and adjacent verification passed 12 tests across contact-allocation
+  pressure, source-report, repair allocation-filter, and station-reservation
+  allocation-challenge coverage.
+- Static checks confirm the attribute and predicate left the facade and only
+  its public delegates remain; xref reports only the facade as a runtime caller
+  of the new owner.
+- Strict warning-clean forced compile passed for 3,986 files.
+- Formatting, `git diff --check`, and a clean post-push worktree passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-OperationalReadiness resource-availability evidence extraction, selected in
-`d5786ac1` and implemented in `efb06679`.
-`operational_readiness.ex` moved from 2,186 to 2,018 lines; the dedicated
-resource-availability evidence owner is 215 lines.
+RecommendationRiskContext contact-allocation extraction, selected in
+`8496a10e` and implemented in `567b1b93`.
+`recommendation_risk_context.ex` moved from 2,142 to 2,016 lines; the dedicated
+contact-allocation context owner is 160 lines.
 
 Next candidate:
-Complete the selected RecommendationRiskContext contact-allocation extraction.
+Re-rank the live checkout and select the next bounded facade-preserving
+extraction. `communications/contact_intent.ex` is currently the largest
+ordinary eligible facade at 2,112 lines; its summary construction and routing
+aggregation region is a promising responsibility boundary to assess.
 
 Blocked:
 No.
