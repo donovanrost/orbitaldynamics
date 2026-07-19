@@ -10,6 +10,7 @@ defmodule OrbitalDynamics.CadenceImport do
 
   alias OrbitalDynamics.CadenceImport.{
     GenericReviewActionPolicy,
+    ImportReadinessPolicy,
     ProviderResultNormalization,
     ReviewPackageRowSourcePolicy,
     SourceIdentifierPolicy
@@ -3426,19 +3427,8 @@ defmodule OrbitalDynamics.CadenceImport do
     )
   end
 
-  defp cadence_import_present?(%{"has_cadence_import" => value}, _status)
-       when is_boolean(value),
-       do: value
-
-  defp cadence_import_present?(_row, "missing"), do: false
-
-  defp cadence_import_present?(row, _status) do
-    present_string?(row["cadence_import_id"]) ||
-      present_string?(row["cadence_import_type"]) ||
-      is_map(row["cadence_import"])
-  end
-
-  defp present_string?(value), do: is_binary(value) and value != ""
+  defp cadence_import_present?(row, status),
+    do: ImportReadinessPolicy.cadence_import_present?(row, status)
 
   defp generic_review_activity_context(row) do
     row["import_activity_context"] ||
@@ -3458,17 +3448,8 @@ defmodule OrbitalDynamics.CadenceImport do
     )
   end
 
-  defp adapter_import_status("invalid", _approval_status), do: "review_required_before_import"
-  defp adapter_import_status("missing", _approval_status), do: "blocked_missing_cadence_import"
-  defp adapter_import_status("not_applicable", _approval_status), do: "not_applicable"
-
-  defp adapter_import_status(_status, approval_status)
-       when approval_status in ["operator_review_required", "blocked_by_policy"] do
-    "review_required_before_import"
-  end
-
-  defp adapter_import_status("present", _approval_status), do: "ready_for_import"
-  defp adapter_import_status(_status, _approval_status), do: "review_required_before_import"
+  defp adapter_import_status(status, approval_status),
+    do: ImportReadinessPolicy.adapter_import_status(status, approval_status)
 
   defp generic_review_import_action(review_type),
     do: GenericReviewActionPolicy.resolve(review_type)
