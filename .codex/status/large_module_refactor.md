@@ -9,7 +9,7 @@ Current slice:
 CadenceImport manifest-contract diagnostic extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and published.
 
 Selected boundary:
 Extract unsupported manifest contract labeling and supported-contract list
@@ -28,17 +28,28 @@ Selection evidence:
   successful manifest construction remain outside the boundary.
 
 Verification:
-Pending: focused capability and unsupported-input baselines, exact diagnostic
-decision matrix, strict compile, all combined CadenceImport tests, schema
-contracts, static single ownership, runtime xref, and bounded review.
+- Strict test compile passed with 3,815 files and warnings as errors.
+- Two focused capability and unsupported-input tests passed with 70 excluded.
+- All combined CadenceImport tests passed: 96 tests.
+- CadenceImport schema contracts passed: 4 tests.
+- A 10-case direct decision matrix covered binary, atom-key/value, missing,
+  nil/null, empty-string, numeric, and collection contract labels plus ordered
+  and empty supported-source lists.
+- Formatting and diff checks passed, and no temporary proof files remain.
+- Static ownership checks confirmed both diagnostic formatters have one
+  production implementation behind the preserved facade seams.
+- Runtime xref confirmed `cadence_import.ex` is the direct consumer of
+  `manifest_contract_diagnostics.ex`.
+- Bounded local review found no capability ownership, normalization, inspection,
+  list order, error-message, dispatch, or schema changes.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-CadenceImport candidate-diff field policy extraction, selected in `47b70576`
-and implemented in `84d11b0a`. `cadence_import.ex` moved from 3,361 to 3,349
-lines; the extracted owner is 22 lines.
+CadenceImport manifest-contract diagnostic extraction, selected in `1a983a0c`
+and implemented in `580eb142`. `cadence_import.ex` moved from 3,349 to 3,341
+lines; the extracted owner is 20 lines.
 
 Next candidate:
 Return to the remaining CadenceImport row-building or manifest-routing helpers
