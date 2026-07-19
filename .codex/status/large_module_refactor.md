@@ -6,57 +6,47 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-StationCalendar reservation-source evidence extraction.
+LinkCapacity station-availability extraction.
 
 Status:
-Completed and pushed.
+Selected; implementation not started.
 
 Selected boundary:
-Extract reservation-affected/contact-contention predicates, source calendar
-entry normalization, reservation/provider identity recovery, overlap
-annotation, reservation match-status consolidation, and expiration parsing
-into
-`OrbitalDynamics.Communications.StationCalendar.ReservationSourceEvidence`.
-Preserve the StationCalendar facade through the three private reservation
-summary delegates.
+Extract station-unavailability aliases, availability precedence, contact and
+source-calendar candidate collection, status normalization, highest-severity
+selection, row canonicalization, and capacity-fraction fallback into
+`OrbitalDynamics.Communications.LinkCapacity.StationAvailability`. Preserve the
+LinkCapacity facade through private availability/metadata delegates.
 
 Selection evidence:
-- Live re-ranking places `communications/station_calendar.ex` at 2,595 lines,
-  the largest eligible facade behind Schema, Timeline, MissionPlan.Activity,
-  and the root public facade.
-- The selected private family spans lines 1,122-1,288 and exclusively owns
-  reconstruction of reservation evidence from source station-calendar rows.
-- Reservation-summary construction consumes the responsibility through three
-  private calls: affected-contact normalization and the affected/contention
-  predicates.
-- Summary aggregation, public report clauses, reservation review/hold/import
-  summaries, provider counteroffers, overlay matching, approval policy, and
-  artifact contracts remain outside this boundary.
-- Existing direct-row precedence, source-entry filtering, fallback identity
-  order, availability/status normalization, sorted stable value sets,
-  match-status default/ambiguity behavior, expiration parsing, omission rules,
-  and deterministic outputs must remain unchanged.
+- Live re-ranking places `communications/link_capacity.ex` at 2,554 lines, the
+  largest eligible facade behind Schema, Timeline, MissionPlan.Activity, and
+  the root public facade.
+- The selected policy is declared at lines 13-21 and implemented at lines
+  2,422-2,513, with its normalization delegate at lines 2,544-2,546.
+- Report construction, capacity adjustment, and summary routing consume the
+  responsibility only through `station_availability/1` and
+  `contact_station_availability/1`; capability/assumption maps consume its two
+  metadata values.
+- Throughput calculations, station reservation evidence, input triage,
+  approval policy, public report/summary clauses, relay routing, and artifact
+  contracts remain outside this boundary.
+- Existing alias canonicalization, severity precedence, nested source lookup,
+  maintenance/outage collapse, capacity-fraction fallback, nil behavior,
+  capability metadata, and deterministic output must remain unchanged.
 
-Implementation:
-- Selection was recorded and pushed in `d5c47875`.
-- Implementation was committed and pushed in `77f354df`.
-- `communications/station_calendar.ex` moved from 2,595 to 2,425 lines.
-- `OrbitalDynamics.Communications.StationCalendar.ReservationSourceEvidence`
-  is a 227-line owner reached through three private facade delegates.
-
-Verification:
-- Strict warning-clean compilation passed across 3,960 files.
-- The focused StationCalendar file and four adjacent reservation
-  handoff/replay/schema consumers passed together: 61 tests.
-- Exact old/new public parity passed for 7 cases covering direct reservation
-  rows, embedded source entries and overlaps, provider provenance, reservation
-  ID/status/expiration aliases, owned/ambiguous/default matching, ignored
-  available rows, contention groups, atom/string keys, and the public error
-  path.
-- `mix xref callers` reports only the StationCalendar facade; the
-  compile-connected graph reports the new owner and facade.
-- The removed helper family is absent from the facade, formatting and
-  `git diff --check` passed, and the final diff is ownership-only.
+Verification plan:
+- Run the strict warning-clean compile before and after implementation.
+- Run the focused LinkCapacity regression file and adjacent capacity
+  review/import/summary consumers selected from live references.
+- Run exact old/new public parity from this selection commit across direct and
+  nested availability evidence, aliases, mixed precedence, contact lists,
+  reduced-capacity fallback, available/unknown/nil values, capability
+  metadata, deterministic reports/summaries, and public errors.
+- Run `mix xref callers` for the new owner, inspect compile-connected
+  dependents, check formatting and `git diff --check`, prove the removed
+  policy family is absent from the facade, and review final facade/owner
+  boundaries.
 
 Behavior/schema changes:
 None intended.
@@ -68,8 +58,8 @@ StationCalendar reservation-source evidence extraction, selected in
 dedicated reservation-source owner is 227 lines.
 
 Next candidate:
-Re-rank the live checkout and select the next cohesive facade-preserving
-boundary.
+Implement and verify the selected LinkCapacity station-availability
+extraction.
 
 Blocked:
 No.
