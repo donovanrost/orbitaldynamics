@@ -9,7 +9,7 @@ Current slice:
 StationCalendar calendar-input normalization extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Extract provider artifact conversion, provider/declared entry flattening,
@@ -36,16 +36,47 @@ Selection evidence:
   omission behavior, and deterministic sorting remain unchanged.
 
 Verification:
-Pending.
+- Focused baseline before implementation:
+  `test/orbital_dynamics/communications/station_calendar_test.exs` passed
+  42 tests.
+- Strict compilation after implementation:
+  `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 mix compile --force --warnings-as-errors`
+  compiled 3,933 files successfully.
+- Focused regression:
+  `test/orbital_dynamics/communications/station_calendar_test.exs` passed
+  42 tests.
+- Adjacent regressions:
+  `test/orbital_dynamics/operator_review/station_calendar_test.exs` passed
+  3 tests and
+  `test/orbital_dynamics/campaign_planner/repair_contact_allocation_contention_test.exs`
+  passed 1 test.
+- Exact old/new comparison against selection commit `8c62649c` covered six
+  calendar/provider states across `to_ground_network/1` and
+  `overlay_contacts/3`; all 12 outputs matched exactly.
+- The exact states covered nil input, provider aliases, generated IDs,
+  reservation and counteroffer metadata, direction normalization, capacity
+  normalization, provider artifacts, multi-provider input, and invalid
+  intervals.
+- `git diff --check` passed.
+- `mix xref callers
+  OrbitalDynamics.Communications.StationCalendar.CalendarInput` reports only
+  the StationCalendar facade as a runtime caller; compile-connected xref
+  reports no unexpected coupling.
+- Static review confirmed input-exclusive identity, interval, capacity,
+  reservation, and counteroffer normalization helpers moved to the owner while
+  matching, annotation, summary, contention, and policy helpers remain in the
+  facade.
 
 Behavior/schema changes:
-None intended. This is a facade-preserving production ownership extraction.
+None. Existing provider aliases, generated identities, interval errors,
+capacity and availability normalization, reservation/counteroffer fields,
+omission behavior, artifact shape, and deterministic sorting are preserved.
 
 Last completed slice:
-Manifest target-catalog input extraction, selected in `2769ef8f` and
-implemented in `cc2431e8`.
-`study/manifest.ex` moved from 3,357 to 3,234 lines; the dedicated
-target-catalog input owner is 159 lines.
+StationCalendar calendar-input normalization extraction, selected in
+`8c62649c` and implemented in `31df3bf1`.
+`communications/station_calendar.ex` moved from 3,346 to 2,981 lines; the
+dedicated calendar-input owner is 449 lines.
 
 Next candidate:
 Re-rank the live largest-module set and select the next cohesive ownership
