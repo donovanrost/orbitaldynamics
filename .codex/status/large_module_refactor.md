@@ -9,7 +9,7 @@ Current slice:
 TimelineFeedback downlink-demand feedback extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `9b8c2d55`.
 
 Selected boundary:
 Extract weighted observation/contact downlink-demand derivation, residual
@@ -42,20 +42,36 @@ Selection evidence:
   fallback behavior must remain unchanged.
 
 Verification:
-Pending implementation.
+- Strict warning-clean compile passed across 3,952 files:
+  `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 mix compile --force --warnings-as-errors`.
+- Focused downlink-demand operational-feedback assertion passed: 1 test.
+- Complete timeline-feedback regression bundle passed: 99 tests.
+- Exact old/new parity passed 7 comparisons from selection commit `d8414e9e`
+  with `/tmp/timeline_downlink_demand_compare.exs`, covering rich observation
+  and contact demand, report wrapping, atom-key rows, empty feedback,
+  deterministic station maps and duplicate accumulation, invalid-input errors,
+  and full reconciliation provenance/trust routing.
+- `mix xref callers
+  OrbitalDynamics.TimelineFeedback.DownlinkDemandFeedback` reports only the
+  TimelineFeedback facade.
+- The owner has no compile-connected expansion beyond itself.
+- Focused formatting, `git diff --check`, removed-family static checks, and
+  final facade/owner review passed.
 
 Behavior/schema changes:
-None intended.
+None. The public TimelineFeedback facade, demand/source maps, exclusion and
+weight semantics, residual demand, trust routing, deterministic ordering, and
+exact errors are unchanged.
 
 Last completed slice:
-OperationalReadiness quality-gate operator-training summary extraction,
-selected in `303a6a96` and implemented in `cca255af`.
-`operational_readiness.ex` moved from 2,839 to 2,766 lines; the dedicated
-operator-training summary owner is 156 lines.
+TimelineFeedback downlink-demand feedback extraction, selected in `d8414e9e`
+and implemented in `9b8c2d55`.
+`timeline_feedback.ex` moved from 2,809 to 2,608 lines; the dedicated
+downlink-demand feedback owner is 239 lines.
 
 Next candidate:
-Implement and verify the selected TimelineFeedback downlink-demand feedback
-extraction.
+Re-rank the live largest-module inventory and select the next cohesive,
+facade-preserving ownership boundary.
 
 Blocked:
 No.
