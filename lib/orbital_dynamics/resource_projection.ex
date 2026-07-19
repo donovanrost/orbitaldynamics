@@ -134,87 +134,6 @@ defmodule OrbitalDynamics.ResourceProjection do
   @resource_activity_type_aliases Map.merge(@station_calendar_direction_aliases, %{
                                     "uplink_command" => "command"
                                   })
-  @station_capacity_fraction_paths [
-    ["throughput_model", "station_capacity_fraction"],
-    ["throughput_model", "capacity_fraction"],
-    ["capacity_model", "station_capacity_fraction"],
-    ["capacity_model", "capacity_fraction"],
-    ["activity_context", "station_capacity_fraction"],
-    ["activity_context", "capacity_fraction"],
-    ["capacity_pack_capacity_fraction"],
-    ["station_capacity_fraction"],
-    ["capacity_fraction"]
-  ]
-  @station_capacity_percent_paths [
-    ["throughput_model", "station_capacity_percent"],
-    ["throughput_model", "capacity_percent"],
-    ["capacity_model", "station_capacity_percent"],
-    ["capacity_model", "capacity_percent"],
-    ["activity_context", "station_capacity_percent"],
-    ["activity_context", "capacity_percent"],
-    ["station_capacity_percent"],
-    ["capacity_percent"]
-  ]
-  @source_station_capacity_fraction_paths [
-    ["station_capacity_fraction"],
-    ["capacity_fraction"],
-    ["capacity_pack_capacity_fraction"],
-    ["throughput_model", "station_capacity_fraction"],
-    ["throughput_model", "capacity_fraction"],
-    ["capacity_model", "station_capacity_fraction"],
-    ["capacity_model", "capacity_fraction"],
-    ["activity_context", "station_capacity_fraction"],
-    ["activity_context", "capacity_fraction"]
-  ]
-  @source_station_capacity_percent_paths [
-    ["station_capacity_percent"],
-    ["capacity_percent"],
-    ["throughput_model", "station_capacity_percent"],
-    ["throughput_model", "capacity_percent"],
-    ["capacity_model", "station_capacity_percent"],
-    ["capacity_model", "capacity_percent"],
-    ["activity_context", "station_capacity_percent"],
-    ["activity_context", "capacity_percent"]
-  ]
-  @station_capacity_value_paths [
-    {:fraction, ["throughput_model", "station_capacity_fraction"]},
-    {:fraction, ["throughput_model", "capacity_fraction"]},
-    {:percent, ["throughput_model", "station_capacity_percent"]},
-    {:percent, ["throughput_model", "capacity_percent"]},
-    {:fraction, ["capacity_model", "station_capacity_fraction"]},
-    {:fraction, ["capacity_model", "capacity_fraction"]},
-    {:percent, ["capacity_model", "station_capacity_percent"]},
-    {:percent, ["capacity_model", "capacity_percent"]},
-    {:fraction, ["activity_context", "station_capacity_fraction"]},
-    {:fraction, ["activity_context", "capacity_fraction"]},
-    {:percent, ["activity_context", "station_capacity_percent"]},
-    {:percent, ["activity_context", "capacity_percent"]},
-    {:fraction, ["capacity_pack_capacity_fraction"]},
-    {:fraction, ["station_capacity_fraction"]},
-    {:fraction, ["capacity_fraction"]},
-    {:percent, ["station_capacity_percent"]},
-    {:percent, ["capacity_percent"]}
-  ]
-  @source_station_capacity_value_paths [
-    {:fraction, ["station_capacity_fraction"]},
-    {:fraction, ["capacity_fraction"]},
-    {:fraction, ["capacity_pack_capacity_fraction"]},
-    {:percent, ["station_capacity_percent"]},
-    {:percent, ["capacity_percent"]},
-    {:fraction, ["throughput_model", "station_capacity_fraction"]},
-    {:fraction, ["throughput_model", "capacity_fraction"]},
-    {:percent, ["throughput_model", "station_capacity_percent"]},
-    {:percent, ["throughput_model", "capacity_percent"]},
-    {:fraction, ["capacity_model", "station_capacity_fraction"]},
-    {:fraction, ["capacity_model", "capacity_fraction"]},
-    {:percent, ["capacity_model", "station_capacity_percent"]},
-    {:percent, ["capacity_model", "capacity_percent"]},
-    {:fraction, ["activity_context", "station_capacity_fraction"]},
-    {:fraction, ["activity_context", "capacity_fraction"]},
-    {:percent, ["activity_context", "station_capacity_percent"]},
-    {:percent, ["activity_context", "capacity_percent"]}
-  ]
-
   alias OrbitalDynamics.Policy
   alias OrbitalDynamics.ResourceProjection.ActivityEffectPolicy
   alias OrbitalDynamics.ResourceProjection.ActivityInputValidation
@@ -224,6 +143,7 @@ defmodule OrbitalDynamics.ResourceProjection do
   alias OrbitalDynamics.ResourceProjection.PressureClassification
   alias OrbitalDynamics.ResourceProjection.PressureRisks
   alias OrbitalDynamics.ResourceProjection.ResourceSummaryInput
+  alias OrbitalDynamics.ResourceProjection.StationCapacityEvidence
 
   @doc """
   Declares the resource projection model and known limits.
@@ -264,13 +184,16 @@ defmodule OrbitalDynamics.ResourceProjection do
       resource_availability_false_tokens: @resource_availability_false_tokens,
       provider_direction_aliases: @provider_direction_aliases,
       station_calendar_direction_aliases: @station_calendar_direction_aliases,
-      station_capacity_fraction_paths: @station_capacity_fraction_paths,
-      station_capacity_percent_paths: @station_capacity_percent_paths,
-      station_capacity_value_paths: capacity_value_path_metadata(@station_capacity_value_paths),
-      source_station_capacity_fraction_paths: @source_station_capacity_fraction_paths,
-      source_station_capacity_percent_paths: @source_station_capacity_percent_paths,
+      station_capacity_fraction_paths: StationCapacityEvidence.station_capacity_fraction_paths(),
+      station_capacity_percent_paths: StationCapacityEvidence.station_capacity_percent_paths(),
+      station_capacity_value_paths:
+        StationCapacityEvidence.station_capacity_value_path_metadata(),
+      source_station_capacity_fraction_paths:
+        StationCapacityEvidence.source_station_capacity_fraction_paths(),
+      source_station_capacity_percent_paths:
+        StationCapacityEvidence.source_station_capacity_percent_paths(),
       source_station_capacity_value_paths:
-        capacity_value_path_metadata(@source_station_capacity_value_paths),
+        StationCapacityEvidence.source_station_capacity_value_path_metadata(),
       activity_stable_identity_fields: @activity_stable_identity_fields,
       row_semantics: [
         :per_spacecraft_activity_counts,
@@ -348,10 +271,6 @@ defmodule OrbitalDynamics.ResourceProjection do
         :no_schedule_mutation
       ]
     }
-  end
-
-  defp capacity_value_path_metadata(paths) do
-    Enum.map(paths, fn {unit, path} -> %{unit: unit, path: path} end)
   end
 
   defp subsystem_model_capability_ids do
@@ -1474,7 +1393,9 @@ defmodule OrbitalDynamics.ResourceProjection do
     first_number([
       Map.get(activity, "capacity_adjusted_throughput_mb"),
       get_in(activity, ["throughput_model", "capacity_adjusted_throughput_mb"])
-    ]) || estimated_downlink_throughput_mb(activity) * contact_capacity_fraction(activity)
+    ]) ||
+      estimated_downlink_throughput_mb(activity) *
+        StationCapacityEvidence.capacity_fraction(activity)
   end
 
   defp activity_resource_flow(
@@ -1538,7 +1459,7 @@ defmodule OrbitalDynamics.ResourceProjection do
           storage_after = roll_forward_storage(storage_before, storage_delta_mb)
           downlink_after = downlink_before + planned_downlink_mb
           downlink_row? = downlink_activity?(activity)
-          capacity_fraction = contact_capacity_fraction(activity)
+          capacity_fraction = StationCapacityEvidence.capacity_fraction(activity)
 
           row =
             %{
@@ -1573,10 +1494,12 @@ defmodule OrbitalDynamics.ResourceProjection do
               "incompatible_activity_types" =>
                 resource_effect_context["incompatible_activity_types"],
               "suppressed_activity_types" => resource_effect_context["suppressed_activity_types"],
-              "station_calendar_entry_id" => activity_station_calendar_entry_id(activity),
-              "station_calendar_provider_id" => activity_station_calendar_provider_id(activity),
+              "station_calendar_entry_id" =>
+                StationCapacityEvidence.station_calendar_entry_id(activity),
+              "station_calendar_provider_id" =>
+                StationCapacityEvidence.station_calendar_provider_id(activity),
               "station_calendar_provider_entry_id" =>
-                activity_station_calendar_provider_entry_id(activity),
+                StationCapacityEvidence.station_calendar_provider_entry_id(activity),
               "station_calendar_directions" => activity["station_calendar_directions"],
               "capacity_fraction" => downlink_value(downlink_row?, capacity_fraction),
               "storage_used_before_mb" => storage_before,
@@ -1763,39 +1686,6 @@ defmodule OrbitalDynamics.ResourceProjection do
   defp roll_forward_battery_energy(battery_energy_used_wh, battery_delta_wh),
     do: MarginProjection.roll_forward_battery_energy(battery_energy_used_wh, battery_delta_wh)
 
-  defp contact_capacity_fraction(contact) do
-    contact
-    |> contact_capacity_fraction_candidates()
-    |> Enum.find_value(&numeric_or_nil/1)
-    |> case do
-      nil -> 1.0
-      value -> value |> max(0.0) |> min(1.0)
-    end
-  end
-
-  defp contact_capacity_fraction_candidates(contact) do
-    capacity_value_candidates(contact, @station_capacity_value_paths) ++
-      capacity_value_candidates(
-        contact["source_contact_allocation"],
-        @source_station_capacity_value_paths
-      ) ++
-      source_station_capacity_fraction_candidates(contact["source_station_calendar_entry"]) ++
-      source_station_capacity_fraction_candidates(contact["source_station_calendar_overlaps"])
-  end
-
-  defp source_station_capacity_fraction_candidates(sources) when is_list(sources),
-    do: Enum.flat_map(sources, &source_station_capacity_fraction_candidates/1)
-
-  defp source_station_capacity_fraction_candidates(%{} = source) do
-    capacity_value_candidates(source, @source_station_capacity_value_paths) ++
-      capacity_value_candidates(
-        source["source_contact_allocation"],
-        @source_station_capacity_value_paths
-      )
-  end
-
-  defp source_station_capacity_fraction_candidates(_source), do: []
-
   defp source_station_calendar_values(sources, fields) when is_list(sources),
     do: Enum.flat_map(sources, &source_station_calendar_values(&1, fields))
 
@@ -1804,90 +1694,8 @@ defmodule OrbitalDynamics.ResourceProjection do
 
   defp source_station_calendar_values(_source, _fields), do: []
 
-  defp capacity_value_candidates(%{} = source, paths) do
-    Enum.map(paths, fn
-      {:fraction, path} -> path_value(source, path)
-      {:percent, path} -> capacity_percent_fraction(path_value(source, path))
-    end)
-  end
-
-  defp capacity_value_candidates(_source, _paths), do: []
-
   defp path_value(source, [field]), do: Map.get(source, field)
   defp path_value(source, path), do: get_in(source, path)
-
-  defp capacity_percent_fraction(value) do
-    case numeric_or_nil(value) do
-      value when is_number(value) and value >= 0.0 and value <= 100.0 -> value / 100.0
-      _value -> nil
-    end
-  end
-
-  defp activity_station_calendar_entry_id(activity) do
-    stable_id_or_nil(activity["station_calendar_entry_id"]) ||
-      stable_id_or_nil(
-        get_in(activity, ["source_station_calendar_entry", "station_calendar_entry_id"])
-      ) ||
-      stable_id_or_nil(get_in(activity, ["source_station_calendar_entry", "id"])) ||
-      source_station_calendar_overlap_stable_id(activity, [
-        "station_calendar_entry_id",
-        "entry_id",
-        "id"
-      ])
-  end
-
-  defp activity_station_calendar_provider_id(activity) do
-    stable_id_or_nil(activity["station_calendar_provider_id"]) ||
-      stable_id_or_nil(get_in(activity, ["source_station_calendar_entry", "provider_id"])) ||
-      stable_id_or_nil(
-        get_in(activity, ["source_station_calendar_entry", "station_calendar_provider_id"])
-      ) ||
-      source_station_calendar_overlap_stable_id(activity, [
-        "provider_id",
-        "station_calendar_provider_id"
-      ])
-  end
-
-  defp activity_station_calendar_provider_entry_id(activity) do
-    stable_id_or_nil(activity["station_calendar_provider_entry_id"]) ||
-      stable_id_or_nil(get_in(activity, ["source_station_calendar_entry", "provider_entry_id"])) ||
-      stable_id_or_nil(
-        get_in(activity, ["source_station_calendar_entry", "station_calendar_provider_entry_id"])
-      ) ||
-      source_station_calendar_overlap_stable_id(activity, [
-        "provider_entry_id",
-        "station_calendar_provider_entry_id"
-      ])
-  end
-
-  defp source_station_calendar_overlap_stable_id(activity, fields) do
-    activity
-    |> Map.get("source_station_calendar_overlaps")
-    |> source_station_calendar_capacity_source()
-    |> source_station_calendar_stable_id(fields)
-  end
-
-  defp source_station_calendar_capacity_source(sources) when is_list(sources) do
-    Enum.find(sources, &source_station_calendar_has_capacity?/1) ||
-      Enum.find(sources, &is_map/1)
-  end
-
-  defp source_station_calendar_capacity_source(%{} = source), do: source
-  defp source_station_calendar_capacity_source(_source), do: nil
-
-  defp source_station_calendar_has_capacity?(%{} = source) do
-    source
-    |> source_station_capacity_fraction_candidates()
-    |> Enum.any?(&(not is_nil(numeric_or_nil(&1))))
-  end
-
-  defp source_station_calendar_has_capacity?(_source), do: false
-
-  defp source_station_calendar_stable_id(%{} = source, fields) do
-    Enum.find_value(fields, fn field -> stable_id_or_nil(Map.get(source, field)) end)
-  end
-
-  defp source_station_calendar_stable_id(_source, _fields), do: nil
 
   defp starting_storage_used_mb(summary),
     do: MarginProjection.starting_storage_used_mb(summary)
