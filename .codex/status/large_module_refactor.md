@@ -6,58 +6,44 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-ResourceFilter summary extraction.
+ContactIntent capacity-evidence extraction.
 
 Status:
-Completed and pushed in `4af22e46`.
+Selected; strict focused baseline pending.
 
 Selected boundary:
-Extract `resource_filter_summary.v1` construction, report-row normalization,
-review/routing counts, stable ID grouping, and duplicate-row summary evidence
-into `OrbitalDynamics.ResourceFilter.Summary`. Preserve all ResourceFilter and
-root public facades.
+Extract station/required capacity path contracts, capability and artifact
+assumption metadata, station-capacity evidence aggregation, required-capacity
+selection/source classification, nested source-calendar lookup, and unit
+normalization into
+`OrbitalDynamics.Communications.ContactIntent.CapacityEvidence`. Preserve all
+ContactIntent and root public facades.
 
 Selection evidence:
 - Excluding the generated/declarative candidate-refresh JSON-schema module,
-  live re-ranking places `resource_filter.ex` at 2,059 lines,
+  live re-ranking places `communications/contact_intent.ex` at 2,038 lines,
   the largest ordinary eligible facade.
-- The summary builder remains in the facade at lines 418-483 and consumes only
-  an existing report plus facade-owned contract/model-limit values.
-- Count, routing, stable-ID, and duplicate summary helpers form a cohesive
-  output-aggregation family near lines 1,331-1,376; shared report helpers will
-  remain facade-owned where still required.
-- Candidate/resource-summary normalization, lookup ambiguity, suppression and
-  margin policy, approval requirements, report construction, station context,
-  provenance, and provider-result handling remain outside the boundary.
-- Exact string/atom report parity, pass-through summary behavior, deterministic
-  ID ordering, sparse omission, review status, invalid-input evidence,
-  duplicate collision counts, routing maps, source defaults, and public
-  exception behavior must remain unchanged.
+- ContactIntent's station/required capacity path contracts occupy lines 77-184;
+  the corresponding context/source/value helper family remains in the facade
+  at lines 1,231-1,357.
+- The same owner can supply the capability metadata and summary assumptions
+  derived from those contracts, avoiding duplicated path declarations.
+- Activity/timeline normalization, contact identity, station availability and
+  reservations, policy classification, summary routing, feedback evidence,
+  provider results, and cadence handoff remain outside the boundary.
+- Exact path ordering, fraction/percent unit metadata, direct-before-nested
+  required-capacity precedence, source classification, source-calendar
+  traversal, numeric-string parsing, percent conversion, unit-interval
+  validation, station min/max aggregation, and sparse output must remain
+  unchanged.
 
 Implementation:
-- Added `OrbitalDynamics.ResourceFilter.Summary` as the owner of
-  `resource_filter_summary.v1` construction, report-row normalization,
-  deterministic counts and routing maps, invalid-input evidence, and duplicate
-  collision aggregation.
-- Preserved all ResourceFilter and root public APIs; the facade passes its
-  existing summary contract, source artifact contract, and model limits to the
-  new owner.
-- Removed the summary builder and summary-only count/routing helpers from the
-  facade while retaining shared report aggregators.
-- `resource_filter.ex` moved from 2,059 to 1,964 lines; the new owner is 161
-  lines.
+Pending.
 
 Verification:
-- Strict focused baseline passed all 37 ResourceFilter tests.
-- Exact old/new public parity passed for six captured cases: complex routing
-  and duplicate evidence, atom normalization, empty reports, ignored options,
-  and string- and atom-keyed pass-through summaries.
-- Focused and adjacent verification passed 50 tests across ResourceFilter,
-  operator-review handoff, and candidate-refresh construction.
-- Static checks confirm the builder and summary-only helpers left the facade;
-  xref reports only ResourceFilter as a runtime caller of the owner.
-- Strict warning-clean forced compile passed for 3,990 files.
-- Formatting and `git diff --check` passed.
+Pending strict focused baseline, exact old/new public parity, focused and
+adjacent tests, static ownership checks, xref, strict warning-clean compile,
+formatting, and diff checks.
 
 Behavior/schema changes:
 None intended.
@@ -69,9 +55,7 @@ ResourceFilter summary extraction, selected in `c2ec6ed6` and implemented in
 owner is 161 lines.
 
 Next candidate:
-Re-rank the live checkout and select the next bounded facade-preserving
-extraction. `communications/contact_intent.ex` is now the largest ordinary
-eligible facade at 2,038 lines.
+Complete the selected ContactIntent capacity-evidence extraction.
 
 Blocked:
 No.
