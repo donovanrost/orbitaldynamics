@@ -6,43 +6,32 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-CadenceImport contact-contention import extraction.
+CadenceImport operational-timeline import extraction.
 
 Status:
-Completed and published.
+Selected; implementation has not started.
 
 Selected boundary:
-Extract the contact-contention report and resolution-report constructor
+Extract the timeline-feedback and operational-timeline report constructor
 implementations into
-`OrbitalDynamics.CadenceImport.ContactContentionImport`. Preserve both public
+`OrbitalDynamics.CadenceImport.OperationalTimelineImport`. Preserve both public
 facade entry points and pass the existing review-package import seam as a
 callback.
 
 Selection evidence:
-- `cadence_import.ex` is now 2,283 lines.
-- The selected contiguous pair spans about 55 lines and owns contention
-  normalization, embedded-package precedence, conversion, and routing.
-- The pair has one responsibility: turn contention detection and resolution
-  evidence into review-package imports while preserving their distinct
-  fallback IDs and source contracts.
+- `cadence_import.ex` is now 2,254 lines.
+- The selected contiguous pair spans about 40 lines and owns operational
+  timeline feedback/report normalization, conversion, and routing.
+- The pair has one responsibility: turn realized feedback and operational
+  timeline evidence into review-package imports while preserving feedback's
+  embedded-package precedence.
 - Public API docs, row construction, manifest assembly, schemas, and adjacent
-  timeline/station imports remain outside the boundary.
+  repair/contention imports remain outside the boundary.
 
 Verification:
-- Strict test compile passed with 3,836 files and warnings as errors.
-- Two focused contention tests passed with 70 excluded.
-- All combined CadenceImport tests passed: 96 tests.
-- CadenceImport schema contracts passed: 4 tests.
-- An executable before/after proof matched 16 cases across both constructors,
-  including embedded review packages and inferred/explicit IDs.
-- Formatting and diff checks passed, and no temporary proof files remain.
-- Static ownership checks confirmed both public facade entry points delegate to
-  one implementation owner.
-- Runtime xref confirmed `cadence_import.ex` is the direct consumer of
-  `contact_contention_import.ex`.
-- Bounded local review found no embedded-package precedence, normalization,
-  source-ID fallback, OperatorReview conversion, source-contract, public API,
-  row, ordering, or schema changes.
+Pending: focused operational-timeline baselines, exact old/new constructor
+equivalence proof, strict compile, all combined CadenceImport tests, schema
+contracts, static single ownership, runtime xref, and bounded review.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
@@ -53,8 +42,8 @@ implemented in `0a9e4823`. `cadence_import.ex` moved from 2,283 to 2,254 lines;
 the extracted owner is 37 lines.
 
 Next candidate:
-Re-inventory remaining public routing after contact-contention imports have one
-production owner.
+Re-inventory remaining public routing after operational-timeline imports have
+one production owner.
 
 Blocked:
 No.
