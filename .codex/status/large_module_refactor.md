@@ -9,7 +9,7 @@ Current slice:
 CadenceImport manifest-map normalization extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and published.
 
 Selected boundary:
 Extract top-level nil compaction and nonempty-map normalization into
@@ -29,17 +29,28 @@ Selection evidence:
   without duplicating compaction behavior.
 
 Verification:
-Pending: focused representative row/manifest baselines, exact map-normalization
-decision matrix, strict compile, all combined CadenceImport tests, schema
-contracts, static single ownership, runtime xref, and bounded review.
+- Strict test compile passed with 3,816 files and warnings as errors.
+- Three focused representative row/manifest tests passed with 69 excluded.
+- All combined CadenceImport tests passed: 96 tests.
+- CadenceImport schema contracts passed: 4 tests.
+- An 8-case direct decision matrix covered top-level nil removal, preservation of
+  false/zero/empty and nested values, key-value enumerables, nonempty maps,
+  empty maps, and non-map inputs.
+- Formatting and diff checks passed, and no temporary proof files remain.
+- Static ownership checks confirmed both normalization policies have one
+  production implementation behind the preserved facade callback seams.
+- Runtime xref confirmed `cadence_import.ex` is the direct consumer of
+  `manifest_map_normalization.ex`.
+- Bounded local review found no callback, recursion, preservation, empty-map,
+  row-shape, or schema changes.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-CadenceImport manifest-contract diagnostic extraction, selected in `1a983a0c`
-and implemented in `580eb142`. `cadence_import.ex` moved from 3,349 to 3,341
-lines; the extracted owner is 20 lines.
+CadenceImport manifest-map normalization extraction, selected in `ac1a8ab3` and
+implemented in `a28108f9`. `cadence_import.ex` moved from 3,341 to 3,337 lines;
+the extracted owner is 12 lines.
 
 Next candidate:
 Extract review-summary context selection after manifest-map normalization has
