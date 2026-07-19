@@ -6,66 +6,41 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-TimelineFeedback link context extraction.
+Manifest ground-station catalog input extraction.
 
 Status:
-Completed and pushed.
+Selected; implementation pending.
 
 Selected boundary:
-Extract link protocol, RF configuration, data rate, link-quality measurements,
-lock flags, and link-quality status projection into
-`OrbitalDynamics.TimelineFeedback.LinkContext`.
-Preserve the existing TimelineFeedback public API facade.
+Extract direct ground-station catalog parsing, candidate-refresh mission-state
+fallback, ground-network station normalization, stable-ID dedupe, and
+GroundStation construction into
+`OrbitalDynamics.Study.Manifest.GroundStationCatalogInput`.
+Preserve the existing Manifest public API facade.
 
 Selection evidence:
-- Live re-ranking places `timeline_feedback.ex` at 3,268 lines, fourth behind
-  Schema, Timeline, and MissionPlan.Activity and ahead of Manifest,
-  OperationalReadiness, ContactContention, LinkCapacity,
+- Live re-ranking places `study/manifest.ex` at 3,234 lines, fourth behind
+  Schema, Timeline, and MissionPlan.Activity and ahead of
+  OperationalReadiness, TimelineFeedback, ContactContention, LinkCapacity,
   RecommendationRiskContext, ContactAllocation, ResourceProjection, and
   StationCalendar.
-- The selected family is one independent 15-field projection merged into both
-  planned and realized feedback rows; it owns link-value path precedence and
-  artifact normalization but not reconciliation or feedback aggregation.
-- Throughput derivation remains owned by the existing
-  `TimelineFeedback.Throughput` module. Planned/realized row assembly, station
-  calendar, resource, pointing, attitude, command-authority, lighting,
-  observation-quality, and thermal contexts remain outside this boundary.
-- Existing top-level/nested/metadata path precedence, atom/string scalar
-  normalization, numeric and boolean parsing, omission behavior, row shape,
-  and deterministic output remain unchanged.
+- The selected family is one independent run-input catalog reached once from
+  `from_map/1`; it owns source selection, coordinate-bearing station
+  normalization, stable-ID dedupe, field validation, and GroundStation
+  construction.
+- Manifest schema generation, campaign ground-network metadata, candidate
+  refresh metadata, target and crossing catalogs, scenario/activity parsing,
+  and run assembly remain outside this boundary.
+- Existing direct-catalog precedence, empty-list fallback, invalid-field paths,
+  coordinate filtering, default minimum elevation, first-ID-wins order,
+  constructor behavior, and deterministic output remain unchanged.
 
 Verification:
-- Focused baseline before implementation:
-  `test/orbital_dynamics/timeline_feedback_test.exs` passed 73 tests.
-- Strict compilation after implementation:
-  `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 mix compile --force --warnings-as-errors`
-  compiled 3,936 files successfully.
-- Focused regression:
-  `test/orbital_dynamics/timeline_feedback_test.exs` passed 73 tests.
-- Adjacent regressions:
-  `test/orbital_dynamics/operator_review/timeline_feedback_test.exs` passed
-  2 tests,
-  `test/orbital_dynamics/candidate_refresh/operational_timeline_feedback_build_test.exs`
-  passed 2 tests, and
-  `test/orbital_dynamics/campaign_planner/strategy_timeline_feedback_source_report_test.exs`
-  passed 1 test.
-- Exact old/new comparison against selection commit `0816a51b` covered seven
-  normalized realized rows and four full reconciliation reports; all 11
-  outputs matched exactly.
-- The exact inputs covered empty context, full top-level values, fallback
-  aliases, nested values, metadata fallbacks, conflicting precedence, numeric
-  and boolean coercion, and invalid values.
-- `git diff --check` passed.
-- `mix xref callers OrbitalDynamics.TimelineFeedback.LinkContext` reports only
-  the TimelineFeedback facade as a runtime caller; compile-connected xref
-  reports no unexpected coupling.
-- Static review confirmed the owner exposes only `build/1`; reconciliation,
-  feedback aggregation, throughput derivation, and every other activity
-  context remain outside the boundary.
+Pending implementation.
 
 Behavior/schema changes:
-None. Existing link-value precedence and normalization, omission behavior,
-feedback-row shape, artifact contracts, and deterministic output are
+None planned. Existing station source precedence and normalization, validation
+errors, manifest shape, schema exports, and deterministic output will be
 preserved.
 
 Last completed slice:
@@ -75,8 +50,7 @@ implemented in `2bdd1087`.
 context owner is 146 lines.
 
 Next candidate:
-Re-rank the live largest-module set and select the next cohesive ownership
-boundary.
+Implement and verify the selected ground-station catalog extraction.
 
 Blocked:
 No.
