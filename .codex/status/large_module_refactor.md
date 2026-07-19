@@ -6,57 +6,46 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-TimelineFeedback operational-feedback exclusion extraction.
+RecommendationRiskContext timeline-publication extraction.
 
 Status:
-Completed and pushed.
+Selected; implementation not started.
 
 Selected boundary:
-Extract operational-feedback exclusion reason/status assignment,
-resource-availability variance detection, feedback-kind identity rules,
-invalid feedback-weight detection, contact link-quality review detection, and
-status normalization into
-`OrbitalDynamics.TimelineFeedback.OperationalFeedbackExclusion`. Preserve the
-public TimelineFeedback facade through the reconciliation-row private delegate.
+Extract timeline-publication risk filtering, string-key normalization, context
+projection, nested-list flattening, nil removal, and stable first-seen
+deduplication into
+`OrbitalDynamics.RecommendationRiskContext.TimelinePublication`. Preserve both
+public RecommendationRiskContext clauses as delegates to the dedicated owner.
 
 Selection evidence:
-- Live re-ranking places `timeline_feedback.ex` at 2,608 lines, fourth behind
-  Schema, Timeline, and MissionPlan.Activity, and one line ahead of
-  RecommendationRiskContext.
-- The selected family spans lines 1,766-1,903. It owns all
-  operational-feedback exclusion reasons, their review-only statuses,
-  resource-state mismatch fields, observation/contact identity rules, invalid
-  weight aliases, link lock/margin/status rules, and status token
-  normalization.
-- Only reconciliation-row construction consumes this responsibility through
-  `put_operational_feedback_exclusion/1`.
-- Reconciliation evidence construction, duplicate realized feedback,
-  aggregation, demand/resource/priority feedback, public clauses, and artifact
-  contracts remain outside this boundary.
-- Existing reason precedence, status mapping, exact mismatch fields, contact
-  kinds, invalid-weight aliases, failure-status vocabulary, negative-margin
-  semantics, token normalization, no-exclusion pass-through, and deterministic
-  output must remain unchanged.
+- Live re-ranking places `recommendation_risk_context.ex` at 2,607 lines, the
+  largest eligible facade behind Schema, Timeline, MissionPlan.Activity, and
+  the root public facade.
+- The selected public family spans lines 1,273-1,360 and exclusively owns the
+  timeline-publication risk predicate plus its 29-field projection.
+- Production consumers call only the public facade from operator-review and
+  Cadence-import strategy recommendation contexts.
+- Neighboring timeline preservation/lifecycle/dependency contexts, context-key
+  declarations, shared facade helpers, public names and result contracts
+  remain outside this boundary.
+- Existing type-or-feedback-scope selection, atom-key normalization,
+  scalar-versus-list field semantics, nil/empty omission, first-seen ordering,
+  deduplication, non-list fallback, and exact output keys must remain
+  unchanged.
 
-Implementation:
-- Selection was recorded and pushed in `cb84add9`.
-- Implementation was committed and pushed in `9ce4d7bb`.
-- `timeline_feedback.ex` moved from 2,608 to 2,472 lines.
-- `OrbitalDynamics.TimelineFeedback.OperationalFeedbackExclusion` is a
-  142-line owner reached through the original private facade delegate.
-
-Verification:
-- Strict warning-clean compilation passed across 3,958 files.
-- The focused TimelineFeedback file and four adjacent operational-feedback
-  consumers passed together: 89 tests.
-- Exact old/new row parity passed for 12 cases covering no-op rows,
-  observation target and pointing mismatches, contact identity mismatches,
-  link-lock, negative-margin and normalized failure-status review, resource
-  variance, invalid weight aliases, and precedence.
-- `mix xref callers` reports only the TimelineFeedback facade; the
-  compile-connected graph reports the new owner and facade.
-- The removed private helper family is absent from the facade, formatting and
-  `git diff --check` passed, and the final diff is ownership-only.
+Verification plan:
+- Run the strict warning-clean compile before and after implementation.
+- Run the focused strategy recommendation pressure/context regressions and
+  adjacent operator-review and Cadence-import consumers.
+- Run exact old/new public parity from this selection commit across atom/string
+  keys, type/scope selection, scalar/nested-list fields, duplicates, nils,
+  unrelated risks, empty/non-list inputs, deterministic output, and public
+  errors.
+- Run `mix xref callers` for the new owner, inspect compile-connected
+  dependents, check formatting and `git diff --check`, prove the removed
+  projection family is absent from the facade, and review final facade/owner
+  boundaries.
 
 Behavior/schema changes:
 None intended.
@@ -67,8 +56,8 @@ TimelineFeedback operational-feedback exclusion extraction, selected in
 2,608 to 2,472 lines; the dedicated exclusion owner is 142 lines.
 
 Next candidate:
-Re-rank the live checkout and select the next cohesive facade-preserving
-boundary.
+Implement and verify the selected RecommendationRiskContext
+timeline-publication extraction.
 
 Blocked:
 No.
