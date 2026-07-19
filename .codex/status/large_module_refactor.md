@@ -9,7 +9,7 @@ Current slice:
 TimelineFeedback thermal context extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Extract declared/planned/actual temperature selection, operating-limit
@@ -33,20 +33,48 @@ Selection evidence:
   omission behavior, row shape, and deterministic output remain unchanged.
 
 Verification:
-Pending implementation.
+- Focused baseline before implementation:
+  `test/orbital_dynamics/timeline_feedback_test.exs` passed 73 tests.
+- Strict compilation after implementation:
+  `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 mix compile --force --warnings-as-errors`
+  compiled 3,939 files successfully.
+- Focused regression:
+  `test/orbital_dynamics/timeline_feedback_test.exs` passed 73 tests.
+- Adjacent regressions:
+  `test/orbital_dynamics/operator_review/timeline_feedback_test.exs` passed
+  2 tests,
+  `test/orbital_dynamics/candidate_refresh/operational_timeline_feedback_build_test.exs`
+  passed 2 tests, and
+  `test/orbital_dynamics/campaign_planner/strategy_timeline_feedback_source_report_test.exs`
+  passed 1 test.
+- Exact old/new comparison against selection commit `4ccc5828` covered seven
+  normalized realized rows and four full reconciliation reports; all 11
+  outputs matched exactly.
+- The exact inputs covered empty context, full direct values, aliases,
+  two-sided and one-sided derived margins, explicit-margin precedence,
+  planned/actual deltas, scalar normalization, invalid identifiers, and
+  invalid numeric values.
+- `git diff --check` passed.
+- `mix xref callers OrbitalDynamics.TimelineFeedback.ThermalContext` reports
+  only the TimelineFeedback facade as a runtime caller; compile-connected xref
+  reports no unexpected coupling.
+- Static review confirmed the owner exposes only `build/1`; reconciliation,
+  row assembly, resource aggregation, and every other activity context remain
+  outside the boundary.
 
 Behavior/schema changes:
-None planned. Existing thermal-value precedence and derivation, feedback-row
-shape, artifact contracts, and deterministic output will be preserved.
+None. Existing thermal-value precedence and derivation, feedback-row shape,
+artifact contracts, and deterministic output are preserved.
 
 Last completed slice:
-OperationalReadiness timeline-publication context extraction, selected in
-`beda0899` and implemented in `18aee27d`.
-`operational_readiness.ex` moved from 3,195 to 2,839 lines; the dedicated
-timeline-publication context owner is 476 lines.
+TimelineFeedback thermal context extraction, selected in `4ccc5828` and
+implemented in `c3190551`.
+`timeline_feedback.ex` moved from 3,153 to 3,061 lines; the dedicated thermal
+context owner is 113 lines.
 
 Next candidate:
-Implement and verify the selected thermal-context extraction.
+Re-rank the live largest-module set and select the next cohesive ownership
+boundary.
 
 Blocked:
 No.
