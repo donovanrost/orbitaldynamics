@@ -6,58 +6,40 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-OperationalReadiness quality-gate schema-validation summary extraction.
+RecommendationRiskContext resource-projection context extraction.
 
 Status:
-Completed and pushed.
+Selected; strict focused baseline pending.
 
 Selected boundary:
-Extract quality-gate schema-validation row selection, context detection,
-positive-count aggregation, failed/blocked classification, status and gate-ID
-routing, deterministic ID ordering, summary construction, and the advertised
-summary artifact contract into
-`OrbitalDynamics.OperationalReadiness.QualityGateSchemaValidationSummary`.
-Preserve all public OperationalReadiness report, gate, quality-summary, and
-capability facades.
+Extract resource-projection risk selection, atom-key normalization,
+single/multi-field context value aggregation, empty-value omission, the full
+resource/availability/margin/downlink/feedback projection, and its advertised
+context-key list into
+`OrbitalDynamics.RecommendationRiskContext.ResourceProjection`. Preserve the
+public RecommendationRiskContext context and context-key facades.
 
 Selection evidence:
-- Live re-ranking places `operational_readiness.ex` at 2,276 lines, the largest
-  eligible facade behind Schema, Timeline, MissionPlan.Activity, and the root
-  public facade.
-- The selected summary builder at lines 786-844 and its dedicated row/context/
-  failure helpers at lines 1,138-1,169 exclusively project existing
-  `cadence_import` quality-gate schema-validation evidence.
-- The public direct-report and derived-report clauses already converge on this
-  private builder, matching the established operator-training summary owner
-  pattern.
-- Readiness classification, quality-gate construction, unavailable-resource,
-  operator-training, import-readiness, adapter, evidence, and public report
-  behavior remain outside this boundary.
-- Existing positive-integer filtering, count summation, row inclusion, failure
-  rules, blocked/review ID routing, stable sort/deduplication, omission of nil
-  fields, assumptions/model limits, exact keys, and capability metadata must
-  remain unchanged.
+- Live re-ranking places `recommendation_risk_context.ex` at 2,274 lines, the
+  largest eligible facade behind Schema, Timeline, MissionPlan.Activity, and
+  the root public facade.
+- The advertised resource-projection key list at lines 450-489 and public
+  context builder at lines 1,679-1,768 form one dedicated projection family.
+- Only risks with `feedback_scope == "resource_projection"` participate; the
+  builder reads no other recommendation-risk context state.
+- Resource filtering, margins, score terms, objectives, contact/station,
+  timeline, execution, validation, and operational-feedback contexts remain
+  outside this boundary.
+- Existing shallow atom-key conversion, input-order preservation, multi-key
+  flattening, nil rejection, stable first-occurrence deduplication, boolean/
+  numeric/map preservation, empty-key omission, non-list fallback, exact field
+  names, and advertised key ordering must remain unchanged.
 
 Implementation:
-- Selection was recorded and pushed in `7eed3ebf`.
-- Implementation was committed and pushed in `e0ba1c1e`.
-- `operational_readiness.ex` moved from 2,276 to 2,186 lines.
-- `OrbitalDynamics.OperationalReadiness.QualityGateSchemaValidationSummary` is
-  a 171-line owner reached through one private facade delegate.
+Pending.
 
 Verification:
-- Strict warning-clean compilation passed across 3,976 files.
-- The focused OperationalReadiness file and five adjacent Cadence-import,
-  campaign, candidate-refresh, operator-review, and schema consumers passed
-  together: 63 tests.
-- Exact old/new public summary parity passed for 8 cases covering empty and
-  irrelevant rows, pass counts, blocked fail/error evidence, warning and
-  remediation review evidence, mixed malformed counts, duplicate/nil IDs,
-  atom-keyed reports, deterministic routing, and capability metadata.
-- `mix xref callers` reports only the OperationalReadiness facade.
-- The removed schema-validation row/context/failure helpers and facade-owned
-  summary contract are absent apart from the thin builder delegate, formatting
-  and `git diff --check` passed, and the final diff is ownership-only.
+Pending.
 
 Behavior/schema changes:
 None intended.
@@ -69,8 +51,8 @@ selected in `7eed3ebf` and implemented in `e0ba1c1e`.
 schema-validation summary owner is 171 lines.
 
 Next candidate:
-Re-rank the live checkout and select the next cohesive facade-preserving
-boundary.
+Implement and verify the selected RecommendationRiskContext
+resource-projection context boundary.
 
 Blocked:
 No.
