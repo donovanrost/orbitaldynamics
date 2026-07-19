@@ -9,7 +9,7 @@ Current slice:
 Schema decision-support validation consolidation.
 
 Status:
-Selected; implementation has not started.
+Completed and published.
 
 Selected boundary:
 Move maneuver recommendation/review validation and optional objective
@@ -28,17 +28,24 @@ Selection evidence:
   and all public `Schema` APIs remain outside.
 
 Verification:
-Pending: focused maneuver/objective baselines, exact old/new fixture validation
-reports, strict compile, broader Schema contract tests, JSON Schema export
-checks, static single ownership, runtime xref, and bounded review.
+- Strict compile passed across 3,864 files with warnings as errors.
+- Focused maneuver and objective contracts passed: 4 tests.
+- Full Schema suite passed: 175 tests.
+- JSON Schema export contracts passed: 15 tests.
+- Exact old/new validation reports matched for 8 valid and mutated maneuver,
+  objective, and nested campaign fixtures.
+- Static inspection confirms the facade retains only its arity-2/arity-3 seams
+  and a registry-dispatch callback; runtime xref reports `Schema` as the sole
+  caller of the expanded owner.
+- `git diff --check` and bounded ownership review passed.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-Schema candidate-rejection validation extraction, selected in `2a36e107` and
-implemented in `deae0f5a`. `schema.ex` moved from 6,991 to 6,972 lines; the
-dedicated owner is 36 lines.
+Schema decision-support validation consolidation, selected in `57f70207` and
+implemented in `88aa3c57`. `schema.ex` moved from 6,972 to 6,963 lines; the
+existing owner moved from 59 to 103 lines.
 
 Next candidate:
 Re-inventory remaining Schema family-validation clusters after decision-support
