@@ -9,7 +9,7 @@ Current slice:
 Schema timeline-context validation extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and published.
 
 Selected boundary:
 Extract optional timeline preconditions, activity context, protection
@@ -28,17 +28,25 @@ Selection evidence:
   and all public `Schema` APIs remain outside.
 
 Verification:
-Pending: focused timeline-context baselines, exact old/new fixture validation
-reports, strict compile, broader Schema contract tests, JSON Schema export
-checks, static single ownership, runtime xref, and bounded review.
+- Strict compile passed across 3,866 files with warnings as errors.
+- Focused operational-timeline, activity-state, and campaign-repair contracts
+  passed: 13 tests.
+- Full Schema suite passed: 175 tests.
+- JSON Schema export contracts passed: 15 tests.
+- Exact old/new validation reports matched for 9 valid and mutated timeline and
+  operator-review fixtures spanning every selected seam.
+- Static inspection confirms the facade retains only its guarded arity-3/arity-4
+  callback seams; runtime xref reports `Schema` as the sole caller of the new
+  owner.
+- `git diff --check` and bounded ownership review passed.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-Schema policy validation extraction, selected in `253ec596` and implemented in
-`e207f932`. `schema.ex` moved from 6,963 to 6,950 lines; the dedicated owner is
-76 lines.
+Schema timeline-context validation extraction, selected in `7cc168a1` and
+implemented in `07f20eef`. `schema.ex` moved from 6,950 to 6,912 lines; the
+dedicated owner is 76 lines.
 
 Next candidate:
 Re-inventory remaining Schema family-validation clusters after timeline-context
