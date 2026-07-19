@@ -16,6 +16,7 @@ defmodule OrbitalDynamics.CadenceImport do
     ImportReadinessPolicy,
     JsonNormalization,
     ManifestContractDiagnostics,
+    ManifestMapNormalization,
     ProviderResultNormalization,
     ReviewPackageRowSourcePolicy,
     SourceIdentifierPolicy,
@@ -3330,12 +3331,7 @@ defmodule OrbitalDynamics.CadenceImport do
   defp station_calendar_context_fields,
     do: StationCalendarContextFields.all()
 
-  defp compact_map(map) do
-    map
-    |> Enum.reject(fn {_key, value} -> is_nil(value) end)
-    |> Map.new()
-  end
+  defp compact_map(map), do: ManifestMapNormalization.compact(map)
 
-  defp non_empty_map(%{} = map) when map_size(map) > 0, do: map
-  defp non_empty_map(_map), do: nil
+  defp non_empty_map(map), do: ManifestMapNormalization.non_empty(map)
 end
