@@ -9,7 +9,7 @@ Current slice:
 Schema source-evidence validation extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and published.
 
 Selected boundary:
 Extract source-evidence field validation plus freshness, schema-validation, and
@@ -29,17 +29,24 @@ Selection evidence:
   and all public `Schema` APIs remain outside.
 
 Verification:
-Pending: focused source-evidence/status baselines, exact old/new fixture
-validation reports, strict compile, broader Schema contract tests, JSON Schema
-export checks, static single ownership, runtime xref, and bounded review.
+- Strict compile passed across 3,867 files with warnings as errors.
+- Focused Cadence-import and operator-review contracts passed: 6 tests.
+- Full Schema suite passed: 175 tests.
+- JSON Schema export contracts passed: 15 tests.
+- Exact old/new validation reports matched for 9 valid, matching, mismatched,
+  invalid, and malformed source-evidence/status fixtures.
+- Static inspection confirms the facade retains only its arity-3 seams plus
+  shared status-catalog inputs; runtime xref reports `Schema` as the sole caller
+  of the new owner.
+- `git diff --check` and bounded ownership review passed.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-Schema timeline-context validation extraction, selected in `7cc168a1` and
-implemented in `07f20eef`. `schema.ex` moved from 6,950 to 6,912 lines; the
-dedicated owner is 76 lines.
+Schema source-evidence validation extraction, selected in `32c1639d` and
+implemented in `dde67b49`. `schema.ex` moved from 6,912 to 6,888 lines; the
+dedicated owner is 40 lines.
 
 Next candidate:
 Re-inventory remaining Schema family-validation clusters after source-evidence
