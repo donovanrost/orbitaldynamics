@@ -95,6 +95,7 @@ defmodule OrbitalDynamics.TimelineFeedback do
     ReconciliationIdentity,
     ReconciliationObservationEvidence,
     ReconciliationResourceEvidence,
+    ReconciliationStationCalendarEvidence,
     RealizedIdentity,
     RealizedStatus,
     SuccessFactor,
@@ -2693,78 +2694,19 @@ defmodule OrbitalDynamics.TimelineFeedback do
         ),
       "maneuver_result" => provider_result_artifact_value(value(realized, "maneuver_result")),
       "completed_fraction" => value(realized, "completed_fraction"),
-      "station_availability" => realized_or_planned(realized, planned, "station_availability"),
-      "station_contention_status" =>
-        realized_or_planned(realized, planned, "station_contention_status"),
-      "capacity_fraction" => realized_or_planned(realized, planned, "capacity_fraction"),
-      "capacity_fraction_min" => realized_or_planned(realized, planned, "capacity_fraction_min"),
-      "capacity_fraction_max" => realized_or_planned(realized, planned, "capacity_fraction_max"),
-      "station_calendar_entry_id" =>
-        realized_or_planned(realized, planned, "station_calendar_entry_id"),
-      "station_calendar_provider_id" =>
-        realized_or_planned(realized, planned, "station_calendar_provider_id"),
-      "station_calendar_provider_entry_id" =>
-        realized_or_planned(realized, planned, "station_calendar_provider_entry_id"),
-      "station_calendar_directions" =>
-        realized_or_planned(realized, planned, "station_calendar_directions"),
-      "station_calendar_status" =>
-        realized_or_planned(realized, planned, "station_calendar_status"),
-      "station_calendar_overlap_count" =>
-        realized_or_planned(realized, planned, "station_calendar_overlap_count"),
-      "station_calendar_overlap_entry_ids" =>
-        realized_or_planned(realized, planned, "station_calendar_overlap_entry_ids"),
-      "station_calendar_overlap_availabilities" =>
-        realized_or_planned(realized, planned, "station_calendar_overlap_availabilities"),
-      "station_calendar_entry_ambiguous" =>
-        realized_or_planned(realized, planned, "station_calendar_entry_ambiguous"),
-      "station_calendar_ambiguous_entry_count" =>
-        realized_or_planned(realized, planned, "station_calendar_ambiguous_entry_count"),
-      "station_calendar_ambiguous_entry_ids" =>
-        realized_or_planned(realized, planned, "station_calendar_ambiguous_entry_ids"),
-      "station_calendar_reservation_overlap_count" =>
-        realized_or_planned(realized, planned, "station_calendar_reservation_overlap_count"),
-      "station_calendar_reservation_ids" =>
-        realized_or_planned(realized, planned, "station_calendar_reservation_ids"),
-      "station_calendar_reservation_expires_at_s" =>
-        realized_or_planned(realized, planned, "station_calendar_reservation_expires_at_s"),
-      "station_calendar_reserved_by" =>
-        realized_or_planned(realized, planned, "station_calendar_reserved_by"),
-      "station_calendar_reservation_statuses" =>
-        realized_or_planned(realized, planned, "station_calendar_reservation_statuses"),
-      "station_calendar_trust_boundary_status" =>
-        realized_or_planned(realized, planned, "station_calendar_trust_boundary_status"),
-      "source_station_calendar_entry" =>
-        realized_or_planned(realized, planned, "source_station_calendar_entry"),
-      "source_station_calendar_overlaps" =>
-        realized_or_planned(realized, planned, "source_station_calendar_overlaps"),
-      "station_reservation_id" =>
-        realized_or_planned(realized, planned, "station_reservation_id"),
-      "station_reservation_expires_at_s" =>
-        realized_or_planned(realized, planned, "station_reservation_expires_at_s"),
-      "station_reserved_by" => realized_or_planned(realized, planned, "station_reserved_by"),
-      "station_reservation_status" =>
-        realized_or_planned(realized, planned, "station_reservation_status"),
-      "station_reservation_match_status" =>
-        realized_or_planned(realized, planned, "station_reservation_match_status"),
       "reason" => value(realized, "reason")
     }
     |> Map.merge(ReconciliationCommunicationsEvidence.context(planned, realized))
     |> Map.merge(ReconciliationIdentity.context(planned, realized))
     |> Map.merge(ReconciliationObservationEvidence.context(planned, realized))
     |> Map.merge(ReconciliationResourceEvidence.context(planned, realized))
+    |> Map.merge(ReconciliationStationCalendarEvidence.context(planned, realized))
     |> Map.merge(execution_uncertainty_context)
     |> put_duplicate_realized_feedback(realized_matches)
     |> ReconciliationIdentity.put_mismatch_summary()
     |> put_operational_feedback_exclusion()
     |> Enum.reject(fn {_key, value} -> is_nil(value) end)
     |> Map.new()
-  end
-
-  defp realized_or_planned(realized, planned, field) do
-    case value(realized, field) do
-      nil -> value(planned, field)
-      value -> value
-    end
   end
 
   defp put_operational_feedback_exclusion(row) do
