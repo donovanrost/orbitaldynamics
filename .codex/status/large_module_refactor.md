@@ -9,7 +9,7 @@ Current slice:
 CadenceImport provider-result normalization extraction.
 
 Status:
-Selected; implementation has not started.
+Complete and published in `1fba10b1`.
 
 Selected boundary:
 Extract provider-result artifact normalization into
@@ -36,20 +36,34 @@ Selection evidence:
   boundary.
 
 Verification:
-Pending: capability/provider-map focused baselines, strict compile, focused and
-all combined CadenceImport tests, schema contracts, exact capability equality,
-static ownership checks, compile-connected xref, and bounded review.
+- The pre-move capability/provider-map focused baseline passed 2 tests from
+  selection commit `1ae51c8b`.
+- Strict test compilation passed with warnings as errors across 3,805 files.
+- The focused capability/provider-map proof passed 2 tests; the eleven-file
+  combined CadenceImport proof passed all 96 tests.
+- `cadence_import_contracts_test.exs` passed all 4 tests.
+- A before/after runtime comparison proved exact `capability/0` equality.
+- A direct boundary matrix passed for nested maps, lists, atoms, numerics,
+  booleans, empty values, retained non-empty string whitespace, field deletion,
+  and unrelated-field preservation.
+- Formatting, tracked and new-file diff checks, static single ownership,
+  temporary-checker absence, and runtime xref passed; CadenceImport is the only
+  direct production consumer.
+- Bounded local review found no manifest dispatch, callback, capability, output
+  ordering, provider-result value, schema, or public API change.
+- `cadence_import.ex` fell from 3,813 to 3,727 lines; the extracted module is 96
+  lines.
 
 Behavior/schema changes:
 None. This is a test-only ownership split with all assertions preserved.
 
 Last completed slice:
-CadenceImport wrapped specialized quality-gate test family split, selected in
-`189bd883`, corrected in `aa645476`, and implemented in `00d8d22d`.
+CadenceImport provider-result normalization extraction, selected in `1ae51c8b`
+and implemented in `1fba10b1`.
 
 Next candidate:
-Return to the remaining CadenceImport row-building or manifest-routing map after
-provider-result normalization has one production owner.
+Refresh the remaining CadenceImport row-building and manifest-routing map, then
+select another cohesive private responsibility with a narrow facade seam.
 
 Blocked:
 No.
