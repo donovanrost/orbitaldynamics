@@ -4208,260 +4208,34 @@ defmodule OrbitalDynamics.Communications.ContactAllocation do
 
   defp stable_id_value(_value), do: []
 
-  defp normalize_contact(%{} = contact) do
-    contact
-    |> stringify_keys()
-    |> normalize_station_id()
-    |> normalize_contact_time("starts_at_s", "start_s")
-    |> normalize_contact_time("ends_at_s", "end_s")
-    |> normalize_source_window()
-    |> normalize_station_calendar_status_fields()
-    |> normalize_activity_type_alias()
-    |> normalize_contact_direction()
-  end
-
   defp normalize_contact(contact) do
-    %{
-      "invalid_contact_shape" => true,
-      "raw_input" => inspect(contact)
-    }
-  end
-
-  defp normalize_station_id(%{"ground_station_id" => station_id} = contact)
-       when not is_nil(station_id),
-       do: contact
-
-  defp normalize_station_id(%{"station_id" => station_id} = contact) when not is_nil(station_id),
-    do: Map.put(contact, "ground_station_id", station_id)
-
-  defp normalize_station_id(contact) do
-    case nested_station_id(contact) do
-      nil -> contact
-      station_id -> Map.put(contact, "ground_station_id", station_id)
-    end
-  end
-
-  defp normalize_source_window(%{"source_window" => %{} = source_window} = contact) do
-    source_window = normalize_source_window_payload(source_window)
-
-    contact
-    |> Map.put("source_window", source_window)
-    |> put_new_present("source_window_id", source_window_id_value(source_window))
-    |> put_new_present("source_window_type", source_window_type_value(source_window))
-    |> put_new_present("source_window_type", Map.get(contact, "source_window_kind"))
-  end
-
-  defp normalize_source_window(
-         %{"metadata" => %{"source_window" => %{} = source_window}} = contact
-       ) do
-    source_window = normalize_source_window_payload(source_window)
-
-    contact
-    |> Map.put("source_window", source_window)
-    |> put_new_present("source_window_id", source_window_id_value(source_window))
-    |> put_new_present("source_window_type", source_window_type_value(source_window))
-    |> put_new_present("source_window_type", get_in(contact, ["metadata", "source_window_kind"]))
-  end
-
-  defp normalize_source_window(
-         %{"activity_context" => %{"source_window" => %{} = source_window}} = contact
-       ) do
-    source_window = normalize_source_window_payload(source_window)
-
-    contact
-    |> Map.put("source_window", source_window)
-    |> put_new_present("source_window_id", source_window_id_value(source_window))
-    |> put_new_present("source_window_type", source_window_type_value(source_window))
-    |> put_new_present(
-      "source_window_type",
-      get_in(contact, ["activity_context", "source_window_kind"])
+    OrbitalDynamics.Communications.ContactAllocation.ContactNormalization.normalize(
+      contact,
+      {@unavailable_aliases, @provider_direction_aliases},
+      &stringify_keys/1,
+      &numeric_or_nil/1
     )
-  end
-
-  defp normalize_source_window(contact) do
-    contact
-    |> put_new_present("source_window_type", Map.get(contact, "source_window_kind"))
-    |> put_new_present("source_window_type", get_in(contact, ["metadata", "source_window_kind"]))
-    |> put_new_present(
-      "source_window_type",
-      get_in(contact, ["activity_context", "source_window_kind"])
-    )
-  end
-
-  defp normalize_source_window_payload(source_window) do
-    source_window
-    |> put_new_present("id", source_window_id_value(source_window))
-    |> put_new_present("type", source_window_type_value(source_window))
-  end
-
-  defp source_window_id_value(%{} = source_window) do
-    Map.get(source_window, "id") || Map.get(source_window, "window_id")
-  end
-
-  defp source_window_type_value(%{} = source_window) do
-    Map.get(source_window, "type") || Map.get(source_window, "kind") ||
-      Map.get(source_window, "window_type")
-  end
-
-  defp put_new_present(contact, _key, value) when value in [nil, ""], do: contact
-
-  defp put_new_present(contact, key, value), do: Map.put_new(contact, key, value)
-
-  defp nested_station_id(contact) do
-    Enum.find_value(["ground_station", "station"], fn station_key ->
-      case Map.get(contact, station_key) do
-        %{} = station ->
-          Enum.find_value(["ground_station_id", "station_id", "id"], fn identity_key ->
-            Map.get(station, identity_key)
-          end)
-
-        _station ->
-          nil
-      end
-    end)
   end
 
   defp normalize_station_calendar_status_fields(row) do
-    row
-    |> normalize_status_field("availability")
-    |> normalize_status_field("status")
-    |> normalize_status_field("station_availability")
-    |> normalize_status_field("station_calendar_status")
-    |> normalize_status_field("station_calendar_precedence_availability")
-    |> normalize_status_field("station_contention_status")
-    |> normalize_status_field("reservation_status")
-    |> normalize_status_field("station_reservation_status")
-    |> normalize_status_field("reservation_match_status")
-    |> normalize_status_field("station_reservation_match_status")
-    |> normalize_status_list_field("station_calendar_overlap_availabilities")
-    |> normalize_status_list_field("station_calendar_reservation_statuses")
-    |> normalize_source_station_calendar_field("source_station_calendar_entry")
-    |> normalize_source_station_calendar_field("source_station_calendar_overlaps")
+    OrbitalDynamics.Communications.ContactAllocation.ContactNormalization.normalize_station_calendar_status_fields(
+      row,
+      @unavailable_aliases
+    )
   end
 
-  defp normalize_status_field(row, field) do
-    case Map.fetch(row, field) do
-      {:ok, value} when value in [nil, ""] ->
-        row
-
-      {:ok, value} ->
-        Map.put(row, field, normalized_status_token(value))
-
-      :error ->
-        row
-    end
+  defp normalized_status_token(value) do
+    OrbitalDynamics.Communications.ContactAllocation.ContactNormalization.normalized_status_token(
+      value,
+      @unavailable_aliases
+    )
   end
-
-  defp normalize_status_list_field(row, field) do
-    case Map.fetch(row, field) do
-      {:ok, values} when is_list(values) ->
-        values =
-          values
-          |> Enum.map(&normalized_status_token/1)
-          |> Enum.reject(&(&1 in [nil, ""]))
-
-        Map.put(row, field, values)
-
-      {:ok, value} when value not in [nil, ""] ->
-        Map.put(row, field, [normalized_status_token(value)])
-
-      _missing_or_empty ->
-        row
-    end
-  end
-
-  defp normalize_source_station_calendar_field(row, field) do
-    case Map.fetch(row, field) do
-      {:ok, values} when is_list(values) ->
-        Map.put(row, field, Enum.map(values, &normalize_source_station_calendar/1))
-
-      {:ok, value} ->
-        Map.put(row, field, normalize_source_station_calendar(value))
-
-      :error ->
-        row
-    end
-  end
-
-  defp normalize_source_station_calendar(%{} = source),
-    do: normalize_station_calendar_status_fields(source)
-
-  defp normalize_source_station_calendar(value), do: value
-
-  defp normalized_status_token(value) when is_binary(value) do
-    value
-    |> String.trim()
-    |> String.downcase()
-    |> String.replace(~r/[\s-]+/, "_")
-    |> canonical_status_token()
-  end
-
-  defp normalized_status_token(value) when is_atom(value) do
-    value
-    |> Atom.to_string()
-    |> normalized_status_token()
-  end
-
-  defp normalized_status_token(value), do: value
-
-  defp canonical_status_token(value) when value in @unavailable_aliases, do: "unavailable"
-  defp canonical_status_token(value), do: value
-
-  defp normalize_contact_time(contact, canonical_key, alternate_key) do
-    case numeric_or_nil(Map.get(contact, canonical_key)) ||
-           numeric_or_nil(Map.get(contact, alternate_key)) do
-      value when is_number(value) -> Map.put(contact, canonical_key, value)
-      _value -> contact
-    end
-  end
-
-  defp normalize_activity_type_alias(%{"type" => type} = contact) when not is_nil(type),
-    do: contact
-
-  defp normalize_activity_type_alias(%{"activity_type" => type} = contact)
-       when is_binary(type) and type != "",
-       do: Map.put(contact, "type", type)
-
-  defp normalize_activity_type_alias(contact), do: contact
-
-  defp normalize_contact_direction(%{"direction" => direction} = contact) do
-    case normalize_direction(direction) do
-      nil -> contact
-      direction -> Map.put(contact, "direction", direction)
-    end
-  end
-
-  defp normalize_contact_direction(%{"type" => "downlink"} = contact),
-    do: Map.put(contact, "direction", "downlink")
-
-  defp normalize_contact_direction(%{"type" => "tracking"} = contact),
-    do: Map.put(contact, "direction", "tracking")
-
-  defp normalize_contact_direction(%{"type" => "command"} = contact),
-    do: Map.put(contact, "direction", "command")
-
-  defp normalize_contact_direction(%{"type" => "health_check"} = contact),
-    do: Map.put(contact, "direction", "health_check")
-
-  defp normalize_contact_direction(contact), do: contact
-
-  defp normalize_direction(direction) when direction in [nil, ""], do: nil
 
   defp normalize_direction(direction) do
-    direction
-    |> to_string()
-    |> String.trim()
-    |> String.downcase()
-    |> String.replace(~r/[\s-]+/, "_")
-    |> case do
-      "uplink" -> "uplink"
-      "downlink" -> "downlink"
-      "tracking" -> "tracking"
-      "health_check" -> "health_check"
-      "nil" -> nil
-      "" -> nil
-      value -> Map.get(@provider_direction_aliases, value, value)
-    end
+    OrbitalDynamics.Communications.ContactAllocation.ContactNormalization.normalize_direction(
+      direction,
+      @provider_direction_aliases
+    )
   end
 
   defp stringify_keys(%_struct{} = struct), do: struct |> Map.from_struct() |> stringify_keys()
