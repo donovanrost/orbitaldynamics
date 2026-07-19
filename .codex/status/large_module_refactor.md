@@ -9,7 +9,7 @@ Current slice:
 TimelineFeedback operational-feedback exclusion extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Extract operational-feedback exclusion reason/status assignment,
@@ -38,31 +38,37 @@ Selection evidence:
   semantics, token normalization, no-exclusion pass-through, and deterministic
   output must remain unchanged.
 
-Verification plan:
-- Run the strict warning-clean compile before and after implementation.
-- Run the focused TimelineFeedback regression file and adjacent operational
-  feedback/reconciliation consumers selected from live references.
-- Run exact old/new parity from this selection commit across invalid weights,
-  resource variance, observation/contact identity mismatches, link locks,
-  margins and status aliases, precedence, no-exclusion rows, deterministic
-  reports, and public errors.
-- Run `mix xref callers` for the new owner, inspect compile-connected
-  dependents, check formatting and `git diff --check`, prove the removed
-  helper family is absent from the facade, and review final facade/owner
-  boundaries.
+Implementation:
+- Selection was recorded and pushed in `cb84add9`.
+- Implementation was committed and pushed in `9ce4d7bb`.
+- `timeline_feedback.ex` moved from 2,608 to 2,472 lines.
+- `OrbitalDynamics.TimelineFeedback.OperationalFeedbackExclusion` is a
+  142-line owner reached through the original private facade delegate.
+
+Verification:
+- Strict warning-clean compilation passed across 3,958 files.
+- The focused TimelineFeedback file and four adjacent operational-feedback
+  consumers passed together: 89 tests.
+- Exact old/new row parity passed for 12 cases covering no-op rows,
+  observation target and pointing mismatches, contact identity mismatches,
+  link-lock, negative-margin and normalized failure-status review, resource
+  variance, invalid weight aliases, and precedence.
+- `mix xref callers` reports only the TimelineFeedback facade; the
+  compile-connected graph reports the new owner and facade.
+- The removed private helper family is absent from the facade, formatting and
+  `git diff --check` passed, and the final diff is ownership-only.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-RecommendationRiskContext contact-intent extraction, selected in `3ba6891a`,
-implemented in `f7b9a0d0`, and handed off in `5b2c0104`.
-`recommendation_risk_context.ex` moved from 2,748 to 2,607 lines; the dedicated
-contact-intent owner is 178 lines.
+TimelineFeedback operational-feedback exclusion extraction, selected in
+`cb84add9` and implemented in `9ce4d7bb`. `timeline_feedback.ex` moved from
+2,608 to 2,472 lines; the dedicated exclusion owner is 142 lines.
 
 Next candidate:
-Implement and verify the selected TimelineFeedback operational-feedback
-exclusion extraction.
+Re-rank the live checkout and select the next cohesive facade-preserving
+boundary.
 
 Blocked:
 No.
