@@ -9,7 +9,7 @@ Current slice:
 LinkCapacity contact-feedback aggregation extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed in `cc37865f`.
 
 Selected boundary:
 Extract contact/command feedback field resolution, boolean/factor/source
@@ -34,16 +34,31 @@ Selection evidence:
   omission behavior, and deterministic output remain unchanged.
 
 Verification:
-Pending.
+- Strict test-environment compile passed with warnings as errors across 3,919
+  files.
+- Focused LinkCapacity coverage passed: 44 tests.
+- Adjacent operator-review and Cadence-import link-capacity coverage passed:
+  10 tests.
+- Exact public old/new comparison against selection commit `8fb99b99` passed
+  for capability metadata plus report and summary outputs across direct and
+  metadata-backed feedback, conflicting booleans, minimum factors, mixed
+  sources/results, nested provider maps/lists, blanks, and invalid numeric
+  values.
+- `mix xref callers` reports only the LinkCapacity facade as a runtime caller
+  of the extracted contact-feedback owner.
+- Static ownership checks confirm feedback field resolution, aggregation, and
+  provider-result canonicalization live in the dedicated owner while capacity
+  and artifact responsibilities remain in the facade.
+- `git diff --check` passed.
 
 Behavior/schema changes:
-None intended. This is a facade-preserving production ownership extraction.
+None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-TimelineFeedback operational-feedback grouping extraction, selected in
-`25f2362c` and implemented in `06f6111d`.
-`timeline_feedback.ex` moved from 3,675 to 3,606 lines; the dedicated
-feedback-aggregation owner is 86 lines.
+LinkCapacity contact-feedback aggregation extraction, selected in `8fb99b99`
+and implemented in `cc37865f`.
+`link_capacity.ex` moved from 3,656 to 3,520 lines; the dedicated
+contact-feedback owner is 166 lines.
 
 Next candidate:
 Re-rank the live largest-module set and select the next cohesive ownership
