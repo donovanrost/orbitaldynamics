@@ -16,6 +16,7 @@ defmodule OrbitalDynamics.Schema do
     PolicyValidation,
     ResourceValidation,
     StationReservationValidation,
+    TimelineContextValidation,
     TimelineSourceValidation,
     TimelineTransitionValidation
   }
@@ -6865,23 +6866,12 @@ defmodule OrbitalDynamics.Schema do
   defp safety_case_count_fields,
     do: OrbitalDynamics.Schema.ValidationAcceptanceReportContracts.safety_case_count_fields()
 
-  defp validate_optional_timeline_preconditions(issues, path, map, field) when is_map(map) do
-    OrbitalDynamics.Schema.TimelinePreconditionContracts.validate_optional(
-      issues,
-      path,
-      map,
-      field
-    )
-  end
+  defp validate_optional_timeline_preconditions(issues, path, map, field) when is_map(map),
+    do:
+      TimelineContextValidation.validate_optional_timeline_preconditions(issues, path, map, field)
 
-  defp validate_optional_activity_context(issues, path, map, field) when is_map(map) do
-    OrbitalDynamics.Schema.ActivityContextContracts.validate_optional(
-      issues,
-      path,
-      map,
-      field
-    )
-  end
+  defp validate_optional_activity_context(issues, path, map, field) when is_map(map),
+    do: TimelineContextValidation.validate_optional_activity_context(issues, path, map, field)
 
   defp validate_optional_actual_data_rate_throughput_derivation(issues, path, map, field)
        when is_map(map) do
@@ -6893,58 +6883,30 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validate_optional_protection_decision(issues, path, map, field) when is_map(map) do
-    OrbitalDynamics.Schema.ProtectionDecisionContracts.validate_optional(
-      issues,
-      path,
-      map,
-      field
-    )
-  end
+  defp validate_optional_protection_decision(issues, path, map, field) when is_map(map),
+    do: TimelineContextValidation.validate_optional_protection_decision(issues, path, map, field)
 
-  defp validate_optional_lifecycle_transition(issues, path, map, field) when is_map(map) do
-    OrbitalDynamics.Schema.LifecycleTransitionContracts.validate_optional(
-      issues,
-      path,
-      map,
-      field
-    )
-  end
+  defp validate_optional_lifecycle_transition(issues, path, map, field) when is_map(map),
+    do: TimelineContextValidation.validate_optional_lifecycle_transition(issues, path, map, field)
 
-  defp validate_optional_timeline_identity(issues, path, map, field) when is_map(map) do
-    OrbitalDynamics.Schema.TimelineIdentityContracts.validate_optional_identity(
-      issues,
-      path,
-      map,
-      field
-    )
-  end
+  defp validate_optional_timeline_identity(issues, path, map, field) when is_map(map),
+    do: TimelineContextValidation.validate_optional_timeline_identity(issues, path, map, field)
 
-  defp validate_timeline_identity(issues, path, identity) when is_map(identity) do
-    OrbitalDynamics.Schema.TimelineIdentityContracts.validate_identity(
-      issues,
-      path,
-      identity
-    )
-  end
+  defp validate_timeline_identity(issues, path, identity) when is_map(identity),
+    do: TimelineContextValidation.validate_timeline_identity(issues, path, identity)
 
-  defp validate_timeline_identity(issues, _path, _identity), do: issues
+  defp validate_timeline_identity(issues, path, identity),
+    do: TimelineContextValidation.validate_timeline_identity(issues, path, identity)
 
-  defp validate_optional_timeline_link(issues, path, map, field) when is_map(map) do
-    OrbitalDynamics.Schema.TimelineIdentityContracts.validate_optional_link(
-      issues,
-      path,
-      map,
-      field
-    )
-  end
+  defp validate_optional_timeline_link(issues, path, map, field) when is_map(map),
+    do: TimelineContextValidation.validate_optional_timeline_link(issues, path, map, field)
 
-  defp validate_optional_timeline_protection_summary(issues, path, map, field) when is_map(map) do
-    OrbitalDynamics.Schema.TimelineProtectionSummaryContracts.validate_optional_summary(
-      issues,
-      path,
-      map,
-      field
-    )
-  end
+  defp validate_optional_timeline_protection_summary(issues, path, map, field) when is_map(map),
+    do:
+      TimelineContextValidation.validate_optional_timeline_protection_summary(
+        issues,
+        path,
+        map,
+        field
+      )
 end
