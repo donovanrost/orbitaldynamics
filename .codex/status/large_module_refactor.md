@@ -9,7 +9,7 @@ Current slice:
 LinkCapacity throughput evidence extraction.
 
 Status:
-Selected; strict focused baseline pending.
+Completed and pushed.
 
 Selected boundary:
 Extract capacity-adjusted estimated throughput, actual throughput/completion
@@ -39,22 +39,38 @@ Selection evidence:
   exact derivation maps, and floating-point behavior must remain unchanged.
 
 Implementation:
-Pending.
+- Selection was recorded and pushed in `a27627e3`.
+- Implementation was committed and pushed in `4817d7dc`.
+- `communications/link_capacity.ex` moved from 2,246 to 1,904 lines.
+- `OrbitalDynamics.Communications.LinkCapacity.ThroughputEvidence` is a
+  426-line owner reached through private facade delegates.
 
 Verification:
-Pending.
+- Strict warning-clean compilation passed across 3,980 files.
+- The focused LinkCapacity file and five adjacent strategy, candidate-refresh,
+  operator-review, and schema consumers passed together: 74 tests.
+- Exact old/new public report/capability parity passed for 11 cases covering
+  explicit and rate-derived estimates, capacity and unavailability, MB/s and
+  Mbps actuals, actual-duration precedence, nested throughput-model evidence,
+  completion aliases, unmatched/ambiguous contact IDs, explicit precedence,
+  derivation artifacts, and capability metadata.
+- `mix xref callers` reports only the LinkCapacity facade.
+- The facade-owned throughput/rate/duration/completion derivation and
+  resolution helpers are absent apart from thin delegates, formatting and
+  `git diff --check` passed, and the final diff is ownership-only.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-TimelineFeedback realized feedback validation extraction, selected in
-`75aca312` and implemented in `60020f26`.
-`timeline_feedback.ex` moved from 2,267 to 1,993 lines; the dedicated realized
-feedback validation owner is 294 lines.
+LinkCapacity throughput evidence extraction, selected in `a27627e3` and
+implemented in `4817d7dc`.
+`communications/link_capacity.ex` moved from 2,246 to 1,904 lines; the
+dedicated throughput-evidence owner is 426 lines.
 
 Next candidate:
-Implement and verify the selected LinkCapacity throughput-evidence boundary.
+Re-rank the live checkout and select the next cohesive facade-preserving
+boundary.
 
 Blocked:
 No.
