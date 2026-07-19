@@ -9,7 +9,7 @@ Current slice:
 RecommendationRiskContext timeline-publication extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Extract timeline-publication risk filtering, string-key normalization, context
@@ -34,30 +34,37 @@ Selection evidence:
   deduplication, non-list fallback, and exact output keys must remain
   unchanged.
 
-Verification plan:
-- Run the strict warning-clean compile before and after implementation.
-- Run the focused strategy recommendation pressure/context regressions and
-  adjacent operator-review and Cadence-import consumers.
-- Run exact old/new public parity from this selection commit across atom/string
-  keys, type/scope selection, scalar/nested-list fields, duplicates, nils,
-  unrelated risks, empty/non-list inputs, deterministic output, and public
-  errors.
-- Run `mix xref callers` for the new owner, inspect compile-connected
-  dependents, check formatting and `git diff --check`, prove the removed
-  projection family is absent from the facade, and review final facade/owner
-  boundaries.
+Implementation:
+- Selection was recorded and pushed in `6d4b0888`.
+- Implementation was committed and pushed in `d3e26bb2`.
+- `recommendation_risk_context.ex` moved from 2,607 to 2,521 lines.
+- `OrbitalDynamics.RecommendationRiskContext.TimelinePublication` is a
+  121-line owner reached through the unchanged public facade function.
+
+Verification:
+- Strict warning-clean compilation passed across 3,959 files.
+- The focused strategy pressure regression and three adjacent
+  timeline-publication/direct-consumer files passed together: 7 tests.
+- Exact old/new public parity passed for 8 cases covering empty/non-list
+  inputs, unrelated risks, type/scope selection, atom/string keys,
+  scalar/nested-list fields, nil removal, stable deduplication, and ordering.
+- `mix xref callers` reports only the RecommendationRiskContext facade; the
+  compile-connected graph reports the new owner and facade.
+- The removed projection body is absent from the facade, formatting and
+  `git diff --check` passed, and the final diff is ownership-only.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-TimelineFeedback operational-feedback exclusion extraction, selected in
-`cb84add9` and implemented in `9ce4d7bb`. `timeline_feedback.ex` moved from
-2,608 to 2,472 lines; the dedicated exclusion owner is 142 lines.
+RecommendationRiskContext timeline-publication extraction, selected in
+`6d4b0888` and implemented in `d3e26bb2`.
+`recommendation_risk_context.ex` moved from 2,607 to 2,521 lines; the dedicated
+timeline-publication owner is 121 lines.
 
 Next candidate:
-Implement and verify the selected RecommendationRiskContext
-timeline-publication extraction.
+Re-rank the live checkout and select the next cohesive facade-preserving
+boundary.
 
 Blocked:
 No.
