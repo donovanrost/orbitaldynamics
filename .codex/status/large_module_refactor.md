@@ -9,7 +9,7 @@ Current slice:
 Study.Manifest field-reference extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and pushed in `5a432b81`.
 
 Selected boundary:
 Extract exported-schema traversal, field row construction, required
@@ -30,17 +30,24 @@ Selection evidence:
   stable identifiers, trust boundaries, and deterministic exported rows.
 
 Verification:
-Pending: focused manifest-reference baseline, exact old/new field-reference
-artifact, strict compile, manifest validation/schema coverage, static single
-ownership, runtime xref, and bounded review.
+- Strict warnings-as-errors compile passed across 3,877 files.
+- Focused manifest-reference CLI coverage passed: 9 tests.
+- Adjacent validation-fixture, schema-lint, and JSON Schema export coverage
+  passed: 29 tests.
+- Exact old/new public artifact comparison against `aeb6e003` passed for the
+  complete 4,120-row field reference.
+- Runtime xref found the new owner referenced only by the Manifest facade;
+  static single-ownership review and `git diff --check` passed.
+- `study/manifest.ex` moved from 4,825 to 4,613 lines; the dedicated owner is
+  241 lines.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-MissionPlan.Activity precondition-summary extraction, selected in `2bcf1229`
-and implemented in `437652a8`. `mission_plan/activity.ex` moved from 5,169 to
-4,841 lines; the dedicated owner is 367 lines.
+Study.Manifest field-reference extraction, selected in `aeb6e003` and
+implemented in `5a432b81`. `study/manifest.ex` moved from 4,825 to 4,613
+lines; the dedicated owner is 241 lines.
 
 Next candidate:
 Re-inventory remaining Study.Manifest schema, scenario, and source-normalization
