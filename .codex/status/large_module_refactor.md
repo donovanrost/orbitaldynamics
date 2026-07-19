@@ -6,68 +6,41 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-RecommendationRiskContext activity-lifecycle-state extraction.
+Manifest ground-network input extraction.
 
 Status:
-Completed and pushed.
+Selected; implementation pending.
 
 Selected boundary:
-Extract timeline-activity lifecycle-state risk recognition, the ordered
-context-key catalog, and lifecycle-state context projection into
-`OrbitalDynamics.RecommendationRiskContext.TimelineActivityLifecycleState`.
-Preserve the existing RecommendationRiskContext public API facade.
+Extract campaign/candidate-refresh ground-network list parsing, station
+identity aliases, availability/status normalization, interval validation, and
+reservation/provider context projection into
+`OrbitalDynamics.Study.Manifest.GroundNetworkInput`.
+Preserve the existing Manifest public API facade.
 
 Selection evidence:
-- Live re-ranking places `recommendation_risk_context.ex` at 3,091 lines,
-  seventh behind Schema, Timeline, MissionPlan.Activity, LinkCapacity,
-  Manifest, and ContactContention and ahead of ContactAllocation,
-  TimelineFeedback, ResourceProjection, StationCalendar, and
-  OperationalReadiness.
+- Live re-ranking places `study/manifest.ex` at 3,108 lines, fifth behind
+  Schema, Timeline, MissionPlan.Activity, and LinkCapacity and ahead of
+  ContactAllocation, TimelineFeedback, ContactContention, ResourceProjection,
+  StationCalendar, RecommendationRiskContext, and OperationalReadiness.
 - Higher-ranked LinkCapacity summary aggregation remains coupled to shared
   station-calendar normalization and reservation inference. The selected
-  family is one closed 39-field projection reached through two stable facade
-  calls.
-- Timeline lifecycle artifact generation, recommendation assembly, Cadence
-  import, replay summaries, schemas, and every unrelated risk-context family
-  remain outside this boundary.
-- Existing atom/string key normalization, type/feedback-scope recognition,
-  list flattening, first-seen uniqueness, empty-field omission, invalid-input
-  fallback, field order, and deterministic output remain unchanged.
+  family is one shared normalization path used by campaign and
+  candidate-refresh metadata parsing.
+- Manifest schema generation, campaign/candidate-refresh metadata assembly,
+  station catalogs, scenarios, activities, resource summaries, and run
+  assembly remain outside this boundary.
+- Existing list order, invalid-field paths, identity alias precedence,
+  availability/status mapping, numeric capacity inference, nullable fields,
+  interval rules, omission behavior, and deterministic output remain
+  unchanged.
 
 Verification:
-- Focused baseline before implementation:
-  `test/orbital_dynamics/campaign_planner/strategy_recommendation_pressure_events_test.exs`
-  passed 1 test.
-- Strict compilation after implementation:
-  `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 mix compile --force --warnings-as-errors`
-  compiled 3,941 files successfully.
-- Focused regression:
-  `test/orbital_dynamics/campaign_planner/strategy_recommendation_pressure_events_test.exs`
-  passed 1 test.
-- Adjacent regressions:
-  `test/orbital_dynamics/candidate_refresh/timeline_activity_lifecycle_state_replay_summary_test.exs`
-  and
-  `test/orbital_dynamics/candidate_refresh/timeline_activity_lifecycle_state_candidate_source_replay_summary_test.exs`
-  passed 10 tests together.
-- Exact old/new comparison against selection commit `460fb43d` covered the
-  ordered 39-key catalog and six context inputs; all 7 outputs matched exactly.
-- The exact inputs covered invalid and empty input, irrelevant risks, a
-  full-field string-key risk, atom-key feedback-scope classification, both
-  accepted classifiers, list flattening, duplicate suppression, and
-  first-seen ordering.
-- `git diff --check` passed.
-- `mix xref callers
-  OrbitalDynamics.RecommendationRiskContext.TimelineActivityLifecycleState`
-  reports only the RecommendationRiskContext facade as a runtime caller;
-  compile-connected xref reports no unexpected coupling.
-- Static review confirmed the owner exposes only `context_keys/0` and
-  `context/1`; lifecycle artifact generation, recommendation assembly,
-  replay/schema logic, and unrelated risk families remain outside the
-  boundary.
+Pending implementation.
 
 Behavior/schema changes:
-None. Existing lifecycle-state risk recognition and context projection,
-recommendation shape, schemas, and deterministic output are preserved.
+None planned. Existing ground-network normalization, validation errors,
+manifest shape, schemas, and deterministic output will be preserved.
 
 Last completed slice:
 RecommendationRiskContext activity-lifecycle-state extraction, selected in
@@ -76,8 +49,7 @@ RecommendationRiskContext activity-lifecycle-state extraction, selected in
 activity-lifecycle-state owner is 220 lines.
 
 Next candidate:
-Re-rank the live largest-module set and select the next cohesive ownership
-boundary.
+Implement and verify the selected ground-network input extraction.
 
 Blocked:
 No.
