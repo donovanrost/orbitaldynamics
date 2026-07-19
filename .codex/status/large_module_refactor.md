@@ -9,7 +9,7 @@ Current slice:
 RecommendationRiskContext objective-satisfaction projection extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed in `2814c640`.
 
 Selected boundary:
 Extract objective-satisfaction context keys, risk selection, and context-value
@@ -32,16 +32,31 @@ Selection evidence:
   unchanged.
 
 Verification:
-Pending.
+- Strict test-environment compile passed with warnings as errors across 3,914
+  files.
+- Focused objective-satisfaction operator-review and recommendation-pressure
+  coverage passed: 3 tests.
+- Adjacent Cadence import, operator-review artifact, and schema contract
+  coverage passed: 75 tests.
+- Exact public old/new comparison against selection commit `6244115e` passed
+  for the context-key contract and seven context samples covering the full
+  projected field set, atom/string keys, list flattening, duplicates, nils,
+  unrelated risks, and invalid inputs.
+- `mix xref callers` reports only the RecommendationRiskContext facade as a
+  runtime caller of the extracted objective-satisfaction owner.
+- Static ownership checks confirm the context-key contract, risk selector, and
+  value projection live in the dedicated owner while adjacent risk domains
+  remain in the facade.
+- `git diff --check` passed.
 
 Behavior/schema changes:
-None intended. This is a facade-preserving production ownership extraction.
+None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-TimelineFeedback outcome-value interpretation extraction, selected in
-`886f98ea` and implemented in `67cc2a83`.
-`timeline_feedback.ex` moved from 3,776 to 3,675 lines; the dedicated outcome
-owner is 204 lines.
+RecommendationRiskContext objective-satisfaction projection extraction,
+selected in `6244115e` and implemented in `2814c640`.
+`recommendation_risk_context.ex` moved from 3,754 to 3,582 lines; the dedicated
+objective-satisfaction owner is 110 lines.
 
 Next candidate:
 Re-rank the live largest-module set and select the next cohesive ownership
