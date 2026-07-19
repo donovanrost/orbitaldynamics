@@ -9,7 +9,7 @@ Current slice:
 Manifest candidate-refresh run-input source extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed in `74cc1a1d`.
 
 Selected boundary:
 Extract candidate-refresh accepted-state, target, and ground-station run-input
@@ -34,16 +34,31 @@ Selection evidence:
   deterministic output remain unchanged.
 
 Verification:
-Pending.
+- Strict test-environment compile passed with warnings as errors across 3,927
+  files.
+- Focused Manifest coverage passed: 42 tests.
+- Adjacent candidate-refresh operator-review and schema-contract coverage
+  passed: 12 tests.
+- Exact public old/new comparison against selection commit `a29d7dd7` passed
+  for four `from_map/1` states covering explicit inputs, mission-state
+  catalogs, objective/ground-network geometry aliases, and mixed explicit plus
+  mission-state sources.
+- `mix xref callers` reports only the Manifest facade as a runtime caller of
+  the extracted run-input-source owner.
+- Static ownership checks confirm accepted-state, target, and ground-station
+  source vocabulary, geometry presence, and objective target-alias expansion
+  live in the dedicated owner while parsing and manifest assembly remain in the
+  facade.
+- `git diff --check` passed.
 
 Behavior/schema changes:
-None intended. This is a facade-preserving production ownership extraction.
+None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-OrbitalDynamics activity-template catalog extraction, selected in `599aa35d`
-and implemented in `c122fda2`.
-`orbital_dynamics.ex` moved from 3,572 to 2,951 lines; the dedicated
-activity-template catalog owner is 646 lines.
+Manifest candidate-refresh run-input source extraction, selected in `a29d7dd7`
+and implemented in `74cc1a1d`.
+`manifest.ex` moved from 3,530 to 3,357 lines; the dedicated run-input-source
+owner is 185 lines.
 
 Next candidate:
 Re-rank the live largest-module set and select the next cohesive ownership
