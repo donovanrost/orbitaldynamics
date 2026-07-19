@@ -9,7 +9,7 @@ Current slice:
 Schema timeline-context JSON Schema extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and published.
 
 Selected boundary:
 Extract timeline identity, provenance, throughput derivation, execution
@@ -31,17 +31,24 @@ Selection evidence:
   and all public `Schema` APIs remain outside.
 
 Verification:
-Pending: focused timeline/activity schema baselines, exact old/new JSON Schema
-documents, strict compile, broader Schema contract tests, JSON Schema export
-checks, static single ownership, runtime xref, and bounded review.
+- Strict compile passed across 3,870 files with warnings as errors.
+- Focused JSON Schema export, operational-timeline, and activity-state contracts
+  passed: 26 tests, including all 15 export contracts.
+- Full Schema suite passed: 175 tests.
+- Exact old/new JSON Schema documents matched for 10 timeline, review,
+  execution, campaign, candidate, transition, and lifecycle contracts.
+- Static inspection confirms the facade retains only reusable helper seams and
+  the orphaned provenance helper was removed; runtime xref reports `Schema` as
+  the sole caller of the new owner.
+- `git diff --check` and bounded ownership review passed.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-Schema optional operational-readiness validation consolidation, selected in
-`38190e37` and implemented in `d8568e86`. `schema.ex` moved from 6,872 to 6,861
-lines; the existing owner moved from 216 to 234 lines.
+Schema timeline-context JSON Schema extraction, selected in `a3b0ad64` and
+implemented in `b082045f`. `schema.ex` moved from 6,861 to 6,786 lines; the
+dedicated owner is 124 lines.
 
 Next candidate:
 Re-inventory remaining Schema families after timeline-context JSON Schema
