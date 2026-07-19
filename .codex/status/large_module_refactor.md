@@ -9,7 +9,7 @@ Current slice:
 CadenceImport operational-timeline import extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and published.
 
 Selected boundary:
 Extract the timeline-feedback and operational-timeline report constructor
@@ -29,17 +29,28 @@ Selection evidence:
   repair/contention imports remain outside the boundary.
 
 Verification:
-Pending: focused operational-timeline baselines, exact old/new constructor
-equivalence proof, strict compile, all combined CadenceImport tests, schema
-contracts, static single ownership, runtime xref, and bounded review.
+- Strict test compile passed with 3,837 files and warnings as errors.
+- Two focused operational-timeline tests passed with 70 excluded.
+- All combined CadenceImport tests passed: 96 tests.
+- CadenceImport schema contracts passed: 4 tests.
+- An executable before/after proof matched 16 cases across both constructors,
+  including an embedded feedback package and inferred/explicit IDs.
+- Formatting and diff checks passed, and no temporary proof files remain.
+- Static ownership checks confirmed both public facade entry points delegate to
+  one implementation owner.
+- Runtime xref confirmed `cadence_import.ex` is the direct consumer of
+  `operational_timeline_import.ex`.
+- Bounded local review found no embedded-package precedence, normalization,
+  source-ID fallback, OperatorReview conversion, source-contract, public API,
+  row, ordering, or schema changes.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-CadenceImport contact-contention import extraction, selected in `49981283` and
-implemented in `0a9e4823`. `cadence_import.ex` moved from 2,283 to 2,254 lines;
-the extracted owner is 37 lines.
+CadenceImport operational-timeline import extraction, selected in `88e73082`
+and implemented in `a002de2b`. `cadence_import.ex` moved from 2,254 to 2,236
+lines; the extracted owner is 36 lines.
 
 Next candidate:
 Re-inventory remaining public routing after operational-timeline imports have
