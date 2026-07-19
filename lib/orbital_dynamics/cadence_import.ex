@@ -22,6 +22,7 @@ defmodule OrbitalDynamics.CadenceImport do
     OperationalReadinessContext,
     ProviderResultNormalization,
     ReviewSummaryContext,
+    ReviewRowMetadata,
     ReviewPackageRowSourcePolicy,
     SourceIdentifierPolicy,
     StationCalendarContextFields
@@ -2347,16 +2348,10 @@ defmodule OrbitalDynamics.CadenceImport do
 
   defp model_limits, do: capability() |> ManifestStatistics.model_limits()
 
-  defp source_review_action(row), do: row["action"] || row["required_operator_action"]
+  defp source_review_action(row), do: ReviewRowMetadata.action(row)
 
-  defp put_source_review_queue(manifest_row, source_row) do
-    manifest_row
-    |> maybe_put_source_review_queue("source_review_queue", source_row["review_queue"])
-    |> maybe_put_source_review_queue("source_review_queue_key", source_row["review_queue_key"])
-  end
-
-  defp maybe_put_source_review_queue(row, _field, value) when value in [nil, ""], do: row
-  defp maybe_put_source_review_queue(row, field, value), do: Map.put(row, field, value)
+  defp put_source_review_queue(manifest_row, source_row),
+    do: ReviewRowMetadata.put_queue(manifest_row, source_row)
 
   defp proposed_contact_manifest_row(contact, rank) do
     OrbitalDynamics.CadenceImport.ProposedContactManifestRow.build(
@@ -3018,12 +3013,8 @@ defmodule OrbitalDynamics.CadenceImport do
   defp cadence_import_present?(row, status),
     do: ImportReadinessPolicy.cadence_import_present?(row, status)
 
-  defp generic_review_activity_context(row) do
-    row["import_activity_context"] ||
-      row["activity_context"] ||
-      row["source_activity_context"] ||
-      row["replacement_activity_context"]
-  end
+  defp generic_review_activity_context(row),
+    do: ReviewRowMetadata.activity_context(row)
 
   defp manifest_row(row, rank) do
     OrbitalDynamics.CadenceImport.PlanDeltaManifestRow.build(
