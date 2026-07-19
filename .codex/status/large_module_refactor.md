@@ -9,7 +9,7 @@ Current slice:
 CadenceImport review-package row-source policy extraction.
 
 Status:
-Selected; implementation has not started.
+Complete and published in `28be3c19`.
 
 Selected boundary:
 Extract the closed source-artifact-type to operator-review-package row-source
@@ -27,20 +27,31 @@ Selection evidence:
   boundary.
 
 Verification:
-Pending: focused standalone-review baseline, exact mapping matrix, strict
-compile, all combined CadenceImport tests, schema contracts, static single
-ownership, runtime xref, and bounded review.
+- The pre-move standalone-review focused baseline passed 1 test from selection
+  commit `f6367758`.
+- Strict test compilation passed with warnings as errors across 3,807 files.
+- The focused standalone-review proof passed 1 test; the eleven-file combined
+  CadenceImport proof passed all 96 tests.
+- `cadence_import_contracts_test.exs` passed all 4 tests.
+- An AST-derived before/after matrix proved all 16 explicit contract mappings
+  and both binary/non-binary fallback clauses exactly.
+- Formatting, tracked and new-file diff checks, static single ownership,
+  temporary-checker absence, and runtime xref passed.
+- Bounded local review found no source path, fallback, review row, artifact
+  identity, schema, ordering, or public API change.
+- `cadence_import.ex` fell from 3,654 to 3,604 lines; the extracted policy is 53
+  lines.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-CadenceImport generic review-action policy extraction, selected in `c5639be1`,
-corrected in `45d53209`, and implemented in `4ef7d3c9`.
+CadenceImport review-package row-source policy extraction, selected in
+`f6367758` and implemented in `28be3c19`.
 
 Next candidate:
-Return to the remaining CadenceImport row-building or manifest-routing map after
-review-package row-source policy has one production owner.
+Refresh the remaining CadenceImport row-building and manifest-routing map, then
+select another cohesive private responsibility with a narrow facade seam.
 
 Blocked:
 No.
