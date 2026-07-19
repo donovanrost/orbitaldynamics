@@ -44,6 +44,11 @@ defmodule OrbitalDynamics.CadenceImport.SourceIdentifierPolicy do
 
   def manifest(_source_artifact_id), do: "cadence_import_manifest:unknown_source"
 
+  def timeline_state(state, source_artifact_id, fallback) do
+    source_artifact_id || state["id"] || state["source"] || state["timeline_id"] ||
+      state["activity_id"] || fallback
+  end
+
   defp compact_identifier(parts) do
     parts
     |> Enum.reject(&(&1 in [nil, ""]))

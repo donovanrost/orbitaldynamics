@@ -2125,13 +2125,19 @@ defmodule OrbitalDynamics.CadenceImport do
   end
 
   defp timeline_activity_state_source_id(state, opts, fallback) do
-    option(opts, :source_artifact_id) || state["id"] || state["source"] || state["timeline_id"] ||
-      state["activity_id"] || fallback
+    SourceIdentifierPolicy.timeline_state(
+      state,
+      option(opts, :source_artifact_id),
+      fallback
+    )
   end
 
   defp timeline_preservation_source_id(status, opts, fallback) do
-    option(opts, :source_artifact_id) || status["id"] || status["source"] || status["timeline_id"] ||
-      status["activity_id"] || fallback
+    SourceIdentifierPolicy.timeline_state(
+      status,
+      option(opts, :source_artifact_id),
+      fallback
+    )
   end
 
   defp build_manifest(rows, provenance, context) do
