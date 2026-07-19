@@ -9,7 +9,7 @@ Current slice:
 MissionPlan.Activity execution-uncertainty input extraction.
 
 Status:
-Selected; implementation has not started.
+Completed and pushed in `8aaca2ef`.
 
 Selected boundary:
 Extract execution-uncertainty map normalization, delta-v triplet validation,
@@ -28,17 +28,25 @@ Selection evidence:
   private delegate rather than being duplicated.
 
 Verification:
-Pending: focused Activity baseline, exact old/new public constructors/maps and
-errors, strict compile, adjacent mission-plan coverage, static single
-ownership, runtime xref, and bounded review.
+- Strict warnings-as-errors compile passed across 3,881 files.
+- Focused MissionPlan.Activity coverage passed: 31 tests.
+- Adjacent mission-plan, activity-fixture, and timeline-activity schema
+  coverage passed: 44 tests.
+- Exact old/new public constructor/map and error comparison against `4e424eee`
+  passed for 7 list/tuple, numeric-string, malformed-field, and nil uncertainty
+  cases plus 4 invalid-shape/value cases.
+- Runtime xref found the new owner referenced only by the Activity facade;
+  static single-ownership review and `git diff --check` passed.
+- `mission_plan/activity.ex` moved from 4,841 to 4,770 lines; the dedicated
+  owner is 78 lines.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-TimelineFeedback identity-value consolidation, selected in `6ddb46fc` and
-implemented in `a02efa00`. `timeline_feedback.ex` moved from 4,882 to 4,766
-lines; `RealizedIdentity` moved from 121 to 240 lines.
+MissionPlan.Activity execution-uncertainty input extraction, selected in
+`4e424eee` and implemented in `8aaca2ef`. `mission_plan/activity.ex` moved from
+4,841 to 4,770 lines; the dedicated owner is 78 lines.
 
 Next candidate:
 Re-inventory remaining MissionPlan.Activity scalar/list/map normalization
