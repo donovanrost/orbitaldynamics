@@ -9,7 +9,7 @@ Current slice:
 ContactAllocation specialized-summary ownership extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Move the station-pressure, capacity-pack, reservation-conflict, and provider
@@ -39,20 +39,52 @@ Selection evidence:
   boundary must remain unchanged.
 
 Verification:
-Pending implementation.
+- Focused baseline before implementation:
+  `test/orbital_dynamics/communications/contact_allocation_test.exs` passed
+  70 tests.
+- Strict compilation after implementation:
+  `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 mix compile --force --warnings-as-errors`
+  compiled 3,943 files successfully.
+- Focused regression:
+  `test/orbital_dynamics/communications/contact_allocation_test.exs` passed
+  70 tests.
+- Adjacent contract/operator/handoff regressions passed 33 tests across
+  `operator_review/contact_allocation_test.exs`, both contact-allocation schema
+  contract files, the validation fixture, the specialized CandidateRefresh
+  handoff, and campaign-planner pressure strategy.
+- The broader ContactAllocation CandidateRefresh replay bundle plus all three
+  focused campaign-planner ContactAllocation consumers passed 67 tests.
+- Exact old/new comparison against selection commit `e8ce52b8` compiled the
+  selected facade under a comparison module name and matched eight outputs
+  exactly: a live allocation result, general summaries with default and
+  explicit `:now_s`, station-pressure, capacity-pack, reservation-conflict
+  with declared and expired timing, and provider-reservation-request.
+- `git diff --check` passed.
+- `mix xref callers
+  OrbitalDynamics.Communications.ContactAllocation.AllocationSummary` reports
+  only the ContactAllocation facade as a runtime caller; compile-connected
+  xref reports no unexpected coupling.
+- Static review confirmed the owner now exposes the general builder,
+  report-derived summary fields, and the four specialized builders; public
+  input-shape clauses, allocation orchestration, contact validation,
+  filtering, packing, provider counteroffers, and returned-contact assembly
+  remain in or behind the facade.
 
 Behavior/schema changes:
-None intended.
+None. Existing public clauses, report and summary contracts, option handling,
+row selection, aggregation, normalization, ordering, model limits, capability
+assumptions, and artifact-only execution boundaries are preserved.
 
 Last completed slice:
-LinkCapacity station-capacity evidence extraction, selected in `df538ba1` and
-implemented in `638f1592`.
-`communications/link_capacity.ex` moved from 3,113 to 3,016 lines; the
-dedicated station-capacity owner is 121 lines.
+ContactAllocation specialized-summary ownership extraction, selected in
+`e8ce52b8` and implemented in `94d0835e`.
+`communications/contact_allocation.ex` moved from 3,071 to 2,197 lines; the
+existing summary owner moved from 710 to 1,246 lines while eliminating the
+facade's duplicate aggregation machinery.
 
 Next candidate:
-Implement and verify the selected ContactAllocation specialized-summary
-ownership extraction.
+Re-rank the live largest-module set and select the next cohesive ownership
+boundary.
 
 Blocked:
 No.
