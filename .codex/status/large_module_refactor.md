@@ -9,7 +9,7 @@ Current slice:
 ContactContention timing metrics extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Extract interval validation, contention-window duration, summed contact
@@ -34,20 +34,46 @@ Selection evidence:
   output behavior, and deterministic output remain unchanged.
 
 Verification:
-Pending implementation.
+- Focused baseline before implementation:
+  `test/orbital_dynamics/communications/contact_contention_test.exs` passed
+  40 tests.
+- Strict compilation after implementation:
+  `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 mix compile --force --warnings-as-errors`
+  compiled 3,940 files successfully.
+- Focused regression:
+  `test/orbital_dynamics/communications/contact_contention_test.exs` passed
+  40 tests.
+- Adjacent regression:
+  `test/orbital_dynamics/operator_review/contact_contention_test.exs` passed
+  3 tests.
+- Exact old/new comparison against selection commit `ee124dce` exposed the
+  selected private reducer and compared seven contact sets; all 7 timing maps
+  matched exactly.
+- The exact inputs covered empty and single intervals, invalid intervals,
+  touching intervals, two-way and three-way overlap, same-timestamp event
+  coalescing, integer/float arithmetic, and ignored string values.
+- `git diff --check` passed.
+- `mix xref callers
+  OrbitalDynamics.Communications.ContactContention.TimingMetrics` reports only
+  the ContactContention facade as a runtime caller; compile-connected xref
+  reports no unexpected coupling.
+- Static review confirmed the owner exposes only `build/1`; grouping,
+  identity, feedback, station-capacity, approval, and resolution-policy
+  responsibilities remain outside the boundary.
 
 Behavior/schema changes:
-None planned. Existing timing arithmetic, contention-group shape, artifact
-contracts, and deterministic output will be preserved.
+None. Existing timing arithmetic, contention-group shape, artifact contracts,
+and deterministic output are preserved.
 
 Last completed slice:
-TimelineFeedback thermal context extraction, selected in `4ccc5828` and
-implemented in `c3190551`.
-`timeline_feedback.ex` moved from 3,153 to 3,061 lines; the dedicated thermal
-context owner is 113 lines.
+ContactContention timing metrics extraction, selected in `ee124dce` and
+implemented in `e03e56d2`.
+`communications/contact_contention.ex` moved from 3,114 to 3,035 lines; the
+dedicated timing-metrics owner is 91 lines.
 
 Next candidate:
-Implement and verify the selected timing-metrics extraction.
+Re-rank the live largest-module set and select the next cohesive ownership
+boundary.
 
 Blocked:
 No.
