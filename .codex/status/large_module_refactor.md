@@ -6,72 +6,70 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-TimelineFeedback downlink-demand feedback extraction.
+ContactContention feedback-context extraction.
 
 Status:
-Completed and pushed in `9b8c2d55`.
+Selected; implementation not started.
 
 Selected boundary:
-Extract weighted observation/contact downlink-demand derivation, residual
-contact demand, station/default key routing, demand-source provenance,
-trust-boundary eligibility values, and deterministic demand/source aggregation
-into `OrbitalDynamics.TimelineFeedback.DownlinkDemandFeedback`. Preserve the
-public TimelineFeedback facade and private delegates used by operational
-feedback and provenance.
+Extract contact/command feedback aggregation, provider-result artifact
+normalization, actual-throughput selection, and actual-data-rate throughput
+derivation into
+`OrbitalDynamics.Communications.ContactContention.FeedbackContext`. Preserve
+the public ContactContention facade and private delegates used by contention
+group/recommendation construction, approval-policy context copying, and
+provider-contact evidence detection.
 
 Selection evidence:
-- Live re-ranking places `timeline_feedback.ex` at 2,809 lines, fifth behind
+- Live re-ranking places `contact_contention.ex` at 2,805 lines, fifth behind
   Schema, Timeline, MissionPlan.Activity, and the intentionally public
-  `OrbitalDynamics` facade, and ahead of ContactContention, LinkCapacity,
-  StationCalendar, OperationalReadiness, RecommendationRiskContext, and
+  `OrbitalDynamics` facade, and ahead of LinkCapacity, StationCalendar,
+  OperationalReadiness, RecommendationRiskContext, TimelineFeedback, and
   ResourceProjection.
-- The selected family spans lines 1,952-2,167. It owns demand derivation from
-  observation actual/planned volume and completion, incomplete contact
-  required-downlink residuals, feedback weighting, station/default keying,
-  realized/source row provenance labels, exclusion-aware trust values, and
-  sorted demand/source maps.
-- Five facade consumers remain: operational feedback demand and source maps,
-  plus the trust-key, trust-value, and source-trust-value functions used by
-  provenance routing. Private delegates keep those callers stable.
-- Reconciliation, realized/planned normalization, other operational feedback
-  metrics, resource/priority/maneuver feedback, outcome aggregation, and public
-  input/error clauses remain outside this boundary.
-- Existing exclusion policy, numeric and unit-interval coercion, throughput
-  aliases, feedback weights, positive-demand filtering, station/default keys,
-  source labels, stable scalar identity, deterministic sorting, and exact
-  fallback behavior must remain unchanged.
+- The selected family spans the feedback builders at lines 1,207-1,247 and
+  1,627-1,770 plus throughput derivation at lines 2,484-2,603. It owns
+  boolean/factor/string feedback aggregation, metadata fallback, nested
+  provider-result flattening, explicit throughput aliases, data-rate unit
+  conversion, duration fallback, and derivation evidence.
+- Four contention group/recommendation builders consume the feedback context;
+  two approval-policy paths consume the feedback field allowlist; provider
+  contact evidence consumes actual throughput. Private delegates keep those
+  facade callers stable.
+- Station-calendar context/capacity semantics, contention grouping, approval
+  requirements, resolution-policy normalization and ordering, contact
+  identity, public report clauses, and artifact contracts remain outside this
+  boundary.
+- Existing false-dominant boolean aggregation, minimum factor aggregation,
+  mixed-source/result markers, provider-result traversal order, numeric
+  coercion, explicit-throughput precedence, MB/s and Mbps conversion, duration
+  fallback order, non-negative rate clamping, omission behavior, and exact
+  errors must remain unchanged.
 
-Verification:
-- Strict warning-clean compile passed across 3,952 files:
-  `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 mix compile --force --warnings-as-errors`.
-- Focused downlink-demand operational-feedback assertion passed: 1 test.
-- Complete timeline-feedback regression bundle passed: 99 tests.
-- Exact old/new parity passed 7 comparisons from selection commit `d8414e9e`
-  with `/tmp/timeline_downlink_demand_compare.exs`, covering rich observation
-  and contact demand, report wrapping, atom-key rows, empty feedback,
-  deterministic station maps and duplicate accumulation, invalid-input errors,
-  and full reconciliation provenance/trust routing.
-- `mix xref callers
-  OrbitalDynamics.TimelineFeedback.DownlinkDemandFeedback` reports only the
-  TimelineFeedback facade.
-- The owner has no compile-connected expansion beyond itself.
-- Focused formatting, `git diff --check`, removed-family static checks, and
-  final facade/owner review passed.
+Verification plan:
+- Run the strict warning-clean compile before and after implementation.
+- Run the focused ContactContention regression file and the adjacent
+  communications tests selected from live references.
+- Run exact old/new parity from this selection commit across rich feedback,
+  nested provider results, metadata fallback, explicit and derived throughput,
+  malformed values, empty inputs, deterministic report output, and invalid
+  public input errors.
+- Run `mix xref callers` for the new owner, inspect compile-connected
+  dependents, check formatting and `git diff --check`, prove the removed
+  helper family is absent from the facade, and review final facade/owner
+  boundaries.
 
 Behavior/schema changes:
-None. The public TimelineFeedback facade, demand/source maps, exclusion and
-weight semantics, residual demand, trust routing, deterministic ordering, and
-exact errors are unchanged.
+None intended.
 
 Last completed slice:
-TimelineFeedback downlink-demand feedback extraction, selected in `d8414e9e`
-and implemented in `9b8c2d55`.
+TimelineFeedback downlink-demand feedback extraction, selected in `d8414e9e`,
+implemented in `9b8c2d55`, and handed off in `b956c1a9`.
 `timeline_feedback.ex` moved from 2,809 to 2,608 lines; the dedicated
 downlink-demand feedback owner is 239 lines.
 
 Next candidate:
-Re-rank the live largest-module inventory and select the next cohesive,
-facade-preserving ownership boundary.
+Implement and verify the selected ContactContention feedback-context
+extraction.
 
 Blocked:
 No.
