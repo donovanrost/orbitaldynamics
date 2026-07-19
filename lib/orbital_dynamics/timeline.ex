@@ -1608,67 +1608,17 @@ defmodule OrbitalDynamics.Timeline do
   def dependency_impact_summary(source_activities, replacement_activities, opts)
       when is_list(source_activities) and is_list(replacement_activities) do
     diff_report = diff_report(source_activities, replacement_activities, opts)
-    impacted = dependency_impact_source_identities(diff_report)
-
     source_rows = normalize_activities(source_activities, opts)
     replacement_rows = normalize_activities(replacement_activities, opts)
 
-    impact_rows =
-      OrbitalDynamics.Timeline.DependencyImpactRowPolicy.build(
-        "source",
-        source_rows,
-        impacted,
-        &sorted_uniq/1
-      ) ++
-        OrbitalDynamics.Timeline.DependencyImpactRowPolicy.build(
-          "replacement",
-          replacement_rows,
-          impacted,
-          &sorted_uniq/1
-        )
-
-    %{
-      "schema_contract" => @dependency_impact_summary_schema_contract,
-      "model" => "artifact_only_timeline_dependency_impact_summary",
-      "validation_level" => "artifact_contract",
-      "source" => "timeline_diff_report.v1",
-      "source_activity_count" => diff_report["source_activity_count"],
-      "replacement_activity_count" => diff_report["replacement_activity_count"],
-      "changed_source_activity_count" => length(impacted.activity_ids),
-      "changed_source_timeline_count" => length(impacted.timeline_ids),
-      "dependency_impact_status" => if(impact_rows == [], do: "clear", else: "review_required"),
-      "dependent_activity_count" => length(impact_rows),
-      "source_dependent_activity_count" => Enum.count(impact_rows, &(&1["scope"] == "source")),
-      "replacement_dependent_activity_count" =>
-        Enum.count(impact_rows, &(&1["scope"] == "replacement")),
-      "impacted_source_activity_ids" => impacted.activity_ids,
-      "impacted_source_timeline_ids" => impacted.timeline_ids,
-      "dependent_activity_ids" => impact_rows |> Enum.map(& &1["activity_id"]) |> sorted_uniq(),
-      "dependent_timeline_ids" => impact_rows |> Enum.map(& &1["timeline_id"]) |> sorted_uniq(),
-      "source_dependent_activity_ids" =>
-        dependency_impact_scope_ids(impact_rows, "source", "activity_id"),
-      "source_dependent_timeline_ids" =>
-        dependency_impact_scope_ids(impact_rows, "source", "timeline_id"),
-      "replacement_dependent_activity_ids" =>
-        dependency_impact_scope_ids(impact_rows, "replacement", "activity_id"),
-      "replacement_dependent_timeline_ids" =>
-        dependency_impact_scope_ids(impact_rows, "replacement", "timeline_id"),
-      "impacted_dependency_activity_ids" =>
-        dependency_impact_row_ids(impact_rows, "impacted_dependency_activity_ids"),
-      "impacted_dependency_timeline_ids" =>
-        dependency_impact_row_ids(impact_rows, "impacted_dependency_timeline_ids"),
-      "impacted_exclusive_with_activity_ids" =>
-        dependency_impact_row_ids(impact_rows, "impacted_exclusive_with_activity_ids"),
-      "impacted_exclusive_with_timeline_ids" =>
-        dependency_impact_row_ids(impact_rows, "impacted_exclusive_with_timeline_ids"),
-      "dependency_impact_rows" => impact_rows,
-      "assumptions" => %{
-        "execution_boundary" => "artifact_only_no_schedule_mutation",
-        "source" => "timeline_diff_report.v1",
-        "operator_authority" => "not_granted_by_summary"
-      },
-      "model_limits" => model_limits()
-    }
+    OrbitalDynamics.Timeline.DependencyImpactSummaryPolicy.build(
+      diff_report,
+      source_rows,
+      replacement_rows,
+      @dependency_impact_summary_schema_contract,
+      model_limits(),
+      &sorted_uniq/1
+    )
   end
 
   def dependency_impact_summary(_source_activities, _replacement_activities, _opts),
@@ -1935,39 +1885,6 @@ defmodule OrbitalDynamics.Timeline do
       publication_sequence,
       supersedes_artifact_ids
     )
-  end
-
-  defp dependency_impact_source_identities(diff_report) do
-    rows =
-      diff_report
-      |> Map.get("rows", [])
-      |> Enum.filter(&(&1["diff_status"] in ["changed", "removed"]))
-
-    %{
-      activity_ids:
-        rows
-        |> Enum.flat_map(fn row ->
-          [row["source_activity_id"] | list_value(row, "source_duplicate_activity_ids")]
-        end)
-        |> sorted_uniq(),
-      timeline_ids:
-        rows
-        |> Enum.map(& &1["timeline_id"])
-        |> sorted_uniq()
-    }
-  end
-
-  defp dependency_impact_scope_ids(rows, scope, field) do
-    rows
-    |> Enum.filter(&(&1["scope"] == scope))
-    |> Enum.map(& &1[field])
-    |> sorted_uniq()
-  end
-
-  defp dependency_impact_row_ids(rows, field) do
-    rows
-    |> Enum.flat_map(&list_value(&1, field))
-    |> sorted_uniq()
   end
 
   defp application_timeline_ids(applications, predicate) when is_list(applications) do
