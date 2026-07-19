@@ -9,7 +9,7 @@ Current slice:
 OperationalReadiness quality-gate operator-training summary extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `cca255af`.
 
 Selected boundary:
 Extract operator-training quality-gate row selection, requirement aggregation,
@@ -43,20 +43,38 @@ Selection evidence:
   input handling, and exact errors must remain unchanged.
 
 Verification:
-Pending implementation.
+- Strict warning-clean compile passed across 3,951 files:
+  `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 mix compile --force --warnings-as-errors`.
+- Focused operator-training quality-gate assertion passed: 1 test.
+- Adjacent full operational-readiness, strategy quality-gate pressure,
+  candidate-refresh replay, Cadence wrapped-summary, and validation-fixture
+  regression bundle passed: 55 tests.
+- Exact old/new parity passed 6 comparisons from selection commit `303a6a96`
+  with `/tmp/readiness_operator_training_summary_compare.exs`, covering rich
+  multi-row training evidence, atom-key normalization, empty reports,
+  non-training/malformed row filtering, stable grouped IDs and duplicate
+  removal, and invalid-artifact errors.
+- `mix xref callers
+  OrbitalDynamics.OperationalReadiness.QualityGateOperatorTrainingSummary`
+  reports only the OperationalReadiness facade.
+- The owner has no compile-connected expansion beyond itself.
+- Focused formatting, `git diff --check`, removed-selector static checks, and
+  final facade/owner review passed.
 
 Behavior/schema changes:
-None intended.
+None. The public OperationalReadiness facade, operator-training summary
+contract, positive requirement counts, stable ID maps, row filtering,
+compaction, and exact errors are unchanged.
 
 Last completed slice:
-RecommendationRiskContext station-reservation-hold import-readiness
-extraction, selected in `4501d5fe` and implemented in `04980e12`.
-`recommendation_risk_context.ex` moved from 2,909 to 2,748 lines; the dedicated
-context owner is 202 lines.
+OperationalReadiness quality-gate operator-training summary extraction,
+selected in `303a6a96` and implemented in `cca255af`.
+`operational_readiness.ex` moved from 2,839 to 2,766 lines; the dedicated
+operator-training summary owner is 156 lines.
 
 Next candidate:
-Implement and verify the selected OperationalReadiness quality-gate
-operator-training summary extraction.
+Re-rank the live largest-module inventory and select the next cohesive,
+facade-preserving ownership boundary.
 
 Blocked:
 No.
