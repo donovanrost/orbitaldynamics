@@ -81,6 +81,7 @@ defmodule OrbitalDynamics.TimelineFeedback do
   @provider_result_map_value_keys ~w(result results outcome outcomes status state disposition provider_result provider_results provider_outcome provider_outcomes provider_status provider_state provider_code code reason reasons message messages error errors details metadata provider diagnostics)
 
   alias OrbitalDynamics.{CadenceImport, OperatorReview, Timeline}
+  alias OrbitalDynamics.TimelineFeedback.ProviderResult
 
   @doc """
   Declares the feedback reconciliation model and known limits.
@@ -4328,19 +4329,8 @@ defmodule OrbitalDynamics.TimelineFeedback do
     provider_result_outcome(result)
   end
 
-  defp provider_result_outcome(result) do
-    outcomes =
-      result
-      |> provider_result_values()
-      |> Enum.map(&provider_result_token_outcome/1)
-      |> Enum.reject(&(&1 == :unknown))
-
-    cond do
-      Enum.member?(outcomes, :failure) -> :failure
-      Enum.member?(outcomes, :success) -> :success
-      true -> :unknown
-    end
-  end
+  defp provider_result_outcome(result),
+    do: ProviderResult.outcome(result, @provider_result_map_value_keys)
 
   defp provider_result_feedback_value(result, row) when not is_nil(result) do
     case provider_result_outcome(result) do
@@ -4352,118 +4342,8 @@ defmodule OrbitalDynamics.TimelineFeedback do
 
   defp provider_result_feedback_value(_result, _row), do: nil
 
-  defp provider_result_values(result) when is_binary(result) do
-    result
-    |> String.split(",", trim: true)
-    |> Enum.map(&String.trim/1)
-    |> Enum.reject(&(&1 == ""))
-  end
-
-  defp provider_result_values(values) when is_list(values) do
-    Enum.flat_map(values, &provider_result_values/1)
-  end
-
-  defp provider_result_values(%{} = result) do
-    Enum.flat_map(@provider_result_map_value_keys, fn key ->
-      result
-      |> Map.get(key)
-      |> provider_result_values()
-    end)
-  end
-
-  defp provider_result_values(nil), do: []
-
-  defp provider_result_values(result) when is_atom(result) do
-    result
-    |> Atom.to_string()
-    |> provider_result_values()
-  end
-
-  defp provider_result_values(_result), do: []
-
-  defp provider_result_artifact_value(nil), do: nil
-
-  defp provider_result_artifact_value(result) when is_binary(result) do
-    case String.trim(result) do
-      "" -> nil
-      _value -> result
-    end
-  end
-
-  defp provider_result_artifact_value(results) when is_list(results) do
-    case provider_result_values(results) do
-      [] -> nil
-      values -> Enum.join(values, ",")
-    end
-  end
-
-  defp provider_result_artifact_value(%{} = result) do
-    case provider_result_values(result) do
-      [] -> nil
-      values -> Enum.join(values, ",")
-    end
-  end
-
-  defp provider_result_artifact_value(result) when is_integer(result),
-    do: Integer.to_string(result)
-
-  defp provider_result_artifact_value(result) when is_float(result), do: Float.to_string(result)
-  defp provider_result_artifact_value(result) when is_boolean(result), do: Atom.to_string(result)
-
-  defp provider_result_artifact_value(result) when is_atom(result) do
-    result
-    |> Atom.to_string()
-    |> provider_result_artifact_value()
-  end
-
-  defp provider_result_artifact_value(_result), do: nil
-
-  defp provider_result_token_outcome(result) when is_binary(result) do
-    case provider_result_token(result) do
-      value
-      when value in [
-             "rejected",
-             "failed",
-             "failure",
-             "timeout",
-             "timed_out",
-             "aborted",
-             "error",
-             "dropped",
-             "lost",
-             "missed",
-             "canceled",
-             "cancelled",
-             "no_contact"
-           ] ->
-        :failure
-
-      value
-      when value in [
-             "accepted",
-             "acknowledged",
-             "completed",
-             "executed",
-             "succeeded",
-             "success",
-             "ok",
-             "acquired",
-             "established",
-             "delivered"
-           ] ->
-        :success
-
-      _value ->
-        :unknown
-    end
-  end
-
-  defp provider_result_token(result) when is_binary(result) do
-    result
-    |> String.trim()
-    |> String.downcase()
-    |> String.replace(~r/[\s-]+/, "_")
-  end
+  defp provider_result_artifact_value(result),
+    do: ProviderResult.artifact_value(result, @provider_result_map_value_keys)
 
   defp identifier(map, key) do
     case Map.get(map, key) do
