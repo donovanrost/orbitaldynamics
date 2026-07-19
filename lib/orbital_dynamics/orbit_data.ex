@@ -9,6 +9,7 @@ defmodule OrbitalDynamics.OrbitData do
   """
 
   alias OrbitalDynamics.Schema
+  alias OrbitalDynamics.OrbitData.OmmMetadata
   alias OrbitalDynamics.OrbitData.TleMetadata
 
   @j2000 ~U[2000-01-01 12:00:00Z]
@@ -121,33 +122,7 @@ defmodule OrbitalDynamics.OrbitData do
       supported_oem_covariance_fields: ["EPOCH", "COV_REF_FRAME" | @opm_covariance_component_keys],
       supported_covariance_component_order: @opm_covariance_component_order,
       supported_tle_metadata_fields: TleMetadata.supported_metadata_fields(),
-      supported_omm_metadata_fields: [
-        "CCSDS_OMM_VERS",
-        "CREATION_DATE",
-        "ORIGINATOR",
-        "OBJECT_NAME",
-        "OBJECT_ID",
-        "CENTER_NAME",
-        "REF_FRAME",
-        "TIME_SYSTEM",
-        "MEAN_ELEMENT_THEORY",
-        "EPOCH",
-        "SEMI_MAJOR_AXIS",
-        "INCLINATION",
-        "RA_OF_ASC_NODE",
-        "ECCENTRICITY",
-        "ARG_OF_PERICENTER",
-        "MEAN_ANOMALY",
-        "MEAN_MOTION",
-        "MEAN_MOTION_DOT",
-        "MEAN_MOTION_DDOT",
-        "BSTAR",
-        "EPHEMERIS_TYPE",
-        "CLASSIFICATION_TYPE",
-        "NORAD_CAT_ID",
-        "ELEMENT_SET_NO",
-        "REV_AT_EPOCH"
-      ],
+      supported_omm_metadata_fields: OmmMetadata.supported_metadata_fields(),
       supported_opm_maneuver_metadata_blocks: :multiple,
       exported_opm_maneuver_metadata_blocks: :multiple,
       known_limits: [
@@ -344,142 +319,7 @@ defmodule OrbitalDynamics.OrbitData do
   element theory, often SGP4, and are not interchangeable with the Cartesian
   state-estimate adapters used by `accepted_planning_state.v1`.
   """
-  def inspect_ccsds_omm(source, opts \\ [])
-
-  def inspect_ccsds_omm(source, opts) when is_binary(source) do
-    with :ok <- reject_duplicate_kvn_single_value_fields(source, "ccsds_omm"),
-         {:ok, fields} <- parse_omm_kvn(source),
-         {:ok, metadata} <- omm_metadata(fields, opts) do
-      {:ok, metadata}
-    end
-  end
-
-  def inspect_ccsds_omm(_source, _opts), do: {:error, {:invalid_field, "ccsds_omm"}}
-
-  defp parse_omm_kvn(kvn) do
-    fields =
-      kvn
-      |> String.split(~r/\R/)
-      |> Enum.map(&(&1 |> String.trim() |> String.trim_leading("\uFEFF")))
-      |> Enum.reject(&(&1 == "" or String.starts_with?(&1, "#")))
-      |> Enum.reject(&String.starts_with?(&1, "COMMENT"))
-      |> Enum.filter(&String.contains?(&1, "="))
-      |> Enum.reduce(%{}, fn line, acc ->
-        [key, value] = String.split(line, "=", parts: 2)
-        Map.put(acc, key |> String.trim() |> String.upcase(), String.trim(value))
-      end)
-
-    if map_size(fields) == 0, do: {:error, {:invalid_field, "ccsds_omm"}}, else: {:ok, fields}
-  end
-
-  defp omm_metadata(fields, opts) do
-    with {:ok, object_name} <- opm_required_value(fields, "OBJECT_NAME"),
-         {:ok, epoch} <- omm_epoch(fields),
-         {:ok, center_name} <- omm_center_name(fields),
-         {:ok, time_system} <- opm_time_scale(fields),
-         {:ok, mean_element_theory} <- opm_required_value(fields, "MEAN_ELEMENT_THEORY"),
-         {:ok, inclination_deg} <- opm_number(fields, "INCLINATION"),
-         {:ok, raan_deg} <- opm_number(fields, "RA_OF_ASC_NODE"),
-         {:ok, eccentricity} <- opm_number(fields, "ECCENTRICITY"),
-         {:ok, argument_of_pericenter_deg} <- opm_number(fields, "ARG_OF_PERICENTER"),
-         {:ok, mean_anomaly_deg} <- opm_number(fields, "MEAN_ANOMALY"),
-         {:ok, mean_motion_rev_per_day} <- opm_number(fields, "MEAN_MOTION"),
-         {:ok, source} <-
-           optional_map(
-             Keyword.get(opts, :source, %{"format" => "ccsds_omm_kvn"}),
-             "source"
-           ),
-         {:ok, provenance} <- optional_map(Keyword.get(opts, :provenance, %{}), "provenance") do
-      regime = tle_mean_element_regime(mean_motion_rev_per_day, eccentricity)
-      object_id = opm_optional_value(fields, "OBJECT_ID") || object_name
-
-      provenance =
-        provenance
-        |> adapter_provenance(
-          "ccsds_omm_kvn",
-          "OrbitalDynamics.OrbitData.inspect_ccsds_omm/2"
-        )
-
-      {:ok,
-       %{
-         "format" => "ccsds_omm_kvn",
-         "ccsds_omm_version" => opm_optional_value(fields, "CCSDS_OMM_VERS") || "2.0",
-         "creation_date" => opm_optional_value(fields, "CREATION_DATE"),
-         "originator" => opm_optional_value(fields, "ORIGINATOR"),
-         "object_name" => object_name,
-         "object_id" => object_id,
-         "center_name" => center_name,
-         "ref_frame" => opm_optional_value(fields, "REF_FRAME"),
-         "time_system" => time_system,
-         "mean_element_theory" => mean_element_theory,
-         "epoch" => epoch,
-         "semi_major_axis_km" => regime["semi_major_axis_km"],
-         "imported_semi_major_axis_km" => opm_optional_number(fields, "SEMI_MAJOR_AXIS"),
-         "inclination_deg" => inclination_deg,
-         "raan_deg" => raan_deg,
-         "eccentricity" => eccentricity,
-         "argument_of_pericenter_deg" => argument_of_pericenter_deg,
-         "mean_anomaly_deg" => mean_anomaly_deg,
-         "mean_motion_rev_per_day" => mean_motion_rev_per_day,
-         "mean_motion_rad_per_s" => regime["mean_motion_rad_per_s"],
-         "mean_motion_first_derivative" => opm_optional_number(fields, "MEAN_MOTION_DOT"),
-         "mean_motion_second_derivative" => opm_optional_number(fields, "MEAN_MOTION_DDOT"),
-         "bstar" => opm_optional_number(fields, "BSTAR"),
-         "ephemeris_type" => opm_optional_number(fields, "EPHEMERIS_TYPE"),
-         "classification_type" => opm_optional_value(fields, "CLASSIFICATION_TYPE"),
-         "norad_catalog_id" => opm_optional_value(fields, "NORAD_CAT_ID"),
-         "element_set_number" => opm_optional_number(fields, "ELEMENT_SET_NO"),
-         "revolution_number_at_epoch" => opm_optional_number(fields, "REV_AT_EPOCH"),
-         "orbital_period_min" => regime["orbital_period_min"],
-         "perigee_altitude_km" => regime["perigee_altitude_km"],
-         "apogee_altitude_km" => regime["apogee_altitude_km"],
-         "altitude_regime" => regime["altitude_regime"],
-         "mean_element_analysis_status" => "preflight_estimate_not_cartesian_state",
-         "accepted_planning_state_compatible" => false,
-         "required_propagation_regime" => omm_required_propagation_regime(mean_element_theory),
-         "state_vector_status" => "not_generated",
-         "known_limits" => [
-           "omm_requires_declared_mean_element_theory_not_cartesian_handoff",
-           "omm_mean_element_altitudes_are_preflight_estimates",
-           "no_state_vector_generated"
-         ],
-         "source" => source,
-         "provenance" => provenance
-       }
-       |> compact_map()}
-    end
-  end
-
-  defp omm_epoch(fields) do
-    with {:ok, epoch} <- opm_required_value(fields, "EPOCH"),
-         {:ok, datetime} <- parse_opm_datetime(epoch) do
-      {:ok,
-       %{
-         "iso8601" => DateTime.to_iso8601(datetime),
-         "seconds_since_j2000" => DateTime.diff(datetime, @j2000, :microsecond) / 1_000_000.0
-       }}
-    end
-  end
-
-  defp omm_center_name(fields) do
-    case fields |> Map.get("CENTER_NAME", "EARTH") |> opm_value() |> String.upcase() do
-      "EARTH" -> {:ok, "EARTH"}
-      _center -> {:error, {:unsupported_field, "CENTER_NAME"}}
-    end
-  end
-
-  defp omm_required_propagation_regime(mean_element_theory) do
-    theory = mean_element_theory |> to_string() |> String.trim() |> String.downcase()
-
-    cond do
-      theory in ["sgp", "sgp4", "sdp4", "sgp4-xp"] -> "sgp4"
-      theory == "" -> "declared_mean_element_theory"
-      true -> theory
-    end
-  end
-
-  defp tle_mean_element_regime(mean_motion_rev_per_day, eccentricity),
-    do: TleMetadata.mean_element_regime(mean_motion_rev_per_day, eccentricity)
+  def inspect_ccsds_omm(source, opts \\ []), do: OmmMetadata.inspect(source, opts)
 
   defp orbit_data_opts(source, opts) do
     opts
