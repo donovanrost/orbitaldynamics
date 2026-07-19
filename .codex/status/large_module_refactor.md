@@ -9,7 +9,7 @@ Current slice:
 StationCalendar reservation-source evidence extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Extract reservation-affected/contact-contention predicates, source calendar
@@ -37,32 +37,39 @@ Selection evidence:
   match-status default/ambiguity behavior, expiration parsing, omission rules,
   and deterministic outputs must remain unchanged.
 
-Verification plan:
-- Run the strict warning-clean compile before and after implementation.
-- Run the focused StationCalendar regression file and adjacent reservation
-  report/review/import consumers selected from live references.
-- Run exact old/new public parity from this selection commit across direct
-  reservation rows, embedded source entries/overlaps, provider identity
-  fallbacks, reservation ID aliases, owned/ambiguous/default match statuses,
-  expiration aliases, available/unrelated rows, atom/string keys,
-  deterministic outputs, and public errors.
-- Run `mix xref callers` for the new owner, inspect compile-connected
-  dependents, check formatting and `git diff --check`, prove the removed
-  helper family is absent from the facade, and review final facade/owner
-  boundaries.
+Implementation:
+- Selection was recorded and pushed in `d5c47875`.
+- Implementation was committed and pushed in `77f354df`.
+- `communications/station_calendar.ex` moved from 2,595 to 2,425 lines.
+- `OrbitalDynamics.Communications.StationCalendar.ReservationSourceEvidence`
+  is a 227-line owner reached through three private facade delegates.
+
+Verification:
+- Strict warning-clean compilation passed across 3,960 files.
+- The focused StationCalendar file and four adjacent reservation
+  handoff/replay/schema consumers passed together: 61 tests.
+- Exact old/new public parity passed for 7 cases covering direct reservation
+  rows, embedded source entries and overlaps, provider provenance, reservation
+  ID/status/expiration aliases, owned/ambiguous/default matching, ignored
+  available rows, contention groups, atom/string keys, and the public error
+  path.
+- `mix xref callers` reports only the StationCalendar facade; the
+  compile-connected graph reports the new owner and facade.
+- The removed helper family is absent from the facade, formatting and
+  `git diff --check` passed, and the final diff is ownership-only.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-RecommendationRiskContext timeline-publication extraction, selected in
-`6d4b0888` and implemented in `d3e26bb2`.
-`recommendation_risk_context.ex` moved from 2,607 to 2,521 lines; the dedicated
-timeline-publication owner is 121 lines.
+StationCalendar reservation-source evidence extraction, selected in
+`d5c47875` and implemented in `77f354df`.
+`communications/station_calendar.ex` moved from 2,595 to 2,425 lines; the
+dedicated reservation-source owner is 227 lines.
 
 Next candidate:
-Implement and verify the selected StationCalendar reservation-source evidence
-extraction.
+Re-rank the live checkout and select the next cohesive facade-preserving
+boundary.
 
 Blocked:
 No.
