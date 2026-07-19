@@ -142,6 +142,7 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
   @provider_result_map_value_keys ~w(result results outcome outcomes status state disposition provider_result provider_results provider_outcome provider_outcomes provider_status provider_state provider_code code reason reasons message messages error errors details metadata provider diagnostics)
   alias OrbitalDynamics.Policy
   alias OrbitalDynamics.Communications.StationCalendar.ProviderCounteroffer
+  alias OrbitalDynamics.Communications.StationCalendar.ProviderCounterofferReport
 
   @doc """
   Declares the station-calendar provider adapter contract and known limits.
@@ -2937,51 +2938,7 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
   end
 
   defp build_provider_counteroffer_report(rows, source, source_artifact_id, source_artifact_type) do
-    counteroffer_rows =
-      rows
-      |> List.wrap()
-      |> Enum.map(&stringify_keys/1)
-      |> Enum.filter(&provider_counteroffer_entry?/1)
-      |> Enum.with_index(1)
-      |> Enum.map(&provider_counteroffer_report_row/1)
-
-    %{
-      "schema_contract" => @counteroffer_schema_contract,
-      "model" => "artifact_only_provider_counteroffer_review",
-      "source" => source,
-      "source_artifact_type" => source_artifact_type,
-      "source_artifact_id" => source_artifact_id,
-      "counteroffer_count" => length(counteroffer_rows),
-      "reviewable_count" => Enum.count(counteroffer_rows, & &1["reviewable"]),
-      "counteroffer_cost_delta_count" =>
-        numeric_value_count(counteroffer_rows, "provider_counteroffer_cost_delta"),
-      "counteroffer_cost_delta_total" =>
-        numeric_value_sum(counteroffer_rows, "provider_counteroffer_cost_delta"),
-      "counteroffer_lock_deadline_count" =>
-        numeric_value_count(counteroffer_rows, "provider_counteroffer_lock_deadline_s"),
-      "earliest_counteroffer_lock_deadline_s" =>
-        numeric_value_min(counteroffer_rows, "provider_counteroffer_lock_deadline_s"),
-      "counteroffer_status_counts" => count_by(counteroffer_rows, "provider_counteroffer_status"),
-      "counteroffer_negotiation_state_counts" =>
-        count_by(counteroffer_rows, "provider_counteroffer_negotiation_state"),
-      "required_operator_action_counts" =>
-        count_by(counteroffer_rows, "required_operator_action"),
-      "rows" => counteroffer_rows,
-      "model_limits" => [
-        "artifact_only",
-        "does_not_accept_counteroffers",
-        "does_not_reserve_station_time",
-        "does_not_mutate_schedules"
-      ],
-      "assumptions" => %{
-        "scope" =>
-          "provider counteroffer reports preserve declared station-calendar counteroffer evidence only",
-        "reviewability" =>
-          "counteroffer rows are reviewable unless source evidence explicitly sets provider_counteroffer_reviewable false",
-        "execution_boundary" => "artifact_only_no_provider_writes"
-      }
-    }
-    |> compact_map()
+    ProviderCounterofferReport.build(rows, source, source_artifact_id, source_artifact_type)
   end
 
   defp provider_counteroffer_review_summary_from_report(report, opts) do
@@ -3232,85 +3189,8 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
     Map.put(row, "provider_counteroffer_lock_deadline_status", status)
   end
 
-  defp provider_counteroffer_report_row({row, sequence}) do
-    counteroffer_id = provider_counteroffer_report_id(row, sequence)
-    status = provider_counteroffer_status(row) || "unknown"
-    reviewable = provider_counteroffer_reviewable?(row)
-    action = if reviewable, do: "review_provider_counteroffer", else: "none"
-
-    %{
-      "id" => "provider_counteroffer:#{sequence}:#{counteroffer_id}",
-      "provider_counteroffer_id" => counteroffer_id,
-      "provider_counteroffer_status" => status,
-      "provider_counteroffer_negotiation_state" => provider_counteroffer_negotiation_state(row),
-      "provider_counteroffer_reason_code" => provider_counteroffer_reason_code(row),
-      "provider_counteroffer_cost_delta" => provider_counteroffer_cost_delta(row),
-      "provider_counteroffer_lock_deadline_s" => provider_counteroffer_lock_deadline_s(row),
-      "provider_counteroffer_starts_at_s" => provider_counteroffer_starts_at_s(row),
-      "provider_counteroffer_ends_at_s" => provider_counteroffer_ends_at_s(row),
-      "provider_counteroffer_start_delta_s" =>
-        numeric_delta(provider_counteroffer_starts_at_s(row), row["starts_at_s"]),
-      "provider_counteroffer_end_delta_s" =>
-        numeric_delta(provider_counteroffer_ends_at_s(row), row["ends_at_s"]),
-      "provider_counteroffer_duration_delta_s" => provider_counteroffer_duration_delta(row),
-      "reviewable" => reviewable,
-      "required_operator_action" => action,
-      "ground_station_id" => row["ground_station_id"],
-      "starts_at_s" => numeric_or_nil(row["starts_at_s"]),
-      "ends_at_s" => numeric_or_nil(row["ends_at_s"]),
-      "station_calendar_entry_id" => row["station_calendar_entry_id"] || row["id"],
-      "station_calendar_provider_id" => row["station_calendar_provider_id"] || row["provider_id"],
-      "station_calendar_provider_entry_id" =>
-        row["station_calendar_provider_entry_id"] || row["provider_entry_id"],
-      "station_availability" => row["station_availability"] || row["availability"],
-      "source_station_calendar_entry" => provider_counteroffer_source_entry(row)
-    }
-    |> compact_map()
-  end
-
-  defp provider_counteroffer_report_id(row, sequence) do
-    existing = provider_counteroffer_id(row)
-
-    cond do
-      value_present?(existing) ->
-        existing
-
-      stable_id?(row["station_calendar_provider_entry_id"]) ->
-        "provider_counteroffer:#{row["station_calendar_provider_entry_id"]}"
-
-      stable_id?(row["provider_entry_id"]) ->
-        "provider_counteroffer:#{row["provider_entry_id"]}"
-
-      stable_id?(row["id"]) ->
-        "provider_counteroffer:#{row["id"]}"
-
-      true ->
-        "provider_counteroffer:#{sequence}"
-    end
-  end
-
-  defp provider_counteroffer_source_entry(%{"source_station_calendar_entry" => %{} = entry}),
-    do: entry
-
-  defp provider_counteroffer_source_entry(row), do: row
-
   defp provider_counteroffer_report_rows(report) do
-    report
-    |> Map.get("rows", [])
-    |> List.wrap()
-    |> Enum.map(&stringify_keys/1)
-    |> Enum.filter(&is_map/1)
-    |> Enum.filter(&provider_counteroffer_entry?/1)
-    |> Enum.with_index(1)
-    |> Enum.map(&provider_counteroffer_report_row/1)
-  end
-
-  defp provider_counteroffer_reviewable?(row) do
-    case first_present_value(row, ["provider_counteroffer_reviewable", "reviewable"]) do
-      false -> false
-      value when is_binary(value) -> String.downcase(String.trim(value)) not in ["false", "0"]
-      _value -> true
-    end
+    ProviderCounterofferReport.rows(report)
   end
 
   defp numeric_value_count(rows, field) do
