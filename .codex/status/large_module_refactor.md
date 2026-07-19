@@ -6,54 +6,38 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-ContactContention resolution-summary values extraction.
+ResourceProjection pressure-risk projection extraction.
 
 Status:
-Completed and pushed.
+Selected; implementation pending.
 
 Selected boundary:
-Extract resolution-summary selected/deferred/review ID projection, grouped
-value/list routing, grouped review-contact routing, field counts, stable
-nil-removing deduplication, sorting, and empty-group omission into
-`OrbitalDynamics.Communications.ContactContention.ResolutionSummaryValues`.
-Preserve all public ContactContention report and summary facades.
+Extract row-to-policy-risk construction for storage overflow, downlink
+shortfall, battery depletion, negative thermal margin, spacecraft
+unavailability, and activity availability into
+`OrbitalDynamics.ResourceProjection.PressureRisks`. Preserve all public
+ResourceProjection report facades.
 
 Selection evidence:
-- Live re-ranking places `communications/contact_contention.ex` at 2,509
-  lines, the largest eligible facade behind Schema, Timeline,
-  MissionPlan.Activity, and the root public facade.
-- The selected helper family spans lines 711-778 and exclusively owns
-  deterministic recommendation value/list/count projection for resolution
-  summaries.
-- Resolution-summary construction consumes seven helpers; capacity-demand
-  source routing consumes the stable compact-list primitive once.
-- Capacity-demand arithmetic, contention grouping, recommendation selection,
-  resolution policy, approval requirements, provider/station evidence, public
-  clauses, and artifact contracts remain outside this boundary.
-- Existing selected/deferred/duplicate inclusion, nil/group omission,
-  flattening, deduplication, lexicographic sorting, frequency counts, exact
-  routing keys, and deterministic output must remain unchanged.
+- Live re-ranking places `resource_projection.ex` at 2,504 lines, the largest
+  eligible facade behind Schema, Timeline, MissionPlan.Activity, and the root
+  public facade.
+- The selected helper family spans lines 1,642-1,728 and exclusively converts
+  an already-projected resource row into policy risk maps.
+- Approval-policy application is the single consumer of the risk builder.
+- Resource arithmetic, activity flow, first-event projection, pressure
+  type/status classification, approval requirements, input normalization,
+  public clauses, and artifact contracts remain outside this boundary.
+- Existing risk order, severity, reason strings, units, numeric guards,
+  activity-availability filtering, duplicate behavior, and empty-list behavior
+  must remain unchanged.
 
 Implementation:
-- Selection was recorded and pushed in `4541dbd9`.
-- Implementation was committed and pushed in `12e731f7`.
-- `communications/contact_contention.ex` moved from 2,509 to 2,466 lines.
-- `OrbitalDynamics.Communications.ContactContention.ResolutionSummaryValues`
-  is a 71-line owner reached through private facade delegates.
+- Pending.
 
 Verification:
-- Strict warning-clean compilation passed across 3,963 files.
-- The focused ContactContention file and five adjacent resolution
-  review/strategy/replay/schema consumers passed together: 55 tests.
-- Exact old/new public parity passed for 6 summaries covering empty,
-  selected/deferred, duplicate/ambiguous, review, grouped
-  resource/action/reason, nil-group, duplicate-value, atom-key, ordering, and
-  public-error cases.
-- `mix xref callers` reports only the ContactContention facade; the
-  compile-connected graph reports the new owner and facade.
-- The removed projection helpers are absent from the facade apart from thin
-  delegates, formatting and `git diff --check` passed, and the final diff is
-  ownership-only.
+- Pending focused baseline, strict compilation, exact old/new public parity,
+  focused and adjacent tests, static ownership checks, and xref review.
 
 Behavior/schema changes:
 None intended.
@@ -65,8 +49,8 @@ ContactContention resolution-summary values extraction, selected in
 dedicated resolution-summary values owner is 71 lines.
 
 Next candidate:
-Re-rank the live checkout and select the next cohesive facade-preserving
-boundary.
+Complete and verify the selected ResourceProjection pressure-risk projection
+extraction.
 
 Blocked:
 No.
