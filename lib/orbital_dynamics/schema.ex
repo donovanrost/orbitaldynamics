@@ -13,6 +13,7 @@ defmodule OrbitalDynamics.Schema do
     ContactReportValidation,
     DecisionSupportValidation,
     OperationalReadinessValidation,
+    OperationalTimelineValidation,
     OperatorReviewValidation,
     PolicyValidation,
     ResourceValidation,
@@ -6059,19 +6060,13 @@ defmodule OrbitalDynamics.Schema do
   defp validate_registered_contract(name, artifact),
     do: validate_contract(name, registry_contract!(name), artifact)
 
-  defp validate_optional_operational_timeline_report(issues, nil), do: issues
-
-  defp validate_optional_operational_timeline_report(issues, %{} = report) do
-    validate_contract(
-      @operational_timeline_report,
-      registry_contract!(@operational_timeline_report),
-      report
-    ) ++
-      issues
-  end
-
-  defp validate_optional_operational_timeline_report(issues, _report),
-    do: [error("$.operational_timeline_report", "must be an object") | issues]
+  defp validate_optional_operational_timeline_report(issues, report),
+    do:
+      OperationalTimelineValidation.validate_optional_report(
+        issues,
+        report,
+        &validate_registered_contract(@operational_timeline_report, &1)
+      )
 
   defp validate_optional_operator_review_package(issues, package),
     do:
@@ -6081,17 +6076,16 @@ defmodule OrbitalDynamics.Schema do
         &validate_registered_contract(@operator_review_package, &1)
       )
 
-  defp validate_operational_timeline_row(issues, path, row) do
-    OrbitalDynamics.Schema.OperationalTimelineRowContracts.validate(
-      issues,
-      path,
-      row,
-      &validate_optional_timeline_preconditions/4,
-      &validate_optional_activity_context/4,
-      &OrbitalDynamics.Schema.TimelineIntegrityEvidenceContracts.validate/3,
-      &validate_timeline_identity/3
-    )
-  end
+  defp validate_operational_timeline_row(issues, path, row),
+    do:
+      OperationalTimelineValidation.validate_row(
+        issues,
+        path,
+        row,
+        validate_optional_timeline_preconditions: &validate_optional_timeline_preconditions/4,
+        validate_optional_activity_context: &validate_optional_activity_context/4,
+        validate_timeline_identity: &validate_timeline_identity/3
+      )
 
   defp validate_optional_timeline_diff_summary_source(issues, path, value),
     do:
