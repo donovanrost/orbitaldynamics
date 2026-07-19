@@ -171,17 +171,10 @@ defmodule OrbitalDynamics.Communications.ContactContention do
     "healthcheck" => "health_check",
     "health_check_window" => "health_check"
   }
-  @stable_id_pattern ~r/^[A-Za-z0-9][A-Za-z0-9._:@-]*$/
-  @contact_stable_identity_fields ~w(
-    scenario_id
-    spacecraft_id
-    satellite_id
-    ground_station_id
-    source_window_id
-  )
   @provider_result_map_value_keys ~w(result results outcome outcomes status state disposition provider_result provider_results provider_outcome provider_outcomes provider_status provider_state provider_code code reason reasons message messages error errors details metadata provider diagnostics)
   alias OrbitalDynamics.Communications.ContactContention.{
     ContactNormalization,
+    ContactIdentity,
     FeedbackContext,
     PriorityOverrides,
     ResolutionSummaryValues,
@@ -224,7 +217,7 @@ defmodule OrbitalDynamics.Communications.ContactContention do
       resolution_priority_override_aliases: PriorityOverrides.aliases(),
       provider_direction_aliases: @provider_direction_aliases,
       provider_result_map_value_keys: @provider_result_map_value_keys,
-      contact_stable_identity_fields: @contact_stable_identity_fields,
+      contact_stable_identity_fields: ContactIdentity.stable_identity_fields(),
       command_contact_directions: @command_contact_directions,
       public_facades: [
         :annotate_contact_contention,
@@ -2182,158 +2175,37 @@ defmodule OrbitalDynamics.Communications.ContactContention do
     end
   end
 
-  defp contact_spacecraft_id(contact) do
-    spacecraft_identity_value(contact["spacecraft_id"]) ||
-      spacecraft_identity_value(contact["satellite_id"]) ||
-      spacecraft_identity_value(contact["spacecraft"]) ||
-      spacecraft_identity_value(contact["satellite"]) ||
-      stable_id_or_nil(contact["scenario_id"])
-  end
+  defp contact_spacecraft_id(contact), do: ContactIdentity.spacecraft_id(contact)
 
-  defp spacecraft_identity_value(%{} = spacecraft) do
-    Enum.find_value(["spacecraft_id", "satellite_id", "id"], fn field ->
-      spacecraft_identity_value(Map.get(spacecraft, field))
-    end)
-  end
+  defp group_ground_station_ids(contacts), do: ContactIdentity.group_ground_station_ids(contacts)
 
-  defp spacecraft_identity_value(value), do: stable_id_or_nil(value)
+  defp group_spacecraft_ids(contacts), do: ContactIdentity.group_spacecraft_ids(contacts)
 
-  defp group_ground_station_ids(contacts) do
-    contacts
-    |> Enum.map(&stable_id_or_nil(&1["ground_station_id"]))
-    |> Enum.reject(&is_nil/1)
-    |> Enum.uniq()
-    |> Enum.sort()
-  end
+  defp group_stable_ids(contacts, field), do: ContactIdentity.group_stable_ids(contacts, field)
 
-  defp group_spacecraft_ids(contacts) do
-    contacts
-    |> Enum.map(&contact_spacecraft_id/1)
-    |> Enum.reject(&is_nil/1)
-    |> Enum.uniq()
-    |> Enum.sort()
-  end
+  defp group_ground_station_id(ground_station_ids),
+    do: ContactIdentity.group_ground_station_id(ground_station_ids)
 
-  defp group_stable_ids(contacts, field) do
-    contacts
-    |> Enum.map(&stable_id_or_nil(&1[field]))
-    |> Enum.reject(&is_nil/1)
-    |> Enum.uniq()
-    |> Enum.sort()
-  end
+  defp group_direction(contacts), do: ContactIdentity.group_direction(contacts)
 
-  defp group_ground_station_id([ground_station_id]), do: ground_station_id
-  defp group_ground_station_id(_ground_station_ids), do: "multi_station"
+  defp group_directions(contacts), do: ContactIdentity.group_directions(contacts)
 
-  defp group_direction(contacts) do
-    case group_directions(contacts) do
-      [direction] -> direction
-      [] -> "downlink"
-      _directions -> "mixed"
-    end
-  end
+  defp contact_direction(contact), do: ContactIdentity.direction(contact)
 
-  defp group_directions(contacts) do
-    contacts
-    |> Enum.map(&contact_direction/1)
-    |> Enum.uniq()
-    |> Enum.sort()
-  end
+  defp contact_id(contact), do: ContactIdentity.contact_id(contact)
 
-  defp contact_direction(%{"direction" => direction})
-       when is_binary(direction) and direction != "",
-       do: direction
-
-  defp contact_direction(%{"type" => "command"}), do: "command"
-  defp contact_direction(%{"type" => "tracking"}), do: "tracking"
-  defp contact_direction(%{"type" => "health_check"}), do: "health_check"
-  defp contact_direction(_contact), do: "downlink"
-
-  defp contact_id(nil), do: nil
-
-  defp contact_id(contact) do
-    case contact_id_or_nil(contact) do
-      value when is_binary(value) and value != "" -> value
-      _value -> raise ArgumentError, "contact id is required"
-    end
-  end
-
-  defp contact_id_or_nil(nil), do: nil
-
-  defp contact_id_or_nil(contact) do
-    case Map.get(contact, "id") || Map.get(contact, "contact_id") ||
-           Map.get(contact, "activity_id") do
-      value when is_binary(value) and value != "" -> stable_id_or_nil(value)
-      value when is_atom(value) and not is_nil(value) -> stable_id_or_nil(value)
-      value when is_integer(value) -> stable_id_or_nil(value)
-      _value -> nil
-    end
-  end
+  defp contact_id_or_nil(contact), do: ContactIdentity.contact_id_or_nil(contact)
 
   defp invalid_contact_row_id("invalid_contact_shape", index), do: "missing_contact_id:#{index}"
   defp invalid_contact_row_id(reason, index), do: "#{reason}:#{index}"
 
-  defp contact_id_issue(contact) do
-    raw_id =
-      Map.get(contact, "id") || Map.get(contact, "contact_id") ||
-        Map.get(contact, "activity_id")
+  defp contact_id_issue(contact), do: ContactIdentity.id_issue(contact)
 
-    cond do
-      raw_id in [nil, ""] -> "missing_contact_id"
-      stable_id?(raw_id) -> nil
-      true -> "invalid_contact_id"
-    end
-  end
+  defp contact_identity_issue(contact), do: ContactIdentity.identity_issue(contact)
 
-  defp contact_identity_issue(contact) do
-    Enum.find_value(@contact_stable_identity_fields, fn field ->
-      value = Map.get(contact, field)
+  defp stable_id_or_nil(value), do: ContactIdentity.stable_id_or_nil(value)
 
-      cond do
-        value in [nil, ""] -> nil
-        stable_id?(value) -> nil
-        true -> "invalid_#{field}"
-      end
-    end)
-  end
-
-  defp stable_id?(value) when is_atom(value) and not is_nil(value) do
-    value
-    |> Atom.to_string()
-    |> stable_id?()
-  end
-
-  defp stable_id?("nil"), do: false
-  defp stable_id?(value) when is_binary(value), do: Regex.match?(@stable_id_pattern, value)
-  defp stable_id?(value) when is_integer(value), do: value |> Integer.to_string() |> stable_id?()
-  defp stable_id?(_value), do: false
-
-  defp stable_id_or_nil(nil), do: nil
-  defp stable_id_or_nil("nil"), do: nil
-  defp stable_id_or_nil(value) when is_binary(value), do: if(stable_id?(value), do: value)
-
-  defp stable_id_or_nil(value) when is_atom(value),
-    do: value |> Atom.to_string() |> stable_id_or_nil()
-
-  defp stable_id_or_nil(value) when is_integer(value),
-    do: value |> Integer.to_string() |> stable_id_or_nil()
-
-  defp stable_id_or_nil(_value), do: nil
-
-  defp canonical_contact_sort_key(contact) do
-    {
-      numeric_or_zero(contact["starts_at_s"]),
-      numeric_or_zero(contact["ends_at_s"]),
-      contact_id_or_nil(contact) || "",
-      stable_id_or_nil(contact["scenario_id"]) || "",
-      contact_spacecraft_id(contact) || "",
-      stable_id_or_nil(contact["ground_station_id"]) || "",
-      stable_id_or_nil(contact["source_window_id"]) || "",
-      stable_id_or_nil(contact["station_calendar_provider_id"]) || "",
-      stable_id_or_nil(contact["station_calendar_provider_entry_id"]) || "",
-      contact_direction(contact)
-    }
-  end
+  defp canonical_contact_sort_key(contact), do: ContactIdentity.sort_key(contact)
 
   defp numeric_or_zero(value), do: numeric_or_nil(value) || 0.0
 
