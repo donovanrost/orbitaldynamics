@@ -9,7 +9,7 @@ Current slice:
 ResourceProjection station-capacity evidence extraction.
 
 Status:
-Selected; strict focused baseline pending.
+Completed and pushed in `4ca5f9fb`.
 
 Selected boundary:
 Extract station-capacity fraction/percent path contracts, capability metadata,
@@ -36,24 +36,42 @@ Selection evidence:
   reports, summaries, and error behavior must remain unchanged.
 
 Implementation:
-Pending.
+- Added `OrbitalDynamics.ResourceProjection.StationCapacityEvidence` as the
+  owner of station/source capacity path contracts, unit metadata, capacity
+  scaling, source-calendar selection, and station-calendar identifiers.
+- Preserved ResourceProjection and root public APIs as capability and report
+  delegates.
+- Kept the station-calendar direction helper in the facade because it is shared
+  by activity normalization outside the selected capacity boundary.
+- `resource_projection.ex` moved from 1,981 to 1,789 lines; the new owner is
+  255 lines.
 
 Verification:
-Pending strict focused baseline, exact old/new public parity, focused and
-adjacent tests, static ownership checks, xref, strict warning-clean compile,
-formatting, and diff checks.
+- Strict focused baseline passed all 49 ResourceProjection tests.
+- Exact old/new public parity passed for four deterministic captures: the six
+  capability contracts, direct evidence precedence, source-entry evidence, and
+  capacity-bearing source-overlap selection.
+- Post-extraction focused and adjacent verification passed all 56 tests.
+- Static checks confirm the new owner solely declares all six station/source
+  path contracts and owns the resolver family; xref reports only
+  ResourceProjection as a runtime caller.
+- Strict warning-clean forced compile passed for 3,995 files.
+- Formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-TimelineFeedback station-capacity contract consolidation, selected in
-`efa062e9` and implemented in `99d57227`.
-`timeline_feedback.ex` moved from 1,993 to 1,948 lines; the existing
-StationCalendarContext owner moved from 241 to 269 lines.
+ResourceProjection station-capacity evidence extraction, selected in
+`438a67a8` and implemented in `4ca5f9fb`.
+`resource_projection.ex` moved from 1,981 to 1,789 lines; the dedicated
+StationCapacityEvidence owner is 255 lines.
 
 Next candidate:
-Complete the selected ResourceProjection station-capacity evidence extraction.
+Re-rank the live checkout and select the next bounded facade-preserving
+extraction. `communications/contact_contention.ex` is now the largest ordinary
+eligible facade at 1,978 lines, followed by ResourceFilter and
+ContactAllocation.
 
 Blocked:
 No.
