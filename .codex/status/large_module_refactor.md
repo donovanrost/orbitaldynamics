@@ -6,41 +6,33 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-MissionPlan.Activity precondition-summary extraction.
+Study.Manifest field-reference extraction.
 
 Status:
-Completed and pushed in `437652a8`.
+Selected; implementation has not started.
 
 Selected boundary:
-Extract resource, command-authority, command-safety, activity-template, and
-activity-type precondition classification into
-`OrbitalDynamics.MissionPlan.Activity.PreconditionSummary`. Keep
-`precondition_summary/1` as the public `Activity` facade and pass the
-facade-owned unit-interval field list into the dedicated owner.
+Extract exported-schema traversal, field row construction, required
+alternatives, stable-identifier classification, trust-boundary source
+classification, and identity-policy projection into
+`OrbitalDynamics.Study.Manifest.FieldReference`. Keep `field_reference/0` as
+the public Manifest facade and pass its schema and facade-owned report metadata
+into the dedicated owner.
 
 Selection evidence:
-- `mission_plan/activity.ex` remains the second-largest production module at
-  5,169 lines after the transition-policy extraction.
-- The selected public builder and private helper family spans 1,058-1,085 and
-  1,276-1,579 and has one responsibility: deterministic precondition artifact
-  construction.
-- The helpers have no callers outside `precondition_summary/1`; capability
-  metadata, the Activity struct, and all validation/mutation stay in the
-  facade.
-- Focused Activity coverage exercises clear, review-required, blocked,
-  command-authority, command-safety, template-state, and facade-wrapper cases.
+- Live re-ranking places `study/manifest.ex` at 4,825 lines, immediately behind
+  the other active production hotspots.
+- The selected public builder at 339-362 and private schema-walking helper
+  family at 610-799 have no callers outside `field_reference/0`.
+- JSON Schema construction, manifest parsing, validation, supported capability
+  data, and public CLI-facing commands remain in the Manifest facade.
+- Dedicated manifest-reference task tests exercise filtering, field metadata,
+  stable identifiers, trust boundaries, and deterministic exported rows.
 
 Verification:
-- Strict warnings-as-errors compile passed across 3,876 files.
-- Focused MissionPlan.Activity coverage passed: 31 tests.
-- Adjacent operator-review, timeline-activity schema, candidate-refresh replay,
-  and campaign-strategy coverage passed: 28 tests.
-- Exact old/new public artifact comparison against `2bcf1229` passed for 13
-  clear, review, blocked, authority, safety, template, and combined cases.
-- Runtime xref found the new owner referenced only by the `Activity` facade;
-  static single-ownership review and `git diff --check` passed.
-- `mission_plan/activity.ex` moved from 5,169 to 4,841 lines; the dedicated
-  owner is 367 lines.
+Pending: focused manifest-reference baseline, exact old/new field-reference
+artifact, strict compile, manifest validation/schema coverage, static single
+ownership, runtime xref, and bounded review.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
@@ -51,8 +43,8 @@ and implemented in `437652a8`. `mission_plan/activity.ex` moved from 5,169 to
 4,841 lines; the dedicated owner is 367 lines.
 
 Next candidate:
-Re-inventory remaining MissionPlan.Activity map normalization and validation
-families after precondition summaries have one production owner.
+Re-inventory remaining Study.Manifest schema, scenario, and source-normalization
+families after field-reference generation has one production owner.
 
 Blocked:
 No.
