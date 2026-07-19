@@ -6,46 +6,34 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-StationCalendar provider-counteroffer review summary extraction.
+ContactAllocation throughput evidence extraction.
 
 Status:
-Completed and pushed in `bea811b2`.
+Selected; implementation not started.
 
 Selected boundary:
-Extract `provider_counteroffer_review_summary.v1` construction and shared
-counteroffer lock-deadline classification into
-`OrbitalDynamics.Communications.StationCalendar.ProviderCounterofferReviewSummary`.
-Preserve the existing StationCalendar public API facade.
+Extract explicit and data-rate-derived actual throughput, estimated throughput,
+duration resolution, derivation metadata, and downlink-completion evidence into
+`OrbitalDynamics.Communications.ContactAllocation.ThroughputEvidence`.
+Preserve the existing ContactAllocation public API facade.
 
 Selection evidence:
-- Live re-ranking places `station_calendar.ex` at 3,804 lines, fourth behind
-  Schema, Timeline, and MissionPlan.Activity and ahead of ContactAllocation,
-  TimelineFeedback, RecommendationRiskContext, LinkCapacity, and
+- Live re-ranking places `contact_allocation.ex` at 3,782 lines, fourth behind
+  Schema, Timeline, and MissionPlan.Activity and ahead of TimelineFeedback,
+  RecommendationRiskContext, StationCalendar, LinkCapacity, and
   ResourceProjection.
-- The selected helper family owns one review-summary artifact plus the
-  deadline classification used by downstream counteroffer summaries.
-- Canonical counteroffer report projection remains in its dedicated owner;
-  import-readiness and plan-impact summary assembly remain in the facade.
-- Calendar ingestion, availability, reservation, contention, precedence,
-  approval policy, and contact matching remain outside this boundary.
-- Existing public APIs, review rows, deadline status, counts, routing ID sets,
-  omission behavior, and deterministic ordering remain unchanged.
+- The selected helper family owns one contact throughput/downlink evidence
+  responsibility used by invalid rows, base allocation rows, and provider
+  contact detection.
+- Capacity requirements, reduced-capacity packing, contact identity and input
+  validation, station availability, contention, approval policy, and report
+  aggregation remain outside this boundary.
+- Existing public APIs, row fields, alias precedence, numeric-string
+  acceptance, derivation formulas, omission behavior, and deterministic output
+  remain unchanged.
 
 Verification:
-- Strict test-environment compile passed with warnings as errors across 3,911
-  files.
-- Focused StationCalendar coverage passed: 42 tests.
-- Adjacent operator-review, schema-contract, and wrapped Cadence-import
-  counteroffer coverage passed: 5 tests.
-- Exact public old/new comparison against selection commit `29995109` passed
-  for eight artifacts covering canonical report projection, review summary,
-  deadline classification, import readiness, and plan impact.
-- `mix xref callers` reports only the StationCalendar facade as a runtime
-  caller of the extracted review owner.
-- Static ownership checks confirm review-summary construction and lock-deadline
-  classification live in the dedicated owner while import-readiness and
-  plan-impact assembly remain in the facade.
-- `git diff --check` passed.
+Pending.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
@@ -57,8 +45,8 @@ StationCalendar provider-counteroffer review summary extraction, selected in
 owner is 157 lines.
 
 Next candidate:
-Re-rank the live largest-module set and select the next cohesive ownership
-boundary.
+Implement and verify the selected ContactAllocation throughput evidence
+extraction.
 
 Blocked:
 No.
