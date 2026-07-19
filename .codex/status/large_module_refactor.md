@@ -9,7 +9,7 @@ Current slice:
 TimelineFeedback reconciliation-identity extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `eebe8828`.
 
 Selected boundary:
 Extract planned/realized identity selection and comparison for direction,
@@ -32,20 +32,32 @@ Selection evidence:
 - Existing public report APIs and artifact row shapes remain unchanged.
 
 Verification:
-Pending.
+- Strict warnings-as-errors compile passed across 3,891 files.
+- Focused `timeline_feedback_test.exs` passed under warnings-as-errors: 73
+  tests.
+- Adjacent operator-review timeline-feedback, Cadence import, and contact-
+  feedback schema coverage passed under warnings-as-errors: 79 tests.
+- Exact public old/new comparison against `cf67ec01` passed 5 reconciliation
+  reports covering matched, mismatched, planned-only, realized-only, and mixed
+  identity rows.
+- `mix xref callers
+  OrbitalDynamics.TimelineFeedback.ReconciliationIdentity` reports only the
+  TimelineFeedback facade as a runtime caller.
+- Static ownership review confirms identity selection, comparison, match
+  status, and mismatch-summary annotation live in the new owner.
+- `git diff --check` passed.
 
 Behavior/schema changes:
 None. This is a facade-preserving production ownership extraction.
 
 Last completed slice:
-RecommendationRiskContext operational-feedback extraction, selected in
-`dc4a34a0` and implemented in `8ee8763d`.
-`recommendation_risk_context.ex` moved from 4,033 to 3,754 lines; the dedicated
-owner is 158 lines.
+TimelineFeedback reconciliation-identity extraction, selected in `cf67ec01`
+and implemented in `eebe8828`. `timeline_feedback.ex` moved from 4,508 to
+4,376 lines; the dedicated owner is 92 lines.
 
 Next candidate:
-Implement and verify the selected TimelineFeedback reconciliation-identity
-extraction.
+Re-rank the remaining large modules and select the next cohesive,
+facade-preserving responsibility boundary.
 
 Blocked:
 No.
