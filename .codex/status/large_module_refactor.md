@@ -6,43 +6,32 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Source-evidence schema-provider extraction.
+Policy schema-provider extraction.
 
 Status:
-Completed and verified.
+Selected; implementation pending.
 
 Selected boundary:
-Move the source-evidence, readiness/quality source-report, freshness,
-schema-validation, and execution-report evidence builders plus their dependency
-assemblers from the public `Schema` facade into a new
-`SourceEvidenceSchemaProviders` owner. Build one lazy evidence context and pass
-its closures to the operator/cadence owners.
+Move policy action-rule, decision, decision-evidence, rule-match, escalation,
+and scoped-downlink schema builders from the public `Schema` facade into a new
+`PolicySchemaProviders` owner. Build one lazy policy context, merge its registry
+providers, and pass shared closures to downstream owners while retaining
+recursive top-level policy-document construction as one facade callback.
 
 Selection evidence:
-- The public `Schema` facade remains 1,216 lines.
-- All six evidence builders are consumed only as callbacks by the extracted
-  operator/cadence schema-provider owners.
-- The builders share one stable-ID/battery-handoff dependency context, with
-  quality-gate evidence adding only common count-map fragments.
-- Status enums and evidence shape construction already have focused direct
-  owners.
+- The public `Schema` facade remains 1,176 lines.
+- Five policy/scoped builders are registry providers and the decision-evidence
+  builder is consumed only by extracted row-provider owners.
+- Rule-match, escalation, action-rule, evidence, and scoped shapes already have
+  focused direct owners and share the stable-ID pattern.
+- Recursive policy-decision document construction can remain facade-owned and
+  lazy through one explicit callback.
 
 Implementation:
-Selected in `b9b5302f` and implemented in `30b37935`. Added the 61-line
-`SourceEvidenceSchemaProviders` owner with six lazy evidence closures and one
-shared stable-ID/battery dependency context, then passed those closures to the
-operator/cadence owners. The public `Schema` facade moved from 1,216 to 1,176
-lines.
+Pending.
 
 Verification:
-- Exact comparison passed for all six evidence-provider keys and outputs using
-  sentinel battery-handoff properties.
-- Focused schema/validation suite passed: 359 tests.
-- Full checked-in schema export regenerated with no diff.
-- Runtime xref shows one direct `Schema` -> `SourceEvidenceSchemaProviders`
-  edge.
-- Strict forced compile passed with warnings as errors: 4,122 files.
-- `JsonSchemaPropertyRouter` remains an ordered 76-head facade.
+Pending.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -55,8 +44,8 @@ implemented in `30b37935`. The public `Schema` facade moved from 1,216 to 1,176
 lines.
 
 Next candidate:
-Re-rank the remaining public-facade provider clusters and select the next
-bounded extraction.
+Implement and verify the selected policy provider extraction, then re-rank the
+remaining public-facade clusters.
 
 Blocked:
 No.
