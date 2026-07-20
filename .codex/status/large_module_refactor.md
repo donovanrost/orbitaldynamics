@@ -6,39 +6,31 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Validation batch schema-provider expansion.
+Ground-network row schema-provider expansion.
 
 Status:
-Completed and verified.
+Selected; implementation pending.
 
 Selected boundary:
-Move the schema-validation batch-entry builder from the public `Schema` facade
-into the existing `ValidationSchemaProviders` owner. Expand its lazy provider
-map and pass the recursively constructed validation-report document as one
-explicit callback.
+Move the relay-data-path and provider-counteroffer row builders from the public
+`Schema` facade into the existing `GroundNetworkSchemaProviders` owner. Expand
+its lazy provider map while reusing the existing stable-ID and station-calendar
+dependencies.
 
 Selection evidence:
-- The public `Schema` facade remains 1,513 lines.
-- The batch-entry builder is referenced only by the property provider registry
-  and belongs with the four validation providers already extracted.
-- `SchemaValidationReportJsonSchema` already owns the batch-entry shape.
-- Recursive top-level document construction can remain facade-owned and lazy
-  through one explicit callback.
+- The public `Schema` facade remains 1,511 lines.
+- Both row builders are referenced only by the property provider registry and
+  belong with the six ground-network providers already extracted.
+- Relay-data-path fragments already have focused schema owners and need only
+  the stable-ID pattern.
+- Provider-counteroffer construction can reuse the existing lazy
+  station-calendar capability callback.
 
 Implementation:
-Selected in `f595c7b7` and implemented in `08b4a9b0`. Expanded the existing
-`ValidationSchemaProviders` owner from four to five lazy providers and retained
-recursive validation-report document construction behind one explicit
-callback. The public `Schema` facade moved from 1,513 to 1,511 lines.
+Pending.
 
 Verification:
-- Exact comparison passed for all five validation provider keys and outputs,
-  including the callback-built batch entry.
-- Focused schema/validation suite passed: 359 tests.
-- Full checked-in schema export regenerated with no diff.
-- Runtime xref retains one direct `Schema` -> `ValidationSchemaProviders` edge.
-- Strict forced compile passed with warnings as errors: 4,118 files.
-- `JsonSchemaPropertyRouter` remains an ordered 76-head facade.
+Pending.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -51,8 +43,8 @@ implemented in `08b4a9b0`. The public `Schema` facade moved from 1,513 to 1,511
 lines.
 
 Next candidate:
-Re-rank the remaining public-facade provider clusters and select the next
-bounded extraction.
+Implement and verify the selected ground-network provider expansion, then
+re-rank the remaining public-facade provider clusters.
 
 Blocked:
 No.
