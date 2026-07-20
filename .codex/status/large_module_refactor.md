@@ -9,7 +9,7 @@ Current slice:
 Campaign-planner station-pressure fixture extraction.
 
 Status:
-Selected; implementation pending.
+Completed and verified.
 
 Selected boundary:
 Move the station-pressure summary fixture out of the oversized
@@ -25,22 +25,30 @@ Selection evidence:
   while the consuming test should retain the pressure-routing assertions.
 
 Implementation:
-Pending.
+Selected in `f5f381e1` and implemented in `d7c16f5c`. Expanded
+`ContactAllocationPressureFixtures` with the station-pressure summary builder
+and shared pressure-ID helpers. The assertion module moved from 1,803 to 1,743
+lines.
 
 Verification:
-Pending.
+- The focused strategy contact-allocation pressure suite passed with warnings as
+  errors: 7 tests.
+- Strict forced compile passed with warnings as errors: 4,129 files.
+- `git diff --check` passed.
+- No production or checked-in schema-export files changed.
 
 Behavior/schema changes:
 None intended. The same deterministic fixtures, production calls, assertions,
 artifact validation, and async test behavior must remain unchanged.
 
 Last completed slice:
-Campaign-planner reservation-conflict pressure fixture extraction, selected in
-`d3db2b3a` and implemented in `658600c9`. The assertion module moved from 1,902
-to 1,803 lines.
+Campaign-planner station-pressure fixture extraction, selected in `f5f381e1`
+and implemented in `d7c16f5c`. The assertion module moved from 1,803 to 1,743
+lines.
 
 Next candidate:
-Implement and verify the selected station-pressure fixture extraction.
+Move the remaining capacity-pack fixture family into the established
+test-support owner, then reassess the assertion module boundary.
 
 Blocked:
 No.
