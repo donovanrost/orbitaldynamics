@@ -9,7 +9,7 @@ Current slice:
 Schema maneuver decision-support owner routing extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Add registry-backed artifact entry points to `DecisionSupportValidation` for
@@ -29,24 +29,38 @@ Selection evidence:
 - No route needs recursive `Schema` lookup.
 
 Implementation:
-Pending.
+Added registry-backed maneuver recommendation and review artifact entry points
+to `DecisionSupportValidation` and routed both direct `Schema` clauses through
+the existing owner. `schema.ex` moved from 4,745 to 4,741 lines.
 
 Verification:
-Pending.
+- Strict focused baseline: 21 tests passed.
+- Focused plus adjacent maneuver, validation, operator-review, result-artifact,
+  campaign-planner decision-support, contract, and export coverage after
+  extraction: 41 tests passed.
+- Full schema export completed with no checked-in artifact changes.
+- Static routing review found exactly the two intended direct facade routes.
+- `mix xref trace` confirmed both runtime calls originate in `schema.ex`.
+- Formatting and `git diff --check` passed.
+- Strict forced compile passed across 4,086 files with warnings as errors.
+- Bounded diff review confirmed registry-owned requirements, owner-default
+  model limits, maneuver recommendation/review contract routing, validation
+  ordering, and paths remain unchanged.
+- Implementation committed and pushed as `89ccd78e`.
 
 Behavior/schema changes:
-None intended. Required fields, validation ordering and paths, public `Schema`
-and existing `DecisionSupportValidation` APIs, validation results, and
-checked-in exports must remain unchanged.
+None. Required fields, validation ordering and paths, public `Schema` and
+existing `DecisionSupportValidation` APIs, validation results, and checked-in
+exports remain unchanged.
 
 Last completed slice:
-Schema campaign branch/recommendation owner routing extraction, selected in
-`215d1587` and implemented in `b2dfd904`.
-`schema.ex` moved from 4,751 to 4,745 lines.
+Schema maneuver decision-support owner routing extraction, selected in
+`fa4dad79` and implemented in `89ccd78e`.
+`schema.ex` moved from 4,745 to 4,741 lines.
 
 Next candidate:
-Implement and verify the selected maneuver decision-support owner routing, then
-re-rank the remaining Schema responsibility clusters.
+Re-rank the remaining Schema responsibility clusters and select the next
+facade-preserving extraction.
 
 Blocked:
 No.
