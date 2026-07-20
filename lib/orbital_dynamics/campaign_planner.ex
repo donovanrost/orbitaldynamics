@@ -678,14 +678,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp objective_required_downlink_mb(_objective), do: nil
 
-  defp downlink_completion_objectives(mission_state) do
-    DownlinkObjectiveRequirements.objectives(mission_state)
-  end
-
-  defp contact_contention_resolution_policy(campaign) do
-    ContactContentionResolutionPolicy.build(campaign)
-  end
-
   defp link_capacity_report(
          candidates,
          selected_activities,
@@ -713,7 +705,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp mission_required_downlink_mb(mission_state) do
     mission_state
-    |> downlink_completion_objectives()
+    |> DownlinkObjectiveRequirements.objectives()
     |> Enum.map(&objective_required_downlink_mb/1)
     |> Enum.filter(&is_number/1)
     |> case do
@@ -965,7 +957,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
   defp repair_contact_allocation_report(activities, request) do
     ContactAllocation.report(activities, request.ground_network,
       source: "campaign_repair.activities",
-      policy: contact_contention_resolution_policy(request.scoring_policy),
+      policy: ContactContentionResolutionPolicy.build(request.scoring_policy),
       approval_policy: request.approval_policy
     )
   end
