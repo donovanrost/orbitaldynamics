@@ -9,7 +9,7 @@ Current slice:
 Contact-planning schema-provider extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Move the contact-intent-row and proposed-contact-row builders from the public
@@ -27,10 +27,25 @@ Selection evidence:
   entries and implementation details from the public facade.
 
 Implementation:
-Pending.
+Selected in `a016943e` and implemented in `2616d693`.
+The new `ContactPlanningSchemaProviders.build/2` returns two lazy provider
+closures for contact-intent and proposed-contact rows. `Schema` removes the two
+registry-local captures and private builders, then passes timeline, policy,
+source-window, model-limit, and cadence-import dependencies as callbacks when
+merging the focused provider map.
 
 Verification:
-Pending.
+- Strict focused schema/validation baseline and post-change suites both passed:
+  359 tests, 0 failures.
+- Direct comparison confirmed the extracted provider map has the exact two
+  keys and produces outputs exactly equal to the original builders.
+- Xref reports one runtime edge from `Schema` to the new provider owner.
+- Schema export regenerated 121 schemas plus the bundle with no checked-in
+  artifact diff.
+- Strict full compile passed for 4,115 files with warnings as errors.
+- Formatting, diff checks, and bounded two-file review passed.
+- The public `Schema` facade shrank from 1,629 to 1,619 lines; the new focused
+  owner is 41 lines.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -38,13 +53,12 @@ laziness, field-hint fallback, stable-ID decoration, public `Schema`, and
 checked-in exports must remain unchanged.
 
 Last completed slice:
-Candidate-diff schema-provider extraction, selected in `5fe7d9ee` and
-implemented in `36b93af7`. The public `Schema` facade moved from 1,648 to 1,629
+Contact-planning schema-provider extraction, selected in `a016943e` and
+implemented in `2616d693`. The public `Schema` facade moved from 1,629 to 1,619
 lines.
 
 Next candidate:
-Implement and verify the selected contact-planning provider extraction, then
-re-rank the remaining public-facade provider clusters.
+Re-rank the remaining public-facade provider clusters.
 
 Blocked:
 No.
