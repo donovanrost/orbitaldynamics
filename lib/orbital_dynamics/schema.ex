@@ -92,6 +92,12 @@ defmodule OrbitalDynamics.Schema do
   import OrbitalDynamics.Schema.LinkCapacityCapabilityContext,
     only: [link_capacity_assumptions_json_schema: 1]
 
+  import OrbitalDynamics.Schema.ManeuverReviewCapabilityContext,
+    only: [
+      maneuver_recommendation_model_limits: 0,
+      maneuver_review_report_model_limits: 0
+    ]
+
   import OrbitalDynamics.Schema.OperatorReviewCapabilityContext,
     only: [
       operator_review_capabilities: 0,
@@ -3163,16 +3169,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp command_window_report_model_limits do
     OrbitalDynamics.Communications.CommandWindow.capabilities()
-    |> Map.fetch!(:known_limits)
-    |> Enum.map(&Atom.to_string/1)
-  end
-
-  defp maneuver_recommendation_model_limits do
-    OrbitalDynamics.ManeuverReview.recommendation_model_limits()
-  end
-
-  defp maneuver_review_report_model_limits do
-    OrbitalDynamics.ManeuverReview.capabilities()
     |> Map.fetch!(:known_limits)
     |> Enum.map(&Atom.to_string/1)
   end
