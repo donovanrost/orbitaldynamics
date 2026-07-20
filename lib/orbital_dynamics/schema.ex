@@ -392,7 +392,6 @@ defmodule OrbitalDynamics.Schema do
           &contact_filter_report_assumptions_json_schema/0,
         {:contact_filter_report_model_limits, 0} => &contact_filter_report_model_limits/0,
         {:contact_intent_model_limits, 0} => &contact_intent_model_limits/0,
-        {:contact_intent_row_json_schema, 0} => &contact_intent_row_json_schema/0,
         {:contact_intent_summary_assumptions_json_schema, 0} =>
           &contact_intent_summary_assumptions_json_schema/0,
         {:execution_uncertainty_json_schema, 0} => &execution_uncertainty_json_schema/0,
@@ -419,7 +418,6 @@ defmodule OrbitalDynamics.Schema do
         {:policy_decision_rule_match_json_schema, 0} => &policy_decision_rule_match_json_schema/0,
         {:policy_escalation_json_schema, 0} => &policy_escalation_json_schema/0,
         {:policy_model_limits, 0} => &policy_model_limits/0,
-        {:proposed_contact_row_json_schema, 0} => &proposed_contact_row_json_schema/0,
         {:protection_decision_json_schema, 0} => &protection_decision_json_schema/0,
         {:provider_counteroffer_row_json_schema, 0} => &provider_counteroffer_row_json_schema/0,
         {:quality_gate_report_row_json_schema, 0} => &quality_gate_report_row_json_schema/0,
@@ -523,6 +521,18 @@ defmodule OrbitalDynamics.Schema do
         )
       )
       |> Map.merge(OrbitalDynamics.Schema.CandidateDiffSchemaProviders.build(@stable_id_pattern))
+      |> Map.merge(
+        OrbitalDynamics.Schema.ContactPlanningSchemaProviders.build(
+          @stable_id_pattern,
+          timeline_identity_schema: &timeline_identity_json_schema/0,
+          approval_requirement_schema: &approval_requirement_json_schema/0,
+          policy_decision_rule_match_schema: &policy_decision_rule_match_json_schema/0,
+          contact_intent_model_limits: &contact_intent_model_limits/0,
+          policy_decision_schema: &policy_decision_json_schema/0,
+          source_window_schema: &candidate_activity_source_window_json_schema/0,
+          cadence_import_schema: &cadence_import_json_schema/1
+        )
+      )
     end)
   end
 
@@ -928,26 +938,6 @@ defmodule OrbitalDynamics.Schema do
   defp candidate_activity_source_window_json_schema do
     OrbitalDynamics.Schema.CandidateActivityJsonSchema.source_window_from_context(
       stable_id_pattern: @stable_id_pattern
-    )
-  end
-
-  defp contact_intent_row_json_schema do
-    OrbitalDynamics.Schema.ContactIntentJsonSchema.row_from_context(
-      stable_id_pattern: @stable_id_pattern,
-      timeline_identity_schema: &timeline_identity_json_schema/0,
-      approval_requirement_schema: &approval_requirement_json_schema/0,
-      policy_decision_rule_match_schema: &policy_decision_rule_match_json_schema/0,
-      model_limits: &contact_intent_model_limits/0,
-      policy_decision_schema: &policy_decision_json_schema/0
-    )
-  end
-
-  defp proposed_contact_row_json_schema do
-    OrbitalDynamics.Schema.ProposedContactJsonSchema.row_from_context(
-      stable_id_pattern: @stable_id_pattern,
-      string_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.string_array/0,
-      source_window_schema: &candidate_activity_source_window_json_schema/0,
-      cadence_import_schema: fn -> cadence_import_json_schema("proposed_contact.v1") end
     )
   end
 
