@@ -9,7 +9,7 @@ Current slice:
 ContactContention resolution-summary projection extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `104b9d4b`.
 
 Selected boundary:
 Extract the compact resolution-summary artifact projection into
@@ -33,23 +33,44 @@ Selection evidence:
   output, and error behavior must remain unchanged.
 
 Implementation:
-Pending.
+- Added `OrbitalDynamics.Communications.ContactContention.ResolutionSummary` as
+  the owner of compact resolution routing counts, identity sets, grouped
+  identities, capacity-pack demand fields, and summary assumptions.
+- Wired the existing resolution-summary facade directly to the owner while
+  preserving validation, idempotent summary inputs, atom-key normalization,
+  overloads, and root APIs.
+- Kept contention detection, annotation, recommendation policy, approval
+  requirements, and capabilities outside the boundary.
+- `contact_contention.ex` moved from 1,665 to 1,546 lines; the new owner is 126
+  lines.
 
 Verification:
-Pending.
+- Strict focused baseline passed all 40 ContactContention tests.
+- Exact old/new public parity passed for four deterministic summary results:
+  rich grouped routing and capacity demand, atom-keyed resolution input,
+  idempotent summary input, and an empty resolution report.
+- Post-extraction focused and adjacent ContactContention, campaign-planner,
+  candidate-refresh replay/capability, operator-review, schema/export, and
+  validation verification passed all 72 tests.
+- Static checks confirm the summary projection and its facade-private
+  aggregation wrappers left the facade; xref reports only ContactContention as
+  a runtime caller.
+- Strict warning-clean forced compile passed for 4,016 files.
+- Formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-StationCalendar affected-contact projection extraction, selected in `a006e1c8`
-and implemented in `42b4bc3f`.
-`communications/station_calendar.ex` moved from 1,670 to 1,391 lines; the
-dedicated AffectedContact owner is 302 lines.
+ContactContention resolution-summary projection extraction, selected in
+`d750f18e` and implemented in `104b9d4b`.
+`communications/contact_contention.ex` moved from 1,665 to 1,546 lines; the
+dedicated ResolutionSummary owner is 126 lines.
 
 Next candidate:
-After this slice, re-rank the live checkout. RecommendationRiskContext and
-OperationalReadiness are the next largest ordinary eligible facades.
+Re-rank the live checkout and select the next bounded facade-preserving
+extraction. RecommendationRiskContext is now the largest ordinary eligible
+facade at 1,650 lines, followed by OperationalReadiness at 1,635 lines.
 
 Blocked:
 No.
