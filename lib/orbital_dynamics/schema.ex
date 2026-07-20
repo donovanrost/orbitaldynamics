@@ -105,9 +105,7 @@ defmodule OrbitalDynamics.Schema do
   import OrbitalDynamics.Schema.OperatorReviewCapabilityContext,
     only: [
       operator_review_capabilities: 0,
-      operator_review_package_model_limits: 0,
-      operator_review_source_artifact_types: 0,
-      operator_review_types: 0
+      operator_review_package_model_limits: 0
     ]
 
   import OrbitalDynamics.Schema.OperationalReadinessCapabilityContext,
@@ -4386,7 +4384,7 @@ defmodule OrbitalDynamics.Schema do
       "$",
       artifact,
       timeline_feedback_report_model_limits(),
-      &validate_optional_operator_review_package/2
+      &OperatorReviewValidation.validate_optional_package/2
     )
   end
 
@@ -4420,10 +4418,9 @@ defmodule OrbitalDynamics.Schema do
     |> PolicyValidation.validate_bundle("$", artifact)
   end
 
-  defp validate_contract(@operator_review_package, contract, artifact) do
+  defp validate_contract(@operator_review_package, _contract, artifact) do
     []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_operator_review_package("$", artifact)
+    |> OperatorReviewValidation.validate_package("$", artifact)
   end
 
   defp validate_contract(@cadence_import_manifest, contract, artifact) do
@@ -5097,7 +5094,7 @@ defmodule OrbitalDynamics.Schema do
       &validate_recommendation/3,
       &validate_optional_branch_comparison_report/2,
       &validate_optional_ranking_comparison_report/2,
-      &validate_optional_operator_review_package/2
+      &OperatorReviewValidation.validate_optional_package/2
     )
   end
 
@@ -5134,7 +5131,8 @@ defmodule OrbitalDynamics.Schema do
         &OperationalTimelineValidation.validate_optional_report/2,
       validate_optional_timeline_transition_application_report:
         &TimelineTransitionValidation.validate_optional_timeline_transition_application_report/3,
-      validate_optional_operator_review_package: &validate_optional_operator_review_package/2,
+      validate_optional_operator_review_package:
+        &OperatorReviewValidation.validate_optional_package/2,
       validate_optional_operational_readiness_report:
         &OperationalReadinessValidation.validate_optional_operational_readiness_report/3,
       validate_optional_quality_gate_report:
@@ -5183,7 +5181,8 @@ defmodule OrbitalDynamics.Schema do
         &ResourceValidation.validate_optional_resource_projection_report/3,
       validate_optional_operational_timeline_report:
         &OperationalTimelineValidation.validate_optional_report/2,
-      validate_optional_operator_review_package: &validate_optional_operator_review_package/2,
+      validate_optional_operator_review_package:
+        &OperatorReviewValidation.validate_optional_package/2,
       validate_optional_objective_tradeoff_report: &validate_optional_objective_tradeoff_report/2,
       validate_optional_score_term_report: &validate_optional_score_term_report/2,
       validate_optional_link_capacity_report: &validate_optional_link_capacity_report/2,
@@ -5233,14 +5232,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp validate_registered_contract(name, artifact),
     do: validate_contract(name, registry_contract!(name), artifact)
-
-  defp validate_optional_operator_review_package(issues, package),
-    do:
-      OperatorReviewValidation.validate_optional_package(
-        issues,
-        package,
-        &validate_registered_contract(@operator_review_package, &1)
-      )
 
   defp validate_optional_branch_comparison_report(issues, value) do
     DecisionSupportValidation.validate_optional_branch_comparison_report(
@@ -5479,98 +5470,6 @@ defmodule OrbitalDynamics.Schema do
       recommendation,
       &OrbitalDynamics.Schema.BranchEventContracts.validate_summary_fields/3,
       &OrbitalDynamics.Schema.ScopedDownlinkContextContracts.validate/3
-    )
-  end
-
-  defp validate_operator_review_package(issues, path, package),
-    do:
-      OperatorReviewValidation.validate_package(
-        issues,
-        path,
-        package,
-        operator_review_source_artifact_types(),
-        operator_review_package_model_limits(),
-        operator_review_package_contract_callbacks()
-      )
-
-  defp operator_review_package_contract_callbacks do
-    [
-      validate_contact_allocation_expiration_handoff_summary:
-        &OrbitalDynamics.Schema.ContactAllocationHandoffContracts.validate_expiration_summary/3,
-      validate_quality_gate_handoff_summary:
-        &OrbitalDynamics.Schema.QualityGateHandoffContracts.validate_summary/3,
-      validate_operator_review_row: &validate_operator_review_row/3,
-      validate_suppression_duplicate_handoff_groups:
-        &OrbitalDynamics.Schema.SuppressionHandoffContracts.validate_duplicate_groups/3
-    ]
-  end
-
-  defp validate_operator_review_row(issues, path, row),
-    do:
-      OperatorReviewValidation.validate_row(
-        issues,
-        path,
-        row,
-        operator_review_types(),
-        station_calendar_provider_counteroffer_negotiation_states(),
-        operator_review_row_domain_callbacks()
-      )
-
-  defp operator_review_row_domain_callbacks do
-    OrbitalDynamics.Schema.OperatorReviewRowCallbacks.build(
-      validate_optional_activity_context:
-        &TimelineContextValidation.validate_optional_activity_context/4,
-      validate_optional_protection_decision:
-        &TimelineContextValidation.validate_optional_protection_decision/4,
-      validate_contact_allocation_capacity_pack_group:
-        &ContactAllocationValidation.validate_capacity_pack_group/3,
-      validate_optional_actual_data_rate_throughput_derivation:
-        &OrbitalDynamics.Schema.ExecutionMetricContracts.validate_optional_actual_data_rate_throughput_derivation/4,
-      validate_optional_lifecycle_transition:
-        &TimelineContextValidation.validate_optional_lifecycle_transition/4,
-      validate_optional_branch_comparison_source_row:
-        &DecisionSupportValidation.validate_optional_branch_comparison_source_row/3,
-      validate_optional_policy_decision_evidence:
-        &PolicyValidation.validate_optional_decision_evidence/3,
-      validate_optional_policy_escalation: &PolicyValidation.validate_optional_escalation/4,
-      validate_optional_timeline_dependency_impact_source_row:
-        &TimelineSourceValidation.validate_optional_timeline_dependency_impact_source_row/3,
-      validate_source_evidence_fields: &SourceEvidenceValidation.validate_fields/3,
-      validate_freshness_source_status_matches:
-        &SourceEvidenceValidation.validate_freshness_status_matches/3,
-      validate_schema_validation_source_status_matches:
-        &SourceEvidenceValidation.validate_schema_validation_status_matches/3,
-      validate_execution_source_status_matches:
-        &SourceEvidenceValidation.validate_execution_status_matches/3,
-      validate_selected_timeline_integrity_fields:
-        &TimelineTransitionValidation.validate_selected_timeline_integrity_fields/3,
-      validate_optional_timeline_diff_summary_source:
-        &TimelineSourceValidation.validate_optional_timeline_diff_summary_source/3,
-      validate_optional_timeline_transition_application_summary_source:
-        &TimelineTransitionValidation.validate_optional_timeline_transition_application_summary_source/3,
-      validate_optional_timeline_transition_application_row:
-        &TimelineTransitionValidation.validate_optional_timeline_transition_application_row/3,
-      validate_optional_timeline_integrity_source_row:
-        &TimelineTransitionValidation.validate_optional_timeline_integrity_source_row/3,
-      validate_optional_timeline_activity_state_source:
-        &TimelineSourceValidation.validate_optional_timeline_activity_state_source/3,
-      validate_optional_timeline_lifecycle_state_source_row:
-        &TimelineSourceValidation.validate_optional_timeline_lifecycle_state_source_row/3,
-      validate_optional_timeline_activity_precondition_summary_source:
-        &TimelineSourceValidation.validate_optional_timeline_activity_precondition_summary_source/3,
-      validate_optional_timeline_preservation_source_row:
-        &TimelineSourceValidation.validate_optional_timeline_preservation_source_row/3,
-      validate_optional_timeline_identity:
-        &TimelineContextValidation.validate_optional_timeline_identity/4,
-      validate_optional_timeline_link:
-        &TimelineContextValidation.validate_optional_timeline_link/4,
-      validate_optional_timeline_protection_summary:
-        &TimelineContextValidation.validate_optional_timeline_protection_summary/4,
-      validate_operational_readiness_resource_context:
-        &OperationalReadinessValidation.validate_operational_readiness_resource_context/3,
-      validate_contact_allocation_handoff_fields:
-        &OrbitalDynamics.Schema.ContactAllocationHandoffContracts.validate_allocation_fields/3,
-      validate_operator_review_row_links: &OperatorReviewValidation.validate_row_links/3
     )
   end
 end
