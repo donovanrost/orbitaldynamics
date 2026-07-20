@@ -9,7 +9,7 @@ Current slice:
 Schema common numeric-map primitive direct routing.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Remove the two zero-context, one-hop CommonJsonSchema helpers for unconstrained
@@ -28,18 +28,34 @@ Selection evidence:
   results, and checked-in exports must remain unchanged.
 
 Implementation:
-Pending.
+Removed the two CommonJsonSchema numeric-map helpers and routed all twelve
+consumers directly to the owner module. `schema.ex` moved from 6,006 to 6,001
+lines after direct captures were formatted.
 
 Verification:
-Pending.
+- Strict focused policy/resource/strategy/Cadence/review baseline before
+  routing: 15 passed.
+- The same strict focused suite after routing: 15 passed.
+- Strict full JSON Schema export-contract, contact-feedback, handoff, and
+  checked-in export coverage: 27 passed.
+- The full schema-export task completed and produced no checked-in changes.
+- `mix xref callers OrbitalDynamics.Schema.CommonJsonSchema` reports the
+  expected facade and internal schema-owner consumers.
+- Definition/reference-specific static search confirms both helpers and all
+  indirect references are gone.
+- `git diff --check` passed.
+- Strict forced compile passed across 4,065 files.
+- Implementation commit `6fa1f6a9` pushed to `main`.
 
 Behavior/schema changes:
-None intended.
+None. Public facades, numeric-map schemas, eager and lazy evaluation behavior,
+composed schemas, executable validation, and checked-in exports remain
+unchanged.
 
 Last completed slice:
-Schema low-fanout common primitive direct routing, selected in `a00982aa` and
-implemented in `68269a68`.
-`schema.ex` moved from 6,024 to 6,006 lines.
+Schema common numeric-map primitive direct routing, selected in `32ff8955` and
+implemented in `6fa1f6a9`.
+`schema.ex` moved from 6,006 to 6,001 lines.
 
 Next candidate:
 Re-rank the remaining non-capability Schema responsibility clusters now that
