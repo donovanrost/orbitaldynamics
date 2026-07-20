@@ -9,7 +9,7 @@ Current slice:
 Handoff property schema-provider extraction.
 
 Status:
-Selected; implementation pending.
+Completed and verified.
 
 Selected boundary:
 Move link, feedback-maneuver, and thermal handoff property builders from the
@@ -25,10 +25,18 @@ Selection evidence:
 - The owner needs only the stable-ID pattern and common probability fragment.
 
 Implementation:
-Pending.
+Selected in `70b42ade` and implemented in `bbab975b`. Added the 24-line
+`HandoffSchemaProviders` owner with three lazy link/feedback/thermal property
+closures and passed them to the extracted operator/cadence review owners. The
+public `Schema` facade moved from 934 to 925 lines.
 
 Verification:
-Pending.
+- Exact comparison passed for all three handoff-provider keys and outputs.
+- Focused schema/validation suite passed: 359 tests.
+- Full checked-in schema export regenerated with no diff.
+- Runtime xref shows one direct `Schema` -> `HandoffSchemaProviders` edge.
+- Strict forced compile passed with warnings as errors: 4,129 files.
+- `JsonSchemaPropertyRouter` remains an ordered 76-head facade.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -36,13 +44,13 @@ laziness, field-hint fallback, stable-ID decoration, public `Schema`, and
 checked-in exports must remain unchanged.
 
 Last completed slice:
-Common fragment schema-provider extraction, selected in `45170a81` and
-implemented in `8121e5bf`. The public `Schema` facade moved from 947 to 934
+Handoff property schema-provider extraction, selected in `70b42ade` and
+implemented in `bbab975b`. The public `Schema` facade moved from 934 to 925
 lines.
 
 Next candidate:
-Implement and verify the selected handoff-property extraction, then audit the
-remaining public facade responsibilities.
+Audit the remaining public facade responsibilities and select the next bounded
+extraction only where ownership remains misplaced.
 
 Blocked:
 No.
