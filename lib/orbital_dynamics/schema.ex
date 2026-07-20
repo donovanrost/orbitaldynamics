@@ -14,6 +14,7 @@ defmodule OrbitalDynamics.Schema do
     ContactAllocationValidation,
     ContactReportValidation,
     DecisionSupportValidation,
+    ExecutionReproducibilityValidation,
     LinkCapacityValidation,
     ModelCapabilityValidation,
     OperationalReadinessValidation,
@@ -4615,21 +4616,16 @@ defmodule OrbitalDynamics.Schema do
     |> DecisionSupportValidation.validate_maneuver_review_report("$", artifact)
   end
 
-  defp validate_contract(@execution_report, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.ExecutionReportContracts.validate(
-      "$",
-      artifact
-    )
+  defp validate_contract(@execution_report, _contract, artifact) do
+    ExecutionReproducibilityValidation.validate([], "$", artifact, @execution_report)
   end
 
-  defp validate_contract(@monte_carlo_reproducibility_report, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.MonteCarloReproducibilityContracts.validate(
+  defp validate_contract(@monte_carlo_reproducibility_report, _contract, artifact) do
+    ExecutionReproducibilityValidation.validate(
+      [],
       "$",
-      artifact
+      artifact,
+      @monte_carlo_reproducibility_report
     )
   end
 
