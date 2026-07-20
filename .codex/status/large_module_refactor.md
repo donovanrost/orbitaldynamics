@@ -6,49 +6,38 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-No slice selected.
+Schema timeline capability-context extraction.
 
 Status:
-Slice complete and pushed.
+Selected; implementation not started.
 
 Selected boundary:
-Completed direct routing to
-`OrbitalDynamics.Schema.OperationalReadinessValidation` by replacing the two
-remaining optional report callback wrappers.
-Preserved all `OrbitalDynamics.Schema` public facades and validation behavior.
+Extract schema-facing timeline capability/model-limit access into
+`OrbitalDynamics.Schema.TimelineCapabilityContext` and import its focused
+internal APIs into the Schema facade.
+Preserve all `OrbitalDynamics.Schema` public facades, JSON Schema output, and
+validation behavior.
 
 Selection evidence:
-- `schema.ex` remains the dominant hotspot at 6,535 lines.
-- All readiness validation/model-limit routing now points directly to the
-  focused owner except optional readiness-report and quality-gate-report
-  callbacks in the campaign-plan table.
-- The selected code has one responsibility: validate optional embedded
-  readiness and quality-gate reports.
-- Callback-table composition, other
+- `schema.ex` remains the dominant hotspot at 6,525 lines.
+- Nine private helpers repeatedly normalize Timeline/TimelineFeedback
+  capabilities into model limits, rejection reasons/actions, transition
+  decisions, integrity issue types, precondition statuses, and required
+  operator actions.
+- The selected code has one responsibility: expose schema-facing timeline
+  capability context with stable string/atom/list ordering.
+- Importing those internal APIs preserves the existing unqualified call sites
+  and evaluation order. Property-dispatch composition, other
   artifact-family validation, JSON Schema generation, and all public routing
   remain outside the boundary.
-- Exact issue ordering, paths, messages, malformed-input behavior, callback
-  wiring, and public validation results must remain unchanged.
+- Exact model-limit conversion, capability values and ordering, validation
+  results, generated JSON Schema, and checked-in exports must remain unchanged.
 
 Implementation:
-- Routed campaign-plan optional readiness-report and quality-gate-report
-  callbacks directly to `OperationalReadinessValidation`.
-- Removed the last two one-hop readiness validation wrappers from the Schema
-  facade.
-- `schema.ex` moved from 6,535 to 6,525 lines.
+Pending.
 
 Verification:
-- Pre-change strict focused baseline: 13 campaign/readiness contract tests
-  passed.
-- Post-change strict focused and adjacent verification: 19
-  campaign/readiness contract and fixture tests passed.
-- Static checks found no optional readiness/quality-gate wrappers or local
-  callback captures remaining; xref reports `schema.ex` as the runtime caller
-  of `OperationalReadinessValidation`.
-- No checked-in schema export changed.
-- Forced warnings-as-errors compile passed across 4,050 files.
-- Formatting and `git diff --check` passed; the worktree was clean after the
-  implementation commit.
+Pending.
 
 Behavior/schema changes:
 None intended.
@@ -60,8 +49,8 @@ and implemented in `37099809`.
 pass-through wrappers.
 
 Next candidate:
-Re-rank the larger timeline capability/context boundary for a dedicated
-extraction.
+After this slice, re-rank the remaining schema capability/model-limit
+responsibility clusters.
 
 Blocked:
 No.
