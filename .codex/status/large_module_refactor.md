@@ -9,7 +9,7 @@ Current slice:
 Schema common count-map primitive direct routing.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Remove the zero-context, one-hop CommonJsonSchema non-negative integer
@@ -29,18 +29,34 @@ Selection evidence:
   validation results, and checked-in exports must remain unchanged.
 
 Implementation:
-Pending.
+Removed the CommonJsonSchema non-negative integer count-map helper and routed
+all eleven consumers directly to the owner module. `schema.ex` moved from
+5,989 to 5,986 lines after direct calls and captures were formatted.
 
 Verification:
-Pending.
+- Strict focused timeline/communications/feedback/strategy/operational
+  baseline before routing: 40 passed.
+- The same strict focused suite after routing: 40 passed.
+- Strict full JSON Schema export-contract, communications fixtures,
+  candidate-refresh schema, and checked-in export coverage: 32 passed.
+- The full schema-export task completed and produced no checked-in changes.
+- `mix xref callers OrbitalDynamics.Schema.CommonJsonSchema` reports the
+  expected facade and internal schema-owner consumers.
+- Definition/reference-specific static search confirms the helper and all
+  indirect references are gone.
+- `git diff --check` passed.
+- Strict forced compile passed across 4,065 files.
+- Implementation commit `132941cb` pushed to `main`.
 
 Behavior/schema changes:
-None intended.
+None. Public facades, count-map schemas, eager and lazy evaluation behavior,
+composed schemas, executable validation, and checked-in exports remain
+unchanged.
 
 Last completed slice:
-Schema common probability primitive direct routing, selected in `19648e06`,
-boundary count corrected in `7513b2bc`, and implemented in `8237cb9a`.
-`schema.ex` moved from 5,993 to 5,989 lines.
+Schema common count-map primitive direct routing, selected in `96fd7f7d` and
+implemented in `132941cb`.
+`schema.ex` moved from 5,989 to 5,986 lines.
 
 Next candidate:
 Re-rank the remaining non-capability Schema responsibility clusters now that
