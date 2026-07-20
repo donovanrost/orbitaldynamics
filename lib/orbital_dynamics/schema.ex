@@ -7,11 +7,7 @@ defmodule OrbitalDynamics.Schema do
   the artifact shapes are still maturing.
   """
 
-  alias OrbitalDynamics.Schema.{
-    TimelineContextJsonSchema,
-    TimelineCoreSchemaProviders,
-    TimelineReportSchemaProviders
-  }
+  alias OrbitalDynamics.Schema.TimelineCoreSchemaProviders
 
   import OrbitalDynamics.Schema.PrimitiveValidation,
     only: [error: 2]
@@ -423,7 +419,18 @@ defmodule OrbitalDynamics.Schema do
     timeline_report_schema_providers =
       OrbitalDynamics.Schema.TimelineReportSchemaProviders.build(
         @stable_id_pattern,
-        timeline_capability: &timeline_capabilities/0
+        timeline_capability: &timeline_capabilities/0,
+        timeline_report_model_limits: &timeline_report_model_limits/0,
+        timeline_transition_decisions: &timeline_transition_decisions/0,
+        timeline_activity_precondition_statuses: &timeline_activity_precondition_statuses/0,
+        timeline_required_operator_actions: &timeline_required_operator_actions/0,
+        default_property: &default_json_schema_property/3,
+        registry_contract: &registry_contract!/1,
+        timeline_activity_precondition_summary_contract: @timeline_activity_precondition_summary,
+        timeline_diff_summary_contract: @timeline_diff_summary,
+        timeline_dependency_impact_summary_contract: @timeline_dependency_impact_summary,
+        timeline_publication_summary_contract: @timeline_publication_summary,
+        timeline_transition_application_summary_contract: @timeline_transition_application_summary
       )
 
     candidate_rejection_source_schema =
@@ -436,6 +443,60 @@ defmodule OrbitalDynamics.Schema do
       Map.fetch!(
         timeline_report_schema_providers,
         {:operational_timeline_row_json_schema, 0}
+      )
+
+    timeline_activity_precondition_summary_source_schema =
+      Map.fetch!(
+        timeline_report_schema_providers,
+        {:timeline_activity_precondition_summary_source_json_schema, 0}
+      )
+
+    timeline_activity_state_source_schema =
+      Map.fetch!(
+        timeline_report_schema_providers,
+        {:timeline_activity_state_source_json_schema, 0}
+      )
+
+    timeline_dependency_impact_handoff_properties =
+      Map.fetch!(
+        timeline_report_schema_providers,
+        {:timeline_dependency_impact_handoff_json_schema_properties, 0}
+      )
+
+    timeline_diff_summary_source_schema =
+      Map.fetch!(
+        timeline_report_schema_providers,
+        {:timeline_diff_summary_source_json_schema, 0}
+      )
+
+    timeline_lifecycle_state_source_schema =
+      Map.fetch!(
+        timeline_report_schema_providers,
+        {:timeline_lifecycle_state_source_json_schema, 0}
+      )
+
+    timeline_publication_handoff_properties =
+      Map.fetch!(
+        timeline_report_schema_providers,
+        {:timeline_publication_handoff_json_schema_properties, 0}
+      )
+
+    timeline_activity_precondition_handoff_properties =
+      Map.fetch!(
+        timeline_report_schema_providers,
+        {:timeline_activity_precondition_handoff_json_schema_properties, 0}
+      )
+
+    timeline_transition_application_row_schema =
+      Map.fetch!(
+        timeline_report_schema_providers,
+        {:timeline_transition_application_row_json_schema, 0}
+      )
+
+    timeline_transition_application_summary_source_schema =
+      Map.fetch!(
+        timeline_report_schema_providers,
+        {:timeline_transition_application_summary_source_json_schema, 0}
       )
 
     activity_schema_providers =
@@ -526,20 +587,12 @@ defmodule OrbitalDynamics.Schema do
         {:timeline_candidate_rejection_actions, 0} => &timeline_candidate_rejection_actions/0,
         {:timeline_candidate_rejection_reasons, 0} => &timeline_candidate_rejection_reasons/0,
         {:timeline_capabilities, 0} => &timeline_capabilities/0,
-        {:timeline_dependency_impact_row_json_schema, 0} =>
-          &timeline_dependency_impact_row_json_schema/0,
-        {:timeline_dependency_impact_summary_source_json_schema, 0} =>
-          &timeline_dependency_impact_summary_source_json_schema/0,
-        {:timeline_diff_summary_source_json_schema, 0} =>
-          &timeline_diff_summary_source_json_schema/0,
         {:timeline_feedback_capabilities, 0} => &timeline_feedback_capabilities/0,
         {:timeline_feedback_report_model_limits, 0} => &timeline_feedback_report_model_limits/0,
         {:timeline_integrity_issue_types, 0} => &timeline_integrity_issue_types/0,
         {:timeline_preservation_assumptions_json_schema, 1} =>
           &timeline_preservation_assumptions_json_schema/1,
         {:timeline_report_model_limits, 0} => &timeline_report_model_limits/0,
-        {:timeline_transition_application_row_json_schema, 0} =>
-          &timeline_transition_application_row_json_schema/0,
         {:timeline_transition_decisions, 0} => &timeline_transition_decisions/0
       }
     ]
@@ -688,18 +741,17 @@ defmodule OrbitalDynamics.Schema do
             Map.fetch!(source_evidence_providers, :quality_gate_source_report_evidence),
           source_evidence_schema: Map.fetch!(source_evidence_providers, :source_evidence),
           timeline_activity_precondition_summary_source_schema:
-            &timeline_activity_precondition_summary_source_json_schema/0,
-          timeline_activity_state_source_schema: &timeline_activity_state_source_json_schema/0,
-          timeline_diff_summary_source_schema: &timeline_diff_summary_source_json_schema/0,
+            timeline_activity_precondition_summary_source_schema,
+          timeline_activity_state_source_schema: timeline_activity_state_source_schema,
+          timeline_diff_summary_source_schema: timeline_diff_summary_source_schema,
           timeline_identity_schema: timeline_identity_schema,
-          timeline_lifecycle_state_source_schema: &timeline_lifecycle_state_source_json_schema/0,
+          timeline_lifecycle_state_source_schema: timeline_lifecycle_state_source_schema,
           timeline_link_schema: timeline_link_schema,
           timeline_preservation_source_schema: timeline_preservation_source_schema,
           timeline_protection_summary_schema: timeline_protection_summary_schema,
-          timeline_transition_application_row_schema:
-            &timeline_transition_application_row_json_schema/0,
+          timeline_transition_application_row_schema: timeline_transition_application_row_schema,
           timeline_transition_application_summary_source_schema:
-            &timeline_transition_application_summary_source_json_schema/0,
+            timeline_transition_application_summary_source_schema,
           feedback_maneuver_handoff_properties:
             &feedback_maneuver_handoff_json_schema_properties/0,
           link_handoff_properties: &link_handoff_json_schema_properties/0,
@@ -708,11 +760,10 @@ defmodule OrbitalDynamics.Schema do
           scoped_downlink_context_properties: scoped_downlink_context_properties,
           thermal_handoff_properties: &thermal_handoff_json_schema_properties/0,
           timeline_activity_precondition_handoff_properties:
-            &timeline_activity_precondition_handoff_json_schema_properties/0,
+            timeline_activity_precondition_handoff_properties,
           timeline_dependency_impact_handoff_properties:
-            &timeline_dependency_impact_handoff_json_schema_properties/0,
-          timeline_publication_handoff_properties:
-            &timeline_publication_handoff_json_schema_properties/0
+            timeline_dependency_impact_handoff_properties,
+          timeline_publication_handoff_properties: timeline_publication_handoff_properties
         )
       )
       |> Map.merge(
@@ -745,18 +796,17 @@ defmodule OrbitalDynamics.Schema do
           source_schema_validation_report_evidence_schema:
             Map.fetch!(source_evidence_providers, :source_schema_validation_report_evidence),
           timeline_activity_precondition_summary_source_schema:
-            &timeline_activity_precondition_summary_source_json_schema/0,
-          timeline_activity_state_source_schema: &timeline_activity_state_source_json_schema/0,
-          timeline_diff_summary_source_schema: &timeline_diff_summary_source_json_schema/0,
+            timeline_activity_precondition_summary_source_schema,
+          timeline_activity_state_source_schema: timeline_activity_state_source_schema,
+          timeline_diff_summary_source_schema: timeline_diff_summary_source_schema,
           timeline_identity_schema: timeline_identity_schema,
-          timeline_lifecycle_state_source_schema: &timeline_lifecycle_state_source_json_schema/0,
+          timeline_lifecycle_state_source_schema: timeline_lifecycle_state_source_schema,
           timeline_link_schema: timeline_link_schema,
           timeline_preservation_source_schema: timeline_preservation_source_schema,
           timeline_protection_summary_schema: timeline_protection_summary_schema,
-          timeline_transition_application_row_schema:
-            &timeline_transition_application_row_json_schema/0,
+          timeline_transition_application_row_schema: timeline_transition_application_row_schema,
           timeline_transition_application_summary_source_schema:
-            &timeline_transition_application_summary_source_json_schema/0,
+            timeline_transition_application_summary_source_schema,
           cadence_import_operational_readiness_evidence_properties:
             &cadence_import_operational_readiness_evidence_json_schema_properties/0,
           cadence_import_resource_projection_evidence_properties:
@@ -769,11 +819,10 @@ defmodule OrbitalDynamics.Schema do
           scoped_downlink_context_properties: scoped_downlink_context_properties,
           thermal_handoff_properties: &thermal_handoff_json_schema_properties/0,
           timeline_activity_precondition_handoff_properties:
-            &timeline_activity_precondition_handoff_json_schema_properties/0,
+            timeline_activity_precondition_handoff_properties,
           timeline_dependency_impact_handoff_properties:
-            &timeline_dependency_impact_handoff_json_schema_properties/0,
-          timeline_publication_handoff_properties:
-            &timeline_publication_handoff_json_schema_properties/0
+            timeline_dependency_impact_handoff_properties,
+          timeline_publication_handoff_properties: timeline_publication_handoff_properties
         )
       )
     end)
@@ -836,172 +885,6 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.ValidationJsonSchema.registry_conditions(@stable_id_pattern)
   end
 
-  defp timeline_lifecycle_state_source_json_schema do
-    OrbitalDynamics.Schema.TimelineActivityLifecycleStateJsonSchema.source_from_context(
-      stable_id_pattern: @stable_id_pattern,
-      stable_id_array_schema: &stable_id_array_schema/0,
-      transition_decisions: &timeline_transition_decisions/0,
-      string_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.string_array/0,
-      lifecycle_transition_schema: &TimelineContextJsonSchema.lifecycle_transition/0,
-      activity_context_schema: fn ->
-        TimelineCoreSchemaProviders.activity_context(@stable_id_pattern)
-      end,
-      protection_decision_schema: &lifecycle_state_source_protection_decision_json_schema/0
-    )
-  end
-
-  defp timeline_activity_state_source_json_schema do
-    OrbitalDynamics.Schema.TimelineActivityStateJsonSchema.source_from_context(
-      stable_id_pattern: @stable_id_pattern,
-      stable_id_array_schema: &stable_id_array_schema/0,
-      string_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.string_array/0,
-      lifecycle_transition_schema: &TimelineContextJsonSchema.lifecycle_transition/0,
-      protection_decision_schema: fn ->
-        TimelineCoreSchemaProviders.protection_decision(@stable_id_pattern)
-      end
-    )
-  end
-
-  defp timeline_activity_precondition_summary_source_json_schema do
-    OrbitalDynamics.Schema.TimelineActivityPreconditionSummaryJsonSchema.summary_source_from_context(
-      @timeline_activity_precondition_summary,
-      registry_contract!(@timeline_activity_precondition_summary),
-      [
-        model_limits: &timeline_report_model_limits/0,
-        precondition_statuses: &timeline_activity_precondition_statuses/0,
-        string_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.string_array/0,
-        precondition_schema: fn ->
-          TimelineReportSchemaProviders.timeline_precondition(&timeline_capabilities/0)
-        end,
-        stable_id_pattern: @stable_id_pattern,
-        stable_id_array_schema: &stable_id_array_schema/0,
-        timeline_identity_schema: fn ->
-          TimelineCoreSchemaProviders.timeline_identity(@stable_id_pattern)
-        end
-      ],
-      &default_json_schema_property/3
-    )
-  end
-
-  defp lifecycle_state_source_protection_decision_json_schema do
-    %{
-      "oneOf" => [
-        TimelineCoreSchemaProviders.protection_decision(@stable_id_pattern),
-        %{"type" => "string"}
-      ]
-    }
-  end
-
-  defp timeline_diff_summary_source_json_schema do
-    OrbitalDynamics.Schema.TimelineDiffSummaryJsonSchema.summary_source_from_context(
-      @timeline_diff_summary,
-      registry_contract!(@timeline_diff_summary),
-      [
-        model_limits: &timeline_report_model_limits/0,
-        row_schema: fn ->
-          TimelineReportSchemaProviders.timeline_diff_row(
-            @stable_id_pattern,
-            &timeline_capabilities/0
-          )
-        end,
-        capability: &timeline_capabilities/0,
-        stable_id_pattern: @stable_id_pattern
-      ],
-      &default_json_schema_property/3
-    )
-  end
-
-  defp timeline_dependency_impact_summary_source_json_schema do
-    OrbitalDynamics.Schema.TimelineDependencyImpactSummaryJsonSchema.summary_source_from_context(
-      @timeline_dependency_impact_summary,
-      registry_contract!(@timeline_dependency_impact_summary),
-      [
-        stable_id_pattern: @stable_id_pattern,
-        stable_id_array_schema: &stable_id_array_schema/0,
-        required_operator_actions: &timeline_required_operator_actions/0,
-        model_limits: &timeline_report_model_limits/0
-      ],
-      &default_json_schema_property/3
-    )
-  end
-
-  defp timeline_publication_summary_source_json_schema do
-    OrbitalDynamics.Schema.TimelinePublicationSummaryJsonSchema.summary_source_from_context(
-      @timeline_publication_summary,
-      registry_contract!(@timeline_publication_summary),
-      [
-        stable_id_pattern: @stable_id_pattern,
-        timeline_diff_summary_source_schema: &timeline_diff_summary_source_json_schema/0,
-        timeline_dependency_impact_summary_source_schema:
-          &timeline_dependency_impact_summary_source_json_schema/0,
-        stable_id_array_schema: &stable_id_array_schema/0,
-        stable_id_array_map_schema: &stable_id_array_map_schema/0,
-        model_limits: &timeline_report_model_limits/0
-      ],
-      &default_json_schema_property/3
-    )
-  end
-
-  defp timeline_transition_application_row_json_schema do
-    OrbitalDynamics.Schema.TimelineTransitionApplicationJsonSchema.application_row_from_context(
-      timeline_capability: &timeline_capabilities/0,
-      stable_id_pattern: @stable_id_pattern,
-      stable_id_array_schema: &stable_id_array_schema/0,
-      string_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.string_array/0,
-      lifecycle_transition_schema: &TimelineContextJsonSchema.lifecycle_transition/0,
-      protection_decision_schema: fn ->
-        TimelineCoreSchemaProviders.protection_decision(@stable_id_pattern)
-      end,
-      timeline_diff_row_schema: fn ->
-        TimelineReportSchemaProviders.timeline_diff_row(
-          @stable_id_pattern,
-          &timeline_capabilities/0
-        )
-      end
-    )
-  end
-
-  defp timeline_transition_application_summary_source_json_schema do
-    OrbitalDynamics.Schema.TimelineTransitionApplicationJsonSchema.summary_source_from_context(
-      @timeline_transition_application_summary,
-      registry_contract!(@timeline_transition_application_summary),
-      [
-        timeline_capability: &timeline_capabilities/0,
-        stable_id_pattern: @stable_id_pattern,
-        stable_id_array_schema: &stable_id_array_schema/0,
-        stable_id_array_map_schema: &stable_id_array_map_schema/0,
-        string_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.string_array/0,
-        lifecycle_transition_schema: &TimelineContextJsonSchema.lifecycle_transition/0,
-        protection_decision_schema: fn ->
-          TimelineCoreSchemaProviders.protection_decision(@stable_id_pattern)
-        end,
-        timeline_diff_row_schema: fn ->
-          TimelineReportSchemaProviders.timeline_diff_row(
-            @stable_id_pattern,
-            &timeline_capabilities/0
-          )
-        end,
-        timeline_identity_schema: fn ->
-          TimelineCoreSchemaProviders.timeline_identity(@stable_id_pattern)
-        end,
-        activity_context_schema: fn ->
-          TimelineCoreSchemaProviders.activity_context(@stable_id_pattern)
-        end,
-        model_limits: &timeline_report_model_limits/0,
-        enum_count_map_schema: &OrbitalDynamics.Schema.CommonJsonSchema.enum_count_map/1
-      ],
-      &default_json_schema_property/3
-    )
-  end
-
-  defp timeline_dependency_impact_row_json_schema do
-    OrbitalDynamics.Schema.TimelineDependencyImpactSummaryJsonSchema.row_from_context(
-      stable_id_pattern: @stable_id_pattern,
-      stable_id_array_schema: &stable_id_array_schema/0,
-      required_operator_actions: &timeline_required_operator_actions/0
-    )
-  end
-
   defp operational_readiness_gate_json_schema do
     OrbitalDynamics.Schema.OperationalReadinessGateJsonSchema.gate(
       capability: operational_readiness_capabilities(),
@@ -1052,36 +935,6 @@ defmodule OrbitalDynamics.Schema do
         OrbitalDynamics.Schema.CandidateRefreshReportJsonSchema.timeline_publication_context_properties(
           stable_id_pattern: @stable_id_pattern
         )
-    )
-  end
-
-  defp timeline_dependency_impact_handoff_json_schema_properties do
-    OrbitalDynamics.Schema.TimelineHandoffJsonSchema.dependency_impact_properties(
-      stable_id_array_schema: stable_id_array_schema(),
-      timeline_dependency_impact_row_schema: timeline_dependency_impact_row_json_schema()
-    )
-  end
-
-  defp timeline_publication_handoff_json_schema_properties do
-    OrbitalDynamics.Schema.TimelineHandoffJsonSchema.publication_properties(
-      stable_id_pattern: @stable_id_pattern,
-      stable_id_array_schema: stable_id_array_schema(),
-      stable_id_array_map_schema: stable_id_array_map_schema(),
-      count_map_schema: OrbitalDynamics.Schema.CommonJsonSchema.non_negative_integer_count_map(),
-      timeline_publication_summary_source_schema:
-        timeline_publication_summary_source_json_schema()
-    )
-  end
-
-  defp timeline_activity_precondition_handoff_json_schema_properties do
-    OrbitalDynamics.Schema.TimelineHandoffJsonSchema.activity_precondition_properties(
-      timeline_capability: timeline_capabilities(),
-      stable_id_array_schema: stable_id_array_schema(),
-      string_array_schema: OrbitalDynamics.Schema.CommonJsonSchema.string_array(),
-      timeline_precondition_schema:
-        TimelineReportSchemaProviders.timeline_precondition(&timeline_capabilities/0),
-      timeline_activity_precondition_summary_source_schema:
-        timeline_activity_precondition_summary_source_json_schema()
     )
   end
 
