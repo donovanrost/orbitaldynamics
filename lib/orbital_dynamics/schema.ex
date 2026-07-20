@@ -1940,7 +1940,7 @@ defmodule OrbitalDynamics.Schema do
           target_schema: fn -> target_identity_json_schema() end
         ),
       execution_uncertainty_schema: &execution_uncertainty_json_schema/0,
-      number_or_string_schema: &number_or_string_json_schema/0,
+      number_or_string_schema: &OrbitalDynamics.Schema.CommonJsonSchema.number_or_string/0,
       default_property: fn field, contract ->
         default_json_schema_property(field, @realized_activity, contract)
       end
@@ -2620,7 +2620,7 @@ defmodule OrbitalDynamics.Schema do
           timeline_identity_schema: timeline_identity_json_schema()
         ),
       execution_uncertainty_schema: &execution_uncertainty_json_schema/0,
-      number_or_string_schema: &number_or_string_json_schema/0,
+      number_or_string_schema: &OrbitalDynamics.Schema.CommonJsonSchema.number_or_string/0,
       default_property: fn field, contract ->
         default_json_schema_property(field, @planned_activity, contract)
       end
@@ -2636,7 +2636,7 @@ defmodule OrbitalDynamics.Schema do
           realized_activity_schema: realized_activity_json_schema()
         ),
       execution_uncertainty_schema: &execution_uncertainty_json_schema/0,
-      number_or_string_schema: &number_or_string_json_schema/0,
+      number_or_string_schema: &OrbitalDynamics.Schema.CommonJsonSchema.number_or_string/0,
       default_property: fn field, contract ->
         default_json_schema_property(field, @plan_delta, contract)
       end
@@ -2644,7 +2644,7 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property("lighting_confidence", _name, _contract) do
-    number_or_string_json_schema()
+    OrbitalDynamics.Schema.CommonJsonSchema.number_or_string()
   end
 
   defp json_schema_property(field, @proposed_contact = contract_name, contract) do
@@ -3132,7 +3132,7 @@ defmodule OrbitalDynamics.Schema do
       string_array_schema: &string_array_schema/0,
       source_window_schema: &candidate_activity_source_window_json_schema/0,
       probability_schema: &probability_json_schema/0,
-      number_or_string_schema: &number_or_string_json_schema/0,
+      number_or_string_schema: &OrbitalDynamics.Schema.CommonJsonSchema.number_or_string/0,
       activity_context_schema: &activity_context_json_schema/0
     )
   end
@@ -3180,7 +3180,7 @@ defmodule OrbitalDynamics.Schema do
       string_array_schema: string_array_schema(),
       numeric_triplet_schema: numeric_triplet_schema(),
       probability_schema: probability_json_schema(),
-      number_or_string_schema: number_or_string_json_schema(),
+      number_or_string_schema: OrbitalDynamics.Schema.CommonJsonSchema.number_or_string(),
       execution_uncertainty_schema: execution_uncertainty_json_schema(),
       ground_station_schema: ground_station_identity_json_schema(),
       spacecraft_schema: spacecraft_identity_json_schema(),
@@ -3253,10 +3253,6 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.CommonJsonSchema.probability()
   end
 
-  defp number_or_string_json_schema do
-    OrbitalDynamics.Schema.CommonJsonSchema.number_or_string()
-  end
-
   defp timeline_feedback_row_json_schema do
     OrbitalDynamics.Schema.TimelineFeedbackRowJsonSchema.row(
       stable_id_pattern: @stable_id_pattern,
@@ -3265,7 +3261,7 @@ defmodule OrbitalDynamics.Schema do
       string_array_schema: string_array_schema(),
       number_array_schema: number_array_schema(),
       probability_schema: probability_json_schema(),
-      number_or_string_schema: number_or_string_json_schema(),
+      number_or_string_schema: OrbitalDynamics.Schema.CommonJsonSchema.number_or_string(),
       protection_decision_schema: protection_decision_json_schema(),
       lifecycle_transition_schema: TimelineContextJsonSchema.lifecycle_transition(),
       actual_data_rate_throughput_derivation_schema:
@@ -3858,7 +3854,7 @@ defmodule OrbitalDynamics.Schema do
       number_array_schema: &number_array_schema/0,
       number_or_number_array_schema:
         &OrbitalDynamics.Schema.CommonJsonSchema.number_or_number_array/0,
-      number_or_string_json_schema: &number_or_string_json_schema/0,
+      number_or_string_json_schema: &OrbitalDynamics.Schema.CommonJsonSchema.number_or_string/0,
       operational_readiness_evidence_json_schema: &operational_readiness_evidence_json_schema/0,
       operational_readiness_gate_json_schema: &operational_readiness_gate_json_schema/0,
       operational_readiness_source_report_evidence_json_schema:
@@ -4003,7 +3999,7 @@ defmodule OrbitalDynamics.Schema do
         &contact_contention_deferred_priority_json_schema/0,
       non_negative_number_map_json_schema:
         &OrbitalDynamics.Schema.CommonJsonSchema.non_negative_number_map/0,
-      number_or_string_json_schema: &number_or_string_json_schema/0,
+      number_or_string_json_schema: &OrbitalDynamics.Schema.CommonJsonSchema.number_or_string/0,
       operational_readiness_source_report_evidence_json_schema:
         &operational_readiness_source_report_evidence_json_schema/0,
       operational_timeline_row_json_schema: &operational_timeline_row_json_schema/0,
@@ -4103,7 +4099,7 @@ defmodule OrbitalDynamics.Schema do
       number_array_schema: &number_array_schema/0,
       number_or_number_array_schema:
         &OrbitalDynamics.Schema.CommonJsonSchema.number_or_number_array/0,
-      number_or_string_json_schema: &number_or_string_json_schema/0,
+      number_or_string_json_schema: &OrbitalDynamics.Schema.CommonJsonSchema.number_or_string/0,
       numeric_triplet_schema: &numeric_triplet_schema/0,
       operational_readiness_evidence_json_schema: &operational_readiness_evidence_json_schema/0,
       operational_readiness_gate_json_schema: &operational_readiness_gate_json_schema/0,
