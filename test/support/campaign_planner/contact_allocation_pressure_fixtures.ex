@@ -1,4 +1,107 @@
 defmodule OrbitalDynamics.CampaignPlanner.ContactAllocationPressureFixtures do
+  def contact_allocation_capacity_pack_summary_fixture(prefix) do
+    primary_row = capacity_pack_row(prefix, "primary", "selected_by_contention_resolution")
+
+    secondary_row =
+      capacity_pack_row(prefix, "secondary", "selected_by_reduced_station_capacity_pack")
+
+    overflow_row =
+      capacity_pack_row(prefix, "overflow", "deferred_by_reduced_station_capacity_pack")
+
+    pack_group = %{
+      "contention_group_id" => "#{prefix}_pack_equator_prime",
+      "pack_status" => "capacity_limited",
+      "ground_station_id" => "equator_prime",
+      "capacity_fraction" => 0.5
+    }
+
+    all_contact_ids = capacity_pack_contact_ids(prefix)
+    selected_contact_ids = Enum.drop(all_contact_ids, 1)
+
+    %{
+      "schema_contract" => "contact_allocation_capacity_pack_summary.v1",
+      "model" => "artifact_only_contact_allocation_capacity_pack_summary",
+      "source_artifact_type" => "contact_allocation_report.v1",
+      "source" => "campaign_planner_test.#{prefix}.contact_allocation_capacity_pack_summary",
+      "input_contact_count" => 3,
+      "capacity_pack_contact_count" => 3,
+      "capacity_pack_review_status" => "review_required",
+      "reduced_capacity_pack_group_count" => 1,
+      "reduced_capacity_pack_status_counts" => %{"capacity_limited" => 1},
+      "capacity_pack_status_counts" => %{
+        "deferred_by_reduced_station_capacity_pack" => 1,
+        "selected_by_contention_resolution" => 1,
+        "selected_by_reduced_station_capacity_pack" => 1
+      },
+      "capacity_pack_contact_ids_by_status" => %{
+        "deferred_by_reduced_station_capacity_pack" => ["#{prefix}_dl_capacity_overflow"],
+        "selected_by_contention_resolution" => ["#{prefix}_dl_capacity_primary"],
+        "selected_by_reduced_station_capacity_pack" => ["#{prefix}_dl_capacity_secondary"]
+      },
+      "capacity_pack_contact_ids_by_ground_station_id" => %{
+        "equator_prime" => all_contact_ids
+      },
+      "capacity_pack_selected_contact_ids_by_ground_station_id" => %{
+        "equator_prime" => selected_contact_ids
+      },
+      "capacity_pack_deferred_contact_ids_by_ground_station_id" => %{
+        "equator_prime" => ["#{prefix}_dl_capacity_overflow"]
+      },
+      "capacity_pack_contact_ids_by_direction" => %{"downlink" => all_contact_ids},
+      "capacity_pack_selected_contact_ids_by_direction" => %{
+        "downlink" => selected_contact_ids
+      },
+      "capacity_pack_deferred_contact_ids_by_direction" => %{
+        "downlink" => ["#{prefix}_dl_capacity_overflow"]
+      },
+      "capacity_pack_required_capacity_fraction" => 0.75,
+      "capacity_pack_selected_required_capacity_fraction" => 0.5,
+      "capacity_pack_deferred_required_capacity_fraction" => 0.25,
+      "capacity_pack_required_capacity_fraction_by_status" => %{
+        "deferred_by_reduced_station_capacity_pack" => 0.25,
+        "selected_by_contention_resolution" => 0.25,
+        "selected_by_reduced_station_capacity_pack" => 0.25
+      },
+      "capacity_pack_required_capacity_fraction_by_ground_station_id" => %{
+        "equator_prime" => 0.75
+      },
+      "capacity_pack_selected_required_capacity_fraction_by_ground_station_id" => %{
+        "equator_prime" => 0.5
+      },
+      "capacity_pack_deferred_required_capacity_fraction_by_ground_station_id" => %{
+        "equator_prime" => 0.25
+      },
+      "capacity_pack_required_capacity_fraction_by_direction" => %{"downlink" => 0.75},
+      "capacity_pack_selected_required_capacity_fraction_by_direction" => %{
+        "downlink" => 0.5
+      },
+      "capacity_pack_deferred_required_capacity_fraction_by_direction" => %{
+        "downlink" => 0.25
+      },
+      "required_capacity_fraction_source_counts" => %{
+        "contact_required_capacity_fraction" => 3
+      },
+      "required_capacity_fraction_contact_ids_by_source" => %{
+        "contact_required_capacity_fraction" => all_contact_ids
+      },
+      "reduced_capacity_packed_contact_ids" => ["#{prefix}_dl_capacity_secondary"],
+      "reduced_capacity_deferred_contact_ids" => ["#{prefix}_dl_capacity_overflow"],
+      "capacity_pack_group_ids" => ["#{prefix}_pack_equator_prime"],
+      "capacity_pack_group_ids_by_status" => %{
+        "capacity_limited" => ["#{prefix}_pack_equator_prime"]
+      },
+      "rows" => [primary_row, secondary_row, overflow_row],
+      "reduced_capacity_pack_groups" => [pack_group],
+      "review_rows" => [primary_row, secondary_row, overflow_row],
+      "assumptions" => %{
+        "execution_boundary" => "artifact_only_no_provider_reservation_or_schedule_mutation",
+        "source" => "contact_allocation_report.v1",
+        "operator_authority" => "not_granted_by_capacity_pack_summary"
+      },
+      "provenance" => %{"trust_boundary" => "#{prefix}_capacity_pack_fixture"}
+    }
+  end
+
   def contact_allocation_station_pressure_summary_fixture(prefix) do
     nominal_row = %{
       "contact_id" => "#{prefix}_dl_nominal",
@@ -210,4 +313,29 @@ defmodule OrbitalDynamics.CampaignPlanner.ContactAllocationPressureFixtures do
 
   defp pressure_ids(prefix), do: ["#{prefix}_dl_station_pressure"]
   defp station_ids(prefix), do: %{"equator_prime" => pressure_ids(prefix)}
+
+  defp capacity_pack_row(prefix, suffix, status) do
+    allocated? = status != "deferred_by_reduced_station_capacity_pack"
+    allocation_status = if allocated?, do: "allocated", else: "deferred"
+
+    %{
+      "contact_id" => "#{prefix}_dl_capacity_#{suffix}",
+      "allocation_status" => allocation_status,
+      "effective_allocation_status" => allocation_status,
+      "allocation_reason" => status,
+      "ground_station_id" => "equator_prime",
+      "direction" => "downlink",
+      "capacity_pack_status" => status,
+      "required_capacity_fraction" => 0.25,
+      "required_capacity_fraction_source" => "contact_required_capacity_fraction"
+    }
+  end
+
+  defp capacity_pack_contact_ids(prefix) do
+    [
+      "#{prefix}_dl_capacity_overflow",
+      "#{prefix}_dl_capacity_primary",
+      "#{prefix}_dl_capacity_secondary"
+    ]
+  end
 end
