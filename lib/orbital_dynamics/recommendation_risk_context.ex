@@ -3,6 +3,7 @@ defmodule OrbitalDynamics.RecommendationRiskContext do
 
   alias OrbitalDynamics.RecommendationRiskContext.{
     ApprovalBoundary,
+    CapacityPack,
     ContactAllocation,
     ContactIntent,
     ExecutionSuccessFeedback,
@@ -40,23 +41,6 @@ defmodule OrbitalDynamics.RecommendationRiskContext do
     "provider_reservation_request_feedback_sources",
     "provider_reservation_request_feedback_scopes",
     "provider_reservation_request_trust_boundaries"
-  ]
-
-  @capacity_pack_context_keys [
-    "capacity_pack_risk_contact_ids",
-    "capacity_pack_risk_source_activity_ids",
-    "capacity_pack_risk_ground_station_ids",
-    "capacity_pack_risk_group_ids",
-    "capacity_pack_risk_statuses",
-    "capacity_pack_risk_capacity_fraction_values",
-    "capacity_pack_risk_used_fraction_values",
-    "capacity_pack_risk_unused_fraction_values",
-    "capacity_pack_risk_required_capacity_fraction_values",
-    "capacity_pack_risk_required_capacity_fraction_sources",
-    "capacity_pack_risk_derivation_reasons",
-    "capacity_pack_risk_feedback_sources",
-    "capacity_pack_risk_feedback_scopes",
-    "capacity_pack_risk_trust_boundaries"
   ]
 
   @contact_contention_resolution_context_keys [
@@ -343,7 +327,7 @@ defmodule OrbitalDynamics.RecommendationRiskContext do
 
   def provider_reservation_request_context_keys, do: @provider_reservation_request_context_keys
 
-  def capacity_pack_context_keys, do: @capacity_pack_context_keys
+  def capacity_pack_context_keys, do: CapacityPack.context_keys()
 
   def contact_contention_resolution_context_keys,
     do: @contact_contention_resolution_context_keys
@@ -465,50 +449,7 @@ defmodule OrbitalDynamics.RecommendationRiskContext do
 
   def provider_reservation_request_context(_risks), do: %{}
 
-  def capacity_pack_context(risks) when is_list(risks) do
-    risks = Enum.map(risks, &stringify_keys/1)
-
-    capacity_pack_risks =
-      Enum.filter(
-        risks,
-        &(Map.get(&1, "feedback_scope") == "contact_contention_resolution" or
-            Map.has_key?(&1, "capacity_pack_group_id"))
-      )
-
-    %{
-      "capacity_pack_risk_contact_ids" => risk_context_values(capacity_pack_risks, "contact_id"),
-      "capacity_pack_risk_source_activity_ids" =>
-        risk_context_values(capacity_pack_risks, ["source_activity_id", "source_activity_ids"]),
-      "capacity_pack_risk_ground_station_ids" =>
-        risk_context_values(capacity_pack_risks, "ground_station_id"),
-      "capacity_pack_risk_group_ids" =>
-        risk_context_values(capacity_pack_risks, "capacity_pack_group_id"),
-      "capacity_pack_risk_statuses" =>
-        risk_context_values(capacity_pack_risks, "capacity_pack_status"),
-      "capacity_pack_risk_capacity_fraction_values" =>
-        risk_context_values(capacity_pack_risks, "capacity_pack_capacity_fraction"),
-      "capacity_pack_risk_used_fraction_values" =>
-        risk_context_values(capacity_pack_risks, "capacity_pack_used_fraction"),
-      "capacity_pack_risk_unused_fraction_values" =>
-        risk_context_values(capacity_pack_risks, "capacity_pack_unused_fraction"),
-      "capacity_pack_risk_required_capacity_fraction_values" =>
-        risk_context_values(capacity_pack_risks, "required_capacity_fraction"),
-      "capacity_pack_risk_required_capacity_fraction_sources" =>
-        risk_context_values(capacity_pack_risks, "required_capacity_fraction_source"),
-      "capacity_pack_risk_derivation_reasons" =>
-        risk_context_values(capacity_pack_risks, ["derivation_reasons"]),
-      "capacity_pack_risk_feedback_sources" =>
-        risk_context_values(capacity_pack_risks, "feedback_source"),
-      "capacity_pack_risk_feedback_scopes" =>
-        risk_context_values(capacity_pack_risks, "feedback_scope"),
-      "capacity_pack_risk_trust_boundaries" =>
-        risk_context_values(capacity_pack_risks, "trust_boundary")
-    }
-    |> Enum.reject(fn {_key, values} -> values == [] end)
-    |> Map.new()
-  end
-
-  def capacity_pack_context(_risks), do: %{}
+  def capacity_pack_context(risks), do: CapacityPack.context(risks)
 
   def contact_contention_resolution_context(risks) when is_list(risks) do
     risks = Enum.map(risks, &stringify_keys/1)
