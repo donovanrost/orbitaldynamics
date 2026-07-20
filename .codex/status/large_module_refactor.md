@@ -9,7 +9,7 @@ Current slice:
 OperationalReadiness import-eligibility summary extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `3eb8d213`.
 
 Selected boundary:
 Extract compact import-eligibility artifact projection into
@@ -33,24 +33,43 @@ Selection evidence:
   public output, and error behavior must remain unchanged.
 
 Implementation:
-Pending.
+- Added `OrbitalDynamics.OperationalReadiness.ImportEligibilitySummary` as the
+  owner of its artifact contract, readiness identity/classification projection,
+  row-derived gate counts, non-passed gate routing, and explicit assumptions.
+- Wired the existing import-eligibility facade directly to the owner and
+  delegated the capability contract declaration without changing root APIs.
+- Kept readiness evidence collection, gate decisions, quality-gate reporting,
+  and execution-boundary summaries outside the boundary.
+- `operational_readiness.ex` moved from 1,635 to 1,598 lines; the new owner is
+  46 lines.
 
 Verification:
-Pending.
+- Strict focused baseline passed all 31 OperationalReadiness tests.
+- Exact old/new public parity passed for four deterministic outcomes:
+  all-passed import eligibility, mixed non-passed gate routing, atom-keyed
+  readiness input, and invalid-source error behavior.
+- Post-extraction focused and adjacent readiness, replay-summary,
+  operator-review, schema-contract, and validation verification passed all 49
+  tests.
+- Static checks confirm the inline summary projector and contract attribute
+  left the facade; xref reports only OperationalReadiness as a runtime caller.
+- Strict warning-clean forced compile passed for 4,018 files.
+- Formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-RecommendationRiskContext maneuver-execution-uncertainty extraction, selected
-in `e8a5043c` and implemented in `1f5f9672`.
-`recommendation_risk_context.ex` moved from 1,650 to 1,527 lines; the dedicated
-ManeuverExecutionUncertainty owner is 144 lines.
+OperationalReadiness import-eligibility summary extraction, selected in
+`a4788975` and implemented in `3eb8d213`.
+`operational_readiness.ex` moved from 1,635 to 1,598 lines; the dedicated
+ImportEligibilitySummary owner is 46 lines.
 
 Next candidate:
-After this slice, re-rank the live checkout. ContactContention and
-ResourceFilter are the next largest ordinary eligible facades, followed by the
-reduced OperationalReadiness and RecommendationRiskContext facades.
+Re-rank the live checkout and select the next bounded facade-preserving
+extraction. The reduced OperationalReadiness facade remains the largest
+ordinary eligible module at 1,598 lines, followed by ContactContention and
+ResourceFilter.
 
 Blocked:
 No.
