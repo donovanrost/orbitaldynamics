@@ -6,40 +6,29 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Campaign-planner recommendation-pressure handoff test split.
+Campaign-planner recommendation-pressure expected-handoff fixture extraction.
 
 Status:
-Completed and verified.
+Selected; implementation pending.
 
 Selected boundary:
-Move the downstream operator-review, Cadence-import, and schema handoff
-assertions from the 3,060-line recommendation-pressure assertion test into a
-focused sibling test module. Reuse the deterministic scenario fixture from both
-tests and keep the recommendation-explanation assertions in the original.
+Move the deterministic expected-handoff contract map from the 2,047-line
+recommendation-pressure handoff test into a named test-support fixture owner.
+Keep the review/import lookup, field propagation, nested source-row, and schema
+assertions in the focused test.
 
 Selection evidence:
-- The handoff section begins at `expected_handoff` and depends only on the
-  shared scenario artifact.
-- It independently verifies exhaustive field propagation through the strategy
-  recommendation review row, selected import row, review import, nested source
-  row, and both schema validators.
-- The original section independently verifies the recommendation explanation
-  and risk-pressure mappings.
+- The expected map occupies lines 17-2,008 and is deterministic test data.
+- The actual verification flow begins at `recommendation_review_row` and uses
+  only the scenario artifact plus that map.
+- A dedicated expected-contract fixture keeps exhaustive coverage intact while
+  making the focused handoff test navigable.
 
 Implementation:
-Selected in `b603830b` and implemented in `1844e795`. Moved the exhaustive
-expected-handoff map plus review/import/schema assertions into
-`StrategyRecommendationPressureHandoffTest`. The original explanation test
-moved from 3,060 to 1,029 lines; the focused handoff test is 2,047 lines and
-both reuse the named scenario fixture.
+Pending.
 
 Verification:
-- Both focused recommendation-pressure tests passed with warnings as errors:
-  2 tests.
-- Strict forced compile passed with warnings as errors: 4,129 files.
-- Touched-file format checks, new-file whitespace checks, and
-  `git diff --check` passed.
-- No production or checked-in schema-export files changed.
+Pending.
 
 Behavior/schema changes:
 None intended. The same deterministic fixtures, production calls, assertions,
@@ -51,9 +40,7 @@ Campaign-planner recommendation-pressure handoff test split, selected in
 a 1,029-line explanation test and a 2,047-line handoff test.
 
 Next candidate:
-Inspect the 2,047-line handoff test's expected-map construction versus its
-review/import assertions; otherwise return to the largest schema contract test
-boundary.
+Implement and verify the selected expected-handoff fixture extraction.
 
 Blocked:
 No.
