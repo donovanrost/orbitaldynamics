@@ -9,7 +9,7 @@ Current slice:
 RecommendationRiskContext score-term extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `1a4cf909`.
 
 Selected boundary:
 Extract score-term context keys, risk classification, and context projection
@@ -32,23 +32,45 @@ Selection evidence:
   behavior, public output, and error behavior must remain unchanged.
 
 Implementation:
-Pending.
+- Added `OrbitalDynamics.RecommendationRiskContext.ScoreTerm` as the owner of
+  the ordered context-key registry, feedback-scope classification, atom-key
+  normalization, and complete score-term context projection.
+- Replaced the facade key/context implementation with direct delegation while
+  preserving every public entry point and downstream consumer.
+- Kept resource margins, timeline integrity, contact/resource filters,
+  objective context, and all other risk families outside the boundary.
+- `recommendation_risk_context.ex` moved from 1,527 to 1,405 lines; the new
+  owner is 156 lines.
 
 Verification:
-Pending.
+- The focused comprehensive recommendation-pressure baseline passed its one
+  test normally; warnings-as-errors remains inapplicable to that file because
+  of its two pre-existing signed-zero pattern warnings.
+- Exact old/new public parity passed for four deterministic results: the ordered
+  key registry, rich atom-keyed context, scope-only classification/omission,
+  and non-list input.
+- Post-extraction focused and adjacent recommendation-pressure, Cadence import,
+  and operator-review verification passed all three selected tests; both
+  adjacent consumers passed with warnings-as-errors.
+- Static checks confirm the inline key registry, classifier, and guarded
+  projection left the facade; xref reports only RecommendationRiskContext as a
+  runtime caller.
+- Strict warning-clean forced compile passed for 4,023 files.
+- Formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-OperationalReadiness source/report identity extraction, selected in `bbd440b7`
-and implemented in `1a5b8947`.
-`operational_readiness.ex` moved from 1,541 to 1,474 lines; the dedicated
-SourceIdentity owner is 80 lines.
+RecommendationRiskContext score-term extraction, selected in `3d2248a4` and
+implemented in `1a4cf909`.
+`recommendation_risk_context.ex` moved from 1,527 to 1,405 lines; the dedicated
+ScoreTerm owner is 156 lines.
 
 Next candidate:
-After this slice, re-rank the live checkout. OperationalReadiness is the next
-largest ordinary eligible facade.
+Re-rank the live checkout and select the next bounded facade-preserving
+extraction. OperationalReadiness is now the largest ordinary eligible facade at
+1,474 lines.
 
 Blocked:
 No.
