@@ -11,6 +11,7 @@ defmodule OrbitalDynamics.Schema do
     ActivityArtifactValidation,
     CadenceImportValidation,
     CampaignArtifactValidation,
+    CapabilityCatalogValidation,
     CandidateRejectionValidation,
     CommandWindowValidation,
     ContactAllocationValidation,
@@ -4372,14 +4373,8 @@ defmodule OrbitalDynamics.Schema do
     ValidationPolicyValidation.validate([], "$", artifact, @backend_acceptance_policy)
   end
 
-  defp validate_contract(@capability_catalog, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.CapabilityCatalogContracts.validate(
-      "$",
-      artifact,
-      @contracts
-    )
+  defp validate_contract(@capability_catalog, _contract, artifact) do
+    CapabilityCatalogValidation.validate([], "$", artifact)
   end
 
   defp validate_contract(@result_artifact, contract, artifact) do
