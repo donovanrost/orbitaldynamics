@@ -9,7 +9,7 @@ Current slice:
 Filter/resource/contention JSON-property family extraction.
 
 Status:
-Selected; implementation pending.
+Implemented and verified.
 
 Selected boundary:
 Extract the three contiguous contact/resource filter, resource projection, and
@@ -27,10 +27,23 @@ Selection evidence:
   resource projection additionally uses the existing validation owner.
 
 Implementation:
-Pending.
+- Added an 80-line `FilterResourcePropertyRouter` with three mechanically moved
+  filter/resource/contention clause bodies spanning seven contracts.
+- Kept all guarded parent clause heads in place as ordered delegations.
+- Reused shared lazy provider/context/fallback support and moved the
+  resource-validation alias with its owning route.
+- The parent router moved from 914 to 864 lines.
 
 Verification:
-Pending.
+- Strict pre-change baseline and post-change schema/validation suite: 359 tests
+  passed in each run.
+- AST comparison confirmed all three moved bodies are exact and all 76 parent
+  clause heads remain in their original order.
+- Full schema export regenerated 121 contract schemas and the bundle with no
+  checked-in schema diff.
+- `mix xref trace` confirms the three intended family edges.
+- Formatting, `git diff --check`, and bounded source/schema diff review passed.
+- Strict compile passed for 4,104 files with warnings as errors.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -38,13 +51,13 @@ laziness, field-hint fallback, stable-ID decoration, public `Schema`, and
 checked-in exports must remain unchanged.
 
 Last completed slice:
-Ground-network communications JSON-property family extraction, selected in
-`eef80e1a` and implemented in `7a87bb6f`. The parent router moved from 1,021 to
-914 lines.
+Filter/resource/contention JSON-property family extraction, selected in
+`dc58ba33` and implemented in `054c5eb0`. The parent router moved from 914 to
+864 lines.
 
 Next candidate:
-Implement and verify the selected filter/resource/contention split, then fold
-the adjacent objective/optimizer clauses into the planning family.
+Fold the adjacent objective/optimizer clauses into the existing
+`StrategyPlanningPropertyRouter`, preserving parent clause order.
 
 Blocked:
 No.
