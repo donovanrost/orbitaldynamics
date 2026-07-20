@@ -416,7 +416,6 @@ defmodule OrbitalDynamics.Schema do
         {:maneuver_review_report_model_limits, 0} => &maneuver_review_report_model_limits/0,
         {:maneuver_review_row_json_schema, 0} => &maneuver_review_row_json_schema/0,
         {:model_acceptance_report_model_limits, 0} => &model_acceptance_report_model_limits/0,
-        {:model_acceptance_row_json_schema, 0} => &model_acceptance_row_json_schema/0,
         {:nested_stable_id_array_map_json_schema, 0} => &nested_stable_id_array_map_json_schema/0,
         {:operational_feedback_json_schema, 0} => &operational_feedback_json_schema/0,
         {:operational_readiness_capabilities, 0} => &operational_readiness_capabilities/0,
@@ -452,7 +451,6 @@ defmodule OrbitalDynamics.Schema do
           &resource_projection_flow_row_json_schema/0,
         {:resource_projection_row_json_schema, 0} => &resource_projection_row_json_schema/0,
         {:resource_summary_row_json_schema, 0} => &resource_summary_row_json_schema/0,
-        {:safety_case_evidence_row_json_schema, 0} => &safety_case_evidence_row_json_schema/0,
         {:schema_migration_row_statuses, 0} => &schema_migration_row_statuses/0,
         {:schema_migration_statuses, 0} => &schema_migration_statuses/0,
         {:schema_validation_batch_entry_json_schema, 0} =>
@@ -521,17 +519,15 @@ defmodule OrbitalDynamics.Schema do
           &timeline_transition_application_row_json_schema/0,
         {:timeline_transition_decisions, 0} => &timeline_transition_decisions/0,
         {:timeline_transition_selected_activity_json_schema, 0} =>
-          &timeline_transition_selected_activity_json_schema/0,
-        {:validation_record_json_schema, 0} => &validation_record_json_schema/0,
-        {:validation_reference_report_json_schema, 0} =>
-          &validation_reference_report_json_schema/0
+          &timeline_transition_selected_activity_json_schema/0
       }
     ]
     |> Keyword.update!(:schema_providers, fn providers ->
-      Map.merge(
-        providers,
+      providers
+      |> Map.merge(
         OrbitalDynamics.Schema.PlanningAnalysisSchemaProviders.build(@stable_id_pattern)
       )
+      |> Map.merge(OrbitalDynamics.Schema.ValidationSchemaProviders.build(@stable_id_pattern))
     end)
   end
 
@@ -1032,34 +1028,8 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.SchemaValidationReportJsonSchema.batch_entry(report_schema)
   end
 
-  defp validation_record_json_schema do
-    OrbitalDynamics.Schema.ValidationJsonSchema.record(
-      @stable_id_pattern,
-      OrbitalDynamics.Schema.ValidationJsonSchema.validation_level()
-    )
-  end
-
   defp validation_record_registry_conditions do
     OrbitalDynamics.Schema.ValidationJsonSchema.registry_conditions(@stable_id_pattern)
-  end
-
-  defp model_acceptance_row_json_schema do
-    OrbitalDynamics.Schema.ValidationJsonSchema.model_acceptance_row(
-      @stable_id_pattern,
-      validation_record_json_schema()
-    )
-  end
-
-  defp safety_case_evidence_row_json_schema do
-    OrbitalDynamics.Schema.ValidationJsonSchema.safety_case_evidence_row(@stable_id_pattern)
-  end
-
-  defp validation_reference_report_json_schema do
-    OrbitalDynamics.Schema.ValidationJsonSchema.reference_report(
-      @stable_id_pattern,
-      OrbitalDynamics.Schema.ValidationJsonSchema.validation_level(),
-      OrbitalDynamics.Schema.ValidationJsonSchema.check()
-    )
   end
 
   defp strategy_branch_tradeoff_json_schema,
