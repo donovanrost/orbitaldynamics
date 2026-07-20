@@ -9,7 +9,7 @@ Current slice:
 Schema non-negative integer property routing.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Route the sole `non_negative_integer_property_schemas/1` pipeline directly to
@@ -29,18 +29,30 @@ Selection evidence:
 - Context-bearing shared-schema helpers remain out of scope.
 
 Implementation:
-Pending.
+Routed the sole non-negative integer property-map pipeline directly to
+CommonJsonSchema and removed the zero-context facade helper. `schema.ex` moved
+from 5,923 to 5,919 lines.
 
 Verification:
-Pending.
+- Strict focused JSON Schema export baseline before routing: 15 passed.
+- The same strict focused suite after routing: 15 passed.
+- Strict fixture-visibility, optimizer-objective, operator-review,
+  timeline-report, and checked-in export coverage: 16 passed.
+- The full schema-export task completed and produced no checked-in changes.
+- Exact static inspection confirms one direct owner pipeline and zero remaining
+  facade helper references.
+- `git diff --check` passed.
+- Strict forced compile passed across 4,072 files.
+- Implementation commit `4f08c41b` pushed to `main`.
 
 Behavior/schema changes:
-None intended.
+None. Input fields, non-negative integer property-map shape, public Schema
+APIs, executable validation, and checked-in exports remain unchanged.
 
 Last completed slice:
-Schema enum count-map callback routing, selected in `4942b4a7` and implemented
-in `2a080032`.
-`schema.ex` moved from 5,927 to 5,923 lines.
+Schema non-negative integer property routing, selected in `c3a36307` and
+implemented in `4f08c41b`.
+`schema.ex` moved from 5,923 to 5,919 lines.
 
 Next candidate:
 Re-rank the remaining non-capability Schema responsibility clusters. Preserve
