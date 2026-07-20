@@ -127,8 +127,8 @@ defmodule OrbitalDynamics.CampaignPlanner.ResourceFilterSourceReports do
   defp prior_plan_result_artifact_embedded_reports(prior_plan, report_keys) do
     BranchRefreshSourceInputs.result_artifact_embedded_reports(
       prior_plan,
-      report_keys,
-      "prior_plan"
+      "prior_plan",
+      report_keys
     )
   end
 
