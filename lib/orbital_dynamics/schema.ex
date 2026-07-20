@@ -5674,14 +5674,6 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validate_optional_branch_comparison_source_row(issues, path, value),
-    do:
-      DecisionSupportValidation.validate_optional_branch_comparison_source_row(
-        issues,
-        path,
-        value
-      )
-
   defp validate_optional_optimizer_contract(issues, value) do
     DecisionSupportValidation.validate_optional_optimizer_contract(
       issues,
@@ -5835,7 +5827,7 @@ defmodule OrbitalDynamics.Schema do
       validate_optional_timeline_dependency_impact_source_row:
         &TimelineSourceValidation.validate_optional_timeline_dependency_impact_source_row/3,
       validate_optional_branch_comparison_source_row:
-        &validate_optional_branch_comparison_source_row/3,
+        &DecisionSupportValidation.validate_optional_branch_comparison_source_row/3,
       validate_source_evidence_fields: &SourceEvidenceValidation.validate_fields/3,
       validate_freshness_source_status_matches:
         &SourceEvidenceValidation.validate_freshness_status_matches/3,
@@ -5908,7 +5900,7 @@ defmodule OrbitalDynamics.Schema do
       validate_optional_candidate_rejection_source_row:
         &validate_optional_candidate_rejection_source_row/3,
       validate_optional_branch_comparison_source_row:
-        &validate_optional_branch_comparison_source_row/3,
+        &DecisionSupportValidation.validate_optional_branch_comparison_source_row/3,
       validate_source_evidence_fields: &SourceEvidenceValidation.validate_fields/3,
       validate_freshness_source_status_matches:
         &SourceEvidenceValidation.validate_freshness_status_matches/3,
@@ -6103,7 +6095,7 @@ defmodule OrbitalDynamics.Schema do
       validate_optional_lifecycle_transition:
         &TimelineContextValidation.validate_optional_lifecycle_transition/4,
       validate_optional_branch_comparison_source_row:
-        &validate_optional_branch_comparison_source_row/3,
+        &DecisionSupportValidation.validate_optional_branch_comparison_source_row/3,
       validate_optional_policy_decision_evidence: &validate_optional_policy_decision_evidence/3,
       validate_optional_policy_escalation: &validate_optional_policy_escalation/4,
       validate_optional_timeline_dependency_impact_source_row:
