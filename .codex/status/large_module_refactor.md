@@ -9,7 +9,7 @@ Current slice:
 Station-calendar schema-provider extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Move the seven station-calendar/reservation provider builders and their two
@@ -30,10 +30,26 @@ Selection evidence:
   entries and implementation details from the public facade.
 
 Implementation:
-Pending.
+Selected in `5ec99bb8` and implemented in `9b22678f`.
+The new `StationCalendarSchemaProviders.build/2` returns seven lazy provider
+closures and owns the source-entry/contention-pair helper chain. `Schema`
+removes the seven registry-local captures and nine private builders, then
+passes negotiation and policy schema functions as explicit callbacks when
+merging the focused provider map.
 
 Verification:
-Pending.
+- Strict focused schema/validation baseline and post-change suites both passed:
+  359 tests, 0 failures.
+- Direct comparison confirmed the extracted provider map has the exact seven
+  keys and produces outputs exactly equal to the original helper composition,
+  including both internal helper chains.
+- Xref reports one runtime edge from `Schema` to the new provider owner.
+- Schema export regenerated 121 schemas plus the bundle with no checked-in
+  artifact diff.
+- Strict full compile passed for 4,110 files with warnings as errors.
+- Formatting, diff checks, and bounded two-file review passed.
+- The public `Schema` facade shrank from 1,887 to 1,813 lines; the new focused
+  owner is 106 lines.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -41,12 +57,12 @@ laziness, field-hint fallback, stable-ID decoration, public `Schema`, and
 checked-in exports must remain unchanged.
 
 Last completed slice:
-Validation schema-provider extraction, selected in `bd0109e1` and implemented
-in `f5050011`. The public `Schema` facade moved from 1,917 to 1,887 lines.
+Station-calendar schema-provider extraction, selected in `5ec99bb8` and
+implemented in `9b22678f`. The public `Schema` facade moved from 1,887 to 1,813
+lines.
 
 Next candidate:
-Implement and verify the selected station-calendar provider extraction, then
-re-rank the remaining public-facade provider clusters.
+Re-rank the remaining public-facade provider clusters.
 
 Blocked:
 No.
