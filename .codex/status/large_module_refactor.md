@@ -9,7 +9,7 @@ Current slice:
 Schema validation/migration/lint operations context extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Add SchemaOperationsValidation owner-default entry points for schema validation
@@ -28,23 +28,34 @@ Selection evidence:
 - No route needs callbacks, recursive Schema lookup, or facade-local context.
 
 Implementation:
-Pending.
+Added `SchemaOperationsValidation` as the registry-backed family owner for the
+five selected artifacts and routed their direct `Schema` validation clauses
+through it. `schema.ex` moved from 4,888 to 4,864 lines.
 
 Verification:
-Pending.
+- Strict focused baseline: 8 tests passed.
+- Focused plus adjacent validation coverage after extraction: 26 tests passed.
+- Full schema export completed with no checked-in artifact changes.
+- Static routing review found exactly the five intended direct facade routes.
+- `mix xref graph` found only the expected runtime caller from `schema.ex`.
+- Formatting and `git diff --check` passed.
+- Strict forced compile passed across 4,080 files with warnings as errors.
+- Bounded diff review confirmed registry-owned requirements, contract routing,
+  validation ordering, and validation paths remain unchanged.
+- Implementation committed and pushed as `fdda4147`.
 
 Behavior/schema changes:
-None intended. Required fields, validation ordering and paths, public Schema
-APIs, validation results, and checked-in exports must remain unchanged.
+None. Required fields, validation ordering and paths, public Schema APIs,
+validation results, and checked-in exports remain unchanged.
 
 Last completed slice:
-Schema model-capability validation context extraction, selected in `c49cbd4f`
-and implemented in `6f7789aa`.
-`schema.ex` moved from 4,896 to 4,888 lines.
+Schema validation/migration/lint operations context extraction, selected in
+`3f36e8da` and implemented in `fdda4147`.
+`schema.ex` moved from 4,888 to 4,864 lines.
 
 Next candidate:
-Implement and verify the selected schema operations context extraction, then
-re-rank the remaining Schema responsibility clusters.
+Re-rank the remaining Schema responsibility clusters and select the next
+facade-preserving extraction.
 
 Blocked:
 No.
