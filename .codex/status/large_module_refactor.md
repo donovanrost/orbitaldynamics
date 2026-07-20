@@ -9,7 +9,7 @@ Current slice:
 Schema maneuver-review capability-context extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Extract the maneuver-recommendation and maneuver-review report model-limit
@@ -30,19 +30,33 @@ Selection evidence:
   results, and checked-in exports must remain unchanged.
 
 Implementation:
-Pending.
+Added `OrbitalDynamics.Schema.ManeuverReviewCapabilityContext`, which now owns
+the maneuver-recommendation and maneuver-review report model-limit
+projections. `OrbitalDynamics.Schema` imports only those two focused APIs.
+`schema.ex` moved from 6,188 to 6,184 lines; the dedicated owner is 13 lines.
 
 Verification:
-Pending.
+- Strict focused maneuver/export baseline before extraction: 18 passed.
+- After extraction, the strict schema portion passed 17 and the strict
+  maneuver-review export task passed 1.
+- Strict full schema-export task plus adjacent validation-policy and
+  fixture-visibility coverage: 3 passed.
+- `mix xref callers
+  OrbitalDynamics.Schema.ManeuverReviewCapabilityContext` reports only
+  `lib/orbital_dynamics/schema.ex (export)`.
+- `git diff --check` passed; no checked-in schema export changed.
+- Strict forced compile passed across 4,063 files.
+- Implementation commit `d4761487` pushed to `main`.
 
 Behavior/schema changes:
-None intended.
+None. Public facades, model-limit values and ordering, generated JSON Schema,
+validation behavior, and checked-in exports remain unchanged.
 
 Last completed slice:
-Schema timeline-feedback capability routing, selected in `5b92a765` and
-implemented in `d5a9fec1`.
-`schema.ex` moved from 6,187 to 6,188 lines; the existing
-TimelineCapabilityContext owner moved from 34 to 36 lines.
+Schema maneuver-review capability-context extraction, selected in `381c3a71`
+and implemented in `d4761487`.
+`schema.ex` moved from 6,188 to 6,184 lines; the dedicated
+ManeuverReviewCapabilityContext owner is 13 lines.
 
 Next candidate:
 Re-rank the remaining Schema capability/model-limit responsibility clusters.
