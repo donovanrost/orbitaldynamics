@@ -9,7 +9,7 @@ Current slice:
 Planning-analysis branch schema-provider expansion.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Move the branch-comparison row/source, score-term row, and branch-scoped
@@ -29,10 +29,26 @@ Selection evidence:
   primitives, so no facade callback is required.
 
 Implementation:
-Pending.
+Selected in `2715158a` and implemented in `08a9dcbf`.
+`PlanningAnalysisSchemaProviders.build/1` now returns eight lazy providers,
+adding branch-comparison and score-term rows, and exposes branch-comparison
+source-row and branch-scoped-context helpers. `Schema` removes the four private
+builders and two registry-local captures, then points strategy explanation and
+all six review-table captures at the existing owner.
 
 Verification:
-Pending.
+- Strict focused schema/validation baseline and post-change suites both passed:
+  359 tests, 0 failures.
+- Direct comparison confirmed both new provider outputs and both shared helper
+  outputs exactly match the original builders.
+- Xref reports the provider-map edge plus seven expected strategy/review-table
+  helper edges from `Schema` to the expanded owner.
+- Schema export regenerated 121 schemas plus the bundle with no checked-in
+  artifact diff.
+- Strict full compile passed for 4,115 files with warnings as errors.
+- Formatting, diff checks, and bounded two-file review passed.
+- The public `Schema` facade shrank from 1,619 to 1,606 lines; the focused
+  owner grew from 68 to 112 lines.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -40,13 +56,12 @@ laziness, field-hint fallback, stable-ID decoration, public `Schema`, and
 checked-in exports must remain unchanged.
 
 Last completed slice:
-Contact-planning schema-provider extraction, selected in `a016943e` and
-implemented in `2616d693`. The public `Schema` facade moved from 1,629 to 1,619
+Planning-analysis branch schema-provider expansion, selected in `2715158a` and
+implemented in `08a9dcbf`. The public `Schema` facade moved from 1,619 to 1,606
 lines.
 
 Next candidate:
-Implement and verify the selected planning-analysis expansion, then re-rank
-the remaining public-facade provider clusters.
+Re-rank the remaining public-facade provider clusters.
 
 Blocked:
 No.
