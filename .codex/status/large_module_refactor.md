@@ -6,41 +6,32 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Ground-network row schema-provider expansion.
+Timeline edge-row schema-provider extraction.
 
 Status:
-Completed and verified.
+Selected; implementation pending.
 
 Selected boundary:
-Move the relay-data-path and provider-counteroffer row builders from the public
-`Schema` facade into the existing `GroundNetworkSchemaProviders` owner. Expand
-its lazy provider map while reusing the existing stable-ID and station-calendar
-dependencies.
+Move the ranked-timeline, candidate-rejection row, lifecycle-state row, and
+transition-selected-activity builders from the public `Schema` facade into a
+new `TimelineEdgeSchemaProviders` owner. Merge its four lazy providers into the
+property context and pass facade-owned activity, context, protection,
+capability, model-limit, and decision dependencies as explicit callbacks.
 
 Selection evidence:
-- The public `Schema` facade remains 1,511 lines.
-- Both row builders are referenced only by the property provider registry and
-  belong with the six ground-network providers already extracted.
-- Relay-data-path fragments already have focused schema owners and need only
-  the stable-ID pattern.
-- Provider-counteroffer construction can reuse the existing lazy
-  station-calendar capability callback.
+- The public `Schema` facade remains 1,491 lines.
+- All four builders are referenced only by the property provider registry and
+  form a cohesive set of timeline edge/row adapters.
+- Common fragments and lifecycle-transition construction already have focused
+  owners and can remain direct dependencies.
+- Facade-owned activity, protection, capability, limit, and decision values can
+  remain lazy through explicit callbacks.
 
 Implementation:
-Selected in `41412217` and implemented in `a04b1e80`. Expanded the existing
-`GroundNetworkSchemaProviders` owner from six to eight lazy providers by moving
-the relay-data-path and provider-counteroffer row builders. The public `Schema`
-facade moved from 1,511 to 1,491 lines.
+Pending.
 
 Verification:
-- Exact comparison passed for both moved outputs and confirmed all eight owner
-  keys using the real station-calendar capability contract.
-- Focused schema/validation suite passed: 359 tests.
-- Full checked-in schema export regenerated with no diff.
-- Runtime xref retains one direct `Schema` -> `GroundNetworkSchemaProviders`
-  edge.
-- Strict forced compile passed with warnings as errors: 4,118 files.
-- `JsonSchemaPropertyRouter` remains an ordered 76-head facade.
+Pending.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -53,8 +44,8 @@ implemented in `a04b1e80`. The public `Schema` facade moved from 1,511 to 1,491
 lines.
 
 Next candidate:
-Re-rank the remaining public-facade provider clusters and select the next
-bounded extraction.
+Implement and verify the selected timeline edge-row provider extraction, then
+re-rank the remaining public-facade provider clusters.
 
 Blocked:
 No.
