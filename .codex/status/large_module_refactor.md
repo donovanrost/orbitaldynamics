@@ -9,7 +9,7 @@ Current slice:
 Schema artifact-validation router extraction.
 
 Status:
-Selected; implementation pending.
+Implemented and verified.
 
 Selected boundary:
 Extract the complete specialized `validate_contract/3` clause set and generic
@@ -28,10 +28,24 @@ Selection evidence:
   avoids duplicating the facade's JSON-schema metadata surface.
 
 Implementation:
-Pending.
+- Added `OrbitalDynamics.Schema.ArtifactValidationRouter` as the owner of all
+  122 specialized validation routes plus the generic required-field fallback.
+- Routed `ArtifactValidation` through the new owner while preserving the public
+  `Schema` facade.
+- Removed validation-only aliases, contract attributes, and primitive imports
+  from the facade after confirming its remaining runtime dependencies.
+- `schema.ex` moved from 3,818 to 3,194 lines; the new owner is 638 lines.
 
 Verification:
-Pending.
+- Strict focused/broad schema and validation suite: 359 tests passed.
+- AST-normalized old/new route comparison: 122/122 clauses matched exactly,
+  including order, literal identities, bodies, and fallback.
+- Full schema export regenerated 121 contract schemas and the bundle with no
+  checked-in schema diff.
+- `mix xref trace` confirms the intended runtime edge from `Schema` to
+  `ArtifactValidationRouter.validate/3`.
+- Formatting, `git diff --check`, and bounded source/schema diff review passed.
+- Strict compile passed for 4,093 files with warnings as errors.
 
 Behavior/schema changes:
 None intended. Clause order, owner calls, contract identities, required-field
@@ -39,12 +53,13 @@ fallback, issue paths and ordering, public `Schema`, validation results, and
 checked-in exports must remain unchanged.
 
 Last completed slice:
-Schema field-type hint catalog extraction, selected in `da2eac26` and
-implemented in `bc19058a`. `schema.ex` moved from 4,614 to 3,818 lines.
+Schema artifact-validation router extraction, selected in `49196371` and
+implemented in `2b8aebb6`. `schema.ex` moved from 3,818 to 3,194 lines.
 
 Next candidate:
-Implement and verify the selected artifact-validation router, then re-rank the
-remaining JSON-schema property dispatch and schema-builder blocks.
+Re-rank the remaining JSON-schema property dispatch and schema-builder blocks,
+favoring a cohesive boundary whose dependencies can be expressed without
+moving public facade ownership or coupling a new owner back to private state.
 
 Blocked:
 No.
