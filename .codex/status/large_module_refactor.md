@@ -9,7 +9,7 @@ Current slice:
 Timeline-feedback schema-provider extraction.
 
 Status:
-Selected; implementation pending.
+Completed and verified.
 
 Selected boundary:
 Move the operational-feedback, timeline-feedback provenance, and
@@ -29,10 +29,22 @@ Selection evidence:
   lazy through explicit callbacks.
 
 Implementation:
-Pending.
+Selected in `3f40aab2` and implemented in `937ea42d`. Added the 57-line
+`TimelineFeedbackSchemaProviders` owner, merged its three lazy providers into
+the schema property context, and retained facade-owned realized/planned
+activity, timeline/activity context, protection, and capability dependencies
+behind explicit callbacks. The public `Schema` facade moved from 1,559 to
+1,524 lines.
 
 Verification:
-Pending.
+- Exact comparison passed for all three provider keys and outputs using the
+  real capability contract and sentinel recursive schemas.
+- Focused schema/validation suite passed: 359 tests.
+- Full checked-in schema export regenerated with no diff.
+- Runtime xref shows one direct `Schema` -> `TimelineFeedbackSchemaProviders`
+  edge.
+- Strict forced compile passed with warnings as errors: 4,117 files.
+- `JsonSchemaPropertyRouter` remains an ordered 76-head facade.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -40,12 +52,13 @@ laziness, field-hint fallback, stable-ID decoration, public `Schema`, and
 checked-in exports must remain unchanged.
 
 Last completed slice:
-Strategy schema-provider extraction, selected in `a27dfb35` and implemented in
-`5aa56ba5`. The public `Schema` facade moved from 1,606 to 1,559 lines.
+Timeline-feedback schema-provider extraction, selected in `3f40aab2` and
+implemented in `937ea42d`. The public `Schema` facade moved from 1,559 to 1,524
+lines.
 
 Next candidate:
-Implement and verify the selected timeline-feedback provider extraction, then
-re-rank the remaining public-facade provider clusters.
+Re-rank the remaining public-facade provider clusters and select the next
+bounded extraction.
 
 Blocked:
 No.
