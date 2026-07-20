@@ -58,7 +58,7 @@ defmodule OrbitalDynamics.Schema.OperationalReadinessContextJsonSchema do
     }
   end
 
-  defp trust_boundary_status_count_map do
+  def trust_boundary_status_count_map do
     %{
       "type" => "object",
       "propertyNames" => %{"enum" => ["declared", "missing", "untrusted"]},

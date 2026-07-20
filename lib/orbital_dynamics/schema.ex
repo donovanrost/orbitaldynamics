@@ -2155,7 +2155,7 @@ defmodule OrbitalDynamics.Schema do
         &station_calendar_report_model/0,
         &station_calendar_provider_contention_group_json_schema/0,
         &station_calendar_provider_entry_json_schema/0,
-        &branch_event_trust_boundary_status_counts_json_schema/0,
+        &OrbitalDynamics.Schema.OperationalReadinessContextJsonSchema.trust_boundary_status_count_map/0,
         &station_calendar_report_model_limits/0
       }
     )
@@ -2256,7 +2256,7 @@ defmodule OrbitalDynamics.Schema do
         &stable_id_array_schema/0,
         &nested_stable_id_array_map_json_schema/0,
         &OrbitalDynamics.Schema.CommonJsonSchema.string_array/0,
-        &branch_event_trust_boundary_status_counts_json_schema/0,
+        &OrbitalDynamics.Schema.OperationalReadinessContextJsonSchema.trust_boundary_status_count_map/0,
         &contact_allocation_capabilities/0,
         &enum_count_map_json_schema/1,
         &OrbitalDynamics.Schema.CommonJsonSchema.non_negative_integer_count_map/0,
@@ -2315,7 +2315,8 @@ defmodule OrbitalDynamics.Schema do
         resource: @resource_filter_report
       },
       stable_id_pattern: @stable_id_pattern,
-      trust_boundary_count_map_schema: &branch_event_trust_boundary_status_counts_json_schema/0,
+      trust_boundary_count_map_schema:
+        &OrbitalDynamics.Schema.OperationalReadinessContextJsonSchema.trust_boundary_status_count_map/0,
       contact_model_limits: &contact_filter_report_model_limits/0,
       contact_assumptions_schema: &contact_filter_report_assumptions_json_schema/0,
       resource_model_limits: &resource_filter_report_model_limits/0,
@@ -2828,7 +2829,7 @@ defmodule OrbitalDynamics.Schema do
       string_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.string_array/0,
       numeric_map_schema: &OrbitalDynamics.Schema.CommonJsonSchema.numeric_map/0,
       branch_event_trust_boundary_status_counts_schema:
-        &branch_event_trust_boundary_status_counts_json_schema/0,
+        &OrbitalDynamics.Schema.OperationalReadinessContextJsonSchema.trust_boundary_status_count_map/0,
       non_negative_integer_properties: fn ->
         OrbitalDynamics.Schema.BranchComparisonReportContracts.row_count_fields()
         |> non_negative_integer_property_schemas()
@@ -3048,14 +3049,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp enum_count_map_json_schema(values) do
     OrbitalDynamics.Schema.CommonJsonSchema.enum_count_map(values)
-  end
-
-  defp branch_event_trust_boundary_status_counts_json_schema do
-    %{
-      "type" => "object",
-      "propertyNames" => %{"enum" => ["declared", "missing", "untrusted"]},
-      "additionalProperties" => %{"type" => "integer", "minimum" => 0}
-    }
   end
 
   defp numeric_triplet_schema do
@@ -3789,7 +3782,7 @@ defmodule OrbitalDynamics.Schema do
       string_array_schema: OrbitalDynamics.Schema.CommonJsonSchema.string_array(),
       stable_id_array_schema: stable_id_array_schema(),
       branch_event_trust_boundary_status_counts_schema:
-        branch_event_trust_boundary_status_counts_json_schema(),
+        OrbitalDynamics.Schema.OperationalReadinessContextJsonSchema.trust_boundary_status_count_map(),
       timeline_publication_context_properties:
         OrbitalDynamics.Schema.CandidateRefreshReportJsonSchema.timeline_publication_context_properties(
           stable_id_pattern: @stable_id_pattern
@@ -3812,7 +3805,7 @@ defmodule OrbitalDynamics.Schema do
       activity_context_json_schema: &activity_context_json_schema/0,
       branch_comparison_source_row_json_schema: &branch_comparison_source_row_json_schema/0,
       branch_event_trust_boundary_status_counts_json_schema:
-        &branch_event_trust_boundary_status_counts_json_schema/0,
+        &OrbitalDynamics.Schema.OperationalReadinessContextJsonSchema.trust_boundary_status_count_map/0,
       cadence_import_status_json_schema:
         &OrbitalDynamics.Schema.CadenceImportOperationalReadinessJsonSchema.status/0,
       cadence_source_review_row_json_schema: &cadence_source_review_row_json_schema/0,
@@ -3963,7 +3956,7 @@ defmodule OrbitalDynamics.Schema do
       activity_context_json_schema: &activity_context_json_schema/0,
       branch_comparison_source_row_json_schema: &branch_comparison_source_row_json_schema/0,
       branch_event_trust_boundary_status_counts_json_schema:
-        &branch_event_trust_boundary_status_counts_json_schema/0,
+        &OrbitalDynamics.Schema.OperationalReadinessContextJsonSchema.trust_boundary_status_count_map/0,
       candidate_activity_source_window_json_schema:
         &candidate_activity_source_window_json_schema/0,
       candidate_rejection_source_json_schema: &candidate_rejection_source_json_schema/0,
@@ -4060,7 +4053,7 @@ defmodule OrbitalDynamics.Schema do
       approval_requirement_json_schema: &approval_requirement_json_schema/0,
       branch_comparison_source_row_json_schema: &branch_comparison_source_row_json_schema/0,
       branch_event_trust_boundary_status_counts_json_schema:
-        &branch_event_trust_boundary_status_counts_json_schema/0,
+        &OrbitalDynamics.Schema.OperationalReadinessContextJsonSchema.trust_boundary_status_count_map/0,
       candidate_activity_source_window_json_schema:
         &candidate_activity_source_window_json_schema/0,
       contact_allocation_capacity_requirement_row_json_schema:
