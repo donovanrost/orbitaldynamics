@@ -9,7 +9,7 @@ Current slice:
 Schema timeline-transition validation context extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Add default-context arity-three entry points to TimelineTransitionValidation,
@@ -31,18 +31,35 @@ Selection evidence:
   scope.
 
 Implementation:
-Pending.
+Added default-context arity-three entry points to TimelineTransitionValidation,
+kept all customizable arity-four APIs, routed two eager facade validations and
+eight lazy callbacks directly to the owner, and removed five wrappers plus the
+shared callback builder. `schema.ex` moved from 5,913 to 5,860 lines.
 
 Verification:
-Pending.
+- Strict campaign/Cadence/operator-review/timeline baseline before extraction:
+  16 passed.
+- The same strict focused suite after extraction: 16 passed.
+- Strict checked-in export, review/import handoff, and JSON Schema export
+  coverage: 22 passed.
+- The full schema-export task completed and produced no checked-in changes.
+- Exact static inspection confirms two direct eager validations, eight direct
+  lazy callbacks, zero facade wrappers, and retained arity-four owner APIs.
+- `mix xref callers OrbitalDynamics.Schema.TimelineTransitionValidation`
+  reports only the expected Schema facade runtime caller.
+- `git diff --check` passed.
+- Strict forced compile passed across 4,072 files with no warnings.
+- Implementation commit `f1a0f77f` pushed to `main`.
 
 Behavior/schema changes:
-None intended.
+None. Issue ordering, paths, default TimelineContextValidation callbacks,
+customizable owner entry points, public Schema APIs, validation results, and
+checked-in exports remain unchanged.
 
 Last completed slice:
-Schema numeric-triplet primitive routing, selected in `01c64f0e` and
-implemented in `1537a415`.
-`schema.ex` moved from 5,919 to 5,913 lines.
+Schema timeline-transition validation context extraction, selected in
+`0f55f0bb` and implemented in `f1a0f77f`.
+`schema.ex` moved from 5,913 to 5,860 lines.
 
 Next candidate:
 Re-rank the remaining non-capability Schema responsibility clusters. Preserve
