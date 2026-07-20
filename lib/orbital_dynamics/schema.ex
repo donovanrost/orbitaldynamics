@@ -3871,7 +3871,8 @@ defmodule OrbitalDynamics.Schema do
       branch_comparison_source_row_json_schema: &branch_comparison_source_row_json_schema/0,
       branch_event_trust_boundary_status_counts_json_schema:
         &branch_event_trust_boundary_status_counts_json_schema/0,
-      cadence_import_status_json_schema: &cadence_import_status_json_schema/0,
+      cadence_import_status_json_schema:
+        &OrbitalDynamics.Schema.CadenceImportOperationalReadinessJsonSchema.status/0,
       cadence_source_review_row_json_schema: &cadence_source_review_row_json_schema/0,
       candidate_activity_source_window_json_schema:
         &candidate_activity_source_window_json_schema/0,
@@ -4000,10 +4001,6 @@ defmodule OrbitalDynamics.Schema do
       stable_id_pattern: @stable_id_pattern,
       probability_schema: probability_json_schema()
     )
-  end
-
-  defp cadence_import_status_json_schema do
-    OrbitalDynamics.Schema.CadenceImportOperationalReadinessJsonSchema.status()
   end
 
   defp cadence_source_review_row_json_schema do
