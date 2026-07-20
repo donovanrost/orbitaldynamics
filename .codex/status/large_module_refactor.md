@@ -9,7 +9,7 @@ Current slice:
 Schema provider-counteroffer validation context extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Add a `ProviderCounterofferValidation` owner-default entry point for the report,
@@ -29,23 +29,37 @@ Selection evidence:
   or facade-local context.
 
 Implementation:
-Pending.
+Added `ProviderCounterofferValidation` as the registry-backed family owner for
+the four selected artifacts and routed their direct `Schema` validation clauses
+through it. `schema.ex` moved from 4,842 to 4,829 lines.
 
 Verification:
-Pending.
+- Strict focused baseline: 20 tests passed.
+- Focused plus adjacent validation, station-provider, operator-review,
+  candidate-refresh replay, campaign-planner source-report, and export coverage
+  after extraction: 35 tests passed.
+- Full schema export completed with no checked-in artifact changes.
+- Static routing review found exactly the four intended direct facade routes.
+- `mix xref trace` confirmed all four runtime calls originate in `schema.ex`; a
+  bounded production search found no other owner callers.
+- Formatting and `git diff --check` passed.
+- Strict forced compile passed across 4,084 files with warnings as errors.
+- Bounded diff review confirmed registry-owned requirements, contract routing,
+  validation ordering, and validation paths remain unchanged.
+- Implementation committed and pushed as `45176e44`.
 
 Behavior/schema changes:
-None intended. Required fields, validation ordering and paths, public `Schema`
-APIs, validation results, and checked-in exports must remain unchanged.
+None. Required fields, validation ordering and paths, public `Schema` APIs,
+validation results, and checked-in exports remain unchanged.
 
 Last completed slice:
-Schema study-result metadata validation context extraction, selected in
-`8b7f0687` and implemented in `045ca428`.
-`schema.ex` moved from 4,851 to 4,842 lines.
+Schema provider-counteroffer validation context extraction, selected in
+`ab187bb8` and implemented in `45176e44`.
+`schema.ex` moved from 4,842 to 4,829 lines.
 
 Next candidate:
-Implement and verify the selected provider-counteroffer context, then re-rank
-the remaining Schema responsibility clusters.
+Re-rank the remaining Schema responsibility clusters and select the next
+facade-preserving extraction.
 
 Blocked:
 No.
