@@ -9,7 +9,7 @@ Current slice:
 Validation/schema-lifecycle JSON-property family extraction.
 
 Status:
-Selected; implementation pending.
+Implemented and verified.
 
 Selected boundary:
 Extract the five contiguous validation evidence, validation assessment, schema
@@ -27,10 +27,24 @@ Selection evidence:
 - No recursive parent callback or cross-family property lookup is required.
 
 Implementation:
-Pending.
+- Added a 116-line `ValidationPropertyRouter` with the five mechanically moved
+  validation/schema-lifecycle clause bodies spanning twelve contracts.
+- Kept all literal and guarded parent clause heads in place as ordered
+  delegations.
+- Reused shared lazy provider/context/fallback support without a parent
+  callback.
+- The parent router moved from 1,146 to 1,071 lines.
 
 Verification:
-Pending.
+- Strict pre-change baseline and post-change schema/validation suite: 359 tests
+  passed in each run.
+- AST comparison confirmed all five moved bodies are exact and all 76 parent
+  clause heads remain in their original order.
+- Full schema export regenerated 121 contract schemas and the bundle with no
+  checked-in schema diff.
+- `mix xref trace` confirms the five intended family edges.
+- Formatting, `git diff --check`, and bounded source/schema diff review passed.
+- Strict compile passed for 4,101 files with warnings as errors.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -38,12 +52,13 @@ laziness, field-hint fallback, stable-ID decoration, public `Schema`, and
 checked-in exports must remain unchanged.
 
 Last completed slice:
-Result artifact JSON-property family extraction, selected in `13b52e7b` and
-implemented in `13fa8422`. Result-family ownership moved into a 55-line module.
+Validation/schema-lifecycle JSON-property family extraction, selected in
+`28e22361` and implemented in `5e2b8c72`. The parent router moved from 1,146 to
+1,071 lines.
 
 Next candidate:
-Implement and verify the selected validation/schema-lifecycle split, then
-re-rank strategy/planning-analysis or communications cohorts.
+Re-rank the adjacent strategy/planning-analysis and communications cohorts,
+preferring another broad mechanical family boundary.
 
 Blocked:
 No.
