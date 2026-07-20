@@ -6,15 +6,15 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-OperationalReadiness capability-metadata extraction.
+No slice selected.
 
 Status:
-Selected; implementation not started.
+Slice complete and pushed.
 
 Selected boundary:
-Extract operational-readiness capability/contract metadata assembly into
+Extracted operational-readiness capability/contract metadata assembly into
 `OrbitalDynamics.OperationalReadiness.Capability`.
-Preserve `OperationalReadiness.capabilities/0` and all downstream public
+Preserved `OperationalReadiness.capabilities/0` and all downstream public
 facades.
 
 Selection evidence:
@@ -32,23 +32,42 @@ Selection evidence:
   lookups, atom/string types, and public output must remain unchanged.
 
 Implementation:
-Pending.
+- Added the focused `Capability` owner for readiness contracts,
+  classifications, semantics, public helpers/facades, handoff artifacts,
+  dependent capability lookups, and known limits.
+- Replaced the facade's inline metadata assembly with a thin public delegate;
+  routing-specific contract attributes remain with the facade.
+- Removed three metadata-only contract attributes and four classification/
+  status attributes from the facade.
+- `operational_readiness.ex` moved from 484 to 345 lines; the dedicated owner
+  is 155 lines.
 
 Verification:
-Pending.
+- Pre-change strict focused baseline: 31 tests passed.
+- Exact before/after public-output parity: 2 complete capability maps matched
+  byte-for-byte with SHA-256
+  `2a51ca75f068a8ef95d3cca14d46f5b830b247e98ded405f4c30dce94ef54ad0`,
+  covering both direct readiness capabilities and the root capability catalog.
+- Focused and adjacent strict verification: 51 tests passed.
+- Static ownership checks found no migrated classification/status attributes or
+  inline capability builder in the facade; xref reports the facade as the
+  runtime caller of `Capability`.
+- Forced warnings-as-errors compile passed across 4,048 files.
+- Formatting and `git diff --check` passed; the worktree was clean after the
+  implementation commit.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-RecommendationRiskContext timeline-preservation extraction, selected in
-`456df820` and implemented in `7054c53b`.
-`recommendation_risk_context.ex` moved from 573 to 473 lines; the dedicated
-TimelinePreservation owner is 133 lines.
+OperationalReadiness capability-metadata extraction, selected in `67e54137`
+and implemented in `17398d5d`.
+`operational_readiness.ex` moved from 484 to 345 lines; the dedicated
+Capability owner is 155 lines.
 
 Next candidate:
-After this slice, re-rank the live checkout. RecommendationRiskContext is the
-next largest remaining facade at 473 lines.
+Re-rank the live checkout. RecommendationRiskContext is now the largest
+remaining facade in this lane at 473 lines.
 
 Blocked:
 No.
