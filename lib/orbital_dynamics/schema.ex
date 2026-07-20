@@ -4405,19 +4405,19 @@ defmodule OrbitalDynamics.Schema do
   defp validate_contract(@approval_requirement, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_approval_requirement("$", artifact)
+    |> PolicyValidation.validate_approval_requirement("$", artifact)
   end
 
   defp validate_contract(@policy_decision, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_policy_decision("$", artifact)
+    |> PolicyValidation.validate_decision("$", artifact)
   end
 
   defp validate_contract(@policy_bundle, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_policy_bundle("$", artifact)
+    |> PolicyValidation.validate_bundle("$", artifact)
   end
 
   defp validate_contract(@operator_review_package, contract, artifact) do
@@ -5229,8 +5229,8 @@ defmodule OrbitalDynamics.Schema do
       validate_optional_station_calendar_report:
         &StationReservationValidation.validate_optional_calendar_report/3,
       validate_plan_delta: &OrbitalDynamics.Schema.PlanDeltaContracts.validate/3,
-      validate_approval_requirement: &validate_approval_requirement/3,
-      validate_policy_decision: &validate_policy_decision/3,
+      validate_approval_requirement: &PolicyValidation.validate_approval_requirement/3,
+      validate_policy_decision: &PolicyValidation.validate_decision/3,
       require_nested: &require_nested/4,
       validate_optional_timeline_protection_summary:
         &TimelineContextValidation.validate_optional_timeline_protection_summary/4,
@@ -5321,8 +5321,8 @@ defmodule OrbitalDynamics.Schema do
 
   defp resource_validation_callbacks do
     [
-      validate_approval_requirement: &validate_approval_requirement/3,
-      validate_policy_rule_match: &validate_policy_rule_match/3,
+      validate_approval_requirement: &PolicyValidation.validate_approval_requirement/3,
+      validate_policy_rule_match: &PolicyValidation.validate_rule_match/3,
       validate_nested_id_match: &validate_nested_id_match/7
     ]
   end
@@ -5528,7 +5528,8 @@ defmodule OrbitalDynamics.Schema do
       validate_stable_ids: &validate_stable_ids/4,
       expect_optional_number: &expect_optional_number/4,
       validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
-      validate_optional_policy_decision_evidence: &validate_optional_policy_decision_evidence/3,
+      validate_optional_policy_decision_evidence:
+        &PolicyValidation.validate_optional_decision_evidence/3,
       validate_optional_policy_escalation: &PolicyValidation.validate_optional_escalation/4,
       validate_optional_candidate_rejection_source_row:
         &CandidateRejectionValidation.validate_optional_source_row/3,
@@ -5603,7 +5604,8 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.CadenceImportRowCallbacks.build(
       validate_contact_allocation_capacity_pack_group:
         &validate_contact_allocation_capacity_pack_group/3,
-      validate_optional_policy_decision_evidence: &validate_optional_policy_decision_evidence/3,
+      validate_optional_policy_decision_evidence:
+        &PolicyValidation.validate_optional_decision_evidence/3,
       validate_optional_policy_escalation: &PolicyValidation.validate_optional_escalation/4,
       validate_optional_candidate_rejection_source_row:
         &CandidateRejectionValidation.validate_optional_source_row/3,
@@ -5670,25 +5672,6 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validate_approval_requirement(issues, path, requirement),
-    do:
-      PolicyValidation.validate_approval_requirement(
-        issues,
-        path,
-        requirement,
-        policy_model_limits(),
-        OrbitalDynamics.Schema.PolicyFieldGroups.rule_match()
-      )
-
-  defp validate_optional_policy_decision_evidence(issues, path, decision),
-    do:
-      PolicyValidation.validate_optional_decision_evidence(
-        issues,
-        path,
-        decision,
-        policy_model_limits()
-      )
-
   defp validate_contact_allocation_handoff_fields(issues, path, row) do
     OrbitalDynamics.Schema.ContactAllocationHandoffContracts.validate_allocation_fields(
       issues,
@@ -5705,8 +5688,8 @@ defmodule OrbitalDynamics.Schema do
       branch,
       &OrbitalDynamics.Schema.BranchEventContracts.validate_event/3,
       &validate_optional_resource_projection_report/3,
-      &validate_policy_decision/3,
-      &validate_approval_requirement/3
+      &PolicyValidation.validate_decision/3,
+      &PolicyValidation.validate_approval_requirement/3
     )
   end
 
@@ -5719,35 +5702,6 @@ defmodule OrbitalDynamics.Schema do
       &OrbitalDynamics.Schema.ScopedDownlinkContextContracts.validate/3
     )
   end
-
-  defp validate_policy_decision(issues, path, decision),
-    do:
-      PolicyValidation.validate_decision(
-        issues,
-        path,
-        decision,
-        policy_model_limits(),
-        OrbitalDynamics.Schema.PolicyFieldGroups.rule_match()
-      )
-
-  defp validate_policy_rule_match(issues, path, match),
-    do:
-      PolicyValidation.validate_rule_match(
-        issues,
-        path,
-        match,
-        OrbitalDynamics.Schema.PolicyFieldGroups.rule_match()
-      )
-
-  defp validate_policy_bundle(issues, path, bundle),
-    do:
-      PolicyValidation.validate_bundle(
-        issues,
-        path,
-        bundle,
-        policy_model_limits(),
-        OrbitalDynamics.Schema.PolicyFieldGroups.action_rule()
-      )
 
   defp validate_operator_review_package(issues, path, package),
     do:
@@ -5797,7 +5751,8 @@ defmodule OrbitalDynamics.Schema do
         &TimelineContextValidation.validate_optional_lifecycle_transition/4,
       validate_optional_branch_comparison_source_row:
         &DecisionSupportValidation.validate_optional_branch_comparison_source_row/3,
-      validate_optional_policy_decision_evidence: &validate_optional_policy_decision_evidence/3,
+      validate_optional_policy_decision_evidence:
+        &PolicyValidation.validate_optional_decision_evidence/3,
       validate_optional_policy_escalation: &PolicyValidation.validate_optional_escalation/4,
       validate_optional_timeline_dependency_impact_source_row:
         &TimelineSourceValidation.validate_optional_timeline_dependency_impact_source_row/3,

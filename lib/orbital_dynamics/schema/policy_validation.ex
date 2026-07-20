@@ -3,6 +3,16 @@ defmodule OrbitalDynamics.Schema.PolicyValidation do
 
   import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2]
 
+  def validate_approval_requirement(issues, path, requirement),
+    do:
+      validate_approval_requirement(
+        issues,
+        path,
+        requirement,
+        policy_model_limits(),
+        OrbitalDynamics.Schema.PolicyFieldGroups.rule_match()
+      )
+
   def validate_approval_requirement(
         issues,
         path,
@@ -27,6 +37,9 @@ defmodule OrbitalDynamics.Schema.PolicyValidation do
       model_limits
     )
   end
+
+  def validate_optional_decision_evidence(issues, path, decision),
+    do: validate_optional_decision_evidence(issues, path, decision, policy_model_limits())
 
   def validate_optional_escalation(issues, path, row, field) do
     case Map.get(row, field) do
@@ -55,6 +68,16 @@ defmodule OrbitalDynamics.Schema.PolicyValidation do
     )
   end
 
+  def validate_decision(issues, path, decision),
+    do:
+      validate_decision(
+        issues,
+        path,
+        decision,
+        policy_model_limits(),
+        OrbitalDynamics.Schema.PolicyFieldGroups.rule_match()
+      )
+
   def validate_rule_match(issues, path, match, rule_match_field_groups) do
     OrbitalDynamics.Schema.PolicyRuleMatchContracts.validate(
       issues,
@@ -63,6 +86,15 @@ defmodule OrbitalDynamics.Schema.PolicyValidation do
       rule_match_field_groups
     )
   end
+
+  def validate_rule_match(issues, path, match),
+    do:
+      validate_rule_match(
+        issues,
+        path,
+        match,
+        OrbitalDynamics.Schema.PolicyFieldGroups.rule_match()
+      )
 
   def validate_bundle(issues, path, bundle, model_limits, action_rule_field_groups) do
     OrbitalDynamics.Schema.PolicyBundleContracts.validate(
@@ -73,4 +105,17 @@ defmodule OrbitalDynamics.Schema.PolicyValidation do
       action_rule_field_groups
     )
   end
+
+  def validate_bundle(issues, path, bundle),
+    do:
+      validate_bundle(
+        issues,
+        path,
+        bundle,
+        policy_model_limits(),
+        OrbitalDynamics.Schema.PolicyFieldGroups.action_rule()
+      )
+
+  defp policy_model_limits,
+    do: OrbitalDynamics.Schema.PolicyCapabilityContext.policy_model_limits()
 end
