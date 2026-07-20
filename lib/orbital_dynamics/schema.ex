@@ -5756,7 +5756,7 @@ defmodule OrbitalDynamics.Schema do
       expect_optional_number: &expect_optional_number/4,
       validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
       validate_optional_policy_decision_evidence: &validate_optional_policy_decision_evidence/3,
-      validate_optional_policy_escalation: &validate_optional_policy_escalation/4,
+      validate_optional_policy_escalation: &PolicyValidation.validate_optional_escalation/4,
       validate_optional_candidate_rejection_source_row:
         &CandidateRejectionValidation.validate_optional_source_row/3,
       validate_optional_timeline_dependency_impact_source_row:
@@ -5831,7 +5831,7 @@ defmodule OrbitalDynamics.Schema do
       validate_contact_allocation_capacity_pack_group:
         &validate_contact_allocation_capacity_pack_group/3,
       validate_optional_policy_decision_evidence: &validate_optional_policy_decision_evidence/3,
-      validate_optional_policy_escalation: &validate_optional_policy_escalation/4,
+      validate_optional_policy_escalation: &PolicyValidation.validate_optional_escalation/4,
       validate_optional_candidate_rejection_source_row:
         &CandidateRejectionValidation.validate_optional_source_row/3,
       validate_optional_branch_comparison_source_row:
@@ -5924,9 +5924,6 @@ defmodule OrbitalDynamics.Schema do
       &validate_contact_allocation_duplicate_evidence/3
     )
   end
-
-  defp validate_optional_policy_escalation(issues, path, row, field),
-    do: PolicyValidation.validate_optional_escalation(issues, path, row, field)
 
   defp validate_branch(issues, path, branch) do
     OrbitalDynamics.Schema.StrategyBranchContracts.validate(
@@ -6032,7 +6029,7 @@ defmodule OrbitalDynamics.Schema do
       validate_optional_branch_comparison_source_row:
         &DecisionSupportValidation.validate_optional_branch_comparison_source_row/3,
       validate_optional_policy_decision_evidence: &validate_optional_policy_decision_evidence/3,
-      validate_optional_policy_escalation: &validate_optional_policy_escalation/4,
+      validate_optional_policy_escalation: &PolicyValidation.validate_optional_escalation/4,
       validate_optional_timeline_dependency_impact_source_row:
         &TimelineSourceValidation.validate_optional_timeline_dependency_impact_source_row/3,
       validate_source_evidence_fields: &SourceEvidenceValidation.validate_fields/3,
