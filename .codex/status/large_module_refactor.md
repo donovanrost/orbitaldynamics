@@ -9,7 +9,7 @@ Current slice:
 Execution-artifact JSON-property extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Move the realized-state-snapshot, realized-activity, and
@@ -27,10 +27,25 @@ Selection evidence:
   property lookup is required.
 
 Implementation:
-Pending.
+Selected in `94e3e7b8` and implemented in `b3ee5b97`.
+`JsonSchemaPropertyRouter` retains all 76 public route heads in their original
+order and delegates the three selected bodies to the new
+`ExecutionArtifactPropertyRouter`. The owner contains realized snapshot,
+realized activity, and maneuver recommendation dispatch with shared lazy
+provider/context/fallback support.
 
 Verification:
-Pending.
+- Strict focused schema/validation baseline and post-change suites both passed:
+  359 tests, 0 failures.
+- AST-rendered comparison confirmed all three moved bodies are exact and all 76
+  parent route heads remain exact and ordered.
+- Xref reports three runtime edges from the parent to the execution-artifact
+  owner.
+- Schema export regenerated 121 schemas plus the bundle with no checked-in
+  artifact diff.
+- Strict full compile passed for 4,107 files with warnings as errors.
+- Formatting, diff checks, and bounded two-file review passed.
+- The parent router shrank from 615 to 581 lines; the new owner is 53 lines.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -38,13 +53,12 @@ laziness, field-hint fallback, stable-ID decoration, public `Schema`, and
 checked-in exports must remain unchanged.
 
 Last completed slice:
-Contact-planning JSON-property extraction, selected in `eebf7804` and
-implemented in `fd610981`. The parent router moved from 641 to 615 lines.
+Execution-artifact JSON-property extraction, selected in `94e3e7b8` and
+implemented in `b3ee5b97`. The parent router moved from 615 to 581 lines.
 
 Next candidate:
-Implement and verify the selected execution-artifact extraction, then re-rank
-the remaining inline router routes against the public `Schema` facade's
-provider-helper boundaries.
+Re-rank the remaining inline router routes against the public `Schema`
+facade's provider-helper boundaries.
 
 Blocked:
 No.
