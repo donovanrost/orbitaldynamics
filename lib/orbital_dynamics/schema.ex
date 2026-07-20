@@ -62,7 +62,8 @@ defmodule OrbitalDynamics.Schema do
   import OrbitalDynamics.Schema.ContactFilterCapabilityContext,
     only: [
       contact_filter_report_assumptions_json_schema: 0,
-      contact_filter_report_model_limits: 0
+      contact_filter_report_model_limits: 0,
+      contact_filter_suppression_reasons: 0
     ]
 
   import OrbitalDynamics.Schema.ContactIntentCapabilityContext,
@@ -104,7 +105,8 @@ defmodule OrbitalDynamics.Schema do
   import OrbitalDynamics.Schema.ResourceFilterCapabilityContext,
     only: [
       resource_filter_report_assumptions_json_schema: 0,
-      resource_filter_report_model_limits: 0
+      resource_filter_report_model_limits: 0,
+      resource_filter_suppression_reasons: 0
     ]
 
   import OrbitalDynamics.Schema.StationCalendarCapabilityContext,
@@ -3017,8 +3019,7 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp suppressed_candidate_suppression_reasons do
-    (OrbitalDynamics.Communications.ContactFilter.capabilities().suppression_reasons ++
-       OrbitalDynamics.ResourceFilter.capabilities().suppression_reasons)
+    (contact_filter_suppression_reasons() ++ resource_filter_suppression_reasons())
     |> Enum.uniq()
     |> Enum.sort()
   end
