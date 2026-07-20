@@ -6,58 +6,38 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-No slice selected.
+Schema operational-readiness validation routing cleanup.
 
 Status:
-Slice complete and pushed.
+Selected; implementation not started.
 
 Selected boundary:
-Extracted resource-filter context keys, risk filtering, and projection into
-`OrbitalDynamics.RecommendationRiskContext.ResourceFilter`.
-Preserved all RecommendationRiskContext and downstream public facades.
+Complete the existing
+`OrbitalDynamics.Schema.OperationalReadinessValidation` extraction by routing
+schema contract clauses and callback tables directly to that owner and
+removing facade pass-through wrappers.
+Preserve all `OrbitalDynamics.Schema` public facades and validation output.
 
 Selection evidence:
-- Live re-ranking places `recommendation_risk_context.ex` at 374 lines, the
-  largest remaining facade in this refactor lane.
-- Most risk families delegate keys and projection to focused owners, while
-  resource-filter projection remains inline.
-- The selected code has one responsibility: identify `resource_filter`
-  feedback risks and project their stable availability, margin, training, and
-  provenance context.
-- Other risk-family projections and all public routing remain outside the
-  boundary except for facade delegates.
-- Exact key ordering, string/atom-key normalization, nested/list flattening,
-  nil rejection, stable first-seen uniqueness, omission of empty keys, and
-  non-list fallback behavior must remain unchanged.
+- Live hotspot refresh places `schema.ex` at 6,764 lines with 600 private
+  functions, by far the largest remaining primary-goal module.
+- Operational-readiness validation logic already has a focused owner, but the
+  facade retains twelve one-hop wrappers used by contract clauses and callback
+  tables.
+- The selected code has one responsibility: route readiness reports,
+  summaries, quality-gate rows, and embedded readiness contexts to the existing
+  validation owner.
+- Contract lookup, required-field checks, callback-table composition, other
+  artifact-family validation, JSON Schema generation, and all public routing
+  remain outside the boundary.
+- Exact issue ordering, paths, messages, required-field behavior, callback
+  wiring, public validation results, and schema exports must remain unchanged.
 
 Implementation:
-- Added the focused `ResourceFilter` owner for context keys, feedback-scope
-  filtering, string/atom-key normalization, and stable availability, margin,
-  training, and provenance projection.
-- Replaced the facade's inline key list and projection with thin public
-  delegates.
-- Removed the now-orphaned shared risk-value and string-key normalization
-  helpers after the last inline projector moved.
-- `recommendation_risk_context.ex` moved from 374 to 246 lines; the dedicated
-  owner is 131 lines.
+Pending.
 
 Verification:
-- Pre-change focused baseline: 1 test passed with the two known signed-zero
-  warnings in `strategy_recommendation_pressure_events_test.exs`.
-- Exact before/after public-output parity: 4 context/key cases matched
-  byte-for-byte with SHA-256
-  `05e9cf663b593ed690abbd5d36de20caf2639234b29f9a163fdf43caaee86d4a`,
-  covering rich string/atom-key risks, nested/list flattening, duplicate
-  ordering, unrelated and empty projections, and non-list fallback.
-- Post-change focused verification: 1 test passed with only the same two known
-  signed-zero warnings; 18 adjacent resource-filter tests passed under
-  warnings-as-errors.
-- Static ownership checks found no migrated context constant, inline
-  projection, risk predicate, or orphaned shared helper in the facade; xref
-  reports the facade as the runtime caller of `ResourceFilter`.
-- Forced warnings-as-errors compile passed across 4,050 files.
-- Formatting and `git diff --check` passed; the worktree was clean after the
-  implementation commit.
+Pending.
 
 Behavior/schema changes:
 None intended.
@@ -69,8 +49,8 @@ and implemented in `461abe2f`.
 ResourceFilter owner is 131 lines.
 
 Next candidate:
-Re-rank the live checkout. OperationalReadiness is now the largest remaining
-facade in this lane at 345 lines.
+After this slice, continue re-ranking `schema.ex` private responsibility
+clusters before returning to smaller facades.
 
 Blocked:
 No.
