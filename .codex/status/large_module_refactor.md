@@ -9,7 +9,7 @@ Current slice:
 RecommendationRiskContext provider-reservation-request extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `58692eff`.
 
 Selected boundary:
 Extract provider-reservation-request context keys, risk selection, and context
@@ -33,19 +33,35 @@ Selection evidence:
   public output, and error behavior must remain unchanged.
 
 Implementation:
-Pending.
+- Added
+  `OrbitalDynamics.RecommendationRiskContext.ProviderReservationRequest` as the
+  focused owner of the ordered key contract, scope/type selection, atom-key
+  normalization, and reservation-request context projection.
+- Preserved the public RecommendationRiskContext facade through delegates.
+- All other risk families remain outside the extraction.
+- `recommendation_risk_context.ex` moved from 1,033 to 963 lines; the dedicated
+  ProviderReservationRequest owner is 109 lines.
 
 Verification:
-Pending.
+- Focused baseline and post-change test passed normally; the file retains its
+  two pre-existing signed-zero warnings.
+- Exact old/new public parity: four results passed, covering ordered keys,
+  both selectors, atom-key normalization, multi-key/list flattening,
+  assumption maps, unrelated-risk exclusion, empty input, and non-list input.
+- Five adjacent recommendation tests passed with warnings treated as errors.
+- Static ownership and xref checks passed; only the facade calls the extracted
+  owner at runtime.
+- Forced warning-clean test compile passed across 4,039 files.
+- Focused formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-OperationalReadiness unavailable-resource summary extraction, selected in
-`98f6fe39` and implemented in `6686d3a4`.
-`operational_readiness.ex` moved from 1,063 to 903 lines; the dedicated
-QualityGateUnavailableResourceSummary owner is 213 lines.
+RecommendationRiskContext provider-reservation-request extraction, selected
+in `4e897f13` and implemented in `58692eff`.
+`recommendation_risk_context.ex` moved from 1,033 to 963 lines; the dedicated
+ProviderReservationRequest owner is 109 lines.
 
 Next candidate:
 After this slice, re-rank the live checkout. OperationalReadiness is the next
