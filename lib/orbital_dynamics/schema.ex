@@ -4145,10 +4145,8 @@ defmodule OrbitalDynamics.Schema do
     LinkCapacityValidation.validate_summary([], "$", artifact)
   end
 
-  defp validate_contract(@relay_data_path_summary, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.RelayDataPathSummaryContracts.validate_summary("$", artifact)
+  defp validate_contract(@relay_data_path_summary, _contract, artifact) do
+    LinkCapacityValidation.validate_relay_data_path_summary([], "$", artifact)
   end
 
   defp validate_contract(@contact_contention_report, _contract, artifact) do

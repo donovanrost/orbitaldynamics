@@ -5,6 +5,7 @@ defmodule OrbitalDynamics.Schema.LinkCapacityValidation do
 
   @report_contract "link_capacity_report.v1"
   @summary_contract "link_capacity_summary.v1"
+  @relay_data_path_summary "relay_data_path_summary.v1"
 
   def validate_report(issues, path, report) do
     issues
@@ -18,6 +19,12 @@ defmodule OrbitalDynamics.Schema.LinkCapacityValidation do
     |> OrbitalDynamics.Schema.LinkCapacitySummaryContracts.validate_summary(path, summary)
   end
 
+  def validate_relay_data_path_summary(issues, path, summary) do
+    issues
+    |> require_fields(path, summary, required_fields(@relay_data_path_summary))
+    |> OrbitalDynamics.Schema.RelayDataPathSummaryContracts.validate_summary(path, summary)
+  end
+
   def validate_optional_report(issues, nil), do: issues
 
   def validate_optional_report(issues, %{} = report),
@@ -27,7 +34,11 @@ defmodule OrbitalDynamics.Schema.LinkCapacityValidation do
     do: [error("$.link_capacity_report", "must be an object") | issues]
 
   defp required_fields(contract_name) do
-    OrbitalDynamics.Schema.LinkCapacityRegistryContracts.contracts()
+    [
+      OrbitalDynamics.Schema.LinkCapacityRegistryContracts,
+      OrbitalDynamics.Schema.RelayDataPathRegistryContracts
+    ]
+    |> Enum.reduce(%{}, &Map.merge(&2, &1.contracts()))
     |> OrbitalDynamics.Schema.Registry.fetch!(contract_name)
     |> Map.fetch!("required_fields")
   end
