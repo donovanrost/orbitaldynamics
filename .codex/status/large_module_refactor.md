@@ -9,7 +9,7 @@ Current slice:
 CampaignPlanner strategy orchestration extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Move strategy branch-count/baseline validation, branch evaluation and ranking,
@@ -32,18 +32,37 @@ Selection evidence:
   unchanged.
 
 Implementation:
-Pending.
+Added `StrategyOrchestration` and moved strategy validation, branch
+evaluation/ranking, recommendation/report construction, artifact assembly, and
+review/import wrapping behind `run/1`. CampaignPlanner moved from 601 to 502
+lines; the new owner is 109 lines.
 
 Verification:
-Pending.
+- Strict focused core planner, recommendation, mission-state, and operational
+  feedback baseline before extraction: 22 passed.
+- The same strict focused suite after extraction: 22 passed.
+- Strict adjacent strategy recommendation and branch-repair coverage: 9 passed.
+- The known branch-generated candidate-refresh file remains 3/4 with the same
+  pre-existing refresh-budget pressure expectation mismatch.
+- `mix xref callers` reports CampaignPlanner as the sole
+  StrategyOrchestration consumer and the new owner as the expected
+  StrategyBranchEvaluation and StrategyArtifact consumer.
+- Strict compile removed nine aliases and the schema-version attribute that
+  moved with the block.
+- Static search confirms both selected functions and facade attribute are gone.
+- `git diff --check` passed.
+- Strict forced compile passed across 4,069 files.
+- Implementation commit `e39f726b` pushed to `main`.
 
 Behavior/schema changes:
-None intended.
+None. Public CampaignPlanner APIs, validation errors, repair callback,
+input-order comparison, ranked ordering, reports, review/import wrappers,
+schema version, and deterministic strategy artifacts remain unchanged.
 
 Last completed slice:
-CampaignPlanner strategy request normalization extraction, selected in
-`8676ab29` and implemented in `73b4d57a`.
-`campaign_planner.ex` moved from 759 to 601 lines.
+CampaignPlanner strategy orchestration extraction, selected in `a0d60531` and
+implemented in `e39f726b`.
+`campaign_planner.ex` moved from 601 to 502 lines.
 
 Next candidate:
 Re-rank the remaining non-capability Schema responsibility clusters now that
