@@ -9,7 +9,7 @@ Current slice:
 Schema link-capacity capability-context extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Extract schema-facing link-capacity capability and assumptions access into
@@ -33,22 +33,35 @@ Selection evidence:
   results, generated JSON Schema, and checked-in exports must remain unchanged.
 
 Implementation:
-Pending.
+Added `OrbitalDynamics.Schema.LinkCapacityCapabilityContext`, which now owns
+the five LinkCapacity capability lookups and the parameterized assumptions
+schema assembly. `OrbitalDynamics.Schema` imports the single assumptions
+builder used by its existing property-dispatch paths.
+`schema.ex` moved from 6,361 to 6,326 lines; the dedicated owner is 41 lines.
 
 Verification:
-Pending.
+- Strict focused schema/communications baseline before extraction: 27 passed.
+- Strict focused schema/communications suite after extraction: 27 passed.
+- Strict full schema-export task plus adjacent validation fixtures: 12 passed.
+- `mix xref callers OrbitalDynamics.Schema.LinkCapacityCapabilityContext`
+  reports only `lib/orbital_dynamics/schema.ex (export)`.
+- `git diff --check` passed.
+- Strict forced compile passed across 4,054 files.
+- Implementation commit `03fdb865` pushed to `main`.
 
 Behavior/schema changes:
-None intended.
+None. Public facades, capability ordering, generated JSON Schema, validation
+behavior, and checked-in exports remain unchanged.
 
 Last completed slice:
-Schema resource-filter capability-context extraction, selected in `20626595`
-and implemented in `4c1eab32`.
-`schema.ex` moved from 6,451 to 6,361 lines; the dedicated
-ResourceFilterCapabilityContext owner is 99 lines.
+Schema link-capacity capability-context extraction, selected in `af6d00c6`
+and implemented in `03fdb865`.
+`schema.ex` moved from 6,361 to 6,326 lines; the dedicated
+LinkCapacityCapabilityContext owner is 41 lines.
 
 Next candidate:
-Re-rank the remaining schema capability/model-limit responsibility clusters.
+Inspect and rank the remaining contact-allocation capability/model-limit
+responsibility cluster against other bounded Schema facade extractions.
 
 Blocked:
 No.
