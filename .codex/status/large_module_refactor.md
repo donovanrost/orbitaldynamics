@@ -6,55 +6,40 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema validation-reference/acceptance context extraction.
+Schema accepted-state/candidate-refresh validation context extraction.
 
 Status:
-Completed and pushed.
+Selected; implementation pending.
 
 Selected boundary:
-Add ValidationArtifactValidation owner-default entry points for validation
-reference fixtures/reports/checks, validation records, model acceptance
-reports, and safety-case summaries. Derive requirements from the validation
-and acceptance registries and model limits from ValidationCapabilityContext,
-then route all six direct Schema clauses. Keep artifact contract APIs unchanged.
+Add StateRefreshArtifactValidation owner-default entry points for three
+accepted-state artifacts and eight candidate-refresh/diff/window artifacts.
+Derive requirements from the accepted-state and candidate-refresh registries,
+compose the candidate-refresh report callbacks from existing owners, and route
+all 11 direct Schema clauses. Keep artifact contract APIs unchanged.
 
 Selection evidence:
-- `schema.ex` remains the dominant production hotspot at 4,958 lines; the other
+- `schema.ex` remains the dominant production hotspot at 4,939 lines; the other
   targeted public facades are now 164 to 524 lines.
-- Six direct clauses repeat registry requirements and family owner routing.
-- ValidationRegistryContracts and ValidationAcceptanceRegistryContracts own
+- Eleven adjacent direct clauses repeat registry requirements and owner routing.
+- AcceptedStateRegistryContracts and CandidateRefreshRegistryContracts own
   every required-field definition.
-- ValidationCapabilityContext owns the acceptance-report model limits.
-- ValidationReferenceContracts, ValidationRecordContracts, and
-  ValidationAcceptanceReportContracts own all artifact-specific validation.
+- CandidateRefreshContracts needs only existing contact-allocation and
+  candidate-rejection owner callbacks.
+- Accepted-state, candidate-diff, freshness, budget, and window contract modules
+  own all remaining artifact-specific validation.
 - No route needs recursive Schema lookup or facade-local callbacks.
 
 Implementation:
-Added ValidationArtifactValidation with one two-registry-backed entry point,
-full-contract fixture routing, preserved reference report/check required-field
-ordering, record validation, and acceptance model-limit context. Routed all six
-direct Schema clauses to the owner. `schema.ex` moved from 4,958 to 4,939 lines.
+Pending.
 
 Verification:
-- Strict validation evidence/scoring baseline before extraction: 11 passed.
-- The same strict focused suite after extraction: 11 passed.
-- Strict validation fixture, acceptance, operator-review, candidate-refresh,
-  and campaign coverage: 52 passed.
-- The full schema-export task completed and produced no checked-in changes.
-- Exact static inspection confirms six direct owner routes and no remaining
-  facade-local validation-reference/acceptance logic.
-- `mix xref callers OrbitalDynamics.Schema.ValidationArtifactValidation`
-  reports only the expected Schema facade runtime caller.
-- `mix format --check-formatted` and `git diff --check` passed.
-- Strict forced compile passed across 4,077 files with no warnings.
-- Bounded local review confirmed full fixture contract input, registry
-  requirements, duplicate reference required-field ordering, model limits, and
-  issue paths are preserved.
-- Implementation commit `f71e1160` pushed to `main`.
+Pending.
 
 Behavior/schema changes:
-None. Required fields, model limits, validation ordering and paths, public
-Schema APIs, validation results, and checked-in exports remain unchanged.
+None intended. Required fields, callbacks, validation ordering and paths,
+public Schema APIs, validation results, and checked-in exports must remain
+unchanged.
 
 Last completed slice:
 Schema validation-reference/acceptance context extraction, selected in
@@ -62,9 +47,8 @@ Schema validation-reference/acceptance context extraction, selected in
 `schema.ex` moved from 4,958 to 4,939 lines.
 
 Next candidate:
-Re-rank the remaining Schema responsibility clusters. Preserve the
-context-bearing CommonJsonSchema wrappers unless a separate exact ownership
-boundary is proven.
+Implement and verify the selected accepted-state/candidate-refresh context
+extraction, then re-rank the remaining Schema responsibility clusters.
 
 Blocked:
 No.
