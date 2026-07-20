@@ -11,6 +11,7 @@ defmodule OrbitalDynamics.Schema do
     CadenceImportValidation,
     CampaignArtifactValidation,
     CandidateRejectionValidation,
+    CommandWindowValidation,
     ContactAllocationValidation,
     ContactIntentValidation,
     ContactReportValidation,
@@ -4611,14 +4612,8 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validate_contract(@command_window_report, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.CommandWindowReportContracts.validate(
-      "$",
-      artifact,
-      command_window_report_model_limits()
-    )
+  defp validate_contract(@command_window_report, _contract, artifact) do
+    CommandWindowValidation.validate_report([], "$", artifact)
   end
 
   defp validate_contract(@branch_comparison_report, _contract, artifact) do
