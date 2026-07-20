@@ -371,7 +371,6 @@ defmodule OrbitalDynamics.Schema do
           &candidate_activity_source_window_json_schema/0,
         {:candidate_rejection_row_json_schema, 0} => &candidate_rejection_row_json_schema/0,
         {:command_window_report_model_limits, 0} => &command_window_report_model_limits/0,
-        {:command_window_row_json_schema, 0} => &command_window_row_json_schema/0,
         {:contact_allocation_capabilities, 0} => &contact_allocation_capabilities/0,
         {:contact_allocation_capacity_pack_summary_assumptions_json_schema, 0} =>
           &contact_allocation_capacity_pack_summary_assumptions_json_schema/0,
@@ -398,7 +397,6 @@ defmodule OrbitalDynamics.Schema do
         {:link_capacity_assumptions_json_schema, 1} => &link_capacity_assumptions_json_schema/1,
         {:maneuver_recommendation_model_limits, 0} => &maneuver_recommendation_model_limits/0,
         {:maneuver_review_report_model_limits, 0} => &maneuver_review_report_model_limits/0,
-        {:maneuver_review_row_json_schema, 0} => &maneuver_review_row_json_schema/0,
         {:model_acceptance_report_model_limits, 0} => &model_acceptance_report_model_limits/0,
         {:nested_stable_id_array_map_json_schema, 0} => &nested_stable_id_array_map_json_schema/0,
         {:operational_readiness_capabilities, 0} => &operational_readiness_capabilities/0,
@@ -547,6 +545,13 @@ defmodule OrbitalDynamics.Schema do
           timeline_identity_schema: &timeline_identity_json_schema/0,
           activity_context_schema: &activity_context_json_schema/0,
           planned_activity_schema: &planned_activity_json_schema/0
+        )
+      )
+      |> Map.merge(
+        OrbitalDynamics.Schema.ExecutionReviewSchemaProviders.build(
+          @stable_id_pattern,
+          activity_context_schema: &activity_context_json_schema/0,
+          policy_decision_schema: &policy_decision_json_schema/0
         )
       )
     end)
@@ -1057,22 +1062,6 @@ defmodule OrbitalDynamics.Schema do
       stable_id_array_schema: &stable_id_array_schema/0,
       timeline_identity_schema: &timeline_identity_json_schema/0,
       activity_context_schema: &activity_context_json_schema/0
-    )
-  end
-
-  defp maneuver_review_row_json_schema do
-    OrbitalDynamics.Schema.ManeuverReviewReportJsonSchema.row(
-      stable_id_pattern: @stable_id_pattern,
-      numeric_triplet_schema: OrbitalDynamics.Schema.CommonJsonSchema.numeric_triplet(),
-      policy_decision_schema: policy_decision_json_schema()
-    )
-  end
-
-  defp command_window_row_json_schema do
-    OrbitalDynamics.Schema.CommandWindowReportJsonSchema.row(
-      stable_id_pattern: @stable_id_pattern,
-      activity_context_schema: activity_context_json_schema(),
-      policy_decision_schema: policy_decision_json_schema()
     )
   end
 
