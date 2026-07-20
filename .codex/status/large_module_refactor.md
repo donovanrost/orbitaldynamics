@@ -9,7 +9,7 @@ Current slice:
 Execution-state plan-delta schema-provider expansion.
 
 Status:
-Selected; implementation pending.
+Completed and verified.
 
 Selected boundary:
 Move the plan-delta builder from the public `Schema` facade into the existing
@@ -26,10 +26,21 @@ Selection evidence:
   explicit callbacks.
 
 Implementation:
-Pending.
+Selected in `b1408ab2` and implemented in `28163ce7`. Expanded the existing
+`ExecutionStateSchemaProviders` owner from four to five lazy providers and
+retained planned/realized activity, timeline-link, and activity-context
+construction behind explicit callbacks. The public `Schema` facade moved from
+1,458 to 1,455 lines.
 
 Verification:
-Pending.
+- Exact comparison passed for the moved plan-delta output and confirmed all
+  five execution-state provider keys.
+- Focused schema/validation suite passed: 359 tests.
+- Full checked-in schema export regenerated with no diff.
+- Runtime xref retains one direct `Schema` -> `ExecutionStateSchemaProviders`
+  edge.
+- Strict forced compile passed with warnings as errors: 4,119 files.
+- `JsonSchemaPropertyRouter` remains an ordered 76-head facade.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -37,13 +48,13 @@ laziness, field-hint fallback, stable-ID decoration, public `Schema`, and
 checked-in exports must remain unchanged.
 
 Last completed slice:
-Timeline edge-row schema-provider extraction, selected in `921b0798` and
-implemented in `58ecc07d`. The public `Schema` facade moved from 1,491 to 1,458
-lines.
+Execution-state plan-delta schema-provider expansion, selected in `b1408ab2`
+and implemented in `28163ce7`. The public `Schema` facade moved from 1,458 to
+1,455 lines.
 
 Next candidate:
-Implement and verify the selected execution-state provider expansion, then
-re-rank the remaining public-facade provider clusters.
+Re-rank the remaining public-facade provider clusters and select the next
+bounded extraction.
 
 Blocked:
 No.
