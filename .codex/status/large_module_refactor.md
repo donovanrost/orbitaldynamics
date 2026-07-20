@@ -9,7 +9,7 @@ Current slice:
 Schema JSON-property router extraction.
 
 Status:
-Selected; implementation pending.
+Implemented and verified.
 
 Selected boundary:
 Extract the complete `json_schema_property/3` clause set, generic fallback, and
@@ -31,10 +31,26 @@ Selection evidence:
   unused nested schemas.
 
 Implementation:
-Pending.
+- Added `OrbitalDynamics.Schema.JsonSchemaPropertyRouter` as the owner of all
+  76 ordered property-dispatch clauses, the field-hint fallback, and recursive
+  embedded-contract routing.
+- Added one lazy facade context with 99 captured schema providers; it is built
+  once per JSON-schema document and does not materialize unused nested schemas.
+- Removed property-routing-only aliases and contract attributes from the facade.
+- `schema.ex` moved from 3,194 to 1,959 lines; the focused router is 1,326 lines.
 
 Verification:
-Pending.
+- Strict pre-change baseline and post-change schema/validation suite: 359 tests
+  passed in each run.
+- AST-normalized route-head comparison: all 76 clauses matched the original
+  contract/field patterns and order exactly.
+- Full schema export regenerated 121 contract schemas and the bundle with no
+  checked-in schema diff.
+- `mix xref trace` confirms the intended runtime property and fallback edges
+  from `Schema` to `JsonSchemaPropertyRouter`.
+- Formatting, `git diff --check`, provider/context review, and bounded
+  source/schema diff review passed.
+- Strict compile passed for 4,094 files with warnings as errors.
 
 Behavior/schema changes:
 None intended. Clause order, dispatch-owner calls, contract identities,
@@ -43,12 +59,13 @@ embedded-contract recursion, public `Schema`, and checked-in exports must remain
 unchanged.
 
 Last completed slice:
-Schema artifact-validation router extraction, selected in `49196371` and
-implemented in `2b8aebb6`. `schema.ex` moved from 3,818 to 3,194 lines.
+Schema JSON-property router extraction, selected in `db973fb7` and implemented
+in `b7196e25`. `schema.ex` moved from 3,194 to 1,959 lines.
 
 Next candidate:
-Implement and verify the selected JSON-property router, then re-rank the
-remaining facade-owned schema-builder/provider blocks.
+Re-rank the remaining facade-owned schema-builder/provider blocks against the
+new 1,326-line property router, favoring cohesive provider families over
+mechanical size movement.
 
 Blocked:
 No.
