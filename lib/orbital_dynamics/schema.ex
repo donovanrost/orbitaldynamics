@@ -4919,7 +4919,7 @@ defmodule OrbitalDynamics.Schema do
   defp validate_contract(@resource_filter_report, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_resource_filter_report("$", artifact)
+    |> ResourceValidation.validate_resource_filter_report("$", artifact)
   end
 
   defp validate_contract(@resource_filter_summary, contract, artifact) do
@@ -4929,8 +4929,8 @@ defmodule OrbitalDynamics.Schema do
       "$",
       artifact,
       resource_filter_report_model_limits(),
-      &validate_suppressed_candidate/3,
-      &validate_invalid_resource_summary_input/3
+      &ResourceValidation.validate_suppressed_candidate/3,
+      &ResourceValidation.validate_invalid_resource_summary_input/3
     )
   end
 
@@ -5743,7 +5743,8 @@ defmodule OrbitalDynamics.Schema do
         &TimelineSourceValidation.validate_optional_timeline_activity_precondition_summaries/3,
       validate_optional_timeline_integrity_report:
         &TimelineSourceValidation.validate_optional_timeline_integrity_report/3,
-      validate_optional_resource_filter_report: &validate_optional_resource_filter_report/3,
+      validate_optional_resource_filter_report:
+        &ResourceValidation.validate_optional_resource_filter_report/3,
       validate_optional_score_term_report: &validate_optional_score_term_report/2,
       validate_rows: &validate_rows/4,
       validate_activity: &OrbitalDynamics.Schema.ActivityContracts.validate/3,
@@ -5770,7 +5771,8 @@ defmodule OrbitalDynamics.Schema do
       validate_resource_summary: &OrbitalDynamics.Schema.ResourceSummaryContracts.validate/3,
       validate_optional_contact_filter_report:
         &ContactReportValidation.validate_optional_filter_report/3,
-      validate_optional_resource_filter_report: &validate_optional_resource_filter_report/3,
+      validate_optional_resource_filter_report:
+        &ResourceValidation.validate_optional_resource_filter_report/3,
       validate_optional_resource_projection_report:
         &validate_optional_resource_projection_report/3,
       validate_optional_operational_timeline_report:
@@ -6121,18 +6123,6 @@ defmodule OrbitalDynamics.Schema do
       end
     )
   end
-
-  defp validate_optional_resource_filter_report(issues, path, value),
-    do: ResourceValidation.validate_optional_resource_filter_report(issues, path, value)
-
-  defp validate_resource_filter_report(issues, path, report),
-    do: ResourceValidation.validate_resource_filter_report(issues, path, report)
-
-  defp validate_suppressed_candidate(issues, path, candidate),
-    do: ResourceValidation.validate_suppressed_candidate(issues, path, candidate)
-
-  defp validate_invalid_resource_summary_input(issues, path, row),
-    do: ResourceValidation.validate_invalid_resource_summary_input(issues, path, row)
 
   defp relay_custody_statuses, do: ~w(confirmed pending missing_ack failed unknown)
   defp relay_latency_statuses, do: ~w(within_limit exceeds_limit not_evaluated unknown)
