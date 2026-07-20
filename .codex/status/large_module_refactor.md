@@ -9,7 +9,7 @@ Current slice:
 CampaignPlanner repair candidate-refresh inheritance extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Move the cohesive repair candidate-refresh inheritance cluster into a new
@@ -32,18 +32,35 @@ Selection evidence:
   artifacts must remain unchanged.
 
 Implementation:
-Pending.
+Added `RepairCandidateRefreshInheritance` and moved the complete approval,
+mission-state, synthesized-input, manifest-input, and empty-value cluster
+behind `inherit/4`. CampaignPlanner now has one delegation call and moved from
+1,037 to 952 lines; the new owner is 98 lines.
 
 Verification:
-Pending.
+- Strict focused core planner, generated-refresh, repair-input, and
+  candidate-refresh source-report baseline before extraction: 13 passed.
+- The same strict focused suite after extraction: 13 passed.
+- Strict adjacent candidate-refresh filter, determinism, and missed-downlink
+  repair coverage: 8 passed.
+- `mix xref callers` reports CampaignPlanner as the sole
+  RepairCandidateRefreshInheritance consumer and the new owner as the expected
+  additional consumer of its three BranchRefresh dependencies.
+- Static search confirms the inheritance cluster, empty-value helper, and
+  moved aliases are gone from CampaignPlanner.
+- `git diff --check` passed.
+- Strict forced compile passed across 4,066 files.
+- Implementation commit `727bad87` pushed to `main`.
 
 Behavior/schema changes:
-None intended.
+None. Public CampaignPlanner APIs, approval precedence, nil/empty guards,
+accepted planning state, targets, ground stations, generated refresh inputs,
+and deterministic artifacts remain unchanged.
 
 Last completed slice:
-CampaignPlanner source-plan ID direct routing, selected in `de4f069d` and
-implemented in `7f901083`.
-`campaign_planner.ex` moved from 1,041 to 1,037 lines.
+CampaignPlanner repair candidate-refresh inheritance extraction, selected in
+`f7918ecb` and implemented in `727bad87`.
+`campaign_planner.ex` moved from 1,037 to 952 lines.
 
 Next candidate:
 Re-rank the remaining non-capability Schema responsibility clusters now that
