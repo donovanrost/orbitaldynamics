@@ -1907,7 +1907,7 @@ defmodule OrbitalDynamics.Schema do
         @monte_carlo_reproducibility_report,
         @stable_id_pattern,
         &OrbitalDynamics.Schema.MonteCarloReproducibilityContracts.model_limits/0,
-        &numeric_triplet_schema/0
+        &OrbitalDynamics.Schema.CommonJsonSchema.numeric_triplet/0
       }
     )
   end
@@ -1934,7 +1934,7 @@ defmodule OrbitalDynamics.Schema do
       focused_property:
         OrbitalDynamics.Schema.RealizedActivityJsonSchema.property_fun_from_context(
           stable_id_pattern: @stable_id_pattern,
-          numeric_triplet_schema: fn -> numeric_triplet_schema() end,
+          numeric_triplet_schema: &OrbitalDynamics.Schema.CommonJsonSchema.numeric_triplet/0,
           ground_station_schema: fn -> ground_station_identity_json_schema() end,
           spacecraft_schema: fn -> spacecraft_identity_json_schema() end,
           target_schema: fn -> target_identity_json_schema() end
@@ -1956,7 +1956,7 @@ defmodule OrbitalDynamics.Schema do
       {
         @maneuver_recommendation,
         @stable_id_pattern,
-        &numeric_triplet_schema/0,
+        &OrbitalDynamics.Schema.CommonJsonSchema.numeric_triplet/0,
         &maneuver_recommendation_model_limits/0
       }
     )
@@ -3043,26 +3043,17 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.CommonJsonSchema.nested_stable_id_array_map(@stable_id_pattern)
   end
 
-  defp numeric_triplet_schema do
-    %{
-      "type" => "array",
-      "items" => %{"type" => "number"},
-      "minItems" => 3,
-      "maxItems" => 3
-    }
-  end
-
   defp spacecraft_state_estimate_json_schema do
     OrbitalDynamics.Schema.AcceptedStateJsonSchema.spacecraft_state_estimate_from_context(
       stable_id_pattern: @stable_id_pattern,
-      numeric_triplet_schema: &numeric_triplet_schema/0
+      numeric_triplet_schema: &OrbitalDynamics.Schema.CommonJsonSchema.numeric_triplet/0
     )
   end
 
   defp maneuver_execution_delta_json_schema do
     OrbitalDynamics.Schema.AcceptedStateJsonSchema.maneuver_execution_delta_from_context(
       stable_id_pattern: @stable_id_pattern,
-      numeric_triplet_schema: &numeric_triplet_schema/0
+      numeric_triplet_schema: &OrbitalDynamics.Schema.CommonJsonSchema.numeric_triplet/0
     )
   end
 
@@ -3140,7 +3131,7 @@ defmodule OrbitalDynamics.Schema do
       stable_id_pattern: @stable_id_pattern,
       stable_id_array_schema: stable_id_array_schema(),
       string_array_schema: OrbitalDynamics.Schema.CommonJsonSchema.string_array(),
-      numeric_triplet_schema: numeric_triplet_schema(),
+      numeric_triplet_schema: OrbitalDynamics.Schema.CommonJsonSchema.numeric_triplet(),
       probability_schema: OrbitalDynamics.Schema.CommonJsonSchema.probability(),
       number_or_string_schema: OrbitalDynamics.Schema.CommonJsonSchema.number_or_string(),
       execution_uncertainty_schema: execution_uncertainty_json_schema(),
@@ -3224,7 +3215,7 @@ defmodule OrbitalDynamics.Schema do
       lifecycle_transition_schema: TimelineContextJsonSchema.lifecycle_transition(),
       actual_data_rate_throughput_derivation_schema:
         TimelineContextJsonSchema.actual_data_rate_throughput_derivation(),
-      numeric_triplet_schema: numeric_triplet_schema(),
+      numeric_triplet_schema: OrbitalDynamics.Schema.CommonJsonSchema.numeric_triplet(),
       timeline_identity_schema: timeline_identity_json_schema(),
       activity_context_schema: activity_context_json_schema(),
       planned_activity_schema: planned_activity_json_schema(),
@@ -3336,7 +3327,10 @@ defmodule OrbitalDynamics.Schema do
     do: TimelineContextJsonSchema.timeline_identity(@stable_id_pattern)
 
   defp execution_uncertainty_json_schema,
-    do: TimelineContextJsonSchema.execution_uncertainty(numeric_triplet_schema())
+    do:
+      TimelineContextJsonSchema.execution_uncertainty(
+        OrbitalDynamics.Schema.CommonJsonSchema.numeric_triplet()
+      )
 
   defp protection_decision_json_schema,
     do: TimelineContextJsonSchema.protection_decision(@stable_id_pattern)
@@ -3364,7 +3358,7 @@ defmodule OrbitalDynamics.Schema do
         number_array_schema: OrbitalDynamics.Schema.CommonJsonSchema.number_array(),
         numeric_map_schema: OrbitalDynamics.Schema.CommonJsonSchema.numeric_map(),
         candidate_activity_source_window_schema: candidate_activity_source_window_json_schema(),
-        numeric_triplet_schema: numeric_triplet_schema(),
+        numeric_triplet_schema: OrbitalDynamics.Schema.CommonJsonSchema.numeric_triplet(),
         probability_schema: OrbitalDynamics.Schema.CommonJsonSchema.probability()
       )
 
@@ -3646,7 +3640,7 @@ defmodule OrbitalDynamics.Schema do
   defp maneuver_review_row_json_schema do
     OrbitalDynamics.Schema.ManeuverReviewReportJsonSchema.row(
       stable_id_pattern: @stable_id_pattern,
-      numeric_triplet_schema: numeric_triplet_schema(),
+      numeric_triplet_schema: OrbitalDynamics.Schema.CommonJsonSchema.numeric_triplet(),
       policy_decision_schema: policy_decision_json_schema()
     )
   end
@@ -4059,7 +4053,7 @@ defmodule OrbitalDynamics.Schema do
       number_or_number_array_schema:
         &OrbitalDynamics.Schema.CommonJsonSchema.number_or_number_array/0,
       number_or_string_json_schema: &OrbitalDynamics.Schema.CommonJsonSchema.number_or_string/0,
-      numeric_triplet_schema: &numeric_triplet_schema/0,
+      numeric_triplet_schema: &OrbitalDynamics.Schema.CommonJsonSchema.numeric_triplet/0,
       operational_readiness_evidence_json_schema: &operational_readiness_evidence_json_schema/0,
       operational_readiness_gate_json_schema: &operational_readiness_gate_json_schema/0,
       operational_readiness_source_report_evidence_json_schema:

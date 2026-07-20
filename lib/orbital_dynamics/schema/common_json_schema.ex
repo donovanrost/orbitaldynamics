@@ -13,6 +13,15 @@ defmodule OrbitalDynamics.Schema.CommonJsonSchema do
     %{"type" => "array", "items" => %{"type" => "number"}}
   end
 
+  def numeric_triplet do
+    %{
+      "type" => "array",
+      "items" => %{"type" => "number"},
+      "minItems" => 3,
+      "maxItems" => 3
+    }
+  end
+
   def number_or_number_array do
     %{"anyOf" => [%{"type" => "number"}, number_array()]}
   end
