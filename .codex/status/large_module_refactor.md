@@ -6,42 +6,33 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Strategy schema-provider extraction.
+Timeline-feedback schema-provider extraction.
 
 Status:
-Completed and verified.
+Selected; implementation pending.
 
 Selected boundary:
-Move the strategy branch tradeoff/risk/recommendation/branch/event/explanation
-builders and their private context assembler from the public `Schema` facade
-into a new `StrategySchemaProviders` owner. Merge its six lazy providers into
-the property context and pass document, policy, negotiation, and scoped-context
-dependencies as callbacks.
+Move the operational-feedback, timeline-feedback provenance, and
+timeline-feedback row builders from the public `Schema` facade into a new
+`TimelineFeedbackSchemaProviders` owner. Merge its three lazy providers into
+the property context and pass facade-owned realized/planned activity,
+timeline/activity context, protection, and capability dependencies as explicit
+callbacks.
 
 Selection evidence:
-- The public `Schema` facade remains 1,606 lines.
-- Six strategy builders are referenced only by the property provider registry,
-  and the context assembler is used only by branch/event within the cluster.
-- Strategy-recommendation document construction can preserve recursive facade
-  ownership through one explicit document callback.
-- Policy, negotiation, and scoped-context dependencies can remain lazy through
-  explicit callbacks.
+- The public `Schema` facade remains 1,559 lines.
+- All three builders are referenced only by the property provider registry and
+  form one cohesive operational/timeline-feedback schema cluster.
+- Common JSON-schema fragments and timeline-context builders already have
+  focused owners and can remain direct dependencies.
+- Facade-owned recursive builders and imported capability metadata can remain
+  lazy through explicit callbacks.
 
 Implementation:
-Selected in `a27dfb35` and implemented in `5aa56ba5`. Added the 63-line
-`StrategySchemaProviders` owner, merged its six lazy providers into the schema
-property context, and retained recursive strategy-recommendation document
-construction plus policy, negotiation, and scoped-context dependencies behind
-explicit callbacks. The public `Schema` facade moved from 1,606 to 1,559 lines.
+Pending.
 
 Verification:
-- Exact comparison passed for all six provider keys and outputs, including
-  callback-sensitive branch/event inputs and recursive recommendation output.
-- Focused schema/validation suite passed: 359 tests.
-- Full checked-in schema export regenerated with no diff.
-- Runtime xref shows one direct `Schema` -> `StrategySchemaProviders` edge.
-- Strict forced compile passed with warnings as errors: 4,116 files.
-- `JsonSchemaPropertyRouter` remains an ordered 76-head facade.
+Pending.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -53,8 +44,8 @@ Strategy schema-provider extraction, selected in `a27dfb35` and implemented in
 `5aa56ba5`. The public `Schema` facade moved from 1,606 to 1,559 lines.
 
 Next candidate:
-Re-rank the remaining public-facade provider clusters and select the next
-bounded extraction.
+Implement and verify the selected timeline-feedback provider extraction, then
+re-rank the remaining public-facade provider clusters.
 
 Blocked:
 No.
