@@ -9,7 +9,7 @@ Current slice:
 Validation schema-provider extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Move the validation-record, model-acceptance-row, safety-case-evidence-row,
@@ -28,10 +28,25 @@ Selection evidence:
   entries and implementation details from the public facade.
 
 Implementation:
-Pending.
+Selected in `bd0109e1` and implemented in `f5050011`.
+The new `ValidationSchemaProviders.build/1` returns four lazy provider closures
+for validation record, model acceptance, safety-case evidence, and validation
+reference report schemas. `Schema` removes the four registry-local captures
+and private builders, then merges the focused provider map after the existing
+planning-analysis provider map.
 
 Verification:
-Pending.
+- Strict focused schema/validation baseline and post-change suites both passed:
+  359 tests, 0 failures.
+- Direct comparison confirmed the extracted provider map has the exact four
+  keys and produces outputs exactly equal to the original builders.
+- Xref reports one runtime edge from `Schema` to the new provider owner.
+- Schema export regenerated 121 schemas plus the bundle with no checked-in
+  artifact diff.
+- Strict full compile passed for 4,109 files with warnings as errors.
+- Formatting, diff checks, and bounded two-file review passed.
+- The public `Schema` facade shrank from 1,917 to 1,887 lines; the new focused
+  owner is 44 lines.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -39,13 +54,11 @@ laziness, field-hint fallback, stable-ID decoration, public `Schema`, and
 checked-in exports must remain unchanged.
 
 Last completed slice:
-Planning-analysis schema-provider extraction, selected in `bb50e34c` and
-implemented in `e765efdb`. The public `Schema` facade moved from 1,959 to 1,917
-lines.
+Validation schema-provider extraction, selected in `bd0109e1` and implemented
+in `f5050011`. The public `Schema` facade moved from 1,917 to 1,887 lines.
 
 Next candidate:
-Implement and verify the selected validation provider extraction, then
-re-rank the remaining public-facade provider clusters.
+Re-rank the remaining public-facade provider clusters.
 
 Blocked:
 No.
