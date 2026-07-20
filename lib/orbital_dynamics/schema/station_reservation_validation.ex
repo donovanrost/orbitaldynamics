@@ -1,6 +1,9 @@
 defmodule OrbitalDynamics.Schema.StationReservationValidation do
   @moduledoc false
 
+  def validate_optional_calendar_report(issues, report),
+    do: validate_optional_calendar_report(issues, "$.station_calendar_report", report)
+
   def validate_optional_calendar_report(issues, path, report) do
     OrbitalDynamics.Schema.StationCalendarReportContracts.validate_optional_report(
       issues,

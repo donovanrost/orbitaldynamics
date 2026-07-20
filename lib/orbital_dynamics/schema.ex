@@ -4821,7 +4821,7 @@ defmodule OrbitalDynamics.Schema do
   defp validate_contract(@station_calendar_report, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_optional_station_calendar_report("$", artifact)
+    |> StationReservationValidation.validate_optional_calendar_report("$", artifact)
   end
 
   defp validate_contract(@station_calendar_precedence_summary, contract, artifact) do
@@ -4847,19 +4847,19 @@ defmodule OrbitalDynamics.Schema do
   defp validate_contract(@station_reservation_review_summary, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_station_reservation_review_summary("$", artifact)
+    |> StationReservationValidation.validate_review_summary("$", artifact)
   end
 
   defp validate_contract(@station_reservation_hold_summary, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_station_reservation_hold_summary("$", artifact)
+    |> StationReservationValidation.validate_hold_summary("$", artifact)
   end
 
   defp validate_contract(@station_reservation_hold_import_readiness_summary, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_station_reservation_hold_import_readiness_summary("$", artifact)
+    |> StationReservationValidation.validate_hold_import_readiness_summary("$", artifact)
   end
 
   defp validate_contract(@provider_counteroffer_report, contract, artifact) do
@@ -5678,7 +5678,8 @@ defmodule OrbitalDynamics.Schema do
 
   defp contact_allocation_report_domain_callbacks do
     [
-      validate_optional_station_calendar_report: &validate_optional_station_calendar_report/2,
+      validate_optional_station_calendar_report:
+        &StationReservationValidation.validate_optional_calendar_report/2,
       validate_optional_contact_filter_report:
         &ContactReportValidation.validate_optional_filter_report/2,
       validate_optional_contact_contention_report:
@@ -5721,7 +5722,8 @@ defmodule OrbitalDynamics.Schema do
         &ContactReportValidation.validate_optional_contention_report/2,
       validate_optional_contact_contention_resolution_report:
         &ContactReportValidation.validate_optional_contention_resolution_report/2,
-      validate_optional_station_calendar_report: &validate_optional_station_calendar_report/2,
+      validate_optional_station_calendar_report:
+        &StationReservationValidation.validate_optional_calendar_report/2,
       validate_optional_objective_tradeoff_report: &validate_optional_objective_tradeoff_report/2,
       validate_optional_objective_satisfaction_report:
         &validate_optional_objective_satisfaction_report/2,
@@ -5787,7 +5789,8 @@ defmodule OrbitalDynamics.Schema do
         &validate_optional_candidate_rejection_report/3,
       validate_optional_freshness_report:
         &OrbitalDynamics.Schema.FreshnessReportContracts.validate_optional/3,
-      validate_optional_station_calendar_report: &validate_optional_station_calendar_report/3,
+      validate_optional_station_calendar_report:
+        &StationReservationValidation.validate_optional_calendar_report/3,
       validate_plan_delta: &OrbitalDynamics.Schema.PlanDeltaContracts.validate/3,
       validate_approval_requirement: &validate_approval_requirement/3,
       validate_policy_decision: &validate_policy_decision/3,
@@ -5848,31 +5851,6 @@ defmodule OrbitalDynamics.Schema do
         path,
         group,
         contact_allocation_report_domain_callbacks()
-      )
-
-  defp validate_optional_station_calendar_report(issues, report),
-    do:
-      StationReservationValidation.validate_optional_calendar_report(
-        issues,
-        "$.station_calendar_report",
-        report
-      )
-
-  defp validate_optional_station_calendar_report(issues, path, report),
-    do: StationReservationValidation.validate_optional_calendar_report(issues, path, report)
-
-  defp validate_station_reservation_review_summary(issues, path, summary),
-    do: StationReservationValidation.validate_review_summary(issues, path, summary)
-
-  defp validate_station_reservation_hold_summary(issues, path, summary),
-    do: StationReservationValidation.validate_hold_summary(issues, path, summary)
-
-  defp validate_station_reservation_hold_import_readiness_summary(issues, path, summary),
-    do:
-      StationReservationValidation.validate_hold_import_readiness_summary(
-        issues,
-        path,
-        summary
       )
 
   defp validate_optional_resource_projection_report(issues, path, value),
