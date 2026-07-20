@@ -32,9 +32,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
     ApprovalPolicy,
     BranchComparisonReport,
     BranchGenerationPolicy,
-    BranchRefreshAcceptedState,
-    BranchRefreshGroundNetwork,
-    BranchRefreshTargets,
     BuildOrchestration,
     DerivedBranchOrchestration,
     CandidateRefreshNormalization,
@@ -51,6 +48,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
     RealizedActivitiesOperationalFeedback,
     RequestIO,
     RepairArtifact,
+    RepairCandidateRefreshInheritance,
     RepairCandidateInputs,
     RepairExecution,
     RepairMetadata,
@@ -257,9 +255,13 @@ defmodule OrbitalDynamics.CampaignPlanner do
     generated_at = normalize_generated_at(request.generated_at || DateTime.utc_now())
 
     candidate_refresh_request =
-      CandidateRefreshNormalization.request(request.candidate_refresh_request)
-      |> inherit_candidate_refresh_approval_policy(request.approval_policy)
-      |> inherit_candidate_refresh_mission_state(mission_state, prior_plan)
+      request.candidate_refresh_request
+      |> CandidateRefreshNormalization.request()
+      |> RepairCandidateRefreshInheritance.inherit(
+        request.approval_policy,
+        mission_state,
+        prior_plan
+      )
 
     prebuilt_candidate_refresh = CandidateRefreshNormalization.artifact(request.candidate_refresh)
 
@@ -645,15 +647,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
     )
   end
 
-  defp put_if_absent(map, _key, value) when value in [nil, "", [], %{}], do: map
-
-  defp put_if_absent(map, key, value) do
-    case Map.get(map, key) do
-      existing when existing in [nil, "", [], %{}] -> Map.put(map, key, value)
-      _existing -> map
-    end
-  end
-
   defp strategy_operational_feedback_provenance(
          prior_plan,
          mission_state,
@@ -791,84 +784,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
       operational_readiness_report,
       quality_gate_report,
       scoring_policy
-    )
-  end
-
-  defp inherit_candidate_refresh_approval_policy(nil, _approval_policy), do: nil
-
-  defp inherit_candidate_refresh_approval_policy(request, nil), do: request
-
-  defp inherit_candidate_refresh_approval_policy(
-         %{"candidate_refresh" => %{} = refresh} = request,
-         approval_policy
-       ) do
-    Map.put(
-      request,
-      "candidate_refresh",
-      Map.put_new(refresh, "approval_policy", ValueEncoding.stringify_keys(approval_policy))
-    )
-  end
-
-  defp inherit_candidate_refresh_approval_policy(%{} = request, approval_policy) do
-    Map.put_new(request, "approval_policy", ValueEncoding.stringify_keys(approval_policy))
-  end
-
-  defp inherit_candidate_refresh_mission_state(nil, _mission_state, _prior_plan), do: nil
-
-  defp inherit_candidate_refresh_mission_state(request, nil, _prior_plan), do: request
-
-  defp inherit_candidate_refresh_mission_state(
-         request,
-         %{"objectives" => []} = mission_state,
-         _prior_plan
-       )
-       when map_size(mission_state) == 1,
-       do: request
-
-  defp inherit_candidate_refresh_mission_state(
-         %{"candidate_refresh" => %{} = refresh} = request,
-         mission_state,
-         prior_plan
-       ) do
-    refresh =
-      refresh
-      |> Map.put_new("mission_state", mission_state)
-      |> inherit_candidate_refresh_mission_state_inputs(mission_state, prior_plan)
-
-    Map.put(
-      request,
-      "candidate_refresh",
-      refresh
-    )
-    |> inherit_candidate_refresh_manifest_inputs(mission_state)
-  end
-
-  defp inherit_candidate_refresh_mission_state(%{} = request, mission_state, prior_plan) do
-    request
-    |> Map.put_new("mission_state", mission_state)
-    |> inherit_candidate_refresh_mission_state_inputs(mission_state, prior_plan)
-    |> inherit_candidate_refresh_manifest_inputs(mission_state)
-  end
-
-  defp inherit_candidate_refresh_mission_state_inputs(refresh, mission_state, prior_plan) do
-    operational_feedback = Map.get(refresh, "operational_feedback", %{})
-
-    refresh
-    |> put_if_absent(
-      "accepted_planning_state",
-      BranchRefreshAcceptedState.from_mission_state(mission_state, prior_plan)
-    )
-    |> put_if_absent(
-      "targets",
-      BranchRefreshTargets.build(%{"events" => []}, mission_state, operational_feedback)
-    )
-  end
-
-  defp inherit_candidate_refresh_manifest_inputs(request, mission_state) do
-    put_if_absent(
-      request,
-      "ground_stations",
-      BranchRefreshGroundNetwork.ground_stations(mission_state)
     )
   end
 
