@@ -518,10 +518,54 @@ defmodule OrbitalDynamics.Schema do
     realized_activity_schema =
       Map.fetch!(activity_schema_providers, {:realized_activity_json_schema, 0})
 
+    operational_readiness_schema_providers =
+      OrbitalDynamics.Schema.OperationalReadinessSchemaProviders.build(
+        @stable_id_pattern,
+        readiness_capability: &operational_readiness_capabilities/0,
+        approval_requirement_schema: &approval_requirement_json_schema/0,
+        policy_decision_rule_match_schema: policy_decision_rule_match_schema
+      )
+
+    cadence_import_operational_readiness_evidence_properties =
+      Map.fetch!(
+        operational_readiness_schema_providers,
+        {:cadence_import_operational_readiness_evidence_json_schema_properties, 0}
+      )
+
+    cadence_import_resource_projection_evidence_properties =
+      Map.fetch!(
+        operational_readiness_schema_providers,
+        {:cadence_import_resource_projection_evidence_json_schema_properties, 0}
+      )
+
+    operational_readiness_evidence_schema =
+      Map.fetch!(
+        operational_readiness_schema_providers,
+        {:operational_readiness_evidence_json_schema, 0}
+      )
+
+    operational_readiness_gate_schema =
+      Map.fetch!(
+        operational_readiness_schema_providers,
+        {:operational_readiness_gate_json_schema, 0}
+      )
+
+    quality_gate_report_row_schema =
+      Map.fetch!(
+        operational_readiness_schema_providers,
+        {:quality_gate_report_row_json_schema, 0}
+      )
+
+    resource_projection_battery_handoff_properties =
+      Map.fetch!(
+        operational_readiness_schema_providers,
+        {:resource_projection_battery_handoff_json_schema_properties, 0}
+      )
+
     source_evidence_providers =
       OrbitalDynamics.Schema.SourceEvidenceSchemaProviders.build(
         @stable_id_pattern,
-        battery_handoff_properties: &resource_projection_battery_handoff_json_schema_properties/0
+        battery_handoff_properties: resource_projection_battery_handoff_properties
       )
 
     [
@@ -561,13 +605,9 @@ defmodule OrbitalDynamics.Schema do
         {:model_acceptance_report_model_limits, 0} => &model_acceptance_report_model_limits/0,
         {:nested_stable_id_array_map_json_schema, 0} => &nested_stable_id_array_map_json_schema/0,
         {:operational_readiness_capabilities, 0} => &operational_readiness_capabilities/0,
-        {:operational_readiness_evidence_json_schema, 0} =>
-          &operational_readiness_evidence_json_schema/0,
-        {:operational_readiness_gate_json_schema, 0} => &operational_readiness_gate_json_schema/0,
         {:operator_review_capabilities, 0} => &operator_review_capabilities/0,
         {:operator_review_package_model_limits, 0} => &operator_review_package_model_limits/0,
         {:policy_model_limits, 0} => &policy_model_limits/0,
-        {:quality_gate_report_row_json_schema, 0} => &quality_gate_report_row_json_schema/0,
         {:registry_contract!, 1} => &registry_contract!/1,
         {:resource_filter_report_assumptions_json_schema, 0} =>
           &resource_filter_report_assumptions_json_schema/0,
@@ -598,6 +638,7 @@ defmodule OrbitalDynamics.Schema do
     ]
     |> Keyword.update!(:schema_providers, fn providers ->
       providers
+      |> Map.merge(operational_readiness_schema_providers)
       |> Map.merge(timeline_report_schema_providers)
       |> Map.merge(timeline_core_schema_providers)
       |> Map.merge(activity_schema_providers)
@@ -724,8 +765,8 @@ defmodule OrbitalDynamics.Schema do
           activity_context_schema: activity_context_schema,
           approval_requirement_schema: &approval_requirement_json_schema/0,
           candidate_activity_source_window_schema: candidate_activity_source_window_schema,
-          operational_readiness_evidence_schema: &operational_readiness_evidence_json_schema/0,
-          operational_readiness_gate_schema: &operational_readiness_gate_json_schema/0,
+          operational_readiness_evidence_schema: operational_readiness_evidence_schema,
+          operational_readiness_gate_schema: operational_readiness_gate_schema,
           operational_readiness_source_report_evidence_schema:
             Map.fetch!(
               source_evidence_providers,
@@ -736,7 +777,7 @@ defmodule OrbitalDynamics.Schema do
           policy_decision_rule_match_schema: policy_decision_rule_match_schema,
           policy_escalation_schema: policy_escalation_schema,
           protection_decision_schema: protection_decision_schema,
-          quality_gate_report_row_schema: &quality_gate_report_row_json_schema/0,
+          quality_gate_report_row_schema: quality_gate_report_row_schema,
           quality_gate_source_report_evidence_schema:
             Map.fetch!(source_evidence_providers, :quality_gate_source_report_evidence),
           source_evidence_schema: Map.fetch!(source_evidence_providers, :source_evidence),
@@ -756,7 +797,7 @@ defmodule OrbitalDynamics.Schema do
             &feedback_maneuver_handoff_json_schema_properties/0,
           link_handoff_properties: &link_handoff_json_schema_properties/0,
           resource_projection_battery_handoff_properties:
-            &resource_projection_battery_handoff_json_schema_properties/0,
+            resource_projection_battery_handoff_properties,
           scoped_downlink_context_properties: scoped_downlink_context_properties,
           thermal_handoff_properties: &thermal_handoff_json_schema_properties/0,
           timeline_activity_precondition_handoff_properties:
@@ -775,8 +816,8 @@ defmodule OrbitalDynamics.Schema do
           activity_context_schema: activity_context_schema,
           candidate_activity_source_window_schema: candidate_activity_source_window_schema,
           candidate_rejection_source_schema: candidate_rejection_source_schema,
-          operational_readiness_evidence_schema: &operational_readiness_evidence_json_schema/0,
-          operational_readiness_gate_schema: &operational_readiness_gate_json_schema/0,
+          operational_readiness_evidence_schema: operational_readiness_evidence_schema,
+          operational_readiness_gate_schema: operational_readiness_gate_schema,
           operational_readiness_source_report_evidence_schema:
             Map.fetch!(
               source_evidence_providers,
@@ -785,7 +826,7 @@ defmodule OrbitalDynamics.Schema do
           operational_timeline_row_schema: operational_timeline_row_schema,
           policy_decision_evidence_schema: policy_decision_evidence_schema,
           policy_escalation_schema: policy_escalation_schema,
-          quality_gate_report_row_schema: &quality_gate_report_row_json_schema/0,
+          quality_gate_report_row_schema: quality_gate_report_row_schema,
           quality_gate_source_report_evidence_schema:
             Map.fetch!(source_evidence_providers, :quality_gate_source_report_evidence),
           source_evidence_schema: Map.fetch!(source_evidence_providers, :source_evidence),
@@ -808,14 +849,14 @@ defmodule OrbitalDynamics.Schema do
           timeline_transition_application_summary_source_schema:
             timeline_transition_application_summary_source_schema,
           cadence_import_operational_readiness_evidence_properties:
-            &cadence_import_operational_readiness_evidence_json_schema_properties/0,
+            cadence_import_operational_readiness_evidence_properties,
           cadence_import_resource_projection_evidence_properties:
-            &cadence_import_resource_projection_evidence_json_schema_properties/0,
+            cadence_import_resource_projection_evidence_properties,
           feedback_maneuver_handoff_properties:
             &feedback_maneuver_handoff_json_schema_properties/0,
           link_handoff_properties: &link_handoff_json_schema_properties/0,
           resource_projection_battery_handoff_properties:
-            &resource_projection_battery_handoff_json_schema_properties/0,
+            resource_projection_battery_handoff_properties,
           scoped_downlink_context_properties: scoped_downlink_context_properties,
           thermal_handoff_properties: &thermal_handoff_json_schema_properties/0,
           timeline_activity_precondition_handoff_properties:
@@ -883,59 +924,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp validation_record_registry_conditions do
     OrbitalDynamics.Schema.ValidationJsonSchema.registry_conditions(@stable_id_pattern)
-  end
-
-  defp operational_readiness_gate_json_schema do
-    OrbitalDynamics.Schema.OperationalReadinessGateJsonSchema.gate(
-      capability: operational_readiness_capabilities(),
-      stable_id_pattern: @stable_id_pattern
-    )
-  end
-
-  defp quality_gate_report_row_json_schema do
-    OrbitalDynamics.Schema.QualityGateReportJsonSchema.row(
-      capability: operational_readiness_capabilities(),
-      stable_id_pattern: @stable_id_pattern,
-      gate_schema: operational_readiness_gate_json_schema()
-    )
-  end
-
-  defp cadence_import_operational_readiness_evidence_json_schema_properties do
-    OrbitalDynamics.Schema.CadenceImportOperationalReadinessJsonSchema.evidence_properties(%{
-      gate_schema: operational_readiness_gate_json_schema(),
-      evidence_schema: operational_readiness_evidence_json_schema()
-    })
-  end
-
-  defp resource_projection_battery_handoff_json_schema_properties do
-    OrbitalDynamics.Schema.ResourceProjectionHandoffJsonSchema.battery_properties(
-      OrbitalDynamics.Schema.ResourceProjectionHandoffContracts.battery_handoff_number_fields()
-    )
-  end
-
-  defp cadence_import_resource_projection_evidence_json_schema_properties do
-    OrbitalDynamics.Schema.ResourceProjectionHandoffJsonSchema.evidence_properties(
-      stable_id_pattern: @stable_id_pattern,
-      stable_id_array_schema: stable_id_array_schema(),
-      string_array_schema: OrbitalDynamics.Schema.CommonJsonSchema.string_array(),
-      approval_requirement_schema: approval_requirement_json_schema(),
-      policy_decision_rule_match_schema:
-        OrbitalDynamics.Schema.PolicySchemaProviders.rule_match(@stable_id_pattern)
-    )
-  end
-
-  defp operational_readiness_evidence_json_schema do
-    OrbitalDynamics.Schema.OperationalReadinessEvidenceJsonSchema.schema(
-      count_map_schema: OrbitalDynamics.Schema.CommonJsonSchema.non_negative_integer_count_map(),
-      string_array_schema: OrbitalDynamics.Schema.CommonJsonSchema.string_array(),
-      stable_id_array_schema: stable_id_array_schema(),
-      branch_event_trust_boundary_status_counts_schema:
-        OrbitalDynamics.Schema.OperationalReadinessContextJsonSchema.trust_boundary_status_count_map(),
-      timeline_publication_context_properties:
-        OrbitalDynamics.Schema.CandidateRefreshReportJsonSchema.timeline_publication_context_properties(
-          stable_id_pattern: @stable_id_pattern
-        )
-    )
   end
 
   defp link_handoff_json_schema_properties do
