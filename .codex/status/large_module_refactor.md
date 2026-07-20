@@ -9,7 +9,7 @@ Current slice:
 Schema campaign-artifact validation context extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Add CampaignArtifactValidation owner-default plan, repair, strategy, branch,
@@ -34,24 +34,48 @@ Selection evidence:
   CampaignStrategyContracts customization APIs remain unchanged.
 
 Implementation:
-Pending.
+Added CampaignArtifactValidation owner-default plan, repair, strategy, branch,
+and recommendation entry points. Derived campaign requirements from the
+campaign registry, moved both callback graphs and strategy recursion into the
+owner, routed all five direct Schema consumers, removed both facade callback
+bags plus the branch/recommendation wrappers, and removed stale facade
+imports. All customizable campaign contract APIs remain unchanged.
+`schema.ex` moved from 5,191 to 5,034 lines.
 
 Verification:
-Pending.
+- Strict campaign baseline before extraction: 6 passed.
+- The same strict focused suite after extraction: 6 passed.
+- Strict campaign, optimizer, link-capacity, and operator-review coverage: 58
+  passed.
+- An additional broader run passed 69 tests and exposed one checked-in
+  golden-campaign versus fresh-study drift failure; this slice changes only
+  validation routing and no generation path, so that artifact refresh remains
+  outside this slice.
+- The full schema-export task completed and produced no checked-in changes.
+- Exact static inspection confirms five direct owner routes and zero facade
+  campaign callback bags or branch/recommendation wrappers.
+- `mix xref callers OrbitalDynamics.Schema.CampaignArtifactValidation` reports
+  only the expected Schema facade runtime caller.
+- `mix format --check-formatted` and `git diff --check` passed.
+- Strict forced compile passed across 4,075 files with no warnings.
+- Bounded local review confirmed every callback target and order, registry
+  requirement, standalone branch pre-validation, and issue path are preserved.
+- Implementation commit `633eab11` pushed to `main`.
 
 Behavior/schema changes:
-None intended. Required fields, callback ordering, validation ordering and
-paths, customizable APIs, public Schema APIs, validation results, and
-checked-in exports must remain unchanged.
+None. Required fields, callback ordering, validation ordering and paths,
+customizable APIs, public Schema APIs, validation results, and checked-in
+exports remain unchanged.
 
 Last completed slice:
-Schema link-capacity validation routing, selected in `1f254ec7` and implemented
-in `569e3c34`.
-`schema.ex` moved from 5,202 to 5,191 lines.
+Schema campaign-artifact validation context extraction, selected in `706b4bea`
+and implemented in `633eab11`.
+`schema.ex` moved from 5,191 to 5,034 lines.
 
 Next candidate:
-Implement and verify the selected campaign-artifact validation context
-extraction, then re-rank the remaining Schema responsibility clusters.
+Re-rank the remaining Schema responsibility clusters. Preserve the
+context-bearing CommonJsonSchema wrappers unless a separate exact ownership
+boundary is proven.
 
 Blocked:
 No.
