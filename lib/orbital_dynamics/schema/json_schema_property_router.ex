@@ -1,6 +1,7 @@
 defmodule OrbitalDynamics.Schema.JsonSchemaPropertyRouter do
   @moduledoc false
   alias OrbitalDynamics.Schema.{
+    CampaignArtifactPropertyRouter,
     CandidateRefreshPropertyRouter,
     OperationalReadinessValidation,
     ReferencePolicyPropertyRouter,
@@ -59,42 +60,26 @@ defmodule OrbitalDynamics.Schema.JsonSchemaPropertyRouter do
   end
 
   def property(field, "campaign_plan.v1" = contract_name, contract, context) do
-    OrbitalDynamics.Schema.CampaignArtifactPropertyDispatch.campaign_plan(
+    CampaignArtifactPropertyRouter.property(
       field,
       contract_name,
       contract,
-      fn arg1, arg2, arg3 -> fallback(arg1, arg2, arg3, context) end,
-      {fn -> provider(context, :proposed_contact_row_json_schema, []) end,
-       fn -> provider(context, :campaign_activity_json_schema, []) end,
-       fn -> provider(context, :contact_intent_row_json_schema, []) end,
-       fn -> provider(context, :ranked_timeline_json_schema, []) end}
+      context,
+      fn property_field, property_contract_name, property_contract ->
+        property(property_field, property_contract_name, property_contract, context)
+      end
     )
   end
 
   def property(field, "campaign_repair.v2" = contract_name, contract, context) do
-    timeline_transition_contract =
-      provider(context, :registry_contract!, ["timeline_transition_application_report.v1"])
-
-    OrbitalDynamics.Schema.CampaignArtifactPropertyDispatch.campaign_repair(
+    CampaignArtifactPropertyRouter.property(
       field,
       contract_name,
       contract,
-      fn arg1, arg2, arg3 -> fallback(arg1, arg2, arg3, context) end,
-      timeline_transition_contract,
-      fn transition_field ->
-        property(
-          transition_field,
-          "timeline_transition_application_report.v1",
-          timeline_transition_contract,
-          context
-        )
-      end,
-      {fn -> provider(context, :planned_activity_json_schema, []) end,
-       fn -> provider(context, :candidate_activity_json_schema, []) end,
-       fn -> provider(context, :plan_delta_json_schema, []) end,
-       fn -> provider(context, :approval_requirement_json_schema, []) end,
-       fn -> provider(context, :policy_action_rule_json_schema, []) end,
-       fn -> provider(context, :policy_decision_json_schema, []) end}
+      context,
+      fn property_field, property_contract_name, property_contract ->
+        property(property_field, property_contract_name, property_contract, context)
+      end
     )
   end
 
