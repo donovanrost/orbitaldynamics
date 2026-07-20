@@ -9,7 +9,7 @@ Current slice:
 Timeline edge-row schema-provider extraction.
 
 Status:
-Selected; implementation pending.
+Completed and verified.
 
 Selected boundary:
 Move the ranked-timeline, candidate-rejection row, lifecycle-state row, and
@@ -28,10 +28,20 @@ Selection evidence:
   remain lazy through explicit callbacks.
 
 Implementation:
-Pending.
+Selected in `921b0798` and implemented in `58ecc07d`. Added the 48-line
+`TimelineEdgeSchemaProviders` owner, merged its four lazy providers into the
+schema property context, and retained facade-owned activity, context,
+protection, capability, model-limit, and decision dependencies behind explicit
+callbacks. The public `Schema` facade moved from 1,491 to 1,458 lines.
 
 Verification:
-Pending.
+- Exact comparison passed for all four provider keys and outputs with real
+  timeline capability/limit/decision callbacks and sentinel recursive schemas.
+- Focused schema/validation suite passed: 359 tests.
+- Full checked-in schema export regenerated with no diff.
+- Runtime xref shows one direct `Schema` -> `TimelineEdgeSchemaProviders` edge.
+- Strict forced compile passed with warnings as errors: 4,119 files.
+- `JsonSchemaPropertyRouter` remains an ordered 76-head facade.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -39,13 +49,13 @@ laziness, field-hint fallback, stable-ID decoration, public `Schema`, and
 checked-in exports must remain unchanged.
 
 Last completed slice:
-Ground-network row schema-provider expansion, selected in `41412217` and
-implemented in `a04b1e80`. The public `Schema` facade moved from 1,511 to 1,491
+Timeline edge-row schema-provider extraction, selected in `921b0798` and
+implemented in `58ecc07d`. The public `Schema` facade moved from 1,491 to 1,458
 lines.
 
 Next candidate:
-Implement and verify the selected timeline edge-row provider extraction, then
-re-rank the remaining public-facade provider clusters.
+Re-rank the remaining public-facade provider clusters and select the next
+bounded extraction.
 
 Blocked:
 No.
