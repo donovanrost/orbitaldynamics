@@ -6,40 +6,30 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Operator-review embedded contact-allocation summary test split.
+Campaign-planner recommendation-pressure scenario fixture extraction.
 
 Status:
-Completed and verified.
+Selected; implementation pending.
 
 Selected boundary:
-Move the independent embedded contact-allocation summary wrapper test and its
-private summary builder from the 2,385-line OperatorReview contact-allocation
-test into a focused sibling test module. Keep the other ten adapter/fixture
-tests and their two private helpers in the original module.
+Move the deterministic prior-plan and multi-pressure strategy scenario from the
+4,705-line recommendation-pressure test into a named CampaignPlanner
+test-support fixture owner. Keep every recommendation, handoff, import, and
+schema assertion in the existing test module.
 
 Selection evidence:
-- The embedded-summary test spans lines 1,041-2,289 and is the only consumer of
-  `contact_allocation_summary/2`.
-- The other ten tests independently cover direct reports, accepted planning
-  state, result artifacts, provider reservations, standalone fixtures, and
-  source-ID fallback.
-- The split gives the wrapper-summary family its own focused invocation without
-  weakening its exhaustive field, ordering, or schema assertions.
+- The test's scenario construction occupies lines 11-1,660 and produces only
+  the `artifact` consumed by the remaining assertions.
+- Its 3,000-plus assertion lines independently verify recommendation
+  explanations, review/import handoffs, ordering, and schema contracts.
+- A fixture owner separates input construction from contract verification
+  without splitting or weakening the end-to-end assertion flow.
 
 Implementation:
-Selected in `f3835589` and implemented in `b1a21ebf`. Moved the exhaustive
-embedded-summary wrapper test and its private summary builder into
-`ContactAllocationEmbeddedSummaryTest`. The original contact-allocation test
-module moved from 2,385 to 1,126 lines; the new focused module is 1,264 lines.
+Pending.
 
 Verification:
-- Both focused contact-allocation test modules passed with warnings as errors:
-  11 tests.
-- The full OperatorReview test lane passed with warnings as errors: 257 tests.
-- Strict forced compile passed with warnings as errors: 4,129 files.
-- Touched-file format checks, new-file whitespace checks, and
-  `git diff --check` passed.
-- No production or checked-in schema-export files changed.
+Pending.
 
 Behavior/schema changes:
 None intended. The same deterministic fixtures, production calls, assertions,
@@ -52,9 +42,7 @@ Operator-review embedded contact-allocation summary test split, selected in
 1,264-line focused module.
 
 Next candidate:
-Inspect the remaining 1,264-line embedded-summary module for independent wrapper
-artifact families before choosing another split; otherwise return to the
-largest schema contract test boundary.
+Implement and verify the selected recommendation-pressure scenario extraction.
 
 Blocked:
 No.
