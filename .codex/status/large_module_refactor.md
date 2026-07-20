@@ -9,7 +9,7 @@ Current slice:
 OperationalReadiness resource-availability gate extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `a0fccffa`.
 
 Selected boundary:
 Extract resource-availability gate classification and context projection into
@@ -33,19 +33,36 @@ Selection evidence:
   unchanged.
 
 Implementation:
-Pending.
+- Added `OrbitalDynamics.OperationalReadiness.ResourceAvailabilityGate` as the
+  focused owner of resource-pressure classification and reason, station,
+  blocking, provenance, and trust context projection.
+- Preserved the public OperationalReadiness facade through the gate builder.
+- Evidence construction, quality-gate row helpers, and all other gates remain
+  outside the extraction.
+- `operational_readiness.ex` moved from 1,295 to 1,253 lines; the dedicated
+  ResourceAvailabilityGate owner is 84 lines.
 
 Verification:
-Pending.
+- Strict focused baseline: 31 tests passed with warnings treated as errors.
+- Exact old/new public parity: five results passed, covering no-pressure
+  omission, rich station/unavailable reasons, stable IDs, blocking and
+  provenance context, downstream quality-gate output, the root facade, and
+  invalid-input error behavior.
+- Post-change core, operator-review, schema, and fixture checks: 51 tests
+  passed with warnings treated as errors.
+- Static ownership and xref checks passed; only the facade calls the extracted
+  owner at runtime.
+- Forced warning-clean test compile passed across 4,029 files.
+- Focused formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-RecommendationRiskContext timeline-integrity extraction, selected in
-`25379834` and implemented in `2a89f3dd`.
-`recommendation_risk_context.ex` moved from 1,304 to 1,212 lines; the dedicated
-TimelineIntegrity owner is 124 lines.
+OperationalReadiness resource-availability gate extraction, selected in
+`60ee070b` and implemented in `a0fccffa`.
+`operational_readiness.ex` moved from 1,295 to 1,253 lines; the dedicated
+ResourceAvailabilityGate owner is 84 lines.
 
 Next candidate:
 After this slice, re-rank the live checkout. RecommendationRiskContext is the
