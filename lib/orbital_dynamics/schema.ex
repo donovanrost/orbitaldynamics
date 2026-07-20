@@ -74,6 +74,7 @@ defmodule OrbitalDynamics.Schema do
 
   import OrbitalDynamics.Schema.ContactAllocationCapabilityContext,
     only: [
+      contact_allocation_capabilities: 0,
       contact_allocation_capacity_pack_summary_assumptions_json_schema: 0,
       contact_allocation_model_limits: 0,
       contact_allocation_provider_reservation_request_summary_assumptions_json_schema: 0,
@@ -2239,9 +2240,7 @@ defmodule OrbitalDynamics.Schema do
         &nested_stable_id_array_map_json_schema/0,
         &string_array_schema/0,
         &branch_event_trust_boundary_status_counts_json_schema/0,
-        fn ->
-          OrbitalDynamics.Communications.ContactAllocation.capabilities()
-        end,
+        &contact_allocation_capabilities/0,
         &enum_count_map_json_schema/1,
         &non_negative_integer_count_map_json_schema/0,
         &non_negative_number_map_json_schema/0

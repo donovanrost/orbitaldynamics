@@ -1,6 +1,10 @@
 defmodule OrbitalDynamics.Schema.ContactAllocationCapabilityContext do
   @moduledoc false
 
+  def contact_allocation_capabilities do
+    OrbitalDynamics.Communications.ContactAllocation.capabilities()
+  end
+
   def contact_allocation_model_limits do
     OrbitalDynamics.Communications.ContactAllocation.capabilities()
     |> Map.fetch!(:known_limits)
