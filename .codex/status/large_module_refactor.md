@@ -9,7 +9,7 @@ Current slice:
 Schema contact-allocation capability-context extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Extract schema-facing ContactAllocation capability lookups, model limits, and
@@ -36,19 +36,35 @@ Selection evidence:
   unchanged.
 
 Implementation:
-Pending.
+Added `OrbitalDynamics.Schema.ContactAllocationCapabilityContext`, which now
+owns the 15 ContactAllocation capability lookups, model-limit projection, and
+five summary-assumptions builders. `OrbitalDynamics.Schema` imports only the
+six focused APIs used by its existing row and property-dispatch composition.
+`schema.ex` moved from 6,326 to 6,201 lines; the dedicated owner is 138 lines.
 
 Verification:
-Pending.
+- Strict focused contact-allocation/export baseline before extraction:
+  25 passed.
+- The same strict focused suite after extraction: 25 passed.
+- Strict full schema-export task plus adjacent communications, fixture,
+  Cadence-import, and validation coverage: 19 passed.
+- `mix xref callers
+  OrbitalDynamics.Schema.ContactAllocationCapabilityContext` reports only
+  `lib/orbital_dynamics/schema.ex (export)`.
+- `git diff --check` passed; no checked-in schema export changed.
+- Strict forced compile passed across 4,055 files.
+- Implementation commit `4e12f391` pushed to `main`.
 
 Behavior/schema changes:
-None intended.
+None. Public facades, atom-to-string conversion, capability ordering,
+generated JSON Schema, validation behavior, and checked-in exports remain
+unchanged.
 
 Last completed slice:
-Schema link-capacity capability-context extraction, selected in `af6d00c6`
-and implemented in `03fdb865`.
-`schema.ex` moved from 6,361 to 6,326 lines; the dedicated
-LinkCapacityCapabilityContext owner is 41 lines.
+Schema contact-allocation capability-context extraction, selected in
+`906526ce` and implemented in `4e12f391`.
+`schema.ex` moved from 6,326 to 6,201 lines; the dedicated
+ContactAllocationCapabilityContext owner is 138 lines.
 
 Next candidate:
 Re-rank the remaining Schema capability/model-limit responsibility clusters.
