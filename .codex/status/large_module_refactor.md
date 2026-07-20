@@ -6,59 +6,37 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-OperationalReadiness unavailable-resource summary extraction.
+RecommendationRiskContext provider-reservation-request extraction.
 
 Status:
-Completed and pushed in `6686d3a4`.
+Selected; implementation not started.
 
 Selected boundary:
-Extract unavailable-resource quality-gate summary construction and its
-row-aggregation helpers into
-`OrbitalDynamics.OperationalReadiness.QualityGateUnavailableResourceSummary`.
-Preserve all OperationalReadiness and downstream public facades.
+Extract provider-reservation-request context keys, risk selection, and context
+projection into
+`OrbitalDynamics.RecommendationRiskContext.ProviderReservationRequest`.
+Preserve all RecommendationRiskContext and downstream public facades.
 
 Selection evidence:
 - Excluding the generated/declarative candidate-refresh JSON-schema module,
-  live re-ranking places `operational_readiness.ex` at 1,063 lines, the
+  live re-ranking places `recommendation_risk_context.ex` at 1,033 lines, the
   largest ordinary eligible facade.
-- Operator-training, schema-validation, import-readiness, and general quality
-  summaries already have focused owners, while unavailable-resource summary
-  construction and its row aggregation remain inline.
-- The selected code has one responsibility: aggregate resource-availability
-  rows into reason, station, blocking, contact, status, and routing summaries.
-- Quality-gate report construction, row projection, readiness evidence
-  construction, and all gates remain outside the boundary.
-- Exact artifact fields, positive-count filtering, reason classification,
-  stable ID normalization, count merging, status routing, assumptions,
-  model limits, nil compaction, public output, and error behavior must remain
-  unchanged.
+- RecommendationRiskContext delegates twenty-two focused risk families, while
+  provider-reservation-request keys, selection, and projection remain inline.
+- The selected code has one responsibility: identify provider reservation
+  requests by feedback scope or request key and project contact, station,
+  reservation, review, assumption, and provenance context.
+- Contention, filters, timelines, and all other risk families remain outside
+  the boundary.
+- Exact context key order, scope/key selection, atom-key normalization,
+  multi-key/list flattening, nil omission, value ordering, non-list behavior,
+  public output, and error behavior must remain unchanged.
 
 Implementation:
-- Added
-  `OrbitalDynamics.OperationalReadiness.QualityGateUnavailableResourceSummary`
-  as the focused owner of unavailable-resource summary construction, positive
-  count merging, reason classification, blocked-contact aggregation, routing,
-  stable IDs, and nil compaction.
-- Preserved all public OperationalReadiness facades through the summary
-  builder.
-- Removed facade helpers that became dead after their only summary consumer
-  moved; report construction, row projection, evidence construction, and all
-  gates remain outside the extraction.
-- `operational_readiness.ex` moved from 1,063 to 903 lines; the dedicated
-  QualityGateUnavailableResourceSummary owner is 213 lines.
+Pending.
 
 Verification:
-- Strict focused baseline: 31 tests passed with warnings treated as errors.
-- Exact old/new public parity: four results passed, covering multi-row count
-  merging, reason classification, blocked-contact and status routing, stable
-  row/gate IDs, empty output, atom-key normalization, nil compaction, and the
-  root facade.
-- Post-change core, operator-review, schema, and fixture checks: 51 tests
-  passed with warnings treated as errors.
-- Static ownership and xref checks passed; only the facade calls the extracted
-  owner at runtime.
-- Forced warning-clean test compile passed across 4,038 files.
-- Focused formatting and `git diff --check` passed.
+Pending.
 
 Behavior/schema changes:
 None intended.
@@ -70,8 +48,8 @@ OperationalReadiness unavailable-resource summary extraction, selected in
 QualityGateUnavailableResourceSummary owner is 213 lines.
 
 Next candidate:
-After this slice, re-rank the live checkout. RecommendationRiskContext is the
-next largest ordinary eligible facade.
+After this slice, re-rank the live checkout. OperationalReadiness is the next
+largest ordinary eligible facade.
 
 Blocked:
 No.
