@@ -5863,7 +5863,7 @@ defmodule OrbitalDynamics.Schema do
         path,
         requirement,
         policy_model_limits(),
-        policy_rule_match_field_groups()
+        OrbitalDynamics.Schema.PolicyFieldGroups.rule_match()
       )
 
   defp validate_optional_policy_decision_evidence(issues, path, decision),
@@ -5913,7 +5913,7 @@ defmodule OrbitalDynamics.Schema do
         path,
         decision,
         policy_model_limits(),
-        policy_rule_match_field_groups()
+        OrbitalDynamics.Schema.PolicyFieldGroups.rule_match()
       )
 
   defp validate_policy_rule_match(issues, path, match),
@@ -5922,12 +5922,8 @@ defmodule OrbitalDynamics.Schema do
         issues,
         path,
         match,
-        policy_rule_match_field_groups()
+        OrbitalDynamics.Schema.PolicyFieldGroups.rule_match()
       )
-
-  defp policy_rule_match_field_groups do
-    OrbitalDynamics.Schema.PolicyFieldGroups.rule_match()
-  end
 
   defp validate_policy_bundle(issues, path, bundle),
     do:
