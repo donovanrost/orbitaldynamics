@@ -9,7 +9,7 @@ Current slice:
 Schema provider-counteroffer model ownership.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Move the provider-counteroffer report model enum from the Schema facade into
@@ -29,19 +29,36 @@ Selection evidence:
   validation results, and checked-in exports must remain unchanged.
 
 Implementation:
-Pending.
+Moved the four provider-counteroffer report model values into
+ProviderCounterofferReportJsonSchema and routed the property-dispatch callback
+directly to that owner.
+`schema.ex` moved from 6,140 to 6,131 lines; the report schema owner moved from
+105 to 114 lines.
 
 Verification:
-Pending.
+- Strict focused provider-counteroffer/station-provider/export baseline before
+  move: 22 passed.
+- The same strict focused suite after move: 22 passed.
+- Strict full schema-export task plus adjacent communications/report-fixture/
+  fixture-visibility coverage: 14 passed.
+- `mix xref callers
+  OrbitalDynamics.Schema.ProviderCounterofferReportJsonSchema` reports the
+  expected `schema.ex` and ProviderCounterofferPropertyDispatch callers.
+- Static search confirms the facade model function and indirect capture are
+  gone.
+- `git diff --check` passed; no checked-in schema export changed.
+- Strict forced compile passed across 4,065 files.
+- Implementation commit `16d36516` pushed to `main`.
 
 Behavior/schema changes:
-None intended.
+None. Public facades, callback timing, model values and ordering, generated
+JSON Schema, validation behavior, and checked-in exports remain unchanged.
 
 Last completed slice:
-Schema station-calendar model-context consolidation, selected in `e6cebc64`
-and implemented in `26a3fd42`.
-`schema.ex` moved from 6,141 to 6,140 lines; the station-calendar capability
-context moved from 21 to 23 lines.
+Schema provider-counteroffer model ownership, selected in `d997b385` and
+implemented in `16d36516`.
+`schema.ex` moved from 6,140 to 6,131 lines; the provider-counteroffer report
+schema owner moved from 105 to 114 lines.
 
 Next candidate:
 Re-rank the remaining non-capability Schema responsibility clusters now that
