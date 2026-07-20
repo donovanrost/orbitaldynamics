@@ -9,7 +9,7 @@ Current slice:
 ContactContention approval-policy extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `25b80862`.
 
 Selected boundary:
 Extract group, invalid-input, and resolution-recommendation approval-policy
@@ -37,23 +37,45 @@ Selection evidence:
   behavior must remain unchanged.
 
 Implementation:
-Pending.
+- Added
+  `OrbitalDynamics.Communications.ContactContention.ApprovalPolicy` as the owner
+  of no-policy passthrough, group/invalid/recommendation policy decisions,
+  requirement type/reason precedence, activity-context projection, and
+  feedback/station-calendar evidence attachment.
+- Wired contention-report and resolution-report construction directly to the
+  three owner entry points while preserving ContactContention and root APIs.
+- Kept contention grouping, annotation, recommendation selection/ranking,
+  resolution-policy parsing, and summary projection outside the boundary.
+- `contact_contention.ex` moved from 1,546 to 1,305 lines; the new owner is 256
+  lines.
 
 Verification:
-Pending.
+- Strict focused baseline passed all 40 ContactContention tests.
+- Exact old/new public parity passed for four deterministic whole artifacts:
+  policy-classified contention groups, blocked invalid input, classified
+  resolution recommendations, and nil-policy report passthrough.
+- Post-extraction focused and adjacent ContactContention, campaign-planner,
+  candidate-refresh replay/capability, operator-review, schema/export, and
+  validation verification passed all 72 tests.
+- Static checks confirm approval application, requirement construction, and
+  direction-specific reason helpers left the facade; xref reports only
+  ContactContention as a runtime caller.
+- Strict warning-clean forced compile passed for 4,020 files.
+- Formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-OperationalReadiness quality-gate summary extraction, selected in `85bc6b83`
-and implemented in `0400f75b`.
-`operational_readiness.ex` moved from 1,598 to 1,541 lines; the dedicated
-QualityGateSummary owner is 132 lines.
+ContactContention approval-policy extraction, selected in `22b40f4f` and
+implemented in `25b80862`.
+`communications/contact_contention.ex` moved from 1,546 to 1,305 lines; the
+dedicated ApprovalPolicy owner is 256 lines.
 
 Next candidate:
-After this slice, re-rank the live checkout. ResourceFilter and
-OperationalReadiness are the next largest ordinary eligible facades.
+Re-rank the live checkout and select the next bounded facade-preserving
+extraction. ResourceFilter is now the largest ordinary eligible facade at 1,542
+lines, followed by OperationalReadiness and RecommendationRiskContext.
 
 Blocked:
 No.
