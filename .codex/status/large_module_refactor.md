@@ -9,7 +9,7 @@ Current slice:
 Schema timeline-artifact validation context extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Add TimelineArtifactValidation owner-default entry points for the 17 direct
@@ -31,24 +31,44 @@ Selection evidence:
   no route needs recursive Schema lookup or facade-local callbacks.
 
 Implementation:
-Pending.
+Added TimelineArtifactValidation with one registry-backed family entry point,
+17 artifact routes, timeline/feedback model-limit ownership, operator-review
+context for feedback reports, and preserved owner-default operational/transition
+paths. Routed every direct Schema timeline-family clause to the owner and
+removed two stale facade aliases. `schema.ex` moved from 5,034 to 4,958 lines.
 
 Verification:
-Pending.
+- Strict timeline/Cadence/campaign baseline before extraction: 17 passed.
+- The same strict focused suite after extraction: 17 passed.
+- Strict timeline validation, operator-review, feedback, and transition
+  coverage: 155 passed.
+- Strict schema and JSON Schema export coverage: 18 passed.
+- The full schema-export task completed and produced no checked-in changes.
+- Exact static inspection confirms 17 direct owner routes and no remaining
+  facade-local timeline-family validation logic.
+- Registry inspection confirms all selected contracts are covered without
+  duplicate keys across the eight owner registries.
+- `mix xref callers OrbitalDynamics.Schema.TimelineArtifactValidation` reports
+  only the expected Schema facade runtime caller.
+- `mix format --check-formatted` and `git diff --check` passed.
+- Strict forced compile passed across 4,076 files with no warnings.
+- Bounded local review confirmed required-field, model-limit, callback, issue
+  ordering, and operational-timeline no-duplicate-validation behavior.
+- Implementation commit `e84783b5` pushed to `main`.
 
 Behavior/schema changes:
-None intended. Required fields, model limits, validation ordering and paths,
-public Schema APIs, validation results, and checked-in exports must remain
-unchanged.
+None. Required fields, model limits, validation ordering and paths, public
+Schema APIs, validation results, and checked-in exports remain unchanged.
 
 Last completed slice:
-Schema campaign-artifact validation context extraction, selected in `706b4bea`
-and implemented in `633eab11`.
-`schema.ex` moved from 5,191 to 5,034 lines.
+Schema timeline-artifact validation context extraction, selected in `f2d5e2df`,
+inventory-corrected in `67c69b6f`, and implemented in `e84783b5`.
+`schema.ex` moved from 5,034 to 4,958 lines.
 
 Next candidate:
-Implement and verify the selected timeline-artifact validation context
-extraction, then re-rank the remaining Schema responsibility clusters.
+Re-rank the remaining Schema responsibility clusters. Preserve the
+context-bearing CommonJsonSchema wrappers unless a separate exact ownership
+boundary is proven.
 
 Blocked:
 No.
