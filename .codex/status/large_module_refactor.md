@@ -9,7 +9,7 @@ Current slice:
 Reference/policy JSON-property family extraction.
 
 Status:
-Selected; implementation pending.
+Implemented and verified.
 
 Selected boundary:
 Extract the six leading activity-template, policy bundle/decision, capability
@@ -31,10 +31,24 @@ Selection evidence:
   a reusable boundary for later router splits.
 
 Implementation:
-Pending.
+- Added a 68-line `ReferencePolicyPropertyRouter` with the six mechanically
+  moved clause bodies.
+- Added a 29-line `JsonSchemaPropertySupport` owner for lazy provider lookup,
+  context values, and field-hint/stable-ID fallback.
+- Kept all six original parent clause heads in place as ordered delegations.
+- The parent router moved from 1,326 to 1,264 lines.
 
 Verification:
-Pending.
+- Strict pre-change baseline and post-change schema/validation suite: 359 tests
+  passed in each run.
+- AST comparison confirmed all six moved bodies are exact and all 76 parent
+  clause heads remain in their original order.
+- Full schema export regenerated 121 contract schemas and the bundle with no
+  checked-in schema diff.
+- `mix xref trace` confirms the six intended family edges and shared support
+  edges from the parent router.
+- Formatting, `git diff --check`, and bounded source/schema diff review passed.
+- Strict compile passed for 4,096 files with warnings as errors.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -42,12 +56,13 @@ laziness, field-hint fallback, stable-ID decoration, public `Schema`, and
 checked-in exports must remain unchanged.
 
 Last completed slice:
-Schema JSON-property router extraction, selected in `db973fb7` and implemented
-in `b7196e25`. `schema.ex` moved from 3,194 to 1,959 lines.
+Reference/policy JSON-property family extraction, selected in `44cfeda6` and
+implemented in `bbc8fc3e`. The parent router moved from 1,326 to 1,264 lines.
 
 Next candidate:
-Implement and verify the selected reference/policy family split, then re-rank
-the next cohesive property-router family against facade provider extraction.
+Re-rank the contiguous candidate-refresh/timeline clauses against a cohesive
+facade provider-family extraction, reusing `JsonSchemaPropertySupport` without
+changing parent clause order.
 
 Blocked:
 No.
