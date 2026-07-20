@@ -9,7 +9,7 @@ Current slice:
 Cadence review property-provider deduplication.
 
 Status:
-Selected; implementation pending.
+Completed and verified.
 
 Selected boundary:
 Move the duplicated cadence-import-manifest and cadence-source-review
@@ -28,10 +28,19 @@ Selection evidence:
   explicit callbacks.
 
 Implementation:
-Pending.
+Selected in `82c6235b` and implemented in `2c854a8c`. Added the 39-line
+`CadenceReviewSchemaProviders` owner and replaced two identical private
+property-provider assemblies with one shared facade wiring point. The public
+`Schema` facade moved from 1,391 to 1,349 lines.
 
 Verification:
-Pending.
+- Exact comparison passed for all 13 ordered property-provider keys and
+  outputs, including ten callback-backed families.
+- Focused schema/validation suite passed: 359 tests.
+- Full checked-in schema export regenerated with no diff.
+- Runtime xref shows one direct `Schema` -> `CadenceReviewSchemaProviders` edge.
+- Strict forced compile passed with warnings as errors: 4,121 files.
+- `JsonSchemaPropertyRouter` remains an ordered 76-head facade.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -39,13 +48,13 @@ laziness, field-hint fallback, stable-ID decoration, public `Schema`, and
 checked-in exports must remain unchanged.
 
 Last completed slice:
-Operator-review row schema-provider completion, selected in `0d1049c0` and
-implemented in `b238573d`. The public `Schema` facade moved from 1,443 to 1,391
+Cadence review property-provider deduplication, selected in `82c6235b` and
+implemented in `2c854a8c`. The public `Schema` facade moved from 1,391 to 1,349
 lines.
 
 Next candidate:
-Implement and verify the shared cadence property-provider extraction, then
-assess consolidation of the two remaining row/schema-provider assemblies.
+Consolidate the two remaining cadence row/schema-provider assemblies in the
+shared owner while preserving their small manifest/source-review differences.
 
 Blocked:
 No.
