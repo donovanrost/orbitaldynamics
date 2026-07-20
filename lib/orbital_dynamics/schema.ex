@@ -16,14 +16,13 @@ defmodule OrbitalDynamics.Schema do
     DecisionSupportValidation,
     LinkCapacityValidation,
     OperationalReadinessValidation,
-    OperationalTimelineValidation,
     OperatorReviewValidation,
     PolicyValidation,
     ResourceValidation,
     SourceEvidenceValidation,
     StationReservationValidation,
-    TimelineContextJsonSchema,
-    TimelineTransitionValidation
+    TimelineArtifactValidation,
+    TimelineContextJsonSchema
   }
 
   import OrbitalDynamics.Schema.PrimitiveValidation,
@@ -4348,15 +4347,8 @@ defmodule OrbitalDynamics.Schema do
     |> OrbitalDynamics.Schema.RealizedStateSnapshotContracts.validate("$", artifact)
   end
 
-  defp validate_contract(@timeline_feedback_report, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.TimelineFeedbackReportContracts.validate(
-      "$",
-      artifact,
-      timeline_feedback_report_model_limits(),
-      &OperatorReviewValidation.validate_optional_package/2
-    )
+  defp validate_contract(@timeline_feedback_report, _contract, artifact) do
+    TimelineArtifactValidation.validate([], "$", artifact, @timeline_feedback_report)
   end
 
   defp validate_contract(@candidate_rejection_report, contract, artifact) do
@@ -4686,151 +4678,81 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp validate_contract(@operational_timeline_report, _contract, artifact) do
-    []
-    |> OperationalTimelineValidation.validate_report("$", artifact)
+    TimelineArtifactValidation.validate([], "$", artifact, @operational_timeline_report)
   end
 
-  defp validate_contract(@timeline_diff_report, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.TimelineDiffReportContracts.validate(
+  defp validate_contract(@timeline_diff_report, _contract, artifact) do
+    TimelineArtifactValidation.validate([], "$", artifact, @timeline_diff_report)
+  end
+
+  defp validate_contract(@timeline_diff_summary, _contract, artifact) do
+    TimelineArtifactValidation.validate([], "$", artifact, @timeline_diff_summary)
+  end
+
+  defp validate_contract(@timeline_integrity_report, _contract, artifact) do
+    TimelineArtifactValidation.validate([], "$", artifact, @timeline_integrity_report)
+  end
+
+  defp validate_contract(@timeline_dependency_impact_summary, _contract, artifact) do
+    TimelineArtifactValidation.validate([], "$", artifact, @timeline_dependency_impact_summary)
+  end
+
+  defp validate_contract(@timeline_publication_summary, _contract, artifact) do
+    TimelineArtifactValidation.validate([], "$", artifact, @timeline_publication_summary)
+  end
+
+  defp validate_contract(@timeline_activity_state, _contract, artifact) do
+    TimelineArtifactValidation.validate([], "$", artifact, @timeline_activity_state)
+  end
+
+  defp validate_contract(@timeline_activity_precondition_summary, _contract, artifact) do
+    TimelineArtifactValidation.validate(
+      [],
       "$",
       artifact,
-      timeline_report_model_limits()
+      @timeline_activity_precondition_summary
     )
   end
 
-  defp validate_contract(@timeline_diff_summary, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.TimelineDiffSummaryContracts.validate(
+  defp validate_contract(@timeline_activity_status_state, _contract, artifact) do
+    TimelineArtifactValidation.validate([], "$", artifact, @timeline_activity_status_state)
+  end
+
+  defp validate_contract(@timeline_activity_approval_state, _contract, artifact) do
+    TimelineArtifactValidation.validate([], "$", artifact, @timeline_activity_approval_state)
+  end
+
+  defp validate_contract(@timeline_activity_lifecycle_state, _contract, artifact) do
+    TimelineArtifactValidation.validate([], "$", artifact, @timeline_activity_lifecycle_state)
+  end
+
+  defp validate_contract(@timeline_preservation_report, _contract, artifact) do
+    TimelineArtifactValidation.validate([], "$", artifact, @timeline_preservation_report)
+  end
+
+  defp validate_contract(@timeline_preservation_status, _contract, artifact) do
+    TimelineArtifactValidation.validate([], "$", artifact, @timeline_preservation_status)
+  end
+
+  defp validate_contract(@timeline_lifecycle_state_summary, _contract, artifact) do
+    TimelineArtifactValidation.validate([], "$", artifact, @timeline_lifecycle_state_summary)
+  end
+
+  defp validate_contract(@timeline_transition_application_report, _contract, artifact) do
+    TimelineArtifactValidation.validate(
+      [],
       "$",
       artifact,
-      timeline_report_model_limits()
+      @timeline_transition_application_report
     )
   end
 
-  defp validate_contract(@timeline_integrity_report, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.TimelineIntegrityReportContracts.validate(
+  defp validate_contract(@timeline_transition_application_summary, _contract, artifact) do
+    TimelineArtifactValidation.validate(
+      [],
       "$",
       artifact,
-      timeline_report_model_limits()
-    )
-  end
-
-  defp validate_contract(@timeline_dependency_impact_summary, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.TimelineDependencyImpactSummaryContracts.validate(
-      "$",
-      artifact,
-      timeline_report_model_limits()
-    )
-  end
-
-  defp validate_contract(@timeline_publication_summary, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.TimelinePublicationSummaryContracts.validate(
-      "$",
-      artifact
-    )
-  end
-
-  defp validate_contract(@timeline_activity_state, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.TimelineActivityStateContracts.validate(
-      "$",
-      artifact,
-      timeline_feedback_report_model_limits()
-    )
-  end
-
-  defp validate_contract(@timeline_activity_precondition_summary, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.TimelineActivityPreconditionSummaryContracts.validate(
-      "$",
-      artifact,
-      timeline_report_model_limits()
-    )
-  end
-
-  defp validate_contract(@timeline_activity_status_state, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.TimelineActivityLifecycleStateContracts.validate_status_state(
-      "$",
-      artifact,
-      timeline_report_model_limits()
-    )
-  end
-
-  defp validate_contract(@timeline_activity_approval_state, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.TimelineActivityLifecycleStateContracts.validate_approval_state(
-      "$",
-      artifact,
-      timeline_report_model_limits()
-    )
-  end
-
-  defp validate_contract(@timeline_activity_lifecycle_state, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.TimelineActivityLifecycleStateContracts.validate_lifecycle_state(
-      "$",
-      artifact,
-      timeline_report_model_limits()
-    )
-  end
-
-  defp validate_contract(@timeline_preservation_report, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.TimelinePreservationContracts.validate_report(
-      "$",
-      artifact,
-      timeline_report_model_limits()
-    )
-  end
-
-  defp validate_contract(@timeline_preservation_status, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.TimelinePreservationContracts.validate_status(
-      "$",
-      artifact,
-      timeline_report_model_limits()
-    )
-  end
-
-  defp validate_contract(@timeline_lifecycle_state_summary, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.TimelineLifecycleStateSummaryContracts.validate(
-      "$",
-      artifact,
-      timeline_report_model_limits()
-    )
-  end
-
-  defp validate_contract(@timeline_transition_application_report, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> TimelineTransitionValidation.validate_timeline_transition_application_report("$", artifact)
-  end
-
-  defp validate_contract(@timeline_transition_application_summary, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> TimelineTransitionValidation.validate_timeline_transition_application_summary(
-      "$",
-      artifact
+      @timeline_transition_application_summary
     )
   end
 
