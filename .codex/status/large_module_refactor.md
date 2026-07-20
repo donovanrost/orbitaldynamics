@@ -9,7 +9,7 @@ Current slice:
 Schema accepted-state/candidate-refresh validation context extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Add StateRefreshArtifactValidation owner-default entry points for three
@@ -31,24 +31,42 @@ Selection evidence:
 - No route needs recursive Schema lookup or facade-local callbacks.
 
 Implementation:
-Pending.
+Added StateRefreshArtifactValidation with one two-registry-backed entry point,
+accepted-state required-field ownership, candidate-refresh callback context,
+and nine require-first state/diff/freshness/budget/window routes. Routed all 11
+direct Schema clauses to the owner. `schema.ex` moved from 4,939 to 4,889 lines.
 
 Verification:
-Pending.
+- Strict accepted-state/candidate-refresh baseline before extraction: 17
+  passed.
+- The same strict focused suite after extraction: 17 passed.
+- Strict candidate-diff, freshness, refresh-budget, and state-fixture coverage:
+  39 passed.
+- The full schema-export task completed and produced no checked-in changes.
+- Exact static inspection confirms 11 direct owner routes and no remaining
+  facade-local accepted-state/candidate-refresh validation logic.
+- `mix xref callers OrbitalDynamics.Schema.StateRefreshArtifactValidation`
+  reports only the expected Schema facade runtime caller.
+- `mix format --check-formatted` and `git diff --check` passed.
+- Strict forced compile passed across 4,078 files with no warnings.
+- Bounded local review confirmed registry requirements, callback order,
+  require-first and explicit schema-contract checks, issue paths, and the
+  candidate-refresh path-independent contract API are preserved.
+- Implementation commit `3411b55c` pushed to `main`.
 
 Behavior/schema changes:
-None intended. Required fields, callbacks, validation ordering and paths,
-public Schema APIs, validation results, and checked-in exports must remain
-unchanged.
+None. Required fields, callbacks, validation ordering and paths, public Schema
+APIs, validation results, and checked-in exports remain unchanged.
 
 Last completed slice:
-Schema validation-reference/acceptance context extraction, selected in
-`f8ce79ba` and implemented in `f71e1160`.
-`schema.ex` moved from 4,958 to 4,939 lines.
+Schema accepted-state/candidate-refresh validation context extraction, selected
+in `139671e3` and implemented in `3411b55c`.
+`schema.ex` moved from 4,939 to 4,889 lines.
 
 Next candidate:
-Implement and verify the selected accepted-state/candidate-refresh context
-extraction, then re-rank the remaining Schema responsibility clusters.
+Re-rank the remaining Schema responsibility clusters. Preserve the
+context-bearing CommonJsonSchema wrappers unless a separate exact ownership
+boundary is proven.
 
 Blocked:
 No.
