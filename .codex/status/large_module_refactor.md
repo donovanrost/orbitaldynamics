@@ -9,7 +9,7 @@ Current slice:
 RecommendationRiskContext timeline-activity-precondition extraction.
 
 Status:
-Selected; strict focused baseline pending.
+Completed and pushed in `9201d18b`.
 
 Selected boundary:
 Extract timeline-activity-precondition context keys, risk selection, context
@@ -33,24 +33,44 @@ Selection evidence:
   non-list fallback behavior must remain unchanged.
 
 Implementation:
-Pending.
+- Added
+  `OrbitalDynamics.RecommendationRiskContext.TimelineActivityPrecondition` as
+  the owner of context keys, risk selection, scalar/list value projection,
+  deduplication, atom-key normalization, and empty-field omission.
+- Preserved both RecommendationRiskContext public APIs as delegates, matching
+  the existing timeline activity lifecycle-state owner pattern.
+- Removed the timeline-activity-precondition key list and builder from the
+  facade while leaving all other recommendation risk domains unchanged.
+- `recommendation_risk_context.ex` moved from 1,893 to 1,772 lines; the new
+  owner is 158 lines.
 
 Verification:
-Pending.
+- The focused strategy-recommendation baseline passed its single test; its two
+  pre-existing signed-zero pattern warnings prevent a warnings-as-errors test
+  invocation from exiting successfully.
+- Exact old/new public parity passed for five deterministic results: context
+  keys, mixed atom/string risks with scalar/list evidence, list-valued scalar
+  fields, non-list fallback, and empty input.
+- Post-extraction focused and adjacent verification passed all 8 tests; the 7
+  adjacent tests passed with warnings-as-errors.
+- Static checks confirm the precondition key/builder implementation left the
+  facade; xref reports only RecommendationRiskContext as a runtime caller.
+- Strict warning-clean forced compile passed for 4,004 files.
+- Formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-ContactFilter station-state resolution extraction, selected in `3d523698` and
-implemented in `bc495074`.
-`contact_filter.ex` moved from 1,898 to 1,365 lines; the dedicated StationState
-owner is 633 lines.
+RecommendationRiskContext timeline-activity-precondition extraction, selected
+in `d27a1946` and implemented in `9201d18b`.
+`recommendation_risk_context.ex` moved from 1,893 to 1,772 lines; the dedicated
+TimelineActivityPrecondition owner is 158 lines.
 
 Next candidate:
 Re-rank the live checkout and select the next bounded facade-preserving
-extraction. `recommendation_risk_context.ex` is now the largest ordinary
-eligible facade at 1,893 lines, followed by OrbitData and StationCalendar.
+extraction. `orbit_data.ex` is now the largest ordinary eligible facade at
+1,856 lines, followed by StationCalendar and ContactAllocation.
 
 Blocked:
 No.
