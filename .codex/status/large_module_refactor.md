@@ -12,9 +12,9 @@ Status:
 Selected; implementation pending.
 
 Selected boundary:
-Add TimelineArtifactValidation owner-default entry points for the 14 direct
+Add TimelineArtifactValidation owner-default entry points for the 17 direct
 timeline diff, integrity, publication, activity-state, lifecycle,
-preservation, and transition artifacts. Derive requirements from the seven
+preservation, feedback, and transition artifacts. Derive requirements from the eight
 existing timeline registry modules and model limits from
 TimelineCapabilityContext, then route the Schema clauses directly. Keep every
 artifact-specific contract/validation API unchanged.
@@ -22,8 +22,8 @@ artifact-specific contract/validation API unchanged.
 Selection evidence:
 - `schema.ex` remains the dominant production hotspot at 5,034 lines; the other
   targeted public facades are now 164 to 524 lines.
-- Fourteen direct clauses repeat required-field setup and family owner routing.
-- Seven timeline registry modules collectively own every required-field list.
+- Seventeen direct clauses repeat required-field setup and family owner routing.
+- Eight timeline registry modules collectively own every required-field list.
 - TimelineCapabilityContext owns both timeline and feedback model limits.
 - OperationalTimelineValidation and TimelineTransitionValidation already own
   their default validation context.
