@@ -172,6 +172,9 @@ defmodule OrbitalDynamics.Schema.ResourceValidation do
   defp validate_registered_artifact(issues, path, artifact, "resource_filter_report.v1"),
     do: validate_resource_filter_report(issues, path, artifact)
 
+  defp validate_registered_artifact(issues, path, artifact, "resource_summary.v1"),
+    do: OrbitalDynamics.Schema.ResourceSummaryContracts.validate(issues, path, artifact)
+
   defp validate_registered_artifact(issues, path, artifact, "resource_filter_summary.v1") do
     OrbitalDynamics.Schema.ResourceFilterSummaryContracts.validate(
       issues,
@@ -186,7 +189,8 @@ defmodule OrbitalDynamics.Schema.ResourceValidation do
   defp required_fields(contract_name) do
     [
       OrbitalDynamics.Schema.ResourceProjectionRegistryContracts,
-      OrbitalDynamics.Schema.ResourceFilterRegistryContracts
+      OrbitalDynamics.Schema.ResourceFilterRegistryContracts,
+      OrbitalDynamics.Schema.ResourceSummaryRegistryContracts
     ]
     |> Enum.reduce(%{}, &Map.merge(&2, &1.contracts()))
     |> OrbitalDynamics.Schema.Registry.fetch!(contract_name)

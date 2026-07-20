@@ -4245,10 +4245,8 @@ defmodule OrbitalDynamics.Schema do
     ProviderCounterofferValidation.validate_plan_impact_summary([], "$", artifact)
   end
 
-  defp validate_contract(@resource_summary, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.ResourceSummaryContracts.validate("$", artifact)
+  defp validate_contract(@resource_summary, _contract, artifact) do
+    ResourceValidation.validate_artifact([], "$", artifact, @resource_summary)
   end
 
   defp validate_contract(@resource_projection_report, _contract, artifact) do
