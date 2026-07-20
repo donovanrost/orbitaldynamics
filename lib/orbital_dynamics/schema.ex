@@ -2216,7 +2216,7 @@ defmodule OrbitalDynamics.Schema do
       count_map_schema: &non_negative_integer_count_map_json_schema/0,
       number_array_schema: &number_array_schema/0,
       actual_data_rate_throughput_derivations_schema:
-        &actual_data_rate_throughput_derivations_json_schema/0,
+        &OrbitalDynamics.Schema.TimelineContextJsonSchema.actual_data_rate_throughput_derivations/0,
       numeric_map_schema: &numeric_map_json_schema/0,
       stable_id_array_map_schema: &stable_id_array_map_schema/0,
       default_property: &default_json_schema_property/3
@@ -2863,7 +2863,7 @@ defmodule OrbitalDynamics.Schema do
       string_array_schema: &string_array_schema/0,
       count_map_schema: &non_negative_integer_count_map_json_schema/0,
       actual_data_rate_throughput_derivations_schema:
-        &actual_data_rate_throughput_derivations_json_schema/0,
+        &OrbitalDynamics.Schema.TimelineContextJsonSchema.actual_data_rate_throughput_derivations/0,
       policy_decision_schema: &policy_decision_json_schema/0
     )
   end
@@ -2875,7 +2875,7 @@ defmodule OrbitalDynamics.Schema do
       string_array_schema: &string_array_schema/0,
       number_array_schema: &number_array_schema/0,
       actual_data_rate_throughput_derivation_schema:
-        &actual_data_rate_throughput_derivation_json_schema/0,
+        &OrbitalDynamics.Schema.TimelineContextJsonSchema.actual_data_rate_throughput_derivation/0,
       approval_requirement_schema: &approval_requirement_json_schema/0,
       policy_decision_rule_match_schema: &policy_decision_rule_match_json_schema/0,
       policy_decision_schema: &policy_decision_json_schema/0,
@@ -2910,7 +2910,7 @@ defmodule OrbitalDynamics.Schema do
       string_array_schema: &string_array_schema/0,
       number_array_schema: &number_array_schema/0,
       actual_data_rate_throughput_derivations_schema:
-        &actual_data_rate_throughput_derivations_json_schema/0,
+        &OrbitalDynamics.Schema.TimelineContextJsonSchema.actual_data_rate_throughput_derivations/0,
       source_contact_candidate_schema: &contact_contention_source_contact_candidate_json_schema/0,
       policy_decision_schema: &policy_decision_json_schema/0
     )
@@ -2923,7 +2923,7 @@ defmodule OrbitalDynamics.Schema do
       string_array_schema: &string_array_schema/0,
       number_array_schema: &number_array_schema/0,
       actual_data_rate_throughput_derivations_schema:
-        &actual_data_rate_throughput_derivations_json_schema/0,
+        &OrbitalDynamics.Schema.TimelineContextJsonSchema.actual_data_rate_throughput_derivations/0,
       deferred_priority_schema: &contact_contention_deferred_priority_json_schema/0,
       source_contact_candidate_schema: &contact_contention_source_contact_candidate_json_schema/0,
       priority_field_evidence_counts_schema: &priority_field_evidence_counts_json_schema/0,
@@ -3301,7 +3301,7 @@ defmodule OrbitalDynamics.Schema do
       protection_decision_schema: protection_decision_json_schema(),
       lifecycle_transition_schema: lifecycle_transition_json_schema(),
       actual_data_rate_throughput_derivation_schema:
-        actual_data_rate_throughput_derivation_json_schema(),
+        OrbitalDynamics.Schema.TimelineContextJsonSchema.actual_data_rate_throughput_derivation(),
       numeric_triplet_schema: numeric_triplet_schema(),
       timeline_identity_schema: timeline_identity_json_schema(),
       activity_context_schema: activity_context_json_schema(),
@@ -3435,12 +3435,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp timeline_identity_json_schema,
     do: OrbitalDynamics.Schema.TimelineContextJsonSchema.timeline_identity(@stable_id_pattern)
-
-  defp actual_data_rate_throughput_derivation_json_schema,
-    do: OrbitalDynamics.Schema.TimelineContextJsonSchema.actual_data_rate_throughput_derivation()
-
-  defp actual_data_rate_throughput_derivations_json_schema,
-    do: OrbitalDynamics.Schema.TimelineContextJsonSchema.actual_data_rate_throughput_derivations()
 
   defp execution_uncertainty_json_schema,
     do:
@@ -4165,7 +4159,7 @@ defmodule OrbitalDynamics.Schema do
     [
       activity_context_json_schema: &activity_context_json_schema/0,
       actual_data_rate_throughput_derivation_json_schema:
-        &actual_data_rate_throughput_derivation_json_schema/0,
+        &OrbitalDynamics.Schema.TimelineContextJsonSchema.actual_data_rate_throughput_derivation/0,
       approval_requirement_json_schema: &approval_requirement_json_schema/0,
       branch_comparison_source_row_json_schema: &branch_comparison_source_row_json_schema/0,
       branch_event_trust_boundary_status_counts_json_schema:
