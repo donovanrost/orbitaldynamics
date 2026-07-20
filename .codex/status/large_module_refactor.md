@@ -9,7 +9,7 @@ Current slice:
 Schema trust-boundary status count-map routing.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Expose the existing three-state trust-boundary status count-map schema from
@@ -31,18 +31,37 @@ Selection evidence:
 - Context-bearing shared-schema helpers remain out of scope.
 
 Implementation:
-Pending.
+Made the existing operational-readiness trust-boundary status count-map owner
+function directly reusable, routed seven lazy callbacks and one eager facade
+consumer to it, and removed the duplicate facade schema. Provider keys remain
+unchanged. `schema.ex` moved from 5,934 to 5,927 lines.
 
 Verification:
-Pending.
+- Strict focused export/communications/Cadence/review/resource baseline before
+  routing: 35 passed.
+- The same strict focused suite after routing: 35 passed.
+- Strict checked-in export, timeline-report, and review/import handoff
+  coverage: 15 passed.
+- The full schema-export task completed and produced no checked-in changes.
+- Exact static inspection confirms seven direct lazy callbacks, one direct
+  eager call, three unchanged provider keys, and zero facade helper references.
+- `mix xref callers
+  OrbitalDynamics.Schema.OperationalReadinessContextJsonSchema` reports the
+  expected Schema facade and internal schema-owner consumers.
+- `git diff --check` passed.
+- Strict forced compile passed across 4,072 files.
+- Implementation commit `13ccc089` pushed to `main`.
 
 Behavior/schema changes:
-None intended.
+None. The `declared`/`missing`/`untrusted` enum and non-negative integer value
+shape, callback timing, provider keys, public Schema APIs, executable
+validation, and checked-in exports remain unchanged. The separate two-state
+strategy schema remains untouched.
 
 Last completed slice:
-Schema validation-level owner routing, selected in `d84e94f8` and implemented
-in `8ede25ac`.
-`schema.ex` moved from 5,941 to 5,934 lines.
+Schema trust-boundary status count-map routing, selected in `e71931de` and
+implemented in `13ccc089`.
+`schema.ex` moved from 5,934 to 5,927 lines.
 
 Next candidate:
 Re-rank the remaining non-capability Schema responsibility clusters. Preserve
