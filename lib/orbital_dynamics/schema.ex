@@ -89,6 +89,14 @@ defmodule OrbitalDynamics.Schema do
       resource_filter_report_model_limits: 0
     ]
 
+  import OrbitalDynamics.Schema.StationCalendarCapabilityContext,
+    only: [
+      station_calendar_capabilities: 0,
+      station_calendar_provider_counteroffer_actions: 0,
+      station_calendar_provider_counteroffer_negotiation_states: 0,
+      station_calendar_report_model_limits: 0
+    ]
+
   import OrbitalDynamics.Schema.TimelineCapabilityContext,
     only: [
       timeline_activity_precondition_statuses: 0,
@@ -2630,9 +2638,7 @@ defmodule OrbitalDynamics.Schema do
         fn -> OrbitalDynamics.CandidateRefresh.model_limits() end,
         @stable_id_pattern,
         &operational_feedback_json_schema/0,
-        fn ->
-          OrbitalDynamics.Communications.StationCalendar.capabilities().provider_counteroffer_actions
-        end,
+        &station_calendar_provider_counteroffer_actions/0,
         &safety_case_count_fields/0,
         &embedded_contract_json_schema/1
       }
@@ -2840,7 +2846,7 @@ defmodule OrbitalDynamics.Schema do
       source_contention_recommendation_schema: &contact_contention_recommendation_json_schema/0,
       contact_allocation_capability:
         &OrbitalDynamics.Communications.ContactAllocation.capabilities/0,
-      station_calendar_capability: &OrbitalDynamics.Communications.StationCalendar.capabilities/0,
+      station_calendar_capability: &station_calendar_capabilities/0,
       deferred_priority_schema: &contact_contention_deferred_priority_json_schema/0,
       priority_field_evidence_counts_schema: &priority_field_evidence_counts_json_schema/0
     )
@@ -3172,12 +3178,6 @@ defmodule OrbitalDynamics.Schema do
     |> Enum.map(&Atom.to_string/1)
   end
 
-  defp station_calendar_report_model_limits do
-    OrbitalDynamics.Communications.StationCalendar.capabilities()
-    |> Map.fetch!(:known_limits)
-    |> Enum.map(&Atom.to_string/1)
-  end
-
   defp station_calendar_report_model, do: "campaign_ground_network_interval_overlay"
 
   defp station_reservation_report_models do
@@ -3456,7 +3456,7 @@ defmodule OrbitalDynamics.Schema do
       string_list_map_schema: string_list_map_json_schema(),
       non_negative_integer_count_map_schema: non_negative_integer_count_map_json_schema(),
       provider_counteroffer_negotiation_states:
-        OrbitalDynamics.Communications.StationCalendar.capabilities().provider_counteroffer_negotiation_states,
+        station_calendar_provider_counteroffer_negotiation_states(),
       scoped_downlink_context_properties: scoped_downlink_context_json_schema_properties(),
       approval_requirement_schema: approval_requirement_json_schema(),
       policy_decision_rule_match_schema: policy_decision_rule_match_json_schema(),
@@ -3614,7 +3614,7 @@ defmodule OrbitalDynamics.Schema do
   defp provider_counteroffer_row_json_schema do
     OrbitalDynamics.Schema.ProviderCounterofferJsonSchema.row_from_context(
       stable_id_pattern: @stable_id_pattern,
-      station_calendar: &OrbitalDynamics.Communications.StationCalendar.capabilities/0
+      station_calendar: &station_calendar_capabilities/0
     )
   end
 
@@ -3822,7 +3822,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.StationCalendarReportJsonSchema.contact(
       stable_id_pattern: @stable_id_pattern,
       provider_counteroffer_negotiation_states:
-        OrbitalDynamics.Communications.StationCalendar.capabilities().provider_counteroffer_negotiation_states,
+        station_calendar_provider_counteroffer_negotiation_states(),
       source_entry_schema: station_calendar_report_source_entry_json_schema(),
       approval_requirement_schema: approval_requirement_json_schema(),
       policy_decision_rule_match_schema: policy_decision_rule_match_json_schema(),
@@ -3862,7 +3862,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.StationCalendarReportJsonSchema.source_entry(
       stable_id_pattern: @stable_id_pattern,
       provider_counteroffer_negotiation_states:
-        OrbitalDynamics.Communications.StationCalendar.capabilities().provider_counteroffer_negotiation_states
+        station_calendar_provider_counteroffer_negotiation_states()
     )
   end
 
@@ -3885,7 +3885,7 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.StationCalendarReportJsonSchema.provider_entry(
       stable_id_pattern: @stable_id_pattern,
       provider_counteroffer_negotiation_states:
-        OrbitalDynamics.Communications.StationCalendar.capabilities().provider_counteroffer_negotiation_states
+        station_calendar_provider_counteroffer_negotiation_states()
     )
   end
 
@@ -6105,7 +6105,7 @@ defmodule OrbitalDynamics.Schema do
         path,
         row,
         OrbitalDynamics.OperatorReview.capabilities().review_types,
-        OrbitalDynamics.Communications.StationCalendar.capabilities().provider_counteroffer_negotiation_states,
+        station_calendar_provider_counteroffer_negotiation_states(),
         operator_review_row_domain_callbacks()
       )
 
