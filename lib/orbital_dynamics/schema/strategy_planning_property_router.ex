@@ -151,4 +151,79 @@ defmodule OrbitalDynamics.Schema.StrategyPlanningPropertyRouter do
        provider(context, :constraint_row_json_schema, [])}
     )
   end
+
+  def property(field, "maneuver_review_report.v1" = contract_name, contract, context) do
+    OrbitalDynamics.Schema.ManeuverArtifactPropertyDispatch.review(
+      field,
+      contract_name,
+      contract,
+      fn arg1, arg2, arg3 -> fallback(arg1, arg2, arg3, context) end,
+      {fn -> provider(context, :maneuver_review_row_json_schema, []) end,
+       context_value(context, :stable_id_pattern),
+       fn -> provider(context, :maneuver_review_report_model_limits, []) end}
+    )
+  end
+
+  def property(field, "branch_comparison_report.v1" = contract_name, contract, context) do
+    OrbitalDynamics.Schema.StrategyArtifactPropertyDispatch.branch_comparison(
+      field,
+      contract_name,
+      contract,
+      fn arg1, arg2, arg3 -> fallback(arg1, arg2, arg3, context) end,
+      {fn -> provider(context, :branch_comparison_row_json_schema, []) end,
+       &OrbitalDynamics.CampaignPlanner.branch_comparison_model_limits/0}
+    )
+  end
+
+  def property(field, "campaign_strategy.v3" = contract_name, contract, context) do
+    OrbitalDynamics.Schema.StrategyArtifactPropertyDispatch.campaign_strategy(
+      field,
+      contract_name,
+      contract,
+      fn arg1, arg2, arg3 -> fallback(arg1, arg2, arg3, context) end,
+      {fn -> provider(context, :strategy_branch_json_schema, []) end,
+       fn -> provider(context, :strategy_recommendation_json_schema, []) end,
+       fn -> provider(context, :operational_feedback_json_schema, []) end,
+       fn -> provider(context, :policy_action_rule_json_schema, []) end}
+    )
+  end
+
+  def property(field, "planned_activity.v1", contract, context) do
+    OrbitalDynamics.Schema.PlannedActivityJsonSchema.dispatch_property(field, contract,
+      focused_property:
+        OrbitalDynamics.Schema.PlannedActivityJsonSchema.property_fun_from_context(
+          cadence_import_schema:
+            provider(context, :cadence_import_json_schema, ["planned_activity.v1"]),
+          source_window_schema:
+            provider(context, :candidate_activity_source_window_json_schema, []),
+          stable_id_pattern: context_value(context, :stable_id_pattern),
+          timeline_identity_schema: provider(context, :timeline_identity_json_schema, [])
+        ),
+      execution_uncertainty_schema: fn ->
+        provider(context, :execution_uncertainty_json_schema, [])
+      end,
+      number_or_string_schema: &OrbitalDynamics.Schema.CommonJsonSchema.number_or_string/0,
+      default_property: fn field, contract ->
+        fallback(field, "planned_activity.v1", contract, context)
+      end
+    )
+  end
+
+  def property(field, "plan_delta.v1", contract, context) do
+    OrbitalDynamics.Schema.PlanDeltaJsonSchema.dispatch_property(field, contract,
+      focused_property:
+        OrbitalDynamics.Schema.PlanDeltaJsonSchema.property_fun_from_context(
+          activity_context_schema: provider(context, :activity_context_json_schema, []),
+          planned_activity_schema: provider(context, :planned_activity_json_schema, []),
+          realized_activity_schema: provider(context, :realized_activity_json_schema, [])
+        ),
+      execution_uncertainty_schema: fn ->
+        provider(context, :execution_uncertainty_json_schema, [])
+      end,
+      number_or_string_schema: &OrbitalDynamics.Schema.CommonJsonSchema.number_or_string/0,
+      default_property: fn field, contract ->
+        fallback(field, "plan_delta.v1", contract, context)
+      end
+    )
+  end
 end
