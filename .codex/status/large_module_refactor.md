@@ -6,51 +6,39 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-No slice selected.
+Schema timeline-context validation routing cleanup.
 
 Status:
-Slice complete and pushed.
+Selected; implementation not started.
 
 Selected boundary:
-Completed the existing `OrbitalDynamics.Schema.TimelineSourceValidation`
+Complete the existing `OrbitalDynamics.Schema.TimelineContextValidation`
 extraction by routing callback tables directly to that owner and removing
-eight facade pass-through wrappers.
-Preserved all `OrbitalDynamics.Schema` public facades and validation output.
+nine facade pass-through clauses.
+Preserve all `OrbitalDynamics.Schema` public facades and validation/error
+behavior.
 
 Selection evidence:
-- `schema.ex` remains the dominant hotspot at 6,694 lines.
-- Timeline-source validation logic already has a focused owner, but the facade
-  retains eight one-hop wrappers referenced by campaign, Cadence import,
-  source-review, and operator-review callback tables.
-- The selected code has one responsibility: route optional timeline diff,
-  dependency, precondition, integrity, preservation, lifecycle, and activity
-  source validation to the existing owner.
-- Callback-table composition, timeline transition/context validation, other
+- `schema.ex` remains the dominant hotspot at 6,640 lines.
+- Timeline-context validation logic already has a focused owner, but the facade
+  retains one-hop wrappers referenced by operational timeline, transition,
+  campaign, Cadence import, source-review, and operator-review callbacks.
+- The selected code has one responsibility: route optional precondition,
+  activity, protection, lifecycle, identity, link, and protection-summary
+  context validation to the existing owner.
+- Preserve the facade wrappers' map-only function-clause behavior by moving
+  those guards to the owner before exposing it directly to callback tables.
+- Callback-table composition, timeline transition/source validation, other
   artifact-family validation, JSON Schema generation, and all public routing
   remain outside the boundary.
 - Exact issue ordering, paths, messages, required-field behavior, callback
   wiring, public validation results, and schema exports must remain unchanged.
 
 Implementation:
-- Routed campaign-plan, Cadence source-review/import handoff, and
-  operator-review callback tables directly to `TimelineSourceValidation`.
-- Removed eight one-hop private wrappers for timeline diff, dependency,
-  precondition, integrity, preservation, lifecycle, and activity-state source
-  validation.
-- `schema.ex` moved from 6,694 to 6,640 lines; no new abstraction was added
-  because the focused owner already existed.
+Pending.
 
 Verification:
-- Pre-change strict focused baseline: 43 timeline/Cadence/operator-review
-  contract tests passed.
-- Post-change strict focused verification: the same 43 tests passed; 7 broader
-  validation and campaign-fixture tests also passed.
-- Static checks found no migrated timeline-source wrappers remaining; xref
-  reports `schema.ex` as the runtime caller of `TimelineSourceValidation`.
-- No checked-in schema export changed.
-- Forced warnings-as-errors compile passed across 4,050 files.
-- Formatting and `git diff --check` passed; the worktree was clean after the
-  implementation commit.
+Pending.
 
 Behavior/schema changes:
 None intended.
@@ -62,8 +50,8 @@ implemented in `a60fc5ee`.
 existing TimelineSourceValidation owner.
 
 Next candidate:
-Continue with the separate timeline-transition validation routing wrapper
-cluster in `schema.ex`.
+After this slice, re-rank the remaining schema wrapper clusters. Keep the
+timeline-transition adapters because they inject callback dependencies.
 
 Blocked:
 No.
