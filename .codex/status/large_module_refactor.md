@@ -9,7 +9,7 @@ Current slice:
 Schema execution-metric validation direct routing.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Remove the Schema facade's one-hop optional actual-data-rate throughput
@@ -29,18 +29,34 @@ Selection evidence:
   results, and checked-in schema exports must remain unchanged.
 
 Implementation:
-Pending.
+Removed the identically guarded optional throughput-derivation validation
+wrapper and routed both callback-map captures directly to
+ExecutionMetricContracts.
+`schema.ex` moved from 6,089 to 6,079 lines.
 
 Verification:
-Pending.
+- Strict focused contact-allocation/operator-review/Cadence-import/
+  validation-evidence baseline before routing: 17 passed.
+- The same strict focused suite after routing: 17 passed.
+- Strict adjacent JSON Schema export/Cadence-row/contact-feedback/
+  fixture-visibility coverage: 22 passed.
+- Strict full schema-export task: 1 passed.
+- `mix xref callers OrbitalDynamics.Schema.ExecutionMetricContracts` reports
+  the expected `schema.ex` caller alongside the domain contract callers.
+- Static search confirms the wrapper definition and both indirect captures are
+  gone.
+- `git diff --check` passed; no checked-in schema export changed.
+- Strict forced compile passed across 4,065 files.
+- Implementation commit `3e214a0f` pushed to `main`.
 
 Behavior/schema changes:
-None intended.
+None. Public facades, guard behavior, callback arity/timing, issue ordering,
+paths/messages, validation behavior, and checked-in exports remain unchanged.
 
 Last completed slice:
-Schema optional policy-escalation validation direct routing, selected in
-`04ccebf0` and implemented in `d62e1c35`.
-`schema.ex` moved from 6,092 to 6,089 lines.
+Schema execution-metric validation direct routing, selected in `9026057f` and
+implemented in `3e214a0f`.
+`schema.ex` moved from 6,089 to 6,079 lines.
 
 Next candidate:
 Re-rank the remaining non-capability Schema responsibility clusters now that
