@@ -6,42 +6,32 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Operator-review property-provider extraction.
+Operator-review row schema-provider completion.
 
 Status:
-Completed and verified.
+Selected; implementation pending.
 
 Selected boundary:
-Move the operator-review row property-provider assembly from the public
-`Schema` facade into a new `OperatorReviewSchemaProviders` owner. Keep
-branch-scoped, authority, and resource-variance properties with their focused
-owners while passing facade-owned handoff/scoped properties as explicit
+Move the operator-review row builder and schema-provider assembly from the
+public `Schema` facade into the existing `OperatorReviewSchemaProviders` owner.
+Merge its lazy row provider into the property context, keep common/focused
+dependencies direct, and pass facade-recursive schema dependencies as explicit
 callbacks.
 
 Selection evidence:
-- The public `Schema` facade remains 1,455 lines.
-- The property-provider assembler is private and used only by the
-  operator-review row builder.
-- Three property families already have focused owners and can become direct
-  owner dependencies.
-- The remaining facade-owned handoff/scoped properties can preserve laziness
+- The public `Schema` facade remains 1,443 lines.
+- The row builder and schema-provider assembler are private and used only by
+  the operator-review registry provider.
+- Common fragments and focused planning/ground-network/candidate-diff helpers
+  already have stable direct owners.
+- Capability values and facade-recursive schemas can preserve provider laziness
   through explicit callbacks.
 
 Implementation:
-Selected in `51722a64` and implemented in `ba053c59`. Added the 35-line
-`OperatorReviewSchemaProviders` owner for the ordered property-provider
-assembly, retaining eight facade-owned handoff/scoped property families behind
-explicit callbacks. The public `Schema` facade moved from 1,455 to 1,443 lines.
+Pending.
 
 Verification:
-- Exact comparison passed for all 11 ordered property-provider keys and
-  outputs, including eight callback-backed families.
-- Focused schema/validation suite passed: 359 tests.
-- Full checked-in schema export regenerated with no diff.
-- Runtime xref shows one direct `Schema` -> `OperatorReviewSchemaProviders`
-  edge.
-- Strict forced compile passed with warnings as errors: 4,120 files.
-- `JsonSchemaPropertyRouter` remains an ordered 76-head facade.
+Pending.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -54,8 +44,8 @@ implemented in `ba053c59`. The public `Schema` facade moved from 1,455 to 1,443
 lines.
 
 Next candidate:
-Assess and extract the remaining operator-review row/schema-provider half in a
-bounded callback-preserving slice.
+Implement and verify the selected operator-review row/schema-provider
+completion, then re-rank the remaining public-facade clusters.
 
 Blocked:
 No.
