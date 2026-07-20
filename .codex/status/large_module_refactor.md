@@ -9,7 +9,7 @@ Current slice:
 Schema candidate-activity owner completion.
 
 Status:
-Selected; implementation pending.
+Complete and pushed.
 
 Selected boundary:
 Extend `StateRefreshArtifactValidation.validate/4` to own
@@ -27,23 +27,34 @@ Selection evidence:
 - No route needs recursive `Schema` lookup.
 
 Implementation:
-Pending.
+Extended `StateRefreshArtifactValidation.validate/4` with the
+`candidate_activity.v1` contract route, then routed the direct `Schema` clause
+through the existing state-refresh owner. `schema.ex` moved from 4,730 to 4,728
+lines; `StateRefreshArtifactValidation` moved from 109 to 112 lines.
 
 Verification:
-Pending.
+- Strict focused baseline: 27 tests passed.
+- Candidate-refresh registry, accepted-state, build, export, and fixture
+  adjacency: 37 tests passed.
+- Full schema export regenerated with no checked-in schema artifact changes.
+- Formatting, diff whitespace, bounded dependency/reference checks, and the
+  bounded semantic diff review passed.
+- `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 mix compile --force
+  --warnings-as-errors` compiled 4,087 files successfully.
 
 Behavior/schema changes:
-None intended. Required fields, validation ordering and paths, public `Schema`
-and `StateRefreshArtifactValidation` APIs, validation results, and checked-in
-exports must remain unchanged.
+None. Required fields, validation ordering and paths, public `Schema` and
+`StateRefreshArtifactValidation` APIs, validation results, and checked-in
+exports remain unchanged.
 
 Last completed slice:
-Schema resource-summary owner completion, selected in `427ca19f` and implemented
-in `7778c944`. `schema.ex` moved from 4,732 to 4,730 lines.
+Schema candidate-activity owner completion, selected in `313e38cf` and
+implemented in `23cf1b4e`. `schema.ex` moved from 4,730 to 4,728 lines.
 
 Next candidate:
-Implement and verify the selected candidate-activity owner completion, then
-re-rank the remaining Schema responsibility clusters.
+Re-rank the remaining direct `Schema` validation clauses, prioritizing a
+cohesive owner or owner completion without recursive `Schema` lookup or public
+API changes.
 
 Blocked:
 No.
