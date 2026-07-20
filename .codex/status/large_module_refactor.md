@@ -9,7 +9,7 @@ Current slice:
 Schema station-reservation owner routing extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Add a registry-backed `StationReservationValidation.validate_artifact/4` entry
@@ -31,24 +31,39 @@ Selection evidence:
   because they belong to distinct registry/context boundaries.
 
 Implementation:
-Pending.
+Added a registry-backed `StationReservationValidation.validate_artifact/4`
+entry point plus compact owner-default wrappers, moved report-model resolution
+into the existing owner, and routed the four selected direct `Schema` clauses
+through it. `schema.ex` moved from 4,803 to 4,795 lines.
 
 Verification:
-Pending.
+- Strict focused baseline: 64 tests passed.
+- Focused plus adjacent station, validation, communications, candidate-refresh
+  replay, campaign-planner source-report, operator-review, contract, and export
+  coverage after extraction: 76 tests passed.
+- Full schema export completed with no checked-in artifact changes.
+- Static routing review found exactly the four intended direct facade routes.
+- `mix xref trace` confirmed all four runtime calls originate in `schema.ex`.
+- Formatting and `git diff --check` passed.
+- Strict forced compile passed across 4,086 files with warnings as errors.
+- Bounded diff review confirmed registry-owned requirements, owner-default
+  report models and summary model limits, contract routing, validation ordering,
+  paths, and station-calendar exclusions remain unchanged.
+- Implementation committed and pushed as `5f3c7f1b`.
 
 Behavior/schema changes:
-None intended. Required fields, validation ordering and paths, public `Schema`
-and existing `StationReservationValidation` APIs, validation results, and
-checked-in exports must remain unchanged.
+None. Required fields, validation ordering and paths, public `Schema` and
+existing `StationReservationValidation` APIs, validation results, and
+checked-in exports remain unchanged.
 
 Last completed slice:
-Schema resource planning/filter owner routing extraction, selected in
-`63dde824` and implemented in `98e0f95a`.
-`schema.ex` moved from 4,817 to 4,803 lines.
+Schema station-reservation owner routing extraction, selected in `c1049e27`
+and implemented in `5f3c7f1b`.
+`schema.ex` moved from 4,803 to 4,795 lines.
 
 Next candidate:
-Implement and verify the selected station-reservation owner routing, then
-re-rank the remaining Schema responsibility clusters.
+Re-rank the remaining Schema responsibility clusters and select the next
+facade-preserving extraction.
 
 Blocked:
 No.
