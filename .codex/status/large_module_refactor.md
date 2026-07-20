@@ -6,37 +6,29 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Campaign-planner reservation-conflict pressure fixture extraction.
+Campaign-planner station-pressure fixture extraction.
 
 Status:
-Completed and verified.
+Selected; implementation pending.
 
 Selected boundary:
-Move the reservation-conflict summary fixture out of the oversized
+Move the station-pressure summary fixture out of the oversized
 strategy contact-allocation pressure test and into a named CampaignPlanner
 test-support owner. Keep the pressure scenario, production calls, and score-term
 assertions in the existing test module.
 
 Selection evidence:
-- `strategy_contact_allocation_pressure_test.exs` remains 1,902 lines and still
-  owns three independent contact-allocation fixture families plus assertions.
-- The reservation-conflict fixture is a self-contained artifact builder used by
-  mission-state and prior-plan pressure tests.
+- `strategy_contact_allocation_pressure_test.exs` remains 1,803 lines and still
+  owns station-pressure and capacity-pack fixture families plus assertions.
+- The station-pressure fixture is a self-contained 60-line artifact builder.
 - Its artifact construction belongs with CampaignPlanner test-support fixtures,
   while the consuming test should retain the pressure-routing assertions.
 
 Implementation:
-Selected in `d3db2b3a` and implemented in `658600c9`. Expanded
-`ContactAllocationPressureFixtures` with the reservation-conflict summary
-builder and its row/list helpers. The assertion module moved from 1,902 to
-1,803 lines.
+Pending.
 
 Verification:
-- The focused strategy contact-allocation pressure suite passed with warnings as
-  errors: 7 tests.
-- Strict forced compile passed with warnings as errors: 4,129 files.
-- `git diff --check` passed.
-- No production or checked-in schema-export files changed.
+Pending.
 
 Behavior/schema changes:
 None intended. The same deterministic fixtures, production calls, assertions,
@@ -48,8 +40,7 @@ Campaign-planner reservation-conflict pressure fixture extraction, selected in
 to 1,803 lines.
 
 Next candidate:
-Continue moving the remaining station-pressure and capacity-pack fixture
-families into the established test-support owner.
+Implement and verify the selected station-pressure fixture extraction.
 
 Blocked:
 No.
