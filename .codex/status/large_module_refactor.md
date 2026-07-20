@@ -9,7 +9,7 @@ Current slice:
 Candidate-refresh source-report provenance fixture extraction.
 
 Status:
-Selected; implementation pending.
+Completed and verified.
 
 Selected boundary:
 Move the accepted-state refresh request, result-set event scenario, and maneuver
@@ -30,22 +30,31 @@ Selection evidence:
   changing the production surface or dividing one end-to-end assertion flow.
 
 Implementation:
-Pending.
+Selected in `920500b6` and implemented in `c084366f`. Added the 200-line
+`SourceReportInputProvenanceFixture` test-support owner and imported its three
+public deterministic builders into the existing provenance test. The assertion
+module moved from 1,473 to 1,277 lines.
 
 Verification:
-Pending.
+- The exact end-to-end source-report input-provenance test passed: 1 test.
+- The full CandidateRefresh test lane passed with warnings as errors: 756 tests.
+- Strict forced compile passed with warnings as errors: 4,129 files.
+- `git diff --check` passed.
+- No production or checked-in schema-export files changed.
 
 Behavior/schema changes:
 None intended. The same deterministic fixtures, production calls, assertions,
 artifact validation, and async test behavior must remain unchanged.
 
 Last completed slice:
-Handoff property schema-provider extraction, selected in `70b42ade` and
-implemented in `bbab975b`. The public `Schema` facade moved from 934 to 925
-lines.
+Candidate-refresh source-report provenance fixture extraction, selected in
+`920500b6` and implemented in `c084366f`. The assertion module moved from 1,473
+to 1,277 lines.
 
 Next candidate:
-Implement and verify the selected CandidateRefresh test-fixture extraction.
+Continue the named-hotspot audit with the remaining oversized CampaignPlanner,
+OperatorReview, and schema contract test units; select the next bounded split
+only where a clear responsibility boundary exists.
 
 Blocked:
 No.
