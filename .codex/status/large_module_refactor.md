@@ -9,7 +9,7 @@ Current slice:
 Campaign-planner capacity-pack fixture extraction.
 
 Status:
-Selected; implementation pending.
+Completed and verified.
 
 Selected boundary:
 Move the capacity-pack summary fixture out of the oversized
@@ -24,22 +24,31 @@ Selection evidence:
   while the consuming test should retain the pressure-routing assertions.
 
 Implementation:
-Pending.
+Selected in `4fda4cce` and implemented in `359cb5fb`. Expanded
+`ContactAllocationPressureFixtures` with the capacity-pack summary builder and
+focused row/contact-ID helpers. The assertion module moved from 1,743 to 1,595
+lines and now contains no embedded fixture builders.
 
 Verification:
-Pending.
+- The focused strategy contact-allocation pressure suite passed with warnings as
+  errors: 7 tests.
+- Strict forced compile passed with warnings as errors: 4,129 files.
+- Touched-file format checks, new-helper whitespace checks, and
+  `git diff --check` passed.
+- No production or checked-in schema-export files changed.
 
 Behavior/schema changes:
 None intended. The same deterministic fixtures, production calls, assertions,
 artifact validation, and async test behavior must remain unchanged.
 
 Last completed slice:
-Campaign-planner station-pressure fixture extraction, selected in `f5f381e1`
-and implemented in `d7c16f5c`. The assertion module moved from 1,803 to 1,743
-lines.
+Campaign-planner capacity-pack fixture extraction, selected in `4fda4cce` and
+implemented in `359cb5fb`. The assertion module moved from 1,743 to 1,595 lines
+and now contains no embedded fixture builders.
 
 Next candidate:
-Implement and verify the selected capacity-pack fixture extraction.
+Reassess the remaining CampaignPlanner assertion module and then inspect the
+largest OperatorReview test boundary for a coherent family split.
 
 Blocked:
 No.
