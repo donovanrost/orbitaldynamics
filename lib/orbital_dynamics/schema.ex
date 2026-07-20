@@ -3049,10 +3049,6 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.CommonJsonSchema.number_array()
   end
 
-  defp number_or_number_array_schema do
-    OrbitalDynamics.Schema.CommonJsonSchema.number_or_number_array()
-  end
-
   defp non_negative_integer_property_schemas(fields) do
     OrbitalDynamics.Schema.CommonJsonSchema.non_negative_integer_properties(fields)
   end
@@ -3237,11 +3233,11 @@ defmodule OrbitalDynamics.Schema do
 
   defp operational_feedback_json_schema do
     OrbitalDynamics.Schema.OperationalFeedbackJsonSchema.operational_feedback(%{
-      probability_map: probability_map_json_schema(),
-      string_value_map: string_value_map_json_schema(),
+      probability_map: OrbitalDynamics.Schema.CommonJsonSchema.probability_map(),
+      string_value_map: OrbitalDynamics.Schema.CommonJsonSchema.string_value_map(),
       non_negative_number_map: non_negative_number_map_json_schema(),
-      string_list_map: string_list_map_json_schema(),
-      nested_object_map: nested_object_map_json_schema(),
+      string_list_map: OrbitalDynamics.Schema.CommonJsonSchema.string_list_map(),
+      nested_object_map: OrbitalDynamics.Schema.CommonJsonSchema.nested_object_map(),
       realized_activity: realized_activity_json_schema()
     })
   end
@@ -3252,13 +3248,9 @@ defmodule OrbitalDynamics.Schema do
       %{
         string_array: string_array_schema(),
         count_map: non_negative_integer_count_map_json_schema(),
-        string_list_map: string_list_map_json_schema()
+        string_list_map: OrbitalDynamics.Schema.CommonJsonSchema.string_list_map()
       }
     )
-  end
-
-  defp probability_map_json_schema do
-    OrbitalDynamics.Schema.CommonJsonSchema.probability_map()
   end
 
   defp probability_json_schema do
@@ -3271,18 +3263,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp non_negative_number_map_json_schema do
     OrbitalDynamics.Schema.CommonJsonSchema.non_negative_number_map()
-  end
-
-  defp string_value_map_json_schema do
-    OrbitalDynamics.Schema.CommonJsonSchema.string_value_map()
-  end
-
-  defp string_list_map_json_schema do
-    OrbitalDynamics.Schema.CommonJsonSchema.string_list_map()
-  end
-
-  defp nested_object_map_json_schema do
-    OrbitalDynamics.Schema.CommonJsonSchema.nested_object_map()
   end
 
   defp timeline_feedback_row_json_schema do
@@ -3382,7 +3362,7 @@ defmodule OrbitalDynamics.Schema do
       string_array_schema: string_array_schema(),
       semantic_change_details_schema:
         OrbitalDynamics.Schema.CandidateDiffJsonSchema.semantic_change_details(),
-      string_list_map_schema: string_list_map_json_schema(),
+      string_list_map_schema: OrbitalDynamics.Schema.CommonJsonSchema.string_list_map(),
       non_negative_integer_count_map_schema: non_negative_integer_count_map_json_schema(),
       provider_counteroffer_negotiation_states:
         station_calendar_provider_counteroffer_negotiation_states(),
@@ -3883,7 +3863,8 @@ defmodule OrbitalDynamics.Schema do
         &contact_contention_deferred_priority_json_schema/0,
       non_negative_number_map_json_schema: &non_negative_number_map_json_schema/0,
       number_array_schema: &number_array_schema/0,
-      number_or_number_array_schema: &number_or_number_array_schema/0,
+      number_or_number_array_schema:
+        &OrbitalDynamics.Schema.CommonJsonSchema.number_or_number_array/0,
       number_or_string_json_schema: &number_or_string_json_schema/0,
       operational_readiness_evidence_json_schema: &operational_readiness_evidence_json_schema/0,
       operational_readiness_gate_json_schema: &operational_readiness_gate_json_schema/0,
@@ -4125,7 +4106,8 @@ defmodule OrbitalDynamics.Schema do
       lifecycle_transition_json_schema: &TimelineContextJsonSchema.lifecycle_transition/0,
       non_negative_number_map_json_schema: &non_negative_number_map_json_schema/0,
       number_array_schema: &number_array_schema/0,
-      number_or_number_array_schema: &number_or_number_array_schema/0,
+      number_or_number_array_schema:
+        &OrbitalDynamics.Schema.CommonJsonSchema.number_or_number_array/0,
       number_or_string_json_schema: &number_or_string_json_schema/0,
       numeric_triplet_schema: &numeric_triplet_schema/0,
       operational_readiness_evidence_json_schema: &operational_readiness_evidence_json_schema/0,
