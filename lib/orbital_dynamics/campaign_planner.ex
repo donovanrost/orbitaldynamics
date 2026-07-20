@@ -19,12 +19,10 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   alias OrbitalDynamics.Communications.{
     ContactAllocation,
-    LinkCapacity,
-    StationCalendar
+    LinkCapacity
   }
 
   alias OrbitalDynamics.Constraints.CampaignLocal, as: CampaignLocalConstraint
-  alias OrbitalDynamics.Study.Manifest
 
   alias OrbitalDynamics.CampaignPlanner.{
     ActivityIdentity,
@@ -35,7 +33,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
     BuildOrchestration,
     DerivedBranchOrchestration,
     CandidateRefreshNormalization,
-    CandidateRefreshRequest,
     CandidateRefreshOperationalFeedback,
     ContactContentionResolutionPolicy,
     DownlinkActivityNormalization,
@@ -48,12 +45,12 @@ defmodule OrbitalDynamics.CampaignPlanner do
     RealizedActivitiesOperationalFeedback,
     RequestIO,
     RepairArtifact,
-    RepairCandidateRefreshInheritance,
     RepairCandidateInputs,
     RepairExecution,
     RepairMetadata,
     RepairPolicySemantics,
     RepairRealizedState,
+    RepairRequestNormalization,
     RepairScoreTerms,
     RepairSourceReports,
     RepairTimelineSummary,
@@ -71,13 +68,11 @@ defmodule OrbitalDynamics.CampaignPlanner do
   }
 
   alias OrbitalDynamics.{
-    CandidateRefresh,
     CadenceImport,
     OperatorReview,
     Policy,
     ResultSet,
     ResourceProjection,
-    StudyRunner,
     Timeline,
     TimelineFeedback
   }
@@ -137,13 +132,13 @@ defmodule OrbitalDynamics.CampaignPlanner do
   """
   def repair(%ReplanRequest{} = request) do
     request
-    |> normalize_replan_request()
+    |> RepairRequestNormalization.normalize()
     |> do_repair()
   end
 
   def repair(%{} = request) do
     request
-    |> replan_request_from_map()
+    |> RepairRequestNormalization.from_map()
     |> repair()
   end
 
@@ -214,116 +209,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
   def request_validation_report(type, path, opts) when is_binary(path) do
     RequestIO.validation_report(type, path, opts)
   end
-
-  defp replan_request_from_map(request) do
-    %ReplanRequest{
-      prior_plan:
-        ValueEncoding.get_key(request, :prior_plan) ||
-          ValueEncoding.get_key(request, :campaign_plan) ||
-          ValueEncoding.get_key(request, :source_plan),
-      mission_state: ValueEncoding.get_key(request, :mission_state),
-      realized_state: ValueEncoding.get_key(request, :realized_state) || %{},
-      current_epoch_s: ValueEncoding.get_key(request, :current_epoch_s),
-      remaining_horizon: ValueEncoding.get_key(request, :remaining_horizon),
-      constraints: ValueEncoding.get_key(request, :constraints),
-      scoring_policy: ValueEncoding.get_key(request, :scoring_policy),
-      repair_policy: ValueEncoding.get_key(request, :repair_policy),
-      approval_policy: ValueEncoding.get_key(request, :approval_policy),
-      candidate_refresh:
-        ValueEncoding.get_key(request, :candidate_refresh) ||
-          ValueEncoding.get_key(request, :refreshed_candidates),
-      candidate_refresh_request:
-        ValueEncoding.get_key(request, :candidate_refresh_request) ||
-          ValueEncoding.get_key(request, :refresh_request),
-      ground_network:
-        ValueEncoding.get_key(request, :ground_network) ||
-          ValueEncoding.get_key(request, :station_calendar),
-      generated_at: ValueEncoding.get_key(request, :generated_at),
-      metadata: ValueEncoding.get_key(request, :metadata) || %{}
-    }
-  end
-
-  defp normalize_replan_request(%ReplanRequest{} = request) do
-    prior_plan = ValueEncoding.stringify_keys(request.prior_plan || %{})
-    mission_state = normalize_repair_mission_state(request.mission_state)
-    realized_state = RepairRealizedState.normalize(request.realized_state || %{})
-    current_epoch_s = ScalarValues.numeric!(request.current_epoch_s, "current_epoch_s")
-
-    remaining_horizon =
-      ActivityTiming.remaining_horizon(prior_plan, request.remaining_horizon, current_epoch_s)
-
-    generated_at = normalize_generated_at(request.generated_at || DateTime.utc_now())
-
-    candidate_refresh_request =
-      request.candidate_refresh_request
-      |> CandidateRefreshNormalization.request()
-      |> RepairCandidateRefreshInheritance.inherit(
-        request.approval_policy,
-        mission_state,
-        prior_plan
-      )
-
-    prebuilt_candidate_refresh = CandidateRefreshNormalization.artifact(request.candidate_refresh)
-
-    candidate_refresh =
-      prebuilt_candidate_refresh ||
-        execute_repair_candidate_refresh_request(
-          prior_plan,
-          current_epoch_s,
-          candidate_refresh_request,
-          generated_at
-        )
-
-    scoring_policy =
-      prior_plan
-      |> ValueEncoding.get_key("ranking_explanation")
-      |> case do
-        %{} = explanation -> ValueEncoding.get_key(explanation, "policy") || %{}
-        _explanation -> %{}
-      end
-      |> Map.merge(ValueEncoding.stringify_keys(request.scoring_policy || %{}))
-
-    repair_policy = RepairPolicySemantics.normalize(request.repair_policy || %{})
-    approval_policy = StrategyPolicyNormalization.approval(request.approval_policy || %{})
-    ground_network = normalize_repair_ground_network(request.ground_network)
-
-    %{
-      prior_plan: prior_plan,
-      mission_state: mission_state,
-      realized_state: realized_state,
-      current_epoch_s: current_epoch_s,
-      remaining_horizon: remaining_horizon,
-      constraints:
-        Map.merge(
-          ValueEncoding.stringify_keys(ValueEncoding.get_key(prior_plan, "assumptions") || %{})
-          |> ValueEncoding.get_key("constraints") ||
-            %{},
-          ValueEncoding.stringify_keys(request.constraints || %{})
-        ),
-      scoring_policy:
-        scoring_policy
-        |> Map.put_new("schedule_churn_cost_weight", repair_policy.schedule_churn_cost_weight)
-        |> Map.put_new("schedule_move_cost_weight", repair_policy.schedule_move_cost_weight),
-      repair_policy: repair_policy,
-      approval_policy: approval_policy,
-      candidate_refresh: candidate_refresh,
-      candidate_refresh_request: candidate_refresh_request,
-      candidate_source:
-        repair_candidate_source(
-          prior_plan,
-          candidate_refresh,
-          candidate_refresh_request
-        ),
-      ground_network: ground_network,
-      generated_at: generated_at,
-      metadata: ValueEncoding.stringify_keys(request.metadata || %{})
-    }
-  end
-
-  defp normalize_repair_mission_state(nil), do: %{"objectives" => []}
-
-  defp normalize_repair_mission_state(%{} = mission_state),
-    do: MissionStateNormalization.normalize(mission_state)
 
   defp do_repair(%{} = request) do
     prior_plan = request.prior_plan
@@ -540,7 +425,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       operational_feedback: operational_feedback,
       operational_feedback_provenance: operational_feedback_provenance,
       generated_at:
-        normalize_generated_at(
+        RepairRequestNormalization.normalize_generated_at(
           ValueEncoding.get_key(request, :generated_at) || DateTime.utc_now()
         ),
       metadata: ValueEncoding.stringify_keys(ValueEncoding.get_key(request, :metadata) || %{})
@@ -787,70 +672,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
     )
   end
 
-  defp execute_repair_candidate_refresh_request(
-         _prior_plan,
-         _current_epoch_s,
-         nil,
-         _generated_at
-       ),
-       do: nil
-
-  defp execute_repair_candidate_refresh_request(
-         prior_plan,
-         current_epoch_s,
-         candidate_refresh_request,
-         generated_at
-       ) do
-    manifest_source =
-      candidate_refresh_request
-      |> CandidateRefreshRequest.manifest(
-        "repair_refresh_#{RepairMetadata.source_plan_id(prior_plan)}",
-        %{
-          "repair_source_plan_id" => RepairMetadata.source_plan_id(prior_plan),
-          "repair_current_epoch_s" => current_epoch_s
-        }
-      )
-
-    with {:ok, manifest} <- Manifest.from_map(manifest_source),
-         {:ok, result_set} <- StudyRunner.run(manifest.study, manifest.run_opts) do
-      CandidateRefresh.build(result_set,
-        candidate_refresh: manifest.study.metadata["candidate_refresh"],
-        generated_at: generated_at
-      )
-    else
-      {:error, reason} ->
-        raise ArgumentError, "invalid repair candidate_refresh_request: #{inspect(reason)}"
-    end
-  end
-
-  defp normalize_repair_ground_network(nil), do: nil
-
-  defp normalize_repair_ground_network(ground_network) when is_list(ground_network),
-    do: Enum.map(ground_network, &ValueEncoding.stringify_keys/1)
-
-  defp normalize_repair_ground_network(%{} = station_calendar_provider),
-    do: StationCalendar.to_ground_network(station_calendar_provider)
-
-  defp normalize_repair_ground_network(_ground_network) do
-    raise ArgumentError, "ground_network must be a list or station calendar provider object"
-  end
-
-  defp normalize_generated_at(%DateTime{} = generated_at), do: generated_at
-
-  defp normalize_generated_at(generated_at) when is_binary(generated_at) do
-    case DateTime.from_iso8601(generated_at) do
-      {:ok, datetime, _offset} ->
-        datetime
-
-      {:error, reason} ->
-        raise ArgumentError, "invalid generated_at: #{inspect(reason)}"
-    end
-  end
-
-  defp normalize_generated_at(generated_at) do
-    raise ArgumentError, "invalid generated_at: #{inspect(generated_at)}"
-  end
-
   defp repair_resource_summaries(nil), do: []
 
   defp repair_resource_summaries(%{} = candidate_refresh) do
@@ -928,20 +749,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp repair_refresh_warnings(%{} = candidate_refresh) do
     RepairSourceReports.refresh_warnings(candidate_refresh)
-  end
-
-  defp repair_candidate_source(prior_plan, candidate_refresh, candidate_refresh_request)
-
-  defp repair_candidate_source(prior_plan, nil, _candidate_refresh_request) do
-    RepairMetadata.candidate_source(prior_plan, nil, nil)
-  end
-
-  defp repair_candidate_source(_prior_plan, %{} = candidate_refresh, candidate_refresh_request) do
-    RepairMetadata.candidate_source(
-      nil,
-      candidate_refresh,
-      candidate_refresh_request
-    )
   end
 
   defp score(score_terms) do
