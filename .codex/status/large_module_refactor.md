@@ -9,7 +9,7 @@ Current slice:
 Candidate-refresh JSON-property family extraction.
 
 Status:
-Selected; implementation pending.
+Implemented and verified.
 
 Selected boundary:
 Extract the contiguous candidate-diff report, candidate-diff family, and
@@ -28,10 +28,22 @@ Selection evidence:
   and its precedence.
 
 Implementation:
-Pending.
+- Added a 53-line `CandidateRefreshPropertyRouter` with the three mechanically
+  moved clause bodies spanning eight related candidate-refresh contracts.
+- Kept all three original parent clause heads, including both guarded lists, in
+  place as ordered delegations.
+- The parent router moved from 1,264 to 1,241 lines.
 
 Verification:
-Pending.
+- Strict pre-change baseline and post-change schema/validation suite: 359 tests
+  passed in each run.
+- AST comparison confirmed all three moved bodies are exact and all 76 parent
+  clause heads remain in their original order.
+- Full schema export regenerated 121 contract schemas and the bundle with no
+  checked-in schema diff.
+- `mix xref trace` confirms the three intended family edges.
+- Formatting, `git diff --check`, and bounded source/schema diff review passed.
+- Strict compile passed for 4,097 files with warnings as errors.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -39,12 +51,13 @@ laziness, field-hint fallback, stable-ID decoration, public `Schema`, and
 checked-in exports must remain unchanged.
 
 Last completed slice:
-Reference/policy JSON-property family extraction, selected in `44cfeda6` and
-implemented in `bbc8fc3e`. The parent router moved from 1,326 to 1,264 lines.
+Candidate-refresh JSON-property family extraction, selected in `e7af4d89` and
+implemented in `f37766cb`. The parent router moved from 1,264 to 1,241 lines.
 
 Next candidate:
-Implement and verify the selected candidate-refresh family split, then re-rank
-the adjacent campaign/timeline families against facade provider extraction.
+Re-rank the adjacent campaign artifact and timeline-report families against a
+cohesive facade provider extraction, preserving recursive parent routing where
+campaign repair depends on timeline-transition properties.
 
 Blocked:
 No.
