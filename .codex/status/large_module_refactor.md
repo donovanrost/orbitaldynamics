@@ -9,7 +9,7 @@ Current slice:
 Schema common probability primitive direct routing.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Remove the zero-context, one-hop CommonJsonSchema probability helper. Route
@@ -30,18 +30,34 @@ Selection evidence:
   validation results, and checked-in exports must remain unchanged.
 
 Implementation:
-Pending.
+Removed the CommonJsonSchema probability helper and routed all twelve
+consumers directly to the owner module. `schema.ex` moved from 5,993 to 5,989
+lines after direct calls and captures were formatted.
 
 Verification:
-Pending.
+- Strict focused communications/candidate/feedback/strategy/Cadence/review
+  baseline before routing: 31 passed.
+- The same strict focused suite after routing: 31 passed.
+- Strict full JSON Schema export-contract, communications fixtures, handoff,
+  and checked-in export coverage: 26 passed.
+- The full schema-export task completed and produced no checked-in changes.
+- `mix xref callers OrbitalDynamics.Schema.CommonJsonSchema` reports the
+  expected facade and internal schema-owner consumers.
+- Definition/reference-specific static search confirms the helper and all
+  indirect references are gone.
+- `git diff --check` passed.
+- Strict forced compile passed across 4,065 files.
+- Implementation commit `8237cb9a` pushed to `main`.
 
 Behavior/schema changes:
-None intended.
+None. Public facades, probability schemas, eager and lazy evaluation behavior,
+composed schemas, executable validation, and checked-in exports remain
+unchanged.
 
 Last completed slice:
-Schema common number-array primitive direct routing, selected in `dc5a34f8`,
-boundary count corrected in `46c496f2`, and implemented in `3f6643ad`.
-`schema.ex` moved from 5,997 to 5,993 lines.
+Schema common probability primitive direct routing, selected in `19648e06`,
+boundary count corrected in `7513b2bc`, and implemented in `8237cb9a`.
+`schema.ex` moved from 5,993 to 5,989 lines.
 
 Next candidate:
 Re-rank the remaining non-capability Schema responsibility clusters now that
