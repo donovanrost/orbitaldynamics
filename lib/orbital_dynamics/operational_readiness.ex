@@ -26,6 +26,7 @@ defmodule OrbitalDynamics.OperationalReadiness do
   alias OrbitalDynamics.OperationalReadiness.QualityGateSummary
   alias OrbitalDynamics.OperationalReadiness.ResourceAvailabilityEvidence
   alias OrbitalDynamics.OperationalReadiness.ResourceAvailabilityGate
+  alias OrbitalDynamics.OperationalReadiness.SourceContractGate
   alias OrbitalDynamics.OperationalReadiness.SourceIdentity
   alias OrbitalDynamics.OperationalReadiness.TimelinePublicationContext
 
@@ -828,7 +829,7 @@ defmodule OrbitalDynamics.OperationalReadiness do
 
     gates =
       [
-        source_contract_gate(source_artifact_type),
+        SourceContractGate.build(source_artifact_type),
         operational_mode_gate(artifact, opts),
         AdapterBoundaryGate.build(evidence),
         MissionPolicyGate.build(evidence),
@@ -864,24 +865,6 @@ defmodule OrbitalDynamics.OperationalReadiness do
       ],
       "model_limits" => capabilities().known_limits |> Enum.map(&Atom.to_string/1)
     }
-  end
-
-  defp source_contract_gate(nil) do
-    gate(
-      "source_contract",
-      "blocked",
-      "blocked",
-      "source artifact type could not be inferred"
-    )
-  end
-
-  defp source_contract_gate(_source_artifact_type) do
-    gate(
-      "source_contract",
-      "passed",
-      "importable",
-      "source artifact type is declared"
-    )
   end
 
   defp operational_mode_gate(artifact, opts) do
