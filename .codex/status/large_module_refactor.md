@@ -9,7 +9,7 @@ Current slice:
 ContactAllocation returned-allocation extraction.
 
 Status:
-Selected; strict focused baseline pending.
+Completed and pushed in `cd708fc8`.
 
 Selected boundary:
 Extract contention recommendation lookup maps, allocation-row ordering,
@@ -37,25 +37,42 @@ Selection evidence:
   remain unchanged.
 
 Implementation:
-Pending.
+- Added `OrbitalDynamics.Communications.ContactAllocation.ReturnedAllocation`
+  as the owner of recommendation lookup maps, row ordering, effective status,
+  allocated-row selection, original-contact lookup, and returned allocation
+  context.
+- Wired the allocation orchestration directly to the owner while preserving
+  ContactAllocation and root public APIs.
+- Kept row/report construction, capacity packing, validation, approvals, and
+  summaries in their existing owners.
+- `contact_allocation.ex` moved from 1,804 to 1,707 lines; the new owner is 110
+  lines.
 
 Verification:
-Pending.
+- Strict focused baseline passed all 70 ContactAllocation tests.
+- Exact old/new public parity passed for four deterministic allocation results:
+  priority-aware selected/deferred contention with counteroffer context,
+  non-overlapping row ordering, reservation/capacity context, and empty input.
+- Post-extraction focused and adjacent allocation-schema verification passed
+  all 79 tests.
+- Static checks confirm returned-allocation lookup/projection helpers left the
+  facade; xref reports only ContactAllocation as a runtime caller.
+- Strict warning-clean forced compile passed for 4,007 files.
+- Formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-StationCalendar reservation-hold import-readiness extraction, selected in
-`4148524b` and implemented in `d0e43c2e`.
-`station_calendar.ex` moved from 1,814 to 1,670 lines; the dedicated
-ReservationHoldImportReadinessSummary owner is 221 lines.
+ContactAllocation returned-allocation extraction, selected in `e7a28cf9` and
+implemented in `cd708fc8`.
+`contact_allocation.ex` moved from 1,804 to 1,707 lines; the dedicated
+ReturnedAllocation owner is 110 lines.
 
 Next candidate:
 Re-rank the live checkout and select the next bounded facade-preserving
-extraction. `communications/contact_allocation.ex` is now the largest ordinary
-eligible facade at 1,804 lines, followed by TimelineFeedback and
-ResourceProjection.
+extraction. `timeline_feedback.ex` is now the largest ordinary eligible facade
+at 1,797 lines, followed by ResourceProjection and ContactIntent.
 
 Blocked:
 No.
