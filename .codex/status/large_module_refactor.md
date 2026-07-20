@@ -9,7 +9,7 @@ Current slice:
 RecommendationRiskContext contact-contention extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `2a6c16f2`.
 
 Selected boundary:
 Extract contact-contention context keys, risk classification, and context
@@ -32,19 +32,37 @@ Selection evidence:
   public output, and error behavior must remain unchanged.
 
 Implementation:
-Pending.
+- Added `OrbitalDynamics.RecommendationRiskContext.ContactContention` as the
+  focused owner of the ordered key contract, scope classification, atom-key
+  normalization, and contact, scenario, station, demand, timing, contention,
+  operator-action, derivation, and provenance projection.
+- Preserved the public RecommendationRiskContext facade through delegates.
+- Resolution selection and all other risk families remain outside the
+  extraction.
+- `recommendation_risk_context.ex` moved from 782 to 683 lines; the dedicated
+  ContactContention owner is 133 lines.
 
 Verification:
-Pending.
+- Focused baseline and post-change test passed normally; the file retains its
+  two pre-existing signed-zero warnings.
+- Exact old/new public parity: four results passed, covering ordered keys,
+  scope classification, atom-key normalization, type/risk_type value
+  preservation, all multi-key/list fields, nil omission, unrelated-risk
+  exclusion, empty input, and non-list input.
+- Five adjacent recommendation tests passed with warnings treated as errors.
+- Static ownership and xref checks passed; only the facade calls the extracted
+  owner at runtime.
+- Forced warning-clean test compile passed across 4,044 files.
+- Focused formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-OperationalReadiness readiness-report assembly extraction, selected in
-`d172fe6f` and implemented in `75a5cad0`.
-`operational_readiness.ex` moved from 827 to 765 lines; the dedicated
-ReadinessReport owner is 89 lines.
+RecommendationRiskContext contact-contention extraction, selected in
+`88af42be` and implemented in `2a6c16f2`.
+`recommendation_risk_context.ex` moved from 782 to 683 lines; the dedicated
+ContactContention owner is 133 lines.
 
 Next candidate:
 After this slice, re-rank the live checkout. OperationalReadiness is the next
