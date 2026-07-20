@@ -17,6 +17,7 @@ defmodule OrbitalDynamics.RecommendationRiskContext do
     StationReservationHoldImportReadiness,
     TimelineActivityPrecondition,
     TimelineActivityLifecycleState,
+    TimelineIntegrity,
     TimelineLifecycleState,
     TimelinePublication,
     ValidationRefresh
@@ -352,31 +353,6 @@ defmodule OrbitalDynamics.RecommendationRiskContext do
     "resource_filter_pressure_derivation_reasons"
   ]
 
-  @timeline_integrity_context_keys [
-    "timeline_integrity_risk_types",
-    "timeline_integrity_activity_ids",
-    "timeline_integrity_timeline_ids",
-    "timeline_integrity_statuses",
-    "timeline_integrity_issue_count_values",
-    "timeline_integrity_issue_types",
-    "timeline_integrity_issue_maps",
-    "timeline_integrity_missing_dependency_activity_ids",
-    "timeline_integrity_missing_dependency_timeline_ids",
-    "timeline_integrity_dependency_cycle_activity_ids",
-    "timeline_integrity_dependency_cycle_timeline_ids",
-    "timeline_integrity_dependency_order_violation_activity_ids",
-    "timeline_integrity_dependency_order_violation_timeline_ids",
-    "timeline_integrity_exclusivity_violation_activity_ids",
-    "timeline_integrity_exclusivity_violation_timeline_ids",
-    "timeline_integrity_exclusivity_violation_groups",
-    "timeline_integrity_required_operator_actions",
-    "timeline_integrity_feedback_sources",
-    "timeline_integrity_feedback_scopes",
-    "timeline_integrity_feedback_keys",
-    "timeline_integrity_trust_boundaries",
-    "timeline_integrity_derivation_reasons"
-  ]
-
   def validation_refresh_context_keys, do: ValidationRefresh.context_keys()
 
   def approval_boundary_context_keys, do: @approval_boundary_context_keys
@@ -436,7 +412,7 @@ defmodule OrbitalDynamics.RecommendationRiskContext do
   def maneuver_execution_uncertainty_context_keys,
     do: ManeuverExecutionUncertainty.context_keys()
 
-  def timeline_integrity_context_keys, do: @timeline_integrity_context_keys
+  def timeline_integrity_context_keys, do: TimelineIntegrity.context_keys()
 
   def execution_success_feedback_context_keys,
     do: ExecutionSuccessFeedback.context_keys()
@@ -1167,79 +1143,11 @@ defmodule OrbitalDynamics.RecommendationRiskContext do
   def maneuver_execution_uncertainty_context(risks),
     do: ManeuverExecutionUncertainty.context(risks)
 
-  def timeline_integrity_context(risks) when is_list(risks) do
-    risks = Enum.map(risks, &stringify_keys/1)
-
-    timeline_integrity_risks =
-      Enum.filter(risks, &timeline_integrity_risk?/1)
-
-    %{
-      "timeline_integrity_risk_types" =>
-        risk_context_values(timeline_integrity_risks, ["type", "risk_type"]),
-      "timeline_integrity_activity_ids" =>
-        risk_context_values(timeline_integrity_risks, "activity_id"),
-      "timeline_integrity_timeline_ids" =>
-        risk_context_values(timeline_integrity_risks, "timeline_id"),
-      "timeline_integrity_statuses" =>
-        risk_context_values(timeline_integrity_risks, "timeline_integrity_status"),
-      "timeline_integrity_issue_count_values" =>
-        risk_context_values(timeline_integrity_risks, "timeline_integrity_issue_count"),
-      "timeline_integrity_issue_types" =>
-        risk_context_values(timeline_integrity_risks, ["timeline_integrity_issue_types"]),
-      "timeline_integrity_issue_maps" =>
-        risk_context_values(timeline_integrity_risks, "timeline_integrity_issues"),
-      "timeline_integrity_missing_dependency_activity_ids" =>
-        risk_context_values(timeline_integrity_risks, ["missing_dependency_activity_ids"]),
-      "timeline_integrity_missing_dependency_timeline_ids" =>
-        risk_context_values(timeline_integrity_risks, ["missing_dependency_timeline_ids"]),
-      "timeline_integrity_dependency_cycle_activity_ids" =>
-        risk_context_values(timeline_integrity_risks, ["dependency_cycle_activity_ids"]),
-      "timeline_integrity_dependency_cycle_timeline_ids" =>
-        risk_context_values(timeline_integrity_risks, ["dependency_cycle_timeline_ids"]),
-      "timeline_integrity_dependency_order_violation_activity_ids" =>
-        risk_context_values(timeline_integrity_risks, [
-          "dependency_order_violation_activity_ids"
-        ]),
-      "timeline_integrity_dependency_order_violation_timeline_ids" =>
-        risk_context_values(timeline_integrity_risks, [
-          "dependency_order_violation_timeline_ids"
-        ]),
-      "timeline_integrity_exclusivity_violation_activity_ids" =>
-        risk_context_values(timeline_integrity_risks, ["exclusivity_violation_activity_ids"]),
-      "timeline_integrity_exclusivity_violation_timeline_ids" =>
-        risk_context_values(timeline_integrity_risks, ["exclusivity_violation_timeline_ids"]),
-      "timeline_integrity_exclusivity_violation_groups" =>
-        risk_context_values(timeline_integrity_risks, "exclusivity_violation_group"),
-      "timeline_integrity_required_operator_actions" =>
-        risk_context_values(timeline_integrity_risks, "required_operator_action"),
-      "timeline_integrity_feedback_sources" =>
-        risk_context_values(timeline_integrity_risks, "feedback_source"),
-      "timeline_integrity_feedback_scopes" =>
-        risk_context_values(timeline_integrity_risks, "feedback_scope"),
-      "timeline_integrity_feedback_keys" =>
-        risk_context_values(timeline_integrity_risks, "feedback_key"),
-      "timeline_integrity_trust_boundaries" =>
-        risk_context_values(timeline_integrity_risks, "trust_boundary"),
-      "timeline_integrity_derivation_reasons" =>
-        risk_context_values(timeline_integrity_risks, ["derivation_reasons"])
-    }
-    |> Enum.reject(fn {_key, values} -> values == [] end)
-    |> Map.new()
-  end
-
-  def timeline_integrity_context(_risks), do: %{}
+  def timeline_integrity_context(risks), do: TimelineIntegrity.context(risks)
 
   def execution_success_feedback_context(risks), do: ExecutionSuccessFeedback.context(risks)
 
   def operational_feedback_context(risks), do: OperationalFeedback.context(risks)
-
-  defp timeline_integrity_risk?(%{"type" => "timeline_integrity_issue"}), do: true
-
-  defp timeline_integrity_risk?(%{"risk_type" => "timeline_integrity_issue"}), do: true
-
-  defp timeline_integrity_risk?(%{"feedback_scope" => "timeline_integrity"}), do: true
-
-  defp timeline_integrity_risk?(_risk), do: false
 
   defp link_capacity_risk?(%{"type" => "downlink_completion_gap", "feedback_scope" => scope})
        when scope == "link_capacity",
