@@ -645,6 +645,15 @@ defmodule OrbitalDynamics.Schema.ContactAllocationHandoffContracts do
     )
   end
 
+  def validate_allocation_fields(issues, path, row),
+    do:
+      validate_allocation_fields(
+        issues,
+        path,
+        row,
+        &OrbitalDynamics.Schema.ContactAllocationValidation.validate_duplicate_evidence/3
+      )
+
   def validate_allocation_fields(issues, path, row, duplicate_evidence_validator)
       when is_function(duplicate_evidence_validator, 3) do
     if allocation_handoff_row?(row) do

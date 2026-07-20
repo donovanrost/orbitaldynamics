@@ -3,6 +3,9 @@ defmodule OrbitalDynamics.Schema.ContactAllocationValidation do
 
   import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2]
 
+  def validate_optional_report(issues, report),
+    do: validate_optional_report(issues, report, default_callbacks())
+
   def validate_optional_report(issues, nil, _callbacks), do: issues
 
   def validate_optional_report(issues, %{} = report, callbacks),
@@ -10,6 +13,9 @@ defmodule OrbitalDynamics.Schema.ContactAllocationValidation do
 
   def validate_optional_report(issues, _report, _callbacks),
     do: [error("$.contact_allocation_report", "must be an object") | issues]
+
+  def validate_report(issues, path, report),
+    do: validate_report(issues, path, report, default_callbacks())
 
   def validate_report(issues, path, report, callbacks) do
     OrbitalDynamics.Schema.ContactAllocationReportContracts.validate_report(
@@ -21,6 +27,9 @@ defmodule OrbitalDynamics.Schema.ContactAllocationValidation do
     )
   end
 
+  def validate_row(issues, path, row),
+    do: validate_row(issues, path, row, default_callbacks())
+
   def validate_row(issues, path, row, callbacks),
     do:
       OrbitalDynamics.Schema.ContactAllocationReportContracts.validate_row(
@@ -29,6 +38,9 @@ defmodule OrbitalDynamics.Schema.ContactAllocationValidation do
         row,
         callbacks
       )
+
+  def validate_capacity_pack_group(issues, path, group),
+    do: validate_capacity_pack_group(issues, path, group, default_callbacks())
 
   def validate_capacity_pack_group(issues, path, group, callbacks),
     do:
@@ -39,6 +51,9 @@ defmodule OrbitalDynamics.Schema.ContactAllocationValidation do
         callbacks
       )
 
+  def validate_counts(issues, path, report),
+    do: validate_counts(issues, path, report, default_callbacks())
+
   def validate_counts(issues, path, report, callbacks),
     do:
       OrbitalDynamics.Schema.ContactAllocationReportContracts.validate_counts(
@@ -47,6 +62,9 @@ defmodule OrbitalDynamics.Schema.ContactAllocationValidation do
         report,
         callbacks
       )
+
+  def validate_summary(issues, path, summary),
+    do: validate_summary(issues, path, summary, default_callbacks())
 
   def validate_summary(issues, path, summary, callbacks) do
     OrbitalDynamics.Schema.ContactAllocationSummaryContracts.validate_summary(
@@ -58,6 +76,9 @@ defmodule OrbitalDynamics.Schema.ContactAllocationValidation do
     )
   end
 
+  def validate_reservation_conflict_summary(issues, path, summary),
+    do: validate_reservation_conflict_summary(issues, path, summary, default_callbacks())
+
   def validate_reservation_conflict_summary(issues, path, summary, callbacks),
     do:
       OrbitalDynamics.Schema.ContactAllocationReservationConflictSummaryContracts.validate_summary(
@@ -67,6 +88,9 @@ defmodule OrbitalDynamics.Schema.ContactAllocationValidation do
         row_callback(callbacks)
       )
 
+  def validate_station_pressure_summary(issues, path, summary),
+    do: validate_station_pressure_summary(issues, path, summary, default_callbacks())
+
   def validate_station_pressure_summary(issues, path, summary, callbacks),
     do:
       OrbitalDynamics.Schema.ContactAllocationStationPressureSummaryContracts.validate_summary(
@@ -75,6 +99,9 @@ defmodule OrbitalDynamics.Schema.ContactAllocationValidation do
         summary,
         row_callback(callbacks)
       )
+
+  def validate_capacity_pack_summary(issues, path, summary),
+    do: validate_capacity_pack_summary(issues, path, summary, default_callbacks())
 
   def validate_capacity_pack_summary(issues, path, summary, callbacks) do
     OrbitalDynamics.Schema.ContactAllocationCapacityPackSummaryContracts.validate_summary(
@@ -86,6 +113,15 @@ defmodule OrbitalDynamics.Schema.ContactAllocationValidation do
     )
   end
 
+  def validate_provider_reservation_request_summary(issues, path, summary),
+    do:
+      validate_provider_reservation_request_summary(
+        issues,
+        path,
+        summary,
+        default_callbacks()
+      )
+
   def validate_provider_reservation_request_summary(issues, path, summary, callbacks),
     do:
       OrbitalDynamics.Schema.ContactAllocationProviderReservationRequestSummaryContracts.validate_summary(
@@ -95,6 +131,9 @@ defmodule OrbitalDynamics.Schema.ContactAllocationValidation do
         row_callback(callbacks)
       )
 
+  def validate_duplicate_evidence(issues, path, row),
+    do: validate_duplicate_evidence(issues, path, row, default_callbacks())
+
   def validate_duplicate_evidence(issues, path, row, callbacks),
     do:
       OrbitalDynamics.Schema.ContactAllocationReportContracts.validate_duplicate_evidence(
@@ -103,6 +142,32 @@ defmodule OrbitalDynamics.Schema.ContactAllocationValidation do
         row,
         callbacks
       )
+
+  defp default_callbacks do
+    [
+      validate_optional_station_calendar_report:
+        &OrbitalDynamics.Schema.StationReservationValidation.validate_optional_calendar_report/2,
+      validate_optional_contact_filter_report:
+        &OrbitalDynamics.Schema.ContactReportValidation.validate_optional_filter_report/2,
+      validate_optional_contact_contention_report:
+        &OrbitalDynamics.Schema.ContactReportValidation.validate_optional_contention_report/2,
+      validate_optional_contact_contention_resolution_report:
+        &OrbitalDynamics.Schema.ContactReportValidation.validate_optional_contention_resolution_report/2,
+      validate_contact_allocation_report_counts: &validate_counts/3,
+      validate_contact_allocation_row: &validate_row/3,
+      validate_contact_allocation_capacity_pack_group: &validate_capacity_pack_group/3,
+      validate_optional_actual_data_rate_throughput_derivation:
+        &OrbitalDynamics.Schema.ExecutionMetricContracts.validate_optional_actual_data_rate_throughput_derivation/4,
+      validate_contact_contention_deferred_priority:
+        &OrbitalDynamics.Schema.ContactContentionReportContracts.validate_deferred_priority/3,
+      validate_priority_field_evidence_counts:
+        &OrbitalDynamics.Schema.PriorityOverrideContracts.validate_field_evidence_counts/3,
+      validate_override_count_matches_ids:
+        &OrbitalDynamics.Schema.PriorityOverrideContracts.validate_count_matches_ids/5,
+      validate_station_calendar_contact_counts:
+        &OrbitalDynamics.Schema.StationCalendarContactCountContracts.validate/3
+    ]
+  end
 
   defp row_callback(callbacks),
     do: fn issues, path, row -> validate_row(issues, path, row, callbacks) end

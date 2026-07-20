@@ -4208,31 +4208,31 @@ defmodule OrbitalDynamics.Schema do
   defp validate_contract(@contact_allocation_report, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_contact_allocation_report("$", artifact)
+    |> ContactAllocationValidation.validate_report("$", artifact)
   end
 
   defp validate_contract(@contact_allocation_summary, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_contact_allocation_summary("$", artifact)
+    |> ContactAllocationValidation.validate_summary("$", artifact)
   end
 
   defp validate_contract(@contact_allocation_reservation_conflict_summary, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_contact_allocation_reservation_conflict_summary("$", artifact)
+    |> ContactAllocationValidation.validate_reservation_conflict_summary("$", artifact)
   end
 
   defp validate_contract(@contact_allocation_station_pressure_summary, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_contact_allocation_station_pressure_summary("$", artifact)
+    |> ContactAllocationValidation.validate_station_pressure_summary("$", artifact)
   end
 
   defp validate_contract(@contact_allocation_capacity_pack_summary, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_contact_allocation_capacity_pack_summary("$", artifact)
+    |> ContactAllocationValidation.validate_capacity_pack_summary("$", artifact)
   end
 
   defp validate_contract(
@@ -4242,7 +4242,7 @@ defmodule OrbitalDynamics.Schema do
        ) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_contact_allocation_provider_reservation_request_summary("$", artifact)
+    |> ContactAllocationValidation.validate_provider_reservation_request_summary("$", artifact)
   end
 
   defp validate_contract(@station_calendar_provider, contract, artifact) do
@@ -4959,7 +4959,7 @@ defmodule OrbitalDynamics.Schema do
       [],
       artifact,
       contract["required_fields"],
-      &validate_optional_contact_allocation_report/2,
+      &ContactAllocationValidation.validate_optional_report/2,
       &CandidateRejectionValidation.validate_optional_report/3
     )
   end
@@ -5106,33 +5106,6 @@ defmodule OrbitalDynamics.Schema do
     |> require_fields("$", artifact, contract["required_fields"])
   end
 
-  defp contact_allocation_report_domain_callbacks do
-    [
-      validate_optional_station_calendar_report:
-        &StationReservationValidation.validate_optional_calendar_report/2,
-      validate_optional_contact_filter_report:
-        &ContactReportValidation.validate_optional_filter_report/2,
-      validate_optional_contact_contention_report:
-        &ContactReportValidation.validate_optional_contention_report/2,
-      validate_optional_contact_contention_resolution_report:
-        &ContactReportValidation.validate_optional_contention_resolution_report/2,
-      validate_contact_allocation_report_counts: &validate_contact_allocation_report_counts/3,
-      validate_contact_allocation_row: &validate_contact_allocation_row/3,
-      validate_contact_allocation_capacity_pack_group:
-        &validate_contact_allocation_capacity_pack_group/3,
-      validate_optional_actual_data_rate_throughput_derivation:
-        &OrbitalDynamics.Schema.ExecutionMetricContracts.validate_optional_actual_data_rate_throughput_derivation/4,
-      validate_contact_contention_deferred_priority:
-        &OrbitalDynamics.Schema.ContactContentionReportContracts.validate_deferred_priority/3,
-      validate_priority_field_evidence_counts:
-        &OrbitalDynamics.Schema.PriorityOverrideContracts.validate_field_evidence_counts/3,
-      validate_override_count_matches_ids:
-        &OrbitalDynamics.Schema.PriorityOverrideContracts.validate_count_matches_ids/5,
-      validate_station_calendar_contact_counts:
-        &OrbitalDynamics.Schema.StationCalendarContactCountContracts.validate/3
-    ]
-  end
-
   defp validate_nested_execution_report(execution_report),
     do:
       validate_contract(
@@ -5242,41 +5215,6 @@ defmodule OrbitalDynamics.Schema do
   defp validate_optional_link_capacity_report(issues, _report),
     do: [error("$.link_capacity_report", "must be an object") | issues]
 
-  defp validate_optional_contact_allocation_report(issues, value),
-    do:
-      ContactAllocationValidation.validate_optional_report(
-        issues,
-        value,
-        contact_allocation_report_domain_callbacks()
-      )
-
-  defp validate_contact_allocation_report(issues, path, report),
-    do:
-      ContactAllocationValidation.validate_report(
-        issues,
-        path,
-        report,
-        contact_allocation_report_domain_callbacks()
-      )
-
-  defp validate_contact_allocation_row(issues, path, row),
-    do:
-      ContactAllocationValidation.validate_row(
-        issues,
-        path,
-        row,
-        contact_allocation_report_domain_callbacks()
-      )
-
-  defp validate_contact_allocation_capacity_pack_group(issues, path, group),
-    do:
-      ContactAllocationValidation.validate_capacity_pack_group(
-        issues,
-        path,
-        group,
-        contact_allocation_report_domain_callbacks()
-      )
-
   defp validate_optional_objective_tradeoff_report(issues, report),
     do:
       DecisionSupportValidation.validate_optional_objective_tradeoff_report(
@@ -5352,69 +5290,6 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validate_contact_allocation_report_counts(issues, path, report),
-    do:
-      ContactAllocationValidation.validate_counts(
-        issues,
-        path,
-        report,
-        contact_allocation_report_domain_callbacks()
-      )
-
-  defp validate_contact_allocation_summary(issues, path, summary),
-    do:
-      ContactAllocationValidation.validate_summary(
-        issues,
-        path,
-        summary,
-        contact_allocation_report_domain_callbacks()
-      )
-
-  defp validate_contact_allocation_reservation_conflict_summary(issues, path, summary),
-    do:
-      ContactAllocationValidation.validate_reservation_conflict_summary(
-        issues,
-        path,
-        summary,
-        contact_allocation_report_domain_callbacks()
-      )
-
-  defp validate_contact_allocation_station_pressure_summary(issues, path, summary),
-    do:
-      ContactAllocationValidation.validate_station_pressure_summary(
-        issues,
-        path,
-        summary,
-        contact_allocation_report_domain_callbacks()
-      )
-
-  defp validate_contact_allocation_capacity_pack_summary(issues, path, summary),
-    do:
-      ContactAllocationValidation.validate_capacity_pack_summary(
-        issues,
-        path,
-        summary,
-        contact_allocation_report_domain_callbacks()
-      )
-
-  defp validate_contact_allocation_provider_reservation_request_summary(issues, path, summary),
-    do:
-      ContactAllocationValidation.validate_provider_reservation_request_summary(
-        issues,
-        path,
-        summary,
-        contact_allocation_report_domain_callbacks()
-      )
-
-  defp validate_contact_allocation_duplicate_evidence(issues, path, row),
-    do:
-      ContactAllocationValidation.validate_duplicate_evidence(
-        issues,
-        path,
-        row,
-        contact_allocation_report_domain_callbacks()
-      )
-
   defp validate_cadence_import_manifest(issues, path, manifest) do
     OrbitalDynamics.Schema.CadenceImportManifestContracts.validate(
       issues,
@@ -5457,10 +5332,11 @@ defmodule OrbitalDynamics.Schema do
         &SourceEvidenceValidation.validate_execution_status_matches/3,
       validate_operational_readiness_resource_context:
         &OperationalReadinessValidation.validate_operational_readiness_resource_context/3,
-      validate_contact_allocation_handoff_fields: &validate_contact_allocation_handoff_fields/3,
+      validate_contact_allocation_handoff_fields:
+        &OrbitalDynamics.Schema.ContactAllocationHandoffContracts.validate_allocation_fields/3,
       validate_operator_review_row_links: &OperatorReviewValidation.validate_row_links/3,
       validate_contact_allocation_capacity_pack_group:
-        &validate_contact_allocation_capacity_pack_group/3,
+        &ContactAllocationValidation.validate_capacity_pack_group/3,
       validate_optional_timeline_link:
         &TimelineContextValidation.validate_optional_timeline_link/4,
       validate_optional_timeline_identity:
@@ -5514,7 +5390,7 @@ defmodule OrbitalDynamics.Schema do
   defp cadence_import_row_contract_callbacks do
     OrbitalDynamics.Schema.CadenceImportRowCallbacks.build(
       validate_contact_allocation_capacity_pack_group:
-        &validate_contact_allocation_capacity_pack_group/3,
+        &ContactAllocationValidation.validate_capacity_pack_group/3,
       validate_optional_policy_decision_evidence:
         &PolicyValidation.validate_optional_decision_evidence/3,
       validate_optional_policy_escalation: &PolicyValidation.validate_optional_escalation/4,
@@ -5547,7 +5423,8 @@ defmodule OrbitalDynamics.Schema do
 
   defp cadence_import_row_handoff_contract_callbacks do
     OrbitalDynamics.Schema.CadenceImportRowHandoffCallbacks.build(
-      validate_contact_allocation_handoff_fields: &validate_contact_allocation_handoff_fields/3,
+      validate_contact_allocation_handoff_fields:
+        &OrbitalDynamics.Schema.ContactAllocationHandoffContracts.validate_allocation_fields/3,
       validate_operator_review_row_links: &OperatorReviewValidation.validate_row_links/3,
       validate_optional_timeline_activity_precondition_summary_source:
         &TimelineSourceValidation.validate_optional_timeline_activity_precondition_summary_source/3,
@@ -5580,15 +5457,6 @@ defmodule OrbitalDynamics.Schema do
       path,
       row,
       cadence_source_review_row_contract_callbacks()
-    )
-  end
-
-  defp validate_contact_allocation_handoff_fields(issues, path, row) do
-    OrbitalDynamics.Schema.ContactAllocationHandoffContracts.validate_allocation_fields(
-      issues,
-      path,
-      row,
-      &validate_contact_allocation_duplicate_evidence/3
     )
   end
 
@@ -5655,7 +5523,7 @@ defmodule OrbitalDynamics.Schema do
       validate_optional_protection_decision:
         &TimelineContextValidation.validate_optional_protection_decision/4,
       validate_contact_allocation_capacity_pack_group:
-        &validate_contact_allocation_capacity_pack_group/3,
+        &ContactAllocationValidation.validate_capacity_pack_group/3,
       validate_optional_actual_data_rate_throughput_derivation:
         &OrbitalDynamics.Schema.ExecutionMetricContracts.validate_optional_actual_data_rate_throughput_derivation/4,
       validate_optional_lifecycle_transition:
@@ -5700,7 +5568,8 @@ defmodule OrbitalDynamics.Schema do
         &TimelineContextValidation.validate_optional_timeline_protection_summary/4,
       validate_operational_readiness_resource_context:
         &OperationalReadinessValidation.validate_operational_readiness_resource_context/3,
-      validate_contact_allocation_handoff_fields: &validate_contact_allocation_handoff_fields/3,
+      validate_contact_allocation_handoff_fields:
+        &OrbitalDynamics.Schema.ContactAllocationHandoffContracts.validate_allocation_fields/3,
       validate_operator_review_row_links: &OperatorReviewValidation.validate_row_links/3
     )
   end
