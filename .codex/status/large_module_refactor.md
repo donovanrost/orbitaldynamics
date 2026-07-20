@@ -9,7 +9,7 @@ Current slice:
 Schema contact-intent validation context extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Add `ContactIntentValidation` owner-default entry points for
@@ -30,23 +30,38 @@ Selection evidence:
   `ProposedContactRegistryContracts` family.
 
 Implementation:
-Pending.
+Added `ContactIntentValidation` as the registry-backed family owner for the two
+selected artifacts and routed their direct `Schema` validation clauses through
+it. `schema.ex` moved from 4,829 to 4,826 lines.
 
 Verification:
-Pending.
+- Strict focused baseline: 43 tests passed.
+- Focused plus adjacent communications, validation, operator-review,
+  campaign-planner, candidate-refresh replay, source-report, and export
+  coverage after extraction: 56 tests passed.
+- Full schema export completed with no checked-in artifact changes.
+- Static routing review found exactly the two intended direct facade routes.
+- `mix xref trace` confirmed both runtime calls originate in `schema.ex`; a
+  bounded production search found no other owner callers.
+- Formatting and `git diff --check` passed.
+- Strict forced compile passed across 4,085 files with warnings as errors.
+- Bounded diff review confirmed registry-owned requirements, contract routing,
+  validation ordering, validation paths, and the proposed-contact exclusion
+  remain unchanged.
+- Implementation committed and pushed as `a60283db`.
 
 Behavior/schema changes:
-None intended. Required fields, validation ordering and paths, public `Schema`
-APIs, validation results, and checked-in exports must remain unchanged.
+None. Required fields, validation ordering and paths, public `Schema` APIs,
+validation results, and checked-in exports remain unchanged.
 
 Last completed slice:
-Schema provider-counteroffer validation context extraction, selected in
-`ab187bb8` and implemented in `45176e44`.
-`schema.ex` moved from 4,842 to 4,829 lines.
+Schema contact-intent validation context extraction, selected in `8d5283b2`
+and implemented in `a60283db`.
+`schema.ex` moved from 4,829 to 4,826 lines.
 
 Next candidate:
-Implement and verify the selected contact-intent context, then re-rank the
-remaining Schema responsibility clusters.
+Re-rank the remaining Schema responsibility clusters and select the next
+facade-preserving extraction.
 
 Blocked:
 No.
