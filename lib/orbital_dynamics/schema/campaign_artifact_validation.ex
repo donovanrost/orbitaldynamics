@@ -13,6 +13,8 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
     OperationalReadinessValidation,
     OperationalTimelineValidation,
     OperatorReviewValidation,
+    PlanChangeRegistryContracts,
+    PlanDeltaContracts,
     PolicyValidation,
     ResourceValidation,
     StationReservationValidation,
@@ -27,6 +29,7 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
   @campaign_strategy "campaign_strategy.v3"
   @strategy_branch "strategy_branch.v1"
   @strategy_recommendation "strategy_recommendation.v1"
+  @plan_delta "plan_delta.v1"
 
   import OrbitalDynamics.Schema.PrimitiveValidation,
     only: [expect_equal: 5, require_fields: 4]
@@ -78,6 +81,16 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
       required_fields(StrategyManeuverRegistryContracts, @strategy_recommendation)
     )
     |> validate_recommendation(path, recommendation)
+  end
+
+  def validate_delta_artifact(issues, path, delta) do
+    issues
+    |> require_fields(
+      path,
+      delta,
+      required_fields(PlanChangeRegistryContracts, @plan_delta)
+    )
+    |> PlanDeltaContracts.validate(path, delta)
   end
 
   def validate_branch(issues, path, branch) do

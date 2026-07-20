@@ -4281,10 +4281,8 @@ defmodule OrbitalDynamics.Schema do
     CandidateRejectionValidation.validate_report_artifact([], "$", artifact)
   end
 
-  defp validate_contract(@plan_delta, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.PlanDeltaContracts.validate("$", artifact)
+  defp validate_contract(@plan_delta, _contract, artifact) do
+    CampaignArtifactValidation.validate_delta_artifact([], "$", artifact)
   end
 
   defp validate_contract(@approval_requirement, _contract, artifact) do
