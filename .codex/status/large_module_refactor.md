@@ -9,7 +9,7 @@ Current slice:
 OperationalReadiness unavailable-resource summary extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `6686d3a4`.
 
 Selected boundary:
 Extract unavailable-resource quality-gate summary construction and its
@@ -34,19 +34,40 @@ Selection evidence:
   unchanged.
 
 Implementation:
-Pending.
+- Added
+  `OrbitalDynamics.OperationalReadiness.QualityGateUnavailableResourceSummary`
+  as the focused owner of unavailable-resource summary construction, positive
+  count merging, reason classification, blocked-contact aggregation, routing,
+  stable IDs, and nil compaction.
+- Preserved all public OperationalReadiness facades through the summary
+  builder.
+- Removed facade helpers that became dead after their only summary consumer
+  moved; report construction, row projection, evidence construction, and all
+  gates remain outside the extraction.
+- `operational_readiness.ex` moved from 1,063 to 903 lines; the dedicated
+  QualityGateUnavailableResourceSummary owner is 213 lines.
 
 Verification:
-Pending.
+- Strict focused baseline: 31 tests passed with warnings treated as errors.
+- Exact old/new public parity: four results passed, covering multi-row count
+  merging, reason classification, blocked-contact and status routing, stable
+  row/gate IDs, empty output, atom-key normalization, nil compaction, and the
+  root facade.
+- Post-change core, operator-review, schema, and fixture checks: 51 tests
+  passed with warnings treated as errors.
+- Static ownership and xref checks passed; only the facade calls the extracted
+  owner at runtime.
+- Forced warning-clean test compile passed across 4,038 files.
+- Focused formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-RecommendationRiskContext station-reservation-conflict extraction, selected
-in `f6094848` and implemented in `b36d6c11`.
-`recommendation_risk_context.ex` moved from 1,094 to 1,033 lines; the dedicated
-StationReservationConflict owner is 100 lines.
+OperationalReadiness unavailable-resource summary extraction, selected in
+`98f6fe39` and implemented in `6686d3a4`.
+`operational_readiness.ex` moved from 1,063 to 903 lines; the dedicated
+QualityGateUnavailableResourceSummary owner is 213 lines.
 
 Next candidate:
 After this slice, re-rank the live checkout. RecommendationRiskContext is the
