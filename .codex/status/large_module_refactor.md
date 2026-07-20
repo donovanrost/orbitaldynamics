@@ -6,59 +6,38 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-ContactAllocation returned-allocation extraction.
+TimelineFeedback operational-feedback aggregation extraction.
 
 Status:
-Completed and pushed in `cd708fc8`.
+Selected; strict focused baseline pending.
 
 Selected boundary:
-Extract contention recommendation lookup maps, allocation-row ordering,
-effective allocation status, allocated-row selection, returned contact lookup,
-and returned allocation context projection into
-`OrbitalDynamics.Communications.ContactAllocation.ReturnedAllocation`.
-Preserve all ContactAllocation and root public facades.
+Extract operational-feedback dimension aggregation, outcome value selection,
+weighted target-priority feedback, downlink/resource feedback delegation,
+maneuver-execution-uncertainty projection, and provenance trust specs into
+`OrbitalDynamics.TimelineFeedback.OperationalFeedbackSummary`.
+Preserve all TimelineFeedback and root public facades.
 
 Selection evidence:
 - Excluding the generated/declarative candidate-refresh JSON-schema module,
-  live re-ranking places `communications/contact_allocation.ex` at 1,804 lines,
-  the
+  live re-ranking places `timeline_feedback.ex` at 1,797 lines, the
   largest ordinary eligible facade.
-- ContactAllocation already delegates nine focused responsibilities, while
-  resolution lookup and returned-allocation projection remain inline at lines
-  1,433-1,530.
-- The selected block has one responsibility: turn finalized allocation rows
-  back into the public returned-contact view.
-- Allocation report construction, blocked/base row projection, capacity
-  packing, validation, approvals, summaries, and all public contracts remain
-  outside the boundary.
-- Exact recommendation lookup overwrite behavior, row ordering, effective
-  status precedence, original-contact lookup, projected fields,
-  provider-counteroffer context, omission behavior, and error behavior must
-  remain unchanged.
+- TimelineFeedback already delegates thirty focused responsibilities, while
+  operational-feedback output construction and its value/trust helper family
+  remain inline at lines 429-490 and 1,346-1,552.
+- The selected block has one responsibility: aggregate reconciled rows into
+  deterministic operational-feedback dimensions and matching trust specs.
+- Planned/realized normalization, reconciliation rows, provenance construction,
+  activity state, and all public contracts remain outside the boundary.
+- Exact row normalization, exclusion handling, weighted averages, stable key
+  routing, nested-map ordering, outcome/status interpretation, trust-spec
+  callbacks, public output, and error behavior must remain unchanged.
 
 Implementation:
-- Added `OrbitalDynamics.Communications.ContactAllocation.ReturnedAllocation`
-  as the owner of recommendation lookup maps, row ordering, effective status,
-  allocated-row selection, original-contact lookup, and returned allocation
-  context.
-- Wired the allocation orchestration directly to the owner while preserving
-  ContactAllocation and root public APIs.
-- Kept row/report construction, capacity packing, validation, approvals, and
-  summaries in their existing owners.
-- `contact_allocation.ex` moved from 1,804 to 1,707 lines; the new owner is 110
-  lines.
+Pending.
 
 Verification:
-- Strict focused baseline passed all 70 ContactAllocation tests.
-- Exact old/new public parity passed for four deterministic allocation results:
-  priority-aware selected/deferred contention with counteroffer context,
-  non-overlapping row ordering, reservation/capacity context, and empty input.
-- Post-extraction focused and adjacent allocation-schema verification passed
-  all 79 tests.
-- Static checks confirm returned-allocation lookup/projection helpers left the
-  facade; xref reports only ContactAllocation as a runtime caller.
-- Strict warning-clean forced compile passed for 4,007 files.
-- Formatting and `git diff --check` passed.
+Pending.
 
 Behavior/schema changes:
 None intended.
