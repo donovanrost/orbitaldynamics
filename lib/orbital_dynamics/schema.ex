@@ -7,12 +7,7 @@ defmodule OrbitalDynamics.Schema do
   the artifact shapes are still maturing.
   """
 
-  alias OrbitalDynamics.Schema.{
-    OperationalReadinessValidation,
-    ResourceValidation,
-    SourceEvidenceValidation,
-    TimelineContextJsonSchema
-  }
+  alias OrbitalDynamics.Schema.{SourceEvidenceValidation, TimelineContextJsonSchema}
 
   import OrbitalDynamics.Schema.PrimitiveValidation,
     only: [error: 2]
@@ -115,124 +110,31 @@ defmodule OrbitalDynamics.Schema do
       schema_migration_statuses: 0
     ]
 
-  @campaign_plan "campaign_plan.v1"
-  @campaign_repair "campaign_repair.v2"
-  @campaign_strategy "campaign_strategy.v3"
   @accepted_planning_state "accepted_planning_state.v1"
-  @candidate_refresh "candidate_refresh.v1"
   @candidate_activity "candidate_activity.v1"
-  @candidate_diff_report "candidate_diff_report.v1"
-  @candidate_diff_row "candidate_diff_row.v1"
-  @freshness_report "freshness_report.v1"
-  @invalidated_candidate "invalidated_candidate.v1"
-  @refresh_budget_report "refresh_budget_report.v1"
-  @refreshed_window "refreshed_window.v1"
-  @remaining_horizon "remaining_horizon.v1"
-  @source_window_lineage "source_window_lineage.v1"
   @spacecraft_state_estimate "spacecraft_state_estimate.v1"
   @maneuver_execution_delta "maneuver_execution_delta.v1"
-  @validation_reference_fixture_report "validation_reference_fixture_report.v1"
-  @validation_reference_report "validation_reference_report.v1"
-  @validation_check "validation_check.v1"
   @validation_record "validation_record.v1"
-  @model_acceptance_report "model_acceptance_report.v1"
-  @validation_safety_case_summary "validation_safety_case_summary.v1"
   @planned_activity "planned_activity.v1"
-  @activity_template "activity_template.v1"
-  @proposed_contact "proposed_contact.v1"
-  @contact_intent "contact_intent.v1"
-  @command_window_report "command_window_report.v1"
-  @link_capacity_report "link_capacity_report.v1"
-  @link_capacity_summary "link_capacity_summary.v1"
-  @relay_data_path_summary "relay_data_path_summary.v1"
-  @contact_intent_summary "contact_intent_summary.v1"
-  @contact_allocation_report "contact_allocation_report.v1"
-  @contact_allocation_summary "contact_allocation_summary.v1"
-  @contact_allocation_reservation_conflict_summary "contact_allocation_reservation_conflict_summary.v1"
-  @contact_allocation_station_pressure_summary "contact_allocation_station_pressure_summary.v1"
-  @contact_allocation_capacity_pack_summary "contact_allocation_capacity_pack_summary.v1"
-  @contact_filter_report "contact_filter_report.v1"
-  @contact_contention_report "contact_contention_report.v1"
-  @contact_contention_resolution_report "contact_contention_resolution_report.v1"
-  @contact_contention_resolution_summary "contact_contention_resolution_summary.v1"
   @station_calendar_provider "station_calendar_provider.v1"
-  @station_calendar_report "station_calendar_report.v1"
-  @station_calendar_precedence_summary "station_calendar_precedence_summary.v1"
-  @station_reservation_report "station_reservation_report.v1"
-  @contact_allocation_provider_reservation_request_summary "contact_allocation_provider_reservation_request_summary.v1"
-  @station_reservation_review_summary "station_reservation_review_summary.v1"
-  @station_reservation_hold_summary "station_reservation_hold_summary.v1"
-  @station_reservation_hold_import_readiness_summary "station_reservation_hold_import_readiness_summary.v1"
-  @provider_counteroffer_report "provider_counteroffer_report.v1"
-  @provider_counteroffer_review_summary "provider_counteroffer_review_summary.v1"
-  @provider_counteroffer_import_readiness_summary "provider_counteroffer_import_readiness_summary.v1"
-  @provider_counteroffer_plan_impact_summary "provider_counteroffer_plan_impact_summary.v1"
-  @resource_summary "resource_summary.v1"
-  @resource_filter_report "resource_filter_report.v1"
-  @resource_filter_summary "resource_filter_summary.v1"
-  @resource_projection_report "resource_projection_report.v1"
-  @resource_projection_flow_summary "resource_projection_flow_summary.v1"
   @realized_activity "realized_activity.v1"
-  @realized_state_snapshot "realized_state_snapshot.v1"
   @timeline_feedback_report "timeline_feedback_report.v1"
-  @candidate_rejection_report "candidate_rejection_report.v1"
-  @plan_delta "plan_delta.v1"
-  @approval_requirement "approval_requirement.v1"
   @policy_decision "policy_decision.v1"
-  @policy_bundle "policy_bundle.v1"
-  @cadence_import_manifest "cadence_import_manifest.v1"
-  @operational_readiness_report "operational_readiness_report.v1"
-  @operational_import_eligibility_summary "operational_import_eligibility_summary.v1"
-  @operational_readiness_gate_summary "operational_readiness_gate_summary.v1"
-  @operational_execution_boundary_summary "operational_execution_boundary_summary.v1"
-  @operational_quality_gate_summary "operational_quality_gate_summary.v1"
-  @operational_quality_gate_unavailable_resource_summary "operational_quality_gate_unavailable_resource_summary.v1"
-  @operational_quality_gate_operator_training_summary "operational_quality_gate_operator_training_summary.v1"
-  @operational_quality_gate_schema_validation_summary "operational_quality_gate_schema_validation_summary.v1"
-  @operational_quality_gate_import_readiness_summary "operational_quality_gate_import_readiness_summary.v1"
-  @quality_gate_report "quality_gate_report.v1"
-  @operator_review_package "operator_review_package.v1"
   @strategy_recommendation "strategy_recommendation.v1"
-  @maneuver_recommendation "maneuver_recommendation.v1"
-  @maneuver_review_report "maneuver_review_report.v1"
-  @execution_report "execution_report.v1"
-  @monte_carlo_reproducibility_report "monte_carlo_reproducibility_report.v1"
-  @objective_tradeoff_report "objective_tradeoff_report.v1"
-  @objective_satisfaction_report "objective_satisfaction_report.v1"
-  @ranking_comparison_report "ranking_comparison_report.v1"
-  @pareto_frontier_report "pareto_frontier_report.v1"
-  @operational_timeline_report "operational_timeline_report.v1"
-  @timeline_diff_report "timeline_diff_report.v1"
   @timeline_diff_summary "timeline_diff_summary.v1"
-  @timeline_integrity_report "timeline_integrity_report.v1"
   @timeline_dependency_impact_summary "timeline_dependency_impact_summary.v1"
   @timeline_publication_summary "timeline_publication_summary.v1"
-  @timeline_activity_state "timeline_activity_state.v1"
   @timeline_activity_precondition_summary "timeline_activity_precondition_summary.v1"
-  @timeline_activity_status_state "timeline_activity_status_state.v1"
-  @timeline_activity_approval_state "timeline_activity_approval_state.v1"
-  @timeline_activity_lifecycle_state "timeline_activity_lifecycle_state.v1"
   @timeline_preservation_report "timeline_preservation_report.v1"
   @timeline_preservation_status "timeline_preservation_status.v1"
-  @timeline_lifecycle_state_summary "timeline_lifecycle_state_summary.v1"
-  @timeline_transition_application_report "timeline_transition_application_report.v1"
   @timeline_transition_application_summary "timeline_transition_application_summary.v1"
-  @branch_comparison_report "branch_comparison_report.v1"
-  @optimizer_contract "optimizer_contract.v1"
   @constraint_report "constraint_report.v1"
-  @score_term_report "score_term_report.v1"
   @environment_model_capability "environment_model_capability.v1"
   @environment_provider_capability "environment_provider_capability.v1"
   @subsystem_model_capability "subsystem_model_capability.v1"
   @schema_validation_report "schema_validation_report.v1"
   @schema_validation_batch_report "schema_validation_batch_report.v1"
   @schema_migration_report "schema_migration_report.v1"
-  @manifest_field_reference "manifest_field_reference.v1"
-  @study_manifest_lint "study_manifest_lint.v1"
-  @result_artifact "result_artifact.v1"
-  @campaign_request_lint "campaign_request_lint.v1"
-  @strategy_branch "strategy_branch.v1"
-  @capability_catalog "capability_catalog.v1"
 
   @json_schema_draft "https://json-schema.org/draft/2020-12/schema"
   @stable_id_pattern OrbitalDynamics.Schema.StableIdValidation.pattern()
@@ -398,12 +300,21 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_document(name, contract) do
+    property_context = json_schema_property_context()
+
     attrs = [
       json_schema_draft: @json_schema_draft,
       compatibility_policy: compatibility_policy(),
       identity_policy: identity_policy(),
       contract_fun: &contract/1,
-      property_fun: &json_schema_property/3,
+      property_fun: fn field, contract_name, contract ->
+        OrbitalDynamics.Schema.JsonSchemaPropertyRouter.property(
+          field,
+          contract_name,
+          contract,
+          property_context
+        )
+      end,
       stable_id_pattern: @stable_id_pattern,
       constraint_report_model_limits_by_model_fun:
         &OrbitalDynamics.Schema.ConstraintReportContracts.model_limits_by_model/0,
@@ -440,1343 +351,197 @@ defmodule OrbitalDynamics.Schema do
     })
   end
 
-  defp json_schema_property(field, @activity_template = contract_name, contract) do
-    OrbitalDynamics.Schema.PlanningReferencePropertyDispatch.activity_template(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      {@activity_template, @stable_id_pattern}
-    )
-  end
-
-  defp json_schema_property(field, @policy_bundle = contract_name, contract) do
-    OrbitalDynamics.Schema.PolicyArtifactPropertyDispatch.bundle(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      {&policy_action_rule_json_schema/0, &policy_model_limits/0}
-    )
-  end
-
-  defp json_schema_property(field, @policy_decision = contract_name, contract) do
-    OrbitalDynamics.Schema.PolicyArtifactPropertyDispatch.decision(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      {
-        &policy_decision_rule_match_json_schema/0,
-        &policy_escalation_json_schema/0,
-        &policy_model_limits/0
-      }
-    )
-  end
-
-  defp json_schema_property(field, @capability_catalog = contract_name, contract) do
-    OrbitalDynamics.Schema.PlanningReferencePropertyDispatch.capability_catalog(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3
-    )
-  end
-
-  defp json_schema_property(field, @accepted_planning_state = contract_name, contract) do
-    OrbitalDynamics.Schema.PlanningReferencePropertyDispatch.accepted_state(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      {&spacecraft_state_estimate_json_schema/0, &maneuver_execution_delta_json_schema/0}
-    )
-  end
-
-  defp json_schema_property(field, @manifest_field_reference = contract_name, contract) do
-    OrbitalDynamics.Schema.PlanningReferencePropertyDispatch.manifest_field_reference(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3
-    )
-  end
-
-  defp json_schema_property(field, @candidate_diff_report = contract_name, contract) do
-    OrbitalDynamics.Schema.CandidateRefreshPropertyDispatch.diff_report(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      @stable_id_pattern,
-      {
-        fn -> source_window_lineage_json_schema() end,
-        fn -> OrbitalDynamics.CandidateRefresh.model_limits() end,
-        fn -> candidate_diff_row_json_schema() end,
-        fn -> invalidated_candidate_json_schema() end
-      }
-    )
-  end
-
-  defp json_schema_property(field, contract_name, contract)
-       when contract_name in [@candidate_diff_row, @invalidated_candidate, @source_window_lineage] do
-    OrbitalDynamics.Schema.CandidateRefreshPropertyDispatch.diff_family(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      @stable_id_pattern,
-      fn -> candidate_refresh_scoped_context_json_schema_properties() end
-    )
-  end
-
-  defp json_schema_property(field, contract_name, contract)
-       when contract_name in [
-              @freshness_report,
-              @refresh_budget_report,
-              @refreshed_window,
-              @remaining_horizon
-            ] do
-    OrbitalDynamics.Schema.CandidateRefreshPropertyDispatch.auxiliary(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      @stable_id_pattern,
-      fn -> OrbitalDynamics.CandidateRefresh.model_limits() end
-    )
-  end
-
-  defp json_schema_property(field, @campaign_plan = contract_name, contract) do
-    OrbitalDynamics.Schema.CampaignArtifactPropertyDispatch.campaign_plan(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      {
-        &proposed_contact_row_json_schema/0,
-        &campaign_activity_json_schema/0,
-        &contact_intent_row_json_schema/0,
-        &ranked_timeline_json_schema/0
-      }
-    )
-  end
-
-  defp json_schema_property(field, @campaign_repair = contract_name, contract) do
-    timeline_transition_contract = registry_contract!(@timeline_transition_application_report)
-
-    OrbitalDynamics.Schema.CampaignArtifactPropertyDispatch.campaign_repair(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      timeline_transition_contract,
-      fn transition_field ->
-        json_schema_property(
-          transition_field,
-          @timeline_transition_application_report,
-          timeline_transition_contract
-        )
-      end,
-      {
-        &planned_activity_json_schema/0,
-        &candidate_activity_json_schema/0,
-        &plan_delta_json_schema/0,
-        &approval_requirement_json_schema/0,
-        &policy_action_rule_json_schema/0,
-        &policy_decision_json_schema/0
-      }
-    )
-  end
-
-  defp json_schema_property(field, @realized_state_snapshot = contract_name, contract) do
-    OrbitalDynamics.Schema.ManeuverArtifactPropertyDispatch.realized_state_snapshot(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      {
-        &realized_activity_json_schema/0,
-        &realized_spacecraft_state_json_schema/0,
-        &realized_state_snapshot_metadata_json_schema/0,
-        &OrbitalDynamics.CampaignPlanner.realized_state_snapshot_model_limits/0
-      }
-    )
-  end
-
-  defp json_schema_property(field, @timeline_feedback_report = contract_name, contract) do
-    OrbitalDynamics.Schema.TimelineReportPropertyDispatch.feedback(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      {
-        &timeline_feedback_row_json_schema/0,
-        &timeline_feedback_report_model_limits/0,
-        &timeline_feedback_capabilities/0,
-        &operational_feedback_json_schema/0,
-        &timeline_feedback_operational_feedback_provenance_json_schema/0
-      }
-    )
-  end
-
-  defp json_schema_property(field, @timeline_integrity_report = contract_name, contract) do
-    OrbitalDynamics.Schema.TimelineReportPropertyDispatch.integrity(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      @timeline_integrity_report,
-      @stable_id_pattern,
-      {
-        &operational_timeline_row_json_schema/0,
-        &timeline_integrity_issue_types/0,
-        &stable_id_array_schema/0,
-        &stable_id_array_map_schema/0,
-        &timeline_report_model_limits/0
-      }
-    )
-  end
-
-  defp json_schema_property(
-         field,
-         @timeline_dependency_impact_summary = contract_name,
-         contract
-       ) do
-    OrbitalDynamics.Schema.TimelineReportPropertyDispatch.dependency_impact(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      @timeline_dependency_impact_summary,
-      {
-        &stable_id_array_schema/0,
-        &timeline_dependency_impact_row_json_schema/0,
-        &timeline_report_model_limits/0
-      }
-    )
-  end
-
-  defp json_schema_property(field, @timeline_publication_summary = contract_name, contract) do
-    OrbitalDynamics.Schema.TimelineReportPropertyDispatch.publication(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      @timeline_publication_summary,
-      @stable_id_pattern,
-      {
-        &timeline_diff_summary_source_json_schema/0,
-        &timeline_dependency_impact_summary_source_json_schema/0,
-        &stable_id_array_schema/0,
-        &stable_id_array_map_schema/0,
-        &timeline_report_model_limits/0
-      }
-    )
-  end
-
-  defp json_schema_property(field, @timeline_activity_state = contract_name, contract) do
-    OrbitalDynamics.Schema.TimelineActivityStatePropertyDispatch.state(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      @timeline_activity_state,
-      @stable_id_pattern,
-      {
-        &timeline_feedback_row_json_schema/0,
-        &timeline_feedback_capabilities/0,
-        &stable_id_array_schema/0,
-        &OrbitalDynamics.Schema.CommonJsonSchema.string_array/0,
-        &timeline_identity_json_schema/0,
-        &activity_context_json_schema/0,
-        &TimelineContextJsonSchema.lifecycle_transition/0,
-        &protection_decision_json_schema/0,
-        fn ->
-          OrbitalDynamics.Schema.CommonJsonSchema.boolean_const_assumptions([
-            "artifact_only",
-            "no_schedule_mutation",
-            "no_command_execution"
-          ])
-        end,
-        &timeline_feedback_report_model_limits/0
-      }
-    )
-  end
-
-  defp json_schema_property(
-         field,
-         @timeline_activity_precondition_summary = contract_name,
-         contract
-       ) do
-    OrbitalDynamics.Schema.TimelineProtectionPropertyDispatch.precondition(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      @timeline_activity_precondition_summary,
-      @stable_id_pattern,
-      {
-        &timeline_report_model_limits/0,
-        &timeline_activity_precondition_statuses/0,
-        &OrbitalDynamics.Schema.CommonJsonSchema.string_array/0,
-        &timeline_precondition_json_schema/0,
-        &stable_id_array_schema/0,
-        &timeline_identity_json_schema/0
-      }
-    )
-  end
-
-  defp json_schema_property(field, @execution_report = contract_name, contract) do
-    OrbitalDynamics.Schema.ResultArtifactPropertyDispatch.execution_report(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      {
-        @execution_report,
-        @stable_id_pattern,
-        &OrbitalDynamics.ResultSet.Artifact.execution_report_model_limits/0
-      }
-    )
-  end
-
-  defp json_schema_property(field, @result_artifact = contract_name, contract) do
-    OrbitalDynamics.Schema.ResultArtifactPropertyDispatch.result_artifact(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      {1, @stable_id_pattern, @execution_report, &embedded_contract_json_schema/1}
-    )
-  end
-
-  defp json_schema_property(field, @resource_summary = contract_name, contract) do
-    OrbitalDynamics.Schema.ResultArtifactPropertyDispatch.resource_summary(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      {@resource_summary, @stable_id_pattern}
-    )
-  end
-
-  defp json_schema_property(field, @contact_intent = contract_name, contract) do
-    OrbitalDynamics.Schema.ContactPlanningPropertyDispatch.intent(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      {
-        &approval_requirement_json_schema/0,
-        &policy_decision_rule_match_json_schema/0,
-        &policy_decision_json_schema/0,
-        &contact_intent_model_limits/0,
-        &timeline_integrity_issue_types/0
-      }
-    )
-  end
-
-  defp json_schema_property(field, @contact_intent_summary = contract_name, contract) do
-    OrbitalDynamics.Schema.ContactPlanningPropertyDispatch.summary(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      {
-        @contact_intent_summary,
-        @stable_id_pattern,
-        &contact_intent_model_limits/0,
-        &contact_intent_summary_assumptions_json_schema/0
-      }
-    )
-  end
-
-  defp json_schema_property(field, @approval_requirement = contract_name, contract) do
-    OrbitalDynamics.Schema.PolicyArtifactPropertyDispatch.approval_requirement(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      {
-        @stable_id_pattern,
-        &policy_decision_rule_match_json_schema/0,
-        &activity_context_json_schema/0,
-        &policy_escalation_json_schema/0
-      }
-    )
-  end
-
-  defp json_schema_property(
-         field,
-         contract_name,
-         contract
-       )
-       when contract_name in [
-              @validation_reference_fixture_report,
-              @validation_reference_report,
-              @validation_record,
-              @validation_check
-            ] do
-    OrbitalDynamics.Schema.ValidationEvidencePropertyDispatch.property(
-      field,
-      contract_name,
-      contract,
-      contracts: %{
-        reference_fixture_report: @validation_reference_fixture_report,
-        reference_report: @validation_reference_report,
-        record: @validation_record,
-        check: @validation_check
-      },
-      reference_report_schema: &validation_reference_report_json_schema/0,
-      stable_id_pattern: @stable_id_pattern,
-      validation_check_schema: &OrbitalDynamics.Schema.ValidationJsonSchema.check/0,
-      validation_level_schema: &OrbitalDynamics.Schema.ValidationJsonSchema.validation_level/0,
-      default_property: &default_json_schema_property/3
-    )
-  end
-
-  defp json_schema_property(field, contract_name, contract)
-       when contract_name in [
-              @model_acceptance_report,
-              @validation_safety_case_summary
-            ] do
-    OrbitalDynamics.Schema.ValidationAssessmentPropertyDispatch.property(
-      field,
-      contract_name,
-      contract,
-      contracts: %{
-        model_acceptance_report: @model_acceptance_report,
-        validation_safety_case_summary: @validation_safety_case_summary
-      },
-      model_limits: &model_acceptance_report_model_limits/0,
-      stable_id_pattern: @stable_id_pattern,
-      validation_record_schema: &validation_record_json_schema/0,
-      model_acceptance_row_schema: &model_acceptance_row_json_schema/0,
-      safety_case_evidence_row_schema: &safety_case_evidence_row_json_schema/0,
-      default_property: &default_json_schema_property/3
-    )
-  end
-
-  defp json_schema_property(field, contract_name, contract)
-       when contract_name in [
-              @schema_validation_report,
-              @schema_validation_batch_report
-            ] do
-    OrbitalDynamics.Schema.SchemaValidationPropertyDispatch.property(
-      field,
-      contract_name,
-      contract,
-      contracts: %{
-        report: @schema_validation_report,
-        batch: @schema_validation_batch_report
-      },
-      issue_schema: &OrbitalDynamics.Schema.ValidationJsonSchema.issue/0,
-      remediation_schema: &OrbitalDynamics.Schema.ValidationJsonSchema.remediation/0,
-      model_limits: &schema_validation_model_limits/0,
-      batch_entry_schema: &schema_validation_batch_entry_json_schema/0,
-      skipped_artifact_schema:
-        &OrbitalDynamics.Schema.SchemaValidationReportJsonSchema.skipped_artifact/0,
-      default_property: &default_json_schema_property/3
-    )
-  end
-
-  defp json_schema_property(field, @schema_migration_report = contract_name, contract) do
-    OrbitalDynamics.Schema.SchemaValidationPropertyDispatch.migration(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      {
-        @schema_migration_report,
-        1,
-        &schema_migration_statuses/0,
-        &schema_migration_row_statuses/0,
-        &OrbitalDynamics.Schema.SchemaMigrationReportJsonSchema.row/0,
-        &OrbitalDynamics.Schema.SchemaMigrationContracts.model_limits/0
-      }
-    )
-  end
-
-  defp json_schema_property(field, contract_name, contract)
-       when contract_name in [
-              @campaign_request_lint,
-              @study_manifest_lint
-            ] do
-    OrbitalDynamics.Schema.LintReportPropertyDispatch.property(
-      field,
-      contract_name,
-      contract,
-      contracts: %{
-        campaign_request: @campaign_request_lint,
-        study_manifest: @study_manifest_lint
-      },
-      validation_issue_schema: &OrbitalDynamics.Schema.ValidationJsonSchema.issue/0,
-      sha256_schema: &sha256_json_schema/0,
-      stable_id_pattern: @stable_id_pattern,
-      manifest_lint_issue_schema:
-        &OrbitalDynamics.Schema.ValidationJsonSchema.manifest_lint_issue/0,
-      default_property: &default_json_schema_property/3
-    )
-  end
-
-  defp json_schema_property(field, @strategy_branch = contract_name, contract) do
-    OrbitalDynamics.Schema.StrategyArtifactPropertyDispatch.branch(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      {
-        @stable_id_pattern,
-        &strategy_branch_event_json_schema/0,
-        fn ->
-          OrbitalDynamics.Schema.StrategyBranchJsonSchema.risk(
-            @stable_id_pattern,
-            scoped_downlink_context_json_schema_properties()
-          )
-        end,
-        &approval_requirement_json_schema/0,
-        &OrbitalDynamics.Schema.CommonJsonSchema.numeric_map/0,
-        &policy_decision_json_schema/0
-      }
-    )
-  end
-
-  defp json_schema_property(field, @optimizer_contract = contract_name, contract) do
-    OrbitalDynamics.Schema.PlanningAnalysisPropertyDispatch.optimizer_contract(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      {@optimizer_contract, @stable_id_pattern}
-    )
-  end
-
-  defp json_schema_property(field, contract_name, contract)
-       when contract_name in [
-              @environment_model_capability,
-              @environment_provider_capability,
-              @subsystem_model_capability
-            ] do
-    OrbitalDynamics.Schema.ModelCapabilityPropertyDispatch.property(
-      field,
-      contract_name,
-      contract,
-      contracts: %{
-        environment_model: @environment_model_capability,
-        environment_provider: @environment_provider_capability,
-        subsystem_model: @subsystem_model_capability
-      },
-      stable_id_pattern: @stable_id_pattern,
-      validation_level_schema: &OrbitalDynamics.Schema.ValidationJsonSchema.validation_level/0,
-      default_property: &default_json_schema_property/3
-    )
-  end
-
-  defp json_schema_property(field, @monte_carlo_reproducibility_report = contract_name, contract) do
-    OrbitalDynamics.Schema.PlanningAnalysisPropertyDispatch.monte_carlo(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      {
-        @monte_carlo_reproducibility_report,
-        @stable_id_pattern,
-        &OrbitalDynamics.Schema.MonteCarloReproducibilityContracts.model_limits/0,
-        &OrbitalDynamics.Schema.CommonJsonSchema.numeric_triplet/0
-      }
-    )
-  end
-
-  defp json_schema_property(field, @strategy_recommendation = contract_name, contract) do
-    OrbitalDynamics.Schema.StrategyArtifactPropertyDispatch.recommendation(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      {
-        @strategy_recommendation,
-        @stable_id_pattern,
-        &strategy_branch_tradeoff_json_schema/0,
-        &strategy_explanation_json_schema/0,
-        &strategy_branch_risk_json_schema/0,
-        &approval_requirement_json_schema/0
-      }
-    )
-  end
-
-  defp json_schema_property(field, @realized_activity, contract) do
-    OrbitalDynamics.Schema.RealizedActivityJsonSchema.dispatch_property(field, contract,
-      focused_property:
-        OrbitalDynamics.Schema.RealizedActivityJsonSchema.property_fun_from_context(
-          stable_id_pattern: @stable_id_pattern,
-          numeric_triplet_schema: &OrbitalDynamics.Schema.CommonJsonSchema.numeric_triplet/0,
-          ground_station_schema: fn -> ground_station_identity_json_schema() end,
-          spacecraft_schema: fn -> spacecraft_identity_json_schema() end,
-          target_schema: fn -> target_identity_json_schema() end
-        ),
-      execution_uncertainty_schema: &execution_uncertainty_json_schema/0,
-      number_or_string_schema: &OrbitalDynamics.Schema.CommonJsonSchema.number_or_string/0,
-      default_property: fn field, contract ->
-        default_json_schema_property(field, @realized_activity, contract)
-      end
-    )
-  end
-
-  defp json_schema_property(field, @maneuver_recommendation = contract_name, contract) do
-    OrbitalDynamics.Schema.ManeuverArtifactPropertyDispatch.recommendation(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      {
-        @maneuver_recommendation,
-        @stable_id_pattern,
-        &OrbitalDynamics.Schema.CommonJsonSchema.numeric_triplet/0,
-        &maneuver_recommendation_model_limits/0
-      }
-    )
-  end
-
-  defp json_schema_property(field, contract_name, contract)
-       when contract_name in [
-              @provider_counteroffer_report,
-              @provider_counteroffer_review_summary,
-              @provider_counteroffer_import_readiness_summary,
-              @provider_counteroffer_plan_impact_summary
-            ] do
-    OrbitalDynamics.Schema.ProviderCounterofferPropertyDispatch.property(
-      field,
-      contract_name,
-      contract,
-      contracts: %{
-        report: @provider_counteroffer_report,
-        review_summary: @provider_counteroffer_review_summary,
-        import_readiness_summary: @provider_counteroffer_import_readiness_summary,
-        plan_impact_summary: @provider_counteroffer_plan_impact_summary
-      },
-      row_schema: &provider_counteroffer_row_json_schema/0,
-      models: &OrbitalDynamics.Schema.ProviderCounterofferReportJsonSchema.models/0,
-      stable_id_pattern: @stable_id_pattern,
-      default_property: &default_json_schema_property/3
-    )
-  end
-
-  defp json_schema_property(field, @candidate_rejection_report = contract_name, contract) do
-    OrbitalDynamics.Schema.TimelineReportPropertyDispatch.candidate_rejection(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      {
-        &OrbitalDynamics.Schema.CandidateRejectionReportJsonSchema.model_limits/0,
-        &candidate_rejection_row_json_schema/0,
-        &timeline_candidate_rejection_reasons/0,
-        &timeline_candidate_rejection_actions/0,
-        @stable_id_pattern
-      }
-    )
-  end
-
-  defp json_schema_property(field, contract_name, contract)
-       when contract_name in [
-              @operational_timeline_report,
-              @timeline_diff_report,
-              @timeline_diff_summary
-            ] do
-    OrbitalDynamics.Schema.TimelineReportPropertyDispatch.property(
-      field,
-      contract_name,
-      contract,
-      contracts: %{
-        operational_timeline_report: @operational_timeline_report,
-        timeline_diff_report: @timeline_diff_report,
-        timeline_diff_summary: @timeline_diff_summary
-      },
-      model_limits: &timeline_report_model_limits/0,
-      operational_timeline_row_schema: &operational_timeline_row_json_schema/0,
-      timeline_diff_row_schema: &timeline_diff_row_json_schema/0,
-      stable_id_pattern: @stable_id_pattern,
-      capability: &timeline_capabilities/0,
-      default_property: &default_json_schema_property/3
-    )
-  end
-
-  defp json_schema_property(field, contract_name, contract)
-       when contract_name in [
-              @timeline_activity_status_state,
-              @timeline_activity_approval_state,
-              @timeline_activity_lifecycle_state
-            ] do
-    OrbitalDynamics.Schema.TimelineActivityStatePropertyDispatch.lifecycle(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      @stable_id_pattern,
-      {
-        &timeline_report_model_limits/0,
-        &timeline_transition_decisions/0,
-        &OrbitalDynamics.Schema.CommonJsonSchema.string_array/0,
-        &TimelineContextJsonSchema.lifecycle_transition/0,
-        &protection_decision_json_schema/0,
-        &activity_context_json_schema/0,
-        &OrbitalDynamics.Schema.TimelineActivityLifecycleStateJsonSchema.lifecycle_assumptions/0,
-        &OrbitalDynamics.Schema.TimelineActivityLifecycleStateJsonSchema.default_assumptions/0
-      }
-    )
-  end
-
-  defp json_schema_property(field, contract_name, contract)
-       when contract_name in [@timeline_preservation_report, @timeline_preservation_status] do
-    OrbitalDynamics.Schema.TimelineProtectionPropertyDispatch.preservation(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      @stable_id_pattern,
-      timeline_report_model_limits(),
-      {
-        &OrbitalDynamics.Schema.CommonJsonSchema.non_negative_integer_count_map/0,
-        &stable_id_array_schema/0,
-        &stable_id_array_map_schema/0,
-        &protection_decision_json_schema/0,
-        &timeline_identity_json_schema/0,
-        &timeline_preservation_assumptions_json_schema/1
-      }
-    )
-  end
-
-  defp json_schema_property(field, @timeline_lifecycle_state_summary = contract_name, contract) do
-    OrbitalDynamics.Schema.TimelineTransitionPropertyDispatch.lifecycle_summary(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      {
-        &timeline_lifecycle_state_row_json_schema/0,
-        &timeline_report_model_limits/0,
-        &OrbitalDynamics.Schema.CommonJsonSchema.non_negative_integer_count_map/0,
-        &stable_id_array_schema/0
-      }
-    )
-  end
-
-  defp json_schema_property(field, contract_name, contract)
-       when contract_name in [
-              @timeline_transition_application_report,
-              @timeline_transition_application_summary
-            ] do
-    OrbitalDynamics.Schema.TimelineTransitionPropertyDispatch.application(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      {
-        &timeline_transition_application_row_json_schema/0,
-        &timeline_transition_selected_activity_json_schema/0,
-        &timeline_report_model_limits/0,
-        &timeline_capabilities/0,
-        &OrbitalDynamics.Schema.CommonJsonSchema.enum_count_map/1,
-        &stable_id_array_schema/0,
-        &stable_id_array_map_schema/0
-      }
-    )
-  end
-
-  defp json_schema_property(field, @command_window_report = contract_name, contract) do
-    OrbitalDynamics.Schema.GroundNetworkReportPropertyDispatch.command_window(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      {&command_window_report_model_limits/0, &command_window_row_json_schema/0}
-    )
-  end
-
-  defp json_schema_property(field, @station_calendar_precedence_summary = contract_name, contract) do
-    OrbitalDynamics.Schema.GroundNetworkReportPropertyDispatch.calendar_precedence(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      @stable_id_pattern,
-      &station_calendar_report_model_limits/0
-    )
-  end
-
-  defp json_schema_property(field, @station_reservation_report = contract_name, contract) do
-    OrbitalDynamics.Schema.GroundNetworkReportPropertyDispatch.reservation(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      @stable_id_pattern,
-      {
-        &OrbitalDynamics.Schema.StationReservationReportJsonSchema.models/0,
-        &station_reservation_contact_json_schema/0,
-        &station_reservation_provider_contention_group_json_schema/0
-      }
-    )
-  end
-
-  defp json_schema_property(field, @station_calendar_report = contract_name, contract) do
-    OrbitalDynamics.Schema.GroundNetworkReportPropertyDispatch.calendar(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      {
-        &station_calendar_contact_json_schema/0,
-        &station_calendar_report_model/0,
-        &station_calendar_provider_contention_group_json_schema/0,
-        &station_calendar_provider_entry_json_schema/0,
-        &OrbitalDynamics.Schema.OperationalReadinessContextJsonSchema.trust_boundary_status_count_map/0,
-        &station_calendar_report_model_limits/0
-      }
-    )
-  end
-
-  defp json_schema_property(field, contract_name, contract)
-       when contract_name in [
-              @station_reservation_review_summary,
-              @station_reservation_hold_summary,
-              @station_reservation_hold_import_readiness_summary
-            ] do
-    OrbitalDynamics.Schema.StationReservationSummaryPropertyDispatch.property(
-      field,
-      contract_name,
-      contract,
-      contracts: %{
-        review_summary: @station_reservation_review_summary,
-        hold_summary: @station_reservation_hold_summary,
-        hold_import_readiness_summary: @station_reservation_hold_import_readiness_summary
-      },
-      review_row_schema: &station_reservation_review_summary_row_json_schema/0,
-      import_readiness_row_schema: &station_reservation_hold_import_readiness_row_json_schema/0,
-      model_limits: &station_calendar_report_model_limits/0,
-      stable_id_pattern: @stable_id_pattern,
-      default_property: &default_json_schema_property/3
-    )
-  end
-
-  defp json_schema_property(field, @station_calendar_provider = contract_name, contract) do
-    OrbitalDynamics.Schema.StandaloneCommunicationsPropertyDispatch.station_calendar_provider(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      station_calendar_provider_entry_json_schema()
-    )
-  end
-
-  defp json_schema_property(field, contract_name, contract)
-       when contract_name in [@link_capacity_report, @link_capacity_summary] do
-    OrbitalDynamics.Schema.LinkCapacityPropertyDispatch.property(
-      field,
-      contract_name,
-      contract,
-      contracts: %{
-        report: @link_capacity_report,
-        summary: @link_capacity_summary
-      },
-      row_schema: &link_capacity_row_json_schema/0,
-      model_limits: &OrbitalDynamics.Schema.LinkCapacitySummaryContracts.model_limits/0,
-      report_assumptions_schema: fn -> link_capacity_assumptions_json_schema([]) end,
-      summary_assumptions_schema: fn ->
-        link_capacity_assumptions_json_schema([
-          "execution_boundary",
-          "source",
-          "operator_authority"
-        ])
-      end,
-      stable_id_array_schema: &stable_id_array_schema/0,
-      string_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.string_array/0,
-      count_map_schema: &OrbitalDynamics.Schema.CommonJsonSchema.non_negative_integer_count_map/0,
-      number_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.number_array/0,
-      actual_data_rate_throughput_derivations_schema:
-        &TimelineContextJsonSchema.actual_data_rate_throughput_derivations/0,
-      numeric_map_schema: &OrbitalDynamics.Schema.CommonJsonSchema.numeric_map/0,
-      stable_id_array_map_schema: &stable_id_array_map_schema/0,
-      default_property: &default_json_schema_property/3
-    )
-  end
-
-  defp json_schema_property(field, @relay_data_path_summary = contract_name, contract) do
-    OrbitalDynamics.Schema.StandaloneCommunicationsPropertyDispatch.relay_data_path(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      {
-        &OrbitalDynamics.Schema.RelayDataPathSummaryContracts.model_limits/0,
-        &OrbitalDynamics.Schema.RelayDataPathSummaryJsonSchema.assumptions/0,
-        &relay_data_path_row_json_schema/0,
-        &OrbitalDynamics.Schema.CommonJsonSchema.non_negative_integer_count_map/0,
-        &stable_id_array_schema/0,
-        &stable_id_array_map_schema/0
-      }
-    )
-  end
-
-  defp json_schema_property(field, @contact_allocation_report = contract_name, contract) do
-    OrbitalDynamics.Schema.StandaloneCommunicationsPropertyDispatch.contact_allocation(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      {
-        &contact_allocation_row_json_schema/0,
-        &contact_allocation_capacity_pack_group_json_schema/0,
-        &contact_allocation_model_limits/0,
-        &stable_id_array_schema/0,
-        &nested_stable_id_array_map_json_schema/0,
-        &OrbitalDynamics.Schema.CommonJsonSchema.string_array/0,
-        &OrbitalDynamics.Schema.OperationalReadinessContextJsonSchema.trust_boundary_status_count_map/0,
-        &contact_allocation_capabilities/0,
-        &OrbitalDynamics.Schema.CommonJsonSchema.enum_count_map/1,
-        &OrbitalDynamics.Schema.CommonJsonSchema.non_negative_integer_count_map/0,
-        &OrbitalDynamics.Schema.CommonJsonSchema.non_negative_number_map/0
-      }
-    )
-  end
-
-  defp json_schema_property(field, contract_name, contract)
-       when contract_name in [
-              @contact_allocation_summary,
-              @contact_allocation_reservation_conflict_summary,
-              @contact_allocation_station_pressure_summary,
-              @contact_allocation_capacity_pack_summary,
-              @contact_allocation_provider_reservation_request_summary
-            ] do
-    OrbitalDynamics.Schema.ContactAllocationSummaryPropertyDispatch.property(
-      field,
-      contract_name,
-      contract,
-      contracts: %{
-        summary: @contact_allocation_summary,
-        reservation_conflict_summary: @contact_allocation_reservation_conflict_summary,
-        station_pressure_summary: @contact_allocation_station_pressure_summary,
-        capacity_pack_summary: @contact_allocation_capacity_pack_summary,
-        provider_reservation_request_summary:
-          @contact_allocation_provider_reservation_request_summary
-      },
-      assumptions: %{
-        summary: &contact_allocation_summary_assumptions_json_schema/0,
-        reservation_conflict_summary:
-          &contact_allocation_reservation_conflict_summary_assumptions_json_schema/0,
-        station_pressure_summary:
-          &contact_allocation_station_pressure_summary_assumptions_json_schema/0,
-        capacity_pack_summary:
-          &contact_allocation_capacity_pack_summary_assumptions_json_schema/0,
-        provider_reservation_request_summary:
-          &contact_allocation_provider_reservation_request_summary_assumptions_json_schema/0
-      },
-      stable_id_pattern: @stable_id_pattern,
-      model_limits: &contact_allocation_model_limits/0,
-      row_schema: &contact_allocation_row_json_schema/0,
-      capacity_pack_group_schema: &contact_allocation_capacity_pack_group_json_schema/0,
-      default_property: &default_json_schema_property/3
-    )
-  end
-
-  defp json_schema_property(field, contract_name, contract)
-       when contract_name in [@contact_filter_report, @resource_filter_report] do
-    OrbitalDynamics.Schema.FilterReportPropertyDispatch.property(
-      field,
-      contract_name,
-      contract,
-      contracts: %{
-        contact: @contact_filter_report,
-        resource: @resource_filter_report
-      },
-      stable_id_pattern: @stable_id_pattern,
-      trust_boundary_count_map_schema:
-        &OrbitalDynamics.Schema.OperationalReadinessContextJsonSchema.trust_boundary_status_count_map/0,
-      contact_model_limits: &contact_filter_report_model_limits/0,
-      contact_assumptions_schema: &contact_filter_report_assumptions_json_schema/0,
-      resource_model_limits: &resource_filter_report_model_limits/0,
-      resource_assumptions_schema: &resource_filter_report_assumptions_json_schema/0,
-      suppressed_candidate_schema: &suppressed_candidate_json_schema/0,
-      default_property: &default_json_schema_property/3
-    )
-  end
-
-  defp json_schema_property(field, contract_name, contract)
-       when contract_name in [
-              @resource_projection_report,
-              @resource_projection_flow_summary
-            ] do
-    OrbitalDynamics.Schema.ResourceProjectionPropertyDispatch.property(
-      field,
-      contract_name,
-      contract,
-      contracts: %{
-        report: @resource_projection_report,
-        flow_summary: @resource_projection_flow_summary
-      },
-      stable_id_pattern: @stable_id_pattern,
-      models: &ResourceValidation.resource_projection_report_models/0,
-      model_limits: &ResourceValidation.resource_projection_report_model_limits/0,
-      assumptions_schema:
-        &OrbitalDynamics.Schema.ResourceProjectionReportJsonSchema.assumptions/0,
-      projection_row_schema: &resource_projection_row_json_schema/0,
-      flow_row_schema: &resource_projection_flow_row_json_schema/0,
-      default_property: &default_json_schema_property/3
-    )
-  end
-
-  defp json_schema_property(field, contract_name, contract)
-       when contract_name in [
-              @contact_contention_report,
-              @contact_contention_resolution_report,
-              @contact_contention_resolution_summary
-            ] do
-    OrbitalDynamics.Schema.ContactContentionPropertyDispatch.property(
-      field,
-      contract_name,
-      contract,
-      stable_id_pattern: @stable_id_pattern,
-      model_limits: contact_contention_report_model_limits(),
-      report_assumptions_schema: contact_contention_report_assumptions_json_schema(),
-      conflict_group_schema: contact_contention_group_json_schema(),
-      recommendation_schema: contact_contention_recommendation_json_schema(),
-      resolution_policy_schema: contact_contention_resolution_policy_json_schema(),
-      default_property: &default_json_schema_property/3
-    )
-  end
-
-  defp json_schema_property(field, contract_name, contract)
-       when contract_name in [
-              @objective_satisfaction_report,
-              @objective_tradeoff_report
-            ] do
-    OrbitalDynamics.Schema.ObjectiveReportPropertyDispatch.property(
-      field,
-      contract_name,
-      contract,
-      satisfaction_row_schema: objective_satisfaction_row_json_schema(),
-      satisfaction_model_limits:
-        OrbitalDynamics.CampaignPlanner.objective_satisfaction_model_limits(),
-      tradeoff_row_schema: objective_tradeoff_row_json_schema(),
-      tradeoff_models:
-        OrbitalDynamics.Schema.OptimizerObjectiveContracts.objective_tradeoff_report_models(),
-      score_report_model_limits: OrbitalDynamics.CampaignPlanner.score_report_model_limits(),
-      default_property: &default_json_schema_property/3
-    )
-  end
-
-  defp json_schema_property(field, contract_name, contract)
-       when contract_name in [
-              @ranking_comparison_report,
-              @pareto_frontier_report
-            ] do
-    OrbitalDynamics.Schema.OptimizerReportPropertyDispatch.property(
-      field,
-      contract_name,
-      contract,
-      ranking_row_schema: &ranking_comparison_row_json_schema/0,
-      ranking_winner_schema: &ranking_comparison_winner_json_schema/0,
-      ranking_model_limits: fn ->
-        OrbitalDynamics.Optimizer.ranking_comparison_model_limits()
-      end,
-      pareto_row_schema: &pareto_frontier_row_json_schema/0,
-      pareto_model_limits: fn -> OrbitalDynamics.Optimizer.pareto_frontier_model_limits() end,
-      stable_id_pattern: @stable_id_pattern,
-      default_property: &default_json_schema_property/3
-    )
-  end
-
-  defp json_schema_property(field, @score_term_report = contract_name, contract) do
-    OrbitalDynamics.Schema.PlanningAnalysisPropertyDispatch.score_term(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      {
-        OrbitalDynamics.Schema.OptimizerObjectiveContracts.score_term_report_models(),
-        OrbitalDynamics.CampaignPlanner.score_report_model_limits(),
-        score_term_row_json_schema()
-      }
-    )
-  end
-
-  defp json_schema_property(field, @resource_filter_summary = contract_name, contract) do
-    OrbitalDynamics.Schema.PlanningAnalysisPropertyDispatch.resource_filter_summary(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      {
-        @resource_filter_summary,
-        @resource_filter_report,
-        @stable_id_pattern,
-        fn -> resource_filter_report_model_limits() end,
-        %{"type" => "object"},
-        fn -> suppressed_candidate_json_schema() end
-      }
-    )
-  end
-
-  defp json_schema_property(field, @constraint_report = contract_name, contract) do
-    OrbitalDynamics.Schema.PlanningAnalysisPropertyDispatch.constraint(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      {
-        OrbitalDynamics.Schema.ConstraintReportContracts.models(),
-        OrbitalDynamics.Schema.ConstraintReportContracts.model_limit_values(),
-        constraint_row_json_schema()
-      }
-    )
-  end
-
-  defp json_schema_property(field, contract_name, contract)
-       when contract_name in [
-              @operational_import_eligibility_summary,
-              @operational_readiness_gate_summary,
-              @operational_execution_boundary_summary
-            ] do
-    OrbitalDynamics.Schema.OperationalReadinessGateSummaryPropertyDispatch.property(
-      field,
-      contract_name,
-      contract,
-      capability: &operational_readiness_capabilities/0,
-      gate_schema: &operational_readiness_gate_json_schema/0,
-      import_eligibility_model_limits:
-        &OperationalReadinessValidation.operational_import_eligibility_summary_model_limits/0,
-      readiness_gate_model_limits:
-        &OperationalReadinessValidation.operational_readiness_gate_summary_model_limits/0,
-      execution_boundary_model_limits:
-        &OperationalReadinessValidation.operational_execution_boundary_summary_model_limits/0,
-      stable_id_pattern: @stable_id_pattern,
-      string_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.string_array/0,
-      default_property: &default_json_schema_property/3
-    )
-  end
-
-  defp json_schema_property(field, contract_name, contract)
-       when contract_name in [@operational_quality_gate_summary, @quality_gate_report] do
-    OrbitalDynamics.Schema.QualityGateReportPropertyDispatch.property(
-      field,
-      contract_name,
-      contract,
-      capability: &operational_readiness_capabilities/0,
-      operational_summary_model_limits:
-        &OperationalReadinessValidation.quality_gate_summary_model_limits/0,
-      report_model_limits: &OperationalReadinessValidation.quality_gate_report_model_limits/0,
-      row_schema: &quality_gate_report_row_json_schema/0,
-      stable_id_pattern: @stable_id_pattern,
-      default_property: &default_json_schema_property/3
-    )
-  end
-
-  defp json_schema_property(field, contract_name, contract)
-       when contract_name in [
-              @operational_quality_gate_unavailable_resource_summary,
-              @operational_quality_gate_operator_training_summary,
-              @operational_quality_gate_schema_validation_summary,
-              @operational_quality_gate_import_readiness_summary
-            ] do
-    OrbitalDynamics.Schema.SpecializedQualityGateSummaryPropertyDispatch.property(
-      field,
-      contract_name,
-      contract,
-      unavailable_resource_model_limits:
-        &OperationalReadinessValidation.quality_gate_unavailable_resource_summary_model_limits/0,
-      operator_training_model_limits:
-        &OperationalReadinessValidation.quality_gate_operator_training_summary_model_limits/0,
-      schema_validation_model_limits:
-        &OperationalReadinessValidation.quality_gate_schema_validation_summary_model_limits/0,
-      import_readiness_model_limits:
-        &OperationalReadinessValidation.quality_gate_import_readiness_summary_model_limits/0,
-      stable_id_pattern: @stable_id_pattern,
-      default_property: &default_json_schema_property/3
-    )
-  end
-
-  defp json_schema_property(field, @operational_readiness_report = contract_name, contract) do
-    OrbitalDynamics.Schema.OperationalHandoffPropertyDispatch.readiness(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      {
-        operational_readiness_capabilities(),
-        operational_readiness_gate_json_schema(),
-        operational_readiness_evidence_json_schema(),
-        OperationalReadinessValidation.operational_readiness_model_limits()
-      }
-    )
-  end
-
-  defp json_schema_property(field, @operator_review_package = contract_name, contract) do
-    OrbitalDynamics.Schema.OperationalHandoffPropertyDispatch.operator_review(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      {
-        operator_review_capabilities(),
-        operator_review_package_model_limits(),
-        operational_readiness_capabilities(),
-        operator_review_row_json_schema(),
-        OrbitalDynamics.Schema.OperatorReviewPackageContracts.scalar_count_fields(),
-        @stable_id_pattern
-      }
-    )
-  end
-
-  defp json_schema_property(field, @cadence_import_manifest = contract_name, contract) do
-    OrbitalDynamics.Schema.OperationalHandoffPropertyDispatch.cadence_import(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      {
-        cadence_import_capability(),
-        cadence_import_manifest_model_limits(),
-        operational_readiness_capabilities(),
-        cadence_import_manifest_row_json_schema(),
-        cadence_import_manifest_scalar_count_fields(),
-        @stable_id_pattern
-      }
-    )
-  end
-
-  defp json_schema_property(field, @maneuver_review_report = contract_name, contract) do
-    OrbitalDynamics.Schema.ManeuverArtifactPropertyDispatch.review(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      {
-        &maneuver_review_row_json_schema/0,
-        @stable_id_pattern,
-        &maneuver_review_report_model_limits/0
-      }
-    )
-  end
-
-  defp json_schema_property(field, @branch_comparison_report = contract_name, contract) do
-    OrbitalDynamics.Schema.StrategyArtifactPropertyDispatch.branch_comparison(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      {
-        &branch_comparison_row_json_schema/0,
-        &OrbitalDynamics.CampaignPlanner.branch_comparison_model_limits/0
-      }
-    )
-  end
-
-  defp json_schema_property(field, @campaign_strategy = contract_name, contract) do
-    OrbitalDynamics.Schema.StrategyArtifactPropertyDispatch.campaign_strategy(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      {
-        &strategy_branch_json_schema/0,
-        &strategy_recommendation_json_schema/0,
-        &operational_feedback_json_schema/0,
-        &policy_action_rule_json_schema/0
-      }
-    )
-  end
-
-  defp json_schema_property(field, @planned_activity, contract) do
-    OrbitalDynamics.Schema.PlannedActivityJsonSchema.dispatch_property(field, contract,
-      focused_property:
-        OrbitalDynamics.Schema.PlannedActivityJsonSchema.property_fun_from_context(
-          cadence_import_schema: cadence_import_json_schema("planned_activity.v1"),
-          source_window_schema: candidate_activity_source_window_json_schema(),
-          stable_id_pattern: @stable_id_pattern,
-          timeline_identity_schema: timeline_identity_json_schema()
-        ),
-      execution_uncertainty_schema: &execution_uncertainty_json_schema/0,
-      number_or_string_schema: &OrbitalDynamics.Schema.CommonJsonSchema.number_or_string/0,
-      default_property: fn field, contract ->
-        default_json_schema_property(field, @planned_activity, contract)
-      end
-    )
-  end
-
-  defp json_schema_property(field, @plan_delta, contract) do
-    OrbitalDynamics.Schema.PlanDeltaJsonSchema.dispatch_property(field, contract,
-      focused_property:
-        OrbitalDynamics.Schema.PlanDeltaJsonSchema.property_fun_from_context(
-          activity_context_schema: activity_context_json_schema(),
-          planned_activity_schema: planned_activity_json_schema(),
-          realized_activity_schema: realized_activity_json_schema()
-        ),
-      execution_uncertainty_schema: &execution_uncertainty_json_schema/0,
-      number_or_string_schema: &OrbitalDynamics.Schema.CommonJsonSchema.number_or_string/0,
-      default_property: fn field, contract ->
-        default_json_schema_property(field, @plan_delta, contract)
-      end
-    )
-  end
-
-  defp json_schema_property("lighting_confidence", _name, _contract) do
-    OrbitalDynamics.Schema.CommonJsonSchema.number_or_string()
-  end
-
-  defp json_schema_property(field, @proposed_contact = contract_name, contract) do
-    OrbitalDynamics.Schema.ContactPlanningPropertyDispatch.proposed_contact(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      {
-        fn -> cadence_import_json_schema("proposed_contact.v1") end,
-        &OrbitalDynamics.Schema.ProposedContactContracts.model_limits/0,
-        &candidate_activity_source_window_json_schema/0,
-        &timeline_identity_json_schema/0
-      }
-    )
-  end
-
-  defp json_schema_property(field, @candidate_refresh = contract_name, contract) do
-    OrbitalDynamics.Schema.CandidateRefreshPropertyDispatch.candidate_refresh(
-      field,
-      contract_name,
-      contract,
-      &default_json_schema_property/3,
-      {
-        &source_window_lineage_json_schema/0,
-        &invalidated_candidate_json_schema/0,
-        &candidate_activity_json_schema/0,
-        &contact_intent_row_json_schema/0,
-        &resource_summary_row_json_schema/0,
-        &validation_record_json_schema/0,
-        fn -> OrbitalDynamics.CandidateRefresh.model_limits() end,
-        @stable_id_pattern,
-        &operational_feedback_json_schema/0,
-        &station_calendar_provider_counteroffer_actions/0,
-        &OrbitalDynamics.Schema.ValidationAcceptanceReportContracts.safety_case_count_fields/0,
-        &embedded_contract_json_schema/1
-      }
-    )
-  end
-
-  defp json_schema_property(field, name, contract) do
-    default_json_schema_property(field, name, contract)
-  end
-
-  defp default_json_schema_property(field, name, contract) do
-    OrbitalDynamics.Schema.FallbackPropertyJsonSchema.property(field, name, contract,
+  defp json_schema_property_context do
+    [
       field_type_hints: @field_type_hints,
-      stable_id_pattern: @stable_id_pattern
-    )
+      stable_id_pattern: @stable_id_pattern,
+      schema_providers: %{
+        {:activity_context_json_schema, 0} => &activity_context_json_schema/0,
+        {:approval_requirement_json_schema, 0} => &approval_requirement_json_schema/0,
+        {:branch_comparison_row_json_schema, 0} => &branch_comparison_row_json_schema/0,
+        {:cadence_import_capability, 0} => &cadence_import_capability/0,
+        {:cadence_import_json_schema, 1} => &cadence_import_json_schema/1,
+        {:cadence_import_manifest_model_limits, 0} => &cadence_import_manifest_model_limits/0,
+        {:cadence_import_manifest_row_json_schema, 0} =>
+          &cadence_import_manifest_row_json_schema/0,
+        {:cadence_import_manifest_scalar_count_fields, 0} =>
+          &cadence_import_manifest_scalar_count_fields/0,
+        {:campaign_activity_json_schema, 0} => &campaign_activity_json_schema/0,
+        {:candidate_activity_json_schema, 0} => &candidate_activity_json_schema/0,
+        {:candidate_activity_source_window_json_schema, 0} =>
+          &candidate_activity_source_window_json_schema/0,
+        {:candidate_diff_row_json_schema, 0} => &candidate_diff_row_json_schema/0,
+        {:candidate_refresh_scoped_context_json_schema_properties, 0} =>
+          &candidate_refresh_scoped_context_json_schema_properties/0,
+        {:candidate_rejection_row_json_schema, 0} => &candidate_rejection_row_json_schema/0,
+        {:command_window_report_model_limits, 0} => &command_window_report_model_limits/0,
+        {:command_window_row_json_schema, 0} => &command_window_row_json_schema/0,
+        {:constraint_row_json_schema, 0} => &constraint_row_json_schema/0,
+        {:contact_allocation_capabilities, 0} => &contact_allocation_capabilities/0,
+        {:contact_allocation_capacity_pack_group_json_schema, 0} =>
+          &contact_allocation_capacity_pack_group_json_schema/0,
+        {:contact_allocation_capacity_pack_summary_assumptions_json_schema, 0} =>
+          &contact_allocation_capacity_pack_summary_assumptions_json_schema/0,
+        {:contact_allocation_model_limits, 0} => &contact_allocation_model_limits/0,
+        {:contact_allocation_provider_reservation_request_summary_assumptions_json_schema, 0} =>
+          &contact_allocation_provider_reservation_request_summary_assumptions_json_schema/0,
+        {:contact_allocation_reservation_conflict_summary_assumptions_json_schema, 0} =>
+          &contact_allocation_reservation_conflict_summary_assumptions_json_schema/0,
+        {:contact_allocation_row_json_schema, 0} => &contact_allocation_row_json_schema/0,
+        {:contact_allocation_station_pressure_summary_assumptions_json_schema, 0} =>
+          &contact_allocation_station_pressure_summary_assumptions_json_schema/0,
+        {:contact_allocation_summary_assumptions_json_schema, 0} =>
+          &contact_allocation_summary_assumptions_json_schema/0,
+        {:contact_contention_group_json_schema, 0} => &contact_contention_group_json_schema/0,
+        {:contact_contention_recommendation_json_schema, 0} =>
+          &contact_contention_recommendation_json_schema/0,
+        {:contact_contention_report_assumptions_json_schema, 0} =>
+          &contact_contention_report_assumptions_json_schema/0,
+        {:contact_contention_report_model_limits, 0} => &contact_contention_report_model_limits/0,
+        {:contact_contention_resolution_policy_json_schema, 0} =>
+          &contact_contention_resolution_policy_json_schema/0,
+        {:contact_filter_report_assumptions_json_schema, 0} =>
+          &contact_filter_report_assumptions_json_schema/0,
+        {:contact_filter_report_model_limits, 0} => &contact_filter_report_model_limits/0,
+        {:contact_intent_model_limits, 0} => &contact_intent_model_limits/0,
+        {:contact_intent_row_json_schema, 0} => &contact_intent_row_json_schema/0,
+        {:contact_intent_summary_assumptions_json_schema, 0} =>
+          &contact_intent_summary_assumptions_json_schema/0,
+        {:execution_uncertainty_json_schema, 0} => &execution_uncertainty_json_schema/0,
+        {:ground_station_identity_json_schema, 0} => &ground_station_identity_json_schema/0,
+        {:invalidated_candidate_json_schema, 0} => &invalidated_candidate_json_schema/0,
+        {:link_capacity_assumptions_json_schema, 1} => &link_capacity_assumptions_json_schema/1,
+        {:link_capacity_row_json_schema, 0} => &link_capacity_row_json_schema/0,
+        {:maneuver_execution_delta_json_schema, 0} => &maneuver_execution_delta_json_schema/0,
+        {:maneuver_recommendation_model_limits, 0} => &maneuver_recommendation_model_limits/0,
+        {:maneuver_review_report_model_limits, 0} => &maneuver_review_report_model_limits/0,
+        {:maneuver_review_row_json_schema, 0} => &maneuver_review_row_json_schema/0,
+        {:model_acceptance_report_model_limits, 0} => &model_acceptance_report_model_limits/0,
+        {:model_acceptance_row_json_schema, 0} => &model_acceptance_row_json_schema/0,
+        {:nested_stable_id_array_map_json_schema, 0} => &nested_stable_id_array_map_json_schema/0,
+        {:objective_satisfaction_row_json_schema, 0} => &objective_satisfaction_row_json_schema/0,
+        {:objective_tradeoff_row_json_schema, 0} => &objective_tradeoff_row_json_schema/0,
+        {:operational_feedback_json_schema, 0} => &operational_feedback_json_schema/0,
+        {:operational_readiness_capabilities, 0} => &operational_readiness_capabilities/0,
+        {:operational_readiness_evidence_json_schema, 0} =>
+          &operational_readiness_evidence_json_schema/0,
+        {:operational_readiness_gate_json_schema, 0} => &operational_readiness_gate_json_schema/0,
+        {:operational_timeline_row_json_schema, 0} => &operational_timeline_row_json_schema/0,
+        {:operator_review_capabilities, 0} => &operator_review_capabilities/0,
+        {:operator_review_package_model_limits, 0} => &operator_review_package_model_limits/0,
+        {:operator_review_row_json_schema, 0} => &operator_review_row_json_schema/0,
+        {:pareto_frontier_row_json_schema, 0} => &pareto_frontier_row_json_schema/0,
+        {:plan_delta_json_schema, 0} => &plan_delta_json_schema/0,
+        {:planned_activity_json_schema, 0} => &planned_activity_json_schema/0,
+        {:policy_action_rule_json_schema, 0} => &policy_action_rule_json_schema/0,
+        {:policy_decision_json_schema, 0} => &policy_decision_json_schema/0,
+        {:policy_decision_rule_match_json_schema, 0} => &policy_decision_rule_match_json_schema/0,
+        {:policy_escalation_json_schema, 0} => &policy_escalation_json_schema/0,
+        {:policy_model_limits, 0} => &policy_model_limits/0,
+        {:proposed_contact_row_json_schema, 0} => &proposed_contact_row_json_schema/0,
+        {:protection_decision_json_schema, 0} => &protection_decision_json_schema/0,
+        {:provider_counteroffer_row_json_schema, 0} => &provider_counteroffer_row_json_schema/0,
+        {:quality_gate_report_row_json_schema, 0} => &quality_gate_report_row_json_schema/0,
+        {:ranked_timeline_json_schema, 0} => &ranked_timeline_json_schema/0,
+        {:ranking_comparison_row_json_schema, 0} => &ranking_comparison_row_json_schema/0,
+        {:ranking_comparison_winner_json_schema, 0} => &ranking_comparison_winner_json_schema/0,
+        {:realized_activity_json_schema, 0} => &realized_activity_json_schema/0,
+        {:realized_spacecraft_state_json_schema, 0} => &realized_spacecraft_state_json_schema/0,
+        {:realized_state_snapshot_metadata_json_schema, 0} =>
+          &realized_state_snapshot_metadata_json_schema/0,
+        {:registry_contract!, 1} => &registry_contract!/1,
+        {:relay_data_path_row_json_schema, 0} => &relay_data_path_row_json_schema/0,
+        {:resource_filter_report_assumptions_json_schema, 0} =>
+          &resource_filter_report_assumptions_json_schema/0,
+        {:resource_filter_report_model_limits, 0} => &resource_filter_report_model_limits/0,
+        {:resource_projection_flow_row_json_schema, 0} =>
+          &resource_projection_flow_row_json_schema/0,
+        {:resource_projection_row_json_schema, 0} => &resource_projection_row_json_schema/0,
+        {:resource_summary_row_json_schema, 0} => &resource_summary_row_json_schema/0,
+        {:safety_case_evidence_row_json_schema, 0} => &safety_case_evidence_row_json_schema/0,
+        {:schema_migration_row_statuses, 0} => &schema_migration_row_statuses/0,
+        {:schema_migration_statuses, 0} => &schema_migration_statuses/0,
+        {:schema_validation_batch_entry_json_schema, 0} =>
+          &schema_validation_batch_entry_json_schema/0,
+        {:schema_validation_model_limits, 0} => &schema_validation_model_limits/0,
+        {:scoped_downlink_context_json_schema_properties, 0} =>
+          &scoped_downlink_context_json_schema_properties/0,
+        {:score_term_row_json_schema, 0} => &score_term_row_json_schema/0,
+        {:sha256_json_schema, 0} => &sha256_json_schema/0,
+        {:source_window_lineage_json_schema, 0} => &source_window_lineage_json_schema/0,
+        {:spacecraft_identity_json_schema, 0} => &spacecraft_identity_json_schema/0,
+        {:spacecraft_state_estimate_json_schema, 0} => &spacecraft_state_estimate_json_schema/0,
+        {:stable_id_array_map_schema, 0} => &stable_id_array_map_schema/0,
+        {:stable_id_array_schema, 0} => &stable_id_array_schema/0,
+        {:station_calendar_contact_json_schema, 0} => &station_calendar_contact_json_schema/0,
+        {:station_calendar_provider_contention_group_json_schema, 0} =>
+          &station_calendar_provider_contention_group_json_schema/0,
+        {:station_calendar_provider_counteroffer_actions, 0} =>
+          &station_calendar_provider_counteroffer_actions/0,
+        {:station_calendar_provider_entry_json_schema, 0} =>
+          &station_calendar_provider_entry_json_schema/0,
+        {:station_calendar_report_model, 0} => &station_calendar_report_model/0,
+        {:station_calendar_report_model_limits, 0} => &station_calendar_report_model_limits/0,
+        {:station_reservation_contact_json_schema, 0} =>
+          &station_reservation_contact_json_schema/0,
+        {:station_reservation_hold_import_readiness_row_json_schema, 0} =>
+          &station_reservation_hold_import_readiness_row_json_schema/0,
+        {:station_reservation_provider_contention_group_json_schema, 0} =>
+          &station_reservation_provider_contention_group_json_schema/0,
+        {:station_reservation_review_summary_row_json_schema, 0} =>
+          &station_reservation_review_summary_row_json_schema/0,
+        {:strategy_branch_event_json_schema, 0} => &strategy_branch_event_json_schema/0,
+        {:strategy_branch_json_schema, 0} => &strategy_branch_json_schema/0,
+        {:strategy_branch_risk_json_schema, 0} => &strategy_branch_risk_json_schema/0,
+        {:strategy_branch_tradeoff_json_schema, 0} => &strategy_branch_tradeoff_json_schema/0,
+        {:strategy_explanation_json_schema, 0} => &strategy_explanation_json_schema/0,
+        {:strategy_recommendation_json_schema, 0} => &strategy_recommendation_json_schema/0,
+        {:suppressed_candidate_json_schema, 0} => &suppressed_candidate_json_schema/0,
+        {:target_identity_json_schema, 0} => &target_identity_json_schema/0,
+        {:timeline_activity_precondition_statuses, 0} =>
+          &timeline_activity_precondition_statuses/0,
+        {:timeline_candidate_rejection_actions, 0} => &timeline_candidate_rejection_actions/0,
+        {:timeline_candidate_rejection_reasons, 0} => &timeline_candidate_rejection_reasons/0,
+        {:timeline_capabilities, 0} => &timeline_capabilities/0,
+        {:timeline_dependency_impact_row_json_schema, 0} =>
+          &timeline_dependency_impact_row_json_schema/0,
+        {:timeline_dependency_impact_summary_source_json_schema, 0} =>
+          &timeline_dependency_impact_summary_source_json_schema/0,
+        {:timeline_diff_row_json_schema, 0} => &timeline_diff_row_json_schema/0,
+        {:timeline_diff_summary_source_json_schema, 0} =>
+          &timeline_diff_summary_source_json_schema/0,
+        {:timeline_feedback_capabilities, 0} => &timeline_feedback_capabilities/0,
+        {:timeline_feedback_operational_feedback_provenance_json_schema, 0} =>
+          &timeline_feedback_operational_feedback_provenance_json_schema/0,
+        {:timeline_feedback_report_model_limits, 0} => &timeline_feedback_report_model_limits/0,
+        {:timeline_feedback_row_json_schema, 0} => &timeline_feedback_row_json_schema/0,
+        {:timeline_identity_json_schema, 0} => &timeline_identity_json_schema/0,
+        {:timeline_integrity_issue_types, 0} => &timeline_integrity_issue_types/0,
+        {:timeline_lifecycle_state_row_json_schema, 0} =>
+          &timeline_lifecycle_state_row_json_schema/0,
+        {:timeline_precondition_json_schema, 0} => &timeline_precondition_json_schema/0,
+        {:timeline_preservation_assumptions_json_schema, 1} =>
+          &timeline_preservation_assumptions_json_schema/1,
+        {:timeline_report_model_limits, 0} => &timeline_report_model_limits/0,
+        {:timeline_transition_application_row_json_schema, 0} =>
+          &timeline_transition_application_row_json_schema/0,
+        {:timeline_transition_decisions, 0} => &timeline_transition_decisions/0,
+        {:timeline_transition_selected_activity_json_schema, 0} =>
+          &timeline_transition_selected_activity_json_schema/0,
+        {:validation_record_json_schema, 0} => &validation_record_json_schema/0,
+        {:validation_reference_report_json_schema, 0} =>
+          &validation_reference_report_json_schema/0
+      }
+    ]
   end
 
-  defp embedded_contract_json_schema(contract_name) do
-    OrbitalDynamics.Schema.EmbeddedContractJsonSchema.build(contract_name,
-      contract: &registry_contract!/1,
-      property: &json_schema_property/3
+  defp default_json_schema_property(field, contract_name, contract) do
+    OrbitalDynamics.Schema.JsonSchemaPropertyRouter.default_property(
+      field,
+      contract_name,
+      contract,
+      @field_type_hints,
+      @stable_id_pattern
     )
   end
 
