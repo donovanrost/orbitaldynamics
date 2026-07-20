@@ -5786,7 +5786,7 @@ defmodule OrbitalDynamics.Schema do
       validate_policy_decision: &validate_policy_decision/3,
       require_nested: &require_nested/4,
       validate_optional_timeline_protection_summary:
-        &validate_optional_timeline_protection_summary/4,
+        &TimelineContextValidation.validate_optional_timeline_protection_summary/4,
       expect_field_equals_with_message: &expect_field_equals/6
     ]
   end
@@ -5997,9 +5997,11 @@ defmodule OrbitalDynamics.Schema do
         issues,
         path,
         row,
-        validate_optional_timeline_preconditions: &validate_optional_timeline_preconditions/4,
-        validate_optional_activity_context: &validate_optional_activity_context/4,
-        validate_timeline_identity: &validate_timeline_identity/3
+        validate_optional_timeline_preconditions:
+          &TimelineContextValidation.validate_optional_timeline_preconditions/4,
+        validate_optional_activity_context:
+          &TimelineContextValidation.validate_optional_activity_context/4,
+        validate_timeline_identity: &TimelineContextValidation.validate_timeline_identity/3
       )
 
   defp validate_timeline_transition_application_report(issues, path, value),
@@ -6065,9 +6067,12 @@ defmodule OrbitalDynamics.Schema do
 
   defp timeline_transition_validation_callbacks do
     [
-      validate_optional_activity_context: &validate_optional_activity_context/4,
-      validate_optional_lifecycle_transition: &validate_optional_lifecycle_transition/4,
-      validate_optional_protection_decision: &validate_optional_protection_decision/4
+      validate_optional_activity_context:
+        &TimelineContextValidation.validate_optional_activity_context/4,
+      validate_optional_lifecycle_transition:
+        &TimelineContextValidation.validate_optional_lifecycle_transition/4,
+      validate_optional_protection_decision:
+        &TimelineContextValidation.validate_optional_protection_decision/4
     ]
   end
 
@@ -6283,10 +6288,12 @@ defmodule OrbitalDynamics.Schema do
       validate_operator_review_row_links: &validate_operator_review_row_links/3,
       validate_contact_allocation_capacity_pack_group:
         &validate_contact_allocation_capacity_pack_group/3,
-      validate_optional_timeline_link: &validate_optional_timeline_link/4,
-      validate_optional_timeline_identity: &validate_optional_timeline_identity/4,
+      validate_optional_timeline_link:
+        &TimelineContextValidation.validate_optional_timeline_link/4,
+      validate_optional_timeline_identity:
+        &TimelineContextValidation.validate_optional_timeline_identity/4,
       validate_optional_timeline_protection_summary:
-        &validate_optional_timeline_protection_summary/4,
+        &TimelineContextValidation.validate_optional_timeline_protection_summary/4,
       validate_optional_timeline_activity_state_source:
         &TimelineSourceValidation.validate_optional_timeline_activity_state_source/3,
       validate_optional_timeline_lifecycle_state_source_row:
@@ -6295,7 +6302,8 @@ defmodule OrbitalDynamics.Schema do
         &TimelineSourceValidation.validate_optional_timeline_activity_precondition_summary_source/3,
       validate_optional_timeline_preservation_source_row:
         &TimelineSourceValidation.validate_optional_timeline_preservation_source_row/3,
-      validate_optional_activity_context: &validate_optional_activity_context/4,
+      validate_optional_activity_context:
+        &TimelineContextValidation.validate_optional_activity_context/4,
       validate_optional_timeline_diff_summary_source:
         &TimelineSourceValidation.validate_optional_timeline_diff_summary_source/3,
       validate_optional_timeline_transition_application_summary_source:
@@ -6346,9 +6354,12 @@ defmodule OrbitalDynamics.Schema do
         &validate_schema_validation_source_status_matches/3,
       validate_execution_source_status_matches: &validate_execution_source_status_matches/3,
       validate_nested_id_match: &validate_nested_id_match/7,
-      validate_optional_activity_context: &validate_optional_activity_context/4,
-      validate_optional_timeline_link: &validate_optional_timeline_link/4,
-      validate_optional_timeline_identity: &validate_optional_timeline_identity/4,
+      validate_optional_activity_context:
+        &TimelineContextValidation.validate_optional_activity_context/4,
+      validate_optional_timeline_link:
+        &TimelineContextValidation.validate_optional_timeline_link/4,
+      validate_optional_timeline_identity:
+        &TimelineContextValidation.validate_optional_timeline_identity/4,
       validate_cadence_source_review_row: &validate_cadence_source_review_row/3,
       validate_operational_readiness_resource_context:
         &OperationalReadinessValidation.validate_operational_readiness_resource_context/3,
@@ -6377,7 +6388,7 @@ defmodule OrbitalDynamics.Schema do
       validate_optional_timeline_preservation_source_row:
         &TimelineSourceValidation.validate_optional_timeline_preservation_source_row/3,
       validate_optional_timeline_protection_summary:
-        &validate_optional_timeline_protection_summary/4,
+        &TimelineContextValidation.validate_optional_timeline_protection_summary/4,
       validate_optional_timeline_transition_application_row:
         &validate_optional_timeline_transition_application_row/3,
       validate_optional_timeline_transition_application_summary_source:
@@ -6541,13 +6552,16 @@ defmodule OrbitalDynamics.Schema do
 
   defp operator_review_row_domain_callbacks do
     OrbitalDynamics.Schema.OperatorReviewRowCallbacks.build(
-      validate_optional_activity_context: &validate_optional_activity_context/4,
-      validate_optional_protection_decision: &validate_optional_protection_decision/4,
+      validate_optional_activity_context:
+        &TimelineContextValidation.validate_optional_activity_context/4,
+      validate_optional_protection_decision:
+        &TimelineContextValidation.validate_optional_protection_decision/4,
       validate_contact_allocation_capacity_pack_group:
         &validate_contact_allocation_capacity_pack_group/3,
       validate_optional_actual_data_rate_throughput_derivation:
         &validate_optional_actual_data_rate_throughput_derivation/4,
-      validate_optional_lifecycle_transition: &validate_optional_lifecycle_transition/4,
+      validate_optional_lifecycle_transition:
+        &TimelineContextValidation.validate_optional_lifecycle_transition/4,
       validate_optional_branch_comparison_source_row:
         &validate_optional_branch_comparison_source_row/3,
       validate_optional_policy_decision_evidence: &validate_optional_policy_decision_evidence/3,
@@ -6576,10 +6590,12 @@ defmodule OrbitalDynamics.Schema do
         &TimelineSourceValidation.validate_optional_timeline_activity_precondition_summary_source/3,
       validate_optional_timeline_preservation_source_row:
         &TimelineSourceValidation.validate_optional_timeline_preservation_source_row/3,
-      validate_optional_timeline_identity: &validate_optional_timeline_identity/4,
-      validate_optional_timeline_link: &validate_optional_timeline_link/4,
+      validate_optional_timeline_identity:
+        &TimelineContextValidation.validate_optional_timeline_identity/4,
+      validate_optional_timeline_link:
+        &TimelineContextValidation.validate_optional_timeline_link/4,
       validate_optional_timeline_protection_summary:
-        &validate_optional_timeline_protection_summary/4,
+        &TimelineContextValidation.validate_optional_timeline_protection_summary/4,
       validate_operational_readiness_resource_context:
         &OperationalReadinessValidation.validate_operational_readiness_resource_context/3,
       validate_contact_allocation_handoff_fields: &validate_contact_allocation_handoff_fields/3,
@@ -6594,13 +6610,6 @@ defmodule OrbitalDynamics.Schema do
   defp safety_case_count_fields,
     do: OrbitalDynamics.Schema.ValidationAcceptanceReportContracts.safety_case_count_fields()
 
-  defp validate_optional_timeline_preconditions(issues, path, map, field) when is_map(map),
-    do:
-      TimelineContextValidation.validate_optional_timeline_preconditions(issues, path, map, field)
-
-  defp validate_optional_activity_context(issues, path, map, field) when is_map(map),
-    do: TimelineContextValidation.validate_optional_activity_context(issues, path, map, field)
-
   defp validate_optional_actual_data_rate_throughput_derivation(issues, path, map, field)
        when is_map(map) do
     OrbitalDynamics.Schema.ExecutionMetricContracts.validate_optional_actual_data_rate_throughput_derivation(
@@ -6610,31 +6619,4 @@ defmodule OrbitalDynamics.Schema do
       field
     )
   end
-
-  defp validate_optional_protection_decision(issues, path, map, field) when is_map(map),
-    do: TimelineContextValidation.validate_optional_protection_decision(issues, path, map, field)
-
-  defp validate_optional_lifecycle_transition(issues, path, map, field) when is_map(map),
-    do: TimelineContextValidation.validate_optional_lifecycle_transition(issues, path, map, field)
-
-  defp validate_optional_timeline_identity(issues, path, map, field) when is_map(map),
-    do: TimelineContextValidation.validate_optional_timeline_identity(issues, path, map, field)
-
-  defp validate_timeline_identity(issues, path, identity) when is_map(identity),
-    do: TimelineContextValidation.validate_timeline_identity(issues, path, identity)
-
-  defp validate_timeline_identity(issues, path, identity),
-    do: TimelineContextValidation.validate_timeline_identity(issues, path, identity)
-
-  defp validate_optional_timeline_link(issues, path, map, field) when is_map(map),
-    do: TimelineContextValidation.validate_optional_timeline_link(issues, path, map, field)
-
-  defp validate_optional_timeline_protection_summary(issues, path, map, field) when is_map(map),
-    do:
-      TimelineContextValidation.validate_optional_timeline_protection_summary(
-        issues,
-        path,
-        map,
-        field
-      )
 end
