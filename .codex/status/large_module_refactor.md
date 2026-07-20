@@ -9,7 +9,7 @@ Current slice:
 Schema resource-summary owner completion.
 
 Status:
-Selected; implementation pending.
+Complete and pushed.
 
 Selected boundary:
 Extend `ResourceValidation.validate_artifact/4` and its registry lookup to own
@@ -27,23 +27,34 @@ Selection evidence:
 - No route needs recursive `Schema` lookup.
 
 Implementation:
-Pending.
+Extended `ResourceValidation.validate_artifact/4` with the
+`resource_summary.v1` registry and contract route, then routed the direct
+`Schema` clause through the existing resource owner. `schema.ex` moved from
+4,732 to 4,730 lines; `ResourceValidation` moved from 214 to 218 lines.
 
 Verification:
-Pending.
+- Strict focused baseline: 27 tests passed.
+- Resource summary, projection, filter, export, and fixture adjacency: 118 tests
+  passed.
+- Full schema export regenerated with no checked-in schema artifact changes.
+- Formatting, diff whitespace, bounded dependency/reference checks, and the
+  bounded semantic diff review passed.
+- `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 mix compile --force
+  --warnings-as-errors` compiled 4,087 files successfully.
 
 Behavior/schema changes:
-None intended. Required fields, duplicate required-field issue behavior,
-validation ordering and paths, public `Schema` and `ResourceValidation` APIs,
-validation results, and checked-in exports must remain unchanged.
+None. Required fields, duplicate required-field issue behavior, validation
+ordering and paths, public `Schema` and `ResourceValidation` APIs, validation
+results, and checked-in exports remain unchanged.
 
 Last completed slice:
-Schema command-window report owner extraction, selected in `402d1b0e` and
-implemented in `5ce5df9f`. `schema.ex` moved from 4,737 to 4,732 lines.
+Schema resource-summary owner completion, selected in `427ca19f` and implemented
+in `7778c944`. `schema.ex` moved from 4,732 to 4,730 lines.
 
 Next candidate:
-Implement and verify the selected resource-summary owner completion, then
-re-rank the remaining Schema responsibility clusters.
+Re-rank the remaining direct `Schema` validation clauses, prioritizing a
+cohesive owner or owner completion without recursive `Schema` lookup or public
+API changes.
 
 Blocked:
 No.
