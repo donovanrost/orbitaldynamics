@@ -6,42 +6,44 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Candidate-refresh empty refresh-budget ID normalization repair.
+Campaign-planner readiness score-term regression diagnosis.
 
 Status:
-Selected; implementation pending.
+Refresh-budget repair implemented and verified; next regression pending selection.
 
 Selected boundary:
-Normalize only empty-map `kept_candidate_ids` and `dropped_candidate_ids` values
-back to empty lists at the refresh-budget replay-summary boundary. Preserve
-non-empty values, counts, public replay APIs, and all artifact contracts.
+Diagnose the remaining goal-era readiness-row-context failure before selecting
+the narrowest production or expectation repair.
 
 Selection evidence:
-- Keyword-map encoding represents an empty list as `%{}` inside the branch
-  candidate-source summary.
-- Refresh-budget replay currently copies those maps and tests `!= []`, causing
-  false dropped-candidate, candidate-limit, and budget pressure.
-- Empty candidate-ID collections are contractually arrays; normalizing only the
-  empty-map representation restores the original deterministic output.
+- The focused five-file regression gate now has only the readiness score-term
+  failure plus the baseline golden-artifact drift.
+- The readiness test expects a generic risk penalty of `-200`; current output is
+  `-100`. Branch risk-indicator composition must be inspected before changing
+  either implementation or test arithmetic.
 
 Implementation:
-Pending.
+`ee7ca527` normalizes only empty-map refresh-budget candidate-ID collections to
+empty lists at the replay-summary boundary.
 
 Verification:
-Pending.
+- 15 focused refresh-budget and campaign-planner tests passed with warnings as
+  errors.
+- Strict compilation passed for 4,129 files.
+- Formatting and diff checks passed.
 
 Behavior/schema changes:
-None intended. The same deterministic fixtures, production calls, assertions,
-artifact validation, and async test behavior must remain unchanged.
+Empty candidate-ID collections again retain their array contract, eliminating
+false budget, dropped-candidate, and candidate-limit pressure. Non-empty values,
+counts, public APIs, and schemas are unchanged.
 
 Last completed slice:
-Campaign-planner prior result-artifact filter routing repair, selected in
-`1d202538` and implemented in `340d966a`. Correct argument ordering restored
-three missing-branch tests.
+Candidate-refresh empty refresh-budget ID normalization repair, selected in
+`ef64d969` and implemented in `ee7ca527`.
 
 Next candidate:
-Implement and verify the refresh-budget normalization, then resolve the final
-readiness score-term failure.
+Diagnose and resolve the final readiness score-term failure, then rerun the
+five-file regression gate and broad suite.
 
 Blocked:
 No.
