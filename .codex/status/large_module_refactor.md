@@ -6,17 +6,17 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema station-reservation validation routing cleanup.
+No slice selected.
 
 Status:
-Selected; implementation not started.
+Slice complete and pushed.
 
 Selected boundary:
-Complete the existing
+Completed the existing
 `OrbitalDynamics.Schema.StationReservationValidation` extraction by moving the
 default-path arity into the owner, routing contract clauses and callback tables
 directly to it, and removing five facade pass-through clauses.
-Preserve all `OrbitalDynamics.Schema` public facades and validation output.
+Preserved all `OrbitalDynamics.Schema` public facades and validation output.
 
 Selection evidence:
 - `schema.ex` remains the dominant hotspot at 6,602 lines.
@@ -32,23 +32,39 @@ Selection evidence:
   wiring, public validation results, and schema exports must remain unchanged.
 
 Implementation:
-Pending.
+- Added the two-argument optional calendar-report entry point to
+  `StationReservationValidation`, preserving the facade's established default
+  path.
+- Routed station calendar/reservation contract clauses plus campaign-plan,
+  campaign-repair, and candidate-refresh callback tables directly to the owner.
+- Removed five one-hop private wrapper clauses.
+- `schema.ex` moved from 6,602 to 6,580 lines; the focused owner is 51 lines.
 
 Verification:
-Pending.
+- Pre-change strict focused baseline: 23 campaign/communications/station
+  contract tests passed.
+- Post-change strict focused verification: the same 23 tests passed; 18
+  broader validation and station/campaign fixture tests also passed.
+- Static checks found no migrated station-reservation wrappers or local
+  callback captures remaining; xref reports `schema.ex` as the runtime caller
+  of `StationReservationValidation`.
+- No checked-in schema export changed.
+- Forced warnings-as-errors compile passed across 4,050 files.
+- Formatting and `git diff --check` passed; the worktree was clean after the
+  implementation commit.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-Schema resource-filter validation routing cleanup, selected in `6965e3b1` and
-implemented in `db4ce31c`.
-`schema.ex` moved from 6,612 to 6,602 lines by completing resource-filter
-routing to the existing ResourceValidation owner.
+Schema station-reservation validation routing cleanup, selected in `d4db8b09`
+and implemented in `bc5ce973`.
+`schema.ex` moved from 6,602 to 6,580 lines by completing routing to the
+existing StationReservationValidation owner.
 
 Next candidate:
-After this slice, re-rank the remaining schema wrapper clusters while
-preserving dependency-injecting adapters.
+Re-rank the remaining schema wrapper clusters while preserving
+dependency-injecting adapters.
 
 Blocked:
 No.
