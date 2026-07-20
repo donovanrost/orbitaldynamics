@@ -2796,7 +2796,7 @@ defmodule OrbitalDynamics.Schema do
 
     OrbitalDynamics.Schema.PolicyActionRuleJsonSchema.action_rule(
       stable_id_pattern: @stable_id_pattern,
-      policy_context_fields: policy_context_field_groups(),
+      policy_context_fields: OrbitalDynamics.Schema.PolicyFieldGroups.json_schema(),
       number_fields: Keyword.fetch!(action_rule_fields, :number_fields),
       integer_fields: Keyword.fetch!(action_rule_fields, :integer_fields)
     )
@@ -2805,7 +2805,7 @@ defmodule OrbitalDynamics.Schema do
   defp policy_decision_rule_match_json_schema do
     OrbitalDynamics.Schema.PolicyDecisionRuleMatchJsonSchema.rule_match_from_context(
       stable_id_pattern: @stable_id_pattern,
-      policy_context_fields: policy_context_field_groups()
+      policy_context_fields: OrbitalDynamics.Schema.PolicyFieldGroups.json_schema()
     )
   end
 
@@ -3056,10 +3056,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp non_negative_integer_property_schemas(fields) do
     OrbitalDynamics.Schema.CommonJsonSchema.non_negative_integer_properties(fields)
-  end
-
-  defp policy_context_field_groups do
-    OrbitalDynamics.Schema.PolicyFieldGroups.json_schema()
   end
 
   defp stable_id_array_schema do
@@ -5977,7 +5973,7 @@ defmodule OrbitalDynamics.Schema do
         path,
         bundle,
         policy_model_limits(),
-        policy_action_rule_field_groups()
+        OrbitalDynamics.Schema.PolicyFieldGroups.action_rule()
       )
 
   defp validate_operator_review_package(issues, path, package),
@@ -6068,10 +6064,6 @@ defmodule OrbitalDynamics.Schema do
       validate_contact_allocation_handoff_fields: &validate_contact_allocation_handoff_fields/3,
       validate_operator_review_row_links: &OperatorReviewValidation.validate_row_links/3
     )
-  end
-
-  defp policy_action_rule_field_groups do
-    OrbitalDynamics.Schema.PolicyFieldGroups.action_rule()
   end
 
   defp safety_case_count_fields,
