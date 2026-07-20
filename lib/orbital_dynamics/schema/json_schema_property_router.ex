@@ -1,6 +1,7 @@
 defmodule OrbitalDynamics.Schema.JsonSchemaPropertyRouter do
   @moduledoc false
   alias OrbitalDynamics.Schema.{
+    CandidateRefreshPropertyRouter,
     OperationalReadinessValidation,
     ReferencePolicyPropertyRouter,
     ResourceValidation,
@@ -35,17 +36,7 @@ defmodule OrbitalDynamics.Schema.JsonSchemaPropertyRouter do
   end
 
   def property(field, "candidate_diff_report.v1" = contract_name, contract, context) do
-    OrbitalDynamics.Schema.CandidateRefreshPropertyDispatch.diff_report(
-      field,
-      contract_name,
-      contract,
-      fn arg1, arg2, arg3 -> fallback(arg1, arg2, arg3, context) end,
-      context_value(context, :stable_id_pattern),
-      {fn -> provider(context, :source_window_lineage_json_schema, []) end,
-       fn -> OrbitalDynamics.CandidateRefresh.model_limits() end,
-       fn -> provider(context, :candidate_diff_row_json_schema, []) end,
-       fn -> provider(context, :invalidated_candidate_json_schema, []) end}
-    )
+    CandidateRefreshPropertyRouter.property(field, contract_name, contract, context)
   end
 
   def property(field, contract_name, contract, context)
@@ -54,14 +45,7 @@ defmodule OrbitalDynamics.Schema.JsonSchemaPropertyRouter do
              "invalidated_candidate.v1",
              "source_window_lineage.v1"
            ] do
-    OrbitalDynamics.Schema.CandidateRefreshPropertyDispatch.diff_family(
-      field,
-      contract_name,
-      contract,
-      fn arg1, arg2, arg3 -> fallback(arg1, arg2, arg3, context) end,
-      context_value(context, :stable_id_pattern),
-      fn -> provider(context, :candidate_refresh_scoped_context_json_schema_properties, []) end
-    )
+    CandidateRefreshPropertyRouter.property(field, contract_name, contract, context)
   end
 
   def property(field, contract_name, contract, context)
@@ -71,14 +55,7 @@ defmodule OrbitalDynamics.Schema.JsonSchemaPropertyRouter do
              "refreshed_window.v1",
              "remaining_horizon.v1"
            ] do
-    OrbitalDynamics.Schema.CandidateRefreshPropertyDispatch.auxiliary(
-      field,
-      contract_name,
-      contract,
-      fn arg1, arg2, arg3 -> fallback(arg1, arg2, arg3, context) end,
-      context_value(context, :stable_id_pattern),
-      fn -> OrbitalDynamics.CandidateRefresh.model_limits() end
-    )
+    CandidateRefreshPropertyRouter.property(field, contract_name, contract, context)
   end
 
   def property(field, "campaign_plan.v1" = contract_name, contract, context) do
