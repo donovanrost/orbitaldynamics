@@ -9,7 +9,7 @@ Current slice:
 Schema common assumptions direct routing.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Remove the Schema facade's one-hop boolean-constant and string-constant
@@ -30,19 +30,34 @@ Selection evidence:
   unchanged.
 
 Implementation:
-Pending.
+Removed the one-hop boolean/string assumptions helpers and routed both
+timeline-preservation callers plus the lazy timeline-activity callback
+directly to CommonJsonSchema.
+`schema.ex` moved from 6,114 to 6,106 lines.
 
 Verification:
-Pending.
+- Strict focused timeline-activity/operational-timeline/contact-feedback/
+  export baseline before routing: 31 passed.
+- The same strict focused suite after routing: 31 passed.
+- Strict full schema-export task plus adjacent timeline-summary,
+  campaign-repair, and fixture-visibility coverage: 20 passed.
+- `mix xref callers OrbitalDynamics.Schema.CommonJsonSchema` includes the
+  expected `schema.ex (runtime)` caller.
+- Static search confirms both facade helper definitions and all indirect calls
+  are gone.
+- `git diff --check` passed; no checked-in schema export changed.
+- Strict forced compile passed across 4,065 files.
+- Implementation commit `aaacd9cd` pushed to `main`.
 
 Behavior/schema changes:
-None intended.
+None. Public facades, lazy callback timing, assumption keys/values and
+ordering, generated JSON Schema, validation behavior, and checked-in exports
+remain unchanged.
 
 Last completed slice:
-Schema candidate-rejection model-limit ownership, selected in `86e3c44c` and
-implemented in `bd871a8c`.
-`schema.ex` moved from 6,123 to 6,114 lines; the candidate-rejection report
-schema owner moved from 274 to 283 lines.
+Schema common assumptions direct routing, selected in `af5fc3cd` and
+implemented in `aaacd9cd`.
+`schema.ex` moved from 6,114 to 6,106 lines.
 
 Next candidate:
 Re-rank the remaining non-capability Schema responsibility clusters now that
