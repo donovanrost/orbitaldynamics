@@ -6,64 +6,43 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema Cadence-import validation context extraction.
+Schema decision-support registered-contract validation routing.
 
 Status:
-Completed and pushed.
+Selected; implementation pending.
 
 Selected boundary:
-Add an owner-default CadenceImportValidation entry point for manifests and keep
-manifest, import-row, source-review-row, and handoff callback composition in
-that owner. Route the Schema manifest consumer directly and remove the three
-facade validators plus three callback bags. Keep the existing customizable
-contract and callback-builder APIs.
+Add owner-default required and optional entry points to
+DecisionSupportValidation for objective tradeoff, objective satisfaction,
+branch comparison, ranking comparison, optimizer contract, and score-term
+report artifacts. Derive requirements from the existing objective-analysis and
+optimization registries, route direct and optional Schema consumers to the
+owner, and remove the six facade closures plus the shared registered-contract
+wrapper. Keep every customizable optional-validation API.
 
 Selection evidence:
-- `schema.ex` remains the dominant production hotspot at 5,475 lines; the other
+- `schema.ex` remains the dominant production hotspot at 5,294 lines; the other
   targeted public facades are now 164 to 524 lines.
-- Manifest defaults require only Cadence capability metadata, existing
-  expiration/suppression owners, and the owner-local import-row validator.
-- Import-row defaults require capability metadata, primitive/ID validators,
-  previously extracted validation owners, and the owner-local source-review
-  validator.
-- Source-review and handoff callback graphs resolve entirely to primitive
-  validators or existing owner modules.
-- The only recursive edge is import row to source-review row, so no callback
-  needs Schema lookup or facade-local validation.
-- Owner-default entry points preserve all customizable contract and callback
-  APIs.
+- Six direct validation clauses duplicate registry requirements and dedicated
+  contract-owner routing already available outside Schema.
+- The same six artifacts use facade-local optional closures from campaign plan,
+  campaign repair, or campaign strategy callback graphs.
+- Objective-analysis and optimization registry modules own all required-field
+  lists needed by the six default entry points.
+- Dedicated contract modules own all artifact-specific validation; no callback
+  needs recursive Schema lookup or another facade-local validator.
+- The existing arity-three optional APIs remain the customization boundary.
 
 Implementation:
-Added CadenceImportValidation with owner-default manifest, import-row, and
-source-review-row entry points. Moved manifest capability context and all three
-callback bags into that owner, kept the customizable contract/callback-builder
-APIs, routed the Schema manifest consumer directly, removed the facade
-validators and callback bags, and moved shared scalar-count metadata into
-CadenceImportCapabilityContext. `schema.ex` moved from 5,475 to 5,294 lines.
+Pending.
 
 Verification:
-- Strict Cadence-import/review baseline before extraction: 14 passed.
-- The same strict focused suite after extraction: 14 passed.
-- Strict full Cadence-import, review, and campaign-contract coverage: 125
-  passed.
-- Strict schema-export and export-task coverage: 25 passed.
-- The full schema-export task completed and produced no checked-in changes.
-- Exact static inspection confirms one direct facade manifest call, zero
-  facade Cadence validators or callback bags, and owner-local row recursion.
-- `mix xref callers OrbitalDynamics.Schema.CadenceImportValidation` reports
-  only the expected Schema facade runtime caller.
-- Capability-context xref reports only the expected Schema export/runtime and
-  CadenceImportValidation runtime callers.
-- `mix format --check-formatted` and `git diff --check` passed.
-- Strict forced compile passed across 4,073 files with no warnings.
-- Bounded local review found no callback loss, ordering change, or duplicate
-  validation.
-- Implementation commit `e4d9f571` pushed to `main`.
+Pending.
 
 Behavior/schema changes:
-None. Capability metadata, callback ordering, issue ordering and paths,
-customizable contract APIs, public Schema APIs, validation results, and
-checked-in exports remain unchanged.
+None intended. Required fields, validation ordering and paths, customizable
+optional APIs, public Schema APIs, validation results, and checked-in exports
+must remain unchanged.
 
 Last completed slice:
 Schema Cadence-import validation context extraction, selected in `3f6438ff` and
@@ -71,9 +50,8 @@ implemented in `e4d9f571`.
 `schema.ex` moved from 5,475 to 5,294 lines.
 
 Next candidate:
-Re-rank the remaining non-capability Schema responsibility clusters. Preserve
-the context-bearing CommonJsonSchema wrappers unless a separate exact
-ownership boundary is proven.
+Implement and verify the selected decision-support registered-contract routing,
+then re-rank the remaining non-capability Schema responsibility clusters.
 
 Blocked:
 No.
