@@ -9,7 +9,7 @@ Current slice:
 Schema decision-support owner completion.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Add registry-backed `DecisionSupportValidation` entry points for
@@ -30,24 +30,37 @@ Selection evidence:
 - No route needs recursive `Schema` lookup.
 
 Implementation:
-Pending.
+Added registry-backed pareto-frontier and constraint-report entry points to
+`DecisionSupportValidation` and routed both direct `Schema` clauses through the
+existing owner. `schema.ex` moved from 4,761 to 4,751 lines.
 
 Verification:
-Pending.
+- Strict focused baseline: 29 tests passed.
+- Focused plus adjacent optimizer, validation, operator-review,
+  candidate-refresh replay, campaign-planner source/pressure, result-artifact,
+  contract, and export coverage after extraction: 55 tests passed.
+- Full schema export completed with no checked-in artifact changes.
+- Static routing review found exactly the two intended direct facade routes.
+- `mix xref trace` confirmed both runtime calls originate in `schema.ex`.
+- Formatting and `git diff --check` passed.
+- Strict forced compile passed across 4,086 files with warnings as errors.
+- Bounded diff review confirmed registry-owned requirements, pareto/constraint
+  contract routing, validation ordering, and paths remain unchanged.
+- Implementation committed and pushed as `62d2790e`.
 
 Behavior/schema changes:
-None intended. Required fields, validation ordering and paths, public `Schema`
-and existing `DecisionSupportValidation` APIs, validation results, and
-checked-in exports must remain unchanged.
+None. Required fields, validation ordering and paths, public `Schema` and
+existing `DecisionSupportValidation` APIs, validation results, and checked-in
+exports remain unchanged.
 
 Last completed slice:
-Schema station-calendar owner routing extraction, selected in `49ca11aa` and
-implemented in `6fd05694`.
-`schema.ex` moved from 4,771 to 4,761 lines.
+Schema decision-support owner completion, selected in `d817a431` and
+implemented in `62d2790e`.
+`schema.ex` moved from 4,761 to 4,751 lines.
 
 Next candidate:
-Implement and verify the selected decision-support owner completion, then
-re-rank the remaining Schema responsibility clusters.
+Re-rank the remaining Schema responsibility clusters and select the next
+facade-preserving extraction.
 
 Blocked:
 No.
