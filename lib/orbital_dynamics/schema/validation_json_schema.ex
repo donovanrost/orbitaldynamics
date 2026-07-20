@@ -42,6 +42,13 @@ defmodule OrbitalDynamics.Schema.ValidationJsonSchema do
     "status"
   ]
 
+  def validation_level do
+    %{
+      "type" => "string",
+      "enum" => OrbitalDynamics.Schema.ValidationPolicyContracts.level_names()
+    }
+  end
+
   def execution_failure(stable_id_pattern) do
     %{
       "type" => "object",

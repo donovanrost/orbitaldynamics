@@ -1755,7 +1755,7 @@ defmodule OrbitalDynamics.Schema do
       reference_report_schema: &validation_reference_report_json_schema/0,
       stable_id_pattern: @stable_id_pattern,
       validation_check_schema: &OrbitalDynamics.Schema.ValidationJsonSchema.check/0,
-      validation_level_schema: &validation_level_json_schema/0,
+      validation_level_schema: &OrbitalDynamics.Schema.ValidationJsonSchema.validation_level/0,
       default_property: &default_json_schema_property/3
     )
   end
@@ -1892,7 +1892,7 @@ defmodule OrbitalDynamics.Schema do
         subsystem_model: @subsystem_model_capability
       },
       stable_id_pattern: @stable_id_pattern,
-      validation_level_schema: &validation_level_json_schema/0,
+      validation_level_schema: &OrbitalDynamics.Schema.ValidationJsonSchema.validation_level/0,
       default_property: &default_json_schema_property/3
     )
   end
@@ -3260,7 +3260,7 @@ defmodule OrbitalDynamics.Schema do
   defp validation_record_json_schema do
     OrbitalDynamics.Schema.ValidationJsonSchema.record(
       @stable_id_pattern,
-      validation_level_json_schema()
+      OrbitalDynamics.Schema.ValidationJsonSchema.validation_level()
     )
   end
 
@@ -3282,7 +3282,7 @@ defmodule OrbitalDynamics.Schema do
   defp validation_reference_report_json_schema do
     OrbitalDynamics.Schema.ValidationJsonSchema.reference_report(
       @stable_id_pattern,
-      validation_level_json_schema(),
+      OrbitalDynamics.Schema.ValidationJsonSchema.validation_level(),
       OrbitalDynamics.Schema.ValidationJsonSchema.check()
     )
   end
@@ -5254,13 +5254,6 @@ defmodule OrbitalDynamics.Schema do
         &TimelineContextValidation.validate_optional_timeline_protection_summary/4,
       expect_field_equals_with_message: &expect_field_equals/6
     ]
-  end
-
-  defp validation_level_json_schema do
-    %{
-      "type" => "string",
-      "enum" => OrbitalDynamics.Schema.ValidationPolicyContracts.level_names()
-    }
   end
 
   defp validate_optional_link_capacity_report(issues, nil), do: issues
