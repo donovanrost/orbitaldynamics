@@ -9,7 +9,7 @@ Current slice:
 RecommendationRiskContext approval-boundary extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `c443180c`.
 
 Selected boundary:
 Extract approval-boundary context keys, risk selection, and context projection
@@ -33,19 +33,35 @@ Selection evidence:
   and error behavior must remain unchanged.
 
 Implementation:
-Pending.
+- Added `OrbitalDynamics.RecommendationRiskContext.ApprovalBoundary` as the
+  focused owner of the ordered key contract, scope/type risk selection, atom
+  key normalization, and approval, authority, policy, review, and provenance
+  context projection.
+- Preserved the public RecommendationRiskContext facade through delegates.
+- All other risk families remain outside the extraction.
+- `recommendation_risk_context.ex` moved from 1,212 to 1,153 lines; the
+  dedicated ApprovalBoundary owner is 83 lines.
 
 Verification:
-Pending.
+- Focused baseline and post-change test passed normally; the file retains its
+  two pre-existing signed-zero warnings.
+- Exact old/new public parity: four results passed, covering ordered keys,
+  atom-keyed rich context, both selection forms, unrelated-risk exclusion,
+  empty input, and non-list input.
+- Five adjacent recommendation tests passed with warnings treated as errors.
+- Static ownership and xref checks passed; only the facade calls the extracted
+  owner at runtime.
+- Forced warning-clean test compile passed across 4,032 files.
+- Focused formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-OperationalReadiness operator-training gate extraction, selected in
-`c66b1d84` and implemented in `d5794c94`.
-`operational_readiness.ex` moved from 1,213 to 1,187 lines; the dedicated
-OperatorTrainingGate owner is 31 lines.
+RecommendationRiskContext approval-boundary extraction, selected in
+`0175af8b` and implemented in `c443180c`.
+`recommendation_risk_context.ex` moved from 1,212 to 1,153 lines; the dedicated
+ApprovalBoundary owner is 83 lines.
 
 Next candidate:
 After this slice, re-rank the live checkout. OperationalReadiness is the next
