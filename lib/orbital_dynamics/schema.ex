@@ -352,6 +352,34 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property_context do
+    policy_schema_providers =
+      OrbitalDynamics.Schema.PolicySchemaProviders.build(
+        @stable_id_pattern,
+        policy_decision_schema: fn ->
+          @policy_decision
+          |> json_schema_document(registry_contract!(@policy_decision))
+          |> Map.take(["type", "additionalProperties", "required", "properties"])
+        end
+      )
+
+    policy_decision_schema =
+      Map.fetch!(policy_schema_providers, {:policy_decision_json_schema, 0})
+
+    policy_decision_evidence_schema =
+      Map.fetch!(policy_schema_providers, {:policy_decision_evidence_json_schema, 0})
+
+    policy_decision_rule_match_schema =
+      Map.fetch!(policy_schema_providers, {:policy_decision_rule_match_json_schema, 0})
+
+    policy_escalation_schema =
+      Map.fetch!(policy_schema_providers, {:policy_escalation_json_schema, 0})
+
+    scoped_downlink_context_properties =
+      Map.fetch!(
+        policy_schema_providers,
+        {:scoped_downlink_context_json_schema_properties, 0}
+      )
+
     source_evidence_providers =
       OrbitalDynamics.Schema.SourceEvidenceSchemaProviders.build(
         @stable_id_pattern,
@@ -410,10 +438,6 @@ defmodule OrbitalDynamics.Schema do
         {:operator_review_capabilities, 0} => &operator_review_capabilities/0,
         {:operator_review_package_model_limits, 0} => &operator_review_package_model_limits/0,
         {:planned_activity_json_schema, 0} => &planned_activity_json_schema/0,
-        {:policy_action_rule_json_schema, 0} => &policy_action_rule_json_schema/0,
-        {:policy_decision_json_schema, 0} => &policy_decision_json_schema/0,
-        {:policy_decision_rule_match_json_schema, 0} => &policy_decision_rule_match_json_schema/0,
-        {:policy_escalation_json_schema, 0} => &policy_escalation_json_schema/0,
         {:policy_model_limits, 0} => &policy_model_limits/0,
         {:protection_decision_json_schema, 0} => &protection_decision_json_schema/0,
         {:quality_gate_report_row_json_schema, 0} => &quality_gate_report_row_json_schema/0,
@@ -425,8 +449,6 @@ defmodule OrbitalDynamics.Schema do
         {:schema_migration_row_statuses, 0} => &schema_migration_row_statuses/0,
         {:schema_migration_statuses, 0} => &schema_migration_statuses/0,
         {:schema_validation_model_limits, 0} => &schema_validation_model_limits/0,
-        {:scoped_downlink_context_json_schema_properties, 0} =>
-          &scoped_downlink_context_json_schema_properties/0,
         {:sha256_json_schema, 0} => &sha256_json_schema/0,
         {:spacecraft_identity_json_schema, 0} => &spacecraft_identity_json_schema/0,
         {:stable_id_array_map_schema, 0} => &stable_id_array_map_schema/0,
@@ -463,6 +485,7 @@ defmodule OrbitalDynamics.Schema do
     ]
     |> Keyword.update!(:schema_providers, fn providers ->
       providers
+      |> Map.merge(policy_schema_providers)
       |> Map.merge(
         OrbitalDynamics.Schema.PlanningAnalysisSchemaProviders.build(@stable_id_pattern)
       )
@@ -483,8 +506,8 @@ defmodule OrbitalDynamics.Schema do
           provider_counteroffer_negotiation_states:
             &station_calendar_provider_counteroffer_negotiation_states/0,
           approval_requirement_schema: &approval_requirement_json_schema/0,
-          policy_decision_rule_match_schema: &policy_decision_rule_match_json_schema/0,
-          policy_decision_schema: &policy_decision_json_schema/0
+          policy_decision_rule_match_schema: policy_decision_rule_match_schema,
+          policy_decision_schema: policy_decision_schema
         )
       )
       |> Map.merge(
@@ -501,8 +524,8 @@ defmodule OrbitalDynamics.Schema do
           @stable_id_pattern,
           source_window_schema: &candidate_activity_source_window_json_schema/0,
           approval_requirement_schema: &approval_requirement_json_schema/0,
-          policy_decision_rule_match_schema: &policy_decision_rule_match_json_schema/0,
-          policy_decision_schema: &policy_decision_json_schema/0,
+          policy_decision_rule_match_schema: policy_decision_rule_match_schema,
+          policy_decision_schema: policy_decision_schema,
           contact_filter_suppression_reasons: &contact_filter_suppression_reasons/0,
           resource_filter_suppression_reasons: &resource_filter_suppression_reasons/0
         )
@@ -511,8 +534,8 @@ defmodule OrbitalDynamics.Schema do
         OrbitalDynamics.Schema.GroundNetworkSchemaProviders.build(
           @stable_id_pattern,
           approval_requirement_schema: &approval_requirement_json_schema/0,
-          policy_decision_rule_match_schema: &policy_decision_rule_match_json_schema/0,
-          policy_decision_schema: &policy_decision_json_schema/0,
+          policy_decision_rule_match_schema: policy_decision_rule_match_schema,
+          policy_decision_schema: policy_decision_schema,
           station_calendar_capability: &station_calendar_capabilities/0
         )
       )
@@ -522,9 +545,9 @@ defmodule OrbitalDynamics.Schema do
           @stable_id_pattern,
           timeline_identity_schema: &timeline_identity_json_schema/0,
           approval_requirement_schema: &approval_requirement_json_schema/0,
-          policy_decision_rule_match_schema: &policy_decision_rule_match_json_schema/0,
+          policy_decision_rule_match_schema: policy_decision_rule_match_schema,
           contact_intent_model_limits: &contact_intent_model_limits/0,
-          policy_decision_schema: &policy_decision_json_schema/0,
+          policy_decision_schema: policy_decision_schema,
           source_window_schema: &candidate_activity_source_window_json_schema/0,
           cadence_import_schema: &cadence_import_json_schema/1
         )
@@ -532,7 +555,7 @@ defmodule OrbitalDynamics.Schema do
       |> Map.merge(
         OrbitalDynamics.Schema.StrategySchemaProviders.build(
           @stable_id_pattern,
-          scoped_downlink_context_properties: &scoped_downlink_context_json_schema_properties/0,
+          scoped_downlink_context_properties: scoped_downlink_context_properties,
           strategy_recommendation_schema: fn ->
             @strategy_recommendation
             |> json_schema_document(registry_contract!(@strategy_recommendation))
@@ -541,8 +564,8 @@ defmodule OrbitalDynamics.Schema do
           provider_counteroffer_negotiation_states:
             &station_calendar_provider_counteroffer_negotiation_states/0,
           approval_requirement_schema: &approval_requirement_json_schema/0,
-          policy_decision_rule_match_schema: &policy_decision_rule_match_json_schema/0,
-          policy_decision_schema: &policy_decision_json_schema/0
+          policy_decision_rule_match_schema: policy_decision_rule_match_schema,
+          policy_decision_schema: policy_decision_schema
         )
       )
       |> Map.merge(
@@ -561,7 +584,7 @@ defmodule OrbitalDynamics.Schema do
         OrbitalDynamics.Schema.ExecutionReviewSchemaProviders.build(
           @stable_id_pattern,
           activity_context_schema: &activity_context_json_schema/0,
-          policy_decision_schema: &policy_decision_json_schema/0
+          policy_decision_schema: policy_decision_schema
         )
       )
       |> Map.merge(
@@ -594,9 +617,9 @@ defmodule OrbitalDynamics.Schema do
               :operational_readiness_source_report_evidence
             ),
           operational_timeline_row_schema: &operational_timeline_row_json_schema/0,
-          policy_decision_evidence_schema: &policy_decision_evidence_json_schema/0,
-          policy_decision_rule_match_schema: &policy_decision_rule_match_json_schema/0,
-          policy_escalation_schema: &policy_escalation_json_schema/0,
+          policy_decision_evidence_schema: policy_decision_evidence_schema,
+          policy_decision_rule_match_schema: policy_decision_rule_match_schema,
+          policy_escalation_schema: policy_escalation_schema,
           protection_decision_schema: &protection_decision_json_schema/0,
           quality_gate_report_row_schema: &quality_gate_report_row_json_schema/0,
           quality_gate_source_report_evidence_schema:
@@ -620,7 +643,7 @@ defmodule OrbitalDynamics.Schema do
           link_handoff_properties: &link_handoff_json_schema_properties/0,
           resource_projection_battery_handoff_properties:
             &resource_projection_battery_handoff_json_schema_properties/0,
-          scoped_downlink_context_properties: &scoped_downlink_context_json_schema_properties/0,
+          scoped_downlink_context_properties: scoped_downlink_context_properties,
           thermal_handoff_properties: &thermal_handoff_json_schema_properties/0,
           timeline_activity_precondition_handoff_properties:
             &timeline_activity_precondition_handoff_json_schema_properties/0,
@@ -648,8 +671,8 @@ defmodule OrbitalDynamics.Schema do
               :operational_readiness_source_report_evidence
             ),
           operational_timeline_row_schema: &operational_timeline_row_json_schema/0,
-          policy_decision_evidence_schema: &policy_decision_evidence_json_schema/0,
-          policy_escalation_schema: &policy_escalation_json_schema/0,
+          policy_decision_evidence_schema: policy_decision_evidence_schema,
+          policy_escalation_schema: policy_escalation_schema,
           quality_gate_report_row_schema: &quality_gate_report_row_json_schema/0,
           quality_gate_source_report_evidence_schema:
             Map.fetch!(source_evidence_providers, :quality_gate_source_report_evidence),
@@ -682,7 +705,7 @@ defmodule OrbitalDynamics.Schema do
           link_handoff_properties: &link_handoff_json_schema_properties/0,
           resource_projection_battery_handoff_properties:
             &resource_projection_battery_handoff_json_schema_properties/0,
-          scoped_downlink_context_properties: &scoped_downlink_context_json_schema_properties/0,
+          scoped_downlink_context_properties: scoped_downlink_context_properties,
           thermal_handoff_properties: &thermal_handoff_json_schema_properties/0,
           timeline_activity_precondition_handoff_properties:
             &timeline_activity_precondition_handoff_json_schema_properties/0,
@@ -702,49 +725,6 @@ defmodule OrbitalDynamics.Schema do
       contract,
       @field_type_hints,
       @stable_id_pattern
-    )
-  end
-
-  defp policy_decision_json_schema do
-    @policy_decision
-    |> json_schema_document(registry_contract!(@policy_decision))
-    |> Map.take(["type", "additionalProperties", "required", "properties"])
-  end
-
-  defp policy_decision_evidence_json_schema do
-    OrbitalDynamics.Schema.PolicyDecisionJsonSchema.evidence(
-      stable_id_pattern: @stable_id_pattern,
-      policy_escalation_schema: policy_escalation_json_schema()
-    )
-  end
-
-  defp policy_action_rule_json_schema do
-    action_rule_fields = OrbitalDynamics.Schema.PolicyFieldGroups.action_rule()
-
-    OrbitalDynamics.Schema.PolicyActionRuleJsonSchema.action_rule(
-      stable_id_pattern: @stable_id_pattern,
-      policy_context_fields: OrbitalDynamics.Schema.PolicyFieldGroups.json_schema(),
-      number_fields: Keyword.fetch!(action_rule_fields, :number_fields),
-      integer_fields: Keyword.fetch!(action_rule_fields, :integer_fields)
-    )
-  end
-
-  defp policy_decision_rule_match_json_schema do
-    OrbitalDynamics.Schema.PolicyDecisionRuleMatchJsonSchema.rule_match_from_context(
-      stable_id_pattern: @stable_id_pattern,
-      policy_context_fields: OrbitalDynamics.Schema.PolicyFieldGroups.json_schema()
-    )
-  end
-
-  defp policy_escalation_json_schema do
-    OrbitalDynamics.Schema.PolicyDecisionRuleMatchJsonSchema.escalation_from_context(
-      stable_id_pattern: @stable_id_pattern
-    )
-  end
-
-  defp scoped_downlink_context_json_schema_properties do
-    OrbitalDynamics.Schema.ScopedDownlinkContextJsonSchema.scoped_from_context(
-      stable_id_pattern: @stable_id_pattern
     )
   end
 
@@ -796,9 +776,13 @@ defmodule OrbitalDynamics.Schema do
   defp approval_requirement_json_schema do
     OrbitalDynamics.Schema.ApprovalRequirementJsonSchema.schema_from_context(
       stable_id_pattern: @stable_id_pattern,
-      rule_match_schema: &policy_decision_rule_match_json_schema/0,
+      rule_match_schema: fn ->
+        OrbitalDynamics.Schema.PolicySchemaProviders.rule_match(@stable_id_pattern)
+      end,
       activity_context_schema: &activity_context_json_schema/0,
-      policy_escalation_schema: &policy_escalation_json_schema/0
+      policy_escalation_schema: fn ->
+        OrbitalDynamics.Schema.PolicySchemaProviders.escalation(@stable_id_pattern)
+      end
     )
   end
 
@@ -1108,7 +1092,8 @@ defmodule OrbitalDynamics.Schema do
       stable_id_array_schema: stable_id_array_schema(),
       string_array_schema: OrbitalDynamics.Schema.CommonJsonSchema.string_array(),
       approval_requirement_schema: approval_requirement_json_schema(),
-      policy_decision_rule_match_schema: policy_decision_rule_match_json_schema()
+      policy_decision_rule_match_schema:
+        OrbitalDynamics.Schema.PolicySchemaProviders.rule_match(@stable_id_pattern)
     )
   end
 
