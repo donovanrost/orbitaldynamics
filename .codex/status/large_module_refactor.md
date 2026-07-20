@@ -9,7 +9,7 @@ Current slice:
 CampaignPlanner strategy owner direct routing.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Remove five one-hop CampaignPlanner helpers for strategy recommendation,
@@ -32,18 +32,33 @@ Selection evidence:
   repair behavior, and generated artifacts must remain unchanged.
 
 Implementation:
-Pending.
+Removed the five one-hop CampaignPlanner strategy-owner helpers and routed
+their six call sites directly to the existing internal modules.
+`campaign_planner.ex` moved from 1,078 to 1,061 lines.
 
 Verification:
-Pending.
+- Strict focused core planner, recommendation-explanation, and mission-state
+  baseline before routing: 9 passed.
+- The same strict focused suite after routing: 9 passed.
+- Strict adjacent recommendation, repair-input, and repair-determinism
+  coverage: 13 passed.
+- `mix xref callers` for all five owner modules reports the expected
+  CampaignPlanner orchestrator and existing internal consumers.
+- Static search confirms all five helper definitions and indirect calls are
+  gone.
+- `git diff --check` passed.
+- Strict forced compile passed across 4,065 files.
+- Implementation commit `f1571f1c` pushed to `main`.
 
 Behavior/schema changes:
-None intended.
+None. Public CampaignPlanner APIs, request normalization order, repair
+behavior, branch ordering, recommendation content, and generated artifacts
+remain unchanged.
 
 Last completed slice:
-Schema common count-map primitive direct routing, selected in `96fd7f7d` and
-implemented in `132941cb`.
-`schema.ex` moved from 5,989 to 5,986 lines.
+CampaignPlanner strategy owner direct routing, selected in `0aec9fda` and
+implemented in `f1571f1c`.
+`campaign_planner.ex` moved from 1,078 to 1,061 lines.
 
 Next candidate:
 Re-rank the remaining non-capability Schema responsibility clusters now that
