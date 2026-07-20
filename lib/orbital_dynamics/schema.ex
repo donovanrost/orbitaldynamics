@@ -376,7 +376,6 @@ defmodule OrbitalDynamics.Schema do
         {:candidate_rejection_row_json_schema, 0} => &candidate_rejection_row_json_schema/0,
         {:command_window_report_model_limits, 0} => &command_window_report_model_limits/0,
         {:command_window_row_json_schema, 0} => &command_window_row_json_schema/0,
-        {:constraint_row_json_schema, 0} => &constraint_row_json_schema/0,
         {:contact_allocation_capabilities, 0} => &contact_allocation_capabilities/0,
         {:contact_allocation_capacity_pack_group_json_schema, 0} =>
           &contact_allocation_capacity_pack_group_json_schema/0,
@@ -419,8 +418,6 @@ defmodule OrbitalDynamics.Schema do
         {:model_acceptance_report_model_limits, 0} => &model_acceptance_report_model_limits/0,
         {:model_acceptance_row_json_schema, 0} => &model_acceptance_row_json_schema/0,
         {:nested_stable_id_array_map_json_schema, 0} => &nested_stable_id_array_map_json_schema/0,
-        {:objective_satisfaction_row_json_schema, 0} => &objective_satisfaction_row_json_schema/0,
-        {:objective_tradeoff_row_json_schema, 0} => &objective_tradeoff_row_json_schema/0,
         {:operational_feedback_json_schema, 0} => &operational_feedback_json_schema/0,
         {:operational_readiness_capabilities, 0} => &operational_readiness_capabilities/0,
         {:operational_readiness_evidence_json_schema, 0} =>
@@ -430,7 +427,6 @@ defmodule OrbitalDynamics.Schema do
         {:operator_review_capabilities, 0} => &operator_review_capabilities/0,
         {:operator_review_package_model_limits, 0} => &operator_review_package_model_limits/0,
         {:operator_review_row_json_schema, 0} => &operator_review_row_json_schema/0,
-        {:pareto_frontier_row_json_schema, 0} => &pareto_frontier_row_json_schema/0,
         {:plan_delta_json_schema, 0} => &plan_delta_json_schema/0,
         {:planned_activity_json_schema, 0} => &planned_activity_json_schema/0,
         {:policy_action_rule_json_schema, 0} => &policy_action_rule_json_schema/0,
@@ -443,8 +439,6 @@ defmodule OrbitalDynamics.Schema do
         {:provider_counteroffer_row_json_schema, 0} => &provider_counteroffer_row_json_schema/0,
         {:quality_gate_report_row_json_schema, 0} => &quality_gate_report_row_json_schema/0,
         {:ranked_timeline_json_schema, 0} => &ranked_timeline_json_schema/0,
-        {:ranking_comparison_row_json_schema, 0} => &ranking_comparison_row_json_schema/0,
-        {:ranking_comparison_winner_json_schema, 0} => &ranking_comparison_winner_json_schema/0,
         {:realized_activity_json_schema, 0} => &realized_activity_json_schema/0,
         {:realized_spacecraft_state_json_schema, 0} => &realized_spacecraft_state_json_schema/0,
         {:realized_state_snapshot_metadata_json_schema, 0} =>
@@ -533,6 +527,12 @@ defmodule OrbitalDynamics.Schema do
           &validation_reference_report_json_schema/0
       }
     ]
+    |> Keyword.update!(:schema_providers, fn providers ->
+      Map.merge(
+        providers,
+        OrbitalDynamics.Schema.PlanningAnalysisSchemaProviders.build(@stable_id_pattern)
+      )
+    end)
   end
 
   defp default_json_schema_property(field, contract_name, contract) do
@@ -786,48 +786,6 @@ defmodule OrbitalDynamics.Schema do
       "type" => "object",
       "additionalProperties" => %{"type" => "integer", "minimum" => 0}
     }
-  end
-
-  defp objective_satisfaction_row_json_schema do
-    OrbitalDynamics.Schema.ObjectiveReportJsonSchema.satisfaction_row_from_context(
-      stable_id_pattern: @stable_id_pattern,
-      stable_id_array_schema: &stable_id_array_schema/0
-    )
-  end
-
-  defp objective_tradeoff_row_json_schema do
-    OrbitalDynamics.Schema.ObjectiveReportJsonSchema.tradeoff_row_from_context(
-      stable_id_pattern: @stable_id_pattern,
-      numeric_map_schema: &OrbitalDynamics.Schema.CommonJsonSchema.numeric_map/0,
-      string_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.string_array/0
-    )
-  end
-
-  defp ranking_comparison_row_json_schema do
-    OrbitalDynamics.Schema.OptimizerReportJsonSchema.ranking_comparison_row_from_context(
-      stable_id_pattern: @stable_id_pattern
-    )
-  end
-
-  defp ranking_comparison_winner_json_schema do
-    OrbitalDynamics.Schema.OptimizerReportJsonSchema.ranking_comparison_winner_from_context(
-      stable_id_pattern: @stable_id_pattern
-    )
-  end
-
-  defp pareto_frontier_row_json_schema do
-    OrbitalDynamics.Schema.OptimizerReportJsonSchema.pareto_frontier_row_from_context(
-      stable_id_pattern: @stable_id_pattern,
-      numeric_map_schema: &OrbitalDynamics.Schema.CommonJsonSchema.numeric_map/0,
-      stable_id_array_schema: &stable_id_array_schema/0,
-      string_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.string_array/0
-    )
-  end
-
-  defp constraint_row_json_schema do
-    OrbitalDynamics.Schema.ConstraintReportJsonSchema.row_from_context(
-      stable_id_pattern: @stable_id_pattern
-    )
   end
 
   defp resource_projection_row_json_schema do
