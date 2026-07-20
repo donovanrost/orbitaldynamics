@@ -1,7 +1,13 @@
 defmodule OrbitalDynamics.Schema.PolicyValidation do
   @moduledoc false
 
-  import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2]
+  import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2, require_fields: 4]
+
+  def validate_artifact(issues, path, artifact, contract_name) do
+    issues
+    |> require_fields(path, artifact, required_fields(contract_name))
+    |> validate_registered_artifact(path, artifact, contract_name)
+  end
 
   def validate_approval_requirement(issues, path, requirement),
     do:
@@ -115,6 +121,21 @@ defmodule OrbitalDynamics.Schema.PolicyValidation do
         policy_model_limits(),
         OrbitalDynamics.Schema.PolicyFieldGroups.action_rule()
       )
+
+  defp validate_registered_artifact(issues, path, artifact, "approval_requirement.v1"),
+    do: validate_approval_requirement(issues, path, artifact)
+
+  defp validate_registered_artifact(issues, path, artifact, "policy_decision.v1"),
+    do: validate_decision(issues, path, artifact)
+
+  defp validate_registered_artifact(issues, path, artifact, "policy_bundle.v1"),
+    do: validate_bundle(issues, path, artifact)
+
+  defp required_fields(contract_name) do
+    OrbitalDynamics.Schema.ApprovalPolicyRegistryContracts.contracts()
+    |> OrbitalDynamics.Schema.Registry.fetch!(contract_name)
+    |> Map.fetch!("required_fields")
+  end
 
   defp policy_model_limits,
     do: OrbitalDynamics.Schema.PolicyCapabilityContext.policy_model_limits()

@@ -4351,22 +4351,16 @@ defmodule OrbitalDynamics.Schema do
     |> OrbitalDynamics.Schema.PlanDeltaContracts.validate("$", artifact)
   end
 
-  defp validate_contract(@approval_requirement, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> PolicyValidation.validate_approval_requirement("$", artifact)
+  defp validate_contract(@approval_requirement, _contract, artifact) do
+    PolicyValidation.validate_artifact([], "$", artifact, @approval_requirement)
   end
 
-  defp validate_contract(@policy_decision, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> PolicyValidation.validate_decision("$", artifact)
+  defp validate_contract(@policy_decision, _contract, artifact) do
+    PolicyValidation.validate_artifact([], "$", artifact, @policy_decision)
   end
 
-  defp validate_contract(@policy_bundle, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> PolicyValidation.validate_bundle("$", artifact)
+  defp validate_contract(@policy_bundle, _contract, artifact) do
+    PolicyValidation.validate_artifact([], "$", artifact, @policy_bundle)
   end
 
   defp validate_contract(@operator_review_package, _contract, artifact) do
