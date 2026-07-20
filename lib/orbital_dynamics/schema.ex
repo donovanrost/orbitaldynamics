@@ -7,7 +7,11 @@ defmodule OrbitalDynamics.Schema do
   the artifact shapes are still maturing.
   """
 
-  alias OrbitalDynamics.Schema.{TimelineContextJsonSchema, TimelineCoreSchemaProviders}
+  alias OrbitalDynamics.Schema.{
+    TimelineContextJsonSchema,
+    TimelineCoreSchemaProviders,
+    TimelineReportSchemaProviders
+  }
 
   import OrbitalDynamics.Schema.PrimitiveValidation,
     only: [error: 2]
@@ -416,6 +420,24 @@ defmodule OrbitalDynamics.Schema do
       TimelineCoreSchemaProviders.timeline_protection_summary(@stable_id_pattern)
     end
 
+    timeline_report_schema_providers =
+      OrbitalDynamics.Schema.TimelineReportSchemaProviders.build(
+        @stable_id_pattern,
+        timeline_capability: &timeline_capabilities/0
+      )
+
+    candidate_rejection_source_schema =
+      Map.fetch!(
+        timeline_report_schema_providers,
+        {:candidate_rejection_source_json_schema, 0}
+      )
+
+    operational_timeline_row_schema =
+      Map.fetch!(
+        timeline_report_schema_providers,
+        {:operational_timeline_row_json_schema, 0}
+      )
+
     activity_schema_providers =
       OrbitalDynamics.Schema.ActivitySchemaProviders.build(
         @stable_id_pattern,
@@ -481,7 +503,6 @@ defmodule OrbitalDynamics.Schema do
         {:operational_readiness_evidence_json_schema, 0} =>
           &operational_readiness_evidence_json_schema/0,
         {:operational_readiness_gate_json_schema, 0} => &operational_readiness_gate_json_schema/0,
-        {:operational_timeline_row_json_schema, 0} => &operational_timeline_row_json_schema/0,
         {:operator_review_capabilities, 0} => &operator_review_capabilities/0,
         {:operator_review_package_model_limits, 0} => &operator_review_package_model_limits/0,
         {:policy_model_limits, 0} => &policy_model_limits/0,
@@ -509,13 +530,11 @@ defmodule OrbitalDynamics.Schema do
           &timeline_dependency_impact_row_json_schema/0,
         {:timeline_dependency_impact_summary_source_json_schema, 0} =>
           &timeline_dependency_impact_summary_source_json_schema/0,
-        {:timeline_diff_row_json_schema, 0} => &timeline_diff_row_json_schema/0,
         {:timeline_diff_summary_source_json_schema, 0} =>
           &timeline_diff_summary_source_json_schema/0,
         {:timeline_feedback_capabilities, 0} => &timeline_feedback_capabilities/0,
         {:timeline_feedback_report_model_limits, 0} => &timeline_feedback_report_model_limits/0,
         {:timeline_integrity_issue_types, 0} => &timeline_integrity_issue_types/0,
-        {:timeline_precondition_json_schema, 0} => &timeline_precondition_json_schema/0,
         {:timeline_preservation_assumptions_json_schema, 1} =>
           &timeline_preservation_assumptions_json_schema/1,
         {:timeline_report_model_limits, 0} => &timeline_report_model_limits/0,
@@ -526,6 +545,7 @@ defmodule OrbitalDynamics.Schema do
     ]
     |> Keyword.update!(:schema_providers, fn providers ->
       providers
+      |> Map.merge(timeline_report_schema_providers)
       |> Map.merge(timeline_core_schema_providers)
       |> Map.merge(activity_schema_providers)
       |> Map.merge(policy_schema_providers)
@@ -658,7 +678,7 @@ defmodule OrbitalDynamics.Schema do
               source_evidence_providers,
               :operational_readiness_source_report_evidence
             ),
-          operational_timeline_row_schema: &operational_timeline_row_json_schema/0,
+          operational_timeline_row_schema: operational_timeline_row_schema,
           policy_decision_evidence_schema: policy_decision_evidence_schema,
           policy_decision_rule_match_schema: policy_decision_rule_match_schema,
           policy_escalation_schema: policy_escalation_schema,
@@ -703,7 +723,7 @@ defmodule OrbitalDynamics.Schema do
           timeline_capability: &timeline_capabilities/0,
           activity_context_schema: activity_context_schema,
           candidate_activity_source_window_schema: candidate_activity_source_window_schema,
-          candidate_rejection_source_schema: &candidate_rejection_source_json_schema/0,
+          candidate_rejection_source_schema: candidate_rejection_source_schema,
           operational_readiness_evidence_schema: &operational_readiness_evidence_json_schema/0,
           operational_readiness_gate_schema: &operational_readiness_gate_json_schema/0,
           operational_readiness_source_report_evidence_schema:
@@ -711,7 +731,7 @@ defmodule OrbitalDynamics.Schema do
               source_evidence_providers,
               :operational_readiness_source_report_evidence
             ),
-          operational_timeline_row_schema: &operational_timeline_row_json_schema/0,
+          operational_timeline_row_schema: operational_timeline_row_schema,
           policy_decision_evidence_schema: policy_decision_evidence_schema,
           policy_escalation_schema: policy_escalation_schema,
           quality_gate_report_row_schema: &quality_gate_report_row_json_schema/0,
@@ -816,64 +836,6 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.ValidationJsonSchema.registry_conditions(@stable_id_pattern)
   end
 
-  defp operational_timeline_row_json_schema do
-    OrbitalDynamics.Schema.OperationalTimelineReportJsonSchema.row_from_context(
-      capability: &timeline_capabilities/0,
-      stable_id_pattern: @stable_id_pattern,
-      stable_id_array_schema: &stable_id_array_schema/0,
-      string_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.string_array/0,
-      number_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.number_array/0,
-      timeline_precondition_schema: &timeline_precondition_json_schema/0,
-      activity_context_schema: fn ->
-        TimelineCoreSchemaProviders.activity_context(@stable_id_pattern)
-      end,
-      timeline_integrity_issue_schema: &timeline_integrity_issue_json_schema/0
-    )
-  end
-
-  defp candidate_rejection_source_json_schema do
-    OrbitalDynamics.Schema.CandidateRejectionReportJsonSchema.source_from_context(
-      stable_id_pattern: @stable_id_pattern,
-      timeline_capability: &timeline_capabilities/0,
-      string_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.string_array/0,
-      activity_context_schema: fn ->
-        TimelineCoreSchemaProviders.activity_context(@stable_id_pattern)
-      end
-    )
-  end
-
-  defp timeline_precondition_json_schema do
-    OrbitalDynamics.Schema.TimelineSupportJsonSchema.precondition_from_context(
-      capability: &timeline_capabilities/0
-    )
-  end
-
-  defp timeline_integrity_issue_json_schema do
-    OrbitalDynamics.Schema.OperationalTimelineReportJsonSchema.integrity_issue_from_context(
-      capability: &timeline_capabilities/0,
-      stable_id_pattern: @stable_id_pattern
-    )
-  end
-
-  defp timeline_diff_row_json_schema do
-    OrbitalDynamics.Schema.TimelineDiffReportJsonSchema.row_from_context(
-      capability: &timeline_capabilities/0,
-      stable_id_pattern: @stable_id_pattern,
-      stable_id_array_schema: &stable_id_array_schema/0,
-      activity_context_schema: fn ->
-        TimelineCoreSchemaProviders.activity_context(@stable_id_pattern)
-      end,
-      protection_decision_schema: fn ->
-        TimelineCoreSchemaProviders.protection_decision(@stable_id_pattern)
-      end,
-      lifecycle_transition_schema: &TimelineContextJsonSchema.lifecycle_transition/0,
-      string_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.string_array/0,
-      timeline_identity_schema: fn ->
-        TimelineCoreSchemaProviders.timeline_identity(@stable_id_pattern)
-      end
-    )
-  end
-
   defp timeline_lifecycle_state_source_json_schema do
     OrbitalDynamics.Schema.TimelineActivityLifecycleStateJsonSchema.source_from_context(
       stable_id_pattern: @stable_id_pattern,
@@ -908,7 +870,9 @@ defmodule OrbitalDynamics.Schema do
         model_limits: &timeline_report_model_limits/0,
         precondition_statuses: &timeline_activity_precondition_statuses/0,
         string_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.string_array/0,
-        precondition_schema: &timeline_precondition_json_schema/0,
+        precondition_schema: fn ->
+          TimelineReportSchemaProviders.timeline_precondition(&timeline_capabilities/0)
+        end,
         stable_id_pattern: @stable_id_pattern,
         stable_id_array_schema: &stable_id_array_schema/0,
         timeline_identity_schema: fn ->
@@ -934,7 +898,12 @@ defmodule OrbitalDynamics.Schema do
       registry_contract!(@timeline_diff_summary),
       [
         model_limits: &timeline_report_model_limits/0,
-        row_schema: &timeline_diff_row_json_schema/0,
+        row_schema: fn ->
+          TimelineReportSchemaProviders.timeline_diff_row(
+            @stable_id_pattern,
+            &timeline_capabilities/0
+          )
+        end,
         capability: &timeline_capabilities/0,
         stable_id_pattern: @stable_id_pattern
       ],
@@ -983,7 +952,12 @@ defmodule OrbitalDynamics.Schema do
       protection_decision_schema: fn ->
         TimelineCoreSchemaProviders.protection_decision(@stable_id_pattern)
       end,
-      timeline_diff_row_schema: &timeline_diff_row_json_schema/0
+      timeline_diff_row_schema: fn ->
+        TimelineReportSchemaProviders.timeline_diff_row(
+          @stable_id_pattern,
+          &timeline_capabilities/0
+        )
+      end
     )
   end
 
@@ -1001,7 +975,12 @@ defmodule OrbitalDynamics.Schema do
         protection_decision_schema: fn ->
           TimelineCoreSchemaProviders.protection_decision(@stable_id_pattern)
         end,
-        timeline_diff_row_schema: &timeline_diff_row_json_schema/0,
+        timeline_diff_row_schema: fn ->
+          TimelineReportSchemaProviders.timeline_diff_row(
+            @stable_id_pattern,
+            &timeline_capabilities/0
+          )
+        end,
         timeline_identity_schema: fn ->
           TimelineCoreSchemaProviders.timeline_identity(@stable_id_pattern)
         end,
@@ -1099,7 +1078,8 @@ defmodule OrbitalDynamics.Schema do
       timeline_capability: timeline_capabilities(),
       stable_id_array_schema: stable_id_array_schema(),
       string_array_schema: OrbitalDynamics.Schema.CommonJsonSchema.string_array(),
-      timeline_precondition_schema: timeline_precondition_json_schema(),
+      timeline_precondition_schema:
+        TimelineReportSchemaProviders.timeline_precondition(&timeline_capabilities/0),
       timeline_activity_precondition_summary_source_schema:
         timeline_activity_precondition_summary_source_json_schema()
     )
