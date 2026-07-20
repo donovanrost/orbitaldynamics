@@ -6,53 +6,36 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-OperationalReadiness quality-gate report extraction.
+RecommendationRiskContext link-capacity extraction.
 
 Status:
-Completed and pushed in `9a00a240`.
+Selected; implementation not started.
 
 Selected boundary:
-Extract quality-gate report construction and its gate/row routing helpers into
-`OrbitalDynamics.OperationalReadiness.QualityGateReport`. Preserve all
-OperationalReadiness and downstream public facades.
+Extract link-capacity context keys, risk classification, and context projection
+into `OrbitalDynamics.RecommendationRiskContext.LinkCapacity`. Preserve all
+RecommendationRiskContext and downstream public facades.
 
 Selection evidence:
 - Excluding the generated/declarative candidate-refresh JSON-schema module,
-  live re-ranking places `operational_readiness.ex` at 903 lines, the
+  live re-ranking places `recommendation_risk_context.ex` at 878 lines, the
   largest ordinary eligible facade.
-- Quality-gate row projection and all specialized quality summaries already
-  have focused owners, while report aggregation and routing remain inline.
-- The selected code has one responsibility: turn readiness gates into a
-  quality-gate report with stable row IDs, derived classification, counts,
-  routing sets, execution boundary, assumptions, and model limits.
-- Readiness report construction, evidence construction, row projection, and
-  all specialized summaries remain outside the boundary.
-- Exact schema/model fields, row order, classification precedence, status and
-  count derivation, gate/row ID routing, execution boundary, public output, and
-  error behavior must remain unchanged.
+- RecommendationRiskContext delegates twenty-four focused risk families, while
+  link-capacity keys, classification, and projection remain inline.
+- The selected code has one responsibility: identify scoped downlink-gap and
+  actual-link-capacity risks and project demand, completion, throughput,
+  shortfall, status, derivation, and provenance context.
+- Contention, filters, timeline preservation, and all other risk families
+  remain outside the boundary.
+- Exact context key order, classifier forms, atom-key normalization,
+  multi-key/list flattening, nil omission, value ordering, non-list behavior,
+  public output, and error behavior must remain unchanged.
 
 Implementation:
-- Added `OrbitalDynamics.OperationalReadiness.QualityGateReport` as the focused
-  owner of row aggregation, classification precedence, counts, gate/row
-  routing sets, execution boundary, assumptions, and model limits.
-- Preserved QualityGateRow as the row-projection owner and all public
-  OperationalReadiness facades through the report builder.
-- Readiness report/evidence construction and all specialized summaries remain
-  outside the extraction.
-- `operational_readiness.ex` moved from 903 to 827 lines; the dedicated
-  QualityGateReport owner is 118 lines.
+Pending.
 
 Verification:
-- Strict focused baseline: 31 tests passed with warnings treated as errors.
-- Exact old/new public parity: seven reports passed, covering every
-  classification, blocked-first mixed precedence, non-map gate filtering,
-  stable routing sets, atom-key normalization, and the root facade.
-- Post-change core, operator-review, schema, and fixture checks: 51 tests
-  passed with warnings treated as errors.
-- Static ownership and xref checks passed; only the facade calls the extracted
-  owner at runtime.
-- Forced warning-clean test compile passed across 4,041 files.
-- Focused formatting and `git diff --check` passed.
+Pending.
 
 Behavior/schema changes:
 None intended.
@@ -64,8 +47,8 @@ and implemented in `9a00a240`.
 QualityGateReport owner is 118 lines.
 
 Next candidate:
-After this slice, re-rank the live checkout. RecommendationRiskContext is the
-next largest ordinary eligible facade.
+After this slice, re-rank the live checkout. OperationalReadiness is the next
+largest ordinary eligible facade.
 
 Blocked:
 No.
