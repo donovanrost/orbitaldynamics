@@ -6,40 +6,30 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema Cadence import handoff test family split.
+Schema contact-feedback export test split.
 
 Status:
-Completed and verified.
+Selected; implementation pending.
 
 Selected boundary:
-Split the 1,597-line Cadence source-window handoff test into independently
-runnable basic import, lineage/resource, battery-flow, embedded-source-report,
-and nested review-copy families. Keep every mutation/path assertion and the
-checked-in manifest reader in the same contract module.
+Move the 940-line nested realized-state/timeline-feedback schema export test
+from the 1,853-line contact-feedback contract module into a focused sibling
+with its model-limit and JSON fixture helpers. Keep checked-in feedback,
+contact-intent, realized-row, and realized-example tests in the original.
 
 Selection evidence:
-- The self-contained restart points begin at `invalid_scalar_count`,
-  `battery_handoff_manifest`, `source_timeline_diff_row`, and
-  `invalid_review_copy_lineage`.
-- Each section depends only on a fresh copy of
-  `cadence_import_manifest_v1.json`; section-local rows and indexes do not cross
-  those boundaries.
-- Separate tests make failures attributable to one handoff family without
-  replacing the exhaustive negative-path coverage.
+- The first export test ends before the checked-in timeline-feedback fixture
+  test begins at line 946.
+- It is the sole consumer of `timeline_feedback_report_model_limits/0` and uses
+  only the generic five-line JSON reader otherwise.
+- The remaining four tests are behavior/fixture contracts, while the first is
+  a cohesive nested-schema export contract.
 
 Implementation:
-Selected in `e9a912b0` and implemented in `7ff0286b`. Split the source-window
-handoff ledger into basic import, lineage/resource, battery-flow,
-embedded-source-report, and nested review-copy tests. Each family reloads its
-checked-in fixture context; the review-copy family reloads the seven source rows
-whose nested copies it validates. All original mutation/path assertions remain.
+Pending.
 
 Verification:
-- The focused Cadence import module passed with warnings as errors: 8 tests.
-- The full schema/validation gate passed with warnings as errors: 368 tests.
-- Full checked-in schema export regeneration produced no diff.
-- Strict forced compile passed with warnings as errors: 4,129 files.
-- Touched-file format and `git diff --check` passed.
+Pending.
 
 Behavior/schema changes:
 None intended. The same deterministic fixtures, production calls, assertions,
@@ -51,8 +41,7 @@ implemented in `7ff0286b`. The 1,597-line catch-all handoff test now exposes
 five independently runnable responsibility families.
 
 Next candidate:
-Inspect the contact-feedback and operator-review schema contract modules for
-the next independently runnable family boundary.
+Implement and verify the selected contact-feedback export test split.
 
 Blocked:
 No.
