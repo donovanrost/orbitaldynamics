@@ -6,57 +6,35 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-No slice selected.
+Schema contact-report validation routing cleanup.
 
 Status:
-Slice complete and pushed.
+Selected; implementation not started.
 
 Selected boundary:
-Completed the existing `OrbitalDynamics.Schema.TimelineContextValidation`
-extraction by routing callback tables directly to that owner and removing
-nine facade pass-through clauses.
-Preserved all `OrbitalDynamics.Schema` public facades and validation/error
-behavior.
+Complete the existing `OrbitalDynamics.Schema.ContactReportValidation`
+extraction by routing contract clauses and callback tables directly to that
+owner and removing five facade pass-through wrappers.
+Preserve all `OrbitalDynamics.Schema` public facades and validation output.
 
 Selection evidence:
-- `schema.ex` remains the dominant hotspot at 6,640 lines.
-- Timeline-context validation logic already has a focused owner, but the facade
-  retains one-hop wrappers referenced by operational timeline, transition,
-  campaign, Cadence import, source-review, and operator-review callbacks.
-- The selected code has one responsibility: route optional precondition,
-  activity, protection, lifecycle, identity, link, and protection-summary
-  context validation to the existing owner.
-- Preserve the facade wrappers' map-only function-clause behavior by moving
-  those guards to the owner before exposing it directly to callback tables.
-- Callback-table composition, timeline transition/source validation, other
+- `schema.ex` remains the dominant hotspot at 6,622 lines.
+- Contact filter/contention validation already has a focused owner, but the
+  facade retains five pure one-hop wrappers referenced by contract clauses and
+  campaign/candidate callback tables.
+- The selected code has one responsibility: route contact-filter reports and
+  optional contention/resolution reports to the existing owner.
+- Callback-table composition, contact-allocation validation, other
   artifact-family validation, JSON Schema generation, and all public routing
   remain outside the boundary.
-- Exact issue ordering, paths, messages, required-field behavior, callback
+- Exact issue ordering, paths, messages, malformed-input behavior, callback
   wiring, public validation results, and schema exports must remain unchanged.
 
 Implementation:
-- Moved the facade wrappers' map guards onto the seven corresponding optional
-  owner functions so malformed-input function-clause behavior remains stable.
-- Routed operational-timeline, transition, campaign, Cadence import,
-  source-review, and operator-review callback tables directly to
-  `TimelineContextValidation`.
-- Removed nine one-hop private wrapper clauses, including the two-clause
-  timeline-identity adapter.
-- `schema.ex` moved from 6,640 to 6,622 lines; the focused owner remains compact
-  at 76 lines.
+Pending.
 
 Verification:
-- Pre-change strict focused baseline: 43 timeline/Cadence/operator-review
-  contract tests passed.
-- Post-change strict focused verification: the same 43 tests passed; 7 broader
-  validation and campaign-fixture tests also passed.
-- Static checks found no migrated timeline-context wrappers or local callback
-  captures remaining; xref reports `schema.ex` as the runtime caller of
-  `TimelineContextValidation`.
-- No checked-in schema export changed.
-- Forced warnings-as-errors compile passed across 4,050 files.
-- Formatting and `git diff --check` passed; the worktree was clean after the
-  implementation commit.
+Pending.
 
 Behavior/schema changes:
 None intended.
@@ -68,9 +46,8 @@ implemented in `d9d05131`.
 existing TimelineContextValidation owner.
 
 Next candidate:
-Re-rank the remaining schema wrapper clusters. Keep the timeline-transition
-adapters because they inject callback dependencies; source-evidence routing is
-a smaller pure pass-through candidate.
+After this slice, re-rank the remaining schema wrapper clusters. Keep
+dependency-injecting transition/source-status adapters in the facade.
 
 Blocked:
 No.
