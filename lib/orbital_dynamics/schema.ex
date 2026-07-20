@@ -370,9 +370,6 @@ defmodule OrbitalDynamics.Schema do
         {:candidate_activity_json_schema, 0} => &candidate_activity_json_schema/0,
         {:candidate_activity_source_window_json_schema, 0} =>
           &candidate_activity_source_window_json_schema/0,
-        {:candidate_diff_row_json_schema, 0} => &candidate_diff_row_json_schema/0,
-        {:candidate_refresh_scoped_context_json_schema_properties, 0} =>
-          &candidate_refresh_scoped_context_json_schema_properties/0,
         {:candidate_rejection_row_json_schema, 0} => &candidate_rejection_row_json_schema/0,
         {:command_window_report_model_limits, 0} => &command_window_report_model_limits/0,
         {:command_window_row_json_schema, 0} => &command_window_row_json_schema/0,
@@ -400,7 +397,6 @@ defmodule OrbitalDynamics.Schema do
           &contact_intent_summary_assumptions_json_schema/0,
         {:execution_uncertainty_json_schema, 0} => &execution_uncertainty_json_schema/0,
         {:ground_station_identity_json_schema, 0} => &ground_station_identity_json_schema/0,
-        {:invalidated_candidate_json_schema, 0} => &invalidated_candidate_json_schema/0,
         {:link_capacity_assumptions_json_schema, 1} => &link_capacity_assumptions_json_schema/1,
         {:maneuver_recommendation_model_limits, 0} => &maneuver_recommendation_model_limits/0,
         {:maneuver_review_report_model_limits, 0} => &maneuver_review_report_model_limits/0,
@@ -443,7 +439,6 @@ defmodule OrbitalDynamics.Schema do
           &scoped_downlink_context_json_schema_properties/0,
         {:score_term_row_json_schema, 0} => &score_term_row_json_schema/0,
         {:sha256_json_schema, 0} => &sha256_json_schema/0,
-        {:source_window_lineage_json_schema, 0} => &source_window_lineage_json_schema/0,
         {:spacecraft_identity_json_schema, 0} => &spacecraft_identity_json_schema/0,
         {:stable_id_array_map_schema, 0} => &stable_id_array_map_schema/0,
         {:stable_id_array_schema, 0} => &stable_id_array_schema/0,
@@ -527,6 +522,7 @@ defmodule OrbitalDynamics.Schema do
           station_calendar_capability: &station_calendar_capabilities/0
         )
       )
+      |> Map.merge(OrbitalDynamics.Schema.CandidateDiffSchemaProviders.build(@stable_id_pattern))
     end)
   end
 
@@ -646,12 +642,6 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp candidate_refresh_scoped_context_json_schema_properties do
-    OrbitalDynamics.Schema.ScopedDownlinkContextJsonSchema.candidate_refresh_from_context(
-      stable_id_pattern: @stable_id_pattern
-    )
-  end
-
   defp branch_scoped_downlink_context_json_schema_properties do
     OrbitalDynamics.Schema.ScopedDownlinkContextJsonSchema.branch_from_context(
       stable_id_pattern: @stable_id_pattern
@@ -695,27 +685,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp nested_stable_id_array_map_json_schema do
     OrbitalDynamics.Schema.CommonJsonSchema.nested_stable_id_array_map(@stable_id_pattern)
-  end
-
-  defp source_window_lineage_json_schema do
-    OrbitalDynamics.Schema.CandidateDiffJsonSchema.source_window_lineage_from_context(
-      stable_id_pattern: @stable_id_pattern,
-      scoped_context_properties: &candidate_refresh_scoped_context_json_schema_properties/0
-    )
-  end
-
-  defp invalidated_candidate_json_schema do
-    OrbitalDynamics.Schema.CandidateDiffJsonSchema.invalidated_candidate_from_context(
-      stable_id_pattern: @stable_id_pattern,
-      scoped_context_properties: &candidate_refresh_scoped_context_json_schema_properties/0
-    )
-  end
-
-  defp candidate_diff_row_json_schema do
-    OrbitalDynamics.Schema.CandidateDiffJsonSchema.row_from_context(
-      stable_id_pattern: @stable_id_pattern,
-      scoped_context_properties: &candidate_refresh_scoped_context_json_schema_properties/0
-    )
   end
 
   defp candidate_activity_json_schema do
@@ -1345,7 +1314,11 @@ defmodule OrbitalDynamics.Schema do
         &source_freshness_report_evidence_json_schema/0,
       source_schema_validation_report_evidence_json_schema:
         &source_schema_validation_report_evidence_json_schema/0,
-      source_window_lineage_json_schema: &source_window_lineage_json_schema/0,
+      source_window_lineage_json_schema: fn ->
+        OrbitalDynamics.Schema.CandidateDiffSchemaProviders.source_window_lineage(
+          @stable_id_pattern
+        )
+      end,
       stable_id_array_map_schema: &stable_id_array_map_schema/0,
       stable_id_array_schema: &stable_id_array_schema/0,
       string_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.string_array/0,
@@ -1494,7 +1467,11 @@ defmodule OrbitalDynamics.Schema do
         &source_freshness_report_evidence_json_schema/0,
       source_schema_validation_report_evidence_json_schema:
         &source_schema_validation_report_evidence_json_schema/0,
-      source_window_lineage_json_schema: &source_window_lineage_json_schema/0,
+      source_window_lineage_json_schema: fn ->
+        OrbitalDynamics.Schema.CandidateDiffSchemaProviders.source_window_lineage(
+          @stable_id_pattern
+        )
+      end,
       stable_id_array_map_schema: &stable_id_array_map_schema/0,
       stable_id_array_schema: &stable_id_array_schema/0,
       string_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.string_array/0,
@@ -1601,7 +1578,11 @@ defmodule OrbitalDynamics.Schema do
       semantic_change_details_json_schema:
         &OrbitalDynamics.Schema.CandidateDiffJsonSchema.semantic_change_details/0,
       source_evidence_json_schema: &source_evidence_json_schema/0,
-      source_window_lineage_json_schema: &source_window_lineage_json_schema/0,
+      source_window_lineage_json_schema: fn ->
+        OrbitalDynamics.Schema.CandidateDiffSchemaProviders.source_window_lineage(
+          @stable_id_pattern
+        )
+      end,
       stable_id_array_map_schema: &stable_id_array_map_schema/0,
       stable_id_array_schema: &stable_id_array_schema/0,
       string_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.string_array/0,
