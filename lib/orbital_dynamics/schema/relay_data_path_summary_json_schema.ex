@@ -142,6 +142,10 @@ defmodule OrbitalDynamics.Schema.RelayDataPathSummaryJsonSchema do
     Keyword.fetch!(opts, :stable_id_array_map_schema)
   end
 
+  def custody_statuses, do: ~w(confirmed pending missing_ack failed unknown)
+  def latency_statuses, do: ~w(within_limit exceeds_limit not_evaluated unknown)
+  def risk_statuses, do: ~w(nominal review high unknown)
+
   def row_from_deps(deps) do
     deps
     |> row_opts()

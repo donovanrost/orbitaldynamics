@@ -2714,9 +2714,9 @@ defmodule OrbitalDynamics.Schema do
       stable_id_pattern: @stable_id_pattern,
       stable_id_array_schema: &stable_id_array_schema/0,
       string_array_schema: &string_array_schema/0,
-      custody_statuses: &relay_custody_statuses/0,
-      latency_statuses: &relay_latency_statuses/0,
-      risk_statuses: &relay_risk_statuses/0
+      custody_statuses: &OrbitalDynamics.Schema.RelayDataPathSummaryJsonSchema.custody_statuses/0,
+      latency_statuses: &OrbitalDynamics.Schema.RelayDataPathSummaryJsonSchema.latency_statuses/0,
+      risk_statuses: &OrbitalDynamics.Schema.RelayDataPathSummaryJsonSchema.risk_statuses/0
     )
   end
 
@@ -5693,10 +5693,6 @@ defmodule OrbitalDynamics.Schema do
       end
     )
   end
-
-  defp relay_custody_statuses, do: ~w(confirmed pending missing_ack failed unknown)
-  defp relay_latency_statuses, do: ~w(within_limit exceeds_limit not_evaluated unknown)
-  defp relay_risk_statuses, do: ~w(nominal review high unknown)
 
   defp validate_contact_allocation_report_counts(issues, path, report),
     do:
