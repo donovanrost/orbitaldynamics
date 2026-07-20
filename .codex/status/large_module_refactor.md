@@ -9,7 +9,7 @@ Current slice:
 Campaign-planner recommendation-pressure expected-handoff fixture extraction.
 
 Status:
-Selected; implementation pending.
+Completed and verified.
 
 Selected boundary:
 Move the deterministic expected-handoff contract map from the 2,047-line
@@ -25,22 +25,33 @@ Selection evidence:
   making the focused handoff test navigable.
 
 Implementation:
-Pending.
+Selected in `aa9413f4` and implemented in `0315df4a`. Added the 1,998-line
+`StrategyRecommendationPressureExpectedHandoffFixture` contract owner and
+replaced the embedded map with one fixture call. The focused handoff test moved
+from 2,047 to 62 lines while retaining every review/import/schema assertion.
 
 Verification:
-Pending.
+- Both focused recommendation-pressure tests passed with warnings as errors:
+  2 tests.
+- Strict forced compile passed with warnings as errors: 4,129 files.
+- Touched-file format checks, new-helper whitespace checks, and
+  `git diff --check` passed.
+- No production or checked-in schema-export files changed.
 
 Behavior/schema changes:
 None intended. The same deterministic fixtures, production calls, assertions,
 artifact validation, and async test behavior must remain unchanged.
 
 Last completed slice:
-Campaign-planner recommendation-pressure handoff test split, selected in
-`b603830b` and implemented in `1844e795`. The 3,060-line assertion module became
-a 1,029-line explanation test and a 2,047-line handoff test.
+Campaign-planner recommendation-pressure expected-handoff fixture extraction,
+selected in `aa9413f4` and implemented in `0315df4a`. The handoff test moved
+from 2,047 to 62 lines and its exhaustive contract now has a named fixture
+owner.
 
 Next candidate:
-Implement and verify the selected expected-handoff fixture extraction.
+Return to the largest schema contract test files and select a coherent
+contract-family fixture or test split; the recommendation-pressure tests now
+have focused scenario, explanation, expected-contract, and handoff owners.
 
 Blocked:
 No.
