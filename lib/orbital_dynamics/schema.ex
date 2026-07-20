@@ -1350,14 +1350,14 @@ defmodule OrbitalDynamics.Schema do
   defp registry_contract!(name), do: OrbitalDynamics.Schema.Registry.fetch!(@contracts, name)
 
   defp timeline_preservation_assumptions_json_schema(@timeline_preservation_report) do
-    timeline_string_assumptions_json_schema(%{
+    OrbitalDynamics.Schema.CommonJsonSchema.string_const_assumptions(%{
       "execution_boundary" => "artifact_only_no_schedule_mutation",
       "scope" => "lifecycle_lock_approval_and_executed_preservation_review"
     })
   end
 
   defp timeline_preservation_assumptions_json_schema(@timeline_preservation_status) do
-    timeline_string_assumptions_json_schema(%{
+    OrbitalDynamics.Schema.CommonJsonSchema.string_const_assumptions(%{
       "execution_boundary" => "artifact_only_no_schedule_mutation",
       "scope" => "single_activity_lifecycle_preservation_preflight"
     })
@@ -1616,7 +1616,7 @@ defmodule OrbitalDynamics.Schema do
         &lifecycle_transition_json_schema/0,
         &protection_decision_json_schema/0,
         fn ->
-          timeline_activity_state_assumptions_json_schema([
+          OrbitalDynamics.Schema.CommonJsonSchema.boolean_const_assumptions([
             "artifact_only",
             "no_schedule_mutation",
             "no_command_execution"
@@ -3155,14 +3155,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp campaign_activity_json_schema do
     candidate_activity_json_schema()
-  end
-
-  defp timeline_activity_state_assumptions_json_schema(fields) do
-    OrbitalDynamics.Schema.CommonJsonSchema.boolean_const_assumptions(fields)
-  end
-
-  defp timeline_string_assumptions_json_schema(values) do
-    OrbitalDynamics.Schema.CommonJsonSchema.string_const_assumptions(values)
   end
 
   defp planned_activity_json_schema do
