@@ -9,7 +9,7 @@ Current slice:
 Schema contact-contention capability-context extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Extract the contact-contention model-limit projection and report-assumptions
@@ -33,19 +33,35 @@ Selection evidence:
   unchanged.
 
 Implementation:
-Pending.
+Added `OrbitalDynamics.Schema.ContactContentionCapabilityContext`, which now
+owns the ContactContention model-limit projection and report-assumptions
+assembly. `OrbitalDynamics.Schema` imports only those two focused APIs.
+`schema.ex` moved from 6,189 to 6,183 lines; the dedicated owner is 15 lines.
 
 Verification:
-Pending.
+- Strict focused communications/default-message/export/registry baseline
+  before extraction: 37 passed.
+- The same strict focused suite after extraction: 37 passed.
+- Strict full schema-export task plus adjacent Cadence-import,
+  candidate-refresh provenance, fixture-visibility, and operator-review
+  coverage: 9 passed.
+- `mix xref callers
+  OrbitalDynamics.Schema.ContactContentionCapabilityContext` reports only
+  `lib/orbital_dynamics/schema.ex (export)`.
+- `git diff --check` passed; no checked-in schema export changed.
+- Strict forced compile passed across 4,057 files.
+- Implementation commit `b0025203` pushed to `main`.
 
 Behavior/schema changes:
-None intended.
+None. Public facades, model-limit conversion, capability and assumption
+ordering, generated JSON Schema, validation behavior, and checked-in exports
+remain unchanged.
 
 Last completed slice:
-Schema contact-intent capability-context extraction, selected in `4b180837`
-and implemented in `c71107c0`.
-`schema.ex` moved from 6,201 to 6,189 lines; the dedicated
-ContactIntentCapabilityContext owner is 21 lines.
+Schema contact-contention capability-context extraction, selected in
+`81ef520e` and implemented in `b0025203`.
+`schema.ex` moved from 6,189 to 6,183 lines; the dedicated
+ContactContentionCapabilityContext owner is 15 lines.
 
 Next candidate:
 Re-rank the remaining Schema capability/model-limit responsibility clusters.
