@@ -9,7 +9,7 @@ Current slice:
 Schema link-capacity validation routing.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Add a small LinkCapacityValidation owner for registry-required report
@@ -32,23 +32,40 @@ Selection evidence:
   910-line report contract module.
 
 Implementation:
-Pending.
+Added LinkCapacityValidation with registry-required report validation and
+optional report shape handling. Routed the direct Schema report consumer and
+both campaign callback consumers to the owner, removed the facade-local
+optional closure, and left LinkCapacityReportContracts unchanged.
+`schema.ex` moved from 5,202 to 5,191 lines.
 
 Verification:
-Pending.
+- Strict link-capacity/campaign baseline before routing: 51 passed.
+- The same strict focused suite after routing: 51 passed.
+- Strict full link-capacity, Cadence, campaign, validation, operator-review,
+  and candidate-refresh coverage: 92 passed.
+- The full schema-export task completed and produced no checked-in changes.
+- Exact static inspection confirms one direct and two optional owner routes and
+  zero facade-local link-capacity closures.
+- `mix xref callers OrbitalDynamics.Schema.LinkCapacityValidation` reports only
+  the expected Schema facade runtime caller.
+- `mix format --check-formatted` and `git diff --check` passed.
+- Strict forced compile passed across 4,074 files with no warnings.
+- Bounded local review confirmed registry requirements, optional error path,
+  validation ordering, and issue prepending match the former facade routes.
+- Implementation commit `569e3c34` pushed to `main`.
 
 Behavior/schema changes:
-None intended. Required fields, validation ordering and paths, public Schema
-APIs, validation results, and checked-in exports must remain unchanged.
+None. Required fields, validation ordering and paths, public Schema APIs,
+validation results, and checked-in exports remain unchanged.
 
 Last completed slice:
-Schema decision-support registered-contract validation routing, selected in
-`8da19f67` and implemented in `0d29fbd9`.
-`schema.ex` moved from 5,294 to 5,202 lines.
+Schema link-capacity validation routing, selected in `1f254ec7` and implemented
+in `569e3c34`.
+`schema.ex` moved from 5,202 to 5,191 lines.
 
 Next candidate:
-Implement and verify the selected link-capacity validation routing, then
-re-evaluate campaign plan/repair callback ownership.
+Re-evaluate campaign plan/repair callback ownership now that their optional
+artifact dependencies route to existing owners.
 
 Blocked:
 No.
