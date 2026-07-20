@@ -4115,10 +4115,8 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validate_contract(@proposed_contact, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.ProposedContactContracts.validate("$", artifact)
+  defp validate_contract(@proposed_contact, _contract, artifact) do
+    CampaignArtifactValidation.validate_proposed_contact_artifact([], "$", artifact)
   end
 
   defp validate_contract(@contact_intent, _contract, artifact) do
