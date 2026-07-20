@@ -9,7 +9,7 @@ Current slice:
 OperationalReadiness quality-gate summary extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `0400f75b`.
 
 Selected boundary:
 Extract row-derived quality-gate summary projection and its classification and
@@ -35,24 +35,44 @@ Selection evidence:
   remain unchanged.
 
 Implementation:
-Pending.
+- Added `OrbitalDynamics.OperationalReadiness.QualityGateSummary` as the owner
+  of its artifact contract, row-derived classification, execution boundary,
+  counts, stable gate/row routing sets, and non-passed row projection.
+- Wired both direct quality-gate and derived-readiness public paths to the owner
+  and delegated the capability contract declaration without changing root APIs.
+- Kept readiness evidence collection, gate decisions, full quality-gate
+  reporting, unavailable-resource summaries, and import-eligibility summaries
+  outside the boundary.
+- `operational_readiness.ex` moved from 1,598 to 1,541 lines; the new owner is
+  132 lines.
 
 Verification:
-Pending.
+- Strict focused baseline passed all 31 OperationalReadiness tests.
+- Exact old/new public parity passed for four deterministic summaries:
+  all-passed gates, mixed blocked/analysis/review precedence and routing,
+  atom-keyed input, and an empty-row report.
+- Post-extraction focused and adjacent readiness, replay-summary,
+  operator-review, schema-contract, and validation verification passed all 49
+  tests.
+- Static checks confirm the inline summary projector and contract attribute
+  left the facade; xref reports only OperationalReadiness as a runtime caller.
+- Strict warning-clean forced compile passed for 4,019 files.
+- Formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-OperationalReadiness import-eligibility summary extraction, selected in
-`a4788975` and implemented in `3eb8d213`.
-`operational_readiness.ex` moved from 1,635 to 1,598 lines; the dedicated
-ImportEligibilitySummary owner is 46 lines.
+OperationalReadiness quality-gate summary extraction, selected in `85bc6b83`
+and implemented in `0400f75b`.
+`operational_readiness.ex` moved from 1,598 to 1,541 lines; the dedicated
+QualityGateSummary owner is 132 lines.
 
 Next candidate:
-After this slice, re-rank the live checkout. ContactContention and
-ResourceFilter are the next largest ordinary eligible facades, followed by the
-reduced OperationalReadiness facade.
+Re-rank the live checkout and select the next bounded facade-preserving
+extraction. ContactContention is now the largest ordinary eligible facade at
+1,546 lines, followed by ResourceFilter at 1,542 and OperationalReadiness at
+1,541.
 
 Blocked:
 No.
