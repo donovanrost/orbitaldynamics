@@ -6,52 +6,39 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema decision-support owner completion.
+Schema campaign branch/recommendation owner routing extraction.
 
 Status:
-Completed and pushed.
+Selected; implementation pending.
 
 Selected boundary:
-Add registry-backed `DecisionSupportValidation` entry points for
-`pareto_frontier_report.v1` and `constraint_report.v1`, route both direct
-`Schema` clauses through the existing owner, and preserve every existing owner
-API.
+Add owner-default artifact entry points to `CampaignArtifactValidation` for
+`strategy_branch.v1` and `strategy_recommendation.v1`. Derive requirements from
+`CampaignRegistryContracts` and `StrategyManeuverRegistryContracts`, preserve
+the branch schema-contract equality check before branch validation, route both
+direct `Schema` clauses, and preserve every existing owner API.
 
 Selection evidence:
-- `schema.ex` remains the dominant production hotspot at 4,761 lines; the other
+- `schema.ex` remains the dominant production hotspot at 4,751 lines; the other
   targeted public facades are now 164 to 524 lines.
-- `DecisionSupportValidation` already owns three of four
-  `ObjectiveAnalysisRegistryContracts` artifacts and three of four
-  `OptimizationRegistryContracts` artifacts.
-- Pareto frontier and constraint report are the only remaining members of those
-  two registry families and repeat required-field setup in the facade.
-- `ParetoFrontierContracts` and `ConstraintReportContracts` own all
-  artifact-specific validation.
+- Both clauses already delegate artifact-specific validation to
+  `CampaignArtifactValidation` after facade-level setup.
+- `CampaignRegistryContracts` owns branch requirements;
+  `StrategyManeuverRegistryContracts` owns recommendation requirements.
+- The branch's explicit schema-contract equality check can move into the owner
+  without callbacks or facade-local context.
 - No route needs recursive `Schema` lookup.
 
 Implementation:
-Added registry-backed pareto-frontier and constraint-report entry points to
-`DecisionSupportValidation` and routed both direct `Schema` clauses through the
-existing owner. `schema.ex` moved from 4,761 to 4,751 lines.
+Pending.
 
 Verification:
-- Strict focused baseline: 29 tests passed.
-- Focused plus adjacent optimizer, validation, operator-review,
-  candidate-refresh replay, campaign-planner source/pressure, result-artifact,
-  contract, and export coverage after extraction: 55 tests passed.
-- Full schema export completed with no checked-in artifact changes.
-- Static routing review found exactly the two intended direct facade routes.
-- `mix xref trace` confirmed both runtime calls originate in `schema.ex`.
-- Formatting and `git diff --check` passed.
-- Strict forced compile passed across 4,086 files with warnings as errors.
-- Bounded diff review confirmed registry-owned requirements, pareto/constraint
-  contract routing, validation ordering, and paths remain unchanged.
-- Implementation committed and pushed as `62d2790e`.
+Pending.
 
 Behavior/schema changes:
-None. Required fields, validation ordering and paths, public `Schema` and
-existing `DecisionSupportValidation` APIs, validation results, and checked-in
-exports remain unchanged.
+None intended. Required fields, validation ordering and paths, public `Schema`
+and existing `CampaignArtifactValidation` APIs, validation results, and
+checked-in exports must remain unchanged.
 
 Last completed slice:
 Schema decision-support owner completion, selected in `d817a431` and
@@ -59,8 +46,8 @@ implemented in `62d2790e`.
 `schema.ex` moved from 4,761 to 4,751 lines.
 
 Next candidate:
-Re-rank the remaining Schema responsibility clusters and select the next
-facade-preserving extraction.
+Implement and verify the selected campaign branch/recommendation owner routing,
+then re-rank the remaining Schema responsibility clusters.
 
 Blocked:
 No.
