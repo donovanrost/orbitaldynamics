@@ -9,7 +9,7 @@ Current slice:
 Schema command-window report owner extraction.
 
 Status:
-Selected; implementation pending.
+Complete and pushed.
 
 Selected boundary:
 Add a focused `CommandWindowValidation` owner for registry-backed required
@@ -27,23 +27,34 @@ Selection evidence:
 - No route needs recursive `Schema` lookup.
 
 Implementation:
-Pending.
+Added a 28-line `CommandWindowValidation` owner for registry-backed required
+fields, capability-backed model limits, and the existing report contract.
+Routed the direct `command_window_report.v1` `Schema` clause through that owner
+while retaining facade-owned JSON-schema property dispatch. `schema.ex` moved
+from 4,737 to 4,732 lines.
 
 Verification:
-Pending.
+- Strict focused baseline: 30 tests passed.
+- Command-window producer, consumer, replay, planner, export, and fixture
+  adjacency: 51 tests passed.
+- Full schema export regenerated with no checked-in schema artifact changes.
+- Formatting, diff whitespace, bounded dependency/reference checks, and the
+  bounded semantic diff review passed.
+- `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 mix compile --force
+  --warnings-as-errors` compiled 4,087 files successfully.
 
 Behavior/schema changes:
-None intended. Required fields, model-limit source, validation ordering and
-paths, public `Schema`, validation results, and checked-in exports must remain
-unchanged.
+None. Required fields, model-limit source, validation ordering and paths, public
+`Schema`, validation results, and checked-in exports remain unchanged.
 
 Last completed slice:
-Schema cadence-import manifest owner completion, selected in `4111306d` and
-implemented in `62b6341a`. `schema.ex` moved from 4,739 to 4,737 lines.
+Schema command-window report owner extraction, selected in `402d1b0e` and
+implemented in `5ce5df9f`. `schema.ex` moved from 4,737 to 4,732 lines.
 
 Next candidate:
-Implement and verify the selected command-window validation owner, then re-rank
-the remaining Schema responsibility clusters.
+Re-rank the remaining direct `Schema` validation clauses, prioritizing a
+cohesive owner or owner completion without recursive `Schema` lookup or public
+API changes.
 
 Blocked:
 No.
