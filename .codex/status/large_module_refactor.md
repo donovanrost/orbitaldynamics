@@ -13,7 +13,7 @@ Selected; implementation not started.
 
 Selected boundary:
 Remove the zero-context, one-hop CommonJsonSchema probability helper. Route
-its fifteen eager and lazy consumers directly to
+its twelve eager and lazy consumers directly to
 `CommonJsonSchema.probability/0`. Keep string-array, count-map, and
 context-bearing helpers, schema composition, executable validation, and all
 public facades in `OrbitalDynamics.Schema`.
@@ -24,8 +24,8 @@ Selection evidence:
   facade state, guards, defaults, transformation, or caching.
 - Its eager consumers and lazy callbacks can route directly with
   unchanged evaluation behavior.
-- Exact-name counting confirms fifteen consumers without conflating adjacent
-  provider-key names.
+- Consumer counting confirms twelve routes; three provider-map lines contain
+  the identifier twice as both stable key and callback value.
 - Exact probability schemas, callback timing, composed JSON Schema,
   validation results, and checked-in exports must remain unchanged.
 
