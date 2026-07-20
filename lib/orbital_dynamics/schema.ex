@@ -5706,8 +5706,9 @@ defmodule OrbitalDynamics.Schema do
         &validate_optional_timeline_transition_application_report/3,
       validate_optional_operator_review_package: &validate_optional_operator_review_package/2,
       validate_optional_operational_readiness_report:
-        &validate_optional_operational_readiness_report/3,
-      validate_optional_quality_gate_report: &validate_optional_quality_gate_report/3,
+        &OperationalReadinessValidation.validate_optional_operational_readiness_report/3,
+      validate_optional_quality_gate_report:
+        &OperationalReadinessValidation.validate_optional_quality_gate_report/3,
       validate_optional_optimizer_contract: &validate_optional_optimizer_contract/2,
       validate_optional_link_capacity_report: &validate_optional_link_capacity_report/2,
       validate_optional_resource_projection_report:
@@ -5843,17 +5844,6 @@ defmodule OrbitalDynamics.Schema do
         value,
         resource_validation_callbacks()
       )
-
-  defp validate_optional_operational_readiness_report(issues, path, report),
-    do:
-      OperationalReadinessValidation.validate_optional_operational_readiness_report(
-        issues,
-        path,
-        report
-      )
-
-  defp validate_optional_quality_gate_report(issues, path, report),
-    do: OperationalReadinessValidation.validate_optional_quality_gate_report(issues, path, report)
 
   defp validate_resource_projection_report(issues, path, report),
     do:
