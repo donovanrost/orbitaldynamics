@@ -6,58 +6,37 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema validation capability-context extraction.
+Schema filter suppression-capability routing.
 
 Status:
-Completed and pushed.
+Selected; implementation not started.
 
 Selected boundary:
-Extract the Validation capability accessor, model-acceptance model-limit
-projection, and schema-migration report/row status accessors into
-`OrbitalDynamics.Schema.ValidationCapabilityContext`.
-Route the Schema facade's model-acceptance and schema-migration consumers
-through those four focused internal APIs.
-Keep property dispatch, row-schema construction, contract validation, and
-public facades in `OrbitalDynamics.Schema`.
+Route suppressed-candidate reason aggregation through the existing
+`ContactFilterCapabilityContext.contact_filter_suppression_reasons/0` and
+`ResourceFilterCapabilityContext.resource_filter_suppression_reasons/0`
+owners instead of querying both domain capabilities directly.
+Keep the cross-family merge, deduplication, sorting, suppressed-candidate
+schema construction, and all public facades in `OrbitalDynamics.Schema`.
 
 Selection evidence:
-- `schema.ex` remains the dominant hotspot at 6,189 lines.
-- Validation capabilities are fetched directly for the model-acceptance known
-  limits and two lazily evaluated schema-migration status sets.
-- The selected code has one responsibility: expose schema-facing
-  Validation capability context to otherwise independent consumers.
-- Focused function captures preserve lazy schema-migration callback timing and
-  per-call capability evaluation. Model-acceptance/migration property dispatch
-  and contract validators remain in their current owners.
-- Exact known-limit values, migration status values and ordering, generated
-  JSON Schema, validation results, and checked-in exports must remain
-  unchanged.
+- `schema.ex` remains the dominant hotspot at 6,187 lines.
+- The facade's suppressed-candidate helper is the only remaining direct
+  ContactFilter/ResourceFilter capability coupling, even though both dedicated
+  owners already expose the exact suppression-reason values.
+- Importing those two focused APIs completes capability ownership for these
+  filter families without moving the cross-family composition responsibility.
+- Exact concatenation, `Enum.uniq/1`, `Enum.sort/1`, generated JSON Schema,
+  validation results, and checked-in exports must remain unchanged.
 
 Implementation:
-Added `OrbitalDynamics.Schema.ValidationCapabilityContext`, which now owns the
-Validation capability accessor, model-acceptance model-limit projection, and
-schema-migration report/row status accessors. The Schema facade imports the
-three focused consumer APIs and retains lazy function captures for migration
-status evaluation.
-`schema.ex` moved from 6,189 to 6,187 lines; the dedicated owner is 20 lines.
+Pending.
 
 Verification:
-- Strict focused export-validation/registry/validation/candidate-refresh
-  baseline before extraction: 11 passed.
-- The same strict focused suite after extraction: 11 passed.
-- Strict full schema-export task plus adjacent JSON Schema export,
-  fixture-visibility, and validation fixture coverage completed all 23 cases
-  successfully; this combination suppressed ExUnit's final summary line.
-- `mix xref callers OrbitalDynamics.Schema.ValidationCapabilityContext`
-  reports only `lib/orbital_dynamics/schema.ex (export)`.
-- `git diff --check` passed; no checked-in schema export changed.
-- Strict forced compile passed across 4,062 files.
-- Implementation commit `739e27fc` pushed to `main`.
+Pending.
 
 Behavior/schema changes:
-None. Public facades, lazy callback timing, per-call capability evaluation,
-known-limit/status values and ordering, generated JSON Schema, validation
-behavior, and checked-in exports remain unchanged.
+None intended.
 
 Last completed slice:
 Schema validation capability-context extraction, selected in `1b7b8b2e` and
