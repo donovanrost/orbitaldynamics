@@ -9,7 +9,7 @@ Current slice:
 OrbitData accepted-planning-state construction extraction.
 
 Status:
-Selected; strict focused baseline pending.
+Completed and pushed in `fe2b4773`.
 
 Selected boundary:
 Extract accepted-planning-state artifact construction, state-estimate
@@ -34,24 +34,43 @@ Selection evidence:
   output, and bang/non-bang facade behavior must remain unchanged.
 
 Implementation:
-Pending.
+- Added `OrbitalDynamics.OrbitData.AcceptedPlanningState` as the owner of
+  artifact construction, state-estimate normalization, epoch/vector/quality
+  validation, maneuver-execution-delta normalization, and inherited
+  provenance.
+- Preserved OrbitData and root public APIs; the facade retains narrow
+  construction and maneuver-delta delegates used by JSON/OPM/OEM adapters.
+- Removed accepted-state-specific validation and normalization helpers from the
+  facade while leaving shared adapter/schema helpers in place.
+- `orbit_data.ex` moved from 1,856 to 1,596 lines; the new owner is 303 lines.
 
 Verification:
-Pending.
+- Strict focused baseline passed all 37 OrbitData tests.
+- Exact old/new public parity passed for five deterministic results: a
+  successful multi-state artifact with inherited provenance and maneuver
+  delta, empty estimates, invalid vector, missing snapshot ID, and invalid
+  maneuver delta.
+- Post-extraction focused and adjacent accepted-state schema verification
+  passed all 43 tests.
+- Static checks confirm accepted-state implementation helpers left the facade;
+  xref reports only OrbitData as a runtime caller.
+- Strict warning-clean forced compile passed for 4,005 files.
+- Formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-RecommendationRiskContext timeline-activity-precondition extraction, selected
-in `d27a1946` and implemented in `9201d18b`.
-`recommendation_risk_context.ex` moved from 1,893 to 1,772 lines; the dedicated
-TimelineActivityPrecondition owner is 158 lines.
+OrbitData accepted-planning-state construction extraction, selected in
+`036ac21a` and implemented in `fe2b4773`.
+`orbit_data.ex` moved from 1,856 to 1,596 lines; the dedicated
+AcceptedPlanningState owner is 303 lines.
 
 Next candidate:
 Re-rank the live checkout and select the next bounded facade-preserving
-extraction. `orbit_data.ex` is now the largest ordinary eligible facade at
-1,856 lines, followed by StationCalendar and ContactAllocation.
+extraction. `communications/station_calendar.ex` is now the largest ordinary
+eligible facade at 1,814 lines, followed by ContactAllocation and
+TimelineFeedback.
 
 Blocked:
 No.
