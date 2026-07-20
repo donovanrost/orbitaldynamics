@@ -9,7 +9,7 @@ Current slice:
 RecommendationRiskContext timeline-integrity extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `2a89f3dd`.
 
 Selected boundary:
 Extract timeline-integrity context keys, risk classification, and context
@@ -32,19 +32,35 @@ Selection evidence:
   non-list behavior, public output, and error behavior must remain unchanged.
 
 Implementation:
-Pending.
+- Added `OrbitalDynamics.RecommendationRiskContext.TimelineIntegrity` as the
+  focused owner of the ordered context keys, type/risk_type/feedback_scope
+  classifiers, atom-key normalization, and dependency, exclusivity, review,
+  and provenance context projection.
+- Preserved the public RecommendationRiskContext facade through delegates.
+- Other risk families remain outside the extraction.
+- `recommendation_risk_context.ex` moved from 1,304 to 1,212 lines; the
+  dedicated TimelineIntegrity owner is 124 lines.
 
 Verification:
-Pending.
+- Strict focused baseline: one test passed normally; the file retains its two
+  pre-existing signed-zero warnings.
+- Exact old/new public parity: four fixtures passed, covering ordered keys,
+  rich atom-keyed context, all three accepted classifiers, and non-list input.
+- Post-change focused and adjacent checks: three selected tests passed; both
+  adjacent tests passed with warnings treated as errors.
+- Static ownership and xref checks passed; only the facade calls the extracted
+  owner at runtime.
+- Forced warning-clean test compile passed across 4,028 files.
+- Focused formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-OperationalReadiness operator-review gate extraction, selected in `6a29ce91`
-and implemented in `426d1036`.
-`operational_readiness.ex` moved from 1,338 to 1,295 lines; the dedicated
-OperatorReviewGate owner is 51 lines.
+RecommendationRiskContext timeline-integrity extraction, selected in
+`25379834` and implemented in `2a89f3dd`.
+`recommendation_risk_context.ex` moved from 1,304 to 1,212 lines; the dedicated
+TimelineIntegrity owner is 124 lines.
 
 Next candidate:
 After this slice, re-rank the live checkout. OperationalReadiness is the next
