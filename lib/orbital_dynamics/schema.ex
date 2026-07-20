@@ -4732,15 +4732,9 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validate_contract(@operational_timeline_report, contract, artifact) do
+  defp validate_contract(@operational_timeline_report, _contract, artifact) do
     []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.OperationalTimelineReportContracts.validate(
-      "$",
-      artifact,
-      timeline_report_model_limits(),
-      &validate_operational_timeline_row/3
-    )
+    |> OperationalTimelineValidation.validate_report("$", artifact)
   end
 
   defp validate_contract(@timeline_diff_report, contract, artifact) do
@@ -5164,7 +5158,7 @@ defmodule OrbitalDynamics.Schema do
       validate_optional_objective_satisfaction_report:
         &validate_optional_objective_satisfaction_report/2,
       validate_optional_operational_timeline_report:
-        &validate_optional_operational_timeline_report/2,
+        &OperationalTimelineValidation.validate_optional_report/2,
       validate_optional_timeline_transition_application_report:
         &TimelineTransitionValidation.validate_optional_timeline_transition_application_report/3,
       validate_optional_operator_review_package: &validate_optional_operator_review_package/2,
@@ -5215,7 +5209,7 @@ defmodule OrbitalDynamics.Schema do
       validate_optional_resource_projection_report:
         &ResourceValidation.validate_optional_resource_projection_report/3,
       validate_optional_operational_timeline_report:
-        &validate_optional_operational_timeline_report/2,
+        &OperationalTimelineValidation.validate_optional_report/2,
       validate_optional_operator_review_package: &validate_optional_operator_review_package/2,
       validate_optional_objective_tradeoff_report: &validate_optional_objective_tradeoff_report/2,
       validate_optional_score_term_report: &validate_optional_score_term_report/2,
@@ -5302,33 +5296,12 @@ defmodule OrbitalDynamics.Schema do
   defp validate_registered_contract(name, artifact),
     do: validate_contract(name, registry_contract!(name), artifact)
 
-  defp validate_optional_operational_timeline_report(issues, report),
-    do:
-      OperationalTimelineValidation.validate_optional_report(
-        issues,
-        report,
-        &validate_registered_contract(@operational_timeline_report, &1)
-      )
-
   defp validate_optional_operator_review_package(issues, package),
     do:
       OperatorReviewValidation.validate_optional_package(
         issues,
         package,
         &validate_registered_contract(@operator_review_package, &1)
-      )
-
-  defp validate_operational_timeline_row(issues, path, row),
-    do:
-      OperationalTimelineValidation.validate_row(
-        issues,
-        path,
-        row,
-        validate_optional_timeline_preconditions:
-          &TimelineContextValidation.validate_optional_timeline_preconditions/4,
-        validate_optional_activity_context:
-          &TimelineContextValidation.validate_optional_activity_context/4,
-        validate_timeline_identity: &TimelineContextValidation.validate_timeline_identity/3
       )
 
   defp validate_optional_branch_comparison_report(issues, value) do
