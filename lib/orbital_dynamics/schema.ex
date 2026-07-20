@@ -406,7 +406,6 @@ defmodule OrbitalDynamics.Schema do
         {:operator_review_capabilities, 0} => &operator_review_capabilities/0,
         {:operator_review_package_model_limits, 0} => &operator_review_package_model_limits/0,
         {:operator_review_row_json_schema, 0} => &operator_review_row_json_schema/0,
-        {:plan_delta_json_schema, 0} => &plan_delta_json_schema/0,
         {:planned_activity_json_schema, 0} => &planned_activity_json_schema/0,
         {:policy_action_rule_json_schema, 0} => &policy_action_rule_json_schema/0,
         {:policy_decision_json_schema, 0} => &policy_decision_json_schema/0,
@@ -485,7 +484,15 @@ defmodule OrbitalDynamics.Schema do
           policy_decision_schema: &policy_decision_json_schema/0
         )
       )
-      |> Map.merge(OrbitalDynamics.Schema.ExecutionStateSchemaProviders.build(@stable_id_pattern))
+      |> Map.merge(
+        OrbitalDynamics.Schema.ExecutionStateSchemaProviders.build(
+          @stable_id_pattern,
+          planned_activity_schema: &planned_activity_json_schema/0,
+          realized_activity_schema: &realized_activity_json_schema/0,
+          timeline_link_schema: &timeline_link_json_schema/0,
+          activity_context_schema: &activity_context_json_schema/0
+        )
+      )
       |> Map.merge(
         OrbitalDynamics.Schema.ResourcePlanningSchemaProviders.build(
           @stable_id_pattern,
@@ -716,16 +723,6 @@ defmodule OrbitalDynamics.Schema do
       timeline_identity_schema: timeline_identity_json_schema(),
       cadence_import_schema: cadence_import_json_schema("planned_activity.v1"),
       execution_uncertainty_schema: execution_uncertainty_json_schema()
-    )
-  end
-
-  defp plan_delta_json_schema do
-    OrbitalDynamics.Schema.CampaignRepairJsonSchema.plan_delta_from_deps(
-      stable_id_pattern: @stable_id_pattern,
-      planned_activity_schema: &planned_activity_json_schema/0,
-      realized_activity_schema: &realized_activity_json_schema/0,
-      timeline_link_schema: &timeline_link_json_schema/0,
-      activity_context_schema: &activity_context_json_schema/0
     )
   end
 
