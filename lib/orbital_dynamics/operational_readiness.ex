@@ -10,6 +10,7 @@ defmodule OrbitalDynamics.OperationalReadiness do
   alias OrbitalDynamics.CadenceImport
   alias OrbitalDynamics.OperationalReadiness.AdapterBoundaryEvidence
   alias OrbitalDynamics.OperationalReadiness.EvidenceNormalization
+  alias OrbitalDynamics.OperationalReadiness.GateSummary
   alias OrbitalDynamics.OperationalReadiness.OperatorTrainingEvidence
   alias OrbitalDynamics.OperationalReadiness.OperationalModeDecision
   alias OrbitalDynamics.OperationalReadiness.QualityGateOperatorTrainingSummary
@@ -214,7 +215,7 @@ defmodule OrbitalDynamics.OperationalReadiness do
   def gate_summary(artifact, opts \\ []) do
     artifact
     |> report(opts)
-    |> gate_summary_from_report()
+    |> GateSummary.build(@gate_summary_schema_contract)
   end
 
   @doc """
@@ -425,7 +426,7 @@ defmodule OrbitalDynamics.OperationalReadiness do
 
   defp import_eligibility_summary(report) do
     gates = Map.get(report, "gates", []) |> Enum.filter(&is_map/1)
-    gate_counts = summary_gate_counts(gates)
+    gate_counts = GateSummary.counts(gates)
 
     non_passed_gates =
       gates
@@ -460,93 +461,12 @@ defmodule OrbitalDynamics.OperationalReadiness do
     }
   end
 
-  defp gate_summary_from_report(report) do
-    gates = Map.get(report, "gates", []) |> Enum.filter(&is_map/1)
-    non_passed_gates = Enum.reject(gates, &(&1["status"] == "passed"))
-    gate_counts = summary_gate_counts(gates)
-
-    %{
-      "schema_contract" => @gate_summary_schema_contract,
-      "model" => "artifact_only_operational_readiness_gate_summary",
-      "source" => "operational_readiness_report.v1",
-      "source_artifact_type" => report["source_artifact_type"],
-      "source_artifact_id" => report["source_artifact_id"],
-      "readiness_level" => report["readiness_level"],
-      "import_classification" => report["import_classification"],
-      "status" => report["status"],
-      "gate_count" => gate_counts.gate_count,
-      "passed_gate_count" => gate_counts.passed_gate_count,
-      "review_gate_count" => gate_counts.review_gate_count,
-      "analysis_gate_count" => gate_counts.analysis_gate_count,
-      "blocked_gate_count" => gate_counts.blocked_gate_count,
-      "non_passed_gate_count" => length(non_passed_gates),
-      "gate_status_counts" => gate_summary_counts(gates, "status"),
-      "gate_classification_counts" => gate_summary_counts(gates, "classification"),
-      "gate_ids_by_status" => gate_summary_id_map(gates, "status"),
-      "gate_ids_by_classification" => gate_summary_id_map(gates, "classification"),
-      "passed_gate_ids" => gate_summary_ids(gates, "passed"),
-      "review_required_gate_ids" => gate_summary_ids(gates, "review_required"),
-      "analysis_only_gate_ids" => gate_summary_ids(gates, "analysis_only"),
-      "blocked_gate_ids" => gate_summary_ids(gates, "blocked"),
-      "non_passed_gate_ids" => Enum.map(non_passed_gates, & &1["id"]),
-      "non_passed_gates" => non_passed_gates,
-      "gates" => gates,
-      "assumptions" => %{
-        "execution_boundary" => "artifact_only_no_cadence_write",
-        "source" => "operational_readiness_report.v1",
-        "operator_authority" => "not_granted_by_summary"
-      },
-      "model_limits" => [
-        "operational_readiness_gate_summary_routes_only",
-        "operational_readiness_gate_summary_does_not_approve_or_import"
-      ]
-    }
-  end
-
-  defp gate_summary_counts(gates, field) do
-    gates
-    |> Enum.map(&Map.get(&1, field))
-    |> Enum.reject(&(&1 in [nil, ""]))
-    |> Enum.frequencies()
-  end
-
-  defp gate_summary_id_map(gates, field) do
-    gates
-    |> Enum.group_by(&Map.get(&1, field), & &1["id"])
-    |> Enum.reject(fn {key, ids} -> key in [nil, ""] or Enum.all?(ids, &is_nil/1) end)
-    |> Map.new(fn {key, ids} ->
-      ids =
-        ids
-        |> Enum.reject(&is_nil/1)
-        |> Enum.uniq()
-        |> Enum.sort()
-
-      {key, ids}
-    end)
-  end
-
-  defp gate_summary_ids(gates, status) do
-    gates
-    |> Enum.filter(&(&1["status"] == status))
-    |> Enum.map(& &1["id"])
-  end
-
-  defp summary_gate_counts(gates) do
-    %{
-      gate_count: length(gates),
-      passed_gate_count: gate_count(gates, "passed"),
-      review_gate_count: gate_count(gates, "review_required"),
-      analysis_gate_count: gate_count(gates, "analysis_only"),
-      blocked_gate_count: gate_count(gates, "blocked")
-    }
-  end
-
   defp execution_boundary_summary_from_report(report) do
     gates = Map.get(report, "gates", []) |> Enum.filter(&is_map/1)
     operational_mode_gate = Enum.find(gates, &(&1["id"] == "operational_mode"))
     non_passed_gates = Enum.reject(gates, &(&1["status"] == "passed"))
     import_eligible? = report["import_classification"] == "importable"
-    gate_counts = summary_gate_counts(gates)
+    gate_counts = GateSummary.counts(gates)
 
     %{
       "schema_contract" => @execution_boundary_summary_schema_contract,
@@ -624,12 +544,12 @@ defmodule OrbitalDynamics.OperationalReadiness do
       "operator_authority_granted" => false,
       "execution_boundary" => execution_boundary(import_classification),
       "gate_count" => length(rows),
-      "passed_gate_count" => gate_count(rows, "passed"),
-      "review_gate_count" => gate_count(rows, "review_required"),
-      "analysis_gate_count" => gate_count(rows, "analysis_only"),
-      "blocked_gate_count" => gate_count(rows, "blocked"),
-      "gate_status_counts" => gate_summary_counts(rows, "status"),
-      "gate_classification_counts" => gate_summary_counts(rows, "classification"),
+      "passed_gate_count" => GateSummary.count(rows, "passed"),
+      "review_gate_count" => GateSummary.count(rows, "review_required"),
+      "analysis_gate_count" => GateSummary.count(rows, "analysis_only"),
+      "blocked_gate_count" => GateSummary.count(rows, "blocked"),
+      "gate_status_counts" => GateSummary.field_counts(rows, "status"),
+      "gate_classification_counts" => GateSummary.field_counts(rows, "classification"),
       "gate_ids_by_status" => quality_gate_ids_by(rows, "status"),
       "gate_ids_by_classification" => quality_gate_ids_by(rows, "classification"),
       "quality_gate_row_ids_by_status" => quality_gate_row_ids_by(rows, "status"),
@@ -673,13 +593,13 @@ defmodule OrbitalDynamics.OperationalReadiness do
       "operator_authority_granted" => false,
       "execution_boundary" => execution_boundary(import_classification(rows)),
       "gate_count" => length(rows),
-      "passed_gate_count" => gate_count(rows, "passed"),
-      "review_gate_count" => gate_count(rows, "review_required"),
-      "analysis_gate_count" => gate_count(rows, "analysis_only"),
-      "blocked_gate_count" => gate_count(rows, "blocked"),
+      "passed_gate_count" => GateSummary.count(rows, "passed"),
+      "review_gate_count" => GateSummary.count(rows, "review_required"),
+      "analysis_gate_count" => GateSummary.count(rows, "analysis_only"),
+      "blocked_gate_count" => GateSummary.count(rows, "blocked"),
       "non_passed_gate_count" => length(non_passed_rows),
-      "gate_status_counts" => gate_summary_counts(rows, "status"),
-      "gate_classification_counts" => gate_summary_counts(rows, "classification"),
+      "gate_status_counts" => GateSummary.field_counts(rows, "status"),
+      "gate_classification_counts" => GateSummary.field_counts(rows, "classification"),
       "gate_ids_by_status" => quality_gate_ids_by(rows, "status"),
       "gate_ids_by_classification" => quality_gate_ids_by(rows, "classification"),
       "quality_gate_row_ids_by_status" => quality_gate_row_ids_by(rows, "status"),
@@ -1082,10 +1002,10 @@ defmodule OrbitalDynamics.OperationalReadiness do
       "import_classification" => import_classification,
       "status" => report_status(import_classification),
       "gate_count" => length(gates),
-      "passed_gate_count" => gate_count(gates, "passed"),
-      "review_gate_count" => gate_count(gates, "review_required"),
-      "analysis_gate_count" => gate_count(gates, "analysis_only"),
-      "blocked_gate_count" => gate_count(gates, "blocked"),
+      "passed_gate_count" => GateSummary.count(gates, "passed"),
+      "review_gate_count" => GateSummary.count(gates, "review_required"),
+      "analysis_gate_count" => GateSummary.count(gates, "analysis_only"),
+      "blocked_gate_count" => GateSummary.count(gates, "blocked"),
       "gates" => gates,
       "evidence" => evidence,
       "assumptions" => [
@@ -1688,8 +1608,6 @@ defmodule OrbitalDynamics.OperationalReadiness do
   defp report_status("review_only"), do: "review_required"
   defp report_status("analysis_only"), do: "analysis_only"
   defp report_status("blocked"), do: "blocked"
-
-  defp gate_count(gates, status), do: Enum.count(gates, &(&1["status"] == status))
 
   defp source_artifact_type(artifact, review_package, import_manifest) do
     cond do
