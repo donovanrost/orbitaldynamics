@@ -2217,7 +2217,7 @@ defmodule OrbitalDynamics.Schema do
       stable_id_array_schema: &stable_id_array_schema/0,
       string_array_schema: &string_array_schema/0,
       count_map_schema: &non_negative_integer_count_map_json_schema/0,
-      number_array_schema: &number_array_schema/0,
+      number_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.number_array/0,
       actual_data_rate_throughput_derivations_schema:
         &TimelineContextJsonSchema.actual_data_rate_throughput_derivations/0,
       numeric_map_schema: &OrbitalDynamics.Schema.CommonJsonSchema.numeric_map/0,
@@ -2873,7 +2873,7 @@ defmodule OrbitalDynamics.Schema do
       stable_id_pattern: @stable_id_pattern,
       stable_id_array_schema: &stable_id_array_schema/0,
       string_array_schema: &string_array_schema/0,
-      number_array_schema: &number_array_schema/0,
+      number_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.number_array/0,
       actual_data_rate_throughput_derivation_schema:
         &TimelineContextJsonSchema.actual_data_rate_throughput_derivation/0,
       approval_requirement_schema: &approval_requirement_json_schema/0,
@@ -2908,7 +2908,7 @@ defmodule OrbitalDynamics.Schema do
       stable_id_pattern: @stable_id_pattern,
       stable_id_array_schema: &stable_id_array_schema/0,
       string_array_schema: &string_array_schema/0,
-      number_array_schema: &number_array_schema/0,
+      number_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.number_array/0,
       actual_data_rate_throughput_derivations_schema:
         &TimelineContextJsonSchema.actual_data_rate_throughput_derivations/0,
       source_contact_candidate_schema: &contact_contention_source_contact_candidate_json_schema/0,
@@ -2921,7 +2921,7 @@ defmodule OrbitalDynamics.Schema do
       stable_id_pattern: @stable_id_pattern,
       stable_id_array_schema: &stable_id_array_schema/0,
       string_array_schema: &string_array_schema/0,
-      number_array_schema: &number_array_schema/0,
+      number_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.number_array/0,
       actual_data_rate_throughput_derivations_schema:
         &TimelineContextJsonSchema.actual_data_rate_throughput_derivations/0,
       deferred_priority_schema: &contact_contention_deferred_priority_json_schema/0,
@@ -3043,10 +3043,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp sha256_json_schema do
     OrbitalDynamics.Schema.CommonJsonSchema.sha256(@sha256_pattern)
-  end
-
-  defp number_array_schema do
-    OrbitalDynamics.Schema.CommonJsonSchema.number_array()
   end
 
   defp non_negative_integer_property_schemas(fields) do
@@ -3259,7 +3255,7 @@ defmodule OrbitalDynamics.Schema do
       capability: timeline_feedback_capabilities(),
       stable_id_array_schema: stable_id_array_schema(),
       string_array_schema: string_array_schema(),
-      number_array_schema: number_array_schema(),
+      number_array_schema: OrbitalDynamics.Schema.CommonJsonSchema.number_array(),
       probability_schema: probability_json_schema(),
       number_or_string_schema: OrbitalDynamics.Schema.CommonJsonSchema.number_or_string(),
       protection_decision_schema: protection_decision_json_schema(),
@@ -3402,7 +3398,7 @@ defmodule OrbitalDynamics.Schema do
         stable_id_pattern: @stable_id_pattern,
         stable_id_array_schema: stable_id_array_schema(),
         string_array_schema: string_array_schema(),
-        number_array_schema: number_array_schema(),
+        number_array_schema: OrbitalDynamics.Schema.CommonJsonSchema.number_array(),
         numeric_map_schema: OrbitalDynamics.Schema.CommonJsonSchema.numeric_map(),
         candidate_activity_source_window_schema: candidate_activity_source_window_json_schema(),
         numeric_triplet_schema: numeric_triplet_schema(),
@@ -3468,7 +3464,7 @@ defmodule OrbitalDynamics.Schema do
       stable_id_pattern: @stable_id_pattern,
       stable_id_array_schema: &stable_id_array_schema/0,
       string_array_schema: &string_array_schema/0,
-      number_array_schema: &number_array_schema/0,
+      number_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.number_array/0,
       timeline_precondition_schema: &timeline_precondition_json_schema/0,
       activity_context_schema: &activity_context_json_schema/0,
       timeline_integrity_issue_schema: &timeline_integrity_issue_json_schema/0
@@ -3851,7 +3847,7 @@ defmodule OrbitalDynamics.Schema do
         &contact_contention_deferred_priority_json_schema/0,
       non_negative_number_map_json_schema:
         &OrbitalDynamics.Schema.CommonJsonSchema.non_negative_number_map/0,
-      number_array_schema: &number_array_schema/0,
+      number_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.number_array/0,
       number_or_number_array_schema:
         &OrbitalDynamics.Schema.CommonJsonSchema.number_or_number_array/0,
       number_or_string_json_schema: &OrbitalDynamics.Schema.CommonJsonSchema.number_or_string/0,
@@ -4096,7 +4092,7 @@ defmodule OrbitalDynamics.Schema do
       lifecycle_transition_json_schema: &TimelineContextJsonSchema.lifecycle_transition/0,
       non_negative_number_map_json_schema:
         &OrbitalDynamics.Schema.CommonJsonSchema.non_negative_number_map/0,
-      number_array_schema: &number_array_schema/0,
+      number_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.number_array/0,
       number_or_number_array_schema:
         &OrbitalDynamics.Schema.CommonJsonSchema.number_or_number_array/0,
       number_or_string_json_schema: &OrbitalDynamics.Schema.CommonJsonSchema.number_or_string/0,
