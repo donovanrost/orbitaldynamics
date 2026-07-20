@@ -4682,31 +4682,16 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validate_contract(@objective_tradeoff_report, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.OptimizerObjectiveContracts.validate_objective_tradeoff_report(
-      "$",
-      artifact
-    )
+  defp validate_contract(@objective_tradeoff_report, _contract, artifact) do
+    DecisionSupportValidation.validate_objective_tradeoff_report([], "$", artifact)
   end
 
-  defp validate_contract(@objective_satisfaction_report, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.OptimizerObjectiveContracts.validate_objective_satisfaction_report(
-      "$",
-      artifact
-    )
+  defp validate_contract(@objective_satisfaction_report, _contract, artifact) do
+    DecisionSupportValidation.validate_objective_satisfaction_report([], "$", artifact)
   end
 
-  defp validate_contract(@ranking_comparison_report, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.OptimizerObjectiveContracts.validate_ranking_comparison_report(
-      "$",
-      artifact
-    )
+  defp validate_contract(@ranking_comparison_report, _contract, artifact) do
+    DecisionSupportValidation.validate_ranking_comparison_report([], "$", artifact)
   end
 
   defp validate_contract(@pareto_frontier_report, contract, artifact) do
@@ -4877,22 +4862,12 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validate_contract(@branch_comparison_report, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.BranchComparisonReportContracts.validate(
-      "$",
-      artifact
-    )
+  defp validate_contract(@branch_comparison_report, _contract, artifact) do
+    DecisionSupportValidation.validate_branch_comparison_report([], "$", artifact)
   end
 
-  defp validate_contract(@optimizer_contract, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.OptimizerContractContracts.validate(
-      "$",
-      artifact
-    )
+  defp validate_contract(@optimizer_contract, _contract, artifact) do
+    DecisionSupportValidation.validate_optimizer_contract([], "$", artifact)
   end
 
   defp validate_contract(@constraint_report, contract, artifact) do
@@ -4904,13 +4879,8 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validate_contract(@score_term_report, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.OptimizerObjectiveContracts.validate_score_term_report(
-      "$",
-      artifact
-    )
+  defp validate_contract(@score_term_report, _contract, artifact) do
+    DecisionSupportValidation.validate_score_term_report([], "$", artifact)
   end
 
   defp validate_contract(@accepted_planning_state, contract, artifact) do
@@ -5081,8 +5051,8 @@ defmodule OrbitalDynamics.Schema do
       &OrbitalDynamics.Schema.OperationalFeedbackContracts.validate/3,
       &validate_branch/3,
       &validate_recommendation/3,
-      &validate_optional_branch_comparison_report/2,
-      &validate_optional_ranking_comparison_report/2,
+      &DecisionSupportValidation.validate_optional_branch_comparison_report/2,
+      &DecisionSupportValidation.validate_optional_ranking_comparison_report/2,
       &OperatorReviewValidation.validate_optional_package/2
     )
   end
@@ -5113,9 +5083,10 @@ defmodule OrbitalDynamics.Schema do
         &ContactReportValidation.validate_optional_contention_resolution_report/2,
       validate_optional_station_calendar_report:
         &StationReservationValidation.validate_optional_calendar_report/2,
-      validate_optional_objective_tradeoff_report: &validate_optional_objective_tradeoff_report/2,
+      validate_optional_objective_tradeoff_report:
+        &DecisionSupportValidation.validate_optional_objective_tradeoff_report/2,
       validate_optional_objective_satisfaction_report:
-        &validate_optional_objective_satisfaction_report/2,
+        &DecisionSupportValidation.validate_optional_objective_satisfaction_report/2,
       validate_optional_operational_timeline_report:
         &OperationalTimelineValidation.validate_optional_report/2,
       validate_optional_timeline_transition_application_report:
@@ -5126,7 +5097,8 @@ defmodule OrbitalDynamics.Schema do
         &OperationalReadinessValidation.validate_optional_operational_readiness_report/3,
       validate_optional_quality_gate_report:
         &OperationalReadinessValidation.validate_optional_quality_gate_report/3,
-      validate_optional_optimizer_contract: &validate_optional_optimizer_contract/2,
+      validate_optional_optimizer_contract:
+        &DecisionSupportValidation.validate_optional_optimizer_contract/2,
       validate_optional_link_capacity_report: &validate_optional_link_capacity_report/2,
       validate_optional_resource_projection_report:
         &ResourceValidation.validate_optional_resource_projection_report/3,
@@ -5138,7 +5110,8 @@ defmodule OrbitalDynamics.Schema do
         &TimelineSourceValidation.validate_optional_timeline_integrity_report/3,
       validate_optional_resource_filter_report:
         &ResourceValidation.validate_optional_resource_filter_report/3,
-      validate_optional_score_term_report: &validate_optional_score_term_report/2,
+      validate_optional_score_term_report:
+        &DecisionSupportValidation.validate_optional_score_term_report/2,
       validate_rows: &validate_rows/4,
       validate_activity: &OrbitalDynamics.Schema.ActivityContracts.validate/3,
       validate_proposed_contact: &OrbitalDynamics.Schema.ProposedContactContracts.validate/3,
@@ -5172,8 +5145,10 @@ defmodule OrbitalDynamics.Schema do
         &OperationalTimelineValidation.validate_optional_report/2,
       validate_optional_operator_review_package:
         &OperatorReviewValidation.validate_optional_package/2,
-      validate_optional_objective_tradeoff_report: &validate_optional_objective_tradeoff_report/2,
-      validate_optional_score_term_report: &validate_optional_score_term_report/2,
+      validate_optional_objective_tradeoff_report:
+        &DecisionSupportValidation.validate_optional_objective_tradeoff_report/2,
+      validate_optional_score_term_report:
+        &DecisionSupportValidation.validate_optional_score_term_report/2,
       validate_optional_link_capacity_report: &validate_optional_link_capacity_report/2,
       validate_optional_candidate_diff_report:
         &OrbitalDynamics.Schema.CandidateDiffContracts.validate_optional_report/3,
@@ -5202,73 +5177,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp validate_optional_link_capacity_report(issues, _report),
     do: [error("$.link_capacity_report", "must be an object") | issues]
-
-  defp validate_optional_objective_tradeoff_report(issues, report),
-    do:
-      DecisionSupportValidation.validate_optional_objective_tradeoff_report(
-        issues,
-        report,
-        &validate_registered_contract(@objective_tradeoff_report, &1)
-      )
-
-  defp validate_optional_objective_satisfaction_report(issues, report),
-    do:
-      DecisionSupportValidation.validate_optional_objective_satisfaction_report(
-        issues,
-        report,
-        &validate_registered_contract(@objective_satisfaction_report, &1)
-      )
-
-  defp validate_registered_contract(name, artifact),
-    do: validate_contract(name, registry_contract!(name), artifact)
-
-  defp validate_optional_branch_comparison_report(issues, value) do
-    DecisionSupportValidation.validate_optional_branch_comparison_report(
-      issues,
-      value,
-      fn report ->
-        validate_contract(
-          @branch_comparison_report,
-          registry_contract!(@branch_comparison_report),
-          report
-        )
-      end
-    )
-  end
-
-  defp validate_optional_ranking_comparison_report(issues, value) do
-    DecisionSupportValidation.validate_optional_ranking_comparison_report(
-      issues,
-      value,
-      fn report ->
-        validate_contract(
-          @ranking_comparison_report,
-          registry_contract!(@ranking_comparison_report),
-          report
-        )
-      end
-    )
-  end
-
-  defp validate_optional_optimizer_contract(issues, value) do
-    DecisionSupportValidation.validate_optional_optimizer_contract(
-      issues,
-      value,
-      fn contract ->
-        validate_contract(@optimizer_contract, registry_contract!(@optimizer_contract), contract)
-      end
-    )
-  end
-
-  defp validate_optional_score_term_report(issues, value) do
-    DecisionSupportValidation.validate_optional_score_term_report(
-      issues,
-      value,
-      fn report ->
-        validate_contract(@score_term_report, registry_contract!(@score_term_report), report)
-      end
-    )
-  end
 
   defp validate_branch(issues, path, branch) do
     OrbitalDynamics.Schema.StrategyBranchContracts.validate(
