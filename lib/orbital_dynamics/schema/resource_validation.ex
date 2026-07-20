@@ -4,6 +4,15 @@ defmodule OrbitalDynamics.Schema.ResourceValidation do
   import OrbitalDynamics.Schema.PrimitiveValidation,
     only: [error: 2, expect_optional_one_of: 5]
 
+  def validate_optional_resource_projection_report(issues, path, report),
+    do:
+      validate_optional_resource_projection_report(
+        issues,
+        path,
+        report,
+        default_callbacks()
+      )
+
   def validate_optional_resource_projection_report(issues, _path, nil, _callbacks), do: issues
 
   def validate_optional_resource_projection_report(issues, path, %{} = report, callbacks),
@@ -11,6 +20,15 @@ defmodule OrbitalDynamics.Schema.ResourceValidation do
 
   def validate_optional_resource_projection_report(issues, path, _report, _callbacks),
     do: [error(path, "must be an object") | issues]
+
+  def validate_optional_resource_projection_flow_summary(issues, path, summary),
+    do:
+      validate_optional_resource_projection_flow_summary(
+        issues,
+        path,
+        summary,
+        default_callbacks()
+      )
 
   def validate_optional_resource_projection_flow_summary(issues, _path, nil, _callbacks),
     do: issues
@@ -25,6 +43,9 @@ defmodule OrbitalDynamics.Schema.ResourceValidation do
 
   def validate_optional_resource_projection_flow_summary(issues, path, _summary, _callbacks),
     do: [error(path, "must be an object") | issues]
+
+  def validate_resource_projection_report(issues, path, report),
+    do: validate_resource_projection_report(issues, path, report, default_callbacks())
 
   def validate_resource_projection_report(issues, path, report, callbacks) do
     OrbitalDynamics.Schema.ResourceProjectionReportContracts.validate(
@@ -42,6 +63,9 @@ defmodule OrbitalDynamics.Schema.ResourceValidation do
       &OrbitalDynamics.Schema.ResourceProjectionReportCountContracts.validate/3
     )
   end
+
+  def validate_resource_projection_flow_summary(issues, path, summary),
+    do: validate_resource_projection_flow_summary(issues, path, summary, default_callbacks())
 
   def validate_resource_projection_flow_summary(issues, path, summary, callbacks) do
     OrbitalDynamics.Schema.ResourceProjectionFlowSummaryContracts.validate(
@@ -125,6 +149,16 @@ defmodule OrbitalDynamics.Schema.ResourceValidation do
       "thin_selected_activity_resource_projection",
       "thin_stale_derived_margin_resource_projection_fixture",
       "thin_strategy_branch_activity_resource_projection"
+    ]
+  end
+
+  defp default_callbacks do
+    [
+      validate_approval_requirement:
+        &OrbitalDynamics.Schema.PolicyValidation.validate_approval_requirement/3,
+      validate_policy_rule_match: &OrbitalDynamics.Schema.PolicyValidation.validate_rule_match/3,
+      validate_nested_id_match:
+        &OrbitalDynamics.Schema.StableIdValidation.validate_nested_id_match/7
     ]
   end
 

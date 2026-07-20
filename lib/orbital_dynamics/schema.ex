@@ -4334,13 +4334,13 @@ defmodule OrbitalDynamics.Schema do
   defp validate_contract(@resource_projection_report, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_resource_projection_report("$", artifact)
+    |> ResourceValidation.validate_resource_projection_report("$", artifact)
   end
 
   defp validate_contract(@resource_projection_flow_summary, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_resource_projection_flow_summary("$", artifact)
+    |> ResourceValidation.validate_resource_projection_flow_summary("$", artifact)
   end
 
   defp validate_contract(@contact_filter_report, contract, artifact) do
@@ -5175,9 +5175,9 @@ defmodule OrbitalDynamics.Schema do
       validate_optional_optimizer_contract: &validate_optional_optimizer_contract/2,
       validate_optional_link_capacity_report: &validate_optional_link_capacity_report/2,
       validate_optional_resource_projection_report:
-        &validate_optional_resource_projection_report/3,
+        &ResourceValidation.validate_optional_resource_projection_report/3,
       validate_optional_resource_projection_flow_summary:
-        &validate_optional_resource_projection_flow_summary/3,
+        &ResourceValidation.validate_optional_resource_projection_flow_summary/3,
       validate_optional_timeline_activity_precondition_summaries:
         &TimelineSourceValidation.validate_optional_timeline_activity_precondition_summaries/3,
       validate_optional_timeline_integrity_report:
@@ -5213,7 +5213,7 @@ defmodule OrbitalDynamics.Schema do
       validate_optional_resource_filter_report:
         &ResourceValidation.validate_optional_resource_filter_report/3,
       validate_optional_resource_projection_report:
-        &validate_optional_resource_projection_report/3,
+        &ResourceValidation.validate_optional_resource_projection_report/3,
       validate_optional_operational_timeline_report:
         &validate_optional_operational_timeline_report/2,
       validate_optional_operator_review_package: &validate_optional_operator_review_package/2,
@@ -5282,50 +5282,6 @@ defmodule OrbitalDynamics.Schema do
         group,
         contact_allocation_report_domain_callbacks()
       )
-
-  defp validate_optional_resource_projection_report(issues, path, value),
-    do:
-      ResourceValidation.validate_optional_resource_projection_report(
-        issues,
-        path,
-        value,
-        resource_validation_callbacks()
-      )
-
-  defp validate_optional_resource_projection_flow_summary(issues, path, value),
-    do:
-      ResourceValidation.validate_optional_resource_projection_flow_summary(
-        issues,
-        path,
-        value,
-        resource_validation_callbacks()
-      )
-
-  defp validate_resource_projection_report(issues, path, report),
-    do:
-      ResourceValidation.validate_resource_projection_report(
-        issues,
-        path,
-        report,
-        resource_validation_callbacks()
-      )
-
-  defp validate_resource_projection_flow_summary(issues, path, summary),
-    do:
-      ResourceValidation.validate_resource_projection_flow_summary(
-        issues,
-        path,
-        summary,
-        resource_validation_callbacks()
-      )
-
-  defp resource_validation_callbacks do
-    [
-      validate_approval_requirement: &PolicyValidation.validate_approval_requirement/3,
-      validate_policy_rule_match: &PolicyValidation.validate_rule_match/3,
-      validate_nested_id_match: &validate_nested_id_match/7
-    ]
-  end
 
   defp validate_maneuver_recommendation(issues, path, maneuver),
     do:
@@ -5687,7 +5643,7 @@ defmodule OrbitalDynamics.Schema do
       path,
       branch,
       &OrbitalDynamics.Schema.BranchEventContracts.validate_event/3,
-      &validate_optional_resource_projection_report/3,
+      &ResourceValidation.validate_optional_resource_projection_report/3,
       &PolicyValidation.validate_decision/3,
       &PolicyValidation.validate_approval_requirement/3
     )
