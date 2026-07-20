@@ -18,6 +18,7 @@ defmodule OrbitalDynamics.OperationalReadiness do
   alias OrbitalDynamics.OperationalReadiness.QualityGateOperatorTrainingSummary
   alias OrbitalDynamics.OperationalReadiness.QualityGateImportReadinessSummary
   alias OrbitalDynamics.OperationalReadiness.QualityGateSchemaValidationSummary
+  alias OrbitalDynamics.OperationalReadiness.QualityGateSummary
   alias OrbitalDynamics.OperationalReadiness.ResourceAvailabilityEvidence
   alias OrbitalDynamics.OperationalReadiness.TimelinePublicationContext
 
@@ -25,7 +26,6 @@ defmodule OrbitalDynamics.OperationalReadiness do
   @gate_summary_schema_contract "operational_readiness_gate_summary.v1"
   @execution_boundary_summary_schema_contract "operational_execution_boundary_summary.v1"
   @quality_gate_schema_contract "quality_gate_report.v1"
-  @quality_gate_summary_schema_contract "operational_quality_gate_summary.v1"
   @quality_gate_unavailable_resource_summary_schema_contract "operational_quality_gate_unavailable_resource_summary.v1"
   @quality_gate_operator_training_summary_schema_contract "operational_quality_gate_operator_training_summary.v1"
   @quality_gate_import_readiness_summary_schema_contract "operational_quality_gate_import_readiness_summary.v1"
@@ -45,7 +45,7 @@ defmodule OrbitalDynamics.OperationalReadiness do
       import_eligibility_summary_artifact_contract: ImportEligibilitySummary.schema_contract(),
       gate_summary_artifact_contract: @gate_summary_schema_contract,
       execution_boundary_summary_artifact_contract: @execution_boundary_summary_schema_contract,
-      quality_gate_summary_artifact_contract: @quality_gate_summary_schema_contract,
+      quality_gate_summary_artifact_contract: QualityGateSummary.schema_contract(),
       quality_gate_unavailable_resource_summary_artifact_contract:
         @quality_gate_unavailable_resource_summary_schema_contract,
       quality_gate_operator_training_summary_artifact_contract:
@@ -278,7 +278,7 @@ defmodule OrbitalDynamics.OperationalReadiness do
         %{"schema_contract" => @quality_gate_schema_contract} = quality_gate_report,
         _opts
       ) do
-    quality_gate_summary_from_report(quality_gate_report)
+    QualityGateSummary.build(quality_gate_report)
   end
 
   def quality_gate_summary(
@@ -293,7 +293,7 @@ defmodule OrbitalDynamics.OperationalReadiness do
   def quality_gate_summary(artifact, opts) do
     artifact
     |> quality_gate_report(opts)
-    |> quality_gate_summary_from_report()
+    |> QualityGateSummary.build()
   end
 
   @doc """
@@ -479,63 +479,6 @@ defmodule OrbitalDynamics.OperationalReadiness do
       "model_limits" => [
         "quality_gate_report_derives_classification_from_gate_rows",
         "quality_gate_report_does_not_approve_or_import"
-      ]
-    }
-  end
-
-  defp quality_gate_summary_from_report(%{} = quality_gate_report) do
-    report = stringify_keys(quality_gate_report)
-    rows = rows(report)
-    non_passed_rows = Enum.reject(rows, &(&1["status"] == "passed"))
-
-    %{
-      "schema_contract" => @quality_gate_summary_schema_contract,
-      "model" => "artifact_only_quality_gate_summary",
-      "source" => "quality_gate_report.v1",
-      "source_artifact_type" => report["source_artifact_type"],
-      "source_artifact_id" => report["source_artifact_id"],
-      "source_quality_gate_report_id" => report["report_id"],
-      "source_readiness_report_id" => report["source_readiness_report_id"],
-      "readiness_level" => readiness_level(import_classification(rows)),
-      "import_classification" => import_classification(rows),
-      "status" => report_status(import_classification(rows)),
-      "handoff_only" => true,
-      "execution_allowed" => false,
-      "cadence_write_allowed" => false,
-      "operator_authority_granted" => false,
-      "execution_boundary" => ExecutionBoundarySummary.boundary(import_classification(rows)),
-      "gate_count" => length(rows),
-      "passed_gate_count" => GateSummary.count(rows, "passed"),
-      "review_gate_count" => GateSummary.count(rows, "review_required"),
-      "analysis_gate_count" => GateSummary.count(rows, "analysis_only"),
-      "blocked_gate_count" => GateSummary.count(rows, "blocked"),
-      "non_passed_gate_count" => length(non_passed_rows),
-      "gate_status_counts" => GateSummary.field_counts(rows, "status"),
-      "gate_classification_counts" => GateSummary.field_counts(rows, "classification"),
-      "gate_ids_by_status" => quality_gate_ids_by(rows, "status"),
-      "gate_ids_by_classification" => quality_gate_ids_by(rows, "classification"),
-      "quality_gate_row_ids_by_status" => quality_gate_row_ids_by(rows, "status"),
-      "quality_gate_row_ids_by_classification" => quality_gate_row_ids_by(rows, "classification"),
-      "passed_gate_ids" => quality_gate_ids(rows, "passed"),
-      "review_required_gate_ids" => quality_gate_ids(rows, "review_required"),
-      "analysis_only_gate_ids" => quality_gate_ids(rows, "analysis_only"),
-      "blocked_gate_ids" => quality_gate_ids(rows, "blocked"),
-      "non_passed_gate_ids" =>
-        non_passed_rows |> Enum.map(& &1["gate_id"]) |> stable_sorted_ids(),
-      "non_passed_quality_gate_row_ids" =>
-        non_passed_rows |> Enum.map(& &1["id"]) |> stable_sorted_ids(),
-      "non_passed_rows" => non_passed_rows,
-      "rows" => rows,
-      "assumptions" => %{
-        "source" => "quality_gate_report.v1",
-        "execution_boundary" => "artifact_only_no_cadence_write",
-        "operator_authority" => "not_granted_by_quality_gate_summary",
-        "cadence_write" => "not_performed_by_summary",
-        "command_execution" => "not_performed_by_summary"
-      },
-      "model_limits" => [
-        "quality_gate_summary_derives_classification_from_gate_rows",
-        "quality_gate_summary_does_not_approve_or_import"
       ]
     }
   end
