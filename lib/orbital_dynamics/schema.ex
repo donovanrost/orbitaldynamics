@@ -5002,31 +5002,37 @@ defmodule OrbitalDynamics.Schema do
   defp validate_contract(@operational_readiness_report, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_operational_readiness_report("$", artifact)
+    |> OperationalReadinessValidation.validate_operational_readiness_report("$", artifact)
   end
 
   defp validate_contract(@operational_import_eligibility_summary, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_operational_import_eligibility_summary("$", artifact)
+    |> OperationalReadinessValidation.validate_operational_import_eligibility_summary(
+      "$",
+      artifact
+    )
   end
 
   defp validate_contract(@operational_readiness_gate_summary, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_operational_readiness_gate_summary("$", artifact)
+    |> OperationalReadinessValidation.validate_operational_readiness_gate_summary("$", artifact)
   end
 
   defp validate_contract(@operational_execution_boundary_summary, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_operational_execution_boundary_summary("$", artifact)
+    |> OperationalReadinessValidation.validate_operational_execution_boundary_summary(
+      "$",
+      artifact
+    )
   end
 
   defp validate_contract(@operational_quality_gate_summary, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_operational_quality_gate_summary("$", artifact)
+    |> OperationalReadinessValidation.validate_operational_quality_gate_summary("$", artifact)
   end
 
   defp validate_contract(
@@ -5036,7 +5042,10 @@ defmodule OrbitalDynamics.Schema do
        ) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_operational_quality_gate_unavailable_resource_summary("$", artifact)
+    |> OperationalReadinessValidation.validate_operational_quality_gate_unavailable_resource_summary(
+      "$",
+      artifact
+    )
   end
 
   defp validate_contract(
@@ -5046,7 +5055,10 @@ defmodule OrbitalDynamics.Schema do
        ) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_operational_quality_gate_operator_training_summary("$", artifact)
+    |> OperationalReadinessValidation.validate_operational_quality_gate_operator_training_summary(
+      "$",
+      artifact
+    )
   end
 
   defp validate_contract(
@@ -5056,7 +5068,10 @@ defmodule OrbitalDynamics.Schema do
        ) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_operational_quality_gate_schema_validation_summary("$", artifact)
+    |> OperationalReadinessValidation.validate_operational_quality_gate_schema_validation_summary(
+      "$",
+      artifact
+    )
   end
 
   defp validate_contract(
@@ -5066,7 +5081,10 @@ defmodule OrbitalDynamics.Schema do
        ) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_operational_quality_gate_import_readiness_summary("$", artifact)
+    |> OperationalReadinessValidation.validate_operational_quality_gate_import_readiness_summary(
+      "$",
+      artifact
+    )
   end
 
   defp validate_contract(@quality_gate_report, contract, artifact) do
@@ -5076,7 +5094,7 @@ defmodule OrbitalDynamics.Schema do
       "$",
       artifact,
       quality_gate_report_model_limits(),
-      &validate_quality_gate_row/3
+      &OperationalReadinessValidation.validate_quality_gate_row/3
     )
   end
 
@@ -6314,7 +6332,7 @@ defmodule OrbitalDynamics.Schema do
         &validate_schema_validation_source_status_matches/3,
       validate_execution_source_status_matches: &validate_execution_source_status_matches/3,
       validate_operational_readiness_resource_context:
-        &validate_operational_readiness_resource_context/3,
+        &OperationalReadinessValidation.validate_operational_readiness_resource_context/3,
       validate_contact_allocation_handoff_fields: &validate_contact_allocation_handoff_fields/3,
       validate_operator_review_row_links: &validate_operator_review_row_links/3,
       validate_contact_allocation_capacity_pack_group:
@@ -6341,94 +6359,6 @@ defmodule OrbitalDynamics.Schema do
       validate_optional_timeline_integrity_source_row:
         &validate_optional_timeline_integrity_source_row/3,
       error: &error/2
-    )
-  end
-
-  defp validate_operational_readiness_report(issues, path, report) do
-    OperationalReadinessValidation.validate_operational_readiness_report(issues, path, report)
-  end
-
-  defp validate_operational_import_eligibility_summary(issues, path, summary) do
-    OperationalReadinessValidation.validate_operational_import_eligibility_summary(
-      issues,
-      path,
-      summary
-    )
-  end
-
-  defp validate_operational_readiness_gate_summary(issues, path, summary) do
-    OperationalReadinessValidation.validate_operational_readiness_gate_summary(
-      issues,
-      path,
-      summary
-    )
-  end
-
-  defp validate_operational_execution_boundary_summary(issues, path, summary) do
-    OperationalReadinessValidation.validate_operational_execution_boundary_summary(
-      issues,
-      path,
-      summary
-    )
-  end
-
-  defp validate_operational_quality_gate_summary(issues, path, summary) do
-    OperationalReadinessValidation.validate_operational_quality_gate_summary(
-      issues,
-      path,
-      summary
-    )
-  end
-
-  defp validate_operational_quality_gate_unavailable_resource_summary(issues, path, summary) do
-    OperationalReadinessValidation.validate_operational_quality_gate_unavailable_resource_summary(
-      issues,
-      path,
-      summary
-    )
-  end
-
-  defp validate_operational_quality_gate_operator_training_summary(issues, path, summary) do
-    OperationalReadinessValidation.validate_operational_quality_gate_operator_training_summary(
-      issues,
-      path,
-      summary
-    )
-  end
-
-  defp validate_operational_quality_gate_schema_validation_summary(issues, path, summary) do
-    OperationalReadinessValidation.validate_operational_quality_gate_schema_validation_summary(
-      issues,
-      path,
-      summary
-    )
-  end
-
-  defp validate_operational_quality_gate_import_readiness_summary(issues, path, summary) do
-    OperationalReadinessValidation.validate_operational_quality_gate_import_readiness_summary(
-      issues,
-      path,
-      summary
-    )
-  end
-
-  defp validate_quality_gate_row(issues, path, row) do
-    OperationalReadinessValidation.validate_quality_gate_row(issues, path, row)
-  end
-
-  defp validate_operational_readiness_resource_context(issues, path, row) do
-    OperationalReadinessValidation.validate_operational_readiness_resource_context(
-      issues,
-      path,
-      row
-    )
-  end
-
-  defp validate_operational_readiness_cadence_import_context(issues, path, row) do
-    OperationalReadinessValidation.validate_operational_readiness_cadence_import_context(
-      issues,
-      path,
-      row
     )
   end
 
@@ -6475,9 +6405,9 @@ defmodule OrbitalDynamics.Schema do
       validate_optional_timeline_identity: &validate_optional_timeline_identity/4,
       validate_cadence_source_review_row: &validate_cadence_source_review_row/3,
       validate_operational_readiness_resource_context:
-        &validate_operational_readiness_resource_context/3,
+        &OperationalReadinessValidation.validate_operational_readiness_resource_context/3,
       validate_operational_readiness_cadence_import_context:
-        &validate_operational_readiness_cadence_import_context/3
+        &OperationalReadinessValidation.validate_operational_readiness_cadence_import_context/3
     )
     |> Keyword.merge(cadence_import_row_handoff_contract_callbacks())
   end
@@ -6705,7 +6635,7 @@ defmodule OrbitalDynamics.Schema do
       validate_optional_timeline_protection_summary:
         &validate_optional_timeline_protection_summary/4,
       validate_operational_readiness_resource_context:
-        &validate_operational_readiness_resource_context/3,
+        &OperationalReadinessValidation.validate_operational_readiness_resource_context/3,
       validate_contact_allocation_handoff_fields: &validate_contact_allocation_handoff_fields/3,
       validate_operator_review_row_links: &validate_operator_review_row_links/3
     )
