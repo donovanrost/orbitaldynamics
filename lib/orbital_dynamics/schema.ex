@@ -4394,102 +4394,109 @@ defmodule OrbitalDynamics.Schema do
     |> CadenceImportValidation.validate_manifest("$", artifact)
   end
 
-  defp validate_contract(@operational_readiness_report, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OperationalReadinessValidation.validate_operational_readiness_report("$", artifact)
-  end
-
-  defp validate_contract(@operational_import_eligibility_summary, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OperationalReadinessValidation.validate_operational_import_eligibility_summary(
+  defp validate_contract(@operational_readiness_report, _contract, artifact) do
+    OperationalReadinessValidation.validate_artifact(
+      [],
       "$",
-      artifact
+      artifact,
+      @operational_readiness_report
     )
   end
 
-  defp validate_contract(@operational_readiness_gate_summary, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OperationalReadinessValidation.validate_operational_readiness_gate_summary("$", artifact)
-  end
-
-  defp validate_contract(@operational_execution_boundary_summary, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OperationalReadinessValidation.validate_operational_execution_boundary_summary(
+  defp validate_contract(@operational_import_eligibility_summary, _contract, artifact) do
+    OperationalReadinessValidation.validate_artifact(
+      [],
       "$",
-      artifact
+      artifact,
+      @operational_import_eligibility_summary
     )
   end
 
-  defp validate_contract(@operational_quality_gate_summary, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OperationalReadinessValidation.validate_operational_quality_gate_summary("$", artifact)
+  defp validate_contract(@operational_readiness_gate_summary, _contract, artifact) do
+    OperationalReadinessValidation.validate_artifact(
+      [],
+      "$",
+      artifact,
+      @operational_readiness_gate_summary
+    )
+  end
+
+  defp validate_contract(@operational_execution_boundary_summary, _contract, artifact) do
+    OperationalReadinessValidation.validate_artifact(
+      [],
+      "$",
+      artifact,
+      @operational_execution_boundary_summary
+    )
+  end
+
+  defp validate_contract(@operational_quality_gate_summary, _contract, artifact) do
+    OperationalReadinessValidation.validate_artifact(
+      [],
+      "$",
+      artifact,
+      @operational_quality_gate_summary
+    )
   end
 
   defp validate_contract(
          @operational_quality_gate_unavailable_resource_summary,
-         contract,
+         _contract,
          artifact
        ) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OperationalReadinessValidation.validate_operational_quality_gate_unavailable_resource_summary(
+    OperationalReadinessValidation.validate_artifact(
+      [],
       "$",
-      artifact
+      artifact,
+      @operational_quality_gate_unavailable_resource_summary
     )
   end
 
   defp validate_contract(
          @operational_quality_gate_operator_training_summary,
-         contract,
+         _contract,
          artifact
        ) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OperationalReadinessValidation.validate_operational_quality_gate_operator_training_summary(
+    OperationalReadinessValidation.validate_artifact(
+      [],
       "$",
-      artifact
+      artifact,
+      @operational_quality_gate_operator_training_summary
     )
   end
 
   defp validate_contract(
          @operational_quality_gate_schema_validation_summary,
-         contract,
+         _contract,
          artifact
        ) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OperationalReadinessValidation.validate_operational_quality_gate_schema_validation_summary(
+    OperationalReadinessValidation.validate_artifact(
+      [],
       "$",
-      artifact
+      artifact,
+      @operational_quality_gate_schema_validation_summary
     )
   end
 
   defp validate_contract(
          @operational_quality_gate_import_readiness_summary,
-         contract,
+         _contract,
          artifact
        ) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OperationalReadinessValidation.validate_operational_quality_gate_import_readiness_summary(
+    OperationalReadinessValidation.validate_artifact(
+      [],
       "$",
-      artifact
+      artifact,
+      @operational_quality_gate_import_readiness_summary
     )
   end
 
-  defp validate_contract(@quality_gate_report, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.QualityGateReportContracts.validate_report(
+  defp validate_contract(@quality_gate_report, _contract, artifact) do
+    OperationalReadinessValidation.validate_artifact(
+      [],
       "$",
       artifact,
-      OperationalReadinessValidation.quality_gate_report_model_limits(),
-      &OperationalReadinessValidation.validate_quality_gate_row/3
+      @quality_gate_report
     )
   end
 

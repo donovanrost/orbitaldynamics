@@ -1,7 +1,13 @@
 defmodule OrbitalDynamics.Schema.OperationalReadinessValidation do
   @moduledoc false
 
-  import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2]
+  import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2, require_fields: 4]
+
+  def validate_artifact(issues, path, artifact, contract_name) do
+    issues
+    |> require_fields(path, artifact, required_fields(contract_name))
+    |> validate_artifact_contract(path, artifact, contract_name)
+  end
 
   def operational_readiness_model_limits do
     OrbitalDynamics.Schema.OperationalReadinessCapabilityContext.operational_readiness_model_limits()
@@ -228,5 +234,86 @@ defmodule OrbitalDynamics.Schema.OperationalReadinessValidation do
       path,
       row
     )
+  end
+
+  defp validate_artifact_contract(issues, path, artifact, "operational_readiness_report.v1"),
+    do: validate_operational_readiness_report(issues, path, artifact)
+
+  defp validate_artifact_contract(
+         issues,
+         path,
+         artifact,
+         "operational_import_eligibility_summary.v1"
+       ),
+       do: validate_operational_import_eligibility_summary(issues, path, artifact)
+
+  defp validate_artifact_contract(
+         issues,
+         path,
+         artifact,
+         "operational_readiness_gate_summary.v1"
+       ),
+       do: validate_operational_readiness_gate_summary(issues, path, artifact)
+
+  defp validate_artifact_contract(
+         issues,
+         path,
+         artifact,
+         "operational_execution_boundary_summary.v1"
+       ),
+       do: validate_operational_execution_boundary_summary(issues, path, artifact)
+
+  defp validate_artifact_contract(
+         issues,
+         path,
+         artifact,
+         "operational_quality_gate_summary.v1"
+       ),
+       do: validate_operational_quality_gate_summary(issues, path, artifact)
+
+  defp validate_artifact_contract(
+         issues,
+         path,
+         artifact,
+         "operational_quality_gate_unavailable_resource_summary.v1"
+       ),
+       do: validate_operational_quality_gate_unavailable_resource_summary(issues, path, artifact)
+
+  defp validate_artifact_contract(
+         issues,
+         path,
+         artifact,
+         "operational_quality_gate_operator_training_summary.v1"
+       ),
+       do: validate_operational_quality_gate_operator_training_summary(issues, path, artifact)
+
+  defp validate_artifact_contract(
+         issues,
+         path,
+         artifact,
+         "operational_quality_gate_schema_validation_summary.v1"
+       ),
+       do: validate_operational_quality_gate_schema_validation_summary(issues, path, artifact)
+
+  defp validate_artifact_contract(
+         issues,
+         path,
+         artifact,
+         "operational_quality_gate_import_readiness_summary.v1"
+       ),
+       do: validate_operational_quality_gate_import_readiness_summary(issues, path, artifact)
+
+  defp validate_artifact_contract(issues, path, artifact, "quality_gate_report.v1"),
+    do: validate_quality_gate_report(issues, path, artifact)
+
+  defp required_fields(contract_name) do
+    [
+      OrbitalDynamics.Schema.OperationalReadinessRegistryContracts,
+      OrbitalDynamics.Schema.OperationalQualityGateRegistryContracts,
+      OrbitalDynamics.Schema.QualityGateRegistryContracts
+    ]
+    |> Enum.reduce(%{}, &Map.merge(&2, &1.contracts()))
+    |> OrbitalDynamics.Schema.Registry.fetch!(contract_name)
+    |> Map.fetch!("required_fields")
   end
 end
