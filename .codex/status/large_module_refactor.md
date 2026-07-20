@@ -9,7 +9,7 @@ Current slice:
 Strategy/planning artifact JSON-property family expansion.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Move the five contiguous maneuver-review, branch-comparison,
@@ -28,10 +28,26 @@ Selection evidence:
 - No recursive parent callback or cross-family property lookup is required.
 
 Implementation:
-Pending.
+Selected in `bbe8cc87` and implemented in `51a9b3db`.
+`JsonSchemaPropertyRouter` retains all 76 public route heads in their original
+order and delegates the five selected clauses to
+`StrategyPlanningPropertyRouter`. The family router now owns fifteen related
+strategy/planning routes, with the copied dispatch bodies preserving the
+original lazy provider/context/fallback behavior.
 
 Verification:
-Pending.
+- Strict focused schema/validation baseline and post-change suites both passed:
+  359 tests, 0 failures.
+- AST-rendered comparison confirmed all five moved bodies are exact and all 76
+  parent route heads remain exact and ordered.
+- Xref reports fifteen runtime edges from the parent to the strategy/planning
+  family.
+- Schema export regenerated 121 schemas plus the bundle with no checked-in
+  artifact diff.
+- Strict full compile passed for 4,105 files with warnings as errors.
+- Formatting, diff checks, and bounded two-file review passed.
+- The parent router shrank from 696 to 641 lines; the strategy/planning family
+  grew from 154 to 229 lines.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -39,13 +55,12 @@ laziness, field-hint fallback, stable-ID decoration, public `Schema`, and
 checked-in exports must remain unchanged.
 
 Last completed slice:
-Timeline lifecycle/report JSON-property family expansion, selected in
-`a9fa65d3` and implemented in `38ab9bad`. The parent router moved from 772 to
-696 lines.
+Strategy/planning artifact JSON-property family expansion, selected in
+`bbe8cc87` and implemented in `51a9b3db`. The parent router moved from 696 to
+641 lines.
 
 Next candidate:
-Implement and verify the selected strategy/planning family expansion, then
-re-rank the remaining inline router routes against the public `Schema`
+Re-rank the remaining inline router routes against the public `Schema`
 facade's provider-helper boundaries.
 
 Blocked:
