@@ -3934,12 +3934,12 @@ defmodule OrbitalDynamics.Schema do
       cadence_import_resource_projection_evidence_json_schema_properties:
         &cadence_import_resource_projection_evidence_json_schema_properties/0,
       command_authority_handoff_json_schema_properties:
-        &command_authority_handoff_json_schema_properties/0,
+        &OrbitalDynamics.Schema.CommandAuthorityHandoffJsonSchema.properties/0,
       feedback_maneuver_handoff_json_schema_properties:
         &feedback_maneuver_handoff_json_schema_properties/0,
       link_handoff_json_schema_properties: &link_handoff_json_schema_properties/0,
       resource_availability_variance_json_schema_properties:
-        &resource_availability_variance_json_schema_properties/0,
+        &OrbitalDynamics.Schema.ResourceAvailabilityVarianceJsonSchema.properties/0,
       resource_projection_battery_handoff_json_schema_properties:
         &resource_projection_battery_handoff_json_schema_properties/0,
       scoped_downlink_context_json_schema_properties:
@@ -3970,14 +3970,6 @@ defmodule OrbitalDynamics.Schema do
       timeline_publication_summary_source_schema:
         timeline_publication_summary_source_json_schema()
     )
-  end
-
-  defp command_authority_handoff_json_schema_properties do
-    OrbitalDynamics.Schema.CommandAuthorityHandoffJsonSchema.properties()
-  end
-
-  defp resource_availability_variance_json_schema_properties do
-    OrbitalDynamics.Schema.ResourceAvailabilityVarianceJsonSchema.properties()
   end
 
   defp timeline_activity_precondition_handoff_json_schema_properties do
@@ -4087,12 +4079,12 @@ defmodule OrbitalDynamics.Schema do
       cadence_import_resource_projection_evidence_json_schema_properties:
         &cadence_import_resource_projection_evidence_json_schema_properties/0,
       command_authority_handoff_json_schema_properties:
-        &command_authority_handoff_json_schema_properties/0,
+        &OrbitalDynamics.Schema.CommandAuthorityHandoffJsonSchema.properties/0,
       feedback_maneuver_handoff_json_schema_properties:
         &feedback_maneuver_handoff_json_schema_properties/0,
       link_handoff_json_schema_properties: &link_handoff_json_schema_properties/0,
       resource_availability_variance_json_schema_properties:
-        &resource_availability_variance_json_schema_properties/0,
+        &OrbitalDynamics.Schema.ResourceAvailabilityVarianceJsonSchema.properties/0,
       resource_projection_battery_handoff_json_schema_properties:
         &resource_projection_battery_handoff_json_schema_properties/0,
       scoped_downlink_context_json_schema_properties:
@@ -4181,12 +4173,12 @@ defmodule OrbitalDynamics.Schema do
       branch_scoped_downlink_context_json_schema_properties:
         &branch_scoped_downlink_context_json_schema_properties/0,
       command_authority_handoff_json_schema_properties:
-        &command_authority_handoff_json_schema_properties/0,
+        &OrbitalDynamics.Schema.CommandAuthorityHandoffJsonSchema.properties/0,
       feedback_maneuver_handoff_json_schema_properties:
         &feedback_maneuver_handoff_json_schema_properties/0,
       link_handoff_json_schema_properties: &link_handoff_json_schema_properties/0,
       resource_availability_variance_json_schema_properties:
-        &resource_availability_variance_json_schema_properties/0,
+        &OrbitalDynamics.Schema.ResourceAvailabilityVarianceJsonSchema.properties/0,
       resource_projection_battery_handoff_json_schema_properties:
         &resource_projection_battery_handoff_json_schema_properties/0,
       scoped_downlink_context_json_schema_properties:
