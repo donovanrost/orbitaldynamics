@@ -380,6 +380,25 @@ defmodule OrbitalDynamics.Schema do
         {:scoped_downlink_context_json_schema_properties, 0}
       )
 
+    activity_schema_providers =
+      OrbitalDynamics.Schema.ActivitySchemaProviders.build(
+        @stable_id_pattern,
+        source_window_schema: &candidate_activity_source_window_json_schema/0,
+        activity_context_schema: &activity_context_json_schema/0,
+        timeline_identity_schema: &timeline_identity_json_schema/0,
+        cadence_import_schema: &cadence_import_json_schema/1,
+        execution_uncertainty_schema: &execution_uncertainty_json_schema/0
+      )
+
+    campaign_activity_schema =
+      Map.fetch!(activity_schema_providers, {:campaign_activity_json_schema, 0})
+
+    planned_activity_schema =
+      Map.fetch!(activity_schema_providers, {:planned_activity_json_schema, 0})
+
+    realized_activity_schema =
+      Map.fetch!(activity_schema_providers, {:realized_activity_json_schema, 0})
+
     source_evidence_providers =
       OrbitalDynamics.Schema.SourceEvidenceSchemaProviders.build(
         @stable_id_pattern,
@@ -397,8 +416,6 @@ defmodule OrbitalDynamics.Schema do
         {:cadence_import_manifest_model_limits, 0} => &cadence_import_manifest_model_limits/0,
         {:cadence_import_manifest_scalar_count_fields, 0} =>
           &cadence_import_manifest_scalar_count_fields/0,
-        {:campaign_activity_json_schema, 0} => &campaign_activity_json_schema/0,
-        {:candidate_activity_json_schema, 0} => &candidate_activity_json_schema/0,
         {:candidate_activity_source_window_json_schema, 0} =>
           &candidate_activity_source_window_json_schema/0,
         {:command_window_report_model_limits, 0} => &command_window_report_model_limits/0,
@@ -424,7 +441,6 @@ defmodule OrbitalDynamics.Schema do
         {:contact_intent_summary_assumptions_json_schema, 0} =>
           &contact_intent_summary_assumptions_json_schema/0,
         {:execution_uncertainty_json_schema, 0} => &execution_uncertainty_json_schema/0,
-        {:ground_station_identity_json_schema, 0} => &ground_station_identity_json_schema/0,
         {:link_capacity_assumptions_json_schema, 1} => &link_capacity_assumptions_json_schema/1,
         {:maneuver_recommendation_model_limits, 0} => &maneuver_recommendation_model_limits/0,
         {:maneuver_review_report_model_limits, 0} => &maneuver_review_report_model_limits/0,
@@ -437,11 +453,9 @@ defmodule OrbitalDynamics.Schema do
         {:operational_timeline_row_json_schema, 0} => &operational_timeline_row_json_schema/0,
         {:operator_review_capabilities, 0} => &operator_review_capabilities/0,
         {:operator_review_package_model_limits, 0} => &operator_review_package_model_limits/0,
-        {:planned_activity_json_schema, 0} => &planned_activity_json_schema/0,
         {:policy_model_limits, 0} => &policy_model_limits/0,
         {:protection_decision_json_schema, 0} => &protection_decision_json_schema/0,
         {:quality_gate_report_row_json_schema, 0} => &quality_gate_report_row_json_schema/0,
-        {:realized_activity_json_schema, 0} => &realized_activity_json_schema/0,
         {:registry_contract!, 1} => &registry_contract!/1,
         {:resource_filter_report_assumptions_json_schema, 0} =>
           &resource_filter_report_assumptions_json_schema/0,
@@ -450,14 +464,12 @@ defmodule OrbitalDynamics.Schema do
         {:schema_migration_statuses, 0} => &schema_migration_statuses/0,
         {:schema_validation_model_limits, 0} => &schema_validation_model_limits/0,
         {:sha256_json_schema, 0} => &sha256_json_schema/0,
-        {:spacecraft_identity_json_schema, 0} => &spacecraft_identity_json_schema/0,
         {:stable_id_array_map_schema, 0} => &stable_id_array_map_schema/0,
         {:stable_id_array_schema, 0} => &stable_id_array_schema/0,
         {:station_calendar_provider_counteroffer_actions, 0} =>
           &station_calendar_provider_counteroffer_actions/0,
         {:station_calendar_report_model, 0} => &station_calendar_report_model/0,
         {:station_calendar_report_model_limits, 0} => &station_calendar_report_model_limits/0,
-        {:target_identity_json_schema, 0} => &target_identity_json_schema/0,
         {:timeline_activity_precondition_statuses, 0} =>
           &timeline_activity_precondition_statuses/0,
         {:timeline_candidate_rejection_actions, 0} => &timeline_candidate_rejection_actions/0,
@@ -485,6 +497,7 @@ defmodule OrbitalDynamics.Schema do
     ]
     |> Keyword.update!(:schema_providers, fn providers ->
       providers
+      |> Map.merge(activity_schema_providers)
       |> Map.merge(policy_schema_providers)
       |> Map.merge(
         OrbitalDynamics.Schema.PlanningAnalysisSchemaProviders.build(@stable_id_pattern)
@@ -513,8 +526,8 @@ defmodule OrbitalDynamics.Schema do
       |> Map.merge(
         OrbitalDynamics.Schema.ExecutionStateSchemaProviders.build(
           @stable_id_pattern,
-          planned_activity_schema: &planned_activity_json_schema/0,
-          realized_activity_schema: &realized_activity_json_schema/0,
+          planned_activity_schema: planned_activity_schema,
+          realized_activity_schema: realized_activity_schema,
           timeline_link_schema: &timeline_link_json_schema/0,
           activity_context_schema: &activity_context_json_schema/0
         )
@@ -572,12 +585,12 @@ defmodule OrbitalDynamics.Schema do
         OrbitalDynamics.Schema.TimelineFeedbackSchemaProviders.build(
           @stable_id_pattern,
           @timeline_feedback_report,
-          realized_activity_schema: &realized_activity_json_schema/0,
+          realized_activity_schema: realized_activity_schema,
           timeline_feedback_capability: &timeline_feedback_capabilities/0,
           protection_decision_schema: &protection_decision_json_schema/0,
           timeline_identity_schema: &timeline_identity_json_schema/0,
           activity_context_schema: &activity_context_json_schema/0,
-          planned_activity_schema: &planned_activity_json_schema/0
+          planned_activity_schema: planned_activity_schema
         )
       )
       |> Map.merge(
@@ -590,7 +603,7 @@ defmodule OrbitalDynamics.Schema do
       |> Map.merge(
         OrbitalDynamics.Schema.TimelineEdgeSchemaProviders.build(
           @stable_id_pattern,
-          campaign_activity_schema: &campaign_activity_json_schema/0,
+          campaign_activity_schema: campaign_activity_schema,
           timeline_capability: &timeline_capabilities/0,
           activity_context_schema: &activity_context_json_schema/0,
           timeline_report_model_limits: &timeline_report_model_limits/0,
@@ -745,31 +758,10 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp candidate_activity_json_schema do
-    OrbitalDynamics.Schema.CandidateActivityJsonSchema.schema_from_context(
-      stable_id_pattern: @stable_id_pattern,
-      stable_id_array_schema: &stable_id_array_schema/0,
-      string_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.string_array/0,
+    OrbitalDynamics.Schema.ActivitySchemaProviders.candidate_activity(
+      @stable_id_pattern,
       source_window_schema: &candidate_activity_source_window_json_schema/0,
-      probability_schema: &OrbitalDynamics.Schema.CommonJsonSchema.probability/0,
-      number_or_string_schema: &OrbitalDynamics.Schema.CommonJsonSchema.number_or_string/0,
       activity_context_schema: &activity_context_json_schema/0
-    )
-  end
-
-  defp campaign_activity_json_schema do
-    candidate_activity_json_schema()
-  end
-
-  defp planned_activity_json_schema do
-    OrbitalDynamics.Schema.PlannedActivityJsonSchema.schema(
-      stable_id_pattern: @stable_id_pattern,
-      stable_id_array_schema: stable_id_array_schema(),
-      string_array_schema: OrbitalDynamics.Schema.CommonJsonSchema.string_array(),
-      probability_schema: OrbitalDynamics.Schema.CommonJsonSchema.probability(),
-      source_window_schema: candidate_activity_source_window_json_schema(),
-      timeline_identity_schema: timeline_identity_json_schema(),
-      cadence_import_schema: cadence_import_json_schema("planned_activity.v1"),
-      execution_uncertainty_schema: execution_uncertainty_json_schema()
     )
   end
 
@@ -784,33 +776,6 @@ defmodule OrbitalDynamics.Schema do
         OrbitalDynamics.Schema.PolicySchemaProviders.escalation(@stable_id_pattern)
       end
     )
-  end
-
-  defp realized_activity_json_schema do
-    OrbitalDynamics.Schema.RealizedActivityJsonSchema.schema(
-      stable_id_pattern: @stable_id_pattern,
-      stable_id_array_schema: stable_id_array_schema(),
-      string_array_schema: OrbitalDynamics.Schema.CommonJsonSchema.string_array(),
-      numeric_triplet_schema: OrbitalDynamics.Schema.CommonJsonSchema.numeric_triplet(),
-      probability_schema: OrbitalDynamics.Schema.CommonJsonSchema.probability(),
-      number_or_string_schema: OrbitalDynamics.Schema.CommonJsonSchema.number_or_string(),
-      execution_uncertainty_schema: execution_uncertainty_json_schema(),
-      ground_station_schema: ground_station_identity_json_schema(),
-      spacecraft_schema: spacecraft_identity_json_schema(),
-      target_schema: target_identity_json_schema()
-    )
-  end
-
-  defp target_identity_json_schema do
-    OrbitalDynamics.Schema.IdentityJsonSchema.target_from_context(@stable_id_pattern)
-  end
-
-  defp ground_station_identity_json_schema do
-    OrbitalDynamics.Schema.IdentityJsonSchema.ground_station_from_context(@stable_id_pattern)
-  end
-
-  defp spacecraft_identity_json_schema do
-    OrbitalDynamics.Schema.IdentityJsonSchema.spacecraft_from_context(@stable_id_pattern)
   end
 
   defp validation_record_registry_conditions do
