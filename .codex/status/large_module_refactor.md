@@ -6,16 +6,16 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema timeline capability-context extraction.
+No slice selected.
 
 Status:
-Selected; implementation not started.
+Slice complete and pushed.
 
 Selected boundary:
-Extract schema-facing timeline capability/model-limit access into
+Extracted schema-facing timeline capability/model-limit access into
 `OrbitalDynamics.Schema.TimelineCapabilityContext` and import its focused
 internal APIs into the Schema facade.
-Preserve all `OrbitalDynamics.Schema` public facades, JSON Schema output, and
+Preserved all `OrbitalDynamics.Schema` public facades, JSON Schema output, and
 validation behavior.
 
 Selection evidence:
@@ -34,23 +34,39 @@ Selection evidence:
   results, generated JSON Schema, and checked-in exports must remain unchanged.
 
 Implementation:
-Pending.
+- Added the focused `TimelineCapabilityContext` owner for Timeline and
+  TimelineFeedback model limits, capability data, rejection reasons/actions,
+  transition decisions, integrity issue types, precondition statuses, and
+  required operator actions.
+- Imported those internal APIs into `Schema`, preserving all existing
+  unqualified property-dispatch and validation call sites.
+- Removed nine private capability/model-limit helpers from the facade.
+- `schema.ex` moved from 6,525 to 6,498 lines; the owner is 34 lines.
 
 Verification:
-Pending.
+- Pre-change strict focused baseline: 51 JSON-export/timeline contract tests
+  passed.
+- Post-change strict focused verification: the same 51 tests passed; the full
+  schema-export task test and broader validation checks also passed.
+- Static checks found no migrated timeline capability helpers remaining; xref
+  reports `schema.ex` as an exported/imported caller of
+  `TimelineCapabilityContext`.
+- No checked-in schema export changed.
+- Forced warnings-as-errors compile passed across 4,051 files.
+- Formatting and `git diff --check` passed; the worktree was clean after the
+  implementation commit.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-Schema optional-readiness validation routing cleanup, selected in `af32df23`
-and implemented in `37099809`.
-`schema.ex` moved from 6,535 to 6,525 lines, leaving no readiness validation
-pass-through wrappers.
+Schema timeline capability-context extraction, selected in `cefcd8d6` and
+implemented in `dd182ce7`.
+`schema.ex` moved from 6,525 to 6,498 lines; the dedicated
+TimelineCapabilityContext owner is 34 lines.
 
 Next candidate:
-After this slice, re-rank the remaining schema capability/model-limit
-responsibility clusters.
+Re-rank the remaining schema capability/model-limit responsibility clusters.
 
 Blocked:
 No.
