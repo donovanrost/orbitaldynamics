@@ -8,6 +8,7 @@ defmodule OrbitalDynamics.Schema do
   """
 
   alias OrbitalDynamics.Schema.{
+    ActivityArtifactValidation,
     CadenceImportValidation,
     CampaignArtifactValidation,
     CandidateRejectionValidation,
@@ -4096,23 +4097,12 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp validate_contract(@activity_template, contract, artifact) do
-    OrbitalDynamics.Schema.ActivityTemplateContracts.validate(
-      [],
-      "$",
-      artifact,
-      contract,
-      timeline_capabilities()
-    )
+  defp validate_contract(@activity_template, _contract, artifact) do
+    ActivityArtifactValidation.validate_template([], "$", artifact)
   end
 
-  defp validate_contract(@planned_activity, contract, artifact) do
-    OrbitalDynamics.Schema.PlannedActivityContracts.validate(
-      [],
-      "$",
-      artifact,
-      contract
-    )
+  defp validate_contract(@planned_activity, _contract, artifact) do
+    ActivityArtifactValidation.validate_planned([], "$", artifact)
   end
 
   defp validate_contract(@proposed_contact, _contract, artifact) do
