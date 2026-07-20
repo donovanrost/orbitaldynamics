@@ -9,7 +9,7 @@ Current slice:
 StationCalendar affected-contact projection extraction.
 
 Status:
-Selected; strict focused baseline pending.
+Completed and pushed in `42b4bc3f`.
 
 Selected boundary:
 Extract affected-contact row identity/evidence projection, operator
@@ -36,25 +36,44 @@ Selection evidence:
   remain unchanged.
 
 Implementation:
-Pending.
+- Added `OrbitalDynamics.Communications.StationCalendar.AffectedContact` as the
+  owner of affected-contact row identity/evidence, overlap and feedback
+  normalization, operator action/reason selection, and deterministic duplicate
+  row disambiguation.
+- Wired overlay report construction directly to the owner while preserving
+  StationCalendar and root public APIs.
+- Kept contact matching/annotation, provider contention, approval policy, and
+  reservation/counteroffer summaries outside the boundary.
+- `station_calendar.ex` moved from 1,670 to 1,391 lines; the new owner is 302
+  lines.
 
 Verification:
-Pending.
+- Strict focused baseline passed all 42 StationCalendar tests.
+- Exact old/new public parity passed for four deterministic overlay results:
+  rich reservation/counteroffer evidence, duplicate affected-row identities,
+  invalid feedback evidence, and empty input.
+- Post-extraction focused and adjacent StationCalendar, operator-review, repair
+  annotation, and replay-summary verification passed all 57 tests.
+- Static checks confirm affected-contact projection, action/reason, overlap,
+  feedback, and collision helpers left the facade; xref reports only
+  StationCalendar as a runtime caller.
+- Strict warning-clean forced compile passed for 4,015 files.
+- Formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-OperationalReadiness execution-boundary summary extraction, selected in
-`59df6806` and implemented in `35b2cebf`.
-`operational_readiness.ex` moved from 1,686 to 1,635 lines; the dedicated
-ExecutionBoundarySummary owner is 63 lines.
+StationCalendar affected-contact projection extraction, selected in `a006e1c8`
+and implemented in `42b4bc3f`.
+`communications/station_calendar.ex` moved from 1,670 to 1,391 lines; the
+dedicated AffectedContact owner is 302 lines.
 
 Next candidate:
 Re-rank the live checkout and select the next bounded facade-preserving
-extraction. `communications/station_calendar.ex` is now the largest ordinary
-eligible facade at 1,670 lines, followed by ContactContention and
-RecommendationRiskContext.
+extraction. `communications/contact_contention.ex` is now the largest ordinary
+eligible facade at 1,665 lines, followed by RecommendationRiskContext and
+OperationalReadiness.
 
 Blocked:
 No.
