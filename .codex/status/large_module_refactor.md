@@ -9,7 +9,7 @@ Current slice:
 RecommendationRiskContext station-reservation-conflict extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `b36d6c11`.
 
 Selected boundary:
 Extract station-reservation-conflict context keys, risk selection, and context
@@ -34,19 +34,36 @@ Selection evidence:
   and error behavior must remain unchanged.
 
 Implementation:
-Pending.
+- Added
+  `OrbitalDynamics.RecommendationRiskContext.StationReservationConflict` as the
+  focused owner of the ordered key contract, required scope-plus-match-key
+  selection, atom-key normalization, and reservation-conflict projection.
+- Preserved the public RecommendationRiskContext facade through delegates.
+- All other risk families remain outside the extraction.
+- `recommendation_risk_context.ex` moved from 1,094 to 1,033 lines; the
+  dedicated StationReservationConflict owner is 100 lines.
 
 Verification:
-Pending.
+- Focused baseline and post-change test passed normally; the file retains its
+  two pre-existing signed-zero warnings.
+- Exact old/new public parity: four results passed, covering ordered keys, the
+  scope-plus-match-key selector, atom-key normalization, multi-key/list
+  flattening, nil omission, partial-match exclusion, empty input, and non-list
+  input.
+- Five adjacent recommendation tests passed with warnings treated as errors.
+- Static ownership and xref checks passed; only the facade calls the extracted
+  owner at runtime.
+- Forced warning-clean test compile passed across 4,037 files.
+- Focused formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-OperationalReadiness quality-gate row extraction, selected in `15bafb68` and
-implemented in `267f9eeb`.
-`operational_readiness.ex` moved from 1,140 to 1,063 lines; the dedicated
-QualityGateRow owner is 124 lines.
+RecommendationRiskContext station-reservation-conflict extraction, selected
+in `f6094848` and implemented in `b36d6c11`.
+`recommendation_risk_context.ex` moved from 1,094 to 1,033 lines; the dedicated
+StationReservationConflict owner is 100 lines.
 
 Next candidate:
 After this slice, re-rank the live checkout. OperationalReadiness is the next
