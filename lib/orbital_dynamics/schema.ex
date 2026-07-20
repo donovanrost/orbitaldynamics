@@ -7,7 +7,7 @@ defmodule OrbitalDynamics.Schema do
   the artifact shapes are still maturing.
   """
 
-  alias OrbitalDynamics.Schema.{SourceEvidenceValidation, TimelineContextJsonSchema}
+  alias OrbitalDynamics.Schema.TimelineContextJsonSchema
 
   import OrbitalDynamics.Schema.PrimitiveValidation,
     only: [error: 2]
@@ -352,6 +352,12 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property_context do
+    source_evidence_providers =
+      OrbitalDynamics.Schema.SourceEvidenceSchemaProviders.build(
+        @stable_id_pattern,
+        battery_handoff_properties: &resource_projection_battery_handoff_json_schema_properties/0
+      )
+
     [
       field_type_hints: @field_type_hints,
       stable_id_pattern: @stable_id_pattern,
@@ -583,7 +589,10 @@ defmodule OrbitalDynamics.Schema do
           operational_readiness_evidence_schema: &operational_readiness_evidence_json_schema/0,
           operational_readiness_gate_schema: &operational_readiness_gate_json_schema/0,
           operational_readiness_source_report_evidence_schema:
-            &operational_readiness_source_report_evidence_json_schema/0,
+            Map.fetch!(
+              source_evidence_providers,
+              :operational_readiness_source_report_evidence
+            ),
           operational_timeline_row_schema: &operational_timeline_row_json_schema/0,
           policy_decision_evidence_schema: &policy_decision_evidence_json_schema/0,
           policy_decision_rule_match_schema: &policy_decision_rule_match_json_schema/0,
@@ -591,8 +600,8 @@ defmodule OrbitalDynamics.Schema do
           protection_decision_schema: &protection_decision_json_schema/0,
           quality_gate_report_row_schema: &quality_gate_report_row_json_schema/0,
           quality_gate_source_report_evidence_schema:
-            &quality_gate_source_report_evidence_json_schema/0,
-          source_evidence_schema: &source_evidence_json_schema/0,
+            Map.fetch!(source_evidence_providers, :quality_gate_source_report_evidence),
+          source_evidence_schema: Map.fetch!(source_evidence_providers, :source_evidence),
           timeline_activity_precondition_summary_source_schema:
             &timeline_activity_precondition_summary_source_json_schema/0,
           timeline_activity_state_source_schema: &timeline_activity_state_source_json_schema/0,
@@ -634,20 +643,23 @@ defmodule OrbitalDynamics.Schema do
           operational_readiness_evidence_schema: &operational_readiness_evidence_json_schema/0,
           operational_readiness_gate_schema: &operational_readiness_gate_json_schema/0,
           operational_readiness_source_report_evidence_schema:
-            &operational_readiness_source_report_evidence_json_schema/0,
+            Map.fetch!(
+              source_evidence_providers,
+              :operational_readiness_source_report_evidence
+            ),
           operational_timeline_row_schema: &operational_timeline_row_json_schema/0,
           policy_decision_evidence_schema: &policy_decision_evidence_json_schema/0,
           policy_escalation_schema: &policy_escalation_json_schema/0,
           quality_gate_report_row_schema: &quality_gate_report_row_json_schema/0,
           quality_gate_source_report_evidence_schema:
-            &quality_gate_source_report_evidence_json_schema/0,
-          source_evidence_schema: &source_evidence_json_schema/0,
+            Map.fetch!(source_evidence_providers, :quality_gate_source_report_evidence),
+          source_evidence_schema: Map.fetch!(source_evidence_providers, :source_evidence),
           source_execution_report_evidence_schema:
-            &source_execution_report_evidence_json_schema/0,
+            Map.fetch!(source_evidence_providers, :source_execution_report_evidence),
           source_freshness_report_evidence_schema:
-            &source_freshness_report_evidence_json_schema/0,
+            Map.fetch!(source_evidence_providers, :source_freshness_report_evidence),
           source_schema_validation_report_evidence_schema:
-            &source_schema_validation_report_evidence_json_schema/0,
+            Map.fetch!(source_evidence_providers, :source_schema_validation_report_evidence),
           timeline_activity_precondition_summary_source_schema:
             &timeline_activity_precondition_summary_source_json_schema/0,
           timeline_activity_state_source_schema: &timeline_activity_state_source_json_schema/0,
@@ -704,58 +716,6 @@ defmodule OrbitalDynamics.Schema do
       stable_id_pattern: @stable_id_pattern,
       policy_escalation_schema: policy_escalation_json_schema()
     )
-  end
-
-  defp source_evidence_json_schema do
-    OrbitalDynamics.Schema.SourceEvidenceJsonSchema.source_evidence(source_evidence_schema_deps())
-  end
-
-  defp operational_readiness_source_report_evidence_json_schema do
-    OrbitalDynamics.Schema.SourceEvidenceJsonSchema.operational_readiness_source_report(
-      source_evidence_schema_deps()
-    )
-  end
-
-  defp quality_gate_source_report_evidence_json_schema do
-    OrbitalDynamics.Schema.SourceEvidenceJsonSchema.quality_gate_source_report(
-      quality_gate_source_report_schema_deps()
-    )
-  end
-
-  defp source_freshness_report_evidence_json_schema do
-    OrbitalDynamics.Schema.SourceEvidenceJsonSchema.freshness_report(
-      source_evidence_schema_deps(),
-      SourceEvidenceValidation.freshness_statuses()
-    )
-  end
-
-  defp source_schema_validation_report_evidence_json_schema do
-    OrbitalDynamics.Schema.SourceEvidenceJsonSchema.schema_validation_report(
-      source_evidence_schema_deps(),
-      SourceEvidenceValidation.schema_validation_statuses()
-    )
-  end
-
-  defp source_execution_report_evidence_json_schema do
-    OrbitalDynamics.Schema.SourceEvidenceJsonSchema.execution_report(
-      source_evidence_schema_deps(),
-      OrbitalDynamics.Schema.ExecutionReportContracts.statuses()
-    )
-  end
-
-  defp source_evidence_schema_deps do
-    %{
-      stable_id_pattern: @stable_id_pattern,
-      battery_handoff_properties: resource_projection_battery_handoff_json_schema_properties()
-    }
-  end
-
-  defp quality_gate_source_report_schema_deps do
-    source_evidence_schema_deps()
-    |> Map.merge(%{
-      count_map_schema: OrbitalDynamics.Schema.CommonJsonSchema.non_negative_integer_count_map(),
-      stable_id_array_map_schema: stable_id_array_map_schema()
-    })
   end
 
   defp policy_action_rule_json_schema do
