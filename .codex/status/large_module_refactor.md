@@ -6,50 +6,36 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-CampaignPlanner repair report owner direct routing.
+CampaignPlanner repair communications policy direct routing.
 
 Status:
-Completed and pushed.
+Selected; implementation not started.
 
 Selected boundary:
-Remove three one-hop CampaignPlanner repair helpers for timeline protection,
-operational-readiness source reports, and quality-gate source reports. Route
-their three repair-orchestration call sites directly to RepairTimelineSummary
-and RepairSourceReports. Keep guarded/defaulting candidate-refresh adapters,
-repair sequencing, score-term argument order, public CampaignPlanner APIs, and
-all owner APIs unchanged.
+Remove two one-hop CampaignPlanner repair communications helpers for downlink
+completion objectives and contact-contention resolution policy. Route their
+single consumers directly to DownlinkObjectiveRequirements and
+ContactContentionResolutionPolicy. Keep objective value guards, link-policy
+aggregation, contact-allocation options, repair sequencing, public
+CampaignPlanner APIs, and all owner APIs unchanged.
 
 Selection evidence:
-- `campaign_planner.ex` remains 1,061 lines after the strategy owner slice.
-- All three helpers delegate to same-arity owner APIs without guards, defaults,
+- `campaign_planner.ex` remains 1,049 lines after the repair-report slice.
+- Both helpers delegate to same-arity owner APIs without guards, defaults,
   transformation, caching, or shared facade state.
-- Each helper has exactly one repair-orchestration consumer.
-- Exact timeline protection, readiness/quality source rows, score terms,
-  repair artifact content, and deterministic output must remain unchanged.
+- Each helper has exactly one repair communications consumer.
+- Exact required-downlink aggregation, contact-contention policy, allocation
+  report content, repair artifact content, and deterministic output must remain
+  unchanged.
 
 Implementation:
-Removed the three one-hop CampaignPlanner repair-report helpers and routed
-their orchestration call sites directly to RepairTimelineSummary and
-RepairSourceReports. `campaign_planner.ex` moved from 1,061 to 1,049 lines.
+Pending.
 
 Verification:
-- Strict focused core planner, repair source-report, determinism, and timeline
-  protection baseline before routing: 13 passed.
-- The same strict focused suite after routing: 13 passed.
-- Strict adjacent repair filter, generated-refresh, resource-projection, and
-  contact-allocation coverage: 12 passed.
-- `mix xref callers` for RepairTimelineSummary and RepairSourceReports reports
-  the expected CampaignPlanner orchestrator and existing repair modules.
-- Static search confirms all three helper definitions and indirect calls are
-  gone.
-- `git diff --check` passed.
-- Strict forced compile passed across 4,065 files.
-- Implementation commit `3293d85c` pushed to `main`.
+Pending.
 
 Behavior/schema changes:
-None. Public CampaignPlanner APIs, repair sequencing, timeline protection,
-readiness/quality source rows, score terms, and deterministic artifacts remain
-unchanged.
+None intended.
 
 Last completed slice:
 CampaignPlanner repair report owner direct routing, selected in `6a2ae37b` and
