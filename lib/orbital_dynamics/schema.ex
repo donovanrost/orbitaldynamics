@@ -2697,20 +2697,10 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp embedded_contract_json_schema(contract_name) do
-    contract = registry_contract!(contract_name)
-    required_fields = contract["required_fields"]
-    optional_fields = Map.get(contract, "optional_fields", [])
-
-    %{
-      "type" => "object",
-      "additionalProperties" => true,
-      "required" => required_fields,
-      "properties" =>
-        (required_fields ++ optional_fields)
-        |> Enum.uniq()
-        |> Enum.sort()
-        |> Map.new(&{&1, json_schema_property(&1, contract_name, contract)})
-    }
+    OrbitalDynamics.Schema.EmbeddedContractJsonSchema.build(contract_name,
+      contract: &registry_contract!/1,
+      property: &json_schema_property/3
+    )
   end
 
   defp relay_data_path_row_json_schema do
