@@ -9,7 +9,7 @@ Current slice:
 Timeline report base schema-provider extraction.
 
 Status:
-Selected; implementation pending.
+Completed and verified.
 
 Selected boundary:
 Move operational-timeline row, candidate-rejection source, timeline
@@ -28,10 +28,21 @@ Selection evidence:
   lifecycle/summary layer.
 
 Implementation:
-Pending.
+Selected in `149a346a` and implemented in `f2a24879`. Added the 89-line
+`TimelineReportSchemaProviders` owner with five lazy base providers and public
+focused helpers, merged its registry context, and routed downstream base
+dependencies through the owner. The public `Schema` facade moved from 1,126 to
+1,106 lines.
 
 Verification:
-Pending.
+- Exact comparison passed for all five timeline-report base provider keys and
+  outputs.
+- Focused schema/validation suite passed: 359 tests.
+- Full checked-in schema export regenerated with no diff.
+- Runtime xref shows one direct `Schema` -> `TimelineReportSchemaProviders`
+  edge.
+- Strict forced compile passed with warnings as errors: 4,126 files.
+- `JsonSchemaPropertyRouter` remains an ordered 76-head facade.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -39,13 +50,12 @@ laziness, field-hint fallback, stable-ID decoration, public `Schema`, and
 checked-in exports must remain unchanged.
 
 Last completed slice:
-Timeline core schema-provider extraction, selected in `34f8879f` and
-implemented in `a9fa9e71`. Nine builders moved to the focused owner while the
-public `Schema` facade remained 1,126 lines due to explicit callback wiring.
+Timeline report base schema-provider extraction, selected in `149a346a` and
+implemented in `f2a24879`. The public `Schema` facade moved from 1,126 to 1,106
+lines.
 
 Next candidate:
-Implement and verify the selected timeline report base extraction, then move
-the remaining lifecycle/summary graph into the same owner.
+Expand the timeline-report owner with the remaining lifecycle/summary graph.
 
 Blocked:
 No.
