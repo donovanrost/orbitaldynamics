@@ -13,7 +13,7 @@ Selected; implementation not started.
 
 Selected boundary:
 Remove the zero-context, one-hop CommonJsonSchema number-array helper. Route
-its eleven eager and lazy consumers directly to
+its nine eager and lazy consumers directly to
 `CommonJsonSchema.number_array/0`. Keep string-array, probability, count-map,
 and context-bearing helpers, schema composition, executable validation, and
 all public facades in `OrbitalDynamics.Schema`.
@@ -24,6 +24,8 @@ Selection evidence:
   facade state, guards, defaults, transformation, or caching.
 - Its eager consumers and lazy callbacks can route directly with
   unchanged evaluation behavior.
+- Exact-name counting confirms nine consumers; two earlier substring matches
+  were the distinct number-or-number-array provider key.
 - Exact number-array schemas, callback timing, composed JSON Schema,
   validation results, and checked-in exports must remain unchanged.
 
