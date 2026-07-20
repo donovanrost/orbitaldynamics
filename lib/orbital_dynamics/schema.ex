@@ -465,23 +465,10 @@ defmodule OrbitalDynamics.Schema do
         {:spacecraft_state_estimate_json_schema, 0} => &spacecraft_state_estimate_json_schema/0,
         {:stable_id_array_map_schema, 0} => &stable_id_array_map_schema/0,
         {:stable_id_array_schema, 0} => &stable_id_array_schema/0,
-        {:station_calendar_contact_json_schema, 0} => &station_calendar_contact_json_schema/0,
-        {:station_calendar_provider_contention_group_json_schema, 0} =>
-          &station_calendar_provider_contention_group_json_schema/0,
         {:station_calendar_provider_counteroffer_actions, 0} =>
           &station_calendar_provider_counteroffer_actions/0,
-        {:station_calendar_provider_entry_json_schema, 0} =>
-          &station_calendar_provider_entry_json_schema/0,
         {:station_calendar_report_model, 0} => &station_calendar_report_model/0,
         {:station_calendar_report_model_limits, 0} => &station_calendar_report_model_limits/0,
-        {:station_reservation_contact_json_schema, 0} =>
-          &station_reservation_contact_json_schema/0,
-        {:station_reservation_hold_import_readiness_row_json_schema, 0} =>
-          &station_reservation_hold_import_readiness_row_json_schema/0,
-        {:station_reservation_provider_contention_group_json_schema, 0} =>
-          &station_reservation_provider_contention_group_json_schema/0,
-        {:station_reservation_review_summary_row_json_schema, 0} =>
-          &station_reservation_review_summary_row_json_schema/0,
         {:strategy_branch_event_json_schema, 0} => &strategy_branch_event_json_schema/0,
         {:strategy_branch_json_schema, 0} => &strategy_branch_json_schema/0,
         {:strategy_branch_risk_json_schema, 0} => &strategy_branch_risk_json_schema/0,
@@ -528,6 +515,16 @@ defmodule OrbitalDynamics.Schema do
         OrbitalDynamics.Schema.PlanningAnalysisSchemaProviders.build(@stable_id_pattern)
       )
       |> Map.merge(OrbitalDynamics.Schema.ValidationSchemaProviders.build(@stable_id_pattern))
+      |> Map.merge(
+        OrbitalDynamics.Schema.StationCalendarSchemaProviders.build(
+          @stable_id_pattern,
+          provider_counteroffer_negotiation_states:
+            &station_calendar_provider_counteroffer_negotiation_states/0,
+          approval_requirement_schema: &approval_requirement_json_schema/0,
+          policy_decision_rule_match_schema: &policy_decision_rule_match_json_schema/0,
+          policy_decision_schema: &policy_decision_json_schema/0
+        )
+      )
     end)
   end
 
@@ -1419,77 +1416,6 @@ defmodule OrbitalDynamics.Schema do
       stable_id_pattern: @stable_id_pattern,
       activity_context_schema: activity_context_json_schema(),
       policy_decision_schema: policy_decision_json_schema()
-    )
-  end
-
-  defp station_calendar_contact_json_schema do
-    OrbitalDynamics.Schema.StationCalendarReportJsonSchema.contact(
-      stable_id_pattern: @stable_id_pattern,
-      provider_counteroffer_negotiation_states:
-        station_calendar_provider_counteroffer_negotiation_states(),
-      source_entry_schema: station_calendar_report_source_entry_json_schema(),
-      approval_requirement_schema: approval_requirement_json_schema(),
-      policy_decision_rule_match_schema: policy_decision_rule_match_json_schema(),
-      policy_decision_schema: policy_decision_json_schema()
-    )
-  end
-
-  defp station_reservation_contact_json_schema do
-    OrbitalDynamics.Schema.StationReservationReportJsonSchema.contact(
-      stable_id_pattern: @stable_id_pattern,
-      approval_requirement_schema: approval_requirement_json_schema(),
-      policy_decision_rule_match_schema: policy_decision_rule_match_json_schema(),
-      policy_decision_schema: policy_decision_json_schema()
-    )
-  end
-
-  defp station_reservation_provider_contention_group_json_schema do
-    OrbitalDynamics.Schema.StationReservationReportJsonSchema.provider_contention_group(
-      calendar_group_schema: station_calendar_provider_contention_group_json_schema()
-    )
-  end
-
-  defp station_reservation_review_summary_row_json_schema do
-    OrbitalDynamics.Schema.StationReservationReviewSummaryJsonSchema.review_row(
-      stable_id_pattern: @stable_id_pattern,
-      base_schema: station_reservation_contact_json_schema()
-    )
-  end
-
-  defp station_reservation_hold_import_readiness_row_json_schema do
-    OrbitalDynamics.Schema.StationReservationHoldImportReadinessSummaryJsonSchema.import_readiness_row(
-      review_row_schema: station_reservation_review_summary_row_json_schema()
-    )
-  end
-
-  defp station_calendar_report_source_entry_json_schema do
-    OrbitalDynamics.Schema.StationCalendarReportJsonSchema.source_entry(
-      stable_id_pattern: @stable_id_pattern,
-      provider_counteroffer_negotiation_states:
-        station_calendar_provider_counteroffer_negotiation_states()
-    )
-  end
-
-  defp station_calendar_provider_contention_group_json_schema do
-    OrbitalDynamics.Schema.StationCalendarReportJsonSchema.provider_contention_group(
-      stable_id_pattern: @stable_id_pattern,
-      policy_decision_schema: policy_decision_json_schema(),
-      provider_contention_pair_schema: station_calendar_provider_contention_pair_json_schema(),
-      provider_entry_schema: station_calendar_provider_entry_json_schema()
-    )
-  end
-
-  defp station_calendar_provider_contention_pair_json_schema do
-    OrbitalDynamics.Schema.StationCalendarReportJsonSchema.provider_contention_pair(
-      stable_id_pattern: @stable_id_pattern
-    )
-  end
-
-  defp station_calendar_provider_entry_json_schema do
-    OrbitalDynamics.Schema.StationCalendarReportJsonSchema.provider_entry(
-      stable_id_pattern: @stable_id_pattern,
-      provider_counteroffer_negotiation_states:
-        station_calendar_provider_counteroffer_negotiation_states()
     )
   end
 
