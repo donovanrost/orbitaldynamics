@@ -5780,9 +5780,6 @@ defmodule OrbitalDynamics.Schema do
         candidate_rejection_report_model_limits()
       )
 
-  defp validate_optional_candidate_rejection_source_row(issues, path, row),
-    do: CandidateRejectionValidation.validate_optional_source_row(issues, path, row)
-
   defp validate_optional_candidate_rejection_report(issues, path, report),
     do:
       CandidateRejectionValidation.validate_optional_report(
@@ -5820,7 +5817,7 @@ defmodule OrbitalDynamics.Schema do
       validate_optional_policy_decision_evidence: &validate_optional_policy_decision_evidence/3,
       validate_optional_policy_escalation: &validate_optional_policy_escalation/4,
       validate_optional_candidate_rejection_source_row:
-        &validate_optional_candidate_rejection_source_row/3,
+        &CandidateRejectionValidation.validate_optional_source_row/3,
       validate_optional_timeline_dependency_impact_source_row:
         &TimelineSourceValidation.validate_optional_timeline_dependency_impact_source_row/3,
       validate_optional_branch_comparison_source_row:
@@ -5895,7 +5892,7 @@ defmodule OrbitalDynamics.Schema do
       validate_optional_policy_decision_evidence: &validate_optional_policy_decision_evidence/3,
       validate_optional_policy_escalation: &validate_optional_policy_escalation/4,
       validate_optional_candidate_rejection_source_row:
-        &validate_optional_candidate_rejection_source_row/3,
+        &CandidateRejectionValidation.validate_optional_source_row/3,
       validate_optional_branch_comparison_source_row:
         &DecisionSupportValidation.validate_optional_branch_comparison_source_row/3,
       validate_source_evidence_fields: &SourceEvidenceValidation.validate_fields/3,
