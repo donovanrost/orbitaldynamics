@@ -9,7 +9,7 @@ Current slice:
 CampaignPlanner repair request normalization extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Move repair map-to-struct conversion, request normalization, generated-at and
@@ -30,18 +30,37 @@ Selection evidence:
   refresh artifacts, and deterministic repair output must remain unchanged.
 
 Implementation:
-Pending.
+Added `RepairRequestNormalization` and moved map-to-struct conversion, repair
+normalization, timestamp/network validation, candidate-source derivation, and
+optional refresh execution behind `from_map/1` and `normalize/1`.
+CampaignPlanner moved from 952 to 759 lines; the new owner is 197 lines.
+Strategy timestamp normalization now calls the shared owner directly.
 
 Verification:
-Pending.
+- Strict focused core planner, repair-input, generated-refresh,
+  station-calendar, and determinism baseline before extraction: 17 passed.
+- The same strict focused suite after extraction: 17 passed.
+- Strict adjacent candidate-refresh filter/source-report and strategy
+  recommendation/mission-state coverage: 13 passed.
+- `mix xref callers` reports CampaignPlanner as the sole
+  RepairRequestNormalization consumer and preserves the expected nested
+  RepairCandidateRefreshInheritance and RepairMetadata dependencies.
+- Strict compile caught and resolved the shared strategy timestamp consumer and
+  six aliases that moved with the cluster.
+- Static search confirms the selected functions are gone from CampaignPlanner.
+- `git diff --check` passed.
+- Strict forced compile passed across 4,067 files.
+- Implementation commit `6c4475d1` pushed to `main`.
 
 Behavior/schema changes:
-None intended.
+None. Public CampaignPlanner APIs, ReplanRequest shape, fallback keys, policy
+merging, validation errors, timestamps, ground networks, candidate-refresh
+execution, and deterministic artifacts remain unchanged.
 
 Last completed slice:
-CampaignPlanner repair candidate-refresh inheritance extraction, selected in
-`f7918ecb` and implemented in `727bad87`.
-`campaign_planner.ex` moved from 1,037 to 952 lines.
+CampaignPlanner repair request normalization extraction, selected in
+`fb458f11` and implemented in `6c4475d1`.
+`campaign_planner.ex` moved from 952 to 759 lines.
 
 Next candidate:
 Re-rank the remaining non-capability Schema responsibility clusters now that
