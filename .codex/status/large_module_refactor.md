@@ -6,45 +6,32 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Objective/optimizer JSON-property family extraction.
+Operational readiness/handoff JSON-property family extraction.
 
 Status:
-Implemented and verified.
+Selected; implementation pending.
 
 Selected boundary:
-Move the five contiguous objective satisfaction/tradeoff, ranking/Pareto,
-score-term, resource-filter-summary, and constraint clauses from
-`JsonSchemaPropertyRouter` into the existing `StrategyPlanningPropertyRouter`.
+Extract the six contiguous readiness-gate, quality-gate, specialized-quality,
+operational-readiness, operator-review, and Cadence-import clauses from
+`JsonSchemaPropertyRouter` into an operational readiness/handoff family owner.
 Keep the parent router's exact guarded and literal clause heads/order as
 delegations.
 
 Selection evidence:
-- The parent router remains 864 lines across 76 contract-family clauses.
-- Five adjacent clauses form a roughly 80-line objective/optimizer boundary
-  covering eight related contracts.
-- They fit the existing strategy/planning-analysis owner and require only its
-  current lazy provider/context/fallback support.
-- No recursive parent callback or cross-family property lookup is required.
+- The parent router remains 814 lines across 76 contract-family clauses.
+- Six adjacent clauses form a roughly 105-line operational readiness/handoff
+  boundary covering twelve related contracts.
+- The bodies already delegate through readiness, quality, and handoff
+  dispatchers with shared lazy providers/context/fallback.
+- No recursive parent callback or cross-family property lookup is required;
+  the existing readiness validation alias moves with the family.
 
 Implementation:
-- Moved five objective/optimizer clause bodies into the existing
-  `StrategyPlanningPropertyRouter`, which now owns ten related routes in 154
-  lines.
-- Kept all guarded and literal parent clause heads in place as ordered
-  delegations.
-- Reused the planning owner's existing lazy provider/context/fallback support.
-- The parent router moved from 864 to 814 lines.
+Pending.
 
 Verification:
-- Strict pre-change baseline and post-change schema/validation suite: 359 tests
-  passed in each run.
-- AST comparison confirmed all five moved bodies are exact and all 76 parent
-  clause heads remain in their original order.
-- Full schema export regenerated 121 contract schemas and the bundle with no
-  checked-in schema diff.
-- `mix xref trace` confirms the five additional planning-family edges.
-- Formatting, `git diff --check`, and bounded source/schema diff review passed.
-- Strict compile passed for 4,104 files with warnings as errors.
+Pending.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -56,8 +43,8 @@ Objective/optimizer JSON-property family move, selected in `4b8ee80c` and
 implemented in `d75f423d`. The parent router moved from 864 to 814 lines.
 
 Next candidate:
-Re-rank the operational readiness/quality-gate cohort for another broad
-exact-body family move.
+Implement and verify the selected operational readiness/handoff split, then
+re-rank the remaining maneuver/strategy/activity tail.
 
 Blocked:
 No.
