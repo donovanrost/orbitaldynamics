@@ -21,6 +21,14 @@ defmodule OrbitalDynamics.Schema.StationReservationReportJsonSchema do
     "reservation_status_counts"
   ]
 
+  def models do
+    [
+      "artifact_only_station_reservation_summary",
+      "preserved_station_reservation_hold_summary",
+      "preserved_station_reservation_hold_import_readiness_summary"
+    ]
+  end
+
   def property_field?(field)
       when field in [
              "schema_contract",

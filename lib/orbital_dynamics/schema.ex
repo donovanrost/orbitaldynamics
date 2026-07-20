@@ -2134,7 +2134,7 @@ defmodule OrbitalDynamics.Schema do
       &default_json_schema_property/3,
       @stable_id_pattern,
       {
-        &station_reservation_report_models/0,
+        &OrbitalDynamics.Schema.StationReservationReportJsonSchema.models/0,
         &station_reservation_contact_json_schema/0,
         &station_reservation_provider_contention_group_json_schema/0
       }
@@ -3172,14 +3172,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp timeline_string_assumptions_json_schema(values) do
     OrbitalDynamics.Schema.CommonJsonSchema.string_const_assumptions(values)
-  end
-
-  defp station_reservation_report_models do
-    [
-      "artifact_only_station_reservation_summary",
-      "preserved_station_reservation_hold_summary",
-      "preserved_station_reservation_hold_import_readiness_summary"
-    ]
   end
 
   defp planned_activity_json_schema do
@@ -4456,7 +4448,7 @@ defmodule OrbitalDynamics.Schema do
     |> OrbitalDynamics.Schema.StationReservationReportContracts.validate(
       "$",
       artifact,
-      station_reservation_report_models()
+      OrbitalDynamics.Schema.StationReservationReportJsonSchema.models()
     )
   end
 
