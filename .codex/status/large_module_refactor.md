@@ -6,45 +6,31 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Validation/schema-lifecycle JSON-property family extraction.
+Strategy/planning-analysis JSON-property family extraction.
 
 Status:
-Implemented and verified.
+Selected; implementation pending.
 
 Selected boundary:
-Extract the five contiguous validation evidence, validation assessment, schema
-validation, schema migration, and lint-report clauses from
-`JsonSchemaPropertyRouter` into a validation/schema-lifecycle family owner.
+Extract the five contiguous strategy-branch, optimizer-contract, model
+capability, Monte Carlo reproducibility, and strategy-recommendation clauses
+from `JsonSchemaPropertyRouter` into a strategy/planning-analysis family owner.
 Keep the parent router's exact guarded and literal clause heads/order as
 delegations.
 
 Selection evidence:
-- The parent router remains 1,146 lines across 76 contract-family clauses.
-- Five adjacent clauses form a roughly 110-line validation/schema-lifecycle
-  boundary covering twelve related contracts.
-- The bodies already delegate through focused validation, schema, and lint
-  dispatchers and share only lazy providers, stable-ID context, and fallback.
+- The parent router remains 1,071 lines across 76 contract-family clauses.
+- Five adjacent clauses form a roughly 75-line strategy/planning-analysis
+  boundary covering seven related contracts.
+- The bodies already delegate through focused strategy, planning-analysis, and
+  model-capability dispatchers with shared lazy providers/context/fallback.
 - No recursive parent callback or cross-family property lookup is required.
 
 Implementation:
-- Added a 116-line `ValidationPropertyRouter` with the five mechanically moved
-  validation/schema-lifecycle clause bodies spanning twelve contracts.
-- Kept all literal and guarded parent clause heads in place as ordered
-  delegations.
-- Reused shared lazy provider/context/fallback support without a parent
-  callback.
-- The parent router moved from 1,146 to 1,071 lines.
+Pending.
 
 Verification:
-- Strict pre-change baseline and post-change schema/validation suite: 359 tests
-  passed in each run.
-- AST comparison confirmed all five moved bodies are exact and all 76 parent
-  clause heads remain in their original order.
-- Full schema export regenerated 121 contract schemas and the bundle with no
-  checked-in schema diff.
-- `mix xref trace` confirms the five intended family edges.
-- Formatting, `git diff --check`, and bounded source/schema diff review passed.
-- Strict compile passed for 4,101 files with warnings as errors.
+Pending.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -57,8 +43,8 @@ Validation/schema-lifecycle JSON-property family extraction, selected in
 1,071 lines.
 
 Next candidate:
-Re-rank the adjacent strategy/planning-analysis and communications cohorts,
-preferring another broad mechanical family boundary.
+Implement and verify the selected strategy/planning-analysis split, then
+re-rank maneuver/timeline or communications cohorts.
 
 Blocked:
 No.
