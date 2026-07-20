@@ -6,56 +6,40 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-OrbitData accepted-planning-state construction extraction.
+StationCalendar reservation-hold import-readiness extraction.
 
 Status:
-Completed and pushed in `fe2b4773`.
+Selected; strict focused baseline pending.
 
 Selected boundary:
-Extract accepted-planning-state artifact construction, state-estimate
-normalization, epoch/vector/quality validation, maneuver-execution-delta
-normalization, and inherited provenance into
-`OrbitalDynamics.OrbitData.AcceptedPlanningState`.
-Preserve all OrbitData and root public facades.
+Extract reservation-hold import-status projection, count/status aggregation,
+reservation/contact routing by import state, expiration, owner, action,
+direction, and ground station, assumptions, and summary construction into
+`OrbitalDynamics.Communications.StationCalendar.ReservationHoldImportReadinessSummary`.
+Preserve all StationCalendar and root public facades.
 
 Selection evidence:
 - Excluding the generated/declarative candidate-refresh JSON-schema module,
-  live re-ranking places `orbit_data.ex` at 1,856 lines, the
+  live re-ranking places `communications/station_calendar.ex` at 1,814 lines,
+  the
   largest ordinary eligible facade.
-- OrbitData delegates TLE and OMM metadata inspection, while accepted planning
-  state construction remains inline at lines 1,540-1,765.
-- The selected block has one responsibility: normalize validated state and
-  maneuver-delta inputs into the accepted planning-state artifact contract.
-- JSON/OPM/OEM adapter routing, KVN parsing/export, schema validation, common
-  adapter provenance helpers, and all public contracts remain outside the
-  boundary.
-- Exact validation precedence and errors, index paths, epoch/vector shape,
-  provenance inheritance, delta normalization, omission behavior, artifact
-  output, and bang/non-bang facade behavior must remain unchanged.
+- StationCalendar already delegates fourteen focused responsibilities, while
+  reservation-hold import-readiness construction remains inline at lines
+  868-938 with its direction/station routing helpers in the facade.
+- The selected block has one responsibility: project reservation-hold review
+  rows into a review-only import-readiness handoff.
+- Reservation reports, review and hold summaries, overlays, station matching,
+  provider contention/counteroffers, and all public contracts remain outside
+  the boundary.
+- Exact row order/status projection, counts, reservation/contact routing,
+  direction normalization, assumptions, omission behavior, public output, and
+  error behavior must remain unchanged.
 
 Implementation:
-- Added `OrbitalDynamics.OrbitData.AcceptedPlanningState` as the owner of
-  artifact construction, state-estimate normalization, epoch/vector/quality
-  validation, maneuver-execution-delta normalization, and inherited
-  provenance.
-- Preserved OrbitData and root public APIs; the facade retains narrow
-  construction and maneuver-delta delegates used by JSON/OPM/OEM adapters.
-- Removed accepted-state-specific validation and normalization helpers from the
-  facade while leaving shared adapter/schema helpers in place.
-- `orbit_data.ex` moved from 1,856 to 1,596 lines; the new owner is 303 lines.
+Pending.
 
 Verification:
-- Strict focused baseline passed all 37 OrbitData tests.
-- Exact old/new public parity passed for five deterministic results: a
-  successful multi-state artifact with inherited provenance and maneuver
-  delta, empty estimates, invalid vector, missing snapshot ID, and invalid
-  maneuver delta.
-- Post-extraction focused and adjacent accepted-state schema verification
-  passed all 43 tests.
-- Static checks confirm accepted-state implementation helpers left the facade;
-  xref reports only OrbitData as a runtime caller.
-- Strict warning-clean forced compile passed for 4,005 files.
-- Formatting and `git diff --check` passed.
+Pending.
 
 Behavior/schema changes:
 None intended.
