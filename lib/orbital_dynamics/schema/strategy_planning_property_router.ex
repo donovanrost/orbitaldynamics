@@ -1,0 +1,82 @@
+defmodule OrbitalDynamics.Schema.StrategyPlanningPropertyRouter do
+  @moduledoc false
+
+  import OrbitalDynamics.Schema.JsonSchemaPropertySupport,
+    only: [context_value: 2, fallback: 4, provider: 3]
+
+  def property(field, "strategy_branch.v1" = contract_name, contract, context) do
+    OrbitalDynamics.Schema.StrategyArtifactPropertyDispatch.branch(
+      field,
+      contract_name,
+      contract,
+      fn arg1, arg2, arg3 -> fallback(arg1, arg2, arg3, context) end,
+      {context_value(context, :stable_id_pattern),
+       fn -> provider(context, :strategy_branch_event_json_schema, []) end,
+       fn ->
+         OrbitalDynamics.Schema.StrategyBranchJsonSchema.risk(
+           context_value(context, :stable_id_pattern),
+           provider(context, :scoped_downlink_context_json_schema_properties, [])
+         )
+       end, fn -> provider(context, :approval_requirement_json_schema, []) end,
+       &OrbitalDynamics.Schema.CommonJsonSchema.numeric_map/0,
+       fn -> provider(context, :policy_decision_json_schema, []) end}
+    )
+  end
+
+  def property(field, "optimizer_contract.v1" = contract_name, contract, context) do
+    OrbitalDynamics.Schema.PlanningAnalysisPropertyDispatch.optimizer_contract(
+      field,
+      contract_name,
+      contract,
+      fn arg1, arg2, arg3 -> fallback(arg1, arg2, arg3, context) end,
+      {"optimizer_contract.v1", context_value(context, :stable_id_pattern)}
+    )
+  end
+
+  def property(field, contract_name, contract, context)
+      when contract_name in [
+             "environment_model_capability.v1",
+             "environment_provider_capability.v1",
+             "subsystem_model_capability.v1"
+           ] do
+    OrbitalDynamics.Schema.ModelCapabilityPropertyDispatch.property(
+      field,
+      contract_name,
+      contract,
+      contracts: %{
+        environment_model: "environment_model_capability.v1",
+        environment_provider: "environment_provider_capability.v1",
+        subsystem_model: "subsystem_model_capability.v1"
+      },
+      stable_id_pattern: context_value(context, :stable_id_pattern),
+      validation_level_schema: &OrbitalDynamics.Schema.ValidationJsonSchema.validation_level/0,
+      default_property: fn arg1, arg2, arg3 -> fallback(arg1, arg2, arg3, context) end
+    )
+  end
+
+  def property(field, "monte_carlo_reproducibility_report.v1" = contract_name, contract, context) do
+    OrbitalDynamics.Schema.PlanningAnalysisPropertyDispatch.monte_carlo(
+      field,
+      contract_name,
+      contract,
+      fn arg1, arg2, arg3 -> fallback(arg1, arg2, arg3, context) end,
+      {"monte_carlo_reproducibility_report.v1", context_value(context, :stable_id_pattern),
+       &OrbitalDynamics.Schema.MonteCarloReproducibilityContracts.model_limits/0,
+       &OrbitalDynamics.Schema.CommonJsonSchema.numeric_triplet/0}
+    )
+  end
+
+  def property(field, "strategy_recommendation.v1" = contract_name, contract, context) do
+    OrbitalDynamics.Schema.StrategyArtifactPropertyDispatch.recommendation(
+      field,
+      contract_name,
+      contract,
+      fn arg1, arg2, arg3 -> fallback(arg1, arg2, arg3, context) end,
+      {"strategy_recommendation.v1", context_value(context, :stable_id_pattern),
+       fn -> provider(context, :strategy_branch_tradeoff_json_schema, []) end,
+       fn -> provider(context, :strategy_explanation_json_schema, []) end,
+       fn -> provider(context, :strategy_branch_risk_json_schema, []) end,
+       fn -> provider(context, :approval_requirement_json_schema, []) end}
+    )
+  end
+end
