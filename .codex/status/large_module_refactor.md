@@ -6,59 +6,37 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-RecommendationRiskContext maneuver-execution-uncertainty extraction.
+OperationalReadiness import-eligibility summary extraction.
 
 Status:
-Completed and pushed in `1f5f9672`.
+Selected; implementation not started.
 
 Selected boundary:
-Extract maneuver-execution-uncertainty context keys, risk classification, and
-context projection into
-`OrbitalDynamics.RecommendationRiskContext.ManeuverExecutionUncertainty`.
-Preserve all RecommendationRiskContext and downstream public facades.
+Extract compact import-eligibility artifact projection into
+`OrbitalDynamics.OperationalReadiness.ImportEligibilitySummary`.
+Preserve all OperationalReadiness and root public facades.
 
 Selection evidence:
 - Excluding the generated/declarative candidate-refresh JSON-schema module,
-  live re-ranking places `recommendation_risk_context.ex` at 1,650 lines, the
+  live re-ranking places `operational_readiness.ex` at 1,635 lines, the
   largest ordinary eligible facade.
-- RecommendationRiskContext already delegates fifteen focused risk families,
-  while maneuver-execution-uncertainty keys, projection, and classification
-  remain inline at lines 417-443, 526-527, 1,391-1,468, and 1,558-1,576.
-- The selected code has one responsibility: identify maneuver execution
-  uncertainty risks and project their stable review context.
-- Resource margins, timeline integrity, score terms, operational feedback, and
-  all other risk families remain outside the boundary.
-- Exact context keys and order, accepted type/risk_type/feedback_scope forms,
-  atom-key normalization, list flattening, nil omission, value ordering,
-  non-list behavior, public output, and error behavior must remain unchanged.
+- OperationalReadiness already delegates eleven focused responsibilities,
+  while import-eligibility artifact projection remains inline at lines 428-463.
+- The selected block has one responsibility: project readiness identity,
+  classification, row-derived gate counts, non-passed gates, and explicit
+  execution-boundary assumptions into a compact summary.
+- Readiness evidence collection, gate decisions, quality-gate reporting,
+  execution-boundary summaries, and all public contracts remain outside the
+  boundary.
+- Exact schema/model fields, gate count derivation, non-passed gate filtering
+  and order, import eligibility classification, assumptions, model limits,
+  public output, and error behavior must remain unchanged.
 
 Implementation:
-- Added
-  `OrbitalDynamics.RecommendationRiskContext.ManeuverExecutionUncertainty` as
-  the owner of the context-key registry, accepted risk forms, atom-key
-  normalization, and maneuver execution uncertainty context projection.
-- Replaced the facade implementation with direct key/context delegation while
-  preserving every public entry point and downstream consumer.
-- Kept resource margins, timeline integrity, score terms, operational feedback,
-  and all other risk families outside the boundary.
-- `recommendation_risk_context.ex` moved from 1,650 to 1,527 lines; the new
-  owner is 144 lines.
+Pending.
 
 Verification:
-- The focused comprehensive recommendation-pressure baseline passed its one
-  test normally; warnings-as-errors remains inapplicable to that file because
-  of its two pre-existing signed-zero pattern warnings.
-- Exact old/new public parity passed for four deterministic results: the ordered
-  key registry, rich atom-keyed context, all three accepted classifier forms,
-  and non-list input.
-- Post-extraction focused and adjacent recommendation-pressure, Cadence import,
-  and operator-review verification passed all three selected tests; both
-  adjacent consumers passed with warnings-as-errors.
-- Static checks confirm the inline key registry, classifier, and guarded
-  projection left the facade; xref reports only RecommendationRiskContext as a
-  runtime caller.
-- Strict warning-clean forced compile passed for 4,017 files.
-- Formatting and `git diff --check` passed.
+Pending.
 
 Behavior/schema changes:
 None intended.
@@ -70,9 +48,9 @@ in `e8a5043c` and implemented in `1f5f9672`.
 ManeuverExecutionUncertainty owner is 144 lines.
 
 Next candidate:
-Re-rank the live checkout and select the next bounded facade-preserving
-extraction. OperationalReadiness is now the largest ordinary eligible facade at
-1,635 lines, followed by ContactContention and ResourceFilter.
+After this slice, re-rank the live checkout. ContactContention and
+ResourceFilter are the next largest ordinary eligible facades, followed by the
+reduced OperationalReadiness and RecommendationRiskContext facades.
 
 Blocked:
 No.
