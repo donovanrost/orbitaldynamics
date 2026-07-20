@@ -6,60 +6,49 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema artifact-validation router extraction.
+Schema JSON-property router extraction.
 
 Status:
-Implemented and verified.
+Selected; implementation pending.
 
 Selected boundary:
-Extract the complete specialized `validate_contract/3` clause set and generic
-required-field fallback from `Schema` into an `ArtifactValidationRouter`.
-Route `ArtifactValidation` through the new module while preserving clause order,
-owner calls, literal contract identities, issue paths, and fallback behavior.
+Extract the complete `json_schema_property/3` clause set, generic fallback, and
+embedded-contract recursion into a `JsonSchemaPropertyRouter`. Route
+`JsonDocument` through the new owner using an explicit lazy provider context
+for facade-owned schema builders. Preserve clause order, dispatch-owner calls,
+literal contract identities, field-hint fallback, stable-ID decoration, and
+recursive embedded-contract behavior.
 
 Selection evidence:
-- `schema.ex` remains the dominant production hotspot at 3,818 lines; the other
-  targeted public facades are now 164 to 524 lines.
-- Every specialized clause now delegates to a focused validation owner; the
-  facade still owns roughly 590 lines of mechanical contract-name routing.
-- The router depends only on those owners plus primitive required-field
-  validation and no longer needs facade callbacks or private state.
-- Replacing module attributes with their unchanged literal contract identities
-  avoids duplicating the facade's JSON-schema metadata surface.
+- `schema.ex` remains the dominant production hotspot at 3,194 lines.
+- Lines 443 through 1,773 are one contiguous property-dispatch responsibility;
+  its specialized clauses already delegate to focused property owners.
+- The facade still owns roughly 1,330 lines of mechanical contract and field
+  routing even though its real ownership is the provider context used by those
+  dispatchers.
+- The existing `JsonDocument` callback boundary and lazy-provider convention
+  allow extraction without changing the public `Schema` API or eagerly building
+  unused nested schemas.
 
 Implementation:
-- Added `OrbitalDynamics.Schema.ArtifactValidationRouter` as the owner of all
-  122 specialized validation routes plus the generic required-field fallback.
-- Routed `ArtifactValidation` through the new owner while preserving the public
-  `Schema` facade.
-- Removed validation-only aliases, contract attributes, and primitive imports
-  from the facade after confirming its remaining runtime dependencies.
-- `schema.ex` moved from 3,818 to 3,194 lines; the new owner is 638 lines.
+Pending.
 
 Verification:
-- Strict focused/broad schema and validation suite: 359 tests passed.
-- AST-normalized old/new route comparison: 122/122 clauses matched exactly,
-  including order, literal identities, bodies, and fallback.
-- Full schema export regenerated 121 contract schemas and the bundle with no
-  checked-in schema diff.
-- `mix xref trace` confirms the intended runtime edge from `Schema` to
-  `ArtifactValidationRouter.validate/3`.
-- Formatting, `git diff --check`, and bounded source/schema diff review passed.
-- Strict compile passed for 4,093 files with warnings as errors.
+Pending.
 
 Behavior/schema changes:
-None intended. Clause order, owner calls, contract identities, required-field
-fallback, issue paths and ordering, public `Schema`, validation results, and
-checked-in exports must remain unchanged.
+None intended. Clause order, dispatch-owner calls, contract identities,
+field-hint fallback, stable-ID decoration, lazy nested-schema construction,
+embedded-contract recursion, public `Schema`, and checked-in exports must remain
+unchanged.
 
 Last completed slice:
 Schema artifact-validation router extraction, selected in `49196371` and
 implemented in `2b8aebb6`. `schema.ex` moved from 3,818 to 3,194 lines.
 
 Next candidate:
-Re-rank the remaining JSON-schema property dispatch and schema-builder blocks,
-favoring a cohesive boundary whose dependencies can be expressed without
-moving public facade ownership or coupling a new owner back to private state.
+Implement and verify the selected JSON-property router, then re-rank the
+remaining facade-owned schema-builder/provider blocks.
 
 Blocked:
 No.
