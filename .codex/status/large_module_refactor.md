@@ -9,7 +9,7 @@ Current slice:
 Schema validation leaf-schema direct routing.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Remove six zero-context, one-hop leaf-schema helpers for validation issues,
@@ -32,18 +32,33 @@ Selection evidence:
   results, and checked-in exports must remain unchanged.
 
 Implementation:
-Pending.
+Removed the six validation-family leaf-schema helpers and routed all eight
+consumers directly to their three existing owner modules. `schema.ex` moved
+from 6,061 to 6,039 lines.
 
 Verification:
-Pending.
+- Strict focused validation/lint/export baseline before routing: 13 passed.
+- The same strict focused suite after routing: 13 passed.
+- Strict registry, full JSON Schema export-contract, and validation-policy
+  coverage: 21 passed.
+- The full schema-export task completed and produced no checked-in changes.
+- `mix xref callers` for ValidationJsonSchema,
+  SchemaMigrationReportJsonSchema, and SchemaValidationReportJsonSchema
+  reports the expected facade and internal-owner consumers.
+- Static search confirms all six helper definitions and indirect references are
+  gone.
+- `git diff --check` passed.
+- Strict forced compile passed across 4,065 files.
+- Implementation commit `6a23e82b` pushed to `main`.
 
 Behavior/schema changes:
-None intended.
+None. Public facades, callback timing, validation leaf and composed schemas,
+executable validation, and checked-in exports remain unchanged.
 
 Last completed slice:
-Schema relay-data-path assumptions direct routing, selected in `ba6c7206` and
-implemented in `1d20cd05`.
-`schema.ex` moved from 6,065 to 6,061 lines.
+Schema validation leaf-schema direct routing, selected in `47e7ed05`, boundary
+count corrected in `fb47f7a9`, and implemented in `6a23e82b`.
+`schema.ex` moved from 6,061 to 6,039 lines.
 
 Next candidate:
 Re-rank the remaining non-capability Schema responsibility clusters now that
