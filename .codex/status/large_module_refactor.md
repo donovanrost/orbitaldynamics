@@ -9,7 +9,7 @@ Current slice:
 Campaign-planner prior result-artifact filter routing regression repair.
 
 Status:
-Selected; implementation pending.
+Completed and verified.
 
 Selected boundary:
 Correct the argument order in the prior-plan result-artifact callbacks owned by
@@ -25,23 +25,31 @@ Selection evidence:
   and contact-filter branches seen in three broad-suite failures.
 
 Implementation:
-Pending.
+Selected in `1d202538` and implemented in `340d966a`. Corrected both
+prior-plan callbacks to pass `(prior_plan, "prior_plan", report_keys)` to
+`result_artifact_embedded_reports/3`. Public collectors and emitted source paths
+remain unchanged; embedded filter reports are no longer silently omitted.
 
 Verification:
-Pending.
+- All resource/contact-filter source and pressure tests passed with warnings as
+  errors: 19 tests.
+- The three broad-suite failures caused by missing derived filter branches are
+  reproduced as passing in the focused set.
+- Strict forced compile passed with warnings as errors: 4,129 files.
+- Touched-file format and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended. The same deterministic fixtures, production calls, assertions,
 artifact validation, and async test behavior must remain unchanged.
 
 Last completed slice:
-Schema contact-allocation report contract test split, selected in `7d687947`
-and implemented in `bb5bec17`. The 1,746-line mixed module became a 982-line
-summary/capability module and a 775-line full-report module.
+Campaign-planner prior result-artifact filter routing repair, selected in
+`1d202538` and implemented in `340d966a`. Correct argument ordering restored
+three missing-branch tests.
 
 Next candidate:
-Implement and verify the filter-routing repair, then resolve the remaining
-refresh-budget and readiness score-term failures.
+Resolve the remaining refresh-budget replay-summary and readiness score-term
+failures exposed by broad verification.
 
 Blocked:
 No.
