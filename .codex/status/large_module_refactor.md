@@ -9,7 +9,7 @@ Current slice:
 Campaign-planner recommendation-pressure handoff test split.
 
 Status:
-Selected; implementation pending.
+Completed and verified.
 
 Selected boundary:
 Move the downstream operator-review, Cadence-import, and schema handoff
@@ -27,23 +27,33 @@ Selection evidence:
   and risk-pressure mappings.
 
 Implementation:
-Pending.
+Selected in `b603830b` and implemented in `1844e795`. Moved the exhaustive
+expected-handoff map plus review/import/schema assertions into
+`StrategyRecommendationPressureHandoffTest`. The original explanation test
+moved from 3,060 to 1,029 lines; the focused handoff test is 2,047 lines and
+both reuse the named scenario fixture.
 
 Verification:
-Pending.
+- Both focused recommendation-pressure tests passed with warnings as errors:
+  2 tests.
+- Strict forced compile passed with warnings as errors: 4,129 files.
+- Touched-file format checks, new-file whitespace checks, and
+  `git diff --check` passed.
+- No production or checked-in schema-export files changed.
 
 Behavior/schema changes:
 None intended. The same deterministic fixtures, production calls, assertions,
 artifact validation, and async test behavior must remain unchanged.
 
 Last completed slice:
-Campaign-planner recommendation-pressure scenario fixture extraction, selected
-in `1eee5dbc` and implemented in `c0678ba9`. The assertion module moved from
-4,705 to 3,060 lines and the deterministic scenario now has a named fixture
-owner.
+Campaign-planner recommendation-pressure handoff test split, selected in
+`b603830b` and implemented in `1844e795`. The 3,060-line assertion module became
+a 1,029-line explanation test and a 2,047-line handoff test.
 
 Next candidate:
-Implement and verify the selected handoff test split.
+Inspect the 2,047-line handoff test's expected-map construction versus its
+review/import assertions; otherwise return to the largest schema contract test
+boundary.
 
 Blocked:
 No.
