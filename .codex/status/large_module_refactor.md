@@ -6,62 +6,37 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-ResourceFilter approval-policy extraction.
+OperationalReadiness source/report identity extraction.
 
 Status:
-Completed and pushed in `7b057dbd`.
+Selected; implementation not started.
 
 Selected boundary:
-Extract suppressed-candidate and invalid-resource-summary approval-policy
-application, requirement projection, action classification, and risk evidence
-into `OrbitalDynamics.ResourceFilter.ApprovalPolicy`.
-Preserve all ResourceFilter and root public facades.
+Extract source artifact type/ID precedence and deterministic readiness and
+quality-gate report/row identity construction into
+`OrbitalDynamics.OperationalReadiness.SourceIdentity`.
+Preserve all OperationalReadiness and root public facades.
 
 Selection evidence:
 - Excluding the generated/declarative candidate-refresh JSON-schema module,
-  live re-ranking places `resource_filter.ex` at 1,542 lines, the
+  live re-ranking places `operational_readiness.ex` at 1,541 lines, the
   largest ordinary eligible facade.
-- ResourceFilter currently delegates candidate-input normalization and summary
-  projection, while approval-policy application, requirement construction,
-  action/type classification, and resource risk evidence remain inline at
-  lines 908-1,168.
-- The selected block has one responsibility: translate suppressed candidates
-  and invalid resource summaries into policy requirements and attach
-  deterministic decisions.
-- Resource-summary normalization, candidate suppression decisions, row
-  identity/disambiguation, summary projection, and all public contracts remain
-  outside the boundary.
-- Exact no-policy passthrough, policy IDs/status fields, requirement
-  type/action/reason precedence, activity context and risk fields, direction
-  classification, decision payloads, public output, and error behavior must
-  remain unchanged.
+- OperationalReadiness delegates fourteen focused responsibilities, while
+  source identity precedence and stable report/row ID construction remain
+  inline at lines 799-810 and 1,467-1,523.
+- The selected helpers have one responsibility: resolve source artifact
+  identity and encode it into deterministic readiness and quality-gate IDs.
+- Review/import artifact construction, evidence collection, gate decisions,
+  summaries, and all public contracts remain outside the boundary.
+- Exact manifest/package/source fallback precedence, unknown fallbacks, stable
+  fragment character normalization, report and row ID formats, public output,
+  and error behavior must remain unchanged.
 
 Implementation:
-- Added `OrbitalDynamics.ResourceFilter.ApprovalPolicy` as the owner of
-  suppressed-candidate and invalid-summary no-policy passthrough, policy
-  decisions, requirement/action/type classification, risk projection, and
-  activity-context evidence.
-- Wired invalid-summary and suppressed-candidate report construction directly
-  to the owner while preserving ResourceFilter and root APIs.
-- Kept resource-summary normalization, candidate suppression decisions, row
-  identity/disambiguation, blocking-dimension projection, and summary
-  projection outside the boundary.
-- `resource_filter.ex` moved from 1,542 to 1,310 lines; the new owner is 271
-  lines.
+Pending.
 
 Verification:
-- Strict focused baseline passed all 37 ResourceFilter tests.
-- Exact old/new public parity passed for four deterministic whole reports:
-  policy-classified observation suppression, command-contact suppression,
-  invalid resource summaries, and nil-policy report passthrough.
-- Post-extraction focused and adjacent ResourceFilter, campaign-planner,
-  candidate-refresh build/replay, operator-review, schema-contract, and
-  validation verification passed all 71 tests.
-- Static checks confirm approval application, requirement/action/type helpers,
-  and resource risk projection left the facade; xref reports only
-  ResourceFilter as a runtime caller.
-- Strict warning-clean forced compile passed for 4,021 files.
-- Formatting and `git diff --check` passed.
+Pending.
 
 Behavior/schema changes:
 None intended.
@@ -73,9 +48,8 @@ implemented in `7b057dbd`.
 ApprovalPolicy owner is 271 lines.
 
 Next candidate:
-Re-rank the live checkout and select the next bounded facade-preserving
-extraction. OperationalReadiness is now the largest ordinary eligible facade at
-1,541 lines, followed by RecommendationRiskContext.
+After this slice, re-rank the live checkout. RecommendationRiskContext is the
+next largest ordinary eligible facade.
 
 Blocked:
 No.
