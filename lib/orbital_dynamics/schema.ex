@@ -361,8 +361,6 @@ defmodule OrbitalDynamics.Schema do
         {:cadence_import_capability, 0} => &cadence_import_capability/0,
         {:cadence_import_json_schema, 1} => &cadence_import_json_schema/1,
         {:cadence_import_manifest_model_limits, 0} => &cadence_import_manifest_model_limits/0,
-        {:cadence_import_manifest_row_json_schema, 0} =>
-          &cadence_import_manifest_row_json_schema/0,
         {:cadence_import_manifest_scalar_count_fields, 0} =>
           &cadence_import_manifest_scalar_count_fields/0,
         {:campaign_activity_json_schema, 0} => &campaign_activity_json_schema/0,
@@ -608,6 +606,65 @@ defmodule OrbitalDynamics.Schema do
             &timeline_transition_application_row_json_schema/0,
           timeline_transition_application_summary_source_schema:
             &timeline_transition_application_summary_source_json_schema/0,
+          feedback_maneuver_handoff_properties:
+            &feedback_maneuver_handoff_json_schema_properties/0,
+          link_handoff_properties: &link_handoff_json_schema_properties/0,
+          resource_projection_battery_handoff_properties:
+            &resource_projection_battery_handoff_json_schema_properties/0,
+          scoped_downlink_context_properties: &scoped_downlink_context_json_schema_properties/0,
+          thermal_handoff_properties: &thermal_handoff_json_schema_properties/0,
+          timeline_activity_precondition_handoff_properties:
+            &timeline_activity_precondition_handoff_json_schema_properties/0,
+          timeline_dependency_impact_handoff_properties:
+            &timeline_dependency_impact_handoff_json_schema_properties/0,
+          timeline_publication_handoff_properties:
+            &timeline_publication_handoff_json_schema_properties/0
+        )
+      )
+      |> Map.merge(
+        OrbitalDynamics.Schema.CadenceReviewSchemaProviders.build(
+          @stable_id_pattern,
+          cadence_import_capability: &cadence_import_capability/0,
+          readiness_capability: &operational_readiness_capabilities/0,
+          timeline_capability: &timeline_capabilities/0,
+          activity_context_schema: &activity_context_json_schema/0,
+          candidate_activity_source_window_schema:
+            &candidate_activity_source_window_json_schema/0,
+          candidate_rejection_source_schema: &candidate_rejection_source_json_schema/0,
+          operational_readiness_evidence_schema: &operational_readiness_evidence_json_schema/0,
+          operational_readiness_gate_schema: &operational_readiness_gate_json_schema/0,
+          operational_readiness_source_report_evidence_schema:
+            &operational_readiness_source_report_evidence_json_schema/0,
+          operational_timeline_row_schema: &operational_timeline_row_json_schema/0,
+          policy_decision_evidence_schema: &policy_decision_evidence_json_schema/0,
+          policy_escalation_schema: &policy_escalation_json_schema/0,
+          quality_gate_report_row_schema: &quality_gate_report_row_json_schema/0,
+          quality_gate_source_report_evidence_schema:
+            &quality_gate_source_report_evidence_json_schema/0,
+          source_evidence_schema: &source_evidence_json_schema/0,
+          source_execution_report_evidence_schema:
+            &source_execution_report_evidence_json_schema/0,
+          source_freshness_report_evidence_schema:
+            &source_freshness_report_evidence_json_schema/0,
+          source_schema_validation_report_evidence_schema:
+            &source_schema_validation_report_evidence_json_schema/0,
+          timeline_activity_precondition_summary_source_schema:
+            &timeline_activity_precondition_summary_source_json_schema/0,
+          timeline_activity_state_source_schema: &timeline_activity_state_source_json_schema/0,
+          timeline_diff_summary_source_schema: &timeline_diff_summary_source_json_schema/0,
+          timeline_identity_schema: &timeline_identity_json_schema/0,
+          timeline_lifecycle_state_source_schema: &timeline_lifecycle_state_source_json_schema/0,
+          timeline_link_schema: &timeline_link_json_schema/0,
+          timeline_preservation_source_schema: &timeline_preservation_source_json_schema/0,
+          timeline_protection_summary_schema: &timeline_protection_summary_json_schema/0,
+          timeline_transition_application_row_schema:
+            &timeline_transition_application_row_json_schema/0,
+          timeline_transition_application_summary_source_schema:
+            &timeline_transition_application_summary_source_json_schema/0,
+          cadence_import_operational_readiness_evidence_properties:
+            &cadence_import_operational_readiness_evidence_json_schema_properties/0,
+          cadence_import_resource_projection_evidence_properties:
+            &cadence_import_resource_projection_evidence_json_schema_properties/0,
           feedback_maneuver_handoff_properties:
             &feedback_maneuver_handoff_json_schema_properties/0,
           link_handoff_properties: &link_handoff_json_schema_properties/0,
@@ -1109,116 +1166,6 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp cadence_import_manifest_row_json_schema do
-    OrbitalDynamics.Schema.CadenceImportManifestJsonSchema.row(
-      capability: cadence_import_capability(),
-      readiness_capability: operational_readiness_capabilities(),
-      stable_id_pattern: @stable_id_pattern,
-      schema_providers: cadence_import_manifest_row_json_schema_providers(),
-      property_providers: cadence_review_row_json_schema_property_providers()
-    )
-  end
-
-  defp cadence_import_manifest_row_json_schema_providers do
-    [
-      activity_context_json_schema: &activity_context_json_schema/0,
-      branch_comparison_source_row_json_schema: fn ->
-        OrbitalDynamics.Schema.PlanningAnalysisSchemaProviders.branch_comparison_source_row(
-          @stable_id_pattern
-        )
-      end,
-      branch_event_trust_boundary_status_counts_json_schema:
-        &OrbitalDynamics.Schema.OperationalReadinessContextJsonSchema.trust_boundary_status_count_map/0,
-      cadence_import_status_json_schema:
-        &OrbitalDynamics.Schema.CadenceImportOperationalReadinessJsonSchema.status/0,
-      cadence_source_review_row_json_schema: &cadence_source_review_row_json_schema/0,
-      candidate_activity_source_window_json_schema:
-        &candidate_activity_source_window_json_schema/0,
-      candidate_rejection_source_json_schema: &candidate_rejection_source_json_schema/0,
-      contact_allocation_capacity_requirement_row_json_schema: fn ->
-        OrbitalDynamics.Schema.GroundNetworkSchemaProviders.contact_allocation_capacity_requirement_row(
-          @stable_id_pattern
-        )
-      end,
-      contact_contention_deferred_priority_json_schema: fn ->
-        OrbitalDynamics.Schema.GroundNetworkSchemaProviders.contact_contention_deferred_priority(
-          @stable_id_pattern
-        )
-      end,
-      non_negative_number_map_json_schema:
-        &OrbitalDynamics.Schema.CommonJsonSchema.non_negative_number_map/0,
-      number_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.number_array/0,
-      number_or_number_array_schema:
-        &OrbitalDynamics.Schema.CommonJsonSchema.number_or_number_array/0,
-      number_or_string_json_schema: &OrbitalDynamics.Schema.CommonJsonSchema.number_or_string/0,
-      operational_readiness_evidence_json_schema: &operational_readiness_evidence_json_schema/0,
-      operational_readiness_gate_json_schema: &operational_readiness_gate_json_schema/0,
-      operational_readiness_source_report_evidence_json_schema:
-        &operational_readiness_source_report_evidence_json_schema/0,
-      operational_timeline_row_json_schema: &operational_timeline_row_json_schema/0,
-      policy_decision_evidence_json_schema: &policy_decision_evidence_json_schema/0,
-      policy_escalation_json_schema: &policy_escalation_json_schema/0,
-      priority_field_evidence_counts_json_schema:
-        &OrbitalDynamics.Schema.GroundNetworkSchemaProviders.priority_field_evidence_counts/0,
-      probability_json_schema: &OrbitalDynamics.Schema.CommonJsonSchema.probability/0,
-      quality_gate_report_row_json_schema: &quality_gate_report_row_json_schema/0,
-      quality_gate_source_report_evidence_json_schema:
-        &quality_gate_source_report_evidence_json_schema/0,
-      semantic_change_details_json_schema:
-        &OrbitalDynamics.Schema.CandidateDiffJsonSchema.semantic_change_details/0,
-      source_evidence_json_schema: &source_evidence_json_schema/0,
-      source_execution_report_evidence_json_schema:
-        &source_execution_report_evidence_json_schema/0,
-      source_freshness_report_evidence_json_schema:
-        &source_freshness_report_evidence_json_schema/0,
-      source_schema_validation_report_evidence_json_schema:
-        &source_schema_validation_report_evidence_json_schema/0,
-      source_window_lineage_json_schema: fn ->
-        OrbitalDynamics.Schema.CandidateDiffSchemaProviders.source_window_lineage(
-          @stable_id_pattern
-        )
-      end,
-      stable_id_array_map_schema: &stable_id_array_map_schema/0,
-      stable_id_array_schema: &stable_id_array_schema/0,
-      string_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.string_array/0,
-      timeline_activity_precondition_summary_source_json_schema:
-        &timeline_activity_precondition_summary_source_json_schema/0,
-      timeline_activity_state_source_json_schema: &timeline_activity_state_source_json_schema/0,
-      timeline_diff_summary_source_json_schema: &timeline_diff_summary_source_json_schema/0,
-      timeline_identity_json_schema: &timeline_identity_json_schema/0,
-      timeline_lifecycle_state_source_json_schema: &timeline_lifecycle_state_source_json_schema/0,
-      timeline_link_json_schema: &timeline_link_json_schema/0,
-      timeline_preservation_source_json_schema: &timeline_preservation_source_json_schema/0,
-      timeline_protection_summary_json_schema: &timeline_protection_summary_json_schema/0,
-      timeline_transition_application_row_json_schema:
-        &timeline_transition_application_row_json_schema/0,
-      timeline_transition_application_summary_source_json_schema:
-        &timeline_transition_application_summary_source_json_schema/0
-    ]
-  end
-
-  defp cadence_review_row_json_schema_property_providers do
-    OrbitalDynamics.Schema.CadenceReviewSchemaProviders.property_providers(
-      @stable_id_pattern,
-      cadence_import_operational_readiness_evidence_properties:
-        &cadence_import_operational_readiness_evidence_json_schema_properties/0,
-      cadence_import_resource_projection_evidence_properties:
-        &cadence_import_resource_projection_evidence_json_schema_properties/0,
-      feedback_maneuver_handoff_properties: &feedback_maneuver_handoff_json_schema_properties/0,
-      link_handoff_properties: &link_handoff_json_schema_properties/0,
-      resource_projection_battery_handoff_properties:
-        &resource_projection_battery_handoff_json_schema_properties/0,
-      scoped_downlink_context_properties: &scoped_downlink_context_json_schema_properties/0,
-      thermal_handoff_properties: &thermal_handoff_json_schema_properties/0,
-      timeline_activity_precondition_handoff_properties:
-        &timeline_activity_precondition_handoff_json_schema_properties/0,
-      timeline_dependency_impact_handoff_properties:
-        &timeline_dependency_impact_handoff_json_schema_properties/0,
-      timeline_publication_handoff_properties:
-        &timeline_publication_handoff_json_schema_properties/0
-    )
-  end
-
   defp timeline_dependency_impact_handoff_json_schema_properties do
     OrbitalDynamics.Schema.TimelineHandoffJsonSchema.dependency_impact_properties(
       stable_id_array_schema: stable_id_array_schema(),
@@ -1265,85 +1212,5 @@ defmodule OrbitalDynamics.Schema do
       stable_id_pattern: @stable_id_pattern,
       probability_schema: OrbitalDynamics.Schema.CommonJsonSchema.probability()
     )
-  end
-
-  defp cadence_source_review_row_json_schema do
-    OrbitalDynamics.Schema.CadenceSourceReviewRowJsonSchema.row(
-      cadence_capability: cadence_import_capability(),
-      readiness_capability: operational_readiness_capabilities(),
-      timeline_capability: timeline_capabilities(),
-      stable_id_pattern: @stable_id_pattern,
-      schema_providers: cadence_source_review_row_json_schema_providers(),
-      property_providers: cadence_review_row_json_schema_property_providers()
-    )
-  end
-
-  defp cadence_source_review_row_json_schema_providers do
-    [
-      activity_context_json_schema: &activity_context_json_schema/0,
-      branch_comparison_source_row_json_schema: fn ->
-        OrbitalDynamics.Schema.PlanningAnalysisSchemaProviders.branch_comparison_source_row(
-          @stable_id_pattern
-        )
-      end,
-      branch_event_trust_boundary_status_counts_json_schema:
-        &OrbitalDynamics.Schema.OperationalReadinessContextJsonSchema.trust_boundary_status_count_map/0,
-      candidate_activity_source_window_json_schema:
-        &candidate_activity_source_window_json_schema/0,
-      candidate_rejection_source_json_schema: &candidate_rejection_source_json_schema/0,
-      contact_allocation_capacity_requirement_row_json_schema: fn ->
-        OrbitalDynamics.Schema.GroundNetworkSchemaProviders.contact_allocation_capacity_requirement_row(
-          @stable_id_pattern
-        )
-      end,
-      contact_contention_deferred_priority_json_schema: fn ->
-        OrbitalDynamics.Schema.GroundNetworkSchemaProviders.contact_contention_deferred_priority(
-          @stable_id_pattern
-        )
-      end,
-      non_negative_number_map_json_schema:
-        &OrbitalDynamics.Schema.CommonJsonSchema.non_negative_number_map/0,
-      number_or_string_json_schema: &OrbitalDynamics.Schema.CommonJsonSchema.number_or_string/0,
-      operational_readiness_source_report_evidence_json_schema:
-        &operational_readiness_source_report_evidence_json_schema/0,
-      operational_timeline_row_json_schema: &operational_timeline_row_json_schema/0,
-      policy_decision_evidence_json_schema: &policy_decision_evidence_json_schema/0,
-      policy_escalation_json_schema: &policy_escalation_json_schema/0,
-      priority_field_evidence_counts_json_schema:
-        &OrbitalDynamics.Schema.GroundNetworkSchemaProviders.priority_field_evidence_counts/0,
-      probability_json_schema: &OrbitalDynamics.Schema.CommonJsonSchema.probability/0,
-      quality_gate_source_report_evidence_json_schema:
-        &quality_gate_source_report_evidence_json_schema/0,
-      semantic_change_details_json_schema:
-        &OrbitalDynamics.Schema.CandidateDiffJsonSchema.semantic_change_details/0,
-      source_evidence_json_schema: &source_evidence_json_schema/0,
-      source_execution_report_evidence_json_schema:
-        &source_execution_report_evidence_json_schema/0,
-      source_freshness_report_evidence_json_schema:
-        &source_freshness_report_evidence_json_schema/0,
-      source_schema_validation_report_evidence_json_schema:
-        &source_schema_validation_report_evidence_json_schema/0,
-      source_window_lineage_json_schema: fn ->
-        OrbitalDynamics.Schema.CandidateDiffSchemaProviders.source_window_lineage(
-          @stable_id_pattern
-        )
-      end,
-      stable_id_array_map_schema: &stable_id_array_map_schema/0,
-      stable_id_array_schema: &stable_id_array_schema/0,
-      string_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.string_array/0,
-      timeline_activity_precondition_summary_source_json_schema:
-        &timeline_activity_precondition_summary_source_json_schema/0,
-      timeline_activity_state_source_json_schema: &timeline_activity_state_source_json_schema/0,
-      timeline_diff_summary_source_json_schema: &timeline_diff_summary_source_json_schema/0,
-      timeline_identity_json_schema: &timeline_identity_json_schema/0,
-      timeline_lifecycle_state_source_json_schema: &timeline_lifecycle_state_source_json_schema/0,
-      timeline_link_json_schema: &timeline_link_json_schema/0,
-      timeline_preservation_source_json_schema: &timeline_preservation_source_json_schema/0,
-      timeline_protection_summary_json_schema: &timeline_protection_summary_json_schema/0,
-      timeline_transition_application_row_json_schema:
-        &timeline_transition_application_row_json_schema/0,
-      timeline_transition_application_summary_source_json_schema:
-        &timeline_transition_application_summary_source_json_schema/0
-    ]
   end
 end
