@@ -9,7 +9,7 @@ Current slice:
 Schema policy field-group direct routing.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Remove the Schema facade's one-hop policy context and action-rule field-group
@@ -29,18 +29,33 @@ Selection evidence:
   results, and checked-in exports must remain unchanged.
 
 Implementation:
-Pending.
+Removed the one-hop policy context/action-rule field-group helpers and routed
+both schema consumers plus the validation consumer directly to
+PolicyFieldGroups.
+`schema.ex` moved from 6,079 to 6,071 lines.
 
 Verification:
-Pending.
+- Strict focused policy/contact-feedback/validation-policy/export baseline
+  before routing: 22 passed.
+- The same strict focused suite after routing: 22 passed.
+- Strict full schema-export task plus adjacent campaign-plan,
+  contact-allocation, and fixture-visibility coverage: 12 passed.
+- `mix xref callers OrbitalDynamics.Schema.PolicyFieldGroups` reports the
+  expected `schema.ex` and ContactIntentContracts callers.
+- Static search confirms both facade helper definitions and all indirect calls
+  are gone.
+- `git diff --check` passed; no checked-in schema export changed.
+- Strict forced compile passed across 4,065 files.
+- Implementation commit `67722532` pushed to `main`.
 
 Behavior/schema changes:
-None intended.
+None. Public facades, field-group values and ordering, generated JSON Schema,
+validation behavior, and checked-in exports remain unchanged.
 
 Last completed slice:
-Schema execution-metric validation direct routing, selected in `9026057f` and
-implemented in `3e214a0f`.
-`schema.ex` moved from 6,089 to 6,079 lines.
+Schema policy field-group direct routing, selected in `f7dd8526` and
+implemented in `67722532`.
+`schema.ex` moved from 6,079 to 6,071 lines.
 
 Next candidate:
 Re-rank the remaining non-capability Schema responsibility clusters now that
