@@ -12,6 +12,7 @@ defmodule OrbitalDynamics.Schema do
     CampaignArtifactValidation,
     CandidateRejectionValidation,
     ContactAllocationValidation,
+    ContactIntentValidation,
     ContactReportValidation,
     DecisionSupportValidation,
     ExecutionReproducibilityValidation,
@@ -4119,16 +4120,12 @@ defmodule OrbitalDynamics.Schema do
     |> OrbitalDynamics.Schema.ProposedContactContracts.validate("$", artifact)
   end
 
-  defp validate_contract(@contact_intent, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.ContactIntentContracts.validate("$", artifact)
+  defp validate_contract(@contact_intent, _contract, artifact) do
+    ContactIntentValidation.validate_intent([], "$", artifact)
   end
 
-  defp validate_contract(@contact_intent_summary, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.ContactIntentSummaryContracts.validate_summary("$", artifact)
+  defp validate_contract(@contact_intent_summary, _contract, artifact) do
+    ContactIntentValidation.validate_summary([], "$", artifact)
   end
 
   defp validate_contract(@candidate_activity, contract, artifact) do
