@@ -9,7 +9,7 @@ Current slice:
 Schema common string-array callback routing.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Route the 34 lazy `string_array_schema/0` callbacks in Schema directly to
@@ -29,18 +29,34 @@ Selection evidence:
   and checked-in exports must remain unchanged.
 
 Implementation:
-Pending.
+Routed all 34 lazy string-array callbacks directly to CommonJsonSchema while
+retaining the facade helper and all ten eager calls. Formatting kept
+`schema.ex` at 5,986 lines.
 
 Verification:
-Pending.
+- Strict focused export/communications/feedback/Cadence/review baseline before
+  routing: 34 passed.
+- The same strict focused suite after routing: 34 passed.
+- Strict checked-in export, timeline-report, resource, and handoff coverage:
+  21 passed.
+- The full schema-export task completed and produced no checked-in changes.
+- Exact static counts confirm 34 direct owner captures, zero indirect captures,
+  and ten retained eager facade calls.
+- `mix xref callers OrbitalDynamics.Schema.CommonJsonSchema` reports the
+  expected facade and internal schema-owner consumers.
+- `git diff --check` passed.
+- Strict forced compile passed across 4,070 files.
+- Implementation commit `3f3d0363` pushed to `main`.
 
 Behavior/schema changes:
-None intended.
+None. Public Schema APIs, property-provider keys, callback timing,
+string-array schemas, composed schemas, executable validation, and checked-in
+exports remain unchanged.
 
 Last completed slice:
-CampaignPlanner repair orchestration extraction, selected in `13845591` and
-implemented in `b94e90b1`.
-`campaign_planner.ex` moved from 502 to 164 lines.
+Schema common string-array callback routing, selected in `cc4ba93d` and
+implemented in `3f3d0363`.
+`schema.ex` remains 5,986 lines.
 
 Next candidate:
 Re-rank the remaining non-capability Schema responsibility clusters now that
