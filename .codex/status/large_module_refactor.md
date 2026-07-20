@@ -6,60 +6,38 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema contact-allocation validation context extraction.
+Schema operator-review validation context extraction.
 
 Status:
-Completed and pushed.
+Selected; implementation not started.
 
 Selected boundary:
-Add owner-default entry points across ContactAllocationValidation's optional
-report, report, row, capacity-pack group, counts, summary families, and
-duplicate evidence. Compose the callback graph entirely from existing schema
-owners, route every Schema consumer directly, and remove eleven wrappers plus
-the shared callback bag. Keep all callback-based owner APIs.
+Add owner-default required-package, optional-package, and row entry points to
+OperatorReviewValidation. Compose registry requirements, capability metadata,
+package callbacks, and the complete row callback graph from existing owners,
+route every Schema consumer directly, and remove three wrappers plus both
+callback bags. Keep all customizable owner APIs.
 
 Selection evidence:
-- `schema.ex` remains the dominant production hotspot at 5,707 lines; the other
+- `schema.ex` remains the dominant production hotspot at 5,576 lines; the other
   targeted public facades are now 164 to 524 lines.
-- The callback bag contains only ContactAllocationValidation self-callbacks and
-  existing station/contact/contention/execution/priority schema owners.
-- Exact usage spans six required artifact validations, one optional report,
-  nested row/group/count validation, Cadence, and operator-review callbacks.
-- No callback requires recursive Schema registry validation or facade
-  capability context.
-- Owner-default entry points preserve every callback-based API.
+- Package defaults require only registry fields, operator-review capability
+  metadata, and four existing owner callbacks.
+- Row defaults require only review/counteroffer capability metadata and schema
+  owner callbacks; contact-allocation dependencies are now owner-default.
+- Exact usage finds one required package validation, four optional-package
+  callbacks, and owner-internal row validation.
+- No callback requires recursive Schema lookup or facade-local validation.
+- Owner-default entry points preserve all customizable APIs.
 
 Implementation:
-Added owner-default entry points across ContactAllocationValidation's optional
-report, report, row, capacity-pack group, counts, summary families, and
-duplicate evidence. Kept all callback-based APIs, moved the complete callback
-graph into the owner, added owner-default handoff allocation validation, routed
-all facade consumers directly, and removed eleven wrappers plus the callback
-bag. `schema.ex` moved from 5,707 to 5,576 lines.
+Pending.
 
 Verification:
-- Strict contact-allocation/provider/campaign/Cadence/operator-review baseline
-  before extraction: 17 passed.
-- The same strict focused suite after extraction: 17 passed.
-- Strict checked-in export, JSON Schema export, review/import handoff,
-  contact-feedback, and communications coverage: 35 passed.
-- The full schema-export task completed and produced no checked-in changes.
-- Exact static inspection confirms six direct required validations, one direct
-  optional report, three capacity-pack callbacks, three direct handoff
-  callbacks, owner-internal row/count/duplicate recursion, zero facade wrappers
-  or callback bags, and retained callback-based owner APIs.
-- Xref reports the expected Schema/handoff consumers for
-  ContactAllocationValidation and the expected Schema/callback-builder
-  consumers for ContactAllocationHandoffContracts.
-- `mix format --check-formatted` and `git diff --check` passed.
-- Strict forced compile passed across 4,072 files with no warnings.
-- Bounded local diff review found no must-fix findings.
-- Implementation commit `b255fe53` pushed to `main`.
+Pending.
 
 Behavior/schema changes:
-None. Model limits, nested callback behavior, issue ordering and paths,
-callback-based owner entry points, public Schema APIs, validation results, and
-checked-in exports remain unchanged.
+None intended.
 
 Last completed slice:
 Schema contact-allocation validation context extraction, selected in
