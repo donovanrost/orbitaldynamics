@@ -6,37 +6,31 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema stable-ID JSON-export contract test split.
+Schema stable-ID export test family split.
 
 Status:
-Completed and verified.
+Selected; implementation pending.
 
 Selected boundary:
-Move the 2,177-line stable-ID hint export contract from the 3,206-line JSON
-Schema export test into a focused sibling test module. Keep the top-level,
-nested-report, opaque-identity, integer-count, and checked-in fixture tests plus
-their private helpers in the original module.
+Split the 2,182-line stable-ID policy test into three independently runnable
+contract families: top-level manifest/package fields, review/import row fields,
+and candidate-refresh/contact-allocation/validation fields. Keep all assertions
+in the focused stable-ID module.
 
 Selection evidence:
-- The stable-ID test is the first independent test and ends before line 2,183.
-- It depends only on the public `Schema` facade and none of the original
-  module's private fixture or recursive opaque-property helpers.
-- It validates one cohesive policy across standalone artifact identity fields,
-  while the remaining tests cover structurally different export contracts.
+- The row-schema section begins at `operator_review_row_schema` on line 917 and
+  needs only freshly loaded Cadence/operator-review schemas plus the stable-ID
+  pattern.
+- The candidate-refresh section begins at `refresh_schema` on line 1,933 and
+  needs only the stable-ID pattern.
+- Reinitializing those public schema values makes each family independently
+  selectable without duplicating or weakening any assertion.
 
 Implementation:
-Selected in `b94bc5f6` and implemented in `d271aaa7`. Moved the exhaustive
-stable-ID hint export test into `JsonSchemaStableIdContractsTest`. The original
-mixed JSON-export contract module moved from 3,206 to 1,029 lines; the focused
-stable-ID policy module is 2,182 lines.
+Pending.
 
 Verification:
-- Both JSON-export contract modules passed with warnings as errors: 15 tests.
-- The full schema/validation gate passed with warnings as errors: 359 tests.
-- Full checked-in schema export regeneration produced no diff.
-- Strict forced compile passed with warnings as errors: 4,129 files.
-- Touched-file format checks, new-file whitespace checks, and
-  `git diff --check` passed.
+Pending.
 
 Behavior/schema changes:
 None intended. The same deterministic fixtures, production calls, assertions,
@@ -48,9 +42,7 @@ implemented in `d271aaa7`. The 3,206-line mixed module became a 1,029-line
 general export module and a 2,182-line focused stable-ID policy module.
 
 Next candidate:
-Inspect the stable-ID contract for cohesive artifact-family sections; otherwise
-select a family split from the 2,477-line timeline-summary schema contract
-module.
+Implement and verify the selected stable-ID test-family split.
 
 Blocked:
 No.
