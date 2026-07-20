@@ -6,16 +6,16 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema source-evidence validation/status routing cleanup.
+No slice selected.
 
 Status:
-Selected; implementation not started.
+Slice complete and pushed.
 
 Selected boundary:
-Make `OrbitalDynamics.Schema.SourceEvidenceValidation` authoritative for
+Made `OrbitalDynamics.Schema.SourceEvidenceValidation` authoritative for
 freshness/schema-validation status enums, route JSON Schema evidence builders
 and callback tables through that owner, and remove six facade helpers.
-Preserve all `OrbitalDynamics.Schema` public facades, JSON Schema output, and
+Preserved all `OrbitalDynamics.Schema` public facades, JSON Schema output, and
 validation behavior.
 
 Selection evidence:
@@ -33,23 +33,39 @@ Selection evidence:
   public validation results, and schema exports must remain unchanged.
 
 Implementation:
-Pending.
+- Added ordered freshness and schema-validation status APIs plus three-argument
+  status-validation entry points to `SourceEvidenceValidation`.
+- Routed freshness/schema JSON Schema evidence builders and three callback
+  tables directly to the owner.
+- Removed two facade status-enum helpers and four one-hop validation wrappers.
+- `schema.ex` moved from 6,580 to 6,558 lines; the focused owner is 58 lines.
 
 Verification:
-Pending.
+- Pre-change strict focused baseline: 22 Cadence/operator-review/JSON-export
+  contract tests passed.
+- Post-change strict focused verification: the same 22 tests passed; the full
+  schema-export task test and 8 broader validation/readiness/resource fixture
+  tests also passed.
+- Static checks found no migrated source-evidence enum/validation helpers or
+  local callback captures remaining; xref reports `schema.ex` as the runtime
+  caller of `SourceEvidenceValidation`.
+- No checked-in schema export changed.
+- Forced warnings-as-errors compile passed across 4,050 files.
+- Formatting and `git diff --check` passed; the worktree was clean after the
+  implementation commit.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-Schema station-reservation validation routing cleanup, selected in `d4db8b09`
-and implemented in `bc5ce973`.
-`schema.ex` moved from 6,602 to 6,580 lines by completing routing to the
-existing StationReservationValidation owner.
+Schema source-evidence validation/status routing cleanup, selected in
+`bbb7ebe4` and implemented in `8a124313`.
+`schema.ex` moved from 6,580 to 6,558 lines by consolidating status enums and
+validation routing in SourceEvidenceValidation.
 
 Next candidate:
-After this slice, re-rank the remaining schema responsibility clusters while
-preserving dependency-injecting adapters.
+Re-rank the remaining schema responsibility clusters while preserving
+dependency-injecting adapters.
 
 Blocked:
 No.
