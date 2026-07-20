@@ -369,7 +369,6 @@ defmodule OrbitalDynamics.Schema do
         {:candidate_activity_json_schema, 0} => &candidate_activity_json_schema/0,
         {:candidate_activity_source_window_json_schema, 0} =>
           &candidate_activity_source_window_json_schema/0,
-        {:candidate_rejection_row_json_schema, 0} => &candidate_rejection_row_json_schema/0,
         {:command_window_report_model_limits, 0} => &command_window_report_model_limits/0,
         {:contact_allocation_capabilities, 0} => &contact_allocation_capabilities/0,
         {:contact_allocation_capacity_pack_summary_assumptions_json_schema, 0} =>
@@ -416,7 +415,6 @@ defmodule OrbitalDynamics.Schema do
         {:policy_model_limits, 0} => &policy_model_limits/0,
         {:protection_decision_json_schema, 0} => &protection_decision_json_schema/0,
         {:quality_gate_report_row_json_schema, 0} => &quality_gate_report_row_json_schema/0,
-        {:ranked_timeline_json_schema, 0} => &ranked_timeline_json_schema/0,
         {:realized_activity_json_schema, 0} => &realized_activity_json_schema/0,
         {:registry_contract!, 1} => &registry_contract!/1,
         {:resource_filter_report_assumptions_json_schema, 0} =>
@@ -452,17 +450,13 @@ defmodule OrbitalDynamics.Schema do
         {:timeline_feedback_report_model_limits, 0} => &timeline_feedback_report_model_limits/0,
         {:timeline_identity_json_schema, 0} => &timeline_identity_json_schema/0,
         {:timeline_integrity_issue_types, 0} => &timeline_integrity_issue_types/0,
-        {:timeline_lifecycle_state_row_json_schema, 0} =>
-          &timeline_lifecycle_state_row_json_schema/0,
         {:timeline_precondition_json_schema, 0} => &timeline_precondition_json_schema/0,
         {:timeline_preservation_assumptions_json_schema, 1} =>
           &timeline_preservation_assumptions_json_schema/1,
         {:timeline_report_model_limits, 0} => &timeline_report_model_limits/0,
         {:timeline_transition_application_row_json_schema, 0} =>
           &timeline_transition_application_row_json_schema/0,
-        {:timeline_transition_decisions, 0} => &timeline_transition_decisions/0,
-        {:timeline_transition_selected_activity_json_schema, 0} =>
-          &timeline_transition_selected_activity_json_schema/0
+        {:timeline_transition_decisions, 0} => &timeline_transition_decisions/0
       }
     ]
     |> Keyword.update!(:schema_providers, fn providers ->
@@ -558,6 +552,18 @@ defmodule OrbitalDynamics.Schema do
           @stable_id_pattern,
           activity_context_schema: &activity_context_json_schema/0,
           policy_decision_schema: &policy_decision_json_schema/0
+        )
+      )
+      |> Map.merge(
+        OrbitalDynamics.Schema.TimelineEdgeSchemaProviders.build(
+          @stable_id_pattern,
+          campaign_activity_schema: &campaign_activity_json_schema/0,
+          timeline_capability: &timeline_capabilities/0,
+          activity_context_schema: &activity_context_json_schema/0,
+          timeline_report_model_limits: &timeline_report_model_limits/0,
+          timeline_transition_decisions: &timeline_transition_decisions/0,
+          protection_decision_schema: &protection_decision_json_schema/0,
+          timeline_identity_schema: &timeline_identity_json_schema/0
         )
       )
     end)
@@ -802,13 +808,6 @@ defmodule OrbitalDynamics.Schema do
         probability_schema: OrbitalDynamics.Schema.CommonJsonSchema.probability()
       )
 
-  defp ranked_timeline_json_schema do
-    OrbitalDynamics.Schema.CampaignPlanJsonSchema.ranked_timeline_from_context(
-      stable_id_pattern: @stable_id_pattern,
-      campaign_activity_schema: &campaign_activity_json_schema/0
-    )
-  end
-
   defp candidate_activity_source_window_json_schema do
     OrbitalDynamics.Schema.CandidateActivityJsonSchema.source_window_from_context(
       stable_id_pattern: @stable_id_pattern
@@ -838,15 +837,6 @@ defmodule OrbitalDynamics.Schema do
       timeline_precondition_schema: &timeline_precondition_json_schema/0,
       activity_context_schema: &activity_context_json_schema/0,
       timeline_integrity_issue_schema: &timeline_integrity_issue_json_schema/0
-    )
-  end
-
-  defp candidate_rejection_row_json_schema do
-    OrbitalDynamics.Schema.CandidateRejectionReportJsonSchema.row_from_context(
-      stable_id_pattern: @stable_id_pattern,
-      timeline_capability: &timeline_capabilities/0,
-      string_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.string_array/0,
-      activity_context_schema: &activity_context_json_schema/0
     )
   end
 
@@ -882,19 +872,6 @@ defmodule OrbitalDynamics.Schema do
       lifecycle_transition_schema: &TimelineContextJsonSchema.lifecycle_transition/0,
       string_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.string_array/0,
       timeline_identity_schema: &timeline_identity_json_schema/0
-    )
-  end
-
-  defp timeline_lifecycle_state_row_json_schema do
-    OrbitalDynamics.Schema.TimelineActivityLifecycleStateJsonSchema.row_from_context(
-      model_limits: &timeline_report_model_limits/0,
-      stable_id_pattern: @stable_id_pattern,
-      stable_id_array_schema: &stable_id_array_schema/0,
-      transition_decisions: &timeline_transition_decisions/0,
-      string_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.string_array/0,
-      lifecycle_transition_schema: &TimelineContextJsonSchema.lifecycle_transition/0,
-      activity_context_schema: &activity_context_json_schema/0,
-      protection_decision_schema: &protection_decision_json_schema/0
     )
   end
 
@@ -1030,16 +1007,6 @@ defmodule OrbitalDynamics.Schema do
       stable_id_pattern: @stable_id_pattern,
       stable_id_array_schema: &stable_id_array_schema/0,
       required_operator_actions: &timeline_required_operator_actions/0
-    )
-  end
-
-  defp timeline_transition_selected_activity_json_schema do
-    OrbitalDynamics.Schema.TimelineTransitionApplicationJsonSchema.selected_activity_from_context(
-      timeline_capability: &timeline_capabilities/0,
-      stable_id_pattern: @stable_id_pattern,
-      stable_id_array_schema: &stable_id_array_schema/0,
-      timeline_identity_schema: &timeline_identity_json_schema/0,
-      activity_context_schema: &activity_context_json_schema/0
     )
   end
 
