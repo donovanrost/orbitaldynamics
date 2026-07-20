@@ -9,7 +9,7 @@ Current slice:
 Schema validation capability-context extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Extract the Validation capability accessor, model-acceptance model-limit
@@ -34,20 +34,36 @@ Selection evidence:
   unchanged.
 
 Implementation:
-Pending.
+Added `OrbitalDynamics.Schema.ValidationCapabilityContext`, which now owns the
+Validation capability accessor, model-acceptance model-limit projection, and
+schema-migration report/row status accessors. The Schema facade imports the
+three focused consumer APIs and retains lazy function captures for migration
+status evaluation.
+`schema.ex` moved from 6,189 to 6,187 lines; the dedicated owner is 20 lines.
 
 Verification:
-Pending.
+- Strict focused export-validation/registry/validation/candidate-refresh
+  baseline before extraction: 11 passed.
+- The same strict focused suite after extraction: 11 passed.
+- Strict full schema-export task plus adjacent JSON Schema export,
+  fixture-visibility, and validation fixture coverage completed all 23 cases
+  successfully; this combination suppressed ExUnit's final summary line.
+- `mix xref callers OrbitalDynamics.Schema.ValidationCapabilityContext`
+  reports only `lib/orbital_dynamics/schema.ex (export)`.
+- `git diff --check` passed; no checked-in schema export changed.
+- Strict forced compile passed across 4,062 files.
+- Implementation commit `739e27fc` pushed to `main`.
 
 Behavior/schema changes:
-None intended.
+None. Public facades, lazy callback timing, per-call capability evaluation,
+known-limit/status values and ordering, generated JSON Schema, validation
+behavior, and checked-in exports remain unchanged.
 
 Last completed slice:
-Schema operational-readiness capability-context extraction, selected in
-`37828a28` and implemented in `c7024a68`.
-`schema.ex` moved from 6,186 to 6,189 lines; the validation owner moved from
-234 to 232 lines and the dedicated OperationalReadinessCapabilityContext is 13
-lines.
+Schema validation capability-context extraction, selected in `1b7b8b2e` and
+implemented in `739e27fc`.
+`schema.ex` moved from 6,189 to 6,187 lines; the dedicated
+ValidationCapabilityContext owner is 20 lines.
 
 Next candidate:
 Re-rank the remaining Schema capability/model-limit responsibility clusters.
