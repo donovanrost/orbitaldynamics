@@ -2232,7 +2232,7 @@ defmodule OrbitalDynamics.Schema do
       &default_json_schema_property/3,
       {
         &OrbitalDynamics.Schema.RelayDataPathSummaryContracts.model_limits/0,
-        &relay_data_path_assumptions_json_schema/0,
+        &OrbitalDynamics.Schema.RelayDataPathSummaryJsonSchema.assumptions/0,
         &relay_data_path_row_json_schema/0,
         &non_negative_integer_count_map_json_schema/0,
         &stable_id_array_schema/0,
@@ -2721,10 +2721,6 @@ defmodule OrbitalDynamics.Schema do
       latency_statuses: &OrbitalDynamics.Schema.RelayDataPathSummaryJsonSchema.latency_statuses/0,
       risk_statuses: &OrbitalDynamics.Schema.RelayDataPathSummaryJsonSchema.risk_statuses/0
     )
-  end
-
-  defp relay_data_path_assumptions_json_schema do
-    OrbitalDynamics.Schema.RelayDataPathSummaryJsonSchema.assumptions()
   end
 
   defp policy_decision_json_schema do
