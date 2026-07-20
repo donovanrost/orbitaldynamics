@@ -6,39 +6,31 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema timeline change-summary contract test split.
+Schema candidate-refresh provenance test family split.
 
 Status:
-Completed and verified.
+Selected; implementation pending.
 
 Selected boundary:
-Move the publication, dependency-impact, integrity, and diff schema/fixture
-tests from the 2,477-line timeline-summary contract module into a focused
-timeline change-summary sibling. Keep preservation, transition-application, and
-activity-precondition families plus their assumption helpers in the original.
+Split the 3,778-line candidate-refresh resource-provenance schema ledger into
+four independently runnable families: base readiness/resource contracts;
+station/contact/maneuver/policy reports; quality/timeline/resource feedback
+reports; and timeline lifecycle/publication plus reservation evidence. Keep all
+assertions and the checked-in artifact reader in the same focused module.
 
 Selection evidence:
-- The first eight tests end before the preservation family begins at line
-  1,329.
-- Those four change-observation families depend only on `Schema` and the
-  five-line JSON fixture reader.
-- The remaining nine tests form lifecycle preservation/transition/precondition
-  contracts and own all three specialized assumption helpers.
+- The proposed restart points begin at self-contained `artifact_with_*`
+  sections on lines 484, 1,498, and 2,627.
+- Shared reason-count/schema variables from the base section have no uses after
+  line 268; later schema contexts are reloaded within their own families.
+- Each later family needs only a fresh copy of the same checked-in artifact,
+  so no production behavior or assertion needs to move or weaken.
 
 Implementation:
-Selected in `28d774ca` and implemented in `2599c015`. Moved eight
-publication/dependency-impact/integrity/diff schema and fixture tests into
-`TimelineChangeSummaryContractsTest` with a local JSON reader. The original
-timeline-summary module moved from 2,477 to 1,154 lines; the new focused module
-is 1,334 lines.
+Pending.
 
 Verification:
-- Both focused timeline schema modules passed with warnings as errors: 17 tests.
-- The full schema/validation gate passed with warnings as errors: 361 tests.
-- Full checked-in schema export regeneration produced no diff.
-- Strict forced compile passed with warnings as errors: 4,129 files.
-- Touched-file format checks, new-file whitespace checks, and
-  `git diff --check` passed.
+Pending.
 
 Behavior/schema changes:
 None intended. The same deterministic fixtures, production calls, assertions,
@@ -50,9 +42,8 @@ implemented in `2599c015`. The 2,477-line timeline ledger became balanced
 1,154-line lifecycle and 1,334-line change-observation modules.
 
 Next candidate:
-Refresh the named-hotspot test inventory and select the next largest coherent
-family boundary; avoid further splitting already focused modules solely by line
-count.
+Implement and verify the selected candidate-refresh provenance test-family
+split.
 
 Blocked:
 No.
