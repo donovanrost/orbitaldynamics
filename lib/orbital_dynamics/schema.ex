@@ -426,8 +426,6 @@ defmodule OrbitalDynamics.Schema do
         {:resource_filter_report_model_limits, 0} => &resource_filter_report_model_limits/0,
         {:schema_migration_row_statuses, 0} => &schema_migration_row_statuses/0,
         {:schema_migration_statuses, 0} => &schema_migration_statuses/0,
-        {:schema_validation_batch_entry_json_schema, 0} =>
-          &schema_validation_batch_entry_json_schema/0,
         {:schema_validation_model_limits, 0} => &schema_validation_model_limits/0,
         {:scoped_downlink_context_json_schema_properties, 0} =>
           &scoped_downlink_context_json_schema_properties/0,
@@ -474,7 +472,17 @@ defmodule OrbitalDynamics.Schema do
       |> Map.merge(
         OrbitalDynamics.Schema.PlanningAnalysisSchemaProviders.build(@stable_id_pattern)
       )
-      |> Map.merge(OrbitalDynamics.Schema.ValidationSchemaProviders.build(@stable_id_pattern))
+      |> Map.merge(
+        OrbitalDynamics.Schema.ValidationSchemaProviders.build(
+          @stable_id_pattern,
+          validation_report_schema: fn ->
+            json_schema_document(
+              @schema_validation_report,
+              registry_contract!(@schema_validation_report)
+            )
+          end
+        )
+      )
       |> Map.merge(
         OrbitalDynamics.Schema.StationCalendarSchemaProviders.build(
           @stable_id_pattern,
@@ -762,16 +770,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp spacecraft_identity_json_schema do
     OrbitalDynamics.Schema.IdentityJsonSchema.spacecraft_from_context(@stable_id_pattern)
-  end
-
-  defp schema_validation_batch_entry_json_schema do
-    report_schema =
-      json_schema_document(
-        @schema_validation_report,
-        registry_contract!(@schema_validation_report)
-      )
-
-    OrbitalDynamics.Schema.SchemaValidationReportJsonSchema.batch_entry(report_schema)
   end
 
   defp validation_record_registry_conditions do

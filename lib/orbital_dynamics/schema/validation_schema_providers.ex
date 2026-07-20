@@ -1,7 +1,10 @@
 defmodule OrbitalDynamics.Schema.ValidationSchemaProviders do
   @moduledoc false
 
-  def build(stable_id_pattern) when is_binary(stable_id_pattern) do
+  def build(stable_id_pattern, opts \\ [])
+      when is_binary(stable_id_pattern) and is_list(opts) do
+    dependencies = Map.new(opts)
+
     %{
       {:model_acceptance_row_json_schema, 0} => fn ->
         model_acceptance_row(stable_id_pattern)
@@ -12,6 +15,12 @@ defmodule OrbitalDynamics.Schema.ValidationSchemaProviders do
       {:validation_record_json_schema, 0} => fn -> validation_record(stable_id_pattern) end,
       {:validation_reference_report_json_schema, 0} => fn ->
         validation_reference_report(stable_id_pattern)
+      end,
+      {:schema_validation_batch_entry_json_schema, 0} => fn ->
+        dependencies
+        |> Map.fetch!(:validation_report_schema)
+        |> apply([])
+        |> OrbitalDynamics.Schema.SchemaValidationReportJsonSchema.batch_entry()
       end
     }
   end
