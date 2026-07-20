@@ -9,7 +9,7 @@ Current slice:
 Campaign artifact JSON-property family extraction.
 
 Status:
-Selected; implementation pending.
+Implemented and verified.
 
 Selected boundary:
 Extract the adjacent campaign-plan and campaign-repair clauses from
@@ -28,10 +28,23 @@ Selection evidence:
   dependency one-way while reusing `JsonSchemaPropertySupport`.
 
 Implementation:
-Pending.
+- Added a 57-line `CampaignArtifactPropertyRouter` with the campaign-plan and
+  campaign-repair clause bodies.
+- Passed a three-arity property callback from the parent so repair retains its
+  recursive timeline-transition lookup without a child-to-parent dependency.
+- Kept both original parent clause heads in place as ordered delegations.
+- The parent router moved from 1,241 to 1,226 lines.
 
 Verification:
-Pending.
+- Strict pre-change baseline and post-change schema/validation suite: 359 tests
+  passed in each run.
+- AST comparison confirmed all 76 parent clause heads remain in their original
+  order; focused tests and exports exercised the explicit recursive callback.
+- Full schema export regenerated 121 contract schemas and the bundle with no
+  checked-in schema diff.
+- `mix xref trace` confirms the two intended family edges.
+- Formatting, `git diff --check`, and bounded source/schema diff review passed.
+- Strict compile passed for 4,098 files with warnings as errors.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -39,12 +52,12 @@ laziness, field-hint fallback, stable-ID decoration, public `Schema`, and
 checked-in exports must remain unchanged.
 
 Last completed slice:
-Candidate-refresh JSON-property family extraction, selected in `e7af4d89` and
-implemented in `f37766cb`. The parent router moved from 1,264 to 1,241 lines.
+Campaign artifact JSON-property family extraction, selected in `a8372d62` and
+implemented in `52d33f59`. The parent router moved from 1,241 to 1,226 lines.
 
 Next candidate:
-Implement and verify the selected campaign family split, then re-rank the
-adjacent realized-state/timeline-report families.
+Re-rank the adjacent realized-state and timeline-report clauses, preferring a
+family with no new cross-family callback surface.
 
 Blocked:
 No.
