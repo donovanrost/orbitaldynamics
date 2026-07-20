@@ -27,7 +27,8 @@ defmodule OrbitalDynamics.Schema do
     StationReservationValidation,
     TimelineArtifactValidation,
     TimelineContextJsonSchema,
-    ValidationArtifactValidation
+    ValidationArtifactValidation,
+    ValidationPolicyValidation
   }
 
   import OrbitalDynamics.Schema.PrimitiveValidation,
@@ -4560,22 +4561,12 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validate_contract(@validation_tolerance_policy, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.ValidationPolicyContracts.validate_tolerance_policy(
-      "$",
-      artifact
-    )
+  defp validate_contract(@validation_tolerance_policy, _contract, artifact) do
+    ValidationPolicyValidation.validate([], "$", artifact, @validation_tolerance_policy)
   end
 
-  defp validate_contract(@backend_acceptance_policy, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.ValidationPolicyContracts.validate_backend_acceptance_policy(
-      "$",
-      artifact
-    )
+  defp validate_contract(@backend_acceptance_policy, _contract, artifact) do
+    ValidationPolicyValidation.validate([], "$", artifact, @backend_acceptance_policy)
   end
 
   defp validate_contract(@capability_catalog, contract, artifact) do
