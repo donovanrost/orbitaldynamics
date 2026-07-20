@@ -9,7 +9,7 @@ Current slice:
 Candidate-diff schema-provider extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Move the candidate-refresh scoped-context, source-window-lineage, invalidated
@@ -30,10 +30,27 @@ Selection evidence:
   entries and implementation details from the public facade.
 
 Implementation:
-Pending.
+Selected in `5fe7d9ee` and implemented in `36b93af7`.
+The new `CandidateDiffSchemaProviders.build/1` returns four lazy provider
+closures for candidate-refresh scoped context, source-window lineage,
+invalidated candidate, and candidate-diff row schemas. `Schema` removes the
+four registry-local captures and private builders, merges the provider map,
+and points all three review tables at the owner's public lineage helper.
 
 Verification:
-Pending.
+- Strict focused schema/validation baseline and post-change suites both passed:
+  359 tests, 0 failures.
+- Direct comparison confirmed the extracted provider map has the exact four
+  keys and produces outputs exactly equal to the original helper composition;
+  the shared lineage helper output also matches exactly.
+- Xref reports the provider-map edge plus three expected review-table lineage
+  edges from `Schema` to the new owner.
+- Schema export regenerated 121 schemas plus the bundle with no checked-in
+  artifact diff.
+- Strict full compile passed for 4,114 files with warnings as errors.
+- Formatting, diff checks, and bounded two-file review passed.
+- The public `Schema` facade shrank from 1,648 to 1,629 lines; the new focused
+  owner is 45 lines.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -41,13 +58,12 @@ laziness, field-hint fallback, stable-ID decoration, public `Schema`, and
 checked-in exports must remain unchanged.
 
 Last completed slice:
-Ground-network schema-provider extraction, selected in `721cb8f6` and
-implemented in `440e5739`. The public `Schema` facade moved from 1,729 to 1,648
+Candidate-diff schema-provider extraction, selected in `5fe7d9ee` and
+implemented in `36b93af7`. The public `Schema` facade moved from 1,648 to 1,629
 lines.
 
 Next candidate:
-Implement and verify the selected candidate-diff provider extraction, then
-re-rank the remaining public-facade provider clusters.
+Re-rank the remaining public-facade provider clusters.
 
 Blocked:
 No.
