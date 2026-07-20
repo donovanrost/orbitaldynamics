@@ -6,55 +6,46 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema activity-artifact owner extraction.
+Schema executable-registry catalog extraction.
 
 Status:
-Complete and pushed.
+Selected; implementation pending.
 
 Selected boundary:
-Add a focused `ActivityArtifactValidation` owner for
-`activity_template.v1` and `planned_activity.v1`. Resolve each full registry
-contract inside the owner, resolve timeline capabilities for templates, and
-route both direct `Schema` clauses through it.
+Extract the full executable contract map composition from `Schema` into a
+focused `RegistryCatalog` module. Keep `Schema`'s compile-time `@contracts`
+snapshot and every public registry API unchanged while establishing one
+non-facade source for later capability-catalog validation ownership.
 
 Selection evidence:
-- `schema.ex` remains the dominant production hotspot at 4,722 lines; the other
+- `schema.ex` remains the dominant production hotspot at 4,712 lines; the other
   targeted public facades are now 164 to 524 lines.
-- The two adjacent clauses are the complete activity-definition/planning
-  artifact pair and both currently expose registry orchestration in the facade.
-- Their isolated registry modules and timeline capability context provide every
-  input a focused owner needs.
-- No route needs recursive `Schema` lookup.
+- The facade currently owns about 80 lines of mechanical registry-map assembly
+  used by every public contract, schema, and validation path.
+- The capability-catalog validator is the only remaining direct clause that
+  needs the full registry, so duplicating this assembly in a validator would
+  create drift risk.
+- A compile-time catalog snapshot preserves current semantics and removes no
+  public API.
 
 Implementation:
-Added a 39-line `ActivityArtifactValidation` owner that resolves the
-activity-template and planned-activity registry contracts and the existing
-timeline capability context. Routed both direct `Schema` clauses through it.
-`schema.ex` moved from 4,722 to 4,712 lines.
+Pending.
 
 Verification:
-- Strict focused baseline: 19 tests passed.
-- Activity, capability, cadence, review, export, validation, and fixture
-  adjacency: 33 tests passed.
-- Full schema export regenerated with no checked-in schema artifact changes.
-- Formatting, diff whitespace, bounded dependency/reference checks, and the
-  bounded semantic diff review passed.
-- `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 mix compile --force
-  --warnings-as-errors` compiled 4,088 files successfully.
+Pending.
 
 Behavior/schema changes:
-None. Registry contract source, timeline capability source, validation ordering
-and paths, public `Schema`, validation results, and checked-in exports remain
-unchanged.
+None intended. Registry merge order and contents, compile-time snapshot
+semantics, all public `Schema` APIs, validation results, and checked-in exports
+must remain unchanged.
 
 Last completed slice:
 Schema activity-artifact owner extraction, selected in `ce7e1eca` and
 implemented in `65e3a783`. `schema.ex` moved from 4,722 to 4,712 lines.
 
 Next candidate:
-Re-rank the remaining direct `Schema` validation clauses. Capability-catalog
-full-registry context and result-artifact recursion remain the two explicit
-facade-coupled routes.
+Implement and verify the selected registry catalog extraction, then assess
+capability-catalog validation ownership against that new boundary.
 
 Blocked:
 No.
