@@ -2101,7 +2101,7 @@ defmodule OrbitalDynamics.Schema do
         &timeline_transition_selected_activity_json_schema/0,
         &timeline_report_model_limits/0,
         &timeline_capabilities/0,
-        &enum_count_map_json_schema/1,
+        &OrbitalDynamics.Schema.CommonJsonSchema.enum_count_map/1,
         &stable_id_array_schema/0,
         &stable_id_array_map_schema/0
       }
@@ -2258,7 +2258,7 @@ defmodule OrbitalDynamics.Schema do
         &OrbitalDynamics.Schema.CommonJsonSchema.string_array/0,
         &OrbitalDynamics.Schema.OperationalReadinessContextJsonSchema.trust_boundary_status_count_map/0,
         &contact_allocation_capabilities/0,
-        &enum_count_map_json_schema/1,
+        &OrbitalDynamics.Schema.CommonJsonSchema.enum_count_map/1,
         &OrbitalDynamics.Schema.CommonJsonSchema.non_negative_integer_count_map/0,
         &OrbitalDynamics.Schema.CommonJsonSchema.non_negative_number_map/0
       }
@@ -3047,10 +3047,6 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.CommonJsonSchema.nested_stable_id_array_map(@stable_id_pattern)
   end
 
-  defp enum_count_map_json_schema(values) do
-    OrbitalDynamics.Schema.CommonJsonSchema.enum_count_map(values)
-  end
-
   defp numeric_triplet_schema do
     %{
       "type" => "array",
@@ -3627,7 +3623,7 @@ defmodule OrbitalDynamics.Schema do
         timeline_identity_schema: &timeline_identity_json_schema/0,
         activity_context_schema: &activity_context_json_schema/0,
         model_limits: &timeline_report_model_limits/0,
-        enum_count_map_schema: &enum_count_map_json_schema/1
+        enum_count_map_schema: &OrbitalDynamics.Schema.CommonJsonSchema.enum_count_map/1
       ],
       &default_json_schema_property/3
     )
