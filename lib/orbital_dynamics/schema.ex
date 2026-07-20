@@ -5626,14 +5626,6 @@ defmodule OrbitalDynamics.Schema do
         timeline_transition_validation_callbacks()
       )
 
-  defp validate_selected_timeline_integrity_fields(issues, path, value),
-    do:
-      TimelineTransitionValidation.validate_selected_timeline_integrity_fields(
-        issues,
-        path,
-        value
-      )
-
   defp validate_optional_timeline_transition_application_row(issues, path, value),
     do:
       TimelineTransitionValidation.validate_optional_timeline_transition_application_row(
@@ -5641,14 +5633,6 @@ defmodule OrbitalDynamics.Schema do
         path,
         value,
         timeline_transition_validation_callbacks()
-      )
-
-  defp validate_optional_timeline_integrity_source_row(issues, path, value),
-    do:
-      TimelineTransitionValidation.validate_optional_timeline_integrity_source_row(
-        issues,
-        path,
-        value
       )
 
   defp timeline_transition_validation_callbacks do
@@ -5839,7 +5823,8 @@ defmodule OrbitalDynamics.Schema do
       expect_optional_one_of: &expect_optional_one_of/5,
       expect_optional_type: &expect_optional_type/5,
       expect_optional_probability: &expect_optional_probability/4,
-      validate_selected_timeline_integrity_fields: &validate_selected_timeline_integrity_fields/3,
+      validate_selected_timeline_integrity_fields:
+        &TimelineTransitionValidation.validate_selected_timeline_integrity_fields/3,
       validate_stable_ids: &validate_stable_ids/4,
       expect_optional_number: &expect_optional_number/4,
       validate_optional_stable_id_list: &validate_optional_stable_id_list/4,
@@ -5887,7 +5872,7 @@ defmodule OrbitalDynamics.Schema do
       validate_optional_timeline_transition_application_row:
         &validate_optional_timeline_transition_application_row/3,
       validate_optional_timeline_integrity_source_row:
-        &validate_optional_timeline_integrity_source_row/3,
+        &TimelineTransitionValidation.validate_optional_timeline_integrity_source_row/3,
       error: &error/2
     )
   end
@@ -5960,7 +5945,7 @@ defmodule OrbitalDynamics.Schema do
       validate_optional_timeline_diff_summary_source:
         &TimelineSourceValidation.validate_optional_timeline_diff_summary_source/3,
       validate_optional_timeline_integrity_source_row:
-        &validate_optional_timeline_integrity_source_row/3,
+        &TimelineTransitionValidation.validate_optional_timeline_integrity_source_row/3,
       validate_optional_timeline_lifecycle_state_source_row:
         &TimelineSourceValidation.validate_optional_timeline_lifecycle_state_source_row/3,
       validate_optional_timeline_preservation_source_row:
@@ -5971,7 +5956,8 @@ defmodule OrbitalDynamics.Schema do
         &validate_optional_timeline_transition_application_row/3,
       validate_optional_timeline_transition_application_summary_source:
         &validate_optional_timeline_transition_application_summary_source/3,
-      validate_selected_timeline_integrity_fields: &validate_selected_timeline_integrity_fields/3
+      validate_selected_timeline_integrity_fields:
+        &TimelineTransitionValidation.validate_selected_timeline_integrity_fields/3
     )
   end
 
@@ -6129,7 +6115,8 @@ defmodule OrbitalDynamics.Schema do
         &SourceEvidenceValidation.validate_schema_validation_status_matches/3,
       validate_execution_source_status_matches:
         &SourceEvidenceValidation.validate_execution_status_matches/3,
-      validate_selected_timeline_integrity_fields: &validate_selected_timeline_integrity_fields/3,
+      validate_selected_timeline_integrity_fields:
+        &TimelineTransitionValidation.validate_selected_timeline_integrity_fields/3,
       validate_optional_timeline_diff_summary_source:
         &TimelineSourceValidation.validate_optional_timeline_diff_summary_source/3,
       validate_optional_timeline_transition_application_summary_source:
@@ -6137,7 +6124,7 @@ defmodule OrbitalDynamics.Schema do
       validate_optional_timeline_transition_application_row:
         &validate_optional_timeline_transition_application_row/3,
       validate_optional_timeline_integrity_source_row:
-        &validate_optional_timeline_integrity_source_row/3,
+        &TimelineTransitionValidation.validate_optional_timeline_integrity_source_row/3,
       validate_optional_timeline_activity_state_source:
         &TimelineSourceValidation.validate_optional_timeline_activity_state_source/3,
       validate_optional_timeline_lifecycle_state_source_row:
