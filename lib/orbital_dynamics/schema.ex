@@ -2832,7 +2832,7 @@ defmodule OrbitalDynamics.Schema do
         &OrbitalDynamics.Schema.OperationalReadinessContextJsonSchema.trust_boundary_status_count_map/0,
       non_negative_integer_properties: fn ->
         OrbitalDynamics.Schema.BranchComparisonReportContracts.row_count_fields()
-        |> non_negative_integer_property_schemas()
+        |> OrbitalDynamics.Schema.CommonJsonSchema.non_negative_integer_properties()
       end,
       branch_scoped_downlink_context_properties:
         &branch_scoped_downlink_context_json_schema_properties/0
@@ -3029,10 +3029,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp sha256_json_schema do
     OrbitalDynamics.Schema.CommonJsonSchema.sha256(@sha256_pattern)
-  end
-
-  defp non_negative_integer_property_schemas(fields) do
-    OrbitalDynamics.Schema.CommonJsonSchema.non_negative_integer_properties(fields)
   end
 
   defp stable_id_array_schema do
