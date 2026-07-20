@@ -27,6 +27,15 @@ defmodule OrbitalDynamics.Schema.StationReservationValidation do
         "station_reservation_hold_import_readiness_summary.v1"
       )
 
+  def validate_calendar_provider_artifact(issues, path, artifact),
+    do: validate_artifact(issues, path, artifact, "station_calendar_provider.v1")
+
+  def validate_calendar_report_artifact(issues, path, artifact),
+    do: validate_artifact(issues, path, artifact, "station_calendar_report.v1")
+
+  def validate_calendar_precedence_artifact(issues, path, artifact),
+    do: validate_artifact(issues, path, artifact, "station_calendar_precedence_summary.v1")
+
   def validate_optional_calendar_report(issues, report),
     do: validate_optional_calendar_report(issues, "$.station_calendar_report", report)
 
@@ -100,10 +109,31 @@ defmodule OrbitalDynamics.Schema.StationReservationValidation do
        ),
        do: validate_hold_import_readiness_summary(issues, path, artifact)
 
+  defp validate_registered_artifact(issues, path, artifact, "station_calendar_provider.v1"),
+    do: OrbitalDynamics.Schema.StationCalendarProviderContracts.validate(issues, path, artifact)
+
+  defp validate_registered_artifact(issues, path, artifact, "station_calendar_report.v1"),
+    do: validate_optional_calendar_report(issues, path, artifact)
+
+  defp validate_registered_artifact(
+         issues,
+         path,
+         artifact,
+         "station_calendar_precedence_summary.v1"
+       ) do
+    OrbitalDynamics.Schema.StationCalendarPrecedenceSummaryContracts.validate(
+      issues,
+      path,
+      artifact,
+      model_limits()
+    )
+  end
+
   defp required_fields(contract_name) do
     [
       OrbitalDynamics.Schema.StationReservationRegistryContracts,
-      OrbitalDynamics.Schema.StationReservationHoldRegistryContracts
+      OrbitalDynamics.Schema.StationReservationHoldRegistryContracts,
+      OrbitalDynamics.Schema.StationCalendarRegistryContracts
     ]
     |> Enum.reduce(%{}, &Map.merge(&2, &1.contracts()))
     |> OrbitalDynamics.Schema.Registry.fetch!(contract_name)

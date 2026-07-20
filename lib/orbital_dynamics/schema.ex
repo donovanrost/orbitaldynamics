@@ -4197,26 +4197,16 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validate_contract(@station_calendar_provider, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.StationCalendarProviderContracts.validate("$", artifact)
+  defp validate_contract(@station_calendar_provider, _contract, artifact) do
+    StationReservationValidation.validate_calendar_provider_artifact([], "$", artifact)
   end
 
-  defp validate_contract(@station_calendar_report, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> StationReservationValidation.validate_optional_calendar_report("$", artifact)
+  defp validate_contract(@station_calendar_report, _contract, artifact) do
+    StationReservationValidation.validate_calendar_report_artifact([], "$", artifact)
   end
 
-  defp validate_contract(@station_calendar_precedence_summary, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.StationCalendarPrecedenceSummaryContracts.validate(
-      "$",
-      artifact,
-      station_calendar_report_model_limits()
-    )
+  defp validate_contract(@station_calendar_precedence_summary, _contract, artifact) do
+    StationReservationValidation.validate_calendar_precedence_artifact([], "$", artifact)
   end
 
   defp validate_contract(@station_reservation_report, _contract, artifact) do
