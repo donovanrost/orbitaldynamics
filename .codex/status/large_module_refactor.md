@@ -9,7 +9,7 @@ Current slice:
 Planning-analysis schema-provider extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Move the six objective-satisfaction, objective-tradeoff, ranking-row,
@@ -28,10 +28,25 @@ Selection evidence:
   entries and implementation details from the public facade.
 
 Implementation:
-Pending.
+Selected in `bb50e34c` and implemented in `e765efdb`.
+The new `PlanningAnalysisSchemaProviders.build/1` returns six lazy provider
+closures for objective, ranking, Pareto, and constraint rows. `Schema` removes
+the six registry-local captures and private builders, then merges the focused
+provider map into its existing property context without changing the public
+facade.
 
 Verification:
-Pending.
+- Strict focused schema/validation baseline and final post-change suites both
+  passed: 359 tests, 0 failures.
+- Direct comparison confirmed the extracted provider map has the exact six
+  keys and produces outputs exactly equal to the original builders.
+- Xref reports one runtime edge from `Schema` to the new provider owner.
+- Schema export regenerated 121 schemas plus the bundle with no checked-in
+  artifact diff.
+- Strict full compile passed for 4,108 files with warnings as errors.
+- Formatting, diff checks, and bounded two-file review passed.
+- The public `Schema` facade shrank from 1,959 to 1,917 lines; the new focused
+  owner is 68 lines.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -39,14 +54,12 @@ laziness, field-hint fallback, stable-ID decoration, public `Schema`, and
 checked-in exports must remain unchanged.
 
 Last completed slice:
-Candidate-refresh callback-aware JSON-property routing, selected in `c61978d5`
-and implemented in `e7dc418b`. The parent router moved from 563 to 552 lines
-and now contains only ordered facade routes, the global lighting special case,
-fallback, and embedded-contract bridge.
+Planning-analysis schema-provider extraction, selected in `bb50e34c` and
+implemented in `e765efdb`. The public `Schema` facade moved from 1,959 to 1,917
+lines.
 
 Next candidate:
-Implement and verify the selected planning-analysis provider extraction, then
-re-rank the remaining public-facade provider clusters.
+Re-rank the remaining public-facade provider clusters.
 
 Blocked:
 No.
