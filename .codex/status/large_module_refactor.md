@@ -6,41 +6,32 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Execution-state plan-delta schema-provider expansion.
+Operator-review property-provider extraction.
 
 Status:
-Completed and verified.
+Selected; implementation pending.
 
 Selected boundary:
-Move the plan-delta builder from the public `Schema` facade into the existing
-`ExecutionStateSchemaProviders` owner. Expand its lazy provider map and pass
-planned/realized activity, timeline-link, and activity-context dependencies as
-explicit callbacks.
+Move the operator-review row property-provider assembly from the public
+`Schema` facade into a new `OperatorReviewSchemaProviders` owner. Keep
+branch-scoped, authority, and resource-variance properties with their focused
+owners while passing facade-owned handoff/scoped properties as explicit
+callbacks.
 
 Selection evidence:
-- The public `Schema` facade remains 1,458 lines.
-- The plan-delta builder is referenced only by the property provider registry
-  and belongs with the four execution-state providers already extracted.
-- `CampaignRepairJsonSchema` already owns the plan-delta shape.
-- Recursive facade-owned activity and timeline schemas can remain lazy through
-  explicit callbacks.
+- The public `Schema` facade remains 1,455 lines.
+- The property-provider assembler is private and used only by the
+  operator-review row builder.
+- Three property families already have focused owners and can become direct
+  owner dependencies.
+- The remaining facade-owned handoff/scoped properties can preserve laziness
+  through explicit callbacks.
 
 Implementation:
-Selected in `b1408ab2` and implemented in `28163ce7`. Expanded the existing
-`ExecutionStateSchemaProviders` owner from four to five lazy providers and
-retained planned/realized activity, timeline-link, and activity-context
-construction behind explicit callbacks. The public `Schema` facade moved from
-1,458 to 1,455 lines.
+Pending.
 
 Verification:
-- Exact comparison passed for the moved plan-delta output and confirmed all
-  five execution-state provider keys.
-- Focused schema/validation suite passed: 359 tests.
-- Full checked-in schema export regenerated with no diff.
-- Runtime xref retains one direct `Schema` -> `ExecutionStateSchemaProviders`
-  edge.
-- Strict forced compile passed with warnings as errors: 4,119 files.
-- `JsonSchemaPropertyRouter` remains an ordered 76-head facade.
+Pending.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -53,8 +44,8 @@ and implemented in `28163ce7`. The public `Schema` facade moved from 1,458 to
 1,455 lines.
 
 Next candidate:
-Re-rank the remaining public-facade provider clusters and select the next
-bounded extraction.
+Implement and verify the selected operator-review property-provider
+extraction, then assess the remaining row/schema-provider half.
 
 Blocked:
 No.
