@@ -2339,7 +2339,8 @@ defmodule OrbitalDynamics.Schema do
       stable_id_pattern: @stable_id_pattern,
       models: &ResourceValidation.resource_projection_report_models/0,
       model_limits: &ResourceValidation.resource_projection_report_model_limits/0,
-      assumptions_schema: &resource_projection_assumptions_json_schema/0,
+      assumptions_schema:
+        &OrbitalDynamics.Schema.ResourceProjectionReportJsonSchema.assumptions/0,
       projection_row_schema: &resource_projection_row_json_schema/0,
       flow_row_schema: &resource_projection_flow_row_json_schema/0,
       default_property: &default_json_schema_property/3
@@ -5703,10 +5704,6 @@ defmodule OrbitalDynamics.Schema do
         row,
         contact_allocation_report_domain_callbacks()
       )
-
-  defp resource_projection_assumptions_json_schema do
-    OrbitalDynamics.Schema.ResourceProjectionReportJsonSchema.assumptions()
-  end
 
   defp validate_candidate_rejection_report(issues, path, report),
     do:
