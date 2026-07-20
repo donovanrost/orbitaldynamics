@@ -9,7 +9,7 @@ Current slice:
 RecommendationRiskContext capacity-pack extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `bdc570d2`.
 
 Selected boundary:
 Extract capacity-pack context keys, risk selection, and context projection into
@@ -33,19 +33,35 @@ Selection evidence:
   and error behavior must remain unchanged.
 
 Implementation:
-Pending.
+- Added `OrbitalDynamics.RecommendationRiskContext.CapacityPack` as the focused
+  owner of the ordered key contract, scope/group risk selection, atom-key
+  normalization, and contact, station, capacity, derivation, and provenance
+  context projection.
+- Preserved the public RecommendationRiskContext facade through delegates.
+- All other risk families remain outside the extraction.
+- `recommendation_risk_context.ex` moved from 1,153 to 1,094 lines; the
+  dedicated CapacityPack owner is 96 lines.
 
 Verification:
-Pending.
+- Focused baseline and post-change test passed normally; the file retains its
+  two pre-existing signed-zero warnings.
+- Exact old/new public parity: four results passed, covering ordered keys,
+  both selection forms, atom-key normalization, multi-key/list flattening,
+  nil omission, unrelated-risk exclusion, empty input, and non-list input.
+- Five adjacent recommendation tests passed with warnings treated as errors.
+- Static ownership and xref checks passed; only the facade calls the extracted
+  owner at runtime.
+- Forced warning-clean test compile passed across 4,035 files.
+- Focused formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-OperationalReadiness operational-mode gate extraction, selected in `5cb32e19`
-and implemented in `054a74b0`.
-`operational_readiness.ex` moved from 1,170 to 1,140 lines; the dedicated
-OperationalModeGate owner is 28 lines.
+RecommendationRiskContext capacity-pack extraction, selected in `aee20d5b`
+and implemented in `bdc570d2`.
+`recommendation_risk_context.ex` moved from 1,153 to 1,094 lines; the dedicated
+CapacityPack owner is 96 lines.
 
 Next candidate:
 After this slice, re-rank the live checkout. OperationalReadiness is the next
