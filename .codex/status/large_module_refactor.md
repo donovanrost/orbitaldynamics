@@ -9,7 +9,7 @@ Current slice:
 Objective/optimizer JSON-property family extraction.
 
 Status:
-Selected; implementation pending.
+Implemented and verified.
 
 Selected boundary:
 Move the five contiguous objective satisfaction/tradeoff, ranking/Pareto,
@@ -27,10 +27,24 @@ Selection evidence:
 - No recursive parent callback or cross-family property lookup is required.
 
 Implementation:
-Pending.
+- Moved five objective/optimizer clause bodies into the existing
+  `StrategyPlanningPropertyRouter`, which now owns ten related routes in 154
+  lines.
+- Kept all guarded and literal parent clause heads in place as ordered
+  delegations.
+- Reused the planning owner's existing lazy provider/context/fallback support.
+- The parent router moved from 864 to 814 lines.
 
 Verification:
-Pending.
+- Strict pre-change baseline and post-change schema/validation suite: 359 tests
+  passed in each run.
+- AST comparison confirmed all five moved bodies are exact and all 76 parent
+  clause heads remain in their original order.
+- Full schema export regenerated 121 contract schemas and the bundle with no
+  checked-in schema diff.
+- `mix xref trace` confirms the five additional planning-family edges.
+- Formatting, `git diff --check`, and bounded source/schema diff review passed.
+- Strict compile passed for 4,104 files with warnings as errors.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -38,13 +52,12 @@ laziness, field-hint fallback, stable-ID decoration, public `Schema`, and
 checked-in exports must remain unchanged.
 
 Last completed slice:
-Filter/resource/contention JSON-property family extraction, selected in
-`dc58ba33` and implemented in `054c5eb0`. The parent router moved from 914 to
-864 lines.
+Objective/optimizer JSON-property family move, selected in `4b8ee80c` and
+implemented in `d75f423d`. The parent router moved from 864 to 814 lines.
 
 Next candidate:
-Implement and verify the selected objective/optimizer move, then re-rank the
-operational readiness/quality-gate cohort.
+Re-rank the operational readiness/quality-gate cohort for another broad
+exact-body family move.
 
 Blocked:
 No.
