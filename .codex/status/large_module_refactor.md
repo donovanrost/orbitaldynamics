@@ -9,7 +9,7 @@ Current slice:
 Schema contact-feedback export test split.
 
 Status:
-Selected; implementation pending.
+Completed and verified.
 
 Selected boundary:
 Move the 940-line nested realized-state/timeline-feedback schema export test
@@ -26,22 +26,32 @@ Selection evidence:
   a cohesive nested-schema export contract.
 
 Implementation:
-Pending.
+Selected in `9ca6df2a` and implemented in `0ae4ae5c`. Moved the nested
+realized-state/timeline-feedback schema export test into
+`ContactFeedbackSchemaContractsTest` with its model-limit and JSON helpers. The
+original fixture/behavior module moved from 1,853 to 907 lines; the focused
+schema-export module is 957 lines.
 
 Verification:
-Pending.
+- Both contact-feedback schema modules passed with warnings as errors: 5 tests.
+- The full schema/validation gate passed with warnings as errors: 368 tests.
+- Full checked-in schema export regeneration produced no diff.
+- Strict forced compile passed with warnings as errors: 4,129 files.
+- Touched-file format checks, new-file whitespace checks, and
+  `git diff --check` passed.
 
 Behavior/schema changes:
 None intended. The same deterministic fixtures, production calls, assertions,
 artifact validation, and async test behavior must remain unchanged.
 
 Last completed slice:
-Schema Cadence import handoff test family split, selected in `e9a912b0` and
-implemented in `7ff0286b`. The 1,597-line catch-all handoff test now exposes
-five independently runnable responsibility families.
+Schema contact-feedback export test split, selected in `9ca6df2a` and
+implemented in `0ae4ae5c`. The 1,853-line mixed module became balanced 907-line
+fixture/behavior and 957-line nested-export modules.
 
 Next candidate:
-Implement and verify the selected contact-feedback export test split.
+Inspect the 1,814-line operator-review schema contract module for a coherent
+schema-export versus checked-in fixture split.
 
 Blocked:
 No.
