@@ -6,55 +6,38 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema timeline-transition validation context extraction.
+Schema candidate-rejection validation context extraction.
 
 Status:
-Completed and pushed.
+Selected; implementation not started.
 
 Selected boundary:
-Add default-context arity-three entry points to TimelineTransitionValidation,
-route Schema's two eager validations and eight lazy callbacks directly to
-those owner APIs, and remove five facade wrappers plus their shared callback
-builder. Keep the existing arity-four customizable owner APIs. Preserve issue
-ordering, paths, callback behavior, public Schema APIs, and validation results.
+Add default-context arity-three entry points to CandidateRejectionValidation
+for required report and optional report validation. Derive model limits and
+required fields from the existing candidate-rejection JSON Schema and registry
+owners, route one eager and two lazy Schema consumers directly, and remove both
+facade wrappers. Keep the existing customizable arity-four/arity-five APIs.
 
 Selection evidence:
-- `schema.ex` remains the dominant production hotspot at 5,913 lines; the other
+- `schema.ex` remains the dominant production hotspot at 5,860 lines; the other
   targeted public facades are now 164 to 524 lines.
-- Five facade wrappers always pass the same three
-  TimelineContextValidation callbacks to the existing owner.
-- Exact usage finds two eager validation pipelines and eight lazy callback
-  entries across campaign, Cadence, and operator-review validation contexts.
-- Owner-default entry points preserve the customizable arity-four APIs for any
-  callers that supply alternate callbacks.
-- Unrelated decision-support and domain validation wrappers remain out of
-  scope.
+- Both facade wrappers supply only candidate-rejection-owned context: report
+  model limits and the registry contract's required fields.
+- Exact usage finds one eager required-report pipeline and two optional-report
+  callback entries.
+- `PlanChangeRegistryContracts` is the existing owner of the candidate
+  rejection registry contract; no recursive Schema lookup is required.
+- Owner-default entry points preserve the customizable APIs for callers that
+  supply alternate limits or required fields.
 
 Implementation:
-Added default-context arity-three entry points to TimelineTransitionValidation,
-kept all customizable arity-four APIs, routed two eager facade validations and
-eight lazy callbacks directly to the owner, and removed five wrappers plus the
-shared callback builder. `schema.ex` moved from 5,913 to 5,860 lines.
+Pending.
 
 Verification:
-- Strict campaign/Cadence/operator-review/timeline baseline before extraction:
-  16 passed.
-- The same strict focused suite after extraction: 16 passed.
-- Strict checked-in export, review/import handoff, and JSON Schema export
-  coverage: 22 passed.
-- The full schema-export task completed and produced no checked-in changes.
-- Exact static inspection confirms two direct eager validations, eight direct
-  lazy callbacks, zero facade wrappers, and retained arity-four owner APIs.
-- `mix xref callers OrbitalDynamics.Schema.TimelineTransitionValidation`
-  reports only the expected Schema facade runtime caller.
-- `git diff --check` passed.
-- Strict forced compile passed across 4,072 files with no warnings.
-- Implementation commit `f1a0f77f` pushed to `main`.
+Pending.
 
 Behavior/schema changes:
-None. Issue ordering, paths, default TimelineContextValidation callbacks,
-customizable owner entry points, public Schema APIs, validation results, and
-checked-in exports remain unchanged.
+None intended.
 
 Last completed slice:
 Schema timeline-transition validation context extraction, selected in
