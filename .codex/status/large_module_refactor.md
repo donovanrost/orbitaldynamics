@@ -6,46 +6,31 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Ground-network communications JSON-property family extraction.
+Filter/resource/contention JSON-property family extraction.
 
 Status:
-Implemented and verified.
+Selected; implementation pending.
 
 Selected boundary:
-Extract the ten contiguous command-window, station calendar/reservation,
-link-capacity, relay-data-path, and contact-allocation clauses from
-`JsonSchemaPropertyRouter` into a ground-network communications family owner.
-Keep the parent router's exact guarded and literal clause heads/order as
-delegations.
+Extract the three contiguous contact/resource filter, resource projection, and
+contact contention clauses from `JsonSchemaPropertyRouter` into a
+filter/resource/contention family owner. Keep the parent router's exact guarded
+clause heads/order as delegations.
 
 Selection evidence:
-- The parent router remains 1,021 lines across 76 contract-family clauses.
-- Ten adjacent clauses form a roughly 210-line ground-network communications
-  boundary covering twenty related contracts.
-- The bodies already delegate through focused ground-network, link, relay, and
-  allocation dispatchers with shared lazy providers/context/fallback.
+- The parent router remains 914 lines across 76 contract-family clauses.
+- Three adjacent clauses form a roughly 70-line operational filtering/resource
+  boundary covering seven related contracts.
+- The bodies already delegate through focused filter, projection, and
+  contention dispatchers with shared lazy providers/context/fallback.
 - No recursive parent callback or cross-family property lookup is required;
-  the only shared alias is the existing timeline-context schema owner.
+  resource projection additionally uses the existing validation owner.
 
 Implementation:
-- Added a 218-line `GroundNetworkPropertyRouter` with ten mechanically moved
-  ground-network communications clause bodies spanning twenty contracts.
-- Kept all literal and guarded parent clause heads in place as ordered
-  delegations.
-- Reused shared lazy provider/context/fallback support and the existing
-  timeline-context schema owner without a parent callback.
-- The parent router moved from 1,021 to 914 lines.
+Pending.
 
 Verification:
-- Strict pre-change baseline and post-change schema/validation suite: 359 tests
-  passed in each run.
-- AST comparison confirmed all ten moved bodies are exact and all 76 parent
-  clause heads remain in their original order.
-- Full schema export regenerated 121 contract schemas and the bundle with no
-  checked-in schema diff.
-- `mix xref trace` confirms the ten intended family edges.
-- Formatting, `git diff --check`, and bounded source/schema diff review passed.
-- Strict compile passed for 4,103 files with warnings as errors.
+Pending.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -58,8 +43,8 @@ Ground-network communications JSON-property family extraction, selected in
 914 lines.
 
 Next candidate:
-Re-rank the adjacent filter/resource/contention and objective/optimizer cohorts
-for the next broad exact-body family move.
+Implement and verify the selected filter/resource/contention split, then fold
+the adjacent objective/optimizer clauses into the planning family.
 
 Blocked:
 No.
