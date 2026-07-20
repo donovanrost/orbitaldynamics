@@ -9,7 +9,7 @@ Current slice:
 OperationalReadiness readiness-report assembly extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `75a5cad0`.
 
 Selected boundary:
 Extract readiness gate assembly, classification, and report projection into
@@ -33,19 +33,35 @@ Selection evidence:
   behavior must remain unchanged.
 
 Implementation:
-Pending.
+- Added `OrbitalDynamics.OperationalReadiness.ReadinessReport` as the focused
+  owner of source identity use, gate-list assembly, classification precedence,
+  report projection, counts, assumptions, and model limits.
+- Kept review/import source acquisition, evidence construction, and capability
+  ownership in the facade; evidence and model limits are passed to the owner.
+- Preserved all public OperationalReadiness facades through the report builder.
+- `operational_readiness.ex` moved from 827 to 765 lines; the dedicated
+  ReadinessReport owner is 89 lines.
 
 Verification:
-Pending.
+- Strict focused baseline: 31 tests passed with warnings treated as errors.
+- Exact old/new public parity: five reports passed, covering nominal,
+  analysis-only, missing-source blocked, complex mixed-gate precedence/counts,
+  assumptions/model limits, and the root facade.
+- Post-change core, operator-review, schema, and fixture checks: 51 tests
+  passed with warnings treated as errors.
+- Static ownership and xref checks passed; only the facade calls the extracted
+  owner at runtime.
+- Forced warning-clean test compile passed across 4,043 files.
+- Focused formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-RecommendationRiskContext link-capacity extraction, selected in `42b96465`
-and implemented in `ee7312e9`.
-`recommendation_risk_context.ex` moved from 878 to 782 lines; the dedicated
-LinkCapacity owner is 128 lines.
+OperationalReadiness readiness-report assembly extraction, selected in
+`d172fe6f` and implemented in `75a5cad0`.
+`operational_readiness.ex` moved from 827 to 765 lines; the dedicated
+ReadinessReport owner is 89 lines.
 
 Next candidate:
 After this slice, re-rank the live checkout. RecommendationRiskContext is the
