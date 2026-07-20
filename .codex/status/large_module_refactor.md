@@ -9,7 +9,7 @@ Current slice:
 Schema candidate-diff semantic-details direct routing.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Remove the Schema facade's one-hop semantic-change-details schema helper.
@@ -28,18 +28,35 @@ Selection evidence:
   validation results, and checked-in exports must remain unchanged.
 
 Implementation:
-Pending.
+Removed the one-hop semantic-change-details helper and routed the eager
+strategy value plus all three callback-map captures directly to
+CandidateDiffJsonSchema.
+`schema.ex` remains 6,106 lines because the explicit owner captures offset the
+removed helper.
 
 Verification:
-Pending.
+- Strict focused Cadence-import/Cadence-row/operator-review/strategy/export
+  baseline before routing: 24 passed.
+- The same strict focused suite after routing: 24 passed.
+- Strict full schema-export task plus adjacent candidate-refresh,
+  campaign-repair, and fixture-visibility coverage: 13 passed.
+- `mix xref callers OrbitalDynamics.Schema.CandidateDiffJsonSchema` reports
+  the expected `schema.ex` and CandidateRefreshPropertyDispatch callers.
+- Static inspection confirms the facade helper definition is gone and all four
+  consumers route directly to the owner.
+- `git diff --check` passed; no checked-in schema export changed.
+- Strict forced compile passed across 4,065 files.
+- Implementation commit `aae28f78` pushed to `main`.
 
 Behavior/schema changes:
-None intended.
+None. Public facades, eager/lazy evaluation timing, semantic-details schema,
+generated JSON Schema, validation behavior, and checked-in exports remain
+unchanged.
 
 Last completed slice:
-Schema common assumptions direct routing, selected in `af5fc3cd` and
-implemented in `aaacd9cd`.
-`schema.ex` moved from 6,114 to 6,106 lines.
+Schema candidate-diff semantic-details direct routing, selected in `61665a3f`
+and implemented in `aae28f78`.
+`schema.ex` remains 6,106 lines while the intermediary helper is gone.
 
 Next candidate:
 Re-rank the remaining non-capability Schema responsibility clusters now that
