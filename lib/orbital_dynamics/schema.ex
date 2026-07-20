@@ -358,6 +358,18 @@ defmodule OrbitalDynamics.Schema do
         @sha256_pattern
       )
 
+    handoff_schema_providers =
+      OrbitalDynamics.Schema.HandoffSchemaProviders.build(@stable_id_pattern)
+
+    feedback_maneuver_handoff_properties =
+      Map.fetch!(handoff_schema_providers, :feedback_maneuver_handoff_properties)
+
+    link_handoff_properties =
+      Map.fetch!(handoff_schema_providers, :link_handoff_properties)
+
+    thermal_handoff_properties =
+      Map.fetch!(handoff_schema_providers, :thermal_handoff_properties)
+
     policy_schema_providers =
       OrbitalDynamics.Schema.PolicySchemaProviders.build(
         @stable_id_pattern,
@@ -796,13 +808,12 @@ defmodule OrbitalDynamics.Schema do
           timeline_transition_application_row_schema: timeline_transition_application_row_schema,
           timeline_transition_application_summary_source_schema:
             timeline_transition_application_summary_source_schema,
-          feedback_maneuver_handoff_properties:
-            &feedback_maneuver_handoff_json_schema_properties/0,
-          link_handoff_properties: &link_handoff_json_schema_properties/0,
+          feedback_maneuver_handoff_properties: feedback_maneuver_handoff_properties,
+          link_handoff_properties: link_handoff_properties,
           resource_projection_battery_handoff_properties:
             resource_projection_battery_handoff_properties,
           scoped_downlink_context_properties: scoped_downlink_context_properties,
-          thermal_handoff_properties: &thermal_handoff_json_schema_properties/0,
+          thermal_handoff_properties: thermal_handoff_properties,
           timeline_activity_precondition_handoff_properties:
             timeline_activity_precondition_handoff_properties,
           timeline_dependency_impact_handoff_properties:
@@ -855,13 +866,12 @@ defmodule OrbitalDynamics.Schema do
             cadence_import_operational_readiness_evidence_properties,
           cadence_import_resource_projection_evidence_properties:
             cadence_import_resource_projection_evidence_properties,
-          feedback_maneuver_handoff_properties:
-            &feedback_maneuver_handoff_json_schema_properties/0,
-          link_handoff_properties: &link_handoff_json_schema_properties/0,
+          feedback_maneuver_handoff_properties: feedback_maneuver_handoff_properties,
+          link_handoff_properties: link_handoff_properties,
           resource_projection_battery_handoff_properties:
             resource_projection_battery_handoff_properties,
           scoped_downlink_context_properties: scoped_downlink_context_properties,
-          thermal_handoff_properties: &thermal_handoff_json_schema_properties/0,
+          thermal_handoff_properties: thermal_handoff_properties,
           timeline_activity_precondition_handoff_properties:
             timeline_activity_precondition_handoff_properties,
           timeline_dependency_impact_handoff_properties:
@@ -911,24 +921,5 @@ defmodule OrbitalDynamics.Schema do
 
   defp validation_record_registry_conditions do
     OrbitalDynamics.Schema.ValidationJsonSchema.registry_conditions(@stable_id_pattern)
-  end
-
-  defp link_handoff_json_schema_properties do
-    OrbitalDynamics.Schema.LinkHandoffJsonSchema.properties(
-      probability_schema: OrbitalDynamics.Schema.CommonJsonSchema.probability()
-    )
-  end
-
-  defp feedback_maneuver_handoff_json_schema_properties do
-    OrbitalDynamics.Schema.FeedbackManeuverHandoffJsonSchema.properties(
-      probability_schema: OrbitalDynamics.Schema.CommonJsonSchema.probability()
-    )
-  end
-
-  defp thermal_handoff_json_schema_properties do
-    OrbitalDynamics.Schema.ThermalHandoffJsonSchema.properties(
-      stable_id_pattern: @stable_id_pattern,
-      probability_schema: OrbitalDynamics.Schema.CommonJsonSchema.probability()
-    )
   end
 end
