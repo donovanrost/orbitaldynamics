@@ -250,20 +250,11 @@ defmodule OrbitalDynamics.Schema.JsonSchemaPropertyRouter do
              "provider_counteroffer_import_readiness_summary.v1",
              "provider_counteroffer_plan_impact_summary.v1"
            ] do
-    OrbitalDynamics.Schema.ProviderCounterofferPropertyDispatch.property(
+    OrbitalDynamics.Schema.GroundNetworkPropertyRouter.property(
       field,
       contract_name,
       contract,
-      contracts: %{
-        report: "provider_counteroffer_report.v1",
-        review_summary: "provider_counteroffer_review_summary.v1",
-        import_readiness_summary: "provider_counteroffer_import_readiness_summary.v1",
-        plan_impact_summary: "provider_counteroffer_plan_impact_summary.v1"
-      },
-      row_schema: fn -> provider(context, :provider_counteroffer_row_json_schema, []) end,
-      models: &OrbitalDynamics.Schema.ProviderCounterofferReportJsonSchema.models/0,
-      stable_id_pattern: context_value(context, :stable_id_pattern),
-      default_property: fn arg1, arg2, arg3 -> fallback(arg1, arg2, arg3, context) end
+      context
     )
   end
 
