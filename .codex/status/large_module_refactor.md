@@ -6,53 +6,38 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema campaign branch/recommendation owner routing extraction.
+Schema maneuver decision-support owner routing extraction.
 
 Status:
-Completed and pushed.
+Selected; implementation pending.
 
 Selected boundary:
-Add owner-default artifact entry points to `CampaignArtifactValidation` for
-`strategy_branch.v1` and `strategy_recommendation.v1`. Derive requirements from
-`CampaignRegistryContracts` and `StrategyManeuverRegistryContracts`, preserve
-the branch schema-contract equality check before branch validation, route both
-direct `Schema` clauses, and preserve every existing owner API.
+Add registry-backed artifact entry points to `DecisionSupportValidation` for
+`maneuver_recommendation.v1` and `maneuver_review_report.v1`. Derive
+requirements from `StrategyManeuverRegistryContracts`, route both direct
+`Schema` clauses through the existing owner, and preserve every existing owner
+API.
 
 Selection evidence:
-- `schema.ex` remains the dominant production hotspot at 4,751 lines; the other
+- `schema.ex` remains the dominant production hotspot at 4,745 lines; the other
   targeted public facades are now 164 to 524 lines.
-- Both clauses already delegate artifact-specific validation to
-  `CampaignArtifactValidation` after facade-level setup.
-- `CampaignRegistryContracts` owns branch requirements;
-  `StrategyManeuverRegistryContracts` owns recommendation requirements.
-- The branch's explicit schema-contract equality check can move into the owner
-  without callbacks or facade-local context.
+- Both clauses repeat required-field setup before delegating to
+  `DecisionSupportValidation`.
+- `StrategyManeuverRegistryContracts` owns both requirement sets.
+- The owner already owns maneuver recommendation and review model-limit
+  defaults and contract routing.
 - No route needs recursive `Schema` lookup.
 
 Implementation:
-Added registry-backed branch and recommendation artifact entry points to
-`CampaignArtifactValidation`, moved the branch schema-contract equality check
-into the owner, and routed both direct `Schema` clauses through it. `schema.ex`
-moved from 4,751 to 4,745 lines.
+Pending.
 
 Verification:
-- Strict focused baseline: 12 tests passed.
-- Focused plus adjacent campaign, validation, Cadence import, fixture,
-  contract, and export coverage after extraction: 88 tests passed.
-- Full schema export completed with no checked-in artifact changes.
-- Static routing review found exactly the two intended direct facade routes.
-- `mix xref trace` confirmed both runtime calls originate in `schema.ex`.
-- Formatting and `git diff --check` passed.
-- Strict forced compile passed across 4,086 files with warnings as errors.
-- Bounded diff review confirmed both registry-owned requirement sets, branch
-  equality-check placement, branch/recommendation contract routing, validation
-  ordering, and paths remain unchanged.
-- Implementation committed and pushed as `b2dfd904`.
+Pending.
 
 Behavior/schema changes:
-None. Required fields, validation ordering and paths, public `Schema` and
-existing `CampaignArtifactValidation` APIs, validation results, and checked-in
-exports remain unchanged.
+None intended. Required fields, validation ordering and paths, public `Schema`
+and existing `DecisionSupportValidation` APIs, validation results, and
+checked-in exports must remain unchanged.
 
 Last completed slice:
 Schema campaign branch/recommendation owner routing extraction, selected in
@@ -60,8 +45,8 @@ Schema campaign branch/recommendation owner routing extraction, selected in
 `schema.ex` moved from 4,751 to 4,745 lines.
 
 Next candidate:
-Re-rank the remaining Schema responsibility clusters and select the next
-facade-preserving extraction.
+Implement and verify the selected maneuver decision-support owner routing, then
+re-rank the remaining Schema responsibility clusters.
 
 Blocked:
 No.
