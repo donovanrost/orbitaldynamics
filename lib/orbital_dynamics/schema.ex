@@ -58,6 +58,12 @@ defmodule OrbitalDynamics.Schema do
       contact_filter_report_model_limits: 0
     ]
 
+  import OrbitalDynamics.Schema.ContactIntentCapabilityContext,
+    only: [
+      contact_intent_model_limits: 0,
+      contact_intent_summary_assumptions_json_schema: 0
+    ]
+
   import OrbitalDynamics.Schema.ContactAllocationCapabilityContext,
     only: [
       contact_allocation_capacity_pack_summary_assumptions_json_schema: 0,
@@ -3119,24 +3125,6 @@ defmodule OrbitalDynamics.Schema do
   defp model_acceptance_report_model_limits do
     OrbitalDynamics.Validation.capabilities()
     |> Map.fetch!(:known_limits)
-  end
-
-  defp contact_intent_model_limits do
-    OrbitalDynamics.Communications.ContactIntent.capabilities()
-    |> Map.fetch!(:known_limits)
-    |> Enum.map(&Atom.to_string/1)
-    |> Enum.sort()
-  end
-
-  defp contact_intent_summary_assumptions_json_schema do
-    OrbitalDynamics.Schema.ContactIntentSummaryJsonSchema.assumptions(
-      station_capacity_value_paths:
-        OrbitalDynamics.Schema.ContactIntentSummaryContracts.station_capacity_value_path_assumptions(),
-      required_capacity_value_paths:
-        OrbitalDynamics.Schema.ContactIntentSummaryContracts.required_capacity_value_path_assumptions(),
-      required_capacity_fraction_source_values:
-        OrbitalDynamics.Schema.ContactIntentSummaryContracts.required_capacity_fraction_source_values()
-    )
   end
 
   defp candidate_rejection_report_model_limits do
