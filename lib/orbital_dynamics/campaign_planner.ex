@@ -360,8 +360,8 @@ defmodule OrbitalDynamics.CampaignPlanner do
         repair_resource_filter_report(request.candidate_refresh),
         repair_refresh_budget_report(request.candidate_refresh),
         repair_candidate_rejection_report(request),
-        repair_operational_readiness_report(request.candidate_refresh),
-        repair_quality_gate_report(request.candidate_refresh),
+        RepairSourceReports.operational_readiness(request.candidate_refresh),
+        RepairSourceReports.quality_gate(request.candidate_refresh),
         request.scoring_policy
       )
 
@@ -380,7 +380,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         request.approval_policy
       )
 
-    timeline_protection = timeline_protection_summary(activities, deltas)
+    timeline_protection = RepairTimelineSummary.protection_summary(activities, deltas)
 
     timeline_transition_application_report =
       repair_timeline_transition_application_report(planned_activities, activities)
@@ -774,10 +774,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
     )
   end
 
-  defp timeline_protection_summary(activities, deltas) do
-    RepairTimelineSummary.protection_summary(activities, deltas)
-  end
-
   defp repair_score_terms(
          activities,
          deltas,
@@ -1013,14 +1009,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp repair_candidate_rejection_report(%{} = request) do
     RepairSourceReports.candidate_rejection_report(request)
-  end
-
-  defp repair_operational_readiness_report(candidate_refresh) do
-    RepairSourceReports.operational_readiness(candidate_refresh)
-  end
-
-  defp repair_quality_gate_report(candidate_refresh) do
-    RepairSourceReports.quality_gate(candidate_refresh)
   end
 
   defp repair_refresh_budget_report(nil), do: nil
