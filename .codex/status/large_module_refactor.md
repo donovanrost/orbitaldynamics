@@ -6,64 +6,40 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema decision-support registered-contract validation routing.
+Schema link-capacity validation routing.
 
 Status:
-Completed and pushed.
+Selected; implementation pending.
 
 Selected boundary:
-Add owner-default required and optional entry points to
-DecisionSupportValidation for objective tradeoff, objective satisfaction,
-branch comparison, ranking comparison, optimizer contract, and score-term
-report artifacts. Derive requirements from the existing objective-analysis and
-optimization registries, route direct and optional Schema consumers to the
-owner, and remove the six facade closures plus the shared registered-contract
-wrapper. Keep every customizable optional-validation API.
+Add a small LinkCapacityValidation owner for registry-required report
+validation and optional report shape handling. Route the direct Schema report
+consumer and both campaign callback consumers to that owner, and remove the
+facade-local optional closure. Keep the 910-line LinkCapacityReportContracts
+module focused on artifact-specific validation rather than adding orchestration
+to that existing hotspot.
 
 Selection evidence:
-- `schema.ex` remains the dominant production hotspot at 5,294 lines; the other
+- `schema.ex` remains the dominant production hotspot at 5,202 lines; the other
   targeted public facades are now 164 to 524 lines.
-- Six direct validation clauses duplicate registry requirements and dedicated
-  contract-owner routing already available outside Schema.
-- The same six artifacts use facade-local optional closures from campaign plan,
-  campaign repair, or campaign strategy callback graphs.
-- Objective-analysis and optimization registry modules own all required-field
-  lists needed by the six default entry points.
-- Dedicated contract modules own all artifact-specific validation; no callback
-  needs recursive Schema lookup or another facade-local validator.
-- The existing arity-three optional APIs remain the customization boundary.
+- Exact usage finds one direct report validation and two campaign optional
+  callbacks behind one facade-local closure.
+- LinkCapacityRegistryContracts owns the required-field list and
+  LinkCapacityReportContracts owns all artifact-specific validation.
+- Optional shape handling requires only PrimitiveValidation.error/2.
+- No callback needs recursive Schema lookup or another facade-local validator.
+- A separate owner avoids adding context orchestration to the already
+  910-line report contract module.
 
 Implementation:
-Added owner-default required and optional validators for all six selected
-artifacts to DecisionSupportValidation. Required validators derive field lists
-from the objective-analysis or optimization registries and route to the
-dedicated contract owners; optional validators reuse the existing customizable
-arity-three APIs. Routed all direct and campaign callback consumers to the
-owner and removed six facade closures plus the registered-contract wrapper.
-`schema.ex` moved from 5,294 to 5,202 lines.
+Pending.
 
 Verification:
-- Strict optimizer/campaign baseline before routing: 6 passed.
-- The same strict focused suite after routing: 6 passed.
-- Strict optimizer, campaign, policy, Cadence, candidate-refresh, and
-  operator-review coverage: 204 passed.
-- Strict schema and JSON Schema export coverage: 18 passed.
-- The full schema-export task completed and produced no checked-in changes.
-- Exact static inspection confirms every selected direct and optional consumer
-  routes to DecisionSupportValidation and zero selected facade closures remain.
-- `mix xref callers OrbitalDynamics.Schema.DecisionSupportValidation` reports
-  only the expected Schema, CadenceImportValidation, and
-  OperatorReviewValidation runtime callers.
-- `mix format --check-formatted` and `git diff --check` passed.
-- Strict forced compile passed across 4,073 files with no warnings.
-- Bounded local review confirmed registry requirements, issue ordering and
-  paths match the former direct and optional facade routes.
-- Implementation commit `0d29fbd9` pushed to `main`.
+Pending.
 
 Behavior/schema changes:
-None. Required fields, validation ordering and paths, customizable optional
-APIs, public Schema APIs, validation results, and checked-in exports remain
-unchanged.
+None intended. Required fields, validation ordering and paths, public Schema
+APIs, validation results, and checked-in exports must remain unchanged.
 
 Last completed slice:
 Schema decision-support registered-contract validation routing, selected in
@@ -71,9 +47,8 @@ Schema decision-support registered-contract validation routing, selected in
 `schema.ex` moved from 5,294 to 5,202 lines.
 
 Next candidate:
-Re-rank the remaining non-capability Schema responsibility clusters. Preserve
-the context-bearing CommonJsonSchema wrappers unless a separate exact
-ownership boundary is proven.
+Implement and verify the selected link-capacity validation routing, then
+re-evaluate campaign plan/repair callback ownership.
 
 Blocked:
 No.
