@@ -79,4 +79,76 @@ defmodule OrbitalDynamics.Schema.StrategyPlanningPropertyRouter do
        fn -> provider(context, :approval_requirement_json_schema, []) end}
     )
   end
+
+  def property(field, contract_name, contract, context)
+      when contract_name in ["objective_satisfaction_report.v1", "objective_tradeoff_report.v1"] do
+    OrbitalDynamics.Schema.ObjectiveReportPropertyDispatch.property(
+      field,
+      contract_name,
+      contract,
+      satisfaction_row_schema: provider(context, :objective_satisfaction_row_json_schema, []),
+      satisfaction_model_limits:
+        OrbitalDynamics.CampaignPlanner.objective_satisfaction_model_limits(),
+      tradeoff_row_schema: provider(context, :objective_tradeoff_row_json_schema, []),
+      tradeoff_models:
+        OrbitalDynamics.Schema.OptimizerObjectiveContracts.objective_tradeoff_report_models(),
+      score_report_model_limits: OrbitalDynamics.CampaignPlanner.score_report_model_limits(),
+      default_property: fn arg1, arg2, arg3 -> fallback(arg1, arg2, arg3, context) end
+    )
+  end
+
+  def property(field, contract_name, contract, context)
+      when contract_name in ["ranking_comparison_report.v1", "pareto_frontier_report.v1"] do
+    OrbitalDynamics.Schema.OptimizerReportPropertyDispatch.property(
+      field,
+      contract_name,
+      contract,
+      ranking_row_schema: fn -> provider(context, :ranking_comparison_row_json_schema, []) end,
+      ranking_winner_schema: fn ->
+        provider(context, :ranking_comparison_winner_json_schema, [])
+      end,
+      ranking_model_limits: fn -> OrbitalDynamics.Optimizer.ranking_comparison_model_limits() end,
+      pareto_row_schema: fn -> provider(context, :pareto_frontier_row_json_schema, []) end,
+      pareto_model_limits: fn -> OrbitalDynamics.Optimizer.pareto_frontier_model_limits() end,
+      stable_id_pattern: context_value(context, :stable_id_pattern),
+      default_property: fn arg1, arg2, arg3 -> fallback(arg1, arg2, arg3, context) end
+    )
+  end
+
+  def property(field, "score_term_report.v1" = contract_name, contract, context) do
+    OrbitalDynamics.Schema.PlanningAnalysisPropertyDispatch.score_term(
+      field,
+      contract_name,
+      contract,
+      fn arg1, arg2, arg3 -> fallback(arg1, arg2, arg3, context) end,
+      {OrbitalDynamics.Schema.OptimizerObjectiveContracts.score_term_report_models(),
+       OrbitalDynamics.CampaignPlanner.score_report_model_limits(),
+       provider(context, :score_term_row_json_schema, [])}
+    )
+  end
+
+  def property(field, "resource_filter_summary.v1" = contract_name, contract, context) do
+    OrbitalDynamics.Schema.PlanningAnalysisPropertyDispatch.resource_filter_summary(
+      field,
+      contract_name,
+      contract,
+      fn arg1, arg2, arg3 -> fallback(arg1, arg2, arg3, context) end,
+      {"resource_filter_summary.v1", "resource_filter_report.v1",
+       context_value(context, :stable_id_pattern),
+       fn -> provider(context, :resource_filter_report_model_limits, []) end,
+       %{"type" => "object"}, fn -> provider(context, :suppressed_candidate_json_schema, []) end}
+    )
+  end
+
+  def property(field, "constraint_report.v1" = contract_name, contract, context) do
+    OrbitalDynamics.Schema.PlanningAnalysisPropertyDispatch.constraint(
+      field,
+      contract_name,
+      contract,
+      fn arg1, arg2, arg3 -> fallback(arg1, arg2, arg3, context) end,
+      {OrbitalDynamics.Schema.ConstraintReportContracts.models(),
+       OrbitalDynamics.Schema.ConstraintReportContracts.model_limit_values(),
+       provider(context, :constraint_row_json_schema, [])}
+    )
+  end
 end
