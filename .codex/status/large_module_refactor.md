@@ -9,7 +9,7 @@ Current slice:
 Validation batch schema-provider expansion.
 
 Status:
-Selected; implementation pending.
+Completed and verified.
 
 Selected boundary:
 Move the schema-validation batch-entry builder from the public `Schema` facade
@@ -26,10 +26,19 @@ Selection evidence:
   through one explicit callback.
 
 Implementation:
-Pending.
+Selected in `f595c7b7` and implemented in `08b4a9b0`. Expanded the existing
+`ValidationSchemaProviders` owner from four to five lazy providers and retained
+recursive validation-report document construction behind one explicit
+callback. The public `Schema` facade moved from 1,513 to 1,511 lines.
 
 Verification:
-Pending.
+- Exact comparison passed for all five validation provider keys and outputs,
+  including the callback-built batch entry.
+- Focused schema/validation suite passed: 359 tests.
+- Full checked-in schema export regenerated with no diff.
+- Runtime xref retains one direct `Schema` -> `ValidationSchemaProviders` edge.
+- Strict forced compile passed with warnings as errors: 4,118 files.
+- `JsonSchemaPropertyRouter` remains an ordered 76-head facade.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -37,13 +46,13 @@ laziness, field-hint fallback, stable-ID decoration, public `Schema`, and
 checked-in exports must remain unchanged.
 
 Last completed slice:
-Execution-review row schema-provider extraction, selected in `0037d37c` and
-implemented in `6477c809`. The public `Schema` facade moved from 1,524 to 1,513
+Validation batch schema-provider expansion, selected in `f595c7b7` and
+implemented in `08b4a9b0`. The public `Schema` facade moved from 1,513 to 1,511
 lines.
 
 Next candidate:
-Implement and verify the selected validation-provider expansion, then re-rank
-the remaining public-facade provider clusters.
+Re-rank the remaining public-facade provider clusters and select the next
+bounded extraction.
 
 Blocked:
 No.
