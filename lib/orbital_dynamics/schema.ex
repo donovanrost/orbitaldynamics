@@ -2690,11 +2690,10 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp default_json_schema_property(field, name, contract) do
-    type = Map.get(@field_type_hints, field, "object")
-
-    %{"type" => type}
-    |> maybe_add_const(field, name, contract)
-    |> maybe_add_stable_id_pattern(field)
+    OrbitalDynamics.Schema.FallbackPropertyJsonSchema.property(field, name, contract,
+      field_type_hints: @field_type_hints,
+      stable_id_pattern: @stable_id_pattern
+    )
   end
 
   defp embedded_contract_json_schema(contract_name) do
@@ -4147,36 +4146,6 @@ defmodule OrbitalDynamics.Schema do
         &timeline_publication_handoff_json_schema_properties/0
     ]
   end
-
-  defp maybe_add_const(property, "schema_contract", name, _contract) do
-    property
-    |> Map.put("const", name)
-    |> Map.put("description", "Stable executable contract identifier")
-  end
-
-  defp maybe_add_const(property, "schema_version", _name, contract) do
-    property
-    |> Map.put("const", contract["schema_version"])
-    |> Map.put("description", "Artifact schema version")
-  end
-
-  defp maybe_add_const(property, "artifact_type", _name, contract) do
-    Map.put(property, "const", contract["artifact_family"])
-  end
-
-  defp maybe_add_const(property, _field, _name, _contract), do: property
-
-  defp maybe_add_stable_id_pattern(%{"type" => "string"} = property, field) do
-    if stable_id_field?(field) do
-      Map.put(property, "pattern", @stable_id_pattern)
-    else
-      property
-    end
-  end
-
-  defp maybe_add_stable_id_pattern(property, _field), do: property
-
-  defp stable_id_field?(field), do: field == "id" or String.ends_with?(field, "_id")
 
   defp validate_contract(@activity_template, contract, artifact) do
     OrbitalDynamics.Schema.ActivityTemplateContracts.validate(
