@@ -164,16 +164,7 @@ defmodule OrbitalDynamics.Schema.JsonSchemaPropertyRouter do
   end
 
   def property(field, "approval_requirement.v1" = contract_name, contract, context) do
-    OrbitalDynamics.Schema.PolicyArtifactPropertyDispatch.approval_requirement(
-      field,
-      contract_name,
-      contract,
-      fn arg1, arg2, arg3 -> fallback(arg1, arg2, arg3, context) end,
-      {context_value(context, :stable_id_pattern),
-       fn -> provider(context, :policy_decision_rule_match_json_schema, []) end,
-       fn -> provider(context, :activity_context_json_schema, []) end,
-       fn -> provider(context, :policy_escalation_json_schema, []) end}
-    )
+    ReferencePolicyPropertyRouter.property(field, contract_name, contract, context)
   end
 
   def property(
