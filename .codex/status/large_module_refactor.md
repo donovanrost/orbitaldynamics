@@ -9,7 +9,7 @@ Current slice:
 Schema stable-ID JSON-export contract test split.
 
 Status:
-Selected; implementation pending.
+Completed and verified.
 
 Selected boundary:
 Move the 2,177-line stable-ID hint export contract from the 3,206-line JSON
@@ -25,23 +25,32 @@ Selection evidence:
   while the remaining tests cover structurally different export contracts.
 
 Implementation:
-Pending.
+Selected in `b94bc5f6` and implemented in `d271aaa7`. Moved the exhaustive
+stable-ID hint export test into `JsonSchemaStableIdContractsTest`. The original
+mixed JSON-export contract module moved from 3,206 to 1,029 lines; the focused
+stable-ID policy module is 2,182 lines.
 
 Verification:
-Pending.
+- Both JSON-export contract modules passed with warnings as errors: 15 tests.
+- The full schema/validation gate passed with warnings as errors: 359 tests.
+- Full checked-in schema export regeneration produced no diff.
+- Strict forced compile passed with warnings as errors: 4,129 files.
+- Touched-file format checks, new-file whitespace checks, and
+  `git diff --check` passed.
 
 Behavior/schema changes:
 None intended. The same deterministic fixtures, production calls, assertions,
 artifact validation, and async test behavior must remain unchanged.
 
 Last completed slice:
-Campaign-planner recommendation-pressure expected-handoff fixture extraction,
-selected in `aa9413f4` and implemented in `0315df4a`. The handoff test moved
-from 2,047 to 62 lines and its exhaustive contract now has a named fixture
-owner.
+Schema stable-ID JSON-export contract test split, selected in `b94bc5f6` and
+implemented in `d271aaa7`. The 3,206-line mixed module became a 1,029-line
+general export module and a 2,182-line focused stable-ID policy module.
 
 Next candidate:
-Implement and verify the selected stable-ID JSON-export contract test split.
+Inspect the stable-ID contract for cohesive artifact-family sections; otherwise
+select a family split from the 2,477-line timeline-summary schema contract
+module.
 
 Blocked:
 No.
