@@ -16,6 +16,7 @@ defmodule OrbitalDynamics.OperationalReadiness do
   alias OrbitalDynamics.OperationalReadiness.GateSummary
   alias OrbitalDynamics.OperationalReadiness.ImportEligibilitySummary
   alias OrbitalDynamics.OperationalReadiness.OperatorTrainingEvidence
+  alias OrbitalDynamics.OperationalReadiness.OperatorReviewGate
   alias OrbitalDynamics.OperationalReadiness.OperationalModeDecision
   alias OrbitalDynamics.OperationalReadiness.QualityGateOperatorTrainingSummary
   alias OrbitalDynamics.OperationalReadiness.QualityGateImportReadinessSummary
@@ -830,7 +831,7 @@ defmodule OrbitalDynamics.OperationalReadiness do
         mission_policy_gate(evidence),
         operator_training_gate(evidence),
         resource_availability_gate(evidence),
-        operator_review_gate(evidence),
+        OperatorReviewGate.build(evidence),
         CadenceImportGate.build(evidence)
       ]
       |> Enum.reject(&is_nil/1)
@@ -1010,50 +1011,6 @@ defmodule OrbitalDynamics.OperationalReadiness do
       "resource_source_quality_counts" => evidence["resource_source_quality_counts"],
       "resource_trust_boundary_status_counts" => evidence["resource_trust_boundary_status_counts"]
     }
-  end
-
-  defp operator_review_gate(evidence) do
-    cond do
-      evidence["blocked_review_count"] > 0 ->
-        gate(
-          "operator_review",
-          "blocked",
-          "blocked",
-          "operator-review evidence includes blocked approval status"
-        )
-
-      evidence["review_required_count"] > 0 ->
-        gate(
-          "operator_review",
-          "review_required",
-          "review_only",
-          "operator-review evidence requires human review before import"
-        )
-
-      evidence["review_row_count"] > 0 ->
-        gate(
-          "operator_review",
-          "passed",
-          "importable",
-          "operator-review rows have no blocked or review-required status"
-        )
-
-      evidence["import_row_count"] > 0 ->
-        gate(
-          "operator_review",
-          "passed",
-          "importable",
-          "Cadence import rows carry source review handoff evidence"
-        )
-
-      true ->
-        gate(
-          "operator_review",
-          "analysis_only",
-          "analysis_only",
-          "no operator-review rows were available"
-        )
-    end
   end
 
   defp gate(id, status, classification, reason, context \\ %{}) do
