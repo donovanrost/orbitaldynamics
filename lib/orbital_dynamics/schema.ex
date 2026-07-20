@@ -20,6 +20,7 @@ defmodule OrbitalDynamics.Schema do
     OperationalReadinessValidation,
     OperatorReviewValidation,
     PolicyValidation,
+    ProviderCounterofferValidation,
     ResourceValidation,
     SchemaOperationsValidation,
     SourceEvidenceValidation,
@@ -4270,34 +4271,20 @@ defmodule OrbitalDynamics.Schema do
     |> StationReservationValidation.validate_hold_import_readiness_summary("$", artifact)
   end
 
-  defp validate_contract(@provider_counteroffer_report, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.ProviderCounterofferReportContracts.validate("$", artifact)
+  defp validate_contract(@provider_counteroffer_report, _contract, artifact) do
+    ProviderCounterofferValidation.validate_report([], "$", artifact)
   end
 
-  defp validate_contract(@provider_counteroffer_review_summary, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.ProviderCounterofferSummaryContracts.validate_review("$", artifact)
+  defp validate_contract(@provider_counteroffer_review_summary, _contract, artifact) do
+    ProviderCounterofferValidation.validate_review_summary([], "$", artifact)
   end
 
-  defp validate_contract(@provider_counteroffer_import_readiness_summary, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.ProviderCounterofferSummaryContracts.validate_import_readiness(
-      "$",
-      artifact
-    )
+  defp validate_contract(@provider_counteroffer_import_readiness_summary, _contract, artifact) do
+    ProviderCounterofferValidation.validate_import_readiness_summary([], "$", artifact)
   end
 
-  defp validate_contract(@provider_counteroffer_plan_impact_summary, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.ProviderCounterofferSummaryContracts.validate_plan_impact(
-      "$",
-      artifact
-    )
+  defp validate_contract(@provider_counteroffer_plan_impact_summary, _contract, artifact) do
+    ProviderCounterofferValidation.validate_plan_impact_summary([], "$", artifact)
   end
 
   defp validate_contract(@resource_summary, contract, artifact) do
