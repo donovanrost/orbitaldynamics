@@ -9,7 +9,7 @@ Current slice:
 Schema low-fanout common primitive direct routing.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Remove five zero-context, one-hop CommonJsonSchema helpers for
@@ -29,18 +29,34 @@ Selection evidence:
   results, and checked-in exports must remain unchanged.
 
 Implementation:
-Pending.
+Removed the five low-fanout CommonJsonSchema helpers and routed all eight
+consumers directly to the owner module. `schema.ex` moved from 6,024 to 6,006
+lines.
 
 Verification:
-Pending.
+- Strict focused feedback/Cadence/review/export baseline before routing:
+  26 passed.
+- The same strict focused suite after routing: 26 passed.
+- Strict strategy, timeline-report, handoff, and checked-in export coverage:
+  17 passed.
+- The full schema-export task completed and produced no checked-in changes.
+- `mix xref callers OrbitalDynamics.Schema.CommonJsonSchema` reports the
+  expected facade and internal schema-owner consumers.
+- Static search confirms all five helper definitions and indirect references
+  are gone.
+- `git diff --check` passed.
+- Strict forced compile passed across 4,065 files.
+- Implementation commit `68269a68` pushed to `main`.
 
 Behavior/schema changes:
-None intended.
+None. Public facades, primitive schemas, eager and lazy evaluation behavior,
+composed schemas, executable validation, and checked-in exports remain
+unchanged.
 
 Last completed slice:
-Schema Cadence import status direct routing, selected in `56b6601b` and
-implemented in `310f440a`.
-`schema.ex` moved from 6,027 to 6,024 lines.
+Schema low-fanout common primitive direct routing, selected in `a00982aa` and
+implemented in `68269a68`.
+`schema.ex` moved from 6,024 to 6,006 lines.
 
 Next candidate:
 Re-rank the remaining non-capability Schema responsibility clusters now that
