@@ -6,52 +6,36 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-OperationalReadiness operator-review gate extraction.
+RecommendationRiskContext timeline-integrity extraction.
 
 Status:
-Completed and pushed in `426d1036`.
+Selected; implementation not started.
 
 Selected boundary:
-Extract operator-review readiness gate precedence into
-`OrbitalDynamics.OperationalReadiness.OperatorReviewGate`.
-Preserve all OperationalReadiness and root public facades.
+Extract timeline-integrity context keys, risk classification, and context
+projection into `OrbitalDynamics.RecommendationRiskContext.TimelineIntegrity`.
+Preserve all RecommendationRiskContext and downstream public facades.
 
 Selection evidence:
 - Excluding the generated/declarative candidate-refresh JSON-schema module,
-  live re-ranking places `operational_readiness.ex` at 1,338 lines, the
+  live re-ranking places `recommendation_risk_context.ex` at 1,304 lines, the
   largest ordinary eligible facade.
-- OperationalReadiness delegates seventeen focused responsibilities, while the
-  operator-review gate decision remains inline at lines 1,015-1,058.
-- The selected code has one responsibility: classify blocked, review-required,
-  review-present, import-handoff, or absent operator-review evidence.
-- Evidence collection, all other gate decisions, report/summary projection, and
-  all public contracts remain outside the boundary.
-- Exact decision precedence, status/classification/reason strings, context
-  omission, public output, and error behavior must remain unchanged.
+- RecommendationRiskContext delegates eighteen focused risk families, while
+  timeline-integrity keys, projection, and classification remain inline at
+  lines 355-378, 439, 1,170-1,230, and 1,236-1,242.
+- The selected code has one responsibility: identify timeline-integrity risks
+  and project stable dependency, exclusivity, review, and provenance context.
+- Contact/resource filters, objective/score/resource-margin context, and all
+  other risk families remain outside the boundary.
+- Exact context keys and order, type/risk_type/feedback_scope classification,
+  atom-key normalization, list flattening, nil omission, value ordering,
+  non-list behavior, public output, and error behavior must remain unchanged.
 
 Implementation:
-- Added `OrbitalDynamics.OperationalReadiness.OperatorReviewGate` as the owner
-  of blocked/review-required/review-present/import-handoff/absent precedence
-  and fixed gate fields.
-- Wired readiness gate construction directly to the owner while preserving
-  OperationalReadiness and root APIs.
-- Kept evidence collection, all other gate decisions, and report/summary
-  projection outside the boundary.
-- `operational_readiness.ex` moved from 1,338 to 1,295 lines; the new owner is
-  51 lines.
+Pending.
 
 Verification:
-- Strict focused baseline passed all 31 OperationalReadiness tests.
-- Exact old/new public parity passed for all five deterministic operator-review
-  branches: blocked, review-required, review-present, import-handoff, and
-  absent evidence.
-- Post-extraction focused and adjacent readiness, replay-summary,
-  operator-review, schema-contract, and validation verification passed all 49
-  tests.
-- Static checks confirm the operator-review gate decision left the facade; xref
-  reports only OperationalReadiness as a runtime caller.
-- Strict warning-clean forced compile passed for 4,027 files.
-- Formatting and `git diff --check` passed.
+Pending.
 
 Behavior/schema changes:
 None intended.
@@ -63,9 +47,8 @@ and implemented in `426d1036`.
 OperatorReviewGate owner is 51 lines.
 
 Next candidate:
-Re-rank the live checkout and select the next bounded facade-preserving
-extraction. RecommendationRiskContext is now the largest ordinary eligible
-facade at 1,304 lines, followed by OperationalReadiness.
+After this slice, re-rank the live checkout. OperationalReadiness is the next
+largest ordinary eligible facade.
 
 Blocked:
 No.
