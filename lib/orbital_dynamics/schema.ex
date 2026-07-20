@@ -13,6 +13,7 @@ defmodule OrbitalDynamics.Schema do
     ContactAllocationValidation,
     ContactReportValidation,
     DecisionSupportValidation,
+    LinkCapacityValidation,
     OperationalReadinessValidation,
     OperationalTimelineValidation,
     OperatorReviewValidation,
@@ -4150,10 +4151,8 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.CandidateDiffContracts.validate_optional_report([], "$", artifact)
   end
 
-  defp validate_contract(@link_capacity_report, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.LinkCapacityReportContracts.validate("$", artifact)
+  defp validate_contract(@link_capacity_report, _contract, artifact) do
+    LinkCapacityValidation.validate_report([], "$", artifact)
   end
 
   defp validate_contract(@link_capacity_summary, contract, artifact) do
@@ -5099,7 +5098,7 @@ defmodule OrbitalDynamics.Schema do
         &OperationalReadinessValidation.validate_optional_quality_gate_report/3,
       validate_optional_optimizer_contract:
         &DecisionSupportValidation.validate_optional_optimizer_contract/2,
-      validate_optional_link_capacity_report: &validate_optional_link_capacity_report/2,
+      validate_optional_link_capacity_report: &LinkCapacityValidation.validate_optional_report/2,
       validate_optional_resource_projection_report:
         &ResourceValidation.validate_optional_resource_projection_report/3,
       validate_optional_resource_projection_flow_summary:
@@ -5149,7 +5148,7 @@ defmodule OrbitalDynamics.Schema do
         &DecisionSupportValidation.validate_optional_objective_tradeoff_report/2,
       validate_optional_score_term_report:
         &DecisionSupportValidation.validate_optional_score_term_report/2,
-      validate_optional_link_capacity_report: &validate_optional_link_capacity_report/2,
+      validate_optional_link_capacity_report: &LinkCapacityValidation.validate_optional_report/2,
       validate_optional_candidate_diff_report:
         &OrbitalDynamics.Schema.CandidateDiffContracts.validate_optional_report/3,
       validate_optional_candidate_rejection_report:
@@ -5167,16 +5166,6 @@ defmodule OrbitalDynamics.Schema do
       expect_field_equals_with_message: &expect_field_equals/6
     ]
   end
-
-  defp validate_optional_link_capacity_report(issues, nil), do: issues
-
-  defp validate_optional_link_capacity_report(issues, %{} = report) do
-    validate_contract(@link_capacity_report, registry_contract!(@link_capacity_report), report) ++
-      issues
-  end
-
-  defp validate_optional_link_capacity_report(issues, _report),
-    do: [error("$.link_capacity_report", "must be an object") | issues]
 
   defp validate_branch(issues, path, branch) do
     OrbitalDynamics.Schema.StrategyBranchContracts.validate(
