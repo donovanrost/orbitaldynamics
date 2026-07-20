@@ -9,7 +9,7 @@ Current slice:
 OperationalReadiness adapter-boundary gate extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `dd724eb4`.
 
 Selected boundary:
 Extract adapter trust-boundary gate precedence and evidence-context projection
@@ -30,23 +30,41 @@ Selection evidence:
   fields and omission, public output, and error behavior must remain unchanged.
 
 Implementation:
-Pending.
+- Added `OrbitalDynamics.OperationalReadiness.AdapterBoundaryGate` as the owner
+  of untrusted/missing/declared/absent trust-boundary precedence, gate fields,
+  and adapter evidence context.
+- Wired readiness gate construction and quality-gate row context projection to
+  the owner while preserving OperationalReadiness and root APIs.
+- Kept evidence collection, all other gate decisions, and report/summary
+  projection outside the boundary.
+- `operational_readiness.ex` moved from 1,388 to 1,338 lines; the new owner is
+  61 lines.
 
 Verification:
-Pending.
+- Strict focused baseline passed all 31 OperationalReadiness tests.
+- Exact old/new public parity passed for all four deterministic adapter
+  branches: untrusted, missing, declared, and absent context.
+- Post-extraction focused and adjacent readiness, replay-summary,
+  operator-review, schema-contract, and validation verification passed all 49
+  tests.
+- Static checks confirm the adapter-boundary gate decision/context left the
+  facade; xref reports only OperationalReadiness as a runtime caller.
+- Strict warning-clean forced compile passed for 4,026 files.
+- Formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-RecommendationRiskContext resource-margin extraction, selected in `abd70a00`
-and implemented in `015526be`.
-`recommendation_risk_context.ex` moved from 1,405 to 1,304 lines; the dedicated
-ResourceMargin owner is 136 lines.
+OperationalReadiness adapter-boundary gate extraction, selected in `008a5771`
+and implemented in `dd724eb4`.
+`operational_readiness.ex` moved from 1,388 to 1,338 lines; the dedicated
+AdapterBoundaryGate owner is 61 lines.
 
 Next candidate:
-After this slice, re-rank the live checkout. RecommendationRiskContext is the
-next largest ordinary eligible facade.
+Re-rank the live checkout and select the next bounded facade-preserving
+extraction. The reduced OperationalReadiness facade remains the largest
+ordinary eligible module at 1,338 lines, followed by RecommendationRiskContext.
 
 Blocked:
 No.
