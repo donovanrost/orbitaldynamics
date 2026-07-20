@@ -50,14 +50,13 @@ defmodule OrbitalDynamics.TimelineFeedback do
   alias OrbitalDynamics.TimelineFeedback.{
     ActivityState,
     ArtifactValue,
-    DownlinkDemandFeedback,
     ExecutionUncertainty,
     FeedbackAggregation,
     LinkContext,
     OperationalContext,
     OperationalFeedbackExclusion,
     OperationalFeedbackProvenance,
-    OutcomeValue,
+    OperationalFeedbackSummary,
     ProviderResult,
     ReconciliationCommunicationsEvidence,
     ReconciliationIdentity,
@@ -72,7 +71,6 @@ defmodule OrbitalDynamics.TimelineFeedback do
     RealizedFeedbackValidation,
     RealizedIdentity,
     RealizedStatus,
-    ResourceFeedback,
     StationCalendarContext,
     SuccessFactor,
     ThermalContext,
@@ -427,35 +425,7 @@ defmodule OrbitalDynamics.TimelineFeedback do
   def operational_feedback(%{rows: rows}) when is_list(rows), do: operational_feedback(rows)
 
   def operational_feedback(rows) when is_list(rows) do
-    rows = Enum.map(rows, &stringify_keys/1)
-
-    %{
-      "contact_success_rate" =>
-        feedback_average_by(rows, & &1["ground_station_id"], &contact_success_feedback_value/1),
-      "station_throughput_factor" =>
-        feedback_average_by(rows, & &1["ground_station_id"], &station_throughput_feedback_value/1),
-      "observation_success_rate" =>
-        feedback_average_by(rows, & &1["target_id"], &observation_success_feedback_value/1),
-      "image_quality_score" =>
-        feedback_average_by(rows, & &1["target_id"], &image_quality_score_feedback_value/1),
-      "image_quality_status" =>
-        feedback_text_by(rows, & &1["target_id"], &image_quality_status_feedback_value/1),
-      "image_quality_source" =>
-        feedback_text_by(rows, & &1["target_id"], &image_quality_source_feedback_value/1),
-      "cloud_cover_fraction" =>
-        feedback_average_by(rows, & &1["target_id"], &cloud_cover_feedback_value/1),
-      "blur_score" => feedback_average_by(rows, & &1["target_id"], &blur_score_feedback_value/1),
-      "downlink_demand_mb" => downlink_demand_feedback(rows),
-      "downlink_demand_sources" => downlink_demand_sources_feedback(rows),
-      "target_priority_overrides" => target_priority_feedback(rows),
-      "resource_margin_overrides" => resource_margin_feedback(rows),
-      "resource_availability_overrides" => resource_availability_feedback(rows),
-      "maneuver_success_rate" =>
-        feedback_average_by(rows, & &1["activity_id"], &maneuver_success_feedback_value/1),
-      "maneuver_execution_uncertainty" => maneuver_execution_uncertainty_feedback(rows),
-      "command_success_rate" =>
-        feedback_average_by(rows, & &1["activity_id"], &command_success_feedback_value/1)
-    }
+    OperationalFeedbackSummary.build(rows, operational_feedback_summary_config())
   end
 
   def operational_feedback(_report_or_rows),
@@ -467,31 +437,16 @@ defmodule OrbitalDynamics.TimelineFeedback do
       operational_feedback,
       source_counts,
       @schema_contract,
-      operational_feedback_trust_specs()
+      OperationalFeedbackSummary.trust_specs(operational_feedback_summary_config())
     )
   end
 
-  defp operational_feedback_trust_specs do
-    [
-      {"contact_success_rate", & &1["ground_station_id"], &contact_success_feedback_value/1},
-      {"station_throughput_factor", & &1["ground_station_id"],
-       &station_throughput_feedback_value/1},
-      {"observation_success_rate", & &1["target_id"], &observation_success_feedback_value/1},
-      {"image_quality_score", & &1["target_id"], &image_quality_score_feedback_value/1},
-      {"cloud_cover_fraction", & &1["target_id"], &cloud_cover_feedback_value/1},
-      {"blur_score", & &1["target_id"], &blur_score_feedback_value/1},
-      {"target_priority_overrides", & &1["target_id"], &target_priority_feedback_value/1},
-      {"maneuver_success_rate", & &1["activity_id"], &maneuver_success_feedback_value/1},
-      {"command_success_rate", & &1["activity_id"], &command_success_feedback_value/1},
-      {"downlink_demand_mb", &downlink_demand_feedback_trust_key/1,
-       &downlink_demand_feedback_trust_value/1},
-      {"downlink_demand_sources", &downlink_demand_feedback_trust_key/1,
-       &downlink_demand_sources_feedback_trust_value/1},
-      {"resource_margin_overrides", &resource_feedback_spacecraft_id/1,
-       &resource_margin_feedback_trust_value/1},
-      {"resource_availability_overrides", &resource_feedback_spacecraft_id/1,
-       &resource_availability_feedback_trust_value/1}
-    ]
+  defp operational_feedback_summary_config do
+    %{
+      realized_completion_statuses: @realized_completion_statuses,
+      realized_failure_statuses: @realized_failure_statuses,
+      provider_result_map_value_keys: @provider_result_map_value_keys
+    }
   end
 
   defp model_limits do
@@ -1345,211 +1300,7 @@ defmodule OrbitalDynamics.TimelineFeedback do
 
   defp operational_feedback_excluded?(row), do: FeedbackAggregation.excluded?(row)
 
-  defp feedback_average_by(rows, key_fun, value_fun),
-    do: FeedbackAggregation.average_by(rows, key_fun, value_fun)
-
-  defp feedback_text_by(rows, key_fun, value_fun),
-    do: FeedbackAggregation.text_by(rows, key_fun, value_fun)
-
-  defp downlink_demand_feedback(rows), do: DownlinkDemandFeedback.demand(rows)
-
-  defp downlink_demand_sources_feedback(rows),
-    do: DownlinkDemandFeedback.sources(rows)
-
-  defp downlink_demand_feedback_trust_key(row),
-    do: DownlinkDemandFeedback.trust_key(row)
-
-  defp downlink_demand_feedback_trust_value(row),
-    do: DownlinkDemandFeedback.trust_value(row)
-
-  defp downlink_demand_sources_feedback_trust_value(row),
-    do: DownlinkDemandFeedback.sources_trust_value(row)
-
-  defp target_priority_feedback(rows) do
-    rows
-    |> Enum.reject(&operational_feedback_excluded?/1)
-    |> Enum.reduce(%{}, fn row, grouped ->
-      key = stable_scalar_identifier(row["target_id"])
-      value = target_priority_feedback_value(row)
-      weight = feedback_average_weight(row)
-
-      if is_binary(key) and key != "" and is_number(value) and is_number(weight) and
-           weight > 0.0 do
-        Map.update(
-          grouped,
-          key,
-          [{max(value, 0.0), weight}],
-          &[
-            {max(value, 0.0), weight} | &1
-          ]
-        )
-      else
-        grouped
-      end
-    end)
-    |> Enum.map(fn {key, weighted_values} -> {key, weighted_average(weighted_values)} end)
-    |> Enum.sort_by(fn {key, _value} -> key end)
-    |> Map.new()
-  end
-
-  defp target_priority_feedback_value(%{"feedback_kind" => "observation"} = row) do
-    first_target_priority_number(row, [
-      ["realized_activity_context", "target_priority"],
-      ["source_activity_context", "target_priority"],
-      "realized_target_priority",
-      "target_priority"
-    ])
-  end
-
-  defp target_priority_feedback_value(_row), do: nil
-
-  defp resource_margin_feedback(rows), do: ResourceFeedback.margin_overrides(rows)
-
-  defp resource_margin_feedback_trust_value(row), do: ResourceFeedback.margin_trust_value(row)
-
-  defp resource_availability_feedback(rows), do: ResourceFeedback.availability_overrides(rows)
-
-  defp resource_availability_feedback_trust_value(row),
-    do: ResourceFeedback.availability_trust_value(row)
-
-  defp maneuver_execution_uncertainty_feedback(rows) do
-    rows
-    |> Enum.reject(&operational_feedback_excluded?/1)
-    |> Enum.reduce(%{}, fn row, feedback ->
-      key = stable_scalar_identifier(row["activity_id"])
-      entry = maneuver_execution_uncertainty_feedback_entry(row)
-
-      if is_binary(key) and key != "" and entry != %{} do
-        Map.put(feedback, key, entry)
-      else
-        feedback
-      end
-    end)
-    |> sort_nested_feedback_map()
-  end
-
-  defp maneuver_execution_uncertainty_feedback_entry(row) do
-    %{
-      "execution_uncertainty_status" => row["execution_uncertainty_status"],
-      "execution_uncertainty" => row["execution_uncertainty"],
-      "timing_3sigma_s" => numeric_value(row["timing_3sigma_s"]),
-      "delta_v_3sigma_km_s" => numeric_triplet(row["delta_v_3sigma_km_s"]),
-      "delta_v_3sigma_magnitude_km_s" => numeric_value(row["delta_v_3sigma_magnitude_km_s"]),
-      "execution_uncertainty_source" => row["execution_uncertainty_source"]
-    }
-    |> compact_map()
-    |> case do
-      %{"execution_uncertainty_status" => status} = entry
-      when status in ["declared", "missing"] ->
-        entry
-
-      _entry ->
-        %{}
-    end
-  end
-
-  defp resource_feedback_spacecraft_id(row), do: ResourceFeedback.spacecraft_id(row)
-
   defp stable_scalar_identifier(value), do: FeedbackAggregation.stable_identifier(value)
-
-  defp sort_nested_feedback_map(feedback) do
-    feedback
-    |> Enum.sort_by(fn {key, _value} -> key end)
-    |> Map.new(fn {key, value} ->
-      {key,
-       value
-       |> Enum.sort_by(fn {field, _field_value} -> field end)
-       |> Map.new()}
-    end)
-  end
-
-  defp first_target_priority_number(row, fields) do
-    Enum.find_value(fields, fn field ->
-      value =
-        case field do
-          path when is_list(path) -> get_in(row, path)
-          field -> Map.get(row, field)
-        end
-
-      numeric_value(value)
-    end)
-  end
-
-  defp contact_success_feedback_value(%{"feedback_kind" => "contact"} = row) do
-    OutcomeValue.contact_success(row, @realized_completion_statuses, @realized_failure_statuses)
-  end
-
-  defp contact_success_feedback_value(_row), do: nil
-
-  defp station_throughput_feedback_value(%{"feedback_kind" => "contact"} = row) do
-    OutcomeValue.station_throughput(row)
-  end
-
-  defp station_throughput_feedback_value(_row), do: nil
-
-  defp observation_success_feedback_value(%{"feedback_kind" => "observation"} = row) do
-    OutcomeValue.observation_success(
-      row,
-      @provider_result_map_value_keys,
-      @realized_completion_statuses,
-      @realized_failure_statuses
-    )
-  end
-
-  defp observation_success_feedback_value(_row), do: nil
-
-  defp image_quality_score_feedback_value(%{"feedback_kind" => "observation"} = row) do
-    OutcomeValue.image_quality_score(row)
-  end
-
-  defp image_quality_score_feedback_value(_row), do: nil
-
-  defp cloud_cover_feedback_value(%{"feedback_kind" => "observation"} = row) do
-    OutcomeValue.cloud_cover(row)
-  end
-
-  defp cloud_cover_feedback_value(_row), do: nil
-
-  defp blur_score_feedback_value(%{"feedback_kind" => "observation"} = row) do
-    OutcomeValue.blur_score(row)
-  end
-
-  defp blur_score_feedback_value(_row), do: nil
-
-  defp image_quality_status_feedback_value(%{"feedback_kind" => "observation"} = row) do
-    OutcomeValue.image_quality_status(row)
-  end
-
-  defp image_quality_status_feedback_value(_row), do: nil
-
-  defp image_quality_source_feedback_value(%{"feedback_kind" => "observation"} = row) do
-    OutcomeValue.image_quality_source(row)
-  end
-
-  defp image_quality_source_feedback_value(_row), do: nil
-
-  defp maneuver_success_feedback_value(%{"feedback_kind" => "maneuver"} = row) do
-    OutcomeValue.maneuver_success(row, @realized_completion_statuses, @realized_failure_statuses)
-  end
-
-  defp maneuver_success_feedback_value(_row), do: nil
-
-  defp command_success_feedback_value(%{"feedback_kind" => kind} = row)
-       when kind in ["command", "health_check"] do
-    OutcomeValue.command_success(row, @realized_completion_statuses, @realized_failure_statuses)
-  end
-
-  defp command_success_feedback_value(_row), do: nil
-
-  defp weighted_average(weighted_values) do
-    OutcomeValue.weighted_average(weighted_values)
-  end
-
-  defp feedback_average_weight(%{"feedback_weight" => weight}) do
-    OutcomeValue.average_weight(%{"feedback_weight" => weight})
-  end
-
-  defp feedback_average_weight(_row), do: 1.0
 
   defp ambiguous_timeline_match_count(rows) do
     Enum.count(rows, &(&1["match_strategy"] == "ambiguous_timeline_id"))
@@ -1739,8 +1490,6 @@ defmodule OrbitalDynamics.TimelineFeedback do
     ExecutionUncertainty.maneuver_delta_v(activity)
   end
 
-  defp numeric_triplet(value), do: ExecutionUncertainty.numeric_triplet(value)
-  defp numeric_value(value), do: ExecutionUncertainty.numeric_value(value)
   defp vector_norm(value), do: ExecutionUncertainty.vector_norm(value)
 
   defp realized_observation_success_factor(activity) do
