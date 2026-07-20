@@ -9,7 +9,7 @@ Current slice:
 Schema plan-delta owner completion.
 
 Status:
-Selected; implementation pending.
+Complete and pushed.
 
 Selected boundary:
 Add `CampaignArtifactValidation.validate_delta_artifact/3`, using
@@ -27,23 +27,35 @@ Selection evidence:
 - No route needs recursive `Schema` lookup.
 
 Implementation:
-Pending.
+Added `CampaignArtifactValidation.validate_delta_artifact/3`, which owns the
+standalone plan-change registry requirements before the existing plan-delta
+contract. Routed the direct `plan_delta.v1` `Schema` clause through the campaign
+artifact owner. `schema.ex` moved from 4,726 to 4,724 lines; the focused owner
+moved from 214 to 227 lines.
 
 Verification:
-Pending.
+- Strict focused baseline: 12 tests passed.
+- Campaign repair, standalone schema, review, export, validation, and fixture
+  adjacency: 22 tests passed.
+- Full schema export regenerated with no checked-in schema artifact changes.
+- Formatting, diff whitespace, bounded dependency/reference checks, and the
+  bounded semantic diff review passed.
+- `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 mix compile --force
+  --warnings-as-errors` compiled 4,087 files successfully.
 
 Behavior/schema changes:
-None intended. Required fields, validation ordering and paths, public `Schema`
-and existing `CampaignArtifactValidation` APIs, validation results, and
-checked-in exports must remain unchanged.
+None. Required fields, validation ordering and paths, public `Schema` and
+existing `CampaignArtifactValidation` APIs, validation results, and checked-in
+exports remain unchanged.
 
 Last completed slice:
-Schema relay data-path owner completion, selected in `30581147` and implemented
-in `85701edc`. `schema.ex` moved from 4,728 to 4,726 lines.
+Schema plan-delta owner completion, selected in `fa79e852` and implemented in
+`76260142`. `schema.ex` moved from 4,726 to 4,724 lines.
 
 Next candidate:
-Implement and verify the selected plan-delta owner completion, then re-rank the
-remaining Schema responsibility clusters.
+Re-rank the remaining direct `Schema` validation clauses, prioritizing a
+cohesive owner or owner completion without recursive `Schema` lookup or public
+API changes.
 
 Blocked:
 No.
