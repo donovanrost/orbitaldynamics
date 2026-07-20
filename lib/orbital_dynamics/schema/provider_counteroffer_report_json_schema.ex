@@ -15,6 +15,15 @@ defmodule OrbitalDynamics.Schema.ProviderCounterofferReportJsonSchema do
     "earliest_counteroffer_lock_deadline_s"
   ]
 
+  def models do
+    [
+      "artifact_only_provider_counteroffer_review",
+      "preserved_provider_counteroffer_rows",
+      "preserved_provider_counteroffer_plan_impact_summary",
+      "preserved_provider_counteroffer_import_readiness_summary"
+    ]
+  end
+
   def property_opts("rows", deps) do
     [row_schema: fetch_dep!(deps, :row_schema)]
   end

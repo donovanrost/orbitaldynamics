@@ -1977,7 +1977,7 @@ defmodule OrbitalDynamics.Schema do
         plan_impact_summary: @provider_counteroffer_plan_impact_summary
       },
       row_schema: &provider_counteroffer_row_json_schema/0,
-      models: &provider_counteroffer_report_models/0,
+      models: &OrbitalDynamics.Schema.ProviderCounterofferReportJsonSchema.models/0,
       stable_id_pattern: @stable_id_pattern,
       default_property: &default_json_schema_property/3
     )
@@ -3179,15 +3179,6 @@ defmodule OrbitalDynamics.Schema do
       "artifact_only_station_reservation_summary",
       "preserved_station_reservation_hold_summary",
       "preserved_station_reservation_hold_import_readiness_summary"
-    ]
-  end
-
-  defp provider_counteroffer_report_models do
-    [
-      "artifact_only_provider_counteroffer_review",
-      "preserved_provider_counteroffer_rows",
-      "preserved_provider_counteroffer_plan_impact_summary",
-      "preserved_provider_counteroffer_import_readiness_summary"
     ]
   end
 
