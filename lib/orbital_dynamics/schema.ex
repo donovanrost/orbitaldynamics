@@ -377,8 +377,6 @@ defmodule OrbitalDynamics.Schema do
         {:command_window_report_model_limits, 0} => &command_window_report_model_limits/0,
         {:command_window_row_json_schema, 0} => &command_window_row_json_schema/0,
         {:contact_allocation_capabilities, 0} => &contact_allocation_capabilities/0,
-        {:contact_allocation_capacity_pack_group_json_schema, 0} =>
-          &contact_allocation_capacity_pack_group_json_schema/0,
         {:contact_allocation_capacity_pack_summary_assumptions_json_schema, 0} =>
           &contact_allocation_capacity_pack_summary_assumptions_json_schema/0,
         {:contact_allocation_model_limits, 0} => &contact_allocation_model_limits/0,
@@ -386,19 +384,13 @@ defmodule OrbitalDynamics.Schema do
           &contact_allocation_provider_reservation_request_summary_assumptions_json_schema/0,
         {:contact_allocation_reservation_conflict_summary_assumptions_json_schema, 0} =>
           &contact_allocation_reservation_conflict_summary_assumptions_json_schema/0,
-        {:contact_allocation_row_json_schema, 0} => &contact_allocation_row_json_schema/0,
         {:contact_allocation_station_pressure_summary_assumptions_json_schema, 0} =>
           &contact_allocation_station_pressure_summary_assumptions_json_schema/0,
         {:contact_allocation_summary_assumptions_json_schema, 0} =>
           &contact_allocation_summary_assumptions_json_schema/0,
-        {:contact_contention_group_json_schema, 0} => &contact_contention_group_json_schema/0,
-        {:contact_contention_recommendation_json_schema, 0} =>
-          &contact_contention_recommendation_json_schema/0,
         {:contact_contention_report_assumptions_json_schema, 0} =>
           &contact_contention_report_assumptions_json_schema/0,
         {:contact_contention_report_model_limits, 0} => &contact_contention_report_model_limits/0,
-        {:contact_contention_resolution_policy_json_schema, 0} =>
-          &contact_contention_resolution_policy_json_schema/0,
         {:contact_filter_report_assumptions_json_schema, 0} =>
           &contact_filter_report_assumptions_json_schema/0,
         {:contact_filter_report_model_limits, 0} => &contact_filter_report_model_limits/0,
@@ -410,7 +402,6 @@ defmodule OrbitalDynamics.Schema do
         {:ground_station_identity_json_schema, 0} => &ground_station_identity_json_schema/0,
         {:invalidated_candidate_json_schema, 0} => &invalidated_candidate_json_schema/0,
         {:link_capacity_assumptions_json_schema, 1} => &link_capacity_assumptions_json_schema/1,
-        {:link_capacity_row_json_schema, 0} => &link_capacity_row_json_schema/0,
         {:maneuver_recommendation_model_limits, 0} => &maneuver_recommendation_model_limits/0,
         {:maneuver_review_report_model_limits, 0} => &maneuver_review_report_model_limits/0,
         {:maneuver_review_row_json_schema, 0} => &maneuver_review_row_json_schema/0,
@@ -525,6 +516,15 @@ defmodule OrbitalDynamics.Schema do
           policy_decision_schema: &policy_decision_json_schema/0,
           contact_filter_suppression_reasons: &contact_filter_suppression_reasons/0,
           resource_filter_suppression_reasons: &resource_filter_suppression_reasons/0
+        )
+      )
+      |> Map.merge(
+        OrbitalDynamics.Schema.GroundNetworkSchemaProviders.build(
+          @stable_id_pattern,
+          approval_requirement_schema: &approval_requirement_json_schema/0,
+          policy_decision_rule_match_schema: &policy_decision_rule_match_json_schema/0,
+          policy_decision_schema: &policy_decision_json_schema/0,
+          station_calendar_capability: &station_calendar_capabilities/0
         )
       )
     end)
@@ -679,108 +679,6 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.ScoreTermReportJsonSchema.row_from_context(
       stable_id_pattern: @stable_id_pattern
     )
-  end
-
-  defp link_capacity_row_json_schema do
-    OrbitalDynamics.Schema.LinkCapacityReportJsonSchema.row_from_deps(
-      stable_id_pattern: @stable_id_pattern,
-      probability_schema: &OrbitalDynamics.Schema.CommonJsonSchema.probability/0,
-      stable_id_array_schema: &stable_id_array_schema/0,
-      string_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.string_array/0,
-      count_map_schema: &OrbitalDynamics.Schema.CommonJsonSchema.non_negative_integer_count_map/0,
-      actual_data_rate_throughput_derivations_schema:
-        &TimelineContextJsonSchema.actual_data_rate_throughput_derivations/0,
-      policy_decision_schema: &policy_decision_json_schema/0
-    )
-  end
-
-  defp contact_allocation_row_json_schema do
-    OrbitalDynamics.Schema.ContactAllocationReportJsonSchema.row_from_deps(
-      stable_id_pattern: @stable_id_pattern,
-      stable_id_array_schema: &stable_id_array_schema/0,
-      string_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.string_array/0,
-      number_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.number_array/0,
-      actual_data_rate_throughput_derivation_schema:
-        &TimelineContextJsonSchema.actual_data_rate_throughput_derivation/0,
-      approval_requirement_schema: &approval_requirement_json_schema/0,
-      policy_decision_rule_match_schema: &policy_decision_rule_match_json_schema/0,
-      policy_decision_schema: &policy_decision_json_schema/0,
-      source_contention_recommendation_schema: &contact_contention_recommendation_json_schema/0,
-      contact_allocation_capability:
-        &OrbitalDynamics.Communications.ContactAllocation.capabilities/0,
-      station_calendar_capability: &station_calendar_capabilities/0,
-      deferred_priority_schema: &contact_contention_deferred_priority_json_schema/0,
-      priority_field_evidence_counts_schema: &priority_field_evidence_counts_json_schema/0
-    )
-  end
-
-  defp contact_allocation_capacity_pack_group_json_schema do
-    OrbitalDynamics.Schema.ContactAllocationReportJsonSchema.capacity_pack_group_from_deps(
-      stable_id_pattern: @stable_id_pattern,
-      stable_id_array_schema: &stable_id_array_schema/0,
-      capacity_requirement_row_schema: &contact_allocation_capacity_requirement_row_json_schema/0,
-      source_contention_recommendation_schema: &contact_contention_recommendation_json_schema/0
-    )
-  end
-
-  defp contact_allocation_capacity_requirement_row_json_schema do
-    OrbitalDynamics.Schema.ContactAllocationReportJsonSchema.capacity_requirement_row_from_deps(
-      stable_id_pattern: @stable_id_pattern
-    )
-  end
-
-  defp contact_contention_group_json_schema do
-    OrbitalDynamics.Schema.ContactContentionJsonSchema.group_from_context(
-      stable_id_pattern: @stable_id_pattern,
-      stable_id_array_schema: &stable_id_array_schema/0,
-      string_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.string_array/0,
-      number_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.number_array/0,
-      actual_data_rate_throughput_derivations_schema:
-        &TimelineContextJsonSchema.actual_data_rate_throughput_derivations/0,
-      source_contact_candidate_schema: &contact_contention_source_contact_candidate_json_schema/0,
-      policy_decision_schema: &policy_decision_json_schema/0
-    )
-  end
-
-  defp contact_contention_recommendation_json_schema do
-    OrbitalDynamics.Schema.ContactContentionJsonSchema.recommendation_from_context(
-      stable_id_pattern: @stable_id_pattern,
-      stable_id_array_schema: &stable_id_array_schema/0,
-      string_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.string_array/0,
-      number_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.number_array/0,
-      actual_data_rate_throughput_derivations_schema:
-        &TimelineContextJsonSchema.actual_data_rate_throughput_derivations/0,
-      deferred_priority_schema: &contact_contention_deferred_priority_json_schema/0,
-      source_contact_candidate_schema: &contact_contention_source_contact_candidate_json_schema/0,
-      priority_field_evidence_counts_schema: &priority_field_evidence_counts_json_schema/0,
-      policy_decision_schema: &policy_decision_json_schema/0
-    )
-  end
-
-  defp contact_contention_source_contact_candidate_json_schema do
-    OrbitalDynamics.Schema.ContactContentionJsonSchema.source_contact_candidate_from_context(
-      stable_id_pattern: @stable_id_pattern
-    )
-  end
-
-  defp contact_contention_resolution_policy_json_schema do
-    OrbitalDynamics.Schema.ContactContentionJsonSchema.resolution_policy_from_context(
-      stable_id_array_schema: &stable_id_array_schema/0,
-      string_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.string_array/0
-    )
-  end
-
-  defp contact_contention_deferred_priority_json_schema do
-    OrbitalDynamics.Schema.ContactContentionJsonSchema.deferred_priority_from_context(
-      stable_id_pattern: @stable_id_pattern
-    )
-  end
-
-  defp priority_field_evidence_counts_json_schema do
-    %{
-      "type" => "object",
-      "additionalProperties" => %{"type" => "integer", "minimum" => 0}
-    }
   end
 
   defp sha256_json_schema do
@@ -1409,10 +1307,16 @@ defmodule OrbitalDynamics.Schema do
       candidate_activity_source_window_json_schema:
         &candidate_activity_source_window_json_schema/0,
       candidate_rejection_source_json_schema: &candidate_rejection_source_json_schema/0,
-      contact_allocation_capacity_requirement_row_json_schema:
-        &contact_allocation_capacity_requirement_row_json_schema/0,
-      contact_contention_deferred_priority_json_schema:
-        &contact_contention_deferred_priority_json_schema/0,
+      contact_allocation_capacity_requirement_row_json_schema: fn ->
+        OrbitalDynamics.Schema.GroundNetworkSchemaProviders.contact_allocation_capacity_requirement_row(
+          @stable_id_pattern
+        )
+      end,
+      contact_contention_deferred_priority_json_schema: fn ->
+        OrbitalDynamics.Schema.GroundNetworkSchemaProviders.contact_contention_deferred_priority(
+          @stable_id_pattern
+        )
+      end,
       non_negative_number_map_json_schema:
         &OrbitalDynamics.Schema.CommonJsonSchema.non_negative_number_map/0,
       number_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.number_array/0,
@@ -1426,7 +1330,8 @@ defmodule OrbitalDynamics.Schema do
       operational_timeline_row_json_schema: &operational_timeline_row_json_schema/0,
       policy_decision_evidence_json_schema: &policy_decision_evidence_json_schema/0,
       policy_escalation_json_schema: &policy_escalation_json_schema/0,
-      priority_field_evidence_counts_json_schema: &priority_field_evidence_counts_json_schema/0,
+      priority_field_evidence_counts_json_schema:
+        &OrbitalDynamics.Schema.GroundNetworkSchemaProviders.priority_field_evidence_counts/0,
       probability_json_schema: &OrbitalDynamics.Schema.CommonJsonSchema.probability/0,
       quality_gate_report_row_json_schema: &quality_gate_report_row_json_schema/0,
       quality_gate_source_report_evidence_json_schema:
@@ -1557,10 +1462,16 @@ defmodule OrbitalDynamics.Schema do
       candidate_activity_source_window_json_schema:
         &candidate_activity_source_window_json_schema/0,
       candidate_rejection_source_json_schema: &candidate_rejection_source_json_schema/0,
-      contact_allocation_capacity_requirement_row_json_schema:
-        &contact_allocation_capacity_requirement_row_json_schema/0,
-      contact_contention_deferred_priority_json_schema:
-        &contact_contention_deferred_priority_json_schema/0,
+      contact_allocation_capacity_requirement_row_json_schema: fn ->
+        OrbitalDynamics.Schema.GroundNetworkSchemaProviders.contact_allocation_capacity_requirement_row(
+          @stable_id_pattern
+        )
+      end,
+      contact_contention_deferred_priority_json_schema: fn ->
+        OrbitalDynamics.Schema.GroundNetworkSchemaProviders.contact_contention_deferred_priority(
+          @stable_id_pattern
+        )
+      end,
       non_negative_number_map_json_schema:
         &OrbitalDynamics.Schema.CommonJsonSchema.non_negative_number_map/0,
       number_or_string_json_schema: &OrbitalDynamics.Schema.CommonJsonSchema.number_or_string/0,
@@ -1569,7 +1480,8 @@ defmodule OrbitalDynamics.Schema do
       operational_timeline_row_json_schema: &operational_timeline_row_json_schema/0,
       policy_decision_evidence_json_schema: &policy_decision_evidence_json_schema/0,
       policy_escalation_json_schema: &policy_escalation_json_schema/0,
-      priority_field_evidence_counts_json_schema: &priority_field_evidence_counts_json_schema/0,
+      priority_field_evidence_counts_json_schema:
+        &OrbitalDynamics.Schema.GroundNetworkSchemaProviders.priority_field_evidence_counts/0,
       probability_json_schema: &OrbitalDynamics.Schema.CommonJsonSchema.probability/0,
       quality_gate_source_report_evidence_json_schema:
         &quality_gate_source_report_evidence_json_schema/0,
@@ -1653,10 +1565,16 @@ defmodule OrbitalDynamics.Schema do
         &OrbitalDynamics.Schema.OperationalReadinessContextJsonSchema.trust_boundary_status_count_map/0,
       candidate_activity_source_window_json_schema:
         &candidate_activity_source_window_json_schema/0,
-      contact_allocation_capacity_requirement_row_json_schema:
-        &contact_allocation_capacity_requirement_row_json_schema/0,
-      contact_contention_deferred_priority_json_schema:
-        &contact_contention_deferred_priority_json_schema/0,
+      contact_allocation_capacity_requirement_row_json_schema: fn ->
+        OrbitalDynamics.Schema.GroundNetworkSchemaProviders.contact_allocation_capacity_requirement_row(
+          @stable_id_pattern
+        )
+      end,
+      contact_contention_deferred_priority_json_schema: fn ->
+        OrbitalDynamics.Schema.GroundNetworkSchemaProviders.contact_contention_deferred_priority(
+          @stable_id_pattern
+        )
+      end,
       lifecycle_transition_json_schema: &TimelineContextJsonSchema.lifecycle_transition/0,
       non_negative_number_map_json_schema:
         &OrbitalDynamics.Schema.CommonJsonSchema.non_negative_number_map/0,
@@ -1673,7 +1591,8 @@ defmodule OrbitalDynamics.Schema do
       policy_decision_evidence_json_schema: &policy_decision_evidence_json_schema/0,
       policy_decision_rule_match_json_schema: &policy_decision_rule_match_json_schema/0,
       policy_escalation_json_schema: &policy_escalation_json_schema/0,
-      priority_field_evidence_counts_json_schema: &priority_field_evidence_counts_json_schema/0,
+      priority_field_evidence_counts_json_schema:
+        &OrbitalDynamics.Schema.GroundNetworkSchemaProviders.priority_field_evidence_counts/0,
       probability_json_schema: &OrbitalDynamics.Schema.CommonJsonSchema.probability/0,
       protection_decision_json_schema: &protection_decision_json_schema/0,
       quality_gate_report_row_json_schema: &quality_gate_report_row_json_schema/0,
