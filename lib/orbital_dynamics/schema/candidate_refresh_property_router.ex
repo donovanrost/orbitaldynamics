@@ -50,4 +50,31 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshPropertyRouter do
       fn -> OrbitalDynamics.CandidateRefresh.model_limits() end
     )
   end
+
+  def property(
+        field,
+        "candidate_refresh.v1" = contract_name,
+        contract,
+        context,
+        embedded_fun
+      ) do
+    OrbitalDynamics.Schema.CandidateRefreshPropertyDispatch.candidate_refresh(
+      field,
+      contract_name,
+      contract,
+      fn arg1, arg2, arg3 -> fallback(arg1, arg2, arg3, context) end,
+      {fn -> provider(context, :source_window_lineage_json_schema, []) end,
+       fn -> provider(context, :invalidated_candidate_json_schema, []) end,
+       fn -> provider(context, :candidate_activity_json_schema, []) end,
+       fn -> provider(context, :contact_intent_row_json_schema, []) end,
+       fn -> provider(context, :resource_summary_row_json_schema, []) end,
+       fn -> provider(context, :validation_record_json_schema, []) end,
+       fn -> OrbitalDynamics.CandidateRefresh.model_limits() end,
+       context_value(context, :stable_id_pattern),
+       fn -> provider(context, :operational_feedback_json_schema, []) end,
+       fn -> provider(context, :station_calendar_provider_counteroffer_actions, []) end,
+       &OrbitalDynamics.Schema.ValidationAcceptanceReportContracts.safety_case_count_fields/0,
+       embedded_fun}
+    )
+  end
 end

@@ -14,7 +14,7 @@ defmodule OrbitalDynamics.Schema.JsonSchemaPropertyRouter do
   }
 
   import OrbitalDynamics.Schema.JsonSchemaPropertySupport,
-    only: [context_value: 2, fallback: 4, provider: 3]
+    only: [fallback: 4, provider: 3]
 
   def property(field, "activity_template.v1" = contract_name, contract, context) do
     ReferencePolicyPropertyRouter.property(field, contract_name, contract, context)
@@ -530,23 +530,12 @@ defmodule OrbitalDynamics.Schema.JsonSchemaPropertyRouter do
   end
 
   def property(field, "candidate_refresh.v1" = contract_name, contract, context) do
-    OrbitalDynamics.Schema.CandidateRefreshPropertyDispatch.candidate_refresh(
+    CandidateRefreshPropertyRouter.property(
       field,
       contract_name,
       contract,
-      fn arg1, arg2, arg3 -> fallback(arg1, arg2, arg3, context) end,
-      {fn -> provider(context, :source_window_lineage_json_schema, []) end,
-       fn -> provider(context, :invalidated_candidate_json_schema, []) end,
-       fn -> provider(context, :candidate_activity_json_schema, []) end,
-       fn -> provider(context, :contact_intent_row_json_schema, []) end,
-       fn -> provider(context, :resource_summary_row_json_schema, []) end,
-       fn -> provider(context, :validation_record_json_schema, []) end,
-       fn -> OrbitalDynamics.CandidateRefresh.model_limits() end,
-       context_value(context, :stable_id_pattern),
-       fn -> provider(context, :operational_feedback_json_schema, []) end,
-       fn -> provider(context, :station_calendar_provider_counteroffer_actions, []) end,
-       &OrbitalDynamics.Schema.ValidationAcceptanceReportContracts.safety_case_count_fields/0,
-       fn arg1 -> embedded(arg1, context) end}
+      context,
+      fn embedded_contract_name -> embedded(embedded_contract_name, context) end
     )
   end
 
