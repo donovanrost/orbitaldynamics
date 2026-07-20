@@ -3137,10 +3137,6 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp semantic_change_details_json_schema do
-    OrbitalDynamics.Schema.CandidateDiffJsonSchema.semantic_change_details()
-  end
-
   defp candidate_activity_json_schema do
     OrbitalDynamics.Schema.CandidateActivityJsonSchema.schema_from_context(
       stable_id_pattern: @stable_id_pattern,
@@ -3412,7 +3408,8 @@ defmodule OrbitalDynamics.Schema do
       stable_id_array_schema: stable_id_array_schema(),
       numeric_map_schema: numeric_map_json_schema(),
       string_array_schema: string_array_schema(),
-      semantic_change_details_schema: semantic_change_details_json_schema(),
+      semantic_change_details_schema:
+        OrbitalDynamics.Schema.CandidateDiffJsonSchema.semantic_change_details(),
       string_list_map_schema: string_list_map_json_schema(),
       non_negative_integer_count_map_schema: non_negative_integer_count_map_json_schema(),
       provider_counteroffer_negotiation_states:
@@ -3942,7 +3939,8 @@ defmodule OrbitalDynamics.Schema do
       quality_gate_report_row_json_schema: &quality_gate_report_row_json_schema/0,
       quality_gate_source_report_evidence_json_schema:
         &quality_gate_source_report_evidence_json_schema/0,
-      semantic_change_details_json_schema: &semantic_change_details_json_schema/0,
+      semantic_change_details_json_schema:
+        &OrbitalDynamics.Schema.CandidateDiffJsonSchema.semantic_change_details/0,
       source_evidence_json_schema: &source_evidence_json_schema/0,
       source_execution_report_evidence_json_schema:
         &source_execution_report_evidence_json_schema/0,
@@ -4094,7 +4092,8 @@ defmodule OrbitalDynamics.Schema do
       probability_json_schema: &probability_json_schema/0,
       quality_gate_source_report_evidence_json_schema:
         &quality_gate_source_report_evidence_json_schema/0,
-      semantic_change_details_json_schema: &semantic_change_details_json_schema/0,
+      semantic_change_details_json_schema:
+        &OrbitalDynamics.Schema.CandidateDiffJsonSchema.semantic_change_details/0,
       source_evidence_json_schema: &source_evidence_json_schema/0,
       source_execution_report_evidence_json_schema:
         &source_execution_report_evidence_json_schema/0,
@@ -4197,7 +4196,8 @@ defmodule OrbitalDynamics.Schema do
       quality_gate_report_row_json_schema: &quality_gate_report_row_json_schema/0,
       quality_gate_source_report_evidence_json_schema:
         &quality_gate_source_report_evidence_json_schema/0,
-      semantic_change_details_json_schema: &semantic_change_details_json_schema/0,
+      semantic_change_details_json_schema:
+        &OrbitalDynamics.Schema.CandidateDiffJsonSchema.semantic_change_details/0,
       source_evidence_json_schema: &source_evidence_json_schema/0,
       source_window_lineage_json_schema: &source_window_lineage_json_schema/0,
       stable_id_array_map_schema: &stable_id_array_map_schema/0,
