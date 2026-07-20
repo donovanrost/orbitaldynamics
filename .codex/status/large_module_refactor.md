@@ -6,52 +6,37 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-RecommendationRiskContext timeline-integrity extraction.
+OperationalReadiness resource-availability gate extraction.
 
 Status:
-Completed and pushed in `2a89f3dd`.
+Selected; implementation not started.
 
 Selected boundary:
-Extract timeline-integrity context keys, risk classification, and context
-projection into `OrbitalDynamics.RecommendationRiskContext.TimelineIntegrity`.
-Preserve all RecommendationRiskContext and downstream public facades.
+Extract resource-availability gate classification and context projection into
+`OrbitalDynamics.OperationalReadiness.ResourceAvailabilityGate`. Preserve all
+OperationalReadiness and downstream public facades.
 
 Selection evidence:
 - Excluding the generated/declarative candidate-refresh JSON-schema module,
-  live re-ranking places `recommendation_risk_context.ex` at 1,304 lines, the
+  live re-ranking places `operational_readiness.ex` at 1,295 lines, the
   largest ordinary eligible facade.
-- RecommendationRiskContext delegates eighteen focused risk families, while
-  timeline-integrity keys, projection, and classification remain inline at
-  lines 355-378, 439, 1,170-1,230, and 1,236-1,242.
-- The selected code has one responsibility: identify timeline-integrity risks
-  and project stable dependency, exclusivity, review, and provenance context.
-- Contact/resource filters, objective/score/resource-margin context, and all
-  other risk families remain outside the boundary.
-- Exact context keys and order, type/risk_type/feedback_scope classification,
-  atom-key normalization, list flattening, nil omission, value ordering,
-  non-list behavior, public output, and error behavior must remain unchanged.
+- OperationalReadiness delegates five focused gate/decision owners, while the
+  resource-availability gate and its context remain inline at lines 973-1,014.
+- The selected code has one responsibility: classify declared resource
+  pressure and project stable reason, station, blocking, provenance, and trust
+  context into the resource-availability gate.
+- Quality-gate row helpers, evidence construction, mission policy, operator
+  training, and all other gates remain outside the boundary.
+- Exact gate inclusion, status/classification/reason strings, map keys and
+  values, positive-count filtering, sorted reason IDs, station/unavailable
+  reason classification, public output, and error behavior must remain
+  unchanged.
 
 Implementation:
-- Added `OrbitalDynamics.RecommendationRiskContext.TimelineIntegrity` as the
-  focused owner of the ordered context keys, type/risk_type/feedback_scope
-  classifiers, atom-key normalization, and dependency, exclusivity, review,
-  and provenance context projection.
-- Preserved the public RecommendationRiskContext facade through delegates.
-- Other risk families remain outside the extraction.
-- `recommendation_risk_context.ex` moved from 1,304 to 1,212 lines; the
-  dedicated TimelineIntegrity owner is 124 lines.
+Pending.
 
 Verification:
-- Strict focused baseline: one test passed normally; the file retains its two
-  pre-existing signed-zero warnings.
-- Exact old/new public parity: four fixtures passed, covering ordered keys,
-  rich atom-keyed context, all three accepted classifiers, and non-list input.
-- Post-change focused and adjacent checks: three selected tests passed; both
-  adjacent tests passed with warnings treated as errors.
-- Static ownership and xref checks passed; only the facade calls the extracted
-  owner at runtime.
-- Forced warning-clean test compile passed across 4,028 files.
-- Focused formatting and `git diff --check` passed.
+Pending.
 
 Behavior/schema changes:
 None intended.
@@ -63,8 +48,8 @@ RecommendationRiskContext timeline-integrity extraction, selected in
 TimelineIntegrity owner is 124 lines.
 
 Next candidate:
-After this slice, re-rank the live checkout. OperationalReadiness is the next
-largest ordinary eligible facade.
+After this slice, re-rank the live checkout. RecommendationRiskContext is the
+next largest ordinary eligible facade.
 
 Blocked:
 No.
