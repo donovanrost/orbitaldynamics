@@ -2,7 +2,13 @@ defmodule OrbitalDynamics.Schema.ResourceValidation do
   @moduledoc false
 
   import OrbitalDynamics.Schema.PrimitiveValidation,
-    only: [error: 2, expect_optional_one_of: 5]
+    only: [error: 2, expect_optional_one_of: 5, require_fields: 4]
+
+  def validate_artifact(issues, path, artifact, contract_name) do
+    issues
+    |> require_fields(path, artifact, required_fields(contract_name))
+    |> validate_registered_artifact(path, artifact, contract_name)
+  end
 
   def validate_optional_resource_projection_report(issues, path, report),
     do:
@@ -150,6 +156,41 @@ defmodule OrbitalDynamics.Schema.ResourceValidation do
       "thin_stale_derived_margin_resource_projection_fixture",
       "thin_strategy_branch_activity_resource_projection"
     ]
+  end
+
+  defp validate_registered_artifact(issues, path, artifact, "resource_projection_report.v1"),
+    do: validate_resource_projection_report(issues, path, artifact)
+
+  defp validate_registered_artifact(
+         issues,
+         path,
+         artifact,
+         "resource_projection_flow_summary.v1"
+       ),
+       do: validate_resource_projection_flow_summary(issues, path, artifact)
+
+  defp validate_registered_artifact(issues, path, artifact, "resource_filter_report.v1"),
+    do: validate_resource_filter_report(issues, path, artifact)
+
+  defp validate_registered_artifact(issues, path, artifact, "resource_filter_summary.v1") do
+    OrbitalDynamics.Schema.ResourceFilterSummaryContracts.validate(
+      issues,
+      path,
+      artifact,
+      OrbitalDynamics.Schema.ResourceFilterCapabilityContext.resource_filter_report_model_limits(),
+      &validate_suppressed_candidate/3,
+      &validate_invalid_resource_summary_input/3
+    )
+  end
+
+  defp required_fields(contract_name) do
+    [
+      OrbitalDynamics.Schema.ResourceProjectionRegistryContracts,
+      OrbitalDynamics.Schema.ResourceFilterRegistryContracts
+    ]
+    |> Enum.reduce(%{}, &Map.merge(&2, &1.contracts()))
+    |> OrbitalDynamics.Schema.Registry.fetch!(contract_name)
+    |> Map.fetch!("required_fields")
   end
 
   defp default_callbacks do

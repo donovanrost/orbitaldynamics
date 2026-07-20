@@ -4291,16 +4291,12 @@ defmodule OrbitalDynamics.Schema do
     |> OrbitalDynamics.Schema.ResourceSummaryContracts.validate("$", artifact)
   end
 
-  defp validate_contract(@resource_projection_report, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> ResourceValidation.validate_resource_projection_report("$", artifact)
+  defp validate_contract(@resource_projection_report, _contract, artifact) do
+    ResourceValidation.validate_artifact([], "$", artifact, @resource_projection_report)
   end
 
-  defp validate_contract(@resource_projection_flow_summary, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> ResourceValidation.validate_resource_projection_flow_summary("$", artifact)
+  defp validate_contract(@resource_projection_flow_summary, _contract, artifact) do
+    ResourceValidation.validate_artifact([], "$", artifact, @resource_projection_flow_summary)
   end
 
   defp validate_contract(@contact_filter_report, contract, artifact) do
@@ -4309,22 +4305,12 @@ defmodule OrbitalDynamics.Schema do
     |> ContactReportValidation.validate_filter_report("$", artifact)
   end
 
-  defp validate_contract(@resource_filter_report, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> ResourceValidation.validate_resource_filter_report("$", artifact)
+  defp validate_contract(@resource_filter_report, _contract, artifact) do
+    ResourceValidation.validate_artifact([], "$", artifact, @resource_filter_report)
   end
 
-  defp validate_contract(@resource_filter_summary, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.ResourceFilterSummaryContracts.validate(
-      "$",
-      artifact,
-      resource_filter_report_model_limits(),
-      &ResourceValidation.validate_suppressed_candidate/3,
-      &ResourceValidation.validate_invalid_resource_summary_input/3
-    )
+  defp validate_contract(@resource_filter_summary, _contract, artifact) do
+    ResourceValidation.validate_artifact([], "$", artifact, @resource_filter_summary)
   end
 
   defp validate_contract(@realized_activity, _contract, artifact) do
