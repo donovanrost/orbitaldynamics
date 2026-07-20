@@ -913,7 +913,15 @@ defmodule OrbitalDynamics.Schema.JsonSchemaStableIdContractsTest do
              "default_required_capacity_fraction",
              "maximum"
            ]) == 1.0
+  end
 
+  test "exports stable-id hints for review and import row identity fields" do
+    stable_id_pattern = Schema.identity_policy()["stable_id_pattern"]
+
+    assert {:ok, cadence_schema} = Schema.json_schema("cadence_import_manifest.v1")
+    assert {:ok, operator_review_schema} = Schema.json_schema("operator_review_package.v1")
+
+    cadence_row_schema = get_in(cadence_schema, ["properties", "rows", "items"])
     operator_review_row_schema = get_in(operator_review_schema, ["properties", "rows", "items"])
 
     assert get_in(operator_review_row_schema, [
@@ -1929,6 +1937,10 @@ defmodule OrbitalDynamics.Schema.JsonSchemaStableIdContractsTest do
              "source_timeline_id",
              "pattern"
            ]) == stable_id_pattern
+  end
+
+  test "exports stable-id hints for refresh, allocation, and validation identity fields" do
+    stable_id_pattern = Schema.identity_policy()["stable_id_pattern"]
 
     assert {:ok, refresh_schema} = Schema.json_schema("candidate_refresh.v1")
 
