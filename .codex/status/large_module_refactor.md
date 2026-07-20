@@ -9,7 +9,7 @@ Current slice:
 Schema realized-state validation context extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Add `RealizedStateValidation` owner-default entry points for
@@ -28,23 +28,37 @@ Selection evidence:
   facade-local context.
 
 Implementation:
-Pending.
+Added `RealizedStateValidation` as the registry-backed family owner for the two
+selected artifacts and routed their direct `Schema` validation clauses through
+it. `schema.ex` moved from 4,826 to 4,823 lines.
 
 Verification:
-Pending.
+- Strict focused baseline: 94 tests passed.
+- Focused plus adjacent realized-state, operator-review, Cadence import,
+  validation, timeline-feedback, candidate-refresh, campaign-planner, contract,
+  and export coverage after extraction: 113 tests passed.
+- Full schema export completed with no checked-in artifact changes.
+- Static routing review found exactly the two intended direct facade routes.
+- `mix xref trace` confirmed both runtime calls originate in `schema.ex`; a
+  bounded production search found no other owner callers.
+- Formatting and `git diff --check` passed.
+- Strict forced compile passed across 4,086 files with warnings as errors.
+- Bounded diff review confirmed registry-owned requirements, contract routing,
+  validation ordering, and validation paths remain unchanged.
+- Implementation committed and pushed as `7afa123b`.
 
 Behavior/schema changes:
-None intended. Required fields, validation ordering and paths, public `Schema`
-APIs, validation results, and checked-in exports must remain unchanged.
+None. Required fields, validation ordering and paths, public `Schema` APIs,
+validation results, and checked-in exports remain unchanged.
 
 Last completed slice:
-Schema contact-intent validation context extraction, selected in `8d5283b2`
-and implemented in `a60283db`.
-`schema.ex` moved from 4,829 to 4,826 lines.
+Schema realized-state validation context extraction, selected in `121d60c9`
+and implemented in `7afa123b`.
+`schema.ex` moved from 4,826 to 4,823 lines.
 
 Next candidate:
-Implement and verify the selected realized-state context, then re-rank the
-remaining Schema responsibility clusters.
+Re-rank the remaining Schema responsibility clusters and select the next
+facade-preserving extraction.
 
 Blocked:
 No.
