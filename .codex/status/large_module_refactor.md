@@ -9,7 +9,7 @@ Current slice:
 OperationalReadiness Cadence-import gate extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `ab2b108f`.
 
 Selected boundary:
 Extract Cadence-import readiness gate precedence and evidence-context projection
@@ -32,23 +32,43 @@ Selection evidence:
   behavior must remain unchanged.
 
 Implementation:
-Pending.
+- Added `OrbitalDynamics.OperationalReadiness.CadenceImportGate` as the owner
+  of blocked/schema/preparation/freshness/ready/empty decision precedence,
+  gate fields, positive count filtering, and Cadence-import evidence context.
+- Wired readiness gate construction and quality-gate row context projection to
+  the owner, reusing the existing timeline-publication context primitive.
+- Kept evidence collection, all other gate decisions, report and summary
+  projection, and public APIs outside the boundary.
+- `operational_readiness.ex` moved from 1,474 to 1,388 lines; the new owner is
+  101 lines.
 
 Verification:
-Pending.
+- Strict focused baseline passed all 31 OperationalReadiness tests.
+- Exact old/new public parity passed for all six deterministic gate branches:
+  blocked/invalid, schema failure, import preparation, stale freshness, ready
+  rows, and no ready rows.
+- Post-extraction focused and adjacent readiness, replay-summary,
+  operator-review, schema-contract, and validation verification passed all 49
+  tests.
+- Static checks confirm the Cadence-import gate decision/context and
+  publication-context wrapper left the facade; xref reports only
+  OperationalReadiness as a runtime caller.
+- Strict warning-clean forced compile passed for 4,024 files.
+- Formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-RecommendationRiskContext score-term extraction, selected in `3d2248a4` and
-implemented in `1a4cf909`.
-`recommendation_risk_context.ex` moved from 1,527 to 1,405 lines; the dedicated
-ScoreTerm owner is 156 lines.
+OperationalReadiness Cadence-import gate extraction, selected in `316e9897` and
+implemented in `ab2b108f`.
+`operational_readiness.ex` moved from 1,474 to 1,388 lines; the dedicated
+CadenceImportGate owner is 101 lines.
 
 Next candidate:
-After this slice, re-rank the live checkout. RecommendationRiskContext is the
-next largest ordinary eligible facade.
+Re-rank the live checkout and select the next bounded facade-preserving
+extraction. RecommendationRiskContext is now the largest ordinary eligible
+facade at 1,405 lines, followed by OperationalReadiness.
 
 Blocked:
 No.
