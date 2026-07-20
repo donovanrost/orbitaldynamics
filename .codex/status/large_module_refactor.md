@@ -9,7 +9,7 @@ Current slice:
 Schema candidate-rejection owner completion.
 
 Status:
-Selected; implementation pending.
+Complete and pushed.
 
 Selected boundary:
 Add `CandidateRejectionValidation.validate_report_artifact/3`, reusing its
@@ -27,24 +27,35 @@ Selection evidence:
 - No route needs recursive `Schema` lookup.
 
 Implementation:
-Pending.
+Added `CandidateRejectionValidation.validate_report_artifact/3`, which owns
+registry-backed required-field validation before the existing report validator.
+Routed the direct `candidate_rejection_report.v1` `Schema` clause through that
+owner. `schema.ex` moved from 4,741 to 4,739 lines; the focused owner moved from
+60 to 66 lines.
 
 Verification:
-Pending.
+- Strict focused baseline: 13 tests passed.
+- Focused plus adjacent candidate-rejection, refresh, planner, export, and
+  fixture coverage: 27 tests passed.
+- Full schema export regenerated with no checked-in schema artifact changes.
+- Formatting, diff whitespace, bounded dependency/reference checks, and the
+  bounded semantic diff review passed.
+- `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 mix compile --force
+  --warnings-as-errors` compiled 4,086 files successfully.
 
 Behavior/schema changes:
-None intended. Required fields, validation ordering and paths, public `Schema`
-and existing `CandidateRejectionValidation` APIs, validation results, and
-checked-in exports must remain unchanged.
+None. Required fields, validation ordering and paths, public `Schema` and
+existing `CandidateRejectionValidation` APIs, validation results, and
+checked-in exports remain unchanged.
 
 Last completed slice:
-Schema maneuver decision-support owner routing extraction, selected in
-`fa4dad79` and implemented in `89ccd78e`.
-`schema.ex` moved from 4,745 to 4,741 lines.
+Schema candidate-rejection owner completion, selected in `ab9be7ad` and
+implemented in `c86ebe51`. `schema.ex` moved from 4,741 to 4,739 lines.
 
 Next candidate:
-Implement and verify the selected candidate-rejection owner completion, then
-re-rank the remaining Schema responsibility clusters.
+Re-rank the remaining direct `Schema` validation clauses, prioritizing a
+cohesive owner that can absorb facade-owned required-field setup without
+recursive `Schema` lookup or public API changes.
 
 Blocked:
 No.
