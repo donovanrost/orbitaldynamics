@@ -2858,7 +2858,7 @@ defmodule OrbitalDynamics.Schema do
   defp link_capacity_row_json_schema do
     OrbitalDynamics.Schema.LinkCapacityReportJsonSchema.row_from_deps(
       stable_id_pattern: @stable_id_pattern,
-      probability_schema: &probability_json_schema/0,
+      probability_schema: &OrbitalDynamics.Schema.CommonJsonSchema.probability/0,
       stable_id_array_schema: &stable_id_array_schema/0,
       string_array_schema: &string_array_schema/0,
       count_map_schema: &non_negative_integer_count_map_json_schema/0,
@@ -3127,7 +3127,7 @@ defmodule OrbitalDynamics.Schema do
       stable_id_array_schema: &stable_id_array_schema/0,
       string_array_schema: &string_array_schema/0,
       source_window_schema: &candidate_activity_source_window_json_schema/0,
-      probability_schema: &probability_json_schema/0,
+      probability_schema: &OrbitalDynamics.Schema.CommonJsonSchema.probability/0,
       number_or_string_schema: &OrbitalDynamics.Schema.CommonJsonSchema.number_or_string/0,
       activity_context_schema: &activity_context_json_schema/0
     )
@@ -3142,7 +3142,7 @@ defmodule OrbitalDynamics.Schema do
       stable_id_pattern: @stable_id_pattern,
       stable_id_array_schema: stable_id_array_schema(),
       string_array_schema: string_array_schema(),
-      probability_schema: probability_json_schema(),
+      probability_schema: OrbitalDynamics.Schema.CommonJsonSchema.probability(),
       source_window_schema: candidate_activity_source_window_json_schema(),
       timeline_identity_schema: timeline_identity_json_schema(),
       cadence_import_schema: cadence_import_json_schema("planned_activity.v1"),
@@ -3175,7 +3175,7 @@ defmodule OrbitalDynamics.Schema do
       stable_id_array_schema: stable_id_array_schema(),
       string_array_schema: string_array_schema(),
       numeric_triplet_schema: numeric_triplet_schema(),
-      probability_schema: probability_json_schema(),
+      probability_schema: OrbitalDynamics.Schema.CommonJsonSchema.probability(),
       number_or_string_schema: OrbitalDynamics.Schema.CommonJsonSchema.number_or_string(),
       execution_uncertainty_schema: execution_uncertainty_json_schema(),
       ground_station_schema: ground_station_identity_json_schema(),
@@ -3245,10 +3245,6 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp probability_json_schema do
-    OrbitalDynamics.Schema.CommonJsonSchema.probability()
-  end
-
   defp timeline_feedback_row_json_schema do
     OrbitalDynamics.Schema.TimelineFeedbackRowJsonSchema.row(
       stable_id_pattern: @stable_id_pattern,
@@ -3256,7 +3252,7 @@ defmodule OrbitalDynamics.Schema do
       stable_id_array_schema: stable_id_array_schema(),
       string_array_schema: string_array_schema(),
       number_array_schema: OrbitalDynamics.Schema.CommonJsonSchema.number_array(),
-      probability_schema: probability_json_schema(),
+      probability_schema: OrbitalDynamics.Schema.CommonJsonSchema.probability(),
       number_or_string_schema: OrbitalDynamics.Schema.CommonJsonSchema.number_or_string(),
       protection_decision_schema: protection_decision_json_schema(),
       lifecycle_transition_schema: TimelineContextJsonSchema.lifecycle_transition(),
@@ -3402,7 +3398,7 @@ defmodule OrbitalDynamics.Schema do
         numeric_map_schema: OrbitalDynamics.Schema.CommonJsonSchema.numeric_map(),
         candidate_activity_source_window_schema: candidate_activity_source_window_json_schema(),
         numeric_triplet_schema: numeric_triplet_schema(),
-        probability_schema: probability_json_schema()
+        probability_schema: OrbitalDynamics.Schema.CommonJsonSchema.probability()
       )
 
   defp ranked_timeline_json_schema do
@@ -3859,7 +3855,7 @@ defmodule OrbitalDynamics.Schema do
       policy_decision_evidence_json_schema: &policy_decision_evidence_json_schema/0,
       policy_escalation_json_schema: &policy_escalation_json_schema/0,
       priority_field_evidence_counts_json_schema: &priority_field_evidence_counts_json_schema/0,
-      probability_json_schema: &probability_json_schema/0,
+      probability_json_schema: &OrbitalDynamics.Schema.CommonJsonSchema.probability/0,
       quality_gate_report_row_json_schema: &quality_gate_report_row_json_schema/0,
       quality_gate_source_report_evidence_json_schema:
         &quality_gate_source_report_evidence_json_schema/0,
@@ -3952,20 +3948,20 @@ defmodule OrbitalDynamics.Schema do
 
   defp link_handoff_json_schema_properties do
     OrbitalDynamics.Schema.LinkHandoffJsonSchema.properties(
-      probability_schema: probability_json_schema()
+      probability_schema: OrbitalDynamics.Schema.CommonJsonSchema.probability()
     )
   end
 
   defp feedback_maneuver_handoff_json_schema_properties do
     OrbitalDynamics.Schema.FeedbackManeuverHandoffJsonSchema.properties(
-      probability_schema: probability_json_schema()
+      probability_schema: OrbitalDynamics.Schema.CommonJsonSchema.probability()
     )
   end
 
   defp thermal_handoff_json_schema_properties do
     OrbitalDynamics.Schema.ThermalHandoffJsonSchema.properties(
       stable_id_pattern: @stable_id_pattern,
-      probability_schema: probability_json_schema()
+      probability_schema: OrbitalDynamics.Schema.CommonJsonSchema.probability()
     )
   end
 
@@ -4002,7 +3998,7 @@ defmodule OrbitalDynamics.Schema do
       policy_decision_evidence_json_schema: &policy_decision_evidence_json_schema/0,
       policy_escalation_json_schema: &policy_escalation_json_schema/0,
       priority_field_evidence_counts_json_schema: &priority_field_evidence_counts_json_schema/0,
-      probability_json_schema: &probability_json_schema/0,
+      probability_json_schema: &OrbitalDynamics.Schema.CommonJsonSchema.probability/0,
       quality_gate_source_report_evidence_json_schema:
         &quality_gate_source_report_evidence_json_schema/0,
       semantic_change_details_json_schema:
@@ -4106,7 +4102,7 @@ defmodule OrbitalDynamics.Schema do
       policy_decision_rule_match_json_schema: &policy_decision_rule_match_json_schema/0,
       policy_escalation_json_schema: &policy_escalation_json_schema/0,
       priority_field_evidence_counts_json_schema: &priority_field_evidence_counts_json_schema/0,
-      probability_json_schema: &probability_json_schema/0,
+      probability_json_schema: &OrbitalDynamics.Schema.CommonJsonSchema.probability/0,
       protection_decision_json_schema: &protection_decision_json_schema/0,
       quality_gate_report_row_json_schema: &quality_gate_report_row_json_schema/0,
       quality_gate_source_report_evidence_json_schema:
