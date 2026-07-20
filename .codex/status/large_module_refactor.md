@@ -9,7 +9,7 @@ Current slice:
 Schema model-capability validation context extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Add ModelCapabilityValidation owner-default entry points for environment model,
@@ -26,24 +26,38 @@ Selection evidence:
 - No route needs callbacks, recursive Schema lookup, or facade-local context.
 
 Implementation:
-Pending.
+Added ModelCapabilityValidation with one registry-backed family entry point and
+three specialized contract routes. Routed all three direct Schema clauses to
+the owner. `schema.ex` moved from 4,896 to 4,888 lines.
 
 Verification:
-Pending.
+- Strict validation/registry/resource baseline before extraction: 13 passed.
+- The same focused coverage plus capability/environment tests after extraction:
+  35 passed.
+- The full schema-export task completed and produced no checked-in changes.
+- Exact static inspection confirms three direct owner routes and no remaining
+  facade-local model-capability validation logic.
+- `mix xref callers OrbitalDynamics.Schema.ModelCapabilityValidation` reports
+  only the expected Schema facade runtime caller.
+- `mix format --check-formatted` and `git diff --check` passed.
+- Strict forced compile passed across 4,079 files with no warnings.
+- Bounded local review confirmed registry requirements, contract routing,
+  validation ordering, and issue paths are preserved.
+- Implementation commit `6f7789aa` pushed to `main`.
 
 Behavior/schema changes:
-None intended. Required fields, validation ordering and paths, public Schema
-APIs, validation results, and checked-in exports must remain unchanged.
+None. Required fields, validation ordering and paths, public Schema APIs,
+validation results, and checked-in exports remain unchanged.
 
 Last completed slice:
-Schema operational-readiness artifact owner routing, selected in `ba0bd916` and
-implemented in `5eb1a198`.
-`schema.ex` moved from 4,889 to 4,896 lines while ten validation-context copies
-moved to the existing owner.
+Schema model-capability validation context extraction, selected in `c49cbd4f`
+and implemented in `6f7789aa`.
+`schema.ex` moved from 4,896 to 4,888 lines.
 
 Next candidate:
-Implement and verify the selected model-capability context extraction, then
-re-rank the remaining Schema responsibility clusters.
+Re-rank the remaining Schema responsibility clusters. Preserve the
+context-bearing CommonJsonSchema wrappers unless a separate exact ownership
+boundary is proven.
 
 Blocked:
 No.
