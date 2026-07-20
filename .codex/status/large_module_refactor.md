@@ -6,41 +6,30 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Candidate-refresh source-report provenance fixture extraction.
+Campaign-planner provider-reservation pressure fixture extraction.
 
 Status:
-Completed and verified.
+Selected; implementation pending.
 
 Selected boundary:
-Move the accepted-state refresh request, result-set event scenario, and maneuver
-feedback report builders out of the source-report input-provenance test module
-into a named fixture owner. Keep the test's production calls, assertions, and
-validation checks in the existing test module.
+Move the provider-reservation request-summary fixture out of the oversized
+strategy contact-allocation pressure test and into a named CampaignPlanner
+test-support owner. Keep the pressure scenario, production calls, and score-term
+assertions in the existing test module.
 
 Selection evidence:
-- The named production hotspots are already public facades: `CandidateRefresh`
-  is 524 lines with no private functions, `CampaignPlanner` is 164 lines, and
-  `OperatorReview` is 505 lines with no private functions.
-- Their matching tests are split by responsibility, but
-  `source_report_input_provenance_test.exs` remains a 1,473-line single-test
-  module.
-- Its three private builders occupy 197 lines and mix reusable scenario
-  construction with the provenance assertions.
-- Moving only those builders creates a smaller assertion-focused test without
-  changing the production surface or dividing one end-to-end assertion flow.
+- `strategy_contact_allocation_pressure_test.exs` remains 1,963 lines and owns
+  four independent contact-allocation fixture families plus scenario assertions.
+- The provider-reservation request fixture is a self-contained 67-line artifact
+  builder used by the mission-state summary pressure test.
+- Its artifact construction belongs with CampaignPlanner test-support fixtures,
+  while the consuming test should retain the pressure-routing assertions.
 
 Implementation:
-Selected in `920500b6` and implemented in `c084366f`. Added the 200-line
-`SourceReportInputProvenanceFixture` test-support owner and imported its three
-public deterministic builders into the existing provenance test. The assertion
-module moved from 1,473 to 1,277 lines.
+Pending.
 
 Verification:
-- The exact end-to-end source-report input-provenance test passed: 1 test.
-- The full CandidateRefresh test lane passed with warnings as errors: 756 tests.
-- Strict forced compile passed with warnings as errors: 4,129 files.
-- `git diff --check` passed.
-- No production or checked-in schema-export files changed.
+Pending.
 
 Behavior/schema changes:
 None intended. The same deterministic fixtures, production calls, assertions,
@@ -52,9 +41,7 @@ Candidate-refresh source-report provenance fixture extraction, selected in
 to 1,277 lines.
 
 Next candidate:
-Continue the named-hotspot audit with the remaining oversized CampaignPlanner,
-OperatorReview, and schema contract test units; select the next bounded split
-only where a clear responsibility boundary exists.
+Implement and verify the selected CampaignPlanner test-fixture extraction.
 
 Blocked:
 No.
