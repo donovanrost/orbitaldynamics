@@ -9,7 +9,7 @@ Current slice:
 Campaign-planner provider-reservation pressure fixture extraction.
 
 Status:
-Selected; implementation pending.
+Completed and verified.
 
 Selected boundary:
 Move the provider-reservation request-summary fixture out of the oversized
@@ -26,22 +26,31 @@ Selection evidence:
   while the consuming test should retain the pressure-routing assertions.
 
 Implementation:
-Pending.
+Selected in `9f9e20b4` and implemented in `8e84e3e9`. Added the 68-line
+`ContactAllocationPressureFixtures` test-support owner and imported its
+provider-reservation request-summary builder into the existing pressure test.
+The assertion module moved from 1,963 to 1,902 lines.
 
 Verification:
-Pending.
+- The focused strategy contact-allocation pressure suite passed with warnings as
+  errors: 7 tests.
+- Strict forced compile passed with warnings as errors: 4,129 files.
+- `git diff --check` passed.
+- No production or checked-in schema-export files changed.
 
 Behavior/schema changes:
 None intended. The same deterministic fixtures, production calls, assertions,
 artifact validation, and async test behavior must remain unchanged.
 
 Last completed slice:
-Candidate-refresh source-report provenance fixture extraction, selected in
-`920500b6` and implemented in `c084366f`. The assertion module moved from 1,473
-to 1,277 lines.
+Campaign-planner provider-reservation pressure fixture extraction, selected in
+`9f9e20b4` and implemented in `8e84e3e9`. The assertion module moved from 1,963
+to 1,902 lines.
 
 Next candidate:
-Implement and verify the selected CampaignPlanner test-fixture extraction.
+Continue moving the remaining independent contact-allocation pressure fixture
+families into the new test-support owner, one bounded contract-preserving
+fixture family at a time.
 
 Blocked:
 No.
