@@ -6,43 +6,39 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Campaign-planner readiness score-term regression diagnosis.
+Campaign-planner mixed readiness score-term expectation repair.
 
 Status:
-Refresh-budget repair implemented and verified; next regression pending selection.
+Selected; implementation pending.
 
 Selected boundary:
-Diagnose the remaining goal-era readiness-row-context failure before selecting
-the narrowest production or expectation repair.
+Teach the quality-gate score-term assertion to exclude the branch's separately
+scored operational-readiness pressure from the generic risk penalty.
 
 Selection evidence:
-- The focused five-file regression gate now has only the readiness score-term
-  failure plus the baseline golden-artifact drift.
-- The readiness test expects a generic risk penalty of `-200`; current output is
-  `-100`. Branch risk-indicator composition must be inspected before changing
-  either implementation or test arithmetic.
+- The failing branch has one `quality_gate_pressure`, one
+  `operational_readiness_pressure`, and one generic `repair_warning`.
+- Production assigns `-100` to each specialized pressure term and `-100` only
+  to the remaining generic risk, preserving the no-double-counting contract.
+- The helper subtracts only quality-gate pressure, so its `-200` expectation is
+  stale for this mixed-pressure branch.
 
 Implementation:
-`ee7ca527` normalizes only empty-map refresh-budget candidate-ID collections to
-empty lists at the replay-summary boundary.
+Pending.
 
 Verification:
-- 15 focused refresh-budget and campaign-planner tests passed with warnings as
-  errors.
-- Strict compilation passed for 4,129 files.
-- Formatting and diff checks passed.
+Pending.
 
 Behavior/schema changes:
-Empty candidate-ID collections again retain their array contract, eliminating
-false budget, dropped-candidate, and candidate-limit pressure. Non-empty values,
-counts, public APIs, and schemas are unchanged.
+None intended. Production scoring, public APIs, deterministic artifacts, and
+schemas remain unchanged.
 
 Last completed slice:
 Candidate-refresh empty refresh-budget ID normalization repair, selected in
 `ef64d969` and implemented in `ee7ca527`.
 
 Next candidate:
-Diagnose and resolve the final readiness score-term failure, then rerun the
+Implement and verify the mixed-pressure assertion repair, then rerun the
 five-file regression gate and broad suite.
 
 Blocked:
