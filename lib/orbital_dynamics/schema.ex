@@ -411,7 +411,6 @@ defmodule OrbitalDynamics.Schema do
         {:invalidated_candidate_json_schema, 0} => &invalidated_candidate_json_schema/0,
         {:link_capacity_assumptions_json_schema, 1} => &link_capacity_assumptions_json_schema/1,
         {:link_capacity_row_json_schema, 0} => &link_capacity_row_json_schema/0,
-        {:maneuver_execution_delta_json_schema, 0} => &maneuver_execution_delta_json_schema/0,
         {:maneuver_recommendation_model_limits, 0} => &maneuver_recommendation_model_limits/0,
         {:maneuver_review_report_model_limits, 0} => &maneuver_review_report_model_limits/0,
         {:maneuver_review_row_json_schema, 0} => &maneuver_review_row_json_schema/0,
@@ -439,9 +438,6 @@ defmodule OrbitalDynamics.Schema do
         {:quality_gate_report_row_json_schema, 0} => &quality_gate_report_row_json_schema/0,
         {:ranked_timeline_json_schema, 0} => &ranked_timeline_json_schema/0,
         {:realized_activity_json_schema, 0} => &realized_activity_json_schema/0,
-        {:realized_spacecraft_state_json_schema, 0} => &realized_spacecraft_state_json_schema/0,
-        {:realized_state_snapshot_metadata_json_schema, 0} =>
-          &realized_state_snapshot_metadata_json_schema/0,
         {:registry_contract!, 1} => &registry_contract!/1,
         {:relay_data_path_row_json_schema, 0} => &relay_data_path_row_json_schema/0,
         {:resource_filter_report_assumptions_json_schema, 0} =>
@@ -462,7 +458,6 @@ defmodule OrbitalDynamics.Schema do
         {:sha256_json_schema, 0} => &sha256_json_schema/0,
         {:source_window_lineage_json_schema, 0} => &source_window_lineage_json_schema/0,
         {:spacecraft_identity_json_schema, 0} => &spacecraft_identity_json_schema/0,
-        {:spacecraft_state_estimate_json_schema, 0} => &spacecraft_state_estimate_json_schema/0,
         {:stable_id_array_map_schema, 0} => &stable_id_array_map_schema/0,
         {:stable_id_array_schema, 0} => &stable_id_array_schema/0,
         {:station_calendar_provider_counteroffer_actions, 0} =>
@@ -525,6 +520,7 @@ defmodule OrbitalDynamics.Schema do
           policy_decision_schema: &policy_decision_json_schema/0
         )
       )
+      |> Map.merge(OrbitalDynamics.Schema.ExecutionStateSchemaProviders.build(@stable_id_pattern))
     end)
   end
 
@@ -835,20 +831,6 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.CommonJsonSchema.nested_stable_id_array_map(@stable_id_pattern)
   end
 
-  defp spacecraft_state_estimate_json_schema do
-    OrbitalDynamics.Schema.AcceptedStateJsonSchema.spacecraft_state_estimate_from_context(
-      stable_id_pattern: @stable_id_pattern,
-      numeric_triplet_schema: &OrbitalDynamics.Schema.CommonJsonSchema.numeric_triplet/0
-    )
-  end
-
-  defp maneuver_execution_delta_json_schema do
-    OrbitalDynamics.Schema.AcceptedStateJsonSchema.maneuver_execution_delta_from_context(
-      stable_id_pattern: @stable_id_pattern,
-      numeric_triplet_schema: &OrbitalDynamics.Schema.CommonJsonSchema.numeric_triplet/0
-    )
-  end
-
   defp source_window_lineage_json_schema do
     OrbitalDynamics.Schema.CandidateDiffJsonSchema.source_window_lineage_from_context(
       stable_id_pattern: @stable_id_pattern,
@@ -930,33 +912,6 @@ defmodule OrbitalDynamics.Schema do
       ground_station_schema: ground_station_identity_json_schema(),
       spacecraft_schema: spacecraft_identity_json_schema(),
       target_schema: target_identity_json_schema()
-    )
-  end
-
-  defp realized_spacecraft_state_json_schema do
-    %{
-      "type" => "object",
-      "additionalProperties" => true,
-      "required" => ["scenario_id"],
-      "properties" => %{
-        "spacecraft_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
-        "scenario_id" => %{"type" => "string", "pattern" => @stable_id_pattern},
-        "mode" => %{"type" => "string"},
-        "status" => %{"type" => "string"},
-        "payload_status" => %{"type" => "string"},
-        "degraded" => %{"type" => "boolean"},
-        "payload_available" => %{"type" => "boolean"},
-        "antenna_available" => %{"type" => "boolean"},
-        "incompatible_activity_types" => OrbitalDynamics.Schema.CommonJsonSchema.string_array(),
-        "source" => %{"type" => "object", "additionalProperties" => true},
-        "metadata" => %{"type" => "object", "additionalProperties" => true}
-      }
-    }
-  end
-
-  defp realized_state_snapshot_metadata_json_schema do
-    OrbitalDynamics.Schema.RealizedStateSnapshotJsonSchema.metadata(
-      stable_id_pattern: @stable_id_pattern
     )
   end
 
