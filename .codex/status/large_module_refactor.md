@@ -9,7 +9,7 @@ Current slice:
 Resource-planning schema-provider extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Move the resource-projection row/flow, suppressed-candidate, and
@@ -30,10 +30,26 @@ Selection evidence:
   entries and implementation details from the public facade.
 
 Implementation:
-Pending.
+Selected in `aedaf961` and implemented in `b981188a`.
+The new `ResourcePlanningSchemaProviders.build/2` returns four lazy provider
+closures for resource projection, projection flow, suppressed candidate, and
+resource summary rows, and owns suppression-reason normalization. `Schema`
+removes the four registry-local captures and five private builders, then
+passes source-window, policy, and filter-reason dependencies as callbacks.
 
 Verification:
-Pending.
+- Strict focused schema/validation baseline and post-change suites both passed:
+  359 tests, 0 failures.
+- Direct comparison confirmed the extracted provider map has the exact four
+  keys and produces outputs exactly equal to the original helper composition,
+  including lazy flow wiring and normalized suppression reasons.
+- Xref reports one runtime edge from `Schema` to the new provider owner.
+- Schema export regenerated 121 schemas plus the bundle with no checked-in
+  artifact diff.
+- Strict full compile passed for 4,112 files with warnings as errors.
+- Formatting, diff checks, and bounded two-file review passed.
+- The public `Schema` facade shrank from 1,768 to 1,729 lines; the new focused
+  owner is 77 lines.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -41,13 +57,12 @@ laziness, field-hint fallback, stable-ID decoration, public `Schema`, and
 checked-in exports must remain unchanged.
 
 Last completed slice:
-Execution-state schema-provider extraction, selected in `ce29ff10` and
-implemented in `b6901070`. The public `Schema` facade moved from 1,813 to 1,768
+Resource-planning schema-provider extraction, selected in `aedaf961` and
+implemented in `b981188a`. The public `Schema` facade moved from 1,768 to 1,729
 lines.
 
 Next candidate:
-Implement and verify the selected resource-planning provider extraction, then
-re-rank the remaining public-facade provider clusters.
+Re-rank the remaining public-facade provider clusters.
 
 Blocked:
 No.
