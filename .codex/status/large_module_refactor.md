@@ -9,7 +9,7 @@ Current slice:
 Schema execution/reproducibility validation context extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Add an `ExecutionReproducibilityValidation` owner-default entry point for
@@ -30,23 +30,36 @@ Selection evidence:
   callback is a distinct recursive boundary.
 
 Implementation:
-Pending.
+Added `ExecutionReproducibilityValidation` as the registry-backed family owner
+for the two selected artifacts and routed their direct `Schema` validation
+clauses through it. `schema.ex` moved from 4,864 to 4,860 lines.
 
 Verification:
-Pending.
+- Strict focused baseline: 26 tests passed.
+- Focused plus adjacent validation and export coverage after extraction:
+  39 tests passed.
+- Full schema export completed with no checked-in artifact changes.
+- Static routing review found exactly the two intended direct facade routes.
+- `mix xref trace` confirmed both runtime calls originate in `schema.ex`; a
+  bounded production search found no other owner callers.
+- Formatting and `git diff --check` passed.
+- Strict forced compile passed across 4,081 files with warnings as errors.
+- Bounded diff review confirmed registry-owned requirements, contract routing,
+  validation ordering, and validation paths remain unchanged.
+- Implementation committed and pushed as `090c4b43`.
 
 Behavior/schema changes:
-None intended. Required fields, validation ordering and paths, public `Schema`
-APIs, validation results, and checked-in exports must remain unchanged.
+None. Required fields, validation ordering and paths, public `Schema` APIs,
+validation results, and checked-in exports remain unchanged.
 
 Last completed slice:
-Schema validation/migration/lint operations context extraction, selected in
-`3f36e8da` and implemented in `fdda4147`.
-`schema.ex` moved from 4,888 to 4,864 lines.
+Schema execution/reproducibility validation context extraction, selected in
+`2564cb45` and implemented in `090c4b43`.
+`schema.ex` moved from 4,864 to 4,860 lines.
 
 Next candidate:
-Implement and verify the selected execution/reproducibility validation context,
-then re-rank the remaining Schema responsibility clusters.
+Re-rank the remaining Schema responsibility clusters and select the next
+facade-preserving extraction.
 
 Blocked:
 No.
