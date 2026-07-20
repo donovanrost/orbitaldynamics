@@ -4913,7 +4913,7 @@ defmodule OrbitalDynamics.Schema do
   defp validate_contract(@contact_filter_report, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_contact_filter_report("$", artifact)
+    |> ContactReportValidation.validate_filter_report("$", artifact)
   end
 
   defp validate_contract(@resource_filter_report, contract, artifact) do
@@ -5679,10 +5679,12 @@ defmodule OrbitalDynamics.Schema do
   defp contact_allocation_report_domain_callbacks do
     [
       validate_optional_station_calendar_report: &validate_optional_station_calendar_report/2,
-      validate_optional_contact_filter_report: &validate_optional_contact_filter_report/2,
-      validate_optional_contact_contention_report: &validate_optional_contact_contention_report/2,
+      validate_optional_contact_filter_report:
+        &ContactReportValidation.validate_optional_filter_report/2,
+      validate_optional_contact_contention_report:
+        &ContactReportValidation.validate_optional_contention_report/2,
       validate_optional_contact_contention_resolution_report:
-        &validate_optional_contact_contention_resolution_report/2,
+        &ContactReportValidation.validate_optional_contention_resolution_report/2,
       validate_contact_allocation_report_counts: &validate_contact_allocation_report_counts/3,
       validate_contact_allocation_row: &validate_contact_allocation_row/3,
       validate_contact_allocation_capacity_pack_group:
@@ -5715,9 +5717,10 @@ defmodule OrbitalDynamics.Schema do
       expect_equal: &expect_equal/5,
       expect_type: &expect_type/5,
       expect_optional_type: &expect_optional_type/5,
-      validate_optional_contact_contention_report: &validate_optional_contact_contention_report/2,
+      validate_optional_contact_contention_report:
+        &ContactReportValidation.validate_optional_contention_report/2,
       validate_optional_contact_contention_resolution_report:
-        &validate_optional_contact_contention_resolution_report/2,
+        &ContactReportValidation.validate_optional_contention_resolution_report/2,
       validate_optional_station_calendar_report: &validate_optional_station_calendar_report/2,
       validate_optional_objective_tradeoff_report: &validate_optional_objective_tradeoff_report/2,
       validate_optional_objective_satisfaction_report:
@@ -5746,7 +5749,8 @@ defmodule OrbitalDynamics.Schema do
       validate_activity: &OrbitalDynamics.Schema.ActivityContracts.validate/3,
       validate_proposed_contact: &OrbitalDynamics.Schema.ProposedContactContracts.validate/3,
       validate_contact_intent: &OrbitalDynamics.Schema.ContactIntentContracts.validate/3,
-      validate_optional_contact_filter_report: &validate_optional_contact_filter_report/2
+      validate_optional_contact_filter_report:
+        &ContactReportValidation.validate_optional_filter_report/2
     ]
   end
 
@@ -5764,7 +5768,8 @@ defmodule OrbitalDynamics.Schema do
       validate_activity: &OrbitalDynamics.Schema.ActivityContracts.validate/3,
       validate_contact_intent: &OrbitalDynamics.Schema.ContactIntentContracts.validate/3,
       validate_resource_summary: &OrbitalDynamics.Schema.ResourceSummaryContracts.validate/3,
-      validate_optional_contact_filter_report: &validate_optional_contact_filter_report/3,
+      validate_optional_contact_filter_report:
+        &ContactReportValidation.validate_optional_filter_report/3,
       validate_optional_resource_filter_report: &validate_optional_resource_filter_report/3,
       validate_optional_resource_projection_report:
         &validate_optional_resource_projection_report/3,
@@ -5797,18 +5802,6 @@ defmodule OrbitalDynamics.Schema do
       "enum" => OrbitalDynamics.Schema.ValidationPolicyContracts.level_names()
     }
   end
-
-  defp validate_optional_contact_filter_report(issues, report),
-    do: ContactReportValidation.validate_optional_filter_report(issues, report)
-
-  defp validate_optional_contact_filter_report(issues, path, report),
-    do: ContactReportValidation.validate_optional_filter_report(issues, path, report)
-
-  defp validate_contact_filter_report(issues, path, report),
-    do: ContactReportValidation.validate_filter_report(issues, path, report)
-
-  defp validate_optional_contact_contention_report(issues, report),
-    do: ContactReportValidation.validate_optional_contention_report(issues, report)
 
   defp validate_optional_link_capacity_report(issues, nil), do: issues
 
@@ -5854,9 +5847,6 @@ defmodule OrbitalDynamics.Schema do
         group,
         contact_allocation_report_domain_callbacks()
       )
-
-  defp validate_optional_contact_contention_resolution_report(issues, report),
-    do: ContactReportValidation.validate_optional_contention_resolution_report(issues, report)
 
   defp validate_optional_station_calendar_report(issues, report),
     do:
