@@ -1,7 +1,44 @@
 defmodule OrbitalDynamics.Schema.ContactReportValidation do
   @moduledoc false
 
-  import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2]
+  import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2, require_fields: 4]
+
+  def validate_filter_artifact(issues, path, artifact) do
+    issues
+    |> require_fields(path, artifact, required_fields("contact_filter_report.v1"))
+    |> validate_filter_report(path, artifact)
+  end
+
+  def validate_contention_artifact(issues, path, artifact) do
+    OrbitalDynamics.Schema.ContactContentionReportContracts.validate_report(
+      issues,
+      path,
+      artifact
+    )
+  end
+
+  def validate_contention_resolution_artifact(issues, path, artifact) do
+    OrbitalDynamics.Schema.ContactContentionReportContracts.validate_resolution_report(
+      issues,
+      path,
+      artifact
+    )
+  end
+
+  def validate_contention_resolution_summary_artifact(issues, path, artifact) do
+    issues
+    |> require_fields(
+      path,
+      artifact,
+      required_fields("contact_contention_resolution_summary.v1")
+    )
+    |> OrbitalDynamics.Schema.ContactContentionResolutionSummaryContracts.validate(
+      path,
+      artifact,
+      OrbitalDynamics.Schema.ContactContentionCapabilityContext.contact_contention_report_model_limits(),
+      &OrbitalDynamics.Schema.ContactContentionReportContracts.validate_resolution_policy/3
+    )
+  end
 
   def validate_optional_filter_report(issues, report),
     do: validate_optional_filter_report(issues, "$.contact_filter_report", report)
@@ -48,4 +85,14 @@ defmodule OrbitalDynamics.Schema.ContactReportValidation do
 
   def validate_optional_contention_resolution_report(issues, _report),
     do: [error("$.contact_contention_resolution_report", "must be an object") | issues]
+
+  defp required_fields(contract_name) do
+    [
+      OrbitalDynamics.Schema.ContactFilterRegistryContracts,
+      OrbitalDynamics.Schema.ContactContentionRegistryContracts
+    ]
+    |> Enum.reduce(%{}, &Map.merge(&2, &1.contracts()))
+    |> OrbitalDynamics.Schema.Registry.fetch!(contract_name)
+    |> Map.fetch!("required_fields")
+  end
 end

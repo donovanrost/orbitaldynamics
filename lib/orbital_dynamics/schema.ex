@@ -4156,27 +4156,15 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp validate_contract(@contact_contention_report, _contract, artifact) do
-    []
-    |> OrbitalDynamics.Schema.ContactContentionReportContracts.validate_report("$", artifact)
+    ContactReportValidation.validate_contention_artifact([], "$", artifact)
   end
 
   defp validate_contract(@contact_contention_resolution_report, _contract, artifact) do
-    []
-    |> OrbitalDynamics.Schema.ContactContentionReportContracts.validate_resolution_report(
-      "$",
-      artifact
-    )
+    ContactReportValidation.validate_contention_resolution_artifact([], "$", artifact)
   end
 
-  defp validate_contract(@contact_contention_resolution_summary, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.ContactContentionResolutionSummaryContracts.validate(
-      "$",
-      artifact,
-      contact_contention_report_model_limits(),
-      &OrbitalDynamics.Schema.ContactContentionReportContracts.validate_resolution_policy/3
-    )
+  defp validate_contract(@contact_contention_resolution_summary, _contract, artifact) do
+    ContactReportValidation.validate_contention_resolution_summary_artifact([], "$", artifact)
   end
 
   defp validate_contract(@contact_allocation_report, _contract, artifact) do
@@ -4283,10 +4271,8 @@ defmodule OrbitalDynamics.Schema do
     ResourceValidation.validate_artifact([], "$", artifact, @resource_projection_flow_summary)
   end
 
-  defp validate_contract(@contact_filter_report, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> ContactReportValidation.validate_filter_report("$", artifact)
+  defp validate_contract(@contact_filter_report, _contract, artifact) do
+    ContactReportValidation.validate_filter_artifact([], "$", artifact)
   end
 
   defp validate_contract(@resource_filter_report, _contract, artifact) do
