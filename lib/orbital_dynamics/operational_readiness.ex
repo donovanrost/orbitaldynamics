@@ -24,6 +24,7 @@ defmodule OrbitalDynamics.OperationalReadiness do
   alias OrbitalDynamics.OperationalReadiness.QualityGateOperatorTrainingSummary
   alias OrbitalDynamics.OperationalReadiness.QualityGateImportReadinessSummary
   alias OrbitalDynamics.OperationalReadiness.QualityGateSchemaValidationSummary
+  alias OrbitalDynamics.OperationalReadiness.QualityGateRow
   alias OrbitalDynamics.OperationalReadiness.QualityGateSummary
   alias OrbitalDynamics.OperationalReadiness.ResourceAvailabilityEvidence
   alias OrbitalDynamics.OperationalReadiness.ResourceAvailabilityGate
@@ -440,7 +441,7 @@ defmodule OrbitalDynamics.OperationalReadiness do
     rows =
       gates
       |> Enum.with_index(1)
-      |> Enum.map(fn {gate, rank} -> quality_gate_row(gate, readiness_report, rank) end)
+      |> Enum.map(fn {gate, rank} -> QualityGateRow.build(gate, readiness_report, rank) end)
 
     import_classification = import_classification(rows)
 
@@ -559,82 +560,6 @@ defmodule OrbitalDynamics.OperationalReadiness do
 
   defp quality_gate_import_readiness_summary_from_report(%{} = quality_gate_report),
     do: QualityGateImportReadinessSummary.build(quality_gate_report)
-
-  defp quality_gate_row(gate, readiness_report, rank) do
-    %{
-      "id" =>
-        SourceIdentity.quality_gate_row_id(
-          readiness_report["source_artifact_type"],
-          readiness_report["source_artifact_id"],
-          gate["id"],
-          rank
-        ),
-      "rank" => rank,
-      "gate_id" => gate["id"],
-      "status" => gate["status"],
-      "classification" => gate["classification"],
-      "reason" => gate["reason"],
-      "analysis_mode" => gate["analysis_mode"],
-      "analysis_mode_source" => gate["analysis_mode_source"],
-      "source_operational_readiness_gate" => gate
-    }
-    |> Map.merge(quality_gate_row_context(gate))
-    |> compact_map()
-  end
-
-  defp quality_gate_row_context(%{"id" => "resource_availability"} = gate) do
-    resource_availability_reason_counts =
-      gate
-      |> Map.get("resource_availability_reason_counts", %{})
-      |> positive_count_map()
-
-    %{
-      "resource_availability_pressure_count" => gate["resource_availability_pressure_count"],
-      "resource_availability_reason_counts" => resource_availability_reason_counts,
-      "resource_availability_reason_ids" =>
-        sorted_count_keys(resource_availability_reason_counts),
-      "station_availability_reason_ids" =>
-        station_availability_reason_ids(resource_availability_reason_counts),
-      "station_availability_reason_counts" =>
-        station_availability_reason_counts(resource_availability_reason_counts),
-      "unavailable_resource_reason_ids" =>
-        unavailable_resource_reason_ids(resource_availability_reason_counts),
-      "resource_blocking_dimension_counts" =>
-        gate
-        |> Map.get("resource_blocking_dimension_counts", %{})
-        |> positive_count_map(),
-      "resource_blocked_contact_ids_by_blocking_dimension" =>
-        gate
-        |> Map.get("resource_blocked_contact_ids_by_blocking_dimension", %{})
-        |> stable_id_array_map(),
-      "resource_blocked_contact_ids_by_spacecraft_id" =>
-        gate
-        |> Map.get("resource_blocked_contact_ids_by_spacecraft_id", %{})
-        |> stable_id_array_map(),
-      "resource_source_quality_counts" =>
-        gate
-        |> Map.get("resource_source_quality_counts", %{})
-        |> positive_count_map(),
-      "resource_trust_boundary_status_counts" =>
-        gate
-        |> Map.get("resource_trust_boundary_status_counts", %{})
-        |> positive_count_map()
-    }
-  end
-
-  defp quality_gate_row_context(%{"id" => "cadence_import"} = gate) do
-    CadenceImportGate.context(gate)
-  end
-
-  defp quality_gate_row_context(%{"id" => "adapter_boundary"} = gate) do
-    AdapterBoundaryGate.context(gate)
-  end
-
-  defp quality_gate_row_context(%{"id" => "operator_training"} = gate) do
-    OperatorTrainingGate.context(gate)
-  end
-
-  defp quality_gate_row_context(_gate), do: %{}
 
   defp positive_count_map(%{} = counts) do
     counts
@@ -1049,8 +974,6 @@ defmodule OrbitalDynamics.OperationalReadiness do
 
   defp operator_training_context(artifact, review_rows, import_rows),
     do: OperatorTrainingEvidence.context(artifact, review_rows, import_rows)
-
-  defp stable_id_array_map(map), do: ResourceAvailabilityEvidence.stable_id_array_map(map)
 
   defp merge_string_list_maps(maps),
     do: ResourceAvailabilityEvidence.merge_string_list_maps(maps)
