@@ -20,6 +20,7 @@ defmodule OrbitalDynamics.OperationalReadiness do
   alias OrbitalDynamics.OperationalReadiness.QualityGateSchemaValidationSummary
   alias OrbitalDynamics.OperationalReadiness.QualityGateSummary
   alias OrbitalDynamics.OperationalReadiness.ResourceAvailabilityEvidence
+  alias OrbitalDynamics.OperationalReadiness.SourceIdentity
   alias OrbitalDynamics.OperationalReadiness.TimelinePublicationContext
 
   @schema_contract "operational_readiness_report.v1"
@@ -440,7 +441,7 @@ defmodule OrbitalDynamics.OperationalReadiness do
       "schema_version" => @schema_version,
       "model" => "artifact_only_operational_quality_gate_report",
       "report_id" =>
-        quality_gate_report_id(
+        SourceIdentity.quality_gate_report_id(
           readiness_report["source_artifact_type"],
           readiness_report["source_artifact_id"]
         ),
@@ -554,7 +555,7 @@ defmodule OrbitalDynamics.OperationalReadiness do
   defp quality_gate_row(gate, readiness_report, rank) do
     %{
       "id" =>
-        quality_gate_row_id(
+        SourceIdentity.quality_gate_row_id(
           readiness_report["source_artifact_type"],
           readiness_report["source_artifact_id"],
           gate["id"],
@@ -796,18 +797,6 @@ defmodule OrbitalDynamics.OperationalReadiness do
     |> Enum.sort()
   end
 
-  defp quality_gate_report_id(source_artifact_type, source_artifact_id) do
-    ["quality_gate", source_artifact_type, source_artifact_id || "unknown"]
-    |> Enum.map(&stable_id_fragment/1)
-    |> Enum.join(":")
-  end
-
-  defp quality_gate_row_id(source_artifact_type, source_artifact_id, gate_id, rank) do
-    ["quality_gate", source_artifact_type, source_artifact_id || "unknown", gate_id, rank]
-    |> Enum.map(&stable_id_fragment/1)
-    |> Enum.join(":")
-  end
-
   defp review_package_for(%{"schema_contract" => "operator_review_package.v1"} = package),
     do: package
 
@@ -827,8 +816,8 @@ defmodule OrbitalDynamics.OperationalReadiness do
   defp import_manifest_for(%{} = artifact, _package), do: CadenceImport.manifest(artifact)
 
   defp build_report(artifact, review_package, import_manifest, opts) do
-    source_artifact_type = source_artifact_type(artifact, review_package, import_manifest)
-    source_artifact_id = source_artifact_id(artifact, review_package, import_manifest)
+    source_artifact_type = SourceIdentity.artifact_type(artifact, review_package, import_manifest)
+    source_artifact_id = SourceIdentity.artifact_id(artifact, review_package, import_manifest)
     evidence = evidence(artifact, review_package, import_manifest)
 
     gates =
@@ -850,7 +839,7 @@ defmodule OrbitalDynamics.OperationalReadiness do
       "schema_contract" => @schema_contract,
       "schema_version" => @schema_version,
       "model" => "artifact_only_operational_readiness_classifier",
-      "report_id" => report_id(source_artifact_type, source_artifact_id),
+      "report_id" => SourceIdentity.readiness_report_id(source_artifact_type, source_artifact_id),
       "source_artifact_type" => source_artifact_type,
       "source_artifact_id" => source_artifact_id,
       "readiness_level" => readiness_level(import_classification),
@@ -1463,62 +1452,6 @@ defmodule OrbitalDynamics.OperationalReadiness do
   defp report_status("review_only"), do: "review_required"
   defp report_status("analysis_only"), do: "analysis_only"
   defp report_status("blocked"), do: "blocked"
-
-  defp source_artifact_type(artifact, review_package, import_manifest) do
-    cond do
-      artifact["schema_contract"] == "cadence_import_manifest.v1" ->
-        artifact["source_artifact_type"]
-
-      artifact["schema_contract"] == "operator_review_package.v1" ->
-        artifact["source_artifact_type"]
-
-      is_map(import_manifest) ->
-        import_manifest["source_artifact_type"] || artifact["schema_contract"]
-
-      is_map(review_package) ->
-        review_package["source_artifact_type"] || artifact["schema_contract"]
-
-      true ->
-        artifact["schema_contract"]
-    end
-  end
-
-  defp source_artifact_id(artifact, review_package, import_manifest) do
-    cond do
-      artifact["schema_contract"] == "cadence_import_manifest.v1" ->
-        artifact["source_artifact_id"] || artifact["manifest_id"]
-
-      artifact["schema_contract"] == "operator_review_package.v1" ->
-        artifact["source_artifact_id"] || artifact["package_id"]
-
-      is_map(import_manifest) ->
-        import_manifest["source_artifact_id"] || artifact["id"] || artifact["report_id"]
-
-      is_map(review_package) ->
-        review_package["source_artifact_id"] || artifact["id"] || artifact["report_id"]
-
-      true ->
-        artifact["id"] || artifact["report_id"]
-    end
-  end
-
-  defp report_id(source_artifact_type, source_artifact_id) do
-    ["operational_readiness", source_artifact_type, source_artifact_id || "unknown"]
-    |> Enum.map(&stable_id_fragment/1)
-    |> Enum.join(":")
-  end
-
-  defp stable_id_fragment(value) do
-    value
-    |> encode_value()
-    |> to_string()
-    |> String.replace(~r/[^A-Za-z0-9._:@-]/, "_")
-    |> String.trim("_")
-    |> case do
-      "" -> "unknown"
-      fragment -> fragment
-    end
-  end
 
   defp stringify_keys(%{} = map) do
     Map.new(map, fn {key, value} -> {encode_value(key), stringify_keys(value)} end)
