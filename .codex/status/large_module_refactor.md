@@ -9,7 +9,7 @@ Current slice:
 Schema campaign branch/recommendation owner routing extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Add owner-default artifact entry points to `CampaignArtifactValidation` for
@@ -30,24 +30,38 @@ Selection evidence:
 - No route needs recursive `Schema` lookup.
 
 Implementation:
-Pending.
+Added registry-backed branch and recommendation artifact entry points to
+`CampaignArtifactValidation`, moved the branch schema-contract equality check
+into the owner, and routed both direct `Schema` clauses through it. `schema.ex`
+moved from 4,751 to 4,745 lines.
 
 Verification:
-Pending.
+- Strict focused baseline: 12 tests passed.
+- Focused plus adjacent campaign, validation, Cadence import, fixture,
+  contract, and export coverage after extraction: 88 tests passed.
+- Full schema export completed with no checked-in artifact changes.
+- Static routing review found exactly the two intended direct facade routes.
+- `mix xref trace` confirmed both runtime calls originate in `schema.ex`.
+- Formatting and `git diff --check` passed.
+- Strict forced compile passed across 4,086 files with warnings as errors.
+- Bounded diff review confirmed both registry-owned requirement sets, branch
+  equality-check placement, branch/recommendation contract routing, validation
+  ordering, and paths remain unchanged.
+- Implementation committed and pushed as `b2dfd904`.
 
 Behavior/schema changes:
-None intended. Required fields, validation ordering and paths, public `Schema`
-and existing `CampaignArtifactValidation` APIs, validation results, and
-checked-in exports must remain unchanged.
+None. Required fields, validation ordering and paths, public `Schema` and
+existing `CampaignArtifactValidation` APIs, validation results, and checked-in
+exports remain unchanged.
 
 Last completed slice:
-Schema decision-support owner completion, selected in `d817a431` and
-implemented in `62d2790e`.
-`schema.ex` moved from 4,761 to 4,751 lines.
+Schema campaign branch/recommendation owner routing extraction, selected in
+`215d1587` and implemented in `b2dfd904`.
+`schema.ex` moved from 4,751 to 4,745 lines.
 
 Next candidate:
-Implement and verify the selected campaign branch/recommendation owner routing,
-then re-rank the remaining Schema responsibility clusters.
+Re-rank the remaining Schema responsibility clusters and select the next
+facade-preserving extraction.
 
 Blocked:
 No.
