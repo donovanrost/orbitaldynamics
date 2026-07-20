@@ -27,6 +27,7 @@ defmodule OrbitalDynamics.Schema do
     ProviderCounterofferValidation,
     RealizedStateValidation,
     ResourceValidation,
+    ResultArtifactValidation,
     SchemaOperationsValidation,
     SourceEvidenceValidation,
     StateRefreshArtifactValidation,
@@ -4377,14 +4378,8 @@ defmodule OrbitalDynamics.Schema do
     CapabilityCatalogValidation.validate([], "$", artifact)
   end
 
-  defp validate_contract(@result_artifact, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.ResultArtifactContracts.validate(
-      "$",
-      artifact,
-      &validate_nested_execution_report/1
-    )
+  defp validate_contract(@result_artifact, _contract, artifact) do
+    ResultArtifactValidation.validate([], "$", artifact)
   end
 
   defp validate_contract(@strategy_recommendation, _contract, artifact) do
@@ -4616,12 +4611,4 @@ defmodule OrbitalDynamics.Schema do
     []
     |> require_fields("$", artifact, contract["required_fields"])
   end
-
-  defp validate_nested_execution_report(execution_report),
-    do:
-      validate_contract(
-        @execution_report,
-        registry_contract!(@execution_report),
-        execution_report
-      )
 end
