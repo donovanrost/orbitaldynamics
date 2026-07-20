@@ -5,6 +5,7 @@ defmodule OrbitalDynamics.Schema.JsonSchemaPropertyRouter do
     CandidateRefreshPropertyRouter,
     OperationalReadinessValidation,
     ReferencePolicyPropertyRouter,
+    ResultArtifactPropertyRouter,
     ResourceValidation,
     TimelineContextJsonSchema,
     TimelineReportPropertyRouter
@@ -132,34 +133,32 @@ defmodule OrbitalDynamics.Schema.JsonSchemaPropertyRouter do
   end
 
   def property(field, "execution_report.v1" = contract_name, contract, context) do
-    OrbitalDynamics.Schema.ResultArtifactPropertyDispatch.execution_report(
+    ResultArtifactPropertyRouter.property(
       field,
       contract_name,
       contract,
-      fn arg1, arg2, arg3 -> fallback(arg1, arg2, arg3, context) end,
-      {"execution_report.v1", context_value(context, :stable_id_pattern),
-       &OrbitalDynamics.ResultSet.Artifact.execution_report_model_limits/0}
+      context,
+      fn embedded_contract_name -> embedded(embedded_contract_name, context) end
     )
   end
 
   def property(field, "result_artifact.v1" = contract_name, contract, context) do
-    OrbitalDynamics.Schema.ResultArtifactPropertyDispatch.result_artifact(
+    ResultArtifactPropertyRouter.property(
       field,
       contract_name,
       contract,
-      fn arg1, arg2, arg3 -> fallback(arg1, arg2, arg3, context) end,
-      {1, context_value(context, :stable_id_pattern), "execution_report.v1",
-       fn arg1 -> embedded(arg1, context) end}
+      context,
+      fn embedded_contract_name -> embedded(embedded_contract_name, context) end
     )
   end
 
   def property(field, "resource_summary.v1" = contract_name, contract, context) do
-    OrbitalDynamics.Schema.ResultArtifactPropertyDispatch.resource_summary(
+    ResultArtifactPropertyRouter.property(
       field,
       contract_name,
       contract,
-      fn arg1, arg2, arg3 -> fallback(arg1, arg2, arg3, context) end,
-      {"resource_summary.v1", context_value(context, :stable_id_pattern)}
+      context,
+      fn embedded_contract_name -> embedded(embedded_contract_name, context) end
     )
   end
 
