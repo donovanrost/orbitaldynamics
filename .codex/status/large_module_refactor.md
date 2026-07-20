@@ -9,7 +9,7 @@ Current slice:
 StationCalendar reservation-hold import-readiness extraction.
 
 Status:
-Selected; strict focused baseline pending.
+Completed and pushed in `d0e43c2e`.
 
 Selected boundary:
 Extract reservation-hold import-status projection, count/status aggregation,
@@ -36,25 +36,44 @@ Selection evidence:
   error behavior must remain unchanged.
 
 Implementation:
-Pending.
+- Added
+  `OrbitalDynamics.Communications.StationCalendar.ReservationHoldImportReadinessSummary`
+  as the owner of import-status row projection, count/status aggregation,
+  reservation/contact routing, direction/station routing, assumptions, and
+  summary output.
+- Preserved StationCalendar and root public APIs as delegates and kept the
+  facade's capability-derived model limits authoritative.
+- Removed import-readiness-specific routing helpers from the facade while
+  retaining the contact/expiration helpers still shared by the hold summary.
+- `station_calendar.ex` moved from 1,814 to 1,670 lines; the new owner is 221
+  lines.
 
 Verification:
-Pending.
+- Strict focused baseline passed all 42 StationCalendar tests.
+- Exact old/new public parity passed for four deterministic summaries: dense
+  hold routing by status/owner/action/direction/station, atom-key input, empty
+  input, and end-to-end reservation-report input.
+- Post-extraction focused and adjacent station-provider schema verification
+  passed all 48 tests.
+- Static checks confirm import-readiness projection/routing helpers left the
+  facade; xref reports only StationCalendar as a runtime caller.
+- Strict warning-clean forced compile passed for 4,006 files.
+- Formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-OrbitData accepted-planning-state construction extraction, selected in
-`036ac21a` and implemented in `fe2b4773`.
-`orbit_data.ex` moved from 1,856 to 1,596 lines; the dedicated
-AcceptedPlanningState owner is 303 lines.
+StationCalendar reservation-hold import-readiness extraction, selected in
+`4148524b` and implemented in `d0e43c2e`.
+`station_calendar.ex` moved from 1,814 to 1,670 lines; the dedicated
+ReservationHoldImportReadinessSummary owner is 221 lines.
 
 Next candidate:
 Re-rank the live checkout and select the next bounded facade-preserving
-extraction. `communications/station_calendar.ex` is now the largest ordinary
-eligible facade at 1,814 lines, followed by ContactAllocation and
-TimelineFeedback.
+extraction. `communications/contact_allocation.ex` is now the largest ordinary
+eligible facade at 1,804 lines, followed by TimelineFeedback and
+ResourceProjection.
 
 Blocked:
 No.
