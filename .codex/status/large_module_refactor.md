@@ -9,7 +9,7 @@ Current slice:
 Schema contact-allocation report contract test split.
 
 Status:
-Selected; implementation pending.
+Completed and verified.
 
 Selected boundary:
 Move the three full contact-allocation report regeneration and count-map tests
@@ -25,22 +25,33 @@ Selection evidence:
   while the last three exercise full report regeneration and row aggregates.
 
 Implementation:
-Pending.
+Selected in `7d687947` and implemented in `bb5bec17`. Moved the three
+full-report regeneration/count-map tests into
+`ContactAllocationReportContractsTest` with a local JSON reader. The standalone
+summary/capability module moved from 1,746 to 982 lines; the full-report module
+is 775 lines.
 
 Verification:
-Pending.
+- Both contact-allocation schema modules passed with warnings as errors:
+  8 tests.
+- The full schema/validation gate passed with warnings as errors: 368 tests.
+- Full checked-in schema export regeneration produced no diff.
+- Strict forced compile passed with warnings as errors: 4,129 files.
+- Touched-file format checks, new-file whitespace checks, and
+  `git diff --check` passed.
 
 Behavior/schema changes:
 None intended. The same deterministic fixtures, production calls, assertions,
 artifact validation, and async test behavior must remain unchanged.
 
 Last completed slice:
-Schema operator-review export test split, selected in `68a5781d` and
-implemented in `9041cffc`. The 1,814-line mixed module became a 1,097-line
-fixture module and a 728-line nested-export module.
+Schema contact-allocation report contract test split, selected in `7d687947`
+and implemented in `bb5bec17`. The 1,746-line mixed module became a 982-line
+summary/capability module and a 775-line full-report module.
 
 Next candidate:
-Implement and verify the selected contact-allocation report contract split.
+Audit the remaining named production facades and test topology against the goal
+requirements before selecting another slice or a milestone verification pass.
 
 Blocked:
 No.
