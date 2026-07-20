@@ -9,7 +9,7 @@ Current slice:
 Schema embedded-contract JSON Schema extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Extract deterministic embedded-contract JSON Schema assembly from Schema into
@@ -31,18 +31,35 @@ Selection evidence:
 - Exact embedded schemas and every checked-in export must remain unchanged.
 
 Implementation:
-Pending.
+Added `EmbeddedContractJsonSchema` as the owner of deterministic nested
+contract-object assembly. Schema keeps registry lookup and property dispatch
+ownership and supplies both through explicit callbacks. `schema.ex` moved from
+5,951 to 5,941 lines; the focused owner module is 21 lines.
 
 Verification:
-Pending.
+- Strict focused export/communications/feedback/Cadence/review baseline before
+  extraction: 34 passed.
+- The same strict focused suite after extraction: 34 passed.
+- Strict checked-in export, timeline-report, resource, and handoff coverage:
+  21 passed.
+- The full schema-export task completed and produced no checked-in changes.
+- Static inspection confirms required fields remain unchanged while combined
+  property keys are still de-duplicated and sorted.
+- `mix xref callers OrbitalDynamics.Schema.EmbeddedContractJsonSchema` reports
+  only the expected Schema facade runtime caller.
+- `git diff --check` passed.
+- Strict forced compile passed across 4,072 files.
+- Implementation commit `fdec7bff` pushed to `main`.
 
 Behavior/schema changes:
-None intended.
+None. Required/optional handling, deterministic property ordering, property
+dispatch, public Schema APIs, executable validation, and checked-in exports
+remain unchanged.
 
 Last completed slice:
-Schema fallback property-schema extraction, selected in `a62a7724` and
-implemented in `e07edb8c`.
-`schema.ex` moved from 5,982 to 5,951 lines.
+Schema embedded-contract JSON Schema extraction, selected in `56099b3f` and
+implemented in `fdec7bff`.
+`schema.ex` moved from 5,951 to 5,941 lines.
 
 Next candidate:
 Re-rank the remaining non-capability Schema responsibility clusters. Preserve
