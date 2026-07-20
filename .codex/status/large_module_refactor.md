@@ -9,7 +9,7 @@ Current slice:
 OperationalReadiness mission-policy gate extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `4889e702`.
 
 Selected boundary:
 Extract mission-policy gate classification and context projection into
@@ -32,19 +32,35 @@ Selection evidence:
   remain unchanged.
 
 Implementation:
-Pending.
+- Added `OrbitalDynamics.OperationalReadiness.MissionPolicyGate` as the focused
+  owner of mission-policy branch precedence, classification, and policy-count
+  context projection.
+- Preserved the public OperationalReadiness facade through the gate builder.
+- Evidence construction, quality-gate helpers, and all other gates remain
+  outside the extraction.
+- `operational_readiness.ex` moved from 1,253 to 1,213 lines; the dedicated
+  MissionPolicyGate owner is 51 lines.
 
 Verification:
-Pending.
+- Strict focused baseline: 31 tests passed with warnings treated as errors.
+- Exact old/new public parity: five reports passed, covering absent,
+  auto-approvable, review-required, blocked, and mixed evidence with blocked
+  precedence.
+- Post-change core, operator-review, schema, and fixture checks: 51 tests
+  passed with warnings treated as errors.
+- Static ownership and xref checks passed; only the facade calls the extracted
+  owner at runtime.
+- Forced warning-clean test compile passed across 4,030 files.
+- Focused formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-OperationalReadiness resource-availability gate extraction, selected in
-`60ee070b` and implemented in `a0fccffa`.
-`operational_readiness.ex` moved from 1,295 to 1,253 lines; the dedicated
-ResourceAvailabilityGate owner is 84 lines.
+OperationalReadiness mission-policy gate extraction, selected in `9f79d849`
+and implemented in `4889e702`.
+`operational_readiness.ex` moved from 1,253 to 1,213 lines; the dedicated
+MissionPolicyGate owner is 51 lines.
 
 Next candidate:
 After this slice, re-rank the live checkout. RecommendationRiskContext and
