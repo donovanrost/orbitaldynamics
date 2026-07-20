@@ -9,10 +9,10 @@ Current slice:
 Schema validation-policy artifact context extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
-Add a `ValidationPolicyArtifactValidation` owner-default entry point for
+Add a `ValidationPolicyValidation` owner-default entry point for
 `validation_tolerance_policy.v1` and `backend_acceptance_policy.v1`. Derive
 requirements from `ValidationPolicyRegistryContracts`, route both direct
 `Schema` clauses, and keep the `ValidationPolicyContracts` APIs unchanged.
@@ -29,23 +29,37 @@ Selection evidence:
   facade-wide `@contracts` map and therefore has a distinct context boundary.
 
 Implementation:
-Pending.
+Added `ValidationPolicyValidation` as the registry-backed family owner for the
+two selected artifacts and routed their direct `Schema` validation clauses
+through it. `schema.ex` moved from 4,860 to 4,851 lines.
 
 Verification:
-Pending.
+- Strict focused baseline: 17 tests passed.
+- Focused plus adjacent validation and export coverage after extraction:
+  39 tests passed.
+- Full schema export completed with no checked-in artifact changes.
+- Static routing review found exactly the two intended direct facade routes.
+- `mix xref trace` confirmed both runtime calls originate in `schema.ex`; a
+  bounded production search found no other owner callers.
+- Formatting and `git diff --check` passed.
+- Strict forced compile passed across 4,082 files with warnings as errors.
+- Bounded diff review confirmed registry-owned requirements, contract routing,
+  validation ordering, validation paths, and the capability-catalog exclusion
+  remain unchanged.
+- Implementation committed and pushed as `5b893e8e`.
 
 Behavior/schema changes:
-None intended. Required fields, validation ordering and paths, public `Schema`
-APIs, validation results, and checked-in exports must remain unchanged.
+None. Required fields, validation ordering and paths, public `Schema` APIs,
+validation results, and checked-in exports remain unchanged.
 
 Last completed slice:
-Schema execution/reproducibility validation context extraction, selected in
-`2564cb45` and implemented in `090c4b43`.
-`schema.ex` moved from 4,864 to 4,860 lines.
+Schema validation-policy artifact context extraction, selected in `0b0162c1`
+and implemented in `5b893e8e`.
+`schema.ex` moved from 4,860 to 4,851 lines.
 
 Next candidate:
-Implement and verify the selected validation-policy artifact context, then
-re-rank the remaining Schema responsibility clusters.
+Re-rank the remaining Schema responsibility clusters and select the next
+facade-preserving extraction.
 
 Blocked:
 No.
