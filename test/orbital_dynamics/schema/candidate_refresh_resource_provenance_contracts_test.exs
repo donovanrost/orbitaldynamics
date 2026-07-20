@@ -480,6 +480,10 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshResourceProvenanceContractsTest
              invalid_top_level_contact_allocation_report["errors"],
              &(&1["path"] == "$.contact_allocation_report.allocated_contact_count")
            )
+  end
+
+  test "validates station, contact, maneuver, and policy source-report provenance contracts" do
+    artifact = read_json!("study_results/candidate_refresh_resource_provenance_v1.json")
 
     artifact_with_station_pressure_summary =
       put_in(artifact, ["provenance", "source_reports", "contact_allocation_report"], %{
@@ -1494,6 +1498,11 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshResourceProvenanceContractsTest
              &(&1["path"] ==
                  "$.provenance.source_reports.validation_safety_case_summary.evidence_refs_by_status.blocked")
            )
+  end
+
+  test "validates quality, timeline, resource, and feedback source-report provenance contracts" do
+    artifact = read_json!("study_results/candidate_refresh_resource_provenance_v1.json")
+    assert {:ok, candidate_refresh_schema} = Schema.json_schema("candidate_refresh.v1")
 
     artifact_with_timeline_transition_application_summary =
       put_in(
@@ -2623,6 +2632,10 @@ defmodule OrbitalDynamics.Schema.CandidateRefreshResourceProvenanceContractsTest
              &(&1["path"] ==
                  "$.provenance.source_reports.contact_filter_report.invalid_contact_input_ids[0]")
            )
+  end
+
+  test "validates timeline lifecycle, publication, and reservation evidence provenance contracts" do
+    artifact = read_json!("study_results/candidate_refresh_resource_provenance_v1.json")
 
     artifact_with_timeline_activity_state_summary =
       put_in(artifact, ["provenance", "source_reports", "timeline_activity_state"], %{
