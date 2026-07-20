@@ -9,7 +9,7 @@ Current slice:
 Schema policy rule-match field-group direct routing.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Remove the zero-context, one-hop policy rule-match field-group helper. Route
@@ -28,18 +28,31 @@ Selection evidence:
   JSON Schema, and checked-in exports must remain unchanged.
 
 Implementation:
-Pending.
+Removed the policy rule-match field-group helper and routed all three eager
+validation consumers directly to PolicyFieldGroups. `schema.ex` moved from
+6,031 to 6,027 lines.
 
 Verification:
-Pending.
+- Strict focused policy schema/runtime baseline before routing: 90 passed.
+- The same strict focused suite after routing: 90 passed.
+- Strict validation-policy, full JSON Schema export-contract, and checked-in
+  export coverage: 19 passed.
+- The full schema-export task completed and produced no checked-in changes.
+- `mix xref callers OrbitalDynamics.Schema.PolicyFieldGroups` reports the
+  expected `schema.ex` and ContactIntentContracts consumers.
+- Static search confirms the helper definition and all indirect calls are gone.
+- `git diff --check` passed.
+- Strict forced compile passed across 4,065 files.
+- Implementation commit `7c7a7079` pushed to `main`.
 
 Behavior/schema changes:
-None intended.
+None. Public facades, field groups, validation sequencing, issues and error
+paths, generated JSON Schema, and checked-in exports remain unchanged.
 
 Last completed slice:
-Schema handoff leaf-property direct routing, selected in `fcc99445` and
-implemented in `df84fb51`.
-`schema.ex` moved from 6,039 to 6,031 lines.
+Schema policy rule-match field-group direct routing, selected in `e2bd180e`
+and implemented in `7c7a7079`.
+`schema.ex` moved from 6,031 to 6,027 lines.
 
 Next candidate:
 Re-rank the remaining non-capability Schema responsibility clusters now that
