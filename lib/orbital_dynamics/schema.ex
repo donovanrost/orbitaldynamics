@@ -1115,7 +1115,7 @@ defmodule OrbitalDynamics.Schema do
       readiness_capability: operational_readiness_capabilities(),
       stable_id_pattern: @stable_id_pattern,
       schema_providers: cadence_import_manifest_row_json_schema_providers(),
-      property_providers: cadence_import_manifest_row_json_schema_property_providers()
+      property_providers: cadence_review_row_json_schema_property_providers()
     )
   end
 
@@ -1197,36 +1197,26 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp cadence_import_manifest_row_json_schema_property_providers do
-    [
-      branch_scoped_downlink_context_json_schema_properties: fn ->
-        OrbitalDynamics.Schema.PlanningAnalysisSchemaProviders.branch_scoped_downlink_context_properties(
-          @stable_id_pattern
-        )
-      end,
-      cadence_import_operational_readiness_evidence_json_schema_properties:
+  defp cadence_review_row_json_schema_property_providers do
+    OrbitalDynamics.Schema.CadenceReviewSchemaProviders.property_providers(
+      @stable_id_pattern,
+      cadence_import_operational_readiness_evidence_properties:
         &cadence_import_operational_readiness_evidence_json_schema_properties/0,
-      cadence_import_resource_projection_evidence_json_schema_properties:
+      cadence_import_resource_projection_evidence_properties:
         &cadence_import_resource_projection_evidence_json_schema_properties/0,
-      command_authority_handoff_json_schema_properties:
-        &OrbitalDynamics.Schema.CommandAuthorityHandoffJsonSchema.properties/0,
-      feedback_maneuver_handoff_json_schema_properties:
-        &feedback_maneuver_handoff_json_schema_properties/0,
-      link_handoff_json_schema_properties: &link_handoff_json_schema_properties/0,
-      resource_availability_variance_json_schema_properties:
-        &OrbitalDynamics.Schema.ResourceAvailabilityVarianceJsonSchema.properties/0,
-      resource_projection_battery_handoff_json_schema_properties:
+      feedback_maneuver_handoff_properties: &feedback_maneuver_handoff_json_schema_properties/0,
+      link_handoff_properties: &link_handoff_json_schema_properties/0,
+      resource_projection_battery_handoff_properties:
         &resource_projection_battery_handoff_json_schema_properties/0,
-      scoped_downlink_context_json_schema_properties:
-        &scoped_downlink_context_json_schema_properties/0,
-      thermal_handoff_json_schema_properties: &thermal_handoff_json_schema_properties/0,
-      timeline_activity_precondition_handoff_json_schema_properties:
+      scoped_downlink_context_properties: &scoped_downlink_context_json_schema_properties/0,
+      thermal_handoff_properties: &thermal_handoff_json_schema_properties/0,
+      timeline_activity_precondition_handoff_properties:
         &timeline_activity_precondition_handoff_json_schema_properties/0,
-      timeline_dependency_impact_handoff_json_schema_properties:
+      timeline_dependency_impact_handoff_properties:
         &timeline_dependency_impact_handoff_json_schema_properties/0,
-      timeline_publication_handoff_json_schema_properties:
+      timeline_publication_handoff_properties:
         &timeline_publication_handoff_json_schema_properties/0
-    ]
+    )
   end
 
   defp timeline_dependency_impact_handoff_json_schema_properties do
@@ -1284,7 +1274,7 @@ defmodule OrbitalDynamics.Schema do
       timeline_capability: timeline_capabilities(),
       stable_id_pattern: @stable_id_pattern,
       schema_providers: cadence_source_review_row_json_schema_providers(),
-      property_providers: cadence_source_review_row_json_schema_property_providers()
+      property_providers: cadence_review_row_json_schema_property_providers()
     )
   end
 
@@ -1354,38 +1344,6 @@ defmodule OrbitalDynamics.Schema do
         &timeline_transition_application_row_json_schema/0,
       timeline_transition_application_summary_source_json_schema:
         &timeline_transition_application_summary_source_json_schema/0
-    ]
-  end
-
-  defp cadence_source_review_row_json_schema_property_providers do
-    [
-      branch_scoped_downlink_context_json_schema_properties: fn ->
-        OrbitalDynamics.Schema.PlanningAnalysisSchemaProviders.branch_scoped_downlink_context_properties(
-          @stable_id_pattern
-        )
-      end,
-      cadence_import_operational_readiness_evidence_json_schema_properties:
-        &cadence_import_operational_readiness_evidence_json_schema_properties/0,
-      cadence_import_resource_projection_evidence_json_schema_properties:
-        &cadence_import_resource_projection_evidence_json_schema_properties/0,
-      command_authority_handoff_json_schema_properties:
-        &OrbitalDynamics.Schema.CommandAuthorityHandoffJsonSchema.properties/0,
-      feedback_maneuver_handoff_json_schema_properties:
-        &feedback_maneuver_handoff_json_schema_properties/0,
-      link_handoff_json_schema_properties: &link_handoff_json_schema_properties/0,
-      resource_availability_variance_json_schema_properties:
-        &OrbitalDynamics.Schema.ResourceAvailabilityVarianceJsonSchema.properties/0,
-      resource_projection_battery_handoff_json_schema_properties:
-        &resource_projection_battery_handoff_json_schema_properties/0,
-      scoped_downlink_context_json_schema_properties:
-        &scoped_downlink_context_json_schema_properties/0,
-      thermal_handoff_json_schema_properties: &thermal_handoff_json_schema_properties/0,
-      timeline_activity_precondition_handoff_json_schema_properties:
-        &timeline_activity_precondition_handoff_json_schema_properties/0,
-      timeline_dependency_impact_handoff_json_schema_properties:
-        &timeline_dependency_impact_handoff_json_schema_properties/0,
-      timeline_publication_handoff_json_schema_properties:
-        &timeline_publication_handoff_json_schema_properties/0
     ]
   end
 end
