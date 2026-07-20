@@ -9,7 +9,7 @@ Current slice:
 Schema Cadence import status direct routing.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Remove the zero-context, one-hop Cadence import status helper. Route the
@@ -28,18 +28,35 @@ Selection evidence:
   results, and checked-in exports must remain unchanged.
 
 Implementation:
-Pending.
+Removed the Cadence import status helper and routed its provider callback
+directly to CadenceImportOperationalReadinessJsonSchema. `schema.ex` moved
+from 6,027 to 6,024 lines.
 
 Verification:
-Pending.
+- Strict focused Cadence import/handoff/export baseline before routing:
+  23 passed.
+- The same strict focused suite after routing: 23 passed.
+- Strict checked-in export, operator-review schema, and operational schema
+  coverage: 13 passed.
+- The full schema-export task completed and produced no checked-in changes.
+- `mix xref callers` for
+  CadenceImportOperationalReadinessJsonSchema reports the expected `schema.ex`
+  and OperationalReadinessContextJsonSchema consumers.
+- Definition/capture-specific static search confirms the helper and indirect
+  callback are gone.
+- `git diff --check` passed.
+- Strict forced compile passed across 4,065 files.
+- Implementation commit `310f440a` pushed to `main`.
 
 Behavior/schema changes:
-None intended.
+None. Public facades, provider-map keys, callback timing, status values,
+composed schemas, executable validation, and checked-in exports remain
+unchanged.
 
 Last completed slice:
-Schema policy rule-match field-group direct routing, selected in `e2bd180e`
-and implemented in `7c7a7079`.
-`schema.ex` moved from 6,031 to 6,027 lines.
+Schema Cadence import status direct routing, selected in `56b6601b` and
+implemented in `310f440a`.
+`schema.ex` moved from 6,027 to 6,024 lines.
 
 Next candidate:
 Re-rank the remaining non-capability Schema responsibility clusters now that
