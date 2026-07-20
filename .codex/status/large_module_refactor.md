@@ -6,16 +6,16 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema contact-report validation routing cleanup.
+No slice selected.
 
 Status:
-Selected; implementation not started.
+Slice complete and pushed.
 
 Selected boundary:
-Complete the existing `OrbitalDynamics.Schema.ContactReportValidation`
+Completed the existing `OrbitalDynamics.Schema.ContactReportValidation`
 extraction by routing contract clauses and callback tables directly to that
 owner and removing five facade pass-through wrappers.
-Preserve all `OrbitalDynamics.Schema` public facades and validation output.
+Preserved all `OrbitalDynamics.Schema` public facades and validation output.
 
 Selection evidence:
 - `schema.ex` remains the dominant hotspot at 6,622 lines.
@@ -31,23 +31,40 @@ Selection evidence:
   wiring, public validation results, and schema exports must remain unchanged.
 
 Implementation:
-Pending.
+- Routed the contact-filter contract clause plus campaign-plan, campaign-repair,
+  and candidate-refresh callback tables directly to
+  `ContactReportValidation`.
+- Removed five one-hop private wrappers covering optional contact-filter,
+  contention, and contention-resolution reports.
+- `schema.ex` moved from 6,622 to 6,612 lines; no new abstraction was added
+  because the focused owner already existed.
 
 Verification:
-Pending.
+- Pre-change strict focused baseline: 31 campaign/contact contract tests
+  passed.
+- Post-change strict focused verification: the same 31 tests passed; 12
+  broader validation, contention-fixture, and campaign-fixture tests also
+  passed.
+- Static checks found no migrated contact-report wrappers or local callback
+  captures remaining; xref reports `schema.ex` as the runtime caller of
+  `ContactReportValidation`.
+- No checked-in schema export changed.
+- Forced warnings-as-errors compile passed across 4,050 files.
+- Formatting and `git diff --check` passed; the worktree was clean after the
+  implementation commit.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-Schema timeline-context validation routing cleanup, selected in `88bd2853` and
-implemented in `d9d05131`.
-`schema.ex` moved from 6,640 to 6,622 lines by completing routing to the
-existing TimelineContextValidation owner.
+Schema contact-report validation routing cleanup, selected in `b947a636` and
+implemented in `f318e290`.
+`schema.ex` moved from 6,622 to 6,612 lines by completing routing to the
+existing ContactReportValidation owner.
 
 Next candidate:
-After this slice, re-rank the remaining schema wrapper clusters. Keep
-dependency-injecting transition/source-status adapters in the facade.
+Re-rank the remaining schema wrapper clusters. Resource validation retains a
+larger set of pure pass-through wrappers around an existing focused owner.
 
 Blocked:
 No.
