@@ -4393,7 +4393,7 @@ defmodule OrbitalDynamics.Schema do
   defp validate_contract(@candidate_rejection_report, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_candidate_rejection_report("$", artifact)
+    |> CandidateRejectionValidation.validate_report("$", artifact)
   end
 
   defp validate_contract(@plan_delta, contract, artifact) do
@@ -4966,7 +4966,7 @@ defmodule OrbitalDynamics.Schema do
       artifact,
       contract["required_fields"],
       &validate_optional_contact_allocation_report/2,
-      &validate_optional_candidate_rejection_report/3
+      &CandidateRejectionValidation.validate_optional_report/3
     )
   end
 
@@ -5223,7 +5223,7 @@ defmodule OrbitalDynamics.Schema do
       validate_optional_candidate_diff_report:
         &OrbitalDynamics.Schema.CandidateDiffContracts.validate_optional_report/3,
       validate_optional_candidate_rejection_report:
-        &validate_optional_candidate_rejection_report/3,
+        &CandidateRejectionValidation.validate_optional_report/3,
       validate_optional_freshness_report:
         &OrbitalDynamics.Schema.FreshnessReportContracts.validate_optional/3,
       validate_optional_station_calendar_report:
@@ -5502,25 +5502,6 @@ defmodule OrbitalDynamics.Schema do
         path,
         row,
         contact_allocation_report_domain_callbacks()
-      )
-
-  defp validate_candidate_rejection_report(issues, path, report),
-    do:
-      CandidateRejectionValidation.validate_report(
-        issues,
-        path,
-        report,
-        OrbitalDynamics.Schema.CandidateRejectionReportJsonSchema.model_limits()
-      )
-
-  defp validate_optional_candidate_rejection_report(issues, path, report),
-    do:
-      CandidateRejectionValidation.validate_optional_report(
-        issues,
-        path,
-        report,
-        registry_contract!(@candidate_rejection_report)["required_fields"],
-        OrbitalDynamics.Schema.CandidateRejectionReportJsonSchema.model_limits()
       )
 
   defp validate_cadence_import_manifest(issues, path, manifest) do
