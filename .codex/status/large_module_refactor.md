@@ -9,7 +9,7 @@ Current slice:
 Schema operational-readiness artifact owner routing.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Add an owner-default artifact dispatcher to OperationalReadinessValidation for
@@ -30,24 +30,45 @@ Selection evidence:
 - Existing specialized owner APIs remain the customization boundary.
 
 Implementation:
-Pending.
+Added registry-backed validate_artifact/4 to OperationalReadinessValidation and
+kept all ten specialized report/summary APIs unchanged. Routed four readiness
+artifacts, five operational quality-gate summaries, and the quality-gate report
+through the owner. Long formatted owner calls move `schema.ex` from 4,889 to
+4,896 lines, but remove all ten copies of facade-owned required-field and
+nested validation context.
 
 Verification:
-Pending.
+- Strict readiness/quality-gate baseline before routing: 53 passed.
+- The same strict focused suite after routing: 53 passed.
+- Strict candidate-refresh and campaign readiness/quality-gate coverage: 34
+  passed.
+- The full schema-export task completed and produced no checked-in changes.
+- Exact static inspection confirms ten direct owner routes and no remaining
+  facade-local readiness/quality-gate contract composition.
+- `mix xref callers OrbitalDynamics.Schema.OperationalReadinessValidation`
+  reports the expected Schema, CadenceImportValidation,
+  CampaignArtifactValidation, and OperatorReviewValidation runtime callers.
+- `mix format --check-formatted` and `git diff --check` passed.
+- Strict forced compile passed across 4,078 files with no warnings.
+- Bounded local review confirmed registry requirements, model limits, nested
+  callback order, quality-gate row routing, and issue paths are preserved.
+- Implementation commit `5eb1a198` pushed to `main`.
 
 Behavior/schema changes:
-None intended. Required fields, model limits, callbacks, validation ordering
-and paths, public Schema APIs, validation results, and checked-in exports must
-remain unchanged.
+None. Required fields, model limits, callbacks, validation ordering and paths,
+public Schema APIs, validation results, and checked-in exports remain
+unchanged.
 
 Last completed slice:
-Schema accepted-state/candidate-refresh validation context extraction, selected
-in `139671e3` and implemented in `3411b55c`.
-`schema.ex` moved from 4,939 to 4,889 lines.
+Schema operational-readiness artifact owner routing, selected in `ba0bd916` and
+implemented in `5eb1a198`.
+`schema.ex` moved from 4,889 to 4,896 lines while ten validation-context copies
+moved to the existing owner.
 
 Next candidate:
-Implement and verify the selected operational-readiness owner routing, then
-re-rank the remaining Schema responsibility clusters.
+Re-rank the remaining Schema responsibility clusters. Preserve the
+context-bearing CommonJsonSchema wrappers unless a separate exact ownership
+boundary is proven.
 
 Blocked:
 No.
