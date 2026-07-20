@@ -6,53 +6,37 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-RecommendationRiskContext capacity-pack extraction.
+OperationalReadiness quality-gate row extraction.
 
 Status:
-Completed and pushed in `bdc570d2`.
+Selected; implementation not started.
 
 Selected boundary:
-Extract capacity-pack context keys, risk selection, and context projection into
-`OrbitalDynamics.RecommendationRiskContext.CapacityPack`. Preserve all
-RecommendationRiskContext and downstream public facades.
+Extract quality-gate row identity, base projection, gate-specific context, and
+compaction into `OrbitalDynamics.OperationalReadiness.QualityGateRow`.
+Preserve all OperationalReadiness and downstream public facades.
 
 Selection evidence:
 - Excluding the generated/declarative candidate-refresh JSON-schema module,
-  live re-ranking places `recommendation_risk_context.ex` at 1,153 lines, the
+  live re-ranking places `operational_readiness.ex` at 1,140 lines, the
   largest ordinary eligible facade.
-- RecommendationRiskContext delegates twenty focused risk families, while
-  capacity-pack keys, scope selection, and projection remain inline at lines
-  45-60, 346, and 469-512.
-- The selected code has one responsibility: identify capacity-pack risk
-  context and project contact, station, capacity, derivation, and provenance
-  fields.
-- Provider reservations, contention, filters, timelines, and all other risk
-  families remain outside the boundary.
-- Exact context key order, scope selection, atom-key normalization, list
-  flattening, nil omission, value ordering, non-list behavior, public output,
-  and error behavior must remain unchanged.
+- OperationalReadiness delegates all individual readiness gates and summary
+  builders, while quality-gate row identity, base fields, gate-specific
+  context, and compaction remain inline at lines 563-637.
+- The selected code has one responsibility: project one readiness gate into
+  one stable quality-gate row, including resource, Cadence import, adapter, and
+  operator-training context.
+- Report aggregation, unavailable-resource summary aggregation, readiness
+  evidence construction, and all gates remain outside the boundary.
+- Exact row ID inputs, field values, gate-specific dispatch, positive-count
+  filtering, stable ID-array normalization, nil compaction, public output, and
+  error behavior must remain unchanged.
 
 Implementation:
-- Added `OrbitalDynamics.RecommendationRiskContext.CapacityPack` as the focused
-  owner of the ordered key contract, scope/group risk selection, atom-key
-  normalization, and contact, station, capacity, derivation, and provenance
-  context projection.
-- Preserved the public RecommendationRiskContext facade through delegates.
-- All other risk families remain outside the extraction.
-- `recommendation_risk_context.ex` moved from 1,153 to 1,094 lines; the
-  dedicated CapacityPack owner is 96 lines.
+Pending.
 
 Verification:
-- Focused baseline and post-change test passed normally; the file retains its
-  two pre-existing signed-zero warnings.
-- Exact old/new public parity: four results passed, covering ordered keys,
-  both selection forms, atom-key normalization, multi-key/list flattening,
-  nil omission, unrelated-risk exclusion, empty input, and non-list input.
-- Five adjacent recommendation tests passed with warnings treated as errors.
-- Static ownership and xref checks passed; only the facade calls the extracted
-  owner at runtime.
-- Forced warning-clean test compile passed across 4,035 files.
-- Focused formatting and `git diff --check` passed.
+Pending.
 
 Behavior/schema changes:
 None intended.
@@ -64,8 +48,8 @@ and implemented in `bdc570d2`.
 CapacityPack owner is 96 lines.
 
 Next candidate:
-After this slice, re-rank the live checkout. OperationalReadiness is the next
-largest ordinary eligible facade.
+After this slice, re-rank the live checkout. RecommendationRiskContext is the
+next largest ordinary eligible facade.
 
 Blocked:
 No.
