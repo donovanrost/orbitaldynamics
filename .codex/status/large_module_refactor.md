@@ -9,7 +9,7 @@ Current slice:
 Schema contact-allocation owner routing extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Add registry-backed owner-default entry points to `ContactAllocationValidation`
@@ -29,24 +29,39 @@ Selection evidence:
 - No route needs recursive `Schema` lookup.
 
 Implementation:
-Pending.
+Added a registry-backed `ContactAllocationValidation.validate_artifact/4`
+entry point plus six compact owner-default wrappers and routed all selected
+direct `Schema` clauses through the existing owner. `schema.ex` moved from
+4,795 to 4,787 lines.
 
 Verification:
-Pending.
+- Strict focused baseline: 100 tests passed.
+- Focused plus adjacent allocation, validation, operator-review, Cadence import,
+  candidate-refresh replay, campaign-planner source-report, contract, and
+  export coverage after extraction: 126 tests passed.
+- Full schema export completed with no checked-in artifact changes.
+- Static routing review found exactly the six intended direct facade routes.
+- `mix xref trace` confirmed all six runtime calls originate in `schema.ex`.
+- Formatting and `git diff --check` passed.
+- Strict forced compile passed across 4,086 files with warnings as errors.
+- Bounded diff review confirmed all six registry-owned requirements,
+  owner-default model limits and callbacks, contract routing, validation
+  ordering, and paths remain unchanged.
+- Implementation committed and pushed as `6cc22c0b`.
 
 Behavior/schema changes:
-None intended. Required fields, validation ordering and paths, public `Schema`
-and existing `ContactAllocationValidation` APIs, validation results, and
-checked-in exports must remain unchanged.
+None. Required fields, validation ordering and paths, public `Schema` and
+existing `ContactAllocationValidation` APIs, validation results, and checked-in
+exports remain unchanged.
 
 Last completed slice:
-Schema station-reservation owner routing extraction, selected in `c1049e27`
-and implemented in `5f3c7f1b`.
-`schema.ex` moved from 4,803 to 4,795 lines.
+Schema contact-allocation owner routing extraction, selected in `efc25373` and
+implemented in `6cc22c0b`.
+`schema.ex` moved from 4,795 to 4,787 lines.
 
 Next candidate:
-Implement and verify the selected contact-allocation owner routing, then
-re-rank the remaining Schema responsibility clusters.
+Re-rank the remaining Schema responsibility clusters and select the next
+facade-preserving extraction.
 
 Blocked:
 No.
