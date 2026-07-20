@@ -1,7 +1,49 @@
 defmodule OrbitalDynamics.Schema.ContactAllocationValidation do
   @moduledoc false
 
-  import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2]
+  import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2, require_fields: 4]
+
+  def validate_artifact(issues, path, artifact, contract_name) do
+    issues
+    |> require_fields(path, artifact, required_fields(contract_name))
+    |> validate_registered_artifact(path, artifact, contract_name)
+  end
+
+  def validate_report_artifact(issues, path, artifact),
+    do: validate_artifact(issues, path, artifact, "contact_allocation_report.v1")
+
+  def validate_summary_artifact(issues, path, artifact),
+    do: validate_artifact(issues, path, artifact, "contact_allocation_summary.v1")
+
+  def validate_reservation_conflict_artifact(issues, path, artifact),
+    do:
+      validate_artifact(
+        issues,
+        path,
+        artifact,
+        "contact_allocation_reservation_conflict_summary.v1"
+      )
+
+  def validate_station_pressure_artifact(issues, path, artifact),
+    do:
+      validate_artifact(
+        issues,
+        path,
+        artifact,
+        "contact_allocation_station_pressure_summary.v1"
+      )
+
+  def validate_capacity_pack_artifact(issues, path, artifact),
+    do: validate_artifact(issues, path, artifact, "contact_allocation_capacity_pack_summary.v1")
+
+  def validate_provider_reservation_request_artifact(issues, path, artifact),
+    do:
+      validate_artifact(
+        issues,
+        path,
+        artifact,
+        "contact_allocation_provider_reservation_request_summary.v1"
+      )
 
   def validate_optional_report(issues, report),
     do: validate_optional_report(issues, report, default_callbacks())
@@ -142,6 +184,58 @@ defmodule OrbitalDynamics.Schema.ContactAllocationValidation do
         row,
         callbacks
       )
+
+  defp validate_registered_artifact(issues, path, artifact, "contact_allocation_report.v1"),
+    do: validate_report(issues, path, artifact)
+
+  defp validate_registered_artifact(issues, path, artifact, "contact_allocation_summary.v1"),
+    do: validate_summary(issues, path, artifact)
+
+  defp validate_registered_artifact(
+         issues,
+         path,
+         artifact,
+         "contact_allocation_reservation_conflict_summary.v1"
+       ),
+       do: validate_reservation_conflict_summary(issues, path, artifact)
+
+  defp validate_registered_artifact(
+         issues,
+         path,
+         artifact,
+         "contact_allocation_station_pressure_summary.v1"
+       ),
+       do: validate_station_pressure_summary(issues, path, artifact)
+
+  defp validate_registered_artifact(
+         issues,
+         path,
+         artifact,
+         "contact_allocation_capacity_pack_summary.v1"
+       ),
+       do: validate_capacity_pack_summary(issues, path, artifact)
+
+  defp validate_registered_artifact(
+         issues,
+         path,
+         artifact,
+         "contact_allocation_provider_reservation_request_summary.v1"
+       ),
+       do: validate_provider_reservation_request_summary(issues, path, artifact)
+
+  defp required_fields(contract_name) do
+    [
+      OrbitalDynamics.Schema.ContactAllocationReportRegistryContracts,
+      OrbitalDynamics.Schema.ContactAllocationSummaryRegistryContracts,
+      OrbitalDynamics.Schema.ContactAllocationReservationConflictRegistryContracts,
+      OrbitalDynamics.Schema.ContactAllocationStationPressureRegistryContracts,
+      OrbitalDynamics.Schema.ContactAllocationCapacityPackRegistryContracts,
+      OrbitalDynamics.Schema.ContactAllocationProviderReservationRegistryContracts
+    ]
+    |> Enum.reduce(%{}, &Map.merge(&2, &1.contracts()))
+    |> OrbitalDynamics.Schema.Registry.fetch!(contract_name)
+    |> Map.fetch!("required_fields")
+  end
 
   defp default_callbacks do
     [

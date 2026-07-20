@@ -4179,44 +4179,36 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validate_contract(@contact_allocation_report, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> ContactAllocationValidation.validate_report("$", artifact)
+  defp validate_contract(@contact_allocation_report, _contract, artifact) do
+    ContactAllocationValidation.validate_report_artifact([], "$", artifact)
   end
 
-  defp validate_contract(@contact_allocation_summary, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> ContactAllocationValidation.validate_summary("$", artifact)
+  defp validate_contract(@contact_allocation_summary, _contract, artifact) do
+    ContactAllocationValidation.validate_summary_artifact([], "$", artifact)
   end
 
-  defp validate_contract(@contact_allocation_reservation_conflict_summary, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> ContactAllocationValidation.validate_reservation_conflict_summary("$", artifact)
+  defp validate_contract(@contact_allocation_reservation_conflict_summary, _contract, artifact) do
+    ContactAllocationValidation.validate_reservation_conflict_artifact([], "$", artifact)
   end
 
-  defp validate_contract(@contact_allocation_station_pressure_summary, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> ContactAllocationValidation.validate_station_pressure_summary("$", artifact)
+  defp validate_contract(@contact_allocation_station_pressure_summary, _contract, artifact) do
+    ContactAllocationValidation.validate_station_pressure_artifact([], "$", artifact)
   end
 
-  defp validate_contract(@contact_allocation_capacity_pack_summary, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> ContactAllocationValidation.validate_capacity_pack_summary("$", artifact)
+  defp validate_contract(@contact_allocation_capacity_pack_summary, _contract, artifact) do
+    ContactAllocationValidation.validate_capacity_pack_artifact([], "$", artifact)
   end
 
   defp validate_contract(
          @contact_allocation_provider_reservation_request_summary,
-         contract,
+         _contract,
          artifact
        ) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> ContactAllocationValidation.validate_provider_reservation_request_summary("$", artifact)
+    ContactAllocationValidation.validate_provider_reservation_request_artifact(
+      [],
+      "$",
+      artifact
+    )
   end
 
   defp validate_contract(@station_calendar_provider, contract, artifact) do
