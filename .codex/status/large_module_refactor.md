@@ -6,55 +6,44 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema candidate-activity owner completion.
+Schema relay data-path owner completion.
 
 Status:
-Complete and pushed.
+Selected; implementation pending.
 
 Selected boundary:
-Extend `StateRefreshArtifactValidation.validate/4` to own
-`candidate_activity.v1`, whose registry is already included in that owner.
-Route the direct `Schema` clause through the existing state-refresh owner while
-preserving required-field setup followed by `CandidateActivityContracts`.
+Extend `LinkCapacityValidation` to own registry-backed validation for
+`relay_data_path_summary.v1`. Route the direct `Schema` clause through the
+ground-network capacity owner while preserving required-field setup followed
+by `RelayDataPathSummaryContracts.validate_summary/3`.
 
 Selection evidence:
-- `schema.ex` remains the dominant production hotspot at 4,730 lines; the other
+- `schema.ex` remains the dominant production hotspot at 4,728 lines; the other
   targeted public facades are now 164 to 524 lines.
-- The direct clause repeats the same generic registered-artifact routing pattern
-  already owned for the surrounding candidate-refresh artifact family.
-- `StateRefreshArtifactValidation` already merges
-  `CandidateRefreshRegistryContracts`, including `candidate_activity.v1`.
+- The relay summary is produced from link-capacity/contact routing evidence and
+  is adjacent to the existing link-capacity report/summary owner.
+- `RelayDataPathRegistryContracts` and `RelayDataPathSummaryContracts` already
+  provide the exact setup and validator.
 - No route needs recursive `Schema` lookup.
 
 Implementation:
-Extended `StateRefreshArtifactValidation.validate/4` with the
-`candidate_activity.v1` contract route, then routed the direct `Schema` clause
-through the existing state-refresh owner. `schema.ex` moved from 4,730 to 4,728
-lines; `StateRefreshArtifactValidation` moved from 109 to 112 lines.
+Pending.
 
 Verification:
-- Strict focused baseline: 27 tests passed.
-- Candidate-refresh registry, accepted-state, build, export, and fixture
-  adjacency: 37 tests passed.
-- Full schema export regenerated with no checked-in schema artifact changes.
-- Formatting, diff whitespace, bounded dependency/reference checks, and the
-  bounded semantic diff review passed.
-- `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 mix compile --force
-  --warnings-as-errors` compiled 4,087 files successfully.
+Pending.
 
 Behavior/schema changes:
-None. Required fields, validation ordering and paths, public `Schema` and
-`StateRefreshArtifactValidation` APIs, validation results, and checked-in
-exports remain unchanged.
+None intended. Required fields, validation ordering and paths, public `Schema`
+and existing `LinkCapacityValidation` APIs, validation results, and checked-in
+exports must remain unchanged.
 
 Last completed slice:
 Schema candidate-activity owner completion, selected in `313e38cf` and
 implemented in `23cf1b4e`. `schema.ex` moved from 4,730 to 4,728 lines.
 
 Next candidate:
-Re-rank the remaining direct `Schema` validation clauses, prioritizing a
-cohesive owner or owner completion without recursive `Schema` lookup or public
-API changes.
+Implement and verify the selected relay data-path owner completion, then
+re-rank the remaining Schema responsibility clusters.
 
 Blocked:
 No.
