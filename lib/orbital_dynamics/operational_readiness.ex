@@ -23,6 +23,7 @@ defmodule OrbitalDynamics.OperationalReadiness do
   alias OrbitalDynamics.OperationalReadiness.QualityGateSchemaValidationSummary
   alias OrbitalDynamics.OperationalReadiness.QualityGateSummary
   alias OrbitalDynamics.OperationalReadiness.ResourceAvailabilityEvidence
+  alias OrbitalDynamics.OperationalReadiness.ResourceAvailabilityGate
   alias OrbitalDynamics.OperationalReadiness.SourceIdentity
   alias OrbitalDynamics.OperationalReadiness.TimelinePublicationContext
 
@@ -830,7 +831,7 @@ defmodule OrbitalDynamics.OperationalReadiness do
         AdapterBoundaryGate.build(evidence),
         mission_policy_gate(evidence),
         operator_training_gate(evidence),
-        resource_availability_gate(evidence),
+        ResourceAvailabilityGate.build(evidence),
         OperatorReviewGate.build(evidence),
         CadenceImportGate.build(evidence)
       ]
@@ -967,49 +968,6 @@ defmodule OrbitalDynamics.OperationalReadiness do
       "required_training_ids" => evidence["required_training_ids"],
       "required_certification_ids" => evidence["required_certification_ids"],
       "required_qualification_ids" => evidence["required_qualification_ids"]
-    }
-  end
-
-  defp resource_availability_gate(evidence) do
-    case evidence["resource_availability_pressure_count"] do
-      count when is_integer(count) and count > 0 ->
-        gate(
-          "resource_availability",
-          "review_required",
-          "review_only",
-          "resource availability evidence requires operator review before import",
-          resource_availability_gate_context(evidence)
-        )
-
-      _count ->
-        nil
-    end
-  end
-
-  defp resource_availability_gate_context(evidence) do
-    resource_availability_reason_counts =
-      evidence
-      |> Map.get("resource_availability_reason_counts", %{})
-      |> positive_count_map()
-
-    %{
-      "resource_availability_pressure_count" => evidence["resource_availability_pressure_count"],
-      "resource_availability_reason_counts" => resource_availability_reason_counts,
-      "resource_availability_reason_ids" =>
-        sorted_count_keys(resource_availability_reason_counts),
-      "station_availability_reason_ids" =>
-        station_availability_reason_ids(resource_availability_reason_counts),
-      "station_availability_reason_counts" =>
-        station_availability_reason_counts(resource_availability_reason_counts),
-      "unavailable_resource_reason_ids" =>
-        unavailable_resource_reason_ids(resource_availability_reason_counts),
-      "resource_blocking_dimension_counts" => evidence["resource_blocking_dimension_counts"],
-      "resource_blocked_contact_ids_by_blocking_dimension" =>
-        evidence["resource_blocked_contact_ids_by_blocking_dimension"],
-      "resource_blocked_contact_ids_by_spacecraft_id" =>
-        evidence["resource_blocked_contact_ids_by_spacecraft_id"],
-      "resource_source_quality_counts" => evidence["resource_source_quality_counts"],
-      "resource_trust_boundary_status_counts" => evidence["resource_trust_boundary_status_counts"]
     }
   end
 
