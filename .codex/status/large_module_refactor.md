@@ -6,42 +6,29 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Operational-readiness schema-provider extraction.
+Common fragment schema-provider extraction.
 
 Status:
-Completed and verified.
+Selected; implementation pending.
 
 Selected boundary:
-Move operational-readiness gate/evidence, quality-gate row, cadence readiness
-and resource-projection evidence properties, and battery-handoff property
-builders from the public `Schema` facade into a new
-`OperationalReadinessSchemaProviders` owner. Build one lazy readiness context
-and pass shared closures to source-evidence and cadence-review owners.
+Move SHA-256, stable-ID array, stable-ID array-map, and nested stable-ID
+array-map registry adapters from the public `Schema` facade into a new
+`CommonSchemaProviders` owner and merge its four lazy providers into the
+property context.
 
 Selection evidence:
-- The public `Schema` facade remains 959 lines.
-- Three builders are registry providers and the remaining three feed only
-  extracted source-evidence/cadence-review owners.
-- The cluster shares readiness capability and stable-ID/common fragments.
-- Approval and policy-rule dependencies can preserve laziness through explicit
-  callbacks.
+- The public `Schema` facade remains 947 lines.
+- All four helpers are now referenced only by the registry provider map.
+- Their shapes already belong to `CommonJsonSchema`.
+- The owner needs only stable-ID and SHA-256 pattern values, with no recursive
+  facade callbacks.
 
 Implementation:
-Selected in `7ceaedd3` and implemented in `11b69418`. Added the 95-line
-`OperationalReadinessSchemaProviders` owner with six lazy readiness/evidence
-providers, merged its registry context, and passed shared closures to
-source-evidence and cadence-review owners. The public `Schema` facade moved
-from 959 to 947 lines.
+Pending.
 
 Verification:
-- Exact comparison passed for all six readiness-provider keys and outputs using
-  sentinel approval/rule schemas.
-- Focused schema/validation suite passed: 359 tests.
-- Full checked-in schema export regenerated with no diff.
-- Runtime xref shows one direct `Schema` ->
-  `OperationalReadinessSchemaProviders` edge.
-- Strict forced compile passed with warnings as errors: 4,127 files.
-- `JsonSchemaPropertyRouter` remains an ordered 76-head facade.
+Pending.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -54,8 +41,8 @@ implemented in `11b69418`. The public `Schema` facade moved from 959 to 947
 lines.
 
 Next candidate:
-Re-rank the remaining public-facade clusters and select the next bounded
-extraction.
+Implement and verify the selected common-fragment provider extraction, then
+extract the remaining handoff-property trio.
 
 Blocked:
 No.
