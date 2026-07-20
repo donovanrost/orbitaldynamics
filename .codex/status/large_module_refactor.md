@@ -9,7 +9,7 @@ Current slice:
 Timeline report/state JSON-property family extraction.
 
 Status:
-Selected; implementation pending.
+Implemented and verified.
 
 Selected boundary:
 Extract the six contiguous timeline feedback, integrity, dependency-impact,
@@ -28,10 +28,23 @@ Selection evidence:
   direct mechanical family move.
 
 Implementation:
-Pending.
+- Added a 122-line `TimelineReportPropertyRouter` with the six mechanically
+  moved timeline report/state clause bodies.
+- Kept all six original parent clause heads in place as ordered delegations.
+- Reused shared lazy provider/context/fallback support and the existing
+  `TimelineContextJsonSchema` owner without a parent callback.
+- The parent router moved from 1,226 to 1,147 lines.
 
 Verification:
-Pending.
+- Strict pre-change baseline and post-change schema/validation suite: 359 tests
+  passed in each run.
+- AST comparison confirmed all six moved bodies are exact and all 76 parent
+  clause heads remain in their original order.
+- Full schema export regenerated 121 contract schemas and the bundle with no
+  checked-in schema diff.
+- `mix xref trace` confirms the six intended family edges.
+- Formatting, `git diff --check`, and bounded source/schema diff review passed.
+- Strict compile passed for 4,099 files with warnings as errors.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -39,12 +52,13 @@ laziness, field-hint fallback, stable-ID decoration, public `Schema`, and
 checked-in exports must remain unchanged.
 
 Last completed slice:
-Campaign artifact JSON-property family extraction, selected in `a8372d62` and
-implemented in `52d33f59`. The parent router moved from 1,241 to 1,226 lines.
+Timeline report/state JSON-property family extraction, selected in `64b5888d`
+and implemented in `fd18ecf4`. The parent router moved from 1,226 to 1,147
+lines.
 
 Next candidate:
-Implement and verify the selected timeline family split, then re-rank the
-adjacent result-artifact/contact-planning families.
+Re-rank the adjacent result-artifact/contact-planning families against a
+cohesive facade provider-family extraction.
 
 Blocked:
 No.
