@@ -9,7 +9,7 @@ Current slice:
 Schema contact-report owner routing extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Add owner-default entry points to `ContactReportValidation` for contact filter
@@ -34,24 +34,40 @@ Selection evidence:
 - No route needs recursive `Schema` lookup.
 
 Implementation:
-Pending.
+Added four owner-default artifact entry points to `ContactReportValidation`,
+moved resolution-summary model-limit and policy-callback wiring into the owner,
+and routed all selected direct `Schema` clauses through it. `schema.ex` moved
+from 4,787 to 4,773 lines.
 
 Verification:
-Pending.
+- Strict focused baseline: 97 tests passed.
+- Focused plus adjacent contact-report, validation, operator-review,
+  candidate-refresh replay, campaign-planner source-report, contract, and
+  export coverage after extraction: 121 tests passed.
+- Full schema export completed with no checked-in artifact changes.
+- Static routing review found exactly the four intended direct facade routes.
+- `mix xref trace` confirmed all four runtime calls originate in `schema.ex`.
+- Formatting and `git diff --check` passed.
+- Strict forced compile passed across 4,086 files with warnings as errors.
+- Bounded diff review confirmed registry-owned required fields for filter and
+  resolution summary, direct contract routing for both contention reports,
+  owner-default model limits and callback, validation ordering, and paths remain
+  unchanged.
+- Implementation committed and pushed as `902d27d5`.
 
 Behavior/schema changes:
-None intended. Required fields, validation ordering and paths, public `Schema`
-and existing `ContactReportValidation` APIs, validation results, and checked-in
-exports must remain unchanged.
+None. Required fields, validation ordering and paths, public `Schema` and
+existing `ContactReportValidation` APIs, validation results, and checked-in
+exports remain unchanged.
 
 Last completed slice:
-Schema contact-allocation owner routing extraction, selected in `efc25373` and
-implemented in `6cc22c0b`.
-`schema.ex` moved from 4,795 to 4,787 lines.
+Schema contact-report owner routing extraction, selected in `7781b44c` and
+implemented in `902d27d5`.
+`schema.ex` moved from 4,787 to 4,773 lines.
 
 Next candidate:
-Implement and verify the selected contact-report owner routing, then re-rank
-the remaining Schema responsibility clusters.
+Re-rank the remaining Schema responsibility clusters and select the next
+facade-preserving extraction.
 
 Blocked:
 No.
