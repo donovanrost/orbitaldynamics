@@ -4,6 +4,7 @@ defmodule OrbitalDynamics.Schema.CadenceImportValidation do
   alias OrbitalDynamics.Schema.{
     CadenceImportCapabilityContext,
     CadenceImportManifestContracts,
+    CadenceImportRegistryContracts,
     CadenceImportRowCallbacks,
     CadenceImportRowContracts,
     CadenceImportRowHandoffCallbacks,
@@ -22,6 +23,14 @@ defmodule OrbitalDynamics.Schema.CadenceImportValidation do
     TimelineSourceValidation,
     TimelineTransitionValidation
   }
+
+  @cadence_import_manifest "cadence_import_manifest.v1"
+
+  def validate_manifest_artifact(issues, path, manifest) do
+    issues
+    |> PrimitiveValidation.require_fields(path, manifest, manifest_required_fields())
+    |> validate_manifest(path, manifest)
+  end
 
   def validate_manifest(issues, path, manifest) do
     CadenceImportManifestContracts.validate(
@@ -183,5 +192,11 @@ defmodule OrbitalDynamics.Schema.CadenceImportValidation do
       validate_selected_timeline_integrity_fields:
         &TimelineTransitionValidation.validate_selected_timeline_integrity_fields/3
     )
+  end
+
+  defp manifest_required_fields do
+    CadenceImportRegistryContracts.contracts()
+    |> Map.fetch!(@cadence_import_manifest)
+    |> Map.fetch!("required_fields")
   end
 end

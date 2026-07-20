@@ -4309,10 +4309,8 @@ defmodule OrbitalDynamics.Schema do
     |> OperatorReviewValidation.validate_package("$", artifact)
   end
 
-  defp validate_contract(@cadence_import_manifest, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> CadenceImportValidation.validate_manifest("$", artifact)
+  defp validate_contract(@cadence_import_manifest, _contract, artifact) do
+    CadenceImportValidation.validate_manifest_artifact([], "$", artifact)
   end
 
   defp validate_contract(@operational_readiness_report, _contract, artifact) do
