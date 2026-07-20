@@ -6,62 +6,38 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-ContactAllocation allocation-row projection extraction.
+OperationalReadiness execution-boundary summary extraction.
 
 Status:
-Completed and pushed in `1b9d3a71`.
+Selected; strict focused baseline pending.
 
 Selected boundary:
-Extract selected/deferred/available allocation-row construction, shared base-row
-evidence projection, provider counteroffer/resource suppression context, and
-contention allocation reasons into
-`OrbitalDynamics.Communications.ContactAllocation.AllocationRow`.
-Preserve all ContactAllocation and root public facades.
+Extract execution-boundary summary construction and import-classification
+boundary mapping into
+`OrbitalDynamics.OperationalReadiness.ExecutionBoundarySummary`.
+Preserve all OperationalReadiness and root public facades.
 
 Selection evidence:
 - Excluding the generated/declarative candidate-refresh JSON-schema module,
-  live re-ranking places `communications/contact_allocation.ex` at 1,707 lines,
-  the
+  live re-ranking places `operational_readiness.ex` at 1,686 lines, the
   largest ordinary eligible facade.
-- ContactAllocation already delegates ten focused responsibilities, while
-  allocation-row decision and base evidence projection remain inline at lines
-  1,244-1,432 with their value-routing helpers.
-- The selected block has one responsibility: turn a normalized contact and
-  contention recommendation into the deterministic allocation row consumed by
-  capacity packing, policy classification, blocked-row projection, and report
-  assembly.
-- Allocation orchestration, validation/filtering, capacity packing, approval
-  policy, summaries, returned contacts, and all public contracts remain outside
-  the boundary.
-- Exact decision precedence, IDs, evidence fields, feedback/provider-result
-  normalization, station-calendar list/count normalization, context merges,
-  compaction, output, and error behavior must remain unchanged.
+- OperationalReadiness already delegates gate and specialized quality summary
+  responsibilities, while execution-boundary projection remains inline at lines
+  464-514.
+- The selected block has one responsibility: expose import eligibility and
+  explicit no-execution/no-write/no-authority boundaries from readiness gates.
+- Readiness report classification, import eligibility, gate routing,
+  quality-gate rows, evidence collection, and all public contracts remain
+  outside the boundary.
+- Exact operational-mode selection, gate counts, non-passed ordering,
+  classification mapping, omission behavior, assumptions, model limits, public
+  output, and error behavior must remain unchanged.
 
 Implementation:
-- Added `OrbitalDynamics.Communications.ContactAllocation.AllocationRow` as the
-  owner of selected/deferred/available row decisions, shared base-row evidence,
-  provider counteroffer/resource suppression context, provider-result value
-  routing, and contention allocation reasons.
-- Wired allocation and blocked-row construction through thin owner delegates
-  while preserving ContactAllocation and root public APIs.
-- Kept orchestration, validation/filtering, capacity packing, approval policy,
-  summaries, and returned-contact handling outside the boundary.
-- `contact_allocation.ex` moved from 1,707 to 1,413 lines; the new owner is 314
-  lines.
+Pending.
 
 Verification:
-- Strict focused baseline passed all 70 ContactAllocation tests.
-- Exact old/new public parity passed for four deterministic allocation results:
-  rich contention/base evidence, duplicate contacts, invalid contacts, and empty
-  input.
-- Post-extraction focused and adjacent allocation/schema verification passed all
-  79 tests.
-- The adjacent suite additionally verified exact direction-only contact type
-  policy after correcting the owner to preserve the original fallback.
-- Static checks confirm allocation-row value/projection helpers left the facade;
-  xref reports only ContactAllocation as a runtime caller.
-- Strict warning-clean forced compile passed for 4,013 files.
-- Formatting and `git diff --check` passed.
+Pending.
 
 Behavior/schema changes:
 None intended.
