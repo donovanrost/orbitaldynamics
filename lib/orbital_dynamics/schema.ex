@@ -5698,9 +5698,6 @@ defmodule OrbitalDynamics.Schema do
   defp relay_latency_statuses, do: ~w(within_limit exceeds_limit not_evaluated unknown)
   defp relay_risk_statuses, do: ~w(nominal review high unknown)
 
-  defp validate_operator_review_row_links(issues, path, row),
-    do: OperatorReviewValidation.validate_row_links(issues, path, row)
-
   defp validate_contact_allocation_report_counts(issues, path, report),
     do:
       ContactAllocationValidation.validate_counts(
@@ -5838,7 +5835,7 @@ defmodule OrbitalDynamics.Schema do
       validate_operational_readiness_resource_context:
         &OperationalReadinessValidation.validate_operational_readiness_resource_context/3,
       validate_contact_allocation_handoff_fields: &validate_contact_allocation_handoff_fields/3,
-      validate_operator_review_row_links: &validate_operator_review_row_links/3,
+      validate_operator_review_row_links: &OperatorReviewValidation.validate_row_links/3,
       validate_contact_allocation_capacity_pack_group:
         &validate_contact_allocation_capacity_pack_group/3,
       validate_optional_timeline_link:
@@ -5927,7 +5924,7 @@ defmodule OrbitalDynamics.Schema do
   defp cadence_import_row_handoff_contract_callbacks do
     OrbitalDynamics.Schema.CadenceImportRowHandoffCallbacks.build(
       validate_contact_allocation_handoff_fields: &validate_contact_allocation_handoff_fields/3,
-      validate_operator_review_row_links: &validate_operator_review_row_links/3,
+      validate_operator_review_row_links: &OperatorReviewValidation.validate_row_links/3,
       validate_optional_timeline_activity_precondition_summary_source:
         &TimelineSourceValidation.validate_optional_timeline_activity_precondition_summary_source/3,
       validate_optional_timeline_activity_state_source:
@@ -6134,7 +6131,7 @@ defmodule OrbitalDynamics.Schema do
       validate_operational_readiness_resource_context:
         &OperationalReadinessValidation.validate_operational_readiness_resource_context/3,
       validate_contact_allocation_handoff_fields: &validate_contact_allocation_handoff_fields/3,
-      validate_operator_review_row_links: &validate_operator_review_row_links/3
+      validate_operator_review_row_links: &OperatorReviewValidation.validate_row_links/3
     )
   end
 
