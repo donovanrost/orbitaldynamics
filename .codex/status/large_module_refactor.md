@@ -9,7 +9,7 @@ Current slice:
 Schema operator-review validation context extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Add owner-default required-package, optional-package, and row entry points to
@@ -31,18 +31,40 @@ Selection evidence:
 - Owner-default entry points preserve all customizable APIs.
 
 Implementation:
-Pending.
+Added owner-default required-package, optional-package, and row entry points to
+OperatorReviewValidation. Kept all customizable APIs, moved registry,
+capability, package, and row callback context into the owner, routed one
+required validation and four optional facade callbacks directly, removed three
+wrappers plus both callback bags, and removed two stale facade imports.
+`schema.ex` moved from 5,576 to 5,475 lines.
 
 Verification:
-Pending.
+- Strict operator-review/Cadence/campaign/contact-allocation/timeline baseline
+  before extraction: 24 passed.
+- The same strict focused suite after extraction: 24 passed.
+- Strict checked-in export, JSON Schema export, review/import handoff,
+  contact-feedback, and communications coverage: 35 passed.
+- The full schema-export task completed and produced no checked-in changes.
+- Exact static inspection confirms one direct required validation, four direct
+  optional callbacks, owner-internal row validation, zero facade wrappers or
+  callback bags, and retained customizable owner APIs.
+- `mix xref callers OrbitalDynamics.Schema.OperatorReviewValidation` reports
+  only the expected Schema facade runtime caller.
+- `mix format --check-formatted` and `git diff --check` passed.
+- Strict forced compile passed across 4,072 files with no warnings.
+- Bounded local review found and fixed duplicate required-field validation;
+  the focused suite and strict compile passed again after the fix.
+- Implementation commit `c8223f43` pushed to `main`.
 
 Behavior/schema changes:
-None intended.
+None. Required fields, capability metadata, package/row callbacks, issue
+ordering and paths, customizable owner entry points, public Schema APIs,
+validation results, and checked-in exports remain unchanged.
 
 Last completed slice:
-Schema contact-allocation validation context extraction, selected in
-`526df568` and implemented in `b255fe53`.
-`schema.ex` moved from 5,707 to 5,576 lines.
+Schema operator-review validation context extraction, selected in `3b0ee4c3`
+and implemented in `c8223f43`.
+`schema.ex` moved from 5,576 to 5,475 lines.
 
 Next candidate:
 Re-rank the remaining non-capability Schema responsibility clusters. Preserve
