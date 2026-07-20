@@ -9,7 +9,7 @@ Current slice:
 Schema common string-array eager routing.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Route the ten remaining eager `string_array_schema/0` calls in Schema directly
@@ -30,22 +30,40 @@ Selection evidence:
   checked-in exports must remain unchanged.
 
 Implementation:
-Pending.
+Routed all ten eager string-array schema reads directly to CommonJsonSchema and
+removed the now-unused one-hop facade helper. The 34 lazy owner callbacks from
+the preceding slice remain unchanged. `schema.ex` moved from 5,986 to 5,982
+lines.
 
 Verification:
-Pending.
+- Strict focused export/communications/feedback/Cadence/review baseline before
+  routing: 34 passed.
+- The same strict focused suite after routing: 34 passed.
+- Strict checked-in export, timeline-report, resource, and handoff coverage:
+  21 passed.
+- The full schema-export task completed and produced no checked-in changes.
+- Exact static counts confirm ten direct eager owner calls, 34 direct lazy
+  owner callbacks, and zero remaining facade helper references.
+- `mix xref callers OrbitalDynamics.Schema.CommonJsonSchema` reports the
+  expected facade and internal schema-owner consumers.
+- `git diff --check` passed.
+- Strict forced compile passed across 4,070 files.
+- Implementation commit `568cff53` pushed to `main`.
 
 Behavior/schema changes:
-None intended.
+None. Public Schema APIs, property-provider keys, callback timing,
+string-array schemas, composed schemas, executable validation, and checked-in
+exports remain unchanged.
 
 Last completed slice:
-Schema common string-array callback routing, selected in `cc4ba93d` and
-implemented in `3f3d0363`.
-`schema.ex` remains 5,986 lines.
+Schema common string-array eager routing, selected in `b6a13f21` and
+implemented in `568cff53`.
+`schema.ex` moved from 5,986 to 5,982 lines.
 
 Next candidate:
-Re-rank the remaining non-capability Schema responsibility clusters now that
-direct domain capability reads have been removed from the facade.
+Re-rank the remaining non-capability Schema responsibility clusters. Preserve
+the context-bearing CommonJsonSchema wrappers unless a separate exact
+ownership boundary is proven.
 
 Blocked:
 No.
