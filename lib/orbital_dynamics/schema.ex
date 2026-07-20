@@ -401,7 +401,6 @@ defmodule OrbitalDynamics.Schema do
         {:maneuver_review_row_json_schema, 0} => &maneuver_review_row_json_schema/0,
         {:model_acceptance_report_model_limits, 0} => &model_acceptance_report_model_limits/0,
         {:nested_stable_id_array_map_json_schema, 0} => &nested_stable_id_array_map_json_schema/0,
-        {:operational_feedback_json_schema, 0} => &operational_feedback_json_schema/0,
         {:operational_readiness_capabilities, 0} => &operational_readiness_capabilities/0,
         {:operational_readiness_evidence_json_schema, 0} =>
           &operational_readiness_evidence_json_schema/0,
@@ -456,10 +455,7 @@ defmodule OrbitalDynamics.Schema do
         {:timeline_diff_summary_source_json_schema, 0} =>
           &timeline_diff_summary_source_json_schema/0,
         {:timeline_feedback_capabilities, 0} => &timeline_feedback_capabilities/0,
-        {:timeline_feedback_operational_feedback_provenance_json_schema, 0} =>
-          &timeline_feedback_operational_feedback_provenance_json_schema/0,
         {:timeline_feedback_report_model_limits, 0} => &timeline_feedback_report_model_limits/0,
-        {:timeline_feedback_row_json_schema, 0} => &timeline_feedback_row_json_schema/0,
         {:timeline_identity_json_schema, 0} => &timeline_identity_json_schema/0,
         {:timeline_integrity_issue_types, 0} => &timeline_integrity_issue_types/0,
         {:timeline_lifecycle_state_row_json_schema, 0} =>
@@ -539,6 +535,18 @@ defmodule OrbitalDynamics.Schema do
           approval_requirement_schema: &approval_requirement_json_schema/0,
           policy_decision_rule_match_schema: &policy_decision_rule_match_json_schema/0,
           policy_decision_schema: &policy_decision_json_schema/0
+        )
+      )
+      |> Map.merge(
+        OrbitalDynamics.Schema.TimelineFeedbackSchemaProviders.build(
+          @stable_id_pattern,
+          @timeline_feedback_report,
+          realized_activity_schema: &realized_activity_json_schema/0,
+          timeline_feedback_capability: &timeline_feedback_capabilities/0,
+          protection_decision_schema: &protection_decision_json_schema/0,
+          timeline_identity_schema: &timeline_identity_json_schema/0,
+          activity_context_schema: &activity_context_json_schema/0,
+          planned_activity_schema: &planned_activity_json_schema/0
         )
       )
     end)
@@ -749,49 +757,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp spacecraft_identity_json_schema do
     OrbitalDynamics.Schema.IdentityJsonSchema.spacecraft_from_context(@stable_id_pattern)
-  end
-
-  defp operational_feedback_json_schema do
-    OrbitalDynamics.Schema.OperationalFeedbackJsonSchema.operational_feedback(%{
-      probability_map: OrbitalDynamics.Schema.CommonJsonSchema.probability_map(),
-      string_value_map: OrbitalDynamics.Schema.CommonJsonSchema.string_value_map(),
-      non_negative_number_map: OrbitalDynamics.Schema.CommonJsonSchema.non_negative_number_map(),
-      string_list_map: OrbitalDynamics.Schema.CommonJsonSchema.string_list_map(),
-      nested_object_map: OrbitalDynamics.Schema.CommonJsonSchema.nested_object_map(),
-      realized_activity: realized_activity_json_schema()
-    })
-  end
-
-  defp timeline_feedback_operational_feedback_provenance_json_schema do
-    OrbitalDynamics.Schema.OperationalFeedbackJsonSchema.timeline_feedback_provenance(
-      @timeline_feedback_report,
-      %{
-        string_array: OrbitalDynamics.Schema.CommonJsonSchema.string_array(),
-        count_map: OrbitalDynamics.Schema.CommonJsonSchema.non_negative_integer_count_map(),
-        string_list_map: OrbitalDynamics.Schema.CommonJsonSchema.string_list_map()
-      }
-    )
-  end
-
-  defp timeline_feedback_row_json_schema do
-    OrbitalDynamics.Schema.TimelineFeedbackRowJsonSchema.row(
-      stable_id_pattern: @stable_id_pattern,
-      capability: timeline_feedback_capabilities(),
-      stable_id_array_schema: stable_id_array_schema(),
-      string_array_schema: OrbitalDynamics.Schema.CommonJsonSchema.string_array(),
-      number_array_schema: OrbitalDynamics.Schema.CommonJsonSchema.number_array(),
-      probability_schema: OrbitalDynamics.Schema.CommonJsonSchema.probability(),
-      number_or_string_schema: OrbitalDynamics.Schema.CommonJsonSchema.number_or_string(),
-      protection_decision_schema: protection_decision_json_schema(),
-      lifecycle_transition_schema: TimelineContextJsonSchema.lifecycle_transition(),
-      actual_data_rate_throughput_derivation_schema:
-        TimelineContextJsonSchema.actual_data_rate_throughput_derivation(),
-      numeric_triplet_schema: OrbitalDynamics.Schema.CommonJsonSchema.numeric_triplet(),
-      timeline_identity_schema: timeline_identity_json_schema(),
-      activity_context_schema: activity_context_json_schema(),
-      planned_activity_schema: planned_activity_json_schema(),
-      realized_activity_schema: realized_activity_json_schema()
-    )
   end
 
   defp schema_validation_batch_entry_json_schema do
