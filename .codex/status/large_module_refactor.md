@@ -9,7 +9,7 @@ Current slice:
 Schema resource-projection metadata direct routing.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Remove the Schema facade's one-hop resource-projection report models and model
@@ -32,18 +32,34 @@ Selection evidence:
   unchanged.
 
 Implementation:
-Pending.
+Removed the one-hop resource-projection report models and model-limits
+wrappers and routed both property-dispatch captures directly to
+ResourceValidation.
+`schema.ex` moved from 6,151 to 6,145 lines.
 
 Verification:
-Pending.
+- Strict focused resource/filter/export baseline before routing: 22 passed.
+- The same strict focused suite after routing: 22 passed.
+- Strict full schema-export task plus adjacent candidate-refresh provenance,
+  fixture-visibility, and validation coverage: 5 passed.
+- `mix xref callers OrbitalDynamics.Schema.ResourceValidation` reports the
+  expected `schema.ex (runtime)` caller alongside
+  `contact_report_validation.ex (runtime)`.
+- Static search confirms both wrapper definitions and indirect captures are
+  gone from `schema.ex`.
+- `git diff --check` passed; no checked-in schema export changed.
+- Strict forced compile passed across 4,065 files.
+- Implementation commit `e188b381` pushed to `main`.
 
 Behavior/schema changes:
-None intended.
+None. Public facades, callback timing, report model/model-limit values and
+ordering, generated JSON Schema, validation behavior, and checked-in exports
+remain unchanged.
 
 Last completed slice:
-Schema candidate-rejection source-row validation direct routing, selected in
-`07f4e3d0` and implemented in `ec799ada`.
-`schema.ex` moved from 6,154 to 6,151 lines.
+Schema resource-projection metadata direct routing, selected in `95a1349a`
+and implemented in `e188b381`.
+`schema.ex` moved from 6,151 to 6,145 lines.
 
 Next candidate:
 Re-rank the remaining non-capability Schema responsibility clusters now that
