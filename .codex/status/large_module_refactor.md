@@ -9,7 +9,7 @@ Current slice:
 TimelineFeedback operational-feedback aggregation extraction.
 
 Status:
-Selected; strict focused baseline pending.
+Completed and pushed in `8d9a5204`.
 
 Selected boundary:
 Extract operational-feedback dimension aggregation, outcome value selection,
@@ -34,24 +34,43 @@ Selection evidence:
   callbacks, public output, and error behavior must remain unchanged.
 
 Implementation:
-Pending.
+- Added `OrbitalDynamics.TimelineFeedback.OperationalFeedbackSummary` as the
+  owner of operational dimension aggregation, outcome value routing, weighted
+  target priorities, delegated downlink/resource feedback, maneuver execution
+  uncertainty projection, and provenance trust specs.
+- Wired the existing operational-feedback and provenance paths directly to the
+  owner while preserving TimelineFeedback and root public APIs.
+- Kept row normalization/reconciliation, provenance construction, activity
+  state, and exclusion counting in their existing owners.
+- `timeline_feedback.ex` moved from 1,797 to 1,546 lines; the new owner is 252
+  lines.
 
 Verification:
-Pending.
+- Strict focused baseline passed all 73 TimelineFeedback tests.
+- Exact old/new public parity passed for four deterministic operational-feedback
+  results: dense multi-dimension string-key rows, atom-key rows, report-map
+  routing, and empty input.
+- Post-extraction focused and adjacent TimelineFeedback, operator-review,
+  strategy source-report, replay-summary, and schema-export verification passed
+  all 91 tests.
+- Static checks confirm the operational aggregation/trust helper family left
+  the facade; xref reports only TimelineFeedback as a runtime caller.
+- Strict warning-clean forced compile passed for 4,008 files.
+- Formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-ContactAllocation returned-allocation extraction, selected in `e7a28cf9` and
-implemented in `cd708fc8`.
-`contact_allocation.ex` moved from 1,804 to 1,707 lines; the dedicated
-ReturnedAllocation owner is 110 lines.
+TimelineFeedback operational-feedback aggregation extraction, selected in
+`da283212` and implemented in `8d9a5204`.
+`timeline_feedback.ex` moved from 1,797 to 1,546 lines; the dedicated
+OperationalFeedbackSummary owner is 252 lines.
 
 Next candidate:
 Re-rank the live checkout and select the next bounded facade-preserving
-extraction. `timeline_feedback.ex` is now the largest ordinary eligible facade
-at 1,797 lines, followed by ResourceProjection and ContactIntent.
+extraction. `resource_projection.ex` is now the largest ordinary eligible
+facade at 1,789 lines, followed by ContactIntent and RecommendationRiskContext.
 
 Blocked:
 No.
