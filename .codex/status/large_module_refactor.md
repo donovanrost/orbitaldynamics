@@ -9,7 +9,7 @@ Current slice:
 Source-evidence schema-provider extraction.
 
 Status:
-Selected; implementation pending.
+Completed and verified.
 
 Selected boundary:
 Move the source-evidence, readiness/quality source-report, freshness,
@@ -28,10 +28,21 @@ Selection evidence:
   owners.
 
 Implementation:
-Pending.
+Selected in `b9b5302f` and implemented in `30b37935`. Added the 61-line
+`SourceEvidenceSchemaProviders` owner with six lazy evidence closures and one
+shared stable-ID/battery dependency context, then passed those closures to the
+operator/cadence owners. The public `Schema` facade moved from 1,216 to 1,176
+lines.
 
 Verification:
-Pending.
+- Exact comparison passed for all six evidence-provider keys and outputs using
+  sentinel battery-handoff properties.
+- Focused schema/validation suite passed: 359 tests.
+- Full checked-in schema export regenerated with no diff.
+- Runtime xref shows one direct `Schema` -> `SourceEvidenceSchemaProviders`
+  edge.
+- Strict forced compile passed with warnings as errors: 4,122 files.
+- `JsonSchemaPropertyRouter` remains an ordered 76-head facade.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -39,13 +50,13 @@ laziness, field-hint fallback, stable-ID decoration, public `Schema`, and
 checked-in exports must remain unchanged.
 
 Last completed slice:
-Cadence review row schema-provider completion, selected in `b23e0d78` and
-implemented in `9b951825`. The public `Schema` facade moved from 1,349 to 1,216
+Source-evidence schema-provider extraction, selected in `b9b5302f` and
+implemented in `30b37935`. The public `Schema` facade moved from 1,216 to 1,176
 lines.
 
 Next candidate:
-Implement and verify the selected source-evidence provider extraction, then
-re-rank the remaining public-facade clusters.
+Re-rank the remaining public-facade provider clusters and select the next
+bounded extraction.
 
 Blocked:
 No.
