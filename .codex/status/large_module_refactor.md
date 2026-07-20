@@ -9,7 +9,7 @@ Current slice:
 Schema relay-data-path status ownership.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Move the relay custody, latency, and risk status enum functions from the Schema
@@ -28,18 +28,36 @@ Selection evidence:
   validation results, and checked-in exports must remain unchanged.
 
 Implementation:
-Pending.
+Moved the three relay custody/latency/risk status enum functions into
+RelayDataPathSummaryJsonSchema and routed the facade's row-builder captures
+directly to that owner.
+`schema.ex` moved from 6,145 to 6,141 lines; the relay schema owner moved from
+263 to 267 lines.
 
 Verification:
-Pending.
+- Strict focused communications/report-fixture/export baseline before move:
+  27 passed.
+- The same strict focused suite after move: 27 passed.
+- Strict full schema-export task plus adjacent fixture-visibility,
+  candidate-refresh provenance, and validation coverage: 5 passed.
+- `mix xref callers
+  OrbitalDynamics.Schema.RelayDataPathSummaryJsonSchema` reports the expected
+  `schema.ex` and standalone communications property-dispatch callers.
+- Static search confirms all three facade enum definitions and indirect
+  captures are gone.
+- `git diff --check` passed; no checked-in schema export changed.
+- Strict forced compile passed across 4,065 files.
+- Implementation commit `2e5c6ea9` pushed to `main`.
 
 Behavior/schema changes:
-None intended.
+None. Public facades, callback timing, enum values and ordering, generated JSON
+Schema, validation behavior, and checked-in exports remain unchanged.
 
 Last completed slice:
-Schema resource-projection metadata direct routing, selected in `95a1349a`
-and implemented in `e188b381`.
-`schema.ex` moved from 6,151 to 6,145 lines.
+Schema relay-data-path status ownership, selected in `90b69684` and
+implemented in `2e5c6ea9`.
+`schema.ex` moved from 6,145 to 6,141 lines; the relay schema owner moved from
+263 to 267 lines.
 
 Next candidate:
 Re-rank the remaining non-capability Schema responsibility clusters now that
