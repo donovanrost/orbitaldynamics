@@ -9,7 +9,7 @@ Current slice:
 OperationalReadiness operational-mode gate extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `054a74b0`.
 
 Selected boundary:
 Extract operational-mode gate construction into
@@ -32,19 +32,36 @@ Selection evidence:
   remain unchanged.
 
 Implementation:
-Pending.
+- Added `OrbitalDynamics.OperationalReadiness.OperationalModeGate` as the
+  focused owner of decision-to-gate branching and mode/source/reason context.
+- Preserved OperationalModeDecision as the decision owner and the public
+  OperationalReadiness facade through the new gate builder.
+- Removed the facade's generic private gate helper after this final inline gate
+  extraction left it with no callers.
+- Evidence construction and all other gates remain outside the extraction.
+- `operational_readiness.ex` moved from 1,170 to 1,140 lines; the dedicated
+  OperationalModeGate owner is 28 lines.
 
 Verification:
-Pending.
+- Strict focused baseline: 31 tests passed with warnings treated as errors.
+- Exact old/new public parity: five reports passed, covering nominal mode,
+  explicit simulation, artifact rehearsal, alias normalization, and root
+  not-for-execution facade behavior.
+- Post-change core, operator-review, schema, and fixture checks: 51 tests
+  passed with warnings treated as errors.
+- Static ownership and xref checks passed; only the facade calls the extracted
+  owner at runtime.
+- Forced warning-clean test compile passed across 4,034 files.
+- Focused formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-OperationalReadiness source-contract gate extraction, selected in `d8254a8b`
-and implemented in `9ab3aa44`.
-`operational_readiness.ex` moved from 1,187 to 1,170 lines; the dedicated
-SourceContractGate owner is 28 lines.
+OperationalReadiness operational-mode gate extraction, selected in `5cb32e19`
+and implemented in `054a74b0`.
+`operational_readiness.ex` moved from 1,170 to 1,140 lines; the dedicated
+OperationalModeGate owner is 28 lines.
 
 Next candidate:
 After this slice, re-rank the live checkout. RecommendationRiskContext is the
