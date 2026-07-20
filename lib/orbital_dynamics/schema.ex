@@ -2676,7 +2676,7 @@ defmodule OrbitalDynamics.Schema do
         @stable_id_pattern,
         &operational_feedback_json_schema/0,
         &station_calendar_provider_counteroffer_actions/0,
-        &safety_case_count_fields/0,
+        &OrbitalDynamics.Schema.ValidationAcceptanceReportContracts.safety_case_count_fields/0,
         &embedded_contract_json_schema/1
       }
     )
@@ -6065,7 +6065,4 @@ defmodule OrbitalDynamics.Schema do
       validate_operator_review_row_links: &OperatorReviewValidation.validate_row_links/3
     )
   end
-
-  defp safety_case_count_fields,
-    do: OrbitalDynamics.Schema.ValidationAcceptanceReportContracts.safety_case_count_fields()
 end
