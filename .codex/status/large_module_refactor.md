@@ -6,54 +6,37 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema common string-array eager routing.
+Schema fallback property-schema extraction.
 
 Status:
-Completed and pushed.
+Selected; implementation not started.
 
 Selected boundary:
-Route the ten remaining eager `string_array_schema/0` calls in Schema directly
-to `CommonJsonSchema.string_array/0`, then remove the now-unused facade helper.
-Keep the 34 lazy callbacks routed directly to the owner as completed in the
-previous slice. Preserve property-provider keys, all public Schema APIs,
-generated JSON Schema, executable validation, and checked-in exports.
+Extract the fallback JSON Schema property construction and its contract
+constant/stable-ID decoration rules from Schema into one focused schema-owner
+module. Keep dispatch order and specialized property providers in the facade.
+Preserve field-type hints, stable-ID matching, descriptions, public Schema
+APIs, generated JSON Schema, executable validation, and checked-in exports.
 
 Selection evidence:
-- `schema.ex` remains the dominant production hotspot at 5,986 lines; the other
+- `schema.ex` remains the dominant production hotspot at 5,982 lines; the other
   targeted public facades are now 164 to 524 lines.
-- The prior slice left exactly ten eager calls behind the same zero-arity
-  pass-through helper, with no facade state, guards, defaults, transformation,
-  or caching.
-- Removing the final one-hop helper completes this narrow ownership cleanup
-  without broadening into context-bearing Schema helpers.
-- Exact string-array schemas, provider maps, composed schemas, validation, and
-  checked-in exports must remain unchanged.
+- The fallback builder is one cohesive responsibility: infer the coarse type,
+  add contract identity constants, and add stable-ID patterns.
+- Its implementation occupies 34 non-contiguous facade lines but has only one
+  call site and explicit inputs for field hints and the stable-ID pattern.
+- Specialized property dispatch and context-bearing shared-schema wrappers
+  remain out of scope.
+- Exact fallback schemas and every checked-in export must remain unchanged.
 
 Implementation:
-Routed all ten eager string-array schema reads directly to CommonJsonSchema and
-removed the now-unused one-hop facade helper. The 34 lazy owner callbacks from
-the preceding slice remain unchanged. `schema.ex` moved from 5,986 to 5,982
-lines.
+Pending.
 
 Verification:
-- Strict focused export/communications/feedback/Cadence/review baseline before
-  routing: 34 passed.
-- The same strict focused suite after routing: 34 passed.
-- Strict checked-in export, timeline-report, resource, and handoff coverage:
-  21 passed.
-- The full schema-export task completed and produced no checked-in changes.
-- Exact static counts confirm ten direct eager owner calls, 34 direct lazy
-  owner callbacks, and zero remaining facade helper references.
-- `mix xref callers OrbitalDynamics.Schema.CommonJsonSchema` reports the
-  expected facade and internal schema-owner consumers.
-- `git diff --check` passed.
-- Strict forced compile passed across 4,070 files.
-- Implementation commit `568cff53` pushed to `main`.
+Pending.
 
 Behavior/schema changes:
-None. Public Schema APIs, property-provider keys, callback timing,
-string-array schemas, composed schemas, executable validation, and checked-in
-exports remain unchanged.
+None intended.
 
 Last completed slice:
 Schema common string-array eager routing, selected in `b6a13f21` and
