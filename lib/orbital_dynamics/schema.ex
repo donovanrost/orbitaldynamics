@@ -4129,10 +4129,8 @@ defmodule OrbitalDynamics.Schema do
     ContactIntentValidation.validate_summary([], "$", artifact)
   end
 
-  defp validate_contract(@candidate_activity, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.CandidateActivityContracts.validate("$", artifact)
+  defp validate_contract(@candidate_activity, _contract, artifact) do
+    StateRefreshArtifactValidation.validate([], "$", artifact, @candidate_activity)
   end
 
   defp validate_contract(@candidate_diff_report, _contract, artifact) do

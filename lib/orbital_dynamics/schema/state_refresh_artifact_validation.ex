@@ -50,6 +50,9 @@ defmodule OrbitalDynamics.Schema.StateRefreshArtifactValidation do
         artifact
       )
 
+  defp validate_artifact(issues, path, artifact, "candidate_activity.v1"),
+    do: OrbitalDynamics.Schema.CandidateActivityContracts.validate(issues, path, artifact)
+
   defp validate_artifact(issues, path, artifact, "candidate_diff_row.v1"),
     do:
       issues
