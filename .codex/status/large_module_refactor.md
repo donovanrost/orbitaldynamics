@@ -9,7 +9,7 @@ Current slice:
 Approval-requirement JSON-property family routing.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Move the approval-requirement property body from
@@ -28,10 +28,26 @@ Selection evidence:
   property lookup is required.
 
 Implementation:
-Pending.
+Selected in `35933100` and implemented in `d6c490df`.
+`JsonSchemaPropertyRouter` retains all 76 public route heads in their original
+order and delegates approval requirement to
+`ReferencePolicyPropertyRouter`. The existing owner now contains seven
+reference/policy routes and preserves the copied lazy
+provider/context/fallback body.
 
 Verification:
-Pending.
+- Strict focused schema/validation baseline and post-change suites both passed:
+  359 tests, 0 failures.
+- AST-rendered comparison confirmed the moved body is exact and all 76 parent
+  route heads remain exact and ordered.
+- Xref reports seven runtime edges from the parent to the reference/policy
+  owner.
+- Schema export regenerated 121 schemas plus the bundle with no checked-in
+  artifact diff.
+- Strict full compile passed for 4,107 files with warnings as errors.
+- Formatting, diff checks, and bounded two-file review passed.
+- The parent router shrank from 572 to 563 lines; the reference/policy owner
+  grew from 68 to 81 lines.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -39,13 +55,12 @@ laziness, field-hint fallback, stable-ID decoration, public `Schema`, and
 checked-in exports must remain unchanged.
 
 Last completed slice:
-Provider-counteroffer JSON-property family routing, selected in `caa5f091` and
-implemented in `37c6d3a7`. The parent router moved from 581 to 572 lines.
+Approval-requirement JSON-property family routing, selected in `35933100` and
+implemented in `d6c490df`. The parent router moved from 572 to 563 lines.
 
 Next candidate:
-Implement and verify the selected approval family move, then assess the
-callback-bearing candidate-refresh route against the public `Schema` facade's
-provider-helper boundaries.
+Assess the callback-bearing candidate-refresh route against the public
+`Schema` facade's provider-helper boundaries.
 
 Blocked:
 No.
