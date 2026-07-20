@@ -958,7 +958,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyReadinessRowContextPressureTes
            } = List.first(quality_gate_branch["events"])
 
     assert_operational_readiness_pressure_score_terms(readiness_branch, artifact, 1)
-    assert_quality_gate_pressure_score_terms(quality_gate_branch, artifact)
+    assert_quality_gate_pressure_score_terms(quality_gate_branch, artifact, 1)
 
     readiness_row =
       artifact["branch_comparison_report"]["rows"]
@@ -1199,7 +1199,11 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyReadinessRowContextPressureTes
     }
   end
 
-  defp assert_quality_gate_pressure_score_terms(branch, artifact) do
+  defp assert_quality_gate_pressure_score_terms(
+         branch,
+         artifact,
+         extra_split_pressure_count
+       ) do
     risk_weight = get_in(artifact, ["score_term_report", "assumptions", "policy", "risk_weight"])
 
     quality_gate_pressure_count =
@@ -1213,7 +1217,8 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyReadinessRowContextPressureTes
              -quality_gate_pressure_count * risk_weight
 
     assert branch["score_terms"]["risk_penalty"] ==
-             -(length(branch["risk_indicators"]) - quality_gate_pressure_count) * risk_weight
+             -(length(branch["risk_indicators"]) -
+                 quality_gate_pressure_count - extra_split_pressure_count) * risk_weight
 
     assert "quality_gate_pressure_penalty" in artifact["score_term_report"]["score_term_keys"]
 
