@@ -14,7 +14,7 @@ Selected; implementation not started.
 Selected boundary:
 Remove six zero-context, one-hop leaf-schema helpers for validation issues,
 lint issues, remediation rows, validation checks, migration rows, and skipped
-artifacts. Route their seven facade consumers directly to the existing
+artifacts. Route their eight facade consumers directly to the existing
 ValidationJsonSchema, SchemaMigrationReportJsonSchema, and
 SchemaValidationReportJsonSchema owner APIs. Keep dispatch, composed report
 schemas, executable validation, and all public facades in
@@ -26,6 +26,8 @@ Selection evidence:
   defaults, transformation, or caching.
 - The callback consumers can capture the owners directly; the one eager
   validation-check consumer can call the same owner directly.
+- Final pre-edit occurrence counting confirms eight consumers: seven lazy
+  callbacks and one eager validation-check composition.
 - Exact leaf schemas, callback timing, composed JSON Schema, validation
   results, and checked-in exports must remain unchanged.
 
