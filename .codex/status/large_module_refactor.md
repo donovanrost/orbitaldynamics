@@ -9,7 +9,7 @@ Current slice:
 Schema executable-registry catalog extraction.
 
 Status:
-Selected; implementation pending.
+Complete and pushed.
 
 Selected boundary:
 Extract the full executable contract map composition from `Schema` into a
@@ -29,23 +29,33 @@ Selection evidence:
   public API.
 
 Implementation:
-Pending.
+Added an 87-line compile-time `RegistryCatalog` containing the unchanged
+executable registry merge sequence, then replaced the facade assembly with one
+catalog call. `schema.ex` moved from 4,712 to 4,632 lines.
 
 Verification:
-Pending.
+- Strict registry, capability, export, and validation baseline: 31 tests passed.
+- Entire schema test directory plus export coverage: 178 tests passed.
+- A live equality check confirmed the catalog and public registry expose the
+  same 121 contracts.
+- Full schema export regenerated with no checked-in schema artifact changes.
+- Formatting, diff whitespace, bounded dependency/reference checks, and the
+  bounded semantic diff review passed.
+- `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 mix compile --force
+  --warnings-as-errors` compiled 4,089 files successfully.
 
 Behavior/schema changes:
-None intended. Registry merge order and contents, compile-time snapshot
-semantics, all public `Schema` APIs, validation results, and checked-in exports
-must remain unchanged.
+None. Registry merge order and contents, compile-time snapshot semantics, all
+public `Schema` APIs, validation results, and checked-in exports remain
+unchanged.
 
 Last completed slice:
-Schema activity-artifact owner extraction, selected in `ce7e1eca` and
-implemented in `65e3a783`. `schema.ex` moved from 4,722 to 4,712 lines.
+Schema executable-registry catalog extraction, selected in `fee6a3cc` and
+implemented in `f51ff6ff`. `schema.ex` moved from 4,712 to 4,632 lines.
 
 Next candidate:
-Implement and verify the selected registry catalog extraction, then assess
-capability-catalog validation ownership against that new boundary.
+Assess capability-catalog validation ownership against `RegistryCatalog`, then
+re-rank the remaining recursive result-artifact route.
 
 Blocked:
 No.
