@@ -6,43 +6,31 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Timeline report lifecycle/summary expansion.
+Operational-readiness schema-provider extraction.
 
 Status:
-Completed and verified.
+Selected; implementation pending.
 
 Selected boundary:
-Move lifecycle-state/activity-state sources, precondition/diff/dependency/
-publication summaries, transition row/summary, and dependency-impact row
-builders from the public `Schema` facade into the existing
-`TimelineReportSchemaProviders` owner. Expand its lazy provider map while
-passing registry/default-property/capability metadata as explicit callbacks.
+Move operational-readiness gate/evidence, quality-gate row, cadence readiness
+and resource-projection evidence properties, and battery-handoff property
+builders from the public `Schema` facade into a new
+`OperationalReadinessSchemaProviders` owner. Build one lazy readiness context
+and pass shared closures to source-evidence and cadence-review owners.
 
 Selection evidence:
-- The public `Schema` facade remains 1,106 lines.
-- Four builders are registry providers and six are consumed only by extracted
-  operator/cadence row owners or other members of this graph.
-- The graph shares timeline capability/model metadata, registry contracts,
-  default-property fallback, and focused core/base providers.
-- All cross-node recursion can remain lazy within one owner map.
+- The public `Schema` facade remains 959 lines.
+- Three builders are registry providers and the remaining three feed only
+  extracted source-evidence/cadence-review owners.
+- The cluster shares readiness capability and stable-ID/common fragments.
+- Approval and policy-rule dependencies can preserve laziness through explicit
+  callbacks.
 
 Implementation:
-Selected in `d0512f10` and implemented in `8ad4a5c6`. Expanded
-`TimelineReportSchemaProviders` from five to 17 lazy providers, moving the
-lifecycle/summary graph and three timeline handoff-property builders into the
-owner while retaining registry/default-property/capability metadata as
-explicit callbacks. The public `Schema` facade moved from 1,106 to 959 lines.
+Pending.
 
 Verification:
-- Provider registration contains the expected 17 timeline-report keys and does
-  not invoke callbacks during context construction.
-- Focused schema/validation suite passed: 359 tests.
-- Full checked-in schema export, including the recursive timeline summaries,
-  regenerated with no diff.
-- Runtime xref retains one direct `Schema` -> `TimelineReportSchemaProviders`
-  edge.
-- Strict forced compile passed with warnings as errors: 4,126 files.
-- `JsonSchemaPropertyRouter` remains an ordered 76-head facade.
+Pending.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -55,8 +43,8 @@ implemented in `8ad4a5c6`. The public `Schema` facade moved from 1,106 to 959
 lines.
 
 Next candidate:
-Re-rank the remaining public-facade clusters and select the next bounded
-extraction.
+Implement and verify the selected readiness provider extraction, then re-rank
+the remaining facade clusters.
 
 Blocked:
 No.
