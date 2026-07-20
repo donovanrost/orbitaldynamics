@@ -9,7 +9,7 @@ Current slice:
 Activity schema-provider extraction.
 
 Status:
-Selected; implementation pending.
+Completed and verified.
 
 Selected boundary:
 Move candidate/campaign/planned/realized activity and target/ground-station/
@@ -28,10 +28,20 @@ Selection evidence:
   dependencies can preserve laziness through explicit callbacks.
 
 Implementation:
-Pending.
+Selected in `d1cb94a8` and implemented in `b2143653`. Added the 82-line
+`ActivitySchemaProviders` owner with seven lazy activity/identity closures,
+merged its registry providers, passed shared closures downstream, and retained
+the special candidate export through a thin owner bridge. The public `Schema`
+facade moved from 1,161 to 1,126 lines.
 
 Verification:
-Pending.
+- Exact comparison passed for all seven activity-provider keys and outputs
+  using sentinel recursive schemas.
+- Focused schema/validation suite passed: 359 tests.
+- Full checked-in schema export regenerated with no diff.
+- Runtime xref shows one direct `Schema` -> `ActivitySchemaProviders` edge.
+- Strict forced compile passed with warnings as errors: 4,124 files.
+- `JsonSchemaPropertyRouter` remains an ordered 76-head facade.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -39,12 +49,12 @@ laziness, field-hint fallback, stable-ID decoration, public `Schema`, and
 checked-in exports must remain unchanged.
 
 Last completed slice:
-Policy schema-provider extraction, selected in `33e14d05` and implemented in
-`a90c0166`. The public `Schema` facade moved from 1,176 to 1,161 lines.
+Activity schema-provider extraction, selected in `d1cb94a8` and implemented in
+`b2143653`. The public `Schema` facade moved from 1,161 to 1,126 lines.
 
 Next candidate:
-Implement and verify the selected activity provider extraction, then re-rank
-the remaining public-facade clusters.
+Re-rank the remaining public-facade provider clusters and select the next
+bounded extraction.
 
 Blocked:
 No.
