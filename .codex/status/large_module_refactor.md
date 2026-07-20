@@ -9,7 +9,7 @@ Current slice:
 ContactFilter station-state resolution extraction.
 
 Status:
-Selected; strict focused baseline pending.
+Completed and pushed in `bc495074`.
 
 Selected boundary:
 Extract station overlap matching, direction/window filtering, severity and
@@ -36,25 +36,43 @@ Selection evidence:
   unchanged.
 
 Implementation:
-Pending.
+- Added `OrbitalDynamics.Communications.ContactFilter.StationState` as the owner
+  of overlap matching, direction/window filtering, severity and ambiguity
+  selection, availability/capacity evaluation, reservation/trust context, and
+  numeric evidence normalization.
+- Preserved ContactFilter and root public APIs; the facade retains narrow
+  delegates for suppression decisions and suppressed-row projection.
+- Removed the station-state resolver helper family from the facade while
+  leaving invalid-input handling, row projection, provider context, and
+  approval policy in their existing owners.
+- `contact_filter.ex` moved from 1,898 to 1,365 lines; the new owner is 633
+  lines.
 
 Verification:
-Pending.
+- Strict focused baseline passed all 42 ContactFilter tests.
+- Exact old/new public parity passed for four deterministic filter results:
+  matched/unmatched reservations with ambiguous maintenance and direction
+  filtering, direct zero-capacity evidence, provider-counteroffer review, and
+  empty input.
+- Post-extraction focused and adjacent schema verification passed all 50 tests.
+- Static checks confirm the station-state implementation helpers left the
+  facade; xref reports only ContactFilter as a runtime caller.
+- Strict warning-clean forced compile passed for 4,003 files.
+- Formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-LinkCapacity triage-summary extraction, selected in `efe6811d` and implemented
-in `69e7cf13`.
-`link_capacity.ex` moved from 1,904 to 1,414 lines; the dedicated Summary owner
-is 536 lines.
+ContactFilter station-state resolution extraction, selected in `3d523698` and
+implemented in `bc495074`.
+`contact_filter.ex` moved from 1,898 to 1,365 lines; the dedicated StationState
+owner is 633 lines.
 
 Next candidate:
 Re-rank the live checkout and select the next bounded facade-preserving
-extraction. `communications/contact_filter.ex` is now the largest ordinary
-eligible facade at 1,898 lines, followed by RecommendationRiskContext and
-OrbitData.
+extraction. `recommendation_risk_context.ex` is now the largest ordinary
+eligible facade at 1,893 lines, followed by OrbitData and StationCalendar.
 
 Blocked:
 No.
