@@ -17,6 +17,7 @@ defmodule OrbitalDynamics.OperationalReadiness do
   alias OrbitalDynamics.OperationalReadiness.ImportEligibilitySummary
   alias OrbitalDynamics.OperationalReadiness.MissionPolicyGate
   alias OrbitalDynamics.OperationalReadiness.OperatorTrainingEvidence
+  alias OrbitalDynamics.OperationalReadiness.OperatorTrainingGate
   alias OrbitalDynamics.OperationalReadiness.OperatorReviewGate
   alias OrbitalDynamics.OperationalReadiness.OperationalModeDecision
   alias OrbitalDynamics.OperationalReadiness.QualityGateOperatorTrainingSummary
@@ -628,7 +629,7 @@ defmodule OrbitalDynamics.OperationalReadiness do
   end
 
   defp quality_gate_row_context(%{"id" => "operator_training"} = gate) do
-    operator_training_gate_context(gate)
+    OperatorTrainingGate.context(gate)
   end
 
   defp quality_gate_row_context(_gate), do: %{}
@@ -831,7 +832,7 @@ defmodule OrbitalDynamics.OperationalReadiness do
         operational_mode_gate(artifact, opts),
         AdapterBoundaryGate.build(evidence),
         MissionPolicyGate.build(evidence),
-        operator_training_gate(evidence),
+        OperatorTrainingGate.build(evidence),
         ResourceAvailabilityGate.build(evidence),
         OperatorReviewGate.build(evidence),
         CadenceImportGate.build(evidence)
@@ -902,33 +903,6 @@ defmodule OrbitalDynamics.OperationalReadiness do
           %{"analysis_mode" => mode, "analysis_mode_source" => source}
         )
     end
-  end
-
-  defp operator_training_gate(evidence) do
-    case evidence["operator_training_requirement_count"] do
-      count when is_integer(count) and count > 0 ->
-        gate(
-          "operator_training",
-          "review_required",
-          "review_only",
-          "operator training or qualification evidence requires role-qualified review before import",
-          operator_training_gate_context(evidence)
-        )
-
-      _count ->
-        nil
-    end
-  end
-
-  defp operator_training_gate_context(evidence) do
-    %{
-      "operator_training_requirement_count" => evidence["operator_training_requirement_count"],
-      "operator_training_requirement_counts" => evidence["operator_training_requirement_counts"],
-      "required_operator_roles" => evidence["required_operator_roles"],
-      "required_training_ids" => evidence["required_training_ids"],
-      "required_certification_ids" => evidence["required_certification_ids"],
-      "required_qualification_ids" => evidence["required_qualification_ids"]
-    }
   end
 
   defp gate(id, status, classification, reason, context \\ %{}) do
