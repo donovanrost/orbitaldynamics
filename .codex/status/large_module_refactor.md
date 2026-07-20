@@ -9,7 +9,7 @@ Current slice:
 Operator-review row schema-provider completion.
 
 Status:
-Selected; implementation pending.
+Completed and verified.
 
 Selected boundary:
 Move the operator-review row builder and schema-provider assembly from the
@@ -28,10 +28,22 @@ Selection evidence:
   through explicit callbacks.
 
 Implementation:
-Pending.
+Selected in `0d1049c0` and implemented in `b238573d`. Expanded
+`OperatorReviewSchemaProviders` to own the lazy row provider and its ordered
+schema/property provider assemblies, keeping focused dependencies direct and
+facade-recursive schemas behind explicit callbacks. The public `Schema` facade
+moved from 1,443 to 1,391 lines.
 
 Verification:
-Pending.
+- Provider registration retains exactly one operator-review row key and does
+  not invoke callbacks during context construction.
+- Focused schema/validation suite passed: 359 tests.
+- Full checked-in schema export, including the composed operator-review
+  package, regenerated with no diff.
+- Runtime xref retains one direct `Schema` -> `OperatorReviewSchemaProviders`
+  edge.
+- Strict forced compile passed with warnings as errors: 4,120 files.
+- `JsonSchemaPropertyRouter` remains an ordered 76-head facade.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -39,13 +51,13 @@ laziness, field-hint fallback, stable-ID decoration, public `Schema`, and
 checked-in exports must remain unchanged.
 
 Last completed slice:
-Operator-review property-provider extraction, selected in `51722a64` and
-implemented in `ba053c59`. The public `Schema` facade moved from 1,455 to 1,443
+Operator-review row schema-provider completion, selected in `0d1049c0` and
+implemented in `b238573d`. The public `Schema` facade moved from 1,443 to 1,391
 lines.
 
 Next candidate:
-Implement and verify the selected operator-review row/schema-provider
-completion, then re-rank the remaining public-facade clusters.
+Re-rank the remaining public-facade provider clusters and select the next
+bounded extraction.
 
 Blocked:
 No.
