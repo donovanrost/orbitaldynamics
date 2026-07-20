@@ -4542,13 +4542,8 @@ defmodule OrbitalDynamics.Schema do
     DecisionSupportValidation.validate_ranking_comparison_report([], "$", artifact)
   end
 
-  defp validate_contract(@pareto_frontier_report, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.ParetoFrontierContracts.validate(
-      "$",
-      artifact
-    )
+  defp validate_contract(@pareto_frontier_report, _contract, artifact) do
+    DecisionSupportValidation.validate_pareto_frontier_report([], "$", artifact)
   end
 
   defp validate_contract(@operational_timeline_report, _contract, artifact) do
@@ -4648,13 +4643,8 @@ defmodule OrbitalDynamics.Schema do
     DecisionSupportValidation.validate_optimizer_contract([], "$", artifact)
   end
 
-  defp validate_contract(@constraint_report, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.ConstraintReportContracts.validate(
-      "$",
-      artifact
-    )
+  defp validate_contract(@constraint_report, _contract, artifact) do
+    DecisionSupportValidation.validate_constraint_report([], "$", artifact)
   end
 
   defp validate_contract(@score_term_report, _contract, artifact) do

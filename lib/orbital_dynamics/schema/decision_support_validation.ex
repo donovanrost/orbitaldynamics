@@ -12,8 +12,10 @@ defmodule OrbitalDynamics.Schema.DecisionSupportValidation do
   @objective_tradeoff_report "objective_tradeoff_report.v1"
   @objective_satisfaction_report "objective_satisfaction_report.v1"
   @ranking_comparison_report "ranking_comparison_report.v1"
+  @pareto_frontier_report "pareto_frontier_report.v1"
   @branch_comparison_report "branch_comparison_report.v1"
   @optimizer_contract "optimizer_contract.v1"
+  @constraint_report "constraint_report.v1"
   @score_term_report "score_term_report.v1"
 
   def validate_maneuver_recommendation(issues, path, maneuver),
@@ -94,6 +96,17 @@ defmodule OrbitalDynamics.Schema.DecisionSupportValidation do
     )
   end
 
+  def validate_pareto_frontier_report(issues, path, report) do
+    issues
+    |> require_registered_fields(
+      path,
+      report,
+      OrbitalDynamics.Schema.ObjectiveAnalysisRegistryContracts,
+      @pareto_frontier_report
+    )
+    |> OrbitalDynamics.Schema.ParetoFrontierContracts.validate(path, report)
+  end
+
   def validate_branch_comparison_report(issues, path, report) do
     issues
     |> require_registered_fields(
@@ -114,6 +127,17 @@ defmodule OrbitalDynamics.Schema.DecisionSupportValidation do
       @optimizer_contract
     )
     |> OrbitalDynamics.Schema.OptimizerContractContracts.validate(path, contract)
+  end
+
+  def validate_constraint_report(issues, path, report) do
+    issues
+    |> require_registered_fields(
+      path,
+      report,
+      OrbitalDynamics.Schema.OptimizationRegistryContracts,
+      @constraint_report
+    )
+    |> OrbitalDynamics.Schema.ConstraintReportContracts.validate(path, report)
   end
 
   def validate_score_term_report(issues, path, report) do
