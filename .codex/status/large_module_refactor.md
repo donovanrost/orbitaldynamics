@@ -9,7 +9,7 @@ Current slice:
 Schema common number-array primitive direct routing.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Remove the zero-context, one-hop CommonJsonSchema number-array helper. Route
@@ -30,18 +30,34 @@ Selection evidence:
   validation results, and checked-in exports must remain unchanged.
 
 Implementation:
-Pending.
+Removed the CommonJsonSchema number-array helper and routed all nine consumers
+directly to the owner module. `schema.ex` moved from 5,997 to 5,993 lines after
+direct calls and captures were formatted.
 
 Verification:
-Pending.
+- Strict focused communications/feedback/strategy/Cadence/review baseline
+  before routing: 21 passed.
+- The same strict focused suite after routing: 21 passed.
+- Strict full JSON Schema export-contract, communications fixtures, handoff,
+  and checked-in export coverage: 26 passed.
+- The full schema-export task completed and produced no checked-in changes.
+- `mix xref callers OrbitalDynamics.Schema.CommonJsonSchema` reports the
+  expected facade and internal schema-owner consumers.
+- Definition/reference-specific static search confirms the helper and all
+  indirect references are gone.
+- `git diff --check` passed.
+- Strict forced compile passed across 4,065 files.
+- Implementation commit `3f6643ad` pushed to `main`.
 
 Behavior/schema changes:
-None intended.
+None. Public facades, number-array schemas, eager and lazy evaluation behavior,
+composed schemas, executable validation, and checked-in exports remain
+unchanged.
 
 Last completed slice:
-Schema common number-or-string primitive direct routing, selected in
-`dcde91be` and implemented in `80b48d2c`.
-`schema.ex` moved from 6,001 to 5,997 lines.
+Schema common number-array primitive direct routing, selected in `dc5a34f8`,
+boundary count corrected in `46c496f2`, and implemented in `3f6643ad`.
+`schema.ex` moved from 5,997 to 5,993 lines.
 
 Next candidate:
 Re-rank the remaining non-capability Schema responsibility clusters now that
