@@ -1016,6 +1016,10 @@ defmodule OrbitalDynamics.Schema.CadenceImportContractsTest do
              reduced_capacity_deferred_ids_report["errors"],
              &(&1["path"] == "$.reduced_capacity_deferred_contact_ids[0]")
            )
+  end
+
+  test "validates Cadence import lineage and resource handoff rows" do
+    manifest = read_json!("study_results/cadence_import_manifest_v1.json")
 
     invalid_scalar_count = Map.put(manifest, "ready_count", -1)
 
@@ -1206,7 +1210,9 @@ defmodule OrbitalDynamics.Schema.CadenceImportContractsTest do
              resource_projection_battery_handoff_report["errors"],
              &(&1["path"] == "$.rows[0].source_review_row.peak_battery_overuse_wh")
            )
+  end
 
+  test "validates Cadence import battery-flow handoff rows" do
     battery_handoff_manifest =
       read_json!("study_results/cadence_import_resource_projection_battery_handoff_v1.json")
 
@@ -1315,6 +1321,10 @@ defmodule OrbitalDynamics.Schema.CadenceImportContractsTest do
              stale_cadence_source_review_flow_report["errors"],
              &(&1["path"] == "$.rows[0].source_review_row.net_battery_energy_delta_wh")
            )
+  end
+
+  test "validates Cadence import embedded source-report handoff rows" do
+    manifest = read_json!("study_results/cadence_import_manifest_v1.json")
 
     source_timeline_diff_row =
       read_json!("study_results/operator_review_package_v1.json")
@@ -1673,6 +1683,47 @@ defmodule OrbitalDynamics.Schema.CadenceImportContractsTest do
              row_link_handoff_report["errors"],
              &(&1["path"] == "$.rows[0].carrier_lock")
            )
+  end
+
+  test "validates Cadence import nested review-copy handoff rows" do
+    manifest = read_json!("study_results/cadence_import_manifest_v1.json")
+
+    source_timeline_diff_row =
+      read_json!("study_results/operator_review_package_v1.json")
+      |> Map.fetch!("rows")
+      |> Enum.find(&(&1["review_type"] == "timeline_diff_review"))
+      |> Map.fetch!("source_timeline_diff")
+
+    command_window_row =
+      read_json!("study_results/command_window_report_v1.json")
+      |> Map.fetch!("rows")
+      |> List.first()
+
+    maneuver_review_row =
+      read_json!("study_results/maneuver_review_report_v1.json")
+      |> Map.fetch!("rows")
+      |> List.first()
+
+    ranking_comparison_row =
+      read_json!("study_results/ranking_comparison_report_v1.json")
+      |> Map.fetch!("rows")
+      |> List.first()
+
+    contention_group =
+      read_json!("study_results/contact_contention_report_v1.json")
+      |> Map.fetch!("conflict_groups")
+      |> List.first()
+
+    station_calendar_contact =
+      read_json!("study_results/station_calendar_report_v1.json")
+      |> Map.fetch!("affected_contacts")
+      |> List.first()
+
+    source_feedback_row =
+      read_json!("study_results/operator_review_package_v1.json")
+      |> Map.fetch!("rows")
+      |> Enum.find(&(&1["review_type"] == "realized_feedback"))
+      |> Map.fetch!("source_feedback")
 
     invalid_review_copy_lineage =
       put_in(manifest, ["rows", Access.at(0), "source_review_row"], %{
