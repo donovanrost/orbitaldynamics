@@ -9,7 +9,7 @@ Current slice:
 ContactAllocation allocation-row projection extraction.
 
 Status:
-Selected; strict focused baseline pending.
+Completed and pushed in `1b9d3a71`.
 
 Selected boundary:
 Extract selected/deferred/available allocation-row construction, shared base-row
@@ -38,25 +38,44 @@ Selection evidence:
   compaction, output, and error behavior must remain unchanged.
 
 Implementation:
-Pending.
+- Added `OrbitalDynamics.Communications.ContactAllocation.AllocationRow` as the
+  owner of selected/deferred/available row decisions, shared base-row evidence,
+  provider counteroffer/resource suppression context, provider-result value
+  routing, and contention allocation reasons.
+- Wired allocation and blocked-row construction through thin owner delegates
+  while preserving ContactAllocation and root public APIs.
+- Kept orchestration, validation/filtering, capacity packing, approval policy,
+  summaries, and returned-contact handling outside the boundary.
+- `contact_allocation.ex` moved from 1,707 to 1,413 lines; the new owner is 314
+  lines.
 
 Verification:
-Pending.
+- Strict focused baseline passed all 70 ContactAllocation tests.
+- Exact old/new public parity passed for four deterministic allocation results:
+  rich contention/base evidence, duplicate contacts, invalid contacts, and empty
+  input.
+- Post-extraction focused and adjacent allocation/schema verification passed all
+  79 tests.
+- The adjacent suite additionally verified exact direction-only contact type
+  policy after correcting the owner to preserve the original fallback.
+- Static checks confirm allocation-row value/projection helpers left the facade;
+  xref reports only ContactAllocation as a runtime caller.
+- Strict warning-clean forced compile passed for 4,013 files.
+- Formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-OperationalReadiness gate-summary extraction, selected in `dfa512f8` and
-implemented in `fef750c5`.
-`operational_readiness.ex` moved from 1,768 to 1,686 lines; the dedicated
-GateSummary owner is 86 lines.
+ContactAllocation allocation-row projection extraction, selected in `ea5cd7ae`
+and implemented in `1b9d3a71`.
+`communications/contact_allocation.ex` moved from 1,707 to 1,413 lines; the
+dedicated AllocationRow owner is 314 lines.
 
 Next candidate:
 Re-rank the live checkout and select the next bounded facade-preserving
-extraction. `communications/contact_allocation.ex` is now the largest ordinary
-eligible facade at 1,707 lines, followed by OperationalReadiness and
-StationCalendar.
+extraction. `operational_readiness.ex` is now the largest ordinary eligible
+facade at 1,686 lines, followed by StationCalendar and ContactContention.
 
 Blocked:
 No.
