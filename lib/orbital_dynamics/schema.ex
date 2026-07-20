@@ -52,6 +52,13 @@ defmodule OrbitalDynamics.Schema do
       validate_rows: 4
     ]
 
+  import OrbitalDynamics.Schema.CadenceImportCapabilityContext,
+    only: [
+      cadence_import_capability: 0,
+      cadence_import_manifest_model_limits: 0,
+      cadence_import_supported_sources: 0
+    ]
+
   import OrbitalDynamics.Schema.ContactFilterCapabilityContext,
     only: [
       contact_filter_report_assumptions_json_schema: 0,
@@ -2518,7 +2525,7 @@ defmodule OrbitalDynamics.Schema do
       contract,
       &default_json_schema_property/3,
       {
-        OrbitalDynamics.CadenceImport.capability(),
+        cadence_import_capability(),
         cadence_import_manifest_model_limits(),
         OrbitalDynamics.OperationalReadiness.capabilities(),
         cadence_import_manifest_row_json_schema(),
@@ -3124,12 +3131,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp operator_review_package_model_limits do
     OrbitalDynamics.OperatorReview.capabilities()
-    |> Map.fetch!(:known_limits)
-    |> Enum.map(&Atom.to_string/1)
-  end
-
-  defp cadence_import_manifest_model_limits do
-    OrbitalDynamics.CadenceImport.capability()
     |> Map.fetch!(:known_limits)
     |> Enum.map(&Atom.to_string/1)
   end
@@ -3943,7 +3944,7 @@ defmodule OrbitalDynamics.Schema do
 
   defp cadence_import_manifest_row_json_schema do
     OrbitalDynamics.Schema.CadenceImportManifestJsonSchema.row(
-      capability: OrbitalDynamics.CadenceImport.capability(),
+      capability: cadence_import_capability(),
       readiness_capability: OrbitalDynamics.OperationalReadiness.capabilities(),
       stable_id_pattern: @stable_id_pattern,
       schema_providers: cadence_import_manifest_row_json_schema_providers(),
@@ -4101,7 +4102,7 @@ defmodule OrbitalDynamics.Schema do
 
   defp cadence_source_review_row_json_schema do
     OrbitalDynamics.Schema.CadenceSourceReviewRowJsonSchema.row(
-      cadence_capability: OrbitalDynamics.CadenceImport.capability(),
+      cadence_capability: cadence_import_capability(),
       readiness_capability: OrbitalDynamics.OperationalReadiness.capabilities(),
       timeline_capability: timeline_capabilities(),
       stable_id_pattern: @stable_id_pattern,
@@ -5830,7 +5831,7 @@ defmodule OrbitalDynamics.Schema do
       issues,
       path,
       manifest,
-      OrbitalDynamics.CadenceImport.capability().supported_sources,
+      cadence_import_supported_sources(),
       cadence_import_manifest_model_limits(),
       @cadence_import_manifest_scalar_count_fields,
       &validate_cadence_import_row/3,
@@ -5898,7 +5899,7 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp validate_cadence_import_row(issues, path, row) do
-    capability = OrbitalDynamics.CadenceImport.capability()
+    capability = cadence_import_capability()
 
     issues
     |> OrbitalDynamics.Schema.CadenceImportRowContracts.validate_import_station_and_target_fields(
