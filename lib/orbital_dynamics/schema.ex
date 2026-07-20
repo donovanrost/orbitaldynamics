@@ -109,6 +109,9 @@ defmodule OrbitalDynamics.Schema do
   import OrbitalDynamics.Schema.OperationalReadinessCapabilityContext,
     only: [operational_readiness_capabilities: 0]
 
+  import OrbitalDynamics.Schema.PolicyCapabilityContext,
+    only: [policy_model_limits: 0]
+
   import OrbitalDynamics.Schema.ResourceFilterCapabilityContext,
     only: [
       resource_filter_report_assumptions_json_schema: 0,
@@ -3169,12 +3172,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp command_window_report_model_limits do
     OrbitalDynamics.Communications.CommandWindow.capabilities()
-    |> Map.fetch!(:known_limits)
-    |> Enum.map(&Atom.to_string/1)
-  end
-
-  defp policy_model_limits do
-    OrbitalDynamics.Policy.capabilities()
     |> Map.fetch!(:known_limits)
     |> Enum.map(&Atom.to_string/1)
   end
