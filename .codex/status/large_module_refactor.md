@@ -6,39 +6,30 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema stable-ID export test family split.
+Schema timeline change-summary contract test split.
 
 Status:
-Completed and verified.
+Selected; implementation pending.
 
 Selected boundary:
-Split the 2,182-line stable-ID policy test into three independently runnable
-contract families: top-level manifest/package fields, review/import row fields,
-and candidate-refresh/contact-allocation/validation fields. Keep all assertions
-in the focused stable-ID module.
+Move the publication, dependency-impact, integrity, and diff schema/fixture
+tests from the 2,477-line timeline-summary contract module into a focused
+timeline change-summary sibling. Keep preservation, transition-application, and
+activity-precondition families plus their assumption helpers in the original.
 
 Selection evidence:
-- The row-schema section begins at `operator_review_row_schema` on line 917 and
-  needs only freshly loaded Cadence/operator-review schemas plus the stable-ID
-  pattern.
-- The candidate-refresh section begins at `refresh_schema` on line 1,933 and
-  needs only the stable-ID pattern.
-- Reinitializing those public schema values makes each family independently
-  selectable without duplicating or weakening any assertion.
+- The first eight tests end before the preservation family begins at line
+  1,329.
+- Those four change-observation families depend only on `Schema` and the
+  five-line JSON fixture reader.
+- The remaining nine tests form lifecycle preservation/transition/precondition
+  contracts and own all three specialized assumption helpers.
 
 Implementation:
-Selected in `3f4d1e2e` and implemented in `d31009c9`. Split the stable-ID policy
-module into three tests for top-level manifest/package fields, review/import row
-fields, and refresh/allocation/validation fields. All original assertions
-remain in place; only public schema/policy values are reloaded at family
-boundaries.
+Pending.
 
 Verification:
-- The focused stable-ID module passed with warnings as errors: 3 tests.
-- The full schema/validation gate passed with warnings as errors: 361 tests.
-- Full checked-in schema export regeneration produced no diff.
-- Strict forced compile passed with warnings as errors: 4,129 files.
-- Touched-file format and `git diff --check` passed.
+Pending.
 
 Behavior/schema changes:
 None intended. The same deterministic fixtures, production calls, assertions,
@@ -50,8 +41,7 @@ implemented in `d31009c9`. The focused policy module now exposes three
 independently runnable contract families instead of one 2,177-line test.
 
 Next candidate:
-Select a coherent family split from the 2,477-line timeline-summary schema
-contract module, preserving its fixture and assumption helpers.
+Implement and verify the selected timeline change-summary contract test split.
 
 Blocked:
 No.
