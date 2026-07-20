@@ -98,6 +98,9 @@ defmodule OrbitalDynamics.Schema do
       operator_review_types: 0
     ]
 
+  import OrbitalDynamics.Schema.OperationalReadinessCapabilityContext,
+    only: [operational_readiness_capabilities: 0]
+
   import OrbitalDynamics.Schema.ResourceFilterCapabilityContext,
     only: [
       resource_filter_report_assumptions_json_schema: 0,
@@ -2440,7 +2443,7 @@ defmodule OrbitalDynamics.Schema do
       field,
       contract_name,
       contract,
-      capability: &OrbitalDynamics.OperationalReadiness.capabilities/0,
+      capability: &operational_readiness_capabilities/0,
       gate_schema: &operational_readiness_gate_json_schema/0,
       import_eligibility_model_limits:
         &OperationalReadinessValidation.operational_import_eligibility_summary_model_limits/0,
@@ -2460,7 +2463,7 @@ defmodule OrbitalDynamics.Schema do
       field,
       contract_name,
       contract,
-      capability: &OrbitalDynamics.OperationalReadiness.capabilities/0,
+      capability: &operational_readiness_capabilities/0,
       operational_summary_model_limits:
         &OperationalReadinessValidation.quality_gate_summary_model_limits/0,
       report_model_limits: &OperationalReadinessValidation.quality_gate_report_model_limits/0,
@@ -2501,7 +2504,7 @@ defmodule OrbitalDynamics.Schema do
       contract,
       &default_json_schema_property/3,
       {
-        OrbitalDynamics.OperationalReadiness.capabilities(),
+        operational_readiness_capabilities(),
         operational_readiness_gate_json_schema(),
         operational_readiness_evidence_json_schema(),
         OperationalReadinessValidation.operational_readiness_model_limits()
@@ -2518,7 +2521,7 @@ defmodule OrbitalDynamics.Schema do
       {
         operator_review_capabilities(),
         operator_review_package_model_limits(),
-        OrbitalDynamics.OperationalReadiness.capabilities(),
+        operational_readiness_capabilities(),
         operator_review_row_json_schema(),
         OrbitalDynamics.Schema.OperatorReviewPackageContracts.scalar_count_fields(),
         @stable_id_pattern
@@ -2535,7 +2538,7 @@ defmodule OrbitalDynamics.Schema do
       {
         cadence_import_capability(),
         cadence_import_manifest_model_limits(),
-        OrbitalDynamics.OperationalReadiness.capabilities(),
+        operational_readiness_capabilities(),
         cadence_import_manifest_row_json_schema(),
         @cadence_import_manifest_scalar_count_fields,
         @stable_id_pattern
@@ -3894,14 +3897,14 @@ defmodule OrbitalDynamics.Schema do
 
   defp operational_readiness_gate_json_schema do
     OrbitalDynamics.Schema.OperationalReadinessGateJsonSchema.gate(
-      capability: OrbitalDynamics.OperationalReadiness.capabilities(),
+      capability: operational_readiness_capabilities(),
       stable_id_pattern: @stable_id_pattern
     )
   end
 
   defp quality_gate_report_row_json_schema do
     OrbitalDynamics.Schema.QualityGateReportJsonSchema.row(
-      capability: OrbitalDynamics.OperationalReadiness.capabilities(),
+      capability: operational_readiness_capabilities(),
       stable_id_pattern: @stable_id_pattern,
       gate_schema: operational_readiness_gate_json_schema()
     )
@@ -3947,7 +3950,7 @@ defmodule OrbitalDynamics.Schema do
   defp cadence_import_manifest_row_json_schema do
     OrbitalDynamics.Schema.CadenceImportManifestJsonSchema.row(
       capability: cadence_import_capability(),
-      readiness_capability: OrbitalDynamics.OperationalReadiness.capabilities(),
+      readiness_capability: operational_readiness_capabilities(),
       stable_id_pattern: @stable_id_pattern,
       schema_providers: cadence_import_manifest_row_json_schema_providers(),
       property_providers: cadence_import_manifest_row_json_schema_property_providers()
@@ -4105,7 +4108,7 @@ defmodule OrbitalDynamics.Schema do
   defp cadence_source_review_row_json_schema do
     OrbitalDynamics.Schema.CadenceSourceReviewRowJsonSchema.row(
       cadence_capability: cadence_import_capability(),
-      readiness_capability: OrbitalDynamics.OperationalReadiness.capabilities(),
+      readiness_capability: operational_readiness_capabilities(),
       timeline_capability: timeline_capabilities(),
       stable_id_pattern: @stable_id_pattern,
       schema_providers: cadence_source_review_row_json_schema_providers(),
@@ -4197,7 +4200,7 @@ defmodule OrbitalDynamics.Schema do
   defp operator_review_row_json_schema do
     OrbitalDynamics.Schema.OperatorReviewRowJsonSchema.row(
       operator_review_capability: operator_review_capabilities(),
-      readiness_capability: OrbitalDynamics.OperationalReadiness.capabilities(),
+      readiness_capability: operational_readiness_capabilities(),
       timeline_capability: timeline_capabilities(),
       stable_id_pattern: @stable_id_pattern,
       schema_providers: operator_review_row_json_schema_providers(),

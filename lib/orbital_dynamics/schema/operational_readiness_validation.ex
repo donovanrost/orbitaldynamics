@@ -4,9 +4,7 @@ defmodule OrbitalDynamics.Schema.OperationalReadinessValidation do
   import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2]
 
   def operational_readiness_model_limits do
-    OrbitalDynamics.OperationalReadiness.capabilities()
-    |> Map.fetch!(:known_limits)
-    |> Enum.map(&Atom.to_string/1)
+    OrbitalDynamics.Schema.OperationalReadinessCapabilityContext.operational_readiness_model_limits()
   end
 
   def operational_readiness_gate_summary_model_limits do
