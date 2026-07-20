@@ -9,7 +9,7 @@ Current slice:
 Schema result-artifact validation owner extraction.
 
 Status:
-Selected; implementation pending.
+Complete and pushed.
 
 Selected boundary:
 Add a focused `ResultArtifactValidation` owner that resolves standalone
@@ -29,23 +29,35 @@ Selection evidence:
   no full-facade registry access is needed.
 
 Implementation:
-Pending.
+Added a 35-line `ResultArtifactValidation` owner that resolves standalone
+requirements and delegates nested execution reports directly to the existing
+execution/reproducibility owner at root path `"$"`. Routed the direct
+result-artifact clause through it and removed the facade-only recursive
+callback. `schema.ex` moved from 4,627 to 4,614 lines.
 
 Verification:
-Pending.
+- Strict result-artifact, nested execution-report, fixture, refresh, and review
+  baseline: 22 tests passed.
+- Result/execution, validation, planner, refresh, review, export, and fixture
+  adjacency: 30 tests passed.
+- Full schema export regenerated with no checked-in schema artifact changes.
+- Formatting, diff whitespace, bounded dependency/reference checks, and the
+  bounded semantic diff review passed.
+- `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 mix compile --force
+  --warnings-as-errors` compiled 4,091 files successfully.
 
 Behavior/schema changes:
-None intended. Required fields, nested execution-report root paths and issue
-ordering, public `Schema`, validation results, and checked-in exports must
-remain unchanged.
+None. Required fields, nested execution-report root paths and issue ordering,
+public `Schema`, validation results, and checked-in exports remain unchanged.
 
 Last completed slice:
-Schema capability-catalog validation owner extraction, selected in `c4e1db05`
-and implemented in `cf2a0310`. `schema.ex` moved from 4,632 to 4,627 lines.
+Schema result-artifact validation owner extraction, selected in `b2c2ddfe` and
+implemented in `0c3e0f97`. `schema.ex` moved from 4,627 to 4,614 lines.
 
 Next candidate:
-Implement and verify the selected result-artifact owner, then re-rank the
-remaining fallback validation and facade responsibilities.
+Re-rank the remaining `Schema` responsibilities now that every specialized
+validation clause routes through a focused owner; assess fallback routing,
+JSON-schema property dispatch, and other large cohesive blocks.
 
 Blocked:
 No.
