@@ -22,6 +22,7 @@ defmodule OrbitalDynamics.Schema do
     OperatorReviewValidation,
     PolicyValidation,
     ProviderCounterofferValidation,
+    RealizedStateValidation,
     ResourceValidation,
     SchemaOperationsValidation,
     SourceEvidenceValidation,
@@ -4326,16 +4327,12 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validate_contract(@realized_activity, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.RealizedActivityContracts.validate("$", artifact)
+  defp validate_contract(@realized_activity, _contract, artifact) do
+    RealizedStateValidation.validate_activity([], "$", artifact)
   end
 
-  defp validate_contract(@realized_state_snapshot, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.RealizedStateSnapshotContracts.validate("$", artifact)
+  defp validate_contract(@realized_state_snapshot, _contract, artifact) do
+    RealizedStateValidation.validate_snapshot([], "$", artifact)
   end
 
   defp validate_contract(@timeline_feedback_report, _contract, artifact) do
