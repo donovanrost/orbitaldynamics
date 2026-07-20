@@ -8,6 +8,15 @@ defmodule OrbitalDynamics.Schema.DecisionSupportValidation do
       expect_optional_probability: 4
     ]
 
+  def validate_maneuver_recommendation(issues, path, maneuver),
+    do:
+      validate_maneuver_recommendation(
+        issues,
+        path,
+        maneuver,
+        OrbitalDynamics.Schema.ManeuverReviewCapabilityContext.maneuver_recommendation_model_limits()
+      )
+
   def validate_maneuver_recommendation(issues, path, maneuver, model_limits) do
     OrbitalDynamics.Schema.ManeuverRecommendationContracts.validate(
       issues,
@@ -16,6 +25,15 @@ defmodule OrbitalDynamics.Schema.DecisionSupportValidation do
       model_limits
     )
   end
+
+  def validate_maneuver_review_report(issues, path, report),
+    do:
+      validate_maneuver_review_report(
+        issues,
+        path,
+        report,
+        OrbitalDynamics.Schema.ManeuverReviewCapabilityContext.maneuver_review_report_model_limits()
+      )
 
   def validate_maneuver_review_report(issues, path, report, model_limits) do
     OrbitalDynamics.Schema.ManeuverReviewReportContracts.validate(

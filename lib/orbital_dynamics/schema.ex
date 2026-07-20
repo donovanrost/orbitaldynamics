@@ -4669,13 +4669,13 @@ defmodule OrbitalDynamics.Schema do
   defp validate_contract(@maneuver_recommendation, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_maneuver_recommendation("$", artifact)
+    |> DecisionSupportValidation.validate_maneuver_recommendation("$", artifact)
   end
 
   defp validate_contract(@maneuver_review_report, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_maneuver_review_report("$", artifact)
+    |> DecisionSupportValidation.validate_maneuver_review_report("$", artifact)
   end
 
   defp validate_contract(@execution_report, contract, artifact) do
@@ -5281,24 +5281,6 @@ defmodule OrbitalDynamics.Schema do
         path,
         group,
         contact_allocation_report_domain_callbacks()
-      )
-
-  defp validate_maneuver_recommendation(issues, path, maneuver),
-    do:
-      DecisionSupportValidation.validate_maneuver_recommendation(
-        issues,
-        path,
-        maneuver,
-        maneuver_recommendation_model_limits()
-      )
-
-  defp validate_maneuver_review_report(issues, path, report),
-    do:
-      DecisionSupportValidation.validate_maneuver_review_report(
-        issues,
-        path,
-        report,
-        maneuver_review_report_model_limits()
       )
 
   defp validate_optional_objective_tradeoff_report(issues, report),
