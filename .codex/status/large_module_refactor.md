@@ -6,47 +6,38 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema validation/migration/lint operations context extraction.
+Schema execution/reproducibility validation context extraction.
 
 Status:
-Completed and pushed.
+Selected; implementation pending.
 
 Selected boundary:
-Add SchemaOperationsValidation owner-default entry points for schema validation
-report/batch, schema migration report, campaign request lint, and study
-manifest lint artifacts. Derive requirements from ValidationRegistryContracts
-and LintRegistryContracts, route all five direct Schema clauses, and keep every
-contract API unchanged.
+Add an `ExecutionReproducibilityValidation` owner-default entry point for
+`execution_report.v1` and `monte_carlo_reproducibility_report.v1`. Derive
+requirements from `ExecutionReproducibilityRegistryContracts`, route both
+direct `Schema` clauses, and keep both contract APIs unchanged.
 
 Selection evidence:
-- `schema.ex` remains the dominant production hotspot at 4,888 lines; the other
+- `schema.ex` remains the dominant production hotspot at 4,864 lines; the other
   targeted public facades are now 164 to 524 lines.
-- Five adjacent administrative clauses repeat required-field setup and routing.
-- ValidationRegistryContracts and LintRegistryContracts own every requirement.
-- ValidationReportContracts, SchemaMigrationContracts, and LintContracts own
-  all artifact-specific validation.
-- No route needs callbacks, recursive Schema lookup, or facade-local context.
+- The two adjacent clauses repeat required-field setup and form the exact family
+  owned by `ExecutionReproducibilityRegistryContracts`.
+- `ExecutionReportContracts` and `MonteCarloReproducibilityContracts` own all
+  artifact-specific validation.
+- Neither route needs callbacks, recursive `Schema` lookup, model limits, or
+  facade-local context.
+- `result_artifact.v1` remains out of scope because its nested execution-report
+  callback is a distinct recursive boundary.
 
 Implementation:
-Added `SchemaOperationsValidation` as the registry-backed family owner for the
-five selected artifacts and routed their direct `Schema` validation clauses
-through it. `schema.ex` moved from 4,888 to 4,864 lines.
+Pending.
 
 Verification:
-- Strict focused baseline: 8 tests passed.
-- Focused plus adjacent validation coverage after extraction: 26 tests passed.
-- Full schema export completed with no checked-in artifact changes.
-- Static routing review found exactly the five intended direct facade routes.
-- `mix xref graph` found only the expected runtime caller from `schema.ex`.
-- Formatting and `git diff --check` passed.
-- Strict forced compile passed across 4,080 files with warnings as errors.
-- Bounded diff review confirmed registry-owned requirements, contract routing,
-  validation ordering, and validation paths remain unchanged.
-- Implementation committed and pushed as `fdda4147`.
+Pending.
 
 Behavior/schema changes:
-None. Required fields, validation ordering and paths, public Schema APIs,
-validation results, and checked-in exports remain unchanged.
+None intended. Required fields, validation ordering and paths, public `Schema`
+APIs, validation results, and checked-in exports must remain unchanged.
 
 Last completed slice:
 Schema validation/migration/lint operations context extraction, selected in
@@ -54,8 +45,8 @@ Schema validation/migration/lint operations context extraction, selected in
 `schema.ex` moved from 4,888 to 4,864 lines.
 
 Next candidate:
-Re-rank the remaining Schema responsibility clusters and select the next
-facade-preserving extraction.
+Implement and verify the selected execution/reproducibility validation context,
+then re-rank the remaining Schema responsibility clusters.
 
 Blocked:
 No.
