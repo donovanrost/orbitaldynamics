@@ -9,7 +9,7 @@ Current slice:
 Ground-network communications JSON-property family extraction.
 
 Status:
-Selected; implementation pending.
+Implemented and verified.
 
 Selected boundary:
 Extract the ten contiguous command-window, station calendar/reservation,
@@ -28,10 +28,24 @@ Selection evidence:
   the only shared alias is the existing timeline-context schema owner.
 
 Implementation:
-Pending.
+- Added a 218-line `GroundNetworkPropertyRouter` with ten mechanically moved
+  ground-network communications clause bodies spanning twenty contracts.
+- Kept all literal and guarded parent clause heads in place as ordered
+  delegations.
+- Reused shared lazy provider/context/fallback support and the existing
+  timeline-context schema owner without a parent callback.
+- The parent router moved from 1,021 to 914 lines.
 
 Verification:
-Pending.
+- Strict pre-change baseline and post-change schema/validation suite: 359 tests
+  passed in each run.
+- AST comparison confirmed all ten moved bodies are exact and all 76 parent
+  clause heads remain in their original order.
+- Full schema export regenerated 121 contract schemas and the bundle with no
+  checked-in schema diff.
+- `mix xref trace` confirms the ten intended family edges.
+- Formatting, `git diff --check`, and bounded source/schema diff review passed.
+- Strict compile passed for 4,103 files with warnings as errors.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -39,13 +53,13 @@ laziness, field-hint fallback, stable-ID decoration, public `Schema`, and
 checked-in exports must remain unchanged.
 
 Last completed slice:
-Strategy/planning-analysis JSON-property family extraction, selected in
-`15add911` and implemented in `fd11d950`. The parent router moved from 1,071 to
-1,021 lines.
+Ground-network communications JSON-property family extraction, selected in
+`eef80e1a` and implemented in `7a87bb6f`. The parent router moved from 1,021 to
+914 lines.
 
 Next candidate:
-Implement and verify the selected ground-network communications split, then
-re-rank the adjacent filter/resource/contention cohort.
+Re-rank the adjacent filter/resource/contention and objective/optimizer cohorts
+for the next broad exact-body family move.
 
 Blocked:
 No.
