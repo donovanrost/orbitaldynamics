@@ -9,7 +9,7 @@ Current slice:
 Schema station-calendar owner routing extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Extend `StationReservationValidation` owner-default routing to
@@ -30,24 +30,39 @@ Selection evidence:
 - No route needs recursive `Schema` lookup.
 
 Implementation:
-Pending.
+Extended the registry-backed `StationReservationValidation` owner with three
+compact calendar artifact routes and moved provider, report, and precedence
+contract routing behind it. `schema.ex` moved from 4,771 to 4,761 lines.
 
 Verification:
-Pending.
+- Strict focused baseline: 62 tests passed.
+- Focused plus adjacent station-calendar, validation, operator-review, Cadence
+  import, candidate-refresh replay/provider build, campaign-planner
+  source/pressure, contract, and export coverage after extraction: 84 tests
+  passed.
+- Full schema export completed with no checked-in artifact changes.
+- Static routing review found exactly the three intended direct facade routes.
+- `mix xref trace` confirmed all three runtime calls originate in `schema.ex`.
+- Formatting and `git diff --check` passed.
+- Strict forced compile passed across 4,086 files with warnings as errors.
+- Bounded diff review confirmed registry-owned requirements, owner-default
+  report model/model limits, provider/report/precedence contract routing,
+  validation ordering, and paths remain unchanged.
+- Implementation committed and pushed as `6fd05694`.
 
 Behavior/schema changes:
-None intended. Required fields, validation ordering and paths, public `Schema`
-and existing `StationReservationValidation` APIs, validation results, and
-checked-in exports must remain unchanged.
+None. Required fields, validation ordering and paths, public `Schema` and
+existing `StationReservationValidation` APIs, validation results, and
+checked-in exports remain unchanged.
 
 Last completed slice:
-Schema link-capacity owner completion, selected in `e74cce47` and implemented
-in `a5337b46`.
-`schema.ex` moved from 4,773 to 4,771 lines.
+Schema station-calendar owner routing extraction, selected in `49ca11aa` and
+implemented in `6fd05694`.
+`schema.ex` moved from 4,771 to 4,761 lines.
 
 Next candidate:
-Implement and verify the selected station-calendar owner routing, then re-rank
-the remaining Schema responsibility clusters.
+Re-rank the remaining Schema responsibility clusters and select the next
+facade-preserving extraction.
 
 Blocked:
 No.
