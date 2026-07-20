@@ -9,7 +9,7 @@ Current slice:
 Schema candidate-rejection validation context extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Add default-context arity-three entry points to CandidateRejectionValidation
@@ -31,18 +31,37 @@ Selection evidence:
   supply alternate limits or required fields.
 
 Implementation:
-Pending.
+Added default-context arity-three report and optional-report entry points to
+CandidateRejectionValidation, kept the customizable arity-four/arity-five
+APIs, derived context from the existing candidate-rejection schema and registry
+owners, routed one eager and two lazy facade consumers directly, and removed
+both wrappers. `schema.ex` moved from 5,860 to 5,841 lines.
 
 Verification:
-Pending.
+- Strict candidate-rejection/campaign/Cadence/operator-review baseline before
+  extraction: 9 passed.
+- The same strict focused suite after extraction: 9 passed.
+- Strict checked-in export, review/import handoff, and JSON Schema export
+  coverage: 22 passed.
+- The full schema-export task completed and produced no checked-in changes.
+- Exact static inspection confirms one direct eager validation, two direct
+  lazy callbacks, zero facade wrappers, and retained customizable owner APIs.
+- `mix xref callers OrbitalDynamics.Schema.CandidateRejectionValidation`
+  reports only the expected Schema facade runtime caller.
+- `mix format --check-formatted` and `git diff --check` passed.
+- Strict forced compile passed across 4,072 files with no warnings.
+- Bounded local diff review found no must-fix findings.
+- Implementation commit `ef9b3d23` pushed to `main`.
 
 Behavior/schema changes:
-None intended.
+None. Required fields, model limits, issue ordering and paths, customizable
+owner entry points, public Schema APIs, validation results, and checked-in
+exports remain unchanged.
 
 Last completed slice:
-Schema timeline-transition validation context extraction, selected in
-`0f55f0bb` and implemented in `f1a0f77f`.
-`schema.ex` moved from 5,913 to 5,860 lines.
+Schema candidate-rejection validation context extraction, selected in
+`41574844` and implemented in `ef9b3d23`.
+`schema.ex` moved from 5,860 to 5,841 lines.
 
 Next candidate:
 Re-rank the remaining non-capability Schema responsibility clusters. Preserve
