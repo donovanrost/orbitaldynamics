@@ -9,7 +9,7 @@ Current slice:
 Schema Cadence-import capability-context extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Extract the CadenceImport capability accessor, model-limit projection, and
@@ -37,20 +37,38 @@ Selection evidence:
   unchanged.
 
 Implementation:
-Pending.
+Added `OrbitalDynamics.Schema.CadenceImportCapabilityContext`, which now owns
+the CadenceImport capability accessor, model-limit projection, and
+supported-source accessor. The Schema facade routes all six former direct
+capability dependencies through those three focused APIs.
+`schema.ex` moved from 6,183 to 6,184 lines because the explicit import is one
+line larger than the removed helper/direct-call surface; the dedicated owner
+is 17 lines.
 
 Verification:
-Pending.
+- Strict focused Cadence-import/Cadence-row/export/validation-evidence baseline
+  before extraction: 23 passed.
+- The same strict focused suite after extraction: 23 passed.
+- Strict schema and manifest export tasks plus adjacent operator-review,
+  candidate-refresh provenance, and fixture-visibility coverage: 7 passed.
+- `mix xref callers
+  OrbitalDynamics.Schema.CadenceImportCapabilityContext` reports only
+  `lib/orbital_dynamics/schema.ex (export)`.
+- `git diff --check` passed; no checked-in schema export changed.
+- Strict forced compile passed across 4,059 files.
+- Implementation commit `cf79b647` pushed to `main`.
 
 Behavior/schema changes:
-None intended.
+None. Public facades, per-call capability evaluation, model-limit conversion,
+supported-source ordering, generated JSON Schema, validation behavior, and
+checked-in exports remain unchanged.
 
 Last completed slice:
-Schema station-calendar capability-context extraction, selected in `297af482`
-and implemented in `786b8553`.
-`schema.ex` remains 6,183 lines; the dedicated
-StationCalendarCapabilityContext owner is 21 lines and all eight direct
-StationCalendar capability dependencies moved behind it.
+Schema Cadence-import capability-context extraction, selected in `aa124857`
+and implemented in `cf79b647`.
+`schema.ex` moved from 6,183 to 6,184 lines; the dedicated
+CadenceImportCapabilityContext owner is 17 lines and all six direct
+CadenceImport capability dependencies moved behind it.
 
 Next candidate:
 Re-rank the remaining Schema capability/model-limit responsibility clusters.
