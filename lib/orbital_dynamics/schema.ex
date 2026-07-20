@@ -20,6 +20,7 @@ defmodule OrbitalDynamics.Schema do
     PolicyValidation,
     ResourceValidation,
     SourceEvidenceValidation,
+    StateRefreshArtifactValidation,
     StationReservationValidation,
     TimelineArtifactValidation,
     TimelineContextJsonSchema,
@@ -4788,99 +4789,48 @@ defmodule OrbitalDynamics.Schema do
     DecisionSupportValidation.validate_score_term_report([], "$", artifact)
   end
 
-  defp validate_contract(@accepted_planning_state, contract, artifact) do
-    OrbitalDynamics.Schema.AcceptedStateContracts.validate_planning_state(
-      [],
-      "$",
-      artifact,
-      contract["required_fields"]
-    )
+  defp validate_contract(@accepted_planning_state, _contract, artifact) do
+    StateRefreshArtifactValidation.validate([], "$", artifact, @accepted_planning_state)
   end
 
-  defp validate_contract(@spacecraft_state_estimate, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.AcceptedStateContracts.validate_spacecraft_state_estimate(
-      "$",
-      artifact
-    )
+  defp validate_contract(@spacecraft_state_estimate, _contract, artifact) do
+    StateRefreshArtifactValidation.validate([], "$", artifact, @spacecraft_state_estimate)
   end
 
-  defp validate_contract(@maneuver_execution_delta, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.AcceptedStateContracts.validate_maneuver_execution_delta(
-      "$",
-      artifact
-    )
+  defp validate_contract(@maneuver_execution_delta, _contract, artifact) do
+    StateRefreshArtifactValidation.validate([], "$", artifact, @maneuver_execution_delta)
   end
 
-  defp validate_contract(@candidate_refresh, contract, artifact) do
-    OrbitalDynamics.Schema.CandidateRefreshContracts.validate(
-      [],
-      artifact,
-      contract["required_fields"],
-      &ContactAllocationValidation.validate_optional_report/2,
-      &CandidateRejectionValidation.validate_optional_report/3
-    )
+  defp validate_contract(@candidate_refresh, _contract, artifact) do
+    StateRefreshArtifactValidation.validate([], "$", artifact, @candidate_refresh)
   end
 
-  defp validate_contract(@candidate_diff_row, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> expect_equal("$", artifact, "schema_contract", "candidate_diff_row.v1")
-    |> OrbitalDynamics.Schema.CandidateDiffContracts.validate_row("$", artifact)
+  defp validate_contract(@candidate_diff_row, _contract, artifact) do
+    StateRefreshArtifactValidation.validate([], "$", artifact, @candidate_diff_row)
   end
 
-  defp validate_contract(@freshness_report, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.FreshnessReportContracts.validate_optional("$", artifact)
+  defp validate_contract(@freshness_report, _contract, artifact) do
+    StateRefreshArtifactValidation.validate([], "$", artifact, @freshness_report)
   end
 
-  defp validate_contract(@invalidated_candidate, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> expect_equal("$", artifact, "schema_contract", "invalidated_candidate.v1")
-    |> OrbitalDynamics.Schema.CandidateDiffContracts.validate_invalidated_candidate(
-      "$",
-      artifact
-    )
+  defp validate_contract(@invalidated_candidate, _contract, artifact) do
+    StateRefreshArtifactValidation.validate([], "$", artifact, @invalidated_candidate)
   end
 
-  defp validate_contract(@refresh_budget_report, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.RefreshBudgetReportContracts.validate("$", artifact)
+  defp validate_contract(@refresh_budget_report, _contract, artifact) do
+    StateRefreshArtifactValidation.validate([], "$", artifact, @refresh_budget_report)
   end
 
-  defp validate_contract(@refreshed_window, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> expect_equal("$", artifact, "schema_contract", "refreshed_window.v1")
-    |> OrbitalDynamics.Schema.CandidateRefreshWindowContracts.validate_refreshed_window(
-      "$",
-      artifact
-    )
+  defp validate_contract(@refreshed_window, _contract, artifact) do
+    StateRefreshArtifactValidation.validate([], "$", artifact, @refreshed_window)
   end
 
-  defp validate_contract(@remaining_horizon, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.CandidateRefreshWindowContracts.validate_remaining_horizon(
-      "$",
-      artifact
-    )
+  defp validate_contract(@remaining_horizon, _contract, artifact) do
+    StateRefreshArtifactValidation.validate([], "$", artifact, @remaining_horizon)
   end
 
-  defp validate_contract(@source_window_lineage, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> expect_equal("$", artifact, "schema_contract", "source_window_lineage.v1")
-    |> OrbitalDynamics.Schema.CandidateDiffContracts.validate_source_window_lineage(
-      "$",
-      artifact
-    )
+  defp validate_contract(@source_window_lineage, _contract, artifact) do
+    StateRefreshArtifactValidation.validate([], "$", artifact, @source_window_lineage)
   end
 
   defp validate_contract(@validation_reference_fixture_report, _contract, artifact) do
