@@ -352,6 +352,12 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp json_schema_property_context do
+    common_schema_providers =
+      OrbitalDynamics.Schema.CommonSchemaProviders.build(
+        @stable_id_pattern,
+        @sha256_pattern
+      )
+
     policy_schema_providers =
       OrbitalDynamics.Schema.PolicySchemaProviders.build(
         @stable_id_pattern,
@@ -603,7 +609,6 @@ defmodule OrbitalDynamics.Schema do
         {:maneuver_recommendation_model_limits, 0} => &maneuver_recommendation_model_limits/0,
         {:maneuver_review_report_model_limits, 0} => &maneuver_review_report_model_limits/0,
         {:model_acceptance_report_model_limits, 0} => &model_acceptance_report_model_limits/0,
-        {:nested_stable_id_array_map_json_schema, 0} => &nested_stable_id_array_map_json_schema/0,
         {:operational_readiness_capabilities, 0} => &operational_readiness_capabilities/0,
         {:operator_review_capabilities, 0} => &operator_review_capabilities/0,
         {:operator_review_package_model_limits, 0} => &operator_review_package_model_limits/0,
@@ -615,9 +620,6 @@ defmodule OrbitalDynamics.Schema do
         {:schema_migration_row_statuses, 0} => &schema_migration_row_statuses/0,
         {:schema_migration_statuses, 0} => &schema_migration_statuses/0,
         {:schema_validation_model_limits, 0} => &schema_validation_model_limits/0,
-        {:sha256_json_schema, 0} => &sha256_json_schema/0,
-        {:stable_id_array_map_schema, 0} => &stable_id_array_map_schema/0,
-        {:stable_id_array_schema, 0} => &stable_id_array_schema/0,
         {:station_calendar_provider_counteroffer_actions, 0} =>
           &station_calendar_provider_counteroffer_actions/0,
         {:station_calendar_report_model, 0} => &station_calendar_report_model/0,
@@ -638,6 +640,7 @@ defmodule OrbitalDynamics.Schema do
     ]
     |> Keyword.update!(:schema_providers, fn providers ->
       providers
+      |> Map.merge(common_schema_providers)
       |> Map.merge(operational_readiness_schema_providers)
       |> Map.merge(timeline_report_schema_providers)
       |> Map.merge(timeline_core_schema_providers)
@@ -877,22 +880,6 @@ defmodule OrbitalDynamics.Schema do
       @field_type_hints,
       @stable_id_pattern
     )
-  end
-
-  defp sha256_json_schema do
-    OrbitalDynamics.Schema.CommonJsonSchema.sha256(@sha256_pattern)
-  end
-
-  defp stable_id_array_schema do
-    OrbitalDynamics.Schema.CommonJsonSchema.stable_id_array(@stable_id_pattern)
-  end
-
-  defp stable_id_array_map_schema do
-    OrbitalDynamics.Schema.CommonJsonSchema.stable_id_array_map(@stable_id_pattern)
-  end
-
-  defp nested_stable_id_array_map_json_schema do
-    OrbitalDynamics.Schema.CommonJsonSchema.nested_stable_id_array_map(@stable_id_pattern)
   end
 
   defp candidate_activity_json_schema do
