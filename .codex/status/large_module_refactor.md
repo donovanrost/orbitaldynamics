@@ -9,20 +9,21 @@ Current slice:
 Schema timeline-feedback capability routing.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Route the Schema facade's three remaining direct
 `TimelineFeedback.capabilities/0` dependencies through the existing
-`TimelineCapabilityContext.timeline_capabilities/0` owner.
+`TimelineCapabilityContext` owner by adding a distinct
+`timeline_feedback_capabilities/0` accessor.
 Keep timeline-feedback property dispatch, row schema construction, validation,
 and all public facades in their current owners.
 
 Selection evidence:
 - `schema.ex` remains the dominant hotspot at 6,187 lines.
 - Two lazy property-dispatch callbacks and one row-schema value still query
-  TimelineFeedback capabilities directly even though
-  `timeline_capabilities/0` is already imported from the dedicated owner.
+  TimelineFeedback capabilities directly even though the dedicated timeline
+  capability owner already exists.
 - Focused function captures and a focused value call complete the facade's
   timeline capability routing while preserving callback timing and per-call
   evaluation.
@@ -30,19 +31,40 @@ Selection evidence:
   results, and checked-in exports must remain unchanged.
 
 Implementation:
-Pending.
+Added `timeline_feedback_capabilities/0` to TimelineCapabilityContext, routed
+its existing feedback model-limit projection through that accessor, and
+replaced the facade's two direct callback captures and one direct row-schema
+value.
+The first uncommitted attempt reused `timeline_capabilities/0`; focused tests
+proved that accessor correctly exposes the distinct Timeline domain map, so
+the implementation was corrected to preserve TimelineFeedback semantics.
+`schema.ex` moved from 6,187 to 6,188 lines; the existing owner moved from 34
+to 36 lines.
 
 Verification:
-Pending.
+- Strict focused timeline-activity/contact-feedback/export baseline before
+  routing: 30 passed.
+- After correction, the strict schema portion passed 29 and the strict
+  timeline-feedback export task passed 1.
+- Strict full schema-export task plus adjacent operational-timeline,
+  campaign-repair, and fixture-visibility coverage: 5 passed.
+- `mix xref callers OrbitalDynamics.Schema.TimelineCapabilityContext` reports
+  only `lib/orbital_dynamics/schema.ex (export)`.
+- No direct `TimelineFeedback.capabilities/0` call remains in `schema.ex`.
+- `git diff --check` passed; no checked-in schema export changed.
+- Strict forced compile passed across 4,062 files.
+- Implementation commit `d5a9fec1` pushed to `main`.
 
 Behavior/schema changes:
-None intended.
+None. Public facades, Timeline versus TimelineFeedback capability semantics,
+lazy callback timing, per-call evaluation, generated JSON Schema, validation
+behavior, and checked-in exports remain unchanged.
 
 Last completed slice:
-Schema contact-allocation capability callback routing, selected in `343d06ea`
-and implemented in `760401de`.
-`schema.ex` moved from 6,188 to 6,187 lines; the existing
-ContactAllocationCapabilityContext owner moved from 138 to 142 lines.
+Schema timeline-feedback capability routing, selected in `5b92a765` and
+implemented in `d5a9fec1`.
+`schema.ex` moved from 6,187 to 6,188 lines; the existing
+TimelineCapabilityContext owner moved from 34 to 36 lines.
 
 Next candidate:
 Re-rank the remaining Schema capability/model-limit responsibility clusters.
