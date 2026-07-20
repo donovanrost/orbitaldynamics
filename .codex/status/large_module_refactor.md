@@ -9,7 +9,7 @@ Current slice:
 Operational-readiness schema-provider extraction.
 
 Status:
-Selected; implementation pending.
+Completed and verified.
 
 Selected boundary:
 Move operational-readiness gate/evidence, quality-gate row, cadence readiness
@@ -27,10 +27,21 @@ Selection evidence:
   callbacks.
 
 Implementation:
-Pending.
+Selected in `7ceaedd3` and implemented in `11b69418`. Added the 95-line
+`OperationalReadinessSchemaProviders` owner with six lazy readiness/evidence
+providers, merged its registry context, and passed shared closures to
+source-evidence and cadence-review owners. The public `Schema` facade moved
+from 959 to 947 lines.
 
 Verification:
-Pending.
+- Exact comparison passed for all six readiness-provider keys and outputs using
+  sentinel approval/rule schemas.
+- Focused schema/validation suite passed: 359 tests.
+- Full checked-in schema export regenerated with no diff.
+- Runtime xref shows one direct `Schema` ->
+  `OperationalReadinessSchemaProviders` edge.
+- Strict forced compile passed with warnings as errors: 4,127 files.
+- `JsonSchemaPropertyRouter` remains an ordered 76-head facade.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -38,13 +49,13 @@ laziness, field-hint fallback, stable-ID decoration, public `Schema`, and
 checked-in exports must remain unchanged.
 
 Last completed slice:
-Timeline report lifecycle/summary expansion, selected in `d0512f10` and
-implemented in `8ad4a5c6`. The public `Schema` facade moved from 1,106 to 959
+Operational-readiness schema-provider extraction, selected in `7ceaedd3` and
+implemented in `11b69418`. The public `Schema` facade moved from 959 to 947
 lines.
 
 Next candidate:
-Implement and verify the selected readiness provider extraction, then re-rank
-the remaining facade clusters.
+Re-rank the remaining public-facade clusters and select the next bounded
+extraction.
 
 Blocked:
 No.
