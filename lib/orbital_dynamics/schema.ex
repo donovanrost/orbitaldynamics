@@ -20,6 +20,7 @@ defmodule OrbitalDynamics.Schema do
     OperatorReviewValidation,
     PolicyValidation,
     ResourceValidation,
+    SchemaOperationsValidation,
     SourceEvidenceValidation,
     StateRefreshArtifactValidation,
     StationReservationValidation,
@@ -4513,49 +4514,24 @@ defmodule OrbitalDynamics.Schema do
     ModelCapabilityValidation.validate([], "$", artifact, @subsystem_model_capability)
   end
 
-  defp validate_contract(@schema_validation_report, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.ValidationReportContracts.validate_report(
-      "$",
-      artifact
-    )
+  defp validate_contract(@schema_validation_report, _contract, artifact) do
+    SchemaOperationsValidation.validate([], "$", artifact, @schema_validation_report)
   end
 
-  defp validate_contract(@schema_validation_batch_report, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.ValidationReportContracts.validate_batch(
-      "$",
-      artifact
-    )
+  defp validate_contract(@schema_validation_batch_report, _contract, artifact) do
+    SchemaOperationsValidation.validate([], "$", artifact, @schema_validation_batch_report)
   end
 
-  defp validate_contract(@schema_migration_report, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.SchemaMigrationContracts.validate(
-      "$",
-      artifact
-    )
+  defp validate_contract(@schema_migration_report, _contract, artifact) do
+    SchemaOperationsValidation.validate([], "$", artifact, @schema_migration_report)
   end
 
-  defp validate_contract(@campaign_request_lint, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.LintContracts.validate_campaign_request(
-      "$",
-      artifact
-    )
+  defp validate_contract(@campaign_request_lint, _contract, artifact) do
+    SchemaOperationsValidation.validate([], "$", artifact, @campaign_request_lint)
   end
 
-  defp validate_contract(@study_manifest_lint, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.LintContracts.validate_study_manifest(
-      "$",
-      artifact
-    )
+  defp validate_contract(@study_manifest_lint, _contract, artifact) do
+    SchemaOperationsValidation.validate([], "$", artifact, @study_manifest_lint)
   end
 
   defp validate_contract(@strategy_branch, contract, artifact) do
