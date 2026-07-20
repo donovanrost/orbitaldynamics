@@ -6,59 +6,37 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema resource-projection validation context extraction.
+Schema maneuver validation context extraction.
 
 Status:
-Completed and pushed.
+Selected; implementation not started.
 
 Selected boundary:
-Add default-context entry points to ResourceValidation for required and
-optional resource-projection report/flow-summary validation. Compose defaults
-from PolicyValidation and StableIdValidation, route two eager and four lazy
-Schema consumers directly, and remove four facade wrappers plus their callback
-builder. Keep the existing customizable owner APIs.
+Add default-context entry points to DecisionSupportValidation for maneuver
+recommendation and maneuver-review report validation. Derive limits from the
+existing maneuver capability owner, route both eager Schema validations
+directly, and remove both facade wrappers. Keep the customizable arity-four
+owner APIs.
 
 Selection evidence:
-- `schema.ex` remains the dominant production hotspot at 5,796 lines; the other
+- `schema.ex` remains the dominant production hotspot at 5,752 lines; the other
   targeted public facades are now 164 to 524 lines.
-- All four wrappers pass the same three callbacks: owner-default policy
-  approval/rule-match validation and StableIdValidation nested-ID matching.
-- Exact usage finds two eager validations and four callbacks across campaign
-  plan/repair and strategy validation.
-- Every dependency is now owner-level; no recursive Schema lookup or facade
-  capability context is required.
+- Both wrappers supply only maneuver-owned model limits.
+- Exact usage finds one required maneuver recommendation validation and one
+  required maneuver-review report validation.
+- `ManeuverReviewCapabilityContext` already owns both default limit lists; no
+  recursive Schema lookup or facade context is required.
 - Owner-default entry points preserve the customizable APIs for callers that
-  supply alternate callbacks.
+  supply alternate model limits.
 
 Implementation:
-Added default-context entry points to ResourceValidation for required and
-optional resource-projection report/flow-summary validation. Kept all
-customizable APIs, composed defaults from PolicyValidation and
-StableIdValidation, routed two eager and four lazy facade consumers directly,
-and removed four wrappers plus their callback builder. `schema.ex` moved from
-5,796 to 5,752 lines.
+Pending.
 
 Verification:
-- Strict resource/campaign/policy/operator-review baseline before extraction:
-  11 passed.
-- The same strict focused suite after extraction: 11 passed.
-- Strict checked-in export, review/import handoff, JSON Schema export, and
-  Cadence import coverage: 26 passed.
-- The full schema-export task completed and produced no checked-in changes.
-- Exact static inspection confirms two direct eager validations, four direct
-  callbacks, zero facade wrappers/callback builders, and retained customizable
-  owner APIs.
-- `mix xref callers OrbitalDynamics.Schema.ResourceValidation` reports the
-  expected Schema facade and internal contact-report validation consumers.
-- `mix format --check-formatted` and `git diff --check` passed.
-- Strict forced compile passed across 4,072 files with no warnings.
-- Bounded local diff review found no must-fix findings.
-- Implementation commit `90f0fb94` pushed to `main`.
+Pending.
 
 Behavior/schema changes:
-None. Resource model limits, policy and nested-ID callbacks, issue ordering and
-paths, customizable owner entry points, public Schema APIs, validation results,
-and checked-in exports remain unchanged.
+None intended.
 
 Last completed slice:
 Schema resource-projection validation context extraction, selected in
