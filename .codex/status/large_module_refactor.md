@@ -9,7 +9,7 @@ Current slice:
 OperationalReadiness gate-summary extraction.
 
 Status:
-Selected; strict focused baseline pending.
+Completed and pushed in `fef750c5`.
 
 Selected boundary:
 Extract operational-readiness gate-summary construction and shared row-derived
@@ -34,24 +34,44 @@ Selection evidence:
   public output, and error behavior must remain unchanged.
 
 Implementation:
-Pending.
+- Added `OrbitalDynamics.OperationalReadiness.GateSummary` as the owner of
+  gate-summary construction and shared row-derived gate counts,
+  status/classification frequencies, and deterministic ID routing.
+- Wired the existing gate-summary facade and neighboring summary/report
+  aggregations directly to the owner while preserving OperationalReadiness and
+  root public APIs.
+- Kept readiness classification, import-eligibility/execution-boundary
+  semantics, quality-gate rows, and evidence collection outside the boundary.
+- `operational_readiness.ex` moved from 1,768 to 1,686 lines; the new owner is
+  86 lines.
 
 Verification:
-Pending.
+- Strict focused baseline passed all 31 OperationalReadiness tests.
+- Exact old/new public parity passed for four deterministic gate-summary
+  results: dense mixed routing, atom-key normalization, empty gates, and the
+  root public facade.
+- Post-extraction focused and adjacent OperationalReadiness, operator-review,
+  gate-replay-summary, and validation-fixture verification passed all 41 tests.
+- Static checks confirm gate-summary construction and shared aggregation
+  helpers left the facade; xref reports only OperationalReadiness as a runtime
+  caller.
+- Strict warning-clean forced compile passed for 4,012 files.
+- Formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-RecommendationRiskContext relay-data-path extraction, selected in `189a5e6a`
-and implemented in `574e2a13`.
-`recommendation_risk_context.ex` moved from 1,772 to 1,650 lines; the dedicated
-RelayDataPath owner is 155 lines.
+OperationalReadiness gate-summary extraction, selected in `dfa512f8` and
+implemented in `fef750c5`.
+`operational_readiness.ex` moved from 1,768 to 1,686 lines; the dedicated
+GateSummary owner is 86 lines.
 
 Next candidate:
 Re-rank the live checkout and select the next bounded facade-preserving
-extraction. `operational_readiness.ex` is now the largest ordinary eligible
-facade at 1,768 lines, followed by ContactAllocation and StationCalendar.
+extraction. `communications/contact_allocation.ex` is now the largest ordinary
+eligible facade at 1,707 lines, followed by OperationalReadiness and
+StationCalendar.
 
 Blocked:
 No.
