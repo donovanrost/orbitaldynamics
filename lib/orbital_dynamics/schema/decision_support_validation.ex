@@ -17,6 +17,30 @@ defmodule OrbitalDynamics.Schema.DecisionSupportValidation do
   @optimizer_contract "optimizer_contract.v1"
   @constraint_report "constraint_report.v1"
   @score_term_report "score_term_report.v1"
+  @maneuver_recommendation "maneuver_recommendation.v1"
+  @maneuver_review_report "maneuver_review_report.v1"
+
+  def validate_maneuver_recommendation_artifact(issues, path, maneuver) do
+    issues
+    |> require_registered_fields(
+      path,
+      maneuver,
+      OrbitalDynamics.Schema.StrategyManeuverRegistryContracts,
+      @maneuver_recommendation
+    )
+    |> validate_maneuver_recommendation(path, maneuver)
+  end
+
+  def validate_maneuver_review_artifact(issues, path, report) do
+    issues
+    |> require_registered_fields(
+      path,
+      report,
+      OrbitalDynamics.Schema.StrategyManeuverRegistryContracts,
+      @maneuver_review_report
+    )
+    |> validate_maneuver_review_report(path, report)
+  end
 
   def validate_maneuver_recommendation(issues, path, maneuver),
     do:

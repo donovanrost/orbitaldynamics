@@ -4499,16 +4499,12 @@ defmodule OrbitalDynamics.Schema do
     CampaignArtifactValidation.validate_recommendation_artifact([], "$", artifact)
   end
 
-  defp validate_contract(@maneuver_recommendation, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> DecisionSupportValidation.validate_maneuver_recommendation("$", artifact)
+  defp validate_contract(@maneuver_recommendation, _contract, artifact) do
+    DecisionSupportValidation.validate_maneuver_recommendation_artifact([], "$", artifact)
   end
 
-  defp validate_contract(@maneuver_review_report, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> DecisionSupportValidation.validate_maneuver_review_report("$", artifact)
+  defp validate_contract(@maneuver_review_report, _contract, artifact) do
+    DecisionSupportValidation.validate_maneuver_review_artifact([], "$", artifact)
   end
 
   defp validate_contract(@execution_report, _contract, artifact) do
