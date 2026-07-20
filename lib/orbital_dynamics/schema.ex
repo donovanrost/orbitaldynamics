@@ -5268,7 +5268,7 @@ defmodule OrbitalDynamics.Schema do
       validate_contact_allocation_capacity_pack_group:
         &validate_contact_allocation_capacity_pack_group/3,
       validate_optional_actual_data_rate_throughput_derivation:
-        &validate_optional_actual_data_rate_throughput_derivation/4,
+        &OrbitalDynamics.Schema.ExecutionMetricContracts.validate_optional_actual_data_rate_throughput_derivation/4,
       validate_contact_contention_deferred_priority:
         &OrbitalDynamics.Schema.ContactContentionReportContracts.validate_deferred_priority/3,
       validate_priority_field_evidence_counts:
@@ -6023,7 +6023,7 @@ defmodule OrbitalDynamics.Schema do
       validate_contact_allocation_capacity_pack_group:
         &validate_contact_allocation_capacity_pack_group/3,
       validate_optional_actual_data_rate_throughput_derivation:
-        &validate_optional_actual_data_rate_throughput_derivation/4,
+        &OrbitalDynamics.Schema.ExecutionMetricContracts.validate_optional_actual_data_rate_throughput_derivation/4,
       validate_optional_lifecycle_transition:
         &TimelineContextValidation.validate_optional_lifecycle_transition/4,
       validate_optional_branch_comparison_source_row:
@@ -6076,14 +6076,4 @@ defmodule OrbitalDynamics.Schema do
 
   defp safety_case_count_fields,
     do: OrbitalDynamics.Schema.ValidationAcceptanceReportContracts.safety_case_count_fields()
-
-  defp validate_optional_actual_data_rate_throughput_derivation(issues, path, map, field)
-       when is_map(map) do
-    OrbitalDynamics.Schema.ExecutionMetricContracts.validate_optional_actual_data_rate_throughput_derivation(
-      issues,
-      path,
-      map,
-      field
-    )
-  end
 end
