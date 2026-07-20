@@ -9,7 +9,7 @@ Current slice:
 Schema validation-acceptance metadata direct routing.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Remove the Schema facade's one-hop safety-case count-fields helper.
@@ -28,18 +28,34 @@ Selection evidence:
   results, and checked-in exports must remain unchanged.
 
 Implementation:
-Pending.
+Removed the one-hop safety-case count-fields helper and routed the
+candidate-refresh callback directly to ValidationAcceptanceReportContracts.
+`schema.ex` moved from 6,071 to 6,068 lines.
 
 Verification:
-Pending.
+- Strict focused candidate-refresh/validation-evidence/export baseline before
+  routing: 29 passed.
+- The same strict focused suite after routing: 29 passed.
+- Strict schema/export-validation tasks plus adjacent fixture-visibility and
+  validation coverage: 5 passed.
+- `mix xref callers
+  OrbitalDynamics.Schema.ValidationAcceptanceReportContracts` reports the
+  expected `schema.ex` and CandidateRefreshReportContracts callers.
+- Static search confirms the facade helper definition and indirect capture are
+  gone.
+- `git diff --check` passed; no checked-in schema export changed.
+- Strict forced compile passed across 4,065 files.
+- Implementation commit `5ec36956` pushed to `main`.
 
 Behavior/schema changes:
-None intended.
+None. Public facades, lazy callback timing, count-field values and ordering,
+generated JSON Schema, validation behavior, and checked-in exports remain
+unchanged.
 
 Last completed slice:
-Schema policy field-group direct routing, selected in `f7dd8526` and
-implemented in `67722532`.
-`schema.ex` moved from 6,079 to 6,071 lines.
+Schema validation-acceptance metadata direct routing, selected in `526b9b0c`
+and implemented in `5ec36956`.
+`schema.ex` moved from 6,071 to 6,068 lines.
 
 Next candidate:
 Re-rank the remaining non-capability Schema responsibility clusters now that
