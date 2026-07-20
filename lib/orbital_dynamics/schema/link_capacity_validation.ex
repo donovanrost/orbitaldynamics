@@ -4,16 +4,18 @@ defmodule OrbitalDynamics.Schema.LinkCapacityValidation do
   import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2, require_fields: 4]
 
   @report_contract "link_capacity_report.v1"
+  @summary_contract "link_capacity_summary.v1"
 
   def validate_report(issues, path, report) do
-    required_fields =
-      OrbitalDynamics.Schema.LinkCapacityRegistryContracts.contracts()
-      |> OrbitalDynamics.Schema.Registry.fetch!(@report_contract)
-      |> Map.fetch!("required_fields")
-
     issues
-    |> require_fields(path, report, required_fields)
+    |> require_fields(path, report, required_fields(@report_contract))
     |> OrbitalDynamics.Schema.LinkCapacityReportContracts.validate(path, report)
+  end
+
+  def validate_summary(issues, path, summary) do
+    issues
+    |> require_fields(path, summary, required_fields(@summary_contract))
+    |> OrbitalDynamics.Schema.LinkCapacitySummaryContracts.validate_summary(path, summary)
   end
 
   def validate_optional_report(issues, nil), do: issues
@@ -23,4 +25,10 @@ defmodule OrbitalDynamics.Schema.LinkCapacityValidation do
 
   def validate_optional_report(issues, _report),
     do: [error("$.link_capacity_report", "must be an object") | issues]
+
+  defp required_fields(contract_name) do
+    OrbitalDynamics.Schema.LinkCapacityRegistryContracts.contracts()
+    |> OrbitalDynamics.Schema.Registry.fetch!(contract_name)
+    |> Map.fetch!("required_fields")
+  end
 end
