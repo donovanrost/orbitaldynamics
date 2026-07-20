@@ -572,7 +572,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       |> Enum.sort_by(&{-&1.score, &1.id})
 
     recommendation = StrategyRecommendationBuilder.build(branches)
-    source_plan_id = source_plan_id(request.prior_plan)
+    source_plan_id = RepairMetadata.source_plan_id(request.prior_plan)
 
     branch_comparison =
       BranchComparisonReport.report(
@@ -742,7 +742,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
 
   defp repair_score_timeline(prior_plan, activities, score_terms, score) do
     %{
-      "scenario_id" => source_plan_id(prior_plan),
+      "scenario_id" => RepairMetadata.source_plan_id(prior_plan),
       "score" => score,
       "score_terms" => score_terms,
       "activities" => activities,
@@ -889,9 +889,9 @@ defmodule OrbitalDynamics.CampaignPlanner do
     manifest_source =
       candidate_refresh_request
       |> CandidateRefreshRequest.manifest(
-        "repair_refresh_#{source_plan_id(prior_plan)}",
+        "repair_refresh_#{RepairMetadata.source_plan_id(prior_plan)}",
         %{
-          "repair_source_plan_id" => source_plan_id(prior_plan),
+          "repair_source_plan_id" => RepairMetadata.source_plan_id(prior_plan),
           "repair_current_epoch_s" => current_epoch_s
         }
       )
@@ -1027,10 +1027,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
       candidate_refresh,
       candidate_refresh_request
     )
-  end
-
-  defp source_plan_id(prior_plan) do
-    RepairMetadata.source_plan_id(prior_plan)
   end
 
   defp score(score_terms) do
