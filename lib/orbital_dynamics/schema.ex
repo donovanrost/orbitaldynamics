@@ -358,7 +358,6 @@ defmodule OrbitalDynamics.Schema do
       schema_providers: %{
         {:activity_context_json_schema, 0} => &activity_context_json_schema/0,
         {:approval_requirement_json_schema, 0} => &approval_requirement_json_schema/0,
-        {:branch_comparison_row_json_schema, 0} => &branch_comparison_row_json_schema/0,
         {:cadence_import_capability, 0} => &cadence_import_capability/0,
         {:cadence_import_json_schema, 1} => &cadence_import_json_schema/1,
         {:cadence_import_manifest_model_limits, 0} => &cadence_import_manifest_model_limits/0,
@@ -435,7 +434,6 @@ defmodule OrbitalDynamics.Schema do
         {:schema_validation_model_limits, 0} => &schema_validation_model_limits/0,
         {:scoped_downlink_context_json_schema_properties, 0} =>
           &scoped_downlink_context_json_schema_properties/0,
-        {:score_term_row_json_schema, 0} => &score_term_row_json_schema/0,
         {:sha256_json_schema, 0} => &sha256_json_schema/0,
         {:spacecraft_identity_json_schema, 0} => &spacecraft_identity_json_schema/0,
         {:stable_id_array_map_schema, 0} => &stable_id_array_map_schema/0,
@@ -652,35 +650,6 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp branch_scoped_downlink_context_json_schema_properties do
-    OrbitalDynamics.Schema.ScopedDownlinkContextJsonSchema.branch_from_context(
-      stable_id_pattern: @stable_id_pattern
-    )
-  end
-
-  defp branch_comparison_row_json_schema do
-    OrbitalDynamics.Schema.BranchComparisonRowJsonSchema.row_from_context(
-      stable_id_pattern: @stable_id_pattern,
-      stable_id_array_schema: &stable_id_array_schema/0,
-      string_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.string_array/0,
-      numeric_map_schema: &OrbitalDynamics.Schema.CommonJsonSchema.numeric_map/0,
-      branch_event_trust_boundary_status_counts_schema:
-        &OrbitalDynamics.Schema.OperationalReadinessContextJsonSchema.trust_boundary_status_count_map/0,
-      non_negative_integer_properties: fn ->
-        OrbitalDynamics.Schema.BranchComparisonReportContracts.row_count_fields()
-        |> OrbitalDynamics.Schema.CommonJsonSchema.non_negative_integer_properties()
-      end,
-      branch_scoped_downlink_context_properties:
-        &branch_scoped_downlink_context_json_schema_properties/0
-    )
-  end
-
-  defp score_term_row_json_schema do
-    OrbitalDynamics.Schema.ScoreTermReportJsonSchema.row_from_context(
-      stable_id_pattern: @stable_id_pattern
-    )
-  end
-
   defp sha256_json_schema do
     OrbitalDynamics.Schema.CommonJsonSchema.sha256(@sha256_pattern)
   end
@@ -877,16 +846,13 @@ defmodule OrbitalDynamics.Schema do
     ]
   end
 
-  defp branch_comparison_source_row_json_schema do
-    branch_comparison_row_json_schema()
-    |> Map.delete("required")
-  end
-
   defp strategy_explanation_json_schema,
     do:
       OrbitalDynamics.Schema.StrategyContextJsonSchema.explanation(
         @stable_id_pattern,
-        branch_scoped_downlink_context_json_schema_properties()
+        OrbitalDynamics.Schema.PlanningAnalysisSchemaProviders.branch_scoped_downlink_context_properties(
+          @stable_id_pattern
+        )
       )
 
   defp timeline_identity_json_schema,
@@ -1257,7 +1223,11 @@ defmodule OrbitalDynamics.Schema do
   defp cadence_import_manifest_row_json_schema_providers do
     [
       activity_context_json_schema: &activity_context_json_schema/0,
-      branch_comparison_source_row_json_schema: &branch_comparison_source_row_json_schema/0,
+      branch_comparison_source_row_json_schema: fn ->
+        OrbitalDynamics.Schema.PlanningAnalysisSchemaProviders.branch_comparison_source_row(
+          @stable_id_pattern
+        )
+      end,
       branch_event_trust_boundary_status_counts_json_schema:
         &OrbitalDynamics.Schema.OperationalReadinessContextJsonSchema.trust_boundary_status_count_map/0,
       cadence_import_status_json_schema:
@@ -1330,8 +1300,11 @@ defmodule OrbitalDynamics.Schema do
 
   defp cadence_import_manifest_row_json_schema_property_providers do
     [
-      branch_scoped_downlink_context_json_schema_properties:
-        &branch_scoped_downlink_context_json_schema_properties/0,
+      branch_scoped_downlink_context_json_schema_properties: fn ->
+        OrbitalDynamics.Schema.PlanningAnalysisSchemaProviders.branch_scoped_downlink_context_properties(
+          @stable_id_pattern
+        )
+      end,
       cadence_import_operational_readiness_evidence_json_schema_properties:
         &cadence_import_operational_readiness_evidence_json_schema_properties/0,
       cadence_import_resource_projection_evidence_json_schema_properties:
@@ -1419,7 +1392,11 @@ defmodule OrbitalDynamics.Schema do
   defp cadence_source_review_row_json_schema_providers do
     [
       activity_context_json_schema: &activity_context_json_schema/0,
-      branch_comparison_source_row_json_schema: &branch_comparison_source_row_json_schema/0,
+      branch_comparison_source_row_json_schema: fn ->
+        OrbitalDynamics.Schema.PlanningAnalysisSchemaProviders.branch_comparison_source_row(
+          @stable_id_pattern
+        )
+      end,
       branch_event_trust_boundary_status_counts_json_schema:
         &OrbitalDynamics.Schema.OperationalReadinessContextJsonSchema.trust_boundary_status_count_map/0,
       candidate_activity_source_window_json_schema:
@@ -1483,8 +1460,11 @@ defmodule OrbitalDynamics.Schema do
 
   defp cadence_source_review_row_json_schema_property_providers do
     [
-      branch_scoped_downlink_context_json_schema_properties:
-        &branch_scoped_downlink_context_json_schema_properties/0,
+      branch_scoped_downlink_context_json_schema_properties: fn ->
+        OrbitalDynamics.Schema.PlanningAnalysisSchemaProviders.branch_scoped_downlink_context_properties(
+          @stable_id_pattern
+        )
+      end,
       cadence_import_operational_readiness_evidence_json_schema_properties:
         &cadence_import_operational_readiness_evidence_json_schema_properties/0,
       cadence_import_resource_projection_evidence_json_schema_properties:
@@ -1527,7 +1507,11 @@ defmodule OrbitalDynamics.Schema do
       actual_data_rate_throughput_derivation_json_schema:
         &TimelineContextJsonSchema.actual_data_rate_throughput_derivation/0,
       approval_requirement_json_schema: &approval_requirement_json_schema/0,
-      branch_comparison_source_row_json_schema: &branch_comparison_source_row_json_schema/0,
+      branch_comparison_source_row_json_schema: fn ->
+        OrbitalDynamics.Schema.PlanningAnalysisSchemaProviders.branch_comparison_source_row(
+          @stable_id_pattern
+        )
+      end,
       branch_event_trust_boundary_status_counts_json_schema:
         &OrbitalDynamics.Schema.OperationalReadinessContextJsonSchema.trust_boundary_status_count_map/0,
       candidate_activity_source_window_json_schema:
@@ -1594,8 +1578,11 @@ defmodule OrbitalDynamics.Schema do
 
   defp operator_review_row_json_schema_property_providers do
     [
-      branch_scoped_downlink_context_json_schema_properties:
-        &branch_scoped_downlink_context_json_schema_properties/0,
+      branch_scoped_downlink_context_json_schema_properties: fn ->
+        OrbitalDynamics.Schema.PlanningAnalysisSchemaProviders.branch_scoped_downlink_context_properties(
+          @stable_id_pattern
+        )
+      end,
       command_authority_handoff_json_schema_properties:
         &OrbitalDynamics.Schema.CommandAuthorityHandoffJsonSchema.properties/0,
       feedback_maneuver_handoff_json_schema_properties:
