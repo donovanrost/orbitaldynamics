@@ -9,7 +9,7 @@ Current slice:
 Schema candidate-refresh provenance test family split.
 
 Status:
-Selected; implementation pending.
+Completed and verified.
 
 Selected boundary:
 Split the 3,778-line candidate-refresh resource-provenance schema ledger into
@@ -27,23 +27,32 @@ Selection evidence:
   so no production behavior or assertion needs to move or weaken.
 
 Implementation:
-Pending.
+Selected in `54c572f8` and implemented in `eaa19f44`. Split the single
+candidate-refresh provenance ledger into four tests at self-contained
+source-report family boundaries. Each later family reloads the same checked-in
+artifact; the quality/timeline/resource family also reloads the public
+candidate-refresh schema it consumes. All original assertions remain in place.
 
 Verification:
-Pending.
+- The focused provenance module passed with warnings as errors: 4 tests.
+- The full schema/validation gate passed with warnings as errors: 364 tests.
+- Full checked-in schema export regeneration produced no diff.
+- Strict forced compile passed with warnings as errors: 4,129 files.
+- Touched-file format and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended. The same deterministic fixtures, production calls, assertions,
 artifact validation, and async test behavior must remain unchanged.
 
 Last completed slice:
-Schema timeline change-summary contract test split, selected in `28d774ca` and
-implemented in `2599c015`. The 2,477-line timeline ledger became balanced
-1,154-line lifecycle and 1,334-line change-observation modules.
+Schema candidate-refresh provenance test family split, selected in `54c572f8`
+and implemented in `eaa19f44`. The 3,778-line ledger now exposes four
+independently runnable source-report contract families.
 
 Next candidate:
-Implement and verify the selected candidate-refresh provenance test-family
-split.
+Refresh the remaining schema-test inventory and select the next coherent family
+boundary; production facades and the newly split provenance ledger need no
+line-count-only churn.
 
 Blocked:
 No.
