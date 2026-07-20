@@ -9,7 +9,7 @@ Current slice:
 OperationalReadiness operator-review gate extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `426d1036`.
 
 Selected boundary:
 Extract operator-review readiness gate precedence into
@@ -30,23 +30,42 @@ Selection evidence:
   omission, public output, and error behavior must remain unchanged.
 
 Implementation:
-Pending.
+- Added `OrbitalDynamics.OperationalReadiness.OperatorReviewGate` as the owner
+  of blocked/review-required/review-present/import-handoff/absent precedence
+  and fixed gate fields.
+- Wired readiness gate construction directly to the owner while preserving
+  OperationalReadiness and root APIs.
+- Kept evidence collection, all other gate decisions, and report/summary
+  projection outside the boundary.
+- `operational_readiness.ex` moved from 1,338 to 1,295 lines; the new owner is
+  51 lines.
 
 Verification:
-Pending.
+- Strict focused baseline passed all 31 OperationalReadiness tests.
+- Exact old/new public parity passed for all five deterministic operator-review
+  branches: blocked, review-required, review-present, import-handoff, and
+  absent evidence.
+- Post-extraction focused and adjacent readiness, replay-summary,
+  operator-review, schema-contract, and validation verification passed all 49
+  tests.
+- Static checks confirm the operator-review gate decision left the facade; xref
+  reports only OperationalReadiness as a runtime caller.
+- Strict warning-clean forced compile passed for 4,027 files.
+- Formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-OperationalReadiness adapter-boundary gate extraction, selected in `008a5771`
-and implemented in `dd724eb4`.
-`operational_readiness.ex` moved from 1,388 to 1,338 lines; the dedicated
-AdapterBoundaryGate owner is 61 lines.
+OperationalReadiness operator-review gate extraction, selected in `6a29ce91`
+and implemented in `426d1036`.
+`operational_readiness.ex` moved from 1,338 to 1,295 lines; the dedicated
+OperatorReviewGate owner is 51 lines.
 
 Next candidate:
-After this slice, re-rank the live checkout. RecommendationRiskContext is the
-next largest ordinary eligible facade.
+Re-rank the live checkout and select the next bounded facade-preserving
+extraction. RecommendationRiskContext is now the largest ordinary eligible
+facade at 1,304 lines, followed by OperationalReadiness.
 
 Blocked:
 No.
