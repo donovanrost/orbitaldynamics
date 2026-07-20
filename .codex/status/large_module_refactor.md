@@ -6,57 +6,37 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-ResourceProjection approval-policy handoff extraction.
+ContactIntent summary projection extraction.
 
 Status:
-Completed and pushed in `2166062a`.
+Selected; strict focused baseline pending.
 
 Selected boundary:
-Extract optional policy application for projected resource rows, invalid
-activity inputs, and invalid resource-summary inputs plus construction of their
-approval requirements into
-`OrbitalDynamics.ResourceProjection.ApprovalPolicy`.
-Preserve all ResourceProjection and root public facades.
+Extract contact-intent capacity-demand summary construction, direction/station
+routing, required-capacity aggregation, row-derived counts, and deterministic
+ID grouping into `OrbitalDynamics.Communications.ContactIntent.Summary`.
+Preserve all ContactIntent and root public facades.
 
 Selection evidence:
 - Excluding the generated/declarative candidate-refresh JSON-schema module,
-  live re-ranking places `resource_projection.ex` at 1,789 lines, the
+  live re-ranking places `communications/contact_intent.ex` at 1,785 lines, the
   largest ordinary eligible facade.
-- ResourceProjection already delegates nine focused responsibilities, while
-  optional policy decisions and approval requirement construction remain inline
-  at lines 1,060-1,268.
-- The selected block has one responsibility: attach deterministic approval
-  policy handoff evidence to projected and invalid-input rows.
-- Activity/summary normalization, projection math, flow construction, pressure
-  classification, report assembly, and all public contracts remain outside the
-  boundary.
-- Exact risk routing, policy subjects, requirement IDs/actions/reasons/context,
-  compaction, ordering, nil-policy behavior, policy decisions, public output,
-  and error behavior must remain unchanged.
+- ContactIntent currently delegates only capacity evidence and provider-result
+  interpretation, while summary construction remains inline at lines 277-537.
+- The selected block has one responsibility: derive the compact summary and its
+  capacity/direction/station routing solely from supplied intent rows.
+- Activity normalization, intent construction, policy decisions, station
+  calendar interpretation, identity validation, and all public contracts remain
+  outside the boundary.
+- Exact capacity-context precedence, direction aliases, totals, source counts,
+  nested routing maps, ID sorting, empty-map omission, assumptions, public
+  output, idempotent summary handling, and error behavior must remain unchanged.
 
 Implementation:
-- Added `OrbitalDynamics.ResourceProjection.ApprovalPolicy` as the owner of
-  optional policy application for projected resource rows, invalid activity
-  inputs, invalid resource-summary inputs, and their approval requirements.
-- Wired report assembly directly to the owner while preserving
-  ResourceProjection and root public APIs.
-- Kept activity/summary normalization, projection math, flow construction, and
-  pressure classification in their existing owners.
-- `resource_projection.ex` moved from 1,789 to 1,578 lines; the new owner is 220
-  lines.
+Pending.
 
 Verification:
-- Strict focused baseline passed all 49 ResourceProjection tests.
-- Exact old/new public parity passed for four deterministic report results:
-  projected pressure with policy, invalid activity with policy, invalid summary
-  with policy, and projected pressure without policy.
-- Post-extraction focused and adjacent ResourceProjection, operator-review,
-  strategy pressure/source-report, and validation-fixture verification passed
-  all 61 tests.
-- Static checks confirm the approval-policy helper family left the facade; xref
-  reports only ResourceProjection as a runtime caller.
-- Strict warning-clean forced compile passed for 4,009 files.
-- Formatting and `git diff --check` passed.
+Pending.
 
 Behavior/schema changes:
 None intended.
