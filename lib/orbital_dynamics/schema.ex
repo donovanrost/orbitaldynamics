@@ -2061,7 +2061,7 @@ defmodule OrbitalDynamics.Schema do
       @stable_id_pattern,
       timeline_report_model_limits(),
       {
-        &non_negative_integer_count_map_json_schema/0,
+        &OrbitalDynamics.Schema.CommonJsonSchema.non_negative_integer_count_map/0,
         &stable_id_array_schema/0,
         &stable_id_array_map_schema/0,
         &protection_decision_json_schema/0,
@@ -2080,7 +2080,7 @@ defmodule OrbitalDynamics.Schema do
       {
         &timeline_lifecycle_state_row_json_schema/0,
         &timeline_report_model_limits/0,
-        &non_negative_integer_count_map_json_schema/0,
+        &OrbitalDynamics.Schema.CommonJsonSchema.non_negative_integer_count_map/0,
         &stable_id_array_schema/0
       }
     )
@@ -2216,7 +2216,7 @@ defmodule OrbitalDynamics.Schema do
       end,
       stable_id_array_schema: &stable_id_array_schema/0,
       string_array_schema: &string_array_schema/0,
-      count_map_schema: &non_negative_integer_count_map_json_schema/0,
+      count_map_schema: &OrbitalDynamics.Schema.CommonJsonSchema.non_negative_integer_count_map/0,
       number_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.number_array/0,
       actual_data_rate_throughput_derivations_schema:
         &TimelineContextJsonSchema.actual_data_rate_throughput_derivations/0,
@@ -2236,7 +2236,7 @@ defmodule OrbitalDynamics.Schema do
         &OrbitalDynamics.Schema.RelayDataPathSummaryContracts.model_limits/0,
         &OrbitalDynamics.Schema.RelayDataPathSummaryJsonSchema.assumptions/0,
         &relay_data_path_row_json_schema/0,
-        &non_negative_integer_count_map_json_schema/0,
+        &OrbitalDynamics.Schema.CommonJsonSchema.non_negative_integer_count_map/0,
         &stable_id_array_schema/0,
         &stable_id_array_map_schema/0
       }
@@ -2259,7 +2259,7 @@ defmodule OrbitalDynamics.Schema do
         &branch_event_trust_boundary_status_counts_json_schema/0,
         &contact_allocation_capabilities/0,
         &enum_count_map_json_schema/1,
-        &non_negative_integer_count_map_json_schema/0,
+        &OrbitalDynamics.Schema.CommonJsonSchema.non_negative_integer_count_map/0,
         &OrbitalDynamics.Schema.CommonJsonSchema.non_negative_number_map/0
       }
     )
@@ -2785,7 +2785,7 @@ defmodule OrbitalDynamics.Schema do
   defp quality_gate_source_report_schema_deps do
     source_evidence_schema_deps()
     |> Map.merge(%{
-      count_map_schema: non_negative_integer_count_map_json_schema(),
+      count_map_schema: OrbitalDynamics.Schema.CommonJsonSchema.non_negative_integer_count_map(),
       stable_id_array_map_schema: stable_id_array_map_schema()
     })
   end
@@ -2861,7 +2861,7 @@ defmodule OrbitalDynamics.Schema do
       probability_schema: &OrbitalDynamics.Schema.CommonJsonSchema.probability/0,
       stable_id_array_schema: &stable_id_array_schema/0,
       string_array_schema: &string_array_schema/0,
-      count_map_schema: &non_negative_integer_count_map_json_schema/0,
+      count_map_schema: &OrbitalDynamics.Schema.CommonJsonSchema.non_negative_integer_count_map/0,
       actual_data_rate_throughput_derivations_schema:
         &TimelineContextJsonSchema.actual_data_rate_throughput_derivations/0,
       policy_decision_schema: &policy_decision_json_schema/0
@@ -3061,10 +3061,6 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.CommonJsonSchema.nested_stable_id_array_map(@stable_id_pattern)
   end
 
-  defp non_negative_integer_count_map_json_schema do
-    OrbitalDynamics.Schema.CommonJsonSchema.non_negative_integer_count_map()
-  end
-
   defp enum_count_map_json_schema(values) do
     OrbitalDynamics.Schema.CommonJsonSchema.enum_count_map(values)
   end
@@ -3239,7 +3235,7 @@ defmodule OrbitalDynamics.Schema do
       @timeline_feedback_report,
       %{
         string_array: string_array_schema(),
-        count_map: non_negative_integer_count_map_json_schema(),
+        count_map: OrbitalDynamics.Schema.CommonJsonSchema.non_negative_integer_count_map(),
         string_list_map: OrbitalDynamics.Schema.CommonJsonSchema.string_list_map()
       }
     )
@@ -3343,7 +3339,8 @@ defmodule OrbitalDynamics.Schema do
       semantic_change_details_schema:
         OrbitalDynamics.Schema.CandidateDiffJsonSchema.semantic_change_details(),
       string_list_map_schema: OrbitalDynamics.Schema.CommonJsonSchema.string_list_map(),
-      non_negative_integer_count_map_schema: non_negative_integer_count_map_json_schema(),
+      non_negative_integer_count_map_schema:
+        OrbitalDynamics.Schema.CommonJsonSchema.non_negative_integer_count_map(),
       provider_counteroffer_negotiation_states:
         station_calendar_provider_counteroffer_negotiation_states(),
       scoped_downlink_context_properties: scoped_downlink_context_json_schema_properties(),
@@ -3803,7 +3800,7 @@ defmodule OrbitalDynamics.Schema do
 
   defp operational_readiness_evidence_json_schema do
     OrbitalDynamics.Schema.OperationalReadinessEvidenceJsonSchema.schema(
-      count_map_schema: non_negative_integer_count_map_json_schema(),
+      count_map_schema: OrbitalDynamics.Schema.CommonJsonSchema.non_negative_integer_count_map(),
       string_array_schema: string_array_schema(),
       stable_id_array_schema: stable_id_array_schema(),
       branch_event_trust_boundary_status_counts_schema:
@@ -3929,7 +3926,7 @@ defmodule OrbitalDynamics.Schema do
       stable_id_pattern: @stable_id_pattern,
       stable_id_array_schema: stable_id_array_schema(),
       stable_id_array_map_schema: stable_id_array_map_schema(),
-      count_map_schema: non_negative_integer_count_map_json_schema(),
+      count_map_schema: OrbitalDynamics.Schema.CommonJsonSchema.non_negative_integer_count_map(),
       timeline_publication_summary_source_schema:
         timeline_publication_summary_source_json_schema()
     )
