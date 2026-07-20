@@ -1754,7 +1754,7 @@ defmodule OrbitalDynamics.Schema do
       },
       reference_report_schema: &validation_reference_report_json_schema/0,
       stable_id_pattern: @stable_id_pattern,
-      validation_check_schema: &validation_check_json_schema/0,
+      validation_check_schema: &OrbitalDynamics.Schema.ValidationJsonSchema.check/0,
       validation_level_schema: &validation_level_json_schema/0,
       default_property: &default_json_schema_property/3
     )
@@ -1795,11 +1795,12 @@ defmodule OrbitalDynamics.Schema do
         report: @schema_validation_report,
         batch: @schema_validation_batch_report
       },
-      issue_schema: &validation_issue_json_schema/0,
-      remediation_schema: &validation_remediation_json_schema/0,
+      issue_schema: &OrbitalDynamics.Schema.ValidationJsonSchema.issue/0,
+      remediation_schema: &OrbitalDynamics.Schema.ValidationJsonSchema.remediation/0,
       model_limits: &schema_validation_model_limits/0,
       batch_entry_schema: &schema_validation_batch_entry_json_schema/0,
-      skipped_artifact_schema: &skipped_schema_validation_artifact_json_schema/0,
+      skipped_artifact_schema:
+        &OrbitalDynamics.Schema.SchemaValidationReportJsonSchema.skipped_artifact/0,
       default_property: &default_json_schema_property/3
     )
   end
@@ -1815,7 +1816,7 @@ defmodule OrbitalDynamics.Schema do
         1,
         &schema_migration_statuses/0,
         &schema_migration_row_statuses/0,
-        &schema_migration_row_json_schema/0,
+        &OrbitalDynamics.Schema.SchemaMigrationReportJsonSchema.row/0,
         &OrbitalDynamics.Schema.SchemaMigrationContracts.model_limits/0
       }
     )
@@ -1834,10 +1835,11 @@ defmodule OrbitalDynamics.Schema do
         campaign_request: @campaign_request_lint,
         study_manifest: @study_manifest_lint
       },
-      validation_issue_schema: &validation_issue_json_schema/0,
+      validation_issue_schema: &OrbitalDynamics.Schema.ValidationJsonSchema.issue/0,
       sha256_schema: &sha256_json_schema/0,
       stable_id_pattern: @stable_id_pattern,
-      manifest_lint_issue_schema: &manifest_lint_issue_json_schema/0,
+      manifest_lint_issue_schema:
+        &OrbitalDynamics.Schema.ValidationJsonSchema.manifest_lint_issue/0,
       default_property: &default_json_schema_property/3
     )
   end
@@ -3304,18 +3306,6 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validation_issue_json_schema do
-    OrbitalDynamics.Schema.ValidationJsonSchema.issue()
-  end
-
-  defp manifest_lint_issue_json_schema do
-    OrbitalDynamics.Schema.ValidationJsonSchema.manifest_lint_issue()
-  end
-
-  defp validation_remediation_json_schema do
-    OrbitalDynamics.Schema.ValidationJsonSchema.remediation()
-  end
-
   defp schema_validation_batch_entry_json_schema do
     report_schema =
       json_schema_document(
@@ -3324,14 +3314,6 @@ defmodule OrbitalDynamics.Schema do
       )
 
     OrbitalDynamics.Schema.SchemaValidationReportJsonSchema.batch_entry(report_schema)
-  end
-
-  defp schema_migration_row_json_schema do
-    OrbitalDynamics.Schema.SchemaMigrationReportJsonSchema.row()
-  end
-
-  defp skipped_schema_validation_artifact_json_schema do
-    OrbitalDynamics.Schema.SchemaValidationReportJsonSchema.skipped_artifact()
   end
 
   defp validation_record_json_schema do
@@ -3360,12 +3342,8 @@ defmodule OrbitalDynamics.Schema do
     OrbitalDynamics.Schema.ValidationJsonSchema.reference_report(
       @stable_id_pattern,
       validation_level_json_schema(),
-      validation_check_json_schema()
+      OrbitalDynamics.Schema.ValidationJsonSchema.check()
     )
-  end
-
-  defp validation_check_json_schema do
-    OrbitalDynamics.Schema.ValidationJsonSchema.check()
   end
 
   defp strategy_branch_tradeoff_json_schema,
