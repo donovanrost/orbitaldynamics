@@ -9,7 +9,7 @@ Current slice:
 Cadence review row schema-provider completion.
 
 Status:
-Selected; implementation pending.
+Completed and verified.
 
 Selected boundary:
 Move the cadence-import-manifest row, its private cadence-source-review row,
@@ -28,10 +28,22 @@ Selection evidence:
   laziness through explicit callbacks.
 
 Implementation:
-Pending.
+Selected in `b23e0d78` and implemented in `9b951825`. Expanded
+`CadenceReviewSchemaProviders` to own the lazy manifest row, its private
+source-review row, shared source provider sequence, ordered manifest-only
+insertions, and shared property providers. The public `Schema` facade moved
+from 1,349 to 1,216 lines.
 
 Verification:
-Pending.
+- Provider registration retains exactly one cadence-import manifest row key and
+  does not invoke callbacks during context construction.
+- Focused schema/validation suite passed: 359 tests.
+- Full checked-in schema export, including both nested cadence row shapes,
+  regenerated with no diff.
+- Runtime xref retains one direct `Schema` -> `CadenceReviewSchemaProviders`
+  edge.
+- Strict forced compile passed with warnings as errors: 4,121 files.
+- `JsonSchemaPropertyRouter` remains an ordered 76-head facade.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -39,13 +51,13 @@ laziness, field-hint fallback, stable-ID decoration, public `Schema`, and
 checked-in exports must remain unchanged.
 
 Last completed slice:
-Cadence review property-provider deduplication, selected in `82c6235b` and
-implemented in `2c854a8c`. The public `Schema` facade moved from 1,391 to 1,349
+Cadence review row schema-provider completion, selected in `b23e0d78` and
+implemented in `9b951825`. The public `Schema` facade moved from 1,349 to 1,216
 lines.
 
 Next candidate:
-Implement and verify the selected cadence row/schema-provider completion, then
-re-rank the remaining public-facade clusters.
+Re-rank the remaining public-facade provider clusters and select the next
+bounded extraction.
 
 Blocked:
 No.
