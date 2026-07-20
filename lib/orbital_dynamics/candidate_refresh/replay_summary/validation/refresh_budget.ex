@@ -60,8 +60,15 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.Validation.RefreshBudge
     invalid_candidate_limit_policy_reason_counts =
       Map.get(budget_summary, "invalid_candidate_limit_policy_reason_counts", %{})
 
-    kept_candidate_ids = Map.get(budget_summary, "kept_candidate_ids", [])
-    dropped_candidate_ids = Map.get(budget_summary, "dropped_candidate_ids", [])
+    kept_candidate_ids =
+      budget_summary
+      |> Map.get("kept_candidate_ids", [])
+      |> normalize_candidate_ids()
+
+    dropped_candidate_ids =
+      budget_summary
+      |> Map.get("dropped_candidate_ids", [])
+      |> normalize_candidate_ids()
 
     dropped_candidate_pressure = dropped_candidate_count > 0 or dropped_candidate_ids != []
 
@@ -131,4 +138,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ReplaySummary.Validation.RefreshBudge
       &InputProvenance.build/1
     )
   end
+
+  defp normalize_candidate_ids(%{} = candidate_ids) when map_size(candidate_ids) == 0, do: []
+  defp normalize_candidate_ids(candidate_ids), do: candidate_ids
 end
