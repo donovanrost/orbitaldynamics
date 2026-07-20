@@ -25,6 +25,7 @@ defmodule OrbitalDynamics.Schema do
     SourceEvidenceValidation,
     StateRefreshArtifactValidation,
     StationReservationValidation,
+    StudyResultValidation,
     TimelineArtifactValidation,
     TimelineContextJsonSchema,
     ValidationArtifactValidation,
@@ -4543,22 +4544,12 @@ defmodule OrbitalDynamics.Schema do
     |> CampaignArtifactValidation.validate_branch("$", artifact)
   end
 
-  defp validate_contract(@study_benchmark, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.StudyBenchmarkContracts.validate(
-      "$",
-      artifact
-    )
+  defp validate_contract(@study_benchmark, _contract, artifact) do
+    StudyResultValidation.validate([], "$", artifact, @study_benchmark)
   end
 
-  defp validate_contract(@manifest_field_reference, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.ManifestFieldReferenceContracts.validate(
-      "$",
-      artifact
-    )
+  defp validate_contract(@manifest_field_reference, _contract, artifact) do
+    StudyResultValidation.validate([], "$", artifact, @manifest_field_reference)
   end
 
   defp validate_contract(@validation_tolerance_policy, _contract, artifact) do
