@@ -1,4 +1,58 @@
 defmodule OrbitalDynamics.CampaignPlanner.ContactAllocationPressureFixtures do
+  def contact_allocation_station_pressure_summary_fixture(prefix) do
+    nominal_row = %{
+      "contact_id" => "#{prefix}_dl_nominal",
+      "allocation_status" => "allocated",
+      "effective_allocation_status" => "allocated",
+      "allocation_reason" => "selected_by_contention_resolution",
+      "ground_station_id" => "equator_prime",
+      "direction" => "downlink"
+    }
+
+    station_pressure_row = %{
+      "contact_id" => "#{prefix}_dl_station_pressure",
+      "allocation_status" => "deferred",
+      "effective_allocation_status" => "deferred",
+      "allocation_reason" => "same_station_contention",
+      "ground_station_id" => "equator_prime",
+      "direction" => "downlink",
+      "station_calendar_entry_id" => "#{prefix}_station_reserved_1",
+      "station_calendar_overlap_availabilities" => ["reserved"],
+      "station_calendar_precedence_availability" => "reserved",
+      "station_calendar_precedence_rank" => 2
+    }
+
+    %{
+      "schema_contract" => "contact_allocation_station_pressure_summary.v1",
+      "model" => "artifact_only_contact_allocation_station_pressure_summary",
+      "source_artifact_type" => "contact_allocation_report.v1",
+      "source" => "campaign_planner_test.#{prefix}.contact_allocation_station_pressure_summary",
+      "input_contact_count" => 2,
+      "station_pressure_contact_count" => 1,
+      "station_pressure_review_contact_count" => 1,
+      "station_pressure_contact_ids" => ["#{prefix}_dl_station_pressure"],
+      "station_pressure_review_contact_ids" => ["#{prefix}_dl_station_pressure"],
+      "station_pressure_contact_ids_by_ground_station_id" => station_ids(prefix),
+      "station_pressure_contact_counts_by_ground_station_id" => %{"equator_prime" => 1},
+      "station_pressure_contact_ids_by_availability" => %{"reserved" => pressure_ids(prefix)},
+      "station_pressure_contact_counts_by_availability" => %{"reserved" => 1},
+      "station_pressure_contact_ids_by_precedence_availability" => %{
+        "reserved" => pressure_ids(prefix)
+      },
+      "station_pressure_contact_counts_by_precedence_availability" => %{"reserved" => 1},
+      "station_pressure_contact_ids_by_precedence_rank" => %{"2" => pressure_ids(prefix)},
+      "station_pressure_contact_counts_by_precedence_rank" => %{"2" => 1},
+      "rows" => [nominal_row, station_pressure_row],
+      "review_rows" => [station_pressure_row],
+      "assumptions" => %{
+        "execution_boundary" => "artifact_only_no_provider_reservation_or_schedule_mutation",
+        "source" => "contact_allocation_report.v1",
+        "operator_authority" => "not_granted_by_station_pressure_summary"
+      },
+      "provenance" => %{"trust_boundary" => "#{prefix}_station_pressure_fixture"}
+    }
+  end
+
   def contact_allocation_reservation_conflict_summary_fixture(prefix) do
     owner_row = reservation_row(prefix, "owner", "allocated", "matched")
     conflict_row = reservation_row(prefix, "intruder", "deferred", "overlap")
@@ -153,4 +207,7 @@ defmodule OrbitalDynamics.CampaignPlanner.ContactAllocationPressureFixtures do
 
   defp reserved_contact_ids(prefix),
     do: ["#{prefix}_dl_reserved_intruder", "#{prefix}_dl_reserved_owner"]
+
+  defp pressure_ids(prefix), do: ["#{prefix}_dl_station_pressure"]
+  defp station_ids(prefix), do: %{"equator_prime" => pressure_ids(prefix)}
 end
