@@ -415,12 +415,10 @@ defmodule OrbitalDynamics.Schema do
         {:policy_escalation_json_schema, 0} => &policy_escalation_json_schema/0,
         {:policy_model_limits, 0} => &policy_model_limits/0,
         {:protection_decision_json_schema, 0} => &protection_decision_json_schema/0,
-        {:provider_counteroffer_row_json_schema, 0} => &provider_counteroffer_row_json_schema/0,
         {:quality_gate_report_row_json_schema, 0} => &quality_gate_report_row_json_schema/0,
         {:ranked_timeline_json_schema, 0} => &ranked_timeline_json_schema/0,
         {:realized_activity_json_schema, 0} => &realized_activity_json_schema/0,
         {:registry_contract!, 1} => &registry_contract!/1,
-        {:relay_data_path_row_json_schema, 0} => &relay_data_path_row_json_schema/0,
         {:resource_filter_report_assumptions_json_schema, 0} =>
           &resource_filter_report_assumptions_json_schema/0,
         {:resource_filter_report_model_limits, 0} => &resource_filter_report_model_limits/0,
@@ -572,17 +570,6 @@ defmodule OrbitalDynamics.Schema do
       contract,
       @field_type_hints,
       @stable_id_pattern
-    )
-  end
-
-  defp relay_data_path_row_json_schema do
-    OrbitalDynamics.Schema.RelayDataPathSummaryJsonSchema.row_from_deps(
-      stable_id_pattern: @stable_id_pattern,
-      stable_id_array_schema: &stable_id_array_schema/0,
-      string_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.string_array/0,
-      custody_statuses: &OrbitalDynamics.Schema.RelayDataPathSummaryJsonSchema.custody_statuses/0,
-      latency_statuses: &OrbitalDynamics.Schema.RelayDataPathSummaryJsonSchema.latency_statuses/0,
-      risk_statuses: &OrbitalDynamics.Schema.RelayDataPathSummaryJsonSchema.risk_statuses/0
     )
   end
 
@@ -869,13 +856,6 @@ defmodule OrbitalDynamics.Schema do
       timeline_capability: &timeline_capabilities/0,
       string_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.string_array/0,
       activity_context_schema: &activity_context_json_schema/0
-    )
-  end
-
-  defp provider_counteroffer_row_json_schema do
-    OrbitalDynamics.Schema.ProviderCounterofferJsonSchema.row_from_context(
-      stable_id_pattern: @stable_id_pattern,
-      station_calendar: &station_calendar_capabilities/0
     )
   end
 

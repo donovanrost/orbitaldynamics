@@ -24,6 +24,12 @@ defmodule OrbitalDynamics.Schema.GroundNetworkSchemaProviders do
       end,
       {:link_capacity_row_json_schema, 0} => fn ->
         link_capacity_row(stable_id_pattern, dependencies)
+      end,
+      {:provider_counteroffer_row_json_schema, 0} => fn ->
+        provider_counteroffer_row(stable_id_pattern, dependencies)
+      end,
+      {:relay_data_path_row_json_schema, 0} => fn ->
+        relay_data_path_row(stable_id_pattern)
       end
     }
   end
@@ -45,6 +51,24 @@ defmodule OrbitalDynamics.Schema.GroundNetworkSchemaProviders do
       "type" => "object",
       "additionalProperties" => %{"type" => "integer", "minimum" => 0}
     }
+  end
+
+  defp provider_counteroffer_row(stable_id_pattern, dependencies) do
+    OrbitalDynamics.Schema.ProviderCounterofferJsonSchema.row_from_context(
+      stable_id_pattern: stable_id_pattern,
+      station_calendar: Map.fetch!(dependencies, :station_calendar_capability)
+    )
+  end
+
+  defp relay_data_path_row(stable_id_pattern) do
+    OrbitalDynamics.Schema.RelayDataPathSummaryJsonSchema.row_from_deps(
+      stable_id_pattern: stable_id_pattern,
+      stable_id_array_schema: fn -> CommonJsonSchema.stable_id_array(stable_id_pattern) end,
+      string_array_schema: &CommonJsonSchema.string_array/0,
+      custody_statuses: &OrbitalDynamics.Schema.RelayDataPathSummaryJsonSchema.custody_statuses/0,
+      latency_statuses: &OrbitalDynamics.Schema.RelayDataPathSummaryJsonSchema.latency_statuses/0,
+      risk_statuses: &OrbitalDynamics.Schema.RelayDataPathSummaryJsonSchema.risk_statuses/0
+    )
   end
 
   defp link_capacity_row(stable_id_pattern, dependencies) do
