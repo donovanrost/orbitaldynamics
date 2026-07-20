@@ -38,7 +38,6 @@ defmodule OrbitalDynamics.Schema do
   import OrbitalDynamics.Schema.PrimitiveValidation,
     only: [
       error: 2,
-      expect_equal: 5,
       require_fields: 4
     ]
 
@@ -4456,11 +4455,8 @@ defmodule OrbitalDynamics.Schema do
     SchemaOperationsValidation.validate([], "$", artifact, @study_manifest_lint)
   end
 
-  defp validate_contract(@strategy_branch, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> expect_equal("$", artifact, "schema_contract", "strategy_branch.v1")
-    |> CampaignArtifactValidation.validate_branch("$", artifact)
+  defp validate_contract(@strategy_branch, _contract, artifact) do
+    CampaignArtifactValidation.validate_branch_artifact([], "$", artifact)
   end
 
   defp validate_contract(@study_benchmark, _contract, artifact) do
@@ -4499,10 +4495,8 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validate_contract(@strategy_recommendation, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> CampaignArtifactValidation.validate_recommendation("$", artifact)
+  defp validate_contract(@strategy_recommendation, _contract, artifact) do
+    CampaignArtifactValidation.validate_recommendation_artifact([], "$", artifact)
   end
 
   defp validate_contract(@maneuver_recommendation, contract, artifact) do

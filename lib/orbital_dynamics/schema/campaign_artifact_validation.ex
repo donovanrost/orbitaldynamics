@@ -16,6 +16,7 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
     PolicyValidation,
     ResourceValidation,
     StationReservationValidation,
+    StrategyManeuverRegistryContracts,
     TimelineContextValidation,
     TimelineSourceValidation,
     TimelineTransitionValidation
@@ -24,6 +25,11 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
   @campaign_plan "campaign_plan.v1"
   @campaign_repair "campaign_repair.v2"
   @campaign_strategy "campaign_strategy.v3"
+  @strategy_branch "strategy_branch.v1"
+  @strategy_recommendation "strategy_recommendation.v1"
+
+  import OrbitalDynamics.Schema.PrimitiveValidation,
+    only: [expect_equal: 5, require_fields: 4]
 
   def validate_plan(issues, artifact),
     do:
@@ -55,6 +61,23 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
       &DecisionSupportValidation.validate_optional_ranking_comparison_report/2,
       &OperatorReviewValidation.validate_optional_package/2
     )
+  end
+
+  def validate_branch_artifact(issues, path, branch) do
+    issues
+    |> require_fields(path, branch, required_fields(@strategy_branch))
+    |> expect_equal(path, branch, "schema_contract", @strategy_branch)
+    |> validate_branch(path, branch)
+  end
+
+  def validate_recommendation_artifact(issues, path, recommendation) do
+    issues
+    |> require_fields(
+      path,
+      recommendation,
+      required_fields(StrategyManeuverRegistryContracts, @strategy_recommendation)
+    )
+    |> validate_recommendation(path, recommendation)
   end
 
   def validate_branch(issues, path, branch) do
@@ -180,7 +203,11 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
   end
 
   defp required_fields(contract_name) do
-    CampaignRegistryContracts.contracts()
+    required_fields(CampaignRegistryContracts, contract_name)
+  end
+
+  defp required_fields(registry_module, contract_name) do
+    registry_module.contracts()
     |> OrbitalDynamics.Schema.Registry.fetch!(contract_name)
     |> Map.fetch!("required_fields")
   end
