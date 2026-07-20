@@ -7,6 +7,7 @@ defmodule OrbitalDynamics.RecommendationRiskContext do
     ContactAllocation,
     ContactContention,
     ContactContentionResolution,
+    ContactFilter,
     ContactIntent,
     ExecutionSuccessFeedback,
     LinkCapacity,
@@ -101,36 +102,6 @@ defmodule OrbitalDynamics.RecommendationRiskContext do
     "timeline_lifecycle_state_assumption_maps"
   ]
 
-  @contact_filter_context_keys [
-    "contact_filter_pressure_risk_types",
-    "contact_filter_pressure_contact_ids",
-    "contact_filter_pressure_scenario_ids",
-    "contact_filter_pressure_spacecraft_ids",
-    "contact_filter_pressure_ground_station_ids",
-    "contact_filter_pressure_source_activity_ids",
-    "contact_filter_pressure_source_window_ids",
-    "contact_filter_pressure_required_contact_values",
-    "contact_filter_pressure_planned_contact_values",
-    "contact_filter_pressure_required_downlink_values_mb",
-    "contact_filter_pressure_planned_downlink_values_mb",
-    "contact_filter_pressure_start_values_s",
-    "contact_filter_pressure_end_values_s",
-    "contact_filter_pressure_suppressed_reasons",
-    "contact_filter_pressure_review_statuses",
-    "contact_filter_pressure_station_reservation_ids",
-    "contact_filter_pressure_station_reserved_by",
-    "contact_filter_pressure_station_reservation_statuses",
-    "contact_filter_pressure_station_reservation_match_statuses",
-    "contact_filter_pressure_station_calendar_entry_ids",
-    "contact_filter_pressure_station_calendar_entry_statuses",
-    "contact_filter_pressure_downlink_demand_sources",
-    "contact_filter_pressure_downlink_completion_sources",
-    "contact_filter_pressure_feedback_sources",
-    "contact_filter_pressure_feedback_scopes",
-    "contact_filter_pressure_trust_boundaries",
-    "contact_filter_pressure_derivation_reasons"
-  ]
-
   @resource_filter_context_keys [
     "resource_filter_pressure_risk_types",
     "resource_filter_pressure_scenario_ids",
@@ -204,7 +175,7 @@ defmodule OrbitalDynamics.RecommendationRiskContext do
 
   def contact_allocation_context_keys, do: ContactAllocation.context_keys()
 
-  def contact_filter_context_keys, do: @contact_filter_context_keys
+  def contact_filter_context_keys, do: ContactFilter.context_keys()
 
   def resource_filter_context_keys, do: @resource_filter_context_keys
 
@@ -277,73 +248,7 @@ defmodule OrbitalDynamics.RecommendationRiskContext do
 
   def contact_allocation_context(risks), do: ContactAllocation.context(risks)
 
-  def contact_filter_context(risks) when is_list(risks) do
-    risks = Enum.map(risks, &stringify_keys/1)
-
-    contact_filter_risks =
-      Enum.filter(risks, &contact_filter_risk?/1)
-
-    %{
-      "contact_filter_pressure_risk_types" =>
-        risk_context_values(contact_filter_risks, ["type", "risk_type"]),
-      "contact_filter_pressure_contact_ids" =>
-        risk_context_values(contact_filter_risks, "contact_id"),
-      "contact_filter_pressure_scenario_ids" =>
-        risk_context_values(contact_filter_risks, "scenario_id"),
-      "contact_filter_pressure_spacecraft_ids" =>
-        risk_context_values(contact_filter_risks, "spacecraft_id"),
-      "contact_filter_pressure_ground_station_ids" =>
-        risk_context_values(contact_filter_risks, "ground_station_id"),
-      "contact_filter_pressure_source_activity_ids" =>
-        risk_context_values(contact_filter_risks, ["source_activity_id", "source_activity_ids"]),
-      "contact_filter_pressure_source_window_ids" =>
-        risk_context_values(contact_filter_risks, "source_window_id"),
-      "contact_filter_pressure_required_contact_values" =>
-        risk_context_values(contact_filter_risks, "required_contacts"),
-      "contact_filter_pressure_planned_contact_values" =>
-        risk_context_values(contact_filter_risks, "planned_contacts"),
-      "contact_filter_pressure_required_downlink_values_mb" =>
-        risk_context_values(contact_filter_risks, "required_downlink_mb"),
-      "contact_filter_pressure_planned_downlink_values_mb" =>
-        risk_context_values(contact_filter_risks, "planned_downlink_mb"),
-      "contact_filter_pressure_start_values_s" =>
-        risk_context_values(contact_filter_risks, "starts_at_s"),
-      "contact_filter_pressure_end_values_s" =>
-        risk_context_values(contact_filter_risks, "ends_at_s"),
-      "contact_filter_pressure_suppressed_reasons" =>
-        risk_context_values(contact_filter_risks, "suppressed_reason"),
-      "contact_filter_pressure_review_statuses" =>
-        risk_context_values(contact_filter_risks, "review_status"),
-      "contact_filter_pressure_station_reservation_ids" =>
-        risk_context_values(contact_filter_risks, "station_reservation_id"),
-      "contact_filter_pressure_station_reserved_by" =>
-        risk_context_values(contact_filter_risks, "station_reserved_by"),
-      "contact_filter_pressure_station_reservation_statuses" =>
-        risk_context_values(contact_filter_risks, "station_reservation_status"),
-      "contact_filter_pressure_station_reservation_match_statuses" =>
-        risk_context_values(contact_filter_risks, "station_reservation_match_status"),
-      "contact_filter_pressure_station_calendar_entry_ids" =>
-        risk_context_values(contact_filter_risks, "station_calendar_entry_id"),
-      "contact_filter_pressure_station_calendar_entry_statuses" =>
-        risk_context_values(contact_filter_risks, "station_calendar_entry_status"),
-      "contact_filter_pressure_downlink_demand_sources" =>
-        risk_context_values(contact_filter_risks, ["downlink_demand_sources"]),
-      "contact_filter_pressure_downlink_completion_sources" =>
-        risk_context_values(contact_filter_risks, ["downlink_completion_sources"]),
-      "contact_filter_pressure_feedback_sources" =>
-        risk_context_values(contact_filter_risks, "feedback_source"),
-      "contact_filter_pressure_feedback_scopes" =>
-        risk_context_values(contact_filter_risks, "feedback_scope"),
-      "contact_filter_pressure_trust_boundaries" =>
-        risk_context_values(contact_filter_risks, "trust_boundary"),
-      "contact_filter_pressure_derivation_reasons" =>
-        risk_context_values(contact_filter_risks, ["derivation_reasons"])
-    }
-    |> Enum.reject(fn {_key, values} -> values == [] end)
-    |> Map.new()
-  end
-
-  def contact_filter_context(_risks), do: %{}
+  def contact_filter_context(risks), do: ContactFilter.context(risks)
 
   def resource_filter_context(risks) when is_list(risks) do
     risks = Enum.map(risks, &stringify_keys/1)
@@ -433,10 +338,6 @@ defmodule OrbitalDynamics.RecommendationRiskContext do
   def execution_success_feedback_context(risks), do: ExecutionSuccessFeedback.context(risks)
 
   def operational_feedback_context(risks), do: OperationalFeedback.context(risks)
-
-  defp contact_filter_risk?(%{"feedback_scope" => "contact_filter"}), do: true
-
-  defp contact_filter_risk?(_risk), do: false
 
   defp resource_filter_risk?(%{"feedback_scope" => "resource_filter"}), do: true
 
