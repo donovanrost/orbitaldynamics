@@ -52,6 +52,19 @@ defmodule OrbitalDynamics.Schema do
       validate_rows: 4
     ]
 
+  import OrbitalDynamics.Schema.TimelineCapabilityContext,
+    only: [
+      timeline_activity_precondition_statuses: 0,
+      timeline_candidate_rejection_actions: 0,
+      timeline_candidate_rejection_reasons: 0,
+      timeline_capabilities: 0,
+      timeline_feedback_report_model_limits: 0,
+      timeline_integrity_issue_types: 0,
+      timeline_report_model_limits: 0,
+      timeline_required_operator_actions: 0,
+      timeline_transition_decisions: 0
+    ]
+
   @campaign_plan "campaign_plan.v1"
   @campaign_repair "campaign_repair.v2"
   @campaign_strategy "campaign_strategy.v3"
@@ -3438,46 +3451,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp timeline_string_assumptions_json_schema(values) do
     OrbitalDynamics.Schema.CommonJsonSchema.string_const_assumptions(values)
-  end
-
-  defp timeline_feedback_report_model_limits do
-    OrbitalDynamics.TimelineFeedback.capabilities()
-    |> Map.fetch!(:known_limits)
-    |> Enum.map(&Atom.to_string/1)
-  end
-
-  defp timeline_report_model_limits do
-    timeline_capabilities()
-    |> Map.fetch!(:known_limits)
-    |> Enum.map(&Atom.to_string/1)
-  end
-
-  defp timeline_capabilities do
-    OrbitalDynamics.Timeline.capabilities()
-  end
-
-  defp timeline_candidate_rejection_reasons do
-    timeline_capabilities().candidate_rejection_reasons
-  end
-
-  defp timeline_candidate_rejection_actions do
-    timeline_capabilities().candidate_rejection_actions
-  end
-
-  defp timeline_transition_decisions do
-    timeline_capabilities().transition_decisions
-  end
-
-  defp timeline_integrity_issue_types do
-    timeline_capabilities().timeline_integrity_issue_types
-  end
-
-  defp timeline_activity_precondition_statuses do
-    timeline_capabilities().activity_precondition_statuses
-  end
-
-  defp timeline_required_operator_actions do
-    timeline_capabilities().required_operator_actions
   end
 
   defp contact_contention_report_model_limits do
