@@ -9,7 +9,7 @@ Current slice:
 RecommendationRiskContext link-capacity extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `ee7312e9`.
 
 Selected boundary:
 Extract link-capacity context keys, risk classification, and context projection
@@ -32,19 +32,36 @@ Selection evidence:
   public output, and error behavior must remain unchanged.
 
 Implementation:
-Pending.
+- Added `OrbitalDynamics.RecommendationRiskContext.LinkCapacity` as the focused
+  owner of the ordered key contract, scoped type/risk_type classification,
+  atom-key normalization, and demand, completion, throughput, shortfall,
+  status, derivation, and provenance projection.
+- Preserved the public RecommendationRiskContext facade through delegates.
+- All other risk families remain outside the extraction.
+- `recommendation_risk_context.ex` moved from 878 to 782 lines; the dedicated
+  LinkCapacity owner is 128 lines.
 
 Verification:
-Pending.
+- Focused baseline and post-change test passed normally; the file retains its
+  two pre-existing signed-zero warnings.
+- Exact old/new public parity: four results passed, covering ordered keys,
+  both accepted classifiers, both rejection dimensions, atom-key
+  normalization, multi-key/list flattening, nil omission, throughput/status
+  fields, empty input, and non-list input.
+- Five adjacent recommendation tests passed with warnings treated as errors.
+- Static ownership and xref checks passed; only the facade calls the extracted
+  owner at runtime.
+- Forced warning-clean test compile passed across 4,042 files.
+- Focused formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-OperationalReadiness quality-gate report extraction, selected in `fc8572eb`
-and implemented in `9a00a240`.
-`operational_readiness.ex` moved from 903 to 827 lines; the dedicated
-QualityGateReport owner is 118 lines.
+RecommendationRiskContext link-capacity extraction, selected in `42b96465`
+and implemented in `ee7312e9`.
+`recommendation_risk_context.ex` moved from 878 to 782 lines; the dedicated
+LinkCapacity owner is 128 lines.
 
 Next candidate:
 After this slice, re-rank the live checkout. OperationalReadiness is the next
