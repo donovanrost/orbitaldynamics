@@ -6,54 +6,37 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema command-window capability-context extraction.
+Schema timeline-transition validation direct routing.
 
 Status:
-Completed and pushed.
+Selected; implementation not started.
 
 Selected boundary:
-Extract the capability-derived command-window report model-limit projection
-into `OrbitalDynamics.Schema.CommandWindowCapabilityContext`.
-Import that focused internal API into the Schema facade.
-Keep command-window schema construction, property dispatch, report validation,
-and all public facades in `OrbitalDynamics.Schema`.
+Remove the Schema facade's two one-hop wrappers for selected timeline-integrity
+fields and optional timeline-integrity source rows.
+Route the six callback-map entries directly to
+`TimelineTransitionValidation.validate_selected_timeline_integrity_fields/3`
+and `validate_optional_timeline_integrity_source_row/3`.
+Keep callback-map composition, transition validators that need facade-owned
+callbacks, contract routing, and all public facades in `OrbitalDynamics.Schema`.
 
 Selection evidence:
-- `schema.ex` remains the dominant hotspot at 6,181 lines.
-- The private projection converts CommandWindow capability atoms to strings
-  and feeds both report property dispatch and executable validation.
-- This is the last direct domain `capabilities/0` read remaining in the Schema
-  facade.
-- Importing the focused API preserves existing callback captures and
-  validation calls while leaving both consumers in their current owners.
-- Exact model-limit values and ordering, generated JSON Schema, validation
-  results, and checked-in exports must remain unchanged.
+- `schema.ex` remains the dominant hotspot at 6,178 lines.
+- The two wrappers only forward the same three arguments and add no guards,
+  defaults, callbacks, path adaptation, or result transformation.
+- Six callback entries across Cadence-import, Cadence-source-review, and
+  operator-review maps can capture the existing owner APIs directly.
+- Exact callback arity/timing, issue ordering, paths/messages, validation
+  results, and checked-in schema exports must remain unchanged.
 
 Implementation:
-Added `OrbitalDynamics.Schema.CommandWindowCapabilityContext`, which now owns
-the capability-derived command-window report model-limit projection.
-`OrbitalDynamics.Schema` imports that single focused API for property dispatch
-and executable validation.
-`schema.ex` moved from 6,181 to 6,178 lines; the dedicated owner is 9 lines.
+Pending.
 
 Verification:
-- Strict focused command-window/export/default-message baseline before
-  extraction: 25 passed.
-- The same strict focused suite after extraction: 25 passed.
-- Strict full schema-export task plus adjacent Cadence-import,
-  operator-review, timeline-activity, and timeline-summary coverage: 33 passed.
-- `mix xref callers
-  OrbitalDynamics.Schema.CommandWindowCapabilityContext` reports only
-  `lib/orbital_dynamics/schema.ex (export)`.
-- A direct domain `capability/capabilities` scan now returns no matches in
-  `schema.ex`.
-- `git diff --check` passed; no checked-in schema export changed.
-- Strict forced compile passed across 4,065 files.
-- Implementation commit `db23798a` pushed to `main`.
+Pending.
 
 Behavior/schema changes:
-None. Public facades, model-limit values and ordering, generated JSON Schema,
-validation behavior, and checked-in exports remain unchanged.
+None intended.
 
 Last completed slice:
 Schema command-window capability-context extraction, selected in `63633755`
