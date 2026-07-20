@@ -9,7 +9,7 @@ Current slice:
 Strategy schema-provider extraction.
 
 Status:
-Selected; implementation pending.
+Completed and verified.
 
 Selected boundary:
 Move the strategy branch tradeoff/risk/recommendation/branch/event/explanation
@@ -28,10 +28,20 @@ Selection evidence:
   explicit callbacks.
 
 Implementation:
-Pending.
+Selected in `a27dfb35` and implemented in `5aa56ba5`. Added the 63-line
+`StrategySchemaProviders` owner, merged its six lazy providers into the schema
+property context, and retained recursive strategy-recommendation document
+construction plus policy, negotiation, and scoped-context dependencies behind
+explicit callbacks. The public `Schema` facade moved from 1,606 to 1,559 lines.
 
 Verification:
-Pending.
+- Exact comparison passed for all six provider keys and outputs, including
+  callback-sensitive branch/event inputs and recursive recommendation output.
+- Focused schema/validation suite passed: 359 tests.
+- Full checked-in schema export regenerated with no diff.
+- Runtime xref shows one direct `Schema` -> `StrategySchemaProviders` edge.
+- Strict forced compile passed with warnings as errors: 4,116 files.
+- `JsonSchemaPropertyRouter` remains an ordered 76-head facade.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -39,13 +49,12 @@ laziness, field-hint fallback, stable-ID decoration, public `Schema`, and
 checked-in exports must remain unchanged.
 
 Last completed slice:
-Planning-analysis branch schema-provider expansion, selected in `2715158a` and
-implemented in `08a9dcbf`. The public `Schema` facade moved from 1,619 to 1,606
-lines.
+Strategy schema-provider extraction, selected in `a27dfb35` and implemented in
+`5aa56ba5`. The public `Schema` facade moved from 1,606 to 1,559 lines.
 
 Next candidate:
-Implement and verify the selected strategy provider extraction, then re-rank
-the remaining public-facade provider clusters.
+Re-rank the remaining public-facade provider clusters and select the next
+bounded extraction.
 
 Blocked:
 No.
