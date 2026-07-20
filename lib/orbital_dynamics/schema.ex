@@ -9,6 +9,7 @@ defmodule OrbitalDynamics.Schema do
 
   alias OrbitalDynamics.Schema.{
     CadenceImportValidation,
+    CampaignArtifactValidation,
     CandidateRejectionValidation,
     ContactAllocationValidation,
     ContactReportValidation,
@@ -22,32 +23,14 @@ defmodule OrbitalDynamics.Schema do
     SourceEvidenceValidation,
     StationReservationValidation,
     TimelineContextJsonSchema,
-    TimelineContextValidation,
-    TimelineSourceValidation,
     TimelineTransitionValidation
   }
-
-  import OrbitalDynamics.Schema.StableIdValidation,
-    only: [
-      validate_stable_ids: 4
-    ]
 
   import OrbitalDynamics.Schema.PrimitiveValidation,
     only: [
       error: 2,
       expect_equal: 5,
-      expect_field_equals: 6,
-      expect_one_of: 5,
-      expect_optional_type: 5,
-      expect_type: 5,
-      require_fields: 4,
-      require_nested: 4
-    ]
-
-  import OrbitalDynamics.Schema.CollectionValidation,
-    only: [
-      validate_optional_rows: 4,
-      validate_rows: 4
+      require_fields: 4
     ]
 
   import OrbitalDynamics.Schema.CommandWindowCapabilityContext,
@@ -4586,7 +4569,7 @@ defmodule OrbitalDynamics.Schema do
     []
     |> require_fields("$", artifact, contract["required_fields"])
     |> expect_equal("$", artifact, "schema_contract", "strategy_branch.v1")
-    |> validate_branch("$", artifact)
+    |> CampaignArtifactValidation.validate_branch("$", artifact)
   end
 
   defp validate_contract(@study_benchmark, contract, artifact) do
@@ -4648,7 +4631,7 @@ defmodule OrbitalDynamics.Schema do
   defp validate_contract(@strategy_recommendation, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_recommendation("$", artifact)
+    |> CampaignArtifactValidation.validate_recommendation("$", artifact)
   end
 
   defp validate_contract(@maneuver_recommendation, contract, artifact) do
@@ -5024,36 +5007,16 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validate_contract(@campaign_plan, contract, artifact) do
-    OrbitalDynamics.Schema.CampaignPlanContracts.validate(
-      [],
-      artifact,
-      contract["required_fields"],
-      campaign_plan_contract_callbacks()
-    )
+  defp validate_contract(@campaign_plan, _contract, artifact) do
+    CampaignArtifactValidation.validate_plan([], artifact)
   end
 
-  defp validate_contract(@campaign_repair, contract, artifact) do
-    OrbitalDynamics.Schema.CampaignRepairContracts.validate(
-      [],
-      artifact,
-      contract["required_fields"],
-      campaign_repair_contract_callbacks()
-    )
+  defp validate_contract(@campaign_repair, _contract, artifact) do
+    CampaignArtifactValidation.validate_repair([], artifact)
   end
 
-  defp validate_contract(@campaign_strategy, contract, artifact) do
-    OrbitalDynamics.Schema.CampaignStrategyContracts.validate(
-      [],
-      artifact,
-      contract["required_fields"],
-      &OrbitalDynamics.Schema.OperationalFeedbackContracts.validate/3,
-      &validate_branch/3,
-      &validate_recommendation/3,
-      &DecisionSupportValidation.validate_optional_branch_comparison_report/2,
-      &DecisionSupportValidation.validate_optional_ranking_comparison_report/2,
-      &OperatorReviewValidation.validate_optional_package/2
-    )
+  defp validate_contract(@campaign_strategy, _contract, artifact) do
+    CampaignArtifactValidation.validate_strategy([], artifact)
   end
 
   defp validate_contract(_name, contract, artifact) do
@@ -5068,124 +5031,4 @@ defmodule OrbitalDynamics.Schema do
         registry_contract!(@execution_report),
         execution_report
       )
-
-  defp campaign_plan_contract_callbacks do
-    [
-      require_fields: &require_fields/4,
-      validate_stable_ids: &validate_stable_ids/4,
-      expect_equal: &expect_equal/5,
-      expect_type: &expect_type/5,
-      expect_optional_type: &expect_optional_type/5,
-      validate_optional_contact_contention_report:
-        &ContactReportValidation.validate_optional_contention_report/2,
-      validate_optional_contact_contention_resolution_report:
-        &ContactReportValidation.validate_optional_contention_resolution_report/2,
-      validate_optional_station_calendar_report:
-        &StationReservationValidation.validate_optional_calendar_report/2,
-      validate_optional_objective_tradeoff_report:
-        &DecisionSupportValidation.validate_optional_objective_tradeoff_report/2,
-      validate_optional_objective_satisfaction_report:
-        &DecisionSupportValidation.validate_optional_objective_satisfaction_report/2,
-      validate_optional_operational_timeline_report:
-        &OperationalTimelineValidation.validate_optional_report/2,
-      validate_optional_timeline_transition_application_report:
-        &TimelineTransitionValidation.validate_optional_timeline_transition_application_report/3,
-      validate_optional_operator_review_package:
-        &OperatorReviewValidation.validate_optional_package/2,
-      validate_optional_operational_readiness_report:
-        &OperationalReadinessValidation.validate_optional_operational_readiness_report/3,
-      validate_optional_quality_gate_report:
-        &OperationalReadinessValidation.validate_optional_quality_gate_report/3,
-      validate_optional_optimizer_contract:
-        &DecisionSupportValidation.validate_optional_optimizer_contract/2,
-      validate_optional_link_capacity_report: &LinkCapacityValidation.validate_optional_report/2,
-      validate_optional_resource_projection_report:
-        &ResourceValidation.validate_optional_resource_projection_report/3,
-      validate_optional_resource_projection_flow_summary:
-        &ResourceValidation.validate_optional_resource_projection_flow_summary/3,
-      validate_optional_timeline_activity_precondition_summaries:
-        &TimelineSourceValidation.validate_optional_timeline_activity_precondition_summaries/3,
-      validate_optional_timeline_integrity_report:
-        &TimelineSourceValidation.validate_optional_timeline_integrity_report/3,
-      validate_optional_resource_filter_report:
-        &ResourceValidation.validate_optional_resource_filter_report/3,
-      validate_optional_score_term_report:
-        &DecisionSupportValidation.validate_optional_score_term_report/2,
-      validate_rows: &validate_rows/4,
-      validate_activity: &OrbitalDynamics.Schema.ActivityContracts.validate/3,
-      validate_proposed_contact: &OrbitalDynamics.Schema.ProposedContactContracts.validate/3,
-      validate_contact_intent: &OrbitalDynamics.Schema.ContactIntentContracts.validate/3,
-      validate_optional_contact_filter_report:
-        &ContactReportValidation.validate_optional_filter_report/2
-    ]
-  end
-
-  defp campaign_repair_contract_callbacks do
-    [
-      require_fields: &require_fields/4,
-      validate_stable_ids: &validate_stable_ids/4,
-      expect_equal: &expect_equal/5,
-      expect_type: &expect_type/5,
-      expect_one_of: &expect_one_of/5,
-      validate_realized_state_snapshot:
-        &OrbitalDynamics.Schema.RealizedStateSnapshotContracts.validate/3,
-      validate_rows: &validate_rows/4,
-      validate_optional_rows: &validate_optional_rows/4,
-      validate_activity: &OrbitalDynamics.Schema.ActivityContracts.validate/3,
-      validate_contact_intent: &OrbitalDynamics.Schema.ContactIntentContracts.validate/3,
-      validate_resource_summary: &OrbitalDynamics.Schema.ResourceSummaryContracts.validate/3,
-      validate_optional_contact_filter_report:
-        &ContactReportValidation.validate_optional_filter_report/3,
-      validate_optional_resource_filter_report:
-        &ResourceValidation.validate_optional_resource_filter_report/3,
-      validate_optional_resource_projection_report:
-        &ResourceValidation.validate_optional_resource_projection_report/3,
-      validate_optional_operational_timeline_report:
-        &OperationalTimelineValidation.validate_optional_report/2,
-      validate_optional_operator_review_package:
-        &OperatorReviewValidation.validate_optional_package/2,
-      validate_optional_objective_tradeoff_report:
-        &DecisionSupportValidation.validate_optional_objective_tradeoff_report/2,
-      validate_optional_score_term_report:
-        &DecisionSupportValidation.validate_optional_score_term_report/2,
-      validate_optional_link_capacity_report: &LinkCapacityValidation.validate_optional_report/2,
-      validate_optional_candidate_diff_report:
-        &OrbitalDynamics.Schema.CandidateDiffContracts.validate_optional_report/3,
-      validate_optional_candidate_rejection_report:
-        &CandidateRejectionValidation.validate_optional_report/3,
-      validate_optional_freshness_report:
-        &OrbitalDynamics.Schema.FreshnessReportContracts.validate_optional/3,
-      validate_optional_station_calendar_report:
-        &StationReservationValidation.validate_optional_calendar_report/3,
-      validate_plan_delta: &OrbitalDynamics.Schema.PlanDeltaContracts.validate/3,
-      validate_approval_requirement: &PolicyValidation.validate_approval_requirement/3,
-      validate_policy_decision: &PolicyValidation.validate_decision/3,
-      require_nested: &require_nested/4,
-      validate_optional_timeline_protection_summary:
-        &TimelineContextValidation.validate_optional_timeline_protection_summary/4,
-      expect_field_equals_with_message: &expect_field_equals/6
-    ]
-  end
-
-  defp validate_branch(issues, path, branch) do
-    OrbitalDynamics.Schema.StrategyBranchContracts.validate(
-      issues,
-      path,
-      branch,
-      &OrbitalDynamics.Schema.BranchEventContracts.validate_event/3,
-      &ResourceValidation.validate_optional_resource_projection_report/3,
-      &PolicyValidation.validate_decision/3,
-      &PolicyValidation.validate_approval_requirement/3
-    )
-  end
-
-  defp validate_recommendation(issues, path, recommendation) do
-    OrbitalDynamics.Schema.StrategyRecommendationContracts.validate(
-      issues,
-      path,
-      recommendation,
-      &OrbitalDynamics.Schema.BranchEventContracts.validate_summary_fields/3,
-      &OrbitalDynamics.Schema.ScopedDownlinkContextContracts.validate/3
-    )
-  end
 end
