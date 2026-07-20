@@ -1,6 +1,12 @@
 defmodule OrbitalDynamics.Schema.SourceEvidenceValidation do
   @moduledoc false
 
+  @freshness_statuses ["current", "stale", "unknown"]
+  @schema_validation_statuses ["pass", "fail"]
+
+  def freshness_statuses, do: @freshness_statuses
+  def schema_validation_statuses, do: @schema_validation_statuses
+
   def validate_fields(issues, path, row) do
     OrbitalDynamics.Schema.SourceEvidenceContracts.validate_fields(
       issues,
@@ -20,6 +26,9 @@ defmodule OrbitalDynamics.Schema.SourceEvidenceValidation do
     )
   end
 
+  def validate_freshness_status_matches(issues, path, row),
+    do: validate_freshness_status_matches(issues, path, row, freshness_statuses())
+
   def validate_schema_validation_status_matches(issues, path, row, statuses) do
     OrbitalDynamics.Schema.SourceStatusContracts.validate_schema_validation_matches(
       issues,
@@ -28,6 +37,15 @@ defmodule OrbitalDynamics.Schema.SourceEvidenceValidation do
       statuses
     )
   end
+
+  def validate_schema_validation_status_matches(issues, path, row),
+    do:
+      validate_schema_validation_status_matches(
+        issues,
+        path,
+        row,
+        schema_validation_statuses()
+      )
 
   def validate_execution_status_matches(issues, path, row) do
     OrbitalDynamics.Schema.SourceStatusContracts.validate_execution_matches(

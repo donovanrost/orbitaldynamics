@@ -2658,14 +2658,14 @@ defmodule OrbitalDynamics.Schema do
   defp source_freshness_report_evidence_json_schema do
     OrbitalDynamics.Schema.SourceEvidenceJsonSchema.freshness_report(
       source_evidence_schema_deps(),
-      freshness_statuses()
+      SourceEvidenceValidation.freshness_statuses()
     )
   end
 
   defp source_schema_validation_report_evidence_json_schema do
     OrbitalDynamics.Schema.SourceEvidenceJsonSchema.schema_validation_report(
       source_evidence_schema_deps(),
-      schema_validation_statuses()
+      SourceEvidenceValidation.schema_validation_statuses()
     )
   end
 
@@ -2690,10 +2690,6 @@ defmodule OrbitalDynamics.Schema do
       stable_id_array_map_schema: stable_id_array_map_schema()
     })
   end
-
-  defp freshness_statuses, do: ["current", "stale", "unknown"]
-
-  defp schema_validation_statuses, do: ["pass", "fail"]
 
   defp policy_action_rule_json_schema do
     action_rule_fields = OrbitalDynamics.Schema.PolicyFieldGroups.action_rule()
@@ -6235,11 +6231,13 @@ defmodule OrbitalDynamics.Schema do
         &TimelineSourceValidation.validate_optional_timeline_dependency_impact_source_row/3,
       validate_optional_branch_comparison_source_row:
         &validate_optional_branch_comparison_source_row/3,
-      validate_source_evidence_fields: &validate_source_evidence_fields/3,
-      validate_freshness_source_status_matches: &validate_freshness_source_status_matches/3,
+      validate_source_evidence_fields: &SourceEvidenceValidation.validate_fields/3,
+      validate_freshness_source_status_matches:
+        &SourceEvidenceValidation.validate_freshness_status_matches/3,
       validate_schema_validation_source_status_matches:
-        &validate_schema_validation_source_status_matches/3,
-      validate_execution_source_status_matches: &validate_execution_source_status_matches/3,
+        &SourceEvidenceValidation.validate_schema_validation_status_matches/3,
+      validate_execution_source_status_matches:
+        &SourceEvidenceValidation.validate_execution_status_matches/3,
       validate_operational_readiness_resource_context:
         &OperationalReadinessValidation.validate_operational_readiness_resource_context/3,
       validate_contact_allocation_handoff_fields: &validate_contact_allocation_handoff_fields/3,
@@ -6306,11 +6304,13 @@ defmodule OrbitalDynamics.Schema do
         &validate_optional_candidate_rejection_source_row/3,
       validate_optional_branch_comparison_source_row:
         &validate_optional_branch_comparison_source_row/3,
-      validate_source_evidence_fields: &validate_source_evidence_fields/3,
-      validate_freshness_source_status_matches: &validate_freshness_source_status_matches/3,
+      validate_source_evidence_fields: &SourceEvidenceValidation.validate_fields/3,
+      validate_freshness_source_status_matches:
+        &SourceEvidenceValidation.validate_freshness_status_matches/3,
       validate_schema_validation_source_status_matches:
-        &validate_schema_validation_source_status_matches/3,
-      validate_execution_source_status_matches: &validate_execution_source_status_matches/3,
+        &SourceEvidenceValidation.validate_schema_validation_status_matches/3,
+      validate_execution_source_status_matches:
+        &SourceEvidenceValidation.validate_execution_status_matches/3,
       validate_nested_id_match: &validate_nested_id_match/7,
       validate_optional_activity_context:
         &TimelineContextValidation.validate_optional_activity_context/4,
@@ -6382,30 +6382,6 @@ defmodule OrbitalDynamics.Schema do
         decision,
         policy_model_limits()
       )
-
-  defp validate_source_evidence_fields(issues, path, row),
-    do: SourceEvidenceValidation.validate_fields(issues, path, row)
-
-  defp validate_freshness_source_status_matches(issues, path, row),
-    do:
-      SourceEvidenceValidation.validate_freshness_status_matches(
-        issues,
-        path,
-        row,
-        freshness_statuses()
-      )
-
-  defp validate_schema_validation_source_status_matches(issues, path, row),
-    do:
-      SourceEvidenceValidation.validate_schema_validation_status_matches(
-        issues,
-        path,
-        row,
-        schema_validation_statuses()
-      )
-
-  defp validate_execution_source_status_matches(issues, path, row),
-    do: SourceEvidenceValidation.validate_execution_status_matches(issues, path, row)
 
   defp validate_contact_allocation_handoff_fields(issues, path, row) do
     OrbitalDynamics.Schema.ContactAllocationHandoffContracts.validate_allocation_fields(
@@ -6526,11 +6502,13 @@ defmodule OrbitalDynamics.Schema do
       validate_optional_policy_escalation: &validate_optional_policy_escalation/4,
       validate_optional_timeline_dependency_impact_source_row:
         &TimelineSourceValidation.validate_optional_timeline_dependency_impact_source_row/3,
-      validate_source_evidence_fields: &validate_source_evidence_fields/3,
-      validate_freshness_source_status_matches: &validate_freshness_source_status_matches/3,
+      validate_source_evidence_fields: &SourceEvidenceValidation.validate_fields/3,
+      validate_freshness_source_status_matches:
+        &SourceEvidenceValidation.validate_freshness_status_matches/3,
       validate_schema_validation_source_status_matches:
-        &validate_schema_validation_source_status_matches/3,
-      validate_execution_source_status_matches: &validate_execution_source_status_matches/3,
+        &SourceEvidenceValidation.validate_schema_validation_status_matches/3,
+      validate_execution_source_status_matches:
+        &SourceEvidenceValidation.validate_execution_status_matches/3,
       validate_selected_timeline_integrity_fields: &validate_selected_timeline_integrity_fields/3,
       validate_optional_timeline_diff_summary_source:
         &TimelineSourceValidation.validate_optional_timeline_diff_summary_source/3,
