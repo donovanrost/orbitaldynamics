@@ -2369,9 +2369,12 @@ defmodule OrbitalDynamics.Schema do
       contract,
       capability: &OrbitalDynamics.OperationalReadiness.capabilities/0,
       gate_schema: &operational_readiness_gate_json_schema/0,
-      import_eligibility_model_limits: &operational_import_eligibility_summary_model_limits/0,
-      readiness_gate_model_limits: &operational_readiness_gate_summary_model_limits/0,
-      execution_boundary_model_limits: &operational_execution_boundary_summary_model_limits/0,
+      import_eligibility_model_limits:
+        &OperationalReadinessValidation.operational_import_eligibility_summary_model_limits/0,
+      readiness_gate_model_limits:
+        &OperationalReadinessValidation.operational_readiness_gate_summary_model_limits/0,
+      execution_boundary_model_limits:
+        &OperationalReadinessValidation.operational_execution_boundary_summary_model_limits/0,
       stable_id_pattern: @stable_id_pattern,
       string_array_schema: &string_array_schema/0,
       default_property: &default_json_schema_property/3
@@ -2385,8 +2388,9 @@ defmodule OrbitalDynamics.Schema do
       contract_name,
       contract,
       capability: &OrbitalDynamics.OperationalReadiness.capabilities/0,
-      operational_summary_model_limits: &quality_gate_summary_model_limits/0,
-      report_model_limits: &quality_gate_report_model_limits/0,
+      operational_summary_model_limits:
+        &OperationalReadinessValidation.quality_gate_summary_model_limits/0,
+      report_model_limits: &OperationalReadinessValidation.quality_gate_report_model_limits/0,
       row_schema: &quality_gate_report_row_json_schema/0,
       stable_id_pattern: @stable_id_pattern,
       default_property: &default_json_schema_property/3
@@ -2405,10 +2409,13 @@ defmodule OrbitalDynamics.Schema do
       contract_name,
       contract,
       unavailable_resource_model_limits:
-        &quality_gate_unavailable_resource_summary_model_limits/0,
-      operator_training_model_limits: &quality_gate_operator_training_summary_model_limits/0,
-      schema_validation_model_limits: &quality_gate_schema_validation_summary_model_limits/0,
-      import_readiness_model_limits: &quality_gate_import_readiness_summary_model_limits/0,
+        &OperationalReadinessValidation.quality_gate_unavailable_resource_summary_model_limits/0,
+      operator_training_model_limits:
+        &OperationalReadinessValidation.quality_gate_operator_training_summary_model_limits/0,
+      schema_validation_model_limits:
+        &OperationalReadinessValidation.quality_gate_schema_validation_summary_model_limits/0,
+      import_readiness_model_limits:
+        &OperationalReadinessValidation.quality_gate_import_readiness_summary_model_limits/0,
       stable_id_pattern: @stable_id_pattern,
       default_property: &default_json_schema_property/3
     )
@@ -2424,7 +2431,7 @@ defmodule OrbitalDynamics.Schema do
         OrbitalDynamics.OperationalReadiness.capabilities(),
         operational_readiness_gate_json_schema(),
         operational_readiness_evidence_json_schema(),
-        operational_readiness_model_limits()
+        OperationalReadinessValidation.operational_readiness_model_limits()
       }
     )
   end
@@ -3070,36 +3077,6 @@ defmodule OrbitalDynamics.Schema do
     |> Map.fetch!(:known_limits)
     |> Enum.map(&Atom.to_string/1)
   end
-
-  defp operational_readiness_model_limits,
-    do: OperationalReadinessValidation.operational_readiness_model_limits()
-
-  defp operational_readiness_gate_summary_model_limits,
-    do: OperationalReadinessValidation.operational_readiness_gate_summary_model_limits()
-
-  defp operational_execution_boundary_summary_model_limits,
-    do: OperationalReadinessValidation.operational_execution_boundary_summary_model_limits()
-
-  defp operational_import_eligibility_summary_model_limits,
-    do: OperationalReadinessValidation.operational_import_eligibility_summary_model_limits()
-
-  defp quality_gate_report_model_limits,
-    do: OperationalReadinessValidation.quality_gate_report_model_limits()
-
-  defp quality_gate_summary_model_limits,
-    do: OperationalReadinessValidation.quality_gate_summary_model_limits()
-
-  defp quality_gate_unavailable_resource_summary_model_limits,
-    do: OperationalReadinessValidation.quality_gate_unavailable_resource_summary_model_limits()
-
-  defp quality_gate_operator_training_summary_model_limits,
-    do: OperationalReadinessValidation.quality_gate_operator_training_summary_model_limits()
-
-  defp quality_gate_schema_validation_summary_model_limits,
-    do: OperationalReadinessValidation.quality_gate_schema_validation_summary_model_limits()
-
-  defp quality_gate_import_readiness_summary_model_limits,
-    do: OperationalReadinessValidation.quality_gate_import_readiness_summary_model_limits()
 
   defp model_acceptance_report_model_limits do
     OrbitalDynamics.Validation.capabilities()
@@ -5089,7 +5066,7 @@ defmodule OrbitalDynamics.Schema do
     |> OrbitalDynamics.Schema.QualityGateReportContracts.validate_report(
       "$",
       artifact,
-      quality_gate_report_model_limits(),
+      OperationalReadinessValidation.quality_gate_report_model_limits(),
       &OperationalReadinessValidation.validate_quality_gate_row/3
     )
   end
