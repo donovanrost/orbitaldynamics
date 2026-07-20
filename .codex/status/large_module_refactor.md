@@ -9,7 +9,7 @@ Current slice:
 Policy schema-provider extraction.
 
 Status:
-Selected; implementation pending.
+Completed and verified.
 
 Selected boundary:
 Move policy action-rule, decision, decision-evidence, rule-match, escalation,
@@ -28,10 +28,20 @@ Selection evidence:
   lazy through one explicit callback.
 
 Implementation:
-Pending.
+Selected in `33e14d05` and implemented in `a90c0166`. Added the 53-line
+`PolicySchemaProviders` owner with six lazy policy/scoped closures, merged its
+registry providers, and passed shared closures to downstream owners while
+retaining recursive policy-decision document construction as one facade
+callback. The public `Schema` facade moved from 1,176 to 1,161 lines.
 
 Verification:
-Pending.
+- Exact comparison passed for all six policy-provider keys and outputs using a
+  sentinel policy-decision document.
+- Focused schema/validation suite passed: 359 tests.
+- Full checked-in schema export regenerated with no diff.
+- Runtime xref shows one direct `Schema` -> `PolicySchemaProviders` edge.
+- Strict forced compile passed with warnings as errors: 4,123 files.
+- `JsonSchemaPropertyRouter` remains an ordered 76-head facade.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -39,13 +49,12 @@ laziness, field-hint fallback, stable-ID decoration, public `Schema`, and
 checked-in exports must remain unchanged.
 
 Last completed slice:
-Source-evidence schema-provider extraction, selected in `b9b5302f` and
-implemented in `30b37935`. The public `Schema` facade moved from 1,216 to 1,176
-lines.
+Policy schema-provider extraction, selected in `33e14d05` and implemented in
+`a90c0166`. The public `Schema` facade moved from 1,176 to 1,161 lines.
 
 Next candidate:
-Implement and verify the selected policy provider extraction, then re-rank the
-remaining public-facade clusters.
+Re-rank the remaining public-facade provider clusters and select the next
+bounded extraction.
 
 Blocked:
 No.
