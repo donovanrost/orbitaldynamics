@@ -52,6 +52,9 @@ defmodule OrbitalDynamics.Schema do
       validate_rows: 4
     ]
 
+  import OrbitalDynamics.Schema.CommandWindowCapabilityContext,
+    only: [command_window_report_model_limits: 0]
+
   import OrbitalDynamics.Schema.CadenceImportCapabilityContext,
     only: [
       cadence_import_capability: 0,
@@ -3168,12 +3171,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp timeline_string_assumptions_json_schema(values) do
     OrbitalDynamics.Schema.CommonJsonSchema.string_const_assumptions(values)
-  end
-
-  defp command_window_report_model_limits do
-    OrbitalDynamics.Communications.CommandWindow.capabilities()
-    |> Map.fetch!(:known_limits)
-    |> Enum.map(&Atom.to_string/1)
   end
 
   defp station_calendar_report_model, do: "campaign_ground_network_interval_overlay"
