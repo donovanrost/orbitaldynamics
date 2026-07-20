@@ -90,6 +90,14 @@ defmodule OrbitalDynamics.Schema do
   import OrbitalDynamics.Schema.LinkCapacityCapabilityContext,
     only: [link_capacity_assumptions_json_schema: 1]
 
+  import OrbitalDynamics.Schema.OperatorReviewCapabilityContext,
+    only: [
+      operator_review_capabilities: 0,
+      operator_review_package_model_limits: 0,
+      operator_review_source_artifact_types: 0,
+      operator_review_types: 0
+    ]
+
   import OrbitalDynamics.Schema.ResourceFilterCapabilityContext,
     only: [
       resource_filter_report_assumptions_json_schema: 0,
@@ -2508,7 +2516,7 @@ defmodule OrbitalDynamics.Schema do
       contract,
       &default_json_schema_property/3,
       {
-        OrbitalDynamics.OperatorReview.capabilities(),
+        operator_review_capabilities(),
         operator_review_package_model_limits(),
         OrbitalDynamics.OperationalReadiness.capabilities(),
         operator_review_row_json_schema(),
@@ -3127,12 +3135,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp campaign_activity_json_schema do
     candidate_activity_json_schema()
-  end
-
-  defp operator_review_package_model_limits do
-    OrbitalDynamics.OperatorReview.capabilities()
-    |> Map.fetch!(:known_limits)
-    |> Enum.map(&Atom.to_string/1)
   end
 
   defp model_acceptance_report_model_limits do
@@ -4194,7 +4196,7 @@ defmodule OrbitalDynamics.Schema do
 
   defp operator_review_row_json_schema do
     OrbitalDynamics.Schema.OperatorReviewRowJsonSchema.row(
-      operator_review_capability: OrbitalDynamics.OperatorReview.capabilities(),
+      operator_review_capability: operator_review_capabilities(),
       readiness_capability: OrbitalDynamics.OperationalReadiness.capabilities(),
       timeline_capability: timeline_capabilities(),
       stable_id_pattern: @stable_id_pattern,
@@ -6082,7 +6084,7 @@ defmodule OrbitalDynamics.Schema do
         issues,
         path,
         package,
-        OrbitalDynamics.OperatorReview.capabilities().source_artifact_types,
+        operator_review_source_artifact_types(),
         operator_review_package_model_limits(),
         operator_review_package_contract_callbacks()
       )
@@ -6105,7 +6107,7 @@ defmodule OrbitalDynamics.Schema do
         issues,
         path,
         row,
-        OrbitalDynamics.OperatorReview.capabilities().review_types,
+        operator_review_types(),
         station_calendar_provider_counteroffer_negotiation_states(),
         operator_review_row_domain_callbacks()
       )
