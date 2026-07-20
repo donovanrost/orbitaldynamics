@@ -12,6 +12,7 @@ defmodule OrbitalDynamics.OperationalReadiness do
   alias OrbitalDynamics.OperationalReadiness.EvidenceNormalization
   alias OrbitalDynamics.OperationalReadiness.ExecutionBoundarySummary
   alias OrbitalDynamics.OperationalReadiness.GateSummary
+  alias OrbitalDynamics.OperationalReadiness.ImportEligibilitySummary
   alias OrbitalDynamics.OperationalReadiness.OperatorTrainingEvidence
   alias OrbitalDynamics.OperationalReadiness.OperationalModeDecision
   alias OrbitalDynamics.OperationalReadiness.QualityGateOperatorTrainingSummary
@@ -21,7 +22,6 @@ defmodule OrbitalDynamics.OperationalReadiness do
   alias OrbitalDynamics.OperationalReadiness.TimelinePublicationContext
 
   @schema_contract "operational_readiness_report.v1"
-  @import_eligibility_summary_schema_contract "operational_import_eligibility_summary.v1"
   @gate_summary_schema_contract "operational_readiness_gate_summary.v1"
   @execution_boundary_summary_schema_contract "operational_execution_boundary_summary.v1"
   @quality_gate_schema_contract "quality_gate_report.v1"
@@ -42,7 +42,7 @@ defmodule OrbitalDynamics.OperationalReadiness do
       artifact_contract: @schema_contract,
       model: :artifact_only_operational_readiness_classifier,
       validation_level: :artifact_contract,
-      import_eligibility_summary_artifact_contract: @import_eligibility_summary_schema_contract,
+      import_eligibility_summary_artifact_contract: ImportEligibilitySummary.schema_contract(),
       gate_summary_artifact_contract: @gate_summary_schema_contract,
       execution_boundary_summary_artifact_contract: @execution_boundary_summary_schema_contract,
       quality_gate_summary_artifact_contract: @quality_gate_summary_schema_contract,
@@ -203,7 +203,7 @@ defmodule OrbitalDynamics.OperationalReadiness do
   def import_eligibility(artifact, opts \\ []) do
     artifact
     |> report(opts)
-    |> import_eligibility_summary()
+    |> ImportEligibilitySummary.build()
   end
 
   @doc """
@@ -423,43 +423,6 @@ defmodule OrbitalDynamics.OperationalReadiness do
     artifact
     |> quality_gate_report(opts)
     |> quality_gate_import_readiness_summary_from_report()
-  end
-
-  defp import_eligibility_summary(report) do
-    gates = Map.get(report, "gates", []) |> Enum.filter(&is_map/1)
-    gate_counts = GateSummary.counts(gates)
-
-    non_passed_gates =
-      gates
-      |> Enum.reject(&(&1["status"] == "passed"))
-
-    %{
-      "schema_contract" => @import_eligibility_summary_schema_contract,
-      "model" => "artifact_only_import_eligibility_summary",
-      "source" => "operational_readiness_report.v1",
-      "source_artifact_type" => report["source_artifact_type"],
-      "source_artifact_id" => report["source_artifact_id"],
-      "readiness_level" => report["readiness_level"],
-      "import_classification" => report["import_classification"],
-      "status" => report["status"],
-      "import_eligible" => report["import_classification"] == "importable",
-      "gate_count" => gate_counts.gate_count,
-      "passed_gate_count" => gate_counts.passed_gate_count,
-      "review_gate_count" => gate_counts.review_gate_count,
-      "analysis_gate_count" => gate_counts.analysis_gate_count,
-      "blocked_gate_count" => gate_counts.blocked_gate_count,
-      "non_passed_gate_count" => length(non_passed_gates),
-      "non_passed_gates" => non_passed_gates,
-      "assumptions" => %{
-        "execution_boundary" => "artifact_only_no_cadence_write",
-        "source" => "operational_readiness_report.v1",
-        "operator_authority" => "not_granted_by_summary"
-      },
-      "model_limits" => [
-        "operational_import_eligibility_summary_routes_only",
-        "operational_import_eligibility_summary_does_not_approve_or_import"
-      ]
-    }
   end
 
   defp quality_gate_report_from_readiness(%{} = readiness_report) do
