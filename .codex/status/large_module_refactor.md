@@ -9,7 +9,7 @@ Current slice:
 ResourceProjection approval-policy handoff extraction.
 
 Status:
-Selected; strict focused baseline pending.
+Completed and pushed in `2166062a`.
 
 Selected boundary:
 Extract optional policy application for projected resource rows, invalid
@@ -35,24 +35,43 @@ Selection evidence:
   and error behavior must remain unchanged.
 
 Implementation:
-Pending.
+- Added `OrbitalDynamics.ResourceProjection.ApprovalPolicy` as the owner of
+  optional policy application for projected resource rows, invalid activity
+  inputs, invalid resource-summary inputs, and their approval requirements.
+- Wired report assembly directly to the owner while preserving
+  ResourceProjection and root public APIs.
+- Kept activity/summary normalization, projection math, flow construction, and
+  pressure classification in their existing owners.
+- `resource_projection.ex` moved from 1,789 to 1,578 lines; the new owner is 220
+  lines.
 
 Verification:
-Pending.
+- Strict focused baseline passed all 49 ResourceProjection tests.
+- Exact old/new public parity passed for four deterministic report results:
+  projected pressure with policy, invalid activity with policy, invalid summary
+  with policy, and projected pressure without policy.
+- Post-extraction focused and adjacent ResourceProjection, operator-review,
+  strategy pressure/source-report, and validation-fixture verification passed
+  all 61 tests.
+- Static checks confirm the approval-policy helper family left the facade; xref
+  reports only ResourceProjection as a runtime caller.
+- Strict warning-clean forced compile passed for 4,009 files.
+- Formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-TimelineFeedback operational-feedback aggregation extraction, selected in
-`da283212` and implemented in `8d9a5204`.
-`timeline_feedback.ex` moved from 1,797 to 1,546 lines; the dedicated
-OperationalFeedbackSummary owner is 252 lines.
+ResourceProjection approval-policy handoff extraction, selected in `3e1457c7`
+and implemented in `2166062a`.
+`resource_projection.ex` moved from 1,789 to 1,578 lines; the dedicated
+ApprovalPolicy owner is 220 lines.
 
 Next candidate:
 Re-rank the live checkout and select the next bounded facade-preserving
-extraction. `resource_projection.ex` is now the largest ordinary eligible
-facade at 1,789 lines, followed by ContactIntent and RecommendationRiskContext.
+extraction. `communications/contact_intent.ex` is now the largest ordinary
+eligible facade at 1,785 lines, followed by RecommendationRiskContext and
+OperationalReadiness.
 
 Blocked:
 No.
