@@ -9,7 +9,7 @@ Current slice:
 CampaignPlanner repair communications policy direct routing.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Remove two one-hop CampaignPlanner repair communications helpers for downlink
@@ -29,18 +29,34 @@ Selection evidence:
   unchanged.
 
 Implementation:
-Pending.
+Removed the two one-hop CampaignPlanner repair communications helpers and
+routed their consumers directly to DownlinkObjectiveRequirements and
+ContactContentionResolutionPolicy. `campaign_planner.ex` moved from 1,049 to
+1,041 lines.
 
 Verification:
-Pending.
+- Strict focused core planner, repair link-capacity, contact-allocation, and
+  determinism baseline before routing: 9 passed.
+- The same strict focused suite after routing: 9 passed.
+- Strict adjacent missed-downlink, allocation-filter, resource-projection, and
+  generated-refresh repair coverage: 13 passed.
+- `mix xref callers` for DownlinkObjectiveRequirements and
+  ContactContentionResolutionPolicy reports the expected CampaignPlanner
+  orchestrator and existing internal consumers.
+- Static search confirms both helper definitions and indirect calls are gone.
+- `git diff --check` passed.
+- Strict forced compile passed across 4,065 files.
+- Implementation commit `fb3dfadc` pushed to `main`.
 
 Behavior/schema changes:
-None intended.
+None. Public CampaignPlanner APIs, required-downlink aggregation,
+contact-contention policy, allocation report content, repair sequencing, and
+deterministic artifacts remain unchanged.
 
 Last completed slice:
-CampaignPlanner repair report owner direct routing, selected in `6a2ae37b` and
-implemented in `3293d85c`.
-`campaign_planner.ex` moved from 1,061 to 1,049 lines.
+CampaignPlanner repair communications policy direct routing, selected in
+`6eb2e64d` and implemented in `fb3dfadc`.
+`campaign_planner.ex` moved from 1,049 to 1,041 lines.
 
 Next candidate:
 Re-rank the remaining non-capability Schema responsibility clusters now that
