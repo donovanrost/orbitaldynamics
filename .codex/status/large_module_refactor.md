@@ -9,7 +9,7 @@ Current slice:
 Execution-review row schema-provider extraction.
 
 Status:
-Selected; implementation pending.
+Completed and verified.
 
 Selected boundary:
 Move the maneuver-review and command-window row builders from the public
@@ -27,10 +27,21 @@ Selection evidence:
   explicit callbacks.
 
 Implementation:
-Pending.
+Selected in `0037d37c` and implemented in `6477c809`. Added the 26-line
+`ExecutionReviewSchemaProviders` owner, merged its two lazy providers into the
+schema property context, and retained facade-owned activity-context and
+policy-decision construction behind explicit callbacks. The public `Schema`
+facade moved from 1,524 to 1,513 lines.
 
 Verification:
-Pending.
+- Exact comparison passed for both provider keys and outputs with sentinel
+  activity-context and policy-decision schemas.
+- Focused schema/validation suite passed: 359 tests.
+- Full checked-in schema export regenerated with no diff.
+- Runtime xref shows one direct `Schema` -> `ExecutionReviewSchemaProviders`
+  edge.
+- Strict forced compile passed with warnings as errors: 4,118 files.
+- `JsonSchemaPropertyRouter` remains an ordered 76-head facade.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -38,13 +49,13 @@ laziness, field-hint fallback, stable-ID decoration, public `Schema`, and
 checked-in exports must remain unchanged.
 
 Last completed slice:
-Timeline-feedback schema-provider extraction, selected in `3f40aab2` and
-implemented in `937ea42d`. The public `Schema` facade moved from 1,559 to 1,524
+Execution-review row schema-provider extraction, selected in `0037d37c` and
+implemented in `6477c809`. The public `Schema` facade moved from 1,524 to 1,513
 lines.
 
 Next candidate:
-Implement and verify the selected execution-review row provider extraction,
-then re-rank the remaining public-facade provider clusters.
+Re-rank the remaining public-facade provider clusters and select the next
+bounded extraction.
 
 Blocked:
 No.
