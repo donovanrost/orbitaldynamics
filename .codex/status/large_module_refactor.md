@@ -6,16 +6,16 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema timeline-context validation routing cleanup.
+No slice selected.
 
 Status:
-Selected; implementation not started.
+Slice complete and pushed.
 
 Selected boundary:
-Complete the existing `OrbitalDynamics.Schema.TimelineContextValidation`
+Completed the existing `OrbitalDynamics.Schema.TimelineContextValidation`
 extraction by routing callback tables directly to that owner and removing
 nine facade pass-through clauses.
-Preserve all `OrbitalDynamics.Schema` public facades and validation/error
+Preserved all `OrbitalDynamics.Schema` public facades and validation/error
 behavior.
 
 Selection evidence:
@@ -35,23 +35,42 @@ Selection evidence:
   wiring, public validation results, and schema exports must remain unchanged.
 
 Implementation:
-Pending.
+- Moved the facade wrappers' map guards onto the seven corresponding optional
+  owner functions so malformed-input function-clause behavior remains stable.
+- Routed operational-timeline, transition, campaign, Cadence import,
+  source-review, and operator-review callback tables directly to
+  `TimelineContextValidation`.
+- Removed nine one-hop private wrapper clauses, including the two-clause
+  timeline-identity adapter.
+- `schema.ex` moved from 6,640 to 6,622 lines; the focused owner remains compact
+  at 76 lines.
 
 Verification:
-Pending.
+- Pre-change strict focused baseline: 43 timeline/Cadence/operator-review
+  contract tests passed.
+- Post-change strict focused verification: the same 43 tests passed; 7 broader
+  validation and campaign-fixture tests also passed.
+- Static checks found no migrated timeline-context wrappers or local callback
+  captures remaining; xref reports `schema.ex` as the runtime caller of
+  `TimelineContextValidation`.
+- No checked-in schema export changed.
+- Forced warnings-as-errors compile passed across 4,050 files.
+- Formatting and `git diff --check` passed; the worktree was clean after the
+  implementation commit.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-Schema timeline-source validation routing cleanup, selected in `812776d1` and
-implemented in `a60fc5ee`.
-`schema.ex` moved from 6,694 to 6,640 lines by completing routing to the
-existing TimelineSourceValidation owner.
+Schema timeline-context validation routing cleanup, selected in `88bd2853` and
+implemented in `d9d05131`.
+`schema.ex` moved from 6,640 to 6,622 lines by completing routing to the
+existing TimelineContextValidation owner.
 
 Next candidate:
-After this slice, re-rank the remaining schema wrapper clusters. Keep the
-timeline-transition adapters because they inject callback dependencies.
+Re-rank the remaining schema wrapper clusters. Keep the timeline-transition
+adapters because they inject callback dependencies; source-evidence routing is
+a smaller pure pass-through candidate.
 
 Blocked:
 No.
