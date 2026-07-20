@@ -22,7 +22,8 @@ defmodule OrbitalDynamics.Schema do
     SourceEvidenceValidation,
     StationReservationValidation,
     TimelineArtifactValidation,
-    TimelineContextJsonSchema
+    TimelineContextJsonSchema,
+    ValidationArtifactValidation
   }
 
   import OrbitalDynamics.Schema.PrimitiveValidation,
@@ -4882,50 +4883,32 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validate_contract(@validation_reference_fixture_report, contract, artifact) do
-    OrbitalDynamics.Schema.ValidationReferenceContracts.validate_fixture_report(
+  defp validate_contract(@validation_reference_fixture_report, _contract, artifact) do
+    ValidationArtifactValidation.validate([], "$", artifact, @validation_reference_fixture_report)
+  end
+
+  defp validate_contract(@validation_reference_report, _contract, artifact) do
+    ValidationArtifactValidation.validate([], "$", artifact, @validation_reference_report)
+  end
+
+  defp validate_contract(@validation_check, _contract, artifact) do
+    ValidationArtifactValidation.validate([], "$", artifact, @validation_check)
+  end
+
+  defp validate_contract(@validation_record, _contract, artifact) do
+    ValidationArtifactValidation.validate([], "$", artifact, @validation_record)
+  end
+
+  defp validate_contract(@model_acceptance_report, _contract, artifact) do
+    ValidationArtifactValidation.validate([], "$", artifact, @model_acceptance_report)
+  end
+
+  defp validate_contract(@validation_safety_case_summary, _contract, artifact) do
+    ValidationArtifactValidation.validate(
       [],
       "$",
       artifact,
-      contract
-    )
-  end
-
-  defp validate_contract(@validation_reference_report, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.ValidationReferenceContracts.validate_report("$", artifact)
-  end
-
-  defp validate_contract(@validation_check, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.ValidationReferenceContracts.validate_check("$", artifact)
-  end
-
-  defp validate_contract(@validation_record, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.ValidationRecordContracts.validate("$", artifact)
-  end
-
-  defp validate_contract(@model_acceptance_report, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.ValidationAcceptanceReportContracts.validate_model_acceptance_report(
-      "$",
-      artifact,
-      model_acceptance_report_model_limits()
-    )
-  end
-
-  defp validate_contract(@validation_safety_case_summary, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.ValidationAcceptanceReportContracts.validate_validation_safety_case_summary(
-      "$",
-      artifact,
-      model_acceptance_report_model_limits()
+      @validation_safety_case_summary
     )
   end
 
