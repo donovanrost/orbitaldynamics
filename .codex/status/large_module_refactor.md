@@ -9,7 +9,7 @@ Current slice:
 Schema common number-or-string primitive direct routing.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Remove the zero-context, one-hop CommonJsonSchema number-or-string helper.
@@ -28,18 +28,34 @@ Selection evidence:
   validation results, and checked-in exports must remain unchanged.
 
 Implementation:
-Pending.
+Removed the CommonJsonSchema number-or-string helper and routed all ten
+consumers directly to the owner module. `schema.ex` moved from 6,001 to 5,997
+lines after direct calls and captures were formatted.
 
 Verification:
-Pending.
+- Strict focused feedback/strategy/Cadence/review baseline before routing:
+  13 passed.
+- The same strict focused suite after routing: 13 passed.
+- Strict full JSON Schema export-contract, timeline-report, operational
+  timeline, and checked-in export coverage: 28 passed.
+- The full schema-export task completed and produced no checked-in changes.
+- `mix xref callers OrbitalDynamics.Schema.CommonJsonSchema` reports the
+  expected facade and internal schema-owner consumers.
+- Definition/reference-specific static search confirms the helper and all
+  indirect references are gone.
+- `git diff --check` passed.
+- Strict forced compile passed across 4,065 files.
+- Implementation commit `80b48d2c` pushed to `main`.
 
 Behavior/schema changes:
-None intended.
+None. Public facades, number-or-string schemas, eager and lazy evaluation
+behavior, composed schemas, executable validation, and checked-in exports
+remain unchanged.
 
 Last completed slice:
-Schema common numeric-map primitive direct routing, selected in `32ff8955` and
-implemented in `6fa1f6a9`.
-`schema.ex` moved from 6,006 to 6,001 lines.
+Schema common number-or-string primitive direct routing, selected in
+`dcde91be` and implemented in `80b48d2c`.
+`schema.ex` moved from 6,001 to 5,997 lines.
 
 Next candidate:
 Re-rank the remaining non-capability Schema responsibility clusters now that
