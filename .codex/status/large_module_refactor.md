@@ -9,7 +9,7 @@ Current slice:
 OperationalReadiness quality-gate row extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `267f9eeb`.
 
 Selected boundary:
 Extract quality-gate row identity, base projection, gate-specific context, and
@@ -33,19 +33,36 @@ Selection evidence:
   error behavior must remain unchanged.
 
 Implementation:
-Pending.
+- Added `OrbitalDynamics.OperationalReadiness.QualityGateRow` as the focused
+  owner of stable row identity, base projection, gate-specific context,
+  resource normalization, and nil compaction.
+- Preserved quality-gate report aggregation and all public OperationalReadiness
+  facades through the row builder.
+- Unavailable-resource aggregation, readiness evidence construction, and all
+  gates remain outside the extraction.
+- `operational_readiness.ex` moved from 1,140 to 1,063 lines; the dedicated
+  QualityGateRow owner is 124 lines.
 
 Verification:
-Pending.
+- Strict focused baseline: 31 tests passed with warnings treated as errors.
+- Exact old/new public parity: four results passed, covering six row types,
+  stable IDs/ranks, nil compaction, resource normalization, all four
+  gate-specific contexts, downstream summaries, and the root facade.
+- Post-change core, operator-review, schema, and fixture checks: 51 tests
+  passed with warnings treated as errors.
+- Static ownership and xref checks passed; only the facade calls the extracted
+  owner at runtime.
+- Forced warning-clean test compile passed across 4,036 files.
+- Focused formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-RecommendationRiskContext capacity-pack extraction, selected in `aee20d5b`
-and implemented in `bdc570d2`.
-`recommendation_risk_context.ex` moved from 1,153 to 1,094 lines; the dedicated
-CapacityPack owner is 96 lines.
+OperationalReadiness quality-gate row extraction, selected in `15bafb68` and
+implemented in `267f9eeb`.
+`operational_readiness.ex` moved from 1,140 to 1,063 lines; the dedicated
+QualityGateRow owner is 124 lines.
 
 Next candidate:
 After this slice, re-rank the live checkout. RecommendationRiskContext is the
