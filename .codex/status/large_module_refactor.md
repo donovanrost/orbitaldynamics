@@ -9,7 +9,7 @@ Current slice:
 Schema study-result metadata validation context extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Add a `StudyResultValidation` owner-default entry point for
@@ -30,23 +30,37 @@ Selection evidence:
   nested execution-report callback and therefore has a distinct boundary.
 
 Implementation:
-Pending.
+Added `StudyResultValidation` as the registry-backed family owner for the two
+selected artifacts and routed their direct `Schema` validation clauses through
+it. `schema.ex` moved from 4,851 to 4,842 lines.
 
 Verification:
-Pending.
+- Strict focused baseline: 20 tests passed.
+- Focused plus adjacent validation, study, result, and export coverage after
+  extraction: 60 tests passed.
+- Full schema export completed with no checked-in artifact changes.
+- Static routing review found exactly the two intended direct facade routes.
+- `mix xref trace` confirmed both runtime calls originate in `schema.ex`; a
+  bounded production search found no other owner callers.
+- Formatting and `git diff --check` passed.
+- Strict forced compile passed across 4,083 files with warnings as errors.
+- Bounded diff review confirmed registry-owned requirements, contract routing,
+  validation ordering, validation paths, and the recursive result-artifact
+  exclusion remain unchanged.
+- Implementation committed and pushed as `045ca428`.
 
 Behavior/schema changes:
-None intended. Required fields, validation ordering and paths, public `Schema`
-APIs, validation results, and checked-in exports must remain unchanged.
+None. Required fields, validation ordering and paths, public `Schema` APIs,
+validation results, and checked-in exports remain unchanged.
 
 Last completed slice:
-Schema validation-policy artifact context extraction, selected in `0b0162c1`
-and implemented in `5b893e8e`.
-`schema.ex` moved from 4,860 to 4,851 lines.
+Schema study-result metadata validation context extraction, selected in
+`8b7f0687` and implemented in `045ca428`.
+`schema.ex` moved from 4,851 to 4,842 lines.
 
 Next candidate:
-Implement and verify the selected study-result metadata context, then re-rank
-the remaining Schema responsibility clusters.
+Re-rank the remaining Schema responsibility clusters and select the next
+facade-preserving extraction.
 
 Blocked:
 No.
