@@ -443,10 +443,6 @@ defmodule OrbitalDynamics.Schema do
         {:resource_filter_report_assumptions_json_schema, 0} =>
           &resource_filter_report_assumptions_json_schema/0,
         {:resource_filter_report_model_limits, 0} => &resource_filter_report_model_limits/0,
-        {:resource_projection_flow_row_json_schema, 0} =>
-          &resource_projection_flow_row_json_schema/0,
-        {:resource_projection_row_json_schema, 0} => &resource_projection_row_json_schema/0,
-        {:resource_summary_row_json_schema, 0} => &resource_summary_row_json_schema/0,
         {:schema_migration_row_statuses, 0} => &schema_migration_row_statuses/0,
         {:schema_migration_statuses, 0} => &schema_migration_statuses/0,
         {:schema_validation_batch_entry_json_schema, 0} =>
@@ -470,7 +466,6 @@ defmodule OrbitalDynamics.Schema do
         {:strategy_branch_tradeoff_json_schema, 0} => &strategy_branch_tradeoff_json_schema/0,
         {:strategy_explanation_json_schema, 0} => &strategy_explanation_json_schema/0,
         {:strategy_recommendation_json_schema, 0} => &strategy_recommendation_json_schema/0,
-        {:suppressed_candidate_json_schema, 0} => &suppressed_candidate_json_schema/0,
         {:target_identity_json_schema, 0} => &target_identity_json_schema/0,
         {:timeline_activity_precondition_statuses, 0} =>
           &timeline_activity_precondition_statuses/0,
@@ -521,6 +516,17 @@ defmodule OrbitalDynamics.Schema do
         )
       )
       |> Map.merge(OrbitalDynamics.Schema.ExecutionStateSchemaProviders.build(@stable_id_pattern))
+      |> Map.merge(
+        OrbitalDynamics.Schema.ResourcePlanningSchemaProviders.build(
+          @stable_id_pattern,
+          source_window_schema: &candidate_activity_source_window_json_schema/0,
+          approval_requirement_schema: &approval_requirement_json_schema/0,
+          policy_decision_rule_match_schema: &policy_decision_rule_match_json_schema/0,
+          policy_decision_schema: &policy_decision_json_schema/0,
+          contact_filter_suppression_reasons: &contact_filter_suppression_reasons/0,
+          resource_filter_suppression_reasons: &resource_filter_suppression_reasons/0
+        )
+      )
     end)
   end
 
@@ -775,44 +781,6 @@ defmodule OrbitalDynamics.Schema do
       "type" => "object",
       "additionalProperties" => %{"type" => "integer", "minimum" => 0}
     }
-  end
-
-  defp resource_projection_row_json_schema do
-    OrbitalDynamics.Schema.ResourceProjectionReportJsonSchema.row_from_deps(
-      stable_id_pattern: @stable_id_pattern,
-      stable_id_array_schema: &stable_id_array_schema/0,
-      string_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.string_array/0,
-      resource_projection_flow_row_schema: &resource_projection_flow_row_json_schema/0,
-      source_window_schema: &candidate_activity_source_window_json_schema/0,
-      approval_requirement_schema: &approval_requirement_json_schema/0,
-      policy_decision_rule_match_schema: &policy_decision_rule_match_json_schema/0,
-      policy_decision_schema: &policy_decision_json_schema/0
-    )
-  end
-
-  defp resource_projection_flow_row_json_schema do
-    OrbitalDynamics.Schema.ResourceProjectionFlowSummaryJsonSchema.row_from_deps(
-      stable_id_pattern: @stable_id_pattern,
-      string_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.string_array/0,
-      source_window_schema: &candidate_activity_source_window_json_schema/0,
-      resource_capability: &OrbitalDynamics.ResourceSummary.capabilities/0
-    )
-  end
-
-  defp suppressed_candidate_json_schema do
-    OrbitalDynamics.Schema.SuppressedCandidateJsonSchema.schema_from_context(
-      stable_id_pattern: @stable_id_pattern,
-      stable_id_array_schema: &stable_id_array_schema/0,
-      string_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.string_array/0,
-      suppression_reasons: &suppressed_candidate_suppression_reasons/0,
-      policy_decision_schema: &policy_decision_json_schema/0
-    )
-  end
-
-  defp suppressed_candidate_suppression_reasons do
-    (contact_filter_suppression_reasons() ++ resource_filter_suppression_reasons())
-    |> Enum.uniq()
-    |> Enum.sort()
   end
 
   defp sha256_json_schema do
@@ -1127,13 +1095,6 @@ defmodule OrbitalDynamics.Schema do
         "schema_contract" => %{"type" => "string", "const" => schema_contract}
       }
     }
-  end
-
-  defp resource_summary_row_json_schema do
-    OrbitalDynamics.Schema.ResourceSummaryJsonSchema.row_from_context(
-      stable_id_pattern: @stable_id_pattern,
-      string_array_schema: &OrbitalDynamics.Schema.CommonJsonSchema.string_array/0
-    )
   end
 
   defp operational_timeline_row_json_schema do
