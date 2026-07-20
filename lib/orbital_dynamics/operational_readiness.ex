@@ -9,6 +9,7 @@ defmodule OrbitalDynamics.OperationalReadiness do
 
   alias OrbitalDynamics.CadenceImport
   alias OrbitalDynamics.OperationalReadiness.AdapterBoundaryEvidence
+  alias OrbitalDynamics.OperationalReadiness.AdapterBoundaryGate
   alias OrbitalDynamics.OperationalReadiness.CadenceImportGate
   alias OrbitalDynamics.OperationalReadiness.EvidenceNormalization
   alias OrbitalDynamics.OperationalReadiness.ExecutionBoundarySummary
@@ -620,7 +621,7 @@ defmodule OrbitalDynamics.OperationalReadiness do
   end
 
   defp quality_gate_row_context(%{"id" => "adapter_boundary"} = gate) do
-    adapter_boundary_gate_context(gate)
+    AdapterBoundaryGate.context(gate)
   end
 
   defp quality_gate_row_context(%{"id" => "operator_training"} = gate) do
@@ -825,7 +826,7 @@ defmodule OrbitalDynamics.OperationalReadiness do
       [
         source_contract_gate(source_artifact_type),
         operational_mode_gate(artifact, opts),
-        adapter_boundary_gate(evidence),
+        AdapterBoundaryGate.build(evidence),
         mission_policy_gate(evidence),
         operator_training_gate(evidence),
         resource_availability_gate(evidence),
@@ -898,57 +899,6 @@ defmodule OrbitalDynamics.OperationalReadiness do
           %{"analysis_mode" => mode, "analysis_mode_source" => source}
         )
     end
-  end
-
-  defp adapter_boundary_gate(evidence) do
-    cond do
-      evidence["adapter_trust_boundary_untrusted_count"] > 0 ->
-        gate(
-          "adapter_boundary",
-          "blocked",
-          "blocked",
-          "adapter import context declares untrusted trust-boundary evidence",
-          adapter_boundary_gate_context(evidence)
-        )
-
-      evidence["adapter_trust_boundary_missing_count"] > 0 ->
-        gate(
-          "adapter_boundary",
-          "review_required",
-          "review_only",
-          "adapter import context is missing a declared trust boundary",
-          adapter_boundary_gate_context(evidence)
-        )
-
-      evidence["adapter_context_count"] > 0 ->
-        gate(
-          "adapter_boundary",
-          "passed",
-          "importable",
-          "adapter import context declares trust boundary evidence",
-          adapter_boundary_gate_context(evidence)
-        )
-
-      true ->
-        gate(
-          "adapter_boundary",
-          "passed",
-          "importable",
-          "no adapter-specific import boundary context was declared"
-        )
-    end
-  end
-
-  defp adapter_boundary_gate_context(evidence) do
-    %{
-      "adapter_context_count" => evidence["adapter_context_count"],
-      "adapter_trust_boundary_declared_count" =>
-        evidence["adapter_trust_boundary_declared_count"],
-      "adapter_trust_boundary_missing_count" => evidence["adapter_trust_boundary_missing_count"],
-      "adapter_trust_boundary_untrusted_count" =>
-        evidence["adapter_trust_boundary_untrusted_count"],
-      "adapter_boundary_status_counts" => evidence["adapter_boundary_status_counts"]
-    }
   end
 
   defp mission_policy_gate(evidence) do
