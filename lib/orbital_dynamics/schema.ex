@@ -58,6 +58,9 @@ defmodule OrbitalDynamics.Schema do
       contact_filter_report_model_limits: 0
     ]
 
+  import OrbitalDynamics.Schema.LinkCapacityCapabilityContext,
+    only: [link_capacity_assumptions_json_schema: 1]
+
   import OrbitalDynamics.Schema.ResourceFilterCapabilityContext,
     only: [
       resource_filter_report_assumptions_json_schema: 0,
@@ -3258,44 +3261,6 @@ defmodule OrbitalDynamics.Schema do
       &contact_allocation_provider_reservation_request_statuses/0,
       &contact_allocation_station_reservation_match_statuses/0,
       &contact_allocation_provider_direction_aliases/0
-    )
-  end
-
-  defp link_capacity_station_unavailable_aliases do
-    OrbitalDynamics.Communications.LinkCapacity.capabilities()
-    |> Map.fetch!(:station_unavailable_aliases)
-  end
-
-  defp link_capacity_station_availability_precedence do
-    OrbitalDynamics.Communications.LinkCapacity.capabilities()
-    |> Map.fetch!(:station_availability_precedence)
-  end
-
-  defp link_capacity_provider_direction_aliases do
-    OrbitalDynamics.Communications.LinkCapacity.capabilities()
-    |> Map.fetch!(:provider_direction_aliases)
-  end
-
-  defp link_capacity_station_capacity_value_paths do
-    OrbitalDynamics.Communications.LinkCapacity.capabilities()
-    |> Map.fetch!(:station_capacity_value_paths)
-  end
-
-  defp link_capacity_source_station_capacity_value_paths do
-    OrbitalDynamics.Communications.LinkCapacity.capabilities()
-    |> Map.fetch!(:source_station_capacity_value_paths)
-  end
-
-  defp link_capacity_assumptions_json_schema(required_properties) do
-    OrbitalDynamics.Schema.LinkCapacityReportJsonSchema.assumptions_from_deps(
-      [
-        station_unavailable_aliases: &link_capacity_station_unavailable_aliases/0,
-        station_availability_precedence: &link_capacity_station_availability_precedence/0,
-        station_capacity_value_paths: &link_capacity_station_capacity_value_paths/0,
-        source_station_capacity_value_paths: &link_capacity_source_station_capacity_value_paths/0,
-        provider_direction_aliases: &link_capacity_provider_direction_aliases/0
-      ],
-      required_properties
     )
   end
 
