@@ -4875,13 +4875,16 @@ defmodule OrbitalDynamics.Schema do
   defp validate_contract(@timeline_transition_application_report, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_timeline_transition_application_report("$", artifact)
+    |> TimelineTransitionValidation.validate_timeline_transition_application_report("$", artifact)
   end
 
   defp validate_contract(@timeline_transition_application_summary, contract, artifact) do
     []
     |> require_fields("$", artifact, contract["required_fields"])
-    |> validate_timeline_transition_application_summary("$", artifact)
+    |> TimelineTransitionValidation.validate_timeline_transition_application_summary(
+      "$",
+      artifact
+    )
   end
 
   defp validate_contract(@command_window_report, contract, artifact) do
@@ -5163,7 +5166,7 @@ defmodule OrbitalDynamics.Schema do
       validate_optional_operational_timeline_report:
         &validate_optional_operational_timeline_report/2,
       validate_optional_timeline_transition_application_report:
-        &validate_optional_timeline_transition_application_report/3,
+        &TimelineTransitionValidation.validate_optional_timeline_transition_application_report/3,
       validate_optional_operator_review_package: &validate_optional_operator_review_package/2,
       validate_optional_operational_readiness_report:
         &OperationalReadinessValidation.validate_optional_operational_readiness_report/3,
@@ -5390,62 +5393,6 @@ defmodule OrbitalDynamics.Schema do
         validate_timeline_identity: &TimelineContextValidation.validate_timeline_identity/3
       )
 
-  defp validate_timeline_transition_application_report(issues, path, value),
-    do:
-      TimelineTransitionValidation.validate_timeline_transition_application_report(
-        issues,
-        path,
-        value,
-        timeline_transition_validation_callbacks()
-      )
-
-  defp validate_timeline_transition_application_summary(issues, path, value),
-    do:
-      TimelineTransitionValidation.validate_timeline_transition_application_summary(
-        issues,
-        path,
-        value,
-        timeline_transition_validation_callbacks()
-      )
-
-  defp validate_optional_timeline_transition_application_report(issues, path, value),
-    do:
-      TimelineTransitionValidation.validate_optional_timeline_transition_application_report(
-        issues,
-        path,
-        value,
-        timeline_transition_validation_callbacks()
-      )
-
-  defp validate_optional_timeline_transition_application_summary_source(issues, path, value),
-    do:
-      TimelineTransitionValidation.validate_optional_timeline_transition_application_summary_source(
-        issues,
-        path,
-        value,
-        timeline_transition_validation_callbacks()
-      )
-
-  defp validate_optional_timeline_transition_application_row(issues, path, value),
-    do:
-      TimelineTransitionValidation.validate_optional_timeline_transition_application_row(
-        issues,
-        path,
-        value,
-        timeline_transition_validation_callbacks()
-      )
-
-  defp timeline_transition_validation_callbacks do
-    [
-      validate_optional_activity_context:
-        &TimelineContextValidation.validate_optional_activity_context/4,
-      validate_optional_lifecycle_transition:
-        &TimelineContextValidation.validate_optional_lifecycle_transition/4,
-      validate_optional_protection_decision:
-        &TimelineContextValidation.validate_optional_protection_decision/4
-    ]
-  end
-
   defp validate_optional_branch_comparison_report(issues, value) do
     DecisionSupportValidation.validate_optional_branch_comparison_report(
       issues,
@@ -5640,9 +5587,9 @@ defmodule OrbitalDynamics.Schema do
       validate_optional_timeline_diff_summary_source:
         &TimelineSourceValidation.validate_optional_timeline_diff_summary_source/3,
       validate_optional_timeline_transition_application_summary_source:
-        &validate_optional_timeline_transition_application_summary_source/3,
+        &TimelineTransitionValidation.validate_optional_timeline_transition_application_summary_source/3,
       validate_optional_timeline_transition_application_row:
-        &validate_optional_timeline_transition_application_row/3,
+        &TimelineTransitionValidation.validate_optional_timeline_transition_application_row/3,
       validate_optional_timeline_integrity_source_row:
         &TimelineTransitionValidation.validate_optional_timeline_integrity_source_row/3,
       error: &error/2
@@ -5725,9 +5672,9 @@ defmodule OrbitalDynamics.Schema do
       validate_optional_timeline_protection_summary:
         &TimelineContextValidation.validate_optional_timeline_protection_summary/4,
       validate_optional_timeline_transition_application_row:
-        &validate_optional_timeline_transition_application_row/3,
+        &TimelineTransitionValidation.validate_optional_timeline_transition_application_row/3,
       validate_optional_timeline_transition_application_summary_source:
-        &validate_optional_timeline_transition_application_summary_source/3,
+        &TimelineTransitionValidation.validate_optional_timeline_transition_application_summary_source/3,
       validate_selected_timeline_integrity_fields:
         &TimelineTransitionValidation.validate_selected_timeline_integrity_fields/3
     )
@@ -5885,9 +5832,9 @@ defmodule OrbitalDynamics.Schema do
       validate_optional_timeline_diff_summary_source:
         &TimelineSourceValidation.validate_optional_timeline_diff_summary_source/3,
       validate_optional_timeline_transition_application_summary_source:
-        &validate_optional_timeline_transition_application_summary_source/3,
+        &TimelineTransitionValidation.validate_optional_timeline_transition_application_summary_source/3,
       validate_optional_timeline_transition_application_row:
-        &validate_optional_timeline_transition_application_row/3,
+        &TimelineTransitionValidation.validate_optional_timeline_transition_application_row/3,
       validate_optional_timeline_integrity_source_row:
         &TimelineTransitionValidation.validate_optional_timeline_integrity_source_row/3,
       validate_optional_timeline_activity_state_source:

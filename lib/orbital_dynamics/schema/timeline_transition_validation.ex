@@ -3,6 +3,15 @@ defmodule OrbitalDynamics.Schema.TimelineTransitionValidation do
 
   import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2]
 
+  def validate_timeline_transition_application_report(issues, path, report),
+    do:
+      validate_timeline_transition_application_report(
+        issues,
+        path,
+        report,
+        default_callbacks()
+      )
+
   def validate_timeline_transition_application_report(issues, path, report, callbacks) do
     OrbitalDynamics.Schema.TimelineTransitionApplicationReportContracts.validate(
       issues,
@@ -24,6 +33,15 @@ defmodule OrbitalDynamics.Schema.TimelineTransitionValidation do
     )
   end
 
+  def validate_timeline_transition_application_summary(issues, path, summary),
+    do:
+      validate_timeline_transition_application_summary(
+        issues,
+        path,
+        summary,
+        default_callbacks()
+      )
+
   def validate_timeline_transition_application_summary(issues, path, summary, callbacks) do
     OrbitalDynamics.Schema.TimelineTransitionApplicationSummaryContracts.validate(
       issues,
@@ -35,6 +53,15 @@ defmodule OrbitalDynamics.Schema.TimelineTransitionValidation do
       end
     )
   end
+
+  def validate_optional_timeline_transition_application_report(issues, path, report),
+    do:
+      validate_optional_timeline_transition_application_report(
+        issues,
+        path,
+        report,
+        default_callbacks()
+      )
 
   def validate_optional_timeline_transition_application_report(issues, _path, nil, _callbacks),
     do: issues
@@ -54,6 +81,15 @@ defmodule OrbitalDynamics.Schema.TimelineTransitionValidation do
         _callbacks
       ),
       do: [error(path, "must be an object") | issues]
+
+  def validate_optional_timeline_transition_application_summary_source(issues, path, summary),
+    do:
+      validate_optional_timeline_transition_application_summary_source(
+        issues,
+        path,
+        summary,
+        default_callbacks()
+      )
 
   def validate_optional_timeline_transition_application_summary_source(
         issues,
@@ -110,6 +146,15 @@ defmodule OrbitalDynamics.Schema.TimelineTransitionValidation do
     )
   end
 
+  def validate_optional_timeline_transition_application_row(issues, path, row),
+    do:
+      validate_optional_timeline_transition_application_row(
+        issues,
+        path,
+        row,
+        default_callbacks()
+      )
+
   def validate_optional_timeline_transition_application_row(issues, _path, nil, _callbacks),
     do: issues
 
@@ -136,5 +181,16 @@ defmodule OrbitalDynamics.Schema.TimelineTransitionValidation do
     OrbitalDynamics.Timeline.capabilities()
     |> Map.fetch!(:known_limits)
     |> Enum.map(&Atom.to_string/1)
+  end
+
+  defp default_callbacks do
+    [
+      validate_optional_activity_context:
+        &OrbitalDynamics.Schema.TimelineContextValidation.validate_optional_activity_context/4,
+      validate_optional_lifecycle_transition:
+        &OrbitalDynamics.Schema.TimelineContextValidation.validate_optional_lifecycle_transition/4,
+      validate_optional_protection_decision:
+        &OrbitalDynamics.Schema.TimelineContextValidation.validate_optional_protection_decision/4
+    ]
   end
 end
