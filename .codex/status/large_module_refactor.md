@@ -9,7 +9,7 @@ Current slice:
 Schema proposed-contact owner completion.
 
 Status:
-Selected; implementation pending.
+Complete and pushed.
 
 Selected boundary:
 Add `CampaignArtifactValidation.validate_proposed_contact_artifact/3`, using
@@ -27,23 +27,35 @@ Selection evidence:
 - No route needs recursive `Schema` lookup.
 
 Implementation:
-Pending.
+Added `CampaignArtifactValidation.validate_proposed_contact_artifact/3`, which
+owns the standalone proposed-contact registry requirements before the existing
+contract. Routed the direct `proposed_contact.v1` `Schema` clause through the
+campaign artifact owner. `schema.ex` moved from 4,724 to 4,722 lines; the
+focused owner moved from 227 to 240 lines.
 
 Verification:
-Pending.
+- Strict focused baseline: 16 tests passed.
+- Campaign, cadence, communications, review, export, validation, and fixture
+  adjacency: 34 tests passed.
+- Full schema export regenerated with no checked-in schema artifact changes.
+- Formatting, diff whitespace, bounded dependency/reference checks, and the
+  bounded semantic diff review passed.
+- `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 mix compile --force
+  --warnings-as-errors` compiled 4,087 files successfully.
 
 Behavior/schema changes:
-None intended. Required fields, validation ordering and paths, public `Schema`
-and existing `CampaignArtifactValidation` APIs, validation results, and
-checked-in exports must remain unchanged.
+None. Required fields, validation ordering and paths, public `Schema` and
+existing `CampaignArtifactValidation` APIs, validation results, and checked-in
+exports remain unchanged.
 
 Last completed slice:
-Schema plan-delta owner completion, selected in `fa79e852` and implemented in
-`76260142`. `schema.ex` moved from 4,726 to 4,724 lines.
+Schema proposed-contact owner completion, selected in `b7fc688e` and implemented
+in `c6c6fc6a`. `schema.ex` moved from 4,724 to 4,722 lines.
 
 Next candidate:
-Implement and verify the selected proposed-contact owner completion, then
-re-rank the remaining Schema responsibility clusters.
+Re-rank the remaining direct `Schema` validation clauses. The remaining
+contract-context and recursive routes need a fresh boundary assessment rather
+than another mechanical owner completion.
 
 Blocked:
 No.
