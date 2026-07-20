@@ -5,6 +5,8 @@ defmodule OrbitalDynamics.Schema.StationCalendarCapabilityContext do
     OrbitalDynamics.Communications.StationCalendar.capabilities()
   end
 
+  def station_calendar_report_model, do: "campaign_ground_network_interval_overlay"
+
   def station_calendar_report_model_limits do
     station_calendar_capabilities()
     |> Map.fetch!(:known_limits)

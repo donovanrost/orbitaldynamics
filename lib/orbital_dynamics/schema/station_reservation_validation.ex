@@ -42,10 +42,10 @@ defmodule OrbitalDynamics.Schema.StationReservationValidation do
   end
 
   defp model_limits do
-    OrbitalDynamics.Communications.StationCalendar.capabilities()
-    |> Map.fetch!(:known_limits)
-    |> Enum.map(&Atom.to_string/1)
+    OrbitalDynamics.Schema.StationCalendarCapabilityContext.station_calendar_report_model_limits()
   end
 
-  defp model, do: "campaign_ground_network_interval_overlay"
+  defp model do
+    OrbitalDynamics.Schema.StationCalendarCapabilityContext.station_calendar_report_model()
+  end
 end

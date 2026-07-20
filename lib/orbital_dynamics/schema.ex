@@ -127,6 +127,7 @@ defmodule OrbitalDynamics.Schema do
       station_calendar_capabilities: 0,
       station_calendar_provider_counteroffer_actions: 0,
       station_calendar_provider_counteroffer_negotiation_states: 0,
+      station_calendar_report_model: 0,
       station_calendar_report_model_limits: 0
     ]
 
@@ -3172,8 +3173,6 @@ defmodule OrbitalDynamics.Schema do
   defp timeline_string_assumptions_json_schema(values) do
     OrbitalDynamics.Schema.CommonJsonSchema.string_const_assumptions(values)
   end
-
-  defp station_calendar_report_model, do: "campaign_ground_network_interval_overlay"
 
   defp station_reservation_report_models do
     [
