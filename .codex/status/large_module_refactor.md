@@ -6,53 +6,36 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-No slice selected.
+Schema readiness model-limit routing cleanup.
 
 Status:
-Slice complete and pushed.
+Selected; implementation not started.
 
 Selected boundary:
-Made `OrbitalDynamics.Schema.SourceEvidenceValidation` authoritative for
-freshness/schema-validation status enums, route JSON Schema evidence builders
-and callback tables through that owner, and remove six facade helpers.
-Preserved all `OrbitalDynamics.Schema` public facades, JSON Schema output, and
+Route operational-readiness and quality-gate JSON Schema property dispatch
+directly to `OrbitalDynamics.Schema.OperationalReadinessValidation` model-limit
+APIs and remove ten facade pass-through helpers.
+Preserve all `OrbitalDynamics.Schema` public facades, JSON Schema output, and
 validation behavior.
 
 Selection evidence:
-- `schema.ex` remains the dominant hotspot at 6,580 lines.
-- Source-evidence validation already has a focused owner, but freshness and
-  schema-validation enums remain private in the facade while four callback
-  wrappers split validation routing across both modules.
-- The selected code has one responsibility: own source-evidence status enums
-  and validate source fields plus freshness/schema/execution status matches.
-- JSON Schema evidence builders continue to receive the exact same enum
-  values. Callback-table composition, other
+- `schema.ex` remains the dominant hotspot at 6,558 lines.
+- Ten readiness/quality-gate model-limit helpers are pure one-hop delegates to
+  the existing validation owner.
+- The selected code has one responsibility: supply readiness report, summary,
+  execution-boundary, quality-gate report, and specialized quality-gate
+  model-limit lists to JSON Schema property dispatch and validation.
+- Property-dispatch composition, other
   artifact-family validation, JSON Schema generation, and all public routing
   remain outside the boundary.
-- Exact enum ordering, issue ordering, paths, messages, callback wiring,
-  public validation results, and schema exports must remain unchanged.
+- Exact model-limit values and ordering, callback wiring, validation results,
+  generated JSON Schema, and checked-in exports must remain unchanged.
 
 Implementation:
-- Added ordered freshness and schema-validation status APIs plus three-argument
-  status-validation entry points to `SourceEvidenceValidation`.
-- Routed freshness/schema JSON Schema evidence builders and three callback
-  tables directly to the owner.
-- Removed two facade status-enum helpers and four one-hop validation wrappers.
-- `schema.ex` moved from 6,580 to 6,558 lines; the focused owner is 58 lines.
+Pending.
 
 Verification:
-- Pre-change strict focused baseline: 22 Cadence/operator-review/JSON-export
-  contract tests passed.
-- Post-change strict focused verification: the same 22 tests passed; the full
-  schema-export task test and 8 broader validation/readiness/resource fixture
-  tests also passed.
-- Static checks found no migrated source-evidence enum/validation helpers or
-  local callback captures remaining; xref reports `schema.ex` as the runtime
-  caller of `SourceEvidenceValidation`.
-- No checked-in schema export changed.
-- Forced warnings-as-errors compile passed across 4,050 files.
-- Formatting and `git diff --check` passed; the worktree was clean after the
-  implementation commit.
+Pending.
 
 Behavior/schema changes:
 None intended.
@@ -64,8 +47,8 @@ Schema source-evidence validation/status routing cleanup, selected in
 validation routing in SourceEvidenceValidation.
 
 Next candidate:
-Re-rank the remaining schema responsibility clusters while preserving
-dependency-injecting adapters.
+After this slice, re-rank the remaining schema responsibility clusters while
+preserving dependency-injecting adapters.
 
 Blocked:
 No.
