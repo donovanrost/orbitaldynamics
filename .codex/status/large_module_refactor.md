@@ -9,7 +9,7 @@ Current slice:
 Operator-review embedded contact-allocation summary test split.
 
 Status:
-Selected; implementation pending.
+Completed and verified.
 
 Selected boundary:
 Move the independent embedded contact-allocation summary wrapper test and its
@@ -27,22 +27,34 @@ Selection evidence:
   weakening its exhaustive field, ordering, or schema assertions.
 
 Implementation:
-Pending.
+Selected in `f3835589` and implemented in `b1a21ebf`. Moved the exhaustive
+embedded-summary wrapper test and its private summary builder into
+`ContactAllocationEmbeddedSummaryTest`. The original contact-allocation test
+module moved from 2,385 to 1,126 lines; the new focused module is 1,264 lines.
 
 Verification:
-Pending.
+- Both focused contact-allocation test modules passed with warnings as errors:
+  11 tests.
+- The full OperatorReview test lane passed with warnings as errors: 257 tests.
+- Strict forced compile passed with warnings as errors: 4,129 files.
+- Touched-file format checks, new-file whitespace checks, and
+  `git diff --check` passed.
+- No production or checked-in schema-export files changed.
 
 Behavior/schema changes:
 None intended. The same deterministic fixtures, production calls, assertions,
 artifact validation, and async test behavior must remain unchanged.
 
 Last completed slice:
-Campaign-planner capacity-pack fixture extraction, selected in `4fda4cce` and
-implemented in `359cb5fb`. The assertion module moved from 1,743 to 1,595 lines
-and now contains no embedded fixture builders.
+Operator-review embedded contact-allocation summary test split, selected in
+`f3835589` and implemented in `b1a21ebf`. The original test moved from 2,385 to
+1,126 lines and the independent wrapper-summary family now has its own
+1,264-line focused module.
 
 Next candidate:
-Implement and verify the selected OperatorReview test-family split.
+Inspect the remaining 1,264-line embedded-summary module for independent wrapper
+artifact families before choosing another split; otherwise return to the
+largest schema contract test boundary.
 
 Blocked:
 No.
