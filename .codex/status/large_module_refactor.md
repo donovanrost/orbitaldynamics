@@ -9,7 +9,7 @@ Current slice:
 Schema candidate-rejection model-limit ownership.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Move the candidate-rejection report model-limit values from the Schema facade
@@ -30,19 +30,37 @@ Selection evidence:
   Schema, validation results, and checked-in exports must remain unchanged.
 
 Implementation:
-Pending.
+Moved the four candidate-rejection report model-limit values into
+CandidateRejectionReportJsonSchema and routed the property-dispatch callback
+plus required/optional report validation directly to that owner.
+`schema.ex` moved from 6,123 to 6,114 lines; the report schema owner moved from
+274 to 283 lines.
 
 Verification:
-Pending.
+- Strict focused candidate-refresh/Cadence-row/export baseline before move:
+  27 passed.
+- The same strict focused suite after move: 27 passed.
+- Strict full schema-export task plus adjacent Cadence-import,
+  operator-review, fixture-visibility, and validation coverage: 10 passed.
+- `mix xref callers
+  OrbitalDynamics.Schema.CandidateRejectionReportJsonSchema` reports the
+  expected `schema.ex` and TimelineReportPropertyDispatch callers.
+- Static search confirms the facade model-limit function and all three
+  indirect consumers are gone.
+- `git diff --check` passed; no checked-in schema export changed.
+- Strict forced compile passed across 4,065 files.
+- Implementation commit `bd871a8c` pushed to `main`.
 
 Behavior/schema changes:
-None intended.
+None. Public facades, callback timing, model-limit values and ordering,
+generated JSON Schema, validation behavior, and checked-in exports remain
+unchanged.
 
 Last completed slice:
-Schema station-reservation model ownership, selected in `d94ecb41` and
-implemented in `a94ebd9f`.
-`schema.ex` moved from 6,131 to 6,123 lines; the station-reservation report
-schema owner moved from 188 to 196 lines.
+Schema candidate-rejection model-limit ownership, selected in `86e3c44c` and
+implemented in `bd871a8c`.
+`schema.ex` moved from 6,123 to 6,114 lines; the candidate-rejection report
+schema owner moved from 274 to 283 lines.
 
 Next candidate:
 Re-rank the remaining non-capability Schema responsibility clusters now that
