@@ -9,7 +9,7 @@ Current slice:
 Schema relay data-path owner completion.
 
 Status:
-Selected; implementation pending.
+Complete and pushed.
 
 Selected boundary:
 Extend `LinkCapacityValidation` to own registry-backed validation for
@@ -27,23 +27,34 @@ Selection evidence:
 - No route needs recursive `Schema` lookup.
 
 Implementation:
-Pending.
+Extended `LinkCapacityValidation` with registry-backed
+`validate_relay_data_path_summary/3`, then routed the direct `Schema` clause
+through the ground-network capacity owner. `schema.ex` moved from 4,728 to
+4,726 lines; `LinkCapacityValidation` moved from 33 to 45 lines.
 
 Verification:
-Pending.
+- Strict focused baseline: 50 tests passed.
+- Complete link-capacity producer, replay, planner, review, import, export, and
+  fixture family: 91 tests passed.
+- Full schema export regenerated with no checked-in schema artifact changes.
+- Formatting, diff whitespace, bounded dependency/reference checks, and the
+  bounded semantic diff review passed.
+- `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 mix compile --force
+  --warnings-as-errors` compiled 4,087 files successfully.
 
 Behavior/schema changes:
-None intended. Required fields, validation ordering and paths, public `Schema`
-and existing `LinkCapacityValidation` APIs, validation results, and checked-in
-exports must remain unchanged.
+None. Required fields, validation ordering and paths, public `Schema` and
+existing `LinkCapacityValidation` APIs, validation results, and checked-in
+exports remain unchanged.
 
 Last completed slice:
-Schema candidate-activity owner completion, selected in `313e38cf` and
-implemented in `23cf1b4e`. `schema.ex` moved from 4,730 to 4,728 lines.
+Schema relay data-path owner completion, selected in `30581147` and implemented
+in `85701edc`. `schema.ex` moved from 4,728 to 4,726 lines.
 
 Next candidate:
-Implement and verify the selected relay data-path owner completion, then
-re-rank the remaining Schema responsibility clusters.
+Re-rank the remaining direct `Schema` validation clauses, prioritizing a
+cohesive owner or owner completion without recursive `Schema` lookup or public
+API changes.
 
 Blocked:
 No.
