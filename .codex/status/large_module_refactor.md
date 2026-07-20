@@ -6,16 +6,16 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema readiness model-limit routing cleanup.
+No slice selected.
 
 Status:
-Selected; implementation not started.
+Slice complete and pushed.
 
 Selected boundary:
-Route operational-readiness and quality-gate JSON Schema property dispatch
+Routed operational-readiness and quality-gate JSON Schema property dispatch
 directly to `OrbitalDynamics.Schema.OperationalReadinessValidation` model-limit
 APIs and remove ten facade pass-through helpers.
-Preserve all `OrbitalDynamics.Schema` public facades, JSON Schema output, and
+Preserved all `OrbitalDynamics.Schema` public facades, JSON Schema output, and
 validation behavior.
 
 Selection evidence:
@@ -32,23 +32,39 @@ Selection evidence:
   generated JSON Schema, and checked-in exports must remain unchanged.
 
 Implementation:
-Pending.
+- Routed operational handoff, quality-gate, specialized summary, readiness
+  report, and quality-gate validation call sites directly to the existing
+  model-limit APIs.
+- Removed ten one-hop private model-limit helpers.
+- `schema.ex` moved from 6,558 to 6,535 lines; no new abstraction was added
+  because the focused owner already existed.
 
 Verification:
-Pending.
+- Pre-change strict focused baseline: 26 JSON-export/readiness contract tests
+  passed.
+- Post-change strict focused verification: the same 26 tests passed; the full
+  schema-export task test and 8 broader validation/readiness/resource fixture
+  tests also passed.
+- Static checks found no migrated model-limit helpers or local callback
+  captures remaining; xref reports `schema.ex` as the runtime caller of
+  `OperationalReadinessValidation`.
+- No checked-in schema export changed.
+- Forced warnings-as-errors compile passed across 4,050 files.
+- Formatting and `git diff --check` passed; the worktree was clean after the
+  implementation commit.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-Schema source-evidence validation/status routing cleanup, selected in
-`bbb7ebe4` and implemented in `8a124313`.
-`schema.ex` moved from 6,580 to 6,558 lines by consolidating status enums and
-validation routing in SourceEvidenceValidation.
+Schema readiness model-limit routing cleanup, selected in `2dac5322` and
+implemented in `df639635`.
+`schema.ex` moved from 6,558 to 6,535 lines by routing directly to the existing
+OperationalReadinessValidation model-limit APIs.
 
 Next candidate:
-After this slice, re-rank the remaining schema responsibility clusters while
-preserving dependency-injecting adapters.
+Re-rank the remaining schema responsibility clusters while preserving
+dependency-injecting adapters.
 
 Blocked:
 No.
