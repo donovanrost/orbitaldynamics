@@ -21,6 +21,7 @@ defmodule OrbitalDynamics.RecommendationRiskContext do
     StationReservationHoldImportReadiness,
     TimelineActivityPrecondition,
     TimelineActivityLifecycleState,
+    TimelineDependencyImpact,
     TimelineIntegrity,
     TimelineLifecycleState,
     TimelinePublication,
@@ -182,28 +183,6 @@ defmodule OrbitalDynamics.RecommendationRiskContext do
     "timeline_lifecycle_state_assumption_maps"
   ]
 
-  @timeline_dependency_impact_context_keys [
-    "timeline_dependency_impact_activity_ids",
-    "timeline_dependency_impact_timeline_ids",
-    "timeline_dependency_impact_scopes",
-    "timeline_dependency_impact_statuses",
-    "timeline_dependency_impact_required_operator_actions",
-    "timeline_dependency_impact_operator_action_reasons",
-    "timeline_dependency_impact_dependency_activity_ids",
-    "timeline_dependency_impact_dependency_timeline_ids",
-    "timeline_dependency_impact_exclusive_with_activity_ids",
-    "timeline_dependency_impact_exclusive_with_timeline_ids",
-    "timeline_dependency_impact_impacted_dependency_activity_ids",
-    "timeline_dependency_impact_impacted_dependency_timeline_ids",
-    "timeline_dependency_impact_impacted_exclusive_with_activity_ids",
-    "timeline_dependency_impact_impacted_exclusive_with_timeline_ids",
-    "timeline_dependency_impact_feedback_sources",
-    "timeline_dependency_impact_feedback_scopes",
-    "timeline_dependency_impact_feedback_keys",
-    "timeline_dependency_impact_trust_boundaries",
-    "timeline_dependency_impact_derivation_reasons"
-  ]
-
   @link_capacity_context_keys [
     "link_capacity_pressure_risk_types",
     "link_capacity_pressure_ground_station_ids",
@@ -322,7 +301,8 @@ defmodule OrbitalDynamics.RecommendationRiskContext do
   def timeline_activity_lifecycle_state_context_keys,
     do: TimelineActivityLifecycleState.context_keys()
 
-  def timeline_dependency_impact_context_keys, do: @timeline_dependency_impact_context_keys
+  def timeline_dependency_impact_context_keys,
+    do: TimelineDependencyImpact.context_keys()
 
   def relay_data_path_context_keys, do: RelayDataPath.context_keys()
 
@@ -609,73 +589,8 @@ defmodule OrbitalDynamics.RecommendationRiskContext do
   def timeline_activity_lifecycle_state_context(risks),
     do: TimelineActivityLifecycleState.context(risks)
 
-  def timeline_dependency_impact_context(risks) when is_list(risks) do
-    risks = Enum.map(risks, &stringify_keys/1)
-
-    timeline_dependency_impact_risks =
-      Enum.filter(
-        risks,
-        &(Map.get(&1, "type") == "timeline_dependency_impact" or
-            Map.get(&1, "feedback_scope") == "timeline_dependency_impact")
-      )
-
-    %{
-      "timeline_dependency_impact_activity_ids" =>
-        risk_context_values(timeline_dependency_impact_risks, "activity_id"),
-      "timeline_dependency_impact_timeline_ids" =>
-        risk_context_values(timeline_dependency_impact_risks, "timeline_id"),
-      "timeline_dependency_impact_scopes" =>
-        risk_context_values(timeline_dependency_impact_risks, "dependency_impact_scope"),
-      "timeline_dependency_impact_statuses" =>
-        risk_context_values(timeline_dependency_impact_risks, "dependency_impact_status"),
-      "timeline_dependency_impact_required_operator_actions" =>
-        risk_context_values(timeline_dependency_impact_risks, "required_operator_action"),
-      "timeline_dependency_impact_operator_action_reasons" =>
-        risk_context_values(timeline_dependency_impact_risks, "operator_action_reason"),
-      "timeline_dependency_impact_dependency_activity_ids" =>
-        risk_context_values(timeline_dependency_impact_risks, ["dependency_activity_ids"]),
-      "timeline_dependency_impact_dependency_timeline_ids" =>
-        risk_context_values(timeline_dependency_impact_risks, ["dependency_timeline_ids"]),
-      "timeline_dependency_impact_exclusive_with_activity_ids" =>
-        risk_context_values(timeline_dependency_impact_risks, [
-          "exclusive_with_activity_ids"
-        ]),
-      "timeline_dependency_impact_exclusive_with_timeline_ids" =>
-        risk_context_values(timeline_dependency_impact_risks, [
-          "exclusive_with_timeline_ids"
-        ]),
-      "timeline_dependency_impact_impacted_dependency_activity_ids" =>
-        risk_context_values(timeline_dependency_impact_risks, [
-          "impacted_dependency_activity_ids"
-        ]),
-      "timeline_dependency_impact_impacted_dependency_timeline_ids" =>
-        risk_context_values(timeline_dependency_impact_risks, [
-          "impacted_dependency_timeline_ids"
-        ]),
-      "timeline_dependency_impact_impacted_exclusive_with_activity_ids" =>
-        risk_context_values(timeline_dependency_impact_risks, [
-          "impacted_exclusive_with_activity_ids"
-        ]),
-      "timeline_dependency_impact_impacted_exclusive_with_timeline_ids" =>
-        risk_context_values(timeline_dependency_impact_risks, [
-          "impacted_exclusive_with_timeline_ids"
-        ]),
-      "timeline_dependency_impact_feedback_sources" =>
-        risk_context_values(timeline_dependency_impact_risks, "feedback_source"),
-      "timeline_dependency_impact_feedback_scopes" =>
-        risk_context_values(timeline_dependency_impact_risks, "feedback_scope"),
-      "timeline_dependency_impact_feedback_keys" =>
-        risk_context_values(timeline_dependency_impact_risks, "feedback_key"),
-      "timeline_dependency_impact_trust_boundaries" =>
-        risk_context_values(timeline_dependency_impact_risks, "trust_boundary"),
-      "timeline_dependency_impact_derivation_reasons" =>
-        risk_context_values(timeline_dependency_impact_risks, ["derivation_reasons"])
-    }
-    |> Enum.reject(fn {_key, values} -> values == [] end)
-    |> Map.new()
-  end
-
-  def timeline_dependency_impact_context(_risks), do: %{}
+  def timeline_dependency_impact_context(risks),
+    do: TimelineDependencyImpact.context(risks)
 
   def relay_data_path_context(risks), do: RelayDataPath.context(risks)
 
