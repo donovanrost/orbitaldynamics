@@ -6,37 +6,29 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema operator-review export test split.
+Schema contact-allocation report contract test split.
 
 Status:
-Completed and verified.
+Selected; implementation pending.
 
 Selected boundary:
-Move the 717-line nested operator-review row schema export test from the
-1,814-line mixed contract module into a focused sibling with a local JSON
-reader. Keep the exhaustive checked-in operator-review package fixture test in
-the original module.
+Move the three full contact-allocation report regeneration and count-map tests
+from the 1,746-line mixed contract module into a focused sibling with the public
+`ContactAllocation`/`Schema` aliases and a local JSON reader. Keep the five
+standalone summary-family fixture tests and their capability helpers together.
 
 Selection evidence:
-- The export test ends before the checked-in package test begins at line 723.
-- Both tests depend only on the public `Schema` facade and the generic five-line
-  JSON reader.
-- The two tests cover distinct responsibilities: nested schema shape versus
-  executable validation and deterministic fixture content.
+- The report-level family begins at line 682 and ends before private helpers.
+- Those three tests use only the two public aliases and `read_json!/1`; none of
+  the eight summary fixture/capability helpers are referenced.
+- The first five tests form a cohesive standalone summary-contract family,
+  while the last three exercise full report regeneration and row aggregates.
 
 Implementation:
-Selected in `68a5781d` and implemented in `9041cffc`. Moved the nested
-operator-review row export contract into `OperatorReviewSchemaContractsTest`
-with a local JSON reader. The original executable fixture module moved from
-1,814 to 1,097 lines; the focused export module is 728 lines.
+Pending.
 
 Verification:
-- Both operator-review schema modules passed with warnings as errors: 2 tests.
-- The full schema/validation gate passed with warnings as errors: 368 tests.
-- Full checked-in schema export regeneration produced no diff.
-- Strict forced compile passed with warnings as errors: 4,129 files.
-- Touched-file format checks, new-file whitespace checks, and
-  `git diff --check` passed.
+Pending.
 
 Behavior/schema changes:
 None intended. The same deterministic fixtures, production calls, assertions,
@@ -48,8 +40,7 @@ implemented in `9041cffc`. The 1,814-line mixed module became a 1,097-line
 fixture module and a 728-line nested-export module.
 
 Next candidate:
-Inspect the remaining contact-allocation and candidate-refresh contract modules
-for one more coherent family split before auditing overall goal completion.
+Implement and verify the selected contact-allocation report contract split.
 
 Blocked:
 No.
