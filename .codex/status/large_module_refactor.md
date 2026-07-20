@@ -9,7 +9,7 @@ Current slice:
 Schema candidate-rejection source-row validation direct routing.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Remove the Schema facade's one-hop optional candidate-rejection source-row
@@ -29,18 +29,34 @@ Selection evidence:
   results, and checked-in schema exports must remain unchanged.
 
 Implementation:
-Pending.
+Removed the one-hop optional candidate-rejection source-row wrapper and routed
+both callback-map entries directly to CandidateRejectionValidation.
+`schema.ex` moved from 6,154 to 6,151 lines.
 
 Verification:
-Pending.
+- Strict focused Cadence-import/Cadence-row/candidate-refresh baseline before
+  routing: 6 passed.
+- The same strict focused suite after routing: 6 passed.
+- Strict adjacent JSON Schema export/candidate-refresh/fixture-visibility
+  coverage: 26 passed.
+- Strict full schema-export task: 1 passed.
+- `mix xref callers
+  OrbitalDynamics.Schema.CandidateRejectionValidation` reports
+  `lib/orbital_dynamics/schema.ex (runtime)`.
+- Static search confirms the wrapper definition and both indirect captures are
+  gone from `schema.ex`.
+- `git diff --check` passed; no checked-in schema export changed.
+- Strict forced compile passed across 4,065 files.
+- Implementation commit `ec799ada` pushed to `main`.
 
 Behavior/schema changes:
-None intended.
+None. Public facades, callback arity/timing, issue ordering, paths/messages,
+validation behavior, and checked-in exports remain unchanged.
 
 Last completed slice:
-Schema operator-review row-link validation direct routing, selected in
-`eb558891` and implemented in `0781f88b`.
-`schema.ex` moved from 6,157 to 6,154 lines.
+Schema candidate-rejection source-row validation direct routing, selected in
+`07f4e3d0` and implemented in `ec799ada`.
+`schema.ex` moved from 6,154 to 6,151 lines.
 
 Next candidate:
 Re-rank the remaining non-capability Schema responsibility clusters now that
