@@ -74,6 +74,12 @@ defmodule OrbitalDynamics.Schema do
       contact_allocation_summary_assumptions_json_schema: 0
     ]
 
+  import OrbitalDynamics.Schema.ContactContentionCapabilityContext,
+    only: [
+      contact_contention_report_assumptions_json_schema: 0,
+      contact_contention_report_model_limits: 0
+    ]
+
   import OrbitalDynamics.Schema.LinkCapacityCapabilityContext,
     only: [link_capacity_assumptions_json_schema: 1]
 
@@ -3142,18 +3148,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp timeline_string_assumptions_json_schema(values) do
     OrbitalDynamics.Schema.CommonJsonSchema.string_const_assumptions(values)
-  end
-
-  defp contact_contention_report_model_limits do
-    OrbitalDynamics.Communications.ContactContention.capabilities()
-    |> Map.fetch!(:known_limits)
-    |> Enum.map(&Atom.to_string/1)
-  end
-
-  defp contact_contention_report_assumptions_json_schema do
-    OrbitalDynamics.Schema.ContactContentionJsonSchema.report_assumptions_from_capabilities(
-      OrbitalDynamics.Communications.ContactContention.capabilities()
-    )
   end
 
   defp command_window_report_model_limits do
