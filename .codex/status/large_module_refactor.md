@@ -9,7 +9,7 @@ Current slice:
 RecommendationRiskContext timeline-dependency-impact extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `5a38cbb3`.
 
 Selected boundary:
 Extract timeline-dependency-impact context keys, risk selection, and context
@@ -34,19 +34,37 @@ Selection evidence:
   public output, and error behavior must remain unchanged.
 
 Implementation:
-Pending.
+- Added
+  `OrbitalDynamics.RecommendationRiskContext.TimelineDependencyImpact` as the
+  focused owner of the ordered key contract, type/scope selection, atom-key
+  normalization, and dependency, exclusivity, operator-action, derivation, and
+  provenance context projection.
+- Preserved the public RecommendationRiskContext facade through delegates.
+- All other risk families remain outside the extraction.
+- `recommendation_risk_context.ex` moved from 963 to 878 lines; the dedicated
+  TimelineDependencyImpact owner is 124 lines.
 
 Verification:
-Pending.
+- Focused baseline and post-change test passed normally; the file retains its
+  two pre-existing signed-zero warnings.
+- Exact old/new public parity: four results passed, covering ordered keys,
+  both selectors, atom-key normalization, all dependency/exclusivity list
+  fields, nil omission, unrelated-risk exclusion, empty input, and non-list
+  input.
+- Five adjacent recommendation tests passed with warnings treated as errors.
+- Static ownership and xref checks passed; only the facade calls the extracted
+  owner at runtime.
+- Forced warning-clean test compile passed across 4,040 files.
+- Focused formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-RecommendationRiskContext provider-reservation-request extraction, selected
-in `4e897f13` and implemented in `58692eff`.
-`recommendation_risk_context.ex` moved from 1,033 to 963 lines; the dedicated
-ProviderReservationRequest owner is 109 lines.
+RecommendationRiskContext timeline-dependency-impact extraction, selected in
+`449fbfe3` and implemented in `5a38cbb3`.
+`recommendation_risk_context.ex` moved from 963 to 878 lines; the dedicated
+TimelineDependencyImpact owner is 124 lines.
 
 Next candidate:
 After this slice, re-rank the live checkout. OperationalReadiness is the next
