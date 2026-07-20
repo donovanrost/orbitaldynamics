@@ -6,47 +6,32 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Planning-analysis schema-provider extraction.
+Validation schema-provider extraction.
 
 Status:
-Completed and pushed.
+Selected; implementation pending.
 
 Selected boundary:
-Move the six objective-satisfaction, objective-tradeoff, ranking-row,
-ranking-winner, Pareto-row, and constraint-row provider builders from the
-public `Schema` facade into a new `PlanningAnalysisSchemaProviders` owner.
-Merge its lazy provider map into the existing property context.
+Move the validation-record, model-acceptance-row, safety-case-evidence-row,
+and validation-reference-report provider builders from the public `Schema`
+facade into a new `ValidationSchemaProviders` owner. Merge its lazy provider
+map into the existing property context.
 
 Selection evidence:
-- The public `Schema` facade remains 1,959 lines after the property-routing
-  extraction lane completed.
-- These six contiguous, roughly 45-line private builders are referenced only
-  by the property provider registry.
-- They form a cohesive planning-analysis boundary and depend only on the
-  stable-ID pattern plus common JSON-schema primitives.
+- The public `Schema` facade remains 1,917 lines.
+- These four contiguous private builders are referenced only by the property
+  provider registry, apart from model acceptance's local reuse of the
+  validation-record builder.
+- They form a cohesive validation-schema boundary and depend only on the
+  stable-ID pattern plus `ValidationJsonSchema` primitives.
 - A provider-map owner preserves lazy evaluation and removes both registry
   entries and implementation details from the public facade.
 
 Implementation:
-Selected in `bb50e34c` and implemented in `e765efdb`.
-The new `PlanningAnalysisSchemaProviders.build/1` returns six lazy provider
-closures for objective, ranking, Pareto, and constraint rows. `Schema` removes
-the six registry-local captures and private builders, then merges the focused
-provider map into its existing property context without changing the public
-facade.
+Pending.
 
 Verification:
-- Strict focused schema/validation baseline and final post-change suites both
-  passed: 359 tests, 0 failures.
-- Direct comparison confirmed the extracted provider map has the exact six
-  keys and produces outputs exactly equal to the original builders.
-- Xref reports one runtime edge from `Schema` to the new provider owner.
-- Schema export regenerated 121 schemas plus the bundle with no checked-in
-  artifact diff.
-- Strict full compile passed for 4,108 files with warnings as errors.
-- Formatting, diff checks, and bounded two-file review passed.
-- The public `Schema` facade shrank from 1,959 to 1,917 lines; the new focused
-  owner is 68 lines.
+Pending.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -59,7 +44,8 @@ implemented in `e765efdb`. The public `Schema` facade moved from 1,959 to 1,917
 lines.
 
 Next candidate:
-Re-rank the remaining public-facade provider clusters.
+Implement and verify the selected validation provider extraction, then
+re-rank the remaining public-facade provider clusters.
 
 Blocked:
 No.
