@@ -6,17 +6,17 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema operational-readiness validation routing cleanup.
+No slice selected.
 
 Status:
-Selected; implementation not started.
+Slice complete and pushed.
 
 Selected boundary:
-Complete the existing
+Completed the existing
 `OrbitalDynamics.Schema.OperationalReadinessValidation` extraction by routing
 schema contract clauses and callback tables directly to that owner and
 removing facade pass-through wrappers.
-Preserve all `OrbitalDynamics.Schema` public facades and validation output.
+Preserved all `OrbitalDynamics.Schema` public facades and validation output.
 
 Selection evidence:
 - Live hotspot refresh places `schema.ex` at 6,764 lines with 600 private
@@ -34,23 +34,40 @@ Selection evidence:
   wiring, public validation results, and schema exports must remain unchanged.
 
 Implementation:
-Pending.
+- Routed nine operational-readiness/quality-gate contract clauses directly to
+  `OperationalReadinessValidation`.
+- Routed the quality-gate row callback and readiness resource/Cadence context
+  callbacks in three callback tables directly to the owner.
+- Removed twelve one-hop private validation wrappers from the Schema facade.
+- `schema.ex` moved from 6,764 to 6,694 lines; no new abstraction was added
+  because the focused owner already existed.
 
 Verification:
-Pending.
+- Pre-change strict focused baseline: 15 schema contract tests passed.
+- Post-change strict focused and adjacent verification: 21 readiness/Cadence
+  contract and fixture tests passed; the broader 2-test validation suite also
+  passed.
+- Static checks found no migrated readiness validation wrappers remaining;
+  xref reports `schema.ex` as the runtime caller of
+  `OperationalReadinessValidation`.
+- No checked-in schema export changed.
+- Forced warnings-as-errors compile passed across 4,050 files.
+- Formatting and `git diff --check` passed; the worktree was clean after the
+  implementation commit.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-RecommendationRiskContext resource-filter extraction, selected in `acd03893`
-and implemented in `461abe2f`.
-`recommendation_risk_context.ex` moved from 374 to 246 lines; the dedicated
-ResourceFilter owner is 131 lines.
+Schema operational-readiness validation routing cleanup, selected in
+`e662f676` and implemented in `5a7e2b98`.
+`schema.ex` moved from 6,764 to 6,694 lines by completing routing to the
+existing OperationalReadinessValidation owner.
 
 Next candidate:
-After this slice, continue re-ranking `schema.ex` private responsibility
-clusters before returning to smaller facades.
+Continue re-ranking `schema.ex` private responsibility clusters. Timeline
+source/transition validation still has cohesive one-hop wrapper groups around
+existing focused owners.
 
 Blocked:
 No.
