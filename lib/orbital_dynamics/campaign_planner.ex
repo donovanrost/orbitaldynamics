@@ -321,7 +321,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
   defp normalize_repair_mission_state(nil), do: %{"objectives" => []}
 
   defp normalize_repair_mission_state(%{} = mission_state),
-    do: normalize_mission_state(mission_state)
+    do: MissionStateNormalization.normalize(mission_state)
 
   defp do_repair(%{} = request) do
     prior_plan = request.prior_plan
@@ -425,7 +425,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
         ValueEncoding.get_key(request, :campaign_plan) ||
         ValueEncoding.get_key(request, :source_plan)
 
-    prior_plan = normalize_strategy_prior_plan(prior_plan)
+    prior_plan = StrategyPriorPlanCandidates.normalize(prior_plan)
 
     current_epoch_s =
       ScalarValues.numeric!(ValueEncoding.get_key(request, :current_epoch_s), "current_epoch_s")
@@ -433,16 +433,16 @@ defmodule OrbitalDynamics.CampaignPlanner do
     mission_state =
       request
       |> ValueEncoding.get_key(:mission_state)
-      |> normalize_mission_state()
+      |> MissionStateNormalization.normalize()
 
     branches =
       request
       |> ValueEncoding.get_key(:branches)
-      |> normalize_strategy_branches()
+      |> StrategyBranchNormalization.normalize_branches()
 
     branch_generation_policy =
       request
-      |> branch_generation_policy()
+      |> BranchGenerationPolicy.build()
 
     candidate_refresh =
       CandidateRefreshNormalization.artifact(
@@ -571,7 +571,7 @@ defmodule OrbitalDynamics.CampaignPlanner do
       input_order_branches
       |> Enum.sort_by(&{-&1.score, &1.id})
 
-    recommendation = strategy_recommendation(branches, request.approval_policy)
+    recommendation = StrategyRecommendationBuilder.build(branches)
     source_plan_id = source_plan_id(request.prior_plan)
 
     branch_comparison =
@@ -645,20 +645,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
     )
   end
 
-  defp strategy_recommendation(branches, _approval_policy) do
-    StrategyRecommendationBuilder.build(branches)
-  end
-
-  defp normalize_strategy_prior_plan(prior_plan) do
-    StrategyPriorPlanCandidates.normalize(prior_plan)
-  end
-
-  defp normalize_mission_state(state) do
-    MissionStateNormalization.normalize(state)
-  end
-
-  defp branch_generation_policy(request), do: BranchGenerationPolicy.build(request)
-
   defp put_if_absent(map, _key, value) when value in [nil, "", [], %{}], do: map
 
   defp put_if_absent(map, key, value) do
@@ -667,9 +653,6 @@ defmodule OrbitalDynamics.CampaignPlanner do
       _existing -> map
     end
   end
-
-  defp normalize_strategy_branches(branches),
-    do: StrategyBranchNormalization.normalize_branches(branches)
 
   defp strategy_operational_feedback_provenance(
          prior_plan,
