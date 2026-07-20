@@ -6,22 +6,21 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Schema decision-support source-row validation direct routing.
+Schema operator-review row-link validation direct routing.
 
 Status:
-Completed and pushed.
+Selected; implementation not started.
 
 Selected boundary:
-Remove the Schema facade's one-hop optional branch-comparison source-row
-wrapper.
+Remove the Schema facade's one-hop operator-review row-link wrapper.
 Route its three callback-map entries directly to
-`DecisionSupportValidation.validate_optional_branch_comparison_source_row/3`.
+`OperatorReviewValidation.validate_row_links/3`.
 Keep callback-map composition, optional report validators that build
 facade-owned contract callbacks, contract routing, and all public facades in
 `OrbitalDynamics.Schema`.
 
 Selection evidence:
-- `schema.ex` remains the dominant hotspot at 6,165 lines.
+- `schema.ex` remains the dominant hotspot at 6,157 lines.
 - The wrapper only forwards the same three arguments and adds no guards,
   defaults, callbacks, path adaptation, or result transformation.
 - Three callback entries across Cadence-import, Cadence-source-review, and
@@ -30,28 +29,13 @@ Selection evidence:
   results, and checked-in schema exports must remain unchanged.
 
 Implementation:
-Removed the one-hop optional branch-comparison source-row wrapper and routed
-all three callback-map entries directly to DecisionSupportValidation.
-`schema.ex` moved from 6,165 to 6,157 lines.
+Pending.
 
 Verification:
-- Strict focused Cadence-import/Cadence-row/operator-review/campaign-repair
-  baseline before routing: 8 passed.
-- The same strict focused suite after routing: 8 passed.
-- Strict adjacent JSON Schema export/candidate-refresh/fixture-visibility
-  coverage: 17 passed.
-- Strict full schema-export task: 1 passed.
-- `mix xref callers OrbitalDynamics.Schema.DecisionSupportValidation` reports
-  `lib/orbital_dynamics/schema.ex (runtime)`.
-- Static search confirms the wrapper definition and all indirect captures are
-  gone from `schema.ex`.
-- `git diff --check` passed; no checked-in schema export changed.
-- Strict forced compile passed across 4,065 files.
-- Implementation commit `d89c1114` pushed to `main`.
+Pending.
 
 Behavior/schema changes:
-None. Public facades, callback arity/timing, issue ordering, paths/messages,
-validation behavior, and checked-in exports remain unchanged.
+None intended.
 
 Last completed slice:
 Schema decision-support source-row validation direct routing, selected in
