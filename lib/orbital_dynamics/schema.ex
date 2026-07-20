@@ -2335,8 +2335,8 @@ defmodule OrbitalDynamics.Schema do
         flow_summary: @resource_projection_flow_summary
       },
       stable_id_pattern: @stable_id_pattern,
-      models: &resource_projection_report_models/0,
-      model_limits: &resource_projection_report_model_limits/0,
+      models: &ResourceValidation.resource_projection_report_models/0,
+      model_limits: &ResourceValidation.resource_projection_report_model_limits/0,
       assumptions_schema: &resource_projection_assumptions_json_schema/0,
       projection_row_schema: &resource_projection_row_json_schema/0,
       flow_row_schema: &resource_projection_flow_row_json_schema/0,
@@ -5761,15 +5761,9 @@ defmodule OrbitalDynamics.Schema do
         contact_allocation_report_domain_callbacks()
       )
 
-  defp resource_projection_report_model_limits,
-    do: ResourceValidation.resource_projection_report_model_limits()
-
   defp resource_projection_assumptions_json_schema do
     OrbitalDynamics.Schema.ResourceProjectionReportJsonSchema.assumptions()
   end
-
-  defp resource_projection_report_models,
-    do: ResourceValidation.resource_projection_report_models()
 
   defp validate_candidate_rejection_report(issues, path, report),
     do:
