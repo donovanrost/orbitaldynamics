@@ -6,37 +6,29 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Campaign-planner recommendation-pressure expected-handoff fixture extraction.
+Schema stable-ID JSON-export contract test split.
 
 Status:
-Completed and verified.
+Selected; implementation pending.
 
 Selected boundary:
-Move the deterministic expected-handoff contract map from the 2,047-line
-recommendation-pressure handoff test into a named test-support fixture owner.
-Keep the review/import lookup, field propagation, nested source-row, and schema
-assertions in the focused test.
+Move the 2,177-line stable-ID hint export contract from the 3,206-line JSON
+Schema export test into a focused sibling test module. Keep the top-level,
+nested-report, opaque-identity, integer-count, and checked-in fixture tests plus
+their private helpers in the original module.
 
 Selection evidence:
-- The expected map occupies lines 17-2,008 and is deterministic test data.
-- The actual verification flow begins at `recommendation_review_row` and uses
-  only the scenario artifact plus that map.
-- A dedicated expected-contract fixture keeps exhaustive coverage intact while
-  making the focused handoff test navigable.
+- The stable-ID test is the first independent test and ends before line 2,183.
+- It depends only on the public `Schema` facade and none of the original
+  module's private fixture or recursive opaque-property helpers.
+- It validates one cohesive policy across standalone artifact identity fields,
+  while the remaining tests cover structurally different export contracts.
 
 Implementation:
-Selected in `aa9413f4` and implemented in `0315df4a`. Added the 1,998-line
-`StrategyRecommendationPressureExpectedHandoffFixture` contract owner and
-replaced the embedded map with one fixture call. The focused handoff test moved
-from 2,047 to 62 lines while retaining every review/import/schema assertion.
+Pending.
 
 Verification:
-- Both focused recommendation-pressure tests passed with warnings as errors:
-  2 tests.
-- Strict forced compile passed with warnings as errors: 4,129 files.
-- Touched-file format checks, new-helper whitespace checks, and
-  `git diff --check` passed.
-- No production or checked-in schema-export files changed.
+Pending.
 
 Behavior/schema changes:
 None intended. The same deterministic fixtures, production calls, assertions,
@@ -49,9 +41,7 @@ from 2,047 to 62 lines and its exhaustive contract now has a named fixture
 owner.
 
 Next candidate:
-Return to the largest schema contract test files and select a coherent
-contract-family fixture or test split; the recommendation-pressure tests now
-have focused scenario, explanation, expected-contract, and handoff owners.
+Implement and verify the selected stable-ID JSON-export contract test split.
 
 Blocked:
 No.
