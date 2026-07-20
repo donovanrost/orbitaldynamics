@@ -15,6 +15,7 @@ defmodule OrbitalDynamics.Schema do
     ContactReportValidation,
     DecisionSupportValidation,
     LinkCapacityValidation,
+    ModelCapabilityValidation,
     OperationalReadinessValidation,
     OperatorReviewValidation,
     PolicyValidation,
@@ -4500,25 +4501,16 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validate_contract(@environment_model_capability, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.ModelCapabilityContracts.validate_environment_model("$", artifact)
+  defp validate_contract(@environment_model_capability, _contract, artifact) do
+    ModelCapabilityValidation.validate([], "$", artifact, @environment_model_capability)
   end
 
-  defp validate_contract(@environment_provider_capability, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.ModelCapabilityContracts.validate_environment_provider(
-      "$",
-      artifact
-    )
+  defp validate_contract(@environment_provider_capability, _contract, artifact) do
+    ModelCapabilityValidation.validate([], "$", artifact, @environment_provider_capability)
   end
 
-  defp validate_contract(@subsystem_model_capability, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.ModelCapabilityContracts.validate_subsystem_model("$", artifact)
+  defp validate_contract(@subsystem_model_capability, _contract, artifact) do
+    ModelCapabilityValidation.validate([], "$", artifact, @subsystem_model_capability)
   end
 
   defp validate_contract(@schema_validation_report, contract, artifact) do
