@@ -9,7 +9,7 @@ Current slice:
 Schema maneuver validation context extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Add default-context entry points to DecisionSupportValidation for maneuver
@@ -30,18 +30,37 @@ Selection evidence:
   supply alternate model limits.
 
 Implementation:
-Pending.
+Added default-context maneuver recommendation and review-report entry points
+to DecisionSupportValidation, kept both customizable arity-four APIs, derived
+limits from ManeuverReviewCapabilityContext, routed both eager facade
+validations directly, and removed both wrappers. `schema.ex` moved from 5,752
+to 5,734 lines.
 
 Verification:
-Pending.
+- Strict maneuver/operator-review/campaign baseline before extraction:
+  6 passed.
+- The same strict focused suite after extraction: 6 passed.
+- Strict checked-in export, JSON Schema export, review/import handoff, and
+  contact-feedback coverage: 27 passed.
+- The full schema-export task completed and produced no checked-in changes.
+- Exact static inspection confirms two direct eager validations, zero facade
+  wrappers, and retained customizable owner APIs.
+- `mix xref callers OrbitalDynamics.Schema.DecisionSupportValidation` reports
+  only the expected Schema facade runtime caller.
+- `mix format --check-formatted` and `git diff --check` passed.
+- Strict forced compile passed across 4,072 files with no warnings.
+- Bounded local diff review found no must-fix findings.
+- Implementation commit `749ae44e` pushed to `main`.
 
 Behavior/schema changes:
-None intended.
+None. Maneuver model limits, issue ordering and paths, customizable owner entry
+points, public Schema APIs, validation results, and checked-in exports remain
+unchanged.
 
 Last completed slice:
-Schema resource-projection validation context extraction, selected in
-`d922c4fd` and implemented in `90f0fb94`.
-`schema.ex` moved from 5,796 to 5,752 lines.
+Schema maneuver validation context extraction, selected in `9e4614ec` and
+implemented in `749ae44e`.
+`schema.ex` moved from 5,752 to 5,734 lines.
 
 Next candidate:
 Re-rank the remaining non-capability Schema responsibility clusters. Preserve
