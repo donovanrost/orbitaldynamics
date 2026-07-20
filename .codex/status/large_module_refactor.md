@@ -9,7 +9,7 @@ Current slice:
 Schema capability-catalog validation owner extraction.
 
 Status:
-Selected; implementation pending.
+Complete and pushed.
 
 Selected boundary:
 Add a focused `CapabilityCatalogValidation` owner that resolves its required
@@ -27,23 +27,34 @@ Selection evidence:
 - No route needs recursive `Schema` lookup.
 
 Implementation:
-Pending.
+Added a 27-line `CapabilityCatalogValidation` owner that resolves catalog
+required fields from the validation-policy registry and the complete executable
+contract list from `RegistryCatalog`. Routed the direct catalog clause through
+it. `schema.ex` moved from 4,632 to 4,627 lines.
 
 Verification:
-Pending.
+- Strict capability, registry, fixture, and validation baseline: 16 tests
+  passed.
+- Capability, registry, JSON-schema export, full export, validation, and fixture
+  adjacency: 34 tests passed.
+- Full schema export regenerated with no checked-in schema artifact changes.
+- Formatting, diff whitespace, bounded dependency/reference checks, and the
+  bounded semantic diff review passed.
+- `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 mix compile --force
+  --warnings-as-errors` compiled 4,090 files successfully.
 
 Behavior/schema changes:
-None intended. Required fields, full executable registry contents, validation
-ordering and paths, public `Schema`, validation results, and checked-in exports
-must remain unchanged.
+None. Required fields, full executable registry contents, validation ordering
+and paths, public `Schema`, validation results, and checked-in exports remain
+unchanged.
 
 Last completed slice:
-Schema executable-registry catalog extraction, selected in `fee6a3cc` and
-implemented in `f51ff6ff`. `schema.ex` moved from 4,712 to 4,632 lines.
+Schema capability-catalog validation owner extraction, selected in `c4e1db05`
+and implemented in `cf2a0310`. `schema.ex` moved from 4,632 to 4,627 lines.
 
 Next candidate:
-Implement and verify the selected capability-catalog owner, then re-rank the
-remaining recursive result-artifact route.
+Assess the remaining recursive result-artifact route and the facade-owned
+nested execution-report callback before selecting another boundary.
 
 Blocked:
 No.
