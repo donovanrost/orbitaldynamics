@@ -5,6 +5,12 @@ defmodule OrbitalDynamics.Schema.CandidateRejectionValidation do
 
   @candidate_rejection_report "candidate_rejection_report.v1"
 
+  def validate_report_artifact(issues, path, report) do
+    issues
+    |> require_fields(path, report, required_fields())
+    |> validate_report(path, report)
+  end
+
   def validate_report(issues, path, report),
     do: validate_report(issues, path, report, model_limits())
 

@@ -4282,10 +4282,8 @@ defmodule OrbitalDynamics.Schema do
     TimelineArtifactValidation.validate([], "$", artifact, @timeline_feedback_report)
   end
 
-  defp validate_contract(@candidate_rejection_report, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> CandidateRejectionValidation.validate_report("$", artifact)
+  defp validate_contract(@candidate_rejection_report, _contract, artifact) do
+    CandidateRejectionValidation.validate_report_artifact([], "$", artifact)
   end
 
   defp validate_contract(@plan_delta, contract, artifact) do
