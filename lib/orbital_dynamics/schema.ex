@@ -536,7 +536,7 @@ defmodule OrbitalDynamics.Schema do
   end
 
   defp default_json_schema_property(field, contract_name, contract) do
-    OrbitalDynamics.Schema.JsonSchemaPropertyRouter.default_property(
+    OrbitalDynamics.Schema.JsonSchemaPropertySupport.default_property(
       field,
       contract_name,
       contract,

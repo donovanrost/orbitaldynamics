@@ -2,70 +2,36 @@ defmodule OrbitalDynamics.Schema.JsonSchemaPropertyRouter do
   @moduledoc false
   alias OrbitalDynamics.Schema.{
     OperationalReadinessValidation,
+    ReferencePolicyPropertyRouter,
     ResourceValidation,
     TimelineContextJsonSchema
   }
 
+  import OrbitalDynamics.Schema.JsonSchemaPropertySupport,
+    only: [context_value: 2, fallback: 4, provider: 3]
+
   def property(field, "activity_template.v1" = contract_name, contract, context) do
-    OrbitalDynamics.Schema.PlanningReferencePropertyDispatch.activity_template(
-      field,
-      contract_name,
-      contract,
-      fn arg1, arg2, arg3 -> fallback(arg1, arg2, arg3, context) end,
-      {"activity_template.v1", context_value(context, :stable_id_pattern)}
-    )
+    ReferencePolicyPropertyRouter.property(field, contract_name, contract, context)
   end
 
   def property(field, "policy_bundle.v1" = contract_name, contract, context) do
-    OrbitalDynamics.Schema.PolicyArtifactPropertyDispatch.bundle(
-      field,
-      contract_name,
-      contract,
-      fn arg1, arg2, arg3 -> fallback(arg1, arg2, arg3, context) end,
-      {fn -> provider(context, :policy_action_rule_json_schema, []) end,
-       fn -> provider(context, :policy_model_limits, []) end}
-    )
+    ReferencePolicyPropertyRouter.property(field, contract_name, contract, context)
   end
 
   def property(field, "policy_decision.v1" = contract_name, contract, context) do
-    OrbitalDynamics.Schema.PolicyArtifactPropertyDispatch.decision(
-      field,
-      contract_name,
-      contract,
-      fn arg1, arg2, arg3 -> fallback(arg1, arg2, arg3, context) end,
-      {fn -> provider(context, :policy_decision_rule_match_json_schema, []) end,
-       fn -> provider(context, :policy_escalation_json_schema, []) end,
-       fn -> provider(context, :policy_model_limits, []) end}
-    )
+    ReferencePolicyPropertyRouter.property(field, contract_name, contract, context)
   end
 
   def property(field, "capability_catalog.v1" = contract_name, contract, context) do
-    OrbitalDynamics.Schema.PlanningReferencePropertyDispatch.capability_catalog(
-      field,
-      contract_name,
-      contract,
-      fn arg1, arg2, arg3 -> fallback(arg1, arg2, arg3, context) end
-    )
+    ReferencePolicyPropertyRouter.property(field, contract_name, contract, context)
   end
 
   def property(field, "accepted_planning_state.v1" = contract_name, contract, context) do
-    OrbitalDynamics.Schema.PlanningReferencePropertyDispatch.accepted_state(
-      field,
-      contract_name,
-      contract,
-      fn arg1, arg2, arg3 -> fallback(arg1, arg2, arg3, context) end,
-      {fn -> provider(context, :spacecraft_state_estimate_json_schema, []) end,
-       fn -> provider(context, :maneuver_execution_delta_json_schema, []) end}
-    )
+    ReferencePolicyPropertyRouter.property(field, contract_name, contract, context)
   end
 
   def property(field, "manifest_field_reference.v1" = contract_name, contract, context) do
-    OrbitalDynamics.Schema.PlanningReferencePropertyDispatch.manifest_field_reference(
-      field,
-      contract_name,
-      contract,
-      fn arg1, arg2, arg3 -> fallback(arg1, arg2, arg3, context) end
-    )
+    ReferencePolicyPropertyRouter.property(field, contract_name, contract, context)
   end
 
   def property(field, "candidate_diff_report.v1" = contract_name, contract, context) do
@@ -1289,38 +1255,10 @@ defmodule OrbitalDynamics.Schema.JsonSchemaPropertyRouter do
     fallback(field, name, contract, context)
   end
 
-  defp fallback(field, name, contract, context) do
-    default_property(
-      field,
-      name,
-      contract,
-      context_value(context, :field_type_hints),
-      context_value(context, :stable_id_pattern)
-    )
-  end
-
-  def default_property(field, name, contract, field_type_hints, stable_id_pattern) do
-    OrbitalDynamics.Schema.FallbackPropertyJsonSchema.property(field, name, contract,
-      field_type_hints: field_type_hints,
-      stable_id_pattern: stable_id_pattern
-    )
-  end
-
   defp embedded(contract_name, context) do
     OrbitalDynamics.Schema.EmbeddedContractJsonSchema.build(contract_name,
       contract: fn arg1 -> provider(context, :registry_contract!, [arg1]) end,
       property: fn arg1, arg2, arg3 -> property(arg1, arg2, arg3, context) end
     )
-  end
-
-  defp provider(context, name, args) do
-    context
-    |> Keyword.fetch!(:schema_providers)
-    |> Map.fetch!({name, length(args)})
-    |> apply(args)
-  end
-
-  defp context_value(context, name) do
-    Keyword.fetch!(context, name)
   end
 end
