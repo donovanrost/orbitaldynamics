@@ -9,7 +9,7 @@ Current slice:
 Execution-state schema-provider extraction.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Move the spacecraft-state-estimate, maneuver-execution-delta, realized
@@ -28,10 +28,25 @@ Selection evidence:
   entries and implementation details from the public facade.
 
 Implementation:
-Pending.
+Selected in `ce29ff10` and implemented in `b6901070`.
+The new `ExecutionStateSchemaProviders.build/1` returns four lazy provider
+closures for spacecraft estimate, maneuver delta, realized spacecraft state,
+and snapshot metadata schemas. `Schema` removes the four registry-local
+captures and private builders, then merges the focused provider map using only
+the stable-ID pattern.
 
 Verification:
-Pending.
+- Strict focused schema/validation baseline and post-change suites both passed:
+  359 tests, 0 failures.
+- Direct comparison confirmed the extracted provider map has the exact four
+  keys and produces outputs exactly equal to the original builders.
+- Xref reports one runtime edge from `Schema` to the new provider owner.
+- Schema export regenerated 121 schemas plus the bundle with no checked-in
+  artifact diff.
+- Strict full compile passed for 4,111 files with warnings as errors.
+- Formatting, diff checks, and bounded two-file review passed.
+- The public `Schema` facade shrank from 1,813 to 1,768 lines; the new focused
+  owner is 61 lines.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -39,13 +54,12 @@ laziness, field-hint fallback, stable-ID decoration, public `Schema`, and
 checked-in exports must remain unchanged.
 
 Last completed slice:
-Station-calendar schema-provider extraction, selected in `5ec99bb8` and
-implemented in `9b22678f`. The public `Schema` facade moved from 1,887 to 1,813
+Execution-state schema-provider extraction, selected in `ce29ff10` and
+implemented in `b6901070`. The public `Schema` facade moved from 1,813 to 1,768
 lines.
 
 Next candidate:
-Implement and verify the selected execution-state provider extraction, then
-re-rank the remaining public-facade provider clusters.
+Re-rank the remaining public-facade provider clusters.
 
 Blocked:
 No.
