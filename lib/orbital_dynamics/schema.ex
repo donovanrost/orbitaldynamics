@@ -4241,32 +4241,24 @@ defmodule OrbitalDynamics.Schema do
     )
   end
 
-  defp validate_contract(@station_reservation_report, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> OrbitalDynamics.Schema.StationReservationReportContracts.validate(
-      "$",
-      artifact,
-      OrbitalDynamics.Schema.StationReservationReportJsonSchema.models()
-    )
+  defp validate_contract(@station_reservation_report, _contract, artifact) do
+    StationReservationValidation.validate_report_artifact([], "$", artifact)
   end
 
-  defp validate_contract(@station_reservation_review_summary, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> StationReservationValidation.validate_review_summary("$", artifact)
+  defp validate_contract(@station_reservation_review_summary, _contract, artifact) do
+    StationReservationValidation.validate_review_artifact([], "$", artifact)
   end
 
-  defp validate_contract(@station_reservation_hold_summary, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> StationReservationValidation.validate_hold_summary("$", artifact)
+  defp validate_contract(@station_reservation_hold_summary, _contract, artifact) do
+    StationReservationValidation.validate_hold_artifact([], "$", artifact)
   end
 
-  defp validate_contract(@station_reservation_hold_import_readiness_summary, contract, artifact) do
-    []
-    |> require_fields("$", artifact, contract["required_fields"])
-    |> StationReservationValidation.validate_hold_import_readiness_summary("$", artifact)
+  defp validate_contract(
+         @station_reservation_hold_import_readiness_summary,
+         _contract,
+         artifact
+       ) do
+    StationReservationValidation.validate_hold_import_artifact([], "$", artifact)
   end
 
   defp validate_contract(@provider_counteroffer_report, _contract, artifact) do
