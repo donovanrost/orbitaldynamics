@@ -124,6 +124,7 @@ defmodule OrbitalDynamics.Schema do
       timeline_candidate_rejection_actions: 0,
       timeline_candidate_rejection_reasons: 0,
       timeline_capabilities: 0,
+      timeline_feedback_capabilities: 0,
       timeline_feedback_report_model_limits: 0,
       timeline_integrity_issue_types: 0,
       timeline_report_model_limits: 0,
@@ -1522,7 +1523,7 @@ defmodule OrbitalDynamics.Schema do
       {
         &timeline_feedback_row_json_schema/0,
         &timeline_feedback_report_model_limits/0,
-        &OrbitalDynamics.TimelineFeedback.capabilities/0,
+        &timeline_feedback_capabilities/0,
         &operational_feedback_json_schema/0,
         &timeline_feedback_operational_feedback_provenance_json_schema/0
       }
@@ -1594,7 +1595,7 @@ defmodule OrbitalDynamics.Schema do
       @stable_id_pattern,
       {
         &timeline_feedback_row_json_schema/0,
-        &OrbitalDynamics.TimelineFeedback.capabilities/0,
+        &timeline_feedback_capabilities/0,
         &stable_id_array_schema/0,
         &string_array_schema/0,
         &timeline_identity_json_schema/0,
@@ -3340,7 +3341,7 @@ defmodule OrbitalDynamics.Schema do
   defp timeline_feedback_row_json_schema do
     OrbitalDynamics.Schema.TimelineFeedbackRowJsonSchema.row(
       stable_id_pattern: @stable_id_pattern,
-      capability: OrbitalDynamics.TimelineFeedback.capabilities(),
+      capability: timeline_feedback_capabilities(),
       stable_id_array_schema: stable_id_array_schema(),
       string_array_schema: string_array_schema(),
       number_array_schema: number_array_schema(),

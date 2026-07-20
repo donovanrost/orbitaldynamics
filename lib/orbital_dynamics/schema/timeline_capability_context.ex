@@ -2,10 +2,12 @@ defmodule OrbitalDynamics.Schema.TimelineCapabilityContext do
   @moduledoc false
 
   def timeline_feedback_report_model_limits do
-    OrbitalDynamics.TimelineFeedback.capabilities()
+    timeline_feedback_capabilities()
     |> Map.fetch!(:known_limits)
     |> Enum.map(&Atom.to_string/1)
   end
+
+  def timeline_feedback_capabilities, do: OrbitalDynamics.TimelineFeedback.capabilities()
 
   def timeline_report_model_limits do
     timeline_capabilities()
