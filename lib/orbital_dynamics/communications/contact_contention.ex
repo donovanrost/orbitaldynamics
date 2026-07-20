@@ -70,7 +70,7 @@ defmodule OrbitalDynamics.Communications.ContactContention do
     ContactIdentity,
     FeedbackContext,
     PriorityOverrides,
-    ResolutionSummaryValues,
+    ResolutionSummary,
     StationCalendarContext,
     TimingMetrics
   }
@@ -375,7 +375,7 @@ defmodule OrbitalDynamics.Communications.ContactContention do
     do: summary
 
   def resolution_summary(%{"schema_contract" => @resolution_contract} = report) do
-    contention_resolution_summary(report)
+    ResolutionSummary.build(report, model_limits())
   end
 
   def resolution_summary(%{schema_contract: @resolution_summary_contract} = summary) do
@@ -402,125 +402,6 @@ defmodule OrbitalDynamics.Communications.ContactContention do
 
   def resolution_summary(_contacts, _contention_report, _opts),
     do: raise(ArgumentError, "contacts must be a list and contention report must be a map")
-
-  defp contention_resolution_summary(report) do
-    report = stringify_keys(report)
-    recommendations = report |> Map.get("recommendations", []) |> Enum.filter(&is_map/1)
-
-    review_recommendations =
-      Enum.filter(recommendations, &(&1["review_status"] == "operator_review_required"))
-
-    capacity_pack_demand = contention_resolution_capacity_pack_demand(recommendations)
-
-    %{
-      "schema_contract" => @resolution_summary_contract,
-      "model" => "artifact_only_contact_contention_resolution_summary",
-      "source_artifact_type" => Map.get(report, "schema_contract", @resolution_contract),
-      "model_limits" => model_limits(),
-      "conflict_group_count" => length(recommendation_values(recommendations, "group_id")),
-      "recommendation_count" => length(recommendations),
-      "policy" => report["policy"],
-      "recommendation_group_ids" => recommendation_values(recommendations, "group_id"),
-      "review_group_ids" => recommendation_values(review_recommendations, "group_id"),
-      "selected_contact_ids" => recommendation_values(recommendations, "selected_contact_id"),
-      "selected_contact_ids_by_group_id" =>
-        recommendation_values_by_field(recommendations, "group_id", "selected_contact_id"),
-      "deferred_contact_ids" =>
-        recommendation_list_values(recommendations, "deferred_contact_ids"),
-      "deferred_contact_ids_by_group_id" =>
-        recommendation_list_values_by_field(recommendations, "group_id", "deferred_contact_ids"),
-      "ambiguous_group_ids" =>
-        recommendations
-        |> Enum.filter(&(&1["resolution_status"] == "ambiguous_contact_identity"))
-        |> recommendation_values("group_id"),
-      "ambiguous_duplicate_contact_ids" =>
-        recommendation_list_values(recommendations, "duplicate_contact_ids"),
-      "ambiguous_duplicate_contact_ids_by_group_id" =>
-        recommendation_list_values_by_field(recommendations, "group_id", "duplicate_contact_ids"),
-      "review_contact_ids" => contention_resolution_review_contact_ids(review_recommendations),
-      "review_contact_ids_by_group_id" =>
-        contention_resolution_review_contact_ids_by_field(review_recommendations, "group_id"),
-      "review_recommendation_count" => length(review_recommendations),
-      "resource_scope_counts" => recommendation_count_by_field(recommendations, "resource_scope"),
-      "selected_contact_ids_by_resource_scope" =>
-        recommendation_values_by_field(recommendations, "resource_scope", "selected_contact_id"),
-      "deferred_contact_ids_by_resource_scope" =>
-        recommendation_list_values_by_field(
-          recommendations,
-          "resource_scope",
-          "deferred_contact_ids"
-        ),
-      "review_contact_ids_by_resource_scope" =>
-        contention_resolution_review_contact_ids_by_field(
-          review_recommendations,
-          "resource_scope"
-        ),
-      "selection_reason_counts" =>
-        recommendation_count_by_field(recommendations, "selection_reason"),
-      "selected_contact_ids_by_selection_reason" =>
-        recommendation_values_by_field(
-          recommendations,
-          "selection_reason",
-          "selected_contact_id"
-        ),
-      "action_counts" => recommendation_count_by_field(recommendations, "action"),
-      "review_contact_ids_by_action" =>
-        contention_resolution_review_contact_ids_by_field(review_recommendations, "action"),
-      "capacity_pack_required_capacity_fraction" =>
-        capacity_pack_demand["capacity_pack_required_capacity_fraction"],
-      "capacity_pack_selected_required_capacity_fraction" =>
-        capacity_pack_demand["capacity_pack_selected_required_capacity_fraction"],
-      "capacity_pack_deferred_required_capacity_fraction" =>
-        capacity_pack_demand["capacity_pack_deferred_required_capacity_fraction"],
-      "capacity_pack_required_capacity_fraction_by_status" =>
-        capacity_pack_demand["capacity_pack_required_capacity_fraction_by_status"],
-      "capacity_pack_required_capacity_fraction_by_ground_station_id" =>
-        capacity_pack_demand["capacity_pack_required_capacity_fraction_by_ground_station_id"],
-      "capacity_pack_selected_required_capacity_fraction_by_ground_station_id" =>
-        capacity_pack_demand[
-          "capacity_pack_selected_required_capacity_fraction_by_ground_station_id"
-        ],
-      "capacity_pack_deferred_required_capacity_fraction_by_ground_station_id" =>
-        capacity_pack_demand[
-          "capacity_pack_deferred_required_capacity_fraction_by_ground_station_id"
-        ],
-      "required_capacity_fraction_source_counts" =>
-        capacity_pack_demand["required_capacity_fraction_source_counts"],
-      "required_capacity_fraction_contact_ids_by_source" =>
-        capacity_pack_demand["required_capacity_fraction_contact_ids_by_source"],
-      "assumptions" => %{
-        "execution_boundary" => "artifact_only_no_provider_reservation_or_schedule_mutation",
-        "candidate_mutation" => "none",
-        "operator_authority" => "not_granted_by_summary",
-        "source" => "contact_contention_resolution_report.v1"
-      }
-    }
-    |> compact_map()
-  end
-
-  defp contention_resolution_capacity_pack_demand(recommendations),
-    do: CapacityDemand.build(recommendations)
-
-  defp contention_resolution_review_contact_ids(recommendations),
-    do: ResolutionSummaryValues.review_contact_ids(recommendations)
-
-  defp recommendation_values(recommendations, field),
-    do: ResolutionSummaryValues.values(recommendations, field)
-
-  defp recommendation_list_values(recommendations, field),
-    do: ResolutionSummaryValues.list_values(recommendations, field)
-
-  defp recommendation_values_by_field(recommendations, group_field, value_field),
-    do: ResolutionSummaryValues.values_by_field(recommendations, group_field, value_field)
-
-  defp recommendation_list_values_by_field(recommendations, group_field, value_field),
-    do: ResolutionSummaryValues.list_values_by_field(recommendations, group_field, value_field)
-
-  defp contention_resolution_review_contact_ids_by_field(recommendations, group_field),
-    do: ResolutionSummaryValues.review_contact_ids_by_field(recommendations, group_field)
-
-  defp recommendation_count_by_field(recommendations, field),
-    do: ResolutionSummaryValues.count_by_field(recommendations, field)
 
   defp contention_report(contact_inputs, groups, invalid_contact_inputs, opts) do
     source = opts |> Keyword.get(:source, "contact_candidates") |> to_string()
