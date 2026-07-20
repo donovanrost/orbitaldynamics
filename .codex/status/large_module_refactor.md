@@ -6,55 +6,35 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-No slice selected.
+RecommendationRiskContext contact-filter extraction.
 
 Status:
-Slice complete and pushed.
+Selected; implementation not started.
 
 Selected boundary:
-Extracted operational-readiness capability/contract metadata assembly into
-`OrbitalDynamics.OperationalReadiness.Capability`.
-Preserved `OperationalReadiness.capabilities/0` and all downstream public
-facades.
+Extract contact-filter context keys, risk filtering, and projection into
+`OrbitalDynamics.RecommendationRiskContext.ContactFilter`.
+Preserve all RecommendationRiskContext and downstream public facades.
 
 Selection evidence:
-- Live re-ranking places `operational_readiness.ex` at 484 lines, the
+- Live re-ranking places `recommendation_risk_context.ex` at 473 lines, the
   largest remaining facade in this refactor lane.
-- Report, gate, evidence, and summary construction already delegate to focused
-  owners; the remaining large inline block is static capability metadata and
-  its dependent capability lookups.
-- The selected code has one responsibility: advertise stable readiness
-  contracts, classifications, semantics, helpers, handoff artifacts, and known
-  limits.
-- Report routing, schema-contract pattern matching, source acquisition, and
-  report construction remain outside the boundary.
-- Exact capability keys and values, list ordering, dependent capability
-  lookups, atom/string types, and public output must remain unchanged.
+- Most risk families delegate keys and projection to focused owners, while
+  contact-filter projection remains inline.
+- The selected code has one responsibility: identify `contact_filter`
+  feedback risks and project their stable contact, reservation, calendar,
+  downlink, and provenance context.
+- Shared normalization/value collection, other risk-family projections, and
+  all public routing remain outside the boundary except for facade delegates.
+- Exact key ordering, string/atom-key normalization, nested/list flattening,
+  nil rejection, stable first-seen uniqueness, omission of empty keys, and
+  non-list fallback behavior must remain unchanged.
 
 Implementation:
-- Added the focused `Capability` owner for readiness contracts,
-  classifications, semantics, public helpers/facades, handoff artifacts,
-  dependent capability lookups, and known limits.
-- Replaced the facade's inline metadata assembly with a thin public delegate;
-  routing-specific contract attributes remain with the facade.
-- Removed three metadata-only contract attributes and four classification/
-  status attributes from the facade.
-- `operational_readiness.ex` moved from 484 to 345 lines; the dedicated owner
-  is 155 lines.
+Pending.
 
 Verification:
-- Pre-change strict focused baseline: 31 tests passed.
-- Exact before/after public-output parity: 2 complete capability maps matched
-  byte-for-byte with SHA-256
-  `2a51ca75f068a8ef95d3cca14d46f5b830b247e98ded405f4c30dce94ef54ad0`,
-  covering both direct readiness capabilities and the root capability catalog.
-- Focused and adjacent strict verification: 51 tests passed.
-- Static ownership checks found no migrated classification/status attributes or
-  inline capability builder in the facade; xref reports the facade as the
-  runtime caller of `Capability`.
-- Forced warnings-as-errors compile passed across 4,048 files.
-- Formatting and `git diff --check` passed; the worktree was clean after the
-  implementation commit.
+Pending.
 
 Behavior/schema changes:
 None intended.
@@ -66,8 +46,8 @@ and implemented in `17398d5d`.
 Capability owner is 155 lines.
 
 Next candidate:
-Re-rank the live checkout. RecommendationRiskContext is now the largest
-remaining facade in this lane at 473 lines.
+After this slice, re-rank the live checkout. RecommendationRiskContext retains
+the parallel resource-filter boundary.
 
 Blocked:
 No.
