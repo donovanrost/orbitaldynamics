@@ -9,7 +9,7 @@ Current slice:
 LinkCapacity triage-summary extraction.
 
 Status:
-Selected; strict focused baseline pending.
+Completed and pushed in `69e7cf13`.
 
 Selected boundary:
 Extract link-capacity report row normalization, row-derived count/throughput
@@ -35,25 +35,41 @@ Selection evidence:
   public facade output, and error behavior must remain unchanged.
 
 Implementation:
-Pending.
+- Added `OrbitalDynamics.Communications.LinkCapacity.Summary` as the owner of
+  report-row normalization, row-derived count/throughput aggregation,
+  station/contact/reservation routing, assumptions, and compact summary output.
+- Preserved LinkCapacity and root public APIs as delegates and kept the
+  facade's capability-derived model limits and assumptions authoritative.
+- Removed the summary-specific aggregation/routing helper family from the
+  facade while retaining generic row utilities still used by report building.
+- `link_capacity.ex` moved from 1,904 to 1,414 lines; the new owner is 536
+  lines.
 
 Verification:
-Pending.
+- Strict focused baseline passed all 44 LinkCapacity tests.
+- Exact old/new public parity passed for four deterministic summaries: dense
+  row-derived routing, atom-key normalization, fallback invalid-ID behavior,
+  and an empty report.
+- Post-extraction focused and adjacent schema verification passed all 52 tests.
+- Static checks confirm the summary-specific aggregation helpers left the
+  facade; xref reports only LinkCapacity as a runtime caller.
+- Strict warning-clean forced compile passed for 4,002 files.
+- Formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-StationCalendar reservation-review summary extraction, selected in `0da707f7`
-and implemented in `0635b27d`.
-`station_calendar.ex` moved from 1,911 to 1,814 lines; the dedicated
-ReservationReviewSummary owner is 129 lines.
+LinkCapacity triage-summary extraction, selected in `efe6811d` and implemented
+in `69e7cf13`.
+`link_capacity.ex` moved from 1,904 to 1,414 lines; the dedicated Summary owner
+is 536 lines.
 
 Next candidate:
 Re-rank the live checkout and select the next bounded facade-preserving
-extraction. `communications/link_capacity.ex` is now the largest ordinary
-eligible facade at 1,904 lines, followed by ContactFilter and
-RecommendationRiskContext.
+extraction. `communications/contact_filter.ex` is now the largest ordinary
+eligible facade at 1,898 lines, followed by RecommendationRiskContext and
+OrbitData.
 
 Blocked:
 No.
