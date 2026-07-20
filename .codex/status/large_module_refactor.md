@@ -6,45 +6,32 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Campaign artifact JSON-property family extraction.
+Timeline report/state JSON-property family extraction.
 
 Status:
-Implemented and verified.
+Selected; implementation pending.
 
 Selected boundary:
-Extract the adjacent campaign-plan and campaign-repair clauses from
-`JsonSchemaPropertyRouter` into a campaign artifact family owner. Keep the
-parent router's exact clause heads/order and pass its property callback
-explicitly so campaign repair preserves recursive timeline-transition schema
-routing without coupling the child back to the parent module.
+Extract the six contiguous timeline feedback, integrity, dependency-impact,
+publication, activity-state, and activity-precondition clauses from
+`JsonSchemaPropertyRouter` into a timeline report/state family owner. Keep the
+parent router's exact clause heads/order as delegations and reuse shared
+property support without adding a recursive callback.
 
 Selection evidence:
-- The parent router remains 1,241 lines across 76 contract-family clauses.
-- The next two clauses are a contiguous 40-line campaign artifact boundary
-  already delegated through one focused dispatcher.
-- Campaign repair's only cross-family dependency is its recursive property
-  callback for the timeline-transition contract.
-- Passing that callback explicitly preserves the recursion and keeps the child
-  dependency one-way while reusing `JsonSchemaPropertySupport`.
+- The parent router remains 1,226 lines across 76 contract-family clauses.
+- Six adjacent clauses form a 114-line timeline report/state boundary across
+  focused timeline dispatchers.
+- The cohort shares only lazy providers, stable-ID context, fallback, and the
+  existing timeline-context schema owner.
+- No clause recursively re-enters the parent property router, so the split is a
+  direct mechanical family move.
 
 Implementation:
-- Added a 57-line `CampaignArtifactPropertyRouter` with the campaign-plan and
-  campaign-repair clause bodies.
-- Passed a three-arity property callback from the parent so repair retains its
-  recursive timeline-transition lookup without a child-to-parent dependency.
-- Kept both original parent clause heads in place as ordered delegations.
-- The parent router moved from 1,241 to 1,226 lines.
+Pending.
 
 Verification:
-- Strict pre-change baseline and post-change schema/validation suite: 359 tests
-  passed in each run.
-- AST comparison confirmed all 76 parent clause heads remain in their original
-  order; focused tests and exports exercised the explicit recursive callback.
-- Full schema export regenerated 121 contract schemas and the bundle with no
-  checked-in schema diff.
-- `mix xref trace` confirms the two intended family edges.
-- Formatting, `git diff --check`, and bounded source/schema diff review passed.
-- Strict compile passed for 4,098 files with warnings as errors.
+Pending.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -56,8 +43,8 @@ Campaign artifact JSON-property family extraction, selected in `a8372d62` and
 implemented in `52d33f59`. The parent router moved from 1,241 to 1,226 lines.
 
 Next candidate:
-Re-rank the adjacent realized-state and timeline-report clauses, preferring a
-family with no new cross-family callback surface.
+Implement and verify the selected timeline family split, then re-rank the
+adjacent result-artifact/contact-planning families.
 
 Blocked:
 No.
