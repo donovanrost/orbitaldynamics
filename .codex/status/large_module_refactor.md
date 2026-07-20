@@ -9,7 +9,7 @@ Current slice:
 OperationalReadiness quality-gate report extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `9a00a240`.
 
 Selected boundary:
 Extract quality-gate report construction and its gate/row routing helpers into
@@ -32,19 +32,36 @@ Selection evidence:
   error behavior must remain unchanged.
 
 Implementation:
-Pending.
+- Added `OrbitalDynamics.OperationalReadiness.QualityGateReport` as the focused
+  owner of row aggregation, classification precedence, counts, gate/row
+  routing sets, execution boundary, assumptions, and model limits.
+- Preserved QualityGateRow as the row-projection owner and all public
+  OperationalReadiness facades through the report builder.
+- Readiness report/evidence construction and all specialized summaries remain
+  outside the extraction.
+- `operational_readiness.ex` moved from 903 to 827 lines; the dedicated
+  QualityGateReport owner is 118 lines.
 
 Verification:
-Pending.
+- Strict focused baseline: 31 tests passed with warnings treated as errors.
+- Exact old/new public parity: seven reports passed, covering every
+  classification, blocked-first mixed precedence, non-map gate filtering,
+  stable routing sets, atom-key normalization, and the root facade.
+- Post-change core, operator-review, schema, and fixture checks: 51 tests
+  passed with warnings treated as errors.
+- Static ownership and xref checks passed; only the facade calls the extracted
+  owner at runtime.
+- Forced warning-clean test compile passed across 4,041 files.
+- Focused formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-RecommendationRiskContext timeline-dependency-impact extraction, selected in
-`449fbfe3` and implemented in `5a38cbb3`.
-`recommendation_risk_context.ex` moved from 963 to 878 lines; the dedicated
-TimelineDependencyImpact owner is 124 lines.
+OperationalReadiness quality-gate report extraction, selected in `fc8572eb`
+and implemented in `9a00a240`.
+`operational_readiness.ex` moved from 903 to 827 lines; the dedicated
+QualityGateReport owner is 118 lines.
 
 Next candidate:
 After this slice, re-rank the live checkout. RecommendationRiskContext is the
