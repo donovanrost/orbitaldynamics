@@ -1990,7 +1990,7 @@ defmodule OrbitalDynamics.Schema do
       contract,
       &default_json_schema_property/3,
       {
-        &candidate_rejection_report_model_limits/0,
+        &OrbitalDynamics.Schema.CandidateRejectionReportJsonSchema.model_limits/0,
         &candidate_rejection_row_json_schema/0,
         &timeline_candidate_rejection_reasons/0,
         &timeline_candidate_rejection_actions/0,
@@ -3155,15 +3155,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp campaign_activity_json_schema do
     candidate_activity_json_schema()
-  end
-
-  defp candidate_rejection_report_model_limits do
-    [
-      "artifact_only",
-      "does_not_select_candidates",
-      "does_not_mutate_schedules",
-      "derived_reasons_use_declared_candidate_fields"
-    ]
   end
 
   defp timeline_activity_state_assumptions_json_schema(fields) do
@@ -5749,7 +5740,7 @@ defmodule OrbitalDynamics.Schema do
         issues,
         path,
         report,
-        candidate_rejection_report_model_limits()
+        OrbitalDynamics.Schema.CandidateRejectionReportJsonSchema.model_limits()
       )
 
   defp validate_optional_candidate_rejection_report(issues, path, report),
@@ -5759,7 +5750,7 @@ defmodule OrbitalDynamics.Schema do
         path,
         report,
         registry_contract!(@candidate_rejection_report)["required_fields"],
-        candidate_rejection_report_model_limits()
+        OrbitalDynamics.Schema.CandidateRejectionReportJsonSchema.model_limits()
       )
 
   defp validate_cadence_import_manifest(issues, path, manifest) do

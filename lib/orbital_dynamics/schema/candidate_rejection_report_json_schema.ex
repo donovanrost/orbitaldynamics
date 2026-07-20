@@ -29,6 +29,15 @@ defmodule OrbitalDynamics.Schema.CandidateRejectionReportJsonSchema do
     "required_operator_action_counts"
   ]
 
+  def model_limits do
+    [
+      "artifact_only",
+      "does_not_select_candidates",
+      "does_not_mutate_schedules",
+      "derived_reasons_use_declared_candidate_fields"
+    ]
+  end
+
   def property_field?(field)
       when field in [
              "model_limits",
