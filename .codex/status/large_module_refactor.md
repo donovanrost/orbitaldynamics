@@ -9,7 +9,7 @@ Current slice:
 Schema station-calendar capability-context extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Extract the StationCalendar capability accessor, model-limit projection, and
@@ -36,19 +36,40 @@ Selection evidence:
   unchanged.
 
 Implementation:
-Pending.
+Added `OrbitalDynamics.Schema.StationCalendarCapabilityContext`, which now
+owns the StationCalendar capability accessor, model-limit projection, and
+provider-counteroffer action/state accessors. The Schema facade routes all
+eight former direct capability dependencies through those four focused APIs.
+`schema.ex` remains 6,183 lines because the explicit import and focused call
+sites replace the removed helper/direct calls; the dedicated owner is 21
+lines.
 
 Verification:
-Pending.
+- Strict focused communications/report-fixture/contact-allocation/
+  provider-counteroffer/operator-review/export baseline before extraction:
+  38 passed.
+- The same strict focused suite after extraction: 38 passed.
+- Strict full schema-export task plus adjacent candidate-refresh provenance,
+  campaign-repair strategy, station-provider, strategy-lint, and validation
+  evidence coverage: 14 passed.
+- `mix xref callers
+  OrbitalDynamics.Schema.StationCalendarCapabilityContext` reports only
+  `lib/orbital_dynamics/schema.ex (export)`.
+- `git diff --check` passed; no checked-in schema export changed.
+- Strict forced compile passed across 4,058 files.
+- Implementation commit `786b8553` pushed to `main`.
 
 Behavior/schema changes:
-None intended.
+None. Public facades, callback timing, per-call capability evaluation,
+model-limit conversion, capability ordering, generated JSON Schema, validation
+behavior, and checked-in exports remain unchanged.
 
 Last completed slice:
-Schema contact-contention capability-context extraction, selected in
-`81ef520e` and implemented in `b0025203`.
-`schema.ex` moved from 6,189 to 6,183 lines; the dedicated
-ContactContentionCapabilityContext owner is 15 lines.
+Schema station-calendar capability-context extraction, selected in `297af482`
+and implemented in `786b8553`.
+`schema.ex` remains 6,183 lines; the dedicated
+StationCalendarCapabilityContext owner is 21 lines and all eight direct
+StationCalendar capability dependencies moved behind it.
 
 Next candidate:
 Re-rank the remaining Schema capability/model-limit responsibility clusters.
