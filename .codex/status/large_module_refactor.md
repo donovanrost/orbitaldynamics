@@ -9,7 +9,7 @@ Current slice:
 Ground-network row schema-provider expansion.
 
 Status:
-Selected; implementation pending.
+Completed and verified.
 
 Selected boundary:
 Move the relay-data-path and provider-counteroffer row builders from the public
@@ -27,10 +27,20 @@ Selection evidence:
   station-calendar capability callback.
 
 Implementation:
-Pending.
+Selected in `41412217` and implemented in `a04b1e80`. Expanded the existing
+`GroundNetworkSchemaProviders` owner from six to eight lazy providers by moving
+the relay-data-path and provider-counteroffer row builders. The public `Schema`
+facade moved from 1,511 to 1,491 lines.
 
 Verification:
-Pending.
+- Exact comparison passed for both moved outputs and confirmed all eight owner
+  keys using the real station-calendar capability contract.
+- Focused schema/validation suite passed: 359 tests.
+- Full checked-in schema export regenerated with no diff.
+- Runtime xref retains one direct `Schema` -> `GroundNetworkSchemaProviders`
+  edge.
+- Strict forced compile passed with warnings as errors: 4,118 files.
+- `JsonSchemaPropertyRouter` remains an ordered 76-head facade.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -38,13 +48,13 @@ laziness, field-hint fallback, stable-ID decoration, public `Schema`, and
 checked-in exports must remain unchanged.
 
 Last completed slice:
-Validation batch schema-provider expansion, selected in `f595c7b7` and
-implemented in `08b4a9b0`. The public `Schema` facade moved from 1,513 to 1,511
+Ground-network row schema-provider expansion, selected in `41412217` and
+implemented in `a04b1e80`. The public `Schema` facade moved from 1,511 to 1,491
 lines.
 
 Next candidate:
-Implement and verify the selected ground-network provider expansion, then
-re-rank the remaining public-facade provider clusters.
+Re-rank the remaining public-facade provider clusters and select the next
+bounded extraction.
 
 Blocked:
 No.
