@@ -9,7 +9,7 @@ Current slice:
 Schema field-type hint catalog extraction.
 
 Status:
-Selected; implementation pending.
+Complete and pushed.
 
 Selected boundary:
 Extract the static JSON-schema field-type hint map from `Schema` into a focused
@@ -27,23 +27,34 @@ Selection evidence:
   public APIs.
 
 Implementation:
-Pending.
+Added an 803-line compile-time `FieldTypeHints` catalog containing the unchanged
+795-entry map, then replaced the facade table with one catalog call. `schema.ex`
+moved from 4,614 to 3,818 lines.
 
 Verification:
-Pending.
+- Strict JSON-schema, registry, default-property, and export baseline: 32 tests
+  passed.
+- Entire schema test directory plus export coverage: 178 tests passed.
+- The extracted source block matched the selected revision byte-for-byte and
+  the compiled map contains the same 795 entries.
+- Full schema export regenerated with no checked-in schema artifact changes.
+- Formatting, diff whitespace, bounded dependency/reference checks, and the
+  bounded semantic diff review passed.
+- `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 mix compile --force
+  --warnings-as-errors` compiled 4,092 files successfully.
 
 Behavior/schema changes:
-None intended. Every hint key/value, duplicate-key resolution semantics,
-compile-time snapshot behavior, public `Schema`, generated schemas, and
-checked-in exports must remain unchanged.
+None. Every hint key/value, duplicate-key resolution semantics, compile-time
+snapshot behavior, public `Schema`, generated schemas, and checked-in exports
+remain unchanged.
 
 Last completed slice:
-Schema result-artifact validation owner extraction, selected in `b2c2ddfe` and
-implemented in `0c3e0f97`. `schema.ex` moved from 4,627 to 4,614 lines.
+Schema field-type hint catalog extraction, selected in `da2eac26` and
+implemented in `bc19058a`. `schema.ex` moved from 4,614 to 3,818 lines.
 
 Next candidate:
-Implement and verify the selected field-type hint catalog extraction, then
-re-rank the remaining JSON-schema property dispatch and schema-builder blocks.
+Re-rank the remaining JSON-schema property dispatch and schema-builder blocks
+against the now substantially smaller facade.
 
 Blocked:
 No.
