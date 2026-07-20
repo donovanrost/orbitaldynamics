@@ -9,7 +9,7 @@ Current slice:
 ResourceFilter approval-policy extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed in `7b057dbd`.
 
 Selected boundary:
 Extract suppressed-candidate and invalid-resource-summary approval-policy
@@ -37,23 +37,45 @@ Selection evidence:
   remain unchanged.
 
 Implementation:
-Pending.
+- Added `OrbitalDynamics.ResourceFilter.ApprovalPolicy` as the owner of
+  suppressed-candidate and invalid-summary no-policy passthrough, policy
+  decisions, requirement/action/type classification, risk projection, and
+  activity-context evidence.
+- Wired invalid-summary and suppressed-candidate report construction directly
+  to the owner while preserving ResourceFilter and root APIs.
+- Kept resource-summary normalization, candidate suppression decisions, row
+  identity/disambiguation, blocking-dimension projection, and summary
+  projection outside the boundary.
+- `resource_filter.ex` moved from 1,542 to 1,310 lines; the new owner is 271
+  lines.
 
 Verification:
-Pending.
+- Strict focused baseline passed all 37 ResourceFilter tests.
+- Exact old/new public parity passed for four deterministic whole reports:
+  policy-classified observation suppression, command-contact suppression,
+  invalid resource summaries, and nil-policy report passthrough.
+- Post-extraction focused and adjacent ResourceFilter, campaign-planner,
+  candidate-refresh build/replay, operator-review, schema-contract, and
+  validation verification passed all 71 tests.
+- Static checks confirm approval application, requirement/action/type helpers,
+  and resource risk projection left the facade; xref reports only
+  ResourceFilter as a runtime caller.
+- Strict warning-clean forced compile passed for 4,021 files.
+- Formatting and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended.
 
 Last completed slice:
-ContactContention approval-policy extraction, selected in `22b40f4f` and
-implemented in `25b80862`.
-`communications/contact_contention.ex` moved from 1,546 to 1,305 lines; the
-dedicated ApprovalPolicy owner is 256 lines.
+ResourceFilter approval-policy extraction, selected in `3dffbc73` and
+implemented in `7b057dbd`.
+`resource_filter.ex` moved from 1,542 to 1,310 lines; the dedicated
+ApprovalPolicy owner is 271 lines.
 
 Next candidate:
-After this slice, re-rank the live checkout. OperationalReadiness and
-RecommendationRiskContext are the next largest ordinary eligible facades.
+Re-rank the live checkout and select the next bounded facade-preserving
+extraction. OperationalReadiness is now the largest ordinary eligible facade at
+1,541 lines, followed by RecommendationRiskContext.
 
 Blocked:
 No.
