@@ -9,7 +9,7 @@ Current slice:
 Schema link-capacity owner completion.
 
 Status:
-Selected; implementation pending.
+Completed and pushed.
 
 Selected boundary:
 Add a registry-backed `LinkCapacityValidation.validate_summary/3` entry point
@@ -29,24 +29,39 @@ Selection evidence:
   distinct `RelayDataPathRegistryContracts` family.
 
 Implementation:
-Pending.
+Added registry-backed `LinkCapacityValidation.validate_summary/3`, shared the
+existing registry requirement lookup with report validation, and routed the
+summary's direct `Schema` clause through the owner. `schema.ex` moved from
+4,773 to 4,771 lines.
 
 Verification:
-Pending.
+- Strict focused baseline: 59 tests passed.
+- Focused plus adjacent link-capacity, validation, operator-review,
+  candidate-refresh replay, campaign-planner source-report, Cadence import,
+  contract, and export coverage after extraction: 76 tests passed.
+- Full schema export completed with no checked-in artifact changes.
+- Static routing review found exactly the report and summary facade calls.
+- `mix xref trace` confirmed both runtime calls originate in `schema.ex`.
+- Formatting and `git diff --check` passed.
+- Strict forced compile passed across 4,086 files with warnings as errors.
+- Bounded diff review confirmed registry-owned requirements, report/summary
+  contract routing, validation ordering, paths, optional-report behavior, and
+  the relay-data-path exclusion remain unchanged.
+- Implementation committed and pushed as `a5337b46`.
 
 Behavior/schema changes:
-None intended. Required fields, validation ordering and paths, public `Schema`
-and existing `LinkCapacityValidation` APIs, validation results, and checked-in
-exports must remain unchanged.
+None. Required fields, validation ordering and paths, public `Schema` and
+existing `LinkCapacityValidation` APIs, validation results, and checked-in
+exports remain unchanged.
 
 Last completed slice:
-Schema contact-report owner routing extraction, selected in `7781b44c` and
-implemented in `902d27d5`.
-`schema.ex` moved from 4,787 to 4,773 lines.
+Schema link-capacity owner completion, selected in `e74cce47` and implemented
+in `a5337b46`.
+`schema.ex` moved from 4,773 to 4,771 lines.
 
 Next candidate:
-Implement and verify the selected link-capacity owner completion, then re-rank
-the remaining Schema responsibility clusters.
+Re-rank the remaining Schema responsibility clusters and select the next
+facade-preserving extraction.
 
 Blocked:
 No.
