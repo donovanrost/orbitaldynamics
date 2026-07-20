@@ -20,6 +20,7 @@ defmodule OrbitalDynamics.OperationalReadiness do
   alias OrbitalDynamics.OperationalReadiness.OperatorTrainingGate
   alias OrbitalDynamics.OperationalReadiness.OperatorReviewGate
   alias OrbitalDynamics.OperationalReadiness.OperationalModeDecision
+  alias OrbitalDynamics.OperationalReadiness.OperationalModeGate
   alias OrbitalDynamics.OperationalReadiness.QualityGateOperatorTrainingSummary
   alias OrbitalDynamics.OperationalReadiness.QualityGateImportReadinessSummary
   alias OrbitalDynamics.OperationalReadiness.QualityGateSchemaValidationSummary
@@ -830,7 +831,7 @@ defmodule OrbitalDynamics.OperationalReadiness do
     gates =
       [
         SourceContractGate.build(source_artifact_type),
-        operational_mode_gate(artifact, opts),
+        OperationalModeGate.build(artifact, opts),
         AdapterBoundaryGate.build(evidence),
         MissionPolicyGate.build(evidence),
         OperatorTrainingGate.build(evidence),
@@ -865,37 +866,6 @@ defmodule OrbitalDynamics.OperationalReadiness do
       ],
       "model_limits" => capabilities().known_limits |> Enum.map(&Atom.to_string/1)
     }
-  end
-
-  defp operational_mode_gate(artifact, opts) do
-    case OperationalModeDecision.decide(artifact, opts) do
-      nil ->
-        gate(
-          "operational_mode",
-          "passed",
-          "importable",
-          "artifact is not marked as simulation, rehearsal, trade study, or not-for-execution"
-        )
-
-      {mode, source, reason} ->
-        gate(
-          "operational_mode",
-          "analysis_only",
-          "analysis_only",
-          reason,
-          %{"analysis_mode" => mode, "analysis_mode_source" => source}
-        )
-    end
-  end
-
-  defp gate(id, status, classification, reason, context \\ %{}) do
-    %{
-      "id" => id,
-      "status" => status,
-      "classification" => classification,
-      "reason" => reason
-    }
-    |> Map.merge(context)
   end
 
   defp evidence(artifact, review_package, import_manifest) do
