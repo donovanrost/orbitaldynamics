@@ -16,6 +16,7 @@ defmodule OrbitalDynamics.RecommendationRiskContext do
     ResourceProjection,
     ScoreTerm,
     StationCalendar,
+    StationReservationConflict,
     StationReservationHoldImportReadiness,
     TimelineActivityPrecondition,
     TimelineActivityLifecycleState,
@@ -98,21 +99,6 @@ defmodule OrbitalDynamics.RecommendationRiskContext do
     "contact_contention_pressure_feedback_scopes",
     "contact_contention_pressure_trust_boundaries",
     "contact_contention_pressure_derivation_reasons"
-  ]
-
-  @station_reservation_conflict_context_keys [
-    "station_reservation_conflict_contact_ids",
-    "station_reservation_conflict_source_activity_ids",
-    "station_reservation_conflict_ground_station_ids",
-    "station_reservation_conflict_reservation_ids",
-    "station_reservation_conflict_reserved_by",
-    "station_reservation_conflict_statuses",
-    "station_reservation_conflict_match_statuses",
-    "station_reservation_conflict_expires_at_values_s",
-    "station_reservation_conflict_derivation_reasons",
-    "station_reservation_conflict_feedback_sources",
-    "station_reservation_conflict_feedback_scopes",
-    "station_reservation_conflict_trust_boundaries"
   ]
 
   @timeline_preservation_context_keys [
@@ -334,7 +320,8 @@ defmodule OrbitalDynamics.RecommendationRiskContext do
 
   def contact_contention_context_keys, do: @contact_contention_context_keys
 
-  def station_reservation_conflict_context_keys, do: @station_reservation_conflict_context_keys
+  def station_reservation_conflict_context_keys,
+    do: StationReservationConflict.context_keys()
 
   def station_reservation_hold_import_readiness_context_keys,
     do: StationReservationHoldImportReadiness.context_keys()
@@ -599,56 +586,8 @@ defmodule OrbitalDynamics.RecommendationRiskContext do
 
   def contact_contention_context(_risks), do: %{}
 
-  def station_reservation_conflict_context(risks) when is_list(risks) do
-    risks = Enum.map(risks, &stringify_keys/1)
-
-    station_reservation_conflict_risks =
-      Enum.filter(
-        risks,
-        &(Map.get(&1, "feedback_scope") == "contact_allocation" and
-            Map.has_key?(&1, "station_reservation_match_status"))
-      )
-
-    %{
-      "station_reservation_conflict_contact_ids" =>
-        risk_context_values(station_reservation_conflict_risks, "contact_id"),
-      "station_reservation_conflict_source_activity_ids" =>
-        risk_context_values(station_reservation_conflict_risks, [
-          "source_activity_id",
-          "source_activity_ids"
-        ]),
-      "station_reservation_conflict_ground_station_ids" =>
-        risk_context_values(station_reservation_conflict_risks, "ground_station_id"),
-      "station_reservation_conflict_reservation_ids" =>
-        risk_context_values(station_reservation_conflict_risks, "station_reservation_id"),
-      "station_reservation_conflict_reserved_by" =>
-        risk_context_values(station_reservation_conflict_risks, "station_reserved_by"),
-      "station_reservation_conflict_statuses" =>
-        risk_context_values(station_reservation_conflict_risks, "station_reservation_status"),
-      "station_reservation_conflict_match_statuses" =>
-        risk_context_values(
-          station_reservation_conflict_risks,
-          "station_reservation_match_status"
-        ),
-      "station_reservation_conflict_expires_at_values_s" =>
-        risk_context_values(
-          station_reservation_conflict_risks,
-          "station_reservation_expires_at_s"
-        ),
-      "station_reservation_conflict_derivation_reasons" =>
-        risk_context_values(station_reservation_conflict_risks, ["derivation_reasons"]),
-      "station_reservation_conflict_feedback_sources" =>
-        risk_context_values(station_reservation_conflict_risks, "feedback_source"),
-      "station_reservation_conflict_feedback_scopes" =>
-        risk_context_values(station_reservation_conflict_risks, "feedback_scope"),
-      "station_reservation_conflict_trust_boundaries" =>
-        risk_context_values(station_reservation_conflict_risks, "trust_boundary")
-    }
-    |> Enum.reject(fn {_key, values} -> values == [] end)
-    |> Map.new()
-  end
-
-  def station_reservation_conflict_context(_risks), do: %{}
+  def station_reservation_conflict_context(risks),
+    do: StationReservationConflict.context(risks)
 
   def station_reservation_hold_import_readiness_context(risks) when is_list(risks),
     do: StationReservationHoldImportReadiness.context(risks)
