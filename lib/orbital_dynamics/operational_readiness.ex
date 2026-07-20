@@ -15,6 +15,7 @@ defmodule OrbitalDynamics.OperationalReadiness do
   alias OrbitalDynamics.OperationalReadiness.ExecutionBoundarySummary
   alias OrbitalDynamics.OperationalReadiness.GateSummary
   alias OrbitalDynamics.OperationalReadiness.ImportEligibilitySummary
+  alias OrbitalDynamics.OperationalReadiness.MissionPolicyGate
   alias OrbitalDynamics.OperationalReadiness.OperatorTrainingEvidence
   alias OrbitalDynamics.OperationalReadiness.OperatorReviewGate
   alias OrbitalDynamics.OperationalReadiness.OperationalModeDecision
@@ -829,7 +830,7 @@ defmodule OrbitalDynamics.OperationalReadiness do
         source_contract_gate(source_artifact_type),
         operational_mode_gate(artifact, opts),
         AdapterBoundaryGate.build(evidence),
-        mission_policy_gate(evidence),
+        MissionPolicyGate.build(evidence),
         operator_training_gate(evidence),
         ResourceAvailabilityGate.build(evidence),
         OperatorReviewGate.build(evidence),
@@ -901,47 +902,6 @@ defmodule OrbitalDynamics.OperationalReadiness do
           %{"analysis_mode" => mode, "analysis_mode_source" => source}
         )
     end
-  end
-
-  defp mission_policy_gate(evidence) do
-    cond do
-      evidence["policy_blocked_count"] > 0 ->
-        gate(
-          "mission_policy",
-          "blocked",
-          "blocked",
-          "mission-policy evidence blocks import eligibility",
-          mission_policy_gate_context(evidence)
-        )
-
-      evidence["policy_review_required_count"] > 0 ->
-        gate(
-          "mission_policy",
-          "review_required",
-          "review_only",
-          "mission-policy evidence requires operator review before import",
-          mission_policy_gate_context(evidence)
-        )
-
-      evidence["policy_decision_count"] > 0 ->
-        gate(
-          "mission_policy",
-          "passed",
-          "importable",
-          "mission-policy evidence is auto-approvable",
-          mission_policy_gate_context(evidence)
-        )
-
-      true ->
-        nil
-    end
-  end
-
-  defp mission_policy_gate_context(evidence) do
-    %{
-      "policy_decision_count" => evidence["policy_decision_count"],
-      "policy_classification_counts" => evidence["policy_classification_counts"]
-    }
   end
 
   defp operator_training_gate(evidence) do
