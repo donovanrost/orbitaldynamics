@@ -6,40 +6,41 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Campaign-planner mixed readiness score-term expectation repair.
+Large-module refactor final broad verification.
 
 Status:
-Selected; implementation pending.
+Mixed-pressure expectation repaired; broad verification pending.
 
 Selected boundary:
-Teach the quality-gate score-term assertion to exclude the branch's separately
-scored operational-readiness pressure from the generic risk penalty.
+Run the full test suite, strict compile, formatting, and clean-tree checks, then
+audit the original goal requirements against the completed refactor sequence.
 
 Selection evidence:
-- The failing branch has one `quality_gate_pressure`, one
-  `operational_readiness_pressure`, and one generic `repair_warning`.
-- Production assigns `-100` to each specialized pressure term and `-100` only
-  to the remaining generic risk, preserving the no-double-counting contract.
-- The helper subtracts only quality-gate pressure, so its `-200` expectation is
-  stale for this mixed-pressure branch.
+- All five previously identified goal-era CampaignPlanner regressions now pass.
+- The combined five-file regression gate, including the formerly drifting
+  golden artifact, passes all 30 tests.
 
 Implementation:
-Pending.
+`7523b0cf` makes the mixed-pressure helper exclude the separately scored
+operational-readiness pressure from the generic risk expectation.
 
 Verification:
-Pending.
+- 19 readiness and score-term tests passed with warnings as errors.
+- The combined regression gate passed all 30 tests.
+- Strict compilation passed for 4,129 files.
+- Formatting and diff checks passed.
 
 Behavior/schema changes:
-None intended. Production scoring, public APIs, deterministic artifacts, and
-schemas remain unchanged.
+None. This is a test expectation correction for the existing split-term
+no-double-counting contract.
 
 Last completed slice:
-Candidate-refresh empty refresh-budget ID normalization repair, selected in
-`ef64d969` and implemented in `ee7ca527`.
+Campaign-planner mixed readiness score-term expectation repair, selected in
+`dc022ce7` and implemented in `7523b0cf`.
 
 Next candidate:
-Implement and verify the mixed-pressure assertion repair, then rerun the
-five-file regression gate and broad suite.
+Run final broad verification and close the goal only if the live checkout
+satisfies every requirement.
 
 Blocked:
 No.
