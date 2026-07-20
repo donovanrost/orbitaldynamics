@@ -9,7 +9,7 @@ Current slice:
 Schema operator-review capability-context extraction.
 
 Status:
-Selected; implementation not started.
+Completed and pushed.
 
 Selected boundary:
 Extract the OperatorReview capability accessor, model-limit projection,
@@ -37,20 +37,40 @@ Selection evidence:
   unchanged.
 
 Implementation:
-Pending.
+Added `OrbitalDynamics.Schema.OperatorReviewCapabilityContext`, which now owns
+the OperatorReview capability accessor, model-limit projection,
+source-artifact-type accessor, and review-type accessor. The Schema facade
+routes all five former direct capability dependencies through those four
+focused APIs.
+`schema.ex` moved from 6,184 to 6,186 lines because the explicit import is two
+lines larger than the removed helper/direct-call surface; the dedicated owner
+is 21 lines.
 
 Verification:
-Pending.
+- Strict focused operator-review/export/Cadence-import/operational-timeline
+  baseline before extraction: 23 passed.
+- The same strict focused suite after extraction: 23 passed.
+- Strict full schema-export task plus adjacent fixture-visibility,
+  validation-evidence, candidate-refresh provenance, and communications
+  fixture coverage: 10 passed.
+- `mix xref callers
+  OrbitalDynamics.Schema.OperatorReviewCapabilityContext` reports only
+  `lib/orbital_dynamics/schema.ex (export)`.
+- `git diff --check` passed; no checked-in schema export changed.
+- Strict forced compile passed across 4,060 files.
+- Implementation commit `236d08f0` pushed to `main`.
 
 Behavior/schema changes:
-None intended.
+None. Public facades, per-call capability evaluation, model-limit conversion,
+source/review type ordering, generated JSON Schema, validation behavior, and
+checked-in exports remain unchanged.
 
 Last completed slice:
-Schema Cadence-import capability-context extraction, selected in `aa124857`
-and implemented in `cf79b647`.
-`schema.ex` moved from 6,183 to 6,184 lines; the dedicated
-CadenceImportCapabilityContext owner is 17 lines and all six direct
-CadenceImport capability dependencies moved behind it.
+Schema operator-review capability-context extraction, selected in `8b3c2daf`
+and implemented in `236d08f0`.
+`schema.ex` moved from 6,184 to 6,186 lines; the dedicated
+OperatorReviewCapabilityContext owner is 21 lines and all five direct
+OperatorReview capability dependencies moved behind it.
 
 Next candidate:
 Re-rank the remaining Schema capability/model-limit responsibility clusters.
