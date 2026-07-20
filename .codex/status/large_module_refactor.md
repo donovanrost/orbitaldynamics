@@ -9,7 +9,7 @@ Current slice:
 Campaign-planner recommendation-pressure scenario fixture extraction.
 
 Status:
-Selected; implementation pending.
+Completed and verified.
 
 Selected boundary:
 Move the deterministic prior-plan and multi-pressure strategy scenario from the
@@ -26,23 +26,35 @@ Selection evidence:
   without splitting or weakening the end-to-end assertion flow.
 
 Implementation:
-Pending.
+Selected in `1eee5dbc` and implemented in `c0678ba9`. Added the 1,658-line
+`StrategyRecommendationPressureEventsFixture` owner and replaced the embedded
+scenario with one fixture call. The assertion module moved from 4,705 to 3,060
+lines. Two zero-float patterns now spell `+0.0` explicitly, preserving their
+existing positive-zero match semantics while satisfying the strict warning
+gate.
 
 Verification:
-Pending.
+- The exact recommendation-pressure end-to-end test passed with warnings as
+  errors: 1 test.
+- Strict forced compile passed with warnings as errors: 4,129 files.
+- Touched-file format checks, new-helper whitespace checks, and
+  `git diff --check` passed.
+- No production or checked-in schema-export files changed.
 
 Behavior/schema changes:
 None intended. The same deterministic fixtures, production calls, assertions,
 artifact validation, and async test behavior must remain unchanged.
 
 Last completed slice:
-Operator-review embedded contact-allocation summary test split, selected in
-`f3835589` and implemented in `b1a21ebf`. The original test moved from 2,385 to
-1,126 lines and the independent wrapper-summary family now has its own
-1,264-line focused module.
+Campaign-planner recommendation-pressure scenario fixture extraction, selected
+in `1eee5dbc` and implemented in `c0678ba9`. The assertion module moved from
+4,705 to 3,060 lines and the deterministic scenario now has a named fixture
+owner.
 
 Next candidate:
-Implement and verify the selected recommendation-pressure scenario extraction.
+Inspect the 3,060-line recommendation assertion module for cohesive
+recommendation, handoff, and schema-verification sections that can become
+independently focused test units without rebuilding the scenario repeatedly.
 
 Blocked:
 No.
