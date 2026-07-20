@@ -6,41 +6,32 @@ facade-preserving, responsibility-focused extraction without behavior,
 artifact-contract, deterministic-output, or schema-export changes.
 
 Current slice:
-Cadence review property-provider deduplication.
+Cadence review row schema-provider completion.
 
 Status:
-Completed and verified.
+Selected; implementation pending.
 
 Selected boundary:
-Move the duplicated cadence-import-manifest and cadence-source-review
-property-provider assemblies from the public `Schema` facade into a shared
-`CadenceReviewSchemaProviders` owner. Preserve the identical 13-key order while
-passing facade-owned readiness/resource/handoff properties as explicit
-callbacks.
+Move the cadence-import-manifest row, its private cadence-source-review row,
+and both schema-provider assemblies from the public `Schema` facade into the
+existing `CadenceReviewSchemaProviders` owner. Merge one lazy manifest provider
+into the property context and share the common provider sequence internally
+while preserving manifest-only additions.
 
 Selection evidence:
-- The public `Schema` facade remains 1,391 lines.
-- The two private property-provider functions are structurally identical and
-  each is used by only its corresponding cadence row builder.
-- Branch-scoped, authority, and resource-variance properties already have
-  focused direct owners.
-- The remaining facade-owned property families can preserve laziness through
-  explicit callbacks.
+- The public `Schema` facade remains 1,349 lines.
+- The source-review row is referenced only by the manifest schema-provider
+  assembly, and both private provider lists share most entries in the same
+  order.
+- Common/focused helpers already have stable direct owners.
+- Capability values and facade-recursive schema dependencies can preserve
+  laziness through explicit callbacks.
 
 Implementation:
-Selected in `82c6235b` and implemented in `2c854a8c`. Added the 39-line
-`CadenceReviewSchemaProviders` owner and replaced two identical private
-property-provider assemblies with one shared facade wiring point. The public
-`Schema` facade moved from 1,391 to 1,349 lines.
+Pending.
 
 Verification:
-- Exact comparison passed for all 13 ordered property-provider keys and
-  outputs, including ten callback-backed families.
-- Focused schema/validation suite passed: 359 tests.
-- Full checked-in schema export regenerated with no diff.
-- Runtime xref shows one direct `Schema` -> `CadenceReviewSchemaProviders` edge.
-- Strict forced compile passed with warnings as errors: 4,121 files.
-- `JsonSchemaPropertyRouter` remains an ordered 76-head facade.
+Pending.
 
 Behavior/schema changes:
 None intended. Parent clause heads/order, dispatch-owner calls, provider
@@ -53,8 +44,8 @@ implemented in `2c854a8c`. The public `Schema` facade moved from 1,391 to 1,349
 lines.
 
 Next candidate:
-Consolidate the two remaining cadence row/schema-provider assemblies in the
-shared owner while preserving their small manifest/source-review differences.
+Implement and verify the selected cadence row/schema-provider completion, then
+re-rank the remaining public-facade clusters.
 
 Blocked:
 No.
