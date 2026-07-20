@@ -114,6 +114,7 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
   alias OrbitalDynamics.Communications.StationCalendar.PrecedenceSummary
   alias OrbitalDynamics.Communications.StationCalendar.ReservationSourceEvidence
   alias OrbitalDynamics.Communications.StationCalendar.ReservationReviewSummary
+  alias OrbitalDynamics.Communications.StationCalendar.ReservationHoldImportReadinessSummary
   alias OrbitalDynamics.Communications.StationCalendar.ReservationSummaryValues
   alias OrbitalDynamics.Communications.StationCalendar.StationMatching
 
@@ -866,75 +867,7 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
   end
 
   defp reservation_hold_import_readiness_summary_from_hold_summary(summary) do
-    summary = stringify_keys(summary)
-
-    rows =
-      summary
-      |> Map.get("review_rows", [])
-      |> Enum.filter(&is_map/1)
-      |> Enum.map(&put_reservation_hold_import_status/1)
-
-    %{
-      "schema_contract" => @reservation_hold_import_readiness_summary_schema_contract,
-      "model" => "artifact_only_station_reservation_hold_import_readiness_summary",
-      "source_artifact_type" =>
-        Map.get(summary, "source_artifact_type", @reservation_schema_contract),
-      "source" => summary["source"],
-      "model_limits" => model_limits(),
-      "reservation_hold_count" => length(rows),
-      "import_readiness_status" => if(rows == [], do: "clear", else: "review_required"),
-      "import_classification" => if(rows == [], do: "not_applicable", else: "review_only"),
-      "ready_for_import_count" => 0,
-      "review_required_before_import_count" => length(rows),
-      "no_import_required_count" => 0,
-      "reservation_hold_import_status_counts" =>
-        count_by(rows, "station_reservation_hold_import_status"),
-      "reservation_hold_status_counts" => reservation_status_counts_for_rows(rows),
-      "reservation_hold_expiration_status_counts" =>
-        count_by(rows, "station_reservation_expiration_status"),
-      "required_import_action_counts" => count_by(rows, "required_operator_action"),
-      "reservation_hold_ids" => reservation_row_ids(rows),
-      "reservation_hold_ids_by_import_status" =>
-        reservation_ids_by(rows, "station_reservation_hold_import_status"),
-      "reservation_hold_ids_by_expiration_status" =>
-        reservation_ids_by(rows, "station_reservation_expiration_status"),
-      "reservation_hold_ids_by_status" =>
-        reservation_ids_by_row_values(rows, "reservation_statuses"),
-      "reservation_hold_ids_by_reserved_by" => reservation_ids_by_row_values(rows, "reserved_by"),
-      "reservation_hold_ids_by_required_import_action" =>
-        reservation_ids_by(rows, "required_operator_action"),
-      "reservation_hold_ids_by_direction" => reservation_ids_by_direction(rows),
-      "reservation_hold_ids_by_direction_and_ground_station_id" =>
-        reservation_ids_by_direction_and_ground_station(rows),
-      "reservation_hold_contact_ids_by_import_status" =>
-        reservation_contact_ids_by(rows, "station_reservation_hold_import_status"),
-      "reservation_hold_contact_ids_by_expiration_status" =>
-        reservation_contact_ids_by(rows, "station_reservation_expiration_status"),
-      "reservation_hold_contact_ids_by_direction" => reservation_contact_ids_by_direction(rows),
-      "reservation_hold_contact_ids_by_direction_and_ground_station_id" =>
-        reservation_contact_ids_by_direction_and_ground_station(rows),
-      "review_contact_ids" => reservation_contact_ids(rows),
-      "import_readiness_rows" => rows,
-      "assumptions" =>
-        %{
-          "execution_boundary" => "artifact_only_no_provider_or_cadence_writes",
-          "source" => "station_reservation_report.v1",
-          "operator_authority" => "not_granted_by_import_readiness_summary",
-          "provider_write" => "not_performed_by_summary",
-          "cadence_write" => "not_performed_by_summary",
-          "reservation_acceptance" => "not_performed_by_summary",
-          "deadline_evaluation" =>
-            get_in(summary, ["assumptions", "deadline_evaluation"]) || "not_evaluated"
-        }
-        |> maybe_put("now_s", get_in(summary, ["assumptions", "now_s"]))
-    }
-    |> compact_map()
-  end
-
-  defp put_reservation_hold_import_status(row) do
-    row
-    |> Map.put("station_reservation_hold_import_status", "review_required_before_import")
-    |> Map.put_new("required_operator_action", "review_station_reservation_hold")
+    ReservationHoldImportReadinessSummary.build(summary, model_limits())
   end
 
   defp reservation_affected_contact?(row),
@@ -1035,32 +968,6 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
   defp reservation_ids_by_row_values(rows, field),
     do: ReservationSummaryValues.ids_by_row_values(rows, field)
 
-  defp reservation_id_value_pairs(ids, values),
-    do: ReservationSummaryValues.id_value_pairs(ids, values)
-
-  defp reservation_id_pairs_to_map(pairs),
-    do: ReservationSummaryValues.id_pairs_to_map(pairs)
-
-  defp reservation_ids_by_direction(rows) do
-    rows
-    |> Enum.flat_map(fn row ->
-      reservation_id_value_pairs(Map.get(row, "reservation_ids"), row_directions(row))
-    end)
-    |> reservation_id_pairs_to_map()
-  end
-
-  defp reservation_ids_by_direction_and_ground_station(rows) do
-    rows
-    |> Enum.reduce(%{}, fn row, acc ->
-      put_nested_stable_ids(
-        acc,
-        row_directions(row),
-        Map.get(row, "ground_station_id"),
-        Map.get(row, "reservation_ids")
-      )
-    end)
-  end
-
   defp reservation_status_counts_for_rows(rows) do
     rows
     |> Enum.flat_map(&Map.get(&1, "reservation_statuses", []))
@@ -1073,60 +980,10 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
     |> sorted_id_map()
   end
 
-  defp reservation_contact_ids_by_direction(rows) do
-    rows
-    |> Enum.flat_map(fn row ->
-      reservation_id_value_pairs(List.wrap(Map.get(row, "contact_id")), row_directions(row))
-    end)
-    |> reservation_id_pairs_to_map()
-  end
-
-  defp reservation_contact_ids_by_direction_and_ground_station(rows) do
-    rows
-    |> Enum.reduce(%{}, fn row, acc ->
-      put_nested_stable_ids(
-        acc,
-        row_directions(row),
-        Map.get(row, "ground_station_id"),
-        List.wrap(Map.get(row, "contact_id"))
-      )
-    end)
-  end
-
   defp reservation_contact_ids(rows) do
     rows
     |> Enum.map(& &1["contact_id"])
     |> sorted_values()
-  end
-
-  defp row_directions(row) do
-    [
-      Map.get(row, "direction"),
-      Map.get(row, "directions"),
-      Map.get(row, "station_calendar_directions")
-    ]
-    |> List.flatten()
-    |> Enum.map(&normalize_direction/1)
-    |> Enum.reject(&is_nil/1)
-    |> Enum.uniq()
-    |> Enum.sort()
-  end
-
-  defp put_nested_stable_ids(acc, directions, ground_station_id, ids) do
-    ids = ids |> List.wrap() |> Enum.reject(&is_nil/1)
-
-    if directions == [] or ground_station_id in [nil, ""] or ids == [] do
-      acc
-    else
-      Enum.reduce(directions, acc, fn direction, direction_acc ->
-        Map.update(direction_acc, direction, %{ground_station_id => sorted_values(ids)}, fn
-          station_map ->
-            Map.update(station_map, ground_station_id, sorted_values(ids), fn existing_ids ->
-              sorted_values(existing_ids ++ ids)
-            end)
-        end)
-      end)
-    end
   end
 
   defp model_limits do
@@ -1148,7 +1005,6 @@ defmodule OrbitalDynamics.Communications.StationCalendar do
   defp applied_station_calendar_entry(matches), do: StationMatching.applied_entry(matches)
   defp contact_row?(contact), do: StationMatching.contact_row?(contact)
   defp contact_direction(contact), do: StationMatching.contact_direction(contact)
-  defp normalize_direction(direction), do: StationMatching.normalize_direction(direction)
   defp station_calendar_priority(entry), do: StationMatching.priority(entry)
 
   defp annotate_station_calendar(contact, entry, matches) do
