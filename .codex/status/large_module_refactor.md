@@ -9,7 +9,7 @@ Current slice:
 Schema Cadence import handoff test family split.
 
 Status:
-Selected; implementation pending.
+Completed and verified.
 
 Selected boundary:
 Split the 1,597-line Cadence source-window handoff test into independently
@@ -28,22 +28,31 @@ Selection evidence:
   replacing the exhaustive negative-path coverage.
 
 Implementation:
-Pending.
+Selected in `e9a912b0` and implemented in `7ff0286b`. Split the source-window
+handoff ledger into basic import, lineage/resource, battery-flow,
+embedded-source-report, and nested review-copy tests. Each family reloads its
+checked-in fixture context; the review-copy family reloads the seven source rows
+whose nested copies it validates. All original mutation/path assertions remain.
 
 Verification:
-Pending.
+- The focused Cadence import module passed with warnings as errors: 8 tests.
+- The full schema/validation gate passed with warnings as errors: 368 tests.
+- Full checked-in schema export regeneration produced no diff.
+- Strict forced compile passed with warnings as errors: 4,129 files.
+- Touched-file format and `git diff --check` passed.
 
 Behavior/schema changes:
 None intended. The same deterministic fixtures, production calls, assertions,
 artifact validation, and async test behavior must remain unchanged.
 
 Last completed slice:
-Schema candidate-refresh provenance test family split, selected in `54c572f8`
-and implemented in `eaa19f44`. The 3,778-line ledger now exposes four
-independently runnable source-report contract families.
+Schema Cadence import handoff test family split, selected in `e9a912b0` and
+implemented in `7ff0286b`. The 1,597-line catch-all handoff test now exposes
+five independently runnable responsibility families.
 
 Next candidate:
-Implement and verify the selected Cadence import handoff test-family split.
+Inspect the contact-feedback and operator-review schema contract modules for
+the next independently runnable family boundary.
 
 Blocked:
 No.
