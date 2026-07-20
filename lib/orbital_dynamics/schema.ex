@@ -128,6 +128,13 @@ defmodule OrbitalDynamics.Schema do
       timeline_transition_decisions: 0
     ]
 
+  import OrbitalDynamics.Schema.ValidationCapabilityContext,
+    only: [
+      model_acceptance_report_model_limits: 0,
+      schema_migration_row_statuses: 0,
+      schema_migration_statuses: 0
+    ]
+
   @campaign_plan "campaign_plan.v1"
   @campaign_repair "campaign_repair.v2"
   @campaign_strategy "campaign_strategy.v3"
@@ -1788,12 +1795,8 @@ defmodule OrbitalDynamics.Schema do
       {
         @schema_migration_report,
         1,
-        fn ->
-          OrbitalDynamics.Validation.capabilities().schema_migration_statuses
-        end,
-        fn ->
-          OrbitalDynamics.Validation.capabilities().schema_migration_row_statuses
-        end,
+        &schema_migration_statuses/0,
+        &schema_migration_row_statuses/0,
         &schema_migration_row_json_schema/0,
         &OrbitalDynamics.Schema.SchemaMigrationContracts.model_limits/0
       }
@@ -3138,11 +3141,6 @@ defmodule OrbitalDynamics.Schema do
 
   defp campaign_activity_json_schema do
     candidate_activity_json_schema()
-  end
-
-  defp model_acceptance_report_model_limits do
-    OrbitalDynamics.Validation.capabilities()
-    |> Map.fetch!(:known_limits)
   end
 
   defp candidate_rejection_report_model_limits do
