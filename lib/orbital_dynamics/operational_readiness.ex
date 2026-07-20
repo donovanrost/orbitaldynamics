@@ -9,6 +9,7 @@ defmodule OrbitalDynamics.OperationalReadiness do
 
   alias OrbitalDynamics.CadenceImport
   alias OrbitalDynamics.OperationalReadiness.AdapterBoundaryEvidence
+  alias OrbitalDynamics.OperationalReadiness.CadenceImportGate
   alias OrbitalDynamics.OperationalReadiness.EvidenceNormalization
   alias OrbitalDynamics.OperationalReadiness.ExecutionBoundarySummary
   alias OrbitalDynamics.OperationalReadiness.GateSummary
@@ -615,7 +616,7 @@ defmodule OrbitalDynamics.OperationalReadiness do
   end
 
   defp quality_gate_row_context(%{"id" => "cadence_import"} = gate) do
-    cadence_import_gate_context(gate)
+    CadenceImportGate.context(gate)
   end
 
   defp quality_gate_row_context(%{"id" => "adapter_boundary"} = gate) do
@@ -829,7 +830,7 @@ defmodule OrbitalDynamics.OperationalReadiness do
         operator_training_gate(evidence),
         resource_availability_gate(evidence),
         operator_review_gate(evidence),
-        cadence_import_gate(evidence)
+        CadenceImportGate.build(evidence)
       ]
       |> Enum.reject(&is_nil/1)
 
@@ -1105,90 +1106,6 @@ defmodule OrbitalDynamics.OperationalReadiness do
     end
   end
 
-  defp cadence_import_gate(evidence) do
-    cond do
-      evidence["blocked_import_count"] > 0 or evidence["invalid_cadence_import_count"] > 0 ->
-        gate(
-          "cadence_import",
-          "blocked",
-          "blocked",
-          "Cadence import evidence is blocked or invalid",
-          cadence_import_gate_context(evidence)
-        )
-
-      evidence["schema_validation_fail_count"] > 0 or
-          evidence["schema_validation_error_count"] > 0 ->
-        gate(
-          "cadence_import",
-          "blocked",
-          "blocked",
-          "source schema-validation evidence failed",
-          cadence_import_gate_context(evidence)
-        )
-
-      evidence["manifest_review_required_count"] > 0 or evidence["missing_import_count"] > 0 ->
-        gate(
-          "cadence_import",
-          "review_required",
-          "review_only",
-          "Cadence import evidence requires review or import preparation",
-          cadence_import_gate_context(evidence)
-        )
-
-      evidence["stale_freshness_count"] > 0 or evidence["unknown_freshness_count"] > 0 ->
-        gate(
-          "cadence_import",
-          "review_required",
-          "review_only",
-          "source freshness evidence is stale or unknown",
-          cadence_import_gate_context(evidence)
-        )
-
-      evidence["ready_for_import_count"] > 0 ->
-        gate(
-          "cadence_import",
-          "passed",
-          "importable",
-          "Cadence import manifest has ready-for-import rows",
-          cadence_import_gate_context(evidence)
-        )
-
-      true ->
-        gate(
-          "cadence_import",
-          "analysis_only",
-          "analysis_only",
-          "no ready-for-import rows were available",
-          cadence_import_gate_context(evidence)
-        )
-    end
-  end
-
-  defp cadence_import_gate_context(evidence) do
-    %{
-      "ready_for_import_count" => evidence["ready_for_import_count"],
-      "manifest_review_required_count" => evidence["manifest_review_required_count"],
-      "blocked_import_count" => evidence["blocked_import_count"],
-      "missing_import_count" => evidence["missing_import_count"],
-      "invalid_cadence_import_count" => evidence["invalid_cadence_import_count"],
-      "current_freshness_count" => evidence["current_freshness_count"],
-      "stale_freshness_count" => evidence["stale_freshness_count"],
-      "unknown_freshness_count" => evidence["unknown_freshness_count"],
-      "freshness_status_counts" => positive_count_map(evidence["freshness_status_counts"]),
-      "schema_validation_pass_count" => evidence["schema_validation_pass_count"],
-      "schema_validation_fail_count" => evidence["schema_validation_fail_count"],
-      "schema_validation_error_count" => evidence["schema_validation_error_count"],
-      "schema_validation_warning_count" => evidence["schema_validation_warning_count"],
-      "schema_validation_remediation_count" => evidence["schema_validation_remediation_count"],
-      "schema_validation_status_counts" =>
-        positive_count_map(evidence["schema_validation_status_counts"]),
-      "import_status_counts" => positive_count_map(evidence["import_status_counts"]),
-      "cadence_import_status_counts" =>
-        positive_count_map(evidence["cadence_import_status_counts"])
-    }
-    |> Map.merge(timeline_publication_context_from_evidence(evidence))
-  end
-
   defp gate(id, status, classification, reason, context \\ %{}) do
     %{
       "id" => id,
@@ -1388,9 +1305,6 @@ defmodule OrbitalDynamics.OperationalReadiness do
 
   defp timeline_publication_context(artifact, review_rows, import_rows),
     do: TimelinePublicationContext.build(artifact, review_rows, import_rows)
-
-  defp timeline_publication_context_from_evidence(evidence),
-    do: TimelinePublicationContext.from_evidence(evidence)
 
   defp resource_availability_reason_counts(review_rows, import_rows),
     do:
