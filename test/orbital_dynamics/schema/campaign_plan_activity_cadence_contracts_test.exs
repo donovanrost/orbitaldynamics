@@ -60,7 +60,15 @@ defmodule OrbitalDynamics.Schema.CampaignPlanActivityCadenceContractsTest do
       cadence_constraints =
         schema
         |> get_in(schema_path ++ ["allOf"])
-        |> Enum.filter(&get_in(&1, ["then", "properties", "cadence_import"]))
+        |> Enum.filter(
+          &get_in(&1, [
+            "then",
+            "properties",
+            "cadence_import",
+            "properties",
+            "activity_type"
+          ])
+        )
 
       assert cadence_constraints == expected
     end

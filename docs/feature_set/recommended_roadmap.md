@@ -242,6 +242,8 @@ Already implemented or heavily covered:
   observation, command, or contact dispatch while future kinds remain open
 - downlink, command, tracking, and health-check V1 activities conditionally
   require stable ground-station identity and exact activity-type direction
+- those current contact-family activities also conditionally pin their nested
+  Cadence adapter schema to `proposed_contact.v1`
 - optional V1 optimizer metadata is reconciled with enclosing candidate,
   selected-activity, ranked-timeline, constraint, scoring-policy, and objective
   evidence; the required ranking explanation is nested and typed

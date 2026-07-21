@@ -91,6 +91,9 @@ It answers:
   station identity plus a `direction` equal to the activity type. Observation
   and compatible future non-contact activity tokens do not inherit that contact
   routing requirement.
+- Those contact-family activity envelopes also declare the exact
+  `proposed_contact.v1` Cadence adapter schema. Observation and future non-contact
+  envelopes do not claim that contact shape.
 - `campaign_plan.proposed_contacts` with stable external IDs for later Cadence
   import.
 - `campaign_plan.contact_intents` as artifact-only `contact_intent.v1` rows for

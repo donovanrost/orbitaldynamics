@@ -309,7 +309,8 @@ defmodule OrbitalDynamics.Schema.CampaignPlanJsonSchema do
 
   defp conditional_activity_constraints do
     contact_activity_constraints() ++
-      cadence_activity_type_constraints() ++ source_window_type_constraints()
+      cadence_activity_type_constraints() ++
+      source_window_type_constraints() ++ cadence_schema_contract_constraints()
   end
 
   defp contact_activity_constraints do
@@ -362,6 +363,28 @@ defmodule OrbitalDynamics.Schema.CampaignPlanJsonSchema do
               "source_window" => %{
                 "required" => ["type"],
                 "properties" => %{"type" => %{"const" => source_window_type}}
+              }
+            }
+          }
+        }
+      end
+    )
+  end
+
+  defp cadence_schema_contract_constraints do
+    Enum.map(
+      OrbitalDynamics.Schema.CampaignPlanActivityCadenceSchemaContracts.activity_type_mappings(),
+      fn {activity_type, schema_contract} ->
+        %{
+          "if" => %{
+            "required" => ["type"],
+            "properties" => %{"type" => %{"const" => activity_type}}
+          },
+          "then" => %{
+            "properties" => %{
+              "cadence_import" => %{
+                "required" => ["schema_contract"],
+                "properties" => %{"schema_contract" => %{"const" => schema_contract}}
               }
             }
           }

@@ -5,6 +5,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanActivityContracts do
   import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2, require_fields: 4]
 
   alias OrbitalDynamics.Schema.CampaignPlanActivityCadenceContracts
+  alias OrbitalDynamics.Schema.CampaignPlanActivityCadenceSchemaContracts
   alias OrbitalDynamics.Schema.CampaignPlanActivityContactContracts
   alias OrbitalDynamics.Schema.CampaignPlanActivitySourceWindowTypeContracts
   alias OrbitalDynamics.Schema.StableIdValidation
@@ -61,6 +62,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanActivityContracts do
     |> validate_source_window(path, activity)
     |> CampaignPlanActivitySourceWindowTypeContracts.validate(path, activity)
     |> CampaignPlanActivityCadenceContracts.validate(path, activity)
+    |> CampaignPlanActivityCadenceSchemaContracts.validate(path, activity)
     |> CampaignPlanActivityContactContracts.validate(path, activity)
   end
 

@@ -201,6 +201,8 @@ work, a **partial** executable-schema track, and **near-term** / **later** /
   `command`, or `contact`; compatible future activity kinds remain open.
 - Contact-family activities conditionally require stable ground-station identity
   and exact activity-type direction routing on every V1 activity surface.
+- Their nested Cadence envelope also conditionally pins the contact adapter
+  contract to `proposed_contact.v1` without granting import or execution authority.
 - It also exports typed target-commitment rows reconciled with candidate and
   selected observation counts, durations, selected IDs, statuses, unique target
   identity, and matching objective-satisfaction target rows.

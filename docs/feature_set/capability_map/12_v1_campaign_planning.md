@@ -147,6 +147,11 @@ type across selected, candidate, and ranked timelines. The conditional rule
 keeps observations and future non-contact activity tokens compatible while
 preventing contact-routing drift in review/import artifacts.
 
+The same current contact-family rows require their nested Cadence envelope to
+declare `proposed_contact.v1`. This schema identity selects an artifact adapter
+shape for review but does not reserve providers, import schedules, or execute
+commands; observations and future non-contact kinds do not claim it.
+
 Runtime `campaign_plan.v1` validation requires each ranked timeline to carry a
 stable scenario ID, numeric score, and numeric score-term values. When the
 optional `score_term_report.v1` is present, its source, model, term-key union,
