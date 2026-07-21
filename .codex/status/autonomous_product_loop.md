@@ -5,53 +5,53 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Score every emitted selected-resource projection risk in V2 repair.
+Score stale or unknown candidate-refresh freshness in V2 repair.
 
 Status:
 Implemented and verified; publish pending.
 
 Why this slice:
-`ResourceProjectionRisk.risk_indicators/1` already derives selected-plan storage,
-downlink, battery, thermal-margin, spacecraft availability, payload/antenna, and
-activity-compatibility risks. V2's generic
-`resource_projection_pressure_penalty` currently applies an extra legacy
-whitelist that counts only storage overflow, downlink shortfall, and battery
-depletion, leaving the other emitted review risks score-invisible.
+V2 preserves `freshness_report.v1` from `candidate_refresh.v1` and already emits
+review/import rows for stale or unknown accepted-state freshness, but its repair
+score and score-term report currently treat those reports exactly like a current
+or absent source. V3 already derives dedicated refresh-freshness pressure from
+the same status semantics.
 
 Level 6 pillar:
-Fleet-level contact/resource behavior plus reproducible, explainable V2/V3
-branch scores.
+Refreshed candidates from current mission state plus reproducible, explainable
+V2/V3 branch scores.
 
 Behavior/evidence added:
-- Removed the legacy three-type filter from V2 projection scoring; the generic
-  `resource_projection_pressure_penalty` now counts the exact risk list emitted
-  by `ResourceProjectionRisk.risk_indicators/1`.
-- Selected negative thermal margin and payload-unavailable repairs now contribute
-  one normalized `risk_weight` unit and emit matching score-term report rows.
-- Existing storage/downlink two-risk and battery single-risk counts remain
-  unchanged; an explicit nominal projection assertion pins term omission.
-- Repair score/report artifacts remain schema-valid, and the V2 capability,
-  product, and roadmap docs state the broadened selected-plan semantics.
+- Pass the canonical candidate-refresh freshness report into V2 repair scoring.
+- Count a normalized `stale` or `unknown` report as exactly one source-wide
+  pressure unit.
+- Emit `refresh_freshness_pressure_penalty` using the normalized `risk_weight`;
+  omit the conditional term for current, unrecognized, or absent reports.
+- Keep `score`, `score_terms`, `score_term_report`, operator review, Cadence
+  import, and artifact schemas aligned.
+- Correct the source-report test helper so stale, unknown, and current labels are
+  backed by coherent age, horizon, and accepted-state-quality inputs before
+  canonical freshness normalization.
 
 Verification:
-- Focused resource-projection suite: 6 passed.
-- All V2 repair tests: 54 passed.
-- Full campaign-planner area: 744 passed.
-- Full `mix test --timeout 120000`: 3,487 passed.
+- Focused candidate-refresh source-report suite: 3 passed.
+- All V2 repair tests: 55 passed.
+- Full campaign-planner area: 745 passed.
+- Full `mix test --timeout 120000`: 3,488 passed.
 - Schema lint: 155 artifacts, zero errors/warnings.
 - `mix compile --warnings-as-errors`, formatting, and diff checks: pass.
 
 Parent review:
-Complete. The parent compared the generic score count directly with
-`ResourceProjectionRisk` emission semantics, checked multi-risk counting,
-legacy storage/downlink/battery stability, numeric-string policy normalization,
-nominal omission, score/report agreement, schemas, and docs. Review added exact
-nominal-omission and payload score-row assertions; no code must-fix findings
-remain. Runtime policy disallows subagent delegation, so the parent performed
-review and publish prep.
+Complete. The parent checked argument ordering, canonical freshness
+normalization, one-unit stale/unknown semantics, numeric-string policy handling,
+current/absent omission, score/report totals, review/import alignment, schemas,
+and docs. Review strengthened unknown/current/absent queue assertions and made
+fixture time/state-quality evidence coherent; no code must-fix findings remain.
+Runtime policy disallows subagent delegation, so the parent performed review and
+publish prep.
 
 Previous published slice:
-- `2d686ebf` Score selected station calendar pressure (`3485 passed`).
+- `34ba7a5b` Score all repair resource projection risks (`3487 passed`).
 
 Remaining maturity gaps:
 - Continue calibrated realized-feedback depth and remaining candidate-selection

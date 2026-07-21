@@ -68,6 +68,11 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   negative thermal margin, spacecraft or payload/antenna availability, degraded
   payload, and selected activity compatibility pressure. Nominal projections
   still omit the conditional term.
+- A candidate-refresh `freshness_report.v1` with normalized `stale` or `unknown`
+  status contributes exactly one source-wide normalized `risk_weight` unit
+  through `refresh_freshness_pressure_penalty`. Current or absent reports omit
+  the conditional term while stale/unknown review and import gates remain
+  preserved.
 - The repair score, `score_terms`, and `score_term_report.v1` preserve the same
   total and expose the selected communications gap without claiming a link
   budget, provider reservation, or schedule mutation.

@@ -72,6 +72,9 @@ Already implemented or heavily covered:
 - V2's generic selected resource-projection penalty covers every emitted
   storage, downlink, battery, thermal-margin, availability, and activity-
   compatibility projection risk
+- V2 candidate-refresh source freshness contributes one explicit normalized
+  risk-weight penalty for a stale or unknown report, aligned with its
+  review/import gate and V3 refresh-freshness pressure semantics
 - provider counteroffer, reservation-hold, reservation-expiration, plan-impact,
   and review/import handoff artifacts
 - contact-intent and capacity-pack direction routing in allocation and

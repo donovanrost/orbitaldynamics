@@ -235,6 +235,11 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   risk, including storage/downlink/battery, negative thermal margin,
   spacecraft/payload/antenna availability, degraded payload, and selected
   activity compatibility pressure; nominal projections omit the term.
+  Candidate-refresh `freshness_report.v1` inputs with normalized `stale` or
+  `unknown` status likewise apply one source-wide normalized `risk_weight` unit
+  through `refresh_freshness_pressure_penalty`; current or absent reports omit
+  that conditional term while their source evidence remains available to the
+  repair artifact and review/import handoff.
   The same projection model is available through
   `OrbitalDynamics.ResourceProjection` and
   `OrbitalDynamics.resource_projection_report/3` for standalone selected

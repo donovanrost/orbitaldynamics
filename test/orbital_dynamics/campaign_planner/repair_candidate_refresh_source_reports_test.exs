@@ -35,6 +35,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
         },
         realized_state: %{activities: [%{id: "dl_1", status: "missed"}]},
         current_epoch_s: 165.0,
+        scoring_policy: %{"risk_weight" => "2.5"},
         candidate_refresh:
           [refreshed_candidate]
           |> candidate_refresh_artifact(
@@ -157,6 +158,20 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
              "schema_contract" => "freshness_report.v1",
              "status" => "stale"
            } = artifact["source_freshness_report"]
+
+    assert artifact["score_terms"]["refresh_freshness_pressure_penalty"] == -2.5
+
+    assert [
+             %{
+               "term_key" => "refresh_freshness_pressure_penalty",
+               "value" => -2.5,
+               "selected" => true
+             }
+           ] =
+             Enum.filter(
+               artifact["score_term_report"]["rows"],
+               &(&1["term_key"] == "refresh_freshness_pressure_penalty")
+             )
 
     assert artifact["source_operational_readiness_report"]["schema_contract"] ==
              "operational_readiness_report.v1"
@@ -379,6 +394,94 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
              Schema.validate_artifact(artifact)
   end
 
+  test "repair scores unknown freshness once and omits an absent freshness report" do
+    plan = %{
+      "activities" => [downlink("dl_1", 100.0, 160.0)],
+      "candidate_activities" => [downlink("dl_stale", 700.0, 760.0)]
+    }
+
+    common_opts = [
+      realized_state: %{activities: [%{id: "dl_1", status: "missed"}]},
+      current_epoch_s: 165.0,
+      scoring_policy: %{"risk_weight" => "1.75"}
+    ]
+
+    unknown_artifact =
+      repair(
+        plan,
+        Keyword.put(
+          common_opts,
+          :candidate_refresh,
+          candidate_refresh_artifact(
+            [refreshed_downlink("dl_unknown", 500.0, 560.0)],
+            freshness_report: freshness_report("unknown")
+          )
+        )
+      )
+
+    absent_artifact =
+      repair(
+        plan,
+        Keyword.put(
+          common_opts,
+          :candidate_refresh,
+          candidate_refresh_artifact(
+            [refreshed_downlink("dl_absent", 500.0, 560.0)],
+            []
+          )
+        )
+      )
+
+    assert unknown_artifact["score_terms"]["refresh_freshness_pressure_penalty"] == -1.75
+    assert unknown_artifact["source_freshness_report"]["status"] == "unknown"
+
+    assert Enum.any?(
+             unknown_artifact["operator_review_package"]["rows"],
+             &(&1["review_type"] == "freshness_review" and
+                 &1["freshness_status"] == "unknown")
+           )
+
+    assert Enum.any?(
+             unknown_artifact["cadence_import_manifest"]["rows"],
+             &(&1["import_action"] == "review_refresh_freshness" and
+                 &1["freshness_status"] == "unknown")
+           )
+
+    assert [
+             %{
+               "term_key" => "refresh_freshness_pressure_penalty",
+               "value" => -1.75,
+               "selected" => true
+             }
+           ] =
+             Enum.filter(
+               unknown_artifact["score_term_report"]["rows"],
+               &(&1["term_key"] == "refresh_freshness_pressure_penalty")
+             )
+
+    assert unknown_artifact["score"] ==
+             unknown_artifact["score_terms"] |> Map.values() |> Enum.sum()
+
+    refute Map.has_key?(absent_artifact["score_terms"], "refresh_freshness_pressure_penalty")
+
+    refute "refresh_freshness_pressure_penalty" in absent_artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert is_nil(absent_artifact["source_freshness_report"])
+
+    refute Enum.any?(
+             absent_artifact["operator_review_package"]["rows"],
+             &(&1["review_type"] == "freshness_review")
+           )
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(unknown_artifact)
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(absent_artifact)
+  end
+
   test "repair preserves canonical candidate refresh readiness and quality source reports" do
     source_reports = passive_candidate_refresh_source_reports()
 
@@ -408,6 +511,24 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
 
     assert artifact["source_quality_gate_report"]["schema_contract"] ==
              "quality_gate_report.v1"
+
+    assert artifact["source_freshness_report"]["status"] == "current"
+
+    refute Map.has_key?(artifact["score_terms"], "refresh_freshness_pressure_penalty")
+
+    refute "refresh_freshness_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    refute Enum.any?(
+             artifact["operator_review_package"]["rows"],
+             &(&1["review_type"] == "freshness_review")
+           )
+
+    refute Enum.any?(
+             artifact["cadence_import_manifest"]["rows"],
+             &(&1["import_action"] == "review_refresh_freshness")
+           )
 
     assert artifact["score_terms"]["operational_readiness_pressure_penalty"] == -1.0
 
@@ -722,26 +843,38 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
   end
 
   defp freshness_report(status) do
+    accepted_snapshot_age_s = if status == "stale", do: 3_600.0, else: 30.0
+    accepted_at = if status == "stale", do: "2026-05-13T23:00:00Z", else: "2026-05-13T23:59:30Z"
+
     stale_reasons =
       if status == "stale",
         do: ["accepted_snapshot_older_than_policy"],
         else: []
 
-    %{
+    unknown_reasons =
+      if status == "unknown",
+        do: ["accepted_state_quality_unknown"],
+        else: []
+
+    report = %{
       "schema_contract" => "freshness_report.v1",
       "model" => "accepted_snapshot_horizon_and_quality_freshness",
       "generated_at" => "2026-05-14T00:00:00Z",
-      "accepted_at" => "2026-05-13T23:00:00Z",
+      "accepted_at" => accepted_at,
       "current_epoch_s" => 165.0,
       "horizon_starts_at_s" => 165.0,
-      "accepted_snapshot_age_s" => 3600.0,
+      "accepted_snapshot_age_s" => accepted_snapshot_age_s,
       "horizon_start_offset_s" => 0.0,
       "max_snapshot_age_s" => 60.0,
       "max_horizon_start_offset_s" => 1.0,
       "status" => status,
       "stale_reasons" => stale_reasons,
-      "unknown_reasons" => []
+      "unknown_reasons" => unknown_reasons
     }
+
+    if status == "unknown",
+      do: report,
+      else: Map.put(report, "accepted_state_quality_level", "accepted")
   end
 
   defp passive_candidate_refresh_source_reports do
