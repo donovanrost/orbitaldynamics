@@ -640,6 +640,8 @@ defmodule OrbitalDynamics.CandidateRefresh.CapabilitiesTest do
     assert :source_candidate_diff_report_input_provenance in row_semantics
     assert :source_candidate_rejection_report_input_provenance in row_semantics
     assert :source_quality_gate_unavailable_resource_contact_filtering in row_semantics
+
+    assert :source_operational_readiness_unavailable_resource_contact_filtering in row_semantics
     assert :source_provider_counteroffer_report_input_provenance in row_semantics
     assert :source_provider_counteroffer_review_summary_input_provenance in row_semantics
     assert :source_provider_counteroffer_plan_impact_summary_input_provenance in row_semantics

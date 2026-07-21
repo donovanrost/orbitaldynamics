@@ -5,6 +5,7 @@ defmodule OrbitalDynamics.CandidateRefresh.OperationalReadinessReplaySummaryTest
     CadenceImport,
     CandidateRefresh,
     Epoch,
+    OperationalReadiness,
     OperatorReview,
     ResultSet,
     Schema
@@ -129,6 +130,123 @@ defmodule OrbitalDynamics.CandidateRefresh.OperationalReadinessReplaySummaryTest
                    "$.provenance.source_reports.operational_readiness_report.freshness_status_counts.stale")
              )
     end
+  end
+
+  test "canonical readiness blocked-contact evidence filters only the scoped regenerated contact" do
+    blocked_contact_id = "leo_1_downlink_equator_prime_1"
+
+    review_source = %{
+      "schema_contract" => "operator_review_package.v1",
+      "source_artifact_type" => "contact_allocation_report.v1",
+      "package_id" => "allocation_resource_review",
+      "rows" => [
+        %{
+          "id" => "operator_review:contact_allocation:#{blocked_contact_id}",
+          "review_type" => "contact_allocation_review",
+          "approval_status" => "operator_review_required",
+          "source_contact_allocation" => %{
+            "contact_id" => blocked_contact_id,
+            "type" => "downlink",
+            "spacecraft_id" => "sat_1",
+            "ground_station_id" => "equator_prime",
+            "starts_at_s" => 300.0,
+            "ends_at_s" => 420.0,
+            "allocation_status" => "blocked",
+            "allocation_reason" => "antenna_unavailable",
+            "source_resource_suppression" => %{
+              "id" => blocked_contact_id,
+              "type" => "downlink",
+              "spacecraft_id" => "sat_1",
+              "suppressed_reason" => "antenna_unavailable",
+              "resource_blocking_dimension" => "antenna",
+              "antenna_available" => false,
+              "resource_source_quality" => "operator_supplied",
+              "resource_trust_boundary_status" => "declared"
+            }
+          }
+        }
+      ]
+    }
+
+    readiness_report =
+      review_source
+      |> OperationalReadiness.report()
+      |> Map.put("provenance", %{"trust_boundary" => "canonical_readiness"})
+
+    prior_contact = %{
+      "id" => blocked_contact_id,
+      "type" => "downlink",
+      "scenario_id" => "leo_1",
+      "ground_station_id" => "equator_prime",
+      "starts_at_s" => 300.0,
+      "ends_at_s" => 420.0,
+      "source_window_id" => "window:leo_1:ground_station_access:equator_prime:1"
+    }
+
+    refresh =
+      refresh_request()
+      |> put_in(
+        ["accepted_planning_state", "source_operational_readiness_report"],
+        readiness_report
+      )
+      |> Map.put("prior_candidate_activities", [prior_contact])
+
+    artifact =
+      result_set()
+      |> CandidateRefresh.build(
+        candidate_refresh: refresh,
+        generated_at: ~U[2026-05-14 00:00:00Z]
+      )
+
+    assert Enum.map(artifact["candidate_activities"], & &1["id"]) == [
+             "leo_1_observe_target_a_1"
+           ]
+
+    assert %{
+             "source" => "candidate_refresh.operational_readiness_unavailable_resource",
+             "candidate_count" => 2,
+             "rejected_count" => 1,
+             "rejected_candidate_ids" => [^blocked_contact_id],
+             "rejection_reason_counts" => %{"quality_gate_failed" => 1}
+           } = rejection_report = artifact["candidate_rejection_report"]
+
+    assert %{
+             "candidate_id" => ^blocked_contact_id,
+             "activity_context" => %{
+               "provenance" => %{
+                 "operational_readiness_candidate_filter" => %{
+                   "source_schema_contract" => "operational_readiness_report.v1",
+                   "source_report_paths" => [
+                     "accepted_planning_state.source_operational_readiness_report"
+                   ],
+                   "source_artifact_ids" => ["allocation_resource_review"],
+                   "blocked_spacecraft_ids" => ["sat_1"],
+                   "trust_boundaries" => ["canonical_readiness"]
+                 }
+               }
+             }
+           } = Enum.find(rejection_report["rows"], &(&1["candidate_id"] == blocked_contact_id))
+
+    assert [
+             %{
+               "id" => ^blocked_contact_id,
+               "invalidated_reason" => "dropped_by_operational_readiness_unavailable_resource",
+               "replacement_candidate_id" => ^blocked_contact_id
+             }
+           ] = artifact["invalidated_candidates"]
+
+    assert "operational readiness excluded explicitly scoped unavailable-resource contact candidates" in artifact[
+             "warnings"
+           ]
+
+    assert {:ok, %{"schema_contract" => "operational_readiness_report.v1"}} =
+             Schema.validate_artifact(readiness_report)
+
+    assert {:ok, %{"schema_contract" => "candidate_rejection_report.v1"}} =
+             Schema.validate_artifact(rejection_report)
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
   end
 
   defp result_set do
@@ -465,6 +583,8 @@ defmodule OrbitalDynamics.CandidateRefresh.OperationalReadinessReplaySummaryTest
           }),
         generated_at: ~U[2026-05-14 00:00:00Z]
       )
+
+    refute Map.has_key?(artifact, "candidate_rejection_report")
 
     assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
              Schema.validate_artifact(artifact)

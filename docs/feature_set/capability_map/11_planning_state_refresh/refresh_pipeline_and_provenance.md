@@ -82,21 +82,25 @@ From those inputs the pipeline:
 
 - Replays prior `contact_filter_report.v1` station suppressions from the same direct, wrapped, review, and import surfaces as ground-network unavailable/reserved/zero-capacity station intervals before regenerated contacts are filtered, while preserving contact-filter source report provenance, suppression reason counts, invalid contact input counts, and trust-boundary evidence.
 
-### Unavailable-resource quality-gate summaries
+### Unavailable-resource readiness and quality-gate evidence
 
 - Applies direct, accepted-state, mission-state, and result-artifact-wrapped
+  `operational_readiness_report.v1`
+  `evidence.resource_blocked_contact_ids_by_spacecraft_id` maps and
   `operational_quality_gate_unavailable_resource_summary.v1` evidence to
   regenerated contact selection only when an exact candidate contact ID is
-  listed under that candidate's spacecraft identity in
-  `blocked_contact_ids_by_spacecraft_id`.
-- Aggregate unavailable-resource reasons, pressure counts, blocking-dimension
-  maps, and contact IDs scoped to another spacecraft remain provenance only;
-  they do not suppress candidates.
+  listed under that candidate's spacecraft identity in the respective
+  blocked-contact map.
+- Readiness reports with only aggregate resource pressure and no explicit
+  blocked-contact map do not emit a selection-time rejection report. Aggregate
+  quality-summary reasons, pressure counts, blocking-dimension maps, and contact
+  IDs scoped to another spacecraft do not suppress candidates; an explicit map
+  can still yield a zero-rejection explanation of the evaluated set.
 - Emits `candidate_rejection_report.v1` rows for the evaluated candidate set,
-  preserving the quality-gate source path and artifact/report identities for
-  rejected contacts. A matching prior candidate is invalidated with
-  `dropped_by_quality_gate_unavailable_resource`, and the existing
-  operator-review/Cadence-import handoff remains review-only.
+  preserving readiness/quality source paths, artifact/report identities, scope,
+  and trust evidence for rejected contacts. A matching prior candidate is
+  invalidated with a source-specific unavailable-resource reason, and the
+  existing operator-review/Cadence-import handoff remains review-only.
 
 ### Station-calendar reports
 

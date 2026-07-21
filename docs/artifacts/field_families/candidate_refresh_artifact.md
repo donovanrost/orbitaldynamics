@@ -234,6 +234,16 @@ carry `quality_gate_failed` plus source-summary paths and identities in activity
 provenance. This explanation artifact feeds the existing review/import handoff
 without granting approval or Cadence-write authority.
 
+The upstream canonical `operational_readiness_report.v1` can drive the same
+bounded selection directly when
+`evidence.resource_blocked_contact_ids_by_spacecraft_id` is non-empty. This
+uses the existing direct/accepted/mission/result-wrapper source resolver and
+trust inheritance, so callers do not have to derive the compact quality summary
+first. Readiness-only matches use
+`dropped_by_operational_readiness_unavailable_resource`; a readiness report
+with only aggregate resource pressure remains provenance-only and does not add
+a candidate-rejection output.
+
 ### Model acceptance reports
 
 Source `model_acceptance_report.v1` rows from branch-local, accepted mission
@@ -2274,7 +2284,8 @@ dependency-pressure, changed-field-pressure, invalidation-pressure, and
 review-pressure booleans. The replay-summary helper itself avoids candidate
 generation, candidate selection, Cadence writes, and operator approval; the
 separate CandidateRefresh build path applies only exact spacecraft-scoped
-`blocked_contact_ids_by_spacecraft_id` evidence as documented above. Review
+blocked-contact evidence from canonical readiness reports or unavailable-
+resource quality summaries as documented above. Review
 pressure is true for preserved
 readiness/status/gate status, classification, and analysis-mode maps; import
 pressure is true for preserved import-status and Cadence-import-status maps

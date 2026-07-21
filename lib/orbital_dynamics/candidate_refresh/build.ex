@@ -18,12 +18,12 @@ defmodule OrbitalDynamics.CandidateRefresh.Build do
     CandidateDiffReport,
     ContactGate,
     ObjectiveMatching,
-    QualityGateCandidateFilter,
     RefreshedWindows,
     ResourceFiltering,
     SourceObjectives,
     SourceReportSummary.InputProvenance,
     SourceWindowLineage,
+    UnavailableResourceCandidateFilter,
     ValueEncoding
   }
 
@@ -69,8 +69,9 @@ defmodule OrbitalDynamics.CandidateRefresh.Build do
     {contact_candidates, contact_filter_report} =
       ContactGate.filter_candidates(raw_candidates, refresh, &BuildGroundNetwork.build/1)
 
-    {contact_candidates, quality_gate_dropped_candidates, candidate_rejection_report} =
-      QualityGateCandidateFilter.apply(contact_candidates, refresh)
+    {contact_candidates, quality_gate_dropped_candidates, readiness_dropped_candidates,
+     candidate_rejection_report} =
+      UnavailableResourceCandidateFilter.apply(contact_candidates, refresh)
 
     {candidates, resource_filter_report} =
       ResourceFiltering.apply_filters(
@@ -108,6 +109,10 @@ defmodule OrbitalDynamics.CandidateRefresh.Build do
           CandidateDiffReport.mark_dropped_candidates(
             allocation_dropped_candidates,
             "dropped_by_contact_allocation"
+          ) ++
+          CandidateDiffReport.mark_dropped_candidates(
+            readiness_dropped_candidates,
+            "dropped_by_operational_readiness_unavailable_resource"
           ) ++
           CandidateDiffReport.mark_dropped_candidates(
             budget_dropped_candidates,
@@ -170,7 +175,8 @@ defmodule OrbitalDynamics.CandidateRefresh.Build do
           candidates: candidates,
           result_errors: result_set.errors,
           contact_filter_report: contact_filter_report,
-          candidate_rejection_report: candidate_rejection_report,
+          quality_gate_dropped_candidates: quality_gate_dropped_candidates,
+          readiness_dropped_candidates: readiness_dropped_candidates,
           allocation_dropped_candidates: allocation_dropped_candidates,
           resource_filter_report: resource_filter_report,
           refresh_budget_report: refresh_budget_report,

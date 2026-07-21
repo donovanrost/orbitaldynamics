@@ -555,6 +555,7 @@ defmodule OrbitalDynamics.CandidateRefresh.Capabilities do
         :source_candidate_diff_report_input_provenance,
         :source_candidate_rejection_report_input_provenance,
         :source_quality_gate_unavailable_resource_contact_filtering,
+        :source_operational_readiness_unavailable_resource_contact_filtering,
         :source_provider_counteroffer_report_input_provenance,
         :source_provider_counteroffer_review_summary_input_provenance,
         :source_provider_counteroffer_import_readiness_summary_input_provenance,
