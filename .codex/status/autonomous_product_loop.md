@@ -5,61 +5,64 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Reconcile V2 score-term report identity metadata.
+Declare and validate nested V2 constraint reports.
 
 Status:
 Complete; ready to publish.
 
 Selection evidence:
-- V2 score-term validation pins row values, timeline score, rank, selection,
-  unique term coverage, and source, but not repair-specific identity metadata.
-- An internally valid report can still use another allowed report model, drift
-  its embedded policy/source assumption, reorder rows, or rewrite row scenario
-  and stable IDs independently of the repair source plan.
-- Producer identities and row ordering are deterministic from source plan and
-  enclosing score-term keys.
+- V2 production always emits `constraint_report.v1`, but the repair registry
+  declares neither the optional field nor its nested contract.
+- Repair runtime validation therefore does not invoke the existing standalone
+  constraint-report validator; malformed row/count/status evidence can pass
+  when embedded in an otherwise valid repair.
+- The generic report contract already owns row/count/model-limit validation,
+  while V2 production has distinct deterministic model and assumption IDs.
 
 Intended behavior:
-- Require a present score-term report to use the repair model, exact embedded
-  policy and source assumption, and deterministic sorted term order.
-- Pin every row scenario ID to `source_plan_id` and its stable row ID to the
-  producer's `score_term:<scenario>:1:<term>` identity.
-- Preserve the report as optional and malformed-shape safe.
-- Add checked-fixture, model/policy/source, row-order, scenario/ID tamper, and
-  optional-report coverage; document the executable guarantees.
+- Declare the optional constraint report and `constraint_report.v1` nested
+  contract in the V2 registry and generated JSON Schema.
+- Run generic nested report validation inside repair validation, then pin the
+  repair-specific model, constraint model, and source assumption.
+- Keep the field optional for compatible older V2 artifacts.
+- Add checked-fixture, nested shape/count, identity, optional-report, and schema-
+  export coverage; refresh checked-in schemas and document the guarantee.
 
 Level 6 pillar advanced:
-Replayable V2 score rows with deterministic repair identity and policy metadata.
+Versioned V2 constraint evidence with executable nested contract validation.
 
 Last published slice:
-- `a9f7c489` Reconcile V2 objective tradeoff report (`3727 passed`).
+- `6345cacf` Reconcile V2 score report identity (`3728 passed`).
 
 Likely files:
-- V2 campaign-repair score runtime contract
-- focused score-term report tests
-- V2 capability and roadmap docs
+- V2 registry/runtime constraint contracts
+- focused constraint and schema-export tests
+- checked-in schema exports and V2 capability docs
 
 Verification:
-- Focused score-contract and repair-planner tests: `20 passed`.
-- Campaign-repair schema fixtures: `30 passed`.
-- Schema suite plus schema-lint task tests: `408 passed`.
+- Focused V1/V2 constraint, planner, and schema-export tests: `29 passed`.
+- Campaign-repair schema fixtures: `35 passed`.
+- Schema suite plus schema-lint/export task tests: `414 passed`.
 - Campaign-planner suite: `759 passed`.
-- Full suite: `3728 passed`.
+- Full checked-artifact lint: `155/155 passed`, zero warnings.
+- Full suite: `3733 passed`.
 - `mix format --check-formatted`, `mix compile --warnings-as-errors`, and
   `git diff --check` passed.
-- Runtime-only reconciliation required no generated schema changes.
+- Full schema export refreshed the V2 repair schema and aggregate bundle only.
 
 Review:
-- Cross-validation now requires the repair-specific score-term model and exact
-  embedded score-term source and enclosing scoring policy.
-- Rows must cover the enclosing score-term keys once in sorted producer order;
-  each row scenario is pinned to `source_plan_id` and each stable ID is rebuilt
-  from that scenario, rank one, and the row's term key.
-- Existing value, timeline-score, rank, selection, and source reconciliation
-  remains intact, so coordinated identity edits cannot mask score drift.
-- The report remains optional for compatible older V2 artifacts, malformed
-  shapes remain owned by generic validators without raising here, and checked
-  fixtures plus real planner output remain valid.
+- The V2 registry now declares optional `constraint_report` and its
+  `constraint_report.v1` nested contract; generated schemas expose the property
+  and definition without making the field required for older artifacts.
+- Runtime repair validation invokes the existing standalone report contract for
+  row shape, counts, status, and model limits, then pins the V2 repair model,
+  constraint-model assumption, and source identity.
+- Campaign-local `constraint_count` now follows producer semantics: configured
+  supported constraints may outnumber evaluated row IDs when inputs are absent,
+  but cannot undercount evaluated constraints. Artifact-metric reports retain
+  exact row-derived count reconciliation.
+- Both checked V2 repair fixtures, real planner output, all checked artifacts,
+  and existing V1 constraint-report consumers remain valid.
 
 Remaining maturity gaps:
 - Continue exact V2 ranking/score reconciliation for replayable source fields.

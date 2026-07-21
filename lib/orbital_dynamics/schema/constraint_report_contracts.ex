@@ -95,13 +95,7 @@ defmodule OrbitalDynamics.Schema.ConstraintReportContracts do
     status = report_status(rows)
 
     issues
-    |> expect_field_equals(
-      path,
-      report,
-      "constraint_count",
-      constraint_count,
-      "must equal #{constraint_count}"
-    )
+    |> validate_constraint_count(path, report, constraint_count)
     |> expect_field_equals(path, report, "row_count", row_count, "must equal #{row_count}")
     |> expect_field_equals(path, report, "status", status, "must equal #{status}")
     |> expect_field_equals(
@@ -110,6 +104,37 @@ defmodule OrbitalDynamics.Schema.ConstraintReportContracts do
       "status_counts",
       status_counts(rows),
       "must equal row-derived status_counts"
+    )
+  end
+
+  defp validate_constraint_count(issues, path, %{"model" => model} = report, evaluated_count)
+       when model in [
+              "campaign_planner_local_constraint_summary",
+              "campaign_repair_local_constraint_summary"
+            ] do
+    case Map.get(report, "constraint_count") do
+      count when is_integer(count) and count < evaluated_count ->
+        [
+          error(
+            "#{path}.constraint_count",
+            "must be at least the #{evaluated_count} evaluated constraints"
+          )
+          | issues
+        ]
+
+      _count ->
+        issues
+    end
+  end
+
+  defp validate_constraint_count(issues, path, report, constraint_count) do
+    expect_field_equals(
+      issues,
+      path,
+      report,
+      "constraint_count",
+      constraint_count,
+      "must equal #{constraint_count}"
     )
   end
 

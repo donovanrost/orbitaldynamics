@@ -109,6 +109,7 @@ defmodule OrbitalDynamics.Schema.CampaignRegistryContracts do
           "timeline_transition_application_report",
           "operator_review_package",
           "objective_tradeoff_report",
+          "constraint_report",
           "score_term_report",
           "link_capacity_report",
           "source_candidate_rejection_report"
@@ -121,6 +122,7 @@ defmodule OrbitalDynamics.Schema.CampaignRegistryContracts do
           "timeline_transition_application_report.v1",
           "operator_review_package.v1",
           "objective_tradeoff_report.v1",
+          "constraint_report.v1",
           "score_term_report.v1",
           "link_capacity_report.v1",
           "candidate_rejection_report.v1"

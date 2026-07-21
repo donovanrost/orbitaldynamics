@@ -50,6 +50,14 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   - eclipse-avoidance;
   - resource projection and link-capacity constraints.
 - These are evaluated against the repaired activity set and source resource summaries, preserving explicit warning severity in repair and branch-comparison rows.
+- The optional embedded report is declared as a direct `constraint_report.v1`
+  nested contract in the V2 registry and schema export. Runtime repair
+  validation applies the standalone row/count/status/model-limit checks and
+  additionally requires the repair-specific model, constraint-model assumption,
+  and `campaign_repair.assumptions.constraints` source identity. For campaign-
+  local reports, `constraint_count` records configured supported constraints
+  and may exceed distinct evaluated row IDs when inputs are unavailable, but it
+  cannot be lower than the evaluated constraint count.
 
 ## Repair score terms
 

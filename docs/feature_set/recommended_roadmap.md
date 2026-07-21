@@ -125,6 +125,9 @@ Already implemented or heavily covered:
 - an optional V2 repair objective-tradeoff report is pinned to its enclosing
   single repaired timeline: repair model, score-term keys, policy, source plan,
   score, zero delta, score terms, and repaired activity identity/count
+- optional V2 constraint reports are declared as direct nested contracts and
+  receive standalone row/count/status/model-limit validation plus exact repair
+  model, constraint-model assumption, and constraint-source identity checks
 - V2 candidate-refresh source freshness contributes one explicit normalized
   risk-weight penalty for a stale or unknown report, aligned with its
   review/import gate and V3 refresh-freshness pressure semantics
