@@ -8,6 +8,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
     QualityGateSourceReports,
     ResourceProjectionRisk,
     ScalarValues,
+    StationCalendarPressureBranches,
     ValueEncoding
   }
 
@@ -16,6 +17,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
         deltas,
         resource_projection_report,
         link_capacity_report,
+        station_calendar_report,
         contact_filter_report,
         contact_allocation_report,
         resource_filter_report,
@@ -30,6 +32,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
       deltas,
       resource_projection_report,
       link_capacity_report,
+      station_calendar_report,
       contact_filter_report,
       contact_allocation_report,
       resource_filter_report,
@@ -47,6 +50,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
         deltas,
         resource_projection_report,
         link_capacity_report,
+        station_calendar_report,
         contact_filter_report,
         contact_allocation_report,
         resource_filter_report,
@@ -81,6 +85,9 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
 
     link_capacity_pressure_count = repair_link_capacity_pressure_count(link_capacity_report)
 
+    station_calendar_pressure_count =
+      repair_station_calendar_pressure_count(station_calendar_report, activities)
+
     contact_filter_pressure_count = repair_contact_filter_pressure_count(contact_filter_report)
 
     contact_allocation_pressure_count =
@@ -105,6 +112,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
 
     link_capacity_pressure_penalty =
       -link_capacity_pressure_count *
+        numeric_policy_value.(scoring_policy, "risk_weight", 1.0)
+
+    station_calendar_pressure_penalty =
+      -station_calendar_pressure_count *
         numeric_policy_value.(scoring_policy, "risk_weight", 1.0)
 
     contact_filter_pressure_penalty =
@@ -151,6 +162,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
       link_capacity_pressure_count,
       "link_capacity_pressure_penalty",
       link_capacity_pressure_penalty
+    )
+    |> maybe_put_positive_pressure_term(
+      station_calendar_pressure_count,
+      "station_calendar_pressure_penalty",
+      station_calendar_pressure_penalty
     )
     |> maybe_put_positive_pressure_term(
       contact_filter_pressure_count,
@@ -201,6 +217,30 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
   end
 
   defp repair_link_capacity_pressure_count(_report), do: 0
+
+  defp repair_station_calendar_pressure_count(
+         %{"affected_contacts" => affected_contacts},
+         activities
+       )
+       when is_list(affected_contacts) and is_list(activities) do
+    selected_activity_ids =
+      activities
+      |> Enum.map(&Map.get(&1, "id"))
+      |> Enum.reject(&(&1 in [nil, ""]))
+      |> MapSet.new()
+
+    Enum.count(affected_contacts, fn row ->
+      MapSet.member?(selected_activity_ids, Map.get(row, "contact_id")) and
+        not is_nil(
+          StationCalendarPressureBranches.event(
+            row,
+            "campaign_repair.source_station_calendar_report"
+          )
+        )
+    end)
+  end
+
+  defp repair_station_calendar_pressure_count(_report, _activities), do: 0
 
   defp repair_contact_filter_pressure_count(%{"suppressed_candidates" => rows})
        when is_list(rows),

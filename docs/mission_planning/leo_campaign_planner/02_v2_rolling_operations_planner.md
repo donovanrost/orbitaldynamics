@@ -54,6 +54,11 @@ artifact-only and does not reserve provider time. A positive selected shortfall
 also contributes one normalized `risk_weight` unit to the V2 repair score as
 `link_capacity_pressure_penalty`; satisfied or undeclared demand omits that
 conditional score term.
+Repair-time station-calendar pressure likewise contributes one normalized
+`risk_weight` unit as `station_calendar_pressure_penalty` for each affected
+contact that is actually selected into the repaired activity list. Calendar
+pressure on unselected source candidates remains reviewable context but does not
+change the repair score.
 Standalone candidate refresh applies spacecraft-, satellite-, or scenario-scoped
 downlink-completion and collection-latency objectives only to matching generated
 downlinks, so shared-station contacts for other spacecraft keep their ordinary
@@ -244,7 +249,9 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   rows, allocation reservation evidence, and spacecraft resource decisions
   caused by unavailable ground-network or resource constraints.
 - `source_station_calendar_report` when repair-time `ground_network` or
-  `station_calendar` intervals annotate source contact candidates.
+  `station_calendar` intervals annotate source contact candidates. Reserved,
+  unavailable, or reduced-capacity affected rows participate in repair scoring
+  only when their contact IDs are selected into repaired activities.
 - V1 `contact_contention_report.v1` on campaign plans, marking same-station
   and same-spacecraft cross-station overlapping contacts without scheduling or
   suppressing them. Generated campaign and refresh contact rows use
@@ -324,8 +331,10 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   classification as V3 branches.
 - `score_terms.activity_score`, `score_terms.schedule_churn_penalty`, and
   `score_terms.schedule_move_penalty`, plus conditional pressure terms such as
-  `score_terms.link_capacity_pressure_penalty` when repaired selected
-  downlink capacity falls short of declared demand.
+  `score_terms.link_capacity_pressure_penalty` when repaired selected downlink
+  capacity falls short of declared demand and
+  `score_terms.station_calendar_pressure_penalty` when a selected repaired
+  contact carries calendar pressure.
 - plan-delta source/replacement activity contexts, timeline links, and lifted
   operator-review timeline identities for import correlation.
 - `assumptions`, `provenance`, `scoring_policy`, `repair_policy`, and

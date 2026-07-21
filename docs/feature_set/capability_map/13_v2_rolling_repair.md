@@ -58,6 +58,11 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
 - A positive `selected_downlink_shortfall_mb` contributes one normalized
   `risk_weight` unit through `link_capacity_pressure_penalty`; satisfied or
   undeclared demand does not emit that conditional term.
+- Repair-time station-calendar rows contribute one normalized `risk_weight`
+  unit through `station_calendar_pressure_penalty` only when the affected
+  contact ID is present in the repaired selected activities and the shared V3
+  calendar-pressure classifier identifies reserved, unavailable, or reduced
+  capacity pressure. Affected but unselected alternatives do not change score.
 - The repair score, `score_terms`, and `score_term_report.v1` preserve the same
   total and expose the selected communications gap without claiming a link
   budget, provider reservation, or schedule mutation.

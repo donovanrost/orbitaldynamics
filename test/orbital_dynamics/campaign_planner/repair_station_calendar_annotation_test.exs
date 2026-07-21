@@ -28,7 +28,8 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairStationCalendarAnnotationTest do
             starts_at_s: 490.0,
             ends_at_s: 570.0
           }
-        ]
+        ],
+        scoring_policy: %{"risk_weight" => "2.0"}
       )
 
     assert [%{"id" => "dl_2", "repair" => %{"action" => "moved"}}] = artifact["activities"]
@@ -49,6 +50,21 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairStationCalendarAnnotationTest do
              ],
              "assumptions" => %{"source" => "repair.ground_network"}
            } = artifact["source_station_calendar_report"]
+
+    assert artifact["score_terms"]["station_calendar_pressure_penalty"] == -2.0
+    assert artifact["score"] == artifact["score_terms"] |> Map.values() |> Enum.sum()
+
+    assert [
+             %{
+               "term_key" => "station_calendar_pressure_penalty",
+               "value" => -2.0,
+               "selected" => true
+             }
+           ] =
+             Enum.filter(
+               artifact["score_term_report"]["rows"],
+               &(&1["term_key"] == "station_calendar_pressure_penalty")
+             )
 
     assert [%{"id" => "dl_1"}, %{"id" => "dl_2"} = annotated] =
              artifact["source_candidate_activities"]
@@ -117,6 +133,12 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairStationCalendarAnnotationTest do
     assert annotated["station_capacity_fraction"] == 0.5
     assert get_in(annotated, ["throughput_model", "station_capacity_fraction"]) == 0.5
 
+    refute Map.has_key?(artifact["score_terms"], "station_calendar_pressure_penalty")
+
+    refute "station_calendar_pressure_penalty" in artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
     assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
              Schema.validate_artifact(artifact)
   end
@@ -169,6 +191,8 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairStationCalendarAnnotationTest do
              ],
              "assumptions" => %{"source" => "repair.ground_network"}
            } = artifact["source_station_calendar_report"]
+
+    assert artifact["score_terms"]["station_calendar_pressure_penalty"] == -1.0
 
     assert %{"station_calendar_review_count" => 1} = artifact["operator_review_package"]
 

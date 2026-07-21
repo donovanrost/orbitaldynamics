@@ -67,7 +67,8 @@ Already implemented or heavily covered:
 - storage/downlink roll-forward and zero-effect audit rows for terminal or
   approval-rejected selected activities
 - V2 repair scoring and score-term reports apply selected link-capacity
-  shortfall as an explicit normalized risk-weight penalty
+  shortfall and selected station-calendar pressure as explicit normalized
+  risk-weight penalties without penalizing unselected affected contacts
 - provider counteroffer, reservation-hold, reservation-expiration, plan-impact,
   and review/import handoff artifacts
 - contact-intent and capacity-pack direction routing in allocation and
