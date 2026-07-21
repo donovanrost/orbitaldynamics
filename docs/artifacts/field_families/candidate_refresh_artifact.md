@@ -222,6 +222,18 @@ Quality-gate summaries derive report status/classification and gate totals from
 rows when rows are present, so stale top-level counters do not hide why import
 eligibility was review-only or blocked.
 
+`operational_quality_gate_unavailable_resource_summary.v1` has one bounded
+selection effect during CandidateRefresh builds: a contact-like regenerated
+candidate is removed only when its exact candidate ID occurs under its matching
+spacecraft/scenario identity in `blocked_contact_ids_by_spacecraft_id`.
+Aggregate unavailable-resource pressure and blocking-dimension maps are not
+treated as global blocking evidence, and a contact ID under another spacecraft
+does not match. When this summary family is present, the refresh emits a
+`candidate_rejection_report.v1` over the evaluated candidates; rejected rows
+carry `quality_gate_failed` plus source-summary paths and identities in activity
+provenance. This explanation artifact feeds the existing review/import handoff
+without granting approval or Cadence-write authority.
+
 ### Model acceptance reports
 
 Source `model_acceptance_report.v1` rows from branch-local, accepted mission
@@ -2259,8 +2271,11 @@ timeline-diff changed/review counts, changed field maps, changed/review timeline
 IDs, and changed-field timeline routing. It also exposes review/import/resource
 pressure booleans and branch-local timeline-publication pressure,
 dependency-pressure, changed-field-pressure, invalidation-pressure, and
-review-pressure booleans while explicitly avoiding candidate generation, Cadence
-writes, or operator approval. Review pressure is true for preserved
+review-pressure booleans. The replay-summary helper itself avoids candidate
+generation, candidate selection, Cadence writes, and operator approval; the
+separate CandidateRefresh build path applies only exact spacecraft-scoped
+`blocked_contact_ids_by_spacecraft_id` evidence as documented above. Review
+pressure is true for preserved
 readiness/status/gate status, classification, and analysis-mode maps; import
 pressure is true for preserved import-status and Cadence-import-status maps
 even when aggregate review/import counters are absent or zero. Resource pressure

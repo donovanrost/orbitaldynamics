@@ -1,7 +1,14 @@
 defmodule OrbitalDynamics.CandidateRefresh.QualityGateUnavailableResourceReplaySummaryTest do
   use ExUnit.Case, async: true
 
-  alias OrbitalDynamics.{CandidateRefresh, Epoch, ResultSet, Schema}
+  alias OrbitalDynamics.{
+    CadenceImport,
+    CandidateRefresh,
+    Epoch,
+    OperatorReview,
+    ResultSet,
+    Schema
+  }
 
   test "quality gate replay accepts operational unavailable-resource summaries" do
     unavailable_resource_summary =
@@ -191,6 +198,186 @@ defmodule OrbitalDynamics.CandidateRefresh.QualityGateUnavailableResourceReplayS
 
     assert Map.get(replay_summary, "quality_gate_row_ids_by_status", %{}) == %{}
     assert Map.get(replay_summary, "review_required_quality_gate_row_ids", []) == []
+  end
+
+  test "explicit spacecraft-scoped unavailable-resource contact ids filter regenerated contacts" do
+    blocked_contact_id = "leo_1_downlink_equator_prime_1"
+
+    unavailable_resource_summary =
+      quality_gate_unavailable_resource_summary_fixture()
+      |> Map.merge(%{
+        "blocked_contact_ids_by_blocking_dimension" => %{
+          "payload" => [blocked_contact_id]
+        },
+        "blocked_contact_ids_by_spacecraft_id" => %{
+          "sat_1" => [blocked_contact_id]
+        },
+        "blocked_contact_ids_by_status" => %{
+          "review_required" => [blocked_contact_id]
+        }
+      })
+
+    prior_contact = %{
+      "id" => blocked_contact_id,
+      "type" => "downlink",
+      "scenario_id" => "leo_1",
+      "ground_station_id" => "equator_prime",
+      "starts_at_s" => 300.0,
+      "ends_at_s" => 420.0,
+      "source_window_id" => "window:leo_1:ground_station_access:equator_prime:1"
+    }
+
+    refresh =
+      refresh_request()
+      |> put_in(
+        ["accepted_planning_state", "operational_quality_gate_unavailable_resource_summary"],
+        unavailable_resource_summary
+      )
+      |> Map.put("prior_candidate_activities", [prior_contact])
+
+    artifact =
+      result_set()
+      |> CandidateRefresh.build(
+        candidate_refresh: refresh,
+        generated_at: ~U[2026-05-14 00:00:00Z]
+      )
+
+    assert Enum.map(artifact["candidate_activities"], & &1["id"]) == [
+             "leo_1_observe_target_a_1"
+           ]
+
+    assert %{
+             "schema_contract" => "candidate_rejection_report.v1",
+             "source" =>
+               "candidate_refresh.operational_quality_gate_unavailable_resource_summary",
+             "candidate_count" => 2,
+             "rejected_count" => 1,
+             "not_rejected_count" => 1,
+             "rejected_candidate_ids" => [^blocked_contact_id],
+             "not_rejected_candidate_ids" => ["leo_1_observe_target_a_1"],
+             "rejection_reason_counts" => %{"quality_gate_failed" => 1}
+           } = rejection_report = artifact["candidate_rejection_report"]
+
+    assert %{
+             "candidate_id" => ^blocked_contact_id,
+             "rejection_status" => "rejected",
+             "rejection_reasons" => ["quality_gate_failed"],
+             "activity_context" => %{
+               "provenance" => %{
+                 "quality_gate_candidate_filter" => %{
+                   "source_summary_schema_contract" =>
+                     "operational_quality_gate_unavailable_resource_summary.v1",
+                   "source_report_paths" => [
+                     "accepted_planning_state.operational_quality_gate_unavailable_resource_summary"
+                   ],
+                   "blocked_spacecraft_ids" => ["sat_1"]
+                 }
+               }
+             }
+           } = Enum.find(rejection_report["rows"], &(&1["candidate_id"] == blocked_contact_id))
+
+    assert [
+             %{
+               "id" => ^blocked_contact_id,
+               "invalidated_reason" => "dropped_by_quality_gate_unavailable_resource",
+               "replacement_candidate_id" => ^blocked_contact_id
+             }
+           ] = artifact["invalidated_candidates"]
+
+    assert "unavailable-resource quality gates excluded explicitly scoped contact candidates" in artifact[
+             "warnings"
+           ]
+
+    review = OperatorReview.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "review_type" => "candidate_rejection_review",
+             "candidate_id" => ^blocked_contact_id,
+             "source" => "candidate_refresh.candidate_rejection_report.rows"
+           } = Enum.find(review["rows"], &(&1["candidate_id"] == blocked_contact_id))
+
+    import = CadenceImport.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "source_review_type" => "candidate_rejection_review",
+             "subject_id" => ^blocked_contact_id,
+             "source_candidate_rejection" => %{"candidate_id" => ^blocked_contact_id}
+           } =
+             Enum.find(
+               import["rows"],
+               &(&1["subject_id"] == blocked_contact_id and
+                   &1["source_review_type"] == "candidate_rejection_review")
+             )
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+
+    assert {:ok, %{"schema_contract" => "candidate_rejection_report.v1"}} =
+             Schema.validate_artifact(rejection_report)
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(review)
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(import)
+  end
+
+  test "aggregate pressure and contact ids under another spacecraft do not filter candidates" do
+    unavailable_resource_summary =
+      quality_gate_unavailable_resource_summary_fixture()
+      |> Map.merge(%{
+        "blocked_contact_ids_by_blocking_dimension" => %{
+          "payload" => ["leo_1_downlink_equator_prime_1"]
+        },
+        "blocked_contact_ids_by_spacecraft_id" => %{
+          "sat_2" => ["leo_1_downlink_equator_prime_1"]
+        },
+        "blocked_contact_ids_by_status" => %{
+          "review_required" => ["leo_1_downlink_equator_prime_1"]
+        }
+      })
+
+    artifact =
+      result_set()
+      |> CandidateRefresh.build(
+        candidate_refresh:
+          refresh_request()
+          |> Map.put(
+            "source_operational_quality_gate_unavailable_resource_summary",
+            unavailable_resource_summary
+          ),
+        generated_at: ~U[2026-05-14 00:00:00Z]
+      )
+
+    assert Enum.map(artifact["candidate_activities"], & &1["id"]) == [
+             "leo_1_observe_target_a_1",
+             "leo_1_downlink_equator_prime_1"
+           ]
+
+    assert %{
+             "candidate_count" => 2,
+             "rejected_count" => 0,
+             "not_rejected_count" => 2,
+             "rejected_candidate_ids" => []
+           } = artifact["candidate_rejection_report"]
+
+    refute "unavailable-resource quality gates excluded explicitly scoped contact candidates" in artifact[
+             "warnings"
+           ]
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
+  test "refreshes without unavailable-resource summaries do not add a rejection report" do
+    artifact =
+      result_set()
+      |> CandidateRefresh.build(
+        candidate_refresh: refresh_request(),
+        generated_at: ~U[2026-05-14 00:00:00Z]
+      )
+
+    refute Map.has_key?(artifact, "candidate_rejection_report")
   end
 
   test "quality gate replay accepts wrapped operational unavailable-resource summaries" do

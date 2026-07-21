@@ -82,6 +82,22 @@ From those inputs the pipeline:
 
 - Replays prior `contact_filter_report.v1` station suppressions from the same direct, wrapped, review, and import surfaces as ground-network unavailable/reserved/zero-capacity station intervals before regenerated contacts are filtered, while preserving contact-filter source report provenance, suppression reason counts, invalid contact input counts, and trust-boundary evidence.
 
+### Unavailable-resource quality-gate summaries
+
+- Applies direct, accepted-state, mission-state, and result-artifact-wrapped
+  `operational_quality_gate_unavailable_resource_summary.v1` evidence to
+  regenerated contact selection only when an exact candidate contact ID is
+  listed under that candidate's spacecraft identity in
+  `blocked_contact_ids_by_spacecraft_id`.
+- Aggregate unavailable-resource reasons, pressure counts, blocking-dimension
+  maps, and contact IDs scoped to another spacecraft remain provenance only;
+  they do not suppress candidates.
+- Emits `candidate_rejection_report.v1` rows for the evaluated candidate set,
+  preserving the quality-gate source path and artifact/report identities for
+  rejected contacts. A matching prior candidate is invalidated with
+  `dropped_by_quality_gate_unavailable_resource`, and the existing
+  operator-review/Cadence-import handoff remains review-only.
+
 ### Station-calendar reports
 
 - Replays prior `station_calendar_report.v1` affected-contact rows from direct source reports, result-artifact wrappers, operator-review packages, and Cadence-import manifests as the same unavailable, reserved, and zero-capacity pre-filter station feedback, while preserving calendar-entry, reservation, source-review, source-path, provenance, and trust-boundary evidence — including wrapper trust boundaries inherited by nested operator-review packages or nested Cadence-import manifests when reconstructed review rows omit row-level trust.

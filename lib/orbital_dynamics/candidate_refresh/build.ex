@@ -18,6 +18,7 @@ defmodule OrbitalDynamics.CandidateRefresh.Build do
     CandidateDiffReport,
     ContactGate,
     ObjectiveMatching,
+    QualityGateCandidateFilter,
     RefreshedWindows,
     ResourceFiltering,
     SourceObjectives,
@@ -68,6 +69,9 @@ defmodule OrbitalDynamics.CandidateRefresh.Build do
     {contact_candidates, contact_filter_report} =
       ContactGate.filter_candidates(raw_candidates, refresh, &BuildGroundNetwork.build/1)
 
+    {contact_candidates, quality_gate_dropped_candidates, candidate_rejection_report} =
+      QualityGateCandidateFilter.apply(contact_candidates, refresh)
+
     {candidates, resource_filter_report} =
       ResourceFiltering.apply_filters(
         contact_candidates,
@@ -98,9 +102,13 @@ defmodule OrbitalDynamics.CandidateRefresh.Build do
         refresh,
         candidates,
         CandidateDiffReport.mark_dropped_candidates(
-          allocation_dropped_candidates,
-          "dropped_by_contact_allocation"
+          quality_gate_dropped_candidates,
+          "dropped_by_quality_gate_unavailable_resource"
         ) ++
+          CandidateDiffReport.mark_dropped_candidates(
+            allocation_dropped_candidates,
+            "dropped_by_contact_allocation"
+          ) ++
           CandidateDiffReport.mark_dropped_candidates(
             budget_dropped_candidates,
             "dropped_by_candidate_budget"
@@ -162,6 +170,7 @@ defmodule OrbitalDynamics.CandidateRefresh.Build do
           candidates: candidates,
           result_errors: result_set.errors,
           contact_filter_report: contact_filter_report,
+          candidate_rejection_report: candidate_rejection_report,
           allocation_dropped_candidates: allocation_dropped_candidates,
           resource_filter_report: resource_filter_report,
           refresh_budget_report: refresh_budget_report,
@@ -182,8 +191,14 @@ defmodule OrbitalDynamics.CandidateRefresh.Build do
         ),
       "source_window_lineage" => SourceWindowLineage.build(candidates)
     }
+    |> maybe_put_candidate_rejection_report(candidate_rejection_report)
     |> BuildOperationalFeedback.maybe_put(refresh, &OperationalFeedbackAssembly.build/1)
   end
+
+  defp maybe_put_candidate_rejection_report(artifact, nil), do: artifact
+
+  defp maybe_put_candidate_rejection_report(artifact, report),
+    do: Map.put(artifact, "candidate_rejection_report", report)
 
   defp model_limits do
     OrbitalDynamics.CandidateRefresh.ModelLimits.strings()

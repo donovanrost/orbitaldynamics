@@ -75,6 +75,10 @@ Implemented or partially implemented modules and artifacts include:
   paths, with replay-derived pressure feeding explainable V3 score terms for
   branch-local contact, resource, station-calendar, timeline, readiness,
   quality-gate, import-readiness, validation, and storage/downlink tradeoffs.
+  Explicit unavailable-resource quality-gate contact IDs now also affect
+  CandidateRefresh selection when the ID is scoped to the regenerated
+  candidate's spacecraft; aggregate pressure remains provenance-only, and the
+  decision emits a candidate-rejection review/import explanation.
 - Example manifests and outputs in `studies/`, `study_results/`, and
   `benchmark_results/`.
 

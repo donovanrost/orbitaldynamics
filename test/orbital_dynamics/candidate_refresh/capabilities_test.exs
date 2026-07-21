@@ -106,6 +106,7 @@ defmodule OrbitalDynamics.CandidateRefresh.CapabilitiesTest do
     assert :model_acceptance_report in inputs
     assert :validation_safety_case_summary in inputs
     assert :candidate_activities in outputs
+    assert :candidate_rejection_report in outputs
     assert :freshness_report in outputs
     assert :contact_allocation_report in outputs
     assert :refresh_budget_report in outputs
@@ -638,6 +639,7 @@ defmodule OrbitalDynamics.CandidateRefresh.CapabilitiesTest do
     assert :source_resource_filter_report_resource_feedback in row_semantics
     assert :source_candidate_diff_report_input_provenance in row_semantics
     assert :source_candidate_rejection_report_input_provenance in row_semantics
+    assert :source_quality_gate_unavailable_resource_contact_filtering in row_semantics
     assert :source_provider_counteroffer_report_input_provenance in row_semantics
     assert :source_provider_counteroffer_review_summary_input_provenance in row_semantics
     assert :source_provider_counteroffer_plan_impact_summary_input_provenance in row_semantics
