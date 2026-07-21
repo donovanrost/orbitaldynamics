@@ -77,6 +77,94 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairStationCalendarAnnotationTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "repair replacement ranking internalizes calibrated station-calendar pressure" do
+    reserved_candidate =
+      "dl_reserved"
+      |> refreshed_downlink(500.0, 560.0)
+      |> Map.put("score", 10.0)
+
+    nominal_candidate =
+      "dl_nominal"
+      |> refreshed_downlink(570.0, 630.0)
+      |> Map.put("score", 9.8)
+
+    plan = %{
+      "activities" => [downlink("dl_1", 100.0, 160.0)],
+      "candidate_activities" => [reserved_candidate, nominal_candidate]
+    }
+
+    common_opts = [
+      realized_state: %{activities: [%{id: "dl_1", status: "missed"}]},
+      current_epoch_s: 165.0,
+      ground_network: [
+        %{
+          id: "equator_reserved",
+          ground_station_id: "equator_prime",
+          availability: "reserved",
+          starts_at_s: 490.0,
+          ends_at_s: 565.0,
+          reservation_id: "reservation_partner",
+          reserved_by: "partner_ops"
+        }
+      ]
+    ]
+
+    nominal_artifact =
+      repair(plan, Keyword.put(common_opts, :scoring_policy, %{"risk_weight" => "1.0"}))
+
+    pressured_artifact =
+      repair(plan, Keyword.put(common_opts, :scoring_policy, %{"risk_weight" => "0.5"}))
+
+    assert [%{"id" => "dl_nominal", "repair" => %{"action" => "moved"}}] =
+             nominal_artifact["activities"]
+
+    refute Map.has_key?(
+             nominal_artifact["score_terms"],
+             "station_calendar_pressure_penalty"
+           )
+
+    refute "station_calendar_pressure_penalty" in nominal_artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert_in_delta nominal_artifact["score"], -94.9, 1.0e-9
+
+    assert %{
+             "station_calendar_review_count" => 1,
+             "rows" => rows
+           } = nominal_artifact["operator_review_package"]
+
+    assert Enum.any?(
+             rows,
+             &(&1["review_type"] == "station_calendar_review" and
+                 &1["contact_id"] == "dl_reserved")
+           )
+
+    assert [%{"id" => "dl_reserved", "repair" => %{"action" => "moved"}}] =
+             pressured_artifact["activities"]
+
+    assert pressured_artifact["score_terms"]["station_calendar_pressure_penalty"] == -0.5
+    assert_in_delta pressured_artifact["score"], -94.5, 1.0e-9
+
+    assert Enum.any?(
+             pressured_artifact["operator_review_package"]["rows"],
+             &(&1["review_type"] == "station_calendar_review" and
+                 &1["contact_id"] == "dl_reserved")
+           )
+
+    assert Enum.any?(
+             pressured_artifact["cadence_import_manifest"]["rows"],
+             &(&1["import_action"] == "review_station_calendar" and
+                 &1["contact_id"] == "dl_reserved")
+           )
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(nominal_artifact)
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(pressured_artifact)
+  end
+
   test "repair station calendar annotates planned-contact downlink source candidates" do
     planned_contact =
       downlink("planned_contact_dl", 500.0, 560.0)

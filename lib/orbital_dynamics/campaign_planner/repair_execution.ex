@@ -14,6 +14,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairExecution do
     RepairPolicySemantics,
     RepairRealizedState,
     RepairSourceReports,
+    StationCalendarPressureBranches,
     ValueEncoding
   }
 
@@ -26,7 +27,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairExecution do
     {candidates, station_calendar_report} =
       apply_station_calendar(source_candidates, request)
 
-    context = repair_context(request, planned_activities, candidates)
+    context = repair_context(request, planned_activities, candidates, station_calendar_report)
 
     repaired =
       planned_activities
@@ -74,7 +75,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairExecution do
     }
   end
 
-  defp repair_context(request, planned_activities, candidates) do
+  defp repair_context(request, planned_activities, candidates, station_calendar_report) do
     %{
       candidates: candidates,
       current_epoch_s: request.current_epoch_s,
@@ -89,9 +90,22 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairExecution do
       selected_activity_ids: selected_activity_ids(planned_activities),
       repair_policy: request.repair_policy,
       scoring_policy: request.scoring_policy,
-      candidate_diff_replacements: candidate_diff_replacements(request.candidate_refresh)
+      candidate_diff_replacements: candidate_diff_replacements(request.candidate_refresh),
+      station_calendar_pressure_candidate_ids:
+        station_calendar_pressure_candidate_ids(station_calendar_report)
     }
   end
+
+  defp station_calendar_pressure_candidate_ids(%{"affected_contacts" => rows})
+       when is_list(rows) do
+    rows
+    |> Enum.filter(&StationCalendarPressureBranches.pressure?/1)
+    |> Enum.map(&Map.get(&1, "contact_id"))
+    |> Enum.reject(&(&1 in [nil, ""]))
+    |> MapSet.new()
+  end
+
+  defp station_calendar_pressure_candidate_ids(_report), do: MapSet.new()
 
   defp candidate_diff_replacements(nil), do: %{}
 

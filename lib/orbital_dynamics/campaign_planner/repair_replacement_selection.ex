@@ -78,8 +78,15 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairReplacementSelection do
 
       move_cost = numeric_policy_value(context.scoring_policy, "schedule_move_cost_weight", 0.01)
 
-      {diff_priority, -(candidate_score(candidate) - churn_cost - churn_s * move_cost), churn_s,
-       ActivityTiming.activity_start(candidate), ActivityIdentity.activity_id(candidate)}
+      station_calendar_pressure_penalty =
+        station_calendar_pressure_penalty(candidate, context)
+
+      ranking_score =
+        candidate_score(candidate) - churn_cost - churn_s * move_cost -
+          station_calendar_pressure_penalty
+
+      {diff_priority, -ranking_score, churn_s, ActivityTiming.activity_start(candidate),
+       ActivityIdentity.activity_id(candidate)}
     end)
     |> List.first()
   end
@@ -117,6 +124,17 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairReplacementSelection do
 
   defp candidate_score(candidate),
     do: ScalarValues.numeric_or_nil(Map.get(candidate, "score")) || 0.0
+
+  defp station_calendar_pressure_penalty(candidate, context) do
+    pressure_candidate_ids =
+      Map.get(context, :station_calendar_pressure_candidate_ids, MapSet.new())
+
+    if MapSet.member?(pressure_candidate_ids, ActivityIdentity.activity_id(candidate)) do
+      numeric_policy_value(context.scoring_policy, "risk_weight", 1.0)
+    else
+      0.0
+    end
+  end
 
   defp numeric_policy_value(policy, key, default) do
     case ScalarValues.numeric_or_nil(Map.get(policy, key)) do

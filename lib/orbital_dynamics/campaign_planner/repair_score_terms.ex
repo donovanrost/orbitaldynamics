@@ -264,12 +264,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
 
     Enum.count(affected_contacts, fn row ->
       MapSet.member?(selected_activity_ids, Map.get(row, "contact_id")) and
-        not is_nil(
-          StationCalendarPressureBranches.event(
-            row,
-            "campaign_repair.source_station_calendar_report"
-          )
-        )
+        StationCalendarPressureBranches.pressure?(row)
     end)
   end
 

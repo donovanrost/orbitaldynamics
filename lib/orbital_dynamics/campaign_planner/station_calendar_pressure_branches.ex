@@ -13,6 +13,12 @@ defmodule OrbitalDynamics.CampaignPlanner.StationCalendarPressureBranches do
 
   def from_reports(reports), do: from_reports(reports, default_callbacks(), [])
 
+  def pressure?(row), do: pressure?(row, default_callbacks())
+
+  def pressure?(row, callbacks) when is_list(callbacks) do
+    not is_nil(event(row, "station_calendar.pressure", callbacks))
+  end
+
   def from_reports(reports, callbacks_or_opts) do
     if callback_keywords?(callbacks_or_opts) do
       from_reports(reports, callbacks_or_opts, [])

@@ -63,6 +63,11 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   contact ID is present in the repaired selected activities and the shared V3
   calendar-pressure classifier identifies reserved, unavailable, or reduced
   capacity pressure. Affected but unselected alternatives do not change score.
+  Replacement ranking uses the same classifier and subtracts the same calibrated
+  unit from pressure-bearing candidates within each semantic candidate-diff
+  priority tier. This can prefer a slightly lower-value nominal contact while a
+  smaller weight can still select the pressured alternative; calendars remain
+  annotation/review evidence rather than hard candidate suppression.
 - `resource_projection_pressure_penalty` counts every risk emitted by
   `ResourceProjectionRisk.risk_indicators/1`, including storage/downlink/battery,
   negative thermal margin, spacecraft or payload/antenna availability, degraded

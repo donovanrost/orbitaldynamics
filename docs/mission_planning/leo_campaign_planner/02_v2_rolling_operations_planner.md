@@ -266,7 +266,13 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
 - `source_station_calendar_report` when repair-time `ground_network` or
   `station_calendar` intervals annotate source contact candidates. Reserved,
   unavailable, or reduced-capacity affected rows participate in repair scoring
-  only when their contact IDs are selected into repaired activities.
+  only when their contact IDs are selected into repaired activities. Repair
+  replacement ranking uses the same pressure classifier as one calibrated
+  `risk_weight` unit within the existing semantic candidate-diff priority tier.
+  A nominal alternative can therefore outrank a slightly higher-value pressured
+  contact, while smaller weights can still select the pressured contact and
+  preserve its score, review, and import evidence; the calendar remains
+  annotation-only and does not mutate schedules.
 - V1 `contact_contention_report.v1` on campaign plans, marking same-station
   and same-spacecraft cross-station overlapping contacts without scheduling or
   suppressing them. Generated campaign and refresh contact rows use
