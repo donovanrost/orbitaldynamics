@@ -446,7 +446,15 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.LintTest do
       "candidate_activities" => [],
       "ranked_timelines" => [],
       "warnings" => [],
-      "assumptions" => %{},
+      "assumptions" => %{
+        "activity_builder" => "windows_to_observe_and_downlink_candidates",
+        "timeline_selector" => "per_spacecraft_greedy_non_overlapping",
+        "resource_filter" => "resource_summary_availability_and_margin_filter",
+        "contact_filter" => "ground_network_availability_filter_before_ranking",
+        "cadence_integration" => "artifact_only_no_api_or_database_writes",
+        "constraints" => %{},
+        "scoring_policy" => %{}
+      },
       "provenance" => %{},
       "ranking_explanation" => %{
         "objective" => "maximize test value",

@@ -2,6 +2,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanContracts do
   @moduledoc false
 
   alias OrbitalDynamics.Schema.{
+    CampaignPlanAssumptionContracts,
     CampaignPlanCadenceImportContracts,
     CampaignPlanCommandWindowContracts,
     CampaignPlanConstraintContracts,
@@ -119,6 +120,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanContracts do
     |> call(callbacks, :expect_type, ["$", artifact, "warnings", :list])
     |> CampaignPlanWarningContracts.validate(artifact)
     |> call(callbacks, :expect_type, ["$", artifact, "assumptions", :map])
+    |> CampaignPlanAssumptionContracts.validate(artifact)
     |> call(callbacks, :expect_type, ["$", artifact, "provenance", :map])
     |> call(callbacks, :expect_type, ["$", artifact, "ranking_explanation", :map])
     |> call(callbacks, :validate_rows, [

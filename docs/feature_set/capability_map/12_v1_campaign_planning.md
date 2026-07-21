@@ -64,6 +64,11 @@ and `plan_id` must equal `campaign_plan:<study_id>:<generated_at>`. This keeps
 the source identity consumed by optimizer, review, and Cadence handoffs tied to
 the producer's deterministic study/time inputs.
 
+V1 planning assumptions require the producer's candidate-builder, timeline-
+selector, resource-filter, contact-filter, and artifact-only Cadence-boundary
+identifiers plus typed constraint and scoring-policy maps. Optimizer/report
+reconciliation continues to pin the values inside those maps to plan evidence.
+
 V1 warnings remain an extensible human-readable vocabulary, but executable
 validation and export require every entry to be a non-empty string and reject
 duplicates before warning evidence reaches review/import handoffs.

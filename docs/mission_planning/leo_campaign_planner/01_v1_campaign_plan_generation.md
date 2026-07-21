@@ -97,6 +97,9 @@ It answers:
   are preserved with deterministic suffixed row IDs.
 - Unique non-empty warning strings, assumptions, provenance, ranking score, and
   ranking explanation.
+- Planning assumptions pin the candidate builder, timeline selector, resource
+  and contact filters, artifact-only Cadence boundary, and the constraint /
+  scoring-policy maps used for the plan.
 - Reproducible study archive with manifest hash when run from disk.
 
 ## Cadence Integration

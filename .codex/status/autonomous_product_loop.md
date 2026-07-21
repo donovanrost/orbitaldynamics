@@ -5,40 +5,44 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Validate V1 warning integrity.
+Contract V1 planning assumptions.
 
 Status:
 Complete and parent-reviewed; ready to publish.
 
 Delivered:
-- Added executable warning-row validation for non-empty strings.
-- Rejected duplicate warning strings at the owning top-level field.
-- Exported warning items with string type, non-empty/non-whitespace constraints,
-  and `uniqueItems` without pinning an extensible vocabulary.
-- Covered checked-in empty warnings and a direct empty-campaign build's four
-  generated warnings plus non-string, blank, duplicate, and malformed inputs.
-- Removed the superseded generic string-array schema helper.
+- Required the seven assumption fields emitted by every current V1 producer.
+- Pinned candidate-builder, timeline-selector, resource-filter, contact-filter,
+  and artifact-only Cadence-boundary identifiers.
+- Required constraint and scoring-policy assumption values to be maps.
+- Exported the same required fields, constants, and map types in JSON Schema.
+- Ensured missing fields produce one required-field remediation each rather than
+  redundant missing-plus-constant/type errors.
+- Aligned the lint task's shared nominal campaign helper with current producer
+  assumptions; no runtime producer or compatibility behavior was changed.
 - Regenerated only `campaign_plan.v1` and the aggregate schema bundle.
 - Updated V1 generation, planning, reproducibility, and roadmap documentation.
 
 Review calibration:
-- `CampaignPlanner.PlanMetadata.warnings/6` emits distinct non-empty strings from
-  independent planning conditions; the contract captures that invariant only.
-- Existing top-level type validation retains malformed-list ownership, while the
-  focused 57-line validator owns members and duplicates.
-- Parent review found runtime and JSON Schema aligned with no compatibility
-  exception or fixture rewrite.
+- Checked-in and freshly generated direct plans share the exact contract from
+  `CampaignPlanner.PlanMetadata.assumptions/1`.
+- The sole broad failure source was one hand-written empty-assumption lint helper
+  reused across seven tests; updating it restored intended pass/single-error
+  report behavior.
+- Parent review found the focused validator cohesive at 49 lines and kept nested
+  constraint/scoring semantics with their existing validators.
 
 Verification:
-- Focused plan/export integration: `25 passed`.
-- Schema area: `260 passed`.
+- Focused plan/export integration: `26 passed`.
+- Focused assumptions plus lint task: `19 passed`.
+- Schema area: `267 passed`; combined schema plus lint: `279 passed`.
 - Planner area: `754 passed`.
-- Full suite: `3585 passed`.
+- Full suite: `3592 passed`.
 - `mix format --check-formatted`, `mix compile --warnings-as-errors`, and
   `git diff --check` pass.
 
 Previous published slice:
-- `201db71e` Validate V1 plan identity (`3579 passed`).
+- `004076f9` Validate V1 plan warnings (`3585 passed`).
 
 Remaining maturity gaps:
 - Continue calibrated realized-feedback depth where evidence is genuinely

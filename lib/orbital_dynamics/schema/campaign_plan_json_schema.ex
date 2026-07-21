@@ -4,6 +4,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanJsonSchema do
   @property_fields [
     "proposed_contacts",
     "activities",
+    "assumptions",
     "candidate_activities",
     "contact_intents",
     "generated_at",
@@ -63,6 +64,46 @@ defmodule OrbitalDynamics.Schema.CampaignPlanJsonSchema do
 
   def property("generated_at", _opts) do
     %{"type" => "string", "format" => "date-time"}
+  end
+
+  def property("assumptions", _opts) do
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "required" => [
+        "activity_builder",
+        "timeline_selector",
+        "resource_filter",
+        "contact_filter",
+        "cadence_integration",
+        "constraints",
+        "scoring_policy"
+      ],
+      "properties" => %{
+        "activity_builder" => %{
+          "type" => "string",
+          "const" => "windows_to_observe_and_downlink_candidates"
+        },
+        "timeline_selector" => %{
+          "type" => "string",
+          "const" => "per_spacecraft_greedy_non_overlapping"
+        },
+        "resource_filter" => %{
+          "type" => "string",
+          "const" => "resource_summary_availability_and_margin_filter"
+        },
+        "contact_filter" => %{
+          "type" => "string",
+          "const" => "ground_network_availability_filter_before_ranking"
+        },
+        "cadence_integration" => %{
+          "type" => "string",
+          "const" => "artifact_only_no_api_or_database_writes"
+        },
+        "constraints" => %{"type" => "object"},
+        "scoring_policy" => %{"type" => "object"}
+      }
+    }
   end
 
   def property("planning_horizon", _opts) do
