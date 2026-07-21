@@ -104,6 +104,64 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
     end
   end
 
+  test "rejects inconsistent ranking arithmetic, priority, evidence, and order", context do
+    ranking_path = ranking_path(context.activity_index)
+    row_path = ranking_path <> ".rows[0]"
+    [ranking_row] = get_in_path(context.artifact, ranking_path <> ".rows")
+
+    score_order_artifact =
+      context.artifact
+      |> put_in_path(ranking_path <> ".rows", [
+        ranking_row,
+        ranking_row
+        |> Map.put("candidate_id", "dl_higher_score")
+        |> Map.put("candidate_score", 11.0)
+        |> Map.put("ranking_score", -93.0)
+        |> Map.put("rank", 2)
+        |> Map.put("selected", false)
+      ])
+      |> put_in_path(ranking_path <> ".evaluated_candidate_count", 2)
+
+    priority_order_artifact =
+      context.artifact
+      |> put_in_path(ranking_path <> ".rows", [
+        ranking_row,
+        ranking_row
+        |> Map.put("candidate_id", "dl_semantic")
+        |> Map.put("semantic_candidate_diff_match", true)
+        |> Map.put("candidate_diff_priority", 0)
+        |> Map.put("rank", 2)
+        |> Map.put("selected", false)
+      ])
+      |> put_in_path(ranking_path <> ".evaluated_candidate_count", 2)
+
+    invalid_cases = [
+      {row_path <> ".ranking_score",
+       put_in_path(context.artifact, row_path <> ".ranking_score", -93.0)},
+      {row_path <> ".candidate_diff_priority",
+       put_in_path(context.artifact, row_path <> ".semantic_candidate_diff_match", true)},
+      {row_path <> ".station_calendar_pressure_sources",
+       context.artifact
+       |> put_in_path(row_path <> ".station_calendar_pressure_penalty", -1.0)
+       |> put_in_path(row_path <> ".ranking_score", -95.0)},
+      {row_path <> ".link_capacity_pressure_shortfall_mb",
+       context.artifact
+       |> put_in_path(row_path <> ".link_capacity_pressure_penalty", -1.0)
+       |> put_in_path(row_path <> ".ranking_score", -95.0)},
+      {row_path <> ".resource_projection_pressure_risk_indicators",
+       context.artifact
+       |> put_in_path(row_path <> ".resource_projection_pressure_penalty", -1.0)
+       |> put_in_path(row_path <> ".ranking_score", -95.0)},
+      {ranking_path <> ".rows", score_order_artifact},
+      {ranking_path <> ".rows", priority_order_artifact}
+    ]
+
+    for {expected_path, invalid} <- invalid_cases do
+      assert {:error, report} = Schema.validate_artifact(invalid)
+      assert Enum.any?(report["errors"], &(&1["path"] == expected_path))
+    end
+  end
+
   defp ranking_path(activity_index),
     do: "$.activities[#{activity_index}].repair.replacement_ranking"
 

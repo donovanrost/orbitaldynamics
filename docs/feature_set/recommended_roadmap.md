@@ -96,6 +96,9 @@ Already implemented or heavily covered:
 - runtime and exported `campaign_repair.v2` schemas validate replacement-
   ranking envelopes, rows, optional pressure evidence, row/rank uniqueness, and
   selected-candidate consistency without closing unrelated repair metadata
+- runtime ranking validation also pins score arithmetic, semantic-diff priority,
+  nonzero-penalty evidence presence, and priority/score ordering so internally
+  contradictory explanations cannot pass as valid V2 repair handoffs
 - V2 candidate-refresh source freshness contributes one explicit normalized
   risk-weight penalty for a stale or unknown report, aligned with its
   review/import gate and V3 refresh-freshness pressure semantics

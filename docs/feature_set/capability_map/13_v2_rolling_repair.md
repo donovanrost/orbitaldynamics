@@ -144,6 +144,11 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   nested ranking model/scope, stable candidate IDs, row/evidence types, derived
   row count, sequential ranks, unique candidates, and selected-candidate
   consistency while leaving unrelated repair metadata extensible.
+- Runtime validation additionally verifies that each final ranking score equals
+  candidate value plus its emitted penalties, semantic-diff match and priority
+  agree, nonzero pressure terms carry their source evidence, and rows remain
+  ordered by diff priority then score. Zero-weight pressured evidence remains
+  valid so policy calibration can intentionally neutralize a known pressure.
 
 ## Additional reports and reconciliation
 

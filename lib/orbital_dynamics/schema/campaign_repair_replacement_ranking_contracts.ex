@@ -7,6 +7,13 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts do
     "campaign_repair.source_contact_allocation_report.rows",
     "campaign_repair.source_station_calendar_report.affected_contacts"
   ]
+  @penalty_fields [
+    "schedule_churn_penalty",
+    "schedule_move_penalty",
+    "station_calendar_pressure_penalty",
+    "link_capacity_pressure_penalty",
+    "resource_projection_pressure_penalty"
+  ]
   @required_row_fields [
     "rank",
     "candidate_id",
@@ -142,6 +149,9 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts do
     |> validate_positive_optional_number(path, row, "link_capacity_pressure_shortfall_mb")
     |> expect_optional_list(path, row, "resource_projection_pressure_risk_indicators")
     |> validate_resource_risk_indicators(path, row)
+    |> validate_candidate_diff_priority(path, row)
+    |> validate_ranking_score(path, row)
+    |> validate_pressure_evidence(path, row)
   end
 
   defp validate_row(issues, path, _row),
@@ -238,6 +248,102 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts do
   defp validate_resource_risk_indicator(issues, path, _indicator),
     do: [error(path, "must be a map") | issues]
 
+  defp validate_candidate_diff_priority(issues, path, row) do
+    expected_priority =
+      case Map.get(row, "semantic_candidate_diff_match") do
+        true -> 0
+        false -> 1
+        _value -> nil
+      end
+
+    if is_integer(expected_priority) and
+         Map.get(row, "candidate_diff_priority") != expected_priority do
+      [
+        error(
+          path <> ".candidate_diff_priority",
+          "must equal 0 for a semantic candidate-diff match and 1 otherwise"
+        )
+        | issues
+      ]
+    else
+      issues
+    end
+  end
+
+  defp validate_ranking_score(issues, path, row) do
+    values = [Map.get(row, "candidate_score") | Enum.map(@penalty_fields, &Map.get(row, &1))]
+    ranking_score = Map.get(row, "ranking_score")
+
+    if is_number(ranking_score) and Enum.all?(values, &is_number/1) do
+      expected_score = Enum.sum(values)
+
+      if abs(ranking_score - expected_score) <= 1.0e-9 do
+        issues
+      else
+        [
+          error(
+            path <> ".ranking_score",
+            "must equal candidate score plus all ranking penalties"
+          )
+          | issues
+        ]
+      end
+    else
+      issues
+    end
+  end
+
+  defp validate_pressure_evidence(issues, path, row) do
+    issues
+    |> require_nonzero_penalty_evidence(
+      path,
+      row,
+      "station_calendar_pressure_penalty",
+      "station_calendar_pressure_sources",
+      &nonempty_list?/1
+    )
+    |> require_nonzero_penalty_evidence(
+      path,
+      row,
+      "link_capacity_pressure_penalty",
+      "link_capacity_pressure_shortfall_mb",
+      &positive_number?/1
+    )
+    |> require_nonzero_penalty_evidence(
+      path,
+      row,
+      "resource_projection_pressure_penalty",
+      "resource_projection_pressure_risk_indicators",
+      &nonempty_list?/1
+    )
+  end
+
+  defp require_nonzero_penalty_evidence(
+         issues,
+         path,
+         row,
+         penalty_field,
+         evidence_field,
+         evidence?
+       ) do
+    penalty = Map.get(row, penalty_field)
+
+    if is_number(penalty) and penalty != 0 and not evidence?.(Map.get(row, evidence_field)) do
+      [
+        error(
+          "#{path}.#{evidence_field}",
+          "must be present when #{penalty_field} is nonzero"
+        )
+        | issues
+      ]
+    else
+      issues
+    end
+  end
+
+  defp nonempty_list?(value), do: is_list(value) and value != []
+  defp positive_number?(value), do: is_number(value) and value > 0.0
+
   defp validate_consistency(issues, path, ranking, rows) when is_list(rows) do
     if Enum.all?(rows, &is_map/1) do
       candidate_ids = Enum.map(rows, &Map.get(&1, "candidate_id"))
@@ -263,6 +369,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts do
         length(candidate_ids),
         "must contain unique candidate IDs"
       )
+      |> validate_row_order(path, rows)
       |> validate_selected_candidate(path, ranking, selected_rows)
     else
       issues
@@ -270,6 +377,34 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts do
   end
 
   defp validate_consistency(issues, _path, _ranking, _rows), do: issues
+
+  defp validate_row_order(issues, path, rows) do
+    order_values =
+      Enum.map(rows, &{Map.get(&1, "candidate_diff_priority"), Map.get(&1, "ranking_score")})
+
+    if Enum.all?(order_values, fn {priority, score} ->
+         is_integer(priority) and is_number(score)
+       end) and not ordered_rows?(order_values) do
+      [
+        error(
+          path <> ".rows",
+          "must be ordered by candidate-diff priority ascending then ranking score descending"
+        )
+        | issues
+      ]
+    else
+      issues
+    end
+  end
+
+  defp ordered_rows?(order_values) do
+    order_values
+    |> Enum.chunk_every(2, 1, :discard)
+    |> Enum.all?(fn [{left_priority, left_score}, {right_priority, right_score}] ->
+      left_priority < right_priority or
+        (left_priority == right_priority and left_score >= right_score)
+    end)
+  end
 
   defp validate_selected_candidate(issues, path, ranking, [selected_row]) do
     issues
