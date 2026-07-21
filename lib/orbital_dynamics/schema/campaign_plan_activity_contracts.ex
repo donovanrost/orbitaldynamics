@@ -52,9 +52,25 @@ defmodule OrbitalDynamics.Schema.CampaignPlanActivityContracts do
 
   defp validate_activity(issues, path, activity) do
     issues
+    |> validate_type(path, activity)
     |> validate_duration(path, activity)
     |> validate_score(path, activity)
     |> validate_source_window(path, activity)
+  end
+
+  defp validate_type(issues, path, activity) do
+    case Map.fetch(activity, "type") do
+      :error ->
+        issues
+
+      {:ok, type} when is_binary(type) ->
+        if String.trim(type) == "",
+          do: [error(path <> ".type", "must be a non-empty string") | issues],
+          else: issues
+
+      {:ok, _type} ->
+        [error(path <> ".type", "must be a string") | issues]
+    end
   end
 
   defp validate_duration(issues, path, activity) do

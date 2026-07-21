@@ -190,6 +190,8 @@ work, a **partial** executable-schema track, and **near-term** / **later** /
 - Selected, candidate, and ranked activities require stable outer and nested
   source-window IDs, with executable equality checks preserving activity lineage
   back to the producer window.
+- Their activity-type tokens are required nonblank strings in runtime and export
+  while retaining an open vocabulary for compatible future activity kinds.
 - It also exports typed target-commitment rows reconciled with candidate and
   selected observation counts, durations, selected IDs, statuses, unique target
   identity, and matching objective-satisfaction target rows.

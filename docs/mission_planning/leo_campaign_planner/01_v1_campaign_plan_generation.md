@@ -75,6 +75,9 @@ It answers:
 - Every activity preserves its producer window through required stable
   `source_window_id` and nested `source_window.id` evidence. Runtime validation
   requires those IDs to match before the activity is accepted for handoff.
+- Activity `type` is a required nonblank string across selected, candidate, and
+  ranked rows. The vocabulary remains open so later planners can add richer
+  activity kinds without silently accepting malformed tokens.
 - `campaign_plan.proposed_contacts` with stable external IDs for later Cadence
   import.
 - `campaign_plan.contact_intents` as artifact-only `contact_intent.v1` rows for

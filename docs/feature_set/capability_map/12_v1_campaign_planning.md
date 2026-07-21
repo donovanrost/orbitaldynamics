@@ -120,6 +120,11 @@ and runtime validation requires them to match. The export requires the nested ID
 so downstream timing, score, and provenance review can retain the producer
 window identity.
 
+Every selected, candidate, and ranked activity also requires a nonblank string
+`type`. The runtime/export contract intentionally keeps that vocabulary open:
+current producers emit observation and contact-family tokens, while future
+activity kinds remain compatible without allowing malformed dispatch values.
+
 Runtime `campaign_plan.v1` validation requires each ranked timeline to carry a
 stable scenario ID, numeric score, and numeric score-term values. When the
 optional `score_term_report.v1` is present, its source, model, term-key union,

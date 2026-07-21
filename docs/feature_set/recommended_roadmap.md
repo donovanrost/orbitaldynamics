@@ -232,6 +232,8 @@ Already implemented or heavily covered:
   evidence, with each activity score reconciled to its numeric term sum
 - selected, candidate, and ranked V1 activities require matching stable outer
   and nested source-window IDs for producer-window lineage
+- selected, candidate, and ranked V1 activity types are nonblank strings while
+  retaining an extensible vocabulary
 - optional V1 optimizer metadata is reconciled with enclosing candidate,
   selected-activity, ranked-timeline, constraint, scoring-policy, and objective
   evidence; the required ranking explanation is nested and typed

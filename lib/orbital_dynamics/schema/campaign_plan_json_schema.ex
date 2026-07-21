@@ -268,6 +268,10 @@ defmodule OrbitalDynamics.Schema.CampaignPlanJsonSchema do
 
   defp with_activity_constraints(activity_schema) do
     activity_schema
+    |> put_in(
+      ["properties", "type"],
+      %{"type" => "string", "minLength" => 1, "pattern" => "\\S"}
+    )
     |> update_in(["properties", "duration_s"], &Map.put(&1, "minimum", 0.0))
     |> put_in(
       ["properties", "score_terms", "additionalProperties"],
