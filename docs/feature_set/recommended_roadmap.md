@@ -236,6 +236,8 @@ Already implemented or heavily covered:
   retaining an extensible vocabulary
 - selected, candidate, and ranked V1 activities require typed Cadence-import
   identity with external IDs reconciled to activity IDs
+- downlink, command, tracking, and health-check V1 activities conditionally
+  require stable ground-station identity and exact activity-type direction
 - optional V1 optimizer metadata is reconciled with enclosing candidate,
   selected-activity, ranked-timeline, constraint, scoring-policy, and objective
   evidence; the required ranking explanation is nested and typed

@@ -5,48 +5,49 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Contract V1 activity Cadence identity.
+Contract V1 contact-family activity routing.
 
 Status:
 Complete and parent-reviewed; ready to publish.
 
 Delivered:
-- Required a `cadence_import` envelope on selected, candidate, and ranked V1
-  activities, with stable external ID and nonblank import type.
-- Reconciled each valid external ID to its activity ID without cascading an
-  equality error when either ID is syntactically invalid.
-- Exported the matching required nested shape on all three JSON Schema surfaces
-  while keeping additional Cadence metadata compatible.
-- Preserved generic downlink validation ownership and refined it so a missing or
-  malformed envelope produces one primary map remediation, not nested noise.
-- Added normal, missing, malformed, nested-field, scalar, blank, unstable,
-  mismatch, export, and diagnostic-ownership coverage.
+- Required ground-station identity and direction on command, tracking, and
+  health-check activities across selected, candidate, and ranked V1 surfaces;
+  retained the existing downlink contact-field owner.
+- Reconciled direction to activity type for downlink, command, tracking, and
+  health-check rows without closing the non-contact activity vocabulary.
+- Added matching conditional JSON Schema rules to all three activity surfaces.
+- Preserved single primary diagnostics for missing downlink fields, malformed
+  downlink direction, and unstable station identity.
+- Added conditional export, missing-field, mismatch, stable-ID, diagnostic-
+  ownership, future-token, and generated all-contact-types coverage.
 - Regenerated only `campaign_plan.v1` and the aggregate schema bundle.
 - Updated V1 generation, planning, reproducibility, and roadmap documentation.
 
 Review calibration:
-- Pre-fix observation-surface missing, mismatch, and blank mutations passed on
-  selected, candidate, and ranked rows; downlink mismatch and blank also passed.
-- Missing or malformed downlink envelopes now produce exactly one error at the
-  envelope path; nested requirements run only for actual maps.
-- Unstable external IDs produce stable-ID remediation without false mismatch
-  noise; valid mismatches produce one equality remediation.
-- Parent review found the focused Cadence contract cohesive at 75 lines, kept
-  the consolidated activity contract at 203 lines, and found no publish blocker.
+- Pre-fix command/tracking/health-check rows accepted missing station, missing
+  direction, and mismatched downlink direction on every V1 activity surface.
+- Existing base validation remains the sole stable station-ID owner and sole
+  malformed/missing downlink field owner; the focused 35-line contract owns new
+  contact-family presence plus exact direction semantics.
+- Valid-but-wrong downlink directions receive exact mismatch remediation;
+  malformed values retain one existing enum remediation without cascade.
+- The consolidated V1 activity contract remains cohesive at 205 lines, producer
+  output for all four types validates, and parent review found no publish blocker.
 
 Verification:
-- Focused Cadence/activity contracts: `10 passed`.
-- Schema plus lint area: `318 passed`.
+- Focused producer/activity contracts: `24 passed`.
+- Schema plus lint area: `325 passed`.
 - Planner area: `760 passed`.
-- Full suite: `3631 passed`.
+- Full suite: `3638 passed`.
 - `mix format --check-formatted`, `mix compile --warnings-as-errors`, and
   `git diff --check` pass.
 
 Level 6 pillar advanced:
-Stable, reviewable identity at the artifact-only Cadence boundary.
+Typed operational activity semantics and explicit communications routing.
 
 Previous published slice:
-- `0285eaa3` Type V1 activity kinds (`3623 passed`).
+- `a6d01811` Contract V1 activity Cadence identity (`3631 passed`).
 
 Remaining maturity gaps:
 - Continue calibrated realized-feedback depth where evidence is genuinely
@@ -59,7 +60,5 @@ Blocked:
 None.
 
 Notes:
-Runtime policy disallows subagent delegation; the parent is performing bounded
-mapping, implementation, review, and mechanical publish checks. The first
-planner command used stale paths and ran no tests; the corrected established
-corpus passed and is the recorded evidence above.
+Runtime policy disallows subagent delegation; the parent performed bounded
+mapping, implementation, review, and mechanical publish checks.

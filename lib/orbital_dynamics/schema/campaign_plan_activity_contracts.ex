@@ -4,8 +4,9 @@ defmodule OrbitalDynamics.Schema.CampaignPlanActivityContracts do
   import OrbitalDynamics.Schema.CollectionValidation, only: [validate_numeric_map: 3]
   import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2, require_fields: 4]
 
-  alias OrbitalDynamics.Schema.StableIdValidation
   alias OrbitalDynamics.Schema.CampaignPlanActivityCadenceContracts
+  alias OrbitalDynamics.Schema.CampaignPlanActivityContactContracts
+  alias OrbitalDynamics.Schema.StableIdValidation
 
   @activity_fields ["activities", "candidate_activities"]
   @tolerance 1.0e-9
@@ -58,6 +59,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanActivityContracts do
     |> validate_score(path, activity)
     |> validate_source_window(path, activity)
     |> CampaignPlanActivityCadenceContracts.validate(path, activity)
+    |> CampaignPlanActivityContactContracts.validate(path, activity)
   end
 
   defp validate_type(issues, path, activity) do

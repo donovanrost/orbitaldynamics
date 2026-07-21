@@ -195,6 +195,8 @@ work, a **partial** executable-schema track, and **near-term** / **later** /
 - Each activity's required Cadence-import envelope carries a stable external ID
   reconciled to activity identity plus a nonblank import type, while retaining
   the artifact-only no-write boundary.
+- Contact-family activities conditionally require stable ground-station identity
+  and exact activity-type direction routing on every V1 activity surface.
 - It also exports typed target-commitment rows reconciled with candidate and
   selected observation counts, durations, selected IDs, statuses, unique target
   identity, and matching objective-satisfaction target rows.

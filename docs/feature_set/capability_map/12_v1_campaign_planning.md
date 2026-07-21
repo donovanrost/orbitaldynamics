@@ -131,6 +131,12 @@ candidate, and ranked activities require a `cadence_import` envelope with stable
 activity ID. These fields support deterministic review/import mapping but do not
 grant schedule mutation or command authority.
 
+Producer-supported downlink, command, tracking, and health-check rows also
+require stable ground-station identity and a direction equal to the activity
+type across selected, candidate, and ranked timelines. The conditional rule
+keeps observations and future non-contact activity tokens compatible while
+preventing contact-routing drift in review/import artifacts.
+
 Runtime `campaign_plan.v1` validation requires each ranked timeline to carry a
 stable scenario ID, numeric score, and numeric score-term values. When the
 optional `score_term_report.v1` is present, its source, model, term-key union,

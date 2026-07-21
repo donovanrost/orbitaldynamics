@@ -81,6 +81,10 @@ It answers:
 - Every activity also carries a required `cadence_import` envelope with a stable
   external ID equal to the activity ID and a nonblank Cadence activity type.
   This remains artifact-only identity evidence, not import authority.
+- Downlink, command, tracking, and health-check activities require stable ground-
+  station identity plus a `direction` equal to the activity type. Observation
+  and compatible future non-contact activity tokens do not inherit that contact
+  routing requirement.
 - `campaign_plan.proposed_contacts` with stable external IDs for later Cadence
   import.
 - `campaign_plan.contact_intents` as artifact-only `contact_intent.v1` rows for

@@ -16,6 +16,8 @@ defmodule OrbitalDynamics.Schema.CampaignPlanJsonSchema do
     "warnings"
   ]
 
+  @contact_activity_types ["downlink", "command", "tracking", "health_check"]
+
   def property_field?(field) when field in @property_fields, do: true
   def property_field?(_field), do: false
 
@@ -300,6 +302,24 @@ defmodule OrbitalDynamics.Schema.CampaignPlanJsonSchema do
         }
       }
     )
+    |> Map.update("allOf", contact_activity_constraints(), fn constraints ->
+      constraints ++ contact_activity_constraints()
+    end)
+  end
+
+  defp contact_activity_constraints do
+    Enum.map(@contact_activity_types, fn type ->
+      %{
+        "if" => %{
+          "required" => ["type"],
+          "properties" => %{"type" => %{"const" => type}}
+        },
+        "then" => %{
+          "required" => ["ground_station_id", "direction"],
+          "properties" => %{"direction" => %{"const" => type}}
+        }
+      }
+    end)
   end
 
   defp fetch_dep!(deps, key) do
