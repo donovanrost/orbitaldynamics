@@ -61,8 +61,8 @@ defmodule OrbitalDynamics.CandidateRefresh.ObjectiveReplayBuildTest do
       "provenance" => %{"trust_boundary" => "provider_objective_review"},
       "rows" => [
         %{
-          "id" => "objective:latency_limit:collection_alias",
-          "objective" => "Collection Latency Limit",
+          "id" => "objective:latency_limit:delivery_alias",
+          "objective" => "Required Delivery Latency",
           "status" => "Needs Replan",
           "scenario_id" => "leo_1",
           "target_id" => "target_a",
@@ -96,7 +96,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ObjectiveReplayBuildTest do
     assert %{
              "collection_latency_gap_row_count" => 1,
              "objective_satisfaction_objective_type_counts" => %{
-               "collection_latency_limit" => 1
+               "required_delivery_latency" => 1
              },
              "branch_local_collection_latency_gap_pressure" => true
            } = CandidateRefresh.objective_gap_replay_summary(artifact)

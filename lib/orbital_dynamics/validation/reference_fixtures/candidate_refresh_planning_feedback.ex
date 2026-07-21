@@ -34,7 +34,7 @@ defmodule OrbitalDynamics.Validation.ReferenceFixtures.CandidateRefreshPlanningF
           "unmet" => 1
         },
         "source_objective_satisfaction_objective_type_counts" => %{
-          "collection_latency" => 1,
+          "delivery_latency" => 1,
           "downlink_completion" => 1,
           "target_coverage" => 1
         },

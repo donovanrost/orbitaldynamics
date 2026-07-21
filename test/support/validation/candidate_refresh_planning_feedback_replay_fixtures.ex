@@ -60,7 +60,7 @@ defmodule OrbitalDynamics.Validation.CandidateRefreshPlanningFeedbackReplayFixtu
           },
           %{
             "gap_id" => "gap_latency",
-            "objective_type" => "collection_latency",
+            "objective_type" => "delivery_latency",
             "status" => "partial",
             "collection_id" => "collection_alpha",
             "max_latency_s" => 600.0,

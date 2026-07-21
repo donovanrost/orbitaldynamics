@@ -9,6 +9,7 @@ defmodule OrbitalDynamics.CampaignPlanner.MissionStateNormalization do
   }
 
   alias OrbitalDynamics.Communications.StationCalendar
+  alias OrbitalDynamics.CollectionLatencyObjectiveType
 
   def normalize(state), do: normalize(state, callbacks())
 
@@ -368,19 +369,16 @@ defmodule OrbitalDynamics.CampaignPlanner.MissionStateNormalization do
     |> canonical_objective_type()
   end
 
-  defp canonical_objective_type("target_commitment"), do: "target_observation"
+  defp canonical_objective_type(value) do
+    CollectionLatencyObjectiveType.canonical(value) || canonical_non_latency_objective_type(value)
+  end
 
-  defp canonical_objective_type(value)
-       when value in [
-              "delivery_latency",
-              "delivery_latency_limit",
-              "max_delivery_latency",
-              "required_delivery_latency"
-            ],
-       do: "collection_latency"
+  defp canonical_non_latency_objective_type("target_commitment"), do: "target_observation"
 
-  defp canonical_objective_type("required_downlink_completion"), do: "downlink_completion"
-  defp canonical_objective_type(value), do: value
+  defp canonical_non_latency_objective_type("required_downlink_completion"),
+    do: "downlink_completion"
+
+  defp canonical_non_latency_objective_type(value), do: value
 
   defp normalize_ground_network_entry(entry, callbacks) do
     stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)

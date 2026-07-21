@@ -7,7 +7,11 @@ defmodule OrbitalDynamics.CollectionLatencyObjectiveType do
     "data_latency",
     "downlink_latency",
     "max_collection_latency",
-    "collection_latency_limit"
+    "collection_latency_limit",
+    "delivery_latency",
+    "delivery_latency_limit",
+    "max_delivery_latency",
+    "required_delivery_latency"
   ]
 
   def aliases, do: @aliases
