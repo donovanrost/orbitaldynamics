@@ -142,7 +142,11 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   `repair.replacement_ranking` explanation over viable, unique alternatives.
   Ranked rows expose candidate ID, semantic-diff match/priority, candidate value,
   churn, schedule-move, station-calendar, projected link-capacity, and projected
-  resource contributions plus final greedy ranking score and selected flag.
+  resource contributions plus exact contact-intent pressure, final greedy
+  ranking score, and selected flag. Contact-intent pressure applies one
+  `risk_weight` unit when the alternative's contact ID has one or more exact
+  normalized pressure statuses; rows retain the sorted unique statuses without
+  multiplying the penalty for duplicate or multi-status evidence.
   Pressured alternatives retain the candidate-specific selected downlink
   shortfall or resource-risk indicators that produced those projected
   contributions; nominal alternatives omit the corresponding evidence keys.
@@ -155,7 +159,10 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
 - Runtime `campaign_repair.v2` validation and its exported JSON schema cover the
   nested ranking model/scope, stable candidate IDs, row/evidence types, derived
   row count, sequential ranks, unique candidates, and selected-candidate
-  consistency while leaving unrelated repair metadata extensible.
+  consistency while leaving unrelated repair metadata extensible. Current
+  producers emit a numeric `contact_intent_pressure_penalty` on every ranking
+  row, while validation treats the field as optional and defaults it to zero in
+  ranking arithmetic so previously emitted V2 artifacts remain compatible.
 - Runtime validation additionally verifies that each final ranking score equals
   candidate value plus its emitted penalties, semantic-diff match and priority
   agree, nonzero pressure terms carry their source evidence, and rows remain

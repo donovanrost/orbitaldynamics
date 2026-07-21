@@ -10,9 +10,29 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
     %{artifact: artifact, activity_index: activity_index}
   end
 
-  test "validates the checked-in replacement-ranking explanation", %{artifact: artifact} do
+  test "validates current and pre-contact-pressure replacement-ranking explanations", %{
+    artifact: artifact,
+    activity_index: activity_index
+  } do
     assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
              Schema.validate_artifact(artifact)
+
+    legacy_artifact =
+      update_in(
+        artifact,
+        [
+          "activities",
+          Access.at(activity_index),
+          "repair",
+          "replacement_ranking",
+          "rows",
+          Access.at(0)
+        ],
+        &Map.delete(&1, "contact_intent_pressure_penalty")
+      )
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(legacy_artifact)
   end
 
   test "rejects stale ranking envelopes and derived summary values", context do
@@ -76,6 +96,19 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
        put_in_path(context.artifact, row_path <> ".station_calendar_pressure_sources", [
          "unknown.source"
        ])},
+      {row_path <> ".contact_intent_pressure_penalty",
+       put_in_path(context.artifact, row_path <> ".contact_intent_pressure_penalty", "invalid")},
+      {row_path <> ".contact_intent_pressure_statuses",
+       put_in_path(context.artifact, row_path <> ".contact_intent_pressure_statuses", [])},
+      {row_path <> ".contact_intent_pressure_statuses",
+       put_in_path(context.artifact, row_path <> ".contact_intent_pressure_statuses", [
+         "unknown_status"
+       ])},
+      {row_path <> ".contact_intent_pressure_statuses",
+       put_in_path(context.artifact, row_path <> ".contact_intent_pressure_statuses", [
+         "cadence_import_missing",
+         "blocked_by_policy"
+       ])},
       {row_path <> ".link_capacity_pressure_shortfall_mb",
        put_in_path(context.artifact, row_path <> ".link_capacity_pressure_shortfall_mb", 0.0)},
       {row_path <> ".resource_projection_pressure_risk_indicators",
@@ -108,6 +141,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
     ranking_path = ranking_path(context.activity_index)
     row_path = ranking_path <> ".rows[0]"
     [ranking_row] = get_in_path(context.artifact, ranking_path <> ".rows")
+    ranking_score = ranking_row["ranking_score"]
 
     score_order_artifact =
       context.artifact
@@ -144,6 +178,10 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
        context.artifact
        |> put_in_path(row_path <> ".station_calendar_pressure_penalty", -1.0)
        |> put_in_path(row_path <> ".ranking_score", -95.0)},
+      {row_path <> ".contact_intent_pressure_statuses",
+       context.artifact
+       |> put_in_path(row_path <> ".contact_intent_pressure_penalty", -1.0)
+       |> put_in_path(row_path <> ".ranking_score", ranking_score - 1.0)},
       {row_path <> ".link_capacity_pressure_shortfall_mb",
        context.artifact
        |> put_in_path(row_path <> ".link_capacity_pressure_penalty", -1.0)

@@ -7,10 +7,17 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts do
     "campaign_repair.source_contact_allocation_report.rows",
     "campaign_repair.source_station_calendar_report.affected_contacts"
   ]
+  @contact_intent_pressure_statuses [
+    "blocked_by_policy",
+    "cadence_import_invalid",
+    "cadence_import_missing",
+    "invalid_activity_input"
+  ]
   @penalty_fields [
     "schedule_churn_penalty",
     "schedule_move_penalty",
     "station_calendar_pressure_penalty",
+    "contact_intent_pressure_penalty",
     "link_capacity_pressure_penalty",
     "resource_projection_pressure_penalty"
   ]
@@ -40,6 +47,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts do
       expect_one_of: 5,
       expect_optional_list: 4,
       expect_optional_non_negative_number: 4,
+      expect_optional_number: 4,
       expect_optional_type: 5,
       expect_type: 5,
       require_fields: 4,
@@ -136,6 +144,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts do
     |> expect_number(path, row, "schedule_churn_penalty")
     |> expect_number(path, row, "schedule_move_penalty")
     |> expect_number(path, row, "station_calendar_pressure_penalty")
+    |> expect_optional_number(path, row, "contact_intent_pressure_penalty")
     |> expect_number(path, row, "link_capacity_pressure_penalty")
     |> expect_number(path, row, "resource_projection_pressure_penalty")
     |> expect_number(path, row, "ranking_score")
@@ -145,6 +154,9 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts do
     |> expect_optional_list(path, row, "station_calendar_pressure_sources")
     |> validate_string_list_items(path, row, "station_calendar_pressure_sources")
     |> validate_station_pressure_sources(path, row)
+    |> expect_optional_list(path, row, "contact_intent_pressure_statuses")
+    |> validate_string_list_items(path, row, "contact_intent_pressure_statuses")
+    |> validate_contact_intent_pressure_statuses(path, row)
     |> expect_optional_non_negative_number(path, row, "link_capacity_pressure_shortfall_mb")
     |> validate_positive_optional_number(path, row, "link_capacity_pressure_shortfall_mb")
     |> expect_optional_list(path, row, "resource_projection_pressure_risk_indicators")
@@ -201,6 +213,46 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts do
     case Map.get(row, field) do
       value when is_number(value) and value <= 0.0 ->
         [error("#{path}.#{field}", "must be positive when present") | issues]
+
+      _value ->
+        issues
+    end
+  end
+
+  defp validate_contact_intent_pressure_statuses(issues, path, row) do
+    case Map.get(row, "contact_intent_pressure_statuses") do
+      statuses when is_list(statuses) and statuses != [] ->
+        cond do
+          Enum.any?(statuses, &(&1 not in @contact_intent_pressure_statuses)) ->
+            [
+              error(
+                path <> ".contact_intent_pressure_statuses",
+                "must contain only known contact-intent pressure statuses"
+              )
+              | issues
+            ]
+
+          statuses != statuses |> Enum.uniq() |> Enum.sort() ->
+            [
+              error(
+                path <> ".contact_intent_pressure_statuses",
+                "must be unique and lexically sorted"
+              )
+              | issues
+            ]
+
+          true ->
+            issues
+        end
+
+      [] ->
+        [
+          error(
+            path <> ".contact_intent_pressure_statuses",
+            "must be omitted instead of empty"
+          )
+          | issues
+        ]
 
       _value ->
         issues
@@ -271,7 +323,10 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts do
   end
 
   defp validate_ranking_score(issues, path, row) do
-    values = [Map.get(row, "candidate_score") | Enum.map(@penalty_fields, &Map.get(row, &1))]
+    values = [
+      Map.get(row, "candidate_score") | Enum.map(@penalty_fields, &penalty_value(row, &1))
+    ]
+
     ranking_score = Map.get(row, "ranking_score")
 
     if is_number(ranking_score) and Enum.all?(values, &is_number/1) do
@@ -293,6 +348,11 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts do
     end
   end
 
+  defp penalty_value(row, "contact_intent_pressure_penalty"),
+    do: Map.get(row, "contact_intent_pressure_penalty", 0.0)
+
+  defp penalty_value(row, field), do: Map.get(row, field)
+
   defp validate_pressure_evidence(issues, path, row) do
     issues
     |> require_nonzero_penalty_evidence(
@@ -300,6 +360,13 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts do
       row,
       "station_calendar_pressure_penalty",
       "station_calendar_pressure_sources",
+      &nonempty_list?/1
+    )
+    |> require_nonzero_penalty_evidence(
+      path,
+      row,
+      "contact_intent_pressure_penalty",
+      "contact_intent_pressure_statuses",
       &nonempty_list?/1
     )
     |> require_nonzero_penalty_evidence(

@@ -745,6 +745,95 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
     end
   end
 
+  test "repair replacement ranking prefers an unpressured lower-value downlink" do
+    high = scored_refreshed_downlink("dl_high", 12.0)
+    low = scored_refreshed_downlink("dl_low", 10.0)
+
+    blocked = contact_intent("dl_high", %{"approval_status" => "blocked_by_policy"})
+    invalid = contact_intent("dl_high", %{"cadence_import_status" => "invalid"})
+
+    artifact =
+      repair_with_ranked_contact_intents(
+        [high, low],
+        [blocked, invalid, blocked],
+        5.0
+      )
+
+    assert [%{"id" => "dl_low", "repair" => %{"replacement_ranking" => ranking}}] =
+             artifact["activities"]
+
+    high_row = Enum.find(ranking["rows"], &(&1["candidate_id"] == "dl_high"))
+    low_row = Enum.find(ranking["rows"], &(&1["candidate_id"] == "dl_low"))
+
+    assert high_row["contact_intent_pressure_penalty"] == -5.0
+
+    assert high_row["contact_intent_pressure_statuses"] == [
+             "blocked_by_policy",
+             "cadence_import_invalid"
+           ]
+
+    assert high_row["selected"] == false
+    assert low_row["contact_intent_pressure_penalty"] == 0.0
+    refute Map.has_key?(low_row, "contact_intent_pressure_statuses")
+    assert low_row["selected"] == true
+    refute Map.has_key?(artifact["score_terms"], "contact_intent_pressure_penalty")
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(artifact)
+  end
+
+  test "repair replacement ranking preserves zero-weight pressure evidence" do
+    high = scored_refreshed_downlink("dl_high", 12.0)
+    low = scored_refreshed_downlink("dl_low", 10.0)
+
+    artifact =
+      repair_with_ranked_contact_intents(
+        [high, low],
+        [contact_intent("dl_high", %{"approval_status" => "blocked_by_policy"})],
+        0.0
+      )
+
+    assert [%{"id" => "dl_high", "repair" => %{"replacement_ranking" => ranking}}] =
+             artifact["activities"]
+
+    high_row = Enum.find(ranking["rows"], &(&1["candidate_id"] == "dl_high"))
+
+    assert high_row["contact_intent_pressure_penalty"] == 0.0
+    assert high_row["contact_intent_pressure_statuses"] == ["blocked_by_policy"]
+    assert artifact["score_terms"]["contact_intent_pressure_penalty"] == 0.0
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(artifact)
+  end
+
+  test "repair replacement ranking keeps review-only intent evidence neutral" do
+    high = scored_refreshed_downlink("dl_high", 12.0)
+    low = scored_refreshed_downlink("dl_low", 10.0)
+
+    artifact =
+      repair_with_ranked_contact_intents(
+        [high, low],
+        [
+          contact_intent("dl_high", %{
+            "approval_status" => "operator_review_required"
+          })
+        ],
+        5.0
+      )
+
+    assert [%{"id" => "dl_high", "repair" => %{"replacement_ranking" => ranking}}] =
+             artifact["activities"]
+
+    high_row = Enum.find(ranking["rows"], &(&1["candidate_id"] == "dl_high"))
+
+    assert high_row["contact_intent_pressure_penalty"] == 0.0
+    refute Map.has_key?(high_row, "contact_intent_pressure_statuses")
+    refute Map.has_key?(artifact["score_terms"], "contact_intent_pressure_penalty")
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   defp candidate_refresh_artifact(candidates, opts) do
     %{
       "schema_version" => 1,
@@ -812,6 +901,29 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
           contact_intents: contact_intents
         )
     )
+  end
+
+  defp repair_with_ranked_contact_intents(candidates, contact_intents, risk_weight) do
+    repair(
+      %{
+        "activities" => [downlink("dl_1", 100.0, 160.0)],
+        "candidate_activities" => [downlink("dl_stale", 700.0, 760.0)]
+      },
+      realized_state: %{activities: [%{id: "dl_1", status: "missed"}]},
+      current_epoch_s: 165.0,
+      scoring_policy: %{"risk_weight" => risk_weight},
+      candidate_refresh:
+        candidate_refresh_artifact(candidates,
+          contact_intents: contact_intents
+        )
+    )
+  end
+
+  defp scored_refreshed_downlink(id, score) do
+    id
+    |> refreshed_downlink(500.0, 560.0)
+    |> Map.put("score", score)
+    |> put_in(["score_terms", "contact_value"], score)
   end
 
   defp contact_intent(activity_id, fields) do

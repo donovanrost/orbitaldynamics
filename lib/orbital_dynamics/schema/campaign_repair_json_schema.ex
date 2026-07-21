@@ -165,6 +165,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairJsonSchema do
       "schedule_churn_penalty",
       "schedule_move_penalty",
       "station_calendar_pressure_penalty",
+      "contact_intent_pressure_penalty",
       "link_capacity_pressure_penalty",
       "resource_projection_pressure_penalty",
       "ranking_score"
@@ -188,6 +189,20 @@ defmodule OrbitalDynamics.Schema.CampaignRepairJsonSchema do
             "enum" => [
               "campaign_repair.source_contact_allocation_report.rows",
               "campaign_repair.source_station_calendar_report.affected_contacts"
+            ]
+          }
+        },
+        "contact_intent_pressure_statuses" => %{
+          "type" => "array",
+          "minItems" => 1,
+          "uniqueItems" => true,
+          "items" => %{
+            "type" => "string",
+            "enum" => [
+              "blocked_by_policy",
+              "cadence_import_invalid",
+              "cadence_import_missing",
+              "invalid_activity_input"
             ]
           }
         },

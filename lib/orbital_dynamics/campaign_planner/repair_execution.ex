@@ -6,6 +6,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairExecution do
   alias OrbitalDynamics.CampaignPlanner.{
     ActivityIdentity,
     ActivityTiming,
+    ContactIntentPressureBranches,
     DownlinkActivityNormalization,
     RepairActivityDispatch,
     RepairCandidateDiff,
@@ -110,6 +111,8 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairExecution do
       link_capacity_policy: link_capacity_policy,
       source_resource_summaries: source_resource_summaries,
       candidate_diff_replacements: candidate_diff_replacements(request.candidate_refresh),
+      contact_intent_pressure_by_candidate_id:
+        contact_intent_pressure_by_candidate_id(request.candidate_refresh),
       station_calendar_pressure_candidate_ids:
         station_calendar_pressure_candidate_ids(station_calendar_report),
       contact_allocation_station_pressure_candidate_ids:
@@ -129,6 +132,20 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairExecution do
   end
 
   defp station_calendar_pressure_candidate_ids(_report), do: MapSet.new()
+
+  defp contact_intent_pressure_by_candidate_id(nil), do: %{}
+
+  defp contact_intent_pressure_by_candidate_id(%{} = candidate_refresh) do
+    candidate_refresh
+    |> RepairCandidateInputs.contact_intents()
+    |> Enum.filter(&is_map/1)
+    |> Enum.map(&{&1, "campaign_repair.source_contact_intents"})
+    |> ContactIntentPressureBranches.identity_set()
+    |> Enum.group_by(&elem(&1, 1), &elem(&1, 0))
+    |> Map.new(fn {candidate_id, statuses} ->
+      {candidate_id, statuses |> Enum.uniq() |> Enum.sort()}
+    end)
+  end
 
   defp candidate_diff_replacements(nil), do: %{}
 

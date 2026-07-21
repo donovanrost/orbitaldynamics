@@ -5,56 +5,72 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Score selected contact-intent pressure in V2 repair.
+Rank V2 replacements with exact contact-intent pressure.
 
 Status:
-Complete and parent-reviewed; ready to publish.
+Complete; ready to publish.
 
-Delivered:
-- Fed schema-valid candidate-refresh contact intents into final V2 repair score
-  construction.
-- Reused `ContactIntentPressureBranches.identity_set/1`, the normalized V3
-  ingestion path, for blocked-policy, invalid/missing Cadence-import, and
-  invalid-activity downlink pressure identities.
-- Intersected unique pressured contact IDs with selected repaired activities
-  that also pass the normalized downlink classifier.
-- Emitted one `risk_weight` unit per unique exact match through the dedicated
-  `contact_intent_pressure_penalty` term and existing score-term report.
-- Kept nonselected, duplicate, non-downlink, nominal, operator-review-only, and
-  cross-type ID-collision evidence score-neutral.
-- Preserved candidate-refresh validation as the malformed-input boundary before
-  repair scoring; no candidate rejection, policy acceptance, provider
-  reservation, schedule mutation, or Cadence execution was added.
-- Updated V2 repair, contact-intent, and roadmap documentation; no schema export
-  changed because repair score terms already carry an open numeric contract.
+Selection evidence:
+- Final V2 scoring now applies exact selected contact-intent pressure, but
+  `RepairReplacementSelection` still ranks viable alternatives without it.
+- A higher-value pressured replacement can therefore be selected before the same
+  evidence lowers the final repair objective, creating selection/score
+  misalignment.
+- Repair execution already builds exact candidate-ID pressure context for
+  station-calendar and contact-allocation evidence, providing the bounded
+  pattern for contact-intent identities.
+- The shared normalized V3 contact-intent identity set provides exact status and
+  contact ID tuples; no aggregate evidence needs to affect ranking.
 
-Review calibration:
-- Initial focused execution showed direct `identity/1` skipped unnormalized
-  source rows; switching to the shared V3 `identity_set/1` ingestion path fixed
-  the classifier alignment.
-- Candidate-refresh normalization rejects malformed contact-intent rows before
-  scoring, so the implementation relies on that validated-input boundary.
-- Parent review found the first selected-ID intersection included all activity
-  kinds; restricting it to normalized selected downlinks prevents a bad intent
-  from penalizing a preserved observation that reuses the same ID.
-- Duplicate selected pressure contributes one unit, and unrelated, review-only,
-  command, and preserved-observation collision cases remain neutral.
-- Parent review found no remaining publish blocker.
-
-Verification:
-- Focused candidate-refresh source-report suite: `8 passed`.
-- Repair-area suite: `66 passed`.
-- Planner area: `758 passed`.
-- Full suite: `3706 passed`.
-- Full checked-in schema export completed without schema drift.
-- `mix format --check-formatted`, `mix compile --warnings-as-errors`, and
-  `git diff --check` pass.
+Intended behavior:
+- Build a deterministic candidate-ID to sorted pressure-status map from validated
+  candidate-refresh contact intents through the shared V3 identity-set path.
+- Apply one normalized `risk_weight` unit to each viable replacement candidate
+  with exact downlink contact-intent pressure.
+- Emit numeric `contact_intent_pressure_penalty` and optional nonempty sorted
+  known-status evidence on current replacement-ranking rows; accept older V2
+  rows without the penalty and default it to zero in contract arithmetic.
+- Include the penalty in ranking arithmetic and runtime/JSON Schema validation;
+  require status evidence whenever the penalty is nonzero.
+- Preserve semantic candidate-diff priority, deterministic tie-breaking, and the
+  final-score one-unit-per-unique-contact calibration.
+- Keep nominal, unrelated, review-only, non-downlink, duplicate, malformed, and
+  zero-weight pressure from creating unexplained ranking effects.
+- Add selection-flip, neutral, zero-weight, arithmetic/evidence, schema-export,
+  and compatibility coverage and update V2/resource/roadmap documentation.
 
 Level 6 pillar advanced:
-Candidate-specific communications pressure in explainable repair scoring.
+Candidate-specific communications pressure aligned between repair selection and
+explainable final scoring.
 
 Previous published slice:
-- `27275c5d` Reconcile V1 contact intent snapshots (`3702 passed`).
+- `955e7199` Score V2 contact intent pressure (`3706 passed`).
+
+Likely files:
+- repair execution and replacement-selection modules
+- V2 replacement-ranking runtime and JSON Schema contracts
+- replacement ranking and contact-intent repair tests
+- generated campaign-repair schema/bundle plus V2/resource/roadmap docs
+
+Verification:
+- Focused ranking/source-handoff contracts: `16 passed`.
+- Repair-path suite: `72 passed`.
+- Campaign-repair schema fixtures: `11 passed`.
+- Schema suite plus schema-lint task tests: `389 passed`.
+- Campaign-planner suite: `759 passed`.
+- Full suite: `3709 passed`.
+- `mix format --check-formatted`, `mix compile --warnings-as-errors`, and
+  `git diff --check` passed.
+- Full schema export changed only `campaign_repair.v2.schema.json` and the
+  aggregate schema bundle.
+
+Review:
+- Exact identities are downlink-only and candidate-specific; duplicate and
+  multi-status evidence produces one calibrated penalty per candidate.
+- Semantic candidate-diff priority remains the leading ranking key.
+- Zero-weight pressure retains evidence without changing selection arithmetic.
+- The new numeric producer field is optional in runtime and exported schema
+  contracts, with an explicit pre-change-row compatibility test.
 
 Remaining maturity gaps:
 - Continue candidate-specific resource/contact/readiness selection or ranking
@@ -68,5 +84,5 @@ Blocked:
 None.
 
 Notes:
-Runtime policy disallows subagent delegation; the parent performed bounded
+Runtime policy disallows subagent delegation; the parent is performing bounded
 mapping, implementation, review, and mechanical publish checks.

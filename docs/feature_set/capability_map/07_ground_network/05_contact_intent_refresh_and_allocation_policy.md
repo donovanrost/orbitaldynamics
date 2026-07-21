@@ -105,7 +105,10 @@ ID present in the repaired activities. Unrelated contacts, duplicate evidence,
 commands and other non-downlink rows, nominal rows, and operator-review-only
 approval status remain review evidence without changing repair score. This does
 not reject candidates, accept policy decisions, reserve provider capacity, or
-execute a Cadence action.
+execute a Cadence action. V2 replacement ranking applies the same exact
+candidate-ID pressure before selection: each pressured alternative receives one
+calibrated unit and retains its sorted unique pressure statuses, while nominal,
+unrelated, and review-only alternatives remain neutral.
 
 ## Candidate-diff review and import gates
 
