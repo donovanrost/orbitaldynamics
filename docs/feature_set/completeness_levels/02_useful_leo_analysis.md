@@ -4,6 +4,7 @@ Feature complete when LEO users can answer access, eclipse, visibility,
 maneuver, Monte Carlo, and constraint questions with two-body/J2 assumptions and
 honest tolerances.
 
-Status: `partial`. The workflow exists, but drag, atmosphere, better solar
-models, more event types, and reference-tool validation are still missing.
-
+Status: `partial`. The workflow now includes opt-in manifest-backed reference
+atmospheric drag, but calibrated or combined perturbation models, better solar
+models, more event types, and external reference-tool validation are still
+missing.

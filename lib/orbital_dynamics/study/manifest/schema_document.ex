@@ -84,7 +84,8 @@ defmodule OrbitalDynamics.Study.Manifest.SchemaDocument do
           "integration" => enum_property(["fixed_step", "adaptive_step"]),
           "min_step_s" => number_property(),
           "adaptive_position_tolerance_km" => number_property(),
-          "adaptive_velocity_tolerance_km_s" => number_property()
+          "adaptive_velocity_tolerance_km_s" => number_property(),
+          "atmosphere_provider" => atmosphere_provider_schema()
         }),
       "outputs" => %{
         "type" => "array",
@@ -124,6 +125,9 @@ defmodule OrbitalDynamics.Study.Manifest.SchemaDocument do
           "output_step_s" => number_property(),
           "radius_km" => number_property(),
           "dry_mass_kg" => number_property(),
+          "propellant_mass_kg" => non_negative_number_property(),
+          "area_m2" => non_negative_number_property(),
+          "drag_coefficient" => non_negative_number_property(),
           "id_prefix" => string_property(),
           "epoch" => epoch_schema(),
           "frame" => frame_schema()
@@ -145,6 +149,23 @@ defmodule OrbitalDynamics.Study.Manifest.SchemaDocument do
       },
       ["id", "spacecraft", "initial_state", "duration_s", "output_step_s"]
     )
+  end
+
+  defp atmosphere_provider_schema do
+    %{
+      "oneOf" => [
+        enum_property(["exponential_reference"]),
+        object_property(
+          %{
+            "provider" => enum_property(["exponential_reference"]),
+            "reference_altitude_km" => number_property(),
+            "reference_density_kg_m3" => non_negative_number_property(),
+            "scale_height_km" => %{"type" => "number", "exclusiveMinimum" => 0.0}
+          },
+          ["provider"]
+        )
+      ]
+    }
   end
 
   defp mission_plan_schema do

@@ -39,8 +39,8 @@ defmodule OrbitalDynamics.Propagators.TwoBodyDrag do
       supports_adaptive_step: false,
       supported_bodies: [:earth],
       supported_frames: [:eci_j2000],
-      atmosphere_provider: :configurable_programmatic_option,
-      manifest_support: :programmatic_only,
+      atmosphere_provider: :built_in_manifest_or_programmatic_option,
+      manifest_support: :built_in_exponential_atmosphere_provider,
       known_limits: [
         :fixed_spacecraft_mass_area_and_drag_coefficient,
         :constant_earth_rotation,

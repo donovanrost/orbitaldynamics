@@ -6,6 +6,7 @@ Implemented or partially implemented modules and artifacts include:
   `Scenario`, `Trajectory`, `GroundStation`, and `Target`.
 - Contracts: `Propagator`, `BatchPropagator`, `EventDetector`, and `Constraint`.
 - Propagators: `Propagators.TwoBody`, `Propagators.J2`,
+  `Propagators.TwoBodyDrag`,
   `Propagators.TwoBodyNx`, `Propagators.TwoBodyNxCompiled`,
   `Propagators.TwoBodyExlaCpu`, and `Propagators.J2ExlaCpu`.
 - Execution: `ScenarioRunner`, `StudyRunner`, `Study`, `StudyRun`,

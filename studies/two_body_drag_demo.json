@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "study_id": "two_body_drag_demo",
+  "central_body": "earth",
+  "propagator": "two_body_drag",
+  "propagator_opts": {
+    "max_step_s": 10.0,
+    "atmosphere_provider": {
+      "provider": "exponential_reference",
+      "reference_altitude_km": 400.0,
+      "reference_density_kg_m3": 3.89e-12,
+      "scale_height_km": 60.0
+    }
+  },
+  "outputs": ["trajectories"],
+  "metadata": {
+    "description": "Opt-in point-mass plus reference-atmosphere drag checkout"
+  },
+  "scenarios": [
+    {
+      "generator": "circular_leo",
+      "count": 1,
+      "duration_s": 600.0,
+      "output_step_s": 120.0,
+      "radius_km": 6778.137,
+      "dry_mass_kg": 100.0,
+      "propellant_mass_kg": 20.0,
+      "area_m2": 4.0,
+      "drag_coefficient": 2.2,
+      "id_prefix": "two_body_drag_demo"
+    }
+  ]
+}

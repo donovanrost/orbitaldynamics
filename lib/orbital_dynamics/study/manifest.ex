@@ -31,6 +31,7 @@ defmodule OrbitalDynamics.Study.Manifest do
 
   alias OrbitalDynamics.Study.Manifest.{
     ActivityInput,
+    AtmosphereProviderInput,
     CandidateRefreshPlanningState,
     CandidateRefreshRunInputSources,
     FieldReference,
@@ -47,6 +48,7 @@ defmodule OrbitalDynamics.Study.Manifest do
     J2,
     J2ExlaCpu,
     TwoBody,
+    TwoBodyDrag,
     TwoBodyExlaCpu,
     TwoBodyNx,
     TwoBodyNxCompiled
@@ -55,6 +57,7 @@ defmodule OrbitalDynamics.Study.Manifest do
   @schema_version 1
   @propagators %{
     "two_body" => TwoBody,
+    "two_body_drag" => TwoBodyDrag,
     "two_body_nx" => TwoBodyNx,
     "two_body_nx_compiled" => TwoBodyNxCompiled,
     "two_body_exla_cpu" => TwoBodyExlaCpu,
@@ -62,6 +65,7 @@ defmodule OrbitalDynamics.Study.Manifest do
     "j2_exla_cpu" => J2ExlaCpu
   }
   @propagator_opts %{
+    "atmosphere_provider" => :atmosphere_provider,
     "max_step_s" => :max_step_s,
     "integration" => :integration,
     "min_step_s" => :min_step_s,
@@ -155,7 +159,7 @@ defmodule OrbitalDynamics.Study.Manifest do
          {:ok, scenarios} <- scenarios(source, central_body),
          {:ok, mission_plan_metadata} <- mission_plan_metadata(scenarios),
          {:ok, propagator} <- propagator(source),
-         {:ok, propagator_opts} <- propagator_opts(source),
+         {:ok, propagator_opts} <- propagator_opts(source, propagator),
          {:ok, outputs} <- outputs(source),
          {:ok, ground_stations} <- GroundStationCatalogInput.parse(source),
          {:ok, targets} <- TargetCatalogInput.parse(source),
@@ -1041,6 +1045,9 @@ defmodule OrbitalDynamics.Study.Manifest do
          {:ok, output_step_s} <- required_number(spec, "output_step_s"),
          {:ok, radius_km} <- optional_number(spec, "radius_km"),
          {:ok, dry_mass_kg} <- optional_number(spec, "dry_mass_kg"),
+         {:ok, propellant_mass_kg} <- optional_number(spec, "propellant_mass_kg"),
+         {:ok, area_m2} <- optional_number(spec, "area_m2"),
+         {:ok, drag_coefficient} <- optional_number(spec, "drag_coefficient"),
          {:ok, id_prefix} <- optional_string(spec, "id_prefix", "manifest_leo"),
          {:ok, epoch} <- optional_epoch(spec),
          {:ok, frame} <- optional_frame(spec) do
@@ -1051,6 +1058,9 @@ defmodule OrbitalDynamics.Study.Manifest do
          output_step_s: output_step_s,
          radius_km: radius_km,
          dry_mass_kg: dry_mass_kg,
+         propellant_mass_kg: propellant_mass_kg,
+         area_m2: area_m2,
+         drag_coefficient: drag_coefficient,
          id_prefix: id_prefix,
          epoch: epoch,
          frame: frame,
@@ -1184,11 +1194,41 @@ defmodule OrbitalDynamics.Study.Manifest do
     end
   end
 
-  defp propagator_opts(source) do
-    source
-    |> Map.get("propagator_opts", %{})
-    |> known_keyword_map("propagator_opts", @propagator_opts)
+  defp propagator_opts(source, propagator) do
+    with {:ok, opts} <-
+           source
+           |> Map.get("propagator_opts", %{})
+           |> known_keyword_map("propagator_opts", @propagator_opts) do
+      normalize_propagator_opts(propagator, opts)
+    end
   end
+
+  defp normalize_propagator_opts(TwoBodyDrag, opts) do
+    case Keyword.keys(opts) -- [:max_step_s, :atmosphere_provider] do
+      [] ->
+        with {:ok, atmosphere_provider} <-
+               AtmosphereProviderInput.parse(Keyword.get(opts, :atmosphere_provider)) do
+          {:ok, maybe_keyword_replace(opts, :atmosphere_provider, atmosphere_provider)}
+        end
+
+      [unsupported | _rest] ->
+        {:error, {:unsupported_option, "propagator_opts", Atom.to_string(unsupported)}}
+    end
+  end
+
+  defp normalize_propagator_opts(_propagator, opts) do
+    if Keyword.has_key?(opts, :atmosphere_provider) do
+      {:error, {:unsupported_option, "propagator_opts", "atmosphere_provider"}}
+    else
+      {:ok, opts}
+    end
+  end
+
+  defp maybe_keyword_replace(keyword, key, nil), do: Keyword.delete(keyword, key)
+
+  defp maybe_keyword_replace(keyword, key, value),
+    do:
+      if(Keyword.has_key?(keyword, key), do: Keyword.replace(keyword, key, value), else: keyword)
 
   defp outputs(source) do
     with {:ok, outputs} <- required_list(source, "outputs") do

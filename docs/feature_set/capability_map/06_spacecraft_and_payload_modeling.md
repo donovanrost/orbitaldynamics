@@ -14,7 +14,7 @@ Status: **implemented**.
 
 ### Spacecraft identity and `ResourceSummary` normalization
 
-- `Spacecraft` exposes identity, dry mass, propellant mass, area, and drag coefficient fields. `ForceModels.AtmosphericDrag`, the public `OrbitalDynamics.atmospheric_drag_acceleration/4` facade, and opt-in scalar `Propagators.TwoBodyDrag` consume the mass, area, and coefficient with validated atmosphere-density evidence. Other propagators leave those fields as metadata.
+- `Spacecraft` exposes identity, dry mass, propellant mass, area, and drag coefficient fields. `ForceModels.AtmosphericDrag`, the public `OrbitalDynamics.atmospheric_drag_acceleration/4` facade, and opt-in scalar `Propagators.TwoBodyDrag` consume the mass, area, and coefficient with validated atmosphere-density evidence. Generated `circular_leo` manifest scenarios preserve those ballistic fields for drag studies. Other propagators leave them as metadata.
 - `SubsystemModel` exposes `subsystem_model_capability.v1` records through
   `OrbitalDynamics.subsystem_model_capabilities/0`,
   `OrbitalDynamics.battery_energy_storage_model/1`, and

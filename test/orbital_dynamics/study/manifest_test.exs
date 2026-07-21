@@ -1,7 +1,8 @@
 defmodule OrbitalDynamics.Study.ManifestTest do
   use ExUnit.Case, async: true
 
-  alias OrbitalDynamics.Propagators.{J2, TwoBodyNxCompiled}
+  alias OrbitalDynamics.Environment.ExponentialAtmosphereProvider
+  alias OrbitalDynamics.Propagators.{J2, TwoBodyDrag, TwoBodyNxCompiled}
   alias OrbitalDynamics.ResultSet.Artifact
   alias OrbitalDynamics.Schema
   alias OrbitalDynamics.Study.Manifest
@@ -27,8 +28,26 @@ defmodule OrbitalDynamics.Study.ManifestTest do
 
     assert schema["properties"]["schema_version"]["const"] == 1
     assert "two_body" in schema["properties"]["propagator"]["enum"]
+    assert "two_body_drag" in schema["properties"]["propagator"]["enum"]
     assert "trajectories" in schema["properties"]["outputs"]["items"]["enum"]
     assert "ground_track_crossings" in schema["properties"]["outputs"]["items"]["enum"]
+
+    atmosphere_provider_schema =
+      schema["properties"]["propagator_opts"]["properties"]["atmosphere_provider"]
+
+    assert Enum.at(atmosphere_provider_schema["oneOf"], 0)["enum"] == [
+             "exponential_reference"
+           ]
+
+    assert Enum.at(atmosphere_provider_schema["oneOf"], 1)["required"] == ["provider"]
+
+    circular_leo_schema =
+      schema["properties"]["scenarios"]["items"]["oneOf"]
+      |> Enum.find(&(&1["properties"]["generator"]["const"] == "circular_leo"))
+
+    assert circular_leo_schema["properties"]["propellant_mass_kg"]["minimum"] == 0.0
+    assert circular_leo_schema["properties"]["area_m2"]["minimum"] == 0.0
+    assert circular_leo_schema["properties"]["drag_coefficient"]["minimum"] == 0.0
 
     assert schema["properties"]["ground_track_crossings"]["items"]["properties"]["crossing"][
              "enum"
@@ -2573,6 +2592,162 @@ defmodule OrbitalDynamics.Study.ManifestTest do
              }
              | _
            ] = result_set.trajectory_results
+  end
+
+  test "runs reproducible two-body-drag studies from JSON manifests" do
+    source =
+      circular_leo_manifest()
+      |> Map.put("propagator", "two_body_drag")
+      |> Map.put("outputs", ["trajectories"])
+      |> Map.put("propagator_opts", %{
+        "max_step_s" => 10.0,
+        "atmosphere_provider" => %{
+          "provider" => "exponential_reference",
+          "reference_altitude_km" => 400.0,
+          "reference_density_kg_m3" => 3.89e-12,
+          "scale_height_km" => 60.0
+        }
+      })
+      |> Map.put("scenarios", [
+        %{
+          "generator" => "circular_leo",
+          "count" => 1,
+          "duration_s" => 600.0,
+          "output_step_s" => 120.0,
+          "radius_km" => 6_778.137,
+          "dry_mass_kg" => 100.0,
+          "propellant_mass_kg" => 20.0,
+          "area_m2" => 4.0,
+          "drag_coefficient" => 2.2,
+          "id_prefix" => "drag_manifest"
+        }
+      ])
+
+    json = :json.encode(source) |> IO.iodata_to_binary()
+
+    assert {:ok, manifest} = Manifest.from_json(json)
+    assert manifest.study.propagator == TwoBodyDrag
+
+    assert Keyword.fetch!(manifest.study.propagator_opts, :max_step_s) == 10.0
+
+    assert {ExponentialAtmosphereProvider, provider_opts} =
+             Keyword.fetch!(manifest.study.propagator_opts, :atmosphere_provider)
+
+    assert Map.new(provider_opts) == %{
+             reference_altitude_km: 400.0,
+             reference_density_kg_m3: 3.89e-12,
+             scale_height_km: 60.0
+           }
+
+    assert [scenario] = manifest.study.scenarios
+    assert scenario.spacecraft.dry_mass_kg == 100.0
+    assert scenario.spacecraft.propellant_mass_kg == 20.0
+    assert scenario.spacecraft.area_m2 == 4.0
+    assert scenario.spacecraft.drag_coefficient == 2.2
+
+    assert {:ok, result_set} = OrbitalDynamics.run_study(manifest.study, manifest.run_opts)
+    assert result_set.errors == []
+
+    assert [%{trajectory: trajectory}] = result_set.trajectory_results
+    assert trajectory.assumptions.force_model == :point_mass_two_body_atmospheric_drag
+
+    assert trajectory.assumptions.atmosphere_provider_id ==
+             "environment.provider.atmosphere.exponential_reference"
+
+    assert trajectory.assumptions.spacecraft_mass_kg == 120.0
+    assert trajectory.assumptions.drag_area_m2 == 4.0
+    assert trajectory.assumptions.drag_coefficient == 2.2
+
+    artifact = Artifact.build(result_set, generated_at: ~U[2026-07-20 00:00:00Z])
+    round_tripped_artifact = artifact |> :json.encode() |> IO.iodata_to_binary() |> :json.decode()
+
+    assert {:ok, _report} =
+             Schema.validate_artifact(round_tripped_artifact, contract: "result_artifact.v1")
+
+    assert get_in(round_tripped_artifact, [
+             "assumptions",
+             "propagator_opts",
+             "atmosphere_provider"
+           ]) == [
+             "Elixir.OrbitalDynamics.Environment.ExponentialAtmosphereProvider",
+             %{
+               "reference_altitude_km" => 400.0,
+               "reference_density_kg_m3" => 3.89e-12,
+               "scale_height_km" => 60.0
+             }
+           ]
+  end
+
+  test "keeps the checked-in two-body-drag demo manifest lintable" do
+    assert %{
+             "status" => "pass",
+             "study_id" => "two_body_drag_demo",
+             "scenario_count" => 1,
+             "outputs" => ["trajectories"],
+             "error_count" => 0
+           } = Manifest.validation_report("studies/two_body_drag_demo.json")
+  end
+
+  test "keeps external atmosphere providers programmatic-only in manifests" do
+    drag_manifest =
+      circular_leo_manifest()
+      |> Map.put("propagator", "two_body_drag")
+      |> Map.put("outputs", ["trajectories"])
+
+    assert {:ok, short_form_manifest} =
+             drag_manifest
+             |> put_in(
+               ["propagator_opts", "atmosphere_provider"],
+               "exponential_reference"
+             )
+             |> Manifest.from_map()
+
+    assert Keyword.fetch!(short_form_manifest.study.propagator_opts, :atmosphere_provider) ==
+             ExponentialAtmosphereProvider
+
+    assert {:error, {:invalid_field, "propagator_opts.atmosphere_provider"}} =
+             drag_manifest
+             |> put_in(
+               ["propagator_opts", "atmosphere_provider"],
+               "Elixir.CustomAtmosphereProvider"
+             )
+             |> Manifest.from_map()
+
+    assert {:error, {:unsupported_option, "propagator_opts.atmosphere_provider", "network_url"}} =
+             drag_manifest
+             |> put_in(["propagator_opts", "atmosphere_provider"], %{
+               "provider" => "exponential_reference",
+               "network_url" => "https://example.test/atmosphere"
+             })
+             |> Manifest.from_map()
+
+    for {field, value} <- [
+          {"reference_density_kg_m3", -1.0},
+          {"scale_height_km", 0.0}
+        ] do
+      expected_field = "propagator_opts.atmosphere_provider.#{field}"
+
+      assert {:error, {:invalid_field, ^expected_field}} =
+               drag_manifest
+               |> put_in(["propagator_opts", "atmosphere_provider"], %{
+                 "provider" => "exponential_reference",
+                 field => value
+               })
+               |> Manifest.from_map()
+    end
+
+    assert {:error, {:unsupported_option, "propagator_opts", "integration"}} =
+             drag_manifest
+             |> put_in(["propagator_opts", "integration"], "adaptive_step")
+             |> Manifest.from_map()
+
+    assert {:error, {:unsupported_option, "propagator_opts", "atmosphere_provider"}} =
+             circular_leo_manifest()
+             |> put_in(
+               ["propagator_opts", "atmosphere_provider"],
+               "exponential_reference"
+             )
+             |> Manifest.from_map()
   end
 
   test "rejects unsupported manifest fields clearly" do

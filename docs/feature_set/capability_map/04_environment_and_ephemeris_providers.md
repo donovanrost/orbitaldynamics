@@ -13,7 +13,7 @@
 
 - `Environment.Provider` defines a provider capability contract with source coverage, interpolation, supported bodies, network access, and time-span coverage validation.
 - Internal fixed-Sun and constant-Earth-rotation provider adapters expose the current simplified assumptions through that contract.
-- The internal `ExponentialAtmosphereProvider` exposes a deterministic reference atmosphere-density product. The public atmospheric-drag evaluator and opt-in scalar `TwoBodyDrag` propagator consume that density with spacecraft ballistic properties while preserving provider identity and model provenance.
+- The internal `ExponentialAtmosphereProvider` exposes a deterministic reference atmosphere-density product. The public atmospheric-drag evaluator and opt-in scalar `TwoBodyDrag` propagator consume that density with spacecraft ballistic properties while preserving provider identity and model provenance. JSON study manifests can select it as `exponential_reference` and declare reference altitude, reference density, and scale height without network or dynamic module loading; custom providers remain programmatic-only.
 
 ### Schema contracts and validation
 

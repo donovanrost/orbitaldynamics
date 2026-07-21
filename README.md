@@ -335,6 +335,21 @@ mix orbital_dynamics.study.run --manifest studies/mission_plan_checkout.json --o
 mix orbital_dynamics.study.report --input study_results/mission_plan_checkout.json
 ```
 
+Run the opt-in point-mass plus atmospheric-drag propagator from a checked-in
+manifest:
+
+```bash
+mix orbital_dynamics.manifest.lint --manifest studies/two_body_drag_demo.json
+mix orbital_dynamics.study.run --manifest studies/two_body_drag_demo.json --output study_results/two_body_drag_demo.json --run-id two_body_drag_demo-20260720 --generated-at 2026-07-20T00:00:00Z
+```
+
+The JSON manifest accepts only the built-in, network-free
+`exponential_reference` atmosphere provider. Its reference altitude, density,
+and scale height are preserved in result provenance. Custom provider modules
+remain available only through the programmatic `Study` API. Generated
+`circular_leo` scenarios accept `propellant_mass_kg`, `area_m2`, and
+`drag_coefficient` alongside `dry_mass_kg`.
+
 Validate a study manifest without running propagation:
 
 ```bash

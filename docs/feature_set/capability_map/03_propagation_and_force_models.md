@@ -22,7 +22,10 @@
   fixed-step RK4 stage without changing existing propagator defaults. Both the
   evaluator and propagator have validation-registry records plus curated,
   tolerance-backed 400 km reference fixtures. `TwoBodyDrag` is available through
-  direct/programmatic `Study` APIs but is not yet a JSON-manifest propagator.
+  direct/programmatic `Study` APIs and JSON manifests using the built-in,
+  network-free `exponential_reference` atmosphere provider. Manifest-backed
+  circular-LEO scenarios carry dry/propellant mass, area, and drag coefficient;
+  custom atmosphere-provider modules remain programmatic-only.
 - `partial`: maneuver support is impulsive only; J2 and atmospheric drag are
   separate opt-in perturbation paths rather than a combined force model;
   adaptive integration is currently limited to scalar two-body step-doubling and

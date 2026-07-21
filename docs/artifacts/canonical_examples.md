@@ -7,6 +7,7 @@
 | Manifest lint report | `study_results/study_manifest_lint_v1.json` | `study_manifest_lint.v1` for `study_manifest.v1` | `mix orbital_dynamics.schema.lint --input study_results/study_manifest_lint_v1.json --contract study_manifest_lint.v1` |
 | Capability catalog | `study_results/capability_catalog_v1.json` | `capability_catalog.v1` | `mix orbital_dynamics.schema.lint --input study_results/capability_catalog_v1.json --contract capability_catalog.v1` |
 | LEO campaign manifest | `studies/leo_constellation_campaign.json` | `study_manifest.v1` | `mix orbital_dynamics.manifest.lint --manifest studies/leo_constellation_campaign.json` |
+| Two-body drag manifest | `studies/two_body_drag_demo.json` | `study_manifest.v1` | `mix orbital_dynamics.manifest.lint --manifest studies/two_body_drag_demo.json` |
 | V1 campaign result | `study_results/leo_constellation_campaign.json` | `campaign_plan.v1` inside result artifact | `mix orbital_dynamics.schema.lint --input study_results/leo_constellation_campaign.json` |
 | Optimizer contract | `study_results/optimizer_contract_v1.json` | `optimizer_contract.v1` | `mix orbital_dynamics.schema.lint --input study_results/optimizer_contract_v1.json --contract optimizer_contract.v1` |
 | Ranking comparison report | `study_results/ranking_comparison_report_v1.json` | `ranking_comparison_report.v1` | `mix orbital_dynamics.schema.lint --input study_results/ranking_comparison_report_v1.json --contract ranking_comparison_report.v1` |

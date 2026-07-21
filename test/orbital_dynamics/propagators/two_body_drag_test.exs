@@ -61,7 +61,7 @@ defmodule OrbitalDynamics.Propagators.TwoBodyDragTest do
     Vector3
   }
 
-  test "declares an explicit programmatic-only scalar drag propagation boundary" do
+  test "declares an explicit manifest-backed scalar drag propagation boundary" do
     assert %{
              backend: :scalar_elixir,
              force_models: [:point_mass_two_body, :atmospheric_drag],
@@ -73,8 +73,8 @@ defmodule OrbitalDynamics.Propagators.TwoBodyDragTest do
              supports_adaptive_step: false,
              supported_bodies: [:earth],
              supported_frames: [:eci_j2000],
-             atmosphere_provider: :configurable_programmatic_option,
-             manifest_support: :programmatic_only
+             atmosphere_provider: :built_in_manifest_or_programmatic_option,
+             manifest_support: :built_in_exponential_atmosphere_provider
            } = TwoBodyDrag.capabilities()
   end
 
