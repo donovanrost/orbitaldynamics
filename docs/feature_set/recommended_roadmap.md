@@ -230,6 +230,8 @@ Already implemented or heavily covered:
   duration evidence, with runtime reconciliation against each start/end interval
 - selected, candidate, and ranked V1 activities require numeric score/term
   evidence, with each activity score reconciled to its numeric term sum
+- ranked V1 activity snapshots exactly match their candidate rows, and top-level
+  selected snapshots exactly match the first ranked timeline
 - selected, candidate, and ranked V1 activities require matching stable outer
   and nested source-window IDs for producer-window lineage
 - current V1 activity kinds conditionally reconcile nested source-window family

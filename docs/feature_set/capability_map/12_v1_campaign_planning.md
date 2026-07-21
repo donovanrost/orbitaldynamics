@@ -114,6 +114,11 @@ evidence, rejects non-numeric term values, and reconciles every activity score
 to its term sum. JSON Schema exports numeric score-term map values on all three
 activity surfaces; cross-field sum reconciliation remains executable behavior.
 
+Activity copies are immutable within the handoff: every ranked activity must
+reference and exactly equal its candidate snapshot, while top-level selected
+activities must exactly equal the first ranked timeline. Synchronized additional
+metadata remains compatible; same-ID drift is rejected at the affected row path.
+
 Activity lineage is likewise executable across selected, candidate, and ranked
 rows: `source_window_id` and nested `source_window.id` are required stable IDs,
 and runtime validation requires them to match. The export requires the nested ID

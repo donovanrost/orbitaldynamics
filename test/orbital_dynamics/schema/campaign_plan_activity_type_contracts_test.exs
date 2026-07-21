@@ -60,7 +60,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanActivityTypeContractsTest do
     artifact =
       put_in(
         artifact,
-        ["ranked_timelines", Access.at(0), "activities", Access.at(0), "type"],
+        ["candidate_activities", Access.at(0), "type"],
         "future_activity"
       )
 

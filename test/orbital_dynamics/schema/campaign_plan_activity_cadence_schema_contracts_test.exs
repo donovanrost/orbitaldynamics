@@ -106,7 +106,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanActivityCadenceSchemaContractsTest 
     future =
       update_in(
         artifact,
-        ["ranked_timelines", Access.at(0), "activities", Access.at(0)],
+        ["candidate_activities", Access.at(0)],
         fn activity ->
           activity
           |> Map.put("type", "future_activity")

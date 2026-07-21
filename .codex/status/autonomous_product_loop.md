@@ -5,47 +5,50 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Contract V1 contact activity import schema.
+Reconcile V1 activity snapshots.
 
 Status:
 Complete and parent-reviewed; ready to publish.
 
 Delivered:
-- Declared one ordered mapping from downlink, command, tracking, and health-check
-  activity kinds to the `proposed_contact.v1` Cadence adapter contract.
-- Required and validated that schema identity inside each current contact-family
-  activity's Cadence envelope across selected, candidate, and ranked V1 surfaces.
-- Exported the same four conditional requirement/constant rules on every
-  campaign-plan JSON Schema activity surface.
-- Kept observation and future non-contact envelopes free of a contact-schema claim.
-- Added conditional export, missing/non-string/blank/stale, single-error,
-  observation/future compatibility, and generated producer coverage.
-- Regenerated only `campaign_plan.v1` and the aggregate schema bundle.
-- Updated V1 generation, planning, reproducibility, and roadmap documentation.
+- Required every ranked activity to reference a candidate by ID and exactly
+  match that candidate snapshot.
+- Required top-level selected activities to exactly match the first ranked
+  timeline rows and count.
+- Kept synchronized additional activity metadata compatible across candidate,
+  ranked, and selected copies.
+- Added producer-valid, selected/ranked/candidate drift, missing reference,
+  synchronized drift, and shared-enrichment coverage.
+- Moved five future-token compatibility probes to the unselected candidate row
+  so they test open vocabularies without intentionally violating snapshot rules.
+- Updated V1 generation, planning, reproducibility, and roadmap documentation;
+  no structural JSON Schema export changed.
 
 Review calibration:
-- Pre-fix missing and stale schema tokens passed for all four contact-family kinds.
-- Parent structure review extracted the concern into a focused 55-line validator;
-  the Cadence identity/dispatch module remains 111 lines and the consolidated
-  V1 activity dispatcher remains cohesive at 209 lines.
-- Missing, malformed, blank, and stale schema identity each produce one
-  path-specific remediation only after a valid Cadence envelope exists.
-- Runtime and export share one mapping source, observation/future cases remain
-  valid, and parent review found no publish blocker.
+- Pre-fix selected-only, ranked-only, synchronized selected/ranked, and candidate-
+  only metadata drift all passed while IDs remained unchanged.
+- The focused 93-line validator compares only the three V1 activity-copy surfaces;
+  synchronized additional properties remain open and valid.
+- Ranked-only drift reports selection and candidate mismatches; synchronized
+  selected/ranked drift reports only the candidate mismatch at the ranked path.
+- The first schema-area run exposed five stale ranked-only future-token tests
+  (`339/344 passed`); corrected tests and all release gates are green.
+- Parent review found no publish blocker.
 
 Verification:
-- Focused producer/activity contracts: `38 passed`.
-- Schema plus lint area: `337 passed`.
+- Focused snapshot/optimizer contracts: `15 passed`; combined activity contracts:
+  `46 passed`.
+- Schema plus lint area: `344 passed`.
 - Planner area: `760 passed`.
-- Full suite: `3650 passed`.
+- Full suite: `3657 passed`.
 - `mix format --check-formatted`, `mix compile --warnings-as-errors`, and
   `git diff --check` pass.
 
 Level 6 pillar advanced:
-Durable schema-versioned Cadence integration artifacts.
+Reproducible V1 branch trees and internally consistent review artifacts.
 
 Previous published slice:
-- `39f3c6b4` Reconcile V1 activity source windows (`3646 passed`).
+- `dd3ebc69` Contract V1 contact import schema (`3650 passed`).
 
 Remaining maturity gaps:
 - Continue calibrated realized-feedback depth where evidence is genuinely

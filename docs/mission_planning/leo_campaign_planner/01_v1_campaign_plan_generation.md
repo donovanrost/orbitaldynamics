@@ -72,6 +72,10 @@ It answers:
 - Those activity rows also carry required numeric `score` values and numeric
   `score_terms` maps. Runtime validation requires each score to equal its term
   sum; JSON Schema constrains every term value to a number.
+- Runtime validation also treats activity rows as immutable snapshots: every
+  ranked row must exactly match its candidate row by ID, and top-level selected
+  rows must exactly match the first ranked timeline. JSON Schema remains the
+  structural layer for these arrays; cross-array equality is executable behavior.
 - Every activity preserves its producer window through required stable
   `source_window_id` and nested `source_window.id` evidence. Runtime validation
   requires those IDs to match before the activity is accepted for handoff.

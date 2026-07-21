@@ -187,6 +187,9 @@ work, a **partial** executable-schema track, and **near-term** / **later** /
 - Those activity surfaces also export numeric score-term map values; executable
   V1 validation requires score/term presence and types, then reconciles each
   activity score to the sum of its terms.
+- Executable V1 validation also reconciles every ranked activity snapshot to its
+  candidate row and every top-level selected snapshot to the first ranked
+  timeline; this cross-array equality remains beyond structural JSON Schema.
 - Selected, candidate, and ranked activities require stable outer and nested
   source-window IDs, with executable equality checks preserving activity lineage
   back to the producer window.
