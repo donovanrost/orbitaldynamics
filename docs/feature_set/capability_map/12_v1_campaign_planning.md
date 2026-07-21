@@ -59,6 +59,11 @@ direct nested contracts. Campaign validation continues to run their existing
 standalone validators over suppression and declared station-availability
 evidence.
 
+V1 plan identity is executable: `generated_at` must be an ISO 8601 date-time,
+and `plan_id` must equal `campaign_plan:<study_id>:<generated_at>`. This keeps
+the source identity consumed by optimizer, review, and Cadence handoffs tied to
+the producer's deterministic study/time inputs.
+
 The required planning-horizon object has optional positive numeric `duration_s`
 and `output_step_s` fields; declared cadence requires and cannot exceed duration.
 File-backed propagation manifests require both fields, while direct planning

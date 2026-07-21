@@ -168,6 +168,9 @@ work, a **partial** executable-schema track, and **near-term** / **later** /
   proposed-contact, and contact-intent rows with stable source-window
   identifiers, including generated contact-success feedback factor/source fields
   on refreshed contact candidates.
+- Its generated timestamp is exported as a date-time, and runtime validation
+  requires the exact deterministic `campaign_plan:<study_id>:<generated_at>`
+  plan identity used by downstream handoffs.
 - Its typed planning horizon validates declared duration/cadence as positive,
   requires duration for cadence, rejects cadence beyond duration, and bounds
   core schedule rows whenever a zero-based planning duration is declared.

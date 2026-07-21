@@ -54,6 +54,9 @@ It answers:
 - Rank candidate timelines against simple objectives and constraints.
 - Emit plan artifacts with assumptions, backend choices, seeds, timing, and
   validation level.
+- Derive reproducible plan identity as
+  `campaign_plan:<study_id>:<generated_at>` from the encoded study ID and ISO
+  8601 generation time.
 
 ## Outputs
 

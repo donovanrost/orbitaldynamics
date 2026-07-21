@@ -6,6 +6,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanJsonSchema do
     "activities",
     "candidate_activities",
     "contact_intents",
+    "generated_at",
     "planning_horizon",
     "target_commitments",
     "ranking_explanation",
@@ -58,6 +59,10 @@ defmodule OrbitalDynamics.Schema.CampaignPlanJsonSchema do
 
   def property("target_commitments", opts) do
     array_of(Keyword.fetch!(opts, :target_commitment_schema))
+  end
+
+  def property("generated_at", _opts) do
+    %{"type" => "string", "format" => "date-time"}
   end
 
   def property("planning_horizon", _opts) do

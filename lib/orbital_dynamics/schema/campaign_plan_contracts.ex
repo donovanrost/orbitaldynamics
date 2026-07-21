@@ -7,6 +7,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanContracts do
     CampaignPlanConstraintContracts,
     CampaignPlanContactAllocationContracts,
     CampaignPlanHorizonContracts,
+    CampaignPlanIdentityContracts,
     CampaignPlanOptimizerContracts,
     CampaignPlanScoreContracts,
     CampaignPlanTargetCommitmentContracts,
@@ -17,6 +18,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanContracts do
     issues
     |> call(callbacks, :require_fields, ["$", artifact, required_fields])
     |> call(callbacks, :validate_stable_ids, ["$", artifact, ["plan_id", "study_id"]])
+    |> CampaignPlanIdentityContracts.validate(artifact)
     |> call(callbacks, :expect_equal, ["$", artifact, "schema_version", 1])
     |> call(callbacks, :expect_equal, [
       "$",

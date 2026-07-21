@@ -215,6 +215,8 @@ Already implemented or heavily covered:
   nested contracts in the exported campaign-plan schema
 - V1 target commitments are exported as typed inline rows and reconciled with
   candidate, selected-activity, and objective-satisfaction evidence
+- V1 generation time is typed as a date-time and exact plan identity is derived
+  from the enclosing study ID and generation timestamp
 - required V1 planning-horizon objects type optional positive duration/cadence,
   require duration for cadence, and bound core schedule rows when duration is
   declared
