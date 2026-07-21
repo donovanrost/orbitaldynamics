@@ -24,14 +24,17 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContracts do
 
   def validate(issues, artifact) when is_map(artifact) do
     timelines = Map.get(artifact, "ranked_timelines")
+    scoring_policy = scoring_policy(artifact)
 
     issues
-    |> validate_rows("$.ranked_timelines", timelines, &validate_timeline/3)
+    |> validate_rows("$.ranked_timelines", timelines, fn acc, path, timeline ->
+      validate_timeline(acc, path, timeline, scoring_policy)
+    end)
     |> validate_timeline_order(timelines)
     |> validate_score_term_report(timelines, Map.get(artifact, "score_term_report"))
   end
 
-  defp validate_timeline(issues, path, timeline) do
+  defp validate_timeline(issues, path, timeline, scoring_policy) do
     score_terms = Map.get(timeline, "score_terms")
 
     issues
@@ -56,6 +59,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContracts do
     )
     |> validate_activity_count(path, timeline)
     |> validate_timeline_score(path, timeline)
+    |> validate_timeline_score_evidence(path, timeline, scoring_policy)
   end
 
   defp require_aggregate_terms(issues, path, score_terms) when is_map(score_terms),
@@ -104,6 +108,82 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContracts do
   end
 
   defp validate_timeline_score(issues, _path, _timeline), do: issues
+
+  defp validate_timeline_score_evidence(issues, path, timeline, scoring_policy) do
+    issues
+    |> validate_activity_score_evidence(path, timeline)
+    |> validate_activity_count_penalty_evidence(path, timeline, scoring_policy)
+  end
+
+  defp validate_activity_score_evidence(
+         issues,
+         path,
+         %{"score_terms" => score_terms, "activities" => activities}
+       )
+       when is_map(score_terms) and is_list(activities) do
+    activity_score = Map.get(score_terms, "activity_score")
+
+    nested_scores =
+      Enum.map(activities, fn
+        %{} = activity -> Map.get(activity, "score")
+        _activity -> :invalid
+      end)
+
+    if is_number(activity_score) and Enum.all?(nested_scores, &is_number/1) do
+      validate_number_equal(
+        issues,
+        path <> ".score_terms.activity_score",
+        activity_score,
+        Enum.sum(nested_scores),
+        "must equal nested activity score sum"
+      )
+    else
+      issues
+    end
+  end
+
+  defp validate_activity_score_evidence(issues, _path, _timeline), do: issues
+
+  defp validate_activity_count_penalty_evidence(
+         issues,
+         path,
+         %{"score_terms" => score_terms, "activities" => activities},
+         {:ok, policy}
+       )
+       when is_map(score_terms) and is_list(activities) do
+    activity_count_penalty = Map.get(score_terms, "activity_count_penalty")
+    policy_penalty = Map.get(policy, "activity_count_penalty", 0.0)
+
+    if is_number(activity_count_penalty) and is_number(policy_penalty) do
+      validate_number_equal(
+        issues,
+        path <> ".score_terms.activity_count_penalty",
+        activity_count_penalty,
+        -length(activities) * policy_penalty,
+        "must match activity count and scoring policy"
+      )
+    else
+      issues
+    end
+  end
+
+  defp validate_activity_count_penalty_evidence(
+         issues,
+         _path,
+         _timeline,
+         _scoring_policy
+       ),
+       do: issues
+
+  defp scoring_policy(%{"assumptions" => assumptions}) when is_map(assumptions) do
+    case Map.fetch(assumptions, "scoring_policy") do
+      {:ok, policy} when is_map(policy) -> {:ok, policy}
+      :error -> {:ok, %{}}
+      {:ok, _policy} -> :error
+    end
+  end
+
+  defp scoring_policy(_artifact), do: :error
 
   defp aggregate_terms_valid?(score_terms) do
     Enum.all?(@required_aggregate_terms, &is_number(Map.get(score_terms, &1))) and

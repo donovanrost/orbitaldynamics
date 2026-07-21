@@ -188,6 +188,10 @@ Runtime reconciles timeline score to those two core aggregates plus present
 `resource_projection_pressure_penalty` adjustments. Remaining component and
 count explanations are deliberately excluded instead of treating the entire map
 as one additive score sum.
+The core inputs are independently reconciled: `activity_score` equals the sum of
+nested activity scores, and `activity_count_penalty` equals negative selected
+activity count times `assumptions.scoring_policy.activity_count_penalty`, using
+the producer's zero default when that policy key is absent.
 Runtime validation also reconciles the optional objective-tradeoff report with
 the ranked timelines: V1 model/source, rank and scenario identity, ranking and
 term-key counts, scores and selected-score deltas, term maps, selected counts,

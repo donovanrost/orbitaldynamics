@@ -75,6 +75,10 @@ It answers:
   present downlink-completion, timeline-precondition-pressure, and resource-
   projection-pressure adjustments; component/count explanations are not summed.
   JSON Schema requires and types the two core aggregate terms.
+- Runtime also ties those core terms back to source evidence: `activity_score`
+  equals the nested activity-score sum, and `activity_count_penalty` equals the
+  negative selected count times the declared scoring-policy penalty (default
+  zero). Malformed source values remain owned by their field validators.
 - `campaign_plan.objective_tradeoff_report` with per-ranked-timeline score-term
   deltas for operator review.
 - `campaign_plan.activities` for the highest-ranked timeline.

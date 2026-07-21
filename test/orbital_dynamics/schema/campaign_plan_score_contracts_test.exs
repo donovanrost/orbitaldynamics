@@ -2,6 +2,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContractsTest do
   use ExUnit.Case, async: true
 
   alias OrbitalDynamics.CampaignPlanner.ScoreReports
+  alias OrbitalDynamics.Schema.CampaignPlanScoreContracts
   alias OrbitalDynamics.Schema
 
   setup do
@@ -199,6 +200,111 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContractsTest do
            )
   end
 
+  test "reconciles ranked activity score to nested activity evidence", %{artifact: artifact} do
+    [timeline] = artifact["ranked_timelines"]
+
+    timeline =
+      timeline
+      |> update_in(["score_terms", "activity_score"], &(&1 + 1.0))
+      |> Map.update!("score", &(&1 + 1.0))
+
+    invalid = with_timelines(artifact, [timeline])
+
+    assert {:error, report} = Schema.validate_artifact(invalid)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] == "$.ranked_timelines[0].score_terms.activity_score" and
+                 &1["message"] == "must equal nested activity score sum")
+           )
+  end
+
+  test "reconciles activity-count penalty to the declared scoring policy", %{
+    artifact: artifact
+  } do
+    [timeline] = artifact["ranked_timelines"]
+
+    timeline =
+      timeline
+      |> put_in(["score_terms", "activity_count_penalty"], -1.0)
+      |> Map.update!("score", &(&1 - 1.0))
+
+    invalid = with_timelines(artifact, [timeline])
+
+    assert {:error, report} = Schema.validate_artifact(invalid)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] ==
+                 "$.ranked_timelines[0].score_terms.activity_count_penalty" and
+                 &1["message"] == "must match activity count and scoring policy")
+           )
+  end
+
+  test "accepts nonzero and default activity-count penalty policies", %{artifact: artifact} do
+    [timeline] = artifact["ranked_timelines"]
+
+    penalized =
+      timeline
+      |> put_in(["score_terms", "activity_count_penalty"], -2.5)
+      |> Map.update!("score", &(&1 - 2.5))
+
+    assert [] ==
+             CampaignPlanScoreContracts.validate([], %{
+               "ranked_timelines" => [penalized],
+               "assumptions" => %{"scoring_policy" => %{"activity_count_penalty" => 2.5}}
+             })
+
+    assert [] ==
+             CampaignPlanScoreContracts.validate([], %{
+               "ranked_timelines" => [timeline],
+               "assumptions" => %{"scoring_policy" => %{}}
+             })
+  end
+
+  test "accepts an empty timeline with zero activity score evidence" do
+    timeline = %{
+      "scenario_id" => "empty",
+      "score" => 0.0,
+      "score_terms" => %{
+        "activity_score" => 0.0,
+        "activity_count_penalty" => 0.0
+      },
+      "activity_count" => 0,
+      "activities" => []
+    }
+
+    assert [] ==
+             CampaignPlanScoreContracts.validate([], %{
+               "ranked_timelines" => [timeline],
+               "assumptions" => %{"scoring_policy" => %{"activity_count_penalty" => 3.0}}
+             })
+  end
+
+  test "leaves malformed score evidence to field-level validation", %{artifact: artifact} do
+    [timeline] = artifact["ranked_timelines"]
+    malformed_activity = put_in(timeline, ["activities", Access.at(0), "score"], "high")
+
+    activity_issues =
+      CampaignPlanScoreContracts.validate([], %{
+        "ranked_timelines" => [malformed_activity],
+        "assumptions" => %{"scoring_policy" => %{}}
+      })
+
+    policy_issues =
+      CampaignPlanScoreContracts.validate([], %{
+        "ranked_timelines" => [timeline],
+        "assumptions" => %{"scoring_policy" => %{"activity_count_penalty" => "high"}}
+      })
+
+    refute Enum.any?(activity_issues, &(&1["message"] == "must equal nested activity score sum"))
+
+    refute Enum.any?(
+             policy_issues,
+             &(&1["message"] == "must match activity count and scoring policy")
+           )
+  end
+
   test "requires ranked timelines to follow descending planner score order", %{
     artifact: artifact
   } do
@@ -218,7 +324,13 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContractsTest do
     artifact: artifact
   } do
     [first, second] = ranked_timelines(artifact)
-    tied = [first, put_timeline_score(second, first["score"])]
+
+    tied_second =
+      second
+      |> Map.put("score", first["score"])
+      |> put_in(["score_terms", "downlink_completion_score"], first["score"])
+
+    tied = [first, tied_second]
 
     assert {:ok, %{"schema_contract" => "campaign_plan.v1"}} =
              artifact |> with_timelines(tied) |> Schema.validate_artifact()

@@ -212,6 +212,8 @@ Already implemented or heavily covered:
   count-penalty aggregates; runtime reconciles timeline score to those terms plus
   the producer's optional objective/pressure adjustments without double-counting
   component or count explanations
+- V1 activity-score and activity-count-penalty aggregates are reconciled to
+  nested activity scores, selected count, and the declared scoring-policy penalty
 - runtime V1 validation also preserves the producer's descending timeline score
   order and deterministic ascending scenario tie-break; this adjacent-row rule
   remains executable because JSON Schema does not express the comparison

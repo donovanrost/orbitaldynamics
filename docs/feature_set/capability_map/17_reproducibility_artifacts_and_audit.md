@@ -226,6 +226,9 @@ work, a **partial** executable-schema track, and **near-term** / **later** /
   aggregates. Executable validation reconciles timeline score to those core
   terms plus present downlink-completion and precondition/resource-pressure
   adjustments, while excluding component/count explanations from the sum.
+- Executable validation also derives activity score from the selected nested
+  activity scores and count penalty from selected count plus the declared
+  scoring-policy penalty, including the producer's zero default.
 - Ranked-timeline scenario IDs are unique, and nested activities must carry the
   identity of their enclosing scenario. Empty timelines remain valid; scenario
   uniqueness and ownership are executable cross-row/cross-field rules.

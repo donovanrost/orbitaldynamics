@@ -5,41 +5,42 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Reconcile V1 ranked timeline aggregate scores.
+Reconcile V1 ranked timeline activity score evidence.
 
 Status:
 Complete and parent-reviewed; ready to publish.
 
 Delivered:
-- Required numeric `activity_score` and `activity_count_penalty` terms on every
-  ranked timeline in runtime validation and JSON Schema.
-- Reconciled timeline score to those two terms plus present numeric
-  `downlink_completion_score`, `timeline_precondition_pressure_penalty`, and
-  `resource_projection_pressure_penalty` terms.
-- Ignored component and count explanation terms when calculating the aggregate.
-- Avoided secondary aggregate errors when a participating term is malformed.
-- Added producer-valid, missing-core-term, score-drift, optional-adjustment,
-  explanatory-term, and malformed-term calibration coverage.
-- Regenerated the checked-in campaign schema and schema bundle and updated V1
-  generation, planning, reproducibility, and roadmap documentation.
+- Required ranked `activity_score` to equal the sum of numeric nested activity
+  scores.
+- Required ranked `activity_count_penalty` to equal negative activity count times
+  numeric `assumptions.scoring_policy.activity_count_penalty`, with the producer's
+  zero default when the policy key is absent.
+- Avoided secondary evidence errors when nested scores, activity collections, or
+  policy values are malformed and already owned by field-level validators.
+- Preserved empty timelines and floating-point tolerance.
+- Added producer-valid, activity-score drift, penalty drift, zero/default policy,
+  empty-timeline, and malformed-source calibration coverage.
+- Updated V1 generation, planning, reproducibility, and roadmap documentation;
+  no JSON Schema changed because these are cross-row/cross-object arithmetic rules.
 
 Review calibration:
-- The aggregate key set and optional-zero behavior exactly match
-  `TimelineRanking` score construction.
-- Pre-fix, a refreshed `+1` score drift returned `:ok`; the new epsilon-aware
-  subtotal comparison owns that gap.
-- A large future explanatory term remains valid without changing score, proving
-  component/count terms are not accidentally double-counted.
-- The first schema-area run exposed one stale empty-timeline tradeoff fixture
-  (`364/365`); its aggregate score and core terms now consistently equal zero.
+- Pre-fix, both synchronized activity-score drift and synchronized count-penalty
+  drift returned `:ok` after dependent reports were regenerated.
+- Nonzero, absent-key/default-zero, and empty-timeline policy cases match
+  `TimelineRanking` behavior.
+- The first focused run exposed one stale equal-score tie fixture (`23/24`); its
+  empty second timeline now expresses the tie through an optional adjustment
+  instead of inventing nested activity score.
+- Malformed nested activity scores and malformed policy values retain only their
+  existing field-level errors.
 - Parent review found no publish blocker.
 
 Verification:
-- Focused score contracts: `19 passed`; score plus tradeoff contracts: `26 passed`.
-- Schema plus lint area: `365 passed`.
+- Focused score contracts: `24 passed`.
+- Schema plus lint area: `370 passed`.
 - Planner area: `754 passed`.
-- Full suite: `3678 passed`.
-- Full checked-in schema export completed successfully.
+- Full suite: `3683 passed`.
 - `mix format --check-formatted`, `mix compile --warnings-as-errors`, and
   `git diff --check` pass.
 
@@ -47,7 +48,7 @@ Level 6 pillar advanced:
 Explainable V1 ranking and internally consistent review artifacts.
 
 Previous published slice:
-- `b67895e2` Contract V1 activity collection order (`3673 passed`).
+- `e15046bc` Reconcile V1 ranked timeline aggregate scores (`3678 passed`).
 
 Remaining maturity gaps:
 - Continue calibrated realized-feedback depth where evidence is genuinely
