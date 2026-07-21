@@ -10,6 +10,8 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationPressureSourceWrappe
     Schema
   }
 
+  alias OrbitalDynamics.Communications.ContactAllocation
+
   test "replays contact allocation pressure from result artifact wrappers" do
     report = %{
       "schema_contract" => "contact_allocation_report.v1",
@@ -115,6 +117,138 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationPressureSourceWrappe
 
     assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
+  end
+
+  test "applies exact allocation resource blocks from review and import wrappers" do
+    blocked_contact_id = "leo_1_downlink_equator_prime_1"
+    report = resource_blocked_contact_allocation_report(blocked_contact_id, "sat_1")
+    operator_review = OperatorReview.from_contact_allocation_report(report)
+    cadence_import = CadenceImport.from_contact_allocation_report(report)
+
+    wrapper_cases = [
+      {
+        "source_operator_review_package",
+        operator_review,
+        "source_operator_review_package.rows.source_contact_allocation",
+        "operator_review_package.rows.source_contact_allocation",
+        ["allocation_report_round_trip", "allocation_resource_round_trip"]
+      },
+      {
+        "source_cadence_import_manifest",
+        cadence_import,
+        "source_cadence_import_manifest.rows.source_contact_allocation",
+        "cadence_import_manifest.rows.source_contact_allocation",
+        ["allocation_resource_round_trip"]
+      }
+    ]
+
+    Enum.each(
+      wrapper_cases,
+      fn {request_key, wrapper, source_path, source, trust_boundaries} ->
+        artifact =
+          result_set()
+          |> CandidateRefresh.build(
+            candidate_refresh:
+              refresh_request()
+              |> Map.put(request_key, wrapper)
+              |> Map.put("prior_candidate_activities", [prior_contact(blocked_contact_id)]),
+            generated_at: ~U[2026-05-14 00:00:00Z]
+          )
+
+        assert Enum.map(artifact["candidate_activities"], & &1["id"]) == [
+                 "leo_1_observe_target_a_1"
+               ]
+
+        assert %{
+                 "source" => "candidate_refresh.contact_allocation_unavailable_resource",
+                 "rejected_candidate_ids" => [^blocked_contact_id]
+               } = rejection_report = artifact["candidate_rejection_report"]
+
+        assert %{
+                 "source_report_paths" => [^source_path],
+                 "source_report_sources" => [^source],
+                 "resource_blocking_dimensions" => ["antenna"],
+                 "blocked_spacecraft_ids" => ["sat_1"],
+                 "trust_boundaries" => ^trust_boundaries
+               } =
+                 rejection_report
+                 |> Map.fetch!("rows")
+                 |> Enum.find(&(&1["candidate_id"] == blocked_contact_id))
+                 |> get_in([
+                   "activity_context",
+                   "provenance",
+                   "contact_allocation_candidate_filter"
+                 ])
+
+        assert [
+                 %{
+                   "id" => ^blocked_contact_id,
+                   "invalidated_reason" => "dropped_by_contact_allocation_unavailable_resource"
+                 }
+               ] = artifact["invalidated_candidates"]
+
+        assert "contact allocation resource evidence excluded explicitly scoped contact candidates" in artifact[
+                 "warnings"
+               ]
+
+        handoff_review = OperatorReview.from_candidate_refresh_artifact(artifact)
+        handoff_import = CadenceImport.from_candidate_refresh_artifact(artifact)
+
+        assert Enum.any?(
+                 handoff_review["rows"],
+                 &(&1["review_type"] == "candidate_rejection_review" and
+                     &1["candidate_id"] == blocked_contact_id)
+               )
+
+        assert Enum.any?(
+                 handoff_import["rows"],
+                 &(&1["source_review_type"] == "candidate_rejection_review" and
+                     &1["subject_id"] == blocked_contact_id)
+               )
+
+        assert {:ok, %{"schema_contract" => "candidate_rejection_report.v1"}} =
+                 Schema.validate_artifact(rejection_report)
+
+        assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+                 Schema.validate_artifact(handoff_review)
+
+        assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+                 Schema.validate_artifact(handoff_import)
+
+        assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
+                 Schema.validate_artifact(artifact)
+      end
+    )
+
+    cross_spacecraft_manifest =
+      blocked_contact_id
+      |> resource_blocked_contact_allocation_report("sat_2")
+      |> CadenceImport.from_contact_allocation_report()
+
+    cross_spacecraft_artifact =
+      result_set()
+      |> CandidateRefresh.build(
+        candidate_refresh:
+          refresh_request()
+          |> Map.put("source_cadence_import_manifest", cross_spacecraft_manifest),
+        generated_at: ~U[2026-05-14 00:00:00Z]
+      )
+
+    assert blocked_contact_id in Enum.map(
+             cross_spacecraft_artifact["candidate_activities"],
+             & &1["id"]
+           )
+
+    assert cross_spacecraft_artifact["candidate_rejection_report"]["rejected_count"] == 0
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(operator_review)
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(cadence_import)
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(cross_spacecraft_manifest)
   end
 
   defp result_set do
@@ -286,6 +420,46 @@ defmodule OrbitalDynamics.CandidateRefresh.ContactAllocationPressureSourceWrappe
           "ends_at_s" => 20.0
         }
       ]
+    }
+  end
+
+  defp resource_blocked_contact_allocation_report(contact_id, spacecraft_id) do
+    contact = %{
+      id: contact_id,
+      type: :downlink,
+      direction: :downlink,
+      scenario_id: :leo_1,
+      spacecraft_id: spacecraft_id,
+      station_id: :equator_prime,
+      starts_at_s: 300.0,
+      ends_at_s: 420.0
+    }
+
+    resource_summary = %{
+      spacecraft_id: spacecraft_id,
+      antenna_available: false,
+      source_quality: :operator_supplied,
+      provenance: %{trust_boundary: :allocation_resource_round_trip}
+    }
+
+    {_allocated_contacts, report} =
+      ContactAllocation.allocate_contacts([contact], [],
+        source: "candidate_refresh.wrapper_round_trip",
+        resource_summaries: [resource_summary]
+      )
+
+    Map.put(report, "provenance", %{"trust_boundary" => "allocation_report_round_trip"})
+  end
+
+  defp prior_contact(contact_id) do
+    %{
+      "id" => contact_id,
+      "type" => "downlink",
+      "scenario_id" => "leo_1",
+      "ground_station_id" => "equator_prime",
+      "starts_at_s" => 300.0,
+      "ends_at_s" => 420.0,
+      "source_window_id" => "window:leo_1:ground_station_access:equator_prime:1"
     }
   end
 end

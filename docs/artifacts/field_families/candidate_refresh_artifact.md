@@ -998,6 +998,10 @@ the row-derived contact ID and spacecraft identity both match. The resulting
 candidate-rejection row preserves the allocation path/source, blocking
 dimension, spacecraft scope, and row/report trust evidence; a matching prior
 candidate uses `dropped_by_contact_allocation_unavailable_resource`.
+The same selection boundary applies when allocation rows round-trip through
+`operator_review_package.v1` or `cadence_import_manifest.v1`: reconstruction
+retains the embedded blocked status, row scope, suppression, and resource trust,
+while rejection provenance names the wrapper-qualified review/import path.
 Top-level resource-blocked count/ID maps remain replay provenance only and do
 not activate selection without a qualifying row.
 Preserved selected/deferred capacity-pack contact-ID station maps,

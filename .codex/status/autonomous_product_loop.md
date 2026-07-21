@@ -5,52 +5,52 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Add a curated CandidateRefresh contact-allocation resource-selection challenge.
+Preserve planner-effective allocation resource blocks through operator-review
+and Cadence-import CandidateRefresh inputs.
 
 Status:
 Implemented and verified; publish pending.
 
 Why this slice:
-Canonical contact-allocation resource rows are now planner-effective, but the
-curated validation corpus does not pin their exact selection boundary. A
-stale-but-plausible aggregate or cross-spacecraft identity regression could
-therefore pass unit coverage without durable compatibility evidence.
+Direct and result-artifact-wrapped contact-allocation rows now affect exact
+selection, but the Cadence-facing inbound review/import surfaces are only
+proven for replay pressure. Their reconstructed allocation rows may drop the
+status, scope, suppression, or trust evidence required for safe filtering.
 
 Level 6 pillar:
-Durable schema-versioned compatibility evidence for fleet-level contact and
-resource selection.
+Clear Cadence integration artifacts plus refreshed candidates from current
+mission state and fleet resource evidence.
 
 Behavior/evidence added:
-- A deterministic two-spacecraft refresh uses a report built through the real
-  contact-allocation allocator; one exact `sat_1` contact is rejected while the
-  same row evidence cannot leak to the `sat_2` survivor.
-- The challenge deliberately replaces the schema-valid row-derived top-level
-  spacecraft map with stale contradictory aggregate evidence. The stale source
-  copy fails its source contract while CandidateRefresh remains row-driven.
-- Conditional observations pin selected/rejected/invalidated identities,
-  allocation report/source IDs, path, blocking dimension, spacecraft scope,
-  row/report trust, and row-derived resource maps without changing
-  evidence-free observation shape.
-- The public validation registry now contains 199 passing fixtures; the new
-  challenge contributes 38 exact checks.
+- Real allocator output now has exact contract coverage through both
+  `operator_review_package.v1` and `cadence_import_manifest.v1` inbound paths.
+- Each round trip preserves blocked status, exact contact and `sat_1` scope,
+  antenna blocking dimension, nested resource suppression, wrapper-qualified
+  source path/source, and available report/row trust evidence.
+- CandidateRefresh emits the allocation-specific rejection and invalidation;
+  the resulting candidate-rejection operator-review and Cadence-import
+  handoffs remain schema-valid and review-only.
+- A Cadence-import row scoped to `sat_2` cannot suppress the regenerated
+  `sat_1` contact. Observation candidates remain unaffected.
+- No production fix was required: the existing reconstruction/source resolver
+  already preserved the decision-safe row contract. Focused docs now state the
+  guaranteed wrapper behavior explicitly.
 
 Verification:
-- Focused station/allocation fixture tests: 3 passed.
-- All CandidateRefresh validation fixture suites: 23 passed.
-- Validation and related schema contract suites: 189 passed.
-- Full `mix test --timeout 180000`: 3,476 passed.
+- Focused wrapper build tests: 4 passed.
+- CandidateRefresh plus review/import/contact-allocation schema suites: 847 passed.
+- Full `mix test --timeout 180000`: 3,477 passed.
 - Schema lint: 155 artifacts, zero errors/warnings.
 - `mix format --check-formatted` and `git diff --check`: pass.
 
 Parent review:
-Complete. The parent verified real allocator generation, corrected-source
-schema validity, stale-source schema rejection, row-derived observation maps,
-cross-spacecraft isolation, conditional evidence-free compatibility, and exact
-registry regeneration. No must-fix findings remain. Runtime policy disallows
-subagent delegation, so the parent performed review and publish prep.
+Complete. The parent inspected embedded-row reconstruction, wrapper traversal,
+report/row trust inheritance, filter provenance, downstream handoffs, and the
+cross-spacecraft negative. No must-fix findings remain. Runtime policy
+disallows subagent delegation, so the parent performed review and publish prep.
 
 Previous published slice:
-- `5d5de833` Apply allocation resource blocks in candidate refresh (`3475 passed`).
+- `c774b240` Add allocation selection challenge fixture (`3476 passed`).
 
 Current publish:
 - Commit pending.

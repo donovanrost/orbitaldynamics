@@ -95,7 +95,9 @@ From those inputs the pipeline:
   `source_resource_suppression` through the same exact candidate-ID and
   spacecraft-identity boundary. The filter derives contact and spacecraft
   scope from the row; stale top-level resource-blocked maps are not selection
-  inputs.
+  inputs. Operator-review and Cadence-import round trips retain the embedded
+  row status, scope, blocking dimension, suppression, and resource trust, with
+  wrapper-qualified source paths in the rejection evidence.
 - Readiness reports with only aggregate resource pressure and no explicit
   blocked-contact map do not emit a selection-time rejection report. Aggregate
   quality-summary reasons, pressure counts, blocking-dimension maps, and contact
