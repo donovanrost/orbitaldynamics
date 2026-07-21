@@ -187,6 +187,9 @@ work, a **partial** executable-schema track, and **near-term** / **later** /
 - Those activity surfaces also export numeric score-term map values; executable
   V1 validation requires score/term presence and types, then reconciles each
   activity score to the sum of its terms.
+- Selected, candidate, and ranked activities require stable outer and nested
+  source-window IDs, with executable equality checks preserving activity lineage
+  back to the producer window.
 - It also exports typed target-commitment rows reconciled with candidate and
   selected observation counts, durations, selected IDs, statuses, unique target
   identity, and matching objective-satisfaction target rows.

@@ -114,6 +114,12 @@ evidence, rejects non-numeric term values, and reconciles every activity score
 to its term sum. JSON Schema exports numeric score-term map values on all three
 activity surfaces; cross-field sum reconciliation remains executable behavior.
 
+Activity lineage is likewise executable across selected, candidate, and ranked
+rows: `source_window_id` and nested `source_window.id` are required stable IDs,
+and runtime validation requires them to match. The export requires the nested ID
+so downstream timing, score, and provenance review can retain the producer
+window identity.
+
 Runtime `campaign_plan.v1` validation requires each ranked timeline to carry a
 stable scenario ID, numeric score, and numeric score-term values. When the
 optional `score_term_report.v1` is present, its source, model, term-key union,

@@ -6,6 +6,9 @@ defmodule OrbitalDynamics.Schema.StableIdValidation do
 
   def pattern, do: @stable_id_pattern
 
+  def valid?(value) when is_binary(value), do: Regex.match?(@stable_id_regex, value)
+  def valid?(_value), do: false
+
   def validate_stable_ids(issues, path, map, fields) when is_map(map) do
     Enum.reduce(fields, issues, fn field, acc ->
       if Map.has_key?(map, field) do
@@ -94,7 +97,7 @@ defmodule OrbitalDynamics.Schema.StableIdValidation do
   end
 
   def validate_stable_id(issues, path, value) when is_binary(value) do
-    if Regex.match?(@stable_id_regex, value) do
+    if valid?(value) do
       issues
     else
       [error(path, "must match stable ID pattern #{@stable_id_pattern}") | issues]

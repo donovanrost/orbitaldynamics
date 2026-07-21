@@ -273,6 +273,9 @@ defmodule OrbitalDynamics.Schema.CampaignPlanJsonSchema do
       ["properties", "score_terms", "additionalProperties"],
       %{"type" => "number"}
     )
+    |> update_in(["properties", "source_window"], fn source_window_schema ->
+      Map.put(source_window_schema, "required", ["id"])
+    end)
   end
 
   defp fetch_dep!(deps, key) do

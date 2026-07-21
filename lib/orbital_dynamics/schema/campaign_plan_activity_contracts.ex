@@ -4,6 +4,8 @@ defmodule OrbitalDynamics.Schema.CampaignPlanActivityContracts do
   import OrbitalDynamics.Schema.CollectionValidation, only: [validate_numeric_map: 3]
   import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2, require_fields: 4]
 
+  alias OrbitalDynamics.Schema.StableIdValidation
+
   @activity_fields ["activities", "candidate_activities"]
   @tolerance 1.0e-9
 
@@ -52,6 +54,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanActivityContracts do
     issues
     |> validate_duration(path, activity)
     |> validate_score(path, activity)
+    |> validate_source_window(path, activity)
   end
 
   defp validate_duration(issues, path, activity) do
@@ -140,6 +143,43 @@ defmodule OrbitalDynamics.Schema.CampaignPlanActivityContracts do
   end
 
   defp reconcile_score(issues, _path, _activity), do: issues
+
+  defp validate_source_window(issues, path, activity) do
+    issues
+    |> require_fields(path, activity, required_source_window_fields(activity))
+    |> validate_source_window_value(path, activity, Map.fetch(activity, "source_window"))
+  end
+
+  defp required_source_window_fields(%{"type" => "downlink"}), do: ["source_window_id"]
+  defp required_source_window_fields(_activity), do: ["source_window_id", "source_window"]
+
+  defp validate_source_window_value(issues, _path, _activity, :error), do: issues
+
+  defp validate_source_window_value(issues, path, activity, {:ok, %{} = source_window}) do
+    issues
+    |> require_fields(path <> ".source_window", source_window, ["id"])
+    |> StableIdValidation.validate_stable_ids(path <> ".source_window", source_window, ["id"])
+    |> validate_source_window_identity(path, activity, source_window)
+  end
+
+  defp validate_source_window_value(issues, _path, %{"type" => "downlink"}, {:ok, _value}),
+    do: issues
+
+  defp validate_source_window_value(issues, path, _activity, {:ok, _value}) do
+    [error(path <> ".source_window", "must be a map") | issues]
+  end
+
+  defp validate_source_window_identity(issues, path, activity, source_window) do
+    source_window_id = Map.get(activity, "source_window_id")
+    nested_id = Map.get(source_window, "id")
+
+    if StableIdValidation.valid?(source_window_id) and StableIdValidation.valid?(nested_id) and
+         nested_id != source_window_id do
+      [error(path <> ".source_window.id", "must match source_window_id") | issues]
+    else
+      issues
+    end
+  end
 
   defp close?(left, right), do: abs(left - right) <= @tolerance
 end

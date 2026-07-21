@@ -72,6 +72,9 @@ It answers:
 - Those activity rows also carry required numeric `score` values and numeric
   `score_terms` maps. Runtime validation requires each score to equal its term
   sum; JSON Schema constrains every term value to a number.
+- Every activity preserves its producer window through required stable
+  `source_window_id` and nested `source_window.id` evidence. Runtime validation
+  requires those IDs to match before the activity is accepted for handoff.
 - `campaign_plan.proposed_contacts` with stable external IDs for later Cadence
   import.
 - `campaign_plan.contact_intents` as artifact-only `contact_intent.v1` rows for

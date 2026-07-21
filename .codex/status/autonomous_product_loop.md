@@ -5,43 +5,45 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Reconcile V1 activity scores.
+Contract V1 activity source windows.
 
 Status:
 Complete and parent-reviewed; ready to publish.
 
 Delivered:
-- Required numeric `score` plus a `score_terms` map on selected, candidate, and
-  ranked-timeline activity rows.
-- Rejected non-numeric term values and reconciled each valid score to its term
-  sum with the established `1.0e-9` tolerance.
-- Preserved valid negative scores when numeric penalty terms sum to that value.
-- Exported numeric score-term map values on all three V1 activity locations;
-  runtime retains ownership of cross-field sum reconciliation.
-- Consolidated duration and score checks into one 145-line V1 activity contract,
-  restoring the timeline/report score contract to its focused 201-line scope.
-- Added required/type/numeric-term/sum/export coverage over all three surfaces.
+- Required `source_window_id` plus nested `source_window.id` evidence on selected,
+  candidate, and ranked-timeline activity rows.
+- Validated nested IDs against the shared stable-ID policy and reconciled valid
+  nested identity to the outer source-window ID.
+- Exported nested source-window ID as required on all three V1 activity surfaces.
+- Added a shared stable-ID validity predicate without changing existing stable-ID
+  validation behavior.
+- Preserved the existing downlink shape owner while covering observe-style rows
+  in the consolidated V1 activity contract.
+- Added required/map/stable-ID/equality/downlink/export coverage.
 - Regenerated only `campaign_plan.v1` and the aggregate schema bundle.
 - Updated V1 generation, planning, reproducibility, and roadmap documentation.
 
 Review calibration:
-- Pre-fix live mutations proved arbitrary or missing score evidence passed on
-  selected, candidate, and ranked activity rows.
-- Missing and malformed fields now emit one primary remediation; non-numeric
-  terms do not add a misleading sum error.
-- Malformed collection rows remain owned by existing shape validators, and the
-  V1 activity collections are traversed once for duration plus score integrity.
+- Nine pre-fix live missing-ID, missing-window, and mismatch mutations passed
+  across selected, candidate-observe, and ranked rows.
+- Missing/malformed downlink windows retain exactly one existing map remediation;
+  the V1 contract does not duplicate it.
+- Equality runs only after both IDs satisfy stable-ID policy, preventing malformed
+  IDs from adding misleading mismatch errors.
+- Parent review found source-window logic cohesive inside the 185-line activity
+  contract and left producer/repair behavior unchanged.
 
 Verification:
-- Focused activity/score/plan integration: `20 passed`; plan/export: `111 passed`.
-- Schema plus lint area: `298 passed`.
+- Focused lineage: `7 passed`; activity/score/plan integration: `27 passed`.
+- Plan/export integration: `118 passed`; schema plus lint area: `305 passed`.
 - Planner area: `754 passed`.
-- Final full suite: `3611 passed`.
+- Final full suite: `3618 passed`.
 - `mix format --check-formatted`, `mix compile --warnings-as-errors`, and
   `git diff --check` pass.
 
 Previous published slice:
-- `01555312` Reconcile V1 activity durations (`3606 passed`).
+- `5f771a8d` Reconcile V1 activity scores (`3611 passed`).
 
 Remaining maturity gaps:
 - Continue calibrated realized-feedback depth where evidence is genuinely

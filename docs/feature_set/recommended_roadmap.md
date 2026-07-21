@@ -230,6 +230,8 @@ Already implemented or heavily covered:
   duration evidence, with runtime reconciliation against each start/end interval
 - selected, candidate, and ranked V1 activities require numeric score/term
   evidence, with each activity score reconciled to its numeric term sum
+- selected, candidate, and ranked V1 activities require matching stable outer
+  and nested source-window IDs for producer-window lineage
 - optional V1 optimizer metadata is reconciled with enclosing candidate,
   selected-activity, ranked-timeline, constraint, scoring-policy, and objective
   evidence; the required ranking explanation is nested and typed
