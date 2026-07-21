@@ -247,6 +247,14 @@ downlink/station/time normalization.
   identity: if multiple otherwise eligible replacement candidates share the same
   activity ID, those duplicate-ID candidates are excluded from automatic
   move/replacement selection instead of choosing one by score or sort order.
+- **Replacement ranking evidence** — moved downlinks and reassigned observations
+  preserve `repair.replacement_ranking` with the selected candidate ID, viable
+  unique candidate count, and ordered compact rows. Each row carries semantic
+  candidate-diff priority/match, candidate score, churn and move penalties,
+  calibrated station-calendar, projected link-capacity, and projected resource
+  penalties, the resulting greedy ranking score, rank, and selected flag. The
+  metadata copies no full alternative payloads and declares
+  `global_optimization: false`.
 
 ## Exported JSON Schema
 

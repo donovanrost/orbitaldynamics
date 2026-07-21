@@ -113,6 +113,28 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateDiffSemanticMatchTest d
              "semantic_change_reasons" => ["starts_at_s_changed", "ends_at_s_changed"]
            } = repair["candidate_diff"]
 
+    assert %{
+             "selected_candidate_id" => "dl_semantic",
+             "rows" => [
+               %{
+                 "rank" => 1,
+                 "candidate_id" => "dl_semantic",
+                 "semantic_candidate_diff_match" => true,
+                 "candidate_diff_priority" => 0,
+                 "candidate_score" => 10.0,
+                 "selected" => true
+               },
+               %{
+                 "rank" => 2,
+                 "candidate_id" => "dl_high_score",
+                 "semantic_candidate_diff_match" => false,
+                 "candidate_diff_priority" => 1,
+                 "candidate_score" => 500.0,
+                 "selected" => false
+               }
+             ]
+           } = repair["replacement_ranking"]
+
     assert [
              %{
                "activity_id" => "dl_old",

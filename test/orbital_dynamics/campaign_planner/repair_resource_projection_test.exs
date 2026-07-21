@@ -80,6 +80,37 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairResourceProjectionTest do
     assert [%{"id" => "obs_nominal", "scenario_id" => "leo_2"}] =
              nominal_artifact["activities"]
 
+    assert %{
+             "selected_candidate_id" => "obs_nominal",
+             "evaluated_candidate_count" => 2,
+             "rows" => [
+               %{
+                 "rank" => 1,
+                 "candidate_id" => "obs_nominal",
+                 "resource_projection_pressure_penalty" => nominal_resource_penalty,
+                 "selected" => true,
+                 "ranking_score" => nominal_ranking_score
+               },
+               %{
+                 "rank" => 2,
+                 "candidate_id" => "obs_pressured",
+                 "resource_projection_pressure_penalty" => -1.0,
+                 "selected" => false,
+                 "ranking_score" => pressured_ranking_score
+               }
+             ]
+           } =
+             get_in(nominal_artifact, [
+               "activities",
+               Access.at(0),
+               "repair",
+               "replacement_ranking"
+             ])
+
+    assert_in_delta nominal_ranking_score, -94.5, 1.0e-9
+    assert_in_delta pressured_ranking_score, -95.0, 1.0e-9
+    assert nominal_resource_penalty == 0.0
+
     assert [] ==
              OrbitalDynamics.CampaignPlanner.ResourceProjectionRisk.risk_indicators(
                nominal_artifact["source_resource_projection_report"]
@@ -98,6 +129,24 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairResourceProjectionTest do
 
     assert [%{"id" => "obs_pressured", "scenario_id" => "leo_1"}] =
              pressured_artifact["activities"]
+
+    assert %{
+             "selected_candidate_id" => "obs_pressured",
+             "rows" => [
+               %{
+                 "candidate_id" => "obs_pressured",
+                 "resource_projection_pressure_penalty" => -0.25,
+                 "selected" => true
+               },
+               %{"candidate_id" => "obs_nominal", "selected" => false}
+             ]
+           } =
+             get_in(pressured_artifact, [
+               "activities",
+               Access.at(0),
+               "repair",
+               "replacement_ranking"
+             ])
 
     assert [%{"type" => "payload_unavailable", "spacecraft_id" => "leo_1"}] =
              OrbitalDynamics.CampaignPlanner.ResourceProjectionRisk.risk_indicators(

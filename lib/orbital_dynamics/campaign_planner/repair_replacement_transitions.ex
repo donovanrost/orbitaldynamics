@@ -30,7 +30,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairReplacementTransitions do
           "missed downlink #{ActivityIdentity.activity_id(activity)} could not be repaired"
         )
 
-      replacement ->
+      %{candidate: replacement, ranking: ranking} ->
         reason = "missed_contact_rescheduled_to_next_viable_access_window"
         candidate_diff = RepairReplacementSelection.candidate_diff(activity, replacement, context)
 
@@ -46,6 +46,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairReplacementTransitions do
               "source_activity_context" => RepairActivityIdentity.context(activity),
               "reason" => reason,
               "requires_approval" => true,
+              "replacement_ranking" => ranking,
               "schedule_churn_s" =>
                 abs(
                   ActivityTiming.activity_start(replacement) -
@@ -96,7 +97,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairReplacementTransitions do
           "failed observation #{ActivityIdentity.activity_id(activity)} could not be reassigned"
         )
 
-      replacement ->
+      %{candidate: replacement, ranking: ranking} ->
         reason = "failed_observation_reassigned_to_viable_spacecraft_or_later_window"
         candidate_diff = RepairReplacementSelection.candidate_diff(activity, replacement, context)
 
@@ -112,6 +113,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairReplacementTransitions do
               "source_activity_context" => RepairActivityIdentity.context(activity),
               "reason" => reason,
               "requires_approval" => true,
+              "replacement_ranking" => ranking,
               "schedule_churn_s" =>
                 abs(
                   ActivityTiming.activity_start(replacement) -

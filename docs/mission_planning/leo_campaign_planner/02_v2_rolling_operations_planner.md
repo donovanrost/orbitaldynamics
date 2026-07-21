@@ -349,7 +349,13 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   the moved/replaced activity repair metadata. Duplicate invalidated or
   replacement candidate-diff rows are kept as explicit ambiguity metadata
   instead of being collapsed by source or replacement ID, and the key ambiguity
-  fields are lifted onto operator-review and Cadence import rows.
+  fields are lifted onto operator-review and Cadence import rows. Each selected
+  replacement also carries `repair.replacement_ranking`: ordered compact rows
+  for viable unique alternatives with semantic-diff priority, value, churn,
+  schedule-move, station-calendar, projected link-capacity, and projected
+  resource contributions, the resulting greedy ranking score, and selected
+  flag. The evidence does not copy candidate payloads or claim global
+  optimization.
 - `approval_requirements` for moved contacts, reassigned observations, delayed
   maneuver impacts, cancellations, and degraded-mode suppressions.
 - Approval requirements include machine-readable `requirement_type` values so

@@ -68,39 +68,76 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairReplacementSelection do
     end)
     |> Enum.filter(&matches_repair_intent?(activity, &1, intent_type))
     |> reject_duplicate_candidate_ids()
-    |> Enum.sort_by(fn candidate ->
-      diff_priority =
-        case candidate_diff(activity, candidate, context) do
-          nil -> 1
-          _diff -> 0
-        end
+    |> Enum.map(&ranked_candidate(activity, &1, acc, context))
+    |> Enum.sort_by(& &1.sort_key)
+    |> selected_candidate()
+  end
 
-      churn_s =
-        abs(ActivityTiming.activity_start(candidate) - ActivityTiming.activity_start(activity))
+  defp ranked_candidate(source, candidate, acc, context) do
+    semantic_candidate_diff_match = not is_nil(candidate_diff(source, candidate, context))
+    diff_priority = if semantic_candidate_diff_match, do: 0, else: 1
 
-      churn_cost =
-        numeric_policy_value(context.scoring_policy, "schedule_churn_cost_weight", 100.0)
+    churn_s =
+      abs(ActivityTiming.activity_start(candidate) - ActivityTiming.activity_start(source))
 
-      move_cost = numeric_policy_value(context.scoring_policy, "schedule_move_cost_weight", 0.01)
+    churn_cost =
+      numeric_policy_value(context.scoring_policy, "schedule_churn_cost_weight", 100.0)
 
-      station_calendar_pressure_penalty =
-        station_calendar_pressure_penalty(candidate, context)
+    move_cost = numeric_policy_value(context.scoring_policy, "schedule_move_cost_weight", 0.01)
+    station_pressure = station_calendar_pressure_penalty(candidate, context)
+    link_pressure = link_capacity_pressure_penalty(source, candidate, acc, context)
+    resource_pressure = resource_projection_pressure_penalty(source, candidate, acc, context)
 
-      link_capacity_pressure_penalty =
-        link_capacity_pressure_penalty(activity, candidate, acc, context)
+    ranking_score =
+      candidate_score(candidate) - churn_cost - churn_s * move_cost - station_pressure -
+        link_pressure - resource_pressure
 
-      resource_projection_pressure_penalty =
-        resource_projection_pressure_penalty(activity, candidate, acc, context)
+    %{
+      candidate: candidate,
+      sort_key:
+        {diff_priority, -ranking_score, churn_s, ActivityTiming.activity_start(candidate),
+         ActivityIdentity.activity_id(candidate)},
+      row: %{
+        "candidate_id" => ActivityIdentity.activity_id(candidate),
+        "semantic_candidate_diff_match" => semantic_candidate_diff_match,
+        "candidate_diff_priority" => diff_priority,
+        "candidate_score" => candidate_score(candidate),
+        "schedule_churn_s" => churn_s,
+        "schedule_churn_penalty" => -churn_cost,
+        "schedule_move_penalty" => -(churn_s * move_cost),
+        "station_calendar_pressure_penalty" => negative_penalty(station_pressure),
+        "link_capacity_pressure_penalty" => negative_penalty(link_pressure),
+        "resource_projection_pressure_penalty" => negative_penalty(resource_pressure),
+        "ranking_score" => ranking_score
+      }
+    }
+  end
 
-      ranking_score =
-        candidate_score(candidate) - churn_cost - churn_s * move_cost -
-          station_calendar_pressure_penalty - link_capacity_pressure_penalty -
-          resource_projection_pressure_penalty
+  defp selected_candidate([]), do: nil
 
-      {diff_priority, -ranking_score, churn_s, ActivityTiming.activity_start(candidate),
-       ActivityIdentity.activity_id(candidate)}
-    end)
-    |> List.first()
+  defp selected_candidate([selected | _rest] = ranked_candidates) do
+    selected_candidate_id = ActivityIdentity.activity_id(selected.candidate)
+
+    rows =
+      ranked_candidates
+      |> Enum.with_index(1)
+      |> Enum.map(fn {ranked, rank} ->
+        ranked.row
+        |> Map.put("rank", rank)
+        |> Map.put("selected", ranked.row["candidate_id"] == selected_candidate_id)
+      end)
+
+    %{
+      candidate: selected.candidate,
+      ranking: %{
+        "model" => "greedy_repair_replacement_ranking",
+        "selection_scope" => "viable_unique_candidates_within_repair_intent",
+        "selected_candidate_id" => selected_candidate_id,
+        "evaluated_candidate_count" => length(rows),
+        "rows" => rows,
+        "global_optimization" => false
+      }
+    }
   end
 
   defp reject_duplicate_candidate_ids(candidates) do
@@ -203,4 +240,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairReplacementSelection do
       _value -> default
     end
   end
+
+  defp negative_penalty(value) when value == 0, do: 0.0
+  defp negative_penalty(value), do: -value
 end

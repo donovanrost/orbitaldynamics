@@ -45,7 +45,19 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairMissedDownlinkCandidateSelection
              }
            ] = artifact["deltas"]
 
-    assert [%{"id" => "dl_unique"}] = artifact["activities"]
+    assert [
+             %{
+               "id" => "dl_unique",
+               "repair" => %{
+                 "replacement_ranking" => %{
+                   "evaluated_candidate_count" => 1,
+                   "rows" => [
+                     %{"candidate_id" => "dl_unique", "rank" => 1, "selected" => true}
+                   ]
+                 }
+               }
+             }
+           ] = artifact["activities"]
 
     assert {:ok, %{"schema_contract" => "campaign_repair.v2", "status" => "pass"}} =
              Schema.validate_artifact(artifact)

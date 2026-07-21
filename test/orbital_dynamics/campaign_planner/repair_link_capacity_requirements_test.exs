@@ -57,6 +57,37 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairLinkCapacityRequirementsTest do
              satisfying_artifact["activities"]
 
     assert %{
+             "selected_candidate_id" => "dl_satisfies",
+             "evaluated_candidate_count" => 2,
+             "rows" => [
+               %{
+                 "rank" => 1,
+                 "candidate_id" => "dl_satisfies",
+                 "link_capacity_pressure_penalty" => satisfying_link_penalty,
+                 "selected" => true,
+                 "ranking_score" => satisfying_ranking_score
+               },
+               %{
+                 "rank" => 2,
+                 "candidate_id" => "dl_shortfall",
+                 "link_capacity_pressure_penalty" => -1.0,
+                 "selected" => false,
+                 "ranking_score" => shortfall_ranking_score
+               }
+             ]
+           } =
+             get_in(satisfying_artifact, [
+               "activities",
+               Access.at(0),
+               "repair",
+               "replacement_ranking"
+             ])
+
+    assert_in_delta satisfying_ranking_score, -94.5, 1.0e-9
+    assert_in_delta shortfall_ranking_score, -95.0, 1.0e-9
+    assert satisfying_link_penalty == 0.0
+
+    assert %{
              "selected_capacity_adjusted_throughput_mb" => 100.0,
              "downlink_requirement_status" => "satisfied"
            } = satisfying_artifact["link_capacity_report"]
@@ -78,6 +109,24 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairLinkCapacityRequirementsTest do
              }
            ] =
              shortfall_artifact["activities"]
+
+    assert %{
+             "selected_candidate_id" => "dl_shortfall",
+             "rows" => [
+               %{
+                 "candidate_id" => "dl_shortfall",
+                 "link_capacity_pressure_penalty" => -0.25,
+                 "selected" => true
+               },
+               %{"candidate_id" => "dl_satisfies", "selected" => false}
+             ]
+           } =
+             get_in(shortfall_artifact, [
+               "activities",
+               Access.at(0),
+               "repair",
+               "replacement_ranking"
+             ])
 
     assert %{
              "selected_capacity_adjusted_throughput_mb" => 99.0,

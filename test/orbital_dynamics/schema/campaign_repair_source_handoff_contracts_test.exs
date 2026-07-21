@@ -18,6 +18,34 @@ defmodule OrbitalDynamics.Schema.CampaignRepairSourceHandoffContractsTest do
              "quality_gate_report.v1"
 
     assert %{
+             "evaluated_candidate_count" => 1,
+             "global_optimization" => false,
+             "model" => "greedy_repair_replacement_ranking",
+             "selected_candidate_id" => "dl_ready",
+             "selection_scope" => "viable_unique_candidates_within_repair_intent",
+             "rows" => [ranking_row]
+           } =
+             fixture["activities"]
+             |> Enum.find(&(&1["id"] == "dl_ready"))
+             |> get_in(["repair", "replacement_ranking"])
+
+    assert ranking_row === %{
+             "candidate_diff_priority" => 1,
+             "candidate_id" => "dl_ready",
+             "candidate_score" => 10.0,
+             "link_capacity_pressure_penalty" => 0.0,
+             "rank" => 1,
+             "ranking_score" => -94.0,
+             "resource_projection_pressure_penalty" => 0.0,
+             "schedule_churn_penalty" => -100.0,
+             "schedule_churn_s" => 400.0,
+             "schedule_move_penalty" => -4.0,
+             "selected" => true,
+             "semantic_candidate_diff_match" => false,
+             "station_calendar_pressure_penalty" => 0.0
+           }
+
+    assert %{
              "operational_readiness_review_count" => 1,
              "quality_gate_review_count" => 1
            } = fixture["operator_review_package"]

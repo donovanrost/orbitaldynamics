@@ -118,6 +118,40 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairStationCalendarAnnotationTest do
     assert [%{"id" => "dl_nominal", "repair" => %{"action" => "moved"}}] =
              nominal_artifact["activities"]
 
+    assert %{
+             "model" => "greedy_repair_replacement_ranking",
+             "selection_scope" => "viable_unique_candidates_within_repair_intent",
+             "selected_candidate_id" => "dl_nominal",
+             "evaluated_candidate_count" => 2,
+             "global_optimization" => false,
+             "rows" => [
+               %{
+                 "rank" => 1,
+                 "candidate_id" => "dl_nominal",
+                 "station_calendar_pressure_penalty" => nominal_station_penalty,
+                 "selected" => true,
+                 "ranking_score" => nominal_ranking_score
+               },
+               %{
+                 "rank" => 2,
+                 "candidate_id" => "dl_reserved",
+                 "station_calendar_pressure_penalty" => -1.0,
+                 "selected" => false,
+                 "ranking_score" => reserved_ranking_score
+               }
+             ]
+           } =
+             get_in(nominal_artifact, [
+               "activities",
+               Access.at(0),
+               "repair",
+               "replacement_ranking"
+             ])
+
+    assert_in_delta nominal_ranking_score, -94.9, 1.0e-9
+    assert_in_delta reserved_ranking_score, -95.0, 1.0e-9
+    assert nominal_station_penalty == 0.0
+
     refute Map.has_key?(
              nominal_artifact["score_terms"],
              "station_calendar_pressure_penalty"
@@ -142,6 +176,24 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairStationCalendarAnnotationTest do
 
     assert [%{"id" => "dl_reserved", "repair" => %{"action" => "moved"}}] =
              pressured_artifact["activities"]
+
+    assert %{
+             "selected_candidate_id" => "dl_reserved",
+             "rows" => [
+               %{
+                 "candidate_id" => "dl_reserved",
+                 "station_calendar_pressure_penalty" => -0.5,
+                 "selected" => true
+               },
+               %{"candidate_id" => "dl_nominal", "selected" => false}
+             ]
+           } =
+             get_in(pressured_artifact, [
+               "activities",
+               Access.at(0),
+               "repair",
+               "replacement_ranking"
+             ])
 
     assert pressured_artifact["score_terms"]["station_calendar_pressure_penalty"] == -0.5
     assert_in_delta pressured_artifact["score"], -94.5, 1.0e-9

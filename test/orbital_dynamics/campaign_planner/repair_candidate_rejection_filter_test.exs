@@ -57,7 +57,13 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRejectionFilterTest do
 
     assert %{
              "action" => "moved",
-             "timeline_link" => %{"replacement_activity_id" => "dl_available"}
+             "timeline_link" => %{"replacement_activity_id" => "dl_available"},
+             "replacement_ranking" => %{
+               "evaluated_candidate_count" => 1,
+               "rows" => [
+                 %{"candidate_id" => "dl_available", "rank" => 1, "selected" => true}
+               ]
+             }
            } = repair
 
     assert %{
