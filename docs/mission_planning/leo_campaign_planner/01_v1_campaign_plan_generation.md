@@ -70,6 +70,11 @@ It answers:
   scenario IDs are unique across ranked timelines, and every nested activity
   belongs to its enclosing scenario. Empty timelines remain valid. These
   collection and ownership comparisons are executable rather than structural.
+- Each ranked timeline requires numeric `activity_score` and
+  `activity_count_penalty` terms. Runtime reconciles its score to those terms plus
+  present downlink-completion, timeline-precondition-pressure, and resource-
+  projection-pressure adjustments; component/count explanations are not summed.
+  JSON Schema requires and types the two core aggregate terms.
 - `campaign_plan.objective_tradeoff_report` with per-ranked-timeline score-term
   deltas for operator review.
 - `campaign_plan.activities` for the highest-ranked timeline.

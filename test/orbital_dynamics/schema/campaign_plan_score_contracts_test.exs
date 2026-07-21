@@ -37,6 +37,23 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContractsTest do
     end
   end
 
+  test "exports required ranked timeline aggregate score terms" do
+    assert {:ok, schema} = Schema.json_schema("campaign_plan.v1")
+
+    score_terms =
+      get_in(schema, [
+        "properties",
+        "ranked_timelines",
+        "items",
+        "properties",
+        "score_terms"
+      ])
+
+    assert score_terms["required"] == ["activity_score", "activity_count_penalty"]
+    assert get_in(score_terms, ["properties", "activity_score", "type"]) == "number"
+    assert get_in(score_terms, ["properties", "activity_count_penalty", "type"]) == "number"
+  end
+
   test "requires activity score evidence on every V1 activity surface", %{artifact: artifact} do
     for {_schema_path, {access, path}} <- activity_surfaces(),
         field <- ["score", "score_terms"] do
@@ -113,6 +130,75 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContractsTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "requires the core ranked timeline aggregate score terms", %{artifact: artifact} do
+    for term <- ["activity_score", "activity_count_penalty"] do
+      [timeline] = artifact["ranked_timelines"]
+      timeline = update_in(timeline, ["score_terms"], &Map.delete(&1, term))
+      invalid = with_timelines(artifact, [timeline])
+
+      assert {:error, report} = Schema.validate_artifact(invalid)
+
+      assert Enum.any?(
+               report["errors"],
+               &(&1["path"] == "$.ranked_timelines[0].score_terms.#{term}" and
+                   &1["message"] == "is required")
+             )
+    end
+  end
+
+  test "reconciles ranked timeline score to producer aggregate terms", %{artifact: artifact} do
+    [timeline] = artifact["ranked_timelines"]
+    invalid = timeline |> Map.update!("score", &(&1 + 1.0)) |> then(&[&1])
+    invalid = with_timelines(artifact, invalid)
+
+    assert {:error, report} = Schema.validate_artifact(invalid)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] == "$.ranked_timelines[0].score" and
+                 &1["message"] == "must equal aggregate score terms")
+           )
+  end
+
+  test "includes optional aggregate adjustments but ignores explanation terms", %{
+    artifact: artifact
+  } do
+    [timeline] = artifact["ranked_timelines"]
+
+    adjusted_terms =
+      timeline["score_terms"]
+      |> Map.put("downlink_completion_score", 10.0)
+      |> Map.put("timeline_precondition_pressure_penalty", -2.0)
+      |> Map.put("resource_projection_pressure_penalty", -3.0)
+      |> Map.put("future_component_explanation", 999.0)
+
+    adjusted =
+      timeline
+      |> Map.put("score_terms", adjusted_terms)
+      |> Map.update!("score", &(&1 + 5.0))
+
+    assert {:ok, %{"schema_contract" => "campaign_plan.v1"}} =
+             artifact |> with_timelines([adjusted]) |> Schema.validate_artifact()
+  end
+
+  test "leaves malformed aggregate terms to numeric field validation", %{artifact: artifact} do
+    [timeline] = artifact["ranked_timelines"]
+    timeline = put_in(timeline, ["score_terms", "downlink_completion_score"], "ten")
+    invalid = with_timelines(artifact, [timeline])
+
+    assert {:error, report} = Schema.validate_artifact(invalid)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] == "$.ranked_timelines[0].score_terms.downlink_completion_score")
+           )
+
+    refute Enum.any?(
+             report["errors"],
+             &(&1["message"] == "must equal aggregate score terms")
+           )
+  end
+
   test "requires ranked timelines to follow descending planner score order", %{
     artifact: artifact
   } do
@@ -132,7 +218,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContractsTest do
     artifact: artifact
   } do
     [first, second] = ranked_timelines(artifact)
-    tied = [first, Map.put(second, "score", first["score"])]
+    tied = [first, put_timeline_score(second, first["score"])]
 
     assert {:ok, %{"schema_contract" => "campaign_plan.v1"}} =
              artifact |> with_timelines(tied) |> Schema.validate_artifact()
@@ -254,7 +340,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContractsTest do
     second =
       first
       |> Map.put("scenario_id", "leo_2")
-      |> Map.put("score", first["score"] - 10.0)
+      |> put_timeline_score(0.0)
       |> Map.put("activity_count", 0)
       |> Map.put("activities", [])
 
@@ -283,6 +369,13 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContractsTest do
     |> Map.put("score_term_report", report)
     |> Map.put("objective_tradeoff_report", tradeoff_report)
     |> Map.put("optimizer_contract", optimizer_contract(artifact, timelines))
+  end
+
+  defp put_timeline_score(timeline, score) do
+    timeline
+    |> Map.put("score", score)
+    |> put_in(["score_terms", "activity_score"], score)
+    |> put_in(["score_terms", "activity_count_penalty"], 0.0)
   end
 
   defp activity_surfaces do

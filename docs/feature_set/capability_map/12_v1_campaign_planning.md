@@ -181,9 +181,13 @@ Runtime validation also requires one ranked row per stable scenario identity and
 reconciles every nested activity's scenario with its enclosing timeline. Empty
 timelines remain compatible; JSON Schema continues to own the individual field
 shapes while executable validation owns uniqueness and cross-field equality.
-The exported ranked-timeline schema constrains every score-term value to a
-number. These V1 terms are explanatory fields that include counts and subtotals,
-so they are not treated as one additive score sum.
+The exported ranked-timeline schema requires numeric `activity_score` and
+`activity_count_penalty` terms and constrains every additional term to a number.
+Runtime reconciles timeline score to those two core aggregates plus present
+`downlink_completion_score`, `timeline_precondition_pressure_penalty`, and
+`resource_projection_pressure_penalty` adjustments. Remaining component and
+count explanations are deliberately excluded instead of treating the entire map
+as one additive score sum.
 Runtime validation also reconciles the optional objective-tradeoff report with
 the ranked timelines: V1 model/source, rank and scenario identity, ranking and
 term-key counts, scores and selected-score deltas, term maps, selected counts,

@@ -15,6 +15,13 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContracts do
 
   alias OrbitalDynamics.Schema.{ActivityContracts, StableIdValidation}
 
+  @required_aggregate_terms ~w(activity_score activity_count_penalty)
+  @optional_aggregate_terms ~w(
+    downlink_completion_score
+    timeline_precondition_pressure_penalty
+    resource_projection_pressure_penalty
+  )
+
   def validate(issues, artifact) when is_map(artifact) do
     timelines = Map.get(artifact, "ranked_timelines")
 
@@ -38,6 +45,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContracts do
     |> StableIdValidation.validate_stable_ids(path, timeline, ["scenario_id"])
     |> expect_number(path, timeline, "score")
     |> expect_type(path, timeline, "score_terms", :map)
+    |> require_aggregate_terms(path, score_terms)
     |> validate_numeric_map(path <> ".score_terms", score_terms)
     |> expect_non_negative_integer(path, timeline, "activity_count")
     |> expect_type(path, timeline, "activities", :list)
@@ -47,7 +55,13 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContracts do
       &ActivityContracts.validate/3
     )
     |> validate_activity_count(path, timeline)
+    |> validate_timeline_score(path, timeline)
   end
+
+  defp require_aggregate_terms(issues, path, score_terms) when is_map(score_terms),
+    do: require_fields(issues, path <> ".score_terms", score_terms, @required_aggregate_terms)
+
+  defp require_aggregate_terms(issues, _path, _score_terms), do: issues
 
   defp validate_activity_count(issues, path, %{
          "activity_count" => activity_count,
@@ -64,6 +78,39 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContracts do
   end
 
   defp validate_activity_count(issues, _path, _timeline), do: issues
+
+  defp validate_timeline_score(
+         issues,
+         path,
+         %{"score" => score, "score_terms" => score_terms}
+       )
+       when is_number(score) and is_map(score_terms) do
+    if aggregate_terms_valid?(score_terms) do
+      expected_score =
+        (@required_aggregate_terms ++ @optional_aggregate_terms)
+        |> Enum.map(&Map.get(score_terms, &1, 0.0))
+        |> Enum.sum()
+
+      validate_number_equal(
+        issues,
+        path <> ".score",
+        score,
+        expected_score,
+        "must equal aggregate score terms"
+      )
+    else
+      issues
+    end
+  end
+
+  defp validate_timeline_score(issues, _path, _timeline), do: issues
+
+  defp aggregate_terms_valid?(score_terms) do
+    Enum.all?(@required_aggregate_terms, &is_number(Map.get(score_terms, &1))) and
+      Enum.all?(@optional_aggregate_terms, fn term ->
+        not Map.has_key?(score_terms, term) or is_number(Map.get(score_terms, term))
+      end)
+  end
 
   defp validate_timeline_order(issues, timelines) when is_list(timelines) do
     timelines

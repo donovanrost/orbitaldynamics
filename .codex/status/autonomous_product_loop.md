@@ -5,50 +5,49 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Contract V1 activity collection order.
+Reconcile V1 ranked timeline aggregate scores.
 
 Status:
 Complete and parent-reviewed; ready to publish.
 
 Delivered:
-- Required comparable adjacent candidate rows to follow ascending scenario,
-  start-time, and activity-ID order.
-- Required comparable adjacent rows within each ranked timeline to follow
-  ascending start-time and activity-ID order.
-- Left malformed order fields to existing field validators and avoided secondary
-  order errors.
-- Preserved empty and single-row activity collections.
-- Added producer-valid, candidate-order drift, ranked-order drift, deterministic
-  tie-break, malformed-field, and empty-collection calibration coverage.
-- Updated V1 generation, planning, reproducibility, and roadmap documentation;
-  no structural JSON Schema export changed.
+- Required numeric `activity_score` and `activity_count_penalty` terms on every
+  ranked timeline in runtime validation and JSON Schema.
+- Reconciled timeline score to those two terms plus present numeric
+  `downlink_completion_score`, `timeline_precondition_pressure_penalty`, and
+  `resource_projection_pressure_penalty` terms.
+- Ignored component and count explanation terms when calculating the aggregate.
+- Avoided secondary aggregate errors when a participating term is malformed.
+- Added producer-valid, missing-core-term, score-drift, optional-adjustment,
+  explanatory-term, and malformed-term calibration coverage.
+- Regenerated the checked-in campaign schema and schema bundle and updated V1
+  generation, planning, reproducibility, and roadmap documentation.
 
 Review calibration:
-- The two comparator keys exactly match `BuildOrchestration` and
-  `TimelineRanking` producer sort keys.
-- Pre-fix, a reversed candidate collection returned `:ok` after optimizer
-  regeneration; the new adjacent-pair check owns that gap.
-- Direct coverage establishes scenario-before-time precedence plus deterministic
-  ID tie-breaks for both candidate and ranked activity rows.
-- The first full run had one unrelated JSON Schema export timeout
-  (`3672/3673`); the exact test passed alone in 18.9 seconds and the unchanged
-  standard full suite then passed completely.
+- The aggregate key set and optional-zero behavior exactly match
+  `TimelineRanking` score construction.
+- Pre-fix, a refreshed `+1` score drift returned `:ok`; the new epsilon-aware
+  subtotal comparison owns that gap.
+- A large future explanatory term remains valid without changing score, proving
+  component/count terms are not accidentally double-counted.
+- The first schema-area run exposed one stale empty-timeline tradeoff fixture
+  (`364/365`); its aggregate score and core terms now consistently equal zero.
 - Parent review found no publish blocker.
 
 Verification:
-- Focused activity snapshot contracts: `15 passed`.
-- Schema plus lint area: `360 passed`.
+- Focused score contracts: `19 passed`; score plus tradeoff contracts: `26 passed`.
+- Schema plus lint area: `365 passed`.
 - Planner area: `754 passed`.
-- Isolated timed-out schema export parity test: `1 passed`.
-- Repeated full suite: `3673 passed`.
+- Full suite: `3678 passed`.
+- Full checked-in schema export completed successfully.
 - `mix format --check-formatted`, `mix compile --warnings-as-errors`, and
   `git diff --check` pass.
 
 Level 6 pillar advanced:
-Reproducible V1 branch trees and deterministic optimizer handoffs.
+Explainable V1 ranking and internally consistent review artifacts.
 
 Previous published slice:
-- `a2bb158a` Contract V1 branch activity identity uniqueness (`3669 passed`).
+- `b67895e2` Contract V1 activity collection order (`3673 passed`).
 
 Remaining maturity gaps:
 - Continue calibrated realized-feedback depth where evidence is genuinely

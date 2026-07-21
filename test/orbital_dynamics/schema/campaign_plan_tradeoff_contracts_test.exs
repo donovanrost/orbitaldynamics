@@ -24,7 +24,9 @@ defmodule OrbitalDynamics.Schema.CampaignPlanTradeoffContractsTest do
     second_timeline =
       first_timeline
       |> Map.put("scenario_id", "leo_2")
-      |> Map.put("score", first_timeline["score"] - 10.0)
+      |> Map.put("score", 0.0)
+      |> put_in(["score_terms", "activity_score"], 0.0)
+      |> put_in(["score_terms", "activity_count_penalty"], 0.0)
       |> Map.put("activity_count", 0)
       |> Map.put("activities", [])
 

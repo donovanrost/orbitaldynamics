@@ -222,6 +222,10 @@ work, a **partial** executable-schema track, and **near-term** / **later** /
   values, scores, and selection flags. JSON Schema exports constrain timeline
   term values to numbers and declare the report as a direct nested contract,
   while the cross-row ordering comparison remains executable.
+- Ranked timelines require numeric activity-score and activity-count-penalty
+  aggregates. Executable validation reconciles timeline score to those core
+  terms plus present downlink-completion and precondition/resource-pressure
+  adjustments, while excluding component/count explanations from the sum.
 - Ranked-timeline scenario IDs are unique, and nested activities must carry the
   identity of their enclosing scenario. Empty timelines remain valid; scenario
   uniqueness and ownership are executable cross-row/cross-field rules.

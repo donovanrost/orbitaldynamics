@@ -208,6 +208,10 @@ Already implemented or heavily covered:
 - runtime V1 validation checks numeric ranked-timeline score explanations and
   pins optional score-term report rows to their enclosing rank, scenario, term,
   value, timeline score, and selection; exported score-term values are numeric
+- ranked V1 timelines require exported numeric activity-score and activity-
+  count-penalty aggregates; runtime reconciles timeline score to those terms plus
+  the producer's optional objective/pressure adjustments without double-counting
+  component or count explanations
 - runtime V1 validation also preserves the producer's descending timeline score
   order and deterministic ascending scenario tie-break; this adjacent-row rule
   remains executable because JSON Schema does not express the comparison
