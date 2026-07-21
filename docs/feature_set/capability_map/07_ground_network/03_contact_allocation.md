@@ -395,6 +395,8 @@ Contact filtering plus station-calendar provider and raw ground-network normaliz
 
 **Candidate-refresh** ground-network availability, status, and contention tokens are canonicalized for case, whitespace, and hyphen differences before generated downlink throughput/scoring, outage, reservation, and reduced-capacity filtering; provider-shaped nested station identity is canonicalized; and clean station-window timing aliases are parsed before refresh chooses the applicable station-calendar state.
 
+**V3 recommendation policy** treats a positive canonical `unavailable` station-suppression count from contact-filter replay as `contact_filter_blocked` under the default approval policy. Reserved, reduced-capacity, and unknown provider-status replay remains an operator-review boundary rather than a hard recommendation block.
+
 **File-backed campaign and candidate-refresh manifests** preserve the same `availability` semantics plus reservation metadata and ground-network provenance, instead of flattening availability-only station rows to available status or dropping branch-refresh calibration evidence.
 
 ## Review and import normalization

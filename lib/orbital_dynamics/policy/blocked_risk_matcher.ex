@@ -84,7 +84,10 @@ defmodule OrbitalDynamics.Policy.BlockedRiskMatcher do
     blocked_value?(risk["contact_filter_status"]) or
       blocked_value?(risk["suppression_status"]) or
       blocked_value?(risk["policy_classification"]) or
-      blocked_value?(risk["approval_status"])
+      blocked_value?(risk["approval_status"]) or
+      positive_count_for_key?(risk["station_suppression_availability_counts"], "unavailable") or
+      positive_count_for_key?(risk["station_suppression_status_counts"], "unavailable") or
+      positive_count_for_key?(risk["station_suppression_status_counts"], "maintenance")
   end
 
   defp risk_matches_blocked_type?(

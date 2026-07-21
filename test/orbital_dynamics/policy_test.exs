@@ -4206,6 +4206,77 @@ defmodule OrbitalDynamics.PolicyTest do
     end
   end
 
+  test "fallback policy blocks unavailable contact-filter replay but leaves review states reviewable" do
+    policy = %{blocked_risk_types: ["contact_filter_blocked"]}
+
+    for {branch_id, risk} <- [
+          {"unavailable_availability",
+           %{
+             "type" => "downlink_completion_gap",
+             "feedback_scope" => "contact_filter",
+             "station_suppression_availability_counts" => %{"unavailable" => 1}
+           }},
+          {"unavailable_status",
+           %{
+             "type" => "downlink_completion_gap",
+             "feedback_scope" => "contact_filter",
+             "station_suppression_status_counts" => %{"unavailable" => 2}
+           }},
+          {"maintenance_status",
+           %{
+             "type" => "downlink_completion_gap",
+             "feedback_scope" => "contact_filter",
+             "station_suppression_status_counts" => %{"maintenance" => 1}
+           }}
+        ] do
+      {blocked_status, _requirements, _matches, blocked_decision} =
+        Policy.decide(
+          [],
+          [risk],
+          %{"id" => branch_id, "events" => []},
+          %{},
+          policy
+        )
+
+      assert blocked_status == "blocked_by_policy"
+      assert blocked_decision["classification"] == "blocked_by_policy"
+    end
+
+    for {branch_id, risk} <- [
+          {"reserved",
+           %{
+             "type" => "downlink_completion_gap",
+             "feedback_scope" => "contact_filter",
+             "station_suppression_availability_counts" => %{"reserved" => 1},
+             "station_suppression_status_counts" => %{"reserved" => 1}
+           }},
+          {"reduced_capacity",
+           %{
+             "type" => "downlink_completion_gap",
+             "feedback_scope" => "contact_filter",
+             "station_suppression_availability_counts" => %{"reduced_capacity" => 1}
+           }},
+          {"unknown_provider_status",
+           %{
+             "type" => "downlink_completion_gap",
+             "feedback_scope" => "contact_filter",
+             "station_suppression_status_counts" => %{"provider_unknown" => 1}
+           }}
+        ] do
+      {review_status, _requirements, _matches, review_decision} =
+        Policy.decide(
+          [],
+          [risk],
+          %{"id" => branch_id, "events" => []},
+          %{},
+          policy
+        )
+
+      assert review_status == "operator_review_required"
+      assert review_decision["classification"] == "operator_review_required"
+    end
+  end
+
   test "matches requirement types grouped risk types and grouped event types" do
     policy = %{
       action_rules: [
