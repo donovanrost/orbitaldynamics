@@ -6,6 +6,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanJsonSchema do
     "activities",
     "candidate_activities",
     "contact_intents",
+    "planning_horizon",
     "target_commitments",
     "ranking_explanation",
     "ranked_timelines",
@@ -57,6 +58,18 @@ defmodule OrbitalDynamics.Schema.CampaignPlanJsonSchema do
 
   def property("target_commitments", opts) do
     array_of(Keyword.fetch!(opts, :target_commitment_schema))
+  end
+
+  def property("planning_horizon", _opts) do
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "dependentRequired" => %{"output_step_s" => ["duration_s"]},
+      "properties" => %{
+        "duration_s" => %{"type" => "number", "exclusiveMinimum" => 0.0},
+        "output_step_s" => %{"type" => "number", "exclusiveMinimum" => 0.0}
+      }
+    }
   end
 
   def property("ranked_timelines", opts) do

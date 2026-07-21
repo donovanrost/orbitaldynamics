@@ -59,6 +59,15 @@ direct nested contracts. Campaign validation continues to run their existing
 standalone validators over suppression and declared station-availability
 evidence.
 
+The required planning-horizon object has optional positive numeric `duration_s`
+and `output_step_s` fields; declared cadence requires and cannot exceed duration.
+File-backed propagation manifests require both fields, while direct planning
+over an existing result set may emit an empty horizon because the result need
+not carry its propagation horizon. When duration is declared, runtime validation
+treats `[0, duration_s]` as the envelope for candidate, selected, ranked-timeline,
+proposed-contact, and contact-intent rows while retaining each row contract's
+interval-order checks.
+
 Target commitments are optional typed inline V1 rows. Runtime validation checks
 stable target/selected-activity IDs, non-negative counts and durations, status
 vocabulary, unique targets, exact candidate/selected observation evidence, and

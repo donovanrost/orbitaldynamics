@@ -168,6 +168,9 @@ work, a **partial** executable-schema track, and **near-term** / **later** /
   proposed-contact, and contact-intent rows with stable source-window
   identifiers, including generated contact-success feedback factor/source fields
   on refreshed contact candidates.
+- Its typed planning horizon validates declared duration/cadence as positive,
+  requires duration for cadence, rejects cadence beyond duration, and bounds
+  core schedule rows whenever a zero-based planning duration is declared.
 - It also exports typed target-commitment rows reconciled with candidate and
   selected observation counts, durations, selected IDs, statuses, unique target
   identity, and matching objective-satisfaction target rows.

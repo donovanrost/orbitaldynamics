@@ -20,7 +20,13 @@ It answers:
   refresh/filter semantics.
 - `campaign.targets`: surface targets, minimum elevation constraints, and
   priorities.
-- `campaign.planning_horizon`: fixed duration and output cadence.
+- `campaign.planning_horizon`: optional positive fixed duration and output
+  cadence, with cadence requiring and not exceeding duration. File-backed
+  propagation manifests require both; direct planning over an existing result
+  set may omit both because the source result need not carry its propagation
+  horizon. When duration is declared, the emitted V1 plan uses the zero-based
+  horizon as the executable envelope for candidate, selected, ranked,
+  proposed-contact, and contact-intent rows.
 - `propagator` and `propagator_opts`: backend and model options.
 - `campaign.constraints`: V1 activity filters such as minimum duration, eclipse
   avoidance, and maximum timeline activity count.
