@@ -58,6 +58,13 @@ term-key counts, scores and selected-score deltas, term maps, selected counts,
 and ordered activity IDs must match. Ranked-timeline activity envelopes reuse
 the executable planned-activity contract and require their declared activity
 count to match the nested rows.
+The optional optimizer handoff is reconciled with the same plan: V1 optimizer
+and selection identities, candidate/selected/ranked counts and ordered IDs,
+score-term keys, constraints, scoring policy, and objective must match the
+enclosing candidates, selected timeline, assumptions, ranking explanation, and
+objective-tradeoff report. The required ranking explanation has executable and
+exported objective/formula/policy-object shape while the optimizer itself
+remains optional for compatibility.
 
 ## Partial
 

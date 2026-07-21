@@ -5,32 +5,31 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Validate V1 objective-tradeoff correspondence.
+Validate the V1 optimizer handoff.
 
 Status:
 Implemented, fully verified, and parent-reviewed; ready to publish.
 
 Selected slice:
-Validate the optional V1 objective-tradeoff report against the enclosing ranked
-timelines it claims to summarize.
+Validate the optional optimizer contract and required ranking explanation
+against the enclosing V1 candidates, selected activities, and ranked timelines.
 
 Why this slice:
-The report contract validates its own rows and counts, but a structurally valid
-report can still use the repair/strategy model or drift from V1 timeline ranks,
-scenario IDs, scores, deltas, term maps, selected counts, or activity IDs.
+`optimizer_contract.v1` validates its own counts and ID subsets, but V1 does not
+check those IDs, scenarios, term keys, constraints, policy, or objective against
+the plan that embeds it. The required ranking explanation is only map-typed.
 
 Level 6 pillar:
 Reproducible ranked timelines with explainable, versioned score handoffs.
 
 Implemented:
-- V1 context pins the optional report to the ranked-timeline tradeoff model and
-  `campaign_plan.ranked_timelines` source assumption.
-- Ranking count, score-term keys, and one unique row per rank/scenario must match
-  the enclosing timelines.
-- Each row must preserve score, selected-score delta, tolerance-aware score-term
-  map, selected counts, activity count, and ordered activity IDs.
-- Ranked timeline activity envelopes now require count/list consistency and
-  reuse the existing planned-activity runtime validator.
+- V1 optimizer/selection identities, counts, and ordered candidate, selected,
+  ranked-scenario, and score-term lists must match the enclosing plan.
+- Optimizer constraints, scoring policy, and objective must match V1 assumptions,
+  ranking explanation, objective-tradeoff report, and score-term report copies.
+- Top-level selected activities must match the first ranked timeline.
+- The required ranking explanation validates and exports required objective,
+  formula, and policy-object fields; the optimizer remains optional.
 
 Docs changed:
 - `docs/feature_set/capability_map/12_v1_campaign_planning.md`
@@ -38,25 +37,26 @@ Docs changed:
 - `docs/feature_set/recommended_roadmap.md`
 
 Verification:
-- Focused plan/golden/communications tests: `35 passed`.
-- Schema area: `205 passed`.
+- Focused optimizer/plan/contact tests: `23 passed`.
+- Schema plus export area: `213 passed`.
+- Schema-lint task area: `12 passed`.
 - Campaign-planner area: `754 passed`.
-- Full suite with `--timeout 120000`: `3530 passed`.
+- Full suite with `--timeout 120000`: `3536 passed`.
 - `mix compile --warnings-as-errors`, `mix format --check-formatted`, and
   `git diff --check`: passed.
 
 Parent review:
-- Validation is additive and preserves optional-report and row-reordering
-  compatibility; selected-score semantics match the first-ranked generator row.
-- Empty timelines and malformed report assumptions/rows are handled without
-  crashes, and malformed timeline activities are reported by existing validators.
-- Exact/multi-rank and mutation tests cover model/source, rank identity, scores,
-  deltas, term maps, selected counts, activity identities, duplicates, and
-  coherent regeneration of both V1 score reports.
-- No generated schema or public artifact shape changed.
+- Validation preserves the optional optimizer boundary and handles malformed
+  optimizer/explanation shapes without crashes.
+- Policy copies compare exactly but exported values remain open: live V1 policy
+  maps intentionally preserve arrays and clean numeric strings as well as numbers.
+- Multi-rank/empty fixtures regenerate both score reports and optimizer metadata;
+  schema-lint fixtures now carry the required minimal ranking explanation.
+- Schema regeneration changed only the V1 campaign export and its bundle entry,
+  adding the nested ranking-explanation shape.
 
 Previous published slice:
-- `3c418330` Validate V1 timeline scores (`3523 passed`).
+- `a8bb141b` Validate V1 objective tradeoffs (`3530 passed`).
 
 Remaining maturity gaps:
 - Continue calibrated realized-feedback depth where evidence is genuinely

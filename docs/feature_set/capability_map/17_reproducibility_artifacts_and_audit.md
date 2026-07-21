@@ -307,6 +307,10 @@ work, a **partial** executable-schema track, and **near-term** / **later** /
   planner ordering/limit arrays, with executable validation enforcing its
   candidate/selection/ranked count fields against the corresponding ID arrays and
   its `known_limits` against `OrbitalDynamics.Optimizer.capabilities/0`.
+- V1 campaign validation additionally reconciles the optional optimizer model,
+  selection policy, ordered ID lists, scenario and score-term keys, constraints,
+  scoring policy, and objective with the enclosing plan; the required ranking
+  explanation exports and validates typed objective, formula, and policy object.
 - Optimizer, ranking comparison, and Pareto frontier JSON Schema exports also
   publish those limit arrays as exact string sets for non-Elixir import gates.
 - `monte_carlo_reproducibility_report.v1` exports typed generated-scenario ID,

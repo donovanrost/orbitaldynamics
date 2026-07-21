@@ -211,6 +211,9 @@ Already implemented or heavily covered:
 - optional V1 objective-tradeoff rows are reconciled with their enclosing
   ranked timelines, including selected-score deltas, term maps, selected counts,
   and activity identities
+- optional V1 optimizer metadata is reconciled with enclosing candidate,
+  selected-activity, ranked-timeline, constraint, scoring-policy, and objective
+  evidence; the required ranking explanation is nested and typed
 
 Good first slices:
 

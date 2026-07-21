@@ -8,6 +8,20 @@ defmodule OrbitalDynamics.Schema.CampaignPlanContractsTest do
 
     assert get_in(schema, ["properties", "warnings", "items", "type"]) == "string"
 
+    assert get_in(schema, ["properties", "ranking_explanation", "required"]) == [
+             "objective",
+             "formula",
+             "policy"
+           ]
+
+    assert get_in(schema, [
+             "properties",
+             "ranking_explanation",
+             "properties",
+             "policy",
+             "additionalProperties"
+           ]) == true
+
     activity_schema = get_in(schema, ["properties", "activities", "items"])
 
     assert activity_schema["required"] == [

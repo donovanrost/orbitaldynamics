@@ -448,7 +448,11 @@ defmodule Mix.Tasks.OrbitalDynamics.Schema.LintTest do
       "warnings" => [],
       "assumptions" => %{},
       "provenance" => %{},
-      "ranking_explanation" => %{}
+      "ranking_explanation" => %{
+        "objective" => "maximize test value",
+        "formula" => "test_score",
+        "policy" => %{}
+      }
     }
   end
 

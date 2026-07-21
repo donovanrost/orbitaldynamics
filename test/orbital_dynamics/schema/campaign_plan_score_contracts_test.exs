@@ -48,6 +48,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContractsTest do
       |> Map.put("ranked_timelines", timelines)
       |> Map.put("score_term_report", report)
       |> Map.put("objective_tradeoff_report", tradeoff_report)
+      |> Map.put("optimizer_contract", optimizer_contract(artifact, timelines))
 
     assert {:ok, %{"schema_contract" => "campaign_plan.v1"}} =
              Schema.validate_artifact(artifact)
@@ -130,5 +131,15 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContractsTest do
     path
     |> File.read!()
     |> :json.decode()
+  end
+
+  defp optimizer_contract(artifact, timelines) do
+    OrbitalDynamics.Optimizer.greedy_timeline_contract(
+      artifact["candidate_activities"],
+      timelines,
+      plan_id: artifact["plan_id"],
+      constraints: get_in(artifact, ["assumptions", "constraints"]),
+      scoring_policy: get_in(artifact, ["assumptions", "scoring_policy"])
+    )
   end
 end

@@ -48,6 +48,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanTradeoffContractsTest do
       |> Map.put("ranked_timelines", timelines)
       |> Map.put("objective_tradeoff_report", report)
       |> Map.put("score_term_report", score_term_report)
+      |> Map.put("optimizer_contract", optimizer_contract(artifact, timelines))
 
     assert {:ok, %{"schema_contract" => "campaign_plan.v1"}} =
              Schema.validate_artifact(artifact)
@@ -66,6 +67,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanTradeoffContractsTest do
     artifact =
       artifact
       |> Map.put("ranked_timelines", [])
+      |> Map.put("activities", [])
       |> Map.put(
         "objective_tradeoff_report",
         ScoreReports.objective_tradeoff_report(
@@ -82,6 +84,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanTradeoffContractsTest do
           limits
         )
       )
+      |> Map.put("optimizer_contract", optimizer_contract(artifact, []))
 
     assert {:ok, %{"schema_contract" => "campaign_plan.v1"}} =
              Schema.validate_artifact(artifact)
@@ -201,5 +204,15 @@ defmodule OrbitalDynamics.Schema.CampaignPlanTradeoffContractsTest do
     path
     |> File.read!()
     |> :json.decode()
+  end
+
+  defp optimizer_contract(artifact, timelines) do
+    OrbitalDynamics.Optimizer.greedy_timeline_contract(
+      artifact["candidate_activities"],
+      timelines,
+      plan_id: artifact["plan_id"],
+      constraints: get_in(artifact, ["assumptions", "constraints"]),
+      scoring_policy: get_in(artifact, ["assumptions", "scoring_policy"])
+    )
   end
 end

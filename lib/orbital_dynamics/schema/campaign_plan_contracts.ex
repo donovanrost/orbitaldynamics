@@ -1,7 +1,11 @@
 defmodule OrbitalDynamics.Schema.CampaignPlanContracts do
   @moduledoc false
 
-  alias OrbitalDynamics.Schema.{CampaignPlanScoreContracts, CampaignPlanTradeoffContracts}
+  alias OrbitalDynamics.Schema.{
+    CampaignPlanOptimizerContracts,
+    CampaignPlanScoreContracts,
+    CampaignPlanTradeoffContracts
+  }
 
   def validate(issues, artifact, required_fields, callbacks) when is_list(callbacks) do
     issues
@@ -85,6 +89,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanContracts do
     |> call(callbacks, :expect_type, ["$", artifact, "ranked_timelines", :list])
     |> CampaignPlanScoreContracts.validate(artifact)
     |> CampaignPlanTradeoffContracts.validate(artifact)
+    |> CampaignPlanOptimizerContracts.validate(artifact)
     |> call(callbacks, :expect_type, ["$", artifact, "warnings", :list])
     |> call(callbacks, :expect_type, ["$", artifact, "assumptions", :map])
     |> call(callbacks, :expect_type, ["$", artifact, "provenance", :map])

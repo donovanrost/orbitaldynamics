@@ -6,6 +6,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanJsonSchema do
     "activities",
     "candidate_activities",
     "contact_intents",
+    "ranking_explanation",
     "ranked_timelines",
     "warnings"
   ]
@@ -51,6 +52,22 @@ defmodule OrbitalDynamics.Schema.CampaignPlanJsonSchema do
 
   def property("ranked_timelines", opts) do
     array_of(Keyword.fetch!(opts, :ranked_timeline_schema))
+  end
+
+  def property("ranking_explanation", _opts) do
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "required" => ["objective", "formula", "policy"],
+      "properties" => %{
+        "objective" => %{"type" => "string"},
+        "formula" => %{"type" => "string"},
+        "policy" => %{
+          "type" => "object",
+          "additionalProperties" => true
+        }
+      }
+    }
   end
 
   def property("warnings", _opts) do
