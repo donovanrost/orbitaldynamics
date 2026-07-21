@@ -948,6 +948,21 @@ Fixture verification rejects stale summary counts, stale station routing, stale
 relay-path routing, and stale execution-boundary observations before compact
 link-capacity handoffs can steer candidate refresh or Cadence import review.
 
+## Global artifact fixture coverage guard
+
+Status: **implemented**.
+
+The validation test surface compares every public `Schema.contracts/0` key with
+the curated `artifact.*` model IDs in `Validation.reference_fixtures/0`. It
+fails with sorted exact identities when a registered artifact contract lacks a
+fixture or when a curated fixture points at a removed or renamed contract.
+
+The current registry has 121 contracts, of which 120 have curated artifact
+fixtures. The sole explicit bootstrap exclusion is the self-describing
+`validation_reference_fixture_report.v1`: making its rollup a required member
+of itself would create recursive fixture generation. The guard separately
+asserts that this exclusion remains singular, registered, and without a fixture.
+
 ## Resource/contact fixture coverage guard
 
 Status: **implemented**.

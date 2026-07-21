@@ -76,6 +76,13 @@ top-level rollup `status` to match the nested report statuses, preventing stale
 Standalone validation-reference reports likewise require their `status` to match
 nested check statuses, so a stale passing fixture report cannot hide a failed
 field-level check.
+An executable global registry guard now requires every registered artifact
+contract to have a curated validation-reference fixture model ID and every
+curated `artifact.*` fixture model ID to name a registered contract. The current
+boundary covers 120 of 121 contracts. The sole explicit exclusion is the
+self-describing `validation_reference_fixture_report.v1` rollup, whose fixture
+would otherwise recursively require itself; a focused assertion keeps that
+bootstrap exception singular and registered.
 Schema validation reports and batch reports also schema-export their scalar
 count fields (`error_count`, `warning_count`, `remediation_count`,
 `file_count`, `artifact_count`, and `skipped_count`) as non-negative integers,

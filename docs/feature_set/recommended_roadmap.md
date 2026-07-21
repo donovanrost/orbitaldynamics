@@ -182,6 +182,13 @@ New public artifact behavior should be protected by schema exports, golden
 fixtures, interoperability checks, and challenge tests for unsafe but plausible
 inputs.
 
+Already implemented or heavily covered:
+
+- a global registry-derived guard requires curated fixtures for all 120
+  non-bootstrap artifact contracts, rejects fixture model IDs without a live
+  contract, and keeps the self-describing fixture-report contract as the sole
+  explicit bootstrap exclusion
+
 Good first slices:
 
 - model acceptance report
