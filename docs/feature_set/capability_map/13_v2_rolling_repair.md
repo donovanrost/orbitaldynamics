@@ -149,6 +149,11 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   Contact-allocation pressure likewise uses a shared normalized unusable-row
   count for deferred/blocked/policy-blocked contacts, with exact effective-status
   summary fallbacks when rows are absent.
+- When the optional repair `objective_tradeoff_report.v1` is present, runtime
+  validation requires the repair-specific single-timeline model and pins its
+  score-term keys, policy, rank, source-plan scenario, score, zero selection
+  delta, score terms, activity IDs/count, and producer-default selected counts
+  to the enclosing V2 repair artifact.
 
 ## Refreshed missed-contact repair
 

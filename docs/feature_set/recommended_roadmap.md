@@ -121,6 +121,9 @@ Already implemented or heavily covered:
   and candidate-rejection penalties are reconciled to shared suppression or
   rejection counts and embedded report fallbacks; contact-allocation pressure is
   reconciled through shared normalized unusable-row and status-summary counts
+- an optional V2 repair objective-tradeoff report is pinned to its enclosing
+  single repaired timeline: repair model, score-term keys, policy, source plan,
+  score, zero delta, score terms, and repaired activity identity/count
 - V2 candidate-refresh source freshness contributes one explicit normalized
   risk-weight penalty for a stale or unknown report, aligned with its
   review/import gate and V3 refresh-freshness pressure semantics

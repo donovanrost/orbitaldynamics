@@ -94,6 +94,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
       Map.get(artifact, "score_term_report")
     ])
     |> CampaignRepairScoreContracts.validate(artifact)
+    |> OrbitalDynamics.Schema.CampaignRepairObjectiveTradeoffContracts.validate(artifact)
     |> CampaignRepairCandidateValueContracts.validate(artifact)
     |> CampaignRepairContactIntentPressureContracts.validate(artifact)
     |> CampaignRepairStationPressureContracts.validate(artifact)

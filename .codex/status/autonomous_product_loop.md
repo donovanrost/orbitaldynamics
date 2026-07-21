@@ -5,64 +5,61 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Reconcile V2 contact-allocation score term.
+Reconcile V2 objective-tradeoff explanation.
 
 Status:
 Complete; ready to publish.
 
 Selection evidence:
-- V2 contact-allocation pressure is produced from the embedded source report but
-  is not recomputed by the aggregate contract.
-- Its row path normalizes several provider-shaped status fields before counting
-  deferred, blocked, or policy-blocked contacts; summary-only reports use exact
-  effective-status count fallbacks.
-- Coordinated edits to the term, total, and score report can remain internally
-  valid while understating unusable allocated contacts.
+- Generic objective-tradeoff validation checks shape and row-derived key/count
+  metadata but does not pin a repair report to its enclosing V2 artifact.
+- A structurally valid report can substitute another allowed model or drift its
+  policy, score terms, score, scenario, activity IDs, rank, and selection delta.
+- V2 repair production is deterministic and emits exactly one explanation row
+  from fields already present in the enclosing repair artifact.
 
 Intended behavior:
-- Extend the existing shared repair contact-allocation classifier with the exact
-  normalized unusable-row count and effective-status summary fallback.
-- Recompute a present penalty from that shared count and `risk_weight`.
-- Preserve optional legacy terms, absent/nominal reports, zero risk weight,
-  numeric-string/default policy handling, malformed-report safety, and checked
-  V2 compatibility.
-- Add coordinated-tamper, positive planner, status-normalization, summary-
-  fallback, optional/default/zero, and malformed-report coverage.
+- Require a present repair objective report to use the repair model, one row,
+  enclosing score-term keys and scoring policy, and the exact repaired row.
+- Pin row rank, scenario/source plan, score, zero selected delta, score terms,
+  activity count/IDs, and producer-default selected observation/contact counts.
+- Preserve the report as optional for compatible older V2 artifacts and avoid
+  raising on malformed shapes already owned by generic validators.
+- Add checked-fixture, coordinated-field tamper, duplicate-row, and optional-
+  report coverage; document the executable guarantees.
 
 Level 6 pillar advanced:
-Explainable V2 contact-allocation pressure backed by normalized source evidence.
+Replayable V2 objective explanation pinned to its repaired decision artifact.
 
 Last published slice:
-- `9b2bdf9f` Reconcile V2 source filter score terms (`3721 passed`).
+- `8207d22e` Reconcile V2 contact allocation score term (`3723 passed`).
 
 Likely files:
-- shared repair contact-allocation pressure classifier
-- V2 campaign-repair score runtime contract
-- focused score contract tests
+- V2 campaign-repair objective-tradeoff runtime contract
+- focused objective-tradeoff contract tests
 - V2 capability and roadmap docs
 
 Verification:
-- Focused score/contact-allocation planner tests: `20 passed`.
-- Campaign-repair schema fixtures: `25 passed`.
-- Schema suite plus schema-lint task tests: `403 passed`.
+- Focused objective/score/planner tests: `23 passed`.
+- Campaign-repair schema fixtures: `29 passed`.
+- Schema suite plus schema-lint task tests: `407 passed`.
 - Campaign-planner suite: `759 passed`.
-- Full suite: `3723 passed`.
+- Full suite: `3727 passed`.
 - `mix format --check-formatted`, `mix compile --warnings-as-errors`, and
   `git diff --check` passed.
 - Runtime-only reconciliation required no generated schema changes.
 
 Review:
-- Row scoring preserves string/atom/provider status normalization and effective-
-  status precedence before classifying deferred/blocked/policy-blocked contacts.
-- Row lists retain precedence over summary counts; rowless reports retain numeric
-  blocked/deferred/policy-blocked truncation and ignore nonnumeric counts.
-- The producer callback seam remains intact around shared normalization and
-  classification; malformed non-map rows remain neutral while structural
-  validators own their shape errors.
-- Policy values retain producer-equivalent numeric-string parsing, zero weights,
-  and missing-key defaults; the term remains optional for older V2 score maps.
-- Positive planner artifacts and nominal fixtures remain valid, while coordinated
-  term, total, and score-report edits no longer mask allocation-pressure drift.
+- Cross-validation requires the repair-specific model, one ranking row, exact
+  enclosing score-term keys, and exact embedded scoring policy.
+- The row is pinned to rank one, source-plan scenario, enclosing score, zero
+  selected delta, exact score terms, repaired activity IDs/order/count, and the
+  producer's selected observation/contact count defaults.
+- Duplicate rows are rejected even when ranking count and row-derived generic
+  metadata are edited consistently; malformed non-list shapes remain owned by
+  generic objective-report validators without raising here.
+- The report remains optional for compatible older V2 artifacts, and checked
+  fixtures plus real planner output remain valid.
 
 Remaining maturity gaps:
 - Continue exact V2 ranking/score reconciliation for replayable source fields.
