@@ -2,6 +2,7 @@ defmodule OrbitalDynamics.Validation.CorePolicyTest do
   use ExUnit.Case, async: true
 
   alias OrbitalDynamics.Propagators.{J2, TwoBody, TwoBodyNxCompiled}
+  alias OrbitalDynamics.ForceModels.AtmosphericDrag
   alias OrbitalDynamics.{ResultSet, Schema, Validation}
   alias OrbitalDynamics.ResultSet.Artifact
 
@@ -13,6 +14,46 @@ defmodule OrbitalDynamics.Validation.CorePolicyTest do
              Validation.record(J2)
 
     assert {:ok, %{"validation_level" => "educational"}} = Validation.record(TwoBodyNxCompiled)
+
+    assert {:ok,
+            %{
+              "id" => "force_model.atmospheric_drag",
+              "implementation" => "OrbitalDynamics.ForceModels.AtmosphericDrag",
+              "known_limits" => known_limits
+            }} = Validation.record(AtmosphericDrag)
+
+    assert known_limits == AtmosphericDrag.model_limits()
+
+    {:ok, force_model_record} = Validation.record(AtmosphericDrag)
+    force_model_artifact = Map.put(force_model_record, "schema_contract", "validation_record.v1")
+
+    assert {:ok, %{"schema_contract" => "validation_record.v1", "status" => "pass"}} =
+             Schema.validate_artifact(force_model_artifact)
+
+    stale_force_model_artifact =
+      Map.put(force_model_artifact, "known_limits", ["stale force-model limit"])
+
+    assert {:error, stale_force_model_report} =
+             Schema.validate_artifact(stale_force_model_artifact)
+
+    assert Enum.any?(
+             stale_force_model_report["errors"],
+             &(&1["path"] == "$.known_limits" and
+                 &1["message"] == "must match registered validation record known limits")
+           )
+
+    acceptance_report =
+      Validation.model_acceptance_report([AtmosphericDrag], intended_use: :analysis)
+
+    assert acceptance_report["status"] == "review_required"
+    assert acceptance_report["unknown_model_count"] == 0
+
+    assert acceptance_report["model_ids_by_status"] == %{
+             "review_required" => ["force_model.atmospheric_drag"]
+           }
+
+    assert {:ok, %{"schema_contract" => "model_acceptance_report.v1", "status" => "pass"}} =
+             Schema.validate_artifact(acceptance_report)
   end
 
   test "public facades expose validation records policies and fixture verification" do

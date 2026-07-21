@@ -6,6 +6,7 @@ defmodule OrbitalDynamics.ValidationTest do
   import OrbitalDynamics.Validation.OrbitalReferenceFixtures,
     only: [
       access_fixture_observations: 0,
+      atmospheric_drag_fixture_observations: 0,
       eclipse_fixture_observations: 0,
       ground_track_crossing_fixture_observations: 0,
       j2_fixture_observations: 0,
@@ -744,6 +745,8 @@ defmodule OrbitalDynamics.ValidationTest do
           validation_reference_report_fixture_observations(),
         "fixture.artifact.validation_tolerance_policy.v1" =>
           validation_tolerance_policy_fixture_observations(),
+        "fixture.force_model.atmospheric_drag.earth_400km" =>
+          atmospheric_drag_fixture_observations(),
         "fixture.j2.circular_leo_600s" => j2_fixture_observations(),
         "fixture.two_body.circular_leo_600s" => two_body_fixture_observations()
       })
@@ -751,8 +754,8 @@ defmodule OrbitalDynamics.ValidationTest do
     assert %{
              "schema_contract" => "validation_reference_fixture_report.v1",
              "status" => "pass",
-             "fixture_count" => 195,
-             "status_counts" => %{"pass" => 195},
+             "fixture_count" => 196,
+             "status_counts" => %{"pass" => 196},
              "reports" => reports
            } = report
 
@@ -960,6 +963,7 @@ defmodule OrbitalDynamics.ValidationTest do
              "fixture.event.eclipse.cylindrical_shadow_120s",
              "fixture.event.ground_track.latitude_equator_60s",
              "fixture.event.target_visibility.equator_overhead_120s",
+             "fixture.force_model.atmospheric_drag.earth_400km",
              "fixture.j2.circular_leo_600s",
              "fixture.two_body.circular_leo_600s"
            ]
@@ -974,7 +978,7 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert %{
              "status" => "fail",
-             "status_counts" => %{"fail" => 195},
+             "status_counts" => %{"fail" => 196},
              "reports" => invalid_observation_reports
            } = invalid_observation_report
 

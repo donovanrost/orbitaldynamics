@@ -4,6 +4,7 @@ defmodule OrbitalDynamics.Validation.OrbitalReferenceFixtureTest do
   import OrbitalDynamics.Validation.OrbitalReferenceFixtures,
     only: [
       access_fixture_observations: 0,
+      atmospheric_drag_fixture_observations: 0,
       eclipse_fixture_observations: 0,
       ground_track_crossing_fixture_observations: 0,
       j2_fixture_observations: 0,
@@ -12,6 +13,32 @@ defmodule OrbitalDynamics.Validation.OrbitalReferenceFixtureTest do
     ]
 
   alias OrbitalDynamics.Validation
+
+  test "verifies curated atmospheric-drag reference fixture observations" do
+    fixture_id = "fixture.force_model.atmospheric_drag.earth_400km"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+    assert fixture["model_id"] == "force_model.atmospheric_drag"
+    assert fixture["fixture_type"] == "curated_internal_regression"
+
+    observations = atmospheric_drag_fixture_observations()
+    assert {:ok, report} = Validation.verify_reference_fixture(fixture_id, observations)
+    assert report["schema_contract"] == "validation_reference_report.v1"
+    assert report["status"] == "pass"
+    assert Enum.all?(report["checks"], &(&1["status"] == "pass"))
+
+    stale_observations = Map.put(observations, "acceleration_magnitude_km_s2", 0.0)
+
+    assert {:ok, stale_report} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_report["status"] == "fail"
+
+    assert Enum.any?(
+             stale_report["checks"],
+             &(&1["field"] == "acceleration_magnitude_km_s2" and &1["status"] == "fail")
+           )
+  end
 
   test "verifies curated two-body reference fixture observations" do
     assert {:ok, fixture} = Validation.reference_fixture("fixture.two_body.circular_leo_600s")

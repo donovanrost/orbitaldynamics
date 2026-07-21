@@ -1,6 +1,8 @@
 defmodule OrbitalDynamics.Validation.Registry do
   @moduledoc false
 
+  alias OrbitalDynamics.ForceModels.AtmosphericDrag
+
   alias OrbitalDynamics.Propagators.{
     J2,
     J2ExlaCpu,
@@ -11,6 +13,27 @@ defmodule OrbitalDynamics.Validation.Registry do
   }
 
   @records %{
+    "force_model.atmospheric_drag" => %{
+      "id" => "force_model.atmospheric_drag",
+      "model" => "co_rotating_reference_atmosphere_drag",
+      "implementation" => "OrbitalDynamics.ForceModels.AtmosphericDrag",
+      "validation_level" => "educational",
+      "covered_regime" =>
+        "single-state Earth/J2000 LEO drag acceleration with constant co-rotation and a validated atmosphere-density provider",
+      "tolerances" => %{
+        "density_kg_m3" => 1.0e-18,
+        "atmosphere_velocity_km_s" => 1.0e-12,
+        "relative_velocity_km_s" => 1.0e-12,
+        "relative_speed_km_s" => 1.0e-12,
+        "acceleration_km_s2" => 1.0e-15,
+        "acceleration_magnitude_km_s2" => 1.0e-15
+      },
+      "evidence" => [
+        "unit tests check atmosphere-relative direction, SI conversion, provider identity, and invalid-input boundaries",
+        "curated 400 km reference fixture is evaluated through OrbitalDynamics.atmospheric_drag_acceleration/4"
+      ],
+      "known_limits" => AtmosphericDrag.model_limits()
+    },
     "propagator.two_body" => %{
       "id" => "propagator.two_body",
       "model" => "point_mass_two_body",
@@ -223,6 +246,12 @@ defmodule OrbitalDynamics.Validation.Registry do
     J2ExlaCpu => "propagator.j2"
   }
 
+  @implementation_ids Map.put(
+                        @propagator_ids,
+                        AtmosphericDrag,
+                        "force_model.atmospheric_drag"
+                      )
+
   @output_ids %{
     :access_windows => "event.access_windows",
     "access_windows" => "event.access_windows",
@@ -239,7 +268,7 @@ defmodule OrbitalDynamics.Validation.Registry do
   def fetch(id) when is_binary(id), do: Map.fetch(@records, id)
 
   def fetch(module) when is_atom(module) do
-    with {:ok, id} <- Map.fetch(@propagator_ids, module) do
+    with {:ok, id} <- Map.fetch(@implementation_ids, module) do
       fetch(id)
     end
   end

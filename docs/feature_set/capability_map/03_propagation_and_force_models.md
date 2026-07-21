@@ -18,7 +18,9 @@
   `ForceModels.AtmosphericDrag` and the public
   `atmospheric_drag_acceleration/4` facade combine it with spacecraft ballistic
   inputs and constant Earth co-rotation in a deterministic standalone
-  acceleration evaluator without connecting drag to current propagators.
+  acceleration evaluator without connecting drag to current propagators; the
+  evaluator has a validation-registry record plus a curated, tolerance-backed
+  400 km reference fixture exercised through the public facade.
 - `partial`: maneuver support is impulsive only; J2 is the only perturbation;
   adaptive integration is currently limited to scalar two-body step-doubling and
   is not event/root solved; backend comparisons now have acceptance tiers but

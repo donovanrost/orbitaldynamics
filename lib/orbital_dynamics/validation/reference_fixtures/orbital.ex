@@ -176,6 +176,60 @@ defmodule OrbitalDynamics.Validation.ReferenceFixtures.Orbital do
         "geocentric inertial crossing only"
       ]
     },
+    "fixture.force_model.atmospheric_drag.earth_400km" => %{
+      "id" => "fixture.force_model.atmospheric_drag.earth_400km",
+      "model_id" => "force_model.atmospheric_drag",
+      "reference_case" =>
+        "400 km equatorial Earth/J2000 state with constant co-rotation and reference atmosphere density",
+      "validation_level" => "educational",
+      "fixture_type" => "curated_internal_regression",
+      "inputs" => %{
+        "central_body" => "earth",
+        "altitude_km" => 400.0,
+        "velocity_km_s" => [0.0, 7.67, 0.0],
+        "dry_mass_kg" => 100.0,
+        "propellant_mass_kg" => 20.0,
+        "drag_area_m2" => 4.0,
+        "drag_coefficient" => 2.2,
+        "atmosphere_provider_id" => "environment.provider.atmosphere.exponential_reference",
+        "earth_rotation_provider_id" => "environment.provider.earth_rotation.constant_rate"
+      },
+      "expected" => %{
+        "altitude_km" => 400.0,
+        "density_kg_m3" => 3.89e-12,
+        "spacecraft_mass_kg" => 120.0,
+        "atmosphere_velocity_km_s" => [0.0, 0.494269493852745, 0.0],
+        "relative_velocity_km_s" => [0.0, 7.175730506147255, 0.0],
+        "relative_speed_km_s" => 7.175730506147255,
+        "acceleration_km_s2" => [0.0, -7.3443484134077065e-9, 0.0],
+        "acceleration_magnitude_km_s2" => 7.3443484134077065e-9,
+        "atmosphere_provider_id" => "environment.provider.atmosphere.exponential_reference",
+        "earth_rotation_provider_id" => "environment.provider.earth_rotation.constant_rate",
+        "model_limit_count" => 7
+      },
+      "tolerances" => %{
+        "altitude_km" => 1.0e-12,
+        "density_kg_m3" => 1.0e-18,
+        "spacecraft_mass_kg" => 1.0e-12,
+        "atmosphere_velocity_km_s" => 1.0e-12,
+        "relative_velocity_km_s" => 1.0e-12,
+        "relative_speed_km_s" => 1.0e-12,
+        "acceleration_km_s2" => 1.0e-15,
+        "acceleration_magnitude_km_s2" => 1.0e-15,
+        "atmosphere_provider_id" => 0,
+        "earth_rotation_provider_id" => 0,
+        "model_limit_count" => 0
+      },
+      "evidence" => [
+        "generated through OrbitalDynamics.atmospheric_drag_acceleration/4",
+        "checked by OrbitalDynamics.Validation.verify_reference_fixture/2"
+      ],
+      "known_limits" => [
+        "internal regression fixture, not an external truth model",
+        "covers one 400 km equatorial LEO state only",
+        "standalone acceleration is not integrated by current propagators"
+      ]
+    },
     "fixture.j2.circular_leo_600s" => %{
       "id" => "fixture.j2.circular_leo_600s",
       "model_id" => "propagator.j2",

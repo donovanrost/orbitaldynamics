@@ -86,6 +86,42 @@ defmodule OrbitalDynamics.Validation.OrbitalReferenceFixtures do
     }
   end
 
+  def atmospheric_drag_fixture_observations do
+    central_body = CentralBody.earth()
+
+    state =
+      StateVector.new!(
+        {central_body.equatorial_radius_km + 400.0, 0.0, 0.0},
+        {0.0, 7.67, 0.0},
+        Epoch.new!(0.0, :tdb),
+        Frame.earth_inertial_j2000()
+      )
+
+    spacecraft =
+      Spacecraft.new!(:drag_fixture, 100.0,
+        propellant_mass_kg: 20.0,
+        area_m2: 4.0,
+        drag_coefficient: 2.2
+      )
+
+    assert {:ok, result} =
+             OrbitalDynamics.atmospheric_drag_acceleration(state, spacecraft, central_body)
+
+    %{
+      "altitude_km" => result.altitude_km,
+      "density_kg_m3" => result.density_kg_m3,
+      "spacecraft_mass_kg" => result.spacecraft_mass_kg,
+      "atmosphere_velocity_km_s" => Tuple.to_list(result.atmosphere_velocity_km_s),
+      "relative_velocity_km_s" => Tuple.to_list(result.relative_velocity_km_s),
+      "relative_speed_km_s" => result.relative_speed_km_s,
+      "acceleration_km_s2" => Tuple.to_list(result.acceleration_km_s2),
+      "acceleration_magnitude_km_s2" => result.acceleration_magnitude_km_s2,
+      "atmosphere_provider_id" => result.atmosphere_provider_id,
+      "earth_rotation_provider_id" => result.earth_rotation_provider_id,
+      "model_limit_count" => length(result.model_limits)
+    }
+  end
+
   def access_fixture_observations do
     earth = CentralBody.earth()
     station = GroundStation.new!(:equator, 0.0, 0.0, minimum_elevation_deg: 0.0)

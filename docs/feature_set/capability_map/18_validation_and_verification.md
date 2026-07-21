@@ -40,6 +40,9 @@ Result artifacts archive the relevant validation records.
 Curated fixtures that can be verified into `validation_reference_fixture_report.v1` and schema-linted span:
 
 - Internal two-body and J2 propagation.
+- Standalone atmospheric-drag acceleration at a curated 400 km Earth/J2000
+  state, including provider identity, co-rotation-relative velocity, density,
+  and acceleration tolerances.
 - Access-window, eclipse, target-visibility event, and ground-track crossing.
 - Campaign V1, repair V2, strategy V3 artifact.
 - Standalone operator-review package.
