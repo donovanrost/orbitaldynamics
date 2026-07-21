@@ -32,6 +32,16 @@ defmodule OrbitalDynamics.Schema.CadenceImportValidation do
     |> validate_manifest(path, manifest)
   end
 
+  def validate_optional_manifest(issues, nil), do: issues
+
+  def validate_optional_manifest(issues, %{} = manifest) do
+    validate_manifest_artifact(issues, "$.cadence_import_manifest", manifest)
+  end
+
+  def validate_optional_manifest(issues, _manifest) do
+    [PrimitiveValidation.error("$.cadence_import_manifest", "must be an object") | issues]
+  end
+
   def validate_manifest(issues, path, manifest) do
     CadenceImportManifestContracts.validate(
       issues,

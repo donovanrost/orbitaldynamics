@@ -45,6 +45,10 @@ Embedded contact-allocation reports are likewise optional direct nested
 contracts and run the full standalone allocation validator over their rows,
 typed counters/maps, nested reports, capacity-pack evidence, and model limits.
 V1 context pins `campaign_plan.candidate_activities` as the allocation source.
+The emitted `cadence_import_manifest.v1` is also an optional direct nested
+contract. Embedded manifests run the standalone required-field, row, derived
+count/map, model-limit, and artifact-only boundary checks, while V1 requires
+their source type and source ID to identify the containing campaign plan.
 
 **Timeline score terms** include:
 

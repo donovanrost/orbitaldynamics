@@ -220,6 +220,9 @@ Already implemented or heavily covered:
 - embedded V1 contact-allocation reports are declared directly and receive the
   standalone allocation/nested-report validation plus exact campaign candidate
   source checking
+- embedded V1 Cadence import manifests are declared directly and receive the
+  standalone manifest/row/count/no-write validation plus exact containing-plan
+  source identity checks
 
 Good first slices:
 

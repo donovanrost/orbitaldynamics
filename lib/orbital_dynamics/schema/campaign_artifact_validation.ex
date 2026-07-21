@@ -2,6 +2,7 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
   @moduledoc false
 
   alias OrbitalDynamics.Schema.{
+    CadenceImportValidation,
     CampaignPlanContracts,
     CampaignRegistryContracts,
     CampaignRepairContracts,
@@ -162,6 +163,8 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
         &DecisionSupportValidation.validate_optional_constraint_report/2,
       validate_optional_contact_allocation_report:
         &ContactAllocationValidation.validate_optional_report/2,
+      validate_optional_cadence_import_manifest:
+        &CadenceImportValidation.validate_optional_manifest/2,
       validate_optional_link_capacity_report: &LinkCapacityValidation.validate_optional_report/2,
       validate_optional_resource_projection_report:
         &ResourceValidation.validate_optional_resource_projection_report/3,

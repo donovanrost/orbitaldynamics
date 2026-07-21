@@ -255,6 +255,11 @@ Selected timeline integrity issue counts, branch-event counts, and embedded bran
 - The public manifest/review facades reject non-map or unsupported artifact-contract inputs with explicit adapter-boundary errors that list supported contracts instead of leaking function-clause failures.
 - Already-built operator-review packages and Cadence import manifests pass through their public facades as stable artifacts, with atom-key manifests normalized to the string-key JSON shape.
 - V1 campaign plans emit the same manifest contract over proposed contacts plus embedded contention-group, operational-timeline, and contact-allocation review rows, including effective allocation status for policy-blocked selections, with ready, review-required, and missing-import status counts plus the same row-derived summary maps.
+- `campaign_plan.v1` declares that manifest as an optional direct nested
+  contract and applies the standalone manifest/row/count/model-limit validator
+  at runtime. The embedded handoff must name `campaign_plan.v1` and the
+  containing plan ID as its source; declared no-write/no-approval assumption
+  values remain validated.
 
 **Import status vocabularies.**
 

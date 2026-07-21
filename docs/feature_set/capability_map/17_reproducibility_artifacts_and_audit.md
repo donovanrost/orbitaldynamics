@@ -182,6 +182,9 @@ work, a **partial** executable-schema track, and **near-term** / **later** /
 - It also declares optional `contact_allocation_report.v1` evidence directly,
   runs the standalone allocation/nested-report validator, and pins the campaign
   candidate-activity source.
+- Its optional `cadence_import_manifest.v1` handoff is declared directly, runs
+  the standalone manifest/row/count/no-write validator, and must identify the
+  containing `campaign_plan.v1` and plan ID as its source.
 - `campaign_repair.v2` exports nested repaired-activity, source-candidate, source
   contact-allocation, source timeline-feedback handoff rows, plan-delta, and
   approval-requirement rows.
