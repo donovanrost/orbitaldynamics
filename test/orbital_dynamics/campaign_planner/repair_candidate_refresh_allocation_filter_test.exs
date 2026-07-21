@@ -190,6 +190,188 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshAllocationFilter
              Schema.validate_artifact(artifact)
   end
 
+  test "repair replacement ranking internalizes exact reduced-capacity allocation evidence" do
+    reduced_candidate =
+      "dl_reduced"
+      |> refreshed_downlink(500.0, 560.0)
+      |> Map.put("score", 10.0)
+      |> put_in(["score_terms", "contact_value"], 10.0)
+
+    nominal_candidate =
+      "dl_nominal"
+      |> refreshed_downlink(570.0, 630.0)
+      |> Map.put("score", 9.8)
+      |> put_in(["score_terms", "contact_value"], 9.8)
+
+    allocation_report =
+      OrbitalDynamics.contact_allocation_report(
+        [reduced_candidate, nominal_candidate],
+        [
+          %{
+            id: "equator_reduced_capacity",
+            ground_station_id: "equator_prime",
+            status: "available",
+            capacity_fraction: 0.5,
+            starts_at_s: 490.0,
+            ends_at_s: 565.0
+          }
+        ]
+      )
+
+    plan = %{
+      "activities" => [downlink("dl_1", 100.0, 160.0)],
+      "candidate_activities" => []
+    }
+
+    candidate_refresh =
+      [reduced_candidate, nominal_candidate]
+      |> candidate_refresh_artifact(contact_allocation_report: allocation_report)
+
+    common_opts = [
+      realized_state: %{activities: [%{id: "dl_1", status: "missed"}]},
+      current_epoch_s: 165.0,
+      candidate_refresh: candidate_refresh
+    ]
+
+    nominal_artifact =
+      repair(plan, Keyword.put(common_opts, :scoring_policy, %{"risk_weight" => "1.0"}))
+
+    pressured_artifact =
+      repair(plan, Keyword.put(common_opts, :scoring_policy, %{"risk_weight" => "0.5"}))
+
+    deduplicated_artifact =
+      repair(
+        plan,
+        common_opts
+        |> Keyword.put(:scoring_policy, %{"risk_weight" => "0.5"})
+        |> Keyword.put(:ground_network, [
+          %{
+            id: "equator_reduced_capacity",
+            ground_station_id: "equator_prime",
+            status: "available",
+            capacity_fraction: 0.5,
+            starts_at_s: 490.0,
+            ends_at_s: 565.0
+          }
+        ])
+      )
+
+    assert [%{"id" => "dl_nominal", "repair" => %{"action" => "moved"}}] =
+             nominal_artifact["activities"]
+
+    assert %{
+             "selected_candidate_id" => "dl_nominal",
+             "rows" => [
+               %{
+                 "candidate_id" => "dl_nominal",
+                 "station_calendar_pressure_penalty" => nominal_station_penalty,
+                 "selected" => true
+               },
+               %{
+                 "candidate_id" => "dl_reduced",
+                 "station_calendar_pressure_penalty" => -1.0,
+                 "selected" => false
+               }
+             ]
+           } =
+             get_in(nominal_artifact, [
+               "activities",
+               Access.at(0),
+               "repair",
+               "replacement_ranking"
+             ])
+
+    assert nominal_station_penalty == 0.0
+
+    refute Map.has_key?(
+             nominal_artifact["score_terms"],
+             "station_calendar_pressure_penalty"
+           )
+
+    assert [%{"id" => "dl_reduced", "repair" => %{"action" => "moved"}}] =
+             pressured_artifact["activities"]
+
+    assert %{
+             "selected_candidate_id" => "dl_reduced",
+             "rows" => [
+               %{
+                 "candidate_id" => "dl_reduced",
+                 "station_calendar_pressure_penalty" => -0.5,
+                 "selected" => true
+               },
+               %{"candidate_id" => "dl_nominal", "selected" => false}
+             ]
+           } =
+             get_in(pressured_artifact, [
+               "activities",
+               Access.at(0),
+               "repair",
+               "replacement_ranking"
+             ])
+
+    assert pressured_artifact["score_terms"]["station_calendar_pressure_penalty"] == -0.5
+    assert pressured_artifact["source_station_calendar_report"] == nil
+
+    assert [%{"id" => "dl_reduced", "repair" => %{"action" => "moved"}}] =
+             deduplicated_artifact["activities"]
+
+    assert deduplicated_artifact["score_terms"]["station_calendar_pressure_penalty"] == -0.5
+
+    assert %{
+             "selected_candidate_id" => "dl_reduced",
+             "rows" => [
+               %{
+                 "candidate_id" => "dl_reduced",
+                 "station_calendar_pressure_penalty" => -0.5,
+                 "selected" => true
+               },
+               %{"candidate_id" => "dl_nominal", "selected" => false}
+             ]
+           } =
+             get_in(deduplicated_artifact, [
+               "activities",
+               Access.at(0),
+               "repair",
+               "replacement_ranking"
+             ])
+
+    assert %{
+             "contact_id" => "dl_reduced",
+             "effective_allocation_status" => "allocated",
+             "station_availability" => "reduced_capacity",
+             "capacity_fraction" => 0.5
+           } =
+             Enum.find(
+               pressured_artifact["source_contact_allocation_report"]["rows"],
+               &(&1["contact_id"] == "dl_reduced")
+             )
+
+    assert Enum.any?(
+             pressured_artifact["operator_review_package"]["rows"],
+             &(&1["review_type"] == "contact_allocation_review" and
+                 &1["source"] == "campaign_repair.source_contact_allocation_report.rows" and
+                 &1["contact_id"] == "dl_reduced" and
+                 &1["station_availability"] == "reduced_capacity")
+           )
+
+    assert Enum.any?(
+             pressured_artifact["cadence_import_manifest"]["rows"],
+             &(&1["import_action"] == "review_contact_allocation" and
+                 &1["source_review_type"] == "contact_allocation_review" and
+                 &1["contact_id"] == "dl_reduced" and
+                 &1["station_availability"] == "reduced_capacity")
+           )
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(nominal_artifact)
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(pressured_artifact)
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(deduplicated_artifact)
+  end
+
   defp candidate_refresh_artifact(candidates, opts) do
     %{
       "schema_version" => 1,

@@ -10,6 +10,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairExecution do
     RepairActivityDispatch,
     RepairCandidateDiff,
     RepairCandidateInputs,
+    RepairContactAllocationPressure,
     RepairManeuverTransitions,
     RepairPolicySemantics,
     RepairRealizedState,
@@ -110,7 +111,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairExecution do
       source_resource_summaries: source_resource_summaries,
       candidate_diff_replacements: candidate_diff_replacements(request.candidate_refresh),
       station_calendar_pressure_candidate_ids:
-        station_calendar_pressure_candidate_ids(station_calendar_report)
+        station_calendar_pressure_candidate_ids(station_calendar_report),
+      contact_allocation_station_pressure_candidate_ids:
+        request.candidate_refresh
+        |> RepairSourceReports.contact_allocation()
+        |> RepairContactAllocationPressure.candidate_ids()
     }
   end
 

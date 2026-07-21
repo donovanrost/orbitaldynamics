@@ -10,6 +10,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
     QualityGatePressureEvents,
     QualityGateSourceReports,
     RefreshFreshnessPressureEvents,
+    RepairContactAllocationPressure,
     ResourceProjectionRisk,
     ScalarValues,
     StationCalendarPressureBranches,
@@ -96,7 +97,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
     link_capacity_pressure_count = repair_link_capacity_pressure_count(link_capacity_report)
 
     station_calendar_pressure_count =
-      repair_station_calendar_pressure_count(station_calendar_report, activities)
+      repair_station_calendar_pressure_count(
+        station_calendar_report,
+        contact_allocation_report,
+        activities
+      )
 
     contact_filter_pressure_count = repair_contact_filter_pressure_count(contact_filter_report)
 
@@ -252,23 +257,46 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
   defp repair_link_capacity_pressure_count(_report), do: 0
 
   defp repair_station_calendar_pressure_count(
-         %{"affected_contacts" => affected_contacts},
+         station_calendar_report,
+         contact_allocation_report,
          activities
        )
-       when is_list(affected_contacts) and is_list(activities) do
+       when is_list(activities) do
     selected_activity_ids =
       activities
       |> Enum.map(&Map.get(&1, "id"))
       |> Enum.reject(&(&1 in [nil, ""]))
       |> MapSet.new()
 
-    Enum.count(affected_contacts, fn row ->
-      MapSet.member?(selected_activity_ids, Map.get(row, "contact_id")) and
-        StationCalendarPressureBranches.pressure?(row)
-    end)
+    calendar_pressure_rows =
+      case station_calendar_report do
+        %{"affected_contacts" => rows} when is_list(rows) ->
+          Enum.filter(rows, fn row ->
+            MapSet.member?(selected_activity_ids, Map.get(row, "contact_id")) and
+              StationCalendarPressureBranches.pressure?(row)
+          end)
+
+        _report ->
+          []
+      end
+
+    calendar_pressure_candidate_ids =
+      calendar_pressure_rows
+      |> Enum.map(&Map.get(&1, "contact_id"))
+      |> Enum.reject(&(&1 in [nil, ""]))
+      |> MapSet.new()
+
+    allocation_pressure_count =
+      contact_allocation_report
+      |> RepairContactAllocationPressure.candidate_ids()
+      |> MapSet.intersection(selected_activity_ids)
+      |> MapSet.difference(calendar_pressure_candidate_ids)
+      |> MapSet.size()
+
+    length(calendar_pressure_rows) + allocation_pressure_count
   end
 
-  defp repair_station_calendar_pressure_count(_report, _activities), do: 0
+  defp repair_station_calendar_pressure_count(_report, _allocation_report, _activities), do: 0
 
   defp repair_contact_filter_pressure_count(%{"suppressed_candidates" => rows})
        when is_list(rows),

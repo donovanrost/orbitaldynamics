@@ -472,6 +472,13 @@ V1 campaign, candidate-refresh, V2 repair, and V3 strategy wrappers aggregate th
 
 - `contact_allocation_report.v1` over repaired contact activities, including same-spacecraft cross-station contention over the repaired timeline; they pass repair approval policy into that allocation boundary, and lift repaired-plan allocation rows into V2 and V3 branch-repair operator-review/import surfaces.
 - the same `link_capacity_report.v1` contract over repaired downlink activities.
+- Supplied candidate-refresh allocation rows with an exact viable contact ID and
+  reduced-capacity station evidence now contribute the shared calibrated
+  station-pressure unit to V2 replacement ranking and final selected-plan
+  scoring. Deferred, blocked, reserved, nominal, nonmatching, and unselected
+  rows remain neutral; matching live station-calendar evidence is deduplicated
+  rather than charged twice. This is a ranking/review signal, not hard
+  suppression, provider reservation, or schedule mutation.
 
 **Cadence import manifests** expose row-derived `source_review_type_counts` and `source_review_action_counts` alongside import/action/status counts, so adapters can route review queues without reopening every source review row.
 

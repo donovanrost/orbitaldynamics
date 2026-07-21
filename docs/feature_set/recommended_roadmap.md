@@ -79,6 +79,10 @@ Already implemented or heavily covered:
 - V2 replacement ranking internalizes the same calibrated repair-time
   station-calendar pressure within semantic candidate-diff priority tiers,
   aligning selection with the final repair objective without hard suppression
+- V2 replacement ranking and final scoring also apply that calibrated unit to
+  exact viable reduced-capacity rows from candidate-refresh contact-allocation
+  evidence, while keeping nonmatching/unselected rows neutral and deduplicating
+  matching live station-calendar pressure
 - V2's generic selected resource-projection penalty covers every emitted
   storage, downlink, battery, thermal-margin, availability, and activity-
   compatibility projection risk

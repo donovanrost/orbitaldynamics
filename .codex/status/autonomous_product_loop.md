@@ -5,59 +5,60 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Guard global artifact fixture registry coverage.
+Rank repair replacements with allocation-carried station pressure.
 
 Status:
 Implemented, fully verified, and parent-reviewed; ready to publish.
 
 Selected slice:
-Add a global schema/fixture registry guard for every non-bootstrap artifact
-contract and every curated artifact fixture model ID.
+Apply exact candidate-specific reduced-capacity station evidence from a supplied
+contact-allocation report to V2 replacement ranking and final repair scoring.
 
 Why this slice:
-The focused operational families are now guarded. Live global inspection shows
-120 of 121 schema contracts have curated artifact fixtures, with only the
-self-describing `validation_reference_fixture_report.v1` excluded to avoid
-recursive fixture bootstrapping. No fixture model IDs point at unknown schemas,
-but neither global invariant currently has a focused executable guard.
+V2 already ranks with repair-time station-calendar pressure, but a supplied
+candidate refresh can carry the same exact `contact_id`, station availability,
+and capacity fraction in `contact_allocation_report.v1`. Viable reduced-capacity
+replacements currently lose that signal when no separate ground-network overlay
+is provided, even though the allocation report remains in review/import output.
 
 Level 6 pillar:
-Durable schema-versioned artifacts and compatibility checks.
+Fleet-level contact/resource allocation behavior with explainable scoring.
 
 Implemented:
-- Added a bidirectional global guard comparing `Schema.contracts/0` with curated
-  `artifact.*` model IDs from `Validation.reference_fixtures/0`.
-- All 120 non-bootstrap contracts have curated fixtures, and no fixture model ID
-  points at a missing schema contract.
-- The self-describing `validation_reference_fixture_report.v1` remains the sole
-  explicit bootstrap exclusion, asserted as registered and fixture-free.
-- Missing or stale identities are sorted and reported by exact contract name.
+- Added a focused allocation-pressure helper that selects only exact viable
+  allocated contact IDs with shared-classifier reduced-capacity evidence.
+- V2 replacement ranking now combines those IDs with repair-time calendar
+  pressure and applies one calibrated `risk_weight` unit per candidate.
+- Final selected-plan scoring adds allocation-carried pressure only for selected
+  contacts and deduplicates matching live calendar evidence.
+- Deferred, policy-blocked, reserved, nominal, absent, nonmatching, and
+  unselected rows remain neutral; review/import evidence stays intact.
 
 Docs changed:
-- `docs/feature_set/capability_map/18_validation_and_verification.md`
-- `docs/artifacts/compatibility_checks.md`
+- `docs/feature_set/capability_map/07_ground_network/03_contact_allocation.md`
+- `docs/feature_set/capability_map/13_v2_rolling_repair.md`
 - `docs/feature_set/recommended_roadmap.md`
 
 Verification:
-- Global artifact fixture-coverage guard: `3 passed`.
-- Combined global/activity/readiness/resource fixture guards: `8 passed`.
-- Validation area: `194 passed`.
-- Full suite with `--timeout 120000`: `3506 passed`.
+- Allocation classifier and end-to-end ranking tests: `4 passed`.
+- Focused replacement-ranking regression set: `22 passed`.
+- Campaign-planner area: `754 passed`.
+- Full suite with `--timeout 120000`: `3509 passed`.
 - `mix compile --warnings-as-errors`, `mix format --check-formatted`, and
   `git diff --check`: passed.
 
 Parent review:
-- The guard is bidirectional: it catches both missing fixtures and stale fixture
-  model IDs after schema removal or renaming.
-- The bootstrap exclusion is a named constant with a dedicated assertion, not a
-  broad family or string-pattern escape hatch.
-- The test reads public registries only and changes no runtime or artifact
-  behavior.
-- Global coverage complements the focused family and field-level tests; it does
-  not claim external validation or replace fixture tolerances/challenges.
+- Exact allocation IDs are intersected with viable replacement candidates and
+  selected repaired activities before affecting ranking or final score.
+- A dedicated reduced-capacity classifier avoids treating matched reservations
+  as risk; canonical and numeric-string capacity evidence share normalization.
+- Calendar/allocation agreement is deduplicated by contact ID while preserving
+  both source artifacts for operator review and Cadence import.
+- The behavior is a calibrated ranking signal, not hard suppression, provider
+  reservation, schedule mutation, approval, import, or execution authority.
 
 Previous published slice:
-- `28dadaf6` Guard timeline fixture coverage (`3503 passed`).
+- `9f286eca` Guard global fixture coverage (`3506 passed`).
 
 Remaining maturity gaps:
 - Continue calibrated realized-feedback depth where evidence is genuinely

@@ -76,6 +76,13 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   priority tier. This can prefer a slightly lower-value nominal contact while a
   smaller weight can still select the pressured alternative; calendars remain
   annotation/review evidence rather than hard candidate suppression.
+- Exact viable rows from a supplied candidate-refresh
+  `contact_allocation_report.v1` contribute the same unit when the shared
+  classifier identifies reduced-capacity station evidence. Ranking and final
+  scoring remain selected-contact scoped; deferred, blocked, reserved, nominal,
+  nonmatching, or unselected allocation rows do not contribute. If the repair-
+  time calendar independently reports the same contact pressure, the sources
+  collapse to one calibrated unit while both artifacts remain reviewable.
 - `resource_projection_pressure_penalty` counts every risk emitted by
   `ResourceProjectionRisk.risk_indicators/1`, including storage/downlink/battery,
   negative thermal margin, spacecraft or payload/antenna availability, degraded
@@ -121,6 +128,8 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   Ranked rows expose candidate ID, semantic-diff match/priority, candidate value,
   churn, schedule-move, station-calendar, projected link-capacity, and projected
   resource contributions plus final greedy ranking score and selected flag.
+  The station-calendar contribution can derive from exact reduced-capacity
+  allocation evidence when no separate repair-time calendar is supplied.
   The explanation copies no full candidate payloads and explicitly declares
   that it is not global optimization.
 

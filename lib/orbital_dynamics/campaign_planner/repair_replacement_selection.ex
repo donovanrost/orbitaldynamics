@@ -175,10 +175,16 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairReplacementSelection do
     do: ScalarValues.numeric_or_nil(Map.get(candidate, "score")) || 0.0
 
   defp station_calendar_pressure_penalty(candidate, context) do
-    pressure_candidate_ids =
+    calendar_pressure_candidate_ids =
       Map.get(context, :station_calendar_pressure_candidate_ids, MapSet.new())
 
-    if MapSet.member?(pressure_candidate_ids, ActivityIdentity.activity_id(candidate)) do
+    allocation_pressure_candidate_ids =
+      Map.get(context, :contact_allocation_station_pressure_candidate_ids, MapSet.new())
+
+    candidate_id = ActivityIdentity.activity_id(candidate)
+
+    if MapSet.member?(calendar_pressure_candidate_ids, candidate_id) or
+         MapSet.member?(allocation_pressure_candidate_ids, candidate_id) do
       numeric_policy_value(context.scoring_policy, "risk_weight", 1.0)
     else
       0.0
