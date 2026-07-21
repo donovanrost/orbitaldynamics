@@ -5,38 +5,39 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Declare V1 score and tradeoff reports in the exported campaign contract.
+Declare V1 ground-network reports in the exported campaign contract.
 
 Status:
 Implemented, fully verified, and parent-reviewed; ready to publish.
 
 Selected slice:
-Expose `score_term_report.v1` and `objective_tradeoff_report.v1` as optional
+Expose `contact_filter_report.v1` and `station_calendar_report.v1` as optional
 direct nested contracts of `campaign_plan.v1`.
 
 Why this slice:
-V1 emits and deeply validates both scoring explanations against ranked
-timelines, but its exported schema declares neither property. Schema consumers
-therefore cannot discover two of the plan's core explainability handoffs.
+V1 emits both ground-network reports and already runs their standalone
+validators, but its exported schema declares neither property. Schema consumers
+therefore cannot discover core contact filtering and station availability data.
 
 Level 6 pillar:
-Explainable optimization and versioned compatibility.
+Fleet-scale ground-network planning and versioned compatibility.
 
 Implemented:
-- `campaign_plan.v1` declares both scoring report fields as optional.
-- `score_term_report.v1` and `objective_tradeoff_report.v1` are direct nested
+- `campaign_plan.v1` declares both ground-network report fields as optional.
+- `contact_filter_report.v1` and `station_calendar_report.v1` are direct nested
   contracts with embedded definitions in the V1 JSON Schema.
 - Export assertions require both properties, definitions, and nested-contract
-  metadata while existing runtime mutation and omission coverage stays active.
+  metadata while existing executable validation remains active.
 
 Docs changed:
-- `docs/feature_set/capability_map/09_constraints_and_scoring.md`
+- `docs/feature_set/capability_map/07_ground_network/01_overview_filter_and_contention.md`
+- `docs/feature_set/capability_map/07_ground_network/04_station_calendar.md`
 - `docs/feature_set/capability_map/12_v1_campaign_planning.md`
 - `docs/feature_set/capability_map/17_reproducibility_artifacts_and_audit.md`
 - `docs/feature_set/recommended_roadmap.md`
 
 Verification:
-- Focused score/tradeoff/export tests: `32 passed`.
+- Focused filter/calendar/export tests: `103 passed`.
 - Schema area: `231 passed`.
 - Campaign-planner area: `754 passed`.
 - Full suite with `--timeout 120000`: `3556 passed`.
@@ -46,12 +47,12 @@ Verification:
 Parent review:
 - This is an additive compatibility-export change; runtime behavior is unchanged.
 - Both fields remain optional, preserving omission compatibility.
-- Existing standalone and V1 cross-report validators remain the source of
-  scoring semantics; the export now accurately advertises them.
+- Existing standalone validators remain the source of filtering/calendar
+  semantics and artifact-only provider boundaries.
 - Schema regeneration changed only the V1 campaign export and bundle entry.
 
 Previous published slice:
-- `e928a0aa` Validate V1 command window reports (`3556 passed`).
+- `c94e2ffa` Declare V1 scoring reports (`3556 passed`).
 
 Remaining maturity gaps:
 - Continue calibrated realized-feedback depth where evidence is genuinely

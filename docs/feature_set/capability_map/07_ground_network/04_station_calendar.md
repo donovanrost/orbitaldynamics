@@ -18,6 +18,9 @@ Models availability/capacity intervals.
 - `station_calendar_report.v1` runtime validation and schema export pin the
   artifact-only overlay model, so stale model identifiers fail before
   reservation-overlap rows or provider-contention evidence are trusted.
+- `campaign_plan.v1` declares its optional embedded station-calendar report as
+  a direct nested contract, exposing the already-validated artifact-only overlay
+  in the exported plan schema.
 - Direct adapter normalization enforces the same stable-ID and unit-interval capacity boundaries as the provider schema, including provider `capacity_pack_capacity_fraction` evidence normalized into canonical station capacity.
 
 ## Merging declared sources (direct refresh)

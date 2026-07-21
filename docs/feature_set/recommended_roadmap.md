@@ -228,6 +228,9 @@ Already implemented or heavily covered:
 - embedded V1 command-window reports are declared directly and receive the
   standalone row/count/model-limit validation plus exact selected-activity
   source and no-command-execution boundary checks
+- embedded V1 contact-filter and station-calendar reports are declared as
+  optional direct nested contracts while retaining their existing executable
+  campaign validation
 
 Good first slices:
 

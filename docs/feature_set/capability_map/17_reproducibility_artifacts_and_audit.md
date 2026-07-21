@@ -190,6 +190,9 @@ work, a **partial** executable-schema track, and **near-term** / **later** /
 - Optional `command_window_report.v1` evidence is declared directly, runs its
   standalone row/count/model-limit validator, and pins selected-activity source
   plus the artifact-only command boundary.
+- Optional `contact_filter_report.v1` and `station_calendar_report.v1` evidence
+  is declared directly, exposing the same reports already checked by their
+  standalone campaign validators.
 - `campaign_repair.v2` exports nested repaired-activity, source-candidate, source
   contact-allocation, source timeline-feedback handoff rows, plan-delta, and
   approval-requirement rows.

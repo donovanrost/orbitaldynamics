@@ -70,6 +70,10 @@ Existing `contact_filter_report.v1` artifacts are also accepted by
 `ContactFilter.report/1` and `OrbitalDynamics.contact_filter_report/1` as
 idempotent handoff inputs before any raw-candidate filtering is derived.
 
+`campaign_plan.v1` declares its optional embedded contact-filter report as a
+direct nested contract, so the exported plan schema exposes the same report
+whose standalone validator already runs during campaign validation.
+
 Resource-filter triage uses the same artifact-only boundary:
 `ResourceFilter.summary/1`/`2`/`3` and
 `OrbitalDynamics.resource_filter_summary/1`/`2`/`3` publish the validated

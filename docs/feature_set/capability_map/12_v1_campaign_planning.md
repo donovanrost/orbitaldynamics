@@ -54,6 +54,10 @@ Embedded `command_window_report.v1` evidence is likewise optional and direct.
 It runs the standalone row/count/model-limit validator while V1 pins both
 selected-activity source labels and the artifact-only no-schedule-mutation /
 no-command-execution boundary.
+The optional contact-filter and station-calendar reports are also exported as
+direct nested contracts. Campaign validation continues to run their existing
+standalone validators over suppression and declared station-availability
+evidence.
 
 **Timeline score terms** include:
 

@@ -36,6 +36,12 @@ defmodule OrbitalDynamics.Schema.CampaignPlanContractsTest do
     assert get_in(schema, ["properties", "command_window_report", "type"]) == "object"
     assert get_in(schema, ["$defs", "command_window_report.v1", "type"]) == "object"
 
+    assert get_in(schema, ["properties", "contact_filter_report", "type"]) == "object"
+    assert get_in(schema, ["$defs", "contact_filter_report.v1", "type"]) == "object"
+
+    assert get_in(schema, ["properties", "station_calendar_report", "type"]) == "object"
+    assert get_in(schema, ["$defs", "station_calendar_report.v1", "type"]) == "object"
+
     assert "constraint_report.v1" in get_in(schema, [
              "x-orbital-dynamics",
              "nested_contracts"
@@ -52,6 +58,16 @@ defmodule OrbitalDynamics.Schema.CampaignPlanContractsTest do
            ])
 
     assert "command_window_report.v1" in get_in(schema, [
+             "x-orbital-dynamics",
+             "nested_contracts"
+           ])
+
+    assert "contact_filter_report.v1" in get_in(schema, [
+             "x-orbital-dynamics",
+             "nested_contracts"
+           ])
+
+    assert "station_calendar_report.v1" in get_in(schema, [
              "x-orbital-dynamics",
              "nested_contracts"
            ])
