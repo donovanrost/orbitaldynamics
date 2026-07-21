@@ -42,6 +42,10 @@ Already implemented or heavily covered:
 - curated lifecycle/protection compatibility and challenge coverage, including
   timeline lifecycle-state fixtures, preservation fixtures, CandidateRefresh
   lifecycle replay, and stale derived lifecycle/protection schema guards
+- an executable registry-derived coverage guard confirms all 27 current typed
+  activity, command-window, rejection, lineage, lifecycle, transition, and
+  timeline contracts have curated artifact reference fixtures and automatically
+  scopes future matching contracts
 
 Good next slices:
 

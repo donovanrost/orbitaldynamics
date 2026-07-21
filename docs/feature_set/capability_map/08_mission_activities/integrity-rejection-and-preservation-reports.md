@@ -59,6 +59,13 @@ to Cadence.
 
 Operational timeline validation fixtures now also check row-derived operational-kind, status, approval, Cadence-import, required-action, integrity-issue, and row-ID routing maps.
 
+An executable registry-derived coverage guard additionally requires every
+current `timeline_*` contract and the explicit activity, approval,
+command-window, rejection, invalidation, plan-delta, operational-timeline, and
+source-lineage contract set to retain at least one curated artifact reference
+fixture. The current scope contains 27 contracts; future matching contracts are
+reported by exact name until fixture evidence is added.
+
 ### Integrity issue types and evidence
 
 Timeline-integrity issue types are schema-visible and executable-validation backed for:

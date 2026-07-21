@@ -983,6 +983,23 @@ coverage guard with its exact missing contract name until a fixture is added;
 other adjacent policy and resource contracts remain outside this guard and keep
 their own focused coverage boundaries.
 
+## Activity/timeline fixture coverage guard
+
+Status: **implemented**.
+
+The validation test surface derives typed activity/timeline artifact families
+from the public schema registry and compares them with curated `artifact.*`
+validation reference model IDs. The scope includes every `timeline_*` contract
+plus explicit activity-template, approval-requirement, candidate-activity,
+candidate-rejection, command-window, invalidated-candidate, operational-
+timeline, plan-delta, planned/realized-activity, and source-window-lineage
+contracts.
+
+The current registry contains 27 contracts in that scope and all 27 have at
+least one curated reference fixture. A future matching schema contract fails the
+coverage guard with its exact missing contract name until a fixture is added;
+campaign-plan and maneuver-report contracts remain outside this focused family.
+
 ## Partial
 
 Status: **partial**.
