@@ -93,6 +93,9 @@ Already implemented or heavily covered:
   refresh resource summaries and internalizes the same calibrated per-risk
   units within semantic candidate-diff priority tiers while retaining the exact
   risk indicators on pressured alternatives
+- runtime and exported `campaign_repair.v2` schemas validate replacement-
+  ranking envelopes, rows, optional pressure evidence, row/rank uniqueness, and
+  selected-candidate consistency without closing unrelated repair metadata
 - V2 candidate-refresh source freshness contributes one explicit normalized
   risk-weight penalty for a stale or unknown report, aligned with its
   review/import gate and V3 refresh-freshness pressure semantics

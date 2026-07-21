@@ -140,6 +140,10 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   dual-source evidence without changing the penalty.
   The explanation copies no full candidate or projection payloads and
   explicitly declares that it is not global optimization.
+- Runtime `campaign_repair.v2` validation and its exported JSON schema cover the
+  nested ranking model/scope, stable candidate IDs, row/evidence types, derived
+  row count, sequential ranks, unique candidates, and selected-candidate
+  consistency while leaving unrelated repair metadata extensible.
 
 ## Additional reports and reconciliation
 

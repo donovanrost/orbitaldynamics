@@ -155,6 +155,42 @@ defmodule OrbitalDynamics.Schema.CampaignPlanContractsTest do
     assert get_in(activity_schema, ["properties", "source_window_id", "pattern"]) ==
              Schema.identity_policy()["stable_id_pattern"]
 
+    replacement_ranking_schema =
+      get_in(activity_schema, ["properties", "repair", "properties", "replacement_ranking"])
+
+    assert replacement_ranking_schema["required"] == [
+             "model",
+             "selection_scope",
+             "selected_candidate_id",
+             "evaluated_candidate_count",
+             "rows",
+             "global_optimization"
+           ]
+
+    assert get_in(replacement_ranking_schema, ["properties", "model", "const"]) ==
+             "greedy_repair_replacement_ranking"
+
+    assert get_in(replacement_ranking_schema, [
+             "properties",
+             "evaluated_candidate_count",
+             "minimum"
+           ]) == 1
+
+    ranking_row_schema = get_in(replacement_ranking_schema, ["properties", "rows", "items"])
+
+    assert get_in(ranking_row_schema, [
+             "properties",
+             "link_capacity_pressure_shortfall_mb",
+             "exclusiveMinimum"
+           ]) == 0
+
+    assert get_in(ranking_row_schema, [
+             "properties",
+             "resource_projection_pressure_risk_indicators",
+             "items",
+             "required"
+           ]) == ["type", "severity", "reason", "spacecraft_id"]
+
     assert get_in(schema, [
              "properties",
              "source_candidate_activities",

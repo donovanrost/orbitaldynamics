@@ -1,6 +1,8 @@
 defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
   @moduledoc false
 
+  alias OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts
+
   @timeline_protection_fields [
     "preserved_locked_or_approved_count",
     "preserved_executed_count",
@@ -47,6 +49,10 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
       Map.get(artifact, "activities", []),
       callback(callbacks, :validate_activity)
     ])
+    |> CampaignRepairReplacementRankingContracts.validate_activities(
+      "$.activities",
+      Map.get(artifact, "activities", [])
+    )
     |> call(callbacks, :validate_optional_rows, [
       "$.source_contact_intents",
       Map.get(artifact, "source_contact_intents"),

@@ -56,7 +56,10 @@ defmodule OrbitalDynamics.Schema.CampaignRepairJsonSchema do
   def property_opts(_field, _deps), do: []
 
   def property("activities", opts) do
-    array_of(Keyword.fetch!(opts, :planned_activity_schema))
+    opts
+    |> Keyword.fetch!(:planned_activity_schema)
+    |> campaign_repair_activity_schema()
+    |> array_of()
   end
 
   def property("source_candidate_activities", opts) do
@@ -100,6 +103,132 @@ defmodule OrbitalDynamics.Schema.CampaignRepairJsonSchema do
 
   def property("warnings", _opts) do
     string_array_schema()
+  end
+
+  defp campaign_repair_activity_schema(activity_schema) do
+    stable_id_schema = get_in(activity_schema, ["properties", "id"])
+
+    Map.update(activity_schema, "properties", %{}, fn properties ->
+      Map.put(properties, "repair", repair_metadata_schema(stable_id_schema))
+    end)
+  end
+
+  defp repair_metadata_schema(stable_id_schema) do
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "properties" => %{
+        "replacement_ranking" => replacement_ranking_schema(stable_id_schema)
+      }
+    }
+  end
+
+  defp replacement_ranking_schema(stable_id_schema) do
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "required" => [
+        "model",
+        "selection_scope",
+        "selected_candidate_id",
+        "evaluated_candidate_count",
+        "rows",
+        "global_optimization"
+      ],
+      "properties" => %{
+        "model" => %{"const" => "greedy_repair_replacement_ranking"},
+        "selection_scope" => %{"const" => "viable_unique_candidates_within_repair_intent"},
+        "selected_candidate_id" => stable_id_schema,
+        "evaluated_candidate_count" => %{"type" => "integer", "minimum" => 1},
+        "rows" => %{
+          "type" => "array",
+          "minItems" => 1,
+          "items" => replacement_ranking_row_schema(stable_id_schema)
+        },
+        "global_optimization" => %{"const" => false}
+      }
+    }
+  end
+
+  defp replacement_ranking_row_schema(stable_id_schema) do
+    number_fields = [
+      "candidate_score",
+      "schedule_churn_s",
+      "schedule_churn_penalty",
+      "schedule_move_penalty",
+      "station_calendar_pressure_penalty",
+      "link_capacity_pressure_penalty",
+      "resource_projection_pressure_penalty",
+      "ranking_score"
+    ]
+
+    properties =
+      number_fields
+      |> Map.new(&{&1, %{"type" => "number"}})
+      |> Map.merge(%{
+        "rank" => %{"type" => "integer", "minimum" => 1},
+        "candidate_id" => stable_id_schema,
+        "semantic_candidate_diff_match" => %{"type" => "boolean"},
+        "candidate_diff_priority" => %{"type" => "integer", "enum" => [0, 1]},
+        "selected" => %{"type" => "boolean"},
+        "station_calendar_pressure_sources" => %{
+          "type" => "array",
+          "minItems" => 1,
+          "uniqueItems" => true,
+          "items" => %{
+            "type" => "string",
+            "enum" => [
+              "campaign_repair.source_contact_allocation_report.rows",
+              "campaign_repair.source_station_calendar_report.affected_contacts"
+            ]
+          }
+        },
+        "link_capacity_pressure_shortfall_mb" => %{
+          "type" => "number",
+          "exclusiveMinimum" => 0
+        },
+        "resource_projection_pressure_risk_indicators" => %{
+          "type" => "array",
+          "minItems" => 1,
+          "items" => resource_risk_indicator_schema(stable_id_schema)
+        }
+      })
+
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "required" => [
+        "rank",
+        "candidate_id",
+        "semantic_candidate_diff_match",
+        "candidate_diff_priority",
+        "candidate_score",
+        "schedule_churn_s",
+        "schedule_churn_penalty",
+        "schedule_move_penalty",
+        "station_calendar_pressure_penalty",
+        "link_capacity_pressure_penalty",
+        "resource_projection_pressure_penalty",
+        "ranking_score",
+        "selected"
+      ],
+      "properties" => properties
+    }
+  end
+
+  defp resource_risk_indicator_schema(stable_id_schema) do
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "required" => ["type", "severity", "reason", "spacecraft_id"],
+      "properties" => %{
+        "type" => %{"type" => "string"},
+        "severity" => %{"type" => "string"},
+        "reason" => %{"type" => "string"},
+        "spacecraft_id" => stable_id_schema,
+        "resource_pressure_types" => string_array_schema()
+      }
+    }
   end
 
   def plan_delta_from_deps(deps) do

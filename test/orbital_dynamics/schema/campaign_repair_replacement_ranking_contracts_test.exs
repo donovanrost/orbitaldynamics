@@ -1,0 +1,135 @@
+defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest do
+  use ExUnit.Case, async: true
+
+  alias OrbitalDynamics.Schema
+
+  setup do
+    artifact = read_json!("study_results/campaign_repair_readiness_source_handoff_v2.json")
+    activity_index = Enum.find_index(artifact["activities"], &(&1["id"] == "dl_ready"))
+
+    %{artifact: artifact, activity_index: activity_index}
+  end
+
+  test "validates the checked-in replacement-ranking explanation", %{artifact: artifact} do
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(artifact)
+  end
+
+  test "rejects stale ranking envelopes and derived summary values", context do
+    ranking_path = ranking_path(context.activity_index)
+    [ranking_row] = get_in_path(context.artifact, ranking_path <> ".rows")
+
+    duplicate_candidate_artifact =
+      context.artifact
+      |> put_in_path(ranking_path <> ".rows", [
+        ranking_row,
+        ranking_row |> Map.put("rank", 2) |> Map.put("selected", false)
+      ])
+      |> put_in_path(ranking_path <> ".evaluated_candidate_count", 2)
+
+    selected_second_artifact =
+      context.artifact
+      |> put_in_path(ranking_path <> ".rows", [
+        Map.put(ranking_row, "selected", false),
+        ranking_row
+        |> Map.put("candidate_id", "dl_other")
+        |> Map.put("rank", 2)
+        |> Map.put("selected", true)
+      ])
+      |> put_in_path(ranking_path <> ".evaluated_candidate_count", 2)
+      |> put_in_path(ranking_path <> ".selected_candidate_id", "dl_other")
+
+    invalid_cases = [
+      {ranking_path <> ".model",
+       put_in_path(context.artifact, ranking_path <> ".model", "legacy_replacement_ranking")},
+      {ranking_path <> ".selection_scope",
+       put_in_path(context.artifact, ranking_path <> ".selection_scope", "all_candidates")},
+      {ranking_path <> ".global_optimization",
+       put_in_path(context.artifact, ranking_path <> ".global_optimization", true)},
+      {ranking_path <> ".evaluated_candidate_count",
+       put_in_path(context.artifact, ranking_path <> ".evaluated_candidate_count", 2)},
+      {ranking_path <> ".rows",
+       put_in_path(context.artifact, ranking_path <> ".rows[0].rank", 2)},
+      {ranking_path <> ".rows",
+       put_in_path(context.artifact, ranking_path <> ".rows[0].selected", false)},
+      {ranking_path <> ".rows", duplicate_candidate_artifact},
+      {ranking_path <> ".rows", selected_second_artifact},
+      {ranking_path <> ".rows[0]",
+       put_in_path(context.artifact, ranking_path <> ".rows", ["invalid_row"])},
+      {ranking_path <> ".selected_candidate_id",
+       put_in_path(context.artifact, ranking_path <> ".selected_candidate_id", "dl_other")}
+    ]
+
+    for {expected_path, invalid} <- invalid_cases do
+      assert {:error, report} = Schema.validate_artifact(invalid)
+      assert Enum.any?(report["errors"], &(&1["path"] == expected_path))
+    end
+  end
+
+  test "rejects empty or malformed optional pressure evidence", context do
+    row_path = ranking_path(context.activity_index) <> ".rows[0]"
+
+    invalid_cases = [
+      {row_path <> ".station_calendar_pressure_sources",
+       put_in_path(context.artifact, row_path <> ".station_calendar_pressure_sources", [])},
+      {row_path <> ".station_calendar_pressure_sources",
+       put_in_path(context.artifact, row_path <> ".station_calendar_pressure_sources", [
+         "unknown.source"
+       ])},
+      {row_path <> ".link_capacity_pressure_shortfall_mb",
+       put_in_path(context.artifact, row_path <> ".link_capacity_pressure_shortfall_mb", 0.0)},
+      {row_path <> ".resource_projection_pressure_risk_indicators",
+       put_in_path(
+         context.artifact,
+         row_path <> ".resource_projection_pressure_risk_indicators",
+         []
+       )},
+      {row_path <> ".resource_projection_pressure_risk_indicators[0].reason",
+       put_in_path(
+         context.artifact,
+         row_path <> ".resource_projection_pressure_risk_indicators",
+         [
+           %{
+             "type" => "payload_unavailable",
+             "severity" => "high",
+             "spacecraft_id" => "leo_1"
+           }
+         ]
+       )}
+    ]
+
+    for {expected_path, invalid} <- invalid_cases do
+      assert {:error, report} = Schema.validate_artifact(invalid)
+      assert Enum.any?(report["errors"], &(&1["path"] == expected_path))
+    end
+  end
+
+  defp ranking_path(activity_index),
+    do: "$.activities[#{activity_index}].repair.replacement_ranking"
+
+  defp put_in_path(artifact, path, value) do
+    put_in(artifact, path_keys(path), value)
+  end
+
+  defp get_in_path(artifact, path), do: get_in(artifact, path_keys(path))
+
+  defp path_keys(path) do
+    path
+    |> String.trim_leading("$.")
+    |> String.split(".")
+    |> Enum.flat_map(&path_segment/1)
+  end
+
+  defp path_segment(segment) do
+    case Regex.run(~r/^([^\[]+)\[(\d+)\]$/, segment) do
+      [_, key, index] -> [key, Access.at(String.to_integer(index))]
+      nil -> [segment]
+    end
+  end
+
+  defp read_json!(path) do
+    path
+    |> File.read!()
+    |> :json.decode()
+  end
+end

@@ -5,57 +5,59 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Explain projected repair replacement pressure.
+Validate repair replacement-ranking contracts.
 
 Status:
 Implemented, fully verified, and parent-reviewed; ready to publish.
 
 Selected slice:
-Preserve the exact projected downlink shortfall and resource-risk indicators
-that produce link-capacity and resource-projection penalties on V2 replacement-
-ranking rows.
+Add runtime and exported JSON-schema validation for nested V2
+`repair.replacement_ranking` explanations.
 
 Why this slice:
-Replacement selection already computed a fresh candidate-specific link-capacity
-report and resource projection, but reduced each result to a numeric penalty.
-Operators could not distinguish shortfall magnitude or projected resource cause
-without recreating every alternative projection.
+`campaign_repair.v2` validated repaired activities only through their base
+activity contract. Operator-visible ranking envelopes, rows, pressure evidence,
+derived counts/ranks, and selected-candidate identity passed through unchecked.
 
 Level 6 pillar:
-Fleet-level contact/resource allocation behavior with explainable scoring.
+Versioned compatibility and explainable operational-planning handoffs.
 
 Implemented:
-- Link-pressured ranking rows retain the exact positive selected downlink
-  shortfall from the candidate-specific link-capacity projection.
-- Resource-pressured ranking rows retain the exact deterministic risk indicators
-  used to calculate the existing count-weighted penalty.
-- Nominal alternatives omit both evidence fields; ranking math and final repair
-  scoring are unchanged.
-- The evidence remains artifact-only and grants no execution, schedule,
-  provider, approval, or import authority.
+- Runtime validation covers ranking model/scope, nonempty rows, required row
+  fields/types, stable IDs, and optional station/link/resource evidence.
+- Derived validation enforces exact row counts, sequential ranks, unique
+  candidate IDs, one selected row at rank 1, and matching selected candidate.
+- Malformed non-map rows remain validation errors rather than raising during
+  derived consistency checks.
+- The exported `campaign_repair.v2` activity schema exposes the same nested
+  ranking/evidence shape while unrelated repair metadata remains extensible.
+- Standalone and bundled checked-in schema exports were regenerated through the
+  documented export task.
 
 Docs changed:
 - `docs/feature_set/capability_map/13_v2_rolling_repair.md`
 - `docs/feature_set/recommended_roadmap.md`
 
 Verification:
-- Link/resource/exact-fixture focused tests: `13 passed`.
+- Ranking/schema/planner focused tests: `18 passed`.
+- Schema plus checked-in export guard: `190 passed`.
 - Campaign-planner area: `754 passed`.
-- Full suite with `--timeout 120000`: `3509 passed`.
+- Final full suite with `--timeout 120000`: `3512 passed`.
 - `mix compile --warnings-as-errors`, `mix format --check-formatted`, and
   `git diff --check`: passed.
 
 Parent review:
-- Link evidence comes from the same report and positive-shortfall predicate as
-  its calibrated penalty.
-- Resource evidence is the same stable risk-indicator list whose count produces
-  its penalty; resource projection orders spacecraft deterministically.
-- Existing penalty weights, sort keys, final score behavior, and nominal exact
-  fixture output remain unchanged.
-- No full candidate/projection payload or new downstream authority is exposed.
+- The validator runs only for `campaign_repair.v2` output activities and only
+  tightens `repair.replacement_ranking`; other repair fields remain open.
+- Runtime and exported schemas agree on required envelope/row/evidence types and
+  nonempty ranking semantics; runtime adds cross-field consistency checks.
+- Invalid row shapes cannot crash the derived pass, and mutation tests pin all
+  new error paths.
+- Export regeneration changed only the campaign-repair schema and all-contract
+  bundle, with the executable-registry equality guard green afterward.
 
 Previous published slice:
-- `c1f72251` Explain repair station pressure sources (`3509 passed`).
+- `36e7c6d1` Explain repair projection pressure (`3509 passed`).
 
 Remaining maturity gaps:
 - Continue calibrated realized-feedback depth where evidence is genuinely
