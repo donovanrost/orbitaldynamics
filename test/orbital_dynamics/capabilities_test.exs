@@ -8,6 +8,7 @@ defmodule OrbitalDynamics.CapabilitiesTest do
     J2,
     J2ExlaCpu,
     TwoBody,
+    TwoBodyDrag,
     TwoBodyExlaCpu,
     TwoBodyNx,
     TwoBodyNxCompiled
@@ -24,6 +25,7 @@ defmodule OrbitalDynamics.CapabilitiesTest do
              OrbitalDynamics.ForceModels.AtmosphericDrag.capabilities()
 
     assert catalog.analysis.propagators.two_body == TwoBody.capabilities()
+    assert catalog.analysis.propagators.two_body_drag == TwoBodyDrag.capabilities()
     assert catalog.analysis.propagators.j2 == J2.capabilities()
     assert catalog.analysis.propagators.two_body_nx == TwoBodyNx.capabilities()
     assert catalog.analysis.propagators.two_body_nx_compiled == TwoBodyNxCompiled.capabilities()

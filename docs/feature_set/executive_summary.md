@@ -6,8 +6,9 @@ operator-shaped workflow products, while numerical kernels remain explicit,
 replaceable, and validation-scoped.
 
 The current project already covers the transparent LEO baseline: Cartesian state
-vectors, epochs, frames, central bodies, scalar two-body and J2 propagation,
-Nx/EXLA experiments, reproducible study manifests, access windows, target
+vectors, epochs, frames, central bodies, scalar two-body/J2 propagation, opt-in
+provider-backed two-body plus atmospheric-drag propagation, Nx/EXLA experiments,
+reproducible study manifests, access windows, target
 visibility, eclipses, mission-plan timelines, deterministic search, campaign
 planning V1, rolling repair V2, and strategy comparison V3. The remaining work
 is not one large rewrite. It is a phased expansion from thin, auditable models
@@ -23,4 +24,3 @@ This document defines the complete feature map for that arc. Status labels mean:
 - `later`: useful for planner maturity after the LEO campaign loop is stable.
 - `out of scope`: Cadence-owned, certification-owned, or intentionally outside
   this toolkit boundary.
-

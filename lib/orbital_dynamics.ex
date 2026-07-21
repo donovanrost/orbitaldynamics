@@ -14,6 +14,7 @@ defmodule OrbitalDynamics do
     J2,
     J2ExlaCpu,
     TwoBody,
+    TwoBodyDrag,
     TwoBodyExlaCpu,
     TwoBodyNx,
     TwoBodyNxCompiled
@@ -138,6 +139,7 @@ defmodule OrbitalDynamics do
         },
         propagators: %{
           two_body: TwoBody.capabilities(),
+          two_body_drag: TwoBodyDrag.capabilities(),
           j2: J2.capabilities(),
           two_body_nx: TwoBodyNx.capabilities(),
           two_body_nx_compiled: TwoBodyNxCompiled.capabilities(),

@@ -17,7 +17,9 @@ deterministic orbital scenarios while keeping astrodynamics assumptions explicit
 - Mission scenarios bind a spacecraft, initial state, central body, duration,
   and output cadence.
 - `OrbitalDynamics.Propagators.TwoBody` and `OrbitalDynamics.Propagators.J2`
-  propagate scenarios with fixed-step RK4 force models.
+  propagate scenarios with fixed-step RK4 force models;
+  `OrbitalDynamics.Propagators.TwoBodyDrag` is an opt-in programmatic path that
+  combines point-mass gravity with validated provider-backed atmospheric drag.
 - `OrbitalDynamics.ScenarioRunner` evaluates batches concurrently through a
   supervised task boundary while preserving input order in the results.
 - `OrbitalDynamics.StudyRunner` composes propagation with sample-based

@@ -103,7 +103,7 @@ defmodule OrbitalDynamics.ForceModels.AtmosphericDragTest do
     assert Vector3.dot(result.acceleration_km_s2, result.relative_velocity_km_s) < 0.0
     assert result.assumptions.atmosphere_rotation == :constant_rate_co_rotation
     assert result.assumptions.acceleration_unit == :kilometer_per_second_squared
-    assert "not_integrated_by_current_propagators" in result.model_limits
+    assert "standalone_evaluator_and_two_body_drag_propagator_only" in result.model_limits
   end
 
   test "uses configured atmosphere provider parameters without hiding zero density" do
@@ -210,7 +210,7 @@ defmodule OrbitalDynamics.ForceModels.AtmosphericDragTest do
              AtmosphericDrag.evaluate(state, malformed_mass_spacecraft, earth, [:not_keyword])
   end
 
-  test "declares the standalone force-model boundary in the public capability catalog" do
+  test "declares the explicit evaluator and two-body-drag integration boundary" do
     assert %{
              force_model: :atmospheric_drag,
              validation_level: :educational,
@@ -220,8 +220,8 @@ defmodule OrbitalDynamics.ForceModels.AtmosphericDragTest do
              known_limits: known_limits
            } = AtmosphericDrag.capabilities()
 
-    assert :standalone_acceleration_only in known_limits
-    assert :not_integrated_by_current_propagators in known_limits
+    assert :standalone_evaluator_and_two_body_drag_propagator_only in known_limits
+    assert :not_integrated_by_j2_or_accelerated_propagators in known_limits
 
     assert OrbitalDynamics.capability_catalog().analysis.force_models.atmospheric_drag ==
              AtmosphericDrag.capabilities()

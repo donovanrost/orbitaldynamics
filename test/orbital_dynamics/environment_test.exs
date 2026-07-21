@@ -434,7 +434,7 @@ defmodule OrbitalDynamics.EnvironmentTest do
               "model" => "single_scale_height_exponential_atmosphere",
               "altitude_km" => 400.0,
               "density_kg_m3" => density,
-              "force_model_status" => "not_consumed_by_current_propagators"
+              "force_model_status" => "consumed_by_opt_in_two_body_drag_propagator"
             }} =
              OrbitalDynamics.Environment.ExponentialAtmosphereProvider.fetch(
                :atmosphere_density,

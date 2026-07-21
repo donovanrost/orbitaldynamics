@@ -13,7 +13,7 @@
 
 - `Environment.Provider` defines a provider capability contract with source coverage, interpolation, supported bodies, network access, and time-span coverage validation.
 - Internal fixed-Sun and constant-Earth-rotation provider adapters expose the current simplified assumptions through that contract.
-- The internal `ExponentialAtmosphereProvider` exposes a deterministic reference atmosphere-density product with an explicit not-consumed-by-propagators status. The standalone public atmospheric-drag acceleration evaluator consumes that density with spacecraft ballistic properties while preserving the provider boundary.
+- The internal `ExponentialAtmosphereProvider` exposes a deterministic reference atmosphere-density product. The public atmospheric-drag evaluator and opt-in scalar `TwoBodyDrag` propagator consume that density with spacecraft ballistic properties while preserving provider identity and model provenance.
 
 ### Schema contracts and validation
 
@@ -54,14 +54,14 @@ Additional request-fit facades:
 
 There is now a provider behaviour and internal assumption-backed providers, including:
 
-- a reference atmosphere-density provider consumed by a standalone drag acceleration evaluator;
+- a reference atmosphere-density provider consumed by a standalone drag acceleration evaluator and opt-in scalar two-body-drag propagation;
 - a declared-sample Earth-orientation table adapter.
 
 But the following are still missing:
 
 - no Sun/Moon/planet ephemeris data provider;
 - no live external-provider data source adapter;
-- no propagator consumes atmosphere density as drag.
+- no J2, Nx, or EXLA propagator consumes atmosphere density as drag.
 
 ## Status: **near-term**
 

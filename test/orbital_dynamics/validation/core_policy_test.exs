@@ -1,7 +1,7 @@
 defmodule OrbitalDynamics.Validation.CorePolicyTest do
   use ExUnit.Case, async: true
 
-  alias OrbitalDynamics.Propagators.{J2, TwoBody, TwoBodyNxCompiled}
+  alias OrbitalDynamics.Propagators.{J2, TwoBody, TwoBodyDrag, TwoBodyNxCompiled}
   alias OrbitalDynamics.ForceModels.AtmosphericDrag
   alias OrbitalDynamics.{ResultSet, Schema, Validation}
   alias OrbitalDynamics.ResultSet.Artifact
@@ -54,6 +54,28 @@ defmodule OrbitalDynamics.Validation.CorePolicyTest do
 
     assert {:ok, %{"schema_contract" => "model_acceptance_report.v1", "status" => "pass"}} =
              Schema.validate_artifact(acceptance_report)
+
+    assert {:ok,
+            %{
+              "id" => "propagator.two_body_drag",
+              "implementation" => "OrbitalDynamics.Propagators.TwoBodyDrag",
+              "known_limits" => drag_propagator_limits
+            }} = Validation.record(TwoBodyDrag)
+
+    assert drag_propagator_limits == TwoBodyDrag.model_limits()
+
+    drag_acceptance_report =
+      Validation.model_acceptance_report([TwoBodyDrag], intended_use: :analysis)
+
+    assert drag_acceptance_report["status"] == "review_required"
+    assert drag_acceptance_report["unknown_model_count"] == 0
+
+    assert drag_acceptance_report["model_ids_by_status"] == %{
+             "review_required" => ["propagator.two_body_drag"]
+           }
+
+    assert {:ok, %{"schema_contract" => "model_acceptance_report.v1", "status" => "pass"}} =
+             Schema.validate_artifact(drag_acceptance_report)
   end
 
   test "public facades expose validation records policies and fixture verification" do

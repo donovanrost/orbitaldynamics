@@ -227,7 +227,61 @@ defmodule OrbitalDynamics.Validation.ReferenceFixtures.Orbital do
       "known_limits" => [
         "internal regression fixture, not an external truth model",
         "covers one 400 km equatorial LEO state only",
-        "standalone acceleration is not integrated by current propagators"
+        "acceleration is integrated only by the opt-in scalar two-body-drag propagator"
+      ]
+    },
+    "fixture.propagator.two_body_drag.earth_400km_600s" => %{
+      "id" => "fixture.propagator.two_body_drag.earth_400km_600s",
+      "model_id" => "propagator.two_body_drag",
+      "reference_case" =>
+        "600 second 400 km circular Earth/J2000 propagation with point-mass gravity and reference atmospheric drag",
+      "validation_level" => "educational",
+      "fixture_type" => "curated_internal_regression",
+      "inputs" => %{
+        "central_body" => "earth",
+        "altitude_km" => 400.0,
+        "duration_s" => 600.0,
+        "output_step_s" => 600.0,
+        "max_step_s" => 10.0,
+        "dry_mass_kg" => 100.0,
+        "propellant_mass_kg" => 20.0,
+        "drag_area_m2" => 4.0,
+        "drag_coefficient" => 2.2,
+        "atmosphere_provider_id" => "environment.provider.atmosphere.exponential_reference"
+      },
+      "expected" => %{
+        "initial_position_km" => [6778.1363, 0.0, 0.0],
+        "initial_velocity_km_s" => [0.0, 7.6685585713854145, 0.0],
+        "final_position_km" => [5275.519248418085, 4255.821945696241, 0.0],
+        "final_velocity_km_s" => [-4.814896084241612, 5.968543277040851, 0.0],
+        "initial_specific_energy_km2_s2" => -29.40339528138435,
+        "final_specific_energy_km2_s2" => -29.403429060342003,
+        "specific_energy_change_km2_s2" => -3.377895765410699e-5,
+        "atmosphere_provider_id" => "environment.provider.atmosphere.exponential_reference",
+        "earth_rotation_provider_id" => "environment.provider.earth_rotation.constant_rate",
+        "model_limit_count" => 7
+      },
+      "tolerances" => %{
+        "initial_position_km" => 1.0e-12,
+        "initial_velocity_km_s" => 1.0e-12,
+        "final_position_km" => 1.0e-8,
+        "final_velocity_km_s" => 1.0e-11,
+        "initial_specific_energy_km2_s2" => 1.0e-10,
+        "final_specific_energy_km2_s2" => 1.0e-10,
+        "specific_energy_change_km2_s2" => 1.0e-10,
+        "atmosphere_provider_id" => 0,
+        "earth_rotation_provider_id" => 0,
+        "model_limit_count" => 0
+      },
+      "evidence" => [
+        "generated through OrbitalDynamics.analyze_study/2 with OrbitalDynamics.Propagators.TwoBodyDrag",
+        "zero-density propagation is checked against scalar fixed-step two-body states",
+        "checked by OrbitalDynamics.Validation.verify_reference_fixture/2"
+      ],
+      "known_limits" => [
+        "internal regression fixture, not an external truth model",
+        "covers one 400 km equatorial LEO state over 600 seconds",
+        "uses the built-in reference atmosphere and constant Earth rotation"
       ]
     },
     "fixture.j2.circular_leo_600s" => %{

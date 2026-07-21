@@ -43,6 +43,9 @@ Curated fixtures that can be verified into `validation_reference_fixture_report.
 - Standalone atmospheric-drag acceleration at a curated 400 km Earth/J2000
   state, including provider identity, co-rotation-relative velocity, density,
   and acceleration tolerances.
+- Opt-in scalar two-body plus atmospheric-drag propagation over a curated
+  400 km/600 s case, including final state, specific-energy decay, provider
+  identity, and exact model-limit evidence through the public `Study` path.
 - Access-window, eclipse, target-visibility event, and ground-track crossing.
 - Campaign V1, repair V2, strategy V3 artifact.
 - Standalone operator-review package.

@@ -302,9 +302,9 @@ and exported JSON Schema mirrors that with conditional exact known-limit sets
 for those built-in IDs while externally configured IDs remain extensible. The
 built-in provider set now includes a declared-sample Earth-orientation table
 adapter for body-fixed ground-track analysis and a reference exponential
-atmosphere-density provider as an interface contract only; the atmosphere
-product declares that current propagators do not consume it as a drag force
-model. Study manifests can declare that tabular provider under
+atmosphere-density provider consumed by the standalone drag evaluator and
+programmatic-only scalar two-body-drag propagator. Study manifests can declare
+the tabular provider under
 `ground_track_crossings[].earth_rotation_provider`, and result artifact
 ground-track rows preserve the provider ID, model, rate, interpolation label,
 and before/after rotation angles used for the body-fixed crossing.

@@ -9,6 +9,7 @@ defmodule OrbitalDynamics.Validation.OrbitalReferenceFixtureTest do
       ground_track_crossing_fixture_observations: 0,
       j2_fixture_observations: 0,
       target_visibility_fixture_observations: 0,
+      two_body_drag_fixture_observations: 0,
       two_body_fixture_observations: 0
     ]
 
@@ -37,6 +38,33 @@ defmodule OrbitalDynamics.Validation.OrbitalReferenceFixtureTest do
     assert Enum.any?(
              stale_report["checks"],
              &(&1["field"] == "acceleration_magnitude_km_s2" and &1["status"] == "fail")
+           )
+  end
+
+  test "verifies the curated two-body-drag trajectory fixture through the Study path" do
+    fixture_id = "fixture.propagator.two_body_drag.earth_400km_600s"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+    assert fixture["model_id"] == "propagator.two_body_drag"
+    assert fixture["fixture_type"] == "curated_internal_regression"
+
+    observations = two_body_drag_fixture_observations()
+    assert observations["specific_energy_change_km2_s2"] < 0.0
+
+    assert {:ok, report} = Validation.verify_reference_fixture(fixture_id, observations)
+    assert report["status"] == "pass"
+    assert Enum.all?(report["checks"], &(&1["status"] == "pass"))
+
+    stale_observations = Map.put(observations, "specific_energy_change_km2_s2", 0.0)
+
+    assert {:ok, stale_report} =
+             Validation.verify_reference_fixture(fixture_id, stale_observations)
+
+    assert stale_report["status"] == "fail"
+
+    assert Enum.any?(
+             stale_report["checks"],
+             &(&1["field"] == "specific_energy_change_km2_s2" and &1["status"] == "fail")
            )
   end
 

@@ -2,10 +2,11 @@ defmodule OrbitalDynamics.ForceModels.AtmosphericDrag do
   @moduledoc """
   Deterministic atmospheric-drag acceleration at one orbital state.
 
-  This is a standalone force-model evaluator. It joins explicit spacecraft
-  ballistic properties with a validated atmosphere-density provider and the
-  built-in constant Earth-rotation assumption. Current propagators do not
-  integrate this acceleration.
+  The evaluator joins explicit spacecraft ballistic properties with a validated
+  atmosphere-density provider and the built-in constant Earth-rotation
+  assumption. `OrbitalDynamics.Propagators.TwoBodyDrag` integrates this
+  acceleration through an explicit opt-in propagation path; other propagators
+  do not consume it.
   """
 
   alias OrbitalDynamics.Environment
@@ -47,8 +48,8 @@ defmodule OrbitalDynamics.ForceModels.AtmosphericDrag do
         :density_provider_provenance
       ],
       known_limits: [
-        :standalone_acceleration_only,
-        :not_integrated_by_current_propagators,
+        :standalone_evaluator_and_two_body_drag_propagator_only,
+        :not_integrated_by_j2_or_accelerated_propagators,
         :constant_earth_rotation,
         :no_winds,
         :fixed_drag_area_and_coefficient,

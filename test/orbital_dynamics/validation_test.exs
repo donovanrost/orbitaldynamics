@@ -11,6 +11,7 @@ defmodule OrbitalDynamics.ValidationTest do
       ground_track_crossing_fixture_observations: 0,
       j2_fixture_observations: 0,
       target_visibility_fixture_observations: 0,
+      two_body_drag_fixture_observations: 0,
       two_body_fixture_observations: 0
     ]
 
@@ -748,14 +749,16 @@ defmodule OrbitalDynamics.ValidationTest do
         "fixture.force_model.atmospheric_drag.earth_400km" =>
           atmospheric_drag_fixture_observations(),
         "fixture.j2.circular_leo_600s" => j2_fixture_observations(),
+        "fixture.propagator.two_body_drag.earth_400km_600s" =>
+          two_body_drag_fixture_observations(),
         "fixture.two_body.circular_leo_600s" => two_body_fixture_observations()
       })
 
     assert %{
              "schema_contract" => "validation_reference_fixture_report.v1",
              "status" => "pass",
-             "fixture_count" => 196,
-             "status_counts" => %{"pass" => 196},
+             "fixture_count" => 197,
+             "status_counts" => %{"pass" => 197},
              "reports" => reports
            } = report
 
@@ -965,6 +968,7 @@ defmodule OrbitalDynamics.ValidationTest do
              "fixture.event.target_visibility.equator_overhead_120s",
              "fixture.force_model.atmospheric_drag.earth_400km",
              "fixture.j2.circular_leo_600s",
+             "fixture.propagator.two_body_drag.earth_400km_600s",
              "fixture.two_body.circular_leo_600s"
            ]
 
@@ -978,7 +982,7 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert %{
              "status" => "fail",
-             "status_counts" => %{"fail" => 196},
+             "status_counts" => %{"fail" => 197},
              "reports" => invalid_observation_reports
            } = invalid_observation_report
 

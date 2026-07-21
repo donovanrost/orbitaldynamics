@@ -17,21 +17,24 @@
   single-scale-height atmosphere-density provider contract;
   `ForceModels.AtmosphericDrag` and the public
   `atmospheric_drag_acceleration/4` facade combine it with spacecraft ballistic
-  inputs and constant Earth co-rotation in a deterministic standalone
-  acceleration evaluator without connecting drag to current propagators; the
-  evaluator has a validation-registry record plus a curated, tolerance-backed
-  400 km reference fixture exercised through the public facade.
-- `partial`: maneuver support is impulsive only; J2 is the only perturbation;
+  inputs and constant Earth co-rotation in a deterministic acceleration
+  evaluator; the opt-in scalar `Propagators.TwoBodyDrag` evaluates it at every
+  fixed-step RK4 stage without changing existing propagator defaults. Both the
+  evaluator and propagator have validation-registry records plus curated,
+  tolerance-backed 400 km reference fixtures. `TwoBodyDrag` is available through
+  direct/programmatic `Study` APIs but is not yet a JSON-manifest propagator.
+- `partial`: maneuver support is impulsive only; J2 and atmospheric drag are
+  separate opt-in perturbation paths rather than a combined force model;
   adaptive integration is currently limited to scalar two-body step-doubling and
   is not event/root solved; backend comparisons now have acceptance tiers but
   still lack external reference-tool acceptance evidence; maneuver uncertainty
-  envelopes are review metadata, not propagated state dispersion; atmosphere
-  density is consumed by a standalone acceleration model but not by propagators.
+  envelopes are review metadata, not propagated state dispersion; drag uses a
+  reference atmosphere without space-weather calibration or winds.
 - `near-term`: adaptive/root-solved event workflows beyond scalar two-body
   step-doubling, richer maneuver uncertainty propagation beyond review metadata,
   and cleaner backend contracts for shape and capability limits.
-- `later`: higher-order gravity, drag propagation that consumes atmosphere
-  providers, solar radiation pressure, third-body perturbations, finite burns, native/NIF
+- `later`: higher-order gravity, combined J2/drag propagation, solar radiation
+  pressure, third-body perturbations, finite burns, native/NIF
   kernels, and external high-fidelity backend adapters.
 - `out of scope`: hiding model fidelity behind an opaque universal propagator.
   The planning layer should know and record which force model it used.

@@ -267,14 +267,29 @@ defmodule OrbitalDynamics.ResultSet.Artifact do
 
     force_model_limits =
       case get_key(assumptions, :force_model) do
-        :earth_j2 -> ["j2_only", "no_drag_model", "no_higher_order_gravity"]
-        "earth_j2" -> ["j2_only", "no_drag_model", "no_higher_order_gravity"]
-        :point_mass_two_body -> ["point_mass_gravity_only", "no_perturbation_model"]
-        "point_mass_two_body" -> ["point_mass_gravity_only", "no_perturbation_model"]
-        _unknown -> []
+        :earth_j2 ->
+          ["j2_only", "no_drag_model", "no_higher_order_gravity"]
+
+        "earth_j2" ->
+          ["j2_only", "no_drag_model", "no_higher_order_gravity"]
+
+        :point_mass_two_body ->
+          ["point_mass_gravity_only", "no_perturbation_model"]
+
+        "point_mass_two_body" ->
+          ["point_mass_gravity_only", "no_perturbation_model"]
+
+        :point_mass_two_body_atmospheric_drag ->
+          OrbitalDynamics.Propagators.TwoBodyDrag.model_limits()
+
+        "point_mass_two_body_atmospheric_drag" ->
+          OrbitalDynamics.Propagators.TwoBodyDrag.model_limits()
+
+        _unknown ->
+          []
       end
 
-    base_limits ++ force_model_limits
+    Enum.uniq(base_limits ++ force_model_limits)
   end
 
   @doc """

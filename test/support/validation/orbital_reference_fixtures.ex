@@ -10,7 +10,7 @@ defmodule OrbitalDynamics.Validation.OrbitalReferenceFixtures do
     TargetVisibility
   }
 
-  alias OrbitalDynamics.Propagators.{J2, TwoBody}
+  alias OrbitalDynamics.Propagators.{J2, TwoBody, TwoBodyDrag}
 
   alias OrbitalDynamics.{
     CentralBody,
@@ -21,7 +21,8 @@ defmodule OrbitalDynamics.Validation.OrbitalReferenceFixtures do
     Spacecraft,
     StateVector,
     Target,
-    Trajectory
+    Trajectory,
+    Vector3
   }
 
   def two_body_fixture_observations do
@@ -119,6 +120,59 @@ defmodule OrbitalDynamics.Validation.OrbitalReferenceFixtures do
       "atmosphere_provider_id" => result.atmosphere_provider_id,
       "earth_rotation_provider_id" => result.earth_rotation_provider_id,
       "model_limit_count" => length(result.model_limits)
+    }
+  end
+
+  def two_body_drag_fixture_observations do
+    central_body = CentralBody.earth()
+    radius_km = central_body.equatorial_radius_km + 400.0
+    velocity_km_s = :math.sqrt(central_body.mu_km3_s2 / radius_km)
+
+    initial_state =
+      StateVector.new!(
+        {radius_km, 0.0, 0.0},
+        {0.0, velocity_km_s, 0.0},
+        Epoch.new!(0.0, :tdb),
+        Frame.earth_inertial_j2000()
+      )
+
+    spacecraft =
+      Spacecraft.new!(:drag_fixture, 100.0,
+        propellant_mass_kg: 20.0,
+        area_m2: 4.0,
+        drag_coefficient: 2.2
+      )
+
+    scenario =
+      Scenario.new!(:drag_fixture, spacecraft, initial_state,
+        duration_s: 600.0,
+        output_step_s: 600.0,
+        central_body: central_body
+      )
+
+    study =
+      OrbitalDynamics.Study.new!(:drag_fixture, [scenario],
+        propagator: TwoBodyDrag,
+        propagator_opts: [max_step_s: 10.0]
+      )
+
+    assert [%{status: :ok, value: trajectory}] = OrbitalDynamics.analyze_study(study)
+    final_state = List.last(trajectory.states)
+
+    initial_specific_energy = specific_energy(initial_state, central_body.mu_km3_s2)
+    final_specific_energy = specific_energy(final_state, central_body.mu_km3_s2)
+
+    %{
+      "initial_position_km" => Tuple.to_list(initial_state.position_km),
+      "initial_velocity_km_s" => Tuple.to_list(initial_state.velocity_km_s),
+      "final_position_km" => Tuple.to_list(final_state.position_km),
+      "final_velocity_km_s" => Tuple.to_list(final_state.velocity_km_s),
+      "initial_specific_energy_km2_s2" => initial_specific_energy,
+      "final_specific_energy_km2_s2" => final_specific_energy,
+      "specific_energy_change_km2_s2" => final_specific_energy - initial_specific_energy,
+      "atmosphere_provider_id" => trajectory.assumptions.atmosphere_provider_id,
+      "earth_rotation_provider_id" => trajectory.assumptions.earth_rotation_provider_id,
+      "model_limit_count" => length(trajectory.assumptions.model_limits)
     }
   end
 
@@ -244,5 +298,11 @@ defmodule OrbitalDynamics.Validation.OrbitalReferenceFixtures do
       Epoch.new!(seconds_since_j2000, :tdb),
       Frame.earth_inertial_j2000()
     )
+  end
+
+  defp specific_energy(state, mu_km3_s2) do
+    velocity_km_s = Vector3.norm(state.velocity_km_s)
+    radius_km = Vector3.norm(state.position_km)
+    velocity_km_s * velocity_km_s / 2.0 - mu_km3_s2 / radius_km
   end
 end

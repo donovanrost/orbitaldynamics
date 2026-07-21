@@ -7,6 +7,7 @@ defmodule OrbitalDynamics.Validation.Registry do
     J2,
     J2ExlaCpu,
     TwoBody,
+    TwoBodyDrag,
     TwoBodyExlaCpu,
     TwoBodyNx,
     TwoBodyNxCompiled
@@ -33,6 +34,25 @@ defmodule OrbitalDynamics.Validation.Registry do
         "curated 400 km reference fixture is evaluated through OrbitalDynamics.atmospheric_drag_acceleration/4"
       ],
       "known_limits" => AtmosphericDrag.model_limits()
+    },
+    "propagator.two_body_drag" => %{
+      "id" => "propagator.two_body_drag",
+      "model" => "fixed_step_point_mass_with_co_rotating_reference_atmosphere_drag",
+      "implementation" => "OrbitalDynamics.Propagators.TwoBodyDrag",
+      "validation_level" => "educational",
+      "covered_regime" =>
+        "Earth/J2000 LEO fixed-step RK4 with point-mass gravity, explicit spacecraft ballistic properties, and a validated atmosphere-density provider",
+      "tolerances" => %{
+        "final_position_km" => 1.0e-8,
+        "final_velocity_km_s" => 1.0e-11,
+        "final_specific_energy_km2_s2" => 1.0e-10,
+        "specific_energy_change_km2_s2" => 1.0e-10
+      },
+      "evidence" => [
+        "zero-density provider parameters recover scalar fixed-step two-body states exactly",
+        "curated 600 second LEO fixture is evaluated through the public programmatic Study path"
+      ],
+      "known_limits" => TwoBodyDrag.model_limits()
     },
     "propagator.two_body" => %{
       "id" => "propagator.two_body",
@@ -239,6 +259,7 @@ defmodule OrbitalDynamics.Validation.Registry do
 
   @propagator_ids %{
     TwoBody => "propagator.two_body",
+    TwoBodyDrag => "propagator.two_body_drag",
     TwoBodyExlaCpu => "propagator.two_body",
     TwoBodyNxCompiled => "propagator.two_body_nx",
     TwoBodyNx => "propagator.two_body_nx",
