@@ -37,6 +37,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
 
   test "rejects stale ranking envelopes and derived summary values", context do
     ranking_path = ranking_path(context.activity_index)
+    row_path = ranking_path <> ".rows[0]"
     [ranking_row] = get_in_path(context.artifact, ranking_path <> ".rows")
 
     duplicate_candidate_artifact =
@@ -73,6 +74,17 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
       ])
       |> put_in_path(ranking_path <> ".evaluated_candidate_count", 2)
 
+    missing_source_candidate_artifact =
+      Map.put(context.artifact, "source_candidate_activities", [])
+
+    [source_candidate] = context.artifact["source_candidate_activities"]
+
+    ambiguous_source_candidate_artifact =
+      Map.put(context.artifact, "source_candidate_activities", [
+        source_candidate,
+        source_candidate
+      ])
+
     invalid_cases = [
       {ranking_path <> ".model",
        put_in_path(context.artifact, ranking_path <> ".model", "legacy_replacement_ranking")},
@@ -89,6 +101,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
       {ranking_path <> ".rows", duplicate_candidate_artifact},
       {ranking_path <> ".rows", selected_second_artifact},
       {ranking_path <> ".rows[1].contact_intent_pressure_penalty", partial_current_artifact},
+      {row_path <> ".candidate_id", missing_source_candidate_artifact},
+      {row_path <> ".candidate_id", ambiguous_source_candidate_artifact},
       {ranking_path <> ".rows[0]",
        put_in_path(context.artifact, ranking_path <> ".rows", ["invalid_row"])},
       {ranking_path <> ".selected_candidate_id",
@@ -191,6 +205,10 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
     invalid_cases = [
       {row_path <> ".ranking_score",
        put_in_path(context.artifact, row_path <> ".ranking_score", -93.0)},
+      {row_path <> ".candidate_score",
+       context.artifact
+       |> put_in_path(row_path <> ".candidate_score", 11.0)
+       |> put_in_path(row_path <> ".ranking_score", -93.0)},
       {row_path <> ".candidate_diff_priority",
        put_in_path(context.artifact, row_path <> ".semantic_candidate_diff_match", true)},
       {row_path <> ".station_calendar_pressure_sources",

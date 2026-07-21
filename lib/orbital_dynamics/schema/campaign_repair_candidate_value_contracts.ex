@@ -1,0 +1,114 @@
+defmodule OrbitalDynamics.Schema.CampaignRepairCandidateValueContracts do
+  @moduledoc false
+
+  alias OrbitalDynamics.CampaignPlanner.ActivityIdentity
+
+  import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2]
+
+  @tolerance 1.0e-9
+
+  def validate(issues, artifact) when is_map(artifact) do
+    source_candidates_by_id =
+      artifact
+      |> Map.get("source_candidate_activities", [])
+      |> source_candidates_by_id()
+
+    validate_activities(
+      issues,
+      Map.get(artifact, "activities", []),
+      source_candidates_by_id
+    )
+  end
+
+  def validate(issues, _artifact), do: issues
+
+  defp source_candidates_by_id(candidates) when is_list(candidates) do
+    candidates
+    |> Enum.filter(&is_map/1)
+    |> Enum.group_by(&ActivityIdentity.activity_id/1)
+  end
+
+  defp source_candidates_by_id(_candidates), do: %{}
+
+  defp validate_activities(issues, activities, source_candidates_by_id)
+       when is_list(activities) do
+    activities
+    |> Enum.with_index()
+    |> Enum.reduce(issues, fn {activity, activity_index}, acc ->
+      rows =
+        case activity do
+          %{"repair" => %{"replacement_ranking" => %{"rows" => rows}}} -> rows
+          _activity -> nil
+        end
+
+      validate_rows(
+        acc,
+        "$.activities[#{activity_index}].repair.replacement_ranking.rows",
+        rows,
+        source_candidates_by_id
+      )
+    end)
+  end
+
+  defp validate_activities(issues, _activities, _source_candidates_by_id), do: issues
+
+  defp validate_rows(issues, path, rows, source_candidates_by_id) when is_list(rows) do
+    rows
+    |> Enum.with_index()
+    |> Enum.reduce(issues, fn {row, index}, acc ->
+      validate_row(acc, "#{path}[#{index}]", row, source_candidates_by_id)
+    end)
+  end
+
+  defp validate_rows(issues, _path, _rows, _source_candidates_by_id), do: issues
+
+  defp validate_row(issues, path, %{} = row, source_candidates_by_id) do
+    candidate_id = Map.get(row, "candidate_id")
+
+    case Map.get(source_candidates_by_id, candidate_id, []) do
+      [%{"score" => source_score}] when is_number(source_score) ->
+        validate_score(issues, path, Map.get(row, "candidate_score"), source_score)
+
+      [_candidate] ->
+        issues
+
+      [] ->
+        [
+          error(
+            path <> ".candidate_id",
+            "must identify exactly one embedded source candidate"
+          )
+          | issues
+        ]
+
+      _candidates ->
+        [
+          error(
+            path <> ".candidate_id",
+            "must identify exactly one embedded source candidate"
+          )
+          | issues
+        ]
+    end
+  end
+
+  defp validate_row(issues, _path, _row, _source_candidates_by_id), do: issues
+
+  defp validate_score(issues, path, actual, expected) when is_number(actual) do
+    if close?(actual, expected) do
+      issues
+    else
+      [
+        error(
+          path <> ".candidate_score",
+          "must match the exact embedded source candidate score"
+        )
+        | issues
+      ]
+    end
+  end
+
+  defp validate_score(issues, _path, _actual, _expected), do: issues
+
+  defp close?(left, right), do: abs(left - right) <= @tolerance
+end

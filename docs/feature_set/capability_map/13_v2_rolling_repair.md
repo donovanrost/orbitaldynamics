@@ -172,6 +172,10 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   agree, nonzero pressure terms carry their source evidence, and rows remain
   ordered by diff priority then score. Zero-weight pressured evidence remains
   valid so policy calibration can intentionally neutralize a known pressure.
+  Each ranking candidate ID must also resolve to exactly one embedded
+  `source_candidate_activities` row, and its candidate value must equal that
+  source row's validated score; corrected row arithmetic cannot mask a missing,
+  ambiguous, or altered source value.
   Station-pressure penalties and source paths are recomputed from exact
   candidate IDs in the embedded allocation and station-calendar reports, so a
   row cannot claim allocation-only, calendar-only, or dual-source pressure for
