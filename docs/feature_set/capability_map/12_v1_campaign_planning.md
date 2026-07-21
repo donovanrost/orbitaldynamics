@@ -87,6 +87,13 @@ treats `[0, duration_s]` as the envelope for candidate, selected, ranked-timelin
 proposed-contact, and contact-intent rows while retaining each row contract's
 interval-order checks.
 
+Every selected, candidate, and ranked-timeline activity requires numeric
+non-negative `duration_s` evidence. Runtime validation additionally reconciles
+the declared value to `ends_at_s - starts_at_s`, preventing scoring, throughput,
+commitment, and handoff consumers from observing contradictory timing evidence.
+The JSON Schema export carries the representable required/type/minimum rules;
+the cross-field arithmetic check remains executable runtime behavior.
+
 Target commitments are optional typed inline V1 rows. Runtime validation checks
 stable target/selected-activity IDs, non-negative counts and durations, status
 vocabulary, unique targets, exact candidate/selected observation evidence, and

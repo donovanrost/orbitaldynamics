@@ -226,6 +226,8 @@ Already implemented or heavily covered:
 - required V1 planning-horizon objects type optional positive duration/cadence,
   require duration for cadence, and bound core schedule rows when duration is
   declared
+- selected, candidate, and ranked V1 activities require numeric non-negative
+  duration evidence, with runtime reconciliation against each start/end interval
 - optional V1 optimizer metadata is reconciled with enclosing candidate,
   selected-activity, ranked-timeline, constraint, scoring-policy, and objective
   evidence; the required ranking explanation is nested and typed

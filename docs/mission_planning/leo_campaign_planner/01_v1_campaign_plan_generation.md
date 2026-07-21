@@ -65,6 +65,10 @@ It answers:
 - `campaign_plan.objective_tradeoff_report` with per-ranked-timeline score-term
   deltas for operator review.
 - `campaign_plan.activities` for the highest-ranked timeline.
+- Selected, candidate, and ranked-timeline activities carry required numeric
+  non-negative `duration_s` evidence. Executable validation reconciles each
+  value to `ends_at_s - starts_at_s`; JSON Schema exposes the required type and
+  non-negative boundary while runtime validation owns the arithmetic check.
 - `campaign_plan.proposed_contacts` with stable external IDs for later Cadence
   import.
 - `campaign_plan.contact_intents` as artifact-only `contact_intent.v1` rows for
