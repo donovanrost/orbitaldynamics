@@ -117,7 +117,9 @@ Already implemented or heavily covered:
   CandidateRefresh diff, freshness, and budget penalties are reconciled through
   shared producer/runtime counts against their embedded source reports;
   operational-readiness and quality-gate penalties are reconciled through shared
-  source-row expansion and reviewability classifiers
+  source-row expansion and reviewability classifiers; contact/resource-filter
+  and candidate-rejection penalties are reconciled to shared suppression or
+  rejection counts and embedded report fallbacks
 - V2 candidate-refresh source freshness contributes one explicit normalized
   risk-weight penalty for a stale or unknown report, aligned with its
   review/import gate and V3 refresh-freshness pressure semantics

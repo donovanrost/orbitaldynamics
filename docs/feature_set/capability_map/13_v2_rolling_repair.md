@@ -143,7 +143,9 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   declared count and invalid-policy fallbacks. Operational-readiness and
   quality-gate terms use shared producer/runtime source-row expansion and exact
   reviewability classifiers, so each embedded review or blocking row contributes
-  one declared-risk-weight penalty.
+  one declared-risk-weight penalty. Contact/resource-filter and candidate-
+  rejection terms use shared producer/runtime suppression or rejection counts,
+  including their declared count and exact nonblank-ID fallback precedence.
 
 ## Refreshed missed-contact repair
 

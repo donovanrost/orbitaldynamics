@@ -375,6 +375,112 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreContractsTest do
     assert [] == CampaignRepairScoreContracts.validate([], malformed_reports)
   end
 
+  test "rejects source-filter pressure drift hidden by consistent aggregate arithmetic", %{
+    artifact: artifact
+  } do
+    pressured_cases = [
+      {"contact_filter_pressure_penalty",
+       artifact
+       |> Map.put("source_contact_filter_report", %{
+         "suppressed_candidates" => [%{"id" => "contact_1"}, %{"id" => "contact_2"}]
+       })
+       |> put_score_term("contact_filter_pressure_penalty", -2.0)},
+      {"resource_filter_pressure_penalty",
+       artifact
+       |> Map.put("source_resource_filter_report", %{
+         "suppressed_candidates" => [%{"id" => "resource_1"}]
+       })
+       |> put_score_term("resource_filter_pressure_penalty", -1.0)},
+      {"candidate_rejection_pressure_penalty",
+       artifact
+       |> Map.put("source_candidate_rejection_report", %{
+         "rows" => [
+           %{"rejection_status" => "rejected"},
+           %{"rejection_status" => "accepted"},
+           %{}
+         ]
+       })
+       |> put_score_term("candidate_rejection_pressure_penalty", -2.0)}
+    ]
+
+    for {term_key, valid} <- pressured_cases do
+      assert [] == CampaignRepairScoreContracts.validate([], valid)
+
+      invalid = coordinated_term_edit(valid, term_key, 1.0)
+
+      assert errors = CampaignRepairScoreContracts.validate([], invalid)
+
+      assert Enum.any?(
+               errors,
+               &(&1["path"] == "$.score_terms.#{term_key}")
+             )
+    end
+  end
+
+  test "honors source-filter pressure policy, fallback, optional, and malformed semantics", %{
+    artifact: artifact
+  } do
+    numeric_string_policy =
+      artifact
+      |> drop_score_terms(readiness_term_keys())
+      |> Map.put("source_contact_filter_report", %{
+        "suppressed_candidates" => [%{"id" => "contact_1"}, %{"id" => "contact_2"}]
+      })
+      |> put_in(["scoring_policy", "risk_weight"], "0.25")
+      |> put_score_term("contact_filter_pressure_penalty", -0.5)
+
+    assert [] == CampaignRepairScoreContracts.validate([], numeric_string_policy)
+
+    zero_risk_weight =
+      artifact
+      |> drop_score_terms(readiness_term_keys())
+      |> Map.put("source_resource_filter_report", %{
+        "suppressed_candidates" => [%{"id" => "resource_1"}]
+      })
+      |> put_in(["scoring_policy", "risk_weight"], 0.0)
+      |> put_score_term("resource_filter_pressure_penalty", 0.0)
+
+    assert [] == CampaignRepairScoreContracts.validate([], zero_risk_weight)
+
+    fallback_cases = [
+      {"contact_filter_pressure_penalty", "source_contact_filter_report",
+       %{"suppressed_candidate_count" => 2.9}, -2.0},
+      {"candidate_rejection_pressure_penalty", "source_candidate_rejection_report",
+       %{"rejected_candidate_ids" => ["rejected_1", nil, "", "rejected_2"]}, -2.0},
+      {"candidate_rejection_pressure_penalty", "source_candidate_rejection_report",
+       %{"rejected_candidate_count" => 1.9}, -1.0}
+    ]
+
+    for {term_key, report_key, report, expected} <- fallback_cases do
+      fallback =
+        artifact
+        |> Map.put(report_key, report)
+        |> put_score_term(term_key, expected)
+
+      assert [] == CampaignRepairScoreContracts.validate([], fallback)
+    end
+
+    optional_term_keys = [
+      "contact_filter_pressure_penalty",
+      "resource_filter_pressure_penalty",
+      "candidate_rejection_pressure_penalty"
+    ]
+
+    legacy = drop_score_terms(artifact, optional_term_keys)
+    assert [] == CampaignRepairScoreContracts.validate([], legacy)
+
+    malformed_reports =
+      artifact
+      |> Map.put("source_contact_filter_report", %{"suppressed_candidates" => "invalid"})
+      |> Map.put("source_resource_filter_report", %{"suppressed_candidates" => "invalid"})
+      |> Map.put("source_candidate_rejection_report", %{"rows" => ["invalid"]})
+      |> put_score_term("contact_filter_pressure_penalty", 0.0)
+      |> put_score_term("resource_filter_pressure_penalty", 0.0)
+      |> put_score_term("candidate_rejection_pressure_penalty", 0.0)
+
+    assert [] == CampaignRepairScoreContracts.validate([], malformed_reports)
+  end
+
   test "rejects score-term report drift from the enclosing repair artifact", %{
     artifact: artifact
   } do

@@ -11,6 +11,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
     RepairContactAllocationPressure,
     RepairReadinessPressure,
     RepairRefreshPressure,
+    RepairSourceFilterPressure,
     ResourceProjectionRisk,
     ScalarValues,
     StationCalendarPressureBranches,
@@ -106,7 +107,8 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
         activities
       )
 
-    contact_filter_pressure_count = repair_contact_filter_pressure_count(contact_filter_report)
+    contact_filter_pressure_count =
+      RepairSourceFilterPressure.suppressed_count(contact_filter_report)
 
     contact_allocation_pressure_count =
       repair_contact_allocation_pressure_count(contact_allocation_report, callbacks)
@@ -114,7 +116,8 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
     contact_intent_pressure_count =
       repair_contact_intent_pressure_count(contact_intents, activities)
 
-    resource_filter_pressure_count = repair_resource_filter_pressure_count(resource_filter_report)
+    resource_filter_pressure_count =
+      RepairSourceFilterPressure.suppressed_count(resource_filter_report)
 
     candidate_diff_pressure_count =
       RepairRefreshPressure.candidate_diff_count(candidate_diff_report)
@@ -125,7 +128,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
     refresh_budget_pressure_count = RepairRefreshPressure.budget_count(refresh_budget_report)
 
     candidate_rejection_pressure_count =
-      repair_candidate_rejection_pressure_count(candidate_rejection_report, callbacks)
+      RepairSourceFilterPressure.candidate_rejection_count(
+        candidate_rejection_report,
+        Keyword.fetch!(callbacks, :stringify_keys)
+      )
 
     operational_readiness_pressure_count =
       RepairReadinessPressure.operational_count(
@@ -340,16 +346,6 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
 
   defp repair_station_calendar_pressure_count(_report, _allocation_report, _activities), do: 0
 
-  defp repair_contact_filter_pressure_count(%{"suppressed_candidates" => rows})
-       when is_list(rows),
-       do: length(rows)
-
-  defp repair_contact_filter_pressure_count(%{"suppressed_candidate_count" => count})
-       when is_number(count),
-       do: trunc(count)
-
-  defp repair_contact_filter_pressure_count(_report), do: 0
-
   defp repair_contact_allocation_pressure_count(%{"rows" => rows}, callbacks)
        when is_list(rows) do
     stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
@@ -378,44 +374,6 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
   end
 
   defp repair_contact_allocation_pressure_count(_report, _callbacks), do: 0
-
-  defp repair_resource_filter_pressure_count(%{"suppressed_candidates" => rows})
-       when is_list(rows),
-       do: length(rows)
-
-  defp repair_resource_filter_pressure_count(%{"suppressed_candidate_count" => count})
-       when is_number(count),
-       do: trunc(count)
-
-  defp repair_resource_filter_pressure_count(_report), do: 0
-
-  defp repair_candidate_rejection_pressure_count(%{"rows" => rows}, callbacks)
-       when is_list(rows) do
-    stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
-
-    rows
-    |> Enum.map(stringify_keys)
-    |> Enum.count(&(Map.get(&1, "rejection_status", "rejected") == "rejected"))
-  end
-
-  defp repair_candidate_rejection_pressure_count(
-         %{"rejected_candidate_ids" => rejected_ids},
-         _callbacks
-       )
-       when is_list(rejected_ids) do
-    rejected_ids
-    |> Enum.reject(&(&1 in [nil, ""]))
-    |> length()
-  end
-
-  defp repair_candidate_rejection_pressure_count(
-         %{"rejected_candidate_count" => count},
-         _callbacks
-       )
-       when is_number(count) and count > 0,
-       do: trunc(count)
-
-  defp repair_candidate_rejection_pressure_count(_report, _callbacks), do: 0
 
   defp numeric_count(count) when is_number(count), do: trunc(count)
   defp numeric_count(_count), do: 0

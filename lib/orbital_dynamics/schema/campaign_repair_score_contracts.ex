@@ -5,6 +5,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreContracts do
     LinkCapacityPressureBranches,
     RepairReadinessPressure,
     RepairRefreshPressure,
+    RepairSourceFilterPressure,
     ResourceProjectionRisk,
     ScalarValues
   }
@@ -155,6 +156,21 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreContracts do
       |> Map.get("source_quality_gate_report")
       |> RepairReadinessPressure.quality_gate_count()
 
+    contact_filter_pressure_count =
+      artifact
+      |> Map.get("source_contact_filter_report")
+      |> RepairSourceFilterPressure.suppressed_count()
+
+    resource_filter_pressure_count =
+      artifact
+      |> Map.get("source_resource_filter_report")
+      |> RepairSourceFilterPressure.suppressed_count()
+
+    candidate_rejection_pressure_count =
+      artifact
+      |> Map.get("source_candidate_rejection_report")
+      |> RepairSourceFilterPressure.candidate_rejection_count()
+
     issues
     |> validate_optional_derived_term(
       score_terms,
@@ -197,6 +213,24 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreContracts do
       "quality_gate_pressure_penalty",
       -quality_gate_pressure_count * risk_weight,
       "must match source quality-gate reviewable-row count and risk_weight"
+    )
+    |> validate_optional_derived_term(
+      score_terms,
+      "contact_filter_pressure_penalty",
+      -contact_filter_pressure_count * risk_weight,
+      "must match source contact-filter suppressed-candidate count and risk_weight"
+    )
+    |> validate_optional_derived_term(
+      score_terms,
+      "resource_filter_pressure_penalty",
+      -resource_filter_pressure_count * risk_weight,
+      "must match source resource-filter suppressed-candidate count and risk_weight"
+    )
+    |> validate_optional_derived_term(
+      score_terms,
+      "candidate_rejection_pressure_penalty",
+      -candidate_rejection_pressure_count * risk_weight,
+      "must match source candidate-rejection rejected-candidate count and risk_weight"
     )
   end
 
