@@ -25,6 +25,10 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   - review-required transition applications;
   - repair metadata counts for selected/review-gated application rows;
   - embedded operator-review plus Cadence-import rows for those review-gated transition applications, including approval-policy rule-match and policy-decision evidence when repair policy rules match transition/application/protection context.
+- **`contact_allocation_report.v1`** over repaired contact activities. The
+  optional report is a declared V2 nested contract; runtime validation applies
+  its full row, count, summary, nested contention/resolution, stable-identity,
+  and model-limit checks and requires source `campaign_repair.activities`.
 
 ## Timeline protection
 

@@ -4,6 +4,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
   alias OrbitalDynamics.Schema.{
     CampaignRepairCandidateValueContracts,
     CampaignRepairConstraintContracts,
+    CampaignRepairContactAllocationContracts,
     CampaignRepairContactIntentPressureContracts,
     CampaignRepairReplacementRankingContracts,
     CampaignRepairScoreContracts,
@@ -95,6 +96,10 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
       Map.get(artifact, "constraint_report")
     ])
     |> CampaignRepairConstraintContracts.validate(artifact)
+    |> call(callbacks, :validate_optional_contact_allocation_report, [
+      Map.get(artifact, "contact_allocation_report")
+    ])
+    |> CampaignRepairContactAllocationContracts.validate(artifact)
     |> call(callbacks, :validate_optional_score_term_report, [
       Map.get(artifact, "score_term_report")
     ])
