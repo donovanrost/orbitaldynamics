@@ -5,68 +5,74 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Expose persisted backend-comparison acceptance through the public API.
+Add an executable, provider-backed atmospheric-drag acceleration model.
 
 Status:
 Implemented, parent-reviewed, and verified. Publish pending.
 
 Why this slice:
-The checkout already has exact, schema-linted scalar/Nx/EXLA benchmark fixtures
-and internal acceptance logic that distinguishes correctness-only evidence from
-supported speedup claims. Product consumers currently must reach into
-`OrbitalDynamics.Study.Benchmark.Report` or invoke a Mix task to obtain that
-interpretation; the canonical `OrbitalDynamics` facade does not expose it.
+Spacecraft mass, drag area, and drag coefficient are modeled, and the validated
+exponential-atmosphere provider returns deterministic density, but no executable
+force-model behavior joins those inputs. A standalone evaluator is the smallest
+safe step before coupling drag into trajectory propagation and artifacts.
 
 Files changed:
+- `lib/orbital_dynamics/force_models/atmospheric_drag.ex`
 - `lib/orbital_dynamics.ex`
-- `lib/orbital_dynamics/study/benchmark/report.ex`
-- `test/orbital_dynamics/study/benchmark/report_test.exs`
+- `lib/orbital_dynamics/environment/exponential_atmosphere_provider.ex`
+- `lib/orbital_dynamics/spacecraft.ex`
+- `test/orbital_dynamics/force_models/atmospheric_drag_test.exs`
 - `test/orbital_dynamics/capabilities_test.exs`
 - `docs/feature_set/capability_map/03_propagation_and_force_models.md`
+- `docs/feature_set/capability_map/04_environment_and_ephemeris_providers.md`
+- `docs/feature_set/capability_map/06_spacecraft_and_payload_modeling.md`
 - `.codex/status/autonomous_product_loop.md`
 
 Behavior changed:
-`OrbitalDynamics.study_benchmark_summary/2` now interprets a persisted benchmark
-artifact through the existing median, reference-match, speedup, operational
-scale, and backend-acceptance policy logic. The reporting capability catalog
-declares this public facade.
+`OrbitalDynamics.atmospheric_drag_acceleration/4` now evaluates one Earth/J2000
+state using spacecraft mass, drag area/coefficient, a request-fit validated
+atmosphere provider, and constant-rate Earth co-rotation. It returns the
+atmosphere-relative velocity, acceleration in km/s2, full density product,
+provider IDs/models, units, assumptions, and exact model limits. It does not
+propagate the state.
 
 Public proof:
-The facade regression consumes the checked-in, schema-linted
-`study_results/nx_study_benchmark.json` artifact. It proves all six comparison
-groups match the scalar baseline, the 2,000-case EXLA group carries supported
-speedup evidence, and the slower Nx group remains correctness-only.
+The facade regression evaluates a 400 km state, proves drag opposes the
+co-rotation-relative velocity, checks the explicit SI conversion against the
+closed-form magnitude, verifies configured zero-density provider parameters,
+and exercises input/provider rejection boundaries. The schema-valid public
+capability catalog advertises the model and facade.
 
 Docs read/changed:
-- Read `docs/feature_set/completeness_levels/06_mature_operational_platform.md`.
-- Read `docs/feature_set/definition_of_feature_complete.md`.
-- Read `docs/feature_set/current_capability_snapshot.md`.
-- Read `docs/feature_set/recommended_roadmap.md`.
 - Read `docs/feature_set/capability_map/03_propagation_and_force_models.md`.
+- Read `docs/feature_set/capability_map/04_environment_and_ephemeris_providers.md`.
+- Read `docs/feature_set/capability_map/06_spacecraft_and_payload_modeling.md`.
 
 Verification:
-- Benchmark/report/fixture/policy/task/capability set: `44 passed`.
-- Validation and schema directories: green.
-- Full `mix test --timeout 180000`: `3452 passed`.
+- Force-model/environment/capability set: `26 passed`.
+- Force-model/propagator/provider/schema-capability set: `64 passed`.
+- Schema and validation directories: `363 passed`.
+- Full `mix test --timeout 180000`: `3456 passed`.
 - Changed Elixir files are formatted; `git diff --check` passes.
 
 Artifact regeneration:
-Not expected: this slice consumes the existing checked-in
-`study_results/nx_study_benchmark.json` comparison artifact.
+Not expected; this is a deterministic public numerical API and capability
+surface, not a persisted study-result change.
 
 Level 6 pillar advanced:
-Replaceable numerical backends with explicit, consumable acceptance evidence.
+High-fidelity subsystem contracts and explicit force-model assumptions.
 
 Parent review:
-No must-fix findings. The public function delegates to the established report
-logic, consumes a supplied artifact without IO or rerunning studies, and does
-not turn correctness-only evidence into a speedup claim. The regression uses
-the existing exact benchmark fixture and checks reference, accepted-speedup,
-and correctness-only outcomes. Sidecar delegation remains unavailable under
-the active runtime policy, so the parent performed review and publish checks.
+No must-fix findings. The acceleration uses atmosphere-relative velocity from
+declared constant Earth co-rotation and the explicit SI-to-km/s2 conversion;
+provider product identity/model must match its validated capability. Malformed
+state/spacecraft inputs return errors, zero density/coefficient remains a valid
+zero-acceleration case, and every surface preserves the standalone/no-current-
+propagator boundary. Sidecar delegation remains unavailable under the active
+runtime policy, so the parent performed review and publish checks.
 
 Previous published slice:
-- `0763ccbd` Block unavailable station calendars (`3451 passed`).
+- `f8f6be7f` Expose backend acceptance summaries (`3452 passed`).
 
 Current publish:
 - Commit pending.

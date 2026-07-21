@@ -19,6 +19,10 @@ defmodule OrbitalDynamics.CapabilitiesTest do
     catalog = OrbitalDynamics.capability_catalog()
 
     assert catalog.analysis.propagator == TwoBody.capabilities()
+
+    assert catalog.analysis.force_models.atmospheric_drag ==
+             OrbitalDynamics.ForceModels.AtmosphericDrag.capabilities()
+
     assert catalog.analysis.propagators.two_body == TwoBody.capabilities()
     assert catalog.analysis.propagators.j2 == J2.capabilities()
     assert catalog.analysis.propagators.two_body_nx == TwoBodyNx.capabilities()

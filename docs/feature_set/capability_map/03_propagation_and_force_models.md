@@ -14,14 +14,17 @@
   plus report-level max timing, max delta-v, and total declared delta-v
   3-sigma review envelopes;
   `Environment.ExponentialAtmosphereProvider` exposes a validated
-  single-scale-height atmosphere-density provider contract for drag-interface
-  experiments without connecting it to current propagators.
+  single-scale-height atmosphere-density provider contract;
+  `ForceModels.AtmosphericDrag` and the public
+  `atmospheric_drag_acceleration/4` facade combine it with spacecraft ballistic
+  inputs and constant Earth co-rotation in a deterministic standalone
+  acceleration evaluator without connecting drag to current propagators.
 - `partial`: maneuver support is impulsive only; J2 is the only perturbation;
   adaptive integration is currently limited to scalar two-body step-doubling and
   is not event/root solved; backend comparisons now have acceptance tiers but
   still lack external reference-tool acceptance evidence; maneuver uncertainty
   envelopes are review metadata, not propagated state dispersion; atmosphere
-  density is interface-only and is not consumed by force models.
+  density is consumed by a standalone acceleration model but not by propagators.
 - `near-term`: adaptive/root-solved event workflows beyond scalar two-body
   step-doubling, richer maneuver uncertainty propagation beyond review metadata,
   and cleaner backend contracts for shape and capability limits.

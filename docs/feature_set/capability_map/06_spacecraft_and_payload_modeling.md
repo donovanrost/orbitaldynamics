@@ -14,7 +14,7 @@ Status: **implemented**.
 
 ### Spacecraft identity and `ResourceSummary` normalization
 
-- `Spacecraft` exposes identity, dry mass, propellant mass, area, and drag coefficient fields.
+- `Spacecraft` exposes identity, dry mass, propellant mass, area, and drag coefficient fields. `ForceModels.AtmosphericDrag` and the public `OrbitalDynamics.atmospheric_drag_acceleration/4` facade consume the mass, area, and coefficient with validated atmosphere-density evidence in a deterministic standalone acceleration model; current propagators do not integrate that force.
 - `SubsystemModel` exposes `subsystem_model_capability.v1` records through
   `OrbitalDynamics.subsystem_model_capabilities/0`,
   `OrbitalDynamics.battery_energy_storage_model/1`, and
@@ -413,7 +413,9 @@ Status: **partial**.
 ### Caveats
 
 - Capability metadata labels the summary as **externally supplied and planning-grade**.
-- Drag and area fields are not consumed by force models yet.
+- Drag and area fields are consumed only by the standalone atmospheric-drag
+  acceleration evaluator; they are not integrated by propagators or resource
+  simulation.
 
 ## Near-term
 

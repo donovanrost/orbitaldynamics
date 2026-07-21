@@ -2,9 +2,9 @@ defmodule OrbitalDynamics.Environment.ExponentialAtmosphereProvider do
   @moduledoc """
   Internal single-scale-height atmosphere density provider.
 
-  This adapter is an interface and provenance boundary for future drag work. It
-  returns a deterministic reference density at a requested altitude, but current
-  propagators do not consume the result as an aerodynamic force model.
+  This adapter is an interface and provenance boundary for drag work. It returns
+  a deterministic reference density at a requested altitude. The standalone
+  atmospheric-drag force evaluator consumes it, but current propagators do not.
   """
 
   @behaviour OrbitalDynamics.Environment.Provider

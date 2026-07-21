@@ -2,8 +2,9 @@ defmodule OrbitalDynamics.Spacecraft do
   @moduledoc """
   Spacecraft properties attached to a mission scenario.
 
-  The initial two-body propagator does not consume mass or drag properties. They
-  are modeled now so future maneuver and perturbation analysis has a clear home.
+  The standalone atmospheric-drag evaluator consumes mass and ballistic
+  properties, but current propagators do not. They remain explicit so future
+  maneuver and perturbation analysis has a clear home.
   """
 
   @enforce_keys [:id, :dry_mass_kg]

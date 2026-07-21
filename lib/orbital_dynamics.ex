@@ -32,6 +32,7 @@ defmodule OrbitalDynamics do
   alias OrbitalDynamics.Communications.StationCalendar
   alias OrbitalDynamics.Constraints.{ArtifactMetric, CampaignLocal}
   alias OrbitalDynamics.Environment
+  alias OrbitalDynamics.ForceModels.AtmosphericDrag
   alias OrbitalDynamics.ManeuverReview
   alias OrbitalDynamics.MissionPlan
   alias OrbitalDynamics.OperationalScale
@@ -132,6 +133,9 @@ defmodule OrbitalDynamics do
     %{
       analysis: %{
         propagator: TwoBody.capabilities(),
+        force_models: %{
+          atmospheric_drag: AtmosphericDrag.capabilities()
+        },
         propagators: %{
           two_body: TwoBody.capabilities(),
           j2: J2.capabilities(),
@@ -1240,6 +1244,17 @@ defmodule OrbitalDynamics do
   """
   def operational_scale_comparison(level, observed) do
     OperationalScale.compare(level, observed)
+  end
+
+  @doc """
+  Evaluates provider-backed atmospheric-drag acceleration at one orbital state.
+
+  This standalone evaluator does not propagate the state. See
+  `OrbitalDynamics.ForceModels.AtmosphericDrag.evaluate/4` for provider options
+  and fidelity limits.
+  """
+  def atmospheric_drag_acceleration(state, spacecraft, central_body, opts \\ []) do
+    AtmosphericDrag.evaluate(state, spacecraft, central_body, opts)
   end
 
   @doc """
