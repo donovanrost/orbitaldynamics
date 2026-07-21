@@ -251,6 +251,12 @@ Selected timeline integrity issue counts, branch-event counts, and embedded bran
 ### Cadence import manifest (V2 and V1)
 
 - V2 `cadence_import_manifest.v1` turns repaired operator-review rows into deterministic, review-gated adapter actions with ready, review-required, and missing-import status counts exported and validated as non-negative integers.
+- `campaign_repair.v2` declares that manifest as an optional direct nested
+  contract and applies its complete standalone validator at runtime. A present
+  manifest must identify the containing repair, name
+  `operator_review_package.rows` as its source, preserve the package review
+  count in both manifest and provenance, and retain the review row IDs in
+  source order.
 - It includes reported and row-derived import-action, import-status, Cadence-import-status, source-review, import-side, and row-ID routing maps exported as non-negative JSON Schema count maps with canonical enum keys, plus open non-negative source review action/queue count maps preserved from operator-review rows.
 - The public manifest/review facades reject non-map or unsupported artifact-contract inputs with explicit adapter-boundary errors that list supported contracts instead of leaking function-clause failures.
 - Already-built operator-review packages and Cadence import manifests pass through their public facades as stable artifacts, with atom-key manifests normalized to the string-key JSON shape.

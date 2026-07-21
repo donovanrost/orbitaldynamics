@@ -268,6 +268,11 @@ work, a **partial** executable-schema track, and **near-term** / **later** /
 - `campaign_repair.v2` exports nested repaired-activity, source-candidate, source
   contact-allocation, source timeline-feedback handoff rows, plan-delta, and
   approval-requirement rows.
+- Its optional `cadence_import_manifest.v1` handoff is also declared directly
+  and runs the standalone manifest/row/count/no-write validator. Repair-specific
+  validation pins the source to the containing repair ID and requires its row
+  count, provenance count, and ordered source-review row IDs to match the
+  enclosing `operator_review_package.v1`.
 - `realized_state_snapshot.v1` and `timeline_feedback_report.v1` export nested
   operational-feedback rows plus command/contact feedback, throughput-delta,
   success fields, and source planned/realized activity context.

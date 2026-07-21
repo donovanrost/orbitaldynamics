@@ -3,6 +3,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
 
   alias OrbitalDynamics.Schema.{
     CampaignRepairCandidateValueContracts,
+    CampaignRepairCadenceImportContracts,
     CampaignRepairCommandWindowContracts,
     CampaignRepairConstraintContracts,
     CampaignRepairContactAllocationContracts,
@@ -100,6 +101,10 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
     |> call(callbacks, :validate_optional_operator_review_package, [
       Map.get(artifact, "operator_review_package")
     ])
+    |> call(callbacks, :validate_optional_cadence_import_manifest, [
+      Map.get(artifact, "cadence_import_manifest")
+    ])
+    |> CampaignRepairCadenceImportContracts.validate(artifact)
     |> call(callbacks, :validate_optional_objective_tradeoff_report, [
       Map.get(artifact, "objective_tradeoff_report")
     ])

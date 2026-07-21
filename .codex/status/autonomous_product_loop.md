@@ -5,64 +5,67 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Declare and validate nested V2 command-window reports.
+Declare and reconcile nested V2 Cadence import manifests.
 
 Status:
 Complete; ready to publish.
 
 Selection evidence:
-- V2 always emits `command_window_report.v1` from repaired activities and
-  approval policy, but the repair registry declares neither the field nor its
-  nested contract.
-- Repair runtime validation therefore does not apply the standalone report's
-  row, derived-count, approval/dependency, timeline-identity, and model-limit
-  checks.
-- Both checked V2 reports pass standalone validation and the producer uses fixed
-  repair activity source and source-assumption identities.
+- V2 always derives `cadence_import_manifest.v1` from its embedded
+  `operator_review_package.v1`, but the repair registry declares neither the
+  field nor its nested contract.
+- Repair runtime validation therefore does not apply the standalone manifest's
+  row, derived-count, model-limit, and no-write boundary checks.
+- Both checked V2 manifests pass standalone validation and preserve their
+  enclosing repair ID, review count, and ordered operator-review row IDs.
 
 Intended behavior:
-- Declare the optional command-window report and V1 nested contract in the V2
+- Declare the optional Cadence import manifest and V1 nested contract in the V2
   registry and generated JSON Schema.
-- Run the complete standalone command-window validator inside repair validation.
-- Pin report source and source assumption to repaired activities.
+- Run the complete standalone Cadence import validator inside repair validation.
+- Pin manifest source type/ID and row-source assumption to the enclosing repair
+  and operator-review package.
+- Reconcile manifest/provenance review counts and ordered source-review row IDs
+  against the enclosing review package.
 - Keep the field optional for compatible older V2 artifacts.
-- Add checked-fixture, nested count/source, optional-report, schema-export, and
-  real command-repair coverage; document the executable guarantee.
+- Add checked-fixture, standalone, source/join, optional-manifest, and
+  schema-export coverage; document the executable guarantee.
 
 Level 6 pillar advanced:
-Versioned V2 command-window evidence with executable nested validation.
+Versioned, traceable V2 Cadence handoffs with executable nested validation.
 
 Last published slice:
-- `21dd13bf` Reconcile V2 timeline transition reports (`3741 passed`).
+- `1fe471a9` Validate nested V2 command windows (`3745 passed`).
 
 Likely files:
-- V2 registry/runtime command-window contracts
-- focused command-window and schema-export tests
+- V2 registry/runtime Cadence import contracts
+- focused Cadence import and schema-export tests
 - checked-in schema exports and V2 capability docs
 
 Verification:
-- Focused command-window and repair-planner tests: `5 passed`.
-- Campaign-repair schema fixtures: `47 passed`.
-- Schema suite plus schema-lint/export task tests: `426 passed`.
-- Campaign-planner suite: `759 passed`.
+- Focused Cadence import contract tests: `5 passed`.
+- Campaign-repair schema fixtures: `52 passed`.
+- Schema suite plus schema-lint/export task tests: `439 passed`.
+- Campaign-planner suite: `761 passed`.
 - Full checked-artifact lint: `155/155 passed`, zero warnings.
-- Full suite: `3745 passed`.
+- Full suite: `3750 passed`.
 - `mix format --check-formatted`, `mix compile --warnings-as-errors`, and
   `git diff --check` passed.
 - Full schema export refreshed the V2 repair schema and aggregate bundle only.
 
 Review:
-- The V2 registry now declares optional `command_window_report` and its V1
-  nested contract; generated schemas expose the property and complete report
-  definition without requiring it from compatible older V2 artifacts.
-- Runtime repair validation now applies the standalone command-window contract,
-  including row types/identity, interval and dependency/exclusivity evidence,
-  approval/review context, derived counts, and exact model limits.
-- Repair-specific validation pins both the report source and embedded source
-  assumption to repaired campaign activities, preventing another planning
-  stage's valid command report from being relabeled as repair evidence.
-- Both checked V2 repairs, the real command-repair path, all checked artifacts,
-  and existing V1 command-window consumers remain valid.
+- The V2 registry now declares optional `cadence_import_manifest` and its V1
+  nested contract; generated schemas expose the complete manifest definition
+  without requiring the field from compatible older V2 artifacts.
+- Runtime repair validation now applies the standalone manifest contract,
+  including row shapes and identities, derived counts/maps, supported source
+  types, exact model limits, and artifact-only no-write assumptions.
+- Repair-specific validation pins source type and source ID to the enclosing
+  repair, requires the operator-review package named by the row-source
+  assumption, and reconciles review counts plus ordered row IDs across the
+  handoff.
+- Both checked V2 repairs, all checked artifacts, and existing V1 Cadence import
+  consumers remain valid.
 
 Remaining maturity gaps:
 - Continue exact V2 ranking/score reconciliation for replayable source fields.
