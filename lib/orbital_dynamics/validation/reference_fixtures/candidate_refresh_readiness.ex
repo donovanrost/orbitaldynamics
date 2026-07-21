@@ -159,6 +159,91 @@ defmodule OrbitalDynamics.Validation.ReferenceFixtures.CandidateRefreshReadiness
         "checks candidate-refresh replay of quality-gate resource-pressure provenance without granting operator authority, candidate selection, import approval, or Cadence writes"
       ]
     },
+    "fixture.artifact.candidate_refresh.quality_gate_unavailable_resource_selection_challenge" =>
+      %{
+        "id" =>
+          "fixture.artifact.candidate_refresh.quality_gate_unavailable_resource_selection_challenge",
+        "model_id" => "artifact.candidate_refresh.v1",
+        "reference_case" =>
+          "unavailable-resource quality gate rejects an exact contact without cross-spacecraft leakage",
+        "validation_level" => "artifact_contract",
+        "fixture_type" => "curated_internal_artifact_challenge",
+        "inputs" => %{
+          "source" =>
+            "generated_candidate_refresh_quality_gate_unavailable_resource_selection_challenge",
+          "contract" => "candidate_refresh.v1"
+        },
+        "expected" => %{
+          "schema_contract" => "candidate_refresh.v1",
+          "schema_version" => 1,
+          "planner" => "OrbitalDynamics.CandidateRefresh.V1",
+          "candidate_count" => 1,
+          "candidate_activity_id_keys" => "leo_2_downlink_dss_43_1",
+          "contact_intent_count" => 1,
+          "contact_intent_activity_id_keys" => "leo_2_downlink_dss_43_1",
+          "access_window_count" => 2,
+          "target_visibility_window_count" => 0,
+          "eclipse_interval_count" => 0,
+          "warning_count" => 1,
+          "candidate_rejection_report_count" => 1,
+          "candidate_rejection_candidate_count" => 2,
+          "candidate_rejection_rejected_count" => 1,
+          "candidate_rejection_rejected_candidate_id_keys" => "leo_1_downlink_equator_prime_1",
+          "candidate_rejection_reason_counts" => %{"quality_gate_failed" => 1},
+          "invalidated_candidate_count" => 1,
+          "invalidated_candidate_id_keys" => "leo_1_downlink_equator_prime_1",
+          "invalidated_candidate_reason_counts" => %{
+            "dropped_by_quality_gate_unavailable_resource" => 1
+          },
+          "source_report_family_count" => 1,
+          "source_report_row_count" => 1,
+          "source_quality_gate_report_count" => 1,
+          "source_quality_gate_row_count" => 1,
+          "source_quality_gate_gate_count" => 1,
+          "source_quality_gate_review_gate_count" => 1,
+          "source_quality_gate_readiness_level_counts" => %{"operator_review" => 1},
+          "source_quality_gate_import_classification_counts" => %{"review_only" => 1},
+          "source_quality_gate_status_counts" => %{"review_required" => 1},
+          "source_quality_gate_gate_status_counts" => %{"review_required" => 1},
+          "source_quality_gate_gate_classification_counts" => %{"review_only" => 1},
+          "source_quality_gate_trust_boundary_status" => "declared",
+          "source_quality_gate_resource_availability_pressure_count" => 1,
+          "source_quality_gate_resource_availability_reason_counts" => %{
+            "antenna_unavailable" => 1
+          },
+          "source_quality_gate_branch_local_review_pressure" => true,
+          "source_quality_gate_branch_local_import_pressure" => false,
+          "source_quality_gate_branch_local_resource_pressure" => true
+        },
+        "tolerances" => %{
+          "schema_version" => 0,
+          "candidate_count" => 0,
+          "contact_intent_count" => 0,
+          "access_window_count" => 0,
+          "target_visibility_window_count" => 0,
+          "eclipse_interval_count" => 0,
+          "warning_count" => 0,
+          "candidate_rejection_report_count" => 0,
+          "candidate_rejection_candidate_count" => 0,
+          "candidate_rejection_rejected_count" => 0,
+          "invalidated_candidate_count" => 0,
+          "source_report_family_count" => 0,
+          "source_report_row_count" => 0,
+          "source_quality_gate_report_count" => 0,
+          "source_quality_gate_row_count" => 0,
+          "source_quality_gate_gate_count" => 0,
+          "source_quality_gate_review_gate_count" => 0,
+          "source_quality_gate_resource_availability_pressure_count" => 0
+        },
+        "evidence" => [
+          "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
+          "schema-linted by mix orbital_dynamics.schema.lint"
+        ],
+        "known_limits" => [
+          "internal deterministic selection challenge, not external operations validation",
+          "proves exact quality-gate candidate and spacecraft scope without granting execution, operator authority, import approval, or Cadence writes"
+        ]
+      },
     "fixture.artifact.candidate_refresh.operational_readiness_replay" => %{
       "id" => "fixture.artifact.candidate_refresh.operational_readiness_replay",
       "model_id" => "artifact.candidate_refresh.v1",

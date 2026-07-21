@@ -5,69 +5,67 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Unify `target_commitment` as a target-observation alias across direct
-CandidateRefresh, source-report replay, and V3 mission/objective pressure.
+Add a curated unavailable-resource quality-gate candidate-selection challenge
+with exact spacecraft scoping.
 
 Status:
 Implemented and verified; publish pending.
 
 Why this slice:
-The live checkout has a semantic split for the campaign V1
-`target_commitment` row, whose requirement is one observation of a target. V3
-mission normalization and V3 objective-satisfaction pressure correctly map it
-to `target_observation`, but CandidateRefresh source-objective replay maps the
-same row to `target_revisit`, and direct CandidateRefresh ignores the label.
-Equivalent current-mission evidence can therefore produce a revisit decision,
-an observation decision, or no decision depending on ingress.
+Unavailable-resource quality-gate summaries already reject an explicitly scoped
+regenerated contact and emit review/import evidence, but that behavior has only
+focused unit coverage. The validation registry protects the parallel
+operational-readiness and contact-allocation selection paths with stale-scope
+challenges, while the quality-gate selection boundary can regress without
+changing its provenance-only replay fixture.
 
 Level 6 pillar:
-Refreshed candidates from current mission state plus stable, interoperable
-operational artifacts whose equivalent inputs have equivalent semantics.
+Quality gates, readiness, and import eligibility plus validation challenge
+fixtures for planner-visible candidate selection.
 
 Behavior/evidence added:
-- Added `TargetObservationObjectiveType` as the shared two-label contract for
-  `target_observation` and `target_commitment`.
-- Direct CandidateRefresh now applies either label to real observation-candidate
-  required counts and score terms while retaining the supplied label in audit
-  fields.
-- CandidateRefresh objective-satisfaction replay now emits canonical
-  `target_observation` objectives instead of incorrectly creating
-  `target_revisit` demand; its internal count field is the semantically neutral
-  `required_observations`.
-- Mission normalization, V3 objective-satisfaction pressure, and objective-gap
-  classification delegate observation aliasing to the same contract.
-- Provider-style `Target Commitment` mission objectives now produce canonical
-  target-observation branches and `target_observation_candidate_inserted`
-  repair reasons; target-revisit behavior remains separate.
-- Capability and V3 artifact docs now state the cross-ingress guarantee.
+- Added a generated two-spacecraft CandidateRefresh challenge using an
+  `operational_quality_gate_unavailable_resource_summary.v1` accepted-state
+  input.
+- The challenge deliberately puts both contact IDs under the `sat_1` blocked
+  scope and proves that only `leo_1_downlink_equator_prime_1` is rejected while
+  `leo_2_downlink_dss_43_1` survives.
+- Registered exact candidate, contact-intent, rejection, invalidation,
+  quality-gate pressure, and trust-boundary observations; a stale surviving-ID
+  observation fails reference verification.
+- Verified candidate-rejection review and Cadence-import handoffs and all
+  involved artifact schemas.
+- Refreshed the checked validation registry to 200 passing fixtures and
+  documented the challenge boundary.
 
 Verification:
-- Focused direct/source/V3/objective-gap suites: 54 passed.
-- All test files mentioning target commitment/observation/revisit: 254 passed.
-- Full `mix test --timeout 180000`: 3,483 passed after parent-review cleanup.
+- Focused replay/registry/schema suites: 16 passed.
+- Full validation area plus validation-evidence contract: 187 passed.
 - Schema lint: 155 artifacts, zero errors/warnings.
-- `mix compile --warnings-as-errors`, `mix format --check-formatted`, and
-  `git diff --check`: pass.
+- Isolated schema-export gate: 3 passed in 50.3 seconds.
+- Initial default-timeout full run: 3,483/3,484 passed; the schema-export test
+  exceeded its 60-second timeout under concurrent load.
+- Full `mix test --timeout 120000`: 3,484 passed.
+- `mix compile --warnings-as-errors`, formatting, and diff checks: pass.
 
 Parent review:
-Complete. The parent inspected the shared contract, every classifier and
-canonicalizer, direct candidate scoring, standalone source replay, V3 mission
-and source-report branches, repair semantics, summary membership, docs, and
-regression coverage. Review found one residual internal `required_revisits`
-key on generic source target objectives; it was corrected to
-`required_observations` and both the 254-test target sweep and 3,483-test full
-suite passed afterward. No must-fix findings remain. Runtime policy disallows
-subagent delegation, so the parent performed review and publish prep.
+Complete. The parent inspected exact blocked/surviving candidate scope, source
+summary construction, rejection and invalidation provenance, review/import
+handoffs, reference expectations, the generated 200-fixture report, support
+load order, docs, and regression coverage. Review found one compile-order
+warning from the new fixture dependency; the support requires were reordered,
+and warning-free focused, validation, schema, and full gates passed afterward.
+No must-fix findings remain. Runtime policy disallows subagent delegation, so
+the parent performed review and publish prep.
 
 Previous published slice:
-- `d81335dd` Expand collection latency provider aliases (`3480 passed`).
-
-Current publish:
-- Commit pending.
+- `b3f63cd2` Unify target commitment observation semantics (`3483 passed`).
 
 Remaining maturity gaps:
-- Continue calibrated realized-feedback depth and challenge fixtures.
-- Continue deeper numerical/backend and resource-model maturity separately.
+- Continue selected resource/contact pressure in candidate ranking and branch
+  score explanations where live evidence remains provenance-only.
+- Continue calibrated realized-feedback depth and deeper numerical/backend and
+  resource-model maturity separately.
 
 Blocked:
 Not blocked. Runtime policy disallows subagent delegation, so the parent will

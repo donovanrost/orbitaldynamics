@@ -1563,6 +1563,13 @@ contact, the exact rejected and invalidated contact, allocation report/source
 identity, spacecraft scope, and trust-boundary evidence. The corrected source
 report remains schema-valid while the stale aggregate copy fails its source
 contract, and only the exact row evidence affects CandidateRefresh selection.
+The parallel unavailable-resource quality-gate selection challenge generates
+two spacecraft contacts and deliberately places both contact IDs under the
+`sat_1` blocked scope. It pins rejection and invalidation of only the exact
+`sat_1` contact, survival of the `sat_2` contact, quality-gate selection
+provenance, and candidate-rejection review/import handoffs. A stale surviving-ID
+observation fails reference verification, while the source summary and all
+handoff artifacts remain schema-valid and artifact-only.
 `study_results/validation_reference_fixtures.json` is refreshed from the
 current validation-reference registry, so its fixture IDs and `fixture_count`
 track `OrbitalDynamics.Validation.reference_fixtures/0`.

@@ -231,6 +231,8 @@ defmodule OrbitalDynamics.ValidationTest do
       candidate_refresh_operational_readiness_fixture_observations: 0,
       candidate_refresh_operational_readiness_selection_challenge_fixture_observations: 0,
       candidate_refresh_quality_gate_fixture_observations: 0,
+      candidate_refresh_quality_gate_unavailable_resource_selection_challenge_fixture_observations:
+        0,
       candidate_refresh_resource_projection_fixture_observations: 0
     ]
 
@@ -468,6 +470,8 @@ defmodule OrbitalDynamics.ValidationTest do
           candidate_refresh_objective_gap_fixture_observations(),
         "fixture.artifact.candidate_refresh.quality_gate_replay" =>
           candidate_refresh_quality_gate_fixture_observations(),
+        "fixture.artifact.candidate_refresh.quality_gate_unavailable_resource_selection_challenge" =>
+          candidate_refresh_quality_gate_unavailable_resource_selection_challenge_fixture_observations(),
         "fixture.artifact.candidate_refresh.refresh_budget_replay" =>
           candidate_refresh_refresh_budget_fixture_observations(),
         "fixture.artifact.candidate_refresh.resource_filter_replay" =>
@@ -763,8 +767,8 @@ defmodule OrbitalDynamics.ValidationTest do
     assert %{
              "schema_contract" => "validation_reference_fixture_report.v1",
              "status" => "pass",
-             "fixture_count" => 199,
-             "status_counts" => %{"pass" => 199},
+             "fixture_count" => 200,
+             "status_counts" => %{"pass" => 200},
              "reports" => reports
            } = report
 
@@ -809,6 +813,7 @@ defmodule OrbitalDynamics.ValidationTest do
              "fixture.artifact.candidate_refresh.operational_readiness_replay",
              "fixture.artifact.candidate_refresh.operational_readiness_selection_challenge",
              "fixture.artifact.candidate_refresh.quality_gate_replay",
+             "fixture.artifact.candidate_refresh.quality_gate_unavailable_resource_selection_challenge",
              "fixture.artifact.candidate_refresh.refresh_budget_replay",
              "fixture.artifact.candidate_refresh.resource_filter_replay",
              "fixture.artifact.candidate_refresh.resource_projection_replay",
@@ -990,7 +995,7 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert %{
              "status" => "fail",
-             "status_counts" => %{"fail" => 199},
+             "status_counts" => %{"fail" => 200},
              "reports" => invalid_observation_reports
            } = invalid_observation_report
 

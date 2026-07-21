@@ -1,5 +1,6 @@
 defmodule OrbitalDynamics.Validation.CandidateRefreshReadinessReplayFixtures do
   alias OrbitalDynamics.{CandidateRefresh, Epoch, ResultSet, Validation}
+  alias OrbitalDynamics.Validation.QualityGateFixtures
 
   import OrbitalDynamics.Validation.CandidateRefreshContactReplayFixtures,
     only: [result_set: 1]
@@ -124,6 +125,99 @@ defmodule OrbitalDynamics.Validation.CandidateRefreshReadinessReplayFixtures do
     |> Map.put("provenance", %{"trust_boundary" => "generated_quality_gate_fixture"})
   end
 
+  def candidate_refresh_quality_gate_unavailable_resource_selection_challenge_fixture_observations do
+    "candidate_refresh.v1"
+    |> Validation.artifact_observations(
+      candidate_refresh_quality_gate_unavailable_resource_selection_challenge_fixture()
+    )
+  end
+
+  def candidate_refresh_quality_gate_unavailable_resource_selection_challenge_fixture do
+    unavailable_resource_selection_result_set()
+    |> CandidateRefresh.build(
+      candidate_refresh:
+        candidate_refresh_quality_gate_unavailable_resource_selection_challenge_request(),
+      generated_at: ~U[2026-05-14 00:00:00Z]
+    )
+  end
+
+  def candidate_refresh_quality_gate_unavailable_resource_selection_challenge_request do
+    blocked_contact_id = "leo_1_downlink_equator_prime_1"
+    cross_spacecraft_contact_id = "leo_2_downlink_dss_43_1"
+
+    %{
+      "accepted_planning_state" => %{
+        "snapshot_id" => "ops-state-quality-gate-selection-challenge",
+        "accepted_at" => "2026-05-14T00:00:00Z",
+        "spacecraft_states" => [
+          %{"spacecraft_id" => "sat_1", "scenario_id" => "leo_1"},
+          %{"spacecraft_id" => "sat_2", "scenario_id" => "leo_2"}
+        ],
+        "source" => %{"system" => "validation_challenge"},
+        "quality" => %{"level" => "accepted"},
+        "provenance" => %{"created_by" => "validation_fixture"},
+        "operational_quality_gate_unavailable_resource_summary" =>
+          candidate_refresh_quality_gate_unavailable_resource_selection_challenge_summary(
+            blocked_contact_id,
+            cross_spacecraft_contact_id
+          )
+      },
+      "current_epoch_s" => 0.0,
+      "remaining_horizon" => %{
+        "starts_at_s" => 0.0,
+        "ends_at_s" => 600.0,
+        "output_step_s" => 60.0
+      },
+      "targets" => [],
+      "constraints" => %{"min_activity_duration_s" => 60.0},
+      "scoring_policy" => %{
+        "contact_value_weight" => 0.5,
+        "downlink_rate_mb_s" => 3.0
+      },
+      "model_assumptions" => %{"refresh_level" => "sampled_v1"},
+      "prior_candidate_activities" => [
+        %{
+          "id" => blocked_contact_id,
+          "type" => "downlink",
+          "scenario_id" => "leo_1",
+          "ground_station_id" => "equator_prime",
+          "starts_at_s" => 300.0,
+          "ends_at_s" => 420.0,
+          "source_window_id" => "window:leo_1:ground_station_access:equator_prime:1"
+        }
+      ]
+    }
+  end
+
+  def candidate_refresh_quality_gate_unavailable_resource_selection_challenge_summary(
+        blocked_contact_id,
+        cross_spacecraft_contact_id
+      ) do
+    blocked_contact_ids = [blocked_contact_id, cross_spacecraft_contact_id]
+
+    QualityGateFixtures.operational_quality_gate_unavailable_resource_summary_fixture()
+    |> Map.merge(%{
+      "source" => "quality_gate_report.v1",
+      "source_artifact_type" => "contact_allocation_report.v1",
+      "source_artifact_id" => "quality-gate-selection-challenge",
+      "source_quality_gate_report_id" => "quality_gate:unavailable_resource_selection_challenge",
+      "source_readiness_report_id" => "operational_readiness:quality_gate_selection_challenge",
+      "resource_blocking_dimension_counts" => %{"antenna" => 1},
+      "blocked_contact_ids_by_blocking_dimension" => %{
+        "antenna" => blocked_contact_ids
+      },
+      "blocked_contact_ids_by_spacecraft_id" => %{
+        "sat_1" => blocked_contact_ids
+      },
+      "blocked_contact_ids_by_status" => %{
+        "review_required" => blocked_contact_ids
+      },
+      "provenance" => %{
+        "trust_boundary" => "generated_quality_gate_selection_challenge"
+      }
+    })
+  end
+
   def candidate_refresh_operational_readiness_fixture_observations do
     "candidate_refresh.v1"
     |> Validation.artifact_observations(candidate_refresh_operational_readiness_fixture())
@@ -137,7 +231,7 @@ defmodule OrbitalDynamics.Validation.CandidateRefreshReadinessReplayFixtures do
   end
 
   def candidate_refresh_operational_readiness_selection_challenge_fixture do
-    operational_readiness_selection_result_set()
+    unavailable_resource_selection_result_set()
     |> CandidateRefresh.build(
       candidate_refresh: candidate_refresh_operational_readiness_selection_challenge_request(),
       generated_at: ~U[2026-05-14 00:00:00Z]
@@ -258,7 +352,7 @@ defmodule OrbitalDynamics.Validation.CandidateRefreshReadinessReplayFixtures do
     read_json!("study_results/quality_gate_resource_pressure_v1.json")
   end
 
-  defp operational_readiness_selection_result_set do
+  defp unavailable_resource_selection_result_set do
     ResultSet.new!(%{
       study_id: :validation,
       trajectory_results: [],
