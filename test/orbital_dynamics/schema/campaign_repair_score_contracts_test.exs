@@ -93,6 +93,78 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreContractsTest do
              )
   end
 
+  test "rejects schedule-term drift hidden by consistent aggregate arithmetic", %{
+    artifact: artifact
+  } do
+    for term_key <- ["schedule_churn_penalty", "schedule_move_penalty"] do
+      invalid = coordinated_term_edit(artifact, term_key, 1.0)
+
+      assert {:error, report} = Schema.validate_artifact(invalid)
+
+      assert Enum.any?(
+               report["errors"],
+               &(&1["path"] == "$.score_terms.#{term_key}")
+             )
+    end
+  end
+
+  test "keeps schedule terms optional and honors action, zero, and default policy semantics", %{
+    artifact: artifact
+  } do
+    unchanged_delta = %{"repair_action" => "unchanged"}
+
+    ignored_action =
+      artifact
+      |> update_in(["deltas"], &(&1 ++ [unchanged_delta]))
+      |> Map.delete("score_term_report")
+
+    assert [] == CampaignRepairScoreContracts.validate([], ignored_action)
+
+    policy_variants = [
+      Map.drop(artifact["scoring_policy"], [
+        "schedule_churn_cost_weight",
+        "schedule_move_cost_weight"
+      ]),
+      artifact["scoring_policy"]
+      |> Map.put("schedule_churn_cost_weight", "100")
+      |> Map.put("schedule_move_cost_weight", "0.01")
+    ]
+
+    for scoring_policy <- policy_variants do
+      variant =
+        artifact
+        |> Map.put("scoring_policy", scoring_policy)
+        |> Map.delete("score_term_report")
+
+      assert [] == CampaignRepairScoreContracts.validate([], variant)
+    end
+
+    zero_move =
+      artifact
+      |> update_in(
+        ["activities", Access.at(0), "repair"],
+        &Map.delete(&1, "schedule_churn_s")
+      )
+      |> put_in(["score_terms", "schedule_move_penalty"], 0.0)
+      |> Map.put("score", artifact["score"] + 4.0)
+      |> Map.delete("score_term_report")
+
+    assert [] == CampaignRepairScoreContracts.validate([], zero_move)
+
+    legacy_terms =
+      artifact["score_terms"]
+      |> Map.delete("schedule_churn_penalty")
+      |> Map.delete("schedule_move_penalty")
+
+    legacy =
+      artifact
+      |> Map.put("score_terms", legacy_terms)
+      |> Map.put("score", legacy_terms |> Map.values() |> Enum.sum())
+      |> Map.delete("score_term_report")
+
+    assert [] == CampaignRepairScoreContracts.validate([], legacy)
+  end
+
   test "rejects score-term report drift from the enclosing repair artifact", %{
     artifact: artifact
   } do
@@ -125,6 +197,24 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreContractsTest do
       assert {:error, report} = Schema.validate_artifact(invalid)
       assert Enum.any?(report["errors"], &(&1["path"] == expected_path))
     end
+  end
+
+  defp coordinated_term_edit(artifact, term_key, delta) do
+    tampered_score = artifact["score"] + delta
+    tampered_term = artifact["score_terms"][term_key] + delta
+
+    artifact
+    |> put_in(["score_terms", term_key], tampered_term)
+    |> Map.put("score", tampered_score)
+    |> update_in(["score_term_report", "rows"], fn rows ->
+      Enum.map(rows, fn row ->
+        row = Map.put(row, "timeline_score", tampered_score)
+
+        if row["term_key"] == term_key,
+          do: Map.put(row, "value", tampered_term),
+          else: row
+      end)
+    end)
   end
 
   defp read_json!(path) do

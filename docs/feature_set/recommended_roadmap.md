@@ -110,7 +110,8 @@ Already implemented or heavily covered:
   and reconciles any contact-intent penalty to unique pressured downlink IDs in
   the repaired activities; a present aggregate activity score is recomputed
   from those repaired activities with producer-equivalent numeric/default-zero
-  handling
+  handling, while present churn and movement terms are reconciled to repair
+  actions, activity churn seconds, and their embedded policy weights
 - V2 candidate-refresh source freshness contributes one explicit normalized
   risk-weight penalty for a stale or unknown report, aligned with its
   review/import gate and V3 refresh-freshness pressure semantics

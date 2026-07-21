@@ -129,7 +129,10 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   executable contracts. When `activity_score` is present, runtime validation
   recomputes it from the repaired activity collection with the producer's
   numeric/default-zero semantics, so coordinated edits to the total and report
-  rows cannot mask aggregate activity-value drift.
+  rows cannot mask aggregate activity-value drift. Present schedule-churn and
+  movement terms are likewise recomputed from counted moved/replaced/canceled/
+  suppressed deltas, repaired activity churn seconds, and their declared policy
+  weights; missing weights retain the producer defaults.
 
 ## Refreshed missed-contact repair
 

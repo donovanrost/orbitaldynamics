@@ -3,6 +3,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreContracts do
 
   alias OrbitalDynamics.CampaignPlanner.ScalarValues
 
+  @churn_actions ["moved", "replaced", "canceled", "suppressed"]
+
   import OrbitalDynamics.Schema.CollectionValidation, only: [validate_numeric_map: 3]
 
   import OrbitalDynamics.Schema.PrimitiveValidation,
@@ -16,6 +18,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreContracts do
     |> expect_type("$", artifact, "score_terms", :map)
     |> validate_numeric_map("$.score_terms", score_terms)
     |> validate_activity_score(artifact, score_terms)
+    |> validate_schedule_terms(artifact, score_terms)
     |> validate_score_sum(artifact, score_terms)
     |> validate_score_term_report(artifact, Map.get(artifact, "score_term_report"))
   end
@@ -61,6 +64,74 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreContracts do
   end
 
   defp validate_activity_score(issues, _artifact, _score_terms), do: issues
+
+  defp validate_schedule_terms(issues, artifact, score_terms)
+       when is_map(artifact) and is_map(score_terms) do
+    churn_count =
+      artifact
+      |> Map.get("deltas", [])
+      |> List.wrap()
+      |> Enum.filter(&is_map/1)
+      |> Enum.count(&(Map.get(&1, "repair_action") in @churn_actions))
+
+    moved_seconds =
+      artifact
+      |> Map.get("activities", [])
+      |> List.wrap()
+      |> Enum.filter(&is_map/1)
+      |> Enum.map(&activity_schedule_churn_s/1)
+      |> Enum.sum()
+
+    scoring_policy = Map.get(artifact, "scoring_policy", %{})
+
+    issues
+    |> validate_optional_derived_term(
+      score_terms,
+      "schedule_churn_penalty",
+      -churn_count * numeric_policy_value(scoring_policy, "schedule_churn_cost_weight", 100.0),
+      "must match repair-action churn count and schedule_churn_cost_weight"
+    )
+    |> validate_optional_derived_term(
+      score_terms,
+      "schedule_move_penalty",
+      -moved_seconds * numeric_policy_value(scoring_policy, "schedule_move_cost_weight", 0.01),
+      "must match repaired activity churn seconds and schedule_move_cost_weight"
+    )
+  end
+
+  defp validate_schedule_terms(issues, _artifact, _score_terms), do: issues
+
+  defp activity_schedule_churn_s(%{"repair" => %{} = repair}),
+    do: ScalarValues.numeric_or_nil(Map.get(repair, "schedule_churn_s")) || 0.0
+
+  defp activity_schedule_churn_s(_activity), do: 0.0
+
+  defp validate_optional_derived_term(issues, score_terms, key, expected, message) do
+    if Map.has_key?(score_terms, key) do
+      case Map.get(score_terms, key) do
+        actual when is_number(actual) ->
+          if close?(actual, expected) do
+            issues
+          else
+            [error("$.score_terms." <> key, message) | issues]
+          end
+
+        _actual ->
+          issues
+      end
+    else
+      issues
+    end
+  end
+
+  defp numeric_policy_value(%{} = policy, key, default) do
+    case ScalarValues.numeric_or_nil(Map.get(policy, key, default)) do
+      value when is_number(value) -> value
+      _value -> default
+    end
+  end
+
+  defp numeric_policy_value(_policy, _key, default), do: default
 
   defp validate_score_term_report(issues, _artifact, nil), do: issues
   defp validate_score_term_report(issues, _artifact, :null), do: issues
