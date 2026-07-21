@@ -199,6 +199,9 @@ work, a **partial** executable-schema track, and **near-term** / **later** /
 - Selected, candidate, and ranked activities require stable outer and nested
   source-window IDs, with executable equality checks preserving activity lineage
   back to the producer window.
+- V1 proposed contacts are recomputed from final candidates and reconciled for
+  exact count, order, and producer fields while permitting additional compatible
+  handoff metadata. Malformed source rows remain field-validator concerns.
 - Current observation and contact-family activity kinds conditionally pin nested
   source-window type to target visibility or ground-station access respectively.
 - Their activity-type tokens are required nonblank strings in runtime and export

@@ -118,6 +118,8 @@ defmodule OrbitalDynamics.Schema.CampaignPlanActivityDurationContractsTest do
       artifact
       |> put_in(["candidate_activities", Access.at(0), "ends_at_s"], 0.0)
       |> put_in(["candidate_activities", Access.at(0), "duration_s"], 0.0)
+      |> put_in(["proposed_contacts", Access.at(0), "ends_at_s"], 0.0)
+      |> put_in(["proposed_contacts", Access.at(0), "duration_s"], 0.0)
 
     assert {:ok, %{"schema_contract" => "campaign_plan.v1"}} =
              Schema.validate_artifact(artifact)

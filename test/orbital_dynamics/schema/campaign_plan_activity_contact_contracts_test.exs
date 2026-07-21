@@ -145,6 +145,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanActivityContactContractsTest do
           |> Map.delete("direction")
         end
       )
+      |> Map.put("proposed_contacts", [])
 
     assert {:ok, %{"schema_contract" => "campaign_plan.v1"}} =
              Schema.validate_artifact(artifact)

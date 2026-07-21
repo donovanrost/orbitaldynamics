@@ -224,6 +224,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanActivitySourceWindowContractsTest d
           |> update_in(["source_window"], &Map.delete(&1, "type"))
         end
       )
+      |> Map.put("proposed_contacts", [])
 
     assert {:ok, %{"schema_contract" => "campaign_plan.v1"}} =
              Schema.validate_artifact(artifact)

@@ -90,6 +90,10 @@ It answers:
 - `campaign_plan.objective_tradeoff_report` with per-ranked-timeline score-term
   deltas for operator review.
 - `campaign_plan.activities` for the highest-ranked timeline.
+- `campaign_plan.proposed_contacts` is an executable candidate-derived snapshot:
+  runtime validation recomputes rows with the producer normalization, requiring
+  exact count, order, and producer fields while allowing additional compatible
+  handoff metadata. JSON Schema remains the structural row layer.
 - Selected, candidate, and ranked-timeline activities carry required numeric
   non-negative `duration_s` evidence. Executable validation reconciles each
   value to `ends_at_s - starts_at_s`; JSON Schema exposes the required type and

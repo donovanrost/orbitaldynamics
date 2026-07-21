@@ -167,6 +167,11 @@ declare `proposed_contact.v1`. This schema identity selects an artifact adapter
 shape for review but does not reserve providers, import schedules, or execute
 commands; observations and future non-contact kinds do not claim it.
 
+Top-level `proposed_contacts` are reconciled to final candidate activities by
+rerunning the producer's downlink normalization. Count, order, and every derived
+field must match; additional compatible handoff metadata remains open. This is
+an executable cross-array snapshot rule beyond structural JSON Schema.
+
 Runtime `campaign_plan.v1` validation requires each ranked timeline to carry a
 stable scenario ID, numeric score, and numeric score-term values. When the
 optional `score_term_report.v1` is present, its source, model, term-key union,
