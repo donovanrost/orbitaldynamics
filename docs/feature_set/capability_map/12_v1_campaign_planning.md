@@ -52,6 +52,12 @@ rank/scenario/term rows, values, timeline scores, and selected flags must match
 the enclosing ranked timelines. The exported ranked-timeline schema constrains
 every score-term value to a number. These V1 terms are explanatory fields that
 include counts and subtotals, so they are not treated as one additive score sum.
+Runtime validation also reconciles the optional objective-tradeoff report with
+the ranked timelines: V1 model/source, rank and scenario identity, ranking and
+term-key counts, scores and selected-score deltas, term maps, selected counts,
+and ordered activity IDs must match. Ranked-timeline activity envelopes reuse
+the executable planned-activity contract and require their declared activity
+count to match the nested rows.
 
 ## Partial
 

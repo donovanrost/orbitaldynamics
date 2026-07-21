@@ -36,10 +36,18 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContractsTest do
         OrbitalDynamics.CampaignPlanner.score_report_model_limits()
       )
 
+    tradeoff_report =
+      ScoreReports.objective_tradeoff_report(
+        timelines,
+        artifact["objective_tradeoff_report"]["policy"],
+        OrbitalDynamics.CampaignPlanner.score_report_model_limits()
+      )
+
     artifact =
       artifact
       |> Map.put("ranked_timelines", timelines)
       |> Map.put("score_term_report", report)
+      |> Map.put("objective_tradeoff_report", tradeoff_report)
 
     assert {:ok, %{"schema_contract" => "campaign_plan.v1"}} =
              Schema.validate_artifact(artifact)

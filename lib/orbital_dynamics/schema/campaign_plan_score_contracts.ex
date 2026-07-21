@@ -5,9 +5,15 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContracts do
     only: [validate_numeric_map: 3, validate_rows: 4]
 
   import OrbitalDynamics.Schema.PrimitiveValidation,
-    only: [error: 2, expect_number: 4, expect_type: 5, require_fields: 4]
+    only: [
+      error: 2,
+      expect_non_negative_integer: 4,
+      expect_number: 4,
+      expect_type: 5,
+      require_fields: 4
+    ]
 
-  alias OrbitalDynamics.Schema.StableIdValidation
+  alias OrbitalDynamics.Schema.{ActivityContracts, StableIdValidation}
 
   def validate(issues, artifact) when is_map(artifact) do
     timelines = Map.get(artifact, "ranked_timelines")
@@ -21,12 +27,42 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContracts do
     score_terms = Map.get(timeline, "score_terms")
 
     issues
-    |> require_fields(path, timeline, ["scenario_id", "score", "score_terms"])
+    |> require_fields(path, timeline, [
+      "scenario_id",
+      "score",
+      "score_terms",
+      "activity_count",
+      "activities"
+    ])
     |> StableIdValidation.validate_stable_ids(path, timeline, ["scenario_id"])
     |> expect_number(path, timeline, "score")
     |> expect_type(path, timeline, "score_terms", :map)
     |> validate_numeric_map(path <> ".score_terms", score_terms)
+    |> expect_non_negative_integer(path, timeline, "activity_count")
+    |> expect_type(path, timeline, "activities", :list)
+    |> validate_rows(
+      path <> ".activities",
+      Map.get(timeline, "activities"),
+      &ActivityContracts.validate/3
+    )
+    |> validate_activity_count(path, timeline)
   end
+
+  defp validate_activity_count(issues, path, %{
+         "activity_count" => activity_count,
+         "activities" => activities
+       })
+       when is_integer(activity_count) and is_list(activities) do
+    validate_equal(
+      issues,
+      path <> ".activity_count",
+      activity_count,
+      length(activities),
+      "must equal activities count"
+    )
+  end
+
+  defp validate_activity_count(issues, _path, _timeline), do: issues
 
   defp validate_score_term_report(issues, timelines, %{"rows" => rows} = report)
        when is_list(timelines) and is_list(rows) do

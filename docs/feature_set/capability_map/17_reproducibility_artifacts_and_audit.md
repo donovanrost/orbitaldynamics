@@ -172,6 +172,10 @@ work, a **partial** executable-schema track, and **near-term** / **later** /
   checks an optional score-term report against the enclosing timeline ranks,
   scenarios, terms, values, scores, and selection flags; JSON Schema exports
   constrain ranked-timeline score-term values to numbers.
+- Executable V1 validation also pins optional objective-tradeoff rows to the
+  enclosing timeline rank/scenario, selected-score delta, score-term map,
+  selected counts, and activity identities while validating each nested ranked
+  activity through the existing planned-activity contract.
 - `campaign_repair.v2` exports nested repaired-activity, source-candidate, source
   contact-allocation, source timeline-feedback handoff rows, plan-delta, and
   approval-requirement rows.

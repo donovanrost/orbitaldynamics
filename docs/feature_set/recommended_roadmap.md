@@ -208,6 +208,9 @@ Already implemented or heavily covered:
 - runtime V1 validation checks numeric ranked-timeline score explanations and
   pins optional score-term report rows to their enclosing rank, scenario, term,
   value, timeline score, and selection; exported score-term values are numeric
+- optional V1 objective-tradeoff rows are reconciled with their enclosing
+  ranked timelines, including selected-score deltas, term maps, selected counts,
+  and activity identities
 
 Good first slices:
 
