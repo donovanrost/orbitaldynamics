@@ -196,6 +196,10 @@ Ranked score evidence also requires nonnegative integer
 `selected_observation_count` and `selected_contact_count` terms. Runtime derives
 the former from `observe` activities and the latter with the producer's
 normalized downlink-contact classifier; JSON Schema requires and types both.
+Ranked timelines also require numeric `target_value`, `contact_value`, and
+`eclipse_penalty` terms. Each is reconciled to the matching nested activity-term
+sum with a zero default while remaining outside aggregate-score arithmetic, so
+the explanatory decomposition does not double-count activity score.
 Runtime validation also reconciles the optional objective-tradeoff report with
 the ranked timelines: V1 model/source, rank and scenario identity, ranking and
 term-key counts, scores and selected-score deltas, term maps, selected counts,

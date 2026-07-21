@@ -18,6 +18,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContracts do
 
   @required_aggregate_terms ~w(activity_score activity_count_penalty)
   @required_count_terms ~w(selected_observation_count selected_contact_count)
+  @required_component_terms ~w(target_value contact_value eclipse_penalty)
   @optional_aggregate_terms ~w(
     downlink_completion_score
     timeline_precondition_pressure_penalty
@@ -71,7 +72,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContracts do
         issues,
         path <> ".score_terms",
         score_terms,
-        @required_aggregate_terms ++ @required_count_terms
+        @required_aggregate_terms ++ @required_count_terms ++ @required_component_terms
       )
 
   defp require_score_terms(issues, _path, _score_terms), do: issues
@@ -132,6 +133,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContracts do
     |> validate_activity_score_evidence(path, timeline)
     |> validate_activity_count_penalty_evidence(path, timeline, scoring_policy)
     |> validate_selection_count_evidence(path, timeline)
+    |> validate_component_score_evidence(path, timeline)
   end
 
   defp validate_activity_score_evidence(
@@ -229,6 +231,40 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContracts do
   defp valid_count_activity?(_activity), do: false
 
   defp non_negative_integer?(value), do: is_integer(value) and value >= 0
+
+  defp validate_component_score_evidence(
+         issues,
+         path,
+         %{"score_terms" => score_terms, "activities" => activities}
+       )
+       when is_map(score_terms) and is_list(activities) do
+    Enum.reduce(@required_component_terms, issues, fn term, acc ->
+      component_value = Map.get(score_terms, term)
+
+      nested_values =
+        Enum.map(activities, fn
+          %{"score_terms" => nested_terms} when is_map(nested_terms) ->
+            Map.get(nested_terms, term, 0.0)
+
+          _activity ->
+            :invalid
+        end)
+
+      if is_number(component_value) and Enum.all?(nested_values, &is_number/1) do
+        validate_number_equal(
+          acc,
+          path <> ".score_terms.#{term}",
+          component_value,
+          Enum.sum(nested_values),
+          "must equal nested activity #{term} sum"
+        )
+      else
+        acc
+      end
+    end)
+  end
+
+  defp validate_component_score_evidence(issues, _path, _timeline), do: issues
 
   defp scoring_policy(%{"assumptions" => assumptions}) when is_map(assumptions) do
     case Map.fetch(assumptions, "scoring_policy") do

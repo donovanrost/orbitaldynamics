@@ -254,13 +254,19 @@ defmodule OrbitalDynamics.Schema.CampaignPlanJsonSchema do
             "activity_score",
             "activity_count_penalty",
             "selected_observation_count",
-            "selected_contact_count"
+            "selected_contact_count",
+            "target_value",
+            "contact_value",
+            "eclipse_penalty"
           ],
           "properties" => %{
             "activity_score" => %{"type" => "number"},
             "activity_count_penalty" => %{"type" => "number"},
             "selected_observation_count" => %{"type" => "integer", "minimum" => 0},
-            "selected_contact_count" => %{"type" => "integer", "minimum" => 0}
+            "selected_contact_count" => %{"type" => "integer", "minimum" => 0},
+            "target_value" => %{"type" => "number"},
+            "contact_value" => %{"type" => "number"},
+            "eclipse_penalty" => %{"type" => "number"}
           },
           "additionalProperties" => %{"type" => "number"}
         },

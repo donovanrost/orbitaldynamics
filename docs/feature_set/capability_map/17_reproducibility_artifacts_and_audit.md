@@ -232,6 +232,9 @@ work, a **partial** executable-schema track, and **near-term** / **later** /
 - Exported ranked score terms require nonnegative integer selected-observation
   and selected-contact counts. Executable validation reconciles both to nested
   activities using the ranking producer's observation and downlink classifiers.
+- Exported ranked score terms also require numeric target-value, contact-value,
+  and eclipse-penalty components. Each is reconciled to matching nested activity
+  terms but excluded from aggregate score arithmetic to avoid double-counting.
 - Ranked-timeline scenario IDs are unique, and nested activities must carry the
   identity of their enclosing scenario. Empty timelines remain valid; scenario
   uniqueness and ownership are executable cross-row/cross-field rules.

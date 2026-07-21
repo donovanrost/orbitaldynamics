@@ -83,6 +83,10 @@ It answers:
   selected-contact counts. Runtime reconciles observations by activity type and
   contacts through the same normalized downlink classifier used by ranking;
   JSON Schema requires and integer-types both terms.
+- Numeric `target_value`, `contact_value`, and `eclipse_penalty` component terms
+  are likewise required and schema-exported. Runtime sums each matching nested
+  activity term with a zero default; these explanations remain excluded from the
+  aggregate score to avoid double-counting `activity_score`.
 - `campaign_plan.objective_tradeoff_report` with per-ranked-timeline score-term
   deltas for operator review.
 - `campaign_plan.activities` for the highest-ranked timeline.

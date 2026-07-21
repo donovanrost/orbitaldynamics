@@ -54,7 +54,10 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContractsTest do
              "activity_score",
              "activity_count_penalty",
              "selected_observation_count",
-             "selected_contact_count"
+             "selected_contact_count",
+             "target_value",
+             "contact_value",
+             "eclipse_penalty"
            ]
 
     assert get_in(score_terms, ["properties", "activity_score", "type"]) == "number"
@@ -69,6 +72,10 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContractsTest do
              "type" => "integer",
              "minimum" => 0
            }
+
+    for term <- ["target_value", "contact_value", "eclipse_penalty"] do
+      assert get_in(score_terms, ["properties", term, "type"]) == "number"
+    end
   end
 
   test "requires activity score evidence on every V1 activity surface", %{artifact: artifact} do
@@ -152,7 +159,10 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContractsTest do
           "activity_score",
           "activity_count_penalty",
           "selected_observation_count",
-          "selected_contact_count"
+          "selected_contact_count",
+          "target_value",
+          "contact_value",
+          "eclipse_penalty"
         ] do
       [timeline] = artifact["ranked_timelines"]
       timeline = update_in(timeline, ["score_terms"], &Map.delete(&1, term))
@@ -291,7 +301,10 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContractsTest do
         "activity_score" => 0.0,
         "activity_count_penalty" => 0.0,
         "selected_observation_count" => 0,
-        "selected_contact_count" => 0
+        "selected_contact_count" => 0,
+        "target_value" => 0.0,
+        "contact_value" => 0.0,
+        "eclipse_penalty" => 0.0
       },
       "activity_count" => 0,
       "activities" => []
@@ -363,7 +376,10 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContractsTest do
         "activity_score" => downlink["score"],
         "activity_count_penalty" => 0.0,
         "selected_observation_count" => 0,
-        "selected_contact_count" => 1
+        "selected_contact_count" => 1,
+        "target_value" => Map.get(downlink["score_terms"], "target_value", 0.0),
+        "contact_value" => Map.get(downlink["score_terms"], "contact_value", 0.0),
+        "eclipse_penalty" => Map.get(downlink["score_terms"], "eclipse_penalty", 0.0)
       },
       "activity_count" => 1,
       "activities" => [downlink]
@@ -403,6 +419,47 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContractsTest do
                  ])
              )
     end
+  end
+
+  test "reconciles ranked component terms to nested activity terms", %{artifact: artifact} do
+    [timeline] = artifact["ranked_timelines"]
+
+    for term <- ["target_value", "contact_value", "eclipse_penalty"] do
+      timeline = update_in(timeline, ["score_terms", term], &(&1 + 1.0))
+      invalid = with_timelines(artifact, [timeline])
+
+      assert {:error, report} = Schema.validate_artifact(invalid)
+
+      assert Enum.any?(
+               report["errors"],
+               &(&1["path"] == "$.ranked_timelines[0].score_terms.#{term}" and
+                   &1["message"] == "must equal nested activity #{term} sum")
+             )
+    end
+  end
+
+  test "leaves malformed nested component terms to activity validation", %{
+    artifact: artifact
+  } do
+    [timeline] = artifact["ranked_timelines"]
+
+    malformed =
+      put_in(
+        timeline,
+        ["activities", Access.at(0), "score_terms", "target_value"],
+        "high"
+      )
+
+    issues =
+      CampaignPlanScoreContracts.validate([], %{
+        "ranked_timelines" => [malformed],
+        "assumptions" => %{"scoring_policy" => %{}}
+      })
+
+    refute Enum.any?(
+             issues,
+             &(&1["message"] == "must equal nested activity target_value sum")
+           )
   end
 
   test "requires ranked timelines to follow descending planner score order", %{
@@ -555,6 +612,9 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContractsTest do
       |> put_timeline_score(0.0)
       |> put_in(["score_terms", "selected_observation_count"], 0)
       |> put_in(["score_terms", "selected_contact_count"], 0)
+      |> put_in(["score_terms", "target_value"], 0.0)
+      |> put_in(["score_terms", "contact_value"], 0.0)
+      |> put_in(["score_terms", "eclipse_penalty"], 0.0)
       |> Map.put("activity_count", 0)
       |> Map.put("activities", [])
 
