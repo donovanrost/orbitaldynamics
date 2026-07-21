@@ -150,6 +150,51 @@ defmodule OrbitalDynamics.CandidateRefresh.ObjectiveReplayBuildTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "replays target commitments with target observation semantics" do
+    report = %{
+      "schema_contract" => "objective_satisfaction_report.v1",
+      "provenance" => %{"trust_boundary" => "campaign_objective_review"},
+      "rows" => [
+        %{
+          "id" => "objective:target_commitment:target_a",
+          "objective" => "Target Commitment",
+          "status" => "No Candidate Window",
+          "target_id" => "target_a",
+          "required_count" => 1,
+          "candidate_count" => 0,
+          "selected_count" => 0
+        }
+      ]
+    }
+
+    artifact =
+      result_set()
+      |> CandidateRefresh.build(
+        candidate_refresh:
+          refresh_request()
+          |> Map.put("source_objective_satisfaction_report", report),
+        generated_at: ~U[2026-05-14 00:00:00Z]
+      )
+
+    observe = Enum.find(artifact["candidate_activities"], &(&1["type"] == "observe"))
+
+    assert %{
+             "observation_objective_count" => 1,
+             "observation_objective_ids" => [objective_id],
+             "observation_objective_types" => ["target_observation"],
+             "required_observations" => 1.0,
+             "score_terms" => %{"observation_objective_value" => 25.0}
+           } = observe
+
+    assert String.starts_with?(
+             objective_id,
+             "objective_satisfaction:target_commitment:target_a:"
+           )
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "derives downlink completion objectives from routed source score term reports" do
     report = %{
       "schema_contract" => "score_term_report.v1",

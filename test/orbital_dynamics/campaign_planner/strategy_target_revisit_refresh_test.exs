@@ -159,6 +159,49 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyTargetRevisitRefreshTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "strategy canonicalizes target commitment mission objectives as target observations" do
+    mission_state =
+      mission_state_with_refresh_inputs()
+      |> Map.put(:objectives, [
+        %{
+          objective: "Target Commitment",
+          id: "commit_target_a",
+          target_id: "target_a",
+          required_count: 1,
+          priority: 4.0
+        }
+      ])
+
+    artifact =
+      strategy(base_plan(%{}),
+        mission_state: mission_state,
+        derive_branches?: true,
+        branches: [%{id: "baseline"}],
+        current_epoch_s: 0.0
+      )
+
+    refute branch(artifact, "derived_target_revisit_target_a")
+
+    observation = branch(artifact, "derived_target_observation_target_a")
+
+    assert %{
+             "objective_id" => "commit_target_a",
+             "objective_type" => "target_observation",
+             "target_id" => "target_a",
+             "required_observations" => 1
+           } = List.first(observation["events"])
+
+    assert Enum.any?(
+             observation["candidate_plan"]["strategic_additions"],
+             &(&1["target_id"] == "target_a" and
+                 get_in(&1, ["repair", "reason"]) ==
+                   "target_observation_candidate_inserted")
+           )
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "strategy target revisit objectives honor inline target selector lists" do
     mission_state =
       mission_state_with_refresh_inputs()

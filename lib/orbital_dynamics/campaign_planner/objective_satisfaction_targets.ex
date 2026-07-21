@@ -7,6 +7,7 @@ defmodule OrbitalDynamics.CampaignPlanner.ObjectiveSatisfactionTargets do
   alias OrbitalDynamics.CampaignPlanner.ScalarValues
   alias OrbitalDynamics.CampaignPlanner.ScoreTermValues
   alias OrbitalDynamics.CampaignPlanner.ValueEncoding
+  alias OrbitalDynamics.TargetObservationObjectiveType
 
   @selected_target_fields [
     "selected_targets",
@@ -104,8 +105,9 @@ defmodule OrbitalDynamics.CampaignPlanner.ObjectiveSatisfactionTargets do
   ]
 
   def target_objective_type("coverage"), do: "target_coverage"
-  def target_objective_type("target_commitment"), do: "target_observation"
-  def target_objective_type(objective), do: objective
+
+  def target_objective_type(objective),
+    do: TargetObservationObjectiveType.canonical(objective) || objective
 
   def target_reasons(row), do: target_reasons(row, callbacks())
 

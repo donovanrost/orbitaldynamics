@@ -5,6 +5,7 @@ defmodule OrbitalDynamics.CandidateRefresh.ObservationObjectives do
 
   alias OrbitalDynamics.CandidateRefresh.ObjectiveMatching
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.Common.EncodedValue
+  alias OrbitalDynamics.TargetObservationObjectiveType
 
   def context(
         refresh,
@@ -71,16 +72,15 @@ defmodule OrbitalDynamics.CandidateRefresh.ObservationObjectives do
     refresh
     |> refresh_objectives.()
     |> Enum.filter(fn
-      %{"type" => type}
-      when type in [
-             "target_observation",
-             "target_revisit",
-             "target_coverage",
-             "coverage",
-             "priority_commitment",
-             "urgent_target"
-           ] ->
-        true
+      %{"type" => type} ->
+        TargetObservationObjectiveType.supported?(type) or
+          type in [
+            "target_revisit",
+            "target_coverage",
+            "coverage",
+            "priority_commitment",
+            "urgent_target"
+          ]
 
       _objective ->
         false

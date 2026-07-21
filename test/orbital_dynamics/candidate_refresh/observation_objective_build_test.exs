@@ -1,7 +1,13 @@
 defmodule OrbitalDynamics.CandidateRefresh.ObservationObjectiveBuildTest do
   use ExUnit.Case, async: true
 
-  alias OrbitalDynamics.{CandidateRefresh, Epoch, ResultSet, Schema}
+  alias OrbitalDynamics.{
+    CandidateRefresh,
+    Epoch,
+    ResultSet,
+    Schema,
+    TargetObservationObjectiveType
+  }
 
   test "applies target observation objectives to refreshed observation candidates" do
     artifact =
@@ -67,6 +73,44 @@ defmodule OrbitalDynamics.CandidateRefresh.ObservationObjectiveBuildTest do
 
     assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
+  end
+
+  test "applies every target observation objective alias consistently" do
+    aliases = TargetObservationObjectiveType.aliases()
+
+    assert aliases == ["target_observation", "target_commitment"]
+
+    Enum.each(aliases, fn objective_type ->
+      objective_id = "obs:target_a:#{objective_type}"
+
+      artifact =
+        result_set()
+        |> CandidateRefresh.build(
+          candidate_refresh:
+            refresh_request()
+            |> Map.put("objectives", [
+              %{
+                "id" => objective_id,
+                "type" => objective_type,
+                "target_id" => "target_a",
+                "spacecraft_id" => "sat_1",
+                "required_count" => 2
+              }
+            ]),
+          generated_at: ~U[2026-05-14 00:00:00Z]
+        )
+
+      assert [observe] =
+               Enum.filter(artifact["candidate_activities"], &(&1["type"] == "observe"))
+
+      assert observe["observation_objective_ids"] == [objective_id]
+      assert observe["observation_objective_types"] == [objective_type]
+      assert observe["required_observations"] == 2.0
+      assert observe["score_terms"]["observation_objective_value"] == 50.0
+
+      assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
+               Schema.validate_artifact(artifact)
+    end)
   end
 
   test "refresh identity changes when mission-state objectives change generated candidates" do

@@ -105,7 +105,7 @@ Priority-commitment scoring now measures required, planned, and missing observat
 
 ### Target-revisit and target-observation derivation
 
-Target-revisit and target-observation branch derivation uses the same explicit target-selector and inline target-spec handling, while keeping distinct branch IDs, labels, and strategic-addition repair reasons for `target_revisit` versus `target_observation` objectives.
+Target-revisit and target-observation branch derivation uses the same explicit target-selector and inline target-spec handling, while keeping distinct branch IDs, labels, and strategic-addition repair reasons for `target_revisit` versus `target_observation` objectives. Campaign `target_commitment` rows use the shared target-observation alias contract at direct CandidateRefresh, mission-objective, and objective-satisfaction replay boundaries; V3 decision events and repair reasons are canonical `target_observation`, while standalone candidate evidence retains the supplied label for audit.
 
 Multiple scoped objectives for the same target keep disambiguated branch IDs plus base-branch lineage in branch metadata. Branch-comparison, operator-review, and Cadence-import rows flatten that target-branch lineage so adapter queues can route scoped target futures without reopening branch internals.
 

@@ -297,6 +297,10 @@ uncovered requested target. These:
 - Target-revisit and target-observation objectives use the same explicit target
   selector and inline target-spec handling when planned observations are below
   the required count.
+- `target_commitment` is a cross-ingress alias for `target_observation`: direct
+  CandidateRefresh retains the input label for audit, while source-report and
+  V3 mission paths emit canonical target-observation decisions and repair
+  reasons. `target_revisit` remains a distinct multi-observation objective.
 - Multiple scoped target objectives for the same target now keep distinct
   branch IDs with base-branch lineage instead of collapsing into one refresh,
   with that lineage flattened through branch-comparison, operator-review, and

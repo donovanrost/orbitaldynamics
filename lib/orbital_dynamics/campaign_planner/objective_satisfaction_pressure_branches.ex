@@ -16,7 +16,9 @@ defmodule OrbitalDynamics.CampaignPlanner.ObjectiveSatisfactionPressureBranches 
   }
 
   alias OrbitalDynamics.CollectionLatencyObjectiveType
+  alias OrbitalDynamics.TargetObservationObjectiveType
   require CollectionLatencyObjectiveType
+  require TargetObservationObjectiveType
 
   def branch(row, source_path, index, callbacks \\ default_callbacks()) do
     row = normalize_row(row, callbacks)
@@ -95,14 +97,13 @@ defmodule OrbitalDynamics.CampaignPlanner.ObjectiveSatisfactionPressureBranches 
   end
 
   def pressure_events(%{"objective" => objective} = row, source_path, callbacks)
-      when objective in [
-             "target_coverage",
-             "coverage",
-             "target_commitment",
-             "priority_commitment",
-             "target_observation",
-             "target_revisit"
-           ] do
+      when TargetObservationObjectiveType.is_supported(objective) or
+             objective in [
+               "target_coverage",
+               "coverage",
+               "priority_commitment",
+               "target_revisit"
+             ] do
     if gap_status?(row["status"], callbacks) do
       row
       |> gap_target_ids(callbacks)

@@ -10,6 +10,7 @@ defmodule OrbitalDynamics.CampaignPlanner.MissionStateNormalization do
 
   alias OrbitalDynamics.Communications.StationCalendar
   alias OrbitalDynamics.CollectionLatencyObjectiveType
+  alias OrbitalDynamics.TargetObservationObjectiveType
 
   def normalize(state), do: normalize(state, callbacks())
 
@@ -370,10 +371,10 @@ defmodule OrbitalDynamics.CampaignPlanner.MissionStateNormalization do
   end
 
   defp canonical_objective_type(value) do
-    CollectionLatencyObjectiveType.canonical(value) || canonical_non_latency_objective_type(value)
+    CollectionLatencyObjectiveType.canonical(value) ||
+      TargetObservationObjectiveType.canonical(value) ||
+      canonical_non_latency_objective_type(value)
   end
-
-  defp canonical_non_latency_objective_type("target_commitment"), do: "target_observation"
 
   defp canonical_non_latency_objective_type("required_downlink_completion"),
     do: "downlink_completion"

@@ -60,7 +60,7 @@ Status: **`partial`**.
 
 ## Objectives and gap derivation
 
-- Supported objectives: priority-commitment, target-coverage, distinct target-observation, multi-observation target-revisit, and objective-scoped multi-gap collection-latency objectives.
+- Supported objectives: priority-commitment, target-coverage, distinct target-observation, multi-observation target-revisit, and objective-scoped multi-gap collection-latency objectives. Campaign `target_commitment` rows are single-observation commitments and share canonical `target_observation` semantics; they do not become target revisits.
 - Collection-latency objective aliases are consistent across standalone refresh, V3 mission objectives, objective-satisfaction report replay, and objective-gap summaries: `collection_latency`, `collection_downlink_latency`, `data_latency`, `downlink_latency`, `max_collection_latency`, `collection_latency_limit`, `delivery_latency`, `delivery_latency_limit`, `max_delivery_latency`, and `required_delivery_latency` all drive the canonical branch-local `collection_latency` decision path.
 - Downlink-completion gap additions by contact count or required data volume, including collection-latency data-volume gaps plus branch-comparison objective-satisfaction evidence inside the required latency window.
 
@@ -125,7 +125,7 @@ Status: **`partial`**.
 - **Station-throughput feedback** — consumed as a deterministic capacity factor for generated downlink candidates.
 - Accumulates multiple matching explicit downlink-completion objective data-volume requirements for the same station before scoring generated downlink candidates.
 - Now adds explicit operational-feedback downlink demand to matching objective demand instead of treating feedback as a fallback that can hide objective volume, while branch-derived refresh avoids applying the same operational feedback twice when V3 already materialized it into `ground_network` capacity.
-- Standalone candidate refresh now also consumes target-observation, target-revisit, target-coverage, priority-commitment, and urgent-target objectives, including nested `target` objects and target-object lists, as deterministic observation-candidate score and context evidence:
+- Standalone candidate refresh now also consumes target-observation (including the `target_commitment` alias), target-revisit, target-coverage, priority-commitment, and urgent-target objectives, including nested `target` objects and target-object lists, as deterministic observation-candidate score and context evidence:
   - including required-observation counts and objective IDs in both the candidate row and activity context;
   - urgent/priority objective priorities can raise the generated observation `target_priority` with objective-source evidence instead of remaining detached from target-value scoring.
 

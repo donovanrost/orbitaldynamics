@@ -2,6 +2,7 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ObjectiveGap.Obje
   @moduledoc false
 
   alias OrbitalDynamics.CollectionLatencyObjectiveType
+  alias OrbitalDynamics.TargetObservationObjectiveType
 
   def downlink_gap do
     [
@@ -11,14 +12,8 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ObjectiveGap.Obje
   end
 
   def target_gap do
-    [
-      "target_coverage",
-      "coverage",
-      "target_commitment",
-      "priority_commitment",
-      "target_observation",
-      "target_revisit"
-    ]
+    ["target_coverage", "coverage", "priority_commitment", "target_revisit"] ++
+      TargetObservationObjectiveType.aliases()
   end
 
   def collection_latency_gap, do: CollectionLatencyObjectiveType.aliases()

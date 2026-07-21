@@ -3,6 +3,8 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceObjectives.ObjectiveSatisfactio
 
   alias OrbitalDynamics.CandidateRefresh.ValueEncoding
   alias OrbitalDynamics.CollectionLatencyObjectiveType
+  alias OrbitalDynamics.TargetObservationObjectiveType
+  require TargetObservationObjectiveType
 
   @boolean_true_tokens ~w(true 1)
   @boolean_false_tokens ~w(false 0)
@@ -174,14 +176,13 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceObjectives.ObjectiveSatisfactio
           downlink_objectives(path, row, index)
 
         type
-        when type in [
-               "target_coverage",
-               "coverage",
-               "target_commitment",
-               "priority_commitment",
-               "target_observation",
-               "target_revisit"
-             ] ->
+        when TargetObservationObjectiveType.is_supported(type) or
+               type in [
+                 "target_coverage",
+                 "coverage",
+                 "priority_commitment",
+                 "target_revisit"
+               ] ->
           target_objectives(path, row, index, type)
 
         type ->
@@ -235,7 +236,7 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceObjectives.ObjectiveSatisfactio
         "scenario_id" => stable_id_or_nil(row["scenario_id"]),
         "spacecraft_id" => spacecraft_id(row),
         "target_id" => target_id,
-        "required_revisits" => required_observations(row),
+        "required_observations" => required_observations(row),
         "source" => "objective_satisfaction_report.rows",
         "source_path" => path,
         "source_objective" => row["objective"],
@@ -285,8 +286,9 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceObjectives.ObjectiveSatisfactio
   end
 
   defp refresh_target_type("coverage"), do: "target_coverage"
-  defp refresh_target_type("target_commitment"), do: "target_revisit"
-  defp refresh_target_type(type), do: type
+
+  defp refresh_target_type(type),
+    do: TargetObservationObjectiveType.canonical(type) || type
 
   defp row_status(row) do
     [
