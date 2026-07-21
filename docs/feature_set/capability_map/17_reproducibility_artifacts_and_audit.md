@@ -190,6 +190,8 @@ work, a **partial** executable-schema track, and **near-term** / **later** /
 - Selected, candidate, and ranked activities require stable outer and nested
   source-window IDs, with executable equality checks preserving activity lineage
   back to the producer window.
+- Current observation and contact-family activity kinds conditionally pin nested
+  source-window type to target visibility or ground-station access respectively.
 - Their activity-type tokens are required nonblank strings in runtime and export
   while retaining an open vocabulary for compatible future activity kinds.
 - Each activity's required Cadence-import envelope carries a stable external ID

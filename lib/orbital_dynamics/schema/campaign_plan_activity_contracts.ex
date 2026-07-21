@@ -6,6 +6,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanActivityContracts do
 
   alias OrbitalDynamics.Schema.CampaignPlanActivityCadenceContracts
   alias OrbitalDynamics.Schema.CampaignPlanActivityContactContracts
+  alias OrbitalDynamics.Schema.CampaignPlanActivitySourceWindowTypeContracts
   alias OrbitalDynamics.Schema.StableIdValidation
 
   @activity_fields ["activities", "candidate_activities"]
@@ -58,6 +59,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanActivityContracts do
     |> validate_duration(path, activity)
     |> validate_score(path, activity)
     |> validate_source_window(path, activity)
+    |> CampaignPlanActivitySourceWindowTypeContracts.validate(path, activity)
     |> CampaignPlanActivityCadenceContracts.validate(path, activity)
     |> CampaignPlanActivityContactContracts.validate(path, activity)
   end

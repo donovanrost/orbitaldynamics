@@ -75,6 +75,10 @@ It answers:
 - Every activity preserves its producer window through required stable
   `source_window_id` and nested `source_window.id` evidence. Runtime validation
   requires those IDs to match before the activity is accepted for handoff.
+- Current activity kinds also pin nested source-window family: observations use
+  `target_visibility`; downlink, command, tracking, and health-check activities
+  use `ground_station_access`. Future activity kinds remain open until their
+  producer provenance contract is declared.
 - Activity `type` is a required nonblank string across selected, candidate, and
   ranked rows. The vocabulary remains open so later planners can add richer
   activity kinds without silently accepting malformed tokens.

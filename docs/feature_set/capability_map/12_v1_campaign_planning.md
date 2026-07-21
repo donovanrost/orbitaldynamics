@@ -120,6 +120,11 @@ and runtime validation requires them to match. The export requires the nested ID
 so downstream timing, score, and provenance review can retain the producer
 window identity.
 
+Current producer activity kinds additionally pin the nested source-window type:
+observations map to `target_visibility`, while downlink, command, tracking, and
+health-check rows map to `ground_station_access`. Future activity kinds retain
+an open window-family mapping until their producer contract is declared.
+
 Every selected, candidate, and ranked activity also requires a nonblank string
 `type`. The runtime/export contract intentionally keeps that vocabulary open:
 current producers emit observation and contact-family tokens, while future

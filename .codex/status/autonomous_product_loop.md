@@ -5,50 +5,49 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Reconcile V1 Cadence activity dispatch types.
+Reconcile V1 activity source-window families.
 
 Status:
 Complete and parent-reviewed; ready to publish.
 
 Delivered:
-- Declared one ordered mapping table for current V1 activity kinds: observe to
-  `observation`, command to `command`, and downlink/tracking/health-check to
-  `contact`.
-- Reconciled valid nonblank Cadence activity types against that mapping on
-  selected, candidate, and ranked V1 activity surfaces.
-- Exported the same five conditional mappings after the contact-routing rules on
-  every campaign-plan JSON Schema activity surface.
-- Kept future activity kinds open while retaining their required nonblank import
-  type and stable identity contract.
-- Added conditional export, all-kind/all-surface mismatch, malformed-value
-  ownership, future-token, and generated producer coverage.
+- Declared one ordered source-window mapping table: observe to
+  `target_visibility`, and downlink/command/tracking/health-check to
+  `ground_station_access`.
+- Required a nested source-window type for each current activity kind and
+  reconciled it across selected, candidate, and ranked V1 surfaces.
+- Exported the same five conditional provenance mappings on all three campaign-
+  plan JSON Schema activity surfaces.
+- Kept future activity kinds open while preserving their stable outer/nested
+  source-window identity requirements.
+- Added conditional export, missing/non-string/blank/wrong-family, single-error,
+  future-kind, and generated producer coverage.
 - Regenerated only `campaign_plan.v1` and the aggregate schema bundle.
 - Updated V1 generation, planning, reproducibility, and roadmap documentation.
 
 Review calibration:
-- Pre-fix wrong dispatch mutations passed for observe, downlink, command,
-  tracking, and health-check rows across selected/candidate/ranked surfaces.
-- The 111-line focused Cadence contract is the single runtime/export mapping
-  source, preventing runtime and JSON Schema token drift.
-- Wrong but well-formed current tokens receive semantic remediation at
-  `cadence_import.activity_type`; malformed or blank values retain one existing
-  shape remediation without a mapping cascade.
-- A future activity with a nonblank future dispatch token remains valid, and
-  parent review found no publish blocker.
+- Pre-fix wrong-family mutations passed for selected/ranked observations and all
+  four contact kinds.
+- The 53-line focused module is the single runtime/export mapping source; the
+  consolidated V1 activity contract remains cohesive at 207 lines.
+- Missing/malformed source-window envelopes retain existing validation ownership;
+  current-kind nested type failures each produce one path-specific remediation.
+- A future activity without nested source-window type remains valid, and parent
+  review found no publish blocker.
 
 Verification:
-- Focused producer/activity contracts: `27 passed`.
-- Schema plus lint area: `328 passed`.
+- Focused producer/activity contracts: `34 passed`.
+- Schema plus lint area: `333 passed`.
 - Planner area: `760 passed`.
-- Full suite: `3641 passed`.
+- Full suite: `3646 passed`.
 - `mix format --check-formatted`, `mix compile --warnings-as-errors`, and
   `git diff --check` pass.
 
 Level 6 pillar advanced:
-Stable, reviewable Cadence integration artifacts without execution coupling.
+Durable, reviewable activity provenance across V1 planning artifacts.
 
 Previous published slice:
-- `1624db56` Contract V1 contact activity routing (`3638 passed`).
+- `2b4fbb21` Reconcile V1 Cadence activity dispatch (`3641 passed`).
 
 Remaining maturity gaps:
 - Continue calibrated realized-feedback depth where evidence is genuinely
