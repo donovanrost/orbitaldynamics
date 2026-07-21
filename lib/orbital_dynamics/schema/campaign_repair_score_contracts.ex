@@ -1,6 +1,8 @@
 defmodule OrbitalDynamics.Schema.CampaignRepairScoreContracts do
   @moduledoc false
 
+  alias OrbitalDynamics.CampaignPlanner.ScalarValues
+
   import OrbitalDynamics.Schema.CollectionValidation, only: [validate_numeric_map: 3]
 
   import OrbitalDynamics.Schema.PrimitiveValidation,
@@ -13,6 +15,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreContracts do
     |> expect_number("$", artifact, "score")
     |> expect_type("$", artifact, "score_terms", :map)
     |> validate_numeric_map("$.score_terms", score_terms)
+    |> validate_activity_score(artifact, score_terms)
     |> validate_score_sum(artifact, score_terms)
     |> validate_score_term_report(artifact, Map.get(artifact, "score_term_report"))
   end
@@ -31,6 +34,33 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreContracts do
   end
 
   defp validate_score_sum(issues, _artifact, _score_terms), do: issues
+
+  defp validate_activity_score(
+         issues,
+         %{"activities" => activities},
+         %{"activity_score" => actual}
+       )
+       when is_list(activities) and is_number(actual) do
+    expected =
+      activities
+      |> Enum.filter(&is_map/1)
+      |> Enum.map(&(ScalarValues.numeric_or_nil(Map.get(&1, "score")) || 0.0))
+      |> Enum.sum()
+
+    if close?(actual, expected) do
+      issues
+    else
+      [
+        error(
+          "$.score_terms.activity_score",
+          "must equal the sum of repaired activity scores"
+        )
+        | issues
+      ]
+    end
+  end
+
+  defp validate_activity_score(issues, _artifact, _score_terms), do: issues
 
   defp validate_score_term_report(issues, _artifact, nil), do: issues
   defp validate_score_term_report(issues, _artifact, :null), do: issues

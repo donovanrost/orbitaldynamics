@@ -126,7 +126,10 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   recomputes it from unique exact pressured downlink IDs selected in repaired
   activities and the declared `risk_weight`. The exported schema constrains
   every `score_terms` value to a number; these cross-field comparisons remain
-  executable contracts.
+  executable contracts. When `activity_score` is present, runtime validation
+  recomputes it from the repaired activity collection with the producer's
+  numeric/default-zero semantics, so coordinated edits to the total and report
+  rows cannot mask aggregate activity-value drift.
 
 ## Refreshed missed-contact repair
 

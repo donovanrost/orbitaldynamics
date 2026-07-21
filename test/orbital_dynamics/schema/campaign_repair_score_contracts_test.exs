@@ -2,6 +2,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreContractsTest do
   use ExUnit.Case, async: true
 
   alias OrbitalDynamics.Schema
+  alias OrbitalDynamics.Schema.CampaignRepairScoreContracts
 
   setup do
     %{artifact: read_json!("study_results/campaign_repair_readiness_source_handoff_v2.json")}
@@ -31,6 +32,65 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreContractsTest do
       assert {:error, report} = Schema.validate_artifact(invalid)
       assert Enum.any?(report["errors"], &(&1["path"] == expected_path))
     end
+  end
+
+  test "rejects activity-score drift hidden by consistent aggregate arithmetic", %{
+    artifact: artifact
+  } do
+    tampered_score = artifact["score"] + 1.0
+
+    invalid =
+      artifact
+      |> put_in(["score_terms", "activity_score"], 11.0)
+      |> Map.put("score", tampered_score)
+      |> update_in(["score_term_report", "rows"], fn rows ->
+        Enum.map(rows, fn row ->
+          row = Map.put(row, "timeline_score", tampered_score)
+
+          if row["term_key"] == "activity_score",
+            do: Map.put(row, "value", 11.0),
+            else: row
+        end)
+      end)
+
+    assert {:error, report} = Schema.validate_artifact(invalid)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] == "$.score_terms.activity_score")
+           )
+  end
+
+  test "keeps the activity-score term optional and defaults missing activity values to zero", %{
+    artifact: artifact
+  } do
+    terms_without_activity_score = Map.delete(artifact["score_terms"], "activity_score")
+
+    legacy = %{
+      artifact
+      | "score" => terms_without_activity_score |> Map.values() |> Enum.sum(),
+        "score_terms" => terms_without_activity_score
+    }
+
+    assert [] ==
+             CampaignRepairScoreContracts.validate(
+               [],
+               Map.delete(legacy, "score_term_report")
+             )
+
+    default_zero =
+      legacy
+      |> put_in(
+        ["activities", Access.at(0)],
+        artifact["activities"] |> hd() |> Map.delete("score")
+      )
+      |> put_in(["score_terms", "activity_score"], 0.0)
+
+    assert [] ==
+             CampaignRepairScoreContracts.validate(
+               [],
+               Map.delete(default_zero, "score_term_report")
+             )
   end
 
   test "rejects score-term report drift from the enclosing repair artifact", %{
