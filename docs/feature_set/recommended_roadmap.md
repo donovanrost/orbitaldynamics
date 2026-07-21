@@ -75,6 +75,9 @@ Already implemented or heavily covered:
 - V2 candidate-refresh source freshness contributes one explicit normalized
   risk-weight penalty for a stale or unknown report, aligned with its
   review/import gate and V3 refresh-freshness pressure semantics
+- V2 candidate-refresh diff evidence contributes one aggregate normalized
+  risk-weight penalty when the shared V3 replay classifier finds diff pressure,
+  without multiplying the score effect by report row count
 - provider counteroffer, reservation-hold, reservation-expiration, plan-impact,
   and review/import handoff artifacts
 - contact-intent and capacity-pack direction routing in allocation and

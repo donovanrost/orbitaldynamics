@@ -494,7 +494,7 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "schema_version" => 3,
              "planner" => "OrbitalDynamics.CampaignPlanner.V3",
              "source_plan_id" => "campaign_plan:leo_constellation_campaign:2026-05-14T00:00:00Z",
-             "strategy_id" => "c6bcacadf242d05e830ea9cce983d429e1628c784d173f14176e0f60b807c8b2",
+             "strategy_id" => "650017fa97d655662d8503469fbd9350e3c7dcb2f9f094edda54891193c00772",
              "recommended_branch_id" => "derived_urgent_target_target_hot",
              "approval_status" => "operator_review_required",
              "recommendation_status" => "pass"
@@ -518,6 +518,23 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              895.06485,
              389.398183
            ]
+
+    assert surface["comparison_resource_fields"]
+           |> Map.take([
+             "first_repair_score",
+             "first_repair_score_term_count",
+             "first_repair_score_term_keys"
+           ]) == %{
+             "first_repair_score" => 1415.273183,
+             "first_repair_score_term_count" => 5,
+             "first_repair_score_term_keys" => [
+               "activity_score",
+               "candidate_diff_pressure_penalty",
+               "resource_filter_pressure_penalty",
+               "schedule_churn_penalty",
+               "schedule_move_penalty"
+             ]
+           }
 
     assert surface["ranked_branch_ids"] ==
              Enum.take(surface["branch_ids"], 5) ++
@@ -617,9 +634,9 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "score_term_review_count",
              "objective_tradeoff_review_count"
            ]) == %{
-             "review_count" => 2334,
+             "review_count" => 2359,
              "contact_allocation_review_count" => 25,
-             "score_term_review_count" => 1780,
+             "score_term_review_count" => 1805,
              "objective_tradeoff_review_count" => 54
            }
 
@@ -629,8 +646,8 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
              "review_required_count",
              "contact_allocation_import_count"
            ]) == %{
-             "row_count" => 2360,
-             "review_required_count" => 2334,
+             "row_count" => 2385,
+             "review_required_count" => 2359,
              "contact_allocation_import_count" => 25
            }
   end

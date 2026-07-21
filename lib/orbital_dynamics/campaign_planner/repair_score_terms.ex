@@ -1,6 +1,8 @@
 defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
   @moduledoc false
 
+  alias OrbitalDynamics.CandidateRefresh
+
   alias OrbitalDynamics.CampaignPlanner.{
     OperationalReadinessSourceReports,
     OperationalReadinessPressureEvents,
@@ -22,6 +24,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
         contact_filter_report,
         contact_allocation_report,
         resource_filter_report,
+        candidate_diff_report,
         freshness_report,
         refresh_budget_report,
         candidate_rejection_report,
@@ -38,6 +41,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
       contact_filter_report,
       contact_allocation_report,
       resource_filter_report,
+      candidate_diff_report,
       freshness_report,
       refresh_budget_report,
       candidate_rejection_report,
@@ -57,6 +61,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
         contact_filter_report,
         contact_allocation_report,
         resource_filter_report,
+        candidate_diff_report,
         freshness_report,
         refresh_budget_report,
         candidate_rejection_report,
@@ -99,6 +104,9 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
 
     resource_filter_pressure_count = repair_resource_filter_pressure_count(resource_filter_report)
 
+    candidate_diff_pressure_count =
+      repair_candidate_diff_pressure_count(candidate_diff_report)
+
     refresh_freshness_pressure_count =
       repair_refresh_freshness_pressure_count(freshness_report)
 
@@ -135,6 +143,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
 
     resource_filter_pressure_penalty =
       -resource_filter_pressure_count *
+        numeric_policy_value.(scoring_policy, "risk_weight", 1.0)
+
+    candidate_diff_pressure_penalty =
+      -candidate_diff_pressure_count *
         numeric_policy_value.(scoring_policy, "risk_weight", 1.0)
 
     refresh_freshness_pressure_penalty =
@@ -193,6 +205,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
       resource_filter_pressure_count,
       "resource_filter_pressure_penalty",
       resource_filter_pressure_penalty
+    )
+    |> maybe_put_positive_pressure_term(
+      candidate_diff_pressure_count,
+      "candidate_diff_pressure_penalty",
+      candidate_diff_pressure_penalty
     )
     |> maybe_put_positive_pressure_term(
       refresh_freshness_pressure_count,
@@ -306,6 +323,15 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
        do: trunc(count)
 
   defp repair_resource_filter_pressure_count(_report), do: 0
+
+  defp repair_candidate_diff_pressure_count(%{} = report) do
+    case CandidateRefresh.candidate_diff_replay_summary(%{"candidate_diff_report" => report}) do
+      %{"branch_local_diff_pressure" => true} -> 1
+      _summary -> 0
+    end
+  end
+
+  defp repair_candidate_diff_pressure_count(_report), do: 0
 
   defp repair_refresh_freshness_pressure_count(%{} = report) do
     report

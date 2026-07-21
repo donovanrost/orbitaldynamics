@@ -73,6 +73,12 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   through `refresh_freshness_pressure_penalty`. Current or absent reports omit
   the conditional term while stale/unknown review and import gates remain
   preserved.
+- A candidate-refresh `candidate_diff_report.v1` contributes exactly one
+  source-wide normalized `risk_weight` unit through
+  `candidate_diff_pressure_penalty` when the shared V3 replay classifier finds
+  new, invalidated, semantic-change, candidate-routing, or station-routing
+  pressure. Multiple rows remain one aggregate unit; empty or absent reports
+  omit the term.
 - The repair score, `score_terms`, and `score_term_report.v1` preserve the same
   total and expose the selected communications gap without claiming a link
   budget, provider reservation, or schedule mutation.

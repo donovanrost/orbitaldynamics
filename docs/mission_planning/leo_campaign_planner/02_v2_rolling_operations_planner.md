@@ -240,6 +240,12 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   through `refresh_freshness_pressure_penalty`; current or absent reports omit
   that conditional term while their source evidence remains available to the
   repair artifact and review/import handoff.
+  Candidate-refresh `candidate_diff_report.v1` inputs likewise apply one
+  source-wide normalized `risk_weight` unit through
+  `candidate_diff_pressure_penalty` when the shared V3 replay classifier finds
+  new, invalidated, semantic-change, candidate-routing, or station-routing
+  pressure. Multiple diff rows remain one aggregate unit, and empty or absent
+  reports omit the term.
   The same projection model is available through
   `OrbitalDynamics.ResourceProjection` and
   `OrbitalDynamics.resource_projection_report/3` for standalone selected

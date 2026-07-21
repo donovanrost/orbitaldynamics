@@ -109,6 +109,22 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
              "new_candidate_count" => 1
            } = artifact["source_candidate_diff_report"]
 
+    assert artifact["score_terms"]["candidate_diff_pressure_penalty"] == -2.5
+
+    assert artifact["score"] == artifact["score_terms"] |> Map.values() |> Enum.sum()
+
+    assert [
+             %{
+               "term_key" => "candidate_diff_pressure_penalty",
+               "value" => -2.5,
+               "selected" => true
+             }
+           ] =
+             Enum.filter(
+               artifact["score_term_report"]["rows"],
+               &(&1["term_key"] == "candidate_diff_pressure_penalty")
+             )
+
     assert %{
              "candidate_diff_review_count" => 1
            } = artifact["operator_review_package"]
@@ -392,6 +408,58 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
 
     assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
              Schema.validate_artifact(artifact)
+  end
+
+  test "repair omits candidate diff pressure for empty and absent reports" do
+    plan = %{"activities" => [], "candidate_activities" => []}
+
+    common_opts = [
+      realized_state: %{activities: []},
+      current_epoch_s: 165.0,
+      scoring_policy: %{"risk_weight" => "1.75"}
+    ]
+
+    empty_artifact =
+      repair(
+        plan,
+        Keyword.put(
+          common_opts,
+          :candidate_refresh,
+          candidate_refresh_artifact([], candidate_diff_report: empty_candidate_diff_report())
+        )
+      )
+
+    absent_artifact =
+      repair(
+        plan,
+        Keyword.put(
+          common_opts,
+          :candidate_refresh,
+          candidate_refresh_artifact([], [])
+        )
+      )
+
+    assert empty_artifact["source_candidate_diff_report"]["schema_contract"] ==
+             "candidate_diff_report.v1"
+
+    refute Map.has_key?(empty_artifact["score_terms"], "candidate_diff_pressure_penalty")
+
+    refute "candidate_diff_pressure_penalty" in empty_artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert is_nil(absent_artifact["source_candidate_diff_report"])
+    refute Map.has_key?(absent_artifact["score_terms"], "candidate_diff_pressure_penalty")
+
+    refute "candidate_diff_pressure_penalty" in absent_artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(empty_artifact)
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(absent_artifact)
   end
 
   test "repair scores unknown freshness once and omits an absent freshness report" do
@@ -681,6 +749,21 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
           "invalidated_reason" => "not_present_in_refreshed_candidate_set"
         }
       ]
+    }
+  end
+
+  defp empty_candidate_diff_report do
+    %{
+      "schema_contract" => "candidate_diff_report.v1",
+      "model" => "candidate_id_set_diff_with_semantic_change_reasons",
+      "prior_candidate_count" => 0,
+      "refreshed_candidate_count" => 0,
+      "retained_candidate_count" => 0,
+      "new_candidate_count" => 0,
+      "invalidated_candidate_count" => 0,
+      "retained_candidates" => [],
+      "new_candidates" => [],
+      "invalidated_candidates" => []
     }
   end
 
