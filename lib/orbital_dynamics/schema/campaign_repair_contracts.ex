@@ -1,7 +1,10 @@
 defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
   @moduledoc false
 
-  alias OrbitalDynamics.Schema.CampaignRepairReplacementRankingContracts
+  alias OrbitalDynamics.Schema.{
+    CampaignRepairReplacementRankingContracts,
+    CampaignRepairScoreContracts
+  }
 
   @timeline_protection_fields [
     "preserved_locked_or_approved_count",
@@ -87,6 +90,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
     |> call(callbacks, :validate_optional_score_term_report, [
       Map.get(artifact, "score_term_report")
     ])
+    |> CampaignRepairScoreContracts.validate(artifact)
     |> call(callbacks, :validate_optional_link_capacity_report, [
       Map.get(artifact, "link_capacity_report")
     ])

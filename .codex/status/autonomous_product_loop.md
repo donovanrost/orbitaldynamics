@@ -5,64 +5,57 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Validate repair replacement-ranking arithmetic.
+Validate aggregate repair score explanations.
 
 Status:
 Implemented, fully verified, and parent-reviewed; ready to publish.
 
 Selected slice:
-Reject internally inconsistent V2 replacement-ranking score arithmetic,
-semantic-diff priority, pressure evidence, and row order.
+Validate top-level V2 repair score arithmetic and the score-term report against
+the enclosing repair artifact.
 
 Why this slice:
-The nested contract validated ranking shape, IDs, counts, ranks, and selection,
-but still accepted impossible score sums, inverted semantic-diff priority,
-nonzero pressure without evidence, and misordered alternatives.
-
-Selection note:
-The live audit found no safer new candidate pressure to promote: contact and
-resource filter rows are already hard exclusions; reduced allocation/calendar
-evidence is already scored; and remaining counteroffer/reservation sources lack
-consistent replacement-candidate identity or replay through existing paths.
+`campaign_repair.v2` requires `score` and `score_terms`, but runtime validation
+currently checks neither their types nor their arithmetic. The optional
+`score_term_report.v1` is validated only internally, so stale term values,
+timeline scores, source identity, or duplicate/missing term rows can disagree
+with an otherwise accepted repair handoff.
 
 Level 6 pillar:
 Versioned compatibility and explainable operational-planning handoffs.
 
 Implemented:
-- Each row's ranking score must equal candidate value plus all emitted penalty
-  terms within an absolute `1.0e-9` tolerance.
-- Semantic candidate-diff matches require priority `0`; unmatched alternatives
-  require priority `1`.
-- Nonzero station, link, and resource pressure penalties require their source
-  list, positive shortfall, or nonempty risk indicators respectively.
-- Zero-weight pressured evidence remains valid, preserving intentional policy
-  calibration.
-- Rows must remain priority-ascending and score-descending within a priority.
+- Top-level score and every score-term value must be numeric; score must equal
+  the term sum within the established absolute `1.0e-9` tolerance.
+- An optional score-term report must use the exact repair source, match the
+  enclosing term keys and values, contain one unique row per term, use rank `1`
+  and selected `true`, and repeat the enclosing score as its timeline score.
+- The checked-in JSON Schema now constrains `score_terms` additional properties
+  to numbers while preserving the optional report boundary.
 
 Docs changed:
 - `docs/feature_set/capability_map/13_v2_rolling_repair.md`
 - `docs/feature_set/recommended_roadmap.md`
 
 Verification:
-- Ranking/exact/planner focused tests: `17 passed`.
-- Schema area: `188 passed`.
-- Campaign-planner area: `754 passed`.
-- Full suite with `--timeout 120000`: `3513 passed`.
+- Aggregate-score/export focused tests: `6 passed`.
+- Schema area: `191 passed`.
+- Campaign-planner area: passed (`754` tests unchanged by this schema-only slice).
+- Full suite with `--timeout 120000`: `3517 passed`.
 - `mix compile --warnings-as-errors`, `mix format --check-formatted`, and
   `git diff --check`: passed.
 
 Parent review:
-- Checks are runtime cross-field invariants over the published nested schema;
-  no planner scoring behavior or generated export changed.
-- Arithmetic and ordering checks skip malformed numeric shapes already handled
-  by field-type validation, avoiding secondary validator crashes.
-- Evidence checks trigger only for nonzero numeric penalties, so a known
-  pressure with a policy weight of zero remains representable.
-- Mutation tests independently pin score, priority, evidence, and order errors;
-  real pressured outputs and the checked-in nominal fixture remain valid.
+- Validation is additive over the required V2 fields and does not change planner
+  scoring, report generation, or the report's optional presence.
+- Numeric cross-field checks skip malformed shapes already reported by field
+  validators, preventing secondary crashes; exact and mutation tests cover
+  stale totals, values, source, rank/selection, and duplicate term rows.
+- Schema regeneration changed only the standalone campaign-repair export and
+  its bundle entry, each solely tightening score-term value types.
 
 Previous published slice:
-- `23f586f9` Validate repair replacement rankings (`3512 passed`).
+- `3e6830e1` Validate repair ranking arithmetic (`3513 passed`).
 
 Remaining maturity gaps:
 - Continue calibrated realized-feedback depth where evidence is genuinely

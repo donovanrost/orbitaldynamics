@@ -99,6 +99,9 @@ Already implemented or heavily covered:
 - runtime ranking validation also pins score arithmetic, semantic-diff priority,
   nonzero-penalty evidence presence, and priority/score ordering so internally
   contradictory explanations cannot pass as valid V2 repair handoffs
+- runtime and exported V2 contracts require numeric aggregate score terms;
+  runtime validation pins their sum and optional score-term report source,
+  values, rank/selection, and timeline score to the enclosing repair artifact
 - V2 candidate-refresh source freshness contributes one explicit normalized
   risk-weight penalty for a stale or unknown report, aligned with its
   review/import gate and V3 refresh-freshness pressure semantics

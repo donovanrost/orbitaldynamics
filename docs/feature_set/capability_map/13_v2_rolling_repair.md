@@ -111,6 +111,11 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
 - The repair score, `score_terms`, and `score_term_report.v1` preserve the same
   total and expose the selected communications gap without claiming a link
   budget, provider reservation, or schedule mutation.
+- Runtime `campaign_repair.v2` validation requires numeric score terms, verifies
+  their sum against the top-level score, and—when the optional score-term report
+  is present—pins its repair source, unique term/value rows, rank/selection, and
+  timeline score against the enclosing artifact. The exported schema constrains
+  every `score_terms` value to a number.
 
 ## Refreshed missed-contact repair
 

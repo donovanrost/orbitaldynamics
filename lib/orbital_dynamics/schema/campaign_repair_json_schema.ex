@@ -8,6 +8,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairJsonSchema do
     "approval_requirements",
     "approval_policy",
     "policy_decision",
+    "score_terms",
     "timeline_transition_application_report",
     "warnings"
   ]
@@ -82,6 +83,13 @@ defmodule OrbitalDynamics.Schema.CampaignRepairJsonSchema do
 
   def property("policy_decision", opts) do
     Keyword.fetch!(opts, :policy_decision_schema)
+  end
+
+  def property("score_terms", _opts) do
+    %{
+      "type" => "object",
+      "additionalProperties" => %{"type" => "number"}
+    }
   end
 
   def property("timeline_transition_application_report", opts) do

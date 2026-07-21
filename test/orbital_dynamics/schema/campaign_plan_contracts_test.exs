@@ -155,6 +155,13 @@ defmodule OrbitalDynamics.Schema.CampaignPlanContractsTest do
     assert get_in(activity_schema, ["properties", "source_window_id", "pattern"]) ==
              Schema.identity_policy()["stable_id_pattern"]
 
+    assert get_in(schema, [
+             "properties",
+             "score_terms",
+             "additionalProperties",
+             "type"
+           ]) == "number"
+
     replacement_ranking_schema =
       get_in(activity_schema, ["properties", "repair", "properties", "replacement_ranking"])
 
