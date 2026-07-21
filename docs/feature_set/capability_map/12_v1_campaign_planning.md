@@ -16,6 +16,7 @@ From those manifests it generates:
 - Contact contention reports.
 - Advisory contention-resolution recommendations.
 - Contact allocation reports.
+- Command-window reports.
 - Link capacity reports.
 - Station calendar reports.
 - Target commitment summaries.
@@ -49,6 +50,10 @@ The emitted `cadence_import_manifest.v1` is also an optional direct nested
 contract. Embedded manifests run the standalone required-field, row, derived
 count/map, model-limit, and artifact-only boundary checks, while V1 requires
 their source type and source ID to identify the containing campaign plan.
+Embedded `command_window_report.v1` evidence is likewise optional and direct.
+It runs the standalone row/count/model-limit validator while V1 pins both
+selected-activity source labels and the artifact-only no-schedule-mutation /
+no-command-execution boundary.
 
 **Timeline score terms** include:
 

@@ -3,6 +3,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanContracts do
 
   alias OrbitalDynamics.Schema.{
     CampaignPlanCadenceImportContracts,
+    CampaignPlanCommandWindowContracts,
     CampaignPlanConstraintContracts,
     CampaignPlanContactAllocationContracts,
     CampaignPlanOptimizerContracts,
@@ -70,6 +71,9 @@ defmodule OrbitalDynamics.Schema.CampaignPlanContracts do
     |> call(callbacks, :validate_optional_cadence_import_manifest, [
       Map.get(artifact, "cadence_import_manifest")
     ])
+    |> call(callbacks, :validate_optional_command_window_report, [
+      Map.get(artifact, "command_window_report")
+    ])
     |> call(callbacks, :validate_optional_link_capacity_report, [
       Map.get(artifact, "link_capacity_report")
     ])
@@ -105,6 +109,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanContracts do
     |> CampaignPlanConstraintContracts.validate(artifact)
     |> CampaignPlanContactAllocationContracts.validate(artifact)
     |> CampaignPlanCadenceImportContracts.validate(artifact)
+    |> CampaignPlanCommandWindowContracts.validate(artifact)
     |> call(callbacks, :expect_type, ["$", artifact, "warnings", :list])
     |> call(callbacks, :expect_type, ["$", artifact, "assumptions", :map])
     |> call(callbacks, :expect_type, ["$", artifact, "provenance", :map])

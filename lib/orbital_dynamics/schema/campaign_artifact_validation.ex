@@ -8,6 +8,7 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
     CampaignRepairContracts,
     CampaignStrategyContracts,
     CandidateRejectionValidation,
+    CommandWindowValidation,
     ContactAllocationValidation,
     ContactReportValidation,
     DecisionSupportValidation,
@@ -165,6 +166,8 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
         &ContactAllocationValidation.validate_optional_report/2,
       validate_optional_cadence_import_manifest:
         &CadenceImportValidation.validate_optional_manifest/2,
+      validate_optional_command_window_report:
+        &CommandWindowValidation.validate_optional_report/2,
       validate_optional_link_capacity_report: &LinkCapacityValidation.validate_optional_report/2,
       validate_optional_resource_projection_report:
         &ResourceValidation.validate_optional_resource_projection_report/3,

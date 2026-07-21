@@ -17,6 +17,9 @@ defmodule OrbitalDynamics.Schema.CampaignPlanContractsTest do
     assert get_in(schema, ["properties", "cadence_import_manifest", "type"]) == "object"
     assert get_in(schema, ["$defs", "cadence_import_manifest.v1", "type"]) == "object"
 
+    assert get_in(schema, ["properties", "command_window_report", "type"]) == "object"
+    assert get_in(schema, ["$defs", "command_window_report.v1", "type"]) == "object"
+
     assert "constraint_report.v1" in get_in(schema, [
              "x-orbital-dynamics",
              "nested_contracts"
@@ -28,6 +31,11 @@ defmodule OrbitalDynamics.Schema.CampaignPlanContractsTest do
            ])
 
     assert "cadence_import_manifest.v1" in get_in(schema, [
+             "x-orbital-dynamics",
+             "nested_contracts"
+           ])
+
+    assert "command_window_report.v1" in get_in(schema, [
              "x-orbital-dynamics",
              "nested_contracts"
            ])

@@ -20,6 +20,16 @@ defmodule OrbitalDynamics.Schema.CommandWindowValidation do
     )
   end
 
+  def validate_optional_report(issues, nil), do: issues
+
+  def validate_optional_report(issues, %{} = report) do
+    validate_report(issues, "$.command_window_report", report)
+  end
+
+  def validate_optional_report(issues, _report) do
+    [PrimitiveValidation.error("$.command_window_report", "must be an object") | issues]
+  end
+
   defp required_fields do
     CommandWindowRegistryContracts.contracts()
     |> Map.fetch!(@command_window_report)

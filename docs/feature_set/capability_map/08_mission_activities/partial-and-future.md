@@ -26,7 +26,11 @@ Single-activity timeline-identity changes are always marked review-required beca
 ## Command/contact and realized feedback semantics
 
 - The summary and feedback builders now emit typed command/contact and realized feedback review semantics, including contact throughput deltas and command/contact success fields.
-- A dedicated artifact-only command-window report covers command/tracking/uplink review boundaries.
+- A dedicated artifact-only command-window report covers command/tracking/uplink
+  review boundaries. When embedded in `campaign_plan.v1`, it is an optional
+  direct nested contract that runs the standalone report/row/count/model-limit
+  validator plus exact selected-activity source and no-command-execution
+  boundary checks.
 - Timeline-diff required-operator actions are now schema-visible and executable-validation backed, so added/removed/protected/integrity transition reviews cannot persist provider-specific action strings.
 
 ## Reconciliation of provider result evidence

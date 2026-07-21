@@ -223,6 +223,9 @@ Already implemented or heavily covered:
 - embedded V1 Cadence import manifests are declared directly and receive the
   standalone manifest/row/count/no-write validation plus exact containing-plan
   source identity checks
+- embedded V1 command-window reports are declared directly and receive the
+  standalone row/count/model-limit validation plus exact selected-activity
+  source and no-command-execution boundary checks
 
 Good first slices:
 
