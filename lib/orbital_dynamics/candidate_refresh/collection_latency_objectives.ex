@@ -6,19 +6,14 @@ defmodule OrbitalDynamics.CandidateRefresh.CollectionLatencyObjectives do
   alias OrbitalDynamics.CandidateRefresh.ObservationObjectives
   alias OrbitalDynamics.CandidateRefresh.ObjectiveMatching
   alias OrbitalDynamics.CandidateRefresh.SourceReportSummary.Common.EncodedValue
+  alias OrbitalDynamics.CollectionLatencyObjectiveType
 
   def objectives(refresh, refresh_objectives) do
     refresh
     |> refresh_objectives.()
     |> Enum.filter(fn
-      %{"type" => type}
-      when type in [
-             "collection_latency",
-             "collection_downlink_latency",
-             "data_latency",
-             "downlink_latency"
-           ] ->
-        true
+      %{"type" => type} ->
+        CollectionLatencyObjectiveType.supported?(type)
 
       _objective ->
         false

@@ -1,7 +1,13 @@
 defmodule OrbitalDynamics.CandidateRefresh.DownlinkCollectionLatencyObjectiveBuildTest do
   use ExUnit.Case, async: true
 
-  alias OrbitalDynamics.{CandidateRefresh, Epoch, ResultSet, Schema}
+  alias OrbitalDynamics.{
+    CandidateRefresh,
+    CollectionLatencyObjectiveType,
+    Epoch,
+    ResultSet,
+    Schema
+  }
 
   test "applies collection latency objectives to refreshed downlink demand" do
     artifact =
@@ -130,6 +136,59 @@ defmodule OrbitalDynamics.CandidateRefresh.DownlinkCollectionLatencyObjectiveBui
 
     assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
              Schema.validate_artifact(artifact)
+  end
+
+  test "applies every collection latency objective alias consistently" do
+    aliases = CollectionLatencyObjectiveType.aliases()
+
+    assert aliases == [
+             "collection_latency",
+             "collection_downlink_latency",
+             "data_latency",
+             "downlink_latency",
+             "max_collection_latency",
+             "collection_latency_limit"
+           ]
+
+    Enum.each(aliases, fn objective_type ->
+      objective_id = "latency:#{objective_type}"
+
+      artifact =
+        result_set()
+        |> CandidateRefresh.build(
+          candidate_refresh:
+            refresh_request()
+            |> Map.put("objectives", [
+              %{
+                "id" => objective_id,
+                "type" => objective_type,
+                "target_id" => "target_a",
+                "spacecraft_id" => "sat_1",
+                "ground_station_id" => "equator_prime",
+                "collection_id" => "collection_alias",
+                "max_latency_s" => 900.0,
+                "required_downlink_mb" => 42.0
+              }
+            ]),
+          generated_at: ~U[2026-05-14 00:00:00Z]
+        )
+
+      assert [observe] = Enum.filter(artifact["candidate_activities"], &(&1["type"] == "observe"))
+
+      assert [downlink] =
+               Enum.filter(artifact["candidate_activities"], &(&1["type"] == "downlink"))
+
+      assert observe["collection_latency_objective_ids"] == [objective_id]
+      assert observe["collection_latency_objective_types"] == [objective_type]
+      assert observe["max_latency_s"] == 900.0
+      assert downlink["required_downlink_mb"] == 42.0
+
+      assert downlink["downlink_completion_source"] ==
+               "candidate_refresh.objectives.collection_latency"
+
+      assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
+               Schema.validate_artifact(artifact)
+    end)
   end
 
   test "combines downlink completion and collection latency demand objectives" do

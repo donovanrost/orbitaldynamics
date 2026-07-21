@@ -2,6 +2,7 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceObjectives.ObjectiveSatisfactio
   @moduledoc false
 
   alias OrbitalDynamics.CandidateRefresh.ValueEncoding
+  alias OrbitalDynamics.CollectionLatencyObjectiveType
 
   @boolean_true_tokens ~w(true 1)
   @boolean_false_tokens ~w(false 0)
@@ -183,11 +184,12 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceObjectives.ObjectiveSatisfactio
              ] ->
           target_objectives(path, row, index, type)
 
-        type when type in ["collection_latency", "collection_downlink_latency", "data_latency"] ->
-          collection_latency_objectives(path, row, index)
-
-        _type ->
-          []
+        type ->
+          if CollectionLatencyObjectiveType.supported?(type) do
+            collection_latency_objectives(path, row, index)
+          else
+            []
+          end
       end
     else
       []

@@ -1,6 +1,8 @@
 defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ObjectiveGap.ObjectiveSatisfaction.RowValues.GapTypes.ObjectiveTypes do
   @moduledoc false
 
+  alias OrbitalDynamics.CollectionLatencyObjectiveType
+
   def downlink_gap do
     [
       "downlink_completion",
@@ -19,11 +21,5 @@ defmodule OrbitalDynamics.CandidateRefresh.SourceReportSummary.ObjectiveGap.Obje
     ]
   end
 
-  def collection_latency_gap do
-    [
-      "collection_latency",
-      "collection_downlink_latency",
-      "data_latency"
-    ]
-  end
+  def collection_latency_gap, do: CollectionLatencyObjectiveType.aliases()
 end

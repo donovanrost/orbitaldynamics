@@ -1,7 +1,7 @@
 defmodule OrbitalDynamics.CampaignPlanner.CollectionLatencyObjectives do
   @moduledoc false
 
-  @objective_types ["collection_latency", "max_collection_latency", "collection_latency_limit"]
+  alias OrbitalDynamics.CollectionLatencyObjectiveType
 
   @latency_limit_fields [
     "max_latency_s",
@@ -13,8 +13,8 @@ defmodule OrbitalDynamics.CampaignPlanner.CollectionLatencyObjectives do
     "target_delivery_latency_s"
   ]
 
-  def objective?(%{"type" => type} = objective) when type in @objective_types do
-    is_number(limit_s(objective))
+  def objective?(%{"type" => type} = objective) do
+    CollectionLatencyObjectiveType.supported?(type) and is_number(limit_s(objective))
   end
 
   def objective?(_objective), do: false

@@ -53,7 +53,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyDownlinkReliefBranchTest do
              Schema.validate_artifact(artifact)
   end
 
-  test "strategy collection latency objective derives downlink relief branch" do
+  test "strategy downlink-latency objective alias derives canonical collection latency branch" do
     prior_plan =
       base_plan(%{
         "planning_horizon" => %{"duration_s" => 1_000.0},
@@ -73,7 +73,7 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyDownlinkReliefBranchTest do
         mission_state:
           mission_state([
             %{
-              "type" => "collection_latency",
+              "type" => "downlink_latency",
               "target_id" => "target_a",
               "max_latency_s" => 120.0
             }

@@ -55,6 +55,56 @@ defmodule OrbitalDynamics.CandidateRefresh.ObjectiveReplayBuildTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "replays collection-latency aliases as canonical executable objectives" do
+    report = %{
+      "schema_contract" => "objective_satisfaction_report.v1",
+      "provenance" => %{"trust_boundary" => "provider_objective_review"},
+      "rows" => [
+        %{
+          "id" => "objective:latency_limit:collection_alias",
+          "objective" => "Collection Latency Limit",
+          "status" => "Needs Replan",
+          "scenario_id" => "leo_1",
+          "target_id" => "target_a",
+          "ground_station_id" => "equator_prime",
+          "collection_id" => "collection_alias",
+          "max_latency_s" => 300.0,
+          "required_downlink_mb" => 42.0,
+          "planned_downlink_mb" => 0.0
+        }
+      ]
+    }
+
+    artifact =
+      result_set()
+      |> CandidateRefresh.build(
+        candidate_refresh:
+          refresh_request()
+          |> Map.put("source_objective_satisfaction_report", report),
+        generated_at: ~U[2026-05-14 00:00:00Z]
+      )
+
+    observe = Enum.find(artifact["candidate_activities"], &(&1["type"] == "observe"))
+    downlink = Enum.find(artifact["candidate_activities"], &(&1["type"] == "downlink"))
+
+    assert observe["collection_latency_objective_types"] == ["collection_latency"]
+    assert observe["collection_latency_objective_count"] == 1
+    assert observe["collection_id"] == "collection_alias"
+    assert observe["max_latency_s"] == 300.0
+    assert downlink["required_downlink_mb"] == 42.0
+
+    assert %{
+             "collection_latency_gap_row_count" => 1,
+             "objective_satisfaction_objective_type_counts" => %{
+               "collection_latency_limit" => 1
+             },
+             "branch_local_collection_latency_gap_pressure" => true
+           } = CandidateRefresh.objective_gap_replay_summary(artifact)
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "replays objective satisfaction rows from operator review packages" do
     report = %{
       "schema_contract" => "objective_satisfaction_report.v1",

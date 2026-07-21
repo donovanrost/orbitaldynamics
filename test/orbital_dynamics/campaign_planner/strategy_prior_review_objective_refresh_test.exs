@@ -166,6 +166,87 @@ defmodule OrbitalDynamics.CampaignPlanner.StrategyPriorReviewObjectiveRefreshTes
              Schema.validate_artifact(artifact)
   end
 
+  test "strategy canonicalizes provider data-latency objective pressure into refresh" do
+    prior_plan =
+      base_plan(%{
+        "source_objective_satisfaction_report" => %{
+          "schema_contract" => "objective_satisfaction_report.v1",
+          "model" => "provider_delivery_objective_summary",
+          "source" => "provider.delivery_objectives",
+          "objective_count" => 1,
+          "provenance" => %{"trust_boundary" => "provider_objective_review"},
+          "rows" => [
+            %{
+              "id" => "objective:data_latency_alias",
+              "objective" => "Data Latency",
+              "status" => "Needs Replan",
+              "scenario_id" => "leo_1",
+              "target_id" => "target_a",
+              "ground_station_id" => "equator_prime",
+              "collection_id" => "collection_alias",
+              "starts_at_s" => 0.0,
+              "ends_at_s" => 600.0,
+              "max_latency_s" => 300.0,
+              "required_downlink_mb" => 40.0,
+              "planned_downlink_mb" => 0.0,
+              "planned_contacts" => 0
+            }
+          ]
+        }
+      })
+
+    artifact =
+      strategy(prior_plan,
+        mission_state: mission_state_with_refresh_inputs(),
+        derive_branches?: true,
+        branches: [%{id: "baseline"}],
+        current_epoch_s: 0.0
+      )
+
+    latency_branch =
+      branch(artifact, "derived_objective_satisfaction_objective:data_latency_alias")
+
+    assert %{
+             "type" => "downlink_completion_gap",
+             "objective_id" => "objective:data_latency_alias",
+             "objective_type" => "collection_latency",
+             "latency_objective" => true,
+             "scenario_id" => "leo_1",
+             "target_id" => "target_a",
+             "ground_station_id" => "equator_prime",
+             "collection_id" => "collection_alias",
+             "required_contacts" => 1,
+             "planned_contacts" => 0,
+             "required_downlink_mb" => 40.0,
+             "planned_downlink_mb" => planned_downlink_mb,
+             "max_latency_s" => 300.0,
+             "feedback_source" => "prior_plan.source_objective_satisfaction_report",
+             "feedback_scope" => "objective_satisfaction",
+             "objective_status" => "partial",
+             "source_objective_status" => "needs_replan",
+             "trust_boundary" => "provider_objective_review"
+           } = List.first(latency_branch["events"])
+
+    assert planned_downlink_mb == 0.0
+
+    assert %{"type" => "candidate_refresh.v1", "scope" => "branch_generated"} =
+             candidate_source = latency_branch["assumptions"]["candidate_source"]
+
+    assert "prior_plan.source_objective_satisfaction_report" in candidate_source[
+             "source_report_input_paths"
+           ]
+
+    assert Enum.any?(
+             latency_branch["repair_result"]["source_candidate_activities"],
+             &(&1["type"] == "downlink" and
+                 &1["ground_station_id"] == "equator_prime" and
+                 &1["required_downlink_mb"] == 40.0)
+           )
+
+    assert {:ok, %{"schema_contract" => "campaign_strategy.v3", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+  end
+
   test "strategy derives refresh from prior objective tradeoff review rows" do
     prior_plan =
       base_plan(%{

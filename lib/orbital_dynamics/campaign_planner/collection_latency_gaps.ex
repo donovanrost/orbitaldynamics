@@ -18,6 +18,7 @@ defmodule OrbitalDynamics.CampaignPlanner.CollectionLatencyGaps do
   alias OrbitalDynamics.CampaignPlanner.RealizedDownlinkDemandFeedback
   alias OrbitalDynamics.CampaignPlanner.RepairRealizedState
   alias OrbitalDynamics.CampaignPlanner.TargetObjectiveRealizedObservations
+  alias OrbitalDynamics.CollectionLatencyObjectiveType
 
   @realized_completion_statuses ~w(completed executed)
   @realized_failure_statuses ~w(missed failed canceled cancelled rejected)
@@ -170,7 +171,7 @@ defmodule OrbitalDynamics.CampaignPlanner.CollectionLatencyGaps do
 
     CollectionLatencyMaps.compact_map(%{
       "type" => "downlink_completion_gap",
-      "objective_type" => objective["type"],
+      "objective_type" => CollectionLatencyObjectiveType.canonical(objective["type"]),
       "objective_id" => objective["id"],
       "latency_objective" => true,
       "target_id" => observation["target_id"],

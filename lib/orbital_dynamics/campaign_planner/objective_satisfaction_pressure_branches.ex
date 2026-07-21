@@ -15,6 +15,9 @@ defmodule OrbitalDynamics.CampaignPlanner.ObjectiveSatisfactionPressureBranches 
     ValueEncoding
   }
 
+  alias OrbitalDynamics.CollectionLatencyObjectiveType
+  require CollectionLatencyObjectiveType
+
   def branch(row, source_path, index, callbacks \\ default_callbacks()) do
     row = normalize_row(row, callbacks)
 
@@ -109,7 +112,8 @@ defmodule OrbitalDynamics.CampaignPlanner.ObjectiveSatisfactionPressureBranches 
     end
   end
 
-  def pressure_events(%{"objective" => "collection_latency"} = row, source_path, callbacks) do
+  def pressure_events(%{"objective" => objective} = row, source_path, callbacks)
+      when CollectionLatencyObjectiveType.is_supported(objective) do
     if gap_status?(row["status"], callbacks) do
       [
         row
@@ -300,7 +304,7 @@ defmodule OrbitalDynamics.CampaignPlanner.ObjectiveSatisfactionPressureBranches 
     %{
       "type" => "downlink_completion_gap",
       "objective_id" => row["id"] || row["objective_id"],
-      "objective_type" => "collection_latency",
+      "objective_type" => CollectionLatencyObjectiveType.canonical(row["objective"]),
       "latency_objective" => true,
       "target_id" => primary_target_id(row, callbacks),
       "scenario_id" => scenario_id(row, callbacks),

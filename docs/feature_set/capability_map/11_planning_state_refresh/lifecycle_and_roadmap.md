@@ -61,6 +61,7 @@ Status: **`partial`**.
 ## Objectives and gap derivation
 
 - Supported objectives: priority-commitment, target-coverage, distinct target-observation, multi-observation target-revisit, and objective-scoped multi-gap collection-latency objectives.
+- Collection-latency objective aliases are consistent across standalone refresh, V3 mission objectives, objective-satisfaction report replay, and objective-gap summaries: `collection_latency`, `collection_downlink_latency`, `data_latency`, `downlink_latency`, `max_collection_latency`, and `collection_latency_limit` all drive the canonical branch-local `collection_latency` decision path.
 - Downlink-completion gap additions by contact count or required data volume, including collection-latency data-volume gaps plus branch-comparison objective-satisfaction evidence inside the required latency window.
 
 ### Downlink demand and lineage
