@@ -5,77 +5,64 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Station-reservation conflicts affect V3 recommendation selection.
+Restore the V1 checked-in campaign exact-regeneration contract.
 
 Status:
 Implemented, parent-reviewed, and verified. Publish pending.
 
 Files changed:
-- V3 default policy alias:
-  `lib/orbital_dynamics/campaign_planner/types.ex`
-- Shared semantic fallback matcher:
-  `lib/orbital_dynamics/policy/blocked_risk_matcher.ex`
-- Shared-policy regression: `test/orbital_dynamics/policy_test.exs`
-- V3 recommendation regression:
-  `test/orbital_dynamics/campaign_planner/strategy_station_reservation_conflict_recommendation_test.exs`
-- Regenerated public-facade fixture:
-  `study_results/campaign_repair_readiness_source_handoff_v2.json`
+- Golden exact-match normalization:
+  `test/orbital_dynamics/golden_artifact_test.exs`
 - Ledger: `.codex/status/autonomous_product_loop.md`
 
 Tests run:
-- Focused policy and V3 recommendation tests: `2 passed`.
-- Full shared-policy and campaign-planner suites: `825 passed`.
-- Focused policy, V3 recommendation, and exact V2 fixture tests: `3 passed`.
-- V2 fixture schema lint as `campaign_repair.v2`: pass, zero errors/warnings.
-- Isolated checked-in JSON Schema export test: pass.
-- `mix test --timeout 180000`: `3442/3443 passed`; the only failure is the
-  pre-existing V1 campaign golden exact-match contract at
-  `test/orbital_dynamics/golden_artifact_test.exs:275`.
-- `mix format --check-formatted` for changed Elixir files.
-- `git diff --check`.
+- `mix test test/orbital_dynamics/golden_artifact_test.exs:275`: `1 passed`.
+- `mix test test/orbital_dynamics/golden_artifact_test.exs`: `12 passed`.
+- Result-artifact schema lint for
+  `study_results/leo_constellation_campaign.json`: pass, zero errors/warnings.
+- `mix test --timeout 180000`: `3443 passed`.
+- `mix format` for the changed test file.
+- `git diff --check` pending final publish review.
 
 Docs/artifacts changed:
-- Regenerated `campaign_repair_readiness_source_handoff_v2.json` through
-  `OrbitalDynamics.campaign_repair/1`; a canonical comparison proves its only
-  changes are the new alias in serialized `blocked_risk_types` lists.
+- None. The checked-in V1 fixture remains unchanged because its complete decoded
+  planning payload already matches current public study-run output.
 
 Behavior changed:
-V3 default approval policy now includes
-`station_reservation_conflict_blocked`. The shared fallback matcher blocks
-contact-allocation downlink pressure carrying explicit overlap, conflict,
-unmatched, unmatched-overlap, or owner-mismatch status, or explicit
-reservation-conflict provenance. Matched, owner-matched, owned, owner, and
-unknown statuses remain operator-reviewable and selectable. No provider write,
-reservation acceptance, or schedule mutation was added.
+The V1 golden comparison now normalizes
+`payload_metrics.sections.campaign_plan.bytes` alongside the two embedded Git
+revisions that it already normalizes. Path-level comparison proved the byte
+count was the only mismatch: two normalized short SHAs grew from seven to eight
+characters, changing the derived count from `294278` to `294280`. All decoded
+campaign content remains exact-compared, so genuine planning drift still fails.
 
 Level 6 pillar advanced:
-Fleet-level resource, contact, station-calendar, and allocation behavior with
-approval-aware automation boundaries.
+Durable schema-versioned artifacts, deterministic regeneration, and
+compatibility checks.
 
 Remaining maturity gaps:
-- Restore the broken V1 checked-in campaign golden exact-match contract before
-  expanding features.
-- Continue converting selected contact/resource/readiness pressure families
-  from review-visible evidence into explicit selection or policy behavior where
-  live code still leaves a gap.
-- Add compatibility or stale-plausible fixtures only after confirming the
-  target family lacks exact reference coverage.
+- Reassess selected contact/resource/readiness behavior now that the full suite
+  is green.
+- Add compatibility or stale-plausible fixtures only where exact current
+  reference coverage is missing.
+- Continue deeper numerical/backend and resource-model maturity separately from
+  artifact contract hardening.
 
 Last commit:
-- Prior branch HEAD: `43c34d64` Complete large module refactor ledger.
-- Current behavior commit: pending publish.
+- `2b31e89b` Block station reservation conflict recommendations.
+- Current golden-contract repair commit: pending publish.
 
 Next candidate:
-Diagnose and repair the V1 deterministic campaign golden exact-match failure,
-then rerun the full suite before returning to feature expansion.
+Reassess live code and Level 6 docs for the next selected
+contact/resource/readiness behavior or an uncovered stale-plausible challenge
+fixture.
 
 Blocked:
 Not blocked.
 
 Notes:
-- Initial local review narrowed the matcher so uncertain/unknown reservation
-  status remains reviewable; only explicit conflict status or provenance blocks.
-- Sidecar delegation is disallowed by runtime policy, so the parent completed
-  the bounded review and will perform the mechanical publish scope.
-- The documented V1 study regeneration was reverted after proving its drift was
-  unrelated to this slice; the checked-in V1 artifact is not slice-owned.
+- The path-level audit compared documented public study-run output after the
+  exact normalization used by the golden test; no other scalar, type, key, or
+  collection difference remained.
+- Parent review found no must-fix issue. Sidecar delegation is disallowed by
+  runtime policy, so the parent will perform the mechanical publish scope.

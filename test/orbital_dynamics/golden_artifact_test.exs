@@ -1448,6 +1448,7 @@ defmodule OrbitalDynamics.GoldenArtifactTest do
       |> update_in(["sections"], fn
         %{} = sections ->
           sections
+          |> normalize_payload_section_bytes("campaign_plan")
           |> normalize_payload_section_bytes("execution_report")
           |> normalize_payload_section_bytes("run")
 
