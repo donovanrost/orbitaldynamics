@@ -111,7 +111,9 @@ Already implemented or heavily covered:
   the repaired activities; a present aggregate activity score is recomputed
   from those repaired activities with producer-equivalent numeric/default-zero
   handling, while present churn and movement terms are reconciled to repair
-  actions, activity churn seconds, and their embedded policy weights
+  actions, activity churn seconds, and their embedded policy weights; present
+  link-capacity and resource-projection penalties are reconciled to the final
+  selected-shortfall status, shared source-report risk count, and `risk_weight`
 - V2 candidate-refresh source freshness contributes one explicit normalized
   risk-weight penalty for a stale or unknown report, aligned with its
   review/import gate and V3 refresh-freshness pressure semantics

@@ -132,7 +132,11 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   rows cannot mask aggregate activity-value drift. Present schedule-churn and
   movement terms are likewise recomputed from counted moved/replaced/canceled/
   suppressed deltas, repaired activity churn seconds, and their declared policy
-  weights; missing weights retain the producer defaults.
+  weights; missing weights retain the producer defaults. Present link-capacity
+  and resource-projection terms are recomputed from the final selected-shortfall
+  status and the shared source-report risk-indicator count respectively, using
+  the declared `risk_weight` or its producer default. Nominal reports remain
+  neutral, and older score maps may omit either term.
 
 ## Refreshed missed-contact repair
 

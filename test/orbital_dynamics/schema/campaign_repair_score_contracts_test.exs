@@ -165,6 +165,68 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreContractsTest do
     assert [] == CampaignRepairScoreContracts.validate([], legacy)
   end
 
+  test "rejects report-pressure drift hidden by consistent aggregate arithmetic", %{
+    artifact: artifact
+  } do
+    pressured_cases = [
+      {"link_capacity_pressure_penalty",
+       artifact
+       |> put_in(["link_capacity_report", "selected_downlink_shortfall_mb"], 1.0)
+       |> put_score_term("link_capacity_pressure_penalty", -1.0)},
+      {"resource_projection_pressure_penalty",
+       artifact
+       |> Map.put("source_resource_projection_report", resource_projection_report())
+       |> put_score_term("resource_projection_pressure_penalty", -2.0)}
+    ]
+
+    for {term_key, valid} <- pressured_cases do
+      assert [] == CampaignRepairScoreContracts.validate([], valid)
+
+      invalid = coordinated_term_edit(valid, term_key, 1.0)
+
+      assert errors = CampaignRepairScoreContracts.validate([], invalid)
+
+      assert Enum.any?(
+               errors,
+               &(&1["path"] == "$.score_terms.#{term_key}")
+             )
+    end
+  end
+
+  test "honors report-pressure optional, policy, nominal, and malformed semantics", %{
+    artifact: artifact
+  } do
+    numeric_string_policy =
+      artifact
+      |> put_in(["link_capacity_report", "selected_downlink_shortfall_mb"], 1.0)
+      |> put_in(["scoring_policy", "risk_weight"], "0.25")
+      |> put_score_term("link_capacity_pressure_penalty", -0.25)
+
+    assert [] == CampaignRepairScoreContracts.validate([], numeric_string_policy)
+
+    zero_risk_weight =
+      artifact
+      |> Map.put("source_resource_projection_report", resource_projection_report())
+      |> put_in(["scoring_policy", "risk_weight"], 0.0)
+      |> put_score_term("resource_projection_pressure_penalty", 0.0)
+
+    assert [] == CampaignRepairScoreContracts.validate([], zero_risk_weight)
+
+    nominal_terms =
+      artifact
+      |> put_score_term("link_capacity_pressure_penalty", 0.0)
+      |> put_score_term("resource_projection_pressure_penalty", 0.0)
+
+    assert [] == CampaignRepairScoreContracts.validate([], nominal_terms)
+
+    malformed_reports =
+      nominal_terms
+      |> Map.put("link_capacity_report", [])
+      |> Map.put("source_resource_projection_report", %{"projected_resources" => ["invalid"]})
+
+    assert [] == CampaignRepairScoreContracts.validate([], malformed_reports)
+  end
+
   test "rejects score-term report drift from the enclosing repair artifact", %{
     artifact: artifact
   } do
@@ -203,18 +265,47 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreContractsTest do
     tampered_score = artifact["score"] + delta
     tampered_term = artifact["score_terms"][term_key] + delta
 
-    artifact
-    |> put_in(["score_terms", term_key], tampered_term)
-    |> Map.put("score", tampered_score)
-    |> update_in(["score_term_report", "rows"], fn rows ->
-      Enum.map(rows, fn row ->
-        row = Map.put(row, "timeline_score", tampered_score)
+    tampered =
+      artifact
+      |> put_in(["score_terms", term_key], tampered_term)
+      |> Map.put("score", tampered_score)
 
-        if row["term_key"] == term_key,
-          do: Map.put(row, "value", tampered_term),
-          else: row
-      end)
-    end)
+    case Map.get(tampered, "score_term_report") do
+      %{"rows" => _rows} ->
+        update_in(tampered, ["score_term_report", "rows"], fn rows ->
+          Enum.map(rows, fn row ->
+            row = Map.put(row, "timeline_score", tampered_score)
+
+            if row["term_key"] == term_key,
+              do: Map.put(row, "value", tampered_term),
+              else: row
+          end)
+        end)
+
+      _report ->
+        tampered
+    end
+  end
+
+  defp put_score_term(artifact, term_key, value) do
+    score_terms = Map.put(artifact["score_terms"], term_key, value)
+
+    artifact
+    |> Map.put("score_terms", score_terms)
+    |> Map.put("score", score_terms |> Map.values() |> Enum.sum())
+    |> Map.delete("score_term_report")
+  end
+
+  defp resource_projection_report do
+    %{
+      "projected_resources" => [
+        %{
+          "spacecraft_id" => "leo_1",
+          "projected_storage_overflow_mb" => 1.0,
+          "projected_battery_overuse_wh" => 1.0
+        }
+      ]
+    }
   end
 
   defp read_json!(path) do

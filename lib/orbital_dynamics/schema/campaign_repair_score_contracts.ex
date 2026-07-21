@@ -1,7 +1,11 @@
 defmodule OrbitalDynamics.Schema.CampaignRepairScoreContracts do
   @moduledoc false
 
-  alias OrbitalDynamics.CampaignPlanner.ScalarValues
+  alias OrbitalDynamics.CampaignPlanner.{
+    LinkCapacityPressureBranches,
+    ResourceProjectionRisk,
+    ScalarValues
+  }
 
   @churn_actions ["moved", "replaced", "canceled", "suppressed"]
 
@@ -19,6 +23,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreContracts do
     |> validate_numeric_map("$.score_terms", score_terms)
     |> validate_activity_score(artifact, score_terms)
     |> validate_schedule_terms(artifact, score_terms)
+    |> validate_report_pressure_terms(artifact, score_terms)
     |> validate_score_sum(artifact, score_terms)
     |> validate_score_term_report(artifact, Map.get(artifact, "score_term_report"))
   end
@@ -100,6 +105,55 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreContracts do
   end
 
   defp validate_schedule_terms(issues, _artifact, _score_terms), do: issues
+
+  defp validate_report_pressure_terms(issues, artifact, score_terms)
+       when is_map(artifact) and is_map(score_terms) do
+    risk_weight =
+      artifact
+      |> Map.get("scoring_policy", %{})
+      |> numeric_policy_value("risk_weight", 1.0)
+
+    link_capacity_pressure_count =
+      case Map.get(artifact, "link_capacity_report") do
+        %{} = report ->
+          if LinkCapacityPressureBranches.selected_shortfall_pressure?(report), do: 1, else: 0
+
+        _report ->
+          0
+      end
+
+    resource_projection_pressure_count =
+      artifact
+      |> Map.get("source_resource_projection_report")
+      |> resource_projection_risk_indicators()
+      |> length()
+
+    issues
+    |> validate_optional_derived_term(
+      score_terms,
+      "link_capacity_pressure_penalty",
+      -link_capacity_pressure_count * risk_weight,
+      "must match final selected link-capacity shortfall status and risk_weight"
+    )
+    |> validate_optional_derived_term(
+      score_terms,
+      "resource_projection_pressure_penalty",
+      -resource_projection_pressure_count * risk_weight,
+      "must match source resource-projection risk-indicator count and risk_weight"
+    )
+  end
+
+  defp validate_report_pressure_terms(issues, _artifact, _score_terms), do: issues
+
+  defp resource_projection_risk_indicators(%{"projected_resources" => rows} = report)
+       when is_list(rows) do
+    report
+    |> Map.put("projected_resources", Enum.filter(rows, &is_map/1))
+    |> ResourceProjectionRisk.risk_indicators()
+  end
+
+  defp resource_projection_risk_indicators(report),
+    do: ResourceProjectionRisk.risk_indicators(report)
 
   defp activity_schedule_churn_s(%{"repair" => %{} = repair}),
     do: ScalarValues.numeric_or_nil(Map.get(repair, "schedule_churn_s")) || 0.0
