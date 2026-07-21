@@ -234,6 +234,8 @@ Already implemented or heavily covered:
   and nested source-window IDs for producer-window lineage
 - selected, candidate, and ranked V1 activity types are nonblank strings while
   retaining an extensible vocabulary
+- selected, candidate, and ranked V1 activities require typed Cadence-import
+  identity with external IDs reconciled to activity IDs
 - optional V1 optimizer metadata is reconciled with enclosing candidate,
   selected-activity, ranked-timeline, constraint, scoring-policy, and objective
   evidence; the required ranking explanation is nested and typed

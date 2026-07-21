@@ -192,6 +192,9 @@ work, a **partial** executable-schema track, and **near-term** / **later** /
   back to the producer window.
 - Their activity-type tokens are required nonblank strings in runtime and export
   while retaining an open vocabulary for compatible future activity kinds.
+- Each activity's required Cadence-import envelope carries a stable external ID
+  reconciled to activity identity plus a nonblank import type, while retaining
+  the artifact-only no-write boundary.
 - It also exports typed target-commitment rows reconciled with candidate and
   selected observation counts, durations, selected IDs, statuses, unique target
   identity, and matching objective-satisfaction target rows.

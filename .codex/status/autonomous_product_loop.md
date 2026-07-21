@@ -5,41 +5,48 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Type V1 activity kinds.
+Contract V1 activity Cadence identity.
 
 Status:
 Complete and parent-reviewed; ready to publish.
 
 Delivered:
-- Required non-empty, non-whitespace string activity types on selected,
-  candidate, and ranked-timeline rows.
-- Preserved an open activity vocabulary for compatible future planner tokens.
-- Exported matching string/min-length/non-whitespace constraints on all three V1
-  activity surfaces without introducing an enum.
-- Added missing, non-string, empty, whitespace, future-token, and export coverage.
+- Required a `cadence_import` envelope on selected, candidate, and ranked V1
+  activities, with stable external ID and nonblank import type.
+- Reconciled each valid external ID to its activity ID without cascading an
+  equality error when either ID is syntactically invalid.
+- Exported the matching required nested shape on all three JSON Schema surfaces
+  while keeping additional Cadence metadata compatible.
+- Preserved generic downlink validation ownership and refined it so a missing or
+  malformed envelope produces one primary map remediation, not nested noise.
+- Added normal, missing, malformed, nested-field, scalar, blank, unstable,
+  mismatch, export, and diagnostic-ownership coverage.
 - Regenerated only `campaign_plan.v1` and the aggregate schema bundle.
 - Updated V1 generation, planning, reproducibility, and roadmap documentation.
 
 Review calibration:
-- Pre-fix list-valued and whitespace-only types passed on candidate and ranked
-  activities, bypassing observe/downlink specialization.
-- Missing, non-string, and blank tokens now each produce exactly one primary
-  remediation at the activity type path.
-- A nonblank `future_activity` token remains valid, matching the documented
-  richer-activity roadmap rather than freezing current producer values.
-- Parent review found the type rule cohesive inside the 201-line consolidated V1
-  activity contract and left generic activity/repair semantics unchanged.
+- Pre-fix observation-surface missing, mismatch, and blank mutations passed on
+  selected, candidate, and ranked rows; downlink mismatch and blank also passed.
+- Missing or malformed downlink envelopes now produce exactly one error at the
+  envelope path; nested requirements run only for actual maps.
+- Unstable external IDs produce stable-ID remediation without false mismatch
+  noise; valid mismatches produce one equality remediation.
+- Parent review found the focused Cadence contract cohesive at 75 lines, kept
+  the consolidated activity contract at 203 lines, and found no publish blocker.
 
 Verification:
-- Focused activity integration: `32 passed`; plan/export: `123 passed`.
-- Schema plus lint area: `310 passed`.
-- Planner area: `754 passed`.
-- Full suite: `3623 passed`.
+- Focused Cadence/activity contracts: `10 passed`.
+- Schema plus lint area: `318 passed`.
+- Planner area: `760 passed`.
+- Full suite: `3631 passed`.
 - `mix format --check-formatted`, `mix compile --warnings-as-errors`, and
   `git diff --check` pass.
 
+Level 6 pillar advanced:
+Stable, reviewable identity at the artifact-only Cadence boundary.
+
 Previous published slice:
-- `78cabd22` Contract V1 activity source windows (`3618 passed`).
+- `0285eaa3` Type V1 activity kinds (`3623 passed`).
 
 Remaining maturity gaps:
 - Continue calibrated realized-feedback depth where evidence is genuinely
@@ -52,5 +59,7 @@ Blocked:
 None.
 
 Notes:
-Runtime policy disallows subagent delegation; the parent performed bounded
-mapping, implementation, review, and mechanical publish checks.
+Runtime policy disallows subagent delegation; the parent is performing bounded
+mapping, implementation, review, and mechanical publish checks. The first
+planner command used stale paths and ran no tests; the corrected established
+corpus passed and is the recorded evidence above.

@@ -78,6 +78,9 @@ It answers:
 - Activity `type` is a required nonblank string across selected, candidate, and
   ranked rows. The vocabulary remains open so later planners can add richer
   activity kinds without silently accepting malformed tokens.
+- Every activity also carries a required `cadence_import` envelope with a stable
+  external ID equal to the activity ID and a nonblank Cadence activity type.
+  This remains artifact-only identity evidence, not import authority.
 - `campaign_plan.proposed_contacts` with stable external IDs for later Cadence
   import.
 - `campaign_plan.contact_intents` as artifact-only `contact_intent.v1` rows for

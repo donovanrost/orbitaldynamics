@@ -268,6 +268,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanJsonSchema do
 
   defp with_activity_constraints(activity_schema) do
     activity_schema
+    |> update_in(["required"], &Enum.uniq(&1 ++ ["cadence_import"]))
     |> put_in(
       ["properties", "type"],
       %{"type" => "string", "minLength" => 1, "pattern" => "\\S"}
@@ -280,6 +281,25 @@ defmodule OrbitalDynamics.Schema.CampaignPlanJsonSchema do
     |> update_in(["properties", "source_window"], fn source_window_schema ->
       Map.put(source_window_schema, "required", ["id"])
     end)
+    |> put_in(
+      ["properties", "cadence_import"],
+      %{
+        "type" => "object",
+        "additionalProperties" => true,
+        "required" => ["external_id", "activity_type"],
+        "properties" => %{
+          "external_id" => %{
+            "type" => "string",
+            "pattern" => OrbitalDynamics.Schema.StableIdValidation.pattern()
+          },
+          "activity_type" => %{
+            "type" => "string",
+            "minLength" => 1,
+            "pattern" => "\\S"
+          }
+        }
+      }
+    )
   end
 
   defp fetch_dep!(deps, key) do

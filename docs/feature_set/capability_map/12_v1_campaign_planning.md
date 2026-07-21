@@ -125,6 +125,12 @@ Every selected, candidate, and ranked activity also requires a nonblank string
 current producers emit observation and contact-family tokens, while future
 activity kinds remain compatible without allowing malformed dispatch values.
 
+The artifact-only Cadence boundary begins on each activity row: selected,
+candidate, and ranked activities require a `cadence_import` envelope with stable
+`external_id`, nonblank `activity_type`, and external identity equal to the
+activity ID. These fields support deterministic review/import mapping but do not
+grant schedule mutation or command authority.
+
 Runtime `campaign_plan.v1` validation requires each ranked timeline to carry a
 stable scenario ID, numeric score, and numeric score-term values. When the
 optional `score_term_report.v1` is present, its source, model, term-key union,

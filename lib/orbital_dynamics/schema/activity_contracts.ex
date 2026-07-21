@@ -8,7 +8,6 @@ defmodule OrbitalDynamics.Schema.ActivityContracts do
       expect_optional_type: 5,
       expect_type: 5,
       require_fields: 4,
-      require_nested: 4,
       validate_interval: 3
     ]
 
@@ -47,26 +46,23 @@ defmodule OrbitalDynamics.Schema.ActivityContracts do
     ])
     |> expect_type(path, activity, "source_window", :map)
     |> expect_type(path, activity, "cadence_import", :map)
-    |> require_nested(
-      path <> ".cadence_import",
-      Map.get(activity, "cadence_import", %{}),
-      [
-        "external_id",
-        "activity_type"
-      ]
-    )
+    |> validate_cadence_import(path, Map.get(activity, "cadence_import"))
     |> validate_stable_ids(path, activity, ["station_reservation_id"])
     |> expect_optional_type(path, activity, "station_contention_status", :binary)
     |> expect_optional_type(path, activity, "station_reserved_by", :binary)
     |> expect_optional_type(path, activity, "station_reservation_status", :binary)
-    |> validate_stable_ids(
-      path <> ".cadence_import",
-      Map.get(activity, "cadence_import", %{}),
-      [
-        "external_id"
-      ]
-    )
   end
+
+  defp validate_cadence_import(issues, path, %{} = cadence_import) do
+    issues
+    |> require_fields(path <> ".cadence_import", cadence_import, [
+      "external_id",
+      "activity_type"
+    ])
+    |> validate_stable_ids(path <> ".cadence_import", cadence_import, ["external_id"])
+  end
+
+  defp validate_cadence_import(issues, _path, _cadence_import), do: issues
 
   defp validate_activity_type(issues, path, %{"type" => "observe"} = activity) do
     require_fields(issues, path, activity, ["target_id"])

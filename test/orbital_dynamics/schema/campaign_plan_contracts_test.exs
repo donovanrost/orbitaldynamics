@@ -98,7 +98,8 @@ defmodule OrbitalDynamics.Schema.CampaignPlanContractsTest do
              "score",
              "score_terms",
              "source_window_id",
-             "source_window"
+             "source_window",
+             "cadence_import"
            ]
 
     assert get_in(activity_schema, ["properties", "source_window_id", "pattern"]) ==
