@@ -3,6 +3,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
 
   alias OrbitalDynamics.Schema.{
     CampaignRepairCandidateValueContracts,
+    CampaignRepairCommandWindowContracts,
     CampaignRepairConstraintContracts,
     CampaignRepairContactAllocationContracts,
     CampaignRepairContactIntentPressureContracts,
@@ -92,6 +93,10 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
       Map.get(artifact, "timeline_transition_application_report")
     ])
     |> CampaignRepairTimelineTransitionContracts.validate(artifact)
+    |> call(callbacks, :validate_optional_command_window_report, [
+      Map.get(artifact, "command_window_report")
+    ])
+    |> CampaignRepairCommandWindowContracts.validate(artifact)
     |> call(callbacks, :validate_optional_operator_review_package, [
       Map.get(artifact, "operator_review_package")
     ])

@@ -134,6 +134,9 @@ Already implemented or heavily covered:
 - optional V2 timeline-transition reports receive complete nested validation;
   runtime reconciliation pins repair source, repaired-activity count, and
   selected/review-required summaries to enclosing repair metadata
+- optional V2 command-window reports are declared as direct nested contracts
+  and receive standalone row/count/approval/dependency/identity validation plus
+  exact repaired-activity source and source-assumption checks
 - V2 candidate-refresh source freshness contributes one explicit normalized
   risk-weight penalty for a stale or unknown report, aligned with its
   review/import gate and V3 refresh-freshness pressure semantics

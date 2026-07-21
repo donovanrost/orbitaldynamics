@@ -107,6 +107,7 @@ defmodule OrbitalDynamics.Schema.CampaignRegistryContracts do
         "optional_fields" => [
           "operational_timeline_report",
           "timeline_transition_application_report",
+          "command_window_report",
           "operator_review_package",
           "objective_tradeoff_report",
           "constraint_report",
@@ -121,6 +122,7 @@ defmodule OrbitalDynamics.Schema.CampaignRegistryContracts do
           "approval_requirement.v1",
           "operational_timeline_report.v1",
           "timeline_transition_application_report.v1",
+          "command_window_report.v1",
           "operator_review_package.v1",
           "objective_tradeoff_report.v1",
           "constraint_report.v1",
