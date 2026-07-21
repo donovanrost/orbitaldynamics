@@ -15,6 +15,13 @@ as idempotent handoff inputs before any raw-contact allocation is derived.
 
 This is done **without provider reservation, approval, or schedule mutation**.
 
+When embedded in `campaign_plan.v1`, the allocation report is declared as an
+optional direct nested contract and runs the same executable validator used by
+the standalone facade, including required fields, typed counters and maps,
+allocation rows, reduced-capacity pack groups, nested station/filter/contention
+reports, model limits, and supported optional summary consistency checks. V1
+context additionally pins `campaign_plan.candidate_activities` as its source.
+
 ## Accepted input shapes
 
 Allocation accepts both typed contact rows and provider-shaped rows:

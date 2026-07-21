@@ -217,6 +217,9 @@ Already implemented or heavily covered:
 - embedded V1 constraint reports are declared as direct nested contracts and
   receive standalone row/count/status/model-limit validation plus exact campaign
   model/source context checks
+- embedded V1 contact-allocation reports are declared directly and receive the
+  standalone allocation/nested-report validation plus exact campaign candidate
+  source checking
 
 Good first slices:
 

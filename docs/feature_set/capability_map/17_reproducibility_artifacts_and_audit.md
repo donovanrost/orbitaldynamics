@@ -179,6 +179,9 @@ work, a **partial** executable-schema track, and **near-term** / **later** /
 - `campaign_plan.v1` declares its optional `constraint_report.v1` handoff as a
   direct nested contract, runs the standalone row/count/status/model-limit
   validator, and pins the V1 campaign constraint model and source assumption.
+- It also declares optional `contact_allocation_report.v1` evidence directly,
+  runs the standalone allocation/nested-report validator, and pins the campaign
+  candidate-activity source.
 - `campaign_repair.v2` exports nested repaired-activity, source-candidate, source
   contact-allocation, source timeline-feedback handoff rows, plan-delta, and
   approval-requirement rows.

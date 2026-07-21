@@ -15,6 +15,7 @@ From those manifests it generates:
 - Contact filter reports.
 - Contact contention reports.
 - Advisory contention-resolution recommendations.
+- Contact allocation reports.
 - Link capacity reports.
 - Station calendar reports.
 - Target commitment summaries.
@@ -40,6 +41,10 @@ and run the full executable `constraint_report.v1` validator for row shape,
 model limits, derived constraint/row/status counts, and status maps. V1 context
 also pins the campaign-planner constraint model and the
 `campaign_plan.assumptions.constraints` source assumption.
+Embedded contact-allocation reports are likewise optional direct nested
+contracts and run the full standalone allocation validator over their rows,
+typed counters/maps, nested reports, capacity-pack evidence, and model limits.
+V1 context pins `campaign_plan.candidate_activities` as the allocation source.
 
 **Timeline score terms** include:
 
