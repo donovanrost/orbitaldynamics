@@ -9,6 +9,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanContracts do
     CampaignPlanCommandWindowContracts,
     CampaignPlanConstraintContracts,
     CampaignPlanContactAllocationContracts,
+    CampaignPlanContactIntentContracts,
     CampaignPlanHorizonContracts,
     CampaignPlanIdentityContracts,
     CampaignPlanOptimizerContracts,
@@ -124,6 +125,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanContracts do
     |> CampaignPlanActivityContracts.validate(artifact)
     |> CampaignPlanActivitySnapshotContracts.validate(artifact)
     |> CampaignPlanProposedContactContracts.validate(artifact)
+    |> CampaignPlanContactIntentContracts.validate(artifact)
     |> call(callbacks, :expect_type, ["$", artifact, "warnings", :list])
     |> CampaignPlanWarningContracts.validate(artifact)
     |> call(callbacks, :expect_type, ["$", artifact, "assumptions", :map])

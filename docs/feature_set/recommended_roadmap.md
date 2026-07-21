@@ -260,6 +260,8 @@ Already implemented or heavily covered:
   to target visibility or ground-station access while future kinds remain open
 - V1 proposed contacts are reconciled to candidate-derived normalized snapshots
   for count, order, and producer fields while compatible enrichment remains open
+- V1 contact intents are reconciled to policy-independent candidate-derived base
+  snapshots while optional validated approval-policy annotations remain open
 - selected, candidate, and ranked V1 activity types are nonblank strings while
   retaining an extensible vocabulary
 - selected, candidate, and ranked V1 activities require typed Cadence-import

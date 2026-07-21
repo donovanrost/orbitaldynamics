@@ -202,6 +202,10 @@ work, a **partial** executable-schema track, and **near-term** / **later** /
 - V1 proposed contacts are recomputed from final candidates and reconciled for
   exact count, order, and producer fields while permitting additional compatible
   handoff metadata. Malformed source rows remain field-validator concerns.
+- V1 contact intents are recomputed from final candidates without an approval
+  policy and reconciled for exact count, order, and base producer fields.
+  Additional compatible fields preserve separately validated optional policy
+  decisions without requiring the unretained campaign policy as plan input.
 - Current observation and contact-family activity kinds conditionally pin nested
   source-window type to target visibility or ground-station access respectively.
 - Their activity-type tokens are required nonblank strings in runtime and export

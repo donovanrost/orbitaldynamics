@@ -94,6 +94,11 @@ It answers:
   runtime validation recomputes rows with the producer normalization, requiring
   exact count, order, and producer fields while allowing additional compatible
   handoff metadata. JSON Schema remains the structural row layer.
+- `campaign_plan.contact_intents` is reconciled to the policy-independent base
+  rows produced from final candidates, including exact count, order, and base
+  fields. Compatible additional fields preserve optional approval decisions,
+  whose internal consistency remains validated by the contact-intent row
+  contract. JSON Schema remains the structural row layer.
 - Selected, candidate, and ranked-timeline activities carry required numeric
   non-negative `duration_s` evidence. Executable validation reconciles each
   value to `ends_at_s - starts_at_s`; JSON Schema exposes the required type and

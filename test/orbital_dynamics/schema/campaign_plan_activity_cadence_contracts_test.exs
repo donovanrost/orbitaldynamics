@@ -197,6 +197,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanActivityCadenceContractsTest do
         end
       )
       |> Map.put("proposed_contacts", [])
+      |> Map.put("contact_intents", [])
 
     assert {:ok, %{"schema_contract" => "campaign_plan.v1"}} =
              Schema.validate_artifact(artifact)

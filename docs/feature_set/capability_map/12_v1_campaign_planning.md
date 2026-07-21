@@ -172,6 +172,13 @@ rerunning the producer's downlink normalization. Count, order, and every derived
 field must match; additional compatible handoff metadata remains open. This is
 an executable cross-array snapshot rule beyond structural JSON Schema.
 
+Top-level `contact_intents` are likewise reconciled to the policy-independent
+base rows produced from final candidate activities. Count, deterministic order,
+and every base producer field must match. Additional compatible fields remain
+open so existing row validation can independently verify optional approval
+status, requirements, rule matches, and policy-decision evidence when the build
+used a campaign approval policy.
+
 Runtime `campaign_plan.v1` validation requires each ranked timeline to carry a
 stable scenario ID, numeric score, and numeric score-term values. When the
 optional `score_term_report.v1` is present, its source, model, term-key union,
