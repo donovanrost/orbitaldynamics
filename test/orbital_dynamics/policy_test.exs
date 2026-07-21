@@ -4074,6 +4074,75 @@ defmodule OrbitalDynamics.PolicyTest do
     end
   end
 
+  test "fallback policy blocks explicit activity precondition failures but leaves review pressure reviewable" do
+    policy = %{blocked_risk_types: ["timeline_activity_precondition_blocked"]}
+
+    for {branch_id, risk} <- [
+          {"blocked_count",
+           %{
+             "type" => "timeline_activity_precondition_review",
+             "feedback_scope" => "timeline_activity_precondition",
+             "precondition_status" => "review_required",
+             "blocked_precondition_count" => 1,
+             "review_precondition_count" => 2
+           }},
+          {"blocked_status",
+           %{
+             "type" => "timeline_activity_precondition_review",
+             "precondition_status" => "blocked",
+             "blocked_precondition_count" => 0
+           }},
+          {"blocked_action",
+           %{
+             "feedback_scope" => "timeline_activity_precondition",
+             "precondition_status" => "unknown",
+             "required_operator_action" => "review_blocked_activity_precondition"
+           }}
+        ] do
+      {blocked_status, _requirements, _matches, blocked_decision} =
+        Policy.decide(
+          [],
+          [risk],
+          %{"id" => branch_id, "events" => []},
+          %{},
+          policy
+        )
+
+      assert blocked_status == "blocked_by_policy"
+      assert blocked_decision["classification"] == "blocked_by_policy"
+    end
+
+    for {branch_id, risk} <- [
+          {"review_only",
+           %{
+             "type" => "timeline_activity_precondition_review",
+             "feedback_scope" => "timeline_activity_precondition",
+             "precondition_status" => "review_required",
+             "blocked_precondition_count" => 0,
+             "review_precondition_count" => 2,
+             "required_operator_action" => "review_activity_precondition"
+           }},
+          {"unknown",
+           %{
+             "type" => "timeline_activity_precondition_review",
+             "feedback_scope" => "timeline_activity_precondition",
+             "precondition_status" => "unknown"
+           }}
+        ] do
+      {review_status, _requirements, _matches, review_decision} =
+        Policy.decide(
+          [],
+          [risk],
+          %{"id" => branch_id, "events" => []},
+          %{},
+          policy
+        )
+
+      assert review_status == "operator_review_required"
+      assert review_decision["classification"] == "operator_review_required"
+    end
+  end
+
   test "matches requirement types grouped risk types and grouped event types" do
     policy = %{
       action_rules: [

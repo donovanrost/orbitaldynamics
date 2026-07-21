@@ -5,64 +5,79 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Restore the V1 checked-in campaign exact-regeneration contract.
+Make explicitly blocked timeline activity preconditions affect default V3
+recommendation selection.
 
 Status:
 Implemented, parent-reviewed, and verified. Publish pending.
 
+Why this slice:
+Typed timeline semantics are the highest-priority Level 6 product pillar. The
+planner already replayed and scored `timeline_activity_precondition_review`
+risks with separate blocked and review counts, but the default approval policy
+did not consume the explicit blocked evidence. A high-scoring branch could
+therefore remain recommended despite a known blocked activity precondition.
+
 Files changed:
-- Golden exact-match normalization:
-  `test/orbital_dynamics/golden_artifact_test.exs`
-- Ledger: `.codex/status/autonomous_product_loop.md`
-
-Tests run:
-- `mix test test/orbital_dynamics/golden_artifact_test.exs:275`: `1 passed`.
-- `mix test test/orbital_dynamics/golden_artifact_test.exs`: `12 passed`.
-- Result-artifact schema lint for
-  `study_results/leo_constellation_campaign.json`: pass, zero errors/warnings.
-- `mix test --timeout 180000`: `3443 passed`.
-- `mix format` for the changed test file.
-- `git diff --check` pending final publish review.
-
-Docs/artifacts changed:
-- None. The checked-in V1 fixture remains unchanged because its complete decoded
-  planning payload already matches current public study-run output.
+- `lib/orbital_dynamics/campaign_planner/types.ex`
+- `lib/orbital_dynamics/policy/blocked_risk_matcher.ex`
+- `test/orbital_dynamics/policy_test.exs`
+- `test/orbital_dynamics/campaign_planner/strategy_timeline_precondition_recommendation_test.exs`
+- `study_results/campaign_repair_readiness_source_handoff_v2.json`
+- `.codex/status/autonomous_product_loop.md`
 
 Behavior changed:
-The V1 golden comparison now normalizes
-`payload_metrics.sections.campaign_plan.bytes` alongside the two embedded Git
-revisions that it already normalizes. Path-level comparison proved the byte
-count was the only mismatch: two normalized short SHAs grew from seven to eight
-characters, changing the derived count from `294278` to `294280`. All decoded
-campaign content remains exact-compared, so genuine planning drift still fails.
+The default V3 approval policy now includes the semantic alias
+`timeline_activity_precondition_blocked`. It matches only canonical explicit
+block evidence: `precondition_status: blocked`, a positive
+`blocked_precondition_count`, or
+`required_operator_action: review_blocked_activity_precondition`. A blocked
+high-value branch remains visible with `policy_decision.v1` provenance but is
+skipped for recommendation; review-only and unknown precondition pressure
+remain eligible for operator-reviewed selection.
+
+Docs read:
+- `docs/feature_set/capability_map/08_mission_activities_and_timelines.md`
+- Typed-activity and integrity subpages linked from that capability map.
+- `docs/mission_planning/high_fidelity/04_plan_structure_and_lifecycle.md`
+
+Verification:
+- Focused matcher and V3 selection regression: `2 passed`.
+- Policy, timeline-precondition, and exact V2 fixture set: `96 passed`.
+- Campaign-planner plus policy surface: `827 passed`.
+- V2 fixture schema validation: pass, zero errors/warnings.
+- Full `mix test --timeout 180000`: `3445 passed`.
+- Changed Elixir files are formatted; `git diff --check` passes.
+- Canonical comparison against `HEAD` proves the regenerated V2 artifact differs
+  only by the new alias in its serialized default `blocked_risk_types` list.
+
+Artifact regeneration:
+`study_results/campaign_repair_readiness_source_handoff_v2.json` was regenerated
+through public `OrbitalDynamics.campaign_repair/1` using the fixture's documented
+request builder. No operational side effects or external providers were used.
 
 Level 6 pillar advanced:
-Durable schema-versioned artifacts, deterministic regeneration, and
-compatibility checks.
+Typed activity models and timeline semantics, with operator-visible selection
+behavior and deterministic artifact compatibility.
+
+Parent review:
+No must-fix findings. The review tightened the focused behavior test to assert
+branch-local fallback-policy provenance. Sidecar delegation is unavailable
+under the active runtime policy, so the parent performed the mechanical review.
+
+Previous published slice:
+- `a7f809b6` Normalize derived campaign golden bytes.
+- Full-suite baseline after that publish: `3443 passed`.
+
+Current publish:
+- Commit pending.
 
 Remaining maturity gaps:
-- Reassess selected contact/resource/readiness behavior now that the full suite
-  is green.
-- Add compatibility or stale-plausible fixtures only where exact current
-  reference coverage is missing.
-- Continue deeper numerical/backend and resource-model maturity separately from
-  artifact contract hardening.
-
-Last commit:
-- `2b31e89b` Block station reservation conflict recommendations.
-- Current golden-contract repair commit: pending publish.
-
-Next candidate:
-Reassess live code and Level 6 docs for the next selected
-contact/resource/readiness behavior or an uncovered stale-plausible challenge
-fixture.
+- Reassess other typed-timeline pressure families, selecting only those with
+  unambiguous hard-block semantics rather than review-only evidence.
+- Continue contact/resource/readiness selection behavior where explicit block
+  evidence is still only scored.
+- Continue deeper numerical/backend and resource-model maturity separately.
 
 Blocked:
 Not blocked.
-
-Notes:
-- The path-level audit compared documented public study-run output after the
-  exact normalization used by the golden test; no other scalar, type, key, or
-  collection difference remained.
-- Parent review found no must-fix issue. Sidecar delegation is disallowed by
-  runtime policy, so the parent will perform the mechanical publish scope.

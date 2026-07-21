@@ -179,6 +179,20 @@ defmodule OrbitalDynamics.Policy.BlockedRiskMatcher do
   end
 
   defp risk_matches_blocked_type?(
+         %{"type" => "timeline_activity_precondition_review"} = risk,
+         "timeline_activity_precondition_blocked"
+       ) do
+    blocked_timeline_activity_precondition_pressure?(risk)
+  end
+
+  defp risk_matches_blocked_type?(
+         %{"feedback_scope" => "timeline_activity_precondition"} = risk,
+         "timeline_activity_precondition_blocked"
+       ) do
+    blocked_timeline_activity_precondition_pressure?(risk)
+  end
+
+  defp risk_matches_blocked_type?(
          %{"type" => "downlink_completion_gap", "feedback_scope" => "contact_allocation"} =
            risk,
          "station_reservation_conflict_blocked"
@@ -278,6 +292,12 @@ defmodule OrbitalDynamics.Policy.BlockedRiskMatcher do
       "stale" in List.wrap(risk["freshness_statuses"]) or
       positive_count?(risk["stale_reason_count"]) or
       risk["branch_local_stale_pressure"] == true
+  end
+
+  defp blocked_timeline_activity_precondition_pressure?(risk) do
+    blocked_value?(risk["precondition_status"]) or
+      positive_count?(risk["blocked_precondition_count"]) or
+      risk["required_operator_action"] == "review_blocked_activity_precondition"
   end
 
   defp blocked_station_reservation_conflict_pressure?(risk) do
