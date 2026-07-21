@@ -136,7 +136,11 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   and resource-projection terms are recomputed from the final selected-shortfall
   status and the shared source-report risk-indicator count respectively, using
   the declared `risk_weight` or its producer default. Nominal reports remain
-  neutral, and older score maps may omit either term.
+  neutral, and older score maps may omit either term. CandidateRefresh diff,
+  freshness, and budget pressure terms are likewise reconciled through shared
+  producer/runtime counts: one replay-classified diff event, one stale/unknown
+  freshness event, or one event per nonblank dropped candidate ID with the
+  declared count and invalid-policy fallbacks.
 
 ## Refreshed missed-contact repair
 

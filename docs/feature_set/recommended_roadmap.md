@@ -113,7 +113,9 @@ Already implemented or heavily covered:
   handling, while present churn and movement terms are reconciled to repair
   actions, activity churn seconds, and their embedded policy weights; present
   link-capacity and resource-projection penalties are reconciled to the final
-  selected-shortfall status, shared source-report risk count, and `risk_weight`
+  selected-shortfall status, shared source-report risk count, and `risk_weight`;
+  CandidateRefresh diff, freshness, and budget penalties are reconciled through
+  shared producer/runtime counts against their embedded source reports
 - V2 candidate-refresh source freshness contributes one explicit normalized
   risk-weight penalty for a stale or unknown report, aligned with its
   review/import gate and V3 refresh-freshness pressure semantics

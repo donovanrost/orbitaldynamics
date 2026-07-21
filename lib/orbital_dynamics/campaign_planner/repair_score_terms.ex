@@ -1,8 +1,6 @@
 defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
   @moduledoc false
 
-  alias OrbitalDynamics.CandidateRefresh
-
   alias OrbitalDynamics.CampaignPlanner.{
     ActivityIdentity,
     ContactIntentPressureBranches,
@@ -12,8 +10,8 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
     OperationalReadinessPressureEvents,
     QualityGatePressureEvents,
     QualityGateSourceReports,
-    RefreshFreshnessPressureEvents,
     RepairContactAllocationPressure,
+    RepairRefreshPressure,
     ResourceProjectionRisk,
     ScalarValues,
     StationCalendarPressureBranches,
@@ -120,12 +118,12 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
     resource_filter_pressure_count = repair_resource_filter_pressure_count(resource_filter_report)
 
     candidate_diff_pressure_count =
-      repair_candidate_diff_pressure_count(candidate_diff_report)
+      RepairRefreshPressure.candidate_diff_count(candidate_diff_report)
 
     refresh_freshness_pressure_count =
-      repair_refresh_freshness_pressure_count(freshness_report)
+      RepairRefreshPressure.freshness_count(freshness_report)
 
-    refresh_budget_pressure_count = repair_refresh_budget_pressure_count(refresh_budget_report)
+    refresh_budget_pressure_count = RepairRefreshPressure.budget_count(refresh_budget_report)
 
     candidate_rejection_pressure_count =
       repair_candidate_rejection_pressure_count(candidate_rejection_report, callbacks)
@@ -385,39 +383,6 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
        do: trunc(count)
 
   defp repair_resource_filter_pressure_count(_report), do: 0
-
-  defp repair_candidate_diff_pressure_count(%{} = report) do
-    case CandidateRefresh.candidate_diff_replay_summary(%{"candidate_diff_report" => report}) do
-      %{"branch_local_diff_pressure" => true} -> 1
-      _summary -> 0
-    end
-  end
-
-  defp repair_candidate_diff_pressure_count(_report), do: 0
-
-  defp repair_refresh_freshness_pressure_count(%{} = report) do
-    report
-    |> RefreshFreshnessPressureEvents.status()
-    |> ScalarValues.normalized_status_token()
-    |> then(&if &1 in ["stale", "unknown"], do: 1, else: 0)
-  end
-
-  defp repair_refresh_freshness_pressure_count(_report), do: 0
-
-  defp repair_refresh_budget_pressure_count(%{"dropped_candidate_ids" => dropped_ids})
-       when is_list(dropped_ids) do
-    dropped_ids
-    |> Enum.reject(&(&1 in [nil, ""]))
-    |> length()
-  end
-
-  defp repair_refresh_budget_pressure_count(%{"dropped_candidate_count" => count})
-       when is_number(count) and count > 0,
-       do: trunc(count)
-
-  defp repair_refresh_budget_pressure_count(%{"invalid_candidate_limit_policy" => true}), do: 1
-
-  defp repair_refresh_budget_pressure_count(_report), do: 0
 
   defp repair_candidate_rejection_pressure_count(%{"rows" => rows}, callbacks)
        when is_list(rows) do

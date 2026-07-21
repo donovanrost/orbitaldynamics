@@ -227,6 +227,90 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreContractsTest do
     assert [] == CampaignRepairScoreContracts.validate([], malformed_reports)
   end
 
+  test "rejects CandidateRefresh pressure drift hidden by aggregate arithmetic", %{
+    artifact: artifact
+  } do
+    pressured_cases = [
+      {"candidate_diff_pressure_penalty",
+       artifact
+       |> Map.put("source_candidate_diff_report", candidate_diff_report())
+       |> put_score_term("candidate_diff_pressure_penalty", -1.0)},
+      {"refresh_freshness_pressure_penalty",
+       artifact
+       |> Map.put("source_freshness_report", %{"status" => "stale"})
+       |> put_score_term("refresh_freshness_pressure_penalty", -1.0)},
+      {"refresh_budget_pressure_penalty",
+       artifact
+       |> Map.put("source_refresh_budget_report", %{
+         "dropped_candidate_ids" => ["dropped_1", nil, "", "dropped_2"]
+       })
+       |> put_score_term("refresh_budget_pressure_penalty", -2.0)}
+    ]
+
+    for {term_key, valid} <- pressured_cases do
+      assert [] == CampaignRepairScoreContracts.validate([], valid)
+
+      invalid = coordinated_term_edit(valid, term_key, 1.0)
+
+      assert errors = CampaignRepairScoreContracts.validate([], invalid)
+
+      assert Enum.any?(
+               errors,
+               &(&1["path"] == "$.score_terms.#{term_key}")
+             )
+    end
+  end
+
+  test "honors CandidateRefresh pressure policy, fallback, and malformed semantics", %{
+    artifact: artifact
+  } do
+    numeric_string_policy =
+      artifact
+      |> Map.put("source_candidate_diff_report", candidate_diff_report())
+      |> put_in(["scoring_policy", "risk_weight"], "0.25")
+      |> put_score_term("candidate_diff_pressure_penalty", -0.25)
+
+    assert [] == CampaignRepairScoreContracts.validate([], numeric_string_policy)
+
+    zero_risk_weight =
+      artifact
+      |> Map.put("source_freshness_report", %{"freshness_status" => "unknown"})
+      |> put_in(["scoring_policy", "risk_weight"], 0.0)
+      |> put_score_term("refresh_freshness_pressure_penalty", 0.0)
+
+    assert [] == CampaignRepairScoreContracts.validate([], zero_risk_weight)
+
+    fallback_reports = [
+      {%{"dropped_candidate_count" => 2.9}, -2.0},
+      {%{"invalid_candidate_limit_policy" => true}, -1.0}
+    ]
+
+    for {report, expected} <- fallback_reports do
+      fallback =
+        artifact
+        |> Map.put("source_refresh_budget_report", report)
+        |> put_score_term("refresh_budget_pressure_penalty", expected)
+
+      assert [] == CampaignRepairScoreContracts.validate([], fallback)
+    end
+
+    nominal_terms =
+      artifact
+      |> put_score_term("candidate_diff_pressure_penalty", 0.0)
+      |> put_score_term("refresh_freshness_pressure_penalty", 0.0)
+      |> put_score_term("refresh_budget_pressure_penalty", 0.0)
+
+    malformed_reports =
+      nominal_terms
+      |> Map.put("source_candidate_diff_report", %{
+        "invalidated_candidates" => ["invalid"]
+      })
+      |> Map.put("source_freshness_report", [])
+      |> Map.put("source_refresh_budget_report", %{"dropped_candidate_ids" => "invalid"})
+
+    assert [] == CampaignRepairScoreContracts.validate([], malformed_reports)
+  end
+
   test "rejects score-term report drift from the enclosing repair artifact", %{
     artifact: artifact
   } do
@@ -305,6 +389,26 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreContractsTest do
           "projected_battery_overuse_wh" => 1.0
         }
       ]
+    }
+  end
+
+  defp candidate_diff_report do
+    %{
+      "schema_contract" => "candidate_diff_report.v1",
+      "model" => "candidate_id_set_diff_with_semantic_change_reasons",
+      "prior_candidate_count" => 0,
+      "refreshed_candidate_count" => 1,
+      "retained_candidate_count" => 0,
+      "new_candidate_count" => 1,
+      "invalidated_candidate_count" => 0,
+      "retained_candidates" => [],
+      "new_candidates" => [
+        %{
+          "id" => "new_candidate",
+          "diff_reason" => "not_present_in_prior_candidate_set"
+        }
+      ],
+      "invalidated_candidates" => []
     }
   end
 

@@ -3,6 +3,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreContracts do
 
   alias OrbitalDynamics.CampaignPlanner.{
     LinkCapacityPressureBranches,
+    RepairRefreshPressure,
     ResourceProjectionRisk,
     ScalarValues
   }
@@ -128,6 +129,21 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreContracts do
       |> resource_projection_risk_indicators()
       |> length()
 
+    candidate_diff_pressure_count =
+      artifact
+      |> Map.get("source_candidate_diff_report")
+      |> RepairRefreshPressure.candidate_diff_count()
+
+    refresh_freshness_pressure_count =
+      artifact
+      |> Map.get("source_freshness_report")
+      |> RepairRefreshPressure.freshness_count()
+
+    refresh_budget_pressure_count =
+      artifact
+      |> Map.get("source_refresh_budget_report")
+      |> RepairRefreshPressure.budget_count()
+
     issues
     |> validate_optional_derived_term(
       score_terms,
@@ -140,6 +156,24 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreContracts do
       "resource_projection_pressure_penalty",
       -resource_projection_pressure_count * risk_weight,
       "must match source resource-projection risk-indicator count and risk_weight"
+    )
+    |> validate_optional_derived_term(
+      score_terms,
+      "candidate_diff_pressure_penalty",
+      -candidate_diff_pressure_count * risk_weight,
+      "must match source candidate-diff replay pressure and risk_weight"
+    )
+    |> validate_optional_derived_term(
+      score_terms,
+      "refresh_freshness_pressure_penalty",
+      -refresh_freshness_pressure_count * risk_weight,
+      "must match stale or unknown source freshness status and risk_weight"
+    )
+    |> validate_optional_derived_term(
+      score_terms,
+      "refresh_budget_pressure_penalty",
+      -refresh_budget_pressure_count * risk_weight,
+      "must match source refresh-budget dropped-candidate count and risk_weight"
     )
   end
 
