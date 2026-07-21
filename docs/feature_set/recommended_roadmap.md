@@ -238,6 +238,9 @@ Already implemented or heavily covered:
   evidence, with each activity score reconciled to its numeric term sum
 - ranked V1 activity snapshots exactly match their candidate rows, and top-level
   selected snapshots exactly match the first ranked timeline
+- stable V1 candidate activity IDs are unique across the candidate collection,
+  and selected IDs are unique within each ranked timeline; runtime owns the
+  property-key rule that structural JSON Schema cannot express
 - selected, candidate, and ranked V1 activities require matching stable outer
   and nested source-window IDs for producer-window lineage
 - current V1 activity kinds conditionally reconcile nested source-window family

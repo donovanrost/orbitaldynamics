@@ -3,14 +3,49 @@ defmodule OrbitalDynamics.Schema.CampaignPlanActivitySnapshotContracts do
 
   import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2]
 
+  alias OrbitalDynamics.Schema.StableIdValidation
+
   def validate(issues, artifact) when is_map(artifact) do
-    candidates = candidate_index(Map.get(artifact, "candidate_activities"))
+    candidate_rows = Map.get(artifact, "candidate_activities")
+    candidates = candidate_index(candidate_rows)
     timelines = Map.get(artifact, "ranked_timelines")
 
     issues
+    |> reject_duplicate_activity_ids("$.candidate_activities", candidate_rows)
+    |> reject_ranked_duplicate_activity_ids(timelines)
     |> validate_ranked_timelines(timelines, candidates)
     |> validate_selected_activities(Map.get(artifact, "activities"), first_timeline(timelines))
   end
+
+  defp reject_ranked_duplicate_activity_ids(issues, timelines) when is_list(timelines) do
+    timelines
+    |> Enum.with_index()
+    |> Enum.reduce(issues, fn
+      {%{"activities" => activities}, timeline_index}, acc when is_list(activities) ->
+        reject_duplicate_activity_ids(
+          acc,
+          "$.ranked_timelines[#{timeline_index}].activities",
+          activities
+        )
+
+      {_timeline, _timeline_index}, acc ->
+        acc
+    end)
+  end
+
+  defp reject_ranked_duplicate_activity_ids(issues, _timelines), do: issues
+
+  defp reject_duplicate_activity_ids(issues, path, activities) when is_list(activities) do
+    ids =
+      Enum.flat_map(activities, fn
+        %{"id" => id} -> if StableIdValidation.valid?(id), do: [id], else: []
+        _activity -> []
+      end)
+
+    StableIdValidation.reject_duplicate_ids(issues, path, ids)
+  end
+
+  defp reject_duplicate_activity_ids(issues, _path, _activities), do: issues
 
   defp candidate_index(candidates) when is_list(candidates) do
     Enum.reduce(candidates, %{}, fn

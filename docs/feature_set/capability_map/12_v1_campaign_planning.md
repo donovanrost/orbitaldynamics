@@ -119,6 +119,11 @@ reference and exactly equal its candidate snapshot, while top-level selected
 activities must exactly equal the first ranked timeline. Synchronized additional
 metadata remains compatible; same-ID drift is rejected at the affected row path.
 
+Stable candidate activity IDs are unique across the candidate collection, and
+stable selected activity IDs are unique within each ranked timeline. Runtime
+owns these property-key comparisons because JSON Schema cannot express row
+uniqueness by only the `id` field.
+
 Activity lineage is likewise executable across selected, candidate, and ranked
 rows: `source_window_id` and nested `source_window.id` are required stable IDs,
 and runtime validation requires them to match. The export requires the nested ID

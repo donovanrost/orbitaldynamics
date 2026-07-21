@@ -84,6 +84,10 @@ It answers:
   ranked row must exactly match its candidate row by ID, and top-level selected
   rows must exactly match the first ranked timeline. JSON Schema remains the
   structural layer for these arrays; cross-array equality is executable behavior.
+- Candidate activity IDs are unique across the candidate collection, and
+  selected activity IDs are unique within each ranked timeline. Runtime owns
+  this property-key uniqueness because structural JSON Schema uniqueness applies
+  to whole rows rather than one identity field.
 - Every activity preserves its producer window through required stable
   `source_window_id` and nested `source_window.id` evidence. Runtime validation
   requires those IDs to match before the activity is accepted for handoff.

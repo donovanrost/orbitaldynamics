@@ -190,6 +190,9 @@ work, a **partial** executable-schema track, and **near-term** / **later** /
 - Executable V1 validation also reconciles every ranked activity snapshot to its
   candidate row and every top-level selected snapshot to the first ranked
   timeline; this cross-array equality remains beyond structural JSON Schema.
+- Stable candidate activity IDs are unique, as are stable selected activity IDs
+  within each ranked timeline, preventing snapshot-key collapse and ambiguous
+  optimizer handoffs. This property-key uniqueness is an executable rule.
 - Selected, candidate, and ranked activities require stable outer and nested
   source-window IDs, with executable equality checks preserving activity lineage
   back to the producer window.

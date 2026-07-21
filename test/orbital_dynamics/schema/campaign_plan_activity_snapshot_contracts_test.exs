@@ -1,6 +1,7 @@
 defmodule OrbitalDynamics.Schema.CampaignPlanActivitySnapshotContractsTest do
   use ExUnit.Case, async: true
 
+  alias OrbitalDynamics.Schema.CampaignPlanActivitySnapshotContracts
   alias OrbitalDynamics.Schema
 
   setup do
@@ -96,6 +97,65 @@ defmodule OrbitalDynamics.Schema.CampaignPlanActivitySnapshotContractsTest do
            )
   end
 
+  test "rejects duplicate candidate activity identities", %{artifact: artifact} do
+    duplicate = List.first(artifact["candidate_activities"])
+    candidates = artifact["candidate_activities"] ++ [duplicate]
+
+    invalid =
+      artifact
+      |> Map.put("candidate_activities", candidates)
+      |> Map.put("optimizer_contract", optimizer_contract(artifact, candidates))
+
+    assert {:error, report} = Schema.validate_artifact(invalid)
+
+    assert error?(
+             report,
+             "$.candidate_activities",
+             ~s(must not contain duplicate IDs: ["#{duplicate["id"]}"])
+           )
+  end
+
+  test "rejects duplicate activity identities within a ranked timeline", %{
+    artifact: artifact
+  } do
+    [selected] = artifact["activities"]
+
+    issues =
+      CampaignPlanActivitySnapshotContracts.validate([], %{
+        "candidate_activities" => [selected],
+        "ranked_timelines" => [%{"activities" => [selected, selected]}],
+        "activities" => [selected, selected]
+      })
+
+    assert %{
+             "path" => "$.ranked_timelines[0].activities",
+             "message" => ~s(must not contain duplicate IDs: ["#{selected["id"]}"]),
+             "severity" => "error"
+           } in issues
+  end
+
+  test "leaves malformed duplicate IDs to field-level validators" do
+    malformed = %{"id" => "bad id"}
+
+    issues =
+      CampaignPlanActivitySnapshotContracts.validate([], %{
+        "candidate_activities" => [malformed, malformed],
+        "ranked_timelines" => [%{"activities" => [malformed, malformed]}],
+        "activities" => [malformed, malformed]
+      })
+
+    assert issues == []
+  end
+
+  test "accepts empty activity identity collections" do
+    assert [] ==
+             CampaignPlanActivitySnapshotContracts.validate([], %{
+               "candidate_activities" => [],
+               "ranked_timelines" => [%{"activities" => []}],
+               "activities" => []
+             })
+  end
+
   test "keeps synchronized additional activity metadata compatible", %{artifact: artifact} do
     enriched =
       artifact
@@ -141,6 +201,16 @@ defmodule OrbitalDynamics.Schema.CampaignPlanActivitySnapshotContractsTest do
       artifact,
       ["candidate_activities", Access.at(1), "source_window", "max_elevation_deg"],
       value
+    )
+  end
+
+  defp optimizer_contract(artifact, candidates) do
+    OrbitalDynamics.Optimizer.greedy_timeline_contract(
+      candidates,
+      artifact["ranked_timelines"],
+      plan_id: artifact["plan_id"],
+      constraints: get_in(artifact, ["assumptions", "constraints"]),
+      scoring_policy: get_in(artifact, ["assumptions", "scoring_policy"])
     )
   end
 
