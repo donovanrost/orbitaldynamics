@@ -940,6 +940,23 @@ Fixture verification rejects stale summary counts, stale station routing, stale
 relay-path routing, and stale execution-boundary observations before compact
 link-capacity handoffs can steer candidate refresh or Cadence import review.
 
+## Resource/contact fixture coverage guard
+
+Status: **implemented**.
+
+The validation test surface derives resource/contact artifact families from the
+public schema registry and compares them with curated `artifact.*` validation
+reference model IDs. The scope includes contact, resource, station,
+link-capacity, relay-data-path, and provider-counteroffer contract prefixes plus
+the explicit `proposed_contact.v1` and
+`operational_quality_gate_unavailable_resource_summary.v1` contracts.
+
+The current registry contains 33 contracts in that scope and all 33 have at
+least one curated reference fixture. A future matching schema contract fails the
+coverage guard with its exact missing contract name until a fixture is added;
+the guard checks fixture presence and does not replace each fixture's field,
+tolerance, stale-observation, or executable-schema assertions.
+
 ## Partial
 
 Status: **partial**.

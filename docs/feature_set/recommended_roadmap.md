@@ -93,13 +93,14 @@ Already implemented or heavily covered:
   CandidateRefresh replay
 - candidate-refresh challenge fixture coverage for contradictory
   provider-calendar, station-reservation, and contact-allocation evidence
+- an executable registry-derived coverage guard confirms all 33 current
+  resource/contact/station/link/provider contracts have curated artifact
+  reference fixtures and automatically scopes future matching contracts
 
 Good next slices:
 
 - assess remaining candidate-specific contact/resource pressure for safe use in
   ranking or branch score explanations
-- add one compatibility fixture for a resource/contact artifact family that does
-  not already have a curated reference check
 
 Key docs:
 
