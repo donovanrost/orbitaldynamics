@@ -1554,6 +1554,15 @@ Candidate-refresh station-reservation replay also derives hold
 import-readiness status/action/direction routing from compact
 `import_readiness_rows` when present, so stale top-level hold import maps cannot
 steer branch-local import-review pressure.
+The curated CandidateRefresh contact-allocation resource-selection challenge
+generates two spacecraft contacts from a real `contact_allocation_report.v1`
+allocation path, then supplies a deliberately stale top-level
+resource-blocked spacecraft map. Validation observations pin the row-derived
+blocked-contact and blocking-dimension maps, the surviving cross-spacecraft
+contact, the exact rejected and invalidated contact, allocation report/source
+identity, spacecraft scope, and trust-boundary evidence. The corrected source
+report remains schema-valid while the stale aggregate copy fails its source
+contract, and only the exact row evidence affects CandidateRefresh selection.
 `study_results/validation_reference_fixtures.json` is refreshed from the
 current validation-reference registry, so its fixture IDs and `fixture_count`
 track `OrbitalDynamics.Validation.reference_fixtures/0`.

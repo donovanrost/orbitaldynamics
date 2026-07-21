@@ -7,6 +7,14 @@ defmodule OrbitalDynamics.Validation.ArtifactObservations.CandidateRefresh do
     contact_intents = map_rows(artifact, "contact_intents")
     invalidated_candidates = map_rows(artifact, "invalidated_candidates")
     candidate_rejection_report = map_field(artifact, "candidate_rejection_report")
+    candidate_rejection_rows = map_rows(candidate_rejection_report, "rows")
+
+    contact_allocation_candidate_filter_rows =
+      candidate_filter_provenance_rows(
+        candidate_rejection_rows,
+        "contact_allocation_candidate_filter"
+      )
+
     source_reports = get_in(artifact, ["provenance", "source_reports"]) || %{}
     candidate_rejection_summary = Map.get(source_reports, "candidate_rejection_report") || %{}
     contact_contention_summary = Map.get(source_reports, "contact_contention_report") || %{}
@@ -62,6 +70,48 @@ defmodule OrbitalDynamics.Validation.ArtifactObservations.CandidateRefresh do
         |> optional_stable_id_keys(),
       "candidate_rejection_reason_counts" =>
         Map.get(candidate_rejection_report, "rejection_reason_counts") || %{},
+      "candidate_rejection_contact_allocation_filter_candidate_id_keys" =>
+        candidate_filter_candidate_id_keys(contact_allocation_candidate_filter_rows),
+      "candidate_rejection_contact_allocation_filter_source_schema_contract_keys" =>
+        candidate_filter_provenance_keys(
+          contact_allocation_candidate_filter_rows,
+          "source_schema_contract"
+        ),
+      "candidate_rejection_contact_allocation_filter_source_report_path_keys" =>
+        candidate_filter_provenance_keys(
+          contact_allocation_candidate_filter_rows,
+          "source_report_paths"
+        ),
+      "candidate_rejection_contact_allocation_filter_source_artifact_id_keys" =>
+        candidate_filter_provenance_keys(
+          contact_allocation_candidate_filter_rows,
+          "source_artifact_ids"
+        ),
+      "candidate_rejection_contact_allocation_filter_source_report_id_keys" =>
+        candidate_filter_provenance_keys(
+          contact_allocation_candidate_filter_rows,
+          "source_contact_allocation_report_ids"
+        ),
+      "candidate_rejection_contact_allocation_filter_source_report_source_keys" =>
+        candidate_filter_provenance_keys(
+          contact_allocation_candidate_filter_rows,
+          "source_report_sources"
+        ),
+      "candidate_rejection_contact_allocation_filter_resource_blocking_dimension_keys" =>
+        candidate_filter_provenance_keys(
+          contact_allocation_candidate_filter_rows,
+          "resource_blocking_dimensions"
+        ),
+      "candidate_rejection_contact_allocation_filter_blocked_spacecraft_id_keys" =>
+        candidate_filter_provenance_keys(
+          contact_allocation_candidate_filter_rows,
+          "blocked_spacecraft_ids"
+        ),
+      "candidate_rejection_contact_allocation_filter_trust_boundary_keys" =>
+        candidate_filter_provenance_keys(
+          contact_allocation_candidate_filter_rows,
+          "trust_boundaries"
+        ),
       "invalidated_candidate_count" =>
         if(invalidated_candidates != [], do: length(invalidated_candidates)),
       "invalidated_candidate_id_keys" => optional_row_id_keys(invalidated_candidates, "id"),
@@ -101,6 +151,20 @@ defmodule OrbitalDynamics.Validation.ArtifactObservations.CandidateRefresh do
         |> normalize_optional_string(),
       "source_contact_allocation_source_summary_schema_contract_counts" =>
         Map.get(contact_allocation_summary, "source_summary_schema_contract_counts") || %{},
+      "source_contact_allocation_resource_blocked_contact_count" =>
+        Map.get(contact_allocation_summary, "resource_blocked_contact_count"),
+      "source_contact_allocation_resource_blocking_dimension_counts" =>
+        Map.get(contact_allocation_summary, "resource_blocking_dimension_counts") || %{},
+      "source_contact_allocation_resource_blocked_contact_ids_by_blocking_dimension" =>
+        Map.get(
+          contact_allocation_summary,
+          "resource_blocked_contact_ids_by_blocking_dimension"
+        ) || %{},
+      "source_contact_allocation_resource_blocked_contact_ids_by_spacecraft" =>
+        Map.get(contact_allocation_summary, "resource_blocked_contact_ids_by_spacecraft") ||
+          %{},
+      "source_contact_allocation_trust_boundary_status" =>
+        Map.get(contact_allocation_summary, "trust_boundary_status"),
       "source_contact_allocation_reservation_conflict_contact_count" =>
         Map.get(contact_allocation_summary, "reservation_conflict_contact_count"),
       "source_contact_allocation_reservation_conflict_match_status_counts" =>
@@ -1047,6 +1111,37 @@ defmodule OrbitalDynamics.Validation.ArtifactObservations.CandidateRefresh do
     |> Enum.map(&(Map.get(&1, key) || "unknown"))
     |> Enum.frequencies()
     |> Map.new(fn {value, count} -> {to_string(value), count} end)
+  end
+
+  defp candidate_filter_provenance_rows(rows, provenance_key) when is_list(rows) do
+    Enum.flat_map(rows, fn row ->
+      case get_in(row, ["activity_context", "provenance", provenance_key]) do
+        %{} = provenance ->
+          [%{"candidate_id" => Map.get(row, "candidate_id"), "provenance" => provenance}]
+
+        _provenance ->
+          []
+      end
+    end)
+  end
+
+  defp candidate_filter_candidate_id_keys(rows) when is_list(rows) do
+    rows
+    |> Enum.map(&Map.get(&1, "candidate_id"))
+    |> Enum.reject(&is_nil/1)
+    |> optional_stable_id_keys()
+  end
+
+  defp candidate_filter_provenance_keys(rows, field) when is_list(rows) do
+    rows
+    |> Enum.flat_map(fn row ->
+      case get_in(row, ["provenance", field]) do
+        values when is_list(values) -> values
+        value when is_binary(value) -> [value]
+        _value -> []
+      end
+    end)
+    |> optional_stable_id_keys()
   end
 
   defp list_values(map, key) do

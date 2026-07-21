@@ -269,6 +269,7 @@ defmodule OrbitalDynamics.ValidationTest do
   import OrbitalDynamics.Validation.CandidateRefreshStationAllocationReplayFixtures,
     only: [
       candidate_refresh_contact_allocation_contradiction_fixture_observations: 0,
+      candidate_refresh_contact_allocation_resource_selection_challenge_fixture_observations: 0,
       candidate_refresh_station_calendar_fixture_observations: 0
     ]
 
@@ -437,6 +438,8 @@ defmodule OrbitalDynamics.ValidationTest do
           candidate_refresh_contact_contention_challenge_fixture_observations(),
         "fixture.artifact.candidate_refresh.contact_allocation_contradiction_replay" =>
           candidate_refresh_contact_allocation_contradiction_fixture_observations(),
+        "fixture.artifact.candidate_refresh.contact_allocation_resource_selection_challenge" =>
+          candidate_refresh_contact_allocation_resource_selection_challenge_fixture_observations(),
         "fixture.artifact.candidate_refresh.contact_filter_replay" =>
           candidate_refresh_contact_filter_fixture_observations(),
         "fixture.artifact.candidate_refresh.contact_intent_direction_replay" =>
@@ -760,8 +763,8 @@ defmodule OrbitalDynamics.ValidationTest do
     assert %{
              "schema_contract" => "validation_reference_fixture_report.v1",
              "status" => "pass",
-             "fixture_count" => 198,
-             "status_counts" => %{"pass" => 198},
+             "fixture_count" => 199,
+             "status_counts" => %{"pass" => 199},
              "reports" => reports
            } = report
 
@@ -796,6 +799,7 @@ defmodule OrbitalDynamics.ValidationTest do
              "fixture.artifact.candidate_refresh.candidate_rejection_replay",
              "fixture.artifact.candidate_refresh.constraint_replay",
              "fixture.artifact.candidate_refresh.contact_allocation_contradiction_replay",
+             "fixture.artifact.candidate_refresh.contact_allocation_resource_selection_challenge",
              "fixture.artifact.candidate_refresh.contact_contention_cross_station_replay",
              "fixture.artifact.candidate_refresh.contact_filter_replay",
              "fixture.artifact.candidate_refresh.contact_intent_direction_replay",
@@ -986,7 +990,7 @@ defmodule OrbitalDynamics.ValidationTest do
 
     assert %{
              "status" => "fail",
-             "status_counts" => %{"fail" => 198},
+             "status_counts" => %{"fail" => 199},
              "reports" => invalid_observation_reports
            } = invalid_observation_report
 

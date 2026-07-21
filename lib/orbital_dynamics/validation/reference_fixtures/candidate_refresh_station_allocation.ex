@@ -206,6 +206,106 @@ defmodule OrbitalDynamics.Validation.ReferenceFixtures.CandidateRefreshStationAl
         "internal generated artifact regression, not provider-reservation execution validation",
         "checks branch-local replay of contradictory provider-calendar, reservation, and contact-allocation evidence without schedule mutation, candidate selection, import approval, provider reservation, or Cadence writes"
       ]
+    },
+    "fixture.artifact.candidate_refresh.contact_allocation_resource_selection_challenge" => %{
+      "id" =>
+        "fixture.artifact.candidate_refresh.contact_allocation_resource_selection_challenge",
+      "model_id" => "artifact.candidate_refresh.v1",
+      "reference_case" =>
+        "row-derived allocation resource evidence rejects an exact contact without stale aggregate or cross-spacecraft leakage",
+      "validation_level" => "artifact_contract",
+      "fixture_type" => "curated_internal_artifact_challenge",
+      "inputs" => %{
+        "source" => "generated_candidate_refresh_contact_allocation_resource_selection_challenge",
+        "contract" => "candidate_refresh.v1"
+      },
+      "expected" => %{
+        "schema_contract" => "candidate_refresh.v1",
+        "schema_version" => 1,
+        "planner" => "OrbitalDynamics.CandidateRefresh.V1",
+        "candidate_count" => 1,
+        "candidate_activity_id_keys" => "leo_2_downlink_dss_43_1",
+        "contact_intent_count" => 1,
+        "contact_intent_activity_id_keys" => "leo_2_downlink_dss_43_1",
+        "access_window_count" => 2,
+        "target_visibility_window_count" => 0,
+        "eclipse_interval_count" => 0,
+        "warning_count" => 1,
+        "candidate_rejection_report_count" => 1,
+        "candidate_rejection_candidate_count" => 2,
+        "candidate_rejection_rejected_count" => 1,
+        "candidate_rejection_rejected_candidate_id_keys" => "leo_1_downlink_equator_prime_1",
+        "candidate_rejection_reason_counts" => %{"quality_gate_failed" => 1},
+        "candidate_rejection_contact_allocation_filter_candidate_id_keys" =>
+          "leo_1_downlink_equator_prime_1",
+        "candidate_rejection_contact_allocation_filter_source_schema_contract_keys" =>
+          "contact_allocation_report.v1",
+        "candidate_rejection_contact_allocation_filter_source_report_path_keys" =>
+          "source_contact_allocation_report",
+        "candidate_rejection_contact_allocation_filter_source_artifact_id_keys" =>
+          "allocation-resource-selection-challenge",
+        "candidate_rejection_contact_allocation_filter_source_report_id_keys" =>
+          "contact_allocation:resource_selection:stale_aggregate_challenge",
+        "candidate_rejection_contact_allocation_filter_source_report_source_keys" =>
+          "validation.contact_allocation_resource_selection",
+        "candidate_rejection_contact_allocation_filter_resource_blocking_dimension_keys" =>
+          "antenna",
+        "candidate_rejection_contact_allocation_filter_blocked_spacecraft_id_keys" => "sat_1",
+        "candidate_rejection_contact_allocation_filter_trust_boundary_keys" =>
+          "allocation_resource_challenge|generated_contact_allocation_resource_selection_challenge",
+        "invalidated_candidate_count" => 1,
+        "invalidated_candidate_id_keys" => "leo_1_downlink_equator_prime_1",
+        "invalidated_candidate_reason_counts" => %{
+          "dropped_by_contact_allocation_unavailable_resource" => 1
+        },
+        "source_report_family_count" => 1,
+        "source_report_row_count" => 2,
+        "source_contact_allocation_report_count" => 1,
+        "source_contact_allocation_row_count" => 2,
+        "source_contact_allocation_path_keys" => "source_contact_allocation_report",
+        "source_contact_allocation_resource_blocked_contact_count" => 2,
+        "source_contact_allocation_resource_blocking_dimension_counts" => %{"antenna" => 2},
+        "source_contact_allocation_resource_blocked_contact_ids_by_blocking_dimension" => %{
+          "antenna" => [
+            "leo_1_downlink_equator_prime_1",
+            "leo_2_downlink_dss_43_1"
+          ]
+        },
+        "source_contact_allocation_resource_blocked_contact_ids_by_spacecraft" => %{
+          "sat_1" => [
+            "leo_1_downlink_equator_prime_1",
+            "leo_2_downlink_dss_43_1"
+          ]
+        },
+        "source_contact_allocation_trust_boundary_status" => "declared"
+      },
+      "tolerances" => %{
+        "schema_version" => 0,
+        "candidate_count" => 0,
+        "contact_intent_count" => 0,
+        "access_window_count" => 0,
+        "target_visibility_window_count" => 0,
+        "eclipse_interval_count" => 0,
+        "warning_count" => 0,
+        "candidate_rejection_report_count" => 0,
+        "candidate_rejection_candidate_count" => 0,
+        "candidate_rejection_rejected_count" => 0,
+        "invalidated_candidate_count" => 0,
+        "source_report_family_count" => 0,
+        "source_report_row_count" => 0,
+        "source_contact_allocation_report_count" => 0,
+        "source_contact_allocation_row_count" => 0,
+        "source_contact_allocation_resource_blocked_contact_count" => 0
+      },
+      "evidence" => [
+        "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
+        "schema-linted by mix orbital_dynamics.schema.lint"
+      ],
+      "known_limits" => [
+        "internal deterministic selection challenge, not external operations validation",
+        "the intentionally stale aggregate source map is challenge input; only exact row-derived contact and spacecraft evidence is selection-authoritative",
+        "proves review-only filtering without granting execution, operator authority, import approval, provider reservation, or Cadence writes"
+      ]
     }
   }
 
