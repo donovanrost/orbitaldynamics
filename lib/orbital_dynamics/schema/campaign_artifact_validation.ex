@@ -213,6 +213,8 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
         &ResourceValidation.validate_optional_resource_projection_report/3,
       validate_optional_operational_timeline_report:
         &OperationalTimelineValidation.validate_optional_report/2,
+      validate_optional_timeline_transition_application_report:
+        &TimelineTransitionValidation.validate_optional_timeline_transition_application_report/3,
       validate_optional_operator_review_package:
         &OperatorReviewValidation.validate_optional_package/2,
       validate_optional_objective_tradeoff_report:

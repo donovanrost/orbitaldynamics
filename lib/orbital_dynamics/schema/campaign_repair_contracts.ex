@@ -8,7 +8,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
     CampaignRepairContactIntentPressureContracts,
     CampaignRepairReplacementRankingContracts,
     CampaignRepairScoreContracts,
-    CampaignRepairStationPressureContracts
+    CampaignRepairStationPressureContracts,
+    CampaignRepairTimelineTransitionContracts
   }
 
   @timeline_protection_fields [
@@ -86,6 +87,11 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
     |> call(callbacks, :validate_optional_operational_timeline_report, [
       Map.get(artifact, "operational_timeline_report")
     ])
+    |> call(callbacks, :validate_optional_timeline_transition_application_report, [
+      "$.timeline_transition_application_report",
+      Map.get(artifact, "timeline_transition_application_report")
+    ])
+    |> CampaignRepairTimelineTransitionContracts.validate(artifact)
     |> call(callbacks, :validate_optional_operator_review_package, [
       Map.get(artifact, "operator_review_package")
     ])

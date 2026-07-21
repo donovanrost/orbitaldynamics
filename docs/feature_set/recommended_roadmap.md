@@ -131,6 +131,9 @@ Already implemented or heavily covered:
 - optional V2 contact-allocation reports are declared as direct nested
   contracts and receive the complete standalone allocation/nested-contention
   validation plus exact `campaign_repair.activities` source identity
+- optional V2 timeline-transition reports receive complete nested validation;
+  runtime reconciliation pins repair source, repaired-activity count, and
+  selected/review-required summaries to enclosing repair metadata
 - V2 candidate-refresh source freshness contributes one explicit normalized
   risk-weight penalty for a stale or unknown report, aligned with its
   review/import gate and V3 refresh-freshness pressure semantics

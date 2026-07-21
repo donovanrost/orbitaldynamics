@@ -5,64 +5,67 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Declare and validate nested V2 contact-allocation reports.
+Validate V2 timeline-transition reports and metadata.
 
 Status:
 Complete; ready to publish.
 
 Selection evidence:
-- V2 production emits a repaired `contact_allocation_report.v1`, but the repair
-  registry declares neither the optional field nor its nested contract.
-- Score-pressure validation uses selected allocation evidence but does not run
-  the standalone report's full row, count, summary, nested contention, stable-
-  identity, and model-limit contract.
-- Both checked V2 allocation reports already pass standalone validation and use
-  the deterministic `campaign_repair.activities` producer source.
+- V2 already declares and exports `timeline_transition_application_report.v1`,
+  but repair runtime validation never invokes that nested contract.
+- The generic contract owns application/selection/review rows and derived
+  counts, while V2 production deterministically records selected and review
+  counts again in `repair_metadata`.
+- The report is built from the enclosing repaired activities and a fixed repair-
+  transition source, but those cross-artifact identities are not pinned.
 
 Intended behavior:
-- Declare the optional contact-allocation report and its V1 nested contract in
-  the V2 registry and generated JSON Schema.
-- Run the complete standalone allocation-report validator inside V2 repair
-  validation, then pin the source to `campaign_repair.activities`.
+- Run the complete standalone timeline-transition validator inside V2 repair
+  validation.
+- Require the repair-specific report source and reconcile replacement activity
+  count with enclosing repaired activities.
+- Pin repair-metadata selected and review-required counts to the validated
+  report summaries.
 - Keep the field optional for compatible older V2 artifacts.
-- Add checked-fixture, nested count/identity, optional-report, and schema-
-  export coverage; refresh checked-in schemas and document the guarantee.
+- Add checked-fixture, nested count/source, metadata, optional-report, and real-
+  planner coverage; document the executable guarantee.
 
 Level 6 pillar advanced:
-Versioned V2 ground-allocation evidence with executable nested validation.
+Replayable V2 transition decisions reconciled to repair metadata.
 
 Last published slice:
-- `73256bb7` Validate nested V2 constraint reports (`3733 passed`).
+- `1da5a23e` Validate nested V2 contact allocations (`3737 passed`).
 
 Likely files:
-- V2 registry/runtime contact-allocation contracts
-- focused allocation and schema-export tests
-- checked-in schema exports and V2 capability docs
+- V2 runtime timeline-transition contracts
+- focused transition metadata tests
+- V2 capability and roadmap docs
 
 Verification:
-- Focused V1/V2 allocation and planner tests: `9 passed`.
-- Campaign-repair schema fixtures: `39 passed`.
-- Schema suite plus schema-lint/export task tests: `418 passed`.
+- Focused transition-contract and repair-planner tests: `13 passed`.
+- Campaign-repair schema fixtures: `43 passed`.
+- Schema suite plus schema-lint/export task tests: `422 passed`.
 - Campaign-planner suite: `759 passed`.
 - Full checked-artifact lint: `155/155 passed`, zero warnings.
-- Full suite: `3737 passed`.
+- Full suite normal-timeout rerun: `3741 passed`.
+- The first full run had one contention-driven schema-export timeout; that exact
+  test passed alone in `18.3s`, then the unchanged normal-timeout full rerun was
+  fully green.
 - `mix format --check-formatted`, `mix compile --warnings-as-errors`, and
   `git diff --check` passed.
-- Full schema export refreshed the V2 repair schema and aggregate bundle only.
+- Runtime-only reconciliation required no generated schema changes.
 
 Review:
-- The V2 registry now declares optional `contact_allocation_report` and its V1
-  nested contract; generated schemas expose the property and complete report
-  definition without requiring it from compatible older V2 artifacts.
-- Runtime repair validation now applies the standalone allocation contract,
-  including row identity/types, row-derived counts and summaries, nested
-  contention/resolution evidence, capacity and station-pressure summaries, and
-  exact model limits.
-- Repair-specific validation additionally pins report source to
-  `campaign_repair.activities`, preventing a structurally valid allocation from
-  being relabeled from another planning stage.
-- Both checked V2 repairs, real planner output, all checked artifacts, and
-  existing V1 allocation consumers remain valid.
+- Repair runtime validation now invokes the complete declared nested transition
+  contract, covering application and selected-activity rows, identities,
+  lifecycle/protection/timeline-diff evidence, derived counts, and model limits.
+- Repair-specific validation pins the report source, replacement activity count
+  to enclosing repaired activities, and selected/review-required summaries to
+  the duplicate counts emitted in `repair_metadata`.
+- Coordinated edits to the generic report and repair metadata can no longer
+  relabel the transition source or detach the report from repaired activities.
+- The report remains optional for compatible older V2 artifacts; both checked
+  V2 repairs, real planner output, and all checked artifacts remain valid.
 
 Remaining maturity gaps:
 - Continue exact V2 ranking/score reconciliation for replayable source fields.
