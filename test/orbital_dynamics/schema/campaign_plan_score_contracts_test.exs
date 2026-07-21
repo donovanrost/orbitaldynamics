@@ -255,6 +255,8 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContractsTest do
       first
       |> Map.put("scenario_id", "leo_2")
       |> Map.put("score", first["score"] - 10.0)
+      |> Map.put("activity_count", 0)
+      |> Map.put("activities", [])
 
     [first, second]
   end

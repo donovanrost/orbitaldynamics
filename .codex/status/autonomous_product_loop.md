@@ -5,46 +5,50 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Contract V1 ranked timeline order.
+Reconcile V1 ranked timeline scenario identity.
 
 Status:
 Complete and parent-reviewed; ready to publish.
 
 Delivered:
-- Required every comparable adjacent V1 ranked-timeline pair to follow
-  descending score order.
-- Required equal-score timeline pairs to use ascending `scenario_id` order.
-- Avoided secondary ordering errors when either row already has a malformed score
-  or scenario identifier.
-- Added producer-valid, descending-score drift, deterministic-tie, and malformed-
-  row calibration coverage.
-- Documented the runtime cross-row rule; no structural JSON Schema export
-  changed.
+- Required stable ranked-timeline scenario IDs to be unique across the
+  collection.
+- Required each valid nested activity scenario ID to equal its enclosing
+  timeline's scenario ID.
+- Avoided secondary identity errors for malformed timeline or activity scenario
+  fields already owned by field-level validators.
+- Preserved valid empty timelines and open additional activity metadata.
+- Added producer-valid, duplicate-scenario, mismatched-owner, empty-timeline, and
+  malformed-field calibration coverage.
+- Updated V1 generation, planning, reproducibility, and roadmap documentation;
+  no structural JSON Schema export changed.
 
 Review calibration:
-- `CampaignPlanner.BuildOrchestration` establishes the exact comparison with
-  `Enum.sort_by(&{-score, scenario_id})` before applying the rank limit.
-- Pre-fix, a lower-score first row passed after all derived score, tradeoff, and
-  optimizer reports were regenerated; the new adjacent-pair check owns that gap.
-- Comparison is skipped unless both rows have numeric scores and stable scenario
-  IDs, preserving the existing field validators as the sole malformed-value
-  owners.
-- Equal-score coverage accepts ascending and rejects descending scenario order.
+- `CampaignPlanner.BuildOrchestration` establishes the identity boundary by
+  grouping candidates by `scenario_id` and emitting one timeline per group.
+- Pre-fix, refreshed mismatched-owner and duplicate-scenario artifacts both
+  returned `:ok`; the new checks own those gaps.
+- Synchronized selected/candidate/ranked activity drift reaches the new
+  ownership error through the public artifact validator without snapshot noise.
+- The first focused run exposed two incomplete error-map assertions (`23/25`),
+  corrected to include standard severity metadata.
+- The first schema-area run exposed one stale copied-activity tradeoff fixture
+  (`351/352`); its synthetic second scenario is now a valid empty timeline.
 - Parent review found no publish blocker.
 
 Verification:
-- Focused score contracts: `14 passed`.
-- Schema plus lint area: `347 passed`.
+- Focused identity, score, and tradeoff contracts: `33 passed`.
+- Schema plus lint area: `352 passed`.
 - Planner area: `754 passed`.
-- Full suite: `3660 passed`.
+- Full suite: `3665 passed`.
 - `mix format --check-formatted`, `mix compile --warnings-as-errors`, and
   `git diff --check` pass.
 
 Level 6 pillar advanced:
-Reproducible V1 branch ranking and internally consistent review artifacts.
+Reproducible V1 branch trees and internally consistent review artifacts.
 
 Previous published slice:
-- `da552765` Reconcile V1 activity snapshots (`3657 passed`).
+- `a7ea7d61` Contract V1 ranked timeline order (`3660 passed`).
 
 Remaining maturity gaps:
 - Continue calibrated realized-feedback depth where evidence is genuinely

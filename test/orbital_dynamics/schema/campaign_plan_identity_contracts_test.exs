@@ -1,6 +1,7 @@
 defmodule OrbitalDynamics.Schema.CampaignPlanIdentityContractsTest do
   use ExUnit.Case, async: true
 
+  alias OrbitalDynamics.Schema.CampaignPlanIdentityContracts
   alias OrbitalDynamics.{CampaignPlanner, ResultSet, Schema}
 
   setup do
@@ -91,6 +92,89 @@ defmodule OrbitalDynamics.Schema.CampaignPlanIdentityContractsTest do
 
     assert "$.generated_at" in paths
     assert "$.plan_id" in paths
+  end
+
+  test "rejects duplicate ranked timeline scenario identities" do
+    issues =
+      CampaignPlanIdentityContracts.validate([], %{
+        "ranked_timelines" => [
+          %{"scenario_id" => "leo_1", "activities" => []},
+          %{"scenario_id" => "leo_1", "activities" => []}
+        ]
+      })
+
+    assert %{
+             "path" => "$.ranked_timelines[1].scenario_id",
+             "message" => "must be unique across ranked timelines",
+             "severity" => "error"
+           } in issues
+  end
+
+  test "reconciles activity scenario identity with its enclosing ranked timeline" do
+    issues =
+      CampaignPlanIdentityContracts.validate([], %{
+        "ranked_timelines" => [
+          %{
+            "scenario_id" => "leo_2",
+            "activities" => [%{"scenario_id" => "leo_1"}]
+          }
+        ]
+      })
+
+    assert %{
+             "path" => "$.ranked_timelines[0].activities[0].scenario_id",
+             "message" => "must match enclosing ranked timeline scenario_id",
+             "severity" => "error"
+           } in issues
+  end
+
+  test "rejects synchronized activity ownership drift through artifact validation", %{
+    artifact: artifact
+  } do
+    rewrite_scenarios = fn activities ->
+      Enum.map(activities, &Map.put(&1, "scenario_id", "leo_2"))
+    end
+
+    invalid =
+      artifact
+      |> Map.update!("activities", rewrite_scenarios)
+      |> Map.update!("candidate_activities", rewrite_scenarios)
+      |> update_in(
+        ["ranked_timelines", Access.at(0), "activities"],
+        rewrite_scenarios
+      )
+
+    assert {:error, report} = Schema.validate_artifact(invalid)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] == "$.ranked_timelines[0].activities[0].scenario_id" and
+                 &1["message"] == "must match enclosing ranked timeline scenario_id")
+           )
+  end
+
+  test "accepts unique empty timelines and aligned activity scenarios" do
+    issues =
+      CampaignPlanIdentityContracts.validate([], %{
+        "ranked_timelines" => [
+          %{"scenario_id" => "leo_1", "activities" => [%{"scenario_id" => "leo_1"}]},
+          %{"scenario_id" => "leo_2", "activities" => []}
+        ]
+      })
+
+    assert issues == []
+  end
+
+  test "leaves malformed scenario fields to field-level validators" do
+    issues =
+      CampaignPlanIdentityContracts.validate([], %{
+        "ranked_timelines" => [
+          %{"scenario_id" => "bad id", "activities" => [%{"scenario_id" => "leo_1"}]},
+          %{"scenario_id" => "leo_2", "activities" => [%{"scenario_id" => []}]}
+        ]
+      })
+
+    assert issues == []
   end
 
   defp read_json!(path) do

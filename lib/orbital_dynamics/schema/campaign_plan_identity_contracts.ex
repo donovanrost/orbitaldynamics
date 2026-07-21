@@ -3,10 +3,13 @@ defmodule OrbitalDynamics.Schema.CampaignPlanIdentityContracts do
 
   import OrbitalDynamics.Schema.PrimitiveValidation, only: [error: 2]
 
+  alias OrbitalDynamics.Schema.StableIdValidation
+
   def validate(issues, artifact) when is_map(artifact) do
     issues
     |> validate_generated_at(Map.get(artifact, "generated_at"))
     |> validate_plan_id(artifact)
+    |> validate_ranked_scenario_identity(Map.get(artifact, "ranked_timelines"))
   end
 
   defp validate_generated_at(issues, generated_at) when is_binary(generated_at) do
@@ -48,4 +51,80 @@ defmodule OrbitalDynamics.Schema.CampaignPlanIdentityContracts do
   end
 
   defp validate_plan_id(issues, _artifact), do: issues
+
+  defp validate_ranked_scenario_identity(issues, timelines) when is_list(timelines) do
+    issues
+    |> reject_duplicate_scenario_ids(timelines)
+    |> validate_activity_scenario_ownership(timelines)
+  end
+
+  defp validate_ranked_scenario_identity(issues, _timelines), do: issues
+
+  defp reject_duplicate_scenario_ids(issues, timelines) do
+    timelines
+    |> Enum.with_index()
+    |> Enum.reduce({issues, MapSet.new()}, fn
+      {%{"scenario_id" => scenario_id}, index}, {acc, seen} ->
+        cond do
+          not StableIdValidation.valid?(scenario_id) ->
+            {acc, seen}
+
+          MapSet.member?(seen, scenario_id) ->
+            {
+              [
+                error(
+                  "$.ranked_timelines[#{index}].scenario_id",
+                  "must be unique across ranked timelines"
+                )
+                | acc
+              ],
+              seen
+            }
+
+          true ->
+            {acc, MapSet.put(seen, scenario_id)}
+        end
+
+      {_timeline, _index}, state ->
+        state
+    end)
+    |> elem(0)
+  end
+
+  defp validate_activity_scenario_ownership(issues, timelines) do
+    timelines
+    |> Enum.with_index()
+    |> Enum.reduce(issues, fn
+      {%{"scenario_id" => scenario_id, "activities" => activities}, timeline_index}, acc
+      when is_list(activities) ->
+        validate_timeline_activity_scenarios(acc, activities, timeline_index, scenario_id)
+
+      {_timeline, _timeline_index}, acc ->
+        acc
+    end)
+  end
+
+  defp validate_timeline_activity_scenarios(issues, activities, timeline_index, scenario_id) do
+    activities
+    |> Enum.with_index()
+    |> Enum.reduce(issues, fn
+      {%{"scenario_id" => activity_scenario_id}, activity_index}, acc ->
+        if StableIdValidation.valid?(scenario_id) and
+             StableIdValidation.valid?(activity_scenario_id) and
+             scenario_id != activity_scenario_id do
+          [
+            error(
+              "$.ranked_timelines[#{timeline_index}].activities[#{activity_index}].scenario_id",
+              "must match enclosing ranked timeline scenario_id"
+            )
+            | acc
+          ]
+        else
+          acc
+        end
+
+      {_activity, _activity_index}, acc ->
+        acc
+    end)
+  end
 end

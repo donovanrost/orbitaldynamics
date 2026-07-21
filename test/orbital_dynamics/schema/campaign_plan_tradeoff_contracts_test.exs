@@ -25,6 +25,8 @@ defmodule OrbitalDynamics.Schema.CampaignPlanTradeoffContractsTest do
       first_timeline
       |> Map.put("scenario_id", "leo_2")
       |> Map.put("score", first_timeline["score"] - 10.0)
+      |> Map.put("activity_count", 0)
+      |> Map.put("activities", [])
 
     timelines = [first_timeline, second_timeline]
     policy = artifact["objective_tradeoff_report"]["policy"]

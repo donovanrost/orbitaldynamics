@@ -167,6 +167,10 @@ The ranked collection itself must remain in descending score order, with
 ascending scenario identity breaking equal-score ties exactly as the producer
 does. This adjacent-row comparison is enforced at runtime rather than expressed
 by JSON Schema.
+Runtime validation also requires one ranked row per stable scenario identity and
+reconciles every nested activity's scenario with its enclosing timeline. Empty
+timelines remain compatible; JSON Schema continues to own the individual field
+shapes while executable validation owns uniqueness and cross-field equality.
 The exported ranked-timeline schema constrains every score-term value to a
 number. These V1 terms are explanatory fields that include counts and subtotals,
 so they are not treated as one additive score sum.

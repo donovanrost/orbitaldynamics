@@ -211,6 +211,9 @@ Already implemented or heavily covered:
 - runtime V1 validation also preserves the producer's descending timeline score
   order and deterministic ascending scenario tie-break; this adjacent-row rule
   remains executable because JSON Schema does not express the comparison
+- ranked V1 scenario rows are unique and own all nested activity scenario IDs,
+  preserving the producer's scenario-group boundary while allowing empty rows;
+  these cross-row/cross-field comparisons remain executable contracts
 - optional V1 objective-tradeoff rows are reconciled with their enclosing
   ranked timelines, including selected-score deltas, term maps, selected counts,
   and activity identities

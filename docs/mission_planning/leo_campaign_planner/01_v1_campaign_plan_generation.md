@@ -66,6 +66,10 @@ It answers:
   descending score order, using ascending `scenario_id` as the deterministic
   equal-score tie-break. JSON Schema remains the structural layer because this
   comparison spans adjacent rows.
+- Runtime validation also preserves the producer's scenario-group boundary:
+  scenario IDs are unique across ranked timelines, and every nested activity
+  belongs to its enclosing scenario. Empty timelines remain valid. These
+  collection and ownership comparisons are executable rather than structural.
 - `campaign_plan.objective_tradeoff_report` with per-ranked-timeline score-term
   deltas for operator review.
 - `campaign_plan.activities` for the highest-ranked timeline.
