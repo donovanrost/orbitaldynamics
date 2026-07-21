@@ -100,6 +100,9 @@ It answers:
 - Planning assumptions pin the candidate builder, timeline selector, resource
   and contact filters, artifact-only Cadence boundary, and the constraint /
   scoring-policy maps used for the plan.
+- Provenance always exposes run, manifest, revision, propagator, and propagator-
+  option keys. Direct plans may carry null values; file-backed manifest evidence
+  carries a typed path and lowercase SHA-256 digest when available.
 - Reproducible study archive with manifest hash when run from disk.
 
 ## Cadence Integration

@@ -9,6 +9,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanJsonSchema do
     "contact_intents",
     "generated_at",
     "planning_horizon",
+    "provenance",
     "target_commitments",
     "ranking_explanation",
     "ranked_timelines",
@@ -102,6 +103,33 @@ defmodule OrbitalDynamics.Schema.CampaignPlanJsonSchema do
         },
         "constraints" => %{"type" => "object"},
         "scoring_policy" => %{"type" => "object"}
+      }
+    }
+  end
+
+  def property("provenance", _opts) do
+    nullable_string = %{"type" => ["string", "null"], "minLength" => 1}
+
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "required" => ["run_id", "manifest", "git_revision", "propagator", "propagator_opts"],
+      "properties" => %{
+        "run_id" => nullable_string,
+        "manifest" => %{
+          "type" => ["object", "null"],
+          "additionalProperties" => true,
+          "properties" => %{
+            "path" => nullable_string,
+            "sha256" => %{
+              "type" => ["string", "null"],
+              "pattern" => "^[0-9a-f]{64}$"
+            }
+          }
+        },
+        "git_revision" => nullable_string,
+        "propagator" => nullable_string,
+        "propagator_opts" => %{"type" => ["object", "null"]}
       }
     }
   end

@@ -173,6 +173,9 @@ work, a **partial** executable-schema track, and **near-term** / **later** /
   plan identity used by downstream handoffs.
 - Its required assumption object pins the current candidate/selection/filter
   models, artifact-only Cadence boundary, and typed constraint/scoring maps.
+- Its required provenance envelope types nullable run/revision/propagator,
+  manifest, and propagator-option values while validating supplied manifest
+  path and SHA-256 evidence.
 - Its warning array is executable as unique, non-empty human-readable strings;
   the vocabulary remains open for future planning conditions.
 - Its typed planning horizon validates declared duration/cadence as positive,

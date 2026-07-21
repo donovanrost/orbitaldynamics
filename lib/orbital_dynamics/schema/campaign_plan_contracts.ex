@@ -10,6 +10,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanContracts do
     CampaignPlanHorizonContracts,
     CampaignPlanIdentityContracts,
     CampaignPlanOptimizerContracts,
+    CampaignPlanProvenanceContracts,
     CampaignPlanScoreContracts,
     CampaignPlanTargetCommitmentContracts,
     CampaignPlanTradeoffContracts,
@@ -122,6 +123,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanContracts do
     |> call(callbacks, :expect_type, ["$", artifact, "assumptions", :map])
     |> CampaignPlanAssumptionContracts.validate(artifact)
     |> call(callbacks, :expect_type, ["$", artifact, "provenance", :map])
+    |> CampaignPlanProvenanceContracts.validate(artifact)
     |> call(callbacks, :expect_type, ["$", artifact, "ranking_explanation", :map])
     |> call(callbacks, :validate_rows, [
       "$.activities",

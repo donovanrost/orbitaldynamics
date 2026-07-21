@@ -69,6 +69,11 @@ selector, resource-filter, contact-filter, and artifact-only Cadence-boundary
 identifiers plus typed constraint and scoring-policy maps. Optimizer/report
 reconciliation continues to pin the values inside those maps to plan evidence.
 
+V1 provenance requires the producer's run, manifest, revision, propagator, and
+propagator-options keys. Values remain nullable for direct planning over an
+existing result set; non-null values are typed, and supplied manifest SHA-256
+evidence must be a lowercase 64-character digest.
+
 V1 warnings remain an extensible human-readable vocabulary, but executable
 validation and export require every entry to be a non-empty string and reject
 duplicates before warning evidence reaches review/import handoffs.

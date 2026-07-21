@@ -219,6 +219,8 @@ Already implemented or heavily covered:
   from the enclosing study ID and generation timestamp
 - required V1 assumptions pin the current builder/selector/filter/Cadence
   boundary identifiers and type the constraint/scoring-policy maps
+- required V1 provenance keys preserve nullable direct-plan evidence while
+  typing non-null run/manifest/revision/propagator values and manifest SHA-256
 - V1 runtime/export contracts reject non-string, blank, and duplicate warning
   evidence without freezing the warning vocabulary
 - required V1 planning-horizon objects type optional positive duration/cadence,
