@@ -111,7 +111,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
       RepairSourceFilterPressure.suppressed_count(contact_filter_report)
 
     contact_allocation_pressure_count =
-      repair_contact_allocation_pressure_count(contact_allocation_report, callbacks)
+      RepairContactAllocationPressure.unusable_count(
+        contact_allocation_report,
+        contact_allocation_callbacks(callbacks)
+      )
 
     contact_intent_pressure_count =
       repair_contact_intent_pressure_count(contact_intents, activities)
@@ -346,38 +349,6 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
 
   defp repair_station_calendar_pressure_count(_report, _allocation_report, _activities), do: 0
 
-  defp repair_contact_allocation_pressure_count(%{"rows" => rows}, callbacks)
-       when is_list(rows) do
-    stringify_keys = Keyword.fetch!(callbacks, :stringify_keys)
-
-    normalize_contact_allocation_row =
-      Keyword.fetch!(callbacks, :normalize_contact_allocation_row)
-
-    contact_allocation_unusable_candidate? =
-      Keyword.fetch!(callbacks, :contact_allocation_unusable_candidate?)
-
-    rows
-    |> Enum.map(stringify_keys)
-    |> Enum.map(normalize_contact_allocation_row)
-    |> Enum.count(contact_allocation_unusable_candidate?)
-  end
-
-  defp repair_contact_allocation_pressure_count(
-         %{"effective_allocation_status_counts" => %{} = counts},
-         _callbacks
-       ) do
-    Enum.sum([
-      numeric_count(Map.get(counts, "blocked")),
-      numeric_count(Map.get(counts, "deferred")),
-      numeric_count(Map.get(counts, "policy_blocked"))
-    ])
-  end
-
-  defp repair_contact_allocation_pressure_count(_report, _callbacks), do: 0
-
-  defp numeric_count(count) when is_number(count), do: trunc(count)
-  defp numeric_count(_count), do: 0
-
   defp repair_resource_projection_pressure_count(resource_projection_report) do
     resource_projection_report
     |> ResourceProjectionRisk.risk_indicators()
@@ -389,8 +360,9 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
       candidate_score: &candidate_score/1,
       numeric_policy_value: &numeric_policy_value/3,
       stringify_keys: &ValueEncoding.stringify_keys/1,
-      normalize_contact_allocation_row: &normalize_contact_allocation_row/1,
-      contact_allocation_unusable_candidate?: &contact_allocation_unusable_candidate?/1,
+      normalize_contact_allocation_row: &RepairContactAllocationPressure.normalize_row/1,
+      contact_allocation_unusable_candidate?:
+        &RepairContactAllocationPressure.unusable_candidate?/1,
       operational_readiness_reviewable?: &OperationalReadinessPressureEvents.reviewable?/1,
       quality_gate_reviewable?: &QualityGatePressureEvents.reviewable?/1
     ]
@@ -405,38 +377,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
     end
   end
 
-  defp normalize_contact_allocation_row(row) do
-    row
-    |> normalize_contact_allocation_status_field("allocation_status")
-    |> normalize_contact_allocation_status_field("effective_allocation_status")
-    |> normalize_contact_allocation_status_field("review_status")
-    |> normalize_contact_allocation_status_field("approval_status")
-    |> normalize_contact_allocation_policy_decision()
-  end
-
-  defp normalize_contact_allocation_status_field(row, field) do
-    case Map.get(row, field) do
-      value when value in [nil, ""] -> row
-      value -> Map.put(row, field, ScalarValues.normalized_status_token(value))
-    end
-  end
-
-  defp normalize_contact_allocation_policy_decision(%{"policy_decision" => %{} = decision} = row) do
-    decision =
-      decision
-      |> ValueEncoding.stringify_keys()
-      |> normalize_contact_allocation_status_field("classification")
-
-    Map.put(row, "policy_decision", decision)
-  end
-
-  defp normalize_contact_allocation_policy_decision(row), do: row
-
-  defp contact_allocation_unusable_candidate?(row) do
-    contact_allocation_effective_status(row) in ["deferred", "blocked", "policy_blocked"]
-  end
-
-  defp contact_allocation_effective_status(row) do
-    Map.get(row, "effective_allocation_status") || Map.get(row, "allocation_status")
+  defp contact_allocation_callbacks(callbacks) do
+    [
+      stringify_keys: Keyword.fetch!(callbacks, :stringify_keys),
+      normalize_row: Keyword.fetch!(callbacks, :normalize_contact_allocation_row),
+      unusable_candidate?: Keyword.fetch!(callbacks, :contact_allocation_unusable_candidate?)
+    ]
   end
 end

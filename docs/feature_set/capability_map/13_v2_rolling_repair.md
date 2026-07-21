@@ -146,6 +146,9 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   one declared-risk-weight penalty. Contact/resource-filter and candidate-
   rejection terms use shared producer/runtime suppression or rejection counts,
   including their declared count and exact nonblank-ID fallback precedence.
+  Contact-allocation pressure likewise uses a shared normalized unusable-row
+  count for deferred/blocked/policy-blocked contacts, with exact effective-status
+  summary fallbacks when rows are absent.
 
 ## Refreshed missed-contact repair
 

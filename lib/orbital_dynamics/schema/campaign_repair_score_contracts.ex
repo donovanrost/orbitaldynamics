@@ -3,6 +3,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreContracts do
 
   alias OrbitalDynamics.CampaignPlanner.{
     LinkCapacityPressureBranches,
+    RepairContactAllocationPressure,
     RepairReadinessPressure,
     RepairRefreshPressure,
     RepairSourceFilterPressure,
@@ -171,6 +172,11 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreContracts do
       |> Map.get("source_candidate_rejection_report")
       |> RepairSourceFilterPressure.candidate_rejection_count()
 
+    contact_allocation_pressure_count =
+      artifact
+      |> Map.get("source_contact_allocation_report")
+      |> RepairContactAllocationPressure.unusable_count()
+
     issues
     |> validate_optional_derived_term(
       score_terms,
@@ -231,6 +237,12 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreContracts do
       "candidate_rejection_pressure_penalty",
       -candidate_rejection_pressure_count * risk_weight,
       "must match source candidate-rejection rejected-candidate count and risk_weight"
+    )
+    |> validate_optional_derived_term(
+      score_terms,
+      "contact_allocation_pressure_penalty",
+      -contact_allocation_pressure_count * risk_weight,
+      "must match source contact-allocation unusable-candidate count and risk_weight"
     )
   end
 

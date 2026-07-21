@@ -481,6 +481,97 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreContractsTest do
     assert [] == CampaignRepairScoreContracts.validate([], malformed_reports)
   end
 
+  test "rejects contact-allocation pressure drift hidden by aggregate arithmetic", %{
+    artifact: artifact
+  } do
+    valid =
+      artifact
+      |> Map.put("source_contact_allocation_report", %{
+        "rows" => [
+          %{"effective_allocation_status" => "Deferred"},
+          %{allocation_status: :blocked},
+          %{
+            "allocation_status" => "allocated",
+            "effective_allocation_status" => "policy-blocked"
+          },
+          %{"allocation_status" => "allocated"}
+        ]
+      })
+      |> put_score_term("contact_allocation_pressure_penalty", -3.0)
+
+    assert [] == CampaignRepairScoreContracts.validate([], valid)
+
+    invalid = coordinated_term_edit(valid, "contact_allocation_pressure_penalty", 1.0)
+    assert errors = CampaignRepairScoreContracts.validate([], invalid)
+
+    assert Enum.any?(
+             errors,
+             &(&1["path"] == "$.score_terms.contact_allocation_pressure_penalty")
+           )
+  end
+
+  test "honors contact-allocation row, fallback, policy, and malformed semantics", %{
+    artifact: artifact
+  } do
+    numeric_string_policy =
+      artifact
+      |> drop_score_terms(readiness_term_keys())
+      |> Map.put("source_contact_allocation_report", %{
+        "rows" => [
+          %{"allocation_status" => "blocked"},
+          %{"effective_allocation_status" => "deferred"}
+        ]
+      })
+      |> put_in(["scoring_policy", "risk_weight"], "0.25")
+      |> put_score_term("contact_allocation_pressure_penalty", -0.5)
+
+    assert [] == CampaignRepairScoreContracts.validate([], numeric_string_policy)
+
+    zero_risk_weight =
+      artifact
+      |> drop_score_terms(readiness_term_keys())
+      |> Map.put("source_contact_allocation_report", %{
+        "rows" => [%{"allocation_status" => "blocked"}]
+      })
+      |> put_in(["scoring_policy", "risk_weight"], 0.0)
+      |> put_score_term("contact_allocation_pressure_penalty", 0.0)
+
+    assert [] == CampaignRepairScoreContracts.validate([], zero_risk_weight)
+
+    summary_fallback =
+      artifact
+      |> Map.put("source_contact_allocation_report", %{
+        "effective_allocation_status_counts" => %{
+          "blocked" => 1.9,
+          "deferred" => 2,
+          "policy_blocked" => "3"
+        }
+      })
+      |> put_score_term("contact_allocation_pressure_penalty", -3.0)
+
+    assert [] == CampaignRepairScoreContracts.validate([], summary_fallback)
+
+    row_precedence =
+      artifact
+      |> Map.put("source_contact_allocation_report", %{
+        "rows" => [%{"allocation_status" => "allocated"}],
+        "effective_allocation_status_counts" => %{"blocked" => 99}
+      })
+      |> put_score_term("contact_allocation_pressure_penalty", 0.0)
+
+    assert [] == CampaignRepairScoreContracts.validate([], row_precedence)
+
+    legacy = drop_score_terms(artifact, ["contact_allocation_pressure_penalty"])
+    assert [] == CampaignRepairScoreContracts.validate([], legacy)
+
+    malformed =
+      artifact
+      |> Map.put("source_contact_allocation_report", %{"rows" => ["invalid"]})
+      |> put_score_term("contact_allocation_pressure_penalty", 0.0)
+
+    assert [] == CampaignRepairScoreContracts.validate([], malformed)
+  end
+
   test "rejects score-term report drift from the enclosing repair artifact", %{
     artifact: artifact
   } do
