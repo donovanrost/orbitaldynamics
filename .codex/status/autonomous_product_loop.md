@@ -5,39 +5,40 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Reconcile V1 plan identity with generation evidence.
+Validate V1 warning integrity.
 
 Status:
 Complete and parent-reviewed; ready to publish.
 
 Delivered:
-- Exported required `generated_at` as a JSON Schema `date-time` string.
-- Parsed runtime generation timestamps as ISO 8601 date-times.
-- Required `plan_id` to equal the producer-derived
-  `campaign_plan:<study_id>:<generated_at>` identity.
-- Covered checked-in and freshly generated direct-plan evidence plus malformed
-  time, stale plan ID, changed study ID, and malformed field safety.
+- Added executable warning-row validation for non-empty strings.
+- Rejected duplicate warning strings at the owning top-level field.
+- Exported warning items with string type, non-empty/non-whitespace constraints,
+  and `uniqueItems` without pinning an extensible vocabulary.
+- Covered checked-in empty warnings and a direct empty-campaign build's four
+  generated warnings plus non-string, blank, duplicate, and malformed inputs.
+- Removed the superseded generic string-array schema helper.
 - Regenerated only `campaign_plan.v1` and the aggregate schema bundle.
 - Updated V1 generation, planning, reproducibility, and roadmap documentation.
 
 Review calibration:
-- The rule comes directly from `CampaignPlanner.BuildOrchestration.plan_id/2`;
-  no new identity format or downstream contract was introduced.
-- Existing stable-ID checks still own malformed ID shape; the new 51-line
-  validator owns generation-time parsing and cross-field identity equality.
-- All schema and planner fixtures already use canonical producer identity, so no
-  compatibility exception or fixture rewrite was required.
+- `CampaignPlanner.PlanMetadata.warnings/6` emits distinct non-empty strings from
+  independent planning conditions; the contract captures that invariant only.
+- Existing top-level type validation retains malformed-list ownership, while the
+  focused 57-line validator owns members and duplicates.
+- Parent review found runtime and JSON Schema aligned with no compatibility
+  exception or fixture rewrite.
 
 Verification:
-- Focused plan/export integration: `26 passed`.
-- Schema area: `254 passed`.
+- Focused plan/export integration: `25 passed`.
+- Schema area: `260 passed`.
 - Planner area: `754 passed`.
-- Full suite: `3579 passed`.
+- Full suite: `3585 passed`.
 - `mix format --check-formatted`, `mix compile --warnings-as-errors`, and
   `git diff --check` pass.
 
 Previous published slice:
-- `34c62ac3` Validate V1 planning horizons (`3572 passed`).
+- `201db71e` Validate V1 plan identity (`3579 passed`).
 
 Remaining maturity gaps:
 - Continue calibrated realized-feedback depth where evidence is genuinely

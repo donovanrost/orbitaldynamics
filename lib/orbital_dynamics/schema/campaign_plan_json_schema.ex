@@ -98,7 +98,11 @@ defmodule OrbitalDynamics.Schema.CampaignPlanJsonSchema do
   end
 
   def property("warnings", _opts) do
-    string_array_schema()
+    %{
+      "type" => "array",
+      "uniqueItems" => true,
+      "items" => %{"type" => "string", "minLength" => 1, "pattern" => "\\S"}
+    }
   end
 
   def ranked_timeline_from_context(stable_id_pattern, campaign_activity_schema) do
@@ -182,10 +186,6 @@ defmodule OrbitalDynamics.Schema.CampaignPlanJsonSchema do
       "type" => "array",
       "items" => item_schema
     }
-  end
-
-  defp string_array_schema do
-    %{"type" => "array", "items" => %{"type" => "string"}}
   end
 
   defp fetch_dep!(deps, key) do

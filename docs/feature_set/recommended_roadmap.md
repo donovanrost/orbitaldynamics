@@ -217,6 +217,8 @@ Already implemented or heavily covered:
   candidate, selected-activity, and objective-satisfaction evidence
 - V1 generation time is typed as a date-time and exact plan identity is derived
   from the enclosing study ID and generation timestamp
+- V1 runtime/export contracts reject non-string, blank, and duplicate warning
+  evidence without freezing the warning vocabulary
 - required V1 planning-horizon objects type optional positive duration/cadence,
   require duration for cadence, and bound core schedule rows when duration is
   declared

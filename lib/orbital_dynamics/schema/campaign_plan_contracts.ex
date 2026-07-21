@@ -11,7 +11,8 @@ defmodule OrbitalDynamics.Schema.CampaignPlanContracts do
     CampaignPlanOptimizerContracts,
     CampaignPlanScoreContracts,
     CampaignPlanTargetCommitmentContracts,
-    CampaignPlanTradeoffContracts
+    CampaignPlanTradeoffContracts,
+    CampaignPlanWarningContracts
   }
 
   def validate(issues, artifact, required_fields, callbacks) when is_list(callbacks) do
@@ -116,6 +117,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanContracts do
     |> CampaignPlanCommandWindowContracts.validate(artifact)
     |> CampaignPlanTargetCommitmentContracts.validate(artifact)
     |> call(callbacks, :expect_type, ["$", artifact, "warnings", :list])
+    |> CampaignPlanWarningContracts.validate(artifact)
     |> call(callbacks, :expect_type, ["$", artifact, "assumptions", :map])
     |> call(callbacks, :expect_type, ["$", artifact, "provenance", :map])
     |> call(callbacks, :expect_type, ["$", artifact, "ranking_explanation", :map])

@@ -95,7 +95,8 @@ It answers:
 - `station_calendar_report.v1` when manifest `campaign.ground_network`
   intervals annotate generated contacts; duplicate contact IDs on affected rows
   are preserved with deterministic suffixed row IDs.
-- Warnings, assumptions, provenance, ranking score, and ranking explanation.
+- Unique non-empty warning strings, assumptions, provenance, ranking score, and
+  ranking explanation.
 - Reproducible study archive with manifest hash when run from disk.
 
 ## Cadence Integration

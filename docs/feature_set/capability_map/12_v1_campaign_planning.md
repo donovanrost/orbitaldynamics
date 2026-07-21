@@ -64,6 +64,10 @@ and `plan_id` must equal `campaign_plan:<study_id>:<generated_at>`. This keeps
 the source identity consumed by optimizer, review, and Cadence handoffs tied to
 the producer's deterministic study/time inputs.
 
+V1 warnings remain an extensible human-readable vocabulary, but executable
+validation and export require every entry to be a non-empty string and reject
+duplicates before warning evidence reaches review/import handoffs.
+
 The required planning-horizon object has optional positive numeric `duration_s`
 and `output_step_s` fields; declared cadence requires and cannot exceed duration.
 File-backed propagation manifests require both fields, while direct planning
