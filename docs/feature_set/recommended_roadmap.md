@@ -66,6 +66,8 @@ Already implemented or heavily covered:
 - same-station contention, allocation, and reservation pressure summaries
 - storage/downlink roll-forward and zero-effect audit rows for terminal or
   approval-rejected selected activities
+- V2 repair scoring and score-term reports apply selected link-capacity
+  shortfall as an explicit normalized risk-weight penalty
 - provider counteroffer, reservation-hold, reservation-expiration, plan-impact,
   and review/import handoff artifacts
 - contact-intent and capacity-pack direction routing in allocation and

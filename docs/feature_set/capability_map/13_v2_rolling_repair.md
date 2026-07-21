@@ -51,6 +51,17 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   - resource projection and link-capacity constraints.
 - These are evaluated against the repaired activity set and source resource summaries, preserving explicit warning severity in repair and branch-comparison rows.
 
+## Repair score terms
+
+- V2 computes `link_capacity_report.v1` before repair scoring so selected repaired
+  downlink capacity participates in the same decision artifact it explains.
+- A positive `selected_downlink_shortfall_mb` contributes one normalized
+  `risk_weight` unit through `link_capacity_pressure_penalty`; satisfied or
+  undeclared demand does not emit that conditional term.
+- The repair score, `score_terms`, and `score_term_report.v1` preserve the same
+  total and expose the selected communications gap without claiming a link
+  budget, provider reservation, or schedule mutation.
+
 ## Refreshed missed-contact repair
 
 - Treats the following as movable contact windows after canonical downlink/station/time normalization:

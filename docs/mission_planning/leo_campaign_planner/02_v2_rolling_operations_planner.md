@@ -50,7 +50,10 @@ with `required_downlink_mb`, the repaired plan's `link_capacity_report.v1`
 compares selected repaired downlink capacity against the aggregate requirement
 across all mission-state downlink-completion objectives unless the repair
 scoring/link-capacity policy declares an explicit override. The report remains
-artifact-only and does not reserve provider time.
+artifact-only and does not reserve provider time. A positive selected shortfall
+also contributes one normalized `risk_weight` unit to the V2 repair score as
+`link_capacity_pressure_penalty`; satisfied or undeclared demand omits that
+conditional score term.
 Standalone candidate refresh applies spacecraft-, satellite-, or scenario-scoped
 downlink-completion and collection-latency objectives only to matching generated
 downlinks, so shared-station contacts for other spacecraft keep their ordinary
@@ -231,8 +234,8 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   capacity than stored data available in the roll-forward.
 - `score_term_report.v1` and `objective_tradeoff_report.v1` over repaired
   activity value, churn, schedule-move, and resource-projection pressure score
-  terms, preserving the same scored-objective explanation shape used by V1
-  ranked timeline artifacts.
+  terms plus selected link-capacity shortfall pressure, preserving the same
+  scored-objective explanation shape used by V1 ranked timeline artifacts.
 - `link_capacity_report.v1` over repaired downlink activities, preserving the
   same fixed-rate throughput summary shape used by V1 campaign artifacts.
 - `source_contact_filter_report`, `source_contact_allocation_report`, and
@@ -320,7 +323,9 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   `policy_decision.v1` so repair artifacts carry the same explicit authority
   classification as V3 branches.
 - `score_terms.activity_score`, `score_terms.schedule_churn_penalty`, and
-  `score_terms.schedule_move_penalty`.
+  `score_terms.schedule_move_penalty`, plus conditional pressure terms such as
+  `score_terms.link_capacity_pressure_penalty` when repaired selected
+  downlink capacity falls short of declared demand.
 - plan-delta source/replacement activity contexts, timeline links, and lifted
   operator-review timeline identities for import correlation.
 - `assumptions`, `provenance`, `scoring_policy`, `repair_policy`, and
@@ -373,4 +378,3 @@ V2 should reason about margins and confidence:
 - estimated downlink success probability.
 
 Cadence should be able to show plans as robust, tight, or fragile.
-

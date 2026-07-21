@@ -50,11 +50,21 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairOrchestration do
         StrategyPolicyNormalization.approval_to_map(request.approval_policy)
       )
 
+    link_capacity_report =
+      link_capacity_report(
+        activities,
+        activities,
+        repair_link_capacity_policy(request),
+        "campaign_repair.activities",
+        request.approval_policy
+      )
+
     score_terms =
       repair_score_terms(
         activities,
         deltas,
         source_resource_projection_report,
+        link_capacity_report,
         repair_contact_filter_report(request.candidate_refresh),
         repair_contact_allocation_report(request.candidate_refresh),
         repair_resource_filter_report(request.candidate_refresh),
@@ -70,15 +80,6 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairOrchestration do
 
     source_timeline_feedback_report =
       repair_timeline_feedback_report(planned_activities, request.realized_state)
-
-    link_capacity_report =
-      link_capacity_report(
-        activities,
-        activities,
-        repair_link_capacity_policy(request),
-        "campaign_repair.activities",
-        request.approval_policy
-      )
 
     timeline_protection = RepairTimelineSummary.protection_summary(activities, deltas)
 
@@ -227,6 +228,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairOrchestration do
          activities,
          deltas,
          resource_projection_report,
+         link_capacity_report,
          contact_filter_report,
          contact_allocation_report,
          resource_filter_report,
@@ -240,6 +242,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairOrchestration do
       activities,
       deltas,
       resource_projection_report,
+      link_capacity_report,
       contact_filter_report,
       contact_allocation_report,
       resource_filter_report,

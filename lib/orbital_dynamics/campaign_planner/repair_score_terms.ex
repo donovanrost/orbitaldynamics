@@ -15,6 +15,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
         activities,
         deltas,
         resource_projection_report,
+        link_capacity_report,
         contact_filter_report,
         contact_allocation_report,
         resource_filter_report,
@@ -28,6 +29,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
       activities,
       deltas,
       resource_projection_report,
+      link_capacity_report,
       contact_filter_report,
       contact_allocation_report,
       resource_filter_report,
@@ -44,6 +46,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
         activities,
         deltas,
         resource_projection_report,
+        link_capacity_report,
         contact_filter_report,
         contact_allocation_report,
         resource_filter_report,
@@ -76,6 +79,8 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
     resource_projection_pressure_count =
       repair_resource_projection_pressure_count(resource_projection_report)
 
+    link_capacity_pressure_count = repair_link_capacity_pressure_count(link_capacity_report)
+
     contact_filter_pressure_count = repair_contact_filter_pressure_count(contact_filter_report)
 
     contact_allocation_pressure_count =
@@ -96,6 +101,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
 
     resource_projection_pressure_penalty =
       -resource_projection_pressure_count *
+        numeric_policy_value.(scoring_policy, "risk_weight", 1.0)
+
+    link_capacity_pressure_penalty =
+      -link_capacity_pressure_count *
         numeric_policy_value.(scoring_policy, "risk_weight", 1.0)
 
     contact_filter_pressure_penalty =
@@ -137,6 +146,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
       resource_projection_pressure_count,
       "resource_projection_pressure_penalty",
       resource_projection_pressure_penalty
+    )
+    |> maybe_put_positive_pressure_term(
+      link_capacity_pressure_count,
+      "link_capacity_pressure_penalty",
+      link_capacity_pressure_penalty
     )
     |> maybe_put_positive_pressure_term(
       contact_filter_pressure_count,
@@ -181,6 +195,12 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
 
   defp maybe_put_positive_pressure_term(score_terms, _count, _term_key, _penalty),
     do: score_terms
+
+  defp repair_link_capacity_pressure_count(%{"selected_downlink_shortfall_mb" => shortfall}) do
+    if positive_number?(ScalarValues.numeric_or_nil(shortfall)), do: 1, else: 0
+  end
+
+  defp repair_link_capacity_pressure_count(_report), do: 0
 
   defp repair_contact_filter_pressure_count(%{"suppressed_candidates" => rows})
        when is_list(rows),
@@ -297,6 +317,9 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
 
   defp numeric_count(count) when is_number(count), do: trunc(count)
   defp numeric_count(_count), do: 0
+
+  defp positive_number?(value) when is_number(value), do: value > 0.0
+  defp positive_number?(_value), do: false
 
   defp repair_resource_projection_pressure_count(resource_projection_report) do
     resource_projection_report
