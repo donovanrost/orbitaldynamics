@@ -4143,6 +4143,69 @@ defmodule OrbitalDynamics.PolicyTest do
     end
   end
 
+  test "fallback policy blocks policy-blocked operational timelines but leaves review counts reviewable" do
+    policy = %{blocked_risk_types: ["operational_timeline_policy_blocked"]}
+
+    for {branch_id, risk} <- [
+          {"blocked_activity_status",
+           %{
+             "type" => "operational_timeline_pressure",
+             "activity_status_counts" => %{"blocked_by_policy" => 1}
+           }},
+          {"blocked_approval_status",
+           %{
+             "feedback_scope" => "operational_timeline",
+             "approval_status_counts" => %{"blocked_by_policy" => 2}
+           }}
+        ] do
+      {blocked_status, _requirements, _matches, blocked_decision} =
+        Policy.decide(
+          [],
+          [risk],
+          %{"id" => branch_id, "events" => []},
+          %{},
+          policy
+        )
+
+      assert blocked_status == "blocked_by_policy"
+      assert blocked_decision["classification"] == "blocked_by_policy"
+    end
+
+    for {branch_id, risk} <- [
+          {"review_required",
+           %{
+             "type" => "operational_timeline_pressure",
+             "feedback_scope" => "operational_timeline",
+             "activity_status_counts" => %{"planned" => 1},
+             "approval_status_counts" => %{"operator_review_required" => 1}
+           }},
+          {"not_evaluated",
+           %{
+             "type" => "operational_timeline_pressure",
+             "feedback_scope" => "operational_timeline",
+             "approval_status_counts" => %{"not_evaluated" => 1}
+           }},
+          {"unknown",
+           %{
+             "type" => "operational_timeline_pressure",
+             "feedback_scope" => "operational_timeline",
+             "approval_status_counts" => %{"provider_unknown" => 1}
+           }}
+        ] do
+      {review_status, _requirements, _matches, review_decision} =
+        Policy.decide(
+          [],
+          [risk],
+          %{"id" => branch_id, "events" => []},
+          %{},
+          policy
+        )
+
+      assert review_status == "operator_review_required"
+      assert review_decision["classification"] == "operator_review_required"
+    end
+  end
+
   test "matches requirement types grouped risk types and grouped event types" do
     policy = %{
       action_rules: [

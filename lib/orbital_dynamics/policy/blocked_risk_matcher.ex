@@ -193,6 +193,20 @@ defmodule OrbitalDynamics.Policy.BlockedRiskMatcher do
   end
 
   defp risk_matches_blocked_type?(
+         %{"type" => "operational_timeline_pressure"} = risk,
+         "operational_timeline_policy_blocked"
+       ) do
+    blocked_operational_timeline_pressure?(risk)
+  end
+
+  defp risk_matches_blocked_type?(
+         %{"feedback_scope" => "operational_timeline"} = risk,
+         "operational_timeline_policy_blocked"
+       ) do
+    blocked_operational_timeline_pressure?(risk)
+  end
+
+  defp risk_matches_blocked_type?(
          %{"type" => "downlink_completion_gap", "feedback_scope" => "contact_allocation"} =
            risk,
          "station_reservation_conflict_blocked"
@@ -298,6 +312,11 @@ defmodule OrbitalDynamics.Policy.BlockedRiskMatcher do
     blocked_value?(risk["precondition_status"]) or
       positive_count?(risk["blocked_precondition_count"]) or
       risk["required_operator_action"] == "review_blocked_activity_precondition"
+  end
+
+  defp blocked_operational_timeline_pressure?(risk) do
+    positive_count_for_key?(risk["activity_status_counts"], "blocked_by_policy") or
+      positive_count_for_key?(risk["approval_status_counts"], "blocked_by_policy")
   end
 
   defp blocked_station_reservation_conflict_pressure?(risk) do
