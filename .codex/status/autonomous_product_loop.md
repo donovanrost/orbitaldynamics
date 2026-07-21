@@ -5,70 +5,68 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Apply exact candidate-scoped blocked readiness during CandidateRefresh.
+Add a curated exact-activity readiness selection challenge fixture.
 
 Status:
 Implemented, fully verified, and parent-reviewed; ready to publish.
 
 Selected slice:
-Reject a regenerated candidate when a canonical blocked operational-readiness
-report is explicitly scoped to that candidate's planned-activity identity.
+Protect CandidateRefresh's exact candidate-scoped operational-readiness rule
+with durable generated reference evidence and stale/nonmatching challenges.
 
 Why this slice:
-The published quality-gate rule now honors exact candidate-scoped blocks, but a
-caller that supplies the upstream `operational_readiness_report.v1` directly
-gets a selection effect only for specialized unavailable-resource contact maps.
-A schema-valid blocked planned-activity readiness report with the same exact
-identity remains review provenance and can be reselected.
+The published rule has focused unit proof, but the validation reference bundle
+only challenges operational-readiness selection at spacecraft/contact scope.
+The exact `planned_activity.v1` boundary is not yet represented in the curated
+fixture registry, generated validation bundle, or observation drift checks.
 
 Level 6 pillar:
-Refreshed candidates from current mission state with approval-aware readiness
-and import boundaries.
+Durable schema-versioned artifacts, compatibility checks, and unsafe-but-
+plausible challenge evidence.
 
 Implemented:
-- CandidateRefresh now recognizes exact activity readiness only when the
-  resolved input is a schema-valid blocked `operational_readiness_report.v1`,
-  its source type is `planned_activity.v1`, and its non-empty
-  `source_artifact_id` exactly matches the regenerated candidate ID.
-- Rejected candidates carry deterministic readiness report/summary identity,
-  source path, candidate ID, blocked status, selection scope, and inherited
-  trust boundary in `candidate_rejection_report.v1` provenance.
-- Matching prior candidates use
-  `dropped_by_candidate_scoped_operational_readiness`; builds emit a distinct
-  warning and reuse the existing candidate-rejection review/import handoff.
-- Compact summaries, malformed reports, candidate-shaped aggregate IDs,
-  wrong-type/nonmatching source identity, and nonblocked reports remain
-  selection-neutral. Specialized spacecraft/contact readiness remains separate.
+- Registered a deterministic CandidateRefresh challenge fixture for a
+  schema-valid blocked readiness report scoped to one exact planned-activity
+  candidate; the observation is removed and the unrelated downlink remains.
+- CandidateRefresh validation observations now expose rejection source plus
+  readiness-filter candidate, report/path, artifact, status, selection-scope,
+  and trust-boundary routing for durable reference checks.
+- The 201-fixture generated validation bundle pins the readiness-specific
+  rejection source, exact identity, invalidation reason, and source provenance.
+- Stale candidate/reason observations fail verification. A valid report naming
+  a nonmatching activity keeps both candidates and emits zero rejections.
 
 Docs changed:
-- `docs/feature_set/capability_map/11_planning_state_refresh/refresh_pipeline_and_provenance.md`
-- `docs/feature_set/capability_map/20_cadence_boundary_and_integration_artifacts.md`
+- `docs/feature_set/capability_map/18_validation_and_verification.md`
 - `docs/artifacts/field_families/candidate_refresh_artifact.md`
-- `docs/feature_set/recommended_roadmap.md`
 
 Verification:
-- Focused readiness selection/neutrality tests: `5 passed`.
-- Combined quality/readiness/unavailable-resource/allocation proofs: `10 passed`.
+- Focused readiness reference-fixture tests: `6 passed`.
+- Combined fixture/report/schema-evidence gates: `11 passed`.
+- Validation area: `186 passed`.
 - CandidateRefresh area: `770 passed`.
-- Campaign-planner area: `749 passed`.
-- Full suite: `3497 passed`.
+- Full suite with `--timeout 120000`: `3498 passed`.
 - Checked artifacts: `155` passed schema lint with zero errors or warnings.
 - `mix compile --warnings-as-errors`, `mix format --check-formatted`, and
   `git diff --check`: passed.
+- The default-timeout full run reached `3497/3498`; only the schema-export
+  registry equality test timed out under concurrent load. Its isolated rerun
+  passed in 27 seconds, and the complete higher-timeout rerun passed.
 
 Parent review:
-- Full executable schema validation runs before exact readiness identity becomes
-  selection evidence; compact and malformed report-shaped inputs stay neutral.
-- Exact source contract, blocked status, planned-activity type, and candidate ID
-  are all required; aggregate/gate identifiers cannot impersonate identity.
-- Readiness has its own dropped list, invalidation reason, warning, rejection
-  source, provenance family, and status field; existing quality-gate and
-  spacecraft/contact resource paths retain their prior behavior.
-- Outputs remain artifact-only: no Cadence write, approval, provider action,
-  schedule mutation, or execution authority was added.
+- The new flat observations only inspect existing candidate-rejection
+  provenance; production candidate generation and selection code is unchanged.
+- The fixture builds readiness through the public facade and validates the
+  readiness report, refresh artifact, operator-review package, and import
+  manifest while retaining artifact-only boundaries.
+- Exact and nonmatching cases use the same deterministic windows and request;
+  only source identity differs, preventing accidental scope leakage.
+- The checked-in bundle equals the generated 201-fixture report and schema
+  lints; no Cadence write, approval, schedule mutation, or execution authority
+  was added.
 
 Previous published slice:
-- `f2a31fd0` Apply candidate-scoped quality gates (`3495 passed`).
+- `17f54333` Apply candidate-scoped readiness gates (`3497 passed`).
 
 Remaining maturity gaps:
 - Continue calibrated realized-feedback depth where evidence is genuinely

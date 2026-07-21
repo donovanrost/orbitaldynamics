@@ -15,6 +15,12 @@ defmodule OrbitalDynamics.Validation.ArtifactObservations.CandidateRefresh do
         "contact_allocation_candidate_filter"
       )
 
+    operational_readiness_candidate_filter_rows =
+      candidate_filter_provenance_rows(
+        candidate_rejection_rows,
+        "operational_readiness_candidate_filter"
+      )
+
     source_reports = get_in(artifact, ["provenance", "source_reports"]) || %{}
     candidate_rejection_summary = Map.get(source_reports, "candidate_rejection_report") || %{}
     contact_contention_summary = Map.get(source_reports, "contact_contention_report") || %{}
@@ -70,6 +76,49 @@ defmodule OrbitalDynamics.Validation.ArtifactObservations.CandidateRefresh do
         |> optional_stable_id_keys(),
       "candidate_rejection_reason_counts" =>
         Map.get(candidate_rejection_report, "rejection_reason_counts") || %{},
+      "candidate_rejection_source" => Map.get(candidate_rejection_report, "source"),
+      "candidate_rejection_operational_readiness_filter_candidate_id_keys" =>
+        candidate_filter_candidate_id_keys(operational_readiness_candidate_filter_rows),
+      "candidate_rejection_operational_readiness_filter_source_schema_contract_keys" =>
+        candidate_filter_provenance_keys(
+          operational_readiness_candidate_filter_rows,
+          "source_schema_contract"
+        ),
+      "candidate_rejection_operational_readiness_filter_source_report_path_keys" =>
+        candidate_filter_provenance_keys(
+          operational_readiness_candidate_filter_rows,
+          "source_report_paths"
+        ),
+      "candidate_rejection_operational_readiness_filter_source_artifact_type_keys" =>
+        candidate_filter_provenance_keys(
+          operational_readiness_candidate_filter_rows,
+          "source_artifact_types"
+        ),
+      "candidate_rejection_operational_readiness_filter_source_artifact_id_keys" =>
+        candidate_filter_provenance_keys(
+          operational_readiness_candidate_filter_rows,
+          "source_artifact_ids"
+        ),
+      "candidate_rejection_operational_readiness_filter_source_report_id_keys" =>
+        candidate_filter_provenance_keys(
+          operational_readiness_candidate_filter_rows,
+          "source_readiness_report_ids"
+        ),
+      "candidate_rejection_operational_readiness_filter_status_keys" =>
+        candidate_filter_provenance_keys(
+          operational_readiness_candidate_filter_rows,
+          "operational_readiness_statuses"
+        ),
+      "candidate_rejection_operational_readiness_filter_selection_scope_keys" =>
+        candidate_filter_provenance_keys(
+          operational_readiness_candidate_filter_rows,
+          "selection_scopes"
+        ),
+      "candidate_rejection_operational_readiness_filter_trust_boundary_keys" =>
+        candidate_filter_provenance_keys(
+          operational_readiness_candidate_filter_rows,
+          "trust_boundaries"
+        ),
       "candidate_rejection_contact_allocation_filter_candidate_id_keys" =>
         candidate_filter_candidate_id_keys(contact_allocation_candidate_filter_rows),
       "candidate_rejection_contact_allocation_filter_source_schema_contract_keys" =>

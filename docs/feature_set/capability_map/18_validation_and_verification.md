@@ -451,7 +451,15 @@ summaries can steer adapter queues.
 
 Status: **implemented**.
 
-The validation-reference fixture set now includes a checked-in `candidate_refresh.v1` artifact-contract case, with observation support for candidate/contact/window counts, warning count, and source-report provenance family/row counts.
+The validation-reference fixture set now includes checked-in and generated
+`candidate_refresh.v1` artifact-contract cases, with observation support for
+candidate/contact/window counts, warning count, and source-report provenance
+family/row counts. A curated candidate-scoped operational-readiness challenge
+also pins the exact rejected/remaining candidate identities, readiness-specific
+rejection source, report path and identity, planned-activity scope, blocked
+status, trust boundary, and invalidation reason. Stale candidate or reason
+observations fail fixture verification, while a schema-valid nonmatching source
+identity remains selection-neutral.
 
 ## Policy and record contract fixtures
 

@@ -223,6 +223,106 @@ defmodule OrbitalDynamics.Validation.CandidateRefreshReadinessReplayFixtures do
     |> Validation.artifact_observations(candidate_refresh_operational_readiness_fixture())
   end
 
+  def candidate_refresh_candidate_scoped_readiness_selection_challenge_fixture_observations do
+    "candidate_refresh.v1"
+    |> Validation.artifact_observations(
+      candidate_refresh_candidate_scoped_readiness_selection_challenge_fixture()
+    )
+  end
+
+  def candidate_refresh_candidate_scoped_readiness_selection_challenge_fixture do
+    candidate_scoped_readiness_selection_result_set()
+    |> CandidateRefresh.build(
+      candidate_refresh:
+        candidate_refresh_candidate_scoped_readiness_selection_challenge_request(),
+      generated_at: ~U[2026-05-14 00:00:00Z]
+    )
+  end
+
+  def candidate_refresh_candidate_scoped_readiness_nonmatching_challenge_fixture do
+    request =
+      candidate_refresh_candidate_scoped_readiness_selection_challenge_request()
+      |> put_in(
+        ["accepted_planning_state", "operational_readiness_report"],
+        candidate_refresh_candidate_scoped_readiness_selection_challenge_report(
+          "stale_observe_target_a_1"
+        )
+      )
+
+    candidate_scoped_readiness_selection_result_set()
+    |> CandidateRefresh.build(
+      candidate_refresh: request,
+      generated_at: ~U[2026-05-14 00:00:00Z]
+    )
+  end
+
+  def candidate_refresh_candidate_scoped_readiness_selection_challenge_request do
+    blocked_candidate_id = "leo_1_observe_target_a_1"
+
+    %{
+      "accepted_planning_state" => %{
+        "snapshot_id" => "ops-state-candidate-scoped-readiness-selection-challenge",
+        "accepted_at" => "2026-05-14T00:00:00Z",
+        "spacecraft_states" => [%{"spacecraft_id" => "sat_1", "scenario_id" => "leo_1"}],
+        "source" => %{"system" => "validation_challenge"},
+        "quality" => %{"level" => "accepted"},
+        "provenance" => %{"created_by" => "validation_fixture"},
+        "operational_readiness_report" =>
+          candidate_refresh_candidate_scoped_readiness_selection_challenge_report(
+            blocked_candidate_id
+          )
+      },
+      "current_epoch_s" => 0.0,
+      "remaining_horizon" => %{
+        "starts_at_s" => 0.0,
+        "ends_at_s" => 600.0,
+        "output_step_s" => 60.0
+      },
+      "targets" => [%{"id" => "target_a", "priority" => 2.0}],
+      "constraints" => %{"min_activity_duration_s" => 60.0},
+      "scoring_policy" => %{
+        "target_value_weight" => 1.0,
+        "contact_value_weight" => 0.5,
+        "downlink_rate_mb_s" => 3.0
+      },
+      "model_assumptions" => %{"refresh_level" => "sampled_v1"},
+      "prior_candidate_activities" => [
+        %{
+          "id" => blocked_candidate_id,
+          "type" => "observe",
+          "scenario_id" => "leo_1",
+          "target_id" => "target_a",
+          "starts_at_s" => 120.0,
+          "ends_at_s" => 240.0
+        }
+      ]
+    }
+  end
+
+  def candidate_refresh_candidate_scoped_readiness_selection_challenge_report(candidate_id) do
+    %{
+      "schema_contract" => "cadence_import_manifest.v1",
+      "model" => "candidate_scoped_readiness_selection_challenge_manifest",
+      "manifest_id" => "manifest:#{candidate_id}",
+      "source_artifact_type" => "planned_activity.v1",
+      "source_artifact_id" => candidate_id,
+      "model_limits" => ["adapter_handoff_only"],
+      "rows" => [
+        %{
+          "id" => "import:#{candidate_id}",
+          "rank" => 1,
+          "import_action" => "review_candidate_activity",
+          "import_status" => "blocked_missing_cadence_import",
+          "cadence_import_status" => "invalid"
+        }
+      ]
+    }
+    |> OrbitalDynamics.operational_readiness_report()
+    |> Map.put("provenance", %{
+      "trust_boundary" => "generated_candidate_scoped_readiness_selection_challenge"
+    })
+  end
+
   def candidate_refresh_operational_readiness_selection_challenge_fixture_observations do
     "candidate_refresh.v1"
     |> Validation.artifact_observations(
@@ -364,6 +464,41 @@ defmodule OrbitalDynamics.Validation.CandidateRefreshReadinessReplayFixtures do
       assumptions: %{
         propagator: OrbitalDynamics.Propagators.TwoBody,
         outputs: [:access_windows]
+      },
+      metadata: %{}
+    })
+  end
+
+  defp candidate_scoped_readiness_selection_result_set do
+    ResultSet.new!(%{
+      study_id: :validation,
+      trajectory_results: [],
+      event_results: [
+        %{
+          scenario_id: :leo_1,
+          event_type: :target_visibility,
+          events: [
+            %{
+              type: :target_visibility,
+              starts_at: Epoch.new!(120.0, :tdb),
+              ends_at: Epoch.new!(240.0, :tdb),
+              metadata: %{
+                target_id: :target_a,
+                target_priority: 1.0,
+                max_elevation_deg: 80.0,
+                minimum_elevation_deg: 10.0,
+                sample_count: 3
+              }
+            }
+          ],
+          source: %{target_id: :target_a}
+        },
+        access_event_result(:leo_1, :equator_prime, 300.0, 420.0)
+      ],
+      errors: [],
+      assumptions: %{
+        propagator: OrbitalDynamics.Propagators.TwoBody,
+        outputs: [:target_visibility, :access_windows]
       },
       metadata: %{}
     })

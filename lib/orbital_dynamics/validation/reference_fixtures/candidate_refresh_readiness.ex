@@ -2,6 +2,102 @@ defmodule OrbitalDynamics.Validation.ReferenceFixtures.CandidateRefreshReadiness
   @moduledoc false
 
   @fixtures %{
+    "fixture.artifact.candidate_refresh.candidate_scoped_operational_readiness_selection_challenge" =>
+      %{
+        "id" =>
+          "fixture.artifact.candidate_refresh.candidate_scoped_operational_readiness_selection_challenge",
+        "model_id" => "artifact.candidate_refresh.v1",
+        "reference_case" =>
+          "schema-valid blocked readiness rejects only its exact planned-activity candidate",
+        "validation_level" => "artifact_contract",
+        "fixture_type" => "curated_internal_artifact_challenge",
+        "inputs" => %{
+          "source" =>
+            "generated_candidate_refresh_candidate_scoped_operational_readiness_selection_challenge",
+          "contract" => "candidate_refresh.v1"
+        },
+        "expected" => %{
+          "schema_contract" => "candidate_refresh.v1",
+          "schema_version" => 1,
+          "planner" => "OrbitalDynamics.CandidateRefresh.V1",
+          "candidate_count" => 1,
+          "candidate_activity_id_keys" => "leo_1_downlink_equator_prime_1",
+          "contact_intent_count" => 1,
+          "contact_intent_activity_id_keys" => "leo_1_downlink_equator_prime_1",
+          "access_window_count" => 1,
+          "target_visibility_window_count" => 1,
+          "eclipse_interval_count" => 0,
+          "warning_count" => 1,
+          "candidate_rejection_report_count" => 1,
+          "candidate_rejection_source" =>
+            "candidate_refresh.candidate_scoped_operational_readiness",
+          "candidate_rejection_candidate_count" => 2,
+          "candidate_rejection_rejected_count" => 1,
+          "candidate_rejection_rejected_candidate_id_keys" => "leo_1_observe_target_a_1",
+          "candidate_rejection_reason_counts" => %{"quality_gate_failed" => 1},
+          "candidate_rejection_operational_readiness_filter_candidate_id_keys" =>
+            "leo_1_observe_target_a_1",
+          "candidate_rejection_operational_readiness_filter_source_schema_contract_keys" =>
+            "operational_readiness_report.v1",
+          "candidate_rejection_operational_readiness_filter_source_report_path_keys" =>
+            "accepted_planning_state.operational_readiness_report",
+          "candidate_rejection_operational_readiness_filter_source_artifact_type_keys" =>
+            "planned_activity.v1",
+          "candidate_rejection_operational_readiness_filter_source_artifact_id_keys" =>
+            "leo_1_observe_target_a_1",
+          "candidate_rejection_operational_readiness_filter_source_report_id_keys" =>
+            "operational_readiness:planned_activity.v1:leo_1_observe_target_a_1",
+          "candidate_rejection_operational_readiness_filter_status_keys" => "blocked",
+          "candidate_rejection_operational_readiness_filter_selection_scope_keys" =>
+            "candidate_artifact",
+          "candidate_rejection_operational_readiness_filter_trust_boundary_keys" =>
+            "generated_candidate_scoped_readiness_selection_challenge",
+          "invalidated_candidate_count" => 1,
+          "invalidated_candidate_id_keys" => "leo_1_observe_target_a_1",
+          "invalidated_candidate_reason_counts" => %{
+            "dropped_by_candidate_scoped_operational_readiness" => 1
+          },
+          "source_report_family_count" => 1,
+          "source_report_row_count" => 1,
+          "source_operational_readiness_report_count" => 1,
+          "source_operational_readiness_row_count" => 1,
+          "source_operational_readiness_gate_count" => 5,
+          "source_operational_readiness_passed_gate_count" => 4,
+          "source_operational_readiness_blocked_gate_count" => 1,
+          "source_operational_readiness_readiness_level_counts" => %{"blocked" => 1},
+          "source_operational_readiness_import_classification_counts" => %{"blocked" => 1},
+          "source_operational_readiness_status_counts" => %{"blocked" => 1},
+          "source_operational_readiness_trust_boundary_status" => "declared"
+        },
+        "tolerances" => %{
+          "schema_version" => 0,
+          "candidate_count" => 0,
+          "contact_intent_count" => 0,
+          "access_window_count" => 0,
+          "target_visibility_window_count" => 0,
+          "eclipse_interval_count" => 0,
+          "warning_count" => 0,
+          "candidate_rejection_report_count" => 0,
+          "candidate_rejection_candidate_count" => 0,
+          "candidate_rejection_rejected_count" => 0,
+          "invalidated_candidate_count" => 0,
+          "source_report_family_count" => 0,
+          "source_report_row_count" => 0,
+          "source_operational_readiness_report_count" => 0,
+          "source_operational_readiness_row_count" => 0,
+          "source_operational_readiness_gate_count" => 0,
+          "source_operational_readiness_passed_gate_count" => 0,
+          "source_operational_readiness_blocked_gate_count" => 0
+        },
+        "evidence" => [
+          "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
+          "schema-linted by mix orbital_dynamics.schema.lint"
+        ],
+        "known_limits" => [
+          "internal deterministic selection challenge, not external operations validation",
+          "proves exact planned-activity readiness identity without granting execution, operator authority, import approval, or Cadence writes"
+        ]
+      },
     "fixture.artifact.candidate_refresh.resource_projection_replay" => %{
       "id" => "fixture.artifact.candidate_refresh.resource_projection_replay",
       "model_id" => "artifact.candidate_refresh.v1",
