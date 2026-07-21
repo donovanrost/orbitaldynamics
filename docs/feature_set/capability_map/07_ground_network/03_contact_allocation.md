@@ -478,7 +478,10 @@ V1 campaign, candidate-refresh, V2 repair, and V3 strategy wrappers aggregate th
   scoring. Deferred, blocked, reserved, nominal, nonmatching, and unselected
   rows remain neutral; matching live station-calendar evidence is deduplicated
   rather than charged twice. This is a ranking/review signal, not hard
-  suppression, provider reservation, or schedule mutation.
+  suppression, provider reservation, or schedule mutation. Pressured replacement
+  rows list the exact `campaign_repair.source_contact_allocation_report.rows`
+  and/or `campaign_repair.source_station_calendar_report.affected_contacts`
+  source paths that contributed; nominal rows omit the list.
 
 **Cadence import manifests** expose row-derived `source_review_type_counts` and `source_review_action_counts` alongside import/action/status counts, so adapters can route review queues without reopening every source review row.
 

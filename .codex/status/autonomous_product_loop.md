@@ -5,34 +5,33 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Rank repair replacements with allocation-carried station pressure.
+Explain repair replacement station-pressure sources.
 
 Status:
 Implemented, fully verified, and parent-reviewed; ready to publish.
 
 Selected slice:
-Apply exact candidate-specific reduced-capacity station evidence from a supplied
-contact-allocation report to V2 replacement ranking and final repair scoring.
+Expose deterministic source paths on V2 replacement-ranking rows whenever the
+station-pressure penalty comes from allocation evidence, live calendar evidence,
+or both.
 
 Why this slice:
-V2 already ranks with repair-time station-calendar pressure, but a supplied
-candidate refresh can carry the same exact `contact_id`, station availability,
-and capacity fraction in `contact_allocation_report.v1`. Viable reduced-capacity
-replacements currently lose that signal when no separate ground-network overlay
-is provided, even though the allocation report remains in review/import output.
+The published scoring slice correctly combines and deduplicates exact allocation
+and calendar pressure, but ranking explanations expose only the numeric
+`station_calendar_pressure_penalty`. Operators must reopen both source reports
+to determine which evidence informed a candidate row.
 
 Level 6 pillar:
 Fleet-level contact/resource allocation behavior with explainable scoring.
 
 Implemented:
-- Added a focused allocation-pressure helper that selects only exact viable
-  allocated contact IDs with shared-classifier reduced-capacity evidence.
-- V2 replacement ranking now combines those IDs with repair-time calendar
-  pressure and applies one calibrated `risk_weight` unit per candidate.
-- Final selected-plan scoring adds allocation-carried pressure only for selected
-  contacts and deduplicates matching live calendar evidence.
-- Deferred, policy-blocked, reserved, nominal, absent, nonmatching, and
-  unselected rows remain neutral; review/import evidence stays intact.
+- Pressured replacement-ranking rows now emit a stable ordered
+  `station_calendar_pressure_sources` list.
+- Allocation-only rows name the source contact-allocation report; calendar-only
+  rows name the repair station-calendar report; dual-source rows name both.
+- Nominal candidate rows omit the field instead of carrying empty provenance.
+- The penalty remains one calibrated unit for any nonempty source list, so
+  ranking and final score behavior are unchanged.
 
 Docs changed:
 - `docs/feature_set/capability_map/07_ground_network/03_contact_allocation.md`
@@ -40,25 +39,24 @@ Docs changed:
 - `docs/feature_set/recommended_roadmap.md`
 
 Verification:
-- Allocation classifier and end-to-end ranking tests: `4 passed`.
-- Focused replacement-ranking regression set: `22 passed`.
+- Allocation/calendar/exact-fixture focused tests: `7 passed`.
 - Campaign-planner area: `754 passed`.
 - Full suite with `--timeout 120000`: `3509 passed`.
 - `mix compile --warnings-as-errors`, `mix format --check-formatted`, and
   `git diff --check`: passed.
 
 Parent review:
-- Exact allocation IDs are intersected with viable replacement candidates and
-  selected repaired activities before affecting ranking or final score.
-- A dedicated reduced-capacity classifier avoids treating matched reservations
-  as risk; canonical and numeric-string capacity evidence share normalization.
-- Calendar/allocation agreement is deduplicated by contact ID while preserving
-  both source artifacts for operator review and Cadence import.
-- The behavior is a calibrated ranking signal, not hard suppression, provider
-  reservation, schedule mutation, approval, import, or execution authority.
+- Source membership uses the same exact candidate-ID sets as the already-
+  verified penalty, preventing provenance from diverging from scoring.
+- Lexical ordering makes dual-source lists deterministic; nominal rows are
+  unchanged, preserving checked-in exact fixture equality.
+- Penalty calculation still depends only on empty/nonempty pressure evidence,
+  not source count, so dual evidence cannot double charge a candidate.
+- The additive ranking explanation grants no provider, schedule, approval,
+  import, or execution authority and copies no full source payload.
 
 Previous published slice:
-- `9f286eca` Guard global fixture coverage (`3506 passed`).
+- `1d852177` Score repair allocation capacity pressure (`3509 passed`).
 
 Remaining maturity gaps:
 - Continue calibrated realized-feedback depth where evidence is genuinely

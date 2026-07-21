@@ -266,10 +266,13 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshAllocationFilter
                  "candidate_id" => "dl_nominal",
                  "station_calendar_pressure_penalty" => nominal_station_penalty,
                  "selected" => true
-               },
+               } = nominal_ranking_row,
                %{
                  "candidate_id" => "dl_reduced",
                  "station_calendar_pressure_penalty" => -1.0,
+                 "station_calendar_pressure_sources" => [
+                   "campaign_repair.source_contact_allocation_report.rows"
+                 ],
                  "selected" => false
                }
              ]
@@ -282,6 +285,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshAllocationFilter
              ])
 
     assert nominal_station_penalty == 0.0
+    refute Map.has_key?(nominal_ranking_row, "station_calendar_pressure_sources")
 
     refute Map.has_key?(
              nominal_artifact["score_terms"],
@@ -297,6 +301,9 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshAllocationFilter
                %{
                  "candidate_id" => "dl_reduced",
                  "station_calendar_pressure_penalty" => -0.5,
+                 "station_calendar_pressure_sources" => [
+                   "campaign_repair.source_contact_allocation_report.rows"
+                 ],
                  "selected" => true
                },
                %{"candidate_id" => "dl_nominal", "selected" => false}
@@ -323,6 +330,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshAllocationFilter
                %{
                  "candidate_id" => "dl_reduced",
                  "station_calendar_pressure_penalty" => -0.5,
+                 "station_calendar_pressure_sources" => [
+                   "campaign_repair.source_contact_allocation_report.rows",
+                   "campaign_repair.source_station_calendar_report.affected_contacts"
+                 ],
                  "selected" => true
                },
                %{"candidate_id" => "dl_nominal", "selected" => false}

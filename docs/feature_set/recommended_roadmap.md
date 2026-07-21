@@ -82,7 +82,9 @@ Already implemented or heavily covered:
 - V2 replacement ranking and final scoring also apply that calibrated unit to
   exact viable reduced-capacity rows from candidate-refresh contact-allocation
   evidence, while keeping nonmatching/unselected rows neutral and deduplicating
-  matching live station-calendar pressure
+  matching live station-calendar pressure; ranking rows expose stable ordered
+  allocation/calendar source paths without adding empty provenance to nominal
+  candidates
 - V2's generic selected resource-projection penalty covers every emitted
   storage, downlink, battery, thermal-margin, availability, and activity-
   compatibility projection risk

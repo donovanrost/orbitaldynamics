@@ -83,6 +83,9 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   nonmatching, or unselected allocation rows do not contribute. If the repair-
   time calendar independently reports the same contact pressure, the sources
   collapse to one calibrated unit while both artifacts remain reviewable.
+  Replacement-ranking rows expose the contributing allocation/calendar artifact
+  paths as a stable ordered `station_calendar_pressure_sources` list; nominal
+  rows omit it.
 - `resource_projection_pressure_penalty` counts every risk emitted by
   `ResourceProjectionRisk.risk_indicators/1`, including storage/downlink/battery,
   negative thermal margin, spacecraft or payload/antenna availability, degraded
@@ -129,7 +132,9 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   churn, schedule-move, station-calendar, projected link-capacity, and projected
   resource contributions plus final greedy ranking score and selected flag.
   The station-calendar contribution can derive from exact reduced-capacity
-  allocation evidence when no separate repair-time calendar is supplied.
+  allocation evidence when no separate repair-time calendar is supplied, and
+  its source-path list distinguishes allocation-only, calendar-only, and
+  dual-source evidence without changing the penalty.
   The explanation copies no full candidate payloads and explicitly declares
   that it is not global optimization.
 

@@ -1,6 +1,9 @@
 defmodule OrbitalDynamics.CampaignPlanner.RepairReplacementSelection do
   @moduledoc false
 
+  @allocation_station_pressure_source "campaign_repair.source_contact_allocation_report.rows"
+  @calendar_station_pressure_source "campaign_repair.source_station_calendar_report.affected_contacts"
+
   alias OrbitalDynamics.Communications.LinkCapacity
   alias OrbitalDynamics.ResourceProjection
 
@@ -84,7 +87,8 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairReplacementSelection do
       numeric_policy_value(context.scoring_policy, "schedule_churn_cost_weight", 100.0)
 
     move_cost = numeric_policy_value(context.scoring_policy, "schedule_move_cost_weight", 0.01)
-    station_pressure = station_calendar_pressure_penalty(candidate, context)
+    station_pressure_sources = station_calendar_pressure_sources(candidate, context)
+    station_pressure = station_calendar_pressure_penalty(station_pressure_sources, context)
     link_pressure = link_capacity_pressure_penalty(source, candidate, acc, context)
     resource_pressure = resource_projection_pressure_penalty(source, candidate, acc, context)
 
@@ -92,12 +96,8 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairReplacementSelection do
       candidate_score(candidate) - churn_cost - churn_s * move_cost - station_pressure -
         link_pressure - resource_pressure
 
-    %{
-      candidate: candidate,
-      sort_key:
-        {diff_priority, -ranking_score, churn_s, ActivityTiming.activity_start(candidate),
-         ActivityIdentity.activity_id(candidate)},
-      row: %{
+    row =
+      %{
         "candidate_id" => ActivityIdentity.activity_id(candidate),
         "semantic_candidate_diff_match" => semantic_candidate_diff_match,
         "candidate_diff_priority" => diff_priority,
@@ -110,6 +110,17 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairReplacementSelection do
         "resource_projection_pressure_penalty" => negative_penalty(resource_pressure),
         "ranking_score" => ranking_score
       }
+      |> maybe_put_nonempty(
+        "station_calendar_pressure_sources",
+        station_pressure_sources
+      )
+
+    %{
+      candidate: candidate,
+      sort_key:
+        {diff_priority, -ranking_score, churn_s, ActivityTiming.activity_start(candidate),
+         ActivityIdentity.activity_id(candidate)},
+      row: row
     }
   end
 
@@ -174,7 +185,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairReplacementSelection do
   defp candidate_score(candidate),
     do: ScalarValues.numeric_or_nil(Map.get(candidate, "score")) || 0.0
 
-  defp station_calendar_pressure_penalty(candidate, context) do
+  defp station_calendar_pressure_sources(candidate, context) do
     calendar_pressure_candidate_ids =
       Map.get(context, :station_calendar_pressure_candidate_ids, MapSet.new())
 
@@ -183,13 +194,22 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairReplacementSelection do
 
     candidate_id = ActivityIdentity.activity_id(candidate)
 
-    if MapSet.member?(calendar_pressure_candidate_ids, candidate_id) or
-         MapSet.member?(allocation_pressure_candidate_ids, candidate_id) do
-      numeric_policy_value(context.scoring_policy, "risk_weight", 1.0)
-    else
-      0.0
-    end
+    [
+      if(MapSet.member?(allocation_pressure_candidate_ids, candidate_id),
+        do: @allocation_station_pressure_source
+      ),
+      if(MapSet.member?(calendar_pressure_candidate_ids, candidate_id),
+        do: @calendar_station_pressure_source
+      )
+    ]
+    |> Enum.reject(&is_nil/1)
+    |> Enum.sort()
   end
+
+  defp station_calendar_pressure_penalty([], _context), do: 0.0
+
+  defp station_calendar_pressure_penalty(_sources, context),
+    do: numeric_policy_value(context.scoring_policy, "risk_weight", 1.0)
 
   defp link_capacity_pressure_penalty(source, candidate, acc, context) do
     projected_activities = projected_activities(source, candidate, acc, context)
@@ -249,4 +269,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairReplacementSelection do
 
   defp negative_penalty(value) when value == 0, do: 0.0
   defp negative_penalty(value), do: -value
+
+  defp maybe_put_nonempty(map, _key, []), do: map
+  defp maybe_put_nonempty(map, key, values), do: Map.put(map, key, values)
 end

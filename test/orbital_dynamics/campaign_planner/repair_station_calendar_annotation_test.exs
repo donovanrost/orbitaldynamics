@@ -136,6 +136,9 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairStationCalendarAnnotationTest do
                  "rank" => 2,
                  "candidate_id" => "dl_reserved",
                  "station_calendar_pressure_penalty" => -1.0,
+                 "station_calendar_pressure_sources" => [
+                   "campaign_repair.source_station_calendar_report.affected_contacts"
+                 ],
                  "selected" => false,
                  "ranking_score" => reserved_ranking_score
                }
@@ -183,6 +186,9 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairStationCalendarAnnotationTest do
                %{
                  "candidate_id" => "dl_reserved",
                  "station_calendar_pressure_penalty" => -0.5,
+                 "station_calendar_pressure_sources" => [
+                   "campaign_repair.source_station_calendar_report.affected_contacts"
+                 ],
                  "selected" => true
                },
                %{"candidate_id" => "dl_nominal", "selected" => false}
