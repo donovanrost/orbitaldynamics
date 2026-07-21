@@ -176,6 +176,9 @@ work, a **partial** executable-schema track, and **near-term** / **later** /
   enclosing timeline rank/scenario, selected-score delta, score-term map,
   selected counts, and activity identities while validating each nested ranked
   activity through the existing planned-activity contract.
+- `campaign_plan.v1` declares its optional `constraint_report.v1` handoff as a
+  direct nested contract, runs the standalone row/count/status/model-limit
+  validator, and pins the V1 campaign constraint model and source assumption.
 - `campaign_repair.v2` exports nested repaired-activity, source-candidate, source
   contact-allocation, source timeline-feedback handoff rows, plan-delta, and
   approval-requirement rows.

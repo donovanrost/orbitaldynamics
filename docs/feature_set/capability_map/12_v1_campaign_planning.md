@@ -35,6 +35,11 @@ From those manifests it generates:
 - aggregate link-capacity constraints
 
 They include explicit warning severity for local violations.
+Embedded reports are declared as optional `campaign_plan.v1` nested contracts
+and run the full executable `constraint_report.v1` validator for row shape,
+model limits, derived constraint/row/status counts, and status maps. V1 context
+also pins the campaign-planner constraint model and the
+`campaign_plan.assumptions.constraints` source assumption.
 
 **Timeline score terms** include:
 

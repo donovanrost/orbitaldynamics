@@ -157,6 +157,8 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactValidation do
         &OperationalReadinessValidation.validate_optional_quality_gate_report/3,
       validate_optional_optimizer_contract:
         &DecisionSupportValidation.validate_optional_optimizer_contract/2,
+      validate_optional_constraint_report:
+        &DecisionSupportValidation.validate_optional_constraint_report/2,
       validate_optional_link_capacity_report: &LinkCapacityValidation.validate_optional_report/2,
       validate_optional_resource_projection_report:
         &ResourceValidation.validate_optional_resource_projection_report/3,

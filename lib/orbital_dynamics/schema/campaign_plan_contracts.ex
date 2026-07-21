@@ -2,6 +2,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanContracts do
   @moduledoc false
 
   alias OrbitalDynamics.Schema.{
+    CampaignPlanConstraintContracts,
     CampaignPlanOptimizerContracts,
     CampaignPlanScoreContracts,
     CampaignPlanTradeoffContracts
@@ -58,6 +59,9 @@ defmodule OrbitalDynamics.Schema.CampaignPlanContracts do
     |> call(callbacks, :validate_optional_optimizer_contract, [
       Map.get(artifact, "optimizer_contract")
     ])
+    |> call(callbacks, :validate_optional_constraint_report, [
+      Map.get(artifact, "constraint_report")
+    ])
     |> call(callbacks, :validate_optional_link_capacity_report, [
       Map.get(artifact, "link_capacity_report")
     ])
@@ -90,6 +94,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanContracts do
     |> CampaignPlanScoreContracts.validate(artifact)
     |> CampaignPlanTradeoffContracts.validate(artifact)
     |> CampaignPlanOptimizerContracts.validate(artifact)
+    |> CampaignPlanConstraintContracts.validate(artifact)
     |> call(callbacks, :expect_type, ["$", artifact, "warnings", :list])
     |> call(callbacks, :expect_type, ["$", artifact, "assumptions", :map])
     |> call(callbacks, :expect_type, ["$", artifact, "provenance", :map])

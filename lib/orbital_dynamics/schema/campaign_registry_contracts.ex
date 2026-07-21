@@ -26,6 +26,7 @@ defmodule OrbitalDynamics.Schema.CampaignRegistryContracts do
         ],
         "optional_fields" => [
           "optimizer_contract",
+          "constraint_report",
           "link_capacity_report",
           "contact_contention_report",
           "contact_contention_resolution_report",
@@ -44,6 +45,7 @@ defmodule OrbitalDynamics.Schema.CampaignRegistryContracts do
           "planned_activity.v1",
           "proposed_contact.v1",
           "optimizer_contract.v1",
+          "constraint_report.v1",
           "link_capacity_report.v1",
           "contact_contention_report.v1",
           "contact_contention_resolution_report.v1",

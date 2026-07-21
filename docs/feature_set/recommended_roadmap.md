@@ -214,6 +214,9 @@ Already implemented or heavily covered:
 - optional V1 optimizer metadata is reconciled with enclosing candidate,
   selected-activity, ranked-timeline, constraint, scoring-policy, and objective
   evidence; the required ranking explanation is nested and typed
+- embedded V1 constraint reports are declared as direct nested contracts and
+  receive standalone row/count/status/model-limit validation plus exact campaign
+  model/source context checks
 
 Good first slices:
 
