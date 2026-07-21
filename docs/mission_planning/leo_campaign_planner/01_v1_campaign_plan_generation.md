@@ -62,6 +62,10 @@ It answers:
 
 - `campaign_plan.candidate_activities`.
 - `campaign_plan.ranked_timelines`.
+- Runtime validation requires that collection to preserve the planner's
+  descending score order, using ascending `scenario_id` as the deterministic
+  equal-score tie-break. JSON Schema remains the structural layer because this
+  comparison spans adjacent rows.
 - `campaign_plan.objective_tradeoff_report` with per-ranked-timeline score-term
   deltas for operator review.
 - `campaign_plan.activities` for the highest-ranked timeline.

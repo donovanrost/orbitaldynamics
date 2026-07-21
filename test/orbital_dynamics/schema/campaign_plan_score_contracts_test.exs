@@ -107,39 +107,56 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContractsTest do
   end
 
   test "validates a multi-timeline score report", %{artifact: artifact} do
-    [first_timeline] = artifact["ranked_timelines"]
-
-    second_timeline =
-      first_timeline
-      |> Map.put("scenario_id", "leo_2")
-      |> Map.put("score", first_timeline["score"] - 10.0)
-
-    timelines = [first_timeline, second_timeline]
-    policy = get_in(artifact, ["score_term_report", "assumptions", "policy"])
-
-    report =
-      ScoreReports.score_term_report(
-        timelines,
-        policy,
-        OrbitalDynamics.CampaignPlanner.score_report_model_limits()
-      )
-
-    tradeoff_report =
-      ScoreReports.objective_tradeoff_report(
-        timelines,
-        artifact["objective_tradeoff_report"]["policy"],
-        OrbitalDynamics.CampaignPlanner.score_report_model_limits()
-      )
-
-    artifact =
-      artifact
-      |> Map.put("ranked_timelines", timelines)
-      |> Map.put("score_term_report", report)
-      |> Map.put("objective_tradeoff_report", tradeoff_report)
-      |> Map.put("optimizer_contract", optimizer_contract(artifact, timelines))
+    artifact = with_timelines(artifact, ranked_timelines(artifact))
 
     assert {:ok, %{"schema_contract" => "campaign_plan.v1"}} =
              Schema.validate_artifact(artifact)
+  end
+
+  test "requires ranked timelines to follow descending planner score order", %{
+    artifact: artifact
+  } do
+    invalid = with_timelines(artifact, Enum.reverse(ranked_timelines(artifact)))
+
+    assert {:error, report} = Schema.validate_artifact(invalid)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] == "$.ranked_timelines[1]" and
+                 &1["message"] ==
+                   "must follow descending score and ascending scenario_id tie-break order")
+           )
+  end
+
+  test "uses scenario identity as the deterministic equal-score tie-break", %{
+    artifact: artifact
+  } do
+    [first, second] = ranked_timelines(artifact)
+    tied = [first, Map.put(second, "score", first["score"])]
+
+    assert {:ok, %{"schema_contract" => "campaign_plan.v1"}} =
+             artifact |> with_timelines(tied) |> Schema.validate_artifact()
+
+    assert {:error, report} =
+             artifact
+             |> with_timelines(Enum.reverse(tied))
+             |> Schema.validate_artifact()
+
+    assert Enum.any?(report["errors"], &(&1["path"] == "$.ranked_timelines[1]"))
+  end
+
+  test "does not add ordering errors for malformed ranking fields", %{artifact: artifact} do
+    [first, second] = ranked_timelines(artifact)
+    invalid = with_timelines(artifact, [first, Map.put(second, "scenario_id", "bad id")])
+
+    assert {:error, report} = Schema.validate_artifact(invalid)
+    assert Enum.any?(report["errors"], &(&1["path"] == "$.ranked_timelines[1].scenario_id"))
+
+    refute Enum.any?(
+             report["errors"],
+             &(&1["message"] ==
+                 "must follow descending score and ascending scenario_id tie-break order")
+           )
   end
 
   test "keeps the score-term report optional", %{artifact: artifact} do
@@ -229,6 +246,41 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContractsTest do
       constraints: get_in(artifact, ["assumptions", "constraints"]),
       scoring_policy: get_in(artifact, ["assumptions", "scoring_policy"])
     )
+  end
+
+  defp ranked_timelines(artifact) do
+    [first] = artifact["ranked_timelines"]
+
+    second =
+      first
+      |> Map.put("scenario_id", "leo_2")
+      |> Map.put("score", first["score"] - 10.0)
+
+    [first, second]
+  end
+
+  defp with_timelines(artifact, timelines) do
+    policy = get_in(artifact, ["score_term_report", "assumptions", "policy"])
+
+    report =
+      ScoreReports.score_term_report(
+        timelines,
+        policy,
+        OrbitalDynamics.CampaignPlanner.score_report_model_limits()
+      )
+
+    tradeoff_report =
+      ScoreReports.objective_tradeoff_report(
+        timelines,
+        artifact["objective_tradeoff_report"]["policy"],
+        OrbitalDynamics.CampaignPlanner.score_report_model_limits()
+      )
+
+    artifact
+    |> Map.put("ranked_timelines", timelines)
+    |> Map.put("score_term_report", report)
+    |> Map.put("objective_tradeoff_report", tradeoff_report)
+    |> Map.put("optimizer_contract", optimizer_contract(artifact, timelines))
   end
 
   defp activity_surfaces do

@@ -20,6 +20,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContracts do
 
     issues
     |> validate_rows("$.ranked_timelines", timelines, &validate_timeline/3)
+    |> validate_timeline_order(timelines)
     |> validate_score_term_report(timelines, Map.get(artifact, "score_term_report"))
   end
 
@@ -63,6 +64,41 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContracts do
   end
 
   defp validate_activity_count(issues, _path, _timeline), do: issues
+
+  defp validate_timeline_order(issues, timelines) when is_list(timelines) do
+    timelines
+    |> Enum.chunk_every(2, 1, :discard)
+    |> Enum.with_index(1)
+    |> Enum.reduce(issues, fn {[previous, current], index}, acc ->
+      if comparable_timeline?(previous) and comparable_timeline?(current) and
+           not ordered_timeline_pair?(previous, current) do
+        [
+          error(
+            "$.ranked_timelines[#{index}]",
+            "must follow descending score and ascending scenario_id tie-break order"
+          )
+          | acc
+        ]
+      else
+        acc
+      end
+    end)
+  end
+
+  defp validate_timeline_order(issues, _timelines), do: issues
+
+  defp comparable_timeline?(%{"score" => score, "scenario_id" => scenario_id}),
+    do: is_number(score) and StableIdValidation.valid?(scenario_id)
+
+  defp comparable_timeline?(_timeline), do: false
+
+  defp ordered_timeline_pair?(previous, current) do
+    previous_score = previous["score"]
+    current_score = current["score"]
+
+    previous_score > current_score or
+      (previous_score == current_score and previous["scenario_id"] <= current["scenario_id"])
+  end
 
   defp validate_score_term_report(issues, timelines, %{"rows" => rows} = report)
        when is_list(timelines) and is_list(rows) do

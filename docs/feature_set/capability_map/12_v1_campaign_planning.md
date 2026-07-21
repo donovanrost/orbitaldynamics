@@ -163,6 +163,10 @@ optional `score_term_report.v1` is present, its source, model, term-key union,
 rank/scenario/term rows, values, timeline scores, and selected flags must match
 the enclosing ranked timelines. Both that report and the optional
 `objective_tradeoff_report.v1` are exported as direct nested campaign contracts.
+The ranked collection itself must remain in descending score order, with
+ascending scenario identity breaking equal-score ties exactly as the producer
+does. This adjacent-row comparison is enforced at runtime rather than expressed
+by JSON Schema.
 The exported ranked-timeline schema constrains every score-term value to a
 number. These V1 terms are explanatory fields that include counts and subtotals,
 so they are not treated as one additive score sum.
