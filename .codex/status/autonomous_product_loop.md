@@ -5,57 +5,60 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Validate aggregate repair score explanations.
+Validate V1 ranked-timeline score explanations.
 
 Status:
 Implemented, fully verified, and parent-reviewed; ready to publish.
 
 Selected slice:
-Validate top-level V2 repair score arithmetic and the score-term report against
-the enclosing repair artifact.
+Validate each V1 ranked timeline's score shape and the optional score-term
+report against the enclosing ranked timelines.
 
 Why this slice:
-`campaign_repair.v2` requires `score` and `score_terms`, but runtime validation
-currently checks neither their types nor their arithmetic. The optional
-`score_term_report.v1` is validated only internally, so stale term values,
-timeline scores, source identity, or duplicate/missing term rows can disagree
-with an otherwise accepted repair handoff.
+`campaign_plan.v1` exports typed ranked timelines, but runtime validation only
+checks that the collection is a list. Its optional `score_term_report.v1` is
+validated only internally, so stale ranks, scenario IDs, term values, timeline
+scores, selections, or duplicate/missing rows can disagree with the plan.
 
 Level 6 pillar:
-Versioned compatibility and explainable operational-planning handoffs.
+Reproducible ranked timelines with explainable, versioned score handoffs.
 
 Implemented:
-- Top-level score and every score-term value must be numeric; score must equal
-  the term sum within the established absolute `1.0e-9` tolerance.
-- An optional score-term report must use the exact repair source, match the
-  enclosing term keys and values, contain one unique row per term, use rank `1`
-  and selected `true`, and repeat the enclosing score as its timeline score.
-- The checked-in JSON Schema now constrains `score_terms` additional properties
-  to numbers while preserving the optional report boundary.
+- Each ranked timeline requires a stable scenario ID, numeric score, map-shaped
+  score terms, and numeric term values at runtime.
+- An optional score-term report must use the V1 model/source, match the union of
+  term keys, and contain one unique row for every rank/scenario/term with the
+  enclosing value, timeline score, and selected status.
+- Cross-field comparisons use an absolute `1.0e-9` numeric tolerance and skip
+  malformed shapes already reported by field validators.
+- The V1 JSON Schema constrains ranked-timeline score-term values to numbers.
 
 Docs changed:
-- `docs/feature_set/capability_map/13_v2_rolling_repair.md`
+- `docs/feature_set/capability_map/12_v1_campaign_planning.md`
+- `docs/feature_set/capability_map/17_reproducibility_artifacts_and_audit.md`
 - `docs/feature_set/recommended_roadmap.md`
 
 Verification:
-- Aggregate-score/export focused tests: `6 passed`.
-- Schema area: `191 passed`.
-- Campaign-planner area: passed (`754` tests unchanged by this schema-only slice).
-- Full suite with `--timeout 120000`: `3517 passed`.
+- Focused plan/export/communications tests: `19 passed`.
+- Schema area: `198 passed`.
+- Campaign-planner area: `754 passed`.
+- Full suite with `--timeout 120000`: `3523 passed`.
 - `mix compile --warnings-as-errors`, `mix format --check-formatted`, and
   `git diff --check`: passed.
 
 Parent review:
-- Validation is additive over the required V2 fields and does not change planner
-  scoring, report generation, or the report's optional presence.
-- Numeric cross-field checks skip malformed shapes already reported by field
-  validators, preventing secondary crashes; exact and mutation tests cover
-  stale totals, values, source, rank/selection, and duplicate term rows.
-- Schema regeneration changed only the standalone campaign-repair export and
-  its bundle entry, each solely tightening score-term value types.
+- Validation is additive and preserves the optional report boundary and report
+  row reordering.
+- V1 score terms intentionally are not summed: the map includes counts and
+  subtotals, unlike the additive V2 repair score-term map.
+- Exact/multi-rank and mutation tests cover malformed timelines, source/model,
+  rank/scenario identity, values, scores, selection, duplicates, and malformed
+  rows without secondary crashes.
+- Schema regeneration changed only the standalone V1 campaign export and its
+  bundle entry, solely tightening score-term value types.
 
 Previous published slice:
-- `3e6830e1` Validate repair ranking arithmetic (`3513 passed`).
+- `65279045` Validate aggregate repair scores (`3517 passed`).
 
 Remaining maturity gaps:
 - Continue calibrated realized-feedback depth where evidence is genuinely

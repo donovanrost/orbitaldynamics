@@ -123,6 +123,13 @@ defmodule OrbitalDynamics.Schema.CampaignPlanContractsTest do
 
     assert get_in(timeline_schema, [
              "properties",
+             "score_terms",
+             "additionalProperties",
+             "type"
+           ]) == "number"
+
+    assert get_in(timeline_schema, [
+             "properties",
              "activities",
              "items",
              "properties",

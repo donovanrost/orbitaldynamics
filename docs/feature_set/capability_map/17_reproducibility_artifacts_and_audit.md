@@ -168,6 +168,10 @@ work, a **partial** executable-schema track, and **near-term** / **later** /
   proposed-contact, and contact-intent rows with stable source-window
   identifiers, including generated contact-success feedback factor/source fields
   on refreshed contact candidates.
+- Executable V1 validation requires numeric ranked-timeline score terms and
+  checks an optional score-term report against the enclosing timeline ranks,
+  scenarios, terms, values, scores, and selection flags; JSON Schema exports
+  constrain ranked-timeline score-term values to numbers.
 - `campaign_repair.v2` exports nested repaired-activity, source-candidate, source
   contact-allocation, source timeline-feedback handoff rows, plan-delta, and
   approval-requirement rows.

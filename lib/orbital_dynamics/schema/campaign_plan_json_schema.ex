@@ -87,7 +87,10 @@ defmodule OrbitalDynamics.Schema.CampaignPlanJsonSchema do
       "properties" => %{
         "scenario_id" => %{"type" => "string", "pattern" => stable_id_pattern},
         "score" => %{"type" => "number"},
-        "score_terms" => %{"type" => "object", "additionalProperties" => true},
+        "score_terms" => %{
+          "type" => "object",
+          "additionalProperties" => %{"type" => "number"}
+        },
         "activity_count" => %{"type" => "integer"},
         "activities" => %{
           "type" => "array",

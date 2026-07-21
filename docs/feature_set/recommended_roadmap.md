@@ -205,6 +205,9 @@ Already implemented or heavily covered:
   non-bootstrap artifact contracts, rejects fixture model IDs without a live
   contract, and keeps the self-describing fixture-report contract as the sole
   explicit bootstrap exclusion
+- runtime V1 validation checks numeric ranked-timeline score explanations and
+  pins optional score-term report rows to their enclosing rank, scenario, term,
+  value, timeline score, and selection; exported score-term values are numeric
 
 Good first slices:
 
