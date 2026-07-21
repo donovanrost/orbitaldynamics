@@ -13,6 +13,7 @@ defmodule OrbitalDynamics.Study.Benchmark.Report do
       report: :study_benchmark_summary,
       model: :persisted_study_benchmark_median_summary,
       validation_level: :artifact_contract,
+      public_facades: [:study_benchmark_summary],
       grouping: [
         :mode,
         :propagator,

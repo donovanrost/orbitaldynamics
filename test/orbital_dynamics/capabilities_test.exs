@@ -95,6 +95,8 @@ defmodule OrbitalDynamics.CapabilitiesTest do
     assert catalog.reporting.study_benchmark ==
              OrbitalDynamics.Study.Benchmark.Report.capabilities()
 
+    assert catalog.reporting.study_benchmark.public_facades == [:study_benchmark_summary]
+
     assert "total_delta_v_km_s" in catalog.reporting.result_set.supported_objectives
     assert "campaign_plan.v1" in catalog.validation.schema.artifact_contracts
     assert "cadence_import_manifest.v1" in catalog.validation.schema.artifact_contracts

@@ -65,7 +65,6 @@ defmodule OrbitalDynamics do
     TargetVisibility
   }
 
-
   @doc """
   Propagates one scenario with the default two-body propagator.
   """
@@ -1241,6 +1240,17 @@ defmodule OrbitalDynamics do
   """
   def operational_scale_comparison(level, observed) do
     OperationalScale.compare(level, observed)
+  end
+
+  @doc """
+  Summarizes a persisted study benchmark with backend acceptance evidence.
+
+  The summary compares matching scalar and accelerator benchmark groups and
+  applies the declared backend acceptance policy. It does not rerun a study or
+  create performance evidence beyond the supplied artifact.
+  """
+  def study_benchmark_summary(artifact, opts \\ []) do
+    StudyBenchmarkReport.summarize(artifact, opts)
   end
 
   @doc """
@@ -2926,7 +2936,6 @@ defmodule OrbitalDynamics do
     do: Enum.map(values, &stringify_operator_review_keys/1)
 
   defp stringify_operator_review_keys(value), do: value
-
 
   defp json_safe_capability_value(%{} = map) do
     Map.new(map, fn {key, value} ->

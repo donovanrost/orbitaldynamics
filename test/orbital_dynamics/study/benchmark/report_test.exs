@@ -3,10 +3,14 @@ defmodule OrbitalDynamics.Study.Benchmark.ReportTest do
 
   alias OrbitalDynamics.Study.Benchmark.Report
 
+  import OrbitalDynamics.Validation.BenchmarkFixtures,
+    only: [nx_study_benchmark_fixture: 0]
+
   test "declares study benchmark report capabilities" do
     assert %{
              report: :study_benchmark_summary,
              validation_level: :artifact_contract,
+             public_facades: [:study_benchmark_summary],
              grouping: grouping,
              statistics: statistics,
              known_limits: known_limits
@@ -28,6 +32,52 @@ defmodule OrbitalDynamics.Study.Benchmark.ReportTest do
     assert :backend_acceptance_uses_declared_policy in known_limits
     assert :trend_uses_artifact_generated_at_order in known_limits
     assert Report.model_limits() == Enum.map(known_limits, &Atom.to_string/1)
+  end
+
+  test "public facade interprets checked-in accelerator comparison evidence" do
+    summary = OrbitalDynamics.study_benchmark_summary(nx_study_benchmark_fixture())
+
+    assert summary.manifest["path"] == "studies/leo_dispersion_monte_carlo.json"
+
+    assert summary.benchmark_options["propagators"] == [
+             "two_body",
+             "two_body_nx_compiled",
+             "two_body_exla_cpu"
+           ]
+
+    assert length(summary.groups) == 6
+    assert Enum.all?(summary.groups, &(&1.output_matches_baseline == true))
+
+    assert %{
+             backend_acceptance: %{
+               tier: "reference_default",
+               status: "accepted_reference_default",
+               speedup_claim: "not_required_for_reference_default"
+             }
+           } = benchmark_group(summary, "two_body", 2_000)
+
+    assert %{
+             speedup_vs_local: speedup,
+             backend_acceptance: %{
+               tier: "experimental_accelerator",
+               status: "accepted_accelerator_speedup_evidence",
+               reference_match: true,
+               benchmark_artifact_present: true,
+               speedup_claim: "supported_for_this_benchmark_group",
+               policy_contract: "backend_acceptance_policy.v1"
+             }
+           } = benchmark_group(summary, "two_body_exla_cpu", 2_000)
+
+    assert speedup > 1.0
+
+    assert %{
+             backend_acceptance: %{
+               tier: "experimental_accelerator",
+               status: "correctness_only_no_speedup_claim",
+               reference_match: true,
+               speedup_claim: "not_supported_by_this_benchmark_group"
+             }
+           } = benchmark_group(summary, "two_body_nx_compiled", 2_000)
   end
 
   test "summarizes study benchmark medians by mode and monte carlo count" do
@@ -122,6 +172,12 @@ defmodule OrbitalDynamics.Study.Benchmark.ReportTest do
                node_balance_ratio: nil
              }
            ] = summary.groups
+  end
+
+  defp benchmark_group(summary, propagator, monte_carlo_count) do
+    Enum.find(summary.groups, fn group ->
+      group.propagator == propagator and group.monte_carlo_count == monte_carlo_count
+    end)
   end
 
   test "attaches backend acceptance evidence for accelerator benchmark groups" do

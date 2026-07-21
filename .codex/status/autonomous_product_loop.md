@@ -5,70 +5,68 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Make canonical unavailable station-calendar evidence affect default V3
-recommendation selection.
+Expose persisted backend-comparison acceptance through the public API.
 
 Status:
 Implemented, parent-reviewed, and verified. Publish pending.
 
 Why this slice:
-Public `station_calendar_report.v1` replay preserved row-derived unavailable
-affected-contact/status counts, and derived outage branches emitted explicit
-`ground_station_outage` risks. Both were scored but neither was a default hard
-recommendation boundary.
+The checkout already has exact, schema-linted scalar/Nx/EXLA benchmark fixtures
+and internal acceptance logic that distinguishes correctness-only evidence from
+supported speedup claims. Product consumers currently must reach into
+`OrbitalDynamics.Study.Benchmark.Report` or invoke a Mix task to obtain that
+interpretation; the canonical `OrbitalDynamics` facade does not expose it.
 
 Files changed:
-- `lib/orbital_dynamics/campaign_planner/types.ex`
-- `lib/orbital_dynamics/policy/blocked_risk_matcher.ex`
-- `test/orbital_dynamics/policy_test.exs`
-- `test/orbital_dynamics/campaign_planner/strategy_station_calendar_recommendation_test.exs`
-- `study_results/campaign_repair_readiness_source_handoff_v2.json`
-- `docs/feature_set/capability_map/07_ground_network/04_station_calendar.md`
+- `lib/orbital_dynamics.ex`
+- `lib/orbital_dynamics/study/benchmark/report.ex`
+- `test/orbital_dynamics/study/benchmark/report_test.exs`
+- `test/orbital_dynamics/capabilities_test.exs`
+- `docs/feature_set/capability_map/03_propagation_and_force_models.md`
 - `.codex/status/autonomous_product_loop.md`
 
 Behavior changed:
-Default V3 policy now includes `station_calendar_unavailable_blocked`. It
-matches direct `ground_station_outage` risks and positive canonical unavailable
-or maintenance counts on station-calendar replay pressure. Blocked branches
-remain visible with `policy_decision.v1` provenance but are skipped. Reserved,
-reduced-capacity, and unknown provider-status replay remains reviewable.
+`OrbitalDynamics.study_benchmark_summary/2` now interprets a persisted benchmark
+artifact through the existing median, reference-match, speedup, operational
+scale, and backend-acceptance policy logic. The reporting capability catalog
+declares this public facade.
 
 Public proof:
-The V3 regression builds unavailable and reserved `station_calendar_report.v1`
-inputs through public `OrbitalDynamics.station_calendar_report/3`, declares
-their trust boundaries, and consumes them through branch-local refresh.
+The facade regression consumes the checked-in, schema-linted
+`study_results/nx_study_benchmark.json` artifact. It proves all six comparison
+groups match the scalar baseline, the 2,000-case EXLA group carries supported
+speedup evidence, and the slower Nx group remains correctness-only.
 
 Docs read/changed:
-- Read/changed `docs/feature_set/capability_map/07_ground_network/04_station_calendar.md`.
-- Read `docs/feature_set/capability_map/07_ground_network/03_contact_allocation.md`.
-- Read `docs/artifacts/field_families/v3_strategy_artifact/artifact-overview-and-branch-replay.md`.
+- Read `docs/feature_set/completeness_levels/06_mature_operational_platform.md`.
+- Read `docs/feature_set/definition_of_feature_complete.md`.
+- Read `docs/feature_set/current_capability_snapshot.md`.
+- Read `docs/feature_set/recommended_roadmap.md`.
+- Read `docs/feature_set/capability_map/03_propagation_and_force_models.md`.
 
 Verification:
-- Focused matcher and public-facade V3 regression: `95 passed`.
-- Station-calendar communications/replay/schema set: `161 passed`.
-- Campaign-planner plus policy surface: `833 passed`.
-- Schema suite, including checked-in V2 handoff: `184 passed`.
-- Full `mix test --timeout 180000`: `3451 passed`.
+- Benchmark/report/fixture/policy/task/capability set: `44 passed`.
+- Validation and schema directories: green.
+- Full `mix test --timeout 180000`: `3452 passed`.
 - Changed Elixir files are formatted; `git diff --check` passes.
 
 Artifact regeneration:
-`study_results/campaign_repair_readiness_source_handoff_v2.json` was regenerated
-through public `OrbitalDynamics.campaign_repair/1`. Canonical comparison against
-`HEAD` proves the only semantic change is the new alias in serialized default
-`blocked_risk_types`; exact fixture/schema validation passes.
+Not expected: this slice consumes the existing checked-in
+`study_results/nx_study_benchmark.json` comparison artifact.
 
 Level 6 pillar advanced:
-Fleet-level station-calendar behavior and approval-aware automation boundaries.
+Replaceable numerical backends with explicit, consumable acceptance evidence.
 
 Parent review:
-No must-fix findings. Matching is limited to direct outage risk identity or
-positive canonical unavailable/maintenance counts on exact station-calendar
-replay scope; generic pressure, reservation, reduced capacity, and unknown
-status cannot trigger the alias. Sidecar delegation is unavailable under the
-active runtime policy, so the parent performed review and publish checks.
+No must-fix findings. The public function delegates to the established report
+logic, consumes a supplied artifact without IO or rerunning studies, and does
+not turn correctness-only evidence into a speedup claim. The regression uses
+the existing exact benchmark fixture and checks reference, accepted-speedup,
+and correctness-only outcomes. Sidecar delegation remains unavailable under
+the active runtime policy, so the parent performed review and publish checks.
 
 Previous published slice:
-- `8210479b` Block unavailable contact replay (`3449 passed`).
+- `0763ccbd` Block unavailable station calendars (`3451 passed`).
 
 Current publish:
 - Commit pending.

@@ -7,7 +7,9 @@
   propagator capability declarations; `BatchPropagator` support for batchable
   kernels; `Validation.backend_acceptance_policy/0` declares reference-default,
   experimental-accelerator, and future external-service acceptance tiers plus
-  benchmark evidence requirements; maneuver review reports preserve declared
+  benchmark evidence requirements; the public `study_benchmark_summary/2`
+  facade interprets persisted comparison artifacts with those acceptance tiers
+  without rerunning studies; maneuver review reports preserve declared
   execution uncertainty as review metadata and expose missing-vs-declared counts
   plus report-level max timing, max delta-v, and total declared delta-v
   3-sigma review envelopes;
@@ -28,4 +30,3 @@
   kernels, and external high-fidelity backend adapters.
 - `out of scope`: hiding model fidelity behind an opaque universal propagator.
   The planning layer should know and record which force model it used.
-
