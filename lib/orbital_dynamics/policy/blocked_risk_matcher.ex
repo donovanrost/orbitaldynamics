@@ -178,6 +178,14 @@ defmodule OrbitalDynamics.Policy.BlockedRiskMatcher do
     blocked_refresh_freshness_pressure?(risk)
   end
 
+  defp risk_matches_blocked_type?(
+         %{"type" => "downlink_completion_gap", "feedback_scope" => "contact_allocation"} =
+           risk,
+         "station_reservation_conflict_blocked"
+       ) do
+    blocked_station_reservation_conflict_pressure?(risk)
+  end
+
   defp risk_matches_blocked_type?(risk, "station_reservation_expiration_blocked") do
     blocked_station_reservation_expiration_pressure?(risk)
   end
@@ -271,6 +279,33 @@ defmodule OrbitalDynamics.Policy.BlockedRiskMatcher do
       positive_count?(risk["stale_reason_count"]) or
       risk["branch_local_stale_pressure"] == true
   end
+
+  defp blocked_station_reservation_conflict_pressure?(risk) do
+    station_reservation_conflict_match_status?(risk["station_reservation_match_status"]) or
+      "contact_allocation_reservation_conflict" in List.wrap(risk["derivation_reasons"]) or
+      reservation_conflict_source?(risk["feedback_source"])
+  end
+
+  defp station_reservation_conflict_match_status?(status) when is_atom(status) do
+    status
+    |> Atom.to_string()
+    |> station_reservation_conflict_match_status?()
+  end
+
+  defp station_reservation_conflict_match_status?(status) when is_binary(status) do
+    status
+    |> String.trim()
+    |> String.downcase()
+    |> then(&(&1 in ["overlap", "conflict", "unmatched", "unmatched_overlap", "owner_mismatch"]))
+  end
+
+  defp station_reservation_conflict_match_status?(_status), do: false
+
+  defp reservation_conflict_source?(source) when is_binary(source) do
+    String.contains?(source, "reservation_conflict_summary")
+  end
+
+  defp reservation_conflict_source?(_source), do: false
 
   defp blocked_station_reservation_expiration_pressure?(risk) do
     risk["station_reservation_expiration_status"] in ["expired", "missing"] or

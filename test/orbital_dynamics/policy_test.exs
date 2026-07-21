@@ -3995,6 +3995,85 @@ defmodule OrbitalDynamics.PolicyTest do
     assert review_decision["classification"] == "operator_review_required"
   end
 
+  test "fallback policy blocks station reservation conflicts but leaves ownership matches reviewable" do
+    policy = %{blocked_risk_types: ["station_reservation_conflict_blocked"]}
+
+    for match_status <- [
+          "overlap",
+          "conflict",
+          "unmatched",
+          "unmatched_overlap",
+          "owner_mismatch"
+        ] do
+      {blocked_status, _requirements, _matches, blocked_decision} =
+        Policy.decide(
+          [],
+          [
+            %{
+              "type" => "downlink_completion_gap",
+              "feedback_scope" => "contact_allocation",
+              "station_reservation_match_status" => match_status
+            }
+          ],
+          %{"id" => "reservation_#{match_status}", "events" => []},
+          %{},
+          policy
+        )
+
+      assert blocked_status == "blocked_by_policy"
+      assert blocked_decision["classification"] == "blocked_by_policy"
+    end
+
+    for {branch_id, risk} <- [
+          {"reservation_conflict_reason",
+           %{
+             "type" => "downlink_completion_gap",
+             "feedback_scope" => "contact_allocation",
+             "derivation_reasons" => ["contact_allocation_reservation_conflict"]
+           }},
+          {"reservation_conflict_source",
+           %{
+             "type" => "downlink_completion_gap",
+             "feedback_scope" => "contact_allocation",
+             "feedback_source" =>
+               "mission_state.source_contact_allocation_reservation_conflict_summary"
+           }}
+        ] do
+      {blocked_status, _requirements, _matches, blocked_decision} =
+        Policy.decide(
+          [],
+          [risk],
+          %{"id" => branch_id, "events" => []},
+          %{},
+          policy
+        )
+
+      assert blocked_status == "blocked_by_policy"
+      assert blocked_decision["classification"] == "blocked_by_policy"
+    end
+
+    for match_status <- ["matched", "owner_matched", "owned", "owner", "unknown"] do
+      {review_status, _requirements, _matches, review_decision} =
+        Policy.decide(
+          [],
+          [
+            %{
+              "type" => "downlink_completion_gap",
+              "feedback_scope" => "contact_allocation",
+              "station_reservation_match_status" => match_status,
+              "feedback_source" => "mission_state.source_contact_allocation_summary"
+            }
+          ],
+          %{"id" => "reservation_#{match_status}", "events" => []},
+          %{},
+          policy
+        )
+
+      assert review_status == "operator_review_required"
+      assert review_decision["classification"] == "operator_review_required"
+    end
+  end
+
   test "matches requirement types grouped risk types and grouped event types" do
     policy = %{
       action_rules: [

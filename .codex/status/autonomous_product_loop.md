@@ -5,86 +5,77 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Import-readiness blocked evidence affects V3 recommendation selection.
+Station-reservation conflicts affect V3 recommendation selection.
 
 Status:
-Implemented, reviewer-adjusted, verified, and behavior-published.
-Behavior commit: `8d30f29` Block import-readiness failures by default.
+Implemented, parent-reviewed, and verified. Publish pending.
 
 Files changed:
-- V3 campaign strategy default approval policy:
-  `lib/orbital_dynamics/campaign_planner.ex`
-- Shared approval fallback matching: `lib/orbital_dynamics/policy.ex`
-- Focused V3 recommendation regressions:
-  `test/orbital_dynamics/campaign_planner_test.exs`
-- Direct shared-policy regressions:
-  `test/orbital_dynamics/policy_test.exs`
-- Regenerated checked-in repair fixture:
+- V3 default policy alias:
+  `lib/orbital_dynamics/campaign_planner/types.ex`
+- Shared semantic fallback matcher:
+  `lib/orbital_dynamics/policy/blocked_risk_matcher.ex`
+- Shared-policy regression: `test/orbital_dynamics/policy_test.exs`
+- V3 recommendation regression:
+  `test/orbital_dynamics/campaign_planner/strategy_station_reservation_conflict_recommendation_test.exs`
+- Regenerated public-facade fixture:
   `study_results/campaign_repair_readiness_source_handoff_v2.json`
 - Ledger: `.codex/status/autonomous_product_loop.md`
 
-Tests/checks run:
-- `mix test test/orbital_dynamics/policy_test.exs:3600`
-- `mix test test/orbital_dynamics/campaign_planner_test.exs:8444`
-- `mix test test/orbital_dynamics/policy_test.exs`: `89 passed`.
-- `mix test test/orbital_dynamics/campaign_planner_test.exs`: `734 passed`.
-- Initial `mix test` confirmed one expected checked-in fixture drift:
-  `3353/3354` passed.
-- Regenerated `study_results/campaign_repair_readiness_source_handoff_v2.json`
-  through `OrbitalDynamics.campaign_repair/1`.
-- `mix test test/orbital_dynamics/schema_test.exs:16173`
-- `mix orbital_dynamics.schema.lint --input study_results/campaign_repair_readiness_source_handoff_v2.json --contract campaign_repair.v2`
-- `slice_reviewer`: one overbroad invalid-Cadence-import blocking finding
-  fixed by narrowing the alias to explicit blocked import evidence.
-- Post-review reruns:
-  `mix test test/orbital_dynamics/policy_test.exs:3600`,
-  `mix test test/orbital_dynamics/campaign_planner_test.exs:8444`,
-  `mix test test/orbital_dynamics/policy_test.exs`,
-  `mix test test/orbital_dynamics/campaign_planner_test.exs`,
-  `mix test test/orbital_dynamics/schema_test.exs:16173`, and schema lint.
-- Final `mix test`: `3354 passed`.
-- `git diff --check`
+Tests run:
+- Focused policy and V3 recommendation tests: `2 passed`.
+- Full shared-policy and campaign-planner suites: `825 passed`.
+- Focused policy, V3 recommendation, and exact V2 fixture tests: `3 passed`.
+- V2 fixture schema lint as `campaign_repair.v2`: pass, zero errors/warnings.
+- Isolated checked-in JSON Schema export test: pass.
+- `mix test --timeout 180000`: `3442/3443 passed`; the only failure is the
+  pre-existing V1 campaign golden exact-match contract at
+  `test/orbital_dynamics/golden_artifact_test.exs:275`.
+- `mix format --check-formatted` for changed Elixir files.
+- `git diff --check`.
+
+Docs/artifacts changed:
+- Regenerated `campaign_repair_readiness_source_handoff_v2.json` through
+  `OrbitalDynamics.campaign_repair/1`; a canonical comparison proves its only
+  changes are the new alias in serialized `blocked_risk_types` lists.
 
 Behavior changed:
-V3 default approval policy now includes the semantic
-`import_readiness_blocked` alias. Shared fallback matching blocks explicit
-import-blocked operational-readiness and quality-gate pressure when rows carry
-`import_blocked`, positive blocked import counts, blocked import-status counts,
-or blocked import quality-gate row IDs. Review-only import-readiness pressure,
-including rows with invalid Cadence-import counts but no explicit import-blocked
-signal, remains operator-reviewable and can still be recommended.
+V3 default approval policy now includes
+`station_reservation_conflict_blocked`. The shared fallback matcher blocks
+contact-allocation downlink pressure carrying explicit overlap, conflict,
+unmatched, unmatched-overlap, or owner-mismatch status, or explicit
+reservation-conflict provenance. Matched, owner-matched, owned, owner, and
+unknown statuses remain operator-reviewable and selectable. No provider write,
+reservation acceptance, or schedule mutation was added.
 
 Level 6 pillar advanced:
-Approval-aware automation boundaries, quality gates, and Cadence import
-readiness.
+Fleet-level resource, contact, station-calendar, and allocation behavior with
+approval-aware automation boundaries.
 
 Remaining maturity gaps:
-- Add compatibility or stale-plausible fixtures for resource/contact/readiness
-  families only after confirming the target family lacks exact reference
-  coverage.
+- Restore the broken V1 checked-in campaign golden exact-match contract before
+  expanding features.
 - Continue converting selected contact/resource/readiness pressure families
   from review-visible evidence into explicit selection or policy behavior where
   live code still leaves a gap.
-- Reassess from live code and Level 6 docs between slices.
+- Add compatibility or stale-plausible fixtures only after confirming the
+  target family lacks exact reference coverage.
 
-Last behavior commit:
-`8d30f29` Block import-readiness failures by default.
-
-Last docs commit:
-`a4b6dca` Document operational readiness fixture coverage.
+Last commit:
+- Prior branch HEAD: `43c34d64` Complete large module refactor ledger.
+- Current behavior commit: pending publish.
 
 Next candidate:
-After publish, reassess from current code and roadmap. Good next areas are a
-contact/resource artifact family missing compatibility fixtures,
-stale-plausible readiness/input challenge fixtures, or another narrow selection
-boundary found from live code.
+Diagnose and repair the V1 deterministic campaign golden exact-match failure,
+then rerun the full suite before returning to feature expansion.
 
 Blocked:
 Not blocked.
 
 Notes:
-- Selection evidence: import-readiness pressure already fed branch scoring and
-  review/import handoff, but default V3 policy lacked a semantic blocked alias
-  for explicitly import-blocked readiness and quality-gate rows.
-- Prior slice published:
-  `3175406` Block provider reservation review recommendations by default.
+- Initial local review narrowed the matcher so uncertain/unknown reservation
+  status remains reviewable; only explicit conflict status or provenance blocks.
+- Sidecar delegation is disallowed by runtime policy, so the parent completed
+  the bounded review and will perform the mechanical publish scope.
+- The documented V1 study regeneration was reverted after proving its drift was
+  unrelated to this slice; the checked-in V1 artifact is not slice-owned.
