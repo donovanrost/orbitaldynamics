@@ -4,6 +4,9 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
   alias OrbitalDynamics.CandidateRefresh
 
   alias OrbitalDynamics.CampaignPlanner.{
+    ActivityIdentity,
+    ContactIntentPressureBranches,
+    DownlinkActivityNormalization,
     OperationalReadinessSourceReports,
     LinkCapacityPressureBranches,
     OperationalReadinessPressureEvents,
@@ -25,6 +28,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
         station_calendar_report,
         contact_filter_report,
         contact_allocation_report,
+        contact_intents,
         resource_filter_report,
         candidate_diff_report,
         freshness_report,
@@ -42,6 +46,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
       station_calendar_report,
       contact_filter_report,
       contact_allocation_report,
+      contact_intents,
       resource_filter_report,
       candidate_diff_report,
       freshness_report,
@@ -62,6 +67,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
         station_calendar_report,
         contact_filter_report,
         contact_allocation_report,
+        contact_intents,
         resource_filter_report,
         candidate_diff_report,
         freshness_report,
@@ -108,6 +114,9 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
     contact_allocation_pressure_count =
       repair_contact_allocation_pressure_count(contact_allocation_report, callbacks)
 
+    contact_intent_pressure_count =
+      repair_contact_intent_pressure_count(contact_intents, activities)
+
     resource_filter_pressure_count = repair_resource_filter_pressure_count(resource_filter_report)
 
     candidate_diff_pressure_count =
@@ -145,6 +154,10 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
 
     contact_allocation_pressure_penalty =
       -contact_allocation_pressure_count *
+        numeric_policy_value.(scoring_policy, "risk_weight", 1.0)
+
+    contact_intent_pressure_penalty =
+      -contact_intent_pressure_count *
         numeric_policy_value.(scoring_policy, "risk_weight", 1.0)
 
     resource_filter_pressure_penalty =
@@ -208,6 +221,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
       contact_allocation_pressure_penalty
     )
     |> maybe_put_positive_pressure_term(
+      contact_intent_pressure_count,
+      "contact_intent_pressure_penalty",
+      contact_intent_pressure_penalty
+    )
+    |> maybe_put_positive_pressure_term(
       resource_filter_pressure_count,
       "resource_filter_pressure_penalty",
       resource_filter_pressure_penalty
@@ -250,6 +268,27 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
 
   defp maybe_put_positive_pressure_term(score_terms, _count, _term_key, _penalty),
     do: score_terms
+
+  defp repair_contact_intent_pressure_count(contact_intents, activities)
+       when is_list(contact_intents) and is_list(activities) do
+    selected_activity_ids =
+      activities
+      |> Enum.filter(&DownlinkActivityNormalization.downlink?/1)
+      |> Enum.map(&ActivityIdentity.activity_id/1)
+      |> Enum.reject(&(&1 in [nil, ""]))
+      |> MapSet.new()
+
+    contact_intents
+    |> Enum.filter(&is_map/1)
+    |> Enum.map(&{&1, "campaign_repair.source_contact_intents"})
+    |> ContactIntentPressureBranches.identity_set()
+    |> Enum.map(&elem(&1, 1))
+    |> MapSet.new()
+    |> MapSet.intersection(selected_activity_ids)
+    |> MapSet.size()
+  end
+
+  defp repair_contact_intent_pressure_count(_contact_intents, _activities), do: 0
 
   defp repair_link_capacity_pressure_count(%{} = report),
     do: if(LinkCapacityPressureBranches.selected_shortfall_pressure?(report), do: 1, else: 0)

@@ -672,6 +672,79 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
              Schema.validate_artifact(artifact)
   end
 
+  test "repair scores each selected pressured contact intent once" do
+    blocked_intent =
+      contact_intent("dl_refreshed", %{"approval_status" => "blocked_by_policy"})
+
+    artifact = repair_with_contact_intents([blocked_intent, blocked_intent])
+
+    assert artifact["score_terms"]["contact_intent_pressure_penalty"] == -2.5
+    assert artifact["score"] == artifact["score_terms"] |> Map.values() |> Enum.sum()
+
+    assert [
+             %{
+               "term_key" => "contact_intent_pressure_penalty",
+               "value" => -2.5,
+               "selected" => true
+             }
+           ] =
+             Enum.filter(
+               artifact["score_term_report"]["rows"],
+               &(&1["term_key"] == "contact_intent_pressure_penalty")
+             )
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(artifact)
+  end
+
+  test "repair keeps unrelated and nonblocking contact intents score-neutral" do
+    contact_intents = [
+      contact_intent("dl_refreshed", %{"approval_status" => "operator_review_required"}),
+      contact_intent("dl_other", %{"approval_status" => "blocked_by_policy"}),
+      contact_intent("dl_refreshed", %{
+        "activity_type" => "command",
+        "direction" => "command",
+        "approval_status" => "blocked_by_policy"
+      }),
+      contact_intent("obs_1", %{"approval_status" => "blocked_by_policy"})
+    ]
+
+    artifact =
+      repair_with_contact_intents(contact_intents, [
+        observe("obs_1", "leo_1", "target_a", 200.0, 260.0, 10.0)
+      ])
+
+    refute Map.has_key?(artifact["score_terms"], "contact_intent_pressure_penalty")
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(artifact)
+  end
+
+  test "repair reuses every exact V3 contact-intent gate pressure status" do
+    for pressure_fields <- [
+          %{"cadence_import_status" => "missing"},
+          %{"cadence_import_status" => "invalid"},
+          %{
+            "invalid_activity_input" => true,
+            "invalid_activity_input_reason" => "invalid_activity_id"
+          }
+        ] do
+      artifact =
+        repair_with_contact_intents([
+          contact_intent("dl_refreshed", pressure_fields)
+        ])
+
+      assert artifact["score_terms"]["contact_intent_pressure_penalty"] == -2.5
+      assert artifact["score"] == artifact["score_terms"] |> Map.values() |> Enum.sum()
+    end
+  end
+
+  test "repair rejects malformed contact-intent evidence before scoring" do
+    assert_raise ArgumentError, ~r/invalid candidate_refresh.v1 artifact/, fn ->
+      repair_with_contact_intents(["not-a-contact-intent"])
+    end
+  end
+
   defp candidate_refresh_artifact(candidates, opts) do
     %{
       "schema_version" => 1,
@@ -721,6 +794,41 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
           }
         end)
     }
+  end
+
+  defp repair_with_contact_intents(contact_intents, additional_activities \\ []) do
+    refreshed_candidate = refreshed_downlink("dl_refreshed", 500.0, 560.0)
+
+    repair(
+      %{
+        "activities" => [downlink("dl_1", 100.0, 160.0)] ++ additional_activities,
+        "candidate_activities" => [downlink("dl_stale", 700.0, 760.0)]
+      },
+      realized_state: %{activities: [%{id: "dl_1", status: "missed"}]},
+      current_epoch_s: 165.0,
+      scoring_policy: %{"risk_weight" => "2.5"},
+      candidate_refresh:
+        candidate_refresh_artifact([refreshed_candidate],
+          contact_intents: contact_intents
+        )
+    )
+  end
+
+  defp contact_intent(activity_id, fields) do
+    Map.merge(
+      %{
+        "schema_contract" => "contact_intent.v1",
+        "id" => activity_id,
+        "activity_id" => activity_id,
+        "activity_type" => "downlink",
+        "scenario_id" => "leo_1",
+        "ground_station_id" => "equator_prime",
+        "direction" => "downlink",
+        "starts_at_s" => 500.0,
+        "ends_at_s" => 560.0
+      },
+      fields
+    )
   end
 
   defp candidate_diff_report do

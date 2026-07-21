@@ -98,6 +98,15 @@ Standalone candidate-refresh, V1 campaign, V2 repair, and V3 branch-repair conta
 
 So contact-review handoff rows carry policy evidence plus schema-constrained contact-intent policy gate status at both initial planning and refresh boundaries.
 
+V2 repair also makes exact selected downlink intent pressure visible in scoring.
+It reuses the V3 contact-intent identity classifier and emits one
+`contact_intent_pressure_penalty` risk-weight unit per unique pressured contact
+ID present in the repaired activities. Unrelated contacts, duplicate evidence,
+commands and other non-downlink rows, nominal rows, and operator-review-only
+approval status remain review evidence without changing repair score. This does
+not reject candidates, accept policy decisions, reserve provider capacity, or
+execute a Cadence action.
+
 ## Candidate-diff review and import gates
 
 Standalone candidate-refresh candidate-diff invalidations are lifted into:

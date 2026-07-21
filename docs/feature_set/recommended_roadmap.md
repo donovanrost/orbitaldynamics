@@ -108,6 +108,10 @@ Already implemented or heavily covered:
 - V2 candidate-refresh diff evidence contributes one aggregate normalized
   risk-weight penalty when the shared V3 replay classifier finds diff pressure,
   without multiplying the score effect by report row count
+- V2 candidate-refresh contact-intent evidence contributes one normalized
+  risk-weight penalty per unique pressured downlink contact selected in the
+  repaired activities, using the shared V3 exact-identity classifier while
+  keeping unrelated, duplicate, non-downlink, and review-only rows neutral
 - provider counteroffer, reservation-hold, reservation-expiration, plan-impact,
   and review/import handoff artifacts
 - contact-intent and capacity-pack direction routing in allocation and

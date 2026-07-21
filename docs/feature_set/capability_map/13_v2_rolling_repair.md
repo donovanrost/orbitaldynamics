@@ -108,6 +108,13 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   new, invalidated, semantic-change, candidate-routing, or station-routing
   pressure. Multiple rows remain one aggregate unit; empty or absent reports
   omit the term.
+- Candidate-refresh contact intents contribute one normalized `risk_weight` unit
+  per unique pressured downlink contact selected in the repaired activities.
+  V2 reuses the V3 contact-intent identity classifier for blocked-policy,
+  invalid/missing Cadence-import, and invalid-activity pressure, then intersects
+  its exact contact IDs with the selected activity IDs. The dedicated
+  `contact_intent_pressure_penalty` therefore ignores nonselected, duplicate,
+  command/non-downlink, nominal, and operator-review-only intent rows.
 - The repair score, `score_terms`, and `score_term_report.v1` preserve the same
   total and expose the selected communications gap without claiming a link
   budget, provider reservation, or schedule mutation.
