@@ -1,5 +1,5 @@
 defmodule OrbitalDynamics.Validation.CandidateRefreshReadinessReplayFixtures do
-  alias OrbitalDynamics.{CandidateRefresh, Validation}
+  alias OrbitalDynamics.{CandidateRefresh, Epoch, ResultSet, Validation}
 
   import OrbitalDynamics.Validation.CandidateRefreshContactReplayFixtures,
     only: [result_set: 1]
@@ -129,6 +129,88 @@ defmodule OrbitalDynamics.Validation.CandidateRefreshReadinessReplayFixtures do
     |> Validation.artifact_observations(candidate_refresh_operational_readiness_fixture())
   end
 
+  def candidate_refresh_operational_readiness_selection_challenge_fixture_observations do
+    "candidate_refresh.v1"
+    |> Validation.artifact_observations(
+      candidate_refresh_operational_readiness_selection_challenge_fixture()
+    )
+  end
+
+  def candidate_refresh_operational_readiness_selection_challenge_fixture do
+    operational_readiness_selection_result_set()
+    |> CandidateRefresh.build(
+      candidate_refresh: candidate_refresh_operational_readiness_selection_challenge_request(),
+      generated_at: ~U[2026-05-14 00:00:00Z]
+    )
+  end
+
+  def candidate_refresh_operational_readiness_selection_challenge_request do
+    blocked_contact_id = "leo_1_downlink_equator_prime_1"
+    cross_spacecraft_contact_id = "leo_2_downlink_dss_43_1"
+
+    %{
+      "accepted_planning_state" => %{
+        "snapshot_id" => "ops-state-operational-readiness-selection-challenge",
+        "accepted_at" => "2026-05-14T00:00:00Z",
+        "spacecraft_states" => [
+          %{"spacecraft_id" => "sat_1", "scenario_id" => "leo_1"},
+          %{"spacecraft_id" => "sat_2", "scenario_id" => "leo_2"}
+        ],
+        "source" => %{"system" => "validation_challenge"},
+        "quality" => %{"level" => "accepted"},
+        "provenance" => %{"created_by" => "validation_fixture"},
+        "source_operational_readiness_report" =>
+          candidate_refresh_operational_readiness_selection_challenge_report(
+            blocked_contact_id,
+            cross_spacecraft_contact_id
+          )
+      },
+      "current_epoch_s" => 0.0,
+      "remaining_horizon" => %{
+        "starts_at_s" => 0.0,
+        "ends_at_s" => 600.0,
+        "output_step_s" => 60.0
+      },
+      "targets" => [],
+      "constraints" => %{"min_activity_duration_s" => 60.0},
+      "scoring_policy" => %{
+        "contact_value_weight" => 0.5,
+        "downlink_rate_mb_s" => 3.0
+      },
+      "model_assumptions" => %{"refresh_level" => "sampled_v1"},
+      "prior_candidate_activities" => [
+        %{
+          "id" => blocked_contact_id,
+          "type" => "downlink",
+          "scenario_id" => "leo_1",
+          "ground_station_id" => "equator_prime",
+          "starts_at_s" => 300.0,
+          "ends_at_s" => 420.0,
+          "source_window_id" => "window:leo_1:ground_station_access:equator_prime:1"
+        }
+      ]
+    }
+  end
+
+  def candidate_refresh_operational_readiness_selection_challenge_report(
+        blocked_contact_id,
+        cross_spacecraft_contact_id
+      ) do
+    operational_readiness_resource_pressure_fixture()
+    |> Map.put(
+      "report_id",
+      "operational_readiness:contact_selection:stale_scope_challenge"
+    )
+    |> Map.put("source_artifact_id", "readiness-selection-challenge")
+    |> put_in(
+      ["evidence", "resource_blocked_contact_ids_by_spacecraft_id"],
+      %{"sat_1" => [blocked_contact_id, cross_spacecraft_contact_id]}
+    )
+    |> Map.put("provenance", %{
+      "trust_boundary" => "generated_operational_readiness_selection_challenge"
+    })
+  end
+
   def candidate_refresh_operational_readiness_fixture do
     result_set(%{})
     |> CandidateRefresh.build(
@@ -174,6 +256,43 @@ defmodule OrbitalDynamics.Validation.CandidateRefreshReadinessReplayFixtures do
 
   def quality_gate_resource_pressure_fixture do
     read_json!("study_results/quality_gate_resource_pressure_v1.json")
+  end
+
+  defp operational_readiness_selection_result_set do
+    ResultSet.new!(%{
+      study_id: :validation,
+      trajectory_results: [],
+      event_results: [
+        access_event_result(:leo_1, :equator_prime, 300.0, 420.0),
+        access_event_result(:leo_2, :dss_43, 320.0, 440.0)
+      ],
+      errors: [],
+      assumptions: %{
+        propagator: OrbitalDynamics.Propagators.TwoBody,
+        outputs: [:access_windows]
+      },
+      metadata: %{}
+    })
+  end
+
+  defp access_event_result(scenario_id, ground_station_id, starts_at_s, ends_at_s) do
+    %{
+      scenario_id: scenario_id,
+      event_type: :ground_station_access,
+      events: [
+        %{
+          type: :ground_station_access,
+          starts_at: Epoch.new!(starts_at_s, :tdb),
+          ends_at: Epoch.new!(ends_at_s, :tdb),
+          metadata: %{
+            max_elevation_deg: 70.0,
+            minimum_elevation_deg: 5.0,
+            sample_count: 4
+          }
+        }
+      ],
+      source: %{ground_station_id: ground_station_id}
+    }
   end
 
   defp read_json!(path) do

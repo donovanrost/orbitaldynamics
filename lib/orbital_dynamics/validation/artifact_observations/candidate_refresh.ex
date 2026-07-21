@@ -3,6 +3,10 @@ defmodule OrbitalDynamics.Validation.ArtifactObservations.CandidateRefresh do
 
   def build(%{} = artifact) do
     artifact = stringify_keys(artifact)
+    candidate_activities = map_rows(artifact, "candidate_activities")
+    contact_intents = map_rows(artifact, "contact_intents")
+    invalidated_candidates = map_rows(artifact, "invalidated_candidates")
+    candidate_rejection_report = map_field(artifact, "candidate_rejection_report")
     source_reports = get_in(artifact, ["provenance", "source_reports"]) || %{}
     candidate_rejection_summary = Map.get(source_reports, "candidate_rejection_report") || %{}
     contact_contention_summary = Map.get(source_reports, "contact_contention_report") || %{}
@@ -43,8 +47,26 @@ defmodule OrbitalDynamics.Validation.ArtifactObservations.CandidateRefresh do
       "schema_contract" => Map.get(artifact, "schema_contract"),
       "schema_version" => Map.get(artifact, "schema_version"),
       "planner" => Map.get(artifact, "planner"),
-      "candidate_count" => count(artifact, "candidate_activities"),
-      "contact_intent_count" => count(artifact, "contact_intents"),
+      "candidate_count" => length(candidate_activities),
+      "candidate_activity_id_keys" => optional_row_id_keys(candidate_activities, "id"),
+      "contact_intent_count" => length(contact_intents),
+      "contact_intent_activity_id_keys" => optional_row_id_keys(contact_intents, "activity_id"),
+      "candidate_rejection_report_count" => if(map_size(candidate_rejection_report) > 0, do: 1),
+      "candidate_rejection_candidate_count" =>
+        Map.get(candidate_rejection_report, "candidate_count"),
+      "candidate_rejection_rejected_count" =>
+        Map.get(candidate_rejection_report, "rejected_count"),
+      "candidate_rejection_rejected_candidate_id_keys" =>
+        candidate_rejection_report
+        |> list_values("rejected_candidate_ids")
+        |> optional_stable_id_keys(),
+      "candidate_rejection_reason_counts" =>
+        Map.get(candidate_rejection_report, "rejection_reason_counts") || %{},
+      "invalidated_candidate_count" =>
+        if(invalidated_candidates != [], do: length(invalidated_candidates)),
+      "invalidated_candidate_id_keys" => optional_row_id_keys(invalidated_candidates, "id"),
+      "invalidated_candidate_reason_counts" =>
+        count_rows_by_value(invalidated_candidates, "invalidated_reason"),
       "access_window_count" =>
         count(get_in(artifact, ["refreshed_windows"]) || %{}, "access_windows"),
       "target_visibility_window_count" =>
@@ -999,6 +1021,34 @@ defmodule OrbitalDynamics.Validation.ArtifactObservations.CandidateRefresh do
     end
   end
 
+  defp map_field(map, key) do
+    case Map.get(map, key) do
+      value when is_map(value) -> value
+      _value -> %{}
+    end
+  end
+
+  defp map_rows(map, key) do
+    case Map.get(map, key) do
+      rows when is_list(rows) -> Enum.filter(rows, &is_map/1)
+      _rows -> []
+    end
+  end
+
+  defp optional_row_id_keys(rows, key) when is_list(rows) do
+    rows
+    |> Enum.map(&Map.get(&1, key))
+    |> Enum.reject(&is_nil/1)
+    |> optional_stable_id_keys()
+  end
+
+  defp count_rows_by_value(rows, key) when is_list(rows) do
+    rows
+    |> Enum.map(&(Map.get(&1, key) || "unknown"))
+    |> Enum.frequencies()
+    |> Map.new(fn {value, count} -> {to_string(value), count} end)
+  end
+
   defp list_values(map, key) do
     case Map.get(map, key) do
       values when is_list(values) -> values
@@ -1013,6 +1063,9 @@ defmodule OrbitalDynamics.Validation.ArtifactObservations.CandidateRefresh do
     |> Enum.sort()
     |> Enum.join("|")
   end
+
+  defp optional_stable_id_keys([]), do: nil
+  defp optional_stable_id_keys(values), do: stable_id_keys(values)
 
   defp positive_number?(value), do: is_number(value) and value > 0.0
 

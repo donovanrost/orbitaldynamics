@@ -231,6 +231,71 @@ defmodule OrbitalDynamics.Validation.ReferenceFixtures.CandidateRefreshReadiness
         "internal generated artifact regression, not external operations validation",
         "checks candidate-refresh replay of operational-readiness provenance without granting execution, operator authority, candidate selection, import approval, or Cadence writes"
       ]
+    },
+    "fixture.artifact.candidate_refresh.operational_readiness_selection_challenge" => %{
+      "id" => "fixture.artifact.candidate_refresh.operational_readiness_selection_challenge",
+      "model_id" => "artifact.candidate_refresh.v1",
+      "reference_case" =>
+        "canonical readiness rejects an exact contact without cross-spacecraft leakage",
+      "validation_level" => "artifact_contract",
+      "fixture_type" => "curated_internal_artifact_challenge",
+      "inputs" => %{
+        "source" => "generated_candidate_refresh_operational_readiness_selection_challenge",
+        "contract" => "candidate_refresh.v1"
+      },
+      "expected" => %{
+        "schema_contract" => "candidate_refresh.v1",
+        "schema_version" => 1,
+        "planner" => "OrbitalDynamics.CandidateRefresh.V1",
+        "candidate_count" => 1,
+        "candidate_activity_id_keys" => "leo_2_downlink_dss_43_1",
+        "contact_intent_count" => 1,
+        "contact_intent_activity_id_keys" => "leo_2_downlink_dss_43_1",
+        "access_window_count" => 2,
+        "target_visibility_window_count" => 0,
+        "eclipse_interval_count" => 0,
+        "warning_count" => 1,
+        "candidate_rejection_report_count" => 1,
+        "candidate_rejection_candidate_count" => 2,
+        "candidate_rejection_rejected_count" => 1,
+        "candidate_rejection_rejected_candidate_id_keys" => "leo_1_downlink_equator_prime_1",
+        "candidate_rejection_reason_counts" => %{"quality_gate_failed" => 1},
+        "invalidated_candidate_count" => 1,
+        "invalidated_candidate_id_keys" => "leo_1_downlink_equator_prime_1",
+        "invalidated_candidate_reason_counts" => %{
+          "dropped_by_operational_readiness_unavailable_resource" => 1
+        },
+        "source_report_family_count" => 1,
+        "source_report_row_count" => 1,
+        "source_operational_readiness_report_count" => 1,
+        "source_operational_readiness_row_count" => 1,
+        "source_operational_readiness_trust_boundary_status" => "declared"
+      },
+      "tolerances" => %{
+        "schema_version" => 0,
+        "candidate_count" => 0,
+        "contact_intent_count" => 0,
+        "access_window_count" => 0,
+        "target_visibility_window_count" => 0,
+        "eclipse_interval_count" => 0,
+        "warning_count" => 0,
+        "candidate_rejection_report_count" => 0,
+        "candidate_rejection_candidate_count" => 0,
+        "candidate_rejection_rejected_count" => 0,
+        "invalidated_candidate_count" => 0,
+        "source_report_family_count" => 0,
+        "source_report_row_count" => 0,
+        "source_operational_readiness_report_count" => 0,
+        "source_operational_readiness_row_count" => 0
+      },
+      "evidence" => [
+        "checked by OrbitalDynamics.Validation.verify_reference_fixture/2",
+        "schema-linted by mix orbital_dynamics.schema.lint"
+      ],
+      "known_limits" => [
+        "internal deterministic selection challenge, not external operations validation",
+        "proves exact candidate and spacecraft scope without granting execution, operator authority, import approval, or Cadence writes"
+      ]
     }
   }
 

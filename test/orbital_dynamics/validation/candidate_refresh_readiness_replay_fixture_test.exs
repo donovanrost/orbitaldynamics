@@ -7,6 +7,9 @@ defmodule OrbitalDynamics.Validation.CandidateRefreshReadinessReplayFixtureTest 
     only: [
       candidate_refresh_operational_readiness_fixture: 0,
       candidate_refresh_operational_readiness_fixture_observations: 0,
+      candidate_refresh_operational_readiness_selection_challenge_fixture: 0,
+      candidate_refresh_operational_readiness_selection_challenge_fixture_observations: 0,
+      candidate_refresh_operational_readiness_selection_challenge_request: 0,
       candidate_refresh_quality_gate_fixture: 0,
       candidate_refresh_quality_gate_fixture_observations: 0,
       candidate_refresh_resource_projection_fixture: 0,
@@ -238,5 +241,97 @@ defmodule OrbitalDynamics.Validation.CandidateRefreshReadinessReplayFixtureTest 
 
     assert {:ok, _validated_artifact} =
              Schema.validate_artifact(artifact, schema_contract: "candidate_refresh.v1")
+  end
+
+  test "verifies exact readiness selection without cross-spacecraft leakage" do
+    fixture_id =
+      "fixture.artifact.candidate_refresh.operational_readiness_selection_challenge"
+
+    assert {:ok, fixture} = Validation.reference_fixture(fixture_id)
+    assert fixture["fixture_type"] == "curated_internal_artifact_challenge"
+
+    artifact = candidate_refresh_operational_readiness_selection_challenge_fixture()
+
+    observations =
+      candidate_refresh_operational_readiness_selection_challenge_fixture_observations()
+
+    assert {:ok, verification} =
+             Validation.verify_reference_fixture(fixture_id, observations)
+
+    assert verification["status"] == "pass"
+    assert Enum.all?(verification["checks"], &(&1["status"] == "pass"))
+
+    assert %{
+             "candidate_count" => 1,
+             "candidate_activity_id_keys" => "leo_2_downlink_dss_43_1",
+             "contact_intent_activity_id_keys" => "leo_2_downlink_dss_43_1",
+             "candidate_rejection_candidate_count" => 2,
+             "candidate_rejection_rejected_count" => 1,
+             "candidate_rejection_rejected_candidate_id_keys" => "leo_1_downlink_equator_prime_1",
+             "invalidated_candidate_id_keys" => "leo_1_downlink_equator_prime_1",
+             "invalidated_candidate_reason_counts" => %{
+               "dropped_by_operational_readiness_unavailable_resource" => 1
+             }
+           } = observations
+
+    request = candidate_refresh_operational_readiness_selection_challenge_request()
+
+    assert get_in(request, [
+             "accepted_planning_state",
+             "source_operational_readiness_report",
+             "evidence",
+             "resource_blocked_contact_ids_by_spacecraft_id",
+             "sat_1"
+           ]) == ["leo_1_downlink_equator_prime_1", "leo_2_downlink_dss_43_1"]
+
+    assert [
+             %{
+               "candidate_id" => "leo_1_downlink_equator_prime_1",
+               "activity_context" => %{
+                 "provenance" => %{
+                   "operational_readiness_candidate_filter" => %{
+                     "blocked_spacecraft_ids" => ["sat_1"],
+                     "source_artifact_ids" => ["readiness-selection-challenge"],
+                     "trust_boundaries" => [
+                       "generated_operational_readiness_selection_challenge"
+                     ]
+                   }
+                 }
+               }
+             },
+             %{"candidate_id" => "leo_2_downlink_dss_43_1"}
+           ] = artifact["candidate_rejection_report"]["rows"]
+
+    stale_scope_observations =
+      Map.put(
+        observations,
+        "candidate_activity_id_keys",
+        "leo_1_downlink_equator_prime_1"
+      )
+
+    assert {:ok, stale_scope_verification} =
+             Validation.verify_reference_fixture(fixture_id, stale_scope_observations)
+
+    assert stale_scope_verification["status"] == "fail"
+
+    assert Enum.any?(
+             stale_scope_verification["checks"],
+             &(&1["field"] == "candidate_activity_id_keys" and &1["status"] == "fail")
+           )
+
+    readiness_report =
+      get_in(request, [
+        "accepted_planning_state",
+        "source_operational_readiness_report"
+      ])
+
+    assert {:ok, %{"schema_contract" => "operational_readiness_report.v1"}} =
+             Schema.validate_artifact(readiness_report)
+
+    assert {:ok, %{"schema_contract" => "candidate_rejection_report.v1"}} =
+             Schema.validate_artifact(artifact["candidate_rejection_report"])
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
+             Schema.validate_artifact(artifact)
   end
 end

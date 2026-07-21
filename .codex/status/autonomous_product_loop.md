@@ -5,58 +5,54 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Apply exact unavailable-resource contact blocks directly from canonical
-`operational_readiness_report.v1` evidence.
+Add a curated CandidateRefresh readiness-selection challenge fixture.
 
 Status:
 Implemented and verified; publish pending.
 
 Why this slice:
-Canonical readiness reports preserved
-`evidence.resource_blocked_contact_ids_by_spacecraft_id`, but CandidateRefresh
-required callers to derive the downstream unavailable-resource quality summary
-before the same exact evidence affected selection.
+Canonical readiness blocks were planner-effective but the curated validation
+corpus only replayed readiness provenance with zero candidates. Exact
+spacecraft-scoped selection therefore lacked durable reference evidence.
 
-Behavior changed:
-- The internal unavailable-resource filter now accepts canonical readiness and
-  compact quality-summary sources through their established direct, accepted,
-  mission, and result-wrapper resolvers.
-- Readiness filtering requires a non-empty stable contact list plus exact
-  candidate ID and spacecraft/scenario scope.
-- Aggregate-only or malformed readiness maps do not activate the selection
-  report path; cross-spacecraft IDs do not filter.
-- Readiness-only prior-candidate drops use
-  `dropped_by_operational_readiness_unavailable_resource`.
-- Rejection rows preserve readiness path, artifact/report identity, spacecraft
-  scope, and inherited trust evidence. Existing quality-summary behavior and
-  invalidation reason remain unchanged.
+Behavior/evidence added:
+- A deterministic two-spacecraft refresh generates two contacts.
+- Canonical readiness evidence lists both IDs under `sat_1`; the exact `sat_1`
+  contact is rejected while the `sat_2` contact survives.
+- CandidateRefresh observations now expose stable selected/contact-intent,
+  rejected, and invalidated candidate identity when that evidence exists.
+- Evidence-free artifacts retain the prior observation shape.
+- The challenge pins rejection reason, readiness-specific invalidation reason,
+  source identity/trust, warning count, and survivor identity.
+- The checked-in validation registry now contains 198 passing fixtures.
 
 Files changed:
-- Generalized and renamed the internal unavailable-resource candidate filter.
-- Wired readiness-specific invalidation and warnings.
-- Added canonical readiness positive and aggregate-only negative build proofs.
-- Updated capability metadata/docs and regenerated the public catalog.
+- CandidateRefresh artifact observations.
+- Readiness validation fixture support, reference definition, and tests.
+- Deterministic validation registry test and generated report.
 
 Verification:
-- Focused readiness/quality/capability tests: 10 passed.
-- CandidateRefresh, handoff, capability, golden, and reference suites: 785
-  passed.
-- Capability catalog schema lint: pass, zero errors/warnings.
-- Full `mix test --timeout 180000`: 3,473 passed.
+- Focused readiness fixture tests: 4 passed.
+- CandidateRefresh validation/readiness suites: 31 passed.
+- Validation/reference evidence suites: 187 passed.
+- Compatibility regression proof after review fix: 10 passed.
+- Full `mix test --timeout 180000`: 3,474 passed.
+- Schema lint: 155 artifacts, zero errors/warnings.
 - `mix format --check-formatted` and `git diff --check`: pass.
 
 Level 6 pillar advanced:
-Canonical readiness artifacts are planner-effective without an adapter-only
-derivation step or weakened identity scope.
+Durable schema-versioned compatibility evidence now protects planner-effective
+readiness selection and its cross-spacecraft identity boundary.
 
 Parent review:
-Complete. Quality evidence retains precedence if both source families block the
-same candidate; readiness-only drops remain distinct; observations cannot match;
-empty/malformed maps cannot activate filtering; source trust inheritance is
-reused; and no approval, Cadence write, or execution authority was added.
+Complete. Initial full-suite review found new empty identity/count observations
+on evidence-free artifacts; those fields are now conditional and the exact-map
+compatibility contract passes. No must-fix findings remain. Runtime policy
+disallows subagent delegation, so the parent performed review and publish prep.
 
 Previous published slice:
-- `57cf75cc` Use scoped quality gates in candidate refresh (`3472 passed`).
+- `e29742c0` Apply canonical readiness blocks in candidate refresh
+  (`3473 passed`).
 
 Current publish:
 - Commit pending.
@@ -65,6 +61,10 @@ Remaining maturity gaps:
 - Continue direct resource/contact pressure use only for decision-safe signals.
 - Continue branch-local realized-feedback depth and challenge fixtures.
 - Continue deeper numerical/backend and resource-model maturity separately.
+
+Next candidate:
+Reassess the roadmap after publish; prefer the next missing planner-visible,
+exactly scoped contact/resource signal over aggregate-only pressure.
 
 Blocked:
 Not blocked.
