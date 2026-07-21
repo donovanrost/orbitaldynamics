@@ -222,6 +222,20 @@ Quality-gate summaries derive report status/classification and gate totals from
 rows when rows are present, so stale top-level counters do not hide why import
 eligibility was review-only or blocked.
 
+Canonical blocked `quality_gate_report.v1` evidence has one additional exact
+activity-selection effect: when `source_artifact_type` is
+`planned_activity.v1` and the non-empty `source_artifact_id` equals a regenerated
+candidate ID, that candidate is removed. Direct, accepted-state, mission-state,
+and result-artifact-wrapped reports share the existing resolver and inherited
+trust boundary. Nonmatching source IDs and review-only, analysis-only, or passed
+reports remain provenance-only; aggregate status and quality-gate row IDs are
+never interpreted as candidate identity. A generic compact quality-gate summary
+alone also remains provenance-only; the specialized unavailable-resource
+summary keeps its separate spacecraft/contact rule below. The rejection row uses
+`dropped_by_candidate_scoped_quality_gate` for a matching prior candidate and
+preserves report/summary identity, source path, exact candidate ID, and trust
+evidence for the existing review/import handoff.
+
 `operational_quality_gate_unavailable_resource_summary.v1` has one bounded
 selection effect during CandidateRefresh builds: a contact-like regenerated
 candidate is removed only when its exact candidate ID occurs under its matching
@@ -2295,7 +2309,8 @@ pressure booleans and branch-local timeline-publication pressure,
 dependency-pressure, changed-field-pressure, invalidation-pressure, and
 review-pressure booleans. The replay-summary helper itself avoids candidate
 generation, candidate selection, Cadence writes, and operator approval; the
-separate CandidateRefresh build path applies only exact spacecraft-scoped
+separate CandidateRefresh build path applies only exact candidate-scoped
+blocked planned-activity quality gates or exact spacecraft-scoped
 blocked-contact evidence from canonical readiness reports or unavailable-
 resource quality summaries as documented above. Review
 pressure is true for preserved

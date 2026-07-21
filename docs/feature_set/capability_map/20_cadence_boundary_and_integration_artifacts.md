@@ -119,6 +119,14 @@ Status: **implemented** (with a **partial** semantic-depth area, plus **near-ter
   classification, generic gate counts, classification routing, and non-passed
   routing come from `quality_gate_row_ids_by_status` / `gate_ids_by_status`
   when present instead of stale top-level summary fields.
+- CandidateRefresh build applies a blocked quality-gate report to selection only
+  when its canonical source type is `planned_activity.v1` and its non-empty
+  `source_artifact_id` exactly matches one regenerated candidate. The resulting
+  candidate-rejection evidence preserves source report/summary identity, input
+  path, exact candidate scope, and trust boundary for review/import routing.
+  Generic compact summaries, nonmatching reports, and non-blocked gates remain
+  provenance-only, and no Cadence write, approval, or execution authority is
+  granted.
 - Quality-gate operator-training summaries publish the validated `operational_quality_gate_operator_training_summary.v1` contract and expose role, training,
   certification, and qualification routing from `operator_training`
   quality-gate rows, including status/classification row IDs and explicit

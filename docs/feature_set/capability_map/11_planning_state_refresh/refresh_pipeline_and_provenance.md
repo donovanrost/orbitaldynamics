@@ -84,6 +84,12 @@ From those inputs the pipeline:
 
 ### Unavailable-resource readiness, quality-gate, and contact-allocation evidence
 
+- Applies canonical blocked `quality_gate_report.v1` evidence to any regenerated
+  candidate only when the report is scoped to `planned_activity.v1` and its
+  non-empty `source_artifact_id` exactly equals the candidate ID. Aggregate
+  blocked status, generic compact summaries, gate-row IDs, nonmatching source
+  IDs, and review-only, analysis-only, or passed reports remain
+  provenance-only.
 - Applies direct, accepted-state, mission-state, and result-artifact-wrapped
   `operational_readiness_report.v1`
   `evidence.resource_blocked_contact_ids_by_spacecraft_id` maps and
@@ -105,10 +111,10 @@ From those inputs the pipeline:
   can still yield a zero-rejection explanation of the evaluated set.
 - Emits `candidate_rejection_report.v1` rows for the evaluated candidate set,
   preserving readiness, quality, or contact-allocation source paths,
-  artifact/report identity, resource blocking dimension, spacecraft scope, and
-  trust evidence for rejected contacts. A matching prior candidate is
-  invalidated with a source-specific unavailable-resource reason, and the
-  existing operator-review/Cadence-import handoff remains review-only.
+  artifact/report identity, exact candidate scope, resource blocking dimension,
+  spacecraft scope, and trust evidence. Matching prior candidates are
+  invalidated with source-specific reasons, and the existing
+  operator-review/Cadence-import handoff remains review-only.
 
 ### Station-calendar reports
 

@@ -28,6 +28,10 @@ defmodule OrbitalDynamics.CandidateRefresh.BuildWarnings do
     result_errors = Map.fetch!(context, :result_errors)
     contact_filter_report = Map.fetch!(context, :contact_filter_report)
     quality_gate_dropped_candidates = Map.fetch!(context, :quality_gate_dropped_candidates)
+
+    candidate_scoped_quality_gate_dropped_candidates =
+      Map.fetch!(context, :candidate_scoped_quality_gate_dropped_candidates)
+
     readiness_dropped_candidates = Map.fetch!(context, :readiness_dropped_candidates)
 
     contact_allocation_resource_dropped_candidates =
@@ -63,6 +67,10 @@ defmodule OrbitalDynamics.CandidateRefresh.BuildWarnings do
     |> maybe_warn(
       quality_gate_dropped_candidates != [],
       "unavailable-resource quality gates excluded explicitly scoped contact candidates"
+    )
+    |> maybe_warn(
+      candidate_scoped_quality_gate_dropped_candidates != [],
+      "blocked quality gates excluded exact source-artifact candidates"
     )
     |> maybe_warn(
       readiness_dropped_candidates != [],
