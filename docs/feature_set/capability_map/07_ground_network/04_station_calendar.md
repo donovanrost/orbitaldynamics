@@ -49,6 +49,7 @@ Models availability/capacity intervals.
 - Provider-contention replay summaries preserve contention capacity fractions, the minimum contention fraction, and capacity-fraction maps by provider and ground station for reduced-capacity contention triage.
 - Provider-contention replay summaries preserve direction counts plus contention group, source-entry, and capacity-fraction maps by direction, so multi-provider pressure can be scoped to uplink/downlink/tracking families.
 - Case, whitespace, hyphen, atom, and outage/down/offline availability variants are canonicalized before branch-event typing, so provider-shaped station-calendar evidence cannot miss branch-local candidate refresh.
+- The default V3 approval policy classifies direct `ground_station_outage` risks and positive canonical unavailable/maintenance station-calendar replay counts as `station_calendar_unavailable_blocked`; reserved, reduced-capacity, and unknown provider-status replay remains reviewable.
 - Prior `operator_review_package.v1` `station_calendar_review` rows and `cadence_import_manifest.v1` `review_station_calendar` rows that preserve `source_station_calendar_review` evidence replay the same branch-local pressure derivation with review/import queue source paths and trust boundaries.
 
 ## Operator-review counters

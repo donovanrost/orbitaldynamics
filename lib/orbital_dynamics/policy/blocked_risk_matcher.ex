@@ -210,6 +210,26 @@ defmodule OrbitalDynamics.Policy.BlockedRiskMatcher do
   end
 
   defp risk_matches_blocked_type?(
+         %{"type" => "ground_station_outage"},
+         "station_calendar_unavailable_blocked"
+       ),
+       do: true
+
+  defp risk_matches_blocked_type?(
+         %{"type" => "station_calendar_pressure"} = risk,
+         "station_calendar_unavailable_blocked"
+       ) do
+    blocked_station_calendar_unavailable_pressure?(risk)
+  end
+
+  defp risk_matches_blocked_type?(
+         %{"feedback_scope" => "station_calendar"} = risk,
+         "station_calendar_unavailable_blocked"
+       ) do
+    blocked_station_calendar_unavailable_pressure?(risk)
+  end
+
+  defp risk_matches_blocked_type?(
          %{"type" => "downlink_completion_gap", "feedback_scope" => "contact_allocation"} =
            risk,
          "station_reservation_conflict_blocked"
@@ -320,6 +340,12 @@ defmodule OrbitalDynamics.Policy.BlockedRiskMatcher do
   defp blocked_operational_timeline_pressure?(risk) do
     positive_count_for_key?(risk["activity_status_counts"], "blocked_by_policy") or
       positive_count_for_key?(risk["approval_status_counts"], "blocked_by_policy")
+  end
+
+  defp blocked_station_calendar_unavailable_pressure?(risk) do
+    positive_count_for_key?(risk["affected_contact_availability_counts"], "unavailable") or
+      positive_count_for_key?(risk["station_calendar_status_counts"], "unavailable") or
+      positive_count_for_key?(risk["station_calendar_status_counts"], "maintenance")
   end
 
   defp blocked_station_reservation_conflict_pressure?(risk) do

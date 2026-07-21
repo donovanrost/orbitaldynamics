@@ -4277,6 +4277,76 @@ defmodule OrbitalDynamics.PolicyTest do
     end
   end
 
+  test "fallback policy blocks unavailable station-calendar pressure but leaves review states reviewable" do
+    policy = %{blocked_risk_types: ["station_calendar_unavailable_blocked"]}
+
+    for {branch_id, risk} <- [
+          {"direct_outage", %{"type" => "ground_station_outage"}},
+          {"unavailable_availability",
+           %{
+             "type" => "station_calendar_pressure",
+             "feedback_scope" => "station_calendar",
+             "affected_contact_availability_counts" => %{"unavailable" => 1}
+           }},
+          {"unavailable_status",
+           %{
+             "type" => "station_calendar_pressure",
+             "station_calendar_status_counts" => %{"unavailable" => 2}
+           }},
+          {"maintenance_status",
+           %{
+             "feedback_scope" => "station_calendar",
+             "station_calendar_status_counts" => %{"maintenance" => 1}
+           }}
+        ] do
+      {blocked_status, _requirements, _matches, blocked_decision} =
+        Policy.decide(
+          [],
+          [risk],
+          %{"id" => branch_id, "events" => []},
+          %{},
+          policy
+        )
+
+      assert blocked_status == "blocked_by_policy"
+      assert blocked_decision["classification"] == "blocked_by_policy"
+    end
+
+    for {branch_id, risk} <- [
+          {"reserved",
+           %{
+             "type" => "station_calendar_pressure",
+             "feedback_scope" => "station_calendar",
+             "affected_contact_availability_counts" => %{"reserved" => 1},
+             "station_calendar_status_counts" => %{"reserved" => 1}
+           }},
+          {"reduced_capacity",
+           %{
+             "type" => "station_calendar_pressure",
+             "feedback_scope" => "station_calendar",
+             "affected_contact_availability_counts" => %{"reduced_capacity" => 1}
+           }},
+          {"unknown_provider_status",
+           %{
+             "type" => "station_calendar_pressure",
+             "feedback_scope" => "station_calendar",
+             "station_calendar_status_counts" => %{"provider_unknown" => 1}
+           }}
+        ] do
+      {review_status, _requirements, _matches, review_decision} =
+        Policy.decide(
+          [],
+          [risk],
+          %{"id" => branch_id, "events" => []},
+          %{},
+          policy
+        )
+
+      assert review_status == "operator_review_required"
+      assert review_decision["classification"] == "operator_review_required"
+    end
+  end
+
   test "matches requirement types grouped risk types and grouped event types" do
     policy = %{
       action_rules: [

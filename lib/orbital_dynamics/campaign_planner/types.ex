@@ -231,6 +231,7 @@ defmodule OrbitalDynamics.CampaignPlanner.ApprovalPolicy do
               "refresh_freshness_blocked",
               "timeline_activity_precondition_blocked",
               "operational_timeline_policy_blocked",
+              "station_calendar_unavailable_blocked",
               "station_reservation_conflict_blocked",
               "station_reservation_expiration_blocked",
               "provider_counteroffer_blocked",

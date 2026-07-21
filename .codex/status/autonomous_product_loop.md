@@ -5,67 +5,70 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Make canonical unavailable-station contact-filter replay affect default V3
+Make canonical unavailable station-calendar evidence affect default V3
 recommendation selection.
 
 Status:
 Implemented, parent-reviewed, and verified. Publish pending.
 
 Why this slice:
-`contact_filter_report.v1` replay preserved row-derived station-suppression
-availability/status counts, but default V3 policy only scored the aggregate. A
-higher-value branch could win despite canonical unavailable-station evidence.
+Public `station_calendar_report.v1` replay preserved row-derived unavailable
+affected-contact/status counts, and derived outage branches emitted explicit
+`ground_station_outage` risks. Both were scored but neither was a default hard
+recommendation boundary.
 
 Files changed:
+- `lib/orbital_dynamics/campaign_planner/types.ex`
 - `lib/orbital_dynamics/policy/blocked_risk_matcher.ex`
 - `test/orbital_dynamics/policy_test.exs`
-- `test/orbital_dynamics/campaign_planner/strategy_contact_filter_replay_recommendation_test.exs`
-- `docs/feature_set/capability_map/07_ground_network/03_contact_allocation.md`
+- `test/orbital_dynamics/campaign_planner/strategy_station_calendar_recommendation_test.exs`
+- `study_results/campaign_repair_readiness_source_handoff_v2.json`
+- `docs/feature_set/capability_map/07_ground_network/04_station_calendar.md`
 - `.codex/status/autonomous_product_loop.md`
 
 Behavior changed:
-The existing default `contact_filter_blocked` alias now recognizes positive
-canonical unavailable/maintenance station-suppression counts on contact-filter
-replay pressure. The blocked branch remains visible with `policy_decision.v1`
-fallback provenance but is skipped for recommendation. Reserved,
-reduced-capacity, and unknown provider-status replay stays reviewable.
+Default V3 policy now includes `station_calendar_unavailable_blocked`. It
+matches direct `ground_station_outage` risks and positive canonical unavailable
+or maintenance counts on station-calendar replay pressure. Blocked branches
+remain visible with `policy_decision.v1` provenance but are skipped. Reserved,
+reduced-capacity, and unknown provider-status replay remains reviewable.
 
 Public proof:
-The V3 regression builds unavailable and reserved `contact_filter_report.v1`
-inputs through public `OrbitalDynamics.contact_filter_report/3`, declares their
-trust boundaries, and consumes them through branch-local candidate refresh.
+The V3 regression builds unavailable and reserved `station_calendar_report.v1`
+inputs through public `OrbitalDynamics.station_calendar_report/3`, declares
+their trust boundaries, and consumes them through branch-local refresh.
 
 Docs read/changed:
-- Read `docs/feature_set/capability_map/07_ground_network/02_link_capacity.md`.
-- Read/changed `docs/feature_set/capability_map/07_ground_network/03_contact_allocation.md`.
+- Read/changed `docs/feature_set/capability_map/07_ground_network/04_station_calendar.md`.
+- Read `docs/feature_set/capability_map/07_ground_network/03_contact_allocation.md`.
 - Read `docs/artifacts/field_families/v3_strategy_artifact/artifact-overview-and-branch-replay.md`.
 
 Verification:
-- Focused matcher and public-facade V3 regression: `94 passed`.
-- Contact-filter ingestion/replay/communications/schema set: `156 passed`.
-- Campaign-planner plus policy surface: `831 passed`.
+- Focused matcher and public-facade V3 regression: `95 passed`.
+- Station-calendar communications/replay/schema set: `161 passed`.
+- Campaign-planner plus policy surface: `833 passed`.
 - Schema suite, including checked-in V2 handoff: `184 passed`.
-- Full `mix test --timeout 180000`: `3449 passed`.
+- Full `mix test --timeout 180000`: `3451 passed`.
 - Changed Elixir files are formatted; `git diff --check` passes.
 
-Artifact compatibility:
-No generated artifact changed. The behavior reuses the already serialized
-`contact_filter_blocked` default alias; the checked-in V2 handoff remains valid.
+Artifact regeneration:
+`study_results/campaign_repair_readiness_source_handoff_v2.json` was regenerated
+through public `OrbitalDynamics.campaign_repair/1`. Canonical comparison against
+`HEAD` proves the only semantic change is the new alias in serialized default
+`blocked_risk_types`; exact fixture/schema validation passes.
 
 Level 6 pillar advanced:
-Fleet-level contact/station-calendar behavior and approval-aware automation
-boundaries.
+Fleet-level station-calendar behavior and approval-aware automation boundaries.
 
 Parent review:
-No must-fix findings. Matching is limited to exact contact-filter replay scope
-and positive canonical unavailable/maintenance counts; generic suppression,
-reservation, reduced capacity, and unknown status cannot trigger the block.
-Sidecar delegation is unavailable under the active runtime policy, so the
-parent performed the bounded review and mechanical publish checks.
+No must-fix findings. Matching is limited to direct outage risk identity or
+positive canonical unavailable/maintenance counts on exact station-calendar
+replay scope; generic pressure, reservation, reduced capacity, and unknown
+status cannot trigger the alias. Sidecar delegation is unavailable under the
+active runtime policy, so the parent performed review and publish checks.
 
 Previous published slice:
-- `8c5d674a` Block policy-rejected timeline replay.
-- Full-suite baseline after publish: `3447 passed`.
+- `8210479b` Block unavailable contact replay (`3449 passed`).
 
 Current publish:
 - Commit pending.
