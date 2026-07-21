@@ -115,7 +115,9 @@ Already implemented or heavily covered:
   link-capacity and resource-projection penalties are reconciled to the final
   selected-shortfall status, shared source-report risk count, and `risk_weight`;
   CandidateRefresh diff, freshness, and budget penalties are reconciled through
-  shared producer/runtime counts against their embedded source reports
+  shared producer/runtime counts against their embedded source reports;
+  operational-readiness and quality-gate penalties are reconciled through shared
+  source-row expansion and reviewability classifiers
 - V2 candidate-refresh source freshness contributes one explicit normalized
   risk-weight penalty for a stale or unknown report, aligned with its
   review/import gate and V3 refresh-freshness pressure semantics

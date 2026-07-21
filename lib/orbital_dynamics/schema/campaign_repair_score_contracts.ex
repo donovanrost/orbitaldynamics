@@ -3,6 +3,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreContracts do
 
   alias OrbitalDynamics.CampaignPlanner.{
     LinkCapacityPressureBranches,
+    RepairReadinessPressure,
     RepairRefreshPressure,
     ResourceProjectionRisk,
     ScalarValues
@@ -144,6 +145,16 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreContracts do
       |> Map.get("source_refresh_budget_report")
       |> RepairRefreshPressure.budget_count()
 
+    operational_readiness_pressure_count =
+      artifact
+      |> Map.get("source_operational_readiness_report")
+      |> RepairReadinessPressure.operational_count()
+
+    quality_gate_pressure_count =
+      artifact
+      |> Map.get("source_quality_gate_report")
+      |> RepairReadinessPressure.quality_gate_count()
+
     issues
     |> validate_optional_derived_term(
       score_terms,
@@ -174,6 +185,18 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreContracts do
       "refresh_budget_pressure_penalty",
       -refresh_budget_pressure_count * risk_weight,
       "must match source refresh-budget dropped-candidate count and risk_weight"
+    )
+    |> validate_optional_derived_term(
+      score_terms,
+      "operational_readiness_pressure_penalty",
+      -operational_readiness_pressure_count * risk_weight,
+      "must match source operational-readiness reviewable-row count and risk_weight"
+    )
+    |> validate_optional_derived_term(
+      score_terms,
+      "quality_gate_pressure_penalty",
+      -quality_gate_pressure_count * risk_weight,
+      "must match source quality-gate reviewable-row count and risk_weight"
     )
   end
 

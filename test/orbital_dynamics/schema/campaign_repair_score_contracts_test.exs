@@ -198,6 +198,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreContractsTest do
   } do
     numeric_string_policy =
       artifact
+      |> drop_score_terms(readiness_term_keys())
       |> put_in(["link_capacity_report", "selected_downlink_shortfall_mb"], 1.0)
       |> put_in(["scoring_policy", "risk_weight"], "0.25")
       |> put_score_term("link_capacity_pressure_penalty", -0.25)
@@ -206,6 +207,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreContractsTest do
 
     zero_risk_weight =
       artifact
+      |> drop_score_terms(readiness_term_keys())
       |> Map.put("source_resource_projection_report", resource_projection_report())
       |> put_in(["scoring_policy", "risk_weight"], 0.0)
       |> put_score_term("resource_projection_pressure_penalty", 0.0)
@@ -266,6 +268,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreContractsTest do
   } do
     numeric_string_policy =
       artifact
+      |> drop_score_terms(readiness_term_keys())
       |> Map.put("source_candidate_diff_report", candidate_diff_report())
       |> put_in(["scoring_policy", "risk_weight"], "0.25")
       |> put_score_term("candidate_diff_pressure_penalty", -0.25)
@@ -274,6 +277,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreContractsTest do
 
     zero_risk_weight =
       artifact
+      |> drop_score_terms(readiness_term_keys())
       |> Map.put("source_freshness_report", %{"freshness_status" => "unknown"})
       |> put_in(["scoring_policy", "risk_weight"], 0.0)
       |> put_score_term("refresh_freshness_pressure_penalty", 0.0)
@@ -307,6 +311,66 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreContractsTest do
       })
       |> Map.put("source_freshness_report", [])
       |> Map.put("source_refresh_budget_report", %{"dropped_candidate_ids" => "invalid"})
+
+    assert [] == CampaignRepairScoreContracts.validate([], malformed_reports)
+  end
+
+  test "rejects readiness pressure drift hidden by consistent aggregate arithmetic", %{
+    artifact: artifact
+  } do
+    for term_key <- [
+          "operational_readiness_pressure_penalty",
+          "quality_gate_pressure_penalty"
+        ] do
+      invalid = coordinated_term_edit(artifact, term_key, 1.0)
+
+      assert {:error, report} = Schema.validate_artifact(invalid)
+
+      assert Enum.any?(
+               report["errors"],
+               &(&1["path"] == "$.score_terms.#{term_key}")
+             )
+    end
+  end
+
+  test "honors readiness pressure optional, policy, zero, and malformed semantics", %{
+    artifact: artifact
+  } do
+    numeric_string_policy =
+      artifact
+      |> put_in(["scoring_policy", "risk_weight"], "0.25")
+      |> put_score_term("operational_readiness_pressure_penalty", -0.25)
+      |> put_score_term("quality_gate_pressure_penalty", -0.25)
+
+    assert [] == CampaignRepairScoreContracts.validate([], numeric_string_policy)
+
+    zero_risk_weight =
+      artifact
+      |> put_in(["scoring_policy", "risk_weight"], 0.0)
+      |> put_score_term("operational_readiness_pressure_penalty", 0.0)
+      |> put_score_term("quality_gate_pressure_penalty", 0.0)
+
+    assert [] == CampaignRepairScoreContracts.validate([], zero_risk_weight)
+
+    legacy_terms =
+      artifact["score_terms"]
+      |> Map.delete("operational_readiness_pressure_penalty")
+      |> Map.delete("quality_gate_pressure_penalty")
+
+    legacy =
+      artifact
+      |> Map.put("score_terms", legacy_terms)
+      |> Map.put("score", legacy_terms |> Map.values() |> Enum.sum())
+      |> Map.delete("score_term_report")
+
+    assert [] == CampaignRepairScoreContracts.validate([], legacy)
+
+    malformed_reports =
+      artifact
+      |> Map.put("source_operational_readiness_report", %{"gates" => ["invalid"]})
+      |> Map.put("source_quality_gate_report", %{"rows" => ["invalid"]})
+      |> put_score_term("operational_readiness_pressure_penalty", 0.0)
+      |> put_score_term("quality_gate_pressure_penalty", 0.0)
 
     assert [] == CampaignRepairScoreContracts.validate([], malformed_reports)
   end
@@ -378,6 +442,19 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreContractsTest do
     |> Map.put("score_terms", score_terms)
     |> Map.put("score", score_terms |> Map.values() |> Enum.sum())
     |> Map.delete("score_term_report")
+  end
+
+  defp drop_score_terms(artifact, term_keys) do
+    score_terms = Map.drop(artifact["score_terms"], term_keys)
+
+    artifact
+    |> Map.put("score_terms", score_terms)
+    |> Map.put("score", score_terms |> Map.values() |> Enum.sum())
+    |> Map.delete("score_term_report")
+  end
+
+  defp readiness_term_keys do
+    ["operational_readiness_pressure_penalty", "quality_gate_pressure_penalty"]
   end
 
   defp resource_projection_report do

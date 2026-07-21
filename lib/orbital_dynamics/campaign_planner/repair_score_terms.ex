@@ -5,12 +5,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
     ActivityIdentity,
     ContactIntentPressureBranches,
     DownlinkActivityNormalization,
-    OperationalReadinessSourceReports,
     LinkCapacityPressureBranches,
     OperationalReadinessPressureEvents,
     QualityGatePressureEvents,
-    QualityGateSourceReports,
     RepairContactAllocationPressure,
+    RepairReadinessPressure,
     RepairRefreshPressure,
     ResourceProjectionRisk,
     ScalarValues,
@@ -129,10 +128,16 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
       repair_candidate_rejection_pressure_count(candidate_rejection_report, callbacks)
 
     operational_readiness_pressure_count =
-      repair_operational_readiness_pressure_count(operational_readiness_report, callbacks)
+      RepairReadinessPressure.operational_count(
+        operational_readiness_report,
+        Keyword.fetch!(callbacks, :operational_readiness_reviewable?)
+      )
 
     quality_gate_pressure_count =
-      repair_quality_gate_pressure_count(quality_gate_report, callbacks)
+      RepairReadinessPressure.quality_gate_count(
+        quality_gate_report,
+        Keyword.fetch!(callbacks, :quality_gate_reviewable?)
+      )
 
     resource_projection_pressure_penalty =
       -resource_projection_pressure_count *
@@ -411,27 +416,6 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
        do: trunc(count)
 
   defp repair_candidate_rejection_pressure_count(_report, _callbacks), do: 0
-
-  defp repair_operational_readiness_pressure_count(%{} = report, callbacks) do
-    operational_readiness_reviewable? =
-      Keyword.fetch!(callbacks, :operational_readiness_reviewable?)
-
-    report
-    |> OperationalReadinessSourceReports.pressure_rows_for_report()
-    |> Enum.count(operational_readiness_reviewable?)
-  end
-
-  defp repair_operational_readiness_pressure_count(_report, _callbacks), do: 0
-
-  defp repair_quality_gate_pressure_count(%{} = report, callbacks) do
-    quality_gate_reviewable? = Keyword.fetch!(callbacks, :quality_gate_reviewable?)
-
-    report
-    |> QualityGateSourceReports.pressure_rows_for_report()
-    |> Enum.count(quality_gate_reviewable?)
-  end
-
-  defp repair_quality_gate_pressure_count(_report, _callbacks), do: 0
 
   defp numeric_count(count) when is_number(count), do: trunc(count)
   defp numeric_count(_count), do: 0

@@ -140,7 +140,10 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   freshness, and budget pressure terms are likewise reconciled through shared
   producer/runtime counts: one replay-classified diff event, one stale/unknown
   freshness event, or one event per nonblank dropped candidate ID with the
-  declared count and invalid-policy fallbacks.
+  declared count and invalid-policy fallbacks. Operational-readiness and
+  quality-gate terms use shared producer/runtime source-row expansion and exact
+  reviewability classifiers, so each embedded review or blocking row contributes
+  one declared-risk-weight penalty.
 
 ## Refreshed missed-contact repair
 

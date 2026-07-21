@@ -5,65 +5,62 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Reconcile V2 CandidateRefresh source score terms.
+Reconcile V2 readiness and quality-gate score terms.
 
 Status:
 Complete; ready to publish.
 
 Selection evidence:
-- V2 candidate-diff, refresh-freshness, and refresh-budget terms are numeric and
-  total-consistent but are not recomputed from their embedded source reports.
-- Coordinated edits to these terms, the total, and score-term report can remain
-  internally valid while misrepresenting refresh risk or candidate loss.
-- Producer formulas are deterministic, and the exact source reports plus policy
-  evidence are already embedded in the repair artifact.
+- V2 operational-readiness and quality-gate terms are present in the checked
+  source-handoff fixture but are not recomputed from their embedded reports.
+- Coordinated edits to either term, the total, and score-term report can remain
+  internally valid while understating required review or a blocking gate.
+- Producer formulas already use shared source-row and reviewability classifiers,
+  and the exact reports plus policy evidence are embedded in the repair artifact.
 
 Intended behavior:
-- Extract shared CandidateRefresh pressure counts used by producer and validator:
-  one for replay-classified candidate diff, one for stale/unknown freshness, and
-  one per exact nonblank budget-dropped candidate ID with producer fallbacks.
-- Recompute each present penalty from that shared count and `risk_weight`.
+- Extract shared readiness-pressure counts used by producer and validator from
+  operational-readiness and quality-gate source rows plus exact reviewability.
+- Recompute each present penalty from its shared count and `risk_weight`.
 - Preserve optional legacy terms, absent/nominal reports, zero risk weight,
   numeric-string/default policy handling, malformed-report safety, and checked
   V2 compatibility.
-- Add coordinated-tamper, positive planner, nominal/optional/default/zero, and
-  fallback coverage; document the executable guarantees.
+- Add coordinated-tamper, checked-fixture, nominal/optional/default/zero, and
+  malformed-report coverage; document the executable guarantees.
 
 Level 6 pillar advanced:
-Explainable V2 refresh-source terms backed by embedded CandidateRefresh evidence.
+Explainable V2 readiness terms backed by embedded gate evidence.
 
 Last published slice:
-- `8f94fc4c` Reconcile V2 report pressure score terms (`3715 passed`).
+- `bf6f6564` Reconcile V2 refresh pressure score terms (`3717 passed`).
 
 Likely files:
-- shared repair refresh-pressure classifier
+- shared repair readiness-pressure classifier
 - V2 campaign-repair score runtime contract
 - focused score contract tests
 - V2 capability and roadmap docs
 
 Verification:
-- Focused score/CandidateRefresh planner tests: `24 passed`.
-- Campaign-repair schema fixtures: `19 passed`.
-- Schema suite plus schema-lint task tests: `397 passed`.
+- Focused score/readiness/source-handoff tests: `26 passed`.
+- Campaign-repair schema fixtures: `21 passed`.
+- Schema suite plus schema-lint task tests: `399 passed`.
 - Campaign-planner suite: `759 passed`.
-- Full suite: `3717 passed`.
+- Full suite: `3719 passed`.
 - `mix format --check-formatted`, `mix compile --warnings-as-errors`, and
   `git diff --check` passed.
 - Runtime-only reconciliation required no generated schema changes.
 
 Review:
-- Candidate-diff scoring retains the shared artifact-only replay classifier and
-  remains a single penalty regardless of diff row count.
-- Freshness remains one penalty only for normalized stale/unknown status; budget
-  pressure preserves exact nonblank dropped-ID precedence, numeric count
-  truncation, and invalid-limit-policy fallback semantics.
-- Malformed candidate-diff shapes safely yield neutral derived pressure here
-  while structural validators own the report error; unexpected valid-report
-  exceptions are not broadly swallowed.
+- Operational-readiness pressure retains source-report summary/gate expansion
+  and exact required-action plus classification/status reviewability semantics.
+- Quality-gate pressure retains shared row expansion and counts only non-passed
+  gate rows; producer callback injection remains intact around the shared count.
+- Malformed nested rows safely yield neutral derived pressure here while the
+  structural report validators own their shape errors.
 - Policy values retain producer-equivalent numeric-string parsing, zero weights,
-  and missing-key defaults; all three terms remain optional for older V2 maps.
-- Positive planner artifacts and nominal fixtures remain valid, while coordinated
-  term, total, and score-report edits no longer mask any of the three mismatches.
+  and missing-key defaults; both terms remain optional for older V2 score maps.
+- The checked positive handoff fixture and planner artifacts remain valid, while
+  coordinated term, total, and score-report edits no longer mask either mismatch.
 
 Remaining maturity gaps:
 - Continue exact V2 ranking/score reconciliation for replayable source fields.
