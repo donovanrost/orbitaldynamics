@@ -965,6 +965,24 @@ coverage guard with its exact missing contract name until a fixture is added;
 the guard checks fixture presence and does not replace each fixture's field,
 tolerance, stale-observation, or executable-schema assertions.
 
+## Readiness/quality fixture coverage guard
+
+Status: **implemented**.
+
+The validation test surface also derives readiness/quality artifact families
+from the public schema registry and compares them with curated `artifact.*`
+validation reference model IDs. The scope includes model acceptance,
+operational execution-boundary and import-eligibility summaries, operational
+quality-gate and readiness artifacts, quality-gate reports, schema-validation
+artifacts, validation safety cases, and any specialized contract ending in
+`_import_readiness_summary.v1`.
+
+The current registry contains 16 contracts in that scope and all 16 have at
+least one curated reference fixture. A future matching schema contract fails the
+coverage guard with its exact missing contract name until a fixture is added;
+other adjacent policy and resource contracts remain outside this guard and keep
+their own focused coverage boundaries.
+
 ## Partial
 
 Status: **partial**.

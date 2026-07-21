@@ -128,6 +128,10 @@ Already implemented or heavily covered:
   deterministic source-specific candidate-rejection review/import evidence and
   compact, malformed, nonmatching, wrong-type, and nonblocked inputs kept
   provenance-only
+- an executable registry-derived coverage guard confirms all 16 current
+  readiness, quality, import-readiness, model-acceptance, schema-validation, and
+  safety-case contracts have curated artifact reference fixtures and
+  automatically scopes future matching contracts
 
 Good next slices:
 
