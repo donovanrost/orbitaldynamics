@@ -8,6 +8,22 @@ defmodule OrbitalDynamics.Schema.CampaignPlanContractsTest do
 
     assert get_in(schema, ["properties", "warnings", "items", "type"]) == "string"
 
+    assert get_in(schema, ["properties", "score_term_report", "type"]) == "object"
+    assert get_in(schema, ["$defs", "score_term_report.v1", "type"]) == "object"
+
+    assert get_in(schema, ["properties", "objective_tradeoff_report", "type"]) == "object"
+    assert get_in(schema, ["$defs", "objective_tradeoff_report.v1", "type"]) == "object"
+
+    assert "score_term_report.v1" in get_in(schema, [
+             "x-orbital-dynamics",
+             "nested_contracts"
+           ])
+
+    assert "objective_tradeoff_report.v1" in get_in(schema, [
+             "x-orbital-dynamics",
+             "nested_contracts"
+           ])
+
     assert get_in(schema, ["properties", "constraint_report", "type"]) == "object"
     assert get_in(schema, ["$defs", "constraint_report.v1", "type"]) == "object"
 

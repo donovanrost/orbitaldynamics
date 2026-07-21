@@ -26,6 +26,8 @@ defmodule OrbitalDynamics.Schema.CampaignRegistryContracts do
         ],
         "optional_fields" => [
           "optimizer_contract",
+          "score_term_report",
+          "objective_tradeoff_report",
           "constraint_report",
           "contact_allocation_report",
           "cadence_import_manifest",
@@ -48,6 +50,8 @@ defmodule OrbitalDynamics.Schema.CampaignRegistryContracts do
           "planned_activity.v1",
           "proposed_contact.v1",
           "optimizer_contract.v1",
+          "score_term_report.v1",
+          "objective_tradeoff_report.v1",
           "constraint_report.v1",
           "contact_allocation_report.v1",
           "cadence_import_manifest.v1",

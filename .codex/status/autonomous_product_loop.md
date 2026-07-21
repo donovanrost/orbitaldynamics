@@ -5,41 +5,38 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Route V1 command-window reports through executable validation.
+Declare V1 score and tradeoff reports in the exported campaign contract.
 
 Status:
 Implemented, fully verified, and parent-reviewed; ready to publish.
 
 Selected slice:
-Declare `command_window_report.v1` as an optional V1 nested contract, run its
-standalone validator, and pin its selected-activity source context.
+Expose `score_term_report.v1` and `objective_tradeoff_report.v1` as optional
+direct nested contracts of `campaign_plan.v1`.
 
 Why this slice:
-V1 emits an artifact-only command-window report, but the campaign contract does
-not declare or validate it. Malformed command rows, stale derived counts, or a
-report copied from another source can pass inside a valid plan.
+V1 emits and deeply validates both scoring explanations against ranked
+timelines, but its exported schema declares neither property. Schema consumers
+therefore cannot discover two of the plan's core explainability handoffs.
 
 Level 6 pillar:
-Command/tracking review boundaries and versioned operational handoffs.
+Explainable optimization and versioned compatibility.
 
 Implemented:
-- `campaign_plan.v1` declares `command_window_report` as optional and
-  `command_window_report.v1` as a direct nested contract.
-- Embedded reports run the standalone required-field, row, derived count/map,
-  interval, stable-ID, model-limit, and activity-context checks.
-- V1 context pins both selected-activity source labels and the artifact-only
-  no-schedule-mutation/no-command-execution boundary.
-- Exact and mutation tests preserve omission while rejecting wrong context,
-  stale counts, invalid rows/IDs/model limits, and malformed shapes.
+- `campaign_plan.v1` declares both scoring report fields as optional.
+- `score_term_report.v1` and `objective_tradeoff_report.v1` are direct nested
+  contracts with embedded definitions in the V1 JSON Schema.
+- Export assertions require both properties, definitions, and nested-contract
+  metadata while existing runtime mutation and omission coverage stays active.
 
 Docs changed:
-- `docs/feature_set/capability_map/08_mission_activities/partial-and-future.md`
+- `docs/feature_set/capability_map/09_constraints_and_scoring.md`
 - `docs/feature_set/capability_map/12_v1_campaign_planning.md`
 - `docs/feature_set/capability_map/17_reproducibility_artifacts_and_audit.md`
 - `docs/feature_set/recommended_roadmap.md`
 
 Verification:
-- Focused routing/export/command-window tests: `48 passed`.
+- Focused score/tradeoff/export tests: `32 passed`.
 - Schema area: `231 passed`.
 - Campaign-planner area: `754 passed`.
 - Full suite with `--timeout 120000`: `3556 passed`.
@@ -47,15 +44,14 @@ Verification:
   `git diff --check`: passed.
 
 Parent review:
-- Validation is additive and preserves optional omission and command authority.
-- The standalone validator owns structural, row, count, and model guarantees;
-  the V1 module adds only selected-activity source/boundary semantics.
-- Nested context checks run only for a valid assumptions object, so malformed
-  parent shape remains owned by the standalone validator without extra errors.
+- This is an additive compatibility-export change; runtime behavior is unchanged.
+- Both fields remain optional, preserving omission compatibility.
+- Existing standalone and V1 cross-report validators remain the source of
+  scoring semantics; the export now accurately advertises them.
 - Schema regeneration changed only the V1 campaign export and bundle entry.
 
 Previous published slice:
-- `01ccbdb5` Validate V1 Cadence import manifests (`3551 passed`).
+- `e928a0aa` Validate V1 command window reports (`3556 passed`).
 
 Remaining maturity gaps:
 - Continue calibrated realized-feedback depth where evidence is genuinely

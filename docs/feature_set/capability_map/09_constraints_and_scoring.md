@@ -44,6 +44,9 @@ Status: **implemented** (core), with **partial**, **near-term**, **later**, and 
 ### Score-term reports
 
 - V1 campaign artifacts emit `score_term_report.v1` rows that flatten ranked timeline score terms into reusable schema-validated score-term rows, and now lift embedded score-term and objective-tradeoff rows into `score_term_review`, `objective_tradeoff_review`, `review_score_term`, and `review_objective_tradeoff` queues with campaign-source provenance, with executable `model_limits` validation against `CampaignPlanner.score_report_model_limits/0`.
+- `campaign_plan.v1` declares both `score_term_report.v1` and
+  `objective_tradeoff_report.v1` as optional direct nested contracts, so schema
+  consumers can discover the same explainability reports enforced at runtime.
 - V2 repair artifacts emit the same `score_term_report.v1` and `objective_tradeoff_report.v1` contracts over repaired activity score, churn, and schedule-move terms.
 - V3 strategy artifacts now emit branch-level `score_term_report.v1` rows for expected score, mission value, resource, feedback, risk, approval-load, and schedule-stability terms, carrying `branch_id` through operator-review and Cadence-import handoff, plus `objective_tradeoff_report.v1` rows that compare branch scores against the recommended branch while preserving the same branch ID and score-term map.
 - Standalone score-term and objective-tradeoff reports normalize into `score_term_review` and `objective_tradeoff_review` operator-review rows plus typed `review_score_term` and `review_objective_tradeoff` Cadence import gates, while preserving source scoring rows.

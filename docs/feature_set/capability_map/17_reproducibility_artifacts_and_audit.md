@@ -171,11 +171,13 @@ work, a **partial** executable-schema track, and **near-term** / **later** /
 - Executable V1 validation requires numeric ranked-timeline score terms and
   checks an optional score-term report against the enclosing timeline ranks,
   scenarios, terms, values, scores, and selection flags; JSON Schema exports
-  constrain ranked-timeline score-term values to numbers.
+  constrain ranked-timeline score-term values to numbers and declare the report
+  as a direct nested contract.
 - Executable V1 validation also pins optional objective-tradeoff rows to the
   enclosing timeline rank/scenario, selected-score delta, score-term map,
   selected counts, and activity identities while validating each nested ranked
-  activity through the existing planned-activity contract.
+  activity through the existing planned-activity contract; the report is also a
+  direct nested contract.
 - `campaign_plan.v1` declares its optional `constraint_report.v1` handoff as a
   direct nested contract, runs the standalone row/count/status/model-limit
   validator, and pins the V1 campaign constraint model and source assumption.

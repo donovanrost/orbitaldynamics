@@ -68,9 +68,11 @@ Runtime `campaign_plan.v1` validation requires each ranked timeline to carry a
 stable scenario ID, numeric score, and numeric score-term values. When the
 optional `score_term_report.v1` is present, its source, model, term-key union,
 rank/scenario/term rows, values, timeline scores, and selected flags must match
-the enclosing ranked timelines. The exported ranked-timeline schema constrains
-every score-term value to a number. These V1 terms are explanatory fields that
-include counts and subtotals, so they are not treated as one additive score sum.
+the enclosing ranked timelines. Both that report and the optional
+`objective_tradeoff_report.v1` are exported as direct nested campaign contracts.
+The exported ranked-timeline schema constrains every score-term value to a
+number. These V1 terms are explanatory fields that include counts and subtotals,
+so they are not treated as one additive score sum.
 Runtime validation also reconciles the optional objective-tradeoff report with
 the ranked timelines: V1 model/source, rank and scenario identity, ranking and
 term-key counts, scores and selected-score deltas, term maps, selected counts,
