@@ -364,14 +364,8 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
   defp repair_resource_projection_pressure_count(resource_projection_report) do
     resource_projection_report
     |> ResourceProjectionRisk.risk_indicators()
-    |> Enum.count(&repair_resource_projection_pressure_risk?/1)
+    |> length()
   end
-
-  defp repair_resource_projection_pressure_risk?(%{"type" => type})
-       when type in ["storage_overflow", "downlink_shortfall", "battery_depletion"],
-       do: true
-
-  defp repair_resource_projection_pressure_risk?(_risk), do: false
 
   defp callbacks,
     do: [

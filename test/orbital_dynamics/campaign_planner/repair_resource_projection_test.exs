@@ -83,6 +83,8 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairResourceProjectionTest do
     assert_in_delta projected_storage_margin, 0.77, 1.0e-12
     assert_in_delta projected_downlink_margin, 0.88, 1.0e-12
 
+    refute Map.has_key?(artifact["score_terms"], "resource_projection_pressure_penalty")
+
     assert {:ok, %{"schema_contract" => "resource_projection_report.v1"}} =
              Schema.validate_artifact(artifact["source_resource_projection_report"])
 
@@ -245,10 +247,6 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairResourceProjectionTest do
 
     assert artifact["score_terms"]["resource_projection_pressure_penalty"] == -2.0
 
-    assert "resource_projection_pressure_penalty" in artifact["score_term_report"][
-             "score_term_keys"
-           ]
-
     assert [
              %{
                "term_key" => "resource_projection_pressure_penalty",
@@ -371,6 +369,129 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairResourceProjectionTest do
                      "battery_overuse_wh" => 30.0
                    }
                  ]
+               }
+             ]
+           } = artifact["source_resource_projection_report"]
+
+    assert artifact["score_terms"]["resource_projection_pressure_penalty"] == -1.0
+
+    assert [
+             %{
+               "term_key" => "resource_projection_pressure_penalty",
+               "value" => -1.0,
+               "selected" => true
+             }
+           ] =
+             Enum.filter(
+               artifact["score_term_report"]["rows"],
+               &(&1["term_key"] == "resource_projection_pressure_penalty")
+             )
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(artifact)
+  end
+
+  test "repair scores selected resource projection thermal-margin pressure" do
+    replacement_downlink = refreshed_downlink("dl_thermal", 700.0, 760.0)
+
+    artifact =
+      repair(
+        %{
+          "activities" => [downlink("dl_1", 180.0, 240.0)],
+          "candidate_activities" => []
+        },
+        realized_state: %{activities: [%{id: "dl_1", status: "missed"}]},
+        current_epoch_s: 250.0,
+        candidate_refresh:
+          candidate_refresh_artifact([replacement_downlink],
+            resource_summaries: [
+              %{
+                "schema_contract" => "resource_summary.v1",
+                "spacecraft_id" => "leo_1",
+                "storage_capacity_mb" => 1000.0,
+                "storage_used_mb" => 250.0,
+                "downlink_capacity_mb" => 500.0,
+                "thermal_margin_c" => -2.0,
+                "payload_available" => true,
+                "antenna_available" => true
+              }
+            ]
+          ),
+        scoring_policy: %{"risk_weight" => "1.5"}
+      )
+
+    assert %{
+             "projected_resources" => [
+               %{
+                 "thermal_margin_c" => -2.0,
+                 "resource_pressure_types" => ["thermal_margin_below_limit"]
+               }
+             ]
+           } = artifact["source_resource_projection_report"]
+
+    assert artifact["score_terms"]["resource_projection_pressure_penalty"] == -1.5
+
+    assert [
+             %{
+               "term_key" => "resource_projection_pressure_penalty",
+               "value" => -1.5,
+               "selected" => true
+             }
+           ] =
+             Enum.filter(
+               artifact["score_term_report"]["rows"],
+               &(&1["term_key"] == "resource_projection_pressure_penalty")
+             )
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(artifact)
+  end
+
+  test "repair scores selected resource projection payload-unavailable pressure" do
+    replacement_observation =
+      "obs_payload"
+      |> observe("leo_1", "target_a", 500.0, 560.0, 120.0)
+      |> Map.merge(%{
+        "estimated_storage_mb" => 40.0,
+        "score_terms" => %{"target_value" => 120.0},
+        "source_window_id" => "window:leo_1:target_visibility:target_a:2",
+        "source_window" => %{
+          "id" => "window:leo_1:target_visibility:target_a:2",
+          "type" => "target_visibility"
+        }
+      })
+
+    artifact =
+      repair(
+        %{
+          "activities" => [observe("obs_1", "leo_1", "target_a", 100.0, 160.0, 100.0)],
+          "candidate_activities" => []
+        },
+        realized_state: %{activities: [%{id: "obs_1", status: "failed"}]},
+        current_epoch_s: 250.0,
+        candidate_refresh:
+          candidate_refresh_artifact([replacement_observation],
+            resource_summaries: [
+              %{
+                "schema_contract" => "resource_summary.v1",
+                "spacecraft_id" => "leo_1",
+                "storage_capacity_mb" => 1000.0,
+                "storage_used_mb" => 250.0,
+                "downlink_capacity_mb" => 500.0,
+                "payload_available" => false,
+                "antenna_available" => true
+              }
+            ]
+          )
+      )
+
+    assert [%{"id" => "obs_payload"}] = artifact["activities"]
+
+    assert %{
+             "projected_resources" => [
+               %{
+                 "payload_available" => false,
+                 "resource_pressure_types" => ["payload_unavailable"]
                }
              ]
            } = artifact["source_resource_projection_report"]

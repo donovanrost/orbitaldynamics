@@ -63,6 +63,11 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   contact ID is present in the repaired selected activities and the shared V3
   calendar-pressure classifier identifies reserved, unavailable, or reduced
   capacity pressure. Affected but unselected alternatives do not change score.
+- `resource_projection_pressure_penalty` counts every risk emitted by
+  `ResourceProjectionRisk.risk_indicators/1`, including storage/downlink/battery,
+  negative thermal margin, spacecraft or payload/antenna availability, degraded
+  payload, and selected activity compatibility pressure. Nominal projections
+  still omit the conditional term.
 - The repair score, `score_terms`, and `score_term_report.v1` preserve the same
   total and expose the selected communications gap without claiming a link
   budget, provider reservation, or schedule mutation.

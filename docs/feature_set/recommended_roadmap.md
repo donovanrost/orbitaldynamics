@@ -69,6 +69,9 @@ Already implemented or heavily covered:
 - V2 repair scoring and score-term reports apply selected link-capacity
   shortfall and selected station-calendar pressure as explicit normalized
   risk-weight penalties without penalizing unselected affected contacts
+- V2's generic selected resource-projection penalty covers every emitted
+  storage, downlink, battery, thermal-margin, availability, and activity-
+  compatibility projection risk
 - provider counteroffer, reservation-hold, reservation-expiration, plan-impact,
   and review/import handoff artifacts
 - contact-intent and capacity-pack direction routing in allocation and

@@ -230,7 +230,11 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   Rows with projected storage overflow or downlink shortfall can carry
   `policy_decision.v1` evidence when an approval policy is supplied, and the
   embedded V1/V2/V3 projection reports pass planner approval policy into that
-  classification.
+  classification. V2's generic `resource_projection_pressure_penalty` applies
+  one normalized `risk_weight` unit to every emitted selected-plan projection
+  risk, including storage/downlink/battery, negative thermal margin,
+  spacecraft/payload/antenna availability, degraded payload, and selected
+  activity compatibility pressure; nominal projections omit the term.
   The same projection model is available through
   `OrbitalDynamics.ResourceProjection` and
   `OrbitalDynamics.resource_projection_report/3` for standalone selected
