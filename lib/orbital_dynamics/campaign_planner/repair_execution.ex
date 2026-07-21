@@ -11,12 +11,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairExecution do
     RepairActivityDispatch,
     RepairCandidateDiff,
     RepairCandidateInputs,
-    RepairContactAllocationPressure,
     RepairManeuverTransitions,
     RepairPolicySemantics,
     RepairRealizedState,
     RepairSourceReports,
-    StationCalendarPressureBranches,
+    RepairStationPressure,
     ValueEncoding
   }
 
@@ -113,25 +112,13 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairExecution do
       candidate_diff_replacements: candidate_diff_replacements(request.candidate_refresh),
       contact_intent_pressure_by_candidate_id:
         contact_intent_pressure_by_candidate_id(request.candidate_refresh),
-      station_calendar_pressure_candidate_ids:
-        station_calendar_pressure_candidate_ids(station_calendar_report),
-      contact_allocation_station_pressure_candidate_ids:
-        request.candidate_refresh
-        |> RepairSourceReports.contact_allocation()
-        |> RepairContactAllocationPressure.candidate_ids()
+      station_pressure_sources_by_candidate_id:
+        RepairStationPressure.sources_by_candidate_id(
+          station_calendar_report,
+          RepairSourceReports.contact_allocation(request.candidate_refresh)
+        )
     }
   end
-
-  defp station_calendar_pressure_candidate_ids(%{"affected_contacts" => rows})
-       when is_list(rows) do
-    rows
-    |> Enum.filter(&StationCalendarPressureBranches.pressure?/1)
-    |> Enum.map(&Map.get(&1, "contact_id"))
-    |> Enum.reject(&(&1 in [nil, ""]))
-    |> MapSet.new()
-  end
-
-  defp station_calendar_pressure_candidate_ids(_report), do: MapSet.new()
 
   defp contact_intent_pressure_by_candidate_id(nil), do: %{}
 

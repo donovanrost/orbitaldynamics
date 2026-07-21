@@ -115,6 +115,9 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairStationCalendarAnnotationTest do
     pressured_artifact =
       repair(plan, Keyword.put(common_opts, :scoring_policy, %{"risk_weight" => "0.5"}))
 
+    zero_weight_artifact =
+      repair(plan, Keyword.put(common_opts, :scoring_policy, %{"risk_weight" => "0.0"}))
+
     assert [%{"id" => "dl_nominal", "repair" => %{"action" => "moved"}}] =
              nominal_artifact["activities"]
 
@@ -221,6 +224,67 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairStationCalendarAnnotationTest do
 
     assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
              Schema.validate_artifact(pressured_artifact)
+
+    assert %{
+             "selected_candidate_id" => "dl_reserved",
+             "rows" => [
+               %{
+                 "candidate_id" => "dl_reserved",
+                 "station_calendar_pressure_penalty" => zero_station_penalty,
+                 "station_calendar_pressure_sources" => [
+                   "campaign_repair.source_station_calendar_report.affected_contacts"
+                 ],
+                 "selected" => true
+               },
+               %{"candidate_id" => "dl_nominal", "selected" => false}
+             ]
+           } =
+             get_in(zero_weight_artifact, [
+               "activities",
+               Access.at(0),
+               "repair",
+               "replacement_ranking"
+             ])
+
+    assert zero_station_penalty == 0.0
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(zero_weight_artifact)
+
+    wrong_penalty_artifact =
+      pressured_artifact
+      |> put_in(
+        [
+          "activities",
+          Access.at(0),
+          "repair",
+          "replacement_ranking",
+          "rows",
+          Access.at(0),
+          "station_calendar_pressure_penalty"
+        ],
+        -0.25
+      )
+      |> update_in(
+        [
+          "activities",
+          Access.at(0),
+          "repair",
+          "replacement_ranking",
+          "rows",
+          Access.at(0),
+          "ranking_score"
+        ],
+        &(&1 + 0.25)
+      )
+
+    assert {:error, wrong_penalty_report} = Schema.validate_artifact(wrong_penalty_artifact)
+
+    assert Enum.any?(
+             wrong_penalty_report["errors"],
+             &(&1["path"] ==
+                 "$.activities[0].repair.replacement_ranking.rows[0].station_calendar_pressure_penalty")
+           )
   end
 
   test "repair station calendar annotates planned-contact downlink source candidates" do

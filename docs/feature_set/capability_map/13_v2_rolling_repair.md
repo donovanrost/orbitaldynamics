@@ -172,6 +172,10 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   agree, nonzero pressure terms carry their source evidence, and rows remain
   ordered by diff priority then score. Zero-weight pressured evidence remains
   valid so policy calibration can intentionally neutralize a known pressure.
+  Station-pressure penalties and source paths are recomputed from exact
+  candidate IDs in the embedded allocation and station-calendar reports, so a
+  row cannot claim allocation-only, calendar-only, or dual-source pressure for
+  the wrong alternative even when its arithmetic is internally consistent.
   Once any row uses the current contact-intent explanation, every row must emit
   its numeric penalty and runtime validation recomputes both that value and its
   optional sorted statuses from exact `source_contact_intents` identities and

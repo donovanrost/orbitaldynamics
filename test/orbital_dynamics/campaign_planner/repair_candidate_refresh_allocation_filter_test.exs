@@ -381,6 +381,29 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshAllocationFilter
 
     assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
              Schema.validate_artifact(deduplicated_artifact)
+
+    wrong_source_artifact =
+      put_in(
+        nominal_artifact,
+        [
+          "activities",
+          Access.at(0),
+          "repair",
+          "replacement_ranking",
+          "rows",
+          Access.at(1),
+          "station_calendar_pressure_sources"
+        ],
+        ["campaign_repair.source_station_calendar_report.affected_contacts"]
+      )
+
+    assert {:error, wrong_source_report} = Schema.validate_artifact(wrong_source_artifact)
+
+    assert Enum.any?(
+             wrong_source_report["errors"],
+             &(&1["path"] ==
+                 "$.activities[0].repair.replacement_ranking.rows[1].station_calendar_pressure_sources")
+           )
   end
 
   defp candidate_refresh_artifact(candidates, opts) do

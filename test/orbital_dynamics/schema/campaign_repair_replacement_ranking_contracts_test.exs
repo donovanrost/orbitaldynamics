@@ -197,6 +197,13 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
        context.artifact
        |> put_in_path(row_path <> ".station_calendar_pressure_penalty", -1.0)
        |> put_in_path(row_path <> ".ranking_score", -95.0)},
+      {row_path <> ".station_calendar_pressure_penalty",
+       context.artifact
+       |> put_in_path(row_path <> ".station_calendar_pressure_penalty", -1.0)
+       |> put_in_path(row_path <> ".station_calendar_pressure_sources", [
+         "campaign_repair.source_station_calendar_report.affected_contacts"
+       ])
+       |> put_in_path(row_path <> ".ranking_score", -95.0)},
       {row_path <> ".contact_intent_pressure_statuses",
        context.artifact
        |> put_in_path(row_path <> ".contact_intent_pressure_penalty", -1.0)

@@ -1,9 +1,6 @@
 defmodule OrbitalDynamics.CampaignPlanner.RepairReplacementSelection do
   @moduledoc false
 
-  @allocation_station_pressure_source "campaign_repair.source_contact_allocation_report.rows"
-  @calendar_station_pressure_source "campaign_repair.source_station_calendar_report.affected_contacts"
-
   alias OrbitalDynamics.Communications.LinkCapacity
   alias OrbitalDynamics.ResourceProjection
 
@@ -204,24 +201,9 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairReplacementSelection do
     do: ScalarValues.numeric_or_nil(Map.get(candidate, "score")) || 0.0
 
   defp station_calendar_pressure_sources(candidate, context) do
-    calendar_pressure_candidate_ids =
-      Map.get(context, :station_calendar_pressure_candidate_ids, MapSet.new())
-
-    allocation_pressure_candidate_ids =
-      Map.get(context, :contact_allocation_station_pressure_candidate_ids, MapSet.new())
-
-    candidate_id = ActivityIdentity.activity_id(candidate)
-
-    [
-      if(MapSet.member?(allocation_pressure_candidate_ids, candidate_id),
-        do: @allocation_station_pressure_source
-      ),
-      if(MapSet.member?(calendar_pressure_candidate_ids, candidate_id),
-        do: @calendar_station_pressure_source
-      )
-    ]
-    |> Enum.reject(&is_nil/1)
-    |> Enum.sort()
+    context
+    |> Map.get(:station_pressure_sources_by_candidate_id, %{})
+    |> Map.get(ActivityIdentity.activity_id(candidate), [])
   end
 
   defp station_calendar_pressure_penalty([], _context), do: 0.0

@@ -100,7 +100,9 @@ Already implemented or heavily covered:
   nonzero-penalty evidence presence, and priority/score ordering so internally
   contradictory explanations cannot pass as valid V2 repair handoffs; current
   contact-intent rows are additionally reconciled to exact embedded source
-  identities and risk weight while all-prechange rankings remain compatible
+  identities and risk weight while all-prechange rankings remain compatible,
+  and station-pressure rows are reconciled to exact allocation/calendar
+  candidate identities, ordered source paths, and risk weight
 - runtime and exported V2 contracts require numeric aggregate score terms;
   runtime validation pins their sum and optional score-term report source,
   values, rank/selection, and timeline score to the enclosing repair artifact,

@@ -4,7 +4,8 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
   alias OrbitalDynamics.Schema.{
     CampaignRepairContactIntentPressureContracts,
     CampaignRepairReplacementRankingContracts,
-    CampaignRepairScoreContracts
+    CampaignRepairScoreContracts,
+    CampaignRepairStationPressureContracts
   }
 
   @timeline_protection_fields [
@@ -93,6 +94,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
     ])
     |> CampaignRepairScoreContracts.validate(artifact)
     |> CampaignRepairContactIntentPressureContracts.validate(artifact)
+    |> CampaignRepairStationPressureContracts.validate(artifact)
     |> call(callbacks, :validate_optional_link_capacity_report, [
       Map.get(artifact, "link_capacity_report")
     ])

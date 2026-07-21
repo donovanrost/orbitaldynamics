@@ -9,6 +9,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairContactAllocationPressure do
 
   def candidate_ids(%{"rows" => rows}) when is_list(rows) do
     rows
+    |> Enum.filter(&is_map/1)
     |> Enum.map(&ValueEncoding.stringify_keys/1)
     |> Enum.filter(&viable_allocated_row?/1)
     |> Enum.filter(&StationCalendarPressureBranches.reduced_capacity_pressure?/1)
