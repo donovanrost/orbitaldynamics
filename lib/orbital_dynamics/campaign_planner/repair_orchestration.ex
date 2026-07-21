@@ -7,26 +7,26 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairOrchestration do
   alias OrbitalDynamics.CampaignPlanner.{
     ApprovalPolicy,
     ContactContentionResolutionPolicy,
-    DownlinkObjectiveRequirements,
     ModelLimits,
     RepairArtifact,
     RepairCandidateDiff,
     RepairCandidateInputs,
     RepairExecution,
+    RepairLinkCapacityPolicy,
     RepairMetadata,
     RepairScoreTerms,
     RepairSourceReports,
     RepairTimelineSummary,
     ScoreReports,
-    StrategyPolicyNormalization,
-    ValueEncoding
+    StrategyPolicyNormalization
   }
 
   alias OrbitalDynamics.{Policy, ResourceProjection, Timeline, TimelineFeedback}
 
   def run(%{} = request) do
     prior_plan = request.prior_plan
-    execution = RepairExecution.run(request)
+    link_capacity_policy = RepairLinkCapacityPolicy.build(request)
+    execution = RepairExecution.run(request, link_capacity_policy)
     planned_activities = execution.planned_activities
     candidates = execution.candidates
     activities = execution.activities
@@ -55,7 +55,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairOrchestration do
       link_capacity_report(
         activities,
         activities,
-        repair_link_capacity_policy(request),
+        link_capacity_policy,
         "campaign_repair.activities",
         request.approval_policy
       )
@@ -134,12 +134,6 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairOrchestration do
     )
   end
 
-  defp objective_required_downlink_mb(%{} = objective) do
-    DownlinkObjectiveRequirements.required_mb(objective)
-  end
-
-  defp objective_required_downlink_mb(_objective), do: nil
-
   defp link_capacity_report(
          candidates,
          selected_activities,
@@ -152,28 +146,6 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairOrchestration do
       source: source,
       approval_policy: approval_policy
     )
-  end
-
-  defp repair_link_capacity_policy(request) do
-    policy = ValueEncoding.stringify_keys(request.scoring_policy || %{})
-
-    request.mission_state
-    |> mission_required_downlink_mb()
-    |> case do
-      value when is_number(value) -> Map.put_new(policy, "required_downlink_mb", value)
-      _value -> policy
-    end
-  end
-
-  defp mission_required_downlink_mb(mission_state) do
-    mission_state
-    |> DownlinkObjectiveRequirements.objectives()
-    |> Enum.map(&objective_required_downlink_mb/1)
-    |> Enum.filter(&is_number/1)
-    |> case do
-      [] -> nil
-      values -> Enum.sum(values)
-    end
   end
 
   defp repair_timeline_transition_application_report(planned_activities, repaired_activities) do

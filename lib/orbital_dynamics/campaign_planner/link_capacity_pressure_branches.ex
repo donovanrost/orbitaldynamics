@@ -113,6 +113,19 @@ defmodule OrbitalDynamics.CampaignPlanner.LinkCapacityPressureBranches do
     |> positive_number?(callbacks)
   end
 
+  def selected_shortfall_pressure?(row),
+    do: selected_shortfall_pressure?(row, pressure_row_callbacks())
+
+  def selected_shortfall_pressure?(row, callbacks) do
+    numeric_or_nil = Keyword.fetch!(callbacks, :numeric_or_nil)
+    positive_number? = Keyword.fetch!(callbacks, :positive_number?)
+
+    row
+    |> Map.get("selected_downlink_shortfall_mb")
+    |> numeric_or_nil.()
+    |> positive_number?.()
+  end
+
   defp relay_data_path_pressure_rows(%{} = report, callbacks) do
     report = stringify_keys(report, callbacks)
 

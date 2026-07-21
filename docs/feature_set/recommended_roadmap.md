@@ -69,6 +69,9 @@ Already implemented or heavily covered:
 - V2 repair scoring and score-term reports apply selected link-capacity
   shortfall and selected station-calendar pressure as explicit normalized
   risk-weight penalties without penalizing unselected affected contacts
+- V2 replacement ranking projects link capacity across already repaired and
+  remaining planned activities, applying the same calibrated selected-shortfall
+  unit within semantic candidate-diff priority tiers
 - V2 replacement ranking internalizes the same calibrated repair-time
   station-calendar pressure within semantic candidate-diff priority tiers,
   aligning selection with the final repair objective without hard suppression
@@ -90,8 +93,8 @@ Already implemented or heavily covered:
 
 Good next slices:
 
-- use selected resource/contact pressure directly in candidate ranking or branch
-  score explanations
+- use remaining selected resource pressure directly in candidate ranking or
+  branch score explanations
 - add one compatibility fixture for a resource/contact artifact family that does
   not already have a curated reference check
 

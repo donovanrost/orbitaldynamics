@@ -5,6 +5,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
 
   alias OrbitalDynamics.CampaignPlanner.{
     OperationalReadinessSourceReports,
+    LinkCapacityPressureBranches,
     OperationalReadinessPressureEvents,
     QualityGatePressureEvents,
     QualityGateSourceReports,
@@ -245,9 +246,8 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
   defp maybe_put_positive_pressure_term(score_terms, _count, _term_key, _penalty),
     do: score_terms
 
-  defp repair_link_capacity_pressure_count(%{"selected_downlink_shortfall_mb" => shortfall}) do
-    if positive_number?(ScalarValues.numeric_or_nil(shortfall)), do: 1, else: 0
-  end
+  defp repair_link_capacity_pressure_count(%{} = report),
+    do: if(LinkCapacityPressureBranches.selected_shortfall_pressure?(report), do: 1, else: 0)
 
   defp repair_link_capacity_pressure_count(_report), do: 0
 
@@ -403,9 +403,6 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairScoreTerms do
 
   defp numeric_count(count) when is_number(count), do: trunc(count)
   defp numeric_count(_count), do: 0
-
-  defp positive_number?(value) when is_number(value), do: value > 0.0
-  defp positive_number?(_value), do: false
 
   defp repair_resource_projection_pressure_count(resource_projection_report) do
     resource_projection_report

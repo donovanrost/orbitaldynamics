@@ -58,6 +58,14 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
 - A positive `selected_downlink_shortfall_mb` contributes one normalized
   `risk_weight` unit through `link_capacity_pressure_penalty`; satisfied or
   undeclared demand does not emit that conditional term.
+- Replacement ranking projects each alternative with already repaired and
+  not-yet-processed planned activities, then uses the same selected-shortfall
+  classifier and normalized unit within the existing semantic candidate-diff
+  priority tier. This can prefer a slightly lower-value contact that satisfies
+  declared demand, while a smaller weight can still select the higher-value
+  shortfall alternative. The projection is a greedy repair-time estimate, not
+  a global contact optimizer; the final link-capacity report remains
+  authoritative after later activities are repaired.
 - Repair-time station-calendar rows contribute one normalized `risk_weight`
   unit through `station_calendar_pressure_penalty` only when the affected
   contact ID is present in the repaired selected activities and the shared V3

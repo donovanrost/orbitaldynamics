@@ -256,6 +256,12 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   activity value, churn, schedule-move, and resource-projection pressure score
   terms plus selected link-capacity shortfall pressure, preserving the same
   scored-objective explanation shape used by V1 ranked timeline artifacts.
+  During greedy replacement ranking, each alternative is projected with already
+  repaired and not-yet-processed planned activities; a projected selected
+  shortfall subtracts the same calibrated `risk_weight` unit within the
+  candidate's semantic-diff priority tier. The final report is recomputed after
+  all repairs and remains authoritative rather than claiming global contact
+  optimization.
 - `link_capacity_report.v1` over repaired downlink activities, preserving the
   same fixed-rate throughput summary shape used by V1 campaign artifacts.
 - `source_contact_filter_report`, `source_contact_allocation_report`, and

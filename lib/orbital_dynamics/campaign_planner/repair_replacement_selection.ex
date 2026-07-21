@@ -1,10 +1,13 @@
 defmodule OrbitalDynamics.CampaignPlanner.RepairReplacementSelection do
   @moduledoc false
 
+  alias OrbitalDynamics.Communications.LinkCapacity
+
   alias OrbitalDynamics.CampaignPlanner.{
     ActivityIdentity,
     ActivityTiming,
     DownlinkActivityNormalization,
+    LinkCapacityPressureBranches,
     RepairActivityIdentity,
     RepairCandidateDiff,
     RepairPolicySemantics,
@@ -81,9 +84,12 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairReplacementSelection do
       station_calendar_pressure_penalty =
         station_calendar_pressure_penalty(candidate, context)
 
+      link_capacity_pressure_penalty =
+        link_capacity_pressure_penalty(activity, candidate, acc, context)
+
       ranking_score =
         candidate_score(candidate) - churn_cost - churn_s * move_cost -
-          station_calendar_pressure_penalty
+          station_calendar_pressure_penalty - link_capacity_pressure_penalty
 
       {diff_priority, -ranking_score, churn_s, ActivityTiming.activity_start(candidate),
        ActivityIdentity.activity_id(candidate)}
@@ -134,6 +140,35 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairReplacementSelection do
     else
       0.0
     end
+  end
+
+  defp link_capacity_pressure_penalty(source, candidate, acc, context) do
+    projected_activities = projected_activities(source, candidate, acc, context)
+
+    projected_activities
+    |> LinkCapacity.report(projected_activities,
+      policy: context.link_capacity_policy,
+      source: "campaign_repair.replacement_projection"
+    )
+    |> LinkCapacityPressureBranches.selected_shortfall_pressure?()
+    |> then(fn
+      true -> numeric_policy_value(context.scoring_policy, "risk_weight", 1.0)
+      false -> 0.0
+    end)
+  end
+
+  defp projected_activities(source, candidate, acc, context) do
+    future_planned_activities =
+      Enum.filter(
+        context.planned_activities,
+        &(activity_sort_key(&1) > activity_sort_key(source))
+      )
+
+    acc.activities ++ [candidate | future_planned_activities]
+  end
+
+  defp activity_sort_key(activity) do
+    {ActivityTiming.activity_start(activity), ActivityIdentity.activity_id(activity)}
   end
 
   defp numeric_policy_value(policy, key, default) do

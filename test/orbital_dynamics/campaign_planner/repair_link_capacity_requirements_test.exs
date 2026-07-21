@@ -7,6 +7,106 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairLinkCapacityRequirementsTest do
 
   alias OrbitalDynamics.Schema
 
+  test "repair replacement ranking internalizes calibrated projected link shortfall" do
+    missed_downlink = downlink("dl_1", 100.0, 160.0)
+
+    future_downlink =
+      "dl_future"
+      |> refreshed_downlink(700.0, 750.0)
+      |> Map.put("estimated_throughput_mb", 50.0)
+
+    shortfall_candidate =
+      "dl_shortfall"
+      |> refreshed_downlink(500.0, 560.0)
+      |> Map.merge(%{"score" => 10.0, "estimated_throughput_mb" => 49.0})
+
+    satisfying_candidate =
+      "dl_satisfies"
+      |> refreshed_downlink(500.0, 560.0)
+      |> Map.merge(%{"score" => 9.5, "estimated_throughput_mb" => 50.0})
+
+    plan = %{
+      "activities" => [missed_downlink, future_downlink],
+      "candidate_activities" => [shortfall_candidate, satisfying_candidate]
+    }
+
+    common_opts = [
+      realized_state: %{activities: [%{id: "dl_1", status: "missed"}]},
+      current_epoch_s: 165.0,
+      mission_state:
+        mission_state([
+          %{
+            "type" => "downlink_completion",
+            "required_downlink_mb" => 100.0
+          }
+        ])
+    ]
+
+    satisfying_artifact =
+      repair(plan, Keyword.put(common_opts, :scoring_policy, %{"risk_weight" => "1.0"}))
+
+    shortfall_artifact =
+      repair(plan, Keyword.put(common_opts, :scoring_policy, %{"risk_weight" => "0.25"}))
+
+    assert [
+             %{"id" => "dl_satisfies", "repair" => %{"action" => "moved"}},
+             %{
+               "id" => "dl_future"
+             }
+           ] =
+             satisfying_artifact["activities"]
+
+    assert %{
+             "selected_capacity_adjusted_throughput_mb" => 100.0,
+             "downlink_requirement_status" => "satisfied"
+           } = satisfying_artifact["link_capacity_report"]
+
+    assert satisfying_artifact["link_capacity_report"]["selected_downlink_shortfall_mb"] == 0.0
+
+    refute Map.has_key?(satisfying_artifact["score_terms"], "link_capacity_pressure_penalty")
+
+    refute "link_capacity_pressure_penalty" in satisfying_artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert_in_delta satisfying_artifact["score"], -84.5, 1.0e-9
+
+    assert [
+             %{"id" => "dl_shortfall", "repair" => %{"action" => "moved"}},
+             %{
+               "id" => "dl_future"
+             }
+           ] =
+             shortfall_artifact["activities"]
+
+    assert %{
+             "selected_capacity_adjusted_throughput_mb" => 99.0,
+             "selected_downlink_shortfall_mb" => 1.0,
+             "downlink_requirement_status" => "shortfall"
+           } = shortfall_artifact["link_capacity_report"]
+
+    assert shortfall_artifact["score_terms"]["link_capacity_pressure_penalty"] == -0.25
+    assert_in_delta shortfall_artifact["score"], -84.25, 1.0e-9
+
+    assert [
+             %{
+               "term_key" => "link_capacity_pressure_penalty",
+               "value" => -0.25,
+               "selected" => true
+             }
+           ] =
+             Enum.filter(
+               shortfall_artifact["score_term_report"]["rows"],
+               &(&1["term_key"] == "link_capacity_pressure_penalty")
+             )
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2", "status" => "pass"}} =
+             Schema.validate_artifact(satisfying_artifact)
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2", "status" => "pass"}} =
+             Schema.validate_artifact(shortfall_artifact)
+  end
+
   test "repair link capacity uses mission-state downlink data volume requirement" do
     missed_downlink = downlink("dl_1", 100.0, 160.0)
 

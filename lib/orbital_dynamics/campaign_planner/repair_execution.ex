@@ -18,7 +18,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairExecution do
     ValueEncoding
   }
 
-  def run(%{} = request) do
+  def run(%{} = request, link_capacity_policy) do
     planned_activities = planned_activities(request.prior_plan)
 
     source_candidates =
@@ -27,7 +27,14 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairExecution do
     {candidates, station_calendar_report} =
       apply_station_calendar(source_candidates, request)
 
-    context = repair_context(request, planned_activities, candidates, station_calendar_report)
+    context =
+      repair_context(
+        request,
+        planned_activities,
+        candidates,
+        station_calendar_report,
+        link_capacity_policy
+      )
 
     repaired =
       planned_activities
@@ -75,9 +82,16 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairExecution do
     }
   end
 
-  defp repair_context(request, planned_activities, candidates, station_calendar_report) do
+  defp repair_context(
+         request,
+         planned_activities,
+         candidates,
+         station_calendar_report,
+         link_capacity_policy
+       ) do
     %{
       candidates: candidates,
+      planned_activities: planned_activities,
       current_epoch_s: request.current_epoch_s,
       remaining_horizon: request.remaining_horizon,
       realized_by_id: RepairRealizedState.activities_by_id(request.realized_state),
@@ -90,6 +104,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairExecution do
       selected_activity_ids: selected_activity_ids(planned_activities),
       repair_policy: request.repair_policy,
       scoring_policy: request.scoring_policy,
+      link_capacity_policy: link_capacity_policy,
       candidate_diff_replacements: candidate_diff_replacements(request.candidate_refresh),
       station_calendar_pressure_candidate_ids:
         station_calendar_pressure_candidate_ids(station_calendar_report)
