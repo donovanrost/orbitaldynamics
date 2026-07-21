@@ -2,6 +2,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanActivityCadenceContractsTest do
   use ExUnit.Case, async: true
 
   alias OrbitalDynamics.Schema
+  alias OrbitalDynamics.Schema.CampaignPlanActivityCadenceContracts
 
   setup do
     artifact =
@@ -31,6 +32,37 @@ defmodule OrbitalDynamics.Schema.CampaignPlanActivityCadenceContractsTest do
                "minLength" => 1,
                "pattern" => "\\S"
              }
+    end
+  end
+
+  test "exports current Cadence dispatch mappings on every V1 activity surface" do
+    assert {:ok, schema} = Schema.json_schema("campaign_plan.v1")
+
+    expected =
+      Enum.map(CampaignPlanActivityCadenceContracts.activity_type_mappings(), fn
+        {activity_type, cadence_type} ->
+          %{
+            "if" => %{
+              "required" => ["type"],
+              "properties" => %{"type" => %{"const" => activity_type}}
+            },
+            "then" => %{
+              "properties" => %{
+                "cadence_import" => %{
+                  "properties" => %{"activity_type" => %{"const" => cadence_type}}
+                }
+              }
+            }
+          }
+      end)
+
+    for {schema_path, _artifact_path} <- activity_surfaces() do
+      cadence_constraints =
+        schema
+        |> get_in(schema_path ++ ["allOf"])
+        |> Enum.filter(&get_in(&1, ["then", "properties", "cadence_import"]))
+
+      assert cadence_constraints == expected
     end
   end
 
@@ -99,6 +131,12 @@ defmodule OrbitalDynamics.Schema.CampaignPlanActivityCadenceContractsTest do
                "must be a string"
              )
 
+      assert [_error] =
+               Enum.filter(
+                 non_string_report["errors"],
+                 &(&1["path"] == path <> ".cadence_import.activity_type")
+               )
+
       blank = put_in(artifact, access ++ ["cadence_import", "activity_type"], "  ")
       assert {:error, blank_report} = Schema.validate_artifact(blank)
 
@@ -107,7 +145,52 @@ defmodule OrbitalDynamics.Schema.CampaignPlanActivityCadenceContractsTest do
                path <> ".cadence_import.activity_type",
                "must be a non-empty string"
              )
+
+      assert [_error] =
+               Enum.filter(
+                 blank_report["errors"],
+                 &(&1["path"] == path <> ".cadence_import.activity_type")
+               )
     end
+  end
+
+  test "reconciles current Cadence dispatch types on every V1 activity surface", %{
+    artifact: artifact
+  } do
+    for {activity_type, expected_cadence_type} <-
+          CampaignPlanActivityCadenceContracts.activity_type_mappings(),
+        {_schema_path, {access, path}} <- activity_surfaces() do
+      invalid =
+        update_in(artifact, access, fn activity ->
+          activity
+          |> activity_with_type(activity_type)
+          |> put_in(["cadence_import", "activity_type"], wrong_type(expected_cadence_type))
+        end)
+
+      assert {:error, report} = Schema.validate_artifact(invalid)
+
+      assert error?(
+               report,
+               path <> ".cadence_import.activity_type",
+               "must equal #{inspect(expected_cadence_type)} for #{activity_type} activity"
+             )
+    end
+  end
+
+  test "keeps future Cadence dispatch mappings open", %{artifact: artifact} do
+    artifact =
+      update_in(
+        artifact,
+        ["ranked_timelines", Access.at(0), "activities", Access.at(0)],
+        fn activity ->
+          activity
+          |> Map.put("type", "future_activity")
+          |> put_in(["cadence_import", "activity_type"], "future_dispatch")
+        end
+      )
+
+    assert {:ok, %{"schema_contract" => "campaign_plan.v1"}} =
+             Schema.validate_artifact(artifact)
   end
 
   test "reconciles external ID on every V1 activity surface", %{artifact: artifact} do
@@ -149,6 +232,20 @@ defmodule OrbitalDynamics.Schema.CampaignPlanActivityCadenceContractsTest do
   defp error?(report, path, message) do
     Enum.any?(report["errors"], &(&1["path"] == path and &1["message"] == message))
   end
+
+  defp activity_with_type(activity, type)
+       when type in ["downlink", "command", "tracking", "health_check"] do
+    activity
+    |> Map.put("type", type)
+    |> Map.put("ground_station_id", "equator_prime")
+    |> Map.put("direction", type)
+  end
+
+  defp activity_with_type(activity, type), do: Map.put(activity, "type", type)
+
+  defp wrong_type("observation"), do: "contact"
+  defp wrong_type("contact"), do: "command"
+  defp wrong_type("command"), do: "observation"
 
   defp activity_surfaces do
     [

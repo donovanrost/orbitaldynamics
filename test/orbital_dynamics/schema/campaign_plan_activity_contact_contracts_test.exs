@@ -33,7 +33,12 @@ defmodule OrbitalDynamics.Schema.CampaignPlanActivityContactContractsTest do
       end)
 
     for {schema_path, _artifact_path} <- activity_surfaces() do
-      assert get_in(schema, schema_path ++ ["allOf"]) == expected
+      contact_constraints =
+        schema
+        |> get_in(schema_path ++ ["allOf"])
+        |> Enum.filter(&(get_in(&1, ["then", "required"]) == ["ground_station_id", "direction"]))
+
+      assert contact_constraints == expected
     end
   end
 

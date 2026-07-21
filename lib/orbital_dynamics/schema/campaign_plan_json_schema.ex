@@ -302,9 +302,13 @@ defmodule OrbitalDynamics.Schema.CampaignPlanJsonSchema do
         }
       }
     )
-    |> Map.update("allOf", contact_activity_constraints(), fn constraints ->
-      constraints ++ contact_activity_constraints()
+    |> Map.update("allOf", conditional_activity_constraints(), fn constraints ->
+      constraints ++ conditional_activity_constraints()
     end)
+  end
+
+  defp conditional_activity_constraints do
+    contact_activity_constraints() ++ cadence_activity_type_constraints()
   end
 
   defp contact_activity_constraints do
@@ -320,6 +324,27 @@ defmodule OrbitalDynamics.Schema.CampaignPlanJsonSchema do
         }
       }
     end)
+  end
+
+  defp cadence_activity_type_constraints do
+    Enum.map(
+      OrbitalDynamics.Schema.CampaignPlanActivityCadenceContracts.activity_type_mappings(),
+      fn {activity_type, cadence_type} ->
+        %{
+          "if" => %{
+            "required" => ["type"],
+            "properties" => %{"type" => %{"const" => activity_type}}
+          },
+          "then" => %{
+            "properties" => %{
+              "cadence_import" => %{
+                "properties" => %{"activity_type" => %{"const" => cadence_type}}
+              }
+            }
+          }
+        }
+      end
+    )
   end
 
   defp fetch_dep!(deps, key) do

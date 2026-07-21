@@ -131,6 +131,11 @@ candidate, and ranked activities require a `cadence_import` envelope with stable
 activity ID. These fields support deterministic review/import mapping but do not
 grant schedule mutation or command authority.
 
+Current producer activity types also pin their Cadence dispatch family:
+observations map to `observation`, commands to `command`, and downlink, tracking,
+and health-check activities to `contact`. Future activity types retain an open
+dispatch mapping until their producer contract is declared.
+
 Producer-supported downlink, command, tracking, and health-check rows also
 require stable ground-station identity and a direction equal to the activity
 type across selected, candidate, and ranked timelines. The conditional rule

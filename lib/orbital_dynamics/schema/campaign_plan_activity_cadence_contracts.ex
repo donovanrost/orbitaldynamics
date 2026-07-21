@@ -5,6 +5,16 @@ defmodule OrbitalDynamics.Schema.CampaignPlanActivityCadenceContracts do
 
   alias OrbitalDynamics.Schema.StableIdValidation
 
+  @activity_type_mappings [
+    {"observe", "observation"},
+    {"downlink", "contact"},
+    {"command", "command"},
+    {"tracking", "contact"},
+    {"health_check", "contact"}
+  ]
+
+  def activity_type_mappings, do: @activity_type_mappings
+
   def validate(issues, path, activity) when is_map(activity) do
     issues
     |> require_fields(path, activity, required_envelope_fields(activity))
@@ -20,6 +30,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanActivityCadenceContracts do
     issues
     |> validate_nested_requirements(path, activity, cadence_import)
     |> validate_activity_type(path, cadence_import)
+    |> validate_activity_type_mapping(path, activity, cadence_import)
     |> validate_external_identity(path, activity, cadence_import)
   end
 
@@ -58,6 +69,31 @@ defmodule OrbitalDynamics.Schema.CampaignPlanActivityCadenceContracts do
 
       {:ok, _activity_type} ->
         [error(path <> ".cadence_import.activity_type", "must be a string") | issues]
+    end
+  end
+
+  defp validate_activity_type_mapping(issues, path, activity, cadence_import) do
+    expected_type =
+      @activity_type_mappings
+      |> List.keyfind(Map.get(activity, "type"), 0)
+      |> case do
+        {_activity_type, cadence_type} -> cadence_type
+        nil -> nil
+      end
+
+    actual_type = Map.get(cadence_import, "activity_type")
+
+    if is_binary(expected_type) and is_binary(actual_type) and String.trim(actual_type) != "" and
+         actual_type != expected_type do
+      [
+        error(
+          path <> ".cadence_import.activity_type",
+          "must equal #{inspect(expected_type)} for #{Map.get(activity, "type")} activity"
+        )
+        | issues
+      ]
+    else
+      issues
     end
   end
 

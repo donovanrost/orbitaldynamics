@@ -80,7 +80,9 @@ It answers:
   activity kinds without silently accepting malformed tokens.
 - Every activity also carries a required `cadence_import` envelope with a stable
   external ID equal to the activity ID and a nonblank Cadence activity type.
-  This remains artifact-only identity evidence, not import authority.
+  Current dispatch mapping is exact: observe becomes `observation`, command
+  becomes `command`, and downlink/tracking/health-check become `contact`. This
+  remains artifact-only identity evidence, not import authority.
 - Downlink, command, tracking, and health-check activities require stable ground-
   station identity plus a `direction` equal to the activity type. Observation
   and compatible future non-contact activity tokens do not inherit that contact
