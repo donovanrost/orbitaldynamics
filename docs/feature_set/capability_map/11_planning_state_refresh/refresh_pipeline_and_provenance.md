@@ -84,11 +84,12 @@ From those inputs the pipeline:
 
 ### Unavailable-resource readiness, quality-gate, and contact-allocation evidence
 
-- Applies canonical blocked `quality_gate_report.v1` evidence to any regenerated
-  candidate only when the report is scoped to `planned_activity.v1` and its
-  non-empty `source_artifact_id` exactly equals the candidate ID. Aggregate
-  blocked status, generic compact summaries, gate-row IDs, nonmatching source
-  IDs, and review-only, analysis-only, or passed reports remain
+- Applies schema-valid blocked `quality_gate_report.v1` or
+  `operational_readiness_report.v1` evidence to any regenerated candidate only
+  when the report is scoped to `planned_activity.v1` and its non-empty
+  `source_artifact_id` exactly equals the candidate ID. Aggregate blocked
+  status, generic compact summaries, gate-row IDs, nonmatching source IDs,
+  malformed reports, and review-only, analysis-only, or passed reports remain
   provenance-only.
 - Applies direct, accepted-state, mission-state, and result-artifact-wrapped
   `operational_readiness_report.v1`

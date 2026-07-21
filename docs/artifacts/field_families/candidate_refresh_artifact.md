@@ -228,13 +228,25 @@ activity-selection effect: when `source_artifact_type` is
 candidate ID, that candidate is removed. Direct, accepted-state, mission-state,
 and result-artifact-wrapped reports share the existing resolver and inherited
 trust boundary. Nonmatching source IDs and review-only, analysis-only, or passed
-reports remain provenance-only; aggregate status and quality-gate row IDs are
-never interpreted as candidate identity. A generic compact quality-gate summary
-alone also remains provenance-only; the specialized unavailable-resource
-summary keeps its separate spacecraft/contact rule below. The rejection row uses
+reports remain provenance-only; malformed reports are not selection evidence,
+and aggregate status and quality-gate row IDs are never interpreted as candidate
+identity. A generic compact quality-gate summary alone also remains
+provenance-only; the specialized unavailable-resource summary keeps its separate
+spacecraft/contact rule below. The rejection row uses
 `dropped_by_candidate_scoped_quality_gate` for a matching prior candidate and
 preserves report/summary identity, source path, exact candidate ID, and trust
 evidence for the existing review/import handoff.
+
+The upstream canonical `operational_readiness_report.v1` has the symmetric
+exact-activity rule when it is schema-valid, blocked, scoped to
+`planned_activity.v1`, and its non-empty `source_artifact_id` equals the
+regenerated candidate ID. This uses the same direct/accepted/mission/result-
+wrapper resolver and trust inheritance. Compact readiness summaries, malformed
+reports, nonmatching or wrong-type source identity, and nonblocked reports
+remain provenance-only. A readiness-only match uses
+`dropped_by_candidate_scoped_operational_readiness`, emits a distinct warning,
+and preserves the exact report identity, source path, candidate scope, blocked
+status, and trust evidence for the same review/import handoff.
 
 `operational_quality_gate_unavailable_resource_summary.v1` has one bounded
 selection effect during CandidateRefresh builds: a contact-like regenerated
@@ -2310,9 +2322,9 @@ dependency-pressure, changed-field-pressure, invalidation-pressure, and
 review-pressure booleans. The replay-summary helper itself avoids candidate
 generation, candidate selection, Cadence writes, and operator approval; the
 separate CandidateRefresh build path applies only exact candidate-scoped
-blocked planned-activity quality gates or exact spacecraft-scoped
-blocked-contact evidence from canonical readiness reports or unavailable-
-resource quality summaries as documented above. Review
+blocked planned-activity quality-gate/readiness reports or exact spacecraft-
+scoped blocked-contact evidence from canonical readiness reports or
+unavailable-resource quality summaries as documented above. Review
 pressure is true for preserved
 readiness/status/gate status, classification, and analysis-mode maps; import
 pressure is true for preserved import-status and Cadence-import-status maps

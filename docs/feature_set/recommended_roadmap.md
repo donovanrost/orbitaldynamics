@@ -123,18 +123,19 @@ Already implemented or heavily covered:
 - quality-gate and readiness rows in operator-review and Cadence-import packages
 - V3 branch score terms and recommendation evidence for replayed
   operational-readiness, quality-gate, and import-readiness pressure
-- CandidateRefresh exact-identity filtering for canonical blocked
-  `planned_activity.v1` quality gates, with deterministic candidate-rejection
-  review/import evidence and nonmatching/non-blocked reports kept
+- CandidateRefresh exact-identity filtering for schema-valid blocked
+  `planned_activity.v1` quality-gate and operational-readiness reports, with
+  deterministic source-specific candidate-rejection review/import evidence and
+  compact, malformed, nonmatching, wrong-type, and nonblocked inputs kept
   provenance-only
 
 Good next slices:
 
-- assess another readiness or quality-gate selection effect only when live
-  evidence is explicitly candidate-scoped
 - add stale-but-plausible readiness/input challenge fixtures
 - harden schema-validation or compatibility checks for one readiness/quality
   family that lacks exact reference evidence
+- assess another readiness or quality-gate selection effect only when live
+  evidence carries an equally explicit candidate or resource identity
 
 Key docs:
 

@@ -127,6 +127,15 @@ Status: **implemented** (with a **partial** semantic-depth area, plus **near-ter
   Generic compact summaries, nonmatching reports, and non-blocked gates remain
   provenance-only, and no Cadence write, approval, or execution authority is
   granted.
+- CandidateRefresh applies the symmetric rule to a schema-valid blocked
+  `operational_readiness_report.v1` only when its source type is
+  `planned_activity.v1` and its non-empty `source_artifact_id` exactly matches
+  the regenerated candidate. It preserves distinct readiness report identity,
+  path, blocked status, exact scope, and trust evidence in the existing
+  candidate-rejection review/import path. Compact readiness summaries,
+  malformed reports, wrong-type or nonmatching source identity, and nonblocked
+  reports remain provenance-only, without Cadence write, approval, or execution
+  authority.
 - Quality-gate operator-training summaries publish the validated `operational_quality_gate_operator_training_summary.v1` contract and expose role, training,
   certification, and qualification routing from `operator_training`
   quality-gate rows, including status/classification row IDs and explicit

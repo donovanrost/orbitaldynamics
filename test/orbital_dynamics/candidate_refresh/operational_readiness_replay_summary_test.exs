@@ -249,6 +249,173 @@ defmodule OrbitalDynamics.CandidateRefresh.OperationalReadinessReplaySummaryTest
              Schema.validate_artifact(artifact)
   end
 
+  test "build excludes the exact candidate named by blocked planned-activity readiness" do
+    blocked_candidate_id = "leo_1_observe_target_a_1"
+    readiness_report = candidate_readiness_report(blocked_candidate_id, :blocked)
+
+    assert {:ok, %{"schema_contract" => "operational_readiness_report.v1", "status" => "pass"}} =
+             Schema.validate_artifact(readiness_report)
+
+    artifact =
+      result_set()
+      |> CandidateRefresh.build(
+        candidate_refresh:
+          refresh_request()
+          |> Map.put("prior_candidate_activities", [
+            %{
+              "id" => blocked_candidate_id,
+              "type" => "observe",
+              "scenario_id" => "leo_1",
+              "target_id" => "target_a",
+              "starts_at_s" => 120.0,
+              "ends_at_s" => 240.0
+            }
+          ])
+          |> put_in(
+            ["accepted_planning_state", "operational_readiness_report"],
+            readiness_report
+          ),
+        generated_at: ~U[2026-05-14 00:00:00Z]
+      )
+
+    assert Enum.map(artifact["candidate_activities"], & &1["id"]) == [
+             "leo_1_downlink_equator_prime_1"
+           ]
+
+    assert %{
+             "source" => "candidate_refresh.candidate_scoped_operational_readiness",
+             "candidate_count" => 2,
+             "rejected_count" => 1,
+             "rejected_candidate_ids" => [^blocked_candidate_id],
+             "rejection_reason_counts" => %{"quality_gate_failed" => 1}
+           } = rejection_report = artifact["candidate_rejection_report"]
+
+    assert %{
+             "candidate_id" => ^blocked_candidate_id,
+             "activity_context" => %{
+               "provenance" => %{
+                 "operational_readiness_candidate_filter" => %{
+                   "source_schema_contract" => "operational_readiness_report.v1",
+                   "source_report_paths" => [
+                     "accepted_planning_state.operational_readiness_report"
+                   ],
+                   "source_artifact_types" => ["planned_activity.v1"],
+                   "source_artifact_ids" => [^blocked_candidate_id],
+                   "blocked_candidate_ids" => [^blocked_candidate_id],
+                   "operational_readiness_statuses" => ["blocked"],
+                   "selection_scopes" => ["candidate_artifact"],
+                   "trust_boundaries" => ["candidate_readiness_fixture"]
+                 }
+               }
+             }
+           } =
+             Enum.find(
+               rejection_report["rows"],
+               &(&1["candidate_id"] == blocked_candidate_id)
+             )
+
+    assert [
+             %{
+               "id" => ^blocked_candidate_id,
+               "invalidated_reason" => "dropped_by_candidate_scoped_operational_readiness",
+               "replacement_candidate_id" => ^blocked_candidate_id
+             }
+           ] = artifact["invalidated_candidates"]
+
+    assert "blocked operational readiness excluded exact source-artifact candidates" in artifact[
+             "warnings"
+           ]
+
+    review = OperatorReview.from_candidate_refresh_artifact(artifact)
+    import = CadenceImport.from_candidate_refresh_artifact(artifact)
+
+    assert %{
+             "review_type" => "candidate_rejection_review",
+             "candidate_id" => ^blocked_candidate_id
+           } = Enum.find(review["rows"], &(&1["candidate_id"] == blocked_candidate_id))
+
+    assert %{
+             "source_review_type" => "candidate_rejection_review",
+             "subject_id" => ^blocked_candidate_id
+           } =
+             Enum.find(
+               import["rows"],
+               &(&1["source_review_type"] == "candidate_rejection_review" and
+                   &1["subject_id"] == blocked_candidate_id)
+             )
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
+             Schema.validate_artifact(artifact)
+
+    assert {:ok, %{"schema_contract" => "candidate_rejection_report.v1"}} =
+             Schema.validate_artifact(rejection_report)
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(review)
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(import)
+  end
+
+  test "nonmatching and noncanonical readiness remains selection-neutral" do
+    candidate_id = "leo_1_observe_target_a_1"
+
+    nonmatching_report =
+      "activity_1"
+      |> candidate_readiness_report(:blocked)
+      |> Map.put("blocked_gate_ids", [candidate_id])
+
+    review_only_report = candidate_readiness_report(candidate_id, :review_required)
+
+    wrong_source_type_report =
+      candidate_readiness_report(candidate_id, :blocked, "campaign_plan.v1")
+
+    compact_summary =
+      candidate_id
+      |> candidate_readiness_report(:blocked)
+      |> OrbitalDynamics.operational_readiness_gate_summary()
+
+    assert {:ok, %{"schema_contract" => "operational_readiness_gate_summary.v1"}} =
+             Schema.validate_artifact(compact_summary)
+
+    invalid_report =
+      candidate_id
+      |> candidate_readiness_report(:blocked)
+      |> Map.put("model", "unvalidated_readiness_fixture")
+
+    assert {:error, %{"schema_contract" => "operational_readiness_report.v1", "status" => "fail"}} =
+             Schema.validate_artifact(invalid_report)
+
+    artifacts = [
+      build_with_readiness("operational_readiness_report", nonmatching_report),
+      build_with_readiness("operational_readiness_report", review_only_report),
+      build_with_readiness("operational_readiness_report", wrong_source_type_report),
+      build_with_readiness("operational_readiness_gate_summary", compact_summary),
+      build_with_readiness("operational_readiness_report", invalid_report)
+    ]
+
+    for artifact <- artifacts do
+      assert Enum.map(artifact["candidate_activities"], & &1["id"]) == [
+               "leo_1_observe_target_a_1",
+               "leo_1_downlink_equator_prime_1"
+             ]
+
+      refute "blocked operational readiness excluded exact source-artifact candidates" in artifact[
+               "warnings"
+             ]
+
+      assert {:ok, %{"schema_contract" => "candidate_refresh.v1", "status" => "pass"}} =
+               Schema.validate_artifact(artifact)
+    end
+
+    [nonmatching_artifact | neutral_artifacts] = artifacts
+    assert nonmatching_artifact["candidate_rejection_report"]["rejected_count"] == 0
+
+    for artifact <- neutral_artifacts do
+      refute Map.has_key?(artifact, "candidate_rejection_report")
+    end
+  end
+
   defp result_set do
     ResultSet.new!(%{
       study_id: :candidate_refresh_demo,
@@ -419,6 +586,48 @@ defmodule OrbitalDynamics.CandidateRefresh.OperationalReadinessReplaySummaryTest
         }
       ]
     }
+  end
+
+  defp build_with_readiness(field, report) do
+    result_set()
+    |> CandidateRefresh.build(
+      candidate_refresh:
+        refresh_request()
+        |> put_in(["accepted_planning_state", field], report),
+      generated_at: ~U[2026-05-14 00:00:00Z]
+    )
+  end
+
+  defp candidate_readiness_report(
+         candidate_id,
+         status,
+         source_artifact_type \\ "planned_activity.v1"
+       ) do
+    {import_status, cadence_import_status} =
+      case status do
+        :blocked -> {"blocked_missing_cadence_import", "invalid"}
+        :review_required -> {"review_required_before_import", "present"}
+      end
+
+    %{
+      "schema_contract" => "cadence_import_manifest.v1",
+      "model" => "candidate_readiness_manifest_fixture",
+      "manifest_id" => "manifest:#{candidate_id}",
+      "source_artifact_type" => source_artifact_type,
+      "source_artifact_id" => candidate_id,
+      "model_limits" => ["adapter_handoff_only"],
+      "rows" => [
+        %{
+          "id" => "import:#{candidate_id}",
+          "rank" => 1,
+          "import_action" => "review_candidate_activity",
+          "import_status" => import_status,
+          "cadence_import_status" => cadence_import_status
+        }
+      ]
+    }
+    |> OrbitalDynamics.operational_readiness_report()
+    |> Map.put("provenance", %{"trust_boundary" => "candidate_readiness_fixture"})
   end
 
   defp ordered_event_result_set(order) do

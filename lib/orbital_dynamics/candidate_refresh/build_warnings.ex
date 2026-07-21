@@ -34,6 +34,9 @@ defmodule OrbitalDynamics.CandidateRefresh.BuildWarnings do
 
     readiness_dropped_candidates = Map.fetch!(context, :readiness_dropped_candidates)
 
+    candidate_scoped_readiness_dropped_candidates =
+      Map.fetch!(context, :candidate_scoped_readiness_dropped_candidates)
+
     contact_allocation_resource_dropped_candidates =
       Map.fetch!(context, :contact_allocation_resource_dropped_candidates)
 
@@ -75,6 +78,10 @@ defmodule OrbitalDynamics.CandidateRefresh.BuildWarnings do
     |> maybe_warn(
       readiness_dropped_candidates != [],
       "operational readiness excluded explicitly scoped unavailable-resource contact candidates"
+    )
+    |> maybe_warn(
+      candidate_scoped_readiness_dropped_candidates != [],
+      "blocked operational readiness excluded exact source-artifact candidates"
     )
     |> maybe_warn(
       contact_allocation_resource_dropped_candidates != [],
