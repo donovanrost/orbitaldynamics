@@ -68,6 +68,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanTradeoffContractsTest do
       artifact
       |> Map.put("ranked_timelines", [])
       |> Map.put("activities", [])
+      |> Map.delete("target_commitments")
       |> Map.put(
         "objective_tradeoff_report",
         ScoreReports.objective_tradeoff_report(

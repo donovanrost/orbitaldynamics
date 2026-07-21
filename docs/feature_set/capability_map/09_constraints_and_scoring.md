@@ -57,6 +57,10 @@ Status: **implemented** (core), with **partial**, **near-term**, **later**, and 
 
 ### Objective-satisfaction reports
 
+- V1 `target_commitments` are typed inline campaign rows whose target IDs,
+  candidate/selected counts and durations, selected activity IDs, and status are
+  reconciled with candidate activities, selected activities, and matching
+  objective-satisfaction target rows.
 - `objective_satisfaction_report.v1` rows summarize target coverage, downlink completion, and per-target commitment status from selected activities, with:
   - downlink-completion rows aggregating multiple scoped station/scenario/time/data-volume objectives instead of reporting only the first objective;
   - contact-count plus data-volume requirements treated as conjunctive when both are declared.

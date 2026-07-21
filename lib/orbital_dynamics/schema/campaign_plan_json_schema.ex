@@ -6,6 +6,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanJsonSchema do
     "activities",
     "candidate_activities",
     "contact_intents",
+    "target_commitments",
     "ranking_explanation",
     "ranked_timelines",
     "warnings"
@@ -32,6 +33,10 @@ defmodule OrbitalDynamics.Schema.CampaignPlanJsonSchema do
     [contact_intent_schema: fetch_dep!(deps, :contact_intent_schema)]
   end
 
+  def property_opts("target_commitments", deps) do
+    [target_commitment_schema: fetch_dep!(deps, :target_commitment_schema)]
+  end
+
   def property_opts("ranked_timelines", deps) do
     [ranked_timeline_schema: fetch_dep!(deps, :ranked_timeline_schema)]
   end
@@ -48,6 +53,10 @@ defmodule OrbitalDynamics.Schema.CampaignPlanJsonSchema do
 
   def property("contact_intents", opts) do
     array_of(Keyword.fetch!(opts, :contact_intent_schema))
+  end
+
+  def property("target_commitments", opts) do
+    array_of(Keyword.fetch!(opts, :target_commitment_schema))
   end
 
   def property("ranked_timelines", opts) do
@@ -79,6 +88,39 @@ defmodule OrbitalDynamics.Schema.CampaignPlanJsonSchema do
       stable_id_pattern: stable_id_pattern,
       campaign_activity_schema: campaign_activity_schema
     )
+  end
+
+  def target_commitment_from_context(stable_id_pattern) when is_binary(stable_id_pattern) do
+    %{
+      "type" => "object",
+      "additionalProperties" => true,
+      "required" => [
+        "target_id",
+        "candidate_activity_count",
+        "candidate_duration_s",
+        "selected_activity_count",
+        "selected_duration_s",
+        "selected_activity_ids",
+        "status"
+      ],
+      "properties" => %{
+        "target_id" => %{"type" => "string", "pattern" => stable_id_pattern},
+        "priority" => OrbitalDynamics.Schema.CommonJsonSchema.number_or_string(),
+        "candidate_activity_count" => %{"type" => "integer", "minimum" => 0},
+        "candidate_duration_s" => %{"type" => "number", "minimum" => 0.0},
+        "selected_activity_count" => %{"type" => "integer", "minimum" => 0},
+        "selected_duration_s" => %{"type" => "number", "minimum" => 0.0},
+        "selected_activity_ids" => %{
+          "type" => "array",
+          "uniqueItems" => true,
+          "items" => %{"type" => "string", "pattern" => stable_id_pattern}
+        },
+        "status" => %{
+          "type" => "string",
+          "enum" => ["selected", "candidate_available", "no_candidate_window"]
+        }
+      }
+    }
   end
 
   def ranked_timeline_from_context(deps) when is_list(deps) do

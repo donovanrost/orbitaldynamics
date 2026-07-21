@@ -213,6 +213,8 @@ Already implemented or heavily covered:
   and activity identities
 - V1 score-term and objective-tradeoff reports are declared as optional direct
   nested contracts in the exported campaign-plan schema
+- V1 target commitments are exported as typed inline rows and reconciled with
+  candidate, selected-activity, and objective-satisfaction evidence
 - optional V1 optimizer metadata is reconciled with enclosing candidate,
   selected-activity, ranked-timeline, constraint, scoring-policy, and objective
   evidence; the required ranking explanation is nested and typed

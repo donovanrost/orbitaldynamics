@@ -8,6 +8,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanContracts do
     CampaignPlanContactAllocationContracts,
     CampaignPlanOptimizerContracts,
     CampaignPlanScoreContracts,
+    CampaignPlanTargetCommitmentContracts,
     CampaignPlanTradeoffContracts
   }
 
@@ -100,7 +101,6 @@ defmodule OrbitalDynamics.Schema.CampaignPlanContracts do
     |> call(callbacks, :validate_optional_score_term_report, [
       Map.get(artifact, "score_term_report")
     ])
-    |> call(callbacks, :expect_optional_type, ["$", artifact, "target_commitments", :list])
     |> call(callbacks, :expect_type, ["$", artifact, "candidate_activities", :list])
     |> call(callbacks, :expect_type, ["$", artifact, "ranked_timelines", :list])
     |> CampaignPlanScoreContracts.validate(artifact)
@@ -110,6 +110,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanContracts do
     |> CampaignPlanContactAllocationContracts.validate(artifact)
     |> CampaignPlanCadenceImportContracts.validate(artifact)
     |> CampaignPlanCommandWindowContracts.validate(artifact)
+    |> CampaignPlanTargetCommitmentContracts.validate(artifact)
     |> call(callbacks, :expect_type, ["$", artifact, "warnings", :list])
     |> call(callbacks, :expect_type, ["$", artifact, "assumptions", :map])
     |> call(callbacks, :expect_type, ["$", artifact, "provenance", :map])

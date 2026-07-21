@@ -35,6 +35,7 @@ defmodule OrbitalDynamics.Schema.CampaignRegistryContracts do
           "link_capacity_report",
           "contact_filter_report",
           "station_calendar_report",
+          "target_commitments",
           "contact_contention_report",
           "contact_contention_resolution_report",
           "resource_filter_report",

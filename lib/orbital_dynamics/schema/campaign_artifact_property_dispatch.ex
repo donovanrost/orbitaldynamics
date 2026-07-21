@@ -12,7 +12,8 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactPropertyDispatch do
           proposed_contact_schema,
           campaign_activity_schema,
           contact_intent_schema,
-          ranked_timeline_schema
+          ranked_timeline_schema,
+          target_commitment_schema
         }
       ) do
     dispatch(
@@ -24,7 +25,8 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactPropertyDispatch do
         proposed_contact_schema: proposed_contact_schema,
         campaign_activity_schema: campaign_activity_schema,
         contact_intent_schema: contact_intent_schema,
-        ranked_timeline_schema: ranked_timeline_schema
+        ranked_timeline_schema: ranked_timeline_schema,
+        target_commitment_schema: target_commitment_schema
       ),
       default_property
     )

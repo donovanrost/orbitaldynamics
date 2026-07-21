@@ -59,6 +59,11 @@ direct nested contracts. Campaign validation continues to run their existing
 standalone validators over suppression and declared station-availability
 evidence.
 
+Target commitments are optional typed inline V1 rows. Runtime validation checks
+stable target/selected-activity IDs, non-negative counts and durations, status
+vocabulary, unique targets, exact candidate/selected observation evidence, and
+completeness against target-commitment objective-satisfaction rows.
+
 **Timeline score terms** include:
 
 - selected observation/contact counts

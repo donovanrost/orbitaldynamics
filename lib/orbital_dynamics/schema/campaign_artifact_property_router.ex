@@ -2,7 +2,7 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactPropertyRouter do
   @moduledoc false
 
   import OrbitalDynamics.Schema.JsonSchemaPropertySupport,
-    only: [fallback: 4, provider: 3]
+    only: [context_value: 2, fallback: 4, provider: 3]
 
   def property(
         field,
@@ -19,7 +19,12 @@ defmodule OrbitalDynamics.Schema.CampaignArtifactPropertyRouter do
       {fn -> provider(context, :proposed_contact_row_json_schema, []) end,
        fn -> provider(context, :campaign_activity_json_schema, []) end,
        fn -> provider(context, :contact_intent_row_json_schema, []) end,
-       fn -> provider(context, :ranked_timeline_json_schema, []) end}
+       fn -> provider(context, :ranked_timeline_json_schema, []) end,
+       fn ->
+         OrbitalDynamics.Schema.CampaignPlanJsonSchema.target_commitment_from_context(
+           context_value(context, :stable_id_pattern)
+         )
+       end}
     )
   end
 

@@ -168,6 +168,9 @@ work, a **partial** executable-schema track, and **near-term** / **later** /
   proposed-contact, and contact-intent rows with stable source-window
   identifiers, including generated contact-success feedback factor/source fields
   on refreshed contact candidates.
+- It also exports typed target-commitment rows reconciled with candidate and
+  selected observation counts, durations, selected IDs, statuses, unique target
+  identity, and matching objective-satisfaction target rows.
 - Executable V1 validation requires numeric ranked-timeline score terms and
   checks an optional score-term report against the enclosing timeline ranks,
   scenarios, terms, values, scores, and selection flags; JSON Schema exports
