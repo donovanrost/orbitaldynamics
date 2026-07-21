@@ -2,6 +2,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairReplacementSelection do
   @moduledoc false
 
   alias OrbitalDynamics.Communications.LinkCapacity
+  alias OrbitalDynamics.ResourceProjection
 
   alias OrbitalDynamics.CampaignPlanner.{
     ActivityIdentity,
@@ -11,6 +12,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairReplacementSelection do
     RepairActivityIdentity,
     RepairCandidateDiff,
     RepairPolicySemantics,
+    ResourceProjectionRisk,
     ScalarValues,
     ValueEncoding
   }
@@ -87,9 +89,13 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairReplacementSelection do
       link_capacity_pressure_penalty =
         link_capacity_pressure_penalty(activity, candidate, acc, context)
 
+      resource_projection_pressure_penalty =
+        resource_projection_pressure_penalty(activity, candidate, acc, context)
+
       ranking_score =
         candidate_score(candidate) - churn_cost - churn_s * move_cost -
-          station_calendar_pressure_penalty - link_capacity_pressure_penalty
+          station_calendar_pressure_penalty - link_capacity_pressure_penalty -
+          resource_projection_pressure_penalty
 
       {diff_priority, -ranking_score, churn_s, ActivityTiming.activity_start(candidate),
        ActivityIdentity.activity_id(candidate)}
@@ -165,6 +171,26 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairReplacementSelection do
       )
 
     acc.activities ++ [candidate | future_planned_activities]
+  end
+
+  defp resource_projection_pressure_penalty(
+         _source,
+         _candidate,
+         _acc,
+         %{source_resource_summaries: []}
+       ),
+       do: 0.0
+
+  defp resource_projection_pressure_penalty(source, candidate, acc, context) do
+    source
+    |> projected_activities(candidate, acc, context)
+    |> ResourceProjection.report(context.source_resource_summaries,
+      model: "thin_repair_replacement_resource_projection",
+      source: "source_resource_summaries"
+    )
+    |> ResourceProjectionRisk.risk_indicators()
+    |> length()
+    |> Kernel.*(numeric_policy_value(context.scoring_policy, "risk_weight", 1.0))
   end
 
   defp activity_sort_key(activity) do

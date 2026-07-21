@@ -7,6 +7,137 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairResourceProjectionTest do
 
   alias OrbitalDynamics.Schema
 
+  test "repair replacement ranking internalizes calibrated projected resource risk" do
+    pressured_observation =
+      "obs_pressured"
+      |> observe("leo_1", "target_a", 500.0, 560.0, 10.0)
+      |> Map.merge(%{
+        "estimated_storage_mb" => 40.0,
+        "score_terms" => %{"target_value" => 10.0},
+        "source_window_id" => "window:leo_1:target_visibility:target_a:2",
+        "source_window" => %{
+          "id" => "window:leo_1:target_visibility:target_a:2",
+          "type" => "target_visibility"
+        }
+      })
+
+    nominal_observation =
+      "obs_nominal"
+      |> observe("leo_2", "target_a", 500.0, 560.0, 9.5)
+      |> Map.merge(%{
+        "estimated_storage_mb" => 40.0,
+        "score_terms" => %{"target_value" => 9.5},
+        "source_window_id" => "window:leo_2:target_visibility:target_a:2",
+        "source_window" => %{
+          "id" => "window:leo_2:target_visibility:target_a:2",
+          "type" => "target_visibility"
+        }
+      })
+
+    plan = %{
+      "activities" => [observe("obs_1", "leo_1", "target_a", 100.0, 160.0, 10.0)],
+      "candidate_activities" => []
+    }
+
+    resource_summaries = [
+      %{
+        "schema_contract" => "resource_summary.v1",
+        "spacecraft_id" => "leo_1",
+        "storage_capacity_mb" => 1_000.0,
+        "storage_used_mb" => 100.0,
+        "downlink_capacity_mb" => 500.0,
+        "payload_available" => false,
+        "antenna_available" => true
+      },
+      %{
+        "schema_contract" => "resource_summary.v1",
+        "spacecraft_id" => "leo_2",
+        "storage_capacity_mb" => 1_000.0,
+        "storage_used_mb" => 100.0,
+        "downlink_capacity_mb" => 500.0,
+        "payload_available" => true,
+        "antenna_available" => true
+      }
+    ]
+
+    candidate_refresh =
+      candidate_refresh_artifact([pressured_observation, nominal_observation],
+        resource_summaries: resource_summaries
+      )
+
+    common_opts = [
+      realized_state: %{activities: [%{id: "obs_1", status: "failed"}]},
+      current_epoch_s: 165.0,
+      candidate_refresh: candidate_refresh
+    ]
+
+    nominal_artifact =
+      repair(plan, Keyword.put(common_opts, :scoring_policy, %{"risk_weight" => "1.0"}))
+
+    pressured_artifact =
+      repair(plan, Keyword.put(common_opts, :scoring_policy, %{"risk_weight" => "0.25"}))
+
+    assert [%{"id" => "obs_nominal", "scenario_id" => "leo_2"}] =
+             nominal_artifact["activities"]
+
+    assert [] ==
+             OrbitalDynamics.CampaignPlanner.ResourceProjectionRisk.risk_indicators(
+               nominal_artifact["source_resource_projection_report"]
+             )
+
+    refute Map.has_key?(
+             nominal_artifact["score_terms"],
+             "resource_projection_pressure_penalty"
+           )
+
+    refute "resource_projection_pressure_penalty" in nominal_artifact["score_term_report"][
+             "score_term_keys"
+           ]
+
+    assert_in_delta nominal_artifact["score"], -94.5, 1.0e-9
+
+    assert [%{"id" => "obs_pressured", "scenario_id" => "leo_1"}] =
+             pressured_artifact["activities"]
+
+    assert [%{"type" => "payload_unavailable", "spacecraft_id" => "leo_1"}] =
+             OrbitalDynamics.CampaignPlanner.ResourceProjectionRisk.risk_indicators(
+               pressured_artifact["source_resource_projection_report"]
+             )
+
+    assert pressured_artifact["score_terms"]["resource_projection_pressure_penalty"] == -0.25
+    assert_in_delta pressured_artifact["score"], -94.25, 1.0e-9
+
+    assert [
+             %{
+               "term_key" => "resource_projection_pressure_penalty",
+               "value" => -0.25,
+               "selected" => true
+             }
+           ] =
+             Enum.filter(
+               pressured_artifact["score_term_report"]["rows"],
+               &(&1["term_key"] == "resource_projection_pressure_penalty")
+             )
+
+    assert Enum.any?(
+             pressured_artifact["operator_review_package"]["rows"],
+             &(&1["review_type"] == "resource_projection_review" and
+                 &1["spacecraft_id"] == "leo_1")
+           )
+
+    assert Enum.any?(
+             pressured_artifact["cadence_import_manifest"]["rows"],
+             &(&1["import_action"] == "review_resource_projection" and
+                 &1["spacecraft_id"] == "leo_1")
+           )
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(nominal_artifact)
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(pressured_artifact)
+  end
+
   test "repair projects thin resource impacts from repaired activities" do
     replacement_observation =
       "obs_2"

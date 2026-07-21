@@ -251,7 +251,13 @@ schema-type their stable IDs, invalid-input flags, and protected/change counts.
   `OrbitalDynamics.resource_projection_report/3` for standalone selected
   activity lists. Projection rows distinguish planned downlink capacity from
   storage-limited data relief and warn when a scheduled downlink has more
-  capacity than stored data available in the roll-forward.
+  capacity than stored data available in the roll-forward. Greedy replacement
+  ranking projects each alternative with already repaired and not-yet-processed
+  planned activities against the same candidate-refresh resource summaries,
+  subtracting one calibrated `risk_weight` unit per shared projection risk
+  within the candidate's semantic-diff priority tier. Final resource projection
+  is recomputed after repair and remains authoritative; this does not turn the
+  thin planning model into a subsystem simulator or global optimizer.
 - `score_term_report.v1` and `objective_tradeoff_report.v1` over repaired
   activity value, churn, schedule-move, and resource-projection pressure score
   terms plus selected link-capacity shortfall pressure, preserving the same

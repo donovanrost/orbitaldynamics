@@ -78,6 +78,9 @@ Already implemented or heavily covered:
 - V2's generic selected resource-projection penalty covers every emitted
   storage, downlink, battery, thermal-margin, availability, and activity-
   compatibility projection risk
+- V2 replacement ranking projects alternatives against canonical candidate-
+  refresh resource summaries and internalizes the same calibrated per-risk
+  units within semantic candidate-diff priority tiers
 - V2 candidate-refresh source freshness contributes one explicit normalized
   risk-weight penalty for a stale or unknown report, aligned with its
   review/import gate and V3 refresh-freshness pressure semantics
@@ -93,8 +96,8 @@ Already implemented or heavily covered:
 
 Good next slices:
 
-- use remaining selected resource pressure directly in candidate ranking or
-  branch score explanations
+- assess remaining candidate-specific contact/resource pressure for safe use in
+  ranking or branch score explanations
 - add one compatibility fixture for a resource/contact artifact family that does
   not already have a curated reference check
 

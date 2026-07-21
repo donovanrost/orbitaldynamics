@@ -26,7 +26,11 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairOrchestration do
   def run(%{} = request) do
     prior_plan = request.prior_plan
     link_capacity_policy = RepairLinkCapacityPolicy.build(request)
-    execution = RepairExecution.run(request, link_capacity_policy)
+    source_resource_summaries = repair_resource_summaries(request.candidate_refresh)
+
+    execution =
+      RepairExecution.run(request, link_capacity_policy, source_resource_summaries)
+
     planned_activities = execution.planned_activities
     candidates = execution.candidates
     activities = execution.activities
@@ -41,8 +45,6 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairOrchestration do
       |> Kernel.++(repair_refresh_warnings(request.candidate_refresh))
       |> Enum.uniq()
       |> Enum.sort()
-
-    source_resource_summaries = repair_resource_summaries(request.candidate_refresh)
 
     source_resource_projection_report =
       repair_resource_projection_report(

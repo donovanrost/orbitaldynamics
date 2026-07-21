@@ -18,7 +18,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairExecution do
     ValueEncoding
   }
 
-  def run(%{} = request, link_capacity_policy) do
+  def run(%{} = request, link_capacity_policy, source_resource_summaries) do
     planned_activities = planned_activities(request.prior_plan)
 
     source_candidates =
@@ -33,7 +33,8 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairExecution do
         planned_activities,
         candidates,
         station_calendar_report,
-        link_capacity_policy
+        link_capacity_policy,
+        source_resource_summaries
       )
 
     repaired =
@@ -87,7 +88,8 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairExecution do
          planned_activities,
          candidates,
          station_calendar_report,
-         link_capacity_policy
+         link_capacity_policy,
+         source_resource_summaries
        ) do
     %{
       candidates: candidates,
@@ -105,6 +107,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairExecution do
       repair_policy: request.repair_policy,
       scoring_policy: request.scoring_policy,
       link_capacity_policy: link_capacity_policy,
+      source_resource_summaries: source_resource_summaries,
       candidate_diff_replacements: candidate_diff_replacements(request.candidate_refresh),
       station_calendar_pressure_candidate_ids:
         station_calendar_pressure_candidate_ids(station_calendar_report)

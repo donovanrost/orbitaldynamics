@@ -80,7 +80,13 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   `ResourceProjectionRisk.risk_indicators/1`, including storage/downlink/battery,
   negative thermal margin, spacecraft or payload/antenna availability, degraded
   payload, and selected activity compatibility pressure. Nominal projections
-  still omit the conditional term.
+  still omit the conditional term. Replacement ranking projects each alternative
+  against the same candidate-refresh resource summaries and subtracts the same
+  normalized unit per risk within the semantic candidate-diff priority tier.
+  This can reassign an observation to a nominal spacecraft while a smaller
+  weight can still retain a higher-value pressured alternative. The projection
+  remains the documented thin, greedy planning model; final recomputation after
+  all repairs is authoritative.
 - A candidate-refresh `freshness_report.v1` with normalized `stale` or `unknown`
   status contributes exactly one source-wide normalized `risk_weight` unit
   through `refresh_freshness_pressure_penalty`. Current or absent reports omit
