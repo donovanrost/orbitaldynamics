@@ -241,6 +241,9 @@ Already implemented or heavily covered:
 - stable V1 candidate activity IDs are unique across the candidate collection,
   and selected IDs are unique within each ranked timeline; runtime owns the
   property-key rule that structural JSON Schema cannot express
+- V1 candidate rows preserve ascending scenario/start/ID order and ranked
+  activity rows preserve ascending start/ID order through executable adjacent-
+  row checks
 - selected, candidate, and ranked V1 activities require matching stable outer
   and nested source-window IDs for producer-window lineage
 - current V1 activity kinds conditionally reconcile nested source-window family

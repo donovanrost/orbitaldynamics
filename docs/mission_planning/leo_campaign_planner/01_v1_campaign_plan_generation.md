@@ -88,6 +88,10 @@ It answers:
   selected activity IDs are unique within each ranked timeline. Runtime owns
   this property-key uniqueness because structural JSON Schema uniqueness applies
   to whole rows rather than one identity field.
+- Candidate rows preserve ascending scenario, start-time, and activity-ID order;
+  rows inside each ranked timeline preserve ascending start-time and activity-ID
+  order. These adjacent-row comparisons keep optimizer handoffs deterministic
+  and remain executable rather than structural.
 - Every activity preserves its producer window through required stable
   `source_window_id` and nested `source_window.id` evidence. Runtime validation
   requires those IDs to match before the activity is accepted for handoff.

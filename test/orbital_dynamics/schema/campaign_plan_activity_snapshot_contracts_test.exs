@@ -134,6 +134,75 @@ defmodule OrbitalDynamics.Schema.CampaignPlanActivitySnapshotContractsTest do
            } in issues
   end
 
+  test "rejects candidate order drift after optimizer regeneration", %{artifact: artifact} do
+    candidates = Enum.reverse(artifact["candidate_activities"])
+
+    invalid =
+      artifact
+      |> Map.put("candidate_activities", candidates)
+      |> Map.put("optimizer_contract", optimizer_contract(artifact, candidates))
+
+    assert {:error, report} = Schema.validate_artifact(invalid)
+
+    assert error?(
+             report,
+             "$.candidate_activities[1]",
+             "must follow ascending scenario_id, starts_at_s, and id order"
+           )
+  end
+
+  test "orders candidate scenarios before start times" do
+    later_scenario = %{"scenario_id" => "leo_2", "starts_at_s" => 0.0, "id" => "a"}
+    earlier_scenario = %{"scenario_id" => "leo_1", "starts_at_s" => 20.0, "id" => "b"}
+    later_start = %{"scenario_id" => "leo_1", "starts_at_s" => 20.0, "id" => "c"}
+    earlier_start = %{"scenario_id" => "leo_1", "starts_at_s" => 10.0, "id" => "d"}
+
+    for candidates <- [
+          [later_scenario, earlier_scenario],
+          [later_start, earlier_start]
+        ] do
+      issues =
+        CampaignPlanActivitySnapshotContracts.validate([], %{
+          "candidate_activities" => candidates,
+          "ranked_timelines" => [],
+          "activities" => []
+        })
+
+      assert Enum.any?(
+               issues,
+               &(&1["path"] == "$.candidate_activities[1]" and
+                   &1["message"] ==
+                     "must follow ascending scenario_id, starts_at_s, and id order")
+             )
+    end
+  end
+
+  test "orders ranked activities by start time and activity identity" do
+    earlier = %{"id" => "activity_a", "starts_at_s" => 10.0}
+    later = %{"id" => "activity_b", "starts_at_s" => 20.0}
+    tied_later_id = %{"id" => "activity_b", "starts_at_s" => 10.0}
+
+    for activities <- [
+          [later, earlier],
+          [tied_later_id, earlier]
+        ] do
+      candidates = Enum.sort_by(activities, &{&1["starts_at_s"], &1["id"]})
+
+      issues =
+        CampaignPlanActivitySnapshotContracts.validate([], %{
+          "candidate_activities" => candidates,
+          "ranked_timelines" => [%{"activities" => activities}],
+          "activities" => activities
+        })
+
+      assert Enum.any?(
+               issues,
+               &(&1["path"] == "$.ranked_timelines[0].activities[1]" and
+                   &1["message"] == "must follow ascending starts_at_s and id order")
+             )
+    end
+  end
+
   test "leaves malformed duplicate IDs to field-level validators" do
     malformed = %{"id" => "bad id"}
 
@@ -153,6 +222,17 @@ defmodule OrbitalDynamics.Schema.CampaignPlanActivitySnapshotContractsTest do
                "candidate_activities" => [],
                "ranked_timelines" => [%{"activities" => []}],
                "activities" => []
+             })
+  end
+
+  test "leaves malformed order keys to field-level validators" do
+    malformed = %{"scenario_id" => "bad id", "starts_at_s" => "now", "id" => []}
+
+    assert [] ==
+             CampaignPlanActivitySnapshotContracts.validate([], %{
+               "candidate_activities" => [malformed, malformed],
+               "ranked_timelines" => [%{"activities" => [malformed, malformed]}],
+               "activities" => [malformed, malformed]
              })
   end
 

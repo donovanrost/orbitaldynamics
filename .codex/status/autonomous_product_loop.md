@@ -5,47 +5,50 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Contract V1 branch activity identity uniqueness.
+Contract V1 activity collection order.
 
 Status:
 Complete and parent-reviewed; ready to publish.
 
 Delivered:
-- Required stable candidate activity IDs to be unique across
-  `candidate_activities`.
-- Required stable activity IDs to be unique within every ranked timeline.
-- Left malformed activity IDs to existing stable-ID field validators and avoided
-  duplicate-identity noise for them.
-- Preserved empty candidate and ranked-activity collections.
-- Added producer-valid, exact duplicate candidate, duplicate ranked selection,
-  malformed-ID, and empty-collection calibration coverage.
+- Required comparable adjacent candidate rows to follow ascending scenario,
+  start-time, and activity-ID order.
+- Required comparable adjacent rows within each ranked timeline to follow
+  ascending start-time and activity-ID order.
+- Left malformed order fields to existing field validators and avoided secondary
+  order errors.
+- Preserved empty and single-row activity collections.
+- Added producer-valid, candidate-order drift, ranked-order drift, deterministic
+  tie-break, malformed-field, and empty-collection calibration coverage.
 - Updated V1 generation, planning, reproducibility, and roadmap documentation;
-  no structural JSON Schema export changed because JSON Schema cannot express
-  uniqueness by one row property.
+  no structural JSON Schema export changed.
 
 Review calibration:
-- Pre-fix, an exact duplicated candidate still returned `:ok` after its optimizer
-  contract was regenerated; the new collection-key check owns that gap.
-- Candidate snapshot indexing and optimizer ID ordering remain unchanged after
-  uniqueness is established.
-- Stable-ID filtering prevents secondary duplicate errors for malformed IDs.
-- Direct ranked-activity coverage proves repeated selection keys are rejected
-  even when candidate and top-level snapshots remain synchronized.
+- The two comparator keys exactly match `BuildOrchestration` and
+  `TimelineRanking` producer sort keys.
+- Pre-fix, a reversed candidate collection returned `:ok` after optimizer
+  regeneration; the new adjacent-pair check owns that gap.
+- Direct coverage establishes scenario-before-time precedence plus deterministic
+  ID tie-breaks for both candidate and ranked activity rows.
+- The first full run had one unrelated JSON Schema export timeout
+  (`3672/3673`); the exact test passed alone in 18.9 seconds and the unchanged
+  standard full suite then passed completely.
 - Parent review found no publish blocker.
 
 Verification:
-- Focused activity snapshot contracts: `11 passed`.
-- Schema plus lint area: `356 passed`.
+- Focused activity snapshot contracts: `15 passed`.
+- Schema plus lint area: `360 passed`.
 - Planner area: `754 passed`.
-- Full suite: `3669 passed`.
+- Isolated timed-out schema export parity test: `1 passed`.
+- Repeated full suite: `3673 passed`.
 - `mix format --check-formatted`, `mix compile --warnings-as-errors`, and
   `git diff --check` pass.
 
 Level 6 pillar advanced:
-Reproducible V1 branch trees and internally consistent optimizer handoffs.
+Reproducible V1 branch trees and deterministic optimizer handoffs.
 
 Previous published slice:
-- `902aa01a` Reconcile V1 ranked timeline scenario identity (`3665 passed`).
+- `a2bb158a` Contract V1 branch activity identity uniqueness (`3669 passed`).
 
 Remaining maturity gaps:
 - Continue calibrated realized-feedback depth where evidence is genuinely

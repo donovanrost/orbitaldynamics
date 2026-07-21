@@ -13,9 +13,78 @@ defmodule OrbitalDynamics.Schema.CampaignPlanActivitySnapshotContracts do
     issues
     |> reject_duplicate_activity_ids("$.candidate_activities", candidate_rows)
     |> reject_ranked_duplicate_activity_ids(timelines)
+    |> validate_candidate_order(candidate_rows)
+    |> validate_ranked_activity_order(timelines)
     |> validate_ranked_timelines(timelines, candidates)
     |> validate_selected_activities(Map.get(artifact, "activities"), first_timeline(timelines))
   end
+
+  defp validate_candidate_order(issues, candidates) when is_list(candidates) do
+    reject_out_of_order(
+      issues,
+      "$.candidate_activities",
+      candidates,
+      &candidate_sort_key/1,
+      "must follow ascending scenario_id, starts_at_s, and id order"
+    )
+  end
+
+  defp validate_candidate_order(issues, _candidates), do: issues
+
+  defp validate_ranked_activity_order(issues, timelines) when is_list(timelines) do
+    timelines
+    |> Enum.with_index()
+    |> Enum.reduce(issues, fn
+      {%{"activities" => activities}, timeline_index}, acc when is_list(activities) ->
+        reject_out_of_order(
+          acc,
+          "$.ranked_timelines[#{timeline_index}].activities",
+          activities,
+          &timeline_activity_sort_key/1,
+          "must follow ascending starts_at_s and id order"
+        )
+
+      {_timeline, _timeline_index}, acc ->
+        acc
+    end)
+  end
+
+  defp validate_ranked_activity_order(issues, _timelines), do: issues
+
+  defp reject_out_of_order(issues, path, rows, sort_key, message) do
+    rows
+    |> Enum.chunk_every(2, 1, :discard)
+    |> Enum.with_index(1)
+    |> Enum.reduce(issues, fn {[previous, current], index}, acc ->
+      case {sort_key.(previous), sort_key.(current)} do
+        {{:ok, previous_key}, {:ok, current_key}} when previous_key > current_key ->
+          [error("#{path}[#{index}]", message) | acc]
+
+        _comparable_or_malformed_pair ->
+          acc
+      end
+    end)
+  end
+
+  defp candidate_sort_key(%{
+         "scenario_id" => scenario_id,
+         "starts_at_s" => starts_at_s,
+         "id" => id
+       })
+       when is_number(starts_at_s) do
+    if StableIdValidation.valid?(scenario_id) and StableIdValidation.valid?(id),
+      do: {:ok, {scenario_id, starts_at_s, id}},
+      else: :error
+  end
+
+  defp candidate_sort_key(_activity), do: :error
+
+  defp timeline_activity_sort_key(%{"starts_at_s" => starts_at_s, "id" => id})
+       when is_number(starts_at_s) do
+    if StableIdValidation.valid?(id), do: {:ok, {starts_at_s, id}}, else: :error
+  end
+
+  defp timeline_activity_sort_key(_activity), do: :error
 
   defp reject_ranked_duplicate_activity_ids(issues, timelines) when is_list(timelines) do
     timelines

@@ -124,6 +124,11 @@ stable selected activity IDs are unique within each ranked timeline. Runtime
 owns these property-key comparisons because JSON Schema cannot express row
 uniqueness by only the `id` field.
 
+Candidate rows also retain the producer's ascending scenario/start/ID order,
+while activities inside each ranked timeline retain ascending start/ID order.
+Runtime validates comparable adjacent rows and leaves malformed sort fields to
+their existing field-level validators.
+
 Activity lineage is likewise executable across selected, candidate, and ranked
 rows: `source_window_id` and nested `source_window.id` are required stable IDs,
 and runtime validation requires them to match. The export requires the nested ID

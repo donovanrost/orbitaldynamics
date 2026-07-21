@@ -193,6 +193,9 @@ work, a **partial** executable-schema track, and **near-term** / **later** /
 - Stable candidate activity IDs are unique, as are stable selected activity IDs
   within each ranked timeline, preventing snapshot-key collapse and ambiguous
   optimizer handoffs. This property-key uniqueness is an executable rule.
+- Candidate activities preserve ascending scenario/start/ID order, and each
+  ranked timeline preserves ascending start/ID order. Executable adjacent-row
+  checks keep report and optimizer array order aligned with the producer.
 - Selected, candidate, and ranked activities require stable outer and nested
   source-window IDs, with executable equality checks preserving activity lineage
   back to the producer window.
