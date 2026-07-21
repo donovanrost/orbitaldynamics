@@ -105,7 +105,8 @@ Already implemented or heavily covered:
   candidate identities, ordered source paths, and risk weight; candidate IDs
   and values are pinned to exactly one embedded source candidate row
 - runtime and exported V2 contracts require numeric aggregate score terms;
-  runtime validation pins their sum and optional score-term report source,
+  runtime validation pins their sum and optional score-term report repair model,
+  embedded policy/source assumption, sorted rows, source-plan row identities,
   values, rank/selection, and timeline score to the enclosing repair artifact,
   and reconciles any contact-intent penalty to unique pressured downlink IDs in
   the repaired activities; a present aggregate activity score is recomputed

@@ -295,7 +295,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreContracts do
 
   defp validate_score_term_report(
          issues,
-         %{"score" => score, "score_terms" => score_terms},
+         %{"score" => score, "score_terms" => score_terms} = artifact,
          %{"rows" => rows} = report
        )
        when is_number(score) and is_map(score_terms) and is_list(rows) do
@@ -304,6 +304,12 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreContracts do
       expected_term_keys = score_terms |> Map.keys() |> Enum.sort()
 
       issues
+      |> validate_equal(
+        "$.score_term_report.model",
+        Map.get(report, "model"),
+        "repair_score_terms",
+        "must identify repair score terms"
+      )
       |> validate_equal(
         "$.score_term_report.source",
         Map.get(report, "source"),
@@ -328,7 +334,14 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreContracts do
         expected_term_keys,
         "must contain exactly one row for each enclosing repair score term"
       )
-      |> validate_report_rows(score, score_terms, rows)
+      |> validate_equal(
+        "$.score_term_report.rows",
+        term_keys,
+        expected_term_keys,
+        "must use deterministic score-term key order"
+      )
+      |> validate_score_term_assumptions(artifact, Map.get(report, "assumptions"))
+      |> validate_report_rows(artifact, score, score_terms, rows)
     else
       issues
     end
@@ -336,7 +349,27 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreContracts do
 
   defp validate_score_term_report(issues, _artifact, _report), do: issues
 
-  defp validate_report_rows(issues, score, score_terms, rows) do
+  defp validate_score_term_assumptions(issues, artifact, %{} = assumptions) do
+    issues
+    |> validate_equal(
+      "$.score_term_report.assumptions.score_term_source",
+      Map.get(assumptions, "score_term_source"),
+      "campaign_repair.score_terms",
+      "must identify campaign_repair.score_terms"
+    )
+    |> validate_equal(
+      "$.score_term_report.assumptions.policy",
+      Map.get(assumptions, "policy"),
+      Map.get(artifact, "scoring_policy"),
+      "must match enclosing repair scoring policy"
+    )
+  end
+
+  defp validate_score_term_assumptions(issues, _artifact, _assumptions), do: issues
+
+  defp validate_report_rows(issues, artifact, score, score_terms, rows) do
+    scenario_id = Map.get(artifact, "source_plan_id")
+
     rows
     |> Enum.with_index()
     |> Enum.reduce(issues, fn {row, index}, acc ->
@@ -368,8 +401,26 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreContracts do
         1,
         "must use rank 1 for the single repair score timeline"
       )
+      |> validate_equal(
+        path <> ".scenario_id",
+        Map.get(row, "scenario_id"),
+        scenario_id,
+        "must match the enclosing repair source plan"
+      )
+      |> validate_equal(
+        path <> ".id",
+        Map.get(row, "id"),
+        score_term_row_id(scenario_id, term_key),
+        "must match deterministic repair score-term identity"
+      )
     end)
   end
+
+  defp score_term_row_id(scenario_id, term_key)
+       when is_binary(scenario_id) and is_binary(term_key),
+       do: "score_term:#{scenario_id}:1:#{term_key}"
+
+  defp score_term_row_id(_scenario_id, _term_key), do: nil
 
   defp validate_number_equal(issues, _path, left, right, _message)
        when not is_number(left) or not is_number(right),

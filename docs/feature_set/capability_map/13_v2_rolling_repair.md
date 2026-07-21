@@ -120,8 +120,10 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   budget, provider reservation, or schedule mutation.
 - Runtime `campaign_repair.v2` validation requires numeric score terms, verifies
   their sum against the top-level score, and—when the optional score-term report
-  is present—pins its repair source, unique term/value rows, rank/selection, and
-  timeline score against the enclosing artifact. When a
+  is present—requires the repair-specific model, exact embedded scoring policy
+  and score-term source assumption, sorted unique term/value rows, source-plan
+  scenario and deterministic row IDs, rank/selection, and timeline score against
+  the enclosing artifact. When a
   `contact_intent_pressure_penalty` term is present, runtime validation also
   recomputes it from unique exact pressured downlink IDs selected in repaired
   activities and the declared `risk_weight`. The exported schema constrains

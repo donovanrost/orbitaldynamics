@@ -606,6 +606,46 @@ defmodule OrbitalDynamics.Schema.CampaignRepairScoreContractsTest do
     end
   end
 
+  test "rejects score-term report model, policy, order, and identity drift", %{
+    artifact: artifact
+  } do
+    invalid_cases = [
+      {"$.score_term_report.model",
+       put_in(artifact, ["score_term_report", "model"], "ranked_timeline_score_terms")},
+      {"$.score_term_report.assumptions.score_term_source",
+       put_in(
+         artifact,
+         ["score_term_report", "assumptions", "score_term_source"],
+         "ranked_timeline.score_terms"
+       )},
+      {"$.score_term_report.assumptions.policy",
+       put_in(
+         artifact,
+         ["score_term_report", "assumptions", "policy", "risk_weight"],
+         2.0
+       )},
+      {"$.score_term_report.rows",
+       update_in(artifact, ["score_term_report", "rows"], &Enum.reverse/1)},
+      {"$.score_term_report.rows[0].scenario_id",
+       put_in(
+         artifact,
+         ["score_term_report", "rows", Access.at(0), "scenario_id"],
+         "campaign_plan:other:2026-05-13T00:00:00Z"
+       )},
+      {"$.score_term_report.rows[0].id",
+       put_in(
+         artifact,
+         ["score_term_report", "rows", Access.at(0), "id"],
+         "score_term:campaign_plan:other:2026-05-13T00:00:00Z:1:activity_score"
+       )}
+    ]
+
+    for {expected_path, invalid} <- invalid_cases do
+      assert {:error, report} = Schema.validate_artifact(invalid)
+      assert Enum.any?(report["errors"], &(&1["path"] == expected_path))
+    end
+  end
+
   defp coordinated_term_edit(artifact, term_key, delta) do
     tampered_score = artifact["score"] + delta
     tampered_term = artifact["score_terms"][term_key] + delta
