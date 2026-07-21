@@ -214,6 +214,8 @@ Already implemented or heavily covered:
   component or count explanations
 - V1 activity-score and activity-count-penalty aggregates are reconciled to
   nested activity scores, selected count, and the declared scoring-policy penalty
+- exported V1 ranked score terms require nonnegative integer observation/contact
+  counts reconciled to nested activities with the producer's exact classifiers
 - runtime V1 validation also preserves the producer's descending timeline score
   order and deterministic ascending scenario tie-break; this adjacent-row rule
   remains executable because JSON Schema does not express the comparison

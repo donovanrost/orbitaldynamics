@@ -250,10 +250,17 @@ defmodule OrbitalDynamics.Schema.CampaignPlanJsonSchema do
         "score" => %{"type" => "number"},
         "score_terms" => %{
           "type" => "object",
-          "required" => ["activity_score", "activity_count_penalty"],
+          "required" => [
+            "activity_score",
+            "activity_count_penalty",
+            "selected_observation_count",
+            "selected_contact_count"
+          ],
           "properties" => %{
             "activity_score" => %{"type" => "number"},
-            "activity_count_penalty" => %{"type" => "number"}
+            "activity_count_penalty" => %{"type" => "number"},
+            "selected_observation_count" => %{"type" => "integer", "minimum" => 0},
+            "selected_contact_count" => %{"type" => "integer", "minimum" => 0}
           },
           "additionalProperties" => %{"type" => "number"}
         },

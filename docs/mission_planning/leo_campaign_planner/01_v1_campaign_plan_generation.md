@@ -79,6 +79,10 @@ It answers:
   equals the nested activity-score sum, and `activity_count_penalty` equals the
   negative selected count times the declared scoring-policy penalty (default
   zero). Malformed source values remain owned by their field validators.
+- Ranked timelines also require nonnegative integer selected-observation and
+  selected-contact counts. Runtime reconciles observations by activity type and
+  contacts through the same normalized downlink classifier used by ranking;
+  JSON Schema requires and integer-types both terms.
 - `campaign_plan.objective_tradeoff_report` with per-ranked-timeline score-term
   deltas for operator review.
 - `campaign_plan.activities` for the highest-ranked timeline.

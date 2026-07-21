@@ -229,6 +229,9 @@ work, a **partial** executable-schema track, and **near-term** / **later** /
 - Executable validation also derives activity score from the selected nested
   activity scores and count penalty from selected count plus the declared
   scoring-policy penalty, including the producer's zero default.
+- Exported ranked score terms require nonnegative integer selected-observation
+  and selected-contact counts. Executable validation reconciles both to nested
+  activities using the ranking producer's observation and downlink classifiers.
 - Ranked-timeline scenario IDs are unique, and nested activities must carry the
   identity of their enclosing scenario. Empty timelines remain valid; scenario
   uniqueness and ownership are executable cross-row/cross-field rules.

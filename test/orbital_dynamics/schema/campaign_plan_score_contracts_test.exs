@@ -50,9 +50,25 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContractsTest do
         "score_terms"
       ])
 
-    assert score_terms["required"] == ["activity_score", "activity_count_penalty"]
+    assert score_terms["required"] == [
+             "activity_score",
+             "activity_count_penalty",
+             "selected_observation_count",
+             "selected_contact_count"
+           ]
+
     assert get_in(score_terms, ["properties", "activity_score", "type"]) == "number"
     assert get_in(score_terms, ["properties", "activity_count_penalty", "type"]) == "number"
+
+    assert get_in(score_terms, ["properties", "selected_observation_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
+
+    assert get_in(score_terms, ["properties", "selected_contact_count"]) == %{
+             "type" => "integer",
+             "minimum" => 0
+           }
   end
 
   test "requires activity score evidence on every V1 activity surface", %{artifact: artifact} do
@@ -131,8 +147,13 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContractsTest do
              Schema.validate_artifact(artifact)
   end
 
-  test "requires the core ranked timeline aggregate score terms", %{artifact: artifact} do
-    for term <- ["activity_score", "activity_count_penalty"] do
+  test "requires the core ranked timeline score terms", %{artifact: artifact} do
+    for term <- [
+          "activity_score",
+          "activity_count_penalty",
+          "selected_observation_count",
+          "selected_contact_count"
+        ] do
       [timeline] = artifact["ranked_timelines"]
       timeline = update_in(timeline, ["score_terms"], &Map.delete(&1, term))
       invalid = with_timelines(artifact, [timeline])
@@ -268,7 +289,9 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContractsTest do
       "score" => 0.0,
       "score_terms" => %{
         "activity_score" => 0.0,
-        "activity_count_penalty" => 0.0
+        "activity_count_penalty" => 0.0,
+        "selected_observation_count" => 0,
+        "selected_contact_count" => 0
       },
       "activity_count" => 0,
       "activities" => []
@@ -303,6 +326,83 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContractsTest do
              policy_issues,
              &(&1["message"] == "must match activity count and scoring policy")
            )
+  end
+
+  test "reconciles selected observation and contact counts", %{artifact: artifact} do
+    [timeline] = artifact["ranked_timelines"]
+
+    invalid =
+      timeline
+      |> put_in(["score_terms", "selected_observation_count"], 0)
+      |> put_in(["score_terms", "selected_contact_count"], 1)
+      |> then(&with_timelines(artifact, [&1]))
+
+    assert {:error, report} = Schema.validate_artifact(invalid)
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] ==
+                 "$.ranked_timelines[0].score_terms.selected_observation_count" and
+                 &1["message"] == "must match nested observation activity count")
+           )
+
+    assert Enum.any?(
+             report["errors"],
+             &(&1["path"] == "$.ranked_timelines[0].score_terms.selected_contact_count" and
+                 &1["message"] == "must match nested downlink contact count")
+           )
+  end
+
+  test "counts producer downlink activities as selected contacts", %{artifact: artifact} do
+    downlink = List.first(artifact["candidate_activities"])
+
+    timeline = %{
+      "scenario_id" => downlink["scenario_id"],
+      "score" => downlink["score"],
+      "score_terms" => %{
+        "activity_score" => downlink["score"],
+        "activity_count_penalty" => 0.0,
+        "selected_observation_count" => 0,
+        "selected_contact_count" => 1
+      },
+      "activity_count" => 1,
+      "activities" => [downlink]
+    }
+
+    assert [] ==
+             CampaignPlanScoreContracts.validate([], %{
+               "ranked_timelines" => [timeline],
+               "assumptions" => %{"scoring_policy" => %{}}
+             })
+  end
+
+  test "rejects malformed selected-count terms without count-evidence noise", %{
+    artifact: artifact
+  } do
+    [timeline] = artifact["ranked_timelines"]
+
+    for {term, value} <- [
+          {"selected_observation_count", -1},
+          {"selected_contact_count", 1.5}
+        ] do
+      timeline = put_in(timeline, ["score_terms", term], value)
+
+      issues =
+        CampaignPlanScoreContracts.validate([], %{
+          "ranked_timelines" => [timeline],
+          "assumptions" => %{"scoring_policy" => %{}}
+        })
+
+      assert Enum.any?(issues, &(&1["path"] == "$.ranked_timelines[0].score_terms.#{term}"))
+
+      refute Enum.any?(
+               issues,
+               &(&1["message"] in [
+                   "must match nested observation activity count",
+                   "must match nested downlink contact count"
+                 ])
+             )
+    end
   end
 
   test "requires ranked timelines to follow descending planner score order", %{
@@ -453,6 +553,8 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContractsTest do
       first
       |> Map.put("scenario_id", "leo_2")
       |> put_timeline_score(0.0)
+      |> put_in(["score_terms", "selected_observation_count"], 0)
+      |> put_in(["score_terms", "selected_contact_count"], 0)
       |> Map.put("activity_count", 0)
       |> Map.put("activities", [])
 

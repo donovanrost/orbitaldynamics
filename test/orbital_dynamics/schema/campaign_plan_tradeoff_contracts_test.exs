@@ -27,6 +27,8 @@ defmodule OrbitalDynamics.Schema.CampaignPlanTradeoffContractsTest do
       |> Map.put("score", 0.0)
       |> put_in(["score_terms", "activity_score"], 0.0)
       |> put_in(["score_terms", "activity_count_penalty"], 0.0)
+      |> put_in(["score_terms", "selected_observation_count"], 0)
+      |> put_in(["score_terms", "selected_contact_count"], 0)
       |> Map.put("activity_count", 0)
       |> Map.put("activities", [])
 

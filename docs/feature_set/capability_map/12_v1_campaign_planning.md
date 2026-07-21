@@ -192,6 +192,10 @@ The core inputs are independently reconciled: `activity_score` equals the sum of
 nested activity scores, and `activity_count_penalty` equals negative selected
 activity count times `assumptions.scoring_policy.activity_count_penalty`, using
 the producer's zero default when that policy key is absent.
+Ranked score evidence also requires nonnegative integer
+`selected_observation_count` and `selected_contact_count` terms. Runtime derives
+the former from `observe` activities and the latter with the producer's
+normalized downlink-contact classifier; JSON Schema requires and types both.
 Runtime validation also reconciles the optional objective-tradeoff report with
 the ranked timelines: V1 model/source, rank and scenario identity, ranking and
 term-key counts, scores and selected-score deltas, term maps, selected counts,

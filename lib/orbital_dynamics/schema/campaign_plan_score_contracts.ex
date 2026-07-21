@@ -13,9 +13,11 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContracts do
       require_fields: 4
     ]
 
+  alias OrbitalDynamics.CampaignPlanner.DownlinkActivityNormalization
   alias OrbitalDynamics.Schema.{ActivityContracts, StableIdValidation}
 
   @required_aggregate_terms ~w(activity_score activity_count_penalty)
+  @required_count_terms ~w(selected_observation_count selected_contact_count)
   @optional_aggregate_terms ~w(
     downlink_completion_score
     timeline_precondition_pressure_penalty
@@ -48,7 +50,8 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContracts do
     |> StableIdValidation.validate_stable_ids(path, timeline, ["scenario_id"])
     |> expect_number(path, timeline, "score")
     |> expect_type(path, timeline, "score_terms", :map)
-    |> require_aggregate_terms(path, score_terms)
+    |> require_score_terms(path, score_terms)
+    |> validate_selection_count_term_shapes(path, score_terms)
     |> validate_numeric_map(path <> ".score_terms", score_terms)
     |> expect_non_negative_integer(path, timeline, "activity_count")
     |> expect_type(path, timeline, "activities", :list)
@@ -62,10 +65,25 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContracts do
     |> validate_timeline_score_evidence(path, timeline, scoring_policy)
   end
 
-  defp require_aggregate_terms(issues, path, score_terms) when is_map(score_terms),
-    do: require_fields(issues, path <> ".score_terms", score_terms, @required_aggregate_terms)
+  defp require_score_terms(issues, path, score_terms) when is_map(score_terms),
+    do:
+      require_fields(
+        issues,
+        path <> ".score_terms",
+        score_terms,
+        @required_aggregate_terms ++ @required_count_terms
+      )
 
-  defp require_aggregate_terms(issues, _path, _score_terms), do: issues
+  defp require_score_terms(issues, _path, _score_terms), do: issues
+
+  defp validate_selection_count_term_shapes(issues, path, score_terms)
+       when is_map(score_terms) do
+    Enum.reduce(@required_count_terms, issues, fn term, acc ->
+      expect_non_negative_integer(acc, path <> ".score_terms", score_terms, term)
+    end)
+  end
+
+  defp validate_selection_count_term_shapes(issues, _path, _score_terms), do: issues
 
   defp validate_activity_count(issues, path, %{
          "activity_count" => activity_count,
@@ -113,6 +131,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContracts do
     issues
     |> validate_activity_score_evidence(path, timeline)
     |> validate_activity_count_penalty_evidence(path, timeline, scoring_policy)
+    |> validate_selection_count_evidence(path, timeline)
   end
 
   defp validate_activity_score_evidence(
@@ -174,6 +193,42 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContracts do
          _scoring_policy
        ),
        do: issues
+
+  defp validate_selection_count_evidence(
+         issues,
+         path,
+         %{"score_terms" => score_terms, "activities" => activities}
+       )
+       when is_map(score_terms) and is_list(activities) do
+    observation_count = Map.get(score_terms, "selected_observation_count")
+    contact_count = Map.get(score_terms, "selected_contact_count")
+
+    if non_negative_integer?(observation_count) and non_negative_integer?(contact_count) and
+         Enum.all?(activities, &valid_count_activity?/1) do
+      issues
+      |> validate_equal(
+        path <> ".score_terms.selected_observation_count",
+        observation_count,
+        Enum.count(activities, &(&1["type"] == "observe")),
+        "must match nested observation activity count"
+      )
+      |> validate_equal(
+        path <> ".score_terms.selected_contact_count",
+        contact_count,
+        Enum.count(activities, &DownlinkActivityNormalization.downlink?/1),
+        "must match nested downlink contact count"
+      )
+    else
+      issues
+    end
+  end
+
+  defp validate_selection_count_evidence(issues, _path, _timeline), do: issues
+
+  defp valid_count_activity?(%{"type" => type}) when is_binary(type), do: true
+  defp valid_count_activity?(_activity), do: false
+
+  defp non_negative_integer?(value), do: is_integer(value) and value >= 0
 
   defp scoring_policy(%{"assumptions" => assumptions}) when is_map(assumptions) do
     case Map.fetch(assumptions, "scoring_policy") do
