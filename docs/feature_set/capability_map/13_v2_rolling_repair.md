@@ -121,8 +121,12 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
 - Runtime `campaign_repair.v2` validation requires numeric score terms, verifies
   their sum against the top-level score, and—when the optional score-term report
   is present—pins its repair source, unique term/value rows, rank/selection, and
-  timeline score against the enclosing artifact. The exported schema constrains
-  every `score_terms` value to a number.
+  timeline score against the enclosing artifact. When a
+  `contact_intent_pressure_penalty` term is present, runtime validation also
+  recomputes it from unique exact pressured downlink IDs selected in repaired
+  activities and the declared `risk_weight`. The exported schema constrains
+  every `score_terms` value to a number; these cross-field comparisons remain
+  executable contracts.
 
 ## Refreshed missed-contact repair
 
@@ -168,6 +172,10 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   agree, nonzero pressure terms carry their source evidence, and rows remain
   ordered by diff priority then score. Zero-weight pressured evidence remains
   valid so policy calibration can intentionally neutralize a known pressure.
+  Once any row uses the current contact-intent explanation, every row must emit
+  its numeric penalty and runtime validation recomputes both that value and its
+  optional sorted statuses from exact `source_contact_intents` identities and
+  `risk_weight`. Rankings whose rows all predate these fields remain compatible.
 
 ## Additional reports and reconciliation
 

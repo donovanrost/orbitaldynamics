@@ -2,6 +2,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
   @moduledoc false
 
   alias OrbitalDynamics.Schema.{
+    CampaignRepairContactIntentPressureContracts,
     CampaignRepairReplacementRankingContracts,
     CampaignRepairScoreContracts
   }
@@ -91,6 +92,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairContracts do
       Map.get(artifact, "score_term_report")
     ])
     |> CampaignRepairScoreContracts.validate(artifact)
+    |> CampaignRepairContactIntentPressureContracts.validate(artifact)
     |> call(callbacks, :validate_optional_link_capacity_report, [
       Map.get(artifact, "link_capacity_report")
     ])

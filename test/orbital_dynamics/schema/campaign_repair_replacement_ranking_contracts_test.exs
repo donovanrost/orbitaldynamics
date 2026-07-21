@@ -59,6 +59,20 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
       |> put_in_path(ranking_path <> ".evaluated_candidate_count", 2)
       |> put_in_path(ranking_path <> ".selected_candidate_id", "dl_other")
 
+    partial_current_artifact =
+      context.artifact
+      |> put_in_path(ranking_path <> ".rows", [
+        ranking_row,
+        ranking_row
+        |> Map.put("candidate_id", "dl_legacy")
+        |> Map.put("candidate_score", 9.0)
+        |> Map.put("ranking_score", -95.0)
+        |> Map.put("rank", 2)
+        |> Map.put("selected", false)
+        |> Map.delete("contact_intent_pressure_penalty")
+      ])
+      |> put_in_path(ranking_path <> ".evaluated_candidate_count", 2)
+
     invalid_cases = [
       {ranking_path <> ".model",
        put_in_path(context.artifact, ranking_path <> ".model", "legacy_replacement_ranking")},
@@ -74,6 +88,7 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
        put_in_path(context.artifact, ranking_path <> ".rows[0].selected", false)},
       {ranking_path <> ".rows", duplicate_candidate_artifact},
       {ranking_path <> ".rows", selected_second_artifact},
+      {ranking_path <> ".rows[1].contact_intent_pressure_penalty", partial_current_artifact},
       {ranking_path <> ".rows[0]",
        put_in_path(context.artifact, ranking_path <> ".rows", ["invalid_row"])},
       {ranking_path <> ".selected_candidate_id",
@@ -107,6 +122,10 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
       {row_path <> ".contact_intent_pressure_statuses",
        put_in_path(context.artifact, row_path <> ".contact_intent_pressure_statuses", [
          "cadence_import_missing",
+         "blocked_by_policy"
+       ])},
+      {row_path <> ".contact_intent_pressure_statuses",
+       put_in_path(context.artifact, row_path <> ".contact_intent_pressure_statuses", [
          "blocked_by_policy"
        ])},
       {row_path <> ".link_capacity_pressure_shortfall_mb",
@@ -181,6 +200,11 @@ defmodule OrbitalDynamics.Schema.CampaignRepairReplacementRankingContractsTest d
       {row_path <> ".contact_intent_pressure_statuses",
        context.artifact
        |> put_in_path(row_path <> ".contact_intent_pressure_penalty", -1.0)
+       |> put_in_path(row_path <> ".ranking_score", ranking_score - 1.0)},
+      {row_path <> ".contact_intent_pressure_penalty",
+       context.artifact
+       |> put_in_path(row_path <> ".contact_intent_pressure_penalty", -1.0)
+       |> put_in_path(row_path <> ".contact_intent_pressure_statuses", ["blocked_by_policy"])
        |> put_in_path(row_path <> ".ranking_score", ranking_score - 1.0)},
       {row_path <> ".link_capacity_pressure_shortfall_mb",
        context.artifact

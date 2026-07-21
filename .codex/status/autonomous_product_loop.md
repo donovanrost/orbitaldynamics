@@ -5,72 +5,64 @@ Level 6 mature operational-planning platform across library, LEO campaign
 planning, and Cadence-facing operational-planning surfaces.
 
 Current slice:
-Rank V2 replacements with exact contact-intent pressure.
+Reconcile V2 contact-intent pressure explanations to source evidence.
 
 Status:
 Complete; ready to publish.
 
 Selection evidence:
-- Final V2 scoring now applies exact selected contact-intent pressure, but
-  `RepairReplacementSelection` still ranks viable alternatives without it.
-- A higher-value pressured replacement can therefore be selected before the same
-  evidence lowers the final repair objective, creating selection/score
-  misalignment.
-- Repair execution already builds exact candidate-ID pressure context for
-  station-calendar and contact-allocation evidence, providing the bounded
-  pattern for contact-intent identities.
-- The shared normalized V3 contact-intent identity set provides exact status and
-  contact ID tuples; no aggregate evidence needs to affect ranking.
+- Current replacement-ranking validation constrains field types, known sorted
+  statuses, arithmetic, and nonzero evidence presence, but does not prove that
+  candidate statuses or penalties match `source_contact_intents`.
+- Current V2 score validation pins numeric term totals and optional score-term
+  report rows, but a contact-intent term can still disagree with exact selected
+  source identities if the enclosing score is changed with it.
+- The shared contact-intent identity classifier and selected-downlink logic
+  already define deterministic expected evidence for both surfaces.
 
 Intended behavior:
-- Build a deterministic candidate-ID to sorted pressure-status map from validated
-  candidate-refresh contact intents through the shared V3 identity-set path.
-- Apply one normalized `risk_weight` unit to each viable replacement candidate
-  with exact downlink contact-intent pressure.
-- Emit numeric `contact_intent_pressure_penalty` and optional nonempty sorted
-  known-status evidence on current replacement-ranking rows; accept older V2
-  rows without the penalty and default it to zero in contract arithmetic.
-- Include the penalty in ranking arithmetic and runtime/JSON Schema validation;
-  require status evidence whenever the penalty is nonzero.
-- Preserve semantic candidate-diff priority, deterministic tie-breaking, and the
-  final-score one-unit-per-unique-contact calibration.
-- Keep nominal, unrelated, review-only, non-downlink, duplicate, malformed, and
-  zero-weight pressure from creating unexplained ranking effects.
-- Add selection-flip, neutral, zero-weight, arithmetic/evidence, schema-export,
-  and compatibility coverage and update V2/resource/roadmap documentation.
+- Derive one candidate-ID to sorted pressure-status map from embedded validated
+  source contact intents through the shared identity classifier.
+- For current ranking rows, reconcile every emitted contact-intent penalty and
+  status list to that exact map and the artifact's `risk_weight`.
+- Require consistent current-field presence across a ranking once any row uses
+  the new contact-intent explanation; continue accepting all-prechange rows.
+- When the final contact-intent score term is present, reconcile it to unique
+  pressured downlink IDs in the repaired activities and the same risk weight.
+- Add exact mismatch, partial-current-row, zero-weight, final-term, and legacy
+  compatibility tests; document the executable cross-field guarantee.
 
 Level 6 pillar advanced:
-Candidate-specific communications pressure aligned between repair selection and
-explainable final scoring.
+Durable schema-versioned V2 explanations with executable source reconciliation.
 
-Previous published slice:
-- `955e7199` Score V2 contact intent pressure (`3706 passed`).
+Last published slice:
+- `6b1396b3` Rank V2 replacements with contact intent pressure (`3709 passed`).
 
 Likely files:
-- repair execution and replacement-selection modules
-- V2 replacement-ranking runtime and JSON Schema contracts
-- replacement ranking and contact-intent repair tests
-- generated campaign-repair schema/bundle plus V2/resource/roadmap docs
+- V2 campaign-repair runtime contract modules
+- replacement-ranking and repair contact-intent contract tests
+- V2 capability and roadmap docs
 
 Verification:
-- Focused ranking/source-handoff contracts: `16 passed`.
-- Repair-path suite: `72 passed`.
+- Focused ranking, score, and source-handoff contracts: `16 passed`.
 - Campaign-repair schema fixtures: `11 passed`.
+- Repair-path suite: `72 passed`.
 - Schema suite plus schema-lint task tests: `389 passed`.
 - Campaign-planner suite: `759 passed`.
 - Full suite: `3709 passed`.
 - `mix format --check-formatted`, `mix compile --warnings-as-errors`, and
   `git diff --check` passed.
-- Full schema export changed only `campaign_repair.v2.schema.json` and the
-  aggregate schema bundle.
+- Runtime-only contract hardening required no generated schema changes.
 
 Review:
-- Exact identities are downlink-only and candidate-specific; duplicate and
-  multi-status evidence produces one calibrated penalty per candidate.
-- Semantic candidate-diff priority remains the leading ranking key.
-- Zero-weight pressure retains evidence without changing selection arithmetic.
-- The new numeric producer field is optional in runtime and exported schema
-  contracts, with an explicit pre-change-row compatibility test.
+- Producer and validator share the same exact identity-to-status map helper, so
+  contact classification, deduplication, and sorting cannot drift locally.
+- Cross-field validation tolerates malformed surrounding rows long enough for
+  the existing structural validators to report them instead of raising.
+- Current rows reconcile penalties and statuses at zero and nonzero risk weight;
+  all-prechange rows remain valid as an explicit compatibility mode.
+- A present final score term reconciles unique selected downlink identities and
+  cannot be disguised by changing the total and score-term report together.
 
 Remaining maturity gaps:
 - Continue candidate-specific resource/contact/readiness selection or ranking

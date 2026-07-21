@@ -140,11 +140,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairExecution do
     |> RepairCandidateInputs.contact_intents()
     |> Enum.filter(&is_map/1)
     |> Enum.map(&{&1, "campaign_repair.source_contact_intents"})
-    |> ContactIntentPressureBranches.identity_set()
-    |> Enum.group_by(&elem(&1, 1), &elem(&1, 0))
-    |> Map.new(fn {candidate_id, statuses} ->
-      {candidate_id, statuses |> Enum.uniq() |> Enum.sort()}
-    end)
+    |> ContactIntentPressureBranches.pressure_statuses_by_contact_id()
   end
 
   defp candidate_diff_replacements(nil), do: %{}

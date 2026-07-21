@@ -695,6 +695,29 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
 
     assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
              Schema.validate_artifact(artifact)
+
+    tampered_score = artifact["score"] + 1.0
+
+    mismatched_score_term =
+      artifact
+      |> put_in(["score_terms", "contact_intent_pressure_penalty"], -1.5)
+      |> Map.put("score", tampered_score)
+      |> update_in(["score_term_report", "rows"], fn rows ->
+        Enum.map(rows, fn row ->
+          row = Map.put(row, "timeline_score", tampered_score)
+
+          if row["term_key"] == "contact_intent_pressure_penalty",
+            do: Map.put(row, "value", -1.5),
+            else: row
+        end)
+      end)
+
+    assert {:error, score_term_report} = Schema.validate_artifact(mismatched_score_term)
+
+    assert Enum.any?(
+             score_term_report["errors"],
+             &(&1["path"] == "$.score_terms.contact_intent_pressure_penalty")
+           )
   end
 
   test "repair keeps unrelated and nonblocking contact intents score-neutral" do
@@ -772,6 +795,31 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
              "cadence_import_invalid"
            ]
 
+    high_index = Enum.find_index(ranking["rows"], &(&1["candidate_id"] == "dl_high"))
+
+    mismatched_statuses =
+      put_in(
+        artifact,
+        [
+          "activities",
+          Access.at(0),
+          "repair",
+          "replacement_ranking",
+          "rows",
+          Access.at(high_index),
+          "contact_intent_pressure_statuses"
+        ],
+        ["blocked_by_policy"]
+      )
+
+    assert {:error, mismatch_report} = Schema.validate_artifact(mismatched_statuses)
+
+    assert Enum.any?(
+             mismatch_report["errors"],
+             &(&1["path"] ==
+                 "$.activities[0].repair.replacement_ranking.rows[#{high_index}].contact_intent_pressure_statuses")
+           )
+
     assert high_row["selected"] == false
     assert low_row["contact_intent_pressure_penalty"] == 0.0
     refute Map.has_key?(low_row, "contact_intent_pressure_statuses")
@@ -804,6 +852,23 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairCandidateRefreshSourceReportsTes
 
     assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
              Schema.validate_artifact(artifact)
+
+    legacy_ranking =
+      update_in(
+        artifact,
+        ["activities", Access.at(0), "repair", "replacement_ranking", "rows"],
+        fn rows ->
+          Enum.map(rows, fn row ->
+            Map.drop(row, [
+              "contact_intent_pressure_penalty",
+              "contact_intent_pressure_statuses"
+            ])
+          end)
+        end
+      )
+
+    assert {:ok, %{"schema_contract" => "campaign_repair.v2"}} =
+             Schema.validate_artifact(legacy_ranking)
   end
 
   test "repair replacement ranking keeps review-only intent evidence neutral" do

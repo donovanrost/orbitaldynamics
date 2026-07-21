@@ -33,6 +33,15 @@ defmodule OrbitalDynamics.CampaignPlanner.ContactIntentPressureBranches do
     |> MapSet.new()
   end
 
+  def pressure_statuses_by_contact_id(rows_with_source, callbacks \\ default_callbacks()) do
+    rows_with_source
+    |> identity_set(callbacks)
+    |> Enum.group_by(&elem(&1, 1), &elem(&1, 0))
+    |> Map.new(fn {contact_id, statuses} ->
+      {contact_id, statuses |> Enum.uniq() |> Enum.sort()}
+    end)
+  end
+
   def summaries_from_sources(
         summaries_with_source,
         excluded_identities,
