@@ -184,6 +184,9 @@ work, a **partial** executable-schema track, and **near-term** / **later** /
 - Selected, candidate, and ranked-timeline activities export required numeric
   non-negative durations, and executable V1 validation reconciles every value
   to its start/end interval before scoring or handoff evidence is accepted.
+- Those activity surfaces also export numeric score-term map values; executable
+  V1 validation requires score/term presence and types, then reconciles each
+  activity score to the sum of its terms.
 - It also exports typed target-commitment rows reconciled with candidate and
   selected observation counts, durations, selected IDs, statuses, unique target
   identity, and matching objective-satisfaction target rows.

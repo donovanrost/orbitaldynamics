@@ -228,6 +228,8 @@ Already implemented or heavily covered:
   declared
 - selected, candidate, and ranked V1 activities require numeric non-negative
   duration evidence, with runtime reconciliation against each start/end interval
+- selected, candidate, and ranked V1 activities require numeric score/term
+  evidence, with each activity score reconciled to its numeric term sum
 - optional V1 optimizer metadata is reconciled with enclosing candidate,
   selected-activity, ranked-timeline, constraint, scoring-policy, and objective
   evidence; the required ranking explanation is nested and typed

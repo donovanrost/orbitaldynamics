@@ -108,6 +108,12 @@ completeness against target-commitment objective-satisfaction rows.
 - activity score
 - activity-count penalty components
 
+Selected, candidate, and ranked-timeline activity scores are independently
+auditable: runtime validation requires numeric `score` and `score_terms`
+evidence, rejects non-numeric term values, and reconciles every activity score
+to its term sum. JSON Schema exports numeric score-term map values on all three
+activity surfaces; cross-field sum reconciliation remains executable behavior.
+
 Runtime `campaign_plan.v1` validation requires each ranked timeline to carry a
 stable scenario ID, numeric score, and numeric score-term values. When the
 optional `score_term_report.v1` is present, its source, model, term-key union,

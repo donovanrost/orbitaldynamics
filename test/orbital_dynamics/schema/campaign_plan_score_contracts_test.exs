@@ -18,6 +18,94 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContractsTest do
              Schema.validate_artifact(artifact)
   end
 
+  test "exports numeric activity score terms on every V1 activity surface" do
+    assert {:ok, schema} = Schema.json_schema("campaign_plan.v1")
+
+    for {schema_path, _artifact_path} <- activity_surfaces() do
+      activity_schema = get_in(schema, schema_path)
+
+      assert "score" in activity_schema["required"]
+      assert "score_terms" in activity_schema["required"]
+      assert get_in(activity_schema, ["properties", "score", "type"]) == "number"
+
+      assert get_in(activity_schema, [
+               "properties",
+               "score_terms",
+               "additionalProperties",
+               "type"
+             ]) == "number"
+    end
+  end
+
+  test "requires activity score evidence on every V1 activity surface", %{artifact: artifact} do
+    for {_schema_path, {access, path}} <- activity_surfaces(),
+        field <- ["score", "score_terms"] do
+      invalid = update_in(artifact, access, &Map.delete(&1, field))
+
+      assert {:error, report} = Schema.validate_artifact(invalid)
+
+      assert Enum.any?(
+               report["errors"],
+               &(&1["path"] == "#{path}.#{field}" and &1["message"] == "is required")
+             )
+    end
+  end
+
+  test "rejects malformed activity score shapes on every V1 activity surface", %{
+    artifact: artifact
+  } do
+    for {_schema_path, {access, path}} <- activity_surfaces() do
+      invalid_score = put_in(artifact, access ++ ["score"], "10")
+      assert {:error, score_report} = Schema.validate_artifact(invalid_score)
+
+      assert Enum.any?(
+               score_report["errors"],
+               &(&1["path"] == path <> ".score" and &1["message"] == "must be a number")
+             )
+
+      invalid_terms = put_in(artifact, access ++ ["score_terms"], [])
+      assert {:error, terms_report} = Schema.validate_artifact(invalid_terms)
+
+      assert Enum.any?(
+               terms_report["errors"],
+               &(&1["path"] == path <> ".score_terms" and
+                   &1["message"] == "must be a map")
+             )
+    end
+  end
+
+  test "rejects non-numeric activity score terms on every V1 activity surface", %{
+    artifact: artifact
+  } do
+    for {_schema_path, {access, path}} <- activity_surfaces() do
+      invalid = put_in(artifact, access ++ ["score_terms", "invalid_term"], "10")
+
+      assert {:error, report} = Schema.validate_artifact(invalid)
+
+      assert Enum.any?(
+               report["errors"],
+               &(&1["path"] == path <> ".score_terms.invalid_term" and
+                   &1["message"] == "must be a number")
+             )
+    end
+  end
+
+  test "reconciles activity score to its terms on every V1 activity surface", %{
+    artifact: artifact
+  } do
+    for {_schema_path, {access, path}} <- activity_surfaces() do
+      invalid = update_in(artifact, access ++ ["score"], &(&1 + 1.0))
+
+      assert {:error, report} = Schema.validate_artifact(invalid)
+
+      assert Enum.any?(
+               report["errors"],
+               &(&1["path"] == path <> ".score" and
+                   &1["message"] == "must equal numeric score_terms sum")
+             )
+    end
+  end
+
   test "validates a multi-timeline score report", %{artifact: artifact} do
     [first_timeline] = artifact["ranked_timelines"]
 
@@ -141,5 +229,34 @@ defmodule OrbitalDynamics.Schema.CampaignPlanScoreContractsTest do
       constraints: get_in(artifact, ["assumptions", "constraints"]),
       scoring_policy: get_in(artifact, ["assumptions", "scoring_policy"])
     )
+  end
+
+  defp activity_surfaces do
+    [
+      {[
+         "properties",
+         "activities",
+         "items"
+       ], {["activities", Access.at(0)], "$.activities[0]"}},
+      {[
+         "properties",
+         "candidate_activities",
+         "items"
+       ], {["candidate_activities", Access.at(0)], "$.candidate_activities[0]"}},
+      {[
+         "properties",
+         "ranked_timelines",
+         "items",
+         "properties",
+         "activities",
+         "items"
+       ],
+       {[
+          "ranked_timelines",
+          Access.at(0),
+          "activities",
+          Access.at(0)
+        ], "$.ranked_timelines[0].activities[0]"}}
+    ]
   end
 end

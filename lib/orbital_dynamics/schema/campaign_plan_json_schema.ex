@@ -54,7 +54,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanJsonSchema do
   def property(field, opts) when field in ["activities", "candidate_activities"] do
     opts
     |> Keyword.fetch!(:campaign_activity_schema)
-    |> with_non_negative_duration()
+    |> with_activity_constraints()
     |> array_of()
   end
 
@@ -154,7 +154,7 @@ defmodule OrbitalDynamics.Schema.CampaignPlanJsonSchema do
     |> Keyword.fetch!(:ranked_timeline_schema)
     |> update_in(
       ["properties", "activities", "items"],
-      &with_non_negative_duration/1
+      &with_activity_constraints/1
     )
     |> array_of()
   end
@@ -266,10 +266,13 @@ defmodule OrbitalDynamics.Schema.CampaignPlanJsonSchema do
     }
   end
 
-  defp with_non_negative_duration(activity_schema) do
-    update_in(activity_schema, ["properties", "duration_s"], fn duration_schema ->
-      Map.put(duration_schema, "minimum", 0.0)
-    end)
+  defp with_activity_constraints(activity_schema) do
+    activity_schema
+    |> update_in(["properties", "duration_s"], &Map.put(&1, "minimum", 0.0))
+    |> put_in(
+      ["properties", "score_terms", "additionalProperties"],
+      %{"type" => "number"}
+    )
   end
 
   defp fetch_dep!(deps, key) do

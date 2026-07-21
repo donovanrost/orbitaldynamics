@@ -69,6 +69,9 @@ It answers:
   non-negative `duration_s` evidence. Executable validation reconciles each
   value to `ends_at_s - starts_at_s`; JSON Schema exposes the required type and
   non-negative boundary while runtime validation owns the arithmetic check.
+- Those activity rows also carry required numeric `score` values and numeric
+  `score_terms` maps. Runtime validation requires each score to equal its term
+  sum; JSON Schema constrains every term value to a number.
 - `campaign_plan.proposed_contacts` with stable external IDs for later Cadence
   import.
 - `campaign_plan.contact_intents` as artifact-only `contact_intent.v1` rows for
