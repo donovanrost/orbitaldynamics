@@ -95,6 +95,9 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairResourceProjectionTest do
                  "rank" => 2,
                  "candidate_id" => "obs_pressured",
                  "resource_projection_pressure_penalty" => -1.0,
+                 "resource_projection_pressure_risk_indicators" => [
+                   %{"type" => "payload_unavailable", "spacecraft_id" => "leo_1"}
+                 ],
                  "selected" => false,
                  "ranking_score" => pressured_ranking_score
                }
@@ -110,6 +113,20 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairResourceProjectionTest do
     assert_in_delta nominal_ranking_score, -94.5, 1.0e-9
     assert_in_delta pressured_ranking_score, -95.0, 1.0e-9
     assert nominal_resource_penalty == 0.0
+
+    [nominal_ranking_row, _pressured_ranking_row] =
+      get_in(nominal_artifact, [
+        "activities",
+        Access.at(0),
+        "repair",
+        "replacement_ranking",
+        "rows"
+      ])
+
+    refute Map.has_key?(
+             nominal_ranking_row,
+             "resource_projection_pressure_risk_indicators"
+           )
 
     assert [] ==
              OrbitalDynamics.CampaignPlanner.ResourceProjectionRisk.risk_indicators(
@@ -136,6 +153,9 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairResourceProjectionTest do
                %{
                  "candidate_id" => "obs_pressured",
                  "resource_projection_pressure_penalty" => -0.25,
+                 "resource_projection_pressure_risk_indicators" => [
+                   %{"type" => "payload_unavailable", "spacecraft_id" => "leo_1"}
+                 ],
                  "selected" => true
                },
                %{"candidate_id" => "obs_nominal", "selected" => false}
@@ -147,6 +167,20 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairResourceProjectionTest do
                "repair",
                "replacement_ranking"
              ])
+
+    [_pressured_ranking_row, nominal_ranking_row] =
+      get_in(pressured_artifact, [
+        "activities",
+        Access.at(0),
+        "repair",
+        "replacement_ranking",
+        "rows"
+      ])
+
+    refute Map.has_key?(
+             nominal_ranking_row,
+             "resource_projection_pressure_risk_indicators"
+           )
 
     assert [%{"type" => "payload_unavailable", "spacecraft_id" => "leo_1"}] =
              OrbitalDynamics.CampaignPlanner.ResourceProjectionRisk.risk_indicators(

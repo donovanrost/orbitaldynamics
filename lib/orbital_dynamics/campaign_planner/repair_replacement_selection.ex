@@ -89,12 +89,12 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairReplacementSelection do
     move_cost = numeric_policy_value(context.scoring_policy, "schedule_move_cost_weight", 0.01)
     station_pressure_sources = station_calendar_pressure_sources(candidate, context)
     station_pressure = station_calendar_pressure_penalty(station_pressure_sources, context)
-    link_pressure = link_capacity_pressure_penalty(source, candidate, acc, context)
-    resource_pressure = resource_projection_pressure_penalty(source, candidate, acc, context)
+    link_pressure = link_capacity_pressure(source, candidate, acc, context)
+    resource_pressure = resource_projection_pressure(source, candidate, acc, context)
 
     ranking_score =
       candidate_score(candidate) - churn_cost - churn_s * move_cost - station_pressure -
-        link_pressure - resource_pressure
+        link_pressure.penalty - resource_pressure.penalty
 
     row =
       %{
@@ -106,13 +106,21 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairReplacementSelection do
         "schedule_churn_penalty" => -churn_cost,
         "schedule_move_penalty" => -(churn_s * move_cost),
         "station_calendar_pressure_penalty" => negative_penalty(station_pressure),
-        "link_capacity_pressure_penalty" => negative_penalty(link_pressure),
-        "resource_projection_pressure_penalty" => negative_penalty(resource_pressure),
+        "link_capacity_pressure_penalty" => negative_penalty(link_pressure.penalty),
+        "resource_projection_pressure_penalty" => negative_penalty(resource_pressure.penalty),
         "ranking_score" => ranking_score
       }
       |> maybe_put_nonempty(
         "station_calendar_pressure_sources",
         station_pressure_sources
+      )
+      |> maybe_put_non_nil(
+        "link_capacity_pressure_shortfall_mb",
+        link_pressure.shortfall_mb
+      )
+      |> maybe_put_nonempty(
+        "resource_projection_pressure_risk_indicators",
+        resource_pressure.risk_indicators
       )
 
     %{
@@ -211,19 +219,23 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairReplacementSelection do
   defp station_calendar_pressure_penalty(_sources, context),
     do: numeric_policy_value(context.scoring_policy, "risk_weight", 1.0)
 
-  defp link_capacity_pressure_penalty(source, candidate, acc, context) do
+  defp link_capacity_pressure(source, candidate, acc, context) do
     projected_activities = projected_activities(source, candidate, acc, context)
 
-    projected_activities
-    |> LinkCapacity.report(projected_activities,
-      policy: context.link_capacity_policy,
-      source: "campaign_repair.replacement_projection"
-    )
-    |> LinkCapacityPressureBranches.selected_shortfall_pressure?()
-    |> then(fn
-      true -> numeric_policy_value(context.scoring_policy, "risk_weight", 1.0)
-      false -> 0.0
-    end)
+    report =
+      LinkCapacity.report(projected_activities, projected_activities,
+        policy: context.link_capacity_policy,
+        source: "campaign_repair.replacement_projection"
+      )
+
+    if LinkCapacityPressureBranches.selected_shortfall_pressure?(report) do
+      %{
+        penalty: numeric_policy_value(context.scoring_policy, "risk_weight", 1.0),
+        shortfall_mb: report["selected_downlink_shortfall_mb"]
+      }
+    else
+      %{penalty: 0.0, shortfall_mb: nil}
+    end
   end
 
   defp projected_activities(source, candidate, acc, context) do
@@ -236,24 +248,30 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairReplacementSelection do
     acc.activities ++ [candidate | future_planned_activities]
   end
 
-  defp resource_projection_pressure_penalty(
+  defp resource_projection_pressure(
          _source,
          _candidate,
          _acc,
          %{source_resource_summaries: []}
        ),
-       do: 0.0
+       do: %{penalty: 0.0, risk_indicators: []}
 
-  defp resource_projection_pressure_penalty(source, candidate, acc, context) do
-    source
-    |> projected_activities(candidate, acc, context)
-    |> ResourceProjection.report(context.source_resource_summaries,
-      model: "thin_repair_replacement_resource_projection",
-      source: "source_resource_summaries"
-    )
-    |> ResourceProjectionRisk.risk_indicators()
-    |> length()
-    |> Kernel.*(numeric_policy_value(context.scoring_policy, "risk_weight", 1.0))
+  defp resource_projection_pressure(source, candidate, acc, context) do
+    risk_indicators =
+      source
+      |> projected_activities(candidate, acc, context)
+      |> ResourceProjection.report(context.source_resource_summaries,
+        model: "thin_repair_replacement_resource_projection",
+        source: "source_resource_summaries"
+      )
+      |> ResourceProjectionRisk.risk_indicators()
+
+    %{
+      penalty:
+        length(risk_indicators) *
+          numeric_policy_value(context.scoring_policy, "risk_weight", 1.0),
+      risk_indicators: risk_indicators
+    }
   end
 
   defp activity_sort_key(activity) do
@@ -272,4 +290,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairReplacementSelection do
 
   defp maybe_put_nonempty(map, _key, []), do: map
   defp maybe_put_nonempty(map, key, values), do: Map.put(map, key, values)
+
+  defp maybe_put_non_nil(map, _key, nil), do: map
+  defp maybe_put_non_nil(map, key, value), do: Map.put(map, key, value)
 end

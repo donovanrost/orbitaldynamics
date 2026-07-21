@@ -71,6 +71,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairLinkCapacityRequirementsTest do
                  "rank" => 2,
                  "candidate_id" => "dl_shortfall",
                  "link_capacity_pressure_penalty" => -1.0,
+                 "link_capacity_pressure_shortfall_mb" => 1.0,
                  "selected" => false,
                  "ranking_score" => shortfall_ranking_score
                }
@@ -86,6 +87,20 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairLinkCapacityRequirementsTest do
     assert_in_delta satisfying_ranking_score, -94.5, 1.0e-9
     assert_in_delta shortfall_ranking_score, -95.0, 1.0e-9
     assert satisfying_link_penalty == 0.0
+
+    [satisfying_ranking_row, _shortfall_ranking_row] =
+      get_in(satisfying_artifact, [
+        "activities",
+        Access.at(0),
+        "repair",
+        "replacement_ranking",
+        "rows"
+      ])
+
+    refute Map.has_key?(
+             satisfying_ranking_row,
+             "link_capacity_pressure_shortfall_mb"
+           )
 
     assert %{
              "selected_capacity_adjusted_throughput_mb" => 100.0,
@@ -116,6 +131,7 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairLinkCapacityRequirementsTest do
                %{
                  "candidate_id" => "dl_shortfall",
                  "link_capacity_pressure_penalty" => -0.25,
+                 "link_capacity_pressure_shortfall_mb" => 1.0,
                  "selected" => true
                },
                %{"candidate_id" => "dl_satisfies", "selected" => false}
@@ -127,6 +143,20 @@ defmodule OrbitalDynamics.CampaignPlanner.RepairLinkCapacityRequirementsTest do
                "repair",
                "replacement_ranking"
              ])
+
+    [_shortfall_ranking_row, satisfying_ranking_row] =
+      get_in(shortfall_artifact, [
+        "activities",
+        Access.at(0),
+        "repair",
+        "replacement_ranking",
+        "rows"
+      ])
+
+    refute Map.has_key?(
+             satisfying_ranking_row,
+             "link_capacity_pressure_shortfall_mb"
+           )
 
     assert %{
              "selected_capacity_adjusted_throughput_mb" => 99.0,

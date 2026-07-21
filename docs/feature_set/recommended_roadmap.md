@@ -75,7 +75,8 @@ Already implemented or heavily covered:
   risk-weight penalties without penalizing unselected affected contacts
 - V2 replacement ranking projects link capacity across already repaired and
   remaining planned activities, applying the same calibrated selected-shortfall
-  unit within semantic candidate-diff priority tiers
+  unit within semantic candidate-diff priority tiers and retaining the exact
+  positive shortfall on pressured alternatives
 - V2 replacement ranking internalizes the same calibrated repair-time
   station-calendar pressure within semantic candidate-diff priority tiers,
   aligning selection with the final repair objective without hard suppression
@@ -90,7 +91,8 @@ Already implemented or heavily covered:
   compatibility projection risk
 - V2 replacement ranking projects alternatives against canonical candidate-
   refresh resource summaries and internalizes the same calibrated per-risk
-  units within semantic candidate-diff priority tiers
+  units within semantic candidate-diff priority tiers while retaining the exact
+  risk indicators on pressured alternatives
 - V2 candidate-refresh source freshness contributes one explicit normalized
   risk-weight penalty for a stale or unknown report, aligned with its
   review/import gate and V3 refresh-freshness pressure semantics

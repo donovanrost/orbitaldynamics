@@ -131,12 +131,15 @@ Status: **implemented** (with **partial**, **near-term**, **later**, and **out o
   Ranked rows expose candidate ID, semantic-diff match/priority, candidate value,
   churn, schedule-move, station-calendar, projected link-capacity, and projected
   resource contributions plus final greedy ranking score and selected flag.
+  Pressured alternatives retain the candidate-specific selected downlink
+  shortfall or resource-risk indicators that produced those projected
+  contributions; nominal alternatives omit the corresponding evidence keys.
   The station-calendar contribution can derive from exact reduced-capacity
   allocation evidence when no separate repair-time calendar is supplied, and
   its source-path list distinguishes allocation-only, calendar-only, and
   dual-source evidence without changing the penalty.
-  The explanation copies no full candidate payloads and explicitly declares
-  that it is not global optimization.
+  The explanation copies no full candidate or projection payloads and
+  explicitly declares that it is not global optimization.
 
 ## Additional reports and reconciliation
 
