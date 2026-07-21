@@ -2612,13 +2612,14 @@ regression fixture for this path.
   route import eligibility without reopening the full readiness report.
 - The fixture's product counts plus source-report family/row totals are pinned
   by the validation-reference fixture report.
-- The curated candidate-scoped operational-readiness selection challenge pins
-  the exact rejected observation and remaining contact, source-specific
-  rejection label, planned-activity/report identity and path, blocked status,
-  candidate selection scope, trust boundary, and
-  `dropped_by_candidate_scoped_operational_readiness` invalidation reason.
-  Stale candidate/reason observations fail reference verification, and a valid
-  readiness report naming a different planned-activity ID produces no rejection.
+- Curated candidate-scoped operational-readiness and quality-gate selection
+  challenges pin the exact rejected observation and remaining contact,
+  source-specific rejection label, planned-activity/report identity and path,
+  blocked status, candidate selection scope, trust boundary, and respective
+  `dropped_by_candidate_scoped_operational_readiness` /
+  `dropped_by_candidate_scoped_quality_gate` invalidation reason. Stale
+  identity/reason observations fail reference verification, and a valid report
+  naming a different planned-activity ID produces no rejection.
 
 **Schema validator checks:**
 

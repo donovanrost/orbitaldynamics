@@ -231,7 +231,7 @@ defmodule OrbitalDynamics.Validation.CandidateRefreshReadinessReplayFixtures do
   end
 
   def candidate_refresh_candidate_scoped_readiness_selection_challenge_fixture do
-    candidate_scoped_readiness_selection_result_set()
+    exact_activity_selection_result_set()
     |> CandidateRefresh.build(
       candidate_refresh:
         candidate_refresh_candidate_scoped_readiness_selection_challenge_request(),
@@ -249,7 +249,7 @@ defmodule OrbitalDynamics.Validation.CandidateRefreshReadinessReplayFixtures do
         )
       )
 
-    candidate_scoped_readiness_selection_result_set()
+    exact_activity_selection_result_set()
     |> CandidateRefresh.build(
       candidate_refresh: request,
       generated_at: ~U[2026-05-14 00:00:00Z]
@@ -320,6 +320,83 @@ defmodule OrbitalDynamics.Validation.CandidateRefreshReadinessReplayFixtures do
     |> OrbitalDynamics.operational_readiness_report()
     |> Map.put("provenance", %{
       "trust_boundary" => "generated_candidate_scoped_readiness_selection_challenge"
+    })
+  end
+
+  def candidate_refresh_candidate_scoped_quality_gate_selection_challenge_fixture_observations do
+    "candidate_refresh.v1"
+    |> Validation.artifact_observations(
+      candidate_refresh_candidate_scoped_quality_gate_selection_challenge_fixture()
+    )
+  end
+
+  def candidate_refresh_candidate_scoped_quality_gate_selection_challenge_fixture do
+    exact_activity_selection_result_set()
+    |> CandidateRefresh.build(
+      candidate_refresh:
+        candidate_refresh_candidate_scoped_quality_gate_selection_challenge_request(),
+      generated_at: ~U[2026-05-14 00:00:00Z]
+    )
+  end
+
+  def candidate_refresh_candidate_scoped_quality_gate_nonmatching_challenge_fixture do
+    request =
+      candidate_refresh_candidate_scoped_quality_gate_selection_challenge_request()
+      |> put_in(
+        ["accepted_planning_state", "quality_gate_report"],
+        candidate_refresh_candidate_scoped_quality_gate_selection_challenge_report(
+          "stale_observe_target_a_1"
+        )
+      )
+
+    exact_activity_selection_result_set()
+    |> CandidateRefresh.build(
+      candidate_refresh: request,
+      generated_at: ~U[2026-05-14 00:00:00Z]
+    )
+  end
+
+  def candidate_refresh_candidate_scoped_quality_gate_selection_challenge_request do
+    blocked_candidate_id = "leo_1_observe_target_a_1"
+
+    candidate_refresh_candidate_scoped_readiness_selection_challenge_request()
+    |> Map.update!("accepted_planning_state", fn accepted_state ->
+      accepted_state
+      |> Map.drop(["operational_readiness_report"])
+      |> Map.put(
+        "snapshot_id",
+        "ops-state-candidate-scoped-quality-gate-selection-challenge"
+      )
+      |> Map.put(
+        "quality_gate_report",
+        candidate_refresh_candidate_scoped_quality_gate_selection_challenge_report(
+          blocked_candidate_id
+        )
+      )
+    end)
+  end
+
+  def candidate_refresh_candidate_scoped_quality_gate_selection_challenge_report(candidate_id) do
+    %{
+      "schema_contract" => "cadence_import_manifest.v1",
+      "model" => "candidate_scoped_quality_gate_selection_challenge_manifest",
+      "manifest_id" => "manifest:#{candidate_id}",
+      "source_artifact_type" => "planned_activity.v1",
+      "source_artifact_id" => candidate_id,
+      "model_limits" => ["adapter_handoff_only"],
+      "rows" => [
+        %{
+          "id" => "import:#{candidate_id}",
+          "rank" => 1,
+          "import_action" => "review_candidate_activity",
+          "import_status" => "blocked_missing_cadence_import",
+          "cadence_import_status" => "invalid"
+        }
+      ]
+    }
+    |> OrbitalDynamics.operational_quality_gate_report()
+    |> Map.put("provenance", %{
+      "trust_boundary" => "generated_candidate_scoped_quality_gate_selection_challenge"
     })
   end
 
@@ -469,7 +546,7 @@ defmodule OrbitalDynamics.Validation.CandidateRefreshReadinessReplayFixtures do
     })
   end
 
-  defp candidate_scoped_readiness_selection_result_set do
+  defp exact_activity_selection_result_set do
     ResultSet.new!(%{
       study_id: :validation,
       trajectory_results: [],

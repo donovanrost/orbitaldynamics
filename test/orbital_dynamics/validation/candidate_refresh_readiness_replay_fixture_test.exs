@@ -5,6 +5,10 @@ defmodule OrbitalDynamics.Validation.CandidateRefreshReadinessReplayFixtureTest 
 
   import OrbitalDynamics.Validation.CandidateRefreshReadinessReplayFixtures,
     only: [
+      candidate_refresh_candidate_scoped_quality_gate_nonmatching_challenge_fixture: 0,
+      candidate_refresh_candidate_scoped_quality_gate_selection_challenge_fixture: 0,
+      candidate_refresh_candidate_scoped_quality_gate_selection_challenge_fixture_observations: 0,
+      candidate_refresh_candidate_scoped_quality_gate_selection_challenge_request: 0,
       candidate_refresh_candidate_scoped_readiness_nonmatching_challenge_fixture: 0,
       candidate_refresh_candidate_scoped_readiness_selection_challenge_fixture: 0,
       candidate_refresh_candidate_scoped_readiness_selection_challenge_fixture_observations: 0,
@@ -572,6 +576,126 @@ defmodule OrbitalDynamics.Validation.CandidateRefreshReadinessReplayFixtureTest 
 
     nonmatching_artifact =
       candidate_refresh_candidate_scoped_readiness_nonmatching_challenge_fixture()
+
+    assert Enum.map(nonmatching_artifact["candidate_activities"], & &1["id"]) == [
+             "leo_1_observe_target_a_1",
+             "leo_1_downlink_equator_prime_1"
+           ]
+
+    assert nonmatching_artifact["candidate_rejection_report"]["rejected_count"] == 0
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
+             Schema.validate_artifact(artifact)
+
+    assert {:ok, %{"schema_contract" => "candidate_refresh.v1"}} =
+             Schema.validate_artifact(nonmatching_artifact)
+  end
+
+  test "verifies exact candidate-scoped quality-gate selection challenge evidence" do
+    fixture_id =
+      "fixture.artifact.candidate_refresh.candidate_scoped_quality_gate_selection_challenge"
+
+    assert {:ok, %{"fixture_type" => "curated_internal_artifact_challenge"}} =
+             Validation.reference_fixture(fixture_id)
+
+    artifact = candidate_refresh_candidate_scoped_quality_gate_selection_challenge_fixture()
+
+    observations =
+      candidate_refresh_candidate_scoped_quality_gate_selection_challenge_fixture_observations()
+
+    assert {:ok, %{"status" => "pass", "checks" => checks}} =
+             Validation.verify_reference_fixture(fixture_id, observations)
+
+    assert Enum.all?(checks, &(&1["status"] == "pass"))
+
+    assert %{
+             "candidate_count" => 1,
+             "candidate_activity_id_keys" => "leo_1_downlink_equator_prime_1",
+             "candidate_rejection_source" => "candidate_refresh.candidate_scoped_quality_gate",
+             "candidate_rejection_rejected_candidate_id_keys" => "leo_1_observe_target_a_1",
+             "candidate_rejection_quality_gate_filter_source_artifact_type_keys" =>
+               "planned_activity.v1",
+             "candidate_rejection_quality_gate_filter_source_artifact_id_keys" =>
+               "leo_1_observe_target_a_1",
+             "candidate_rejection_quality_gate_filter_status_keys" => "blocked",
+             "candidate_rejection_quality_gate_filter_selection_scope_keys" =>
+               "candidate_artifact",
+             "invalidated_candidate_reason_counts" => %{
+               "dropped_by_candidate_scoped_quality_gate" => 1
+             }
+           } = observations
+
+    assert [
+             %{
+               "candidate_id" => "leo_1_observe_target_a_1",
+               "activity_context" => %{
+                 "provenance" => %{
+                   "quality_gate_candidate_filter" => %{
+                     "source_schema_contract" => "quality_gate_report.v1",
+                     "source_artifact_types" => ["planned_activity.v1"],
+                     "source_artifact_ids" => ["leo_1_observe_target_a_1"],
+                     "quality_gate_statuses" => ["blocked"],
+                     "selection_scopes" => ["candidate_artifact"],
+                     "trust_boundaries" => [
+                       "generated_candidate_scoped_quality_gate_selection_challenge"
+                     ]
+                   }
+                 }
+               }
+             },
+             %{"candidate_id" => "leo_1_downlink_equator_prime_1"}
+           ] = artifact["candidate_rejection_report"]["rows"]
+
+    request = candidate_refresh_candidate_scoped_quality_gate_selection_challenge_request()
+    quality_gate_report = get_in(request, ["accepted_planning_state", "quality_gate_report"])
+
+    assert {:ok, %{"schema_contract" => "quality_gate_report.v1"}} =
+             Schema.validate_artifact(quality_gate_report)
+
+    review = OperatorReview.from_candidate_refresh_artifact(artifact)
+    import = CadenceImport.from_candidate_refresh_artifact(artifact)
+
+    assert {:ok, %{"schema_contract" => "operator_review_package.v1"}} =
+             Schema.validate_artifact(review)
+
+    assert {:ok, %{"schema_contract" => "cadence_import_manifest.v1"}} =
+             Schema.validate_artifact(import)
+
+    stale_identity_observations =
+      Map.put(
+        observations,
+        "candidate_rejection_quality_gate_filter_source_artifact_id_keys",
+        "stale_observe_target_a_1"
+      )
+
+    assert {:ok, %{"status" => "fail", "checks" => stale_identity_checks}} =
+             Validation.verify_reference_fixture(fixture_id, stale_identity_observations)
+
+    assert Enum.any?(
+             stale_identity_checks,
+             &(&1["field"] ==
+                 "candidate_rejection_quality_gate_filter_source_artifact_id_keys" and
+                 &1["status"] == "fail")
+           )
+
+    stale_reason_observations =
+      Map.put(
+        observations,
+        "invalidated_candidate_reason_counts",
+        %{"dropped_by_quality_gate_unavailable_resource" => 1}
+      )
+
+    assert {:ok, %{"status" => "fail", "checks" => stale_reason_checks}} =
+             Validation.verify_reference_fixture(fixture_id, stale_reason_observations)
+
+    assert Enum.any?(
+             stale_reason_checks,
+             &(&1["field"] == "invalidated_candidate_reason_counts" and
+                 &1["status"] == "fail")
+           )
+
+    nonmatching_artifact =
+      candidate_refresh_candidate_scoped_quality_gate_nonmatching_challenge_fixture()
 
     assert Enum.map(nonmatching_artifact["candidate_activities"], & &1["id"]) == [
              "leo_1_observe_target_a_1",
